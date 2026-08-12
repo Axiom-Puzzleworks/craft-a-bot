@@ -28,6 +28,8 @@ export interface SessionView {
 	readonly lamp: LampState;
 	readonly world: PlayroomState | undefined;
 	readonly thought: string;
+	/** True while tokens are still arriving for this turn. */
+	readonly streamingNow: boolean;
 	readonly saying: string | undefined;
 	readonly narration: string;
 	readonly tick: number;
@@ -75,6 +77,8 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 		tripped: boolean;
 		thinking: boolean;
 		started: boolean;
+		/** Tokens arriving right now, before the decision lands. */
+		streaming: string;
 	}>({
 		status: 'idle',
 		world: undefined,
@@ -87,7 +91,8 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 		events: [],
 		tripped: false,
 		thinking: false,
-		started: false
+		started: false,
+		streaming: ''
 	});
 
 	let speed = $state(1);
@@ -126,6 +131,15 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 				break;
 			case 'think.started':
 				state.thinking = true;
+				// A new thought starts blank so the streamed one does not append to
+				// the last turn's.
+				state.streaming = '';
+				break;
+			case 'think.token':
+				// Streaming tokens land in the thought bubble as they arrive
+				// (09-ROADMAP.md WP7 DoD) — the whole point of SSE is watching the
+				// bot think rather than waiting for it to finish.
+				state.streaming += event.payload.delta;
 				break;
 			case 'think.completed':
 				state.thinking = false;
@@ -135,7 +149,10 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 				};
 				break;
 			case 'decision':
+				// The final text replaces the streamed one, which may have been cut
+				// short or re-prompted.
 				if (event.payload.thought !== '') state.thought = event.payload.thought;
+				state.streaming = '';
 				break;
 			case 'action.performed': {
 				state.narration = event.payload.result.narration;
@@ -174,8 +191,12 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 		get world() {
 			return state.world;
 		},
+		/** The streamed thought while one is arriving, otherwise the settled one. */
 		get thought() {
-			return state.thought;
+			return state.streaming !== '' ? state.streaming : state.thought;
+		},
+		get streamingNow() {
+			return state.streaming !== '';
 		},
 		get saying() {
 			return state.saying;

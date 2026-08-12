@@ -509,6 +509,61 @@ describe('budgets', () => {
 	});
 });
 
+describe('provider failures', () => {
+	/** A pack's typed error, as 06-LLM-PROVIDERS.md §7 defines it. */
+	class FakeProviderError extends Error {
+		readonly kind = 'bad-key';
+	}
+
+	function throwingProvider(error: unknown) {
+		return {
+			id: 'exploding',
+			name: 'Exploding brain',
+			keyRequirement: 'none' as const,
+			validateKey: () => Promise.resolve({ ok: false, message: 'no' }),
+			chat: () => Promise.reject(error)
+		};
+	}
+
+	async function errorEventFor(error: unknown) {
+		const clock = createTestClock();
+		const session = createSession({
+			spec: buildSpec(),
+			registry: buildRegistry(),
+			provider: throwingProvider(error),
+			guardrails: [],
+			options: { now: clock.now, newId: clock.newId, random: clock.random }
+		});
+		let payload: { message: string; kind?: string | undefined } | undefined;
+		session.events.on('error', (event) => {
+			payload = event.payload;
+		});
+		await session.step();
+		return payload;
+	}
+
+	it('carries a provider error kind through to the trace', async () => {
+		const payload = await errorEventFor(new FakeProviderError('This battery is not charged.'));
+		expect(payload).toMatchObject({ kind: 'bad-key', message: 'This battery is not charged.' });
+	});
+
+	it('falls back to engine for a plain error', async () => {
+		const payload = await errorEventFor(new Error('something broke'));
+		expect(payload?.kind).toBe('engine');
+	});
+
+	it('falls back to engine when the kind is not a usable string', async () => {
+		const weird = Object.assign(new Error('odd'), { kind: 42 });
+		expect((await errorEventFor(weird))?.kind).toBe('engine');
+		const blank = Object.assign(new Error('odd'), { kind: '' });
+		expect((await errorEventFor(blank))?.kind).toBe('engine');
+	});
+
+	it('falls back to engine for something thrown that is not an Error at all', async () => {
+		expect((await errorEventFor('just a string'))?.kind).toBe('engine');
+	});
+});
+
 describe('pause', () => {
 	it('marks a step-mode session paused', async () => {
 		const { session } = makeSession({ script: () => turn('Ping.', 'ping') });

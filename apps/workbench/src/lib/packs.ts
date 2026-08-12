@@ -1,4 +1,5 @@
 import { createPackRegistry, type PackRegistry } from '@craftabot/core';
+import openAiPack from '@craftabot/pack-openai';
 import starterPack from '@craftabot/pack-starter';
 import { demoPack } from './demo-pack.js';
 
@@ -8,10 +9,8 @@ import { demoPack } from './demo-pack.js';
  * magical. A future private pack installs into the same slot by being added to
  * this list in a private build of the app, which is the whole public/private
  * split mechanism (01 §5).
- *
- * `pack-openai` joins the list in WP7.
  */
-export const installedPacks = [starterPack, demoPack];
+export const installedPacks = [starterPack, openAiPack, demoPack];
 
 export function createRegistry(): PackRegistry {
 	const registry = createPackRegistry();

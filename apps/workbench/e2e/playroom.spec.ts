@@ -157,3 +157,21 @@ test('the end card leads back to the bench', async ({ page }) => {
 	await page.getByTestId('end-back-to-bench').click();
 	await expect(page).toHaveURL(/\/bench\//);
 });
+
+test('streamed tokens appear in the thought bubble as they arrive', async ({ page }) => {
+	// The mock provider has streamed since WP3, so this needs no key — but it is
+	// the same `think.token` path a real OpenAI response takes (WP7 DoD).
+	await buildAndGo(page);
+
+	const bubble = page.getByTestId('thought-text');
+	await page.getByTestId('step').click();
+	await expect(bubble).toBeVisible();
+
+	// Every streamed delta became a think.token event on the way.
+	await scrollTraceToTop(page);
+	const tokenRows = page.getByTestId('trace-row').filter({ hasText: 'Thinking…' });
+	expect(await tokenRows.count()).toBeGreaterThan(1);
+
+	// And the settled thought matches the text those tokens spelled out.
+	await expect(bubble).toContainText('table');
+});

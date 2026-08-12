@@ -39,6 +39,18 @@ function wireName(contentId: string): string {
 
 type PayloadFor<T extends EventType> = Extract<EngineEvent, { type: T }>['payload'];
 
+/**
+ * Provider packs throw typed errors carrying a normalised `kind`
+ * (06-LLM-PROVIDERS.md §7). Anything else is an engine fault.
+ */
+function errorKind(error: unknown): string {
+	if (error !== null && typeof error === 'object' && 'kind' in error) {
+		const kind = (error as { kind: unknown }).kind;
+		if (typeof kind === 'string' && kind !== '') return kind;
+	}
+	return 'engine';
+}
+
 export function createSession(deps: CreateSessionDeps): AgentSession {
 	const { spec, registry, provider, guardrails, options = {} } = deps;
 	const newId = options.newId ?? (() => crypto.randomUUID());
@@ -421,7 +433,11 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			return result;
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error);
-			emit('error', { message, kind: 'engine' });
+			// A provider pack throws a typed error carrying its normalised `kind`
+			// (06-LLM-PROVIDERS.md §7). Passing it through means the trace says
+			// "bad-key" rather than a generic engine failure, which is what the
+			// friendly error copy in 03 §9 keys off.
+			emit('error', { message, kind: errorKind(error) });
 			return finish('ERROR');
 		}
 	}

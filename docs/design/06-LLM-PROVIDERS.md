@@ -98,6 +98,21 @@ Wire details: OpenAI Chat Completions API, `stream: true` (SSE), tool definition
 - **Removal:** eject battery = delete key + clear cached validation. "Forget everything" in settings clears all storage.
 - **Recommended-practice copy:** encourage users to create a *separate, spending-capped API key* for Craft A Bot; the battery compartment links each provider's key-management page.
 
+## 6a. What the live API actually does (WP7 findings)
+
+> **Amended 2026-08-12 (WP7):** the following were found by running the live smoke test against a real key. Every one of them passed the offline fixture suite first, because a hand-written fixture only ever rejects what its author thought to reject.
+
+**Keys come back to you.** OpenAI's 401 body quotes the rejected key inside its own message — `Incorrect API key provided: sk-…`. That message flows into `ProviderError.message`, the `error` event, the trace, and any export. `redactSecrets` (§ `04`) matches whole string values and therefore cannot catch a key embedded in a sentence. Provider packs must scrub their own key out of every error before it leaves the pack, by substring replacement; the pack is the last layer that knows the secret. Hard rule 2 depends on this, not merely on "never pass the key into the error module".
+
+**The GPT-5 family rejects `temperature`.** Any value other than the default is a hard 400 (`Unsupported value: 'temperature' does not support 0.7 with this model`), so the parameter must be omitted entirely rather than clamped. The temperature dial is therefore inert for these cartridges, and their defaults record the real value (1) rather than an aspirational one.
+
+**Reasoning models spend the output budget before they speak.** GPT-5 models reason invisibly against `max_completion_tokens`. Measured live, "say hello in under ten words" cost **384 reasoning tokens** at the default setting; at `maxTokens: 300` the budget was exhausted during reasoning and the model returned an empty completion with `finish_reason: length`. Two consequences:
+
+- Cartridges set `reasoning_effort` explicitly, mapped to the `reasoning` stat already printed on the cartridge label — Penny `minimal`, Quick `low`, Deep `medium`. This makes that stat real rather than decorative, and keeps spend on thinking the player can actually read (hard rule 3).
+- Token budgets must leave room for reasoning *and* a reply. The original 200–500 defaults were below the measured reasoning cost alone.
+
+**A bare tool call is a valid answer.** A model may return a tool call with no text at all; that is a decision, not a streaming failure. Nothing may treat "no text tokens" as an error. In practice the engine's own prompt (§ `02` §8, "think briefly — out loud") reliably produces narration *and* an action together, which is what keeps the thought bubble populated.
+
 ## 7. Error normalisation
 
 Provider packs map wire failures to a small typed set the UI can render in kit language (`03-UI-UX-DESIGN.md` §9):

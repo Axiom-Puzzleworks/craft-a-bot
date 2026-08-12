@@ -3,7 +3,8 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { buildTraceFile, type AgentRecord, type RunRecord } from '@craftabot/core';
-	import { createDemoBrain, hasDemoPlan } from '$lib/demo-brain.js';
+	import { chooseBrain } from '$lib/brain.js';
+	import { hasDemoPlan } from '$lib/demo-brain.js';
 	import { createRegistry, packVersions } from '$lib/packs.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import { createBrowserKeyVault } from '$lib/state/keys.js';
@@ -31,6 +32,8 @@
 	let busy = $state(false);
 	let dismissedEndCard = $state(false);
 	let runStartedAt = $state<string | undefined>(undefined);
+	let missingBattery = $state(false);
+	let keyless = $state(true);
 
 	const goalCard = $derived(record ? registry.getGoalCard(record.spec.goalCardId) : undefined);
 	const goalText = $derived(
@@ -38,7 +41,8 @@
 			? (record?.spec.customGoalText ?? '')
 			: (goalCard?.goalText ?? '')
 	);
-	const scripted = $derived(record ? hasDemoPlan(record.spec.goalCardId) : false);
+	// Only the keyless demo brain follows a script; a real model does not.
+	const scripted = $derived(record ? !keyless || hasDemoPlan(record.spec.goalCardId) : false);
 
 	$effect(() => {
 		// Loading the agent and standing up a session is async work.
@@ -51,10 +55,14 @@
 		record = loaded;
 		if (!loaded) return;
 
-		view = createSessionView({
-			spec: loaded.spec,
-			provider: createDemoBrain(loaded.spec.goalCardId)
-		});
+		const cartridge = registry.getCartridge(loaded.spec.bricks.llm?.cartridgeId ?? '');
+		const brain = chooseBrain(cartridge, loaded.spec.goalCardId);
+		if (!brain.ok) {
+			missingBattery = true;
+			return;
+		}
+		keyless = brain.keyless;
+		view = createSessionView({ spec: loaded.spec, provider: brain.provider });
 		runStartedAt = new Date().toISOString();
 	}
 
@@ -143,7 +151,12 @@
 
 <svelte:head><title>Playroom — {record?.spec.name ?? 'Craft A Bot'}</title></svelte:head>
 
-{#if !record || !view}
+{#if missingBattery}
+	<main class="loading" data-testid="play-no-battery">
+		<p>Batteries not included! Pop your OpenAI key into the battery compartment first.</p>
+		<a href={resolve('/settings')}>Open the battery compartment</a>
+	</main>
+{:else if !record || !view}
 	<main class="loading"><p>Fetching your bot…</p></main>
 {:else}
 	<main class="play">

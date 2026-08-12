@@ -4,6 +4,7 @@
 	import { page } from '$app/state';
 	import type { BuildProblem } from '@craftabot/core';
 	import { BRICK_ORDER, type BrickKind } from '$lib/bricks.js';
+	import { NO_BATTERY_MESSAGE, needsBattery } from '$lib/brain.js';
 	import { createRegistry } from '$lib/packs.js';
 	import { createDndController } from '$lib/dnd/dnd-state.svelte.js';
 	import { benchStore } from '$lib/state/bench.svelte.js';
@@ -56,7 +57,17 @@
 	const worldActions = $derived(world?.actions ?? []);
 	const goalCards = $derived(registry.listGoalCards());
 
-	const blockingReason = $derived(benchStore.blocking[0]?.message);
+	const cartridge = $derived(
+		spec?.bricks.llm ? registry.getCartridge(spec.bricks.llm.cartridgeId) : undefined
+	);
+	/**
+	 * Not a `BuildProblem`: keys never touch the AgentSpec, so `validateSpec`
+	 * cannot know about them. This is a UI-level check at GO time (03 §9).
+	 */
+	const batteryMissing = $derived(needsBattery(cartridge));
+	const blockingReason = $derived(
+		batteryMissing ? NO_BATTERY_MESSAGE : benchStore.blocking[0]?.message
+	);
 
 	/** Escape cancels a carry; arrows aim it; Enter places it (03 §4.4). */
 	function onKeyDown(event: KeyboardEvent): void {
@@ -144,8 +155,19 @@
 
 				<BuildChecks problems={benchStore.problems} onjump={jumpToProblem} />
 
+				{#if batteryMissing}
+					<p class="battery-notice" data-testid="battery-notice">
+						{NO_BATTERY_MESSAGE}
+						<a href={resolve('/settings')}>Open the battery compartment</a>
+					</p>
+				{/if}
+
 				<div class="go-row">
-					<GoLever disabled={!benchStore.canGo} reason={blockingReason} onpull={pullGo} />
+					<GoLever
+						disabled={!benchStore.canGo || batteryMissing}
+						reason={blockingReason}
+						onpull={pullGo}
+					/>
 				</div>
 			</section>
 
@@ -272,6 +294,20 @@
 	.go-row {
 		display: flex;
 		justify-content: flex-end;
+	}
+
+	.battery-notice {
+		margin: 0;
+		padding: var(--cab-space-3);
+		font-size: var(--cab-text-sm);
+		background: color-mix(in srgb, var(--cab-yellow) 28%, var(--cab-cream));
+		border: var(--cab-border-part) solid var(--cab-yellow);
+		border-radius: var(--cab-radius-panel);
+	}
+
+	.battery-notice a {
+		color: var(--cab-blue-text);
+		font-weight: 600;
 	}
 
 	.hint {

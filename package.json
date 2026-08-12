@@ -21,7 +21,8 @@
 		"format": "prettier --write .",
 		"e2e": "npm run e2e --workspace=apps/workbench",
 		"demo": "npm run dev --workspace=apps/workbench",
-		"preview": "npm run preview --workspace=apps/workbench"
+		"preview": "npm run preview --workspace=apps/workbench",
+		"smoke:openai": "npm run smoke --workspace=@craftabot/pack-openai"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
