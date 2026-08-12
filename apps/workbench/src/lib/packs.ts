@@ -1,5 +1,6 @@
 import { createPackRegistry, type PackRegistry } from '@craftabot/core';
 import starterPack from '@craftabot/pack-starter';
+import { demoPack } from './demo-pack.js';
 
 /**
  * The explicit pack registry (01-ARCHITECTURE.md §4, 05-TECH-STACK.md §3).
@@ -10,7 +11,7 @@ import starterPack from '@craftabot/pack-starter';
  *
  * `pack-openai` joins the list in WP7.
  */
-export const installedPacks = [starterPack];
+export const installedPacks = [starterPack, demoPack];
 
 export function createRegistry(): PackRegistry {
 	const registry = createPackRegistry();

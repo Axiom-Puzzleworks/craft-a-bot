@@ -237,6 +237,7 @@ describe('the tick sequence', () => {
 
 		expect(seen).toEqual([
 			'run.started',
+			'world.changed', // the opening scene
 			'tick.started',
 			'sense',
 			'prompt.composed',
@@ -307,7 +308,8 @@ describe('the tick sequence', () => {
 		await session.step();
 
 		expect(narration).toContain('cannot teleport');
-		expect(seen).not.toContain('world.changed');
+		// Only the opening scene — a refused action changes nothing.
+		expect(seen.filter((type) => type === 'world.changed')).toHaveLength(1);
 	});
 
 	it('records a thinking turn with no call', async () => {

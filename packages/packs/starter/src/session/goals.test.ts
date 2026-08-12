@@ -103,7 +103,7 @@ describe('Help the teddy get a snack, end-to-end', () => {
 		expect(gave).toBeDefined();
 	});
 
-	it('emits world.changed only when the world actually moved', async () => {
+	it('emits world.changed for the opening scene and for every move that lands', async () => {
 		const run = await runToCompletion({
 			script: obedient(SNACK_PLAN),
 			spec: buildSpec({ goalCardId: 'starter/snack' })
@@ -112,7 +112,10 @@ describe('Help the teddy get a snack, end-to-end', () => {
 		const successfulActions = run
 			.byType('action.performed')
 			.filter((event) => event.type === 'action.performed' && event.payload.result.ok);
-		expect(run.byType('world.changed')).toHaveLength(successfulActions.length);
+		// One extra: the starting state, emitted so the UI never has to reach past
+		// the event stream to draw the first frame.
+		expect(run.byType('world.changed')).toHaveLength(successfulActions.length + 1);
+		expect(run.events[1]?.type).toBe('world.changed');
 	});
 });
 

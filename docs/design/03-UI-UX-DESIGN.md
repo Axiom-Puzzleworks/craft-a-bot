@@ -90,6 +90,10 @@ Three-column layout:
 - **End cards:** each `run.finished` reason gets a full-screen card in kit style — SUCCESS = confetti + "GOAL ACHIEVED!" rosette; OUT_OF_STEPS = the bot sitting down with "Ran out of steps — what would help it plan better?"; STOPPED_BY_GUARDRAIL = the safety brick proudly saluting. Every card has "See the flight recorder" and "Back to the bench".
 - **Export trace** button → JSON download (see `07-DATA-MODEL-PERSISTENCE.md` §5).
 
+> **Amended 2026-08-12 (WP6):** a selected row's payload opens in a **detail pane below the list** rather than expanding the row inline. Inline expansion means variable row heights inside a virtualised list, which makes scrolling markedly more fragile at the 10,000-event target in `01-ARCHITECTURE.md` §8 — and a 2,000-line composed prompt is unreadable squeezed into a row anyway. Same information, same one click, sturdier scrolling.
+>
+> Also from WP6: the engine now emits a `world.changed` immediately after `run.started`, so the opening scene has an event behind it. Without it the world view would have to read the engine's world object directly, which hard rule 3 forbids — and a trace would not contain the state the run began from.
+
 ## 6. Instruction Leaflet (onboarding/tutorial)
 
 - Styled as the fold-out paper instructions from a real kit: numbered steps, exploded diagrams, minimal words, that slightly yellowed paper texture.

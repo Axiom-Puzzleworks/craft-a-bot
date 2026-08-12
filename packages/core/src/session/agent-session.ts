@@ -431,6 +431,11 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		run.status = 'running';
 		run.tick = 0;
 		emit('run.started', { mode: runMode });
+		// The opening scene needs an event behind it too. Without this the UI would
+		// have to reach into the world to draw the first frame, and a replayer
+		// would have no starting state — both of which break hard rule 3
+		// ("if it isn't in an event, it didn't happen").
+		emit('world.changed', { state: world.snapshot() });
 	}
 
 	async function playLoop(): Promise<void> {
