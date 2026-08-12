@@ -55,6 +55,15 @@
 		void openAgent(agentId);
 	});
 
+	// A muted fanfare the first time a run succeeds (04 §6).
+	let cheered = $state(false);
+	$effect(() => {
+		if (view?.outcome === 'SUCCESS' && !cheered) {
+			cheered = true;
+			preferences.cue('fanfare');
+		}
+	});
+
 	// What the leaflet needs to know about this run (03 §6).
 	const leaflet = leafletStore();
 	$effect(() => {

@@ -1,5 +1,6 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { workbenchRoot } from '../../test-support/paths.js';
 import { describe, expect, it } from 'vitest';
 import { ALL_ANCHORS, isAnchor } from './anchors.js';
 import { CHAPTERS } from './chapters.js';
@@ -27,9 +28,7 @@ function svelteSources(dir: string): string[] {
 	return found;
 }
 
-const markup = svelteSources(
-	new URL('../../', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')
-).join('\n');
+const markup = svelteSources(join(workbenchRoot(), 'src')).join('\n');
 
 /** `data-tutorial="tray-{kind}"` covers `tray-llm`, `tray-sense`, and so on. */
 function isPlacedInMarkup(anchor: string): boolean {

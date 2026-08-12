@@ -339,3 +339,20 @@ Wave 3 (P1, release): J → K → A → remaining I/E/L → M.
 2. Choose the source-file tool (Figma vs Affinity) and where `assets-src/` lives.
 3. Prototype **one** brick (suggest `brick-memory`) end-to-end through §4/§6/§8 first — lock the recipe with a real artefact before fanning out to all 155.
 4. Decide whether M3 backdrops are hand-painted, AI-generated-then-cleaned, or hybrid; whichever it is, it must hit the §5 M3 rules and pass the §8 checklist identically.
+
+---
+
+## Status at WP10 (2026-08-12)
+
+**No artwork has been produced.** Every category in this manifest is still standing in as CSS and design tokens: brick silhouettes, sockets, the baseplate, goal cards, panels, the GO lever, the leaflet's paper and creases, and all six merit-badge rosettes. The one real asset in the repo is `favicon.svg`.
+
+That is why `09-ROADMAP.md` WP10 ships as *release-ready except art* and the `v1.0.0` tag is held: the toy currently looks like a wireframe of itself.
+
+What the code already provides, so art can land without touching logic:
+
+- **Tokens, not literals.** No component hard-codes a colour, radius or duration; everything reads `tokens.css` (hard rule 6). Re-skinning is a token change plus an asset swap.
+- **Silhouette hooks.** `BrickShape.svelte` and `SocketShape.svelte` own every brick and socket outline. The six distinct silhouettes `04` §7 requires for non-colour differentiation are drawn there and nowhere else.
+- **`--part-tint`.** Already wired, so a single template can be recoloured per brick kind without new files.
+- **Reduced-motion paths.** Every animation already has an instant-state fallback, so animated art inherits it.
+
+The swap-in seams are therefore CSS-level. The remaining work is production, not integration.

@@ -15,7 +15,7 @@
 	--cab-green: #4e8a3c;
 	--cab-yellow: #e9b62f;
 	--cab-purple: #6c4f9e;
-	--cab-sky: #5b8fcb;
+	--cab-sky: #5484bb;
 	--cab-teal: #3e8f8a;
 	--cab-orange: #d77a3c;
 
@@ -26,6 +26,23 @@
 	--cab-rug: #c9705e;
 
 	/* Darkened text-on-cream variants (§7) */
+	/*
+	 * Fill shades for surfaces that carry small text.
+	 *
+	 * The brand green and red are fine as tints, borders and brick colours, but
+	 * cream text on them measures 3.46 and 4.21 — under the 4.5 that WCAG AA
+	 * wants for normal text, and the build-checks chips set that text at 11px.
+	 * These are the same hues taken down far enough to carry it. The palette
+	 * already had this idea for foregrounds (`--cab-*-text` below); this is the
+	 * background half of it.
+	 *
+	 * `--cab-sky` itself was nudged from #5B8FCB to #5484BB for the same reason:
+	 * as the "paused" status lamp it is a state indicator, and it measured 2.79
+	 * against cream, below the 3:1 that non-text UI parts need.
+	 */
+	--cab-green-fill: #407131;
+	--cab-red-fill: #bb362b;
+
 	--cab-blue-text: #1c4485;
 	--cab-red-text: #a72e24;
 	--cab-green-text: #3a6e2c;

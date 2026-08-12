@@ -60,6 +60,8 @@ Six-chapter tutorial overlay per `03-UI-UX-DESIGN.md` §6 wired to the designed 
 Final art swap-in, motion & sound, reduced-motion audit, AA contrast audit, bundle budget, README + demo deployment (`npm run demo` build to static host), licence decision recorded, tag `v1.0.0`.
 **DoD:** non-functional targets in `01-ARCHITECTURE.md` §8 measured and met; a stranger can go from URL → built bot → snack success with no help.
 
+> **Amended 2026-08-12 (WP10):** delivered as *release-ready except art*. Motion and sound, the reduced-motion audit, the AA contrast audit, the bundle budget, the offline app shell, trace capacity, README and the licence are all done and measured. **Held deliberately:** the final art swap-in (the artwork does not exist yet — `11-VISUAL-ASSET-MANIFEST.md` records what is owed), the demo *deployment* (needs a host), and the **`v1.0.0` tag**, which should not be cut on placeholder art. Tagging is a separate, deliberate step once the art lands.
+
 ## 3. Suggested Claude Code prompting pattern per WP
 
 Start each WP session with: *"Read CLAUDE.md, then docs/design/09-ROADMAP.md WP{n} and its listed design docs. Propose a task breakdown before writing code."* Keep one WP per branch/PR; PR description links the WP and lists any deliberate deviations from the docs (deviations also get a dated note in the relevant doc — the docs stay true).
@@ -75,7 +77,7 @@ Start each WP session with: *"Read CLAUDE.md, then docs/design/09-ROADMAP.md WP{
 
 ## 5. Open questions (park, don't block)
 
-- Licence: Apache-2.0 vs MIT (+ trademark on the brand?). Decide by WP10 (`00` §4).
+- ~~Licence: Apache-2.0 vs MIT (+ trademark on the brand?). Decide by WP10 (`00` §4).~~ **Decided 2026-08-12 (WP10): Apache-2.0**, for the express patent grant and trademark clause, with `@craftabot/governance` intended for separate release. `LICENSE` is at the repo root. Trademark on the brand remains open and is not blocking.
 - Sound design: source or commission? (Off-by-default regardless.)
 - Name check: "Craft A Bot" trademark/domain search before public release.
 - Whether the public demo ships with a rate-limited shared key (probably not — mock-provider demo avoids all custody questions).

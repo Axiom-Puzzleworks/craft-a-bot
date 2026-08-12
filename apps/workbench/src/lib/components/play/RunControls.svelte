@@ -103,7 +103,7 @@
 	.primary {
 		font-size: var(--cab-text-base);
 		padding: var(--cab-space-2) var(--cab-space-5);
-		background: var(--cab-green);
+		background: var(--cab-green-fill);
 		color: var(--cab-cream);
 		border-color: var(--cab-green);
 		letter-spacing: 0.08em;

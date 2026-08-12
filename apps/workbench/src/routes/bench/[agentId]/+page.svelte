@@ -9,6 +9,7 @@
 	import { createDndController } from '$lib/dnd/dnd-state.svelte.js';
 	import { benchStore } from '$lib/state/bench.svelte.js';
 	import { leafletStore } from '$lib/leaflet/leaflet.svelte.js';
+	import { preferences } from '$lib/state/preferences.svelte.js';
 	import Announcer from '$lib/components/bench/Announcer.svelte';
 	import Baseplate from '$lib/components/bench/Baseplate.svelte';
 	import BrickPanel from '$lib/components/bench/BrickPanel.svelte';
@@ -31,6 +32,7 @@
 	const controller = createDndController({
 		onPlace: (kind) => {
 			benchStore.fitBrick(kind);
+			preferences.cue('snap');
 			selected = kind;
 		},
 		onRemove: (kind) => {

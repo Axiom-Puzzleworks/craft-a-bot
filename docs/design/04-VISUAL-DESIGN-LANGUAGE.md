@@ -95,6 +95,18 @@ Rules: headings in Title Case or ALL CAPS with keylines, never lowercase minimal
 - Focus states: 3px `--cab-blue` outer ring with 2px cream gap — chunky and period-appropriate, highly visible on every background.
 - Halftone/grain textures stay below 5% opacity behind text blocks.
 
+> **Amended 2026-08-12 (WP10):** measured, the claim above that white on blue/red/purple/green "all pass AA" does not hold at the sizes the app uses. WCAG's 3:1 relief begins at 18.66px bold or 24px regular; the build-checks chips set their text at `--cab-text-xs`, which is **11px**, so they need 4.5:1. Against cream, the shipped pairs measured `cream on green` **3.46**, `cream on red` **4.21**, `ink on green` **3.59**, and `white on green` **4.18** — four failures in live UI. `--cab-sky` separately measured **2.79** against cream, below the 3:1 that a status indicator needs.
+>
+> Rather than restate the palette, the fix keeps the brand hues for tints, borders and brick colours and adds darkened **fill** variants for surfaces that carry small text — the background counterpart of the `--cab-*-text` foregrounds that already existed for exactly this reason:
+>
+> | Token | Value | Carries |
+> |---|---|---|
+> | `--cab-green-fill` | `#407131` | cream text at 4.80:1 — the "ready" chip, the STEP button |
+> | `--cab-red-fill` | `#BB362B` | cream text at 4.73:1 — the "blocking" chip, the GO lever |
+> | `--cab-sky` (changed) | `#5484BB` | 3.22:1 against cream as a state indicator |
+>
+> No single shade can carry both cream and ink at 4.5:1, so the buttons that previously set ink on green now use cream on `--cab-green-fill` instead of getting a paler green. The audit is now a test (`apps/workbench/src/lib/styles/contrast.test.ts`) that parses `tokens.css` itself, so a future nudge to a hex fails the suite rather than quietly failing users.
+
 ## 8. Voice & copy style
 
 - Warm, encouraging, lightly witty; UK English; never sarcastic about the user's bot, always curious ("Hmm — Snackbot forgot where the snack was. What might help it remember?").

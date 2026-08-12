@@ -11,10 +11,8 @@
 	 * Settings (03-UI-UX-DESIGN.md §7): the battery compartment, preferences, and
 	 * About.
 	 *
-	 * There is deliberately no sound switch. The schema has carried a `sound`
-	 * preference since WP4, but nothing makes a sound until WP10 adds audio, and
-	 * a control that does nothing is a lie about what the product does. A dated
-	 * note in `03` §7 records the deferral.
+	 * The sound switch was withheld in WP9 because nothing made a noise yet.
+	 * WP10 adds the cues (`04` §6), so it appears here and controls something.
 	 */
 	const bay = createBatteryBay();
 	const leaflet = leafletStore();
@@ -34,6 +32,13 @@
 
 	<Panel title="Preferences" accent="var(--cab-blue)">
 		<div class="prefs" data-testid="preferences">
+			<Rocker
+				label="Sound"
+				hint="Small clunks and clicks as you build. Off by default."
+				checked={preferences.sound}
+				onchange={(value) => preferences.setSound(value)}
+			/>
+
 			<Rocker
 				label="Reduce motion"
 				hint="Snaps and settles become instant. Your system setting is honoured too."

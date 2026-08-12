@@ -117,7 +117,8 @@
 	}
 
 	.allow {
-		background: var(--cab-green);
+		background: var(--cab-green-fill);
+		color: var(--cab-cream);
 	}
 
 	button:focus-visible {

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { LeafletController } from '$lib/leaflet/leaflet.svelte.js';
+	import { preferences } from '$lib/state/preferences.svelte.js';
 	import BadgePage from './BadgePage.svelte';
 	import Spotlight from './Spotlight.svelte';
 
@@ -142,7 +143,15 @@
 	</aside>
 {:else}
 	<!-- The drawer handle, present in both modes (03 §6). -->
-	<button type="button" class="handle" data-testid="leaflet-handle" onclick={() => leaflet.show()}>
+	<button
+		type="button"
+		class="handle"
+		data-testid="leaflet-handle"
+		onclick={() => {
+			preferences.cue('rustle');
+			leaflet.show();
+		}}
+	>
 		Instructions
 	</button>
 {/if}
@@ -274,7 +283,8 @@
 	}
 
 	button.primary {
-		background: var(--cab-green);
+		background: var(--cab-green-fill);
+		color: var(--cab-cream);
 	}
 
 	button:focus-visible {

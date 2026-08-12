@@ -20,6 +20,15 @@ body {
 	outline-offset: 2px;
 }
 
+/*
+ * Reduced motion, from either source (03-UI-UX-DESIGN.md §8, 04 §6).
+ *
+ * The settings toggle writes `data-reduced-motion` on the document element.
+ * Until WP10 only the media query was honoured here, so a user who ticked
+ * "Reduce motion" without an OS-level setting still got the full animation —
+ * exactly one component read the attribute. Both routes now land on the same
+ * rule, which is the only way the preference can be trusted.
+ */
 @media (prefers-reduced-motion: reduce) {
 	*,
 	*::before,
@@ -27,5 +36,15 @@ body {
 		animation-duration: 0.001ms !important;
 		animation-iteration-count: 1 !important;
 		transition-duration: 0.001ms !important;
+		scroll-behavior: auto !important;
 	}
+}
+
+[data-reduced-motion='true'] *,
+[data-reduced-motion='true'] *::before,
+[data-reduced-motion='true'] *::after {
+	animation-duration: 0.001ms !important;
+	animation-iteration-count: 1 !important;
+	transition-duration: 0.001ms !important;
+	scroll-behavior: auto !important;
 }

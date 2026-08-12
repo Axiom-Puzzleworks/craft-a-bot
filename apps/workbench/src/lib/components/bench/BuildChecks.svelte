@@ -91,11 +91,11 @@
 	}
 
 	.chip--ok {
-		background: var(--cab-green);
+		background: var(--cab-green-fill);
 		color: var(--cab-cream);
 	}
 	.chip--blocking {
-		background: var(--cab-red);
+		background: var(--cab-red-fill);
 		color: var(--cab-cream);
 	}
 	.chip--warning {

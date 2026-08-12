@@ -45,7 +45,7 @@
 		padding: var(--cab-space-3) var(--cab-space-5);
 		border: var(--cab-border-panel) solid var(--cab-ink);
 		border-radius: var(--cab-radius-part);
-		background: var(--cab-red);
+		background: var(--cab-red-fill);
 		color: var(--cab-cream);
 		font-size: var(--cab-text-xl);
 		font-weight: 800;
