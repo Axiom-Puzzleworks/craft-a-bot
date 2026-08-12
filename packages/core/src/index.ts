@@ -1,6 +1,120 @@
 /**
  * @craftabot/core — headless agent engine.
- * WP0 stub; the real surface (types, schemas, EventBus, AgentSession) lands in WP1.
- * See docs/design/02-AGENT-MODEL.md.
+ * Public API. See docs/design/02-AGENT-MODEL.md, 07-DATA-MODEL-PERSISTENCE.md.
  */
-export const CRAFTABOT_CORE_VERSION = '0.0.1';
+
+// Types (hand-written interfaces — 02-AGENT-MODEL.md §6, 06 §2, 08 §2, 02 §4)
+export type {
+	AgentSession,
+	CreateSession,
+	CreateSessionDeps,
+	RunMode,
+	RunOutcome,
+	SessionStatus,
+	TickResult
+} from './types/agent-session.js';
+export type {
+	ChatMessage,
+	ChatRequest,
+	ChatResponse,
+	ChatRole,
+	KeyCheck,
+	LLMProvider,
+	ProviderError,
+	ProviderErrorKind,
+	ToolSchema
+} from './types/provider.js';
+export type {
+	Guardrail,
+	GuardrailContext,
+	GuardrailHook,
+	GuardrailVerdict
+} from './types/guardrail.js';
+export type {
+	ActionCall,
+	ActionResult,
+	Observation,
+	WorldActionDefinition,
+	WorldDefinition,
+	WorldInstance,
+	WorldLayout,
+	WorldSenseDefinition,
+	WorldState
+} from './types/world.js';
+export type { JsonSchema } from './types/json-schema.js';
+export type {
+	ActionId,
+	BrickId,
+	CartridgeId,
+	ConceptTag,
+	GoalCardId,
+	GuardrailId,
+	SenseChannelId,
+	ToolId,
+	WorldId,
+	WorldPredicateId
+} from './types/ids.js';
+export type {
+	BrickSlot,
+	BuildProblem,
+	BuildProblemCode,
+	BuildProblemSeverity
+} from './types/build-problem.js';
+
+// Schemas (Zod-first types — 07-DATA-MODEL-PERSISTENCE.md §6)
+export {
+	agentSpecSchema,
+	parseAgentSpec,
+	safeParseAgentSpec,
+	type AgentSpec
+} from './schemas/agent-spec.js';
+export {
+	brickDefinitionSchema,
+	cartridgeDefinitionSchema,
+	goalCardDefinitionSchema,
+	packManifestMetadataSchema,
+	toolDefinitionSchema,
+	type BrickDefinition,
+	type CartridgeDefinition,
+	type GoalCardDefinition,
+	type GuardrailDefinition,
+	type PackArtwork,
+	type PackManifest,
+	type PackManifestMetadata,
+	type ToolDefinition
+} from './schemas/pack-manifest.js';
+export {
+	engineEventSchema,
+	parseEngineEvent,
+	safeParseEngineEvent,
+	type EngineEvent,
+	type EventType
+} from './schemas/events.js';
+export {
+	kitFileSchema,
+	migrateKitFile,
+	parseKitFile,
+	safeParseKitFile,
+	type KitFile,
+	type MigrationError
+} from './schemas/kit-file.js';
+export {
+	computeTraceDigest,
+	parseTraceFile,
+	runRecordSchema,
+	safeParseTraceFile,
+	traceFileSchema,
+	type RunRecord,
+	type TraceFile
+} from './schemas/trace-file.js';
+
+// Utilities
+export {
+	createEventBus,
+	type AnyEventListener,
+	type EventBus,
+	type EventListener,
+	type Unsubscribe
+} from './event-bus.js';
+export { createPackRegistry, type PackRegistry } from './pack-registry.js';
+export { validateSpec } from './validate-spec.js';

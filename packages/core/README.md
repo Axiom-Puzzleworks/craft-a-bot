@@ -4,11 +4,18 @@ Headless agent engine: `AgentSession`, the sense→think→act loop, core interf
 worlds, providers, guardrails, events), Zod schemas, `EventBus`, pack registry types.
 See `docs/design/02-AGENT-MODEL.md` and `docs/design/01-ARCHITECTURE.md`.
 
-**Status:** WP0 scaffold only — real API arrives in WP1 (`docs/design/09-ROADMAP.md`).
+**Status:** WP1 — types, Zod schemas, `EventBus`, `PackRegistry`, and `validateSpec` are real and
+tested. `AgentSession`'s tick-loop implementation is a type contract only; the runtime lands in
+WP3 (`docs/design/09-ROADMAP.md`).
 
 ## Public API sketch
 
-Real exports land in WP1. Currently: `CRAFTABOT_CORE_VERSION`.
+- **Types:** `AgentSession` (+ `CreateSession` contract), `LLMProvider`, `Guardrail`/
+  `GuardrailVerdict`/`GuardrailContext`, `WorldDefinition`/`WorldInstance`, `BuildProblem`.
+- **Schemas** (`z.infer`-derived, with `parseX`/`safeParseX`): `AgentSpec`, `EngineEvent`,
+  `KitFile` (+ `migrateKitFile`), `TraceFile` (+ `computeTraceDigest`), pack-manifest content
+  types (`BrickDefinition`, `ToolDefinition`, `CartridgeDefinition`, `GoalCardDefinition`).
+- **Utilities:** `createEventBus`, `createPackRegistry`, `validateSpec`.
 
 ## Not allowed to depend on
 

@@ -1,0 +1,21 @@
+{
+	"format": "craftabot-kit",
+	"formatVersion": 1,
+	"exportedAt": "2026-08-12T10:00:00Z",
+	"exportedBy": "craftabot-workbench/1.0.0",
+	"requires": {
+		"core": ">=1.0.0",
+		"packs": { "starter": ">=1.0.0" }
+	},
+	"agent": {
+		"id": "not-a-uuid",
+		"name": "",
+		"bricks": {
+			"memory": { "windowSize": 7, "notebook": true }
+		},
+		"goalCardId": "starter/snack-goal",
+		"createdAt": "2026-08-12T09:00:00Z",
+		"updatedAt": "2026-08-12T09:30:00Z",
+		"schemaVersion": 1
+	}
+}
