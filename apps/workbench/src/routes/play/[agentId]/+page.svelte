@@ -5,7 +5,9 @@
 	import { buildTraceFile, type AgentRecord, type RunRecord } from '@craftabot/core';
 	import { guardrailsForSpec } from '@craftabot/governance';
 	import { chooseBrain } from '$lib/brain.js';
-	import { hasDemoPlan } from '$lib/demo-brain.js';
+	import { demoVariantFor, hasDemoPlan } from '$lib/demo-brain.js';
+	import { leafletStore } from '$lib/leaflet/leaflet.svelte.js';
+	import { preferences } from '$lib/state/preferences.svelte.js';
 	import { createRegistry, packVersions } from '$lib/packs.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import { createBrowserKeyVault } from '$lib/state/keys.js';
@@ -30,7 +32,9 @@
 
 	let record = $state<AgentRecord | undefined>(undefined);
 	let view = $state<SessionView | undefined>(undefined);
-	let speed = $state(1);
+	// The preferred speed is the *starting* speed; the dial still overrides it
+	// for the current run (03 §7).
+	let speed = $state(preferences.tickSpeed);
 	let busy = $state(false);
 	let dismissedEndCard = $state(false);
 	let runStartedAt = $state<string | undefined>(undefined);
@@ -51,6 +55,24 @@
 		void openAgent(agentId);
 	});
 
+	// What the leaflet needs to know about this run (03 §6).
+	const leaflet = leafletStore();
+	$effect(() => {
+		const loaded = record;
+		if (!loaded) return;
+		leaflet.report({
+			spec: loaded.spec,
+			outcome: view?.outcome,
+			variant: demoVariantFor(loaded.spec.goalCardId, loaded.spec),
+			ticks: view?.tick ?? 0,
+			usedTools:
+				view?.events
+					.filter((event) => event.type === 'tool.executed')
+					.map((event) => (event.type === 'tool.executed' ? event.payload.name : '')) ?? [],
+			sawApproval: view?.events.some((event) => event.type === 'approval.requested') ?? false
+		});
+	});
+
 	async function openAgent(id: string): Promise<void> {
 		const storage = await appStorage();
 		const loaded = await storage.getAgent(id);
@@ -58,7 +80,7 @@
 		if (!loaded) return;
 
 		const cartridge = registry.getCartridge(loaded.spec.bricks.llm?.cartridgeId ?? '');
-		const brain = chooseBrain(cartridge, loaded.spec.goalCardId);
+		const brain = chooseBrain(cartridge, loaded.spec.goalCardId, loaded.spec);
 		if (!brain.ok) {
 			missingBattery = true;
 			return;
@@ -71,6 +93,7 @@
 			provider: brain.provider,
 			guardrails: guardrailsForSpec(loaded.spec)
 		});
+		view.setSpeed(speed);
 		runStartedAt = new Date().toISOString();
 	}
 
@@ -211,7 +234,11 @@
 					onreset={reset}
 					onspeed={setSpeed}
 				/>
-				<a class="back" href={resolve('/bench/[agentId]', { agentId })}>← Back to the bench</a>
+				<a
+					class="back"
+					data-tutorial="back-to-bench"
+					href={resolve('/bench/[agentId]', { agentId })}>← Back to the bench</a
+				>
 			</aside>
 		</div>
 

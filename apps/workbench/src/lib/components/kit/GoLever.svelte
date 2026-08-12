@@ -15,7 +15,7 @@
 	const reasonId = $props.id();
 </script>
 
-<div class="go">
+<div class="go" data-tutorial="go-lever">
 	<button
 		type="button"
 		{disabled}

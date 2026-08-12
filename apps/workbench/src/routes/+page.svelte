@@ -79,6 +79,7 @@
 					type="button"
 					class="primary"
 					data-testid="new-bot"
+					data-tutorial="new-bot"
 					disabled={busy}
 					onclick={newBot}
 				>

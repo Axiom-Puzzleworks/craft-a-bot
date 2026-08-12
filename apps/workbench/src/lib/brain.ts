@@ -1,4 +1,4 @@
-import type { CartridgeDefinition, LLMProvider } from '@craftabot/core';
+import type { AgentSpec, CartridgeDefinition, LLMProvider } from '@craftabot/core';
 import { createOpenAIProvider, OPENAI_PROVIDER_ID } from '@craftabot/pack-openai';
 import { createDemoBrain } from './demo-brain.js';
 import { createBrowserKeyVault } from './state/keys.js';
@@ -19,9 +19,15 @@ export type BrainChoice =
 	| { ok: true; provider: LLMProvider; keyless: boolean }
 	| { ok: false; reason: 'no-key'; providerId: string };
 
+/**
+ * `spec` is passed to the demo brain so its scripted runs can fail the way the
+ * bot's missing bricks predict (`demo-brain.ts`, 02 §9). A real provider never
+ * receives it — the model learns what it is built from through the prompt.
+ */
 export function chooseBrain(
 	cartridge: CartridgeDefinition | undefined,
-	goalCardId: string
+	goalCardId: string,
+	spec?: AgentSpec
 ): BrainChoice {
 	if (cartridge?.providerId === OPENAI_PROVIDER_ID) {
 		const apiKey = createBrowserKeyVault().get(OPENAI_PROVIDER_ID);
@@ -31,7 +37,7 @@ export function chooseBrain(
 	}
 
 	// The Demo Brain, and anything unrecognised, runs on the scripted mock.
-	return { ok: true, provider: createDemoBrain(goalCardId), keyless: true };
+	return { ok: true, provider: createDemoBrain(goalCardId, spec), keyless: true };
 }
 
 /** Does this cartridge need a battery before GO will light? (03 §9) */

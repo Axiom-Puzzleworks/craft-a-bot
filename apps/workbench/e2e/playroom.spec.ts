@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { skipTutorial } from './support.js';
 
 /**
  * WP6 definition of done: a full snack-goal run visible tick-by-tick with the
@@ -44,6 +45,8 @@ async function buildAndGo(page: Page, cardTestId = 'card-snack'): Promise<void> 
 	await page.getByRole('button', { name: /GO/ }).click();
 	await expect(page).toHaveURL(/\/play\//);
 }
+
+test.beforeEach(async ({ page }) => skipTutorial(page));
 
 test('runs the snack goal tick-by-tick and reaches the success end card', async ({ page }) => {
 	await buildAndGo(page);

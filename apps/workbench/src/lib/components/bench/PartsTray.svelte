@@ -43,6 +43,7 @@
 				type="button"
 				class="part"
 				data-testid="tray-{kind}"
+				data-tutorial="tray-{kind}"
 				data-fitted={fitted}
 				aria-label="{brick.name}. {fitted
 					? 'Already fitted to your bot.'

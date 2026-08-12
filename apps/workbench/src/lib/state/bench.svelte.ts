@@ -29,7 +29,17 @@ export const BRICK_DEFAULTS = {
 	memory: { windowSize: 10 as const, notebook: false },
 	tools: { enabled: [] as string[] },
 	sense: { channels: ['sight', 'compass'] },
-	actions: { enabled: ['move', 'say', 'celebrate'] },
+	/*
+	 * All seven Playroom actions (02-AGENT-MODEL.md §2.5), not a starter subset.
+	 *
+	 * This used to be `['move', 'say', 'celebrate']`, and most Goal Cards were
+	 * quietly unreachable with it — the snack goal needs `pick_up` and `give`.
+	 * Nobody noticed because until WP9 the engine performed any action the world
+	 * defined, enabled or not, so the checkboxes did nothing. Now that the brick
+	 * genuinely gates, fitting "hands and wheels" has to actually give the bot
+	 * hands; the checkboxes are for taking capabilities *away*.
+	 */
+	actions: { enabled: ['move', 'pick_up', 'put_down', 'give', 'open', 'say', 'celebrate'] },
 	safety: { maxTicks: 30, blockedActions: [] as string[], approvalMode: false }
 };
 

@@ -1,4 +1,4 @@
-import type { EventType } from '@craftabot/core';
+import type { EngineEvent, EventType } from '@craftabot/core';
 
 /**
  * Trace rows are colour-coded by brick (03-UI-UX-DESIGN.md §5.2) using the
@@ -63,6 +63,44 @@ export function laneOf(type: EventType): TraceLane {
 
 export function labelOf(type: EventType): string {
 	return LABELS[type];
+}
+
+/**
+ * The row label, given the event itself.
+ *
+ * Almost always just the type's label. The exception is 03-UI-UX-DESIGN.md §9's
+ * **"The bot mumbled"**: a `decision` carrying neither a call nor a thought is
+ * the malformed-output case, and calling that "Decided" hides the one teaching
+ * moment the row exists for. Derived from the payload rather than from a new
+ * event type — the data is already in the trace, so hard rule 3 holds.
+ */
+export function labelForEvent(event: EngineEvent): string {
+	if (event.type === 'decision' && event.payload.call === null && event.payload.thought === '') {
+		return 'The bot mumbled';
+	}
+	if (event.type === 'error') return errorLabel(event.payload.kind ?? '');
+	return labelOf(event.type);
+}
+
+/**
+ * Kit-language copy for each provider failure — the "kit copy hook" column of
+ * `06-LLM-PROVIDERS.md` §7, which `03` §9 asks for as "plain-language
+ * explanation… raw error one click away". The raw payload is the click: it is
+ * already in the row's detail pane, untouched. This is the layer on top, never
+ * a replacement (03 §9).
+ */
+const ERROR_COPY: Record<string, string> = {
+	'bad-key': "This battery isn't charged",
+	'rate-limited': 'The brain needs a breather',
+	quota: 'This battery is flat',
+	filtered: 'The brain declined to answer',
+	network: "Can't reach the brain factory",
+	'provider-down': 'The brain factory is having a bad day',
+	malformed: 'The brain sent something unreadable'
+};
+
+export function errorLabel(kind: string): string {
+	return ERROR_COPY[kind] ?? 'Something went wrong';
 }
 
 /** The lane's name in words, for the row's accessible description. */

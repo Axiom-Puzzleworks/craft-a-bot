@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { skipTutorial } from './support.js';
 
 /**
  * WP5 definition of done, part three: **invalid builds show the correct checks**.
@@ -25,6 +26,8 @@ async function fitBrick(page: Page, kind: string): Promise<void> {
 	await page.keyboard.press('Enter');
 	await expect(page.getByTestId(`socket-${kind}`)).toHaveAttribute('data-fitted', 'true');
 }
+
+test.beforeEach(async ({ page }) => skipTutorial(page));
 
 test('a brainless bot is blocked, and says why', async ({ page }) => {
 	await newBot(page);

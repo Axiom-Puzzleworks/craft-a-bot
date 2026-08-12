@@ -29,6 +29,7 @@
 		type="button"
 		class="primary"
 		data-testid="step"
+		data-tutorial="step-button"
 		disabled={finished || running || busy}
 		onclick={onstep}
 	>

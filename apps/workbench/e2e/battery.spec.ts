@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { skipTutorial } from './support.js';
 
 /**
  * The battery compartment (03-UI-UX-DESIGN.md §7) and the "batteries not
@@ -50,6 +51,8 @@ async function buildBot(page: Page, cartridgeLabel: string): Promise<string> {
 	await page.getByTestId('cartridge-select').selectOption({ label: cartridgeLabel });
 	return page.url();
 }
+
+test.beforeEach(async ({ page }) => skipTutorial(page));
 
 test('insert a battery, watch it charge, then eject it', async ({ page }) => {
 	await stubOpenAi(page);

@@ -64,11 +64,17 @@ export function migrateKitFile(value: unknown): KitFile | MigrationError {
 	const version = raw['formatVersion'];
 	const migration = typeof version === 'number' ? kitFileMigrations[version] : undefined;
 	if (!migration) {
-		return {
-			kind: 'migration-error',
-			message: 'unrecognised kit file formatVersion',
-			detectedVersion: version
-		};
+		// 03-UI-UX-DESIGN.md §9 asks for this in kit language, with the version
+		// details kept rather than swallowed: a file from a *newer* set is a
+		// different situation from a file that is simply broken, and the reader
+		// can do something about the first one.
+		const known = Object.keys(kitFileMigrations).map(Number);
+		const newest = Math.max(...known);
+		const message =
+			typeof version === 'number' && version > newest
+				? `This kit is from a newer set! It needs kit format v${version}, and this workbench understands v${newest}.`
+				: 'This does not look like a kit file — it has no recognisable format version.';
+		return { kind: 'migration-error', message, detectedVersion: version };
 	}
 	return migration(raw);
 }

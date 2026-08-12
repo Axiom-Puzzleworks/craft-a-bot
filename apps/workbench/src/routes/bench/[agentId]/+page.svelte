@@ -8,6 +8,7 @@
 	import { createRegistry } from '$lib/packs.js';
 	import { createDndController } from '$lib/dnd/dnd-state.svelte.js';
 	import { benchStore } from '$lib/state/bench.svelte.js';
+	import { leafletStore } from '$lib/leaflet/leaflet.svelte.js';
 	import Announcer from '$lib/components/bench/Announcer.svelte';
 	import Baseplate from '$lib/components/bench/Baseplate.svelte';
 	import BrickPanel from '$lib/components/bench/BrickPanel.svelte';
@@ -47,6 +48,12 @@
 	});
 
 	const spec = $derived(benchStore.spec);
+
+	// The leaflet advances by watching what the user builds (03 §6).
+	const leaflet = leafletStore();
+	$effect(() => {
+		if (spec) leaflet.report({ spec });
+	});
 	const world = $derived(
 		benchStore.goalCard ? registry.getWorld(benchStore.goalCard.worldId) : undefined
 	);

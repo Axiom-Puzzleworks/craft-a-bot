@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { skipTutorial } from './support.js';
 
 /**
  * WP5 definition of done, part one: **build a valid bot mouse-only**.
@@ -29,6 +30,8 @@ async function dragBrickToSocket(page: Page, kind: string): Promise<void> {
 	await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 8 });
 	await page.mouse.up();
 }
+
+test.beforeEach(async ({ page }) => skipTutorial(page));
 
 test('builds a bot with the mouse and pulls the GO lever', async ({ page }) => {
 	await newBot(page);

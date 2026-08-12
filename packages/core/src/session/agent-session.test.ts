@@ -312,6 +312,34 @@ describe('the tick sequence', () => {
 		expect(seen.filter((type) => type === 'world.changed')).toHaveLength(1);
 	});
 
+	it('refuses an action the world has but the bot was not built with', async () => {
+		// Found via the teaching arc: without this the Actions brick gated nothing,
+		// and a bot with no hands could still move and speak (02 §9, chapter 1).
+		const spec = buildSpec();
+		delete spec.bricks.actions;
+		const { session, seen } = makeSession({ spec, script: [turn('Off I go.', 'ping')] });
+
+		let narration = '';
+		session.events.on('action.performed', (event) => {
+			narration = event.payload.result.narration;
+		});
+		await session.step();
+
+		expect(narration).toContain('not been built with any way to do it');
+		// Nothing happened to the world, so nothing was announced about it.
+		expect(seen.filter((type) => type === 'world.changed')).toHaveLength(1);
+	});
+
+	it('performs the same action once the brick grants it', async () => {
+		const { session } = makeSession({ script: [turn('Off I go.', 'ping')] });
+		let ok = false;
+		session.events.on('action.performed', (event) => {
+			ok = event.payload.result.ok;
+		});
+		await session.step();
+		expect(ok).toBe(true);
+	});
+
 	it('records a thinking turn with no call', async () => {
 		const { session, seen } = makeSession({
 			script: [{ text: 'Just pondering.', toolCall: null }]

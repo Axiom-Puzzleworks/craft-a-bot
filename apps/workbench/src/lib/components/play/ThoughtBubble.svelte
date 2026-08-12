@@ -16,7 +16,7 @@
 	const shown = $derived(expanded || !isLong ? thought : `${thought.slice(0, LIMIT)}…`);
 </script>
 
-<div class="bubble" data-testid="thought-bubble">
+<div class="bubble" data-testid="thought-bubble" data-tutorial="thought-bubble">
 	{#if thought === ''}
 		<p class="quiet">Your bot has not thought anything yet.</p>
 	{:else}

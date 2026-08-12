@@ -26,7 +26,7 @@
 	}
 </script>
 
-<div class="rack" data-testid="goal-card-rack">
+<div class="rack" data-testid="goal-card-rack" data-tutorial="goal-cards">
 	<ul class="cards">
 		{#each cards as card (card.id)}
 			<li>

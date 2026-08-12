@@ -106,6 +106,8 @@ Three-column layout:
 
 - **Battery compartment** (the star): rendered as a toy battery bay with a screw-flap animation. One battery slot per provider (V1: OpenAI). Paste key → battery slides in, meter shows "charged" after a validation ping. Plain-English safety copy: where the key lives (this browser only), where it's sent (api.openai.com only), how to remove it. Remove = battery ejects.
 - Preferences: sound on/off, animation reduced (respects `prefers-reduced-motion`), tick speed default, theme (V1: single retro theme).
+
+> **Amended 2026-08-12 (WP9):** the **sound switch is deferred to WP10**, which is when motion and sound actually arrive. The `sound` preference exists in the settings schema and is stored, but no control is shown for it: nothing in V1 makes a noise, and a switch that controls nothing misrepresents what the product does. Reduced motion and tick-speed default ship now and are wired for real — the former as a `data-reduced-motion` attribute on the document element, honoured alongside `prefers-reduced-motion`; the latter as the Playroom's starting speed, which the in-run dial still overrides.
 - About: credits, licence, "built in public" link.
 
 ## 8. Accessibility (requirements, not aspirations)
@@ -127,6 +129,8 @@ Three-column layout:
 | Import of invalid/newer kit file | "This kit is from a newer set!" + schema version details. |
 | Missing pack content (kit references uninstalled pack) | "This bot uses parts from the {pack} expansion" + list of missing part IDs. |
 | Storage full / IndexedDB unavailable | Warn, offer trace export, run continues in memory. |
+
+> **Amended 2026-08-12 (WP9):** "The bot mumbled" is derived in the UI from the `decision` event itself — one carrying neither a call nor any thought text — rather than from a new event type. The data is already on the record, so hard rule 3 holds and the trace format is unchanged.
 
 ## 10. Layout & responsiveness
 

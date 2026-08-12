@@ -55,7 +55,7 @@
 	}
 </script>
 
-<div class="baseplate" data-testid="baseplate">
+<div class="baseplate" data-testid="baseplate" data-tutorial="baseplate">
 	<p class="chassis-label" aria-hidden="true">Baseplate</p>
 
 	{#each BRICK_ORDER as kind (kind)}

@@ -66,7 +66,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 	const runId = newId();
 
 	const { toolSchemas, toolsByWireName } = resolveTools();
-	const { actionSchemas, actionNames } = resolveActions();
+	const { actionSchemas, actionNames, worldActionNames } = resolveActions();
 	const callSchemas: ToolSchema[] = [...toolSchemas, ...actionSchemas];
 	const toolNames = new Set(toolsByWireName.keys());
 
@@ -148,8 +148,11 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 	function resolveActions() {
 		const definition = registry.getWorld(goalCard.worldId);
 		const enabled = new Set(spec.bricks.actions?.enabled ?? []);
-		const available = (definition?.actions ?? []).filter((action) => enabled.has(action.id));
+		const all = definition?.actions ?? [];
+		const available = all.filter((action) => enabled.has(action.id));
 		return {
+			/** Everything this world can do, fitted or not. */
+			worldActionNames: new Set(all.map((action) => action.id)),
 			actionNames: new Set(available.map((action) => action.id)),
 			actionSchemas: available.map((action) => ({
 				name: action.id,
@@ -241,6 +244,15 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		return (cartridgeId ? registry.getCartridge(cartridgeId)?.model : undefined) ?? 'mock';
 	}
 
+	/**
+	 * The refusal for an action the world knows but this bot was not given. Kept
+	 * in the agent's own voice, in the second person, like every other narration
+	 * it reads back (pack-starter's `strings.ts` sets the tone).
+	 */
+	function unavailableActionNarration(name: string): string {
+		return `You want to ${name}, but you have not been built with any way to do it.`;
+	}
+
 	async function performCall(decision: Extract<Decision, { kind: 'call' }>): Promise<{
 		summary: string;
 		result: string;
@@ -264,6 +276,31 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 				durationMs: Math.max(0, Date.now() - started)
 			});
 			return { summary: `used the ${call.name} tool`, result: result.output };
+		}
+
+		/*
+		 * The bot can only do what it was built to do.
+		 *
+		 * Without this, `world.perform` runs any action the *world* defines,
+		 * whether or not the Actions brick granted it — so a bot with no Actions
+		 * brick could still move, speak and pick things up, and the brick was
+		 * decorative. It also made the first lesson in the teaching arc
+		 * (02-AGENT-MODEL.md §9: "bot thinks but can't act") impossible to
+		 * demonstrate, which is how it was found.
+		 *
+		 * Only for actions the world *does* have. A name the world has never heard
+		 * of still goes through to the world, which refuses it in character — that
+		 * is the path 08 §3 describes, and the two refusals say different things:
+		 * "that is not a thing here" versus "you have no way to do that".
+		 */
+		if (worldActionNames.has(call.name) && !actionNames.has(call.name)) {
+			const narration = unavailableActionNarration(call.name);
+			emit('action.performed', {
+				name: call.name,
+				arguments: call.arguments,
+				result: { ok: false, narration, stateDiff: [] }
+			});
+			return { summary: `tried to ${call.name}`, result: narration };
 		}
 
 		const actionResult: ActionResult = world.perform({

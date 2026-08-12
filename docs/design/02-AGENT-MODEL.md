@@ -211,6 +211,16 @@ Tools and actions are passed via the provider's native tool-calling API — neve
 
 ## 9. Teaching arc (how the bricks tell the story)
 
+> **Amended 2026-08-12 (WP9):** building the leaflet turned up three things worth recording.
+>
+> **The Actions brick did not gate anything.** `performCall` sent every proposed action straight to `world.perform`, so a bot with no Actions brick could still move, speak and pick things up. The brick was decorative and chapter 1 ("bot thinks but can't act") was impossible to demonstrate. The engine now refuses an action the world defines but the bot was not built with — in character, as a wasted turn — while a name the world has never heard of still goes to the world, as `08` §3 describes. Relatedly, the workbench's default Actions brick granted only `move`, `say`, `celebrate`, which left most Goal Cards unreachable once the gate was real; fitting the brick now grants all seven actions and the checkboxes take them away.
+>
+> **Two Goal Cards cannot be completed inside the tick budget.** "Tidy the blocks" needs roughly 34 turns and "The locked chest" roughly 45 (open the chest *and* carry three blocks to it, from opposite corners of an 8×6 grid with orthogonal movement only), against an engine floor of 30. Neither is winnable by any route, by any model. Chapter 5 therefore completes on the *retrieval* moment it teaches — the bot using `look_up_manual` — rather than on the card being won. The cards themselves need a decision: shorten the goals, move the blocks, or raise the budget. Recorded here rather than quietly worked around.
+>
+> **The failure in each pair must be scripted.** The keyless demo brain now reads the spec and picks a "before" or "after" run per chapter, so the bot genuinely guesses the wrong answer without a calculator and genuinely loops without memory. Chapter progress keys off *turns watched* rather than a finished run, because a failing bot has no early exit and would otherwise make the reader sit through the whole budget.
+
+
+
 The instruction-leaflet tutorial builds concepts in this order — each step is a designed failure→fix pair, and the V1 UI/onboarding (`03-UI-UX-DESIGN.md`) follows it:
 
 1. Brain only + "Say Hello!" → *what a loop is* (bot thinks but can't act; add Actions).

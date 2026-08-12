@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { skipTutorial } from './support.js';
 
 /**
  * WP8: the Safety Brick's three rules, exercised through the real UI.
@@ -45,6 +46,8 @@ async function go(page: Page): Promise<void> {
 	await page.getByRole('button', { name: /GO/ }).click();
 	await expect(page).toHaveURL(/\/play\//);
 }
+
+test.beforeEach(async ({ page }) => skipTutorial(page));
 
 test('the step budget dial stops the run with the Safety Brick end card', async ({ page }) => {
 	// Deliberately a card with no demo plan: the scripted goals all finish inside

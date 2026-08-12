@@ -10,3 +10,17 @@ import { afterEach } from 'vitest';
 afterEach(() => {
 	cleanup();
 });
+
+/**
+ * jsdom has no `ResizeObserver`. The leaflet's spotlight uses one to keep its
+ * cut-out over an element that moves as bricks are fitted; a no-op stub is
+ * enough here, because positioning is a browser concern and is covered by the
+ * Playwright walk instead.
+ */
+if (!('ResizeObserver' in globalThis)) {
+	globalThis.ResizeObserver = class {
+		observe(): void {}
+		unobserve(): void {}
+		disconnect(): void {}
+	};
+}

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { skipTutorial } from './support.js';
 
 /**
  * WP5 definition of done, part two: **build a valid bot keyboard-only**.
@@ -32,6 +33,8 @@ async function placeByKeyboard(page: Page, kind: string): Promise<void> {
 	await page.keyboard.press('Enter');
 	await expect(page.getByTestId('announcer')).toContainText(`${kind} brick placed`);
 }
+
+test.beforeEach(async ({ page }) => skipTutorial(page));
 
 test('builds a bot with the keyboard alone', async ({ page }) => {
 	await newBotByKeyboard(page);

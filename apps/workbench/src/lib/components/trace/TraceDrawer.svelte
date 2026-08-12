@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { EngineEvent } from '@craftabot/core';
-	import { labelOf, laneLabel, laneOf } from '$lib/trace-style.js';
+	import { labelForEvent, laneLabel, laneOf } from '$lib/trace-style.js';
 	import {
 		DEFAULT_OVERSCAN,
 		computeWindow,
@@ -72,7 +72,7 @@
 	}
 </script>
 
-<section class="recorder" data-testid="flight-recorder">
+<section class="recorder" data-testid="flight-recorder" data-tutorial="flight-recorder">
 	<header>
 		<h2>Flight Recorder</h2>
 		<span class="count" data-testid="trace-count">{events.length} events</span>
@@ -107,12 +107,12 @@
 						style="height: {rowHeight}px"
 						data-testid="trace-row"
 						data-event-type={event.type}
-						aria-label="Turn {event.tick}, {laneLabel(lane)}: {labelOf(event.type)}"
+						aria-label="Turn {event.tick}, {laneLabel(lane)}: {labelForEvent(event)}"
 						onclick={() => (selectedIndex = index)}
 					>
 						<span class="tick">{event.tick}</span>
 						<span class="lane" aria-hidden="true">{lane}</span>
-						<span class="what">{labelOf(event.type)}</span>
+						<span class="what">{labelForEvent(event)}</span>
 						<span class="type">{event.type}</span>
 					</button>
 				{/each}

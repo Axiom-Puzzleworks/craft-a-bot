@@ -17,6 +17,13 @@ export const settingsSchema = z.object({
 	tickSpeed: z.number().min(0.5).max(4).default(1),
 	/** Highest instruction-leaflet chapter completed, 0 = not started. */
 	tutorialChapter: z.number().int().min(0).max(6).default(0),
+	/**
+	 * Set by "I've built kits before" (03 §6). Kept separate from
+	 * `tutorialChapter` so skipping does not pretend the chapters were done —
+	 * the badges page should stay honestly empty, and the Instructions handle
+	 * still reopens the leaflet at chapter one.
+	 */
+	tutorialSkipped: z.boolean().default(false),
 	badges: z.array(z.string()).default([]),
 	schemaVersion: z.literal(1).default(1)
 });

@@ -82,7 +82,7 @@
 			<p>{brick.realExplanation}</p>
 		</div>
 	{:else}
-		<div class="controls" data-testid="brick-controls-{kind}">
+		<div class="controls" data-testid="brick-controls-{kind}" data-tutorial="brick-panel">
 			<p class="whisper">{brick.description}</p>
 
 			{#if kind === 'llm' && llm}

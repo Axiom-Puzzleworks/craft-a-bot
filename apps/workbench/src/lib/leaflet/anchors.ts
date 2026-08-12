@@ -1,0 +1,45 @@
+/**
+ * The elements the leaflet is allowed to point at.
+ *
+ * `03-UI-UX-DESIGN.md` §6: the overlay "points at the real UI (arrow stickers +
+ * dimmed background) rather than screenshots". That only works if the thing
+ * being pointed at is still there, so the ids live in one list, the markup
+ * carries them as `data-tutorial`, and a test asserts every anchor a chapter
+ * names exists here. Renaming a component then breaks a test rather than
+ * silently leaving an arrow pointing at nothing.
+ *
+ * These are deliberately separate from `data-testid`. A test id is a promise to
+ * the test suite; an anchor is a promise to the user that the arrow means
+ * something — and the two should be free to move independently.
+ */
+
+export const ANCHORS = {
+	// Shelf
+	newBot: 'new-bot',
+
+	// Bench
+	trayLlm: 'tray-llm',
+	trayActions: 'tray-actions',
+	traySense: 'tray-sense',
+	trayMemory: 'tray-memory',
+	trayTools: 'tray-tools',
+	traySafety: 'tray-safety',
+	baseplate: 'baseplate',
+	goalCards: 'goal-cards',
+	brickPanel: 'brick-panel',
+	goLever: 'go-lever',
+
+	// Playroom
+	stepButton: 'step-button',
+	thoughtBubble: 'thought-bubble',
+	flightRecorder: 'flight-recorder',
+	backToBench: 'back-to-bench'
+} as const;
+
+export type AnchorId = (typeof ANCHORS)[keyof typeof ANCHORS];
+
+export const ALL_ANCHORS: readonly AnchorId[] = Object.values(ANCHORS);
+
+export function isAnchor(value: string): value is AnchorId {
+	return (ALL_ANCHORS as readonly string[]).includes(value);
+}
