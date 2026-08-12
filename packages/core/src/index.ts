@@ -55,12 +55,16 @@ export type {
 	WorldId,
 	WorldPredicateId
 } from './types/ids.js';
-export type {
-	BrickSlot,
-	BuildProblem,
-	BuildProblemCode,
-	BuildProblemSeverity
-} from './types/build-problem.js';
+export {
+	brickSlotSchema,
+	buildProblemCodeSchema,
+	buildProblemSchema,
+	buildProblemSeveritySchema,
+	type BrickSlot,
+	type BuildProblem,
+	type BuildProblemCode,
+	type BuildProblemSeverity
+} from './schemas/build-problem.js';
 
 // Schemas (Zod-first types — 07-DATA-MODEL-PERSISTENCE.md §6)
 export {
@@ -100,6 +104,32 @@ export {
 	type KitFile,
 	type MigrationError
 } from './schemas/kit-file.js';
+export {
+	agentRecordSchema,
+	parseAgentRecord,
+	safeParseAgentRecord,
+	safeParseStoredEvent,
+	storedEventSchema,
+	type AgentRecord,
+	type StoredEvent
+} from './schemas/records.js';
+
+// Persistence helpers (07-DATA-MODEL-PERSISTENCE.md §4–5)
+export {
+	buildKitFile,
+	importKitFile,
+	type BuildKitFileOptions,
+	type ImportKitFileOptions,
+	type ImportProblem,
+	type ImportedKit
+} from './persistence/kit-export.js';
+export {
+	buildTraceFile,
+	verifyTraceDigest,
+	type BuildTraceFileOptions
+} from './persistence/trace-export.js';
+export { REDACTED, containsSecret, redactSecrets } from './persistence/redact.js';
+
 export {
 	computeTraceDigest,
 	parseTraceFile,

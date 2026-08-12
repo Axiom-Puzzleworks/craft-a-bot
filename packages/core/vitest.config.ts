@@ -21,7 +21,10 @@ export default defineConfig({
 					functions: 90,
 					lines: 100
 				},
-				'src/session/decide.ts': { statements: 100, branches: 100, functions: 100, lines: 100 }
+				'src/session/decide.ts': { statements: 100, branches: 100, functions: 100, lines: 100 },
+				// Persistence carries the key-containment guarantee (hard rule 2), so
+				// it is held at the same bar as the loop.
+				'src/persistence/**': { statements: 100, branches: 95, functions: 100, lines: 100 }
 			}
 		}
 	}

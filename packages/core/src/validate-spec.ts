@@ -1,6 +1,6 @@
 import type { AgentSpec } from './schemas/agent-spec.js';
 import type { PackRegistry } from './pack-registry.js';
-import type { BuildProblem } from './types/build-problem.js';
+import type { BuildProblem } from './schemas/build-problem.js';
 
 /**
  * The build-problem catalogue (02-AGENT-MODEL.md §6). Only `missing-brain`,

@@ -21,7 +21,31 @@ export default defineConfig({
 	test: {
 		environment: 'jsdom',
 		include: ['src/**/*.{test,spec}.{js,ts}'],
-		setupFiles: ['./vitest-setup.ts']
+		setupFiles: ['./vitest-setup.ts'],
+		coverage: {
+			provider: 'v8',
+			include: ['src/lib/**/*.ts'],
+			// Test scaffolding, not behaviour.
+			exclude: [
+				'src/lib/**/*.test.ts',
+				'src/lib/state/storage-contract.ts',
+				'src/lib/state/storage-fixtures.ts'
+			],
+			reporter: ['text', 'json-summary'],
+			// The storage layer holds everything the user has made, and the key vault
+			// carries hard rule 2. Both are gated rather than merely measured.
+			thresholds: {
+				'src/lib/state/keys.ts': { statements: 100, branches: 100, functions: 100, lines: 100 },
+				'src/lib/state/storage.ts': { statements: 100, branches: 90, functions: 100, lines: 100 },
+				'src/lib/state/storage-memory.ts': {
+					statements: 95,
+					branches: 85,
+					functions: 95,
+					lines: 95
+				},
+				'src/lib/state/storage-idb.ts': { statements: 90, branches: 80, functions: 90, lines: 90 }
+			}
+		}
 	},
 	// Component tests need the browser build of Svelte (client `mount`), not the
 	// server/SSR build vitest resolves to by default. See Svelte's Vitest guide.
