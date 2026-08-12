@@ -5,5 +5,16 @@ yarn.lock
 bun.lock
 bun.lockb
 
-# Miscellaneous
-/static/
+# Build output
+.svelte-kit
+build
+dist
+.turbo
+coverage
+playwright-report
+test-results
+
+# Static assets, docs
+apps/workbench/static
+docs/design
+CLAUDE.md

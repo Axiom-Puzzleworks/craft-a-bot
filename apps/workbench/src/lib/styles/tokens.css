@@ -1,0 +1,39 @@
+/*
+ * Design tokens — see docs/design/04-VISUAL-DESIGN-LANGUAGE.md §2, §6, §7.
+ * The only place raw colour/motion values may appear (10-CODING-STANDARDS.md §3).
+ * Typography faces and texture assets arrive with the visual workstream (WP5+);
+ * only the values already fixed by the design doc are declared here.
+ */
+
+:root {
+	/* Brand core (§2.1) */
+	--cab-cream: #f3e9d2;
+	--cab-paper: #efe3c8;
+	--cab-ink: #2b2620;
+	--cab-blue: #2456a6;
+	--cab-red: #c93a2e;
+	--cab-green: #4e8a3c;
+	--cab-yellow: #e9b62f;
+	--cab-purple: #6c4f9e;
+	--cab-sky: #5b8fcb;
+	--cab-teal: #3e8f8a;
+	--cab-orange: #d77a3c;
+
+	/* Support neutrals (§2.3) */
+	--cab-shadow: #00000026;
+	--cab-plastic-hi: #ffffff59;
+	--cab-board: #7a5c3e;
+	--cab-rug: #c9705e;
+
+	/* Darkened text-on-cream variants (§7) */
+	--cab-blue-text: #1c4485;
+	--cab-red-text: #a72e24;
+	--cab-green-text: #3a6e2c;
+	--cab-purple-text: #55407e;
+
+	/* Motion durations (§6) */
+	--cab-snap-ms: 150ms;
+	--cab-pop-ms: 120ms;
+	--cab-box-open-ms: 400ms;
+	--cab-hop-ms: 200ms;
+}
