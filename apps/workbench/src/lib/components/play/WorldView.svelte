@@ -21,12 +21,25 @@
 	/** Short labels so a cell reads at a glance without hover. */
 	const ITEM_GLYPHS: Record<string, string> = {
 		snack: '🍪',
-		'block-a': 'C',
-		'block-b': 'A',
-		'block-c': 'B',
 		'red-key': '🔑',
 		ball: '⬤'
 	};
+
+	/**
+	 * The letter on a block comes from the item's own name, not from a list here.
+	 *
+	 * There used to be a second mapping in this file — `block-a: 'C'` and so on —
+	 * and when the ids were realigned with their printed letters the world was
+	 * corrected and this copy was not. The grid then drew the blue A block as a
+	 * "C" while the trace called it "a blue letter block (A)": the picture and
+	 * the narration disagreeing about the same object, which is about the worst
+	 * thing a simulator built for observability can do. Deriving it means there
+	 * is only one place the letter can come from.
+	 */
+	function glyphFor(item: { id: string; name: string }): string {
+		const letter = /\(([A-Z])\)/.exec(item.name)?.[1];
+		return letter ?? ITEM_GLYPHS[item.id] ?? '•';
+	}
 
 	function cells(state: PlayroomState) {
 		const grid: { x: number; y: number }[] = [];
@@ -97,7 +110,7 @@
 
 				{#each loose as item (item.id)}
 					<span class="thing thing--item" data-testid="item-{item.id}">
-						<span class="glyph">{ITEM_GLYPHS[item.id] ?? '•'}</span>
+						<span class="glyph">{glyphFor(item)}</span>
 					</span>
 				{/each}
 
@@ -106,7 +119,7 @@
 						<span class="glyph">🤖</span>
 						{#if carried}
 							<span class="carrying" data-testid="bot-carrying">
-								{ITEM_GLYPHS[carried.id] ?? '•'}
+								{glyphFor(carried)}
 							</span>
 						{/if}
 						{#if saying}

@@ -14,7 +14,7 @@ import {
 	playroomPredicates,
 	playroomProgress
 } from './predicates.js';
-import { observePlayroom, playroomSenses } from './senses.js';
+import { SENSE_SIGHT, observePlayroom, playroomSenses } from './senses.js';
 import type { PlayroomState } from './state.js';
 
 export const PLAYROOM_WORLD_ID = 'starter/playroom';
@@ -76,7 +76,10 @@ function createPlayroomInstance(layoutId: string): WorldInstance {
 			state.heard.push(text);
 		},
 
-		describeProgress(predicate): string | undefined {
+		describeProgress(predicate, channels): string | undefined {
+			// Everything the Playroom can say about progress is something you would
+			// have to look at, so it is gated on Sight exactly as the observation is.
+			if (!channels.includes(SENSE_SIGHT)) return undefined;
 			return playroomProgress[predicate]?.(state);
 		}
 	};

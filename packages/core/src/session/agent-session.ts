@@ -329,7 +329,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		emit('sense', { channels: [...channels], observation });
 
 		// 2. COMPOSE
-		const progress = world.describeProgress?.(goalCard.successCondition);
+		const progress = world.describeProgress?.(goalCard.successCondition, channels);
 		const notebookLines = memory.notebook.read();
 		const promptInput = {
 			spec,

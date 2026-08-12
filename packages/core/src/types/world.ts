@@ -90,6 +90,17 @@ export interface WorldInstance {
 	 * every single turn, which is both the expensive way and the unreliable one.
 	 * Worlds that cannot describe partial progress return undefined and nothing
 	 * is added to the prompt.
+	 *
+	 * **It is given the bot's sense channels and must respect them.** Progress is
+	 * derived from world state, so a line like "two blocks are still out" is
+	 * perception, not book-keeping — and handing it to a bot with no Sense brick
+	 * told it, in consecutive sentences, that it had no idea what was around it
+	 * and exactly where all three blocks were. The world decides what each
+	 * channel entitles the bot to know, because only the world knows what its own
+	 * channels mean.
 	 */
-	describeProgress?(predicate: WorldPredicateId): string | undefined;
+	describeProgress?(
+		predicate: WorldPredicateId,
+		channels: readonly SenseChannelId[]
+	): string | undefined;
 }

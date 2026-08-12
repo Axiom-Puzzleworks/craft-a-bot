@@ -58,6 +58,10 @@ export interface SpecOverrides {
 		repeatLimit?: number;
 	} | null;
 	llm?: boolean;
+	/** Brain dials, for tests that assert they reach the provider. */
+	temperature?: number;
+	maxTokens?: number;
+	personality?: string;
 }
 
 const ALL_ACTIONS = ['move', 'pick_up', 'put_down', 'give', 'open', 'say', 'celebrate'];
@@ -79,9 +83,9 @@ export function buildSpec(overrides: SpecOverrides = {}): AgentSpec {
 	if (overrides.llm !== false) {
 		spec.bricks.llm = {
 			cartridgeId: 'test/mock-brain',
-			temperature: 0,
-			maxTokens: 256,
-			personality: 'You are a cheerful little robot.'
+			temperature: overrides.temperature ?? 0,
+			maxTokens: overrides.maxTokens ?? 256,
+			personality: overrides.personality ?? 'You are a cheerful little robot.'
 		};
 	}
 	if (overrides.memory !== null) {
