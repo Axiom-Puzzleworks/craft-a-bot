@@ -47,12 +47,16 @@ Every brick has a toy face and a real face. The UI always offers both: the mould
 - **Without it:** the bot is flying blind — it receives the goal but no observations. It will act, hilariously badly. (Designed teaching moment: sight off → bot bumps into walls.)
 - **Teaching note:** the flip side explains that in real systems "senses" are context engineering — what you choose to put in the prompt.
 
+> **Amended 2026-08-12 (WP2):** Clock reports **simulated** elapsed time derived from the turn count, not wall-clock time. Real elapsed time would make an otherwise deterministic world non-reproducible, breaking the replay guarantee in `08-GOVERNANCE-GUARDRAILS.md` §7.5. Relatedly, the Playroom is turn-based: its clock advances when the bot *acts* (a wasted turn still counts), so a bot with no Actions brick sees a clock that never moves — which is honest, since nothing in the world has happened.
+
 ### 2.5 Actions Brick (red, with wheels) — hands and feet
 
 - **Really is:** the effector set — the world-mutating counterpart of tools. Exposed to the LLM as tool calls, but distinguished in the UI and trace because they *change the world*, teaching the tools-vs-actions distinction.
 - **V1 actions** (from the Playroom world definition): `move(direction)`, `pick_up(item)`, `put_down(item)`, `give(item, character)`, `open(container)`, `say(text)` (speech bubble in the Playroom), `celebrate()` (the bot's little victory dance; also how it declares the goal complete).
 - **Config:** individual actions toggle on/off. Turning `pick_up` off before a fetch goal is — again — a teaching moment ("my bot can see the snack but has no hands!").
 - **Without the brick:** observe-and-chat only; it can `say` nothing, do nothing. The run ends only by tick budget.
+
+> **Amended 2026-08-12 (WP2):** `put_down` takes an optional second parameter — `put_down(item, container?)`. "Tidy the blocks" needs a way to place an item *into* the toy chest, and inferring it from proximity is ambiguous as soon as a second container exists. Omitting `container` still means "put it on the floor where I stand". The optional parameter also gives users their first look at an optional field in a real tool JSON schema.
 
 ### 2.6 Safety Brick (yellow/black stripes) — optional in V1, foundational for purpose 2
 
@@ -105,8 +109,13 @@ export interface WorldInstance {
   perform(action: ActionCall): ActionResult;    // validates, mutates, narrates
   test(predicate: WorldPredicateId): boolean;
   reset(): void;
+  receiveInput?(text: string): void;            // see amendment below
 }
 ```
+
+> **Amended 2026-08-12 (WP2):** `WorldInstance` gained the optional `receiveInput(text)` method. The Hearing sense channel (§2.4) is defined as "messages the user types into the Playroom chat bubble", but the interface previously had no way for those messages to enter the world — leaving the UI to mutate world state directly, which `05-TECH-STACK.md` §4 forbids. It is optional, so worlds the user cannot talk to simply omit it.
+>
+> Two Playroom rules that §4 left open, settled in WP2 and recorded here because the Goal Cards depend on them: **reach equals sight** — the bot can pick up, put down, open, and give within Chebyshev distance 1 (its own square plus the eight around it), so there is one distance rule to learn rather than three; and the **"within 2 squares of Teddy"** greeting condition (§3) uses that same Chebyshev metric.
 
 ## 5. The agent loop (the engine's heart)
 

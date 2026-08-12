@@ -116,6 +116,36 @@ describe('PackRegistry', () => {
 		expect(registry.listWorlds()).toHaveLength(1);
 	});
 
+	it('registers guardrails a pack contributes, without any engine change (08 §7.3)', () => {
+		const registry = createPackRegistry();
+		registry.registerPack({
+			id: 'test-guardrails',
+			name: 'Test guardrails',
+			version: '1.0.0',
+			requiresCore: '>=0.0.1',
+			guardrails: [
+				{
+					id: 'test/always-allow',
+					name: 'Always Allow',
+					description: 'A do-nothing guardrail, proving packs can contribute them.',
+					hooks: ['pre-act'],
+					create: () => ({
+						id: 'test/always-allow',
+						name: 'Always Allow',
+						description: 'A do-nothing guardrail.',
+						hooks: ['pre-act'],
+						check: () => ({ allow: true })
+					})
+				}
+			]
+		});
+
+		const definition = registry.getGuardrail('test/always-allow');
+		expect(definition?.name).toBe('Always Allow');
+		expect(definition?.create().check({} as never)).toEqual({ allow: true });
+		expect(registry.getGuardrail('test/nope')).toBeUndefined();
+	});
+
 	it('rejects registering the same pack id twice', () => {
 		const registry = createPackRegistry();
 		registry.registerPack(starterManifest());

@@ -74,6 +74,18 @@ describe('EventBus', () => {
 		expect(listener).toHaveBeenCalledTimes(1);
 	});
 
+	it('stops calling an onAny listener after it unsubscribes', () => {
+		const bus = createEventBus();
+		const listener = vi.fn();
+		const unsubscribe = bus.onAny(listener);
+
+		bus.emit(runStarted());
+		unsubscribe();
+		bus.emit(tickStarted());
+
+		expect(listener).toHaveBeenCalledTimes(1);
+	});
+
 	it('supports multiple independent listeners on the same type', () => {
 		const bus = createEventBus();
 		const first = vi.fn();

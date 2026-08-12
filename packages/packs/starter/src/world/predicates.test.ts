@@ -1,0 +1,162 @@
+import { describe, expect, it } from 'vitest';
+import { BLOCK_IDS, playroomPredicateDescriptions, playroomPredicates } from './predicates.js';
+import type { PlayroomItem, PlayroomState, SpokenLine } from './state.js';
+import { chest, heldBy, inContainer, onFloor, testState } from './test-state.js';
+
+function check(name: string, state: PlayroomState): boolean {
+	const predicate = playroomPredicates[name];
+	if (!predicate) throw new Error(`no such predicate: ${name}`);
+	return predicate(state);
+}
+
+function spoke(text: string, x: number, y: number): SpokenLine {
+	return { tick: 1, text, position: { x, y } };
+}
+
+/** All three blocks, tucked into the chest. */
+function blocksInChest(): PlayroomItem[] {
+	return BLOCK_IDS.map((id) => inContainer(id, 'toy-chest'));
+}
+
+describe('said-hello-near-teddy', () => {
+	// Teddy sits at (5,3) in the test state; "within 2 squares" is Chebyshev ≤ 2.
+	it('is false before the bot says anything', () => {
+		expect(check('said-hello-near-teddy', testState())).toBe(false);
+	});
+
+	it('is true when spoken from exactly two squares away', () => {
+		const state = testState({ spoken: [spoke('Hello!', 3, 3)] });
+		expect(check('said-hello-near-teddy', state)).toBe(true);
+	});
+
+	it('is true diagonally within two squares', () => {
+		const state = testState({ spoken: [spoke('Hello!', 3, 1)] });
+		expect(check('said-hello-near-teddy', state)).toBe(true);
+	});
+
+	it('is false when shouted from across the room', () => {
+		const state = testState({ spoken: [spoke('Hello!', 0, 0)] });
+		expect(check('said-hello-near-teddy', state)).toBe(false);
+	});
+
+	it('is false when there is no Teddy to greet', () => {
+		const state = testState({ characters: [], spoken: [spoke('Hello!', 5, 3)] });
+		expect(check('said-hello-near-teddy', state)).toBe(false);
+	});
+});
+
+describe('teddy-has-snack', () => {
+	it('is true only once Teddy is holding it', () => {
+		expect(check('teddy-has-snack', testState({ items: [heldBy('snack', 'teddy')] }))).toBe(true);
+	});
+
+	it('is false while the bot still carries it or it sits on the floor', () => {
+		expect(check('teddy-has-snack', testState({ items: [onFloor('snack', { x: 4, y: 3 })] }))).toBe(
+			false
+		);
+	});
+
+	it('is false when somebody else has it', () => {
+		expect(check('teddy-has-snack', testState({ items: [heldBy('snack', 'someone-else')] }))).toBe(
+			false
+		);
+	});
+
+	it('is false when there is no snack at all', () => {
+		expect(check('teddy-has-snack', testState())).toBe(false);
+	});
+});
+
+describe('blocks-in-chest', () => {
+	it('is true when all three are inside', () => {
+		expect(check('blocks-in-chest', testState({ items: blocksInChest() }))).toBe(true);
+	});
+
+	it('is false when one is still on the rug', () => {
+		const items = [
+			inContainer('block-a', 'toy-chest'),
+			inContainer('block-b', 'toy-chest'),
+			onFloor('block-c', { x: 2, y: 2 })
+		];
+		expect(check('blocks-in-chest', testState({ items }))).toBe(false);
+	});
+
+	it('is false when a block is in the wrong container', () => {
+		const items = [
+			inContainer('block-a', 'toy-chest'),
+			inContainer('block-b', 'toy-chest'),
+			inContainer('block-c', 'the-bin')
+		];
+		expect(check('blocks-in-chest', testState({ items }))).toBe(false);
+	});
+
+	it('is false when the blocks are not in the world', () => {
+		expect(check('blocks-in-chest', testState())).toBe(false);
+	});
+});
+
+describe('chest-open-and-blocks-inside', () => {
+	it('is true with the lid up and all three inside', () => {
+		const state = testState({ containers: chest('open'), items: blocksInChest() });
+		expect(check('chest-open-and-blocks-inside', state)).toBe(true);
+	});
+
+	it('is false if the lid has been shut again', () => {
+		const state = testState({ containers: chest('closed'), items: blocksInChest() });
+		expect(check('chest-open-and-blocks-inside', state)).toBe(false);
+	});
+
+	it('is false with the lid up but blocks still out', () => {
+		const state = testState({ containers: chest('open') });
+		expect(check('chest-open-and-blocks-inside', state)).toBe(false);
+	});
+
+	it('is false when there is no chest', () => {
+		const state = testState({ containers: [], items: blocksInChest() });
+		expect(check('chest-open-and-blocks-inside', state)).toBe(false);
+	});
+});
+
+describe('correct-sum-said', () => {
+	it('accepts the right answer on its own', () => {
+		expect(check('correct-sum-said', testState({ spoken: [spoke('391', 4, 3)] }))).toBe(true);
+	});
+
+	it('accepts the right answer inside a sentence', () => {
+		const state = testState({ spoken: [spoke('I think it is 391, Teddy.', 4, 3)] });
+		expect(check('correct-sum-said', state)).toBe(true);
+	});
+
+	it('accepts the answer written with a thousands comma stripped out', () => {
+		const state = testState({ spoken: [spoke('The answer is 3,91', 4, 3)] });
+		expect(check('correct-sum-said', state)).toBe(true);
+	});
+
+	it('rejects a confidently wrong guess', () => {
+		const state = testState({ spoken: [spoke('It is definitely 371!', 4, 3)] });
+		expect(check('correct-sum-said', state)).toBe(false);
+	});
+
+	it('rejects the digits buried inside a longer number', () => {
+		const state = testState({ spoken: [spoke('It is 13915', 4, 3)] });
+		expect(check('correct-sum-said', state)).toBe(false);
+	});
+
+	it('is false before the bot says anything', () => {
+		expect(check('correct-sum-said', testState())).toBe(false);
+	});
+});
+
+describe('free-play-manual', () => {
+	it('is never machine-satisfiable — the user decides', () => {
+		expect(check('free-play-manual', testState({ celebrated: true }))).toBe(false);
+	});
+});
+
+describe('the predicate catalogue', () => {
+	it('describes every predicate it implements', () => {
+		expect(Object.keys(playroomPredicateDescriptions).sort()).toEqual(
+			Object.keys(playroomPredicates).sort()
+		);
+	});
+});

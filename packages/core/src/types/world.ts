@@ -62,4 +62,11 @@ export interface WorldInstance {
 	perform(action: ActionCall): ActionResult;
 	test(predicate: WorldPredicateId): boolean;
 	reset(): void;
+	/**
+	 * Deliver a user message into the world, for worlds with a "hearing"-style
+	 * sense channel (the Playroom's chat bubble, 02-AGENT-MODEL.md §2.4).
+	 * Optional: worlds the user cannot talk to simply omit it. Exists so the UI
+	 * never has to mutate world state directly (05-TECH-STACK.md §4).
+	 */
+	receiveInput?(text: string): void;
 }

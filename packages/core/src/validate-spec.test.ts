@@ -104,6 +104,20 @@ describe('validateSpec', () => {
 		expect(validateSpec(validSpec(), buildRegistry())).toEqual([]);
 	});
 
+	it('accepts a bare-minimum bot — a brain and a card, no other bricks fitted', () => {
+		const spec = validSpec({
+			bricks: {
+				llm: {
+					cartridgeId: 'openai/quick-thinker',
+					temperature: 0.7,
+					maxTokens: 300,
+					personality: ''
+				}
+			}
+		});
+		expect(validateSpec(spec, buildRegistry())).toEqual([]);
+	});
+
 	it('reports missing-brain (blocking) when there is no LLM brick', () => {
 		const spec = validSpec();
 		delete spec.bricks.llm;

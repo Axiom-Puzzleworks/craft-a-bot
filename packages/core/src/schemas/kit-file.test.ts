@@ -49,6 +49,12 @@ describe('migrateKitFile', () => {
 		expect(result.detectedVersion).toBe(99);
 	});
 
+	it('returns a MigrationError when formatVersion is not a number at all', () => {
+		const result = migrateKitFile({ ...validKitFile, formatVersion: 'one' }) as MigrationError;
+		expect(result.kind).toBe('migration-error');
+		expect(result.detectedVersion).toBe('one');
+	});
+
 	it('returns a MigrationError for non-object input', () => {
 		const result = migrateKitFile('not an object') as MigrationError;
 		expect(result.kind).toBe('migration-error');

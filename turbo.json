@@ -10,9 +10,11 @@
 			"persistent": true
 		},
 		"test": {
+			"dependsOn": ["^build"],
 			"outputs": []
 		},
 		"check": {
+			"dependsOn": ["^build"],
 			"outputs": []
 		}
 	}
