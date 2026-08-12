@@ -1,7 +1,6 @@
 import { createSession, type EngineEvent, type Guardrail } from '@craftabot/core';
 import { createMockProvider, createTestClock, obedient, turn } from '@craftabot/core/testing';
 import { describe, expect, it } from 'vitest';
-import capturedTrace from '../fixtures/trace.say-hello.v1.json';
 import { buildRegistry, buildSpec, runToCompletion } from './harness.js';
 
 /**
@@ -71,7 +70,26 @@ export function runSayHello(): Promise<EngineEvent[]> {
 describe('the captured trace fixture', () => {
 	it('matches the committed fixture exactly', async () => {
 		const events = await runSayHello();
-		expect(events).toEqual(capturedTrace);
+
+		/*
+		 * A file snapshot rather than a hand-maintained JSON import, so the golden
+		 * file has an honest way to be refreshed:
+		 *
+		 *     npx vitest run -u --root packages/packs/starter
+		 *
+		 * It legitimately changes whenever the prompt or the event payloads do —
+		 * it changed when the memory window started storing the short form of an
+		 * observation instead of the whole thing. Without a documented refresh,
+		 * the temptation is to hand-edit the JSON until the diff goes away, which
+		 * defeats the point of capturing a real run.
+		 *
+		 * `toMatchFileSnapshot` is also why this file needs no Node APIs: this is
+		 * a browser-targeted pack, and pulling in `@types/node` to write a fixture
+		 * would invite Node calls into pack source that cannot run in a browser.
+		 */
+		await expect(JSON.stringify(events, null, '	')).toMatchFileSnapshot(
+			'../fixtures/trace.say-hello.v1.json'
+		);
 	});
 
 	it('reproduces byte-identically on a second run', async () => {

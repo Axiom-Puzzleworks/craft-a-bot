@@ -20,6 +20,27 @@ import { build, files, prerendered, version } from '$service-worker';
 // The service worker global, typed without pulling in the full WebWorker lib.
 const worker = self as unknown as ServiceWorkerGlobalScope;
 
+/*
+ * **Never in development.**
+ *
+ * SvelteKit registers this file on the dev server too, not only in production
+ * builds. With cache-first handling that is quietly disastrous: Vite serves
+ * modules from un-hashed URLs like `/src/lib/thing.svelte`, so the first load
+ * pins a copy of every module in the cache and subsequent edits never reach the
+ * browser. The app then runs a frozen mix of old and new code, which looks like
+ * a feature simply not working.
+ *
+ * The worker also removes itself, so a dev machine that already registered the
+ * broken version recovers on the next load instead of needing the reader to go
+ * digging in DevTools.
+ */
+if (import.meta.env.DEV) {
+	void worker.registration
+		.unregister()
+		.then(() => caches.keys())
+		.then((keys) => Promise.all(keys.map((key) => caches.delete(key))));
+}
+
 const CACHE = `craftabot-shell-${version}`;
 
 /*
@@ -33,6 +54,7 @@ const CACHE = `craftabot-shell-${version}`;
 const SHELL = [...build, ...files, ...prerendered, '/'];
 
 worker.addEventListener('install', (event) => {
+	if (import.meta.env.DEV) return;
 	event.waitUntil(
 		(async () => {
 			const cache = await caches.open(CACHE);
@@ -45,6 +67,7 @@ worker.addEventListener('install', (event) => {
 });
 
 worker.addEventListener('activate', (event) => {
+	if (import.meta.env.DEV) return;
 	event.waitUntil(
 		(async () => {
 			for (const key of await caches.keys()) {
@@ -55,7 +78,12 @@ worker.addEventListener('activate', (event) => {
 	);
 });
 
+/** Everything precached at install, for deciding what this worker may answer. */
+const shellUrls = new Set(SHELL.map((path) => new URL(path, location.origin).href));
+
 worker.addEventListener('fetch', (event) => {
+	if (import.meta.env.DEV) return;
+
 	const request = event.request;
 	// Only ever GETs, and only ever this origin. Anything else — most obviously
 	// a provider call — is none of our business.
@@ -63,6 +91,17 @@ worker.addEventListener('fetch', (event) => {
 
 	const url = new URL(request.url);
 	if (url.origin !== location.origin) return;
+
+	/*
+	 * Only answer for things that were precached, plus navigations.
+	 *
+	 * The first version cached *any* successful same-origin GET it happened to
+	 * see, which meant the cache could fill with whatever the app fetched and
+	 * then serve it forever. Everything the shell needs is already in `SHELL`;
+	 * anything else can go to the network and stay there.
+	 */
+	const isNavigation = request.mode === 'navigate';
+	if (!isNavigation && !shellUrls.has(url.href)) return;
 
 	event.respondWith(
 		(async () => {
@@ -72,13 +111,7 @@ worker.addEventListener('fetch', (event) => {
 			if (cached) return cached;
 
 			try {
-				const response = await fetch(request);
-				// Only successful same-origin responses are worth keeping, and only
-				// then to make a second offline load work.
-				if (response.ok && response.status === 200) {
-					void cache.put(request, response.clone());
-				}
-				return response;
+				return await fetch(request);
 			} catch {
 				// Offline and not in the cache: fall back to the shell entry point so
 				// a deep link still boots the SPA, which then routes client-side.

@@ -137,3 +137,27 @@ test('approval mode lets a person deny, and the bot is told why', async ({ page 
 	// A denial is information, not an ending: the run is still going.
 	await expect(page.getByTestId('end-card')).toBeHidden();
 });
+
+test('the loop-breaker is off by default and can be switched on', async ({ page }) => {
+	await buildWithSafetyBrick(page);
+	await openSafetyPanel(page);
+
+	const controls = page.getByTestId('brick-controls-safety');
+	const loopBreaker = controls.getByRole('checkbox', { name: 'Stop it going in circles' });
+
+	// Nobody gets a policy they did not choose (08 §3).
+	await expect(loopBreaker).not.toBeChecked();
+	await expect(page.getByTestId('repeat-limit')).toBeHidden();
+
+	await loopBreaker.check();
+	// Switching it on reveals the dial, defaulted to three in a row.
+	await expect(page.getByTestId('repeat-limit')).toBeVisible();
+	await expect(controls).toContainText('3 times in a row');
+
+	await page.getByTestId('repeat-limit').fill('5');
+	await expect(controls).toContainText('5 times in a row');
+
+	// Persistence of the setting is a store concern and is covered
+	// deterministically in `bench.svelte.test.ts` — asserting it here would race
+	// the save debounce.
+});

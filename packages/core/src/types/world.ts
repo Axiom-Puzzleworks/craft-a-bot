@@ -32,6 +32,19 @@ export interface WorldSenseDefinition {
 export interface Observation {
 	channels: SenseChannelId[];
 	text: string;
+	/**
+	 * A one-line version of `text`, for the memory window.
+	 *
+	 * Remembering the full observation turned the prompt into wallpaper: each one
+	 * is a dozen lines, most of them "nothing but rug", and a window of ten made
+	 * the history **86% of the prompt** while the goal and the current situation
+	 * shrank to a footnote. The world writes the short form because only the
+	 * world knows which of its own lines carry information.
+	 *
+	 * Optional: a world that omits it simply gets the full text remembered, as
+	 * before.
+	 */
+	summary?: string;
 	data?: Record<string, unknown>;
 }
 
@@ -69,4 +82,14 @@ export interface WorldInstance {
 	 * never has to mutate world state directly (05-TECH-STACK.md §4).
 	 */
 	receiveInput?(text: string): void;
+	/**
+	 * One line on how far along the goal is — "one block is in the toy chest, two
+	 * still out". Optional.
+	 *
+	 * Without it an agent has to re-derive its own progress from the history
+	 * every single turn, which is both the expensive way and the unreliable one.
+	 * Worlds that cannot describe partial progress return undefined and nothing
+	 * is added to the prompt.
+	 */
+	describeProgress?(predicate: WorldPredicateId): string | undefined;
 }

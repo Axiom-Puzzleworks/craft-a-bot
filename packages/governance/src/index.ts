@@ -17,6 +17,7 @@ export {
 	createActionBlocklistGuardrail
 } from './guardrails/action-blocklist.js';
 export { APPROVAL_MODE_ID, createApprovalModeGuardrail } from './guardrails/approval-mode.js';
+export { NO_REPETITION_ID, createNoRepetitionGuardrail } from './guardrails/no-repetition.js';
 export { STEP_BUDGET_ID, createStepBudgetGuardrail } from './guardrails/step-budget.js';
 export { guardrailsForSpec } from './spec-guardrails.js';
 

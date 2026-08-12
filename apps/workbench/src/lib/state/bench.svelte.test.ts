@@ -215,3 +215,31 @@ describe('persistence (WP5 definition of done)', () => {
 		expect((await storage.getAgent(AGENT_ID))?.spec.name).toBe('C');
 	});
 });
+
+describe('the loop-breaker setting', () => {
+	it('is absent until the builder turns it on', async () => {
+		const { bench } = await openBench();
+		bench.fitBrick('safety');
+		expect(bench.spec?.bricks.safety?.repeatLimit).toBeUndefined();
+	});
+
+	it('is saved, and comes back on the next visit', async () => {
+		const { bench, storage } = await openBench();
+		bench.fitBrick('safety');
+		bench.updateBrick('safety', { repeatLimit: 5 });
+		await bench.flush();
+
+		const reopened = await storage.getAgent(bench.spec?.id ?? '');
+		expect(reopened?.spec.bricks.safety?.repeatLimit).toBe(5);
+	});
+
+	it('switches back off cleanly', async () => {
+		const { bench } = await openBench();
+		bench.fitBrick('safety');
+		bench.updateBrick('safety', { repeatLimit: 5 });
+		bench.updateBrick('safety', { repeatLimit: undefined });
+
+		// Undefined rather than zero: the guardrail is simply not installed.
+		expect(bench.spec?.bricks.safety?.repeatLimit).toBeUndefined();
+	});
+});

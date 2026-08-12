@@ -200,6 +200,18 @@ export const observationStrings = {
 	sightEmptyHands: 'Your hands are empty.',
 
 	containerState: (name: string, state: string) => `${name} (${state})`,
+	/**
+	 * An open container says what is inside it. Without this a bot that had just
+	 * tidied a block away had no way to see that it had, and re-derived its
+	 * progress from the history every turn — or, more often, did not.
+	 */
+	containerWithContents: (name: string, state: string, contents: string[]) =>
+		`${name} (${state}, containing ${contents.join(' and ')})`,
+	containerEmpty: (name: string, state: string) => `${name} (${state}, empty)`,
+
+	/** The one-line form kept in the memory window (see `Observation.summary`). */
+	sightSummary: (near: string[], hands: string) =>
+		near.length > 0 ? `you could see ${near.join(', ')}; ${hands}` : `nothing nearby; ${hands}`,
 
 	compassPosition: (x: number, y: number, width: number, height: number) =>
 		`You are standing at column ${x + 1} of ${width}, row ${y + 1} of ${height}.`,

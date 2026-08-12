@@ -18,7 +18,12 @@ import { buildRegistry, buildSpec, runToCompletion } from './harness.js';
 
 /** Exactly what the play route does: brick settings in, running rules out. */
 const safetySpec = (
-	safety: { maxTicks: number; blockedActions: string[]; approvalMode: boolean },
+	safety: {
+		maxTicks: number;
+		blockedActions: string[];
+		approvalMode: boolean;
+		repeatLimit?: number;
+	},
 	goalCardId?: string
 ) => buildSpec(goalCardId !== undefined ? { safety, goalCardId } : { safety });
 
@@ -261,5 +266,214 @@ describe('no Safety Brick at all', () => {
 		});
 		expect(run.outcome).toBe('OUT_OF_STEPS');
 		expect(run.byType('guardrail.checked')).toHaveLength(0);
+	});
+});
+
+/**
+ * A refused attempt has to survive into memory, not just into the next
+ * observation.
+ *
+ * Before this, the tick loop recorded `action`/`result` only when the call was
+ * actually performed — so a blocked call produced a memory entry showing the
+ * bot thinking and doing nothing at all. It saw the refusal once, in the
+ * following turn's feedback, and then had no record of it ever again. Watching
+ * a bot rediscover the same forbidden idea every few turns is how this was
+ * found.
+ */
+describe('refusals are remembered', () => {
+	const openThenOpen = () =>
+		obedient([
+			{ say: 'I will open the chest.', call: 'open', args: { container: 'toy-chest' } },
+			{ say: 'Let me try that again.', call: 'open', args: { container: 'toy-chest' } },
+			{ say: 'And again.', call: 'open', args: { container: 'toy-chest' } }
+		]);
+
+	it('keeps a blocked action in the memory window, turn after turn', async () => {
+		const spec = safetySpec(
+			{ maxTicks: 5, blockedActions: ['open'], approvalMode: false },
+			'starter/tidy-the-blocks'
+		);
+		const run = await runToCompletion({
+			script: openThenOpen(),
+			spec,
+			guardrails: guardrailsForSpec(spec)
+		});
+
+		// By the third prompt the first refusal is two turns old — exactly the
+		// point at which it used to have vanished.
+		const third = run.byType('prompt.composed').at(2);
+		if (third?.type !== 'prompt.composed') throw new Error('expected a third prompt');
+		const memory = third.payload.messages.find((message) =>
+			message.content.startsWith('What you remember')
+		);
+
+		expect(memory?.content).toContain('refused');
+		expect(memory?.content).toContain('open is on the blocked list.');
+	});
+
+	it('remembers a denial by a person too', async () => {
+		const clock = createTestClock();
+		const spec = safetySpec({ maxTicks: 5, blockedActions: [], approvalMode: true });
+		const events: EngineEvent[] = [];
+		const session = createSession({
+			spec,
+			registry: buildRegistry(),
+			provider: createMockProvider({
+				script: obedient([
+					{ say: 'Saying hello.', call: 'say', args: { text: 'Hello!' } },
+					{ say: 'Trying again.', call: 'say', args: { text: 'Hello?' } }
+				])
+			}),
+			guardrails: guardrailsForSpec(spec),
+			options: { now: clock.now, newId: clock.newId, random: clock.random }
+		});
+		session.events.onAny((event) => {
+			events.push(event);
+			if (event.type === 'approval.requested') session.resolveApproval(false);
+		});
+
+		session.start('step');
+		await session.step();
+		await session.step();
+
+		const second = events.filter((event) => event.type === 'prompt.composed').at(-1);
+		if (second?.type !== 'prompt.composed') throw new Error('expected a later prompt');
+		const memory = second.payload.messages.find((message) =>
+			message.content.startsWith('What you remember')
+		);
+		expect(memory?.content).toContain('a person said no');
+	});
+});
+
+/**
+ * The loop-breaker, end to end.
+ *
+ * Reported from real play: a bot at the toy chest calling out to Teddy over and
+ * over until its steps ran out. Deliberately *not* engine behaviour — a rule
+ * baked into every bot would hide the very failure the simulator exists to
+ * show. The builder fits it, picks the number, and lives with the trade-off.
+ */
+describe('the no-repetition rule', () => {
+	/** A bot that has one idea and will not let it go. */
+	const brokenRecord = () =>
+		obedient(
+			Array.from({ length: 8 }, () => ({
+				say: 'I will call out to Teddy.',
+				call: 'say',
+				args: { text: 'Hello Teddy!' }
+			}))
+		);
+
+	it('lets the loop run when nobody has fitted the rule', async () => {
+		const spec = safetySpec({ maxTicks: 8, blockedActions: [], approvalMode: false });
+		const run = await runToCompletion({
+			script: brokenRecord(),
+			spec,
+			guardrails: guardrailsForSpec(spec)
+		});
+
+		// Eight turns of the same thing, all performed. This is the reported bug,
+		// and it is still exactly what happens by default.
+		const said = run
+			.byType('action.performed')
+			.filter((event) => event.type === 'action.performed' && event.payload.result.ok);
+		expect(said.length).toBeGreaterThan(3);
+		expect(timesTripped(run.events, 'safety/no-repetition')).toBe(0);
+	});
+
+	it('blocks the fourth identical move once the rule is fitted', async () => {
+		const spec = safetySpec({
+			maxTicks: 8,
+			blockedActions: [],
+			approvalMode: false,
+			repeatLimit: 3
+		});
+		const run = await runToCompletion({
+			script: brokenRecord(),
+			spec,
+			guardrails: guardrailsForSpec(spec)
+		});
+
+		const performed = run
+			.byType('action.performed')
+			.filter((event) => event.type === 'action.performed' && event.payload.result.ok);
+
+		// Three got through; everything after that was refused.
+		expect(performed).toHaveLength(3);
+		expect(timesTripped(run.events, 'safety/no-repetition')).toBeGreaterThan(0);
+	});
+
+	it('refuses without ending the run, and tells the bot why', async () => {
+		const spec = safetySpec({
+			maxTicks: 8,
+			blockedActions: [],
+			approvalMode: false,
+			repeatLimit: 3
+		});
+		const run = await runToCompletion({
+			script: brokenRecord(),
+			spec,
+			guardrails: guardrailsForSpec(spec)
+		});
+
+		// A loop is a wasted turn, not a failed run. The run does end as
+		// STOPPED_BY_GUARDRAIL here, but that is the *step budget* running out —
+		// so assert on the loop-breaker's own disposition rather than the outcome.
+		const dispositions = run.events
+			.filter(
+				(event) =>
+					event.type === 'guardrail.tripped' && event.payload.guardrailId === 'safety/no-repetition'
+			)
+			.map((event) => (event.type === 'guardrail.tripped' ? event.payload.disposition : ''));
+		expect(dispositions.length).toBeGreaterThan(0);
+		expect(new Set(dispositions)).toStrictEqual(new Set(['block-action']));
+
+		const latest = run.byType('prompt.composed').at(-1);
+		if (latest?.type !== 'prompt.composed') throw new Error('expected a prompt');
+		expect(latest.payload.messages.at(-1)?.content).toContain('Try something different');
+	});
+
+	it('is remembered, so the bot can see it has been told before', async () => {
+		// Leans on the refusal-memory fix: without it the bot forgets it was
+		// stopped and rediscovers the same idea a few turns later.
+		const spec = safetySpec({
+			maxTicks: 8,
+			blockedActions: [],
+			approvalMode: false,
+			repeatLimit: 3
+		});
+		const run = await runToCompletion({
+			script: brokenRecord(),
+			spec,
+			guardrails: guardrailsForSpec(spec)
+		});
+
+		const latest = run.byType('prompt.composed').at(-1);
+		if (latest?.type !== 'prompt.composed') throw new Error('expected a prompt');
+		const memory = latest.payload.messages.find((message) =>
+			message.content.startsWith('What you remember')
+		);
+		expect(memory?.content).toContain('refused');
+	});
+
+	it('leaves a bot that varies what it does alone', async () => {
+		const spec = safetySpec({
+			maxTicks: 6,
+			blockedActions: [],
+			approvalMode: false,
+			repeatLimit: 3
+		});
+		const run = await runToCompletion({
+			script: obedient([
+				{ say: 'East.', call: 'move', args: { direction: 'east' } },
+				{ say: 'North.', call: 'move', args: { direction: 'north' } },
+				{ say: 'East again.', call: 'move', args: { direction: 'east' } },
+				{ say: 'Hello!', call: 'say', args: { text: 'Hello Teddy!' } }
+			]),
+			spec,
+			guardrails: guardrailsForSpec(spec)
+		});
+
+		expect(timesTripped(run.events, 'safety/no-repetition')).toBe(0);
 	});
 });

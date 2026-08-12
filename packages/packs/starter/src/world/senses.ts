@@ -1,7 +1,7 @@
 import type { Observation, WorldSenseDefinition } from '@craftabot/core';
 import { observationStrings, senseStrings } from '../strings.js';
 import { type Cell, inBounds, relativeDirection } from './grid.js';
-import { blockerAt, itemsOnFloorAt, type PlayroomState } from './state.js';
+import { blockerAt, itemsInContainer, itemsOnFloorAt, type PlayroomState } from './state.js';
 import { carriedItem } from './actions.js';
 
 /**
@@ -53,14 +53,57 @@ function describeCell(state: PlayroomState, cell: Cell): string {
 	const blocker = blockerAt(state, cell);
 	if (blocker) {
 		const container = state.containers.find((candidate) => candidate.id === blocker.id);
-		parts.push(
-			container ? observationStrings.containerState(container.name, container.state) : blocker.name
-		);
+		if (container) {
+			parts.push(describeContainer(state, container));
+		} else {
+			parts.push(blocker.name);
+		}
 	}
 	for (const item of itemsOnFloorAt(state, cell)) {
 		parts.push(item.name);
 	}
 	return parts.length > 0 ? parts.join(', ') : observationStrings.sightNothing;
+}
+
+/**
+ * An open container is described with its contents, a closed one is not — you
+ * cannot see through a lid, and pretending otherwise would let a bot plan
+ * around things it has no way of knowing.
+ */
+function describeContainer(
+	state: PlayroomState,
+	container: { id: string; name: string; state: string }
+): string {
+	if (container.state !== 'open') {
+		return observationStrings.containerState(container.name, container.state);
+	}
+	const inside = itemsInContainer(state, container.id).map((item) => item.name);
+	return inside.length > 0
+		? observationStrings.containerWithContents(container.name, container.state, inside)
+		: observationStrings.containerEmpty(container.name, container.state);
+}
+
+/**
+ * The one-line memory form: what was worth noticing, and what the bot was
+ * holding. Everything the full observation says about empty rug is dropped.
+ */
+function sightSummary(state: PlayroomState): string {
+	const near: string[] = [];
+	for (const offset of SIGHT_OFFSETS) {
+		const cell = { x: state.bot.position.x + offset.x, y: state.bot.position.y + offset.y };
+		if (!inBounds(cell, state.width, state.height)) continue;
+		const blocker = blockerAt(state, cell);
+		if (blocker) {
+			const container = state.containers.find((candidate) => candidate.id === blocker.id);
+			near.push(container ? describeContainer(state, container) : blocker.name);
+		}
+		for (const item of itemsOnFloorAt(state, cell)) near.push(item.name);
+	}
+	const carried = carriedItem(state);
+	const hands = carried
+		? observationStrings.sightCarrying(carried.name)
+		: observationStrings.sightEmptyHands;
+	return observationStrings.sightSummary(near, hands);
 }
 
 function sightLines(state: PlayroomState): string[] {
@@ -117,12 +160,14 @@ export function observePlayroom(state: PlayroomState, channels: string[]): Obser
 	const enabled = CHANNEL_ORDER.filter((channel) => channels.includes(channel));
 	const lines: string[] = [];
 	const data: Record<string, unknown> = {};
+	let summary: string | undefined;
 
 	for (const channel of enabled) {
 		switch (channel) {
 			case SENSE_SIGHT: {
 				lines.push(...sightLines(state));
 				data[SENSE_SIGHT] = { position: { ...state.bot.position } };
+				summary = sightSummary(state);
 				break;
 			}
 			case SENSE_HEARING: {
@@ -154,6 +199,9 @@ export function observePlayroom(state: PlayroomState, channels: string[]): Obser
 	return {
 		channels: [...enabled],
 		text: lines.length > 0 ? lines.join('\n') : observationStrings.nothingSensed,
+		// Only sight produces a short form; a bot with no eyes has nothing worth
+		// condensing, and omitting it leaves the full text remembered as before.
+		...(summary !== undefined ? { summary } : {}),
 		data
 	};
 }

@@ -13,11 +13,27 @@ import type { NotebookAccess } from '../types/tool.js';
 
 export interface TickMemory {
 	tick: number;
+	/**
+	 * The *short* form of what was seen (`Observation.summary`), not the full
+	 * text. A window of ten full observations made the history 86% of the prompt
+	 * and buried the goal; the current turn still gets the complete picture.
+	 */
 	observation: string;
 	thought: string;
 	/** What it tried, and what came back — both matter for learning from failure. */
 	action?: string;
 	result?: string;
+	/**
+	 * Why the attempt never reached the world: a guardrail blocked it, or a
+	 * person denied it.
+	 *
+	 * Previously these produced no memory entry at all — the tick loop only
+	 * recorded `action`/`result` when the call was actually performed. A bot
+	 * stopped by the Safety Brick kept no record of having tried, saw the
+	 * refusal once in the next observation, and then tried the same thing again
+	 * forever.
+	 */
+	refused?: string;
 }
 
 export interface Memory {
@@ -66,6 +82,7 @@ export function summariseWindow(entries: TickMemory[]): string {
 			if (entry.thought) parts.push(`you thought — ${entry.thought}`);
 			if (entry.action) parts.push(`you did — ${entry.action}`);
 			if (entry.result) parts.push(`what happened — ${entry.result}`);
+			if (entry.refused) parts.push(`refused — ${entry.refused}`);
 			return parts.join('; ');
 		})
 		.join('\n');

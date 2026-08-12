@@ -51,7 +51,12 @@ export interface SpecOverrides {
 	senses?: string[];
 	actions?: string[];
 	memory?: { windowSize: 3 | 10 | 30; notebook: boolean } | null;
-	safety?: { maxTicks: number; blockedActions: string[]; approvalMode: boolean } | null;
+	safety?: {
+		maxTicks: number;
+		blockedActions: string[];
+		approvalMode: boolean;
+		repeatLimit?: number;
+	} | null;
 	llm?: boolean;
 }
 

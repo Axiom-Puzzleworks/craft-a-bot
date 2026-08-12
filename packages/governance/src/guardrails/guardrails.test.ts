@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { action, context, tool } from '../test-context.js';
 import { ACTION_BLOCKLIST_ID, createActionBlocklistGuardrail } from './action-blocklist.js';
 import { APPROVAL_MODE_ID, createApprovalModeGuardrail } from './approval-mode.js';
+import { NO_REPETITION_ID, createNoRepetitionGuardrail } from './no-repetition.js';
 import { STEP_BUDGET_ID, createStepBudgetGuardrail } from './step-budget.js';
 
 /**
@@ -122,5 +123,146 @@ describe('approval mode', () => {
 		expect(guardrail.hooks).toStrictEqual(['pre-act']);
 		expect(guardrail.id).toBe(APPROVAL_MODE_ID);
 		expect(guardrail.description).toContain('Asks a person');
+	});
+});
+
+describe('no repetition', () => {
+	const guardrail = createNoRepetitionGuardrail(3);
+
+	/** A history of `decision` events, oldest first. */
+	function decisions(...calls: ({ name: string; args?: unknown } | null)[]) {
+		return calls.map((call, index) => ({
+			id: `e${index}`,
+			runId: 'r',
+			tick: index + 1,
+			timestamp: '2026-08-12T09:00:00.000Z',
+			type: 'decision' as const,
+			payload: {
+				thought: 'hmm',
+				call: call ? { kind: 'action' as const, name: call.name, arguments: call.args ?? {} } : null
+			}
+		}));
+	}
+
+	const proposing = (name: string, args: unknown = {}) =>
+		context({ hook: 'pre-act', proposed: action(name, args) });
+
+	it('allows a move it has not made before', () => {
+		const verdict = guardrail.check({
+			...proposing('open'),
+			history: decisions({ name: 'open' })
+		} as never);
+		expect(verdict).toMatchObject({ allow: true });
+	});
+
+	it('allows repeats right up to the limit', () => {
+		const verdict = guardrail.check({
+			...proposing('open'),
+			history: decisions({ name: 'open' }, { name: 'open' }, { name: 'open' })
+		} as never);
+		expect(verdict).toMatchObject({ allow: true });
+	});
+
+	it('blocks the one past the limit, and says what to do instead', () => {
+		const verdict = guardrail.check({
+			...proposing('open'),
+			history: decisions({ name: 'open' }, { name: 'open' }, { name: 'open' }, { name: 'open' })
+		} as never);
+
+		expect(verdict).toMatchObject({ allow: false, disposition: 'block-action' });
+		expect((verdict as { reason: string }).reason).toContain('Try something different');
+	});
+
+	it('does not end the run — a loop is a wasted turn, not a failure', () => {
+		const verdict = guardrail.check({
+			...proposing('open'),
+			history: decisions(...Array.from({ length: 9 }, () => ({ name: 'open' })))
+		} as never);
+		expect(verdict).toMatchObject({ disposition: 'block-action' });
+	});
+
+	it('counts arguments, not just the name', () => {
+		// Moving north then south is not repetition; moving north four times is.
+		const mixed = guardrail.check({
+			...proposing('move', { direction: 'north' }),
+			history: decisions(
+				{ name: 'move', args: { direction: 'north' } },
+				{ name: 'move', args: { direction: 'south' } },
+				{ name: 'move', args: { direction: 'north' } }
+			)
+		} as never);
+		expect(mixed).toMatchObject({ allow: true });
+	});
+
+	it('lets a different move break the streak', () => {
+		const verdict = guardrail.check({
+			...proposing('open'),
+			history: decisions(
+				{ name: 'open' },
+				{ name: 'open' },
+				{ name: 'open' },
+				{ name: 'move' },
+				{ name: 'open' }
+			)
+		} as never);
+		expect(verdict).toMatchObject({ allow: true });
+	});
+
+	it('lets a thinking turn break the streak too', () => {
+		const verdict = guardrail.check({
+			...proposing('open'),
+			history: decisions({ name: 'open' }, { name: 'open' }, { name: 'open' }, null, {
+				name: 'open'
+			})
+		} as never);
+		expect(verdict).toMatchObject({ allow: true });
+	});
+
+	it('ignores events that are not decisions', () => {
+		const history = [
+			...decisions({ name: 'open' }, { name: 'open' }, { name: 'open' }, { name: 'open' })
+		];
+		const withNoise = [
+			history[0]!,
+			{ ...history[0]!, type: 'sense' as const, payload: {} },
+			...history.slice(1)
+		];
+		expect(guardrail.check({ ...proposing('open'), history: withNoise } as never)).toMatchObject({
+			allow: false
+		});
+	});
+
+	it('allows when nothing is proposed', () => {
+		expect(guardrail.check(context({ hook: 'pre-act' }))).toStrictEqual({ allow: true });
+	});
+
+	it('handles a call that carries no arguments at all', () => {
+		// `celebrate` takes none, and a bot can absolutely get stuck on it.
+		const history = Array.from({ length: 4 }, (_, index) => ({
+			id: `e${index}`,
+			runId: 'r',
+			tick: index + 1,
+			timestamp: '2026-08-12T09:00:00.000Z',
+			type: 'decision' as const,
+			payload: {
+				thought: 'again',
+				call: { kind: 'action' as const, name: 'celebrate', arguments: undefined }
+			}
+		}));
+
+		const verdict = guardrail.check({
+			...context({
+				hook: 'pre-act',
+				proposed: { kind: 'action', name: 'celebrate', arguments: undefined }
+			}),
+			history
+		} as never);
+		expect(verdict).toMatchObject({ allow: false, disposition: 'block-action' });
+	});
+
+	it('describes itself with the limit it was given', () => {
+		expect(guardrail.id).toBe(NO_REPETITION_ID);
+		expect(guardrail.hooks).toStrictEqual(['pre-act']);
+		expect(guardrail.description).toContain('3 times');
 	});
 });

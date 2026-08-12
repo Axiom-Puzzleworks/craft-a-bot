@@ -41,6 +41,13 @@
 	const actionsBrick = $derived(spec.bricks.actions);
 	const safety = $derived(spec.bricks.safety);
 
+	/**
+	 * Three in a row is enough to look stuck without tripping ordinary play. The
+	 * builder can move it; the point is that they choose, rather than every bot
+	 * silently inheriting a rule (08-GOVERNANCE-GUARDRAILS.md §3).
+	 */
+	const DEFAULT_REPEAT_LIMIT = 3;
+
 	const MEMORY_SPANS = [
 		{ value: 3, label: 'Goldfish (3 turns)' },
 		{ value: 10, label: 'Puppy (10 turns)' },
@@ -206,6 +213,30 @@
 						oninput={(event) => onupdate('safety', { maxTicks: Number(event.currentTarget.value) })}
 					/>
 				</label>
+				<Rocker
+					label="Stop it going in circles"
+					hint="Blocks the same move repeated over and over. Watch out: a bot walking a long way in a straight line repeats itself too."
+					checked={safety.repeatLimit !== undefined}
+					onchange={(on) =>
+						onupdate('safety', { repeatLimit: on ? DEFAULT_REPEAT_LIMIT : undefined })}
+				/>
+
+				{#if safety.repeatLimit !== undefined}
+					<label class="field">
+						<span>Allow the same move: {safety.repeatLimit} times in a row</span>
+						<input
+							type="range"
+							min="2"
+							max="10"
+							step="1"
+							data-testid="repeat-limit"
+							value={safety.repeatLimit}
+							oninput={(event) =>
+								onupdate('safety', { repeatLimit: Number(event.currentTarget.value) })}
+						/>
+					</label>
+				{/if}
+
 				<Rocker
 					label="Ask before acting"
 					hint="Pauses for your approval before every action."

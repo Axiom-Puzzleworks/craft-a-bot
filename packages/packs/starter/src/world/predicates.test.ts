@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { BLOCK_IDS, playroomPredicateDescriptions, playroomPredicates } from './predicates.js';
+import {
+	BLOCK_IDS,
+	playroomPredicateDescriptions,
+	playroomPredicates,
+	playroomProgress
+} from './predicates.js';
 import type { PlayroomItem, PlayroomState, SpokenLine } from './state.js';
-import { chest, heldBy, inContainer, onFloor, testState } from './test-state.js';
+import { carried, chest, heldBy, inContainer, onFloor, testState } from './test-state.js';
 
 function check(name: string, state: PlayroomState): boolean {
 	const predicate = playroomPredicates[name];
@@ -158,5 +163,82 @@ describe('the predicate catalogue', () => {
 		expect(Object.keys(playroomPredicateDescriptions).sort()).toEqual(
 			Object.keys(playroomPredicates).sort()
 		);
+	});
+});
+
+/**
+ * Progress descriptions. These exist because a bot could not otherwise tell how
+ * far it had got: it would tidy a block away and, on the very next turn, have
+ * no way to know it had.
+ */
+describe('describing progress', () => {
+	const blocks = () => [
+		onFloor('block-a', { x: 1, y: 1 }, 'a blue letter block (A)'),
+		onFloor('block-b', { x: 2, y: 2 }, 'a yellow letter block (B)'),
+		onFloor('block-c', { x: 3, y: 3 }, 'a red letter block (C)')
+	];
+
+	it('counts the blocks still out, and names them', () => {
+		const state = testState({ containers: chest('open'), items: blocks() });
+		const said = playroomProgress['blocks-in-chest']?.(state) ?? '';
+
+		expect(said).toContain('0 of 3');
+		expect(said).toContain('Still out');
+		expect(said).toContain('(A)');
+	});
+
+	it('counts the ones already tidied away', () => {
+		const state = testState({
+			containers: chest('open'),
+			items: [
+				inContainer('block-a', 'toy-chest', 'a blue letter block (A)'),
+				onFloor('block-b', { x: 2, y: 2 }, 'a yellow letter block (B)'),
+				onFloor('block-c', { x: 3, y: 3 }, 'a red letter block (C)')
+			]
+		});
+		expect(playroomProgress['blocks-in-chest']?.(state)).toContain('1 of 3');
+	});
+
+	it('says so plainly when the job is done', () => {
+		const state = testState({
+			containers: chest('open'),
+			items: [
+				inContainer('block-a', 'toy-chest'),
+				inContainer('block-b', 'toy-chest'),
+				inContainer('block-c', 'toy-chest')
+			]
+		});
+		expect(playroomProgress['blocks-in-chest']?.(state)).toContain('All 3 blocks are in');
+	});
+
+	it('reports the lid separately for the locked-chest goal', () => {
+		const closed = testState({ containers: chest('closed'), items: blocks() });
+		expect(playroomProgress['chest-open-and-blocks-inside']?.(closed)).toContain('not open yet');
+
+		const open = testState({ containers: chest('open'), items: blocks() });
+		expect(playroomProgress['chest-open-and-blocks-inside']?.(open)).toContain(
+			'The toy chest is open.'
+		);
+	});
+
+	it('tracks the snack through all three of its states', () => {
+		const onTable = testState({ items: [onFloor('snack', { x: 3, y: 1 })] });
+		expect(playroomProgress['teddy-has-snack']?.(onTable)).toContain('not carrying');
+
+		const held = testState({ items: [carried('snack')] });
+		expect(playroomProgress['teddy-has-snack']?.(held)).toContain('You are carrying');
+
+		const delivered = testState({ items: [heldBy('snack', 'teddy')] });
+		expect(playroomProgress['teddy-has-snack']?.(delivered)).toContain('Teddy has the snack');
+	});
+
+	it('says nothing about a snack that is not in this layout', () => {
+		expect(playroomProgress['teddy-has-snack']?.(testState({ items: [] }))).toBeUndefined();
+	});
+
+	it('offers nothing for goals with no meaningful middle', () => {
+		// "Said hello" is done or not; a progress line would be noise.
+		expect(playroomProgress['said-hello-near-teddy']).toBeUndefined();
+		expect(playroomProgress['free-play-manual']).toBeUndefined();
 	});
 });

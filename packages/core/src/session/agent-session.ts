@@ -329,13 +329,17 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		emit('sense', { channels: [...channels], observation });
 
 		// 2. COMPOSE
+		const progress = world.describeProgress?.(goalCard.successCondition);
+		const notebookLines = memory.notebook.read();
 		const promptInput = {
 			spec,
 			goalCard,
 			observation: observation.text,
 			memoryWindow: memory.window(),
 			fittedBricks,
-			feedback: run.feedback
+			feedback: run.feedback,
+			...(notebookLines.length > 0 ? { notebookLines } : {}),
+			...(progress !== undefined ? { progress } : {})
 		};
 		let messages = composePrompt(promptInput);
 		run.feedback = [];
@@ -366,6 +370,8 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 
 		// 6. GUARD (pre-act) + 7. ACT
 		let acted: { summary: string; result: string } | undefined;
+		/** Set when a guardrail or a person stopped the call before it ran. */
+		let refused: string | undefined;
 		if (decision.kind === 'call') {
 			const proposed = {
 				kind: decision.call.kind,
@@ -385,14 +391,14 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 				if (approved) {
 					acted = await performCall(decision);
 				} else {
-					run.feedback.push(
-						`You tried to ${decision.call.name}, but a person said no: ${preAct.verdict.reason}`
-					);
+					const message = `You tried to ${decision.call.name}, but a person said no: ${preAct.verdict.reason}`;
+					run.feedback.push(message);
+					refused = message;
 				}
 			} else if (!('allow' in preAct.verdict && preAct.verdict.allow)) {
-				run.feedback.push(
-					`You tried to ${decision.call.name}, but a safety rule stopped you: ${preAct.verdict.reason}`
-				);
+				const message = `You tried to ${decision.call.name}, but a safety rule stopped you: ${preAct.verdict.reason}`;
+				run.feedback.push(message);
+				refused = message;
 				if (preAct.verdict.disposition === 'stop-run') return finish('STOPPED_BY_GUARDRAIL');
 			} else {
 				acted = await performCall(decision);
@@ -406,9 +412,11 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		if (memory.enabled) {
 			const entry: TickMemory = {
 				tick: run.tick,
-				observation: observation.text,
+				// The short form when the world offers one; see `Observation.summary`.
+				observation: observation.summary ?? observation.text,
 				thought,
-				...(acted ? { action: acted.summary, result: acted.result } : {})
+				...(acted ? { action: acted.summary, result: acted.result } : {}),
+				...(refused !== undefined ? { refused } : {})
 			};
 			memory.remember(entry);
 			emit('memory.updated', {

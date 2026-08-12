@@ -150,3 +150,62 @@ describe('describeFittedBricks', () => {
 		expect(fitted).toEqual(['nothing much, honestly']);
 	});
 });
+
+/** The minimum a prompt needs, for the cases below to vary one thing each. */
+function baseInput() {
+	return {
+		spec: spec({ llm: { cartridgeId: 'c', temperature: 0, maxTokens: 10, personality: '' } }),
+		goalCard,
+		observation: 'You look around: nothing but rug.',
+		memoryWindow: [],
+		fittedBricks: ['a brain (LLM)'],
+		feedback: []
+	};
+}
+
+/**
+ * The notebook and the progress line, both added after a live run showed a bot
+ * looping at the toy chest with neither available to it.
+ */
+describe('the notebook in the prompt', () => {
+	it('is injected, not left behind a tool call', () => {
+		// As a tool it was inert: a bot has to think to consult its notes, and a
+		// bot stuck in a loop is not doing the new thing that breaks the loop.
+		const messages = composePrompt({
+			...baseInput(),
+			notebookLines: ['the red key is in the top-left corner', 'the chest was locked']
+		});
+
+		const notebook = messages.find((message) => message.content.startsWith('Your notebook says'));
+		expect(notebook?.content).toContain('the red key is in the top-left corner');
+		expect(notebook?.content).toContain('the chest was locked');
+	});
+
+	it('adds no message at all when the notebook is empty', () => {
+		const messages = composePrompt({ ...baseInput(), notebookLines: [] });
+		expect(messages.some((message) => message.content.startsWith('Your notebook'))).toBe(false);
+	});
+
+	it('adds no message when there is no notebook', () => {
+		const messages = composePrompt(baseInput());
+		expect(messages.some((message) => message.content.startsWith('Your notebook'))).toBe(false);
+	});
+});
+
+describe('the progress line', () => {
+	it('rides with the current observation, not the history', () => {
+		const messages = composePrompt({
+			...baseInput(),
+			progress: 'Blocks in the toy chest: 1 of 3.'
+		});
+
+		const now = messages.at(-1);
+		expect(now?.content).toContain('Right now:');
+		expect(now?.content).toContain('Blocks in the toy chest: 1 of 3.');
+	});
+
+	it('is simply absent for a world that cannot describe progress', () => {
+		const messages = composePrompt(baseInput());
+		expect(messages.at(-1)?.content).not.toContain('undefined');
+	});
+});

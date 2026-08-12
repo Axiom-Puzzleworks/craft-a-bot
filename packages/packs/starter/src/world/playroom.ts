@@ -9,7 +9,11 @@ import type {
 import { worldStrings } from '../strings.js';
 import { findAction, playroomActionDefinitions, unknownActionNarration } from './actions.js';
 import { playroomLayouts } from './layouts.js';
-import { playroomPredicateDescriptions, playroomPredicates } from './predicates.js';
+import {
+	playroomPredicateDescriptions,
+	playroomPredicates,
+	playroomProgress
+} from './predicates.js';
 import { observePlayroom, playroomSenses } from './senses.js';
 import type { PlayroomState } from './state.js';
 
@@ -70,6 +74,10 @@ function createPlayroomInstance(layoutId: string): WorldInstance {
 
 		receiveInput(text: string): void {
 			state.heard.push(text);
+		},
+
+		describeProgress(predicate): string | undefined {
+			return playroomProgress[predicate]?.(state);
 		}
 	};
 }

@@ -88,10 +88,17 @@
 		"timestamp": "2026-08-12T10:00:03.000Z",
 		"type": "sense",
 		"payload": {
-			"channels": ["sight", "compass"],
+			"channels": [
+				"sight",
+				"compass"
+			],
 			"observation": {
-				"channels": ["sight", "compass"],
+				"channels": [
+					"sight",
+					"compass"
+				],
 				"text": "You look around:\nRight where you stand: nothing but rug.\nTo the north: nothing but rug.\nTo the north-east: nothing but rug.\nTo the east: nothing but rug.\nTo the south-east: nothing but rug.\nTo the south: nothing but rug.\nTo the south-west: the wall.\nTo the west: the wall.\nTo the north-west: the wall.\nYour hands are empty.\nYou are standing at column 1 of 8, row 5 of 6.\nBig things in the room: the toy chest to the north-east, the shelf to the north-east, the table to the north-east.",
+				"summary": "nothing nearby; Your hands are empty.",
 				"data": {
 					"sight": {
 						"position": {
@@ -413,10 +420,17 @@
 		"timestamp": "2026-08-12T10:00:22.000Z",
 		"type": "sense",
 		"payload": {
-			"channels": ["sight", "compass"],
+			"channels": [
+				"sight",
+				"compass"
+			],
 			"observation": {
-				"channels": ["sight", "compass"],
+				"channels": [
+					"sight",
+					"compass"
+				],
 				"text": "You look around:\nRight where you stand: nothing but rug.\nTo the north: nothing but rug.\nTo the north-east: nothing but rug.\nTo the east: nothing but rug.\nTo the south-east: nothing but rug.\nTo the south: nothing but rug.\nTo the south-west: nothing but rug.\nTo the west: nothing but rug.\nTo the north-west: nothing but rug.\nYour hands are empty.\nYou are standing at column 2 of 8, row 5 of 6.\nBig things in the room: the toy chest to the north, the shelf to the north-east, the table to the north-east.",
+				"summary": "nothing nearby; Your hands are empty.",
 				"data": {
 					"sight": {
 						"position": {
@@ -450,14 +464,14 @@
 				},
 				{
 					"role": "user",
-					"content": "What you remember of earlier turns, oldest first:\nTick 1: you saw — You look around:\nRight where you stand: nothing but rug.\nTo the north: nothing but rug.\nTo the north-east: nothing but rug.\nTo the east: nothing but rug.\nTo the south-east: nothing but rug.\nTo the south: nothing but rug.\nTo the south-west: the wall.\nTo the west: the wall.\nTo the north-west: the wall.\nYour hands are empty.\nYou are standing at column 1 of 8, row 5 of 6.\nBig things in the room: the toy chest to the north-east, the shelf to the north-east, the table to the north-east.; you thought — I should look for Teddy. Let me head east.; you did — tried to move; what happened — You roll one square east."
+					"content": "What you remember of earlier turns, oldest first:\nTick 1: you saw — nothing nearby; Your hands are empty.; you thought — I should look for Teddy. Let me head east.; you did — tried to move; what happened — You roll one square east."
 				},
 				{
 					"role": "user",
 					"content": "Right now:\nYou look around:\nRight where you stand: nothing but rug.\nTo the north: nothing but rug.\nTo the north-east: nothing but rug.\nTo the east: nothing but rug.\nTo the south-east: nothing but rug.\nTo the south: nothing but rug.\nTo the south-west: nothing but rug.\nTo the west: nothing but rug.\nTo the north-west: nothing but rug.\nYour hands are empty.\nYou are standing at column 2 of 8, row 5 of 6.\nBig things in the room: the toy chest to the north, the shelf to the north-east, the table to the north-east."
 				}
 			],
-			"estimatedTokens": 463
+			"estimatedTokens": 351
 		}
 	},
 	{
@@ -516,7 +530,7 @@
 					}
 				},
 				"usage": {
-					"inputTokens": 463,
+					"inputTokens": 351,
 					"outputTokens": 5
 				},
 				"raw": {
@@ -682,10 +696,17 @@
 		"timestamp": "2026-08-12T10:00:35.000Z",
 		"type": "sense",
 		"payload": {
-			"channels": ["sight", "compass"],
+			"channels": [
+				"sight",
+				"compass"
+			],
 			"observation": {
-				"channels": ["sight", "compass"],
+				"channels": [
+					"sight",
+					"compass"
+				],
 				"text": "You look around:\nRight where you stand: nothing but rug.\nTo the north: nothing but rug.\nTo the north-east: nothing but rug.\nTo the east: nothing but rug.\nTo the south-east: nothing but rug.\nTo the south: nothing but rug.\nTo the south-west: nothing but rug.\nTo the west: nothing but rug.\nTo the north-west: nothing but rug.\nYour hands are empty.\nYou are standing at column 3 of 8, row 5 of 6.\nBig things in the room: the toy chest to the north-west, the shelf to the north-east, the table to the north-east.",
+				"summary": "nothing nearby; Your hands are empty.",
 				"data": {
 					"sight": {
 						"position": {
@@ -719,14 +740,14 @@
 				},
 				{
 					"role": "user",
-					"content": "What you remember of earlier turns, oldest first:\nTick 1: you saw — You look around:\nRight where you stand: nothing but rug.\nTo the north: nothing but rug.\nTo the north-east: nothing but rug.\nTo the east: nothing but rug.\nTo the south-east: nothing but rug.\nTo the south: nothing but rug.\nTo the south-west: the wall.\nTo the west: the wall.\nTo the north-west: the wall.\nYour hands are empty.\nYou are standing at column 1 of 8, row 5 of 6.\nBig things in the room: the toy chest to the north-east, the shelf to the north-east, the table to the north-east.; you thought — I should look for Teddy. Let me head east.; you did — tried to move; what happened — You roll one square east.\nTick 2: you saw — You look around:\nRight where you stand: nothing but rug.\nTo the north: nothing but rug.\nTo the north-east: nothing but rug.\nTo the east: nothing but rug.\nTo the south-east: nothing but rug.\nTo the south: nothing but rug.\nTo the south-west: nothing but rug.\nTo the west: nothing but rug.\nTo the north-west: nothing but rug.\nYour hands are empty.\nYou are standing at column 2 of 8, row 5 of 6.\nBig things in the room: the toy chest to the north, the shelf to the north-east, the table to the north-east.; you thought — Still going east.; you did — tried to move; what happened — You roll one square east."
+					"content": "What you remember of earlier turns, oldest first:\nTick 1: you saw — nothing nearby; Your hands are empty.; you thought — I should look for Teddy. Let me head east.; you did — tried to move; what happened — You roll one square east.\nTick 2: you saw — nothing nearby; Your hands are empty.; you thought — Still going east.; you did — tried to move; what happened — You roll one square east."
 				},
 				{
 					"role": "user",
 					"content": "Right now:\nYou look around:\nRight where you stand: nothing but rug.\nTo the north: nothing but rug.\nTo the north-east: nothing but rug.\nTo the east: nothing but rug.\nTo the south-east: nothing but rug.\nTo the south: nothing but rug.\nTo the south-west: nothing but rug.\nTo the west: nothing but rug.\nTo the north-west: nothing but rug.\nYour hands are empty.\nYou are standing at column 3 of 8, row 5 of 6.\nBig things in the room: the toy chest to the north-west, the shelf to the north-east, the table to the north-east."
 				}
 			],
-			"estimatedTokens": 620
+			"estimatedTokens": 392
 		}
 	},
 	{
@@ -805,7 +826,7 @@
 					}
 				},
 				"usage": {
-					"inputTokens": 620,
+					"inputTokens": 392,
 					"outputTokens": 5
 				},
 				"raw": {
@@ -971,10 +992,17 @@
 		"timestamp": "2026-08-12T10:00:50.000Z",
 		"type": "sense",
 		"payload": {
-			"channels": ["sight", "compass"],
+			"channels": [
+				"sight",
+				"compass"
+			],
 			"observation": {
-				"channels": ["sight", "compass"],
+				"channels": [
+					"sight",
+					"compass"
+				],
 				"text": "You look around:\nRight where you stand: nothing but rug.\nTo the north: nothing but rug.\nTo the north-east: nothing but rug.\nTo the east: nothing but rug.\nTo the south-east: nothing but rug.\nTo the south: nothing but rug.\nTo the south-west: nothing but rug.\nTo the west: nothing but rug.\nTo the north-west: nothing but rug.\nYour hands are empty.\nYou are standing at column 4 of 8, row 5 of 6.\nBig things in the room: the toy chest to the north-west, the shelf to the north-east, the table to the north.",
+				"summary": "nothing nearby; Your hands are empty.",
 				"data": {
 					"sight": {
 						"position": {
@@ -1008,14 +1036,14 @@
 				},
 				{
 					"role": "user",
-					"content": "What you remember of earlier turns, oldest first:\nTick 1: you saw — You look around:\nRight where you stand: nothing but rug.\nTo the north: nothing but rug.\nTo the north-east: nothing but rug.\nTo the east: nothing but rug.\nTo the south-east: nothing but rug.\nTo the south: nothing but rug.\nTo the south-west: the wall.\nTo the west: the wall.\nTo the north-west: the wall.\nYour hands are empty.\nYou are standing at column 1 of 8, row 5 of 6.\nBig things in the room: the toy chest to the north-east, the shelf to the north-east, the table to the north-east.; you thought — I should look for Teddy. Let me head east.; you did — tried to move; what happened — You roll one square east.\nTick 2: you saw — You look around:\nRight where you stand: nothing but rug.\nTo the north: nothing but rug.\nTo the north-east: nothing but rug.\nTo the east: nothing but rug.\nTo the south-east: nothing but rug.\nTo the south: nothing but rug.\nTo the south-west: nothing but rug.\nTo the west: nothing but rug.\nTo the north-west: nothing but rug.\nYour hands are empty.\nYou are standing at column 2 of 8, row 5 of 6.\nBig things in the room: the toy chest to the north, the shelf to the north-east, the table to the north-east.; you thought — Still going east.; you did — tried to move; what happened — You roll one square east.\nTick 3: you saw — You look around:\nRight where you stand: nothing but rug.\nTo the north: nothing but rug.\nTo the north-east: nothing but rug.\nTo the east: nothing but rug.\nTo the south-east: nothing but rug.\nTo the south: nothing but rug.\nTo the south-west: nothing but rug.\nTo the west: nothing but rug.\nTo the north-west: nothing but rug.\nYour hands are empty.\nYou are standing at column 3 of 8, row 5 of 6.\nBig things in the room: the toy chest to the north-west, the shelf to the north-east, the table to the north-east.; you thought — I can see Teddy now.; you did — tried to move; what happened — You roll one square east."
+					"content": "What you remember of earlier turns, oldest first:\nTick 1: you saw — nothing nearby; Your hands are empty.; you thought — I should look for Teddy. Let me head east.; you did — tried to move; what happened — You roll one square east.\nTick 2: you saw — nothing nearby; Your hands are empty.; you thought — Still going east.; you did — tried to move; what happened — You roll one square east.\nTick 3: you saw — nothing nearby; Your hands are empty.; you thought — I can see Teddy now.; you did — tried to move; what happened — You roll one square east."
 				},
 				{
 					"role": "user",
 					"content": "Right now:\nYou look around:\nRight where you stand: nothing but rug.\nTo the north: nothing but rug.\nTo the north-east: nothing but rug.\nTo the east: nothing but rug.\nTo the south-east: nothing but rug.\nTo the south: nothing but rug.\nTo the south-west: nothing but rug.\nTo the west: nothing but rug.\nTo the north-west: nothing but rug.\nYour hands are empty.\nYou are standing at column 4 of 8, row 5 of 6.\nBig things in the room: the toy chest to the north-west, the shelf to the north-east, the table to the north."
 				}
 			],
-			"estimatedTokens": 776
+			"estimatedTokens": 431
 		}
 	},
 	{
@@ -1094,7 +1122,7 @@
 					}
 				},
 				"usage": {
-					"inputTokens": 776,
+					"inputTokens": 431,
 					"outputTokens": 7
 				},
 				"raw": {
@@ -1260,7 +1288,7 @@
 			"outcome": "SUCCESS",
 			"ticks": 4,
 			"usage": {
-				"inputTokens": 2149,
+				"inputTokens": 1464,
 				"outputTokens": 28
 			}
 		}

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ACTION_BLOCKLIST_ID } from './guardrails/action-blocklist.js';
 import { APPROVAL_MODE_ID } from './guardrails/approval-mode.js';
+import { NO_REPETITION_ID } from './guardrails/no-repetition.js';
 import { STEP_BUDGET_ID } from './guardrails/step-budget.js';
 import { guardrailsForSpec } from './spec-guardrails.js';
 import { specWithSafety } from './test-context.js';
@@ -36,6 +37,39 @@ describe('guardrailsForSpec', () => {
 	it('installs approval mode when the toggle is on', () => {
 		const spec = specWithSafety({ maxTicks: 12, blockedActions: [], approvalMode: true });
 		expect(ids(spec)).toStrictEqual([STEP_BUDGET_ID, APPROVAL_MODE_ID]);
+	});
+
+	it('leaves the loop-breaker off unless a limit is set', () => {
+		// Nobody gets a policy they did not choose (08 §3).
+		const spec = specWithSafety({ maxTicks: 12, blockedActions: [], approvalMode: false });
+		expect(ids(spec)).not.toContain(NO_REPETITION_ID);
+	});
+
+	it('installs the loop-breaker when a limit is set', () => {
+		const spec = specWithSafety({
+			maxTicks: 12,
+			blockedActions: [],
+			approvalMode: false,
+			repeatLimit: 3
+		});
+		expect(ids(spec)).toStrictEqual([STEP_BUDGET_ID, NO_REPETITION_ID]);
+	});
+
+	it('puts the loop-breaker after the blocklist but before approval', () => {
+		// A flat prohibition beats it; and there is no point asking a person to
+		// approve the fourth identical attempt at something that is not working.
+		const spec = specWithSafety({
+			maxTicks: 12,
+			blockedActions: ['open'],
+			approvalMode: true,
+			repeatLimit: 3
+		});
+		expect(ids(spec)).toStrictEqual([
+			STEP_BUDGET_ID,
+			ACTION_BLOCKLIST_ID,
+			NO_REPETITION_ID,
+			APPROVAL_MODE_ID
+		]);
 	});
 
 	it('orders the blocklist ahead of approval mode', () => {

@@ -7,7 +7,7 @@ import {
 	observePlayroom,
 	playroomSenses
 } from './senses.js';
-import { carried, chest, onFloor, testState } from './test-state.js';
+import { carried, chest, inContainer, onFloor, testState } from './test-state.js';
 
 describe('sense definitions', () => {
 	it('ships the four V1 channels (02-AGENT-MODEL.md §2.4)', () => {
@@ -47,9 +47,43 @@ describe('sight', () => {
 		expect(observePlayroom(state, [SENSE_SIGHT]).text).toContain('You are carrying a snack');
 	});
 
-	it('shows an open chest as open', () => {
+	it('shows an open chest as open, and says it is empty', () => {
 		const state = testState({ containers: chest('open') });
-		expect(observePlayroom(state, [SENSE_SIGHT]).text).toContain('the toy chest (open)');
+		expect(observePlayroom(state, [SENSE_SIGHT]).text).toContain('the toy chest (open, empty)');
+	});
+
+	it('lists what is inside an open chest', () => {
+		// Without this a bot that had just tidied something away could not see
+		// that it had, and re-derived its progress from history every turn.
+		const state = testState({
+			containers: chest('open'),
+			items: [inContainer('block-a', 'toy-chest', 'a blue letter block (A)')]
+		});
+		expect(observePlayroom(state, [SENSE_SIGHT]).text).toContain(
+			'the toy chest (open, containing a blue letter block (A))'
+		);
+	});
+
+	it('keeps a closed chest opaque', () => {
+		// You cannot see through a lid, and pretending otherwise would let a bot
+		// plan around things it has no way of knowing.
+		const state = testState({
+			containers: chest('closed'),
+			items: [inContainer('block-a', 'toy-chest', 'a blue letter block (A)')]
+		});
+		const text = observePlayroom(state, [SENSE_SIGHT]).text;
+		expect(text).toContain('the toy chest (closed)');
+		expect(text).not.toContain('block');
+	});
+
+	it('offers a short summary for the memory window', () => {
+		const state = testState({ containers: chest('open') });
+		const observation = observePlayroom(state, [SENSE_SIGHT]);
+
+		// The whole point: far shorter than the text, and free of empty-rug lines.
+		expect(observation.summary).toBeDefined();
+		expect(observation.summary?.length ?? 0).toBeLessThan(observation.text.length / 2);
+		expect(observation.summary).not.toContain('nothing but rug');
 	});
 
 	it('says there is nothing but rug on an empty square', () => {

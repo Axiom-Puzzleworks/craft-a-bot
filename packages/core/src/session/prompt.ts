@@ -33,6 +33,19 @@ export interface PromptInput {
 	fittedBricks: string[];
 	/** Anything the world or a guardrail wants the agent told this turn. */
 	feedback: string[];
+	/**
+	 * The notebook's contents, if the Memory brick has one.
+	 *
+	 * Injected rather than left behind `notebook_read`. As a tool it was inert:
+	 * a bot has to *think* to consult its notes, and a bot stuck in a loop is by
+	 * definition not doing the new thing that would break the loop. Observed
+	 * over fourteen live turns with the notebook switched on, it was never read
+	 * once. Writing stays a tool — deciding what is worth noting is the
+	 * interesting part; remembering to look is not.
+	 */
+	notebookLines?: string[];
+	/** One line on how far along the goal is, from the world (02 §4). */
+	progress?: string;
 }
 
 export function composeSystemMessage(input: PromptInput): string {
@@ -58,7 +71,16 @@ export function composePrompt(input: PromptInput): ChatMessage[] {
 		});
 	}
 
-	const observation = [...input.feedback, input.observation]
+	if (input.notebookLines && input.notebookLines.length > 0) {
+		messages.push({
+			role: 'user',
+			content: `Your notebook says:\n${input.notebookLines.map((line) => `- ${line}`).join('\n')}`
+		});
+	}
+
+	// Progress sits with the current observation rather than the history: it
+	// describes now, and it is the line most likely to change the next decision.
+	const observation = [...input.feedback, input.observation, input.progress ?? '']
 		.filter((part) => part !== '')
 		.join('\n');
 	messages.push({ role: 'user', content: `Right now:\n${observation}` });

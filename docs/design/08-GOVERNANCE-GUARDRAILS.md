@@ -82,6 +82,18 @@ Also always-on, brick or no brick (engine-level, not optional): token budget per
 > - **Approval mode pauses for world actions only, never for tools.** §3's table already says "every world action"; the lesson is that looking is free and *changing things* is what needs a signature — the same tools/actions split the bricks teach in `02-AGENT-MODEL.md` §2.
 > - **The blocklist's disposition is `block-action`, never `stop-run`.** A forbidden action is a refused step, not a failed run: the refusal goes back into the next observation and the bot carries on, which is the behaviour §2 means when it says the agent *experiences* governance.
 
+> **Amended 2026-08-12 (WP10.1):** the Safety Brick gains a **fourth** rule, **No repetition** (`safety/no-repetition`, pre-act, `block-action`), configured by an optional `repeatLimit` on the brick. It blocks a call — same kind, same name, same arguments — proposed more than *N* turns running.
+>
+> | Rule | Hook | Behaviour | Real-world analogue |
+> |---|---|---|---|
+> | **No repetition** | pre-act | Blocks the same call after N consecutive attempts (dial: 2–10, off by default) | Runaway/loop detection |
+>
+> It arrived from real play: a bot at the toy chest calling out to Teddy over and over until its steps ran out. The obvious fix — have the engine notice and nudge — was rejected deliberately. Baking it into the loop would give every bot a policy nobody chose, and would hide one of the most instructive agent failure modes behind engine machinery, which is precisely the opposite of what this simulator is for. As a fitted rule it is inspectable, optional, and its trip shows up in the trace like any other.
+>
+> **Off by default, and honest about a false positive.** It counts *identical* calls, so a bot genuinely walking four squares east in a straight line will trip a limit of three. A bot pressing into a wall and a bot crossing a room look the same from inside a guardrail — only the goal distinguishes them, and a guardrail does not get to see the goal. The builder turns it on and picks the number; the panel says so.
+>
+> It also depends on the refusal-memory fix landed alongside it: `TickMemory` now records blocked and denied attempts, so a bot can see it has been stopped before rather than rediscovering the same idea a few turns later.
+
 ## 4. The trace as a governance artefact
 
 `07-DATA-MODEL-PERSISTENCE.md` defines the trace; governance requirements on it:

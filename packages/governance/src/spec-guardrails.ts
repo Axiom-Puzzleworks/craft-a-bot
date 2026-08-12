@@ -1,6 +1,7 @@
 import type { AgentSpec, Guardrail } from '@craftabot/core';
 import { createActionBlocklistGuardrail } from './guardrails/action-blocklist.js';
 import { createApprovalModeGuardrail } from './guardrails/approval-mode.js';
+import { createNoRepetitionGuardrail } from './guardrails/no-repetition.js';
 import { createStepBudgetGuardrail } from './guardrails/step-budget.js';
 
 /**
@@ -17,7 +18,9 @@ import { createStepBudgetGuardrail } from './guardrails/step-budget.js';
  * Order matters, because the chain stops at the first non-allow verdict
  * (§2). Blocklist before approval mode: an action the builder has already
  * forbidden should be refused outright rather than presented to a human as a
- * decision they appear to be free to make.
+ * decision they appear to be free to make. No-repetition sits between them —
+ * after the flat prohibitions, but before a human is asked to approve the
+ * fourth identical attempt at something that has plainly stopped working.
  */
 export function guardrailsForSpec(spec: AgentSpec): Guardrail[] {
 	const safety = spec.bricks.safety;
@@ -29,6 +32,9 @@ export function guardrailsForSpec(spec: AgentSpec): Guardrail[] {
 	// read without a rule that cannot possibly fire.
 	if (safety.blockedActions.length > 0) {
 		guardrails.push(createActionBlocklistGuardrail(safety.blockedActions));
+	}
+	if (safety.repeatLimit !== undefined) {
+		guardrails.push(createNoRepetitionGuardrail(safety.repeatLimit));
 	}
 	if (safety.approvalMode) guardrails.push(createApprovalModeGuardrail());
 

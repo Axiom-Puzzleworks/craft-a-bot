@@ -37,7 +37,15 @@ export const actionsBrickSchema = z.object({
 export const safetyBrickSchema = z.object({
 	maxTicks: z.number().int().positive(),
 	blockedActions: z.array(z.string().min(1)),
-	approvalMode: z.boolean()
+	approvalMode: z.boolean(),
+	/**
+	 * Stop the bot after this many identical moves in a row. Omitted = off.
+	 *
+	 * Optional rather than defaulted so that every kit file written before the
+	 * rule existed still validates, and so that a builder who has not thought
+	 * about it does not silently get a policy they did not choose.
+	 */
+	repeatLimit: z.number().int().min(2).max(10).optional()
 });
 
 export const agentSpecSchema = z.object({
