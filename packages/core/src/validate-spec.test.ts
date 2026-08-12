@@ -28,13 +28,20 @@ function buildRegistry(): PackRegistry {
 		version: '1.0.0',
 		requiresCore: '>=1.0.0',
 		tools: [
-			{ id: 'starter/calculator', name: 'Calculator', description: 'Maths.', parameters: {} },
+			{
+				id: 'starter/calculator',
+				name: 'Calculator',
+				description: 'Maths.',
+				parameters: {},
+				execute: () => ({ ok: true, output: '4' })
+			},
 			{
 				id: 'starter/notebook_write',
 				name: 'Notebook Write',
 				description: 'Write to the scratchpad.',
 				parameters: {},
-				requiresNotebook: true
+				requiresNotebook: true,
+				execute: () => ({ ok: true, output: 'written' })
 			}
 		],
 		goalCards: [

@@ -1,24 +1,34 @@
 import type { PackManifest } from '@craftabot/core';
 import { starterGoalCards } from './goal-cards.js';
+import { starterTools } from './tools/index.js';
 import { playroom } from './world/playroom.js';
 
 /**
  * @craftabot/pack-starter — the content of the V1 box (01-ARCHITECTURE.md §2).
- * WP2 ships the Playroom world and the six starter Goal Cards; the five brick
- * definitions and the toy tools join the manifest in later work packages.
+ * The Playroom world, the six starter Goal Cards, and the toy tools. The five
+ * brick definitions join the manifest when the bench renders them (WP5).
  */
 export const starterPack: PackManifest = {
 	id: 'starter',
 	name: 'My Very First Agent — Starter Parts',
-	version: '0.1.0',
+	version: '0.2.0',
 	requiresCore: '>=0.0.1',
 	worlds: [playroom],
-	goalCards: starterGoalCards
+	goalCards: starterGoalCards,
+	tools: starterTools
 };
 
 export default starterPack;
 
 export { starterGoalCards } from './goal-cards.js';
+export {
+	calculator,
+	dice,
+	lookUpManual,
+	notebookRead,
+	notebookWrite,
+	starterTools
+} from './tools/index.js';
 export { playroom, PLAYROOM_WORLD_ID } from './world/playroom.js';
 export { playroomLayouts } from './world/layouts.js';
 export { playroomActions, playroomActionDefinitions, carriedItem } from './world/actions.js';

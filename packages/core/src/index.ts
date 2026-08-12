@@ -8,6 +8,7 @@ export type {
 	AgentSession,
 	CreateSession,
 	CreateSessionDeps,
+	SessionOptions,
 	RunMode,
 	RunOutcome,
 	SessionStatus,
@@ -73,7 +74,7 @@ export {
 	cartridgeDefinitionSchema,
 	goalCardDefinitionSchema,
 	packManifestMetadataSchema,
-	toolDefinitionSchema,
+	toolMetadataSchema,
 	type BrickDefinition,
 	type CartridgeDefinition,
 	type GoalCardDefinition,
@@ -81,8 +82,9 @@ export {
 	type PackArtwork,
 	type PackManifest,
 	type PackManifestMetadata,
-	type ToolDefinition
+	type ToolMetadata
 } from './schemas/pack-manifest.js';
+export type { NotebookAccess, ToolContext, ToolDefinition, ToolResult } from './types/tool.js';
 export {
 	engineEventSchema,
 	parseEngineEvent,
@@ -118,3 +120,33 @@ export {
 } from './event-bus.js';
 export { createPackRegistry, type PackRegistry } from './pack-registry.js';
 export { validateSpec } from './validate-spec.js';
+
+// The running engine (02-AGENT-MODEL.md §5)
+export { createSession } from './session/agent-session.js';
+export {
+	DEFAULT_REQUEST_TIMEOUT_MS,
+	DEFAULT_TICK_BUDGET,
+	DEFAULT_TOKEN_BUDGET,
+	resolveBudgets,
+	type BudgetLimits,
+	type Usage
+} from './session/budgets.js';
+export {
+	REPROMPT_INSTRUCTION,
+	decide,
+	type Decision,
+	type DecisionCall
+} from './session/decide.js';
+export { createMemory, summariseWindow, type Memory, type TickMemory } from './session/memory.js';
+export {
+	composePrompt,
+	composeSystemMessage,
+	describeFittedBricks,
+	estimateTokens
+} from './session/prompt.js';
+export {
+	isAllowed,
+	isPause,
+	runGuardrailChain,
+	type ChainOutcome
+} from './session/guardrail-chain.js';

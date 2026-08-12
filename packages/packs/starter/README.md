@@ -4,10 +4,13 @@ The content of the V1 box: the Playroom grid world, the six starter Goal Cards, 
 (later) the five brick definitions and the toy tools — all contributed via a
 `PackManifest` (`01-ARCHITECTURE.md` §4). See `docs/design/02-AGENT-MODEL.md`.
 
-**Status:** WP2 — the Playroom and the six Goal Cards are complete and tested. The
-brick definitions and the four tools (`calculator`, `dice`, `notebook_*`,
-`look_up_manual`) join the manifest in later work packages; the Playroom manual data
-the last of those will query already lives here in `world/manual.ts`.
+**Status:** WP3 — the Playroom, the six Goal Cards, and the five toy tools
+(`calculator`, `dice`, `notebook_read`/`notebook_write`, `look_up_manual`) are complete
+and tested. The five brick definitions join the manifest when the bench renders them (WP5).
+
+This package also hosts the engine's end-to-end tests (`src/session/`): `core` may not
+depend on a pack, so the only place the whole stack — real loop, real world, real tools,
+scripted brain — can run together is here.
 
 ## Public API sketch
 

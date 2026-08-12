@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { Guardrail, GuardrailHook } from '../types/guardrail.js';
+import type { ToolDefinition } from '../types/tool.js';
 import type { WorldDefinition } from '../types/world.js';
 
 /**
@@ -19,7 +20,12 @@ export const brickDefinitionSchema = z.object({
 });
 export type BrickDefinition = z.infer<typeof brickDefinitionSchema>;
 
-export const toolDefinitionSchema = z.object({
+/**
+ * The pure-data half of a tool. The executable half (`ToolDefinition`, which
+ * adds `execute`) lives in types/tool.ts, because a function cannot be
+ * validated as data — the same split as worlds and guardrails.
+ */
+export const toolMetadataSchema = z.object({
 	id: z.string().min(1),
 	name: z.string().min(1),
 	description: z.string(),
@@ -27,7 +33,7 @@ export const toolDefinitionSchema = z.object({
 	/** e.g. notebook_read/notebook_write — declares the Memory-brick-notebook dependency (02-AGENT-MODEL.md §2.3). */
 	requiresNotebook: z.boolean().optional()
 });
-export type ToolDefinition = z.infer<typeof toolDefinitionSchema>;
+export type ToolMetadata = z.infer<typeof toolMetadataSchema>;
 
 const cartridgeStatSchema = z.union([z.literal(1), z.literal(2), z.literal(3)]);
 

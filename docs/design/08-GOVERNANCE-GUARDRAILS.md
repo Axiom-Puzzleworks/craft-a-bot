@@ -62,6 +62,10 @@ UI: hazard-striped brick, chest socket; its panel is the "safety control panel" 
 
 Also always-on, brick or no brick (engine-level, not optional): token budget per run, request timeout, and the malformed-output re-prompt rule. Frame: the brick is *user-configurable* governance; the engine floor is *platform* governance. That two-tier frame (platform floor + configurable policy) is exactly how real deployments work and is worth teaching implicitly from day one.
 
+> **Amended 2026-08-12 (WP3):** the engine floor now has concrete values, recorded here because it is a governance contract rather than an implementation detail — **tick budget 30** (per `02-AGENT-MODEL.md` §5; the Safety Brick's `maxTicks` dial overrides it), **token budget 100,000 per run**, **request timeout 60s**. A host embedding the engine may override all three via `SessionOptions.budgets`; the workbench never offers that, so for users the floor is exactly a floor. Exhausting either budget ends the run as `OUT_OF_STEPS` — the outcome vocabulary in `02` §5 has no separate "out of tokens" state, and inventing one would mean a new end card for a case users will almost never hit.
+>
+> The **malformed-output re-prompt rule** is defined narrowly: a reply counts as malformed only when it contains *neither* a tool/action call *nor* any thought text. A bot that thinks without acting is thinking, not mumbling. A call naming a tool or action the bot does not have is likewise not malformed — it is routed to the world, which refuses it in character.
+
 ## 4. The trace as a governance artefact
 
 `07-DATA-MODEL-PERSISTENCE.md` defines the trace; governance requirements on it:

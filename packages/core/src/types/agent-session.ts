@@ -35,12 +35,27 @@ export interface AgentSession {
 	stop(reason?: string): void;
 }
 
+export interface SessionOptions {
+	/** Delay between ticks in `play` mode, so a human can watch (02-AGENT-MODEL.md §5). */
+	tickDelayMs?: number;
+	budgets?: { maxTicks?: number; maxTokens?: number; requestTimeoutMs?: number };
+	/**
+	 * Injected clock, id source, and randomness. Production uses the real ones;
+	 * tests inject counters so a recorded trace is byte-reproducible, which is
+	 * what makes replay and audit possible (08-GOVERNANCE-GUARDRAILS.md §4).
+	 */
+	now?: () => string;
+	newId?: () => string;
+	random?: () => number;
+}
+
 export interface CreateSessionDeps {
 	spec: AgentSpec;
 	registry: PackRegistry; // resolves cartridge/world/tool/card IDs
 	provider: LLMProvider;
 	guardrails: Guardrail[];
+	options?: SessionOptions;
 }
 
-/** The contract WP3's `createSession` implements. */
+/** The contract `createSession` implements. */
 export type CreateSession = (deps: CreateSessionDeps) => AgentSession;

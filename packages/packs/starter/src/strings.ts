@@ -64,6 +64,48 @@ export const actionStrings = {
 	}
 } as const;
 
+export const toolStrings = {
+	calculator: {
+		name: 'Calculator',
+		description: 'Work out a sum exactly. Use this instead of guessing at arithmetic.',
+		expression: 'The sum to work out, e.g. "17 * 23".',
+		badArgs: 'You need to tell the calculator a sum to work out.',
+		cannotWorkOut: (expression: string) => `The calculator cannot make sense of "${expression}".`,
+		result: (expression: string, value: number) => `${expression} = ${value}`
+	},
+	dice: {
+		name: 'Dice',
+		description: 'Roll one or more dice when you want to leave something to chance.',
+		sides: 'How many sides each die has (2–100). Six by default.',
+		rolls: 'How many dice to roll (1–10). One by default.',
+		badArgs: 'Those dice do not make sense — try a number of sides between 2 and 100.',
+		result: (results: number[], sides: number) =>
+			results.length === 1
+				? `You roll a ${sides}-sided die and get ${results[0]}.`
+				: `You roll ${results.length} ${sides}-sided dice and get ${results.join(', ')}.`
+	},
+	notebook: {
+		writeName: 'Notebook (write)',
+		writeDescription: 'Jot something down so you still know it many turns from now.',
+		readName: 'Notebook (read)',
+		readDescription: 'Read back everything you have jotted down.',
+		note: 'What to write down.',
+		badArgs: 'You need to say what to write in the notebook.',
+		written: (note: string) => `You write in your notebook: "${note}"`,
+		contents: (lines: string[]) =>
+			`Your notebook says:\n${lines.map((line) => `- ${line}`).join('\n')}`,
+		empty: 'Your notebook is blank so far.'
+	},
+	lookUpManual: {
+		name: 'Look up the manual',
+		description:
+			'Look something up in the Encyclopedia of the Playroom — how things here work, and what opens what.',
+		query: 'What you want to look up, e.g. "the toy chest".',
+		badArgs: 'You need to say what to look up.',
+		nothingFound: (query: string) => `The encyclopedia has nothing to say about "${query}".`
+	}
+} as const;
+
 export const senseStrings = {
 	sight: { name: 'Sight', description: 'What is in your square and the eight around it.' },
 	hearing: { name: 'Hearing', description: 'Anything a person has said to you.' },

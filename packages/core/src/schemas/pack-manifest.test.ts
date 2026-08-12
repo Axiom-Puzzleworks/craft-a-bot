@@ -4,7 +4,7 @@ import {
 	cartridgeDefinitionSchema,
 	goalCardDefinitionSchema,
 	packManifestMetadataSchema,
-	toolDefinitionSchema
+	toolMetadataSchema
 } from './pack-manifest.js';
 
 describe('pack-manifest schemas', () => {
@@ -29,7 +29,7 @@ describe('pack-manifest schemas', () => {
 	});
 
 	it('parses a valid tool definition with requiresNotebook', () => {
-		const result = toolDefinitionSchema.safeParse({
+		const result = toolMetadataSchema.safeParse({
 			id: 'starter/notebook_write',
 			name: 'Notebook Write',
 			description: 'Write to the scratchpad.',

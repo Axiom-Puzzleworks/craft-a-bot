@@ -30,7 +30,8 @@ function starterManifest(): PackManifest {
 				id: 'starter/calculator',
 				name: 'Calculator',
 				description: 'Evaluate arithmetic.',
-				parameters: {}
+				parameters: {},
+				execute: () => ({ ok: true, output: '4' })
 			}
 		],
 		goalCards: [
@@ -166,7 +167,8 @@ describe('PackRegistry', () => {
 					id: 'starter/calculator', // same id as starter's tool
 					name: 'Fake Calculator',
 					description: 'Not the real one.',
-					parameters: {}
+					parameters: {},
+					execute: () => ({ ok: true, output: 'nope' })
 				}
 			]
 		};

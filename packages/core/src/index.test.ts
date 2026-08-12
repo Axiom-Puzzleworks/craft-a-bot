@@ -24,7 +24,7 @@ describe('@craftabot/core public API', () => {
 		expect(core.kitFileSchema).toBeDefined();
 		expect(core.traceFileSchema).toBeDefined();
 		expect(core.brickDefinitionSchema).toBeDefined();
-		expect(core.toolDefinitionSchema).toBeDefined();
+		expect(core.toolMetadataSchema).toBeDefined();
 		expect(core.cartridgeDefinitionSchema).toBeDefined();
 		expect(core.goalCardDefinitionSchema).toBeDefined();
 	});

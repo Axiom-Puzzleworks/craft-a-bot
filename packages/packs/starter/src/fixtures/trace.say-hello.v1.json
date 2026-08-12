@@ -1,0 +1,1204 @@
+[
+	{
+		"id": "00000000-0000-4000-8000-000000000002",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 0,
+		"timestamp": "2026-08-12T10:00:00.000Z",
+		"type": "run.started",
+		"payload": {
+			"mode": "step"
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000003",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 1,
+		"timestamp": "2026-08-12T10:00:01.000Z",
+		"type": "tick.started",
+		"payload": {}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000004",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 1,
+		"timestamp": "2026-08-12T10:00:02.000Z",
+		"type": "sense",
+		"payload": {
+			"channels": ["sight", "compass"],
+			"observation": {
+				"channels": ["sight", "compass"],
+				"text": "You look around:\nRight where you stand: nothing but rug.\nTo the north: nothing but rug.\nTo the north-east: nothing but rug.\nTo the east: nothing but rug.\nTo the south-east: nothing but rug.\nTo the south: nothing but rug.\nTo the south-west: the wall.\nTo the west: the wall.\nTo the north-west: the wall.\nYour hands are empty.\nYou are standing at column 1 of 8, row 5 of 6.\nBig things in the room: the toy chest to the north-east, the shelf to the north-east, the table to the north-east.",
+				"data": {
+					"sight": {
+						"position": {
+							"x": 0,
+							"y": 4
+						}
+					},
+					"compass": {
+						"position": {
+							"x": 0,
+							"y": 4
+						},
+						"width": 8,
+						"height": 6
+					}
+				}
+			}
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000005",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 1,
+		"timestamp": "2026-08-12T10:00:03.000Z",
+		"type": "prompt.composed",
+		"payload": {
+			"messages": [
+				{
+					"role": "system",
+					"content": "You are a small robot in a simulated playroom. You take one turn at a time. On each turn you are told what you can sense, and you may think briefly and then take at most one action or use at most one tool.\n\nAbout you: You are a cheerful little robot.\n\nYour goal: Introduce yourself to Teddy.\n\nParts you have been built with: a brain (LLM), memory of your last 10 turns, and a notebook, senses, hands and wheels.\n\nHow to reply:\n- Think briefly — a sentence or two, out loud.\n- Then call at most one tool or action. Never more than one per turn.\n- Only use `celebrate` when the goal is genuinely finished. Claiming success early is worse than taking another turn."
+				},
+				{
+					"role": "user",
+					"content": "Right now:\nYou look around:\nRight where you stand: nothing but rug.\nTo the north: nothing but rug.\nTo the north-east: nothing but rug.\nTo the east: nothing but rug.\nTo the south-east: nothing but rug.\nTo the south: nothing but rug.\nTo the south-west: the wall.\nTo the west: the wall.\nTo the north-west: the wall.\nYour hands are empty.\nYou are standing at column 1 of 8, row 5 of 6.\nBig things in the room: the toy chest to the north-east, the shelf to the north-east, the table to the north-east."
+				}
+			],
+			"estimatedTokens": 290
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000006",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 1,
+		"timestamp": "2026-08-12T10:00:04.000Z",
+		"type": "think.started",
+		"payload": {
+			"model": "test/mock-brain"
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000007",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 1,
+		"timestamp": "2026-08-12T10:00:05.000Z",
+		"type": "think.token",
+		"payload": {
+			"delta": "I "
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000008",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 1,
+		"timestamp": "2026-08-12T10:00:06.000Z",
+		"type": "think.token",
+		"payload": {
+			"delta": "should "
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000009",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 1,
+		"timestamp": "2026-08-12T10:00:07.000Z",
+		"type": "think.token",
+		"payload": {
+			"delta": "look "
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000000a",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 1,
+		"timestamp": "2026-08-12T10:00:08.000Z",
+		"type": "think.token",
+		"payload": {
+			"delta": "for "
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000000b",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 1,
+		"timestamp": "2026-08-12T10:00:09.000Z",
+		"type": "think.token",
+		"payload": {
+			"delta": "Teddy. "
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000000c",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 1,
+		"timestamp": "2026-08-12T10:00:10.000Z",
+		"type": "think.token",
+		"payload": {
+			"delta": "Let "
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000000d",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 1,
+		"timestamp": "2026-08-12T10:00:11.000Z",
+		"type": "think.token",
+		"payload": {
+			"delta": "me "
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000000e",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 1,
+		"timestamp": "2026-08-12T10:00:12.000Z",
+		"type": "think.token",
+		"payload": {
+			"delta": "head "
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000000f",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 1,
+		"timestamp": "2026-08-12T10:00:13.000Z",
+		"type": "think.token",
+		"payload": {
+			"delta": "east."
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000010",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 1,
+		"timestamp": "2026-08-12T10:00:14.000Z",
+		"type": "think.completed",
+		"payload": {
+			"response": {
+				"text": "I should look for Teddy. Let me head east.",
+				"toolCall": {
+					"name": "move",
+					"arguments": {
+						"direction": "east"
+					}
+				},
+				"usage": {
+					"inputTokens": 290,
+					"outputTokens": 11
+				},
+				"raw": {
+					"mock": true,
+					"turnIndex": 0,
+					"turn": {
+						"text": "I should look for Teddy. Let me head east.",
+						"toolCall": {
+							"name": "move",
+							"arguments": {
+								"direction": "east"
+							}
+						}
+					}
+				},
+				"finishReason": "tool_call"
+			}
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000011",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 1,
+		"timestamp": "2026-08-12T10:00:15.000Z",
+		"type": "decision",
+		"payload": {
+			"thought": "I should look for Teddy. Let me head east.",
+			"call": {
+				"kind": "action",
+				"name": "move",
+				"arguments": {
+					"direction": "east"
+				}
+			}
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000012",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 1,
+		"timestamp": "2026-08-12T10:00:16.000Z",
+		"type": "action.performed",
+		"payload": {
+			"name": "move",
+			"arguments": {
+				"direction": "east"
+			},
+			"result": {
+				"ok": true,
+				"narration": "You roll one square east.",
+				"stateDiff": [
+					{
+						"path": "bot.position",
+						"from": {
+							"x": 0,
+							"y": 4
+						},
+						"to": {
+							"x": 1,
+							"y": 4
+						}
+					}
+				]
+			}
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000013",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 1,
+		"timestamp": "2026-08-12T10:00:17.000Z",
+		"type": "world.changed",
+		"payload": {
+			"state": {
+				"width": 8,
+				"height": 6,
+				"tick": 1,
+				"bot": {
+					"position": {
+						"x": 1,
+						"y": 4
+					}
+				},
+				"furniture": [
+					{
+						"id": "shelf",
+						"name": "the shelf",
+						"position": {
+							"x": 6,
+							"y": 0
+						}
+					},
+					{
+						"id": "table",
+						"name": "the table",
+						"position": {
+							"x": 3,
+							"y": 2
+						}
+					}
+				],
+				"containers": [
+					{
+						"id": "toy-chest",
+						"name": "the toy chest",
+						"position": {
+							"x": 1,
+							"y": 0
+						},
+						"state": "closed",
+						"unlockedBy": "red-key"
+					}
+				],
+				"characters": [
+					{
+						"id": "teddy",
+						"name": "Teddy",
+						"position": {
+							"x": 5,
+							"y": 4
+						}
+					}
+				],
+				"items": [],
+				"spoken": [],
+				"heard": [],
+				"celebrated": false
+			}
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000014",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 1,
+		"timestamp": "2026-08-12T10:00:18.000Z",
+		"type": "memory.updated",
+		"payload": {
+			"windowSize": 10,
+			"entries": 1,
+			"notebookUpdated": true
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000015",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 1,
+		"timestamp": "2026-08-12T10:00:19.000Z",
+		"type": "tick.completed",
+		"payload": {}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000016",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 2,
+		"timestamp": "2026-08-12T10:00:20.000Z",
+		"type": "tick.started",
+		"payload": {}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000017",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 2,
+		"timestamp": "2026-08-12T10:00:21.000Z",
+		"type": "sense",
+		"payload": {
+			"channels": ["sight", "compass"],
+			"observation": {
+				"channels": ["sight", "compass"],
+				"text": "You look around:\nRight where you stand: nothing but rug.\nTo the north: nothing but rug.\nTo the north-east: nothing but rug.\nTo the east: nothing but rug.\nTo the south-east: nothing but rug.\nTo the south: nothing but rug.\nTo the south-west: nothing but rug.\nTo the west: nothing but rug.\nTo the north-west: nothing but rug.\nYour hands are empty.\nYou are standing at column 2 of 8, row 5 of 6.\nBig things in the room: the toy chest to the north, the shelf to the north-east, the table to the north-east.",
+				"data": {
+					"sight": {
+						"position": {
+							"x": 1,
+							"y": 4
+						}
+					},
+					"compass": {
+						"position": {
+							"x": 1,
+							"y": 4
+						},
+						"width": 8,
+						"height": 6
+					}
+				}
+			}
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000018",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 2,
+		"timestamp": "2026-08-12T10:00:22.000Z",
+		"type": "prompt.composed",
+		"payload": {
+			"messages": [
+				{
+					"role": "system",
+					"content": "You are a small robot in a simulated playroom. You take one turn at a time. On each turn you are told what you can sense, and you may think briefly and then take at most one action or use at most one tool.\n\nAbout you: You are a cheerful little robot.\n\nYour goal: Introduce yourself to Teddy.\n\nParts you have been built with: a brain (LLM), memory of your last 10 turns, and a notebook, senses, hands and wheels.\n\nHow to reply:\n- Think briefly — a sentence or two, out loud.\n- Then call at most one tool or action. Never more than one per turn.\n- Only use `celebrate` when the goal is genuinely finished. Claiming success early is worse than taking another turn."
+				},
+				{
+					"role": "user",
+					"content": "What you remember of earlier turns, oldest first:\nTick 1: you saw — You look around:\nRight where you stand: nothing but rug.\nTo the north: nothing but rug.\nTo the north-east: nothing but rug.\nTo the east: nothing but rug.\nTo the south-east: nothing but rug.\nTo the south: nothing but rug.\nTo the south-west: the wall.\nTo the west: the wall.\nTo the north-west: the wall.\nYour hands are empty.\nYou are standing at column 1 of 8, row 5 of 6.\nBig things in the room: the toy chest to the north-east, the shelf to the north-east, the table to the north-east.; you thought — I should look for Teddy. Let me head east.; you did — tried to move; what happened — You roll one square east."
+				},
+				{
+					"role": "user",
+					"content": "Right now:\nYou look around:\nRight where you stand: nothing but rug.\nTo the north: nothing but rug.\nTo the north-east: nothing but rug.\nTo the east: nothing but rug.\nTo the south-east: nothing but rug.\nTo the south: nothing but rug.\nTo the south-west: nothing but rug.\nTo the west: nothing but rug.\nTo the north-west: nothing but rug.\nYour hands are empty.\nYou are standing at column 2 of 8, row 5 of 6.\nBig things in the room: the toy chest to the north, the shelf to the north-east, the table to the north-east."
+				}
+			],
+			"estimatedTokens": 463
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000019",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 2,
+		"timestamp": "2026-08-12T10:00:23.000Z",
+		"type": "think.started",
+		"payload": {
+			"model": "test/mock-brain"
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000001a",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 2,
+		"timestamp": "2026-08-12T10:00:24.000Z",
+		"type": "think.token",
+		"payload": {
+			"delta": "Still "
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000001b",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 2,
+		"timestamp": "2026-08-12T10:00:25.000Z",
+		"type": "think.token",
+		"payload": {
+			"delta": "going "
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000001c",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 2,
+		"timestamp": "2026-08-12T10:00:26.000Z",
+		"type": "think.token",
+		"payload": {
+			"delta": "east."
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000001d",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 2,
+		"timestamp": "2026-08-12T10:00:27.000Z",
+		"type": "think.completed",
+		"payload": {
+			"response": {
+				"text": "Still going east.",
+				"toolCall": {
+					"name": "move",
+					"arguments": {
+						"direction": "east"
+					}
+				},
+				"usage": {
+					"inputTokens": 463,
+					"outputTokens": 5
+				},
+				"raw": {
+					"mock": true,
+					"turnIndex": 1,
+					"turn": {
+						"text": "Still going east.",
+						"toolCall": {
+							"name": "move",
+							"arguments": {
+								"direction": "east"
+							}
+						}
+					}
+				},
+				"finishReason": "tool_call"
+			}
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000001e",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 2,
+		"timestamp": "2026-08-12T10:00:28.000Z",
+		"type": "decision",
+		"payload": {
+			"thought": "Still going east.",
+			"call": {
+				"kind": "action",
+				"name": "move",
+				"arguments": {
+					"direction": "east"
+				}
+			}
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000001f",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 2,
+		"timestamp": "2026-08-12T10:00:29.000Z",
+		"type": "action.performed",
+		"payload": {
+			"name": "move",
+			"arguments": {
+				"direction": "east"
+			},
+			"result": {
+				"ok": true,
+				"narration": "You roll one square east.",
+				"stateDiff": [
+					{
+						"path": "bot.position",
+						"from": {
+							"x": 1,
+							"y": 4
+						},
+						"to": {
+							"x": 2,
+							"y": 4
+						}
+					}
+				]
+			}
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000020",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 2,
+		"timestamp": "2026-08-12T10:00:30.000Z",
+		"type": "world.changed",
+		"payload": {
+			"state": {
+				"width": 8,
+				"height": 6,
+				"tick": 2,
+				"bot": {
+					"position": {
+						"x": 2,
+						"y": 4
+					}
+				},
+				"furniture": [
+					{
+						"id": "shelf",
+						"name": "the shelf",
+						"position": {
+							"x": 6,
+							"y": 0
+						}
+					},
+					{
+						"id": "table",
+						"name": "the table",
+						"position": {
+							"x": 3,
+							"y": 2
+						}
+					}
+				],
+				"containers": [
+					{
+						"id": "toy-chest",
+						"name": "the toy chest",
+						"position": {
+							"x": 1,
+							"y": 0
+						},
+						"state": "closed",
+						"unlockedBy": "red-key"
+					}
+				],
+				"characters": [
+					{
+						"id": "teddy",
+						"name": "Teddy",
+						"position": {
+							"x": 5,
+							"y": 4
+						}
+					}
+				],
+				"items": [],
+				"spoken": [],
+				"heard": [],
+				"celebrated": false
+			}
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000021",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 2,
+		"timestamp": "2026-08-12T10:00:31.000Z",
+		"type": "memory.updated",
+		"payload": {
+			"windowSize": 10,
+			"entries": 2,
+			"notebookUpdated": true
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000022",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 2,
+		"timestamp": "2026-08-12T10:00:32.000Z",
+		"type": "tick.completed",
+		"payload": {}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000023",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 3,
+		"timestamp": "2026-08-12T10:00:33.000Z",
+		"type": "tick.started",
+		"payload": {}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000024",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 3,
+		"timestamp": "2026-08-12T10:00:34.000Z",
+		"type": "sense",
+		"payload": {
+			"channels": ["sight", "compass"],
+			"observation": {
+				"channels": ["sight", "compass"],
+				"text": "You look around:\nRight where you stand: nothing but rug.\nTo the north: nothing but rug.\nTo the north-east: nothing but rug.\nTo the east: nothing but rug.\nTo the south-east: nothing but rug.\nTo the south: nothing but rug.\nTo the south-west: nothing but rug.\nTo the west: nothing but rug.\nTo the north-west: nothing but rug.\nYour hands are empty.\nYou are standing at column 3 of 8, row 5 of 6.\nBig things in the room: the toy chest to the north-west, the shelf to the north-east, the table to the north-east.",
+				"data": {
+					"sight": {
+						"position": {
+							"x": 2,
+							"y": 4
+						}
+					},
+					"compass": {
+						"position": {
+							"x": 2,
+							"y": 4
+						},
+						"width": 8,
+						"height": 6
+					}
+				}
+			}
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000025",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 3,
+		"timestamp": "2026-08-12T10:00:35.000Z",
+		"type": "prompt.composed",
+		"payload": {
+			"messages": [
+				{
+					"role": "system",
+					"content": "You are a small robot in a simulated playroom. You take one turn at a time. On each turn you are told what you can sense, and you may think briefly and then take at most one action or use at most one tool.\n\nAbout you: You are a cheerful little robot.\n\nYour goal: Introduce yourself to Teddy.\n\nParts you have been built with: a brain (LLM), memory of your last 10 turns, and a notebook, senses, hands and wheels.\n\nHow to reply:\n- Think briefly — a sentence or two, out loud.\n- Then call at most one tool or action. Never more than one per turn.\n- Only use `celebrate` when the goal is genuinely finished. Claiming success early is worse than taking another turn."
+				},
+				{
+					"role": "user",
+					"content": "What you remember of earlier turns, oldest first:\nTick 1: you saw — You look around:\nRight where you stand: nothing but rug.\nTo the north: nothing but rug.\nTo the north-east: nothing but rug.\nTo the east: nothing but rug.\nTo the south-east: nothing but rug.\nTo the south: nothing but rug.\nTo the south-west: the wall.\nTo the west: the wall.\nTo the north-west: the wall.\nYour hands are empty.\nYou are standing at column 1 of 8, row 5 of 6.\nBig things in the room: the toy chest to the north-east, the shelf to the north-east, the table to the north-east.; you thought — I should look for Teddy. Let me head east.; you did — tried to move; what happened — You roll one square east.\nTick 2: you saw — You look around:\nRight where you stand: nothing but rug.\nTo the north: nothing but rug.\nTo the north-east: nothing but rug.\nTo the east: nothing but rug.\nTo the south-east: nothing but rug.\nTo the south: nothing but rug.\nTo the south-west: nothing but rug.\nTo the west: nothing but rug.\nTo the north-west: nothing but rug.\nYour hands are empty.\nYou are standing at column 2 of 8, row 5 of 6.\nBig things in the room: the toy chest to the north, the shelf to the north-east, the table to the north-east.; you thought — Still going east.; you did — tried to move; what happened — You roll one square east."
+				},
+				{
+					"role": "user",
+					"content": "Right now:\nYou look around:\nRight where you stand: nothing but rug.\nTo the north: nothing but rug.\nTo the north-east: nothing but rug.\nTo the east: nothing but rug.\nTo the south-east: nothing but rug.\nTo the south: nothing but rug.\nTo the south-west: nothing but rug.\nTo the west: nothing but rug.\nTo the north-west: nothing but rug.\nYour hands are empty.\nYou are standing at column 3 of 8, row 5 of 6.\nBig things in the room: the toy chest to the north-west, the shelf to the north-east, the table to the north-east."
+				}
+			],
+			"estimatedTokens": 620
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000026",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 3,
+		"timestamp": "2026-08-12T10:00:36.000Z",
+		"type": "think.started",
+		"payload": {
+			"model": "test/mock-brain"
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000027",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 3,
+		"timestamp": "2026-08-12T10:00:37.000Z",
+		"type": "think.token",
+		"payload": {
+			"delta": "I "
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000028",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 3,
+		"timestamp": "2026-08-12T10:00:38.000Z",
+		"type": "think.token",
+		"payload": {
+			"delta": "can "
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000029",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 3,
+		"timestamp": "2026-08-12T10:00:39.000Z",
+		"type": "think.token",
+		"payload": {
+			"delta": "see "
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000002a",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 3,
+		"timestamp": "2026-08-12T10:00:40.000Z",
+		"type": "think.token",
+		"payload": {
+			"delta": "Teddy "
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000002b",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 3,
+		"timestamp": "2026-08-12T10:00:41.000Z",
+		"type": "think.token",
+		"payload": {
+			"delta": "now."
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000002c",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 3,
+		"timestamp": "2026-08-12T10:00:42.000Z",
+		"type": "think.completed",
+		"payload": {
+			"response": {
+				"text": "I can see Teddy now.",
+				"toolCall": {
+					"name": "move",
+					"arguments": {
+						"direction": "east"
+					}
+				},
+				"usage": {
+					"inputTokens": 620,
+					"outputTokens": 5
+				},
+				"raw": {
+					"mock": true,
+					"turnIndex": 2,
+					"turn": {
+						"text": "I can see Teddy now.",
+						"toolCall": {
+							"name": "move",
+							"arguments": {
+								"direction": "east"
+							}
+						}
+					}
+				},
+				"finishReason": "tool_call"
+			}
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000002d",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 3,
+		"timestamp": "2026-08-12T10:00:43.000Z",
+		"type": "decision",
+		"payload": {
+			"thought": "I can see Teddy now.",
+			"call": {
+				"kind": "action",
+				"name": "move",
+				"arguments": {
+					"direction": "east"
+				}
+			}
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000002e",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 3,
+		"timestamp": "2026-08-12T10:00:44.000Z",
+		"type": "action.performed",
+		"payload": {
+			"name": "move",
+			"arguments": {
+				"direction": "east"
+			},
+			"result": {
+				"ok": true,
+				"narration": "You roll one square east.",
+				"stateDiff": [
+					{
+						"path": "bot.position",
+						"from": {
+							"x": 2,
+							"y": 4
+						},
+						"to": {
+							"x": 3,
+							"y": 4
+						}
+					}
+				]
+			}
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000002f",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 3,
+		"timestamp": "2026-08-12T10:00:45.000Z",
+		"type": "world.changed",
+		"payload": {
+			"state": {
+				"width": 8,
+				"height": 6,
+				"tick": 3,
+				"bot": {
+					"position": {
+						"x": 3,
+						"y": 4
+					}
+				},
+				"furniture": [
+					{
+						"id": "shelf",
+						"name": "the shelf",
+						"position": {
+							"x": 6,
+							"y": 0
+						}
+					},
+					{
+						"id": "table",
+						"name": "the table",
+						"position": {
+							"x": 3,
+							"y": 2
+						}
+					}
+				],
+				"containers": [
+					{
+						"id": "toy-chest",
+						"name": "the toy chest",
+						"position": {
+							"x": 1,
+							"y": 0
+						},
+						"state": "closed",
+						"unlockedBy": "red-key"
+					}
+				],
+				"characters": [
+					{
+						"id": "teddy",
+						"name": "Teddy",
+						"position": {
+							"x": 5,
+							"y": 4
+						}
+					}
+				],
+				"items": [],
+				"spoken": [],
+				"heard": [],
+				"celebrated": false
+			}
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000030",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 3,
+		"timestamp": "2026-08-12T10:00:46.000Z",
+		"type": "memory.updated",
+		"payload": {
+			"windowSize": 10,
+			"entries": 3,
+			"notebookUpdated": true
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000031",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 3,
+		"timestamp": "2026-08-12T10:00:47.000Z",
+		"type": "tick.completed",
+		"payload": {}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000032",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 4,
+		"timestamp": "2026-08-12T10:00:48.000Z",
+		"type": "tick.started",
+		"payload": {}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000033",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 4,
+		"timestamp": "2026-08-12T10:00:49.000Z",
+		"type": "sense",
+		"payload": {
+			"channels": ["sight", "compass"],
+			"observation": {
+				"channels": ["sight", "compass"],
+				"text": "You look around:\nRight where you stand: nothing but rug.\nTo the north: nothing but rug.\nTo the north-east: nothing but rug.\nTo the east: nothing but rug.\nTo the south-east: nothing but rug.\nTo the south: nothing but rug.\nTo the south-west: nothing but rug.\nTo the west: nothing but rug.\nTo the north-west: nothing but rug.\nYour hands are empty.\nYou are standing at column 4 of 8, row 5 of 6.\nBig things in the room: the toy chest to the north-west, the shelf to the north-east, the table to the north.",
+				"data": {
+					"sight": {
+						"position": {
+							"x": 3,
+							"y": 4
+						}
+					},
+					"compass": {
+						"position": {
+							"x": 3,
+							"y": 4
+						},
+						"width": 8,
+						"height": 6
+					}
+				}
+			}
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000034",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 4,
+		"timestamp": "2026-08-12T10:00:50.000Z",
+		"type": "prompt.composed",
+		"payload": {
+			"messages": [
+				{
+					"role": "system",
+					"content": "You are a small robot in a simulated playroom. You take one turn at a time. On each turn you are told what you can sense, and you may think briefly and then take at most one action or use at most one tool.\n\nAbout you: You are a cheerful little robot.\n\nYour goal: Introduce yourself to Teddy.\n\nParts you have been built with: a brain (LLM), memory of your last 10 turns, and a notebook, senses, hands and wheels.\n\nHow to reply:\n- Think briefly — a sentence or two, out loud.\n- Then call at most one tool or action. Never more than one per turn.\n- Only use `celebrate` when the goal is genuinely finished. Claiming success early is worse than taking another turn."
+				},
+				{
+					"role": "user",
+					"content": "What you remember of earlier turns, oldest first:\nTick 1: you saw — You look around:\nRight where you stand: nothing but rug.\nTo the north: nothing but rug.\nTo the north-east: nothing but rug.\nTo the east: nothing but rug.\nTo the south-east: nothing but rug.\nTo the south: nothing but rug.\nTo the south-west: the wall.\nTo the west: the wall.\nTo the north-west: the wall.\nYour hands are empty.\nYou are standing at column 1 of 8, row 5 of 6.\nBig things in the room: the toy chest to the north-east, the shelf to the north-east, the table to the north-east.; you thought — I should look for Teddy. Let me head east.; you did — tried to move; what happened — You roll one square east.\nTick 2: you saw — You look around:\nRight where you stand: nothing but rug.\nTo the north: nothing but rug.\nTo the north-east: nothing but rug.\nTo the east: nothing but rug.\nTo the south-east: nothing but rug.\nTo the south: nothing but rug.\nTo the south-west: nothing but rug.\nTo the west: nothing but rug.\nTo the north-west: nothing but rug.\nYour hands are empty.\nYou are standing at column 2 of 8, row 5 of 6.\nBig things in the room: the toy chest to the north, the shelf to the north-east, the table to the north-east.; you thought — Still going east.; you did — tried to move; what happened — You roll one square east.\nTick 3: you saw — You look around:\nRight where you stand: nothing but rug.\nTo the north: nothing but rug.\nTo the north-east: nothing but rug.\nTo the east: nothing but rug.\nTo the south-east: nothing but rug.\nTo the south: nothing but rug.\nTo the south-west: nothing but rug.\nTo the west: nothing but rug.\nTo the north-west: nothing but rug.\nYour hands are empty.\nYou are standing at column 3 of 8, row 5 of 6.\nBig things in the room: the toy chest to the north-west, the shelf to the north-east, the table to the north-east.; you thought — I can see Teddy now.; you did — tried to move; what happened — You roll one square east."
+				},
+				{
+					"role": "user",
+					"content": "Right now:\nYou look around:\nRight where you stand: nothing but rug.\nTo the north: nothing but rug.\nTo the north-east: nothing but rug.\nTo the east: nothing but rug.\nTo the south-east: nothing but rug.\nTo the south: nothing but rug.\nTo the south-west: nothing but rug.\nTo the west: nothing but rug.\nTo the north-west: nothing but rug.\nYour hands are empty.\nYou are standing at column 4 of 8, row 5 of 6.\nBig things in the room: the toy chest to the north-west, the shelf to the north-east, the table to the north."
+				}
+			],
+			"estimatedTokens": 776
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000035",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 4,
+		"timestamp": "2026-08-12T10:00:51.000Z",
+		"type": "think.started",
+		"payload": {
+			"model": "test/mock-brain"
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000036",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 4,
+		"timestamp": "2026-08-12T10:00:52.000Z",
+		"type": "think.token",
+		"payload": {
+			"delta": "Close "
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000037",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 4,
+		"timestamp": "2026-08-12T10:00:53.000Z",
+		"type": "think.token",
+		"payload": {
+			"delta": "enough "
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000038",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 4,
+		"timestamp": "2026-08-12T10:00:54.000Z",
+		"type": "think.token",
+		"payload": {
+			"delta": "to "
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000039",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 4,
+		"timestamp": "2026-08-12T10:00:55.000Z",
+		"type": "think.token",
+		"payload": {
+			"delta": "say "
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000003a",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 4,
+		"timestamp": "2026-08-12T10:00:56.000Z",
+		"type": "think.token",
+		"payload": {
+			"delta": "hello!"
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000003b",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 4,
+		"timestamp": "2026-08-12T10:00:57.000Z",
+		"type": "think.completed",
+		"payload": {
+			"response": {
+				"text": "Close enough to say hello!",
+				"toolCall": {
+					"name": "say",
+					"arguments": {
+						"text": "Hello Teddy, I am your new robot!"
+					}
+				},
+				"usage": {
+					"inputTokens": 776,
+					"outputTokens": 7
+				},
+				"raw": {
+					"mock": true,
+					"turnIndex": 3,
+					"turn": {
+						"text": "Close enough to say hello!",
+						"toolCall": {
+							"name": "say",
+							"arguments": {
+								"text": "Hello Teddy, I am your new robot!"
+							}
+						}
+					}
+				},
+				"finishReason": "tool_call"
+			}
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000003c",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 4,
+		"timestamp": "2026-08-12T10:00:58.000Z",
+		"type": "decision",
+		"payload": {
+			"thought": "Close enough to say hello!",
+			"call": {
+				"kind": "action",
+				"name": "say",
+				"arguments": {
+					"text": "Hello Teddy, I am your new robot!"
+				}
+			}
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000003d",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 4,
+		"timestamp": "2026-08-12T10:00:59.000Z",
+		"type": "action.performed",
+		"payload": {
+			"name": "say",
+			"arguments": {
+				"text": "Hello Teddy, I am your new robot!"
+			},
+			"result": {
+				"ok": true,
+				"narration": "You say, \"Hello Teddy, I am your new robot!\"",
+				"stateDiff": [
+					{
+						"path": "spoken",
+						"from": 0,
+						"to": 1
+					}
+				]
+			}
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000003e",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 4,
+		"timestamp": "2026-08-12T10:01:00.000Z",
+		"type": "world.changed",
+		"payload": {
+			"state": {
+				"width": 8,
+				"height": 6,
+				"tick": 4,
+				"bot": {
+					"position": {
+						"x": 3,
+						"y": 4
+					}
+				},
+				"furniture": [
+					{
+						"id": "shelf",
+						"name": "the shelf",
+						"position": {
+							"x": 6,
+							"y": 0
+						}
+					},
+					{
+						"id": "table",
+						"name": "the table",
+						"position": {
+							"x": 3,
+							"y": 2
+						}
+					}
+				],
+				"containers": [
+					{
+						"id": "toy-chest",
+						"name": "the toy chest",
+						"position": {
+							"x": 1,
+							"y": 0
+						},
+						"state": "closed",
+						"unlockedBy": "red-key"
+					}
+				],
+				"characters": [
+					{
+						"id": "teddy",
+						"name": "Teddy",
+						"position": {
+							"x": 5,
+							"y": 4
+						}
+					}
+				],
+				"items": [],
+				"spoken": [
+					{
+						"tick": 4,
+						"text": "Hello Teddy, I am your new robot!",
+						"position": {
+							"x": 3,
+							"y": 4
+						}
+					}
+				],
+				"heard": [],
+				"celebrated": false
+			}
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000003f",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 4,
+		"timestamp": "2026-08-12T10:01:01.000Z",
+		"type": "memory.updated",
+		"payload": {
+			"windowSize": 10,
+			"entries": 4,
+			"notebookUpdated": true
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000040",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 4,
+		"timestamp": "2026-08-12T10:01:02.000Z",
+		"type": "tick.completed",
+		"payload": {
+			"outcome": "SUCCESS"
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000041",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"tick": 4,
+		"timestamp": "2026-08-12T10:01:03.000Z",
+		"type": "run.finished",
+		"payload": {
+			"outcome": "SUCCESS",
+			"ticks": 4,
+			"usage": {
+				"inputTokens": 2149,
+				"outputTokens": 28
+			}
+		}
+	}
+]

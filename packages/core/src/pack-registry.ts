@@ -4,9 +4,9 @@ import type {
 	GoalCardDefinition,
 	GuardrailDefinition,
 	PackManifest,
-	PackManifestMetadata,
-	ToolDefinition
+	PackManifestMetadata
 } from './schemas/pack-manifest.js';
+import type { ToolDefinition } from './types/tool.js';
 import type {
 	WorldActionDefinition,
 	WorldDefinition,

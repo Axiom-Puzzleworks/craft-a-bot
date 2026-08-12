@@ -1,0 +1,39 @@
+import type { ToolMetadata } from '../schemas/pack-manifest.js';
+
+/**
+ * Tools (02-AGENT-MODEL.md §2.3) — function calling. The world-mutating
+ * counterpart is an *action*; tools compute, remember, and look things up but
+ * never change the world, which is the distinction the Tools brick teaches.
+ *
+ * `ToolMetadata` (Zod, in schemas/pack-manifest.ts) is the pure-data half that
+ * crosses the manifest boundary; this adds the behaviour, exactly as
+ * `WorldDefinition` and `GuardrailDefinition` do.
+ */
+
+export interface ToolContext {
+	tick: number;
+	/** The Memory brick's notebook. Absent notebook ⇒ `requiresNotebook` tools are not offered. */
+	notebook: NotebookAccess;
+	/**
+	 * The only sanctioned source of randomness in the whole engine (hard rule 5).
+	 * Injected so a recorded run replays identically.
+	 */
+	random(): number;
+}
+
+export interface NotebookAccess {
+	read(): string[];
+	append(line: string): void;
+}
+
+export interface ToolResult {
+	ok: boolean;
+	/** What the agent is told, in plain language — this goes back into the prompt. */
+	output: string;
+	/** Anything structured the trace should show alongside the text. */
+	data?: unknown;
+}
+
+export interface ToolDefinition extends ToolMetadata {
+	execute(args: unknown, context: ToolContext): Promise<ToolResult> | ToolResult;
+}

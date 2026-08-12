@@ -11,7 +11,17 @@ export default defineConfig({
 			// & bus". Encoded so it stays true as core grows.
 			thresholds: {
 				'src/validate-spec.ts': { statements: 90, branches: 90, functions: 90, lines: 90 },
-				'src/event-bus.ts': { statements: 90, branches: 90, functions: 90, lines: 90 }
+				'src/event-bus.ts': { statements: 90, branches: 90, functions: 90, lines: 90 },
+				// The loop is the riskiest code in the repo, so it carries the
+				// tightest gate; `decide.ts` decides what counts as a mumble and is
+				// small enough to hold at 100%.
+				'src/session/agent-session.ts': {
+					statements: 95,
+					branches: 80,
+					functions: 90,
+					lines: 100
+				},
+				'src/session/decide.ts': { statements: 100, branches: 100, functions: 100, lines: 100 }
 			}
 		}
 	}
