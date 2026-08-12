@@ -6,7 +6,13 @@ import {
 	blockerAt,
 	findCharacter,
 	findContainer,
-	findItem,
+	reachableItemNames,
+	resolveCharacter,
+	resolveContainer,
+	resolveItem,
+	type PlayroomCharacter,
+	type PlayroomContainer,
+	type PlayroomItem,
 	type PlayroomState,
 	type StateChange
 } from './state.js';
@@ -32,6 +38,81 @@ export type ActionOutcome = {
 
 function fail(message: string): ActionOutcome {
 	return { ok: false, narration: message, stateDiff: [] };
+}
+
+/**
+ * Turning "what the model called it" into "which thing it meant".
+ *
+ * Every one of these lookups takes a string an LLM wrote, so none of them may
+ * assume it is an id — see `resolveNamed` in `state.ts` for the bug that taught
+ * us. A miss is always narrated with something the bot can use next turn.
+ */
+type Lookup<T> = { entity: T } | { failure: ActionOutcome };
+
+function isMiss<T>(lookup: Lookup<T>): lookup is { failure: ActionOutcome } {
+	return 'failure' in lookup;
+}
+
+function lookUpItem(state: PlayroomState, query: string): Lookup<PlayroomItem> {
+	const found = resolveItem(state, query);
+	if (found.kind === 'found') return { entity: found.entity };
+	if (found.kind === 'ambiguous') {
+		return {
+			failure: fail(
+				narration.ambiguousItem(
+					query,
+					found.matches.map((match) => match.name)
+				)
+			)
+		};
+	}
+	return { failure: fail(narration.noSuchItem(query, reachableItemNames(state))) };
+}
+
+function lookUpCharacter(state: PlayroomState, query: string): Lookup<PlayroomCharacter> {
+	const found = resolveCharacter(state, query);
+	if (found.kind === 'found') return { entity: found.entity };
+	if (found.kind === 'ambiguous') {
+		return {
+			failure: fail(
+				narration.ambiguousCharacter(
+					query,
+					found.matches.map((match) => match.name)
+				)
+			)
+		};
+	}
+	return {
+		failure: fail(
+			narration.noSuchCharacter(
+				query,
+				state.characters.map((character) => character.name)
+			)
+		)
+	};
+}
+
+function lookUpContainer(state: PlayroomState, query: string): Lookup<PlayroomContainer> {
+	const found = resolveContainer(state, query);
+	if (found.kind === 'found') return { entity: found.entity };
+	if (found.kind === 'ambiguous') {
+		return {
+			failure: fail(
+				narration.ambiguousContainer(
+					query,
+					found.matches.map((match) => match.name)
+				)
+			)
+		};
+	}
+	return {
+		failure: fail(
+			narration.noSuchContainer(
+				query,
+				state.containers.map((container) => container.name)
+			)
+		)
+	};
 }
 
 function succeed(message: string, stateDiff: StateChange[]): ActionOutcome {
@@ -107,8 +188,9 @@ const pickUp = defineAction({
 	description: actionStrings.pick_up.description,
 	schema: z.object({ item: z.string().describe(actionStrings.pick_up.item) }),
 	run: (state, args) => {
-		const item = findItem(state, args.item);
-		if (!item) return fail(narration.noSuchItem(args.item));
+		const found = lookUpItem(state, args.item);
+		if (isMiss(found)) return found.failure;
+		const item = found.entity;
 
 		const location = item.location;
 		if (location.kind === 'carried') {
@@ -158,14 +240,16 @@ const putDown = defineAction({
 		container: z.string().optional().describe(actionStrings.put_down.container)
 	}),
 	run: (state, args) => {
-		const item = findItem(state, args.item);
-		if (!item) return fail(narration.noSuchItem(args.item));
+		const found = lookUpItem(state, args.item);
+		if (isMiss(found)) return found.failure;
+		const item = found.entity;
 		if (item.location.kind !== 'carried') return fail(narration.notCarrying(item.name));
 
 		const from = { ...item.location };
 		if (args.container !== undefined) {
-			const container = findContainer(state, args.container);
-			if (!container) return fail(narration.noSuchContainer(args.container));
+			const target = lookUpContainer(state, args.container);
+			if (isMiss(target)) return target.failure;
+			const container = target.entity;
 			if (!withinReach(state.bot.position, container.position)) {
 				return fail(narration.outOfReach(container.name));
 			}
@@ -193,12 +277,14 @@ const give = defineAction({
 		character: z.string().describe(actionStrings.give.character)
 	}),
 	run: (state, args) => {
-		const item = findItem(state, args.item);
-		if (!item) return fail(narration.noSuchItem(args.item));
+		const found = lookUpItem(state, args.item);
+		if (isMiss(found)) return found.failure;
+		const item = found.entity;
 		if (item.location.kind !== 'carried') return fail(narration.notCarrying(item.name));
 
-		const character = findCharacter(state, args.character);
-		if (!character) return fail(narration.noSuchCharacter(args.character));
+		const recipient = lookUpCharacter(state, args.character);
+		if (isMiss(recipient)) return recipient.failure;
+		const character = recipient.entity;
 		if (!withinReach(state.bot.position, character.position)) {
 			return fail(narration.characterOutOfReach(character.name));
 		}
@@ -218,8 +304,9 @@ const open = defineAction({
 	description: actionStrings.open.description,
 	schema: z.object({ container: z.string().describe(actionStrings.open.container) }),
 	run: (state, args) => {
-		const container = findContainer(state, args.container);
-		if (!container) return fail(narration.noSuchContainer(args.container));
+		const target = lookUpContainer(state, args.container);
+		if (isMiss(target)) return target.failure;
+		const container = target.entity;
 		if (!withinReach(state.bot.position, container.position)) {
 			return fail(narration.outOfReach(container.name));
 		}

@@ -66,6 +66,22 @@ Also always-on, brick or no brick (engine-level, not optional): token budget per
 >
 > The **malformed-output re-prompt rule** is defined narrowly: a reply counts as malformed only when it contains *neither* a tool/action call *nor* any thought text. A bot that thinks without acting is thinking, not mumbling. A call naming a tool or action the bot does not have is likewise not malformed — it is routed to the world, which refuses it in character.
 
+> **Amended 2026-08-12 (WP8):** the `maxTicks` dial no longer *overrides* the engine floor, as the WP3 note above said it did. The dial is now enforced by the `safety/step-budget` guardrail in `@craftabot/governance`, and the floor became a pure backstop that never sits below the dial (`Math.max(30, dial)`).
+>
+> The reason is the two-tier frame this section already argues for. While the dial was just a budget, a run stopped by the builder's own rule and a run stopped by the platform were indistinguishable — both ended `OUT_OF_STEPS` with the same "Ran out of steps" card. Now:
+>
+> | Situation | Outcome | End card |
+> |---|---|---|
+> | Safety Brick fitted, dial reached | `STOPPED_BY_GUARDRAIL` | 🛡 "The Safety Brick did its job" |
+> | No Safety Brick, floor of 30 reached | `OUT_OF_STEPS` | 😴 "Ran out of steps" |
+>
+> The distinction between *platform governance* and *configurable policy* is therefore something the player observes rather than something this document merely asserts. The backstop must never drop below the dial: a builder who sets 50 turns would otherwise be cut off at 30 by a limit no UI ever showed them, and the guardrail their brick installed would never fire.
+>
+> Two related points of definition, settled by the implementation:
+>
+> - **Approval mode pauses for world actions only, never for tools.** §3's table already says "every world action"; the lesson is that looking is free and *changing things* is what needs a signature — the same tools/actions split the bricks teach in `02-AGENT-MODEL.md` §2.
+> - **The blocklist's disposition is `block-action`, never `stop-run`.** A forbidden action is a refused step, not a failed run: the refusal goes back into the next observation and the bot carries on, which is the behaviour §2 means when it says the agent *experiences* governance.
+
 ## 4. The trace as a governance artefact
 
 `07-DATA-MODEL-PERSISTENCE.md` defines the trace; governance requirements on it:

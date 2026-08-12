@@ -35,16 +35,45 @@ export interface Usage {
 }
 
 /**
- * The Safety Brick tightens the tick budget when fitted; nothing can loosen the
- * token budget or the timeout below the floor except an explicit host override
- * (the workbench never offers one — it exists for tests and embedders).
+ * Nothing can loosen the token budget or the timeout below the floor except an
+ * explicit host override (the workbench never offers one — it exists for tests
+ * and embedders).
+ *
+ * > **Amended 2026-08-12 (WP8):** the Safety Brick's `maxTicks` dial no longer
+ * > *replaces* the tick floor. The dial is now enforced by the
+ * > `safety/step-budget` guardrail in `@craftabot/governance`, so that stopping
+ * > because of a rule the builder set is distinguishable from stopping because
+ * > the platform said enough — different outcome, different end card
+ * > (08-GOVERNANCE-GUARDRAILS.md §3).
+ * >
+ * > What remains here is a pure backstop, and it must never sit *below* the
+ * > dial: a user who asks for 50 turns would otherwise be cut off at the floor
+ * > of 30 by a limit the UI never showed them, and the guardrail their brick
+ * > installed would never get to fire.
  */
 export function resolveBudgets(spec: AgentSpec, overrides: BudgetOverrides = {}): BudgetLimits {
 	return {
-		maxTicks: overrides.maxTicks ?? spec.bricks.safety?.maxTicks ?? DEFAULT_TICK_BUDGET,
+		maxTicks: overrides.maxTicks ?? backstopTicks(spec),
 		maxTokens: overrides.maxTokens ?? DEFAULT_TOKEN_BUDGET,
 		requestTimeoutMs: overrides.requestTimeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS
 	};
+}
+
+/** The engine's hard ceiling: the floor, or the user's dial if that is higher. */
+function backstopTicks(spec: AgentSpec): number {
+	return Math.max(DEFAULT_TICK_BUDGET, spec.bricks.safety?.maxTicks ?? 0);
+}
+
+/**
+ * What the "steps left" gauge should count down from (03-UI-UX-DESIGN.md §5.1).
+ *
+ * Deliberately *not* the same number as the engine backstop: the player is
+ * governed by their own dial when they fitted a Safety Brick, and showing them
+ * the platform's backstop instead would be a gauge that disagrees with the
+ * brick they can see on the baseplate.
+ */
+export function displayedTickBudget(spec: AgentSpec, overrides: BudgetOverrides = {}): number {
+	return overrides.maxTicks ?? spec.bricks.safety?.maxTicks ?? DEFAULT_TICK_BUDGET;
 }
 
 export function totalTokens(usage: Usage): number {

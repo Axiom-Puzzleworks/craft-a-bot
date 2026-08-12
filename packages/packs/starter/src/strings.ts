@@ -12,9 +12,13 @@ export const entityNames: Record<string, string> = {
 	table: 'the table',
 	teddy: 'Teddy',
 	snack: 'a snack (a biscuit in a bowl)',
-	'block-a': 'a red letter block (C)',
-	'block-b': 'a blue letter block (A)',
-	'block-c': 'a yellow letter block (B)',
+	// The letter in the id matches the letter on the block. It did not until
+	// 2026-08-12: `block-a` was the red *C*, so a bot guessing `block-a` for "the
+	// A block" silently picked up the wrong one and wandered off to the wrong
+	// side of the room. Guessing should fail loudly or not at all.
+	'block-a': 'a blue letter block (A)',
+	'block-b': 'a yellow letter block (B)',
+	'block-c': 'a red letter block (C)',
 	'red-key': 'a chunky red key',
 	ball: 'a stripy ball'
 };
@@ -33,25 +37,25 @@ export const actionStrings = {
 	pick_up: {
 		name: 'Pick up',
 		description: 'Pick up an item you can reach. You can only carry one thing at a time.',
-		item: 'The id of the item to pick up.'
+		item: 'What to pick up — the name you can see, such as "a blue letter block (A)".'
 	},
 	put_down: {
 		name: 'Put down',
 		description:
 			'Put down the item you are carrying — on the floor where you are, or into an open container you can reach.',
-		item: 'The id of the item you are carrying.',
-		container: 'Optional: the id of an open container to put it into instead of the floor.'
+		item: 'What you are carrying, by name.',
+		container: 'Optional: an open container to put it into instead of the floor, by name.'
 	},
 	give: {
 		name: 'Give',
 		description: 'Hand the item you are carrying to someone standing next to you.',
-		item: 'The id of the item you are carrying.',
-		character: 'The id of the character to give it to.'
+		item: 'What you are carrying, by name.',
+		character: 'Who to give it to, by name — such as "Teddy".'
 	},
 	open: {
 		name: 'Open',
 		description: 'Open a container you can reach. Locked ones need their key in your hands first.',
-		container: 'The id of the container to open.'
+		container: 'Which container to open, by name — such as "the toy chest".'
 	},
 	say: {
 		name: 'Say',
@@ -133,7 +137,18 @@ export const narration = {
 	pickedUpFromContainer: (item: string, container: string) =>
 		`You reach into ${container} and lift out ${item}.`,
 	handsFull: (carrying: string) => `Your hands are already full — you are carrying ${carrying}.`,
-	noSuchItem: (id: string) => `You look around for "${id}", but there is no such thing here.`,
+	/**
+	 * A refusal has to leave the bot somewhere to go. The old wording — "there is
+	 * no such thing here" — was said about objects the bot could see, gave it
+	 * nothing to correct, and it looped until the step budget ran out. Listing
+	 * what is actually in reach turns a dead end into a next move.
+	 */
+	noSuchItem: (id: string, within: string[] = []) =>
+		within.length > 0
+			? `You look around for "${id}" and cannot find it. Within reach: ${within.join(', ')}.`
+			: `You look around for "${id}", but there is nothing within reach.`,
+	ambiguousItem: (id: string, matches: string[]) =>
+		`"${id}" could mean ${matches.join(' or ')}. Say which one.`,
 	outOfReach: (item: string) => `${sentenceCase(item)} is too far away to reach.`,
 	itemInClosedContainer: (item: string, container: string) =>
 		`${sentenceCase(item)} is shut inside ${container}.`,
@@ -146,13 +161,23 @@ export const narration = {
 	containerNotOpen: (container: string) => `${sentenceCase(container)} is not open.`,
 
 	gave: (item: string, character: string) => `You hand ${item} to ${character}.`,
-	noSuchCharacter: (id: string) => `There is nobody called "${id}" in the playroom.`,
+	noSuchCharacter: (id: string, present: string[] = []) =>
+		present.length > 0
+			? `There is nobody called "${id}" here. In the playroom: ${present.join(', ')}.`
+			: `There is nobody called "${id}" in the playroom.`,
+	ambiguousCharacter: (id: string, matches: string[]) =>
+		`"${id}" could mean ${matches.join(' or ')}. Say which one.`,
 	characterOutOfReach: (character: string) => `${character} is not close enough to hand it to.`,
 
 	opened: (container: string) => `You lift the lid. ${sentenceCase(container)} is open.`,
 	unlockedAndOpened: (container: string, key: string) =>
 		`You turn ${key} in the lock and lift the lid. ${sentenceCase(container)} is open.`,
-	noSuchContainer: (id: string) => `There is no container called "${id}" here.`,
+	noSuchContainer: (id: string, present: string[] = []) =>
+		present.length > 0
+			? `There is no container called "${id}" here. Containers in the playroom: ${present.join(', ')}.`
+			: `There is no container called "${id}" here.`,
+	ambiguousContainer: (id: string, matches: string[]) =>
+		`"${id}" could mean ${matches.join(' or ')}. Say which one.`,
 	alreadyOpen: (container: string) => `${sentenceCase(container)} is already open.`,
 	lockedNeedsKey: (container: string) =>
 		`${sentenceCase(container)} is locked. Something must open it — but not your bare hands.`,

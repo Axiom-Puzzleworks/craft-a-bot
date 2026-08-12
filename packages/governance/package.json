@@ -13,7 +13,10 @@
 	},
 	"scripts": {
 		"build": "tsc -p tsconfig.build.json",
-		"test": "vitest run",
+		"test": "vitest run --coverage",
 		"check": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@craftabot/core": "*"
 	}
 }

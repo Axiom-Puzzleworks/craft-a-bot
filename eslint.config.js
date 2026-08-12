@@ -53,5 +53,38 @@ export default defineConfig(
 				}
 			]
 		}
+	},
+	{
+		/**
+		 * Governance dependency direction (08-GOVERNANCE-GUARDRAILS.md §5, final
+		 * paragraph; acceptance criterion §7.4).
+		 *
+		 * `@craftabot/governance` is the package intended to be published
+		 * standalone and dropped into real agent stacks, so it may depend on
+		 * `core` for the `Guardrail` contract and on nothing else in this repo.
+		 * The doc claimed "CI enforces the dependency direction"; until WP8
+		 * nothing did, so a stray import of the Playroom would have gone
+		 * unnoticed until someone tried to publish it.
+		 */
+		files: ['packages/governance/**/*.{ts,js}'],
+		rules: {
+			'no-restricted-imports': [
+				'error',
+				{
+					patterns: [
+						{
+							group: ['@craftabot/pack-*', '@craftabot/workbench', '$lib/*', '$app/*'],
+							message:
+								'@craftabot/governance may depend only on @craftabot/core — see docs/design/08-GOVERNANCE-GUARDRAILS.md §5.'
+						},
+						{
+							group: ['svelte', 'svelte/*', '@sveltejs/*'],
+							message:
+								'Engine/pack code must not import Svelte or SvelteKit — see docs/design/01-ARCHITECTURE.md §1.3.'
+						}
+					]
+				}
+			]
+		}
 	}
 );

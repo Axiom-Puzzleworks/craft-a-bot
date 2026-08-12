@@ -3,6 +3,7 @@ import {
 	DEFAULT_REQUEST_TIMEOUT_MS,
 	DEFAULT_TICK_BUDGET,
 	DEFAULT_TOKEN_BUDGET,
+	displayedTickBudget,
 	resolveBudgets,
 	tickBudgetExhausted,
 	tokenBudgetExhausted,
@@ -36,12 +37,46 @@ describe('the engine floor (08-GOVERNANCE-GUARDRAILS.md §3)', () => {
 	});
 });
 
-describe('the Safety Brick', () => {
-	it('tightens the tick budget when fitted', () => {
-		const limits = resolveBudgets(
-			spec({ safety: { maxTicks: 5, blockedActions: [], approvalMode: false } })
-		);
-		expect(limits.maxTicks).toBe(5);
+/**
+ * WP8 moved enforcement of the dial out to the `safety/step-budget` guardrail,
+ * so that a run stopped by the builder's own rule is distinguishable from one
+ * stopped by the platform. What is left here is a backstop.
+ */
+describe('the Safety Brick and the backstop', () => {
+	const withDial = (maxTicks: number) =>
+		resolveBudgets(spec({ safety: { maxTicks, blockedActions: [], approvalMode: false } }));
+
+	it('does not let a tight dial lower the engine backstop', () => {
+		// The guardrail stops the run at 5 long before this matters; the backstop
+		// exists only to catch a runaway, so tightening it buys nothing.
+		expect(withDial(5).maxTicks).toBe(DEFAULT_TICK_BUDGET);
+	});
+
+	it('rises to meet a dial set above the floor', () => {
+		// Otherwise a user who asked for 50 turns would be cut off at 30 by a
+		// limit the UI never showed them, and their guardrail would never fire.
+		expect(withDial(50).maxTicks).toBe(50);
+	});
+
+	it('leaves the floor in place when no brick is fitted', () => {
+		expect(resolveBudgets(spec()).maxTicks).toBe(DEFAULT_TICK_BUDGET);
+	});
+});
+
+describe('the displayed tick budget', () => {
+	it('shows the dial, not the backstop, when a brick is fitted', () => {
+		// The gauge has to agree with the brick the player can see (03 §5.1).
+		const fitted = spec({ safety: { maxTicks: 5, blockedActions: [], approvalMode: false } });
+		expect(displayedTickBudget(fitted)).toBe(5);
+		expect(resolveBudgets(fitted).maxTicks).toBe(DEFAULT_TICK_BUDGET);
+	});
+
+	it('falls back to the floor with no brick', () => {
+		expect(displayedTickBudget(spec())).toBe(DEFAULT_TICK_BUDGET);
+	});
+
+	it('honours a host override', () => {
+		expect(displayedTickBudget(spec(), { maxTicks: 7 })).toBe(7);
 	});
 });
 

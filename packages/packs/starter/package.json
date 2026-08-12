@@ -19,5 +19,8 @@
 	"dependencies": {
 		"@craftabot/core": "*",
 		"zod": "^4.4.3"
+	},
+	"devDependencies": {
+		"@craftabot/governance": "*"
 	}
 }

@@ -53,13 +53,19 @@ describe('OUT_OF_STEPS', () => {
 		expect(run.byType('tick.started')).toHaveLength(5);
 	});
 
-	it('takes the tick budget from the Safety Brick when one is fitted', async () => {
+	/**
+	 * The Safety Brick's dial used to be enforced here, as a budget. WP8 moved it
+	 * to the `safety/step-budget` guardrail so a run stopped by the builder's own
+	 * rule gets a different outcome and end card from one stopped by the platform
+	 * — see `safety-brick.test.ts`. What is left in the engine is the floor.
+	 */
+	it('falls back to the engine floor when a brick is fitted but its rules are not', async () => {
 		const run = await runToCompletion({
 			script: wanderer(),
 			spec: buildSpec({ safety: { maxTicks: 3, blockedActions: [], approvalMode: false } })
 		});
 		expect(run.outcome).toBe('OUT_OF_STEPS');
-		expect(run.byType('tick.started')).toHaveLength(3);
+		expect(run.byType('tick.started')).toHaveLength(30);
 	});
 });
 

@@ -3,12 +3,14 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { buildTraceFile, type AgentRecord, type RunRecord } from '@craftabot/core';
+	import { guardrailsForSpec } from '@craftabot/governance';
 	import { chooseBrain } from '$lib/brain.js';
 	import { hasDemoPlan } from '$lib/demo-brain.js';
 	import { createRegistry, packVersions } from '$lib/packs.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import { createBrowserKeyVault } from '$lib/state/keys.js';
 	import { createSessionView, type SessionView } from '$lib/state/session.svelte.js';
+	import ApprovalCard from '$lib/components/play/ApprovalCard.svelte';
 	import EndCard from '$lib/components/play/EndCard.svelte';
 	import HeadUp from '$lib/components/play/HeadUp.svelte';
 	import RunControls from '$lib/components/play/RunControls.svelte';
@@ -62,7 +64,13 @@
 			return;
 		}
 		keyless = brain.keyless;
-		view = createSessionView({ spec: loaded.spec, provider: brain.provider });
+		// The Safety Brick becomes actual running rules here — before WP8 the
+		// panel wrote settings that nothing ever read (08 §3).
+		view = createSessionView({
+			spec: loaded.spec,
+			provider: brain.provider,
+			guardrails: guardrailsForSpec(loaded.spec)
+		});
 		runStartedAt = new Date().toISOString();
 	}
 
@@ -182,6 +190,14 @@
 			</section>
 
 			<aside class="side">
+				{#if view.pendingApproval}
+					<ApprovalCard
+						approval={view.pendingApproval}
+						botName={record.spec.name}
+						onallow={() => view?.resolveApproval(true)}
+						ondeny={() => view?.resolveApproval(false)}
+					/>
+				{/if}
 				<ThoughtBubble thought={view.thought} narration={view.narration} />
 				<RunControls
 					running={view.status === 'running'}

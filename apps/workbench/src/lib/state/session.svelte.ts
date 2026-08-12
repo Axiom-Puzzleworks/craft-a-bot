@@ -1,5 +1,6 @@
 import {
 	createSession,
+	displayedTickBudget,
 	type AgentSpec,
 	type EngineEvent,
 	type Guardrail,
@@ -23,6 +24,18 @@ import { createRegistry } from '$lib/packs.js';
 
 export type LampState = 'idle' | 'thinking' | 'acting' | 'paused' | 'tripped' | 'finished';
 
+/**
+ * What the bot has asked permission to do (08-GOVERNANCE-GUARDRAILS.md §3,
+ * 03-UI-UX-DESIGN.md §7). Built from the `approval.requested` event like
+ * everything else here — the UI never peers into the session to find it.
+ */
+export interface PendingApproval {
+	kind: 'tool' | 'action';
+	name: string;
+	arguments: unknown;
+	reason: string;
+}
+
 export interface SessionView {
 	readonly status: SessionStatus;
 	readonly lamp: LampState;
@@ -39,7 +52,11 @@ export interface SessionView {
 	readonly events: EngineEvent[];
 	readonly runId: string | undefined;
 	readonly started: boolean;
+	/** Set while the run is suspended waiting for a human (approval mode). */
+	readonly pendingApproval: PendingApproval | undefined;
 
+	/** Answer an approval request. Ignored when nothing is pending. */
+	resolveApproval(approved: boolean): void;
 	start(mode: RunMode): void;
 	step(): Promise<void>;
 	pause(): void;
@@ -79,6 +96,7 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 		started: boolean;
 		/** Tokens arriving right now, before the decision lands. */
 		streaming: string;
+		pendingApproval: PendingApproval | undefined;
 	}>({
 		status: 'idle',
 		world: undefined,
@@ -92,7 +110,8 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 		tripped: false,
 		thinking: false,
 		started: false,
-		streaming: ''
+		streaming: '',
+		pendingApproval: undefined
 	});
 
 	let speed = $state(1);
@@ -167,6 +186,12 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 			case 'guardrail.tripped':
 				state.tripped = true;
 				break;
+			case 'approval.requested':
+				state.pendingApproval = { ...event.payload.proposed, reason: event.payload.reason };
+				break;
+			case 'approval.resolved':
+				state.pendingApproval = undefined;
+				break;
 			case 'run.finished':
 				state.outcome = event.payload.outcome;
 				break;
@@ -183,9 +208,12 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 		get lamp(): LampState {
 			if (state.tripped) return 'tripped';
 			if (state.outcome !== undefined) return 'finished';
+			// Waiting on a person is a pause, and reads as one: the run really has
+			// stopped, and nothing moves until someone answers.
+			if (state.pendingApproval !== undefined) return 'paused';
 			if (state.thinking) return 'thinking';
 			if (state.status === 'running') return 'acting';
-			if (state.status === 'paused') return 'paused';
+			if (state.status === 'paused' || state.status === 'awaiting-approval') return 'paused';
 			return 'idle';
 		},
 		get world() {
@@ -208,7 +236,13 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 			return state.tick;
 		},
 		get maxTicks() {
-			return deps.maxTicks ?? deps.spec.bricks.safety?.maxTicks ?? 30;
+			// The gauge counts down the *dial*, not the engine's backstop — see
+			// `displayedTickBudget`. Previously this repeated the floor as a
+			// literal 30, which would now disagree with core.
+			return displayedTickBudget(
+				deps.spec,
+				deps.maxTicks !== undefined ? { maxTicks: deps.maxTicks } : {}
+			);
 		},
 		get usage() {
 			return state.usage;
@@ -225,7 +259,16 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 		get started() {
 			return state.started;
 		},
+		get pendingApproval() {
+			return state.pendingApproval;
+		},
 
+		resolveApproval(approved) {
+			// `state.pendingApproval` is cleared by the `approval.resolved` event
+			// rather than here, so the UI stays a pure function of the trace.
+			session.resolveApproval(approved);
+			state.status = session.status;
+		},
 		start(mode) {
 			session.start(mode);
 			state.status = session.status;
@@ -248,7 +291,11 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 			// applies from the next run. Restarting here would throw away the trace.
 		},
 		reset() {
+			// Release anyone waiting on an approval before tearing the run down,
+			// or the old session's tick loop stays parked on a promise forever.
+			session.resolveApproval(false);
 			session.stop('reset');
+			state.pendingApproval = undefined;
 			state.world = undefined;
 			state.thought = '';
 			state.saying = undefined;

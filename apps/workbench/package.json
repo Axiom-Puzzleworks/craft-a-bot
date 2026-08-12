@@ -28,6 +28,7 @@
 	},
 	"dependencies": {
 		"@craftabot/core": "*",
+		"@craftabot/governance": "*",
 		"@craftabot/pack-openai": "*",
 		"@craftabot/pack-starter": "*",
 		"idb": "^8.0.3"

@@ -1,4 +1,7 @@
 {
 	"extends": "./tsconfig.json",
-	"exclude": ["src/**/*.test.ts"]
+	// Test scaffolding stays out of the published artefact: this package is meant
+	// to be usable standalone in real agent stacks (08 §5), and a `test-context`
+	// helper is not part of that surface.
+	"exclude": ["src/**/*.test.ts", "src/test-context.ts"]
 }

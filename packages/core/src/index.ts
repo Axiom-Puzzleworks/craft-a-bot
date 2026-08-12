@@ -157,6 +157,7 @@ export {
 	DEFAULT_REQUEST_TIMEOUT_MS,
 	DEFAULT_TICK_BUDGET,
 	DEFAULT_TOKEN_BUDGET,
+	displayedTickBudget,
 	resolveBudgets,
 	type BudgetLimits,
 	type Usage
