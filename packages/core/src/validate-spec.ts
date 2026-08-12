@@ -18,12 +18,18 @@ export function validateSpec(spec: AgentSpec, registry: PackRegistry): BuildProb
 			message: 'Your bot needs a brain! Snap on an LLM brick.'
 		});
 	} else if (!registry.getCartridge(spec.bricks.llm.cartridgeId)) {
+		// An empty slot and a cartridge you don't own are both blocking, but they
+		// need different fixes, so they get different copy.
+		const cartridgeId = spec.bricks.llm.cartridgeId;
 		problems.push({
 			code: 'unknown-cartridge',
 			severity: 'blocking',
 			brick: 'llm',
-			message: `The model cartridge "${spec.bricks.llm.cartridgeId}" isn't installed.`,
-			details: { cartridgeId: spec.bricks.llm.cartridgeId }
+			message:
+				cartridgeId === ''
+					? 'Your brain brick has no model cartridge in it yet.'
+					: `The model cartridge "${cartridgeId}" isn't installed.`,
+			details: { cartridgeId }
 		});
 	}
 

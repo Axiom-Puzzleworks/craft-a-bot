@@ -24,7 +24,16 @@ function starterManifest(): PackManifest {
 		name: 'My Very First Agent — Starter Parts',
 		version: '1.0.0',
 		requiresCore: '>=1.0.0',
-		bricks: [{ id: 'core/llm', kind: 'llm', name: 'LLM Brick', description: 'The brain.' }],
+		bricks: [
+			{
+				id: 'core/llm',
+				kind: 'llm',
+				name: 'LLM Brick',
+				description: 'The brain.',
+				realName: 'LLM',
+				realExplanation: 'The chat-completions call at the heart of every tick.'
+			}
+		],
 		tools: [
 			{
 				id: 'starter/calculator',

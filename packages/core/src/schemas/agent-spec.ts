@@ -6,7 +6,12 @@ import { z } from 'zod';
  * source (`z.infer`), not a hand-written interface.
  */
 export const llmBrickSchema = z.object({
-	cartridgeId: z.string().min(1),
+	/**
+	 * Empty means "brick fitted, cartridge slot still empty" — a normal state
+	 * halfway through a build, and one the bench must be able to save. The
+	 * `unknown-cartridge` build check is what stops GO until a cartridge is in.
+	 */
+	cartridgeId: z.string(),
 	temperature: z.number().min(0).max(2),
 	maxTokens: z.number().int().positive(),
 	personality: z.string()
@@ -47,6 +52,13 @@ export const agentSpecSchema = z.object({
 		safety: safetyBrickSchema.optional()
 	}),
 	goalCardId: z.string().min(1),
+	/**
+	 * The Free Play card is a laminated card the user writes their own goal on
+	 * (02-AGENT-MODEL.md §3, 03-UI-UX-DESIGN.md §4.5). Cards with a fixed goal
+	 * ignore this. Optional, so every kit file written before it existed is
+	 * still valid.
+	 */
+	customGoalText: z.string().optional(),
 	createdAt: z.string().datetime(),
 	updatedAt: z.string().datetime(),
 	schemaVersion: z.literal(1)

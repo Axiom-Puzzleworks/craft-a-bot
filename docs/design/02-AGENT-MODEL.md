@@ -15,6 +15,10 @@ V1 teaches exactly this and nothing more. Planners, reflection, multi-agent — 
 
 Every brick has a toy face and a real face. The UI always offers both: the moulded plastic brick, and a flip-side "What this really is" panel using correct terminology.
 
+> **Amended 2026-08-12 (WP5):** `BrickDefinition` gained `realName` and `realExplanation` to carry that second face as data. It previously had only the toy `name` and a one-line `description`, so the flip side promised here and in `00-PROJECT-OVERVIEW.md` §6 had nowhere to live.
+>
+> Also settled while building the bench: `AgentSpec.bricks.llm.cartridgeId` may be the empty string, meaning "brick fitted, cartridge slot still empty". That is a normal halfway state the bench has to be able to save, and the existing `unknown-cartridge` build check is what holds GO back until a cartridge is in — it now words itself differently for an empty slot than for a cartridge you do not own, because the two need different fixes.
+
 ### 2.1 LLM Brick (blue) — the brain
 
 - **Really is:** the chat-completions call at the heart of every tick.
@@ -79,6 +83,8 @@ V1 starter cards (all set in the Playroom):
 | **Free play** | (User writes their own goal text.) | Manual — user clicks "Goal achieved" | Prompting a goal well. |
 
 Card definition interface: `GoalCardDefinition { id, title, goalText, worldId, layoutId, successCondition: WorldPredicateId, hints: string[], teachesConcepts: ConceptTag[] }`.
+
+> **Amended 2026-08-12 (WP5):** `AgentSpec` gained an optional `customGoalText`. The Free Play card is "a laminated card with a marker pen" the user writes their own goal on (`03-UI-UX-DESIGN.md` §4.5), and the spec previously had nowhere to keep that text. Optional, so every kit file written before it existed still validates; cards with a fixed goal ignore it.
 
 ## 4. The Playroom (V1 world)
 

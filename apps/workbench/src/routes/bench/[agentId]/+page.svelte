@@ -1,0 +1,301 @@
+<script lang="ts">
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
+	import type { BuildProblem } from '@craftabot/core';
+	import { BRICK_ORDER, type BrickKind } from '$lib/bricks.js';
+	import { createRegistry } from '$lib/packs.js';
+	import { createDndController } from '$lib/dnd/dnd-state.svelte.js';
+	import { benchStore } from '$lib/state/bench.svelte.js';
+	import Announcer from '$lib/components/bench/Announcer.svelte';
+	import Baseplate from '$lib/components/bench/Baseplate.svelte';
+	import BrickPanel from '$lib/components/bench/BrickPanel.svelte';
+	import BuildChecks from '$lib/components/bench/BuildChecks.svelte';
+	import GoalCardRack from '$lib/components/bench/GoalCardRack.svelte';
+	import PartsTray from '$lib/components/bench/PartsTray.svelte';
+	import GoLever from '$lib/components/kit/GoLever.svelte';
+
+	/**
+	 * The Workbench in BUILD mode (03-UI-UX-DESIGN.md §4): parts tray, baseplate,
+	 * brick panel, Goal Card rack, build checks, and the GO lever.
+	 */
+
+	const registry = createRegistry();
+	const agentId = $derived(page.params.agentId ?? '');
+
+	let selected = $state<BrickKind | undefined>(undefined);
+	let announcement = $state('');
+
+	const controller = createDndController({
+		onPlace: (kind) => {
+			benchStore.fitBrick(kind);
+			selected = kind;
+		},
+		onRemove: (kind) => {
+			benchStore.removeBrick(kind);
+			if (selected === kind) selected = undefined;
+		},
+		announce: (message) => {
+			announcement = message;
+		}
+	});
+
+	$effect(() => {
+		// Opening an agent is async storage work, so it cannot be derived.
+		void benchStore.open(agentId);
+	});
+
+	const spec = $derived(benchStore.spec);
+	const world = $derived(
+		benchStore.goalCard ? registry.getWorld(benchStore.goalCard.worldId) : undefined
+	);
+
+	const cartridges = $derived(registry.listCartridges());
+	const tools = $derived(registry.listTools());
+	const senseChannels = $derived(world?.senses ?? []);
+	const worldActions = $derived(world?.actions ?? []);
+	const goalCards = $derived(registry.listGoalCards());
+
+	const blockingReason = $derived(benchStore.blocking[0]?.message);
+
+	/** Escape cancels a carry; arrows aim it; Enter places it (03 §4.4). */
+	function onKeyDown(event: KeyboardEvent): void {
+		if (!controller.carrying) return;
+		if (event.key === 'Escape') {
+			event.preventDefault();
+			controller.cancel();
+			return;
+		}
+		if (controller.carrying.mode !== 'keyboard') return;
+
+		if (event.key === 'ArrowDown' || event.key === 'ArrowRight') {
+			event.preventDefault();
+			controller.aim(1);
+		} else if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') {
+			event.preventDefault();
+			controller.aim(-1);
+		} else if (event.key === 'Enter' || event.key === ' ') {
+			event.preventDefault();
+			controller.placeAimed();
+		}
+	}
+
+	function jumpToProblem(problem: BuildProblem): void {
+		if (problem.brick && BRICK_ORDER.includes(problem.brick)) selected = problem.brick;
+	}
+
+	async function pullGo(): Promise<void> {
+		// Never navigate away with an unsaved edit in flight.
+		await benchStore.flush();
+		await goto(resolve('/play/[agentId]', { agentId }));
+	}
+</script>
+
+<svelte:head><title>{spec?.name ?? 'Workbench'} — Craft A Bot</title></svelte:head>
+<svelte:window onkeydown={onKeyDown} />
+
+<Announcer message={announcement} />
+
+{#if !spec}
+	<main class="loading"><p>Opening the box…</p></main>
+{:else}
+	<main class="bench">
+		<header class="bench-head">
+			<a class="back" href={resolve('/')}>← Shelf</a>
+			<label class="rename">
+				<span class="visually-hidden">Bot name</span>
+				<input
+					data-testid="bot-name"
+					value={spec.name}
+					oninput={(event) => benchStore.rename(event.currentTarget.value)}
+				/>
+			</label>
+			<button
+				type="button"
+				class="undo"
+				data-testid="undo"
+				disabled={!benchStore.canUndo}
+				onclick={() => benchStore.undo()}
+			>
+				Undo
+			</button>
+		</header>
+
+		<div class="columns">
+			<section class="column column--tray" aria-label="Parts tray">
+				<PartsTray
+					{controller}
+					isFitted={(kind) => benchStore.hasBrick(kind)}
+					onselect={(kind) => (selected = kind)}
+				/>
+			</section>
+
+			<section class="column column--plate" aria-label="Baseplate">
+				<Baseplate
+					{controller}
+					isFitted={(kind) => benchStore.hasBrick(kind)}
+					{selected}
+					onselect={(kind) => (selected = kind)}
+					onremove={(kind) => {
+						benchStore.removeBrick(kind);
+						if (selected === kind) selected = undefined;
+					}}
+				/>
+
+				<BuildChecks problems={benchStore.problems} onjump={jumpToProblem} />
+
+				<div class="go-row">
+					<GoLever disabled={!benchStore.canGo} reason={blockingReason} onpull={pullGo} />
+				</div>
+			</section>
+
+			<section class="column column--panel" aria-label="Brick panel">
+				{#if selected && benchStore.hasBrick(selected)}
+					<BrickPanel
+						kind={selected}
+						{spec}
+						{cartridges}
+						{tools}
+						{senseChannels}
+						{worldActions}
+						onupdate={(kind, patch) => benchStore.updateBrick(kind, patch)}
+						onremove={(kind) => {
+							benchStore.removeBrick(kind);
+							selected = undefined;
+						}}
+					/>
+				{:else}
+					<p class="hint" data-testid="panel-hint">
+						Click a fitted brick to open its panel — every one has a flip side explaining what it
+						really is.
+					</p>
+				{/if}
+			</section>
+		</div>
+
+		<section class="rack" aria-label="Goal cards">
+			<GoalCardRack
+				cards={goalCards}
+				activeCardId={spec.goalCardId}
+				customGoalText={spec.customGoalText ?? ''}
+				onselect={(cardId) => benchStore.setGoalCard(cardId)}
+				oncustomtext={(text) => benchStore.setCustomGoalText(text)}
+			/>
+		</section>
+	</main>
+{/if}
+
+<style>
+	.bench {
+		max-width: 1280px;
+		margin-inline: auto;
+		padding: var(--cab-space-4);
+		display: grid;
+		gap: var(--cab-space-4);
+	}
+
+	.loading {
+		padding: var(--cab-space-7);
+		text-align: center;
+	}
+
+	.bench-head {
+		display: flex;
+		align-items: center;
+		gap: var(--cab-space-3);
+	}
+
+	.back {
+		color: var(--cab-blue-text);
+		font-size: var(--cab-text-sm);
+		text-decoration: none;
+		font-weight: 600;
+	}
+
+	.back:focus-visible,
+	.undo:focus-visible,
+	.rename input:focus-visible {
+		outline: var(--cab-focus-ring);
+		outline-offset: var(--cab-focus-gap);
+	}
+
+	.rename {
+		flex: 1;
+	}
+
+	.rename input {
+		width: 100%;
+		font: inherit;
+		font-size: var(--cab-text-lg);
+		font-weight: 700;
+		padding: var(--cab-space-1) var(--cab-space-2);
+		background: transparent;
+		border: var(--cab-border-part) solid transparent;
+		border-radius: 6px;
+		color: inherit;
+	}
+
+	.rename input:hover,
+	.rename input:focus {
+		background: var(--cab-cream);
+		border-color: color-mix(in srgb, var(--cab-ink) 25%, transparent);
+	}
+
+	.undo {
+		font: inherit;
+		font-size: var(--cab-text-sm);
+		padding: var(--cab-space-1) var(--cab-space-3);
+		background: var(--cab-cream);
+		border: var(--cab-border-part) solid var(--cab-ink);
+		border-radius: var(--cab-radius-pill);
+		cursor: pointer;
+	}
+
+	.undo:disabled {
+		opacity: 0.45;
+		cursor: not-allowed;
+	}
+
+	.columns {
+		display: grid;
+		grid-template-columns: minmax(150px, 200px) minmax(0, 1fr) minmax(230px, 320px);
+		gap: var(--cab-space-4);
+		align-items: start;
+	}
+
+	.column {
+		display: grid;
+		gap: var(--cab-space-3);
+		min-width: 0;
+	}
+
+	.go-row {
+		display: flex;
+		justify-content: flex-end;
+	}
+
+	.hint {
+		margin: 0;
+		padding: var(--cab-space-3);
+		font-size: var(--cab-text-sm);
+		background: var(--cab-cream);
+		border: var(--cab-border-part) dashed color-mix(in srgb, var(--cab-ink) 30%, transparent);
+		border-radius: var(--cab-radius-panel);
+		opacity: 0.85;
+	}
+
+	.visually-hidden {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+	}
+
+	/* Below 1100px the tray becomes a row above the bench (03 §10). */
+	@media (max-width: 1100px) {
+		.columns {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

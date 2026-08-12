@@ -15,8 +15,17 @@ import type { WorldDefinition } from '../types/world.js';
 export const brickDefinitionSchema = z.object({
 	id: z.string().min(1), // "starter/llm" — V1's five brick kinds are core-fixed; forward-looking for later kits
 	kind: z.enum(['llm', 'memory', 'tools', 'sense', 'actions', 'safety']),
+	/** The toy name, as moulded on the brick. */
 	name: z.string().min(1),
-	description: z.string()
+	/** One-line whisper shown on hover in the parts tray (03-UI-UX-DESIGN.md §4.1). */
+	description: z.string(),
+	/**
+	 * The flip side (00-PROJECT-OVERVIEW.md §6, 03 §4.3): every brick has a toy
+	 * name *and* a "what this really is" explanation in plain adult technical
+	 * language. The toy never hides the truth — it just keeps it one click away.
+	 */
+	realName: z.string().min(1),
+	realExplanation: z.string().min(1)
 });
 export type BrickDefinition = z.infer<typeof brickDefinitionSchema>;
 

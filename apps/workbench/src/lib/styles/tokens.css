@@ -36,4 +36,61 @@
 	--cab-pop-ms: 120ms;
 	--cab-box-open-ms: 400ms;
 	--cab-hop-ms: 200ms;
+
+	/*
+	 * The stud unit (11-VISUAL-ASSET-MANIFEST.md §2). Every moulded part is sized
+	 * in multiples of U, which is what keeps separately-authored parts looking
+	 * like one kit. Part footprints live in §2.1 of that doc.
+	 */
+	--cab-u: 24px;
+
+	/* Spacing, on a 4px rhythm */
+	--cab-space-1: 4px;
+	--cab-space-2: 8px;
+	--cab-space-3: 12px;
+	--cab-space-4: 16px;
+	--cab-space-5: 24px;
+	--cab-space-6: 32px;
+	--cab-space-7: 48px;
+
+	/* Chunk factor: radii never below 12px on moulded parts (11 §2) */
+	--cab-radius-part: 12px;
+	--cab-radius-panel: 12px;
+	--cab-radius-pill: 999px;
+
+	/* Panel borders are thick — 3–4px in the section colour (04 §5) */
+	--cab-border-panel: 3px;
+	--cab-border-part: 2px;
+
+	/* Type scale. Faces arrive with the visual workstream; the scale does not. */
+	--cab-font-ui: system-ui, -apple-system, 'Segoe UI', roboto, sans-serif;
+	--cab-font-mono: ui-monospace, 'Cascadia Code', 'Source Code Pro', menlo, monospace;
+	--cab-text-xs: 11px;
+	--cab-text-sm: 13px;
+	--cab-text-base: 16px;
+	--cab-text-lg: 20px;
+	--cab-text-xl: 28px;
+	--cab-text-2xl: 40px;
+
+	/* Focus: 3px blue ring with a 2px cream gap (04 §7) — chunky and unmissable */
+	--cab-focus-ring: 3px solid var(--cab-blue);
+	--cab-focus-gap: 2px;
+
+	/* The one sun: top-left, 45° (11 §3). Shadows are warm and short. */
+	--cab-drop-shadow: 0 2px 0 var(--cab-shadow);
+	--cab-lift-shadow: 0 8px 16px var(--cab-shadow);
+}
+
+/*
+ * Brick colour ↔ concept mapping (04 §2.2). Fixed — never reassigned.
+ * Colour never carries meaning alone: every brick also has a distinct
+ * silhouette and an embossed name (04 §7).
+ */
+:root {
+	--cab-brick-llm: var(--cab-blue);
+	--cab-brick-memory: var(--cab-green);
+	--cab-brick-tools: var(--cab-purple);
+	--cab-brick-sense: var(--cab-sky);
+	--cab-brick-actions: var(--cab-red);
+	--cab-brick-safety: var(--cab-yellow);
 }

@@ -13,7 +13,9 @@ describe('pack-manifest schemas', () => {
 			id: 'core/llm',
 			kind: 'llm',
 			name: 'LLM Brick',
-			description: 'The brain.'
+			description: 'The brain.',
+			realName: 'LLM',
+			realExplanation: 'The chat-completions call at the heart of every tick.'
 		});
 		expect(result.success).toBe(true);
 	});
@@ -23,7 +25,9 @@ describe('pack-manifest schemas', () => {
 			id: 'core/planner',
 			kind: 'planner',
 			name: 'Planner Brick',
-			description: 'Not in V1.'
+			description: 'Not in V1.',
+			realName: 'Planner',
+			realExplanation: 'An Agent Builder concept.'
 		});
 		expect(result.success).toBe(false);
 	});
