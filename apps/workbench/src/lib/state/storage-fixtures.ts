@@ -1,4 +1,11 @@
-import type { AgentRecord, AgentSpec, EngineEvent, RunRecord } from '@craftabot/core';
+import {
+	toSpecV2,
+	type AgentRecord,
+	type AgentSpec,
+	type AgentSpecV2,
+	type EngineEvent,
+	type RunRecord
+} from '@craftabot/core';
 
 /** Shared fixtures for the storage tests. */
 
@@ -6,7 +13,8 @@ export function uuid(n: number): string {
 	return `00000000-0000-4000-8000-${n.toString(16).padStart(12, '0')}`;
 }
 
-export function makeSpec(overrides: Partial<AgentSpec> = {}): AgentSpec {
+/** The v1 bot, kept so the migration tests have a genuine old row to read. */
+export function makeSpecV1(overrides: Partial<AgentSpec> = {}): AgentSpec {
 	return {
 		id: uuid(1),
 		name: 'Snackbot 3000',
@@ -29,8 +37,30 @@ export function makeSpec(overrides: Partial<AgentSpec> = {}): AgentSpec {
 	};
 }
 
+export function makeSpec(overrides: Partial<AgentSpecV2> = {}): AgentSpecV2 {
+	return {
+		...toSpecV2(makeSpecV1()),
+		identity: { displayName: 'Snackbot 3000', boxArtSeed: 'seed-1' },
+		...overrides
+	};
+}
+
 export function makeAgent(overrides: Partial<AgentRecord> = {}): AgentRecord {
 	const spec = overrides.spec ?? makeSpec();
+	return {
+		id: spec.id,
+		spec,
+		lastValidation: [],
+		createdAt: '2026-08-12T09:00:00Z',
+		updatedAt: '2026-08-12T09:30:00Z',
+		schemaVersion: 2,
+		...overrides
+	};
+}
+
+/** A row exactly as V1.0 wrote it, for the "nobody loses a bot" tests. */
+export function makeAgentV1(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+	const spec = makeSpecV1();
 	return {
 		id: spec.id,
 		spec,

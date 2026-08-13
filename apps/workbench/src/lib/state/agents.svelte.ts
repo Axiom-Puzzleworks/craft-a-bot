@@ -1,12 +1,13 @@
 import {
+	brickKindsFor,
 	buildKitFile,
 	importKitFile,
 	validateSpec,
 	type AgentRecord,
-	type AgentSpec,
+	type AgentSpecV2,
 	type ImportProblem
 } from '@craftabot/core';
-import { createRegistry, packVersions } from '$lib/packs.js';
+import { createRegistry, installedBrickKinds, packVersions } from '$lib/packs.js';
 import { appStorage } from './app-storage.svelte.js';
 import type { Storage } from './storage.js';
 
@@ -15,16 +16,22 @@ import type { Storage } from './storage.js';
  * things you can do to them — new, duplicate, bin, import, export.
  */
 
-/** A brand-new bot: a brain and a first card, nothing else. The tutorial adds the rest. */
-export function blankSpec(id: string, now: string): AgentSpec {
+/**
+ * A brand-new bot: a brain and a first card, nothing else. The tutorial adds the rest.
+ *
+ * Spec v2 since WP14. The seed lives on the bot now rather than on the shelf
+ * row, which is what lets an exported bot arrive looking like itself.
+ */
+export function blankSpec(id: string, now: string): AgentSpecV2 {
 	return {
 		id,
 		name: 'My Very First Agent',
-		bricks: {},
+		schemaVersion: 2,
+		bricks: [],
 		goalCardId: 'starter/say-hello',
+		identity: { displayName: 'My Very First Agent', boxArtSeed: id },
 		createdAt: now,
-		updatedAt: now,
-		schemaVersion: 1
+		updatedAt: now
 	};
 }
 
@@ -57,7 +64,7 @@ export function createAgentsStore(deps: AgentsStoreDeps = {}): AgentsStore {
 
 	const state = $state<{ agents: AgentRecord[]; loading: boolean }>({ agents: [], loading: false });
 
-	function validationOf(spec: AgentSpec) {
+	function validationOf(spec: AgentSpecV2) {
 		return validateSpec(spec, createRegistry());
 	}
 
@@ -90,17 +97,18 @@ export function createAgentsStore(deps: AgentsStoreDeps = {}): AgentsStore {
 		async create(name) {
 			const timestamp = now();
 			const spec = blankSpec(newId(), timestamp);
-			if (name !== undefined) spec.name = name;
+			if (name !== undefined) {
+				spec.name = name;
+				spec.identity.displayName = name;
+			}
 
 			const record: AgentRecord = {
 				id: spec.id,
 				spec,
-				// Seeded from the id so a bot's box art never changes under it.
-				boxArtSeed: spec.id,
 				lastValidation: validationOf(spec),
 				createdAt: timestamp,
 				updatedAt: timestamp,
-				schemaVersion: 1
+				schemaVersion: 2
 			};
 			await persist(record);
 			await refresh();
@@ -112,18 +120,23 @@ export function createAgentsStore(deps: AgentsStoreDeps = {}): AgentsStore {
 			if (!original) return undefined;
 
 			const timestamp = now();
-			const spec: AgentSpec = {
+			const name = `${original.spec.name} (copy)`;
+			const copyId = newId();
+			const spec: AgentSpecV2 = {
 				...original.spec,
-				id: newId(),
-				name: `${original.spec.name} (copy)`,
+				id: copyId,
+				name,
+				// A copy is a different bot and gets its own box: the same seed
+				// would put two indistinguishable lids on the same shelf.
+				identity: { displayName: name, boxArtSeed: copyId },
 				createdAt: timestamp,
 				updatedAt: timestamp
 			};
+
 			const record: AgentRecord = {
 				...original,
 				id: spec.id,
 				spec,
-				boxArtSeed: spec.id,
 				createdAt: timestamp,
 				updatedAt: timestamp
 			};
@@ -143,7 +156,13 @@ export function createAgentsStore(deps: AgentsStoreDeps = {}): AgentsStore {
 			if (!record) return undefined;
 			const kit = buildKitFile(record.spec, {
 				exportedBy: 'craftabot-workbench/0.0.1',
-				requires: { core: '>=0.0.1', packs: packVersions() }
+				requires: {
+					core: '>=0.0.1',
+					packs: packVersions(),
+					// Which pack each brick came from, so a reader missing one is told
+					// the brick's name and not merely "you need an expansion".
+					brickKinds: brickKindsFor(record.spec, createRegistry())
+				}
 			});
 			// Pretty-printed on purpose: a kit file is teaching material, not a blob (07 §1.3).
 			return JSON.stringify(kit, null, '\t');
@@ -162,6 +181,7 @@ export function createAgentsStore(deps: AgentsStoreDeps = {}): AgentsStore {
 
 			const result = importKitFile(parsed, {
 				installedPacks: Object.keys(packVersions()),
+				installedBrickKinds: installedBrickKinds(),
 				existingAgentIds: state.agents.map((agent) => agent.id),
 				newId,
 				now
@@ -169,14 +189,23 @@ export function createAgentsStore(deps: AgentsStoreDeps = {}): AgentsStore {
 			if (!result.ok) return { ok: false, problem: result.problem };
 
 			const timestamp = now();
+			const spec = result.imported.spec;
 			const record: AgentRecord = {
-				id: result.imported.spec.id,
-				spec: result.imported.spec,
-				boxArtSeed: result.imported.spec.id,
-				lastValidation: validationOf(result.imported.spec),
+				id: spec.id,
+				spec: {
+					...spec,
+					// A kit from before identity moved onto the spec has no seed. Mint
+					// one from the id it arrived with, which is what the shelf used to
+					// do anyway; a bot exported *since* keeps the box it left with.
+					identity: {
+						...spec.identity,
+						boxArtSeed: spec.identity.boxArtSeed === '' ? spec.id : spec.identity.boxArtSeed
+					}
+				},
+				lastValidation: validationOf(spec),
 				createdAt: timestamp,
 				updatedAt: timestamp,
-				schemaVersion: 1
+				schemaVersion: 2
 			};
 			await persist(record);
 			await refresh();

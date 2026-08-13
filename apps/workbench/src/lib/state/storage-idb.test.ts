@@ -2,7 +2,7 @@ import 'fake-indexeddb/auto';
 import { afterEach, describe, expect, it } from 'vitest';
 import { DATABASE_VERSION, createIdbStorage } from './storage-idb.js';
 import { describeStorageContract } from './storage-contract.js';
-import { makeAgent } from './storage-fixtures.js';
+import { makeAgent, makeAgentV1 } from './storage-fixtures.js';
 
 /**
  * The same contract as the in-memory store, plus the things only a real
@@ -76,6 +76,43 @@ describe('the IndexedDB store specifically', () => {
 		// Fetching the corrupt row by id yields nothing rather than a broken object.
 		expect(await storage.getAgent('not-a-uuid')).toBeUndefined();
 		expect(storage.quarantined().agents).toBe(2);
+	});
+
+	/**
+	 * The upgrade path (WP14): everyone who used V1.0 has a database full of v1
+	 * rows. Reading is where they come forward — a straight parse would
+	 * quarantine every one and the user would open the app to an empty shelf.
+	 */
+	it('brings a shelf written by V1.0 forward, rather than quarantining it', async () => {
+		const name = 'craftabot-v1-shelf';
+		const storage = await createIdbStorage(name);
+		opened.push(storage);
+
+		const raw = await new Promise<IDBDatabase>((resolve, reject) => {
+			const request = indexedDB.open(name, DATABASE_VERSION);
+			request.onsuccess = () => resolve(request.result);
+			request.onerror = () => reject(request.error);
+		});
+		await new Promise<void>((resolve, reject) => {
+			const tx = raw.transaction('agents', 'readwrite');
+			tx.objectStore('agents').put(makeAgentV1());
+			tx.oncomplete = () => resolve();
+			tx.onerror = () => reject(tx.error);
+		});
+		raw.close();
+
+		const agents = await storage.listAgents();
+		expect(storage.quarantined().agents).toBe(0);
+		expect(agents).toHaveLength(1);
+		expect(agents[0]?.schemaVersion).toBe(2);
+		expect(agents[0]?.spec.schemaVersion).toBe(2);
+		// The seed was on the row and is now on the bot, so the box art a person
+		// has been looking at for a year is the box art they keep.
+		expect(agents[0]?.spec.identity.boxArtSeed).toBe('seed-1');
+
+		// And the same row fetched by id, which is a different code path.
+		const one = await storage.getAgent(agents[0]?.id ?? '');
+		expect(one?.spec.identity.boxArtSeed).toBe('seed-1');
 	});
 
 	it('refuses to store an invalid agent', async () => {

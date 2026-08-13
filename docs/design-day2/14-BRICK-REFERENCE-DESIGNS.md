@@ -72,6 +72,18 @@ Migration v1→v2 is mechanical (fixed slots → array entries with `kind` = the
 
 Six socket families keep the body metaphor and the piece-fits-hole affordance while allowing many kinds per family: `brain` (head), `perception` (visor), `memory` (backpack), `equipment` (belt — tools _and_ future connector bricks), `mobility` (wheels — actions/effectors), `safety` (chest — always centre, as the box art has it). V1 rule "one brick per slot" is kept for the teaching aid; the spec format (array) already permits multiples for the professional mode later (e.g. two equipment bricks).
 
+### 2.4 What travels with a bot — kit file v2 and `AgentRecord` v2
+
+> **Added 2026-08-13 (WP14 slice 2c):** written up when the workbench started writing v2, because §2.2's one sentence about `requires.brickKinds` left three decisions unrecorded.
+
+**`requires.brickKinds` maps kind id → pack id** (`{"starter/llm": "starter"}`), and is taken **from the registry, not inferred from the id**. The `pack/kind` naming is a convention; the registry is what actually knows who registered what, and a kit file that guessed would be wrong exactly when it mattered. A kind the exporter itself does not have is *omitted* rather than guessed at — that is already a blocking build problem on the exporting machine, and writing a plausible pack id would relocate the failure to the reader and blame them for it.
+
+Import checks packs first and bricks second. "You need the space pack" is a more useful sentence than a list of six bricks that all come from it; only once every named pack **is** installed does a missing kind mean what it says — *you have the pack, at a version without this brick*, the case v1 could not describe at all.
+
+**`AgentRecord` v2 drops `boxArtSeed`.** It moves to `spec.identity.boxArtSeed`, per §2.2 and §6. This was a live bug, not tidying: the seed lived on the storage row, so it never travelled inside a kit file, and a bot you sent someone arrived wearing a different box. The record migration is the only place that can join the two up — the spec migration deliberately leaves the seed empty rather than inventing one — so v1 → v2 on the *row* is what preserves the box art a person has been looking at.
+
+Storage **migrates on read** rather than validating. A shelf full of v1 rows is the normal state of anyone who used V1.0; a straight parse would quarantine every one of them (`07-…` §1.5) and they would open the app to an empty shelf.
+
 ## 3. Engine evolutions required (the contract the bricks sit on)
 
 | #   | Change                                                                                                                                                                                                                                                                            | Retires | Notes                                                                                     |

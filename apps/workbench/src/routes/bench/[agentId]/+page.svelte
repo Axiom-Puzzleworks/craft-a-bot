@@ -50,11 +50,17 @@
 	});
 
 	const spec = $derived(benchStore.spec);
+	/*
+	 * The panels and the leaflet still read a bot as six named bricks; the bench
+	 * stores it as a list of fitted ones. This is the door between them, and it
+	 * closes in slice 4 when the panels become schema-driven.
+	 */
+	const legacySpec = $derived(benchStore.legacySpec);
 
 	// The leaflet advances by watching what the user builds (03 §6).
 	const leaflet = leafletStore();
 	$effect(() => {
-		if (spec) leaflet.report({ spec });
+		if (legacySpec) leaflet.report({ spec: legacySpec });
 	});
 	const world = $derived(
 		benchStore.goalCard ? registry.getWorld(benchStore.goalCard.worldId) : undefined
@@ -67,7 +73,7 @@
 	const goalCards = $derived(registry.listGoalCards());
 
 	const cartridge = $derived(
-		spec?.bricks.llm ? registry.getCartridge(spec.bricks.llm.cartridgeId) : undefined
+		legacySpec?.bricks.llm ? registry.getCartridge(legacySpec.bricks.llm.cartridgeId) : undefined
 	);
 	/**
 	 * Not a `BuildProblem`: keys never touch the AgentSpec, so `validateSpec`
@@ -181,10 +187,10 @@
 			</section>
 
 			<section class="column column--panel" aria-label="Brick panel">
-				{#if selected && benchStore.hasBrick(selected)}
+				{#if selected && benchStore.hasBrick(selected) && legacySpec}
 					<BrickPanel
 						kind={selected}
-						{spec}
+						spec={legacySpec}
 						{cartridges}
 						{tools}
 						{senseChannels}

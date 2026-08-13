@@ -1,15 +1,18 @@
 import {
+	asLegacySpec,
+	brickInSlot,
 	validateSpec,
 	type AgentRecord,
 	type AgentSpec,
+	type AgentSpecV2,
 	type BuildProblem,
+	type FittedBrick,
 	type GoalCardDefinition
 } from '@craftabot/core';
-import type { BrickKind } from '$lib/bricks.js';
+import { brickDefinition, type BrickKind } from '$lib/bricks.js';
 import { createRegistry } from '$lib/packs.js';
 import { appStorage } from './app-storage.svelte.js';
 import type { Storage } from './storage.js';
-import { qualifyPlayroomId } from '@craftabot/pack-starter';
 
 /**
  * The bench: the spec currently being edited, what the build checks make of it,
@@ -19,59 +22,27 @@ import { qualifyPlayroomId } from '@craftabot/pack-starter';
  * with undo, and WP5's DoD says edits persist — so every mutation goes through
  * `mutate()`, which snapshots for undo, revalidates, and schedules a save. There
  * is deliberately no other way to change the spec.
+ *
+ * **The bench holds spec v2** (WP14). The parts tray, the sockets and the panels
+ * still speak V1's six brick names, because the UI that knows about exactly six
+ * bricks is slice 4's problem — so this store translates at its own door: a
+ * `BrickKind` in, a fitted brick in the right socket out. What is *stored*, and
+ * what is exported, is v2 all the way down.
  */
 
 const UNDO_LIMIT = 50;
 const SAVE_DEBOUNCE_MS = 250;
 
-/** Defaults a brick gets when first snapped on, from 02-AGENT-MODEL.md §2. */
-export const BRICK_DEFAULTS = {
-	llm: { cartridgeId: '', temperature: 0.7, maxTokens: 300, personality: '' },
-	memory: { windowSize: 10 as const, notebook: false },
-	tools: { enabled: [] as string[] },
-	/*
-	 * Qualified, as `01-…` §4 requires (E6, WP13).
-	 *
-	 * The engine still resolves the bare `sight`/`move` that specs written
-	 * before WP13 hold, so nobody's saved bot breaks — but a spec written today
-	 * should name content the way content is named, or the compatibility path
-	 * quietly becomes the normal one.
-	 */
-	sense: { channels: [qualifyPlayroomId('sight'), qualifyPlayroomId('compass')] },
-	/*
-	 * All seven Playroom actions (02-AGENT-MODEL.md §2.5), not a starter subset.
-	 *
-	 * This used to be `['move', 'say', 'celebrate']`, and most Goal Cards were
-	 * quietly unreachable with it — the snack goal needs `pick_up` and `give`.
-	 * Nobody noticed because until WP9 the engine performed any action the world
-	 * defined, enabled or not, so the checkboxes did nothing. Now that the brick
-	 * genuinely gates, fitting "hands and wheels" has to actually give the bot
-	 * hands; the checkboxes are for taking capabilities *away*.
-	 */
-	actions: {
-		enabled: ['move', 'pick_up', 'put_down', 'give', 'open', 'say', 'celebrate'].map(
-			qualifyPlayroomId
-		)
-	},
-	/*
-	 * `repeatLimit` is on out of the box.
-	 *
-	 * It shipped off in V1.0 for a good reason — v1 counted identical calls
-	 * whatever came of them, so it stopped a bot walking in a straight line —
-	 * and the cost was that the reported hello-loop was the *default*
-	 * experience (`12-…` C3). WP11's v2 rule counts repeats inside a ten-turn
-	 * window and exempts a `move` that worked, which makes the straight-line
-	 * false positive impossible and the default safe.
-	 *
-	 * The lesson survives switching it on: the leaflet's loop chapter turns it
-	 * *off* to show what happens without it, which is the better demonstration
-	 * anyway — a control you remove and miss teaches more than one you never had.
-	 */
-	safety: { maxTicks: 30, blockedActions: [] as string[], approvalMode: false, repeatLimit: 3 }
-};
-
 export interface BenchStore {
-	readonly spec: AgentSpec | undefined;
+	readonly spec: AgentSpecV2 | undefined;
+	/**
+	 * The same bot through V1's six-key window, for the panels and the leaflet.
+	 *
+	 * A transition shim with a deadline: slice 4 makes the panels schema-driven
+	 * and this goes with them. It is a getter rather than stored state so there
+	 * is no second copy of the truth to keep in step.
+	 */
+	readonly legacySpec: AgentSpec | undefined;
 	readonly problems: BuildProblem[];
 	readonly blocking: BuildProblem[];
 	readonly canGo: boolean;
@@ -113,11 +84,46 @@ export function createBenchStore(deps: BenchStoreDeps = {}): BenchStore {
 
 	const state = $state<{
 		record: AgentRecord | undefined;
-		spec: AgentSpec | undefined;
+		spec: AgentSpecV2 | undefined;
 		problems: BuildProblem[];
-		undoStack: AgentSpec[];
+		undoStack: AgentSpecV2[];
 		saving: boolean;
 	}>({ record: undefined, spec: undefined, problems: [], undoStack: [], saving: false });
+
+	/**
+	 * What a `BrickKind` from the parts tray means in v2 terms: which registered
+	 * kind it is, which socket it goes in, and what it does when freshly snapped
+	 * on.
+	 *
+	 * All three come from the pack. `BRICK_DEFAULTS` used to live in this file,
+	 * which meant the workbench and the pack each had an opinion about what a new
+	 * Memory brick remembers — the sort of duplication that stays right until the
+	 * day it does not. The pack owns the brick, so the pack owns the answer
+	 * (`14-…` §2).
+	 */
+	function kindFor(brickKind: BrickKind): {
+		id: string;
+		slot: FittedBrick['slot'];
+		configVersion: number;
+		defaults: Record<string, unknown>;
+	} {
+		const id = brickDefinition(brickKind).id;
+		const registered = registry.getBrickKind(id);
+		if (!registered) throw new Error(`No brick kind "${id}" is registered.`);
+		return {
+			id,
+			slot: registered.slot,
+			configVersion: registered.configVersion,
+			defaults: registered.defaults as Record<string, unknown>
+		};
+	}
+
+	/** The fitted brick a tray kind corresponds to, by socket *and* kind id. */
+	function fitted(spec: AgentSpecV2, brickKind: BrickKind): FittedBrick | undefined {
+		const { id, slot } = kindFor(brickKind);
+		const inSlot = brickInSlot(spec, slot);
+		return inSlot?.kind === id ? inSlot : undefined;
+	}
 
 	let saveTimer: ReturnType<typeof setTimeout> | undefined;
 	let pendingSave: Promise<void> = Promise.resolve();
@@ -159,7 +165,7 @@ export function createBenchStore(deps: BenchStoreDeps = {}): BenchStore {
 	}
 
 	/** The single door every spec change goes through. */
-	function mutate(change: (spec: AgentSpec) => void): void {
+	function mutate(change: (spec: AgentSpecV2) => void): void {
 		const current = state.spec;
 		if (!current) return;
 
@@ -177,6 +183,9 @@ export function createBenchStore(deps: BenchStoreDeps = {}): BenchStore {
 	return {
 		get spec() {
 			return state.spec;
+		},
+		get legacySpec() {
+			return state.spec ? asLegacySpec(state.spec) : undefined;
 		},
 		get problems() {
 			return state.problems;
@@ -206,30 +215,40 @@ export function createBenchStore(deps: BenchStoreDeps = {}): BenchStore {
 			revalidate();
 		},
 
-		hasBrick: (kind) => state.spec?.bricks[kind] !== undefined,
+		hasBrick: (kind) => (state.spec ? fitted(state.spec, kind) !== undefined : false),
 
 		fitBrick(kind) {
 			mutate((spec) => {
-				if (spec.bricks[kind] !== undefined) return;
-				// Structured clone so the shared defaults object is never aliased
+				const { id, slot, configVersion, defaults } = kindFor(kind);
+				// One brick per socket is V1's rule, not the format's (`14-…` §2.3):
+				// the array would happily hold two, and the Workshop will.
+				if (brickInSlot(spec, slot) !== undefined) return;
+				// Structured clone so the kind's defaults object is never aliased
 				// into a spec and quietly mutated by a later panel edit.
-				spec.bricks = { ...spec.bricks, [kind]: structuredClone(BRICK_DEFAULTS[kind]) };
+				spec.bricks = [
+					...spec.bricks,
+					{ slot, kind: id, configVersion, config: structuredClone(defaults) }
+				];
 			});
 		},
 
 		removeBrick(kind) {
 			mutate((spec) => {
-				const bricks = { ...spec.bricks };
-				delete bricks[kind];
-				spec.bricks = bricks;
+				const { slot } = kindFor(kind);
+				spec.bricks = spec.bricks.filter((brick) => brick.slot !== slot);
 			});
 		},
 
 		updateBrick(kind, patch) {
 			mutate((spec) => {
-				const existing = spec.bricks[kind];
+				const { id } = kindFor(kind);
+				const existing = fitted(spec, kind);
 				if (existing === undefined) return;
-				spec.bricks = { ...spec.bricks, [kind]: { ...existing, ...patch } };
+				spec.bricks = spec.bricks.map((brick) =>
+					brick.kind === id && brick.slot === existing.slot
+						? { ...brick, config: { ...brick.config, ...patch } }
+						: brick
+				);
 			});
 		},
 
@@ -249,6 +268,10 @@ export function createBenchStore(deps: BenchStoreDeps = {}): BenchStore {
 		rename(name) {
 			mutate((spec) => {
 				spec.name = name;
+				// Two fields, one name. `identity` is where v2 says the bot's name
+				// lives; `name` is still what everything reads. They converge when
+				// the last reader moves across, and until then they move together.
+				spec.identity.displayName = name;
 			});
 		},
 

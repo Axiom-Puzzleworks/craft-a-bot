@@ -26,6 +26,14 @@ export interface PackRegistry {
 	getBrick(id: string): BrickDefinition | undefined;
 	/** A registered brick *kind* — the open contract (`14-…` §2). */
 	getBrickKind(id: string): BrickKindDefinition | undefined;
+	/**
+	 * Which pack registered a kind.
+	 *
+	 * Conventionally the segment before the slash, and deliberately not inferred
+	 * that way: the convention is a convention, and a kit file that guessed would
+	 * be wrong exactly when someone needed it to be right (`14-…` §2.4).
+	 */
+	getBrickKindPack(id: string): string | undefined;
 	/** Every kind that fits a given chassis socket family. */
 	listBrickKinds(slot?: SlotId): BrickKindDefinition[];
 	getTool(id: string): ToolDefinition | undefined;
@@ -48,6 +56,7 @@ export function createPackRegistry(): PackRegistry {
 	const packs = new Map<string, PackManifestMetadata>();
 	const bricks = new Map<string, BrickDefinition>();
 	const brickKinds = new Map<string, BrickKindDefinition>();
+	const brickKindPacks = new Map<string, string>();
 	const tools = new Map<string, ToolDefinition>();
 	const cartridges = new Map<string, CartridgeDefinition>();
 	const goalCards = new Map<string, GoalCardDefinition>();
@@ -72,8 +81,10 @@ export function createPackRegistry(): PackRegistry {
 			requiresCore: manifest.requiresCore
 		});
 		for (const brick of manifest.bricks ?? []) insertUnique(bricks, brick.id, brick, 'brick');
-		for (const kind of manifest.brickKinds ?? [])
+		for (const kind of manifest.brickKinds ?? []) {
 			insertUnique(brickKinds, kind.id, kind, 'brick kind');
+			brickKindPacks.set(kind.id, manifest.id);
+		}
 		for (const tool of manifest.tools ?? []) insertUnique(tools, tool.id, tool, 'tool');
 		for (const cartridge of manifest.cartridges ?? [])
 			insertUnique(cartridges, cartridge.id, cartridge, 'cartridge');
@@ -130,6 +141,7 @@ export function createPackRegistry(): PackRegistry {
 		registerPack,
 		getBrick: (id) => bricks.get(id),
 		getBrickKind: (id) => brickKinds.get(id),
+		getBrickKindPack: (id) => brickKindPacks.get(id),
 		listBrickKinds: (slot) =>
 			[...brickKinds.values()].filter((kind) => slot === undefined || kind.slot === slot),
 		getTool: (id) => tools.get(id),

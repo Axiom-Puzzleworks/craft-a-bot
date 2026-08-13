@@ -31,11 +31,11 @@ export function describeStorageContract(name: string, open: () => Promise<Storag
 			it('overwrites an agent with the same id', async () => {
 				const storage = await open();
 				await storage.putAgent(makeAgent());
-				await storage.putAgent(makeAgent({ boxArtSeed: 'seed-2' }));
+				await storage.putAgent(makeAgent({ spec: makeSpec({ name: 'Snackbot 4000' }) }));
 
 				const agents = await storage.listAgents();
 				expect(agents).toHaveLength(1);
-				expect(agents[0]?.boxArtSeed).toBe('seed-2');
+				expect(agents[0]?.spec.name).toBe('Snackbot 4000');
 			});
 
 			it('deletes an agent', async () => {

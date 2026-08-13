@@ -3,7 +3,8 @@
 	import { resolve } from '$app/paths';
 	import { agentsStore } from '$lib/state/agents.svelte.js';
 	import { storageStatus } from '$lib/state/app-storage.svelte.js';
-	import { BRICK_ORDER, type BrickKind } from '$lib/bricks.js';
+	import { BRICK_ORDER, brickDefinition, type BrickKind } from '$lib/bricks.js';
+	import type { FittedBrick } from '@craftabot/core';
 
 	/**
 	 * The Shelf (03-UI-UX-DESIGN.md §3): your bots as toy boxes on a wooden
@@ -50,9 +51,16 @@
 		URL.revokeObjectURL(url);
 	}
 
-	/** Which bricks a bot has, as the colour strip on its box lid (03 §3). */
-	function fittedKinds(bricks: Record<string, unknown>): BrickKind[] {
-		return BRICK_ORDER.filter((kind) => bricks[kind] !== undefined);
+	/**
+	 * Which bricks a bot has, as the colour strip on its box lid (03 §3).
+	 *
+	 * Matched by kind id rather than by socket: the lid is showing V1's six
+	 * colours, and a socket holding something else — a Monitor in the safety
+	 * socket — has no colour on this strip and should not borrow one.
+	 */
+	function fittedKinds(bricks: readonly FittedBrick[]): BrickKind[] {
+		const kinds = new Set(bricks.map((brick) => brick.kind));
+		return BRICK_ORDER.filter((kind) => kinds.has(brickDefinition(kind).id));
 	}
 </script>
 

@@ -147,6 +147,7 @@ export {
 } from './schemas/kit-file.js';
 export {
 	agentRecordSchema,
+	migrateAgentRecord,
 	parseAgentRecord,
 	safeParseAgentRecord,
 	safeParseStoredEvent,
@@ -157,6 +158,7 @@ export {
 
 // Persistence helpers (07-DATA-MODEL-PERSISTENCE.md §4–5)
 export {
+	brickKindsFor,
 	buildKitFile,
 	importKitFile,
 	type BuildKitFileOptions,

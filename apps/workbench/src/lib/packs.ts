@@ -22,3 +22,14 @@ export function createRegistry(): PackRegistry {
 export function packVersions(): Record<string, string> {
 	return Object.fromEntries(installedPacks.map((pack) => [pack.id, pack.version]));
 }
+
+/**
+ * Every brick kind this build can assemble, for the kit-file `requires` check.
+ *
+ * Read from the packs rather than the registry because import happens before
+ * anything has been built — there is no bench, and no reason to stand a
+ * registry up to answer one question.
+ */
+export function installedBrickKinds(): string[] {
+	return installedPacks.flatMap((pack) => (pack.brickKinds ?? []).map((kind) => kind.id));
+}

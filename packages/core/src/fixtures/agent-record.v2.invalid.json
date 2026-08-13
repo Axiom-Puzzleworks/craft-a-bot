@@ -1,0 +1,21 @@
+{
+	"id": "11111111-1111-4111-8111-111111111111",
+	"spec": {
+		"id": "11111111-1111-4111-8111-111111111111",
+		"name": "Snackbot 3000",
+		"schemaVersion": 2,
+		"bricks": [{ "slot": "antenna", "kind": "starter/llm", "configVersion": 0, "config": {} }],
+		"goalCardId": "starter/snack",
+		"identity": { "displayName": "", "boxArtSeed": "marmalade-7" },
+		"createdAt": "2026-08-12T09:00:00Z",
+		"updatedAt": "2026-08-13T09:30:00Z"
+	},
+	"boxArtSeed": "marmalade-7",
+	"lastValidation": [
+		{ "code": "no-such-problem-code", "severity": "catastrophic", "message": "Boom." }
+	],
+	"lastRunId": "run-2",
+	"createdAt": "2026-08-12T09:00:00Z",
+	"updatedAt": "2026-08-13T09:30:00Z",
+	"schemaVersion": 2
+}

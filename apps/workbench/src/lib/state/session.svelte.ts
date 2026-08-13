@@ -1,7 +1,7 @@
 import {
 	createSession,
 	displayedTickBudget,
-	type AgentSpec,
+	type AnyAgentSpec,
 	type EngineEvent,
 	type Guardrail,
 	type LLMProvider,
@@ -67,7 +67,8 @@ export interface SessionView {
 }
 
 export interface SessionViewDeps {
-	spec: AgentSpec;
+	/** Either spec shape — `createSession` normalises at its own door (WP14). */
+	spec: AnyAgentSpec;
 	provider: LLMProvider;
 	guardrails?: Guardrail[];
 	maxTicks?: number;

@@ -1,4 +1,5 @@
 import {
+	migrateAgentRecord,
 	safeParseAgentRecord,
 	safeParseStoredEvent,
 	type AgentRecord,
@@ -74,17 +75,17 @@ export async function createIdbStorage(name = DATABASE_NAME): Promise<IdbStorage
 			const rows = await db.getAll('agents');
 			const valid: AgentRecord[] = [];
 			for (const row of rows) {
-				const parsed = safeParseAgentRecord(row);
-				if (parsed.success) valid.push(parsed.data);
-				else quarantine.agents += 1;
+				const migrated = migrateAgentRecord(row);
+				if ('kind' in migrated) quarantine.agents += 1;
+				else valid.push(migrated);
 			}
 			return valid;
 		},
 		async getAgent(id) {
 			const row = await db.get('agents', id);
 			if (row === undefined) return undefined;
-			const parsed = safeParseAgentRecord(row);
-			if (parsed.success) return parsed.data;
+			const migrated = migrateAgentRecord(row);
+			if (!('kind' in migrated)) return migrated;
 			quarantine.agents += 1;
 			return undefined;
 		},

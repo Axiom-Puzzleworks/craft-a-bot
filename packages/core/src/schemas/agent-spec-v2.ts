@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { SLOT_IDS } from '../types/brick.js';
+import type { MigrationError } from './shared.js';
 import {
 	actionsBrickSchema,
 	agentSpecSchema,
@@ -114,11 +115,8 @@ const V1_BRICKS = {
 /** The order bricks are written in, so a migrated spec is byte-stable. */
 const V1_ORDER = ['llm', 'memory', 'tools', 'sense', 'actions', 'safety'] as const;
 
-export interface SpecMigrationError {
-	kind: 'migration-error';
-	message: string;
-	detectedVersion?: unknown;
-}
+/** The one migration-failure shape, shared with kit files, traces and records. */
+export type SpecMigrationError = MigrationError;
 
 type SpecMigration = (raw: Record<string, unknown>) => AgentSpecV2 | SpecMigrationError;
 

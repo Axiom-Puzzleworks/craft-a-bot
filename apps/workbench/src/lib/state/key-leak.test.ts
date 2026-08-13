@@ -1,9 +1,11 @@
 import 'fake-indexeddb/auto';
 import {
+	brickKindsFor,
 	buildKitFile,
 	buildTraceFile,
 	containsSecret,
 	createSession,
+	toSpecV2,
 	type AgentSpec,
 	type RunRecord
 } from '@craftabot/core';
@@ -139,7 +141,11 @@ async function runAndExport() {
 	const secrets = vault.secrets();
 	const kitFile = buildKitFile(spec, {
 		exportedBy: 'craftabot-workbench/0.0.1',
-		requires: { core: '>=0.0.1', packs: packVersions() },
+		requires: {
+			core: '>=0.0.1',
+			packs: packVersions(),
+			brickKinds: brickKindsFor(spec, registry)
+		},
 		secrets
 	});
 	const traceFile = await buildTraceFile(
@@ -247,7 +253,7 @@ async function buildLeakyRun(): Promise<RunRecord> {
 		agentId: '11111111-1111-4111-8111-111111111111',
 		agentName: 'Snackbot 3000',
 		goalCardId: 'starter/say-hello',
-		specSnapshot: makeSpec(),
+		specSnapshot: toSpecV2(makeSpec()),
 		packVersions: packVersions(),
 		mode: 'step',
 		outcome: 'SUCCESS',

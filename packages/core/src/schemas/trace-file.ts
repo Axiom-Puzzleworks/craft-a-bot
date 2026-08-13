@@ -1,7 +1,8 @@
 import { z } from 'zod';
 import { agentSpecSchema } from './agent-spec.js';
+import { agentSpecV2Schema } from './agent-spec-v2.js';
 import { engineEventSchema, type EngineEvent } from './events.js';
-import { runOutcomeSchema, usageSchema } from './shared.js';
+import { runOutcomeSchema, usageSchema, type MigrationError } from './shared.js';
 
 /**
  * RunRecord (07-DATA-MODEL-PERSISTENCE.md §3) — first needed here for the
@@ -13,7 +14,17 @@ export const runRecordSchema = z.object({
 	agentId: z.string().uuid(),
 	agentName: z.string().min(1),
 	goalCardId: z.string().min(1),
-	specSnapshot: agentSpecSchema,
+	/**
+	 * The bot exactly as it was when the run started.
+	 *
+	 * Either spec shape, and deliberately *not* a `formatVersion` bump: widening
+	 * a field is additive, and the compatibility policy (`14-…` §7) only bumps on
+	 * breaking shape changes. Every v2 trace ever written still parses; a trace
+	 * written today carries v2 because that is what the workbench now stores.
+	 *
+	 * Narrowing this to v2 alone is slice 3's job, once nothing holds a v1 spec.
+	 */
+	specSnapshot: z.union([agentSpecSchema, agentSpecV2Schema]),
 	packVersions: z.record(z.string(), z.string()),
 	mode: z.enum(['step', 'play']),
 	/**
@@ -80,11 +91,8 @@ export function safeParseTraceFile(value: unknown): ReturnType<typeof traceFileS
 	return traceFileSchema.safeParse(value);
 }
 
-export interface TraceMigrationError {
-	kind: 'migration-error';
-	message: string;
-	detectedVersion?: unknown;
-}
+/** The one migration-failure shape, shared with kit files, specs and records. */
+export type TraceMigrationError = MigrationError;
 
 type TraceMigration = (raw: Record<string, unknown>) => TraceFile | TraceMigrationError;
 

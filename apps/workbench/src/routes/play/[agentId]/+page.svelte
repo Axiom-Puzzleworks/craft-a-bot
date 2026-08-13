@@ -6,6 +6,7 @@
 		DEFAULT_REQUEST_TIMEOUT_MS,
 		DEFAULT_TICK_BUDGET,
 		DEFAULT_TOKEN_BUDGET,
+		asLegacySpec,
 		buildTraceFile,
 		type AgentRecord,
 		type RunRecord
@@ -76,10 +77,11 @@
 	$effect(() => {
 		const loaded = record;
 		if (!loaded) return;
+		const legacy = asLegacySpec(loaded.spec);
 		leaflet.report({
-			spec: loaded.spec,
+			spec: legacy,
 			outcome: view?.outcome,
-			variant: demoVariantFor(loaded.spec.goalCardId, loaded.spec),
+			variant: demoVariantFor(loaded.spec.goalCardId, legacy),
 			ticks: view?.tick ?? 0,
 			usedTools:
 				view?.events
@@ -95,8 +97,13 @@
 		record = loaded;
 		if (!loaded) return;
 
-		const cartridge = registry.getCartridge(loaded.spec.bricks.llm?.cartridgeId ?? '');
-		const brain = chooseBrain(cartridge, loaded.spec.goalCardId, loaded.spec);
+		/*
+		 * The demo brain and the leaflet still read a bot as six named bricks
+		 * (slice 4 changes that); the engine takes either shape as of slice 2b.
+		 */
+		const legacy = asLegacySpec(loaded.spec);
+		const cartridge = registry.getCartridge(legacy.bricks.llm?.cartridgeId ?? '');
+		const brain = chooseBrain(cartridge, loaded.spec.goalCardId, legacy);
 		if (!brain.ok) {
 			missingBattery = true;
 			return;

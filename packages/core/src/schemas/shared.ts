@@ -106,6 +106,23 @@ export const guardrailVerdictSchema = z.union([
 ]);
 export type GuardrailVerdict = z.infer<typeof guardrailVerdictSchema>;
 
+/**
+ * A stored shape that could not be read, as a value rather than a throw
+ * (`10-…` §1).
+ *
+ * Every versioned file in the app — kit, spec, trace, record — migrates through
+ * a table keyed by version and reports failure this way. The interface was
+ * written out once per file until it was written out four times; the *messages*
+ * differ, deliberately (a kit and a bot are different things to a reader), but
+ * the shape never did.
+ */
+export interface MigrationError {
+	kind: 'migration-error';
+	message: string;
+	/** Kept rather than swallowed: "from a newer set" is actionable, "broken" is not. */
+	detectedVersion?: unknown;
+}
+
 /** The call a guardrail is being asked about, at `pre-act`. */
 export const proposedStepSchema = z.object({
 	kind: z.enum(['tool', 'action']),

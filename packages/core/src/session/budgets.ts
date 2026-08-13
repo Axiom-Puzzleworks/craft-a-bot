@@ -1,4 +1,5 @@
 import type { AgentSpec } from '../schemas/agent-spec.js';
+import { asLegacySpec, type AnyAgentSpec } from '../schemas/agent-spec-v2.js';
 
 /**
  * The engine floor (08-GOVERNANCE-GUARDRAILS.md §3): budgets that apply
@@ -72,8 +73,11 @@ function backstopTicks(spec: AgentSpec): number {
  * the platform's backstop instead would be a gauge that disagrees with the
  * brick they can see on the baseplate.
  */
-export function displayedTickBudget(spec: AgentSpec, overrides: BudgetOverrides = {}): number {
-	return overrides.maxTicks ?? spec.bricks.safety?.maxTicks ?? DEFAULT_TICK_BUDGET;
+export function displayedTickBudget(spec: AnyAgentSpec, overrides: BudgetOverrides = {}): number {
+	// Either shape: the gauge is read straight from a stored bot, and since WP14
+	// that is v2. Normalising here rather than at the call site keeps the one
+	// place that knows what "the dial" means the one place that reads it.
+	return overrides.maxTicks ?? asLegacySpec(spec).bricks.safety?.maxTicks ?? DEFAULT_TICK_BUDGET;
 }
 
 export function totalTokens(usage: Usage): number {

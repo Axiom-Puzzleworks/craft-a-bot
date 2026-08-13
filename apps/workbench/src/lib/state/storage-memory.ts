@@ -48,6 +48,9 @@ export function createMemoryStorage(): MemoryStorage {
 		// the private-browsing users least likely to report it.
 		listAgents: () => Promise.resolve([...agents.values()].map(copy)),
 		getAgent: (id) => Promise.resolve(copy(agents.get(id))),
+		// Note the asymmetry with IndexedDB: nothing in this store predates the
+		// process that filled it, so there is no v1 row here to migrate. `putAgent`
+		// is the only door and it takes v2.
 		putAgent(record) {
 			// Validated on the way in as well as out: a bad record should never
 			// reach the store, whichever implementation is behind the interface.

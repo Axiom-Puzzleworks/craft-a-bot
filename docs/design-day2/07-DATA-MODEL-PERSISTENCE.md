@@ -32,16 +32,17 @@ Retention: traces are big; default cap 50 stored runs (LRU eviction with a frien
 
 ## 3. Entities
 
+> **Amended 2026-08-13 (WP14 slice 2c):** `AgentRecord` is at `schemaVersion: 2` — it holds `AgentSpec` v2, and `boxArtSeed` has moved onto `spec.identity` where `14-…` §2.2 puts identity. The seed on the row never travelled inside a kit file, so an exported bot arrived somewhere else wearing a different box; the record migration is what carries each existing bot's seed across. Storage **migrates rows on read** (see §6), because a shelf full of v1 rows is the normal state of anyone who used V1.0.
+
 ```ts
 // Shelf item — wraps the spec from 02-AGENT-MODEL.md §6
 export interface AgentRecord {
   id: string;                    // uuid (same as spec.id)
-  spec: AgentSpec;
-  boxArtSeed: string;            // deterministic generated box-art variation
+  spec: AgentSpecV2;             // identity, including boxArtSeed, lives on the spec
   lastValidation: BuildProblem[];
   lastRunId?: string;
   createdAt: string; updatedAt: string;
-  schemaVersion: 1;
+  schemaVersion: 2;
 }
 
 export interface RunRecord {
@@ -49,7 +50,7 @@ export interface RunRecord {
   agentId: string;
   agentName: string;             // denormalised for display after agent deletion
   goalCardId: string;
-  specSnapshot: AgentSpec;       // exact spec at run time — reproducibility (purpose 2)
+  specSnapshot: AgentSpec | AgentSpecV2;  // exact spec at run time — reproducibility (purpose 2)
   packVersions: Record<string, string>;  // e.g. { starter: "1.0.0", openai: "1.0.2" }
   mode: 'step' | 'play';
   outcome: 'SUCCESS' | 'OUT_OF_STEPS' | 'STOPPED_BY_USER' | 'STOPPED_BY_GUARDRAIL' | 'ERROR' | 'IN_PROGRESS';
@@ -74,19 +75,26 @@ Extension **`.craftabot.json`** (double extension keeps it obviously JSON). Shap
 ```jsonc
 {
   "format": "craftabot-kit",
-  "formatVersion": 1,
+  "formatVersion": 2,
   "exportedAt": "2026-08-12T10:00:00Z",
   "exportedBy": "craftabot-workbench/1.0.0",
-  "requires": { "core": ">=1.0.0", "packs": { "starter": ">=1.0.0", "openai": ">=1.0.0" } },
-  "agent": { /* AgentSpec — verbatim */ },
+  "requires": {
+    "core": ">=1.0.0",
+    "packs": { "starter": ">=1.0.0", "openai": ">=1.0.0" },
+    // kind id → the pack that provides it, read from the registry (`14-…` §2.4)
+    "brickKinds": { "starter/llm": "starter", "starter/safety": "starter" }
+  },
+  "agent": { /* AgentSpec v2 — verbatim */ },
   "notes": "Optional free text from the exporter"
 }
 ```
 
+> **Amended 2026-08-13 (WP14 slice 2c):** `formatVersion: 2` — the kit embeds spec v2 and gains `requires.brickKinds`. v1 could only name the *packs* a bot needed, which was enough while the six bricks were baked into the schema; once a pack can add a seventh, "you need the starter pack" is no answer to someone who has it at a version without the brick. Rationale and the packs-then-bricks check order are in `14-…` §2.4.
+
 Rules:
 
 - **Never contains:** API keys, run history, user identity. A kit file is safe to share publicly by construction.
-- Import validates with Zod → checks `requires` against installed packs → regenerates `id` if it collides (imported bots are copies, "traded" like real kits — the friendly frame for sharing).
+- Import validates with Zod → checks `requires` against installed packs, **then against installed brick kinds** → regenerates `id` if it collides (imported bots are copies, "traded" like real kits — the friendly frame for sharing).
 - Unknown extra fields are preserved on round-trip (forward compatibility, `passthrough()` in Zod).
 - `formatVersion` bumps only on breaking shape changes; additive fields don't bump.
 
@@ -102,6 +110,8 @@ Extension **`.craftabot-trace.json`**: `{ format: "craftabot-trace", formatVersi
 - All schemas in `@craftabot/core` under `src/schemas/` (`agentSpec.ts`, `kitFile.ts`, `traceFile.ts`, `events.ts`, `packManifest.ts`); types derived via `z.infer` — **schemas are the single source of truth** for both runtime validation and TS types.
 - Each schema exports `parseX` (throwing) and `safeParseX` helpers; storage/import code uses only `safeParse` + structured error reporting.
 - Migration functions colocated: `migrateKitFile(unknown) → latest | MigrationError`, table-driven by `formatVersion`, unit-tested with a fixture file per historical version (fixtures start accumulating now, at v1).
+
+> **Amended 2026-08-13 (WP14 slice 2c):** four artefacts now migrate this way — `migrateKitFile`, `migrateAgentSpec`, `migrateAgentRecord` and `migrateTraceFile` — sharing one `MigrationError` shape but keeping their own user-facing wording, because a kit and a bot are different things to a reader. **Stored rows migrate on read, not on parse.** `storage.listAgents()` and `getAgent()` call `migrateAgentRecord`; `putAgent` still takes the current version only, so nothing can write an old row back. Quarantine (§1.5, §8) is for rows that are genuinely unreadable, not merely old.
 
 ## 7. Future Supabase mapping (design note only — do not build)
 

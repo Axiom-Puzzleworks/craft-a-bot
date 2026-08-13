@@ -1,16 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import validKitFile from '../fixtures/kit-file.v1.valid.json';
-import invalidKitFile from '../fixtures/kit-file.v1.invalid.json';
+import validKitFileV1 from '../fixtures/kit-file.v1.valid.json';
+import invalidKitFileV1 from '../fixtures/kit-file.v1.invalid.json';
+import validKitFile from '../fixtures/kit-file.v2.valid.json';
+import invalidKitFile from '../fixtures/kit-file.v2.invalid.json';
 import { migrateKitFile, parseKitFile, safeParseKitFile, type MigrationError } from './kit-file.js';
 
 describe('kitFileSchema', () => {
-	it('parses the valid v1 fixture', () => {
+	it('parses the valid v2 fixture', () => {
 		const kit = parseKitFile(validKitFile);
 		expect(kit.format).toBe('craftabot-kit');
 		expect(kit.agent.name).toBe('Snackbot 3000');
 	});
 
-	it('rejects the invalid v1 fixture', () => {
+	it('rejects the invalid v2 fixture', () => {
 		const result = safeParseKitFile(invalidKitFile);
 		expect(result.success).toBe(false);
 	});
@@ -33,12 +35,27 @@ describe('kitFileSchema', () => {
 });
 
 describe('migrateKitFile', () => {
-	it('passes a valid v1 kit file through unchanged', () => {
+	it('passes a valid v2 kit file through unchanged', () => {
 		const result = migrateKitFile(validKitFile);
 		expect((result as { format: string }).format).toBe('craftabot-kit');
 	});
 
+	it('upgrades a v1 kit file, spec and all', () => {
+		const result = migrateKitFile(validKitFileV1);
+		expect('kind' in result).toBe(false);
+		if ('kind' in result) return;
+		expect(result.formatVersion).toBe(2);
+		expect(result.agent.schemaVersion).toBe(2);
+		// The one thing v1 could not say, worked out from the bricks it did carry.
+		expect(result.requires.brickKinds['starter/memory']).toBe('starter');
+	});
+
 	it('returns a MigrationError for an invalid v1 kit file', () => {
+		const result = migrateKitFile(invalidKitFileV1) as MigrationError;
+		expect(result.kind).toBe('migration-error');
+	});
+
+	it('returns a MigrationError for an invalid v2 kit file', () => {
 		const result = migrateKitFile(invalidKitFile) as MigrationError;
 		expect(result.kind).toBe('migration-error');
 	});

@@ -5,23 +5,25 @@ import validAgentSpec from '../fixtures/agent-spec.v1.valid.json';
 import invalidAgentSpec from '../fixtures/agent-spec.v1.invalid.json';
 import validAgentSpecV2 from '../fixtures/agent-spec.v2.valid.json';
 import invalidAgentSpecV2 from '../fixtures/agent-spec.v2.invalid.json';
-import validAgentRecord from '../fixtures/agent-record.v1.valid.json';
-import invalidAgentRecord from '../fixtures/agent-record.v1.invalid.json';
+import validAgentRecordV1 from '../fixtures/agent-record.v1.valid.json';
+import validAgentRecord from '../fixtures/agent-record.v2.valid.json';
+import invalidAgentRecord from '../fixtures/agent-record.v2.invalid.json';
 import validStoredEvent from '../fixtures/stored-event.v1.valid.json';
 import invalidStoredEvent from '../fixtures/stored-event.v1.invalid.json';
 import validPackManifest from '../fixtures/pack-manifest.v1.valid.json';
 import invalidPackManifest from '../fixtures/pack-manifest.v1.invalid.json';
-import validKitFile from '../fixtures/kit-file.v1.valid.json';
-import invalidKitFile from '../fixtures/kit-file.v1.invalid.json';
+import validKitFileV1 from '../fixtures/kit-file.v1.valid.json';
+import validKitFile from '../fixtures/kit-file.v2.valid.json';
+import invalidKitFile from '../fixtures/kit-file.v2.invalid.json';
 import validTraceFileV1 from '../fixtures/trace-file.v1.valid.json';
 import validTraceFile from '../fixtures/trace-file.v2.valid.json';
 import invalidTraceFile from '../fixtures/trace-file.v2.invalid.json';
 
 import { agentSpecSchema } from './agent-spec.js';
 import { agentSpecV2Schema } from './agent-spec-v2.js';
-import { kitFileSchema } from './kit-file.js';
+import { kitFileSchema, migrateKitFile } from './kit-file.js';
 import { packManifestMetadataSchema } from './pack-manifest.js';
-import { agentRecordSchema, storedEventSchema } from './records.js';
+import { agentRecordSchema, migrateAgentRecord, storedEventSchema } from './records.js';
 import { migrateTraceFile, traceFileSchema } from './trace-file.js';
 
 /**
@@ -65,7 +67,7 @@ const CASES: Case[] = [
 		invalid: invalidAgentSpecV2
 	},
 	{
-		name: 'AgentRecord v1',
+		name: 'AgentRecord v2',
 		schema: agentRecordSchema,
 		valid: validAgentRecord,
 		invalid: invalidAgentRecord
@@ -83,7 +85,7 @@ const CASES: Case[] = [
 		invalid: invalidPackManifest
 	},
 	{
-		name: 'KitFile v1',
+		name: 'KitFile v2',
 		schema: kitFileSchema,
 		valid: validKitFile,
 		invalid: invalidKitFile,
@@ -161,6 +163,33 @@ describe('the fixture set itself', () => {
 		// What v1 genuinely did not record is admitted, not invented.
 		expect(migrated.run.providerId).toBe('unrecorded');
 		expect(migrated.run.wireModel).toBe('unrecorded');
+	});
+
+	/**
+	 * The same promise for the two files a *user* owns: the bots on their shelf
+	 * and the kit they were sent. WP14 changed the shape of both, and neither
+	 * change is allowed to cost anyone a bot.
+	 */
+	it('still reads the v1 shelf it used to write, and upgrades it', () => {
+		const migrated = migrateAgentRecord(validAgentRecordV1);
+		expect('kind' in migrated, JSON.stringify(migrated).slice(0, 200)).toBe(false);
+		if ('kind' in migrated) return;
+
+		expect(migrated.schemaVersion).toBe(2);
+		expect(migrated.spec.bricks.map((brick) => brick.slot)).toContain('brain');
+		// The seed lived on the row and now lives on the bot, so the box art a
+		// person has been looking at for a year is the box art they keep.
+		expect(migrated.spec.identity.boxArtSeed).toBe(validAgentRecordV1.boxArtSeed);
+	});
+
+	it('still reads the v1 kit it used to write, and names the packs its bricks came from', () => {
+		const migrated = migrateKitFile(validKitFileV1);
+		expect('kind' in migrated, JSON.stringify(migrated).slice(0, 200)).toBe(false);
+		if ('kind' in migrated) return;
+
+		expect(migrated.formatVersion).toBe(2);
+		expect(migrated.requires.brickKinds['starter/llm']).toBe('starter');
+		expect(Object.keys(migrated.requires.brickKinds)).toHaveLength(migrated.agent.bricks.length);
 	});
 
 	it('refuses a trace from a format it has never heard of', () => {

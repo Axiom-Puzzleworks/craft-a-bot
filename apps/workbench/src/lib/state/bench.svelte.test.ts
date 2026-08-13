@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { AgentRecord } from '@craftabot/core';
+import { asLegacySpec, type AgentRecord, type AgentSpec } from '@craftabot/core';
 import { createBenchStore } from './bench.svelte.js';
 import { createMemoryStorage } from './storage-memory.js';
 import type { Storage } from './storage.js';
@@ -7,9 +7,18 @@ import type { Storage } from './storage.js';
 /**
  * The bench store owns three promises the DoD depends on: validation is live,
  * every change is undoable, and edits persist.
+ *
+ * It holds spec v2 since WP14, while the tray and the panels still speak V1's
+ * six brick names — so most assertions here read the bot back through
+ * `bricksOf`, which is the same window the panels look through. What is
+ * *stored* is v2, and the tests that care about that say so explicitly.
  */
 
 const AGENT_ID = '11111111-1111-4111-8111-111111111111';
+
+/** The bot through V1's six-key window, which is what the panels still edit. */
+const bricksOf = (spec: unknown): AgentSpec['bricks'] =>
+	spec ? asLegacySpec(spec as never).bricks : {};
 
 function makeRecord(): AgentRecord {
 	return {
@@ -17,17 +26,17 @@ function makeRecord(): AgentRecord {
 		spec: {
 			id: AGENT_ID,
 			name: 'Testbot',
-			bricks: {},
+			schemaVersion: 2,
+			bricks: [],
 			goalCardId: 'starter/say-hello',
+			identity: { displayName: 'Testbot', boxArtSeed: AGENT_ID },
 			createdAt: '2026-08-12T09:00:00Z',
-			updatedAt: '2026-08-12T09:00:00Z',
-			schemaVersion: 1
+			updatedAt: '2026-08-12T09:00:00Z'
 		},
-		boxArtSeed: AGENT_ID,
 		lastValidation: [],
 		createdAt: '2026-08-12T09:00:00Z',
 		updatedAt: '2026-08-12T09:00:00Z',
-		schemaVersion: 1
+		schemaVersion: 2
 	};
 }
 
@@ -63,14 +72,38 @@ describe('opening a bot', () => {
 		expect((await storage.getAgent(AGENT_ID))?.spec.name).not.toBe('Testbot (stale)');
 		expect(bench.spec?.name).toBe('Renamed');
 	});
+
+	it('renames the bot and its identity together, so they cannot disagree', async () => {
+		const { bench } = await openBench();
+		bench.rename('Renamed');
+		expect(bench.spec?.identity.displayName).toBe('Renamed');
+	});
 });
 
 describe('fitting and removing bricks', () => {
 	it('fits a brick with its documented defaults', async () => {
 		const { bench } = await openBench();
 		bench.fitBrick('memory');
-		expect(bench.spec?.bricks.memory).toEqual({ windowSize: 10, notebook: false });
+		expect(bricksOf(bench.spec).memory).toEqual({ windowSize: 10, notebook: false });
 		expect(bench.hasBrick('memory')).toBe(true);
+	});
+
+	/**
+	 * The defaults now come from the pack that defines the brick, not from a
+	 * `BRICK_DEFAULTS` table in the workbench. Two answers to "what does a fresh
+	 * Memory brick remember?" is one too many (`14-…` §2).
+	 */
+	it('writes a fitted brick as its registered kind, in its registered socket', async () => {
+		const { bench } = await openBench();
+		bench.fitBrick('memory');
+		expect(bench.spec?.bricks).toEqual([
+			{
+				slot: 'memory',
+				kind: 'starter/memory',
+				configVersion: 1,
+				config: { windowSize: 10, notebook: false }
+			}
+		]);
 	});
 
 	it('does not clobber an already-fitted brick', async () => {
@@ -78,7 +111,7 @@ describe('fitting and removing bricks', () => {
 		bench.fitBrick('memory');
 		bench.updateBrick('memory', { windowSize: 30 });
 		bench.fitBrick('memory');
-		expect(bench.spec?.bricks.memory?.windowSize).toBe(30);
+		expect(bricksOf(bench.spec).memory?.windowSize).toBe(30);
 	});
 
 	it('never shares the defaults object between bots', async () => {
@@ -88,7 +121,7 @@ describe('fitting and removing bricks', () => {
 
 		const second = await openBench();
 		second.bench.fitBrick('safety');
-		expect(second.bench.spec?.bricks.safety?.blockedActions).toEqual([]);
+		expect(bricksOf(second.bench.spec).safety?.blockedActions).toEqual([]);
 	});
 
 	it('removes a brick', async () => {
@@ -101,7 +134,8 @@ describe('fitting and removing bricks', () => {
 	it('ignores an update to a brick that is not fitted', async () => {
 		const { bench } = await openBench();
 		bench.updateBrick('llm', { temperature: 1.5 });
-		expect(bench.spec?.bricks.llm).toBeUndefined();
+		expect(bricksOf(bench.spec).llm).toBeUndefined();
+		expect(bench.spec?.bricks).toEqual([]);
 	});
 });
 
@@ -186,7 +220,7 @@ describe('persistence (WP5 definition of done)', () => {
 			saveDebounceMs: 0
 		});
 		await reopened.open(AGENT_ID);
-		expect(reopened.spec?.bricks.llm?.temperature).toBe(1.4);
+		expect(bricksOf(reopened.spec).llm?.temperature).toBe(1.4);
 	});
 
 	it('stores the current build problems alongside the spec', async () => {
@@ -227,10 +261,10 @@ describe('the loop-breaker setting', () => {
 	it('comes fitted, and can be switched off again', async () => {
 		const { bench } = await openBench();
 		bench.fitBrick('safety');
-		expect(bench.spec?.bricks.safety?.repeatLimit).toBe(3);
+		expect(bricksOf(bench.spec).safety?.repeatLimit).toBe(3);
 
 		bench.updateBrick('safety', { repeatLimit: undefined });
-		expect(bench.spec?.bricks.safety?.repeatLimit).toBeUndefined();
+		expect(bricksOf(bench.spec).safety?.repeatLimit).toBeUndefined();
 	});
 
 	it('is saved, and comes back on the next visit', async () => {
@@ -240,7 +274,7 @@ describe('the loop-breaker setting', () => {
 		await bench.flush();
 
 		const reopened = await storage.getAgent(bench.spec?.id ?? '');
-		expect(reopened?.spec.bricks.safety?.repeatLimit).toBe(5);
+		expect(bricksOf(reopened?.spec).safety?.repeatLimit).toBe(5);
 	});
 
 	it('switches back off cleanly', async () => {
@@ -250,6 +284,6 @@ describe('the loop-breaker setting', () => {
 		bench.updateBrick('safety', { repeatLimit: undefined });
 
 		// Undefined rather than zero: the guardrail is simply not installed.
-		expect(bench.spec?.bricks.safety?.repeatLimit).toBeUndefined();
+		expect(bricksOf(bench.spec).safety?.repeatLimit).toBeUndefined();
 	});
 });
