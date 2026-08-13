@@ -1,5 +1,7 @@
 import type { AgentSpec } from '@craftabot/core';
 import { describe, expect, it } from 'vitest';
+import { capabilitiesOf } from '$lib/bot-capabilities.js';
+import { createRegistry } from '$lib/packs.js';
 import type { WebStorageLike } from '$lib/state/keys.js';
 import { createSettingsStore } from '$lib/state/settings.js';
 import { createLeaflet } from './leaflet.svelte.js';
@@ -32,6 +34,18 @@ function spec(over: Partial<AgentSpec> = {}): AgentSpec {
 		schemaVersion: 1,
 		...over
 	};
+}
+
+/**
+ * A report about a bot, in the vocabulary the leaflet now speaks (WP14 slice 4c).
+ *
+ * The fixtures stay written as bots and are turned into capabilities here — the
+ * same conversion the bench and play pages do — so these tests exercise the
+ * real bricks rather than a hand-built claim about them.
+ */
+function built(over: Partial<AgentSpec> = {}) {
+	const bot = spec(over);
+	return { can: capabilitiesOf(bot, createRegistry()), goalCardId: bot.goalCardId };
 }
 
 const leafletWith = (storage: WebStorageLike = fakeStore()) => ({
@@ -83,10 +97,10 @@ describe('skipping', () => {
 
 /** Drive chapter 1 to its end: bot, run, notice, actions, run again. */
 function completeChapterOne(leaflet: ReturnType<typeof createLeaflet>) {
-	leaflet.report({ route: 'bench', spec: spec() });
+	leaflet.report({ route: 'bench', ...built() });
 	leaflet.report({ route: 'play', ticks: 2, variant: 'no-actions' });
 	leaflet.ack('notice');
-	leaflet.report({ spec: spec({ bricks: { llm: BRAIN, actions: ACTIONS } }) });
+	leaflet.report({ ...built({ bricks: { llm: BRAIN, actions: ACTIONS } }) });
 	leaflet.report({ ticks: 1, variant: 'no-sight' });
 }
 
@@ -137,7 +151,7 @@ describe('rebuilding the bot', () => {
 		// carry the previous chapter's outcome across and tick it off unearned.
 		leaflet.ack('blind');
 		leaflet.report({
-			spec: spec({ bricks: { llm: BRAIN, actions: ACTIONS, sense: { channels: ['sight'] } } })
+			...built({ bricks: { llm: BRAIN, actions: ACTIONS, sense: { channels: ['sight'] } } })
 		});
 
 		expect(leaflet.steps.find((view) => view.step.id === 'see')?.done).toBe(false);
@@ -152,7 +166,7 @@ describe('rebuilding the bot', () => {
 describe('the step list the panel renders', () => {
 	it('marks exactly one step as current, and ticks the ones behind it', () => {
 		const { leaflet } = leafletWith();
-		leaflet.report({ route: 'bench', spec: spec() });
+		leaflet.report({ route: 'bench', ...built() });
 
 		const views = leaflet.steps;
 		expect(views.filter((view) => view.current)).toHaveLength(1);
@@ -164,7 +178,7 @@ describe('the step list the panel renders', () => {
 describe('starting over', () => {
 	it('clears progress and badges and opens at chapter one', () => {
 		const { leaflet, storage } = leafletWith();
-		leaflet.report({ route: 'bench', spec: spec() });
+		leaflet.report({ route: 'bench', ...built() });
 		leaflet.report({ ticks: 2, variant: 'no-actions' });
 		leaflet.ack('notice');
 

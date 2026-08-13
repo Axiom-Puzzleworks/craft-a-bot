@@ -1,5 +1,7 @@
 import type { AgentSpec } from '@craftabot/core';
 import { describe, expect, it } from 'vitest';
+import { capabilitiesOf, type BotCapabilities } from './bot-capabilities.js';
+import { createRegistry } from './packs.js';
 import { createDemoBrain, demoVariantFor, hasDemoPlan } from './demo-brain.js';
 
 /**
@@ -11,6 +13,13 @@ import { createDemoBrain, demoVariantFor, hasDemoPlan } from './demo-brain.js';
  * These tests pin the *choice* of run. That the chosen script then produces the
  * right ending is proven end-to-end in `e2e/leaflet.spec.ts`, against the real
  * world.
+ *
+ * > **Amended 2026-08-13 (WP14 slice 4c):** the demo brain is handed
+ * > **capabilities** rather than a spec. The fixtures are still written as v1
+ * > specs, deliberately — a bot on somebody's shelf is one, and running them
+ * > through `capabilitiesOf` exercises the whole chain (migration, registered
+ * > kinds, contributions) rather than a hand-built capability object that could
+ * > claim anything.
  */
 
 function spec(bricks: Partial<AgentSpec['bricks']> = {}): AgentSpec {
@@ -28,28 +37,35 @@ function spec(bricks: Partial<AgentSpec['bricks']> = {}): AgentSpec {
 	};
 }
 
+/** What the bot can do, through the real registry and the real bricks. */
+function can(built: AgentSpec): BotCapabilities {
+	return capabilitiesOf(built, createRegistry());
+}
+
 const ACTIONS = { enabled: ['move', 'say', 'pick_up', 'give', 'open', 'celebrate'] };
 const SIGHT = { channels: ['sight', 'compass'] };
 const MEMORY = { windowSize: 10 as const, notebook: false };
 
 describe('chapter 1 — a brain with no hands', () => {
 	it('picks the no-actions run when nothing can act', () => {
-		expect(demoVariantFor('starter/say-hello', spec())).toBe('no-actions');
+		expect(demoVariantFor('starter/say-hello', can(spec()))).toBe('no-actions');
 	});
 
 	it('stops picking it once the Actions brick is fitted', () => {
-		expect(demoVariantFor('starter/say-hello', spec({ actions: ACTIONS }))).not.toBe('no-actions');
+		expect(demoVariantFor('starter/say-hello', can(spec({ actions: ACTIONS })))).not.toBe(
+			'no-actions'
+		);
 	});
 });
 
 describe('chapter 2 — hands but no eyes', () => {
 	it('picks the blind run when the bot can act but not see', () => {
-		expect(demoVariantFor('starter/say-hello', spec({ actions: ACTIONS }))).toBe('no-sight');
+		expect(demoVariantFor('starter/say-hello', can(spec({ actions: ACTIONS })))).toBe('no-sight');
 	});
 
 	it('runs the successful script once Sense is fitted', () => {
 		const built = spec({ actions: ACTIONS, sense: SIGHT });
-		expect(demoVariantFor('starter/say-hello', built)).toBeUndefined();
+		expect(demoVariantFor('starter/say-hello', can(built))).toBeUndefined();
 	});
 });
 
@@ -60,14 +76,17 @@ describe('chapter 3 — no memory', () => {
 	});
 
 	it('picks the forgetful run when Memory is missing', () => {
-		expect(demoVariantFor('starter/snack', snack({ actions: ACTIONS, sense: SIGHT }))).toBe(
+		expect(demoVariantFor('starter/snack', can(snack({ actions: ACTIONS, sense: SIGHT })))).toBe(
 			'no-memory'
 		);
 	});
 
 	it('succeeds once Memory is fitted', () => {
 		expect(
-			demoVariantFor('starter/snack', snack({ actions: ACTIONS, sense: SIGHT, memory: MEMORY }))
+			demoVariantFor(
+				'starter/snack',
+				can(snack({ actions: ACTIONS, sense: SIGHT, memory: MEMORY }))
+			)
 		).toBeUndefined();
 	});
 });
@@ -84,16 +103,20 @@ describe('chapter 4 — hallucination', () => {
 	});
 
 	it('guesses when there is no calculator', () => {
-		expect(demoVariantFor('starter/sums-for-teddy', sums())).toBe('no-calculator');
+		expect(demoVariantFor('starter/sums-for-teddy', can(sums()))).toBe('no-calculator');
 	});
 
 	it('still guesses when the tool belt exists but the calculator is not on it', () => {
 		// The gap is the *tool*, not the brick — fitting an empty belt fixes nothing.
-		expect(demoVariantFor('starter/sums-for-teddy', sums(['starter/dice']))).toBe('no-calculator');
+		expect(demoVariantFor('starter/sums-for-teddy', can(sums(['starter/dice'])))).toBe(
+			'no-calculator'
+		);
 	});
 
 	it('works it out once the calculator is enabled', () => {
-		expect(demoVariantFor('starter/sums-for-teddy', sums(['starter/calculator']))).toBeUndefined();
+		expect(
+			demoVariantFor('starter/sums-for-teddy', can(sums(['starter/calculator'])))
+		).toBeUndefined();
 	});
 });
 
@@ -109,14 +132,16 @@ describe('chapter 5 — retrieval', () => {
 	});
 
 	it('keeps shoving the lid when it cannot look anything up', () => {
-		expect(demoVariantFor('starter/locked-chest', chest(['starter/calculator']))).toBe('no-manual');
+		expect(demoVariantFor('starter/locked-chest', can(chest(['starter/calculator'])))).toBe(
+			'no-manual'
+		);
 	});
 
 	it('finds the key once the manual is on the belt', () => {
 		expect(
 			demoVariantFor(
 				'starter/locked-chest',
-				chest(['starter/calculator', 'starter/look_up_manual'])
+				can(chest(['starter/calculator', 'starter/look_up_manual']))
 			)
 		).toBeUndefined();
 	});
@@ -124,16 +149,16 @@ describe('chapter 5 — retrieval', () => {
 
 describe('the brain itself', () => {
 	it('is keyless and named as such, whichever run it picks', () => {
-		const brain = createDemoBrain('starter/say-hello', spec());
+		const brain = createDemoBrain('starter/say-hello', can(spec()));
 		expect(brain.id).toBe('demo');
 		expect(brain.keyRequirement).not.toBe('required');
 	});
 
 	it('still answers for a card with no script at all', () => {
 		expect(hasDemoPlan('starter/tidy-the-blocks')).toBe(false);
-		expect(demoVariantFor('starter/tidy-the-blocks', spec())).toBeUndefined();
+		expect(demoVariantFor('starter/tidy-the-blocks', can(spec()))).toBeUndefined();
 		// The wanderer is itself honest: a bot that looks busy and achieves nothing.
-		expect(createDemoBrain('starter/tidy-the-blocks', spec())).toBeDefined();
+		expect(createDemoBrain('starter/tidy-the-blocks', can(spec()))).toBeDefined();
 	});
 
 	it('falls back to the success script when handed no spec at all', () => {

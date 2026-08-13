@@ -6,11 +6,11 @@
 		DEFAULT_REQUEST_TIMEOUT_MS,
 		DEFAULT_TICK_BUDGET,
 		DEFAULT_TOKEN_BUDGET,
-		asLegacySpec,
 		buildTraceFile,
 		type AgentRecord,
 		type RunRecord
 	} from '@craftabot/core';
+	import { capabilitiesOf } from '$lib/bot-capabilities.js';
 	import { chooseBrain } from '$lib/brain.js';
 	import { demoVariantFor, hasDemoPlan } from '$lib/demo-brain.js';
 	import { leafletStore } from '$lib/leaflet/leaflet.svelte.js';
@@ -76,11 +76,12 @@
 	$effect(() => {
 		const loaded = record;
 		if (!loaded) return;
-		const legacy = asLegacySpec(loaded.spec);
+		const can = capabilitiesOf(loaded.spec, registry);
 		leaflet.report({
-			spec: legacy,
+			can,
+			goalCardId: loaded.spec.goalCardId,
 			outcome: view?.outcome,
-			variant: demoVariantFor(loaded.spec.goalCardId, legacy),
+			variant: demoVariantFor(loaded.spec.goalCardId, can),
 			ticks: view?.tick ?? 0,
 			usedTools:
 				view?.events
@@ -97,12 +98,13 @@
 		if (!loaded) return;
 
 		/*
-		 * The demo brain and the leaflet still read a bot as six named bricks
-		 * (slice 4 changes that); the engine takes either shape as of slice 2b.
+		 * What this bot can do, which is all the demo brain needs (WP14 slice 4c).
+		 * It read the bot through V1's six-key window until this slice — the last
+		 * place in the app that did.
 		 */
-		const legacy = asLegacySpec(loaded.spec);
-		const cartridge = registry.getCartridge(legacy.bricks.llm?.cartridgeId ?? '');
-		const brain = chooseBrain(cartridge, loaded.spec.goalCardId, legacy);
+		const can = capabilitiesOf(loaded.spec, registry);
+		const cartridge = registry.getCartridge(can.cartridgeId);
+		const brain = chooseBrain(cartridge, loaded.spec.goalCardId, can);
 		if (!brain.ok) {
 			missingBattery = true;
 			return;

@@ -1,5 +1,6 @@
-import type { AgentSpec, LLMProvider } from '@craftabot/core';
+import type { LLMProvider } from '@craftabot/core';
 import { createMockProvider, obedient, wanderer } from '@craftabot/core/testing';
+import { offers, type BotCapabilities } from '$lib/bot-capabilities.js';
 
 /**
  * The keyless demo brain.
@@ -9,7 +10,7 @@ import { createMockProvider, obedient, wanderer } from '@craftabot/core/testing'
  * the same events, the same trace (`05-TECH-STACK.md` §2, "the demo mode… a
  * keyless preview").
  *
- * ## Why the plans read the spec
+ * ## Why the plans read the build
  *
  * The teaching arc in `02-AGENT-MODEL.md` §9 is six designed **failure→fix**
  * pairs, and a failure you only read about teaches nothing. Until WP9 the plans
@@ -25,6 +26,13 @@ import { createMockProvider, obedient, wanderer } from '@craftabot/core/testing'
  * Plans are written against each card's starting layout (pack-starter's
  * `world/layouts.ts`), where the bot begins at column 1, row 5 and Teddy sits
  * at column 6, row 5.
+ *
+ * > **Amended 2026-08-13 (WP14 slice 4c):** the guards ask what the bot **can
+ * > do** rather than which of V1's six bricks it has. "It cannot see" is the
+ * > lesson, and it was written as `spec.bricks.sense?.channels` — which made a
+ * > lesson about *perception* depend on one particular brick being the only
+ * > thing that could provide it. A Radar brick from an expansion pack now fails
+ * > and fixes these lessons exactly as the Eyes & Ears brick does.
  */
 
 type Step = { say: string; call: string; args?: unknown };
@@ -33,7 +41,8 @@ type Step = { say: string; call: string; args?: unknown };
 type Variant = {
 	/** Stable id so tests can name the moment they are asserting. */
 	id: string;
-	missing: (spec: AgentSpec) => boolean;
+	/** The gap in what the bot can do that causes this run to go wrong. */
+	missing: (can: BotCapabilities) => boolean;
 	steps: Step[];
 };
 
@@ -44,14 +53,11 @@ type CardScript = {
 	succeeds: Step[];
 };
 
-const hasAnyAction = (spec: AgentSpec) => (spec.bricks.actions?.enabled.length ?? 0) > 0;
-/** A channel is named `starter/playroom/sight` in a spec and `sight` by the world (E6). */
-const hasChannel = (channels: readonly string[] | undefined, local: string): boolean =>
-	(channels ?? []).some((id) => id === local || id.endsWith(`/${local}`));
-
-const canSee = (spec: AgentSpec) => hasChannel(spec.bricks.sense?.channels, 'sight');
-const hasMemory = (spec: AgentSpec) => spec.bricks.memory !== undefined;
-const hasTool = (spec: AgentSpec, id: string) => spec.bricks.tools?.enabled.includes(id) === true;
+const hasAnyAction = (can: BotCapabilities) => can.actionIds.length > 0;
+const canSee = (can: BotCapabilities) => offers(can.channels, 'sight');
+/** Remembering is the memory socket's job, whatever is filling it. */
+const hasMemory = (can: BotCapabilities) => can.filled.has('memory');
+const hasTool = (can: BotCapabilities, id: string) => offers(can.toolIds, id);
 
 const SCRIPTS: Record<string, CardScript> = {
 	'starter/say-hello': {
@@ -60,7 +66,7 @@ const SCRIPTS: Record<string, CardScript> = {
 				// Chapter 1: a brain with no hands. It reasons perfectly well and
 				// nothing it decides ever reaches the world.
 				id: 'no-actions',
-				missing: (spec) => !hasAnyAction(spec),
+				missing: (can) => !hasAnyAction(can),
 				steps: [
 					{
 						say: 'Teddy must be somewhere east of here. Off I go.',
@@ -83,7 +89,7 @@ const SCRIPTS: Record<string, CardScript> = {
 				// Chapter 2: hands but no eyes. It acts — the loop plainly works —
 				// and blunders about, greeting an empty corner.
 				id: 'no-sight',
-				missing: (spec) => !canSee(spec),
+				missing: (can) => !canSee(can),
 				steps: [
 					{
 						say: 'I cannot see a thing. Teddy might be north of me?',
@@ -132,7 +138,7 @@ const SCRIPTS: Record<string, CardScript> = {
 				// Chapter 3: no memory. Each turn it forms the same sensible plan and
 				// has no idea it formed it last turn too.
 				id: 'no-memory',
-				missing: (spec) => !hasMemory(spec),
+				missing: (can) => !hasMemory(can),
 				steps: [
 					{
 						say: 'A snack. Snacks live on tables — the table is north.',
@@ -190,7 +196,7 @@ const SCRIPTS: Record<string, CardScript> = {
 				// Chapter 4: hallucination. The tone is the lesson — it is not
 				// hedging, it is not confused, it is simply wrong and cheerful.
 				id: 'no-calculator',
-				missing: (spec) => !hasTool(spec, 'starter/calculator'),
+				missing: (can) => !hasTool(can, 'starter/calculator'),
 				steps: [
 					{
 						say: '17 times 23. That is 371 — I am fairly sure.',
@@ -235,7 +241,7 @@ const SCRIPTS: Record<string, CardScript> = {
 				// Chapter 5: retrieval. It has no way to find out that a key exists,
 				// so it does the only thing it can think of, harder.
 				id: 'no-manual',
-				missing: (spec) => !hasTool(spec, 'starter/look_up_manual'),
+				missing: (can) => !hasTool(can, 'starter/look_up_manual'),
 				steps: [
 					{
 						say: 'A locked chest. I will open it.',
@@ -299,17 +305,16 @@ const SCRIPTS: Record<string, CardScript> = {
  * Which run this build is going to get. Exported so the tutorial and its tests
  * can name the teaching moment they expect *without* running a session.
  */
-export function demoVariantFor(goalCardId: string, spec: AgentSpec): string | undefined {
+export function demoVariantFor(goalCardId: string, can: BotCapabilities): string | undefined {
 	const script = SCRIPTS[goalCardId];
 	if (!script) return undefined;
-	return script.variants?.find((variant) => variant.missing(spec))?.id;
+	return script.variants?.find((variant) => variant.missing(can))?.id;
 }
 
 /** The brain for a given Goal Card and build. Unscripted cards get the wanderer. */
-export function createDemoBrain(goalCardId: string, spec?: AgentSpec): LLMProvider {
+export function createDemoBrain(goalCardId: string, can?: BotCapabilities): LLMProvider {
 	const script = SCRIPTS[goalCardId];
-	const variant =
-		script && spec ? script.variants?.find((entry) => entry.missing(spec)) : undefined;
+	const variant = script && can ? script.variants?.find((entry) => entry.missing(can)) : undefined;
 	const steps = variant?.steps ?? script?.succeeds;
 
 	return createMockProvider({

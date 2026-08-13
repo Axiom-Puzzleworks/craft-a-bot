@@ -1,5 +1,6 @@
-import type { AgentSpec, CartridgeDefinition, LLMProvider } from '@craftabot/core';
+import type { CartridgeDefinition, LLMProvider } from '@craftabot/core';
 import { createOpenAIProvider, OPENAI_PROVIDER_ID } from '@craftabot/pack-openai';
+import type { BotCapabilities } from './bot-capabilities.js';
 import { createDemoBrain } from './demo-brain.js';
 import { createBrowserKeyVault } from './state/keys.js';
 
@@ -27,7 +28,7 @@ export type BrainChoice =
 export function chooseBrain(
 	cartridge: CartridgeDefinition | undefined,
 	goalCardId: string,
-	spec?: AgentSpec
+	can?: BotCapabilities
 ): BrainChoice {
 	if (cartridge?.providerId === OPENAI_PROVIDER_ID) {
 		const apiKey = createBrowserKeyVault().get(OPENAI_PROVIDER_ID);
@@ -37,7 +38,7 @@ export function chooseBrain(
 	}
 
 	// The Demo Brain, and anything unrecognised, runs on the scripted mock.
-	return { ok: true, provider: createDemoBrain(goalCardId, spec), keyless: true };
+	return { ok: true, provider: createDemoBrain(goalCardId, can), keyless: true };
 }
 
 /** Does this cartridge need a battery before GO will light? (03 §9) */

@@ -93,7 +93,8 @@ export function createLeaflet(deps: LeafletDeps = {}): LeafletController {
 		latched: new SvelteSet<string>(),
 		context: {
 			route: 'shelf',
-			spec: undefined,
+			can: undefined,
+			goalCardId: undefined,
 			outcome: undefined,
 			variant: undefined,
 			ticks: 0,
@@ -225,16 +226,21 @@ export function createLeaflet(deps: LeafletDeps = {}): LeafletController {
 		/*
 		 * Any change to the build invalidates the evidence from the last run.
 		 *
-		 * Not just the Goal Card: `variant` is derived from the spec, so the
-		 * instant the reader fits the Actions brick it flips from 'no-actions' to
-		 * 'no-sight' — and chapter 1's "run it again" step would tick itself off
+		 * Not just the Goal Card: `variant` is derived from what the bot can do, so
+		 * the instant the reader fits the Actions brick it flips from 'no-actions'
+		 * to 'no-sight' — and chapter 1's "run it again" step would tick itself off
 		 * using the tick count from the run *before* the fix. The reader would be
 		 * congratulated for a run they never made.
+		 *
+		 * Compared by capability fingerprint since WP14 slice 4c, where this
+		 * stringified the whole spec. Slightly narrower, and deliberately so:
+		 * nudging the temperature dial is a change to the spec and no change at all
+		 * to anything the tutorial can observe.
 		 */
 		const rebuilt =
-			patch.spec !== undefined &&
-			state.context.spec !== undefined &&
-			JSON.stringify(patch.spec) !== JSON.stringify(state.context.spec);
+			patch.can !== undefined &&
+			state.context.can !== undefined &&
+			patch.can.fingerprint !== state.context.can.fingerprint;
 
 		if (rebuilt) {
 			next.outcome = undefined;
