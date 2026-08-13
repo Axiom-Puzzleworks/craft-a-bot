@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { BRICKS, type BrickName } from './support.js';
 
 /**
  * WP9's definition of done: **"Playwright walks all six chapters with the mock
@@ -11,19 +12,19 @@ import { expect, test, type Page } from '@playwright/test';
  */
 
 /** Fit a brick from the tray using the keyboard path (03 §4.4). */
-async function fitBrick(page: Page, kind: string): Promise<void> {
-	await page.getByTestId(`tray-${kind}`).focus();
+async function fitBrick(page: Page, kind: BrickName): Promise<void> {
+	await page.getByTestId(`tray-${BRICKS[kind].id}`).focus();
 	await page.keyboard.press('Enter');
 	for (let attempt = 0; attempt < 8; attempt++) {
 		const said = await page.getByTestId('announcer').textContent();
-		if (said?.includes(`${kind} socket — this one fits`)) break;
+		if (said?.includes(`${BRICKS[kind].socket} socket — this one fits`)) break;
 		await page.keyboard.press('ArrowDown');
 	}
 	await page.keyboard.press('Enter');
 }
 
 async function chooseCartridge(page: Page): Promise<void> {
-	await page.getByTestId('socket-llm').getByRole('button').click();
+	await page.getByTestId('socket-brain').getByRole('button').click();
 	await page.getByTestId('cartridge-select').selectOption({ label: 'Demo Brain' });
 }
 
@@ -145,7 +146,7 @@ test('walks all six chapters and collects all six badges', async ({ page }) => {
 
 	await backToBench(page);
 	await fitBrick(page, 'tools');
-	await page.getByTestId('socket-tools').getByRole('button').click();
+	await page.getByTestId('socket-equipment').getByRole('button').click();
 	await page
 		.getByTestId('brick-controls-equipment')
 		.getByRole('checkbox', { name: /Calculator/ })
@@ -163,7 +164,7 @@ test('walks all six chapters and collects all six badges', async ({ page }) => {
 	await stepTimes(page, 4);
 
 	await backToBench(page);
-	await page.getByTestId('socket-tools').getByRole('button').click();
+	await page.getByTestId('socket-equipment').getByRole('button').click();
 	await page
 		.getByTestId('brick-controls-equipment')
 		.getByRole('checkbox', { name: /Look up the manual/ })

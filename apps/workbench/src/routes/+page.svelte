@@ -3,8 +3,8 @@
 	import { resolve } from '$app/paths';
 	import { agentsStore } from '$lib/state/agents.svelte.js';
 	import { storageStatus } from '$lib/state/app-storage.svelte.js';
-	import { BRICK_ORDER, brickDefinition, type BrickKind } from '$lib/bricks.js';
-	import type { FittedBrick } from '@craftabot/core';
+	import { SLOT_ORDER } from '$lib/bricks.js';
+	import type { FittedBrick, SlotId } from '@craftabot/core';
 
 	/**
 	 * The Shelf (03-UI-UX-DESIGN.md §3): your bots as toy boxes on a wooden
@@ -52,15 +52,19 @@
 	}
 
 	/**
-	 * Which bricks a bot has, as the colour strip on its box lid (03 §3).
+	 * Which sockets a bot has filled, as the colour strip on its box lid (03 §3).
 	 *
-	 * Matched by kind id rather than by socket: the lid is showing V1's six
-	 * colours, and a socket holding something else — a Monitor in the safety
-	 * socket — has no colour on this strip and should not borrow one.
+	 * > **Amended 2026-08-13 (WP14 slice 4b):** matched by **socket**, where this
+	 * > matched V1 kind ids and said that a Monitor in the safety socket "has no
+	 * > colour on this strip and should not borrow one". That was the right call
+	 * > while colour was keyed to six named bricks; it is the wrong one now that
+	 * > colour is keyed to the concept a socket stands for (`04-…` §2.2). A bot
+	 * > with a Monitor fitted is a bot with governance on board, and a lid that
+	 * > showed a gap there was lying about what was in the box.
 	 */
-	function fittedKinds(bricks: readonly FittedBrick[]): BrickKind[] {
-		const kinds = new Set(bricks.map((brick) => brick.kind));
-		return BRICK_ORDER.filter((kind) => kinds.has(brickDefinition(kind).id));
+	function filledSockets(bricks: readonly FittedBrick[]): SlotId[] {
+		const filled = new Set(bricks.map((brick) => brick.slot));
+		return SLOT_ORDER.filter((slot) => filled.has(slot));
 	}
 </script>
 
@@ -119,13 +123,13 @@
 							data-testid="open-{agent.id}"
 						>
 							<span class="strip" aria-hidden="true">
-								{#each fittedKinds(agent.spec.bricks) as kind (kind)}
-									<span class="swatch swatch--{kind}"></span>
+								{#each filledSockets(agent.spec.bricks) as slot (slot)}
+									<span class="swatch swatch--{slot}"></span>
 								{/each}
 							</span>
 							<h3>{agent.spec.name}</h3>
 							<p class="contents">
-								{fittedKinds(agent.spec.bricks).length} of 6 bricks fitted
+								{filledSockets(agent.spec.bricks).length} of 6 bricks fitted
 							</p>
 						</a>
 						<div class="box-actions">
@@ -322,23 +326,23 @@
 		border-radius: 3px;
 	}
 
-	.swatch--llm {
-		background: var(--cab-brick-llm);
+	.swatch--brain {
+		background: var(--cab-brick-slot-brain);
 	}
 	.swatch--memory {
-		background: var(--cab-brick-memory);
+		background: var(--cab-brick-slot-memory);
 	}
-	.swatch--tools {
-		background: var(--cab-brick-tools);
+	.swatch--equipment {
+		background: var(--cab-brick-slot-equipment);
 	}
-	.swatch--sense {
-		background: var(--cab-brick-sense);
+	.swatch--perception {
+		background: var(--cab-brick-slot-perception);
 	}
-	.swatch--actions {
-		background: var(--cab-brick-actions);
+	.swatch--mobility {
+		background: var(--cab-brick-slot-mobility);
 	}
 	.swatch--safety {
-		background: var(--cab-brick-safety);
+		background: var(--cab-brick-slot-safety);
 	}
 
 	.contents {

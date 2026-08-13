@@ -1,5 +1,5 @@
 import type { Attachment } from 'svelte/attachments';
-import type { BrickKind } from '$lib/bricks.js';
+import type { SlotId } from '@craftabot/core';
 import type { DndController } from './dnd-state.svelte.js';
 
 /**
@@ -10,6 +10,6 @@ import type { DndController } from './dnd-state.svelte.js';
  * rectangles collected here. Registration order is the keyboard traversal
  * order, which is why sockets are rendered in tray order.
  */
-export function dropzone(kind: BrickKind, controller: DndController): Attachment<HTMLElement> {
-	return (node) => controller.registerSocket(kind, node);
+export function dropzone(slot: SlotId, controller: DndController): Attachment<HTMLElement> {
+	return (node) => controller.registerSocket(slot, node);
 }

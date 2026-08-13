@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { skipTutorial } from './support.js';
+import { BRICKS, skipTutorial, type BrickName } from './support.js';
 
 /**
  * WP5 definition of done, part three: **invalid builds show the correct checks**.
@@ -15,16 +15,19 @@ async function newBot(page: Page): Promise<void> {
 	await expect(page.getByTestId('baseplate')).toBeVisible();
 }
 
-async function fitBrick(page: Page, kind: string): Promise<void> {
-	await page.getByTestId(`tray-${kind}`).focus();
+async function fitBrick(page: Page, kind: BrickName): Promise<void> {
+	await page.getByTestId(`tray-${BRICKS[kind].id}`).focus();
 	await page.keyboard.press('Enter');
 	for (let step = 0; step < 8; step++) {
 		const announcement = await page.getByTestId('announcer').textContent();
-		if (announcement?.includes(`${kind} socket — this one fits`)) break;
+		if (announcement?.includes(`${BRICKS[kind].socket} socket — this one fits`)) break;
 		await page.keyboard.press('ArrowDown');
 	}
 	await page.keyboard.press('Enter');
-	await expect(page.getByTestId(`socket-${kind}`)).toHaveAttribute('data-fitted', 'true');
+	await expect(page.getByTestId(`socket-${BRICKS[kind].slot}`)).toHaveAttribute(
+		'data-fitted',
+		'true'
+	);
 }
 
 test.beforeEach(async ({ page }) => skipTutorial(page));
@@ -44,7 +47,7 @@ test('a notebook tool without a notebook warns but never blocks', async ({ page 
 	await fitBrick(page, 'memory');
 
 	// Open the tools panel and switch on a tool that needs the notebook.
-	await page.getByTestId('socket-tools').getByRole('button').click();
+	await page.getByTestId('socket-equipment').getByRole('button').click();
 	await expect(page.getByTestId('brick-controls-equipment')).toBeVisible();
 	await page.getByRole('checkbox', { name: 'Notebook (write)' }).check();
 
@@ -76,7 +79,7 @@ test('every brick panel has a flip side in real terminology', async ({ page }) =
 	await newBot(page);
 	await fitBrick(page, 'llm');
 
-	await page.getByTestId('socket-llm').getByRole('button').click();
+	await page.getByTestId('socket-brain').getByRole('button').click();
 	await expect(page.getByTestId('brick-controls-brain')).toBeVisible();
 
 	await page.getByTestId('flip-brick-panel').click();

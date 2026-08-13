@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { skipTutorial } from './support.js';
+import { BRICKS, skipTutorial, type BrickName } from './support.js';
 
 /**
  * WP5 definition of done, part one: **build a valid bot mouse-only**.
@@ -16,9 +16,9 @@ async function newBot(page: Page): Promise<void> {
 }
 
 /** Lift a brick out of its tray well and drop it on a socket. */
-async function dragBrickToSocket(page: Page, kind: string): Promise<void> {
-	const brick = page.getByTestId(`tray-${kind}`);
-	const socket = page.getByTestId(`socket-${kind}`);
+async function dragBrickToSocket(page: Page, kind: BrickName): Promise<void> {
+	const brick = page.getByTestId(`tray-${BRICKS[kind].id}`);
+	const socket = page.getByTestId(`socket-${BRICKS[kind].slot}`);
 
 	const from = await brick.boundingBox();
 	const to = await socket.boundingBox();
@@ -41,12 +41,12 @@ test('builds a bot with the mouse and pulls the GO lever', async ({ page }) => {
 	await expect(page.getByRole('button', { name: /GO/ })).toBeDisabled();
 
 	await dragBrickToSocket(page, 'llm');
-	await expect(page.getByTestId('socket-llm')).toHaveAttribute('data-fitted', 'true');
+	await expect(page.getByTestId('socket-brain')).toHaveAttribute('data-fitted', 'true');
 
 	await dragBrickToSocket(page, 'sense');
 	await dragBrickToSocket(page, 'actions');
-	await expect(page.getByTestId('socket-sense')).toHaveAttribute('data-fitted', 'true');
-	await expect(page.getByTestId('socket-actions')).toHaveAttribute('data-fitted', 'true');
+	await expect(page.getByTestId('socket-perception')).toHaveAttribute('data-fitted', 'true');
+	await expect(page.getByTestId('socket-mobility')).toHaveAttribute('data-fitted', 'true');
 
 	// The brain is on but its cartridge slot is empty, so GO is still held back —
 	// and the ribbon says so rather than leaving the user guessing.
@@ -71,13 +71,13 @@ test('a brick dragged off the baseplate goes back to the tray', async ({ page })
 	await page.mouse.up();
 
 	await expect(page.getByTestId('socket-memory')).toHaveAttribute('data-fitted', 'false');
-	await expect(page.getByTestId('tray-memory')).toBeEnabled();
+	await expect(page.getByTestId('tray-starter/memory')).toBeEnabled();
 });
 
 test('the wrong socket refuses the brick', async ({ page }) => {
 	await newBot(page);
 
-	const brick = await page.getByTestId('tray-llm').boundingBox();
+	const brick = await page.getByTestId('tray-starter/llm').boundingBox();
 	const wrong = await page.getByTestId('socket-memory').boundingBox();
 	if (!brick || !wrong) throw new Error('missing bounding box');
 
@@ -89,5 +89,5 @@ test('the wrong socket refuses the brick', async ({ page }) => {
 	await page.mouse.up();
 
 	await expect(page.getByTestId('socket-memory')).toHaveAttribute('data-fitted', 'false');
-	await expect(page.getByTestId('socket-llm')).toHaveAttribute('data-fitted', 'false');
+	await expect(page.getByTestId('socket-brain')).toHaveAttribute('data-fitted', 'false');
 });

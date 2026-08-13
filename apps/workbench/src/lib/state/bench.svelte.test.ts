@@ -83,9 +83,9 @@ describe('opening a bot', () => {
 describe('fitting and removing bricks', () => {
 	it('fits a brick with its documented defaults', async () => {
 		const { bench } = await openBench();
-		bench.fitBrick('memory');
+		bench.fitBrick('starter/memory');
 		expect(bricksOf(bench.spec).memory).toEqual({ windowSize: 10, notebook: false });
-		expect(bench.hasBrick('memory')).toBe(true);
+		expect(bench.fittedIn('memory')?.kindId).toBe('starter/memory');
 	});
 
 	/**
@@ -95,7 +95,7 @@ describe('fitting and removing bricks', () => {
 	 */
 	it('writes a fitted brick as its registered kind, in its registered socket', async () => {
 		const { bench } = await openBench();
-		bench.fitBrick('memory');
+		bench.fitBrick('starter/memory');
 		expect(bench.spec?.bricks).toEqual([
 			{
 				slot: 'memory',
@@ -108,32 +108,32 @@ describe('fitting and removing bricks', () => {
 
 	it('does not clobber an already-fitted brick', async () => {
 		const { bench } = await openBench();
-		bench.fitBrick('memory');
+		bench.fitBrick('starter/memory');
 		bench.updateBrick('memory', { windowSize: 30 });
-		bench.fitBrick('memory');
+		bench.fitBrick('starter/memory');
 		expect(bricksOf(bench.spec).memory?.windowSize).toBe(30);
 	});
 
 	it('never shares the defaults object between bots', async () => {
 		const first = await openBench();
-		first.bench.fitBrick('safety');
+		first.bench.fitBrick('starter/safety');
 		first.bench.updateBrick('safety', { blockedActions: ['open'] });
 
 		const second = await openBench();
-		second.bench.fitBrick('safety');
+		second.bench.fitBrick('starter/safety');
 		expect(bricksOf(second.bench.spec).safety?.blockedActions).toEqual([]);
 	});
 
 	it('removes a brick', async () => {
 		const { bench } = await openBench();
-		bench.fitBrick('tools');
-		bench.removeBrick('tools');
-		expect(bench.hasBrick('tools')).toBe(false);
+		bench.fitBrick('starter/tools');
+		bench.removeBrick('equipment');
+		expect(bench.fittedIn('equipment')).toBeUndefined();
 	});
 
 	it('ignores an update to a brick that is not fitted', async () => {
 		const { bench } = await openBench();
-		bench.updateBrick('llm', { temperature: 1.5 });
+		bench.updateBrick('brain', { temperature: 1.5 });
 		expect(bricksOf(bench.spec).llm).toBeUndefined();
 		expect(bench.spec?.bricks).toEqual([]);
 	});
@@ -142,7 +142,7 @@ describe('fitting and removing bricks', () => {
 describe('live validation', () => {
 	it('clears the blocking problem once a brain and cartridge are in', async () => {
 		const { bench } = await openBench();
-		bench.fitBrick('llm');
+		bench.fitBrick('starter/llm');
 		// Fitted but with an empty cartridge slot: still blocked, different reason.
 		expect(bench.blocking.map((p) => p.code)).toEqual(['unknown-cartridge']);
 		expect(bench.canGo).toBe(false);
@@ -150,8 +150,8 @@ describe('live validation', () => {
 
 	it('warns without blocking when a notebook tool has no notebook', async () => {
 		const { bench } = await openBench();
-		bench.fitBrick('tools');
-		bench.updateBrick('tools', { enabled: ['starter/notebook_write'] });
+		bench.fitBrick('starter/tools');
+		bench.updateBrick('equipment', { enabled: ['starter/notebook_write'] });
 
 		const codes = bench.problems.map((problem) => problem.code);
 		expect(codes).toContain('tool-needs-notebook');
@@ -179,9 +179,9 @@ describe('undo', () => {
 
 	it('undoes a fitted brick', async () => {
 		const { bench } = await openBench();
-		bench.fitBrick('llm');
+		bench.fitBrick('starter/llm');
 		bench.undo();
-		expect(bench.hasBrick('llm')).toBe(false);
+		expect(bench.fittedIn('brain')).toBeUndefined();
 	});
 
 	it('is harmless with an empty stack', async () => {
@@ -211,8 +211,8 @@ describe('the goal card', () => {
 describe('persistence (WP5 definition of done)', () => {
 	it('saves an edit and reloads it', async () => {
 		const { bench, storage } = await openBench();
-		bench.fitBrick('llm');
-		bench.updateBrick('llm', { temperature: 1.4 });
+		bench.fitBrick('starter/llm');
+		bench.updateBrick('brain', { temperature: 1.4 });
 		await bench.flush();
 
 		const reopened = createBenchStore({
@@ -260,7 +260,7 @@ describe('the loop-breaker setting', () => {
 	 */
 	it('comes fitted, and can be switched off again', async () => {
 		const { bench } = await openBench();
-		bench.fitBrick('safety');
+		bench.fitBrick('starter/safety');
 		expect(bricksOf(bench.spec).safety?.repeatLimit).toBe(3);
 
 		bench.updateBrick('safety', { repeatLimit: undefined });
@@ -269,7 +269,7 @@ describe('the loop-breaker setting', () => {
 
 	it('is saved, and comes back on the next visit', async () => {
 		const { bench, storage } = await openBench();
-		bench.fitBrick('safety');
+		bench.fitBrick('starter/safety');
 		bench.updateBrick('safety', { repeatLimit: 5 });
 		await bench.flush();
 
@@ -279,7 +279,7 @@ describe('the loop-breaker setting', () => {
 
 	it('switches back off cleanly', async () => {
 		const { bench } = await openBench();
-		bench.fitBrick('safety');
+		bench.fitBrick('starter/safety');
 		bench.updateBrick('safety', { repeatLimit: 5 });
 		bench.updateBrick('safety', { repeatLimit: undefined });
 

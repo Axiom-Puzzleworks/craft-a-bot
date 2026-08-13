@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { skipTutorial } from './support.js';
+import { BRICKS, skipTutorial } from './support.js';
 
 /**
  * WP8: the Safety Brick's three rules, exercised through the real UI.
@@ -20,18 +20,18 @@ async function buildWithSafetyBrick(page: Page, card = 'card-say-hello'): Promis
 	await expect(page.getByTestId('baseplate')).toBeVisible();
 
 	for (const kind of KINDS) {
-		await page.getByTestId(`tray-${kind}`).focus();
+		await page.getByTestId(`tray-${BRICKS[kind].id}`).focus();
 		await page.keyboard.press('Enter');
 		for (let step = 0; step < 8; step++) {
 			const said = await page.getByTestId('announcer').textContent();
-			if (said?.includes(`${kind} socket — this one fits`)) break;
+			if (said?.includes(`${BRICKS[kind].socket} socket — this one fits`)) break;
 			await page.keyboard.press('ArrowDown');
 		}
 		await page.keyboard.press('Enter');
 	}
 
 	await page.getByTestId(card).click();
-	await page.getByTestId('socket-llm').getByRole('button').click();
+	await page.getByTestId('socket-brain').getByRole('button').click();
 	await page.getByTestId('cartridge-select').selectOption({ label: 'Demo Brain' });
 }
 

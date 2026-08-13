@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { skipTutorial } from './support.js';
+import { BRICKS, skipTutorial, type BrickName } from './support.js';
 
 /**
  * WP5 definition of done, part four: **spec edits persist**.
@@ -15,16 +15,19 @@ async function newBot(page: Page): Promise<string> {
 	return page.url();
 }
 
-async function fitBrick(page: Page, kind: string): Promise<void> {
-	await page.getByTestId(`tray-${kind}`).focus();
+async function fitBrick(page: Page, kind: BrickName): Promise<void> {
+	await page.getByTestId(`tray-${BRICKS[kind].id}`).focus();
 	await page.keyboard.press('Enter');
 	for (let step = 0; step < 8; step++) {
 		const announcement = await page.getByTestId('announcer').textContent();
-		if (announcement?.includes(`${kind} socket — this one fits`)) break;
+		if (announcement?.includes(`${BRICKS[kind].socket} socket — this one fits`)) break;
 		await page.keyboard.press('ArrowDown');
 	}
 	await page.keyboard.press('Enter');
-	await expect(page.getByTestId(`socket-${kind}`)).toHaveAttribute('data-fitted', 'true');
+	await expect(page.getByTestId(`socket-${BRICKS[kind].slot}`)).toHaveAttribute(
+		'data-fitted',
+		'true'
+	);
 }
 
 test.beforeEach(async ({ page }) => skipTutorial(page));
@@ -36,14 +39,14 @@ test('a fitted brick survives a reload', async ({ page }) => {
 	await page.waitForTimeout(500); // let the debounced save land
 	await page.goto(url);
 
-	await expect(page.getByTestId('socket-sense')).toHaveAttribute('data-fitted', 'true');
+	await expect(page.getByTestId('socket-perception')).toHaveAttribute('data-fitted', 'true');
 });
 
 test('a dial change survives a reload', async ({ page }) => {
 	const url = await newBot(page);
 	await fitBrick(page, 'llm');
 
-	await page.getByTestId('socket-llm').getByRole('button').click();
+	await page.getByTestId('socket-brain').getByRole('button').click();
 	const dial = page.getByRole('slider', { name: 'Imagination' });
 	await dial.fill('1.5');
 	await expect(page.getByText('1.5 — wild')).toBeVisible();
@@ -51,7 +54,7 @@ test('a dial change survives a reload', async ({ page }) => {
 	await page.waitForTimeout(500);
 	await page.goto(url);
 
-	await page.getByTestId('socket-llm').getByRole('button').click();
+	await page.getByTestId('socket-brain').getByRole('button').click();
 	await expect(page.getByRole('slider', { name: 'Imagination' })).toHaveValue('1.5');
 });
 

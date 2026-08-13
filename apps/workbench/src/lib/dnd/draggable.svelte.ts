@@ -1,6 +1,5 @@
 import type { Attachment } from 'svelte/attachments';
-import type { BrickKind } from '$lib/bricks.js';
-import type { CarryState, DndController } from './dnd-state.svelte.js';
+import type { CarriedBrick, CarryState, DndController } from './dnd-state.svelte.js';
 import { DRAG_THRESHOLD, distance, type Point } from './geometry.js';
 
 /**
@@ -15,7 +14,8 @@ import { DRAG_THRESHOLD, distance, type Point } from './geometry.js';
  */
 
 export interface DraggableOptions {
-	kind: BrickKind;
+	/** Which brick this element lifts — a kind, not a socket (WP14 slice 4b). */
+	brick: CarriedBrick;
 	origin: CarryState['origin'];
 	controller: DndController;
 	disabled?: () => boolean;
@@ -42,7 +42,7 @@ export function draggable(options: DraggableOptions): Attachment<HTMLElement> {
 			if (!options.controller.carrying) {
 				if (!pressedAt) return;
 				if (distance(pressedAt, at) < DRAG_THRESHOLD) return;
-				options.controller.liftWithPointer(options.kind, options.origin, at);
+				options.controller.liftWithPointer(options.brick, options.origin, at);
 			}
 
 			// Now that it is a real drag, stop the browser selecting text under it.

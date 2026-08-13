@@ -17,13 +17,18 @@ export const ANCHORS = {
 	// Shelf
 	newBot: 'new-bot',
 
-	// Bench
-	trayLlm: 'tray-llm',
-	trayActions: 'tray-actions',
-	traySense: 'tray-sense',
-	trayMemory: 'tray-memory',
-	trayTools: 'tray-tools',
-	traySafety: 'tray-safety',
+	/*
+	 * Bench. The tray anchors are **kind ids** since WP14 slice 4b, because the
+	 * tray is filled from the registry and a well is identified by the brick in
+	 * it. The names on the left are unchanged, so the chapters that point at them
+	 * did not have to move.
+	 */
+	trayLlm: 'tray-starter/llm',
+	trayActions: 'tray-starter/actions',
+	traySense: 'tray-starter/sense',
+	trayMemory: 'tray-starter/memory',
+	trayTools: 'tray-starter/tools',
+	traySafety: 'tray-starter/safety',
 	baseplate: 'baseplate',
 	goalCards: 'goal-cards',
 	brickPanel: 'brick-panel',

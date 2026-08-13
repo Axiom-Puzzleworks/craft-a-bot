@@ -2,8 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import type { BuildProblem } from '@craftabot/core';
-	import { BRICK_ORDER, panelForSlot, type BrickKind } from '$lib/bricks.js';
+	import type { BuildProblem, SlotId } from '@craftabot/core';
 	import { NO_BATTERY_MESSAGE, needsBattery } from '$lib/brain.js';
 	import { createRegistry } from '$lib/packs.js';
 	import { createDndController } from '$lib/dnd/dnd-state.svelte.js';
@@ -26,18 +25,20 @@
 	const registry = createRegistry();
 	const agentId = $derived(page.params.agentId ?? '');
 
-	let selected = $state<BrickKind | undefined>(undefined);
+	/** Which socket's panel is open — a place on the chassis, not a brick name. */
+	let selected = $state<SlotId | undefined>(undefined);
 	let announcement = $state('');
 
 	const controller = createDndController({
-		onPlace: (kind) => {
-			benchStore.fitBrick(kind);
+		onPlace: (kindId) => {
+			benchStore.fitBrick(kindId);
 			preferences.cue('snap');
-			selected = kind;
+			// Open the panel of the socket it went into, whichever that is.
+			selected = slotOfKind(kindId);
 		},
-		onRemove: (kind) => {
-			benchStore.removeBrick(kind);
-			if (selected === kind) selected = undefined;
+		onRemove: (slot) => {
+			benchStore.removeBrick(slot);
+			if (selected === slot) selected = undefined;
 		},
 		announce: (message) => {
 			announcement = message;
@@ -49,22 +50,22 @@
 		void benchStore.open(agentId);
 	});
 
+	/** Which socket a registered kind belongs to — asked before it is fitted. */
+	function slotOfKind(kindId: string): SlotId {
+		const kind = registry.getBrickKind(kindId);
+		if (!kind) throw new Error(`No brick kind "${kindId}" is registered.`);
+		return kind.slot;
+	}
+
 	const spec = $derived(benchStore.spec);
 	/*
 	 * The leaflet still reads a bot as six named bricks; the bench stores it as a
-	 * list of fitted ones. This is the door between them, and it closes in 4c.
-	 * The *panels* stopped needing it in 4a — they take a fitted brick and its
-	 * kind, and know nothing about V1's names.
+	 * list of fitted ones. This is the last door between them, and it closes in
+	 * 4c. The tray, the baseplate and the panels stopped needing it in 4a and 4b.
 	 */
 	const legacySpec = $derived(benchStore.legacySpec);
 
-	/**
-	 * The brick in the selected socket, with the kind that defines it.
-	 *
-	 * The tray and baseplate still hand back a V1 `BrickKind`, so this is where
-	 * that is turned into something the panel can use. 4b keys selection by
-	 * socket and the translation goes.
-	 */
+	/** The brick in the selected socket, with the kind that defines it. */
 	const fittedForPanel = $derived(selected ? benchStore.brickFor(selected) : undefined);
 
 	// The leaflet advances by watching what the user builds (03 §6).
@@ -117,10 +118,9 @@
 	}
 
 	function jumpToProblem(problem: BuildProblem): void {
-		// Problems point at a chassis socket since WP14 slice 3d; the panels are
-		// still keyed by V1 brick name until slice 4 makes them schema-driven.
-		const panel = panelForSlot(problem.slot);
-		if (panel && BRICK_ORDER.includes(panel)) selected = panel;
+		// Problems have pointed at a chassis socket since slice 3d, and since 4b
+		// so does the bench — the translation table that stood here is gone.
+		if (problem.slot) selected = problem.slot;
 	}
 
 	async function pullGo(): Promise<void> {
@@ -164,20 +164,20 @@
 			<section class="column column--tray" aria-label="Parts tray">
 				<PartsTray
 					{controller}
-					isFitted={(kind) => benchStore.hasBrick(kind)}
-					onselect={(kind) => (selected = kind)}
+					fittedIn={(slot) => benchStore.fittedIn(slot)}
+					onselect={(slot) => (selected = slot)}
 				/>
 			</section>
 
 			<section class="column column--plate" aria-label="Baseplate">
 				<Baseplate
 					{controller}
-					isFitted={(kind) => benchStore.hasBrick(kind)}
+					fittedIn={(slot) => benchStore.fittedIn(slot)}
 					{selected}
-					onselect={(kind) => (selected = kind)}
-					onremove={(kind) => {
-						benchStore.removeBrick(kind);
-						if (selected === kind) selected = undefined;
+					onselect={(slot) => (selected = slot)}
+					onremove={(slot) => {
+						benchStore.removeBrick(slot);
+						if (selected === slot) selected = undefined;
 					}}
 				/>
 

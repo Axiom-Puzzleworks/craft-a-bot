@@ -8,9 +8,9 @@ import {
 	type BrickKindDefinition,
 	type BuildProblem,
 	type FittedBrick,
-	type GoalCardDefinition
+	type GoalCardDefinition,
+	type SlotId
 } from '@craftabot/core';
-import { brickDefinition, type BrickKind } from '$lib/bricks.js';
 import { createRegistry } from '$lib/packs.js';
 import { appStorage } from './app-storage.svelte.js';
 import type { Storage } from './storage.js';
@@ -24,11 +24,11 @@ import type { Storage } from './storage.js';
  * `mutate()`, which snapshots for undo, revalidates, and schedules a save. There
  * is deliberately no other way to change the spec.
  *
- * **The bench holds spec v2** (WP14). The parts tray, the sockets and the panels
- * still speak V1's six brick names, because the UI that knows about exactly six
- * bricks is slice 4's problem — so this store translates at its own door: a
- * `BrickKind` in, a fitted brick in the right socket out. What is *stored*, and
- * what is exported, is v2 all the way down.
+ * **The bench holds spec v2** (WP14), and since slice 4b speaks its vocabulary
+ * throughout. There is no translation door left here: a *kind id* goes in when
+ * a brick is fitted, because that is what identifies a brick, and a *socket*
+ * goes in for everything afterwards, because that is what identifies a place on
+ * the chassis. The `BrickKind` window — V1's six names — is gone.
  */
 
 const UNDO_LIMIT = 50;
@@ -52,9 +52,11 @@ export interface BenchStore {
 	readonly goalCard: GoalCardDefinition | undefined;
 
 	open(agentId: string): Promise<void>;
-	fitBrick(kind: BrickKind): void;
-	removeBrick(kind: BrickKind): void;
-	hasBrick(kind: BrickKind): boolean;
+	/** Snap a registered kind onto the chassis, in whichever socket it belongs to. */
+	fitBrick(kindId: string): void;
+	removeBrick(slot: SlotId): void;
+	/** What is in a socket, for the tray and the baseplate to draw. */
+	fittedIn(slot: SlotId): { kindId: string; name: string } | undefined;
 	/**
 	 * The brick fitted for a tray kind, and the registered kind that defines it
 	 * (WP14 slice 4a).
@@ -64,7 +66,7 @@ export interface BenchStore {
 	 * came from a pack this workbench has not got — which `validateSpec` has
 	 * already put in the ribbon.
 	 */
-	brickFor(kind: BrickKind): { brick: FittedBrick; kind: BrickKindDefinition } | undefined;
+	brickFor(slot: SlotId): { brick: FittedBrick; kind: BrickKindDefinition } | undefined;
 	/**
 	 * Merge a patch into a brick's config.
 	 *
@@ -74,7 +76,7 @@ export interface BenchStore {
 	 * > this makes the type honest. A config is whatever its kind's schema says,
 	 * > and `validateSpec` is what holds it to that.
 	 */
-	updateBrick(kind: BrickKind, patch: Record<string, unknown>): void;
+	updateBrick(slot: SlotId, patch: Record<string, unknown>): void;
 	setGoalCard(cardId: string): void;
 	setCustomGoalText(text: string): void;
 	rename(name: string): void;
@@ -108,38 +110,18 @@ export function createBenchStore(deps: BenchStoreDeps = {}): BenchStore {
 	}>({ record: undefined, spec: undefined, problems: [], undoStack: [], saving: false });
 
 	/**
-	 * What a `BrickKind` from the parts tray means in v2 terms: which registered
-	 * kind it is, which socket it goes in, and what it does when freshly snapped
-	 * on.
+	 * A registered kind, or a refusal.
 	 *
-	 * All three come from the pack. `BRICK_DEFAULTS` used to live in this file,
-	 * which meant the workbench and the pack each had an opinion about what a new
-	 * Memory brick remembers — the sort of duplication that stays right until the
-	 * day it does not. The pack owns the brick, so the pack owns the answer
-	 * (`14-…` §2).
+	 * Everything a freshly-snapped brick needs comes from the pack that defined
+	 * it — its socket, its config version, its defaults. `BRICK_DEFAULTS` used to
+	 * live in this file, which meant the workbench and the pack each had an
+	 * opinion about what a new Memory brick remembers: the sort of duplication
+	 * that stays right until the day it does not (`14-…` §2).
 	 */
-	function kindFor(brickKind: BrickKind): {
-		id: string;
-		slot: FittedBrick['slot'];
-		configVersion: number;
-		defaults: Record<string, unknown>;
-	} {
-		const id = brickDefinition(brickKind).id;
-		const registered = registry.getBrickKind(id);
-		if (!registered) throw new Error(`No brick kind "${id}" is registered.`);
-		return {
-			id,
-			slot: registered.slot,
-			configVersion: registered.configVersion,
-			defaults: registered.defaults as Record<string, unknown>
-		};
-	}
-
-	/** The fitted brick a tray kind corresponds to, by socket *and* kind id. */
-	function fitted(spec: AgentSpecV2, brickKind: BrickKind): FittedBrick | undefined {
-		const { id, slot } = kindFor(brickKind);
-		const inSlot = brickInSlot(spec, slot);
-		return inSlot?.kind === id ? inSlot : undefined;
+	function kindOf(kindId: string): BrickKindDefinition {
+		const registered = registry.getBrickKind(kindId);
+		if (!registered) throw new Error(`No brick kind "${kindId}" is registered.`);
+		return registered;
 	}
 
 	let saveTimer: ReturnType<typeof setTimeout> | undefined;
@@ -232,47 +214,55 @@ export function createBenchStore(deps: BenchStoreDeps = {}): BenchStore {
 			revalidate();
 		},
 
-		hasBrick: (kind) => (state.spec ? fitted(state.spec, kind) !== undefined : false),
-
-		brickFor(kind) {
+		fittedIn(slot) {
 			if (!state.spec) return undefined;
-			const brick = fitted(state.spec, kind);
+			const brick = brickInSlot(state.spec, slot);
+			if (!brick) return undefined;
+			// A kind no pack registered still occupies the socket — the ribbon has
+			// said so, and pretending the socket is empty would let a second brick
+			// be dropped on top of it.
+			const registered = registry.getBrickKind(brick.kind);
+			return { kindId: brick.kind, name: registered?.name ?? brick.kind };
+		},
+
+		brickFor(slot) {
+			if (!state.spec) return undefined;
+			const brick = brickInSlot(state.spec, slot);
 			if (!brick) return undefined;
 			const registered = registry.getBrickKind(brick.kind);
 			return registered ? { brick, kind: registered } : undefined;
 		},
 
-		fitBrick(kind) {
+		fitBrick(kindId) {
 			mutate((spec) => {
-				const { id, slot, configVersion, defaults } = kindFor(kind);
+				const kind = kindOf(kindId);
 				// One brick per socket is V1's rule, not the format's (`14-…` §2.3):
 				// the array would happily hold two, and the Workshop will.
-				if (brickInSlot(spec, slot) !== undefined) return;
+				if (brickInSlot(spec, kind.slot) !== undefined) return;
 				// Structured clone so the kind's defaults object is never aliased
 				// into a spec and quietly mutated by a later panel edit.
 				spec.bricks = [
 					...spec.bricks,
-					{ slot, kind: id, configVersion, config: structuredClone(defaults) }
+					{
+						slot: kind.slot,
+						kind: kind.id,
+						configVersion: kind.configVersion,
+						config: structuredClone(kind.defaults as Record<string, unknown>)
+					}
 				];
 			});
 		},
 
-		removeBrick(kind) {
+		removeBrick(slot) {
 			mutate((spec) => {
-				const { slot } = kindFor(kind);
 				spec.bricks = spec.bricks.filter((brick) => brick.slot !== slot);
 			});
 		},
 
-		updateBrick(kind, patch) {
+		updateBrick(slot, patch) {
 			mutate((spec) => {
-				const { id } = kindFor(kind);
-				const existing = fitted(spec, kind);
-				if (existing === undefined) return;
 				spec.bricks = spec.bricks.map((brick) =>
-					brick.kind === id && brick.slot === existing.slot
-						? { ...brick, config: { ...brick.config, ...patch } }
-						: brick
+					brick.slot === slot ? { ...brick, config: { ...brick.config, ...patch } } : brick
 				);
 			});
 		},

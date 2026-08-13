@@ -1,4 +1,5 @@
-import type { BrickKind } from '$lib/bricks.js';
+import type { SlotId } from '@craftabot/core';
+import { SOCKET_LABELS } from '$lib/bricks.js';
 import {
 	findHoveredSocket,
 	findSnapTarget,
@@ -16,12 +17,31 @@ import {
  * code path would drift out of step the first time drag behaviour changed, and
  * "build a bot keyboard-only" is a definition-of-done guarantee, not a
  * nice-to-have.
+ *
+ * > **Amended 2026-08-13 (WP14 slice 4b):** what is carried and what it is
+ * > dropped into have come apart. They were the same value — a `BrickKind` —
+ * > while a socket could hold exactly one kind of brick, and that identity is
+ * > what made the tray, the baseplate and this machine unable to hold a seventh
+ * > (`12-…` D11). A carry now names **a kind**; a socket is **a slot**; and a
+ * > drop fits when the kind belongs to that slot.
+ * >
+ * > Announcements say the brick's own name and the socket's body-part label —
+ * > "Picked up the Tool Belt Brick", "belt socket — this one fits" — rather than
+ * > the internal words `tools` and `llm` they used to read out. A screen-reader
+ * > user now hears what a sighted one sees printed on the socket.
  */
 
 export type CarryMode = 'pointer' | 'keyboard';
 
-export interface CarryState {
-	kind: BrickKind;
+/** The brick being carried: which kind, where it belongs, and what to call it. */
+export interface CarriedBrick {
+	kindId: string;
+	slot: SlotId;
+	/** The kind's display name, for narration. */
+	name: string;
+}
+
+export interface CarryState extends CarriedBrick {
 	mode: CarryMode;
 	/** Where it came from, so a cancelled drag can spring back. */
 	origin: 'tray' | 'socket';
@@ -30,57 +50,60 @@ export interface CarryState {
 }
 
 export interface DndCallbacks {
-	/** Snap a brick into its socket. */
-	onPlace(kind: BrickKind): void;
-	/** Pop a brick back off the baseplate. */
-	onRemove(kind: BrickKind): void;
+	/** Snap a brick into the socket its kind belongs to. */
+	onPlace(kindId: string): void;
+	/** Pop whatever is in this socket back off the baseplate. */
+	onRemove(slot: SlotId): void;
 	/** Screen-reader narration (03 §8). */
 	announce(message: string): void;
 }
 
 export interface DndController {
 	readonly carrying: CarryState | undefined;
-	readonly candidate: BrickKind | undefined;
-	readonly rejecting: BrickKind | undefined;
+	readonly candidate: SlotId | undefined;
+	readonly rejecting: SlotId | undefined;
 	/** Which socket the keyboard cursor is aimed at. */
-	readonly aimedAt: BrickKind | undefined;
+	readonly aimedAt: SlotId | undefined;
 
-	registerSocket(kind: BrickKind, element: HTMLElement): () => void;
+	registerSocket(slot: SlotId, element: HTMLElement): () => void;
 
-	liftWithPointer(kind: BrickKind, origin: CarryState['origin'], at: Point): void;
+	liftWithPointer(brick: CarriedBrick, origin: CarryState['origin'], at: Point): void;
 	movePointer(at: Point): void;
 	dropPointer(): void;
 
-	liftWithKeyboard(kind: BrickKind, origin: CarryState['origin']): void;
+	liftWithKeyboard(brick: CarriedBrick, origin: CarryState['origin']): void;
 	aim(step: 1 | -1): void;
 	placeAimed(): void;
 
 	cancel(): void;
 }
 
+/** What the user sees printed on the socket, which is what they should hear. */
+const socketName = (slot: SlotId): string => SOCKET_LABELS[slot];
+
 export function createDndController(callbacks: DndCallbacks): DndController {
 	// Deliberately a plain Map, not a SvelteMap: this holds DOM elements that are
 	// measured on demand during a drag. Nothing renders from it, so making it
 	// reactive would add invalidations for no observable benefit.
 	// eslint-disable-next-line svelte/prefer-svelte-reactivity
-	const sockets = new Map<BrickKind, HTMLElement>();
-	const order: BrickKind[] = [];
+	const sockets = new Map<SlotId, HTMLElement>();
+	const order: SlotId[] = [];
 
 	const state = $state<{
 		carrying: CarryState | undefined;
-		candidate: BrickKind | undefined;
-		rejecting: BrickKind | undefined;
+		candidate: SlotId | undefined;
+		rejecting: SlotId | undefined;
 		aimIndex: number;
 	}>({ carrying: undefined, candidate: undefined, rejecting: undefined, aimIndex: 0 });
 
 	function bounds(): SocketBounds[] {
 		return order
-			.filter((kind) => sockets.has(kind))
-			.map((kind) => {
-				const element = sockets.get(kind);
+			.filter((slot) => sockets.has(slot))
+			.map((slot) => {
+				const element = sockets.get(slot);
 				/* c8 ignore next -- filtered above; kept so the map stays total */
-				if (!element) throw new Error(`socket element missing for ${kind}`);
-				return { kind, rect: element.getBoundingClientRect() };
+				if (!element) throw new Error(`socket element missing for ${slot}`);
+				return { slot, rect: element.getBoundingClientRect() };
 			});
 	}
 
@@ -90,9 +113,9 @@ export function createDndController(callbacks: DndCallbacks): DndController {
 		state.rejecting = undefined;
 	}
 
-	function place(kind: BrickKind): void {
-		callbacks.onPlace(kind);
-		callbacks.announce(`${kind} brick placed.`);
+	function place(brick: CarriedBrick): void {
+		callbacks.onPlace(brick.kindId);
+		callbacks.announce(`${brick.name} placed.`);
 		clear();
 	}
 
@@ -110,30 +133,30 @@ export function createDndController(callbacks: DndCallbacks): DndController {
 			return state.carrying?.mode === 'keyboard' ? order[state.aimIndex] : undefined;
 		},
 
-		registerSocket(kind, element) {
-			sockets.set(kind, element);
-			if (!order.includes(kind)) order.push(kind);
+		registerSocket(slot, element) {
+			sockets.set(slot, element);
+			if (!order.includes(slot)) order.push(slot);
 			return () => {
-				sockets.delete(kind);
+				sockets.delete(slot);
 			};
 		},
 
-		liftWithPointer(kind, origin, at) {
-			state.carrying = { kind, mode: 'pointer', origin, at };
-			callbacks.announce(`Picked up the ${kind} brick.`);
+		liftWithPointer(brick, origin, at) {
+			state.carrying = { ...brick, mode: 'pointer', origin, at };
+			callbacks.announce(`Picked up the ${brick.name}.`);
 		},
 
 		movePointer(at) {
 			if (!state.carrying) return;
 			state.carrying = { ...state.carrying, at };
 
-			const snap = findSnapTarget(bounds(), state.carrying.kind, at);
-			state.candidate = snap?.kind;
+			const snap = findSnapTarget(bounds(), state.carrying.slot, at);
+			state.candidate = snap?.slot;
 			// Over the wrong socket entirely: show the head-shake, not nothing.
 			const hovered = findHoveredSocket(bounds(), at);
 			state.rejecting =
-				snap === undefined && hovered !== undefined && hovered.kind !== state.carrying.kind
-					? hovered.kind
+				snap === undefined && hovered !== undefined && hovered.slot !== state.carrying.slot
+					? hovered.slot
 					: undefined;
 		},
 
@@ -142,26 +165,26 @@ export function createDndController(callbacks: DndCallbacks): DndController {
 			if (!carrying) return;
 
 			if (state.candidate !== undefined) {
-				place(carrying.kind);
+				place(carrying);
 				return;
 			}
 			// Dropped on nothing: a brick dragged off the baseplate goes back to
 			// the tray, one dragged from the tray simply springs home (03 §4.4).
 			if (carrying.origin === 'socket') {
-				callbacks.onRemove(carrying.kind);
-				callbacks.announce(`${carrying.kind} brick returned to the tray.`);
+				callbacks.onRemove(carrying.slot);
+				callbacks.announce(`${carrying.name} returned to the tray.`);
 			} else {
 				callbacks.announce('Put back.');
 			}
 			clear();
 		},
 
-		liftWithKeyboard(kind, origin) {
-			state.carrying = { kind, mode: 'keyboard', origin };
-			const aimIndex = order.indexOf(kind);
+		liftWithKeyboard(brick, origin) {
+			state.carrying = { ...brick, mode: 'keyboard', origin };
+			const aimIndex = order.indexOf(brick.slot);
 			state.aimIndex = aimIndex === -1 ? 0 : aimIndex;
 			callbacks.announce(
-				`Picked up the ${kind} brick. Use the arrow keys to choose a socket, Enter to place, Escape to cancel.`
+				`Picked up the ${brick.name}. Use the arrow keys to choose a socket, Enter to place, Escape to cancel.`
 			);
 		},
 
@@ -170,11 +193,13 @@ export function createDndController(callbacks: DndCallbacks): DndController {
 			state.aimIndex = nextIndex(state.aimIndex, order.length, step);
 			const aimed = order[state.aimIndex];
 			if (aimed === undefined) return;
-			const fits = aimed === state.carrying.kind;
+			const fits = aimed === state.carrying.slot;
 			state.candidate = fits ? aimed : undefined;
 			state.rejecting = fits ? undefined : aimed;
 			callbacks.announce(
-				fits ? `${aimed} socket — this one fits.` : `${aimed} socket — the wrong shape.`
+				fits
+					? `${socketName(aimed)} socket — this one fits.`
+					: `${socketName(aimed)} socket — the wrong shape.`
 			);
 		},
 
@@ -182,11 +207,13 @@ export function createDndController(callbacks: DndCallbacks): DndController {
 			const carrying = state.carrying;
 			if (carrying?.mode !== 'keyboard') return;
 			const aimed = order[state.aimIndex];
-			if (aimed === carrying.kind) {
-				place(carrying.kind);
+			if (aimed === carrying.slot) {
+				place(carrying);
 				return;
 			}
-			callbacks.announce(`The ${carrying.kind} brick does not fit the ${aimed} socket.`);
+			callbacks.announce(
+				`The ${carrying.name} does not fit the ${aimed ? socketName(aimed) : 'that'} socket.`
+			);
 		},
 
 		cancel() {
