@@ -24,9 +24,25 @@ export type FieldControl =
 	| { kind: 'number'; min?: number; max?: number; step: number }
 	| { kind: 'dial'; min: number; max: number; step: number; bands?: ReadonlyArray<Band> }
 	| { kind: 'choice'; options: ReadonlyArray<{ value: unknown; label: string }> }
-	/** A set of ids drawn from a registry catalogue; without a source, a plain list. */
-	| { kind: 'checklist'; source: ControlSource }
+	/**
+	 * A set of ids to tick.
+	 *
+	 * Either from one of core's catalogues (`source`) or from a list the kind
+	 * declared itself (`entries`). The second exists because the Watchbot
+	 * prototype found the first insufficient: its `watchFor` is a list of *its
+	 * own* rule ids, which is content no core catalogue has, and it was rendering
+	 * as a text box for the builder to type ids into.
+	 */
+	| { kind: 'checklist'; source?: ControlSource; entries?: ReadonlyArray<Entry> }
 	| { kind: 'idList' };
+
+/** One tickable option a kind declared for itself. */
+export interface Entry {
+	id: string;
+	name: string;
+	/** Kinds may explain an option; the catalogues do, so the shape matches. */
+	description?: string;
+}
 
 /** A dial's word for everything up to `upTo`, ascending. */
 export interface Band {
@@ -109,6 +125,18 @@ function controlFor(schema: ZodType, hint: ControlHint): FieldControl {
 	 */
 	if (hint.source && (hint.control === 'checklist' || hint.control === undefined)) {
 		return { kind: 'checklist', source: hint.source };
+	}
+
+	/*
+	 * A checklist over the kind's *own* options. No core catalogue can supply
+	 * these — a monitor rule id is content the pack invented — so the kind lists
+	 * them itself, and this is what stops such a field falling back to a text box.
+	 */
+	if (hint.control === 'checklist' && hint.options && hint.options.length > 0) {
+		return {
+			kind: 'checklist',
+			entries: hint.options.map((option) => ({ id: String(option.value), name: option.label }))
+		};
 	}
 
 	switch (def.type) {

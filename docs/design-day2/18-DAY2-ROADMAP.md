@@ -28,7 +28,7 @@ Numbering continues from WP10. Each WP is Claude-Code-sized with a DoD; one WP p
 | WP11 | **Behaviour fixes C1–C8** (`14-…` E3, E4, E12 + card re-scope 16 §1.1 + no-repetition v2 + naming corpus) | Scripted-optimal solutions pass every non-expert card in budget; naming corpus ≥95%; loop-score regression fixtures green |
 | WP12 | **Test estate gap-fill** (13 §L0–L2: fixtures, unit charters, dead-config audit, guardrail ordering, post-act test-first) | Coverage targets met; every 12-§3 defect has a failing-then-passing test or an accepted-risk note |
 | WP13 | **Engine evolutions E1–E2, E5–E6, E8–E11** (post-act honoured, session I/O, single-sourced shapes, qualified ids, trace v2 + migrations, identity fields, retry) | Golden traces migrate v1→v2; audit-completeness test (13 §L5) passes |
-| WP14 | **The open brick contract** (`14-…` §2: BrickKindDefinition, spec v2, migrations; port all six starter bricks) | Zero behaviour change (byte-stable traces modulo additive fields); Monitor-brick prototype builds against the contract with no core edits |
+| WP14 | **The open brick contract** (`14-…` §2: BrickKindDefinition, spec v2, migrations; port all six starter bricks) | ✅ **Done 2026-08-13.** Golden trace byte-stable; `@craftabot/pack-monitor` builds and runs against the contract with no core edits. Delivered in slices 1, 2a–2c, 3a–3d, 4a–4c + the prototype. One deliberate behaviour change: a fitted Safety Brick's rules now always run, where they previously depended on the host compiling them (slice 3d) |
 | WP15 | **Strategy seams E7** (MemoryStrategy/PromptStrategy; transcript realism mode) | Both strategies selectable in tests; transcript mode produces well-formed tool-result message sequences |
 
 ### Phase B — Teaching-aid excellence (workstream 4 delivered)
@@ -114,7 +114,7 @@ Phases B and C can run in parallel after A (different surfaces); D needs C; E ne
 ## 7. Session-sized next steps (the immediate to-do)
 
 1. WP11 + WP12 together (behaviour fixes land with their tests) — 1–2 Claude Code sessions.
-2. WP13, then WP14 (contract) with the golden-trace migration gate — 2 sessions.
+2. ~~WP13, then WP14 (contract) with the golden-trace migration gate~~ — **done 2026-08-13**. WP14 ran to twelve slices rather than the two sessions estimated here; the extra went on the workbench, which held six brick names in its tray, sockets, drag-and-drop, box lid and tutorial long after the engine had stopped caring.
 3. WP16 (P0 UX) — 1–2 sessions; WP19 harness skeleton can start in parallel.
 4. Commission the art (WP18) now — it is the longest external lead time and blocks the tag.
 5. Revisit this roadmap at the end of each phase; amendments get dated notes here, as ever.

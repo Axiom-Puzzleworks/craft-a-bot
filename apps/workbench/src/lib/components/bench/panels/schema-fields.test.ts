@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
+import monitorPack from '@craftabot/pack-monitor';
 import { bandLabel, describeFields, humanise } from './schema-fields.js';
 
 /**
@@ -104,6 +105,34 @@ describe('what hints add on top', () => {
 	});
 
 	/**
+	 * The gap the Watchbot prototype found (WP14 DoD).
+	 *
+	 * `source` names one of core's four catalogues, and a Monitor's watch rules
+	 * are in none of them — they are the pack's own content. Without this the
+	 * field fell back to a text box for typing ids into, which is a poor control
+	 * and, on a brick whose whole subject is oversight, an embarrassing one.
+	 */
+	it('ticks a kind’s own options when no catalogue has them', () => {
+		const [field] = describeFields(z.object({ watchFor: z.array(z.string()) }), {
+			watchFor: {
+				control: 'checklist',
+				label: 'Watch out for',
+				options: [
+					{ value: 'monitor/going-in-circles', label: 'Going in circles' },
+					{ value: 'monitor/all-talk', label: 'All talk, no doing' }
+				]
+			}
+		});
+		expect(field?.control).toEqual({
+			kind: 'checklist',
+			entries: [
+				{ id: 'monitor/going-in-circles', name: 'Going in circles' },
+				{ id: 'monitor/all-talk', name: 'All talk, no doing' }
+			]
+		});
+	});
+
+	/**
 	 * 270° of travel between unknown ends is a guess, not a control. A kind that
 	 * asks for a dial without bounding its number gets a number field, rather
 	 * than a dial that lies about where the ends are.
@@ -159,5 +188,28 @@ describe('humanise', () => {
 		expect(humanise('maxTicks')).toBe('Max ticks');
 		expect(humanise('blocked_actions')).toBe('Blocked actions');
 		expect(humanise('watchFor')).toBe('Watch for');
+	});
+});
+
+describe('the Watchbot prototype, through the real pack', () => {
+	/**
+	 * **The WP14 definition of done, from the bench's side.**
+	 *
+	 * `@craftabot/pack-monitor` is a real workspace package that depends on core
+	 * and zod. Nothing in the workbench is written for it — no panel, no art, no
+	 * entry in any table — and it still gets a working, kit-shaped control.
+	 */
+	it('gets a checklist of its own rules, with no workbench code written for it', () => {
+		const kind = (monitorPack.brickKinds ?? [])[0];
+		if (!kind) throw new Error('the monitor pack registers no brick kinds');
+
+		const [field] = describeFields(kind.configSchema, kind.controlHints);
+		expect(field?.label).toBe('Watch out for');
+		expect(field?.control.kind).toBe('checklist');
+		expect(
+			field?.control.kind === 'checklist'
+				? field.control.entries?.map((entry) => entry.name)
+				: undefined
+		).toEqual(['Going in circles', 'All talk, no doing', 'Keeps trying what it may not do']);
 	});
 });
