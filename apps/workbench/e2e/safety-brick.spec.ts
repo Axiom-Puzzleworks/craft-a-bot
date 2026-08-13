@@ -138,21 +138,31 @@ test('approval mode lets a person deny, and the bot is told why', async ({ page 
 	await expect(page.getByTestId('end-card')).toBeHidden();
 });
 
-test('the loop-breaker is off by default and can be switched on', async ({ page }) => {
+/**
+ * > **Amended 2026-08-13 (WP11):** the loop-breaker now comes fitted, where it
+ * > used to arrive switched off. v1's rule counted identical calls whatever
+ * > came of them, so it stopped a bot walking in a straight line, and shipping
+ * > it off meant the reported hello-loop was the *default* experience
+ * > (`12-…` C3). v2 exempts a `move` that worked, so the default is safe — and
+ * > the builder can still take it away, which is the half that matters here.
+ */
+test('the loop-breaker comes fitted and can be switched off again', async ({ page }) => {
 	await buildWithSafetyBrick(page);
 	await openSafetyPanel(page);
 
 	const controls = page.getByTestId('brick-controls-safety');
 	const loopBreaker = controls.getByRole('checkbox', { name: 'Stop it going in circles' });
 
-	// Nobody gets a policy they did not choose (08 §3).
-	await expect(loopBreaker).not.toBeChecked();
+	await expect(loopBreaker).toBeChecked();
+	await expect(page.getByTestId('repeat-limit')).toBeVisible();
+	await expect(controls).toContainText('3 times in a row');
+
+	// A control you can remove is still the builder's choice (08 §3).
+	await loopBreaker.uncheck();
 	await expect(page.getByTestId('repeat-limit')).toBeHidden();
 
 	await loopBreaker.check();
-	// Switching it on reveals the dial, defaulted to three in a row.
 	await expect(page.getByTestId('repeat-limit')).toBeVisible();
-	await expect(controls).toContainText('3 times in a row');
 
 	await page.getByTestId('repeat-limit').fill('5');
 	await expect(controls).toContainText('5 times in a row');

@@ -303,14 +303,17 @@ export const CHAPTERS: Chapter[] = [
 				/*
 				 * Keyed on the *lookup*, not on the card being won.
 				 *
-				 * "The locked chest" asks the bot to open the chest **and** tidy all
-				 * three blocks away, which needs roughly 45 turns — well past the
-				 * 30-turn engine floor. The card is therefore not winnable as
-				 * specified (so is "Tidy the blocks", at ~34). That is a pre-existing
-				 * card-design problem, recorded rather than papered over.
+				 * > **Amended 2026-08-13 (WP11):** the card is now winnable. It
+				 * > used to ask for the chest open **and** all three blocks away
+				 * > — roughly 45 turns against a 30-turn floor, so no bot could
+				 * > ever finish it ("Tidy the blocks" was the same at ~34).
+				 * > `16-…` §1.1 re-scoped both; the old layout survives as the
+				 * > labelled expert card.
 				 *
-				 * The chapter teaches retrieval, and retrieval is demonstrated the
-				 * moment the bot stops shoving the lid and goes to look the answer up.
+				 * The condition stays on the lookup all the same, because the
+				 * chapter teaches retrieval, and retrieval is demonstrated the
+				 * moment the bot stops shoving the lid and goes to look the
+				 * answer up — not several turns later when the lid finally opens.
 				 */
 				done: (ctx) => ctx.usedTools.includes('look_up_manual')
 			}

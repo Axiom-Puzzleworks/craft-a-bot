@@ -73,7 +73,23 @@ export const goalCardDefinitionSchema = z.object({
 	layoutId: z.string().min(1),
 	successCondition: z.string().min(1),
 	hints: z.array(z.string()),
-	teachesConcepts: z.array(z.string())
+	teachesConcepts: z.array(z.string()),
+	/**
+	 * "About this many steps" — the length of a scripted-optimal solution
+	 * (`16-…` §1.1). Two cards shipped in V1.0 could not be won inside the
+	 * platform's 30-tick floor by any bot ever built, and nothing on the card
+	 * said so (`12-…` C6). A card that states its par can be checked against
+	 * the budget, by the player and by the L3 solvability suite alike.
+	 *
+	 * Optional: a card with no machine-checkable goal has no par, and every
+	 * pack written before this field existed still validates.
+	 */
+	par: z.number().int().positive().optional(),
+	/**
+	 * Deliberately harder than the default budget allows, and labelled as such
+	 * in the UI. Kept so the step-budget dial has a reason to exist.
+	 */
+	expert: z.boolean().optional()
 });
 export type GoalCardDefinition = z.infer<typeof goalCardDefinitionSchema>;
 

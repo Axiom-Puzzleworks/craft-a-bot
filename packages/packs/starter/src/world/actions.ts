@@ -351,6 +351,7 @@ const celebrate = defineAction({
 	description: actionStrings.celebrate.description,
 	schema: z.object({}),
 	run: (state) => {
+		if (state.celebrated) return fail(narration.alreadyCelebrated);
 		const from = state.celebrated;
 		state.celebrated = true;
 		return succeed(narration.celebrated, [{ path: 'celebrated', from, to: true }]);

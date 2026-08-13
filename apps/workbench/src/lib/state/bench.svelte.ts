@@ -40,7 +40,21 @@ export const BRICK_DEFAULTS = {
 	 * hands; the checkboxes are for taking capabilities *away*.
 	 */
 	actions: { enabled: ['move', 'pick_up', 'put_down', 'give', 'open', 'say', 'celebrate'] },
-	safety: { maxTicks: 30, blockedActions: [] as string[], approvalMode: false }
+	/*
+	 * `repeatLimit` is on out of the box.
+	 *
+	 * It shipped off in V1.0 for a good reason — v1 counted identical calls
+	 * whatever came of them, so it stopped a bot walking in a straight line —
+	 * and the cost was that the reported hello-loop was the *default*
+	 * experience (`12-…` C3). WP11's v2 rule counts repeats inside a ten-turn
+	 * window and exempts a `move` that worked, which makes the straight-line
+	 * false positive impossible and the default safe.
+	 *
+	 * The lesson survives switching it on: the leaflet's loop chapter turns it
+	 * *off* to show what happens without it, which is the better demonstration
+	 * anyway — a control you remove and miss teaches more than one you never had.
+	 */
+	safety: { maxTicks: 30, blockedActions: [] as string[], approvalMode: false, repeatLimit: 3 }
 };
 
 export interface BenchStore {

@@ -252,6 +252,9 @@ const SCRIPTS: Record<string, CardScript> = {
 				]
 			}
 		],
+		// Fifteen turns against the card's par of 13 — the two extra are the
+		// manual lookup that makes it a retrieval lesson and the celebration at
+		// the end. It wins the card outright now that WP11 re-scoped it.
 		succeeds: [
 			{
 				say: 'The chest is locked. I do not know how these work — let me look it up.',
@@ -263,16 +266,27 @@ const SCRIPTS: Record<string, CardScript> = {
 				call: 'move',
 				args: { direction: 'north' }
 			},
-			{
-				say: 'Heading for the corner where keys end up.',
-				call: 'move',
-				args: { direction: 'north' }
-			},
 			{ say: 'Still looking.', call: 'move', args: { direction: 'north' } },
-			{ say: 'Nearly at the corner.', call: 'move', args: { direction: 'north' } },
+			{ say: 'Something red over by the table.', call: 'move', args: { direction: 'east' } },
 			{ say: 'There it is — the red key.', call: 'pick_up', args: { item: 'red-key' } },
-			{ say: 'Now back to the chest with it.', call: 'move', args: { direction: 'east' } },
-			{ say: 'Unlocking the chest.', call: 'open', args: { container: 'toy-chest' } }
+			{ say: 'Now back to the chest with it.', call: 'move', args: { direction: 'north' } },
+			{ say: 'Unlocking the chest.', call: 'open', args: { container: 'toy-chest' } },
+			{
+				say: 'I need my hands free for the block, so the key goes down here.',
+				call: 'put_down',
+				args: { item: 'red-key' }
+			},
+			{ say: 'Now for the block that is still out.', call: 'move', args: { direction: 'south' } },
+			{ say: 'Nearly there.', call: 'move', args: { direction: 'south' } },
+			{ say: 'Got it.', call: 'pick_up', args: { item: 'block-c' } },
+			{ say: 'Back to the chest.', call: 'move', args: { direction: 'north' } },
+			{ say: 'One more step.', call: 'move', args: { direction: 'north' } },
+			{
+				say: 'And in it goes.',
+				call: 'put_down',
+				args: { item: 'block-c', container: 'toy-chest' }
+			},
+			{ say: 'Chest open, blocks away. That is the card done.', call: 'celebrate' }
 		]
 	}
 };

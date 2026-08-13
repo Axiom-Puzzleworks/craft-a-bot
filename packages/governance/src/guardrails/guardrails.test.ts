@@ -126,109 +126,240 @@ describe('approval mode', () => {
 	});
 });
 
-describe('no repetition', () => {
+describe('no repetition (v2 — windowed, movement-exempt)', () => {
 	const guardrail = createNoRepetitionGuardrail(3);
 
-	/** A history of `decision` events, oldest first. */
-	function decisions(...calls: ({ name: string; args?: unknown } | null)[]) {
-		return calls.map((call, index) => ({
-			id: `e${index}`,
+	/**
+	 * A history builder that records what became of each decision, because v2
+	 * exempts a `move` that worked. `ok: true` means the world did the thing;
+	 * `blocked` means a guardrail stopped it before the world saw it; `denied`
+	 * means a person said no.
+	 */
+	type Turn = { name: string; args?: unknown; ok?: boolean; blocked?: true; denied?: true } | null;
+
+	function history(...turns: Turn[]) {
+		const events: unknown[] = [];
+		let sequence = 0;
+		const envelope = (type: string, payload: unknown, tick: number) => ({
+			id: `e${sequence++}`,
 			runId: 'r',
-			tick: index + 1,
-			timestamp: '2026-08-12T09:00:00.000Z',
-			type: 'decision' as const,
-			payload: {
-				thought: 'hmm',
-				call: call ? { kind: 'action' as const, name: call.name, arguments: call.args ?? {} } : null
+			tick,
+			timestamp: '2026-08-13T09:00:00.000Z',
+			type,
+			payload
+		});
+
+		turns.forEach((turn, index) => {
+			const tick = index + 1;
+			// `'args' in turn` rather than `turn.args ?? {}`: a call with no
+			// arguments at all is a real case (`celebrate`), and the engine puts
+			// the same value in the event and in the proposal, so the fixture must.
+			const args = turn && 'args' in turn ? turn.args : {};
+			events.push(
+				envelope(
+					'decision',
+					{
+						thought: 'hmm',
+						call: turn ? { kind: 'action', name: turn.name, arguments: args } : null
+					},
+					tick
+				)
+			);
+			if (!turn) return;
+			if (turn.blocked) {
+				events.push(
+					envelope(
+						'guardrail.tripped',
+						{ guardrailId: 'x', hook: 'pre-act', reason: 'no', disposition: 'block-action' },
+						tick
+					)
+				);
+				return;
 			}
-		}));
+			if (turn.denied) {
+				events.push(envelope('approval.resolved', { approved: false }, tick));
+				return;
+			}
+			events.push(
+				envelope(
+					'action.performed',
+					{
+						name: turn.name,
+						arguments: args,
+						result: { ok: turn.ok ?? false, narration: 'n', stateDiff: [] }
+					},
+					tick
+				)
+			);
+		});
+		return events;
 	}
 
 	const proposing = (name: string, args: unknown = {}) =>
 		context({ hook: 'pre-act', proposed: action(name, args) });
 
-	it('allows a move it has not made before', () => {
-		const verdict = guardrail.check({
-			...proposing('open'),
-			history: decisions({ name: 'open' })
+	/** The proposal under judgement is always the newest decision in history. */
+	const judging = (name: string, past: Turn[], args: unknown = {}) =>
+		guardrail.check({
+			...proposing(name, args),
+			history: history(...past, { name, args })
 		} as never);
-		expect(verdict).toMatchObject({ allow: true });
+
+	it('allows a move it has not made before', () => {
+		expect(judging('open', [])).toMatchObject({ allow: true });
 	});
 
 	it('allows repeats right up to the limit', () => {
-		const verdict = guardrail.check({
-			...proposing('open'),
-			history: decisions({ name: 'open' }, { name: 'open' }, { name: 'open' })
-		} as never);
-		expect(verdict).toMatchObject({ allow: true });
+		expect(judging('open', [{ name: 'open' }, { name: 'open' }])).toMatchObject({ allow: true });
 	});
 
-	it('blocks the one past the limit, and says what to do instead', () => {
-		const verdict = guardrail.check({
-			...proposing('open'),
-			history: decisions({ name: 'open' }, { name: 'open' }, { name: 'open' }, { name: 'open' })
-		} as never);
-
+	it('blocks the attempt past the limit, and says what to do instead', () => {
+		const verdict = judging('open', [{ name: 'open' }, { name: 'open' }, { name: 'open' }]);
 		expect(verdict).toMatchObject({ allow: false, disposition: 'block-action' });
 		expect((verdict as { reason: string }).reason).toContain('Try something different');
 	});
 
 	it('does not end the run — a loop is a wasted turn, not a failure', () => {
-		const verdict = guardrail.check({
-			...proposing('open'),
-			history: decisions(...Array.from({ length: 9 }, () => ({ name: 'open' })))
-		} as never);
+		const verdict = judging(
+			'open',
+			Array.from({ length: 9 }, () => ({ name: 'open' }))
+		);
 		expect(verdict).toMatchObject({ disposition: 'block-action' });
 	});
 
+	/**
+	 * Fixture 1 for `12-…` C3: the false positive that kept the rule switched
+	 * off, and so kept every default bot loopable. A bot crossing the room is
+	 * not a bot in a loop.
+	 */
+	it('never trips on moves that are working', () => {
+		const walking = Array.from({ length: 6 }, () => ({
+			name: 'move',
+			args: { direction: 'east' },
+			ok: true
+		}));
+		expect(judging('move', walking, { direction: 'east' })).toMatchObject({ allow: true });
+	});
+
+	it('still trips on a move that keeps failing — a wall is not progress', () => {
+		const shoving = Array.from({ length: 4 }, () => ({
+			name: 'move',
+			args: { direction: 'north' }
+		}));
+		expect(judging('move', shoving, { direction: 'north' })).toMatchObject({ allow: false });
+	});
+
+	/**
+	 * Fixture 2 for `12-…` C3: the loop v1 could not see. Alternating between
+	 * two ideas never produced three *consecutive* repeats, so the streak rule
+	 * watched the loop happen and said nothing.
+	 */
+	it('trips on a repeat that alternates with something else', () => {
+		const alternating = [
+			{ name: 'open' },
+			{ name: 'move', args: { direction: 'north' }, ok: true },
+			{ name: 'open' },
+			{ name: 'move', args: { direction: 'north' }, ok: true },
+			{ name: 'open' }
+		];
+		expect(judging('open', alternating)).toMatchObject({
+			allow: false,
+			disposition: 'block-action'
+		});
+	});
+
+	/**
+	 * The loop first reported from play: a bot beside the toy chest calling to
+	 * a Teddy three squares away. Every `say` succeeded, and it was still the
+	 * clearest loop in the box — a rule that counted only failures would sit
+	 * and watch it happen.
+	 */
+	it('trips on the hello-loop, where every call succeeds and nothing changes', () => {
+		const calling = Array.from({ length: 4 }, () => ({
+			name: 'say',
+			args: { text: 'Hello Teddy!' },
+			ok: true
+		}));
+		expect(judging('say', calling, { text: 'Hello Teddy!' })).toMatchObject({ allow: false });
+	});
+
 	it('counts arguments, not just the name', () => {
-		// Moving north then south is not repetition; moving north four times is.
-		const mixed = guardrail.check({
-			...proposing('move', { direction: 'north' }),
-			history: decisions(
+		// Shoving north, then south, then north is two half-hearted loops, and
+		// neither of them has reached the limit.
+		const verdict = judging(
+			'move',
+			[
 				{ name: 'move', args: { direction: 'north' } },
 				{ name: 'move', args: { direction: 'south' } },
 				{ name: 'move', args: { direction: 'north' } }
-			)
-		} as never);
-		expect(mixed).toMatchObject({ allow: true });
-	});
-
-	it('lets a different move break the streak', () => {
-		const verdict = guardrail.check({
-			...proposing('open'),
-			history: decisions(
-				{ name: 'open' },
-				{ name: 'open' },
-				{ name: 'open' },
-				{ name: 'move' },
-				{ name: 'open' }
-			)
-		} as never);
+			],
+			{ direction: 'north' }
+		);
 		expect(verdict).toMatchObject({ allow: true });
 	});
 
-	it('lets a thinking turn break the streak too', () => {
-		const verdict = guardrail.check({
-			...proposing('open'),
-			history: decisions({ name: 'open' }, { name: 'open' }, { name: 'open' }, null, {
-				name: 'open'
-			})
-		} as never);
-		expect(verdict).toMatchObject({ allow: true });
+	it('forgets repeats that have fallen out of the ten-turn window', () => {
+		const old = [{ name: 'open' }, { name: 'open' }, { name: 'open' }];
+		const since = Array.from({ length: 9 }, () => ({
+			name: 'move',
+			args: { direction: 'east' },
+			ok: true
+		}));
+		expect(judging('open', [...old, ...since])).toMatchObject({ allow: true });
 	});
 
-	it('ignores events that are not decisions', () => {
-		const history = [
-			...decisions({ name: 'open' }, { name: 'open' }, { name: 'open' }, { name: 'open' })
-		];
+	it('counts a guardrail block and a human refusal like any other repeat', () => {
+		const verdict = judging('open', [
+			{ name: 'open', blocked: true },
+			{ name: 'open', denied: true },
+			{ name: 'open' }
+		]);
+		expect(verdict).toMatchObject({ allow: false });
+	});
+
+	it('does not hold a turn that only thought against the bot', () => {
+		// A tick that proposed nothing has no signature to repeat, and it must
+		// not swallow the outcome of the turn before it either.
+		const verdict = judging('open', [{ name: 'open' }, null, { name: 'open' }]);
+		expect(verdict).toMatchObject({ allow: true, note: '2 of 3 repeats' });
+	});
+
+	it('ignores events that are not part of a decision', () => {
+		const events = history(
+			{ name: 'open' },
+			{ name: 'open' },
+			{ name: 'open' },
+			{ name: 'open' }
+		) as { type: string }[];
 		const withNoise = [
-			history[0]!,
-			{ ...history[0]!, type: 'sense' as const, payload: {} },
-			...history.slice(1)
+			events[0]!,
+			{ ...events[0]!, type: 'sense', payload: {} },
+			...events.slice(1)
 		];
 		expect(guardrail.check({ ...proposing('open'), history: withNoise } as never)).toMatchObject({
 			allow: false
+		});
+	});
+
+	it('ignores outcome events that arrive before any decision', () => {
+		// The opening `world.changed` and its neighbours precede tick one.
+		const stray = [
+			{
+				id: 'e0',
+				runId: 'r',
+				tick: 0,
+				timestamp: '2026-08-13T09:00:00.000Z',
+				type: 'action.performed',
+				payload: {
+					name: 'move',
+					arguments: {},
+					result: { ok: true, narration: 'n', stateDiff: [] }
+				}
+			},
+			...history({ name: 'open' })
+		];
+		expect(guardrail.check({ ...proposing('open'), history: stray } as never)).toMatchObject({
+			allow: true
 		});
 	});
 
@@ -238,24 +369,17 @@ describe('no repetition', () => {
 
 	it('handles a call that carries no arguments at all', () => {
 		// `celebrate` takes none, and a bot can absolutely get stuck on it.
-		const history = Array.from({ length: 4 }, (_, index) => ({
-			id: `e${index}`,
-			runId: 'r',
-			tick: index + 1,
-			timestamp: '2026-08-12T09:00:00.000Z',
-			type: 'decision' as const,
-			payload: {
-				thought: 'again',
-				call: { kind: 'action' as const, name: 'celebrate', arguments: undefined }
-			}
-		}));
-
 		const verdict = guardrail.check({
 			...context({
 				hook: 'pre-act',
 				proposed: { kind: 'action', name: 'celebrate', arguments: undefined }
 			}),
-			history
+			history: history(
+				{ name: 'celebrate', args: undefined },
+				{ name: 'celebrate', args: undefined },
+				{ name: 'celebrate', args: undefined },
+				{ name: 'celebrate', args: undefined }
+			)
 		} as never);
 		expect(verdict).toMatchObject({ allow: false, disposition: 'block-action' });
 	});

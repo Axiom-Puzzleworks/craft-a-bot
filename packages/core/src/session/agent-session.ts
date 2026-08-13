@@ -253,6 +253,26 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		return `You want to ${name}, but you have not been built with any way to do it.`;
 	}
 
+	/**
+	 * Tell the agent, next turn, that the world said no (E3, `14-…` §3).
+	 *
+	 * A failed action carries the one fact the next decision depends on: that it
+	 * is too far away, that the lid is locked, that it walked into the table.
+	 * Those narrations used to reach the Memory brick's window and nowhere else,
+	 * so a bot built without Memory — the first bot anyone builds — could not
+	 * see its own failures at all, and kept retrying the salient idea whose
+	 * failure was invisible to it until its steps ran out (`12-…` C2).
+	 *
+	 * Feedback is the "Right now:" section, which every prompt carries, so the
+	 * signal lands whether or not a Memory brick is fitted. When one *is*
+	 * fitted the narration deliberately appears twice — once as recent history,
+	 * once as the thing that just happened. That is the same distinction a
+	 * person makes between remembering and noticing.
+	 */
+	function noteWorldFailure(narration: string): void {
+		run.feedback.push(narration);
+	}
+
 	async function performCall(decision: Extract<Decision, { kind: 'call' }>): Promise<{
 		summary: string;
 		result: string;
@@ -300,6 +320,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 				arguments: call.arguments,
 				result: { ok: false, narration, stateDiff: [] }
 			});
+			noteWorldFailure(narration);
 			return { summary: `tried to ${call.name}`, result: narration };
 		}
 
@@ -314,6 +335,8 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		});
 		if (actionResult.ok) {
 			emit('world.changed', { state: world.snapshot() });
+		} else {
+			noteWorldFailure(actionResult.narration);
 		}
 		return { summary: `tried to ${call.name}`, result: actionResult.narration };
 	}

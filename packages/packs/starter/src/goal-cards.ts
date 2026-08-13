@@ -3,9 +3,15 @@ import { goalCardStrings } from './strings.js';
 import { PLAYROOM_WORLD_ID } from './world/playroom.js';
 
 /**
- * The six starter Goal Cards (02-AGENT-MODEL.md §3). Each binds a world layout
- * to a success predicate the world evaluates after every tick, and carries the
- * concepts it exists to teach — the teaching arc in §9 walks these in order.
+ * The seven starter Goal Cards (02-AGENT-MODEL.md §3). Each binds a world
+ * layout to a success predicate the world evaluates after every tick, and
+ * carries the concepts it exists to teach — the teaching arc in §9 walks these
+ * in order.
+ *
+ * Every card with a machine-checkable goal states its `par`: the length of the
+ * scripted-optimal solution proved by the L3 solvability suite (`13-…` §2).
+ * Free Play has none — nobody but the player knows when it is finished — and
+ * the expert card's par is deliberately past the 30-tick platform floor.
  */
 export const starterGoalCards: GoalCardDefinition[] = [
 	{
@@ -16,7 +22,8 @@ export const starterGoalCards: GoalCardDefinition[] = [
 		layoutId: 'greeting',
 		successCondition: 'said-hello-near-teddy',
 		hints: [...goalCardStrings['say-hello'].hints],
-		teachesConcepts: ['the-loop', 'actions']
+		teachesConcepts: ['the-loop', 'actions'],
+		par: 4
 	},
 	{
 		id: 'starter/snack',
@@ -26,7 +33,8 @@ export const starterGoalCards: GoalCardDefinition[] = [
 		layoutId: 'snack-hunt',
 		successCondition: 'teddy-has-snack',
 		hints: [...goalCardStrings.snack.hints],
-		teachesConcepts: ['multi-step-behaviour', 'memory', 'sense']
+		teachesConcepts: ['multi-step-behaviour', 'memory', 'sense'],
+		par: 7
 	},
 	{
 		id: 'starter/tidy-the-blocks',
@@ -36,7 +44,8 @@ export const starterGoalCards: GoalCardDefinition[] = [
 		layoutId: 'tidy-up',
 		successCondition: 'blocks-in-chest',
 		teachesConcepts: ['repetition', 'sub-goals'],
-		hints: [...goalCardStrings['tidy-the-blocks'].hints]
+		hints: [...goalCardStrings['tidy-the-blocks'].hints],
+		par: 10
 	},
 	{
 		id: 'starter/locked-chest',
@@ -46,7 +55,23 @@ export const starterGoalCards: GoalCardDefinition[] = [
 		layoutId: 'locked-chest',
 		successCondition: 'chest-open-and-blocks-inside',
 		hints: [...goalCardStrings['locked-chest'].hints],
-		teachesConcepts: ['tool-use', 'retrieval']
+		teachesConcepts: ['tool-use', 'retrieval'],
+		par: 13
+	},
+	{
+		id: 'starter/locked-chest-expert',
+		title: goalCardStrings['locked-chest-expert'].title,
+		goalText: goalCardStrings['locked-chest-expert'].goalText,
+		worldId: PLAYROOM_WORLD_ID,
+		layoutId: 'locked-chest-expert',
+		successCondition: 'chest-open-and-blocks-inside',
+		hints: [...goalCardStrings['locked-chest-expert'].hints],
+		teachesConcepts: ['tool-use', 'retrieval', 'budgets'],
+		// 36, measured by the scripted solution in `solvability.test.ts`.
+		// `12-…` §2 estimated ~45 by hand; the plan the suite actually runs is
+		// tighter than that, and the measured number is the one on the card.
+		par: 36,
+		expert: true
 	},
 	{
 		id: 'starter/sums-for-teddy',
@@ -56,7 +81,8 @@ export const starterGoalCards: GoalCardDefinition[] = [
 		layoutId: 'sums',
 		successCondition: 'correct-sum-said',
 		hints: [...goalCardStrings['sums-for-teddy'].hints],
-		teachesConcepts: ['hallucination', 'tool-use']
+		teachesConcepts: ['hallucination', 'tool-use'],
+		par: 2
 	},
 	{
 		id: 'starter/free-play',

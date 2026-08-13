@@ -19,61 +19,109 @@ import type { EngineEvent, Guardrail } from '@craftabot/core';
  * the difference between a toy that papers over agent failure modes and one
  * that lets you experiment with the controls for them.
  *
- * ## What counts as repetition
+ * ## What counts as repetition (v2)
  *
- * The same call — same kind, same name, same arguments — proposed on
- * consecutive turns. A turn that calls something else, or thinks without
- * acting, breaks the streak.
+ * > **Amended 2026-08-13 (WP11):** rewritten per `14-…` §4.6 to close `12-…` C3.
  *
- * Be straight about the trade-off: this counts *identical* calls, so a bot
- * genuinely walking four squares east in a straight line will trip a limit of
- * three. That is a real false positive, and it is why the rule is off unless
- * the builder turns it on and picks the number. A bot pressing the same
- * direction into a wall and a bot crossing a room look alike from here; only
- * the goal tells them apart, and a guardrail does not get to see the goal.
+ * The same call — same kind, same name, same arguments — proposed N times
+ * inside the last ten decisions. Two changes from v1, each fixing a way the
+ * old rule was wrong:
+ *
+ *  - **A window, not a streak.** v1 needed the repeats to be consecutive, so a
+ *    bot alternating between two hopeless ideas — push the lid, walk into the
+ *    table, push the lid, walk into the table — never tripped anything. That
+ *    is the loop people actually watch their bot perform.
+ *  - **Walking is not looping.** v1 counted every identical call, so a bot
+ *    crossing the room four squares east tripped a limit of three. That false
+ *    positive was the stated reason the rule shipped switched *off*, and a
+ *    rule switched off is why the reported hello-loop was the default
+ *    experience. A `move` that worked is therefore exempt: it took the bot
+ *    somewhere new, which is the opposite of being stuck.
+ *
+ * Note what is deliberately *not* exempt: a call that succeeded but achieved
+ * nothing. The loop first reported from play was a bot beside the toy chest
+ * calling "hello!" to a Teddy three squares away, over and over — every `say`
+ * succeeded, and it was still the clearest loop in the box. Success is not
+ * progress.
  */
 
 export const NO_REPETITION_ID = 'safety/no-repetition';
+
+/** How far back the rule looks. Ten decisions is a third of the default budget. */
+const WINDOW = 10;
+
+/**
+ * Actions that, when they work, mean the bot has got somewhere.
+ *
+ * Naming a world action inside a guardrail is a wart, and a deliberate one:
+ * `14-…` §4.6 specifies the movement exemption in exactly these terms, and the
+ * alternative — inferring "did this take me somewhere new" from a state diff —
+ * is guesswork dressed up as generality. Policy cards (`14-…` §4.6) will let a
+ * world declare this about its own actions, at which point the constant goes.
+ */
+const MOVEMENT = new Set(['move']);
 
 function signatureOf(call: { kind: string; name: string; arguments: unknown }): string {
 	return `${call.kind}:${call.name}:${JSON.stringify(call.arguments ?? null)}`;
 }
 
-/** How many turns in a row have proposed exactly this, including the current one. */
-function consecutiveRepeats(history: ReadonlyArray<EngineEvent>, signature: string): number {
-	let streak = 0;
-	for (let index = history.length - 1; index >= 0; index--) {
-		const event = history[index];
-		if (event?.type !== 'decision') continue;
+type PastCall = { signature: string; counts: boolean };
 
-		// A turn that did something else — or nothing — ends the run of repeats.
-		if (event.payload.call === null) break;
-		if (signatureOf(event.payload.call) !== signature) break;
-		streak += 1;
+/**
+ * The calls behind us, newest first, each with whether it came to anything.
+ *
+ * A decision's fate is written by the events that follow it, so this walks
+ * forward and closes each decision off when the next one opens. The newest
+ * decision is deliberately never closed: it is the proposal being judged right
+ * now — the engine emits `decision` before pre-act guards run — and its fate
+ * has not been written yet.
+ */
+function recentCalls(history: ReadonlyArray<EngineEvent>): PastCall[] {
+	const calls: PastCall[] = [];
+	let current: PastCall | undefined;
+
+	for (const event of history) {
+		switch (event.type) {
+			case 'decision': {
+				if (current) calls.push(current);
+				current = event.payload.call
+					? { signature: signatureOf(event.payload.call), counts: true }
+					: undefined;
+				break;
+			}
+			case 'action.performed': {
+				if (current && event.payload.result.ok && MOVEMENT.has(event.payload.name)) {
+					current.counts = false;
+				}
+				break;
+			}
+		}
 	}
-	return streak;
+	return calls.reverse();
 }
 
 export function createNoRepetitionGuardrail(limit: number): Guardrail {
 	return {
 		id: NO_REPETITION_ID,
 		name: 'No Repetition',
-		description: `Stops the bot repeating the same move more than ${limit} times in a row.`,
+		description: `Stops the bot repeating the same move more than ${limit} times in its last ${WINDOW} turns.`,
 		hooks: ['pre-act'],
 		check(ctx) {
 			const proposed = ctx.proposed;
 			if (!proposed) return { allow: true };
 
-			// The `decision` event is emitted before pre-act guards run, so the
-			// current proposal is already the last entry in the history.
-			const streak = consecutiveRepeats(ctx.history, signatureOf(proposed));
-			if (streak <= limit) {
-				return { allow: true, note: `${streak} of ${limit} repeats` };
+			const signature = signatureOf(proposed);
+			const repeats = recentCalls(ctx.history)
+				.slice(0, WINDOW)
+				.filter((call) => call.signature === signature && call.counts).length;
+
+			if (repeats < limit) {
+				return { allow: true, note: `${repeats} of ${limit} repeats` };
 			}
 
 			return {
 				allow: false,
-				reason: `You have tried ${proposed.name} ${streak - 1} times in a row and it has not got you anywhere. Try something different.`,
+				reason: `You have tried ${proposed.name} ${repeats} times and it has not got you anywhere. Try something different.`,
 				disposition: 'block-action'
 			};
 		}

@@ -116,7 +116,20 @@ export const openAiCartridges: CartridgeDefinition[] = [
 		blurb: 'Tiny and thrifty; watch it struggle with hard goals!',
 		stats: { words: 1, reasoning: 1, speed: 3 },
 		costHint: 'low',
-		defaults: { temperature: FIXED_TEMPERATURE, maxTokens: 400 }
+		/*
+		 * 600, not 400 (C5, `12-…` §2).
+		 *
+		 * Even at `minimal` effort the reasoning spend is not zero, and 400 left
+		 * so little headroom on the longer cards that the model returned an
+		 * empty reply — which costs two completions and a whole turn to the
+		 * malformed re-prompt, every time it happens. Penny Thinker is meant to
+		 * struggle visibly with hard goals, which is quite different from
+		 * silently running out of room to answer in.
+		 *
+		 * A per-cartridge *minimum* the bench dial cannot go below arrives with
+		 * `14-…` §4.1 in WP14, where cartridge defaults become real.
+		 */
+		defaults: { temperature: FIXED_TEMPERATURE, maxTokens: 600 }
 	}
 ];
 

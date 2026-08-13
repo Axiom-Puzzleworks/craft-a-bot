@@ -1,4 +1,9 @@
-import { createPackRegistry, validateSpec, type AgentSpec } from '@craftabot/core';
+import {
+	DEFAULT_TICK_BUDGET,
+	createPackRegistry,
+	validateSpec,
+	type AgentSpec
+} from '@craftabot/core';
 import { describe, expect, it } from 'vitest';
 import starterPack, { starterGoalCards } from './index.js';
 import { playroom } from './world/playroom.js';
@@ -20,13 +25,37 @@ describe('the starter pack manifest', () => {
 		const registry = registryWithStarter();
 		expect(registry.listPacks().map((pack) => pack.id)).toEqual(['starter']);
 		expect(registry.listWorlds()).toHaveLength(1);
-		expect(registry.listGoalCards()).toHaveLength(6);
+		expect(registry.listGoalCards()).toHaveLength(7);
 	});
 
 	it('namespaces every goal card id under the pack (01-ARCHITECTURE.md §4)', () => {
 		for (const card of starterGoalCards) {
 			expect(card.id.startsWith('starter/')).toBe(true);
 		}
+	});
+
+	/**
+	 * `16-…` §1.1: a card that can be won states about how long winning takes,
+	 * and a card that cannot be won inside the default budget says so on its
+	 * face. V1.0 shipped two cards that failed both halves (`12-…` C6).
+	 */
+	it('gives every winnable card a par inside the default step budget', () => {
+		for (const card of starterGoalCards) {
+			if (card.successCondition === 'free-play-manual') {
+				expect(card.par).toBeUndefined();
+				continue;
+			}
+			expect(card.par).toBeGreaterThan(0);
+			if (card.expert) {
+				expect(card.par).toBeGreaterThan(DEFAULT_TICK_BUDGET);
+			} else {
+				expect(card.par).toBeLessThanOrEqual(DEFAULT_TICK_BUDGET);
+			}
+		}
+	});
+
+	it('ships exactly one expert card, so the step dial has a reason to exist', () => {
+		expect(starterGoalCards.filter((card) => card.expert)).toHaveLength(1);
 	});
 
 	it('resolves the world, layout, and predicate behind every goal card', () => {

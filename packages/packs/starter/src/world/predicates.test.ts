@@ -153,8 +153,17 @@ describe('correct-sum-said', () => {
 });
 
 describe('free-play-manual', () => {
-	it('is never machine-satisfiable — the user decides', () => {
-		expect(check('free-play-manual', testState({ celebrated: true }))).toBe(false);
+	/**
+	 * > **Amended 2026-08-13 (WP11):** the bot's own celebration ends a free-play
+	 * > run, per E12. It used to be unsatisfiable by anything at all, which left
+	 * > `celebrate` writing a flag nothing read (`12-…` C7/D10).
+	 */
+	it('is met once the bot celebrates — the one card where it decides', () => {
+		expect(check('free-play-manual', testState({ celebrated: true }))).toBe(true);
+	});
+
+	it('is not met while the bot is still pottering about', () => {
+		expect(check('free-play-manual', testState())).toBe(false);
 	});
 });
 
