@@ -8,24 +8,28 @@ import type { ActionResult, Observation } from '../types/world.js';
 /**
  * **The drift guard** (`13-…` §3, holding the line on `12-…` D3).
  *
- * `RunOutcome`, `GuardrailVerdict`, `ChatResponse` and `Observation` are each
- * defined twice: a hand-written TypeScript interface that the engine programs
- * against, and a Zod mirror inside the event catalogue that validates the same
- * value on its way to and from disk. Until E5 (`14-…` §3) collapses them onto
- * one definition, the only thing keeping them in step is a comment.
+ * `RunOutcome`, `GuardrailVerdict`, `ChatResponse` and `Observation` used to be
+ * defined twice: a hand-written TypeScript interface that the engine programmed
+ * against, and a Zod mirror inside the event catalogue. The only thing keeping
+ * them in step was a comment, and it was not enough —  `Observation.summary`
+ * was added to the interface in WP11 and not to the mirror, so **Zod quietly
+ * deleted it from every re-imported trace**. Types could not catch it: each
+ * definition was internally consistent, and nothing round-tripped a value to
+ * notice a field going missing.
  *
- * A comment is not enough, and this suite exists because it already wasn't:
- * `Observation.summary` was added to the interface in WP11 and not to the
- * mirror, so **Zod quietly deleted it from every re-imported trace**. Types
- * cannot catch that — the interface and the schema were each internally
- * consistent — and no round-trip test existed to notice a field going missing.
+ * > **Amended 2026-08-13 (WP13, E5):** the mirrors are gone. `schemas/shared.ts`
+ * > is now the single definition and everything else infers from it, so drift
+ * > of that kind is no longer expressible.
  *
- * Two kinds of check, because the failure has two shapes:
+ * The suite stays, because it guards two things E5 does not:
  *
- *  - **Type-level**, that the unions still enumerate the same members;
- *  - **Value-level**, that a fully-populated value survives `parse` with every
- *    field intact. This is the one that catches a silently dropped field, and
- *    it is why the fixtures below set *every* optional property.
+ *  - **Fields surviving `parse`.** Zod strips what a schema does not declare.
+ *    A payload that grows a field without the schema growing with it still
+ *    loses it silently on the way through a trace, and these fixtures set
+ *    *every* optional property so the loss shows up.
+ *  - **Unions staying closed.** A verdict or outcome nobody recognises must be
+ *    rejected, not waved through — a policy that fails open is worse than no
+ *    policy, because the trace records a check that appeared to happen.
  */
 
 /** Wraps a payload in the event envelope, which is the only way these shapes are parsed. */

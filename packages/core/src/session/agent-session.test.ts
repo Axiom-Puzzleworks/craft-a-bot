@@ -3,7 +3,8 @@ import { createSession } from './agent-session.js';
 import { createPackRegistry, type PackRegistry } from '../pack-registry.js';
 import { createMockProvider, createTestClock, turn } from '../testing/index.js';
 import type { AgentSpec } from '../schemas/agent-spec.js';
-import type { Guardrail } from '../types/guardrail.js';
+import type { EngineEvent } from '../schemas/events.js';
+import type { Guardrail, GuardrailVerdict } from '../types/guardrail.js';
 import type { ToolDefinition } from '../types/tool.js';
 import type { WorldDefinition, WorldInstance } from '../types/world.js';
 
@@ -14,10 +15,15 @@ import type { WorldDefinition, WorldInstance } from '../types/world.js';
  * mechanics, while pack-starter's session tests cover realistic goal runs.
  */
 
-/** A one-cell world: `ping` does nothing much, `win` satisfies the goal. */
-function createTinyWorld(): WorldDefinition {
+/**
+ * A one-cell world: `ping` does nothing much, `win` satisfies the goal.
+ *
+ * `ears` decides whether it implements `receiveInput` — a world is entitled to
+ * have no way of being spoken to, and E2 has to behave sensibly either way.
+ */
+function createTinyWorld(id = 'tiny/world', ears = true): WorldDefinition {
 	return {
-		id: 'tiny/world',
+		id,
 		name: 'Tiny world',
 		layouts: [{ id: 'only', name: 'Only layout', initialState: { pings: 0, won: false } }],
 		actions: [
@@ -38,9 +44,10 @@ function createTinyWorld(): WorldDefinition {
 		senses: [{ id: 'look', name: 'Look', description: 'See the world.' }],
 		predicates: { 'has-won': 'The goal is met.' },
 		create(): WorldInstance {
-			const state = { pings: 0, won: false };
+			const state = { pings: 0, won: false, heard: [] as string[] };
 			return {
 				snapshot: () => ({ ...state }),
+				...(ears ? { receiveInput: (text: string) => void state.heard.push(text) } : {}),
 				observe: (channels) => ({
 					channels: [...channels],
 					text: channels.length > 0 ? `pings: ${state.pings}` : 'you sense nothing',
@@ -64,6 +71,7 @@ function createTinyWorld(): WorldDefinition {
 				reset: () => {
 					state.pings = 0;
 					state.won = false;
+					state.heard = [];
 				}
 			};
 		}
@@ -94,7 +102,7 @@ function buildRegistry(): PackRegistry {
 		name: 'Tiny pack',
 		version: '1.0.0',
 		requiresCore: '>=0.0.1',
-		worlds: [createTinyWorld()],
+		worlds: [createTinyWorld(), createTinyWorld('tiny/deaf-world', false)],
 		tools: [echoTool, secretTool],
 		cartridges: [
 			{
@@ -114,6 +122,16 @@ function buildRegistry(): PackRegistry {
 				title: 'Win',
 				goalText: 'Win the tiny world.',
 				worldId: 'tiny/world',
+				layoutId: 'only',
+				successCondition: 'has-won',
+				hints: [],
+				teachesConcepts: []
+			},
+			{
+				id: 'tiny/deaf-goal',
+				title: 'Win, unheard',
+				goalText: 'Win the tiny world nobody can talk to.',
+				worldId: 'tiny/deaf-world',
 				layoutId: 'only',
 				successCondition: 'has-won',
 				hints: [],
@@ -164,8 +182,12 @@ function makeSession(config: {
 		}
 	});
 	const seen: string[] = [];
-	session.events.onAny((event) => seen.push(event.type));
-	return { session, seen };
+	const log: EngineEvent[] = [];
+	session.events.onAny((event) => {
+		seen.push(event.type);
+		log.push(event);
+	});
+	return { session, seen, log };
 }
 
 describe('starting a session', () => {
@@ -623,6 +645,311 @@ describe('budgets', () => {
 		} finally {
 			vi.useRealTimers();
 		}
+	});
+});
+
+/**
+ * **Session I/O** (E2, `14-…` §3, closing `12-…` D2).
+ *
+ * Two holes in the session's surface: nothing could speak to the bot, and
+ * nothing could declare a run finished when the world had no opinion.
+ */
+describe('talking to the bot', () => {
+	it('passes the message to the world and records that it was heard', async () => {
+		const { session, seen, log } = makeSession({ script: () => turn('Ping.', 'ping') });
+		session.start('step');
+		session.deliverInput('Teddy says hello');
+
+		expect(seen).toContain('input.delivered');
+		const delivered = log.find((event) => event.type === 'input.delivered');
+		expect(delivered?.payload).toMatchObject({ text: 'Teddy says hello', heard: true });
+	});
+
+	it('says so when the world has no ears', async () => {
+		// The tiny world defines no `receiveInput`, so the message goes nowhere —
+		// and the trace says that plainly rather than implying it landed.
+		const { session, log } = makeSession({
+			spec: buildSpec({}, 'tiny/deaf-goal'),
+			script: () => turn('Ping.', 'ping')
+		});
+		session.start('step');
+		session.deliverInput('anyone there?');
+
+		const delivered = log.find((event) => event.type === 'input.delivered');
+		expect(delivered?.payload).toMatchObject({ heard: false });
+	});
+
+	it('ignores a message once the run has finished', async () => {
+		const { session, seen } = makeSession({ script: [turn('Win!', 'win')] });
+		await session.step();
+		session.deliverInput('too late');
+		expect(seen).not.toContain('input.delivered');
+	});
+});
+
+describe('declaring the outcome from outside', () => {
+	it('ends an idle or paused run, and records why', async () => {
+		const { session, log } = makeSession({
+			script: () => turn('Ping.', 'ping'),
+			budgets: { maxTicks: 9 }
+		});
+		session.start('step');
+		await session.step();
+
+		session.declareOutcome('SUCCESS', 'the player said it was finished');
+
+		expect(session.status).toBe('finished');
+		const finished = log.find((event) => event.type === 'run.finished');
+		expect(finished?.payload).toMatchObject({
+			outcome: 'SUCCESS',
+			reason: 'the player said it was finished'
+		});
+	});
+
+	it('waits for a tick in flight rather than abandoning it half-done', async () => {
+		const { session, seen } = makeSession({
+			script: () => turn('Ping.', 'ping'),
+			budgets: { maxTicks: 9 }
+		});
+		session.start('play');
+		session.events.on('action.performed', () => session.declareOutcome('SUCCESS', 'done'));
+
+		// Let the play loop run a tick and settle.
+		await vi.waitFor(() => expect(session.status).toBe('finished'));
+
+		// The action completed and was remembered before the run ended.
+		expect(seen.indexOf('action.performed')).toBeLessThan(seen.indexOf('run.finished'));
+	});
+
+	it('is ignored once the run has already ended', async () => {
+		const { session, log } = makeSession({ script: [turn('Win!', 'win')] });
+		await session.step();
+		session.declareOutcome('ERROR', 'nope');
+		expect(log.filter((event) => event.type === 'run.finished')).toHaveLength(1);
+	});
+});
+
+/**
+ * **Bounded retry** (E11, `14-…` §3, closing part of `12-…` D10).
+ *
+ * `retryAfterMs` was parsed off the wire and then ignored, so "try again in two
+ * seconds" ended the run outright.
+ */
+describe('a provider that asks us to wait', () => {
+	class RateLimited extends Error {
+		readonly kind = 'rate-limited';
+		constructor(readonly retryAfterMs?: number) {
+			super('slow down');
+		}
+	}
+
+	/** Fails the first call with the given error, then behaves. */
+	function flakyProvider(error: unknown) {
+		let calls = 0;
+		return {
+			id: 'flaky',
+			name: 'Flaky brain',
+			keyRequirement: 'none' as const,
+			validateKey: () => Promise.resolve({ ok: true, message: 'fine' }),
+			chat: () => {
+				calls += 1;
+				if (calls === 1) return Promise.reject(error);
+				return Promise.resolve({
+					text: 'Ping.',
+					toolCall: { name: 'ping', arguments: {} },
+					usage: { inputTokens: 10, outputTokens: 2 },
+					raw: {},
+					finishReason: 'tool_call' as const
+				});
+			},
+			get calls() {
+				return calls;
+			}
+		};
+	}
+
+	function sessionWith(provider: ReturnType<typeof flakyProvider>) {
+		const clock = createTestClock();
+		const session = createSession({
+			spec: buildSpec(),
+			registry: buildRegistry(),
+			provider,
+			guardrails: [],
+			options: {
+				now: clock.now,
+				newId: clock.newId,
+				random: clock.random,
+				budgets: { maxTicks: 2 }
+			}
+		});
+		const log: EngineEvent[] = [];
+		session.events.onAny((event) => log.push(event));
+		return { session, log };
+	}
+
+	it('waits and asks again, and says so in the trace', async () => {
+		const provider = flakyProvider(new RateLimited(5));
+		const { session, log } = sessionWith(provider);
+
+		const result = await session.step();
+
+		expect(provider.calls).toBe(2);
+		expect(result.outcome).toBeUndefined();
+		const retried = log.find((event) => event.type === 'provider.retried');
+		expect(retried?.payload).toMatchObject({ kind: 'rate-limited', afterMs: 5, attempt: 1 });
+	});
+
+	it('clamps a provider asking for an unreasonable wait', async () => {
+		// A server is entitled to say "in an hour"; a child watching a toy is not
+		// entitled to be made to wait for it. Fake timers so the test does not
+		// sit through even the clamped wait.
+		vi.useFakeTimers();
+		try {
+			const provider = flakyProvider(new RateLimited(3_600_000));
+			const { session, log } = sessionWith(provider);
+
+			const pending = session.step();
+			await vi.advanceTimersByTimeAsync(5_000);
+			await pending;
+
+			const retried = log.find((event) => event.type === 'provider.retried');
+			expect((retried?.payload as { afterMs: number }).afterMs).toBe(5_000);
+			expect(provider.calls).toBe(2);
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	it('retries once and no more — a second failure is a real failure', async () => {
+		let calls = 0;
+		const clock = createTestClock();
+		const session = createSession({
+			spec: buildSpec(),
+			registry: buildRegistry(),
+			provider: {
+				id: 'always-limited',
+				name: 'Always limited',
+				keyRequirement: 'none' as const,
+				validateKey: () => Promise.resolve({ ok: true, message: 'fine' }),
+				chat: () => {
+					calls += 1;
+					return Promise.reject(new RateLimited(0));
+				}
+			},
+			guardrails: [],
+			options: { now: clock.now, newId: clock.newId, random: clock.random }
+		});
+
+		expect((await session.step()).outcome).toBe('ERROR');
+		expect(calls).toBe(2);
+	});
+
+	it('does not retry a failure that waiting cannot fix', async () => {
+		class BadKey extends Error {
+			readonly kind = 'bad-key';
+		}
+		let calls = 0;
+		const clock = createTestClock();
+		const session = createSession({
+			spec: buildSpec(),
+			registry: buildRegistry(),
+			provider: {
+				id: 'wrong-key',
+				name: 'Wrong key',
+				keyRequirement: 'none' as const,
+				validateKey: () => Promise.resolve({ ok: false, message: 'no' }),
+				chat: () => {
+					calls += 1;
+					return Promise.reject(new BadKey('nope'));
+				}
+			},
+			guardrails: [],
+			options: { now: clock.now, newId: clock.newId, random: clock.random }
+		});
+
+		expect((await session.step()).outcome).toBe('ERROR');
+		expect(calls).toBe(1);
+	});
+});
+
+/**
+ * **The post-act hook** (E1, `14-…` §3, closing `12-…` D1).
+ *
+ * The third hook is where outcome monitors live: rules that judge what
+ * actually happened rather than what was proposed. Its verdict used to be
+ * computed and discarded, so a rule could fire, be traced, and change nothing.
+ */
+describe('post-act verdicts', () => {
+	function postAct(verdict: () => GuardrailVerdict): Guardrail {
+		return {
+			id: 'test/monitor',
+			name: 'Monitor',
+			description: 'Looks at what happened.',
+			hooks: ['post-act'],
+			check: verdict
+		};
+	}
+
+	it('ends the run when a monitor says stop', async () => {
+		const { session, seen } = makeSession({
+			script: () => turn('Ping.', 'ping'),
+			guardrails: [
+				postAct(() => ({ allow: false, reason: 'I did not like that.', disposition: 'stop-run' }))
+			],
+			budgets: { maxTicks: 5 }
+		});
+
+		const result = await session.step();
+
+		expect(result.outcome).toBe('STOPPED_BY_GUARDRAIL');
+		expect(seen).toContain('action.performed'); // the action happened first
+		expect(seen.at(-1)).toBe('run.finished');
+	});
+
+	it('lets the tick finish normally when the monitor is content', async () => {
+		const { session } = makeSession({
+			script: () => turn('Ping.', 'ping'),
+			guardrails: [postAct(() => ({ allow: true }))],
+			budgets: { maxTicks: 5 }
+		});
+
+		expect((await session.step()).outcome).toBeUndefined();
+	});
+
+	it('refuses a monitor that tries to block, and says why', async () => {
+		const { session, seen } = makeSession({
+			script: () => turn('Ping.', 'ping'),
+			guardrails: [
+				postAct(() => ({ allow: false, reason: 'Too late.', disposition: 'block-action' }))
+			],
+			budgets: { maxTicks: 5 }
+		});
+
+		let message = '';
+		session.events.on('error', (event) => {
+			message = (event.payload as { message: string }).message;
+		});
+
+		expect((await session.step()).outcome).toBe('ERROR');
+		expect(message).toContain('post-act');
+		expect(message).toContain('already happened');
+		expect(seen).toContain('error');
+	});
+
+	it('refuses a monitor that tries to pause, for the same reason', async () => {
+		const { session } = makeSession({
+			script: () => turn('Ping.', 'ping'),
+			guardrails: [postAct(() => ({ pause: true, reason: 'Hold on.' }))],
+			budgets: { maxTicks: 5 }
+		});
+
+		let message = '';
+		session.events.on('error', (event) => {
+			message = (event.payload as { message: string }).message;
+		});
+
+		expect((await session.step()).outcome).toBe('ERROR');
+		expect(message).toContain('pause');
 	});
 });
 

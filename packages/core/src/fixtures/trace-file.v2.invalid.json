@@ -1,0 +1,86 @@
+{
+	"format": "craftabot-trace",
+	"formatVersion": 2,
+	"run": {
+		"id": "22222222-2222-4222-8222-222222222222",
+		"agentId": "11111111-1111-4111-8111-111111111111",
+		"agentName": "Snackbot 3000",
+		"goalCardId": "starter/snack-goal",
+		"specSnapshot": {
+			"id": "11111111-1111-4111-8111-111111111111",
+			"name": "Snackbot 3000",
+			"bricks": {
+				"llm": {
+					"cartridgeId": "openai/quick-thinker",
+					"temperature": 0.7,
+					"maxTokens": 300,
+					"personality": "You are a cheerful little robot."
+				}
+			},
+			"goalCardId": "starter/snack-goal",
+			"createdAt": "2026-08-12T09:00:00Z",
+			"updatedAt": "2026-08-12T09:30:00Z",
+			"schemaVersion": 1
+		},
+		"packVersions": {
+			"starter": "1.0.0",
+			"openai": "1.0.0"
+		},
+		"mode": "step",
+		"outcome": "SUCCESS",
+		"ticks": 2,
+		"usage": {
+			"inputTokens": 120,
+			"outputTokens": 40
+		},
+		"budgets": {
+			"maxTicks": 0,
+			"maxTokens": 100000,
+			"requestTimeoutMs": 60000
+		},
+		"providerId": "",
+		"wireModel": "unrecorded",
+		"pinned": false,
+		"startedAt": "2026-08-12T10:00:00Z",
+		"finishedAt": "2026-08-12T10:00:05Z",
+		"schemaVersion": 2
+	},
+	"events": [
+		{
+			"id": "33333333-3333-4333-8333-333333333333",
+			"runId": "22222222-2222-4222-8222-222222222222",
+			"agentId": "11111111-1111-4111-8111-111111111111",
+			"tick": 0,
+			"timestamp": "2026-08-12T10:00:00Z",
+			"type": "run.started",
+			"payload": {
+				"mode": "step",
+				"budgets": {
+					"maxTicks": 30,
+					"maxTokens": 100000,
+					"requestTimeoutMs": 60000
+				},
+				"providerId": "unrecorded",
+				"wireModel": "unrecorded",
+				"cartridgeId": "unrecorded"
+			}
+		},
+		{
+			"id": "44444444-4444-4444-8444-444444444444",
+			"runId": "22222222-2222-4222-8222-222222222222",
+			"agentId": "11111111-1111-4111-8111-111111111111",
+			"tick": 2,
+			"timestamp": "2026-08-12T10:00:05Z",
+			"type": "run.finished",
+			"payload": {
+				"outcome": "SUCCESS",
+				"ticks": 2,
+				"usage": {
+					"inputTokens": 120,
+					"outputTokens": 40
+				}
+			}
+		}
+	],
+	"traceDigest": ""
+}

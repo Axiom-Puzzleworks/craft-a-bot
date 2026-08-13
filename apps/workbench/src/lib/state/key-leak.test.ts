@@ -127,10 +127,13 @@ async function runAndExport() {
 		outcome: 'SUCCESS',
 		ticks: 4,
 		usage: { inputTokens: 100, outputTokens: 20 },
+		budgets: { maxTicks: 30, maxTokens: 100000, requestTimeoutMs: 60000 },
+		providerId: 'mock',
+		wireModel: 'mock-1',
 		pinned: false,
 		startedAt: '2026-08-12T10:00:00Z',
 		finishedAt: '2026-08-12T10:00:05Z',
-		schemaVersion: 1
+		schemaVersion: 2
 	};
 
 	const secrets = vault.secrets();
@@ -250,9 +253,12 @@ async function buildLeakyRun(): Promise<RunRecord> {
 		outcome: 'SUCCESS',
 		ticks: 4,
 		usage: { inputTokens: 100, outputTokens: 20 },
+		budgets: { maxTicks: 30, maxTokens: 100000, requestTimeoutMs: 60000 },
+		providerId: 'mock',
+		wireModel: 'mock-1',
 		pinned: false,
 		startedAt: '2026-08-12T10:00:00Z',
 		finishedAt: '2026-08-12T10:00:05Z',
-		schemaVersion: 1
+		schemaVersion: 2
 	};
 }

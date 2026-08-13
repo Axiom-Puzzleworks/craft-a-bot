@@ -11,14 +11,15 @@ import validPackManifest from '../fixtures/pack-manifest.v1.valid.json';
 import invalidPackManifest from '../fixtures/pack-manifest.v1.invalid.json';
 import validKitFile from '../fixtures/kit-file.v1.valid.json';
 import invalidKitFile from '../fixtures/kit-file.v1.invalid.json';
-import validTraceFile from '../fixtures/trace-file.v1.valid.json';
-import invalidTraceFile from '../fixtures/trace-file.v1.invalid.json';
+import validTraceFileV1 from '../fixtures/trace-file.v1.valid.json';
+import validTraceFile from '../fixtures/trace-file.v2.valid.json';
+import invalidTraceFile from '../fixtures/trace-file.v2.invalid.json';
 
 import { agentSpecSchema } from './agent-spec.js';
 import { kitFileSchema } from './kit-file.js';
 import { packManifestMetadataSchema } from './pack-manifest.js';
 import { agentRecordSchema, storedEventSchema } from './records.js';
-import { traceFileSchema } from './trace-file.js';
+import { migrateTraceFile, traceFileSchema } from './trace-file.js';
 
 /**
  * **The compatibility contract** (`13-…` §3).
@@ -80,7 +81,7 @@ const CASES: Case[] = [
 		shareable: true
 	},
 	{
-		name: 'TraceFile v1',
+		name: 'TraceFile v2',
 		schema: traceFileSchema,
 		valid: validTraceFile,
 		invalid: invalidTraceFile,
@@ -133,6 +134,29 @@ describe('the fixture set itself', () => {
 			'StoredEvent',
 			'TraceFile'
 		]);
+	});
+
+	/**
+	 * The reason the older fixtures are kept rather than replaced: a format
+	 * that has moved on still has to be able to read what it used to write.
+	 */
+	it('still reads the v1 trace it used to write, and upgrades it', () => {
+		const migrated = migrateTraceFile(validTraceFileV1);
+		expect('kind' in migrated, JSON.stringify(migrated).slice(0, 200)).toBe(false);
+		if ('kind' in migrated) return;
+
+		expect(migrated.formatVersion).toBe(2);
+		// v1 knew who the agent was on the run; every event now says so too.
+		expect(migrated.events.every((event) => event.agentId === migrated.run.agentId)).toBe(true);
+		// What v1 genuinely did not record is admitted, not invented.
+		expect(migrated.run.providerId).toBe('unrecorded');
+		expect(migrated.run.wireModel).toBe('unrecorded');
+	});
+
+	it('refuses a trace from a format it has never heard of', () => {
+		const result = migrateTraceFile({ ...validTraceFileV1, formatVersion: 99 });
+		expect(result).toMatchObject({ kind: 'migration-error', detectedVersion: 99 });
+		expect((result as { message: string }).message).toContain('newer');
 	});
 
 	it('gives every invalid fixture a different shape from its valid twin', () => {

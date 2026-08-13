@@ -53,17 +53,16 @@ describe('the post-act hook', () => {
 	});
 
 	/**
-	 * D1, test-first. The JUDGE step runs the post-act chain and then throws the
-	 * verdict away, so a post-act rule can neither block nor stop: the run
-	 * carries on to OUT_OF_STEPS with the trip sitting in the trace looking
-	 * like it did something.
+	 * D1, closed by E1 in WP13.
 	 *
-	 * This is the defect that makes outcome monitors impossible, and the Monitor
-	 * brick (`14-…` §5.3) is built on exactly this hook. E1 fixes it in WP13;
-	 * `it.fails` until then, at which point this test starts passing and the
-	 * marker has to come off.
+	 * The JUDGE step used to run the post-act chain and throw the verdict away,
+	 * so a post-act rule could neither block nor stop: the run carried on to
+	 * OUT_OF_STEPS with the trip sitting in the trace looking like it had done
+	 * something. This test was written in WP12 marked `it.fails`; when E1
+	 * landed it started passing, the marker failed, and it was promoted here.
+	 * The Monitor brick (`14-…` §5.3) is built entirely on this hook.
 	 */
-	it.fails('ends the run when a post-act rule says stop — it does not, yet (D1)', async () => {
+	it('ends the run when a post-act rule says stop', async () => {
 		const run = await runToCompletion({
 			script: WANDER,
 			spec: buildSpec(),
@@ -74,15 +73,42 @@ describe('the post-act hook', () => {
 		expect(run.outcome).toBe('STOPPED_BY_GUARDRAIL');
 	});
 
-	it('meanwhile the run ignores it entirely — the bug, pinned', async () => {
-		// Delete this once the test above passes.
+	it('stops on the first tick it disapproves of, not at the end of the budget', async () => {
+		// The distinction that makes a monitor useful: it intervenes, rather
+		// than merely commenting on a run that was going to end anyway.
 		const run = await runToCompletion({
 			script: WANDER,
 			spec: buildSpec(),
 			guardrails: [postActStopper()],
+			maxTicks: 10
+		});
+
+		expect(run.byType('tick.started')).toHaveLength(1);
+	});
+
+	it('refuses a post-act rule that tries to block, because there is nothing left to block', async () => {
+		const blocker = {
+			...postActStopper(),
+			id: 'test/confused-monitor',
+			check: () => ({
+				allow: false as const,
+				reason: 'Too late.',
+				disposition: 'block-action' as const
+			})
+		};
+
+		const run = await runToCompletion({
+			script: WANDER,
+			spec: buildSpec(),
+			guardrails: [blocker],
 			maxTicks: 3
 		});
-		expect(run.outcome).toBe('OUT_OF_STEPS');
+
+		// Loudly, as an engine error rather than a silent no-op — quietly
+		// ignoring it is exactly what D1 was.
+		expect(run.outcome).toBe('ERROR');
+		const error = run.byType('error')[0]?.payload as { message: string } | undefined;
+		expect(error?.message).toContain('post-act');
 	});
 });
 

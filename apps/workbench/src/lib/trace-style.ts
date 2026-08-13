@@ -31,6 +31,11 @@ const LANES: Record<EventType, TraceLane> = {
 	'guardrail.tripped': 'guardrail',
 	'approval.requested': 'guardrail',
 	'approval.resolved': 'guardrail',
+	// Something said to the bot is something it perceives, so it belongs in the
+	// same lane as looking around (E2).
+	'input.delivered': 'sense',
+	// A wait forced by the provider is a thinking cost, not an error (E11).
+	'provider.retried': 'think',
 	error: 'error'
 };
 
@@ -54,6 +59,8 @@ const LABELS: Record<EventType, string> = {
 	'guardrail.tripped': 'Safety rule stopped it',
 	'approval.requested': 'Asked permission',
 	'approval.resolved': 'Permission answered',
+	'input.delivered': 'Somebody said something',
+	'provider.retried': 'Waited, then asked again',
 	error: 'Something went wrong'
 };
 

@@ -1,5 +1,6 @@
 import type { EngineEvent } from '../schemas/events.js';
 import {
+	TRACE_FORMAT_VERSION,
 	computeTraceDigest,
 	traceFileSchema,
 	type RunRecord,
@@ -32,7 +33,7 @@ export async function buildTraceFile(
 
 	return traceFileSchema.parse({
 		format: 'craftabot-trace',
-		formatVersion: 1,
+		formatVersion: TRACE_FORMAT_VERSION,
 		run: safeRun,
 		events: safeEvents,
 		traceDigest: await computeTraceDigest(safeEvents)

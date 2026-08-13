@@ -28,35 +28,17 @@ export interface WorldSenseDefinition {
 	description: string;
 }
 
-/** What a Sense brick yields for a tick — plain text for the prompt, structured data for the UI (02 §8). */
-export interface Observation {
-	channels: SenseChannelId[];
-	text: string;
-	/**
-	 * A one-line version of `text`, for the memory window.
-	 *
-	 * Remembering the full observation turned the prompt into wallpaper: each one
-	 * is a dozen lines, most of them "nothing but rug", and a window of ten made
-	 * the history **86% of the prompt** while the goal and the current situation
-	 * shrank to a footnote. The world writes the short form because only the
-	 * world knows which of its own lines carry information.
-	 *
-	 * Optional: a world that omits it simply gets the full text remembered, as
-	 * before.
-	 */
-	summary?: string;
-	data?: Record<string, unknown>;
-}
+/**
+ * `Observation` and `ActionResult` are defined once, in Zod, and inferred here
+ * (E5, `14-…` §3). They cross the trace boundary on every tick, so the schema
+ * is the type — see `schemas/shared.ts` for the shapes and the reasoning.
+ */
+import type { ActionResult, Observation } from '../schemas/shared.js';
+export type { ActionResult, Observation };
 
 export interface ActionCall {
 	name: ActionId;
 	arguments: unknown;
-}
-
-export interface ActionResult {
-	ok: boolean;
-	narration: string;
-	stateDiff?: unknown;
 }
 
 export interface WorldDefinition {

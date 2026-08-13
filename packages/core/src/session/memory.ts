@@ -45,6 +45,16 @@ export interface Memory {
 	notebook: NotebookAccess;
 	/** Count of entries currently held — reported on `memory.updated`. */
 	size(): number;
+	/**
+	 * How many lines the notebook has been written since the run began (E8).
+	 *
+	 * `memory.updated` used to report whether a notebook *existed*, so a bot
+	 * that never wrote a word claimed to update its notebook on every tick
+	 * (`12-…` D6). Counting writes lets the session say truthfully whether
+	 * anything was written *this* tick — and deliberate writes are the
+	 * provenance seed for the memory-poisoning curriculum (`14-…` §4.2).
+	 */
+	writes(): number;
 }
 
 export function createMemory(config?: { windowSize: number; notebook: boolean }): Memory {
@@ -70,7 +80,8 @@ export function createMemory(config?: { windowSize: number; notebook: boolean })
 				if (notebookEnabled) notebookLines.push(line);
 			}
 		},
-		size: () => entries.length
+		size: () => entries.length,
+		writes: () => notebookLines.length
 	};
 }
 

@@ -1,10 +1,17 @@
 import type { JsonSchema } from './json-schema.js';
+import type { ChatMessage, ChatResponse } from '../schemas/shared.js';
 
 /**
  * The LLM provider abstraction the engine consumes; packs implement it
  * (06-LLM-PROVIDERS.md §2, explicitly owned by @craftabot/core). No SDKs,
  * no provider-specific JSON escapes past the pack boundary (05-TECH-STACK.md §9).
+ *
+ * `ChatMessage` and `ChatResponse` are defined once, in Zod, and inferred here
+ * (E5, `14-…` §3): both are written verbatim into `prompt.composed` and
+ * `think.completed`, so they cross the trace boundary and the schema is the
+ * type. See `schemas/shared.ts`.
  */
+export type { ChatMessage, ChatResponse };
 export interface LLMProvider {
 	id: string; // "openai", "mock", later: "anthropic", ...
 	name: string;
@@ -21,16 +28,7 @@ export interface KeyCheck {
 	message: string;
 }
 
-export type ChatRole = 'system' | 'user' | 'assistant' | 'tool';
-
-export interface ChatMessage {
-	role: ChatRole;
-	content: string;
-	/** Present on `role: 'tool'` messages — which tool call this result answers. */
-	toolCallId?: string;
-	/** Present on `role: 'tool'` messages — the tool name. */
-	name?: string;
-}
+export type ChatRole = ChatMessage['role'];
 
 export interface ToolSchema {
 	name: string;
@@ -44,14 +42,6 @@ export interface ChatRequest {
 	tools?: ToolSchema[];
 	temperature: number;
 	maxTokens: number;
-}
-
-export interface ChatResponse {
-	text: string; // assistant prose ("thought")
-	toolCall?: { name: string; arguments: unknown } | null; // at most one honoured (V1 rule)
-	usage: { inputTokens: number; outputTokens: number };
-	raw: unknown; // exact wire response, for the trace
-	finishReason: 'stop' | 'tool_call' | 'length' | 'filtered' | 'other';
 }
 
 /** Normalised wire-failure vocabulary the UI renders in kit language (06-LLM-PROVIDERS.md §7). */

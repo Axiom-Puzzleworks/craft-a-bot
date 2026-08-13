@@ -2,7 +2,14 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { buildTraceFile, type AgentRecord, type RunRecord } from '@craftabot/core';
+	import {
+		DEFAULT_REQUEST_TIMEOUT_MS,
+		DEFAULT_TICK_BUDGET,
+		DEFAULT_TOKEN_BUDGET,
+		buildTraceFile,
+		type AgentRecord,
+		type RunRecord
+	} from '@craftabot/core';
 	import { guardrailsForSpec } from '@craftabot/governance';
 	import { chooseBrain } from '$lib/brain.js';
 	import { demoVariantFor, hasDemoPlan } from '$lib/demo-brain.js';
@@ -119,7 +126,24 @@
 		await storage.evictOldRuns();
 	}
 
+	/**
+	 * What the run recorded about itself, read back out of its own trace.
+	 *
+	 * Everything here that used to be guessed is now taken from `run.started`
+	 * (E8, `14-…` §3): the mode was hard-coded to `'step'` so a run played
+	 * straight through was filed as a stepped one (`12-…` D15), and the budgets
+	 * and the model were simply absent (D6). Deriving them from the event
+	 * rather than from the component's own state is hard rule 3 doing its job —
+	 * if it is not in an event it did not happen, and if it *is*, the record
+	 * and the trace cannot disagree.
+	 */
+	function runStartedFacts(session: SessionView) {
+		const started = session.events.find((event) => event.type === 'run.started');
+		return started?.type === 'run.started' ? started.payload : undefined;
+	}
+
 	function toRunRecord(session: SessionView, agent: AgentRecord): RunRecord {
+		const facts = runStartedFacts(session);
 		return {
 			id: session.runId ?? crypto.randomUUID(),
 			agentId: agent.id,
@@ -127,14 +151,21 @@
 			goalCardId: agent.spec.goalCardId,
 			specSnapshot: agent.spec,
 			packVersions: packVersions(),
-			mode: 'step',
+			mode: facts?.mode ?? 'step',
 			outcome: session.outcome ?? 'IN_PROGRESS',
 			ticks: session.tick,
 			usage: session.usage,
+			budgets: facts?.budgets ?? {
+				maxTicks: DEFAULT_TICK_BUDGET,
+				maxTokens: DEFAULT_TOKEN_BUDGET,
+				requestTimeoutMs: DEFAULT_REQUEST_TIMEOUT_MS
+			},
+			providerId: facts?.providerId ?? 'unrecorded',
+			wireModel: facts?.wireModel ?? 'unrecorded',
 			pinned: false,
 			startedAt: runStartedAt ?? new Date().toISOString(),
 			finishedAt: new Date().toISOString(),
-			schemaVersion: 1
+			schemaVersion: 2
 		};
 	}
 

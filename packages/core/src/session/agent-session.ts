@@ -20,7 +20,7 @@ import {
 	type Usage
 } from './budgets.js';
 import { REPROMPT_INSTRUCTION, decide, type Decision } from './decide.js';
-import { isPause, runGuardrailChain, type ChainOutcome } from './guardrail-chain.js';
+import { isAllowed, isPause, runGuardrailChain, type ChainOutcome } from './guardrail-chain.js';
 import { createMemory, type TickMemory } from './memory.js';
 import { composePrompt, describeFittedBricks, estimateTokens } from './prompt.js';
 
@@ -88,6 +88,9 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		pauseRequested: false,
 		stopRequested: undefined as string | undefined,
 		pendingApproval: undefined as ((approved: boolean) => void) | undefined,
+		/** Set by `declareOutcome` mid-tick; honoured at JUDGE (E2). */
+		declaredOutcome: undefined as RunOutcome | undefined,
+		declaredReason: undefined as string | undefined,
 		/** Things the agent should be told next turn: world refusals, guardrail denials. */
 		feedback: [] as string[],
 		inFlight: undefined as AbortController | undefined
@@ -99,6 +102,9 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		events.emit({
 			id: newId(),
 			runId,
+			// Every event says which agent it happened to (E10). One agent
+			// repeating one id today is what makes two agents cost nothing later.
+			agentId: spec.id,
 			tick: run.tick,
 			timestamp: now(),
 			type,
@@ -172,7 +178,21 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			spec,
 			usage: { ...usage },
 			worldState: world.snapshot(),
-			history: [...history],
+			/*
+			 * A view, not a copy (E9, `14-…` §3).
+			 *
+			 * This used to be `[...history]`, rebuilt for every guardrail on
+			 * every hook — three hooks a tick, four rules fitted, a history that
+			 * grows by a dozen events a tick and is inflated further by
+			 * `think.token`. That is O(events²) work to hand a pure function a
+			 * list it only ever reads (`12-…` D8).
+			 *
+			 * `ReadonlyArray` is the guarantee, and guardrails are pure by
+			 * contract (`08-…` §2), so the copy was buying nothing but time. The
+			 * one thing a guardrail must not do is keep hold of it: the array is
+			 * live and grows underneath.
+			 */
+			history,
 			...(proposed ? { proposed } : {})
 		};
 	}
@@ -199,15 +219,80 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		);
 	}
 
-	function finish(reason: RunOutcome): TickResult {
-		run.outcome = reason;
+	/**
+	 * A post-act rule may stop the run, and nothing else (E1, `14-…` §3).
+	 *
+	 * By the time this hook runs the action has already happened, so
+	 * `block-action` has nothing left to block and `pause` has nothing left to
+	 * ask about. `14-…` §3 says to reject those "at registration"; a guardrail
+	 * declares its *hooks* up front but not its *dispositions*, so the earliest
+	 * honest moment is the one where the verdict actually appears. Failing
+	 * loudly beats the alternative — quietly ignoring it is precisely the
+	 * behaviour D1 was.
+	 */
+	function rejectMeaninglessPostAct(outcome: ChainOutcome): void {
+		const verdict = outcome.verdict;
+		const blocks = 'allow' in verdict && !verdict.allow && verdict.disposition === 'block-action';
+		if (!isPause(verdict) && !blocks) return;
+		throw new Error(
+			`Guardrail "${outcome.guardrail?.id ?? 'unknown'}" returned ` +
+				`${isPause(verdict) ? 'pause' : 'block-action'} at post-act, where the action has ` +
+				'already happened. Post-act rules may allow, or stop the run.'
+		);
+	}
+
+	function finish(outcome: RunOutcome, reason?: string): TickResult {
+		run.outcome = outcome;
 		run.status = 'finished';
-		emit('run.finished', { outcome: reason, ticks: usage.ticks, usage: tokenUsage() });
-		return { tick: run.tick, outcome: reason };
+		emit('run.finished', {
+			outcome,
+			ticks: usage.ticks,
+			usage: tokenUsage(),
+			// Why it ended, when the outcome alone does not say — a declared
+			// success and a predicate success are both SUCCESS, and an audit
+			// wants to know which (E2).
+			...(reason !== undefined ? { reason } : {})
+		});
+		return { tick: run.tick, outcome };
 	}
 
 	function tokenUsage() {
 		return { inputTokens: usage.inputTokens, outputTokens: usage.outputTokens };
+	}
+
+	/** The longest we will sit and wait for a rate limit, whatever the provider asks. */
+	const MAX_RETRY_WAIT_MS = 5_000;
+
+	/**
+	 * One retry, and only for a rate limit (E11, `14-…` §3).
+	 *
+	 * `retryAfterMs` was parsed off the wire and thrown away, so "try again in
+	 * two seconds" ended the run (`12-…` D10). One bounded retry is the whole
+	 * policy: a second failure is a real failure, and a bot that quietly
+	 * retried forever would hide exactly the cost lesson this toy is for.
+	 */
+	async function callProviderWithRetry(messages: ChatMessage[]): Promise<ChatResponse> {
+		try {
+			return await callProvider(messages);
+		} catch (error) {
+			const wait = retryDelayFor(error);
+			if (wait === undefined) throw error;
+
+			emit('provider.retried', { kind: errorKind(error), afterMs: wait, attempt: 1 });
+			await new Promise((resolve) => setTimeout(resolve, wait));
+			return callProvider(messages);
+		}
+	}
+
+	/** How long to wait, or undefined when this is not a retryable failure. */
+	function retryDelayFor(error: unknown): number | undefined {
+		if (errorKind(error) !== 'rate-limited') return undefined;
+		const asked =
+			error !== null && typeof error === 'object' && 'retryAfterMs' in error
+				? (error as { retryAfterMs: unknown }).retryAfterMs
+				: undefined;
+		const requested = typeof asked === 'number' && Number.isFinite(asked) && asked >= 0 ? asked : 0;
+		return Math.min(requested, MAX_RETRY_WAIT_MS);
 	}
 
 	async function callProvider(messages: ChatMessage[]): Promise<ChatResponse> {
@@ -215,7 +300,11 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		run.inFlight = controller;
 		const timeout = setTimeout(() => controller.abort(), budgets.requestTimeoutMs);
 		try {
-			emit('think.started', { model: spec.bricks.llm?.cartridgeId ?? 'unknown' });
+			emit('think.started', {
+				wireModel: cartridgeModel(),
+				providerId: provider.id,
+				cartridgeId: spec.bricks.llm?.cartridgeId ?? ''
+			});
 			const response = await provider.chat(
 				{
 					model: cartridgeModel(),
@@ -293,6 +382,8 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 				name: call.name,
 				arguments: call.arguments,
 				result: result.output,
+				// The structured half, so a consumer need not re-parse prose (E8).
+				...(result.data !== undefined ? { data: result.data } : {}),
 				durationMs: Math.max(0, Date.now() - started)
 			});
 			return { summary: `used the ${call.name} tool`, result: result.output };
@@ -345,6 +436,9 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		usage.ticks += 1;
 		run.tick = usage.ticks;
 		emit('tick.started', {});
+		// Counted before anything happens, so "did it write this tick?" is a
+		// comparison rather than a guess (E8).
+		const notebookLinesAtTickStart = memory.writes();
 
 		// 1. SENSE
 		const channels = spec.bricks.sense?.channels ?? [];
@@ -376,12 +470,12 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		if (tokenBudgetExhausted(usage, budgets)) return finish('OUT_OF_STEPS');
 
 		// 4. THINK + 5. DECIDE, with the one permitted re-prompt on a mumble.
-		let response = await callProvider(messages);
+		let response = await callProviderWithRetry(messages);
 		let decision = decide(response, { toolNames, actionNames });
 		if (decision.kind === 'malformed') {
 			messages = [...messages, { role: 'user', content: REPROMPT_INSTRUCTION }];
 			emit('prompt.composed', { messages, estimatedTokens: estimateTokens(messages) });
-			response = await callProvider(messages);
+			response = await callProviderWithRetry(messages);
 			decision = decide(response, { toolNames, actionNames });
 		}
 
@@ -445,12 +539,38 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			emit('memory.updated', {
 				windowSize: spec.bricks.memory?.windowSize ?? 0,
 				entries: memory.size(),
-				notebookUpdated: memory.notebookEnabled
+				notebookUpdated: memory.writes() > notebookLinesAtTickStart
 			});
 		}
 
-		// 9. JUDGE
-		await runGuards('post-act');
+		/*
+		 * 9. JUDGE
+		 *
+		 * The post-act hook is where *outcome monitors* live (E1, `14-…` §3):
+		 * rules that look at what actually happened rather than at what was
+		 * proposed. Its verdict used to be computed and thrown away, so a
+		 * post-act rule could neither stop a run nor say anything that mattered
+		 * — the trace showed a check firing and the run carried blithely on
+		 * (`12-…` D1). The Monitor brick (`14-…` §5.3) is built entirely on this
+		 * hook, so it had to become real before anything could be built on it.
+		 *
+		 * Only `stop-run` means anything here. `block-action` is refused at
+		 * registration, because by this point the action has already happened
+		 * and a rule claiming to block it would be lying to the trace.
+		 */
+		const postAct = await runGuards('post-act');
+		if (!isAllowed(postAct.verdict)) {
+			rejectMeaninglessPostAct(postAct);
+			emit('tick.completed', { outcome: 'STOPPED_BY_GUARDRAIL' });
+			return finish('STOPPED_BY_GUARDRAIL');
+		}
+		// A judgement made from outside beats the world's own (E2): somebody
+		// pressed "goal achieved" while this tick was in flight.
+		if (run.declaredOutcome !== undefined) {
+			const declared = run.declaredOutcome;
+			emit('tick.completed', { outcome: declared });
+			return finish(declared, run.declaredReason);
+		}
 		if (world.test(goalCard.successCondition)) {
 			emit('tick.completed', { outcome: 'SUCCESS' });
 			return finish('SUCCESS');
@@ -514,7 +634,20 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		run.mode = runMode;
 		run.status = 'running';
 		run.tick = 0;
-		emit('run.started', { mode: runMode });
+		emit('run.started', {
+			mode: runMode,
+			// The limits and the model, recorded where the run begins (E8). An
+			// audit asks "under what constraints, and with what?" and until WP13
+			// the trace could answer neither.
+			budgets: {
+				maxTicks: budgets.maxTicks,
+				maxTokens: budgets.maxTokens,
+				requestTimeoutMs: budgets.requestTimeoutMs
+			},
+			providerId: provider.id,
+			wireModel: cartridgeModel(),
+			cartridgeId: spec.bricks.llm?.cartridgeId ?? ''
+		});
 		// The opening scene needs an event behind it too. Without this the UI would
 		// have to reach into the world to draw the first frame, and a replayer
 		// would have no starting state — both of which break hard rule 3
@@ -565,6 +698,52 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 				// A stop between ticks never reaches JUDGE, so end the run here.
 				if (run.status !== 'running') finish('STOPPED_BY_USER');
 			}
+		},
+
+		/**
+		 * Something said to the bot from outside the world (E2, `14-…` §3).
+		 *
+		 * The Hearing channel has always been able to *report* what was said,
+		 * and there has never been a way to say anything: `receiveInput` sat on
+		 * the world with no caller, because the session never exposed the world
+		 * (`12-…` D2). A sense with no input path is a sense that can only ever
+		 * report silence, which is a strange thing to charge prompt tokens for.
+		 *
+		 * Traced, because everything the bot perceives has to be in the trace —
+		 * "who told it that?" is one of the audit questions (`08-…` §4), and a
+		 * message from outside the simulation is exactly the kind of input a
+		 * governance review cares about (`19-…` §2: untrusted input is the
+		 * first link in the injection chain this toy exists to teach).
+		 */
+		deliverInput(text) {
+			if (run.status === 'finished') return;
+			world.receiveInput?.(text);
+			emit('input.delivered', { text, heard: world.receiveInput !== undefined });
+		},
+
+		/**
+		 * End the run on a judgement the world cannot make (E2, `14-…` §3).
+		 *
+		 * Free Play has no predicate — the goal is whatever the user wrote on
+		 * the card — so before this the only way out was the step budget or the
+		 * stop button, and a bot that had done exactly what was asked finished
+		 * as STOPPED_BY_USER or OUT_OF_STEPS. The scrapbook then remembered a
+		 * success as a failure, which is a poor reward for a job well done.
+		 *
+		 * The bot can also end a free-play run itself, by celebrating (E12,
+		 * WP11). Both endings are deliberate and both are traced; which one
+		 * happened is the interesting part, so `reason` records it.
+		 */
+		declareOutcome(outcome, reason) {
+			if (run.status === 'finished') return;
+			run.declaredReason = reason;
+			if (run.status === 'running') {
+				// Mid-tick: let the loop finish what it is doing and end there,
+				// so a half-performed action is never left dangling.
+				run.declaredOutcome = outcome;
+				return;
+			}
+			finish(outcome, reason);
 		}
 	};
 }

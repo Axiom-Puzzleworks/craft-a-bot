@@ -24,10 +24,13 @@ function makeRun(overrides: Partial<RunRecord> = {}): RunRecord {
 		outcome: 'SUCCESS',
 		ticks: 2,
 		usage: { inputTokens: 100, outputTokens: 20 },
+		budgets: { maxTicks: 30, maxTokens: 100000, requestTimeoutMs: 60000 },
+		providerId: 'mock',
+		wireModel: 'mock-1',
 		pinned: false,
 		startedAt: '2026-08-12T10:00:00Z',
 		finishedAt: '2026-08-12T10:00:05Z',
-		schemaVersion: 1,
+		schemaVersion: 2,
 		...overrides
 	};
 }
@@ -39,7 +42,13 @@ const events: EngineEvent[] = [
 		tick: 0,
 		timestamp: '2026-08-12T10:00:00Z',
 		type: 'run.started',
-		payload: { mode: 'step' }
+		payload: {
+			mode: 'step',
+			budgets: { maxTicks: 30, maxTokens: 100_000, requestTimeoutMs: 60_000 },
+			providerId: 'mock',
+			wireModel: 'mock-1',
+			cartridgeId: 'test/mock-brain'
+		}
 	},
 	{
 		id: '44444444-4444-4444-8444-444444444444',

@@ -10,7 +10,17 @@ const envelope = {
 
 describe('engineEventSchema', () => {
 	it('parses a run.started event', () => {
-		const event = parseEngineEvent({ ...envelope, type: 'run.started', payload: { mode: 'step' } });
+		const event = parseEngineEvent({
+			...envelope,
+			type: 'run.started',
+			payload: {
+				mode: 'step',
+				budgets: { maxTicks: 30, maxTokens: 100000, requestTimeoutMs: 60000 },
+				providerId: 'mock',
+				wireModel: 'mock-1',
+				cartridgeId: 'test/mock-brain'
+			}
+		});
 		expect(event.type).toBe('run.started');
 	});
 

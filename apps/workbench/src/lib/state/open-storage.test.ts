@@ -55,9 +55,12 @@ describe('openStorage', () => {
 			outcome: 'SUCCESS',
 			ticks: 1,
 			usage: { inputTokens: 1, outputTokens: 1 },
+			budgets: { maxTicks: 30, maxTokens: 100000, requestTimeoutMs: 60000 },
+			providerId: 'mock',
+			wireModel: 'mock-1',
 			pinned: false,
 			startedAt: '2026-08-12T10:00:00Z',
-			schemaVersion: 1
+			schemaVersion: 2
 		});
 		expect(await storage.listRuns()).toHaveLength(1);
 	});

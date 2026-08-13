@@ -1,4 +1,5 @@
 import type { AgentSpec } from '../schemas/agent-spec.js';
+import type { RunOutcome } from '../schemas/shared.js';
 import type { EventBus } from '../event-bus.js';
 import type { PackRegistry } from '../pack-registry.js';
 import type { Guardrail } from './guardrail.js';
@@ -13,8 +14,12 @@ import type { LLMProvider } from './provider.js';
  */
 export type RunMode = 'step' | 'play';
 
-export type RunOutcome =
-	'SUCCESS' | 'OUT_OF_STEPS' | 'STOPPED_BY_USER' | 'STOPPED_BY_GUARDRAIL' | 'ERROR';
+/**
+ * Defined once, in Zod, and inferred here (E5, `14-…` §3): the outcome is
+ * written into `run.finished` and into every `RunRecord`, so it crosses the
+ * trace boundary and the schema is the type. See `schemas/shared.ts`.
+ */
+export type { RunOutcome };
 
 export type SessionStatus = 'idle' | 'running' | 'paused' | 'awaiting-approval' | 'finished';
 
@@ -33,6 +38,18 @@ export interface AgentSession {
 	pause(): void;
 	resolveApproval(approved: boolean): void;
 	stop(reason?: string): void;
+	/**
+	 * Say something to the bot from outside the world — the input half of the
+	 * Hearing sense (E2, `14-…` §3). A world with no ears ignores it, and the
+	 * trace records that it did.
+	 */
+	deliverInput(text: string): void;
+	/**
+	 * End the run on a judgement the world cannot make (E2): Free Play has no
+	 * predicate, so somebody has to decide, and both the person and the bot are
+	 * allowed to. `reason` records which.
+	 */
+	declareOutcome(outcome: RunOutcome, reason?: string): void;
 }
 
 export interface SessionOptions {

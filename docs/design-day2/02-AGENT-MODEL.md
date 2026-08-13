@@ -208,6 +208,11 @@ All events share `{ id, runId, tick, timestamp, type, payload }`, strictly typed
 
 `run.started` · `run.finished` · `tick.started` · `tick.completed` · `sense` · `prompt.composed` (full messages + token estimate) · `think.started` · `think.token` (streaming deltas) · `think.completed` (raw response, usage) · `decision` (thought + parsed call) · `tool.executed` (args, result, duration) · `action.performed` (args, world narration, world-state diff) · `memory.updated` · `guardrail.checked` · `guardrail.tripped` · `approval.requested` · `approval.resolved` · `world.changed` · `error`
 
+> **Amended 2026-08-13 (WP13):** the catalogue gains one event and one payload field, both additive (E2, `14-…` §3).
+>
+> - **`input.delivered`** `{ text, heard }` — something said to the bot from outside the world, via `session.deliverInput()`. The Hearing sense could always report messages and there was no way to send one (`12-…` D2). `heard` is false when the world implements no `receiveInput`, so the trace says plainly that the message went nowhere rather than implying it landed. It is traced because untrusted input from outside the simulation is the first link in the injection chain (`19-…` §2), and "who told it that?" is an audit question.
+> - **`run.finished.reason?`** — why the run ended, when the outcome alone does not say. A goal met by the world's predicate and a goal declared finished by a person are both `SUCCESS`; `session.declareOutcome(outcome, reason)` records which.
+
 Rules: events are **append-only facts**; payloads are JSON-serialisable; the trace is simply the ordered event list of a run (persisted per `07-DATA-MODEL-PERSISTENCE.md`); _anything_ the UI shows about a run must be derivable from events — if it isn't in an event, it didn't happen.
 
 ## 8. Prompting (V1 canonical prompt)

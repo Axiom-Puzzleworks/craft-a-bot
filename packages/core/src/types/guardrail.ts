@@ -10,12 +10,14 @@ import type { WorldState } from './world.js';
  * rules against this contract, the same way pack-openai implements LLMProvider.
  * Guardrails are pure: they observe, allow, deny, or pause — never mutate.
  */
-export type GuardrailHook = 'pre-think' | 'pre-act' | 'post-act';
-
-export type GuardrailVerdict =
-	| { allow: true; note?: string }
-	| { allow: false; reason: string; disposition: 'block-action' | 'stop-run' }
-	| { pause: true; reason: string }; // → approval flow
+/**
+ * The hook names and the verdict union are defined once, in Zod, and inferred
+ * here (E5, `14-…` §3): a verdict is written into every `guardrail.checked`
+ * event, so it crosses the trace boundary and the schema is the type.
+ * `schemas/shared.ts` carries the shapes and why the union is closed.
+ */
+import type { GuardrailHook, GuardrailVerdict } from '../schemas/shared.js';
+export type { GuardrailHook, GuardrailVerdict };
 
 export interface GuardrailContext {
 	hook: GuardrailHook;
@@ -24,7 +26,14 @@ export interface GuardrailContext {
 	usage: { ticks: number; inputTokens: number; outputTokens: number };
 	proposed?: { kind: 'tool' | 'action'; name: string; arguments: unknown }; // pre-act
 	worldState: Readonly<WorldState>; // read-only snapshot
-	history: ReadonlyArray<EngineEvent>; // the trace so far
+	/**
+	 * The trace so far — a **live read-only view**, not a copy (E9).
+	 *
+	 * Read it during `check` and do not keep it: the engine appends to this
+	 * array as the run proceeds, so a reference held past the call will keep
+	 * changing under a guardrail that thought it had a snapshot.
+	 */
+	history: ReadonlyArray<EngineEvent>;
 }
 
 export interface Guardrail {

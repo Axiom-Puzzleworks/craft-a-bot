@@ -96,6 +96,24 @@ export {
 	type EngineEvent,
 	type EventType
 } from './schemas/events.js';
+/**
+ * The shapes that cross every boundary, defined once (E5, `14-…` §3). The
+ * schemas are exported alongside the types so a pack can validate what it
+ * produces against the same definition the engine infers from.
+ */
+export {
+	actionResultSchema,
+	chatMessageSchema,
+	chatResponseSchema,
+	guardrailHookSchema,
+	guardrailVerdictSchema,
+	observationSchema,
+	proposedStepSchema,
+	runOutcomeSchema,
+	usageSchema,
+	type ProposedStep,
+	type TokenUsage
+} from './schemas/shared.js';
 export {
 	kitFileSchema,
 	migrateKitFile,
@@ -131,13 +149,16 @@ export {
 export { REDACTED, containsSecret, redactSecrets } from './persistence/redact.js';
 
 export {
+	TRACE_FORMAT_VERSION,
 	computeTraceDigest,
+	migrateTraceFile,
 	parseTraceFile,
 	runRecordSchema,
 	safeParseTraceFile,
 	traceFileSchema,
 	type RunRecord,
-	type TraceFile
+	type TraceFile,
+	type TraceMigrationError
 } from './schemas/trace-file.js';
 
 // Utilities
