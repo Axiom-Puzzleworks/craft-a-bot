@@ -24,9 +24,12 @@ export interface Preferences {
 	reducedMotion: boolean;
 	tickSpeed: number;
 	sound: boolean;
+	/** Whether the story strip is read aloud (`16-…` §1.3). */
+	readAloud: boolean;
 	setReducedMotion(value: boolean): void;
 	setTickSpeed(value: number): void;
 	setSound(value: boolean): void;
+	setReadAloud(value: boolean): void;
 	/** Play a cue, if sound is on. Safe to call from anywhere. */
 	cue(name: SoundCue): void;
 }
@@ -41,7 +44,8 @@ export function createPreferences(store?: SettingsStore, player?: SoundPlayer): 
 	const state = $state({
 		reducedMotion: initial.reducedMotion,
 		tickSpeed: initial.tickSpeed,
-		sound: initial.sound
+		sound: initial.sound,
+		readAloud: initial.readAloud
 	});
 
 	return {
@@ -69,6 +73,13 @@ export function createPreferences(store?: SettingsStore, player?: SoundPlayer): 
 			// Play the click that turned it on, so the switch demonstrates itself.
 			if (value) sound.play('click');
 		},
+		get readAloud() {
+			return state.readAloud;
+		},
+		setReadAloud(value) {
+			state.readAloud = value;
+			settings.update({ readAloud: value });
+		},
 		cue(name) {
 			sound.play(name);
 		}
@@ -88,8 +99,12 @@ export const preferences: Preferences = {
 	get sound() {
 		return (shared ??= createPreferences()).sound;
 	},
+	get readAloud() {
+		return (shared ??= createPreferences()).readAloud;
+	},
 	setReducedMotion: (value) => (shared ??= createPreferences()).setReducedMotion(value),
 	setTickSpeed: (value) => (shared ??= createPreferences()).setTickSpeed(value),
 	setSound: (value) => (shared ??= createPreferences()).setSound(value),
+	setReadAloud: (value) => (shared ??= createPreferences()).setReadAloud(value),
 	cue: (name) => (shared ??= createPreferences()).cue(name)
 };

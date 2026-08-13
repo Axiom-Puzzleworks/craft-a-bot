@@ -23,6 +23,7 @@
 	import EndCard from '$lib/components/play/EndCard.svelte';
 	import HeadUp from '$lib/components/play/HeadUp.svelte';
 	import RunControls from '$lib/components/play/RunControls.svelte';
+	import StoryStrip from '$lib/components/play/StoryStrip.svelte';
 	import ThoughtBubble from '$lib/components/play/ThoughtBubble.svelte';
 	import WorldView from '$lib/components/play/WorldView.svelte';
 	import TraceDrawer from '$lib/components/trace/TraceDrawer.svelte';
@@ -47,6 +48,11 @@
 	let runStartedAt = $state<string | undefined>(undefined);
 	let missingBattery = $state(false);
 	let keyless = $state(true);
+	/**
+	 * Where the Flight Recorder should open when a story beat says "see more"
+	 * (`16-…` §1.3) — the bridge from the child's trace to the real one.
+	 */
+	let traceOpenAt = $state<number | undefined>(undefined);
 
 	const goalCard = $derived(record ? registry.getGoalCard(record.spec.goalCardId) : undefined);
 	const goalText = $derived(
@@ -264,6 +270,11 @@
 		<div class="stage">
 			<section class="world" aria-label="The Playroom">
 				<WorldView world={view.world} saying={view.saying} />
+				<StoryStrip
+					events={view.events}
+					readAloud={preferences.readAloud}
+					onseemore={(eventIndex) => (traceOpenAt = eventIndex)}
+				/>
 			</section>
 
 			<aside class="side">
@@ -296,7 +307,7 @@
 			</aside>
 		</div>
 
-		<TraceDrawer events={view.events} onexport={exportTrace} />
+		<TraceDrawer events={view.events} openAt={traceOpenAt} onexport={exportTrace} />
 	</main>
 
 	{#if view.outcome && !dismissedEndCard}

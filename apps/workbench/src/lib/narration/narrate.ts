@@ -66,18 +66,40 @@ const ICONS: Record<BeatKind, string> = {
 	ended: '🏁'
 };
 
-/** Ends a sentence without doubling up on punctuation somebody else supplied. */
+/**
+ * Ends a sentence without doubling up on punctuation somebody else supplied.
+ *
+ * The ellipsis counts as an ending. Without that, a truncated caption came out
+ * as "the she…." — which looked like a bug because it was one.
+ */
 function sentence(text: string): string {
 	const trimmed = text.trim();
 	if (trimmed === '') return '';
-	return /[.!?]$/.test(trimmed) ? trimmed : `${trimmed}.`;
+	return /[.!?…]$/.test(trimmed) ? trimmed : `${trimmed}.`;
 }
 
 /** Long thoughts become a first line; the trace keeps the whole of it. */
-function shorten(text: string, limit = 120): string {
+function shorten(text: string, limit = 100): string {
 	const clean = text.trim().replace(/\s+/g, ' ');
 	if (clean.length <= limit) return clean;
 	return `${clean.slice(0, limit - 1).trimEnd()}…`;
+}
+
+/**
+ * The first thing the world mentions, and no more.
+ *
+ * The observation summary is written for the *memory window* — WP11 packed it
+ * with position and bearings so a bot could navigate from it, and it reads
+ * "at column 2, row 5 you could see nothing nearby; your hands were empty; big
+ * things: the toy chest to the north…". That is exactly right in a prompt and
+ * hopeless on a strip built for a five-year-old, so the strip takes the leading
+ * clause. The whole of it is one tap away in the Flight Recorder.
+ */
+function firstClause(text: string, limit: number): string {
+	const clean = text.trim().replace(/\s+/g, ' ');
+	const semicolon = clean.indexOf(';');
+	const head = semicolon === -1 ? clean : clean.slice(0, semicolon);
+	return shorten(head, limit);
 }
 
 /** `starter/playroom/pick_up` → "pick up". Wire names are not child-facing. */
@@ -115,7 +137,7 @@ function beatFor(event: EngineEvent, eventIndex: number): Beat | undefined {
 
 		case 'sense': {
 			const { summary, text } = event.payload.observation;
-			return at('saw', sentence(shorten(summary ?? text)));
+			return at('saw', sentence(firstClause(summary ?? text, 80)));
 		}
 
 		case 'decision':
