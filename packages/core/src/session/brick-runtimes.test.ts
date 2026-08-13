@@ -12,6 +12,7 @@ import {
 	buildRuntimes,
 	collectCalls,
 	collectContext,
+	collectSenses,
 	disposeRuntimes,
 	notifyTickEnd
 } from './brick-runtimes.js';
@@ -320,6 +321,25 @@ describe('collecting what the bricks offer', () => {
 				)
 			).toolIds
 		).toEqual(['test/calculator', 'test/calculator']);
+	});
+});
+
+describe('collecting what the bricks can sense', () => {
+	const opens = (...channels: string[]): BrickRuntime => ({ contributeSenses: () => channels });
+
+	it('gathers channels in slot order', () => {
+		expect(
+			collectSenses([
+				{ slot: 'perception', kind: 'test/visor', name: 'v', runtime: opens('sight') },
+				{ slot: 'equipment', kind: 'test/radar', name: 'r', runtime: opens('radar/sweep') }
+			])
+		).toEqual(['sight', 'radar/sweep']);
+	});
+
+	it('asks nothing of a brick with no senses to open', () => {
+		expect(collectSenses([{ slot: 'brain', kind: 'test/brain', name: 'b', runtime: {} }])).toEqual(
+			[]
+		);
 	});
 });
 

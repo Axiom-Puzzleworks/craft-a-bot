@@ -115,7 +115,16 @@ export const starterBrickKinds: BrickKindDefinition[] = [
 		configSchema: senseBrickSchema,
 		configVersion: 1,
 		defaults: { channels: [qualifyPlayroomId('sight'), qualifyPlayroomId('compass')] },
-		describeFitted: (config: { channels: string[] }) => (config.channels.length > 0 ? 'senses' : '')
+		describeFitted: (config: { channels: string[] }) =>
+			config.channels.length > 0 ? 'senses' : '',
+		/*
+		 * Which channels the visor opens. What each one *shows* is the world's
+		 * business — a brick that returned observations would be a second way of
+		 * seeing alongside `WorldInstance.observe`.
+		 */
+		createRuntime: (config: { channels: string[] }) => ({
+			contributeSenses: () => config.channels
+		})
 	} as BrickKindDefinition,
 	{
 		id: 'starter/actions',

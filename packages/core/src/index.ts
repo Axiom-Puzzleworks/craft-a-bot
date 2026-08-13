@@ -209,6 +209,13 @@ export {
 	type TickContext,
 	type TickRecord
 } from './types/brick.js';
+export {
+	brainSlotSchema,
+	memorySlotSchema,
+	slotConfig,
+	type BrainSlotConfig,
+	type MemorySlotConfig
+} from './schemas/slot-contracts.js';
 export { validateSpec } from './validate-spec.js';
 export { validateSpecV2 } from './validate-spec-v2.js';
 
@@ -233,6 +240,7 @@ export {
 	buildRuntimes,
 	collectCalls,
 	collectContext,
+	collectSenses,
 	disposeRuntimes,
 	notifyTickEnd,
 	type BuildRuntimesOptions,

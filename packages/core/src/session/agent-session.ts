@@ -1,5 +1,11 @@
 import { createEventBus, type EventBus } from '../event-bus.js';
-import { asLegacySpec } from '../schemas/agent-spec-v2.js';
+import { toSpecV2 } from '../schemas/agent-spec-v2.js';
+import {
+	brainSlotSchema,
+	memorySlotSchema,
+	slotConfig,
+	type BrainSlotConfig
+} from '../schemas/slot-contracts.js';
 import type { GoalCardDefinition } from '../schemas/pack-manifest.js';
 import type { EngineEvent, EventType } from '../schemas/events.js';
 import type {
@@ -26,6 +32,7 @@ import {
 	buildRuntimes,
 	collectCalls,
 	collectContext,
+	collectSenses,
 	disposeRuntimes,
 	notifyTickEnd
 } from './brick-runtimes.js';
@@ -62,15 +69,16 @@ function errorKind(error: unknown): string {
 export function createSession(deps: CreateSessionDeps): AgentSession {
 	const { registry, provider, guardrails, options = {} } = deps;
 	/*
-	 * Either spec shape is accepted and normalised here (WP14 slice 2b).
+	 * Either spec shape, normalised to v2 (WP14 slice 3c).
 	 *
-	 * A bot saved before the open brick contract is a v1 spec; a bot built
-	 * today is v2. Rather than convert every consumer in one change — and have
-	 * nothing work in between — each one normalises at its own door. The
-	 * six-key view is a transition shim that slice 3 deletes, when bricks start
-	 * contributing through their runtimes instead.
+	 * Until this slice the loop looked at a bot through v1's six-key window —
+	 * `asLegacySpec` — because everything in here read bricks by name. Nothing
+	 * does any more: the bricks contribute, and the two sockets whose config
+	 * core genuinely needs are read through slot contracts. The shim is gone
+	 * from the engine, and a bot saved before the open contract still runs
+	 * because the migration is what it was always for.
 	 */
-	const spec = asLegacySpec(deps.spec);
+	const spec = toSpecV2(deps.spec);
 	const newId = options.newId ?? (() => crypto.randomUUID());
 	const now = options.now ?? (() => new Date().toISOString());
 	const random = options.random ?? (() => Math.random());
@@ -78,8 +86,19 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 
 	const goalCard = requireGoalCard(registry.getGoalCard(spec.goalCardId), spec.goalCardId);
 	const world = createWorld(goalCard);
-	const budgets = resolveBudgets(spec, options.budgets);
-	const memory = createMemory(spec.bricks.memory);
+	const budgets = resolveBudgets(deps.spec, options.budgets);
+	/*
+	 * The two sockets core reads rather than is contributed to (slice 3c). See
+	 * `schemas/slot-contracts.ts` for why these are not hooks.
+	 */
+	const brain: BrainSlotConfig | undefined = slotConfig(
+		deps.spec,
+		registry,
+		'brain',
+		brainSlotSchema
+	);
+	const memoryConfig = slotConfig(deps.spec, registry, 'memory', memorySlotSchema);
+	const memory = createMemory(memoryConfig);
 	const events: EventBus = createEventBus();
 	const runId = newId();
 
@@ -105,6 +124,8 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 	 * model has always been offered.
 	 */
 	const offered = collectCalls(runtimes);
+	/** Which channels the perception bricks opened (slice 3c). */
+	const senseChannels = collectSenses(runtimes);
 	const { toolSchemas, toolsByWireName } = resolveTools(offered.toolIds);
 	const { actionSchemas, actionNames, worldActionNames } = resolveActions(offered.actionIds);
 	const callSchemas: ToolSchema[] = [...toolSchemas, ...actionSchemas];
@@ -416,15 +437,15 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			emit('think.started', {
 				wireModel: cartridgeModel(),
 				providerId: provider.id,
-				cartridgeId: spec.bricks.llm?.cartridgeId ?? ''
+				cartridgeId: brain?.cartridgeId ?? ''
 			});
 			const response = await provider.chat(
 				{
 					model: cartridgeModel(),
 					messages,
 					...(callSchemas.length > 0 ? { tools: callSchemas } : {}),
-					temperature: spec.bricks.llm?.temperature ?? 0,
-					maxTokens: spec.bricks.llm?.maxTokens ?? 256
+					temperature: brain?.temperature ?? 0,
+					maxTokens: brain?.maxTokens ?? 256
 				},
 				{
 					signal: controller.signal,
@@ -442,7 +463,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 	}
 
 	function cartridgeModel(): string {
-		const cartridgeId = spec.bricks.llm?.cartridgeId;
+		const cartridgeId = brain?.cartridgeId;
 		return (cartridgeId ? registry.getCartridge(cartridgeId)?.model : undefined) ?? 'mock';
 	}
 
@@ -554,7 +575,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		const notebookLinesAtTickStart = memory.writes();
 
 		// 1. SENSE
-		const channels = spec.bricks.sense?.channels ?? [];
+		const channels = senseChannels;
 		// The world names its senses in its own terms; the spec names them in
 		// the registry's (E6). The event records what the brick declares.
 		const worldChannels = senseChannelsForWorld(channels);
@@ -660,7 +681,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		if (memory.enabled) {
 			memory.remember(record);
 			emit('memory.updated', {
-				windowSize: spec.bricks.memory?.windowSize ?? 0,
+				windowSize: memoryConfig?.windowSize ?? 0,
 				entries: memory.size(),
 				notebookUpdated: memory.writes() > notebookLinesAtTickStart
 			});
@@ -769,7 +790,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			},
 			providerId: provider.id,
 			wireModel: cartridgeModel(),
-			cartridgeId: spec.bricks.llm?.cartridgeId ?? ''
+			cartridgeId: brain?.cartridgeId ?? ''
 		});
 		// The opening scene needs an event behind it too. Without this the UI would
 		// have to reach into the world to draw the first frame, and a replayer

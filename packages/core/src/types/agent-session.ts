@@ -1,4 +1,3 @@
-import type { AgentSpec } from '../schemas/agent-spec.js';
 import type { AnyAgentSpec } from '../schemas/agent-spec-v2.js';
 import type { RunOutcome } from '../schemas/shared.js';
 import type { EventBus } from '../event-bus.js';
@@ -31,7 +30,8 @@ export interface TickResult {
 }
 
 export interface AgentSession {
-	readonly spec: AgentSpec;
+	/** The bot being run, in whichever shape it was handed over (WP14 slice 3c). */
+	readonly spec: AnyAgentSpec;
 	readonly status: SessionStatus;
 	readonly events: EventBus; // subscribe from UI / trace / guardrails
 	start(mode: RunMode): void;
