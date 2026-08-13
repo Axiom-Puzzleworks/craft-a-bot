@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { BrickKind } from '$lib/bricks.js';
+	import type { SlotId } from '@craftabot/core';
 
 	/**
 	 * The socket negative: a recessed silhouette of the part that belongs here
@@ -8,14 +8,15 @@
 	 * where it belongs, and an empty socket already tells you what is missing.
 	 */
 	interface Props {
-		kind: BrickKind;
+		/** Which socket this is — the hole belongs to the chassis, not to a brick. */
+		slot: SlotId;
 		state?: 'empty' | 'candidate' | 'rejecting' | 'occupied';
 	}
 
-	let { kind, state = 'empty' }: Props = $props();
+	let { slot, state = 'empty' }: Props = $props();
 </script>
 
-<span class="socket socket--{kind} socket--{state}" aria-hidden="true"></span>
+<span class="socket socket--{slot} socket--{state}" aria-hidden="true"></span>
 
 <style>
 	.socket {
@@ -45,23 +46,23 @@
 		box-shadow: none;
 	}
 
-	.socket--llm {
-		--socket-colour: var(--cab-brick-llm);
+	.socket--brain {
+		--socket-colour: var(--cab-brick-slot-brain);
 	}
 	.socket--memory {
-		--socket-colour: var(--cab-brick-memory);
+		--socket-colour: var(--cab-brick-slot-memory);
 	}
-	.socket--tools {
-		--socket-colour: var(--cab-brick-tools);
+	.socket--equipment {
+		--socket-colour: var(--cab-brick-slot-equipment);
 	}
-	.socket--sense {
-		--socket-colour: var(--cab-brick-sense);
+	.socket--perception {
+		--socket-colour: var(--cab-brick-slot-perception);
 	}
-	.socket--actions {
-		--socket-colour: var(--cab-brick-actions);
+	.socket--mobility {
+		--socket-colour: var(--cab-brick-slot-mobility);
 	}
 	.socket--safety {
-		--socket-colour: var(--cab-brick-safety);
+		--socket-colour: var(--cab-brick-slot-safety);
 	}
 
 	@media (prefers-reduced-motion: reduce) {

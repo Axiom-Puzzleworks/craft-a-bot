@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { BRICK_ORDER, SOCKET_LABELS, brickDefinition, type BrickKind } from '$lib/bricks.js';
+	import type { SlotId } from '@craftabot/core';
+	import { SLOT_ORDER, SOCKET_LABELS, SOCKET_PLACEMENT } from '$lib/bricks.js';
 	import type { DndController } from '$lib/dnd/dnd-state.svelte.js';
 	import { draggable } from '$lib/dnd/draggable.svelte.js';
 	import { dropzone } from '$lib/dnd/dropzone.svelte.js';
@@ -10,47 +11,43 @@
 	 * The baseplate (03-UI-UX-DESIGN.md §4.2): the bot chassis with shaped
 	 * sockets, so a piece only fits where it belongs. The bricks visually become
 	 * body parts — head, backpack, belt, visor, wheels, chest.
+	 *
+	 * > **Amended 2026-08-13 (WP14 slice 4b):** the sockets are the **six slot
+	 * > families** core owns (`14-…` §2.3), not six named bricks. The chassis was
+	 * > always the fixed part of this — what changed is that it no longer implies
+	 * > there is exactly one brick that can go in each hole.
 	 */
 	interface Props {
 		controller: DndController;
-		isFitted: (kind: BrickKind) => boolean;
-		selected: BrickKind | undefined;
-		onselect: (kind: BrickKind) => void;
-		onremove: (kind: BrickKind) => void;
+		/** What is in a socket right now, if anything. */
+		fittedIn: (slot: SlotId) => { kindId: string; name: string } | undefined;
+		selected: SlotId | undefined;
+		onselect: (slot: SlotId) => void;
+		onremove: (slot: SlotId) => void;
 	}
 
-	let { controller, isFitted, selected, onselect, onremove }: Props = $props();
+	let { controller, fittedIn, selected, onselect, onremove }: Props = $props();
 
-	/** Grid placement on the chassis, roughly where that body part would be. */
-	const PLACEMENT: Record<BrickKind, string> = {
-		llm: 'head',
-		sense: 'visor',
-		memory: 'backpack',
-		tools: 'belt',
-		safety: 'chest',
-		actions: 'wheels'
-	};
-
-	function socketState(kind: BrickKind): 'empty' | 'candidate' | 'rejecting' | 'occupied' {
-		if (controller.candidate === kind) return 'candidate';
-		if (controller.rejecting === kind) return 'rejecting';
-		if (isFitted(kind)) return 'occupied';
+	function socketState(slot: SlotId): 'empty' | 'candidate' | 'rejecting' | 'occupied' {
+		if (controller.candidate === slot) return 'candidate';
+		if (controller.rejecting === slot) return 'rejecting';
+		if (fittedIn(slot)) return 'occupied';
 		return 'empty';
 	}
 
-	function onKeyDown(event: KeyboardEvent, kind: BrickKind): void {
+	function onKeyDown(event: KeyboardEvent, slot: SlotId): void {
 		// Mid-carry the page handler owns the keyboard — see PartsTray for why.
 		if (controller.carrying) return;
 
 		if (event.key === 'Enter' || event.key === ' ') {
 			event.preventDefault();
 			event.stopPropagation();
-			if (isFitted(kind)) onselect(kind);
+			if (fittedIn(slot)) onselect(slot);
 			return;
 		}
-		if ((event.key === 'Delete' || event.key === 'Backspace') && isFitted(kind)) {
+		if ((event.key === 'Delete' || event.key === 'Backspace') && fittedIn(slot)) {
 			event.preventDefault();
-			onremove(kind);
+			onremove(slot);
 		}
 	}
 </script>
@@ -58,35 +55,39 @@
 <div class="baseplate" data-testid="baseplate" data-tutorial="baseplate">
 	<p class="chassis-label" aria-hidden="true">Baseplate</p>
 
-	{#each BRICK_ORDER as kind (kind)}
-		{@const brick = brickDefinition(kind)}
-		{@const fitted = isFitted(kind)}
-		{@const state = socketState(kind)}
+	{#each SLOT_ORDER as slot (slot)}
+		{@const occupant = fittedIn(slot)}
+		{@const state = socketState(slot)}
 		<div
-			class="socket socket--{PLACEMENT[kind]}"
-			data-testid="socket-{kind}"
+			class="socket socket--{SOCKET_PLACEMENT[slot]}"
+			data-testid="socket-{slot}"
 			data-state={state}
-			data-fitted={fitted}
-			{@attach dropzone(kind, controller)}
+			data-fitted={occupant !== undefined}
+			{@attach dropzone(slot, controller)}
 		>
-			<SocketShape {kind} {state} />
+			<SocketShape {slot} {state} />
 			<button
 				type="button"
 				class="slot"
-				class:slot--selected={selected === kind}
-				aria-label="{SOCKET_LABELS[kind]} socket. {fitted
-					? `${brick.name} fitted. Press Enter to open its panel, Delete to take it off.`
-					: `Empty — takes the ${brick.name}.`}"
-				aria-pressed={fitted}
-				onclick={() => (fitted ? onselect(kind) : undefined)}
-				onkeydown={(event) => onKeyDown(event, kind)}
-				{@attach draggable({ kind, origin: 'socket', controller, disabled: () => !fitted })}
+				class:slot--selected={selected === slot}
+				aria-label="{SOCKET_LABELS[slot]} socket. {occupant
+					? `${occupant.name} fitted. Press Enter to open its panel, Delete to take it off.`
+					: 'Empty.'}"
+				aria-pressed={occupant !== undefined}
+				onclick={() => (occupant ? onselect(slot) : undefined)}
+				onkeydown={(event) => onKeyDown(event, slot)}
+				{@attach draggable({
+					brick: { kindId: occupant?.kindId ?? '', slot, name: occupant?.name ?? '' },
+					origin: 'socket',
+					controller,
+					disabled: () => fittedIn(slot) === undefined
+				})}
 			>
-				{#if fitted}
-					<BrickShape {kind} fitted />
-					<span class="fitted-name">{brick.name}</span>
+				{#if occupant}
+					<BrickShape kindId={occupant.kindId} {slot} fitted />
+					<span class="fitted-name">{occupant.name}</span>
 				{:else}
-					<span class="socket-name">{SOCKET_LABELS[kind]}</span>
+					<span class="socket-name">{SOCKET_LABELS[slot]}</span>
 				{/if}
 			</button>
 		</div>

@@ -1,61 +1,99 @@
 <script lang="ts">
-	import { BRICK_ORDER, brickDefinition, type BrickKind } from '$lib/bricks.js';
-	import type { DndController } from '$lib/dnd/dnd-state.svelte.js';
+	import type { BrickKindDefinition, SlotId } from '@craftabot/core';
+	import { SLOT_ORDER, SOCKET_LABELS } from '$lib/bricks.js';
+	import { createRegistry } from '$lib/packs.js';
+	import type { CarriedBrick, DndController } from '$lib/dnd/dnd-state.svelte.js';
 	import { draggable } from '$lib/dnd/draggable.svelte.js';
 	import BrickShape from '$lib/components/kit/BrickShape.svelte';
 
 	/**
 	 * The parts tray (03-UI-UX-DESIGN.md §4.1): a moulded tray with one well per
-	 * brick type. A fitted brick leaves an empty well with its silhouette still
+	 * brick. A fitted brick leaves an empty well with its silhouette still
 	 * showing, so you can always see what came out of the box.
+	 *
+	 * > **Amended 2026-08-13 (WP14 slice 4b):** the wells come from the
+	 * > **registry**, in socket order, rather than from a hard-coded list of six.
+	 * > Install an expansion pack and its bricks are in the tray; that is the
+	 * > whole of what "the box can hold a seventh brick" means to a builder.
+	 * >
+	 * > A well is disabled when its *socket* is occupied — by anything, not only
+	 * > by itself. V1's one-brick-per-socket rule (`14-…` §2.3) means a Monitor
+	 * > cannot go in while the Safety Brick is in, and the well says which brick
+	 * > is in the way rather than simply refusing.
 	 */
 	interface Props {
 		controller: DndController;
-		isFitted: (kind: BrickKind) => boolean;
-		onselect: (kind: BrickKind) => void;
+		/** What is in a socket right now, if anything. */
+		fittedIn: (slot: SlotId) => { kindId: string; name: string } | undefined;
+		onselect: (slot: SlotId) => void;
 	}
 
-	let { controller, isFitted, onselect }: Props = $props();
+	let { controller, fittedIn, onselect }: Props = $props();
 
-	function onKeyDown(event: KeyboardEvent, kind: BrickKind): void {
+	const registry = createRegistry();
+
+	/** Every installed kind, grouped the way the chassis is read: top to bottom. */
+	const kinds = $derived(SLOT_ORDER.flatMap((slot) => registry.listBrickKinds(slot)));
+
+	const carried = (kind: BrickKindDefinition): CarriedBrick => ({
+		kindId: kind.id,
+		slot: kind.slot,
+		name: kind.name
+	});
+
+	function onKeyDown(event: KeyboardEvent, kind: BrickKindDefinition): void {
 		// Already carrying? Let the press bubble to the page handler, which aims
 		// and places. Without this guard the tray would re-lift on every Enter and
 		// the brick could never be put down.
 		if (controller.carrying) return;
-		if (isFitted(kind)) return;
+		if (fittedIn(kind.slot)) return;
 		if (event.key === 'Enter' || event.key === ' ') {
 			event.preventDefault();
 			// Stop the *same* press reaching the page handler, which would see a
 			// carry in progress and place the brick instantly — lifting and
 			// dropping in one keystroke.
 			event.stopPropagation();
-			controller.liftWithKeyboard(kind, 'tray');
+			controller.liftWithKeyboard(carried(kind), 'tray');
 		}
+	}
+
+	/** Why a well is closed, in the builder's words. */
+	function unavailable(kind: BrickKindDefinition, occupant: { kindId: string; name: string }) {
+		return occupant.kindId === kind.id
+			? 'Already fitted to your bot.'
+			: `The ${occupant.name} is in the ${SOCKET_LABELS[kind.slot]} socket. Take it off first.`;
 	}
 </script>
 
 <ul class="tray" data-testid="parts-tray">
-	{#each BRICK_ORDER as kind (kind)}
-		{@const brick = brickDefinition(kind)}
-		{@const fitted = isFitted(kind)}
-		<li class="well" class:well--empty={fitted}>
+	{#each kinds as kind (kind.id)}
+		{@const occupant = fittedIn(kind.slot)}
+		{@const isThisOne = occupant?.kindId === kind.id}
+		<li class="well" class:well--empty={occupant !== undefined}>
 			<button
 				type="button"
 				class="part"
-				data-testid="tray-{kind}"
-				data-tutorial="tray-{kind}"
-				data-fitted={fitted}
-				aria-label="{brick.name}. {fitted
-					? 'Already fitted to your bot.'
-					: `${brick.description} Press Enter to pick it up.`}"
-				disabled={fitted}
-				onclick={() => onselect(kind)}
+				data-testid="tray-{kind.id}"
+				data-tutorial="tray-{kind.id}"
+				data-fitted={isThisOne}
+				aria-label="{kind.name}. {occupant
+					? unavailable(kind, occupant)
+					: `${kind.description} Press Enter to pick it up.`}"
+				disabled={occupant !== undefined}
+				onclick={() => onselect(kind.slot)}
 				onkeydown={(event) => onKeyDown(event, kind)}
-				{@attach draggable({ kind, origin: 'tray', controller, disabled: () => fitted })}
+				{@attach draggable({
+					brick: carried(kind),
+					origin: 'tray',
+					controller,
+					disabled: () => fittedIn(kind.slot) !== undefined
+				})}
 			>
-				<span class="art"><BrickShape {kind} /></span>
-				<span class="name">{brick.name}</span>
-				<span class="whisper">{fitted ? 'Fitted' : brick.description}</span>
+				<span class="art"><BrickShape kindId={kind.id} slot={kind.slot} /></span>
+				<span class="name">{kind.name}</span>
+				<span class="whisper">
+					{#if isThisOne}Fitted{:else if occupant}Socket taken{:else}{kind.description}{/if}
+				</span>
 			</button>
 		</li>
 	{/each}

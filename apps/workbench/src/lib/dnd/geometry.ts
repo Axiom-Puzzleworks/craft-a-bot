@@ -1,4 +1,4 @@
-import type { BrickKind } from '$lib/bricks.js';
+import type { SlotId } from '@craftabot/core';
 
 /**
  * The decision-making half of drag and drop, as pure functions.
@@ -7,6 +7,12 @@ import type { BrickKind } from '$lib/bricks.js';
  * brick, which one is nearest, whether it is close enough to snap — is decided
  * here, with no DOM and no state. That makes the fiddly part unit-testable, and
  * leaves the attachments as thin wiring (05-TECH-STACK.md §5).
+ *
+ * > **Amended 2026-08-13 (WP14 slice 4b):** a socket is a `SlotId` rather than a
+ * > brick name. The two were the same thing while there was exactly one kind per
+ * > socket; they are not, now that a socket is a *family* an expansion pack can
+ * > add to. A carry names the kind being dragged and the socket it belongs in,
+ * > and everything here reasons about the socket.
  */
 
 /** Proximity snap radius (05 §5). Generous enough to feel magnetic, tight enough to be predictable. */
@@ -27,7 +33,7 @@ export interface Point {
 }
 
 export interface SocketBounds {
-	kind: BrickKind;
+	slot: SlotId;
 	/** Viewport rectangle, as `getBoundingClientRect()` gives it. */
 	rect: { left: number; top: number; right: number; bottom: number };
 }
@@ -62,14 +68,15 @@ export function distanceToRect(rect: SocketBounds['rect'], point: Point): number
 /**
  * The socket a brick would snap into from this pointer position, or undefined.
  *
- * A socket only accepts its own kind — the "piece only fits where it belongs"
- * affordance (03-UI-UX-DESIGN.md §4.2) — so an incompatible socket is never a
- * candidate, however close the pointer is. Ties go to the nearest; equal
- * distances go to the first registered, which keeps the result deterministic.
+ * A socket only accepts bricks belonging to it — the "piece only fits where it
+ * belongs" affordance (03-UI-UX-DESIGN.md §4.2) — so an incompatible socket is
+ * never a candidate, however close the pointer is. Ties go to the nearest;
+ * equal distances go to the first registered, which keeps the result
+ * deterministic.
  */
 export function findSnapTarget(
 	sockets: readonly SocketBounds[],
-	kind: BrickKind,
+	slot: SlotId,
 	point: Point,
 	radius = SNAP_RADIUS
 ): SocketBounds | undefined {
@@ -77,7 +84,7 @@ export function findSnapTarget(
 	let bestDistance = Number.POSITIVE_INFINITY;
 
 	for (const socket of sockets) {
-		if (socket.kind !== kind) continue;
+		if (socket.slot !== slot) continue;
 		const gap = distanceToRect(socket.rect, point);
 		if (gap > radius) continue;
 		if (gap < bestDistance) {

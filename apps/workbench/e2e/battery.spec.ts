@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { skipTutorial } from './support.js';
+import { BRICKS, skipTutorial } from './support.js';
 
 /**
  * The battery compartment (03-UI-UX-DESIGN.md §7) and the "batteries not
@@ -37,17 +37,17 @@ async function buildBot(page: Page, cartridgeLabel: string): Promise<string> {
 	await expect(page.getByTestId('baseplate')).toBeVisible();
 
 	for (const kind of ['llm', 'sense', 'actions']) {
-		await page.getByTestId(`tray-${kind}`).focus();
+		await page.getByTestId(`tray-${BRICKS[kind].id}`).focus();
 		await page.keyboard.press('Enter');
 		for (let step = 0; step < 8; step++) {
 			const said = await page.getByTestId('announcer').textContent();
-			if (said?.includes(`${kind} socket — this one fits`)) break;
+			if (said?.includes(`${BRICKS[kind].socket} socket — this one fits`)) break;
 			await page.keyboard.press('ArrowDown');
 		}
 		await page.keyboard.press('Enter');
 	}
 
-	await page.getByTestId('socket-llm').getByRole('button').click();
+	await page.getByTestId('socket-brain').getByRole('button').click();
 	await page.getByTestId('cartridge-select').selectOption({ label: cartridgeLabel });
 	return page.url();
 }

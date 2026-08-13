@@ -1,59 +1,61 @@
-import type { BrickDefinition, SlotId } from '@craftabot/core';
-import { starterBricks } from '@craftabot/pack-starter';
+import { SLOT_IDS, type SlotId } from '@craftabot/core';
 
 /**
- * The bench's view of the six brick types: which socket each one snaps into,
- * and the order they sit in the parts tray.
+ * **The bench's arrangement of the chassis** (WP14 slice 4b).
  *
- * The *content* (names, descriptions, flip-side copy) comes from the pack — this
- * is only the bench's arrangement of it, which is UI, not pack content.
+ * This file used to be keyed by `BrickKind` — V1's six brick names, taken from
+ * `BrickDefinition['kind']`, which is to say from a closed union in a pack. That
+ * made the tray, the sockets, the drag-and-drop machine and the box lid all
+ * things that could hold exactly six bricks and no seventh: `12-…` D11 in the
+ * furniture rather than in the engine.
+ *
+ * It is keyed by **socket** now. Core owns the six slot families (`14-…` §2.3)
+ * and a socket is a permanent feature of the chassis, so this is a fixed list
+ * and always will be — but *what may go in one* comes from the registry, so an
+ * expansion pack's brick reaches the tray without a line of this changing.
+ *
+ * The content — names, descriptions, flip-side copy — is the registered kind's
+ * (`BrickKindDefinition`). All that is left here is where things sit and what
+ * the parts of the body are called, which is genuinely the bench's business.
  */
 
-export type BrickKind = BrickDefinition['kind'];
+/**
+ * Tray and keyboard-navigation order (03-UI-UX-DESIGN.md §4.1).
+ *
+ * Deliberately *not* `SLOT_IDS`' own order: this is the order a builder meets
+ * the bricks in, brain first and safety last, which is the order the leaflet
+ * teaches and the parts tray has always shown.
+ */
+export const SLOT_ORDER: SlotId[] = [
+	'brain',
+	'memory',
+	'equipment',
+	'perception',
+	'mobility',
+	'safety'
+];
 
-/** Tray order, matching 03-UI-UX-DESIGN.md §4.1. */
-export const BRICK_ORDER: BrickKind[] = ['llm', 'memory', 'tools', 'sense', 'actions', 'safety'];
-
-/** Where each brick lives on the chassis (03 §4.2). */
-export const SOCKET_LABELS: Record<BrickKind, string> = {
-	llm: 'head',
+/** Where each socket lives on the chassis (03 §4.2), in the body's language. */
+export const SOCKET_LABELS: Record<SlotId, string> = {
+	brain: 'head',
 	memory: 'backpack',
-	tools: 'belt',
-	sense: 'visor',
-	actions: 'wheels',
+	equipment: 'belt',
+	perception: 'visor',
+	mobility: 'wheels',
 	safety: 'chest'
 };
 
-export const brickDefinitions: Record<BrickKind, BrickDefinition> = Object.fromEntries(
-	starterBricks.map((brick) => [brick.kind, brick])
-) as Record<BrickKind, BrickDefinition>;
-
-export function brickDefinition(kind: BrickKind): BrickDefinition {
-	const definition = brickDefinitions[kind];
-	if (!definition) throw new Error(`No brick definition installed for "${kind}".`);
-	return definition;
-}
-
-/**
- * Core's socket names, in the bench's vocabulary (WP14 slice 3d).
- *
- * Build problems point at a `SlotId` now — the chassis socket — rather than at
- * one of V1's six brick names, because core has stopped knowing that the thing
- * in the equipment socket is called `tools`. The panels have not caught up yet;
- * they are keyed by brick name until slice 4 makes them schema-driven.
- *
- * So this is a door, in the same sense as the other translations this slice
- * leaves standing: one table, in the UI, that closes when the panels do.
- */
-const PANEL_FOR_SLOT: Record<SlotId, BrickKind> = {
-	brain: 'llm',
-	memory: 'memory',
-	equipment: 'tools',
-	perception: 'sense',
-	mobility: 'actions',
-	safety: 'safety'
+/** The grid area each socket occupies on the baseplate. */
+export const SOCKET_PLACEMENT: Record<SlotId, string> = {
+	brain: 'head',
+	perception: 'visor',
+	memory: 'backpack',
+	equipment: 'belt',
+	safety: 'chest',
+	mobility: 'wheels'
 };
 
-export function panelForSlot(slot: SlotId | undefined): BrickKind | undefined {
-	return slot ? PANEL_FOR_SLOT[slot] : undefined;
+/** Everything `SLOT_ORDER` names is a real socket, and it names all of them. */
+export function isSlot(value: string): value is SlotId {
+	return (SLOT_IDS as readonly string[]).includes(value);
 }

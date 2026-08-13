@@ -81,6 +81,18 @@ export interface BrickRuntime {
 >
 > Also: the six brick colours gain socket-keyed aliases (`--cab-brick-slot-*`). Not a second palette — each aliases the mapping `04-…` §2.2 fixes, so the law is still stated once. What changes is that a Monitor brick in the safety socket is now yellow, because colour means the *concept* and the socket is what carries it.
 
+> **Amended 2026-08-13 (WP14 slice 4b):** the rest of the bench — parts tray, baseplate, drag-and-drop, box lid — is keyed by **socket**, and the tray is filled from the **registry**.
+>
+> It was keyed by `BrickKind`: V1's six brick names, taken from a closed union in a pack. That made a socket and a brick the same value, which is what made the furniture unable to hold a seventh brick even after the engine could. Install an expansion pack now and its brick is in the tray, drags into its socket, and opens a panel — with no workbench code written for it. A unit test installs an invented `expansion/monitor` alongside the starter pack and asserts exactly that, because V1 ships one kind per socket and so cannot exercise it any other way.
+>
+> Three decisions worth recording:
+>
+> - **A kind with no art gets a generic moulded shape, tinted by socket** — not the silhouette of whatever else lives there. There is a real tension with `04-…` §7 (distinct silhouette per kind, colour never carrying meaning alone) and this is the least-bad answer: drawing a Monitor as the Safety Brick's shield would *say* it is the Safety Brick, so the tint places it and the printed name distinguishes it. `11-…` §9's swap-in is where real art lands.
+> - **The box lid colours by socket**, where it previously matched V1 kind ids and deliberately showed a *gap* for anything else. That was right when colour was keyed to six named bricks and wrong now it is keyed to the concept a socket stands for: a bot with a Monitor fitted has governance on board, and a lid showing a gap was lying about what was in the box.
+> - **A tray well closes when its socket is occupied by anything**, naming the brick in the way — V1's one-per-socket rule (§2.3) applies between *kinds*, not just to a kind and itself.
+>
+> Screen-reader narration moved with it: "Picked up the Tool Belt Brick", "belt socket — this one fits", where it used to read out the internal words `tools` and `llm`. A screen-reader user now hears what a sighted one sees printed on the socket.
+
 Rules: core defines the loop, the hook points, and the six _slot families_; packs define brick kinds. A brick kind cannot patch another brick or reorder the loop. `validateSpec` gains one generic check — config parses against the kind's schema at its version — replacing per-brick special cases. The workbench's `BrickPanel` if/else chain is replaced by schema-driven controls with per-kind panel overrides (see `15-…` §5).
 
 ### 2.2 `AgentSpec` v2

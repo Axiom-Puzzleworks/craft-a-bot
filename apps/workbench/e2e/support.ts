@@ -36,3 +36,27 @@ export async function skipTutorial(page: Page): Promise<void> {
 		);
 	}, SETTINGS_STORAGE_KEY);
 }
+
+/**
+ * The six starter bricks, in every vocabulary a spec needs (WP14 slice 4b).
+ *
+ * The tray is keyed by **kind id** and the baseplate by **socket** since the
+ * bench stopped knowing V1's six brick names. Specs still say `BRICKS.llm`,
+ * because "the brain brick" is what a test is actually talking about — this is
+ * the one place that knows what that means in markup.
+ */
+export const BRICKS = {
+	llm: { id: 'starter/llm', slot: 'brain', socket: 'head', name: 'Brain Brick' },
+	memory: { id: 'starter/memory', slot: 'memory', socket: 'backpack', name: 'Scrapbook Brick' },
+	tools: { id: 'starter/tools', slot: 'equipment', socket: 'belt', name: 'Tool Belt Brick' },
+	sense: { id: 'starter/sense', slot: 'perception', socket: 'visor', name: 'Eyes & Ears Brick' },
+	actions: {
+		id: 'starter/actions',
+		slot: 'mobility',
+		socket: 'wheels',
+		name: 'Hands & Wheels Brick'
+	},
+	safety: { id: 'starter/safety', slot: 'safety', socket: 'chest', name: 'Safety Brick' }
+} as const;
+
+export type BrickName = keyof typeof BRICKS;

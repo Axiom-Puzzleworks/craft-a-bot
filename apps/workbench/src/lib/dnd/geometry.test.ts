@@ -12,13 +12,13 @@ import {
 } from './geometry.js';
 
 function socket(
-	kind: SocketBounds['kind'],
+	slot: SocketBounds['slot'],
 	left: number,
 	top: number,
 	w = 100,
 	h = 40
 ): SocketBounds {
-	return { kind, rect: { left, top, right: left + w, bottom: top + h } };
+	return { slot, rect: { left, top, right: left + w, bottom: top + h } };
 }
 
 describe('basic geometry', () => {
@@ -48,50 +48,52 @@ describe('basic geometry', () => {
 });
 
 describe('findSnapTarget', () => {
-	const sockets = [socket('llm', 0, 0), socket('memory', 0, 200), socket('actions', 0, 400)];
+	const sockets = [socket('brain', 0, 0), socket('memory', 0, 200), socket('mobility', 0, 400)];
 
 	it('snaps to the matching socket when the pointer is inside it', () => {
-		expect(findSnapTarget(sockets, 'llm', { x: 50, y: 20 })?.kind).toBe('llm');
+		expect(findSnapTarget(sockets, 'brain', { x: 50, y: 20 })?.slot).toBe('brain');
 	});
 
 	it('snaps from just outside, within the radius', () => {
-		expect(findSnapTarget(sockets, 'llm', { x: 50, y: 40 + SNAP_RADIUS - 1 })?.kind).toBe('llm');
+		expect(findSnapTarget(sockets, 'brain', { x: 50, y: 40 + SNAP_RADIUS - 1 })?.slot).toBe(
+			'brain'
+		);
 	});
 
 	it('does not snap from beyond the radius', () => {
-		expect(findSnapTarget(sockets, 'llm', { x: 50, y: 40 + SNAP_RADIUS + 1 })).toBeUndefined();
+		expect(findSnapTarget(sockets, 'brain', { x: 50, y: 40 + SNAP_RADIUS + 1 })).toBeUndefined();
 	});
 
-	it('never snaps a brick into a socket of another kind, however close', () => {
-		// Dead centre of the memory socket, carrying an LLM brick.
-		expect(findSnapTarget(sockets, 'llm', { x: 50, y: 220 })).toBeUndefined();
+	it('never snaps a brick into a socket it does not belong in, however close', () => {
+		// Dead centre of the memory socket, carrying a brain brick.
+		expect(findSnapTarget(sockets, 'brain', { x: 50, y: 220 })).toBeUndefined();
 	});
 
-	it('picks the nearest when two of the same kind are in range', () => {
-		const pair = [socket('llm', 0, 0), socket('llm', 0, 60)];
-		expect(findSnapTarget(pair, 'llm', { x: 50, y: 55 })?.rect.top).toBe(60);
+	it('picks the nearest when two sockets of the same family are in range', () => {
+		const pair = [socket('brain', 0, 0), socket('brain', 0, 60)];
+		expect(findSnapTarget(pair, 'brain', { x: 50, y: 55 })?.rect.top).toBe(60);
 	});
 
 	it('is deterministic when two are equally near — first registered wins', () => {
-		const pair = [socket('llm', 0, 0), socket('llm', 0, 100)];
+		const pair = [socket('brain', 0, 0), socket('brain', 0, 100)];
 		// Exactly 30 from the bottom of the first and the top of the second.
-		const found = findSnapTarget(pair, 'llm', { x: 50, y: 70 }, 40);
+		const found = findSnapTarget(pair, 'brain', { x: 50, y: 70 }, 40);
 		expect(found?.rect.top).toBe(0);
 	});
 
 	it('finds nothing among an empty set', () => {
-		expect(findSnapTarget([], 'llm', { x: 0, y: 0 })).toBeUndefined();
+		expect(findSnapTarget([], 'brain', { x: 0, y: 0 })).toBeUndefined();
 	});
 });
 
 describe('findHoveredSocket', () => {
-	it('reports the socket under the pointer regardless of kind, for the head-shake', () => {
-		const sockets = [socket('llm', 0, 0), socket('memory', 0, 200)];
-		expect(findHoveredSocket(sockets, { x: 50, y: 220 })?.kind).toBe('memory');
+	it('reports the socket under the pointer regardless of what fits, for the head-shake', () => {
+		const sockets = [socket('brain', 0, 0), socket('memory', 0, 200)];
+		expect(findHoveredSocket(sockets, { x: 50, y: 220 })?.slot).toBe('memory');
 	});
 
 	it('reports nothing over bare baseplate', () => {
-		expect(findHoveredSocket([socket('llm', 0, 0)], { x: 500, y: 500 })).toBeUndefined();
+		expect(findHoveredSocket([socket('brain', 0, 0)], { x: 500, y: 500 })).toBeUndefined();
 	});
 });
 

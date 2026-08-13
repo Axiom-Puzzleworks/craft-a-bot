@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { skipTutorial } from './support.js';
+import { BRICKS, skipTutorial } from './support.js';
 
 /**
  * WP6 definition of done: a full snack-goal run visible tick-by-tick with the
@@ -25,11 +25,11 @@ async function buildAndGo(page: Page, cardTestId = 'card-snack'): Promise<void> 
 	await expect(page.getByTestId('baseplate')).toBeVisible();
 
 	for (const kind of ['llm', 'sense', 'actions', 'memory']) {
-		await page.getByTestId(`tray-${kind}`).focus();
+		await page.getByTestId(`tray-${BRICKS[kind].id}`).focus();
 		await page.keyboard.press('Enter');
 		for (let step = 0; step < 8; step++) {
 			const said = await page.getByTestId('announcer').textContent();
-			if (said?.includes(`${kind} socket — this one fits`)) break;
+			if (said?.includes(`${BRICKS[kind].socket} socket — this one fits`)) break;
 			await page.keyboard.press('ArrowDown');
 		}
 		await page.keyboard.press('Enter');
@@ -38,7 +38,7 @@ async function buildAndGo(page: Page, cardTestId = 'card-snack'): Promise<void> 
 	await page.getByTestId(cardTestId).click();
 	// Slot the keyless Demo Brain cartridge, which is what clears the last
 	// blocking build check and lights the GO lever.
-	await page.getByTestId('socket-llm').getByRole('button').click();
+	await page.getByTestId('socket-brain').getByRole('button').click();
 	await page.getByTestId('cartridge-select').selectOption({ label: 'Demo Brain' });
 	await expect(page.getByRole('button', { name: /GO/ })).toBeEnabled();
 
