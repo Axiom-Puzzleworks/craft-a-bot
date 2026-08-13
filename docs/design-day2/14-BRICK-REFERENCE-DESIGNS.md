@@ -49,6 +49,14 @@ export interface BrickRuntime {
 >
 > Also added: `describeFitted(config)`, for the "parts you have been built with" line. Presentation like `name`, but config-dependent (a Memory brick says how many turns it remembers), so it belongs on the kind rather than in a hook. It replaces `describeFittedBricks`'s six hard-coded `if`s — D11 in the one place a user reads the consequence.
 
+> **Amended 2026-08-13 (WP14 slice 3c):** two additions, and one limit worth knowing about.
+>
+> `contributeSenses(): string[]` joins the hooks — sense channel ids, for the same reason `contributeCalls` returns ids. The *world* owns what can be perceived; a brick returning observations would be a second way of seeing alongside `WorldInstance.observe`. A Radar brick opens `radar/sweep` and the world decides what a sweep shows.
+>
+> **Slot contracts.** Two things a brick holds are not contributions at all: the brain socket says which model to call, how hot and how long; the memory socket says how much to remember and whether to keep a notebook. Both configure machinery core owns, and there is no honest hook shape for them — a `contributeMemory()` returning `{ windowSize, notebook }` is a hook laundering config through a runtime. So core states a contract per socket (`schemas/slot-contracts.ts`) and reads it. That is not the taxonomy this workstream dismantles: core knows what the *brain socket* means, which §2.3 says it owns, and not what `starter/llm` is. Any pack's brain works so long as it has a cartridge.
+>
+> The limit, stated so it is a decision and not a wall: a brick whose config is shaped differently cannot fill those two sockets — a Vector Memory brick with `embeddings` and no `windowSize` would be fitted, validated, and then ignored by the memory the loop keeps. The answer when one is wanted is to let the Memory brick contribute its own prompt messages (a placement widening of `ContextContribution`), not to widen the contract.
+
 Rules: core defines the loop, the hook points, and the six _slot families_; packs define brick kinds. A brick kind cannot patch another brick or reorder the loop. `validateSpec` gains one generic check — config parses against the kind's schema at its version — replacing per-brick special cases. The workbench's `BrickPanel` if/else chain is replaced by schema-driven controls with per-kind panel overrides (see `15-…` §5).
 
 ### 2.2 `AgentSpec` v2

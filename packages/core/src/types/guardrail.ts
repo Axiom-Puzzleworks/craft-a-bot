@@ -1,4 +1,4 @@
-import type { AgentSpec } from '../schemas/agent-spec.js';
+import type { AnyAgentSpec } from '../schemas/agent-spec-v2.js';
 import type { EngineEvent } from '../schemas/events.js';
 import type { WorldState } from './world.js';
 
@@ -22,7 +22,13 @@ export type { GuardrailHook, GuardrailVerdict };
 export interface GuardrailContext {
 	hook: GuardrailHook;
 	tick: number;
-	spec: AgentSpec; // read-only
+	/**
+	 * The bot being run, read-only, in whichever shape it was stored (WP14
+	 * slice 3c). A guardrail that needs a specific field should read it through
+	 * `slotConfig` rather than by v1 key — nothing in the shipped rules does,
+	 * because policy is about what is *proposed*, not about what is fitted.
+	 */
+	spec: AnyAgentSpec; // read-only
 	usage: { ticks: number; inputTokens: number; outputTokens: number };
 	proposed?: { kind: 'tool' | 'action'; name: string; arguments: unknown }; // pre-act
 	worldState: Readonly<WorldState>; // read-only snapshot

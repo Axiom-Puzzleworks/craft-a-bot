@@ -36,15 +36,29 @@ const V1_KINDS = [
 	['starter/safety', 'safety', safetyBrickSchema]
 ] as const satisfies ReadonlyArray<readonly [string, SlotId, unknown]>;
 
-/** Which of the six contribute callable things, and under which key. */
-const OFFERS: Record<string, 'toolIds' | 'actionIds'> = {
-	'starter/tools': 'toolIds',
-	'starter/actions': 'actionIds'
+/**
+ * What each of the six offers the loop, and under which config key.
+ *
+ * `senses` is its own hook rather than another `CallContribution` key: a
+ * channel is something the world *shows*, not something the model calls.
+ */
+const OFFERS: Record<string, { key: 'toolIds' | 'actionIds' | 'senses'; from: string }> = {
+	'starter/tools': { key: 'toolIds', from: 'enabled' },
+	'starter/actions': { key: 'actionIds', from: 'enabled' },
+	'starter/sense': { key: 'senses', from: 'channels' }
 };
 
 export function v1BrickKinds(): BrickKindDefinition[] {
 	return V1_KINDS.map(([id, slot, configSchema]) => {
 		const offers = OFFERS[id];
+		const runtime = offers
+			? (config: Record<string, string[] | undefined>) => {
+					const ids = config[offers.from] ?? [];
+					return offers.key === 'senses'
+						? { contributeSenses: () => ids }
+						: { contributeCalls: () => ({ [offers.key]: ids }) };
+				}
+			: undefined;
 		return {
 			id,
 			slot,
@@ -55,13 +69,7 @@ export function v1BrickKinds(): BrickKindDefinition[] {
 			configSchema,
 			configVersion: 1,
 			defaults: {},
-			...(offers
-				? {
-						createRuntime: (config: { enabled?: string[] }) => ({
-							contributeCalls: () => ({ [offers]: config.enabled ?? [] })
-						})
-					}
-				: {})
+			...(runtime ? { createRuntime: runtime } : {})
 		} as BrickKindDefinition;
 	});
 }

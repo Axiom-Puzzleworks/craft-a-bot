@@ -2,6 +2,7 @@ import {
 	buildRuntimes,
 	collectCalls,
 	collectContext,
+	collectSenses,
 	createPackRegistry,
 	describeFittedBricks,
 	migrateAgentSpec,
@@ -132,5 +133,22 @@ describe('what the bricks offer the model', () => {
 	it('offers nothing at all from a bot with neither brick fitted', () => {
 		const bare = v2(buildSpec({ llm: false, memory: null, senses: [], actions: [] }));
 		expect(offered(bare)).toEqual({ toolIds: [], actionIds: [] });
+	});
+});
+
+describe('what the bricks let a bot sense', () => {
+	it('opens the channels the Eyes & Ears brick names', () => {
+		const spec = v2(buildSpec({ senses: ['starter/playroom/sight'] }));
+		const runtimes = buildRuntimes({ spec, registry: registry(), context: { random: () => 0 } });
+		expect(collectSenses(runtimes)).toEqual(['starter/playroom/sight']);
+	});
+
+	it('opens nothing for a bot with no perception brick', () => {
+		const bare = v2(buildSpec({ llm: false, memory: null, senses: [], actions: [] }));
+		expect(
+			collectSenses(
+				buildRuntimes({ spec: bare, registry: registry(), context: { random: () => 0 } })
+			)
+		).toEqual([]);
 	});
 });

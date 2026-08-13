@@ -1,4 +1,3 @@
-import type { AgentSpec } from '../schemas/agent-spec.js';
 import { asLegacySpec, type AnyAgentSpec } from '../schemas/agent-spec-v2.js';
 
 /**
@@ -52,7 +51,7 @@ export interface Usage {
  * > of 30 by a limit the UI never showed them, and the guardrail their brick
  * > installed would never get to fire.
  */
-export function resolveBudgets(spec: AgentSpec, overrides: BudgetOverrides = {}): BudgetLimits {
+export function resolveBudgets(spec: AnyAgentSpec, overrides: BudgetOverrides = {}): BudgetLimits {
 	return {
 		maxTicks: overrides.maxTicks ?? backstopTicks(spec),
 		maxTokens: overrides.maxTokens ?? DEFAULT_TOKEN_BUDGET,
@@ -60,9 +59,17 @@ export function resolveBudgets(spec: AgentSpec, overrides: BudgetOverrides = {})
 	};
 }
 
-/** The engine's hard ceiling: the floor, or the user's dial if that is higher. */
-function backstopTicks(spec: AgentSpec): number {
-	return Math.max(DEFAULT_TICK_BUDGET, spec.bricks.safety?.maxTicks ?? 0);
+/**
+ * The engine's hard ceiling: the floor, or the user's dial if that is higher.
+ *
+ * Still read through the v1 window, and the last two places that are. The
+ * safety socket moves onto a slot contract in slice 3d, with the guardrails it
+ * compiles — doing it here first would mean threading a registry through
+ * `displayedTickBudget`, which the workbench calls from a component with no
+ * registry to hand.
+ */
+function backstopTicks(spec: AnyAgentSpec): number {
+	return Math.max(DEFAULT_TICK_BUDGET, asLegacySpec(spec).bricks.safety?.maxTicks ?? 0);
 }
 
 /**

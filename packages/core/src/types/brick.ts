@@ -121,6 +121,16 @@ export interface BrickRuntime {
 	contributeContext?(tick: TickContext): ContextContribution;
 	/** Tools and actions offered to the model (Equipment, Mobility). */
 	contributeCalls?(): CallContribution;
+	/**
+	 * Which of the world's sense channels this brick opens (Perception).
+	 *
+	 * Ids, for the same reason `contributeCalls` returns ids: the *world* owns
+	 * what can be perceived and how, and a brick that returned observations
+	 * would be a second way of seeing alongside `WorldInstance.observe`. A
+	 * Radar brick opens `radar/sweep`; the world it is used in decides what a
+	 * sweep shows.
+	 */
+	contributeSenses?(): string[];
 	/** Policy (Safety, and later Monitor). */
 	contributeGuardrails?(): Guardrail[];
 	/** Learn or record once the tick has resolved (Memory). */

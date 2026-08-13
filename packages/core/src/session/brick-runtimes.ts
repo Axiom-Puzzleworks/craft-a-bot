@@ -134,6 +134,19 @@ export function collectCalls(runtimes: readonly FittedRuntime[]): Required<CallC
 	return { toolIds, actionIds };
 }
 
+/**
+ * Every sense channel the fitted bricks open, in slot order.
+ *
+ * Ids only, resolved against the world exactly as they were when core read
+ * them off the spec. Duplicates are kept: two bricks opening the same channel
+ * is a build question, not something to quietly tidy here.
+ */
+export function collectSenses(runtimes: readonly FittedRuntime[]): string[] {
+	const channels: string[] = [];
+	for (const fitted of runtimes) channels.push(...(fitted.runtime.contributeSenses?.() ?? []));
+	return channels;
+}
+
 /** Tell every brick that learns from a tick what happened in it. */
 export function notifyTickEnd(runtimes: readonly FittedRuntime[], record: TickRecord): void {
 	for (const fitted of runtimes) fitted.runtime.onTickEnd?.(record);
