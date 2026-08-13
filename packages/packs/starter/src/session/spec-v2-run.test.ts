@@ -1,5 +1,4 @@
 import {
-	asLegacySpec,
 	buildRuntimes,
 	collectGuardrails,
 	migrateAgentSpec,
@@ -103,19 +102,18 @@ describe('running a bot from a v2 spec', () => {
 	});
 
 	/**
-	 * The shim's safety rule: a brick whose config is not the v1 shape for its
-	 * socket is skipped rather than misread. The workbench still reads bots
-	 * through that window (slice 4 closes it), so the rule still matters.
+	 * A brick whose kind nothing registered contributes nothing.
 	 *
-	 * > **Amended 2026-08-13 (WP14 slice 3d):** this used to assert the *guardrail
-	 * > compiler* was protected too — a Monitor brick in the safety socket would
-	 * > otherwise have had `watchFor` read as `blockedActions`, quietly compiling
-	 * > the wrong policy. There is no longer a compiler to protect: a brick's
-	 * > config only ever reaches its own kind's schema, so misreading it is not a
-	 * > mistake the engine can make any more. What is asserted instead is the
-	 * > consequence — an unregistered kind installs nothing.
+	 * This began as a test of the v1 *shim*: a Monitor brick in the safety socket
+	 * would otherwise have had `watchFor` read as `blockedActions` by the
+	 * guardrail compiler, quietly compiling the wrong policy. Slice 3d removed
+	 * the compiler and WP15 removed the shim, so misreading a config is no longer
+	 * a mistake the engine can make — a brick's config only ever reaches its own
+	 * kind's schema. What survives is the consequence, which is still worth
+	 * pinning: an unregistered kind installs no policy rather than somebody
+	 * else's.
 	 */
-	it('ignores a brick whose config is not the shape that socket expects', () => {
+	it('takes no policy from a brick whose kind is not installed', () => {
 		const v2 = v2Of(buildSpec());
 		v2.bricks.push({
 			slot: 'safety',
@@ -124,7 +122,6 @@ describe('running a bot from a v2 spec', () => {
 			config: { watchFor: ['loops'] }
 		});
 
-		expect(asLegacySpec(v2).bricks.safety).toBeUndefined();
 		expect(policyOf(v2)).toEqual([]);
 	});
 });
