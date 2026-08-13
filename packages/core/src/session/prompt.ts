@@ -1,4 +1,5 @@
-import type { AgentSpec } from '../schemas/agent-spec.js';
+import type { PackRegistry } from '../pack-registry.js';
+import { toSpecV2, type AnyAgentSpec } from '../schemas/agent-spec-v2.js';
 import type { GoalCardDefinition } from '../schemas/pack-manifest.js';
 import type { ChatMessage } from '../types/provider.js';
 import { summariseWindow, type TickMemory } from './memory.js';
@@ -25,7 +26,14 @@ const RESPONSE_RULES = [
 ];
 
 export interface PromptInput {
-	spec: AgentSpec;
+	/**
+	 * What the fitted bricks add to the system message (WP14 slice 3a).
+	 *
+	 * Was `spec.bricks.llm?.personality`, read here by name. The prompt no
+	 * longer knows what an LLM brick is: it is handed whatever the bricks
+	 * contributed, in slot order, and joins it up.
+	 */
+	brickSections: string[];
 	goalCard: GoalCardDefinition;
 	observation: string;
 	memoryWindow: TickMemory[];
@@ -51,9 +59,7 @@ export interface PromptInput {
 export function composeSystemMessage(input: PromptInput): string {
 	const sections = [
 		PREAMBLE,
-		input.spec.bricks.llm?.personality.trim()
-			? `About you: ${input.spec.bricks.llm.personality.trim()}`
-			: '',
+		...input.brickSections,
 		`Your goal: ${input.goalCard.goalText}`,
 		`Parts you have been built with: ${input.fittedBricks.join(', ')}.`,
 		`How to reply:\n${RESPONSE_RULES.map((rule) => `- ${rule}`).join('\n')}`
@@ -99,20 +105,30 @@ export function estimateTokens(messages: ChatMessage[]): number {
 	return Math.ceil(characters / 4);
 }
 
-/** Human-readable list of what is bolted on, for the system message. */
-export function describeFittedBricks(spec: AgentSpec): string[] {
+/**
+ * Human-readable list of what is bolted on, for the system message.
+ *
+ * Each brick describes itself (`BrickKindDefinition.describeFitted`); this only
+ * puts them in slot order and supplies the line for a bare chassis. It used to
+ * be six hard-coded `if`s, which is `12-…` D11 in the one place a user actually
+ * reads the consequence: a seventh brick could be fitted, could act, and would
+ * never appear in the list of what the bot was built with.
+ */
+export function describeFittedBricks(spec: AnyAgentSpec, registry: PackRegistry): string[] {
 	const fitted: string[] = [];
-	if (spec.bricks.llm) fitted.push('a brain (LLM)');
-	if (spec.bricks.memory) {
-		fitted.push(
-			spec.bricks.memory.notebook
-				? `memory of your last ${spec.bricks.memory.windowSize} turns, and a notebook`
-				: `memory of your last ${spec.bricks.memory.windowSize} turns`
-		);
+	for (const slot of BRICK_ORDER) {
+		for (const brick of toSpecV2(spec).bricks.filter((candidate) => candidate.slot === slot)) {
+			const kind = registry.getBrickKind(brick.kind);
+			if (!kind || kind.slot !== brick.slot) continue;
+			const config = kind.configSchema.safeParse(brick.config);
+			if (!config.success) continue;
+
+			const described = kind.describeFitted?.(config.data) ?? kind.name;
+			if (described.trim() !== '') fitted.push(described);
+		}
 	}
-	if (spec.bricks.tools?.enabled.length) fitted.push('a tool belt');
-	if (spec.bricks.sense?.channels.length) fitted.push('senses');
-	if (spec.bricks.actions?.enabled.length) fitted.push('hands and wheels');
-	if (spec.bricks.safety) fitted.push('a safety brick watching over you');
 	return fitted.length > 0 ? fitted : ['nothing much, honestly'];
 }
+
+/** V1's order, which is what this list has always been in. */
+const BRICK_ORDER = ['brain', 'memory', 'equipment', 'perception', 'mobility', 'safety'] as const;

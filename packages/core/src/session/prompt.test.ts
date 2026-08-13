@@ -1,12 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import {
-	composePrompt,
-	composeSystemMessage,
-	describeFittedBricks,
-	estimateTokens
-} from './prompt.js';
-import type { AgentSpec } from '../schemas/agent-spec.js';
+import { composePrompt, composeSystemMessage, estimateTokens } from './prompt.js';
 import type { GoalCardDefinition } from '../schemas/pack-manifest.js';
+
+/**
+ * Prompt composition, and only that.
+ *
+ * `describeFittedBricks` moved to `pack-starter` at WP14 slice 3a: each brick
+ * now describes itself, so what the phrases *are* is the starter pack's
+ * business and testing it here would mean stubbing six kinds to assert strings
+ * core no longer owns.
+ */
 
 const goalCard: GoalCardDefinition = {
 	id: 'starter/say-hello',
@@ -19,28 +22,11 @@ const goalCard: GoalCardDefinition = {
 	teachesConcepts: []
 };
 
-function spec(bricks: Partial<AgentSpec['bricks']> = {}): AgentSpec {
-	return {
-		id: '11111111-1111-4111-8111-111111111111',
-		name: 'Testbot',
-		bricks,
-		goalCardId: 'starter/say-hello',
-		createdAt: '2026-08-12T09:00:00Z',
-		updatedAt: '2026-08-12T09:00:00Z',
-		schemaVersion: 1
-	};
-}
-
-const llm = {
-	cartridgeId: 'test/mock',
-	temperature: 0,
-	maxTokens: 256,
-	personality: 'You are a cheerful little robot.'
-};
+const PERSONALITY = 'About you: You are a cheerful little robot.';
 
 function input(overrides: Partial<Parameters<typeof composePrompt>[0]> = {}) {
 	return {
-		spec: spec({ llm }),
+		brickSections: [PERSONALITY],
 		goalCard,
 		observation: 'You look around: nothing but rug.',
 		memoryWindow: [],
@@ -61,11 +47,19 @@ describe('the system message (02-AGENT-MODEL.md §8)', () => {
 		expect(message).toContain('celebrate');
 	});
 
-	it('omits the personality line when the field is blank', () => {
+	it('has no personality line when no brick contributed one', () => {
+		// The Brain brick returns no section for a blank personality; the prompt
+		// simply never hears about it.
+		expect(composeSystemMessage(input({ brickSections: [] }))).not.toContain('About you:');
+	});
+
+	it('keeps the bricks’ sections in the order they were given', () => {
 		const message = composeSystemMessage(
-			input({ spec: spec({ llm: { ...llm, personality: '  ' } }) })
+			input({ brickSections: ['About you: Terse.', 'You are carrying a torch.'] })
 		);
-		expect(message).not.toContain('About you:');
+		expect(message.indexOf('Terse.')).toBeLessThan(message.indexOf('torch'));
+		// And ahead of the goal, which is where a brick's own voice belongs.
+		expect(message.indexOf('torch')).toBeLessThan(message.indexOf('Your goal:'));
 	});
 });
 
@@ -112,49 +106,10 @@ describe('estimateTokens', () => {
 	});
 });
 
-describe('describeFittedBricks', () => {
-	it('lists each fitted brick in kit language', () => {
-		const fitted = describeFittedBricks(
-			spec({
-				llm,
-				memory: { windowSize: 10, notebook: true },
-				tools: { enabled: ['starter/calculator'] },
-				sense: { channels: ['sight'] },
-				actions: { enabled: ['move'] },
-				safety: { maxTicks: 30, blockedActions: [], approvalMode: false }
-			})
-		);
-		expect(fitted).toEqual([
-			'a brain (LLM)',
-			'memory of your last 10 turns, and a notebook',
-			'a tool belt',
-			'senses',
-			'hands and wheels',
-			'a safety brick watching over you'
-		]);
-	});
-
-	it('mentions memory without a notebook when the notebook is off', () => {
-		const fitted = describeFittedBricks(spec({ memory: { windowSize: 3, notebook: false } }));
-		expect(fitted).toEqual(['memory of your last 3 turns']);
-	});
-
-	it('is honest about a bot built from nothing', () => {
-		expect(describeFittedBricks(spec())).toEqual(['nothing much, honestly']);
-	});
-
-	it('ignores bricks that are fitted but switched entirely off', () => {
-		const fitted = describeFittedBricks(
-			spec({ tools: { enabled: [] }, sense: { channels: [] }, actions: { enabled: [] } })
-		);
-		expect(fitted).toEqual(['nothing much, honestly']);
-	});
-});
-
 /** The minimum a prompt needs, for the cases below to vary one thing each. */
 function baseInput() {
 	return {
-		spec: spec({ llm: { cartridgeId: 'c', temperature: 0, maxTokens: 10, personality: '' } }),
+		brickSections: [],
 		goalCard,
 		observation: 'You look around: nothing but rug.',
 		memoryWindow: [],

@@ -228,6 +228,14 @@ export {
 	type Decision,
 	type DecisionCall
 } from './session/decide.js';
+export {
+	buildRuntimes,
+	collectContext,
+	disposeRuntimes,
+	notifyTickEnd,
+	type BuildRuntimesOptions,
+	type FittedRuntime
+} from './session/brick-runtimes.js';
 export { createMemory, summariseWindow, type Memory, type TickMemory } from './session/memory.js';
 export {
 	composePrompt,

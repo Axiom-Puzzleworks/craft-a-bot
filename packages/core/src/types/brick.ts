@@ -49,7 +49,18 @@ export type SlotId = (typeof SLOT_IDS)[number];
 export type BrickConfigMigration = (raw: Record<string, unknown>) => Record<string, unknown>;
 export type BrickConfigMigrationTable = Record<number, BrickConfigMigration>;
 
-/** What a brick may add to the prompt — the Sense and Memory contribution. */
+/**
+ * What a brick may add to the prompt — the Sense and Memory contribution.
+ *
+ * > **Note (WP14 slice 3a):** `sections` land in the **system message**, between
+ * > the preamble and the goal. That is the right home for what a brick *is*
+ * > (the Brain brick's personality) and the wrong one for what it *knows this
+ * > turn* — the memory window and the current observation are separate messages,
+ * > so the Flight Recorder can label them *system / memory / observation* as
+ * > `03-…` §5.2 promises. Placement arrives with those two bricks in slice 3c,
+ * > as a deliberate widening of this shape rather than a convention nobody
+ * > wrote down.
+ */
 export interface ContextContribution {
 	/**
 	 * Prompt sections, in the order the brick wants them. Additive only: a
@@ -124,6 +135,21 @@ export interface BrickKindDefinition<C = unknown> {
 	migrateConfig?: BrickConfigMigrationTable;
 	/** What a freshly-snapped brick gets. */
 	defaults: C;
+
+	/**
+	 * How this brick describes *itself as configured*, for the "parts you have
+	 * been built with" line the bot reads in its own prompt.
+	 *
+	 * Distinct from `name` because the answer depends on the config: a Memory
+	 * brick says how many turns it remembers and whether it has a notebook. An
+	 * empty string means "fitted, but not worth mentioning" — an Equipment brick
+	 * with no tools ticked is on the chassis and carrying nothing.
+	 *
+	 * Presentation, like `name` and `description`, so it lives on the kind
+	 * rather than in a hook: it is what the brick *is*, not something it does
+	 * during a tick. A kind that omits it falls back to `name`.
+	 */
+	describeFitted?(config: C): string;
 
 	/** A brick with no runtime is pure configuration — legal, and occasionally right. */
 	createRuntime?(config: C, ctx: BrickRuntimeContext): BrickRuntime;

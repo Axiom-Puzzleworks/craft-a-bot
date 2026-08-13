@@ -25,9 +25,20 @@ import { qualifyPlayroomId } from './world/playroom.js';
  * are the ones the workbench has been carrying in `BRICK_DEFAULTS`, brought
  * here so there is one answer to "what does a freshly-snapped brick do?".
  *
- * Runtimes arrive in the slice that rewires the loop; a kind with no
- * `createRuntime` is legal, and today all six are exactly that.
+ * > **Amended 2026-08-13 (WP14 slice 3a):** the kinds now carry `describeFitted`
+ * > and, where they have live behaviour, `createRuntime`. Both were previously
+ * > `if` branches in core — `describeFittedBricks` knew all six bricks by name,
+ * > and the loop read `spec.bricks.llm?.personality` directly. A seventh brick
+ * > could join neither. The strings are moved verbatim, because slice 3's gate
+ * > is that a golden trace stays byte-stable.
  */
+
+/** The window sizes the Memory brick offers, spelled as the prompt says them. */
+function describeMemory(config: { windowSize: number; notebook: boolean }): string {
+	return config.notebook
+		? `memory of your last ${config.windowSize} turns, and a notebook`
+		: `memory of your last ${config.windowSize} turns`;
+}
 
 /** The presentation half, so the toy and real names are not written twice. */
 function facesOf(id: string) {
@@ -48,7 +59,24 @@ export const starterBrickKinds: BrickKindDefinition[] = [
 		...facesOf('starter/llm'),
 		configSchema: llmBrickSchema,
 		configVersion: 1,
-		defaults: { cartridgeId: '', temperature: 0.7, maxTokens: 300, personality: '' }
+		defaults: { cartridgeId: '', temperature: 0.7, maxTokens: 300, personality: '' },
+		describeFitted: () => 'a brain (LLM)',
+		/*
+		 * The personality, and nothing else.
+		 *
+		 * The rest of this brick's config — cartridge, temperature, token budget —
+		 * is not a *contribution*: it configures the call the engine makes rather
+		 * than adding anything to the prompt. The brain is the one brick that
+		 * drives the loop instead of contributing to it, so core reads those
+		 * fields from the brick in the `brain` socket. Core knows a brain has a
+		 * cartridge (it owns the slot families); it does not know which brain.
+		 */
+		createRuntime: (config: { personality: string }) => ({
+			contributeContext: () =>
+				config.personality.trim() === ''
+					? {}
+					: { sections: [`About you: ${config.personality.trim()}`] }
+		})
 	} as BrickKindDefinition,
 	{
 		id: 'starter/memory',
@@ -56,7 +84,8 @@ export const starterBrickKinds: BrickKindDefinition[] = [
 		...facesOf('starter/memory'),
 		configSchema: memoryBrickSchema,
 		configVersion: 1,
-		defaults: { windowSize: 10, notebook: false }
+		defaults: { windowSize: 10, notebook: false },
+		describeFitted: describeMemory
 	} as BrickKindDefinition,
 	{
 		id: 'starter/tools',
@@ -64,7 +93,10 @@ export const starterBrickKinds: BrickKindDefinition[] = [
 		...facesOf('starter/tools'),
 		configSchema: toolsBrickSchema,
 		configVersion: 1,
-		defaults: { enabled: [] }
+		defaults: { enabled: [] },
+		// A belt with nothing on it is not worth telling the bot about.
+		describeFitted: (config: { enabled: string[] }) =>
+			config.enabled.length > 0 ? 'a tool belt' : ''
 	} as BrickKindDefinition,
 	{
 		id: 'starter/sense',
@@ -72,7 +104,8 @@ export const starterBrickKinds: BrickKindDefinition[] = [
 		...facesOf('starter/sense'),
 		configSchema: senseBrickSchema,
 		configVersion: 1,
-		defaults: { channels: [qualifyPlayroomId('sight'), qualifyPlayroomId('compass')] }
+		defaults: { channels: [qualifyPlayroomId('sight'), qualifyPlayroomId('compass')] },
+		describeFitted: (config: { channels: string[] }) => (config.channels.length > 0 ? 'senses' : '')
 	} as BrickKindDefinition,
 	{
 		id: 'starter/actions',
@@ -84,7 +117,9 @@ export const starterBrickKinds: BrickKindDefinition[] = [
 			enabled: ['move', 'pick_up', 'put_down', 'give', 'open', 'say', 'celebrate'].map(
 				qualifyPlayroomId
 			)
-		}
+		},
+		describeFitted: (config: { enabled: string[] }) =>
+			config.enabled.length > 0 ? 'hands and wheels' : ''
 	} as BrickKindDefinition,
 	{
 		id: 'starter/safety',
@@ -92,6 +127,7 @@ export const starterBrickKinds: BrickKindDefinition[] = [
 		...facesOf('starter/safety'),
 		configSchema: safetyBrickSchema,
 		configVersion: 1,
-		defaults: { maxTicks: 30, blockedActions: [], approvalMode: false, repeatLimit: 3 }
+		defaults: { maxTicks: 30, blockedActions: [], approvalMode: false, repeatLimit: 3 },
+		describeFitted: () => 'a safety brick watching over you'
 	} as BrickKindDefinition
 ];

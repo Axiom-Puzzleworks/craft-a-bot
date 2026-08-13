@@ -22,6 +22,7 @@ import {
 } from './budgets.js';
 import { REPROMPT_INSTRUCTION, decide, type Decision } from './decide.js';
 import { isAllowed, isPause, runGuardrailChain, type ChainOutcome } from './guardrail-chain.js';
+import { buildRuntimes, collectContext, disposeRuntimes, notifyTickEnd } from './brick-runtimes.js';
 import { createMemory, type TickMemory } from './memory.js';
 import { composePrompt, describeFittedBricks, estimateTokens } from './prompt.js';
 
@@ -83,7 +84,20 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 	assertNoWireNameCollisions();
 
 	const usage: Usage = { ticks: 0, inputTokens: 0, outputTokens: 0 };
-	const fittedBricks = describeFittedBricks(spec);
+	/*
+	 * The fitted bricks, live (WP14 slice 3a).
+	 *
+	 * Built once, from the v2 spec, and asked at the loop's fixed points what
+	 * they contribute. The loop no longer knows what an LLM brick or a Memory
+	 * brick is — it knows there are bricks, and that each contributes only what
+	 * it is (`14-…` §2.1).
+	 */
+	const runtimes = buildRuntimes({
+		spec: deps.spec,
+		registry,
+		context: { random }
+	});
+	const fittedBricks = describeFittedBricks(deps.spec, registry);
 	const history: EngineEvent[] = [];
 	events.onAny((event) => history.push(event));
 
@@ -327,6 +341,8 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 	function finish(outcome: RunOutcome, reason?: string): TickResult {
 		run.outcome = outcome;
 		run.status = 'finished';
+		// Every brick gets to put itself away, once, however the run ended.
+		disposeRuntimes(runtimes);
 		emit('run.finished', {
 			outcome,
 			ticks: usage.ticks,
@@ -535,7 +551,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		const progress = world.describeProgress?.(goalCard.successCondition, worldChannels);
 		const notebookLines = memory.notebook.read();
 		const promptInput = {
-			spec,
+			brickSections: collectContext(runtimes, { tick: run.tick, channels }).sections ?? [],
 			goalCard,
 			observation: observation.text,
 			memoryWindow: memory.window(),
@@ -612,16 +628,23 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		}
 
 		// 8. REMEMBER
+		const record: TickMemory = {
+			tick: run.tick,
+			// The short form when the world offers one; see `Observation.summary`.
+			observation: observation.summary ?? observation.text,
+			thought,
+			...(acted ? { action: acted.summary, result: acted.result } : {}),
+			...(refused !== undefined ? { refused } : {})
+		};
+		/*
+		 * Every brick hears what happened, whether or not a Memory brick is
+		 * fitted. `onTickEnd` is the hook a brick learns or records from, and
+		 * gating it on somebody else's brick would mean a Monitor could only
+		 * watch a bot that also had a backpack.
+		 */
+		notifyTickEnd(runtimes, record);
 		if (memory.enabled) {
-			const entry: TickMemory = {
-				tick: run.tick,
-				// The short form when the world offers one; see `Observation.summary`.
-				observation: observation.summary ?? observation.text,
-				thought,
-				...(acted ? { action: acted.summary, result: acted.result } : {}),
-				...(refused !== undefined ? { refused } : {})
-			};
-			memory.remember(entry);
+			memory.remember(record);
 			emit('memory.updated', {
 				windowSize: spec.bricks.memory?.windowSize ?? 0,
 				entries: memory.size(),
