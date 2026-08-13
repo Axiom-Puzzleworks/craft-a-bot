@@ -92,6 +92,62 @@ describe('sight', () => {
 	});
 });
 
+/**
+ * E4 (`14-…` §3), the fix for `12-…` C1. Sight reaches one square, so what the
+ * memory window records about a passing glimpse is the only chance the bot has
+ * of ever going back to it. Names alone made that impossible.
+ */
+describe('the summary kept in memory', () => {
+	it('says where the bot stood and which way each thing lay', () => {
+		const state = testState({ items: [onFloor('ball', { x: 5, y: 4 }, 'a stripy ball')] });
+		const summary = observePlayroom(state, [SENSE_SIGHT]).summary ?? '';
+
+		expect(summary).toContain('at column 5, row 4');
+		expect(summary).toContain('the table to the north');
+		expect(summary).toContain('the toy chest (closed) to the west');
+		expect(summary).toContain('Teddy to the east');
+		expect(summary).toContain('a stripy ball to the south-east');
+	});
+
+	it('marks what lay on the bot’s own square', () => {
+		const state = testState({ items: [onFloor('ball', { x: 4, y: 3 }, 'a stripy ball')] });
+		expect(observePlayroom(state, [SENSE_SIGHT]).summary).toContain(
+			'a stripy ball right where you stood'
+		);
+	});
+
+	it('still records empty hands, and an empty room as empty', () => {
+		const state = testState({ characters: [], furniture: [], containers: [] });
+		const summary = observePlayroom(state, [SENSE_SIGHT]).summary ?? '';
+		expect(summary).toContain('you could see nothing nearby');
+		expect(summary).toContain('your hands were empty');
+	});
+
+	it('adds the compass line, so landmarks are steerable from memory', () => {
+		const summary = observePlayroom(testState(), [SENSE_SIGHT, SENSE_COMPASS]).summary ?? '';
+		expect(summary).toContain('big things: the toy chest to the west, the table to the north');
+	});
+
+	it('stands in for sight when the bot has a compass and no eyes', () => {
+		const summary = observePlayroom(testState(), [SENSE_COMPASS]).summary ?? '';
+		expect(summary).toContain('you stood at column 5, row 4');
+		expect(summary).toContain('the table to the north');
+	});
+
+	it('is absent when the bot can neither see nor navigate', () => {
+		expect(observePlayroom(testState(), [SENSE_CLOCK]).summary).toBeUndefined();
+	});
+
+	it('keeps the compass’s discretion — no item or character bearings leak', () => {
+		// The compass half of the summary must respect the same anti-cheat rule
+		// the compass text does: landmarks only, so "Say Hello!" stays a hunt.
+		const state = testState({ items: [onFloor('snack', { x: 0, y: 0 }, 'a snack')] });
+		const summary = observePlayroom(state, [SENSE_COMPASS]).summary ?? '';
+		expect(summary).not.toContain('a snack');
+		expect(summary).not.toContain('Teddy');
+	});
+});
+
 describe('compass', () => {
 	it('gives the bot’s position and furniture bearings', () => {
 		const observation = observePlayroom(testState(), [SENSE_COMPASS]);

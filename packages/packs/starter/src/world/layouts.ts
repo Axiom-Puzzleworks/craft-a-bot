@@ -50,6 +50,10 @@ function scatteredBlocks(): PlayroomItem[] {
 	];
 }
 
+function inChest(id: string): PlayroomItem {
+	return { id, name: entityName(id), location: { kind: 'in-container', containerId: 'toy-chest' } };
+}
+
 function baseState(overrides: {
 	chestState: PlayroomContainer['state'];
 	items: PlayroomItem[];
@@ -87,15 +91,54 @@ export const playroomLayouts: WorldLayout[] = [
 	{
 		id: 'tidy-up',
 		name: layoutStrings['tidy-up'],
+		/*
+		 * Two blocks, both on the chest's side of the room (`16-…` §1.1).
+		 *
+		 * Three scattered blocks took about 34 turns to tidy optimally, against
+		 * a 30-tick platform floor — so this card could not be won by any bot
+		 * ever built, and said nothing about it (`12-…` C6). Re-scoping the card
+		 * rather than raising the floor keeps the floor as the governance
+		 * teaching point it exists to be. The optimal solution is now 10 turns
+		 * (see the card's `par`), which leaves a bot that has to find the blocks
+		 * with one square of sight the room to be inefficient in.
+		 */
 		initialState: baseState({
 			chestState: 'closed',
-			items: [...scatteredBlocks(), onFloor('ball', { x: 4, y: 5 })]
+			items: [
+				onFloor('block-a', { x: 3, y: 1 }),
+				onFloor('block-b', { x: 2, y: 3 }),
+				onFloor('ball', { x: 4, y: 5 })
+			]
 		})
 	},
 	{
 		id: 'locked-chest',
 		name: layoutStrings['locked-chest'],
-		// Same as tidy-up, but the lid is locked and the key is off in a far corner.
+		/*
+		 * The chest is locked with two blocks already inside and one left out:
+		 * "open it and put one block away" (`16-…` §1.1). The key sits inboard
+		 * near the table rather than in the far corner, where a bot with one
+		 * square of sight could only find it by exhausting the wall. Optimal is
+		 * 13 turns; the lesson — the chest needs a key, and the key needs a free
+		 * hand — is untouched.
+		 */
+		initialState: baseState({
+			chestState: 'locked',
+			items: [
+				inChest('block-a'),
+				inChest('block-b'),
+				onFloor('block-c', { x: 2, y: 3 }),
+				onFloor('red-key', { x: 2, y: 2 }),
+				onFloor('ball', { x: 4, y: 5 })
+			]
+		})
+	},
+	{
+		id: 'locked-chest-expert',
+		name: layoutStrings['locked-chest-expert'],
+		// V1.0's locked chest exactly as it was: three scattered blocks, the key
+		// in the far corner. Unwinnable in 30 turns and now honest about it —
+		// this is the card the step-budget dial exists for.
 		initialState: baseState({
 			chestState: 'locked',
 			items: [

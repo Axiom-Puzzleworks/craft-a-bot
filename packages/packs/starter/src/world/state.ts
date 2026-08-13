@@ -111,14 +111,46 @@ export function findContainer(state: PlayroomState, id: string): PlayroomContain
  * failure this exists to remove; the caller reports the ambiguity instead.
  */
 
-/** Lower-case, strip punctuation and articles, collapse whitespace. */
-function normalise(text: string): string {
-	return text
-		.toLowerCase()
-		.replace(/[^a-z0-9]+/g, ' ')
-		.replace(/\b(?:a|an|the)\b/g, ' ')
-		.trim()
-		.replace(/\s+/g, ' ');
+const ARTICLES = new Set(['a', 'an', 'the']);
+
+/**
+ * The words worth matching on, lower-cased, punctuation dropped.
+ *
+ * Articles go, with two exceptions, both of them letters painted on blocks.
+ *
+ * **An article never ends a phrase.** The trailing word in "block a" is a
+ * label, and so is the `a` in the id `block-a`. Stripping it made all three
+ * blocks answer to the bare word "block" through their ids, so a bot that
+ * said "block" was handed the blue one without being told there were three —
+ * the silent-wrong-object failure this whole module exists to prevent
+ * (`12-…` C4).
+ *
+ * **A capital `A` is a letter.** It is how the world writes the label — "a
+ * blue letter block (A)" — and how a model refers to it: "the A block".
+ *
+ * "a block", where a lower-case article leads, keeps losing it and stays
+ * ambiguous. That is the honest answer: the phrase describes three things.
+ */
+function tokensOf(text: string): string[] {
+	const words = text.split(/[^A-Za-z0-9]+/).filter((word) => word !== '');
+	return words
+		.filter(
+			(word, index) =>
+				index === words.length - 1 || word === 'A' || !ARTICLES.has(word.toLowerCase())
+		)
+		.map((word) => word.toLowerCase());
+}
+
+/** The token list as one comparable string. */
+function phraseOf(tokens: string[]): string {
+	return tokens.join(' ');
+}
+
+/** Every word the query used appears somewhere in the candidate's vocabulary. */
+function describedBy(queryTokens: string[], candidate: Named): boolean {
+	if (queryTokens.length === 0) return false;
+	const vocabulary = new Set([...tokensOf(candidate.name), ...tokensOf(candidate.id)]);
+	return queryTokens.every((token) => vocabulary.has(token));
 }
 
 export type Resolution<T> =
@@ -133,25 +165,36 @@ export function resolveNamed<T extends Named>(
 	const exactId = candidates.find((candidate) => candidate.id === query);
 	if (exactId) return { kind: 'found', entity: exactId };
 
-	const wanted = normalise(query);
-	if (wanted === '') return { kind: 'none' };
+	const queryTokens = tokensOf(query);
+	// Nothing but punctuation: there is no question to answer.
+	if (queryTokens.length === 0) return { kind: 'none' };
+	const wanted = phraseOf(queryTokens);
 
-	// Exact match on the normalised id or name beats any partial match, so
-	// "block a" reaches block-a rather than tangling with the "(A)" in a label.
+	// The whole phrase, as the world writes it — "block a" reaches block-a by
+	// its id, "a blue letter block (A)" by its name.
 	const exact = candidates.filter(
-		(candidate) => normalise(candidate.id) === wanted || normalise(candidate.name) === wanted
+		(candidate) =>
+			phraseOf(tokensOf(candidate.id)) === wanted || phraseOf(tokensOf(candidate.name)) === wanted
 	);
 	if (exact.length === 1) return { kind: 'found', entity: exact[0] as T };
 	if (exact.length > 1) return { kind: 'ambiguous', matches: exact };
 
-	// Then containment either way, so both "blue letter block A" and the fuller
-	// "a blue letter block (A) on the rug" land on the same thing.
+	// Then containment either way, so both "blue letter block" and the fuller
+	// "a stripy ball on the rug" land on the thing they describe.
 	const partial = candidates.filter((candidate) => {
-		const name = normalise(candidate.name);
+		const name = phraseOf(tokensOf(candidate.name));
 		return name.includes(wanted) || wanted.includes(name);
 	});
 	if (partial.length === 1) return { kind: 'found', entity: partial[0] as T };
 	if (partial.length > 1) return { kind: 'ambiguous', matches: partial };
+
+	// Finally the words in any order: "blue block", "the A block", "chunky key",
+	// "the biscuit in the bowl". Ambiguity is still not resolved by picking a
+	// winner — "red" describes both the red key and the red block, and saying so
+	// costs one turn where a silent wrong guess costs a whole run.
+	const described = candidates.filter((candidate) => describedBy(queryTokens, candidate));
+	if (described.length === 1) return { kind: 'found', entity: described[0] as T };
+	if (described.length > 1) return { kind: 'ambiguous', matches: described };
 
 	return { kind: 'none' };
 }

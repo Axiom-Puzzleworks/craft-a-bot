@@ -217,9 +217,19 @@ describe('persistence (WP5 definition of done)', () => {
 });
 
 describe('the loop-breaker setting', () => {
-	it('is absent until the builder turns it on', async () => {
+	/**
+	 * > **Amended 2026-08-13 (WP11):** on by default, where it used to be off.
+	 * > The v1 rule counted identical calls whatever came of them and so
+	 * > stopped a bot walking in a straight line, which is why it shipped
+	 * > switched off — and why a first bot could loop until its steps ran out
+	 * > (`12-…` C3). v2 exempts a `move` that worked, so the default is safe.
+	 */
+	it('comes fitted, and can be switched off again', async () => {
 		const { bench } = await openBench();
 		bench.fitBrick('safety');
+		expect(bench.spec?.bricks.safety?.repeatLimit).toBe(3);
+
+		bench.updateBrick('safety', { repeatLimit: undefined });
 		expect(bench.spec?.bricks.safety?.repeatLimit).toBeUndefined();
 	});
 

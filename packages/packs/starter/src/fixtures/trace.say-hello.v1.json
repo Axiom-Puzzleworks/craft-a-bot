@@ -98,7 +98,7 @@
 					"compass"
 				],
 				"text": "You look around:\nRight where you stand: nothing but rug.\nTo the north: nothing but rug.\nTo the north-east: nothing but rug.\nTo the east: nothing but rug.\nTo the south-east: nothing but rug.\nTo the south: nothing but rug.\nTo the south-west: the wall.\nTo the west: the wall.\nTo the north-west: the wall.\nYour hands are empty.\nYou are standing at column 1 of 8, row 5 of 6.\nBig things in the room: the toy chest to the north-east, the shelf to the north-east, the table to the north-east.",
-				"summary": "nothing nearby; Your hands are empty.",
+				"summary": "at column 1, row 5 you could see nothing nearby; your hands were empty; big things: the toy chest to the north-east, the shelf to the north-east, the table to the north-east",
 				"data": {
 					"sight": {
 						"position": {
@@ -430,7 +430,7 @@
 					"compass"
 				],
 				"text": "You look around:\nRight where you stand: nothing but rug.\nTo the north: nothing but rug.\nTo the north-east: nothing but rug.\nTo the east: nothing but rug.\nTo the south-east: nothing but rug.\nTo the south: nothing but rug.\nTo the south-west: nothing but rug.\nTo the west: nothing but rug.\nTo the north-west: nothing but rug.\nYour hands are empty.\nYou are standing at column 2 of 8, row 5 of 6.\nBig things in the room: the toy chest to the north, the shelf to the north-east, the table to the north-east.",
-				"summary": "nothing nearby; Your hands are empty.",
+				"summary": "at column 2, row 5 you could see nothing nearby; your hands were empty; big things: the toy chest to the north, the shelf to the north-east, the table to the north-east",
 				"data": {
 					"sight": {
 						"position": {
@@ -464,14 +464,14 @@
 				},
 				{
 					"role": "user",
-					"content": "What you remember of earlier turns, oldest first:\nTick 1: you saw — nothing nearby; Your hands are empty.; you thought — I should look for Teddy. Let me head east.; you did — tried to move; what happened — You roll one square east."
+					"content": "What you remember of earlier turns, oldest first:\nTick 1: you saw — at column 1, row 5 you could see nothing nearby; your hands were empty; big things: the toy chest to the north-east, the shelf to the north-east, the table to the north-east; you thought — I should look for Teddy. Let me head east.; you did — tried to move; what happened — You roll one square east."
 				},
 				{
 					"role": "user",
 					"content": "Right now:\nYou look around:\nRight where you stand: nothing but rug.\nTo the north: nothing but rug.\nTo the north-east: nothing but rug.\nTo the east: nothing but rug.\nTo the south-east: nothing but rug.\nTo the south: nothing but rug.\nTo the south-west: nothing but rug.\nTo the west: nothing but rug.\nTo the north-west: nothing but rug.\nYour hands are empty.\nYou are standing at column 2 of 8, row 5 of 6.\nBig things in the room: the toy chest to the north, the shelf to the north-east, the table to the north-east."
 				}
 			],
-			"estimatedTokens": 351
+			"estimatedTokens": 385
 		}
 	},
 	{
@@ -530,7 +530,7 @@
 					}
 				},
 				"usage": {
-					"inputTokens": 351,
+					"inputTokens": 385,
 					"outputTokens": 5
 				},
 				"raw": {
@@ -706,7 +706,7 @@
 					"compass"
 				],
 				"text": "You look around:\nRight where you stand: nothing but rug.\nTo the north: nothing but rug.\nTo the north-east: nothing but rug.\nTo the east: nothing but rug.\nTo the south-east: nothing but rug.\nTo the south: nothing but rug.\nTo the south-west: nothing but rug.\nTo the west: nothing but rug.\nTo the north-west: nothing but rug.\nYour hands are empty.\nYou are standing at column 3 of 8, row 5 of 6.\nBig things in the room: the toy chest to the north-west, the shelf to the north-east, the table to the north-east.",
-				"summary": "nothing nearby; Your hands are empty.",
+				"summary": "at column 3, row 5 you could see nothing nearby; your hands were empty; big things: the toy chest to the north-west, the shelf to the north-east, the table to the north-east",
 				"data": {
 					"sight": {
 						"position": {
@@ -740,14 +740,14 @@
 				},
 				{
 					"role": "user",
-					"content": "What you remember of earlier turns, oldest first:\nTick 1: you saw — nothing nearby; Your hands are empty.; you thought — I should look for Teddy. Let me head east.; you did — tried to move; what happened — You roll one square east.\nTick 2: you saw — nothing nearby; Your hands are empty.; you thought — Still going east.; you did — tried to move; what happened — You roll one square east."
+					"content": "What you remember of earlier turns, oldest first:\nTick 1: you saw — at column 1, row 5 you could see nothing nearby; your hands were empty; big things: the toy chest to the north-east, the shelf to the north-east, the table to the north-east; you thought — I should look for Teddy. Let me head east.; you did — tried to move; what happened — You roll one square east.\nTick 2: you saw — at column 2, row 5 you could see nothing nearby; your hands were empty; big things: the toy chest to the north, the shelf to the north-east, the table to the north-east; you thought — Still going east.; you did — tried to move; what happened — You roll one square east."
 				},
 				{
 					"role": "user",
 					"content": "Right now:\nYou look around:\nRight where you stand: nothing but rug.\nTo the north: nothing but rug.\nTo the north-east: nothing but rug.\nTo the east: nothing but rug.\nTo the south-east: nothing but rug.\nTo the south: nothing but rug.\nTo the south-west: nothing but rug.\nTo the west: nothing but rug.\nTo the north-west: nothing but rug.\nYour hands are empty.\nYou are standing at column 3 of 8, row 5 of 6.\nBig things in the room: the toy chest to the north-west, the shelf to the north-east, the table to the north-east."
 				}
 			],
-			"estimatedTokens": 392
+			"estimatedTokens": 459
 		}
 	},
 	{
@@ -826,7 +826,7 @@
 					}
 				},
 				"usage": {
-					"inputTokens": 392,
+					"inputTokens": 459,
 					"outputTokens": 5
 				},
 				"raw": {
@@ -1002,7 +1002,7 @@
 					"compass"
 				],
 				"text": "You look around:\nRight where you stand: nothing but rug.\nTo the north: nothing but rug.\nTo the north-east: nothing but rug.\nTo the east: nothing but rug.\nTo the south-east: nothing but rug.\nTo the south: nothing but rug.\nTo the south-west: nothing but rug.\nTo the west: nothing but rug.\nTo the north-west: nothing but rug.\nYour hands are empty.\nYou are standing at column 4 of 8, row 5 of 6.\nBig things in the room: the toy chest to the north-west, the shelf to the north-east, the table to the north.",
-				"summary": "nothing nearby; Your hands are empty.",
+				"summary": "at column 4, row 5 you could see nothing nearby; your hands were empty; big things: the toy chest to the north-west, the shelf to the north-east, the table to the north",
 				"data": {
 					"sight": {
 						"position": {
@@ -1036,14 +1036,14 @@
 				},
 				{
 					"role": "user",
-					"content": "What you remember of earlier turns, oldest first:\nTick 1: you saw — nothing nearby; Your hands are empty.; you thought — I should look for Teddy. Let me head east.; you did — tried to move; what happened — You roll one square east.\nTick 2: you saw — nothing nearby; Your hands are empty.; you thought — Still going east.; you did — tried to move; what happened — You roll one square east.\nTick 3: you saw — nothing nearby; Your hands are empty.; you thought — I can see Teddy now.; you did — tried to move; what happened — You roll one square east."
+					"content": "What you remember of earlier turns, oldest first:\nTick 1: you saw — at column 1, row 5 you could see nothing nearby; your hands were empty; big things: the toy chest to the north-east, the shelf to the north-east, the table to the north-east; you thought — I should look for Teddy. Let me head east.; you did — tried to move; what happened — You roll one square east.\nTick 2: you saw — at column 2, row 5 you could see nothing nearby; your hands were empty; big things: the toy chest to the north, the shelf to the north-east, the table to the north-east; you thought — Still going east.; you did — tried to move; what happened — You roll one square east.\nTick 3: you saw — at column 3, row 5 you could see nothing nearby; your hands were empty; big things: the toy chest to the north-west, the shelf to the north-east, the table to the north-east; you thought — I can see Teddy now.; you did — tried to move; what happened — You roll one square east."
 				},
 				{
 					"role": "user",
 					"content": "Right now:\nYou look around:\nRight where you stand: nothing but rug.\nTo the north: nothing but rug.\nTo the north-east: nothing but rug.\nTo the east: nothing but rug.\nTo the south-east: nothing but rug.\nTo the south: nothing but rug.\nTo the south-west: nothing but rug.\nTo the west: nothing but rug.\nTo the north-west: nothing but rug.\nYour hands are empty.\nYou are standing at column 4 of 8, row 5 of 6.\nBig things in the room: the toy chest to the north-west, the shelf to the north-east, the table to the north."
 				}
 			],
-			"estimatedTokens": 431
+			"estimatedTokens": 531
 		}
 	},
 	{
@@ -1122,7 +1122,7 @@
 					}
 				},
 				"usage": {
-					"inputTokens": 431,
+					"inputTokens": 531,
 					"outputTokens": 7
 				},
 				"raw": {
@@ -1288,7 +1288,7 @@
 			"outcome": "SUCCESS",
 			"ticks": 4,
 			"usage": {
-				"inputTokens": 1464,
+				"inputTokens": 1665,
 				"outputTokens": 28
 			}
 		}

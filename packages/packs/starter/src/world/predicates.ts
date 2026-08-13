@@ -30,11 +30,25 @@ function teddyHasSnack(state: PlayroomState): boolean {
 	return snack?.location.kind === 'held-by' && snack.location.characterId === 'teddy';
 }
 
+/**
+ * The blocks this layout actually put in the room.
+ *
+ * Asking for all of `BLOCK_IDS` would make any re-scoped layout unwinnable:
+ * a missing block is not an untidied block, but `findItem` cannot tell the
+ * difference, and the card would sit at "not done" forever. `16-…` §1.1 cuts
+ * Tidy the Blocks down to two, so the predicate has to count what is there.
+ */
+function blocksPresent(state: PlayroomState) {
+	return state.items.filter((item) => item.id.startsWith('block-'));
+}
+
 function blocksInChest(state: PlayroomState): boolean {
-	return BLOCK_IDS.every((id) => {
-		const block = findItem(state, id);
-		return block?.location.kind === 'in-container' && block.location.containerId === TOY_CHEST;
-	});
+	const blocks = blocksPresent(state);
+	// A room with no blocks in it is not a tidy room; it is the wrong layout.
+	if (blocks.length === 0) return false;
+	return blocks.every(
+		(block) => block.location.kind === 'in-container' && block.location.containerId === TOY_CHEST
+	);
 }
 
 function chestOpenAndBlocksInside(state: PlayroomState): boolean {
@@ -47,9 +61,25 @@ function correctSumSaid(state: PlayroomState): boolean {
 	return state.spoken.some((line) => answer.test(line.text.replace(/,/g, '')));
 }
 
-/** Free play has no machine-checkable goal — the user decides (02-AGENT-MODEL.md §3). */
-function freePlayManual(): boolean {
-	return false;
+/**
+ * Free play has no goal the world can check, so the *bot* declares the end of
+ * it by celebrating (E12, `14-…` §3).
+ *
+ * This is the one card where `celebrate` means something, and the asymmetry is
+ * the lesson: on every other card the room decides whether the goal is met, and
+ * a bot that celebrates early has simply been wrong out loud. Here there is no
+ * predicate to be wrong about, so the bot's own judgement is all there is —
+ * which is exactly the situation a real agent is in when nobody wrote the
+ * success condition down.
+ *
+ * > **Amended 2026-08-13 (WP11):** was `() => false`, which made `celebrate`
+ * > decorative everywhere and left free-play runs with no ending but
+ * > OUT_OF_STEPS (`12-…` C7, D10). The player's own "Goal achieved" button
+ * > arrives with `session.declareOutcome` in WP13 (E2); the two are meant to
+ * > coexist — bot-declared and human-declared endings, both traced.
+ */
+function freePlayManual(state: PlayroomState): boolean {
+	return state.celebrated;
 }
 
 export const playroomPredicates: Record<string, PlayroomPredicate> = {
@@ -88,7 +118,7 @@ export const playroomProgress: Record<string, (state: PlayroomState) => string |
 };
 
 function blocksProgress(state: PlayroomState): string {
-	const blocks = state.items.filter((item) => item.id.startsWith('block-'));
+	const blocks = blocksPresent(state);
 	const inside = blocks.filter(
 		(item) => item.location.kind === 'in-container' && item.location.containerId === TOY_CHEST
 	);

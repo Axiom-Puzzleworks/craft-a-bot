@@ -18,9 +18,15 @@ import WorldView from './WorldView.svelte';
  * two together.
  */
 
-/** The real Playroom, so the names are the ones the engine actually uses. */
+/**
+ * The real Playroom, so the names are the ones the engine actually uses.
+ *
+ * Free Play rather than the tidy layout: WP11 re-scoped Tidy the Blocks down
+ * to two blocks (`16-…` §1.1), and this is a test about letters, not about
+ * which cards put which blocks on the floor.
+ */
 function tidyWorld() {
-	const world = playroom.create('tidy-up');
+	const world = playroom.create('free-play');
 	return world.snapshot() as never as {
 		items: { id: string; name: string; location: { kind: string } }[];
 	};
@@ -44,7 +50,7 @@ describe('block letters', () => {
 	it.each(['(A)', '(B)', '(C)'])('draws the %s block as its own letter when carried', (tag) => {
 		const state = tidyWorld();
 		const block = state.items.find((item) => item.name.includes(tag));
-		if (!block) throw new Error(`no ${tag} block in the tidy layout`);
+		if (!block) throw new Error(`no ${tag} block in the free-play layout`);
 		block.location = { kind: 'carried' };
 
 		render(WorldView, { props: { world: state as never, saying: undefined } });

@@ -101,6 +101,16 @@ describe('move', () => {
 		expect(result.narration).toContain(expected);
 		expect(state.bot.position).toEqual({ x: 4, y: 3 });
 	});
+
+	/**
+	 * C8 (`14-…` §4.5): the reach rule was written down only in the manual, so
+	 * a bot without the manual tool had no way to learn it except by giving up.
+	 * The bump is the moment it matters, so the bump is where it is taught.
+	 */
+	it('teaches the reach rule at the moment the bot bumps into something', () => {
+		const result = act(testState(), 'move', { direction: 'north' });
+		expect(result.narration).toContain('stand next to one to reach it');
+	});
 });
 
 describe('pick_up', () => {
@@ -338,6 +348,20 @@ describe('say and celebrate', () => {
 		const result = act(state, 'celebrate');
 		expect(result.ok).toBe(true);
 		expect(state.celebrated).toBe(true);
+	});
+
+	/**
+	 * E12 (`14-…` §3), closing `12-…` C7: the second dance is where a premature
+	 * celebration turned into a terminal loop. Failing it puts the fact in
+	 * front of the bot (through E3's feedback promotion) and in front of the
+	 * loop-breaker, which under v2 only counts attempts that failed.
+	 */
+	it('refuses a second victory dance, and says who actually judges the goal', () => {
+		const state = testState({ celebrated: true });
+		const result = act(state, 'celebrate');
+		expect(result.ok).toBe(false);
+		expect(result.narration).toContain('judged by the room');
+		expect(result.stateDiff).toEqual([]);
 	});
 });
 

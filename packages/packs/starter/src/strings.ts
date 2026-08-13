@@ -123,15 +123,24 @@ export const predicateStrings = {
 	'blocks-in-chest': 'All three blocks are inside the toy chest.',
 	'chest-open-and-blocks-inside': 'The toy chest is open and all three blocks are inside it.',
 	'correct-sum-said': 'You have said the right answer out loud.',
-	'free-play-manual': 'You decide when this one is done — press "Goal achieved" when you are happy.'
+	'free-play-manual': 'Your bot decides when this one is done, and celebrates when it is.'
 } as const;
 
 /** Action narration — `ActionResult.narration`, fed to the trace and the next observation. */
 export const narration = {
 	moved: (direction: string) => `You roll one square ${direction}.`,
 	blockedByWall: (direction: string) => `You nudge the wall to the ${direction} and stop.`,
+	/**
+	 * The bump that teaches the reach rule (C8, `14-…` §4.5).
+	 *
+	 * Teddy, the chest and the table each fill a square the bot cannot enter,
+	 * and reaching something means standing *beside* it. That rule lived only
+	 * in the manual, so a bot with no manual tool pushed into a blocker over
+	 * and over, entirely reasonably: nothing had ever told it that being next
+	 * to a thing is the point. The bump is exactly where it needs saying.
+	 */
 	blockedBy: (direction: string, what: string) =>
-		`You bump gently into ${what} to the ${direction}.`,
+		`You bump gently into ${what} to the ${direction}. Big things fill their square — stand next to one to reach it, not on it.`,
 
 	pickedUp: (item: string) => `You pick up ${item}.`,
 	pickedUpFromContainer: (item: string, container: string) =>
@@ -149,7 +158,8 @@ export const narration = {
 			: `You look around for "${id}", but there is nothing within reach.`,
 	ambiguousItem: (id: string, matches: string[]) =>
 		`"${id}" could mean ${matches.join(' or ')}. Say which one.`,
-	outOfReach: (item: string) => `${sentenceCase(item)} is too far away to reach.`,
+	outOfReach: (item: string) =>
+		`${sentenceCase(item)} is too far away to reach. You can reach your own square and the eight around it.`,
 	itemInClosedContainer: (item: string, container: string) =>
 		`${sentenceCase(item)} is shut inside ${container}.`,
 	itemAlreadyHeld: (item: string, holder: string) => `${holder} is holding ${item}.`,
@@ -167,7 +177,8 @@ export const narration = {
 			: `There is nobody called "${id}" in the playroom.`,
 	ambiguousCharacter: (id: string, matches: string[]) =>
 		`"${id}" could mean ${matches.join(' or ')}. Say which one.`,
-	characterOutOfReach: (character: string) => `${character} is not close enough to hand it to.`,
+	characterOutOfReach: (character: string) =>
+		`${character} is not close enough to hand it to. Stand on one of the eight squares around ${character} first.`,
 
 	opened: (container: string) => `You lift the lid. ${sentenceCase(container)} is open.`,
 	unlockedAndOpened: (container: string, key: string) =>
@@ -184,6 +195,17 @@ export const narration = {
 
 	said: (text: string) => `You say, "${text}"`,
 	celebrated: 'You do a little victory dance!',
+	/**
+	 * Celebrating twice does nothing, and says so (E12, `14-…` §3).
+	 *
+	 * A bot convinced it had finished used to celebrate on every remaining turn
+	 * until the budget ran out, because nothing in the world ever disagreed
+	 * with it (`12-…` C7). Now the second dance fails, which both tells the bot
+	 * plainly — through the "Right now:" feedback — and lets the loop-breaker
+	 * see a failing repeat where before it saw a run of successes.
+	 */
+	alreadyCelebrated:
+		'You have already done your victory dance, and nothing has changed since. Whether the goal is finished is judged by the room, not by you.',
 
 	badArguments: (action: string, problem: string) =>
 		`You try to ${action}, but something about it does not make sense: ${problem}`
@@ -209,9 +231,31 @@ export const observationStrings = {
 		`${name} (${state}, containing ${contents.join(' and ')})`,
 	containerEmpty: (name: string, state: string) => `${name} (${state}, empty)`,
 
-	/** The one-line form kept in the memory window (see `Observation.summary`). */
-	sightSummary: (near: string[], hands: string) =>
-		near.length > 0 ? `you could see ${near.join(', ')}; ${hands}` : `nothing nearby; ${hands}`,
+	/**
+	 * The one-line form kept in the memory window (see `Observation.summary`).
+	 *
+	 * E4 (`14-…` §3) gave this a where. It used to record names only — "you
+	 * could see a stripy ball; your hands are empty" — which told a bot reading
+	 * its own history that a ball exists somewhere in the room and nothing
+	 * whatever about how to return to it. Sight reaches one square, so a bot
+	 * that walked past something could never find it again, and exploration
+	 * degenerated into wandering (`12-…` C1). The sight radius is unchanged:
+	 * the lesson ("you have to go and look") survives, the amnesia does not.
+	 */
+	summaryPosition: (x: number, y: number) => `at column ${x + 1}, row ${y + 1}`,
+	summarySeen: (name: string, direction: string) =>
+		direction === 'here' ? `${name} right where you stood` : `${name} to the ${direction}`,
+	// Clause-shaped rather than sentence-shaped: the summary is one line built
+	// of semicolons, so its parts must not carry full stops of their own.
+	summaryCarrying: (item: string) => `you were carrying ${item}`,
+	summaryEmptyHands: 'your hands were empty',
+	sightSummary: (position: string, near: string[], hands: string) =>
+		near.length > 0
+			? `${position} you could see ${near.join(', ')}; ${hands}`
+			: `${position} you could see nothing nearby; ${hands}`,
+	/** The compass's contribution to the same line: bearings worth steering by. */
+	compassSummary: (landmarks: string) => `big things: ${landmarks}`,
+	positionOnlySummary: (position: string) => `you stood ${position}`,
 
 	compassPosition: (x: number, y: number, width: number, height: number) =>
 		`You are standing at column ${x + 1} of ${width}, row ${y + 1} of ${height}.`,
@@ -248,15 +292,25 @@ export const goalCardStrings = {
 	},
 	'tidy-the-blocks': {
 		title: 'Tidy the blocks',
-		goalText: 'Put all three blocks in the toy chest.',
-		hints: ['Open the chest first.', 'Three blocks means three trips.']
+		goalText: 'Put both blocks in the toy chest.',
+		hints: ['Open the chest first.', 'Two blocks means two trips.']
 	},
 	'locked-chest': {
 		title: 'The locked chest',
-		goalText: 'The chest is locked. Get it open and tidy the blocks away.',
+		goalText: 'The chest is locked, with one block still out. Get it open and put the block away.',
 		hints: [
 			'Something in the room opens it.',
+			'You can only carry one thing at a time — the key counts.',
 			'If you are not sure how the playroom works, look it up.'
+		]
+	},
+	'locked-chest-expert': {
+		title: 'The locked chest — expert',
+		goalText: 'The chest is locked and all three blocks are out. Open it and tidy every one away.',
+		hints: [
+			'Expert card — your bot will probably need a bigger step budget!',
+			'Turn the step dial up before you pull the lever.',
+			'Three blocks, one pair of hands, and a key to fetch first.'
 		]
 	},
 	'sums-for-teddy': {
@@ -274,8 +328,9 @@ export const goalCardStrings = {
 export const layoutStrings = {
 	greeting: 'Just you and Teddy',
 	'snack-hunt': 'Snack on the table',
-	'tidy-up': 'Blocks everywhere, chest unlocked',
-	'locked-chest': 'Blocks everywhere, chest locked',
+	'tidy-up': 'Two blocks out, chest unlocked',
+	'locked-chest': 'One block out, chest locked',
+	'locked-chest-expert': 'Blocks everywhere, chest locked',
 	sums: 'A quiet room for sums',
 	'free-play': 'Everything out of the box'
 } as const;

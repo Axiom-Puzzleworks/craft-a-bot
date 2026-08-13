@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { entityName } from '../strings.js';
 import { findAction } from './actions.js';
 import { playroomLayouts } from './layouts.js';
 import { observePlayroom } from './senses.js';
@@ -159,13 +160,12 @@ describe('the same mismatch on the other actions', () => {
 describe('block ids line up with the letters printed on them', () => {
 	it('so a guess lands on the block it names, or fails honestly', () => {
 		// `block-a` used to be the red C, which meant a plausible guess picked up
-		// the wrong object and sent the bot across the room.
-		const items = playroom().items;
-		const letterOf = (id: string) => items.find((item) => item.id === id)?.name ?? '';
-
-		expect(letterOf('block-a')).toContain('(A)');
-		expect(letterOf('block-b')).toContain('(B)');
-		expect(letterOf('block-c')).toContain('(C)');
+		// the wrong object and sent the bot across the room. Asked of the names
+		// themselves rather than of a layout, because which blocks are out on
+		// the floor is a card's business and changes with re-scoping.
+		expect(entityName('block-a')).toContain('(A)');
+		expect(entityName('block-b')).toContain('(B)');
+		expect(entityName('block-c')).toContain('(C)');
 	});
 });
 

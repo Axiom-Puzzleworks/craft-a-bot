@@ -83,27 +83,79 @@ function describeContainer(
 		: observationStrings.containerEmpty(container.name, container.state);
 }
 
+/** Where the bot stood, phrased as the compass phrases it. */
+function positionPhrase(state: PlayroomState): string {
+	return observationStrings.summaryPosition(state.bot.position.x, state.bot.position.y);
+}
+
 /**
- * The one-line memory form: what was worth noticing, and what the bot was
- * holding. Everything the full observation says about empty rug is dropped.
+ * The one-line memory form: what was worth noticing, where it was, and what
+ * the bot was holding. Everything the full observation says about empty rug is
+ * dropped.
+ *
+ * The bearings are the point (E4, `14-…` §3). A remembered name is only useful
+ * if the bot can act on it, and "a stripy ball" with no direction is a fact it
+ * can do nothing with; "a stripy ball to the north-east, from column 4, row 5"
+ * is a plan.
  */
 function sightSummary(state: PlayroomState): string {
 	const near: string[] = [];
 	for (const offset of SIGHT_OFFSETS) {
 		const cell = { x: state.bot.position.x + offset.x, y: state.bot.position.y + offset.y };
 		if (!inBounds(cell, state.width, state.height)) continue;
+		const direction = relativeDirection(state.bot.position, cell);
 		const blocker = blockerAt(state, cell);
 		if (blocker) {
 			const container = state.containers.find((candidate) => candidate.id === blocker.id);
-			near.push(container ? describeContainer(state, container) : blocker.name);
+			near.push(
+				observationStrings.summarySeen(
+					container ? describeContainer(state, container) : blocker.name,
+					direction
+				)
+			);
 		}
-		for (const item of itemsOnFloorAt(state, cell)) near.push(item.name);
+		for (const item of itemsOnFloorAt(state, cell)) {
+			near.push(observationStrings.summarySeen(item.name, direction));
+		}
 	}
 	const carried = carriedItem(state);
 	const hands = carried
-		? observationStrings.sightCarrying(carried.name)
-		: observationStrings.sightEmptyHands;
-	return observationStrings.sightSummary(near, hands);
+		? observationStrings.summaryCarrying(carried.name)
+		: observationStrings.summaryEmptyHands;
+	return observationStrings.sightSummary(positionPhrase(state), near, hands);
+}
+
+/** The compass's landmarks, as the memory line wants them; empty room ⇒ nothing. */
+function compassSummary(state: PlayroomState): string | undefined {
+	const landmarks = [...state.containers, ...state.furniture].map((landmark) =>
+		observationStrings.compassLandmark(
+			landmark.name,
+			relativeDirection(state.bot.position, landmark.position)
+		)
+	);
+	return landmarks.length > 0 ? observationStrings.compassSummary(landmarks.join(', ')) : undefined;
+}
+
+/**
+ * The short form the Memory brick keeps. Sight carries it when fitted; the
+ * compass adds its bearings (E4 asks for the compass line in the memory
+ * record), and stands in on its own for a bot with a compass and no eyes —
+ * which knows exactly where it is and deserves to remember it.
+ */
+function summariseObservation(
+	state: PlayroomState,
+	enabled: readonly string[]
+): string | undefined {
+	const parts: string[] = [];
+	if (enabled.includes(SENSE_SIGHT)) parts.push(sightSummary(state));
+	if (enabled.includes(SENSE_COMPASS)) {
+		if (parts.length === 0) {
+			parts.push(observationStrings.positionOnlySummary(positionPhrase(state)));
+		}
+		const landmarks = compassSummary(state);
+		if (landmarks !== undefined) parts.push(landmarks);
+	}
+	return parts.length > 0 ? parts.join('; ') : undefined;
 }
 
 function sightLines(state: PlayroomState): string[] {
@@ -160,14 +212,14 @@ export function observePlayroom(state: PlayroomState, channels: string[]): Obser
 	const enabled = CHANNEL_ORDER.filter((channel) => channels.includes(channel));
 	const lines: string[] = [];
 	const data: Record<string, unknown> = {};
-	let summary: string | undefined;
+	// Taken before the loop, because Hearing drains what it reports.
+	const summary = summariseObservation(state, enabled);
 
 	for (const channel of enabled) {
 		switch (channel) {
 			case SENSE_SIGHT: {
 				lines.push(...sightLines(state));
 				data[SENSE_SIGHT] = { position: { ...state.bot.position } };
-				summary = sightSummary(state);
 				break;
 			}
 			case SENSE_HEARING: {
@@ -199,8 +251,9 @@ export function observePlayroom(state: PlayroomState, channels: string[]): Obser
 	return {
 		channels: [...enabled],
 		text: lines.length > 0 ? lines.join('\n') : observationStrings.nothingSensed,
-		// Only sight produces a short form; a bot with no eyes has nothing worth
-		// condensing, and omitting it leaves the full text remembered as before.
+		// Sight and the compass produce a short form; a bot with neither has
+		// nothing worth condensing, and omitting it leaves the full text
+		// remembered as before.
 		...(summary !== undefined ? { summary } : {}),
 		data
 	};

@@ -27,7 +27,13 @@ function createTinyWorld(): WorldDefinition {
 				description: 'Make a small noise.',
 				parameters: { type: 'object' }
 			},
-			{ id: 'win', name: 'Win', description: 'Finish the goal.', parameters: { type: 'object' } }
+			{ id: 'win', name: 'Win', description: 'Finish the goal.', parameters: { type: 'object' } },
+			{
+				id: 'flop',
+				name: 'Flop',
+				description: 'Try something the world always refuses.',
+				parameters: { type: 'object' }
+			}
 		],
 		senses: [{ id: 'look', name: 'Look', description: 'See the world.' }],
 		predicates: { 'has-won': 'The goal is met.' },
@@ -48,6 +54,9 @@ function createTinyWorld(): WorldDefinition {
 					if (action.name === 'win') {
 						state.won = true;
 						return { ok: true, narration: 'you win!', stateDiff: [] };
+					}
+					if (action.name === 'flop') {
+						return { ok: false, narration: 'you flop, and nothing happens', stateDiff: [] };
 					}
 					return { ok: false, narration: `you cannot ${action.name}`, stateDiff: [] };
 				},
@@ -487,6 +496,86 @@ describe('memory', () => {
 		const { session, seen } = makeSession({ script: [turn('Ping.', 'ping')] });
 		await session.step();
 		expect(seen).not.toContain('memory.updated');
+	});
+});
+
+/**
+ * E3 (`14-…` §3), the fix for `12-…` C2. The bot that cannot see its own
+ * failures repeats them; before this, a world refusal reached the Memory
+ * brick's window and nowhere else, so the very first bot anyone builds — no
+ * Memory — was structurally incapable of learning from a failed action.
+ */
+describe('learning from a failed action', () => {
+	function promptsFrom(session: ReturnType<typeof makeSession>['session']): string[] {
+		const prompts: string[] = [];
+		session.events.on('prompt.composed', (event) => {
+			prompts.push(event.payload.messages.at(-1)?.content ?? '');
+		});
+		return prompts;
+	}
+
+	it('tells the bot next tick, with no Memory brick fitted', async () => {
+		const { session } = makeSession({
+			spec: buildSpec({ actions: { enabled: ['ping', 'win', 'flop'] } }),
+			script: [turn('I shall flop.', 'flop'), turn('Ping instead.', 'ping')],
+			budgets: { maxTicks: 2 }
+		});
+		const prompts = promptsFrom(session);
+
+		await session.step();
+		await session.step();
+
+		expect(prompts[0]).not.toContain('you flop');
+		expect(prompts[1]).toContain('you flop, and nothing happens');
+	});
+
+	it('keeps the prompt to two messages while doing it', async () => {
+		const { session } = makeSession({
+			spec: buildSpec({ actions: { enabled: ['ping', 'win', 'flop'] } }),
+			script: [turn('I shall flop.', 'flop'), turn('Ping instead.', 'ping')],
+			budgets: { maxTicks: 2 }
+		});
+		const lengths: number[] = [];
+		session.events.on('prompt.composed', (event) => lengths.push(event.payload.messages.length));
+
+		await session.step();
+		await session.step();
+
+		// The failure rides in the "Right now:" section of the user message
+		// rather than adding a turn — a memory-less bot's prompt stays system +
+		// user, exactly as 02-AGENT-MODEL.md §8 describes it.
+		expect(lengths).toEqual([2, 2]);
+	});
+
+	it('also promotes the refusal for an action the bot was never built with', async () => {
+		const { session } = makeSession({
+			// `flop` exists in the world but is not fitted, so the engine refuses
+			// it before the world ever sees it.
+			script: [turn('I shall flop.', 'flop'), turn('Ping instead.', 'ping')],
+			budgets: { maxTicks: 2 }
+		});
+		const prompts = promptsFrom(session);
+
+		await session.step();
+		await session.step();
+
+		expect(prompts[1]).toContain('you have not been built with any way to do it');
+	});
+
+	it('says nothing extra when the action succeeded', async () => {
+		const { session } = makeSession({
+			script: [turn('Ping.', 'ping'), turn('Ping again.', 'ping')],
+			budgets: { maxTicks: 2 }
+		});
+		const prompts = promptsFrom(session);
+
+		await session.step();
+		await session.step();
+
+		// Nothing is prepended to the observation: the second prompt is the
+		// bare "Right now:" section, with the ping count moved on by one.
+		expect(prompts[0]).toBe('Right now:\npings: 0');
+		expect(prompts[1]).toBe('Right now:\npings: 1');
 	});
 });
 
