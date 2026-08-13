@@ -202,7 +202,9 @@ export {
 	type BrickConfigMigrationTable,
 	type BrickKindDefinition,
 	type BrickRuntime,
+	type BrickConfigProblem,
 	type BrickRuntimeContext,
+	type BrickValidationContext,
 	type CallContribution,
 	type ContextContribution,
 	type SlotId,
@@ -212,9 +214,11 @@ export {
 export {
 	brainSlotSchema,
 	memorySlotSchema,
+	safetySlotSchema,
 	slotConfig,
 	type BrainSlotConfig,
-	type MemorySlotConfig
+	type MemorySlotConfig,
+	type SafetySlotConfig
 } from './schemas/slot-contracts.js';
 export { validateSpec } from './validate-spec.js';
 export { validateSpecV2 } from './validate-spec-v2.js';
@@ -240,6 +244,7 @@ export {
 	buildRuntimes,
 	collectCalls,
 	collectContext,
+	collectGuardrails,
 	collectSenses,
 	disposeRuntimes,
 	notifyTickEnd,

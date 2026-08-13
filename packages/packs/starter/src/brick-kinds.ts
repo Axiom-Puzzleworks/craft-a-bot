@@ -7,6 +7,12 @@ import {
 	toolsBrickSchema,
 	type BrickKindDefinition
 } from '@craftabot/core';
+import {
+	createActionBlocklistGuardrail,
+	createApprovalModeGuardrail,
+	createNoRepetitionGuardrail,
+	createStepBudgetGuardrail
+} from '@craftabot/governance';
 import { starterBricks } from './bricks.js';
 import { qualifyPlayroomId } from './world/playroom.js';
 
@@ -158,6 +164,70 @@ export const starterBrickKinds: BrickKindDefinition[] = [
 		configSchema: safetyBrickSchema,
 		configVersion: 1,
 		defaults: { maxTicks: 30, blockedActions: [], approvalMode: false, repeatLimit: 3 },
-		describeFitted: () => 'a safety brick watching over you'
+		describeFitted: () => 'a safety brick watching over you',
+		/*
+		 * A blocklist naming an action nobody installed (WP14 slice 3d).
+		 *
+		 * Core used to run this check itself, by reading `spec.bricks.safety` —
+		 * one of the six special cases only the six V1 bricks could ever have. It
+		 * cannot be generic, because the blocklist is not something this brick
+		 * *offers*: it is a set of ids the brick refers to in order to forbid, and
+		 * only this brick knows that its `blockedActions` are action ids at all.
+		 *
+		 * A warning rather than blocking. The bot runs, and the rule simply never
+		 * fires — worth saying out loud, because a safety setting that quietly
+		 * does nothing is exactly the sort of thing a builder should be told about.
+		 */
+		validateConfig: (config: { blockedActions: string[] }, ctx) =>
+			config.blockedActions
+				.filter((actionId) => !ctx.hasAction(actionId))
+				.map((actionId) => ({
+					code: 'unknown-blocked-action' as const,
+					severity: 'warning' as const,
+					message: `The blocklist names "${actionId}", which isn't an installed action.`,
+					details: { actionId }
+				})),
+		/*
+		 * The brick's dials, become running rules (WP14 slice 3d).
+		 *
+		 * This was `guardrailsForSpec` in `@craftabot/governance`: a compiler that
+		 * read `spec.bricks.safety` by name and so could only ever compile *this*
+		 * brick. Policy now arrives the way tools and senses do — the brick names
+		 * what it installs, and core collects it — which is what lets a Monitor
+		 * brick contribute rules of its own without a core change.
+		 *
+		 * Governance still owns the rules themselves. The split is the one the
+		 * whole contract runs on: governance ships the *mechanisms* (a step budget,
+		 * a blocklist), this pack decides which of them *this brick* installs and
+		 * how it is dialled. That is content, not mechanism (hard rule 4).
+		 *
+		 * Order is behaviour, not presentation, because the chain stops at the
+		 * first non-allow verdict (`08-…` §2), and it is `guardrailsForSpec`'s
+		 * order unchanged: blocklist before approval mode, so an action the builder
+		 * has already forbidden is refused outright rather than put to a human as a
+		 * decision they appear free to make. No-repetition sits between them —
+		 * after the flat prohibitions, before anybody is asked to approve a fourth
+		 * identical attempt at something that has plainly stopped working.
+		 */
+		createRuntime: (config: {
+			maxTicks: number;
+			blockedActions: string[];
+			approvalMode: boolean;
+			repeatLimit?: number;
+		}) => ({
+			contributeGuardrails: () => {
+				const guardrails = [createStepBudgetGuardrail(config.maxTicks)];
+				// An empty list would allow everything on every check; the trace is
+				// easier to read without a rule that cannot possibly fire.
+				if (config.blockedActions.length > 0) {
+					guardrails.push(createActionBlocklistGuardrail(config.blockedActions));
+				}
+				if (config.repeatLimit !== undefined) {
+					guardrails.push(createNoRepetitionGuardrail(config.repeatLimit));
+				}
+				if (config.approvalMode) guardrails.push(createApprovalModeGuardrail());
+				return guardrails;
+			}
+		})
 	} as BrickKindDefinition
 ];

@@ -1,8 +1,14 @@
-import { asLegacySpec, migrateAgentSpec, type AgentSpecV2 } from '@craftabot/core';
+import {
+	asLegacySpec,
+	buildRuntimes,
+	collectGuardrails,
+	migrateAgentSpec,
+	type AgentSpecV2,
+	type AnyAgentSpec
+} from '@craftabot/core';
 import { obedient } from '@craftabot/core/testing';
-import { guardrailsForSpec } from '@craftabot/governance';
 import { describe, expect, it } from 'vitest';
-import { buildSpec, runToCompletion } from './harness.js';
+import { buildRegistry, buildSpec, runToCompletion } from './harness.js';
 
 /**
  * **A v2 bot runs, and runs identically** (WP14 slice 2b).
@@ -25,6 +31,13 @@ function v2Of(v1: ReturnType<typeof buildSpec>): AgentSpecV2 {
 	const migrated = migrateAgentSpec(v1);
 	if ('kind' in migrated) throw new Error(migrated.message);
 	return migrated;
+}
+
+/** The rules the fitted bricks install, named so two shapes can be compared. */
+function policyOf(spec: AnyAgentSpec): string[] {
+	return collectGuardrails(
+		buildRuntimes({ spec, registry: buildRegistry(), context: { random: () => 0 } })
+	).map((rule) => `${rule.id}: ${rule.description}`);
 }
 
 /** Everything about a run that a format change must not alter. */
@@ -62,7 +75,7 @@ describe('running a bot from a v2 spec', () => {
 		expect(shapeOf(fromV2).prompts[0]).toContain('Cheerful and literal.');
 	});
 
-	it('compiles the same policy from a v2 safety brick', async () => {
+	it('installs the same policy from a v2 safety brick', async () => {
 		const v1 = buildSpec();
 		v1.bricks.safety = {
 			maxTicks: 12,
@@ -71,8 +84,8 @@ describe('running a bot from a v2 spec', () => {
 			repeatLimit: 3
 		};
 
-		const fromV1 = guardrailsForSpec(v1).map((rule) => `${rule.id}: ${rule.description}`);
-		const fromV2 = guardrailsForSpec(v2Of(v1)).map((rule) => `${rule.id}: ${rule.description}`);
+		const fromV1 = policyOf(v1);
+		const fromV2 = policyOf(v2Of(v1));
 
 		expect(fromV2).toEqual(fromV1);
 		expect(fromV2.length).toBeGreaterThan(1);
@@ -91,9 +104,16 @@ describe('running a bot from a v2 spec', () => {
 
 	/**
 	 * The shim's safety rule: a brick whose config is not the v1 shape for its
-	 * socket is skipped rather than misread. Without this, a Monitor brick in
-	 * the safety socket would be handed to the guardrail compiler, which would
-	 * read `watchFor` as `blockedActions` and quietly compile the wrong policy.
+	 * socket is skipped rather than misread. The workbench still reads bots
+	 * through that window (slice 4 closes it), so the rule still matters.
+	 *
+	 * > **Amended 2026-08-13 (WP14 slice 3d):** this used to assert the *guardrail
+	 * > compiler* was protected too — a Monitor brick in the safety socket would
+	 * > otherwise have had `watchFor` read as `blockedActions`, quietly compiling
+	 * > the wrong policy. There is no longer a compiler to protect: a brick's
+	 * > config only ever reaches its own kind's schema, so misreading it is not a
+	 * > mistake the engine can make any more. What is asserted instead is the
+	 * > consequence — an unregistered kind installs nothing.
 	 */
 	it('ignores a brick whose config is not the shape that socket expects', () => {
 		const v2 = v2Of(buildSpec());
@@ -105,6 +125,6 @@ describe('running a bot from a v2 spec', () => {
 		});
 
 		expect(asLegacySpec(v2).bricks.safety).toBeUndefined();
-		expect(guardrailsForSpec(v2)).toEqual([]);
+		expect(policyOf(v2)).toEqual([]);
 	});
 });

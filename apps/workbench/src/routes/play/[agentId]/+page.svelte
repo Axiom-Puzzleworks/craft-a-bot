@@ -11,7 +11,6 @@
 		type AgentRecord,
 		type RunRecord
 	} from '@craftabot/core';
-	import { guardrailsForSpec } from '@craftabot/governance';
 	import { chooseBrain } from '$lib/brain.js';
 	import { demoVariantFor, hasDemoPlan } from '$lib/demo-brain.js';
 	import { leafletStore } from '$lib/leaflet/leaflet.svelte.js';
@@ -109,12 +108,18 @@
 			return;
 		}
 		keyless = brain.keyless;
-		// The Safety Brick becomes actual running rules here — before WP8 the
-		// panel wrote settings that nothing ever read (08 §3).
+		/*
+		 * No policy is compiled here any more (WP14 slice 3d).
+		 *
+		 * Before WP8 the Safety panel wrote settings nothing ever read (08 §3);
+		 * WP8 fixed that by having this page compile the brick and hand the rules
+		 * to the session. The brick now installs its own, so a bot's policy
+		 * travels with the bot rather than depending on the screen it was launched
+		 * from — and a Monitor brick works here with no change at all.
+		 */
 		view = createSessionView({
 			spec: loaded.spec,
-			provider: brain.provider,
-			guardrails: guardrailsForSpec(loaded.spec)
+			provider: brain.provider
 		});
 		view.setSpeed(speed);
 		runStartedAt = new Date().toISOString();

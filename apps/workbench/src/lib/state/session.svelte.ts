@@ -70,6 +70,13 @@ export interface SessionViewDeps {
 	/** Either spec shape — `createSession` normalises at its own door (WP14). */
 	spec: AnyAgentSpec;
 	provider: LLMProvider;
+	/**
+	 * Policy the *host* adds on top of the bot's own (WP14 slice 3d).
+	 *
+	 * The play screen passes none: the fitted bricks install their rules
+	 * themselves, so a bot carries its policy wherever it is run. This stays open
+	 * for the Workshop's policy cards (`08-…` §5) and for tests.
+	 */
 	guardrails?: Guardrail[];
 	maxTicks?: number;
 	/** Base delay between ticks in play mode, before the speed dial divides it. */
@@ -242,6 +249,7 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 			// literal 30, which would now disagree with core.
 			return displayedTickBudget(
 				deps.spec,
+				registry,
 				deps.maxTicks !== undefined ? { maxTicks: deps.maxTicks } : {}
 			);
 		},

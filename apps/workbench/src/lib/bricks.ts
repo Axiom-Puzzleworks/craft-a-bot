@@ -1,4 +1,4 @@
-import type { BrickDefinition } from '@craftabot/core';
+import type { BrickDefinition, SlotId } from '@craftabot/core';
 import { starterBricks } from '@craftabot/pack-starter';
 
 /**
@@ -32,4 +32,28 @@ export function brickDefinition(kind: BrickKind): BrickDefinition {
 	const definition = brickDefinitions[kind];
 	if (!definition) throw new Error(`No brick definition installed for "${kind}".`);
 	return definition;
+}
+
+/**
+ * Core's socket names, in the bench's vocabulary (WP14 slice 3d).
+ *
+ * Build problems point at a `SlotId` now — the chassis socket — rather than at
+ * one of V1's six brick names, because core has stopped knowing that the thing
+ * in the equipment socket is called `tools`. The panels have not caught up yet;
+ * they are keyed by brick name until slice 4 makes them schema-driven.
+ *
+ * So this is a door, in the same sense as the other translations this slice
+ * leaves standing: one table, in the UI, that closes when the panels do.
+ */
+const PANEL_FOR_SLOT: Record<SlotId, BrickKind> = {
+	brain: 'llm',
+	memory: 'memory',
+	equipment: 'tools',
+	perception: 'sense',
+	mobility: 'actions',
+	safety: 'safety'
+};
+
+export function panelForSlot(slot: SlotId | undefined): BrickKind | undefined {
+	return slot ? PANEL_FOR_SLOT[slot] : undefined;
 }

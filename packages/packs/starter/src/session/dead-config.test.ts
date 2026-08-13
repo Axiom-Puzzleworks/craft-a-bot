@@ -1,10 +1,15 @@
-import { resolveBudgets, type AgentSpec, type ChatRequest } from '@craftabot/core';
+import {
+	buildRuntimes,
+	collectGuardrails,
+	resolveBudgets,
+	type AgentSpec,
+	type ChatRequest
+} from '@craftabot/core';
 import { createMockProvider } from '@craftabot/core/testing';
-import { guardrailsForSpec } from '@craftabot/governance';
 import { z } from 'zod';
 import { describe, expect, it } from 'vitest';
 import { agentSpecSchema } from '@craftabot/core';
-import { runToCompletion } from './harness.js';
+import { buildRegistry, runToCompletion } from './harness.js';
 
 /**
  * **The dead-config audit** (`13-…` §3, closing `12-…` D10).
@@ -90,8 +95,12 @@ async function behaviourOf(spec: AgentSpec): Promise<string> {
 		})),
 		observations: run.byType('sense').map((event) => JSON.stringify(event.payload)),
 		memory: run.byType('memory.updated').map((event) => JSON.stringify(event.payload)),
-		budgets: resolveBudgets(spec),
-		policy: guardrailsForSpec(spec).map((guardrail) => `${guardrail.id}: ${guardrail.description}`)
+		budgets: resolveBudgets(spec, buildRegistry()),
+		// The rules the fitted bricks install (slice 3d): what used to be compiled
+		// from the spec is now contributed by the brick that owns the dials.
+		policy: collectGuardrails(
+			buildRuntimes({ spec, registry: buildRegistry(), context: { random: () => 0 } })
+		).map((guardrail) => `${guardrail.id}: ${guardrail.description}`)
 	});
 }
 

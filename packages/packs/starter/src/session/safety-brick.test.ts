@@ -1,6 +1,5 @@
-import { createSession, type EngineEvent } from '@craftabot/core';
+import { buildRuntimes, collectGuardrails, createSession, type EngineEvent } from '@craftabot/core';
 import { createMockProvider, createTestClock, obedient, wanderer } from '@craftabot/core/testing';
-import { guardrailsForSpec } from '@craftabot/governance';
 import { describe, expect, it } from 'vitest';
 import { buildRegistry, buildSpec, runToCompletion } from './harness.js';
 
@@ -47,8 +46,7 @@ describe('the step budget rule', () => {
 		const spec = safetySpec({ maxTicks: 4, blockedActions: [], approvalMode: false });
 		const run = await runToCompletion({
 			script: wanderer(),
-			spec,
-			guardrails: guardrailsForSpec(spec)
+			spec
 		});
 
 		expect(run.outcome).toBe('STOPPED_BY_GUARDRAIL');
@@ -59,8 +57,7 @@ describe('the step budget rule', () => {
 		const spec = safetySpec({ maxTicks: 4, blockedActions: [], approvalMode: false });
 		const run = await runToCompletion({
 			script: wanderer(),
-			spec,
-			guardrails: guardrailsForSpec(spec)
+			spec
 		});
 
 		// Four `tick.started` events, the last stopped before it thinks — the same
@@ -73,8 +70,7 @@ describe('the step budget rule', () => {
 		const spec = safetySpec({ maxTicks: 3, blockedActions: [], approvalMode: false });
 		const run = await runToCompletion({
 			script: wanderer(),
-			spec,
-			guardrails: guardrailsForSpec(spec)
+			spec
 		});
 
 		// One check per tick: two allowed, then the trip (08 §2).
@@ -97,8 +93,7 @@ describe('the action blocklist rule', () => {
 		);
 		const run = await runToCompletion({
 			script: openThenMove(),
-			spec,
-			guardrails: guardrailsForSpec(spec)
+			spec
 		});
 
 		expect(timesTripped(run.events, 'safety/action-blocklist')).toBe(1);
@@ -120,8 +115,7 @@ describe('the action blocklist rule', () => {
 		);
 		const run = await runToCompletion({
 			script: openThenMove(),
-			spec,
-			guardrails: guardrailsForSpec(spec)
+			spec
 		});
 
 		const secondPrompt = run.byType('prompt.composed').at(1);
@@ -135,8 +129,7 @@ describe('the action blocklist rule', () => {
 		const spec = safetySpec({ maxTicks: 3, blockedActions: ['throw'], approvalMode: false });
 		const run = await runToCompletion({
 			script: obedient([{ say: 'Off I go.', call: 'move', args: { direction: 'east' } }]),
-			spec,
-			guardrails: guardrailsForSpec(spec)
+			spec
 		});
 
 		expect(timesTripped(run.events, 'safety/action-blocklist')).toBe(0);
@@ -166,7 +159,6 @@ describe('the approval mode rule', () => {
 			provider: createMockProvider({
 				script: obedient([{ say: 'Saying hello.', call: 'say', args: { text: 'Hello!' } }])
 			}),
-			guardrails: guardrailsForSpec(spec),
 			options: { now: clock.now, newId: clock.newId, random: clock.random }
 		});
 
@@ -231,7 +223,6 @@ describe('the approval mode rule', () => {
 			provider: createMockProvider({
 				script: obedient([{ say: 'Rolling.', call: 'dice', args: { sides: 6 } }])
 			}),
-			guardrails: guardrailsForSpec(spec),
 			options: { now: clock.now, newId: clock.newId, random: clock.random }
 		});
 		// Answer anyway, so a regression fails this assertion instead of hanging
@@ -257,12 +248,16 @@ describe('the approval mode rule', () => {
 describe('no Safety Brick at all', () => {
 	it('installs no guardrails, and the engine floor still applies', async () => {
 		const spec = buildSpec();
-		expect(guardrailsForSpec(spec)).toStrictEqual([]);
+		// Nothing in the safety socket, so nothing installs a rule (slice 3d).
+		expect(
+			collectGuardrails(
+				buildRuntimes({ spec, registry: buildRegistry(), context: { random: () => 0 } })
+			)
+		).toStrictEqual([]);
 
 		const run = await runToCompletion({
 			script: wanderer(),
-			spec,
-			guardrails: guardrailsForSpec(spec)
+			spec
 		});
 		expect(run.outcome).toBe('OUT_OF_STEPS');
 		expect(run.byType('guardrail.checked')).toHaveLength(0);
@@ -295,8 +290,7 @@ describe('refusals are remembered', () => {
 		);
 		const run = await runToCompletion({
 			script: openThenOpen(),
-			spec,
-			guardrails: guardrailsForSpec(spec)
+			spec
 		});
 
 		// By the third prompt the first refusal is two turns old — exactly the
@@ -324,7 +318,6 @@ describe('refusals are remembered', () => {
 					{ say: 'Trying again.', call: 'say', args: { text: 'Hello?' } }
 				])
 			}),
-			guardrails: guardrailsForSpec(spec),
 			options: { now: clock.now, newId: clock.newId, random: clock.random }
 		});
 		session.events.onAny((event) => {
@@ -368,8 +361,7 @@ describe('the no-repetition rule', () => {
 		const spec = safetySpec({ maxTicks: 8, blockedActions: [], approvalMode: false });
 		const run = await runToCompletion({
 			script: brokenRecord(),
-			spec,
-			guardrails: guardrailsForSpec(spec)
+			spec
 		});
 
 		// Eight turns of the same thing, all performed. This is the reported bug,
@@ -390,8 +382,7 @@ describe('the no-repetition rule', () => {
 		});
 		const run = await runToCompletion({
 			script: brokenRecord(),
-			spec,
-			guardrails: guardrailsForSpec(spec)
+			spec
 		});
 
 		const performed = run
@@ -412,8 +403,7 @@ describe('the no-repetition rule', () => {
 		});
 		const run = await runToCompletion({
 			script: brokenRecord(),
-			spec,
-			guardrails: guardrailsForSpec(spec)
+			spec
 		});
 
 		// A loop is a wasted turn, not a failed run. The run does end as
@@ -444,8 +434,7 @@ describe('the no-repetition rule', () => {
 		});
 		const run = await runToCompletion({
 			script: brokenRecord(),
-			spec,
-			guardrails: guardrailsForSpec(spec)
+			spec
 		});
 
 		const latest = run.byType('prompt.composed').at(-1);
@@ -470,8 +459,7 @@ describe('the no-repetition rule', () => {
 				{ say: 'East again.', call: 'move', args: { direction: 'east' } },
 				{ say: 'Hello!', call: 'say', args: { text: 'Hello Teddy!' } }
 			]),
-			spec,
-			guardrails: guardrailsForSpec(spec)
+			spec
 		});
 
 		expect(timesTripped(run.events, 'safety/no-repetition')).toBe(0);

@@ -1,5 +1,6 @@
 import type { PackRegistry } from '../pack-registry.js';
 import { toSpecV2, type AnyAgentSpec } from '../schemas/agent-spec-v2.js';
+import type { Guardrail } from '../types/guardrail.js';
 import type {
 	BrickRuntime,
 	BrickRuntimeContext,
@@ -145,6 +146,29 @@ export function collectSenses(runtimes: readonly FittedRuntime[]): string[] {
 	const channels: string[] = [];
 	for (const fitted of runtimes) channels.push(...(fitted.runtime.contributeSenses?.() ?? []));
 	return channels;
+}
+
+/**
+ * Every rule the fitted bricks install, in slot order (WP14 slice 3d).
+ *
+ * This is the hook `14-…` §2.1 declared and nothing implemented: until now a
+ * fitted Safety Brick became running guardrails in `guardrailsForSpec`, a
+ * compiler in `governance` that read `spec.bricks.safety` by name. That worked
+ * for exactly one brick and no others — a Monitor brick could watch nothing,
+ * because there was no way for a second brick to contribute policy without a
+ * core change. Now policy arrives the way tools and senses do.
+ *
+ * Order is slot order, and *within* a brick the order its runtime returned,
+ * because the chain stops at the first non-allow verdict (`08-…` §2): a rule
+ * that refuses outright must be asked before one that puts a decision to a
+ * human. A brick therefore owns the order of its own rules, and core owns the
+ * order between bricks — the same division as everywhere else here.
+ */
+export function collectGuardrails(runtimes: readonly FittedRuntime[]): Guardrail[] {
+	const guardrails: Guardrail[] = [];
+	for (const fitted of runtimes)
+		guardrails.push(...(fitted.runtime.contributeGuardrails?.() ?? []));
+	return guardrails;
 }
 
 /** Tell every brick that learns from a tick what happened in it. */

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { SLOT_IDS } from '../types/brick.js';
 
 /**
  * validateSpec()'s output (02-AGENT-MODEL.md §6). Rendered by the build-checks
@@ -38,14 +39,32 @@ export const buildProblemCodeSchema = z.enum([
 ]);
 export type BuildProblemCode = z.infer<typeof buildProblemCodeSchema>;
 
+/**
+ * V1's six brick names, as a problem could once point at them.
+ *
+ * > **Amended 2026-08-13 (WP14 slice 3d):** superseded by `slot`, and kept only
+ * > so a stored `AgentRecord.lastValidation` written before this slice still
+ * > parses. Nothing writes it any more. It cannot be *renamed* into `slot`,
+ * > because the two vocabularies genuinely differ — `tools` is the equipment
+ * > socket, `sense` the perception one — and a problem now points at the socket
+ * > rather than at a brick core has heard of.
+ */
 export const brickSlotSchema = z.enum(['llm', 'memory', 'tools', 'sense', 'actions', 'safety']);
 export type BrickSlot = z.infer<typeof brickSlotSchema>;
 
 export const buildProblemSchema = z.object({
 	code: buildProblemCodeSchema,
 	severity: buildProblemSeveritySchema,
-	/** Which brick panel this relates to, so the UI can point at it. */
+	/** @deprecated since WP14 slice 3d — read `slot`. */
 	brick: brickSlotSchema.optional(),
+	/**
+	 * Which socket this is about, so the UI can point at the brick in it.
+	 *
+	 * A socket rather than a brick kind, deliberately: the problem the ribbon has
+	 * to point at is *where on the chassis to look*, and a kind id would make
+	 * "this socket is empty" unsayable — which is what `missing-brain` is.
+	 */
+	slot: z.enum(SLOT_IDS).optional(),
 	message: z.string(),
 	details: z.record(z.string(), z.unknown()).optional()
 });

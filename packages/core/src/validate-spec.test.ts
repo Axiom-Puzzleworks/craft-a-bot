@@ -1,10 +1,20 @@
 import { describe, expect, it } from 'vitest';
+import { z } from 'zod';
 import { validateSpec } from './validate-spec.js';
 import { createPackRegistry, type PackRegistry } from './pack-registry.js';
 import type { AgentSpec } from './schemas/agent-spec.js';
+import { migrateAgentSpec, type AgentSpecV2 } from './schemas/agent-spec-v2.js';
 import type { PackManifest } from './schemas/pack-manifest.js';
 import { v1BrickKinds } from './testing/brick-kinds.js';
+import type { BrickKindDefinition } from './types/brick.js';
 import type { WorldDefinition } from './types/world.js';
+
+/** A v1 fixture in the shape everything reads it as, so a v2-only case can add to it. */
+function migrated(spec: AgentSpec): AgentSpecV2 {
+	const result = migrateAgentSpec(spec);
+	if ('kind' in result) throw new Error(result.message);
+	return result;
+}
 
 const playroom: WorldDefinition = {
 	id: 'starter/playroom',
@@ -211,13 +221,113 @@ describe('validateSpec', () => {
 		);
 	});
 
-	it('reports unknown-blocked-action (warning) for an unresolvable safety blocklist entry', () => {
-		const spec = validSpec();
-		spec.bricks.safety = { maxTicks: 30, blockedActions: ['bogus-action'], approvalMode: false };
-		const problems = validateSpec(spec, buildRegistry());
-		expect(problems).toContainEqual(
-			expect.objectContaining({ code: 'unknown-blocked-action', severity: 'warning' })
+	/**
+	 * The fourth question, delegated (WP14 slice 3d).
+	 *
+	 * Core used to check the Safety Brick's blocklist itself, which it could only
+	 * do because v1 baked that brick into its schema. It cannot be generic — a
+	 * blocklist is not something a brick *offers*, it is a set of ids the brick
+	 * refers to, and only the brick knows they are action ids. So the kind is
+	 * asked, and what core owns is asking, and saying *where* the answer applies.
+	 *
+	 * The blocklist itself is proved against the real brick in `pack-starter`;
+	 * the kind here is invented, as everything in core's suite is.
+	 */
+	it('asks a kind about its own config, and says which socket the answer is about', () => {
+		const registry = buildRegistry();
+		registry.registerPack({
+			id: 'expansion',
+			name: 'Expansion',
+			version: '1.0.0',
+			requiresCore: '>=1.0.0',
+			brickKinds: [
+				{
+					id: 'expansion/warden',
+					slot: 'safety',
+					name: 'Warden',
+					description: 'Refuses things',
+					realName: 'Warden',
+					realExplanation: 'Refuses things',
+					configSchema: z.object({ forbid: z.array(z.string()) }),
+					configVersion: 1,
+					defaults: { forbid: [] },
+					validateConfig: (config: { forbid: string[] }, ctx) =>
+						config.forbid
+							.filter((id) => !ctx.hasAction(id))
+							.map((id) => ({
+								code: 'unknown-blocked-action' as const,
+								severity: 'warning' as const,
+								message: `The blocklist names "${id}", which isn't an installed action.`,
+								details: { actionId: id }
+							}))
+				} as BrickKindDefinition
+			]
+		});
+
+		const spec = migrated(validSpec());
+		spec.bricks.push({
+			slot: 'safety',
+			kind: 'expansion/warden',
+			configVersion: 1,
+			config: { forbid: ['bogus-action'] }
+		});
+
+		expect(validateSpec(spec, registry)).toContainEqual(
+			expect.objectContaining({
+				code: 'unknown-blocked-action',
+				severity: 'warning',
+				slot: 'safety'
+			})
 		);
+	});
+
+	/**
+	 * The whole validation context, exercised. It is four questions rather than
+	 * the registry itself so that a brick can check what it *names* without being
+	 * able to enumerate what is installed — worth pinning, because "the brick got
+	 * handed the registry" is the easy version somebody will otherwise reach for.
+	 */
+	it('lets a kind ask about all four kinds of installed content', () => {
+		const registry = buildRegistry();
+		const asked: string[] = [];
+		registry.registerPack({
+			id: 'expansion',
+			name: 'Expansion',
+			version: '1.0.0',
+			requiresCore: '>=1.0.0',
+			brickKinds: [
+				{
+					id: 'expansion/curious',
+					slot: 'perception',
+					name: 'Curious',
+					description: 'Asks about everything',
+					realName: 'Curious',
+					realExplanation: 'Asks about everything',
+					configSchema: z.object({}),
+					configVersion: 1,
+					defaults: {},
+					validateConfig: (_config: unknown, ctx) => {
+						if (ctx.hasTool('starter/calculator')) asked.push('tool');
+						if (ctx.hasAction('move')) asked.push('action');
+						if (ctx.hasSenseChannel('sight')) asked.push('sense');
+						if (ctx.hasCartridge('openai/quick-thinker')) asked.push('cartridge');
+						// Nothing wrong; the point is that it was able to look.
+						return [];
+					}
+				} as BrickKindDefinition
+			]
+		});
+
+		const spec = migrated(validSpec({ bricks: { ...validSpec().bricks, sense: undefined } }));
+		spec.bricks.push({
+			slot: 'perception',
+			kind: 'expansion/curious',
+			configVersion: 1,
+			config: {}
+		});
+
+		expect(validateSpec(spec, registry)).toEqual([]);
+		expect(asked).toEqual(['tool', 'action', 'sense', 'cartridge']);
 	});
 
 	it('reports every dangling id at once for a badly broken spec', () => {

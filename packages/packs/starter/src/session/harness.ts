@@ -114,6 +114,17 @@ export interface RunOptions {
 	maxTicks?: number;
 	/** Stop after this many `step()` calls, so a wandering bot cannot spin forever. */
 	stepLimit?: number;
+	/**
+	 * What to answer when the bot asks permission. Defaults to yes (WP14 slice 3d).
+	 *
+	 * It needed no answer before, because approval could only reach the engine if
+	 * a test compiled the Safety Brick and passed the result in — and none of the
+	 * runs through here did. The brick now installs its own rules, so a spec with
+	 * `approvalMode` on genuinely parks the run, and a harness that never answers
+	 * is a harness that hangs. Tests that care *how* approval behaves drive the
+	 * session directly; this only keeps every other run terminating.
+	 */
+	approve?: boolean;
 }
 
 /** Drives a session in step mode until it finishes, and hands back the trace. */
@@ -137,6 +148,15 @@ export async function runToCompletion(options: RunOptions): Promise<RunResult> {
 
 	const events: EngineEvent[] = [];
 	session.events.onAny((event) => events.push(event));
+
+	/*
+	 * Answered from the event, not after `step()` resolves: by the time the step
+	 * settles the session is already parked on the approval promise, and nothing
+	 * would ever resolve it.
+	 */
+	session.events.on('approval.requested', () => {
+		session.resolveApproval(options.approve ?? true);
+	});
 
 	session.start('step');
 	let outcome: string | undefined;

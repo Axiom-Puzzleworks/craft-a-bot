@@ -59,6 +59,32 @@ export const memorySlotSchema = z.object({
 export type MemorySlotConfig = z.infer<typeof memorySlotSchema>;
 
 /**
+ * What core reads from whatever is in the safety socket: **the dial, and only
+ * the dial** (WP14 slice 3d).
+ *
+ * Worth being precise about why this is one field rather than four. The Safety
+ * Brick's blocklist, repeat limit and approval mode are *policy*, and policy has
+ * an honest hook — `contributeGuardrails`, which the brick now uses. They are
+ * not here because they do not need to be: core never reads them, it runs
+ * whatever rules it is handed.
+ *
+ * `maxTicks` is different in kind. It is not a rule; it is how long the engine
+ * may run, which the engine has to know before it starts and which the gauge on
+ * the play screen counts down. Two things core owns need the number
+ * (`resolveBudgets`'s backstop, and `displayedTickBudget`), and neither is
+ * something a brick can do on its own behalf — which is exactly the test this
+ * file applies to the brain and memory sockets.
+ *
+ * A brick in this socket with no dial — a Monitor brick, say — simply has none:
+ * the backstop falls to `DEFAULT_TICK_BUDGET` and the gauge shows it, which is
+ * the right answer for a bot nobody set a limit on.
+ */
+export const safetySlotSchema = z.object({
+	maxTicks: z.number().int().positive()
+});
+export type SafetySlotConfig = z.infer<typeof safetySlotSchema>;
+
+/**
  * The config of the brick in a socket, read through core's contract for it.
  *
  * `undefined` when the socket is empty, when the kind is not installed, or when

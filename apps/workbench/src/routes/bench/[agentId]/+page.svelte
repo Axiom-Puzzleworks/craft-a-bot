@@ -3,7 +3,7 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import type { BuildProblem } from '@craftabot/core';
-	import { BRICK_ORDER, type BrickKind } from '$lib/bricks.js';
+	import { BRICK_ORDER, panelForSlot, type BrickKind } from '$lib/bricks.js';
 	import { NO_BATTERY_MESSAGE, needsBattery } from '$lib/brain.js';
 	import { createRegistry } from '$lib/packs.js';
 	import { createDndController } from '$lib/dnd/dnd-state.svelte.js';
@@ -107,7 +107,10 @@
 	}
 
 	function jumpToProblem(problem: BuildProblem): void {
-		if (problem.brick && BRICK_ORDER.includes(problem.brick)) selected = problem.brick;
+		// Problems point at a chassis socket since WP14 slice 3d; the panels are
+		// still keyed by V1 brick name until slice 4 makes them schema-driven.
+		const panel = panelForSlot(problem.slot);
+		if (panel && BRICK_ORDER.includes(panel)) selected = panel;
 	}
 
 	async function pullGo(): Promise<void> {
