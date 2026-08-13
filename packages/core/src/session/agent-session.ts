@@ -72,12 +72,12 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 	/*
 	 * Either spec shape, normalised to v2 (WP14 slice 3c).
 	 *
-	 * Until this slice the loop looked at a bot through v1's six-key window —
-	 * `asLegacySpec` — because everything in here read bricks by name. Nothing
-	 * does any more: the bricks contribute, and the two sockets whose config
-	 * core genuinely needs are read through slot contracts. The shim is gone
-	 * from the engine, and a bot saved before the open contract still runs
-	 * because the migration is what it was always for.
+	 * The loop used to look at a bot through v1's six-key window, because
+	 * everything in here read bricks by name. Nothing does: the bricks
+	 * contribute, and the two sockets whose config core genuinely needs are read
+	 * through slot contracts. The window itself was deleted in WP15 once the last
+	 * consumer had moved. A bot saved before the open contract still runs,
+	 * because reading one is `migrateAgentSpec`'s job and always was.
 	 */
 	const spec = toSpecV2(deps.spec);
 	const newId = options.newId ?? (() => crypto.randomUUID());

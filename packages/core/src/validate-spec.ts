@@ -12,7 +12,7 @@ import type { BrickValidationContext, SlotId } from './types/brick.js';
  * a non-blocking build-checks-ribbon explanation (03-UI-UX-DESIGN.md §4.4).
  *
  * > **Amended 2026-08-13 (WP14 slice 3d):** every check here is now generic, and
- * > `asLegacySpec` has left core entirely.
+ * > the v1 window has left core entirely (and was deleted outright in WP15).
  * >
  * > It used to have two halves. `validateSpecV2` asked what core can ask about
  * > *any* brick; everything else asked the six questions core only knew to ask

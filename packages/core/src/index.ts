@@ -70,10 +70,8 @@ export {
 export {
 	agentIdentitySchema,
 	agentSpecV2Schema,
-	asLegacySpec,
 	brickInSlot,
 	fittedBrickSchema,
-	legacyBricks,
 	toSpecV2,
 	type AnyAgentSpec,
 	migrateAgentSpec,

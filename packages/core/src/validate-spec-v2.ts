@@ -24,8 +24,11 @@ import type { SlotId } from './types/brick.js';
  *  2. does its config parse against that kind's schema?
  *  3. is anything fitted twice to one socket?
  *
- * The goal-card and cartridge checks stay in the v1 validator for now and move
- * across with the engine, in the slice that retires v1.
+ * The goal-card and cartridge checks used to live in a second, v1-shaped half
+ * of `validateSpec`. Slice 3d retired that half: the cartridge is read through
+ * the brain slot contract, everything a brick *offers* is checked from its
+ * contributions, and anything left is delegated to the kind via
+ * `validateConfig`. Every check `validateSpec` runs is now generic.
  */
 
 /** V1's rule, kept for the teaching aid: one brick per socket (`14-…` §2.3). */

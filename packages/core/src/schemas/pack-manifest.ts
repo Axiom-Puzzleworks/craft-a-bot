@@ -128,9 +128,12 @@ export interface PackManifest extends PackManifestMetadata {
 	 * its version and migrations, the defaults a freshly-snapped brick gets,
 	 * and the runtime the loop calls into.
 	 *
-	 * Separate rather than merged, for now, because the six V1 bricks are
-	 * referenced by `kind` in spec v1 and by `id` in spec v2; the two coexist
-	 * until the spec migration lands.
+	 * Separate rather than merged. `bricks` began as the only half and is now
+	 * presentation the *kit* uses — the parts tray reads a kind's own `name` and
+	 * `description` since WP14 slice 4b, so nothing on the bench needs `bricks`
+	 * any more. It stays because a pack may reasonably ship presentation for
+	 * something that is not a fitted brick, and because merging the two is a
+	 * pack-format change that would want its own migration.
 	 */
 	brickKinds?: BrickKindDefinition[];
 	tools?: ToolDefinition[];

@@ -1,16 +1,7 @@
 import { z } from 'zod';
 import { SLOT_IDS } from '../types/brick.js';
 import type { MigrationError } from './shared.js';
-import {
-	actionsBrickSchema,
-	agentSpecSchema,
-	llmBrickSchema,
-	memoryBrickSchema,
-	safetyBrickSchema,
-	senseBrickSchema,
-	toolsBrickSchema,
-	type AgentSpec
-} from './agent-spec.js';
+import { agentSpecSchema, type AgentSpec } from './agent-spec.js';
 
 /**
  * **`AgentSpec` v2** (`14-…` §2.2, WP14) — a bot as a *list of fitted bricks*
@@ -230,64 +221,4 @@ export function toSpecV2(spec: AnyAgentSpec): AgentSpecV2 {
 		throw new Error(`This bot could not be read: ${migrated.message}`);
 	}
 	return migrated;
-}
-
-/** Which v1 key each socket corresponds to — the mirror of `V1_BRICKS`. */
-const LEGACY_KEY_BY_SLOT = {
-	brain: 'llm',
-	memory: 'memory',
-	equipment: 'tools',
-	perception: 'sense',
-	mobility: 'actions',
-	safety: 'safety'
-} as const satisfies Record<FittedBrick['slot'], keyof AgentSpec['bricks']>;
-
-const LEGACY_SCHEMA_BY_SLOT = {
-	brain: llmBrickSchema,
-	memory: memoryBrickSchema,
-	equipment: toolsBrickSchema,
-	perception: senseBrickSchema,
-	mobility: actionsBrickSchema,
-	safety: safetyBrickSchema
-} as const;
-
-/**
- * A v2 spec seen through v1's six-key window — **a transition shim**.
- *
- * Everything that reads a spec today thinks in six fixed bricks. Rewriting all
- * of it in one change is how a migration ends up half-done, so instead each
- * consumer normalises to v2 and then looks through this window, which makes
- * the diff a rename rather than a rewrite. Slice 3 deletes it: once bricks
- * contribute through their runtimes, nothing needs to know that "the thing in
- * the brain socket" was once called `llm`.
- *
- * Selection is by **socket, then shape**. A brick only appears in the window
- * if its config actually parses as the v1 config for that slot — so a Monitor
- * brick sitting in the safety socket is skipped rather than handed to code
- * that would read it as a Safety brick and misunderstand every field.
- */
-export function legacyBricks(spec: AgentSpecV2): AgentSpec['bricks'] {
-	const bricks: Record<string, unknown> = {};
-	for (const brick of spec.bricks) {
-		const key = LEGACY_KEY_BY_SLOT[brick.slot];
-		if (bricks[key] !== undefined) continue; // one per slot; first wins
-		const parsed = LEGACY_SCHEMA_BY_SLOT[brick.slot].safeParse(brick.config);
-		if (parsed.success) bricks[key] = parsed.data;
-	}
-	return bricks as AgentSpec['bricks'];
-}
-
-/** The whole spec through that window, for consumers not yet ported. */
-export function asLegacySpec(spec: AnyAgentSpec): AgentSpec {
-	const v2 = toSpecV2(spec);
-	return {
-		id: v2.id,
-		name: v2.name,
-		bricks: legacyBricks(v2),
-		goalCardId: v2.goalCardId,
-		...(v2.customGoalText !== undefined ? { customGoalText: v2.customGoalText } : {}),
-		createdAt: v2.createdAt,
-		updatedAt: v2.updatedAt,
-		schemaVersion: 1
-	};
 }
