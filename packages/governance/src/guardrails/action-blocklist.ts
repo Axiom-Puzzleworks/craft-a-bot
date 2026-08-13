@@ -17,8 +17,22 @@ import type { Guardrail } from '@craftabot/core';
 
 export const ACTION_BLOCKLIST_ID = 'safety/action-blocklist';
 
+/**
+ * The name the model calls an action by — its last segment (E6, `14-…` §3).
+ *
+ * A spec blocks `starter/playroom/celebrate`, because that is what the action
+ * is called; the model proposes `celebrate`, because provider function names
+ * must be plain identifiers. Comparing the two directly meant the blocklist
+ * matched nothing at all the moment world ids were qualified — a governance
+ * control silently failing *open*, which is the worst way for one to fail.
+ */
+function callName(id: string): string {
+	const lastSlash = id.lastIndexOf('/');
+	return lastSlash === -1 ? id : id.slice(lastSlash + 1);
+}
+
 export function createActionBlocklistGuardrail(blockedActions: readonly string[]): Guardrail {
-	const blocked = new Set(blockedActions);
+	const blocked = new Set(blockedActions.map(callName));
 
 	return {
 		id: ACTION_BLOCKLIST_ID,
@@ -30,7 +44,7 @@ export function createActionBlocklistGuardrail(blockedActions: readonly string[]
 		hooks: ['pre-act'],
 		check(ctx) {
 			const proposed = ctx.proposed;
-			if (!proposed || proposed.kind !== 'action' || !blocked.has(proposed.name)) {
+			if (!proposed || proposed.kind !== 'action' || !blocked.has(callName(proposed.name))) {
 				return { allow: true };
 			}
 			return {

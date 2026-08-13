@@ -90,6 +90,32 @@ describe('action blocklist', () => {
 		expect(createActionBlocklistGuardrail([]).description).toBe('No actions are blocked.');
 	});
 
+	/**
+	 * E6 (`14-…` §3): a spec blocks `starter/playroom/celebrate` because that is
+	 * what the action is called; the model proposes `celebrate` because provider
+	 * function names must be plain identifiers. The rule has to speak both.
+	 */
+	it('matches a qualified id in the list against the short name the model uses', () => {
+		const qualified = createActionBlocklistGuardrail(['starter/playroom/celebrate']);
+		expect(
+			qualified.check(context({ hook: 'pre-act', proposed: action('celebrate') }))
+		).toMatchObject({ allow: false, disposition: 'block-action' });
+	});
+
+	it('matches the other way round too, for a spec that names it bare', () => {
+		const bare = createActionBlocklistGuardrail(['celebrate']);
+		expect(
+			bare.check(context({ hook: 'pre-act', proposed: action('starter/playroom/celebrate') }))
+		).toMatchObject({ allow: false });
+	});
+
+	it('still lets a differently-named action through', () => {
+		const qualified = createActionBlocklistGuardrail(['starter/playroom/celebrate']);
+		expect(qualified.check(context({ hook: 'pre-act', proposed: action('move') }))).toStrictEqual({
+			allow: true
+		});
+	});
+
 	it('blocks nothing when the list is empty', () => {
 		const empty = createActionBlocklistGuardrail([]);
 		expect(empty.check(context({ hook: 'pre-act', proposed: action('open') }))).toStrictEqual({

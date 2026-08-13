@@ -85,12 +85,34 @@ function createPlayroomInstance(layoutId: string): WorldInstance {
 	};
 }
 
+/**
+ * A world's own content, named so a second world cannot collide with it
+ * (E6, `14-…` §3, closing `12-…` D4).
+ *
+ * The Playroom used to register its actions as bare `move`, `say`, `open` and
+ * its senses as `sight`, `compass` — against the `{packId}/{localId}` rule
+ * every other kind of content follows (`01-…` §4). Nothing broke, because
+ * there has only ever been one world; the moment a second ships its own
+ * `move`, `registry.getAction('move')` starts answering with whichever world
+ * it happened to meet first.
+ *
+ * Qualification happens here, at the definition, rather than in `actions.ts`
+ * and `senses.ts`: inside the world, `move` *is* the action's name, and making
+ * every internal reference carry the world's own id would be noise. The
+ * session translates in both directions — the model is still offered a plain
+ * `move`, because provider tool names must be plain identifiers.
+ */
+export const qualifyPlayroomId = (localId: string): string => `${PLAYROOM_WORLD_ID}/${localId}`;
+
 export const playroom: WorldDefinition = {
 	id: PLAYROOM_WORLD_ID,
 	name: worldStrings.name,
 	layouts: playroomLayouts,
-	actions: playroomActionDefinitions,
-	senses: playroomSenses,
+	actions: playroomActionDefinitions.map((action) => ({
+		...action,
+		id: qualifyPlayroomId(action.id)
+	})),
+	senses: playroomSenses.map((sense) => ({ ...sense, id: qualifyPlayroomId(sense.id) })),
 	predicates: playroomPredicateDescriptions,
 	create: createPlayroomInstance
 };

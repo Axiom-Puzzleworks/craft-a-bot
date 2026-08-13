@@ -185,3 +185,76 @@ describe('PackRegistry', () => {
 		expect(() => registry.registerPack(collidingPack)).toThrow(/conflict/);
 	});
 });
+
+/**
+ * **Bare local names** (E6, `14-…` §3). World content is qualified now, and
+ * specs written before WP13 name it bare — so the registry answers to both,
+ * but only while the bare name means one thing (`12-…` D4).
+ */
+describe('resolving world content by its bare name', () => {
+	function worldWith(id: string, actionId: string) {
+		return {
+			id,
+			name: id,
+			layouts: [{ id: 'only', name: 'Only', initialState: {} }],
+			actions: [
+				{ id: actionId, name: 'Move', description: 'Move.', parameters: { type: 'object' } }
+			],
+			senses: [{ id: `${id}/sight`, name: 'Sight', description: 'See.' }],
+			predicates: {},
+			create: () => {
+				throw new Error('not needed');
+			}
+		};
+	}
+
+	it('finds qualified content by its qualified id', () => {
+		const registry = createPackRegistry();
+		registry.registerPack({
+			id: 'a',
+			name: 'A',
+			version: '1.0.0',
+			requiresCore: '>=0.0.1',
+			worlds: [worldWith('a/world', 'a/world/move')]
+		});
+		expect(registry.getAction('a/world/move')?.id).toBe('a/world/move');
+	});
+
+	it('finds it by its bare name too, so older specs keep working', () => {
+		const registry = createPackRegistry();
+		registry.registerPack({
+			id: 'a',
+			name: 'A',
+			version: '1.0.0',
+			requiresCore: '>=0.0.1',
+			worlds: [worldWith('a/world', 'a/world/move')]
+		});
+		expect(registry.getAction('move')?.id).toBe('a/world/move');
+		expect(registry.getSenseChannel('sight')?.id).toBe('a/world/sight');
+	});
+
+	it('refuses a bare name once two worlds answer to it', () => {
+		// The failure D4 describes, made honest: previously whichever world was
+		// met first won, silently.
+		const registry = createPackRegistry();
+		registry.registerPack({
+			id: 'a',
+			name: 'A',
+			version: '1.0.0',
+			requiresCore: '>=0.0.1',
+			worlds: [worldWith('a/world', 'a/world/move')]
+		});
+		registry.registerPack({
+			id: 'b',
+			name: 'B',
+			version: '1.0.0',
+			requiresCore: '>=0.0.1',
+			worlds: [worldWith('b/world', 'b/world/move')]
+		});
+
+		expect(registry.getAction('move')).toBeUndefined();
+		// Each is still perfectly reachable by the name that identifies it.
+		expect(registry.getAction('a/world/move')?.id).toBe('a/world/move');
+		expect(registry.getAction('b/world/move')?.id).toBe('b/world/move');
+	});
+});

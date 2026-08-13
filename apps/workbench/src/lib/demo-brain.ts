@@ -45,7 +45,11 @@ type CardScript = {
 };
 
 const hasAnyAction = (spec: AgentSpec) => (spec.bricks.actions?.enabled.length ?? 0) > 0;
-const canSee = (spec: AgentSpec) => spec.bricks.sense?.channels.includes('sight') === true;
+/** A channel is named `starter/playroom/sight` in a spec and `sight` by the world (E6). */
+const hasChannel = (channels: readonly string[] | undefined, local: string): boolean =>
+	(channels ?? []).some((id) => id === local || id.endsWith(`/${local}`));
+
+const canSee = (spec: AgentSpec) => hasChannel(spec.bricks.sense?.channels, 'sight');
 const hasMemory = (spec: AgentSpec) => spec.bricks.memory !== undefined;
 const hasTool = (spec: AgentSpec, id: string) => spec.bricks.tools?.enabled.includes(id) === true;
 

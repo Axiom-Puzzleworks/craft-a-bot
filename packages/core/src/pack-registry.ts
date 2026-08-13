@@ -76,20 +76,46 @@ export function createPackRegistry(): PackRegistry {
 			insertUnique(guardrails, guardrail.id, guardrail, 'guardrail');
 	}
 
+	/** The last segment of a content id — the name a world uses internally. */
+	function localName(id: string): string {
+		const lastSlash = id.lastIndexOf('/');
+		return lastSlash === -1 ? id : id.slice(lastSlash + 1);
+	}
+
+	/**
+	 * Look content up by its qualified id, falling back to its bare local name
+	 * (E6, `14-…` §3).
+	 *
+	 * World actions and senses were registered unqualified until WP13, so specs
+	 * on people's shelves name them `move` and `sight`. Those bots keep working:
+	 * a bare name resolves as long as **exactly one** piece of content answers
+	 * to it. The moment two worlds ship a `move`, the bare name resolves to
+	 * neither and the build check says so — which is the honest answer, and the
+	 * failure D4 describes made silently.
+	 */
+	function findByIdOrLocalName<T extends { id: string }>(
+		candidates: T[],
+		id: string
+	): T | undefined {
+		const exact = candidates.find((candidate) => candidate.id === id);
+		if (exact) return exact;
+
+		const byLocal = candidates.filter((candidate) => localName(candidate.id) === id);
+		return byLocal.length === 1 ? byLocal[0] : undefined;
+	}
+
 	function getSenseChannel(id: string): WorldSenseDefinition | undefined {
-		for (const world of worlds.values()) {
-			const sense = world.senses.find((s) => s.id === id);
-			if (sense) return sense;
-		}
-		return undefined;
+		return findByIdOrLocalName(
+			[...worlds.values()].flatMap((world) => world.senses),
+			id
+		);
 	}
 
 	function getAction(id: string): WorldActionDefinition | undefined {
-		for (const world of worlds.values()) {
-			const action = world.actions.find((a) => a.id === id);
-			if (action) return action;
-		}
-		return undefined;
+		return findByIdOrLocalName(
+			[...worlds.values()].flatMap((world) => world.actions),
+			id
+		);
 	}
 
 	return {

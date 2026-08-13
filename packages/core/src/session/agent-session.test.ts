@@ -261,6 +261,58 @@ describe('starting a session', () => {
 	});
 });
 
+/**
+ * **Wire-name collisions** (E6, `14-…` §3, closing the second half of
+ * `12-…` D4). The provider's function-calling API has no namespaces, so two
+ * things the model would call by the same name is not a build to start.
+ */
+describe('two things called the same', () => {
+	const rivalPing: ToolDefinition = {
+		id: 'rival/ping',
+		name: 'Rival ping',
+		description: 'Also called ping.',
+		parameters: { type: 'object' },
+		execute: () => ({ ok: true, output: 'rival' })
+	};
+
+	function registryWithRival(): PackRegistry {
+		const registry = buildRegistry();
+		registry.registerPack({
+			id: 'rival',
+			name: 'Rival pack',
+			version: '1.0.0',
+			requiresCore: '>=0.0.1',
+			tools: [rivalPing]
+		});
+		return registry;
+	}
+
+	it('refuses to build when a tool and an action share a wire name', () => {
+		expect(() =>
+			createSession({
+				spec: buildSpec({
+					tools: { enabled: ['rival/ping'] },
+					actions: { enabled: ['ping', 'win'] }
+				}),
+				registry: registryWithRival(),
+				provider: createMockProvider({ script: [] }),
+				guardrails: []
+			})
+		).toThrow(/more than one thing called "ping"/);
+	});
+
+	it('builds happily when the names do not clash', () => {
+		expect(() =>
+			createSession({
+				spec: buildSpec({ tools: { enabled: ['tiny/echo'] } }),
+				registry: registryWithRival(),
+				provider: createMockProvider({ script: [] }),
+				guardrails: []
+			})
+		).not.toThrow();
+	});
+});
+
 describe('the tick sequence', () => {
 	it('emits the nine steps in order', async () => {
 		const { session, seen } = makeSession({ script: [turn('Ping.', 'ping')] });

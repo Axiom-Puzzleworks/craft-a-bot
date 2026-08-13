@@ -54,16 +54,13 @@ describe('registered content ids', () => {
 	});
 
 	/**
-	 * D4, test-first. World actions and sense channels are registered bare —
-	 * `move`, `sight` — so a second world shipping its own `move` would collide
-	 * with the Playroom's, and the registry's `getAction` returns whichever
-	 * world it meets first.
-	 *
-	 * The fix is E6 (`14-…` §3): qualified world content ids with a kit-file
-	 * migration, in WP13. `it.fails` until then — when E6 lands this test starts
-	 * passing, which makes `it.fails` fail, which is the prompt to un-mark it.
+	 * D4, closed by E6 in WP13. World actions and senses were registered bare —
+	 * `move`, `sight` — so a second world shipping its own `move` would have
+	 * collided with the Playroom's, and `getAction` answered with whichever
+	 * world it met first. Written in WP12 marked `it.fails`; promoted here when
+	 * E6 landed and the marker started failing.
 	 */
-	it.fails('qualifies world action and sense ids too — not until E6 (D4)', () => {
+	it('qualifies world action and sense ids too', () => {
 		const world = (starterPack.worlds ?? [])[0];
 		if (!world) throw new Error('the starter pack has lost its world');
 
@@ -121,23 +118,16 @@ describe('wire-name collisions', () => {
 	});
 
 	/**
-	 * D4, test-first. `starter/calculator` and `rival/calculator` both go on the
-	 * wire as `calculator`; the second overwrites the first in the wire-name map
-	 * and the model is offered one `calculator` that is not the one the builder
-	 * ticked. Nothing anywhere says so.
-	 *
-	 * The fix belongs with E6's global collision check (`14-…` §3) in WP13:
-	 * building a session that cannot name its own tools unambiguously should be
-	 * an explicit error, not a silent last-one-wins.
+	 * D4, closed by E6. `starter/calculator` and `rival/calculator` both go on
+	 * the wire as `calculator`; the second used to overwrite the first in the
+	 * lookup map, so the model was offered one `calculator` that was not the one
+	 * the builder ticked, and nothing anywhere said so.
 	 */
-	it.fails('refuses to build a session whose tools share a wire name (D4)', () => {
-		expect(() => sessionOfferingBoth()).toThrow(/wire name|collision|calculator/i);
+	it('refuses to build a session whose tools share a wire name', () => {
+		expect(() => sessionOfferingBoth()).toThrow(/more than one thing called/i);
 	});
 
-	it('meanwhile, silently offers only one of them — this is the bug, pinned', () => {
-		// Pins the *current* behaviour so the day it changes is a deliberate day.
-		// Delete this test when the one above starts passing.
-		const session = sessionOfferingBoth();
-		expect(session).toBeDefined();
+	it('says which name clashed, so the builder can do something about it', () => {
+		expect(() => sessionOfferingBoth()).toThrow(/calculator/);
 	});
 });

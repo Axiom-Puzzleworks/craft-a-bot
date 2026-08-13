@@ -94,7 +94,11 @@ export interface Chapter {
 
 const hasBrick = (ctx: LeafletContext, kind: keyof AgentSpec['bricks']) =>
 	ctx.spec?.bricks[kind] !== undefined;
-const canSee = (ctx: LeafletContext) => ctx.spec?.bricks.sense?.channels.includes('sight') === true;
+/** A channel is named `starter/playroom/sight` in a spec and `sight` by the world (E6). */
+const hasChannel = (channels: readonly string[] | undefined, local: string): boolean =>
+	(channels ?? []).some((id) => id === local || id.endsWith(`/${local}`));
+
+const canSee = (ctx: LeafletContext) => hasChannel(ctx.spec?.bricks.sense?.channels, 'sight');
 const hasTool = (ctx: LeafletContext, id: string) =>
 	ctx.spec?.bricks.tools?.enabled.includes(id) === true;
 const onCard = (ctx: LeafletContext, cardId: string) => ctx.spec?.goalCardId === cardId;

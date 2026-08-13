@@ -9,6 +9,7 @@ import type { BrickKind } from '$lib/bricks.js';
 import { createRegistry } from '$lib/packs.js';
 import { appStorage } from './app-storage.svelte.js';
 import type { Storage } from './storage.js';
+import { qualifyPlayroomId } from '@craftabot/pack-starter';
 
 /**
  * The bench: the spec currently being edited, what the build checks make of it,
@@ -28,7 +29,15 @@ export const BRICK_DEFAULTS = {
 	llm: { cartridgeId: '', temperature: 0.7, maxTokens: 300, personality: '' },
 	memory: { windowSize: 10 as const, notebook: false },
 	tools: { enabled: [] as string[] },
-	sense: { channels: ['sight', 'compass'] },
+	/*
+	 * Qualified, as `01-…` §4 requires (E6, WP13).
+	 *
+	 * The engine still resolves the bare `sight`/`move` that specs written
+	 * before WP13 hold, so nobody's saved bot breaks — but a spec written today
+	 * should name content the way content is named, or the compatibility path
+	 * quietly becomes the normal one.
+	 */
+	sense: { channels: [qualifyPlayroomId('sight'), qualifyPlayroomId('compass')] },
 	/*
 	 * All seven Playroom actions (02-AGENT-MODEL.md §2.5), not a starter subset.
 	 *
@@ -39,7 +48,11 @@ export const BRICK_DEFAULTS = {
 	 * genuinely gates, fitting "hands and wheels" has to actually give the bot
 	 * hands; the checkboxes are for taking capabilities *away*.
 	 */
-	actions: { enabled: ['move', 'pick_up', 'put_down', 'give', 'open', 'say', 'celebrate'] },
+	actions: {
+		enabled: ['move', 'pick_up', 'put_down', 'give', 'open', 'say', 'celebrate'].map(
+			qualifyPlayroomId
+		)
+	},
 	/*
 	 * `repeatLimit` is on out of the box.
 	 *

@@ -69,6 +69,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 	const { actionSchemas, actionNames, worldActionNames } = resolveActions();
 	const callSchemas: ToolSchema[] = [...toolSchemas, ...actionSchemas];
 	const toolNames = new Set(toolsByWireName.keys());
+	assertNoWireNameCollisions();
 
 	const usage: Usage = { ticks: 0, inputTokens: 0, outputTokens: 0 };
 	const fittedBricks = describeFittedBricks(spec);
@@ -151,21 +152,92 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		};
 	}
 
+	/**
+	 * Does this spec entry name that piece of content? (E6, `14-…` §3.)
+	 *
+	 * Qualified ids are the convention and what the bench now writes. Specs
+	 * saved before E6 hold bare local names — `move`, `sight` — and those are
+	 * still honoured, because a child's bot on the shelf should not stop
+	 * working because the engine tidied its own naming. The tolerance is
+	 * deliberately narrow: a bare name matches only when exactly one piece of
+	 * content answers to it, so it can never quietly pick between two worlds.
+	 */
+	function matchesSpecId(
+		contentId: string,
+		specId: string,
+		ambiguous: ReadonlySet<string>
+	): boolean {
+		if (contentId === specId) return true;
+		return wireName(contentId) === specId && !ambiguous.has(specId);
+	}
+
+	/** Spec channel ids translated into the names the world knows them by (E6). */
+	function senseChannelsForWorld(channels: readonly string[]): string[] {
+		const definition = registry.getWorld(goalCard.worldId);
+		const senses = definition?.senses ?? [];
+		return channels.map((specId) => {
+			const match = senses.find((sense) => sense.id === specId || wireName(sense.id) === specId);
+			return match ? wireName(match.id) : specId;
+		});
+	}
+
 	function resolveActions() {
 		const definition = registry.getWorld(goalCard.worldId);
-		const enabled = new Set(spec.bricks.actions?.enabled ?? []);
 		const all = definition?.actions ?? [];
-		const available = all.filter((action) => enabled.has(action.id));
+		const enabled = spec.bricks.actions?.enabled ?? [];
+
+		// A bare name is only usable while it names one thing.
+		const counts = new Map<string, number>();
+		for (const action of all) {
+			const short = wireName(action.id);
+			counts.set(short, (counts.get(short) ?? 0) + 1);
+		}
+		const ambiguous = new Set([...counts].filter(([, n]) => n > 1).map(([name]) => name));
+
+		const available = all.filter((action) =>
+			enabled.some((specId) => matchesSpecId(action.id, specId, ambiguous))
+		);
 		return {
-			/** Everything this world can do, fitted or not. */
-			worldActionNames: new Set(all.map((action) => action.id)),
-			actionNames: new Set(available.map((action) => action.id)),
+			/** Everything this world can do, fitted or not, by the name the model uses. */
+			worldActionNames: new Set(all.map((action) => wireName(action.id))),
+			actionNames: new Set(available.map((action) => wireName(action.id))),
 			actionSchemas: available.map((action) => ({
-				name: action.id,
+				// The model is offered the short name: provider tool names must be
+				// plain identifiers, so `starter/playroom/move` goes on the wire as
+				// `move` exactly as tools already do.
+				name: wireName(action.id),
 				description: action.description,
 				parameters: action.parameters
 			}))
 		};
+	}
+
+	/**
+	 * Two calls cannot share the name the model knows them by (E6, closing the
+	 * second half of `12-…` D4).
+	 *
+	 * Wire names are what the provider's function-calling API sees, and it has
+	 * no namespaces. Before this, a second pack shipping its own `calculator`
+	 * silently replaced the first in the lookup map, and a tool sharing a name
+	 * with a world action resolved as the action — both without a word to
+	 * anybody. A build that cannot name its own capabilities unambiguously is
+	 * not a build to start a run with.
+	 */
+	function assertNoWireNameCollisions(): void {
+		const seen = new Map<string, string>();
+		const clashes: string[] = [];
+		for (const schema of callSchemas) {
+			const previous = seen.get(schema.name);
+			if (previous !== undefined) clashes.push(schema.name);
+			else seen.set(schema.name, schema.name);
+		}
+		if (clashes.length > 0) {
+			throw new Error(
+				`This bot has more than one thing called "${clashes[0]}". ` +
+					'Two tools or actions cannot share the name the model calls them by — ' +
+					'take one of them off the bot, or rename it in its pack.'
+			);
+		}
 	}
 
 	function guardrailContext(
@@ -442,11 +514,14 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 
 		// 1. SENSE
 		const channels = spec.bricks.sense?.channels ?? [];
-		const observation = world.observe(channels);
+		// The world names its senses in its own terms; the spec names them in
+		// the registry's (E6). The event records what the brick declares.
+		const worldChannels = senseChannelsForWorld(channels);
+		const observation = world.observe(worldChannels);
 		emit('sense', { channels: [...channels], observation });
 
 		// 2. COMPOSE
-		const progress = world.describeProgress?.(goalCard.successCondition, channels);
+		const progress = world.describeProgress?.(goalCard.successCondition, worldChannels);
 		const notebookLines = memory.notebook.read();
 		const promptInput = {
 			spec,
