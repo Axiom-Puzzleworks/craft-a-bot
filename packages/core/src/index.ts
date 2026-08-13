@@ -203,6 +203,7 @@ export {
 	type TickRecord
 } from './types/brick.js';
 export { validateSpec } from './validate-spec.js';
+export { validateSpecV2 } from './validate-spec-v2.js';
 
 // The running engine (02-AGENT-MODEL.md §5)
 export { createSession } from './session/agent-session.js';
