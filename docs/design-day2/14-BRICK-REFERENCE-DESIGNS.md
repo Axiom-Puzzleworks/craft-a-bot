@@ -93,6 +93,14 @@ export interface BrickRuntime {
 >
 > Screen-reader narration moved with it: "Picked up the Tool Belt Brick", "belt socket — this one fits", where it used to read out the internal words `tools` and `llm`. A screen-reader user now hears what a sighted one sees printed on the socket.
 
+> **Amended 2026-08-13 (WP14 slice 4c):** **`asLegacySpec` is gone from the app.** The Instruction Leaflet and the keyless demo brain were the last two readers, and they held out longest because they ask a genuinely different question from everything else: the bench asks *what is fitted*, the leaflet asks *can this bot see yet?*
+>
+> That turns out to be the better question, and the contract already answers it. A bot can see because something opened a sense channel; it can act because something offered an action; it asks permission because something installed a rule that pauses. None of those sentences names a brick — so a lesson written against them keeps working when the brick teaching it comes from a pack that did not exist when the lesson was written. `bot-capabilities.ts` in the workbench asks all of it through core's own machinery: `buildRuntimes`, the collectors, the slot contracts. The tutorial sees exactly what the engine sees.
+>
+> The sharpest example is the approval-mode chapter. It read `spec.bricks.safety.approvalMode` — a checkbox on one brick — and now asks whether the bot installed an approval *guardrail*. Any brick that installs one teaches the lesson, which is only possible because slice 3d made policy a contribution.
+>
+> **What is left of the shim.** `asLegacySpec` still exists in `core` and is still exported, but **nothing calls it** — not core, not governance, not the app; only the test that pins its socket-then-shape selection rule. Reading a stored v1 bot is `migrateAgentSpec`'s job and always was; the shim existed so slices 2b–3c could convert consumers one at a time without breaking the ones that had not moved yet, and every one of them has now moved. It is kept rather than deleted because it is a published export of `core` and removing one is a separate decision, not because anything needs it. A good candidate for WP15's tidy-up.
+
 Rules: core defines the loop, the hook points, and the six _slot families_; packs define brick kinds. A brick kind cannot patch another brick or reorder the loop. `validateSpec` gains one generic check — config parses against the kind's schema at its version — replacing per-brick special cases. The workbench's `BrickPanel` if/else chain is replaced by schema-driven controls with per-kind panel overrides (see `15-…` §5).
 
 ### 2.2 `AgentSpec` v2

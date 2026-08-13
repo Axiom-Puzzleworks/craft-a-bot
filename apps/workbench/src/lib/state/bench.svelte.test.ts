@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { asLegacySpec, type AgentRecord, type AgentSpec } from '@craftabot/core';
+import { brickInSlot, type AgentRecord, type AgentSpecV2, type SlotId } from '@craftabot/core';
 import { createBenchStore } from './bench.svelte.js';
 import { createMemoryStorage } from './storage-memory.js';
 import type { Storage } from './storage.js';
@@ -8,17 +8,17 @@ import type { Storage } from './storage.js';
  * The bench store owns three promises the DoD depends on: validation is live,
  * every change is undoable, and edits persist.
  *
- * It holds spec v2 since WP14, while the tray and the panels still speak V1's
- * six brick names — so most assertions here read the bot back through
- * `bricksOf`, which is the same window the panels look through. What is
- * *stored* is v2, and the tests that care about that say so explicitly.
+ * It holds spec v2, and since WP14 slice 4c so does everything that reads it.
+ * Assertions go through `configIn`, which reads the config of whatever is in a
+ * socket — the same way the panels do. The V1 six-key window these used to look
+ * through is gone from the app entirely.
  */
 
 const AGENT_ID = '11111111-1111-4111-8111-111111111111';
 
-/** The bot through V1's six-key window, which is what the panels still edit. */
-const bricksOf = (spec: unknown): AgentSpec['bricks'] =>
-	spec ? asLegacySpec(spec as never).bricks : {};
+/** The config of whatever is in a socket, which is what the panels edit. */
+const configIn = (spec: AgentSpecV2 | undefined, slot: SlotId): Record<string, unknown> =>
+	(spec ? brickInSlot(spec, slot)?.config : undefined) ?? {};
 
 function makeRecord(): AgentRecord {
 	return {
@@ -84,7 +84,7 @@ describe('fitting and removing bricks', () => {
 	it('fits a brick with its documented defaults', async () => {
 		const { bench } = await openBench();
 		bench.fitBrick('starter/memory');
-		expect(bricksOf(bench.spec).memory).toEqual({ windowSize: 10, notebook: false });
+		expect(configIn(bench.spec, 'memory')).toEqual({ windowSize: 10, notebook: false });
 		expect(bench.fittedIn('memory')?.kindId).toBe('starter/memory');
 	});
 
@@ -111,7 +111,7 @@ describe('fitting and removing bricks', () => {
 		bench.fitBrick('starter/memory');
 		bench.updateBrick('memory', { windowSize: 30 });
 		bench.fitBrick('starter/memory');
-		expect(bricksOf(bench.spec).memory?.windowSize).toBe(30);
+		expect(configIn(bench.spec, 'memory')?.windowSize).toBe(30);
 	});
 
 	it('never shares the defaults object between bots', async () => {
@@ -121,7 +121,7 @@ describe('fitting and removing bricks', () => {
 
 		const second = await openBench();
 		second.bench.fitBrick('starter/safety');
-		expect(bricksOf(second.bench.spec).safety?.blockedActions).toEqual([]);
+		expect(configIn(second.bench.spec, 'safety')?.blockedActions).toEqual([]);
 	});
 
 	it('removes a brick', async () => {
@@ -134,7 +134,7 @@ describe('fitting and removing bricks', () => {
 	it('ignores an update to a brick that is not fitted', async () => {
 		const { bench } = await openBench();
 		bench.updateBrick('brain', { temperature: 1.5 });
-		expect(bricksOf(bench.spec).llm).toBeUndefined();
+		expect(bench.spec && brickInSlot(bench.spec, 'brain')).toBeUndefined();
 		expect(bench.spec?.bricks).toEqual([]);
 	});
 });
@@ -220,7 +220,7 @@ describe('persistence (WP5 definition of done)', () => {
 			saveDebounceMs: 0
 		});
 		await reopened.open(AGENT_ID);
-		expect(bricksOf(reopened.spec).llm?.temperature).toBe(1.4);
+		expect(configIn(reopened.spec, 'brain')?.temperature).toBe(1.4);
 	});
 
 	it('stores the current build problems alongside the spec', async () => {
@@ -261,10 +261,10 @@ describe('the loop-breaker setting', () => {
 	it('comes fitted, and can be switched off again', async () => {
 		const { bench } = await openBench();
 		bench.fitBrick('starter/safety');
-		expect(bricksOf(bench.spec).safety?.repeatLimit).toBe(3);
+		expect(configIn(bench.spec, 'safety')?.repeatLimit).toBe(3);
 
 		bench.updateBrick('safety', { repeatLimit: undefined });
-		expect(bricksOf(bench.spec).safety?.repeatLimit).toBeUndefined();
+		expect(configIn(bench.spec, 'safety')?.repeatLimit).toBeUndefined();
 	});
 
 	it('is saved, and comes back on the next visit', async () => {
@@ -274,7 +274,7 @@ describe('the loop-breaker setting', () => {
 		await bench.flush();
 
 		const reopened = await storage.getAgent(bench.spec?.id ?? '');
-		expect(bricksOf(reopened?.spec).safety?.repeatLimit).toBe(5);
+		expect(configIn(reopened?.spec, 'safety')?.repeatLimit).toBe(5);
 	});
 
 	it('switches back off cleanly', async () => {
@@ -284,6 +284,6 @@ describe('the loop-breaker setting', () => {
 		bench.updateBrick('safety', { repeatLimit: undefined });
 
 		// Undefined rather than zero: the guardrail is simply not installed.
-		expect(bricksOf(bench.spec).safety?.repeatLimit).toBeUndefined();
+		expect(configIn(bench.spec, 'safety')?.repeatLimit).toBeUndefined();
 	});
 });

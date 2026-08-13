@@ -1,4 +1,6 @@
-import type { AgentSpec, RunOutcome } from '@craftabot/core';
+import type { RunOutcome, SlotId } from '@craftabot/core';
+import { APPROVAL_MODE_ID } from '@craftabot/governance';
+import { offers, type BotCapabilities } from '$lib/bot-capabilities.js';
 import { ANCHORS, type AnchorId } from './anchors.js';
 
 /**
@@ -15,7 +17,13 @@ import { ANCHORS, type AnchorId } from './anchors.js';
  * Each chapter is a designed **failure→fix** pair. The user runs a bot that is
  * missing something, watches it fail in a specific and legible way, fits the
  * brick that fixes it, and runs again. The failures are real: `demo-brain.ts`
- * chooses its script from the same spec these predicates read.
+ * chooses its script from the same capabilities these predicates read.
+ *
+ * > **Amended 2026-08-13 (WP14 slice 4c):** the predicates ask what the bot
+ * > **can do**, not which of V1's six bricks it has. A lesson about perception
+ * > that reads `spec.bricks.sense` is a lesson only one brick can ever teach;
+ * > one that asks whether anything opened a sense channel is taught equally well
+ * > by a Radar brick from a pack nobody has written yet.
  *
  * Steps advance by *observing what the user did*, never by a Next button on
  * anything that matters. §6 is explicit that the user performs each step
@@ -28,7 +36,10 @@ export type LeafletRoute = 'shelf' | 'bench' | 'play' | 'settings';
 /** Everything a step is allowed to know. Deliberately small and serialisable. */
 export interface LeafletContext {
 	route: LeafletRoute;
-	spec: AgentSpec | undefined;
+	/** What the bot on the bench can do — the leaflet's whole view of the build. */
+	can: BotCapabilities | undefined;
+	/** Which Goal Card is slotted in. */
+	goalCardId: string | undefined;
 	/**
 	 * The outcome of the most recent run *of the current card*. The controller
 	 * clears it when the Goal Card changes, so a chapter that says "run it" is
@@ -92,16 +103,20 @@ export interface Chapter {
 	steps: LeafletStep[];
 }
 
-const hasBrick = (ctx: LeafletContext, kind: keyof AgentSpec['bricks']) =>
-	ctx.spec?.bricks[kind] !== undefined;
-/** A channel is named `starter/playroom/sight` in a spec and `sight` by the world (E6). */
-const hasChannel = (channels: readonly string[] | undefined, local: string): boolean =>
-	(channels ?? []).some((id) => id === local || id.endsWith(`/${local}`));
-
-const canSee = (ctx: LeafletContext) => hasChannel(ctx.spec?.bricks.sense?.channels, 'sight');
-const hasTool = (ctx: LeafletContext, id: string) =>
-	ctx.spec?.bricks.tools?.enabled.includes(id) === true;
-const onCard = (ctx: LeafletContext, cardId: string) => ctx.spec?.goalCardId === cardId;
+/** Something is in that socket — which brick is the reader's business, not ours. */
+const filled = (ctx: LeafletContext, slot: SlotId) => ctx.can?.filled.has(slot) === true;
+const canSee = (ctx: LeafletContext) => offers(ctx.can?.channels ?? [], 'sight');
+const hasTool = (ctx: LeafletContext, id: string) => offers(ctx.can?.toolIds ?? [], id);
+const onCard = (ctx: LeafletContext, cardId: string) => ctx.goalCardId === cardId;
+/**
+ * The bot pauses for a human before acting.
+ *
+ * Asked of the *rules the bot installed* rather than of a checkbox on one
+ * particular brick. The lesson is "it now asks permission", and any brick that
+ * installs an approval rule teaches it (WP14 slice 3d made that possible).
+ */
+const asksPermission = (ctx: LeafletContext) =>
+	ctx.can?.guardrailIds.includes(APPROVAL_MODE_ID) === true;
 /** Enough turns for the failure to be plain, without waiting for the budget. */
 const watched = (ctx: LeafletContext, turns: number) => ctx.ticks >= turns;
 const succeeded = (ctx: LeafletContext) => ctx.outcome === 'SUCCESS';
@@ -122,13 +137,13 @@ export const CHAPTERS: Chapter[] = [
 				// Steps are re-evaluated from the top every time, so a route-based
 				// predicate would rewind the chapter to step one the moment the user
 				// walked into the Playroom.
-				done: (ctx) => ctx.spec !== undefined
+				done: (ctx) => ctx.can !== undefined
 			},
 			{
 				id: 'fit-llm',
 				text: 'Snap the Brain brick into the head socket.',
 				anchor: ANCHORS.trayLlm,
-				done: (ctx) => hasBrick(ctx, 'llm')
+				done: (ctx) => filled(ctx, 'brain')
 			},
 			{
 				// 03 §6's "pop in a battery" step, in its keyless form: a fitted brain
@@ -137,7 +152,7 @@ export const CHAPTERS: Chapter[] = [
 				id: 'pick-cartridge',
 				text: 'Slot a cartridge into the brick. The Demo Brain needs no battery.',
 				anchor: ANCHORS.brickPanel,
-				done: (ctx) => (ctx.spec?.bricks.llm?.cartridgeId ?? '') !== ''
+				done: (ctx) => (ctx.can?.cartridgeId ?? '') !== ''
 			},
 			{
 				id: 'pick-card',
@@ -163,7 +178,7 @@ export const CHAPTERS: Chapter[] = [
 				id: 'fit-actions',
 				text: 'Back to the bench. Add the Actions brick — hands and wheels.',
 				anchor: ANCHORS.trayActions,
-				done: (ctx) => hasBrick(ctx, 'actions')
+				done: (ctx) => filled(ctx, 'mobility')
 			},
 			{
 				id: 'act',
@@ -227,7 +242,7 @@ export const CHAPTERS: Chapter[] = [
 				id: 'fit-memory',
 				text: 'Add the Memory brick, so it can read back its own last few turns.',
 				anchor: ANCHORS.trayMemory,
-				done: (ctx) => hasBrick(ctx, 'memory')
+				done: (ctx) => filled(ctx, 'memory')
 			},
 			{
 				id: 'remember',
@@ -334,13 +349,13 @@ export const CHAPTERS: Chapter[] = [
 				id: 'fit-safety',
 				text: 'Add the Safety Brick — the hazard-striped one.',
 				anchor: ANCHORS.traySafety,
-				done: (ctx) => hasBrick(ctx, 'safety')
+				done: (ctx) => filled(ctx, 'safety')
 			},
 			{
 				id: 'approval-on',
 				text: 'In its panel, switch on "Ask before acting".',
 				anchor: ANCHORS.brickPanel,
-				done: (ctx) => ctx.spec?.bricks.safety?.approvalMode === true
+				done: (ctx) => asksPermission(ctx)
 			},
 			{
 				id: 'approve',

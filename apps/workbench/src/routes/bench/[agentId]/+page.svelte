@@ -3,6 +3,7 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import type { BuildProblem, SlotId } from '@craftabot/core';
+	import { capabilitiesOf } from '$lib/bot-capabilities.js';
 	import { NO_BATTERY_MESSAGE, needsBattery } from '$lib/brain.js';
 	import { createRegistry } from '$lib/packs.js';
 	import { createDndController } from '$lib/dnd/dnd-state.svelte.js';
@@ -58,12 +59,8 @@
 	}
 
 	const spec = $derived(benchStore.spec);
-	/*
-	 * The leaflet still reads a bot as six named bricks; the bench stores it as a
-	 * list of fitted ones. This is the last door between them, and it closes in
-	 * 4c. The tray, the baseplate and the panels stopped needing it in 4a and 4b.
-	 */
-	const legacySpec = $derived(benchStore.legacySpec);
+	/** What the bot can do — what the leaflet watches, and where the cartridge is read. */
+	const capabilities = $derived(capabilitiesOf(spec, registry));
 
 	/** The brick in the selected socket, with the kind that defines it. */
 	const fittedForPanel = $derived(selected ? benchStore.brickFor(selected) : undefined);
@@ -71,7 +68,7 @@
 	// The leaflet advances by watching what the user builds (03 §6).
 	const leaflet = leafletStore();
 	$effect(() => {
-		if (legacySpec) leaflet.report({ spec: legacySpec });
+		if (spec) leaflet.report({ can: capabilities, goalCardId: spec.goalCardId });
 	});
 	const world = $derived(
 		benchStore.goalCard ? registry.getWorld(benchStore.goalCard.worldId) : undefined
@@ -83,9 +80,7 @@
 	const worldActions = $derived(world?.actions ?? []);
 	const goalCards = $derived(registry.listGoalCards());
 
-	const cartridge = $derived(
-		legacySpec?.bricks.llm ? registry.getCartridge(legacySpec.bricks.llm.cartridgeId) : undefined
-	);
+	const cartridge = $derived(registry.getCartridge(capabilities.cartridgeId));
 	/**
 	 * Not a `BuildProblem`: keys never touch the AgentSpec, so `validateSpec`
 	 * cannot know about them. This is a UI-level check at GO time (03 §9).

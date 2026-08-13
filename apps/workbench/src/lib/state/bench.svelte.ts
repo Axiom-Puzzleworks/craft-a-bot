@@ -1,9 +1,7 @@
 import {
-	asLegacySpec,
 	brickInSlot,
 	validateSpec,
 	type AgentRecord,
-	type AgentSpec,
 	type AgentSpecV2,
 	type BrickKindDefinition,
 	type BuildProblem,
@@ -36,14 +34,6 @@ const SAVE_DEBOUNCE_MS = 250;
 
 export interface BenchStore {
 	readonly spec: AgentSpecV2 | undefined;
-	/**
-	 * The same bot through V1's six-key window, for the panels and the leaflet.
-	 *
-	 * A transition shim with a deadline: slice 4 makes the panels schema-driven
-	 * and this goes with them. It is a getter rather than stored state so there
-	 * is no second copy of the truth to keep in step.
-	 */
-	readonly legacySpec: AgentSpec | undefined;
 	readonly problems: BuildProblem[];
 	readonly blocking: BuildProblem[];
 	readonly canGo: boolean;
@@ -182,9 +172,6 @@ export function createBenchStore(deps: BenchStoreDeps = {}): BenchStore {
 	return {
 		get spec() {
 			return state.spec;
-		},
-		get legacySpec() {
-			return state.spec ? asLegacySpec(state.spec) : undefined;
 		},
 		get problems() {
 			return state.problems;

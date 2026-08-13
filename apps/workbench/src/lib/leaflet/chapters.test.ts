@@ -1,5 +1,7 @@
 import type { AgentSpec } from '@craftabot/core';
 import { describe, expect, it } from 'vitest';
+import { capabilitiesOf } from '$lib/bot-capabilities.js';
+import { createRegistry } from '$lib/packs.js';
 import { ALL_ANCHORS } from './anchors.js';
 import {
 	CHAPTERS,
@@ -19,6 +21,12 @@ import {
  * unreachable step — a predicate nothing can satisfy, or two steps in a row
  * sharing one — fails here, in milliseconds, instead of stranding someone
  * halfway through the tutorial.
+ *
+ * > **Amended 2026-08-13 (WP14 slice 4c):** the chapters read **capabilities**,
+ * > so `ctx({ spec })` turns a fixture bot into what that bot can do, through
+ * > the real registry and the real bricks. The fixtures stay written as bots —
+ * > "fit the Actions brick" is what the reader does, and what the test should
+ * > say — while the predicates ask the question that survives a seventh brick.
  */
 
 const ACTIONS = { enabled: ['move', 'say', 'pick_up', 'give', 'open', 'celebrate'] };
@@ -37,18 +45,36 @@ function spec(over: Partial<AgentSpec> & { bricks?: AgentSpec['bricks'] } = {}):
 	};
 }
 
-function ctx(over: Partial<LeafletContext> = {}): LeafletContext {
-	return {
+/**
+ * A leaflet context, written the way a test wants to think about it.
+ *
+ * `spec` is fixture sugar: it is turned into capabilities here, once, through
+ * the real registry — so a chapter predicate is exercised against what the real
+ * bricks actually contribute rather than against a hand-built claim.
+ */
+function ctx(over: Partial<LeafletContext> & { spec?: AgentSpec } = {}): LeafletContext {
+	const { spec: built, ...rest } = over;
+	const base: LeafletContext = {
 		route: 'shelf',
-		spec: undefined,
+		can: undefined,
+		goalCardId: undefined,
 		outcome: undefined,
 		variant: undefined,
 		ticks: 0,
 		usedTools: [],
 		sawApproval: false,
 		acked: new Set<string>(),
-		...over
+		...rest
 	};
+	/*
+	 * Applied *after* the spread, not inside it. Several tests build on an
+	 * earlier context — `ctx({ ...read, spec: spec({ … }) })` — and that context
+	 * already carries the previous `can`; without this the old capabilities
+	 * would win and the fixture would silently describe the wrong bot.
+	 */
+	return built
+		? { ...base, can: capabilitiesOf(built, createRegistry()), goalCardId: built.goalCardId }
+		: base;
 }
 
 describe('the shape of the arc', () => {
