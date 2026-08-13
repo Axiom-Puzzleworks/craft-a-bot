@@ -1,4 +1,5 @@
 import type { AgentSpec } from '../schemas/agent-spec.js';
+import type { AnyAgentSpec } from '../schemas/agent-spec-v2.js';
 import type { RunOutcome } from '../schemas/shared.js';
 import type { EventBus } from '../event-bus.js';
 import type { PackRegistry } from '../pack-registry.js';
@@ -67,7 +68,8 @@ export interface SessionOptions {
 }
 
 export interface CreateSessionDeps {
-	spec: AgentSpec;
+	/** Either spec shape; the session normalises (WP14 slice 2b). */
+	spec: AnyAgentSpec;
 	registry: PackRegistry; // resolves cartridge/world/tool/card IDs
 	provider: LLMProvider;
 	guardrails: Guardrail[];

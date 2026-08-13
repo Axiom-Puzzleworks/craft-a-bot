@@ -1,4 +1,5 @@
 import { createEventBus, type EventBus } from '../event-bus.js';
+import { asLegacySpec } from '../schemas/agent-spec-v2.js';
 import type { GoalCardDefinition } from '../schemas/pack-manifest.js';
 import type { EngineEvent, EventType } from '../schemas/events.js';
 import type {
@@ -52,7 +53,17 @@ function errorKind(error: unknown): string {
 }
 
 export function createSession(deps: CreateSessionDeps): AgentSession {
-	const { spec, registry, provider, guardrails, options = {} } = deps;
+	const { registry, provider, guardrails, options = {} } = deps;
+	/*
+	 * Either spec shape is accepted and normalised here (WP14 slice 2b).
+	 *
+	 * A bot saved before the open brick contract is a v1 spec; a bot built
+	 * today is v2. Rather than convert every consumer in one change — and have
+	 * nothing work in between — each one normalises at its own door. The
+	 * six-key view is a transition shim that slice 3 deletes, when bricks start
+	 * contributing through their runtimes instead.
+	 */
+	const spec = asLegacySpec(deps.spec);
 	const newId = options.newId ?? (() => crypto.randomUUID());
 	const now = options.now ?? (() => new Date().toISOString());
 	const random = options.random ?? (() => Math.random());

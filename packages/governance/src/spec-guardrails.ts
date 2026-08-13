@@ -1,4 +1,4 @@
-import type { AgentSpec, Guardrail } from '@craftabot/core';
+import { asLegacySpec, type AnyAgentSpec, type Guardrail } from '@craftabot/core';
 import { createActionBlocklistGuardrail } from './guardrails/action-blocklist.js';
 import { createApprovalModeGuardrail } from './guardrails/approval-mode.js';
 import { createNoRepetitionGuardrail } from './guardrails/no-repetition.js';
@@ -22,8 +22,9 @@ import { createStepBudgetGuardrail } from './guardrails/step-budget.js';
  * after the flat prohibitions, but before a human is asked to approve the
  * fourth identical attempt at something that has plainly stopped working.
  */
-export function guardrailsForSpec(spec: AgentSpec): Guardrail[] {
-	const safety = spec.bricks.safety;
+export function guardrailsForSpec(input: AnyAgentSpec): Guardrail[] {
+	// Either spec shape (WP14 slice 2b).
+	const safety = asLegacySpec(input).bricks.safety;
 	if (!safety) return [];
 
 	const guardrails: Guardrail[] = [createStepBudgetGuardrail(safety.maxTicks)];

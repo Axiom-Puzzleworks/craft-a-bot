@@ -1,4 +1,5 @@
 import type { AgentSpec } from './schemas/agent-spec.js';
+import { asLegacySpec, type AnyAgentSpec } from './schemas/agent-spec-v2.js';
 import type { PackRegistry } from './pack-registry.js';
 import type { BuildProblem } from './schemas/build-problem.js';
 
@@ -7,7 +8,10 @@ import type { BuildProblem } from './schemas/build-problem.js';
  * `unknown-cartridge`, and `unknown-goal-card` block GO — everything else is
  * a non-blocking build-checks-ribbon explanation (03-UI-UX-DESIGN.md §4.4).
  */
-export function validateSpec(spec: AgentSpec, registry: PackRegistry): BuildProblem[] {
+export function validateSpec(input: AnyAgentSpec, registry: PackRegistry): BuildProblem[] {
+	// Either shape (WP14 slice 2b); `validateSpecV2` is the generic half that
+	// checks the bricks core cannot know about.
+	const spec: AgentSpec = asLegacySpec(input);
 	const problems: BuildProblem[] = [];
 
 	if (!spec.bricks.llm) {

@@ -2,6 +2,7 @@ import {
 	createPackRegistry,
 	createSession,
 	type AgentSpec,
+	type AnyAgentSpec,
 	type EngineEvent,
 	type Guardrail,
 	type LLMProvider,
@@ -106,7 +107,8 @@ export interface RunResult {
 
 export interface RunOptions {
 	script: MockScript;
-	spec?: AgentSpec;
+	/** Either spec shape; the session normalises (WP14 slice 2b). */
+	spec?: AnyAgentSpec;
 	guardrails?: Guardrail[];
 	provider?: LLMProvider;
 	maxTicks?: number;
