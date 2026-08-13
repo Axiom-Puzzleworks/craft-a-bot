@@ -1,7 +1,6 @@
 import type { ChatMessage } from '@craftabot/core';
 import type { MockScript } from '@craftabot/core/testing';
 import { obedient } from '@craftabot/core/testing';
-import { guardrailsForSpec } from '@craftabot/governance';
 import { describe, expect, it } from 'vitest';
 import { buildSpec, runToCompletion } from './harness.js';
 
@@ -167,7 +166,6 @@ describe('Memory × Safety: a blocked attempt is remembered as blocked', () => {
 				{ say: 'Trying again.', call: 'open', args: { container: 'toy-chest' } }
 			]),
 			spec: built,
-			guardrails: guardrailsForSpec(built),
 			maxTicks: 3
 		});
 
@@ -200,7 +198,6 @@ describe('Brain × Safety: the last turn costs nothing', () => {
 				toolCall: { name: 'move', arguments: { direction: 'east' } }
 			}),
 			spec: built,
-			guardrails: guardrailsForSpec(built),
 			stepLimit: 8
 		});
 

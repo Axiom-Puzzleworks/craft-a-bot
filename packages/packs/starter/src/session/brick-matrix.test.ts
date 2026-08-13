@@ -1,6 +1,5 @@
 import type { ChatRequest, LLMProvider } from '@craftabot/core';
 import { createMockProvider, obedient, wanderer } from '@craftabot/core/testing';
-import { guardrailsForSpec } from '@craftabot/governance';
 import { describe, expect, it } from 'vitest';
 import { buildSpec, runToCompletion, type SpecOverrides } from './harness.js';
 
@@ -40,7 +39,6 @@ async function run(
 		script,
 		spec,
 		provider,
-		guardrails: guardrailsForSpec(spec),
 		...(options.maxTicks !== undefined ? { maxTicks: options.maxTicks } : {})
 	});
 

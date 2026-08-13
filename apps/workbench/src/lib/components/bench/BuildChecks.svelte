@@ -29,12 +29,12 @@
 		</p>
 	{:else}
 		<ul>
-			{#each [...blocking, ...warnings] as problem (problem.code + (problem.brick ?? ''))}
+			{#each [...blocking, ...warnings] as problem (problem.code + (problem.slot ?? ''))}
 				<li data-testid="check-{problem.code}" data-severity={problem.severity}>
 					<span class="chip chip--{problem.severity}" aria-hidden="true">
 						{problem.severity === 'blocking' ? '!' : '?'}
 					</span>
-					{#if onjump && problem.brick}
+					{#if onjump && problem.slot}
 						<button type="button" onclick={() => onjump(problem)}>{problem.message}</button>
 					{:else}
 						<span>{problem.message}</span>

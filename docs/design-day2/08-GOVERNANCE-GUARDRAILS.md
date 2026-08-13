@@ -85,6 +85,18 @@ Also always-on, brick or no brick (engine-level, not optional): token budget per
 > - **Approval mode pauses for world actions only, never for tools.** §3's table already says "every world action"; the lesson is that looking is free and *changing things* is what needs a signature — the same tools/actions split the bricks teach in `02-AGENT-MODEL.md` §2.
 > - **The blocklist's disposition is `block-action`, never `stop-run`.** A forbidden action is a refused step, not a failed run: the refusal goes back into the next observation and the bot carries on, which is the behaviour §2 means when it says the agent *experiences* governance.
 
+> **Amended 2026-08-13 (WP14 slice 3d):** **the brick installs its own rules.** `guardrailsForSpec` — the compiler in `@craftabot/governance` that turned a fitted Safety Brick into running guardrails — has been retired, and `starter/safety` composes the four rules itself through `contributeGuardrails` (`14-…` §2.1).
+>
+> Nothing about the rules, their order or their behaviour changes. What changes is *who* decides they apply, and it matters for the reason this section already argues: policy that lives outside the brick is policy the host can forget. Before this, whether a fitted Safety Brick governed anything depended on the screen the bot was launched from — a brick on the baseplate could be pure decoration, and in one test harness it was. A bot now carries its policy wherever it runs.
+>
+> The consequence worth writing down is what it makes possible. Policy is no longer the Safety Brick's private privilege: **any** brick may contribute guardrails, which is what a Monitor brick is (`19-…` #27), and it needs no engine change to do it.
+>
+> Three things are deliberately unchanged:
+>
+> - **The engine floor is still the engine's.** `resolveBudgets` reads the `maxTicks` dial through a slot *contract* (`14-…` §2.1), not through the brick's identity — the dial is how long the engine may run, which is machinery core owns, while the rules are contributed. A brick in the safety socket with no dial (a Monitor) leaves the backstop at 30.
+> - **`@craftabot/governance` still ships the mechanisms**, and its dependency boundary (§5) is untouched. The split is now explicit: governance owns *what a step budget is*, the pack owns *which rules this brick installs and how they are dialled*.
+> - **The host seam stays open.** `CreateSessionDeps.guardrails` still exists and is still honoured, after the bricks' own rules. That is where V1.x policy cards (§5) will arrive — deployment policy, as distinct from the policy a builder can see on the baseplate.
+
 > **Amended 2026-08-12 (WP10.1):** the Safety Brick gains a **fourth** rule, **No repetition** (`safety/no-repetition`, pre-act, `block-action`), configured by an optional `repeatLimit` on the brick. It blocks a call — same kind, same name, same arguments — proposed more than *N* turns running.
 >
 > | Rule | Hook | Behaviour | Real-world analogue |

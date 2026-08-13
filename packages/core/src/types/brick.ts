@@ -1,4 +1,5 @@
 import type { ZodType } from 'zod';
+import type { BuildProblem } from '../schemas/build-problem.js';
 import type { Guardrail } from './guardrail.js';
 
 /**
@@ -145,6 +146,29 @@ export interface BrickRuntimeContext {
 }
 
 /**
+ * What a kind may ask about the workbench while checking its own config
+ * (WP14 slice 3d).
+ *
+ * Four questions, not the registry itself. A brick has no business enumerating
+ * what is installed — it has business knowing whether the thing *it names*
+ * is there, which is the difference between a check and a search.
+ */
+export interface BrickValidationContext {
+	hasTool(id: string): boolean;
+	hasAction(id: string): boolean;
+	hasSenseChannel(id: string): boolean;
+	hasCartridge(id: string): boolean;
+}
+
+/**
+ * A problem a brick found in its own config, for the build-checks ribbon.
+ *
+ * `slot` is core's to fill in — the brick knows what is wrong, core knows where
+ * on the chassis it is.
+ */
+export type BrickConfigProblem = Omit<BuildProblem, 'slot'>;
+
+/**
  * What a pack registers to define a kind of brick.
  *
  * `configSchema` is the source of truth for the config's type *and* for the
@@ -184,6 +208,23 @@ export interface BrickKindDefinition<C = unknown> {
 	 * during a tick. A kind that omits it falls back to `name`.
 	 */
 	describeFitted?(config: C): string;
+
+	/**
+	 * Anything wrong with this config that the schema cannot express (WP14
+	 * slice 3d).
+	 *
+	 * `validateSpec` asks three questions of every brick — is the kind installed,
+	 * does it fit this socket, does its config parse — and delegates the fourth
+	 * to the kind, because the kind is the only thing that knows what its config
+	 * *means*. A Safety Brick blocklist naming an action nobody installed is
+	 * perfectly well-formed and still wrong, and core has no way to tell.
+	 *
+	 * For ids a brick *offers*, prefer the runtime hooks: core already checks
+	 * everything `contributeCalls` and `contributeSenses` return, so a brick that
+	 * re-checks them here says everything twice. This is for the rest — ids a
+	 * config merely refers to.
+	 */
+	validateConfig?(config: C, ctx: BrickValidationContext): BrickConfigProblem[];
 
 	/** A brick with no runtime is pure configuration — legal, and occasionally right. */
 	createRuntime?(config: C, ctx: BrickRuntimeContext): BrickRuntime;

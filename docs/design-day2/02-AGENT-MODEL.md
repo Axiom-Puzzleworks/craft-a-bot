@@ -202,6 +202,10 @@ export function createSession(deps: {
 
 Validation: `validateSpec(spec, registry)` returns structured problems (`missing-brain`, `tool-needs-notebook`, `unknown-cartridge`…) that the UI renders as friendly build-checks _before_ GO is enabled.
 
+> **Amended 2026-08-13 (WP14 slice 3d):** every one of those checks is now generic — none of them names a brick. Core resolves the ids the fitted bricks *offer* (`contributeCalls`, `contributeSenses`), reads the cartridge and notebook through slot contracts, and asks each kind about anything else via `validateConfig`. A brick from a pack core has never seen is validated exactly as thoroughly as `starter/tools` is, which it previously was not at all (`14-…` §2.1).
+>
+> A problem now points at a `slot` (`brain`, `equipment`, …) rather than at `brick` (V1's `llm`, `tools`, …). The old field is kept parseable so stored validation results still load; nothing writes it.
+
 ## 7. Event catalogue (the observability spine)
 
 All events share `{ id, runId, tick, timestamp, type, payload }`, strictly typed per `type`. V1 catalogue:

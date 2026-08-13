@@ -72,7 +72,21 @@ export interface CreateSessionDeps {
 	spec: AnyAgentSpec;
 	registry: PackRegistry; // resolves cartridge/world/tool/card IDs
 	provider: LLMProvider;
-	guardrails: Guardrail[];
+	/**
+	 * Rules the *host* adds, on top of whatever the fitted bricks install
+	 * (WP14 slice 3d).
+	 *
+	 * Policy used to arrive only this way: the workbench called
+	 * `guardrailsForSpec` and handed the result in. That compiler read the Safety
+	 * Brick by name, so it could compile exactly one brick and no others. Bricks
+	 * now contribute their own rules through `contributeGuardrails`, and the
+	 * session collects them — so most callers pass nothing here at all.
+	 *
+	 * The seam stays open because the host genuinely has policy of its own to
+	 * add: V1.x policy cards (`08-…` §5) compile to guardrails that belong to the
+	 * *deployment* rather than to any brick on the baseplate.
+	 */
+	guardrails?: Guardrail[];
 	options?: SessionOptions;
 }
 

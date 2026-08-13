@@ -57,6 +57,18 @@ export interface BrickRuntime {
 >
 > The limit, stated so it is a decision and not a wall: a brick whose config is shaped differently cannot fill those two sockets — a Vector Memory brick with `embeddings` and no `windowSize` would be fitted, validated, and then ignored by the memory the loop keeps. The answer when one is wanted is to let the Memory brick contribute its own prompt messages (a placement widening of `ContextContribution`), not to widen the contract.
 
+> **Amended 2026-08-13 (WP14 slice 3d):** `contributeGuardrails` is implemented, and a fourth delegation joins the contract.
+>
+> **Policy is a contribution.** It was the one hook this section declared that nothing used: a fitted Safety Brick became running guardrails in `guardrailsForSpec`, a compiler in `@craftabot/governance` that read `spec.bricks.safety` by name. That compiled exactly one brick, so a Monitor brick could contribute no policy at all without a core change — D11 in the place it costs most. `starter/safety` now composes the four governance rules itself, and `collectGuardrails` gathers them in slot order; the session concatenates the bricks' rules with whatever the *host* adds (`CreateSessionDeps.guardrails`, still the seam policy cards will arrive on). Guardrails were always an honest hook shape, unlike the brain and memory sockets below — `Guardrail` is a first-class interface and the engine already ran a list of them.
+>
+> **The safety socket gets a slot contract too, of exactly one field.** `resolveBudgets` needs `maxTicks` before the run starts and the play screen's gauge counts down from it, so the dial is read the way the cartridge and window size are. Only the dial: the blocklist, repeat limit and approval mode are policy and go through the hook. A brick in that socket with no dial leaves the backstop at the floor of 30, which is the right answer for a bot nobody set a limit on.
+>
+> **`validateConfig(config, ctx)` — the fourth question.** §2.1 said `validateSpec` gains *one* generic check. It gains one and a half. Three questions are core's (is the kind installed, does it fit this socket, does its config parse) and the ids a brick *offers* are checked generically, because `contributeCalls` and `contributeSenses` mean core can resolve every tool, action and channel any brick asks for without knowing what the brick is. But some configs are well-formed and still wrong in ways only their own kind can see — a blocklist naming an action nobody installed — so the kind is asked. It answers with build problems minus the socket, which core fills in. `ctx` is four lookups (`hasTool`, `hasAction`, `hasSenseChannel`, `hasCartridge`) rather than the registry itself: a brick should be able to check what it *names*, not enumerate what is installed.
+>
+> Consequently `asLegacySpec` has left `core` and `governance` entirely. The workbench still reads bots through it, at its own door, until the panels become schema-driven (§5 of `15-…`).
+>
+> One shape change that reaches storage: `BuildProblem.brick` (V1's six names) is superseded by `BuildProblem.slot` (a `SlotId`). The old field is kept parseable so a stored `AgentRecord.lastValidation` still loads, and nothing writes it.
+
 Rules: core defines the loop, the hook points, and the six _slot families_; packs define brick kinds. A brick kind cannot patch another brick or reorder the loop. `validateSpec` gains one generic check — config parses against the kind's schema at its version — replacing per-brick special cases. The workbench's `BrickPanel` if/else chain is replaced by schema-driven controls with per-kind panel overrides (see `15-…` §5).
 
 ### 2.2 `AgentSpec` v2

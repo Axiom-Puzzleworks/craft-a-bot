@@ -8,10 +8,12 @@ import type {
 	CallContribution,
 	SlotId
 } from '../types/brick.js';
+import type { Guardrail } from '../types/guardrail.js';
 import {
 	buildRuntimes,
 	collectCalls,
 	collectContext,
+	collectGuardrails,
 	collectSenses,
 	disposeRuntimes,
 	notifyTickEnd
@@ -340,6 +342,82 @@ describe('collecting what the bricks can sense', () => {
 		expect(collectSenses([{ slot: 'brain', kind: 'test/brain', name: 'b', runtime: {} }])).toEqual(
 			[]
 		);
+	});
+});
+
+describe('collecting the rules the bricks install', () => {
+	/**
+	 * A stand-in for a real rule: `collectGuardrails` never looks inside one, so
+	 * the identity is all the assertions need.
+	 */
+	const rule = (id: string): Guardrail => ({
+		id,
+		name: id,
+		description: id,
+		hooks: ['pre-act'],
+		check: () => ({ allow: true as const })
+	});
+
+	const installs = (...ids: string[]): BrickRuntime => ({
+		contributeGuardrails: () => ids.map(rule)
+	});
+
+	const idsOf = (guardrails: Guardrail[]) => guardrails.map((guardrail) => guardrail.id);
+
+	it('gathers rules in slot order', () => {
+		expect(
+			idsOf(
+				collectGuardrails([
+					{ slot: 'safety', kind: 'test/warden', name: 'w', runtime: installs('warden/budget') },
+					{ slot: 'brain', kind: 'test/brain', name: 'b', runtime: installs('brain/rule') }
+				])
+			)
+		).toEqual(['warden/budget', 'brain/rule']);
+	});
+
+	/**
+	 * The chain stops at the first non-allow verdict (`08-…` §2), so order is
+	 * behaviour, not presentation. A brick owns the order of its own rules.
+	 */
+	it('keeps a brick’s own rules in the order it returned them', () => {
+		expect(
+			idsOf(
+				collectGuardrails([
+					{
+						slot: 'safety',
+						kind: 'test/warden',
+						name: 'w',
+						runtime: installs('blocklist', 'no-repetition', 'approval')
+					}
+				])
+			)
+		).toEqual(['blocklist', 'no-repetition', 'approval']);
+	});
+
+	/**
+	 * The point of the hook. A Monitor brick is policy contributed by something
+	 * that is not the Safety brick, which the old `guardrailsForSpec` compiler
+	 * could not express at all.
+	 */
+	it('takes policy from any brick, not just the one in the safety socket', () => {
+		expect(
+			idsOf(
+				collectGuardrails([
+					{
+						slot: 'perception',
+						kind: 'test/monitor',
+						name: 'm',
+						runtime: installs('monitor/watch')
+					}
+				])
+			)
+		).toEqual(['monitor/watch']);
+	});
+
+	it('asks nothing of a brick with no policy to install', () => {
+		expect(
+			collectGuardrails([{ slot: 'brain', kind: 'test/brain', name: 'b', runtime: {} }])
+		).toEqual([]);
 	});
 });
 

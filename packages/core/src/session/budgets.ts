@@ -1,4 +1,6 @@
-import { asLegacySpec, type AnyAgentSpec } from '../schemas/agent-spec-v2.js';
+import type { PackRegistry } from '../pack-registry.js';
+import type { AnyAgentSpec } from '../schemas/agent-spec-v2.js';
+import { safetySlotSchema, slotConfig } from '../schemas/slot-contracts.js';
 
 /**
  * The engine floor (08-GOVERNANCE-GUARDRAILS.md §3): budgets that apply
@@ -51,9 +53,13 @@ export interface Usage {
  * > of 30 by a limit the UI never showed them, and the guardrail their brick
  * > installed would never get to fire.
  */
-export function resolveBudgets(spec: AnyAgentSpec, overrides: BudgetOverrides = {}): BudgetLimits {
+export function resolveBudgets(
+	spec: AnyAgentSpec,
+	registry: PackRegistry,
+	overrides: BudgetOverrides = {}
+): BudgetLimits {
 	return {
-		maxTicks: overrides.maxTicks ?? backstopTicks(spec),
+		maxTicks: overrides.maxTicks ?? backstopTicks(spec, registry),
 		maxTokens: overrides.maxTokens ?? DEFAULT_TOKEN_BUDGET,
 		requestTimeoutMs: overrides.requestTimeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS
 	};
@@ -62,14 +68,22 @@ export function resolveBudgets(spec: AnyAgentSpec, overrides: BudgetOverrides = 
 /**
  * The engine's hard ceiling: the floor, or the user's dial if that is higher.
  *
- * Still read through the v1 window, and the last two places that are. The
- * safety socket moves onto a slot contract in slice 3d, with the guardrails it
- * compiles — doing it here first would mean threading a registry through
- * `displayedTickBudget`, which the workbench calls from a component with no
- * registry to hand.
+ * > **Amended 2026-08-13 (WP14 slice 3d):** read through the safety *slot
+ * > contract* rather than `spec.bricks.safety`, which is what made this one of
+ * > the last two places in core looking at a bot through v1's window. Whatever
+ * > is fitted to the safety socket supplies the dial if it has one; a brick that
+ * > has none — a Monitor, say — leaves the backstop at the floor, which is the
+ * > right answer for a bot nobody set a limit on. The registry is the price of
+ * > that, and a smaller one than it looked: the workbench's only call site makes
+ * > a registry twelve lines earlier.
  */
-function backstopTicks(spec: AnyAgentSpec): number {
-	return Math.max(DEFAULT_TICK_BUDGET, asLegacySpec(spec).bricks.safety?.maxTicks ?? 0);
+function backstopTicks(spec: AnyAgentSpec, registry: PackRegistry): number {
+	return Math.max(DEFAULT_TICK_BUDGET, dial(spec, registry) ?? 0);
+}
+
+/** The builder's tick dial, if the brick in the safety socket has one. */
+function dial(spec: AnyAgentSpec, registry: PackRegistry): number | undefined {
+	return slotConfig(spec, registry, 'safety', safetySlotSchema)?.maxTicks;
 }
 
 /**
@@ -80,11 +94,15 @@ function backstopTicks(spec: AnyAgentSpec): number {
  * the platform's backstop instead would be a gauge that disagrees with the
  * brick they can see on the baseplate.
  */
-export function displayedTickBudget(spec: AnyAgentSpec, overrides: BudgetOverrides = {}): number {
+export function displayedTickBudget(
+	spec: AnyAgentSpec,
+	registry: PackRegistry,
+	overrides: BudgetOverrides = {}
+): number {
 	// Either shape: the gauge is read straight from a stored bot, and since WP14
 	// that is v2. Normalising here rather than at the call site keeps the one
 	// place that knows what "the dial" means the one place that reads it.
-	return overrides.maxTicks ?? asLegacySpec(spec).bricks.safety?.maxTicks ?? DEFAULT_TICK_BUDGET;
+	return overrides.maxTicks ?? dial(spec, registry) ?? DEFAULT_TICK_BUDGET;
 }
 
 export function totalTokens(usage: Usage): number {

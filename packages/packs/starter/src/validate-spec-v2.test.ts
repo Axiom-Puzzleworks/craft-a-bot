@@ -1,12 +1,13 @@
 import {
 	createPackRegistry,
 	migrateAgentSpec,
+	validateSpec,
 	validateSpecV2,
 	type AgentSpecV2
 } from '@craftabot/core';
 import { describe, expect, it } from 'vitest';
 import starterPack from './index.js';
-import { buildSpec } from './session/harness.js';
+import { buildRegistry, buildSpec } from './session/harness.js';
 
 /**
  * **The generic build check** (`14-…` §2.1, WP14).
@@ -112,6 +113,50 @@ describe('validating a v2 spec against registered kinds', () => {
 	it('is content with a chassis that is still empty', () => {
 		// Half-built is a normal state; the bench has to be able to hold one.
 		expect(validateSpecV2({ ...spec(), bricks: [] }, registry())).toEqual([]);
+	});
+
+	/**
+	 * The fourth question, answered by the brick (WP14 slice 3d).
+	 *
+	 * Core used to run this check itself, off `spec.bricks.safety` — one of the
+	 * six special cases only V1's six bricks could ever have had. It is the
+	 * Safety Brick's own now, because only the Safety Brick knows that the
+	 * strings in `blockedActions` are action ids at all.
+	 */
+	it('reports a blocklist entry that is not an installed action', () => {
+		const built = spec();
+		built.bricks.push({
+			slot: 'safety',
+			kind: 'starter/safety',
+			configVersion: 1,
+			config: { maxTicks: 30, blockedActions: ['nobody/nothing'], approvalMode: false }
+		});
+
+		const problems = validateSpec(built, buildRegistry());
+		expect(problems).toContainEqual(
+			expect.objectContaining({
+				code: 'unknown-blocked-action',
+				severity: 'warning',
+				slot: 'safety',
+				details: { actionId: 'nobody/nothing' }
+			})
+		);
+	});
+
+	it('is content with a blocklist naming an action the world really has', () => {
+		const built = spec();
+		built.bricks.push({
+			slot: 'safety',
+			kind: 'starter/safety',
+			configVersion: 1,
+			config: {
+				maxTicks: 30,
+				blockedActions: ['starter/playroom/open'],
+				approvalMode: false
+			}
+		});
+
+		expect(validateSpec(built, buildRegistry())).toEqual([]);
 	});
 
 	it('reports every brick that is wrong, not merely the first', () => {

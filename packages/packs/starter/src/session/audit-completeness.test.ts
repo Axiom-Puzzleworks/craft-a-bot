@@ -1,6 +1,5 @@
 import type { EngineEvent } from '@craftabot/core';
 import { obedient } from '@craftabot/core/testing';
-import { guardrailsForSpec } from '@craftabot/governance';
 import { describe, expect, it } from 'vitest';
 import { buildSpec, runToCompletion } from './harness.js';
 
@@ -42,7 +41,6 @@ async function auditableRun() {
 			{ say: 'Telling Teddy.', call: 'say', args: { text: '17 times 23 is 391.' } }
 		]),
 		spec,
-		guardrails: guardrailsForSpec(spec),
 		maxTicks: 6
 	});
 }

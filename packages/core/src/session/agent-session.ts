@@ -16,7 +16,7 @@ import type {
 	SessionStatus,
 	TickResult
 } from '../types/agent-session.js';
-import type { GuardrailContext, GuardrailHook } from '../types/guardrail.js';
+import type { Guardrail, GuardrailContext, GuardrailHook } from '../types/guardrail.js';
 import type { ChatMessage, ChatResponse, ToolSchema } from '../types/provider.js';
 import type { ToolDefinition } from '../types/tool.js';
 import type { ActionResult, WorldInstance } from '../types/world.js';
@@ -32,6 +32,7 @@ import {
 	buildRuntimes,
 	collectCalls,
 	collectContext,
+	collectGuardrails,
 	collectSenses,
 	disposeRuntimes,
 	notifyTickEnd
@@ -67,7 +68,7 @@ function errorKind(error: unknown): string {
 }
 
 export function createSession(deps: CreateSessionDeps): AgentSession {
-	const { registry, provider, guardrails, options = {} } = deps;
+	const { registry, provider, options = {} } = deps;
 	/*
 	 * Either spec shape, normalised to v2 (WP14 slice 3c).
 	 *
@@ -86,7 +87,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 
 	const goalCard = requireGoalCard(registry.getGoalCard(spec.goalCardId), spec.goalCardId);
 	const world = createWorld(goalCard);
-	const budgets = resolveBudgets(deps.spec, options.budgets);
+	const budgets = resolveBudgets(deps.spec, registry, options.budgets);
 	/*
 	 * The two sockets core reads rather than is contributed to (slice 3c). See
 	 * `schemas/slot-contracts.ts` for why these are not hooks.
@@ -116,6 +117,22 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		context: { random }
 	});
 	const fittedBricks = describeFittedBricks(deps.spec, registry);
+
+	/*
+	 * Policy: the bricks' rules first, then whatever the host adds (slice 3d).
+	 *
+	 * Until this slice the host compiled the Safety Brick itself and passed the
+	 * result in. That put a brick's behaviour outside the brick, which worked for
+	 * exactly one brick — a Monitor could watch nothing, because there was no way
+	 * for a second brick to contribute policy. The bricks now install their own.
+	 *
+	 * Brick rules run before host rules deliberately. The chain stops at the
+	 * first non-allow verdict (`08-…` §2), and what the builder snapped onto the
+	 * baseplate is the policy they can see, reason about and change; a deployment
+	 * rule they cannot see should not pre-empt it and take the credit in the
+	 * trace.
+	 */
+	const guardrails: Guardrail[] = [...collectGuardrails(runtimes), ...(deps.guardrails ?? [])];
 
 	/*
 	 * What the bot can call, from the bricks that offer it (slice 3b).

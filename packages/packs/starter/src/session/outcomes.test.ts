@@ -58,14 +58,35 @@ describe('OUT_OF_STEPS', () => {
 	 * to the `safety/step-budget` guardrail so a run stopped by the builder's own
 	 * rule gets a different outcome and end card from one stopped by the platform
 	 * — see `safety-brick.test.ts`. What is left in the engine is the floor.
+	 *
+	 * > **Amended 2026-08-13 (WP14 slice 3d):** this used to be phrased as *"a
+	 * > brick is fitted but its rules are not"*, and ran a bot with a dial of 3 to
+	 * > prove it still went 30 ticks. That state cannot happen any more, and its
+	 * > existence was the bug: whether a fitted brick's rules ran depended on
+	 * > whether the host remembered to compile them, so a brick on the baseplate
+	 * > could be pure decoration. Bricks install their own rules now, and that bot
+	 * > correctly stops at 3 with `STOPPED_BY_GUARDRAIL`.
+	 * >
+	 * > What is still worth pinning is the floor itself, so it is pinned in the
+	 * > one case that still reaches it: nobody set a limit at all.
 	 */
-	it('falls back to the engine floor when a brick is fitted but its rules are not', async () => {
+	it('falls back to the engine floor when nothing sets a limit', async () => {
+		const run = await runToCompletion({
+			script: wanderer(),
+			spec: buildSpec({ safety: null })
+		});
+		expect(run.outcome).toBe('OUT_OF_STEPS');
+		expect(run.byType('tick.started')).toHaveLength(30);
+	});
+
+	/** The other half of that amendment: a fitted dial now genuinely governs. */
+	it('lets a fitted brick’s own rule stop the run before the floor', async () => {
 		const run = await runToCompletion({
 			script: wanderer(),
 			spec: buildSpec({ safety: { maxTicks: 3, blockedActions: [], approvalMode: false } })
 		});
-		expect(run.outcome).toBe('OUT_OF_STEPS');
-		expect(run.byType('tick.started')).toHaveLength(30);
+		expect(run.outcome).toBe('STOPPED_BY_GUARDRAIL');
+		expect(run.byType('tick.started').length).toBeLessThan(30);
 	});
 });
 
