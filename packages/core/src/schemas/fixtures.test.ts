@@ -3,6 +3,8 @@ import type { z } from 'zod';
 
 import validAgentSpec from '../fixtures/agent-spec.v1.valid.json';
 import invalidAgentSpec from '../fixtures/agent-spec.v1.invalid.json';
+import validAgentSpecV2 from '../fixtures/agent-spec.v2.valid.json';
+import invalidAgentSpecV2 from '../fixtures/agent-spec.v2.invalid.json';
 import validAgentRecord from '../fixtures/agent-record.v1.valid.json';
 import invalidAgentRecord from '../fixtures/agent-record.v1.invalid.json';
 import validStoredEvent from '../fixtures/stored-event.v1.valid.json';
@@ -16,6 +18,7 @@ import validTraceFile from '../fixtures/trace-file.v2.valid.json';
 import invalidTraceFile from '../fixtures/trace-file.v2.invalid.json';
 
 import { agentSpecSchema } from './agent-spec.js';
+import { agentSpecV2Schema } from './agent-spec-v2.js';
 import { kitFileSchema } from './kit-file.js';
 import { packManifestMetadataSchema } from './pack-manifest.js';
 import { agentRecordSchema, storedEventSchema } from './records.js';
@@ -54,6 +57,12 @@ const CASES: Case[] = [
 		schema: agentSpecSchema,
 		valid: validAgentSpec,
 		invalid: invalidAgentSpec
+	},
+	{
+		name: 'AgentSpec v2',
+		schema: agentSpecV2Schema,
+		valid: validAgentSpecV2,
+		invalid: invalidAgentSpecV2
 	},
 	{
 		name: 'AgentRecord v1',
@@ -126,7 +135,8 @@ describe('the fixture set itself', () => {
 		// A boundary schema with no fixture has no compatibility contract, which
 		// is how a format change ships unnoticed. Adding one to `07-…` §3 means
 		// adding it here.
-		expect(CASES.map((entry) => entry.name.replace(/ v\d+$/, '')).sort()).toEqual([
+		const covered = [...new Set(CASES.map((entry) => entry.name.replace(/ v\d+$/, '')))].sort();
+		expect(covered).toEqual([
 			'AgentRecord',
 			'AgentSpec',
 			'KitFile',

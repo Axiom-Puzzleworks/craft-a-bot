@@ -68,6 +68,19 @@ export {
 
 // Schemas (Zod-first types — 07-DATA-MODEL-PERSISTENCE.md §6)
 export {
+	agentIdentitySchema,
+	agentSpecV2Schema,
+	brickInSlot,
+	fittedBrickSchema,
+	migrateAgentSpec,
+	parseAgentSpecV2,
+	safeParseAgentSpecV2,
+	type AgentIdentity,
+	type AgentSpecV2,
+	type FittedBrick,
+	type SpecMigrationError
+} from './schemas/agent-spec-v2.js';
+export {
 	actionsBrickSchema,
 	agentSpecSchema,
 	llmBrickSchema,
