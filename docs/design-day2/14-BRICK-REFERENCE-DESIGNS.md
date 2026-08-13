@@ -38,12 +38,16 @@ export interface BrickKindDefinition<C = unknown> {
 export interface BrickRuntime {
 	// Called at the loop's fixed points; every hook is additive and observable
 	contributeContext?(tick: TickContext): ContextContribution; // prompt sections (Sense, Memory)
-	contributeCalls?(): CallSchema[]; // tools & actions offered (Tools, Actions)
+	contributeCalls?(): CallContribution; // tools & actions offered (Equipment, Mobility) — see below
 	contributeGuardrails?(): Guardrail[]; // policy (Safety)
 	onTickEnd?(record: TickRecord): void; // learn/record (Memory)
 	dispose?(): void;
 }
 ```
+
+> **Amended 2026-08-13 (WP14 slice 3b):** `contributeCalls` returns **ids, not schemas** — `{ toolIds?: string[]; actionIds?: string[] }`. As drawn it returned call schemas, which cannot work: a schema with no executor is a name the model can call and nothing can answer. The brick names *which registered content* it offers and core dispatches it, through `ToolDefinition` and `WorldActionDefinition` — both core's own types. Nothing is lost from the open contract: a Radio brick ships a pack registering both a `radio/send_message` tool and the brick kind whose config enables it, with no core change, and the tool arrives with its executor attached the way every tool does. The alternative — bricks carrying their own handlers — would be a second dispatch mechanism alongside the one packs already use.
+>
+> Also added: `describeFitted(config)`, for the "parts you have been built with" line. Presentation like `name`, but config-dependent (a Memory brick says how many turns it remembers), so it belongs on the kind rather than in a hook. It replaces `describeFittedBricks`'s six hard-coded `if`s — D11 in the one place a user reads the consequence.
 
 Rules: core defines the loop, the hook points, and the six _slot families_; packs define brick kinds. A brick kind cannot patch another brick or reorder the loop. `validateSpec` gains one generic check — config parses against the kind's schema at its version — replacing per-brick special cases. The workbench's `BrickPanel` if/else chain is replaced by schema-driven controls with per-kind panel overrides (see `15-…` §5).
 

@@ -22,7 +22,13 @@ import {
 } from './budgets.js';
 import { REPROMPT_INSTRUCTION, decide, type Decision } from './decide.js';
 import { isAllowed, isPause, runGuardrailChain, type ChainOutcome } from './guardrail-chain.js';
-import { buildRuntimes, collectContext, disposeRuntimes, notifyTickEnd } from './brick-runtimes.js';
+import {
+	buildRuntimes,
+	collectCalls,
+	collectContext,
+	disposeRuntimes,
+	notifyTickEnd
+} from './brick-runtimes.js';
 import { createMemory, type TickMemory } from './memory.js';
 import { composePrompt, describeFittedBricks, estimateTokens } from './prompt.js';
 
@@ -77,13 +83,6 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 	const events: EventBus = createEventBus();
 	const runId = newId();
 
-	const { toolSchemas, toolsByWireName } = resolveTools();
-	const { actionSchemas, actionNames, worldActionNames } = resolveActions();
-	const callSchemas: ToolSchema[] = [...toolSchemas, ...actionSchemas];
-	const toolNames = new Set(toolsByWireName.keys());
-	assertNoWireNameCollisions();
-
-	const usage: Usage = { ticks: 0, inputTokens: 0, outputTokens: 0 };
 	/*
 	 * The fitted bricks, live (WP14 slice 3a).
 	 *
@@ -98,6 +97,21 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		context: { random }
 	});
 	const fittedBricks = describeFittedBricks(deps.spec, registry);
+
+	/*
+	 * What the bot can call, from the bricks that offer it (slice 3b).
+	 *
+	 * Tools before actions, which is what socket order gives us and what the
+	 * model has always been offered.
+	 */
+	const offered = collectCalls(runtimes);
+	const { toolSchemas, toolsByWireName } = resolveTools(offered.toolIds);
+	const { actionSchemas, actionNames, worldActionNames } = resolveActions(offered.actionIds);
+	const callSchemas: ToolSchema[] = [...toolSchemas, ...actionSchemas];
+	const toolNames = new Set(toolsByWireName.keys());
+	assertNoWireNameCollisions();
+
+	const usage: Usage = { ticks: 0, inputTokens: 0, outputTokens: 0 };
 	const history: EngineEvent[] = [];
 	events.onAny((event) => history.push(event));
 
@@ -154,10 +168,10 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		return definition.create(card.layoutId);
 	}
 
-	function resolveTools() {
+	function resolveTools(offeredIds: readonly string[]) {
 		const resolved: ToolDefinition[] = [];
 		const byWireName = new Map<string, ToolDefinition>();
-		for (const id of spec.bricks.tools?.enabled ?? []) {
+		for (const id of offeredIds) {
 			const tool = registry.getTool(id);
 			// Unknown ids and notebook tools without a notebook are simply not
 			// offered; validateSpec has already surfaced both to the user.
@@ -206,10 +220,10 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		});
 	}
 
-	function resolveActions() {
+	function resolveActions(offeredIds: readonly string[]) {
 		const definition = registry.getWorld(goalCard.worldId);
 		const all = definition?.actions ?? [];
-		const enabled = spec.bricks.actions?.enabled ?? [];
+		const enabled = offeredIds;
 
 		// A bare name is only usable while it names one thing.
 		const counts = new Map<string, number>();

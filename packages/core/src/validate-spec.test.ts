@@ -1,17 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { validateSpec } from './validate-spec.js';
 import { createPackRegistry, type PackRegistry } from './pack-registry.js';
-import {
-	actionsBrickSchema,
-	llmBrickSchema,
-	memoryBrickSchema,
-	safetyBrickSchema,
-	senseBrickSchema,
-	toolsBrickSchema,
-	type AgentSpec
-} from './schemas/agent-spec.js';
+import type { AgentSpec } from './schemas/agent-spec.js';
 import type { PackManifest } from './schemas/pack-manifest.js';
-import type { BrickKindDefinition } from './types/brick.js';
+import { v1BrickKinds } from './testing/brick-kinds.js';
 import type { WorldDefinition } from './types/world.js';
 
 const playroom: WorldDefinition = {
@@ -28,28 +20,6 @@ const playroom: WorldDefinition = {
 		throw new Error('not implemented — WP2');
 	}
 };
-
-/** The six V1 bricks as kinds, with the config schemas core already carries. */
-const V1_KINDS: BrickKindDefinition[] = (
-	[
-		['llm', 'brain', llmBrickSchema],
-		['memory', 'memory', memoryBrickSchema],
-		['tools', 'equipment', toolsBrickSchema],
-		['sense', 'perception', senseBrickSchema],
-		['actions', 'mobility', actionsBrickSchema],
-		['safety', 'safety', safetyBrickSchema]
-	] as const
-).map(([name, slot, configSchema]) => ({
-	id: `starter/${name}`,
-	slot,
-	name,
-	description: name,
-	realName: name,
-	realExplanation: name,
-	configSchema,
-	configVersion: 1,
-	defaults: {}
-}));
 
 function buildRegistry(): PackRegistry {
 	const registry = createPackRegistry();
@@ -95,7 +65,7 @@ function buildRegistry(): PackRegistry {
 		 * installed genuinely cannot be assembled — and means a stub registry has
 		 * to stub this too.
 		 */
-		brickKinds: V1_KINDS
+		brickKinds: v1BrickKinds()
 	};
 	const openai: PackManifest = {
 		id: 'openai',

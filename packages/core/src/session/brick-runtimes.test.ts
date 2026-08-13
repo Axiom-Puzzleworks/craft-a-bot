@@ -2,8 +2,19 @@ import { describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import { createPackRegistry, type PackRegistry } from '../pack-registry.js';
 import type { AgentSpecV2 } from '../schemas/agent-spec-v2.js';
-import type { BrickKindDefinition, BrickRuntime, SlotId } from '../types/brick.js';
-import { buildRuntimes, collectContext, disposeRuntimes, notifyTickEnd } from './brick-runtimes.js';
+import type {
+	BrickKindDefinition,
+	BrickRuntime,
+	CallContribution,
+	SlotId
+} from '../types/brick.js';
+import {
+	buildRuntimes,
+	collectCalls,
+	collectContext,
+	disposeRuntimes,
+	notifyTickEnd
+} from './brick-runtimes.js';
 
 /**
  * **Fitting the bricks** (`14-…` §2.1, WP14 slice 3a).
@@ -255,6 +266,60 @@ describe('collecting what the bricks contribute', () => {
 			{ tick: 4, channels: ['starter/playroom/sight'] }
 		);
 		expect(seen).toEqual([{ tick: 4, channels: ['starter/playroom/sight'] }]);
+	});
+});
+
+describe('collecting what the bricks offer', () => {
+	function built(...entries: Array<[SlotId, string, BrickRuntime]>) {
+		return entries.map(([slot, kindId, runtime]) => ({
+			slot,
+			kind: kindId,
+			name: kindId,
+			runtime
+		}));
+	}
+
+	const offers = (contribution: CallContribution): BrickRuntime => ({
+		contributeCalls: () => contribution
+	});
+
+	it('gathers tool and action ids separately, in slot order', () => {
+		expect(
+			collectCalls(
+				built(
+					['equipment', 'test/belt', offers({ toolIds: ['test/calculator'] })],
+					['mobility', 'test/wheels', offers({ actionIds: ['move', 'say'] })]
+				)
+			)
+		).toEqual({ toolIds: ['test/calculator'], actionIds: ['move', 'say'] });
+	});
+
+	it('lets one brick offer both, because nothing in the contract says otherwise', () => {
+		expect(
+			collectCalls(built(['equipment', 'test/swiss', offers({ toolIds: ['t'], actionIds: ['a'] })]))
+		).toEqual({ toolIds: ['t'], actionIds: ['a'] });
+	});
+
+	it('asks nothing of a brick that offers nothing', () => {
+		expect(collectCalls(built(['brain', 'test/brain', {}]))).toEqual({
+			toolIds: [],
+			actionIds: []
+		});
+	});
+
+	/**
+	 * Two bricks offering the same call is a build the wire-name collision check
+	 * should refuse loudly. Quietly merging here would hide it.
+	 */
+	it('keeps a duplicate rather than papering over it', () => {
+		expect(
+			collectCalls(
+				built(
+					['equipment', 'test/belt', offers({ toolIds: ['test/calculator'] })],
+					['mobility', 'test/pouch', offers({ toolIds: ['test/calculator'] })]
+				)
+			).toolIds
+		).toEqual(['test/calculator', 'test/calculator']);
 	});
 });
 

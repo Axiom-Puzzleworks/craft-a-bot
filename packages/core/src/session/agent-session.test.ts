@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createSession } from './agent-session.js';
 import { createPackRegistry, type PackRegistry } from '../pack-registry.js';
-import { createMockProvider, createTestClock, turn } from '../testing/index.js';
+import { createMockProvider, createTestClock, turn, v1BrickKinds } from '../testing/index.js';
 import type { AgentSpec } from '../schemas/agent-spec.js';
 import type { EngineEvent } from '../schemas/events.js';
 import type { Guardrail, GuardrailVerdict } from '../types/guardrail.js';
@@ -104,6 +104,13 @@ function buildRegistry(): PackRegistry {
 		requiresCore: '>=0.0.1',
 		worlds: [createTinyWorld(), createTinyWorld('tiny/deaf-world', false)],
 		tools: [echoTool, secretTool],
+		/*
+		 * The loop builds runtimes from registered kinds (WP14 slice 3), so a
+		 * registry with none is a bot with nothing fitted, however full its spec
+		 * looks. `v1BrickKinds` is the shared stub; the real behaviour is proved
+		 * against the real pack in `pack-starter`.
+		 */
+		brickKinds: v1BrickKinds(),
 		cartridges: [
 			{
 				id: 'tiny/brain',

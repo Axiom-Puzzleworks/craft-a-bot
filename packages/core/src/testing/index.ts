@@ -14,3 +14,4 @@ export {
 	type MockTurn
 } from './mock-provider.js';
 export { createTestClock, type TestClock } from './test-clock.js';
+export { v1BrickKinds } from './brick-kinds.js';

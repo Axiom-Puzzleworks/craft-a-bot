@@ -1,6 +1,5 @@
 import type { ZodType } from 'zod';
 import type { Guardrail } from './guardrail.js';
-import type { ToolSchema } from './provider.js';
 
 /**
  * **The open brick contract** (`14-…` §2, closing `12-…` D11).
@@ -70,6 +69,31 @@ export interface ContextContribution {
 	sections?: string[];
 }
 
+/**
+ * What a brick offers the model to call — the Equipment and Mobility
+ * contribution (`14-…` §2.1).
+ *
+ * **Ids, not schemas.** `14-…` §2.1 sketched this as returning call schemas,
+ * which cannot work as drawn: a schema with no executor is a name the model can
+ * call and nothing can answer. The brick names *which registered content* it
+ * offers, and core dispatches it — through `ToolDefinition` and
+ * `WorldActionDefinition`, both of which are core's own types.
+ *
+ * That keeps the contract fully open without a second dispatch mechanism. A
+ * Radio brick ships a pack registering both a `radio/send_message` tool and the
+ * brick kind whose config enables it; no core change, and the tool arrives with
+ * its executor already attached the way every tool does.
+ *
+ * Ids may be qualified (`starter/calculator`) or bare (`move`), the latter
+ * resolving only while exactly one piece of content answers to it (E6).
+ */
+export interface CallContribution {
+	/** Registered tool ids this brick puts on the belt. */
+	toolIds?: string[];
+	/** World action ids this brick gives the bot a way to perform. */
+	actionIds?: string[];
+}
+
 /** What the loop hands a runtime at each tick. */
 export interface TickContext {
 	tick: number;
@@ -95,8 +119,8 @@ export interface TickRecord {
 export interface BrickRuntime {
 	/** Prompt sections (Sense, Memory). */
 	contributeContext?(tick: TickContext): ContextContribution;
-	/** Tools and actions offered to the model (Tools, Actions). */
-	contributeCalls?(): ToolSchema[];
+	/** Tools and actions offered to the model (Equipment, Mobility). */
+	contributeCalls?(): CallContribution;
 	/** Policy (Safety, and later Monitor). */
 	contributeGuardrails?(): Guardrail[];
 	/** Learn or record once the tick has resolved (Memory). */

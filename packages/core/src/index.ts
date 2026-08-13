@@ -203,6 +203,7 @@ export {
 	type BrickKindDefinition,
 	type BrickRuntime,
 	type BrickRuntimeContext,
+	type CallContribution,
 	type ContextContribution,
 	type SlotId,
 	type TickContext,
@@ -230,6 +231,7 @@ export {
 } from './session/decide.js';
 export {
 	buildRuntimes,
+	collectCalls,
 	collectContext,
 	disposeRuntimes,
 	notifyTickEnd,

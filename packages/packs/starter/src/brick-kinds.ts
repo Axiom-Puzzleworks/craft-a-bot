@@ -96,7 +96,17 @@ export const starterBrickKinds: BrickKindDefinition[] = [
 		defaults: { enabled: [] },
 		// A belt with nothing on it is not worth telling the bot about.
 		describeFitted: (config: { enabled: string[] }) =>
-			config.enabled.length > 0 ? 'a tool belt' : ''
+			config.enabled.length > 0 ? 'a tool belt' : '',
+		/*
+		 * The belt names what is on it; core resolves each id against the
+		 * registry and dispatches it. A tool the workbench has not got, and a
+		 * notebook tool with no notebook to write in, are dropped there rather
+		 * than here — both are already build problems the ribbon has reported,
+		 * and the brick has no way to know about the Memory brick anyway.
+		 */
+		createRuntime: (config: { enabled: string[] }) => ({
+			contributeCalls: () => ({ toolIds: config.enabled })
+		})
 	} as BrickKindDefinition,
 	{
 		id: 'starter/sense',
@@ -119,7 +129,18 @@ export const starterBrickKinds: BrickKindDefinition[] = [
 			)
 		},
 		describeFitted: (config: { enabled: string[] }) =>
-			config.enabled.length > 0 ? 'hands and wheels' : ''
+			config.enabled.length > 0 ? 'hands and wheels' : '',
+		/*
+		 * Which of the world's actions this bot was built to perform.
+		 *
+		 * The distinction core keeps is between an action the world *has* and one
+		 * this bot *can do*: the first gets "you have not been built with any way
+		 * to do it", the second simply happens. Taking a capability away is what
+		 * the checkboxes are for.
+		 */
+		createRuntime: (config: { enabled: string[] }) => ({
+			contributeCalls: () => ({ actionIds: config.enabled })
+		})
 	} as BrickKindDefinition,
 	{
 		id: 'starter/safety',

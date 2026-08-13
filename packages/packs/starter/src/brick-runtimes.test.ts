@@ -1,5 +1,6 @@
 import {
 	buildRuntimes,
+	collectCalls,
 	collectContext,
 	createPackRegistry,
 	describeFittedBricks,
@@ -106,5 +107,30 @@ describe('what the bricks contribute to the prompt', () => {
 
 	it('contributes nothing at all from a bot with no brain', () => {
 		expect(sections(v2(buildSpec({ llm: false })))).toEqual([]);
+	});
+});
+
+describe('what the bricks offer the model', () => {
+	const offered = (spec: AgentSpecV2) =>
+		collectCalls(buildRuntimes({ spec, registry: registry(), context: { random: () => 0 } }));
+
+	it('puts the Equipment brick’s tools on the belt and the Mobility brick’s actions on the wheels', () => {
+		const spec = v2(
+			buildSpec({ tools: ['starter/calculator'], actions: ['starter/playroom/move'] })
+		);
+		expect(offered(spec)).toEqual({
+			toolIds: ['starter/calculator'],
+			actionIds: ['starter/playroom/move']
+		});
+	});
+
+	/** The checkboxes are for taking capabilities *away* (02-AGENT-MODEL.md §2.5). */
+	it('offers nothing from a brick with everything unticked', () => {
+		expect(offered(v2(buildSpec({ actions: [] })))).toEqual({ toolIds: [], actionIds: [] });
+	});
+
+	it('offers nothing at all from a bot with neither brick fitted', () => {
+		const bare = v2(buildSpec({ llm: false, memory: null, senses: [], actions: [] }));
+		expect(offered(bare)).toEqual({ toolIds: [], actionIds: [] });
 	});
 });

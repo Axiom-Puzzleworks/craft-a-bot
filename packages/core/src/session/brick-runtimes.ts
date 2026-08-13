@@ -3,6 +3,7 @@ import { toSpecV2, type AnyAgentSpec } from '../schemas/agent-spec-v2.js';
 import type {
 	BrickRuntime,
 	BrickRuntimeContext,
+	CallContribution,
 	ContextContribution,
 	SlotId,
 	TickContext,
@@ -109,6 +110,28 @@ export function collectContext(
 		}
 	}
 	return { sections };
+}
+
+/**
+ * Everything the fitted bricks offer the model, in slot order.
+ *
+ * Ids only — core resolves them against the registry and the world exactly as
+ * it did when it read them off the spec, so a brick names a capability and
+ * never has to carry the machinery for dispatching one (`14-…` §2.1).
+ *
+ * Duplicates are kept rather than merged: two bricks offering the same call is
+ * a build the wire-name collision check should refuse loudly, not something to
+ * paper over here.
+ */
+export function collectCalls(runtimes: readonly FittedRuntime[]): Required<CallContribution> {
+	const toolIds: string[] = [];
+	const actionIds: string[] = [];
+	for (const fitted of runtimes) {
+		const contribution = fitted.runtime.contributeCalls?.();
+		toolIds.push(...(contribution?.toolIds ?? []));
+		actionIds.push(...(contribution?.actionIds ?? []));
+	}
+	return { toolIds, actionIds };
 }
 
 /** Tell every brick that learns from a tick what happened in it. */
