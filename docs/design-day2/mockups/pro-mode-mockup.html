@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Craft A Bot — Workshop (professional mode mock-up)</title>
+<style>
+  /* ── Tokens: brand palette per 04-VISUAL-DESIGN-LANGUAGE + Workshop skin per 15 §5 ── */
+  :root{
+    --cab-cream:#F3E9D2; --cab-paper:#EFE3C8; --cab-ink:#2B2620;
+    --cab-blue:#2456A6; --cab-red:#C93A2E; --cab-green:#4E8A3C; --cab-yellow:#E9B62F;
+    --cab-purple:#6C4F9E; --cab-sky:#5484BB; --cab-teal:#3E8F8A;
+    --cab-green-fill:#407131; --cab-red-fill:#BB362B;
+    --cab-blue-text:#1C4485; --cab-green-text:#3A6E2C; --cab-red-text:#A72E24; --cab-purple-text:#55407E;
+    --wk-panel:#DED9CC; --wk-metal:#C9C4B6; --wk-metal-dark:#A9A395; --wk-graph:#EFE8D6;
+    --wk-ink-2:#5A5348; --wk-live:#2F6E3B;
+    --radius:10px; --mono:"IBM Plex Mono","Consolas",monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Archivo","Segoe UI",system-ui,sans-serif;background:var(--wk-panel);color:var(--cab-ink);font-size:13px;line-height:1.45}
+  .engraved{text-transform:uppercase;letter-spacing:.08em;font-weight:600;color:var(--wk-ink-2);font-size:10.5px}
+  /* ── App bar ── */
+  header{background:linear-gradient(180deg,var(--wk-metal),var(--wk-metal-dark));border-bottom:3px solid var(--cab-ink);padding:10px 18px;display:flex;align-items:center;gap:18px}
+  .logo{font-weight:800;font-size:17px;letter-spacing:.03em}
+  .logo b{color:var(--cab-blue-text)} .logo i{color:var(--cab-red-text);font-style:normal} .logo u{color:var(--cab-green-text);text-decoration:none}
+  .logo .wk{background:var(--cab-ink);color:var(--cab-cream);border-radius:4px;padding:2px 7px;margin-left:8px;font-size:11px;letter-spacing:.12em}
+  nav{display:flex;gap:6px;margin-left:24px}
+  nav button{font:inherit;font-weight:600;border:2px solid var(--cab-ink);background:var(--cab-cream);border-radius:8px 8px 0 0;padding:7px 16px;cursor:pointer;border-bottom:none;opacity:.65}
+  nav button.active{opacity:1;background:var(--wk-graph);box-shadow:inset 0 -3px 0 var(--cab-yellow)}
+  .kitflip{margin-left:auto;font-weight:600;font-size:12px;border:2px solid var(--cab-ink);border-radius:999px;background:var(--cab-yellow);padding:6px 14px;cursor:pointer}
+  /* ── Layout ── */
+  main{padding:14px 18px 28px;max-width:1500px;margin:0 auto}
+  .screen{display:none}.screen.active{display:block}
+  .strip{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--wk-graph);border:2px solid var(--cab-ink);border-radius:var(--radius);padding:9px 14px;margin-bottom:12px;
+    background-image:linear-gradient(rgba(36,86,166,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(36,86,166,.05) 1px,transparent 1px);background-size:16px 16px}
+  .chip{border:2px solid var(--cab-ink);border-radius:999px;padding:3px 10px;font-weight:600;font-size:11.5px;background:var(--cab-cream)}
+  .chip.ok{background:var(--cab-green-fill);color:var(--cab-cream)} .chip.warn{background:var(--cab-yellow)}
+  .chip.mono{font-family:var(--mono);font-weight:500}
+  .spacer{flex:1}
+  .btn{font:inherit;font-weight:600;border:2px solid var(--cab-ink);border-radius:8px;background:var(--cab-cream);padding:6px 12px;cursor:pointer;box-shadow:0 2px 0 var(--cab-ink)}
+  .btn.primary{background:var(--cab-blue);color:#fff}
+  .cols{display:grid;grid-template-columns:300px 1fr 360px;gap:12px;align-items:start}
+  .panel{background:var(--cab-cream);border:2px solid var(--cab-ink);border-radius:var(--radius);overflow:hidden}
+  .panel>h3{background:var(--wk-metal);border-bottom:2px solid var(--cab-ink);padding:6px 12px;font-size:11px;text-transform:uppercase;letter-spacing:.1em}
+  .panel .pad{padding:10px 12px}
+  /* ── World ── */
+  .world{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;background:#8a5a4a;border:3px solid var(--cab-ink);border-radius:8px;padding:4px;margin-bottom:10px}
+  .cell{aspect-ratio:1;background:#C9705E;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:16px}
+  .cell.bot{background:var(--cab-yellow)}
+  .meter{display:flex;gap:8px;align-items:center;margin:4px 0}
+  .meter .bar{flex:1;height:10px;border:2px solid var(--cab-ink);border-radius:5px;background:#fff;overflow:hidden}
+  .meter .bar i{display:block;height:100%;background:var(--wk-live)}
+  .bp label{display:flex;gap:8px;align-items:center;padding:2px 0;font-size:12px}
+  .scrub{width:100%;accent-color:var(--cab-blue);margin-top:6px}
+  /* ── Timeline ── */
+  .filters{display:flex;gap:6px;flex-wrap:wrap;padding:8px 10px;border-bottom:2px solid var(--cab-ink);background:var(--wk-graph)}
+  .lane-chip{font-size:10.5px;font-weight:700;border:1.5px solid var(--cab-ink);border-radius:999px;padding:2px 9px;background:#fff;cursor:pointer}
+  .lane-chip[data-on="1"]{outline:2px solid var(--cab-blue)}
+  .search{font:inherit;border:1.5px solid var(--cab-ink);border-radius:6px;padding:3px 8px;flex:1;min-width:120px}
+  .tl{max-height:520px;overflow:auto}
+  .tick-h{background:var(--wk-metal);padding:3px 12px;font-family:var(--mono);font-size:10.5px;border-block:1px solid var(--wk-metal-dark);display:flex;justify-content:space-between}
+  .row{display:grid;grid-template-columns:26px 92px 1fr 70px;gap:8px;padding:4px 10px 4px 6px;border-left:5px solid transparent;cursor:pointer;align-items:center}
+  .row:hover{background:#fff}
+  .row.sel{background:#fff;outline:2px solid var(--cab-blue);outline-offset:-2px}
+  .row .t{font-family:var(--mono);font-size:11px;color:var(--wk-ink-2);text-align:right}
+  .row .lane{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+  .row .lbl{font-size:12.5px}
+  .row .lbl code{font-family:var(--mono);font-size:11px;background:var(--wk-graph);padding:0 4px;border-radius:3px}
+  .l-sense{border-left-color:var(--cab-sky)} .l-sense .lane{color:var(--cab-blue-text)}
+  .l-think{border-left-color:var(--cab-blue)} .l-think .lane{color:var(--cab-blue-text)}
+  .l-tool{border-left-color:var(--cab-purple)} .l-tool .lane{color:var(--cab-purple-text)}
+  .l-action{border-left-color:var(--cab-red)} .l-action .lane{color:var(--cab-red-text)}
+  .l-memory{border-left-color:var(--cab-green)} .l-memory .lane{color:var(--cab-green-text)}
+  .l-guard{border-left-color:var(--cab-yellow)} .l-guard .lane{color:#7a5c00}
+  /* ── Inspector ── */
+  .insp .sec{border:1.5px solid var(--wk-metal-dark);border-radius:7px;margin-bottom:8px;overflow:hidden}
+  .insp .sec>b{display:flex;gap:8px;align-items:center;background:var(--wk-graph);padding:4px 9px;font-size:10.5px;text-transform:uppercase;letter-spacing:.08em}
+  .insp .sec>div{padding:7px 9px;font-family:var(--mono);font-size:11.5px;white-space:pre-wrap;color:#3a3428}
+  .rolechip{border:1.5px solid var(--cab-ink);border-radius:999px;padding:0 8px;background:var(--cab-cream);font-size:10px}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;font-size:12px;padding:2px 0}
+  .kv dt{color:var(--wk-ink-2);font-weight:600} .kv dd{font-family:var(--mono)}
+  /* ── Eval matrix ── */
+  .grid-table{border-collapse:collapse;width:100%}
+  .grid-table th,.grid-table td{border:1.5px solid var(--cab-ink);padding:8px 10px;text-align:center;font-size:12.5px}
+  .grid-table th{background:var(--wk-metal);text-transform:uppercase;font-size:10.5px;letter-spacing:.06em}
+  .grid-table td b{display:block;font-size:15px}
+  .grid-table td span{color:var(--wk-ink-2);font-size:10.5px}
+  .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+  .stat{background:var(--cab-cream);border:2px solid var(--cab-ink);border-radius:var(--radius);padding:10px 12px}
+  .stat b{display:block;font-size:22px} .stat span{font-size:11px;color:var(--wk-ink-2)}
+  .delta-up{color:var(--cab-green-text);font-weight:700} .delta-down{color:var(--cab-red-text);font-weight:700}
+  /* ── Policy studio ── */
+  .rule{display:grid;grid-template-columns:110px 1fr;gap:6px 10px;align-items:center;margin-bottom:8px}
+  .rule select,.rule input{font:inherit;border:1.5px solid var(--cab-ink);border-radius:6px;padding:4px 8px;background:#fff;width:100%}
+  .card-preview{background:var(--cab-cream);border:2.5px solid var(--cab-ink);border-radius:12px;padding:0 0 12px;box-shadow:4px 4px 0 rgba(0,0,0,.15)}
+  .card-preview h4{background:var(--cab-yellow);border-bottom:3px solid var(--cab-ink);padding:8px 12px;font-size:13px;background-image:repeating-linear-gradient(45deg,transparent 0 14px,rgba(43,38,32,.9) 14px 22px);color:var(--cab-ink)}
+  .card-preview h4 em{background:var(--cab-yellow);padding:2px 8px;border-radius:4px;font-style:normal}
+  .card-preview ul{list-style:none;padding:10px 14px 0}
+  .card-preview li{padding:4px 0;border-bottom:1px dashed var(--wk-metal-dark);font-size:12.5px}
+  .fired{display:flex;justify-content:space-between;padding:6px 10px;border-bottom:1px solid var(--wk-metal-dark);font-size:12px}
+  .fired .yes{color:var(--cab-red-text);font-weight:700} .fired .no{color:var(--wk-ink-2)}
+  footer{padding:16px 18px;font-size:11px;color:var(--wk-ink-2);text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><b>CRAFT</b> <i>A</i> <u>BOT</u><span class="wk">WORKSHOP</span></div>
+  <nav>
+    <button class="active" data-tab="runlab">Run Lab</button>
+    <button data-tab="evals">Eval Matrix</button>
+    <button data-tab="policies">Policy Studio</button>
+  </nav>
+  <button class="kitflip">🧸 View in Kit</button>
+</header>
+<main>
+
+<!-- ══════════════ TAB 1 · RUN LAB ══════════════ -->
+<section class="screen active" id="runlab">
+  <div class="strip">
+    <span class="chip ok">✔ SUCCESS</span>
+    <span class="chip">Snackbot 3000 · <em>Help the teddy get a snack</em></span>
+    <span class="chip mono">Quick Thinker → gpt-5-mini · openai</span>
+    <span class="chip mono">budgets 30t / 100k tok · seed 41</span>
+    <span class="chip mono">14 ticks · 9,412 tok</span>
+    <span class="chip">🔒 trace integrity ✓</span>
+    <span class="spacer"></span>
+    <button class="btn">↻ Re-run same seed</button>
+    <button class="btn">⑂ Fork from tick</button>
+    <button class="btn primary">Export trace</button>
+  </div>
+
+  <div class="cols">
+    <!-- World & controls -->
+    <div>
+      <div class="panel">
+        <h3>Playroom · replay</h3>
+        <div class="pad">
+          <div class="world" aria-label="8 by 6 playroom grid">
+            <div class="cell">🧰</div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell">🗄</div><div class="cell"></div>
+            <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell">🛋</div><div class="cell bot">🤖🍪</div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell">🧸</div><div class="cell"></div><div class="cell"></div>
+            <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell">⚽</div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+          </div>
+          <div class="meter"><span class="engraved">Steps</span><div class="bar"><i style="width:47%"></i></div><span class="chip mono">14/30</span></div>
+          <div class="meter"><span class="engraved">Tokens</span><div class="bar"><i style="width:9%"></i></div><span class="chip mono">9.4k</span></div>
+          <input class="scrub" type="range" min="0" max="14" value="9" aria-label="Tick scrubber">
+          <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:10.5px;color:var(--wk-ink-2)"><span>t0</span><span>▶ tick 9 of 14</span><span>t14</span></div>
+        </div>
+      </div>
+      <div class="panel" style="margin-top:12px">
+        <h3>Breakpoints</h3>
+        <div class="pad bp">
+          <label><input type="checkbox" checked> Pause on guardrail trip</label>
+          <label><input type="checkbox"> Pause on tool call</label>
+          <label><input type="checkbox" checked> Pause on action failure</label>
+          <label><input type="checkbox"> Pause on approval request</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timeline -->
+    <div class="panel">
+      <h3>Step timeline · 96 events</h3>
+      <div class="filters">
+        <span class="lane-chip" data-on="1">👀 sense</span><span class="lane-chip" data-on="1">💭 think</span>
+        <span class="lane-chip" data-on="1">🔧 tool</span><span class="lane-chip" data-on="1">🚗 action</span>
+        <span class="lane-chip" data-on="1">📗 memory</span><span class="lane-chip" data-on="1">🛡 guardrail</span>
+        <input class="search" placeholder="Search events… e.g. pick_up">
+        <span class="lane-chip">only failures</span>
+      </div>
+      <div class="tl">
+        <div class="tick-h"><span>TICK 8</span><span>642 tok · 1.9s</span></div>
+        <div class="row l-sense"><span>👀</span><span class="lane">sense</span><span class="lbl">Looked around — snack here, Teddy 2 SE</span><span class="t">+0ms</span></div>
+        <div class="row l-guard"><span>🛡</span><span class="lane">guardrail</span><span class="lbl">step-budget checked · <code>22 turns left</code></span><span class="t">+2ms</span></div>
+        <div class="row l-think"><span>💭</span><span class="lane">think</span><span class="lbl">"The snack is right here. I should pick it up."</span><span class="t">1.4s</span></div>
+        <div class="row l-action"><span>🚗</span><span class="lane">action</span><span class="lbl"><code>pick_up("snack")</code> → carrying the snack</span><span class="t">+8ms</span></div>
+        <div class="row l-memory"><span>📗</span><span class="lane">memory</span><span class="lbl">Remembered tick 8 (window 6/10)</span><span class="t">+1ms</span></div>
+        <div class="tick-h"><span>TICK 9 · ⛔ blocked</span><span>580 tok · 1.7s</span></div>
+        <div class="row l-sense"><span>👀</span><span class="lane">sense</span><span class="lbl">Looked around — carrying snack, chest to N</span><span class="t">+0ms</span></div>
+        <div class="row l-think"><span>💭</span><span class="lane">think</span><span class="lbl">"Maybe the snack belongs in the toy chest…"</span><span class="t">1.3s</span></div>
+        <div class="row l-guard sel"><span>🛡</span><span class="lane">guardrail</span><span class="lbl">⛔ action-blocklist tripped · <code>open</code> is on the blocked list</span><span class="t">+3ms</span></div>
+        <div class="row l-memory"><span>📗</span><span class="lane">memory</span><span class="lbl">Remembered refusal (window 7/10)</span><span class="t">+1ms</span></div>
+        <div class="tick-h"><span>TICK 10 · ✋ approval</span><span>619 tok · 6.2s</span></div>
+        <div class="row l-think"><span>💭</span><span class="lane">think</span><span class="lbl">"A rule stopped me. I will bring the snack to Teddy instead."</span><span class="t">1.5s</span></div>
+        <div class="row l-guard"><span>🛡</span><span class="lane">guardrail</span><span class="lbl">✋ approval requested · <code>give(snack, teddy)</code> — approved by human (4.6s)</span><span class="t">4.6s</span></div>
+        <div class="row l-action"><span>🚗</span><span class="lane">action</span><span class="lbl"><code>give("snack","teddy")</code> → Teddy takes the snack 🎉</span><span class="t">+9ms</span></div>
+      </div>
+    </div>
+
+    <!-- Inspector -->
+    <div class="panel insp">
+      <h3>Inspector · guardrail.tripped @ tick 9</h3>
+      <div class="pad">
+        <dl class="kv">
+          <dt>rule</dt><dd>safety/action-blocklist</dd>
+          <dt>hook</dt><dd>pre-act</dd>
+          <dt>proposed</dt><dd>action · open · {"container":"toy chest"}</dd>
+          <dt>disposition</dt><dd>block-action</dd>
+          <dt>policy card</dt><dd>starter/hands-off-the-chest v1</dd>
+          <dt>fed back</dt><dd>"…a safety rule stopped you"</dd>
+        </dl>
+        <div class="sec"><b><span class="rolechip">next prompt</span> RIGHT NOW · diff vs tick 8 <label style="margin-left:auto;font-weight:400"><input type="checkbox" checked> diff</label></b>
+<div><span style="background:#d9ecd4">+ You tried to open, but a safety rule
++ stopped you: open is on the blocked list.</span>
+You look around:
+Right where you stand: nothing but rug.
+To the north: the toy chest (closed).
+You are carrying the snack.</div></div>
+        <div class="sec"><b><span class="rolechip">raw</span> event JSON</b>
+<div>{
+  "type": "guardrail.tripped",
+  "runId": "r_7f3a…", "agentId": "a_19c2…",
+  "tick": 9,
+  "payload": { "id": "safety/action-blocklist",
+    "verdict": { "allow": false,
+      "reason": "open is on the blocked list.",
+      "disposition": "block-action" } }
+}</div></div>
+        <button class="btn" style="width:100%">Open linked decision ↔ action pair</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ TAB 2 · EVAL MATRIX ══════════════ -->
+<section class="screen" id="evals">
+  <div class="strip">
+    <span class="chip">Matrix: 6 goal cards × 3 cartridges × 20 seeds</span>
+    <span class="chip mono">brains: scripted-noisy + live</span>
+    <span class="chip warn">est. live spend ≤ $4.20</span>
+    <span class="spacer"></span>
+    <button class="btn">Load baseline 2026-08-12</button>
+    <button class="btn primary">▶ Run matrix</button>
+  </div>
+  <div class="stat-row">
+    <div class="stat"><b>78%</b><span>overall success · <span class="delta-up">▲ 11pts vs baseline</span></span></div>
+    <div class="stat"><b>2.1</b><span>median loop score · <span class="delta-up">▼ from 4.8</span></span></div>
+    <div class="stat"><b>17%</b><span>wasted-tick ratio · <span class="delta-up">▼ from 29%</span></span></div>
+    <div class="stat"><b>$0.048</b><span>mean cost per success · <span class="delta-down">▲ from $0.041</span></span></div>
+  </div>
+  <div class="cols" style="grid-template-columns:1fr 340px">
+    <div class="panel">
+      <h3>Success rate — goal card × cartridge (20 seeds each · click a cell for its runs)</h3>
+      <div class="pad">
+        <table class="grid-table">
+          <tr><th style="text-align:left">Goal card</th><th>Penny Thinker<br>gpt-5-nano</th><th>Quick Thinker<br>gpt-5-mini</th><th>Deep Thinker<br>gpt-5</th></tr>
+          <tr><td style="text-align:left">Say Hello!</td><td style="background:#cddcf0"><b>90%</b><span>~5 ticks</span></td><td style="background:#b3cbe9"><b>100%</b><span>~4 ticks</span></td><td style="background:#b3cbe9"><b>100%</b><span>~4 ticks</span></td></tr>
+          <tr><td style="text-align:left">Sums for Teddy</td><td style="background:#d9e4f3"><b>85%</b><span>~3 ticks</span></td><td style="background:#b3cbe9"><b>100%</b><span>~2 ticks</span></td><td style="background:#b3cbe9"><b>100%</b><span>~2 ticks</span></td></tr>
+          <tr><td style="text-align:left">Help the teddy get a snack</td><td style="background:#eaf0f8"><b>45%</b><span>loop 4.1</span></td><td style="background:#d9e4f3"><b>80%</b><span>~11 ticks</span></td><td style="background:#cddcf0"><b>90%</b><span>~9 ticks</span></td></tr>
+          <tr><td style="text-align:left">Tidy the blocks ①</td><td style="background:#f3f6fa"><b>20%</b><span>out of steps</span></td><td style="background:#e2eaf6"><b>65%</b><span>~24 ticks</span></td><td style="background:#d9e4f3"><b>75%</b><span>~21 ticks</span></td></tr>
+          <tr><td style="text-align:left">The locked chest ①</td><td style="background:#f6f8fb"><b>10%</b><span>starved ②</span></td><td style="background:#eaf0f8"><b>45%</b><span>manual used 88%</span></td><td style="background:#e2eaf6"><b>60%</b><span>~26 ticks</span></td></tr>
+          <tr><td style="text-align:left">Free play (celebrate-ends)</td><td style="background:#d9e4f3"><b>85%</b><span>self-ended</span></td><td style="background:#cddcf0"><b>90%</b><span>self-ended</span></td><td style="background:#cddcf0"><b>95%</b><span>self-ended</span></td></tr>
+        </table>
+        <p style="margin-top:8px;font-size:11px;color:var(--wk-ink-2)">① post re-scope (par 22 / par 28) · ② empty replies at 400 max tokens — see catalogue note · shading = success rate (single-hue). Table view is canonical; every cell links to its 20 runs.</p>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>Cell detail · Snack × Quick Thinker</h3>
+      <div class="pad">
+        <dl class="kv">
+          <dt>success</dt><dd>16 / 20 seeds</dd>
+          <dt>median ticks</dt><dd>11 (par 9)</dd>
+          <dt>loop score</dt><dd>median 2 · worst 6 (seed 13)</dd>
+          <dt>naming misses</dt><dd>0.4 / run</dd>
+          <dt>guardrail trips</dt><dd>3 (all no-repetition)</dd>
+          <dt>tokens / run</dt><dd>10.2k in · 1.9k out</dd>
+        </dl>
+        <div style="border-top:1.5px solid var(--wk-metal-dark);margin:8px 0"></div>
+        <div class="fired"><span>seed 13 · OUT_OF_STEPS · loop 6</span><span class="yes">inspect →</span></div>
+        <div class="fired"><span>seed 07 · SUCCESS · 9 ticks</span><span class="no">inspect →</span></div>
+        <div class="fired"><span>seed 02 · SUCCESS · 12 ticks</span><span class="no">inspect →</span></div>
+        <button class="btn" style="width:100%;margin-top:10px">Promote matrix to baseline</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ TAB 3 · POLICY STUDIO ══════════════ -->
+<section class="screen" id="policies">
+  <div class="strip">
+    <span class="chip">Policy card: <em>Hands off the chest</em> · v2 draft</span>
+    <span class="chip mono">compiles to 2 guardrails</span>
+    <span class="spacer"></span>
+    <button class="btn">Export card</button>
+    <button class="btn primary">Save version</button>
+  </div>
+  <div class="cols" style="grid-template-columns:1fr 320px 1fr">
+    <div class="panel">
+      <h3>Rule builder</h3>
+      <div class="pad">
+        <p class="engraved" style="margin-bottom:6px">Rule 1</p>
+        <div class="rule">
+          <span class="engraved">hook</span><select><option>pre-act</option><option>pre-think</option><option>post-act (monitor)</option></select>
+          <span class="engraved">when</span><input value='call.name == "open" && call.args.container == "toy chest"'>
+          <span class="engraved">then</span><select><option>block-action</option><option>require-approval</option><option>stop-run</option></select>
+          <span class="engraved">reason</span><input value="The toy chest is off-limits today.">
+        </div>
+        <p class="engraved" style="margin:10px 0 6px">Rule 2</p>
+        <div class="rule">
+          <span class="engraved">hook</span><select><option>pre-act</option></select>
+          <span class="engraved">when</span><input value='call.riskTier == "irreversible"'>
+          <span class="engraved">then</span><select><option>require-approval</option></select>
+          <span class="engraved">reason</span><input value="Big changes need a grown-up's signature.">
+        </div>
+        <button class="btn" style="margin-top:8px">+ Add rule</button>
+      </div>
+    </div>
+    <div>
+      <div class="card-preview">
+        <h4><em>🛡 POLICY CARD</em></h4>
+        <ul>
+          <li><b>Hands off the chest</b> · v2</li>
+          <li>⛔ Never <code>open</code> the toy chest — <i>"off-limits today"</i></li>
+          <li>✋ Ask a human before anything irreversible</li>
+          <li style="border:none;color:var(--wk-ink-2);font-size:11px">Slots into the Safety brick · shareable · versioned</li>
+        </ul>
+      </div>
+      <p style="font-size:11px;color:var(--wk-ink-2);margin-top:8px;text-align:center">↑ the same card as the Kit renders it — the toy face is the documentation</p>
+    </div>
+    <div class="panel">
+      <h3>Test bench</h3>
+      <div class="pad">
+        <p class="engraved" style="margin-bottom:6px">Against 12 stored traces — would it have fired?</p>
+        <div class="fired"><span>run r_7f3a · Snack · tick 9</span><span class="yes">⛔ rule 1 fires</span></div>
+        <div class="fired"><span>run r_2bb1 · Tidy · ticks 6, 14, 21</span><span class="yes">⛔ rule 1 fires ×3</span></div>
+        <div class="fired"><span>run r_91c4 · Say Hello!</span><span class="no">— no match</span></div>
+        <div class="fired"><span>9 more traces…</span><span class="no">— no match</span></div>
+        <p class="engraved" style="margin:10px 0 6px">Adversarial proof (scripted)</p>
+        <div class="fired"><span>chest-raider brain vs this card</span><span class="yes">blocked 5/5 ✓</span></div>
+        <div class="fired"><span>approval-flood brain (fatigue test)</span><span class="no">3 prompts · tiering OK ✓</span></div>
+        <button class="btn primary" style="width:100%;margin-top:10px">▶ Run efficacy suite</button>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+<footer>Craft A Bot · Workshop mock-up · design-day2/17-PRO-MODE-UI-DESIGN.md · wireframe of record, not production code</footer>
+<script>
+  document.querySelectorAll('nav button').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('nav button').forEach(function(x){x.classList.remove('active')});
+      document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active')});
+      b.classList.add('active');
+      document.getElementById(b.dataset.tab).classList.add('active');
+    });
+  });
+  document.querySelectorAll('.lane-chip[data-on]').forEach(function(c){
+    c.addEventListener('click',function(){c.dataset.on = c.dataset.on==='1' ? '0' : '1';
+      c.style.opacity = c.dataset.on==='1' ? 1 : .45;});
+  });
+</script>
+</body>
+</html>

@@ -1,3 +1,6 @@
+> **DESIGN DAY 2 STATUS (2026-08-13):** Carried forward. When working from the Day 2 set, read `README.md` in this folder first for the extended document map.
+> This file is a verbatim copy of `docs/design/CLAUDE.md` carried into the standalone Day 2 set; only this banner has been added.
+
 # CLAUDE.md — Craft A Bot
 
 > Place this file at the **repo root**. It is the entry point for Claude Code sessions.

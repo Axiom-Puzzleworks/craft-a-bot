@@ -1,0 +1,120 @@
+# 18 — Day 2 Roadmap: Phases, Work Packages & the Kit Line (Workstream 6)
+
+> The prioritised, phased plan from today's V1.0 to the full ages 5–11 construction-kit line and the professional Workshop. Supersedes `09-ROADMAP.md` §4 ("Beyond V1.0"); the WP0–WP10 history in that document remains the record of what was built.
+> Prerequisite reading: `12-…` (why this order), `13-…`/`14-…` (Phase A content), `15/16/17-…` (Phases B–D content), `19-…` (the control catalogue Phases D–F draw from).
+
+---
+
+## 1. Scope decision of record: where the product line ends
+
+The kit line runs from **My Very First Agent (ages 2–5)** to the **Agent Builder constructor kit (ages 5–11)** — and stops there. The **AI Architect (ages 11+) kit is not a build target**: its box art remains brand lore and a source of ideas, but datasets/training/deployment-pipeline content will not be built as a children's product. Where AI Architect concepts are genuinely valuable — evaluation matrices, red-team cards, monitoring dashboards, permissions — they are delivered **in the Workshop (professional mode) only** (`17-…`), where they serve purpose 2 directly. This keeps the children's line achievable and the governance proving-ground ambitious, without either hostaging the other.
+
+## 2. Priority logic
+
+1. **Trust before features** (Phase A): the bot must behave credibly and the engine contract must open (D-register + C-causes + brick contract) before anything is built on top.
+2. **The teaching aid is the priority audience-facing work** (Phase B, per Andrew's workstream 4 emphasis) — plus the art, which is the largest perceived-quality jump available.
+3. **Measure before expanding** (Phase C): the eval harness and run history are the shared foundation both modes and all future packs depend on.
+4. **The Workshop earns its keep early** (Phase D): policy cards + Run Lab turn the proving ground from promise to practice.
+5. **Expansion packs ride on the opened contract** (Phases E–F): each pack is content, priced in days not weeks, because Phase A made bricks an extension point.
+
+## 3. Phases and work packages
+
+Numbering continues from WP10. Each WP is Claude-Code-sized with a DoD; one WP per branch/PR; deviations get dated notes in the affected doc (`10-…` §7 discipline unchanged).
+
+### Phase A — Solid foundations (engine trust) — *do first*
+
+| WP | Deliverable | DoD |
+|---|---|---|
+| WP11 | **Behaviour fixes C1–C8** (`14-…` E3, E4, E12 + card re-scope 16 §1.1 + no-repetition v2 + naming corpus) | Scripted-optimal solutions pass every non-expert card in budget; naming corpus ≥95%; loop-score regression fixtures green |
+| WP12 | **Test estate gap-fill** (13 §L0–L2: fixtures, unit charters, dead-config audit, guardrail ordering, post-act test-first) | Coverage targets met; every 12-§3 defect has a failing-then-passing test or an accepted-risk note |
+| WP13 | **Engine evolutions E1–E2, E5–E6, E8–E11** (post-act honoured, session I/O, single-sourced shapes, qualified ids, trace v2 + migrations, identity fields, retry) | Golden traces migrate v1→v2; audit-completeness test (13 §L5) passes |
+| WP14 | **The open brick contract** (`14-…` §2: BrickKindDefinition, spec v2, migrations; port all six starter bricks) | Zero behaviour change (byte-stable traces modulo additive fields); Monitor-brick prototype builds against the contract with no core edits |
+| WP15 | **Strategy seams E7** (MemoryStrategy/PromptStrategy; transcript realism mode) | Both strategies selectable in tests; transcript mode produces well-formed tool-result message sequences |
+
+### Phase B — Teaching-aid excellence (workstream 4 delivered)
+
+| WP | Deliverable | DoD |
+|---|---|---|
+| WP16 | **P0 UX wave** (16 §1: winnable cards + par display, visible failures, story strip, run continuity/scrapbook/replay, nav + confirms, honest speed) | 16 §1 acceptance tests green; moderated-session legibility check passed |
+| WP17 | **P1 UX wave** (16 §2: safety centre-stage, tutorial gap-fixes, celebration/identity, naming chips, free play real, hearing input, a11y completion) | 16 §2 acceptance tests green; axe pass |
+| WP18 | **Art production & swap-in** (the `11-…` manifest, waves 1–3; commission or produce per its checklist) | P0+P1 assets landed and swapped; silhouette/tint/contrast checks pass; `v1.0.0` tag finally cut on real art |
+
+### Phase C — Measurement & shared foundations
+
+| WP | Deliverable | DoD |
+|---|---|---|
+| WP19 | **Eval harness** (`@craftabot/evals`, 13 §8: matrix runner, scripted-noisy brains, metrics, EvalReport schema, nightly live lane) | Baselines recorded 6 cards × 3 cartridges × 20 seeds; scorecard in CI artefacts |
+| WP20 | **Run Browser + Run Lab v1** (17 §3–4.3: read-only over persisted runs; replay, filters, inspectors, diff view) | A stored Kit run is fully forensicable in the Workshop; replay byte-consistent |
+| WP21 | **Pack conformance kit** (`@craftabot/pack-testkit`, 13 §7) extracted from starter | Starter + openai pass it; a deliberately-broken fixture pack fails it usefully |
+
+### Phase D — The Workshop earns its keep (purpose 2 in practice)
+
+| WP | Deliverable | DoD |
+|---|---|---|
+| WP22 | **Policy cards end-to-end** (`14-…` §4.6 + 17 §4.5: schema, compiler, Studio, test bench, Kit rendering as collectible cards) | Efficacy suite proves each authored card; a card round-trips Kit ⇄ Workshop |
+| WP23 | **Spec Lab + Bench Dashboard + Eval Matrix UI** (17 §4.1–4.4 over WP19 data) | Matrix run configured, executed, drilled to a single trace without leaving the Workshop |
+| WP24 | **Safety brick v2 config** (risk tiers, `approval:'risky'`, autonomy dial, bounded budgets, token cap) | Brick-matrix + safety e2e extended; approval-fatigue scenario demonstrable |
+| WP25 | **Governance scenarios v1** (19 #12/#11/#35: poisoned-sign injection card, lethal-trifecta level, approval-flood teaching moment — as goal cards + world content, both modes) | Each scenario runs scripted in CI; leaflet side-quests reference them |
+
+### Phase E — Expansion era begins
+
+| WP | Deliverable | DoD |
+|---|---|---|
+| WP26 | **LLM Multi-Pack** (Anthropic + Gemini + Ollama packs, persona cartridges, battery bay growth, Compare bench via 17 §4.3) | Conformance kit passes; compare view ships; expansion-shelf fiction becomes real acquisition flow |
+| WP27 | **Monitor brick + Test Bench brick** (`14-…` §5.3/5.7 — the governance bricks first, per project identity) | Monitor flags surface in trace + Kit ticker; assertion cards runnable against any trace |
+| WP28 | **Second world pack** ("The Workshop" room: new layouts, one irreversible action (paint!), risk tiers made vivid, new sense channel) | Conformance kit passes; two cards ship with par; art per manifest process |
+| WP29 | **Multi-agent core** (`14-…` §6: SessionGroup, agent handles, scheduler, merged traces; Playroom v2 state) | Two scripted bots complete a co-op card deterministically; group trace replays |
+
+### Phase F — The ages 5–11 constructor kit ("Agent Builder") assembled
+
+| WP | Deliverable | DoD |
+|---|---|---|
+| WP30 | **Planner + If/Then bricks** (`14-…` §5.1–5.2) with their leaflet chapters (plan-visibly, rules-vs-thinking) | Failure→fix pairs scripted + e2e'd like chapters 1–6 |
+| WP31 | **Radio brick + Robot Friends duo experience** (§5.4 + co-op goal cards + spoofed-message safety scenario) | Duo runs in Kit with two-bot bench; ASI07 scenario teachable |
+| WP32 | **Librarian + Connector bricks** (§5.5–5.6) + scope-permission leaflet chapter | Retrieval + remote-capability lessons e2e'd; confused-deputy mini-scenario in Workshop |
+| WP33 | **Identity badges + kit-line packaging** (§5.8; box art for each expansion pack; the 5–11 kit as a curated bundle of packs; export formats) | Every bot exports an agent card; kit line purchasable/installable as pack bundles |
+| WP34 | **Workshop maturity** (telemetry dashboards, OTel-mapped export, safety-case worksheet, incident log — 19 #20/#23/#28/#31/#36) | Audit centre ships; a full governance demo (build → policy → run → incident → report) runs end-to-end |
+
+## 4. The expansion-pack line (the merchandising map, ages 5–11)
+
+Each pack = engine-ready content behind the Phase A contract; "needs" lists its earliest phase.
+
+| Pack (box name) | Contents | Concepts taught | Needs |
+|---|---|---|---|
+| **LLM Multi-Pack** *(existing art)* | 6 persona cartridges across providers, compare chart | model choice; behaviour = model × config | E (WP26) |
+| **Safety Patrol Pack** | Policy card deck, Monitor brick, incident stickers, scenario cards (poisoned sign, approval flood) | governance as play; loop/injection/oversight | D–E (WP22/25/27) |
+| **Planner Pack** | Planner brick, If/Then brick, plan-paper accessories, harder par cards | deliberation, rules vs reasoning | F (WP30) |
+| **Robot Friends Pack** | Radio brick, second chassis, co-op + spoofed-message cards | multi-agent co-op, comms trust | E–F (WP29/31) |
+| **Explorer's World Pack** | The Workshop room world, new senses, irreversible paint action, risk-tier cards | environments, consequence, permissions | E (WP28) |
+| **Library Pack** | Librarian brick, book sets, retrieval cards | looking things up, grounding, citation | F (WP32) |
+| **Tool Shop Pack** | Extra tools (measuring tape, camera, walkie-talkie link to Radio) | tool contracts, choosing tools | E+ (content-only) |
+| **Agent Builder — the 5–11 kit** | Curated bundle of the above + big-format leaflet + badge album | the full arc: plan · reason · use tools · test · improve | F (WP33) |
+
+## 5. Dependency sketch
+
+```mermaid
+graph LR
+  A[Phase A<br>WP11-15 engine trust] --> B[Phase B<br>WP16-18 teaching aid + art]
+  A --> C[Phase C<br>WP19-21 evals + run lab]
+  C --> D[Phase D<br>WP22-25 workshop + policy]
+  A --> E26[WP26 Multi-Pack]
+  C --> E[Phase E<br>WP27-29 packs + multi-agent]
+  D --> E
+  E --> F[Phase F<br>WP30-34 5-11 kit + workshop maturity]
+  B -.art waves feed all later UI.-> F
+```
+
+Phases B and C can run in parallel after A (different surfaces); D needs C; E needs D's policy plumbing for its governance bricks; F is the assembly.
+
+## 6. Consolidated functionality-improvement priorities
+
+**Teaching aid (workstream 4/6):** P0 = WP11+WP16 (behaviour + core UX); P1 = WP17+WP18 (depth + art); P2 = 16 §3 polish, then packs as delight (Safety Patrol first — it *is* the brand).
+**Professional mode (workstream 5/6):** P0 = WP19–20 (measure + inspect); P1 = WP22–24 (author + prove policies); P2 = telemetry/export maturity (WP34). Controls adopted from the `19-…` catalogue in order: #6/#7 budgets+loops (done/A), #2/#3 approvals+tiers (D), #14 policy-as-code (D), #21 verdict telemetry (A/E8), #22 replay (C), #12/#11 injection scenarios (D), #27 monitor agent (E), #24 evals (C), #29/#30 agent cards/BOM (F), #20 OTel export (F).
+
+## 7. Session-sized next steps (the immediate to-do)
+
+1. WP11 + WP12 together (behaviour fixes land with their tests) — 1–2 Claude Code sessions.
+2. WP13, then WP14 (contract) with the golden-trace migration gate — 2 sessions.
+3. WP16 (P0 UX) — 1–2 sessions; WP19 harness skeleton can start in parallel.
+4. Commission the art (WP18) now — it is the longest external lead time and blocks the tag.
+5. Revisit this roadmap at the end of each phase; amendments get dated notes here, as ever.
