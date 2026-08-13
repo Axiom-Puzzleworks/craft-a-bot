@@ -40,6 +40,32 @@ The observed behaviour ("solves Say Hello and Sums, struggles with Snack, fails 
 
 Severity: **A** = blocks purpose 1 or 2 in practice; **B** = design debt that will compound if the build-out starts on top of it; **C** = polish/hygiene.
 
+> **Amended 2026-08-13 (WP12):** the ledger below records where each item stands after WP11 (behaviour fixes) and WP12 (test estate). Every item is now in one of four states, which is the WP12 exit condition: **fixed**, **covered** (a test would catch a regression), **test-first** (a test asserting the desired behaviour exists and is marked `it.fails` until the owning WP lands), or **blocked** (the fix has no code to test yet, recorded rather than faked).
+>
+> | ID | State | Where it stands |
+> |---|---|---|
+> | D1 | **test-first** | `safety-charter.test.ts` asserts a post-act `stop-run` ends the run, and pins the current behaviour beside it. E1, WP13. |
+> | D2 | blocked | `session.deliverInput` / `declareOutcome` do not exist, so there is nothing to test. E2, WP13. Free Play now ends SUCCESS on `celebrate` (WP11), so the card is no longer un-winnable while we wait. |
+> | D3 | **fixed + covered** | `shape-drift.test.ts` round-trips a fully-populated value of every mirrored shape. It immediately found that `Observation.summary` was missing from the Zod mirror, so **every re-imported trace was silently losing the memory summary** — added in the same change. The structural fix (one definition) is still E5, WP13. |
+> | D4 | **test-first** | `ids.test.ts` pins qualified pack ids (passing), and marks both the unqualified world action/sense ids and the silent `wireName` collision as failing-until-E6. |
+> | D5 | covered | Memory's window arithmetic, copy-on-read and absence behaviour are pinned in `brick-charters.test.ts`; the loose `windowSize` signature is documented there as schema-guarded until E7. |
+> | D6 | blocked | The missing `RunRecord` fields do not exist yet. E8, WP13. |
+> | D7 | blocked | No `migrateTraceFile` to test. The trace fixture pair is in place and ready for it. E8, WP13. |
+> | D8 | accepted risk | Guardrail-context copying is a performance defect with no correctness symptom; measuring it belongs with E9, WP13. |
+> | D9 | blocked | No agent identity to assert. E10, WP13. |
+> | D10 | **part fixed, part test-first** | `celebrate` now drives the Free Play predicate (WP11). `dead-config.test.ts` audits every `AgentSpec` field against the schema and proves 15 of 16 reach the engine; `customGoalText` is marked failing-until-fixed. `maxTicks` having no ceiling is marked failing-until-WP14. Cartridge `defaults` and `retryAfterMs` are blocked on WP14/E11. |
+> | D11 | blocked | The brick contract is the WP14 deliverable. |
+> | D12 | blocked | No transcript strategy to test. E7, WP15. |
+> | D13 | covered | `ids.test.ts` proves two packs with the same local tool name register cleanly; semver evaluation itself is WP21's conformance kit. |
+> | D14–D17 | out of scope | Workbench defects, owned by WP16's P0 UX wave. |
+> | T1 | blocked | The eval harness is WP19. |
+> | T2 | **fixed** | `solvability.test.ts` (WP11) proves every card winnable inside its budget, and the expert card unwinnable without a bigger one. |
+> | T3 | **covered** | Direct unit charters now exist for `memory`, `prompt` (via the drift and dead-config suites), `budgets`, `guardrailsForSpec` ordering, and the approval flow's re-entrant edges. |
+> | T4 | **fixed** | `calculator-properties.test.ts` is the first property/fuzz suite, seeded for reproducibility. It found the missing unary minus on its first run — exactly what T4 predicted — which is now fixed. `resolveNamed` got its paraphrase corpus in WP11. |
+> | T5 | out of scope | E2E gaps, owned by WP16–WP17. |
+>
+> Two notes where the register itself had gone stale: `guardrailsForSpec` ordering was **already** unit-tested directly (`13-…` §4.6 says otherwise), and `test-state.ts` is **not** "imported by nothing" (`13-…` §4.5) — the action, naming and sense suites all use it.
+
 ### Engine & governance
 
 | ID | Sev | Defect | Where |

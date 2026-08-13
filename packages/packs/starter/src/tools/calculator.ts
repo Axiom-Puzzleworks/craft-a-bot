@@ -28,6 +28,19 @@ export function tokenise(expression: string): Token[] | undefined {
 	const tokens: Token[] = [];
 	let index = 0;
 
+	/**
+	 * True where a `+` or `-` must be a sign rather than a sum: at the very
+	 * start, straight after another operator, or straight after an opening
+	 * bracket. Anywhere a value has just ended, the same character is an
+	 * ordinary infix operator.
+	 */
+	const expectingValue = (): boolean => {
+		const previous = tokens[tokens.length - 1];
+		if (previous === undefined) return true;
+		if (previous.kind === 'operator') return true;
+		return previous.kind === 'paren' && previous.value === '(';
+	};
+
 	while (index < expression.length) {
 		const character = expression[index];
 		if (character === undefined) break;
@@ -36,6 +49,51 @@ export function tokenise(expression: string): Token[] | undefined {
 			index += 1;
 			continue;
 		}
+
+		/*
+		 * Signs (WP12).
+		 *
+		 * The parser had no notion of a unary minus, so "-5" tokenised to an
+		 * operator with nothing on its left and the calculator answered that it
+		 * could not work it out — a strange thing for a calculator to say, and a
+		 * poor lesson about tools being the reliable half of the bot. Found by
+		 * the property suite next door, exactly as `12-…` T4 predicted.
+		 *
+		 * A sign in front of a number folds into the literal. A sign in front of
+		 * a bracket becomes `-1 *`, which keeps precedence right without needing
+		 * a unary operator in the shunting yard.
+		 */
+		if ((character === '-' || character === '+') && expectingValue()) {
+			let after = index + 1;
+			while (after < expression.length && /\s/.test(expression[after] ?? '')) after += 1;
+			const next = expression[after];
+
+			if (next !== undefined && /[0-9.]/.test(next)) {
+				let literal = '';
+				index = after;
+				while (index < expression.length) {
+					const digit = expression[index];
+					if (digit === undefined || !/[0-9.]/.test(digit)) break;
+					literal += digit;
+					index += 1;
+				}
+				const magnitude = Number(literal);
+				if (!Number.isFinite(magnitude)) return undefined;
+				tokens.push({ kind: 'number', value: character === '-' ? -magnitude : magnitude });
+				continue;
+			}
+
+			if (next === '(') {
+				if (character === '-') {
+					tokens.push({ kind: 'number', value: -1 });
+					tokens.push({ kind: 'operator', value: '*' });
+				}
+				index = after;
+				continue;
+			}
+			return undefined;
+		}
+
 		if (/[0-9.]/.test(character)) {
 			let literal = '';
 			while (index < expression.length) {

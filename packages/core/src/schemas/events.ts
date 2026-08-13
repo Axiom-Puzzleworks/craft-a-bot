@@ -41,6 +41,20 @@ const chatResponseSchema = z.object({
 const observationSchema = z.object({
 	channels: z.array(z.string()),
 	text: z.string(),
+	/**
+	 * The short form the Memory brick keeps (`Observation.summary`).
+	 *
+	 * > **Amended 2026-08-13 (WP12):** added. The mirror was missing it, and Zod
+	 * > strips what it does not know, so every `sense` event that went through
+	 * > `parseTraceFile` came back **without its summary** — silently, and only
+	 * > on the import path, which is why nothing caught it. WP11's E4 made that
+	 * > field the thing a bot navigates by, so a re-imported trace no longer
+	 * > replayed what the live run did.
+	 *
+	 * This is D3 with teeth: the shape is maintained in three places and only
+	 * comments held them together. E5 collapses them onto one definition.
+	 */
+	summary: z.string().optional(),
 	data: z.record(z.string(), z.unknown()).optional()
 });
 

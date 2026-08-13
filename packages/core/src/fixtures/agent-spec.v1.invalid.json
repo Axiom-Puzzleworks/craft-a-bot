@@ -1,0 +1,18 @@
+{
+	"id": "not-a-uuid",
+	"name": "",
+	"bricks": {
+		"llm": {
+			"cartridgeId": "openai/quick-thinker",
+			"temperature": 5,
+			"maxTokens": 0,
+			"personality": "Cheerful."
+		},
+		"memory": { "windowSize": 7, "notebook": "yes" },
+		"safety": { "maxTicks": 30, "blockedActions": [], "approvalMode": false, "repeatLimit": 99 }
+	},
+	"goalCardId": "",
+	"createdAt": "the day before yesterday",
+	"updatedAt": "2026-08-13T09:30:00Z",
+	"schemaVersion": 2
+}

@@ -30,6 +30,14 @@ The suite is organised in six layers. L0–L3 are deterministic and CI-blocking;
 | L4    | Behavioural evals        | nightly / on-demand | mock-noisy + live LLMs | The eval harness (§8): success/loop/cost metrics per goal card × cartridge × seed. This is where "the bot doesn't perform well" becomes a number that can regress                                                 |
 | L5    | Governance assurance     | CI + release        | both                   | Guardrail efficacy suite, trace completeness/digest/replay verification, key-leak gate, determinism proof, approval-flow integrity                                                                                |
 
+> **Amended 2026-08-13 (WP12):** L0–L2 are built. Where the plan below and the code disagree, the code is right and the reason is here.
+>
+> - **The fixture set is the contract, so it is driven uniformly.** `core/src/schemas/fixtures.test.ts` runs every boundary schema through the same four checks (parse valid, reject invalid, round-trip, re-parse stable) plus a key-leak check on the two shareable artefacts, and asserts the *set itself* is complete — a new boundary schema with no fixture fails the suite.
+> - **The drift guard earns its place immediately.** §3's single-source-of-truth check was specified as a type-level assertion. Types alone would not have caught what was actually wrong: `Observation.summary` existed on the interface and not on the Zod mirror, so Zod deleted it from every re-imported trace. The suite therefore round-trips *fully-populated values* as well as comparing unions — the value-level half is the half that finds dropped fields.
+> - **The dead-config audit lives in `pack-starter`, not `core`.** `core` cannot import `governance`, so an audit there could not watch the Safety brick consume anything. In the pack it sees the whole stack and covers all sixteen spec fields.
+> - **Two claims in this document were already out of date** and are corrected in place below: `guardrailsForSpec` ordering *is* unit-tested directly, and `test-state.ts` *is* used by the action, naming and sense suites.
+> - **Test-first is spelled `it.fails`.** Five assertions describe behaviour the engine does not have yet (D1, D4 ×2, D10 ×2). Each states the desired behaviour, is marked `it.fails`, and sits beside a test pinning what happens today. When the owning WP lands, the desired test starts passing, which makes `it.fails` itself fail — so the marker cannot be forgotten.
+
 ## 3. L0 — Schema & specification tests
 
 - Round-trip + rejection fixtures for `AgentSpec`, `KitFile`, `TraceFile`, `PackManifest`, `AgentRecord`, `StoredEvent` — one valid and one invalid fixture **per historical version**, accumulating forever (the fixture files are the compatibility contract).

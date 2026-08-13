@@ -1,0 +1,6 @@
+{
+	"id": "starter",
+	"name": "The Starter Kit",
+	"version": "1.0.0",
+	"requiresCore": ">=0.0.1"
+}

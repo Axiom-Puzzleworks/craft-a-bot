@@ -1,0 +1,26 @@
+{
+	"runId": "22222222-2222-4222-8222-222222222222",
+	"seq": 12,
+	"event": {
+		"id": "33333333-3333-4333-8333-333333333333",
+		"runId": "22222222-2222-4222-8222-222222222222",
+		"tick": 3,
+		"timestamp": "2026-08-13T10:00:03Z",
+		"type": "action.performed",
+		"payload": {
+			"name": "pick_up",
+			"arguments": { "item": "the biscuit" },
+			"result": {
+				"ok": true,
+				"narration": "You pick up a snack (a biscuit in a bowl).",
+				"stateDiff": [
+					{
+						"path": "items.snack.location",
+						"from": { "kind": "floor", "position": { "x": 3, "y": 2 } },
+						"to": { "kind": "carried" }
+					}
+				]
+			}
+		}
+	}
+}

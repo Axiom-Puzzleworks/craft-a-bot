@@ -626,6 +626,66 @@ describe('budgets', () => {
 	});
 });
 
+/**
+ * **Brain brick charter** (`13-…` §4.1) — the two states nothing else pinned:
+ * a brain with no cartridge in it, and a brain that spent its whole output
+ * budget thinking and had nothing left to say with.
+ */
+describe('a brain that cannot answer', () => {
+	it('runs a half-built brain rather than refusing to start', () => {
+		// An empty cartridge slot is a normal state halfway through a build, and
+		// `validateSpec` is what stops GO — the session must not also throw, or
+		// the bench cannot hold a spec the user is still working on.
+		expect(() =>
+			makeSession({
+				spec: buildSpec({
+					llm: { cartridgeId: '', temperature: 0, maxTokens: 64, personality: '' }
+				})
+			})
+		).not.toThrow();
+	});
+
+	it('re-prompts exactly once when the model runs out of room mid-thought', async () => {
+		// C5's shape: a reasoning model spends its budget on hidden reasoning and
+		// returns `length` with empty text. That is a mumble, so the one permitted
+		// re-prompt applies — and it must be one, not a loop.
+		const { session, seen } = makeSession({
+			script: () => ({ text: '', toolCall: null, finishReason: 'length' }),
+			budgets: { maxTicks: 1 }
+		});
+
+		await session.step();
+
+		expect(seen.filter((type) => type === 'think.started')).toHaveLength(2);
+		expect(seen.filter((type) => type === 'tick.started')).toHaveLength(1);
+		expect(seen).not.toContain('action.performed');
+	});
+
+	it('still charges the run for both completions', async () => {
+		// The tick achieved nothing; it was not free. A budget meter that hides
+		// the cost of a starved model teaches the wrong thing about cost.
+		const { session } = makeSession({
+			script: () => ({
+				text: '',
+				toolCall: null,
+				finishReason: 'length',
+				usage: { inputTokens: 50, outputTokens: 64 }
+			}),
+			budgets: { maxTicks: 1 }
+		});
+
+		let finished: { usage: { inputTokens: number; outputTokens: number } } | undefined;
+		session.events.on('run.finished', (event) => {
+			finished = event.payload as typeof finished;
+		});
+
+		await session.step();
+
+		expect(finished?.usage.outputTokens).toBe(128);
+		expect(finished?.usage.inputTokens).toBeGreaterThanOrEqual(100);
+	});
+});
+
 describe('provider failures', () => {
 	/** A pack's typed error, as 06-LLM-PROVIDERS.md §7 defines it. */
 	class FakeProviderError extends Error {
