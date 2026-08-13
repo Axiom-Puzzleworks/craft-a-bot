@@ -111,3 +111,22 @@
 	--cab-brick-actions: var(--cab-red);
 	--cab-brick-safety: var(--cab-yellow);
 }
+
+/*
+ * The same six colours, keyed by chassis socket (WP14 slice 4a).
+ *
+ * Not a second palette and not a reassignment: each is an alias of the mapping
+ * above, so the colour↔concept law is still stated exactly once. What changes
+ * is who can reach it. Components keyed by V1's brick names could only colour
+ * the six bricks core used to know about; a Monitor brick in the safety socket
+ * had no colour at all. Colour means the *concept* — governance is yellow
+ * whoever built the brick — and the socket is what carries the concept.
+ */
+:root {
+	--cab-brick-slot-brain: var(--cab-brick-llm);
+	--cab-brick-slot-memory: var(--cab-brick-memory);
+	--cab-brick-slot-equipment: var(--cab-brick-tools);
+	--cab-brick-slot-perception: var(--cab-brick-sense);
+	--cab-brick-slot-mobility: var(--cab-brick-actions);
+	--cab-brick-slot-safety: var(--cab-brick-safety);
+}

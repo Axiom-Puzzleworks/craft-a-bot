@@ -5,6 +5,7 @@ import {
 	type AgentRecord,
 	type AgentSpec,
 	type AgentSpecV2,
+	type BrickKindDefinition,
 	type BuildProblem,
 	type FittedBrick,
 	type GoalCardDefinition
@@ -54,10 +55,26 @@ export interface BenchStore {
 	fitBrick(kind: BrickKind): void;
 	removeBrick(kind: BrickKind): void;
 	hasBrick(kind: BrickKind): boolean;
-	updateBrick<K extends BrickKind>(
-		kind: K,
-		patch: Partial<NonNullable<AgentSpec['bricks'][K]>>
-	): void;
+	/**
+	 * The brick fitted for a tray kind, and the registered kind that defines it
+	 * (WP14 slice 4a).
+	 *
+	 * What the panel needs and all it needs: a config to show and a schema to
+	 * show it by. `undefined` when nothing is fitted there, or when the kind
+	 * came from a pack this workbench has not got — which `validateSpec` has
+	 * already put in the ribbon.
+	 */
+	brickFor(kind: BrickKind): { brick: FittedBrick; kind: BrickKindDefinition } | undefined;
+	/**
+	 * Merge a patch into a brick's config.
+	 *
+	 * > **Amended 2026-08-13 (WP14 slice 4a):** the patch was typed
+	 * > `Partial<AgentSpec['bricks'][K]>` — V1's shape, so only V1's six bricks
+	 * > could be edited by a type that compiled. The runtime was already generic;
+	 * > this makes the type honest. A config is whatever its kind's schema says,
+	 * > and `validateSpec` is what holds it to that.
+	 */
+	updateBrick(kind: BrickKind, patch: Record<string, unknown>): void;
 	setGoalCard(cardId: string): void;
 	setCustomGoalText(text: string): void;
 	rename(name: string): void;
@@ -216,6 +233,14 @@ export function createBenchStore(deps: BenchStoreDeps = {}): BenchStore {
 		},
 
 		hasBrick: (kind) => (state.spec ? fitted(state.spec, kind) !== undefined : false),
+
+		brickFor(kind) {
+			if (!state.spec) return undefined;
+			const brick = fitted(state.spec, kind);
+			if (!brick) return undefined;
+			const registered = registry.getBrickKind(brick.kind);
+			return registered ? { brick, kind: registered } : undefined;
+		},
 
 		fitBrick(kind) {
 			mutate((spec) => {

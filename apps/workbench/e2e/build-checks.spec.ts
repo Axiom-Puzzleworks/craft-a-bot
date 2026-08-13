@@ -45,7 +45,7 @@ test('a notebook tool without a notebook warns but never blocks', async ({ page 
 
 	// Open the tools panel and switch on a tool that needs the notebook.
 	await page.getByTestId('socket-tools').getByRole('button').click();
-	await expect(page.getByTestId('brick-controls-tools')).toBeVisible();
+	await expect(page.getByTestId('brick-controls-equipment')).toBeVisible();
 	await page.getByRole('checkbox', { name: 'Notebook (write)' }).check();
 
 	const warning = page.getByTestId('check-tool-needs-notebook');
@@ -69,7 +69,7 @@ test('clicking a check jumps to the brick that needs attention', async ({ page }
 	await fitBrick(page, 'llm');
 
 	await page.getByTestId('check-unknown-cartridge').getByRole('button').click();
-	await expect(page.getByTestId('brick-controls-llm')).toBeVisible();
+	await expect(page.getByTestId('brick-controls-brain')).toBeVisible();
 });
 
 test('every brick panel has a flip side in real terminology', async ({ page }) => {
@@ -77,7 +77,7 @@ test('every brick panel has a flip side in real terminology', async ({ page }) =
 	await fitBrick(page, 'llm');
 
 	await page.getByTestId('socket-llm').getByRole('button').click();
-	await expect(page.getByTestId('brick-controls-llm')).toBeVisible();
+	await expect(page.getByTestId('brick-controls-brain')).toBeVisible();
 
 	await page.getByTestId('flip-brick-panel').click();
 	const flip = page.getByTestId('brick-flip-side');

@@ -69,6 +69,18 @@ export interface BrickRuntime {
 >
 > One shape change that reaches storage: `BuildProblem.brick` (V1's six names) is superseded by `BuildProblem.slot` (a `SlotId`). The old field is kept parseable so a stored `AgentRecord.lastValidation` still loads, and nothing writes it.
 
+> **Amended 2026-08-13 (WP14 slice 4a):** the `BrickPanel` if/else chain is gone, and how it went is worth recording because this section pointed at `15-…` §5 for the design and `15-…` §5 is the design-language section. The mechanism was never specified; this is it.
+>
+> **Two paths, one of which is a preference.** `BrickPanel` is a dispatcher: it takes a fitted brick and its kind, looks the kind id up in a table of hand-written panels *in the workbench*, and otherwise renders the kind's own `configSchema`. The six starter panels are entries in that table. What makes this an extension point rather than D11 wearing a hat is that things **not** in the table still work — a kind with no entry opens a real panel with real controls, and a unit test mounts an invented `expansion/monitor` to keep that true.
+>
+> Overrides live in the workbench rather than in packs because packs never import Svelte (hard rule 1). A pack's route to good controls is `controlHints`.
+>
+> **`ControlHints` — what a schema cannot say.** `configSchema` gives the shape and nothing else: `enabled: z.array(z.string())` means "some strings", and that they are *installed tool ids*, or *the actions of the world this bot's card names*, is not in the type and cannot be — the answer changes when the user swaps the card. So a kind may declare, per field, a control type, a label, and a `source` naming one of four content catalogues core already owns (`tools`, `actions`, `senseChannels`, `cartridges`). A pack naming one is contributing content, not a mechanism (hard rule 4): it says which of core's catalogues its field draws on, not how to have a new one.
+>
+> **The known limit, by decision.** Two things the shipped panels do cannot be expressed as hints, and both are why overrides still exist: a field whose *visibility* depends on another (the Safety Brick's repeat limit, which appears only when its rocker is on), and a control whose text depends on a *different socket* (the tool belt warning that a notebook tool has no notebook to write in — which reads the memory **slot contract**, so any memory brick answers it). When an expansion brick genuinely needs the first, a `when` predicate is the obvious widening. Recorded so it is a decision somebody makes.
+>
+> Also: the six brick colours gain socket-keyed aliases (`--cab-brick-slot-*`). Not a second palette — each aliases the mapping `04-…` §2.2 fixes, so the law is still stated once. What changes is that a Monitor brick in the safety socket is now yellow, because colour means the *concept* and the socket is what carries it.
+
 Rules: core defines the loop, the hook points, and the six _slot families_; packs define brick kinds. A brick kind cannot patch another brick or reorder the loop. `validateSpec` gains one generic check — config parses against the kind's schema at its version — replacing per-brick special cases. The workbench's `BrickPanel` if/else chain is replaced by schema-driven controls with per-kind panel overrides (see `15-…` §5).
 
 ### 2.2 `AgentSpec` v2

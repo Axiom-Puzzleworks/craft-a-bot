@@ -169,6 +169,71 @@ export interface BrickValidationContext {
 export type BrickConfigProblem = Omit<BuildProblem, 'slot'>;
 
 /**
+ * Where the choices in a picker come from (WP14 slice 4a).
+ *
+ * The one thing a config schema provably cannot say. `enabled: z.array(z.string())`
+ * means "some strings"; that they are *installed tool ids*, or *the actions of
+ * the world this bot's goal card names*, is nowhere in the type and cannot be —
+ * the answer changes when the user swaps the card. So a hint names a content
+ * type core already owns, and the workbench resolves it.
+ *
+ * Four, because these are the four kinds of registered content a brick's config
+ * ever refers to. A pack naming one of them is contributing *content*, not a
+ * mechanism (hard rule 4): it is saying which of core's own catalogues its
+ * field draws on, not inventing a way to draw on a new one.
+ */
+export type ControlSource = 'tools' | 'actions' | 'senseChannels' | 'cartridges';
+
+/**
+ * How one config field should be offered to a builder.
+ *
+ * Presentation, so it lives on the kind beside `name` and `describeFitted`, and
+ * it is entirely optional: a kind that declares none still gets working controls
+ * inferred from its schema. What the hints buy is *kit-quality* controls — a
+ * dial that says "relaxed" rather than a spinner that says 1.4 — which is the
+ * difference between an expansion brick that fits the toy and one that looks
+ * like a settings dialogue somebody left in it.
+ */
+export interface ControlHint {
+	/**
+	 * Which widget. Omitted means "infer from the schema", which is what an
+	 * unhinted field gets anyway.
+	 */
+	control?: 'dial' | 'switch' | 'checklist' | 'choice' | 'text' | 'number';
+	/** The label a builder reads. Falls back to the field name. */
+	label?: string;
+	/** A line under the control, in the register the brick's `description` uses. */
+	hint?: string;
+	/** For `checklist` and `choice`: where the options come from. */
+	source?: ControlSource;
+	/**
+	 * For `choice` over literal values the schema already enumerates, and for
+	 * `dial` readout bands: the words that go with the numbers.
+	 *
+	 * A `choice` maps value → label ("Goldfish (3 turns)"). A `dial` reads them
+	 * as ascending bands — the first whose `value` the setting has not passed
+	 * supplies the word.
+	 */
+	options?: ReadonlyArray<{ value: unknown; label: string }>;
+}
+
+/**
+ * A kind's control hints, by config field name.
+ *
+ * **The known limit** (`14-…` §2.1), stated so it is a decision rather than a
+ * wall somebody hits. Two things the shipped starter panels do cannot be said
+ * here: a field that appears only when another is set (the Safety Brick's
+ * repeat limit), and a control whose text depends on a *different brick* (a
+ * notebook tool warning that the Memory brick's notebook is off). Both are
+ * real, both are rare, and both are why `14-…` §2.1 keeps per-kind panel
+ * overrides in the workbench alongside this. When an expansion brick genuinely
+ * needs one, the answer is to widen this deliberately — a `when` predicate is
+ * the obvious shape — and not to reach for an override, which the workbench
+ * cannot install on a pack's behalf anyway.
+ */
+export type ControlHints = Record<string, ControlHint>;
+
+/**
  * What a pack registers to define a kind of brick.
  *
  * `configSchema` is the source of truth for the config's type *and* for the
@@ -208,6 +273,17 @@ export interface BrickKindDefinition<C = unknown> {
 	 * during a tick. A kind that omits it falls back to `name`.
 	 */
 	describeFitted?(config: C): string;
+
+	/**
+	 * How this kind's config fields should be offered on the bench (WP14
+	 * slice 4a).
+	 *
+	 * Optional, and the bench works without it: a kind with no hints gets
+	 * controls inferred from `configSchema`, which is what makes a new brick
+	 * arrive with working controls and no UI change. Hints are how it arrives
+	 * with *good* ones.
+	 */
+	controlHints?: ControlHints;
 
 	/**
 	 * Anything wrong with this config that the schema cannot express (WP14
