@@ -13,7 +13,7 @@
 		max: number;
 		step: number;
 		/** Shown under the dial, e.g. "0.7 — balanced". */
-		readout?: string;
+		readout?: string | undefined;
 		onchange: (value: number) => void;
 	}
 

@@ -1,9 +1,15 @@
 <script lang="ts">
-	import type { AgentSpec, CartridgeDefinition, ToolDefinition } from '@craftabot/core';
-	import { brickDefinition, type BrickKind } from '$lib/bricks.js';
-	import Dial from '$lib/components/kit/Dial.svelte';
+	import type {
+		AgentSpecV2,
+		BrickKindDefinition,
+		CartridgeDefinition,
+		FittedBrick,
+		ToolDefinition,
+		WorldActionDefinition
+	} from '@craftabot/core';
 	import Panel from '$lib/components/kit/Panel.svelte';
-	import Rocker from '$lib/components/kit/Rocker.svelte';
+	import SchemaPanel from './panels/SchemaPanel.svelte';
+	import { panelOverrideFor } from './panels/overrides.js';
 
 	/**
 	 * The brick panel (03-UI-UX-DESIGN.md §4.3): the brick enlarged, with
@@ -12,62 +18,71 @@
 	 * The flip side is the project's central promise made concrete — nothing is
 	 * hidden, and the adult explanation is always one click away without ever
 	 * being forced on anyone (00 §3.3, 03 §1.4).
+	 *
+	 * > **Amended 2026-08-13 (WP14 slice 4a):** this was a six-branch `if/else`
+	 * > over V1's brick names, reading `spec.bricks.llm` and friends — the last
+	 * > large piece of `12-…` D11, and the one a user could actually see: a
+	 * > seventh brick could be built, fitted, validated and run, and then open a
+	 * > blank panel.
+	 * >
+	 * > It is now a dispatcher. It takes *a fitted brick and its kind*, asks the
+	 * > override table whether the workbench has a hand-written panel for that
+	 * > kind, and otherwise renders the kind's own schema. It knows nothing about
+	 * > any particular brick, including the six — their panels are content, in
+	 * > `panels/`, and the table that names them is a preference rather than a
+	 * > precondition (see `panels/overrides.ts`).
 	 */
 	interface Props {
-		kind: BrickKind;
-		spec: AgentSpec;
+		/** The brick in the selected socket, as stored. */
+		brick: FittedBrick;
+		/** Its kind, from the registry — the source of both faces and the schema. */
+		kind: BrickKindDefinition;
+		/** The whole bot, for the one panel that must read another socket. */
+		spec: AgentSpecV2;
 		cartridges: CartridgeDefinition[];
 		tools: ToolDefinition[];
 		senseChannels: { id: string; name: string; description: string }[];
-		/** Named `worldActions` because `actions` is the snippet slot Panel expects. */
-		worldActions: { id: string; name: string; description: string }[];
-		onupdate: <K extends BrickKind>(
-			kind: K,
-			patch: Partial<NonNullable<AgentSpec['bricks'][K]>>
-		) => void;
-		onremove: (kind: BrickKind) => void;
+		/** Named `worldActions` because `actions` is the snippet slot `Panel` expects. */
+		worldActions: WorldActionDefinition[];
+		/** A patch merged into this brick's config. */
+		onupdate: (patch: Record<string, unknown>) => void;
+		onremove: () => void;
 	}
 
-	let { kind, spec, cartridges, tools, senseChannels, worldActions, onupdate, onremove }: Props =
-		$props();
+	let {
+		brick,
+		kind,
+		spec,
+		cartridges,
+		tools,
+		senseChannels,
+		worldActions,
+		onupdate,
+		onremove
+	}: Props = $props();
 
 	let flipped = $state(false);
-	const brick = $derived(brickDefinition(kind));
 
-	const llm = $derived(spec.bricks.llm);
-	const memory = $derived(spec.bricks.memory);
-	const toolsBrick = $derived(spec.bricks.tools);
-	const sense = $derived(spec.bricks.sense);
-	const actionsBrick = $derived(spec.bricks.actions);
-	const safety = $derived(spec.bricks.safety);
+	const Override = $derived(panelOverrideFor(kind.id));
+	const panelProps = $derived({
+		config: brick.config,
+		spec,
+		cartridges,
+		tools,
+		senseChannels,
+		worldActions,
+		onupdate
+	});
 
-	/**
-	 * Three in a row is enough to look stuck without tripping ordinary play. The
-	 * builder can move it; the point is that they choose, rather than every bot
-	 * silently inheriting a rule (08-GOVERNANCE-GUARDRAILS.md §3).
+	/*
+	 * The socket's colour, not the kind's. Colour means a *concept* in this
+	 * product and the mapping is fixed (`04-…` §2.2), so a Monitor brick in the
+	 * safety socket is safety yellow — it is governance, whoever made it.
 	 */
-	const DEFAULT_REPEAT_LIMIT = 3;
-
-	const MEMORY_SPANS = [
-		{ value: 3, label: 'Goldfish (3 turns)' },
-		{ value: 10, label: 'Puppy (10 turns)' },
-		{ value: 30, label: 'Elephant (30 turns)' }
-	] as const;
-
-	function temperatureReadout(value: number): string {
-		if (value <= 0.3) return `${value.toFixed(1)} — careful`;
-		if (value <= 1.1) return `${value.toFixed(1)} — balanced`;
-		return `${value.toFixed(1)} — wild`;
-	}
-
-	function toggle(list: string[], id: string, on: boolean): string[] {
-		return on ? [...new Set([...list, id])] : list.filter((entry) => entry !== id);
-	}
-
-	const accent = $derived(`var(--cab-brick-${kind})`);
+	const accent = $derived(`var(--cab-brick-slot-${brick.slot})`);
 </script>
 
-<Panel title={flipped ? brick.realName : brick.name} {accent}>
+<Panel title={flipped ? kind.realName : kind.name} {accent}>
 	{#snippet actions()}
 		<button
 			type="button"
@@ -78,184 +93,24 @@
 		>
 			{flipped ? 'Toy side' : 'What this really is'}
 		</button>
-		<button type="button" class="tab" data-testid="remove-brick" onclick={() => onremove(kind)}>
+		<button type="button" class="tab" data-testid="remove-brick" onclick={() => onremove()}>
 			Take off
 		</button>
 	{/snippet}
 
 	{#if flipped}
 		<div class="flip" data-testid="brick-flip-side">
-			<p class="real-name">{brick.realName}</p>
-			<p>{brick.realExplanation}</p>
+			<p class="real-name">{kind.realName}</p>
+			<p>{kind.realExplanation}</p>
 		</div>
 	{:else}
-		<div class="controls" data-testid="brick-controls-{kind}" data-tutorial="brick-panel">
-			<p class="whisper">{brick.description}</p>
+		<div class="controls" data-testid="brick-controls-{brick.slot}" data-tutorial="brick-panel">
+			<p class="whisper">{kind.description}</p>
 
-			{#if kind === 'llm' && llm}
-				<label class="field">
-					<span>Model cartridge</span>
-					<select
-						data-testid="cartridge-select"
-						value={llm.cartridgeId}
-						onchange={(event) => onupdate('llm', { cartridgeId: event.currentTarget.value })}
-					>
-						<option value="">— empty slot —</option>
-						{#each cartridges as cartridge (cartridge.id)}
-							<option value={cartridge.id}>{cartridge.displayName}</option>
-						{/each}
-					</select>
-				</label>
-
-				<Dial
-					label="Imagination"
-					value={llm.temperature}
-					min={0}
-					max={2}
-					step={0.1}
-					readout={temperatureReadout(llm.temperature)}
-					onchange={(temperature) => onupdate('llm', { temperature })}
-				/>
-
-				<label class="field">
-					<span>Chattiness (max tokens per thought)</span>
-					<input
-						type="number"
-						min="16"
-						max="4096"
-						step="16"
-						data-testid="max-tokens"
-						value={llm.maxTokens}
-						onchange={(event) => onupdate('llm', { maxTokens: Number(event.currentTarget.value) })}
-					/>
-				</label>
-
-				<label class="field">
-					<span>Personality</span>
-					<textarea
-						rows="2"
-						data-testid="personality"
-						placeholder="You are a cheerful little robot."
-						value={llm.personality}
-						oninput={(event) => onupdate('llm', { personality: event.currentTarget.value })}
-					></textarea>
-				</label>
-			{:else if kind === 'memory' && memory}
-				<fieldset class="field">
-					<legend>Memory span</legend>
-					{#each MEMORY_SPANS as span (span.value)}
-						<label class="radio">
-							<input
-								type="radio"
-								name="memory-span"
-								value={span.value}
-								checked={memory.windowSize === span.value}
-								onchange={() => onupdate('memory', { windowSize: span.value })}
-							/>
-							{span.label}
-						</label>
-					{/each}
-				</fieldset>
-				<Rocker
-					label="Notebook"
-					hint="Lets the bot jot things down and read them back later."
-					checked={memory.notebook}
-					onchange={(notebook) => onupdate('memory', { notebook })}
-				/>
-			{:else if kind === 'tools' && toolsBrick}
-				<div class="switches">
-					{#each tools as tool (tool.id)}
-						<Rocker
-							label={tool.name}
-							hint={tool.requiresNotebook && memory?.notebook !== true
-								? 'Needs the Memory brick’s notebook switched on.'
-								: tool.description}
-							checked={toolsBrick.enabled.includes(tool.id)}
-							onchange={(on) =>
-								onupdate('tools', { enabled: toggle(toolsBrick.enabled, tool.id, on) })}
-						/>
-					{/each}
-				</div>
-			{:else if kind === 'sense' && sense}
-				<div class="switches">
-					{#each senseChannels as channel (channel.id)}
-						<Rocker
-							label={channel.name}
-							hint={channel.description}
-							checked={sense.channels.includes(channel.id)}
-							onchange={(on) =>
-								onupdate('sense', { channels: toggle(sense.channels, channel.id, on) })}
-						/>
-					{/each}
-				</div>
-			{:else if kind === 'actions' && actionsBrick}
-				<div class="switches">
-					{#each worldActions as action (action.id)}
-						<Rocker
-							label={action.name}
-							hint={action.description}
-							checked={actionsBrick.enabled.includes(action.id)}
-							onchange={(on) =>
-								onupdate('actions', { enabled: toggle(actionsBrick.enabled, action.id, on) })}
-						/>
-					{/each}
-				</div>
-			{:else if kind === 'safety' && safety}
-				<label class="field">
-					<span>Step budget: {safety.maxTicks} turns</span>
-					<input
-						type="range"
-						min="5"
-						max="50"
-						step="1"
-						data-testid="max-ticks"
-						value={safety.maxTicks}
-						oninput={(event) => onupdate('safety', { maxTicks: Number(event.currentTarget.value) })}
-					/>
-				</label>
-				<Rocker
-					label="Stop it going in circles"
-					hint="Blocks the same move repeated over and over. Watch out: a bot walking a long way in a straight line repeats itself too."
-					checked={safety.repeatLimit !== undefined}
-					onchange={(on) =>
-						onupdate('safety', { repeatLimit: on ? DEFAULT_REPEAT_LIMIT : undefined })}
-				/>
-
-				{#if safety.repeatLimit !== undefined}
-					<label class="field">
-						<span>Allow the same move: {safety.repeatLimit} times in a row</span>
-						<input
-							type="range"
-							min="2"
-							max="10"
-							step="1"
-							data-testid="repeat-limit"
-							value={safety.repeatLimit}
-							oninput={(event) =>
-								onupdate('safety', { repeatLimit: Number(event.currentTarget.value) })}
-						/>
-					</label>
-				{/if}
-
-				<Rocker
-					label="Ask before acting"
-					hint="Pauses for your approval before every action."
-					checked={safety.approvalMode}
-					onchange={(approvalMode) => onupdate('safety', { approvalMode })}
-				/>
-				<div class="switches">
-					<p class="switches-label">Blocked actions</p>
-					{#each worldActions as action (action.id)}
-						<Rocker
-							label={action.name}
-							checked={safety.blockedActions.includes(action.id)}
-							onchange={(on) =>
-								onupdate('safety', {
-									blockedActions: toggle(safety.blockedActions, action.id, on)
-								})}
-						/>
-					{/each}
-				</div>
+			{#if Override}
+				<Override {...panelProps} />
+			{:else}
+				<SchemaPanel {kind} {...panelProps} />
 			{/if}
 		</div>
 	{/if}
@@ -303,7 +158,13 @@
 		line-height: 1.5;
 	}
 
-	.field {
+	/*
+	 * The controls themselves are rendered by a child component — an override or
+	 * `SchemaPanel` — so these reach through `:global`. Scoped to `.controls`,
+	 * which only ever contains one panel body, so the reach is as short as the
+	 * arrangement allows.
+	 */
+	:global(.controls .field) {
 		display: grid;
 		gap: var(--cab-space-1);
 		font-size: var(--cab-text-sm);
@@ -312,22 +173,23 @@
 		margin: 0;
 	}
 
-	legend {
+	:global(.controls legend) {
 		padding: 0;
 		font-size: var(--cab-text-sm);
 		font-weight: 600;
 	}
 
-	.radio {
+	:global(.controls .radio) {
 		display: flex;
 		align-items: center;
 		gap: var(--cab-space-2);
 		font-weight: 400;
 	}
 
-	select,
-	input[type='number'],
-	textarea {
+	:global(.controls select),
+	:global(.controls input[type='number']),
+	:global(.controls input[type='text']),
+	:global(.controls textarea) {
 		font: inherit;
 		font-size: var(--cab-text-sm);
 		padding: var(--cab-space-1) var(--cab-space-2);
@@ -341,12 +203,12 @@
 		outline-offset: var(--cab-focus-gap);
 	}
 
-	.switches {
+	:global(.controls .switches) {
 		display: grid;
 		gap: var(--cab-space-2);
 	}
 
-	.switches-label {
+	:global(.controls .switches-label) {
 		margin: 0;
 		font-size: var(--cab-text-sm);
 		font-weight: 600;

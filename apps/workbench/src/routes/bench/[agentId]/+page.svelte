@@ -51,11 +51,21 @@
 
 	const spec = $derived(benchStore.spec);
 	/*
-	 * The panels and the leaflet still read a bot as six named bricks; the bench
-	 * stores it as a list of fitted ones. This is the door between them, and it
-	 * closes in slice 4 when the panels become schema-driven.
+	 * The leaflet still reads a bot as six named bricks; the bench stores it as a
+	 * list of fitted ones. This is the door between them, and it closes in 4c.
+	 * The *panels* stopped needing it in 4a — they take a fitted brick and its
+	 * kind, and know nothing about V1's names.
 	 */
 	const legacySpec = $derived(benchStore.legacySpec);
+
+	/**
+	 * The brick in the selected socket, with the kind that defines it.
+	 *
+	 * The tray and baseplate still hand back a V1 `BrickKind`, so this is where
+	 * that is turned into something the panel can use. 4b keys selection by
+	 * socket and the translation goes.
+	 */
+	const fittedForPanel = $derived(selected ? benchStore.brickFor(selected) : undefined);
 
 	// The leaflet advances by watching what the user builds (03 §6).
 	const leaflet = leafletStore();
@@ -190,17 +200,18 @@
 			</section>
 
 			<section class="column column--panel" aria-label="Brick panel">
-				{#if selected && benchStore.hasBrick(selected) && legacySpec}
+				{#if selected && fittedForPanel && spec}
 					<BrickPanel
-						kind={selected}
-						spec={legacySpec}
+						brick={fittedForPanel.brick}
+						kind={fittedForPanel.kind}
+						{spec}
 						{cartridges}
 						{tools}
 						{senseChannels}
 						{worldActions}
-						onupdate={(kind, patch) => benchStore.updateBrick(kind, patch)}
-						onremove={(kind) => {
-							benchStore.removeBrick(kind);
+						onupdate={(patch) => selected && benchStore.updateBrick(selected, patch)}
+						onremove={() => {
+							if (selected) benchStore.removeBrick(selected);
 							selected = undefined;
 						}}
 					/>

@@ -147,7 +147,7 @@ test('walks all six chapters and collects all six badges', async ({ page }) => {
 	await fitBrick(page, 'tools');
 	await page.getByTestId('socket-tools').getByRole('button').click();
 	await page
-		.getByTestId('brick-controls-tools')
+		.getByTestId('brick-controls-equipment')
 		.getByRole('checkbox', { name: /Calculator/ })
 		.check();
 	await go(page);
@@ -165,7 +165,7 @@ test('walks all six chapters and collects all six badges', async ({ page }) => {
 	await backToBench(page);
 	await page.getByTestId('socket-tools').getByRole('button').click();
 	await page
-		.getByTestId('brick-controls-tools')
+		.getByTestId('brick-controls-equipment')
 		.getByRole('checkbox', { name: /Look up the manual/ })
 		.check();
 	await go(page);
