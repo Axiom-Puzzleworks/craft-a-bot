@@ -21,13 +21,19 @@
 	 */
 	interface Props {
 		events: EngineEvent[];
+		/**
+		 * Open the drawer at this event, from the story strip's "see more"
+		 * (`16-…` §1.3). Changing it re-opens; the reader can still scroll away
+		 * afterwards, because it selects rather than pins.
+		 */
+		openAt?: number | undefined;
 		onexport?: (() => void) | undefined;
 		/** Overridable so tests can drive the viewport without a real layout. */
 		rowHeight?: number;
 		viewportHeight?: number;
 	}
 
-	let { events, onexport, rowHeight = 28, viewportHeight = 240 }: Props = $props();
+	let { events, openAt, onexport, rowHeight = 28, viewportHeight = 240 }: Props = $props();
 
 	let scrollTop = $state(0);
 	let following = $state(true);
@@ -52,6 +58,23 @@
 		const count = events.length;
 		if (!following || !viewport || count === 0) return;
 		viewport.scrollTop = scrollToIndex(count - 1, rowHeight, viewportHeight, count);
+	});
+
+	/*
+	 * The story strip asked for a moment (`16-…` §1.3). Selecting it and scrolling
+	 * to it also means letting go of auto-follow — a live run would otherwise drag
+	 * the view straight back to the bottom, which is precisely not what somebody
+	 * who just asked to see turn two wants.
+	 */
+	let lastOpened = $state<number | undefined>(undefined);
+	$effect(() => {
+		if (openAt === undefined || openAt === lastOpened) return;
+		lastOpened = openAt;
+		selectedIndex = openAt;
+		following = false;
+		if (viewport) {
+			viewport.scrollTop = scrollToIndex(openAt, rowHeight, viewportHeight, events.length);
+		}
 	});
 
 	function onScroll(event: Event & { currentTarget: HTMLElement }): void {

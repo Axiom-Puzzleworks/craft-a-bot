@@ -13,6 +13,14 @@ export const SETTINGS_STORAGE_KEY = 'cab.settings.v1';
 export const settingsSchema = z.object({
 	sound: z.boolean().default(false),
 	reducedMotion: z.boolean().default(false),
+	/**
+	 * Read the story strip aloud (`16-…` §1.3).
+	 *
+	 * Off by default and deliberately so: a voice starting unbidden in a
+	 * classroom of twenty tablets is a bad afternoon, and speech is something an
+	 * adult should switch on for a particular child.
+	 */
+	readAloud: z.boolean().default(false),
 	/** Playroom tick speed multiplier (03-UI-UX-DESIGN.md §5.1). */
 	tickSpeed: z.number().min(0.5).max(4).default(1),
 	/** Highest instruction-leaflet chapter completed, 0 = not started. */

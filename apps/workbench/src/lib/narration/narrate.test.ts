@@ -80,6 +80,33 @@ describe('a turn, retold', () => {
 		expect(turn?.beats).toHaveLength(3);
 	});
 
+	/**
+	 * Found by looking at it in the running app, which no test was going to catch.
+	 * The observation summary is written for the *memory window* — WP11 packed it
+	 * with position and bearings so a bot could navigate from it — and it arrived
+	 * on the strip as three semicolon-joined clauses truncated mid-word. Right in
+	 * a prompt, hopeless for a five-year-old.
+	 */
+	it('takes only the first thing the world mentions', () => {
+		const events = [
+			saw(
+				1,
+				'at column 2, row 5 you could see nothing nearby; your hands were empty; big things: the toy chest to the north'
+			)
+		];
+		const caption = narrate(events)[0]?.beats[0]?.caption ?? '';
+		expect(caption).toBe('at column 2, row 5 you could see nothing nearby.');
+		expect(caption).not.toContain(';');
+	});
+
+	/** The same look found "the she…." — an ellipsis is already an ending. */
+	it('does not put a full stop after an ellipsis', () => {
+		const long = `${'a very long observation '.repeat(20)}`;
+		const caption = narrate([saw(1, long)])[0]?.beats[0]?.caption ?? '';
+		expect(caption).toMatch(/…$/);
+		expect(caption).not.toContain('….');
+	});
+
 	it('prefers the world’s one-line summary to its full description', () => {
 		const [turn] = narrate(ordinaryTurn(1));
 		const sawBeat = turn?.beats.find((beat) => beat.kind === 'saw');

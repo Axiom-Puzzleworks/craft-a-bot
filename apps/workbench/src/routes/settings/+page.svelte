@@ -46,6 +46,13 @@
 				onchange={(value) => preferences.setReducedMotion(value)}
 			/>
 
+			<Rocker
+				label="Read the story out loud"
+				hint="Speaks what your bot is doing, for readers who aren’t reading yet. Off by default."
+				checked={preferences.readAloud}
+				onchange={(value) => preferences.setReadAloud(value)}
+			/>
+
 			<fieldset class="speed">
 				<legend>Playroom speed</legend>
 				<p class="hint">How fast a run goes when you press PLAY.</p>

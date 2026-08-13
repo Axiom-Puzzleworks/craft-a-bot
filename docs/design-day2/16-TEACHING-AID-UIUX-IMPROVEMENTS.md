@@ -21,11 +21,19 @@
 **Design:** every failed action gets an immediate visual beat: the bot's confused face, a puff FX (`fx-question-puff`), and the narration line shown under the thought bubble _and_ spoken into the story strip (1.3). The "Right now" feedback promotion (E3) means the _bot_ also knows — the player and the bot learn from the same signal, which is itself the lesson.
 **Accept:** e2e: a blocked/failed action shows narration within the same tick; eval harness shows repeated-identical-failure streaks drop vs baseline.
 
+> **Amended 2026-08-13 (WP16 slice b):** the problem statement here was half stale by the time this WP started. A refused action already emits `action.performed` with `ok: false` and the world's own narration, and the thought bubble already showed it — WP11's E3 feedback promotion did that, and the refusal reaching the *bot* was always the harder half. What was genuinely missing was somewhere a player could see the failure **in the run's story rather than in one transient line**, which the story strip (§1.3) now is: a refusal is a distinct 😕 beat, in the world's own words, sitting in the turn where it happened and staying there as the run goes on. The confused face and the puff FX remain outstanding and belong with the art wave (WP18, `11-…` §9).
+
 ### 1.3 The story strip — per-tick narration for young learners
 
 **Problem:** between STEP presses nothing explains _why_; the causal chain lives in the trace as JSON. Reading load is the ceiling for 5–8s.
 **Design:** a horizontal strip under the world view showing the current tick as icon beats: 👀 saw → 💭 thought → 🔧/🚗 did → ✨/😕 result, each with a one-line child-voice caption derived from events (the narrated tick model, `15-…` §3). Tapping a beat expands it; optional **speech synthesis** reads the captions (Web Speech API, off by default, per-profile). Past ticks scroll left — the strip _is_ a child's trace, and clicking "see more" opens the Flight Recorder at that tick (the bridge to the real trace).
 **Accept:** every tick renders 3–5 beats from events alone; screen-reader parity (the strip doubles as the play route's live region — fixes D16's missing announcer); usability check with a target-age reader.
+
+> **Amended 2026-08-13 (WP16 slice b):** built. The narrated tick model is `lib/narration/narrate.ts` (slice a) and is derived from events alone, so the same function narrates a live run and a stored one — which is what §1.4's replay needs. The strip is the play route's live region and announces the turn as **one sentence** rather than beat by beat: a screen reader interrupting itself four times a turn is worse than a slightly longer sentence. Speech synthesis is in, off by default, with a Settings toggle.
+>
+> Two things only looking at it in the running app revealed, both now fixed and pinned by tests. The observation `summary` is written for the *memory window* — WP11 packed it with position and bearings so a bot could navigate from it — and it arrived on the strip as three semicolon-joined clauses truncated mid-word. The strip now takes the leading clause; the whole of it is one tap away in the Flight Recorder. And a truncated caption read "the she…." because an ellipsis was not counted as terminal punctuation.
+>
+> **The usability check with a target-age reader is outstanding** and cannot be done from here.
 
 ### 1.4 Run continuity: history, replay, and no lost runs
 
