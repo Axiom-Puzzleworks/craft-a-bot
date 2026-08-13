@@ -204,15 +204,23 @@ export interface ControlHint {
 	label?: string;
 	/** A line under the control, in the register the brick's `description` uses. */
 	hint?: string;
-	/** For `checklist` and `choice`: where the options come from. */
+	/**
+	 * For `checklist` and `choice`: which of core's catalogues the options come
+	 * from.
+	 *
+	 * Omit it and declare `options` instead when the choices are the *pack's own*
+	 * content — a Monitor brick's watch rules, say — which no catalogue of core's
+	 * has.
+	 */
 	source?: ControlSource;
 	/**
-	 * For `choice` over literal values the schema already enumerates, and for
-	 * `dial` readout bands: the words that go with the numbers.
+	 * The options themselves, where the kind rather than a catalogue supplies
+	 * them.
 	 *
 	 * A `choice` maps value → label ("Goldfish (3 turns)"). A `dial` reads them
 	 * as ascending bands — the first whose `value` the setting has not passed
-	 * supplies the word.
+	 * supplies the word. A `checklist` with no `source` ticks these directly,
+	 * which is how a brick offers a set of its own ids.
 	 */
 	options?: ReadonlyArray<{ value: unknown; label: string }>;
 }

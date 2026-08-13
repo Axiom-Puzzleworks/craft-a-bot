@@ -94,9 +94,10 @@
 			</select>
 		</label>
 	{:else if field.control.kind === 'checklist'}
+		{@const entries = field.control.entries ?? catalogue(field.control.source ?? 'tools')}
 		<div class="switches">
 			<p class="switches-label">{field.label}</p>
-			{#each catalogue(field.control.source) as entry (entry.id)}
+			{#each entries as entry (entry.id)}
 				<Rocker
 					label={entry.name}
 					hint={entry.description}
