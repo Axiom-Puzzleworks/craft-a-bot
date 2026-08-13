@@ -10,7 +10,7 @@
 
 ## 1. The one-sentence model
 
-An agent is a **loop** — *sense → think → act* — where **Sense** gathers observations from a world, the **LLM** decides what to do next in pursuit of a **Goal Card**, **Actions** and **Tools** carry decisions out, and **Memory** carries context from one tick to the next.
+An agent is a **loop** — _sense → think → act_ — where **Sense** gathers observations from a world, the **LLM** decides what to do next in pursuit of a **Goal Card**, **Actions** and **Tools** carry decisions out, and **Memory** carries context from one tick to the next.
 
 V1 teaches exactly this and nothing more. Planners, reflection, multi-agent — later kits.
 
@@ -27,14 +27,14 @@ Every brick has a toy face and a real face. The UI always offers both: the mould
 - **Really is:** the chat-completions call at the heart of every tick.
 - **Slots:** one **model cartridge** socket (which provider+model — V1: OpenAI cartridges); one **battery** socket (API key, configured once in settings, shown as a battery meter).
 - **Dials (config):** Temperature ("Imagination" dial, 0–2), Max tokens per thought ("Chattiness"), Personality (a short free-text system-prompt fragment, e.g. "You are a cheerful little robot").
-- **Without it:** the bot cannot run at all. GO button disabled with the message *"Your bot needs a brain! Snap on an LLM brick."*
+- **Without it:** the bot cannot run at all. GO button disabled with the message _"Your bot needs a brain! Snap on an LLM brick."_
 
 ### 2.2 Memory Brick (green) — the scrapbook
 
 - **Really is:** conversation/loop history management — what past ticks get replayed into the next prompt.
 - **V1 behaviour:** a rolling window of the last N ticks (observations, thoughts, actions, results), plus a tiny **notebook** the agent can write to via a built-in `remember` tool when the Memory brick is present.
 - **Dials:** Window size ("Memory span": Goldfish 3 / Puppy 10 / Elephant 30 ticks); Notebook on/off.
-- **Without it:** each tick's prompt contains only the goal and the current observation — the bot forgets everything between ticks. This is a *designed teaching moment*: the tutorial has the user run a fetch-task without Memory and watch the bot wander, then snap Memory on and watch it succeed.
+- **Without it:** each tick's prompt contains only the goal and the current observation — the bot forgets everything between ticks. This is a _designed teaching moment_: the tutorial has the user run a fetch-task without Memory and watch the bot wander, then snap Memory on and watch it succeed.
 
 ### 2.3 Tools Brick (purple) — the tool belt
 
@@ -54,16 +54,16 @@ Every brick has a toy face and a real face. The UI always offers both: the mould
 - **Without it:** the bot is flying blind — it receives the goal but no observations. It will act, hilariously badly. (Designed teaching moment: sight off → bot bumps into walls.)
 - **Teaching note:** the flip side explains that in real systems "senses" are context engineering — what you choose to put in the prompt.
 
-> **Amended 2026-08-12 (WP2):** Clock reports **simulated** elapsed time derived from the turn count, not wall-clock time. Real elapsed time would make an otherwise deterministic world non-reproducible, breaking the replay guarantee in `08-GOVERNANCE-GUARDRAILS.md` §7.5. Relatedly, the Playroom is turn-based: its clock advances when the bot *acts* (a wasted turn still counts), so a bot with no Actions brick sees a clock that never moves — which is honest, since nothing in the world has happened.
+> **Amended 2026-08-12 (WP2):** Clock reports **simulated** elapsed time derived from the turn count, not wall-clock time. Real elapsed time would make an otherwise deterministic world non-reproducible, breaking the replay guarantee in `08-GOVERNANCE-GUARDRAILS.md` §7.5. Relatedly, the Playroom is turn-based: its clock advances when the bot _acts_ (a wasted turn still counts), so a bot with no Actions brick sees a clock that never moves — which is honest, since nothing in the world has happened.
 
 ### 2.5 Actions Brick (red, with wheels) — hands and feet
 
-- **Really is:** the effector set — the world-mutating counterpart of tools. Exposed to the LLM as tool calls, but distinguished in the UI and trace because they *change the world*, teaching the tools-vs-actions distinction.
+- **Really is:** the effector set — the world-mutating counterpart of tools. Exposed to the LLM as tool calls, but distinguished in the UI and trace because they _change the world_, teaching the tools-vs-actions distinction.
 - **V1 actions** (from the Playroom world definition): `move(direction)`, `pick_up(item)`, `put_down(item)`, `give(item, character)`, `open(container)`, `say(text)` (speech bubble in the Playroom), `celebrate()` (the bot's little victory dance; also how it declares the goal complete).
 - **Config:** individual actions toggle on/off. Turning `pick_up` off before a fetch goal is — again — a teaching moment ("my bot can see the snack but has no hands!").
 - **Without the brick:** observe-and-chat only; it can `say` nothing, do nothing. The run ends only by tick budget.
 
-> **Amended 2026-08-12 (WP2):** `put_down` takes an optional second parameter — `put_down(item, container?)`. "Tidy the blocks" needs a way to place an item *into* the toy chest, and inferring it from proximity is ambiguous as soon as a second container exists. Omitting `container` still means "put it on the floor where I stand". The optional parameter also gives users their first look at an optional field in a real tool JSON schema.
+> **Amended 2026-08-12 (WP2):** `put_down` takes an optional second parameter — `put_down(item, container?)`. "Tidy the blocks" needs a way to place an item _into_ the toy chest, and inferring it from proximity is ambiguous as soon as a second container exists. Omitting `container` still means "put it on the floor where I stand". The optional parameter also gives users their first look at an optional field in a real tool JSON schema.
 
 ### 2.6 Safety Brick (yellow/black stripes) — optional in V1, foundational for purpose 2
 
@@ -72,20 +72,27 @@ Every brick has a toy face and a real face. The UI always offers both: the mould
 
 ## 3. Goal Cards
 
-A Goal Card is a laminated card slotted into the bot's card holder. It is: a **title**, a **goal statement** (injected into the system prompt), a **world binding** (which world + starting layout), and a **success condition** (a predicate evaluated by the world after each tick — *the world judges success, not the LLM*; `celebrate()` with an unmet condition = "premature celebration", shown as such and a lovely lesson in agents overclaiming success).
+A Goal Card is a laminated card slotted into the bot's card holder. It is: a **title**, a **goal statement** (injected into the system prompt), a **world binding** (which world + starting layout), and a **success condition** (a predicate evaluated by the world after each tick — _the world judges success, not the LLM_; `celebrate()` with an unmet condition = "premature celebration", shown as such and a lovely lesson in agents overclaiming success).
 
 V1 starter cards (all set in the Playroom):
 
-| Card | Goal text | Success condition | Teaches |
-|---|---|---|---|
-| **Say Hello!** | Introduce yourself to Teddy. | `say` performed within 2 squares of Teddy | The minimal loop; first GO. |
-| **Help the teddy get a snack** *(the box-art classic)* | Find a snack and bring it to Teddy. | Teddy has the snack | Multi-step behaviour; find → pick up → bring → give. |
-| **Tidy the blocks** | Put all blocks in the toy chest. | All blocks in chest | Repetition, sub-goals. |
-| **The locked chest** | The chest is locked. Get it open and tidy the blocks away. | Chest open + blocks inside | Tool use (`look_up_manual` reveals the red key). |
-| **Sums for Teddy** | Teddy wants the answer to 17 × 23 (then harder). | Correct answer said | Why tools beat guessing. |
-| **Free play** | (User writes their own goal text.) | Manual — user clicks "Goal achieved" | Prompting a goal well. |
+| Card                                                   | Goal text                                                  | Success condition                         | Teaches                                              |
+| ------------------------------------------------------ | ---------------------------------------------------------- | ----------------------------------------- | ---------------------------------------------------- |
+| **Say Hello!**                                         | Introduce yourself to Teddy.                               | `say` performed within 2 squares of Teddy | The minimal loop; first GO.                          |
+| **Help the teddy get a snack** _(the box-art classic)_ | Find a snack and bring it to Teddy.                        | Teddy has the snack                       | Multi-step behaviour; find → pick up → bring → give. |
+| **Tidy the blocks**                                    | Put all blocks in the toy chest.                           | All blocks in chest                       | Repetition, sub-goals.                               |
+| **The locked chest**                                   | The chest is locked. Get it open and tidy the blocks away. | Chest open + blocks inside                | Tool use (`look_up_manual` reveals the red key).     |
+| **Sums for Teddy**                                     | Teddy wants the answer to 17 × 23 (then harder).           | Correct answer said                       | Why tools beat guessing.                             |
+| **Free play**                                          | (User writes their own goal text.)                         | Manual — user clicks "Goal achieved"      | Prompting a goal well.                               |
 
-Card definition interface: `GoalCardDefinition { id, title, goalText, worldId, layoutId, successCondition: WorldPredicateId, hints: string[], teachesConcepts: ConceptTag[] }`.
+Card definition interface: `GoalCardDefinition { id, title, goalText, worldId, layoutId, successCondition: WorldPredicateId, hints: string[], teachesConcepts: ConceptTag[], par?: number, expert?: boolean }`.
+
+> **Amended 2026-08-13 (WP11):** the starter set is now **seven** cards, and every card with a machine-checkable goal declares a `par`.
+>
+> - **Tidy the blocks** is two blocks, both on the chest's side of the room (par 10); **The locked chest** is one block out, two already inside, and the key inboard by the table (par 13). Both were unwinnable inside the 30-turn platform floor — about 34 and 45 turns respectively — so no bot could ever finish them and nothing on the card said so (`12-…` C6). `16-…` §1.1 re-scoped them rather than raising the floor, because the floor is the governance teaching point.
+> - **The locked chest — expert** (`starter/locked-chest-expert`) preserves V1.0's layout exactly, carries `expert: true`, and says on its face that it needs a bigger step budget. Measured par is **36**, not the ~45 `12-…` estimated by hand: the scripted solution in `solvability.test.ts` is tighter than the estimate, and par is defined as the length of the solution we can actually prove.
+> - `par` is optional and additive, so every pack written before it still validates; Free Play has none, because nobody but the player knows when it is finished.
+> - **Free play's success condition is no longer manual-only.** `celebrate` now ends a free-play run as SUCCESS (E12, `14-…` §3) — on that one card the bot's own judgement is all there is. The player's "Goal achieved" button arrives with `session.declareOutcome` (E2, WP13); the two are meant to coexist, bot-declared and human-declared endings, both traced.
 
 > **Amended 2026-08-12 (WP5):** `AgentSpec` gained an optional `customGoalText`. The Free Play card is "a laminated card with a marker pen" the user writes their own goal on (`03-UI-UX-DESIGN.md` §4.5), and the spec previously had nowhere to keep that text. Optional, so every kit file written before it existed still validates; cards with a fixed goal ignore it.
 
@@ -95,7 +102,7 @@ A deliberately small, warm, readable grid world — the nursery-room floor from 
 
 - **Space:** 8×6 grid of floor tiles (rug). Some cells hold furniture (toy chest, shelf, table), items (snack, blocks ×3, red key, ball), and characters (Teddy; the Bot itself).
 - **Physics:** turn-based; one action per tick; bot moves orthogonally; can carry **one item at a time** (a constraint that creates real planning pressure); containers can be open/closed/locked; `give` requires adjacency.
-- **Observation model:** what Sense reports is computed *by the world* from the bot's position (sight radius 1, i.e. current + 8 neighbours; Compass gives the wall outline and landmark directions, not item locations — so the bot must explore).
+- **Observation model:** what Sense reports is computed _by the world_ from the bot's position (sight radius 1, i.e. current + 8 neighbours; Compass gives the wall outline and landmark directions, not item locations — so the bot must explore).
 - **Determinism:** the world is fully deterministic given the action sequence (all randomness lives in the `dice` tool). Vital for purpose 2 — reproducible runs make guardrail and evaluation testing meaningful.
 - **Rendering:** the UI draws it as a cosy isometric-ish flat illustration consistent with the box art; world state → pure render, no game engine.
 
@@ -103,22 +110,22 @@ A deliberately small, warm, readable grid world — the nursery-room floor from 
 
 ```ts
 export interface WorldDefinition {
-  id: string;                                  // "starter/playroom"
-  name: string;
-  layouts: WorldLayout[];                      // named starting arrangements
-  actions: WorldActionDefinition[];            // schema per action (JSON-schema params)
-  senses: WorldSenseDefinition[];              // what each sense channel yields
-  predicates: Record<WorldPredicateId, string>;// success conditions (evaluated internally)
-  create(layoutId: string): WorldInstance;
+	id: string; // "starter/playroom"
+	name: string;
+	layouts: WorldLayout[]; // named starting arrangements
+	actions: WorldActionDefinition[]; // schema per action (JSON-schema params)
+	senses: WorldSenseDefinition[]; // what each sense channel yields
+	predicates: Record<WorldPredicateId, string>; // success conditions (evaluated internally)
+	create(layoutId: string): WorldInstance;
 }
 
 export interface WorldInstance {
-  snapshot(): WorldState;                       // serialisable, for trace + rendering
-  observe(channels: SenseChannelId[]): Observation;
-  perform(action: ActionCall): ActionResult;    // validates, mutates, narrates
-  test(predicate: WorldPredicateId): boolean;
-  reset(): void;
-  receiveInput?(text: string): void;            // see amendment below
+	snapshot(): WorldState; // serialisable, for trace + rendering
+	observe(channels: SenseChannelId[]): Observation;
+	perform(action: ActionCall): ActionResult; // validates, mutates, narrates
+	test(predicate: WorldPredicateId): boolean;
+	reset(): void;
+	receiveInput?(text: string): void; // see amendment below
 }
 ```
 
@@ -157,42 +164,43 @@ Loop rules:
 ```ts
 // ── The assembled agent (what the workbench edits, what a kit file stores) ──
 export interface AgentSpec {
-  id: string;                       // uuid
-  name: string;                     // "Snackbot 3000"
-  bricks: {
-    llm?:    { cartridgeId: string; temperature: number; maxTokens: number; personality: string };
-    memory?: { windowSize: 3 | 10 | 30; notebook: boolean };
-    tools?:  { enabled: ToolId[] };
-    sense?:  { channels: SenseChannelId[] };
-    actions?:{ enabled: ActionId[] };
-    safety?: { maxTicks: number; blockedActions: ActionId[]; approvalMode: boolean };
-  };
-  goalCardId: string;
-  createdAt: string; updatedAt: string;
-  schemaVersion: 1;
+	id: string; // uuid
+	name: string; // "Snackbot 3000"
+	bricks: {
+		llm?: { cartridgeId: string; temperature: number; maxTokens: number; personality: string };
+		memory?: { windowSize: 3 | 10 | 30; notebook: boolean };
+		tools?: { enabled: ToolId[] };
+		sense?: { channels: SenseChannelId[] };
+		actions?: { enabled: ActionId[] };
+		safety?: { maxTicks: number; blockedActions: ActionId[]; approvalMode: boolean };
+	};
+	goalCardId: string;
+	createdAt: string;
+	updatedAt: string;
+	schemaVersion: 1;
 }
 
 // ── The runtime ──
 export interface AgentSession {
-  readonly spec: AgentSpec;
-  readonly status: 'idle' | 'running' | 'paused' | 'awaiting-approval' | 'finished';
-  readonly events: EventBus;                    // subscribe from UI / trace / guardrails
-  start(mode: 'step' | 'play'): void;
-  step(): Promise<TickResult>;
-  pause(): void;
-  resolveApproval(approved: boolean): void;
-  stop(reason?: string): void;
+	readonly spec: AgentSpec;
+	readonly status: 'idle' | 'running' | 'paused' | 'awaiting-approval' | 'finished';
+	readonly events: EventBus; // subscribe from UI / trace / guardrails
+	start(mode: 'step' | 'play'): void;
+	step(): Promise<TickResult>;
+	pause(): void;
+	resolveApproval(approved: boolean): void;
+	stop(reason?: string): void;
 }
 
 export function createSession(deps: {
-  spec: AgentSpec;
-  registry: PackRegistry;                       // resolves cartridge/world/tool/card IDs
-  provider: LLMProvider;                        // from 06-LLM-PROVIDERS.md
-  guardrails: Guardrail[];                      // from 08-GOVERNANCE-GUARDRAILS.md
+	spec: AgentSpec;
+	registry: PackRegistry; // resolves cartridge/world/tool/card IDs
+	provider: LLMProvider; // from 06-LLM-PROVIDERS.md
+	guardrails: Guardrail[]; // from 08-GOVERNANCE-GUARDRAILS.md
 }): AgentSession;
 ```
 
-Validation: `validateSpec(spec, registry)` returns structured problems (`missing-brain`, `tool-needs-notebook`, `unknown-cartridge`…) that the UI renders as friendly build-checks *before* GO is enabled.
+Validation: `validateSpec(spec, registry)` returns structured problems (`missing-brain`, `tool-needs-notebook`, `unknown-cartridge`…) that the UI renders as friendly build-checks _before_ GO is enabled.
 
 ## 7. Event catalogue (the observability spine)
 
@@ -200,7 +208,7 @@ All events share `{ id, runId, tick, timestamp, type, payload }`, strictly typed
 
 `run.started` · `run.finished` · `tick.started` · `tick.completed` · `sense` · `prompt.composed` (full messages + token estimate) · `think.started` · `think.token` (streaming deltas) · `think.completed` (raw response, usage) · `decision` (thought + parsed call) · `tool.executed` (args, result, duration) · `action.performed` (args, world narration, world-state diff) · `memory.updated` · `guardrail.checked` · `guardrail.tripped` · `approval.requested` · `approval.resolved` · `world.changed` · `error`
 
-Rules: events are **append-only facts**; payloads are JSON-serialisable; the trace is simply the ordered event list of a run (persisted per `07-DATA-MODEL-PERSISTENCE.md`); *anything* the UI shows about a run must be derivable from events — if it isn't in an event, it didn't happen.
+Rules: events are **append-only facts**; payloads are JSON-serialisable; the trace is simply the ordered event list of a run (persisted per `07-DATA-MODEL-PERSISTENCE.md`); _anything_ the UI shows about a run must be derivable from events — if it isn't in an event, it didn't happen.
 
 ## 8. Prompting (V1 canonical prompt)
 
@@ -218,17 +226,15 @@ Tools and actions are passed via the provider's native tool-calling API — neve
 >
 > **The Actions brick did not gate anything.** `performCall` sent every proposed action straight to `world.perform`, so a bot with no Actions brick could still move, speak and pick things up. The brick was decorative and chapter 1 ("bot thinks but can't act") was impossible to demonstrate. The engine now refuses an action the world defines but the bot was not built with — in character, as a wasted turn — while a name the world has never heard of still goes to the world, as `08` §3 describes. Relatedly, the workbench's default Actions brick granted only `move`, `say`, `celebrate`, which left most Goal Cards unreachable once the gate was real; fitting the brick now grants all seven actions and the checkboxes take them away.
 >
-> **Two Goal Cards cannot be completed inside the tick budget.** "Tidy the blocks" needs roughly 34 turns and "The locked chest" roughly 45 (open the chest *and* carry three blocks to it, from opposite corners of an 8×6 grid with orthogonal movement only), against an engine floor of 30. Neither is winnable by any route, by any model. Chapter 5 therefore completes on the *retrieval* moment it teaches — the bot using `look_up_manual` — rather than on the card being won. The cards themselves need a decision: shorten the goals, move the blocks, or raise the budget. Recorded here rather than quietly worked around.
+> **Two Goal Cards cannot be completed inside the tick budget.** "Tidy the blocks" needs roughly 34 turns and "The locked chest" roughly 45 (open the chest _and_ carry three blocks to it, from opposite corners of an 8×6 grid with orthogonal movement only), against an engine floor of 30. Neither is winnable by any route, by any model. Chapter 5 therefore completes on the _retrieval_ moment it teaches — the bot using `look_up_manual` — rather than on the card being won. The cards themselves need a decision: shorten the goals, move the blocks, or raise the budget. Recorded here rather than quietly worked around.
 >
-> **The failure in each pair must be scripted.** The keyless demo brain now reads the spec and picks a "before" or "after" run per chapter, so the bot genuinely guesses the wrong answer without a calculator and genuinely loops without memory. Chapter progress keys off *turns watched* rather than a finished run, because a failing bot has no early exit and would otherwise make the reader sit through the whole budget.
-
-
+> **The failure in each pair must be scripted.** The keyless demo brain now reads the spec and picks a "before" or "after" run per chapter, so the bot genuinely guesses the wrong answer without a calculator and genuinely loops without memory. Chapter progress keys off _turns watched_ rather than a finished run, because a failing bot has no early exit and would otherwise make the reader sit through the whole budget.
 
 The instruction-leaflet tutorial builds concepts in this order — each step is a designed failure→fix pair, and the V1 UI/onboarding (`03-UI-UX-DESIGN.md`) follows it:
 
-1. Brain only + "Say Hello!" → *what a loop is* (bot thinks but can't act; add Actions).
-2. Add Sense → *observations* (blind vs sighted bot).
-3. Snack goal without Memory → *why memory matters* (wandering bot); add Memory.
-4. "Sums for Teddy" without Tools → *hallucination*; add calculator.
-5. "The locked chest" → *retrieval* (`look_up_manual`).
-6. Add Safety Brick, approval mode on → *governance exists* (purpose 2 seed).
+1. Brain only + "Say Hello!" → _what a loop is_ (bot thinks but can't act; add Actions).
+2. Add Sense → _observations_ (blind vs sighted bot).
+3. Snack goal without Memory → _why memory matters_ (wandering bot); add Memory.
+4. "Sums for Teddy" without Tools → _hallucination_; add calculator.
+5. "The locked chest" → _retrieval_ (`look_up_manual`).
+6. Add Safety Brick, approval mode on → _governance exists_ (purpose 2 seed).
