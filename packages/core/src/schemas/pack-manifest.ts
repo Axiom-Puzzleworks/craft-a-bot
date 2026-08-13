@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { BrickKindDefinition } from '../types/brick.js';
 import type { Guardrail, GuardrailHook } from '../types/guardrail.js';
 import type { ToolDefinition } from '../types/tool.js';
 import type { WorldDefinition } from '../types/world.js';
@@ -118,6 +119,20 @@ export interface PackArtwork {
 
 export interface PackManifest extends PackManifestMetadata {
 	bricks?: BrickDefinition[];
+	/**
+	 * Brick *kinds* — the open contract (`14-…` §2, WP14).
+	 *
+	 * `bricks` above is the pure-data half that has always existed: the toy
+	 * name, the real name, the explanation. `brickKinds` is what makes a brick
+	 * an extension point rather than a taxonomy — it adds the config schema,
+	 * its version and migrations, the defaults a freshly-snapped brick gets,
+	 * and the runtime the loop calls into.
+	 *
+	 * Separate rather than merged, for now, because the six V1 bricks are
+	 * referenced by `kind` in spec v1 and by `id` in spec v2; the two coexist
+	 * until the spec migration lands.
+	 */
+	brickKinds?: BrickKindDefinition[];
 	tools?: ToolDefinition[];
 	worlds?: WorldDefinition[];
 	cartridges?: CartridgeDefinition[];

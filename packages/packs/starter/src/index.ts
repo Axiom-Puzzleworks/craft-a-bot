@@ -1,4 +1,5 @@
 import type { PackManifest } from '@craftabot/core';
+import { starterBrickKinds } from './brick-kinds.js';
 import { starterBricks } from './bricks.js';
 import { starterGoalCards } from './goal-cards.js';
 import { starterTools } from './tools/index.js';
@@ -15,6 +16,7 @@ export const starterPack: PackManifest = {
 	version: '0.3.0',
 	requiresCore: '>=0.0.1',
 	bricks: starterBricks,
+	brickKinds: starterBrickKinds,
 	worlds: [playroom],
 	goalCards: starterGoalCards,
 	tools: starterTools
@@ -33,6 +35,7 @@ export {
 	starterTools
 } from './tools/index.js';
 export { playroom, PLAYROOM_WORLD_ID, qualifyPlayroomId } from './world/playroom.js';
+export { starterBrickKinds } from './brick-kinds.js';
 export { playroomLayouts } from './world/layouts.js';
 export { playroomActions, playroomActionDefinitions, carriedItem } from './world/actions.js';
 export { playroomSenses, observePlayroom } from './world/senses.js';

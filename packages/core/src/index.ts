@@ -68,9 +68,15 @@ export {
 
 // Schemas (Zod-first types — 07-DATA-MODEL-PERSISTENCE.md §6)
 export {
+	actionsBrickSchema,
 	agentSpecSchema,
+	llmBrickSchema,
+	memoryBrickSchema,
 	parseAgentSpec,
 	safeParseAgentSpec,
+	safetyBrickSchema,
+	senseBrickSchema,
+	toolsBrickSchema,
 	type AgentSpec
 } from './schemas/agent-spec.js';
 export {
@@ -170,6 +176,19 @@ export {
 	type Unsubscribe
 } from './event-bus.js';
 export { createPackRegistry, type PackRegistry } from './pack-registry.js';
+/** The open brick contract (`14-…` §2, WP14). */
+export {
+	SLOT_IDS,
+	type BrickConfigMigration,
+	type BrickConfigMigrationTable,
+	type BrickKindDefinition,
+	type BrickRuntime,
+	type BrickRuntimeContext,
+	type ContextContribution,
+	type SlotId,
+	type TickContext,
+	type TickRecord
+} from './types/brick.js';
 export { validateSpec } from './validate-spec.js';
 
 // The running engine (02-AGENT-MODEL.md §5)

@@ -1,3 +1,4 @@
+import type { BrickKindDefinition, SlotId } from './types/brick.js';
 import type {
 	BrickDefinition,
 	CartridgeDefinition,
@@ -23,6 +24,10 @@ import type {
 export interface PackRegistry {
 	registerPack(manifest: PackManifest): void;
 	getBrick(id: string): BrickDefinition | undefined;
+	/** A registered brick *kind* — the open contract (`14-…` §2). */
+	getBrickKind(id: string): BrickKindDefinition | undefined;
+	/** Every kind that fits a given chassis socket family. */
+	listBrickKinds(slot?: SlotId): BrickKindDefinition[];
 	getTool(id: string): ToolDefinition | undefined;
 	getCartridge(id: string): CartridgeDefinition | undefined;
 	getGoalCard(id: string): GoalCardDefinition | undefined;
@@ -42,6 +47,7 @@ export interface PackRegistry {
 export function createPackRegistry(): PackRegistry {
 	const packs = new Map<string, PackManifestMetadata>();
 	const bricks = new Map<string, BrickDefinition>();
+	const brickKinds = new Map<string, BrickKindDefinition>();
 	const tools = new Map<string, ToolDefinition>();
 	const cartridges = new Map<string, CartridgeDefinition>();
 	const goalCards = new Map<string, GoalCardDefinition>();
@@ -66,6 +72,8 @@ export function createPackRegistry(): PackRegistry {
 			requiresCore: manifest.requiresCore
 		});
 		for (const brick of manifest.bricks ?? []) insertUnique(bricks, brick.id, brick, 'brick');
+		for (const kind of manifest.brickKinds ?? [])
+			insertUnique(brickKinds, kind.id, kind, 'brick kind');
 		for (const tool of manifest.tools ?? []) insertUnique(tools, tool.id, tool, 'tool');
 		for (const cartridge of manifest.cartridges ?? [])
 			insertUnique(cartridges, cartridge.id, cartridge, 'cartridge');
@@ -121,6 +129,9 @@ export function createPackRegistry(): PackRegistry {
 	return {
 		registerPack,
 		getBrick: (id) => bricks.get(id),
+		getBrickKind: (id) => brickKinds.get(id),
+		listBrickKinds: (slot) =>
+			[...brickKinds.values()].filter((kind) => slot === undefined || kind.slot === slot),
 		getTool: (id) => tools.get(id),
 		getCartridge: (id) => cartridges.get(id),
 		getGoalCard: (id) => goalCards.get(id),
