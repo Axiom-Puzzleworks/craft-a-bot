@@ -52,15 +52,15 @@ describe('NavHeader', () => {
 	});
 
 	/**
-	 * Scrapbook belongs in this header (`16-…` §1.5) and arrives with slice e,
-	 * which builds `/scrapbook/[agentId]`. Until the page exists the button would
-	 * be a promise the toy cannot keep, so it is absent rather than dimmed. This
-	 * test is the reminder: it should fail, and be deleted, when slice e lands.
+	 * Slice c left this header without a Scrapbook and a test pinning its
+	 * absence, on the grounds that a dimmed button going nowhere is a worse
+	 * promise to a five-year-old than a header that grows. Slice e built the
+	 * page, so the promise is kept and the reminder is now the assertion.
 	 */
-	it('does not yet offer the Scrapbook, because slice e has not built it', () => {
+	it('offers the Scrapbook, now that there is one', () => {
 		render(NavHeader, { props: { oninstructions: () => {} } });
 
-		expect(screen.queryByText(/scrapbook/i)).toBeNull();
+		expect(screen.getByTestId('nav-scrapbook')).toHaveAttribute('href', '/scrapbook');
 	});
 
 	it('names the nav for a screen reader arriving at it cold', () => {

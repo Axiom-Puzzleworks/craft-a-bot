@@ -35,9 +35,16 @@
 	 * marking anything there would be claiming a link is current when no link is.
 	 */
 	const current = $derived.by(() => {
-		const route = routeOf(page.url.pathname);
-		if (route === 'shelf') return 'shelf' as const;
-		if (route === 'settings') return 'settings' as const;
+		/*
+		 * Matched here rather than through `routeOf`, which exists for the leaflet
+		 * and knows only the four routes it has chapters for — it calls everything
+		 * else "shelf", which is fine for a tutorial and wrong for a nav marker.
+		 * Left to it, the Scrapbook and the replay viewer both lit up "Shelf".
+		 */
+		const path = page.url.pathname;
+		if (path === '/') return 'shelf' as const;
+		if (path.startsWith('/scrapbook')) return 'scrapbook' as const;
+		if (path.startsWith('/settings')) return 'settings' as const;
 		return undefined;
 	});
 

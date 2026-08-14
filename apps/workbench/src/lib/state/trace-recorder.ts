@@ -61,8 +61,17 @@ export function recordTrace(
 			seen.push(event);
 			buffer.push(event);
 			if (buffer.length >= batchSize) void queueFlush();
-			// The end of a run is always worth a write, whatever the buffer holds.
-			if (event.type === 'run.finished') void queueFlush();
+			/*
+			 * A finished turn is always worth a write, whatever the buffer holds.
+			 *
+			 * Batching alone made the buffer the thing that loses runs: a tick emits
+			 * well under `batchSize` events, so a child who shut the tab two turns
+			 * in had a stored run with an empty story — which is most of what
+			 * `16-…` §1.4 is trying to prevent. Flushing per turn bounds the loss
+			 * at the turn in flight, and a turn is the unit the Scrapbook and the
+			 * story strip deal in anyway, so a partial trace never ends mid-thought.
+			 */
+			if (event.type === 'tick.completed' || event.type === 'run.finished') void queueFlush();
 		},
 		flush: () => queueFlush(),
 		async stop() {
