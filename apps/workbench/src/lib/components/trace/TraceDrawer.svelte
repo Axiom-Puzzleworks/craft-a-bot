@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { EngineEvent } from '@craftabot/core';
-	import { labelForEvent, laneLabel, laneOf } from '$lib/trace-style.js';
+	import { labelForEvent, laneLabel, laneOf, type TraceLane } from '$lib/trace-style.js';
 	import {
 		DEFAULT_OVERSCAN,
 		computeWindow,
@@ -50,6 +50,26 @@
 		})
 	);
 	const visible = $derived(events.slice(window_.start, window_.end));
+	/**
+	 * The first composed prompt, which chapter 2 points the reader at (`16-…`
+	 * §2.2). The *first* rather than the latest: the lesson is what the bot was
+	 * told at the start, and a moving arrow would be a worse instruction than a
+	 * still one.
+	 */
+	const firstPromptId = $derived(events.find((event) => event.type === 'prompt.composed')?.id);
+
+	/** Every lane, in the order a turn goes through them. */
+	const LEGEND: TraceLane[] = [
+		'run',
+		'tick',
+		'sense',
+		'think',
+		'tool',
+		'action',
+		'memory',
+		'guardrail',
+		'error'
+	];
 	const selected = $derived(selectedIndex === undefined ? undefined : events[selectedIndex]);
 
 	$effect(() => {
@@ -111,6 +131,23 @@
 		{/if}
 	</header>
 
+	<!--
+		What the colours down the left mean (`16-…` §2.2). The rows have been
+		colour-coded by brick since WP6 with nothing anywhere saying so, which
+		makes a legend the difference between a code and a decoration.
+	-->
+	<details class="legend" data-testid="trace-legend">
+		<summary>What do the colours mean?</summary>
+		<ul>
+			{#each LEGEND as lane (lane)}
+				<li class="lane lane--{lane}">
+					<span class="swatch" aria-hidden="true"></span>
+					{laneLabel(lane)}
+				</li>
+			{/each}
+		</ul>
+	</details>
+
 	<div
 		class="viewport"
 		style="height: {viewportHeight}px"
@@ -130,6 +167,7 @@
 						style="height: {rowHeight}px"
 						data-testid="trace-row"
 						data-event-type={event.type}
+						data-tutorial={event.id === firstPromptId ? 'prompt-row' : undefined}
 						aria-label="Turn {event.tick}, {laneLabel(lane)}: {labelForEvent(event)}"
 						onclick={() => (selectedIndex = index)}
 					>
@@ -194,6 +232,45 @@
 
 	.chip:focus-visible {
 		outline: 3px solid var(--cab-yellow);
+		outline-offset: var(--cab-focus-gap);
+	}
+
+	.legend {
+		padding: 0 var(--cab-space-3) var(--cab-space-2);
+		font-size: var(--cab-text-xs);
+		color: var(--cab-cream);
+	}
+
+	.legend summary {
+		cursor: pointer;
+		padding: var(--cab-space-1) 0;
+	}
+
+	.legend ul {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--cab-space-1) var(--cab-space-3);
+		margin: var(--cab-space-1) 0 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.legend .lane {
+		display: flex;
+		align-items: center;
+		gap: var(--cab-space-1);
+	}
+
+	.legend .swatch {
+		width: 12px;
+		height: 12px;
+		border-radius: 2px;
+		background: var(--lane-colour);
+		border: 1px solid var(--cab-cream);
+	}
+
+	.legend summary:focus-visible {
+		outline: var(--cab-focus-ring);
 		outline-offset: var(--cab-focus-gap);
 	}
 

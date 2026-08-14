@@ -31,7 +31,13 @@ import {
 
 const ACTIONS = { enabled: ['move', 'say', 'pick_up', 'give', 'open', 'celebrate'] };
 const SIGHT = { channels: ['sight', 'compass'] };
-const MEMORY = { windowSize: 10 as const, notebook: false };
+/*
+ * The notebook is on. This fixture stands for "a bot with everything a reader
+ * could have switched on", which is what the satisfiability check needs — and
+ * chapter 7's notebook step is genuinely reachable, just not by a bot that
+ * never turned it on.
+ */
+const MEMORY = { windowSize: 10 as const, notebook: true };
 
 function spec(over: Partial<AgentSpec> & { bricks?: AgentSpec['bricks'] } = {}): AgentSpec {
 	return {
@@ -78,14 +84,16 @@ function ctx(over: Partial<LeafletContext> & { spec?: AgentSpec } = {}): Leaflet
 }
 
 describe('the shape of the arc', () => {
-	it('has the six chapters of 02 §9, numbered in order', () => {
-		expect(CHAPTERS).toHaveLength(6);
-		expect(CHAPTERS.map((chapter) => chapter.number)).toStrictEqual([1, 2, 3, 4, 5, 6]);
+	it('has the seven chapters of 02 §9, numbered in order', () => {
+		// Seven since WP17 §2.2: the six brick chapters plus "Turning the dials",
+		// which teaches the settings the other six never mention.
+		expect(CHAPTERS).toHaveLength(7);
+		expect(CHAPTERS.map((chapter) => chapter.number)).toStrictEqual([1, 2, 3, 4, 5, 6, 7]);
 	});
 
 	it('gives every chapter a distinct badge', () => {
 		const ids = CHAPTERS.map((chapter) => chapter.badge.id);
-		expect(new Set(ids).size).toBe(6);
+		expect(new Set(ids).size).toBe(CHAPTERS.length);
 	});
 
 	it('keeps every anchor in ALL_ANCHORS unique', () => {
@@ -314,6 +322,37 @@ describe('chapters 2 to 6 each reach their badge', () => {
 		);
 	});
 
+	it('chapter 7 — turning the dials', () => {
+		const chapter = chapterByNumber(7)!;
+		const bricks = {
+			...base,
+			sense: SIGHT,
+			memory: { windowSize: 10 as const, notebook: false },
+			tools: { enabled: ['starter/calculator'] }
+		};
+
+		const onBench = ctx({ route: 'bench', spec: spec({ bricks }) });
+		expect(currentStepOf(chapter, onBench)?.id).toBe('temperature');
+
+		// The four reading steps, in order.
+		const read = new Set<string>();
+		for (const id of ['temperature', 'reply-length', 'personality', 'memory-span']) {
+			expect(currentStepOf(chapter, ctx({ ...onBench, acked: new Set(read) }))?.id).toBe(id);
+			read.add(id);
+		}
+
+		// Then the one that is genuinely checked.
+		const beforeNotebook = ctx({ ...onBench, acked: new Set(read) });
+		expect(currentStepOf(chapter, beforeNotebook)?.id).toBe('notebook');
+
+		const withNotebook = ctx({
+			route: 'bench',
+			acked: new Set(read),
+			spec: spec({ bricks: { ...bricks, memory: { windowSize: 10 as const, notebook: true } } })
+		});
+		expect(isChapterComplete(chapter, withNotebook)).toBe(true);
+	});
+
 	it('chapter 6 — who says yes', () => {
 		const chapter = chapterByNumber(6)!;
 		const bricks = {
@@ -342,7 +381,16 @@ describe('chapters 2 to 6 each reach their badge', () => {
 		});
 		expect(currentStepOf(chapter, asking)?.id).toBe('approve');
 
-		// The chapter is finished by a human actually being asked (08 §3).
-		expect(isChapterComplete(chapter, ctx({ ...asking, sawApproval: true }))).toBe(true);
+		// A human is actually asked (08 §3) — then the two reading steps that
+		// cover the panel's other limits (`16-…` §2.2).
+		const asked = ctx({ ...asking, sawApproval: true });
+		expect(currentStepOf(chapter, asked)?.id).toBe('limits');
+
+		const readLimits = ctx({ ...asked, acked: new Set(['limits']) });
+		expect(currentStepOf(chapter, readLimits)?.id).toBe('blocklist');
+
+		expect(
+			isChapterComplete(chapter, ctx({ ...asked, acked: new Set(['limits', 'blocklist']) }))
+		).toBe(true);
 	});
 });

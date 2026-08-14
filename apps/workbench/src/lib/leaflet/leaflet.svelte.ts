@@ -39,7 +39,7 @@ export interface LeafletController {
 	readonly step: LeafletStep | undefined;
 	readonly steps: LeafletStepView[];
 	readonly badges: readonly string[];
-	/** All six chapters done. */
+	/** Every chapter done. */
 	readonly complete: boolean;
 	readonly justEarned: string | undefined;
 

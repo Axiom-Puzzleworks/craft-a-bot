@@ -110,6 +110,20 @@
 Spotlight the _specific_ prompt row in chapter 2 (not the whole drawer); add a chapter or side-quest covering temperature/memory-span/notebook (the dials are never taught); fix the badge toast showing ids; add a trace-lane legend card to the Flight Recorder header; add a 5-minute "quick tour" alternative to the full arc.
 **Accept:** leaflet e2e extended per change; every configurable control referenced by at least one chapter/side-quest.
 
+> **Amended 2026-08-14 (WP17 slice e):** four of the five built; the quick tour deferred.
+>
+> **The acceptance criterion is now a test.** `coverage.test.ts` enumerates every field of every brick schema and holds each to being claimed by a chapter's `controls`. It is declared rather than inferred from the prose — a chapter that mentions "temperature" in passing has not taught it, and a test matching on words would be satisfied by the mention. A brick that grows a field fails there until somebody decides where it is taught, which is the same trick as WP12's dead-config audit and for the same reason: deciding is the point.
+>
+> **A seventh chapter, "Turning the dials"** (`02-…` §9 amended to match). Thirteen controls were configurable and none was claimed; the six brick chapters go from "fit the brick" straight to "run it", so the settings that most change how an agent behaves had no lesson. Mostly `ack` steps by necessity — `BotCapabilities` reports what a bot *can do*, not what it is *set to*, and inventing a way to watch numbers change would be a large seam for a small gain. The notebook is genuinely checked, because having one is a capability. Chapter 6 also gained two reading steps so its claims on the step budget, the loop-breaker and the blocklist are honest ones.
+>
+> **The prompt row is spotlit, not the drawer.** Chapter 2 asked the reader to "read the first prompt" while pointing at the whole Flight Recorder — a hundred rows, one of which was meant. The anchor scan in `anchors.test.ts` was taught to read a *conditional* anchor, since the row is only the first composed prompt.
+>
+> **The badge toast says the name** (`12-…` D16's last item): it read "Merit badge earned: **elephant-memory**", because the earned list holds ids and the name lives on the chapter. **A trace-lane legend** now sits in the Flight Recorder header — the rows have been colour-coded by brick since WP6 with nothing anywhere saying so, which is the difference between a code and a decoration.
+>
+> **Deferred: the five-minute quick tour.** It is a second authored path through the same material, and its content depends on which of the seven chapters a hurried adult most needs — a decision about audience rather than a gap in the code.
+>
+> One honest note on coverage. The browser walk proves the six brick chapters end to end and that the arc *reaches* chapter 7; chapter 7's own predicates are pinned by a unit walk in `chapters.test.ts`, alongside every other chapter's. Driving it through the browser too would have added a minute to the slowest test in the suite to re-prove what the unit walk already holds.
+
 ### 2.3 Celebration, identity, and delight
 
 Render `boxArtSeed` (deterministic box art + bot face variation); success = confetti FX + Teddy-happy + fanfare (sound prompt on first success: "Want sound effects?"); merit-badge and approval and guardrail cue sites added to `sound.ts`; end cards gain a "what would help?" hint drawn from the trace (e.g. OUT_OF_STEPS + high loop score → "It kept trying the same thing — the Safety brick has a rule for that").
