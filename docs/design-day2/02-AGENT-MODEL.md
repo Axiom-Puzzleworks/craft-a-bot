@@ -252,3 +252,6 @@ The instruction-leaflet tutorial builds concepts in this order — each step is 
 4. "Sums for Teddy" without Tools → _hallucination_; add calculator.
 5. "The locked chest" → _retrieval_ (`look_up_manual`).
 6. Add Safety Brick, approval mode on → _governance exists_ (purpose 2 seed).
+7. Turn the dials → _sampling and context_ (temperature, reply length, personality, memory span, notebook).
+
+> **Amended 2026-08-14 (WP17 §2.2):** a seventh chapter. The six above teach the bricks and never the *settings* — a child can set a temperature, a reply length, a personality, a memory span and a notebook, and the arc went from "fit the brick" straight to "run it". The settings that most change how an agent behaves were the ones with no lesson attached, which `16-…` §2.2 records as the leaflet review's clearest gap. `coverage.test.ts` now holds every configurable field to being claimed by some chapter, so a brick that grows a field fails until somebody decides where it is taught.

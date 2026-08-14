@@ -38,6 +38,13 @@ export const ANCHORS = {
 	stepButton: 'step-button',
 	thoughtBubble: 'thought-bubble',
 	flightRecorder: 'flight-recorder',
+	/*
+	 * The composed-prompt row itself, not the drawer around it (`16-…` §2.2).
+	 * Chapter 2 asks the reader to "read the first prompt" and pointed at the
+	 * whole Flight Recorder — a hundred rows, one of which was meant. An arrow
+	 * that vague is a worse instruction than no arrow.
+	 */
+	promptRow: 'prompt-row',
 	backToBench: 'back-to-bench'
 } as const;
 

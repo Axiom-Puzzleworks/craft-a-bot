@@ -2,7 +2,7 @@
 	import { CHAPTERS } from '$lib/leaflet/chapters.js';
 
 	/**
-	 * The leaflet's back page (03-UI-UX-DESIGN.md §6): a sheet of six merit-badge
+	 * The leaflet's back page (03-UI-UX-DESIGN.md §6): a sheet of merit-badge
 	 * stickers, greyed until earned.
 	 *
 	 * "Pure delight, no gamification systems beyond this" — so there is no score,

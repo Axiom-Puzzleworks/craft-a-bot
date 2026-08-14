@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { badgeName, CHAPTERS } from '$lib/leaflet/chapters.js';
 	import type { LeafletController } from '$lib/leaflet/leaflet.svelte.js';
 	import { preferences } from '$lib/state/preferences.svelte.js';
 	import BadgePage from './BadgePage.svelte';
@@ -66,7 +67,9 @@
 		{#if leaflet.complete}
 			<header>
 				<p class="eyebrow">Instruction leaflet</p>
-				<h2 data-testid="leaflet-title">All six chapters built!</h2>
+				<!-- Counted, not spelled out: the arc grew a seventh chapter in WP17
+				     and the copy said six for a while before anyone noticed. -->
+				<h2 data-testid="leaflet-title">All {CHAPTERS.length} chapters built!</h2>
 			</header>
 			<p class="teaches">
 				You have built a bot that senses, remembers, uses tools, looks things up, and asks
@@ -157,7 +160,7 @@
 {/if}
 
 {#if leaflet.justEarned}
-	{@const badge = leaflet.badges.at(-1)}
+	{@const badge = badgeName(leaflet.justEarned)}
 	<div class="popper" role="status" data-testid="badge-earned" data-badge={leaflet.justEarned}>
 		<span class="popper-badge" aria-hidden="true">★</span>
 		<p>Merit badge earned: <strong>{badge}</strong></p>

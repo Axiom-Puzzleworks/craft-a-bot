@@ -33,6 +33,17 @@ const markup = svelteSources(join(workbenchRoot(), 'src')).join('\n');
 /** `data-tutorial="tray-{kind}"` covers `tray-llm`, `tray-sense`, and so on. */
 function isPlacedInMarkup(anchor: string): boolean {
 	if (markup.includes(`data-tutorial="${anchor}"`)) return true;
+
+	/*
+	 * An anchor may be conditional — the prompt row is only the *first* composed
+	 * prompt, so it is written `data-tutorial={isFirst ? 'prompt-row' :
+	 * undefined}`. Scanned as an expression rather than an attribute value, and
+	 * still precise: the anchor has to appear quoted inside a `data-tutorial`
+	 * expression, not merely somewhere in the file.
+	 */
+	for (const match of markup.matchAll(/data-tutorial=\{[^}]*\}/g)) {
+		if (match[0].includes(`'${anchor}'`)) return true;
+	}
 	const templated = /data-tutorial="([^"]*\{[^"]*)"/g;
 	for (const match of markup.matchAll(templated)) {
 		const pattern = match[1] ?? '';

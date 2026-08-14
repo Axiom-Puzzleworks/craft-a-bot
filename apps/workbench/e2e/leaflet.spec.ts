@@ -74,7 +74,7 @@ test('the leaflet greets a first-timer and can be waved away', async ({ page }) 
 	await expect(page.getByTestId('leaflet')).toBeVisible();
 });
 
-test('walks all six chapters and collects all six badges', async ({ page }) => {
+test('walks the six brick chapters and collects their badges', async ({ page }) => {
 	test.slow();
 	await page.goto('/');
 	await expect(page.getByTestId('leaflet')).toBeVisible();
@@ -199,17 +199,31 @@ test('walks all six chapters and collects all six badges', async ({ page }) => {
 	await expect(approval).toBeVisible();
 	await page.getByTestId('approval-allow').click();
 
-	// ── All six ───────────────────────────────────────────────────────────────
+	// Two reading steps close chapter 6: the panel's other limits (`16-…` §2.2).
+	for (let step = 0; step < 2; step++) {
+		await page.getByTestId('leaflet-ack').click();
+	}
+
 	await expect(page.getByTestId('badge-earned')).toBeVisible();
 	await page.getByTestId('badge-dismiss').click();
-	await expect(page.getByTestId('leaflet-title')).toHaveText('All six chapters built!');
 
-	await page
-		.getByTestId('leaflet-badges')
-		.or(page.getByTestId('badge-page'))
-		.first()
-		.click({ trial: true })
-		.catch(() => {});
+	/*
+	 * Chapter 7 ("Turning the dials") hands over here, and its own walk lives in
+	 * `chapters.test.ts` alongside every other chapter's. Driving it through the
+	 * browser as well would add a minute to the slowest test in the suite to
+	 * re-prove predicates a unit walk already pins — what only a browser can
+	 * settle is that the arc *reaches* it, which is what this asserts.
+	 */
+	await page.getByRole('link', { name: /Back to the bench/ }).click();
+	await expect(page.getByTestId('baseplate')).toBeVisible();
+	await expect(page.getByTestId('leaflet-title')).toHaveText('Turning the dials');
+	await expect(currentStep(page)).toContainText('temperature dial');
+
+	// The badge sheet, opened from the leaflet's own button. It used to be
+	// reached through the "all chapters built" screen, which the arc no longer
+	// hits at chapter 6 now that a seventh follows it.
+	await page.getByTestId('leaflet-badges').click();
+
 	for (const badge of [
 		'first-words',
 		'eyes-open',

@@ -100,6 +100,15 @@ export interface Chapter {
 	/** The concept underneath the toy, shown on the chapter's flip side (00 §6). */
 	teaches: string;
 	badge: { id: string; name: string };
+	/**
+	 * The `brick.field` controls this chapter teaches (`16-…` §2.2).
+	 *
+	 * Declared rather than inferred from the prose: a chapter that mentions
+	 * "temperature" in passing has not taught it, and a test that matched on
+	 * words would be satisfied by the mention. `coverage.test.ts` holds every
+	 * configurable field to having a chapter that claims it.
+	 */
+	controls?: string[];
 	steps: LeafletStep[];
 }
 
@@ -128,6 +137,7 @@ export const CHAPTERS: Chapter[] = [
 		title: 'A brain with no hands',
 		teaches: 'The agent loop: sense, think, act — and what happens when a link is missing.',
 		badge: { id: 'first-words', name: 'First Words' },
+		controls: ['llm.cartridgeId', 'actions.enabled'],
 		steps: [
 			{
 				id: 'new-bot',
@@ -195,6 +205,7 @@ export const CHAPTERS: Chapter[] = [
 		title: 'Eyes open',
 		teaches: 'Observations: a model can only reason about what it is told.',
 		badge: { id: 'eyes-open', name: 'Eyes Open' },
+		controls: ['sense.channels'],
 		steps: [
 			{
 				id: 'blind',
@@ -213,7 +224,7 @@ export const CHAPTERS: Chapter[] = [
 				id: 'see',
 				latch: true,
 				text: 'Run it again and read the first prompt in the Flight Recorder.',
-				anchor: ANCHORS.flightRecorder,
+				anchor: ANCHORS.promptRow,
 				done: (ctx) => succeeded(ctx)
 			}
 		]
@@ -294,6 +305,7 @@ export const CHAPTERS: Chapter[] = [
 		title: 'Looking things up',
 		teaches: 'Retrieval: what to do about the things a model was never told.',
 		badge: { id: 'key-finder', name: 'Key Finder' },
+		controls: ['tools.enabled'],
 		steps: [
 			{
 				id: 'chest-card',
@@ -344,6 +356,12 @@ export const CHAPTERS: Chapter[] = [
 		title: 'Who says yes',
 		teaches: 'Guardrails: limits, blocked actions, and a human in the loop.',
 		badge: { id: 'safety-first', name: 'Safety First' },
+		controls: [
+			'safety.approvalMode',
+			'safety.maxTicks',
+			'safety.repeatLimit',
+			'safety.blockedActions'
+		],
 		steps: [
 			{
 				id: 'fit-safety',
@@ -363,6 +381,90 @@ export const CHAPTERS: Chapter[] = [
 				text: 'Run it. Now nothing happens to the world until you say so.',
 				anchor: ANCHORS.stepButton,
 				done: (ctx) => ctx.sawApproval
+			},
+			{
+				id: 'limits',
+				ack: true,
+				text: 'The same panel holds two limits: how many steps it may take, and how many times it may repeat itself before the loop-breaker steps in.',
+				anchor: ANCHORS.brickPanel,
+				done: wasRead('limits')
+			},
+			{
+				id: 'blocklist',
+				ack: true,
+				text: 'And a list of actions it may never take at all. A rule you set beats anything the brain decides.',
+				anchor: ANCHORS.brickPanel,
+				done: wasRead('blocklist')
+			}
+		]
+	},
+	/**
+	 * The dials, which nothing taught (`16-…` §2.2). A child can set a
+	 * temperature, a reply length, a personality, a memory span and a notebook,
+	 * and the leaflet went from "fit the brick" straight to "run it" — so the
+	 * settings that most change how an agent behaves were the ones with no
+	 * lesson attached.
+	 *
+	 * Mostly `ack` steps, deliberately. A dial's *value* is not visible to the
+	 * leaflet — `BotCapabilities` reports what a bot can do, not what it is set
+	 * to — and inventing a way to watch numbers change would be a large seam for
+	 * a small gain. The notebook is the exception, because having one is a
+	 * capability, so that step is genuinely checked.
+	 */
+	{
+		id: 'dials',
+		number: 7,
+		title: 'Turning the dials',
+		teaches:
+			'Sampling and context: the same brain, told the same thing, behaves differently depending on how it is set.',
+		badge: { id: 'dial-turner', name: 'Dial Turner' },
+		controls: [
+			'llm.temperature',
+			'llm.maxTokens',
+			'llm.personality',
+			'memory.windowSize',
+			'memory.notebook'
+		],
+		steps: [
+			/*
+			 * No "fit the Brain brick" step to open on: by chapter 7 it is long
+			 * since fitted, so the step would be satisfied the instant it appeared
+			 * and the reader would never see it. The instruction to open the panel
+			 * rides on the first dial instead.
+			 */
+			{
+				id: 'temperature',
+				ack: true,
+				text: 'Click the Brain brick to open its panel. The temperature dial is how adventurous it is — low: careful and repetitive; high: surprising, and sometimes nonsense.',
+				anchor: ANCHORS.brickPanel,
+				done: wasRead('temperature')
+			},
+			{
+				id: 'reply-length',
+				ack: true,
+				text: 'Next to it, how much it may say in one go. Too little and it stops mid-thought.',
+				anchor: ANCHORS.brickPanel,
+				done: wasRead('reply-length')
+			},
+			{
+				id: 'personality',
+				ack: true,
+				text: 'And a box for who it is. Whatever you write there goes into every prompt it is ever given — look for it in the Flight Recorder.',
+				anchor: ANCHORS.promptRow,
+				done: wasRead('personality')
+			},
+			{
+				id: 'memory-span',
+				ack: true,
+				text: 'The Scrapbook brick has a dial too: how many turns it remembers. A short memory is why a bot asks the same question twice.',
+				anchor: ANCHORS.brickPanel,
+				done: wasRead('memory-span')
+			},
+			{
+				id: 'notebook',
+				text: 'Switch on its notebook. Now it can write things down and read them back — memory it chooses, rather than memory it is given.',
+				anchor: ANCHORS.brickPanel,
+				done: (ctx) => ctx.can?.notebook === true
 			}
 		]
 	}
@@ -405,4 +507,16 @@ export function isChapterComplete(
 	latched: ReadonlySet<string> = new Set()
 ): boolean {
 	return currentStepOf(chapter, ctx, latched) === undefined;
+}
+
+/**
+ * A merit badge's name, from its id (`12-…` D16).
+ *
+ * The toast said "Merit badge earned: **elephant-memory**", because the earned
+ * list holds ids and the name lives on the chapter that awards it. A child
+ * being congratulated in kebab-case is the sort of detail that says nobody
+ * looked.
+ */
+export function badgeName(id: string): string {
+	return CHAPTERS.find((chapter) => chapter.badge.id === id)?.badge.name ?? id;
 }
