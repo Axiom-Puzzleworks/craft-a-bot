@@ -20,6 +20,14 @@
 	const active = $derived(cards.find((card) => card.id === activeCardId));
 	const isFreePlay = $derived(activeCardId === 'starter/free-play');
 
+	/**
+	 * The card declares itself expert (`16-…` §1.1) — the flag is the author's,
+	 * not something inferred here. A pack could ship a long card it considers
+	 * ordinary, or a short one it wants flagged, and second-guessing that from
+	 * `par` alone would take the decision away from the person who wrote it.
+	 */
+	const isExpert = $derived(active?.expert === true);
+
 	/** Difficulty pips, inferred from how much the card asks of the bot. */
 	function pips(card: GoalCardDefinition): number {
 		return Math.min(3, Math.max(1, card.teachesConcepts.length));
@@ -54,6 +62,14 @@
 			<p class="goal" data-testid="active-goal">
 				{isFreePlay && customGoalText !== '' ? customGoalText : active.goalText}
 			</p>
+			{#if active.par !== undefined}
+				<p class="par" data-testid="card-par">
+					About <strong>{active.par}</strong> steps
+					{#if isExpert}<span class="expert" data-testid="card-expert"
+							>— Expert card! Your bot will probably need a bigger step budget.</span
+						>{/if}
+				</p>
+			{/if}
 			{#if isFreePlay}
 				<label class="marker">
 					<span>Write your own goal</span>
@@ -160,6 +176,17 @@
 		margin: 0;
 		font-size: var(--cab-text-xs);
 		opacity: 0.75;
+	}
+
+	.par {
+		margin: 0;
+		font-size: var(--cab-text-sm);
+	}
+
+	/* The expert warning earns full contrast: it is the reason the dial exists. */
+	.expert {
+		color: var(--cab-orange);
+		font-weight: 600;
 	}
 
 	.marker {

@@ -57,7 +57,16 @@ const BODY_PAIRS: [string, string, string][] = [
 	['green-text', 'cream', 'trace ticks'],
 	['purple-text', 'cream', 'tool lane'],
 	['cream', 'green-fill', 'the "ready" chip and the STEP button'],
-	['cream', 'red-fill', 'the "blocking" chip and the GO lever']
+	['cream', 'red-fill', 'the "blocking" chip and the GO lever'],
+	/*
+	 * The nav header (`16-…` §1.5). Added because it was got wrong: the header
+	 * first shipped `--cab-blue-text` on `--cab-blue`, which is the dark blue
+	 * meant for blue text on paper and gives about 1.35:1 on a blue ground. It
+	 * was invisible in the running app and no test objected, because this table
+	 * only holds down the pairs somebody thought to add.
+	 */
+	['cream', 'blue', 'the nav header — Shelf, Instructions, Settings'],
+	['ink', 'plastic-hi', 'the nav header entry for the screen you are on']
 ];
 
 /**

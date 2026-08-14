@@ -15,6 +15,8 @@
 
 > **Amended 2026-08-13 (WP11):** the engine and content half is done — cards re-scoped, `par` on every winnable card, and the L3 suite (`packages/packs/starter/src/session/solvability.test.ts`) proving each one inside the default budget and asserting the plan is exactly as long as the par it advertises. The deliberately-hard card is a **seventh** card, `starter/locked-chest-expert`, preserving V1.0's layout rather than leaving one of the flagship two unwinnable; its measured par is 36. **Showing par on the card holder is still to do and belongs to this WP's UI wave (WP16)** — the data is there waiting for it.
 
+> **Amended 2026-08-14 (WP16 slice c):** the card holder now shows it — "About **N** steps", with the expert card's warning beside it. The `expert` flag on the card is what drives that warning, not a threshold computed from `par`: a pack may ship a long card it considers ordinary, and guessing would take the decision from the author. One consequence, found only by looking at it: the expert warning was **also** `hints[0]` on `starter/locked-chest-expert`, put there by WP11 because the holder had nowhere to say it, so the card announced itself twice — once beside its par and once as "You'll probably need: Expert card…". That hint is now removed; hints are for what is in the room.
+
 ### 1.2 Show the bot's failures where the player can see them (C2's UI face)
 
 **Problem:** world refusals ("too far away", "locked") are invisible unless buried in memory prose; players watch the bot repeat mistakes and can't tell why — the single biggest "this toy is broken" impression.
@@ -42,6 +44,8 @@
 **Accept:** reload mid-run → run resumes as ended-in-progress with partial trace kept; storage-contract e2e; replay of a golden trace is pixel-consistent with live run.
 
 > **Amended 2026-08-14 (WP16 status):** outstanding — this is **slice e**, the largest remaining piece of WP16 and the last of the five. It depends on slice b's story strip, which is built, and on slice a's constraint that narration derive from **events alone**: the same `lib/narration/narrate.ts` must drive a live run and a replayed one without the two disagreeing, which is exactly what the replay viewer needs. Per hard rule 3, the persistence/replay work needs its new observable behaviour added to the event catalogue in `02-…` §7 in the same PR.
+>
+> **`mode` is no longer part of this slice's scope.** The problem statement's "`mode` recorded wrongly" was fixed by WP13's E8: `toRunRecord` derives it from `run.started` rather than hard-coding `'step'`, so a run played straight through is no longer filed as a stepped one. What remains here is (a) incremental persistence, (b) the Scrapbook, and (d) the leave-mid-run confirm.
 
 ### 1.5 Navigation, confirmations, and safe destruction
 
@@ -49,7 +53,11 @@
 **Design:** persistent kit-styled header (Shelf · Scrapbook · Instructions · Settings); Bin asks "Take {name} apart? Its adventures stay in the scrapbook" with export nudge; eviction shows the friendly notice the storage layer already returns.
 **Accept:** e2e for nav from every route; delete requires confirm; eviction notice spec.
 
-> **Amended 2026-08-14 (WP16 status):** outstanding — this is **slice c**, and the next thing to pick up. It also carries the leftover from §1.1: **par on the card holder is display-only**, since WP11 landed the `par` data on every winnable card. The eviction notice is likewise display-only — the storage layer already returns the friendly message, it simply reaches no UI.
+> **Amended 2026-08-14 (WP16 slice c):** built. The header is `lib/components/kit/NavHeader.svelte`, mounted in the layout beside the leaflet — Settings is now reachable from every screen, closing D16's first half. **Instructions is a button, not a link:** the leaflet is an overlay the layout owns because its chapters span the bench and the Playroom, so navigating to it would lose the reader's place. **Scrapbook is deliberately not in the header yet** — `/scrapbook/[agentId]` arrives with slice e, and a dimmed button that does nothing is a worse promise to a five-year-old than a header that gains an item. A test pins that absence and should be deleted when slice e lands.
+>
+> The Bin now asks, in `TakeApartConfirm.svelte`, with the export nudge. Cancel takes focus and Escape cancels: the safe answer is the one you get by flinching.
+>
+> **A correction to the design above.** "the friendly notice the storage layer already returns" was not true — `evictOldRuns` returns the evicted **ids** (`Promise<string[]>`), and its own comment says they exist "so the UI can show the friendly notice". The notice had to be written, not surfaced; it is `lib/eviction-notice.ts`, a pure function so the copy can be tested, and the play route had been discarding the return value entirely.
 
 ### 1.6 An honest speed dial and lively status
 

@@ -307,8 +307,15 @@ export const goalCardStrings = {
 	'locked-chest-expert': {
 		title: 'The locked chest — expert',
 		goalText: 'The chest is locked and all three blocks are out. Open it and tidy every one away.',
+		/*
+		 * The "Expert card — bigger step budget!" line used to lead this list.
+		 * WP11 put it in a hint because the card holder had nowhere to say it;
+		 * WP16 slice c gave the holder somewhere, and the card then announced
+		 * itself twice — once beside its par and once as "You'll probably need:
+		 * Expert card…", which is not a thing anyone needs. Hints are for what
+		 * is in the room; the difficulty label belongs to the card.
+		 */
 		hints: [
-			'Expert card — your bot will probably need a bigger step budget!',
 			'Turn the step dial up before you pull the lever.',
 			'Three blocks, one pair of hands, and a key to fetch first.'
 		]
