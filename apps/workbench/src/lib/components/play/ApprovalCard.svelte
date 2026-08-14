@@ -25,15 +25,27 @@
 
 	let { approval, botName, onallow, ondeny }: Props = $props();
 
-	/** `open(toy_chest)` — the call as the bot actually proposed it. */
+	/**
+	 * `open(what: toy_chest)` — the call as the bot actually proposed it.
+	 *
+	 * With the names, not just the values (`16-…` §2.1). `move(north)` and
+	 * `give(teddy)` read plausibly enough that nobody noticed the names were
+	 * missing; `put_down(block_a, shelf)` does not, and a person being asked to
+	 * approve an action needs to know which argument is which before they can
+	 * answer. Approval is the one place in the toy where a grown-up is being
+	 * asked to take responsibility, so the question has to be legible.
+	 */
 	const signature = $derived.by(() => {
 		const args = approval.arguments;
 		if (args === null || typeof args !== 'object') return `${approval.name}()`;
-		const values = Object.values(args as Record<string, unknown>).map((value) =>
-			typeof value === 'string' ? value : JSON.stringify(value)
+		const named = Object.entries(args as Record<string, unknown>).map(
+			([name, value]) => `${name}: ${typeof value === 'string' ? value : JSON.stringify(value)}`
 		);
-		return `${approval.name}(${values.join(', ')})`;
+		return `${approval.name}(${named.join(', ')})`;
 	});
+
+	/** "Why am I being asked?" — collapsed, because the answer is not always wanted. */
+	let whyOpen = $state(false);
 
 	/*
 	 * Deny takes the focus, not Allow. The run is stopped waiting for a person,
@@ -56,6 +68,15 @@
 		{botName} wants to <code data-testid="approval-signature">{signature}</code>
 	</h2>
 	<p id="approval-reason">{approval.reason}</p>
+
+	<details class="why" data-testid="approval-why" bind:open={whyOpen}>
+		<summary>Why am I being asked?</summary>
+		<p>
+			Your bot was built with the Safety Brick set to <strong>ask first</strong>. It is not stuck
+			and it has not done anything wrong — it has stopped and asked, which is exactly what that
+			setting is for. Whatever you answer, the trace records that you were asked and what you said.
+		</p>
+	</details>
 
 	<div class="actions">
 		<button
@@ -109,6 +130,28 @@
 		font-size: var(--cab-text-sm);
 		line-height: 1.5;
 		color: var(--cab-ink);
+	}
+
+	.why {
+		font-size: var(--cab-text-xs);
+		text-align: left;
+		max-width: 26rem;
+	}
+
+	.why summary {
+		cursor: pointer;
+		font-weight: 600;
+		padding: var(--cab-space-1);
+	}
+
+	.why p {
+		margin: var(--cab-space-1) 0 0;
+		color: var(--cab-ink-muted);
+	}
+
+	.why summary:focus-visible {
+		outline: var(--cab-focus-ring);
+		outline-offset: var(--cab-focus-gap);
 	}
 
 	.actions {

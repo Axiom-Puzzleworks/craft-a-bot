@@ -93,6 +93,18 @@
 **Design:** make governance _visible working_: the chest brick glows amber whenever a check runs and flashes green/red on verdicts ("SAFETY FIRST" stamp FX on blocks); a small **safety ticker** on the head-up bar counts checks/blocks this run ("Safety brick: 14 checks, 2 saves"); denied actions show the stamped card in-world; the end card for STOPPED_BY_GUARDRAIL stays celebratory. Approval card gains argument names (fix the values-only signature) and a "why am I being asked?" flip.
 **Accept:** every `guardrail.checked/tripped` has a visible/audible beat; e2e asserts ticker counts match trace counts.
 
+> **Amended 2026-08-14 (WP17 slice c):** the **safety ticker** is built and is the heart of this section. `lib/safety-tally.ts` counts from events — a denial emits `guardrail.tripped` alongside its `guardrail.checked`, so counting tripped events counts each denial exactly once — and the head-up bar reads "Safety brick: 14 checks, nothing to stop". The quiet success is the case worth showing: a run where the brick checked fourteen times and stopped nothing looked, before this, exactly like a run with no safety brick at all. It says nothing before the first check, because "0 checks, 0 saves" reads like a broken brick rather than an idle one.
+>
+> **The acceptance test is taken literally**, and reads the counts back out of **storage** rather than off the screen — the Flight Recorder virtualises its rows, so counting what is rendered counts the wrong thing, and storage is the more useful comparison anyway: an independent record of the same events the ticker claims to summarise.
+>
+> **The approval card** now names its arguments — `move(direction: north)`, not `move(north)`. `move(north)` read plausibly enough that nobody noticed the names were missing; `put_down(block_a, shelf)` does not, and a person cannot answer a question they cannot parse. It also gains a "Why am I being asked?" disclosure, because approval is the one place in the toy where a grown-up is asked to take responsibility.
+>
+> **Three things in this section are deliberately not built, and one is already done.**
+>
+> - The **chest brick glowing amber** assumes the bricks are on screen during play. They are not — the baseplate lives on the bench, and the Playroom has no brick display at all. Putting one there is a layout change this section does not ask for and `03-…` §5.1 does not describe. The ticker carries the "visible beat" requirement instead.
+> - The **"SAFETY FIRST" stamp FX** and the **stamped card in-world** are art (`11-…` §9), and belong with WP18 like the confused face and the puff FX from §1.2.
+> - The **end card for STOPPED_BY_GUARDRAIL** was already celebratory — "The Safety Brick did its job… That is the system working, not failing." No change needed, and none made.
+
 ### 2.2 Tutorial gap-fixes (evidence: leaflet review)
 
 Spotlight the _specific_ prompt row in chapter 2 (not the whole drawer); add a chapter or side-quest covering temperature/memory-span/notebook (the dials are never taught); fix the badge toast showing ids; add a trace-lane legend card to the Flight Recorder header; add a 5-minute "quick tour" alternative to the full arc.

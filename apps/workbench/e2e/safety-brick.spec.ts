@@ -120,6 +120,107 @@ test('approval mode pauses for a person, who can allow the action', async ({ pag
 	await expect(page.getByTestId('world-view')).toBeVisible();
 });
 
+/**
+ * What the run actually recorded, read out of storage rather than off the
+ * screen. The Flight Recorder virtualises its rows — early ones are genuinely
+ * not in the DOM once a few turns have passed — so counting what is rendered
+ * counts the wrong thing. Storage is also the more useful comparison: it is an
+ * independent record of the same events the ticker claims to summarise.
+ */
+async function traceCounts(page: Page): Promise<{ checks: number; saves: number }> {
+	return page.evaluate(async () => {
+		const open = indexedDB.open('craftabot');
+		const db = await new Promise<IDBDatabase>((resolve, reject) => {
+			open.onsuccess = () => resolve(open.result);
+			open.onerror = () => reject(open.error);
+		});
+		const rows = await new Promise<{ event: { type: string } }[]>((resolve, reject) => {
+			const request = db.transaction('events').objectStore('events').getAll();
+			request.onsuccess = () => resolve(request.result as never);
+			request.onerror = () => reject(request.error);
+		});
+		db.close();
+		const of = (type: string) => rows.filter((row) => row.event.type === type).length;
+		return { checks: of('guardrail.checked'), saves: of('guardrail.tripped') };
+	});
+}
+
+test('the Safety Brick says what it has been doing', async ({ page }) => {
+	await buildWithSafetyBrick(page);
+	await go(page);
+
+	// Nothing has been checked yet, so the brick says nothing rather than
+	// announcing zero.
+	await expect(page.getByTestId('safety-ticker')).toHaveCount(0);
+
+	await page.getByTestId('step').click();
+	await expect(page.getByTestId('bot')).toBeVisible();
+
+	const ticker = page.getByTestId('safety-ticker');
+	await expect(ticker).toBeVisible();
+	await expect(ticker).toContainText('Safety brick:');
+
+	// The quiet success is the case worth showing: it checked, and there was
+	// nothing to stop.
+	await expect(ticker).toContainText('nothing to stop');
+});
+
+/**
+ * §2.1's acceptance test, literally. A ticker whose numbers drifted from the
+ * trace would be worse than no ticker — it would be the toy lying about the one
+ * brick this project exists to make legible.
+ */
+test('the ticker counts match the trace counts', async ({ page }) => {
+	await buildWithSafetyBrick(page);
+	await go(page);
+
+	for (let step = 0; step < 4; step++) {
+		if (await page.getByTestId('end-card').isVisible()) break;
+		await page.getByTestId('step').click();
+	}
+
+	const shown = await page.getByTestId('safety-ticker').getAttribute('data-checks');
+	const saves = await page.getByTestId('safety-ticker').getAttribute('data-saves');
+	const recorded = await traceCounts(page);
+
+	expect(Number(shown)).toBe(recorded.checks);
+	expect(Number(saves)).toBe(recorded.saves);
+	expect(recorded.checks).toBeGreaterThan(0);
+});
+
+/**
+ * The approval card is the one place in the toy where a grown-up is asked to
+ * take responsibility, so the question has to be legible (`16-…` §2.1).
+ */
+test('an approval names its arguments and explains why it is asking', async ({ page }) => {
+	await buildWithSafetyBrick(page);
+	await openSafetyPanel(page);
+	await page
+		.getByTestId('brick-controls-safety')
+		.getByRole('checkbox', { name: 'Ask before acting' })
+		.check();
+
+	await go(page);
+	await page.getByTestId('step').click();
+
+	await expect(page.getByTestId('approval-card')).toBeVisible({ timeout: 10_000 });
+
+	/*
+	 * With the argument names, not just the values. `move(north)` reads
+	 * plausibly enough that nobody noticed they were missing; `put_down(block_a,
+	 * shelf)` does not, and a person cannot answer a question they cannot parse.
+	 */
+	const signature = page.getByTestId('approval-signature');
+	await expect(signature).toContainText('move(');
+	await expect(signature).toContainText(':');
+
+	// And the card can say why it is asking, for the grown-up who does not know.
+	const why = page.getByTestId('approval-why');
+	await expect(why).toBeVisible();
+	await why.getByRole('group').or(why.locator('summary')).first().click();
+	await expect(why).toContainText('ask first');
+});
+
 test('approval mode lets a person deny, and the bot is told why', async ({ page }) => {
 	await buildWithSafetyBrick(page);
 	await openSafetyPanel(page);
