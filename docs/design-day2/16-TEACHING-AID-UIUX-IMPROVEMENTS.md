@@ -113,10 +113,20 @@ When `resolveNamed` reports ambiguity/miss, the world's narration already lists 
 `customGoalText` reaches the prompt (E-fix); "Goal achieved!" button ends the run as SUCCESS via `declareOutcome` (E2); `celebrate` also ends free play (E12) — the bot can decide it's done, which is a lovely lesson in self-assessment vs external judgement (contrast shown on the end card).
 **Accept:** e2e free-play run ends SUCCESS both ways; prompt contains the custom goal.
 
+> **Amended 2026-08-14 (WP17 slice b):** built, and the "E-fix" was the whole of it. `customGoalText` had been captured, stored and displayed since WP5 and never once put in the prompt — a child who wrote their own goal had a bot that pursued the card's printed wording instead. `composeSystemMessage` now prefers the written goal; whitespace does not count as writing, and the card still supplies the trace record and the success condition.
+>
+> **E12 was already done**: `freePlayManual` returns `state.celebrated`, so `celebrate` has ended a free-play run since WP11. What was missing was the other half — a person's verdict — which is now the "Goal achieved!" button on `session.declareOutcome`. The end card says which of the two happened, because that contrast *is* the card's lesson: a bot judging its own work and a person judging it are different things, and both are SUCCESS.
+
 ### 2.6 Hearing that works
 
 With E2's `deliverInput`: a chat bubble input on the play screen ("Say something to your bot") enabled when the Hearing channel is on; tutorial side-quest: redirect the bot mid-run by talking to it.
 **Accept:** e2e: typed message appears in next observation; sense-off leaves input disabled with explanation.
+
+> **Amended 2026-08-14 (WP17 slice b):** built as `SayToBot.svelte`. `deliverInput` existed from WP13's E2 and had no mouth; this is it, and it is the first control in the toy that changes a run while it is happening without stopping it.
+>
+> **Hearing is off by default** — the visor opens sight and compass — which the design above does not say and which matters, because the disabled state is the common one rather than the exception. The explanation therefore does the teaching, and it distinguishes **two** cases the design treats as one: a bot with no Eyes & Ears brick, and a bot that has the brick with its ears switched off. Only looking at it in the running app showed the difference — the copy was telling a child to fit a brick they had already fitted.
+>
+> The tutorial side-quest named here belongs to §2.2 and lands with slice e.
 
 ### 2.7 Play-route accessibility completion
 

@@ -263,31 +263,15 @@ describe('the dead-config audit', () => {
 		expect(PROBES.map((probe) => probe.path).filter((path) => !known.has(path))).toEqual([]);
 	});
 
-	const live = PROBES.filter((probe) => probe.path !== 'customGoalText');
-
-	it.each(live)('$path changes what the engine does', async ({ change }) => {
+	/*
+	 * `customGoalText` was carved out here while it was the one field the engine
+	 * ignored (D10). WP17 §2.5 wired it to the prompt, so it goes back in the
+	 * table with everything else and needs no special case.
+	 */
+	it.each(PROBES)('$path changes what the engine does', async ({ change }) => {
 		const before = await behaviourOf(draft());
 		const mutated = draft();
 		change(mutated);
-		expect(await behaviourOf(mutated)).not.toBe(before);
-	});
-
-	/**
-	 * D10, test-first. The Free Play card is "a laminated card with a marker
-	 * pen" (`02-…` §3): the user writes the goal, the bench stores it, the play
-	 * screen renders it — and `composePrompt` uses `goalCard.goalText`, so the
-	 * bot is told the printed goal and never the written one.
-	 *
-	 * `it.fails` because the fix is E2/`session.declareOutcome`-adjacent prompt
-	 * work in WP13, not a test-estate change. When the prompt starts carrying
-	 * the custom text this test will start *passing*, which makes `it.fails`
-	 * fail, which is the reminder to delete this comment and move the case up
-	 * into the table above.
-	 */
-	it.fails('customGoalText changes what the engine does — it does not, yet (D10)', async () => {
-		const before = await behaviourOf(draft());
-		const mutated = draft();
-		mutated.customGoalText = 'Ignore Teddy entirely and count the blocks instead.';
 		expect(await behaviourOf(mutated)).not.toBe(before);
 	});
 });

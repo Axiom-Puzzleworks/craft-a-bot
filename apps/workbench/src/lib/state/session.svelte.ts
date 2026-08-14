@@ -54,6 +54,8 @@ export interface SessionView {
 	readonly maxTicks: number;
 	readonly usage: { inputTokens: number; outputTokens: number };
 	readonly outcome: RunOutcome | undefined;
+	/** Why it ended, when the outcome alone does not say — see `RunProjection`. */
+	readonly finishedReason: string | undefined;
 	readonly events: EngineEvent[];
 	readonly runId: string | undefined;
 	readonly started: boolean;
@@ -62,6 +64,17 @@ export interface SessionView {
 
 	/** Answer an approval request. Ignored when nothing is pending. */
 	resolveApproval(approved: boolean): void;
+	/**
+	 * End the run on a judgement the world cannot make (`16-…` §2.5). Free Play
+	 * has no predicate but `celebrate`, so somebody has to decide it is done —
+	 * and both the person and the bot are allowed to.
+	 */
+	declareOutcome(outcome: RunOutcome, reason?: string): void;
+	/**
+	 * Say something to the bot from outside the world (`16-…` §2.6). A world
+	 * with no ears ignores it and the trace records that it did.
+	 */
+	deliverInput(text: string): void;
 	start(mode: RunMode): void;
 	step(): Promise<void>;
 	pause(): void;
@@ -205,6 +218,9 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 		get outcome() {
 			return state.outcome;
 		},
+		get finishedReason() {
+			return state.finishedReason;
+		},
 		get events() {
 			return state.events;
 		},
@@ -218,6 +234,13 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 			return state.pendingApproval;
 		},
 
+		declareOutcome(outcome, reason) {
+			session.declareOutcome(outcome, reason);
+			state.status = session.status;
+		},
+		deliverInput(text) {
+			session.deliverInput(text);
+		},
 		resolveApproval(approved) {
 			// `state.pendingApproval` is cleared by the `approval.resolved` event
 			// rather than here, so the UI stays a pure function of the trace.

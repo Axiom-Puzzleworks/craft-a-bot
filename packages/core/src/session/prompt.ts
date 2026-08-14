@@ -35,6 +35,18 @@ export interface PromptInput {
 	 */
 	brickSections: string[];
 	goalCard: GoalCardDefinition;
+	/**
+	 * The goal the *builder* wrote, when they wrote one (`16-…` §2.5).
+	 *
+	 * Free Play is a laminated card with a marker pen: the child writes what
+	 * they want the bot to do. The text was captured, stored on the spec and
+	 * shown back on the card holder — and never once put in the prompt, so the
+	 * bot pursued the card's generic "potter about" wording and the child's
+	 * actual goal was heard by nobody. The card is still what the trace records
+	 * and what the success condition judges; this only changes what the bot is
+	 * *told*.
+	 */
+	customGoalText?: string | undefined;
 	observation: string;
 	memoryWindow: TickMemory[];
 	/** Fitted-brick summary for the system message. */
@@ -56,11 +68,23 @@ export interface PromptInput {
 	progress?: string;
 }
 
+/**
+ * The written goal wins over the printed one, when there is a written one.
+ *
+ * Whitespace counts as nothing: a child who taps the marker-pen box and types
+ * a space has not set a goal, and an all-blank "goal" would replace a perfectly
+ * good card with silence.
+ */
+function goalOf(input: PromptInput): string {
+	const written = input.customGoalText?.trim();
+	return written !== undefined && written !== '' ? written : input.goalCard.goalText;
+}
+
 export function composeSystemMessage(input: PromptInput): string {
 	const sections = [
 		PREAMBLE,
 		...input.brickSections,
-		`Your goal: ${input.goalCard.goalText}`,
+		`Your goal: ${goalOf(input)}`,
 		`Parts you have been built with: ${input.fittedBricks.join(', ')}.`,
 		`How to reply:\n${RESPONSE_RULES.map((rule) => `- ${rule}`).join('\n')}`
 	];
