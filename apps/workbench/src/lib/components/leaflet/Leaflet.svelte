@@ -233,19 +233,24 @@
 		color: var(--cab-ink);
 		background: transparent;
 		border-radius: var(--cab-radius-part);
-		opacity: 0.55;
+		/*
+		 * Steps you are not on are quieter in colour, not in opacity. At 0.55 the
+		 * instructions for a five-year-old sat at about 2:1 — the one screen in
+		 * the toy whose entire job is to be read.
+		 */
+		color: var(--cab-ink-muted);
 	}
 
 	/* Current step is marked by weight and a rule, not by colour alone (03 §8). */
 	li.current {
-		opacity: 1;
+		color: var(--cab-ink);
 		font-weight: 600;
 		background: var(--cab-cream);
 		box-shadow: inset 3px 0 0 var(--cab-yellow);
 	}
 
 	li.done {
-		opacity: 0.75;
+		color: var(--cab-ink-muted);
 	}
 
 	li.done .text {

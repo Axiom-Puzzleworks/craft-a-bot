@@ -9,14 +9,26 @@
 		title: string;
 		/** Any `--cab-*` colour; defaults to the frame blue. */
 		accent?: string;
+		/**
+		 * The heading colour on that accent. Cream suits the dark accents; a light
+		 * one needs ink, and `04-…` §7 bans white on yellow outright — which is
+		 * what the Instruction Leaflet panel was doing until axe said so.
+		 */
+		accentInk?: string;
 		children: Snippet;
 		actions?: Snippet;
 	}
 
-	let { title, accent = 'var(--cab-blue)', children, actions }: Props = $props();
+	let {
+		title,
+		accent = 'var(--cab-blue)',
+		accentInk = 'var(--cab-cream)',
+		children,
+		actions
+	}: Props = $props();
 </script>
 
-<section class="panel" style="--accent: {accent}">
+<section class="panel" style="--accent: {accent}; --accent-ink: {accentInk}">
 	<header>
 		<h2>{title}</h2>
 		{#if actions}
@@ -52,7 +64,7 @@
 		font-weight: 700;
 		letter-spacing: 0.06em;
 		text-transform: uppercase;
-		color: var(--cab-cream);
+		color: var(--accent-ink);
 	}
 
 	.actions {

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { focusTrap } from '$lib/a11y/focus-trap.js';
 	import type { PendingApproval } from '$lib/state/session.svelte.js';
 
 	/**
@@ -33,6 +34,13 @@
 		);
 		return `${approval.name}(${values.join(', ')})`;
 	});
+
+	/*
+	 * Deny takes the focus, not Allow. The run is stopped waiting for a person,
+	 * and the answer you get by pressing Enter without reading should be the one
+	 * that cannot do anything (08 §3).
+	 */
+	let denyButton = $state<HTMLButtonElement | undefined>();
 </script>
 
 <div
@@ -41,6 +49,7 @@
 	role="alertdialog"
 	aria-labelledby="approval-title"
 	aria-describedby="approval-reason"
+	use:focusTrap={{ initial: () => denyButton }}
 >
 	<span class="badge" aria-hidden="true">✋</span>
 	<h2 id="approval-title">
@@ -49,7 +58,15 @@
 	<p id="approval-reason">{approval.reason}</p>
 
 	<div class="actions">
-		<button type="button" class="deny" data-testid="approval-deny" onclick={ondeny}> Deny </button>
+		<button
+			type="button"
+			class="deny"
+			data-testid="approval-deny"
+			bind:this={denyButton}
+			onclick={ondeny}
+		>
+			Deny
+		</button>
 		<button type="button" class="allow" data-testid="approval-allow" onclick={onallow}>
 			Allow
 		</button>

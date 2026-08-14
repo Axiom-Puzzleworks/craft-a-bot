@@ -22,7 +22,37 @@
 
 	const SPEEDS = [0.5, 1, 2, 4];
 	const speedId = $props.id();
+
+	/**
+	 * Space steps the run (`16-…` §2.7).
+	 *
+	 * The whole loop is one button pressed over and over, and reaching for it
+	 * with the mouse every time is the sort of friction that stops a child
+	 * watching. Ignored while the focus is in a text field — Free Play has a
+	 * goal to type and Hearing has a message to send, and a space that stepped
+	 * the run instead of typing a space would be its own small horror.
+	 */
+	function onWindowKeydown(event: KeyboardEvent): void {
+		if (event.key !== ' ' && event.code !== 'Space') return;
+		const target = event.target;
+		if (
+			target instanceof HTMLInputElement ||
+			target instanceof HTMLTextAreaElement ||
+			(target instanceof HTMLElement && target.isContentEditable)
+		) {
+			return;
+		}
+		// A button already under the keyboard handles its own space; stepping as
+		// well would fire two things from one press.
+		if (target instanceof HTMLButtonElement) return;
+		if (finished || running || busy) return;
+
+		event.preventDefault();
+		onstep();
+	}
 </script>
+
+<svelte:window onkeydown={onWindowKeydown} />
 
 <div class="controls" data-testid="run-controls">
 	<button
@@ -34,6 +64,7 @@
 		onclick={onstep}
 	>
 		STEP
+		<kbd class="hint" aria-hidden="true">space</kbd>
 	</button>
 
 	{#if running}
@@ -83,6 +114,13 @@
 		font-size: var(--cab-text-sm);
 		font-weight: 600;
 		padding: var(--cab-space-2) var(--cab-space-3);
+		/*
+		 * WCAG 2.5.5's 44px, which is also about the size of a five-year-old's
+		 * fingertip. These are the controls the whole toy is driven with and they
+		 * were coming out at roughly 32px tall.
+		 */
+		min-height: 44px;
+		min-width: 44px;
 		background: var(--cab-cream);
 		color: var(--cab-ink);
 		border: var(--cab-border-part) solid var(--cab-ink);
@@ -109,6 +147,14 @@
 		letter-spacing: 0.08em;
 	}
 
+	.hint {
+		display: block;
+		margin-top: 2px;
+		font-family: var(--cab-font-mono);
+		font-size: var(--cab-text-xs);
+		font-weight: 400;
+	}
+
 	.speed {
 		display: flex;
 		align-items: center;
@@ -117,7 +163,13 @@
 		font-size: var(--cab-text-xs);
 		text-transform: uppercase;
 		letter-spacing: 0.08em;
-		opacity: 0.8;
+		/*
+		 * The word "SPEED" is the quiet part, not the buttons. This rule used to
+		 * carry `opacity: 0.8`, which dimmed everything inside it — including the
+		 * active button, whose cream-on-blue passes AA on its own and did not
+		 * once the whole group was at 80%.
+		 */
+		color: var(--cab-ink-muted);
 	}
 
 	.speeds {
@@ -126,6 +178,7 @@
 	}
 
 	.speed-button {
+		min-height: 32px;
 		padding: 2px var(--cab-space-2);
 		font-size: var(--cab-text-xs);
 		border-radius: var(--cab-radius-pill);

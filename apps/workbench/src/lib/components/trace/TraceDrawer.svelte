@@ -285,7 +285,7 @@
 	.type {
 		font-family: var(--cab-font-mono);
 		font-size: 10px;
-		opacity: 0.55;
+		color: var(--cab-ink-muted);
 	}
 
 	.detail {
