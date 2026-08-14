@@ -47,6 +47,18 @@
 >
 > **`mode` is no longer part of this slice's scope.** The problem statement's "`mode` recorded wrongly" was fixed by WP13's E8: `toRunRecord` derives it from `run.started` rather than hard-coding `'step'`, so a run played straight through is no longer filed as a stepped one. What remains here is (a) incremental persistence, (b) the Scrapbook, and (d) the leave-mid-run confirm.
 
+> **Amended 2026-08-14 (WP16 slice e):** built — (a), (b) and (c).
+>
+> **The premise was wrong, and worth recording.** `12-…` D14 says "runs + events fully persist... but nothing lists, reopens or replays them", so this was scoped as a missing *page*. It was a missing *write*: `putRun` was being handed reactive `$state` proxies and IndexedDB rejected every one with "could not be cloned". The write was the last thing a finished run did, its rejection surfaced only as an unhandled promise, and no test had ever looked in the `runs` store. **No run had ever been stored.** Writing records earlier is what exposed it; records are snapshotted now.
+>
+> **Replay is not a second implementation.** `absorb`'s fold moved out of `session.svelte.ts` into `lib/state/run-projection.ts`, and the replay viewer is `projectThrough(events, tick)` plus the same `WorldView` and `StoryStrip` the Playroom uses. "Pixel-consistent with a live run" is therefore not a property that was tested into existence but one that holds because there is only one reducer; the suite pins the ways it could drift apart again (folding all at once equals folding one at a time; scrubbing to turn N lands where the run passed through). The scrubber re-folds from the start rather than undoing events — an inverse for every case would be the second implementation all over again.
+>
+> **Persistence flushes per turn, not per batch.** The recorder batched at 25 events, and a tick emits well under that, so a child who shut the tab two turns in had a stored run with an empty story — most of what this section exists to prevent. A turn is also the unit the Scrapbook and the story strip deal in, so a partial trace never ends mid-thought.
+>
+> **The in-progress record is kept current.** Written once at `run.started` it said "0 steps" forever, so an interrupted run sat in the Scrapbook claiming it never moved.
+>
+> **Still outstanding: (d), the leave-mid-run confirm.** It is no longer the safety net it was designed as — the run is now saved as it happens, so leaving loses nothing — and it should be re-judged on its own merits rather than inherited from a problem that has gone away.
+
 ### 1.5 Navigation, confirmations, and safe destruction
 
 **Problem:** Settings unreachable from Shelf; Bin deletes a bot with one tap; eviction silent (D16/D15).

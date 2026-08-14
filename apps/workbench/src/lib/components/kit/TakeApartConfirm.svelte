@@ -96,7 +96,7 @@
 		gap: var(--cab-space-2);
 		max-width: 26rem;
 		padding: var(--cab-space-5);
-		border: 3px solid var(--cab-border-panel);
+		border: var(--cab-border-panel) solid var(--cab-ink);
 		border-radius: var(--cab-radius-panel);
 		background: var(--cab-paper);
 		color: var(--cab-ink);
@@ -141,7 +141,7 @@
 
 	.actions button {
 		padding: var(--cab-space-2) var(--cab-space-4);
-		border: 2px solid var(--cab-border-part);
+		border: var(--cab-border-part) solid var(--cab-ink);
 		border-radius: var(--cab-radius-part);
 		font: inherit;
 		font-weight: 600;

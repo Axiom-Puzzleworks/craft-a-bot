@@ -18,6 +18,7 @@
 	import { preferences } from '$lib/state/preferences.svelte.js';
 	import { createRegistry, packVersions } from '$lib/packs.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
+	import type { Storage } from '$lib/state/storage.js';
 	import { createBrowserKeyVault } from '$lib/state/keys.js';
 	import { createSessionView, type SessionView } from '$lib/state/session.svelte.js';
 	import { recordTrace, type TraceRecorder } from '$lib/state/trace-recorder.js';
@@ -61,6 +62,8 @@
 	let traceOpenAt = $state<number | undefined>(undefined);
 	/** Writes the trace as the run happens; absent between runs. */
 	let recorder: TraceRecorder | undefined;
+	/** Opened once, so starting a run needs no await (see `onRunEvent`). */
+	let storage: Storage | undefined;
 
 	const goalCard = $derived(record ? registry.getGoalCard(record.spec.goalCardId) : undefined);
 	const goalText = $derived(
@@ -106,7 +109,7 @@
 	});
 
 	async function openAgent(id: string): Promise<void> {
-		const storage = await appStorage();
+		storage = await appStorage();
 		const loaded = await storage.getAgent(id);
 		record = loaded;
 		if (!loaded) return;
@@ -136,7 +139,7 @@
 		view = createSessionView({
 			spec: loaded.spec,
 			provider: brain.provider,
-			onEvent: (event) => void onRunEvent(event)
+			onEvent: onRunEvent
 		});
 		view.setSpeed(speed);
 		runStartedAt = new Date().toISOString();
@@ -152,21 +155,38 @@
 	 * since WP13 for exactly this, and the schema says so in as many words:
 	 * "a record is written the moment a run starts (so a reload does not lose
 	 * it)". Nothing wrote one.
+	 *
+	 * **Synchronous, and it has to be.** Events arrive in bursts — one tick emits
+	 * a dozen — with no chance to await in between. An earlier version of this
+	 * opened storage here, so every event between `run.started` and that promise
+	 * settling reached a recorder that did not exist yet and was dropped without
+	 * a word: the run was on record and its story was not. Storage is opened
+	 * once when the agent loads, leaving this nothing but bookkeeping.
 	 */
-	async function onRunEvent(event: EngineEvent): Promise<void> {
-		if (event.type === 'run.started') await beginRun(event.runId);
+	function onRunEvent(event: EngineEvent): void {
+		if (event.type === 'run.started') beginRun(event.runId);
 		recorder?.accept(event);
-		if (event.type === 'run.finished') await finishRun();
+		// Keep the in-progress record honest about how far the run got. Written
+		// once at the start it would say "0 steps" forever, so a run whose tab was
+		// shut after ten turns would sit in the Scrapbook claiming it never moved.
+		if (event.type === 'tick.completed') void updateProgress();
+		if (event.type === 'run.finished') void finishRun();
 	}
 
-	async function beginRun(id: string): Promise<void> {
-		if (!record || !view) return;
-		const storage = await appStorage();
+	async function updateProgress(): Promise<void> {
+		if (!record || !view?.runId || !storage) return;
+		const existing = await storage.getRun(view.runId);
+		if (!existing) return;
+		await storage.putRun(toRunRecord(view, record, { pinned: existing.pinned }));
+	}
+
+	function beginRun(id: string): void {
+		if (!record || !view || !storage) return;
 		recorder = recordTrace(id, storage);
 		// The opening record. `finishedAt` is deliberately absent — a run that has
 		// not ended has no end, and writing "now" would be a lie the Scrapbook
 		// would then display as a duration.
-		await storage.putRun(toRunRecord(view, record, { pinned: false }));
+		void storage.putRun(toRunRecord(view, record, { pinned: false }));
 	}
 
 	async function finishRun(): Promise<void> {

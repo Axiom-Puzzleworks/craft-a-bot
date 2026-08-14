@@ -105,3 +105,70 @@ test('a run that finishes is filed with its ending, not left in progress', async
 	expect(runs).toHaveLength(1);
 	expect(runs[0]?.outcome).toBe('SUCCESS');
 });
+
+test('a finished adventure turns up in the scrapbook, and can be watched again', async ({
+	page
+}) => {
+	await buildAndGo(page);
+	await page.getByTestId('play').click();
+	await expect(page.getByTestId('end-card')).toBeVisible({ timeout: 30_000 });
+
+	// The end card is a modal and covers the header, which is what a modal is
+	// for; put it away first, as a player would.
+	await page.getByTestId('end-see-trace').click();
+
+	// The header reaches the scrapbook from anywhere — the promise slice c made.
+	await page.getByTestId('nav-scrapbook').click();
+	await page.waitForURL(/\/scrapbook/);
+
+	const rows = page.getByTestId('scrapbook-list').locator('article');
+	await expect(rows).toHaveCount(1);
+	await expect(rows.first()).toHaveAttribute('data-outcome', 'SUCCESS');
+
+	// Open it, and the run plays back in the same Playroom it happened in.
+	await rows.first().getByRole('link').click();
+	await page.waitForURL(/\/replay\//);
+	await expect(page.getByTestId('bot')).toBeVisible();
+	await expect(page.getByTestId('replay-scrubber')).toBeVisible();
+});
+
+test('the scrubber walks back through the run', async ({ page }) => {
+	await buildAndGo(page);
+	await page.getByTestId('play').click();
+	await expect(page.getByTestId('end-card')).toBeVisible({ timeout: 30_000 });
+
+	await page.goto('/scrapbook');
+	await page.getByTestId('scrapbook-list').locator('article').first().getByRole('link').click();
+	await page.waitForURL(/\/replay\//);
+
+	// It opens at the end, where the answer to "how did it go" is. Polled rather
+	// than read once: the events are fetched from storage after the route mounts,
+	// so reading the moment the URL changes catches the scrubber before it has
+	// anything to scrub.
+	const scrubber = page.getByTestId('replay-scrubber');
+	await expect.poll(async () => Number(await scrubber.inputValue())).toBeGreaterThan(0);
+
+	// Wind back to the first turn: the run had not finished yet, so the bot is
+	// not celebrating.
+	await scrubber.fill('0');
+	await expect(page.getByTestId('bot')).not.toHaveAttribute('data-expression', 'celebrating');
+});
+
+test('pinning an adventure keeps it', async ({ page }) => {
+	await buildAndGo(page);
+	await page.getByTestId('play').click();
+	await expect(page.getByTestId('end-card')).toBeVisible({ timeout: 30_000 });
+
+	await page.goto('/scrapbook');
+	const pin = page.getByTestId('scrapbook-list').locator('button[data-testid^="pin-"]').first();
+	await expect(pin).toHaveAttribute('aria-pressed', 'false');
+
+	await pin.click();
+	await expect(pin).toHaveAttribute('aria-pressed', 'true');
+
+	// And it is storage that remembers, not the page.
+	await page.reload();
+	await expect(
+		page.getByTestId('scrapbook-list').locator('button[data-testid^="pin-"]').first()
+	).toHaveAttribute('aria-pressed', 'true');
+});

@@ -89,6 +89,9 @@ Severity: **A** = blocks purpose 1 or 2 in practice; **B** = design debt that wi
 | ID | Sev | Defect | Where |
 |---|---|---|---|
 | D14 | A | **No run history UI.** Runs + events fully persist (cap 50, pinning supported in storage) but nothing lists, reopens or replays them; a trace is only visible while still on the play page. | routes |
+
+> **Amended 2026-08-14 (WP16 slice e):** the premise here was wrong in a way worth keeping on the record. "Runs + events fully persist" was never true — `putRun` was being handed reactive `$state` proxies and IndexedDB rejected every write with "could not be cloned". The rejection surfaced only as an unhandled promise and no test had ever read the `runs` store back, so a scrapbook with nothing in it looked like a missing page rather than a missing write. Both halves are fixed: records are snapshotted, and written from `run.started` rather than only at the end.
+
 | D15 | B | `toRunRecord` hardcodes `mode:'step'`; mid-run `setSpeed` is a silent no-op; `evictOldRuns` notice never shown; `trace-recorder.ts` incremental persistence is dead code (mid-run reload silently loses the run). | `play/+page.svelte`, `session.svelte.ts` |
 | D16 | B | No global nav (Settings unreachable from Shelf); "Bin" deletes without confirmation; play route has no aria live region; EndCard/ApprovalCard don't trap focus; badge toast shows the badge **id** not its name. | various |
 | D17 | C | `boxArtSeed` stored but never rendered; sound has 4 cues and misses guardrail/approval/badge moments; `Storage.clear()`/"Forget everything" and quarantine counts unsurfaced; expansion shelf purely fictional. | various |

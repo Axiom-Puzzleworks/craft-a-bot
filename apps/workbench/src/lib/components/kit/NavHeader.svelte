@@ -15,14 +15,14 @@
 	 * navigation would be no tutorial at all), so this emits `oninstructions`
 	 * and lets the layout call `show()` on the controller it already holds.
 	 *
-	 * **Scrapbook is deliberately absent until WP16 slice e** builds
-	 * `/scrapbook/[agentId]`. `16-…` §1.5 lists it in this header, and it will
-	 * join here the moment the page exists; shipping a dimmed button that does
-	 * nothing would be a worse lie to a five-year-old than a header that grows.
+	 * **Scrapbook arrived with slice e**, as promised. It points at every bot's
+	 * adventures rather than one bot's: this header is on the Shelf too, where
+	 * there is no current bot, and `16-…` §1.4's `/scrapbook/[agentId]` is the
+	 * same list filtered.
 	 */
 	interface Props {
 		/** Which entry is the current screen — `undefined` on routes with no entry. */
-		current?: 'shelf' | 'settings' | undefined;
+		current?: 'shelf' | 'scrapbook' | 'settings' | undefined;
 		oninstructions: () => void;
 	}
 
@@ -46,6 +46,15 @@
 					aria-current={current === 'shelf' ? 'page' : undefined}
 				>
 					Shelf
+				</a>
+			</li>
+			<li>
+				<a
+					href={resolve('/scrapbook')}
+					data-testid="nav-scrapbook"
+					aria-current={current === 'scrapbook' ? 'page' : undefined}
+				>
+					Scrapbook
 				</a>
 			</li>
 			<li>
@@ -82,8 +91,8 @@
 		 * RunControls, the battery compartment) uses cream, and so does this.
 		 */
 		color: var(--cab-cream);
-		border-bottom: 3px solid var(--cab-border-panel);
-		box-shadow: var(--cab-shadow);
+		border-bottom: var(--cab-border-panel) solid var(--cab-ink);
+		box-shadow: var(--cab-drop-shadow);
 	}
 
 	.mark {
@@ -123,7 +132,7 @@
 	nav button {
 		display: block;
 		padding: var(--cab-space-1) var(--cab-space-3);
-		border: 2px solid transparent;
+		border: var(--cab-border-part) solid transparent;
 		border-radius: var(--cab-radius-pill);
 		background: none;
 		color: inherit;
