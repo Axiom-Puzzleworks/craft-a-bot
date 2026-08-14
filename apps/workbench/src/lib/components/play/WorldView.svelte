@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PlayroomState } from '@craftabot/pack-starter';
+	import { botExpressionWords, botGlyph, type BotExpression } from '$lib/bot-expression.js';
 
 	/**
 	 * The Playroom (03-UI-UX-DESIGN.md §5.1): the 8×6 room with the rug, the
@@ -14,9 +15,15 @@
 		world: PlayroomState | undefined;
 		/** What the bot just said, as a speech bubble. */
 		saying?: string | undefined;
+		/**
+		 * How the run is going, on the bot's face (`16-…` §1.6). Defaults to
+		 * `idle` so a caller that has no session — the empty Playroom, a test —
+		 * still draws a bot rather than nothing.
+		 */
+		expression?: BotExpression;
 	}
 
-	let { world, saying }: Props = $props();
+	let { world, saying, expression = 'idle' }: Props = $props();
 
 	/** Short labels so a cell reads at a glance without hover. */
 	const ITEM_GLYPHS: Record<string, string> = {
@@ -115,8 +122,11 @@
 				{/each}
 
 				{#if isBot}
-					<span class="thing thing--bot" data-testid="bot">
-						<span class="glyph">🤖</span>
+					<span class="thing thing--bot" data-testid="bot" data-expression={expression}>
+						<span class="glyph" aria-hidden="true">{botGlyph(expression)}</span>
+						<span class="visually-hidden" data-testid="bot-expression">
+							Your bot is {botExpressionWords(expression)}.
+						</span>
 						{#if carried}
 							<span class="carrying" data-testid="bot-carrying">
 								{glyphFor(carried)}
@@ -212,6 +222,22 @@
 		z-index: 2;
 		/* Discrete cell hops with a little squash — 04 §6. */
 		animation: hop var(--cab-hop-ms) ease-out;
+	}
+
+	/*
+	 * The face is decoration for a sighted child and information for everybody
+	 * else, so the glyph is hidden from the reader and the word is given to it.
+	 */
+	.visually-hidden {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		margin: -1px;
+		padding: 0;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+		border: 0;
 	}
 
 	.carrying {

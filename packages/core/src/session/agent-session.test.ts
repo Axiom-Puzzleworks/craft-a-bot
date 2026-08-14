@@ -1150,6 +1150,47 @@ describe('pause', () => {
 		session.pause();
 		await vi.waitFor(() => expect(session.status).toBe('paused'));
 	});
+
+	/**
+	 * The seam behind the honest speed dial (`16-…` §1.6, `12-…` D15). The delay
+	 * used to be captured when the session was built, so turning the dial
+	 * mid-run changed nothing at all and the only honest alternative was to
+	 * rebuild the session and lose the trace.
+	 *
+	 * That the *cadence* really changes is proved where it can be measured, in
+	 * the workbench's e2e; what matters here is that the control exists, that it
+	 * can be worked while a run is going without disturbing it, and that it
+	 * refuses to accept a negative gap.
+	 */
+	it('takes a new tick delay while a run is in progress', async () => {
+		const clock = createTestClock();
+		const session = createSession({
+			spec: buildSpec(),
+			registry: buildRegistry(),
+			provider: createMockProvider({ script: () => turn('Ping.', 'ping') }),
+			guardrails: [],
+			options: { now: clock.now, newId: clock.newId, random: clock.random, tickDelayMs: 1 }
+		});
+
+		session.start('play');
+		session.setTickDelayMs(0);
+
+		await vi.waitFor(() => expect(session.status).toBe('finished'));
+	});
+
+	it('clamps a negative delay to nothing rather than throwing', () => {
+		const clock = createTestClock();
+		const session = createSession({
+			spec: buildSpec(),
+			registry: buildRegistry(),
+			provider: createMockProvider({ script: () => turn('Ping.', 'ping') }),
+			guardrails: [],
+			options: { now: clock.now, newId: clock.newId, random: clock.random }
+		});
+
+		// A viewing control should never be the thing that ends a run.
+		expect(() => session.setTickDelayMs(-1000)).not.toThrow();
+	});
 });
 
 describe('guardrails', () => {

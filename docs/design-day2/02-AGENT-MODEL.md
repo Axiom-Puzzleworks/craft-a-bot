@@ -187,10 +187,15 @@ export interface AgentSession {
 	readonly events: EventBus; // subscribe from UI / trace / guardrails
 	start(mode: 'step' | 'play'): void;
 	step(): Promise<TickResult>;
+	setTickDelayMs(ms: number): void; // the play-mode gap, changeable mid-run
 	pause(): void;
 	resolveApproval(approved: boolean): void;
 	stop(reason?: string): void;
 }
+
+> **Amended 2026-08-14 (WP16 slice d):** `setTickDelayMs` added. The play-mode delay was captured when the session was built, so the Playroom's speed dial was a silent no-op mid-run (`12-…` D15) and the only honest way to apply a change was to rebuild the session and throw the trace away. The loop now reads the value each time round.
+>
+> **Deliberately not an event, and deliberately not in the trace.** Hard rule 3 covers what the UI shows about *engine behaviour*; the tick gap changes no decision, no world state and no outcome. It is how fast a human watches. `run.started` records budgets, provider and model precisely because those constrain what the agent did — the viewing speed does not, and recording it would put a UI preference in an audit record.
 
 export function createSession(deps: {
 	spec: AgentSpec;

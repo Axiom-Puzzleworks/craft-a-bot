@@ -38,6 +38,19 @@ export interface AgentSession {
 	step(): Promise<TickResult>;
 	pause(): void;
 	resolveApproval(approved: boolean): void;
+	/**
+	 * Change the play-mode delay between ticks *while the run is going*
+	 * (`16-…` §1.6). The loop reads it each time round, so the next gap is the
+	 * new one; the tick already in flight finishes at the old pace.
+	 *
+	 * Exists because the speed dial was a lie without it (`12-…` D15) — the
+	 * delay was fixed when the session was built, and the only honest way to
+	 * apply a change was to rebuild the session and throw the trace away.
+	 *
+	 * Negative values clamp to 0 rather than throwing: this is a viewing
+	 * control, and no run should end because someone typed a silly number.
+	 */
+	setTickDelayMs(ms: number): void;
 	stop(reason?: string): void;
 	/**
 	 * Say something to the bot from outside the world — the input half of the
