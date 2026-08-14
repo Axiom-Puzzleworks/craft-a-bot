@@ -15,7 +15,11 @@
 			},
 			"providerId": "mock",
 			"wireModel": "mock-1",
-			"cartridgeId": "test/mock-brain"
+			"cartridgeId": "test/mock-brain",
+			"strategies": {
+				"memory": "window-v1",
+				"prompt": "sections-v1"
+			}
 		}
 	},
 	{

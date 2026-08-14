@@ -91,7 +91,43 @@ export function composeSystemMessage(input: PromptInput): string {
 	return sections.filter((section) => section !== '').join('\n\n');
 }
 
+/**
+ * **How a tick's messages are assembled** (E7, `14-…` §3).
+ *
+ * The counterpart to `MemoryStrategy`: that one decides what survives between
+ * ticks, this one decides how it reads to the model. Two ship — `sections-v1`,
+ * the labelled prose V1 has always sent, and `transcript-v1`, the real
+ * function-calling protocol (`12-…` D12).
+ *
+ * Both are handed the same `PromptInput`. That is the point: swapping the
+ * strategy changes nothing about what the agent *knows*, only about the form
+ * it is told in, which is the comparison the Workshop exists to let a
+ * professional make.
+ */
+export interface PromptStrategy {
+	/** Stable id, recorded on `run.started` so a trace says how context was built. */
+	readonly id: string;
+	compose(input: PromptInput): ChatMessage[];
+}
+
+/**
+ * V1's three labelled sections — system, memory, observation — exactly as
+ * 03-UI-UX-DESIGN.md §5.2 promises the Flight Recorder will label them.
+ *
+ * The default for every kit build, and byte-for-byte what shipped before the
+ * seam existed: the golden trace is the proof.
+ */
+export const sectionsPromptStrategy: PromptStrategy = {
+	id: 'sections-v1',
+	compose: composeSections
+};
+
+/** The default strategy's composer, kept as a named export since WP2. */
 export function composePrompt(input: PromptInput): ChatMessage[] {
+	return composeSections(input);
+}
+
+function composeSections(input: PromptInput): ChatMessage[] {
 	const messages: ChatMessage[] = [{ role: 'system', content: composeSystemMessage(input) }];
 
 	if (input.memoryWindow.length > 0) {
@@ -101,21 +137,106 @@ export function composePrompt(input: PromptInput): ChatMessage[] {
 		});
 	}
 
-	if (input.notebookLines && input.notebookLines.length > 0) {
+	messages.push(...notebookMessages(input), rightNowMessage(input));
+
+	return messages;
+}
+
+/**
+ * **The real function-calling transcript** (`transcript-v1`, E7 / `12-…` D12).
+ *
+ * V1 hands the model a *description* of its own history in prose. Every
+ * production agent framework hands it the conversation instead: the assistant
+ * turn carrying the tool call it made, and a `tool` message answering that call
+ * by id. `ChatMessage` has had `role:'tool'` and `toolCallId` since WP2 and
+ * nothing ever wrote one.
+ *
+ * The prose form is the better teaching aid and stays the kit default — a child
+ * reading the Flight Recorder can see "what you remember" as a paragraph. This
+ * is the Workshop's realism mode, where the point is that the trace matches
+ * what a professional will meet at work.
+ *
+ * **Well-formedness is the whole contract**, and it is not decorative: a
+ * provider rejects a `tool` message that answers no call, and a dangling call
+ * with no answer, with a 400. `transcript-strategy.test.ts` (in the starter
+ * pack, where a whole run can be driven) holds the invariant in both
+ * directions, over prompts a real session composed.
+ */
+export const transcriptPromptStrategy: PromptStrategy = {
+	id: 'transcript-v1',
+	compose: composeTranscript
+};
+
+function composeTranscript(input: PromptInput): ChatMessage[] {
+	const messages: ChatMessage[] = [{ role: 'system', content: composeSystemMessage(input) }];
+
+	for (const entry of input.memoryWindow) {
+		messages.push({ role: 'user', content: `Turn ${entry.tick}. ${entry.observation}` });
+
+		if (!entry.call) {
+			// A turn the model mumbled through. No call means no `tool` message —
+			// which is well-formed, and the honest record of a wasted tick.
+			messages.push({ role: 'assistant', content: entry.thought || MUTE_TURN });
+			continue;
+		}
+
+		const id = toolCallId(entry.tick);
 		messages.push({
-			role: 'user',
-			content: `Your notebook says:\n${input.notebookLines.map((line) => `- ${line}`).join('\n')}`
+			role: 'assistant',
+			content: entry.thought,
+			toolCalls: [{ id, name: entry.call.name, arguments: entry.call.arguments }]
+		});
+		messages.push({
+			role: 'tool',
+			toolCallId: id,
+			name: entry.call.name,
+			// A refusal *is* the result. A guardrail or a person stopping a call is
+			// the tool-denial pattern every real agent platform uses, and rendering
+			// it as one teaches the mechanism rather than hiding it.
+			content: entry.result ?? entry.refused ?? UNANSWERED
 		});
 	}
 
-	// Progress sits with the current observation rather than the history: it
-	// describes now, and it is the line most likely to change the next decision.
+	messages.push(...notebookMessages(input), rightNowMessage(input));
+
+	return messages;
+}
+
+/**
+ * One call per turn is the V1 rule (`02-…` §5), so the tick number identifies
+ * the call. Deterministic by construction — no ids from the clock, no
+ * randomness (hard rule 5), and a trace stays byte-reproducible across replays.
+ */
+function toolCallId(tick: number): string {
+	return `call_${tick}`;
+}
+
+/** Some providers reject an assistant turn that is neither speech nor a call. */
+const MUTE_TURN = '(no reply)';
+const UNANSWERED = 'Nothing came back.';
+
+function notebookMessages(input: PromptInput): ChatMessage[] {
+	if (!input.notebookLines || input.notebookLines.length === 0) return [];
+	return [
+		{
+			role: 'user',
+			content: `Your notebook says:\n${input.notebookLines.map((line) => `- ${line}`).join('\n')}`
+		}
+	];
+}
+
+/**
+ * The current turn, shared by both strategies — because it is not history and
+ * neither strategy has any business rendering *now* differently.
+ *
+ * Progress sits with the observation rather than the memory: it describes now,
+ * and it is the line most likely to change the next decision.
+ */
+function rightNowMessage(input: PromptInput): ChatMessage {
 	const observation = [...input.feedback, input.observation, input.progress ?? '']
 		.filter((part) => part !== '')
 		.join('\n');
-	messages.push({ role: 'user', content: `Right now:\n${observation}` });
-
-	return messages;
+	return { role: 'user', content: `Right now:\n${observation}` };
 }
 
 /**

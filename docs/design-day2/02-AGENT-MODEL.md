@@ -222,6 +222,12 @@ All events share `{ id, runId, tick, timestamp, type, payload }`, strictly typed
 > - **`input.delivered`** `{ text, heard }` — something said to the bot from outside the world, via `session.deliverInput()`. The Hearing sense could always report messages and there was no way to send one (`12-…` D2). `heard` is false when the world implements no `receiveInput`, so the trace says plainly that the message went nowhere rather than implying it landed. It is traced because untrusted input from outside the simulation is the first link in the injection chain (`19-…` §2), and "who told it that?" is an audit question.
 > - **`run.finished.reason?`** — why the run ended, when the outcome alone does not say. A goal met by the world's predicate and a goal declared finished by a person are both `SUCCESS`; `session.declareOutcome(outcome, reason)` records which.
 
+> **Amended 2026-08-14 (WP15, E7):** one payload field, additive.
+>
+> - **`run.started.strategies?`** `{ memory, prompt }` — the ids of the strategies that assembled this run's context (`window-v1` + `sections-v1` by default). The trace could already show *what* went to the model, message by message, and had no way to say what **rule** produced it. "Was this run in realism mode?" is a governance question, because two runs of the same bot under the same budgets can decide differently when their context was shaped differently, and reverse-engineering the answer from the message shapes is a guess rather than an audit.
+> - Optional, so every trace written before WP15 still parses; absent means the only pairing that was then available. No `formatVersion` bump and no migration entry — an unrecorded field on old traces is honestly unrecorded.
+> - `ChatMessage` also gains **`toolCalls?`**, the assistant half of the tool protocol, which `transcript-v1` writes and `sections-v1` never does. It is carried verbatim into `prompt.composed` like the rest of the message, so the realism mode needs no event of its own.
+
 Rules: events are **append-only facts**; payloads are JSON-serialisable; the trace is simply the ordered event list of a run (persisted per `07-DATA-MODEL-PERSISTENCE.md`); _anything_ the UI shows about a run must be derivable from events — if it isn't in an event, it didn't happen.
 
 ## 8. Prompting (V1 canonical prompt)
@@ -233,6 +239,18 @@ The composed prompt is assembled from labelled sections, in this order, and show
 3. **Current observation:** the Sense output, formatted as plain readable text (not raw JSON), because users will read it in the trace.
 
 Tools and actions are passed via the provider's native tool-calling API — never prompt-stuffed — so users learn the real mechanism. The full JSON of every request is one click away in the trace.
+
+> **Amended 2026-08-14 (WP15, E7):** the three sections above are now **one strategy of two**, named `sections-v1`, and still the default for every kit build — byte-for-byte what shipped before the seam existed, which the golden trace proves.
+>
+> The Memory brick's `strategy` dial selects the pairing. `transcript` swaps the prose history for the **real function-calling conversation**: a `user` turn per remembered tick, an `assistant` turn carrying the `toolCalls` it made, and a `tool` message answering that call by id. `ChatMessage` has supported `role:'tool'` and `toolCallId` since WP2 and nothing ever wrote one (`12-…` D12).
+>
+> Three points that are decisions rather than details:
+>
+> - **The system message and the current observation are shared.** Both strategies compose them identically, because they are not history — swapping the strategy must change the *form* the bot is told in and never *what it knows*, or a comparison between the two is measuring the wrong thing.
+> - **A refused call is answered as a tool result.** Where a guardrail or a person stopped a call, the transcript still carries the assistant's call and answers it with the refusal — which is both the only well-formed rendering and the pattern every real agent platform uses for a denied tool.
+> - **Well-formedness is the contract, not a nicety.** A provider returns 400 for a `tool` message answering nothing and for a call nothing answers. It is held as an invariant over prompts real runs composed, in both directions, including the two easy-to-miss turns (a refusal, and a tick the bot mumbled through).
+>
+> `window` stays the only option the kit bench offers: a child reading the Flight Recorder should meet a paragraph saying what the bot remembers. `transcript` is the Workshop's realism mode.
 
 ## 9. Teaching arc (how the bricks tell the story)
 

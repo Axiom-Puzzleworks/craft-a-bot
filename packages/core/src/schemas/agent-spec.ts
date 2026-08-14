@@ -19,7 +19,20 @@ export const llmBrickSchema = z.object({
 
 export const memoryBrickSchema = z.object({
 	windowSize: z.union([z.literal(3), z.literal(10), z.literal(30)]),
-	notebook: z.boolean()
+	notebook: z.boolean(),
+	/**
+	 * How the history reaches the model (E7, `14-…` §4.2). Omitted = `window`.
+	 *
+	 * `window` is the prose form the kit has always sent and the only option the
+	 * bench shows: a child reading the Flight Recorder should meet a paragraph
+	 * saying what the bot remembers, not a function-calling transcript.
+	 * `transcript` is the Workshop's realism mode.
+	 *
+	 * Optional rather than defaulted, for the same reason `repeatLimit` is: every
+	 * kit file written before the dial existed still validates, and no migration
+	 * is owed.
+	 */
+	strategy: z.enum(['window', 'transcript']).optional()
 });
 
 export const toolsBrickSchema = z.object({

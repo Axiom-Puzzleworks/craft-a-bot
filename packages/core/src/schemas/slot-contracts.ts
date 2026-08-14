@@ -54,7 +54,17 @@ export type BrainSlotConfig = z.infer<typeof brainSlotSchema>;
  */
 export const memorySlotSchema = z.object({
 	windowSize: z.number().int().positive(),
-	notebook: z.boolean()
+	notebook: z.boolean(),
+	/**
+	 * Which strategy pairing the loop should assemble context with (E7).
+	 *
+	 * Core reads it for the same reason it reads `windowSize`: this configures
+	 * machinery core owns — the memory it keeps and the prompt it composes — and
+	 * there is no honest hook through which a brick could contribute either.
+	 * Optional, and absent means `window`, so a brick that has never heard of
+	 * strategies still fills the socket.
+	 */
+	strategy: z.enum(['window', 'transcript']).optional()
 });
 export type MemorySlotConfig = z.infer<typeof memorySlotSchema>;
 

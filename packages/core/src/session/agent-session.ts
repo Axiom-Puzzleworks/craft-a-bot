@@ -38,7 +38,8 @@ import {
 	notifyTickEnd
 } from './brick-runtimes.js';
 import { createMemory, type TickMemory } from './memory.js';
-import { composePrompt, describeFittedBricks, estimateTokens } from './prompt.js';
+import { describeFittedBricks, estimateTokens } from './prompt.js';
+import { resolveStrategies } from './strategies.js';
 
 /**
  * The engine's heart (02-AGENT-MODEL.md §5): one tick = sense → compose →
@@ -111,7 +112,17 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		brainSlotSchema
 	);
 	const memoryConfig = slotConfig(deps.spec, registry, 'memory', memorySlotSchema);
-	const memory = createMemory(memoryConfig);
+	/*
+	 * How context is kept and how it is composed (E7). The spec's dial picks the
+	 * pairing; `options.strategies` overrides it, which is how a test or the
+	 * Workshop selects one directly.
+	 */
+	const strategies = resolveStrategies(
+		memoryConfig?.strategy,
+		memoryConfig?.windowSize ?? 0,
+		options.strategies
+	);
+	const memory = createMemory(memoryConfig, strategies.memory);
 	const events: EventBus = createEventBus();
 	const runId = newId();
 
@@ -627,7 +638,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			...(notebookLines.length > 0 ? { notebookLines } : {}),
 			...(progress !== undefined ? { progress } : {})
 		};
-		let messages = composePrompt(promptInput);
+		let messages = strategies.prompt.compose(promptInput);
 		run.feedback = [];
 		emit('prompt.composed', { messages, estimatedTokens: estimateTokens(messages) });
 
@@ -701,7 +712,22 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			observation: observation.summary ?? observation.text,
 			thought,
 			...(acted ? { action: acted.summary, result: acted.result } : {}),
-			...(refused !== undefined ? { refused } : {})
+			...(refused !== undefined ? { refused } : {}),
+			/*
+			 * The proposal itself, kept alongside its narration (E7). Recorded
+			 * whether it ran, was refused or was blocked — a transcript needs the
+			 * call that the refusal answers, and `action` had already reduced it to
+			 * the prose "tried to move".
+			 */
+			...(decision.kind === 'call'
+				? {
+						call: {
+							kind: decision.call.kind,
+							name: decision.call.name,
+							arguments: decision.call.arguments
+						}
+					}
+				: {})
 		};
 		/*
 		 * Every brick hears what happened, whether or not a Memory brick is
@@ -822,7 +848,8 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			},
 			providerId: provider.id,
 			wireModel: cartridgeModel(),
-			cartridgeId: brain?.cartridgeId ?? ''
+			cartridgeId: brain?.cartridgeId ?? '',
+			strategies: { memory: strategies.memory.id, prompt: strategies.prompt.id }
 		});
 		// The opening scene needs an event behind it too. Without this the UI would
 		// have to reach into the world to draw the first frame, and a replayer

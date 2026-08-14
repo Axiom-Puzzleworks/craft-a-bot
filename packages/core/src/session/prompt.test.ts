@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { composePrompt, composeSystemMessage, estimateTokens } from './prompt.js';
+import {
+	composePrompt,
+	composeSystemMessage,
+	estimateTokens,
+	transcriptPromptStrategy
+} from './prompt.js';
+import type { TickMemory } from './memory.js';
 import type { GoalCardDefinition } from '../schemas/pack-manifest.js';
 
 /**
@@ -190,5 +196,113 @@ describe('the progress line', () => {
 	it('is simply absent for a world that cannot describe progress', () => {
 		const messages = composePrompt(baseInput());
 		expect(messages.at(-1)?.content).not.toContain('undefined');
+	});
+});
+
+/**
+ * **The transcript strategy's own unit charter** (E7, `12-…` D12).
+ *
+ * The invariant that matters — well-formedness across a whole run — is held in
+ * `pack-starter`, where a real session can be driven. These are the cases below
+ * that: the shape of one turn, and the two turns easiest to render wrongly.
+ */
+describe('the transcript prompt strategy', () => {
+	/**
+	 * Drop optional keys entirely rather than setting them to `undefined`.
+	 * `exactOptionalPropertyTypes` treats those as different things, and so does
+	 * the composer: "absent" is what an unperformed call actually looks like.
+	 */
+	const without = <K extends keyof TickMemory>(entry: TickMemory, ...keys: K[]): TickMemory => {
+		const copy = { ...entry };
+		for (const key of keys) delete copy[key];
+		return copy;
+	};
+
+	const turn = (over: Partial<TickMemory> = {}): TickMemory => ({
+		tick: 1,
+		observation: 'you were on the rug',
+		thought: 'east it is',
+		action: 'tried to move',
+		result: 'you moved east',
+		call: { kind: 'action', name: 'move', arguments: { direction: 'east' } },
+		...over
+	});
+
+	it('renders a remembered turn as user → assistant-with-call → tool', () => {
+		const messages = transcriptPromptStrategy.compose(input({ memoryWindow: [turn()] }));
+
+		expect(messages.map((message) => message.role)).toEqual([
+			'system',
+			'user',
+			'assistant',
+			'tool',
+			'user'
+		]);
+		expect(messages[2]?.toolCalls).toEqual([
+			{ id: 'call_1', name: 'move', arguments: { direction: 'east' } }
+		]);
+		expect(messages[3]).toMatchObject({
+			toolCallId: 'call_1',
+			name: 'move',
+			content: 'you moved east'
+		});
+	});
+
+	/** One call per turn is the V1 rule, so the tick names the call — no clock, no randomness. */
+	it('gives each turn a deterministic call id', () => {
+		const messages = transcriptPromptStrategy.compose(
+			input({ memoryWindow: [turn({ tick: 3 }), turn({ tick: 7 })] })
+		);
+
+		expect(messages.flatMap((message) => message.toolCalls ?? []).map((call) => call.id)).toEqual([
+			'call_3',
+			'call_7'
+		]);
+		expect(
+			JSON.stringify(transcriptPromptStrategy.compose(input({ memoryWindow: [turn()] })))
+		).toBe(JSON.stringify(transcriptPromptStrategy.compose(input({ memoryWindow: [turn()] }))));
+	});
+
+	it('answers a refused call with the refusal, so nothing dangles', () => {
+		// A call that never reached the world has no action and no result — only
+		// the reason it was stopped.
+		const refused = without(turn({ refused: 'a safety rule stopped you' }), 'action', 'result');
+
+		const messages = transcriptPromptStrategy.compose(input({ memoryWindow: [refused] }));
+
+		expect(messages[3]).toMatchObject({ role: 'tool', content: 'a safety rule stopped you' });
+	});
+
+	/**
+	 * A call that neither ran nor was refused should not happen — but a `tool`
+	 * message with empty content is a 400, so the fallback is a sentence rather
+	 * than a silence.
+	 */
+	it('never emits an empty tool result', () => {
+		const bare = without(turn(), 'result');
+		const messages = transcriptPromptStrategy.compose(input({ memoryWindow: [bare] }));
+
+		expect(messages[3]?.content).toBe('Nothing came back.');
+	});
+
+	it('emits no tool message for a turn that made no call, and never an empty assistant turn', () => {
+		const mumbled: TickMemory = { tick: 2, observation: 'the rug', thought: '' };
+		const messages = transcriptPromptStrategy.compose(input({ memoryWindow: [mumbled] }));
+
+		expect(messages.map((message) => message.role)).toEqual([
+			'system',
+			'user',
+			'assistant',
+			'user'
+		]);
+		expect(messages[2]?.content).toBe('(no reply)');
+	});
+
+	it('carries the notebook, like the prose strategy does', () => {
+		const messages = transcriptPromptStrategy.compose(
+			input({ memoryWindow: [turn()], notebookLines: ['the red key opens the chest'] })
+		);
+
+		expect(messages.at(-2)?.content).toContain('the red key opens the chest');
 	});
 });
