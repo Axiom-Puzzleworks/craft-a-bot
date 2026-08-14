@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { badgeName, CHAPTERS } from '$lib/leaflet/chapters.js';
 	import type { LeafletController } from '$lib/leaflet/leaflet.svelte.js';
 	import { preferences } from '$lib/state/preferences.svelte.js';
@@ -40,6 +41,12 @@
 
 	$effect(() => {
 		const anchor = leaflet.step?.anchor;
+		// Re-dock on navigation as well as on a step change: the same anchor id
+		// sits in a different place on a different screen, and the panel would
+		// otherwise keep the side it chose for the page before (see `Spotlight`,
+		// which had the same blind spot with worse symptoms).
+		void page.url.pathname;
+
 		if (anchor === undefined) {
 			dock = 'right';
 			return;

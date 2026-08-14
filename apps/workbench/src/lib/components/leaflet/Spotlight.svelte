@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { tick } from 'svelte';
+	import { page } from '$app/state';
 	import type { AnchorId } from '$lib/leaflet/anchors.js';
 
 	/**
@@ -15,6 +17,13 @@
 	 * The hole is a box-shadow with an enormous spread rather than an SVG mask:
 	 * one element, no clip-path support questions, and it dims whatever the page
 	 * grows to without being told the viewport size.
+	 *
+	 * **It re-measures on navigation.** A step's anchor does not change when the
+	 * reader moves between the bench and the Playroom — the step is still "pull
+	 * the GO lever" — so an effect keyed only on the anchor never re-ran, and the
+	 * hole stayed exactly where it was: a yellow rectangle and a dimmed hole
+	 * floating over a screen that had nothing there. The `resize`/`ResizeObserver`
+	 * fallbacks do not save it either, because two screens can be the same size.
 	 */
 
 	interface Props {
@@ -51,9 +60,22 @@
 	}
 
 	$effect(() => {
-		// Re-run whenever the step moves the arrow elsewhere.
+		// Re-run whenever the step moves the arrow elsewhere...
 		void anchor;
+		// ...and whenever the screen underneath changes, which the anchor alone
+		// cannot tell us about.
+		void page.url.pathname;
+
+		let live = true;
 		measure();
+		/*
+		 * The new route's markup is not in the DOM on the tick the URL changes, so
+		 * the measurement above only ever clears a stale hole. This second pass is
+		 * what finds the anchor again when the screen it lives on has arrived.
+		 */
+		void tick().then(() => {
+			if (live) measure();
+		});
 
 		const onChange = () => measure();
 		window.addEventListener('resize', onChange);
@@ -65,6 +87,7 @@
 		observer.observe(document.body);
 
 		return () => {
+			live = false;
 			window.removeEventListener('resize', onChange);
 			window.removeEventListener('scroll', onChange, true);
 			observer.disconnect();
