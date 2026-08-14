@@ -11,7 +11,7 @@
 		type EngineEvent,
 		type RunRecord
 	} from '@craftabot/core';
-	import { capabilitiesOf } from '$lib/bot-capabilities.js';
+	import { capabilitiesOf, offers } from '$lib/bot-capabilities.js';
 	import { chooseBrain } from '$lib/brain.js';
 	import { demoVariantFor, hasDemoPlan } from '$lib/demo-brain.js';
 	import { leafletStore } from '$lib/leaflet/leaflet.svelte.js';
@@ -27,6 +27,7 @@
 	import { evictionNotice } from '$lib/eviction-notice.js';
 	import HeadUp from '$lib/components/play/HeadUp.svelte';
 	import RunControls from '$lib/components/play/RunControls.svelte';
+	import SayToBot from '$lib/components/play/SayToBot.svelte';
 	import StoryStrip from '$lib/components/play/StoryStrip.svelte';
 	import ThoughtBubble from '$lib/components/play/ThoughtBubble.svelte';
 	import WorldView from '$lib/components/play/WorldView.svelte';
@@ -71,6 +72,25 @@
 			? (record?.spec.customGoalText ?? '')
 			: (goalCard?.goalText ?? '')
 	);
+	/** Free Play is the one card whose ending a person is allowed to declare. */
+	const isFreePlay = $derived(record?.spec.goalCardId === 'starter/free-play');
+	/**
+	 * Whether the fitted bricks opened the Hearing channel (`16-…` §2.6).
+	 *
+	 * Matched on the last segment because a spec carries **qualified** channel
+	 * ids (E6) — `starter/playroom/hearing`, not `hearing` — and the engine
+	 * unqualifies them at the world's door rather than in the spec. Hearing is
+	 * off by default: the visor opens sight and compass, and a child has to
+	 * switch ears on, which is exactly the thing this control teaches.
+	 */
+	/** Fitted at all, which is a different problem from fitted-but-deaf. */
+	const hasSenseBrick = $derived(
+		record ? capabilitiesOf(record.spec, registry).filled.has('perception') : false
+	);
+	const canHear = $derived(
+		record ? offers(capabilitiesOf(record.spec, registry).channels, 'hearing') : false
+	);
+
 	// Only the keyless demo brain follows a script; a real model does not.
 	const scripted = $derived(record ? !keyless || hasDemoPlan(record.spec.goalCardId) : false);
 
@@ -312,6 +332,15 @@
 		view?.pause();
 	}
 
+	/**
+	 * The player's verdict (`16-…` §2.5, E2). Recorded with a reason, so the
+	 * trace — and the end card — can tell a goal a person called finished from
+	 * one the bot did.
+	 */
+	function declareAchieved(): void {
+		view?.declareOutcome('SUCCESS', 'declared finished by the player');
+	}
+
 	function stop(): void {
 		// Stopping emits `run.finished` like any other ending, and that is what
 		// saves. Persisting here as well wrote the record twice.
@@ -416,6 +445,31 @@
 					onreset={reset}
 					onspeed={setSpeed}
 				/>
+
+				{#if isFreePlay}
+					<!--
+						Free Play has no predicate but `celebrate`, so somebody has to say
+						when it is finished (`16-…` §2.5). Both the person and the bot are
+						allowed to, and the end card says which — which is the lesson:
+						self-assessment and external judgement are different things.
+					-->
+					<button
+						type="button"
+						class="declare"
+						data-testid="goal-achieved"
+						disabled={view.outcome !== undefined || !view.started}
+						onclick={declareAchieved}
+					>
+						Goal achieved!
+					</button>
+				{/if}
+
+				<SayToBot
+					{canHear}
+					{hasSenseBrick}
+					disabled={view.outcome !== undefined}
+					onsay={(text) => view?.deliverInput(text)}
+				/>
 				<a
 					class="back"
 					data-tutorial="back-to-bench"
@@ -430,6 +484,7 @@
 	{#if view.outcome && !dismissedEndCard}
 		<EndCard
 			outcome={view.outcome}
+			reason={view.finishedReason}
 			onseeTrace={() => (dismissedEndCard = true)}
 			onbackToBench={() => goto(resolve('/bench/[agentId]', { agentId }))}
 		/>
@@ -469,6 +524,29 @@
 	.side {
 		display: grid;
 		gap: var(--cab-space-4);
+	}
+
+	.declare {
+		min-height: 44px;
+		padding: var(--cab-space-2) var(--cab-space-3);
+		font: inherit;
+		font-size: var(--cab-text-sm);
+		font-weight: 600;
+		color: var(--cab-cream);
+		background: var(--cab-green-fill);
+		border: var(--cab-border-part) solid var(--cab-ink);
+		border-radius: var(--cab-radius-pill);
+		cursor: pointer;
+	}
+
+	.declare:disabled {
+		cursor: not-allowed;
+		opacity: 0.45;
+	}
+
+	.declare:focus-visible {
+		outline: var(--cab-focus-ring);
+		outline-offset: var(--cab-focus-gap);
 	}
 
 	.back {

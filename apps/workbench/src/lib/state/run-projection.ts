@@ -29,6 +29,12 @@ export interface RunProjection {
 	tick: number;
 	usage: { inputTokens: number; outputTokens: number };
 	outcome: RunOutcome | undefined;
+	/**
+	 * Why the run ended, when the outcome alone does not say (E2). A goal met by
+	 * the world's predicate and one a person declared finished are both SUCCESS,
+	 * and `16-…` §2.5 wants the end card to tell them apart.
+	 */
+	finishedReason: string | undefined;
 	events: EngineEvent[];
 	tripped: boolean;
 	thinking: boolean;
@@ -61,6 +67,7 @@ export function emptyProjection(): RunProjection {
 		tick: 0,
 		usage: { inputTokens: 0, outputTokens: 0 },
 		outcome: undefined,
+		finishedReason: undefined,
 		events: [],
 		tripped: false,
 		thinking: false,
@@ -136,6 +143,7 @@ export function applyEvent(state: RunProjection, event: EngineEvent): void {
 			break;
 		case 'run.finished':
 			state.outcome = event.payload.outcome;
+			state.finishedReason = event.payload.reason;
 			break;
 	}
 }

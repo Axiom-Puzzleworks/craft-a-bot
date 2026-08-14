@@ -47,6 +47,34 @@ describe('the system message (02-AGENT-MODEL.md §8)', () => {
 		expect(message).toContain('celebrate');
 	});
 
+	/**
+	 * **The goal the child wrote** (`16-…` §2.5).
+	 *
+	 * Free Play is a laminated card with a marker pen. The text was captured on
+	 * the spec from WP5, shown back on the card holder, and never put in the
+	 * prompt — so for five work packages the bot pursued the card's generic
+	 * wording and the child's actual goal reached nobody.
+	 */
+	it('prefers the goal its builder wrote over the one on the card', () => {
+		const message = composeSystemMessage(
+			input({ customGoalText: 'Push every block into a pile.' })
+		);
+
+		expect(message).toContain('Your goal: Push every block into a pile.');
+		expect(message).not.toContain('Introduce yourself to Teddy.');
+	});
+
+	it('keeps the card’s goal when nothing was written', () => {
+		expect(composeSystemMessage(input())).toContain('Your goal: Introduce yourself to Teddy.');
+	});
+
+	/** Tapping the box and typing a space is not setting a goal. */
+	it('keeps the card’s goal when the writing is only whitespace', () => {
+		const message = composeSystemMessage(input({ customGoalText: '   \n  ' }));
+
+		expect(message).toContain('Your goal: Introduce yourself to Teddy.');
+	});
+
 	it('has no personality line when no brick contributed one', () => {
 		// The Brain brick returns no section for a blank personality; the prompt
 		// simply never hears about it.

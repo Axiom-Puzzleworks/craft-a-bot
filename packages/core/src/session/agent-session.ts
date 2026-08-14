@@ -617,6 +617,9 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		const promptInput = {
 			brickSections: collectContext(runtimes, { tick: run.tick, channels }).sections ?? [],
 			goalCard,
+			// The goal its builder wrote, if they wrote one (`16-…` §2.5). Captured
+			// since WP5 and never passed on until now.
+			...(spec.customGoalText !== undefined ? { customGoalText: spec.customGoalText } : {}),
 			observation: observation.text,
 			memoryWindow: memory.window(),
 			fittedBricks,

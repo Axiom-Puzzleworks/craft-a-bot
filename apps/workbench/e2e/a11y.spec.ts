@@ -41,6 +41,14 @@ test('the Shelf has no accessibility violations', async ({ page }) => {
 
 test('Settings has no accessibility violations', async ({ page }) => {
 	await page.goto('/settings');
+	/*
+	 * Wait for something on the page before auditing. Every other case here
+	 * anchors on a test id; this one did not, and axe would occasionally run
+	 * against a half-rendered document and report contrast against colours that
+	 * were still arriving. It failed twice under full-suite load and never once
+	 * on its own, which is the signature.
+	 */
+	await expect(page.getByTestId('nav-settings')).toHaveAttribute('aria-current', 'page');
 
 	const { violations } = await audit(page);
 	expect(describe(violations)).toBe('');

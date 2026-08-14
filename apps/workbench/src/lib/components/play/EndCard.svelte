@@ -10,11 +10,13 @@
 	 */
 	interface Props {
 		outcome: RunOutcome;
+		/** Why it ended, where the outcome alone does not say (E2). */
+		reason?: string | undefined;
 		onseeTrace: () => void;
 		onbackToBench: () => void;
 	}
 
-	let { outcome, onseeTrace, onbackToBench }: Props = $props();
+	let { outcome, reason, onseeTrace, onbackToBench }: Props = $props();
 
 	const CARDS: Record<RunOutcome, { badge: string; title: string; body: string; accent: string }> =
 		{
@@ -51,6 +53,17 @@
 		};
 
 	const card = $derived(CARDS[outcome]);
+
+	/**
+	 * Who decided (`16-…` §2.5). Free Play can end because the world's predicate
+	 * was met — the bot pressed `celebrate` and meant it — or because a person
+	 * looked at what happened and said that will do. Both are SUCCESS, and the
+	 * difference between a bot judging its own work and a person judging it is
+	 * the whole lesson of the card.
+	 */
+	const declaredByPlayer = $derived(
+		outcome === 'SUCCESS' && (reason ?? '').includes('declared finished by the player')
+	);
 </script>
 
 <div class="backdrop" data-testid="end-card" data-outcome={outcome}>
@@ -64,6 +77,16 @@
 		<span class="badge" aria-hidden="true">{card.badge}</span>
 		<h2 id="end-title">{card.title}</h2>
 		<p>{card.body}</p>
+		{#if declaredByPlayer}
+			<p class="who" data-testid="end-declared-by-player">
+				You decided this one was done. Your bot did not say so itself — deciding when a job is
+				finished is a job of its own.
+			</p>
+		{:else if outcome === 'SUCCESS'}
+			<p class="who" data-testid="end-declared-by-bot">
+				Your bot decided it had finished, and it was right.
+			</p>
+		{/if}
 		<div class="actions">
 			<button type="button" data-testid="end-see-trace" onclick={onseeTrace}>
 				See the flight recorder
@@ -113,6 +136,11 @@
 		margin: 0;
 		font-size: var(--cab-text-sm);
 		line-height: 1.5;
+	}
+
+	.who {
+		font-size: var(--cab-text-sm);
+		color: var(--cab-ink-muted);
 	}
 
 	.actions {
