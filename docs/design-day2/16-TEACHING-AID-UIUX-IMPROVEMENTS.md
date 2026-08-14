@@ -65,7 +65,13 @@
 **Design:** apply speed live to the session loop delay; persist the dial back to preferences; lamp words stay, plus the bot's face reflects state (thinking/confused/celebrating) using the `#face-slot` expressions.
 **Accept:** e2e: change speed mid-play → measured tick cadence changes.
 
-> **Amended 2026-08-14 (WP16 status):** outstanding — this is **slice d**. Independent of slices c and e, so it can be taken in any order among them. The face half uses the `#face-slot` expression mechanism that already exists; the honest-dial half is the live fix for `12-…` D15's silent no-op.
+> **Amended 2026-08-14 (WP16 slice d):** built.
+>
+> **The dial needed a core change**, which is worth recording because the design above reads as though it were UI work. `tickDelayMs` was captured when the session was built, so nothing the workbench could do would reach a run in progress — the only honest options were a new seam or rebuilding the session and losing the trace. `AgentSession.setTickDelayMs` is that seam (`02-…` §6). It is **not** traced: the gap between ticks changes no decision, no world state and no outcome, so it is not engine behaviour under hard rule 3, and putting a viewing preference into an audit record would be worse than leaving it out. The dial also now writes back to preferences, so the speed a child can follow survives the run they found it on.
+>
+> **A correction to the design above.** "the `#face-slot` expressions" reads as though the mechanism exists; it does not. `#face-slot` is commissioned art (`11-…` §5, wave M1) and WP18 draws it. What that manifest *does* settle is the division of labour — art supplies the layers, code drives them from session status — so slice d builds the code half: `lib/bot-expression.ts` maps run state to one of the six commissioned expressions and drives the placeholder glyph the Playroom already draws the bot with. When the art lands it is a rendering swap, not a rethink.
+>
+> The face is not a second status lamp. The lamp says what the machine is doing; the face says how it is going, and they part company exactly where it matters — the lamp reads `finished` whether the bot won or ran out of steps, and has nothing to say about an action the world has just refused. `confused` is the face §1.2 asked for and slice b could not yet draw.
 
 ## 2. P1 — The substantial-improvement wave
 

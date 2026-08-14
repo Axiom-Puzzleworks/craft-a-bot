@@ -233,6 +233,10 @@
 	function setSpeed(multiplier: number): void {
 		speed = multiplier;
 		view?.setSpeed(multiplier);
+		// The dial is now the preference, not just a per-run override (`16-…`
+		// §1.6). A child who finds ×0.5 is the speed they can follow should not
+		// have to find it again on every run.
+		preferences.setTickSpeed(multiplier);
 	}
 
 	/** Export the trace as JSON, scrubbed of anything key-shaped (07 §5). */
@@ -285,7 +289,7 @@
 
 		<div class="stage">
 			<section class="world" aria-label="The Playroom">
-				<WorldView world={view.world} saying={view.saying} />
+				<WorldView world={view.world} saying={view.saying} expression={view.expression} />
 				<StoryStrip
 					events={view.events}
 					readAloud={preferences.readAloud}

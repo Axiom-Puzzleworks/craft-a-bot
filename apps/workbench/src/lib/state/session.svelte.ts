@@ -10,6 +10,7 @@ import {
 	type SessionStatus
 } from '@craftabot/core';
 import type { PlayroomState } from '@craftabot/pack-starter';
+import { botExpression, type BotExpression } from '$lib/bot-expression.js';
 import { createRegistry } from '$lib/packs.js';
 
 /**
@@ -39,6 +40,8 @@ export interface PendingApproval {
 export interface SessionView {
 	readonly status: SessionStatus;
 	readonly lamp: LampState;
+	/** The bot's face — how the run is going, where `lamp` is what it is doing. */
+	readonly expression: BotExpression;
 	readonly world: PlayroomState | undefined;
 	readonly thought: string;
 	/** True while tokens are still arriving for this turn. */
@@ -105,6 +108,8 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 		/** Tokens arriving right now, before the decision lands. */
 		streaming: string;
 		pendingApproval: PendingApproval | undefined;
+		/** Whether the world took the last action; `undefined` before any. */
+		lastActionOk: boolean | undefined;
 	}>({
 		status: 'idle',
 		world: undefined,
@@ -119,12 +124,18 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 		thinking: false,
 		started: false,
 		streaming: '',
-		pendingApproval: undefined
+		pendingApproval: undefined,
+		lastActionOk: undefined
 	});
 
 	let speed = $state(1);
 	let session = build();
 	let runId = $state<string | undefined>(undefined);
+
+	/** One place that knows how the dial becomes a delay, so build and setSpeed agree. */
+	function tickDelayFor(multiplier: number): number {
+		return Math.round((deps.baseTickDelayMs ?? BASE_TICK_DELAY_MS) / multiplier);
+	}
 
 	function build() {
 		const created = createSession({
@@ -133,7 +144,7 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 			provider: deps.provider,
 			guardrails: deps.guardrails ?? [],
 			options: {
-				tickDelayMs: Math.round((deps.baseTickDelayMs ?? BASE_TICK_DELAY_MS) / speed),
+				tickDelayMs: tickDelayFor(speed),
 				...(deps.maxTicks !== undefined ? { budgets: { maxTicks: deps.maxTicks } } : {})
 			}
 		});
@@ -183,6 +194,9 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 				break;
 			case 'action.performed': {
 				state.narration = event.payload.result.narration;
+				// Whether the world took it or refused it — the input the bot's face
+				// needs and the only one the session was not already keeping.
+				state.lastActionOk = event.payload.result.ok;
 				// A `say` becomes a speech bubble in the world view (03 §5.1).
 				const args = event.payload.arguments;
 				state.saying =
@@ -211,6 +225,20 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 	return {
 		get status() {
 			return state.status;
+		},
+		/**
+		 * The bot's face (`16-…` §1.6). Derived, never stored, so it cannot drift
+		 * from the run it is describing — and derived from fields that are
+		 * themselves absorbed from events, so slice e's replay viewer can build
+		 * the same mood from a stored trace and get the same face.
+		 */
+		get expression(): BotExpression {
+			return botExpression({
+				tripped: state.tripped,
+				outcome: state.outcome,
+				thinking: state.thinking,
+				lastActionOk: state.lastActionOk
+			});
 		},
 		/** Status lamp (03 §5.1). Always paired with a word in the UI, never colour alone. */
 		get lamp(): LampState {
@@ -296,8 +324,11 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 		},
 		setSpeed(multiplier) {
 			speed = multiplier;
-			// The delay is fixed when a session is built, so a speed change mid-run
-			// applies from the next run. Restarting here would throw away the trace.
+			// Applies to the run in progress, not just the next one (`16-…` §1.6).
+			// This used to set the field and stop, because the delay was fixed when
+			// the session was built and rebuilding would have thrown the trace away
+			// (`12-…` D15). `setTickDelayMs` is the seam that makes it honest.
+			session.setTickDelayMs(tickDelayFor(multiplier));
 		},
 		reset() {
 			// Release anyone waiting on an approval before tearing the run down,
@@ -315,6 +346,7 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 			state.events = [];
 			state.tripped = false;
 			state.thinking = false;
+			state.lastActionOk = undefined;
 			state.started = false;
 			state.status = 'idle';
 			runId = undefined;

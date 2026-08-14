@@ -83,7 +83,19 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 	const newId = options.newId ?? (() => crypto.randomUUID());
 	const now = options.now ?? (() => new Date().toISOString());
 	const random = options.random ?? (() => Math.random());
-	const tickDelayMs = options.tickDelayMs ?? 0;
+	/**
+	 * Mutable, because the speed dial is a control a person turns *while
+	 * watching* (`16-…` §1.6). Captured as a constant, the play loop kept the
+	 * delay it was built with and every mid-run change was a silent no-op
+	 * (`12-…` D15) — the dial moved, the lamp words changed, and the bot carried
+	 * on at exactly the same pace.
+	 *
+	 * Deliberately not part of the trace. Tick delay changes no decision, no
+	 * world state and no outcome; it is how fast a human watches, not anything
+	 * the agent did, which is why `run.started` records budgets and model but
+	 * not this.
+	 */
+	let tickDelayMs = options.tickDelayMs ?? 0;
 
 	const goalCard = requireGoalCard(registry.getGoalCard(spec.goalCardId), spec.goalCardId);
 	const world = createWorld(goalCard);
@@ -845,6 +857,9 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			else run.status = 'paused';
 		},
 		step: safeTick,
+		setTickDelayMs(ms) {
+			tickDelayMs = Math.max(0, ms);
+		},
 		pause() {
 			run.pauseRequested = true;
 			if (run.status === 'running' && run.mode === 'step') run.status = 'paused';

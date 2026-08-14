@@ -20,12 +20,19 @@ const noStorage: WebStorageLike = {
 	removeItem: () => {}
 };
 
+/**
+ * The four values are `readonly` because every implementation exposes them as
+ * getters, so an assignment does nothing at best. The interface used to declare
+ * them mutable, which let `preferences.tickSpeed = 2` compile happily and then
+ * silently fail to persist anything — go through the setters, which also write
+ * to storage.
+ */
 export interface Preferences {
-	reducedMotion: boolean;
-	tickSpeed: number;
-	sound: boolean;
+	readonly reducedMotion: boolean;
+	readonly tickSpeed: number;
+	readonly sound: boolean;
 	/** Whether the story strip is read aloud (`16-…` §1.3). */
-	readAloud: boolean;
+	readonly readAloud: boolean;
 	setReducedMotion(value: boolean): void;
 	setTickSpeed(value: number): void;
 	setSound(value: boolean): void;
