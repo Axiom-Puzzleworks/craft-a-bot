@@ -3,6 +3,8 @@
 > The prioritised, phased plan from today's V1.0 to the full ages 5–11 construction-kit line and the professional Workshop. Supersedes `09-ROADMAP.md` §4 ("Beyond V1.0"); the WP0–WP10 history in that document remains the record of what was built.
 > Prerequisite reading: `12-…` (why this order), `13-…`/`14-…` (Phase A content), `15/16/17-…` (Phases B–D content), `19-…` (the control catalogue Phases D–F draw from).
 
+> **Amended 2026-08-14:** status reconciliation. WP11, WP12 and WP13 shipped on 2026-08-13 but only WP14's row had been marked, so §3 and §7 disagreed with `main`. Now marked, with WP16 recorded as **in progress** (slices a+b landed) rather than untouched, and WP15 explicitly flagged **not started** — the commit `chore: WP15 tidy-up` is WP14's clean-up wearing a confusing label, and Phase A is therefore not closed. No plan or scope changed here; only the record of what is built.
+
 ---
 
 ## 1. Scope decision of record: where the product line ends
@@ -25,17 +27,17 @@ Numbering continues from WP10. Each WP is Claude-Code-sized with a DoD; one WP p
 
 | WP | Deliverable | DoD |
 |---|---|---|
-| WP11 | **Behaviour fixes C1–C8** (`14-…` E3, E4, E12 + card re-scope 16 §1.1 + no-repetition v2 + naming corpus) | Scripted-optimal solutions pass every non-expert card in budget; naming corpus ≥95%; loop-score regression fixtures green |
-| WP12 | **Test estate gap-fill** (13 §L0–L2: fixtures, unit charters, dead-config audit, guardrail ordering, post-act test-first) | Coverage targets met; every 12-§3 defect has a failing-then-passing test or an accepted-risk note |
-| WP13 | **Engine evolutions E1–E2, E5–E6, E8–E11** (post-act honoured, session I/O, single-sourced shapes, qualified ids, trace v2 + migrations, identity fields, retry) | Golden traces migrate v1→v2; audit-completeness test (13 §L5) passes |
+| WP11 | **Behaviour fixes C1–C8** (`14-…` E3, E4, E12 + card re-scope 16 §1.1 + no-repetition v2 + naming corpus) | ✅ **Done 2026-08-13.** Scripted-optimal solutions pass every non-expert card in budget; naming corpus ≥95%; loop-score regression fixtures green. The card re-scope added a seventh card (`starter/locked-chest-expert`, par 36) rather than leaving a flagship card unwinnable; **displaying par on the card holder was deferred to WP16** — the `par` data landed here and waits for the UI wave (see 16 §1.1) |
+| WP12 | **Test estate gap-fill** (13 §L0–L2: fixtures, unit charters, dead-config audit, guardrail ordering, post-act test-first) | ✅ **Done 2026-08-13.** Coverage targets met; every 12-§3 defect has a failing-then-passing test or an accepted-risk note |
+| WP13 | **Engine evolutions E1–E2, E5–E6, E8–E11** (post-act honoured, session I/O, single-sourced shapes, qualified ids, trace v2 + migrations, identity fields, retry) | ✅ **Done 2026-08-13.** Golden traces migrate v1→v2; audit-completeness test (13 §L5) passes. Landed as two commits — E1/E2/E5/E8–E11, then E6 (qualified world content ids) |
 | WP14 | **The open brick contract** (`14-…` §2: BrickKindDefinition, spec v2, migrations; port all six starter bricks) | ✅ **Done 2026-08-13.** Golden trace byte-stable; `@craftabot/pack-monitor` builds and runs against the contract with no core edits. Delivered in slices 1, 2a–2c, 3a–3d, 4a–4c + the prototype. One deliberate behaviour change: a fitted Safety Brick's rules now always run, where they previously depended on the host compiling them (slice 3d) |
-| WP15 | **Strategy seams E7** (MemoryStrategy/PromptStrategy; transcript realism mode) | Both strategies selectable in tests; transcript mode produces well-formed tool-result message sequences |
+| WP15 | **Strategy seams E7** (MemoryStrategy/PromptStrategy; transcript realism mode) | ⚠️ **Not started.** Both strategies selectable in tests; transcript mode produces well-formed tool-result message sequences. **Do not read the commit `chore: WP15 tidy-up — delete the v1 window` (2026-08-13) as this WP** — that was WP14's own clean-up of `asLegacySpec`/`legacyBricks`, delivered in the WP14 branch and labelled "WP15 tidy-up" because `14-…` had flagged it as a follow-on. Neither `MemoryStrategy` nor `PromptStrategy` exists in the codebase |
 
 ### Phase B — Teaching-aid excellence (workstream 4 delivered)
 
 | WP | Deliverable | DoD |
 |---|---|---|
-| WP16 | **P0 UX wave** (16 §1: winnable cards + par display, visible failures, story strip, run continuity/scrapbook/replay, nav + confirms, honest speed) | 16 §1 acceptance tests green; moderated-session legibility check passed |
+| WP16 | **P0 UX wave** (16 §1: winnable cards + par display, visible failures, story strip, run continuity/scrapbook/replay, nav + confirms, honest speed) | 🚧 **In progress — slices a+b landed 2026-08-13.** Sliced five ways: **a** the narrated tick model (`lib/narration/narrate.ts`, derived from events alone so one function narrates live *and* replayed runs) ✅; **b** visible failures + the story strip, incl. the play route's aria-live region — closes 16 §1.2/§1.3 and `12-…` D16's live-region half ✅; **c** chrome — nav header, delete confirm, eviction notice, par on the card holder (16 §1.5 + §1.1 remainder) ⬜; **d** honest speed dial and a lively bot (16 §1.6) ⬜; **e** run continuity — persistence, Scrapbook, replay + scrubber (16 §1.4) ⬜. Natural order c → d → e; c and d are independent of each other and of e, and e depends on slice b's strip. DoD outstanding: 16 §1 acceptance tests green; **§1.3's usability check with a target-age reader and the moderated-session legibility check both need a human and a child — neither can be closed from a coding session** |
 | WP17 | **P1 UX wave** (16 §2: safety centre-stage, tutorial gap-fixes, celebration/identity, naming chips, free play real, hearing input, a11y completion) | 16 §2 acceptance tests green; axe pass |
 | WP18 | **Art production & swap-in** (the `11-…` manifest, waves 1–3; commission or produce per its checklist) | P0+P1 assets landed and swapped; silhouette/tint/contrast checks pass; `v1.0.0` tag finally cut on real art |
 
@@ -113,8 +115,8 @@ Phases B and C can run in parallel after A (different surfaces); D needs C; E ne
 
 ## 7. Session-sized next steps (the immediate to-do)
 
-1. WP11 + WP12 together (behaviour fixes land with their tests) — 1–2 Claude Code sessions.
+1. ~~WP11 + WP12 together (behaviour fixes land with their tests)~~ — **done 2026-08-13**.
 2. ~~WP13, then WP14 (contract) with the golden-trace migration gate~~ — **done 2026-08-13**. WP14 ran to twelve slices rather than the two sessions estimated here; the extra went on the workbench, which held six brick names in its tray, sockets, drag-and-drop, box lid and tutorial long after the engine had stopped caring.
-3. WP16 (P0 UX) — 1–2 sessions; WP19 harness skeleton can start in parallel.
+3. **WP16 (P0 UX) — in progress.** Slices a+b are on `main`; **pick up at slice c** (16 §1.5 + the par display left over from §1.1), then d (§1.6), then e (§1.4). WP19's harness skeleton can still start in parallel. Note that WP15 (strategy seams E7) was **skipped**, not completed — see its row in §3 before assuming Phase A is closed.
 4. Commission the art (WP18) now — it is the longest external lead time and blocks the tag.
 5. Revisit this roadmap at the end of each phase; amendments get dated notes here, as ever.
