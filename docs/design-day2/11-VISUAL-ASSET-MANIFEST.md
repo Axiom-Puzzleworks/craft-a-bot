@@ -3,6 +3,8 @@
 
 # 11 — Visual Artefact Manifest & Production Design Guide (V1.0)
 
+> **Commissioning wave 1?** Read `20-ART-COMMISSION-BRIEF.md` alongside this. This document says what to draw and why; that one gives the exact canvas in pixels, the file path, the named-group contract and the placeholder each artefact replaces — the things an illustrator needs in order to deliver something that drops straight in. It also resolves the **1 U = 96 px vs `--cab-u: 24px`** ambiguity in §2, which is a four-fold error waiting to happen.
+
 > The complete inventory of every visual artefact V1.0 needs, and the production rules that make them feel like **large, dimensional, textured parts of a real toy** while remaining **configurable** exactly as far as V1.0 requires.
 > Prerequisite reading: `04-VISUAL-DESIGN-LANGUAGE.md` (tokens, typography, accessibility — this doc builds on it and supersedes its §9 sketch). Interactions the assets must serve: `03-UI-UX-DESIGN.md`.
 > This document is the working brief for the visual workstream. Treat it as the contract: if an asset needs something not specified here, amend this doc — don't improvise silently.

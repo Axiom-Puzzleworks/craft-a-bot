@@ -33,6 +33,7 @@
 | `mockups/pro-mode-mockup.html` | **New** — interactive wireframe: Run Lab · Eval Matrix · Policy Studio |
 | `18-DAY2-ROADMAP.md` | **New** — Phases A–F, WP11–WP34, expansion-pack line, scope decision of record |
 | `19-AI-SAFETY-GOVERNANCE-REFERENCE.md` | **New** — sourced SOTA catalogue + 38 candidate controls tagged Kids/Pro/Both |
+| `20-ART-COMMISSION-BRIEF.md` | **New (2026-08-14)** — the drop-in specification for art wave 1: exact canvases in px, file paths, palette, named-group contract, and the placeholder each artefact replaces. Companion to `11-…`, which stays the what-and-why |
 
 ## Immediate next steps (from `18-…` §7)
 
