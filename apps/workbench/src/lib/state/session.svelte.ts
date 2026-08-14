@@ -56,6 +56,8 @@ export interface SessionView {
 	readonly outcome: RunOutcome | undefined;
 	/** Why it ended, when the outcome alone does not say — see `RunProjection`. */
 	readonly finishedReason: string | undefined;
+	/** Things the bot might have meant, when a name matched several (`16-…` §2.4). */
+	readonly didYouMean: string[];
 	readonly events: EngineEvent[];
 	readonly runId: string | undefined;
 	readonly started: boolean;
@@ -220,6 +222,9 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 		},
 		get finishedReason() {
 			return state.finishedReason;
+		},
+		get didYouMean() {
+			return state.didYouMean;
 		},
 		get events() {
 			return state.events;

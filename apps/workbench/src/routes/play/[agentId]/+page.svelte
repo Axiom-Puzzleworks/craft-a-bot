@@ -23,8 +23,10 @@
 	import { createSessionView, type SessionView } from '$lib/state/session.svelte.js';
 	import { recordTrace, type TraceRecorder } from '$lib/state/trace-recorder.js';
 	import ApprovalCard from '$lib/components/play/ApprovalCard.svelte';
+	import DidYouMean from '$lib/components/play/DidYouMean.svelte';
 	import EndCard from '$lib/components/play/EndCard.svelte';
 	import { evictionNotice } from '$lib/eviction-notice.js';
+	import { endCardHint } from '$lib/end-card-hint.js';
 	import { safetyTally } from '$lib/safety-tally.js';
 	import HeadUp from '$lib/components/play/HeadUp.svelte';
 	import RunControls from '$lib/components/play/RunControls.svelte';
@@ -106,6 +108,29 @@
 		if (view?.outcome === 'SUCCESS' && !cheered) {
 			cheered = true;
 			preferences.cue('fanfare');
+		}
+	});
+
+	/*
+	 * The other two moments a run has something to say about itself (`16-…`
+	 * §2.3). Both are keyed to a fact rather than a count so they fire once:
+	 * an approval appears, or a guardrail ends the run.
+	 */
+	let asked = $state(false);
+	$effect(() => {
+		if (view?.pendingApproval !== undefined && !asked) {
+			asked = true;
+			preferences.cue('ask');
+		} else if (view?.pendingApproval === undefined) {
+			asked = false;
+		}
+	});
+
+	let toldOff = $state(false);
+	$effect(() => {
+		if (view?.outcome === 'STOPPED_BY_GUARDRAIL' && !toldOff) {
+			toldOff = true;
+			preferences.cue('stopped');
 		}
 	});
 
@@ -435,6 +460,11 @@
 					/>
 				{/if}
 				<ThoughtBubble thought={view.thought} narration={view.narration} />
+				<DidYouMean
+					choices={view.didYouMean}
+					{canHear}
+					onsay={(text) => view?.deliverInput(text)}
+				/>
 				<RunControls
 					running={view.status === 'running'}
 					finished={view.outcome !== undefined}
@@ -487,6 +517,7 @@
 		<EndCard
 			outcome={view.outcome}
 			reason={view.finishedReason}
+			hint={endCardHint(view.outcome, view.events)?.text}
 			onseeTrace={() => (dismissedEndCard = true)}
 			onbackToBench={() => goto(resolve('/bench/[agentId]', { agentId }))}
 		/>

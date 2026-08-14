@@ -12,11 +12,13 @@
 		outcome: RunOutcome;
 		/** Why it ended, where the outcome alone does not say (E2). */
 		reason?: string | undefined;
+		/** "What would help?", read from this run's trace (`16-…` §2.3). */
+		hint?: string | undefined;
 		onseeTrace: () => void;
 		onbackToBench: () => void;
 	}
 
-	let { outcome, reason, onseeTrace, onbackToBench }: Props = $props();
+	let { outcome, reason, hint, onseeTrace, onbackToBench }: Props = $props();
 
 	const CARDS: Record<RunOutcome, { badge: string; title: string; body: string; accent: string }> =
 		{
@@ -87,6 +89,14 @@
 				Your bot decided it had finished, and it was right.
 			</p>
 		{/if}
+		{#if hint}
+			<!--
+				Advice about *this* run, from its own trace. A generic tip would be
+				worse than silence: it sends a child to change the wrong thing.
+			-->
+			<p class="hint" data-testid="end-hint">{hint}</p>
+		{/if}
+
 		<div class="actions">
 			<button type="button" data-testid="end-see-trace" onclick={onseeTrace}>
 				See the flight recorder
@@ -139,6 +149,12 @@
 	}
 
 	.who {
+		font-size: var(--cab-text-sm);
+		color: var(--cab-ink-muted);
+	}
+
+	.hint {
+		max-width: 26rem;
 		font-size: var(--cab-text-sm);
 		color: var(--cab-ink-muted);
 	}

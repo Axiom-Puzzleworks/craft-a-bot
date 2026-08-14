@@ -44,6 +44,11 @@ export interface RunProjection {
 	pendingApproval: PendingApproval | undefined;
 	/** Whether the world took the last action; `undefined` before any. */
 	lastActionOk: boolean | undefined;
+	/**
+	 * Things the bot might have meant, when a name matched several (`16-…` §2.4).
+	 * Empty unless the most recent action came back ambiguous.
+	 */
+	didYouMean: string[];
 }
 
 /**
@@ -74,7 +79,8 @@ export function emptyProjection(): RunProjection {
 		started: false,
 		streaming: '',
 		pendingApproval: undefined,
-		lastActionOk: undefined
+		lastActionOk: undefined,
+		didYouMean: []
 	};
 }
 
@@ -124,6 +130,9 @@ export function applyEvent(state: RunProjection, event: EngineEvent): void {
 			// Whether the world took it or refused it — the input the bot's face
 			// needs and the only one the session was not already keeping.
 			state.lastActionOk = event.payload.result.ok;
+			// Cleared on every action, so the chips belong to the turn that raised
+			// them rather than hanging about after the bot has moved on.
+			state.didYouMean = event.payload.result.didYouMean ?? [];
 			// A `say` becomes a speech bubble in the world view (03 §5.1).
 			const args = event.payload.arguments;
 			state.saying =

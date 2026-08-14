@@ -20,7 +20,12 @@
  * imports safely on a server or in a test.
  */
 
-export type SoundCue = 'snap' | 'click' | 'rustle' | 'fanfare';
+/**
+ * The four original cues are the build ones; the three added in WP17 §2.3 are
+ * the moments a run has something to say about itself. All of them stay in the
+ * same register — moulded plastic and a muted toy speaker, never a brass band.
+ */
+export type SoundCue = 'snap' | 'click' | 'rustle' | 'fanfare' | 'badge' | 'ask' | 'stopped';
 
 export interface SoundPlayer {
 	readonly enabled: boolean;
@@ -161,6 +166,24 @@ export function createSoundPlayer(deps: SoundDeps = {}): SoundPlayer {
 		snap: (ctx) => tone(ctx, { type: 'square', from: 220, to: 120, seconds: 0.09, gain: 0.16 }),
 		click: (ctx) => tone(ctx, { type: 'square', from: 900, to: 700, seconds: 0.035, gain: 0.07 }),
 		rustle: (ctx) => noise(ctx, 0.22, 2400, 0.05),
+		// A merit badge: two rising notes, pleased rather than triumphant — the
+		// fanfare is for finishing, and a badge should not upstage it.
+		badge: (ctx) => {
+			tone(ctx, { type: 'triangle', from: 659.25, to: 659.25, seconds: 0.12, gain: 0.09 });
+			tone(ctx, { type: 'triangle', from: 880, to: 880, seconds: 0.16, gain: 0.09 }, 0.11);
+		},
+		// Somebody is being asked a question, so it rises and waits.
+		ask: (ctx) => tone(ctx, { type: 'sine', from: 440, to: 660, seconds: 0.2, gain: 0.1 }),
+		/*
+		 * A guardrail stopping the run. Deliberately not a buzzer: the Safety
+		 * Brick doing its job is the system working (`08-…` §3), and a child
+		 * should not be made to feel told off by the thing that protected them.
+		 * Two soft descending notes — a gentle "that's far enough".
+		 */
+		stopped: (ctx) => {
+			tone(ctx, { type: 'triangle', from: 392, to: 392, seconds: 0.14, gain: 0.09 });
+			tone(ctx, { type: 'triangle', from: 293.66, to: 293.66, seconds: 0.2, gain: 0.09 }, 0.13);
+		},
 		// Muted, per the doc — three notes, not a brass band.
 		fanfare: (ctx) => {
 			const notes = [523.25, 659.25, 783.99];

@@ -115,10 +115,28 @@ Spotlight the _specific_ prompt row in chapter 2 (not the whole drawer); add a c
 Render `boxArtSeed` (deterministic box art + bot face variation); success = confetti FX + Teddy-happy + fanfare (sound prompt on first success: "Want sound effects?"); merit-badge and approval and guardrail cue sites added to `sound.ts`; end cards gain a "what would help?" hint drawn from the trace (e.g. OUT_OF_STEPS + high loop score → "It kept trying the same thing — the Safety brick has a rule for that").
 **Accept:** distinct box art per bot; hint text matches trace-derived cause in fixtures.
 
+> **Amended 2026-08-14 (WP17 slice d):** three of the four built; two deliberately deferred.
+>
+> **`boxArtSeed` is rendered** (`lib/box-art.ts`, closing `12-…` D17). A deterministic sticker — colour, corner and a slight hand-applied tilt — because the seed's whole purpose is that a bot looks the same on every visit and an exported kit arrives elsewhere wearing the face it left with. Composition only: never the brick colours, silhouettes or type, which `11-…` §2 fixes as the brand. **Right-hand corners only** — the left of a lid is taken by the brick colour strip, and a sticker there covered the one part of the box that says what is in it.
+>
+> **The end card's "what would help?" hint** is `lib/end-card-hint.ts`, read from the run's own trace. OUT_OF_STEPS looks identical whether the budget was too small or the bot was going in circles, and those want opposite fixes — so the hint distinguishes looping, repeated refusals, never reaching for a tool, and simply running out of room. It stays **silent** where the trace does not support a diagnosis, and silent for SUCCESS, STOPPED_BY_USER and STOPPED_BY_GUARDRAIL: a tripped guardrail is the system working (`08-…` §3) and advice would frame it as a fault.
+>
+> **Three sound cues added** — `badge`, `ask`, `stopped` — with their sites. The `stopped` cue is deliberately not a buzzer: a child should not be made to feel told off by the thing that protected them.
+>
+> **Deferred, and worth a decision rather than an assumption.** The **confetti FX** and **Teddy-happy** are celebration art; Teddy-happy is squarely WP18 (`11-…` §9), and confetti is code but belongs with it so the success moment is designed once rather than twice. The **"Want sound effects?" prompt on first success** is a consent flow, and where it sits relative to the Settings toggle that already exists is a product decision this section does not settle.
+
 ### 2.4 Naming forgiveness in the world (C4's UI face)
 
 When `resolveNamed` reports ambiguity/miss, the world's narration already lists candidates; the UI additionally shows tappable chips of the candidates ("Did it mean: block A · block B?") — for the _player's_ understanding (the bot still learns from text).
 **Accept:** ambiguity narration renders chips; paraphrase corpus (13 §4.5) reduces miss rate.
+
+> **Amended 2026-08-14 (WP17 slice d):** the chips are built, and needed a schema change to be honest.
+>
+> The world has always *said* the candidates, and prose is the right answer for the **bot** — it reads the narration and tries again, which is the behaviour this section is careful to preserve. It is the wrong answer for the **UI**, which would have had to parse English back into a list. `ActionResult.didYouMean` carries the names as data alongside the unchanged narration: **additive**, so every trace ever written still parses (`14-…` §7), and a world that does not populate it simply has nothing to offer.
+>
+> **The chips are buttons only when the bot can hear** (§2.6). §2.4 says they are for the player's understanding and that the bot still learns from the text, so nothing here is load-bearing for the run — but a chip that looks tappable and does nothing is a worse lie than a plain list. With ears, tapping says "I meant the block A" to the bot; without, they are words.
+>
+> The **paraphrase corpus** half of the acceptance belongs to the naming work in `13-…` §4.5 and is not touched here.
 
 ### 2.5 Free play made real
 

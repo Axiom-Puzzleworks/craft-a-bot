@@ -4,6 +4,7 @@
 	import { agentsStore } from '$lib/state/agents.svelte.js';
 	import { storageStatus } from '$lib/state/app-storage.svelte.js';
 	import { SLOT_ORDER } from '$lib/bricks.js';
+	import { boxArtFor } from '$lib/box-art.js';
 	import TakeApartConfirm from '$lib/components/kit/TakeApartConfirm.svelte';
 	import type { FittedBrick, SlotId } from '@craftabot/core';
 
@@ -119,13 +120,23 @@
 
 		<ul class="boxes" data-testid="agent-list">
 			{#each agentsStore.agents as agent (agent.id)}
+				{@const art = boxArtFor(agent.spec.identity?.boxArtSeed ?? agent.id)}
 				<li>
 					<article class="box">
 						<a
 							class="lid"
 							href={resolve('/bench/[agentId]', { agentId: agent.id })}
 							data-testid="open-{agent.id}"
+							data-corner={art.corner}
+							style="--sticker: {art.colour}; --tilt: {art.tilt}deg"
 						>
+							<!--
+								The seed made visible (`12-…` D17). Decorative, so it is hidden
+								from a reader — the bot's name is the identity that matters to
+								anyone who cannot see the sticker.
+							-->
+							<span class="box-sticker" aria-hidden="true" data-testid="box-sticker-{agent.id}"
+							></span>
 							<span class="strip" aria-hidden="true">
 								{#each filledSockets(agent.spec.bricks) as slot (slot)}
 									<span class="swatch swatch--{slot}"></span>
@@ -364,6 +375,35 @@
 	}
 	.swatch--safety {
 		background: var(--cab-brick-slot-safety);
+	}
+
+	.lid {
+		position: relative;
+	}
+
+	/*
+	 * `box-sticker`, not `sticker`: the shop box's "Coming soon" pill already
+	 * owns `.sticker` in this file, and the later rule won — three boxes with
+	 * three different seeds all came out the same yellow.
+	 */
+	.box-sticker {
+		position: absolute;
+		width: 18px;
+		height: 18px;
+		border-radius: 4px;
+		background: var(--sticker);
+		border: var(--cab-border-part) solid var(--cab-ink);
+		transform: rotate(var(--tilt));
+	}
+
+	.lid[data-corner='top-right'] .box-sticker {
+		top: var(--cab-space-1);
+		right: var(--cab-space-1);
+	}
+
+	.lid[data-corner='bottom-right'] .box-sticker {
+		bottom: var(--cab-space-1);
+		right: var(--cab-space-1);
 	}
 
 	.contents {

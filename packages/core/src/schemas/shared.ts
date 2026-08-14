@@ -81,7 +81,21 @@ export type Observation = z.infer<typeof observationSchema>;
 export const actionResultSchema = z.object({
 	ok: z.boolean(),
 	narration: z.string(),
-	stateDiff: z.unknown().optional()
+	stateDiff: z.unknown().optional(),
+	/**
+	 * The things the bot might have meant, when a name matched more than one of
+	 * them (`16-…` §2.4).
+	 *
+	 * The world has always *said* the candidates — "there are two blocks: block
+	 * A and block B" — and prose is the right answer for the bot, which reads
+	 * it and tries again. It is the wrong answer for the UI, which would have to
+	 * parse English back into a list to offer the child anything tappable.
+	 *
+	 * Additive, so every trace ever written still parses (`14-…` §7): a world
+	 * that does not populate it simply has nothing to offer, and the narration
+	 * remains the whole story.
+	 */
+	didYouMean: z.array(z.string()).optional()
 });
 export type ActionResult = z.infer<typeof actionResultSchema>;
 
