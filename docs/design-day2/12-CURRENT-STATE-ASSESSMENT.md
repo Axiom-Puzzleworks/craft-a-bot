@@ -100,6 +100,8 @@ Severity: **A** = blocks purpose 1 or 2 in practice; **B** = design debt that wi
 
 | D15 | B | `toRunRecord` hardcodes `mode:'step'`; mid-run `setSpeed` is a silent no-op; `evictOldRuns` notice never shown; `trace-recorder.ts` incremental persistence is dead code (mid-run reload silently loses the run). | `play/+page.svelte`, `session.svelte.ts` |
 | D16 | B | No global nav (Settings unreachable from Shelf); "Bin" deletes without confirmation; play route has no aria live region; EndCard/ApprovalCard don't trap focus; badge toast shows the badge **id** not its name. | various |
+> **Amended 2026-08-14 (WP17 slice d):** `boxArtSeed` is rendered — a deterministic sticker on each box lid (`16-…` §2.3). The sound half of this entry is partly addressed too: `badge`, `ask` and `stopped` cues exist with their sites, leaving the guardrail/approval/badge gap from four cues down to none. `Storage.clear()` and the quarantine counts remain unsurfaced.
+
 | D17 | C | `boxArtSeed` stored but never rendered; sound has 4 cues and misses guardrail/approval/badge moments; `Storage.clear()`/"Forget everything" and quarantine counts unsurfaced; expansion shelf purely fictional. | various |
 
 ### Test estate

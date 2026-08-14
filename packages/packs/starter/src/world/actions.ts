@@ -34,10 +34,24 @@ export type ActionOutcome = {
 	ok: boolean;
 	narration: string;
 	stateDiff: StateChange[];
+	/** Names the bot might have meant, when one matched several (`16-…` §2.4). */
+	didYouMean?: string[];
 };
 
 function fail(message: string): ActionOutcome {
 	return { ok: false, narration: message, stateDiff: [] };
+}
+
+/**
+ * A miss the player can be offered choices for (`16-…` §2.4).
+ *
+ * The narration is unchanged and remains what the *bot* reads and acts on; the
+ * names ride alongside as data so the UI can put them on tappable chips. The
+ * bot still learns from the text, which is the point — the chips are for the
+ * child's understanding, not the bot's.
+ */
+function failWithChoices(message: string, choices: readonly string[]): ActionOutcome {
+	return { ok: false, narration: message, stateDiff: [], didYouMean: [...choices] };
 }
 
 /**
@@ -57,13 +71,9 @@ function lookUpItem(state: PlayroomState, query: string): Lookup<PlayroomItem> {
 	const found = resolveItem(state, query);
 	if (found.kind === 'found') return { entity: found.entity };
 	if (found.kind === 'ambiguous') {
+		const names = found.matches.map((match) => match.name);
 		return {
-			failure: fail(
-				narration.ambiguousItem(
-					query,
-					found.matches.map((match) => match.name)
-				)
-			)
+			failure: failWithChoices(narration.ambiguousItem(query, names), names)
 		};
 	}
 	return { failure: fail(narration.noSuchItem(query, reachableItemNames(state))) };
@@ -73,13 +83,9 @@ function lookUpCharacter(state: PlayroomState, query: string): Lookup<PlayroomCh
 	const found = resolveCharacter(state, query);
 	if (found.kind === 'found') return { entity: found.entity };
 	if (found.kind === 'ambiguous') {
+		const names = found.matches.map((match) => match.name);
 		return {
-			failure: fail(
-				narration.ambiguousCharacter(
-					query,
-					found.matches.map((match) => match.name)
-				)
-			)
+			failure: failWithChoices(narration.ambiguousCharacter(query, names), names)
 		};
 	}
 	return {
@@ -96,13 +102,9 @@ function lookUpContainer(state: PlayroomState, query: string): Lookup<PlayroomCo
 	const found = resolveContainer(state, query);
 	if (found.kind === 'found') return { entity: found.entity };
 	if (found.kind === 'ambiguous') {
+		const names = found.matches.map((match) => match.name);
 		return {
-			failure: fail(
-				narration.ambiguousContainer(
-					query,
-					found.matches.map((match) => match.name)
-				)
-			)
+			failure: failWithChoices(narration.ambiguousContainer(query, names), names)
 		};
 	}
 	return {
