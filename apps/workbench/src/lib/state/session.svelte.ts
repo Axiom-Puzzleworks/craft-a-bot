@@ -12,6 +12,12 @@ import {
 import type { PlayroomState } from '@craftabot/pack-starter';
 import { botExpression, type BotExpression } from '$lib/bot-expression.js';
 import { createRegistry } from '$lib/packs.js';
+import {
+	applyEvent,
+	emptyProjection,
+	type PendingApproval,
+	type RunProjection
+} from './run-projection.js';
 
 /**
  * **The one seam between the engine and the UI** (05-TECH-STACK.md §4).
@@ -27,15 +33,11 @@ export type LampState = 'idle' | 'thinking' | 'acting' | 'paused' | 'tripped' | 
 
 /**
  * What the bot has asked permission to do (08-GOVERNANCE-GUARDRAILS.md §3,
- * 03-UI-UX-DESIGN.md §7). Built from the `approval.requested` event like
- * everything else here — the UI never peers into the session to find it.
+ * 03-UI-UX-DESIGN.md §7). Re-exported from the projection, which is where it
+ * is built, so that live and replayed runs speak of an approval in exactly one
+ * type — every existing importer keeps its import path.
  */
-export interface PendingApproval {
-	kind: 'tool' | 'action';
-	name: string;
-	arguments: unknown;
-	reason: string;
-}
+export type { PendingApproval };
 
 export interface SessionView {
 	readonly status: SessionStatus;
@@ -92,40 +94,15 @@ const BASE_TICK_DELAY_MS = 700;
 export function createSessionView(deps: SessionViewDeps): SessionView {
 	const registry = createRegistry();
 
-	const state = $state<{
-		status: SessionStatus;
-		world: PlayroomState | undefined;
-		thought: string;
-		saying: string | undefined;
-		narration: string;
-		tick: number;
-		usage: { inputTokens: number; outputTokens: number };
-		outcome: RunOutcome | undefined;
-		events: EngineEvent[];
-		tripped: boolean;
-		thinking: boolean;
-		started: boolean;
-		/** Tokens arriving right now, before the decision lands. */
-		streaming: string;
-		pendingApproval: PendingApproval | undefined;
-		/** Whether the world took the last action; `undefined` before any. */
-		lastActionOk: boolean | undefined;
-	}>({
+	/**
+	 * The projection, plus the one thing events cannot tell you: whether the
+	 * session is running right now. Status is the session's own, not a fold —
+	 * which is exactly why it is not in `RunProjection`, where a replay with no
+	 * session would have nothing to put in it.
+	 */
+	const state = $state<RunProjection & { status: SessionStatus }>({
 		status: 'idle',
-		world: undefined,
-		thought: '',
-		saying: undefined,
-		narration: '',
-		tick: 0,
-		usage: { inputTokens: 0, outputTokens: 0 },
-		outcome: undefined,
-		events: [],
-		tripped: false,
-		thinking: false,
-		started: false,
-		streaming: '',
-		pendingApproval: undefined,
-		lastActionOk: undefined
+		...emptyProjection()
 	});
 
 	let speed = $state(1);
@@ -154,71 +131,12 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 
 	/** The whole UI model, derived from one event at a time. */
 	function absorb(event: EngineEvent): void {
-		state.events.push(event);
-		state.tick = event.tick;
+		// The fold itself is shared with replay (`run-projection.ts`); what stays
+		// here is what only a live session knows — which run this is, the host's
+		// listener, and the session's own status.
+		applyEvent(state, event);
 		runId ??= event.runId;
 		deps.onEvent?.(event);
-
-		switch (event.type) {
-			case 'run.started':
-				state.started = true;
-				break;
-			case 'world.changed':
-				// Cast: the Playroom authored this state; the event carries it opaquely.
-				state.world = event.payload.state as PlayroomState;
-				break;
-			case 'think.started':
-				state.thinking = true;
-				// A new thought starts blank so the streamed one does not append to
-				// the last turn's.
-				state.streaming = '';
-				break;
-			case 'think.token':
-				// Streaming tokens land in the thought bubble as they arrive
-				// (09-ROADMAP.md WP7 DoD) — the whole point of SSE is watching the
-				// bot think rather than waiting for it to finish.
-				state.streaming += event.payload.delta;
-				break;
-			case 'think.completed':
-				state.thinking = false;
-				state.usage = {
-					inputTokens: state.usage.inputTokens + event.payload.response.usage.inputTokens,
-					outputTokens: state.usage.outputTokens + event.payload.response.usage.outputTokens
-				};
-				break;
-			case 'decision':
-				// The final text replaces the streamed one, which may have been cut
-				// short or re-prompted.
-				if (event.payload.thought !== '') state.thought = event.payload.thought;
-				state.streaming = '';
-				break;
-			case 'action.performed': {
-				state.narration = event.payload.result.narration;
-				// Whether the world took it or refused it — the input the bot's face
-				// needs and the only one the session was not already keeping.
-				state.lastActionOk = event.payload.result.ok;
-				// A `say` becomes a speech bubble in the world view (03 §5.1).
-				const args = event.payload.arguments;
-				state.saying =
-					event.payload.name === 'say' && args !== null && typeof args === 'object'
-						? String((args as { text?: unknown }).text ?? '')
-						: undefined;
-				break;
-			}
-			case 'guardrail.tripped':
-				state.tripped = true;
-				break;
-			case 'approval.requested':
-				state.pendingApproval = { ...event.payload.proposed, reason: event.payload.reason };
-				break;
-			case 'approval.resolved':
-				state.pendingApproval = undefined;
-				break;
-			case 'run.finished':
-				state.outcome = event.payload.outcome;
-				break;
-		}
-
 		state.status = session.status;
 	}
 
@@ -335,19 +253,11 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 			// or the old session's tick loop stays parked on a promise forever.
 			session.resolveApproval(false);
 			session.stop('reset');
-			state.pendingApproval = undefined;
-			state.world = undefined;
-			state.thought = '';
-			state.saying = undefined;
-			state.narration = '';
-			state.tick = 0;
-			state.usage = { inputTokens: 0, outputTokens: 0 };
-			state.outcome = undefined;
-			state.events = [];
-			state.tripped = false;
-			state.thinking = false;
-			state.lastActionOk = undefined;
-			state.started = false;
+			// Assigned field by field from the shared blank rather than listing them
+			// here: a projection that grows a field should not be able to grow one
+			// that reset quietly forgets. `state` is the reactive object itself, so
+			// it is refilled rather than replaced.
+			Object.assign(state, emptyProjection());
 			state.status = 'idle';
 			runId = undefined;
 			session = build();

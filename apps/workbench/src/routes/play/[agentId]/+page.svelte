@@ -8,6 +8,7 @@
 		DEFAULT_TOKEN_BUDGET,
 		buildTraceFile,
 		type AgentRecord,
+		type EngineEvent,
 		type RunRecord
 	} from '@craftabot/core';
 	import { capabilitiesOf } from '$lib/bot-capabilities.js';
@@ -19,6 +20,7 @@
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import { createBrowserKeyVault } from '$lib/state/keys.js';
 	import { createSessionView, type SessionView } from '$lib/state/session.svelte.js';
+	import { recordTrace, type TraceRecorder } from '$lib/state/trace-recorder.js';
 	import ApprovalCard from '$lib/components/play/ApprovalCard.svelte';
 	import EndCard from '$lib/components/play/EndCard.svelte';
 	import { evictionNotice } from '$lib/eviction-notice.js';
@@ -57,6 +59,8 @@
 	 * (`16-…` §1.3) — the bridge from the child's trace to the real one.
 	 */
 	let traceOpenAt = $state<number | undefined>(undefined);
+	/** Writes the trace as the run happens; absent between runs. */
+	let recorder: TraceRecorder | undefined;
 
 	const goalCard = $derived(record ? registry.getGoalCard(record.spec.goalCardId) : undefined);
 	const goalText = $derived(
@@ -131,10 +135,45 @@
 		 */
 		view = createSessionView({
 			spec: loaded.spec,
-			provider: brain.provider
+			provider: brain.provider,
+			onEvent: (event) => void onRunEvent(event)
 		});
 		view.setSpeed(speed);
 		runStartedAt = new Date().toISOString();
+	}
+
+	/**
+	 * Persistence now starts when the run does, not when it ends (`16-…` §1.4,
+	 * `12-…` D15).
+	 *
+	 * A run used to be written in one go at the end, so closing the tab mid-run
+	 * lost it completely — no record, no partial trace, and a Scrapbook that had
+	 * simply never heard of it. `RunRecord.outcome` has carried `IN_PROGRESS`
+	 * since WP13 for exactly this, and the schema says so in as many words:
+	 * "a record is written the moment a run starts (so a reload does not lose
+	 * it)". Nothing wrote one.
+	 */
+	async function onRunEvent(event: EngineEvent): Promise<void> {
+		if (event.type === 'run.started') await beginRun(event.runId);
+		recorder?.accept(event);
+		if (event.type === 'run.finished') await finishRun();
+	}
+
+	async function beginRun(id: string): Promise<void> {
+		if (!record || !view) return;
+		const storage = await appStorage();
+		recorder = recordTrace(id, storage);
+		// The opening record. `finishedAt` is deliberately absent — a run that has
+		// not ended has no end, and writing "now" would be a lie the Scrapbook
+		// would then display as a duration.
+		await storage.putRun(toRunRecord(view, record, { pinned: false }));
+	}
+
+	async function finishRun(): Promise<void> {
+		if (!view) return;
+		await recorder?.stop();
+		recorder = undefined;
+		await persistRun(view);
 	}
 
 	/**
@@ -144,9 +183,10 @@
 	async function persistRun(session: SessionView): Promise<void> {
 		if (!record || !session.runId || !session.outcome) return;
 		const storage = await appStorage();
-		const run = toRunRecord(session, record);
-		await storage.putRun(run);
-		await storage.appendEvents(session.runId, session.events);
+		// Whatever the opening record says now, including a pin put on mid-run.
+		const existing = await storage.getRun(session.runId);
+		await storage.putRun(toRunRecord(session, record, { pinned: existing?.pinned ?? false }));
+		// Events are already stored — the recorder wrote them as they happened.
 
 		/**
 		 * Eviction was silent (`12-…` D15): the cap is real and runs genuinely
@@ -174,9 +214,27 @@
 		return started?.type === 'run.started' ? started.payload : undefined;
 	}
 
-	function toRunRecord(session: SessionView, agent: AgentRecord): RunRecord {
+	/**
+	 * Note the `$state.snapshot`: the record is assembled from reactive state,
+	 * and a `$state` proxy is not structured-cloneable, so IndexedDB rejects it
+	 * with "could not be cloned".
+	 *
+	 * This was not introduced by writing records earlier — it means **no run has
+	 * ever reached storage from this screen**. The write was the last thing a
+	 * finished run did, its rejection surfaced only as an unhandled promise, and
+	 * no test had ever looked in the `runs` store afterwards. `12-…` D14 records
+	 * the opposite ("runs + events fully persist... but nothing lists them"),
+	 * which is how a scrapbook with nothing to show could look like a missing
+	 * page rather than a missing write.
+	 */
+	function toRunRecord(
+		session: SessionView,
+		agent: AgentRecord,
+		{ pinned }: { pinned: boolean }
+	): RunRecord {
 		const facts = runStartedFacts(session);
-		return {
+		const finished = session.outcome !== undefined;
+		return $state.snapshot({
 			id: session.runId ?? crypto.randomUUID(),
 			agentId: agent.id,
 			agentName: agent.spec.name,
@@ -194,19 +252,33 @@
 			},
 			providerId: facts?.providerId ?? 'unrecorded',
 			wireModel: facts?.wireModel ?? 'unrecorded',
-			pinned: false,
+			/*
+			 * Carried in, never assumed. This was hard-coded `false`, which was
+			 * harmless while a record was written exactly once at the end of a run
+			 * and actively wrong now that the same record is written again when the
+			 * run finishes: a child who pinned an adventure mid-run would have
+			 * watched the pin come off by itself.
+			 */
+			pinned,
 			startedAt: runStartedAt ?? new Date().toISOString(),
-			finishedAt: new Date().toISOString(),
+			/*
+			 * Only once there is an ending. This used to be set unconditionally,
+			 * which was invisible while records were only ever written at the end —
+			 * an in-progress record would now claim to have finished at the moment
+			 * it started.
+			 */
+			...(finished ? { finishedAt: new Date().toISOString() } : {}),
 			schemaVersion: 2
-		};
+		});
 	}
 
 	async function step(): Promise<void> {
 		if (!view) return;
 		busy = true;
 		try {
+			// Saving is no longer this function's business: `run.finished` triggers
+			// it wherever the run ends, which is the only place that knows it has.
 			await view.step();
-			if (view.outcome) await persistRun(view);
 		} finally {
 			busy = false;
 		}
@@ -221,8 +293,9 @@
 	}
 
 	function stop(): void {
+		// Stopping emits `run.finished` like any other ending, and that is what
+		// saves. Persisting here as well wrote the record twice.
 		view?.stop();
-		if (view?.outcome) void persistRun(view);
 	}
 
 	function reset(): void {
@@ -243,7 +316,11 @@
 	async function exportTrace(): Promise<void> {
 		if (!view || !record) return;
 		const secrets = createBrowserKeyVault().secrets();
-		const trace = await buildTraceFile(toRunRecord(view, record), view.events, { secrets });
+		// An export is a snapshot for someone else to read; whether this run is
+		// pinned in *this* browser is not part of it.
+		const trace = await buildTraceFile(toRunRecord(view, record, { pinned: false }), view.events, {
+			secrets
+		});
 
 		const url = URL.createObjectURL(
 			new Blob([JSON.stringify(trace, null, '\t')], { type: 'application/json' })
