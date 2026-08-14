@@ -4,6 +4,7 @@ import type { EventBus } from '../event-bus.js';
 import type { PackRegistry } from '../pack-registry.js';
 import type { Guardrail } from './guardrail.js';
 import type { LLMProvider } from './provider.js';
+import type { Strategies } from '../session/strategies.js';
 
 /**
  * The runtime contract (02-AGENT-MODEL.md §5-6). WP1 ships the type only —
@@ -78,6 +79,18 @@ export interface SessionOptions {
 	now?: () => string;
 	newId?: () => string;
 	random?: () => number;
+	/**
+	 * Override how context is kept and composed (E7, `14-…` §3).
+	 *
+	 * The spec's Memory brick names a pairing and that is how a *built bot*
+	 * chooses. This seam is for the two callers who are not a built bot: a test
+	 * that wants to prove a strategy is genuinely swappable rather than
+	 * hard-coded behind a name, and the Workshop bench, which lets a
+	 * professional switch realism mode on a spec it did not write.
+	 *
+	 * Either half may be given on its own; the other falls back to the spec.
+	 */
+	strategies?: Partial<Strategies>;
 }
 
 export interface CreateSessionDeps {

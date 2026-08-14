@@ -35,11 +35,31 @@ export const usageSchema = z.object({
 });
 export type TokenUsage = z.infer<typeof usageSchema>;
 
+/**
+ * A call an assistant turn made, as it goes back on the wire (E7).
+ *
+ * The mirror of `toolCallId` on a `tool` message: without it a transcript has
+ * answers to calls that were never recorded as made, which every provider
+ * rejects. `12-…` D12 is exactly this half being absent.
+ */
+export const assistantToolCallSchema = z.object({
+	id: z.string().min(1),
+	name: z.string().min(1),
+	arguments: z.unknown()
+});
+export type AssistantToolCall = z.infer<typeof assistantToolCallSchema>;
+
 export const chatMessageSchema = z.object({
 	role: z.enum(['system', 'user', 'assistant', 'tool']),
 	content: z.string(),
 	toolCallId: z.string().optional(),
-	name: z.string().optional()
+	name: z.string().optional(),
+	/**
+	 * Optional so that every trace written before WP15 still parses — the field
+	 * is absent from a `sections-v1` prompt, which is every prompt the kit has
+	 * ever composed, so no migration is owed.
+	 */
+	toolCalls: z.array(assistantToolCallSchema).optional()
 });
 export type ChatMessage = z.infer<typeof chatMessageSchema>;
 

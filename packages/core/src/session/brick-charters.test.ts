@@ -58,8 +58,15 @@ describe('the memory window', () => {
 	 * Pinned rather than marked test-first, because the guarantee is real where
 	 * it matters — `agentSpecSchema` rejects any other size at the storage and
 	 * kit-file boundary, which is the only way a value reaches here from
-	 * outside. E7's `MemoryStrategy` (`14-…` §3) is where the internal signature
-	 * gets tightened to match.
+	 * outside.
+	 *
+	 * > **Resolved 2026-08-14 (WP15, E7):** the signature is now
+	 * > `MemorySlotConfig` rather than a structurally-identical inline literal,
+	 * > which is the tightening D5 asked for. It is deliberately *not* narrowed
+	 * > to 3 | 10 | 30: that is the starter brick's opinion about its own dial,
+	 * > and core's contract for the memory socket admits any positive integer so
+	 * > that a brick from another pack can fill it. So this stays true, and now
+	 * > says something about a contract rather than about a gap.
 	 */
 	it('trusts its caller about the window size, because the schema has already checked', () => {
 		const memory = createMemory({ windowSize: 7, notebook: false });

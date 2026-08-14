@@ -124,6 +124,7 @@ export {
  */
 export {
 	actionResultSchema,
+	assistantToolCallSchema,
 	chatMessageSchema,
 	chatResponseSchema,
 	guardrailHookSchema,
@@ -132,6 +133,7 @@ export {
 	proposedStepSchema,
 	runOutcomeSchema,
 	usageSchema,
+	type AssistantToolCall,
 	type ProposedStep,
 	type TokenUsage
 } from './schemas/shared.js';
@@ -252,13 +254,30 @@ export {
 	type BuildRuntimesOptions,
 	type FittedRuntime
 } from './session/brick-runtimes.js';
-export { createMemory, summariseWindow, type Memory, type TickMemory } from './session/memory.js';
+export {
+	createMemory,
+	createWindowMemory,
+	summariseWindow,
+	type Memory,
+	type MemoryStrategy,
+	type TickMemory
+} from './session/memory.js';
 export {
 	composePrompt,
 	composeSystemMessage,
 	describeFittedBricks,
-	estimateTokens
+	estimateTokens,
+	sectionsPromptStrategy,
+	transcriptPromptStrategy,
+	type PromptInput,
+	type PromptStrategy
 } from './session/prompt.js';
+export {
+	DEFAULT_STRATEGY,
+	resolveStrategies,
+	type Strategies,
+	type StrategyName
+} from './session/strategies.js';
 export {
 	isAllowed,
 	isPause,

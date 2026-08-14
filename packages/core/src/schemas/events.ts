@@ -82,7 +82,23 @@ const runStartedEvent = eventSchema(
 		providerId: z.string(),
 		/** The model id that went on the wire, not the cartridge's label. */
 		wireModel: z.string(),
-		cartridgeId: z.string()
+		cartridgeId: z.string(),
+		/**
+		 * How context was assembled (E7): which retention strategy kept the
+		 * history, and which prompt strategy rendered it.
+		 *
+		 * A trace could already show *what* went to the model, message by message,
+		 * and had no way to say what *rule* produced it. "Was this run in realism
+		 * mode?" is a governance question — two runs of the same bot with the same
+		 * budgets can decide differently because their context was shaped
+		 * differently — and reverse-engineering the answer from the message shapes
+		 * is not an audit, it is a guess.
+		 *
+		 * Optional so every v2 trace written before WP15 still parses; absent
+		 * means the pairing that was the only one available, `window-v1` +
+		 * `sections-v1`.
+		 */
+		strategies: z.object({ memory: z.string(), prompt: z.string() }).optional()
 	})
 );
 const runFinishedEvent = eventSchema(

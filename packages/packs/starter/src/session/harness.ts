@@ -6,7 +6,8 @@ import {
 	type EngineEvent,
 	type Guardrail,
 	type LLMProvider,
-	type PackRegistry
+	type PackRegistry,
+	type SessionOptions
 } from '@craftabot/core';
 import { createMockProvider, createTestClock, type MockScript } from '@craftabot/core/testing';
 import starterPack from '../index.js';
@@ -51,7 +52,11 @@ export interface SpecOverrides {
 	tools?: string[];
 	senses?: string[];
 	actions?: string[];
-	memory?: { windowSize: 3 | 10 | 30; notebook: boolean } | null;
+	memory?: {
+		windowSize: 3 | 10 | 30;
+		notebook: boolean;
+		strategy?: 'window' | 'transcript';
+	} | null;
 	safety?: {
 		maxTicks: number;
 		blockedActions: string[];
@@ -125,6 +130,8 @@ export interface RunOptions {
 	 * session directly; this only keeps every other run terminating.
 	 */
 	approve?: boolean;
+	/** Hand the session its own strategies, bypassing the spec's dial (E7). */
+	strategies?: SessionOptions['strategies'];
 }
 
 /** Drives a session in step mode until it finishes, and hands back the trace. */
@@ -142,7 +149,8 @@ export async function runToCompletion(options: RunOptions): Promise<RunResult> {
 			now: clock.now,
 			newId: clock.newId,
 			random: clock.random,
-			...(options.maxTicks !== undefined ? { budgets: { maxTicks: options.maxTicks } } : {})
+			...(options.maxTicks !== undefined ? { budgets: { maxTicks: options.maxTicks } } : {}),
+			...(options.strategies !== undefined ? { strategies: options.strategies } : {})
 		}
 	});
 

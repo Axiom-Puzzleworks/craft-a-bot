@@ -83,7 +83,13 @@ async function behaviourOf(spec: AgentSpec): Promise<string> {
 		}
 	});
 
-	const run = await runToCompletion({ script: [], spec, provider, maxTicks: 1, stepLimit: 1 });
+	/*
+	 * Two ticks, not one (WP15). A field that only shows up in how *history* is
+	 * rendered — `memory.strategy` is the first — is invisible on tick 1, where
+	 * the window is empty and every strategy composes the same thing. A probe
+	 * that cannot see its field is worse than no probe: it passes.
+	 */
+	const run = await runToCompletion({ script: [], spec, provider, maxTicks: 2, stepLimit: 2 });
 
 	return JSON.stringify({
 		requests: requests.map((request) => ({
@@ -91,7 +97,14 @@ async function behaviourOf(spec: AgentSpec): Promise<string> {
 			temperature: request.temperature,
 			maxTokens: request.maxTokens,
 			offered: (request.tools ?? []).map((tool) => tool.name).sort(),
-			messages: request.messages.map((message) => `${message.role}: ${message.content}`)
+			// The tool protocol is part of what the model was told (E7). Serialising
+			// only role and content would have hidden an entire prompt strategy.
+			messages: request.messages.map(
+				(message) =>
+					`${message.role}: ${message.content}` +
+					(message.toolCalls ? ` calls=${JSON.stringify(message.toolCalls)}` : '') +
+					(message.toolCallId ? ` answers=${message.toolCallId}` : '')
+			)
 		})),
 		observations: run.byType('sense').map((event) => JSON.stringify(event.payload)),
 		memory: run.byType('memory.updated').map((event) => JSON.stringify(event.payload)),
@@ -145,6 +158,12 @@ const PROBES: Probe[] = [
 		path: 'bricks.memory.notebook',
 		change: (spec) => {
 			if (spec.bricks.memory) spec.bricks.memory.notebook = false;
+		}
+	},
+	{
+		path: 'bricks.memory.strategy',
+		change: (spec) => {
+			if (spec.bricks.memory) spec.bricks.memory.strategy = 'transcript';
 		}
 	},
 	{

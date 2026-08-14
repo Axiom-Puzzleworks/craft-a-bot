@@ -66,6 +66,18 @@ Severity: **A** = blocks purpose 1 or 2 in practice; **B** = design debt that wi
 >
 > Two notes where the register itself had gone stale: `guardrailsForSpec` ordering was **already** unit-tested directly (`13-…` §4.6 says otherwise), and `test-state.ts` is **not** "imported by nothing" (`13-…` §4.5) — the action, naming and sense suites all use it.
 
+> **Amended 2026-08-14 (WP15):** **D5 and D12 are fixed**, which closes the last two engine-and-governance items and with them Phase A.
+>
+> | ID | State | Where it stands |
+> |---|---|---|
+> | D5 | **fixed + covered** | `MemoryStrategy` and `PromptStrategy` exist, with `window-v1` and `sections-v1` as the defaults (E7). `strategies.test.ts` proves each seam by handing the session a strategy of its own and watching it get used — the only test that distinguishes a seam from an interface-shaped name in front of a hard-coded implementation. `createMemory` now takes `MemorySlotConfig`; the loose `windowSize` is deliberate and explained in the E7 amendment to `14-…` §3. |
+> | D12 | **fixed + covered** | `transcript-v1` composes the real function-calling conversation, and `chatMessageSchema` gained the `toolCalls` it was missing — without which a "transcript" would have been rejected by every provider, which is D12 restated rather than closed. `transcript-strategy.test.ts` holds well-formedness in both directions over prompts real runs composed, including a refused call and a mumbled tick. |
+>
+> Two things this turned up that were nobody's stated defect:
+>
+> - **The dead-config audit could not have seen a rendering-only field.** It ran one tick, where the memory window is empty and every prompt strategy composes the same thing, and it serialised messages as role-and-content, which drops the tool protocol entirely. Both are fixed; the audit is strictly stronger for every future field, not only this one.
+> - **A first attempt at the leaflet-coverage exemption passed against a deliberately broken panel.** It collected control elements and read their text, and a `Rocker`'s label is a *sibling* of its checkbox — so it saw a switch with no words beside it and accepted whatever it was called. Caught by injecting the control it claimed to forbid. Same family as WP16's stale-preview false green: the test ran, went green, and was measuring nothing.
+
 ### Engine & governance
 
 | ID | Sev | Defect | Where |

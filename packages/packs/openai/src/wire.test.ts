@@ -74,3 +74,51 @@ describe('reasoning effort', () => {
 		}
 	});
 });
+
+/**
+ * **The assistant half of the tool protocol** (E7 / `12-…` D12).
+ *
+ * `transcript-v1` composes `role:'tool'` messages, and OpenAI rejects one that
+ * does not answer a preceding assistant turn carrying `tool_calls` — so a
+ * transcript that is well-formed in our vocabulary and drops the calls here is
+ * a 400 that no unit test upstream can see. The one place this shape is
+ * genuinely provider-specific is the arguments: OpenAI wants a JSON *string*
+ * inside `function`, not an object.
+ */
+describe('tool calls on an assistant message', () => {
+	const withCalls = {
+		...CHAT_REQUEST,
+		messages: [
+			{
+				role: 'assistant' as const,
+				content: 'Going east.',
+				toolCalls: [{ id: 'call_1', name: 'move', arguments: { direction: 'east' } }]
+			},
+			{ role: 'tool' as const, content: 'You moved east.', toolCallId: 'call_1', name: 'move' }
+		]
+	};
+
+	it('sends the call as a function object with stringified arguments', () => {
+		const messages = buildRequestBody(withCalls, 'gpt-4o-mini')['messages'] as Array<
+			Record<string, unknown>
+		>;
+
+		expect(messages[0]?.['tool_calls']).toStrictEqual([
+			{
+				id: 'call_1',
+				type: 'function',
+				function: { name: 'move', arguments: '{"direction":"east"}' }
+			}
+		]);
+		expect(messages[1]?.['tool_call_id']).toBe('call_1');
+	});
+
+	it('omits the key entirely on every message that made no call', () => {
+		const messages = buildRequestBody(CHAT_REQUEST, 'gpt-4o-mini')['messages'] as Array<
+			Record<string, unknown>
+		>;
+
+		// A `sections-v1` request must go on the wire exactly as it always has.
+		expect(messages.some((message) => 'tool_calls' in message)).toBe(false);
+	});
+});

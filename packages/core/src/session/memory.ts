@@ -1,3 +1,4 @@
+import type { MemorySlotConfig } from '../schemas/slot-contracts.js';
 import type { NotebookAccess } from '../types/tool.js';
 
 /**
@@ -9,6 +10,12 @@ import type { NotebookAccess } from '../types/tool.js';
  * everything between ticks. That is a *designed* teaching moment, not a
  * degraded mode, so this module makes "no memory" a first-class state rather
  * than something the loop has to special-case.
+ *
+ * > **WP15 (E7):** retention is now a *strategy* rather than a hard-coded ring
+ * > buffer. `window-v1` is the one this kit ships and the default everywhere;
+ * > the seam exists so that the summariser and the retrieval memory the
+ * > expansion packs promise (`14-…` §4.2) are new implementations rather than
+ * > new `if`s in here.
  */
 
 export interface TickMemory {
@@ -34,11 +41,76 @@ export interface TickMemory {
 	 * forever.
 	 */
 	refused?: string;
+	/**
+	 * The call exactly as proposed — kind, name and arguments (E7).
+	 *
+	 * `action`/`result` above are *narration*: "tried to move", "you bumped into
+	 * the wall". Prose is what the `sections-v1` prompt wants and it is all V1
+	 * ever kept, which is precisely why there was no way to rebuild a real
+	 * function-calling transcript from memory (`12-…` D12) — the arguments were
+	 * gone by the time anyone wanted them.
+	 *
+	 * Recorded whether or not the call ran: a proposal a guardrail refused is
+	 * still a proposal the model made, and a transcript that omitted it would
+	 * leave the refusal in `refused` answering nothing.
+	 */
+	call?: { kind: 'tool' | 'action'; name: string; arguments: unknown };
+}
+
+/**
+ * **What the agent keeps between ticks** (E7, `14-…` §3).
+ *
+ * Retention only. How the kept turns are *rendered* into a prompt belongs to
+ * the `PromptStrategy` next door, and splitting it that way is what stops the
+ * two seams overlapping: this one decides what survives, that one decides how
+ * it reads.
+ *
+ * A strategy is handed every tick and may keep as much or as little as it
+ * likes; `window()` is the contract it owes back — oldest first, defensively
+ * copied, because the prompt and the bricks both read it and neither may
+ * mutate what the agent remembers.
+ */
+export interface MemoryStrategy {
+	/** Stable id, recorded on `run.started` so a trace says how context was kept. */
+	readonly id: string;
+	remember(entry: TickMemory): void;
+	/** Oldest first, as the prompt wants it (02-AGENT-MODEL.md §8). */
+	window(): TickMemory[];
+	size(): number;
+}
+
+/**
+ * V1's rolling window, now named (`window-v1`).
+ *
+ * `windowSize` is whatever the memory slot contract admits — any positive
+ * integer. The starter brick's own schema offers 3, 10 and 30, and holding
+ * *core* to that list would be core having an opinion about one pack's dial
+ * (`12-…` D5 asked for the internal signature to be tightened; the honest
+ * tightening is to name the contract, not to adopt the starter brick's three
+ * animals).
+ */
+export function createWindowMemory(windowSize: number): MemoryStrategy {
+	const entries: TickMemory[] = [];
+	return {
+		id: 'window-v1',
+		remember(entry) {
+			entries.push(entry);
+			while (entries.length > windowSize) entries.shift();
+		},
+		window: () => [...entries],
+		size: () => entries.length
+	};
 }
 
 export interface Memory {
 	readonly enabled: boolean;
 	readonly notebookEnabled: boolean;
+	/**
+	 * Which retention strategy is in force — `window-v1` unless a caller passed
+	 * its own. `undefined` when no Memory brick is fitted, which is a different
+	 * thing from "kept nothing": there is no memory at all to have a strategy.
+	 */
+	readonly strategy: MemoryStrategy | undefined;
 	remember(entry: TickMemory): void;
 	/** Oldest first, as the prompt wants it (02-AGENT-MODEL.md §8). */
 	window(): TickMemory[];
@@ -57,22 +129,28 @@ export interface Memory {
 	writes(): number;
 }
 
-export function createMemory(config?: { windowSize: number; notebook: boolean }): Memory {
-	const entries: TickMemory[] = [];
+/**
+ * The Memory brick as the loop sees it: a retention strategy plus a notebook.
+ *
+ * `strategy` is injectable so the seam is a seam — a test (or the Workshop)
+ * can hand in its own and see it used, which is the difference between an
+ * interface and a comment claiming one exists.
+ */
+export function createMemory(config?: MemorySlotConfig, strategy?: MemoryStrategy): Memory {
 	const notebookLines: string[] = [];
 	const enabled = config !== undefined;
 	const notebookEnabled = config?.notebook ?? false;
+	const retention = config ? (strategy ?? createWindowMemory(config.windowSize)) : undefined;
 
 	return {
 		enabled,
 		notebookEnabled,
+		strategy: retention,
 		remember(entry) {
-			if (!config) return;
-			entries.push(entry);
-			while (entries.length > config.windowSize) entries.shift();
+			retention?.remember(entry);
 		},
 		window() {
-			return [...entries];
+			return retention?.window() ?? [];
 		},
 		notebook: {
 			read: () => (notebookEnabled ? [...notebookLines] : []),
@@ -80,7 +158,7 @@ export function createMemory(config?: { windowSize: number; notebook: boolean })
 				if (notebookEnabled) notebookLines.push(line);
 			}
 		},
-		size: () => entries.length,
+		size: () => retention?.size() ?? 0,
 		writes: () => notebookLines.length
 	};
 }

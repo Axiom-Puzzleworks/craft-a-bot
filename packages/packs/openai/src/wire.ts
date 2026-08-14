@@ -150,7 +150,24 @@ export function buildRequestBody(request: ChatRequest, model: string): Record<st
 			role: message.role,
 			content: message.content,
 			...(message.toolCallId !== undefined ? { tool_call_id: message.toolCallId } : {}),
-			...(message.name !== undefined ? { name: message.name } : {})
+			...(message.name !== undefined ? { name: message.name } : {}),
+			/*
+			 * The assistant half of the tool protocol (E7).
+			 *
+			 * OpenAI wants the arguments as a JSON *string* inside the function
+			 * object, not as an object — sending the object is a 400. Only the
+			 * `transcript-v1` prompt strategy produces these; a `sections-v1`
+			 * request is byte-identical to what it always was.
+			 */
+			...(message.toolCalls !== undefined && message.toolCalls.length > 0
+				? {
+						tool_calls: message.toolCalls.map((call) => ({
+							id: call.id,
+							type: 'function',
+							function: { name: call.name, arguments: JSON.stringify(call.arguments ?? {}) }
+						}))
+					}
+				: {})
 		})),
 		...(request.tools && request.tools.length > 0 ? { tools: toWireTools(request.tools) } : {}),
 		// Omitted entirely for models that only accept the default: sending it is
