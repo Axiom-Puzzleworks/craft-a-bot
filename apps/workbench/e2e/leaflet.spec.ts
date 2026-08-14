@@ -235,3 +235,41 @@ test('walks the six brick chapters and collects their badges', async ({ page }) 
 		await expect(page.getByTestId(`badge-${badge}`)).toHaveAttribute('data-earned', 'true');
 	}
 });
+
+/**
+ * **The spotlight follows the reader between screens.**
+ *
+ * Reported from use: moving between screens with the tutorial open left the
+ * highlight behind — a yellow rectangle and a dimmed hole sitting over a page
+ * with nothing there.
+ *
+ * The cause: a step's anchor does not change when the reader navigates, so an
+ * effect keyed only on the anchor never re-ran and the measurement stayed from
+ * the previous page. The `resize` and `ResizeObserver` fallbacks only catch it
+ * when the two screens happen to differ in height, which is why this asserts
+ * the invariant rather than a position: **whatever the spotlight points at has
+ * to exist on the screen the reader is actually looking at.**
+ */
+test('the spotlight never points at something on another screen', async ({ page }) => {
+	await page.goto('/');
+	await expect(page.getByTestId('leaflet')).toBeVisible();
+
+	const spotlight = page.getByTestId('leaflet-spotlight');
+	await expect(spotlight).toBeVisible();
+	await expect(spotlight).toHaveAttribute('data-anchor', 'new-bot');
+
+	// Away to another screen. The step is unchanged — the reader has not taken a
+	// bot off the shelf yet — so nothing about the anchor says the page moved.
+	await page.getByTestId('nav-scrapbook').click();
+	await page.waitForURL(/\/scrapbook/);
+	await expect(page.getByTestId('scrapbook-list')).toBeVisible();
+
+	// Either there is no hole, or it is over something that is really here.
+	if ((await spotlight.count()) > 0) {
+		const anchor = await spotlight.getAttribute('data-anchor');
+		await expect(
+			page.locator(`[data-tutorial="${anchor}"]`),
+			`the spotlight is pointing at "${anchor}", which is not on this screen`
+		).toHaveCount(1);
+	}
+});
