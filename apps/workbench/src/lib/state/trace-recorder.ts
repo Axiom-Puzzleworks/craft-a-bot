@@ -1,20 +1,29 @@
-import type { AgentSession, EngineEvent } from '@craftabot/core';
+import type { EngineEvent } from '@craftabot/core';
 import type { Storage } from './storage.js';
 
 /**
- * The Flight Recorder's writing end. Subscribes to a session's EventBus and
- * persists everything it hears, in order.
+ * The Flight Recorder's writing end: takes a run's events and persists them, in
+ * order, as they happen.
  *
  * Events are buffered and flushed rather than written one at a time: a tick can
  * emit a dozen events (every streamed token is one), and a write per event
  * would put IndexedDB in the critical path of the loop. Ordering is preserved
  * because `appendEvents` assigns `seq` from the count already stored.
+ *
+ * **Events are pushed in rather than subscribed to.** This module used to take
+ * an `AgentSession` and attach to its bus, which is why it went two work
+ * packages without a caller: the only place that wants it is the play route,
+ * and the route holds a `SessionView`, not a session. Reaching through the view
+ * for the bus would have put engine internals in a Svelte component — hard rule
+ * 1 — so the recorder now accepts what the view already hands out.
  */
 
 export interface TraceRecorder {
+	/** Take one event. Cheap; writes happen in batches. */
+	accept(event: EngineEvent): void;
 	/** Persist anything buffered. Safe to call at any time. */
 	flush(): Promise<void>;
-	/** Flush and unsubscribe. */
+	/** Flush and refuse anything further. */
 	stop(): Promise<void>;
 	/** Events seen so far this run, in order — the in-memory mirror the UI reads. */
 	events(): EngineEvent[];
@@ -26,7 +35,6 @@ export interface RecordOptions {
 }
 
 export function recordTrace(
-	session: AgentSession,
 	runId: string,
 	storage: Storage,
 	options: RecordOptions = {}
@@ -35,6 +43,7 @@ export function recordTrace(
 	const seen: EngineEvent[] = [];
 	let buffer: EngineEvent[] = [];
 	let writing: Promise<void> = Promise.resolve();
+	let stopped = false;
 
 	function queueFlush(): Promise<void> {
 		const batch = buffer;
@@ -46,18 +55,18 @@ export function recordTrace(
 		return writing;
 	}
 
-	const unsubscribe = session.events.onAny((event) => {
-		seen.push(event);
-		buffer.push(event);
-		if (buffer.length >= batchSize) void queueFlush();
-		// The end of a run is always worth a write, whatever the buffer holds.
-		if (event.type === 'run.finished') void queueFlush();
-	});
-
 	return {
+		accept(event) {
+			if (stopped) return;
+			seen.push(event);
+			buffer.push(event);
+			if (buffer.length >= batchSize) void queueFlush();
+			// The end of a run is always worth a write, whatever the buffer holds.
+			if (event.type === 'run.finished') void queueFlush();
+		},
 		flush: () => queueFlush(),
 		async stop() {
-			unsubscribe();
+			stopped = true;
 			await queueFlush();
 		},
 		events: () => [...seen]

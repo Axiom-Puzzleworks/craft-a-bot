@@ -68,7 +68,8 @@ describe('the trace recorder', () => {
 				{ say: 'Hello!', call: 'say', args: { text: 'Hello Teddy!' } }
 			])
 		);
-		const recorder = recordTrace(session, RUN_ID, storage);
+		const recorder = recordTrace(RUN_ID, storage);
+		session.events.onAny(recorder.accept);
 
 		session.start('step');
 		for (let step = 0; step < 10; step++) {
@@ -87,7 +88,8 @@ describe('the trace recorder', () => {
 	it('mirrors the same events in memory for the UI to read', async () => {
 		const storage = createMemoryStorage();
 		const session = makeSession([turn('East.', 'move', { direction: 'east' })]);
-		const recorder = recordTrace(session, RUN_ID, storage);
+		const recorder = recordTrace(RUN_ID, storage);
+		session.events.onAny(recorder.accept);
 
 		session.start('step');
 		await session.step();
@@ -107,7 +109,8 @@ describe('the trace recorder', () => {
 				{ say: 'Hello!', call: 'say', args: { text: 'Hello Teddy!' } }
 			])
 		);
-		const recorder = recordTrace(session, RUN_ID, storage, { batchSize: 1000 });
+		const recorder = recordTrace(RUN_ID, storage, { batchSize: 1000 });
+		session.events.onAny(recorder.accept);
 
 		session.start('step');
 		for (let step = 0; step < 10; step++) {
@@ -130,7 +133,8 @@ describe('the trace recorder', () => {
 			])
 		);
 		// batchSize 1 forces an append per event — the worst case for ordering.
-		const recorder = recordTrace(session, RUN_ID, storage, { batchSize: 1 });
+		const recorder = recordTrace(RUN_ID, storage, { batchSize: 1 });
+		session.events.onAny(recorder.accept);
 
 		session.start('step');
 		for (let step = 0; step < 10; step++) {
@@ -143,10 +147,11 @@ describe('the trace recorder', () => {
 		expect(seqs).toEqual(seqs.map((_value, index) => index));
 	});
 
-	it('stops listening once stopped', async () => {
+	it('refuses events once stopped', async () => {
 		const storage = createMemoryStorage();
 		const session = makeSession(() => turn('East.', 'move', { direction: 'east' }));
-		const recorder = recordTrace(session, RUN_ID, storage);
+		const recorder = recordTrace(RUN_ID, storage);
+		session.events.onAny(recorder.accept);
 
 		session.start('step');
 		await session.step();
@@ -161,7 +166,8 @@ describe('the trace recorder', () => {
 	it('flushing an empty buffer is harmless', async () => {
 		const storage = createMemoryStorage();
 		const session = makeSession([]);
-		const recorder = recordTrace(session, RUN_ID, storage);
+		const recorder = recordTrace(RUN_ID, storage);
+		session.events.onAny(recorder.accept);
 		await expect(recorder.flush()).resolves.toBeUndefined();
 	});
 });

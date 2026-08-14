@@ -109,7 +109,8 @@ async function runAndExport() {
 		options: { now: clock.now, newId: clock.newId, random: clock.random }
 	});
 
-	const recorder = recordTrace(session, runId, storage);
+	const recorder = recordTrace(runId, storage);
+	session.events.onAny(recorder.accept);
 	session.start('step');
 	for (let step = 0; step < 10; step++) {
 		const result = await session.step();
