@@ -21,6 +21,7 @@
 	import { createSessionView, type SessionView } from '$lib/state/session.svelte.js';
 	import ApprovalCard from '$lib/components/play/ApprovalCard.svelte';
 	import EndCard from '$lib/components/play/EndCard.svelte';
+	import { evictionNotice } from '$lib/eviction-notice.js';
 	import HeadUp from '$lib/components/play/HeadUp.svelte';
 	import RunControls from '$lib/components/play/RunControls.svelte';
 	import StoryStrip from '$lib/components/play/StoryStrip.svelte';
@@ -45,6 +46,9 @@
 	let speed = $state(preferences.tickSpeed);
 	let busy = $state(false);
 	let dismissedEndCard = $state(false);
+	/** How many old runs the last save tidied away, so the child is told (`12-…` D15). */
+	let evicted = $state(0);
+	const evictionMessage = $derived(evictionNotice(evicted));
 	let runStartedAt = $state<string | undefined>(undefined);
 	let missingBattery = $state(false);
 	let keyless = $state(true);
@@ -143,7 +147,15 @@
 		const run = toRunRecord(session, record);
 		await storage.putRun(run);
 		await storage.appendEvents(session.runId, session.events);
-		await storage.evictOldRuns();
+
+		/**
+		 * Eviction was silent (`12-…` D15): the cap is real and runs genuinely
+		 * disappeared, and the only place that was ever visible was a scrapbook
+		 * that had one fewer row than the child remembered. `evictOldRuns` has
+		 * always returned the ids it dropped precisely so this could be said out
+		 * loud — nothing consumed them.
+		 */
+		evicted = (await storage.evictOldRuns()).length;
 	}
 
 	/**
@@ -265,6 +277,10 @@
 				This Goal Card has no scripted demo yet, so the bot will potter about instead. A real brain
 				arrives with the OpenAI pack.
 			</p>
+		{/if}
+
+		{#if evictionMessage}
+			<p class="notice" role="status" data-testid="eviction-notice">{evictionMessage}</p>
 		{/if}
 
 		<div class="stage">

@@ -4,6 +4,7 @@
 	import { agentsStore } from '$lib/state/agents.svelte.js';
 	import { storageStatus } from '$lib/state/app-storage.svelte.js';
 	import { SLOT_ORDER } from '$lib/bricks.js';
+	import TakeApartConfirm from '$lib/components/kit/TakeApartConfirm.svelte';
 	import type { FittedBrick, SlotId } from '@craftabot/core';
 
 	/**
@@ -15,6 +16,9 @@
 	const storage = storageStatus();
 	let importError = $state('');
 	let busy = $state(false);
+
+	/** The bot the Bin is currently asking about — `undefined` when it isn't asking. */
+	let pendingRemoval = $state<{ id: string; name: string } | undefined>();
 
 	$effect(() => {
 		// Loading from IndexedDB is inherently async and cannot be derived.
@@ -139,7 +143,12 @@
 							<button type="button" onclick={() => exportKit(agent.id, agent.spec.name)}
 								>Export</button
 							>
-							<button type="button" onclick={() => agentsStore.remove(agent.id)}>Bin</button>
+							<button
+								type="button"
+								data-testid="bin-{agent.id}"
+								onclick={() => (pendingRemoval = { id: agent.id, name: agent.spec.name })}
+								>Bin</button
+							>
 						</div>
 					</article>
 				</li>
@@ -164,6 +173,18 @@
 		</ul>
 	</section>
 </main>
+
+{#if pendingRemoval}
+	<TakeApartConfirm
+		botName={pendingRemoval.name}
+		onexport={() => void exportKit(pendingRemoval!.id, pendingRemoval!.name)}
+		oncancel={() => (pendingRemoval = undefined)}
+		onconfirm={() => {
+			void agentsStore.remove(pendingRemoval!.id);
+			pendingRemoval = undefined;
+		}}
+	/>
+{/if}
 
 <style>
 	main {
