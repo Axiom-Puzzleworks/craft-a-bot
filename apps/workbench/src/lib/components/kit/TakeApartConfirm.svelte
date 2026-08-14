@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { focusTrap } from '$lib/a11y/focus-trap.js';
 	/**
 	 * The confirm step in front of the Bin (`16-…` §1.5, `12-…` D16).
 	 *
@@ -25,17 +26,7 @@
 	let { botName, onconfirm, oncancel, onexport }: Props = $props();
 
 	let cancelButton = $state<HTMLButtonElement | undefined>();
-
-	$effect(() => {
-		cancelButton?.focus();
-	});
 </script>
-
-<svelte:window
-	onkeydown={(event) => {
-		if (event.key === 'Escape') oncancel();
-	}}
-/>
 
 <div class="scrim">
 	<div
@@ -44,6 +35,7 @@
 		role="alertdialog"
 		aria-labelledby="take-apart-title"
 		aria-describedby="take-apart-body"
+		use:focusTrap={{ initial: () => cancelButton, onescape: oncancel }}
 	>
 		<span class="badge" aria-hidden="true">🧱</span>
 		<h2 id="take-apart-title">Take {botName} apart?</h2>

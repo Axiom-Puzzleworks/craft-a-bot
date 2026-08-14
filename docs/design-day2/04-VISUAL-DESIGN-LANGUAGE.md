@@ -49,6 +49,16 @@ LLM = blue · Memory = green · Tools = purple · Sense = sky · Actions = red �
 
 `--cab-shadow: #00000026` (soft drop shadows) · `--cab-plastic-hi: #FFFFFF59` (specular) · `--cab-board: #7A5C3E` (wooden shelf/bench wood) · `--cab-rug: #C9705E` (playroom rug terracotta).
 
+**Secondary text:** `--cab-ink-muted: #5C5348` (quiet text on cream or paper) · `--cab-cream-muted: #CFC4AB` (quiet text on ink).
+
+> **Amended 2026-08-14 (WP17 §2.7):** the two muted tokens are new, and they replace a habit rather than filling a gap. Quieter text was made by putting `opacity` on it — in **57 places** — which is a well-known accessibility trap: dimming composites the text toward whatever is behind it, so the *rendering* fails even though every token involved passes. `contrast.test.ts` could not see it, because the tokens were never the problem.
+>
+> The first automated audit (axe, WCAG 2.1 AA) failed **five of six routes** on `color-contrast`. The worst of it was the Instruction Leaflet at roughly **2:1** — the one screen in the toy whose entire job is to be read, and the one a child needs most.
+>
+> **The rule this sets: do not dim text with `opacity`.** Use a muted colour that has been checked against the ground it sits on. `opacity` remains right for what it actually means — disabled controls (which WCAG exempts), scrims, and things genuinely fading in and out.
+>
+> Two corollaries worth keeping. A muted colour is only muted *against a known ground*: `--cab-cream-muted` was briefly applied to the Flight Recorder's rows, which turn out to sit on a light background rather than the dark header, giving 1.36:1. And some grounds admit no text at all — nothing passes AA against `--cab-rug` (even full-strength ink reaches about 4.3), so the Playroom's captions were given their own backing instead of another colour.
+
 ## 3. Typography
 
 Free, bundleable faces that hit the period feel (final confirmation in the visual workstream):

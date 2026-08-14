@@ -75,7 +75,7 @@
 		</div>
 	</Panel>
 
-	<Panel title="Instruction leaflet" accent="var(--cab-yellow)">
+	<Panel title="Instruction leaflet" accent="var(--cab-yellow)" accentInk="var(--cab-ink)">
 		<div class="prefs">
 			<p class="hint" data-testid="tutorial-progress">
 				{leaflet.badges.length} of 6 merit badges earned.

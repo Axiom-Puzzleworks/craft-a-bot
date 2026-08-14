@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { RunOutcome } from '@craftabot/core';
+	import { focusTrap } from '$lib/a11y/focus-trap.js';
 
 	/**
 	 * End cards (03-UI-UX-DESIGN.md §5.2). Every outcome gets one, and every one
@@ -53,7 +54,13 @@
 </script>
 
 <div class="backdrop" data-testid="end-card" data-outcome={outcome}>
-	<div class="card" style="--accent: {card.accent}" role="alertdialog" aria-labelledby="end-title">
+	<div
+		class="card"
+		style="--accent: {card.accent}"
+		role="alertdialog"
+		aria-labelledby="end-title"
+		use:focusTrap
+	>
 		<span class="badge" aria-hidden="true">{card.badge}</span>
 		<h2 id="end-title">{card.title}</h2>
 		<p>{card.body}</p>

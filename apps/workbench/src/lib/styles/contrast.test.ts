@@ -66,7 +66,16 @@ const BODY_PAIRS: [string, string, string][] = [
 	 * only holds down the pairs somebody thought to add.
 	 */
 	['cream', 'blue', 'the nav header — Shelf, Instructions, Settings'],
-	['ink', 'plastic-hi', 'the nav header entry for the screen you are on']
+	['ink', 'plastic-hi', 'the nav header entry for the screen you are on'],
+	/*
+	 * Secondary text (WP17 §2.7). Held at the full 4.5, not the large-text 3:1
+	 * relief — quiet text is the *small* text, so the relief never applies to
+	 * exactly the thing it would be claimed for. Both grounds are checked
+	 * because hints and captions appear on cream panels and paper cards alike.
+	 */
+	['ink-muted', 'cream', 'hints, captions and other quiet text on a panel'],
+	['ink-muted', 'paper', 'the same quiet text on a card'],
+	['cream-muted', 'ink', 'the Flight Recorder’s row labels, on its dark ground']
 ];
 
 /**

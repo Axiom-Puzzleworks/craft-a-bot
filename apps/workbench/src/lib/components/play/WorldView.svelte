@@ -203,11 +203,20 @@
 		font-size: clamp(14px, 2.2vw, 24px);
 	}
 
+	/*
+	 * Captions get their own backing rather than sitting on the rug. Nothing
+	 * passes AA against `--cab-rug` — even full-strength ink reaches only about
+	 * 4.3 — so a colour was never going to fix this one; the label needed to
+	 * stop being on the carpet.
+	 */
 	.caption {
-		font-size: 8px;
+		padding: 0 2px;
+		border-radius: 2px;
+		background: var(--cab-cream);
+		color: var(--cab-ink);
+		font-size: var(--cab-text-xs);
 		text-transform: uppercase;
 		letter-spacing: 0.04em;
-		opacity: 0.7;
 	}
 
 	.thing--item {

@@ -123,6 +123,18 @@ With E2's `deliverInput`: a chat bubble input on the play screen ("Say something
 Live region via the story strip (1.3); focus trap + initial focus on EndCard/ApprovalCard; keyboard shortcut for STEP (space) with a visible hint; touch-target audit ≥44px on play controls and trace rows.
 **Accept:** axe pass on all routes; keyboard-only full run e2e.
 
+> **Amended 2026-08-14 (WP17 slice a):** built, and the audit found far more than this section anticipated.
+>
+> **Focus traps** on the end card, the approval card and the take-apart confirm, via one `use:focusTrap` action (`lib/a11y/focus-trap.js`) — Tab cycles inside, focus returns where it came from on dismiss. The approval card focuses **Deny**: the run is stopped waiting for a person, so the answer you get by pressing Enter without reading should be the one that cannot do anything. Escape now belongs to the dialog rather than the window, which is why the take-apart confirm's Escape test fires at the card.
+>
+> **Space steps the run**, with a visible `space` hint on the button, ignored while typing (Free Play has a goal to type, and §2.6 will add a message to send).
+>
+> **Touch targets** on the play controls were about 32px and are now 44px (WCAG 2.5.5).
+>
+> **The axe pass was not a formality.** It failed **five of six routes**, all on `color-contrast`, from a single systemic cause: `opacity` used to make secondary text quieter, in 57 places. The fix is a design-language change recorded in `04-…` §2.3 — two contrast-checked muted tokens, and a rule against dimming text with opacity. The Instruction Leaflet was the worst offender at roughly 2:1.
+>
+> Worth noting for the rest of WP17: `contrast.test.ts` passed throughout, because the tokens were never wrong — the rendering was. The axe suite is now the guard that can see the difference, and it runs on every route in CI.
+
 ## 3. P2 — Polish that can trail
 
 - **Art integration** per `11-VISUAL-ASSET-MANIFEST.md` waves (the single biggest perceived-quality jump; scheduled Phase B in `18-…`).

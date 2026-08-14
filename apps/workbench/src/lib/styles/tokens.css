@@ -19,6 +19,22 @@
 	--cab-teal: #3e8f8a;
 	--cab-orange: #d77a3c;
 
+	/*
+	 * Secondary text (§2.3, added WP17 §2.7).
+	 *
+	 * Quieter text used to be made by putting `opacity` on it, in 57 places. It
+	 * is a well-known accessibility trap and axe caught it on five of six
+	 * routes: dimming composites the text toward its background, and the token
+	 * audit could not see it happening because the *tokens* were fine — it is
+	 * the rendering that was not.
+	 *
+	 * These are real colours instead, checked against the grounds they actually
+	 * sit on (`contrast.test.ts`). Quiet text is still text, and a five-year-old
+	 * reading a hint needs it more than anyone.
+	 */
+	--cab-ink-muted: #5c5348;
+	--cab-cream-muted: #cfc4ab;
+
 	/* Support neutrals (§2.3) */
 	--cab-shadow: #00000026;
 	--cab-plastic-hi: #ffffff59;

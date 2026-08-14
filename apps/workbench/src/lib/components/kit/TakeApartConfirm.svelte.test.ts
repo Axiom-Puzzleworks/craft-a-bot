@@ -59,11 +59,16 @@ describe('TakeApartConfirm', () => {
 	 * flinching. Escape cancels, and the focus starts on "Keep it" so a stray
 	 * Enter or Space cannot destroy anything.
 	 */
+	/**
+	 * Fired at the card, not the window. Escape belongs to the dialog now that
+	 * the focus trap holds the keyboard inside it (`16-…` §2.7) — a global
+	 * listener would also have fired for a key pressed somewhere else entirely.
+	 */
 	it('cancels on Escape', async () => {
 		const oncancel = vi.fn();
 		render(TakeApartConfirm, { props: props({ oncancel }) });
 
-		await fireEvent.keyDown(window, { key: 'Escape' });
+		await fireEvent.keyDown(screen.getByRole('alertdialog'), { key: 'Escape' });
 
 		expect(oncancel).toHaveBeenCalledOnce();
 	});

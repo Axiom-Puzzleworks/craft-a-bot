@@ -369,7 +369,7 @@
 	.contents {
 		margin: 0;
 		font-size: var(--cab-text-xs);
-		opacity: 0.75;
+		color: var(--cab-ink-muted);
 	}
 
 	.box-actions {
@@ -389,10 +389,19 @@
 		opacity: 0.8;
 	}
 
+	/*
+	 * "Still in the shop" is said with grey and a sticker, not by dimming the
+	 * whole box — the opacity took its text down with it, and a box you cannot
+	 * buy yet is still a box you should be able to read.
+	 */
 	.box--shop {
 		border-color: color-mix(in srgb, var(--cab-ink) 35%, transparent);
 		filter: grayscale(0.7);
-		opacity: 0.75;
+	}
+
+	.box--shop .contents,
+	.box--shop h3 {
+		color: var(--cab-ink-muted);
 	}
 
 	.sticker {

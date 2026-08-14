@@ -121,7 +121,7 @@
 		font-size: var(--cab-text-xs);
 		letter-spacing: 0.14em;
 		text-transform: uppercase;
-		opacity: 0.5;
+		color: var(--cab-ink-muted);
 	}
 
 	.socket {
@@ -179,7 +179,7 @@
 		font-size: var(--cab-text-xs);
 		text-transform: uppercase;
 		letter-spacing: 0.08em;
-		opacity: 0.55;
+		color: var(--cab-ink-muted);
 	}
 
 	.fitted-name {
