@@ -66,3 +66,4 @@
 3. Keyboard path + reduced-motion + AA contrast for any new UI.
 4. No new production dependency without justification line.
 5. Docs updated if behaviour differs from design.
+6. **UI-touching work is looked at in the running app**, not signed off on tests alone. Tests assert what you thought to assert; a screen shows what you didn't. WP16 slice b shipped two defects that every test passed over — an observation summary written for the memory window arriving on the story strip as three semicolon-joined clauses truncated mid-word, and a caption reading "the she…." because an ellipsis wasn't counted as terminal punctuation. Both were obvious on sight and invisible to the suite.

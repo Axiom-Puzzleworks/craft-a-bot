@@ -41,17 +41,23 @@
 **Design:** (a) wire `trace-recorder.ts` incremental persistence; (b) a **Scrapbook** page (`/scrapbook/[agentId]`): recent adventures as photo-card rows (outcome emoji, card title, steps used, date), pin = "keep this one", open = replay viewer with the existing WorldView + a scrubber and the story strip; (c) honest `mode`; (d) leave-mid-run confirm.
 **Accept:** reload mid-run → run resumes as ended-in-progress with partial trace kept; storage-contract e2e; replay of a golden trace is pixel-consistent with live run.
 
+> **Amended 2026-08-14 (WP16 status):** outstanding — this is **slice e**, the largest remaining piece of WP16 and the last of the five. It depends on slice b's story strip, which is built, and on slice a's constraint that narration derive from **events alone**: the same `lib/narration/narrate.ts` must drive a live run and a replayed one without the two disagreeing, which is exactly what the replay viewer needs. Per hard rule 3, the persistence/replay work needs its new observable behaviour added to the event catalogue in `02-…` §7 in the same PR.
+
 ### 1.5 Navigation, confirmations, and safe destruction
 
 **Problem:** Settings unreachable from Shelf; Bin deletes a bot with one tap; eviction silent (D16/D15).
 **Design:** persistent kit-styled header (Shelf · Scrapbook · Instructions · Settings); Bin asks "Take {name} apart? Its adventures stay in the scrapbook" with export nudge; eviction shows the friendly notice the storage layer already returns.
 **Accept:** e2e for nav from every route; delete requires confirm; eviction notice spec.
 
+> **Amended 2026-08-14 (WP16 status):** outstanding — this is **slice c**, and the next thing to pick up. It also carries the leftover from §1.1: **par on the card holder is display-only**, since WP11 landed the `par` data on every winnable card. The eviction notice is likewise display-only — the storage layer already returns the friendly message, it simply reaches no UI.
+
 ### 1.6 An honest speed dial and lively status
 
 **Problem:** mid-run speed changes are a silent no-op (D15).
 **Design:** apply speed live to the session loop delay; persist the dial back to preferences; lamp words stay, plus the bot's face reflects state (thinking/confused/celebrating) using the `#face-slot` expressions.
 **Accept:** e2e: change speed mid-play → measured tick cadence changes.
+
+> **Amended 2026-08-14 (WP16 status):** outstanding — this is **slice d**. Independent of slices c and e, so it can be taken in any order among them. The face half uses the `#face-slot` expression mechanism that already exists; the honest-dial half is the live fix for `12-…` D15's silent no-op.
 
 ## 2. P1 — The substantial-improvement wave
 
