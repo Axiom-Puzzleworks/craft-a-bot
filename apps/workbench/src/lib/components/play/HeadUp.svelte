@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { LampState } from '$lib/state/session.svelte.js';
+	import { safetyWords, type SafetyTally } from '$lib/safety-tally.js';
 
 	/**
 	 * The head-up bar (03-UI-UX-DESIGN.md §5.1): the bot's name and goal, steps
@@ -15,9 +16,21 @@
 		maxTicks: number;
 		usage: { inputTokens: number; outputTokens: number };
 		lamp: LampState;
+		/** What the Safety Brick has done this run (`16-…` §2.1). */
+		safety?: SafetyTally;
 	}
 
-	let { botName, goalText, tick, maxTicks, usage, lamp }: Props = $props();
+	let {
+		botName,
+		goalText,
+		tick,
+		maxTicks,
+		usage,
+		lamp,
+		safety = { checks: 0, saves: 0 }
+	}: Props = $props();
+
+	const safetyLine = $derived(safetyWords(safety));
 
 	const stepsLeft = $derived(Math.max(0, maxTicks - tick));
 	const segments = 10;
@@ -62,6 +75,28 @@
 			<span class="gauge-label">Tokens</span>
 			<span class="gauge-value" data-testid="token-meter">{totalTokens}</span>
 		</div>
+
+		{#if safetyLine}
+			<!--
+				Governance made visible (`16-…` §2.1). A run where the Safety Brick
+				checked fourteen times and stopped nothing looks, without this,
+				exactly like a run with no safety brick at all — and the successful
+				case is the one worth showing a child.
+
+				`data-saves` drives the flash on a save; the count itself is keyed so
+				the animation restarts each time it changes.
+			-->
+			<p
+				class="safety"
+				class:safety--saved={safety.saves > 0}
+				data-testid="safety-ticker"
+				data-checks={safety.checks}
+				data-saves={safety.saves}
+			>
+				<span class="shield" aria-hidden="true">🛡</span>
+				<span class="safety-words">Safety brick: {safetyLine}</span>
+			</p>
+		{/if}
 
 		<p class="lamp lamp--{lamp}" data-testid="status-lamp" data-lamp={lamp}>
 			<span class="bulb" aria-hidden="true"></span>
@@ -154,6 +189,25 @@
 
 	.segment--low {
 		background: var(--cab-red);
+	}
+
+	.safety {
+		display: flex;
+		align-items: center;
+		gap: var(--cab-space-1);
+		margin: 0;
+		padding: var(--cab-space-1) var(--cab-space-2);
+		font-size: var(--cab-text-xs);
+		font-weight: 600;
+		color: var(--cab-ink);
+		background: var(--cab-cream);
+		border: var(--cab-border-part) solid var(--cab-ink);
+		border-radius: var(--cab-radius-pill);
+	}
+
+	/* A save is the brick's whole reason for existing, so it gets the colour. */
+	.safety--saved {
+		background: var(--cab-yellow);
 	}
 
 	.lamp {

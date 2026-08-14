@@ -25,6 +25,7 @@
 	import ApprovalCard from '$lib/components/play/ApprovalCard.svelte';
 	import EndCard from '$lib/components/play/EndCard.svelte';
 	import { evictionNotice } from '$lib/eviction-notice.js';
+	import { safetyTally } from '$lib/safety-tally.js';
 	import HeadUp from '$lib/components/play/HeadUp.svelte';
 	import RunControls from '$lib/components/play/RunControls.svelte';
 	import SayToBot from '$lib/components/play/SayToBot.svelte';
@@ -400,6 +401,7 @@
 			maxTicks={view.maxTicks}
 			usage={view.usage}
 			lamp={view.lamp}
+			safety={safetyTally(view.events)}
 		/>
 
 		{#if !scripted}
