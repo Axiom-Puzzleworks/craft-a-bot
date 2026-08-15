@@ -22,3 +22,21 @@ export {
 	type NoisyOptions,
 	type ScriptedTier
 } from './brains.js';
+export {
+	EVAL_REPORT_SCHEMA_VERSION,
+	evalReportSchema,
+	parseEvalReport,
+	summarise,
+	type EvalCell,
+	type EvalReport,
+	type EvalSummary,
+	type EvalTier
+} from './report.js';
+export {
+	matrixSize,
+	runMatrix,
+	type MatrixBrain,
+	type MatrixConfig,
+	type MatrixSpec,
+	type RunMatrixOptions
+} from './runner.js';
