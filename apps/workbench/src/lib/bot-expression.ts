@@ -57,25 +57,17 @@ export function botExpression(mood: BotMood): BotExpression {
 	return 'idle';
 }
 
-/**
- * Placeholder faces until WP18's art (`11-…` §5, wave M1).
+/*
+ * The faces themselves used to live here, as six emoji, "until WP18's art".
+ * They are now six drawn files, and the map from expression to picture is
+ * `BOT_FACES` in `lib/assets/index.js` — with every other world-id-to-artefact
+ * mapping, in the one module allowed to hold one.
  *
- * Emoji rather than SVG because the Playroom already draws every one of its
- * things this way, and a single hand-drawn bot among emoji furniture would
- * look more broken than a consistent set of stand-ins.
+ * This module keeps what it was always actually for: deciding *which* face,
+ * from a mood the engine's events describe. That decision was written before
+ * the art existed precisely so the arrival of the art would be a rendering
+ * change, and it was.
  */
-const GLYPHS: Record<BotExpression, string> = {
-	idle: '🤖',
-	thinking: '🤔',
-	happy: '🤖',
-	confused: '😕',
-	celebrating: '🥳',
-	stopped: '😴'
-};
-
-export function botGlyph(expression: BotExpression): string {
-	return GLYPHS[expression];
-}
 
 /**
  * What a screen reader says instead of the glyph. The face is decoration for a

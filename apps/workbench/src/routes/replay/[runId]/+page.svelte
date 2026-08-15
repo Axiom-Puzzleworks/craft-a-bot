@@ -82,7 +82,7 @@
 			</p>
 		</header>
 
-		<WorldView world={shown.world} saying={shown.saying} {expression} />
+		<WorldView world={shown.world} saying={shown.saying} {expression} outcome={shown.outcome} />
 
 		<div class="scrubber">
 			<label for="replay-tick">Turn {tick} of {lastTick}</label>

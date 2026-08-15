@@ -1,15 +1,33 @@
 <script lang="ts">
+	import type { RunOutcome } from '@craftabot/core';
 	import type { PlayroomState } from '@craftabot/pack-starter';
-	import { botExpressionWords, botGlyph, type BotExpression } from '$lib/bot-expression.js';
+	import { botExpressionWords, type BotExpression } from '$lib/bot-expression.js';
+	import {
+		BACKDROP,
+		BOT_FACES,
+		BOT_POSES,
+		CELL_HIGHLIGHT,
+		CHARACTERS,
+		CONTAINERS,
+		FURNITURE,
+		GRID,
+		SCENE_ITEMS
+	} from '$lib/assets/index.js';
+	import { inlineSvg } from '$lib/assets/inline.js';
+	import Art from '$lib/components/art/Art.svelte';
 
 	/**
 	 * The Playroom (03-UI-UX-DESIGN.md §5.1): the 8×6 room with the rug, the
 	 * furniture, Teddy, the items, and the bot.
 	 *
-	 * Placeholder art in the fixed token colours, same approach as WP5's bricks —
-	 * the real painted scene arrives with the visual workstream (11 §E). The
-	 * state comes entirely from `world.changed` events, never from the engine's
-	 * world object, which is what keeps hard rule 3 true.
+	 * **Drawn, as of WP18.** Everything in here was an emoji until the wave 1 art
+	 * landed (`22-…` §5); the swap is a rendering change and nothing else, because
+	 * the state still comes entirely from `world.changed` events and never from
+	 * the engine's world object, which is what keeps hard rule 3 true.
+	 *
+	 * Every picture is looked up by the world's own id through `lib/assets`, which
+	 * is the only module allowed to map an id to an artefact. Nothing in this file
+	 * decides what a thing looks like.
 	 */
 	interface Props {
 		world: PlayroomState | undefined;
@@ -21,32 +39,15 @@
 		 * still draws a bot rather than nothing.
 		 */
 		expression?: BotExpression;
+		/**
+		 * How it ended, once it has. Teddy is the only thing that reads it: he is
+		 * delighted on SUCCESS (`16-…` §2.3) and sitting patiently the rest of the
+		 * time, which is the whole of his range.
+		 */
+		outcome?: RunOutcome | undefined;
 	}
 
-	let { world, saying, expression = 'idle' }: Props = $props();
-
-	/** Short labels so a cell reads at a glance without hover. */
-	const ITEM_GLYPHS: Record<string, string> = {
-		snack: '🍪',
-		'red-key': '🔑',
-		ball: '⬤'
-	};
-
-	/**
-	 * The letter on a block comes from the item's own name, not from a list here.
-	 *
-	 * There used to be a second mapping in this file — `block-a: 'C'` and so on —
-	 * and when the ids were realigned with their printed letters the world was
-	 * corrected and this copy was not. The grid then drew the blue A block as a
-	 * "C" while the trace called it "a blue letter block (A)": the picture and
-	 * the narration disagreeing about the same object, which is about the worst
-	 * thing a simulator built for observability can do. Deriving it means there
-	 * is only one place the letter can come from.
-	 */
-	function glyphFor(item: { id: string; name: string }): string {
-		const letter = /\(([A-Z])\)/.exec(item.name)?.[1];
-		return letter ?? ITEM_GLYPHS[item.id] ?? '•';
-	}
+	let { world, saying, expression = 'idle', outcome }: Props = $props();
 
 	function cells(state: PlayroomState) {
 		const grid: { x: number; y: number }[] = [];
@@ -74,6 +75,32 @@
 	}
 
 	const carried = $derived(world?.items.find((item) => item.location.kind === 'carried'));
+
+	/**
+	 * The bot: one of two bodies, wearing one of six faces, sometimes holding a
+	 * thing. Composed as markup rather than as three overlaid elements, because
+	 * the slot origins live in the files (`SLOT_ORIGINS`, stamped in as a
+	 * `transform`) and a second copy of those numbers here is the drift the whole
+	 * named-group contract exists to prevent.
+	 */
+	const bot = $derived.by(() => {
+		const item = carried ? SCENE_ITEMS[carried.id] : undefined;
+		const slots: Record<string, string> = {
+			// 48 × 48 is the slot; the face is drawn at exactly that, and a 72 px
+			// scene item scales into it rather than being cropped by it.
+			'face-slot': inlineSvg(BOT_FACES[expression], { size: 48 })
+		};
+		if (carried && item) slots['icon-slot'] = inlineSvg(item, { size: 48 });
+		return inlineSvg(carried ? BOT_POSES.carry : BOT_POSES.walk, { slots });
+	});
+
+	/**
+	 * The backdrop hard-codes the room (768 × 576, `20-…` §8.4) and is the only
+	 * asset that does. A world of another shape gets the rug colour instead of a
+	 * picture stretched to fit — a wrong room is worse than a plain one, and this
+	 * is the seam that would tell us the grid had moved.
+	 */
+	const roomIsDrawn = $derived(world?.width === GRID.cols && world?.height === GRID.rows);
 </script>
 
 {#if !world}
@@ -83,12 +110,17 @@
 {:else}
 	<div
 		class="room"
+		class:room--drawn={roomIsDrawn}
 		data-testid="world-view"
 		style="--cols: {world.width}; --rows: {world.height}"
 		role="img"
 		aria-label="The Playroom, {world.width} by {world.height}. Your bot is at column {world.bot
 			.position.x + 1}, row {world.bot.position.y + 1}."
 	>
+		{#if roomIsDrawn}
+			<span class="backdrop" data-testid="backdrop"><Art source={BACKDROP} /></span>
+		{/if}
+
 		{#each cells(world) as cell (`${cell.x},${cell.y}`)}
 			{@const container = at(world.containers, cell.x, cell.y)}
 			{@const furniture = at(world.furniture, cell.x, cell.y)}
@@ -96,40 +128,64 @@
 			{@const loose = itemsOnFloor(world, cell.x, cell.y)}
 			{@const isBot = world.bot.position.x === cell.x && world.bot.position.y === cell.y}
 			<div class="cell" data-testid="cell-{cell.x}-{cell.y}" data-bot={isBot}>
+				{#if isBot}
+					<!-- A frame, not a pad: the cue must not cover what it points at. -->
+					<span class="highlight"><Art source={CELL_HIGHLIGHT} /></span>
+				{/if}
+
 				{#if container}
+					{@const chest = CONTAINERS[container.id]}
 					<span class="thing thing--container" data-state={container.state}>
-						<span class="glyph">{container.state === 'locked' ? '🔒' : '🧰'}</span>
+						<!-- One file, three baked states, switched by the world's own word. -->
+						{#if chest}<Art source={chest} variants={{ state: container.state }} />{/if}
 						<span class="caption">chest</span>
 					</span>
 				{:else if furniture}
+					{@const piece = FURNITURE[furniture.id]}
 					<span class="thing thing--furniture">
-						<span class="glyph">{furniture.id === 'table' ? '🛋' : '🗄'}</span>
+						{#if piece}<Art source={piece} />{/if}
 						<span class="caption">{furniture.id}</span>
 					</span>
 				{/if}
 
 				{#if character}
-					<span class="thing thing--teddy" data-testid="teddy">
-						<span class="glyph">🧸</span>
+					{@const mood = outcome === 'SUCCESS' ? 'happy' : 'idle'}
+					{@const teddy = CHARACTERS[character.id]}
+					<span class="thing thing--teddy" data-testid="teddy" data-mood={mood}>
+						{#if teddy}<Art source={teddy[mood]} />{/if}
 						<span class="caption">{character.name}</span>
 					</span>
 				{/if}
 
-				{#each loose as item (item.id)}
-					<span class="thing thing--item" data-testid="item-{item.id}">
-						<span class="glyph">{glyphFor(item)}</span>
+				{#if loose.length > 0}
+					<span class="items">
+						{#each loose as item (item.id)}
+							{@const art = SCENE_ITEMS[item.id]}
+							<span class="item" data-testid="item-{item.id}">
+								{#if art}
+									<Art source={art} />
+								{:else}
+									<!-- A thing some pack added and nobody drew. Better a dot than
+									     a picture of the wrong object. -->
+									<span class="undrawn">•</span>
+								{/if}
+							</span>
+						{/each}
 					</span>
-				{/each}
+				{/if}
 
 				{#if isBot}
 					<span class="thing thing--bot" data-testid="bot" data-expression={expression}>
-						<span class="glyph" aria-hidden="true">{botGlyph(expression)}</span>
+						<span class="body" data-pose={carried ? 'carry' : 'walk'}>
+							<!-- eslint-disable-next-line svelte/no-at-html-tags -- build-time asset markup, composed by lib/assets/inline.ts -->
+							{@html bot}
+						</span>
 						<span class="visually-hidden" data-testid="bot-expression">
 							Your bot is {botExpressionWords(expression)}.
 						</span>
 						{#if carried}
-							<span class="carrying" data-testid="bot-carrying">
-								{glyphFor(carried)}
+							<span class="visually-hidden" data-testid="bot-carrying">
+								Carrying {carried.name}.
 							</span>
 						{/if}
 						{#if saying}
@@ -169,38 +225,96 @@
 	}
 
 	.room {
+		position: relative;
 		display: grid;
 		grid-template-columns: repeat(var(--cols), 1fr);
 		grid-template-rows: repeat(var(--rows), 1fr);
-		gap: 2px;
-		padding: var(--cab-space-2);
-		aspect-ratio: 8 / 6;
+		aspect-ratio: var(--cols) / var(--rows);
 		background: var(--cab-rug);
 		border: var(--cab-border-panel) solid var(--cab-board);
 		border-radius: var(--cab-radius-panel);
+		overflow: hidden;
+	}
+
+	/*
+	 * No gap and no per-cell wash once there is a room behind the grid: both were
+	 * there to make an invisible 8 × 6 legible, and both now show as seams across
+	 * a drawn floor. The grid is still exactly where it was — the bot's cell
+	 * highlight is what says so.
+	 */
+	.backdrop {
+		position: absolute;
+		inset: 0;
+		z-index: 0;
 	}
 
 	.cell {
 		position: relative;
+		z-index: 1;
 		display: grid;
 		place-items: center;
-		border-radius: 4px;
-		background: color-mix(in srgb, var(--cab-cream) 22%, transparent);
 		min-height: var(--cab-u);
 	}
 
-	.cell[data-bot='true'] {
-		background: color-mix(in srgb, var(--cab-yellow) 35%, transparent);
+	.room:not(.room--drawn) .cell {
+		background: color-mix(in srgb, var(--cab-cream) 22%, transparent);
+		border-radius: 4px;
+		box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cab-ink) 8%, transparent);
+	}
+
+	.highlight {
+		position: absolute;
+		inset: 0;
+		z-index: 1;
+		/* Yellow is Safety's colour, so the target cue borrows the accent instead
+		   (`04-…` §2.2 — a colour means one thing). */
+		--part-tint: var(--cab-teal);
 	}
 
 	.thing {
+		position: absolute;
+		inset: 0;
+		z-index: 2;
 		display: grid;
 		place-items: center;
 		line-height: 1;
 	}
 
-	.glyph {
-		font-size: clamp(14px, 2.2vw, 24px);
+	/*
+	 * Every asset fills the box it is given and letterboxes rather than
+	 * distorting — `preserveAspectRatio` is doing the work, so a 72 px item in a
+	 * 96 px cell keeps its 12 px of clearance without a number here.
+	 */
+	.thing :global(svg),
+	.backdrop :global(svg),
+	.highlight :global(svg),
+	.item :global(svg) {
+		display: block;
+		width: 100%;
+		height: 100%;
+	}
+
+	.items {
+		position: absolute;
+		inset: 12%;
+		z-index: 2;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	/*
+	 * Items share a cell by sharing its width rather than by stacking. Two blocks
+	 * on one square used to be one block, drawn twice in the same place.
+	 */
+	.item {
+		flex: 1 1 0;
+		min-width: 0;
+		max-width: 100%;
+	}
+
+	.undrawn {
+		font-size: 10px;
 	}
 
 	/*
@@ -210,6 +324,10 @@
 	 * stop being on the carpet.
 	 */
 	.caption {
+		position: absolute;
+		bottom: 0;
+		left: 50%;
+		transform: translateX(-50%);
 		padding: 0 2px;
 		border-radius: 2px;
 		background: var(--cab-cream);
@@ -217,25 +335,31 @@
 		font-size: var(--cab-text-xs);
 		text-transform: uppercase;
 		letter-spacing: 0.04em;
-	}
-
-	.thing--item {
-		position: absolute;
-		right: 2px;
-		bottom: 2px;
-		font-size: 10px;
+		white-space: nowrap;
 	}
 
 	.thing--bot {
-		position: relative;
-		z-index: 2;
+		z-index: 3;
+	}
+
+	.body {
+		display: block;
+		width: 100%;
+		height: 100%;
 		/* Discrete cell hops with a little squash — 04 §6. */
 		animation: hop var(--cab-hop-ms) ease-out;
 	}
 
+	.body :global(svg) {
+		display: block;
+		width: 100%;
+		height: 100%;
+	}
+
 	/*
 	 * The face is decoration for a sighted child and information for everybody
-	 * else, so the glyph is hidden from the reader and the word is given to it.
+	 * else, so the picture is hidden from the reader and the words are given to
+	 * it.
 	 */
 	.visually-hidden {
 		position: absolute;
@@ -247,13 +371,6 @@
 		clip-path: inset(50%);
 		white-space: nowrap;
 		border: 0;
-	}
-
-	.carrying {
-		position: absolute;
-		right: -6px;
-		top: -4px;
-		font-size: 11px;
 	}
 
 	.bubble {
@@ -269,7 +386,7 @@
 		border: 2px solid var(--cab-ink);
 		border-radius: 10px;
 		font-size: var(--cab-text-xs);
-		z-index: 3;
+		z-index: 4;
 	}
 
 	.held {
@@ -288,7 +405,7 @@
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.thing--bot {
+		.body {
 			animation: none;
 		}
 	}

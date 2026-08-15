@@ -442,7 +442,12 @@
 
 		<div class="stage">
 			<section class="world" aria-label="The Playroom">
-				<WorldView world={view.world} saying={view.saying} expression={view.expression} />
+				<WorldView
+					world={view.world}
+					saying={view.saying}
+					expression={view.expression}
+					outcome={view.outcome}
+				/>
 				<StoryStrip
 					events={view.events}
 					readAloud={preferences.readAloud}

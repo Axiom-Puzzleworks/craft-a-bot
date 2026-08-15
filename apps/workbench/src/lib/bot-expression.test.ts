@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { botExpression, botExpressionWords, botGlyph, type BotMood } from './bot-expression.js';
+import { botExpression, botExpressionWords, type BotMood } from './bot-expression.js';
 
 /**
  * **The bot's face** (`16-…` §1.6).
@@ -75,16 +75,17 @@ describe('botExpression', () => {
 	});
 });
 
-describe('the placeholder faces', () => {
+describe('the faces', () => {
 	/**
-	 * WP18 replaces these with `#face-slot` layers. Until then every expression
-	 * still has to draw *something* — a missing glyph is an invisible bot.
+	 * The pictures are `BOT_FACES` now (WP18) and `assets.test.ts` proves the six
+	 * are there. What still belongs here is the other half of every expression:
+	 * a face a sighted child sees is a word for everyone else, and an expression
+	 * with no word is a bot whose mood is simply unavailable.
 	 */
-	it('gives every expression a glyph and a word', () => {
+	it('gives every expression a word', () => {
 		const all = ['idle', 'thinking', 'happy', 'confused', 'celebrating', 'stopped'] as const;
 
 		for (const expression of all) {
-			expect(botGlyph(expression)).not.toBe('');
 			expect(botExpressionWords(expression)).not.toBe('');
 		}
 	});
