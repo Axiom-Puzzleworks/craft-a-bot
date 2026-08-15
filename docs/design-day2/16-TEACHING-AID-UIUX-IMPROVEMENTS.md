@@ -24,6 +24,8 @@
 **Accept:** e2e: a blocked/failed action shows narration within the same tick; eval harness shows repeated-identical-failure streaks drop vs baseline.
 
 > **Amended 2026-08-13 (WP16 slice b):** the problem statement here was half stale by the time this WP started. A refused action already emits `action.performed` with `ok: false` and the world's own narration, and the thought bubble already showed it — WP11's E3 feedback promotion did that, and the refusal reaching the *bot* was always the harder half. What was genuinely missing was somewhere a player could see the failure **in the run's story rather than in one transient line**, which the story strip (§1.3) now is: a refusal is a distinct 😕 beat, in the world's own words, sitting in the turn where it happened and staying there as the run goes on. The confused face and the puff FX remain outstanding and belong with the art wave (WP18, `11-…` §9).
+>
+> **Amended 2026-08-15 (WP18):** both landed, and §1.2 is now complete as designed. The confused face is `face-confused` mounted in the pose's `#face-slot` — the expression logic was written in WP16 against art that did not exist yet, and it needed no change at all when the art arrived, which is the whole point of having written it early. The puff is drawn over the bot on the same tick as the refusal.
 
 ### 1.3 The story strip — per-tick narration for young learners
 
@@ -103,6 +105,8 @@
 >
 > - The **chest brick glowing amber** assumes the bricks are on screen during play. They are not — the baseplate lives on the bench, and the Playroom has no brick display at all. Putting one there is a layout change this section does not ask for and `03-…` §5.1 does not describe. The ticker carries the "visible beat" requirement instead.
 > - The **"SAFETY FIRST" stamp FX** and the **stamped card in-world** are art (`11-…` §9), and belong with WP18 like the confused face and the puff FX from §1.2.
+>
+> **Amended 2026-08-15 (WP18):** the stamp landed. `fx-denied-stamp` is drawn over the bot's cell on `guardrail.tripped`, for **both** dispositions — `block-action` is the one it was really wanted for, since a run that carries on afterwards otherwise shows a fired rule only as a row in the trace. It is momentary by construction: `lib/fx-cue.ts` reads the events backwards and `think.started` clears it, so the stamp belongs to the action it refused rather than to the rest of the run.
 > - The **end card for STOPPED_BY_GUARDRAIL** was already celebratory — "The Safety Brick did its job… That is the system working, not failing." No change needed, and none made.
 
 ### 2.2 Tutorial gap-fixes (evidence: leaflet review)
@@ -138,6 +142,8 @@ Render `boxArtSeed` (deterministic box art + bot face variation); success = conf
 > **Three sound cues added** — `badge`, `ask`, `stopped` — with their sites. The `stopped` cue is deliberately not a buzzer: a child should not be made to feel told off by the thing that protected them.
 >
 > **Deferred, and worth a decision rather than an assumption.** The **confetti FX** and **Teddy-happy** are celebration art; Teddy-happy is squarely WP18 (`11-…` §9), and confetti is code but belongs with it so the success moment is designed once rather than twice. The **"Want sound effects?" prompt on first success** is a consent flow, and where it sits relative to the Settings toggle that already exists is a product decision this section does not settle.
+>
+> **Amended 2026-08-15 (WP18):** both landed, and designing them together was the right call — they are one moment. On SUCCESS the confetti bursts over the bot and Teddy switches to `teddy-happy` in the same render, from the same fold over the same events, so the replay screen shows the celebration too. The twelve particles are addressed individually (`#c1`…`#c12`, which is what the artwork shipped them for) and the whole thing is static-first: with `prefers-reduced-motion: reduce` the burst is still a scattered burst and Teddy is still delighted. **The first-success sound prompt is still deferred** and still a product decision.
 
 ### 2.4 Naming forgiveness in the world (C4's UI face)
 

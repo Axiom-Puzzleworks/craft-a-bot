@@ -108,7 +108,7 @@
 		display: grid;
 		gap: var(--cab-space-1);
 		/* 2.5 U × 3.5 U portrait, per 11 §2.1. */
-		width: calc(var(--cab-u) * 4);
+		width: calc(var(--cab-sub) * 4);
 		padding: var(--cab-space-2);
 		background: var(--cab-cream);
 		border: var(--cab-border-part) solid color-mix(in srgb, var(--cab-green) 60%, transparent);

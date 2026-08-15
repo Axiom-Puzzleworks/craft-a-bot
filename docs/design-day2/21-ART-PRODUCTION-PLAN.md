@@ -197,7 +197,7 @@ The last two are the ones worth having. The brief asks for distinguishability tw
 
 **Still open after this plan, deliberately:**
 
-1. `20-…` §8.1 — the `--cab-u` / `--cab-sub` token rename. A code change, untouched here, and still a four-fold trap.
+1. ~~`20-…` §8.1 — the `--cab-u` / `--cab-sub` token rename.~~ **Done 2026-08-15 (WP18)**, in the swap-in commit rather than here: renamed at all twenty call sites, with the dated note in `11-…` §2.
 2. `20-…` §8.2 — `assets-src/` in-repo or on a drive. Sources are on the Desktop for now.
 3. `20-…` §8.3 — the typeface. Sidestepped by drawing letterforms as paths; still blocks brand category A.
 4. `20-…` §8.4 — whether the Playroom keeps a fixed 8 × 6. `backdrop.svg` is the one file that hard-codes it, and it is in batch B. **If this is going to move, it is cheaper to know before batch B than after.**

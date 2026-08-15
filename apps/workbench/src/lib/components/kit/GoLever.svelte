@@ -78,8 +78,8 @@
 
 	.slot {
 		position: relative;
-		width: calc(var(--cab-u) * 0.7);
-		height: calc(var(--cab-u) * 1.4);
+		width: calc(var(--cab-sub) * 0.7);
+		height: calc(var(--cab-sub) * 1.4);
 		border-radius: var(--cab-radius-pill);
 		background: color-mix(in srgb, var(--cab-ink) 55%, transparent);
 	}
@@ -101,7 +101,7 @@
 
 	.reason {
 		font-size: var(--cab-text-xs);
-		max-width: calc(var(--cab-u) * 8);
+		max-width: calc(var(--cab-sub) * 8);
 		text-align: center;
 		opacity: 0.8;
 	}

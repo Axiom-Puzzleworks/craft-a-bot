@@ -150,7 +150,7 @@
 	.art {
 		display: block;
 		margin-inline: auto;
-		max-width: calc(var(--cab-u) * 4);
+		max-width: calc(var(--cab-sub) * 4);
 	}
 
 	.name {

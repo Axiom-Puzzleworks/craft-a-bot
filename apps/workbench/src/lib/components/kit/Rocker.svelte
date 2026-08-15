@@ -51,8 +51,8 @@
 		position: relative;
 		flex: none;
 		margin: 0;
-		width: calc(var(--cab-u) * 1.6);
-		height: var(--cab-u);
+		width: calc(var(--cab-sub) * 1.6);
+		height: var(--cab-sub);
 		border-radius: 6px;
 		background: color-mix(in srgb, var(--cab-ink) 18%, var(--cab-cream));
 		border: var(--cab-border-part) solid var(--cab-ink);

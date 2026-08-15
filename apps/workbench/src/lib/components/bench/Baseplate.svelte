@@ -109,7 +109,7 @@
 		background: var(--cab-cream);
 		border: var(--cab-border-panel) dashed color-mix(in srgb, var(--cab-blue) 45%, transparent);
 		border-radius: var(--cab-radius-panel);
-		min-height: calc(var(--cab-u) * 16);
+		min-height: calc(var(--cab-sub) * 16);
 	}
 
 	.chassis-label {
@@ -126,7 +126,7 @@
 
 	.socket {
 		position: relative;
-		min-height: calc(var(--cab-u) * 2.5);
+		min-height: calc(var(--cab-sub) * 2.5);
 	}
 
 	.socket--head {
@@ -155,7 +155,7 @@
 		gap: 2px;
 		width: 100%;
 		height: 100%;
-		min-height: calc(var(--cab-u) * 2.5);
+		min-height: calc(var(--cab-sub) * 2.5);
 		padding: var(--cab-space-2);
 		background: none;
 		border: none;

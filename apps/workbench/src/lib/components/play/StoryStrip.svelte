@@ -157,7 +157,7 @@
 		display: flex;
 		align-items: stretch;
 		gap: var(--cab-space-2);
-		min-height: calc(var(--cab-u) * 4);
+		min-height: calc(var(--cab-sub) * 4);
 	}
 
 	.turn {
@@ -179,7 +179,7 @@
 		background: var(--cab-cream);
 		box-shadow: var(--cab-drop-shadow);
 		flex: 1 1 auto;
-		min-width: calc(var(--cab-u) * 12);
+		min-width: calc(var(--cab-sub) * 12);
 	}
 
 	.turn-number {
@@ -249,7 +249,7 @@
 	}
 
 	.beat-caption {
-		max-width: calc(var(--cab-u) * 14);
+		max-width: calc(var(--cab-sub) * 14);
 	}
 
 	.see-more {

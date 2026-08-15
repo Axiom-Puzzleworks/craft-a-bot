@@ -15,13 +15,15 @@
 `tokens.css` defines `--cab-u: 24px`, with a comment calling it "the stud unit … every moulded part is sized in multiples of U". **That token is the ¼ U sub-grid, not U.** A developer reading the token and an illustrator reading the manifest will differ by a factor of four.
 
 > **Action for the code side (WP18, not the illustrator):** rename the token to `--cab-sub` or correct its comment, and amend `11-…` §2 with a dated note. Until that happens, treat the manifest as correct.
+>
+> **Done 2026-08-15 (WP18).** Renamed to **`--cab-sub`** across all twenty call sites; there is no `--cab-u` any more. The rename rather than the comment, because the misleading name is what travelled — a comment only reaches the reader who goes looking at the definition. `11-…` §2 carries the dated note. The table below is unchanged and still correct.
 
 **Every dimension in this brief is given in absolute pixels at 1×.** Do not convert from U. Author at 1×; the app scales in CSS.
 
 | Reference | Pixels |
 |---|---|
 | 1 U (one stud pitch, one Playroom cell) | 96 |
-| ¼ U sub-grid (the CSS `--cab-u`) | 24 |
+| ¼ U sub-grid (the CSS `--cab-sub`) | 24 |
 | Minimum scene item | 72 (0.75 U) |
 | Minimum control, either dimension | 48 (0.5 U) |
 | Minimum brick on the bench | 192 (2 U) |
@@ -97,6 +99,12 @@ Each group below therefore names the code that must change. That work is WP18's,
 | FX | none — never drawn | New components; all must honour `prefers-reduced-motion` |
 | Box sticker | `lib/box-art.ts` (CSS square) | Keep the seed logic; swap the square for the tinted template |
 | Badges | `BadgePage.svelte` CSS rosette | Swap for the rosette template with `#emboss` = chapter number |
+
+> **Done 2026-08-15 (WP18).** All eight, in three commits. The pipeline the first paragraph says does not exist is now `lib/assets/inline.ts` and `components/art/Art.svelte`, and it is about twenty lines of string work: every asset is imported `?raw` and inlined, because `#face-slot`, `#state-*`, `#emboss` and `--part-tint` are all unreachable through an `<img src>`.
+>
+> **One thing this table did not anticipate: the ids cannot go into the document as ids.** A shelf of six bots inlines six `box-sticker`s and the badge sheet inlines seven rosettes, so keeping them would put seven `#emboss`es in one page. `inline.ts` rewrites every `id` to a `data-part` on the way in, which costs nothing — no wave 1 asset refers to one of its own ids, and it checks that rather than assuming it — and leaves the code interface intact: a test still asks for `[data-part="state-open"]`.
+>
+> The FX row said "new components; all must honour `prefers-reduced-motion`". They are one component and one pure function (`lib/fx-cue.ts`), which reads the run's events **backwards** and stops at the first thing that matters. That is what makes an effect momentary: a guardrail that blocks one action and lets the run carry on stamps that action and then gets out of the way, where a `tripped` flag would have left the stamp up for the rest of the run.
 
 ---
 
@@ -218,4 +226,4 @@ These manifest categories have no code placeholder blocking them, so specifying 
 >
 > Question 3 (**typeface**) is *sidestepped, not answered*, for wave 1: every letterform delivered — the blocks, "SAFETY FIRST", the Zs — is drawn as geometric vector paths, so no artefact here depends on a font. It still blocks category A.
 >
-> Questions 1 (`--cab-u`) and 2 (`assets-src/`) are untouched. Sources are on a drive for now; §1's four-fold trap is still set.
+> **Question 1 (`--cab-u`) is now closed** — renamed to `--cab-sub` on 2026-08-15; see the note in §1. Only **question 2 (`assets-src/`)** remains genuinely open: sources are on a drive, and nothing in the repo depends on that either way.

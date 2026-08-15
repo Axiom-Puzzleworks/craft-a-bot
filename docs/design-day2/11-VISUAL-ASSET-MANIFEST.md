@@ -3,7 +3,7 @@
 
 # 11 — Visual Artefact Manifest & Production Design Guide (V1.0)
 
-> **Commissioning wave 1?** Read `20-ART-COMMISSION-BRIEF.md` alongside this. This document says what to draw and why; that one gives the exact canvas in pixels, the file path, the named-group contract and the placeholder each artefact replaces — the things an illustrator needs in order to deliver something that drops straight in. It also resolves the **1 U = 96 px vs `--cab-u: 24px`** ambiguity in §2, which is a four-fold error waiting to happen.
+> **Commissioning wave 1?** Read `20-ART-COMMISSION-BRIEF.md` alongside this. This document says what to draw and why; that one gives the exact canvas in pixels, the file path, the named-group contract and the placeholder each artefact replaces — the things an illustrator needs in order to deliver something that drops straight in. It also resolved the **1 U = 96 px vs `--cab-u: 24px`** ambiguity in §2, which was a four-fold error waiting to happen — closed in WP18 by renaming the token to `--cab-sub`; see the dated note in §2.
 
 > The complete inventory of every visual artefact V1.0 needs, and the production rules that make them feel like **large, dimensional, textured parts of a real toy** while remaining **configurable** exactly as far as V1.0 requires.
 > Prerequisite reading: `04-VISUAL-DESIGN-LANGUAGE.md` (tokens, typography, accessibility — this doc builds on it and supersedes its §9 sketch). Interactions the assets must serve: `03-UI-UX-DESIGN.md`.
@@ -26,6 +26,10 @@ Every artefact belongs to exactly one material family. The families have differe
 ## 2. Scale system — "large" is a rule, not a vibe
 
 - **Base unit:** `1 U = 96 px` at 100 % zoom (one stud pitch). All M1 parts are authored on a **24 px sub-grid** (¼ U).
+
+> **Amended 2026-08-15 (WP18).** `20-…` §1 and §8.1 named a four-fold trap here: `tokens.css` defined **`--cab-u: 24px`**, which is the ¼ U sub-grid and not U, under a comment calling it "the stud unit". A developer reading the token and an illustrator reading this line differed by a factor of four.
+>
+> **The token is now `--cab-sub`**, and there is deliberately no `--cab-u`. A corrected comment would have caught the one reader who went looking at the definition; the misleading name travelled to all twenty call sites. 1 U belongs to the artwork — authored at 1× and scaled by CSS (below) — so the app never needs to name it, and a token that does not exist cannot be misread.
 - **Minimum on-screen sizes (hard rules):** bricks never render below 2 U (192 px) wide on the bench and 1.5 U in the tray; controls never below 0.5 U (48 px) in either dimension — which also satisfies touch-target accessibility; scene items never below 0.75 U.
 - **Author at 1×, scale in CSS.** One master per asset; no separate "small" redraws (exception: favicons).
 - **Chunk factor:** corner radii ≥ 12 px on M1 parts; stroke/detail lines ≥ 2 px; no detail smaller than 6 px — if a detail needs to be smaller to fit, the part is too small or too busy.

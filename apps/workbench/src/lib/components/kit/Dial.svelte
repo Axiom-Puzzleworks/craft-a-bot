@@ -63,8 +63,8 @@
 
 	.face {
 		position: relative;
-		width: calc(var(--cab-u) * 2);
-		height: calc(var(--cab-u) * 2);
+		width: calc(var(--cab-sub) * 2);
+		height: calc(var(--cab-sub) * 2);
 		border-radius: 50%;
 		background: var(--cab-cream);
 		border: var(--cab-border-part) solid var(--cab-ink);
@@ -110,7 +110,7 @@
 	}
 
 	input {
-		width: calc(var(--cab-u) * 3);
+		width: calc(var(--cab-sub) * 3);
 	}
 
 	input:focus-visible {

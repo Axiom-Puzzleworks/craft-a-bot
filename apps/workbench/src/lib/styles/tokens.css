@@ -71,11 +71,19 @@
 	--cab-hop-ms: 200ms;
 
 	/*
-	 * The stud unit (11-VISUAL-ASSET-MANIFEST.md §2). Every moulded part is sized
-	 * in multiples of U, which is what keeps separately-authored parts looking
-	 * like one kit. Part footprints live in §2.1 of that doc.
+	 * The **¼ U sub-grid** (11-VISUAL-ASSET-MANIFEST.md §2). Every moulded part
+	 * is sized in multiples of it, which is what keeps separately-authored parts
+	 * looking like one kit. Part footprints live in §2.1 of that doc.
+	 *
+	 * **Renamed from `--cab-u` on 2026-08-15 (WP18), and the rename is the
+	 * point.** 1 U is 96 px — one stud pitch, one Playroom cell — and this token
+	 * has always held the 24 px sub-grid. `20-…` §1 calls that a four-fold trap,
+	 * and a corrected comment here would only have caught the one reader who came
+	 * looking; the misleading name travelled to every call site. There is no
+	 * `--cab-u`, deliberately: 1 U belongs to the artwork, which is authored at
+	 * 1× and scaled by CSS, so the app never needs to name it.
 	 */
-	--cab-u: 24px;
+	--cab-sub: 24px;
 
 	/* Spacing, on a 4px rhythm */
 	--cab-space-1: 4px;

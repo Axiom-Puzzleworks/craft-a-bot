@@ -163,7 +163,11 @@ catches a genuine duplicate at ~5 %.
 
 ---
 
-## 5. What WP18 still owes — the art does not swap itself
+## 5. ~~What WP18 still owes~~ — done 2026-08-15
+
+> **All eight landed the same day the art did.** The table below is kept as
+> written, because it is the accurate record of what was owed; what follows it
+> is what actually happened. Read `20-…` §4's dated note for the mechanism.
 
 `20-…` §4 is honest about this and it has not changed: **there is no asset
 pipeline.** Delivering the SVGs was necessary and is not sufficient. The eight
@@ -190,15 +194,46 @@ Two notes for whoever does that work:
   `#frame-1` is a complete sparkle. Under `prefers-reduced-motion: reduce` each
   one still means something.
 
+### 5.1 What was actually done, and what it cost
+
+Three commits on `wp18-art-swap-in`. Both notes above were load-bearing and both
+paid off — the tint reached the sticker with one CSS custom property and no
+JavaScript, and the reduced-motion path was a `@media` block rather than a
+second set of drawings.
+
+Four things the handover did not predict, all worth knowing:
+
+1. **Ids had to stop being ids.** Inlining a template many times over — six
+   stickers on the shelf, seven rosettes on the sheet — would have put seven
+   `#emboss`es in one document. `lib/assets/inline.ts` rewrites every `id` to a
+   `data-part`. It is safe precisely because §7.11's contract is about *named
+   groups the app addresses*, not about internal references: no wave 1 file
+   contains a `url(#…)` or a `<use>`, and the inliner throws if a later one
+   does, because that would render *almost* right.
+2. **The chest's three states and the sparkle's three frames are the same
+   mechanism**, so they are one option (`variants`) rather than two features. So
+   is the rosette's `#state-earned`, where the unearned case is simply "choose a
+   layer that does not exist".
+3. **`assets.test.ts` did not type-check as delivered.** `noUncheckedIndexedAccess`
+   is on across the repo, so every `ALL_ASSETS[name]` is `string | undefined`;
+   `npm run check` was red on `main` between the art commit and this one.
+4. **§3.1's letter-block question did not need answering to ship.** The mono
+   test the handover proposes is a wave-2 tooling decision. Nothing in the code
+   depends on the blocks differing in silhouette: `WorldView` looks each one up
+   by the world's own id, and the test that used to compare *letters* now
+   compares *colours* — which is the half of "a blue letter block (A)" that
+   markup can still be asked about now that the letterform is a path.
+
 ---
 
 ## 6. Still open
 
 Unchanged from `21-…` §8, and none of it blocked this wave:
 
-1. **`20-…` §8.1** — the `--cab-u` / `--cab-sub` rename. Untouched; still a
-   four-fold trap for the next person who reads the token and the manifest
-   together.
+1. ~~**`20-…` §8.1** — the `--cab-u` / `--cab-sub` rename.~~ **Closed
+   2026-08-15 (WP18):** renamed across all twenty call sites, and there is no
+   `--cab-u` any more. The rename rather than the comment fix the brief also
+   allowed, because the misleading name is the half that travelled.
 2. **`20-…` §8.2** — `assets-src/` in-repo or on a drive. Sources are on the
    Desktop. Not decided.
 3. **`20-…` §8.3** — the typeface. Sidestepped: every letterform in this wave

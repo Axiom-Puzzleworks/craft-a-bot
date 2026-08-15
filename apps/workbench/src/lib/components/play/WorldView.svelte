@@ -235,7 +235,7 @@
 	.waiting {
 		display: grid;
 		place-items: center;
-		min-height: calc(var(--cab-u) * 10);
+		min-height: calc(var(--cab-sub) * 10);
 		background: var(--cab-cream);
 		border: var(--cab-border-panel) dashed color-mix(in srgb, var(--cab-ink) 25%, transparent);
 		border-radius: var(--cab-radius-panel);
@@ -275,7 +275,7 @@
 		z-index: 1;
 		display: grid;
 		place-items: center;
-		min-height: var(--cab-u);
+		min-height: var(--cab-sub);
 	}
 
 	.room:not(.room--drawn) .cell {
@@ -403,7 +403,7 @@
 		margin-bottom: 4px;
 		padding: 2px var(--cab-space-2);
 		width: max-content;
-		max-width: calc(var(--cab-u) * 7);
+		max-width: calc(var(--cab-sub) * 7);
 		background: var(--cab-cream);
 		border: 2px solid var(--cab-ink);
 		border-radius: 10px;
