@@ -14,3 +14,11 @@ export {
 	type MetricsOptions,
 	type RunMetrics
 } from './metrics.js';
+export {
+	DEFAULT_NOISE,
+	scriptedNoisy,
+	scriptedOptimal,
+	type NoiseRates,
+	type NoisyOptions,
+	type ScriptedTier
+} from './brains.js';
