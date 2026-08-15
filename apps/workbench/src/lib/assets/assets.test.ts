@@ -97,12 +97,17 @@ const hasId = (svg: string, id: string) => new RegExp(`id="${id}"`).test(svg);
  * silently yields `undefined` is exactly how "the file is not there" turns into
  * "the picture is blank". Asking through here means a typo in a key fails as a
  * missing asset rather than as a confusing assertion further down.
+ *
+ * Reinstated 2026-08-15 after the backdrop redraw regenerated this file from
+ * the out-of-repo pipeline and took the accessor with it. If that happens
+ * again, `npm run check` is where it shows.
  */
 const assetOf = (map: Record<string, string>, key: string): string => {
 	const svg = map[key];
 	if (svg === undefined) throw new Error(`no asset delivered for "${key}"`);
 	return svg;
 };
+
 /** The element carrying `id`, up to its closing bracket or self-close. */
 const elementFor = (svg: string, id: string) =>
 	new RegExp(`<(\\w+)[^>]*id="${id}"[^>]*?(/?)>`).exec(svg);
@@ -298,6 +303,30 @@ describe('baked state layers', () => {
 });
 
 describe('the backdrop and the grid', () => {
+	/**
+	 * The Playroom is seen from above and `WorldView` puts the backdrop behind
+	 * the grid at `inset: 0`, so the artwork and the playing field are the same
+	 * rectangle. Every one of the 48 cells has to be floor the bot can be sent
+	 * to.
+	 *
+	 * The first backdrop was drawn in elevation — wall and window along the top,
+	 * floor along the bottom — and passed every other check in this file. It only
+	 * failed once something stood on it: the upper rows put the bot up the wall
+	 * and across the glass. This asserts the thing that was actually wrong.
+	 */
+	it('is a floor plan, not a room in elevation', () => {
+		const FLOOR_ONLY = new Set([
+			'#EFE3C8', // --cab-paper, the boards
+			'#C9705E', // --cab-rug
+			'#000000', // --cab-shadow — seams, joints, the glazing-bar shadows
+			'#FFFFFF' //  --cab-plastic-hi — the weave and the sunlit patch
+		]);
+		const used = new Set(hexes(assetOf(ALL_ASSETS, 'backdrop')));
+		// --cab-board is skirting and window frame; --cab-sky is glass. Either
+		// appearing here means a wall has been drawn on a cell the bot walks to.
+		expect([...used].filter((h) => !FLOOR_ONLY.has(h)).sort()).toEqual([]);
+	});
+
 	it('is drawn for the 8 × 6 Playroom', () => {
 		// Confirmed 2026-08-15 (`20-…` §8.4). The backdrop is the only asset that
 		// hard-codes the grid; every other file is cell-local. If GRID changes,

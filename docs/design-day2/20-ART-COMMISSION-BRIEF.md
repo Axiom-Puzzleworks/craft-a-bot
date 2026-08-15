@@ -100,11 +100,13 @@ Each group below therefore names the code that must change. That work is WP18's,
 | Box sticker | `lib/box-art.ts` (CSS square) | Keep the seed logic; swap the square for the tinted template |
 | Badges | `BadgePage.svelte` CSS rosette | Swap for the rosette template with `#emboss` = chapter number |
 
-> **Done 2026-08-15 (WP18).** All eight, in three commits. The pipeline the first paragraph says does not exist is now `lib/assets/inline.ts` and `components/art/Art.svelte`, and it is about twenty lines of string work: every asset is imported `?raw` and inlined, because `#face-slot`, `#state-*`, `#emboss` and `--part-tint` are all unreachable through an `<img src>`.
+> **Done 2026-08-15 (WP18).** All eight. The pipeline the first paragraph says does not exist is now `lib/assets/inline.ts` and `components/art/Art.svelte`, and it is about twenty lines of string work: every asset is imported `?raw` and inlined, because `#face-slot`, `#state-*`, `#emboss` and `--part-tint` are all unreachable through an `<img src>`.
 >
 > **One thing this table did not anticipate: the ids cannot go into the document as ids.** A shelf of six bots inlines six `box-sticker`s and the badge sheet inlines seven rosettes, so keeping them would put seven `#emboss`es in one page. `inline.ts` rewrites every `id` to a `data-part` on the way in, which costs nothing — no wave 1 asset refers to one of its own ids, and it checks that rather than assuming it — and leaves the code interface intact: a test still asks for `[data-part="state-open"]`.
 >
 > The FX row said "new components; all must honour `prefers-reduced-motion`". They are one component and one pure function (`lib/fx-cue.ts`), which reads the run's events **backwards** and stops at the first thing that matters. That is what makes an effect momentary: a guardrail that blocks one action and lets the run carry on stamps that action and then gets out of the way, where a `tripped` flag would have left the stamp up for the rest of the run.
+>
+> **§5.3's backdrop was redrawn after this landed** and the swap-in needed no change for it — which is the one useful proof that the lookup is honest. `WorldView` asks `lib/assets` for a backdrop and draws whatever comes back; a room in elevation and a room in plan are the same call.
 
 ---
 
@@ -144,7 +146,7 @@ The grid is **8 × 6 cells**; one cell is 96 px.
 
 | File | Canvas | Spec |
 |---|---|---|
-| `backdrop.svg` | **768 × 576** | Terracotta rug (`--cab-rug`) with woven-dash texture, warm walls, skirting, window with rainbow decal. Subtle 1 U articulation in the weave — legible without looking like a spreadsheet. M3 |
+| `backdrop.svg` | **768 × 576** | Terracotta rug (`--cab-rug`) with woven-dash texture, warm walls, skirting, window with rainbow decal. Subtle 1 U articulation in the weave — legible without looking like a spreadsheet. M3. **Superseded — see the note below the table** |
 | `toy-chest.svg` | 96 × 96 | Three baked states as layers: `#state-closed` (default visible), `#state-open` (lid up, interior visible), `#state-locked` (chunky padlock). Code toggles via `data-state` |
 | `shelf.svg` | 96 × 96 | Low shelf. M3 |
 | `table.svg` | 96 × 96 | Low round table (the snack location). M3 |
@@ -162,6 +164,38 @@ The grid is **8 × 6 cells**; one cell is 96 px.
 
 - **Item files are 72 × 72 on a 96 px cell** — centred, with 12 px clear on each side.
 - **Acceptance:** every item distinguishable from every other at 72 px as flat black.
+
+> **Amended 2026-08-15 (WP18) — the backdrop is a floor plan.**
+>
+> This row asks for "warm walls, skirting, window with rainbow decal" on a
+> 768 × 576 canvas. Those two halves of the sentence contradict each other, and
+> the contradiction is invisible until something stands on the result.
+>
+> The Playroom is seen **from above**: `WorldView` lays the 8 × 6 out as a CSS
+> grid and puts this file behind it at `inset: 0`, so the artwork and the playing
+> field are the same rectangle — 48 cells, every one of which a Goal Card can
+> send the bot to. A wall drawn inside that rectangle is a cell the bot walks
+> onto and hovers over. The first delivery drew the room in elevation and did
+> exactly that: cells in the upper rows put the bot, the blocks and Teddy up the
+> wall and across the glass.
+>
+> **The delivered backdrop is therefore floor edge to edge**: boards on the 1 U
+> pitch (which is what "subtle 1 U articulation" now means — the seams fall on
+> the cell boundaries, so a child can see where a square ends without a lattice
+> being drawn over the room), and the rug seen from above, well inside the edges
+> so the corner cells are still bare boarding.
+>
+> **The window survives as the light it throws** — a sunlit patch across the
+> top-right with the shadow of its glazing bars lying in it. That keeps the
+> room's warmth and its time of day, costs no walkable cell, and is how you would
+> actually see a window from above. The rainbow decal has nowhere to live in plan
+> view and is **deferred**.
+>
+> If the walls, skirting and window are wanted as drawn objects, they belong to a
+> *surround* — a separate artefact on a larger canvas with a transparent
+> 768 × 576 hole where the grid sits. That is a new file and a UI change (the
+> room needs padding around it), so it is a WP18 decision rather than an art one,
+> and it is not in this wave.
 
 ### 5.4 Effects — 5 files · `assets/playroom/`
 

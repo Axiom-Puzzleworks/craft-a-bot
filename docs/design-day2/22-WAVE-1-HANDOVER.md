@@ -6,8 +6,10 @@
 > `21-ART-PRODUCTION-PLAN.md`.
 >
 > **This document exists for the things the brief did not anticipate.** The
-> artwork is in the repo and needs no explanation; four conflicts between the
-> brief and reality do. They are §3 below, and three of them want your decision.
+> artwork is in the repo and needs no explanation; five conflicts between the
+> brief and reality do. They are §3 below. One of them — §3.4, the backdrop's
+> projection — was found by review rather than by any check, and is the most
+> instructive failure in the wave.
 >
 > Date: 2026-08-15.
 
@@ -24,16 +26,17 @@
 | Templates | `box-sticker` | `…/brand/` |
 | | `badge-rosette` | `…/leaflet/` |
 
-**28 files, 39,313 bytes total.** The largest is `backdrop.svg` at 7,690 B against
-an 80 KB scene budget; the largest part is `toy-chest.svg` at 2,593 B against
-30 KB. The budget was never close to binding.
+**28 files, 48,856 bytes total.** The largest is `backdrop.svg` at 17,214 B
+against an 80 KB scene budget; the largest part is `toy-chest.svg` at 2,593 B
+against 30 KB. The budget was never close to binding.
 
 Editable `.afdesign` sources and the raw Affinity exports are on the Desktop in
 `Craft-a-bot affinity\src\` and `\raw\`. The authoring scripts are in
 `\scripts\`, and they are the real source: every artefact is a ~40-line program,
 so a change is an edit and a re-run rather than a redraw.
 
-**202 checks run, 0 failed.** The checklist is `11-…` §8's eight points plus
+**202 checks run, 0 failed** in the build pipeline, and the contract is
+re-asserted inside the repo's own suite by `lib/assets/assets.test.ts`. The checklist is `11-…` §8's eight points plus
 `20-…` §7's three, executed rather than asserted: viewBox and root, palette
 membership after normalising every colour to hex, slot presence and emptiness,
 slot origins, hidden state layers, size budget, SVGO cleanliness.
@@ -120,7 +123,45 @@ rather than a line in a table someone has to remember:
 (`21-…` §4 said 24, 16. The head geometry moved during batch A and this table
 wins.)
 
-### 3.4 §4's dimension recipe, as agreed
+### 3.4 The backdrop was drawn in the wrong projection — corrected
+
+Caught by Andrew on review, and it is the most useful failure in this wave
+because it passed *every* automated check that existed at the time.
+
+§5.3 asks the backdrop for "warm walls, skirting, window with rainbow decal" on
+a 768 × 576 canvas. Both halves are reasonable; together they are impossible.
+The Playroom is seen **from above** — `WorldView` lays the 8 × 6 out as a CSS
+grid and puts the backdrop behind it at `inset: 0`, so the artwork and the
+playing field are the same rectangle. The first delivery drew the room in
+elevation, and the upper rows put the bot, the blocks and Teddy up the wall and
+across the glass. A Goal Card sending the bot to (3, 0) would have sent it into
+the window.
+
+Everything about that file was correct except the one thing no check was looking
+at. It was the right canvas, the right palette, inside budget, SVGO-clean — and
+unusable.
+
+**The backdrop is now floor edge to edge.** Boards on the 1 U pitch, so the
+seams fall on the cell boundaries and §5.3's "subtle 1 U articulation" is
+satisfied by something a playroom actually has rather than by a lattice. The rug
+is seen from above and sits well inside the edges, so the corner cells are bare
+boarding. **The window survives as the light it throws** — a sunlit patch across
+the top-right with its glazing-bar shadows in it, which keeps the warmth and the
+time of day at the cost of no walkable cell. The rainbow decal is deferred; it
+has nowhere to live in plan view.
+
+`assets.test.ts` now asserts the backdrop uses **only** the four floor tokens
+(`--cab-paper`, `--cab-rug`, `--cab-shadow`, `--cab-plastic-hi`). `--cab-board`
+is skirting and window frame, `--cab-sky` is glass; either appearing in this file
+means a wall has been drawn on a cell the bot walks to. That is the check that
+was missing, written as the failure rather than as a rule.
+
+> Walls and window as *drawn objects* would need a **surround** — a separate
+> artefact on a larger canvas with a transparent 768 × 576 hole where the grid
+> sits — plus padding around `.room`. That is a UI change as much as an art one,
+> so it is offered rather than assumed, and it is not in this wave.
+
+### 3.5 §4's dimension recipe, as agreed
 
 Confirmed by spike before any artwork was drawn: **Affinity rasterises
 blend-mode layers into embedded PNGs on SVG export.** `11-…` §4 builds every M1
@@ -166,8 +207,8 @@ catches a genuine duplicate at ~5 %.
 ## 5. ~~What WP18 still owes~~ — done 2026-08-15
 
 > **All eight landed the same day the art did.** The table below is kept as
-> written, because it is the accurate record of what was owed; what follows it
-> is what actually happened. Read `20-…` §4's dated note for the mechanism.
+> written, because it is the accurate record of what was owed; §5.1 is what
+> actually happened. Read `20-…` §4's dated note for the mechanism.
 
 `20-…` §4 is honest about this and it has not changed: **there is no asset
 pipeline.** Delivering the SVGs was necessary and is not sufficient. The eight
@@ -196,10 +237,9 @@ Two notes for whoever does that work:
 
 ### 5.1 What was actually done, and what it cost
 
-Three commits on `wp18-art-swap-in`. Both notes above were load-bearing and both
-paid off — the tint reached the sticker with one CSS custom property and no
-JavaScript, and the reduced-motion path was a `@media` block rather than a
-second set of drawings.
+Both notes above were load-bearing and both paid off — the tint reached the
+sticker with one CSS custom property and no JavaScript, and the reduced-motion
+path was a `@media` block rather than a second set of drawings.
 
 Four things the handover did not predict, all worth knowing:
 
@@ -216,27 +256,24 @@ Four things the handover did not predict, all worth knowing:
    layer that does not exist".
 3. **`assets.test.ts` did not type-check as delivered.** `noUncheckedIndexedAccess`
    is on across the repo, so every `ALL_ASSETS[name]` is `string | undefined`;
-   `npm run check` was red on `main` between the art commit and this one.
-4. **The backdrop and the world disagree about one cell, and neither is wrong.**
-   `backdrop.svg` draws its window across roughly columns 5–7 of the top row;
-   the starter layout puts `shelf` at **(6, 0)**. So the wall shelf is drawn on
-   the glass. Nothing in the brief connected the two — `20-…` §5.3 specifies the
-   window and its rainbow decal and never says where the furniture stands, and
-   the layout predates the art by months.
+   `npm run check` was red on `main` between the art commit and the swap-in. It
+   went red a **second** time when §3.4's redraw regenerated the file from the
+   out-of-repo pipeline and took the fix with it — which is the practical cost of
+   `20-…` §8.2 being open, and the argument for closing it.
+4. **§3.1's letter-block question did not need answering to ship.** The mono
+   test it proposes is a wave 2 tooling decision. Nothing in the code depends on
+   the blocks differing in silhouette: `WorldView` looks each one up by the
+   world's own id, and the test that used to compare *letters* now compares
+   *colours* — which is the half of "a blue letter block (A)" that markup can
+   still be asked about now that the letterform is a path.
 
-   **Deliberately not fixed here.** Moving the shelf is an engine change that
-   alters distances the goal cards are balanced against; moving the window is a
-   redraw. It reads as "a shelf in front of a window" rather than as broken, so
-   it is a wave 2 composition note rather than a defect — but it is the sort of
-   thing only a running app shows, and the next backdrop should be drawn against
-   `layouts.ts` rather than against a description of a room.
-
-5. **§3.1's letter-block question did not need answering to ship.** The mono
-   test the handover proposes is a wave-2 tooling decision. Nothing in the code
-   depends on the blocks differing in silhouette: `WorldView` looks each one up
-   by the world's own id, and the test that used to compare *letters* now
-   compares *colours* — which is the half of "a blue letter block (A)" that
-   markup can still be asked about now that the letterform is a path.
+**The redraw in §3.4 needed no swap-in change at all**, which is the one useful
+proof that the lookup is honest: `WorldView` asks `lib/assets` for a backdrop and
+draws whatever comes back, so a room in elevation and a room in plan are the same
+call. What it did need was a **test that would have caught it** — `assets.test.ts`
+now asserts the backdrop uses only the four floor tokens, because `--cab-board`
+is skirting and `--cab-sky` is glass, and either one in that file means a wall
+has been drawn on a walkable cell.
 
 ---
 
@@ -249,7 +286,8 @@ Unchanged from `21-…` §8, and none of it blocked this wave:
    `--cab-u` any more. The rename rather than the comment fix the brief also
    allowed, because the misleading name is the half that travelled.
 2. **`20-…` §8.2** — `assets-src/` in-repo or on a drive. Sources are on the
-   Desktop. Not decided.
+   Desktop. Not decided, and §5.1's third item is now the cost of that: a
+   regeneration outside the repo silently reverted an in-repo fix, twice.
 3. **`20-…` §8.3** — the typeface. Sidestepped: every letterform in this wave
    (the blocks, "SAFETY FIRST", the Zs) is drawn as geometric vector paths, so
    nothing here depends on a font. Still blocks brand category A.
