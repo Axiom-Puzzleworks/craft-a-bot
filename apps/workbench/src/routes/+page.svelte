@@ -5,6 +5,8 @@
 	import { storageStatus } from '$lib/state/app-storage.svelte.js';
 	import { SLOT_ORDER } from '$lib/bricks.js';
 	import { boxArtFor } from '$lib/box-art.js';
+	import { TEMPLATES } from '$lib/assets/index.js';
+	import Art from '$lib/components/art/Art.svelte';
 	import TakeApartConfirm from '$lib/components/kit/TakeApartConfirm.svelte';
 	import type { FittedBrick, SlotId } from '@craftabot/core';
 
@@ -128,15 +130,22 @@
 							href={resolve('/bench/[agentId]', { agentId: agent.id })}
 							data-testid="open-{agent.id}"
 							data-corner={art.corner}
-							style="--sticker: {art.colour}; --tilt: {art.tilt}deg"
+							style="--part-tint: {art.colour}; --tilt: {art.tilt}deg"
 						>
 							<!--
 								The seed made visible (`12-…` D17). Decorative, so it is hidden
 								from a reader — the bot's name is the identity that matters to
 								anyone who cannot see the sticker.
+
+								The template is one shape, one outline and one highlight, tinted
+								through `--part-tint` (`20-…` §5.5). Which colour, which corner
+								and how far off-square remain `box-art.ts`'s to decide from the
+								seed: composition is code's job, and the art deliberately ships
+								untilted so it cannot quietly become a second opinion about it.
 							-->
-							<span class="box-sticker" aria-hidden="true" data-testid="box-sticker-{agent.id}"
-							></span>
+							<span class="box-sticker" data-testid="box-sticker-{agent.id}">
+								<Art source={TEMPLATES.boxSticker} />
+							</span>
 							<span class="strip" aria-hidden="true">
 								{#each filledSockets(agent.spec.bricks) as slot (slot)}
 									<span class="swatch swatch--{slot}"></span>
@@ -388,12 +397,21 @@
 	 */
 	.box-sticker {
 		position: absolute;
-		width: 18px;
-		height: 18px;
-		border-radius: 4px;
-		background: var(--sticker);
-		border: var(--cab-border-part) solid var(--cab-ink);
+		width: 24px;
+		height: 24px;
+		/*
+		 * `--part-tint` and `--tilt` are set on the lid from the seed. The
+		 * template is deliberately untilted and untinted (`20-…` §5.5): what a
+		 * particular bot's sticker looks like stays `box-art.ts`'s decision, so
+		 * the art cannot become a second opinion about it.
+		 */
 		transform: rotate(var(--tilt));
+	}
+
+	.box-sticker :global(svg) {
+		display: block;
+		width: 100%;
+		height: 100%;
 	}
 
 	.lid[data-corner='top-right'] .box-sticker {

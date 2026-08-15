@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { CHAPTERS } from '$lib/leaflet/chapters.js';
+	import { TEMPLATES } from '$lib/assets/index.js';
+	import Art from '$lib/components/art/Art.svelte';
 
 	/**
 	 * The leaflet's back page (03-UI-UX-DESIGN.md §6): a sheet of merit-badge
@@ -10,8 +12,10 @@
 	 * rather than hidden, because half the pleasure of a sticker sheet is the
 	 * empty spaces.
 	 *
-	 * The rosette art is a P1 asset (`11-VISUAL-ASSET-MANIFEST.md` §J) arriving at
-	 * WP10; these are token-built placeholders with the right silhouette.
+	 * **The rosette is drawn now** (WP18). One template, seven times over: the
+	 * chapter number goes into `#emboss`, which the file ships empty precisely so
+	 * that an eighth chapter needs no eighth artefact (`20-…` §5.5 — "do not bake
+	 * a count"), and the earned treatment is a layer the file already carries.
 	 */
 
 	interface Props {
@@ -19,6 +23,17 @@
 	}
 
 	let { earned }: Props = $props();
+
+	/**
+	 * The number, moulded into the rosette.
+	 *
+	 * Rendered as text in the UI face rather than drawn, which is what `20-…` §3
+	 * means by "moulded label text, replaced by the app" — and is why the wave 1
+	 * typeface question (`20-…` §8.3) does not block this. Ink on the cream
+	 * medallion; the tint never reaches the middle of the badge.
+	 */
+	const emboss = (chapterNumber: number) =>
+		`<text x="20" y="27" text-anchor="middle" fill="#2B2620" style="font: 700 26px var(--cab-font-ui)">${chapterNumber}</text>`;
 </script>
 
 <section class="page" data-testid="badge-page" aria-label="Merit badges">
@@ -29,11 +44,15 @@
 			<li>
 				<span
 					class="rosette"
-					class:rosette--earned={got}
 					data-testid="badge-{chapter.badge.id}"
 					data-earned={got}
+					aria-hidden="true"
 				>
-					{chapter.number}
+					<Art
+						source={TEMPLATES.badgeRosette}
+						variants={{ state: got ? 'earned' : 'none' }}
+						slots={{ emboss: emboss(chapter.number) }}
+					/>
 				</span>
 				<span class="name">{chapter.badge.name}</span>
 				<span class="state">{got ? 'Earned' : 'Not yet'}</span>
@@ -76,25 +95,33 @@
 
 	.rosette {
 		grid-row: 1 / span 2;
-		display: grid;
-		place-items: center;
-		width: 34px;
-		height: 34px;
-		font-size: var(--cab-text-sm);
-		font-weight: 700;
-		color: var(--cab-ink);
-		background: var(--cab-cream);
-		border: var(--cab-border-part) dashed var(--cab-ink);
-		border-radius: 50%;
-		/* Never colour alone (03 §8): earned badges also gain a solid rim and a
-		   word underneath. */
-		opacity: 0.45;
+		display: block;
+		width: 40px;
+		height: 40px;
+		/*
+		 * Teal, which `20-…` §2 lists as an accent and explicitly not a brick
+		 * colour. A rosette is not a Memory brick and must not be green; blue —
+		 * the artwork's own fallback — would put an LLM colour on all seven.
+		 */
+		--part-tint: var(--cab-teal);
 	}
 
-	.rosette--earned {
-		background: var(--cab-yellow);
-		border-style: solid;
-		opacity: 1;
+	.rosette :global(svg) {
+		display: block;
+		width: 100%;
+		height: 100%;
+	}
+
+	/*
+	 * **Not dimmed.** The placeholder rosette used `opacity: 0.45`, which is the
+	 * one thing `04-…` §2.3 forbids — it cost five failing contrast routes in
+	 * WP17 — and it took the chapter number down with it. An unearned badge is a
+	 * muted token instead, and the difference is never colour alone: the earned
+	 * one gains a gold ring and a tick from `#state-earned`, and the word
+	 * underneath says which it is.
+	 */
+	.rosette[data-earned='false'] {
+		--part-tint: var(--cab-ink-muted);
 	}
 
 	.name {
@@ -103,9 +130,9 @@
 		color: var(--cab-ink);
 	}
 
+	/* Same rule, one line down: the secondary token, not a dimmed primary. */
 	.state {
 		font-size: var(--cab-text-xs);
-		color: var(--cab-ink);
-		opacity: 0.7;
+		color: var(--cab-ink-muted);
 	}
 </style>
