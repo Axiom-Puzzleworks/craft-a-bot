@@ -131,6 +131,23 @@ describe('the room', () => {
 		expect(chest).toMatch(/<g[^>]*data-part="state-closed"[^>]*display="none"/);
 	});
 
+	it('puts the effect on the bot, so it lands on the thing it is about', () => {
+		const refused = {
+			id: '00000000-0000-4000-8000-000000000001',
+			runId: '11111111-1111-4111-8111-111111111111',
+			agentId: '22222222-2222-4222-8222-222222222222',
+			tick: 1,
+			timestamp: '2026-08-15T09:00:00.000Z',
+			type: 'action.performed',
+			payload: { name: 'move', arguments: {}, result: { ok: false, narration: 'too far' } }
+		};
+
+		render(WorldView, { props: { world: tidyWorld() as never, events: [refused] as never } });
+		expect(screen.getByTestId('bot')?.parentElement).toContainElement(
+			screen.getByTestId('fx-puzzled')
+		);
+	});
+
 	it('cheers Teddy up when the run succeeded, and not before', () => {
 		const state = tidyWorld();
 		render(WorldView, { props: { world: state as never } });

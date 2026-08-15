@@ -1,7 +1,8 @@
 <script lang="ts">
-	import type { RunOutcome } from '@craftabot/core';
+	import type { EngineEvent, RunOutcome } from '@craftabot/core';
 	import type { PlayroomState } from '@craftabot/pack-starter';
 	import { botExpressionWords, type BotExpression } from '$lib/bot-expression.js';
+	import { fxCue } from '$lib/fx-cue.js';
 	import {
 		BACKDROP,
 		BOT_FACES,
@@ -15,6 +16,7 @@
 	} from '$lib/assets/index.js';
 	import { inlineSvg } from '$lib/assets/inline.js';
 	import Art from '$lib/components/art/Art.svelte';
+	import Fx from '$lib/components/play/Fx.svelte';
 
 	/**
 	 * The Playroom (03-UI-UX-DESIGN.md §5.1): the 8×6 room with the rug, the
@@ -45,9 +47,18 @@
 		 * time, which is the whole of his range.
 		 */
 		outcome?: RunOutcome | undefined;
+		/**
+		 * The run so far, for the effects (`20-…` §5.4). Only `fxCue` reads it, and
+		 * only backwards from the end: an effect is about the most recent thing
+		 * that happened, which is a property of the list rather than of a flag
+		 * somebody has to remember to clear.
+		 */
+		events?: readonly EngineEvent[];
 	}
 
-	let { world, saying, expression = 'idle', outcome }: Props = $props();
+	let { world, saying, expression = 'idle', outcome, events = [] }: Props = $props();
+
+	const beat = $derived(fxCue(events));
 
 	function cells(state: PlayroomState) {
 		const grid: { x: number; y: number }[] = [];
@@ -192,6 +203,17 @@
 							<span class="bubble" data-testid="speech-bubble">{saying}</span>
 						{/if}
 					</span>
+
+					{#if beat}
+						<!--
+							Keyed on the event that raised it, not on the cue: two refusals
+							in a row are two puffs, and a component keyed on `'puzzled'`
+							would animate the first and sit still for the second.
+						-->
+						{#key beat.at}
+							<Fx cue={beat.cue} />
+						{/key}
+					{/if}
 				{/if}
 			</div>
 		{/each}

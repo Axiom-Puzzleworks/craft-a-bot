@@ -447,6 +447,7 @@
 					saying={view.saying}
 					expression={view.expression}
 					outcome={view.outcome}
+					events={view.events}
 				/>
 				<StoryStrip
 					events={view.events}
