@@ -68,6 +68,14 @@ Every M1 part is built from exactly these layers, bottom to top. Values are the 
 
 Because layers 1, 2, 4, 5, 6, 7 are **neutral greys with blend modes**, re-tinting layer 3 re-lights the whole part correctly. This is the entire trick that makes templates reusable (§6) — shading must never be baked into the hue.
 
+> **Amended 2026-08-15 (WP18).** The recipe's *mechanism* changed; its intent did not.
+>
+> Measured against Affinity 3.2.3 before any artwork was drawn: **blend-mode layers do not survive SVG export.** A neutral grey at 22 % multiply comes back as a `<use>` pointing at an embedded base64 PNG. That is not an Affinity weakness — SVG 1.1 has no blend model, and the exporter resolves the ambiguity by rasterising rather than emitting a CSS `mix-blend-mode` that renders inconsistently. Either way the part stops being vector, blows §7's 30 KB budget, and loses the one property this paragraph is about.
+>
+> Wave 1 therefore authors layers **1, 2, 4, 5 and 7 as Normal-blend neutral alphas** — `--cab-shadow` (`#000000` @ 15 %) and `--cab-plastic-hi` (`#FFFFFF` @ 35 %), at the alphas already specified above. Normal-blend black over a colour is arithmetically close to multiply and Normal-blend white close to screen, and — the point that matters — **the shading stays neutral and hue-independent, so re-tinting layer 3 still re-lights the part correctly.** §6's capability survives intact. Both colours are already in `20-…` §2's palette table, so the automated hex check passes without an exemption.
+>
+> The one thing genuinely given up is blend-mode *richness*: a multiply pass darkens a saturated hue differently from flat black at 15 %. On this palette, at these alphas, the difference is not visible at 1×. If a future part needs true multiply, it needs to be raster, and that is a §7 decision rather than a §4 one.
+
 ## 5. Texture recipes (M2 / M3)
 
 - **Paper grain:** tileable 512 px noise, 3–5 % opacity, multiply. On every M2 surface; never behind text at > 5 %.

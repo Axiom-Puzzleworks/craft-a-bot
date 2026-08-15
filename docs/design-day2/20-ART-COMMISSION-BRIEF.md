@@ -176,6 +176,8 @@ All five are designed against but **never drawn**; WP16 and WP17 shipped their l
 | `assets/brand/box-sticker.svg` | 24 × 24 | The per-bot identity sticker. Single tintable shape using `--part-tint`, `--cab-ink` outline. **Deterministic composition is code's job** — `lib/box-art.ts` picks colour, corner and a ±6° tilt from the bot's seed. Deliver one untilted template |
 | `assets/leaflet/badge-rosette.svg` | 96 × 96 | Merit-badge rosette with `#emboss` for the chapter number and `#state-earned` for the earned treatment. **Seven chapters** as of WP17 — do not bake a count |
 
+> **Amended 2026-08-15 (WP18).** `11-…` §6's parameter table lists the badge template among the things `--part-tint` applies to; this section did not, and the omission was only visible once the contract was written down as a test. The delivered rosette tints its **rim** (`#tint`), so a chapter can carry a colour without new art — which is the capability §6 says ships now precisely so expansion packs do not need redrawing.
+
 ---
 
 ## 6. Deliberately not in this brief
@@ -211,3 +213,9 @@ These manifest categories have no code placeholder blocking them, so specifying 
 2. **`assets-src/` in-repo or on a drive?** `11-…` §7 leaves this open and it affects the illustrator's handover.
 3. **Typeface.** `11-…` §3 lists the type scale but the faces "arrive with the visual workstream". Any `#emboss` text is rendered by the app in the UI face, so the illustrator needs no font — but the decision blocks the brand files in category A.
 4. **Does the Playroom keep a fixed 8 × 6?** The backdrop is the one asset that hard-codes the grid, at 768 × 576. Every other file is cell-local and survives a resize.
+
+> **Resolved 2026-08-15 (WP18): yes, 8 × 6 stays.** `backdrop.svg` is built against it and is the only file that would need redrawing if it ever changed. The number now lives in exactly two places that are tied together — `GRID` in `lib/assets/index.ts` and an assertion in `lib/assets/assets.test.ts` — so a future change to the grid fails the suite rather than quietly leaving the room the wrong shape.
+>
+> Question 3 (**typeface**) is *sidestepped, not answered*, for wave 1: every letterform delivered — the blocks, "SAFETY FIRST", the Zs — is drawn as geometric vector paths, so no artefact here depends on a font. It still blocks category A.
+>
+> Questions 1 (`--cab-u`) and 2 (`assets-src/`) are untouched. Sources are on a drive for now; §1's four-fold trap is still set.
