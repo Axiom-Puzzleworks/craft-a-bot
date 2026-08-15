@@ -23,10 +23,17 @@
 	interface Props {
 		/** Which entry is the current screen — `undefined` on routes with no entry. */
 		current?: 'shelf' | 'scrapbook' | 'settings' | undefined;
+		/**
+		 * Whether to show the Workshop door (`15-…` §2).
+		 *
+		 * Passed in rather than read from preferences here, so this component stays
+		 * a presentational one and a test can render both states without a store.
+		 */
+		workshop?: boolean;
 		oninstructions: () => void;
 	}
 
-	let { current, oninstructions }: Props = $props();
+	let { current, workshop = false, oninstructions }: Props = $props();
 </script>
 
 <header class="bar" data-testid="nav-header">
@@ -71,11 +78,32 @@
 					Settings
 				</a>
 			</li>
+			{#if workshop}
+				<!--
+					The door, not a mode switch: it navigates, and the Workshop's own
+					layout is what changes register. Shown only when an adult has asked
+					for it in Settings.
+				-->
+				<li>
+					<a class="workshop" href={resolve('/workshop')} data-testid="nav-workshop">Workshop</a>
+				</li>
+			{/if}
 		</ul>
 	</nav>
 </header>
 
 <style>
+	/*
+	 * Outlined rather than plain, because it is the one entry that leaves the
+	 * Kit entirely. Cream on blue, like every other label on this bar — the
+	 * outline is the difference, not a second colour.
+	 */
+	.workshop {
+		border: 1px solid var(--cab-cream);
+		border-radius: var(--cab-radius-pill);
+		padding-inline: var(--cab-space-2);
+	}
+
 	.bar {
 		display: flex;
 		align-items: center;

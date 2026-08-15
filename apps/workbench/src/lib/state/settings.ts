@@ -23,6 +23,17 @@ export const settingsSchema = z.object({
 	readAloud: z.boolean().default(false),
 	/** Playroom tick speed multiplier (03-UI-UX-DESIGN.md §5.1). */
 	tickSpeed: z.number().min(0.5).max(4).default(1),
+	/**
+	 * Whether the Workshop is reachable from the nav (`15-…` §2).
+	 *
+	 * "A profile-level choice with per-surface escape hatches", and **off by
+	 * default on purpose**: children must never fall into the Workshop by
+	 * accident. It gates the *door*, not the routes — a `/workshop` URL someone
+	 * has been sent still opens, because a link that silently does nothing is
+	 * worse than one that opens something unexpected, and an adult who was given
+	 * the link meant to follow it.
+	 */
+	workshop: z.boolean().default(false),
 	/** Highest instruction-leaflet chapter completed, 0 = not started. */
 	tutorialChapter: z.number().int().min(0).max(6).default(0),
 	/**

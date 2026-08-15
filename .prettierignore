@@ -27,3 +27,8 @@ CLAUDE.md
 # snapshot writer disagree about formatting, and the snapshot writer has to win
 # — otherwise formatting the file breaks the test that regenerates it.
 packages/packs/starter/src/fixtures/trace.say-hello.v1.json
+
+# Generated eval artefacts: the scorecard and baselines are written by
+# `npm run evals`, so formatting them here would fight the generator and make
+# every run show a spurious diff.
+packages/evals/baselines

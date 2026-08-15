@@ -33,10 +33,13 @@ export interface Preferences {
 	readonly sound: boolean;
 	/** Whether the story strip is read aloud (`16-…` §1.3). */
 	readonly readAloud: boolean;
+	/** Whether the Workshop door is shown in the nav (`15-…` §2). */
+	readonly workshop: boolean;
 	setReducedMotion(value: boolean): void;
 	setTickSpeed(value: number): void;
 	setSound(value: boolean): void;
 	setReadAloud(value: boolean): void;
+	setWorkshop(value: boolean): void;
 	/** Play a cue, if sound is on. Safe to call from anywhere. */
 	cue(name: SoundCue): void;
 }
@@ -52,7 +55,8 @@ export function createPreferences(store?: SettingsStore, player?: SoundPlayer): 
 		reducedMotion: initial.reducedMotion,
 		tickSpeed: initial.tickSpeed,
 		sound: initial.sound,
-		readAloud: initial.readAloud
+		readAloud: initial.readAloud,
+		workshop: initial.workshop
 	});
 
 	return {
@@ -87,6 +91,13 @@ export function createPreferences(store?: SettingsStore, player?: SoundPlayer): 
 			state.readAloud = value;
 			settings.update({ readAloud: value });
 		},
+		get workshop() {
+			return state.workshop;
+		},
+		setWorkshop(value) {
+			state.workshop = value;
+			settings.update({ workshop: value });
+		},
 		cue(name) {
 			sound.play(name);
 		}
@@ -109,9 +120,13 @@ export const preferences: Preferences = {
 	get readAloud() {
 		return (shared ??= createPreferences()).readAloud;
 	},
+	get workshop() {
+		return (shared ??= createPreferences()).workshop;
+	},
 	setReducedMotion: (value) => (shared ??= createPreferences()).setReducedMotion(value),
 	setTickSpeed: (value) => (shared ??= createPreferences()).setTickSpeed(value),
 	setSound: (value) => (shared ??= createPreferences()).setSound(value),
 	setReadAloud: (value) => (shared ??= createPreferences()).setReadAloud(value),
+	setWorkshop: (value) => (shared ??= createPreferences()).setWorkshop(value),
 	cue: (name) => (shared ??= createPreferences()).cue(name)
 };

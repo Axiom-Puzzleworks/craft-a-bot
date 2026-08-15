@@ -56,9 +56,27 @@
 	$effect(() => {
 		document.documentElement.dataset['reducedMotion'] = String(preferences.reducedMotion);
 	});
+
+	/**
+	 * The Kit's chrome belongs to the Kit.
+	 *
+	 * This layout wraps every route including `/workshop`, and both of the things
+	 * it renders are Kit-specific: the header is a box-lid stud strip, and the
+	 * leaflet is a tutorial whose chapters describe the bench and the Playroom. A
+	 * chapter spotlight pointing at a Workshop table would be pointing at
+	 * something it has never described.
+	 *
+	 * The Workshop brings its own shell (`15-…` §2 — one route tree per mode,
+	 * shared state and components).
+	 */
+	const inKit = $derived(!page.url.pathname.startsWith('/workshop'));
 </script>
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
-<NavHeader {current} oninstructions={() => leaflet.show()} />
+{#if inKit}
+	<NavHeader {current} workshop={preferences.workshop} oninstructions={() => leaflet.show()} />
+{/if}
 {@render children()}
-<Leaflet {leaflet} />
+{#if inKit}
+	<Leaflet {leaflet} />
+{/if}

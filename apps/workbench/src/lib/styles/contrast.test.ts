@@ -120,3 +120,71 @@ describe('the pairs 04 §7 forbids', () => {
 		expect(ratio(WHITE, token('sky'))).toBeLessThan(4.5);
 	});
 });
+
+/**
+ * **The Workshop skin, held to exactly the same bar** (`15-…` §7 rule 5: "the
+ * Workshop is not exempt because its users are adults").
+ *
+ * Read from inside the `[data-mode='workshop']` block rather than through
+ * `token()`, which finds the first declaration in the file and would happily
+ * audit the Kit's palette twice while the Workshop's went unchecked.
+ *
+ * This caught a real failure on the day the skin landed: the rail was a mid
+ * panel grey with cream labels, which measures 3.2:1 — small text nobody could
+ * read, on the one screen that is present on every Workshop route.
+ */
+const WORKSHOP = (() => {
+	/*
+	 * Comments are stripped first. They are long in this block and they *name*
+	 * tokens while explaining why those tokens are deliberately absent — so a
+	 * match against the raw text reads the prose as a declaration and reports
+	 * the exact opposite of the truth.
+	 */
+	const withoutComments = TOKENS.replace(/\/\*[\s\S]*?\*\//g, '');
+	const block = /\[data-mode='workshop'\]\s*\{([^}]*)\}/.exec(withoutComments);
+	if (!block?.[1]) throw new Error('no [data-mode="workshop"] block in tokens.css');
+	return block[1];
+})();
+
+function workshopToken(name: string): string {
+	const match = new RegExp(`--cab-${name}:\\s*(#[0-9a-fA-F]{6})`).exec(WORKSHOP);
+	if (!match?.[1]) throw new Error(`no --cab-${name} in the workshop token layer`);
+	return match[1];
+}
+
+/** Pairs the Workshop actually renders, all at 11–13px, so all at 4.5:1. */
+const WORKSHOP_PAIRS: [string, string, string][] = [
+	['cream', 'panel', 'rail labels on the instrument chrome'],
+	['cream-muted', 'panel', 'rail entries for screens not yet built'],
+	['ink', 'cream', 'table rows and cards'],
+	['ink', 'paper', 'the page behind everything'],
+	['ink-muted', 'cream', 'secondary detail in tables'],
+	['ink-muted', 'paper', 'hints and captions'],
+	['scope', 'cream', 'live telemetry accents']
+];
+
+describe('AA contrast in the Workshop skin (4.5:1)', () => {
+	it.each(WORKSHOP_PAIRS)('%s on %s — %s', (foreground, background) => {
+		const fg = foreground === 'cream-muted' ? token('cream-muted') : workshopToken(foreground);
+		expect(ratio(fg, workshopToken(background))).toBeGreaterThanOrEqual(4.5);
+	});
+
+	it('leaves the Playroom’s own colours alone', () => {
+		/*
+		 * `--cab-board` and `--cab-rug` are the bench and the Playroom floor. The
+		 * Run Lab renders the same WorldView the Kit does, so a mode that
+		 * recoloured the room would make two views of one run disagree about what
+		 * it looked like — and `15-…` §5 confines this layer to surfaces and
+		 * typography for exactly that reason.
+		 */
+		expect(WORKSHOP).not.toContain('--cab-board:');
+		expect(WORKSHOP).not.toContain('--cab-rug:');
+	});
+
+	it('redefines no brick colour', () => {
+		// §7 rule 1: a trace lane means the same thing in both modes.
+		for (const brick of ['blue', 'green', 'purple', 'sky', 'red', 'yellow']) {
+			expect(WORKSHOP, brick).not.toContain(`--cab-${brick}:`);
+		}
+	});
+});

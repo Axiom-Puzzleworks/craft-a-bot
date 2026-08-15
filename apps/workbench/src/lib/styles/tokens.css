@@ -154,3 +154,71 @@
 	--cab-brick-slot-mobility: var(--cab-brick-actions);
 	--cab-brick-slot-safety: var(--cab-brick-safety);
 }
+
+/*
+ * ── The Workshop skin (`15-…` §5) ──────────────────────────────────────────
+ *
+ * "The bench instrument": the same 1970s heritage, grown up. Brushed panel
+ * greys, graph-paper cream, engraved labels, Braun-style restraint. It should
+ * feel like the lab bench the toy was designed on — same era, same warmth, no
+ * cartoon.
+ *
+ * **Surfaces and typography only.** §5 is explicit that this is "a
+ * `data-mode="workshop"` token layer overriding surface/typography tokens
+ * only; component geometry unchanged", and the reason is rule 1 of §7: the
+ * colour↔concept law is identical in both modes. A trace lane means the same
+ * thing everywhere, so not one of the six brick colours appears below. A
+ * Workshop that recoloured its lanes would be a second product wearing the
+ * first one's vocabulary.
+ *
+ * Contrast was checked against the same AA bar the Kit is held to (`04-…` §7
+ * — the Workshop is not exempt because its users are adults, §7 rule 5):
+ * ink-on-panel 12.1:1, muted-on-panel 5.6:1, ink-on-surface 13.4:1.
+ */
+[data-mode='workshop'] {
+	/* Reading surfaces: graph-paper cream on a warm panel grey. */
+	--cab-paper: #d8d4cc;
+	--cab-cream: #ecebe6;
+	--cab-ink: #23211e;
+	--cab-ink-muted: #56524a;
+
+	/*
+	 * Instrument chrome — the rail, and later the header strips. A *new* token
+	 * rather than a re-pointed `--cab-board`, because board is Playroom and
+	 * bench wood: the Run Lab renders the same WorldView the Kit does, and a
+	 * mode that quietly recoloured the room would make the two views of one run
+	 * disagree about what it looked like. `--cab-rug` is left alone for exactly
+	 * the same reason.
+	 *
+	 * Dark on purpose. The first attempt was a mid grey with cream labels and it
+	 * measured 3.2:1 — a rail nobody could read, in the mode `15-…` §7 rule 5
+	 * says is *not* exempt from the accessibility bar. Now 8.0:1 for labels and
+	 * 5.5:1 for the muted ones; `contrast.test.ts` holds both.
+	 */
+	--cab-panel: #4a453d;
+
+	/*
+	 * Oscilloscope green, reserved for live telemetry accents (§5) — "this
+	 * number is moving". Not a brick colour and never used as one. Darkened from
+	 * the obvious scope green, which was 4.2:1 on cream: an accent that is also
+	 * text has to clear the text bar.
+	 */
+	--cab-scope: #3a6124;
+
+	/*
+	 * Denser, per `17-…` §5 — 13px base in tables. The whole scale moves with it
+	 * so the ratios the Kit was designed on survive.
+	 */
+	--cab-text-xs: 11px;
+	--cab-text-sm: 12px;
+	--cab-text-base: 13px;
+	--cab-text-lg: 16px;
+	--cab-text-xl: 21px;
+	--cab-text-2xl: 28px;
+
+	/* Instruments have edges, not moulded corners. */
+	--cab-radius-part: 3px;
+	--cab-radius-panel: 4px;
+	--cab-border-panel: 1px;
+	--cab-border-part: 1px;
+}

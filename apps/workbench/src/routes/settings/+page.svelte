@@ -53,6 +53,20 @@
 				onchange={(value) => preferences.setReadAloud(value)}
 			/>
 
+			<!--
+				`15-…` §2: a profile-level choice with per-surface escape hatches, off
+				by default so a child never falls into the Workshop by accident. It
+				shows the door; it does not lock the rooms — a `/workshop` link
+				someone has been given still opens, because a link that silently does
+				nothing is worse than one that opens something unexpected.
+			-->
+			<Rocker
+				label="Show the Workshop"
+				hint="The grown-up view of the same bots and runs: full traces, filters, prompt diffs. Off by default."
+				checked={preferences.workshop}
+				onchange={(value) => preferences.setWorkshop(value)}
+			/>
+
 			<fieldset class="speed">
 				<legend>Playroom speed</legend>
 				<p class="hint">How fast a run goes when you press PLAY.</p>
