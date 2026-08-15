@@ -40,6 +40,16 @@ Three-region layout (mock-up tab 1):
 
 Header strip: outcome chip, cartridge + wire model, effective budgets (from the E8 trace fields), usage totals, digest-verified badge (`✓ trace integrity`), "Re-run with same seed" / "Fork from this tick" (Phase E) / "Open in Kit".
 
+> **Built 2026-08-15 (WP20).** The Run Lab and the Run Browser are live at `/workshop/runs`, over stored runs, read-only. What is *not* built: breakpoints, live-run trailing, causal row linking, and "Re-run with same seed" / "Fork from this tick" — the last two are Phase E by this section's own note, and the first three want a live session rather than a stored one.
+>
+> **Two things this section did not anticipate.**
+>
+> 1. **The integrity badge needs three states, not two.** "Checking…" and a verdict is not enough: the check can *fail to run*, and a badge stuck on "checking integrity…" reads as "still working" rather than "you learned nothing here". That happened on the first build.
+>
+> 2. **The Kit's chrome had to be excluded explicitly.** The root layout wraps every route, and both of the things it renders are Kit-specific — a box-lid nav strip and a tutorial whose chapters describe the bench and the Playroom. A leaflet spotlight pointing at a Workshop table would be pointing at something it has never described.
+>
+> **`15-…` §7 rule 2 is honoured literally**: rows are labelled with the event type as the engine emits it (`approval.requested`) and carry the Kit's wording as the tooltip. The lane colours are the Kit's, untouched, and `contrast.test.ts` now audits the Workshop token layer to prove no brick colour was redefined and that `--cab-board`/`--cab-rug` are left alone — the Run Lab renders the same `WorldView` the Kit does, and a mode that recoloured the Playroom would make two views of one run disagree about what it looked like.
+
 ## 4. The other screens
 
 ### 4.1 Bench Dashboard (home)

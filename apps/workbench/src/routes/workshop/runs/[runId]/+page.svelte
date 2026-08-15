@@ -13,6 +13,7 @@
 	import { projectThrough } from '$lib/state/run-projection.js';
 	import { createBrowserKeyVault } from '$lib/state/keys.js';
 	import { buildTimeline, lanesPresent, type TimelineFilter } from '$lib/workshop/timeline.js';
+	import { diffPrompts, previousPrompt } from '$lib/workshop/prompt-diff.js';
 	import type { TraceLane } from '$lib/trace-style.js';
 	import PayloadView from '$lib/components/trace/PayloadView.svelte';
 	import WorldView from '$lib/components/play/WorldView.svelte';
@@ -56,12 +57,33 @@
 	let selected = $state<number | undefined>(undefined);
 	let filter = $state<TimelineFilter>({});
 	let showRaw = $state(false);
+	/** "Diff vs previous prompt" (`17-…` §3) — off until asked for. */
+	let showDiff = $state(false);
 
 	const lastTick = $derived(events.at(-1)?.tick ?? 0);
 	const lanes = $derived(lanesPresent(events));
 	const ticks = $derived(buildTimeline(events, filter));
 	const shown = $derived(projectThrough(events, tick));
 	const selectedEvent = $derived(selected === undefined ? undefined : events[selected]);
+	/**
+	 * The prompt diff, when there is one to show.
+	 *
+	 * `undefined` covers two different situations and the template says which:
+	 * the selected row is not a prompt, or it is the *first* prompt of the run
+	 * and there is nothing to compare it against.
+	 */
+	const promptDiff = $derived.by(() => {
+		if (selected === undefined) return undefined;
+		const event = events[selected];
+		if (event?.type !== 'prompt.composed') return undefined;
+		const before = previousPrompt(events, selected);
+		if (before?.type !== 'prompt.composed') return { first: true as const };
+		return {
+			first: false as const,
+			messages: diffPrompts(before.payload.messages, event.payload.messages)
+		};
+	});
+
 	const expression = $derived(
 		botExpression({
 			tripped: shown.tripped,
@@ -263,12 +285,47 @@
 		<section class="inspector" aria-label="Inspector">
 			<div class="inspector-head">
 				<h2>Inspector</h2>
+				{#if promptDiff}
+					<label class="check">
+						<input type="checkbox" bind:checked={showDiff} data-testid="show-diff" /> Diff vs previous
+					</label>
+				{/if}
 				<label class="check">
 					<input type="checkbox" bind:checked={showRaw} data-testid="show-raw" /> Raw JSON
 				</label>
 			</div>
 			{#if showRaw && selectedEvent}
 				<pre class="raw" data-testid="raw-json">{JSON.stringify(selectedEvent, null, 2)}</pre>
+			{:else if showDiff && promptDiff}
+				{#if promptDiff.first}
+					<!-- Said, not left blank: "there is no diff" and "the diff is empty"
+					     are different facts. -->
+					<p class="empty" data-testid="diff-first">
+						This is the first prompt of the run — there is nothing before it to compare.
+					</p>
+				{:else}
+					<div class="diff" data-testid="prompt-diff">
+						{#each promptDiff.messages as message (message.section)}
+							<section class="diff-section" data-changed={message.changed}>
+								<h3>
+									{message.section}
+									{#if !message.changed}<span class="unchanged">unchanged</span>{/if}
+								</h3>
+								{#if message.changed}
+									<pre>{#each message.lines as line, index (index)}<span
+												class="line"
+												data-kind={line.kind}
+												>{line.kind === 'added'
+													? '+'
+													: line.kind === 'removed'
+														? '-'
+														: ' '} {line.text}
+</span>{/each}</pre>
+								{/if}
+							</section>
+						{/each}
+					</div>
+				{/if}
 			{:else}
 				<PayloadView event={selectedEvent} />
 			{/if}
@@ -551,6 +608,50 @@
 	.empty {
 		font-size: var(--cab-text-sm);
 		color: var(--cab-ink-muted);
+	}
+
+	.diff {
+		max-height: 62vh;
+		overflow: auto;
+	}
+
+	.diff-section h3 {
+		display: flex;
+		gap: var(--cab-space-2);
+		margin: var(--cab-space-2) 0 2px;
+		font-size: var(--cab-text-xs);
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: var(--cab-ink-muted);
+	}
+
+	.unchanged {
+		text-transform: none;
+		letter-spacing: 0;
+	}
+
+	.diff pre {
+		margin: 0;
+		padding: var(--cab-space-1);
+		font-size: var(--cab-text-xs);
+		white-space: pre-wrap;
+		background: var(--cab-paper);
+		border-radius: var(--cab-radius-part);
+	}
+
+	/*
+	 * The sign carries it — `+`, `-`, or a space — and the colour agrees.
+	 * `04-…` §7: never colour alone, and a diff read by somebody who cannot see
+	 * red is still a diff.
+	 */
+	.line[data-kind='added'] {
+		color: var(--cab-green-text);
+		font-weight: 600;
+	}
+
+	.line[data-kind='removed'] {
+		color: var(--cab-red-text);
+		text-decoration: line-through;
 	}
 
 	:focus-visible {
