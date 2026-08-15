@@ -16,12 +16,28 @@ export interface TestClock {
 
 const EPOCH = Date.UTC(2026, 7, 12, 10, 0, 0);
 
-export function createTestClock(options: { stepMs?: number; seed?: number } = {}): TestClock {
+export function createTestClock(
+	options: { stepMs?: number; seed?: number; idOffset?: number } = {}
+): TestClock {
 	const stepMs = options.stepMs ?? 1000;
 	const seed = options.seed ?? 1;
+	/**
+	 * Where the id counter starts.
+	 *
+	 * Deterministic ids are the point of this clock, and they are per-*clock*:
+	 * two sessions each get `…000000000001`. That is right for a fixture and
+	 * wrong the moment several runs are stored side by side — WP23's Eval Matrix
+	 * found it, where every cell of a matrix carried the same `runId`, so the
+	 * report's join key joined everything to everything and opening a second
+	 * cell appended its trace onto the first.
+	 *
+	 * An offset keeps the ids reproducible *and* distinct: cell *n* starts its
+	 * numbering somewhere no other cell will reach.
+	 */
+	const idOffset = options.idOffset ?? 0;
 
 	let calls = 0;
-	let ids = 0;
+	let ids = idOffset;
 	let randomState = seed;
 
 	return {
@@ -46,7 +62,7 @@ export function createTestClock(options: { stepMs?: number; seed?: number } = {}
 		},
 		reset() {
 			calls = 0;
-			ids = 0;
+			ids = idOffset;
 			randomState = seed;
 		}
 	};

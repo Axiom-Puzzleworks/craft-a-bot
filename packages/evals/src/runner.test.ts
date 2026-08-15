@@ -185,3 +185,82 @@ describe('summaries', () => {
 		expect(summary?.namingMisses).toBe(3);
 	});
 });
+
+describe('keeping a cell’s trace', () => {
+	it('hands out the events and the spec when asked', async () => {
+		// The Workshop's Eval Matrix drills a cell down to a single run without
+		// re-executing it (`17-…` §4.4).
+		const traces: { runId: string | undefined; events: number }[] = [];
+		await runMatrix(
+			{ ...BASE, seeds: [1] },
+			{
+				...fixed,
+				onTrace: (cell, trace) => traces.push({ runId: cell.runId, events: trace.events.length })
+			}
+		);
+
+		expect(traces).toHaveLength(2);
+		expect(traces[0]?.events).toBeGreaterThan(0);
+		expect(traces[0]?.runId).toBeDefined();
+	});
+
+	it('keeps nothing when not asked', async () => {
+		// The default must not hold 240 traces in memory: a matrix is a summary,
+		// and the events behind it are an order of magnitude more data.
+		const report = await runMatrix({ ...BASE, seeds: [1] }, fixed);
+		expect(report.cells.every((cell) => !('events' in cell))).toBe(true);
+	});
+});
+
+describe('yielding between cells', () => {
+	it('awaits the caller’s hook once per cell', async () => {
+		/*
+		 * The option exists because `await` alone does not yield to the browser:
+		 * a scripted cell's awaits all settle on the microtask queue, so a matrix
+		 * runs to completion in one turn of the event loop and freezes the tab.
+		 * That is not a hypothetical — it is what the Eval Matrix screen did.
+		 */
+		let yields = 0;
+		const report = await runMatrix(
+			{ ...BASE, seeds: [1, 2] },
+			{
+				...fixed,
+				betweenCells: () => {
+					yields += 1;
+					return Promise.resolve();
+				}
+			}
+		);
+		expect(yields).toBe(report.cells.length);
+	});
+
+	it('runs without one, for the CLI', async () => {
+		const report = await runMatrix({ ...BASE, seeds: [1] }, fixed);
+		expect(report.cells).toHaveLength(2);
+	});
+});
+
+describe('cell identity', () => {
+	it('gives every cell its own runId', async () => {
+		/*
+		 * `17-…` §4.4 requires that every number links to the runs behind it, and
+		 * `EvalCell.runId` is that link. The harness numbers each run's ids from a
+		 * fixed point, so without an offset every cell in the matrix carried
+		 * `…000000000001` — the join key joined everything to everything, and
+		 * storing two cells' traces spliced one onto the other.
+		 */
+		const report = await runMatrix({ ...BASE, seeds: [1, 2, 3] }, fixed);
+		const ids = report.cells.map((cell) => cell.runId);
+
+		expect(ids.every((id) => id !== undefined)).toBe(true);
+		expect(new Set(ids).size).toBe(report.cells.length);
+	});
+
+	it('gives the same cell the same runId every time', async () => {
+		// Reproducibility is the property the whole harness stands on: a cell must
+		// be re-openable, not merely re-runnable.
+		const first = await runMatrix(BASE, fixed);
+		const second = await runMatrix(BASE, fixed);
+		expect(second.cells.map((c) => c.runId)).toEqual(first.cells.map((c) => c.runId));
+	});
+});

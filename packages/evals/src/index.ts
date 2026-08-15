@@ -35,6 +35,7 @@ export {
 export {
 	matrixSize,
 	runMatrix,
+	type CellTrace,
 	type MatrixBrain,
 	type MatrixConfig,
 	type MatrixSpec,

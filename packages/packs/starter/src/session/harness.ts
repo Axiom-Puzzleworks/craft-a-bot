@@ -132,11 +132,20 @@ export interface RunOptions {
 	approve?: boolean;
 	/** Hand the session its own strategies, bypassing the spec's dial (E7). */
 	strategies?: SessionOptions['strategies'];
+	/**
+	 * Where this run's deterministic ids start.
+	 *
+	 * Needed when several runs are stored together — without it every run made
+	 * through this harness carries the same event and run ids.
+	 */
+	idOffset?: number;
 }
 
 /** Drives a session in step mode until it finishes, and hands back the trace. */
 export async function runToCompletion(options: RunOptions): Promise<RunResult> {
-	const clock = createTestClock();
+	const clock = createTestClock(
+		options.idOffset === undefined ? {} : { idOffset: options.idOffset }
+	);
 	const spec = options.spec ?? buildSpec();
 	const provider = options.provider ?? createMockProvider({ script: options.script });
 

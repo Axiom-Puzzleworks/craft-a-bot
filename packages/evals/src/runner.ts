@@ -1,4 +1,4 @@
-import type { LLMProvider } from '@craftabot/core';
+import type { AgentSpec, EngineEvent, LLMProvider } from '@craftabot/core';
 import {
 	PLAN_TOOLS,
 	buildSpec,
@@ -24,6 +24,11 @@ import {
  * buy a few seconds and cost the one property the harness exists for: a matrix
  * that produces the same report twice. It also keeps a live lane's rate limits
  * and spend a matter of arithmetic rather than of luck.
+ *
+ * **Sequential is not the same as interruptible.** Every await in a scripted
+ * cell settles on the microtask queue, so the whole matrix runs in one turn of
+ * the event loop — which freezes a browser tab solid. A caller with a UI passes
+ * `betweenCells` to yield a macrotask; see that option.
  *
  * A cell that throws is **recorded, not swallowed**. A runner that dropped
  * failures would report a smaller, healthier matrix than the one that ran, and
@@ -75,6 +80,36 @@ export interface RunMatrixOptions {
 	newId?: () => string;
 	/** Called after each cell, for a progress line on a long matrix. */
 	onCell?: (cell: EvalCell, index: number, total: number) => void;
+	/**
+	 * Called with the cell's whole trace, for a caller that wants to keep it.
+	 *
+	 * Opt-in because the default caller must **not** keep 240 traces in memory:
+	 * a matrix is a summary, and the events behind it are an order of magnitude
+	 * more data than the report. The Workshop's Eval Matrix takes this so a cell
+	 * can be drilled down to a single run without re-executing it (`17-…` §4.4:
+	 * "every number links to the runs behind it").
+	 */
+	onTrace?: (cell: EvalCell, trace: CellTrace) => void;
+	/**
+	 * Awaited between cells, so a caller on a UI thread can let the browser
+	 * paint.
+	 *
+	 * **`await` alone is not enough, and assuming it was cost a frozen tab.** A
+	 * cell's awaits all settle on the *microtask* queue — the scripted provider
+	 * never touches the network — so a matrix runs to completion in one
+	 * uninterrupted turn of the event loop however many `await`s it contains. A
+	 * macrotask (`setTimeout(…, 0)`) is what actually yields.
+	 *
+	 * Optional because the CLI wants none of it: there is nothing to paint, and
+	 * a yield per cell would only make 240 cells slower.
+	 */
+	betweenCells?: () => Promise<void>;
+}
+
+/** Everything needed to reconstruct a cell's run as a `RunRecord` later. */
+export interface CellTrace {
+	events: readonly EngineEvent[];
+	spec: AgentSpec;
 }
 
 export function matrixSize(spec: MatrixSpec): number {
@@ -93,9 +128,13 @@ export async function runMatrix(
 		for (const brain of spec.brains) {
 			for (const config of spec.configs) {
 				for (const seed of spec.seeds) {
-					const cell = await runCell({ goalCardId, brain, config, seed, noise }, options);
+					const cell = await runCell(
+						{ goalCardId, brain, config, seed, noise, ordinal: cells.length },
+						options
+					);
 					cells.push(cell);
 					options.onCell?.(cell, cells.length, total);
+					if (options.betweenCells) await options.betweenCells();
 				}
 			}
 		}
@@ -123,7 +162,26 @@ interface CellSpec {
 	config: MatrixConfig;
 	seed: number;
 	noise: NoiseRates;
+	/**
+	 * Which cell this is, 0-based. Only used to keep the cells' deterministic ids
+	 * apart — see `ID_STRIDE`.
+	 */
+	ordinal: number;
 }
+
+/**
+ * How far apart two cells' id sequences start.
+ *
+ * The harness numbers a run's events from a fixed point, so without an offset
+ * **every cell of a matrix carries the same `runId`** — which makes the report's
+ * join key join everything to everything, and makes storing two cells' traces
+ * splice one onto the other. WP23's Eval Matrix is where that surfaced.
+ *
+ * A stride rather than a counter so a cell's ids depend only on its position in
+ * the matrix: re-running the same matrix gives the same ids, which is the
+ * property the whole harness is built on.
+ */
+const ID_STRIDE = 100_000;
 
 async function runCell(cell: CellSpec, options: RunMatrixOptions): Promise<EvalCell> {
 	const { goalCardId, brain, config, seed } = cell;
@@ -161,16 +219,19 @@ async function runCell(cell: CellSpec, options: RunMatrixOptions): Promise<EvalC
 			// running out of patience — an OUT_OF_STEPS is a result, a truncated
 			// loop is a measurement artefact.
 			stepLimit: (maxTicks ?? 30) + 10,
+			idOffset: cell.ordinal * ID_STRIDE,
 			...(maxTicks !== undefined ? { maxTicks } : {}),
 			...(brain.tier === 'live' ? { provider: providerForLive(brain, options) } : {})
 		});
 
 		const started = run.events.find((event) => event.type === 'run.started');
-		return {
+		const scored: EvalCell = {
 			...identity,
 			...(started ? { runId: started.runId } : {}),
 			metrics: scoreRun(run.events)
 		};
+		options.onTrace?.(scored, { events: run.events, spec });
+		return scored;
 	} catch (error) {
 		return {
 			...identity,

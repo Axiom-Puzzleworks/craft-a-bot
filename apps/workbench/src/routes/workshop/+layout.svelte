@@ -23,7 +23,12 @@
 	 */
 	let { children } = $props();
 
-	const current = $derived(page.url.pathname.startsWith('/workshop/runs') ? 'runs' : 'dashboard');
+	const current = $derived.by(() => {
+		const path = page.url.pathname;
+		if (path.startsWith('/workshop/runs')) return 'runs' as const;
+		if (path.startsWith('/workshop/evals')) return 'evals' as const;
+		return 'dashboard' as const;
+	});
 </script>
 
 <div class="workshop" data-mode="workshop" data-testid="workshop">

@@ -30,6 +30,7 @@
 	},
 	"dependencies": {
 		"@craftabot/core": "*",
+		"@craftabot/evals": "*",
 		"@craftabot/governance": "*",
 		"@craftabot/pack-openai": "*",
 		"@craftabot/pack-starter": "*",
