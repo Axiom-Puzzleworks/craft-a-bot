@@ -96,3 +96,33 @@ test('the timeline filters down to trouble, and says so when there is none', asy
 		expect((await rows.count()) > 0 || (await empty.count()) > 0).toBe(true);
 	}).toPass();
 });
+
+test('the Spec Lab agrees with the Kit bench about the same bot', async ({ page }) => {
+	/*
+	 * `15-…` §7 rule 1, as a walk. The first version of this screen called the v2
+	 * validator directly and reported "nothing to report" for a bot whose bench
+	 * was showing a missing cartridge — two screens disagreeing about whether one
+	 * bot is ready to run, on the screen somebody checks *before* sharing it.
+	 */
+	await page.goto('/');
+	await page.getByTestId('new-bot').click();
+	await expect(page.getByTestId('baseplate')).toBeVisible();
+	const benchProblems = await page.getByTestId('build-checks').innerText();
+
+	await page.goto('/workshop');
+	await expect(page.getByTestId('fleet')).toBeVisible();
+	await page.locator('[data-testid^="fleet-row-"]').first().getByRole('link').click();
+
+	await expect(page.getByTestId('spec-contract')).toBeVisible();
+
+	/*
+	 * The property, not the wording. The two modes deliberately use different
+	 * registers for the same fact — the Kit's ribbon says **NEEDED**, the
+	 * Workshop says **blocking** (`15-…` §7 rule 2) — so asserting identical text
+	 * would be asserting the opposite of the design. What must agree is the
+	 * *verdict*: a bot the bench is complaining about is not "ready to run" here.
+	 */
+	expect(benchProblems.toLowerCase()).toContain('brain');
+	await expect(page.getByTestId('spec-problems')).toContainText('brain');
+	await expect(page.getByTestId('spec-ok')).toHaveCount(0);
+});

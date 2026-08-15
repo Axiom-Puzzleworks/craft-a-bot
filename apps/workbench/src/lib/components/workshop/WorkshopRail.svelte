@@ -20,7 +20,7 @@
 	const DESTINATIONS = [
 		{ id: 'dashboard', label: 'Bench', href: '/workshop' },
 		{ id: 'runs', label: 'Runs', href: '/workshop/runs' },
-		{ id: 'spec', label: 'Spec Lab', hint: 'WP23' },
+		{ id: 'spec', label: 'Spec Lab', hint: 'per bot' },
 		{ id: 'evals', label: 'Evals', href: '/workshop/evals' },
 		{ id: 'policies', label: 'Policies', hint: 'WP22' },
 		{ id: 'telemetry', label: 'Telemetry', hint: 'WP34' },

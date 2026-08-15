@@ -64,6 +64,17 @@ Filterable table (bot, card, outcome, cartridge, date, pinned) over the run stor
 ### 4.4 Eval Matrix (`/evals`) (mock-up tab 2)
 Configure a matrix — goal cards × cartridges × brick-config variants × seeds — over the 13 §8 harness; execute (scripted tiers free/local, live tiers behind key + spend cap with an explicit estimate); results as a **success-rate grid** (sequential single-hue fill, value labels in-cell, row/column summaries) with drill-down: cell → run list → Run Lab. Scorecard panel: success %, median ticks, loop score, wasted-tick ratio, naming misses, cost — with baseline diffs and a "promote to baseline" action. Every number links to the runs behind it (no unexplainable aggregates).
 
+> **Built 2026-08-15 (WP23).** §4.1, §4.2 and §4.4 all have screens; WP23's DoD — a matrix configured, executed and drilled to a single trace without leaving the Workshop — is met and walked by an e2e.
+>
+> **What is deliberately not built, and why.**
+>
+> - **Live tiers in the matrix.** They cost money and this screen has no spend cap. Run them from the CLI, where the cost is deliberate.
+> - **Baseline diffs and "promote to baseline" in the UI.** `@craftabot/evals` has both; wiring them here needs a place to *store* a baseline in the browser, which is a persistence decision rather than a screen.
+> - **The Spec Lab's editable half** (§4.2's draggable baseplate and per-brick schema form). The Kit's bench already is that, and re-hosting drag, tray, sockets and undo would have bought less than the matrix did. The Spec Lab builds the half that exists nowhere else — the spec as data, its problems, and its contract — and links to the bench for editing.
+> - **§4.1's spend tile and 30-day sparklines.** There is no cost model in the repo and no thirty days of history. Both are absent *and named on the page*, because a dashboard that invents a number is the one thing a governance tool must never be.
+>
+> **Three bugs this WP found by being run**, all recorded in the commits: the matrix froze the tab (every scripted await settles on the microtask queue, so `runMatrix` never yielded); every cell of a matrix carried the same `runId`, which made §4.4's "every number links to the runs behind it" false and would have spliced two cells' traces together; and the Bench Dashboard's success tile quoted a denominator the rate had not used.
+
 ### 4.5 Policy Studio (`/policies`) (mock-up tab 3)
 Author policy cards (`14-…` §4.6): a rule builder (hook → condition → disposition → reason) with the same card rendered in Kit style live (the toy face *is* the documentation); a **test bench**: run the card against (a) stored traces ("would this card have fired?") — instant, free, and the governance-forensics workflow in miniature — and (b) scripted adversarial runs (13 §L5 efficacy suite as a button). Library view: cards versioned, exportable, shareable; provenance shown.
 

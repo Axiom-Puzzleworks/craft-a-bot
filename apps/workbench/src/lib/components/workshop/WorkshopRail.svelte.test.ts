@@ -32,8 +32,12 @@ describe('the Workshop rail', () => {
 	it('names the work package each unbuilt screen is waiting on', () => {
 		// So the answer to "when?" is in the product rather than only in a doc.
 		render(WorkshopRail, { props: { current: 'runs' } });
+		expect(screen.getByTestId('rail-telemetry')).toHaveTextContent('WP34');
 		expect(screen.getByTestId('rail-policies')).toHaveTextContent('WP22');
-		expect(screen.getByTestId('rail-spec')).toHaveTextContent('WP23');
+		// The Spec Lab is built but has no screen of its own — it is always about a
+		// particular bot, so the rail says how to reach it rather than pretending
+		// it is missing.
+		expect(screen.getByTestId('rail-spec')).toHaveTextContent('per bot');
 	});
 
 	it('marks only the current screen', () => {

@@ -125,7 +125,11 @@
 				<tbody>
 					{#each rows as row (row.agentId)}
 						<tr data-testid="fleet-row-{row.agentId}">
-							<td>{row.name}</td>
+							<td>
+								<a href={resolve('/workshop/spec/[agentId]', { agentId: row.agentId })}
+									>{row.name}</a
+								>
+							</td>
 							<td>
 								<!--
 									The strip is keyed by socket, and the sockets are named for
