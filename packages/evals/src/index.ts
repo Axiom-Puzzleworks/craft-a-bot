@@ -40,3 +40,20 @@ export {
 	type MatrixSpec,
 	type RunMatrixOptions
 } from './runner.js';
+export {
+	compareToBaseline,
+	DEFAULT_TOLERANCES,
+	type BaselineComparison,
+	type MetricName,
+	type Movement,
+	type Tolerances
+} from './baseline.js';
+export { renderScorecard } from './scorecard.js';
+export {
+	BASELINE_SEEDS,
+	EXPECTED_BANDS,
+	EXPERT_MATRIX,
+	LIVE_BASELINE,
+	SCRIPTED_MATRIX,
+	STANDARD_CARDS
+} from './matrices.js';

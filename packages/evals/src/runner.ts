@@ -1,5 +1,6 @@
 import type { LLMProvider } from '@craftabot/core';
 import {
+	PLAN_TOOLS,
 	buildSpec,
 	planFor,
 	runToCompletion,
@@ -130,7 +131,24 @@ async function runCell(cell: CellSpec, options: RunMatrixOptions): Promise<EvalC
 
 	try {
 		const plan = planFor(goalCardId);
-		const spec = buildSpec({ goalCardId, ...config.overrides });
+		/*
+		 * The tools the plan needs, unless the configuration is deliberately
+		 * taking them away.
+		 *
+		 * Missing this was a real bug and the scorecard is what caught it: Sums
+		 * ran with no Tool Belt, so its first turn was a calculator call the bot
+		 * could not make — 50 % wasted ticks on a plan the solvability suite
+		 * proves wastes nothing. It still scored 100 % success, because the plan
+		 * says "391" in words and the card only asks that Teddy be told the right
+		 * answer. So the cell was green, wrong, and measuring nothing about tool
+		 * use at all.
+		 */
+		const tools = PLAN_TOOLS[goalCardId];
+		const spec = buildSpec({
+			goalCardId,
+			...(tools ? { tools } : {}),
+			...config.overrides
+		});
 		const maxTicks = config.maxTicks;
 
 		const run = await runToCompletion({

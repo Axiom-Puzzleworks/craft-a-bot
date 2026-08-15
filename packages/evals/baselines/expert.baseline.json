@@ -1,0 +1,52 @@
+{
+	"schemaVersion": 1,
+	"id": "82a4453c-951b-4cc6-9ea8-1fe3414eb1c4",
+	"createdAt": "2026-08-15T14:30:16.503Z",
+	"matrix": {
+		"goalCardIds": ["starter/locked-chest-expert"],
+		"brains": [
+			{
+				"id": "scripted-optimal",
+				"tier": "scripted-optimal"
+			},
+			{
+				"id": "scripted-noisy",
+				"tier": "scripted-noisy"
+			}
+		],
+		"configIds": ["dial-turned-up"],
+		"seeds": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+		"noise": {
+			"misname": 0.12,
+			"wastedMove": 0.12,
+			"prematureCelebrate": 0.04
+		}
+	},
+	"cells": [],
+	"summaries": [
+		{
+			"goalCardId": "starter/locked-chest-expert",
+			"brainId": "scripted-optimal",
+			"cells": 20,
+			"successRate": 1,
+			"medianTicks": 36,
+			"medianLoopStreak": 4,
+			"meanWastedTickRatio": 0,
+			"namingMisses": 0,
+			"meanTokensIn": 38134,
+			"meanTokensOut": 138
+		},
+		{
+			"goalCardId": "starter/locked-chest-expert",
+			"brainId": "scripted-noisy",
+			"cells": 20,
+			"successRate": 0,
+			"medianTicks": 60,
+			"medianLoopStreak": 4,
+			"meanWastedTickRatio": 0.4725,
+			"namingMisses": 23,
+			"meanTokensIn": 66796.2,
+			"meanTokensOut": 322
+		}
+	]
+}

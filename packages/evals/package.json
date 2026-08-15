@@ -14,11 +14,15 @@
 	"scripts": {
 		"build": "tsc -p tsconfig.build.json",
 		"test": "vitest run --coverage",
-		"check": "tsc --noEmit"
+		"check": "tsc --noEmit",
+		"evals": "tsc -p tsconfig.build.json && node dist/main.js"
 	},
 	"dependencies": {
 		"@craftabot/core": "*",
 		"@craftabot/pack-starter": "*",
 		"zod": "^4.4.3"
+	},
+	"devDependencies": {
+		"@types/node": "^24.10.1"
 	}
 }

@@ -133,6 +133,18 @@ The instrument Andrew's manual trials were approximating. Design:
 - **Baselines & gates:** per goal card an expected band, e.g. Say Hello ≥95% success ≤8 ticks (Quick Thinker, 20 seeds); Snack ≥70%; post-C6-fix Tidy ≥60%, Locked Chest ≥40%; loop score median ≤3. Nightly report diffs against the stored baseline; regressions fail the report, not the build (live models drift — the gate is on _our_ changes via scripted-noisy, the live numbers are telemetry).
 - **Output:** an `EvalReport` JSON (schema-versioned, stored like traces) + a markdown scorecard in CI artefacts. The professional mode's Eval Matrix screen (`17-…` §5.4) renders the same records — build the data model once.
 
+> **Built 2026-08-15 (WP19).** `@craftabot/evals` ships the runner, both scripted tiers, the metrics fold, the `EvalReport` schema, the baseline gate and the scorecard. Scripted baselines are recorded and committed; **the live lane is not run** — see below.
+>
+> **Three things this section did not anticipate.**
+>
+> 1. **"Six cards × three cartridges" is a live-only requirement.** Six is exactly right — the pack ships seven goal cards and one is flagged `expert`. But the pack ships *no cartridges*: the three are Quick, Deep and Penny Thinker in the OpenAI pack, so those 360 runs are real API calls against somebody's key. The scripted matrix (6 cards × 2 tiers × 20 seeds = 240 cells) is what CI can run on every commit, and it is a different measurement, not a cheaper version of the same one.
+>
+> 2. **The scripted-optimal plans had to move.** They lived in `solvability.test.ts`; the optimal tier *is* that solvability floor, so a second copy would have given the matrix a floor nothing had proved. They are now data in `pack-starter`'s `session/plans.ts`, reachable through a new `@craftabot/pack-starter/testing` subpath.
+>
+> 3. **The naming-miss metric matches prose, and that is a real weakness.** Ambiguity is structured — `ActionResult.didYouMean` has carried the candidates since WP16 §2.4 — but nothing equivalent exists for a name that matched *nothing*, so a miss is recognised by matching the narration. It is mitigated by a test that drives a real bot into a real miss, so a reworded refusal fails loudly rather than silently zeroing the metric. The actual fix is a structured field on `ActionResult`, which is an engine change and an event-catalogue amendment.
+>
+> **What the scripted numbers say**, 20 seeds at default noise: optimal wins every card; noisy scores say-hello 80%, snack 45%, tidy 20%, locked-chest 15%, sums and free-play 100%, expert 0%. The gradient is the finding — the same 12% error rate costs almost nothing on a four-step card and everything on a thirteen-step one, because a wasted move desynchronises the plan and every later step compounds it.
+
 ## 9. L5 — Governance assurance suite
 
 - **Trace completeness:** for a fully-instrumented run, assert the trace answers the audit questions: what model, what budgets, what policies, what was proposed/blocked/approved, what changed (requires D6 fields).

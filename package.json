@@ -20,10 +20,11 @@
 		"lint": "prettier --check . && eslint . && turbo run check",
 		"format": "prettier --write .",
 		"e2e": "npm run e2e --workspace=apps/workbench",
-		"demo": "npm run build && echo \"Demo built at apps/workbench/build — serve it with any static host, or npm run preview\"",
+		"demo": "npm run build && echo \"Demo built at apps/workbench/build \u00e2\u20ac\u201d serve it with any static host, or npm run preview\"",
 		"preview": "npm run preview --workspace=apps/workbench",
 		"budget": "node scripts/bundle-budget.mjs",
-		"smoke:openai": "npm run smoke --workspace=@craftabot/pack-openai"
+		"smoke:openai": "npm run smoke --workspace=@craftabot/pack-openai",
+		"evals": "npm run evals --workspace=packages/evals --"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",

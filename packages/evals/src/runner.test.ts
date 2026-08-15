@@ -61,6 +61,29 @@ describe('the matrix', () => {
 		for (const cell of report.cells) expect(cell.runId).toBeDefined();
 	});
 
+	it('fits the tools a plan needs, or the cell measures the wrong bot', async () => {
+		/*
+		 * Found by reading a scorecard, not by a test: Sums showed 50 % wasted
+		 * ticks on the *optimal* plan, which the solvability suite proves wastes
+		 * nothing. The cell had run with no Tool Belt, so the calculator call was
+		 * a turn the bot could not take — and it still scored 100 % success,
+		 * because the plan says "391" in words and the card only asks that Teddy
+		 * be told. Green, wrong, and measuring nothing about tool use.
+		 */
+		const report = await runMatrix(
+			{
+				...BASE,
+				goalCardIds: ['starter/sums-for-teddy'],
+				brains: [{ id: 'scripted-optimal', tier: 'scripted-optimal' }],
+				seeds: [1]
+			},
+			fixed
+		);
+
+		expect(report.cells[0]?.metrics.wastedTickRatio).toBe(0);
+		expect(report.cells[0]?.metrics.outcome).toBe('SUCCESS');
+	});
+
 	it('reports progress as it goes', async () => {
 		const seen: number[] = [];
 		await runMatrix(BASE, { ...fixed, onCell: (_cell, index, total) => seen.push(total - index) });

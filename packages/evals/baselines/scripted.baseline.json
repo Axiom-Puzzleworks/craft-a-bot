@@ -1,0 +1,179 @@
+{
+	"schemaVersion": 1,
+	"id": "9de7163d-92fb-42d2-ba2f-96f78ed16d6d",
+	"createdAt": "2026-08-15T14:30:15.128Z",
+	"matrix": {
+		"goalCardIds": [
+			"starter/say-hello",
+			"starter/snack",
+			"starter/tidy-the-blocks",
+			"starter/locked-chest",
+			"starter/sums-for-teddy",
+			"starter/free-play"
+		],
+		"brains": [
+			{
+				"id": "scripted-optimal",
+				"tier": "scripted-optimal"
+			},
+			{
+				"id": "scripted-noisy",
+				"tier": "scripted-noisy"
+			}
+		],
+		"configIds": ["default"],
+		"seeds": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+		"noise": {
+			"misname": 0.12,
+			"wastedMove": 0.12,
+			"prematureCelebrate": 0.04
+		}
+	},
+	"cells": [],
+	"summaries": [
+		{
+			"goalCardId": "starter/say-hello",
+			"brainId": "scripted-optimal",
+			"cells": 20,
+			"successRate": 1,
+			"medianTicks": 4,
+			"medianLoopStreak": 3,
+			"meanWastedTickRatio": 0,
+			"namingMisses": 0,
+			"meanTokensIn": 1652,
+			"meanTokensOut": 19
+		},
+		{
+			"goalCardId": "starter/say-hello",
+			"brainId": "scripted-noisy",
+			"cells": 20,
+			"successRate": 0.8,
+			"medianTicks": 5,
+			"medianLoopStreak": 3,
+			"meanWastedTickRatio": 0.15999999999999998,
+			"namingMisses": 0,
+			"meanTokensIn": 6659.2,
+			"meanTokensOut": 63.45
+		},
+		{
+			"goalCardId": "starter/snack",
+			"brainId": "scripted-optimal",
+			"cells": 20,
+			"successRate": 1,
+			"medianTicks": 7,
+			"medianLoopStreak": 2,
+			"meanWastedTickRatio": 0,
+			"namingMisses": 0,
+			"meanTokensIn": 3883,
+			"meanTokensOut": 38
+		},
+		{
+			"goalCardId": "starter/snack",
+			"brainId": "scripted-noisy",
+			"cells": 20,
+			"successRate": 0.45,
+			"medianTicks": 30,
+			"medianLoopStreak": 2,
+			"meanWastedTickRatio": 0.4072222222222222,
+			"namingMisses": 6,
+			"meanTokensIn": 17578.55,
+			"meanTokensOut": 139.45
+		},
+		{
+			"goalCardId": "starter/tidy-the-blocks",
+			"brainId": "scripted-optimal",
+			"cells": 20,
+			"successRate": 1,
+			"medianTicks": 10,
+			"medianLoopStreak": 2,
+			"meanWastedTickRatio": 0,
+			"namingMisses": 0,
+			"meanTokensIn": 6920,
+			"meanTokensOut": 42
+		},
+		{
+			"goalCardId": "starter/tidy-the-blocks",
+			"brainId": "scripted-noisy",
+			"cells": 20,
+			"successRate": 0.2,
+			"medianTicks": 30,
+			"medianLoopStreak": 2,
+			"meanWastedTickRatio": 0.5174999999999998,
+			"namingMisses": 12,
+			"meanTokensIn": 25700.3,
+			"meanTokensOut": 167.15
+		},
+		{
+			"goalCardId": "starter/locked-chest",
+			"brainId": "scripted-optimal",
+			"cells": 20,
+			"successRate": 1,
+			"medianTicks": 13,
+			"medianLoopStreak": 2,
+			"meanWastedTickRatio": 0,
+			"namingMisses": 0,
+			"meanTokensIn": 10828,
+			"meanTokensOut": 69
+		},
+		{
+			"goalCardId": "starter/locked-chest",
+			"brainId": "scripted-noisy",
+			"cells": 20,
+			"successRate": 0.15,
+			"medianTicks": 30,
+			"medianLoopStreak": 2,
+			"meanWastedTickRatio": 0.4629411764705882,
+			"namingMisses": 13,
+			"meanTokensIn": 29029.65,
+			"meanTokensOut": 184.45
+		},
+		{
+			"goalCardId": "starter/sums-for-teddy",
+			"brainId": "scripted-optimal",
+			"cells": 20,
+			"successRate": 1,
+			"medianTicks": 2,
+			"medianLoopStreak": 1,
+			"meanWastedTickRatio": 0,
+			"namingMisses": 0,
+			"meanTokensIn": 697,
+			"meanTokensOut": 14
+		},
+		{
+			"goalCardId": "starter/sums-for-teddy",
+			"brainId": "scripted-noisy",
+			"cells": 20,
+			"successRate": 1,
+			"medianTicks": 2,
+			"medianLoopStreak": 1,
+			"meanWastedTickRatio": 0.025,
+			"namingMisses": 0,
+			"meanTokensIn": 943.45,
+			"meanTokensOut": 17.55
+		},
+		{
+			"goalCardId": "starter/free-play",
+			"brainId": "scripted-optimal",
+			"cells": 20,
+			"successRate": 1,
+			"medianTicks": 1,
+			"medianLoopStreak": 1,
+			"meanWastedTickRatio": 0,
+			"namingMisses": 0,
+			"meanTokensIn": 295,
+			"meanTokensOut": 11
+		},
+		{
+			"goalCardId": "starter/free-play",
+			"brainId": "scripted-noisy",
+			"cells": 20,
+			"successRate": 1,
+			"medianTicks": 1,
+			"medianLoopStreak": 1,
+			"meanWastedTickRatio": 0,
+			"namingMisses": 0,
+			"meanTokensIn": 333.6,
+			"meanTokensOut": 11.7
+		}
+	]
+}

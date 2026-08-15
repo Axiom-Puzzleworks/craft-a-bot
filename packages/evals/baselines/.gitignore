@@ -1,0 +1,4 @@
+# The full per-run record: 140 KB that changes every run and that nothing but a
+# forensic question ever reads. The committed artefacts are the baseline (which
+# the gate diffs against) and the scorecard (which a reviewer reads).
+*.report.json
