@@ -12,7 +12,7 @@ import WorkshopRail from './WorkshopRail.svelte';
  * kind of thing it exists to stop other software doing.
  */
 describe('the Workshop rail', () => {
-	it.each(['runs', 'evals'])('links to %s, which is built', (built) => {
+	it.each(['dashboard', 'runs', 'evals'])('links to %s, which is built', (built) => {
 		render(WorkshopRail, { props: { current: 'runs' } });
 		expect(screen.getByTestId(`rail-${built}`).tagName).toBe('A');
 	});
@@ -24,7 +24,7 @@ describe('the Workshop rail', () => {
 
 	it('shows what is not built, without pretending it is a link', () => {
 		render(WorkshopRail, { props: { current: 'runs' } });
-		for (const pending of ['dashboard', 'spec', 'policies', 'telemetry', 'export']) {
+		for (const pending of ['spec', 'policies', 'telemetry', 'export']) {
 			expect(screen.getByTestId(`rail-${pending}`).tagName, pending).not.toBe('A');
 		}
 	});

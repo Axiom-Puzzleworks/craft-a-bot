@@ -35,6 +35,23 @@ export const SLOT_ORDER: SlotId[] = [
 	'safety'
 ];
 
+/**
+ * Which sockets have something in them, in the order a builder meets them.
+ *
+ * Keyed by **socket**, not by brick name: colour is keyed to the concept a
+ * socket stands for (`04-…` §2.2), so a bot with a Monitor brick fitted is a
+ * bot with governance on board and a strip that showed a gap there would be
+ * lying about what is in the box.
+ *
+ * Lived in `routes/+page.svelte` until WP23, when the Workshop's fleet table
+ * needed the identical strip. Two copies of this is two chances to disagree
+ * about what a bot has fitted.
+ */
+export function filledSockets(bricks: readonly { slot: SlotId }[]): SlotId[] {
+	const filled = new Set(bricks.map((brick) => brick.slot));
+	return SLOT_ORDER.filter((slot) => filled.has(slot));
+}
+
 /** Where each socket lives on the chassis (03 §4.2), in the body's language. */
 export const SOCKET_LABELS: Record<SlotId, string> = {
 	brain: 'head',

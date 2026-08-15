@@ -18,7 +18,7 @@
 	let { current }: Props = $props();
 
 	const DESTINATIONS = [
-		{ id: 'dashboard', label: 'Bench', hint: 'WP23' },
+		{ id: 'dashboard', label: 'Bench', href: '/workshop' },
 		{ id: 'runs', label: 'Runs', href: '/workshop/runs' },
 		{ id: 'spec', label: 'Spec Lab', hint: 'WP23' },
 		{ id: 'evals', label: 'Evals', href: '/workshop/evals' },
@@ -35,7 +35,7 @@
 			<li>
 				{#if 'href' in destination}
 					<a
-						href={resolve(destination.href as '/workshop/runs' | '/workshop/evals')}
+						href={resolve(destination.href as '/workshop' | '/workshop/runs' | '/workshop/evals')}
 						aria-current={current === destination.id ? 'page' : undefined}
 						data-testid="rail-{destination.id}">{destination.label}</a
 					>

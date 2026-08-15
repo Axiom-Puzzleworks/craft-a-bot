@@ -3,12 +3,11 @@
 	import { resolve } from '$app/paths';
 	import { agentsStore } from '$lib/state/agents.svelte.js';
 	import { storageStatus } from '$lib/state/app-storage.svelte.js';
-	import { SLOT_ORDER } from '$lib/bricks.js';
+	import { filledSockets } from '$lib/bricks.js';
 	import { boxArtFor } from '$lib/box-art.js';
 	import { TEMPLATES } from '$lib/assets/index.js';
 	import Art from '$lib/components/art/Art.svelte';
 	import TakeApartConfirm from '$lib/components/kit/TakeApartConfirm.svelte';
-	import type { FittedBrick, SlotId } from '@craftabot/core';
 
 	/**
 	 * The Shelf (03-UI-UX-DESIGN.md §3): your bots as toy boxes on a wooden
@@ -56,22 +55,6 @@
 		link.download = `${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.craftabot.json`;
 		link.click();
 		URL.revokeObjectURL(url);
-	}
-
-	/**
-	 * Which sockets a bot has filled, as the colour strip on its box lid (03 §3).
-	 *
-	 * > **Amended 2026-08-13 (WP14 slice 4b):** matched by **socket**, where this
-	 * > matched V1 kind ids and said that a Monitor in the safety socket "has no
-	 * > colour on this strip and should not borrow one". That was the right call
-	 * > while colour was keyed to six named bricks; it is the wrong one now that
-	 * > colour is keyed to the concept a socket stands for (`04-…` §2.2). A bot
-	 * > with a Monitor fitted is a bot with governance on board, and a lid that
-	 * > showed a gap there was lying about what was in the box.
-	 */
-	function filledSockets(bricks: readonly FittedBrick[]): SlotId[] {
-		const filled = new Set(bricks.map((brick) => brick.slot));
-		return SLOT_ORDER.filter((slot) => filled.has(slot));
 	}
 </script>
 
