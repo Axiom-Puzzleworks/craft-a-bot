@@ -68,9 +68,18 @@
 		animation: burst 320ms ease-out both;
 	}
 
-	/* Puffs and Zs sit above the bot rather than over its face. */
+	/*
+	 * Up and to the right of the bot, not over it. `fx-question-puff` is a
+	 * speech-bubble cloud whose two tail beads are drawn in its own bottom-left
+	 * corner — centred on the cell they point at nothing and the cloud covers the
+	 * face the puff is there to accompany. Offset far enough to read, not so far
+	 * that a bot in the top row has its puff cropped by the room.
+	 */
 	.fx--puzzled {
-		top: 8%;
+		left: 68%;
+		top: 4%;
+		width: 115%;
+		height: 115%;
 		animation: rise 260ms ease-out both;
 	}
 

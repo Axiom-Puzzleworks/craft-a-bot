@@ -217,7 +217,21 @@ Four things the handover did not predict, all worth knowing:
 3. **`assets.test.ts` did not type-check as delivered.** `noUncheckedIndexedAccess`
    is on across the repo, so every `ALL_ASSETS[name]` is `string | undefined`;
    `npm run check` was red on `main` between the art commit and this one.
-4. **§3.1's letter-block question did not need answering to ship.** The mono
+4. **The backdrop and the world disagree about one cell, and neither is wrong.**
+   `backdrop.svg` draws its window across roughly columns 5–7 of the top row;
+   the starter layout puts `shelf` at **(6, 0)**. So the wall shelf is drawn on
+   the glass. Nothing in the brief connected the two — `20-…` §5.3 specifies the
+   window and its rainbow decal and never says where the furniture stands, and
+   the layout predates the art by months.
+
+   **Deliberately not fixed here.** Moving the shelf is an engine change that
+   alters distances the goal cards are balanced against; moving the window is a
+   redraw. It reads as "a shelf in front of a window" rather than as broken, so
+   it is a wave 2 composition note rather than a defect — but it is the sort of
+   thing only a running app shows, and the next backdrop should be drawn against
+   `layouts.ts` rather than against a description of a room.
+
+5. **§3.1's letter-block question did not need answering to ship.** The mono
    test the handover proposes is a wave-2 tooling decision. Nothing in the code
    depends on the blocks differing in silhouette: `WorldView` looks each one up
    by the world's own id, and the test that used to compare *letters* now
