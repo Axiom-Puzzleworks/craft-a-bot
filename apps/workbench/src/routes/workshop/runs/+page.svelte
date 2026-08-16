@@ -19,9 +19,20 @@
 	let loaded = $state(false);
 	let filter = $state<RunFilter>({});
 	let importNote = $state<{ ok: boolean; text: string } | undefined>(undefined);
+	/**
+	 * Compare (`17-…` §4.3) takes exactly two — "side by side" reads as a pair,
+	 * not an open set, and a third panel would not fit the promise of one
+	 * shared scrubber driving everything on screen at once.
+	 */
+	let selected = $state<string[]>([]);
 
 	const facets = $derived(facetsOf(runs));
 	const shown = $derived(filterRuns(runs, filter));
+	const compareHref = $derived(
+		selected.length === 2
+			? `${resolve('/workshop/compare')}?a=${encodeURIComponent(selected[0] ?? '')}&b=${encodeURIComponent(selected[1] ?? '')}`
+			: undefined
+	);
 
 	$effect(() => {
 		void load();
@@ -37,6 +48,15 @@
 		const storage = await appStorage();
 		await storage.setRunPinned(run.id, !run.pinned);
 		await load();
+	}
+
+	/** A third check bumps the first off — never blocks a new pick with a full basket. */
+	function toggleSelect(runId: string, checked: boolean): void {
+		if (checked) {
+			selected = selected.includes(runId) ? selected : [...selected.slice(-1), runId];
+		} else {
+			selected = selected.filter((id) => id !== runId);
+		}
 	}
 
 	/**
@@ -170,6 +190,15 @@
 		{runs.length === 1 ? 'run' : 'runs'}
 	</p>
 
+	<p class="compare" data-testid="compare-bar">
+		{#if compareHref}
+			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- resolve() builds the base path here (see compareHref above); its typed surface has no way to attach the ?a=&b= query the rule can verify statically. -->
+			<a href={compareHref} data-testid="compare-selected">Compare selected runs</a>
+		{:else}
+			<span class="hint">Check two runs to compare them side by side.</span>
+		{/if}
+	</p>
+
 	{#if !loaded}
 		<p class="empty">Reading the run store…</p>
 	{:else if runs.length === 0}
@@ -186,6 +215,7 @@
 		<table data-testid="run-table">
 			<thead>
 				<tr>
+					<th scope="col"><span class="visually-hidden">Compare</span></th>
 					<th scope="col"><span class="visually-hidden">Pinned</span></th>
 					<th scope="col">Started</th>
 					<th scope="col">Bot</th>
@@ -200,6 +230,15 @@
 			<tbody>
 				{#each shown as run (run.id)}
 					<tr data-testid="run-row-{run.id}">
+						<td>
+							<input
+								type="checkbox"
+								aria-label="Select {run.agentName}'s run for comparison"
+								data-testid="compare-check-{run.id}"
+								checked={selected.includes(run.id)}
+								onchange={(e) => toggleSelect(run.id, e.currentTarget.checked)}
+							/>
+						</td>
 						<td>
 							<button
 								type="button"
@@ -331,6 +370,15 @@
 	.empty {
 		margin: 0;
 		font-size: var(--cab-text-sm);
+		color: var(--cab-ink-muted);
+	}
+
+	.compare {
+		margin: 0;
+		font-size: var(--cab-text-sm);
+	}
+
+	.compare .hint {
 		color: var(--cab-ink-muted);
 	}
 
