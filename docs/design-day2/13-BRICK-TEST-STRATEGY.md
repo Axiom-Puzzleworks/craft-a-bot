@@ -117,6 +117,45 @@ A published test suite (`@craftabot/pack-testkit`) any pack must pass — the me
 - Every cartridge: catalogue entry complete; defaults consumed (post-`14-…` §4.1).
 - Golden-trace: a scripted run in the pack's world produces only catalogued event types.
 
+> **Built 2026-08-16 (WP21).** `@craftabot/pack-testkit` ships as two halves: a plain assertion
+> library (`checkManifest`/`checkWorld`/`checkTool`/`checkGuardrail`/`checkCartridge`/`checkGoldenTrace`,
+> each returning `ConformanceIssue[]` rather than throwing) and a Vitest adapter
+> (`describeConformance`) that wraps whichever categories a fixture supplies in `it()` blocks. A pack
+> opts in with a small fixture — example tool args, a scripted action sequence per world script, a
+> configured guardrail plus one representative context — the same "hand the harness data, not code"
+> shape `pack-starter/testing` already used for WP19's eval harness. `starter` and `openai` both pass
+> it (`contract.test.ts` in each), and the kit's own suite proves it rejects a deliberately broken
+> fixture pack usefully — a bad verdict shape, a mutating guardrail, a throwing tool, an unqualified
+> id, an illegal action that mutates state, a script that does not replay deterministically, an
+> unreachable predicate — each with a message naming the offending id.
+>
+> **Four things this section did not anticipate**, three of them gaps between this list and what the
+> engine actually does today, found by trying to check against it rather than by reading the code:
+>
+> 1. **"Semver ranges evaluated (D13)" is not built anywhere.** `requiresCore` and kit-file
+>    `requires.*` are stored as non-empty strings and never parsed — there is no evaluator in `core`
+>    to call. `checkManifest` checks what exists: the metadata shape parses, every id is qualified
+>    `{packId}/{localId}`, and registering the pack does not collide. Range evaluation stays an
+>    unchecked bullet until D13 itself lands; faking it would have meant asserting behaviour the
+>    codebase does not have.
+> 2. **"Cartridge defaults consumed (post-`14-…` §4.1)" is gated on work that has not shipped.**
+>    Nothing reads `.defaults.temperature` or `.defaults.maxTokens` — `catalogue.ts`'s own Penny
+>    Thinker comment says so. `checkCartridge` validates the catalogue entry's shape and stops there.
+> 3. **"Actions have Zod+JSON-schema pairs that agree" cannot be checked as a schema comparison.**
+>    `WorldActionDefinition.parameters` carries only the JSON Schema `z.toJSONSchema()` derived at
+>    registration; no pack is required to expose the Zod schema it came from, and none does. The
+>    check that shipped is a black-box proxy instead: it compiles each action's advertised schema
+>    with `ajv` and confirms a fixture's own legal call satisfies it. That catches a schema that lies
+>    about what a real call needs, which is most of what "agree" was protecting against, without
+>    requiring a contract change to expose a schema `14-…` §2 never promised.
+> 4. **"Illegal actions never mutate" needed a narrower reading than the words**, discovered
+>    against the Playroom itself. `world/playroom.ts`'s `perform` advances `state.tick` on every
+>    call, legal or not — turns are turns even when wasted, and that is a deliberate, documented
+>    design, not a violation. Failing every illegal-action fixture on the clock ticking forward would
+>    have made the check useless for the one world V1.0 ships. `WorldConformanceFixture` gained
+>    `volatileStateKeys`, a pack-named allowlist of top-level `WorldState` keys a turn may change
+>    regardless of legality; the mutation check excludes them and nothing else.
+
 ## 8. L4 — The behavioural eval harness (`@craftabot/evals`) — the new build
 
 The instrument Andrew's manual trials were approximating. Design:

@@ -24,5 +24,8 @@
 		"@craftabot/core": "*",
 		"@craftabot/governance": "*",
 		"zod": "^4.4.3"
+	},
+	"devDependencies": {
+		"@craftabot/pack-testkit": "*"
 	}
 }

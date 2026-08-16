@@ -1,5 +1,5 @@
 {
-	"name": "@craftabot/pack-openai",
+	"name": "@craftabot/pack-testkit",
 	"private": true,
 	"version": "0.0.1",
 	"type": "module",
@@ -13,15 +13,13 @@
 	},
 	"scripts": {
 		"build": "tsc -p tsconfig.build.json",
-		"test": "vitest run",
-		"check": "tsc --noEmit",
-		"smoke": "npm run build && node --env-file-if-exists=../../../.env scripts/smoke.ts"
+		"test": "vitest run --coverage",
+		"check": "tsc --noEmit"
 	},
 	"dependencies": {
 		"@craftabot/core": "*",
+		"ajv": "^8.17.1",
+		"vitest": "^4.1.10",
 		"zod": "^4.4.3"
-	},
-	"devDependencies": {
-		"@craftabot/pack-testkit": "*"
 	}
 }

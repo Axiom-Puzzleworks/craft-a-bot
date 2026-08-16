@@ -86,5 +86,34 @@ export default defineConfig(
 				}
 			]
 		}
+	},
+	{
+		/**
+		 * Pack-testkit dependency direction (`13-…` §7).
+		 *
+		 * A conformance kit that special-cased one pack to pass would be testing
+		 * itself, not the contract — so it may depend only on `@craftabot/core`,
+		 * the same restriction `@craftabot/governance` carries just above.
+		 */
+		files: ['packages/pack-testkit/**/*.{ts,js}'],
+		rules: {
+			'no-restricted-imports': [
+				'error',
+				{
+					patterns: [
+						{
+							group: ['@craftabot/pack-*', '@craftabot/workbench', '$lib/*', '$app/*'],
+							message:
+								'@craftabot/pack-testkit may depend only on @craftabot/core — see docs/design-day2/13-BRICK-TEST-STRATEGY.md §7.'
+						},
+						{
+							group: ['svelte', 'svelte/*', '@sveltejs/*'],
+							message:
+								'Engine/pack code must not import Svelte or SvelteKit — see docs/design/01-ARCHITECTURE.md §1.3.'
+						}
+					]
+				}
+			]
+		}
 	}
 );
