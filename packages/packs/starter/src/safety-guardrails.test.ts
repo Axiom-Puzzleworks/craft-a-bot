@@ -34,10 +34,12 @@ type SafetyConfig = {
 	blockedActions: string[];
 	approvalMode: boolean;
 	repeatLimit?: number;
+	policyCards?: string[];
 };
 
 /** The rules a safety brick with this config installs, in the order it installs them. */
 function guardrailsFor(safety: SafetyConfig) {
+	const reg = registry();
 	return collectGuardrails(
 		buildRuntimes({
 			spec: {
@@ -50,8 +52,8 @@ function guardrailsFor(safety: SafetyConfig) {
 				createdAt: '2026-01-01T00:00:00.000Z',
 				updatedAt: '2026-01-01T00:00:00.000Z'
 			},
-			registry: registry(),
-			context: { random: () => 0 }
+			registry: reg,
+			context: { random: () => 0, getPolicyCard: (id) => reg.getPolicyCard(id) }
 		})
 	);
 }
@@ -116,5 +118,30 @@ describe('the rules a fitted Safety Brick installs', () => {
 	it('passes the dial through to the step budget it builds', () => {
 		const [stepBudget] = guardrailsFor(dialledTo(7));
 		expect(stepBudget?.description).toBe('Stops the run after 7 turns.');
+	});
+
+	/**
+	 * Policy cards (`14-…` §4.6, WP22). They compile after the four dial-based
+	 * rules — the built-ins are the base policy, cards layer on top of it —
+	 * and an id nothing registered is silently skipped, the same answer
+	 * `starter/tools`'s belt gives an unresolvable tool id: `validateConfig`
+	 * has already warned the builder, so the run does not also refuse to start.
+	 */
+	it('installs nothing extra for a policy card id nothing registered', () => {
+		expect(ids({ ...dialledTo(12), policyCards: ['nope'] })).toStrictEqual([STEP_BUDGET_ID]);
+	});
+
+	it('compiles a fitted policy card after the dial-based rules', () => {
+		expect(ids({ ...dialledTo(12), policyCards: ['starter/policy/wrap-up-by-ten'] })).toStrictEqual(
+			[STEP_BUDGET_ID, 'starter/policy/wrap-up-by-ten#rule-0']
+		);
+	});
+
+	it('gives the compiled rule its policyCardId, so a fired card is traceable', () => {
+		const [, cardRule] = guardrailsFor({
+			...dialledTo(12),
+			policyCards: ['starter/policy/wrap-up-by-ten']
+		});
+		expect(cardRule?.policyCardId).toBe('starter/policy/wrap-up-by-ten');
 	});
 });

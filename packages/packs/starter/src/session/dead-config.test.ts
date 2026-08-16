@@ -38,6 +38,9 @@ import { buildRegistry, runToCompletion } from './harness.js';
  * an audit in `core` could not see the Safety brick consume anything.
  */
 
+/** Read-only lookups, so one instance safely serves every probe. */
+const policyRegistry = buildRegistry();
+
 const BASE: AgentSpec = {
 	id: '11111111-1111-4111-8111-111111111111',
 	name: 'Testbot',
@@ -112,7 +115,11 @@ async function behaviourOf(spec: AgentSpec): Promise<string> {
 		// The rules the fitted bricks install (slice 3d): what used to be compiled
 		// from the spec is now contributed by the brick that owns the dials.
 		policy: collectGuardrails(
-			buildRuntimes({ spec, registry: buildRegistry(), context: { random: () => 0 } })
+			buildRuntimes({
+				spec,
+				registry: policyRegistry,
+				context: { random: () => 0, getPolicyCard: (id) => policyRegistry.getPolicyCard(id) }
+			})
 		).map((guardrail) => `${guardrail.id}: ${guardrail.description}`)
 	});
 }
@@ -206,6 +213,12 @@ const PROBES: Probe[] = [
 		path: 'bricks.safety.repeatLimit',
 		change: (spec) => {
 			if (spec.bricks.safety) spec.bricks.safety.repeatLimit = 7;
+		}
+	},
+	{
+		path: 'bricks.safety.policyCards',
+		change: (spec) => {
+			if (spec.bricks.safety) spec.bricks.safety.policyCards = ['starter/policy/wrap-up-by-ten'];
 		}
 	},
 	{

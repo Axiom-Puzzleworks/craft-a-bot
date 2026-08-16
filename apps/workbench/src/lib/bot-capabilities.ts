@@ -104,7 +104,11 @@ export function capabilitiesOf(
 	if (!spec) return EMPTY;
 
 	const v2 = toSpecV2(spec);
-	const runtimes = buildRuntimes({ spec: v2, registry, context: { random: () => 0 } });
+	const runtimes = buildRuntimes({
+		spec: v2,
+		registry,
+		context: { random: () => 0, getPolicyCard: (id) => registry.getPolicyCard(id) }
+	});
 	try {
 		const calls = collectCalls(runtimes);
 		return sealed({

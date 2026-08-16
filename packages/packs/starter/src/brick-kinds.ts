@@ -8,6 +8,7 @@ import {
 	type BrickKindDefinition
 } from '@craftabot/core';
 import {
+	compilePolicyCard,
 	createActionBlocklistGuardrail,
 	createApprovalModeGuardrail,
 	createNoRepetitionGuardrail,
@@ -163,23 +164,35 @@ export const starterBrickKinds: BrickKindDefinition[] = [
 		...facesOf('starter/safety'),
 		configSchema: safetyBrickSchema,
 		configVersion: 1,
-		defaults: { maxTicks: 30, blockedActions: [], approvalMode: false, repeatLimit: 3 },
-		describeFitted: () => 'a safety brick watching over you',
+		defaults: {
+			maxTicks: 30,
+			blockedActions: [],
+			approvalMode: false,
+			repeatLimit: 3,
+			policyCards: []
+		},
+		describeFitted: (config: { policyCards?: string[] }) =>
+			config.policyCards && config.policyCards.length > 0
+				? `a safety brick watching over you, with ${config.policyCards.length} extra ${config.policyCards.length === 1 ? 'rule' : 'rules'} slotted in`
+				: 'a safety brick watching over you',
 		/*
-		 * A blocklist naming an action nobody installed (WP14 slice 3d).
+		 * A blocklist naming an action nobody installed, or a policy card nobody
+		 * shipped (WP14 slice 3d; policy cards added WP22).
 		 *
-		 * Core used to run this check itself, by reading `spec.bricks.safety` —
-		 * one of the six special cases only the six V1 bricks could ever have. It
-		 * cannot be generic, because the blocklist is not something this brick
-		 * *offers*: it is a set of ids the brick refers to in order to forbid, and
-		 * only this brick knows that its `blockedActions` are action ids at all.
+		 * Core used to run the blocklist half of this check itself, by reading
+		 * `spec.bricks.safety` — one of the six special cases only the six V1
+		 * bricks could ever have. It cannot be generic, because neither field is
+		 * something this brick *offers*: both are ids the brick refers to — one to
+		 * forbid, one to install — and only this brick knows what either of them
+		 * means.
 		 *
-		 * A warning rather than blocking. The bot runs, and the rule simply never
-		 * fires — worth saying out loud, because a safety setting that quietly
-		 * does nothing is exactly the sort of thing a builder should be told about.
+		 * Both are warnings rather than blocking. The bot runs, and the rule
+		 * simply never fires — worth saying out loud, because a safety setting
+		 * that quietly does nothing is exactly the sort of thing a builder should
+		 * be told about.
 		 */
-		validateConfig: (config: { blockedActions: string[] }, ctx) =>
-			config.blockedActions
+		validateConfig: (config: { blockedActions: string[]; policyCards?: string[] }, ctx) => [
+			...config.blockedActions
 				.filter((actionId) => !ctx.hasAction(actionId))
 				.map((actionId) => ({
 					code: 'unknown-blocked-action' as const,
@@ -187,6 +200,15 @@ export const starterBrickKinds: BrickKindDefinition[] = [
 					message: `The blocklist names "${actionId}", which isn't an installed action.`,
 					details: { actionId }
 				})),
+			...(config.policyCards ?? [])
+				.filter((cardId) => !ctx.hasPolicyCard(cardId))
+				.map((cardId) => ({
+					code: 'unknown-policy-card' as const,
+					severity: 'warning' as const,
+					message: `The Safety Brick names policy card "${cardId}", which this workbench does not have.`,
+					details: { policyCardId: cardId }
+				}))
+		],
 		/*
 		 * The brick's dials, become running rules (WP14 slice 3d).
 		 *
@@ -207,14 +229,23 @@ export const starterBrickKinds: BrickKindDefinition[] = [
 		 * has already forbidden is refused outright rather than put to a human as a
 		 * decision they appear free to make. No-repetition sits between them —
 		 * after the flat prohibitions, before anybody is asked to approve a fourth
-		 * identical attempt at something that has plainly stopped working.
+		 * identical attempt at something that has plainly stopped working. Policy
+		 * cards (WP22) compile last: the four dials are the base policy, and a
+		 * card layers custom rules on top of it rather than ahead of it.
+		 *
+		 * A card id nothing registered is skipped, the same answer the belt gives
+		 * an unresolvable tool id — `validateConfig` has already told the builder.
 		 */
-		createRuntime: (config: {
-			maxTicks: number;
-			blockedActions: string[];
-			approvalMode: boolean;
-			repeatLimit?: number;
-		}) => ({
+		createRuntime: (
+			config: {
+				maxTicks: number;
+				blockedActions: string[];
+				approvalMode: boolean;
+				repeatLimit?: number;
+				policyCards?: string[];
+			},
+			ctx
+		) => ({
 			contributeGuardrails: () => {
 				const guardrails = [createStepBudgetGuardrail(config.maxTicks)];
 				// An empty list would allow everything on every check; the trace is
@@ -226,6 +257,10 @@ export const starterBrickKinds: BrickKindDefinition[] = [
 					guardrails.push(createNoRepetitionGuardrail(config.repeatLimit));
 				}
 				if (config.approvalMode) guardrails.push(createApprovalModeGuardrail());
+				for (const cardId of config.policyCards ?? []) {
+					const card = ctx.getPolicyCard(cardId);
+					if (card) guardrails.push(...compilePolicyCard(card));
+				}
 				return guardrails;
 			}
 		})

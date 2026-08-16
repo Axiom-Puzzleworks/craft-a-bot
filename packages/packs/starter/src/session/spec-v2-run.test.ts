@@ -35,7 +35,11 @@ function v2Of(v1: ReturnType<typeof buildSpec>): AgentSpecV2 {
 /** The rules the fitted bricks install, named so two shapes can be compared. */
 function policyOf(spec: AnyAgentSpec): string[] {
 	return collectGuardrails(
-		buildRuntimes({ spec, registry: buildRegistry(), context: { random: () => 0 } })
+		buildRuntimes({
+			spec,
+			registry: buildRegistry(),
+			context: { random: () => 0, getPolicyCard: () => undefined }
+		})
 	).map((rule) => `${rule.id}: ${rule.description}`);
 }
 

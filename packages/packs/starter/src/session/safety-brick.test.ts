@@ -251,7 +251,11 @@ describe('no Safety Brick at all', () => {
 		// Nothing in the safety socket, so nothing installs a rule (slice 3d).
 		expect(
 			collectGuardrails(
-				buildRuntimes({ spec, registry: buildRegistry(), context: { random: () => 0 } })
+				buildRuntimes({
+					spec,
+					registry: buildRegistry(),
+					context: { random: () => 0, getPolicyCard: () => undefined }
+				})
 			)
 		).toStrictEqual([]);
 

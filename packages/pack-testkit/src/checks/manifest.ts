@@ -42,6 +42,9 @@ export function checkManifest(
 	for (const world of manifest.worlds ?? []) {
 		if (!world.id.startsWith(prefix)) unqualified.push(`world "${world.id}"`);
 	}
+	for (const card of manifest.policyCards ?? []) {
+		if (!card.id.startsWith(prefix)) unqualified.push(`policyCard "${card.id}"`);
+	}
 	if (unqualified.length > 0) {
 		issues.push({
 			check: 'manifest.ids-qualified',

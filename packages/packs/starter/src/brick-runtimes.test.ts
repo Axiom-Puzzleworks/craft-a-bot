@@ -91,10 +91,17 @@ describe('what a bot says it was built with', () => {
 
 describe('what the bricks contribute to the prompt', () => {
 	const sections = (spec: AgentSpecV2) =>
-		collectContext(buildRuntimes({ spec, registry: registry(), context: { random: () => 0 } }), {
-			tick: 1,
-			channels: []
-		}).sections;
+		collectContext(
+			buildRuntimes({
+				spec,
+				registry: registry(),
+				context: { random: () => 0, getPolicyCard: () => undefined }
+			}),
+			{
+				tick: 1,
+				channels: []
+			}
+		).sections;
 
 	it('gives the Brain brick’s personality its own section', () => {
 		expect(sections(v2(buildSpec({ personality: 'Cheerful and literal.' })))).toEqual([
@@ -113,7 +120,13 @@ describe('what the bricks contribute to the prompt', () => {
 
 describe('what the bricks offer the model', () => {
 	const offered = (spec: AgentSpecV2) =>
-		collectCalls(buildRuntimes({ spec, registry: registry(), context: { random: () => 0 } }));
+		collectCalls(
+			buildRuntimes({
+				spec,
+				registry: registry(),
+				context: { random: () => 0, getPolicyCard: () => undefined }
+			})
+		);
 
 	it('puts the Equipment brick’s tools on the belt and the Mobility brick’s actions on the wheels', () => {
 		const spec = v2(
@@ -139,7 +152,11 @@ describe('what the bricks offer the model', () => {
 describe('what the bricks let a bot sense', () => {
 	it('opens the channels the Eyes & Ears brick names', () => {
 		const spec = v2(buildSpec({ senses: ['starter/playroom/sight'] }));
-		const runtimes = buildRuntimes({ spec, registry: registry(), context: { random: () => 0 } });
+		const runtimes = buildRuntimes({
+			spec,
+			registry: registry(),
+			context: { random: () => 0, getPolicyCard: () => undefined }
+		});
 		expect(collectSenses(runtimes)).toEqual(['starter/playroom/sight']);
 	});
 
@@ -147,7 +164,11 @@ describe('what the bricks let a bot sense', () => {
 		const bare = v2(buildSpec({ llm: false, memory: null, senses: [], actions: [] }));
 		expect(
 			collectSenses(
-				buildRuntimes({ spec: bare, registry: registry(), context: { random: () => 0 } })
+				buildRuntimes({
+					spec: bare,
+					registry: registry(),
+					context: { random: () => 0, getPolicyCard: () => undefined }
+				})
 			)
 		).toEqual([]);
 	});

@@ -62,6 +62,7 @@ export interface SpecOverrides {
 		blockedActions: string[];
 		approvalMode: boolean;
 		repeatLimit?: number;
+		policyCards?: string[];
 	} | null;
 	llm?: boolean;
 	/** Brain dials, for tests that assert they reach the provider. */
