@@ -36,6 +36,19 @@ function getPath(value: unknown, path: string): unknown {
 }
 
 /**
+ * The name a card author writes and the name a call arrives under can
+ * differ: `ctx.proposed.name` is world-qualified (`starter/playroom/open`),
+ * because that is what the model actually called, while a card says `open` —
+ * the same short form `createActionBlocklistGuardrail` compares against, and
+ * for the same reason (E6, `14-…` §3): a card written against `open` should
+ * not silently match nothing the day a world action gets qualified.
+ */
+function callName(id: string): string {
+	const lastSlash = id.lastIndexOf('/');
+	return lastSlash === -1 ? id : id.slice(lastSlash + 1);
+}
+
+/**
  * Pure and total over the closed `PredicateExpr` union — "OPA in miniature"
  * (`14-…` §4.6). Nothing here can reach world state or history, which is
  * what keeps a card auditable by *reading* it rather than by running it.
@@ -45,7 +58,7 @@ export function evaluatePredicate(expr: PredicateExpr, ctx: PredicateEvalContext
 		case 'call-kind-is':
 			return ctx.proposed?.kind === expr.value;
 		case 'call-name-is':
-			return ctx.proposed?.name === expr.value;
+			return ctx.proposed !== undefined && callName(ctx.proposed.name) === expr.value;
 		case 'argument-equals':
 			return getPath(ctx.proposed?.arguments, expr.path) === expr.value;
 		case 'usage-at-least':

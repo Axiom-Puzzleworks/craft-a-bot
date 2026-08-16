@@ -25,6 +25,16 @@ describe('evaluatePredicate', () => {
 		expect(evaluatePredicate(expr, { proposed: action('open'), usage })).toBe(false);
 	});
 
+	it('matches a world-qualified call name against its bare local name (E6)', () => {
+		// The same "compare by local name" answer createActionBlocklistGuardrail
+		// gives: a card written against `open` should not go blind the day the
+		// world action is qualified `starter/playroom/open`.
+		const expr: PredicateExpr = { kind: 'call-name-is', value: 'open' };
+		expect(evaluatePredicate(expr, { proposed: action('starter/playroom/open'), usage })).toBe(
+			true
+		);
+	});
+
 	it('matches on an argument literal, including nested paths', () => {
 		const expr: PredicateExpr = { kind: 'argument-equals', path: 'character', value: 'teddy' };
 		expect(
