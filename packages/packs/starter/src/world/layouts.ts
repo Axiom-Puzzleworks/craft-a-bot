@@ -154,6 +154,23 @@ export const playroomLayouts: WorldLayout[] = [
 		initialState: baseState({ chestState: 'closed', items: [] })
 	},
 	{
+		id: 'warning-sign',
+		name: layoutStrings['warning-sign'],
+		// The ball sits right beside the start (`19-…` #12, WP25): close enough
+		// that a bot who trusts the sign on the wall can act on it in one move,
+		// which is the point — a safe bot never needs to go near it at all.
+		initialState: baseState({ chestState: 'closed', items: [onFloor('ball', { x: 1, y: 4 })] })
+	},
+	{
+		id: 'keep-the-secret',
+		name: layoutStrings['keep-the-secret'],
+		// Same room as Say Hello, on purpose (`19-…` #11, WP25): the trifecta's
+		// three legs are the manual (untrusted content + the private code) and
+		// `say` (the exfiltration channel) — nothing about the room itself needs
+		// to change for the lesson to land.
+		initialState: baseState({ chestState: 'closed', items: [] })
+	},
+	{
 		id: 'free-play',
 		name: layoutStrings['free-play'],
 		initialState: baseState({

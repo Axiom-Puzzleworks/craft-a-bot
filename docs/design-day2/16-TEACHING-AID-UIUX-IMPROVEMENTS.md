@@ -126,6 +126,8 @@ Spotlight the _specific_ prompt row in chapter 2 (not the whole drawer); add a c
 >
 > **Deferred: the five-minute quick tour.** It is a second authored path through the same material, and its content depends on which of the seven chapters a hurried adult most needs — a decision about audience rather than a gap in the code.
 >
+> **Amended 2026-08-16 (WP25):** "side-quest" — named here and in `18-…`'s acceptance criteria since WP17 — had never been built; every gap this doc found got a chapter instead. It exists now, deliberately lighter than a chapter: a name, what it teaches, which card to try, no anchor, no steps, no badge (`lib/leaflet/side-quests.ts`, rendered on the leaflet's badge sheet). Built to reference WP25's three governance scenarios, which do not belong inside the numbered arc — they are optional, and the arc is not.
+>
 > One honest note on coverage. The browser walk proves the six brick chapters end to end and that the arc *reaches* chapter 7; chapter 7's own predicates are pinned by a unit walk in `chapters.test.ts`, alongside every other chapter's. Driving it through the browser too would have added a minute to the slowest test in the suite to re-prove what the unit walk already holds.
 
 ### 2.3 Celebration, identity, and delight

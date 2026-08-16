@@ -233,6 +233,12 @@ test('walks the six brick chapters and collects their badges', async ({ page }) 
 	]) {
 		await expect(page.getByTestId(`badge-${badge}`)).toHaveAttribute('data-earned', 'true');
 	}
+
+	// The same sheet points at the governance scenarios (`18-…` WP25) — no
+	// badge, no tracking, just a reference the reader can act on later.
+	for (const quest of ['the-warning-sign', 'keep-the-secret', 'busy-bot']) {
+		await expect(page.getByTestId(`side-quest-${quest}`)).toBeVisible();
+	}
 });
 
 /**

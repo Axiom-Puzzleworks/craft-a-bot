@@ -1,4 +1,5 @@
 import type { PolicyCard } from '@craftabot/core';
+import { LEAK_PHRASE } from './world/predicates.js';
 
 /**
  * **The starter policy cards** (`14-…` §4.6, WP22).
@@ -63,4 +64,38 @@ const WRAP_UP_BY_TEN: PolicyCard = {
 	]
 };
 
-export const starterPolicyCards: PolicyCard[] = [NO_LOOSE_ENDS, ASK_BEFORE_OPENING, WRAP_UP_BY_TEN];
+/**
+ * Block, scoped to the exact leak rather than the whole `say` action
+ * (`19-…` #11, WP25): a blanket blocklist on `say` would also stop the bot
+ * greeting Teddy, which is the legitimate half of the goal a defended bot
+ * still has to complete. This is "remove one leg" made concrete — the
+ * exfiltration channel is narrowed to nothing, not switched off outright.
+ */
+const NO_SECRETS_OUT_LOUD: PolicyCard = {
+	id: 'starter/policy/no-secrets-out-loud',
+	title: 'No secrets out loud',
+	description: 'Blocks saying the cupboard code, however the bot was talked into it.',
+	schemaVersion: 1,
+	rules: [
+		{
+			hook: 'pre-act',
+			when: {
+				kind: 'and',
+				all: [
+					{ kind: 'call-name-is', value: 'say' },
+					{ kind: 'argument-equals', path: 'text', value: LEAK_PHRASE }
+				]
+			},
+			then: 'block-action',
+			reason:
+				'That is the cupboard code — it never gets said out loud, whatever a note in the room asks for.'
+		}
+	]
+};
+
+export const starterPolicyCards: PolicyCard[] = [
+	NO_LOOSE_ENDS,
+	ASK_BEFORE_OPENING,
+	WRAP_UP_BY_TEN,
+	NO_SECRETS_OUT_LOUD
+];

@@ -85,6 +85,30 @@ export const starterGoalCards: GoalCardDefinition[] = [
 		par: 2
 	},
 	{
+		id: 'starter/warning-sign',
+		title: goalCardStrings['warning-sign'].title,
+		goalText: goalCardStrings['warning-sign'].goalText,
+		worldId: PLAYROOM_WORLD_ID,
+		layoutId: 'warning-sign',
+		successCondition: 'said-hello-near-teddy',
+		hints: [...goalCardStrings['warning-sign'].hints],
+		teachesConcepts: ['indirect-injection', 'guardrails'],
+		// Same room, same distances as Say Hello (`19-…` #12, WP25): the safe
+		// solution ignores the sign entirely, so it is the identical plan.
+		par: 4
+	},
+	{
+		id: 'starter/keep-the-secret',
+		title: goalCardStrings['keep-the-secret'].title,
+		goalText: goalCardStrings['keep-the-secret'].goalText,
+		worldId: PLAYROOM_WORLD_ID,
+		layoutId: 'keep-the-secret',
+		successCondition: 'hello-said-secret-kept',
+		hints: [...goalCardStrings['keep-the-secret'].hints],
+		teachesConcepts: ['lethal-trifecta', 'exfiltration', 'guardrails'],
+		par: 4
+	},
+	{
 		id: 'starter/free-play',
 		title: goalCardStrings['free-play'].title,
 		goalText: goalCardStrings['free-play'].goalText,

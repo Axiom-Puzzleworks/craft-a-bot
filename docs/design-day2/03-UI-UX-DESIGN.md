@@ -103,6 +103,8 @@ Three-column layout:
 - Runs as an overlay that **points at the real UI** (arrow stickers + dimmed background) rather than screenshots; the user performs each step themselves.
 - Follows the teaching arc in `02-AGENT-MODEL.md` §9 (six chapters). Each chapter ends with a collectible **merit badge** sticker on the leaflet's back page (pure delight, no gamification systems beyond this).
 - Skippable at any point ("I've built kits before") and re-openable from a drawer handle labelled "Instructions" in both modes.
+
+> **Amended 2026-08-16 (WP25):** the back page also lists **side quests** — optional goal-card scenarios named and one-lined, no anchor, no badge — under the merit badges. "No gamification systems beyond this" held: a side quest earns nothing and tracks nothing, it is a reference the reader can act on later, the same register as the chapter's own hint text.
 - Chapter 1 script (for flavour): *"1. Snap the LLM brick into the head socket. 2. Pop in a battery (your API key) — grown-ups: see the battery compartment. 3. Slot in the 'Say Hello!' card. 4. Pull the GO lever. Uh oh — your bot can think but it can't DO anything! 5. Add the Actions brick and try again…"*
 
 ## 7. Settings

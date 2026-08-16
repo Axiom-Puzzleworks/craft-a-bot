@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/svelte';
 import { describe, expect, it } from 'vitest';
 import { CHAPTERS } from '$lib/leaflet/chapters.js';
+import { SIDE_QUESTS } from '$lib/leaflet/side-quests.js';
 import BadgePage from './BadgePage.svelte';
 
 /**
@@ -48,5 +49,30 @@ describe('the rosettes', () => {
 		render(BadgePage, { props: { earned: [CHAPTERS[0]!.badge.id] } });
 		expect(screen.getByTestId('badge-page').textContent).toContain('Earned');
 		expect(screen.getByTestId('badge-page').textContent).toContain('Not yet');
+	});
+});
+
+/**
+ * Side quests (`18-…` WP25): a reference, not a second progression system —
+ * so there is nothing here to earn, only something to read.
+ */
+describe('the side quests', () => {
+	it('names every scenario, with no tracking or earned state to render', () => {
+		render(BadgePage, { props: { earned: [] } });
+
+		for (const quest of SIDE_QUESTS) {
+			const entry = screen.getByTestId(`side-quest-${quest.id}`);
+			expect(entry.textContent).toContain(quest.title);
+			expect(entry.textContent).toContain(quest.teaches);
+		}
+	});
+
+	it('sits apart from the merit badges, in its own page', () => {
+		render(BadgePage, { props: { earned: [] } });
+		const questPage = screen.getByTestId('side-quest-page');
+		expect(questPage.querySelectorAll('svg')).toHaveLength(0);
+		for (const chapter of CHAPTERS) {
+			expect(questPage.textContent).not.toContain(chapter.badge.name);
+		}
 	});
 });

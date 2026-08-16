@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { CHAPTERS } from '$lib/leaflet/chapters.js';
+	import { SIDE_QUESTS } from '$lib/leaflet/side-quests.js';
 	import { TEMPLATES } from '$lib/assets/index.js';
 	import Art from '$lib/components/art/Art.svelte';
 
@@ -56,6 +57,18 @@
 				</span>
 				<span class="name">{chapter.badge.name}</span>
 				<span class="state">{got ? 'Earned' : 'Not yet'}</span>
+			</li>
+		{/each}
+	</ul>
+</section>
+
+<section class="page side-quests" data-testid="side-quest-page" aria-label="Side quests">
+	<h3>A few more things to try</h3>
+	<ul>
+		{#each SIDE_QUESTS as quest (quest.id)}
+			<li data-testid="side-quest-{quest.id}">
+				<span class="quest-title">{quest.title}</span>
+				<span class="quest-teaches">{quest.teaches}</span>
 			</li>
 		{/each}
 	</ul>
@@ -132,6 +145,36 @@
 
 	/* Same rule, one line down: the secondary token, not a dimmed primary. */
 	.state {
+		font-size: var(--cab-text-xs);
+		color: var(--cab-ink-muted);
+	}
+
+	/*
+	 * A stacked list, not the rosette grid above: no icon column, and a side
+	 * quest's teaching line runs long enough to want the full width.
+	 */
+	.side-quests {
+		margin-top: var(--cab-space-3);
+	}
+
+	.side-quests ul {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: var(--cab-space-3);
+	}
+
+	.side-quests li {
+		display: grid;
+		gap: var(--cab-space-1);
+	}
+
+	.quest-title {
+		font-size: var(--cab-text-sm);
+		font-weight: 700;
+		color: var(--cab-ink);
+	}
+
+	.quest-teaches {
 		font-size: var(--cab-text-xs);
 		color: var(--cab-ink-muted);
 	}

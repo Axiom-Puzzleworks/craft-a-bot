@@ -26,10 +26,10 @@ const SNACK_SCRIPT: ActionCall[] = [
 describe('the Playroom world definition', () => {
 	it('declares its id, layouts, actions, senses, and predicates', () => {
 		expect(playroom.id).toBe(PLAYROOM_WORLD_ID);
-		expect(playroom.layouts).toHaveLength(7);
+		expect(playroom.layouts).toHaveLength(9);
 		expect(playroom.actions).toHaveLength(7);
 		expect(playroom.senses).toHaveLength(4);
-		expect(Object.keys(playroom.predicates)).toHaveLength(6);
+		expect(Object.keys(playroom.predicates)).toHaveLength(7);
 	});
 
 	it('creates an instance for every layout it advertises', () => {
