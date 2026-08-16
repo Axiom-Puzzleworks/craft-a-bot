@@ -199,6 +199,7 @@ export const calculator: ToolDefinition = {
 	name: toolStrings.calculator.name,
 	description: toolStrings.calculator.description,
 	parameters: z.toJSONSchema(argsSchema),
+	riskTier: 'observe',
 	execute(rawArgs) {
 		const parsed = argsSchema.safeParse(rawArgs ?? {});
 		if (!parsed.success) {

@@ -1,5 +1,6 @@
 import {
 	brickInSlot,
+	migrateBrickConfig,
 	validateSpec,
 	type AgentRecord,
 	type AgentSpecV2,
@@ -246,11 +247,31 @@ export function createBenchStore(deps: BenchStoreDeps = {}): BenchStore {
 			});
 		},
 
+		/*
+		 * Migrates the stored config forward before merging the patch onto it
+		 * (WP24), rather than patching it in place. A brick's config can lag its
+		 * kind's `configVersion` — the pack shipped a newer shape since this bot
+		 * was last saved — and patching the *old* shape means the edit only lasts
+		 * until the config is next migrated (a live session building runtimes, or
+		 * this same bot re-opened elsewhere), at which point the migration
+		 * recomputes the field the patch touched and quietly overwrites it. Only
+		 * `updateBrick` can close that gap: it is the one place a config is
+		 * written back to storage rather than only read.
+		 */
 		updateBrick(slot, patch) {
 			mutate((spec) => {
-				spec.bricks = spec.bricks.map((brick) =>
-					brick.slot === slot ? { ...brick, config: { ...brick.config, ...patch } } : brick
-				);
+				spec.bricks = spec.bricks.map((brick) => {
+					if (brick.slot !== slot) return brick;
+					const kind = registry.getBrickKind(brick.kind);
+					const config = kind
+						? migrateBrickConfig(brick.config, brick.configVersion, kind)
+						: brick.config;
+					return {
+						...brick,
+						configVersion: kind?.configVersion ?? brick.configVersion,
+						config: { ...config, ...patch }
+					};
+				});
 			});
 		},
 

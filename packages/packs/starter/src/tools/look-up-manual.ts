@@ -19,6 +19,7 @@ export const lookUpManual: ToolDefinition = {
 	name: toolStrings.lookUpManual.name,
 	description: toolStrings.lookUpManual.description,
 	parameters: z.toJSONSchema(argsSchema),
+	riskTier: 'observe',
 	execute(rawArgs) {
 		const parsed = argsSchema.safeParse(rawArgs ?? {});
 		if (!parsed.success) {

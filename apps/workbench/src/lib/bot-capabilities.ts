@@ -107,7 +107,11 @@ export function capabilitiesOf(
 	const runtimes = buildRuntimes({
 		spec: v2,
 		registry,
-		context: { random: () => 0, getPolicyCard: (id) => registry.getPolicyCard(id) }
+		context: {
+			random: () => 0,
+			getPolicyCard: (id) => registry.getPolicyCard(id),
+			getAction: (id) => registry.getAction(id)
+		}
 	});
 	try {
 		const calls = collectCalls(runtimes);

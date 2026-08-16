@@ -1,4 +1,9 @@
-import type { ChatRequest, LLMProvider } from '@craftabot/core';
+import {
+	migrateAgentSpec,
+	type AgentSpecV2,
+	type ChatRequest,
+	type LLMProvider
+} from '@craftabot/core';
 import { createMockProvider, obedient, wanderer } from '@craftabot/core/testing';
 import { describe, expect, it } from 'vitest';
 import { buildSpec, runToCompletion, type SpecOverrides } from './harness.js';
@@ -340,6 +345,29 @@ describe('Hands & Wheels brick', () => {
 describe('Safety brick', () => {
 	const SAFETY = { maxTicks: 30, blockedActions: [] as string[], approvalMode: false };
 
+	/**
+	 * v2-only fields (`maxTokens`, `approval: 'risky'`) have no v1 counterpart,
+	 * so `buildSpec`'s v1 overrides cannot reach them. Migrates a v1 spec and
+	 * patches the safety brick's config directly, bumping `configVersion` to 2
+	 * so `migrateBrickConfig` treats the patch as already-current rather than
+	 * re-deriving `approval` from the `approvalMode` the migration itself left
+	 * behind (`brick-kinds.ts`'s `migrateConfig` table, WP24).
+	 */
+	function v2WithSafety(overrides: SpecOverrides, patch: Record<string, unknown>): AgentSpecV2 {
+		const migrated = migrateAgentSpec(buildSpec(overrides));
+		if ('kind' in migrated) throw new Error(migrated.message);
+		const safety = migrated.bricks.find((brick) => brick.slot === 'safety');
+		if (!safety) throw new Error('no safety brick to patch');
+		// Mirrors `starter/safety`'s own `migrateConfig` step (`brick-kinds.ts`):
+		// applied by hand here, rather than left for `migrateBrickConfig` to run
+		// later, because the patch below adds v2-only fields no v1 config could
+		// ever have carried.
+		const { approvalMode, ...rest } = safety.config;
+		safety.config = { ...rest, approval: approvalMode ? 'everything' : 'off', ...patch };
+		safety.configVersion = 2;
+		return migrated;
+	}
+
 	it('no brick: the engine floor applies and the run ends OUT_OF_STEPS', async () => {
 		const result = await run({ safety: null }, wanderer());
 		expect(result.outcome).toBe('OUT_OF_STEPS');
@@ -382,5 +410,57 @@ describe('Safety brick', () => {
 
 		const on = await run({ safety: { ...SAFETY, maxTicks: 6, repeatLimit: 2 } }, brokenRecord());
 		expect(on.byType('action.performed')).toHaveLength(2);
+	});
+
+	it('token budget off / on', async () => {
+		// No session-level `maxTicks` override in either run: that would set the
+		// platform floor to the same value as the safety brick's own `maxTicks`
+		// dial, and the two would race for which one gets to explain the stop.
+		const off = v2WithSafety({ safety: { ...SAFETY, maxTicks: 6 } }, {});
+		const offRun = await runToCompletion({ script: wanderer(), spec: off });
+		expect(offRun.byType('tick.started')).toHaveLength(6);
+
+		// Tripped at the pre-think that follows the first completion, once real
+		// usage exists to compare against — the same timing `createStepBudgetGuardrail`
+		// uses, and the reason a cap of 1 does not end the run before tick one.
+		const on = v2WithSafety({ safety: { ...SAFETY, maxTicks: 6 } }, { maxTokens: 1 });
+		const onRun = await runToCompletion({ script: wanderer(), spec: on });
+		expect(onRun.outcome).toBe('STOPPED_BY_GUARDRAIL');
+		expect(onRun.byType('tick.started').length).toBeLessThan(6);
+	});
+
+	/**
+	 * **The approval-fatigue scenario** (`19-…` §8.3, WP24's DoD). "Everything"
+	 * is the naive HITL confirmation-fatigue research warns about: every action
+	 * pauses, trained-in rubber-stamping and all. "Risky" is the fix — only the
+	 * Playroom's one `riskTier: 'reversible'` action (`open`, `14-…` §4.5) is
+	 * worth a person's attention; a bot that mostly moves, talks and celebrates
+	 * gets nobody in its way.
+	 */
+	it('approval fatigue: "risky" asks for a fraction of what "everything" asks', async () => {
+		const script = () =>
+			obedient([
+				{ say: 'Off east.', call: 'move', args: { direction: 'east' } },
+				{ say: 'Hello!', call: 'say', args: { text: 'Hello!' } },
+				{ say: 'Opening the chest.', call: 'open', args: { container: 'the toy chest' } },
+				{ say: 'Back west.', call: 'move', args: { direction: 'west' } },
+				{ say: 'Yay!', call: 'celebrate', args: {} }
+			]);
+
+		const everything = v2WithSafety(
+			{ safety: { ...SAFETY, maxTicks: 8 } },
+			{ approval: 'everything' }
+		);
+		const risky = v2WithSafety({ safety: { ...SAFETY, maxTicks: 8 } }, { approval: 'risky' });
+
+		const everythingRun = await runToCompletion({
+			script: script(),
+			spec: everything,
+			stepLimit: 10
+		});
+		const riskyRun = await runToCompletion({ script: script(), spec: risky, stepLimit: 10 });
+
+		expect(everythingRun.byType('approval.requested')).toHaveLength(5);
+		expect(riskyRun.byType('approval.requested')).toHaveLength(1);
 	});
 });

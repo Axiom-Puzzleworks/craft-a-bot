@@ -1,12 +1,13 @@
 <script lang="ts">
-	import type {
-		AgentSpecV2,
-		BrickKindDefinition,
-		CartridgeDefinition,
-		FittedBrick,
-		PolicyCard,
-		ToolDefinition,
-		WorldActionDefinition
+	import {
+		migrateBrickConfig,
+		type AgentSpecV2,
+		type BrickKindDefinition,
+		type CartridgeDefinition,
+		type FittedBrick,
+		type PolicyCard,
+		type ToolDefinition,
+		type WorldActionDefinition
 	} from '@craftabot/core';
 	import Panel from '$lib/components/kit/Panel.svelte';
 	import SchemaPanel from './panels/SchemaPanel.svelte';
@@ -68,8 +69,14 @@
 	let flipped = $state(false);
 
 	const Override = $derived(panelOverrideFor(kind.id));
+	/**
+	 * Migrated before display (WP24), not just before save: a bot fitted before
+	 * this brick's config last changed shape should show today's controls the
+	 * moment its panel opens, not only after the first edit writes them back.
+	 */
+	const displayConfig = $derived(migrateBrickConfig(brick.config, brick.configVersion, kind));
 	const panelProps = $derived({
-		config: brick.config,
+		config: displayConfig,
 		spec,
 		cartridges,
 		tools,

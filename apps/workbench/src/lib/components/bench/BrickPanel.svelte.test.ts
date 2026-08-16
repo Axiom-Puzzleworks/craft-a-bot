@@ -180,6 +180,6 @@ describe('a kind with a hand-written panel', () => {
 
 		// The hand-written panel's wording, which no schema could have produced.
 		expect(screen.getByText('Step budget: 12 turns')).toBeInTheDocument();
-		expect(screen.getByLabelText(/Ask before acting/)).toBeInTheDocument();
+		expect(screen.getByText('Ask before acting')).toBeInTheDocument();
 	});
 });

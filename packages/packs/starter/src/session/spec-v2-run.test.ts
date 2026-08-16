@@ -38,7 +38,7 @@ function policyOf(spec: AnyAgentSpec): string[] {
 		buildRuntimes({
 			spec,
 			registry: buildRegistry(),
-			context: { random: () => 0, getPolicyCard: () => undefined }
+			context: { random: () => 0, getPolicyCard: () => undefined, getAction: () => undefined }
 		})
 	).map((rule) => `${rule.id}: ${rule.description}`);
 }

@@ -1,4 +1,4 @@
-import type { WorldActionDefinition } from '@craftabot/core';
+import type { RiskTier, WorldActionDefinition } from '@craftabot/core';
 import { z } from 'zod';
 import { actionStrings, narration, sentenceCase } from '../strings.js';
 import { ORTHOGONAL_DIRECTIONS, inBounds, step, withinReach } from './grid.js';
@@ -131,6 +131,13 @@ type ActionSpec<Schema extends z.ZodType> = {
 	name: string;
 	description: string;
 	schema: Schema;
+	/**
+	 * `'observe'` unless a specific action needs otherwise (`14-…` §4.5). Every
+	 * Playroom action is declared explicitly, even the `'observe'`-tier ones,
+	 * so a new action added later cannot silently inherit a default nobody
+	 * chose for it.
+	 */
+	riskTier: RiskTier;
 	run: (state: PlayroomState, args: z.infer<Schema>) => ActionOutcome;
 };
 
@@ -145,7 +152,8 @@ function defineAction<Schema extends z.ZodType>(spec: ActionSpec<Schema>): Playr
 			id: spec.id,
 			name: spec.name,
 			description: spec.description,
-			parameters: z.toJSONSchema(spec.schema)
+			parameters: z.toJSONSchema(spec.schema),
+			riskTier: spec.riskTier
 		},
 		perform: (state, args) => {
 			const parsed = spec.schema.safeParse(args ?? {});
@@ -167,6 +175,7 @@ const move = defineAction({
 	schema: z.object({
 		direction: z.enum(ORTHOGONAL_DIRECTIONS).describe(actionStrings.move.direction)
 	}),
+	riskTier: 'observe',
 	run: (state, args) => {
 		const target = step(state.bot.position, args.direction);
 		if (!inBounds(target, state.width, state.height)) {
@@ -189,6 +198,7 @@ const pickUp = defineAction({
 	name: actionStrings.pick_up.name,
 	description: actionStrings.pick_up.description,
 	schema: z.object({ item: z.string().describe(actionStrings.pick_up.item) }),
+	riskTier: 'observe',
 	run: (state, args) => {
 		const found = lookUpItem(state, args.item);
 		if (isMiss(found)) return found.failure;
@@ -241,6 +251,7 @@ const putDown = defineAction({
 		item: z.string().describe(actionStrings.put_down.item),
 		container: z.string().optional().describe(actionStrings.put_down.container)
 	}),
+	riskTier: 'observe',
 	run: (state, args) => {
 		const found = lookUpItem(state, args.item);
 		if (isMiss(found)) return found.failure;
@@ -278,6 +289,7 @@ const give = defineAction({
 		item: z.string().describe(actionStrings.give.item),
 		character: z.string().describe(actionStrings.give.character)
 	}),
+	riskTier: 'observe',
 	run: (state, args) => {
 		const found = lookUpItem(state, args.item);
 		if (isMiss(found)) return found.failure;
@@ -305,6 +317,13 @@ const open = defineAction({
 	name: actionStrings.open.name,
 	description: actionStrings.open.description,
 	schema: z.object({ container: z.string().describe(actionStrings.open.container) }),
+	/**
+	 * The first riskTier above `'observe'` in the Playroom (`14-…` §4.5) —
+	 * "reversible-but-rude": opening someone else's chest can be closed again,
+	 * but it is worth a person checking first, which is exactly what
+	 * `approval: 'risky'` now gates on.
+	 */
+	riskTier: 'reversible',
 	run: (state, args) => {
 		const target = lookUpContainer(state, args.container);
 		if (isMiss(target)) return target.failure;
@@ -338,6 +357,7 @@ const say = defineAction({
 	name: actionStrings.say.name,
 	description: actionStrings.say.description,
 	schema: z.object({ text: z.string().describe(actionStrings.say.text) }),
+	riskTier: 'observe',
 	run: (state, args) => {
 		const spokenBefore = state.spoken.length;
 		state.spoken.push({ tick: state.tick, text: args.text, position: { ...state.bot.position } });
@@ -352,6 +372,7 @@ const celebrate = defineAction({
 	name: actionStrings.celebrate.name,
 	description: actionStrings.celebrate.description,
 	schema: z.object({}),
+	riskTier: 'observe',
 	run: (state) => {
 		if (state.celebrated) return fail(narration.alreadyCelebrated);
 		const from = state.celebrated;

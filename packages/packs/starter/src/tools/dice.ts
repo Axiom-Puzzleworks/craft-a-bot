@@ -20,6 +20,7 @@ export const dice: ToolDefinition = {
 	name: toolStrings.dice.name,
 	description: toolStrings.dice.description,
 	parameters: z.toJSONSchema(argsSchema),
+	riskTier: 'observe',
 	execute(rawArgs, context) {
 		const parsed = argsSchema.safeParse(rawArgs ?? {});
 		if (!parsed.success) {

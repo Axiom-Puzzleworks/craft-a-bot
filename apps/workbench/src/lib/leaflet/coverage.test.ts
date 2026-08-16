@@ -4,7 +4,7 @@ import {
 	actionsBrickSchema,
 	llmBrickSchema,
 	memoryBrickSchema,
-	safetyBrickSchema,
+	safetyBrickSchemaV2,
 	senseBrickSchema,
 	toolsBrickSchema
 } from '@craftabot/core';
@@ -30,7 +30,9 @@ const BRICK_SCHEMAS: Record<string, z.ZodObject<z.ZodRawShape>> = {
 	tools: toolsBrickSchema,
 	sense: senseBrickSchema,
 	actions: actionsBrickSchema,
-	safety: safetyBrickSchema
+	// v2 (WP24): the schema the panel actually edits — `brick.config` is always
+	// shown post-migration (`BrickPanel.svelte`) — not v1's frozen, historical shape.
+	safety: safetyBrickSchemaV2
 };
 
 /** Every `brick.field` a builder can set. */
@@ -57,7 +59,9 @@ function taughtControls(): Set<string> {
  */
 const WORKSHOP_ONLY: Record<string, string> = {
 	'memory.strategy':
-		'Realism mode (E7): `transcript` sends the model a real function-calling conversation instead of the prose history. A Workshop control — the comparison it exists for is one a professional makes, and the kit bench renders the Scrapbook panel by hand without it.'
+		'Realism mode (E7): `transcript` sends the model a real function-calling conversation instead of the prose history. A Workshop control — the comparison it exists for is one a professional makes, and the kit bench renders the Scrapbook panel by hand without it.',
+	'safety.autonomy':
+		'The Levels-of-Autonomy preset dial (`19-…` §8.1, WP24) — a Workshop shortcut that writes concrete values into `approval` (and suggested budgets) when picked. The engine never reads it, and the kit bench renders the Safety panel by hand without it, teaching `approval` directly instead.'
 };
 
 describe('the leaflet covers the kit', () => {

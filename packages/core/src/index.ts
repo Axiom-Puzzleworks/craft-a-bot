@@ -90,10 +90,13 @@ export {
 	parseAgentSpec,
 	safeParseAgentSpec,
 	safetyBrickSchema,
+	safetyBrickSchemaV2,
 	senseBrickSchema,
 	toolsBrickSchema,
-	type AgentSpec
+	type AgentSpec,
+	type SafetyBrickConfigV2
 } from './schemas/agent-spec.js';
+export { migrateBrickConfig } from './brick-config.js';
 export {
 	brickDefinitionSchema,
 	cartridgeDefinitionSchema,
@@ -110,6 +113,7 @@ export {
 	type ToolMetadata
 } from './schemas/pack-manifest.js';
 export type { NotebookAccess, ToolContext, ToolDefinition, ToolResult } from './types/tool.js';
+export { riskTierSchema, type RiskTier } from './schemas/risk-tier.js';
 export {
 	POLICY_CARD_SCHEMA_VERSION,
 	parsePolicyCard,

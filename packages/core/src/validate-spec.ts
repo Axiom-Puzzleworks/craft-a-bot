@@ -1,3 +1,4 @@
+import { migrateBrickConfig } from './brick-config.js';
 import { toSpecV2, type AnyAgentSpec } from './schemas/agent-spec-v2.js';
 import type { PackRegistry } from './pack-registry.js';
 import type { BuildProblem } from './schemas/build-problem.js';
@@ -50,7 +51,11 @@ export function validateSpec(input: AnyAgentSpec, registry: PackRegistry): Build
 	const runtimes = buildRuntimes({
 		spec,
 		registry,
-		context: { random: () => 0, getPolicyCard: (id) => registry.getPolicyCard(id) }
+		context: {
+			random: () => 0,
+			getPolicyCard: (id) => registry.getPolicyCard(id),
+			getAction: (id) => registry.getAction(id)
+		}
 	});
 	try {
 		problems.push(...brainProblems(spec, registry));
@@ -231,7 +236,8 @@ function ownProblems(spec: ReturnType<typeof toSpecV2>, registry: PackRegistry):
 
 		// Only a config that parses: a brick already told it does not understand
 		// its own settings should not then be asked to reason about them.
-		const parsed = kind.configSchema.safeParse(brick.config);
+		const migrated = migrateBrickConfig(brick.config, brick.configVersion, kind);
+		const parsed = kind.configSchema.safeParse(migrated);
 		if (!parsed.success) continue;
 
 		for (const problem of kind.validateConfig(parsed.data, context)) {

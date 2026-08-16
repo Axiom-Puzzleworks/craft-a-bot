@@ -63,7 +63,7 @@ Existing: window presence/growth/cap; notebook gating; refusal-memory entries.
 ### 4.3 Tools brick
 
 Existing: per-tool offer/withhold/execute; unknown-tool skip; notebook dependency; calculator/dice/notebook/manual behaviour.
-● Calculator property fuzz (unary minus, precedence, division-by-zero, junk) — fix or document each surprise. ● `ToolResult.data` present in `tool.executed` (D6). ● Wire-name collision rejection (D4). ● Tool risk-tier metadata (once `14-…` §4.3 adds it) flows to approval tiering.
+● Calculator property fuzz (unary minus, precedence, division-by-zero, junk) — fix or document each surprise. ● `ToolResult.data` present in `tool.executed` (D6). ● Wire-name collision rejection (D4). ● Tool risk-tier metadata (`14-…` §4.3, shipped WP24) flows to approval tiering — proved for actions (`brick-matrix.test.ts`'s approval-fatigue test); tools themselves stay `'observe'` in starter content bar `notebook_write`, so there is no tool-side approval case yet to test.
 
 ### 4.4 Sense brick
 

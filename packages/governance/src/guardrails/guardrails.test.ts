@@ -4,6 +4,7 @@ import { ACTION_BLOCKLIST_ID, createActionBlocklistGuardrail } from './action-bl
 import { APPROVAL_MODE_ID, createApprovalModeGuardrail } from './approval-mode.js';
 import { NO_REPETITION_ID, createNoRepetitionGuardrail } from './no-repetition.js';
 import { STEP_BUDGET_ID, createStepBudgetGuardrail } from './step-budget.js';
+import { TOKEN_BUDGET_ID, createTokenBudgetGuardrail } from './token-budget.js';
 
 /**
  * The three V1 rules (08-GOVERNANCE-GUARDRAILS.md §3). Each is a pure function
@@ -124,8 +125,8 @@ describe('action blocklist', () => {
 	});
 });
 
-describe('approval mode', () => {
-	const guardrail = createApprovalModeGuardrail();
+describe('approval mode — everything', () => {
+	const guardrail = createApprovalModeGuardrail('everything');
 
 	it('pauses for a world action', () => {
 		const verdict = guardrail.check(context({ hook: 'pre-act', proposed: action('open') }));
@@ -149,6 +150,77 @@ describe('approval mode', () => {
 		expect(guardrail.hooks).toStrictEqual(['pre-act']);
 		expect(guardrail.id).toBe(APPROVAL_MODE_ID);
 		expect(guardrail.description).toContain('Asks a person');
+	});
+});
+
+describe('approval mode — risky', () => {
+	// A stand-in resolver: only "open" is risky, exactly as the Playroom's own
+	// `riskTier` tagging (`14-…` §4.5) would resolve it, without this test
+	// depending on any pack.
+	const isRisky = (name: string) => name === 'open';
+
+	it('pauses for a risky action', () => {
+		const guardrail = createApprovalModeGuardrail('risky', isRisky);
+		expect(guardrail.check(context({ hook: 'pre-act', proposed: action('open') }))).toStrictEqual({
+			pause: true,
+			reason: 'This is risky enough that a person checks it first.'
+		});
+	});
+
+	it('lets a non-risky action straight through — the fatigue fix', () => {
+		const guardrail = createApprovalModeGuardrail('risky', isRisky);
+		expect(guardrail.check(context({ hook: 'pre-act', proposed: action('move') }))).toStrictEqual({
+			allow: true
+		});
+	});
+
+	it('treats an action with no resolver answer as not risky', () => {
+		const guardrail = createApprovalModeGuardrail('risky');
+		expect(guardrail.check(context({ hook: 'pre-act', proposed: action('open') }))).toStrictEqual({
+			allow: true
+		});
+	});
+
+	it('still lets tools through', () => {
+		const guardrail = createApprovalModeGuardrail('risky', isRisky);
+		expect(guardrail.check(context({ hook: 'pre-act', proposed: tool('open') }))).toStrictEqual({
+			allow: true
+		});
+	});
+});
+
+describe('token budget', () => {
+	const guardrail = createTokenBudgetGuardrail(1000);
+
+	it('allows a turn while budget remains, and says how much is left', () => {
+		const verdict = guardrail.check(
+			context({ usage: { ticks: 1, inputTokens: 400, outputTokens: 100 } })
+		);
+		expect(verdict).toStrictEqual({ allow: true, note: '500 tokens left' });
+	});
+
+	it('stops the run once spend reaches the budget', () => {
+		const verdict = guardrail.check(
+			context({ usage: { ticks: 3, inputTokens: 700, outputTokens: 300 } })
+		);
+		expect(verdict).toStrictEqual({
+			allow: false,
+			reason: 'The token budget of 1000 is used up.',
+			disposition: 'stop-run'
+		});
+	});
+
+	it('stays tripped once past the budget', () => {
+		const verdict = guardrail.check(
+			context({ usage: { ticks: 3, inputTokens: 900, outputTokens: 900 } })
+		);
+		expect(verdict).toMatchObject({ allow: false, disposition: 'stop-run' });
+	});
+
+	it('runs before thinking, so a spent run does not pay for another completion', () => {
+		expect(guardrail.hooks).toStrictEqual(['pre-think']);
+		expect(guardrail.id).toBe(TOKEN_BUDGET_ID);
+		expect(guardrail.description).toBe('Stops the run once it has spent 1000 tokens.');
 	});
 });
 

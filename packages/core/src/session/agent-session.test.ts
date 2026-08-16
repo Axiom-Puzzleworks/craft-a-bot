@@ -1321,6 +1321,56 @@ describe('guardrails', () => {
 		expect(seen).toEqual([undefined]);
 	});
 
+	/**
+	 * Same reasoning as `getPolicyCard` above, for the seam WP24 added:
+	 * `approval: 'risky'` needs an action's `riskTier` the moment it builds
+	 * its guardrail, not just that the id exists.
+	 */
+	it('gives a fitted brick’s own runtime a working getAction', async () => {
+		const registry = buildRegistry();
+		const seen: (string | undefined)[] = [];
+		registry.registerPack({
+			id: 'expansion4',
+			name: 'Expansion 4',
+			version: '1.0.0',
+			requiresCore: '>=0.0.1',
+			brickKinds: [
+				{
+					id: 'expansion4/watches',
+					slot: 'safety',
+					name: 'Watches',
+					description: 'Looks up an action.',
+					realName: 'Watches',
+					realExplanation: 'Looks up an action.',
+					configSchema: z.object({}),
+					configVersion: 1,
+					defaults: {},
+					createRuntime: (_config: unknown, ctx) => {
+						seen.push(ctx.getAction('nobody/registered-this')?.riskTier);
+						return {};
+					}
+				} as BrickKindDefinition
+			]
+		});
+
+		createSession({
+			spec: {
+				id: '33333333-3333-4333-8333-333333333333',
+				name: 'Watched Tinybot',
+				schemaVersion: 2,
+				bricks: [{ slot: 'safety', kind: 'expansion4/watches', configVersion: 1, config: {} }],
+				goalCardId: 'tiny/goal',
+				identity: { displayName: 'Watched Tinybot', boxArtSeed: 'seed' },
+				createdAt: '2026-08-16T09:00:00.000Z',
+				updatedAt: '2026-08-16T09:00:00.000Z'
+			},
+			registry,
+			provider: createMockProvider({ script: [turn('Off I go.', 'win')] }),
+			guardrails: []
+		});
+		expect(seen).toEqual([undefined]);
+	});
+
 	it('blocks one action without ending the run, and tells the agent why', async () => {
 		const { session, seen } = makeSession({
 			script: () => turn('Ping.', 'ping'),

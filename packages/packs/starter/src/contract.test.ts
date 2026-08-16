@@ -123,7 +123,7 @@ const fixture: PackConformanceFixture = {
 				})
 			},
 			{ guardrail: createNoRepetitionGuardrail(3), context: guardrailContext('post-act') },
-			{ guardrail: createApprovalModeGuardrail(), context: guardrailContext('pre-act') }
+			{ guardrail: createApprovalModeGuardrail('everything'), context: guardrailContext('pre-act') }
 		]
 	},
 	goldenTrace: {

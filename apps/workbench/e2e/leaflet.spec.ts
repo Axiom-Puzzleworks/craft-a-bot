@@ -184,10 +184,7 @@ test('walks the six brick chapters and collects their badges', async ({ page }) 
 	await backToBench(page);
 	await fitBrick(page, 'safety');
 	await page.getByTestId('socket-safety').getByRole('button').click();
-	await page
-		.getByTestId('brick-controls-safety')
-		.getByRole('checkbox', { name: 'Ask before acting' })
-		.check();
+	await page.getByTestId('brick-controls-safety').getByTestId('approval-everything').check();
 
 	await go(page);
 	// Approval mode pauses for world actions, not tools — and this card opens
@@ -199,9 +196,10 @@ test('walks the six brick chapters and collects their badges', async ({ page }) 
 	await expect(approval).toBeVisible();
 	await page.getByTestId('approval-allow').click();
 
-	// Three reading steps close chapter 6: the panel's other limits (`16-…` §2.2)
-	// and the policy cards below them (`14-…` §4.6, WP22).
-	for (let step = 0; step < 3; step++) {
+	// Four reading steps close chapter 6: the panel's other limits (`16-…` §2.2),
+	// its spending cap (`14-…` §4.6, WP24) and the policy cards below them
+	// (`14-…` §4.6, WP22).
+	for (let step = 0; step < 4; step++) {
 		await page.getByTestId('leaflet-ack').click();
 	}
 

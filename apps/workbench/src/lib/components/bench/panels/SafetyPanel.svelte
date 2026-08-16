@@ -16,7 +16,10 @@
 	let { config, worldActions, policyCards, onupdate }: BrickPanelProps = $props();
 
 	const maxTicks = $derived(Number(config.maxTicks ?? 0));
-	const approvalMode = $derived(config.approvalMode === true);
+	const approval = $derived(
+		(config.approval as 'off' | 'everything' | 'risky' | undefined) ?? 'off'
+	);
+	const maxTokens = $derived(config.maxTokens as number | undefined);
 	const blockedActions = $derived((config.blockedActions as string[] | undefined) ?? []);
 	const repeatLimit = $derived(config.repeatLimit as number | undefined);
 	const selectedCards = $derived((config.policyCards as string[] | undefined) ?? []);
@@ -27,6 +30,15 @@
 	 * silently inheriting a rule (08-GOVERNANCE-GUARDRAILS.md §3).
 	 */
 	const DEFAULT_REPEAT_LIMIT = 3;
+
+	/** A generous run's worth of spending, so switching the rocker on is never a surprise. */
+	const DEFAULT_MAX_TOKENS = 4000;
+
+	const APPROVAL_OPTIONS = [
+		{ value: 'off', label: 'Never' },
+		{ value: 'risky', label: 'Only for risky things' },
+		{ value: 'everything', label: 'Before every action' }
+	] as const;
 </script>
 
 <label class="field">
@@ -64,12 +76,48 @@
 	</label>
 {/if}
 
+<fieldset class="field">
+	<legend>Ask before acting</legend>
+	{#each APPROVAL_OPTIONS as option (option.value)}
+		<label class="radio">
+			<input
+				type="radio"
+				name="approval"
+				data-testid="approval-{option.value}"
+				value={option.value}
+				checked={approval === option.value}
+				onchange={() => onupdate({ approval: option.value })}
+			/>
+			{option.label}
+		</label>
+	{/each}
+	<p class="switches-label">
+		"Only for risky things" pauses for actions that change something in the world in a way that is
+		hard to undo — not for looking around or talking.
+	</p>
+</fieldset>
+
 <Rocker
-	label="Ask before acting"
-	hint="Pauses for your approval before every action."
-	checked={approvalMode}
-	onchange={(value) => onupdate({ approvalMode: value })}
+	label="Spending limit"
+	hint="Stops the run once it has used this many tokens, on top of the turn limit above."
+	checked={maxTokens !== undefined}
+	onchange={(on) => onupdate({ maxTokens: on ? DEFAULT_MAX_TOKENS : undefined })}
 />
+
+{#if maxTokens !== undefined}
+	<label class="field">
+		<span>Spending limit: {maxTokens} tokens</span>
+		<input
+			type="range"
+			min="500"
+			max="20000"
+			step="500"
+			data-testid="safety-max-tokens"
+			value={maxTokens}
+			oninput={(event) => onupdate({ maxTokens: Number(event.currentTarget.value) })}
+		/>
+	</label>
+{/if}
 
 <div class="switches">
 	<p class="switches-label">Blocked actions</p>

@@ -118,7 +118,11 @@ async function behaviourOf(spec: AgentSpec): Promise<string> {
 			buildRuntimes({
 				spec,
 				registry: policyRegistry,
-				context: { random: () => 0, getPolicyCard: (id) => policyRegistry.getPolicyCard(id) }
+				context: {
+					random: () => 0,
+					getPolicyCard: (id) => policyRegistry.getPolicyCard(id),
+					getAction: (id) => policyRegistry.getAction(id)
+				}
 			})
 		).map((guardrail) => `${guardrail.id}: ${guardrail.description}`)
 	});

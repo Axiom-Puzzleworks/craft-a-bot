@@ -69,6 +69,43 @@ export const safetyBrickSchema = z.object({
 	policyCards: z.array(z.string().min(1)).optional()
 });
 
+/**
+ * The safety brick's v2 config (`14-…` §4.6, WP24) — `starter/safety`'s
+ * `configVersion: 2`. `safetyBrickSchema` above is frozen forever as v1's own
+ * shape (migration source only, `agent-spec-v2.ts`'s `migrateV1ToV2`); nothing
+ * here ever touches it, and nothing there ever gains these fields.
+ */
+export const safetyBrickSchemaV2 = z.object({
+	maxTicks: z.number().int().positive(),
+	blockedActions: z.array(z.string().min(1)),
+	/**
+	 * `'off'` never pauses. `'everything'` pauses before every world action —
+	 * v1's `approvalMode: true` exactly. `'risky'` pauses only for actions whose
+	 * `riskTier` is `'reversible'` or above (`19-…` §8.3's answer to
+	 * confirmation fatigue: most naive HITL trains the human to rubber-stamp).
+	 */
+	approval: z.enum(['off', 'everything', 'risky']),
+	repeatLimit: z.number().int().min(2).max(10).optional(),
+	policyCards: z.array(z.string().min(1)).optional(),
+	/**
+	 * A user-visible token cap, independent of `maxTicks` (`14-…` §4.6): a
+	 * chatty personality or a verbose cartridge can spend real money well
+	 * inside its turn budget. Omitted = no cap beyond the platform floor.
+	 */
+	maxTokens: z.number().int().positive().optional(),
+	/**
+	 * The Workshop's autonomy dial (`19-…` §8.1, Levels-of-Autonomy). Written
+	 * when a builder picks a preset — which also writes concrete values into
+	 * `approval` (and, in the Workshop, suggests `maxTicks`/`maxTokens`) — the
+	 * same "applied at fit time, and a record of what was picked" shape
+	 * `AgentSpecV2.name`/`identity.displayName` already uses. The engine reads
+	 * only `approval`; this field is never consulted at runtime, which is why
+	 * it stays optional and carries no fallback.
+	 */
+	autonomy: z.enum(['operator', 'collaborator', 'approver', 'observer']).optional()
+});
+export type SafetyBrickConfigV2 = z.infer<typeof safetyBrickSchemaV2>;
+
 export const agentSpecSchema = z.object({
 	id: z.string().uuid(),
 	name: z.string().min(1),

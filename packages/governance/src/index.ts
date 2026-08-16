@@ -30,9 +30,14 @@ export {
 	ACTION_BLOCKLIST_ID,
 	createActionBlocklistGuardrail
 } from './guardrails/action-blocklist.js';
-export { APPROVAL_MODE_ID, createApprovalModeGuardrail } from './guardrails/approval-mode.js';
+export {
+	APPROVAL_MODE_ID,
+	createApprovalModeGuardrail,
+	type ApprovalMode
+} from './guardrails/approval-mode.js';
 export { NO_REPETITION_ID, createNoRepetitionGuardrail } from './guardrails/no-repetition.js';
 export { STEP_BUDGET_ID, createStepBudgetGuardrail } from './guardrails/step-budget.js';
+export { TOKEN_BUDGET_ID, createTokenBudgetGuardrail } from './guardrails/token-budget.js';
 /** The policy-card compiler (`14-…` §4.6, WP22) — see `08-…` §5's growth-path row: this is the piece named to ship standalone. */
 export {
 	compilePolicyCard,

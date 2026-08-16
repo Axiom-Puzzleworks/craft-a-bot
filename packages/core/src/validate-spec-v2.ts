@@ -1,3 +1,4 @@
+import { migrateBrickConfig } from './brick-config.js';
 import type { PackRegistry } from './pack-registry.js';
 import type { AgentSpecV2 } from './schemas/agent-spec-v2.js';
 import type { BuildProblem } from './schemas/build-problem.js';
@@ -78,7 +79,8 @@ export function validateSpecV2(spec: AgentSpecV2, registry: PackRegistry): Build
 		 * what a window size or a temperature is, and never will. It hands the
 		 * config to the schema the kind registered and reports what comes back.
 		 */
-		const parsed = kind.configSchema.safeParse(brick.config);
+		const migrated = migrateBrickConfig(brick.config, brick.configVersion, kind);
+		const parsed = kind.configSchema.safeParse(migrated);
 		if (!parsed.success) {
 			problems.push({
 				code: 'bad-brick-config',

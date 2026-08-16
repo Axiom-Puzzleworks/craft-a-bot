@@ -2,7 +2,7 @@ import {
 	actionsBrickSchema,
 	llmBrickSchema,
 	memoryBrickSchema,
-	safetyBrickSchema,
+	safetyBrickSchemaV2,
 	senseBrickSchema,
 	toolsBrickSchema,
 	type BrickKindDefinition
@@ -12,7 +12,8 @@ import {
 	createActionBlocklistGuardrail,
 	createApprovalModeGuardrail,
 	createNoRepetitionGuardrail,
-	createStepBudgetGuardrail
+	createStepBudgetGuardrail,
+	createTokenBudgetGuardrail
 } from '@craftabot/governance';
 import { starterBricks } from './bricks.js';
 import { qualifyPlayroomId } from './world/playroom.js';
@@ -162,12 +163,25 @@ export const starterBrickKinds: BrickKindDefinition[] = [
 		id: 'starter/safety',
 		slot: 'safety',
 		...facesOf('starter/safety'),
-		configSchema: safetyBrickSchema,
-		configVersion: 1,
+		configSchema: safetyBrickSchemaV2,
+		configVersion: 2,
+		/**
+		 * v1 → v2 (`14-…` §4.6, WP24): the boolean `approvalMode` becomes the
+		 * three-way `approval` dial, `true`/`false` mapping onto its two ends —
+		 * `'risky'` is new ground nobody's old kit file could have meant. Every
+		 * other field is untouched, so it is dropped in and picked back up
+		 * unchanged rather than re-listed field by field.
+		 */
+		migrateConfig: {
+			1: (raw) => {
+				const { approvalMode, ...rest } = raw;
+				return { ...rest, approval: approvalMode ? 'everything' : 'off' };
+			}
+		},
 		defaults: {
 			maxTicks: 30,
 			blockedActions: [],
-			approvalMode: false,
+			approval: 'off',
 			repeatLimit: 3,
 			policyCards: []
 		},
@@ -235,12 +249,20 @@ export const starterBrickKinds: BrickKindDefinition[] = [
 		 *
 		 * A card id nothing registered is skipped, the same answer the belt gives
 		 * an unresolvable tool id — `validateConfig` has already told the builder.
+		 *
+		 * > **Amended 2026-08-16 (WP24):** `maxTokens` joins `maxTicks` as a second
+		 * > budget, checked right beside it — both are the platform-floor tier, not
+		 * > policy a builder reasons about action by action. `approval: 'risky'`
+		 * > needs to know an action's `riskTier` before it can decide whether to
+		 * > pause, which `ctx.getAction` resolves — the runtime-context lookup this
+		 * > WP added for exactly this, the same shape as `getPolicyCard`.
 		 */
 		createRuntime: (
 			config: {
 				maxTicks: number;
+				maxTokens?: number;
 				blockedActions: string[];
-				approvalMode: boolean;
+				approval: 'off' | 'everything' | 'risky';
 				repeatLimit?: number;
 				policyCards?: string[];
 			},
@@ -248,6 +270,9 @@ export const starterBrickKinds: BrickKindDefinition[] = [
 		) => ({
 			contributeGuardrails: () => {
 				const guardrails = [createStepBudgetGuardrail(config.maxTicks)];
+				if (config.maxTokens !== undefined) {
+					guardrails.push(createTokenBudgetGuardrail(config.maxTokens));
+				}
 				// An empty list would allow everything on every check; the trace is
 				// easier to read without a rule that cannot possibly fire.
 				if (config.blockedActions.length > 0) {
@@ -256,7 +281,16 @@ export const starterBrickKinds: BrickKindDefinition[] = [
 				if (config.repeatLimit !== undefined) {
 					guardrails.push(createNoRepetitionGuardrail(config.repeatLimit));
 				}
-				if (config.approvalMode) guardrails.push(createApprovalModeGuardrail());
+				if (config.approval === 'everything') {
+					guardrails.push(createApprovalModeGuardrail('everything'));
+				} else if (config.approval === 'risky') {
+					guardrails.push(
+						createApprovalModeGuardrail('risky', (name) => {
+							const tier = ctx.getAction(name)?.riskTier ?? 'observe';
+							return tier === 'reversible' || tier === 'irreversible';
+						})
+					);
+				}
 				for (const cardId of config.policyCards ?? []) {
 					const card = ctx.getPolicyCard(cardId);
 					if (card) guardrails.push(...compilePolicyCard(card));

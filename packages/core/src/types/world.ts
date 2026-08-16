@@ -1,5 +1,6 @@
 import type { JsonSchema } from './json-schema.js';
 import type { ActionId, SenseChannelId, WorldPredicateId } from './ids.js';
+import type { RiskTier } from '../schemas/risk-tier.js';
 
 /**
  * Simulated worlds (02-AGENT-MODEL.md §4). The Playroom (pack-starter, WP2) is
@@ -20,6 +21,13 @@ export interface WorldActionDefinition {
 	name: string;
 	description: string;
 	parameters: JsonSchema;
+	/**
+	 * How consequential this action is (`14-…` §4.5, WP24) — the signal a
+	 * Safety brick set to `approval: 'risky'` pauses on. Absent means
+	 * `'observe'`: a world that says nothing about an action's risk is not
+	 * asking anyone to sign off on it.
+	 */
+	riskTier?: RiskTier;
 }
 
 export interface WorldSenseDefinition {

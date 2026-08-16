@@ -84,7 +84,7 @@ const speaks = (line: string): BrickRuntime => ({
 	contributeContext: () => ({ sections: [line] })
 });
 
-const context = { random: () => 0.5, getPolicyCard: () => undefined };
+const context = { random: () => 0.5, getPolicyCard: () => undefined, getAction: () => undefined };
 
 describe('building runtimes', () => {
 	it('builds one per fitted brick, handing each its own parsed config', () => {

@@ -95,7 +95,7 @@ describe('what the bricks contribute to the prompt', () => {
 			buildRuntimes({
 				spec,
 				registry: registry(),
-				context: { random: () => 0, getPolicyCard: () => undefined }
+				context: { random: () => 0, getPolicyCard: () => undefined, getAction: () => undefined }
 			}),
 			{
 				tick: 1,
@@ -124,7 +124,7 @@ describe('what the bricks offer the model', () => {
 			buildRuntimes({
 				spec,
 				registry: registry(),
-				context: { random: () => 0, getPolicyCard: () => undefined }
+				context: { random: () => 0, getPolicyCard: () => undefined, getAction: () => undefined }
 			})
 		);
 
@@ -155,7 +155,7 @@ describe('what the bricks let a bot sense', () => {
 		const runtimes = buildRuntimes({
 			spec,
 			registry: registry(),
-			context: { random: () => 0, getPolicyCard: () => undefined }
+			context: { random: () => 0, getPolicyCard: () => undefined, getAction: () => undefined }
 		});
 		expect(collectSenses(runtimes)).toEqual(['starter/playroom/sight']);
 	});
@@ -167,7 +167,7 @@ describe('what the bricks let a bot sense', () => {
 				buildRuntimes({
 					spec: bare,
 					registry: registry(),
-					context: { random: () => 0, getPolicyCard: () => undefined }
+					context: { random: () => 0, getPolicyCard: () => undefined, getAction: () => undefined }
 				})
 			)
 		).toEqual([]);

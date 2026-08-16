@@ -137,7 +137,11 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 	const runtimes = buildRuntimes({
 		spec: deps.spec,
 		registry,
-		context: { random, getPolicyCard: (id) => registry.getPolicyCard(id) }
+		context: {
+			random,
+			getPolicyCard: (id) => registry.getPolicyCard(id),
+			getAction: (id) => registry.getAction(id)
+		}
 	});
 	const fittedBricks = describeFittedBricks(deps.spec, registry);
 

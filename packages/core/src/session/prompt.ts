@@ -1,3 +1,4 @@
+import { migrateBrickConfig } from '../brick-config.js';
 import type { PackRegistry } from '../pack-registry.js';
 import { toSpecV2, type AnyAgentSpec } from '../schemas/agent-spec-v2.js';
 import type { GoalCardDefinition } from '../schemas/pack-manifest.js';
@@ -265,7 +266,8 @@ export function describeFittedBricks(spec: AnyAgentSpec, registry: PackRegistry)
 		for (const brick of toSpecV2(spec).bricks.filter((candidate) => candidate.slot === slot)) {
 			const kind = registry.getBrickKind(brick.kind);
 			if (!kind || kind.slot !== brick.slot) continue;
-			const config = kind.configSchema.safeParse(brick.config);
+			const migrated = migrateBrickConfig(brick.config, brick.configVersion, kind);
+			const config = kind.configSchema.safeParse(migrated);
 			if (!config.success) continue;
 
 			const described = kind.describeFitted?.(config.data) ?? kind.name;

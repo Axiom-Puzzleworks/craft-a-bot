@@ -101,10 +101,7 @@ test('a blocked action is refused, and the run carries on', async ({ page }) => 
 test('approval mode pauses for a person, who can allow the action', async ({ page }) => {
 	await buildWithSafetyBrick(page);
 	await openSafetyPanel(page);
-	await page
-		.getByTestId('brick-controls-safety')
-		.getByRole('checkbox', { name: 'Ask before acting' })
-		.check();
+	await page.getByTestId('brick-controls-safety').getByTestId('approval-everything').check();
 
 	await go(page);
 	await page.getByTestId('step').click();
@@ -118,6 +115,25 @@ test('approval mode pauses for a person, who can allow the action', async ({ pag
 	await expect(card).toBeHidden();
 	// Allowed, so the world actually changed.
 	await expect(page.getByTestId('world-view')).toBeVisible();
+});
+
+/**
+ * **The approval-fatigue fix, end to end** (`19-…` §8.3, WP24). "Before every
+ * action" pauses for `move` — proven above. "Only for risky things" fits the
+ * same brick with the same demo bot, whose first move is the same `move`, and
+ * nobody is asked: `move` is `riskTier: 'observe'` (`14-…` §4.5), so the run
+ * just goes.
+ */
+test('"risky" mode does not ask about a plain move', async ({ page }) => {
+	await buildWithSafetyBrick(page);
+	await openSafetyPanel(page);
+	await page.getByTestId('brick-controls-safety').getByTestId('approval-risky').check();
+
+	await go(page);
+	await page.getByTestId('step').click();
+
+	await expect(page.getByTestId('world-view')).toBeVisible();
+	await expect(page.getByTestId('approval-card')).toBeHidden();
 });
 
 /**
@@ -195,10 +211,7 @@ test('the ticker counts match the trace counts', async ({ page }) => {
 test('an approval names its arguments and explains why it is asking', async ({ page }) => {
 	await buildWithSafetyBrick(page);
 	await openSafetyPanel(page);
-	await page
-		.getByTestId('brick-controls-safety')
-		.getByRole('checkbox', { name: 'Ask before acting' })
-		.check();
+	await page.getByTestId('brick-controls-safety').getByTestId('approval-everything').check();
 
 	await go(page);
 	await page.getByTestId('step').click();
@@ -224,10 +237,7 @@ test('an approval names its arguments and explains why it is asking', async ({ p
 test('approval mode lets a person deny, and the bot is told why', async ({ page }) => {
 	await buildWithSafetyBrick(page);
 	await openSafetyPanel(page);
-	await page
-		.getByTestId('brick-controls-safety')
-		.getByRole('checkbox', { name: 'Ask before acting' })
-		.check();
+	await page.getByTestId('brick-controls-safety').getByTestId('approval-everything').check();
 
 	await go(page);
 	await page.getByTestId('step').click();

@@ -1,3 +1,4 @@
+import { migrateBrickConfig } from '../brick-config.js';
 import type { PackRegistry } from '../pack-registry.js';
 import { toSpecV2, type AnyAgentSpec } from '../schemas/agent-spec-v2.js';
 import type { Guardrail } from '../types/guardrail.js';
@@ -76,7 +77,8 @@ export function buildRuntimes(options: BuildRuntimesOptions): FittedRuntime[] {
 			const kind = registry.getBrickKind(brick.kind);
 			if (!kind || kind.slot !== brick.slot) continue;
 
-			const config = kind.configSchema.safeParse(brick.config);
+			const migrated = migrateBrickConfig(brick.config, brick.configVersion, kind);
+			const config = kind.configSchema.safeParse(migrated);
 			if (!config.success) continue;
 			if (!kind.createRuntime) continue;
 

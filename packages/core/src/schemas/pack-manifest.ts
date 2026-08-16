@@ -4,6 +4,7 @@ import type { Guardrail, GuardrailHook } from '../types/guardrail.js';
 import type { ToolDefinition } from '../types/tool.js';
 import type { WorldDefinition } from '../types/world.js';
 import type { PolicyCard } from './policy-card.js';
+import { riskTierSchema } from './risk-tier.js';
 
 /**
  * Pack content (01-ARCHITECTURE.md §4). The pure-data content types
@@ -42,7 +43,14 @@ export const toolMetadataSchema = z.object({
 	description: z.string(),
 	parameters: z.record(z.string(), z.unknown()), // JSON-schema
 	/** e.g. notebook_read/notebook_write — declares the Memory-brick-notebook dependency (02-AGENT-MODEL.md §2.3). */
-	requiresNotebook: z.boolean().optional()
+	requiresNotebook: z.boolean().optional(),
+	/**
+	 * How consequential this call is (`14-…` §4.3, WP24). Tools never mutate
+	 * the world (that's what makes them tools, not actions), so this rarely
+	 * exceeds `'observe'` in starter content — `notebook_write` is the one
+	 * exception, since it writes something the bot carries forward.
+	 */
+	riskTier: riskTierSchema.optional()
 });
 export type ToolMetadata = z.infer<typeof toolMetadataSchema>;
 

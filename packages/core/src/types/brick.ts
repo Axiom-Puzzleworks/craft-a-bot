@@ -2,6 +2,7 @@ import type { ZodType } from 'zod';
 import type { BuildProblem } from '../schemas/build-problem.js';
 import type { PolicyCard } from '../schemas/policy-card.js';
 import type { Guardrail } from './guardrail.js';
+import type { WorldActionDefinition } from './world.js';
 
 /**
  * **The open brick contract** (`14-…` §2, closing `12-…` D11).
@@ -155,6 +156,14 @@ export interface BrickRuntimeContext {
 	 * `BrickValidationContext.hasPolicyCard`.
 	 */
 	getPolicyCard(id: string): PolicyCard | undefined;
+	/**
+	 * A registered world action's definition, by qualified or bare id (E6),
+	 * including its `riskTier` (`14-…` §4.5, WP24). The same "needs the
+	 * resolved thing, not just the id" reasoning as `getPolicyCard`: a Safety
+	 * Brick set to `approval: 'risky'` has to know an action's risk tier the
+	 * moment it builds its approval guardrail, not just that the id exists.
+	 */
+	getAction(id: string): WorldActionDefinition | undefined;
 }
 
 /**

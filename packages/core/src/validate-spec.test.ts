@@ -388,6 +388,41 @@ describe('validateSpec', () => {
 		expect(seen).toEqual(['No loose ends']);
 	});
 
+	/** Same reasoning as above, for `getAction` (WP24). */
+	it('gives a runtime built for build-checking the same getAction a live session would', () => {
+		const registry = buildRegistry();
+		const seen: (string | undefined)[] = [];
+		registry.registerPack({
+			id: 'expansion3',
+			name: 'Expansion 3',
+			version: '1.0.0',
+			requiresCore: '>=1.0.0',
+			brickKinds: [
+				{
+					id: 'expansion3/watches',
+					slot: 'safety',
+					name: 'Watches',
+					description: 'Looks up an action.',
+					realName: 'Watches',
+					realExplanation: 'Looks up an action.',
+					configSchema: z.object({}),
+					configVersion: 1,
+					defaults: {},
+					createRuntime: (_config: unknown, ctx) => {
+						seen.push(ctx.getAction('move')?.name);
+						return {};
+					}
+				} as BrickKindDefinition
+			]
+		});
+
+		const spec = migrated(validSpec({ bricks: { ...validSpec().bricks, safety: undefined } }));
+		spec.bricks.push({ slot: 'safety', kind: 'expansion3/watches', configVersion: 1, config: {} });
+
+		validateSpec(spec, registry);
+		expect(seen).toEqual(['Move']);
+	});
+
 	it('reports every dangling id at once for a badly broken spec', () => {
 		const spec = validSpec({ goalCardId: 'bogus' });
 		spec.bricks.tools = { enabled: ['bogus-tool'] };

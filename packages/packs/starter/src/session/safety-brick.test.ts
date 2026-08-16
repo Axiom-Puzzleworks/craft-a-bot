@@ -254,7 +254,7 @@ describe('no Safety Brick at all', () => {
 				buildRuntimes({
 					spec,
 					registry: buildRegistry(),
-					context: { random: () => 0, getPolicyCard: () => undefined }
+					context: { random: () => 0, getPolicyCard: () => undefined, getAction: () => undefined }
 				})
 			)
 		).toStrictEqual([]);

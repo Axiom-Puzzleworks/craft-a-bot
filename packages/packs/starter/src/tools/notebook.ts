@@ -18,6 +18,8 @@ export const notebookWrite: ToolDefinition = {
 	description: toolStrings.notebook.writeDescription,
 	parameters: z.toJSONSchema(writeArgs),
 	requiresNotebook: true,
+	// The one starter tool that writes something the bot carries forward (`14-…` §4.3).
+	riskTier: 'reversible',
 	execute(rawArgs, context) {
 		const parsed = writeArgs.safeParse(rawArgs ?? {});
 		if (!parsed.success) {
@@ -38,6 +40,7 @@ export const notebookRead: ToolDefinition = {
 	description: toolStrings.notebook.readDescription,
 	parameters: z.toJSONSchema(readArgs),
 	requiresNotebook: true,
+	riskTier: 'observe',
 	execute(_rawArgs, context) {
 		const lines = context.notebook.read();
 		return {

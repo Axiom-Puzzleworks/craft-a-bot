@@ -357,8 +357,9 @@ export const CHAPTERS: Chapter[] = [
 		teaches: 'Guardrails: limits, blocked actions, and a human in the loop.',
 		badge: { id: 'safety-first', name: 'Safety First' },
 		controls: [
-			'safety.approvalMode',
+			'safety.approval',
 			'safety.maxTicks',
+			'safety.maxTokens',
 			'safety.repeatLimit',
 			'safety.blockedActions',
 			'safety.policyCards'
@@ -372,7 +373,7 @@ export const CHAPTERS: Chapter[] = [
 			},
 			{
 				id: 'approval-on',
-				text: 'In its panel, switch on "Ask before acting".',
+				text: 'In its panel, under "Ask before acting", choose "Before every action".',
 				anchor: ANCHORS.brickPanel,
 				done: (ctx) => asksPermission(ctx)
 			},
@@ -389,6 +390,13 @@ export const CHAPTERS: Chapter[] = [
 				text: 'The same panel holds two limits: how many steps it may take, and how many times it may repeat itself before the loop-breaker steps in.',
 				anchor: ANCHORS.brickPanel,
 				done: wasRead('limits')
+			},
+			{
+				id: 'spending-limit',
+				ack: true,
+				text: 'A third limit, switched off by default: a cap on how much the run may spend, however many steps are left.',
+				anchor: ANCHORS.brickPanel,
+				done: wasRead('spending-limit')
 			},
 			{
 				id: 'blocklist',

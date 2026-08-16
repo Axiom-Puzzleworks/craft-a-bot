@@ -53,7 +53,11 @@ function guardrailsFor(safety: SafetyConfig) {
 				updatedAt: '2026-01-01T00:00:00.000Z'
 			},
 			registry: reg,
-			context: { random: () => 0, getPolicyCard: (id) => reg.getPolicyCard(id) }
+			context: {
+				random: () => 0,
+				getPolicyCard: (id) => reg.getPolicyCard(id),
+				getAction: (id) => reg.getAction(id)
+			}
 		})
 	);
 }
