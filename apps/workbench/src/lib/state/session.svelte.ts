@@ -9,7 +9,7 @@ import {
 	type RunOutcome,
 	type SessionStatus
 } from '@craftabot/core';
-import type { PlayroomState } from '@craftabot/pack-starter';
+import type { GridWorldState } from '@craftabot/core';
 import { botExpression, type BotExpression } from '$lib/bot-expression.js';
 import { createRegistry } from '$lib/packs.js';
 import {
@@ -44,7 +44,7 @@ export interface SessionView {
 	readonly lamp: LampState;
 	/** The bot's face — how the run is going, where `lamp` is what it is doing. */
 	readonly expression: BotExpression;
-	readonly world: PlayroomState | undefined;
+	readonly world: GridWorldState | undefined;
 	readonly thought: string;
 	/** True while tokens are still arriving for this turn. */
 	readonly streamingNow: boolean;

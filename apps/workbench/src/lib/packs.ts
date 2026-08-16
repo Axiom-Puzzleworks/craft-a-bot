@@ -2,6 +2,7 @@ import { createPackRegistry, type PackRegistry } from '@craftabot/core';
 import monitorPack from '@craftabot/pack-monitor';
 import openAiPack from '@craftabot/pack-openai';
 import starterPack from '@craftabot/pack-starter';
+import workshopPack from '@craftabot/pack-workshop';
 import { demoPack } from './demo-pack.js';
 
 /**
@@ -21,8 +22,15 @@ import { demoPack } from './demo-pack.js';
  * design's target "2nd chest socket" (`14-…` §5.3), which needs a new core
  * slot and chassis art neither of which exist yet; the dated note in `14-…`
  * §5.3 records that as deferred, not dropped.
+ *
+ * **`workshopPack` joins the box, 2026-08-16 (WP28)** — the second world
+ * (`14-…` §4.5's `riskTier: 'irreversible'` proved in real content for the
+ * first time). It ships no bricks of its own; a builder fits `starter`'s
+ * Hands & Wheels and Eyes & Ears and enables the Workshop's action/sense ids
+ * on them (`session/harness.ts`'s own dated note explains why that is the
+ * only shape a v1 spec's fixed brick keys can ever resolve to).
  */
-export const installedPacks = [starterPack, openAiPack, monitorPack, demoPack];
+export const installedPacks = [starterPack, openAiPack, monitorPack, workshopPack, demoPack];
 
 export function createRegistry(): PackRegistry {
 	const registry = createPackRegistry();

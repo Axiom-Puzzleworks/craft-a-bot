@@ -1,6 +1,5 @@
 <script lang="ts">
-	import type { EngineEvent, RunOutcome } from '@craftabot/core';
-	import type { PlayroomState } from '@craftabot/pack-starter';
+	import type { EngineEvent, GridWorldState, RunOutcome } from '@craftabot/core';
 	import { botExpressionWords, type BotExpression } from '$lib/bot-expression.js';
 	import { fxCue } from '$lib/fx-cue.js';
 	import {
@@ -32,7 +31,7 @@
 	 * decides what a thing looks like.
 	 */
 	interface Props {
-		world: PlayroomState | undefined;
+		world: GridWorldState | undefined;
 		/** What the bot just said, as a speech bubble. */
 		saying?: string | undefined;
 		/**
@@ -60,7 +59,7 @@
 
 	const beat = $derived(fxCue(events));
 
-	function cells(state: PlayroomState) {
+	function cells(state: GridWorldState) {
 		const grid: { x: number; y: number }[] = [];
 		for (let y = 0; y < state.height; y++) {
 			for (let x = 0; x < state.width; x++) grid.push({ x, y });
@@ -76,7 +75,7 @@
 		return list.find((entry) => entry.position.x === x && entry.position.y === y);
 	}
 
-	function itemsOnFloor(state: PlayroomState, x: number, y: number) {
+	function itemsOnFloor(state: GridWorldState, x: number, y: number) {
 		return state.items.filter(
 			(item) =>
 				item.location.kind === 'floor' &&

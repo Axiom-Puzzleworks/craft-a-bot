@@ -1,3 +1,11 @@
+import type {
+	GridWorldCharacter,
+	GridWorldContainer,
+	GridWorldContainerState,
+	GridWorldFurniture,
+	GridWorldItem,
+	GridWorldItemLocation
+} from '@craftabot/core';
 import type { Cell } from './grid.js';
 import { sameCell, withinReach } from './grid.js';
 
@@ -6,42 +14,30 @@ import { sameCell, withinReach } from './grid.js';
  * rather than `interface` so it stays structurally assignable to core's
  * `WorldState = Record<string, unknown>`; interfaces get no implicit index
  * signature. Everything here is plain JSON — it is snapshotted into the trace.
+ *
+ * > **Amended 2026-08-16 (WP28):** the shapes below are now aliases of, or
+ * > extensions on, core's `GridWorld*` types (`types/grid-world.ts`) — the
+ * > shared floor a second grid-based world pack renders through without
+ * > depending on this one. `PlayroomState` keeps its own name and its own
+ * > extra fields (`spoken`, `heard`, `celebrated`); what changed is only that
+ * > it is now provably a `GridWorldState`, not a `PlayroomState` `WorldView`
+ * > had to know by name.
  */
 
-export type ItemLocation =
-	| { kind: 'floor'; position: Cell }
-	| { kind: 'carried' }
-	| { kind: 'held-by'; characterId: string }
-	| { kind: 'in-container'; containerId: string };
+export type ItemLocation = GridWorldItemLocation;
 
-export type PlayroomItem = {
-	id: string;
-	name: string;
-	location: ItemLocation;
-};
+export type PlayroomItem = GridWorldItem;
 
-export type PlayroomCharacter = {
-	id: string;
-	name: string;
-	position: Cell;
-};
+export type PlayroomCharacter = GridWorldCharacter;
 
-export type ContainerState = 'open' | 'closed' | 'locked';
+export type ContainerState = GridWorldContainerState;
 
-export type PlayroomContainer = {
-	id: string;
-	name: string;
-	position: Cell;
-	state: ContainerState;
+export type PlayroomContainer = GridWorldContainer & {
 	/** Item id of the key that unlocks it, when locked. */
 	unlockedBy: string | null;
 };
 
-export type PlayroomFurniture = {
-	id: string;
-	name: string;
-	position: Cell;
-};
+export type PlayroomFurniture = GridWorldFurniture;
 
 export type SpokenLine = {
 	tick: number;

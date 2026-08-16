@@ -34,6 +34,7 @@
 		"@craftabot/governance": "*",
 		"@craftabot/pack-openai": "*",
 		"@craftabot/pack-starter": "*",
+		"@craftabot/pack-workshop": "*",
 		"idb": "^8.0.3"
 	}
 }

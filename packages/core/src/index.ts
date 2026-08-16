@@ -113,6 +113,16 @@ export {
 	type ToolMetadata
 } from './schemas/pack-manifest.js';
 export type { NotebookAccess, ToolContext, ToolDefinition, ToolResult } from './types/tool.js';
+export type {
+	GridPosition,
+	GridWorldCharacter,
+	GridWorldContainer,
+	GridWorldContainerState,
+	GridWorldFurniture,
+	GridWorldItem,
+	GridWorldItemLocation,
+	GridWorldState
+} from './types/grid-world.js';
 export { riskTierSchema, type RiskTier } from './schemas/risk-tier.js';
 export {
 	POLICY_CARD_SCHEMA_VERSION,
