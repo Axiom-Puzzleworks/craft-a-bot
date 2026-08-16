@@ -27,6 +27,7 @@
 		const path = page.url.pathname;
 		if (path.startsWith('/workshop/runs')) return 'runs' as const;
 		if (path.startsWith('/workshop/evals')) return 'evals' as const;
+		if (path.startsWith('/workshop/policies')) return 'policies' as const;
 		return 'dashboard' as const;
 	});
 </script>

@@ -22,7 +22,7 @@
 		{ id: 'runs', label: 'Runs', href: '/workshop/runs' },
 		{ id: 'spec', label: 'Spec Lab', hint: 'per bot' },
 		{ id: 'evals', label: 'Evals', href: '/workshop/evals' },
-		{ id: 'policies', label: 'Policies', hint: 'WP22' },
+		{ id: 'policies', label: 'Policies', href: '/workshop/policies' },
 		{ id: 'telemetry', label: 'Telemetry', hint: 'WP34' },
 		{ id: 'export', label: 'Audit', hint: 'WP34' }
 	] as const;
@@ -35,7 +35,10 @@
 			<li>
 				{#if 'href' in destination}
 					<a
-						href={resolve(destination.href as '/workshop' | '/workshop/runs' | '/workshop/evals')}
+						href={resolve(
+							destination.href as
+								'/workshop' | '/workshop/runs' | '/workshop/evals' | '/workshop/policies'
+						)}
 						aria-current={current === destination.id ? 'page' : undefined}
 						data-testid="rail-{destination.id}">{destination.label}</a
 					>
