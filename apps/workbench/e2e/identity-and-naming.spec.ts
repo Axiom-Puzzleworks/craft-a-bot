@@ -71,3 +71,49 @@ test('a box keeps its sticker across a reload', async ({ page }) => {
 
 	expect(after).toBe(before);
 });
+
+/**
+ * Every new box reads "My Very First Agent" until renamed, and the only way
+ * to do that used to be opening the bench and finding a text field with no
+ * visible border. This is the Shelf-level fix a real user asked for: rename
+ * right where the row of identical names is the problem, no bench required.
+ */
+test('a bot can be renamed straight from the Shelf', async ({ page }) => {
+	await page.goto('/');
+	await page.getByTestId('new-bot').click();
+	await expect(page.getByTestId('baseplate')).toBeVisible();
+	await page.goto('/');
+
+	const box = page.locator('[data-testid^="open-"]').first();
+	const agentId = (await box.getAttribute('data-testid'))?.replace('open-', '');
+	if (!agentId) throw new Error('no bot on the shelf');
+
+	await page.getByTestId(`rename-${agentId}`).click();
+	await page.getByTestId(`rename-input-${agentId}`).fill('Snackbot 3000');
+	await page.getByRole('button', { name: 'Save' }).click();
+
+	await expect(box).toContainText('Snackbot 3000');
+	await expect(box).not.toContainText('My Very First Agent');
+
+	// Persisted, not just an in-memory label — the point of the whole feature.
+	await page.reload();
+	await expect(page.locator(`[data-testid="open-${agentId}"]`)).toContainText('Snackbot 3000');
+});
+
+test('cancelling a Shelf rename keeps the old name', async ({ page }) => {
+	await page.goto('/');
+	await page.getByTestId('new-bot').click();
+	await expect(page.getByTestId('baseplate')).toBeVisible();
+	await page.goto('/');
+
+	const box = page.locator('[data-testid^="open-"]').first();
+	const agentId = (await box.getAttribute('data-testid'))?.replace('open-', '');
+	if (!agentId) throw new Error('no bot on the shelf');
+
+	await page.getByTestId(`rename-${agentId}`).click();
+	await page.getByTestId(`rename-input-${agentId}`).fill('Should not stick');
+	await page.getByRole('button', { name: 'Cancel' }).click();
+
+	await expect(box).toContainText('My Very First Agent');
+	await expect(box).not.toContainText('Should not stick');
+});

@@ -22,10 +22,36 @@
 	/** The bot the Bin is currently asking about — `undefined` when it isn't asking. */
 	let pendingRemoval = $state<{ id: string; name: string } | undefined>();
 
+	/**
+	 * The bot the Shelf is currently renaming, if any — a real gap a real user
+	 * hit: every new box reads "My Very First Agent" until it is opened onto
+	 * the bench, and the bench's own rename field is not obvious as a text
+	 * field either (fixed alongside this). Renaming from here means the fix is
+	 * visible exactly where the problem was: a row of identical box titles.
+	 */
+	let renamingId = $state<string | undefined>();
+	let renameDraft = $state('');
+
 	$effect(() => {
 		// Loading from IndexedDB is inherently async and cannot be derived.
 		void agentsStore.load();
 	});
+
+	function startRename(id: string, currentName: string): void {
+		renamingId = id;
+		renameDraft = currentName;
+	}
+
+	function cancelRename(): void {
+		renamingId = undefined;
+	}
+
+	async function commitRename(id: string): Promise<void> {
+		const draft = renameDraft;
+		renamingId = undefined;
+		if (draft.trim() === '') return;
+		await agentsStore.rename(id, draft);
+	}
 
 	async function newBot(): Promise<void> {
 		busy = true;
@@ -139,20 +165,51 @@
 								{filledSockets(agent.spec.bricks).length} of 6 bricks fitted
 							</p>
 						</a>
-						<div class="box-actions">
-							<button type="button" onclick={() => agentsStore.duplicate(agent.id)}
-								>Duplicate</button
+						{#if renamingId === agent.id}
+							<form
+								class="rename-form"
+								onsubmit={(event) => {
+									event.preventDefault();
+									void commitRename(agent.id);
+								}}
 							>
-							<button type="button" onclick={() => exportKit(agent.id, agent.spec.name)}
-								>Export</button
-							>
-							<button
-								type="button"
-								data-testid="bin-{agent.id}"
-								onclick={() => (pendingRemoval = { id: agent.id, name: agent.spec.name })}
-								>Bin</button
-							>
-						</div>
+								<label class="visually-hidden" for="rename-{agent.id}">Bot name</label>
+								<!-- svelte-ignore a11y_autofocus -->
+								<input
+									id="rename-{agent.id}"
+									data-testid="rename-input-{agent.id}"
+									bind:value={renameDraft}
+									autofocus
+									onkeydown={(event) => {
+										if (event.key === 'Escape') cancelRename();
+									}}
+								/>
+								<button type="submit">Save</button>
+								<button type="button" onclick={cancelRename}>Cancel</button>
+							</form>
+						{:else}
+							<div class="box-actions">
+								<button
+									type="button"
+									data-testid="rename-{agent.id}"
+									onclick={() => startRename(agent.id, agent.spec.name)}
+								>
+									Rename
+								</button>
+								<button type="button" onclick={() => agentsStore.duplicate(agent.id)}
+									>Duplicate</button
+								>
+								<button type="button" onclick={() => exportKit(agent.id, agent.spec.name)}
+									>Export</button
+								>
+								<button
+									type="button"
+									data-testid="bin-{agent.id}"
+									onclick={() => (pendingRemoval = { id: agent.id, name: agent.spec.name })}
+									>Bin</button
+								>
+							</div>
+						{/if}
 					</article>
 				</li>
 			{:else}
@@ -422,6 +479,44 @@
 	.box-actions button {
 		padding: 2px var(--cab-space-2);
 		font-size: var(--cab-text-xs);
+	}
+
+	.rename-form {
+		display: flex;
+		align-items: center;
+		gap: var(--cab-space-1);
+		flex-wrap: wrap;
+	}
+
+	.rename-form input {
+		flex: 1;
+		min-width: 8ch;
+		font: inherit;
+		font-size: var(--cab-text-sm);
+		padding: 2px var(--cab-space-2);
+		color: var(--cab-ink);
+		background: var(--cab-cream);
+		border: var(--cab-border-part) solid var(--cab-ink);
+		border-radius: 6px;
+	}
+
+	.rename-form input:focus-visible {
+		outline: var(--cab-focus-ring);
+		outline-offset: var(--cab-focus-gap);
+	}
+
+	.rename-form button {
+		padding: 2px var(--cab-space-2);
+		font-size: var(--cab-text-xs);
+	}
+
+	.visually-hidden {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip: rect(0 0 0 0);
+		white-space: nowrap;
 	}
 
 	.empty p {

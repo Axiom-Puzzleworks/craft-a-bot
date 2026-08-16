@@ -271,22 +271,46 @@
 		flex: 1;
 	}
 
+	/*
+	 * Visibly a text field at rest, not only on hover — a border that only
+	 * appeared on hover read as a static heading, and this is the one place in
+	 * the whole app a bot's name can actually be changed (a real user found it
+	 * this way, WP22-adjacent feedback). The pencil is a second, redundant cue
+	 * for the same reason a hover-only affordance is not enough on a touch
+	 * screen, which has no hover at all.
+	 */
+	.rename {
+		flex: 1;
+		position: relative;
+	}
+
 	.rename input {
 		width: 100%;
 		font: inherit;
 		font-size: var(--cab-text-lg);
 		font-weight: 700;
-		padding: var(--cab-space-1) var(--cab-space-2);
-		background: transparent;
-		border: var(--cab-border-part) solid transparent;
+		padding: var(--cab-space-1) calc(var(--cab-space-6) + var(--cab-space-1)) var(--cab-space-1)
+			var(--cab-space-2);
+		background: var(--cab-cream);
+		border: var(--cab-border-part) solid color-mix(in srgb, var(--cab-ink) 25%, transparent);
 		border-radius: 6px;
 		color: inherit;
 	}
 
 	.rename input:hover,
 	.rename input:focus {
-		background: var(--cab-cream);
-		border-color: color-mix(in srgb, var(--cab-ink) 25%, transparent);
+		border-color: var(--cab-ink);
+	}
+
+	.rename::after {
+		content: '✎';
+		position: absolute;
+		top: 50%;
+		right: var(--cab-space-3);
+		transform: translateY(-50%);
+		font-size: var(--cab-text-sm);
+		color: var(--cab-ink-muted);
+		pointer-events: none;
 	}
 
 	.undo {

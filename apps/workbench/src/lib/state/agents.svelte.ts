@@ -41,6 +41,19 @@ export interface AgentsStore {
 	load(): Promise<void>;
 	create(name?: string): Promise<AgentRecord>;
 	duplicate(id: string): Promise<AgentRecord | undefined>;
+	/**
+	 * Rename a bot from the Shelf, without opening its bench.
+	 *
+	 * `bench.svelte.ts`'s `rename()` does the same two-field update
+	 * (`spec.name` + `spec.identity.displayName`, kept in sync until the last
+	 * reader moves to `identity`) but only for the bench's own in-memory spec,
+	 * mid-edit-session with undo. This is the same update, direct to storage,
+	 * for a bot that is not currently open. A blank or whitespace-only name is
+	 * refused rather than saved — `AgentSpecV2.name` is `min(1)`, and a bot
+	 * with no name at all is a worse state than the rename never having
+	 * happened.
+	 */
+	rename(id: string, name: string): Promise<AgentRecord | undefined>;
 	remove(id: string): Promise<void>;
 	exportKit(id: string): Promise<string | undefined>;
 	importKit(
@@ -109,6 +122,29 @@ export function createAgentsStore(deps: AgentsStoreDeps = {}): AgentsStore {
 				createdAt: timestamp,
 				updatedAt: timestamp,
 				schemaVersion: 2
+			};
+			await persist(record);
+			await refresh();
+			return record;
+		},
+
+		async rename(id, name) {
+			const trimmed = name.trim();
+			if (trimmed === '') return undefined;
+
+			const original = await (await storage()).getAgent(id);
+			if (!original) return undefined;
+
+			const timestamp = now();
+			const record: AgentRecord = {
+				...original,
+				spec: {
+					...original.spec,
+					name: trimmed,
+					identity: { ...original.spec.identity, displayName: trimmed },
+					updatedAt: timestamp
+				},
+				updatedAt: timestamp
 			};
 			await persist(record);
 			await refresh();

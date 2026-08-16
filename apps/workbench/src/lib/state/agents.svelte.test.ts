@@ -66,6 +66,56 @@ describe('making a bot', () => {
 	});
 });
 
+describe('renaming from the Shelf', () => {
+	/*
+	 * `bench.svelte.ts`'s own `rename()` (mid-edit-session, with undo) is
+	 * covered in `bench.svelte.test.ts`. This is the other path: a bot that is
+	 * not currently open, renamed straight from the Shelf.
+	 */
+	it('updates both name and identity.displayName, the same pair the bench keeps in sync', async () => {
+		const { agents } = openShelf();
+		const original = await agents.create('Before');
+
+		const renamed = await agents.rename(original.id, 'After');
+
+		expect(renamed?.spec.name).toBe('After');
+		expect(renamed?.spec.identity.displayName).toBe('After');
+	});
+
+	it('persists, so the Shelf list reflects it without a manual reload', async () => {
+		const { agents } = openShelf();
+		const original = await agents.create('Before');
+
+		await agents.rename(original.id, 'After');
+
+		expect(agents.agents.map((agent) => agent.spec.name)).toEqual(['After']);
+	});
+
+	it('trims stray whitespace around a real name', async () => {
+		const { agents } = openShelf();
+		const original = await agents.create('Before');
+
+		const renamed = await agents.rename(original.id, '  Spacey Name  ');
+
+		expect(renamed?.spec.name).toBe('Spacey Name');
+	});
+
+	it('refuses a blank name rather than leaving a bot with none', async () => {
+		const { agents } = openShelf();
+		const original = await agents.create('Keep Me');
+
+		const result = await agents.rename(original.id, '   ');
+
+		expect(result).toBeUndefined();
+		expect(agents.agents[0]?.spec.name).toBe('Keep Me');
+	});
+
+	it('returns nothing for a bot that is not there', async () => {
+		const { agents } = openShelf();
+		expect(await agents.rename('00000000-0000-4000-8000-ffffffffffff', 'Nope')).toBeUndefined();
+	});
+});
+
 describe('the shelf itself', () => {
 	it('lists what has been made, newest first, and forgets what is binned', async () => {
 		const { agents } = openShelf();
