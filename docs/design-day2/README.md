@@ -34,7 +34,9 @@
 | `18-DAY2-ROADMAP.md` | **New** — Phases A–F, WP11–WP34, expansion-pack line, scope decision of record |
 | `19-AI-SAFETY-GOVERNANCE-REFERENCE.md` | **New** — sourced SOTA catalogue + 38 candidate controls tagged Kids/Pro/Both |
 | `20-ART-COMMISSION-BRIEF.md` | **New (2026-08-14)** — the drop-in specification for art wave 1: exact canvases in px, file paths, palette, named-group contract, and the placeholder each artefact replaces. Companion to `11-…`, which stays the what-and-why |
+| `21-ART-PRODUCTION-PLAN.md` | **New** — wave 1 production plan against the commission brief |
+| `22-WAVE-1-HANDOVER.md` | **New (2026-08-15)** — wave 1 art handover: what was produced, where it landed, how the swap-in went |
 
-## Immediate next steps (from `18-…` §7)
+## Where things stand (as of 2026-08-16 — see `18-…` §7 for the full log)
 
-WP11+WP12 (behaviour fixes with their tests) → WP13/WP14 (engine + open brick contract) → WP16 (P0 teaching-aid UX) with WP19 (eval harness) in parallel → commission the art (longest lead time; blocks the `v1.0.0` tag).
+Phases A–D are closed (WP11–WP25): engine trust, the open brick contract, teaching-aid UX, the professional Workshop, and a full governance layer (policy cards, Safety Brick v2, three scenario cards) have all shipped. Phase E (expansion era) is under way, three slices in: WP26's Compare view, WP27's Monitor brick, and WP28's Workshop world pack are all done, each scoped down from a larger roadmap description with the cut recorded in `18-…` §7. Still open: WP26's three LLM provider packs + persona cartridges + battery-bay UI, WP27's Test Bench brick, and WP29 (multi-agent core — sized at 7–9 slices, the largest remaining piece). `18-…` §7's most recent entries (items 15–17) are the ones to read before picking any of these up; two of the last three sized much larger on inspection than their roadmap line suggested.

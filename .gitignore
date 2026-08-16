@@ -31,3 +31,8 @@ Thumbs.db
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Claude Code — personal, local-only settings (permissions, etc). launch.json
+# stays tracked: it's shared dev-server config any session's preview tooling
+# can use, not personal.
+.claude/settings.local.json
