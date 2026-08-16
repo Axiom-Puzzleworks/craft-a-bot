@@ -1,6 +1,7 @@
 import type {
 	AgentSpecV2,
 	CartridgeDefinition,
+	PolicyCard,
 	ToolDefinition,
 	WorldActionDefinition
 } from '@craftabot/core';
@@ -33,6 +34,8 @@ export interface BrickPanelProps {
 	senseChannels: { id: string; name: string; description: string }[];
 	/** Named `worldActions` because `actions` is the snippet slot `Panel` expects. */
 	worldActions: WorldActionDefinition[];
+	/** Every policy card an installed pack ships (`14-…` §4.6, WP22). */
+	policyCards: PolicyCard[];
 	/** A patch merged into this brick's config. */
 	onupdate: (patch: Record<string, unknown>) => void;
 }

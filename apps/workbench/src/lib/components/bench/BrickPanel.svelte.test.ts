@@ -87,6 +87,7 @@ function mount(
 			tools: [],
 			senseChannels: [],
 			worldActions: world,
+			policyCards: [],
 			onupdate,
 			onremove
 		}

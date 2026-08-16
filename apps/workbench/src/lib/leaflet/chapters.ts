@@ -360,7 +360,8 @@ export const CHAPTERS: Chapter[] = [
 			'safety.approvalMode',
 			'safety.maxTicks',
 			'safety.repeatLimit',
-			'safety.blockedActions'
+			'safety.blockedActions',
+			'safety.policyCards'
 		],
 		steps: [
 			{
@@ -395,6 +396,13 @@ export const CHAPTERS: Chapter[] = [
 				text: 'And a list of actions it may never take at all. A rule you set beats anything the brain decides.',
 				anchor: ANCHORS.brickPanel,
 				done: wasRead('blocklist')
+			},
+			{
+				id: 'policy-cards',
+				ack: true,
+				text: 'Below that, ready-made policy cards. Fit one and its rule joins the four above — written down rather than dialled, and shareable like a Goal Card.',
+				anchor: ANCHORS.brickPanel,
+				done: wasRead('policy-cards')
 			}
 		]
 	},

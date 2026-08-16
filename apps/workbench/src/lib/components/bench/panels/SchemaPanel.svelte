@@ -24,7 +24,16 @@
 		kind: BrickKindDefinition;
 	}
 
-	let { kind, config, cartridges, tools, senseChannels, worldActions, onupdate }: Props = $props();
+	let {
+		kind,
+		config,
+		cartridges,
+		tools,
+		senseChannels,
+		worldActions,
+		policyCards,
+		onupdate
+	}: Props = $props();
 
 	const fields = $derived(describeFields(kind.configSchema, kind.controlHints));
 
@@ -33,6 +42,13 @@
 		if (source === 'tools') return tools;
 		if (source === 'actions') return worldActions;
 		if (source === 'senseChannels') return senseChannels;
+		if (source === 'policyCards') {
+			return policyCards.map((card) => ({
+				id: card.id,
+				name: card.title,
+				...(card.description !== undefined ? { description: card.description } : {})
+			}));
+		}
 		return cartridges.map((cartridge) => ({
 			id: cartridge.id,
 			name: cartridge.displayName,

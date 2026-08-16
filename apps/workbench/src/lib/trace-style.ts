@@ -86,7 +86,24 @@ export function labelForEvent(event: EngineEvent): string {
 		return 'The bot mumbled';
 	}
 	if (event.type === 'error') return errorLabel(event.payload.kind ?? '');
+	if (
+		(event.type === 'guardrail.checked' || event.type === 'guardrail.tripped') &&
+		event.payload.policyCardId
+	) {
+		return `${labelOf(event.type)} (${policyCardLocalName(event.payload.policyCardId)})`;
+	}
 	return labelOf(event.type);
+}
+
+/**
+ * A policy card's own local name, for the trace row — "no-loose-ends" rather
+ * than the qualified `starter/policy/no-loose-ends`. The row has no registry
+ * to look the card's title up in (`14-…` §4.6, WP22); the id itself is
+ * already enough to find the card again, which is what a forensics row needs.
+ */
+function policyCardLocalName(id: string): string {
+	const lastSlash = id.lastIndexOf('/');
+	return lastSlash === -1 ? id : id.slice(lastSlash + 1);
 }
 
 /**

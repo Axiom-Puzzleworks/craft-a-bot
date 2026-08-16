@@ -199,8 +199,9 @@ test('walks the six brick chapters and collects their badges', async ({ page }) 
 	await expect(approval).toBeVisible();
 	await page.getByTestId('approval-allow').click();
 
-	// Two reading steps close chapter 6: the panel's other limits (`16-…` §2.2).
-	for (let step = 0; step < 2; step++) {
+	// Three reading steps close chapter 6: the panel's other limits (`16-…` §2.2)
+	// and the policy cards below them (`14-…` §4.6, WP22).
+	for (let step = 0; step < 3; step++) {
 		await page.getByTestId('leaflet-ack').click();
 	}
 

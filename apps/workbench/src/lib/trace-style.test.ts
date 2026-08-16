@@ -45,6 +45,33 @@ describe('the mumble row (03 §9)', () => {
 	});
 });
 
+describe('a policy card firing (14-… §4.6, WP22)', () => {
+	const checked = (policyCardId?: string): EngineEvent =>
+		({
+			id: 'e3',
+			runId: 'r1',
+			tick: 1,
+			timestamp: '2026-08-12T09:00:00.000Z',
+			type: 'guardrail.checked',
+			payload: {
+				guardrailId: 'starter/policy/no-loose-ends#rule-0',
+				hook: 'pre-act',
+				verdict: { allow: false, reason: 'x', disposition: 'block-action' },
+				...(policyCardId ? { policyCardId } : {})
+			}
+		}) as EngineEvent;
+
+	it('names the card by its local name, not the qualified id', () => {
+		expect(labelForEvent(checked('starter/policy/no-loose-ends'))).toBe(
+			'Safety check (no-loose-ends)'
+		);
+	});
+
+	it('leaves a hand-written guardrail’s label alone — it has no card behind it', () => {
+		expect(labelForEvent(checked())).toBe('Safety check');
+	});
+});
+
 describe('provider errors in kit language (03 §9, 06 §7)', () => {
 	const errorEvent = (kind: string): EngineEvent =>
 		({

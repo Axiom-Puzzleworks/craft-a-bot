@@ -4,6 +4,7 @@
 		BrickKindDefinition,
 		CartridgeDefinition,
 		FittedBrick,
+		PolicyCard,
 		ToolDefinition,
 		WorldActionDefinition
 	} from '@craftabot/core';
@@ -44,6 +45,8 @@
 		senseChannels: { id: string; name: string; description: string }[];
 		/** Named `worldActions` because `actions` is the snippet slot `Panel` expects. */
 		worldActions: WorldActionDefinition[];
+		/** Every policy card an installed pack ships (`14-…` §4.6, WP22). */
+		policyCards: PolicyCard[];
 		/** A patch merged into this brick's config. */
 		onupdate: (patch: Record<string, unknown>) => void;
 		onremove: () => void;
@@ -57,6 +60,7 @@
 		tools,
 		senseChannels,
 		worldActions,
+		policyCards,
 		onupdate,
 		onremove
 	}: Props = $props();
@@ -71,6 +75,7 @@
 		tools,
 		senseChannels,
 		worldActions,
+		policyCards,
 		onupdate
 	});
 

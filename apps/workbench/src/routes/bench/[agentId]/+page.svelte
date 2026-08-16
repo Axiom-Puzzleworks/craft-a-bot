@@ -79,6 +79,7 @@
 	const senseChannels = $derived(world?.senses ?? []);
 	const worldActions = $derived(world?.actions ?? []);
 	const goalCards = $derived(registry.listGoalCards());
+	const policyCards = $derived(registry.listPolicyCards());
 
 	const cartridge = $derived(registry.getCartridge(capabilities.cartridgeId));
 	/**
@@ -204,6 +205,7 @@
 						{tools}
 						{senseChannels}
 						{worldActions}
+						{policyCards}
 						onupdate={(patch) => selected && benchStore.updateBrick(selected, patch)}
 						onremove={() => {
 							if (selected) benchStore.removeBrick(selected);

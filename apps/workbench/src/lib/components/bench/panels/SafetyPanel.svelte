@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Rocker from '$lib/components/kit/Rocker.svelte';
+	import PolicyCardChip from '$lib/components/shared/PolicyCardChip.svelte';
 	import { toggle, type BrickPanelProps } from './panel-props.js';
 
 	/**
@@ -12,12 +13,13 @@
 	 * by decision rather than oversight (`14-…` §2.1): a `when` predicate is the
 	 * obvious widening when an expansion brick actually needs one.
 	 */
-	let { config, worldActions, onupdate }: BrickPanelProps = $props();
+	let { config, worldActions, policyCards, onupdate }: BrickPanelProps = $props();
 
 	const maxTicks = $derived(Number(config.maxTicks ?? 0));
 	const approvalMode = $derived(config.approvalMode === true);
 	const blockedActions = $derived((config.blockedActions as string[] | undefined) ?? []);
 	const repeatLimit = $derived(config.repeatLimit as number | undefined);
+	const selectedCards = $derived((config.policyCards as string[] | undefined) ?? []);
 
 	/**
 	 * Three in a row is enough to look stuck without tripping ordinary play. The
@@ -79,3 +81,32 @@
 		/>
 	{/each}
 </div>
+
+{#if policyCards.length > 0}
+	<div class="policy-cards" data-testid="policy-cards">
+		<p class="switches-label">Policy cards</p>
+		<div class="policy-cards-shelf">
+			{#each policyCards as card (card.id)}
+				<PolicyCardChip
+					title={card.title}
+					description={card.description}
+					checked={selectedCards.includes(card.id)}
+					onchange={(on) => onupdate({ policyCards: toggle(selectedCards, card.id, on) })}
+				/>
+			{/each}
+		</div>
+	</div>
+{/if}
+
+<style>
+	.policy-cards {
+		display: grid;
+		gap: var(--cab-space-2);
+	}
+
+	.policy-cards-shelf {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--cab-space-2);
+	}
+</style>

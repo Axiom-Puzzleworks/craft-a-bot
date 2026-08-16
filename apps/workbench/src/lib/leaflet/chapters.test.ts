@@ -381,16 +381,23 @@ describe('chapters 2 to 6 each reach their badge', () => {
 		});
 		expect(currentStepOf(chapter, asking)?.id).toBe('approve');
 
-		// A human is actually asked (08 §3) — then the two reading steps that
-		// cover the panel's other limits (`16-…` §2.2).
+		// A human is actually asked (08 §3) — then the three reading steps that
+		// cover the panel's other limits (`16-…` §2.2) and its policy cards
+		// (`14-…` §4.6, WP22).
 		const asked = ctx({ ...asking, sawApproval: true });
 		expect(currentStepOf(chapter, asked)?.id).toBe('limits');
 
 		const readLimits = ctx({ ...asked, acked: new Set(['limits']) });
 		expect(currentStepOf(chapter, readLimits)?.id).toBe('blocklist');
 
+		const readBlocklist = ctx({ ...asked, acked: new Set(['limits', 'blocklist']) });
+		expect(currentStepOf(chapter, readBlocklist)?.id).toBe('policy-cards');
+
 		expect(
-			isChapterComplete(chapter, ctx({ ...asked, acked: new Set(['limits', 'blocklist']) }))
+			isChapterComplete(
+				chapter,
+				ctx({ ...asked, acked: new Set(['limits', 'blocklist', 'policy-cards']) })
+			)
 		).toBe(true);
 	});
 });
