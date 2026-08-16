@@ -1,4 +1,5 @@
 import { createPackRegistry, type PackRegistry } from '@craftabot/core';
+import monitorPack from '@craftabot/pack-monitor';
 import openAiPack from '@craftabot/pack-openai';
 import starterPack from '@craftabot/pack-starter';
 import { demoPack } from './demo-pack.js';
@@ -9,8 +10,19 @@ import { demoPack } from './demo-pack.js';
  * magical. A future private pack installs into the same slot by being added to
  * this list in a private build of the app, which is the whole public/private
  * split mechanism (01 §5).
+ *
+ * **`monitorPack` joins the box, 2026-08-16 (WP27).** Built in WP14 as the
+ * open brick contract's own proof — a genuinely new kind of brick, in the
+ * `safety` slot, that no core change was needed for — and deliberately left
+ * uninstalled since: shipping a seventh brick changes what V1.0 *is*, and
+ * expansion packs are Phase E work (`18-…` §3). Phase D is done; this is that
+ * work. It occupies the same `safety` slot as `starter/safety` — swap one for
+ * the other, per V1's one-brick-per-socket rule — rather than the reference
+ * design's target "2nd chest socket" (`14-…` §5.3), which needs a new core
+ * slot and chassis art neither of which exist yet; the dated note in `14-…`
+ * §5.3 records that as deferred, not dropped.
  */
-export const installedPacks = [starterPack, openAiPack, demoPack];
+export const installedPacks = [starterPack, openAiPack, monitorPack, demoPack];
 
 export function createRegistry(): PackRegistry {
 	const registry = createPackRegistry();

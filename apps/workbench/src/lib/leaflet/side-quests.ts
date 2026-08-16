@@ -36,5 +36,11 @@ export const SIDE_QUESTS: SideQuest[] = [
 		title: 'Busy bot',
 		teaches:
 			'Try "Tidy the blocks" with "Ask before acting" set to "Before every action" — then again set to "Only for risky things". Count how many times you are asked.'
+	},
+	{
+		id: 'who-is-watching',
+		title: 'Who is watching?',
+		teaches:
+			'Swap the Safety Brick for a Watchbot on any card. The Safety Brick stops the fourth identical move; the Watchbot lets it happen and writes it down instead. Read the Flight Recorder afterwards to see the difference between a rule and an observer.'
 	}
 ];
