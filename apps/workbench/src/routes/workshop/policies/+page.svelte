@@ -9,6 +9,7 @@
 		newCondition,
 		newRule,
 		replayCard,
+		runScriptedProbe,
 		type DraftRule,
 		type ReplayHit
 	} from '$lib/workshop/policy-studio.js';
@@ -34,11 +35,19 @@
 	 *    builder sees while authoring is what they will see when they fit it.
 	 * 3. **Test, part (a).** Replays the draft's rules against a stored run's
 	 *    `decision` events and reports which would have fired — free, instant,
-	 *    and the governance-forensics workflow in miniature (`17-…` §4.5). Part
-	 *    (b), a scripted adversarial run, is WP22 slice f.
+	 *    and the governance-forensics workflow in miniature (`17-…` §4.5).
+	 * 4. **Test, part (b).** Runs a real session with the draft installed as
+	 *    the *only* guardrail (`CreateSessionDeps.guardrails`, the host seam)
+	 *    against a short, generic probe script — not a script for any one
+	 *    goal card, because an authored card's condition is arbitrary, so
+	 *    there is no single adversarial run to point at the way the L5
+	 *    efficacy suite could for the three starter cards, each written
+	 *    against a known rule.
 	 *
-	 * Nothing here is saved yet — that is slice f, alongside the round-trip
-	 * proof it exists to support.
+	 * Nothing authored here is saved yet — round-tripping a *pack-shipped*
+	 * card (fit it in the Kit, read it back in the Spec Lab) is proven
+	 * instead; a persistence store for Studio-authored cards is future work,
+	 * recorded with its reasons in `17-…` §4.5's WP22 note.
 	 */
 
 	const HOOKS: GuardrailHook[] = ['pre-think', 'pre-act', 'post-act'];
@@ -116,6 +125,24 @@
 			replayHits = replayCard(validation.data, events);
 		} finally {
 			replaying = false;
+		}
+	}
+
+	// --- test bench, part (b): a scripted adversarial run --------------------------------------
+
+	let probing = $state(false);
+	let probeHits = $state<ReplayHit[] | undefined>(undefined);
+	let probeOutcome = $state<string | undefined>(undefined);
+
+	async function runProbe(): Promise<void> {
+		if (!validation.success) return;
+		probing = true;
+		try {
+			const result = await runScriptedProbe(validation.data);
+			probeHits = result.hits;
+			probeOutcome = result.outcome;
+		} finally {
+			probing = false;
 		}
 	}
 </script>
@@ -295,6 +322,55 @@
 						</tbody>
 					</table>
 				{/if}
+			{/if}
+		{/if}
+	</section>
+
+	<section aria-label="Test bench: a scripted adversarial run">
+		<h2>Test bench — a scripted run</h2>
+		<p class="hint">
+			Plays a short, generic probe against the Playroom's Free Play layout with the draft installed
+			as the only rule watching — proof the card actually blocks, pauses or stops a run in practice,
+			not just that it would have matched a past one.
+		</p>
+		<div class="row">
+			<button
+				type="button"
+				disabled={!validation.success || probing}
+				data-testid="run-probe"
+				onclick={runProbe}
+			>
+				{probing ? 'Running…' : 'Run scripted probe'}
+			</button>
+			{#if probeOutcome}
+				<span class="mono" data-testid="probe-outcome">{probeOutcome}</span>
+			{/if}
+		</div>
+
+		{#if probeHits}
+			{#if probeHits.length === 0}
+				<p class="hint" data-testid="probe-empty">This card never fired during the probe.</p>
+			{:else}
+				<table data-testid="probe-hits">
+					<thead>
+						<tr>
+							<th scope="col">Turn</th>
+							<th scope="col">Rule</th>
+							<th scope="col">Call</th>
+							<th scope="col">Reason</th>
+						</tr>
+					</thead>
+					<tbody>
+						{#each probeHits as hit, hitIndex (hitIndex)}
+							<tr>
+								<td class="num">{hit.tick}</td>
+								<td class="num">{hit.ruleIndex + 1}</td>
+								<td class="mono">{hit.callKind}:{hit.callName}</td>
+								<td>{hit.reason}</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
 			{/if}
 		{/if}
 	</section>

@@ -75,7 +75,22 @@ function buildRegistry(): PackRegistry {
 		 * installed genuinely cannot be assembled — and means a stub registry has
 		 * to stub this too.
 		 */
-		brickKinds: v1BrickKinds()
+		brickKinds: v1BrickKinds(),
+		policyCards: [
+			{
+				id: 'starter/policy/no-loose-ends',
+				title: 'No loose ends',
+				schemaVersion: 1,
+				rules: [
+					{
+						hook: 'pre-act',
+						when: { kind: 'call-name-is', value: 'put_down' },
+						then: 'block-action',
+						reason: 'Nothing gets left on the floor.'
+					}
+				]
+			}
+		]
 	};
 	const openai: PackManifest = {
 		id: 'openai',
@@ -311,6 +326,7 @@ describe('validateSpec', () => {
 						if (ctx.hasAction('move')) asked.push('action');
 						if (ctx.hasSenseChannel('sight')) asked.push('sense');
 						if (ctx.hasCartridge('openai/quick-thinker')) asked.push('cartridge');
+						if (ctx.hasPolicyCard('starter/policy/no-loose-ends')) asked.push('policyCard');
 						// Nothing wrong; the point is that it was able to look.
 						return [];
 					}
@@ -327,7 +343,49 @@ describe('validateSpec', () => {
 		});
 
 		expect(validateSpec(spec, registry)).toEqual([]);
-		expect(asked).toEqual(['tool', 'action', 'sense', 'cartridge']);
+		expect(asked).toEqual(['tool', 'action', 'sense', 'cartridge', 'policyCard']);
+	});
+
+	/**
+	 * The runtimes `validateSpec` builds to ask `callProblems`/`senseProblems`
+	 * what a brick offers (`14-…` §2.1) are handed the same
+	 * `BrickRuntimeContext` a live session would use — `getPolicyCard`
+	 * included, so a kind that only resolves its policy card inside
+	 * `createRuntime` (rather than `validateConfig`) is checked exactly as
+	 * thoroughly.
+	 */
+	it('gives a runtime built for build-checking the same getPolicyCard a live session would', () => {
+		const registry = buildRegistry();
+		const seen: (string | undefined)[] = [];
+		registry.registerPack({
+			id: 'expansion2',
+			name: 'Expansion 2',
+			version: '1.0.0',
+			requiresCore: '>=1.0.0',
+			brickKinds: [
+				{
+					id: 'expansion2/watches',
+					slot: 'safety',
+					name: 'Watches',
+					description: 'Looks up its own card.',
+					realName: 'Watches',
+					realExplanation: 'Looks up its own card.',
+					configSchema: z.object({}),
+					configVersion: 1,
+					defaults: {},
+					createRuntime: (_config: unknown, ctx) => {
+						seen.push(ctx.getPolicyCard('starter/policy/no-loose-ends')?.title);
+						return {};
+					}
+				} as BrickKindDefinition
+			]
+		});
+
+		const spec = migrated(validSpec({ bricks: { ...validSpec().bricks, safety: undefined } }));
+		spec.bricks.push({ slot: 'safety', kind: 'expansion2/watches', configVersion: 1, config: {} });
+
+		validateSpec(spec, registry);
+		expect(seen).toEqual(['No loose ends']);
 	});
 
 	it('reports every dangling id at once for a badly broken spec', () => {

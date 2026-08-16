@@ -8,6 +8,7 @@ import {
 	newRule,
 	parseLiteral,
 	replayCard,
+	runScriptedProbe,
 	type ConditionRow
 } from './policy-studio.js';
 
@@ -186,5 +187,45 @@ describe('replayCard', () => {
 		expect(hits).toEqual([
 			{ tick: 3, callKind: 'action', callName: 'move', ruleIndex: 0, reason: 'Long enough.' }
 		]);
+	});
+});
+
+describe('runScriptedProbe', () => {
+	it('fires a card that watches for something the probe actually calls', async () => {
+		const card: PolicyCard = {
+			id: 'test/policy/no-opening',
+			title: 'No opening',
+			schemaVersion: 1,
+			rules: [
+				{
+					hook: 'pre-act',
+					when: { kind: 'call-name-is', value: 'open' },
+					then: 'block-action',
+					reason: 'Stays shut.'
+				}
+			]
+		};
+		const result = await runScriptedProbe(card);
+		expect(result.hits.length).toBeGreaterThan(0);
+		expect(result.hits[0]).toMatchObject({ callName: 'open', ruleIndex: 0, reason: 'Stays shut.' });
+		expect(result.outcome).toBeDefined();
+	});
+
+	it('never fires a card watching for something the probe never calls', async () => {
+		const card: PolicyCard = {
+			id: 'test/policy/never',
+			title: 'Never',
+			schemaVersion: 1,
+			rules: [
+				{
+					hook: 'pre-act',
+					when: { kind: 'call-name-is', value: 'give' },
+					then: 'block-action',
+					reason: 'Unreachable in the probe.'
+				}
+			]
+		};
+		const result = await runScriptedProbe(card);
+		expect(result.hits).toEqual([]);
 	});
 });

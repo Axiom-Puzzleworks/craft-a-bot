@@ -52,6 +52,20 @@
 	const brickKinds = $derived(record ? brickKindsFor(record.spec, registry) : {});
 	const json = $derived(record ? JSON.stringify(record.spec, null, 2) : '');
 
+	/**
+	 * A fitted Safety Brick's `policyCards` (`14-…` §4.6, WP22) — read the same
+	 * way `brickKindsFor` reads everything else here, generically off the spec
+	 * rather than by reaching for a known brick shape, since a future pack's
+	 * safety-adjacent brick could carry the same field. This is the Workshop
+	 * half of the round-trip: a card fitted on the Kit's bench shows up here
+	 * without either screen having to be told about the other.
+	 */
+	const policyCardIds = $derived.by(() => {
+		const safety = record?.spec.bricks.find((brick) => brick.slot === 'safety');
+		const config = safety?.config as { policyCards?: string[] } | undefined;
+		return config?.policyCards ?? [];
+	});
+
 	$effect(() => {
 		void load(agentId);
 	});
@@ -163,6 +177,25 @@
 						{/each}
 					</tbody>
 				</table>
+			{/if}
+
+			<h3>Policy cards fitted</h3>
+			{#if policyCardIds.length === 0}
+				<p class="hint" data-testid="no-policy-cards">No policy cards fitted.</p>
+			{:else}
+				<ul class="policy-cards" data-testid="spec-policy-cards">
+					{#each policyCardIds as cardId (cardId)}
+						{@const card = registry.getPolicyCard(cardId)}
+						<li>
+							<span class="mono">{cardId}</span>
+							{#if card}
+								<span class="hint">— {card.title}</span>
+							{:else}
+								<span class="missing">not installed</span>
+							{/if}
+						</li>
+					{/each}
+				</ul>
 			{/if}
 		</section>
 
@@ -323,6 +356,15 @@
 	.missing {
 		color: var(--cab-red-text);
 		font-weight: 600;
+	}
+
+	.policy-cards {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		display: grid;
+		gap: var(--cab-space-1);
+		font-size: var(--cab-text-sm);
 	}
 
 	.json {

@@ -1,9 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
+import { z } from 'zod';
 import { createSession } from './agent-session.js';
 import { createPackRegistry, type PackRegistry } from '../pack-registry.js';
 import { createMockProvider, createTestClock, turn, v1BrickKinds } from '../testing/index.js';
 import type { AgentSpec } from '../schemas/agent-spec.js';
 import type { EngineEvent } from '../schemas/events.js';
+import type { BrickKindDefinition } from '../types/brick.js';
 import type { Guardrail, GuardrailVerdict } from '../types/guardrail.js';
 import type { ToolDefinition } from '../types/tool.js';
 import type { WorldDefinition, WorldInstance } from '../types/world.js';
@@ -1223,6 +1225,100 @@ describe('guardrails', () => {
 		expect(result.outcome).toBe('STOPPED_BY_GUARDRAIL');
 		expect(seen).toContain('guardrail.tripped');
 		expect(seen).not.toContain('think.started');
+	});
+
+	/**
+	 * A policy card's own field (`14-…` §4.6, WP22): `compilePolicyCard`
+	 * (`@craftabot/governance`) sets `policyCardId` on the guardrails it
+	 * produces, and the engine copies it onto both events, unconditionally —
+	 * core has no reason to know what a policy card is, only to relay a field
+	 * a guardrail chose to carry.
+	 */
+	it('copies a guardrail’s policyCardId onto both guardrail events, when it has one', async () => {
+		const stopFromACard: Guardrail = { ...stopEverything, policyCardId: 'test/policy/stop-early' };
+		const { session, log } = makeSession({
+			script: [turn('Ping.', 'ping')],
+			guardrails: [stopFromACard]
+		});
+		await session.step();
+
+		const checked = log.find((event) => event.type === 'guardrail.checked');
+		const tripped = log.find((event) => event.type === 'guardrail.tripped');
+		expect(checked?.type === 'guardrail.checked' ? checked.payload.policyCardId : undefined).toBe(
+			'test/policy/stop-early'
+		);
+		expect(tripped?.type === 'guardrail.tripped' ? tripped.payload.policyCardId : undefined).toBe(
+			'test/policy/stop-early'
+		);
+	});
+
+	it('leaves policyCardId off both events for a hand-written guardrail with no card behind it', async () => {
+		const { session, log } = makeSession({
+			script: [turn('Ping.', 'ping')],
+			guardrails: [stopEverything]
+		});
+		await session.step();
+
+		const checked = log.find((event) => event.type === 'guardrail.checked');
+		const tripped = log.find((event) => event.type === 'guardrail.tripped');
+		expect(
+			checked?.type === 'guardrail.checked' ? 'policyCardId' in checked.payload : undefined
+		).toBe(false);
+		expect(
+			tripped?.type === 'guardrail.tripped' ? 'policyCardId' in tripped.payload : undefined
+		).toBe(false);
+	});
+
+	/**
+	 * The runtime a *live* session builds gets the same `getPolicyCard` a
+	 * build-check runtime does (`validate-spec.test.ts`'s equivalent) — one
+	 * `BrickRuntimeContext`, not two implementations that could drift.
+	 */
+	it('gives a fitted brick’s own runtime a working getPolicyCard', async () => {
+		const registry = buildRegistry();
+		const seen: (string | undefined)[] = [];
+		registry.registerPack({
+			id: 'expansion3',
+			name: 'Expansion 3',
+			version: '1.0.0',
+			requiresCore: '>=0.0.1',
+			brickKinds: [
+				{
+					id: 'expansion3/watches',
+					slot: 'safety',
+					name: 'Watches',
+					description: 'Looks up its own card.',
+					realName: 'Watches',
+					realExplanation: 'Looks up its own card.',
+					configSchema: z.object({}),
+					configVersion: 1,
+					defaults: {},
+					createRuntime: (_config: unknown, ctx) => {
+						seen.push(ctx.getPolicyCard('nobody/registered-this')?.title);
+						return {};
+					}
+				} as BrickKindDefinition
+			]
+		});
+
+		createSession({
+			spec: {
+				id: '22222222-2222-4222-8222-222222222222',
+				name: 'Watched Tinybot',
+				schemaVersion: 2,
+				bricks: [{ slot: 'safety', kind: 'expansion3/watches', configVersion: 1, config: {} }],
+				goalCardId: 'tiny/goal',
+				identity: { displayName: 'Watched Tinybot', boxArtSeed: 'seed' },
+				createdAt: '2026-08-16T09:00:00.000Z',
+				updatedAt: '2026-08-16T09:00:00.000Z'
+			},
+			registry,
+			provider: createMockProvider({ script: [turn('Off I go.', 'win')] }),
+			guardrails: []
+		});
+		// Constructing the session already builds every fitted brick's runtime
+		// (`14-…` §2.1), so `createRuntime` above has already run.
+		expect(seen).toEqual([undefined]);
 	});
 
 	it('blocks one action without ending the run, and tells the agent why', async () => {

@@ -1,12 +1,18 @@
-import type {
-	EngineEvent,
-	GuardrailHook,
-	PolicyCard,
-	PolicyDisposition,
-	PolicyRule,
-	PredicateExpr
+import {
+	createPackRegistry,
+	createSession,
+	type AgentSpec,
+	type EngineEvent,
+	type GuardrailHook,
+	type PackManifest,
+	type PolicyCard,
+	type PolicyDisposition,
+	type PolicyRule,
+	type PredicateExpr
 } from '@craftabot/core';
-import { evaluatePredicate } from '@craftabot/governance';
+import { createMockProvider, createTestClock, obedient } from '@craftabot/core/testing';
+import { compilePolicyCard, evaluatePredicate } from '@craftabot/governance';
+import starterPack from '@craftabot/pack-starter';
 
 /**
  * **Policy Studio logic** (`17-…` §4.5, WP22 slice e), kept out of the
@@ -148,4 +154,142 @@ export function replayCard(card: PolicyCard, events: readonly EngineEvent[]): Re
 	}
 
 	return hits;
+}
+
+// --- test bench, part (b): a scripted adversarial run ------------------------------------
+
+/**
+ * A cartridge pack with nothing but a mock brain — the same shape starter's
+ * own `session/harness.ts` and `pack-monitor`'s contract test both build, so
+ * the Brain brick's `cartridgeId` has something real to resolve to.
+ */
+const PROBE_CARTRIDGE_PACK: PackManifest = {
+	id: 'policy-studio-probe',
+	name: 'Policy Studio probe cartridge',
+	version: '1.0.0',
+	requiresCore: '>=0.0.1',
+	cartridges: [
+		{
+			id: 'policy-studio-probe/mock-brain',
+			providerId: 'mock',
+			model: 'mock-1',
+			displayName: 'Probe Brain',
+			blurb: 'Scripted and deterministic — the Studio’s own probe.',
+			stats: { words: 2, reasoning: 2, speed: 3 },
+			costHint: 'low',
+			defaults: { temperature: 0, maxTokens: 256 }
+		}
+	]
+};
+
+/**
+ * A short, generic sweep across the Playroom's action surface — not a plan
+ * for any one goal card, deliberately: an authored card's condition is
+ * arbitrary, so there is no way to script *the* adversarial run the way the
+ * L5 efficacy suite could for the three starter-shipped cards, each written
+ * against a known rule. This is the Studio's own probe, wide rather than
+ * targeted, and it plays out on Free Play's layout because that is the one
+ * with a locked chest, scattered blocks, a key and a snack all at once.
+ */
+const PROBE_SCRIPT = obedient([
+	{ say: 'Let’s see what’s here.', call: 'move', args: { direction: 'east' } },
+	{ say: 'Trying the chest.', call: 'open', args: { container: 'toy chest' } },
+	{ say: 'Picking something up.', call: 'pick_up', args: { item: 'red-key' } },
+	{ say: 'Putting it down again, just here.', call: 'put_down', args: { item: 'red-key' } },
+	{ say: 'Saying hello.', call: 'say', args: { text: 'Hello!' } },
+	{ say: 'That’s enough poking about.', call: 'celebrate' }
+]);
+
+export interface ScriptedProbeResult {
+	events: EngineEvent[];
+	hits: ReplayHit[];
+	outcome: string | undefined;
+}
+
+const PLAYROOM_ACTIONS = ['move', 'pick_up', 'put_down', 'give', 'open', 'say', 'celebrate'].map(
+	(id) => `starter/playroom/${id}`
+);
+
+/**
+ * Drives `PROBE_SCRIPT` through a real session with `card` installed as the
+ * *only* guardrail — through `CreateSessionDeps.guardrails`, the host seam,
+ * rather than a fitted Safety Brick, since the point is to watch this one
+ * card and nothing else. Approval is always granted, so a `require-approval`
+ * rule does not park the probe forever.
+ */
+export async function runScriptedProbe(card: PolicyCard): Promise<ScriptedProbeResult> {
+	const registry = createPackRegistry();
+	registry.registerPack(starterPack);
+	registry.registerPack(PROBE_CARTRIDGE_PACK);
+
+	const clock = createTestClock();
+	const spec: AgentSpec = {
+		id: '00000000-0000-4000-8000-000000000000',
+		name: 'Studio Probe Bot',
+		bricks: {
+			llm: {
+				cartridgeId: 'policy-studio-probe/mock-brain',
+				temperature: 0,
+				maxTokens: 256,
+				personality: ''
+			},
+			memory: { windowSize: 10, notebook: false },
+			sense: { channels: ['starter/playroom/sight', 'starter/playroom/compass'] },
+			actions: { enabled: PLAYROOM_ACTIONS }
+		},
+		goalCardId: 'starter/free-play',
+		createdAt: '2026-08-16T09:00:00.000Z',
+		updatedAt: '2026-08-16T09:00:00.000Z',
+		schemaVersion: 1
+	};
+
+	const session = createSession({
+		spec,
+		registry,
+		provider: createMockProvider({ script: PROBE_SCRIPT }),
+		guardrails: compilePolicyCard(card),
+		options: { now: clock.now, newId: clock.newId, random: clock.random }
+	});
+
+	const events: EngineEvent[] = [];
+	session.events.onAny((event) => events.push(event));
+	session.events.on('approval.requested', () => session.resolveApproval(true));
+
+	session.start('step');
+	let outcome: string | undefined;
+	for (let step = 0; step < 8; step++) {
+		const result = await session.step();
+		if (result.outcome) {
+			outcome = result.outcome;
+			break;
+		}
+	}
+
+	const hits: ReplayHit[] = [];
+	let lastCall: { kind: 'tool' | 'action'; name: string } | undefined;
+	for (const event of events) {
+		if (event.type === 'decision' && event.payload.call) {
+			lastCall = { kind: event.payload.call.kind, name: event.payload.call.name };
+			continue;
+		}
+		if (event.type !== 'guardrail.checked' || event.payload.policyCardId !== card.id) continue;
+		// A checked event fires for every rule on every eligible tick, allowed or
+		// not — a "hit" here means the rule actually matched, the same
+		// allow:true-or-not distinction `evaluatePredicate` draws inside the
+		// compiled guardrail itself.
+		const { verdict } = event.payload;
+		if ('allow' in verdict && verdict.allow) continue;
+
+		const ruleIndex = Number(event.payload.guardrailId.split('#rule-').at(-1) ?? 0);
+		const rule = card.rules[ruleIndex];
+		hits.push({
+			tick: event.tick,
+			callKind: lastCall?.kind ?? 'action',
+			callName: lastCall?.name ?? '',
+			ruleIndex,
+			reason: rule?.reason ?? ''
+		});
+	}
+
+	return { events, hits, outcome };
 }
