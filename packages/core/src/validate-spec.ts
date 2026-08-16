@@ -47,7 +47,11 @@ export function validateSpec(input: AnyAgentSpec, registry: PackRegistry): Build
 	 * built here is ever run; a brick that used it to decide what it offers
 	 * would be offering something different every time the ribbon refreshed.
 	 */
-	const runtimes = buildRuntimes({ spec, registry, context: { random: () => 0 } });
+	const runtimes = buildRuntimes({
+		spec,
+		registry,
+		context: { random: () => 0, getPolicyCard: (id) => registry.getPolicyCard(id) }
+	});
 	try {
 		problems.push(...brainProblems(spec, registry));
 		problems.push(...goalCardProblems(spec, registry));
@@ -216,7 +220,8 @@ function ownProblems(spec: ReturnType<typeof toSpecV2>, registry: PackRegistry):
 		hasTool: (id) => registry.getTool(id) !== undefined,
 		hasAction: (id) => registry.getAction(id) !== undefined,
 		hasSenseChannel: (id) => registry.getSenseChannel(id) !== undefined,
-		hasCartridge: (id) => registry.getCartridge(id) !== undefined
+		hasCartridge: (id) => registry.getCartridge(id) !== undefined,
+		hasPolicyCard: (id) => registry.getPolicyCard(id) !== undefined
 	};
 
 	const problems: BuildProblem[] = [];

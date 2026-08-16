@@ -111,6 +111,19 @@ export {
 } from './schemas/pack-manifest.js';
 export type { NotebookAccess, ToolContext, ToolDefinition, ToolResult } from './types/tool.js';
 export {
+	POLICY_CARD_SCHEMA_VERSION,
+	parsePolicyCard,
+	policyCardSchema,
+	policyDispositionSchema,
+	policyRuleSchema,
+	predicateExprSchema,
+	safeParsePolicyCard,
+	type PolicyCard,
+	type PolicyDisposition,
+	type PolicyRule,
+	type PredicateExpr
+} from './schemas/policy-card.js';
+export {
 	engineEventSchema,
 	parseEngineEvent,
 	safeParseEngineEvent,

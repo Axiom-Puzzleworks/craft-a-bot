@@ -228,6 +228,10 @@ All events share `{ id, runId, tick, timestamp, type, payload }`, strictly typed
 > - Optional, so every trace written before WP15 still parses; absent means the only pairing that was then available. No `formatVersion` bump and no migration entry — an unrecorded field on old traces is honestly unrecorded.
 > - `ChatMessage` also gains **`toolCalls?`**, the assistant half of the tool protocol, which `transcript-v1` writes and `sections-v1` never does. It is carried verbatim into `prompt.composed` like the rest of the message, so the realism mode needs no event of its own.
 
+> **Amended 2026-08-16 (WP22):** one payload field, additive, on two events.
+>
+> - **`guardrail.checked.policyCardId?`** and **`guardrail.tripped.policyCardId?`** — which policy card (`14-…` §4.6) a guardrail was compiled from, when it was compiled from one. A hand-written guardrail (the Safety Brick's own four, a Monitor's rules) has none and the field is simply absent, so every trace written before WP22 still parses. Set on the `Guardrail` itself by `@craftabot/governance`'s `compilePolicyCard` and copied through by the engine — not derived by parsing `guardrailId` for a naming convention, which is how E6's own bare-id ambiguity got introduced the first time.
+
 Rules: events are **append-only facts**; payloads are JSON-serialisable; the trace is simply the ordered event list of a run (persisted per `07-DATA-MODEL-PERSISTENCE.md`); _anything_ the UI shows about a run must be derivable from events — if it isn't in an event, it didn't happen.
 
 ## 8. Prompting (V1 canonical prompt)

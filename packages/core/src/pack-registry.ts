@@ -7,6 +7,7 @@ import type {
 	PackManifest,
 	PackManifestMetadata
 } from './schemas/pack-manifest.js';
+import type { PolicyCard } from './schemas/policy-card.js';
 import type { ToolDefinition } from './types/tool.js';
 import type {
 	WorldActionDefinition,
@@ -45,11 +46,14 @@ export interface PackRegistry {
 	getSenseChannel(id: string): WorldSenseDefinition | undefined;
 	/** Actions are declared per-world; this searches every registered world. */
 	getAction(id: string): WorldActionDefinition | undefined;
+	/** A registered policy card (`14-…` §4.6, WP22) — declarative guardrail config a Safety Brick names by id. */
+	getPolicyCard(id: string): PolicyCard | undefined;
 	listPacks(): PackManifestMetadata[];
 	listTools(): ToolDefinition[];
 	listCartridges(): CartridgeDefinition[];
 	listGoalCards(): GoalCardDefinition[];
 	listWorlds(): WorldDefinition[];
+	listPolicyCards(): PolicyCard[];
 }
 
 export function createPackRegistry(): PackRegistry {
@@ -62,6 +66,7 @@ export function createPackRegistry(): PackRegistry {
 	const goalCards = new Map<string, GoalCardDefinition>();
 	const worlds = new Map<string, WorldDefinition>();
 	const guardrails = new Map<string, GuardrailDefinition>();
+	const policyCards = new Map<string, PolicyCard>();
 
 	function insertUnique<T>(map: Map<string, T>, id: string, value: T, kind: string): void {
 		if (map.has(id)) {
@@ -93,6 +98,8 @@ export function createPackRegistry(): PackRegistry {
 		for (const world of manifest.worlds ?? []) insertUnique(worlds, world.id, world, 'world');
 		for (const guardrail of manifest.guardrails ?? [])
 			insertUnique(guardrails, guardrail.id, guardrail, 'guardrail');
+		for (const card of manifest.policyCards ?? [])
+			insertUnique(policyCards, card.id, card, 'policy card');
 	}
 
 	/** The last segment of a content id — the name a world uses internally. */
@@ -151,10 +158,12 @@ export function createPackRegistry(): PackRegistry {
 		getGuardrail: (id) => guardrails.get(id),
 		getSenseChannel,
 		getAction,
+		getPolicyCard: (id) => policyCards.get(id),
 		listPacks: () => [...packs.values()],
 		listTools: () => [...tools.values()],
 		listCartridges: () => [...cartridges.values()],
 		listGoalCards: () => [...goalCards.values()],
-		listWorlds: () => [...worlds.values()]
+		listWorlds: () => [...worlds.values()],
+		listPolicyCards: () => [...policyCards.values()]
 	};
 }

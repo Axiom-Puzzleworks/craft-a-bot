@@ -12,6 +12,8 @@ import validStoredEvent from '../fixtures/stored-event.v1.valid.json';
 import invalidStoredEvent from '../fixtures/stored-event.v1.invalid.json';
 import validPackManifest from '../fixtures/pack-manifest.v1.valid.json';
 import invalidPackManifest from '../fixtures/pack-manifest.v1.invalid.json';
+import validPolicyCard from '../fixtures/policy-card.v1.valid.json';
+import invalidPolicyCard from '../fixtures/policy-card.v1.invalid.json';
 import validKitFileV1 from '../fixtures/kit-file.v1.valid.json';
 import validKitFile from '../fixtures/kit-file.v2.valid.json';
 import invalidKitFile from '../fixtures/kit-file.v2.invalid.json';
@@ -23,6 +25,7 @@ import { agentSpecSchema } from './agent-spec.js';
 import { agentSpecV2Schema } from './agent-spec-v2.js';
 import { kitFileSchema, migrateKitFile } from './kit-file.js';
 import { packManifestMetadataSchema } from './pack-manifest.js';
+import { policyCardSchema } from './policy-card.js';
 import { agentRecordSchema, migrateAgentRecord, storedEventSchema } from './records.js';
 import { migrateTraceFile, traceFileSchema } from './trace-file.js';
 
@@ -97,6 +100,13 @@ const CASES: Case[] = [
 		valid: validTraceFile,
 		invalid: invalidTraceFile,
 		shareable: true
+	},
+	{
+		name: 'PolicyCard v1',
+		schema: policyCardSchema,
+		valid: validPolicyCard,
+		invalid: invalidPolicyCard,
+		shareable: true
 	}
 ];
 
@@ -143,6 +153,7 @@ describe('the fixture set itself', () => {
 			'AgentSpec',
 			'KitFile',
 			'PackManifest',
+			'PolicyCard',
 			'StoredEvent',
 			'TraceFile'
 		]);

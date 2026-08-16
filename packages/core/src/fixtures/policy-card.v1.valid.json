@@ -1,0 +1,23 @@
+{
+	"id": "starter/policy/no-snack-theft",
+	"title": "Never take Teddy's snack",
+	"description": "Blocks giving the snack to anyone but Teddy.",
+	"schemaVersion": 1,
+	"rules": [
+		{
+			"hook": "pre-act",
+			"when": {
+				"kind": "and",
+				"all": [
+					{ "kind": "call-name-is", "value": "give" },
+					{
+						"kind": "not",
+						"expr": { "kind": "argument-equals", "path": "character", "value": "teddy" }
+					}
+				]
+			},
+			"then": "block-action",
+			"reason": "The snack is Teddy's."
+		}
+	]
+}

@@ -48,4 +48,13 @@ export interface Guardrail {
 	description: string;
 	hooks: GuardrailHook[];
 	check(ctx: GuardrailContext): Promise<GuardrailVerdict> | GuardrailVerdict;
+	/**
+	 * The policy card (`14-…` §4.6, WP22) this guardrail was compiled from, if
+	 * any. Set by `@craftabot/governance`'s `compilePolicyCard` and nothing
+	 * else — a hand-written guardrail (the Safety Brick's own four, a
+	 * Monitor's rules) simply omits it. The engine copies it onto
+	 * `guardrail.checked`/`guardrail.tripped` so a fired card is traceable
+	 * without parsing `id` strings for a convention.
+	 */
+	policyCardId?: string;
 }

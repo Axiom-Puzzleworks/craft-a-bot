@@ -126,6 +126,35 @@ describe('PackRegistry', () => {
 		expect(registry.listWorlds()).toHaveLength(1);
 	});
 
+	it('registers policy cards a pack ships (14-… §4.6, WP22)', () => {
+		const registry = createPackRegistry();
+		registry.registerPack({
+			id: 'test-policy',
+			name: 'Test policy',
+			version: '1.0.0',
+			requiresCore: '>=0.0.1',
+			policyCards: [
+				{
+					id: 'test-policy/no-move',
+					title: 'No moving',
+					schemaVersion: 1,
+					rules: [
+						{
+							hook: 'pre-act',
+							when: { kind: 'call-name-is', value: 'move' },
+							then: 'block-action',
+							reason: 'Standing still today.'
+						}
+					]
+				}
+			]
+		});
+
+		expect(registry.getPolicyCard('test-policy/no-move')?.title).toBe('No moving');
+		expect(registry.getPolicyCard('nope')).toBeUndefined();
+		expect(registry.listPolicyCards()).toHaveLength(1);
+	});
+
 	it('registers guardrails a pack contributes, without any engine change (08 §7.3)', () => {
 		const registry = createPackRegistry();
 		registry.registerPack({

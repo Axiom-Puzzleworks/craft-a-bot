@@ -235,9 +235,21 @@ const memoryUpdatedEvent = eventSchema(
 		notebookUpdated: z.boolean()
 	})
 );
+/**
+ * Which policy card fired, when a guardrail was compiled from one (`14-…`
+ * §4.6, WP22). Optional and additive: a hand-written guardrail has no card
+ * behind it, and every trace written before WP22 still parses with it absent.
+ */
+const policyCardIdField = z.string().optional();
+
 const guardrailCheckedEvent = eventSchema(
 	'guardrail.checked',
-	z.object({ guardrailId: z.string(), hook: guardrailHookSchema, verdict: guardrailVerdictSchema })
+	z.object({
+		guardrailId: z.string(),
+		hook: guardrailHookSchema,
+		verdict: guardrailVerdictSchema,
+		policyCardId: policyCardIdField
+	})
 );
 const guardrailTrippedEvent = eventSchema(
 	'guardrail.tripped',
@@ -245,7 +257,8 @@ const guardrailTrippedEvent = eventSchema(
 		guardrailId: z.string(),
 		hook: guardrailHookSchema,
 		reason: z.string(),
-		disposition: z.enum(['block-action', 'stop-run']).optional()
+		disposition: z.enum(['block-action', 'stop-run']).optional(),
+		policyCardId: policyCardIdField
 	})
 );
 const approvalRequestedEvent = eventSchema(

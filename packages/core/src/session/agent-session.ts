@@ -137,7 +137,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 	const runtimes = buildRuntimes({
 		spec: deps.spec,
 		registry,
-		context: { random }
+		context: { random, getPolicyCard: (id) => registry.getPolicyCard(id) }
 	});
 	const fittedBricks = describeFittedBricks(deps.spec, registry);
 
@@ -378,13 +378,20 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			hook,
 			guardrailContext(hook, proposed),
 			(guardrail, verdict) => {
-				emit('guardrail.checked', { guardrailId: guardrail.id, hook, verdict });
+				const policyCardId = guardrail.policyCardId;
+				emit('guardrail.checked', {
+					guardrailId: guardrail.id,
+					hook,
+					verdict,
+					...(policyCardId ? { policyCardId } : {})
+				});
 				if ('allow' in verdict && !verdict.allow) {
 					emit('guardrail.tripped', {
 						guardrailId: guardrail.id,
 						hook,
 						reason: verdict.reason,
-						disposition: verdict.disposition
+						disposition: verdict.disposition,
+						...(policyCardId ? { policyCardId } : {})
 					});
 				}
 			}

@@ -35,7 +35,9 @@ export const buildProblemCodeSchema = z.enum([
 	'unknown-brick-kind',
 	'bad-brick-config',
 	/** Two bricks fitted to one socket, which V1's teaching-aid rule forbids. */
-	'slot-already-filled'
+	'slot-already-filled',
+	/** A policy card id (`14-…` §4.6, WP22) no installed pack registered. */
+	'unknown-policy-card'
 ]);
 export type BuildProblemCode = z.infer<typeof buildProblemCodeSchema>;
 

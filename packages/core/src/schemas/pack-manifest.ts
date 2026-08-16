@@ -3,6 +3,7 @@ import type { BrickKindDefinition } from '../types/brick.js';
 import type { Guardrail, GuardrailHook } from '../types/guardrail.js';
 import type { ToolDefinition } from '../types/tool.js';
 import type { WorldDefinition } from '../types/world.js';
+import type { PolicyCard } from './policy-card.js';
 
 /**
  * Pack content (01-ARCHITECTURE.md §4). The pure-data content types
@@ -141,5 +142,13 @@ export interface PackManifest extends PackManifestMetadata {
 	cartridges?: CartridgeDefinition[];
 	goalCards?: GoalCardDefinition[];
 	guardrails?: GuardrailDefinition[];
+	/**
+	 * Policy cards (`14-…` §4.6, WP22) — declarative guardrail configs, data
+	 * rather than code. Registered content like everything else above: a
+	 * `starter/safety` brick names a card by qualified id in its
+	 * `policyCards` config, and `@craftabot/governance`'s `compilePolicyCard`
+	 * turns the registered card into ordinary guardrails at runtime.
+	 */
+	policyCards?: PolicyCard[];
 	artwork?: PackArtwork;
 }

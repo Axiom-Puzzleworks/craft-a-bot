@@ -58,7 +58,15 @@ export const safetyBrickSchema = z.object({
 	 * rule existed still validates, and so that a builder who has not thought
 	 * about it does not silently get a policy they did not choose.
 	 */
-	repeatLimit: z.number().int().min(2).max(10).optional()
+	repeatLimit: z.number().int().min(2).max(10).optional(),
+	/**
+	 * Policy cards fitted to this brick, by qualified id (`14-…` §4.6, WP22).
+	 * Omitted = none, the same reasoning as `repeatLimit`: every kit file
+	 * written before policy cards existed still validates, and a builder who
+	 * has not thought about it does not silently get a policy they did not
+	 * choose.
+	 */
+	policyCards: z.array(z.string().min(1)).optional()
 });
 
 export const agentSpecSchema = z.object({

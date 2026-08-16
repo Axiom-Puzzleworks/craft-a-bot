@@ -1,5 +1,6 @@
 import type { ZodType } from 'zod';
 import type { BuildProblem } from '../schemas/build-problem.js';
+import type { PolicyCard } from '../schemas/policy-card.js';
 import type { Guardrail } from './guardrail.js';
 
 /**
@@ -143,6 +144,17 @@ export interface BrickRuntime {
 export interface BrickRuntimeContext {
 	/** Deterministic randomness, so a brick cannot smuggle in `Math.random`. */
 	random(): number;
+	/**
+	 * A registered policy card, by qualified id (`14-…` §4.6, WP22).
+	 *
+	 * Unlike a tool or action id — which a brick only *offers* and core
+	 * resolves after the fact (`contributeCalls`) — a policy card must already
+	 * be compiled into a live `Guardrail` by the time `contributeGuardrails`
+	 * returns one, so the brick needs the card's own data, not just its id.
+	 * This is that lookup, the runtime-context counterpart to
+	 * `BrickValidationContext.hasPolicyCard`.
+	 */
+	getPolicyCard(id: string): PolicyCard | undefined;
 }
 
 /**
@@ -158,6 +170,8 @@ export interface BrickValidationContext {
 	hasAction(id: string): boolean;
 	hasSenseChannel(id: string): boolean;
 	hasCartridge(id: string): boolean;
+	/** Whether a policy card id (`14-…` §4.6, WP22) is one an installed pack registered. */
+	hasPolicyCard(id: string): boolean;
 }
 
 /**
@@ -177,12 +191,17 @@ export type BrickConfigProblem = Omit<BuildProblem, 'slot'>;
  * the answer changes when the user swaps the card. So a hint names a content
  * type core already owns, and the workbench resolves it.
  *
- * Four, because these are the four kinds of registered content a brick's config
+ * Five, because these are the kinds of registered content a brick's config
  * ever refers to. A pack naming one of them is contributing *content*, not a
  * mechanism (hard rule 4): it is saying which of core's own catalogues its
  * field draws on, not inventing a way to draw on a new one.
+ *
+ * > **Amended 2026-08-16 (WP22):** `policyCards` joins the four from WP14 —
+ * > `starter/safety`'s `policyCards` field needed the same "resolve against a
+ * > catalogue the workbench, not the kind, owns" answer every other id-array
+ * > field already had.
  */
-export type ControlSource = 'tools' | 'actions' | 'senseChannels' | 'cartridges';
+export type ControlSource = 'tools' | 'actions' | 'senseChannels' | 'cartridges' | 'policyCards';
 
 /**
  * How one config field should be offered to a builder.
