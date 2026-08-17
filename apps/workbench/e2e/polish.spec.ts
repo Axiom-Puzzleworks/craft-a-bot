@@ -66,3 +66,43 @@ test('the app shell loads offline', async ({ page, context }) => {
 
 	await context.setOffline(false);
 });
+
+/**
+ * A registration is scoped to an origin, not to this app. `localhost:4173`
+ * (this project's own preview port) is exactly the port most local Vite
+ * projects default to, so a browser that once precached this shell there goes
+ * on answering *any* navigation to that origin with it — including a
+ * completely different project's own dev or preview server, started long
+ * after this one's process exited. Cache-first for `/` made the stale
+ * document win even though a live server was answering right there; a live
+ * server must always win.
+ */
+test('a live server always wins over a stale cached shell', async ({ page }) => {
+	await page.goto('/');
+	await expect(page.getByTestId('new-bot')).toBeVisible();
+
+	await page.waitForFunction(() => navigator.serviceWorker.controller !== null, undefined, {
+		timeout: 15_000
+	});
+
+	// Stand in for what a *different* project's origin reuse looks like: this
+	// origin's cache already holds a document for `/` that is not the page a
+	// live server would serve right now.
+	await page.evaluate(async () => {
+		const [cacheName] = await caches.keys();
+		const cache = await caches.open(cacheName);
+		await cache.put(
+			'/',
+			new Response('<!doctype html><title>stale</title>this is not today’s app', {
+				headers: { 'content-type': 'text/html' }
+			})
+		);
+	});
+
+	// Online, so the network — this project's own real server, standing in for
+	// whichever server actually owns the origin — is reachable.
+	await page.reload();
+
+	await expect(page.getByTestId('new-bot')).toBeVisible();
+	await expect(page.getByText('this is not today’s app')).toHaveCount(0);
+});

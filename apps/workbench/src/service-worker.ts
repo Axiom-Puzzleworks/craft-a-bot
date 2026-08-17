@@ -103,22 +103,49 @@ worker.addEventListener('fetch', (event) => {
 	const isNavigation = request.mode === 'navigate';
 	if (!isNavigation && !shellUrls.has(url.href)) return;
 
+	/*
+	 * **Navigations are network-first; everything else stays cache-first.**
+	 *
+	 * A registration is scoped to an *origin* — `localhost:4173`, say — not to
+	 * this app. `npm run preview` and Vite's own dev/preview defaults are the
+	 * ports most local projects reach for, so the same origin is routinely
+	 * reused by whatever else the developer runs next. Cache-first for the
+	 * document meant that once `/` was precached here, it stayed the answer for
+	 * that origin forever — surviving this server's process exiting, and
+	 * outliving this project entirely once a *different* app's dev or preview
+	 * server later bound the same port. That app's own real page was never
+	 * reached: `cache.match(request)` found this shell's stale entry first.
+	 *
+	 * Hashed static assets don't have this problem — the URL changes whenever
+	 * the content does, so a cache hit is always the right answer and skipping
+	 * the network is the entire point. A navigation's URL never changes, so the
+	 * network has to be asked first: a live server on this origin, this app's or
+	 * anyone else's, must always win over a stale cached document. The cache
+	 * only answers `/` when nothing answers at all, which is what "offline app
+	 * shell" was ever supposed to mean.
+	 */
+	if (isNavigation) {
+		event.respondWith(
+			(async () => {
+				try {
+					return await fetch(request);
+				} catch {
+					const cache = await caches.open(CACHE);
+					const fallback = await cache.match('/');
+					if (fallback) return fallback;
+					throw new Error('offline, and this is not in the shell cache');
+				}
+			})()
+		);
+		return;
+	}
+
 	event.respondWith(
 		(async () => {
 			const cache = await caches.open(CACHE);
-
 			const cached = await cache.match(request);
 			if (cached) return cached;
-
-			try {
-				return await fetch(request);
-			} catch {
-				// Offline and not in the cache: fall back to the shell entry point so
-				// a deep link still boots the SPA, which then routes client-side.
-				const fallback = await cache.match('/');
-				if (fallback) return fallback;
-				throw new Error('offline, and this is not in the shell cache');
-			}
+			return fetch(request);
 		})()
 	);
 });
