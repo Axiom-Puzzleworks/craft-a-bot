@@ -168,6 +168,8 @@ A published test suite (`@craftabot/pack-testkit`) any pack must pass — the me
 > migration or an app-level default change — that would want a workbench-level test, not a
 > pack-conformance one, and none exists yet.
 
+> **Amended 2026-08-18 (WP26, provider packs): a new registered-content category shipped with no conformance check of its own, on purpose.** `PackManifest.providers?: ProviderFactory[]` (`06-…` §8) is data plus one function, the same shape `guardrails` already is — and `checkGuardrail` earns its keep by calling `create()` and probing the result for purity/legality, so the same case could be made for a `checkProvider`. It was not built: a `ProviderFactory.create()` returns something whose only interesting behaviour is a real network call, and a meaningful automated probe would mean either hitting a live API from a conformance suite (never — `13-…`'s own network-never rule) or building enough of a fake HTTP layer per provider that the check would mostly be re-deriving each pack's own `provider.test.ts`, which already exists and is more thorough than a generic probe could be (all three provider packs' error-kind and streaming suites, `06-…` §7's amendment). What conformance *does* still check is the one honest thing left: `checkManifest`'s existing id-qualification and collision rules already cover a pack's `providers` entries the same as any other content id. Recorded rather than silently skipped, the same discipline `checkCartridge`'s own two open bullets above already follow.
+
 ## 8. L4 — The behavioural eval harness (`@craftabot/evals`) — the new build
 
 The instrument Andrew's manual trials were approximating. Design:
