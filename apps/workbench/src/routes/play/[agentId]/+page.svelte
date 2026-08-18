@@ -12,7 +12,7 @@
 		type RunRecord
 	} from '@craftabot/core';
 	import { capabilitiesOf, offers } from '$lib/bot-capabilities.js';
-	import { chooseBrain } from '$lib/brain.js';
+	import { chooseBrain, noBatteryMessage } from '$lib/brain.js';
 	import { demoVariantFor, hasDemoPlan } from '$lib/demo-brain.js';
 	import { leafletStore } from '$lib/leaflet/leaflet.svelte.js';
 	import { preferences } from '$lib/state/preferences.svelte.js';
@@ -58,6 +58,7 @@
 	const evictionMessage = $derived(evictionNotice(evicted));
 	let runStartedAt = $state<string | undefined>(undefined);
 	let missingBattery = $state(false);
+	let missingBatteryMessage = $state('');
 	let keyless = $state(true);
 	/**
 	 * Where the Flight Recorder should open when a story beat says "see more"
@@ -167,9 +168,10 @@
 		 */
 		const can = capabilitiesOf(loaded.spec, registry);
 		const cartridge = registry.getCartridge(can.cartridgeId);
-		const brain = chooseBrain(cartridge, loaded.spec.goalCardId, can);
+		const brain = chooseBrain(cartridge, loaded.spec.goalCardId, registry, can);
 		if (!brain.ok) {
 			missingBattery = true;
+			missingBatteryMessage = noBatteryMessage(cartridge, registry);
 			return;
 		}
 		keyless = brain.keyless;
@@ -412,7 +414,7 @@
 
 {#if missingBattery}
 	<main class="loading" data-testid="play-no-battery">
-		<p>Batteries not included! Pop your OpenAI key into the battery compartment first.</p>
+		<p>{missingBatteryMessage}</p>
 		<a href={resolve('/settings')}>Open the battery compartment</a>
 	</main>
 {:else if !record || !view}

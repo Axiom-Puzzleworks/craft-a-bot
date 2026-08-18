@@ -30,9 +30,9 @@ async function stubOpenAi(page: Page): Promise<void> {
 
 async function insertBattery(page: Page): Promise<void> {
 	await page.goto('/settings');
-	await page.getByTestId('key-input').fill(FAKE_KEY);
-	await page.getByTestId('insert-battery').click();
-	await expect(page.getByTestId('charge-state')).toHaveAttribute('data-charge', 'charged');
+	await page.getByTestId('key-input-openai').fill(FAKE_KEY);
+	await page.getByTestId('insert-battery-openai').click();
+	await expect(page.getByTestId('charge-state-openai')).toHaveAttribute('data-charge', 'charged');
 }
 
 async function buildAndGoWithCartridge(page: Page, cartridgeLabel: string): Promise<void> {

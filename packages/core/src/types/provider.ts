@@ -28,6 +28,32 @@ export interface KeyCheck {
 	message: string;
 }
 
+/**
+ * **A provider, registered like any other pack content** (`06-…` §8, WP26).
+ *
+ * Until now exactly one provider existed and `apps/workbench/src/lib/brain.ts`
+ * named it by hand — `if (cartridge.providerId === OPENAI_PROVIDER_ID)`, with
+ * everything else silently falling through to the mock brain rather than
+ * genuinely erroring. That is precisely the shape hard rule 4 exists to
+ * prevent: a growing app-level if/else standing in for a real extension
+ * point, the same defect `contributeGuardrails` (WP14) fixed for bricks.
+ *
+ * A `ProviderFactory` is data plus one function, the same shape a
+ * `ToolDefinition` or `GuardrailDefinition` already is — building an
+ * `LLMProvider` is executable, but *which* providers exist and how to build
+ * one is content a pack contributes, not a mechanism it invents.
+ */
+export interface ProviderFactory {
+	/** Matches `LLMProvider.id` and every `CartridgeDefinition.providerId` naming it. */
+	id: string;
+	name: string;
+	keyRequirement: 'required' | 'none';
+	/** Where a user manages this provider's keys, for the battery compartment's link. Omitted for a keyless provider. */
+	keysUrl?: string;
+	/** `apiKey` is `''` for a keyless provider — still called, so local providers (Ollama) build the same way as any other. */
+	create(options: { apiKey: string; fetch?: typeof globalThis.fetch }): LLMProvider;
+}
+
 export type ChatRole = ChatMessage['role'];
 
 export interface ToolSchema {

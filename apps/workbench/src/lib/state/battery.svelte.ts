@@ -1,5 +1,4 @@
 import type { KeyCheck } from '@craftabot/core';
-import { createOpenAIProvider, OPENAI_PROVIDER_ID } from '@craftabot/pack-openai';
 import { createBrowserKeyVault, type KeyVault } from './keys.js';
 
 /**
@@ -12,7 +11,16 @@ import { createBrowserKeyVault, type KeyVault } from './keys.js';
  *
  * Note what is *not* here: the key value never enters reactive state, so it can
  * never be caught up in a snapshot, a log, or a component's debug output. The
- * only reader is `createOpenAIProvider`, at call time.
+ * only reader is whichever `ProviderFactory.create` the caller's `validate`
+ * closes over, at call time.
+ *
+ * **`providerId` and `validate` are both required now (WP26).** This module
+ * used to default both to OpenAI — harmless while OpenAI was the only
+ * provider, silently wrong the moment a second one existed: a bay created for
+ * `"anthropic"` without an explicit `validate` would have charged its battery
+ * by pinging OpenAI's key-check endpoint with an Anthropic key. The caller
+ * (Settings, WP26) already has the `ProviderFactory` in hand and is the only
+ * one who can say which provider a given bay actually validates against.
  */
 
 export type ChargeState = 'empty' | 'unchecked' | 'checking' | 'charged' | 'flat';
@@ -28,18 +36,14 @@ export interface BatteryBay {
 }
 
 export interface BatteryBayDeps {
-	providerId?: string;
+	providerId: string;
+	validate: (key: string) => Promise<KeyCheck>;
 	vault?: KeyVault;
-	/** Injected so tests never reach the network. */
-	validate?: (key: string) => Promise<KeyCheck>;
 }
 
-export function createBatteryBay(deps: BatteryBayDeps = {}): BatteryBay {
-	const providerId = deps.providerId ?? OPENAI_PROVIDER_ID;
+export function createBatteryBay(deps: BatteryBayDeps): BatteryBay {
+	const { providerId, validate } = deps;
 	const vault = deps.vault ?? createBrowserKeyVault();
-
-	const validate =
-		deps.validate ?? ((key: string) => createOpenAIProvider({ apiKey: key }).validateKey(key));
 
 	const state = $state<{ charge: ChargeState; message: string; hasKey: boolean }>({
 		charge: vault.get(providerId) === undefined ? 'empty' : 'unchecked',

@@ -185,6 +185,42 @@ describe('PackRegistry', () => {
 		expect(registry.getGuardrail('test/nope')).toBeUndefined();
 	});
 
+	it('registers providers a pack contributes (06-… §8, WP26)', () => {
+		const registry = createPackRegistry();
+		registry.registerPack({
+			id: 'test-provider',
+			name: 'Test provider',
+			version: '1.0.0',
+			requiresCore: '>=0.0.1',
+			providers: [
+				{
+					id: 'test-llm',
+					name: 'Test LLM',
+					keyRequirement: 'none',
+					create: () => ({
+						id: 'test-llm',
+						name: 'Test LLM',
+						keyRequirement: 'none',
+						validateKey: async () => ({ ok: true, message: 'fine' }),
+						chat: async () => ({
+							text: '',
+							toolCall: null,
+							usage: { inputTokens: 0, outputTokens: 0 },
+							raw: null,
+							finishReason: 'stop'
+						})
+					})
+				}
+			]
+		});
+
+		const factory = registry.getProviderFactory('test-llm');
+		expect(factory?.name).toBe('Test LLM');
+		expect(factory?.create({ apiKey: '' }).id).toBe('test-llm');
+		expect(registry.getProviderFactory('nope')).toBeUndefined();
+		expect(registry.listProviderFactories()).toHaveLength(1);
+	});
+
 	it('rejects registering the same pack id twice', () => {
 		const registry = createPackRegistry();
 		registry.registerPack(starterManifest());

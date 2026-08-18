@@ -8,6 +8,7 @@ import type {
 	PackManifestMetadata
 } from './schemas/pack-manifest.js';
 import type { PolicyCard } from './schemas/policy-card.js';
+import type { ProviderFactory } from './types/provider.js';
 import type { ToolDefinition } from './types/tool.js';
 import type {
 	WorldActionDefinition,
@@ -48,12 +49,15 @@ export interface PackRegistry {
 	getAction(id: string): WorldActionDefinition | undefined;
 	/** A registered policy card (`14-…` §4.6, WP22) — declarative guardrail config a Safety Brick names by id. */
 	getPolicyCard(id: string): PolicyCard | undefined;
+	/** An LLM provider (`06-…` §8, WP26) — how to build the `LLMProvider` a cartridge's `providerId` names. */
+	getProviderFactory(id: string): ProviderFactory | undefined;
 	listPacks(): PackManifestMetadata[];
 	listTools(): ToolDefinition[];
 	listCartridges(): CartridgeDefinition[];
 	listGoalCards(): GoalCardDefinition[];
 	listWorlds(): WorldDefinition[];
 	listPolicyCards(): PolicyCard[];
+	listProviderFactories(): ProviderFactory[];
 }
 
 export function createPackRegistry(): PackRegistry {
@@ -67,6 +71,7 @@ export function createPackRegistry(): PackRegistry {
 	const worlds = new Map<string, WorldDefinition>();
 	const guardrails = new Map<string, GuardrailDefinition>();
 	const policyCards = new Map<string, PolicyCard>();
+	const providers = new Map<string, ProviderFactory>();
 
 	function insertUnique<T>(map: Map<string, T>, id: string, value: T, kind: string): void {
 		if (map.has(id)) {
@@ -100,6 +105,8 @@ export function createPackRegistry(): PackRegistry {
 			insertUnique(guardrails, guardrail.id, guardrail, 'guardrail');
 		for (const card of manifest.policyCards ?? [])
 			insertUnique(policyCards, card.id, card, 'policy card');
+		for (const provider of manifest.providers ?? [])
+			insertUnique(providers, provider.id, provider, 'provider');
 	}
 
 	/** The last segment of a content id — the name a world uses internally. */
@@ -159,11 +166,13 @@ export function createPackRegistry(): PackRegistry {
 		getSenseChannel,
 		getAction,
 		getPolicyCard: (id) => policyCards.get(id),
+		getProviderFactory: (id) => providers.get(id),
 		listPacks: () => [...packs.values()],
 		listTools: () => [...tools.values()],
 		listCartridges: () => [...cartridges.values()],
 		listGoalCards: () => [...goalCards.values()],
 		listWorlds: () => [...worlds.values()],
-		listPolicyCards: () => [...policyCards.values()]
+		listPolicyCards: () => [...policyCards.values()],
+		listProviderFactories: () => [...providers.values()]
 	};
 }

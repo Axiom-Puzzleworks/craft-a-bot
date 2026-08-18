@@ -4,7 +4,7 @@
 	import { page } from '$app/state';
 	import type { BuildProblem, SlotId } from '@craftabot/core';
 	import { capabilitiesOf } from '$lib/bot-capabilities.js';
-	import { NO_BATTERY_MESSAGE, needsBattery } from '$lib/brain.js';
+	import { needsBattery, noBatteryMessage } from '$lib/brain.js';
 	import { createRegistry } from '$lib/packs.js';
 	import { createDndController } from '$lib/dnd/dnd-state.svelte.js';
 	import { benchStore } from '$lib/state/bench.svelte.js';
@@ -86,9 +86,10 @@
 	 * Not a `BuildProblem`: keys never touch the AgentSpec, so `validateSpec`
 	 * cannot know about them. This is a UI-level check at GO time (03 §9).
 	 */
-	const batteryMissing = $derived(needsBattery(cartridge));
+	const batteryMissing = $derived(needsBattery(cartridge, registry));
+	const batteryMessage = $derived(noBatteryMessage(cartridge, registry));
 	const blockingReason = $derived(
-		batteryMissing ? NO_BATTERY_MESSAGE : benchStore.blocking[0]?.message
+		batteryMissing ? batteryMessage : benchStore.blocking[0]?.message
 	);
 
 	/** Escape cancels a carry; arrows aim it; Enter places it (03 §4.4). */
@@ -181,7 +182,7 @@
 
 				{#if batteryMissing}
 					<p class="battery-notice" data-testid="battery-notice">
-						{NO_BATTERY_MESSAGE}
+						{batteryMessage}
 						<a href={resolve('/settings')}>Open the battery compartment</a>
 					</p>
 				{/if}

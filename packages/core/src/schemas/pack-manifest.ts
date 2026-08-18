@@ -2,6 +2,7 @@ import { z } from 'zod';
 import type { BrickKindDefinition } from '../types/brick.js';
 import type { Guardrail, GuardrailHook } from '../types/guardrail.js';
 import type { ToolDefinition } from '../types/tool.js';
+import type { ProviderFactory } from '../types/provider.js';
 import type { WorldDefinition } from '../types/world.js';
 import type { PolicyCard } from './policy-card.js';
 import { riskTierSchema } from './risk-tier.js';
@@ -167,4 +168,10 @@ export interface PackManifest extends PackManifestMetadata {
 	 */
 	policyCards?: PolicyCard[];
 	artwork?: PackArtwork;
+	/**
+	 * LLM providers this pack makes available (`06-…` §8, WP26). Function-valued
+	 * like `GuardrailDefinition`, for the same reason: building an `LLMProvider`
+	 * is executable, so `ProviderFactory` cannot be Zod-first data.
+	 */
+	providers?: ProviderFactory[];
 }

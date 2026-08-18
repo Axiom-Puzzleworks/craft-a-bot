@@ -58,20 +58,20 @@ test('insert a battery, watch it charge, then eject it', async ({ page }) => {
 	await stubOpenAi(page);
 	await page.goto('/settings');
 
-	const compartment = page.getByTestId('battery-compartment');
+	const compartment = page.getByTestId('battery-compartment-openai');
 	await expect(compartment).toBeVisible();
-	await expect(page.getByTestId('charge-state')).toHaveAttribute('data-charge', 'empty');
+	await expect(page.getByTestId('charge-state-openai')).toHaveAttribute('data-charge', 'empty');
 
-	await page.getByTestId('key-input').fill(FAKE_KEY);
-	await page.getByTestId('insert-battery').click();
+	await page.getByTestId('key-input-openai').fill(FAKE_KEY);
+	await page.getByTestId('insert-battery-openai').click();
 
-	await expect(page.getByTestId('charge-state')).toHaveAttribute('data-charge', 'charged');
-	await expect(page.getByTestId('battery-message')).toContainText('Battery charged');
-	await expect(page.getByTestId('battery-fitted')).toBeVisible();
+	await expect(page.getByTestId('charge-state-openai')).toHaveAttribute('data-charge', 'charged');
+	await expect(page.getByTestId('battery-message-openai')).toContainText('Battery charged');
+	await expect(page.getByTestId('battery-fitted-openai')).toBeVisible();
 
-	await page.getByTestId('eject-battery').click();
-	await expect(page.getByTestId('charge-state')).toHaveAttribute('data-charge', 'empty');
-	await expect(page.getByTestId('key-input')).toBeVisible();
+	await page.getByTestId('eject-battery-openai').click();
+	await expect(page.getByTestId('charge-state-openai')).toHaveAttribute('data-charge', 'empty');
+	await expect(page.getByTestId('key-input-openai')).toBeVisible();
 });
 
 test('a flat battery says so rather than pretending', async ({ page }) => {
@@ -84,23 +84,23 @@ test('a flat battery says so rather than pretending', async ({ page }) => {
 	);
 	await page.goto('/settings');
 
-	await page.getByTestId('key-input').fill('sk-wrong');
-	await page.getByTestId('insert-battery').click();
+	await page.getByTestId('key-input-openai').fill('sk-wrong');
+	await page.getByTestId('insert-battery-openai').click();
 
-	await expect(page.getByTestId('charge-state')).toHaveAttribute('data-charge', 'flat');
-	await expect(page.getByTestId('battery-message')).toContainText('Incorrect API key');
+	await expect(page.getByTestId('charge-state-openai')).toHaveAttribute('data-charge', 'flat');
+	await expect(page.getByTestId('battery-message-openai')).toContainText('Incorrect API key');
 });
 
 test('the compartment never shows the key back', async ({ page }) => {
 	await stubOpenAi(page);
 	await page.goto('/settings');
-	await page.getByTestId('key-input').fill(FAKE_KEY);
-	await page.getByTestId('insert-battery').click();
-	await expect(page.getByTestId('battery-fitted')).toBeVisible();
+	await page.getByTestId('key-input-openai').fill(FAKE_KEY);
+	await page.getByTestId('insert-battery-openai').click();
+	await expect(page.getByTestId('battery-fitted-openai')).toBeVisible();
 
 	// Reload: the battery is still fitted, but the value is never rendered.
 	await page.goto('/settings');
-	await expect(page.getByTestId('battery-fitted')).toBeVisible();
+	await expect(page.getByTestId('battery-fitted-openai')).toBeVisible();
 	expect(await page.content()).not.toContain(FAKE_KEY);
 });
 
@@ -120,9 +120,9 @@ test('with a battery fitted, an OpenAI bot reaches the Playroom and runs', async
 	await stubOpenAi(page);
 
 	await page.goto('/settings');
-	await page.getByTestId('key-input').fill(FAKE_KEY);
-	await page.getByTestId('insert-battery').click();
-	await expect(page.getByTestId('charge-state')).toHaveAttribute('data-charge', 'charged');
+	await page.getByTestId('key-input-openai').fill(FAKE_KEY);
+	await page.getByTestId('insert-battery-openai').click();
+	await expect(page.getByTestId('charge-state-openai')).toHaveAttribute('data-charge', 'charged');
 
 	await buildBot(page, 'Quick Thinker');
 	await expect(page.getByTestId('battery-notice')).toHaveCount(0);
@@ -143,9 +143,9 @@ test('the key never reaches a trace or a kit file — the leak gate, through the
 	await stubOpenAi(page);
 
 	await page.goto('/settings');
-	await page.getByTestId('key-input').fill(FAKE_KEY);
-	await page.getByTestId('insert-battery').click();
-	await expect(page.getByTestId('charge-state')).toHaveAttribute('data-charge', 'charged');
+	await page.getByTestId('key-input-openai').fill(FAKE_KEY);
+	await page.getByTestId('insert-battery-openai').click();
+	await expect(page.getByTestId('charge-state-openai')).toHaveAttribute('data-charge', 'charged');
 
 	await buildBot(page, 'Quick Thinker');
 	await page.getByRole('button', { name: /GO/ }).click();

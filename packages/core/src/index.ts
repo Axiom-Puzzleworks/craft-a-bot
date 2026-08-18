@@ -23,6 +23,7 @@ export type {
 	LLMProvider,
 	ProviderError,
 	ProviderErrorKind,
+	ProviderFactory,
 	ToolSchema
 } from './types/provider.js';
 export type {

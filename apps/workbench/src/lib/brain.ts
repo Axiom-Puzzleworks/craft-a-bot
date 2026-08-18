@@ -1,5 +1,4 @@
-import type { CartridgeDefinition, LLMProvider } from '@craftabot/core';
-import { createOpenAIProvider, OPENAI_PROVIDER_ID } from '@craftabot/pack-openai';
+import type { CartridgeDefinition, LLMProvider, PackRegistry } from '@craftabot/core';
 import type { BotCapabilities } from './bot-capabilities.js';
 import { createDemoBrain } from './demo-brain.js';
 import { createBrowserKeyVault } from './state/keys.js';
@@ -9,7 +8,18 @@ import { createBrowserKeyVault } from './state/keys.js';
  *
  * This is the seam the whole provider abstraction exists for: the session takes
  * an `LLMProvider` and does not care which one. A cartridge names its provider,
- * and that is the only thing consulted here.
+ * and that is the only thing consulted here — by looking the provider up in the
+ * registry rather than naming it (WP26).
+ *
+ * **This used to be `if (cartridge?.providerId === OPENAI_PROVIDER_ID)`.**
+ * Everything else — any cartridge from any provider this build had not
+ * hard-coded — fell through to the *demo brain* silently. A persona or
+ * provider pack could ship a cartridge that looked real and ran the mock
+ * brain instead, with nothing in the UI saying so. Looking the provider up
+ * by id in the registry (the same `PackRegistry.getProviderFactory` every
+ * other kind of pack content already goes through) closes that: an
+ * unrecognised `providerId` is now impossible by construction, because every
+ * provider a cartridge could possibly name is one this build has registered.
  *
  * The key is read out of the vault at this moment and passed straight into the
  * provider's closure — it is never stored anywhere else, never returned, and
@@ -28,25 +38,43 @@ export type BrainChoice =
 export function chooseBrain(
 	cartridge: CartridgeDefinition | undefined,
 	goalCardId: string,
+	registry: PackRegistry,
 	can?: BotCapabilities
 ): BrainChoice {
-	if (cartridge?.providerId === OPENAI_PROVIDER_ID) {
-		const apiKey = createBrowserKeyVault().get(OPENAI_PROVIDER_ID);
-		if (apiKey === undefined)
-			return { ok: false, reason: 'no-key', providerId: OPENAI_PROVIDER_ID };
-		return { ok: true, provider: createOpenAIProvider({ apiKey }), keyless: false };
+	const factory = cartridge ? registry.getProviderFactory(cartridge.providerId) : undefined;
+
+	if (factory) {
+		if (factory.keyRequirement === 'none') {
+			return { ok: true, provider: factory.create({ apiKey: '' }), keyless: true };
+		}
+		const apiKey = createBrowserKeyVault().get(factory.id);
+		if (apiKey === undefined) return { ok: false, reason: 'no-key', providerId: factory.id };
+		return { ok: true, provider: factory.create({ apiKey }), keyless: false };
 	}
 
-	// The Demo Brain, and anything unrecognised, runs on the scripted mock.
+	// A cartridge from a provider this build genuinely does not have — a kit
+	// file from a build with more packs installed, say — runs on the scripted
+	// mock rather than crashing the bench. Everything else runs it too: no
+	// cartridge fitted at all, or the Demo Brain cartridge itself.
 	return { ok: true, provider: createDemoBrain(goalCardId, can), keyless: true };
 }
 
 /** Does this cartridge need a battery before GO will light? (03 §9) */
-export function needsBattery(cartridge: CartridgeDefinition | undefined): boolean {
-	if (cartridge?.providerId !== OPENAI_PROVIDER_ID) return false;
-	return createBrowserKeyVault().get(OPENAI_PROVIDER_ID) === undefined;
+export function needsBattery(
+	cartridge: CartridgeDefinition | undefined,
+	registry: PackRegistry
+): boolean {
+	const factory = cartridge ? registry.getProviderFactory(cartridge.providerId) : undefined;
+	if (!factory || factory.keyRequirement === 'none') return false;
+	return createBrowserKeyVault().get(factory.id) === undefined;
 }
 
 /** The message shown when a bot is ready except for its battery (03 §9). */
-export const NO_BATTERY_MESSAGE =
-	'Batteries not included! Pop your OpenAI key into the battery compartment.';
+export function noBatteryMessage(
+	cartridge: CartridgeDefinition | undefined,
+	registry: PackRegistry
+): string {
+	const factory = cartridge ? registry.getProviderFactory(cartridge.providerId) : undefined;
+	const name = factory?.name ?? 'that provider';
+	return `Batteries not included! Pop your ${name} key into the battery compartment.`;
+}

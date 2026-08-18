@@ -6,6 +6,7 @@
 	import { createBatteryBay } from '$lib/state/battery.svelte.js';
 	import { leafletStore } from '$lib/leaflet/leaflet.svelte.js';
 	import { preferences } from '$lib/state/preferences.svelte.js';
+	import { createRegistry } from '$lib/packs.js';
 
 	/**
 	 * Settings (03-UI-UX-DESIGN.md §7): the battery compartment, preferences, and
@@ -13,8 +14,25 @@
 	 *
 	 * The sound switch was withheld in WP9 because nothing made a noise yet.
 	 * WP10 adds the cues (`04` §6), so it appears here and controls something.
+	 *
+	 * **One compartment per registered provider that needs a key** (WP26).
+	 * "New battery slots appear per provider automatically from
+	 * `keyRequirement`" (`06-…` §8) was the design from the first day this doc
+	 * was written; until this WP there was only ever one provider to prove it
+	 * against. A keyless provider (Ollama, running locally) gets no
+	 * compartment at all — there is nothing to plug in.
 	 */
-	const bay = createBatteryBay();
+	const registry = createRegistry();
+	const compartments = registry
+		.listProviderFactories()
+		.filter((provider) => provider.keyRequirement === 'required')
+		.map((provider) => ({
+			provider,
+			bay: createBatteryBay({
+				providerId: provider.id,
+				validate: (key) => provider.create({ apiKey: key }).validateKey(key)
+			})
+		}));
 	const leaflet = leafletStore();
 
 	const SPEEDS = [0.5, 1, 2, 4];
@@ -28,7 +46,14 @@
 		<h1>Settings</h1>
 	</header>
 
-	<BatteryCompartment {bay} />
+	{#each compartments as { provider, bay } (provider.id)}
+		<BatteryCompartment
+			{bay}
+			providerId={provider.id}
+			providerName={provider.name}
+			keysUrl={provider.keysUrl ?? ''}
+		/>
+	{/each}
 
 	<Panel title="Preferences" accent="var(--cab-blue)">
 		<div class="prefs" data-testid="preferences">

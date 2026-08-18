@@ -1,12 +1,11 @@
 <script lang="ts">
 	/*
-	 * The only link in this component points at OpenAI's key-management page.
-	 * `resolve()` exists to prefix this app's own routes with its base path and
-	 * cannot apply to an external URL; the rule cannot see that through the
-	 * imported constant, hence the file-scoped exemption.
+	 * The only link in this component points at the provider's key-management
+	 * page, given by the caller. `resolve()` exists to prefix this app's own
+	 * routes with its base path and cannot apply to an external URL; the rule
+	 * cannot see that through a prop, hence the file-scoped exemption.
 	 */
 	/* eslint-disable svelte/no-navigation-without-resolve */
-	import { OPENAI_KEYS_URL } from '@craftabot/pack-openai';
 	import type { BatteryBay } from '$lib/state/battery.svelte.js';
 
 	/**
@@ -17,13 +16,20 @@
 	 * a safety we cannot provide — client-side encryption with no user secret
 	 * would be theatre. So: where it lives, where it is sent, how to remove it,
 	 * and the advice to use a separate spending-capped key.
+	 *
+	 * **One instance per provider that needs a key** (WP26) — this component
+	 * used to import `OPENAI_KEYS_URL` directly, because it was the only
+	 * provider there was. `keysUrl` is now a prop, supplied by whichever
+	 * `ProviderFactory` the Settings page is rendering a compartment for.
 	 */
 	interface Props {
 		bay: BatteryBay;
-		providerName?: string;
+		providerId: string;
+		providerName: string;
+		keysUrl: string;
 	}
 
-	let { bay, providerName = 'OpenAI' }: Props = $props();
+	let { bay, providerId, providerName, keysUrl }: Props = $props();
 
 	let draft = $state('');
 	let busy = $state(false);
@@ -48,10 +54,10 @@
 	}
 </script>
 
-<section class="bay" data-testid="battery-compartment">
+<section class="bay" data-testid="battery-compartment-{providerId}">
 	<header>
 		<h2>{providerName} battery</h2>
-		<p class="charge" data-testid="charge-state" data-charge={bay.charge}>
+		<p class="charge" data-testid="charge-state-{providerId}" data-charge={bay.charge}>
 			<span class="cells" aria-hidden="true">
 				<span class="cell" class:cell--lit={bay.charge === 'charged'}></span>
 				<span class="cell" class:cell--lit={bay.charge === 'charged'}></span>
@@ -62,7 +68,7 @@
 	</header>
 
 	{#if bay.hasKey}
-		<div class="fitted" data-testid="battery-fitted">
+		<div class="fitted" data-testid="battery-fitted-{providerId}">
 			<span class="battery" aria-hidden="true">🔋</span>
 			<p>
 				A battery is fitted. The key itself is never shown again — eject and paste a new one to
@@ -71,13 +77,13 @@
 			<div class="row">
 				<button
 					type="button"
-					data-testid="check-battery"
+					data-testid="check-battery-{providerId}"
 					disabled={busy}
 					onclick={() => bay.check()}
 				>
 					Check it
 				</button>
-				<button type="button" data-testid="eject-battery" onclick={() => bay.eject()}>
+				<button type="button" data-testid="eject-battery-{providerId}" onclick={() => bay.eject()}>
 					Eject battery
 				</button>
 			</div>
@@ -92,13 +98,13 @@
 					autocomplete="off"
 					spellcheck="false"
 					placeholder="sk-…"
-					data-testid="key-input"
+					data-testid="key-input-{providerId}"
 					bind:value={draft}
 				/>
 				<button
 					type="button"
 					class="primary"
-					data-testid="insert-battery"
+					data-testid="insert-battery-{providerId}"
 					disabled={busy || draft.trim() === ''}
 					onclick={insert}
 				>
@@ -109,7 +115,7 @@
 	{/if}
 
 	{#if bay.message}
-		<p class="message" role="status" data-testid="battery-message">{bay.message}</p>
+		<p class="message" role="status" data-testid="battery-message-{providerId}">{bay.message}</p>
 	{/if}
 
 	<div class="smallprint">
@@ -132,7 +138,7 @@
 			<li>
 				<strong>Use a spending-capped key.</strong> Make a separate key just for this and give it a
 				budget —
-				<a href={OPENAI_KEYS_URL} target="_blank" rel="noreferrer noopener">
+				<a href={keysUrl} target="_blank" rel="noreferrer noopener">
 					manage your {providerName} keys
 				</a>.
 			</li>

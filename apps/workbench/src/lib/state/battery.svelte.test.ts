@@ -18,7 +18,7 @@ function fakeStore(): WebStorageLike {
 
 function bayWith(validate: (key: string) => Promise<{ ok: boolean; message: string }>) {
 	const vault = createKeyVault(fakeStore());
-	return { bay: createBatteryBay({ vault, validate }), vault };
+	return { bay: createBatteryBay({ providerId: 'test-provider', vault, validate }), vault };
 }
 
 const charged = () => Promise.resolve({ ok: true, message: 'Battery charged — this key works.' });
@@ -37,7 +37,7 @@ describe('inserting a battery', () => {
 
 		expect(bay.hasKey).toBe(true);
 		expect(bay.charge).toBe('charged');
-		expect(vault.get('openai')).toBe('sk-a-real-looking-key');
+		expect(vault.get('test-provider')).toBe('sk-a-real-looking-key');
 	});
 
 	it('reports a flat battery rather than pretending', async () => {
@@ -51,7 +51,7 @@ describe('inserting a battery', () => {
 	it('trims a pasted key, which usually arrives with whitespace', async () => {
 		const { bay, vault } = bayWith(charged);
 		await bay.insert('  sk-padded\n');
-		expect(vault.get('openai')).toBe('sk-padded');
+		expect(vault.get('test-provider')).toBe('sk-padded');
 	});
 
 	it('ignores an empty paste', async () => {
@@ -71,7 +71,7 @@ describe('ejecting a battery', () => {
 		expect(bay.hasKey).toBe(false);
 		expect(bay.charge).toBe('empty');
 		expect(bay.message).toBe('');
-		expect(vault.get('openai')).toBeUndefined();
+		expect(vault.get('test-provider')).toBeUndefined();
 	});
 });
 
@@ -101,7 +101,7 @@ describe('a bay opened over an existing key', () => {
 		const vault = createKeyVault(fakeStore());
 		vault.set('openai', 'sk-from-a-previous-session');
 
-		const bay = createBatteryBay({ vault, validate: charged });
+		const bay = createBatteryBay({ providerId: 'openai', vault, validate: charged });
 		expect(bay.hasKey).toBe(true);
 		expect(bay.charge).toBe('unchecked');
 	});
