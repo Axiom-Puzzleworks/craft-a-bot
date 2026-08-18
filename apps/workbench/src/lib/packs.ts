@@ -1,4 +1,5 @@
 import { createPackRegistry, type PackRegistry } from '@craftabot/core';
+import anthropicPack from '@craftabot/pack-anthropic';
 import monitorPack from '@craftabot/pack-monitor';
 import openAiPack from '@craftabot/pack-openai';
 import personasPack from '@craftabot/pack-personas';
@@ -39,11 +40,19 @@ import { demoPack } from './demo-pack.js';
  * Ollama — still open, `18-…` §7). Ships no provider of its own; each
  * cartridge rides one of `pack-openai`'s three models with a different
  * `personality` and job.
+ *
+ * **`anthropicPack` joins the box, 2026-08-18 (WP26).** The first of the
+ * three real wire-protocol integrations the Multi-Pack box art promises —
+ * Anthropic's Messages API, streamed, with its own translation for the
+ * system prompt, tool calls and tool results (`@craftabot/pack-anthropic`,
+ * `06-…` §8's dated amendment). Registers its own `ProviderFactory`; the
+ * battery compartment for it appears in Settings automatically.
  */
 export const installedPacks = [
 	starterPack,
 	openAiPack,
 	personasPack,
+	anthropicPack,
 	monitorPack,
 	workshopPack,
 	demoPack

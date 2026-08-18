@@ -32,6 +32,7 @@
 		"@craftabot/core": "*",
 		"@craftabot/evals": "*",
 		"@craftabot/governance": "*",
+		"@craftabot/pack-anthropic": "*",
 		"@craftabot/pack-openai": "*",
 		"@craftabot/pack-personas": "*",
 		"@craftabot/pack-starter": "*",
