@@ -226,8 +226,9 @@
 			<li>
 				<article class="box box--shop">
 					<h3>LLM Multi-Pack</h3>
-					<p class="contents">6 Models · 6 Special Skills</p>
-					<p class="sticker">Coming soon</p>
+					<p class="contents">6 special-skill cartridges — already in your Brain Brick!</p>
+					<p class="contents">6 new models — still coming</p>
+					<p class="sticker">Half unlocked</p>
 				</article>
 			</li>
 		</ul>
