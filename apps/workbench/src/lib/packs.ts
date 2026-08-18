@@ -2,6 +2,7 @@ import { createPackRegistry, type PackRegistry } from '@craftabot/core';
 import anthropicPack from '@craftabot/pack-anthropic';
 import geminiPack from '@craftabot/pack-gemini';
 import monitorPack from '@craftabot/pack-monitor';
+import ollamaPack from '@craftabot/pack-ollama';
 import openAiPack from '@craftabot/pack-openai';
 import personasPack from '@craftabot/pack-personas';
 import starterPack from '@craftabot/pack-starter';
@@ -55,6 +56,14 @@ import { demoPack } from './demo-pack.js';
  * matched by name rather than id). Its key goes in the `x-goog-api-key`
  * header, never the `?key=` query parameter Google's own docs default to —
  * a URL is exactly where hard rule 2 says a key must never be.
+ *
+ * **`ollamaPack` joins the box, 2026-08-18 (WP26)** — the third and last of
+ * the LLM Multi-Pack's real provider integrations, and the only keyless one.
+ * Runs against Ollama's OpenAI-compatible endpoint on `localhost:11434`
+ * (fixed, not user-configurable — `06-…` §5's SSRF caution about a custom
+ * endpoint field is still unresolved, recorded as deferred rather than
+ * quietly built around). Gets no battery compartment: `keyRequirement:
+ * 'none'` means Settings has nothing to render for it.
  */
 export const installedPacks = [
 	starterPack,
@@ -62,6 +71,7 @@ export const installedPacks = [
 	personasPack,
 	anthropicPack,
 	geminiPack,
+	ollamaPack,
 	monitorPack,
 	workshopPack,
 	demoPack
