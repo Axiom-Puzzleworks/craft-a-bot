@@ -226,9 +226,10 @@
 			<li>
 				<article class="box box--shop">
 					<h3>LLM Multi-Pack</h3>
-					<p class="contents">6 special-skill cartridges — already in your Brain Brick!</p>
-					<p class="contents">6 new models — still coming</p>
-					<p class="sticker">Half unlocked</p>
+					<p class="contents">
+						6 special-skill cartridges, 4 model brands — all in your Brain Brick!
+					</p>
+					<p class="sticker">Unlocked!</p>
 				</article>
 			</li>
 		</ul>
