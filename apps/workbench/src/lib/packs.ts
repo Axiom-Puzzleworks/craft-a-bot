@@ -1,5 +1,6 @@
 import { createPackRegistry, type PackRegistry } from '@craftabot/core';
 import anthropicPack from '@craftabot/pack-anthropic';
+import geminiPack from '@craftabot/pack-gemini';
 import monitorPack from '@craftabot/pack-monitor';
 import openAiPack from '@craftabot/pack-openai';
 import personasPack from '@craftabot/pack-personas';
@@ -47,12 +48,20 @@ import { demoPack } from './demo-pack.js';
  * system prompt, tool calls and tool results (`@craftabot/pack-anthropic`,
  * `06-…` §8's dated amendment). Registers its own `ProviderFactory`; the
  * battery compartment for it appears in Settings automatically.
+ *
+ * **`geminiPack` joins the box, 2026-08-18 (WP26).** The second real
+ * provider integration — Google's `generateContent`, with its own
+ * translation (roles `user`/`model`, `functionCall`/`functionResponse`
+ * matched by name rather than id). Its key goes in the `x-goog-api-key`
+ * header, never the `?key=` query parameter Google's own docs default to —
+ * a URL is exactly where hard rule 2 says a key must never be.
  */
 export const installedPacks = [
 	starterPack,
 	openAiPack,
 	personasPack,
 	anthropicPack,
+	geminiPack,
 	monitorPack,
 	workshopPack,
 	demoPack
