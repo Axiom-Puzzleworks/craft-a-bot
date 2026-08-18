@@ -41,7 +41,7 @@ export { starterBrickKinds } from './brick-kinds.js';
 export { playroomLayouts } from './world/layouts.js';
 export { playroomActions, playroomActionDefinitions, carriedItem } from './world/actions.js';
 export { playroomSenses, observePlayroom } from './world/senses.js';
-export { playroomPredicates, BLOCK_IDS } from './world/predicates.js';
+export { playroomPredicates, BLOCK_IDS, LEAK_PHRASE } from './world/predicates.js';
 export { starterPolicyCards } from './policy-cards.js';
 export { playroomManual, searchManual, type ManualEntry } from './world/manual.js';
 export type { Cell, Direction, RelativeDirection } from './world/grid.js';

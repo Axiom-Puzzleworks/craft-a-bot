@@ -125,6 +125,15 @@ export type {
 } from './types/grid-world.js';
 export { riskTierSchema, type RiskTier } from './schemas/risk-tier.js';
 export {
+	ASSERTION_CARD_SCHEMA_VERSION,
+	assertionCardSchema,
+	assertionQuantifierSchema,
+	parseAssertionCard,
+	safeParseAssertionCard,
+	type AssertionCard,
+	type AssertionQuantifier
+} from './schemas/assertion-card.js';
+export {
 	POLICY_CARD_SCHEMA_VERSION,
 	parsePolicyCard,
 	policyCardSchema,

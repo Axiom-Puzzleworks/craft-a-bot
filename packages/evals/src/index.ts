@@ -51,6 +51,12 @@ export {
 } from './baseline.js';
 export { renderScorecard } from './scorecard.js';
 export {
+	evaluateAssertion,
+	runTestBench,
+	type AssertionMatch,
+	type AssertionResult
+} from './assertions.js';
+export {
 	BASELINE_SEEDS,
 	EXPECTED_BANDS,
 	EXPERT_MATRIX,

@@ -8,7 +8,7 @@ Two purposes, in priority order: (1) an accessible training ground for agentic-A
 
 Stack: TypeScript + Svelte 5 (runes) + SvelteKit static. Monorepo (npm workspaces + Turborepo). Local-first, no backend. OpenAI out of the box (BYO key).
 
-**Where we are (2026-08-16):** V1.0 ("My Very First Agent") shipped WP0–WP10. Day 2 Phases A–D are closed (WP11–WP25): engine trust fixed, the brick contract opened, teaching-aid UX and the professional Workshop both shipped, plus a full governance layer (policy cards, Safety Brick v2, three scenario cards). Phase E (expansion era) is under way — see "Next up" below.
+**Where we are (2026-08-18):** V1.0 ("My Very First Agent") shipped WP0–WP10. Day 2 Phases A–D are closed (WP11–WP25): engine trust fixed, the brick contract opened, teaching-aid UX and the professional Workshop both shipped, plus a full governance layer (policy cards, Safety Brick v2, three scenario cards). Phase E (expansion era) is under way — WP27 and WP28 are now fully done, WP26 is scoped down to its Compare-view slice — see "Next up" below.
 
 ## Source of truth: `docs/design-day2/`
 
@@ -45,13 +45,12 @@ Where a Day 2 doc and its Day 1 counterpart differ, **Day 2 wins** — the banne
 
 Find the WP in `18-…` §3, read the docs it names, **propose a task breakdown before writing code**, then build. One WP per branch (`wp{n}-{slug}`) and PR.
 
-Next up per `18-…` §7 (most recent entries: items 15–17, 2026-08-16): Phase E has three scoped slices shipped — WP26's Compare view, WP27's Monitor brick, WP28's Workshop world pack — and three substantial pieces still open:
+Next up per `18-…` §7 (most recent entry: item 19, 2026-08-18): Phase E has WP27 and WP28 fully shipped and WP26 scoped down to its Compare-view slice. Two substantial pieces remain open:
 
 - **WP26, remainder:** three LLM provider packs (Anthropic/Gemini/Ollama), six persona cartridges, battery-bay UI grown from one hardcoded compartment to N.
-- **WP27, remainder:** the Test Bench brick (`14-…` §5.7) — a bench accessory, not a chassis brick, with no existing UI paradigm to extend.
-- **WP29:** multi-agent core (`14-…` §6) — sized at 7–9 slices, the largest of the three; needs a new `WorldInstance` contract taking an `AgentHandle`, a `bot → agents[]` state migration in every world pack, and genuinely new `SessionGroup`/scheduler/trace-merge machinery that does not exist yet.
+- **WP29:** multi-agent core (`14-…` §6) — sized at 7–9 slices, the larger of the two; needs a new `WorldInstance` contract taking an `AgentHandle`, a `bot → agents[]` state migration in every world pack, and genuinely new `SessionGroup`/scheduler/trace-merge machinery that does not exist yet.
 
-**Before starting any of these, re-read `18-…` §7's items 15–17 first.** Two of the last three WPs sized much larger on inspection than their one-line roadmap description implied — both times the fix was to research and size honestly before committing, present the finding, and ship the one piece that was actually small rather than assume the roadmap line is right. The same is likely true here.
+**Before starting either of these, re-read `18-…` §7's items 15–17 first.** Two of six recent WPs sized much larger on inspection than their one-line roadmap description implied — both times the fix was to research and size honestly before committing, present the finding, and ship the one piece that was actually small rather than assume the roadmap line is right. WP27's Test Bench half, by contrast, was genuinely as small as its line implied (item 19) — sizing honestly cuts both ways, and is worth doing before assuming either.
 
 Use your judgement inside a WP — the docs fix the destination and the contracts, not every step. Where a doc is silent, decide and note it. Where implementation must diverge from a doc, change the doc in the same PR with a dated note (`> **Amended 2026-08-13:** …`); don't leave the two disagreeing.
 

@@ -24,6 +24,7 @@
 ├── /runs/[runId]               — Run Lab: world + timeline + inspector (the flagship)
 ├── /evals                       — Eval Matrix: configure, execute, scorecards, baselines
 ├── /policies                    — Policy Studio: author/test policy cards
+├── /bench                       — Test Bench: assertion cards run against a stored run's trace (14-… §5.7)
 ├── /telemetry                   — Cross-run dashboards (Phase D+)
 └── /export                      — Audit centre: traces, reports, cards, OTel export (Phase F)
 ```
@@ -90,6 +91,12 @@ Author policy cards (`14-…` §4.6): a rule builder (hook → condition → dis
 
 ### 4.6 Telemetry (`/telemetry`, Phase D+)
 Cross-run trends: success/loop/cost per card per cartridge over time, guardrail trip mix, approval rates + interruption counts (autonomy telemetry, `19-…` #36). Charts follow the dataviz rules: one axis, single-hue sequential for magnitude, lane colours only where they mean lanes, tables always available.
+
+### 4.7 Test Bench (`/bench`)
+
+> **Added and built 2026-08-18 (WP27), retrofitted into this section rather than at the point of first mention in `14-…` §5.7's brick table** to avoid renumbering every existing cross-reference this doc's siblings carry to §4.1–§4.6 by ordinal.
+
+Not in the original eight-screen IA (§2, as first written) — `14-…` §5.7 named the concept ("Assertion cards run against traces … 'Check your robot's homework'") but never wove it into this doc's screen map. Picks one stored run, runs a fixed set of `AssertionCard`s against its trace (`packages/core/src/schemas/assertion-card.ts`, reusing WP22's `PredicateExpr`), shows each as a pass/fail chip with the turns it matched, and links out to the full Run Lab. No authoring UI ships — the cards are a small built-in set (`apps/workbench/src/lib/workshop/assertion-cards.ts`), the same scope decision the Policy Studio's own persistence gap (§4.5, above) already recorded: a content-authoring store shared between modes is a real feature with its own id-collision and versioning questions, not a rider on the screen that first wants it.
 
 ## 5. Design language
 

@@ -19,6 +19,7 @@
 	},
 	"dependencies": {
 		"@craftabot/core": "*",
+		"@craftabot/governance": "*",
 		"@craftabot/pack-starter": "*",
 		"zod": "^4.4.3"
 	},

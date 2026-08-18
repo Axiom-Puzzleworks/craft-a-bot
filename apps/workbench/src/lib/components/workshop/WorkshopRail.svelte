@@ -12,7 +12,8 @@
 	 * honesty the Kit's "Coming soon" expansion box already uses.
 	 */
 	interface Props {
-		current: 'runs' | 'dashboard' | 'spec' | 'evals' | 'policies' | 'telemetry' | 'export';
+		current:
+			'runs' | 'dashboard' | 'spec' | 'evals' | 'policies' | 'bench' | 'telemetry' | 'export';
 	}
 
 	let { current }: Props = $props();
@@ -23,6 +24,7 @@
 		{ id: 'spec', label: 'Spec Lab', hint: 'per bot' },
 		{ id: 'evals', label: 'Evals', href: '/workshop/evals' },
 		{ id: 'policies', label: 'Policies', href: '/workshop/policies' },
+		{ id: 'bench', label: 'Test Bench', href: '/workshop/bench' },
 		{ id: 'telemetry', label: 'Telemetry', hint: 'WP34' },
 		{ id: 'export', label: 'Audit', hint: 'WP34' }
 	] as const;
@@ -37,7 +39,11 @@
 					<a
 						href={resolve(
 							destination.href as
-								'/workshop' | '/workshop/runs' | '/workshop/evals' | '/workshop/policies'
+								| '/workshop'
+								| '/workshop/runs'
+								| '/workshop/evals'
+								| '/workshop/policies'
+								| '/workshop/bench'
 						)}
 						aria-current={current === destination.id ? 'page' : undefined}
 						data-testid="rail-{destination.id}">{destination.label}</a
