@@ -24,6 +24,36 @@
 		if (value <= 1.1) return `${value.toFixed(1)} — balanced`;
 		return `${value.toFixed(1)} — wild`;
 	}
+
+	/**
+	 * **Snapping in a cartridge sets it up the way it actually ships**
+	 * (WP26, persona cartridges).
+	 *
+	 * `CartridgeDefinition.defaults` (temperature, maxTokens) and — for a
+	 * persona cartridge — `personality` were pure catalogue decoration until
+	 * now: nothing read them, which is exactly the dead-config gap
+	 * `pack-testkit`'s `checkCartridge` has documented since WP21 as waiting on
+	 * this. Picking a new cartridge now writes its defaults into the brick
+	 * config, the same "preset writes concrete values at pick-time" shape the
+	 * Safety Brick's `autonomy` dial already uses (`14-…` §4.6, WP24) — matching
+	 * the toy metaphor (a new cartridge gives you what is printed on it, not a
+	 * blend with whatever was fitted before) and making a persona's
+	 * personality text actually reach the prompt rather than sitting unread on
+	 * the label. Clearing the slot back to empty leaves the other dials alone.
+	 */
+	function pickCartridge(id: string): void {
+		const picked = id === '' ? undefined : cartridges.find((c) => c.id === id);
+		onupdate({
+			cartridgeId: id,
+			...(picked
+				? {
+						temperature: picked.defaults.temperature,
+						maxTokens: picked.defaults.maxTokens,
+						personality: picked.personality ?? ''
+					}
+				: {})
+		});
+	}
 </script>
 
 <label class="field">
@@ -31,7 +61,7 @@
 	<select
 		data-testid="cartridge-select"
 		value={cartridgeId}
-		onchange={(event) => onupdate({ cartridgeId: event.currentTarget.value })}
+		onchange={(event) => pickCartridge(event.currentTarget.value)}
 	>
 		<option value="">— empty slot —</option>
 		{#each cartridges as cartridge (cartridge.id)}

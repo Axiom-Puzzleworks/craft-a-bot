@@ -1,6 +1,7 @@
 import { createPackRegistry, type PackRegistry } from '@craftabot/core';
 import monitorPack from '@craftabot/pack-monitor';
 import openAiPack from '@craftabot/pack-openai';
+import personasPack from '@craftabot/pack-personas';
 import starterPack from '@craftabot/pack-starter';
 import workshopPack from '@craftabot/pack-workshop';
 import { demoPack } from './demo-pack.js';
@@ -29,8 +30,24 @@ import { demoPack } from './demo-pack.js';
  * Hands & Wheels and Eyes & Ears and enables the Workshop's action/sense ids
  * on them (`session/harness.ts`'s own dated note explains why that is the
  * only shape a v1 spec's fixed brick keys can ever resolve to).
+ *
+ * **`personasPack` joins the box, 2026-08-18 (WP26).** Six persona cartridges
+ * (Storyteller, Creator, Explainer, Planner, Researcher, Coder) for the Brain
+ * brick's picker — the LLM Multi-Pack's cartridge content, scoped to the
+ * OpenAI provider that already exists rather than waiting on the three real
+ * wire-protocol integrations the box art also promises (Anthropic, Gemini,
+ * Ollama — still open, `18-…` §7). Ships no provider of its own; each
+ * cartridge rides one of `pack-openai`'s three models with a different
+ * `personality` and job.
  */
-export const installedPacks = [starterPack, openAiPack, monitorPack, workshopPack, demoPack];
+export const installedPacks = [
+	starterPack,
+	openAiPack,
+	personasPack,
+	monitorPack,
+	workshopPack,
+	demoPack
+];
 
 export function createRegistry(): PackRegistry {
 	const registry = createPackRegistry();

@@ -71,7 +71,15 @@ export const cartridgeDefinitionSchema = z.object({
 	defaults: z.object({
 		temperature: z.number().min(0).max(2),
 		maxTokens: z.number().int().positive()
-	})
+	}),
+	/**
+	 * The Brain brick's free-text `personality` field (`packages/packs/starter/src/brick-kinds.ts`),
+	 * pre-written for a cartridge that has one (WP26, persona cartridges). Optional
+	 * so every cartridge fixture written before this field existed still
+	 * validates — the three V1 OpenAI cartridges carry no personality and behave
+	 * exactly as before.
+	 */
+	personality: z.string().optional()
 });
 export type CartridgeDefinition = z.infer<typeof cartridgeDefinitionSchema>;
 

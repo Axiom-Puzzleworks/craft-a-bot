@@ -8,7 +8,7 @@ Two purposes, in priority order: (1) an accessible training ground for agentic-A
 
 Stack: TypeScript + Svelte 5 (runes) + SvelteKit static. Monorepo (npm workspaces + Turborepo). Local-first, no backend. OpenAI out of the box (BYO key).
 
-**Where we are (2026-08-18):** V1.0 ("My Very First Agent") shipped WP0–WP10. Day 2 Phases A–D are closed (WP11–WP25): engine trust fixed, the brick contract opened, teaching-aid UX and the professional Workshop both shipped, plus a full governance layer (policy cards, Safety Brick v2, three scenario cards). Phase E (expansion era) is under way — WP27 and WP28 are now fully done, WP26 is scoped down to its Compare-view slice — see "Next up" below.
+**Where we are (2026-08-18):** V1.0 ("My Very First Agent") shipped WP0–WP10. Day 2 Phases A–D are closed (WP11–WP25): engine trust fixed, the brick contract opened, teaching-aid UX and the professional Workshop both shipped, plus a full governance layer (policy cards, Safety Brick v2, three scenario cards). Phase E (expansion era) is under way — WP27 and WP28 are now fully done, WP26 has shipped its Compare view and persona cartridges — see "Next up" below.
 
 ## Source of truth: `docs/design-day2/`
 
@@ -45,12 +45,12 @@ Where a Day 2 doc and its Day 1 counterpart differ, **Day 2 wins** — the banne
 
 Find the WP in `18-…` §3, read the docs it names, **propose a task breakdown before writing code**, then build. One WP per branch (`wp{n}-{slug}`) and PR.
 
-Next up per `18-…` §7 (most recent entry: item 19, 2026-08-18): Phase E has WP27 and WP28 fully shipped and WP26 scoped down to its Compare-view slice. Two substantial pieces remain open:
+Next up per `18-…` §7 (most recent entry: item 20, 2026-08-18): Phase E has WP27 and WP28 fully shipped and WP26 two-thirds done (Compare view, persona cartridges). Two substantial pieces remain open:
 
-- **WP26, remainder:** three LLM provider packs (Anthropic/Gemini/Ollama), six persona cartridges, battery-bay UI grown from one hardcoded compartment to N.
+- **WP26, remainder:** three LLM provider packs (Anthropic/Gemini/Ollama, each roughly the size the OpenAI pack itself was) and the battery-bay UI grown from one hardcoded compartment to N. Persona cartridges turned out *not* to need either of these — see the dated note in `06-…` §8 — so don't assume the remainder is smaller than it looks just because the last slice was.
 - **WP29:** multi-agent core (`14-…` §6) — sized at 7–9 slices, the larger of the two; needs a new `WorldInstance` contract taking an `AgentHandle`, a `bot → agents[]` state migration in every world pack, and genuinely new `SessionGroup`/scheduler/trace-merge machinery that does not exist yet.
 
-**Before starting either of these, re-read `18-…` §7's items 15–17 first.** Two of six recent WPs sized much larger on inspection than their one-line roadmap description implied — both times the fix was to research and size honestly before committing, present the finding, and ship the one piece that was actually small rather than assume the roadmap line is right. WP27's Test Bench half, by contrast, was genuinely as small as its line implied (item 19) — sizing honestly cuts both ways, and is worth doing before assuming either.
+**Before starting either of these, re-read `18-…` §7's items 15–17 and 20 first.** Sizing has cut both ways across recent WPs — some landed far larger than their roadmap line implied (items 16, 17), one landed far smaller because a piece that looked entangled with the hard part turned out not to be (item 20). Research and size honestly before committing either way; don't assume the previous pattern repeats.
 
 Use your judgement inside a WP — the docs fix the destination and the contracts, not every step. Where a doc is silent, decide and note it. Where implementation must diverge from a doc, change the doc in the same PR with a dated note (`> **Amended 2026-08-13:** …`); don't leave the two disagreeing.
 

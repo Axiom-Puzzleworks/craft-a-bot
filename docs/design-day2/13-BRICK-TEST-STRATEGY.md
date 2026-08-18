@@ -155,6 +155,18 @@ A published test suite (`@craftabot/pack-testkit`) any pack must pass — the me
 >    have made the check useless for the one world V1.0 ships. `WorldConformanceFixture` gained
 >    `volatileStateKeys`, a pack-named allowlist of top-level `WorldState` keys a turn may change
 >    regardless of legality; the mutation check excludes them and nothing else.
+>
+> **Amended 2026-08-18 (WP26, persona cartridges): bullet 2 is no longer gated.** Picking a
+> cartridge in the Brain brick's panel (`apps/workbench/.../LlmPanel.svelte`) now writes
+> `.defaults.temperature`, `.defaults.maxTokens` and (for a persona cartridge) `personality` into
+> the fitted brick's config — the consumption this section always wanted, landing at the UI seam
+> rather than inside `checkCartridge` itself, because *which* config a picked cartridge writes into
+> is a Kit-bench decision, not a fact about the cartridge's own shape. `checkCartridge` is
+> unchanged and correctly so: it still only checks that a catalogue entry is complete, which is all
+> a pack-level check can see. Left open, and worth naming rather than quietly dropping: there is
+> still no test proving a *fitted* brick's config actually matches its cartridge's defaults after a
+> migration or an app-level default change — that would want a workbench-level test, not a
+> pack-conformance one, and none exists yet.
 
 ## 8. L4 — The behavioural eval harness (`@craftabot/evals`) — the new build
 

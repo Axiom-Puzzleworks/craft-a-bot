@@ -19,11 +19,15 @@ export const openAiPack: PackManifest = {
 export default openAiPack;
 
 export {
+	FIXED_TEMPERATURE,
 	MODELS,
 	OPENAI_BASE_URL,
 	OPENAI_KEYS_URL,
 	OPENAI_PROVIDER_ID,
-	openAiCartridges
+	openAiCartridges,
+	reasoningEffortFor,
+	supportsTemperature,
+	type ReasoningEffort
 } from './catalogue.js';
 export { createOpenAIProvider, type OpenAiProviderOptions } from './provider.js';
 export {
