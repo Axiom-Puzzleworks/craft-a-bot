@@ -35,6 +35,7 @@ export type Plan = PlanStep[];
 const north = (say: string): PlanStep => ({ say, call: 'move', args: { direction: 'north' } });
 const south = (say: string): PlanStep => ({ say, call: 'move', args: { direction: 'south' } });
 const east = (say: string): PlanStep => ({ say, call: 'move', args: { direction: 'east' } });
+const west = (say: string): PlanStep => ({ say, call: 'move', args: { direction: 'west' } });
 
 /** Teddy sits at (5,4); the bot starts at (0,4) and may greet from two squares away. */
 const SAY_HELLO: Plan = [
@@ -87,6 +88,45 @@ const LOCKED_CHEST: Plan = [
 		say: 'And away it goes.',
 		call: 'put_down',
 		args: { item: 'red block', container: 'toy chest' }
+	}
+];
+
+/**
+ * `starter/tidy-together`'s solo solve: block-a at (2,1), block-b at (7,5),
+ * the chest at (1,0), starting from (0,4) — the same room a `SessionGroup`
+ * (`23-…` §10 stage E) splits between two robots, done here the long way by
+ * one. Both round trips, back to back.
+ */
+const TIDY_TOGETHER: Plan = [
+	north('One block is up this way.'),
+	north('Still north.'),
+	east('There it is.'),
+	{ say: 'Got it.', call: 'pick_up', args: { item: 'block-a' } },
+	north('Chest is right there.'),
+	{ say: 'Lid up.', call: 'open', args: { container: 'the toy chest' } },
+	{ say: 'One in.', call: 'put_down', args: { item: 'block-a', container: 'toy chest' } },
+	east('The other one is clear across the room.'),
+	east('Rolling.'),
+	east('Rolling.'),
+	east('Rolling.'),
+	east('Almost level with it.'),
+	south('Down now.'),
+	south('Rolling.'),
+	south('Rolling.'),
+	south('There it is, in the corner.'),
+	{ say: 'Got the second one.', call: 'pick_up', args: { item: 'block-b' } },
+	west('Long way back.'),
+	west('Rolling.'),
+	west('Rolling.'),
+	west('Rolling.'),
+	north('Up now.'),
+	north('Rolling.'),
+	north('Rolling.'),
+	north('Beside the chest again.'),
+	{
+		say: 'And the last one, in.',
+		call: 'put_down',
+		args: { item: 'block-b', container: 'toy chest' }
 	}
 ];
 
@@ -180,6 +220,7 @@ export const SCRIPTED_OPTIMAL: Record<string, Plan> = {
 	'starter/say-hello': SAY_HELLO,
 	'starter/snack': SNACK,
 	'starter/tidy-the-blocks': TIDY,
+	'starter/tidy-together': TIDY_TOGETHER,
 	'starter/locked-chest': LOCKED_CHEST,
 	'starter/sums-for-teddy': SUMS,
 	'starter/free-play': FREE_PLAY,

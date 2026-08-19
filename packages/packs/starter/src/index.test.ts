@@ -25,7 +25,7 @@ describe('the starter pack manifest', () => {
 		const registry = registryWithStarter();
 		expect(registry.listPacks().map((pack) => pack.id)).toEqual(['starter']);
 		expect(registry.listWorlds()).toHaveLength(1);
-		expect(registry.listGoalCards()).toHaveLength(9);
+		expect(registry.listGoalCards()).toHaveLength(10);
 	});
 
 	it('namespaces every goal card id under the pack (01-ARCHITECTURE.md §4)', () => {

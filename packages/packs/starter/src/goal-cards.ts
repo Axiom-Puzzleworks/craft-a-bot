@@ -109,6 +109,22 @@ export const starterGoalCards: GoalCardDefinition[] = [
 		par: 4
 	},
 	{
+		id: 'starter/tidy-together',
+		title: goalCardStrings['tidy-together'].title,
+		goalText: goalCardStrings['tidy-together'].goalText,
+		worldId: PLAYROOM_WORLD_ID,
+		layoutId: 'tidy-together',
+		successCondition: 'blocks-in-chest',
+		teachesConcepts: ['repetition', 'sub-goals'],
+		hints: [...goalCardStrings['tidy-together'].hints],
+		// A lone bot can still win this — see `plans.ts` — but the two blocks
+		// sit in opposite corners specifically so a `SessionGroup` (`23-…` §10
+		// stage E) can beat this number by splitting the trips. `par` is what
+		// the schema means it to be everywhere else: the solo-optimal length.
+		par: 26,
+		coop: true
+	},
+	{
 		id: 'starter/free-play',
 		title: goalCardStrings['free-play'].title,
 		goalText: goalCardStrings['free-play'].goalText,

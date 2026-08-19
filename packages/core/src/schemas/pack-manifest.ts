@@ -108,7 +108,17 @@ export const goalCardDefinitionSchema = z.object({
 	 * Deliberately harder than the default budget allows, and labelled as such
 	 * in the UI. Kept so the step-budget dial has a reason to exist.
 	 */
-	expert: z.boolean().optional()
+	expert: z.boolean().optional(),
+	/**
+	 * Built for a `SessionGroup`, not the Kit's one-bot bench (WP29,
+	 * `23-MULTI-AGENT-DESIGN.md` §10 stage D). The card is real pack content —
+	 * registered, solvable solo, proven by the L3 suite like any other — but
+	 * the Kit's card picker filters it out, because WP29 promises "zero Kit UI
+	 * changes" and a two-robot card appearing in the one-robot bench would
+	 * break that promise. WP31 is expected to give this flag a picker of its
+	 * own; until then it just keeps the card off the one that already exists.
+	 */
+	coop: z.boolean().optional()
 });
 export type GoalCardDefinition = z.infer<typeof goalCardDefinitionSchema>;
 

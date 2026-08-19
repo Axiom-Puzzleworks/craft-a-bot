@@ -1,6 +1,7 @@
 import type {
 	ActionCall,
 	ActionResult,
+	AgentHandle,
 	Observation,
 	WorldDefinition,
 	WorldInstance,
@@ -15,7 +16,7 @@ import {
 	playroomProgress
 } from './predicates.js';
 import { SENSE_SIGHT, observePlayroom, playroomSenses } from './senses.js';
-import type { PlayroomState } from './state.js';
+import type { PlayroomAgent, PlayroomState } from './state.js';
 
 export const PLAYROOM_WORLD_ID = 'starter/playroom';
 
@@ -42,6 +43,105 @@ function createPlayroomInstance(layoutId: string): WorldInstance {
 	// reset take a fresh deep copy of it.
 	let state: PlayroomState = structuredClone(initial);
 
+	function resetState(): void {
+		state = structuredClone(initial);
+	}
+
+	function performOn(action: ActionCall): ActionResult {
+		// Turn-based: the clock advances whenever the bot acts, whether or not
+		// the action turns out to be legal — a wasted turn is still a turn.
+		state.tick += 1;
+		const handler = findAction(action.name);
+		if (!handler) {
+			return { ok: false, narration: unknownActionNarration(action.name), stateDiff: [] };
+		}
+		const outcome = handler.perform(state, action.arguments);
+		return { ok: outcome.ok, narration: outcome.narration, stateDiff: outcome.stateDiff };
+	}
+
+	/**
+	 * Assigns `handle` a permanent seat in `state.agents` the first time it is
+	 * seen, then stages `state.bot` to be that seat for the call about to
+	 * happen (WP29, `23-…` §4.8) — the trick every action handler is written
+	 * against without knowing it: `move` reads and writes plain
+	 * `state.bot.position`, exactly as it always has, and none of the seven
+	 * actions ever learns a second robot exists.
+	 */
+	function seat(handle: AgentHandle): PlayroomAgent {
+		state.agents ??= [];
+		let mine = state.agents.find((agent) => agent.id === handle.agentId);
+		if (!mine) {
+			const startIndex = state.agents.length;
+			const start = state.coopStarts?.[startIndex] ?? { ...state.bot.position };
+			mine = { id: handle.agentId, name: handle.name, position: { ...start } };
+			state.agents.push(mine);
+		}
+		state.bot = { position: { ...mine.position }, id: mine.id };
+		return mine;
+	}
+
+	/** After the acting agent's turn, its seat catches up to wherever `perform` left `state.bot`. */
+	function writeSeatBack(mine: PlayroomAgent): void {
+		mine.position = { ...state.bot.position };
+	}
+
+	/**
+	 * A pick-up during this agent's turn leaves the item `carried` with no
+	 * owner yet, because `pick_up`'s handler (`actions.ts`) never learns a
+	 * second robot exists — claim it on the acting agent's behalf. Idempotent:
+	 * an item this agent already claimed on an earlier turn is left alone.
+	 */
+	function claimCarriedItems(agentId: string): void {
+		for (const item of state.items) {
+			if (item.location.kind === 'carried' && item.location.agentId === undefined) {
+				item.location = { kind: 'carried', agentId };
+			}
+		}
+	}
+
+	function facadeFor(handle: AgentHandle): WorldInstance {
+		// Reserved at bind time, not on first use: `SessionGroup` calls
+		// `forAgent` for every member synchronously, in member order, before any
+		// of them takes a turn (`23-…` §4.4) — that is the order `coopStarts`
+		// must be handed out in. Deferring the reservation to whichever facade
+		// happens to be *used* first would make seating depend on scheduling,
+		// not on who the world was told about first.
+		seat(handle);
+		return {
+			snapshot(): WorldState {
+				seat(handle);
+				return structuredClone(state);
+			},
+			observe(channels): Observation {
+				seat(handle);
+				return observePlayroom(state, [...channels]);
+			},
+			perform(action: ActionCall): ActionResult {
+				const mine = seat(handle);
+				const result = performOn(action);
+				writeSeatBack(mine);
+				claimCarriedItems(handle.agentId);
+				return result;
+			},
+			test(predicate): boolean {
+				seat(handle);
+				const check = playroomPredicates[predicate];
+				return check ? check(state) : false;
+			},
+			reset(): void {
+				resetState();
+			},
+			receiveInput(text: string): void {
+				state.heard.push(text);
+			},
+			describeProgress(predicate, channels): string | undefined {
+				seat(handle);
+				if (!channels.includes(SENSE_SIGHT)) return undefined;
+				return playroomProgress[predicate]?.(state);
+			}
+		};
+	}
+
 	return {
 		snapshot(): WorldState {
 			return structuredClone(state);
@@ -51,17 +151,7 @@ function createPlayroomInstance(layoutId: string): WorldInstance {
 			return observePlayroom(state, [...channels]);
 		},
 
-		perform(action: ActionCall): ActionResult {
-			// Turn-based: the clock advances whenever the bot acts, whether or not
-			// the action turns out to be legal — a wasted turn is still a turn.
-			state.tick += 1;
-			const handler = findAction(action.name);
-			if (!handler) {
-				return { ok: false, narration: unknownActionNarration(action.name), stateDiff: [] };
-			}
-			const outcome = handler.perform(state, action.arguments);
-			return { ok: outcome.ok, narration: outcome.narration, stateDiff: outcome.stateDiff };
-		},
+		perform: performOn,
 
 		test(predicate): boolean {
 			const check = playroomPredicates[predicate];
@@ -69,7 +159,7 @@ function createPlayroomInstance(layoutId: string): WorldInstance {
 		},
 
 		reset(): void {
-			state = structuredClone(initial);
+			resetState();
 		},
 
 		receiveInput(text: string): void {
@@ -81,7 +171,9 @@ function createPlayroomInstance(layoutId: string): WorldInstance {
 			// have to look at, so it is gated on Sight exactly as the observation is.
 			if (!channels.includes(SENSE_SIGHT)) return undefined;
 			return playroomProgress[predicate]?.(state);
-		}
+		},
+
+		forAgent: facadeFor
 	};
 }
 

@@ -17,6 +17,8 @@ const SHELF: Cell = { x: 6, y: 0 };
 const TABLE: Cell = { x: 3, y: 2 };
 const TEDDY: Cell = { x: 5, y: 4 };
 const BOT_START: Cell = { x: 0, y: 4 };
+/** The co-op layout's second seat — far from `BOT_START`, on purpose (`23-…` §4.8). */
+const SEAT_B: Cell = { x: 7, y: 5 };
 
 function furniture(): PlayroomFurniture[] {
 	return [
@@ -70,6 +72,35 @@ function baseState(overrides: {
 		spoken: [],
 		heard: [],
 		celebrated: false
+	};
+}
+
+/**
+ * The co-op layout (WP29, `23-…` §4.8, §10 stage D): the same `blocks-in-chest`
+ * goal as "Tidy the blocks", on a room where the two blocks sit in opposite
+ * corners rather than side by side. A lone bot can still win it — the goal
+ * card ships a solo `par` and the L3 solvability suite proves it — but the
+ * two round trips make the case for a second pair of hands, which is the
+ * point once a group is actually splitting them (`23-…` §10 stage E).
+ *
+ * Deliberately its own builder rather than a `baseState()` override: the
+ * extra `coopStarts` field is content only this one layout carries, and
+ * `baseState()` stays exactly what every other layout already trusts it to be.
+ */
+function tidyTogetherState(): PlayroomState {
+	return {
+		width: WIDTH,
+		height: HEIGHT,
+		tick: 0,
+		bot: { position: { ...BOT_START } },
+		furniture: furniture(),
+		containers: chest('closed'),
+		characters: [{ id: 'teddy', name: entityName('teddy'), position: { ...TEDDY } }],
+		items: [onFloor('block-a', { x: 2, y: 1 }), onFloor('block-b', { ...SEAT_B })],
+		spoken: [],
+		heard: [],
+		celebrated: false,
+		coopStarts: [{ ...BOT_START }, { ...SEAT_B }]
 	};
 }
 
@@ -169,6 +200,11 @@ export const playroomLayouts: WorldLayout[] = [
 		// `say` (the exfiltration channel) — nothing about the room itself needs
 		// to change for the lesson to land.
 		initialState: baseState({ chestState: 'closed', items: [] })
+	},
+	{
+		id: 'tidy-together',
+		name: layoutStrings['tidy-together'],
+		initialState: tidyTogetherState()
 	},
 	{
 		id: 'free-play',

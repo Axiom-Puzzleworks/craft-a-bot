@@ -121,9 +121,21 @@ function succeed(message: string, stateDiff: StateChange[]): ActionOutcome {
 	return { ok: true, narration: message, stateDiff };
 }
 
-/** The single item in the bot's hands, if any. Carrying is stored only on the item. */
+/**
+ * The single item in the *acting* agent's hands, if any. Carrying is stored
+ * only on the item.
+ *
+ * `location.agentId === state.bot.id` reads correctly whether or not the
+ * world hosts more than one robot (WP29, `23-…` §4.8): on a solo layout
+ * neither side is ever set, so `undefined === undefined` and every item ever
+ * marked `carried` is this bot's own, exactly as before. On a co-op layout
+ * both sides are real ids, staged fresh by the facade before every call, so
+ * this returns the acting agent's own item and never a seatmate's.
+ */
 export function carriedItem(state: PlayroomState) {
-	return state.items.find((item) => item.location.kind === 'carried');
+	return state.items.find(
+		(item) => item.location.kind === 'carried' && item.location.agentId === state.bot.id
+	);
 }
 
 type ActionSpec<Schema extends z.ZodType> = {

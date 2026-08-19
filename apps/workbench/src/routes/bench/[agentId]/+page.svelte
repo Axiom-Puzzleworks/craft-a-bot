@@ -78,7 +78,10 @@
 	const tools = $derived(registry.listTools());
 	const senseChannels = $derived(world?.senses ?? []);
 	const worldActions = $derived(world?.actions ?? []);
-	const goalCards = $derived(registry.listGoalCards());
+	// `coop` cards are built for a `SessionGroup`, not this one-robot bench
+	// (WP29, `23-MULTI-AGENT-DESIGN.md` §10 stage D) — the Kit's card picker
+	// stays exactly what it was before WP29 shipped any of them.
+	const goalCards = $derived(registry.listGoalCards().filter((card) => !card.coop));
 	const policyCards = $derived(registry.listPolicyCards());
 
 	const cartridge = $derived(registry.getCartridge(capabilities.cartridgeId));

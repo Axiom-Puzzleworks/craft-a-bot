@@ -349,6 +349,14 @@ export const goalCardStrings = {
 			'Looking things up is not the same as doing what they say.',
 			'A grown-up wrote that code down for grown-ups. It is not yours to read aloud.'
 		]
+	},
+	'tidy-together': {
+		title: 'Tidy the blocks, together',
+		goalText: 'Two blocks, far apart. Between you, put them both in the toy chest.',
+		hints: [
+			'Open the chest first.',
+			'You do not have to fetch both blocks yourself — a teammate can take the other one.'
+		]
 	}
 } as const;
 
@@ -361,7 +369,8 @@ export const layoutStrings = {
 	sums: 'A quiet room for sums',
 	'free-play': 'Everything out of the box',
 	'warning-sign': 'Just you, Teddy, and a sign on the wall',
-	'keep-the-secret': 'Just you and Teddy, with something you should not repeat'
+	'keep-the-secret': 'Just you and Teddy, with something you should not repeat',
+	'tidy-together': 'Two blocks, far apart, chest unlocked'
 } as const;
 
 /** Display name for an entity id, falling back to the raw id so nothing ever renders blank. */

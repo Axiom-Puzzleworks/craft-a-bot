@@ -1,4 +1,5 @@
 import type {
+	GridWorldAgent,
 	GridWorldCharacter,
 	GridWorldContainer,
 	GridWorldContainerState,
@@ -39,6 +40,8 @@ export type PlayroomContainer = GridWorldContainer & {
 
 export type PlayroomFurniture = GridWorldFurniture;
 
+export type PlayroomAgent = GridWorldAgent;
+
 export type SpokenLine = {
 	tick: number;
 	text: string;
@@ -56,7 +59,15 @@ export type PlayroomState = {
 	 * things" is unrepresentable rather than merely forbidden. The one-item-at-a-time
 	 * limit (02-AGENT-MODEL.md §4) is then enforced by `carriedItem()`.
 	 */
-	bot: { position: Cell };
+	/**
+	 * `id` is the acting agent's own id, staged here for the length of one
+	 * `forAgent` facade call and never read between calls (WP29, `23-…` §4.8) —
+	 * every action handler still reads and writes plain `bot.position`, and
+	 * none of them ever learns a second robot exists. Absent on every layout
+	 * that never opts into `forAgent`, which keeps every snapshot ever written
+	 * byte-identical.
+	 */
+	bot: { position: Cell; id?: string };
 	furniture: PlayroomFurniture[];
 	containers: PlayroomContainer[];
 	characters: PlayroomCharacter[];
@@ -65,6 +76,19 @@ export type PlayroomState = {
 	/** User messages awaiting the Hearing channel; drained when observed. */
 	heard: string[];
 	celebrated: boolean;
+	/**
+	 * Every robot's own persistent seat, when the room hosts more than one
+	 * (WP29, `23-…` §4.3/§4.8). Absent for every layout that never opts in.
+	 */
+	agents?: PlayroomAgent[];
+	/**
+	 * Where a co-op layout seats its robots, in binding order — the first
+	 * agent to call `forAgent` gets `coopStarts[0]`, the second `coopStarts[1]`,
+	 * and so on. Pack content, not a core concept: only the layout that ships
+	 * this list ever has more than one robot in the room, and a layout that
+	 * omits it is simply not offering a second seat.
+	 */
+	coopStarts?: Cell[];
 };
 
 /** One field-level change, as `ActionResult.stateDiff` for the trace drawer (03-UI-UX-DESIGN.md §5.2). */
@@ -221,7 +245,19 @@ export function reachableItemNames(state: PlayroomState): string[] {
 		.map((item) => item.name);
 }
 
-/** Furniture, containers, and characters all take up a cell the bot cannot enter. */
+/**
+ * Furniture, containers, characters, and fellow robots all take up a cell the
+ * acting agent cannot enter — and, for a fellow robot, cannot even describe
+ * itself as standing on (WP29, `23-…` §4.8).
+ *
+ * The exclusion is by position, not by id: `state.bot.position` is always the
+ * *acting* agent's own current seat for the length of one facade call, and
+ * under the collision rule this method itself enforces, nobody else can ever
+ * coincide with it — so "not at my own current cell" is exactly "not me",
+ * with no separate identity check needed. This is a no-op for a move's target
+ * cell (which is never the mover's own cell) and only matters when sight asks
+ * about the cell the agent is already standing on.
+ */
 export function blockerAt(
 	state: PlayroomState,
 	cell: Cell
@@ -229,7 +265,10 @@ export function blockerAt(
 	return (
 		state.furniture.find((piece) => sameCell(piece.position, cell)) ??
 		state.containers.find((container) => sameCell(container.position, cell)) ??
-		state.characters.find((character) => sameCell(character.position, cell))
+		state.characters.find((character) => sameCell(character.position, cell)) ??
+		state.agents?.find(
+			(agent) => sameCell(agent.position, cell) && !sameCell(agent.position, state.bot.position)
+		)
 	);
 }
 
