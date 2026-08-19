@@ -434,6 +434,20 @@ describe('ending the group', () => {
 		group.stop('the practitioner pulled the plug');
 		expect(group.sessions.every((session) => session.status === 'finished')).toBe(true);
 	});
+
+	/** Same regression class as the chokepoint's below: stop() never populates memberOutcomes either. */
+	it('reports STOPPED_BY_USER, not OUT_OF_STEPS, on a stepRound() call after stop()', async () => {
+		const { group } = makeGroup({
+			members: twoMembers(
+				[turn('Ping.', 'ping'), turn('Ping.', 'ping')],
+				[turn('Ping.', 'ping'), turn('Ping.', 'ping')]
+			)
+		});
+		await group.stepRound();
+		group.stop('the practitioner pulled the plug');
+		const after = await group.stepRound();
+		expect(after.outcome).toBe('STOPPED_BY_USER');
+	});
 });
 
 describe('the orchestrator chokepoint (groupMaxTokens)', () => {
@@ -493,6 +507,44 @@ describe('the orchestrator chokepoint (groupMaxTokens)', () => {
 			'core/group-token-budget'
 		);
 		expect('agentId' in (tripped as object)).toBe(false);
+	});
+
+	/**
+	 * Regression: `stepRound()`'s already-finished branch used to re-derive the
+	 * outcome with `deriveGroupOutcome()`, which reads `memberOutcomes` — never
+	 * populated for a member the chokepoint stopped (it ends via `session.stop()`,
+	 * not a natural `step()` return). A second call silently reported
+	 * `OUT_OF_STEPS` instead of the real `STOPPED_BY_GUARDRAIL`, its own default
+	 * fallback for "nobody's outcome is on record" happening to be exactly the
+	 * wrong answer here. Caught by this verification pass, not by any stage's
+	 * own gate — nothing before it called `stepRound()` twice past a finish.
+	 */
+	it('keeps reporting STOPPED_BY_GUARDRAIL on every call after the group has finished', async () => {
+		const { group } = makeGroup({
+			members: twoMembers(
+				[
+					{
+						text: 'Ping.',
+						toolCall: { name: 'ping', arguments: {} },
+						usage: { inputTokens: 40, outputTokens: 10 }
+					}
+				],
+				[
+					{
+						text: 'Ping.',
+						toolCall: { name: 'ping', arguments: {} },
+						usage: { inputTokens: 40, outputTokens: 10 }
+					}
+				]
+			),
+			groupMaxTokens: 50
+		});
+
+		const first = await group.stepRound();
+		expect(first.outcome).toBe('STOPPED_BY_GUARDRAIL');
+		const second = await group.stepRound();
+		expect(second.outcome).toBe('STOPPED_BY_GUARDRAIL');
+		expect(second.round).toBe(first.round);
 	});
 });
 

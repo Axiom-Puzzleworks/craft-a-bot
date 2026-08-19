@@ -1,5 +1,8 @@
 import type { AgentHandle } from '@craftabot/core';
+import { obedient } from '@craftabot/core/testing';
 import { describe, expect, it } from 'vitest';
+import { runToCompletion } from '../session/harness.js';
+import { SCRIPTED_OPTIMAL } from '../session/plans.js';
 import { playroom } from './playroom.js';
 import type { PlayroomState } from './state.js';
 
@@ -192,5 +195,26 @@ describe('a single-agent layout', () => {
 	it('never gains an `agents` field just because forAgent exists on the type', () => {
 		const instance = playroom.create('greeting');
 		expect(snapshotOf(instance).agents).toBeUndefined();
+	});
+
+	/**
+	 * The end-to-end version of the check above (acceptance criterion 3,
+	 * `23-…` §11): a real session, over a real (non-coop) card, never carries
+	 * `agents`, `coopStarts` or `parentRunId` anywhere in its trace — `forAgent`
+	 * existing on the Playroom changes nothing for a bot that never triggers it.
+	 */
+	it('a solo session’s trace carries no multi-agent field anywhere', async () => {
+		const run = await runToCompletion({
+			script: obedient(SCRIPTED_OPTIMAL['starter/tidy-the-blocks'] ?? [])
+		});
+		const worldChanges = run.byType('world.changed');
+		expect(worldChanges.length).toBeGreaterThan(0);
+		for (const event of worldChanges) {
+			const state = (event.payload as { state: Record<string, unknown> }).state;
+			expect('agents' in state).toBe(false);
+			expect('coopStarts' in state).toBe(false);
+			expect(state.bot).not.toHaveProperty('id');
+		}
+		expect(run.events.every((event) => !('parentRunId' in event))).toBe(true);
 	});
 });

@@ -224,6 +224,14 @@ export function observePlayroom(state: PlayroomState, channels: string[]): Obser
 			}
 			case SENSE_HEARING: {
 				// Draining is deliberate: a message is heard once, then it is old news.
+				//
+				// One shared queue, drained by whichever agent's turn observes it
+				// first (WP29): on a co-op layout, a message delivered between two
+				// agents' turns is heard by only one of them, never both. No card
+				// shipped through WP29 fits Hearing to more than one seat, so this
+				// is unexercised rather than untrue — a duo card that does would
+				// need a per-agent queue, which is real, undone work, not a trap
+				// this comment quietly papers over.
 				const heard = state.heard.splice(0, state.heard.length);
 				lines.push(
 					heard.length > 0 ? observationStrings.heard(heard) : observationStrings.heardNothing

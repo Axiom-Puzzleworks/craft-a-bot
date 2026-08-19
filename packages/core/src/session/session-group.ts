@@ -169,7 +169,17 @@ export function createSessionGroup(deps: CreateSessionGroupDeps): SessionGroup {
 		stopRequested: undefined as string | undefined,
 		pauseRequested: false,
 		/** Which member is mid-tick, so `stop()` can abort exactly that one (§10). */
-		actingIndex: -1
+		actingIndex: -1,
+		/**
+		 * The outcome `finishGroup` actually decided, set alongside `phase`.
+		 * `stepRound()`'s already-finished branch reads this rather than calling
+		 * `deriveGroupOutcome()` again: that function reads `memberOutcomes`,
+		 * which a member stopped by the chokepoint or by `stop()` (as opposed to
+		 * a member that reached its own natural end) never populates — a repeat
+		 * call would otherwise silently fall through to its `OUT_OF_STEPS`
+		 * default regardless of the real reason the group ended.
+		 */
+		finalOutcome: undefined as RunOutcome | undefined
 	};
 
 	/**
@@ -285,6 +295,7 @@ export function createSessionGroup(deps: CreateSessionGroupDeps): SessionGroup {
 	function finishGroup(outcome: RunOutcome, reason?: string): void {
 		if (state.phase === 'finished') return;
 		state.phase = 'finished';
+		state.finalOutcome = outcome;
 		// Every member trace gets a real ending (principle 4) — one still
 		// running when the group concludes is stopped, not abandoned mid-run.
 		for (const session of sessions) {
@@ -314,7 +325,12 @@ export function createSessionGroup(deps: CreateSessionGroupDeps): SessionGroup {
 	}
 
 	async function stepRound(): Promise<{ round: number; outcome?: RunOutcome }> {
-		if (currentPhase() === 'finished') return { round: state.round, outcome: deriveGroupOutcome() };
+		if (currentPhase() === 'finished') {
+			return {
+				round: state.round,
+				...(state.finalOutcome !== undefined ? { outcome: state.finalOutcome } : {})
+			};
+		}
 		if (currentPhase() === 'idle') startGroup();
 		state.phase = 'running';
 
