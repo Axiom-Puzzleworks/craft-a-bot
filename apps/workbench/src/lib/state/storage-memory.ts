@@ -2,6 +2,7 @@ import {
 	safeParseAgentRecord,
 	safeParseStoredEvent,
 	type AgentRecord,
+	type GroupRunRecord,
 	type RunRecord,
 	type StoredEvent
 } from '@craftabot/core';
@@ -35,6 +36,7 @@ function copy<T>(value: T): T {
 export function createMemoryStorage(): MemoryStorage {
 	const agents = new Map<string, AgentRecord>();
 	const runs = new Map<string, RunRecord>();
+	const groupRuns = new Map<string, GroupRunRecord>();
 	const events = new Map<string, StoredEvent[]>();
 	const quarantine = emptyQuarantine();
 
@@ -86,6 +88,23 @@ export function createMemoryStorage(): MemoryStorage {
 			return Promise.resolve();
 		},
 
+		listGroupRuns: () => Promise.resolve([...groupRuns.values()].sort(byNewestFirst).map(copy)),
+		getGroupRun: (id) => Promise.resolve(copy(groupRuns.get(id))),
+		putGroupRun(record) {
+			groupRuns.set(record.id, structuredClone(record));
+			return Promise.resolve();
+		},
+		deleteGroupRun(id) {
+			groupRuns.delete(id);
+			events.delete(id);
+			return Promise.resolve();
+		},
+		setGroupRunPinned(id, pinned) {
+			const groupRun = groupRuns.get(id);
+			if (groupRun) groupRuns.set(id, { ...groupRun, pinned });
+			return Promise.resolve();
+		},
+
 		appendEvents(runId, incoming) {
 			const existing = events.get(runId) ?? [];
 			let seq = existing.length;
@@ -123,6 +142,7 @@ export function createMemoryStorage(): MemoryStorage {
 		clear() {
 			agents.clear();
 			runs.clear();
+			groupRuns.clear();
 			events.clear();
 			return Promise.resolve();
 		}

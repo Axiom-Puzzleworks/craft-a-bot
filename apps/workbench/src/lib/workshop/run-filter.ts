@@ -1,4 +1,4 @@
-import type { RunRecord } from '@craftabot/core';
+import type { GroupRunRecord, RunRecord } from '@craftabot/core';
 
 /**
  * **Which runs the Run Browser is showing** (`17-…` §4.3).
@@ -95,8 +95,63 @@ export function facetsOf(runs: readonly RunRecord[]): RunFacets {
 
 const byLabel = (a: { label: string }, b: { label: string }) => a.label.localeCompare(b.label);
 
-/** How long a run took, or `undefined` while it is still going. */
-export function durationMs(run: RunRecord): number | undefined {
-	if (run.finishedAt === undefined) return undefined;
-	return Date.parse(run.finishedAt) - Date.parse(run.startedAt);
+/**
+ * How long a run took, or `undefined` while it is still going. Takes just the
+ * two timestamps — `GroupRunRecord` carries the same pair for the same
+ * reason (WP29) — rather than a whole `RunRecord`.
+ */
+export function durationMs(record: {
+	startedAt: string;
+	finishedAt?: string | undefined;
+}): number | undefined {
+	if (record.finishedAt === undefined) return undefined;
+	return Date.parse(record.finishedAt) - Date.parse(record.startedAt);
+}
+
+/**
+ * One row of the Run Browser's table: an ordinary solo run, or a group
+ * episode's own row with its (already-filtered) member rows nested beneath it
+ * (WP29, `23-MULTI-AGENT-DESIGN.md` §5.2, §10 stage F — "the Run Browser
+ * groups an episode's rows: the two member runs indented under the group row").
+ */
+export type RunBrowserRow =
+	{ kind: 'run'; run: RunRecord } | { kind: 'group'; group: GroupRunRecord; members: RunRecord[] };
+
+/**
+ * Folds `filterRuns`'s own output into browser rows — filtering itself is
+ * untouched (`filterRuns` still runs on plain `RunRecord[]`, exactly as
+ * before WP29), so a solo-only store behaves byte-identically. A member run
+ * only appears grouped when its own `GroupRunRecord` is actually loaded;
+ * one that vanished (deleted out from under it) falls back to its own row
+ * rather than disappearing.
+ *
+ * A group's row lands at the position of the *first* of its members to
+ * appear in `runs`, which is already sorted — so the group sits exactly
+ * where its most-relevant member would have sat alone. A group whose every
+ * member the current filter hides never appears at all.
+ */
+export function groupRows(
+	runs: readonly RunRecord[],
+	groupRuns: readonly GroupRunRecord[]
+): RunBrowserRow[] {
+	const byId = new Map(groupRuns.map((group) => [group.id, group]));
+	const placed = new Set<string>();
+	const rows: RunBrowserRow[] = [];
+
+	for (const run of runs) {
+		const group = run.groupRunId !== undefined ? byId.get(run.groupRunId) : undefined;
+		if (!group) {
+			rows.push({ kind: 'run', run });
+			continue;
+		}
+		if (placed.has(group.id)) continue;
+		placed.add(group.id);
+		rows.push({
+			kind: 'group',
+			group,
+			members: runs.filter((candidate) => candidate.groupRunId === group.id)
+		});
+	}
+
+	return rows;
 }

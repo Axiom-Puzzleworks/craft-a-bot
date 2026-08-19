@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { RunRecord } from '@craftabot/core';
-import { durationMs, facetsOf, filterRuns } from './run-filter.js';
+import type { GroupRunRecord, RunRecord } from '@craftabot/core';
+import { durationMs, facetsOf, filterRuns, groupRows } from './run-filter.js';
 
 /**
  * The Run Browser's filter, which is the part with the edge cases: an empty
@@ -126,5 +126,63 @@ describe('duration', () => {
 		// Not zero, and not "now minus started": a record written at the start of a
 		// run that was then abandoned would otherwise grow a duration for ever.
 		expect(durationMs(run({ finishedAt: undefined, outcome: 'IN_PROGRESS' }))).toBeUndefined();
+	});
+});
+
+describe('grouping (WP29)', () => {
+	function groupRun(over: Partial<GroupRunRecord> = {}): GroupRunRecord {
+		return {
+			id: '99999999-0000-4000-8000-000000000001',
+			goalCardId: 'starter/tidy-together',
+			memberRunIds: [],
+			memberAgentIds: [],
+			outcome: 'SUCCESS',
+			rounds: 12,
+			usage: { inputTokens: 200, outputTokens: 60 },
+			pinned: false,
+			startedAt: '2026-08-19T10:00:00.000Z',
+			finishedAt: '2026-08-19T10:00:12.000Z',
+			schemaVersion: 1,
+			...over
+		};
+	}
+
+	it('leaves a solo run’s row exactly as it was — no groupRunId, no grouping', () => {
+		const solo = run();
+		expect(groupRows([solo], [])).toEqual([{ kind: 'run', run: solo }]);
+	});
+
+	it('nests both members under their group’s row, at the first member’s position', () => {
+		const robo = run({ id: '00000000-0000-4000-8000-000000000101', groupRunId: groupRun().id });
+		const bolt = run({ id: '00000000-0000-4000-8000-000000000102', groupRunId: groupRun().id });
+		const rows = groupRows([robo, bolt], [groupRun()]);
+
+		expect(rows).toEqual([{ kind: 'group', group: groupRun(), members: [robo, bolt] }]);
+	});
+
+	it('interleaves correctly: a solo run sorted between two different groups’ first members', () => {
+		const groupA = groupRun({ id: '99999999-0000-4000-8000-00000000000a' });
+		const groupB = groupRun({ id: '99999999-0000-4000-8000-00000000000b' });
+		const a1 = run({ id: '00000000-0000-4000-8000-0000000000a1', groupRunId: groupA.id });
+		const solo = run({ id: '00000000-0000-4000-8000-0000000000c1' });
+		const b1 = run({ id: '00000000-0000-4000-8000-0000000000b1', groupRunId: groupB.id });
+
+		const rows = groupRows([a1, solo, b1], [groupA, groupB]);
+
+		expect(rows.map((row) => row.kind)).toEqual(['group', 'run', 'group']);
+	});
+
+	it('a member whose GroupRunRecord is not loaded falls back to its own row', () => {
+		const orphan = run({ groupRunId: '99999999-0000-4000-8000-000000000404' });
+		expect(groupRows([orphan], [])).toEqual([{ kind: 'run', run: orphan }]);
+	});
+
+	it('only nests the members the filter actually passed', () => {
+		// `groupRows` is fed `filterRuns`'s own output — simulated here by simply
+		// not including Bolt's row, as if a filter had already dropped it.
+		const robo = run({ id: '00000000-0000-4000-8000-000000000201', groupRunId: groupRun().id });
+		const rows = groupRows([robo], [groupRun()]);
+
+		expect(rows).toEqual([{ kind: 'group', group: groupRun(), members: [robo] }]);
 	});
 });

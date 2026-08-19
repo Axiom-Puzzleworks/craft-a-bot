@@ -54,6 +54,15 @@ export const runRecordSchema = z.object({
 	pinned: z.boolean(),
 	startedAt: z.string().datetime(),
 	finishedAt: z.string().datetime().optional(),
+	/**
+	 * Which group episode this run belongs to, when it is one (WP29,
+	 * `23-MULTI-AGENT-DESIGN.md` §4.7, §10 stage F) — the same id its own
+	 * events carry as `parentRunId` (E10). Additive and optional, exactly the
+	 * widening policy `specSnapshot` already follows: absent for every run
+	 * recorded before this field existed and for every solo run recorded
+	 * after, so no `schemaVersion` bump.
+	 */
+	groupRunId: z.string().uuid().optional(),
 	schemaVersion: z.literal(2)
 });
 export type RunRecord = z.infer<typeof runRecordSchema>;

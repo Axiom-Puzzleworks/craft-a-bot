@@ -1,4 +1,10 @@
-import type { AgentRecord, EngineEvent, RunRecord, StoredEvent } from '@craftabot/core';
+import type {
+	AgentRecord,
+	EngineEvent,
+	GroupRunRecord,
+	RunRecord,
+	StoredEvent
+} from '@craftabot/core';
 
 /**
  * The persistence seam (07-DATA-MODEL-PERSISTENCE.md §8). Everything the app
@@ -34,6 +40,20 @@ export interface Storage {
 	deleteEvents(runId: string): Promise<void>;
 
 	/**
+	 * A group episode's own row (WP29, `23-MULTI-AGENT-DESIGN.md` §4.7, §10
+	 * stage F) — the Run Browser's way to list an episode without scanning
+	 * every member run for a shared `groupRunId`. The merged stream itself is
+	 * stored the ordinary way, through `appendEvents(groupRun.id, …)`; member
+	 * runs are stored the ordinary way too, through `putRun`/`appendEvents`,
+	 * each carrying `RunRecord.groupRunId` back to this row's `id`.
+	 */
+	listGroupRuns(): Promise<GroupRunRecord[]>;
+	getGroupRun(id: string): Promise<GroupRunRecord | undefined>;
+	putGroupRun(record: GroupRunRecord): Promise<void>;
+	deleteGroupRun(id: string): Promise<void>;
+	setGroupRunPinned(id: string, pinned: boolean): Promise<void>;
+
+	/**
 	 * Trim unpinned runs oldest-first until at most `cap` remain, deleting their
 	 * events too. Returns the ids evicted so the UI can show the friendly notice.
 	 */
@@ -58,8 +78,12 @@ export function emptyQuarantine(): QuarantineReport {
 	return { agents: 0, runs: 0, events: 0 };
 }
 
-/** Newest-first by `startedAt`, which is how the shelf lists runs. */
-export function byNewestFirst(a: RunRecord, b: RunRecord): number {
+/**
+ * Newest-first by `startedAt`, which is how the shelf lists runs — and, since
+ * `GroupRunRecord` carries the same field for the same reason, how the Run
+ * Browser lists episodes too (WP29).
+ */
+export function byNewestFirst(a: { startedAt: string }, b: { startedAt: string }): number {
 	return b.startedAt.localeCompare(a.startedAt);
 }
 

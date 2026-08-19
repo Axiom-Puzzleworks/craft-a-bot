@@ -4,6 +4,7 @@ import {
 	safeParseStoredEvent,
 	type AgentRecord,
 	type EngineEvent,
+	type GroupRunRecord,
 	type RunRecord,
 	type StoredEvent
 } from '@craftabot/core';
@@ -27,12 +28,13 @@ import {
  */
 
 export const DATABASE_NAME = 'craftabot';
-export const DATABASE_VERSION = 1;
+export const DATABASE_VERSION = 2;
 
 interface CraftABotDB extends DBSchema {
 	agents: { key: string; value: AgentRecord };
 	runs: { key: string; value: RunRecord; indexes: { startedAt: string } };
 	events: { key: [string, number]; value: StoredEvent; indexes: { runId: string } };
+	groupRuns: { key: string; value: GroupRunRecord; indexes: { startedAt: string } };
 }
 
 export interface IdbStorage extends Storage {
@@ -53,6 +55,14 @@ function upgrade(db: IDBPDatabase<CraftABotDB>, oldVersion: number): void {
 		runs.createIndex('startedAt', 'startedAt');
 		const events = db.createObjectStore('events', { keyPath: ['runId', 'seq'] });
 		events.createIndex('runId', 'runId');
+	}
+	// A group episode's own row (WP29, `23-…` §4.7, §10 stage F) — a new store,
+	// not a new shape on `runs`: a `GroupRunRecord` has no `specSnapshot`, no
+	// single `providerId`, and mixing the two shapes in one store would have
+	// made every reader guess which kind of row it had.
+	if (oldVersion < 2) {
+		const groupRuns = db.createObjectStore('groupRuns', { keyPath: 'id' });
+		groupRuns.createIndex('startedAt', 'startedAt');
 	}
 }
 
@@ -115,6 +125,22 @@ export async function createIdbStorage(name = DATABASE_NAME): Promise<IdbStorage
 			if (run) await db.put('runs', { ...run, pinned });
 		},
 
+		async listGroupRuns() {
+			return (await db.getAll('groupRuns')).sort(byNewestFirst);
+		},
+		getGroupRun: (id) => db.get('groupRuns', id),
+		async putGroupRun(record) {
+			await db.put('groupRuns', record);
+		},
+		async deleteGroupRun(id) {
+			await db.delete('groupRuns', id);
+			await deleteEventsFor(db, id);
+		},
+		async setGroupRunPinned(id, pinned) {
+			const groupRun = await db.get('groupRuns', id);
+			if (groupRun) await db.put('groupRuns', { ...groupRun, pinned });
+		},
+
 		async appendEvents(runId: string, incoming: readonly EngineEvent[]) {
 			const existing = await db.getAllFromIndex('events', 'runId', runId);
 			let seq = existing.length;
@@ -154,6 +180,7 @@ export async function createIdbStorage(name = DATABASE_NAME): Promise<IdbStorage
 		async clear() {
 			await db.clear('agents');
 			await db.clear('runs');
+			await db.clear('groupRuns');
 			await db.clear('events');
 		}
 	};

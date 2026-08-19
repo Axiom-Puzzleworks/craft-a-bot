@@ -4,6 +4,7 @@ import {
 	type AgentSpec,
 	type AgentSpecV2,
 	type EngineEvent,
+	type GroupRunRecord,
 	type RunRecord
 } from '@craftabot/core';
 
@@ -92,6 +93,23 @@ export function makeRun(overrides: Partial<RunRecord> = {}): RunRecord {
 		startedAt: '2026-08-12T10:00:00Z',
 		finishedAt: '2026-08-12T10:00:05Z',
 		schemaVersion: 2,
+		...overrides
+	};
+}
+
+export function makeGroupRun(overrides: Partial<GroupRunRecord> = {}): GroupRunRecord {
+	return {
+		id: uuid(200),
+		goalCardId: 'starter/tidy-together',
+		memberRunIds: [uuid(1), uuid(2)],
+		memberAgentIds: [uuid(1), uuid(2)],
+		outcome: 'SUCCESS',
+		rounds: 12,
+		usage: { inputTokens: 240, outputTokens: 80 },
+		pinned: false,
+		startedAt: '2026-08-19T10:00:00Z',
+		finishedAt: '2026-08-19T10:00:12Z',
+		schemaVersion: 1,
 		...overrides
 	};
 }

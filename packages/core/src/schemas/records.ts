@@ -3,7 +3,7 @@ import { agentSpecSchema } from './agent-spec.js';
 import { agentSpecV2Schema, migrateAgentSpec } from './agent-spec-v2.js';
 import { buildProblemSchema } from './build-problem.js';
 import { engineEventSchema } from './events.js';
-import type { MigrationError } from './shared.js';
+import { runOutcomeSchema, usageSchema, type MigrationError } from './shared.js';
 
 /**
  * The stored entities (07-DATA-MODEL-PERSISTENCE.md §3). Every one carries a
@@ -143,6 +143,34 @@ export const storedEventSchema = z.object({
 	event: engineEventSchema
 });
 export type StoredEvent = z.infer<typeof storedEventSchema>;
+
+/**
+ * A group episode's own row (WP29, `23-MULTI-AGENT-DESIGN.md` §4.7, §10 stage F)
+ * — "a lightweight `GroupRunRecord`... stored alongside" every member's own
+ * unwidened `RunRecord`, so the Run Browser can list an episode without
+ * scanning and joining every member row to find one.
+ *
+ * `id` is the group's own `groupRunId` — the same id the merged stream is
+ * stored under via the ordinary `appendEvents(id, mergedEvents)`, and the same
+ * id every member's own `RunRecord.groupRunId` points back to. No
+ * `specSnapshot`, no single `providerId`/`wireModel`/`budgets`: a group has
+ * several of each, one per member, already on that member's own record.
+ */
+export const groupRunRecordSchema = z.object({
+	id: z.string().uuid(),
+	goalCardId: z.string().min(1),
+	memberRunIds: z.array(z.string().uuid()),
+	memberAgentIds: z.array(z.string().uuid()),
+	/** The record's own "still going" state, exactly as `RunRecord.outcome` widens (E5). */
+	outcome: z.union([runOutcomeSchema, z.literal('IN_PROGRESS')]),
+	rounds: z.number().int().nonnegative(),
+	usage: usageSchema,
+	pinned: z.boolean(),
+	startedAt: z.string().datetime(),
+	finishedAt: z.string().datetime().optional(),
+	schemaVersion: z.literal(1)
+});
+export type GroupRunRecord = z.infer<typeof groupRunRecordSchema>;
 
 export function parseAgentRecord(value: unknown): AgentRecord {
 	return agentRecordSchema.parse(value);

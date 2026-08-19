@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Storage } from './storage.js';
-import { makeAgent, makeEvent, makeRun, makeSpec, uuid } from './storage-fixtures.js';
+import { makeAgent, makeEvent, makeGroupRun, makeRun, makeSpec, uuid } from './storage-fixtures.js';
 
 /**
  * One suite, run against every `Storage` implementation.
@@ -109,6 +109,73 @@ export function describeStorageContract(name: string, open: () => Promise<Storag
 
 				await storage.deleteRun(run.id);
 				expect(await storage.getEvents(run.id)).toEqual([]);
+			});
+		});
+
+		/** WP29 (`23-…` §4.7, §10 stage F) — the same shape of round-trip as `runs`, on its own store. */
+		describe('group runs', () => {
+			it('round-trips a group run record', async () => {
+				const storage = await open();
+				const groupRun = makeGroupRun();
+				await storage.putGroupRun(groupRun);
+				expect(await storage.getGroupRun(groupRun.id)).toEqual(groupRun);
+			});
+
+			it('returns undefined for a group run that is not there', async () => {
+				const storage = await open();
+				expect(await storage.getGroupRun(uuid(999))).toBeUndefined();
+			});
+
+			it('lists group runs newest first', async () => {
+				const storage = await open();
+				await storage.putGroupRun(
+					makeGroupRun({ id: uuid(201), startedAt: '2026-08-19T10:00:00Z' })
+				);
+				await storage.putGroupRun(
+					makeGroupRun({ id: uuid(202), startedAt: '2026-08-19T12:00:00Z' })
+				);
+				await storage.putGroupRun(
+					makeGroupRun({ id: uuid(203), startedAt: '2026-08-19T11:00:00Z' })
+				);
+
+				expect((await storage.listGroupRuns()).map((run) => run.id)).toEqual([
+					uuid(202),
+					uuid(203),
+					uuid(201)
+				]);
+			});
+
+			it('pins and unpins a group run', async () => {
+				const storage = await open();
+				const groupRun = makeGroupRun();
+				await storage.putGroupRun(groupRun);
+
+				await storage.setGroupRunPinned(groupRun.id, true);
+				expect((await storage.getGroupRun(groupRun.id))?.pinned).toBe(true);
+				await storage.setGroupRunPinned(groupRun.id, false);
+				expect((await storage.getGroupRun(groupRun.id))?.pinned).toBe(false);
+			});
+
+			it('ignores pinning a group run that does not exist', async () => {
+				const storage = await open();
+				await expect(storage.setGroupRunPinned(uuid(999), true)).resolves.toBeUndefined();
+			});
+
+			it('deleting a group run takes its merged events with it', async () => {
+				const storage = await open();
+				const groupRun = makeGroupRun();
+				await storage.putGroupRun(groupRun);
+				await storage.appendEvents(groupRun.id, [makeEvent(groupRun.id, 1, 250)]);
+
+				await storage.deleteGroupRun(groupRun.id);
+				expect(await storage.getEvents(groupRun.id)).toEqual([]);
+			});
+
+			it('clear() forgets group runs too', async () => {
+				const storage = await open();
+				await storage.putGroupRun(makeGroupRun());
+				await storage.clear();
+				expect(await storage.listGroupRuns()).toEqual([]);
 			});
 		});
 

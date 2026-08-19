@@ -5,6 +5,7 @@
 		buildTraceFile,
 		verifyTraceDigest,
 		type EngineEvent,
+		type GroupRunRecord,
 		type RunRecord
 	} from '@craftabot/core';
 	import { botExpression } from '$lib/bot-expression.js';
@@ -39,6 +40,17 @@
 	const runId = $derived(page.params.runId ?? '');
 
 	let run = $state<RunRecord | undefined>(undefined);
+	/**
+	 * Set instead of `run` when `runId` names a group episode, not a solo run
+	 * (WP29, `23-MULTI-AGENT-DESIGN.md` §5.2, §10 stage F) — "opening the group
+	 * row opens the Run Lab over the merged trace: same three regions, same
+	 * fold". `events` below is the *merged* stream in that case, read through
+	 * the same `storage.getEvents(id)` a solo run uses — the id just happens
+	 * to be the group's rather than one member's.
+	 */
+	let groupRun = $state<GroupRunRecord | undefined>(undefined);
+	/** Each group member's own row, for the header's links back to their standalone traces. */
+	let groupMembers = $state<RunRecord[]>([]);
 	let events = $state<EngineEvent[]>([]);
 	let loaded = $state(false);
 	/**
@@ -100,9 +112,18 @@
 	async function load(id: string): Promise<void> {
 		const storage = await appStorage();
 		run = await storage.getRun(id);
+		groupRun = run ? undefined : await storage.getGroupRun(id);
+		groupMembers = groupRun
+			? (
+					await Promise.all(groupRun.memberRunIds.map((memberId) => storage.getRun(memberId)))
+				).filter((member) => member !== undefined)
+			: [];
 		events = (await storage.getEvents(id)).map((row) => row.event);
 		tick = events.at(-1)?.tick ?? 0;
 		loaded = true;
+		// Digest verification stays single-run (`23-…` §4.7): a group has no one
+		// spec to rebuild a `TraceFile` from, and a bundle format that could is
+		// deferred to WP34's audit centre rather than half-built here.
 		if (run) void verify(run);
 	}
 
@@ -146,58 +167,102 @@
 	const tokens = (record: RunRecord) => record.usage.inputTokens + record.usage.outputTokens;
 </script>
 
-<svelte:head><title>{run?.agentName ?? 'Run'} — Run Lab</title></svelte:head>
+<svelte:head
+	><title
+		>{run?.agentName ?? (groupRun ? `${groupMembers.length}-robot episode` : 'Run')} — Run Lab</title
+	></svelte:head
+>
 
-{#if loaded && !run}
+{#if loaded && !run && !groupRun}
 	<p class="missing" data-testid="run-missing">
 		No run with that id is in the store. <a href={resolve('/workshop/runs')}>Back to the runs</a>.
 	</p>
-{:else if run}
+{:else if run || groupRun}
 	<header class="strip" data-testid="run-header">
 		<a class="back" href={resolve('/workshop/runs')}>← Runs</a>
-		<h1>{run.agentName}</h1>
-		<span class="chip" data-outcome={run.outcome} data-testid="header-outcome">{run.outcome}</span>
-		<dl>
-			<div>
-				<dt>Card</dt>
-				<dd class="mono">{run.goalCardId}</dd>
-			</div>
-			<div>
-				<dt>Model</dt>
-				<dd class="mono">{run.providerId} · {run.wireModel}</dd>
-			</div>
-			<div>
-				<dt>Budgets</dt>
-				<dd class="mono">{run.budgets.maxTicks} turns · {run.budgets.maxTokens} tokens</dd>
-			</div>
-			<div>
-				<dt>Used</dt>
-				<dd class="mono">{run.ticks} turns · {tokens(run)} tokens</dd>
-			</div>
-		</dl>
-		<!--
-			Recomputed on load, never read from a field. A digest stored beside the
-			events it describes proves nothing on its own.
-		-->
-		<span
-			class="integrity"
-			data-verified={typeof verified === 'boolean' ? verified : 'unknown'}
-			title={typeof verified === 'object' ? verified.error : undefined}
-			data-testid="digest-badge"
-		>
-			{#if verified === undefined}
-				checking integrity…
-			{:else if verified === true}
-				✓ trace integrity
-			{:else if verified === false}
-				✗ digest does not match these events
-			{:else}
-				? integrity not checked
-			{/if}
-		</span>
-		<a class="kit" href={resolve('/replay/[runId]', { runId })} data-testid="open-in-kit"
-			>Open in Kit</a
-		>
+		{#if run}
+			<h1>{run.agentName}</h1>
+			<span class="chip" data-outcome={run.outcome} data-testid="header-outcome">{run.outcome}</span
+			>
+			<dl>
+				<div>
+					<dt>Card</dt>
+					<dd class="mono">{run.goalCardId}</dd>
+				</div>
+				<div>
+					<dt>Model</dt>
+					<dd class="mono">{run.providerId} · {run.wireModel}</dd>
+				</div>
+				<div>
+					<dt>Budgets</dt>
+					<dd class="mono">{run.budgets.maxTicks} turns · {run.budgets.maxTokens} tokens</dd>
+				</div>
+				<div>
+					<dt>Used</dt>
+					<dd class="mono">{run.ticks} turns · {tokens(run)} tokens</dd>
+				</div>
+			</dl>
+			<!--
+				Recomputed on load, never read from a field. A digest stored beside the
+				events it describes proves nothing on its own.
+			-->
+			<span
+				class="integrity"
+				data-verified={typeof verified === 'boolean' ? verified : 'unknown'}
+				title={typeof verified === 'object' ? verified.error : undefined}
+				data-testid="digest-badge"
+			>
+				{#if verified === undefined}
+					checking integrity…
+				{:else if verified === true}
+					✓ trace integrity
+				{:else if verified === false}
+					✗ digest does not match these events
+				{:else}
+					? integrity not checked
+				{/if}
+			</span>
+			<a class="kit" href={resolve('/replay/[runId]', { runId })} data-testid="open-in-kit"
+				>Open in Kit</a
+			>
+		{:else if groupRun}
+			<!--
+				A group episode's header (WP29, `23-…` §5.2, §10 stage F). No single
+				agent, model or budget to show — several, one per member below —
+				and no digest badge or "Open in Kit": both stay single-run (`23-…`
+				§4.7), and there is no Kit UI for a group to open into.
+			-->
+			<h1 data-testid="group-header">{groupMembers.length}-robot episode</h1>
+			<span class="chip" data-outcome={groupRun.outcome} data-testid="header-outcome"
+				>{groupRun.outcome}</span
+			>
+			<dl>
+				<div>
+					<dt>Card</dt>
+					<dd class="mono">{groupRun.goalCardId}</dd>
+				</div>
+				<div>
+					<dt>Rounds</dt>
+					<dd class="mono">{groupRun.rounds}</dd>
+				</div>
+				<div>
+					<dt>Used</dt>
+					<dd class="mono">
+						{groupRun.usage.inputTokens + groupRun.usage.outputTokens} tokens
+					</dd>
+				</div>
+				<div>
+					<dt>Members</dt>
+					<dd class="members" data-testid="group-members">
+						{#each groupMembers as member (member.id)}
+							<a href={resolve('/workshop/runs/[runId]', { runId: member.id })}>
+								{member.agentName} — {member.outcome}
+							</a>
+						{/each}
+					</dd>
+				</div>
+			</dl>
+		{/if}
 	</header>
 
 	<div class="regions">
@@ -371,6 +436,12 @@
 
 	dd {
 		margin: 0;
+	}
+
+	.members {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--cab-space-2);
 	}
 
 	.chip,

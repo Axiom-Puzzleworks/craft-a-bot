@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import WorkshopRail from '$lib/components/workshop/WorkshopRail.svelte';
+	import { installGroupEpisodeEntryPoint } from '$lib/state/group-episode-entry-point.js';
 
 	/**
 	 * The Workshop shell (`15-…` §2, `17-…` §2).
@@ -22,6 +23,11 @@
 	 * pointing at something it has never described.
 	 */
 	let { children } = $props();
+
+	// WP29's group-episode entry point (`23-…` §10 stage F) — installed here
+	// because every Workshop page loads this shell, and nothing outside the
+	// Workshop has any use for it.
+	installGroupEpisodeEntryPoint();
 
 	const current = $derived.by(() => {
 		const path = page.url.pathname;

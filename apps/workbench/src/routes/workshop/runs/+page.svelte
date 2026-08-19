@@ -1,8 +1,19 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { parseTraceFile, verifyTraceDigest, type RunRecord } from '@craftabot/core';
+	import {
+		parseTraceFile,
+		verifyTraceDigest,
+		type GroupRunRecord,
+		type RunRecord
+	} from '@craftabot/core';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
-	import { durationMs, facetsOf, filterRuns, type RunFilter } from '$lib/workshop/run-filter.js';
+	import {
+		durationMs,
+		facetsOf,
+		filterRuns,
+		groupRows,
+		type RunFilter
+	} from '$lib/workshop/run-filter.js';
 
 	/**
 	 * **The Run Browser** (`17-…` §4.3): every run the store holds, filterable,
@@ -16,6 +27,8 @@
 	 */
 
 	let runs = $state<RunRecord[]>([]);
+	/** WP29 (`23-…` §5.2, §10 stage F): loaded alongside `runs`, never filtered on its own. */
+	let groupRuns = $state<GroupRunRecord[]>([]);
 	let loaded = $state(false);
 	let filter = $state<RunFilter>({});
 	let importNote = $state<{ ok: boolean; text: string } | undefined>(undefined);
@@ -28,6 +41,13 @@
 
 	const facets = $derived(facetsOf(runs));
 	const shown = $derived(filterRuns(runs, filter));
+	/**
+	 * The table's actual rows: `shown`'s own filtered order, with a group
+	 * episode's members nested under its own row (WP29, `23-…` §5.2). Filtering
+	 * itself never learns groups exist — `shown` is exactly what it was before
+	 * this field existed, and `groupRows` only re-shapes it for display.
+	 */
+	const rows = $derived(groupRows(shown, groupRuns));
 	const compareHref = $derived(
 		selected.length === 2
 			? `${resolve('/workshop/compare')}?a=${encodeURIComponent(selected[0] ?? '')}&b=${encodeURIComponent(selected[1] ?? '')}`
@@ -41,12 +61,19 @@
 	async function load(): Promise<void> {
 		const storage = await appStorage();
 		runs = await storage.listRuns();
+		groupRuns = await storage.listGroupRuns();
 		loaded = true;
 	}
 
 	async function togglePin(run: RunRecord): Promise<void> {
 		const storage = await appStorage();
 		await storage.setRunPinned(run.id, !run.pinned);
+		await load();
+	}
+
+	async function toggleGroupPin(group: GroupRunRecord): Promise<void> {
+		const storage = await appStorage();
+		await storage.setGroupRunPinned(group.id, !group.pinned);
 		await load();
 	}
 
@@ -95,8 +122,8 @@
 	}
 
 	const when = (iso: string) => new Date(iso).toLocaleString();
-	const seconds = (run: RunRecord) => {
-		const ms = durationMs(run);
+	const seconds = (record: { startedAt: string; finishedAt?: string | undefined }) => {
+		const ms = durationMs(record);
 		return ms === undefined ? '—' : `${(ms / 1000).toFixed(1)}s`;
 	};
 	const clear = () => (filter = {});
@@ -228,41 +255,120 @@
 				</tr>
 			</thead>
 			<tbody>
-				{#each shown as run (run.id)}
-					<tr data-testid="run-row-{run.id}">
-						<td>
-							<input
-								type="checkbox"
-								aria-label="Select {run.agentName}'s run for comparison"
-								data-testid="compare-check-{run.id}"
-								checked={selected.includes(run.id)}
-								onchange={(e) => toggleSelect(run.id, e.currentTarget.checked)}
-							/>
-						</td>
-						<td>
-							<button
-								type="button"
-								class="pin"
-								aria-pressed={run.pinned}
-								title={run.pinned ? 'Unpin this run' : 'Pin this run'}
-								data-testid="pin-{run.id}"
-								onclick={() => togglePin(run)}
+				{#each rows as row (row.kind === 'group' ? row.group.id : row.run.id)}
+					{#if row.kind === 'group'}
+						<!-- The episode's own row (WP29, `23-…` §5.2) — a group has no
+						     single bot or model, so those columns say so instead of lying
+						     with one member's. -->
+						<tr class="group-row" data-testid="group-row-{row.group.id}">
+							<td></td>
+							<td>
+								<button
+									type="button"
+									class="pin"
+									aria-pressed={row.group.pinned}
+									title={row.group.pinned ? 'Unpin this episode' : 'Pin this episode'}
+									data-testid="pin-group-{row.group.id}"
+									onclick={() => toggleGroupPin(row.group)}
+								>
+									<span aria-hidden="true">{row.group.pinned ? '★' : '☆'}</span>
+									<span class="visually-hidden">{row.group.pinned ? 'Pinned' : 'Not pinned'}</span>
+								</button>
+							</td>
+							<td class="when">{when(row.group.startedAt)}</td>
+							<td>
+								<a href={resolve('/workshop/runs/[runId]', { runId: row.group.id })}>
+									{row.members.length}-robot episode
+								</a>
+							</td>
+							<td class="mono">{row.group.goalCardId}</td>
+							<td
+								><span class="outcome" data-outcome={row.group.outcome}>{row.group.outcome}</span
+								></td
 							>
-								<span aria-hidden="true">{run.pinned ? '★' : '☆'}</span>
-								<span class="visually-hidden">{run.pinned ? 'Pinned' : 'Not pinned'}</span>
-							</button>
-						</td>
-						<td class="when">{when(run.startedAt)}</td>
-						<td>
-							<a href={resolve('/workshop/runs/[runId]', { runId: run.id })}>{run.agentName}</a>
-						</td>
-						<td class="mono">{run.goalCardId}</td>
-						<td><span class="outcome" data-outcome={run.outcome}>{run.outcome}</span></td>
-						<td class="num">{run.ticks}<span class="of">/{run.budgets.maxTicks}</span></td>
-						<td class="num">{seconds(run)}</td>
-						<td class="mono">{run.wireModel}</td>
-						<td class="num">{run.usage.inputTokens + run.usage.outputTokens}</td>
-					</tr>
+							<td class="num">{row.group.rounds}<span class="of">rounds</span></td>
+							<td class="num"
+								>{seconds({ startedAt: row.group.startedAt, finishedAt: row.group.finishedAt })}</td
+							>
+							<td class="mono">—</td>
+							<td class="num">{row.group.usage.inputTokens + row.group.usage.outputTokens}</td>
+						</tr>
+						{#each row.members as member (member.id)}
+							<tr data-testid="run-row-{member.id}" class="member-row">
+								<td>
+									<input
+										type="checkbox"
+										aria-label="Select {member.agentName}'s run for comparison"
+										data-testid="compare-check-{member.id}"
+										checked={selected.includes(member.id)}
+										onchange={(e) => toggleSelect(member.id, e.currentTarget.checked)}
+									/>
+								</td>
+								<td>
+									<button
+										type="button"
+										class="pin"
+										aria-pressed={member.pinned}
+										title={member.pinned ? 'Unpin this run' : 'Pin this run'}
+										data-testid="pin-{member.id}"
+										onclick={() => togglePin(member)}
+									>
+										<span aria-hidden="true">{member.pinned ? '★' : '☆'}</span>
+										<span class="visually-hidden">{member.pinned ? 'Pinned' : 'Not pinned'}</span>
+									</button>
+								</td>
+								<td class="when">{when(member.startedAt)}</td>
+								<td class="indent">
+									<a href={resolve('/workshop/runs/[runId]', { runId: member.id })}
+										>↳ {member.agentName}</a
+									>
+								</td>
+								<td class="mono">{member.goalCardId}</td>
+								<td><span class="outcome" data-outcome={member.outcome}>{member.outcome}</span></td>
+								<td class="num">{member.ticks}<span class="of">/{member.budgets.maxTicks}</span></td
+								>
+								<td class="num">{seconds(member)}</td>
+								<td class="mono">{member.wireModel}</td>
+								<td class="num">{member.usage.inputTokens + member.usage.outputTokens}</td>
+							</tr>
+						{/each}
+					{:else}
+						{@const run = row.run}
+						<tr data-testid="run-row-{run.id}">
+							<td>
+								<input
+									type="checkbox"
+									aria-label="Select {run.agentName}'s run for comparison"
+									data-testid="compare-check-{run.id}"
+									checked={selected.includes(run.id)}
+									onchange={(e) => toggleSelect(run.id, e.currentTarget.checked)}
+								/>
+							</td>
+							<td>
+								<button
+									type="button"
+									class="pin"
+									aria-pressed={run.pinned}
+									title={run.pinned ? 'Unpin this run' : 'Pin this run'}
+									data-testid="pin-{run.id}"
+									onclick={() => togglePin(run)}
+								>
+									<span aria-hidden="true">{run.pinned ? '★' : '☆'}</span>
+									<span class="visually-hidden">{run.pinned ? 'Pinned' : 'Not pinned'}</span>
+								</button>
+							</td>
+							<td class="when">{when(run.startedAt)}</td>
+							<td>
+								<a href={resolve('/workshop/runs/[runId]', { runId: run.id })}>{run.agentName}</a>
+							</td>
+							<td class="mono">{run.goalCardId}</td>
+							<td><span class="outcome" data-outcome={run.outcome}>{run.outcome}</span></td>
+							<td class="num">{run.ticks}<span class="of">/{run.budgets.maxTicks}</span></td>
+							<td class="num">{seconds(run)}</td>
+							<td class="mono">{run.wireModel}</td>
+							<td class="num">{run.usage.inputTokens + run.usage.outputTokens}</td>
+						</tr>
+					{/if}
 				{/each}
 			</tbody>
 		</table>
@@ -420,6 +526,21 @@
 
 	.when {
 		white-space: nowrap;
+	}
+
+	/*
+	 * The episode's own row (WP29, `23-…` §5.2) — a tint, not just a rule,
+	 * because a group row sits directly above the member rows it introduces
+	 * and needs to read as the thing they belong to, not as one more row.
+	 */
+	.group-row {
+		background: color-mix(in srgb, var(--cab-scope) 8%, transparent);
+		font-weight: 600;
+	}
+
+	.member-row .indent {
+		padding-left: var(--cab-space-4);
+		font-weight: 400;
 	}
 
 	.outcome {

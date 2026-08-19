@@ -2,7 +2,7 @@ import 'fake-indexeddb/auto';
 import { afterEach, describe, expect, it } from 'vitest';
 import { DATABASE_VERSION, createIdbStorage } from './storage-idb.js';
 import { describeStorageContract } from './storage-contract.js';
-import { makeAgent, makeAgentV1 } from './storage-fixtures.js';
+import { makeAgent, makeAgentV1, makeGroupRun } from './storage-fixtures.js';
 
 /**
  * The same contract as the in-memory store, plus the things only a real
@@ -33,8 +33,8 @@ describe('the IndexedDB store specifically', () => {
 		expect(storage.kind).toBe('indexeddb');
 	});
 
-	it('ships at schema version 1, with the migration switch already in place', () => {
-		expect(DATABASE_VERSION).toBe(1);
+	it('ships at schema version 2, with the migration switch already in place', () => {
+		expect(DATABASE_VERSION).toBe(2);
 	});
 
 	it('survives being closed and reopened — the whole point of persisting', async () => {
@@ -113,6 +113,47 @@ describe('the IndexedDB store specifically', () => {
 		// And the same row fetched by id, which is a different code path.
 		const one = await storage.getAgent(agents[0]?.id ?? '');
 		expect(one?.spec.identity.boxArtSeed).toBe('seed-1');
+	});
+
+	/**
+	 * WP29 (`23-…` §4.7, §10 stage F): the version-1 database — everyone who
+	 * has ever opened the app before this change — gets `groupRuns` added on
+	 * top of what it already had, not rebuilt. `upgrade()`'s own `oldVersion`
+	 * switch is what makes this "adding a case", per its comment; this is the
+	 * test that the case actually fires against a database that predates it.
+	 */
+	it('adds the group-runs store to a database that predates it, leaving what was already there', async () => {
+		const name = 'craftabot-v1-database';
+		const v1 = await new Promise<IDBDatabase>((resolve, reject) => {
+			const request = indexedDB.open(name, 1);
+			request.onupgradeneeded = () => {
+				const db = request.result;
+				db.createObjectStore('agents', { keyPath: 'id' });
+				const runs = db.createObjectStore('runs', { keyPath: 'id' });
+				runs.createIndex('startedAt', 'startedAt');
+				const events = db.createObjectStore('events', { keyPath: ['runId', 'seq'] });
+				events.createIndex('runId', 'runId');
+			};
+			request.onsuccess = () => resolve(request.result);
+			request.onerror = () => reject(request.error);
+		});
+		await new Promise<void>((resolve, reject) => {
+			const tx = v1.transaction('agents', 'readwrite');
+			tx.objectStore('agents').put(makeAgent());
+			tx.oncomplete = () => resolve();
+			tx.onerror = () => reject(tx.error);
+		});
+		v1.close();
+
+		const storage = await createIdbStorage(name);
+		opened.push(storage);
+
+		expect(await storage.listAgents()).toHaveLength(1);
+		expect(await storage.listGroupRuns()).toEqual([]);
+
+		const groupRun = makeGroupRun();
+		await storage.putGroupRun(groupRun);
+		expect(await storage.getGroupRun(groupRun.id)).toEqual(groupRun);
 	});
 
 	it('refuses to store an invalid agent', async () => {

@@ -186,12 +186,14 @@ export {
 } from './schemas/kit-file.js';
 export {
 	agentRecordSchema,
+	groupRunRecordSchema,
 	migrateAgentRecord,
 	parseAgentRecord,
 	safeParseAgentRecord,
 	safeParseStoredEvent,
 	storedEventSchema,
 	type AgentRecord,
+	type GroupRunRecord,
 	type StoredEvent
 } from './schemas/records.js';
 

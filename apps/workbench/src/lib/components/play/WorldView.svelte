@@ -111,6 +111,34 @@
 	 * is the seam that would tell us the grid had moved.
 	 */
 	const roomIsDrawn = $derived(world?.width === GRID.cols && world?.height === GRID.rows);
+
+	/**
+	 * A fellow robot, drawn plainly (WP29, `23-MULTI-AGENT-DESIGN.md` §4.3):
+	 * one pose, one neutral face, a name caption — never the expression, speech
+	 * bubble or carried-item detail `bot` gets, because none of that is known
+	 * at this projection layer for anyone but the seat this trace foregrounds.
+	 * `bot` remains the "you" whose full state this component has always drawn;
+	 * `agents`, when a co-op world sends it, is everyone else in the room.
+	 */
+	const fellowBot = $derived.by(() =>
+		inlineSvg(BOT_POSES.walk, { slots: { 'face-slot': inlineSvg(BOT_FACES.idle, { size: 48 }) } })
+	);
+
+	/** The room's own description, naming every fellow robot when there is one to name. */
+	const roomLabel = $derived.by(() => {
+		if (!world) return '';
+		const you = `Your bot is at column ${world.bot.position.x + 1}, row ${world.bot.position.y + 1}.`;
+		const fellows = (world.agents ?? [])
+			.filter(
+				(agent) =>
+					!(agent.position.x === world.bot.position.x && agent.position.y === world.bot.position.y)
+			)
+			.map(
+				(agent) =>
+					`${agent.name} is at column ${agent.position.x + 1}, row ${agent.position.y + 1}.`
+			);
+		return [`The Playroom, ${world.width} by ${world.height}.`, you, ...fellows].join(' ');
+	});
 </script>
 
 {#if !world}
@@ -124,8 +152,7 @@
 		data-testid="world-view"
 		style="--cols: {world.width}; --rows: {world.height}"
 		role="img"
-		aria-label="The Playroom, {world.width} by {world.height}. Your bot is at column {world.bot
-			.position.x + 1}, row {world.bot.position.y + 1}."
+		aria-label={roomLabel}
 	>
 		{#if roomIsDrawn}
 			<span class="backdrop" data-testid="backdrop"><Art source={BACKDROP} /></span>
@@ -137,6 +164,7 @@
 			{@const character = at(world.characters, cell.x, cell.y)}
 			{@const loose = itemsOnFloor(world, cell.x, cell.y)}
 			{@const isBot = world.bot.position.x === cell.x && world.bot.position.y === cell.y}
+			{@const fellow = isBot ? undefined : at(world.agents ?? [], cell.x, cell.y)}
 			<div class="cell" data-testid="cell-{cell.x}-{cell.y}" data-bot={isBot}>
 				{#if isBot}
 					<!-- A frame, not a pad: the cue must not cover what it points at. -->
@@ -213,6 +241,21 @@
 							<Fx cue={beat.cue} />
 						{/key}
 					{/if}
+				{/if}
+
+				{#if fellow}
+					<!--
+						A fellow robot (WP29, `23-…` §4.3) — plain on purpose: one pose,
+						one neutral face, named by its caption. Nothing at this layer
+						knows its expression or what it is carrying, only where it is.
+					-->
+					<span class="thing thing--bot thing--fellow" data-testid="fellow-{fellow.id}">
+						<span class="body" data-pose="walk">
+							<!-- eslint-disable-next-line svelte/no-at-html-tags -- build-time asset markup, composed by lib/assets/inline.ts -->
+							{@html fellowBot}
+						</span>
+						<span class="caption">{fellow.name}</span>
+					</span>
 				{/if}
 			</div>
 		{/each}
