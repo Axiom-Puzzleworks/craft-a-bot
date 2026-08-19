@@ -196,6 +196,11 @@ Inherited from `23-…` §7 and held at the same boundary: no N>2 robots (the du
 | Radio: "direct A2A-style later" as the eventual comms model | World-mediated only, permanently in the kids line, per `23-…` §4.8's own comms note ("direct agent-to-agent channels only in pro mode") | Reaffirming a boundary `23-…` already drew, not a new one — this doc is the one that had to actually build the brick, so it is the one that gets to confirm the boundary held |
 | §6's sketch: "narration names actors" (one clause, no mechanism) | `narrate()` gains an optional `actors` map; every existing call site passes nothing and is byte-identical | The sketch didn't say *how*; §4.4 is the how, chosen for additivity over the sketch's silence on the question |
 
+> **Amended 2026-08-19 (WP31 stage A):** two small implementation refinements found while building `createGroupSessionView`, neither changing §4.2's contract.
+>
+> - **Per-member events are routed by `agentId`, not `runId`.** §4.2's sketch filtered the merged bus on `event.runId === member.runId`; the shipped code checks `event.agentId !== undefined` instead. Both identify the same member uniquely (`SessionGroup` refuses duplicate agent ids at construction, so agentId and runId are already in 1:1 correspondence) — `agentId` is what the group's own two lifecycle events are *defined* by their absence of (§4.6's catalogue entry), so checking for it is also how a member event is told apart from a group event in the same pass, one comparison doing two jobs instead of two.
+> - **`pendingApproval` is read off each member's own `RunProjection`, not off `group.sessions[].status`.** Each member's projection already tracks `approval.requested`/`approval.resolved` through the same `applyEvent` fold `session.svelte.ts` relies on — reaching into `SessionGroup`'s own session objects for the same fact would have been reading it through a second door. No behavioural difference; `session-group.svelte.test.ts`'s own approval test is what confirmed the two agree.
+
 *(This table grows, dated, as stages surface real divergences — the same practice `23-…` §8 followed throughout its own seven stages.)*
 
 ## 9. Risk register
