@@ -36,6 +36,7 @@
 | `20-ART-COMMISSION-BRIEF.md` | **New (2026-08-14)** — the drop-in specification for art wave 1: exact canvases in px, file paths, palette, named-group contract, and the placeholder each artefact replaces. Companion to `11-…`, which stays the what-and-why |
 | `21-ART-PRODUCTION-PLAN.md` | **New** — wave 1 production plan against the commission brief |
 | `22-WAVE-1-HANDOVER.md` | **New (2026-08-15)** — wave 1 art handover: what was produced, where it landed, how the swap-in went |
+| `23-MULTI-AGENT-DESIGN.md` | **New (2026-08-19)** — WP29's design of record: the SessionGroup/AgentHandle/facade architecture anchored in the real codebase, both audiences' stakes, and the seven-stage implementation plan. Supersedes `14-…` §6's sketch where they differ |
 
 ## Where things stand (as of 2026-08-16 — see `18-…` §7 for the full log)
 

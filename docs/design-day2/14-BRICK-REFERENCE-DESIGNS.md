@@ -308,6 +308,8 @@ Selection rationale: 5.1–5.4 are the Agent Builder box-art promises (planner, 
 
 ## 6. Multi-agent target architecture (design now, build in Phase E/F)
 
+> **Amended 2026-08-19 (WP29 design):** this section is now the *sketch*; the full design of record is `23-MULTI-AGENT-DESIGN.md`, written against the post-WP28 codebase. Where the two differ, 23 wins — its §8 records each divergence with its reason. The three that matter: the `AgentHandle` binds once via an optional `WorldInstance.forAgent` facade rather than changing every method signature; `GridWorldState` gains an optional `agents` field alongside `bot` rather than migrating every pack's state; and the shared group id rides the envelope's existing `parentRunId` field, exactly as E10's own comment reserved it for.
+
 - **Sessions:** one `AgentSession` per agent, unchanged. A new host-level `SessionGroup` owns: a shared `WorldInstance` created once; a **turn scheduler** (round-robin ticks in V-duo; the world stays turn-based so determinism and replay survive); shared budget accounting; group stop.
 - **World contract:** `observe/perform/describeProgress` take an `AgentHandle`; `WorldState.bot` → `agents: AgentState[]` (v2 world schema, migrated); narration names actors. Predicates may reference "any agent" or a named agent.
 - **Traces:** each agent keeps its own run trace (own `runId`, shared `groupRunId` via E10 envelope fields); the group trace is the ordered merge — exactly how production tracing correlates spans (delegation metadata, `19-…` §5.3).
