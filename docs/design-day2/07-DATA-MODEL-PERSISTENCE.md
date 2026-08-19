@@ -22,7 +22,8 @@
 |---|---|---|
 | `cab.agents` | IndexedDB object store | `AgentRecord` (the `AgentSpec` + shelf metadata) |
 | `cab.runs` | IndexedDB object store | `RunRecord` (run summary) |
-| `cab.events` | IndexedDB object store (indexed by `runId`, `seq`) | Trace events, append-only |
+| `cab.groupRuns` | IndexedDB object store | `GroupRunRecord` (a multi-agent episode's own summary — WP29) |
+| `cab.events` | IndexedDB object store (indexed by `runId`, `seq`) | Trace events, append-only — a group episode's merged stream stores here too, keyed by its own `groupRunId` |
 | `cab.settings` | `localStorage` (`cab.settings.v1`) | Preferences (sound, motion, speed), tutorial progress, badges |
 | `cab.keys` | `localStorage` (`cab.keys.v1`) | `{ [providerId]: apiKey }` — see key rules |
 
@@ -68,6 +69,25 @@ export interface StoredEvent {                 // one row per engine event
 }
 ```
 
+> **Amended 2026-08-19 (WP29 stage F, `23-MULTI-AGENT-DESIGN.md` §4.7):** a group episode's own row, `GroupRunRecord`, in its own store (`cab.groupRuns`, `DATABASE_VERSION` 2) — not folded into `cab.runs`, because a group has no single `specSnapshot` or `providerId` to denormalise and mixing the two row shapes in one store would have made every reader guess which kind it had. `RunRecord` gains one optional field, `groupRunId?: string`, carrying a member back to its episode — additive, no `schemaVersion` bump, the same widening policy `providerId`/`wireModel`/`budgets` (E8) already followed. The merged stream needs no new storage concept at all: it is `appendEvents`/`getEvents` against the group's own id, exactly as a solo run's events are, because `StoredEvent.seq` is assigned in append order regardless of whose events they are.
+>
+> ```ts
+> export interface GroupRunRecord {
+>   id: string;                    // uuid — the group's own groupRunId
+>   goalCardId: string;
+>   memberRunIds: string[];
+>   memberAgentIds: string[];
+>   outcome: RunOutcome | 'IN_PROGRESS';
+>   rounds: number;
+>   usage: { inputTokens: number; outputTokens: number };
+>   pinned: boolean;
+>   startedAt: string; finishedAt?: string;
+>   schemaVersion: 1;
+> }
+> ```
+>
+> Retention (§2's LRU cap) stays run-scoped for now: `evictOldRuns` was not extended to cap group episodes, a deliberate simplification recorded rather than silently left unbounded (`23-…` §8) — there is no live producer of episodes yet (WP31's job), so capping them is a decision worth making against real usage rather than guessed at here.
+
 ## 4. The kit file (agent export/import)
 
 Extension **`.craftabot.json`** (double extension keeps it obviously JSON). Shape:
@@ -104,6 +124,8 @@ Extension **`.craftabot-trace.json`**: `{ format: "craftabot-trace", formatVersi
 
 - Ordered by `seq`; includes the `specSnapshot` and `packVersions`, so a trace is a **self-contained, reproducible record of a run** — the governance artefact (purpose 2). An exported trace + the same pack versions = enough to replay or audit a run.
 - Redaction pass before export strips nothing in V1 *except* a defence-in-depth scrub: any string equal to a stored key is replaced with `"[key-redacted]"` (belt-and-braces beyond the "keys never enter events" rule, and the subject of the CI test in `06-LLM-PROVIDERS.md` §6).
+
+> **Amended 2026-08-19 (WP29):** stays single-run. A group episode's merged trace has no export format of its own in WP29 — `buildTraceFile` was not extended to accept a `GroupRunRecord`, and a bundle format (N member traces + the merge + a digest over the whole) is real, undecided work deferred to WP34's audit centre (`23-MULTI-AGENT-DESIGN.md` §4.7). A group's Run Lab accordingly shows no digest badge and no "Open in Kit" link; each member's own trace exports exactly as any solo run's does.
 
 ## 6. Zod schema organisation
 

@@ -8,7 +8,7 @@ Two purposes, in priority order: (1) an accessible training ground for agentic-A
 
 Stack: TypeScript + Svelte 5 (runes) + SvelteKit static. Monorepo (npm workspaces + Turborepo). Local-first, no backend. OpenAI out of the box (BYO key).
 
-**Where we are (2026-08-18):** V1.0 ("My Very First Agent") shipped WP0–WP10. Day 2 Phases A–D are closed (WP11–WP25): engine trust fixed, the brick contract opened, teaching-aid UX and the professional Workshop both shipped, plus a full governance layer (policy cards, Safety Brick v2, three scenario cards). Phase E (expansion era) is now down to one open item: WP26, WP27 and WP28 are all fully done — see "Next up" below.
+**Where we are (2026-08-19):** V1.0 ("My Very First Agent") shipped WP0–WP10. Day 2 Phases A–D are closed (WP11–WP25): engine trust fixed, the brick contract opened, teaching-aid UX and the professional Workshop both shipped, plus a full governance layer (policy cards, Safety Brick v2, three scenario cards). **Phase E (expansion era) is now fully closed**: WP26, WP27, WP28 and WP29 (multi-agent core — `SessionGroup`, the Playroom's `forAgent`, group-altitude events, a minimal Workshop surface; full design of record and close-out in `docs/design-day2/23-MULTI-AGENT-DESIGN.md`) are all done. Phase F ("Agent Builder" kit, WP30–34) is next — see "Next up" below.
 
 ## Source of truth: `docs/design-day2/`
 
@@ -45,11 +45,13 @@ Where a Day 2 doc and its Day 1 counterpart differ, **Day 2 wins** — the banne
 
 Find the WP in `18-…` §3, read the docs it names, **propose a task breakdown before writing code**, then build. One WP per branch (`wp{n}-{slug}`) and PR.
 
-Next up per `18-…` §7 (most recent entry: item 21, 2026-08-18): Phase E has WP26, WP27 and WP28 all fully shipped. One piece remains open:
+Next up per `18-…` §7 (most recent entry: item 22, 2026-08-19): Phase E is fully closed (WP26–29 all shipped). Phase F — the ages 5–11 "Agent Builder" kit — is next, in table order (`18-…` §3):
 
-- **WP29:** multi-agent core — **the full design of record is `docs/design-day2/23-MULTI-AGENT-DESIGN.md` (2026-08-19)**: read it before anything else. It anchors `14-…` §6's sketch to the real codebase, cuts the sketch's riskiest idea (no `bot → agents[]` migration of any world pack — everything is additive behind an optional `forAgent` facade, and the sessions stay unchanged), re-derives the estimate at seven stages (A–G, each independently committable and green on the full gate), and bounds the scope: the Kit-facing duo experience is WP31's, so WP29 ships engine + scripted proof + minimal Workshop surface with zero Kit UI changes.
+- **WP30:** Planner + If/Then bricks (`14-…` §5.1–5.2) with their leaflet chapters. No dependency on WP29.
+- **WP31:** Radio brick + Robot Friends duo experience (§5.4 + co-op goal cards + the ASI07 spoofed-message scenario) — the Kit-facing payoff of WP29's engine work. `23-MULTI-AGENT-DESIGN.md` §5.1 sketches the target experience and states the rails WP29 built for it (`stepRound()` is the round, the facade's actor-naming is the two-name narration, the group trace is the shared adventure); read it before scoping this WP.
+- **WP32–34:** Librarian/Connector bricks, kit-line packaging, Workshop maturity (audit centre) — see `18-…` §3 for each row's DoD.
 
-**Before starting it, re-read `18-…` §7's items 15–17, 20 and 21, then follow `23-…` §10's stages in order.** Stage A (the world-injection seam, proven byte-identical against the golden trace) is deliberately tiny and is the right first commit; stage E is the roadmap DoD as gated tests and the natural review pause before any UI work. If any stage grows beyond its description in `23-…` §10, stop and re-size rather than absorbing it — the sizing discipline of items 15–21 applies per stage.
+Neither WP30 nor WP31 is fixed as "the" next WP by this file — read `18-…` §3/§7 and confirm with the user which to start.
 
 Use your judgement inside a WP — the docs fix the destination and the contracts, not every step. Where a doc is silent, decide and note it. Where implementation must diverge from a doc, change the doc in the same PR with a dated note (`> **Amended 2026-08-13:** …`); don't leave the two disagreeing.
 
