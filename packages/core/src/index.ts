@@ -35,6 +35,7 @@ export type {
 export type {
 	ActionCall,
 	ActionResult,
+	AgentHandle,
 	Observation,
 	WorldActionDefinition,
 	WorldDefinition,
@@ -116,6 +117,7 @@ export {
 export type { NotebookAccess, ToolContext, ToolDefinition, ToolResult } from './types/tool.js';
 export type {
 	GridPosition,
+	GridWorldAgent,
 	GridWorldCharacter,
 	GridWorldContainer,
 	GridWorldContainerState,

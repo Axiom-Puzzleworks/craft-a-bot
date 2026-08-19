@@ -59,6 +59,20 @@ export interface WorldDefinition {
 	create(layoutId: string): WorldInstance;
 }
 
+/**
+ * How a world tells agents apart (WP29, `23-MULTI-AGENT-DESIGN.md` §4.1).
+ *
+ * Deliberately tiny — an identity, not a capability object. A world learns
+ * *who* is asking; *what bricks they have fitted* stays entirely inside the
+ * session that owns that agent, exactly as it does for a solo bot today.
+ */
+export interface AgentHandle {
+	/** The spec's own id — the same value stamped on the agent's events (E10). */
+	agentId: string;
+	/** The bot's display name, for narration that names actors ("Robo moved east"). */
+	name: string;
+}
+
 export interface WorldInstance {
 	snapshot(): WorldState;
 	observe(channels: SenseChannelId[]): Observation;
@@ -93,4 +107,18 @@ export interface WorldInstance {
 		predicate: WorldPredicateId,
 		channels: readonly SenseChannelId[]
 	): string | undefined;
+	/**
+	 * Multi-agent opt-in (WP29, `23-…` §4.2). A world that can host several
+	 * agents returns a facade bound to one of them: the facade is itself a
+	 * `WorldInstance` whose `observe`/`perform`/`test`/`describeProgress` act
+	 * *as that agent* over the shared state. Calling it again with the same
+	 * handle returns a facade for the same seat.
+	 *
+	 * A world that omits this hosts exactly one robot — every world written
+	 * before WP29, and any world that never opts in. `SessionGroup` refuses
+	 * such a world with a plain error rather than pretending it can host a
+	 * group; nothing about a single-agent session ever calls this method, so
+	 * a world's own behaviour is unchanged whether or not it implements it.
+	 */
+	forAgent?(handle: AgentHandle): WorldInstance;
 }

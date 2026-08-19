@@ -40,9 +40,23 @@ export type GridWorldCharacter = {
 	position: GridPosition;
 };
 
+/**
+ * One robot in a room hosting more than one (WP29, `23-MULTI-AGENT-DESIGN.md`
+ * §4.3) — `id` matches `AgentHandle.agentId`. Distinct from
+ * `GridWorldCharacter`: a character is scenery a bot can talk to or give
+ * things to; an agent is another player.
+ */
+export type GridWorldAgent = {
+	id: string;
+	name: string;
+	position: GridPosition;
+};
+
 export type GridWorldItemLocation =
 	| { kind: 'floor'; position: GridPosition }
-	| { kind: 'carried' }
+	// `agentId` absent means "the (only) bot" — every item ever placed this
+	// way before WP29, and every single-agent world's items forever after.
+	| { kind: 'carried'; agentId?: string }
 	| { kind: 'held-by'; characterId: string }
 	| { kind: 'in-container'; containerId: string };
 
@@ -61,4 +75,13 @@ export type GridWorldState = {
 	containers: GridWorldContainer[];
 	characters: GridWorldCharacter[];
 	items: GridWorldItem[];
+	/**
+	 * Every agent in the room, self included, when the world hosts more than
+	 * one (WP29, `23-…` §4.3). Absent for a single-agent world — which is
+	 * every snapshot ever written before this field existed, and every one a
+	 * world that never opts into `forAgent` writes forever after. `bot`
+	 * remains the "you" a facade's own snapshot foregrounds; `agents` is the
+	 * room's whole roster.
+	 */
+	agents?: GridWorldAgent[];
 };
