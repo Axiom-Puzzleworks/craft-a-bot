@@ -72,7 +72,7 @@ Numbering continues from WP10. Each WP is Claude-Code-sized with a DoD; one WP p
 | WP | Deliverable | DoD |
 |---|---|---|
 | WP30 | **Planner + If/Then bricks** (`14-…` §5.1–5.2) with their leaflet chapters (plan-visibly, rules-vs-thinking) | Failure→fix pairs scripted + e2e'd like chapters 1–6 |
-| WP31 | **Radio brick + Robot Friends duo experience** (§5.4 + co-op goal cards + spoofed-message safety scenario) | Duo runs in Kit with two-bot bench; ASI07 scenario teachable |
+| WP31 | **Radio brick + Robot Friends duo experience** (§5.4 + co-op goal cards + spoofed-message safety scenario) | Duo runs in Kit with two-bot bench; ASI07 scenario teachable. **Design of record: `24-ROBOT-FRIENDS-DESIGN.md`** (2026-08-19) — anchors the target UX against the real single-bot Kit flow (`session.svelte.ts`, `narrate.ts`, the Scrapbook, the bench's `coop`-card filter), re-derives an eight-stage plan on WP29's own rails, and bounds the scope: no N>2, no direct agent-to-agent channel, no new chassis art |
 | WP32 | **Librarian + Connector bricks** (§5.5–5.6) + scope-permission leaflet chapter | Retrieval + remote-capability lessons e2e'd; confused-deputy mini-scenario in Workshop |
 | WP33 | **Identity badges + kit-line packaging** (§5.8; box art for each expansion pack; the 5–11 kit as a curated bundle of packs; export formats) | Every bot exports an agent card; kit line purchasable/installable as pack bundles |
 | WP34 | **Workshop maturity** (telemetry dashboards, OTel-mapped export, safety-case worksheet, incident log — 19 #20/#23/#28/#31/#36) | Audit centre ships; a full governance demo (build → policy → run → incident → report) runs end-to-end |

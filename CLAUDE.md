@@ -45,10 +45,10 @@ Where a Day 2 doc and its Day 1 counterpart differ, **Day 2 wins** — the banne
 
 Find the WP in `18-…` §3, read the docs it names, **propose a task breakdown before writing code**, then build. One WP per branch (`wp{n}-{slug}`) and PR.
 
-Next up per `18-…` §7 (most recent entry: item 22, 2026-08-19): Phase E is fully closed (WP26–29 all shipped). Phase F — the ages 5–11 "Agent Builder" kit — is next, in table order (`18-…` §3):
+Next up per `18-…` §7 (most recent entry: item 22, 2026-08-19): Phase E is fully closed (WP26–29 all shipped). Phase F — the ages 5–11 "Agent Builder" kit — is under way:
 
-- **WP30:** Planner + If/Then bricks (`14-…` §5.1–5.2) with their leaflet chapters. No dependency on WP29.
-- **WP31:** Radio brick + Robot Friends duo experience (§5.4 + co-op goal cards + the ASI07 spoofed-message scenario) — the Kit-facing payoff of WP29's engine work. `23-MULTI-AGENT-DESIGN.md` §5.1 sketches the target experience and states the rails WP29 built for it (`stepRound()` is the round, the facade's actor-naming is the two-name narration, the group trace is the shared adventure); read it before scoping this WP.
+- **WP31 is in progress: the full design of record is `docs/design-day2/24-ROBOT-FRIENDS-DESIGN.md` (2026-08-19)** — read it before anything else. It anchors WP29's own rails against the real single-bot Kit flow (`session.svelte.ts`, `narrate.ts`, the Scrapbook, the bench's `coop`-card filter), designs the Radio brick and the ASI07 spoofed-message scenario, and lays out an eight-stage plan. **Before starting or continuing a stage, re-read `18-…` §7 item 22 (what WP29 actually left ready), then follow `24-…` §10's stages in order.** If any stage grows beyond its description there, stop and re-size rather than absorbing it — the same discipline `23-…` held to across its own seven stages.
+- **WP30:** Planner + If/Then bricks (`14-…` §5.1–5.2) with their leaflet chapters. No dependency on WP29 or WP31; available any time.
 - **WP32–34:** Librarian/Connector bricks, kit-line packaging, Workshop maturity (audit centre) — see `18-…` §3 for each row's DoD.
 
 Neither WP30 nor WP31 is fixed as "the" next WP by this file — read `18-…` §3/§7 and confirm with the user which to start.
