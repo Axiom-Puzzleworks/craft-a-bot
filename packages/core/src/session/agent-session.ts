@@ -97,9 +97,16 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 	 * not this.
 	 */
 	let tickDelayMs = options.tickDelayMs ?? 0;
+	/** Set only when this session is a group member (WP29, `23-…` §4.5). */
+	const parentRunId = options.parentRunId;
 
 	const goalCard = requireGoalCard(registry.getGoalCard(spec.goalCardId), spec.goalCardId);
-	const world = createWorld(goalCard);
+	/*
+	 * A host-supplied world is used exactly as given (WP29, `23-…` §4.5) — the
+	 * seam `SessionGroup` will pass an agent-bound facade through. Absent, the
+	 * session builds its own world exactly as every session has since WP2.
+	 */
+	const world = deps.world ?? createWorld(goalCard);
 	const budgets = resolveBudgets(deps.spec, registry, options.budgets);
 	/*
 	 * The two sockets core reads rather than is contributed to (slice 3c). See
@@ -210,6 +217,12 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			// Every event says which agent it happened to (E10). One agent
 			// repeating one id today is what makes two agents cost nothing later.
 			agentId: spec.id,
+			// Which group episode this run belongs to, when it is one (WP29).
+			// Spread rather than assigned, so a solo run's events carry no
+			// `parentRunId` key at all under `exactOptionalPropertyTypes` —
+			// `undefined` and "absent" are different things to that flag, and
+			// only "absent" is what every event before WP29 ever wrote.
+			...(parentRunId !== undefined ? { parentRunId } : {}),
 			tick: run.tick,
 			timestamp: now(),
 			type,

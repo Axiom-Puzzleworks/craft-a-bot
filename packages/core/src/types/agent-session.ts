@@ -4,6 +4,7 @@ import type { EventBus } from '../event-bus.js';
 import type { PackRegistry } from '../pack-registry.js';
 import type { Guardrail } from './guardrail.js';
 import type { LLMProvider } from './provider.js';
+import type { WorldInstance } from './world.js';
 import type { Strategies } from '../session/strategies.js';
 
 /**
@@ -91,6 +92,16 @@ export interface SessionOptions {
 	 * Either half may be given on its own; the other falls back to the spec.
 	 */
 	strategies?: Partial<Strategies>;
+	/**
+	 * Stamped into every event's envelope when set (E10, `14-…` §3;
+	 * `23-MULTI-AGENT-DESIGN.md` §4.5). Absent for an ordinary solo run — the
+	 * field has carried this exact meaning, unused, since WP13: "Nothing
+	 * produces it yet; it exists so that when `SessionGroup` arrives the
+	 * shape does not have to change again." `SessionGroup` sets it to the
+	 * group's own run id, so every member's trace can be traced back to the
+	 * episode it was part of without a new envelope field.
+	 */
+	parentRunId?: string;
 }
 
 export interface CreateSessionDeps {
@@ -114,6 +125,16 @@ export interface CreateSessionDeps {
 	 */
 	guardrails?: Guardrail[];
 	options?: SessionOptions;
+	/**
+	 * A world handed in by the host (WP29, `23-MULTI-AGENT-DESIGN.md` §4.5).
+	 * When present the session uses it exactly as if it had built it and
+	 * never calls `WorldDefinition.create` itself; when absent, behaviour is
+	 * byte-identical to every session created before this field existed.
+	 * `SessionGroup` passes an agent-bound facade here — the seam that lets
+	 * several sessions share one world without the session ever learning
+	 * groups exist.
+	 */
+	world?: WorldInstance;
 }
 
 /** The contract `createSession` implements. */

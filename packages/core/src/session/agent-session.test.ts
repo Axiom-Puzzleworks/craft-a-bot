@@ -176,6 +176,10 @@ function makeSession(config: {
 	script?: Parameters<typeof createMockProvider>[0]['script'];
 	guardrails?: Guardrail[];
 	budgets?: { maxTicks?: number; maxTokens?: number; requestTimeoutMs?: number };
+	/** WP29, `23-…` §4.5: a world handed in rather than built. */
+	world?: WorldInstance;
+	/** WP29, `23-…` §4.5: stamped into every emitted event's envelope. */
+	parentRunId?: string;
 }) {
 	const clock = createTestClock();
 	const session = createSession({
@@ -183,11 +187,13 @@ function makeSession(config: {
 		registry: buildRegistry(),
 		provider: createMockProvider({ script: config.script ?? [] }),
 		guardrails: config.guardrails ?? [],
+		...(config.world ? { world: config.world } : {}),
 		options: {
 			now: clock.now,
 			newId: clock.newId,
 			random: clock.random,
-			...(config.budgets ? { budgets: config.budgets } : {})
+			...(config.budgets ? { budgets: config.budgets } : {}),
+			...(config.parentRunId ? { parentRunId: config.parentRunId } : {})
 		}
 	});
 	const seen: string[] = [];
@@ -1507,5 +1513,72 @@ describe('stop', () => {
 		await session.step();
 		session.stop();
 		expect(session.status).toBe('finished');
+	});
+});
+
+/**
+ * **WP29 stage A** (`23-MULTI-AGENT-DESIGN.md` §4.5, §10): the two additive
+ * seams `SessionGroup` will need, proven inert for every session that does
+ * not use them — which is every session before this WP and every solo
+ * session after it.
+ */
+describe('a host-supplied world (WP29)', () => {
+	it('is used exactly as a session would have built it itself', async () => {
+		const script = [turn('Ping.', 'ping'), turn('Win!', 'win')];
+
+		const built = makeSession({ script });
+		built.session.start('step');
+		await built.session.step();
+		await built.session.step();
+
+		const handedIn = makeSession({ script, world: createTinyWorld().create('only') });
+		handedIn.session.start('step');
+		await handedIn.session.step();
+		await handedIn.session.step();
+
+		// Same script, same deterministic clock shape, same registry — a world
+		// passed in through `deps.world` produces a byte-identical trace to one
+		// the session built for itself, the same "reproduces byte-identically"
+		// proof `trace-fixture.test.ts` holds for two independent solo runs.
+		expect(JSON.stringify(handedIn.log)).toBe(JSON.stringify(built.log));
+	});
+
+	it('is the actual instance used — mutating it outside the session is visible inside', async () => {
+		const world = createTinyWorld().create('only');
+		const { session } = makeSession({ script: [turn('Win!', 'win')], world });
+
+		session.start('step');
+		await session.step();
+
+		// If the session had quietly built its own world instead of using the
+		// one handed in, this world's own state would never have moved.
+		expect(world.snapshot()).toMatchObject({ won: true });
+	});
+});
+
+describe('parentRunId (WP29)', () => {
+	it('is absent from every event on an ordinary solo run', async () => {
+		const { session, log } = makeSession({ script: [turn('Win!', 'win')] });
+		session.start('step');
+		await session.step();
+
+		expect(log.length).toBeGreaterThan(0);
+		for (const event of log) expect('parentRunId' in event).toBe(false);
+	});
+
+	it('is stamped on every event once set, run.started included', async () => {
+		const { session, log } = makeSession({
+			script: [turn('Win!', 'win')],
+			parentRunId: '99999999-9999-4999-8999-999999999999'
+		});
+		session.start('step');
+		await session.step();
+
+		expect(log.length).toBeGreaterThan(0);
+		for (const event of log) {
+			expect((event as { parentRunId?: string }).parentRunId).toBe(
+				'99999999-9999-4999-8999-999999999999'
+			);
+		}
 	});
 });
