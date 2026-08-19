@@ -268,6 +268,11 @@ No concurrent world mutation; no shared memory stores between agents; no dynamic
 | `WorldState.bot` → `agents: AgentState[]` (v2 world schema, migrated) in every pack | `agents?` added alongside `bot`; only the Playroom opts in; no migration of the Workshop pack or any stored state | The sketch's migration was the "transform beyond recognition" risk; additive fields keep every snapshot and the golden trace byte-identical |
 | "shared `groupRunId` via E10 envelope fields" | `parentRunId = groupRunId` | Uses the exact field E10 reserved, with its documented meaning; no envelope change at all |
 
+> **Amended 2026-08-19 (WP29 stage C):** two refinements found while building `SessionGroup`, neither anticipated by the sketch above.
+>
+> - **`AgentSession` gained a public `readonly runId: string`.** `group.started`'s `memberRunIds` (§4.6) needs every member's run id *before* any member has taken a tick — the id was already generated synchronously at `createSession()`, just not exposed. Reading it off the constructed session is simpler and more honest than the alternative (listening for each member's first event and inferring `runId` from it), and it costs nothing solo sessions weren't already carrying.
+> - **`CreateSessionGroupDeps.options` is `Omit<SessionOptions, 'parentRunId'>`, not the full `SessionOptions`.** A group generates its own `groupRunId` and stamps it onto every member via `parentRunId` itself (§4.5); a caller-supplied `parentRunId` on the group's own options would either be silently overwritten or silently ignored, and both are exactly the class of quiet-divergence bug this project's own retrospectives (`12-…`) warn about. Omitting the field makes the impossible input a type error instead of a footgun.
+
 A dated note pointing here is added to `14-…` §6 in the same PR as this file.
 
 ## 9. Risk register

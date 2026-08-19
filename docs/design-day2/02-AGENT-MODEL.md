@@ -232,6 +232,13 @@ All events share `{ id, runId, tick, timestamp, type, payload }`, strictly typed
 >
 > - **`guardrail.checked.policyCardId?`** and **`guardrail.tripped.policyCardId?`** — which policy card (`14-…` §4.6) a guardrail was compiled from, when it was compiled from one. A hand-written guardrail (the Safety Brick's own four, a Monitor's rules) has none and the field is simply absent, so every trace written before WP22 still parses. Set on the `Guardrail` itself by `@craftabot/governance`'s `compilePolicyCard` and copied through by the engine — not derived by parsing `guardrailId` for a naming convention, which is how E6's own bare-id ambiguity got introduced the first time.
 
+> **Amended 2026-08-19 (WP29 stage C, `23-MULTI-AGENT-DESIGN.md` §4.6):** two new events, both group-altitude — `runId` on each is the **group's** run id, and neither carries `agentId` (already-optional on the envelope). No existing event or field changes; every solo trace parses exactly as before.
+>
+> - **`group.started`** `{ groupRunId, memberRunIds, memberAgentIds, goalCardId, scheduler: 'round-robin', budgets: { groupMaxTokens?, maxRounds? } }` — a `SessionGroup`'s one-time opening fact: who is in it, what each member's own `runId` is (so the group's line in the merged stream can be joined to every member's own trace), and under what scheduling and budget rules. Always the first event on a group's merged stream.
+> - **`group.finished`** `{ outcome, reason?, rounds, usage }` — how the group ended: `outcome` is derived from every member's own outcome (`SUCCESS` only if all members reached it; a stop or error on any member propagates), `usage` is the group's running token total (summed from each member's own `think.completed` events, the same mechanism the group-token-budget guardrail reads), `rounds` counts scheduler rounds, not per-member ticks. Always the last event on a group's merged stream — every member's own `run.finished` still lands on that member's own trace first.
+>
+> A group's merged stream is the union of these two events with every member session's own unmodified event stream (each still opening `run.started` and closing `run.finished`, per §4.7 of `23-…`); nothing about a member's own trace changes when it runs inside a group instead of solo.
+
 Rules: events are **append-only facts**; payloads are JSON-serialisable; the trace is simply the ordered event list of a run (persisted per `07-DATA-MODEL-PERSISTENCE.md`); _anything_ the UI shows about a run must be derivable from events — if it isn't in an event, it didn't happen.
 
 ## 8. Prompting (V1 canonical prompt)

@@ -900,6 +900,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 
 	return {
 		spec,
+		runId,
 		get status() {
 			return run.status;
 		},

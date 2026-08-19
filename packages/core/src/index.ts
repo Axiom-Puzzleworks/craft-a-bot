@@ -267,6 +267,14 @@ export { validateSpecV2 } from './validate-spec-v2.js';
 
 // The running engine (02-AGENT-MODEL.md §5)
 export { createSession } from './session/agent-session.js';
+// Multi-agent core (WP29, `23-MULTI-AGENT-DESIGN.md` §4.4, stage C)
+export { createGroupTokenBudgetGuardrail, createSessionGroup } from './session/session-group.js';
+export type {
+	CreateSessionGroup,
+	CreateSessionGroupDeps,
+	GroupMember,
+	SessionGroup
+} from './types/session-group.js';
 export {
 	DEFAULT_REQUEST_TIMEOUT_MS,
 	DEFAULT_TICK_BUDGET,

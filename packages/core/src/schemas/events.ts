@@ -275,6 +275,36 @@ const errorEvent = eventSchema(
 	z.object({ message: z.string(), kind: z.string().optional() })
 );
 
+/**
+ * Group lifecycle (WP29, `23-MULTI-AGENT-DESIGN.md` §4.6). Emitted by
+ * `SessionGroup`, never by `AgentSession` — the envelope's `runId` is the
+ * group's own `groupRunId` and `agentId` is absent (already optional, E10):
+ * these events happened to the *group*, not to any one agent.
+ */
+const groupStartedEvent = eventSchema(
+	'group.started',
+	z.object({
+		groupRunId: z.string().uuid(),
+		memberRunIds: z.array(z.string().uuid()),
+		memberAgentIds: z.array(z.string().uuid()),
+		goalCardId: z.string(),
+		scheduler: z.literal('round-robin'),
+		budgets: z.object({
+			groupMaxTokens: z.number().int().positive().optional(),
+			maxRounds: z.number().int().positive().optional()
+		})
+	})
+);
+const groupFinishedEvent = eventSchema(
+	'group.finished',
+	z.object({
+		outcome: runOutcomeSchema,
+		reason: z.string().optional(),
+		rounds: z.number().int().nonnegative(),
+		usage: usageSchema
+	})
+);
+
 export const engineEventSchema = z.discriminatedUnion('type', [
 	runStartedEvent,
 	runFinishedEvent,
@@ -296,7 +326,9 @@ export const engineEventSchema = z.discriminatedUnion('type', [
 	worldChangedEvent,
 	inputDeliveredEvent,
 	providerRetriedEvent,
-	errorEvent
+	errorEvent,
+	groupStartedEvent,
+	groupFinishedEvent
 ]);
 
 export type EngineEvent = z.infer<typeof engineEventSchema>;

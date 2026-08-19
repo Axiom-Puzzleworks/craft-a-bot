@@ -34,6 +34,14 @@ export interface TickResult {
 export interface AgentSession {
 	/** The bot being run, in whichever shape it was handed over (WP14 slice 3c). */
 	readonly spec: AnyAgentSpec;
+	/**
+	 * The id stamped on every one of this session's own events (E10) —
+	 * generated at construction, not at `start()`. `SessionGroup` (WP29,
+	 * `23-…` §4.4) reads this to know every member's run id before any of
+	 * them has taken a turn, which is what lets `group.started` name them and
+	 * still be first on the merged stream.
+	 */
+	readonly runId: string;
 	readonly status: SessionStatus;
 	readonly events: EventBus; // subscribe from UI / trace / guardrails
 	start(mode: RunMode): void;

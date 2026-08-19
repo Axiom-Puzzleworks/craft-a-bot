@@ -36,6 +36,12 @@ const LANES: Record<EventType, TraceLane> = {
 	'input.delivered': 'sense',
 	// A wait forced by the provider is a thinking cost, not an error (E11).
 	'provider.retried': 'think',
+	// A group's own start/finish sit at the same altitude as a solo run's,
+	// just for the whole group rather than one agent (WP29, `23-…` §4.6).
+	// No new lane/colour: hard rule 6 keeps the mapping fixed, and this pair
+	// is not yet shown anywhere a lane colour would matter (that's stage F).
+	'group.started': 'run',
+	'group.finished': 'run',
 	error: 'error'
 };
 
@@ -61,6 +67,8 @@ const LABELS: Record<EventType, string> = {
 	'approval.resolved': 'Permission answered',
 	'input.delivered': 'Somebody said something',
 	'provider.retried': 'Waited, then asked again',
+	'group.started': 'Group started',
+	'group.finished': 'Group finished',
 	error: 'Something went wrong'
 };
 
