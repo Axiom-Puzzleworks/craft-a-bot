@@ -130,6 +130,44 @@ const TIDY_TOGETHER: Plan = [
 	}
 ];
 
+/**
+ * `starter/tidy-together`, split between two seats through a real
+ * `SessionGroup` (WP29, `23-…` §10 stage E) — the same room `TIDY_TOGETHER`
+ * solves alone, done properly this time. Seat A (Robo, starting at (0,4))
+ * takes the near block; seat B (Bolt, starting at (7,5) — exactly where the
+ * far block sits) takes the other. Neither plan wastes a turn; only the
+ * scheduler's round-robin bookkeeping is why the group takes longer than
+ * either plan alone.
+ */
+export const TIDY_TOGETHER_SEAT_A: Plan = [
+	north('The near block is this way.'),
+	north('Still north.'),
+	east('There it is.'),
+	{ say: 'Got it.', call: 'pick_up', args: { item: 'block-a' } },
+	north('Chest is right there.'),
+	{ say: 'Lid up — for both of us.', call: 'open', args: { container: 'the toy chest' } },
+	{ say: 'One in.', call: 'put_down', args: { item: 'block-a', container: 'toy chest' } }
+];
+
+/** Starts standing right on the far block — nowhere to go but toward the chest. */
+export const TIDY_TOGETHER_SEAT_B: Plan = [
+	{ say: 'This one is mine.', call: 'pick_up', args: { item: 'block-b' } },
+	west('Long way to the chest.'),
+	west('Rolling.'),
+	west('Rolling.'),
+	west('Rolling.'),
+	west('Rolling.'),
+	north('Up now.'),
+	north('Rolling.'),
+	north('Rolling.'),
+	north('Beside the chest.'),
+	{
+		say: 'And the second one, in.',
+		call: 'put_down',
+		args: { item: 'block-b', container: 'toy chest' }
+	}
+];
+
 /** 17 × 23 = 391, which a bot that guesses will get wrong. */
 const SUMS: Plan = [
 	{

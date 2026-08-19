@@ -280,6 +280,11 @@ No concurrent world mutation; no shared memory stores between agents; no dynamic
 >
 > Also worth recording, though it is an implementation choice rather than a divergence from anything §4.8 committed to: **`coopStarts?: Cell[]` lives on `PlayroomState` itself, not on any core type.** It is pack content — where a co-op layout seats new robots, in binding order — read only by the Playroom's own `forAgent`; core's `GridWorldState` gained nothing beyond what stage B already added (§4.3).
 
+> **Amended 2026-08-19 (WP29 stage E):** §10's own words split across two packages, not one.
+>
+> - **"Each member trace independently replays through `projectThrough` to the same final world" lives in `apps/workbench`, not "`pack-starter`'s session harness" as §10 says.** `projectThrough` is a workbench module by construction (hard rule 1 — `core` and every pack stay Svelte- and DOM-free, and this fold underpins live `$state`), so it was never going to be reachable from `pack-starter`. The `SessionGroup` completion, no-wasted-turn, and byte-identical-repeat-run proofs stayed in `pack-starter/src/session/group-solvability.test.ts`, exactly where §10 puts them; only the `projectThrough` leg moved to `apps/workbench/src/lib/state/run-projection-group.test.ts`, importing the same `TIDY_TOGETHER_SEAT_A`/`TIDY_TOGETHER_SEAT_B` plans and `runGroupToCompletion` harness through the pack's existing `@craftabot/pack-starter/testing` surface (`WP19`'s precedent, not a new seam).
+> - **The replay proof turned out to be more interesting than "the same final world".** `world.changed` fires only on a *successful action* (`agent-session.ts`), so a member whose own plan finishes early — Robo, at round 7 of 12 — stops producing fresh snapshots five rounds before the group actually ends. Robo's own replay never learns block-b reached the chest; it still shows Bolt *carrying* it. This is not staleness to paper over: it is §1's "a shared goal does not mean shared understanding" made mechanical, and the test asserts it directly rather than asserting a false equality between the two replays.
+
 A dated note pointing here is added to `14-…` §6 in the same PR as this file.
 
 ## 9. Risk register

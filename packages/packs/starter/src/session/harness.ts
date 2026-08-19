@@ -1,12 +1,14 @@
 import {
 	createPackRegistry,
 	createSession,
+	createSessionGroup,
 	type AgentSpec,
 	type AnyAgentSpec,
 	type EngineEvent,
 	type Guardrail,
 	type LLMProvider,
 	type PackRegistry,
+	type RunOutcome,
 	type SessionOptions
 } from '@craftabot/core';
 import { createMockProvider, createTestClock, type MockScript } from '@craftabot/core/testing';
@@ -48,6 +50,9 @@ export function buildRegistry(): PackRegistry {
 }
 
 export interface SpecOverrides {
+	/** Defaults to the same id every solo test spec uses. A group needs distinct ones per member. */
+	id?: string;
+	name?: string;
 	goalCardId?: string;
 	tools?: string[];
 	senses?: string[];
@@ -75,8 +80,8 @@ const ALL_ACTIONS = ['move', 'pick_up', 'put_down', 'give', 'open', 'say', 'cele
 
 export function buildSpec(overrides: SpecOverrides = {}): AgentSpec {
 	const spec: AgentSpec = {
-		id: '11111111-1111-4111-8111-111111111111',
-		name: 'Testbot',
+		id: overrides.id ?? '11111111-1111-4111-8111-111111111111',
+		name: overrides.name ?? 'Testbot',
 		bricks: {
 			sense: { channels: overrides.senses ?? ['sight', 'compass'] },
 			actions: { enabled: overrides.actions ?? ALL_ACTIONS }
@@ -191,6 +196,91 @@ export async function runToCompletion(options: RunOptions): Promise<RunResult> {
 		events,
 		outcome,
 		types: new Set(events.map((event) => event.type)),
+		byType: (type) => events.filter((event) => event.type === type)
+	};
+}
+
+export interface GroupMemberOptions {
+	script: MockScript;
+	spec?: AnyAgentSpec;
+	guardrails?: Guardrail[];
+}
+
+export interface GroupRunOptions {
+	members: GroupMemberOptions[];
+	goalCardId?: string;
+	groupMaxTokens?: number;
+	maxRounds?: number;
+	/** Stop after this many `stepRound()` calls, so a stuck group cannot spin forever. */
+	roundLimit?: number;
+	idOffset?: number;
+}
+
+export interface GroupRunResult {
+	groupRunId: string;
+	/** The merged stream, in the order `SessionGroup` re-emitted it. */
+	events: EngineEvent[];
+	/** Each member's own trace, in member order — every event still carries its own `runId`. */
+	memberEvents: EngineEvent[][];
+	outcome: RunOutcome | undefined;
+	rounds: number | undefined;
+	byType(type: string): EngineEvent[];
+}
+
+/**
+ * Drives a real `SessionGroup` — the real Playroom, the real starter pack,
+ * `stepRound()` awaited to completion — the group-altitude counterpart to
+ * `runToCompletion` (WP29, `23-MULTI-AGENT-DESIGN.md` §10 stage E).
+ */
+export async function runGroupToCompletion(options: GroupRunOptions): Promise<GroupRunResult> {
+	const clock = createTestClock(
+		options.idOffset === undefined ? {} : { idOffset: options.idOffset }
+	);
+	const registry = buildRegistry();
+	const goalCardId = options.goalCardId ?? 'starter/tidy-together';
+
+	const members = options.members.map((member) => ({
+		spec: member.spec ?? buildSpec({ goalCardId }),
+		provider: createMockProvider({ script: member.script }),
+		...(member.guardrails ? { guardrails: member.guardrails } : {})
+	}));
+
+	const group = createSessionGroup({
+		members,
+		registry,
+		goalCardId,
+		options: {
+			now: clock.now,
+			newId: clock.newId,
+			random: clock.random,
+			...(options.groupMaxTokens !== undefined ? { groupMaxTokens: options.groupMaxTokens } : {}),
+			...(options.maxRounds !== undefined ? { maxRounds: options.maxRounds } : {})
+		}
+	});
+
+	const events: EngineEvent[] = [];
+	group.events.onAny((event) => events.push(event));
+
+	let outcome: RunOutcome | undefined;
+	let rounds: number | undefined;
+	const limit = options.roundLimit ?? 40;
+	for (let round = 0; round < limit; round++) {
+		const result = await group.stepRound();
+		if (result.outcome) {
+			outcome = result.outcome;
+			rounds = result.round;
+			break;
+		}
+	}
+
+	return {
+		groupRunId: group.groupRunId,
+		events,
+		memberEvents: group.sessions.map((session) =>
+			events.filter((event) => event.runId === session.runId)
+		),
+		outcome,
+		rounds,
 		byType: (type) => events.filter((event) => event.type === type)
 	};
 }

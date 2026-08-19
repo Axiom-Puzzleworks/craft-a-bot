@@ -11,7 +11,25 @@
  * goal card. Re-implementing either in `@craftabot/evals` would have given the
  * matrix a solvability floor that nothing had proved.
  */
-export { buildRegistry, buildSpec, runToCompletion } from '../session/harness.js';
-export type { RunOptions, RunResult, SpecOverrides } from '../session/harness.js';
-export { PLAN_TOOLS, SCRIPTED_OPTIMAL, planFor } from '../session/plans.js';
+export {
+	buildRegistry,
+	buildSpec,
+	runGroupToCompletion,
+	runToCompletion
+} from '../session/harness.js';
+export type {
+	GroupMemberOptions,
+	GroupRunOptions,
+	GroupRunResult,
+	RunOptions,
+	RunResult,
+	SpecOverrides
+} from '../session/harness.js';
+export {
+	PLAN_TOOLS,
+	SCRIPTED_OPTIMAL,
+	TIDY_TOGETHER_SEAT_A,
+	TIDY_TOGETHER_SEAT_B,
+	planFor
+} from '../session/plans.js';
 export type { Plan, PlanStep } from '../session/plans.js';
