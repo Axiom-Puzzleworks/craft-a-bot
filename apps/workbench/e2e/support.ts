@@ -94,6 +94,20 @@ export async function buildReadyBot(page: Page, cardTestId = 'card-snack'): Prom
 	await page.getByTestId('cartridge-select').selectOption({ label: 'Demo Brain' });
 	await expect(page.getByRole('button', { name: /GO/ })).toBeEnabled();
 
+	/*
+	 * `benchStore`'s own saves are debounced 250ms (`bench.svelte.ts`'s
+	 * `SAVE_DEBOUNCE_MS`) — the GO lever lighting up is a reactive read of
+	 * in-memory state, not a signal that the cartridge choice has reached
+	 * storage yet. `pullGo()`'s own `await benchStore.flush()` covers a
+	 * caller that clicks GO next, but a caller that navigates away some other
+	 * way (building a second bot, or opening this one's bench again later)
+	 * has nothing to await — a full page navigation abandons the pending
+	 * timer outright, the same loss `pullGo`'s comment already warns about
+	 * for an unflushed edit. No UI signal marks the save landing, so this
+	 * waits out the window itself rather than adding one just for tests.
+	 */
+	await page.waitForTimeout(300);
+
 	const match = /\/bench\/([^/?#]+)/.exec(page.url());
 	if (!match?.[1])
 		throw new Error(`Could not read an agent id out of the bench URL: ${page.url()}`);

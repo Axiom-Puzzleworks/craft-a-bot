@@ -2,11 +2,12 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import type { BuildProblem, SlotId } from '@craftabot/core';
+	import { validateSpec, type AgentRecord, type BuildProblem, type SlotId } from '@craftabot/core';
 	import { capabilitiesOf } from '$lib/bot-capabilities.js';
 	import { needsBattery, noBatteryMessage } from '$lib/brain.js';
 	import { createRegistry } from '$lib/packs.js';
 	import { createDndController } from '$lib/dnd/dnd-state.svelte.js';
+	import { agentsStore } from '$lib/state/agents.svelte.js';
 	import { benchStore } from '$lib/state/bench.svelte.js';
 	import { leafletStore } from '$lib/leaflet/leaflet.svelte.js';
 	import { preferences } from '$lib/state/preferences.svelte.js';
@@ -17,6 +18,8 @@
 	import GoalCardRack from '$lib/components/bench/GoalCardRack.svelte';
 	import PartsTray from '$lib/components/bench/PartsTray.svelte';
 	import GoLever from '$lib/components/kit/GoLever.svelte';
+	import RobotFriendsLever from '$lib/components/kit/RobotFriendsLever.svelte';
+	import RobotFriendsPicker from '$lib/components/kit/RobotFriendsPicker.svelte';
 
 	/**
 	 * The Workbench in BUILD mode (03-UI-UX-DESIGN.md §4): parts tray, baseplate,
@@ -49,6 +52,13 @@
 	$effect(() => {
 		// Opening an agent is async storage work, so it cannot be derived.
 		void benchStore.open(agentId);
+	});
+
+	// The shelf, for the second-bot picker (WP31, `24-…` §4.6) — the same
+	// shared store the Shelf page itself reads, reloaded here so a bot built
+	// or finished since this bench opened is offered too.
+	$effect(() => {
+		void agentsStore.load();
 	});
 
 	/** Which socket a registered kind belongs to — asked before it is fitted. */
@@ -94,6 +104,59 @@
 	const blockingReason = $derived(
 		batteryMissing ? batteryMessage : benchStore.blocking[0]?.message
 	);
+
+	/**
+	 * **The Robot Friends picker** (WP31, `24-…` §4.6) — the coop rack is the
+	 * exact *inverse* of `goalCards`' own filter above, over the same
+	 * `listGoalCards()` call, never touched twice for different reasons.
+	 */
+	const coopGoalCards = $derived(registry.listGoalCards().filter((card) => card.coop));
+
+	/**
+	 * "GO-ready", asked about a shelf bot that is not the one open here —
+	 * `benchStore.canGo`'s own two checks (`validateSpec`'s blocking problems,
+	 * plus the battery/cartridge check `validateSpec` cannot see), generalised
+	 * to an arbitrary `AgentRecord` rather than the currently-open spec. A bot
+	 * that cannot GO solo cannot GO in a duo either (§4.6) — including on the
+	 * battery front, which the design doc's own sentence names `validateSpec`
+	 * for but does not literally exclude: offering a partner whose own launch
+	 * would immediately fail with a battery error is worse than not offering
+	 * it at all.
+	 */
+	function isGoReady(candidate: AgentRecord): boolean {
+		const can = capabilitiesOf(candidate.spec, registry);
+		const candidateCartridge = registry.getCartridge(can.cartridgeId);
+		const blocking = validateSpec(candidate.spec, registry).some(
+			(problem) => problem.severity === 'blocking'
+		);
+		return !blocking && !needsBattery(candidateCartridge, registry);
+	}
+
+	const otherReadyBots = $derived(
+		agentsStore.agents.filter((candidate) => candidate.id !== agentId && isGoReady(candidate))
+	);
+
+	const robotFriendsDisabled = $derived(
+		!benchStore.canGo || batteryMissing || otherReadyBots.length === 0
+	);
+	const robotFriendsReason = $derived(
+		!benchStore.canGo || batteryMissing
+			? blockingReason
+			: otherReadyBots.length === 0
+				? 'Build a second robot first'
+				: undefined
+	);
+
+	let showRobotFriends = $state(false);
+
+	async function launchDuo(goalCardId: string, otherAgentId: string): Promise<void> {
+		showRobotFriends = false;
+		// Never navigate away with an unsaved edit in flight (`pullGo`'s own reasoning).
+		await benchStore.flush();
+		const params = new URLSearchParams({ a: agentId, b: otherAgentId, card: goalCardId });
+		// eslint-disable-next-line svelte/no-navigation-without-resolve -- resolve() builds the base path here; its typed surface has no way to attach the ?a=&b=&card= query the rule can verify statically (same exception workshop/runs/+page.svelte's own compareHref already takes for the identical shape).
+		await goto(`${resolve('/play/duo')}?${params.toString()}`);
+	}
 
 	/** Escape cancels a carry; arrows aim it; Enter places it (03 §4.4). */
 	function onKeyDown(event: KeyboardEvent): void {
@@ -191,6 +254,11 @@
 				{/if}
 
 				<div class="go-row">
+					<RobotFriendsLever
+						disabled={robotFriendsDisabled}
+						reason={robotFriendsReason}
+						onpull={() => (showRobotFriends = true)}
+					/>
 					<GoLever
 						disabled={!benchStore.canGo || batteryMissing}
 						reason={blockingReason}
@@ -235,6 +303,16 @@
 			/>
 		</section>
 	</main>
+{/if}
+
+{#if showRobotFriends && spec}
+	<RobotFriendsPicker
+		botName={spec.name}
+		{coopGoalCards}
+		candidates={otherReadyBots}
+		oncancel={() => (showRobotFriends = false)}
+		onlaunch={(goalCardId, otherAgentId) => void launchDuo(goalCardId, otherAgentId)}
+	/>
 {/if}
 
 <style>
@@ -347,7 +425,9 @@
 
 	.go-row {
 		display: flex;
+		align-items: center;
 		justify-content: flex-end;
+		gap: var(--cab-space-3);
 	}
 
 	.battery-notice {
