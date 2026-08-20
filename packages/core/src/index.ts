@@ -207,6 +207,7 @@ export {
 	type ImportProblem,
 	type ImportedKit
 } from './persistence/kit-export.js';
+export { buildAgentCard, type AgentCard, type AgentCardBrick } from './persistence/agent-card.js';
 export {
 	buildTraceFile,
 	verifyTraceDigest,

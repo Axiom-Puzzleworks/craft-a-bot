@@ -1,4 +1,5 @@
 import {
+	buildAgentCard,
 	buildRuntimes,
 	collectCalls,
 	collectContext,
@@ -171,5 +172,58 @@ describe('what the bricks let a bot sense', () => {
 				})
 			)
 		).toEqual([]);
+	});
+});
+
+/**
+ * `buildAgentCard` (WP33 stage A, `14-…` §5.8) proven against real starter
+ * content — `core`'s own suite (`persistence/agent-card.test.ts`) covers the
+ * mechanism with kinds it invents; this is the "phrases are starter content"
+ * half this file's own header comment already draws for `describeFittedBricks`.
+ */
+describe('a bot’s own passport', () => {
+	it('describes every fitted brick the same way the system prompt does', () => {
+		const spec = v2(
+			buildSpec({
+				memory: { windowSize: 10, notebook: true },
+				tools: ['starter/calculator'],
+				safety: { maxTicks: 30, blockedActions: [], approvalMode: false }
+			})
+		);
+
+		const card = buildAgentCard(spec, registry());
+		expect(card.bricks.map((brick) => brick.description)).toEqual([
+			'a brain (LLM)',
+			'memory of your last 10 turns, and a notebook',
+			'a tool belt',
+			'senses',
+			'hands and wheels',
+			'a safety brick watching over you'
+		]);
+	});
+
+	it('names starter as the provenance of every brick a plain bot carries', () => {
+		const spec = v2(buildSpec({ memory: { windowSize: 3, notebook: false } }));
+		const card = buildAgentCard(spec, registry());
+
+		expect(Object.values(card.provenance.brickKinds).every((packId) => packId === 'starter')).toBe(
+			true
+		);
+		expect(card.provenance.packs['starter']).toBeDefined();
+	});
+
+	/** Radio's own `describeFitted` is config-dependent — real proof the card reads live config, not just a kind's static name. */
+	it('reads a Radio brick’s own channel and trust list off its real config', () => {
+		const spec = v2(buildSpec({ llm: false, memory: null, senses: [], actions: [] }));
+		spec.bricks.push({
+			slot: 'equipment',
+			kind: 'starter/radio',
+			configVersion: 1,
+			config: { channel: 'work', allowFrom: ['11111111-1111-4111-8111-111111111111'] }
+		});
+
+		const card = buildAgentCard(spec, registry());
+		const radio = card.bricks.find((brick) => brick.kind === 'starter/radio');
+		expect(radio?.description).toBe('listens on channel "work", trusting one other robot');
 	});
 });
