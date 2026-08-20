@@ -71,6 +71,20 @@ test('the bench has no accessibility violations', async ({ page }) => {
 	expect(describe(violations)).toBe('');
 });
 
+test('the Passport has no accessibility violations, toy side or flipped', async ({ page }) => {
+	await page.goto('/');
+	await page.getByTestId('new-bot').click();
+	await expect(page.getByTestId('baseplate')).toBeVisible();
+
+	await page.getByTestId('passport').click();
+	await expect(page.getByTestId('passport-controls')).toBeVisible();
+	expect(describe((await audit(page)).violations)).toBe('');
+
+	await page.getByTestId('flip-passport').click();
+	await expect(page.getByTestId('passport-json')).toBeVisible();
+	expect(describe((await audit(page)).violations)).toBe('');
+});
+
 test('the Playroom has no accessibility violations, mid-run and at the end', async ({ page }) => {
 	await buildAndGo(page);
 	await page.getByTestId('step').click();

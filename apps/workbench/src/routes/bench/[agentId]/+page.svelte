@@ -17,6 +17,7 @@
 	import BuildChecks from '$lib/components/bench/BuildChecks.svelte';
 	import GoalCardRack from '$lib/components/bench/GoalCardRack.svelte';
 	import PartsTray from '$lib/components/bench/PartsTray.svelte';
+	import PassportPanel from '$lib/components/bench/PassportPanel.svelte';
 	import GoLever from '$lib/components/kit/GoLever.svelte';
 	import RobotFriendsLever from '$lib/components/kit/RobotFriendsLever.svelte';
 	import RobotFriendsPicker from '$lib/components/kit/RobotFriendsPicker.svelte';
@@ -32,13 +33,21 @@
 	/** Which socket's panel is open — a place on the chassis, not a brick name. */
 	let selected = $state<SlotId | undefined>(undefined);
 	let announcement = $state('');
+	/** The Passport (WP33 stage B) shares the brick-panel column with one brick's own panel. */
+	let showPassport = $state(false);
+
+	/** Opening a brick's own panel always closes the Passport — the column shows one or the other. */
+	function selectSlot(slot: SlotId | undefined): void {
+		selected = slot;
+		showPassport = false;
+	}
 
 	const controller = createDndController({
 		onPlace: (kindId) => {
 			benchStore.fitBrick(kindId);
 			preferences.cue('snap');
 			// Open the panel of the socket it went into, whichever that is.
-			selected = slotOfKind(kindId);
+			selectSlot(slotOfKind(kindId));
 		},
 		onRemove: (slot) => {
 			benchStore.removeBrick(slot);
@@ -183,7 +192,7 @@
 	function jumpToProblem(problem: BuildProblem): void {
 		// Problems have pointed at a chassis socket since slice 3d, and since 4b
 		// so does the bench — the translation table that stood here is gone.
-		if (problem.slot) selected = problem.slot;
+		if (problem.slot) selectSlot(problem.slot);
 	}
 
 	async function pullGo(): Promise<void> {
@@ -214,7 +223,19 @@
 			</label>
 			<button
 				type="button"
-				class="undo"
+				class="header-action"
+				data-testid="passport"
+				aria-pressed={showPassport}
+				onclick={() => {
+					showPassport = !showPassport;
+					if (showPassport) selected = undefined;
+				}}
+			>
+				Passport
+			</button>
+			<button
+				type="button"
+				class="header-action"
 				data-testid="undo"
 				disabled={!benchStore.canUndo}
 				onclick={() => benchStore.undo()}
@@ -228,7 +249,7 @@
 				<PartsTray
 					{controller}
 					fittedIn={(slot) => benchStore.fittedIn(slot)}
-					onselect={(slot) => (selected = slot)}
+					onselect={selectSlot}
 				/>
 			</section>
 
@@ -237,7 +258,7 @@
 					{controller}
 					fittedIn={(slot) => benchStore.fittedIn(slot)}
 					{selected}
-					onselect={(slot) => (selected = slot)}
+					onselect={selectSlot}
 					onremove={(slot) => {
 						benchStore.removeBrick(slot);
 						if (selected === slot) selected = undefined;
@@ -268,7 +289,9 @@
 			</section>
 
 			<section class="column column--panel" aria-label="Brick panel">
-				{#if selected && fittedForPanel && spec}
+				{#if showPassport && spec}
+					<PassportPanel {spec} {registry} onclose={() => (showPassport = false)} />
+				{:else if selected && fittedForPanel && spec}
 					<BrickPanel
 						brick={fittedForPanel.brick}
 						kind={fittedForPanel.kind}
@@ -343,7 +366,7 @@
 	}
 
 	.back:focus-visible,
-	.undo:focus-visible,
+	.header-action:focus-visible,
 	.rename input:focus-visible {
 		outline: var(--cab-focus-ring);
 		outline-offset: var(--cab-focus-gap);
@@ -395,7 +418,7 @@
 		pointer-events: none;
 	}
 
-	.undo {
+	.header-action {
 		font: inherit;
 		font-size: var(--cab-text-sm);
 		padding: var(--cab-space-1) var(--cab-space-3);
@@ -405,7 +428,7 @@
 		cursor: pointer;
 	}
 
-	.undo:disabled {
+	.header-action:disabled {
 		opacity: 0.45;
 		cursor: not-allowed;
 	}
