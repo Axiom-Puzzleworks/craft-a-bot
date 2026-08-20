@@ -8,7 +8,7 @@ Two purposes, in priority order: (1) an accessible training ground for agentic-A
 
 Stack: TypeScript + Svelte 5 (runes) + SvelteKit static. Monorepo (npm workspaces + Turborepo). Local-first, no backend. OpenAI out of the box (BYO key).
 
-**Where we are (2026-08-19):** V1.0 ("My Very First Agent") shipped WP0–WP10. Day 2 Phases A–D are closed (WP11–WP25): engine trust fixed, the brick contract opened, teaching-aid UX and the professional Workshop both shipped, plus a full governance layer (policy cards, Safety Brick v2, three scenario cards). **Phase E (expansion era) is now fully closed**: WP26, WP27, WP28 and WP29 (multi-agent core — `SessionGroup`, the Playroom's `forAgent`, group-altitude events, a minimal Workshop surface; full design of record and close-out in `docs/design-day2/23-MULTI-AGENT-DESIGN.md`) are all done. Phase F ("Agent Builder" kit, WP30–34) is next — see "Next up" below.
+**Where we are (2026-08-20):** V1.0 ("My Very First Agent") shipped WP0–WP10. Day 2 Phases A–D are closed (WP11–WP25): engine trust fixed, the brick contract opened, teaching-aid UX and the professional Workshop both shipped, plus a full governance layer (policy cards, Safety Brick v2, three scenario cards). **Phase E (expansion era) is fully closed**: WP26, WP27, WP28 and WP29 (multi-agent core — `SessionGroup`, the Playroom's `forAgent`, group-altitude events, a minimal Workshop surface; full design of record and close-out in `docs/design-day2/23-MULTI-AGENT-DESIGN.md`) are all done. **Phase F ("Agent Builder" kit, WP30–34) is under way: WP31 (Radio brick + the Robot Friends duo experience, including the ASI07 spoofed-message scenario) is now done too** — full design of record and close-out in `docs/design-day2/24-ROBOT-FRIENDS-DESIGN.md`. WP30, WP32, WP33 and WP34 remain — see "Next up" below.
 
 ## Source of truth: `docs/design-day2/`
 
@@ -45,13 +45,14 @@ Where a Day 2 doc and its Day 1 counterpart differ, **Day 2 wins** — the banne
 
 Find the WP in `18-…` §3, read the docs it names, **propose a task breakdown before writing code**, then build. One WP per branch (`wp{n}-{slug}`) and PR.
 
-Next up per `18-…` §7 (most recent entry: item 22, 2026-08-19): Phase E is fully closed (WP26–29 all shipped). Phase F — the ages 5–11 "Agent Builder" kit — is under way:
+Next up per `18-…` §7 (most recent entry: item 23, 2026-08-20): Phase E is fully closed (WP26–29 all shipped), and Phase F's first WP is now done too — **WP31 (Radio brick + Robot Friends duo experience, including the ASI07 scenario) shipped 2026-08-20**, across eight stages, full close-out in `docs/design-day2/24-ROBOT-FRIENDS-DESIGN.md` §8/§11 and `18-…` §7 item 23. Four Phase F WPs remain, none dependent on WP31 or on each other:
 
-- **WP31 is in progress: the full design of record is `docs/design-day2/24-ROBOT-FRIENDS-DESIGN.md` (2026-08-19)** — read it before anything else. It anchors WP29's own rails against the real single-bot Kit flow (`session.svelte.ts`, `narrate.ts`, the Scrapbook, the bench's `coop`-card filter), designs the Radio brick and the ASI07 spoofed-message scenario, and lays out an eight-stage plan. **Before starting or continuing a stage, re-read `18-…` §7 item 22 (what WP29 actually left ready), then follow `24-…` §10's stages in order.** If any stage grows beyond its description there, stop and re-size rather than absorbing it — the same discipline `23-…` held to across its own seven stages.
-- **WP30:** Planner + If/Then bricks (`14-…` §5.1–5.2) with their leaflet chapters. No dependency on WP29 or WP31; available any time.
-- **WP32–34:** Librarian/Connector bricks, kit-line packaging, Workshop maturity (audit centre) — see `18-…` §3 for each row's DoD.
+- **WP30:** Planner + If/Then bricks (`14-…` §5.1–5.2) with their leaflet chapters.
+- **WP32:** Librarian + Connector bricks (`14-…` §5.5–5.6) + scope-permission leaflet chapter.
+- **WP33:** Identity badges + kit-line packaging (`14-…` §5.8; box art per expansion pack; the 5–11 kit as a curated pack bundle; export formats).
+- **WP34:** Workshop maturity (audit centre) — see `18-…` §3 for its own row and DoD.
 
-Neither WP30 nor WP31 is fixed as "the" next WP by this file — read `18-…` §3/§7 and confirm with the user which to start.
+None of the four is fixed as "the" next WP by this file — read `18-…` §3/§7 and confirm with the user which to start.
 
 Use your judgement inside a WP — the docs fix the destination and the contracts, not every step. Where a doc is silent, decide and note it. Where implementation must diverge from a doc, change the doc in the same PR with a dated note (`> **Amended 2026-08-13:** …`); don't leave the two disagreeing.
 

@@ -397,7 +397,7 @@ Candidate controls (Area → §above; Fit: **Kids** = teaching mode, **Pro** = p
 | 29 | Agent Card manifest (A2A-style machine-readable capabilities/permissions declaration per built bot) | §6.7/7.1 | Emerging | Both |
 | 30 | Kit-file transparency artefact (AI-BOM-style listing of bricks, model, tools, policies) | §6.7 | Emerging | Both |
 | 31 | Incident log & report flow (record guardrail trips/harms; OECD-style incident taxonomy) | §6.8 | Widely adopted | Both |
-| 32 | Multi-agent comms authentication scenario (spoofed-agent message attack, ASI07) | §7.1/2.3 | Emerging | Pro (later WP) |
+| 32 | Multi-agent comms authentication scenario (spoofed-agent message attack, ASI07) | §7.1/2.3 | Emerging | Pro (later WP) — toy-form kids scenario shipped WP31 (`starter/party-line`, `24-…` §4.8) |
 | 33 | Supervisor/orchestrator brick as policy chokepoint for sub-agents | §7.2 | Widely adopted | Pro |
 | 34 | Cascade circuit-breaker (isolate a misbehaving agent before failures propagate, ASI08) | §7.3 | Research | Pro |
 | 35 | Approval-fatigue teaching moment (flood of prompts → measure rubber-stamping; then tier the approvals) | §8.3 | Emerging | Kids |
