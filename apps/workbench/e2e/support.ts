@@ -62,13 +62,16 @@ export const BRICKS = {
 export type BrickName = keyof typeof BRICKS;
 
 /**
- * Build a bot that can actually do the snack goal, then pull the GO lever.
+ * Build a bot GO-ready — every brick fitted, battery slotted, GO lit — and
+ * stop there, returning its agent id.
  *
- * Shared rather than per-spec: getting a bot as far as the Playroom is the
- * setup cost of every spec about what happens once it is there, and a second
- * copy of this sequence would be a second thing to fix when the bench changes.
+ * Split out of `buildAndGo` (WP31, `24-…` §10 stage B) so a duo test can
+ * build two GO-ready bots without launching either through the solo Play
+ * route: the shared setup cost of "a bot that can actually do the goal" is
+ * one function regardless of how many bots a spec needs on the shelf, or
+ * what it does with them once they are ready.
  */
-export async function buildAndGo(page: Page, cardTestId = 'card-snack'): Promise<void> {
+export async function buildReadyBot(page: Page, cardTestId = 'card-snack'): Promise<string> {
 	await page.goto('/');
 	await page.getByTestId('new-bot').click();
 	await expect(page.getByTestId('baseplate')).toBeVisible();
@@ -91,6 +94,15 @@ export async function buildAndGo(page: Page, cardTestId = 'card-snack'): Promise
 	await page.getByTestId('cartridge-select').selectOption({ label: 'Demo Brain' });
 	await expect(page.getByRole('button', { name: /GO/ })).toBeEnabled();
 
+	const match = /\/bench\/([^/?#]+)/.exec(page.url());
+	if (!match?.[1])
+		throw new Error(`Could not read an agent id out of the bench URL: ${page.url()}`);
+	return match[1];
+}
+
+/** Build a bot that can actually do the snack goal, then pull the GO lever. */
+export async function buildAndGo(page: Page, cardTestId = 'card-snack'): Promise<void> {
+	await buildReadyBot(page, cardTestId);
 	await page.getByRole('button', { name: /GO/ }).click();
 	await expect(page).toHaveURL(/\/play\//);
 }

@@ -13,8 +13,15 @@
 		onplay: () => void;
 		onpause: () => void;
 		onstop: () => void;
-		onreset: () => void;
-		onspeed: (multiplier: number) => void;
+		/**
+		 * Both optional (WP31): "throw the world back to its opening state" and
+		 * a live speed dial are solo-session capabilities — `GroupSessionView`
+		 * has neither yet (`24-…` §10 stage A's own scope note). Their buttons
+		 * disappear rather than call through to nothing; the solo Play route
+		 * still passes both and sees no change.
+		 */
+		onreset?: () => void;
+		onspeed?: (multiplier: number) => void;
 	}
 
 	let { running, finished, busy, speed, onstep, onplay, onpause, onstop, onreset, onspeed }: Props =
@@ -76,25 +83,29 @@
 	{/if}
 
 	<button type="button" data-testid="stop" disabled={finished} onclick={onstop}>Stop</button>
-	<button type="button" data-testid="reset" onclick={onreset}>Reset world</button>
+	{#if onreset}
+		<button type="button" data-testid="reset" onclick={onreset}>Reset world</button>
+	{/if}
 
-	<label class="speed">
-		<span id={speedId}>Speed</span>
-		<span class="speeds" role="group" aria-labelledby={speedId}>
-			{#each SPEEDS as multiplier (multiplier)}
-				<button
-					type="button"
-					class="speed-button"
-					class:speed-button--active={speed === multiplier}
-					data-testid="speed-{multiplier}"
-					aria-pressed={speed === multiplier}
-					onclick={() => onspeed(multiplier)}
-				>
-					{multiplier}×
-				</button>
-			{/each}
-		</span>
-	</label>
+	{#if onspeed}
+		<label class="speed">
+			<span id={speedId}>Speed</span>
+			<span class="speeds" role="group" aria-labelledby={speedId}>
+				{#each SPEEDS as multiplier (multiplier)}
+					<button
+						type="button"
+						class="speed-button"
+						class:speed-button--active={speed === multiplier}
+						data-testid="speed-{multiplier}"
+						aria-pressed={speed === multiplier}
+						onclick={() => onspeed(multiplier)}
+					>
+						{multiplier}×
+					</button>
+				{/each}
+			</span>
+		</label>
+	{/if}
 </div>
 
 <style>

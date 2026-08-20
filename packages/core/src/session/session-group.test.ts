@@ -654,13 +654,70 @@ describe('start(mode) and pause()', () => {
 		expect(group.status).toBe('paused');
 	});
 
-	it('a second start() call is a no-op once the group is already under way', () => {
+	it('a second start("step") call never re-emits group.started', () => {
 		const { group, log } = makeGroup({
 			members: twoMembers([turn('Ping.', 'ping')], [turn('Ping.', 'ping')])
 		});
 		group.start('step');
 		group.start('step');
 		expect(log.filter((event) => event.type === 'group.started')).toHaveLength(1);
+	});
+
+	/**
+	 * Regression: `start('play')` used to refuse outright once the group was
+	 * no longer idle — including right after a single manual `stepRound()` —
+	 * which made a UI's own Play button silently do nothing the moment a
+	 * player had stepped even once first. A solo session's own `start()`
+	 * carries no such restriction (`agent-session.ts`'s only guard is "not
+	 * finished"), so a host built against that expectation would find a
+	 * group's Play button quietly broken. `start('play')` now picks the
+	 * group up from wherever a manual step left it, without re-emitting
+	 * `group.started` or losing the round already played.
+	 */
+	it('start("play") after a manual step continues the group, not restarts it', async () => {
+		const { group, log } = makeGroup({
+			members: twoMembers(
+				[turn('Ping.', 'ping'), turn('Ping.', 'ping'), turn('Win.', 'win')],
+				[turn('Ping.', 'ping'), turn('Ping.', 'ping'), turn('Ping.', 'ping')]
+			)
+		});
+
+		const first = await group.stepRound();
+		expect(first.round).toBe(1);
+		expect(group.status).toBe('paused');
+
+		group.start('play');
+		for (let i = 0; i < 200 && group.status !== 'finished'; i++) {
+			await Promise.resolve();
+		}
+
+		expect(group.status).toBe('finished');
+		// Exactly one group.started, and the round the manual step already
+		// played is not repeated — the play loop picked up at round 2.
+		expect(log.filter((event) => event.type === 'group.started')).toHaveLength(1);
+		const roundTicks = log.filter(
+			(event) => event.type === 'tick.completed' && event.agentId === AGENT_A
+		);
+		expect(roundTicks).toHaveLength(3);
+	});
+
+	it('a second start("play") call while a play loop is already running does not race it', async () => {
+		const { group, log } = makeGroup({
+			members: twoMembers(
+				[turn('Ping.', 'ping'), turn('Win.', 'win')],
+				[turn('Ping.', 'ping'), turn('Ping.', 'ping')]
+			)
+		});
+
+		group.start('play');
+		group.start('play'); // a second call while the loop from the first is still in flight
+		for (let i = 0; i < 200 && group.status !== 'finished'; i++) {
+			await Promise.resolve();
+		}
+
+		expect(group.status).toBe('finished');
+		expect(log.filter((event) => event.type === 'group.started')).toHaveLength(1);
+		expect(log.filter((event) => event.type === 'group.finished')).toHaveLength(1);
 	});
 
 	it('pause() stops a running play loop before every round has executed', async () => {

@@ -179,7 +179,14 @@ export function createSessionGroup(deps: CreateSessionGroupDeps): SessionGroup {
 		 * call would otherwise silently fall through to its `OUT_OF_STEPS`
 		 * default regardless of the real reason the group ended.
 		 */
-		finalOutcome: undefined as RunOutcome | undefined
+		finalOutcome: undefined as RunOutcome | undefined,
+		/**
+		 * Whether `groupPlayLoop` is currently driving `stepRound()` calls
+		 * (WP31) — guards `start('play')` against kicking off a second,
+		 * concurrent loop when it is called while one is already running (a
+		 * double click, or a caller that does not track `status` itself).
+		 */
+		playing: false
 	};
 
 	/**
@@ -376,14 +383,23 @@ export function createSessionGroup(deps: CreateSessionGroupDeps): SessionGroup {
 	}
 
 	async function groupPlayLoop(): Promise<void> {
-		while (
-			currentPhase() !== 'finished' &&
-			!state.pauseRequested &&
-			state.stopRequested === undefined
-		) {
-			await stepRound();
-			if (currentPhase() === 'finished') break;
-			if (roundDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, roundDelayMs));
+		// A second call while one loop is already driving rounds is a no-op
+		// rather than a second, concurrent loop (WP31) — `start('play')` can now
+		// be called again on an already-running group (see its own comment).
+		if (state.playing) return;
+		state.playing = true;
+		try {
+			while (
+				currentPhase() !== 'finished' &&
+				!state.pauseRequested &&
+				state.stopRequested === undefined
+			) {
+				await stepRound();
+				if (currentPhase() === 'finished') break;
+				if (roundDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, roundDelayMs));
+			}
+		} finally {
+			state.playing = false;
 		}
 		if (state.pauseRequested) {
 			state.pauseRequested = false;
@@ -400,12 +416,24 @@ export function createSessionGroup(deps: CreateSessionGroupDeps): SessionGroup {
 				return 'awaiting-approval';
 			return state.phase;
 		},
+		/**
+		 * Callable more than once, on purpose (WP31): a host that only steps
+		 * manually at first and later presses "Play" calls this a second time
+		 * on a group that is no longer idle, and that has to work rather than
+		 * silently do nothing — `RunControls`' own Play button carries no
+		 * "only before the first step" restriction, because a solo session's
+		 * `start()` never had one either. `startGroup()` still only ever runs
+		 * once (the idle check below), so a second call never re-emits
+		 * `group.started` or resets progress; it only ever adds a play loop
+		 * that was not already driving one (`groupPlayLoop`'s own guard).
+		 */
 		start(mode: RunMode) {
-			if (state.phase !== 'idle') return;
-			startGroup();
-			state.phase = 'running';
+			if (currentPhase() === 'finished') return;
+			if (currentPhase() === 'idle') {
+				startGroup();
+				state.phase = 'paused';
+			}
 			if (mode === 'play') void groupPlayLoop();
-			else state.phase = 'paused';
 		},
 		stepRound,
 		pause() {

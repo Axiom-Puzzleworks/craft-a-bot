@@ -46,6 +46,8 @@ export interface MemberView {
 	readonly thought: string;
 	readonly streamingNow: boolean;
 	readonly saying: string | undefined;
+	/** The last action's own narration text (`ThoughtBubble`'s second line, same as solo). */
+	readonly narration: string;
 	readonly tick: number;
 	readonly usage: { inputTokens: number; outputTokens: number };
 	readonly outcome: RunOutcome | undefined;
@@ -64,6 +66,13 @@ export interface GroupSessionView {
 	/** The group's own outcome (`group.finished`), distinct from any one member's own. */
 	readonly outcome: RunOutcome | undefined;
 	readonly members: readonly MemberView[];
+	/**
+	 * Which member's own turn produced `world`'s current snapshot — the agent
+	 * `WorldView` foregrounds as `bot` right now (`23-…` §4.3: "the alternating
+	 * per-agent `bot` field only changes which robot wears the expressive
+	 * face"). `undefined` before anyone has acted yet.
+	 */
+	readonly foregroundedAgentId: string | undefined;
 	/** Set while *any* member is suspended waiting for a person; names which one. */
 	readonly pendingApproval: GroupPendingApproval | undefined;
 
@@ -90,10 +99,11 @@ export interface GroupSessionViewDeps {
 	groupMaxTokens?: number;
 	maxRounds?: number;
 	/**
-	 * Delay between rounds, fixed at construction. Unlike a solo session,
-	 * `SessionGroup` has no live `setTickDelayMs` (`23-…`'s own interface
-	 * never grew one) — a duo speed dial is out of this stage's scope, noted
-	 * here rather than silently assumed away.
+	 * Delay between rounds, fixed at construction — defaults to solo's own
+	 * `BASE_TICK_DELAY_MS` (700ms) so PLAY paces the same in a duo room.
+	 * Unlike a solo session, `SessionGroup` has no live `setTickDelayMs`
+	 * (`23-…`'s own interface never grew one) — a duo speed dial is out of
+	 * this stage's scope, noted here rather than silently assumed away.
 	 */
 	baseTickDelayMs?: number;
 	onEvent?: (event: EngineEvent) => void;
@@ -105,6 +115,9 @@ interface MemberState {
 	runId: string;
 	projection: RunProjection;
 }
+
+/** Solo's own pacing default (`session.svelte.ts`) — a duo session paces the same unless overridden. */
+const BASE_TICK_DELAY_MS = 700;
 
 export function createGroupSessionView(deps: GroupSessionViewDeps): GroupSessionView {
 	const registry = createRegistry();
@@ -137,6 +150,8 @@ export function createGroupSessionView(deps: GroupSessionViewDeps): GroupSession
 	 * third fold would add (`24-…` §4.2).
 	 */
 	let world = $state<GridWorldState | undefined>(undefined);
+	/** Whichever member's `world.changed` most recently produced `world` — see `foregroundedAgentId`. */
+	let foregroundedAgentId = $state<string | undefined>(undefined);
 
 	const group = build();
 
@@ -151,7 +166,7 @@ export function createGroupSessionView(deps: GroupSessionViewDeps): GroupSession
 			goalCardId: deps.goalCardId,
 			...(deps.groupGuardrails ? { groupGuardrails: deps.groupGuardrails } : {}),
 			options: {
-				...(deps.baseTickDelayMs !== undefined ? { tickDelayMs: deps.baseTickDelayMs } : {}),
+				tickDelayMs: deps.baseTickDelayMs ?? BASE_TICK_DELAY_MS,
 				...(deps.groupMaxTokens !== undefined ? { groupMaxTokens: deps.groupMaxTokens } : {}),
 				...(deps.maxRounds !== undefined ? { maxRounds: deps.maxRounds } : {})
 			}
@@ -189,6 +204,7 @@ export function createGroupSessionView(deps: GroupSessionViewDeps): GroupSession
 		}
 		if (event.type === 'world.changed') {
 			world = event.payload.state as GridWorldState;
+			foregroundedAgentId = event.agentId;
 		}
 		deps.onEvent?.(event);
 		state.status = group.status;
@@ -203,6 +219,9 @@ export function createGroupSessionView(deps: GroupSessionViewDeps): GroupSession
 		},
 		get world() {
 			return world;
+		},
+		get foregroundedAgentId() {
+			return foregroundedAgentId;
 		},
 		get round() {
 			return state.round;
@@ -235,6 +254,9 @@ export function createGroupSessionView(deps: GroupSessionViewDeps): GroupSession
 				},
 				get saying() {
 					return entry.projection.saying;
+				},
+				get narration() {
+					return entry.projection.narration;
 				},
 				get tick() {
 					return entry.projection.tick;

@@ -76,6 +76,10 @@ describe('createGroupSessionView', () => {
 		// that events did not carry).
 		expect(view.world).toBeDefined();
 		expect(view.world?.agents?.map((agent) => agent.id).sort()).toEqual([BOLT_ID, ROBO_ID].sort());
+		// Round-robin offers Robo the turn first, Bolt second — Bolt's own
+		// action is the round's last world.changed, so it is whose seat
+		// WorldView should foreground once this round settles.
+		expect(view.foregroundedAgentId).toBe(BOLT_ID);
 		expect(view.members.every((member) => member.started)).toBe(true);
 		expect(view.members.every((member) => member.tick === 1)).toBe(true);
 		expect(events.some((event) => event.type === 'group.started')).toBe(true);
