@@ -12,6 +12,7 @@
 	} from '$lib/state/session-group.svelte.js';
 	import ApprovalCard from '$lib/components/play/ApprovalCard.svelte';
 	import RunControls from '$lib/components/play/RunControls.svelte';
+	import StoryStrip from '$lib/components/play/StoryStrip.svelte';
 	import ThoughtBubble from '$lib/components/play/ThoughtBubble.svelte';
 	import WorldView from '$lib/components/play/WorldView.svelte';
 
@@ -110,6 +111,11 @@
 		view?.members.find((member) => member.agentId === view?.foregroundedAgentId)
 	);
 
+	/** agentId → display name, for `StoryStrip` to narrate both robots by name (`24-…` §4.4). */
+	const actors = $derived(
+		new Map((view?.members ?? []).map((member) => [member.agentId, member.name]))
+	);
+
 	async function step(): Promise<void> {
 		if (!view) return;
 		busy = true;
@@ -157,6 +163,7 @@
 					outcome={view.outcome}
 					events={foregrounded?.events ?? []}
 				/>
+				<StoryStrip events={view.mergedEvents} {actors} />
 			</section>
 
 			<aside class="side">

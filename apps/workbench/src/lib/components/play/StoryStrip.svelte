@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { EngineEvent } from '@craftabot/core';
-	import { currentTick, narrate } from '$lib/narration/narrate.js';
+	import { currentTick, narrate, type Beat } from '$lib/narration/narrate.js';
 	import { createNarrator, type Narrator } from '$lib/narration/speech.js';
 
 	/**
@@ -28,9 +28,15 @@
 		readAloud?: boolean;
 		/** Injectable so tests can hear what would be said without a speech engine. */
 		narrator?: Narrator;
+		/**
+		 * agentId → display name, for a duo run's merged trace (WP31, `24-…`
+		 * §4.4). Absent for a solo run, where there is only one bot and naming
+		 * it would say nothing the caption doesn't.
+		 */
+		actors?: ReadonlyMap<string, string>;
 	}
 
-	let { events, onseemore, readAloud = false, narrator }: Props = $props();
+	let { events, onseemore, readAloud = false, narrator, actors }: Props = $props();
 
 	/*
 	 * Derived, not captured. A prop read once at setup keeps the value it had
@@ -39,7 +45,7 @@
 	 */
 	const voice = $derived(narrator ?? createNarrator());
 
-	const ticks = $derived(narrate(events));
+	const ticks = $derived(narrate(events, actors));
 	const latest = $derived(currentTick(ticks));
 	/** Older turns, oldest first, so the newest sits at the right-hand end. */
 	const earlier = $derived(ticks.slice(0, -1));
@@ -49,6 +55,9 @@
 
 	const keyFor = (tick: number, index: number) => `${tick}:${index}`;
 
+	/** A beat's caption, named when it has an actor — the one phrase every reading of a beat shares. */
+	const textFor = (beat: Beat) => (beat.actor ? `${beat.actor}: ${beat.caption}` : beat.caption);
+
 	/**
 	 * Everything the current turn amounts to, in one sentence.
 	 *
@@ -56,7 +65,7 @@
 	 * beat would be worse for both: a screen reader would interrupt itself four
 	 * times a turn, and a listener would lose the thread between them.
 	 */
-	const story = $derived(latest?.beats.map((beat) => beat.caption).join(' ') ?? '');
+	const story = $derived(latest?.beats.map(textFor).join(' ') ?? '');
 
 	/*
 	 * Speak when the story changes, never on a re-render. `$effect` re-runs on any
@@ -92,7 +101,7 @@
 				<span class="turn-number" aria-hidden="true">{turn.tick}</span>
 				<span class="beats beats--small">
 					{#each turn.beats as beat (beat.eventIndex)}
-						<span class="beat-icon" title={beat.caption} aria-hidden="true">{beat.icon}</span>
+						<span class="beat-icon" title={textFor(beat)} aria-hidden="true">{beat.icon}</span>
 					{/each}
 				</span>
 			</li>
@@ -115,7 +124,11 @@
 							onclick={() => (opened = opened === key ? undefined : key)}
 						>
 							<span class="beat-icon" aria-hidden="true">{beat.icon}</span>
-							<span class="beat-caption">{beat.caption}</span>
+							<span class="beat-caption"
+								>{#if beat.actor}<strong class="beat-actor" data-testid="beat-actor"
+										>{beat.actor}:</strong
+									>&nbsp;{/if}{beat.caption}</span
+							>
 						</button>
 
 						{#if opened === key && onseemore}

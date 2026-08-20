@@ -45,6 +45,12 @@ export interface Beat {
 	caption: string;
 	/** Where in the run's events this came from, so a tap can open the trace there. */
 	eventIndex: number;
+	/**
+	 * Which robot this beat is about, when `narrate()` was given an `actors` map
+	 * (WP31, `24-…` §4.4) — `undefined` for a solo run, where there is only ever
+	 * one bot and naming it would say nothing a caption doesn't already.
+	 */
+	actor?: string;
 }
 
 export interface NarratedTick {
@@ -127,9 +133,22 @@ const OUTCOME_CAPTIONS: Record<string, string> = {
  * story. The acceptance criterion is *3–5 beats a tick* (`16-…` §1.3), which is
  * a design constraint, not an accident of what was easy.
  */
-function beatFor(event: EngineEvent, eventIndex: number): Beat | undefined {
+function beatFor(
+	event: EngineEvent,
+	eventIndex: number,
+	actors: ReadonlyMap<string, string> | undefined
+): Beat | undefined {
+	// A label, not a rewrite: every event already carries its own `agentId`
+	// (E10), so this answers "which robot" without touching a single caption's
+	// words — including the ones a pack wrote in its own second-person voice
+	// ("You roll one square north.") and has no business being re-conjugated
+	// into a third robot's name by code that has never met that verb.
+	const actor = actors === undefined ? undefined : (actors.get(event.agentId ?? '') ?? 'A robot');
+
 	const at = (kind: BeatKind, caption: string): Beat | undefined =>
-		caption.trim() === '' ? undefined : { kind, icon: ICONS[kind], caption, eventIndex };
+		caption.trim() === ''
+			? undefined
+			: { kind, icon: ICONS[kind], caption, eventIndex, ...(actor !== undefined ? { actor } : {}) };
 
 	switch (event.type) {
 		case 'input.delivered':
@@ -187,13 +206,22 @@ function beatFor(event: EngineEvent, eventIndex: number): Beat | undefined {
  * trace may begin mid-run, and events that happen outside any turn (a run
  * finishing, something said to the bot before it starts) still belong
  * somewhere. Turn 0 is that somewhere.
+ *
+ * `actors` (WP31, `24-…` §4.4) names which robot each beat is about, for a
+ * merged duo trace where two robots' beats can land in the same tick. Omitted
+ * — every call site before WP31 — every beat's `actor` stays `undefined` and
+ * every caption is character-for-character what it always was; a solo run has
+ * exactly one bot, and naming it would say nothing the caption doesn't.
  */
-export function narrate(events: readonly EngineEvent[]): NarratedTick[] {
+export function narrate(
+	events: readonly EngineEvent[],
+	actors?: ReadonlyMap<string, string>
+): NarratedTick[] {
 	const byTick = new Map<number, Beat[]>();
 	const order: number[] = [];
 
 	events.forEach((event, eventIndex) => {
-		const beat = beatFor(event, eventIndex);
+		const beat = beatFor(event, eventIndex, actors);
 		if (!beat) return;
 
 		const tick = event.tick;

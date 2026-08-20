@@ -75,6 +75,13 @@ export interface GroupSessionView {
 	readonly foregroundedAgentId: string | undefined;
 	/** Set while *any* member is suspended waiting for a person; names which one. */
 	readonly pendingApproval: GroupPendingApproval | undefined;
+	/**
+	 * Every event either member or the group itself has emitted, in arrival
+	 * order — the merged stream `StoryStrip` narrates for a duo run (WP31,
+	 * `24-…` §4.4), the group-altitude counterpart to a solo `SessionView`'s
+	 * own `events`.
+	 */
+	readonly mergedEvents: EngineEvent[];
 
 	start(mode: RunMode): void;
 	stepRound(): Promise<{ round: number; outcome?: RunOutcome }>;
@@ -152,6 +159,8 @@ export function createGroupSessionView(deps: GroupSessionViewDeps): GroupSession
 	let world = $state<GridWorldState | undefined>(undefined);
 	/** Whichever member's `world.changed` most recently produced `world` — see `foregroundedAgentId`. */
 	let foregroundedAgentId = $state<string | undefined>(undefined);
+	/** Every event in arrival order — see `GroupSessionView.mergedEvents`. */
+	const mergedEvents = $state<EngineEvent[]>([]);
 
 	const group = build();
 
@@ -196,6 +205,7 @@ export function createGroupSessionView(deps: GroupSessionViewDeps): GroupSession
 	 * one agent"), which is what tells `absorb` apart from routing them.
 	 */
 	function absorb(event: EngineEvent): void {
+		mergedEvents.push(event);
 		if (event.type === 'group.finished') {
 			state.groupOutcome = event.payload.outcome;
 		} else if (event.agentId !== undefined) {
@@ -216,6 +226,9 @@ export function createGroupSessionView(deps: GroupSessionViewDeps): GroupSession
 		},
 		get groupRunId() {
 			return group.groupRunId;
+		},
+		get mergedEvents() {
+			return mergedEvents;
 		},
 		get world() {
 			return world;

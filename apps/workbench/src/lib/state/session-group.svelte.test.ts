@@ -84,6 +84,9 @@ describe('createGroupSessionView', () => {
 		expect(view.members.every((member) => member.tick === 1)).toBe(true);
 		expect(events.some((event) => event.type === 'group.started')).toBe(true);
 		expect(events.filter((event) => event.type === 'tick.completed')).toHaveLength(2);
+		// `mergedEvents` is the same stream `onEvent` saw, in the same order —
+		// the merged trace `StoryStrip` narrates for a duo run (`24-…` §4.4).
+		expect(view.mergedEvents).toEqual(events);
 
 		// Drive it to completion — the same 12-round, SUCCESS proof stage E's
 		// own DoD test runs, watched through the view this time instead of the

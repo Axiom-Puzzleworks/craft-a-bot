@@ -41,6 +41,12 @@ test('both robots render in one Playroom, and STEP advances both', async ({ page
 	// fellow agent (`23-…` §4.3, `24-…` §4.3).
 	await expect(page.getByTestId('bot')).toBeVisible();
 	await expect(page.locator('[data-testid^="fellow-"]')).toBeVisible();
+	// The story strip names which robot each beat belongs to (WP31 stage C,
+	// `24-…` §4.4) — which name is not distinguishable here since both bots
+	// keep the shelf's default name, so this only proves the wiring, not the
+	// naming logic itself (that is `narrate.test.ts`'s and
+	// `StoryStrip.svelte.test.ts`'s job).
+	await expect(page.locator('[data-testid="beat-actor"]').first()).not.toBeEmpty();
 });
 
 test('PLAY drives rounds automatically, PAUSE and STOP both work', async ({ page }) => {

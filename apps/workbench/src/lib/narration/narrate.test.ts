@@ -200,6 +200,70 @@ describe('a whole run', () => {
 	});
 });
 
+describe('a duo run, named', () => {
+	/**
+	 * **WP31 stage C** (`24-…` §4.4): `actors` labels each beat with which
+	 * robot it is about, for a merged trace where two robots' beats can land
+	 * in the same tick. Every existing case above passes no `actors` and is
+	 * asserted unchanged, per this stage's own gate.
+	 */
+	const ROBO = '33333333-3333-4333-8333-333333333333';
+	const BOLT = '44444444-4444-4444-8444-444444444444';
+	const actors = new Map([
+		[ROBO, 'Robo'],
+		[BOLT, 'Bolt']
+	]);
+
+	function forAgent(agentId: string, event: EngineEvent): EngineEvent {
+		return { ...event, agentId };
+	}
+
+	it('leaves every beat unlabelled when no actors map is given', () => {
+		const [turn] = narrate(ordinaryTurn(1));
+		for (const beat of turn?.beats ?? []) expect(beat.actor).toBeUndefined();
+	});
+
+	it('labels each beat with the robot it came from, by name', () => {
+		const events = [
+			forAgent(ROBO, saw(1, 'Robo sees the blue block.')),
+			forAgent(BOLT, saw(1, 'Bolt sees the chest.'))
+		];
+		const [turn] = narrate(events, actors);
+		expect(turn?.beats.map((beat) => beat.actor)).toEqual(['Robo', 'Bolt']);
+		// The captions themselves are untouched — no pronoun surgery on a
+		// pack's own copy (`24-…` §4.4's amendment).
+		expect(turn?.beats[0]?.caption).toBe('Robo sees the blue block.');
+	});
+
+	it('falls back to a plain noun for an id the map does not recognise', () => {
+		const events = [forAgent('55555555-5555-4555-8555-555555555555', saw(1, 'Something moved.'))];
+		const [turn] = narrate(events, actors);
+		expect(turn?.beats[0]?.actor).toBe('A robot');
+	});
+
+	it('keeps a pack’s own second-person narration verbatim, even when named', () => {
+		const [turn] = narrate([forAgent(ROBO, did(1, 'move', 'You roll one square north.'))], actors);
+		expect(turn?.beats[0]?.caption).toBe('You roll one square north.');
+		expect(turn?.beats[0]?.actor).toBe('Robo');
+	});
+
+	it('names which robot finished, and how', () => {
+		const events = [
+			forAgent(
+				ROBO,
+				at(1, 'run.finished', {
+					outcome: 'SUCCESS',
+					ticks: 1,
+					usage: { inputTokens: 0, outputTokens: 0 }
+				})
+			)
+		];
+		const beat = currentTick(narrate(events, actors))?.beats.at(-1);
+		expect(beat?.caption).toBe('It did it!');
+		expect(beat?.actor).toBe('Robo');
+	});
+});
+
 describe('every beat points back at the trace', () => {
 	/**
 	 * `16-…` §1.3: tapping "see more" opens the Flight Recorder *at that tick* —

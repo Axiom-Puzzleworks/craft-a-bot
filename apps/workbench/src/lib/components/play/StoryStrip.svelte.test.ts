@@ -145,6 +145,47 @@ describe('the play route’s live region (D16)', () => {
 	});
 });
 
+describe('naming which robot, in a duo run (WP31)', () => {
+	const ROBO = '33333333-3333-4333-8333-333333333333';
+	const BOLT = '44444444-4444-4444-8444-444444444444';
+	const actors = new Map([
+		[ROBO, 'Robo'],
+		[BOLT, 'Bolt']
+	]);
+
+	function forAgent(agentId: string, event: EngineEvent): EngineEvent {
+		return { ...event, agentId };
+	}
+
+	it('says nothing about which robot when no actors map is given', () => {
+		render(StoryStrip, { props: { events: turn(1) } });
+		expect(screen.queryByTestId('beat-actor')).not.toBeInTheDocument();
+	});
+
+	it('names the robot a beat is about, ahead of its caption', () => {
+		render(StoryStrip, {
+			props: { events: [forAgent(ROBO, saw(1, 'Robo sees the chest.'))], actors }
+		});
+		expect(screen.getByTestId('beat-actor')).toHaveTextContent('Robo:');
+		expect(screen.getByTestId('beat-saw')).toHaveTextContent('Robo: Robo sees the chest.');
+	});
+
+	it('announces both robots by name in the same turn, in the live region', () => {
+		render(StoryStrip, {
+			props: {
+				events: [
+					forAgent(ROBO, did(1, 'You roll north.')),
+					forAgent(BOLT, did(1, 'You roll south.'))
+				],
+				actors
+			}
+		});
+		expect(screen.getByTestId('story-announcer')).toHaveTextContent(
+			'Robo: You roll north. Bolt: You roll south.'
+		);
+	});
+});
+
 describe('reading it aloud', () => {
 	it('stays quiet unless a grown-up switched it on', () => {
 		const narrator = fakeNarrator();
