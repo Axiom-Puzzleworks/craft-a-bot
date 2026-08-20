@@ -72,15 +72,31 @@
 		event.currentTarget.value = '';
 	}
 
-	async function exportKit(id: string, name: string): Promise<void> {
-		const json = await agentsStore.exportKit(id);
-		if (json === undefined) return;
+	function download(json: string, filename: string): void {
 		const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
 		const link = document.createElement('a');
 		link.href = url;
-		link.download = `${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.craftabot.json`;
+		link.download = filename;
 		link.click();
 		URL.revokeObjectURL(url);
+	}
+
+	async function exportKit(id: string, name: string): Promise<void> {
+		const json = await agentsStore.exportKit(id);
+		if (json === undefined) return;
+		download(json, `${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.craftabot.json`);
+	}
+
+	/**
+	 * The Agent Card (WP33 stage C) — a bot's own passport, downloaded on its
+	 * own rather than folded into "Export": a kit file is for handing a bot to
+	 * someone else's shelf, this is for showing what one carries. Different
+	 * extension on purpose, so nothing mistakes it for one on the way back in.
+	 */
+	async function exportAgentCard(id: string, name: string): Promise<void> {
+		const json = await agentsStore.exportAgentCard(id);
+		if (json === undefined) return;
+		download(json, `${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.craftabot-card.json`);
 	}
 </script>
 
@@ -202,6 +218,13 @@
 								<button type="button" onclick={() => exportKit(agent.id, agent.spec.name)}
 									>Export</button
 								>
+								<button
+									type="button"
+									data-testid="export-card-{agent.id}"
+									onclick={() => exportAgentCard(agent.id, agent.spec.name)}
+								>
+									Export Passport
+								</button>
 								<button
 									type="button"
 									data-testid="bin-{agent.id}"

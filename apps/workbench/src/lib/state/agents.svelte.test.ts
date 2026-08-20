@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { migrateAgentSpec, type KitFile } from '@craftabot/core';
+import { migrateAgentSpec, type AgentCard, type KitFile } from '@craftabot/core';
 import { createAgentsStore } from './agents.svelte.js';
 import { createMemoryStorage } from './storage-memory.js';
 import type { Storage } from './storage.js';
@@ -175,6 +175,81 @@ describe('exporting a kit', () => {
 	it('returns nothing for a bot that is not there', async () => {
 		const { agents } = openShelf();
 		expect(await agents.exportKit('00000000-0000-4000-8000-ffffffffffff')).toBeUndefined();
+	});
+});
+
+describe('exporting an Agent Card', () => {
+	it('carries the bot’s own name and every fitted brick, described', async () => {
+		const storage = createMemoryStorage();
+		const { agents } = openShelf(storage);
+		const bot = await agents.create('Passport Bot');
+		await storage.putAgent({
+			...bot,
+			spec: {
+				...bot.spec,
+				bricks: [
+					{
+						slot: 'memory',
+						kind: 'starter/memory',
+						configVersion: 1,
+						config: { windowSize: 10, notebook: false }
+					}
+				]
+			}
+		});
+
+		const json = await agents.exportAgentCard(bot.id);
+		if (json === undefined) throw new Error('nothing exported');
+		const card = JSON.parse(json) as AgentCard;
+
+		expect(card.name).toBe('Passport Bot');
+		expect(card.bricks).toEqual([
+			{
+				slot: 'memory',
+				kind: 'starter/memory',
+				name: 'Scrapbook Brick',
+				description: 'memory of your last 10 turns'
+			}
+		]);
+		expect(card.provenance.brickKinds).toEqual({ 'starter/memory': 'starter' });
+	});
+
+	/**
+	 * Unlike a kit file, an Agent Card carries no raw config at all — only
+	 * derived description strings — so there is nothing here for `redactSecrets`
+	 * to need to catch (`agent-card.ts`'s own reasoning).
+	 */
+	it('never carries a raw config value, personality strings included', async () => {
+		const storage = createMemoryStorage();
+		const { agents } = openShelf(storage);
+		const bot = await agents.create();
+		await storage.putAgent({
+			...bot,
+			spec: {
+				...bot.spec,
+				bricks: [
+					{
+						slot: 'brain',
+						kind: 'starter/llm',
+						configVersion: 1,
+						config: {
+							cartridgeId: 'openai/quick-thinker',
+							temperature: 0.5,
+							maxTokens: 200,
+							personality: 'sk-should-never-appear'
+						}
+					}
+				]
+			}
+		});
+
+		const json = await agents.exportAgentCard(bot.id);
+		expect(json).not.toContain('sk-should-never-appear');
+	});
+
+	it('returns nothing for a bot that is not there', async () => {
+		const { agents } = openShelf();
+		expect(await agents.exportAgentCard('00000000-0000-4000-8000-ffffffffffff')).toBeUndefined();
 	});
 });
 

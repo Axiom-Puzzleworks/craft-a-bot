@@ -1,5 +1,6 @@
 import {
 	brickKindsFor,
+	buildAgentCard,
 	buildKitFile,
 	importKitFile,
 	validateSpec,
@@ -56,6 +57,13 @@ export interface AgentsStore {
 	rename(id: string, name: string): Promise<AgentRecord | undefined>;
 	remove(id: string): Promise<void>;
 	exportKit(id: string): Promise<string | undefined>;
+	/**
+	 * The Agent Card (WP33 stage C, `14-…` §5.8) — a bot's own passport, as its
+	 * own file. Deliberately not a kit: `importKitFile` was never built to read
+	 * one back in, and offering it through the same "Import kit" control would
+	 * promise a round trip this file cannot make.
+	 */
+	exportAgentCard(id: string): Promise<string | undefined>;
 	importKit(
 		json: string
 	): Promise<{ ok: true; agent: AgentRecord } | { ok: false; problem: ImportProblem }>;
@@ -202,6 +210,13 @@ export function createAgentsStore(deps: AgentsStoreDeps = {}): AgentsStore {
 			});
 			// Pretty-printed on purpose: a kit file is teaching material, not a blob (07 §1.3).
 			return JSON.stringify(kit, null, '\t');
+		},
+
+		async exportAgentCard(id) {
+			const record = await (await storage()).getAgent(id);
+			if (!record) return undefined;
+			const card = buildAgentCard(record.spec, createRegistry());
+			return JSON.stringify(card, null, '\t');
 		},
 
 		async importKit(json) {
