@@ -572,12 +572,14 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 	async function performCall(decision: Extract<Decision, { kind: 'call' }>): Promise<{
 		summary: string;
 		result: string;
+		/** Whether the attempt succeeded (WP30 stage B) — see `TickMemory.ok`. */
+		ok: boolean;
 	}> {
 		const { call } = decision;
 		if (call.kind === 'tool') {
 			const tool = toolsByWireName.get(call.name);
 			/* istanbul ignore next -- decide() only labels a call a tool when it is in this map */
-			if (!tool) return { summary: call.name, result: 'That tool is not on your belt.' };
+			if (!tool) return { summary: call.name, result: 'That tool is not on your belt.', ok: false };
 
 			const started = Date.now();
 			const result = await tool.execute(call.arguments, {
@@ -593,7 +595,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 				...(result.data !== undefined ? { data: result.data } : {}),
 				durationMs: Math.max(0, Date.now() - started)
 			});
-			return { summary: `used the ${call.name} tool`, result: result.output };
+			return { summary: `used the ${call.name} tool`, result: result.output, ok: result.ok };
 		}
 
 		/*
@@ -619,7 +621,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 				result: { ok: false, narration, stateDiff: [] }
 			});
 			noteWorldFailure(narration);
-			return { summary: `tried to ${call.name}`, result: narration };
+			return { summary: `tried to ${call.name}`, result: narration, ok: false };
 		}
 
 		const actionResult: ActionResult = world.perform({
@@ -636,7 +638,11 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		} else {
 			noteWorldFailure(actionResult.narration);
 		}
-		return { summary: `tried to ${call.name}`, result: actionResult.narration };
+		return {
+			summary: `tried to ${call.name}`,
+			result: actionResult.narration,
+			ok: actionResult.ok
+		};
 	}
 
 	async function tick(): Promise<TickResult> {
@@ -699,7 +705,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		});
 
 		// 6. GUARD (pre-act) + 7. ACT
-		let acted: { summary: string; result: string } | undefined;
+		let acted: { summary: string; result: string; ok: boolean } | undefined;
 		/** Set when a guardrail or a person stopped the call before it ran. */
 		let refused: string | undefined;
 		if (decision.kind === 'call') {
@@ -744,7 +750,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			// The short form when the world offers one; see `Observation.summary`.
 			observation: observation.summary ?? observation.text,
 			thought,
-			...(acted ? { action: acted.summary, result: acted.result } : {}),
+			...(acted ? { action: acted.summary, result: acted.result, ok: acted.ok } : {}),
 			...(refused !== undefined ? { refused } : {}),
 			/*
 			 * The proposal itself, kept alongside its narration (E7). Recorded

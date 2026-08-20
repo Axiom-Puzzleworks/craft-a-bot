@@ -17,6 +17,7 @@ import {
 } from '@craftabot/governance';
 import { z } from 'zod';
 import { starterBricks } from './bricks.js';
+import { plannerStrings } from './strings.js';
 import { qualifyPlayroomId } from './world/playroom.js';
 
 /**
@@ -112,6 +113,129 @@ const radioBrickKind: BrickKindDefinition<RadioBrickConfig> = {
 			[qualifyPlayroomId('radio')]: { channel: config.channel, allowFrom: config.allowFrom }
 		})
 	})
+};
+
+const plannerConfigSchema = z.object({
+	maxSteps: z.number().int().min(1).max(10).default(5),
+	replanOn: z.enum(['failure', 'never']).default('failure')
+});
+
+type PlannerBrickConfig = z.infer<typeof plannerConfigSchema>;
+
+/** The two tool ids' *wire* names — what a call actually arrives named as (`14-…` §2.1: providers never see the pack prefix). */
+const MAKE_PLAN = 'make_plan';
+const CHECK_OFF_STEP = 'check_off_step';
+
+/** What `make_plan`'s own arguments look like once past its tool schema — re-validated here because `onTickEnd` gets the raw call, not the tool's already-parsed result (`tools/make-plan.ts`'s own note on why the two are separate). */
+const planArgsSchema = z.object({ steps: z.array(z.string()) });
+const checkOffArgsSchema = z.object({ index: z.number() });
+
+/**
+ * **The Planner brick** (WP30 stage B, `14-…` §5.1) — the second brick to
+ * join a socket the open contract didn't have a home for (`types/brick.ts`'s
+ * own `'planner'` amendment, WP30 stage A), and, like Radio, carries its own
+ * presentation directly (`bricks.ts`'s note on why) — pulled from
+ * `plannerStrings` rather than inlined, unlike Radio's own literals, because
+ * `strings.ts`'s header comment already claims to be "every user-facing
+ * string this pack produces" and this brick takes that literally.
+ *
+ * Needed no core change beyond stage A's socket and the small, additive
+ * `TickRecord.call`/`.ok` widening `onTickEnd` now reads — `contributeCalls`,
+ * `contributeContext` and `onTickEnd` were each already exactly the hook this
+ * brick needed, once a runtime could tell *what* was attempted and *whether*
+ * it worked (`24-…`-style finding, recorded properly in `18-…` §7 at close-out).
+ *
+ * `make_plan`/`check_off_step` are ordinary tools — `contributeCalls` offers
+ * them regardless of whether a Tool Belt is fitted at all, exactly as Radio's
+ * `radio_send` already does from a different slot — but their own `execute()`
+ * cannot update *this bot's* plan: tools are registered once, pack-wide,
+ * shared by every bot that has one fitted, with no way back to one bot's own
+ * brick-runtime closure. The plan itself is closure state instead, read and
+ * written entirely from `onTickEnd`, which already receives the full call
+ * (name, arguments) and outcome (ok) for every tick regardless of which tool
+ * or action it was — the same "ask the record, not the tool" shape that
+ * keeps this brick from needing anything new beyond the one widening above.
+ */
+const plannerBrickKind: BrickKindDefinition<PlannerBrickConfig> = {
+	id: 'starter/planner',
+	slot: 'planner',
+	name: plannerStrings.name,
+	description: plannerStrings.description,
+	realName: plannerStrings.realName,
+	realExplanation: plannerStrings.realExplanation,
+	configSchema: plannerConfigSchema,
+	configVersion: 1,
+	defaults: { maxSteps: 5, replanOn: 'failure' },
+	describeFitted: (config) => plannerStrings.describeFitted(config.maxSteps, config.replanOn),
+	createRuntime: (config) => {
+		/** In plan order — index 0 is "step 1" on the checklist a builder (and the model) reads. */
+		let plan: string[] = [];
+		/** 0-based indices into `plan` that have been checked off. */
+		const done = new Set<number>();
+		/** A one-shot note for the *next* tick's checklist — cleared the moment it is read, same as `run.feedback`'s own shape. */
+		let notice: string | undefined;
+
+		function renderChecklist(): string {
+			if (plan.length === 0) return plannerStrings.noPlanYet(config.maxSteps);
+			const lines = plan
+				.map((step, index) => plannerStrings.stepLine(done.has(index), index + 1, step))
+				.join('\n');
+			return plannerStrings.checklist(lines);
+		}
+
+		return {
+			contributeCalls: () => ({ toolIds: ['starter/make_plan', 'starter/check_off_step'] }),
+			contributeContext: () => {
+				const sections = [renderChecklist()];
+				if (notice !== undefined) {
+					sections.push(notice);
+					notice = undefined;
+				}
+				return { sections };
+			},
+			onTickEnd: (record) => {
+				if (record.call === undefined || record.refused !== undefined) {
+					// Nothing was attempted, or a guardrail stopped it before it ran —
+					// either way `ok` is never set alongside either case, so there is
+					// nothing here for a failed-action nudge to react to.
+					return;
+				}
+
+				if (record.call.name === MAKE_PLAN) {
+					const parsed = planArgsSchema.safeParse(record.call.arguments);
+					if (!parsed.success) return;
+					const steps = parsed.data.steps.map((step) => step.trim()).filter((step) => step !== '');
+					if (steps.length === 0) return;
+					if (steps.length > config.maxSteps) {
+						plan = steps.slice(0, config.maxSteps);
+						notice = plannerStrings.tooManySteps(config.maxSteps);
+					} else {
+						plan = steps;
+						notice = undefined;
+					}
+					done.clear();
+					return;
+				}
+
+				if (record.call.name === CHECK_OFF_STEP) {
+					const parsed = checkOffArgsSchema.safeParse(record.call.arguments);
+					if (!parsed.success) return;
+					const index = parsed.data.index - 1;
+					if (index < 0 || index >= plan.length) {
+						notice = plannerStrings.invalidCheckOff;
+						return;
+					}
+					done.add(index);
+					return;
+				}
+
+				// Some other tool or action — the replan nudge still applies to it.
+				if (config.replanOn === 'failure' && record.ok === false) {
+					notice = plannerStrings.replanNudge;
+				}
+			}
+		};
+	}
 };
 
 export const starterBrickKinds: BrickKindDefinition[] = [
@@ -353,5 +477,6 @@ export const starterBrickKinds: BrickKindDefinition[] = [
 			}
 		})
 	} as BrickKindDefinition,
-	radioBrickKind as BrickKindDefinition
+	radioBrickKind as BrickKindDefinition,
+	plannerBrickKind as BrickKindDefinition
 ];

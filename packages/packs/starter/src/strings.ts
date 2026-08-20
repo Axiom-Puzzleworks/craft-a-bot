@@ -113,7 +113,41 @@ export const toolStrings = {
 		query: 'What you want to look up, e.g. "the toy chest".',
 		badArgs: 'You need to say what to look up.',
 		nothingFound: (query: string) => `The encyclopedia has nothing to say about "${query}".`
+	},
+	makePlan: {
+		name: 'Make a plan',
+		description: 'Lay out your plan as a numbered list of short steps, before you start.',
+		steps: 'Your plan, as a list of short steps, in order.',
+		badArgs: 'A plan needs at least one step, each a few words.',
+		noted: 'Plan noted.'
+	},
+	checkOffStep: {
+		name: 'Check off a step',
+		description: 'Mark one step of your plan as done.',
+		index: 'Which step to check off — 1 is the first step on your plan.',
+		badArgs: 'You need to say which step number to check off.',
+		noted: (index: number) => `Noted: step ${index}.`
 	}
+} as const;
+
+/** The Planner brick's own copy (WP30 stage B) — inline, like every brick that joined after the open contract (`bricks.ts`'s own note on why). */
+export const plannerStrings = {
+	name: 'Planner Brick',
+	description: 'Turns your goal into a checklist you tick off as you go.',
+	realName: 'Plan-then-execute',
+	realExplanation:
+		'Before acting, the model is asked to lay out its own plan as a numbered list, then follow it — ticking items off, and revising the list if a step does not work out. The plan is not scripted or hidden: it is text the model wrote itself, offered as two ordinary tool calls and visible in the trace like everything else.',
+	describeFitted: (maxSteps: number, replanOn: 'failure' | 'never') =>
+		`plans up to ${maxSteps} step${maxSteps === 1 ? '' : 's'} ahead${replanOn === 'failure' ? ', replanning after a setback' : ''}`,
+	noPlanYet: (maxSteps: number) =>
+		`You have not made a plan yet. Call make_plan with up to ${maxSteps} steps before you start.`,
+	checklist: (lines: string) => `Your plan:\n${lines}`,
+	stepLine: (done: boolean, index: number, step: string) =>
+		`${done ? '[x]' : '[ ]'} ${index}. ${step}`,
+	tooManySteps: (kept: number) =>
+		`Your plan had more steps than you are allowed — only the first ${kept} were kept.`,
+	invalidCheckOff: 'That step number is not on your plan, so nothing changed.',
+	replanNudge: 'Your last step did not work. Call make_plan again if you want to change your plan.'
 } as const;
 
 export const senseStrings = {

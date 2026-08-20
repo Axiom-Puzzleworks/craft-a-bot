@@ -9,10 +9,13 @@ import type { BrickDefinition } from '@craftabot/core';
  * These are pure data. They arrive in WP5 rather than WP2 because nothing could
  * render them until the bench existed.
  *
- * A brick that joins *after* the open contract (`14-…` §2) — the Radio brick,
- * WP31 stage F, or `pack-monitor`'s Watchbot before it — skips this file
- * entirely and carries its own `name`/`description`/`realName`/
- * `realExplanation` straight on its `BrickKindDefinition` in `brick-kinds.ts`:
+ * A brick that joins *after* the open contract (`14-…` §2) — the Radio brick
+ * (WP31 stage F), the Planner brick (WP30 stage B), or `pack-monitor`'s
+ * Watchbot before either — skips this file entirely and carries its own
+ * `name`/`description`/`realName`/`realExplanation` straight on its
+ * `BrickKindDefinition` in `brick-kinds.ts` (the Planner brick's own copy
+ * lives in `plannerStrings`, `strings.ts`, rather than inlined the way
+ * Radio's is — a small, deliberate difference, not a second convention):
  * `facesOf()` below is a bridge back to presentation data that predates the
  * contract, not a step every brick has to take.
  */

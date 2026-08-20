@@ -55,6 +55,16 @@ export interface TickMemory {
 	 * leave the refusal in `refused` answering nothing.
 	 */
 	call?: { kind: 'tool' | 'action'; name: string; arguments: unknown };
+	/**
+	 * Whether the attempt succeeded (WP30 stage B) — a tool's own
+	 * `ToolResult.ok`, or an action's `ActionResult.ok`. `action`/`result`
+	 * above are narration, not a verdict: "tried to move" and "you bumped into
+	 * the wall" read the same whichever way it went, and nothing before this
+	 * could tell success from failure without re-parsing prose. Undefined when
+	 * nothing was called, or when `refused` is set instead — the two are
+	 * mutually exclusive by construction.
+	 */
+	ok?: boolean;
 }
 
 /**

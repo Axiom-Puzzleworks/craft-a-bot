@@ -315,7 +315,10 @@ describe('importing a kit', () => {
 			requires: {
 				core: '>=0.0.1',
 				packs: { starter: '0.0.1' },
-				brickKinds: { 'starter/planner': 'starter' }
+				// Genuinely fictional — `starter/planner` used to serve this role
+				// until WP30 stage B shipped it for real, which is exactly the
+				// staleness this comment now guards the next such swap against.
+				brickKinds: { 'starter/gizmo': 'starter' }
 			},
 			agent: migrated
 		};
@@ -324,7 +327,7 @@ describe('importing a kit', () => {
 		expect(result.ok).toBe(false);
 		if (result.ok) return;
 		expect(result.problem.kind).toBe('missing-bricks');
-		expect(result.problem.message).toContain('starter/planner');
+		expect(result.problem.message).toContain('starter/gizmo');
 	});
 
 	it('says so plainly when the file is not JSON at all', async () => {

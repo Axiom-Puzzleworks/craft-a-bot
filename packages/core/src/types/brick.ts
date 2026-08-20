@@ -122,6 +122,22 @@ export interface TickRecord {
 	action?: string;
 	result?: string;
 	refused?: string;
+	/**
+	 * What the model tried to call, whether or not it ran (WP30 stage B) — the
+	 * same info `session/memory.ts`'s internal `TickMemory` has always kept,
+	 * finally exposed to a brick's own `onTickEnd`. A brick that wants to know
+	 * *which* tool or action was attempted, not just the narrated outcome, had
+	 * no way to ask until now — the Planner brick is the first that needs to.
+	 */
+	call?: { kind: 'tool' | 'action'; name: string; arguments: unknown };
+	/**
+	 * Whether the attempt succeeded — a tool's own `ToolResult.ok`, or an
+	 * action's `ActionResult.ok`. Undefined when nothing was called, or when a
+	 * guardrail or a person refused it before it ever ran (`refused` is set
+	 * instead) — "never attempted" and "attempted and failed" are different
+	 * facts, and only one of this pair is ever true at once.
+	 */
+	ok?: boolean;
 }
 
 /**

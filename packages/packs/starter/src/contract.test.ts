@@ -110,7 +110,9 @@ const fixture: PackConformanceFixture = {
 			'starter/dice': { sides: 6, rolls: 2 },
 			'starter/notebook_write': { note: 'a note worth remembering' },
 			'starter/notebook_read': {},
-			'starter/look_up_manual': { query: 'chest' }
+			'starter/look_up_manual': { query: 'chest' },
+			'starter/make_plan': { steps: ['Find the key', 'Open the chest'] },
+			'starter/check_off_step': { index: 1 }
 		}
 	},
 	guardrails: {

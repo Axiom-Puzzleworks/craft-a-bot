@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { createSession } from './agent-session.js';
 import { createPackRegistry, type PackRegistry } from '../pack-registry.js';
 import { createMockProvider, createTestClock, turn, v1BrickKinds } from '../testing/index.js';
+import { migrateAgentSpec } from '../schemas/agent-spec-v2.js';
 import type { AgentSpec } from '../schemas/agent-spec.js';
 import type { EngineEvent } from '../schemas/events.js';
 import type { BrickKindDefinition } from '../types/brick.js';
@@ -665,6 +666,161 @@ describe('learning from a failed action', () => {
 		// bare "Right now:" section, with the ping count moved on by one.
 		expect(prompts[0]).toBe('Right now:\npings: 0');
 		expect(prompts[1]).toBe('Right now:\npings: 1');
+	});
+});
+
+/**
+ * **WP30 stage B**: `TickRecord.call`/`.ok`, the door a brick's own
+ * `onTickEnd` needs to tell *what was attempted* and *whether it worked*
+ * apart from narration text — neither existed until the Planner brick needed
+ * to know both. Proven against a real session rather than only against
+ * `TickMemory`'s own type, because what actually matters is that `tick()`
+ * populates both fields correctly for every shape of outcome, not merely
+ * that the type permits them.
+ */
+describe('what onTickEnd learns about the call (WP30 stage B)', () => {
+	function specWithWatcher(records: unknown[], overrides: Partial<AgentSpec['bricks']> = {}) {
+		const migrated = migrateAgentSpec(buildSpec(overrides));
+		if ('kind' in migrated) throw new Error(migrated.message);
+		migrated.bricks.push({
+			slot: 'memory',
+			kind: 'test/watcher',
+			configVersion: 1,
+			config: {}
+		});
+		return migrated;
+	}
+
+	function registryWithWatcher(records: unknown[]): PackRegistry {
+		const registry = buildRegistry();
+		registry.registerPack({
+			id: 'watcher-pack',
+			name: 'Watcher pack',
+			version: '1.0.0',
+			requiresCore: '>=0.0.1',
+			brickKinds: [
+				{
+					id: 'test/watcher',
+					slot: 'memory',
+					name: 'Watcher',
+					description: 'test/watcher',
+					realName: 'test/watcher',
+					realExplanation: 'test/watcher',
+					configSchema: z.object({}),
+					configVersion: 1,
+					defaults: {},
+					createRuntime: () => ({
+						onTickEnd: (record) => records.push(record)
+					})
+				} as BrickKindDefinition
+			]
+		});
+		return registry;
+	}
+
+	it('records a successful action, ok true, refused undefined', async () => {
+		const records: unknown[] = [];
+		const session = createSession({
+			spec: specWithWatcher(records, { actions: { enabled: ['ping', 'win', 'flop'] } }),
+			registry: registryWithWatcher(records),
+			provider: createMockProvider({ script: [turn('Ping.', 'ping')] }),
+			guardrails: [],
+			options: { now: () => '2026-08-20T00:00:00Z', newId: () => 'id', random: () => 0 }
+		});
+		await session.step();
+
+		expect(records).toEqual([
+			expect.objectContaining({
+				call: { kind: 'action', name: 'ping', arguments: {} },
+				ok: true
+			})
+		]);
+	});
+
+	it('records a failed action, ok false, still no refusal — it ran, it just did not work', async () => {
+		const records: unknown[] = [];
+		const session = createSession({
+			spec: specWithWatcher(records, { actions: { enabled: ['ping', 'win', 'flop'] } }),
+			registry: registryWithWatcher(records),
+			provider: createMockProvider({ script: [turn('Flop.', 'flop')] }),
+			guardrails: [],
+			options: { now: () => '2026-08-20T00:00:00Z', newId: () => 'id', random: () => 0 }
+		});
+		await session.step();
+
+		expect(records).toEqual([
+			expect.objectContaining({
+				call: { kind: 'action', name: 'flop', arguments: {} },
+				ok: false
+			})
+		]);
+		expect((records[0] as { refused?: string }).refused).toBeUndefined();
+	});
+
+	it('records a successful tool call, ok true', async () => {
+		const records: unknown[] = [];
+		const session = createSession({
+			spec: specWithWatcher(records, { tools: { enabled: ['tiny/echo'] } }),
+			registry: registryWithWatcher(records),
+			provider: createMockProvider({ script: [turn('Echo.', 'echo', { word: 'hi' })] }),
+			guardrails: [],
+			options: { now: () => '2026-08-20T00:00:00Z', newId: () => 'id', random: () => 0 }
+		});
+		await session.step();
+
+		expect(records).toEqual([
+			expect.objectContaining({
+				call: { kind: 'tool', name: 'echo', arguments: { word: 'hi' } },
+				ok: true
+			})
+		]);
+	});
+
+	/**
+	 * "Not built with this" is still a real, world-facing attempt in this
+	 * engine's own model — `action.performed` fires with `ok: false`, the same
+	 * as any other failed action — not a `refused` (that word is reserved for
+	 * a guardrail or a person stopping the call *before* it reaches the world).
+	 */
+	it('records ok false, not refused, for an action the bot was never built with', async () => {
+		const records: unknown[] = [];
+		const session = createSession({
+			// `flop` is a real world action, but not fitted.
+			spec: specWithWatcher(records, { actions: { enabled: ['ping', 'win'] } }),
+			registry: registryWithWatcher(records),
+			provider: createMockProvider({ script: [turn('Flop.', 'flop')] }),
+			guardrails: [],
+			options: { now: () => '2026-08-20T00:00:00Z', newId: () => 'id', random: () => 0 }
+		});
+		await session.step();
+
+		expect((records[0] as { ok?: boolean }).ok).toBe(false);
+		expect((records[0] as { refused?: string }).refused).toBeUndefined();
+	});
+
+	it('leaves ok undefined for a call a guardrail refused — never attempted, not a failure', async () => {
+		const records: unknown[] = [];
+		const blockPing: Guardrail = {
+			id: 'test/no-ping',
+			name: 'No Ping',
+			description: 'Blocks pinging, but lets the run go on.',
+			hooks: ['pre-act'],
+			check: (ctx) =>
+				ctx.proposed?.name === 'ping'
+					? { allow: false, reason: 'pinging is banned', disposition: 'block-action' }
+					: { allow: true }
+		};
+		const session = createSession({
+			spec: specWithWatcher(records, { actions: { enabled: ['ping', 'win'] } }),
+			registry: registryWithWatcher(records),
+			provider: createMockProvider({ script: [turn('Ping.', 'ping')] }),
+			guardrails: [blockPing],
+			options: { now: () => '2026-08-20T00:00:00Z', newId: () => 'id', random: () => 0 }
+		});
+		await session.step();
+
+		expect((records[0] as { ok?: boolean }).ok).toBeUndefined();
+		expect((records[0] as { refused?: string }).refused).toBeDefined();
 	});
 });
 

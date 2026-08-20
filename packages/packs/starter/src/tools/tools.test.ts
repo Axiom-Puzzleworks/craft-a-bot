@@ -2,9 +2,11 @@ import type { ToolContext } from '@craftabot/core';
 import { describe, expect, it } from 'vitest';
 import {
 	calculator,
+	checkOffStep,
 	dice,
 	evaluate,
 	lookUpManual,
+	makePlan,
 	notebookRead,
 	notebookWrite,
 	starterTools
@@ -21,13 +23,15 @@ function context(overrides: Partial<ToolContext> = {}): ToolContext {
 }
 
 describe('the starter tool set', () => {
-	it('ships the five V1 tools with namespaced ids and JSON schemas', () => {
+	it('ships the five V1 tools plus the Planner brick’s own two (WP30 stage B), all namespaced with JSON schemas', () => {
 		expect(starterTools.map((tool) => tool.id)).toEqual([
 			'starter/calculator',
 			'starter/dice',
 			'starter/notebook_read',
 			'starter/notebook_write',
-			'starter/look_up_manual'
+			'starter/look_up_manual',
+			'starter/make_plan',
+			'starter/check_off_step'
 		]);
 		for (const tool of starterTools) {
 			expect(tool.parameters, tool.id).toMatchObject({ type: 'object' });
@@ -160,5 +164,37 @@ describe('look_up_manual', () => {
 
 	it('rejects an empty query', async () => {
 		expect((await lookUpManual.execute({}, context())).ok).toBe(false);
+	});
+});
+
+describe('make_plan', () => {
+	it("confirms a plan, generically — the real accounting is the Planner brick's own job", async () => {
+		const result = await makePlan.execute({ steps: ['Find the key', 'Open the chest'] }, context());
+		expect(result.ok).toBe(true);
+		expect(result.data).toMatchObject({ steps: ['Find the key', 'Open the chest'] });
+	});
+
+	it('rejects a plan with no steps', async () => {
+		expect((await makePlan.execute({ steps: [] }, context())).ok).toBe(false);
+	});
+
+	it('rejects a missing steps argument', async () => {
+		expect((await makePlan.execute({}, context())).ok).toBe(false);
+	});
+});
+
+describe('check_off_step', () => {
+	it("confirms a step number, generically — whether it is really on the plan is the brick's own call", async () => {
+		const result = await checkOffStep.execute({ index: 2 }, context());
+		expect(result.ok).toBe(true);
+		expect(result.data).toMatchObject({ index: 2 });
+	});
+
+	it('rejects a step number below 1', async () => {
+		expect((await checkOffStep.execute({ index: 0 }, context())).ok).toBe(false);
+	});
+
+	it('rejects a missing index', async () => {
+		expect((await checkOffStep.execute({}, context())).ok).toBe(false);
 	});
 });
