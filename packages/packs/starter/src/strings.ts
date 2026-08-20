@@ -127,6 +127,15 @@ export const toolStrings = {
 		index: 'Which step to check off — 1 is the first step on your plan.',
 		badArgs: 'You need to say which step number to check off.',
 		noted: (index: number) => `Noted: step ${index}.`
+	},
+	/** One tool per book (WP32 stage A), so the copy takes the book's own title rather than repeating it per id. */
+	library: {
+		name: (title: string) => `Ask the ${title} book`,
+		description: (title: string) => `Look something up in the ${title} book on your shelf.`,
+		query: 'What you want to look up.',
+		badArgs: 'You need to say what to look up.',
+		nothingFound: (title: string, query: string) =>
+			`The ${title} book has nothing to say about "${query}".`
 	}
 } as const;
 
@@ -163,6 +172,21 @@ export const ifThenStrings = {
 	ruleFired: (ifSees: string) => `A rule fired: saw "${ifSees}", so did it right away.`,
 	unknownTarget: (name: string, kind: 'tool' | 'action') =>
 		`A rule's "then" names "${name}", which isn't an installed ${kind}.`
+} as const;
+
+export const librarianStrings = {
+	name: 'Librarian Brick',
+	description: 'Remembers your last few turns, and can look things up in the books it carries.',
+	realName: 'Scoped retrieval',
+	realExplanation:
+		'A memory brick with a bookshelf attached: it keeps the same turn-by-turn memory the Scrapbook brick does, plus one lookup tool per book it is carrying. A bot only ever sees the books it was given — asking about a book nobody put on the shelf gets nothing, the same way a real retrieval system is only ever as open as the documents it was granted.',
+	describeFitted: (windowSize: number, notebook: boolean, bookTitles: string[]) => {
+		const memory = `memory of your last ${windowSize} turns${notebook ? ', and a notebook' : ''}`;
+		return bookTitles.length === 0
+			? `${memory}, no books on the shelf yet`
+			: `${memory}, and the ${bookTitles.join(', ')} book${bookTitles.length === 1 ? '' : 's'}`;
+	},
+	unknownBook: (bookId: string) => `"${bookId}" is not a book this bot's library carries.`
 } as const;
 
 export const senseStrings = {

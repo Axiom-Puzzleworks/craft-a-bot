@@ -23,7 +23,7 @@ function context(overrides: Partial<ToolContext> = {}): ToolContext {
 }
 
 describe('the starter tool set', () => {
-	it('ships the five V1 tools plus the Planner brick’s own two (WP30 stage B), all namespaced with JSON schemas', () => {
+	it('ships the five V1 tools plus the Planner brick’s own two (WP30 stage B) and the Librarian’s own per-book two (WP32 stage A), all namespaced with JSON schemas', () => {
 		expect(starterTools.map((tool) => tool.id)).toEqual([
 			'starter/calculator',
 			'starter/dice',
@@ -31,7 +31,9 @@ describe('the starter tool set', () => {
 			'starter/notebook_write',
 			'starter/look_up_manual',
 			'starter/make_plan',
-			'starter/check_off_step'
+			'starter/check_off_step',
+			'starter/library_games',
+			'starter/library_history'
 		]);
 		for (const tool of starterTools) {
 			expect(tool.parameters, tool.id).toMatchObject({ type: 'object' });

@@ -39,7 +39,9 @@ export const buildProblemCodeSchema = z.enum([
 	/** A policy card id (`14-…` §4.6, WP22) no installed pack registered. */
 	'unknown-policy-card',
 	/** An If/Then rule's `then` names a tool or action nothing has installed. */
-	'unknown-if-then-target'
+	'unknown-if-then-target',
+	/** A Librarian brick's `books` names a book its own catalogue does not carry. */
+	'unknown-book'
 ]);
 export type BuildProblemCode = z.infer<typeof buildProblemCodeSchema>;
 

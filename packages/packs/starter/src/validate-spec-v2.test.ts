@@ -199,6 +199,45 @@ describe('validating a v2 spec against registered kinds', () => {
 		expect(validateSpec(built, buildRegistry())).toEqual([]);
 	});
 
+	/** The Librarian brick's own version of the same fourth question (WP32 stage A). */
+	it('reports a book its own catalogue does not carry', () => {
+		const built = spec();
+		// `spec()` already carries a `starter/memory` brick by default — the
+		// Librarian is `memory`'s other registered kind (a builder's choice
+		// of one, `brick-kinds.test.ts`'s own note on why), so it replaces
+		// that entry rather than joining it.
+		built.bricks = built.bricks.filter((brick) => brick.slot !== 'memory');
+		built.bricks.push({
+			slot: 'memory',
+			kind: 'starter/librarian',
+			configVersion: 1,
+			config: { windowSize: 10, notebook: false, books: ['nobody-has-this-book'] }
+		});
+
+		const problems = validateSpec(built, buildRegistry());
+		expect(problems).toContainEqual(
+			expect.objectContaining({
+				code: 'unknown-book',
+				severity: 'warning',
+				slot: 'memory',
+				details: { bookId: 'nobody-has-this-book' }
+			})
+		);
+	});
+
+	it('is content with a book the bot really has on its shelf', () => {
+		const built = spec();
+		built.bricks = built.bricks.filter((brick) => brick.slot !== 'memory');
+		built.bricks.push({
+			slot: 'memory',
+			kind: 'starter/librarian',
+			configVersion: 1,
+			config: { windowSize: 10, notebook: false, books: ['games'] }
+		});
+
+		expect(validateSpec(built, buildRegistry())).toEqual([]);
+	});
+
 	it('reports every brick that is wrong, not merely the first', () => {
 		const built = spec();
 		built.bricks.push({ slot: 'brain', kind: 'nobody/nothing', configVersion: 1, config: {} });

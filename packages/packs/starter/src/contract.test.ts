@@ -112,7 +112,9 @@ const fixture: PackConformanceFixture = {
 			'starter/notebook_read': {},
 			'starter/look_up_manual': { query: 'chest' },
 			'starter/make_plan': { steps: ['Find the key', 'Open the chest'] },
-			'starter/check_off_step': { index: 1 }
+			'starter/check_off_step': { index: 1 },
+			'starter/library_games': { query: 'hide and seek' },
+			'starter/library_history': { query: 'the toy chest' }
 		}
 	},
 	guardrails: {

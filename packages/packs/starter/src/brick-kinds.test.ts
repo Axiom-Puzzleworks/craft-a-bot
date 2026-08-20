@@ -25,7 +25,7 @@ describe('the starter brick kinds', () => {
 		expect(registry.getBrickKind('nobody/planner')).toBeUndefined();
 	});
 
-	it('fills every chassis socket — one kind each, except equipment (WP31 stage F: Radio joins Tools)', () => {
+	it('fills every chassis socket — one kind each, except equipment and memory (WP31 stage F, WP32 stage A)', () => {
 		const bySlot = new Map<SlotId, number>();
 		for (const kind of starterBrickKinds) {
 			bySlot.set(kind.slot, (bySlot.get(kind.slot) ?? 0) + 1);
@@ -34,16 +34,24 @@ describe('the starter brick kinds', () => {
 		/*
 		 * V1's one-brick-per-socket rule (`14-…` §2.3) applies to a socket
 		 * regardless of which kind is in it — the contract permits more than
-		 * one kind *registered* for a slot family (equipment: Radio + Tools),
-		 * which is a builder's choice of one or the other, never both fitted
-		 * at once. If/Then (`14-…` §5.2) first tried to share `mobility` with
-		 * Actions on exactly that mistaken reading and a failing build check
-		 * caught it — it needs its own `'reflexes'` socket instead, since a
-		 * bot needs Actions *and* If/Then at the same time, not a choice
-		 * between them (`types/brick.ts`'s own dated amendment on `SLOT_IDS`).
+		 * one kind *registered* for a slot family (equipment: Radio + Tools;
+		 * memory: Librarian + Scrapbook), which is a builder's choice of one
+		 * or the other, never both fitted at once. If/Then (`14-…` §5.2)
+		 * first tried to share `mobility` with Actions on exactly that
+		 * mistaken reading and a failing build check caught it — it needs its
+		 * own `'reflexes'` socket instead, since a bot needs Actions *and*
+		 * If/Then at the same time, not a choice between them (`types/brick.ts`'s
+		 * own dated amendment on `SLOT_IDS`). Librarian (`14-…` §5.5) is the
+		 * opposite case: it genuinely *is* a choice — a Librarian-fitted bot
+		 * gets the same turn-window memory the Scrapbook gives, plus a
+		 * bookshelf, so there is nothing left for a second, separate memory
+		 * brick to add.
 		 */
 		expect(bySlot.get('equipment')).toBe(2);
-		const otherSlots = [...bySlot.entries()].filter(([slot]) => slot !== 'equipment');
+		expect(bySlot.get('memory')).toBe(2);
+		const otherSlots = [...bySlot.entries()].filter(
+			([slot]) => slot !== 'equipment' && slot !== 'memory'
+		);
 		expect(otherSlots.every(([, count]) => count === 1)).toBe(true);
 	});
 
@@ -59,9 +67,15 @@ describe('the starter brick kinds', () => {
 				.map((kind) => kind.id)
 				.sort()
 		).toEqual(['starter/radio', 'starter/tools']);
+		expect(
+			registry
+				.listBrickKinds('memory')
+				.map((kind) => kind.id)
+				.sort()
+		).toEqual(['starter/librarian', 'starter/memory']);
 		expect(registry.listBrickKinds('mobility').map((kind) => kind.id)).toEqual(['starter/actions']);
 		expect(registry.listBrickKinds('reflexes').map((kind) => kind.id)).toEqual(['starter/if-then']);
-		expect(registry.listBrickKinds()).toHaveLength(9);
+		expect(registry.listBrickKinds()).toHaveLength(10);
 	});
 
 	it('gives every kind a toy face and a real face', () => {

@@ -17,7 +17,8 @@ import {
 } from '@craftabot/governance';
 import { z } from 'zod';
 import { starterBricks } from './bricks.js';
-import { ifThenStrings, plannerStrings } from './strings.js';
+import { ifThenStrings, librarianStrings, plannerStrings } from './strings.js';
+import { BOOKS, type BookId } from './world/bookshelf.js';
 import { qualifyPlayroomId } from './world/playroom.js';
 
 /**
@@ -372,6 +373,89 @@ function findFiringRule(rules: IfThenRule[], observedText: string): IfThenRule |
 	return rules.find((rule) => observedText.includes(rule.ifSees.toLowerCase()));
 }
 
+const BOOK_IDS = BOOKS.map((book) => book.id);
+
+const librarianConfigSchema = z.object({
+	// The same three fields `memoryBrickSchema` requires, so a Librarian-fitted
+	// bot keeps the turn-window memory the loop reads through the `memory`
+	// slot contract (`slot-contracts.ts`) — core reads `windowSize`/`notebook`
+	// off whatever is fitted there, not off `starter/memory` by name, and a
+	// config shaped differently would be fitted, validated, and then ignored.
+	windowSize: z.union([z.literal(3), z.literal(10), z.literal(30)]).default(10),
+	notebook: z.boolean().default(false),
+	/**
+	 * Deliberately `string[]`, not a closed enum of `BOOK_IDS`: a book nobody's
+	 * shelf carries is a *content* mistake, the same shape as an If/Then rule
+	 * naming a tool nothing installed — a `validateConfig` warning, not a
+	 * schema failure that blocks GO. An enum here would upgrade a typo'd book
+	 * id to `bad-brick-config` (blocking) and make `validateConfig`'s own
+	 * `unknown-book` check unreachable dead code.
+	 */
+	books: z.array(z.string()).default([])
+});
+type LibrarianBrickConfig = z.infer<typeof librarianConfigSchema>;
+
+/**
+ * **The Librarian brick** (WP32 stage A, `14-…` §5.5) — the `memory` slot's
+ * second registered kind, the same "a builder picks one" shape `equipment`
+ * already has (Radio + Tools; If/Then's own sizing found the hard way that
+ * this never means "both fitted at once," `types/brick.ts`'s dated
+ * amendment on `SLOT_IDS`). Unlike `mobility`/`equipment`, `memory` carries
+ * a core-owned slot contract (`memorySlotSchema`), so this brick's config is
+ * a superset of the Scrapbook's own — `windowSize`/`notebook` plus `books` —
+ * rather than a smaller, retrieval-only replacement: fitting it should never
+ * be the thing that silently empties a bot's turn-window memory.
+ *
+ * `books` selects a subset of a small, fixed catalogue (`world/bookshelf.ts`)
+ * the same way the Tools brick's own `enabled` selects a subset of its
+ * catalogue — and the scoping happens at exactly that layer, not inside a
+ * tool's own `execute()`. A tool is registered once, pack-wide, shared by
+ * every bot that has one fitted (`ToolContext` carries only
+ * `tick`/`notebook`/`random`, nothing brick-specific — the same reason the
+ * Planner's own tools keep their state in this brick's closure rather than
+ * in `execute()`). One tool per book, only ever offered through
+ * `contributeCalls` when its book is on the shelf, means a book nobody
+ * configured was never a tool a model could even see, not a request an
+ * argument check had to catch after the fact.
+ */
+const librarianBrickKind: BrickKindDefinition<LibrarianBrickConfig> = {
+	id: 'starter/librarian',
+	slot: 'memory',
+	name: librarianStrings.name,
+	description: librarianStrings.description,
+	realName: librarianStrings.realName,
+	realExplanation: librarianStrings.realExplanation,
+	configSchema: librarianConfigSchema,
+	configVersion: 1,
+	defaults: { windowSize: 10, notebook: false, books: [] },
+	describeFitted: (config) => {
+		const titles = config.books.map(
+			(bookId) => BOOKS.find((book) => book.id === bookId)?.title ?? bookId
+		);
+		return librarianStrings.describeFitted(config.windowSize, config.notebook, titles);
+	},
+	validateConfig: (config) =>
+		config.books
+			.filter((bookId) => !(BOOK_IDS as string[]).includes(bookId))
+			.map((bookId) => ({
+				code: 'unknown-book' as const,
+				severity: 'warning' as const,
+				message: librarianStrings.unknownBook(bookId),
+				details: { bookId }
+			})),
+	createRuntime: (config) => ({
+		// Only ever offers a tool for a book the catalogue actually has — an
+		// unknown book id is `validateConfig`'s own warning above, not a bogus
+		// tool id for core's generic `contributeCalls` check to catch as a
+		// second, more confusing `unknown-tool` problem.
+		contributeCalls: () => ({
+			toolIds: config.books
+				.filter((bookId): bookId is BookId => (BOOK_IDS as string[]).includes(bookId))
+				.map((bookId) => `starter/library_${bookId}`)
+		})
+	})
+};
+
 export const starterBrickKinds: BrickKindDefinition[] = [
 	{
 		id: 'starter/llm',
@@ -613,5 +697,6 @@ export const starterBrickKinds: BrickKindDefinition[] = [
 	} as BrickKindDefinition,
 	radioBrickKind as BrickKindDefinition,
 	plannerBrickKind as BrickKindDefinition,
-	ifThenBrickKind as BrickKindDefinition
+	ifThenBrickKind as BrickKindDefinition,
+	librarianBrickKind as BrickKindDefinition
 ];
