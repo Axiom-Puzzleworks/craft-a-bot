@@ -283,6 +283,9 @@ export function describeFittedBricks(spec: AnyAgentSpec, registry: PackRegistry)
  * `'planner'` (WP30 stage A) is appended right after `brain` — brain-adjacent,
  * per `14-…` §5.1 — an insertion, not a reorder, so a bot built before this
  * stage describes itself exactly as it always has.
+ *
+ * `'reflexes'` (If/Then sizing, stage B) is appended right after `mobility` —
+ * mobility-adjacent, per `14-…` §5.2 — the same insertion-not-reorder reasoning.
  */
 const BRICK_ORDER = [
 	'brain',
@@ -291,5 +294,6 @@ const BRICK_ORDER = [
 	'equipment',
 	'perception',
 	'mobility',
+	'reflexes',
 	'safety'
 ] as const;

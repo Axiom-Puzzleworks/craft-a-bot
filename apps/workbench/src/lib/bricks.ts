@@ -33,6 +33,7 @@ export const SLOT_ORDER: SlotId[] = [
 	'equipment',
 	'perception',
 	'mobility',
+	'reflexes',
 	'safety'
 ];
 
@@ -61,6 +62,8 @@ export const SOCKET_LABELS: Record<SlotId, string> = {
 	equipment: 'belt',
 	perception: 'visor',
 	mobility: 'wheels',
+	/** If/Then sizing, stage B — "knee-jerk", the toy's own name for a reflex. */
+	reflexes: 'knee',
 	safety: 'chest'
 };
 
@@ -72,7 +75,8 @@ export const SOCKET_PLACEMENT: Record<SlotId, string> = {
 	memory: 'backpack',
 	equipment: 'belt',
 	safety: 'chest',
-	mobility: 'wheels'
+	mobility: 'wheels',
+	reflexes: 'knee'
 };
 
 /** Everything `SLOT_ORDER` names is a real socket, and it names all of them. */

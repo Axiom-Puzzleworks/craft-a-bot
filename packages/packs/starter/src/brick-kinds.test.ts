@@ -25,15 +25,23 @@ describe('the starter brick kinds', () => {
 		expect(registry.getBrickKind('nobody/planner')).toBeUndefined();
 	});
 
-	it('fills every chassis socket — one kind each, except equipment (WP31 stage F: Radio joins Tools) — planner included, now that WP30 stage B has fitted it', () => {
+	it('fills every chassis socket — one kind each, except equipment (WP31 stage F: Radio joins Tools)', () => {
 		const bySlot = new Map<SlotId, number>();
 		for (const kind of starterBrickKinds) {
 			bySlot.set(kind.slot, (bySlot.get(kind.slot) ?? 0) + 1);
 		}
 		expect([...bySlot.keys()].sort()).toEqual([...SLOT_IDS].sort());
-		// V1's teaching-aid rule was one brick per slot; the contract permits
-		// more, which is exactly what lets a second equipment kind (Radio) join
-		// the first (Tools) rather than needing a second socket to exist for it.
+		/*
+		 * V1's one-brick-per-socket rule (`14-…` §2.3) applies to a socket
+		 * regardless of which kind is in it — the contract permits more than
+		 * one kind *registered* for a slot family (equipment: Radio + Tools),
+		 * which is a builder's choice of one or the other, never both fitted
+		 * at once. If/Then (`14-…` §5.2) first tried to share `mobility` with
+		 * Actions on exactly that mistaken reading and a failing build check
+		 * caught it — it needs its own `'reflexes'` socket instead, since a
+		 * bot needs Actions *and* If/Then at the same time, not a choice
+		 * between them (`types/brick.ts`'s own dated amendment on `SLOT_IDS`).
+		 */
 		expect(bySlot.get('equipment')).toBe(2);
 		const otherSlots = [...bySlot.entries()].filter(([slot]) => slot !== 'equipment');
 		expect(otherSlots.every(([, count]) => count === 1)).toBe(true);
@@ -51,7 +59,9 @@ describe('the starter brick kinds', () => {
 				.map((kind) => kind.id)
 				.sort()
 		).toEqual(['starter/radio', 'starter/tools']);
-		expect(registry.listBrickKinds()).toHaveLength(8);
+		expect(registry.listBrickKinds('mobility').map((kind) => kind.id)).toEqual(['starter/actions']);
+		expect(registry.listBrickKinds('reflexes').map((kind) => kind.id)).toEqual(['starter/if-then']);
+		expect(registry.listBrickKinds()).toHaveLength(9);
 	});
 
 	it('gives every kind a toy face and a real face', () => {

@@ -17,7 +17,7 @@ import {
 } from '@craftabot/governance';
 import { z } from 'zod';
 import { starterBricks } from './bricks.js';
-import { plannerStrings } from './strings.js';
+import { ifThenStrings, plannerStrings } from './strings.js';
 import { qualifyPlayroomId } from './world/playroom.js';
 
 /**
@@ -273,6 +273,105 @@ const plannerBrickKind: BrickKindDefinition<PlannerBrickConfig> = {
 	}
 };
 
+/** One "IF you see X THEN do Y" rule. */
+const ifThenRuleSchema = z.object({
+	/**
+	 * A word or phrase to look for in what the bot currently senses — a plain
+	 * substring match against `Observation.text`, not a structured predicate.
+	 *
+	 * `PredicateExpr` (`14-…` §4.6) was the first thing sizing this brick
+	 * reached for, and turned out to be the wrong tool: it is deliberately
+	 * scoped to a *proposed call* and *usage* — "nothing here can reach world
+	 * state", by its own doc comment — so a policy card stays auditable by
+	 * reading it. A rule that fires on what the bot currently *senses* is a
+	 * different question in a different domain, and `Observation.data` has no
+	 * structured, world-agnostic field to match against even if it were the
+	 * right one — the Playroom's own sight channel only ever puts a position
+	 * in `data`, never an item list (`world/senses.ts`). `Observation.text` is
+	 * the one thing every world guarantees, and it already names what it
+	 * describes in plain words ("a red key"), which is what makes a literal
+	 * substring match both the simplest implementation and an honest one: the
+	 * rule fires on exactly the words the bot itself would have read.
+	 */
+	ifSees: z.string().min(1),
+	then: z.object({
+		kind: z.enum(['tool', 'action']),
+		name: z.string().min(1),
+		arguments: z.record(z.string(), z.unknown()).default({})
+	})
+});
+type IfThenRule = z.infer<typeof ifThenRuleSchema>;
+
+const ifThenConfigSchema = z.object({
+	rules: z.array(ifThenRuleSchema).default([])
+});
+type IfThenBrickConfig = z.infer<typeof ifThenConfigSchema>;
+
+/**
+ * **The If/Then brick** (`14-…` §5.2) — like Planner before it, a brick that
+ * needed a genuinely new, dormant socket (`'reflexes'`, mobility-adjacent),
+ * not the free ride sizing this brick first assumed. `mobility` has no
+ * core-owned slot contract, which is true and made it *look* like the "two
+ * kinds, one slot" shape WP31 proved for `equipment` (Radio + Tools) — but
+ * that shape has only ever meant a builder chooses *one* of two registered
+ * kinds for one socket, never both fitted at once (V1's one-brick-per-socket
+ * rule, `14-…` §2.3), and If/Then genuinely needs to coexist with Actions,
+ * not replace it. A failing build check caught the mistake before it shipped
+ * (`types/brick.ts`'s own dated amendment on `SLOT_IDS` carries the correction).
+ *
+ * What this brick needed that nothing before it did is `contributeReflex`
+ * (the sizing pass's own finding, `types/brick.ts`, `02-…` §5/§7's dated
+ * amendments): the whole point of "evaluated before the brain" is that a
+ * firing rule costs no tokens and no latency, which only a real short-circuit
+ * in the loop itself can deliver — a rule folded into `contributeContext`'s
+ * prose would still call the brain every tick. The rule list is this brick's
+ * entire runtime: no tools, no actions, no prompt section of its own, because
+ * a firing reflex means the model is never shown a prompt to read one from.
+ */
+const ifThenBrickKind: BrickKindDefinition<IfThenBrickConfig> = {
+	id: 'starter/if-then',
+	slot: 'reflexes',
+	name: ifThenStrings.name,
+	description: ifThenStrings.description,
+	realName: ifThenStrings.realName,
+	realExplanation: ifThenStrings.realExplanation,
+	configSchema: ifThenConfigSchema,
+	configVersion: 1,
+	defaults: { rules: [] },
+	describeFitted: (config) => ifThenStrings.describeFitted(config.rules.length),
+	validateConfig: (config, ctx) =>
+		config.rules
+			.filter((rule) => {
+				const exists =
+					rule.then.kind === 'tool' ? ctx.hasTool(rule.then.name) : ctx.hasAction(rule.then.name);
+				return !exists;
+			})
+			.map((rule) => ({
+				code: 'unknown-if-then-target' as const,
+				severity: 'warning' as const,
+				message: ifThenStrings.unknownTarget(rule.then.name, rule.then.kind),
+				details: { name: rule.then.name, kind: rule.then.kind }
+			})),
+	createRuntime: (config) => ({
+		contributeReflex: (context) => {
+			const text = context.observation.text.toLowerCase();
+			const rule = findFiringRule(config.rules, text);
+			if (!rule) return undefined;
+			return {
+				kind: rule.then.kind,
+				name: rule.then.name,
+				arguments: rule.then.arguments,
+				thought: ifThenStrings.ruleFired(rule.ifSees)
+			};
+		}
+	})
+};
+
+/** The first rule (in list order) whose `ifSees` appears in the current observation. */
+function findFiringRule(rules: IfThenRule[], observedText: string): IfThenRule | undefined {
+	return rules.find((rule) => observedText.includes(rule.ifSees.toLowerCase()));
+}
+
 export const starterBrickKinds: BrickKindDefinition[] = [
 	{
 		id: 'starter/llm',
@@ -513,5 +612,6 @@ export const starterBrickKinds: BrickKindDefinition[] = [
 		})
 	} as BrickKindDefinition,
 	radioBrickKind as BrickKindDefinition,
-	plannerBrickKind as BrickKindDefinition
+	plannerBrickKind as BrickKindDefinition,
+	ifThenBrickKind as BrickKindDefinition
 ];

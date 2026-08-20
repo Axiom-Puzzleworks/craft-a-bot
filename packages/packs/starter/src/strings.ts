@@ -150,6 +150,21 @@ export const plannerStrings = {
 	replanNudge: 'Your last step did not work. Call make_plan again if you want to change your plan.'
 } as const;
 
+export const ifThenStrings = {
+	name: 'If/Then Brick',
+	description: 'Reacts on the spot, without stopping to think, when one of its rules matches.',
+	realName: 'Reflex / short-circuit policy',
+	realExplanation:
+		'A small list of rules — "IF you see X THEN do Y" — checked before the brain is ever asked. A matching rule acts right away: no prompt, no model call, no tokens spent. Real agent systems use the same idea to skip an expensive model call for a situation simple enough that a rule already knows the answer.',
+	describeFitted: (ruleCount: number) =>
+		ruleCount === 0
+			? 'has no rules yet'
+			: `has ${ruleCount} reflex rule${ruleCount === 1 ? '' : 's'}`,
+	ruleFired: (ifSees: string) => `A rule fired: saw "${ifSees}", so did it right away.`,
+	unknownTarget: (name: string, kind: 'tool' | 'action') =>
+		`A rule's "then" names "${name}", which isn't an installed ${kind}.`
+} as const;
+
 export const senseStrings = {
 	sight: { name: 'Sight', description: 'What is in your square and the eight around it.' },
 	hearing: { name: 'Hearing', description: 'Anything a person has said to you.' },

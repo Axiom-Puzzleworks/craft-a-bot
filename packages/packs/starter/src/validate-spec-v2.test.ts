@@ -159,6 +159,46 @@ describe('validating a v2 spec against registered kinds', () => {
 		expect(validateSpec(built, buildRegistry())).toEqual([]);
 	});
 
+	/** The If/Then brick's own version of the same fourth question (WP30's If/Then sizing, stage B). */
+	it('reports a rule whose "then" names a tool or action nothing has installed', () => {
+		const built = spec();
+		built.bricks.push({
+			slot: 'reflexes',
+			kind: 'starter/if-then',
+			configVersion: 1,
+			config: {
+				rules: [{ ifSees: 'key', then: { kind: 'action', name: 'nobody/nothing' } }]
+			}
+		});
+
+		// `validateConfig` — the fourth question — is `validateSpec`'s own hook
+		// (`validate-spec.ts`), not `validateSpecV2`'s: the same combination
+		// the blocklist test above this one uses, for the same reason.
+		const problems = validateSpec(built, buildRegistry());
+		expect(problems).toContainEqual(
+			expect.objectContaining({
+				code: 'unknown-if-then-target',
+				severity: 'warning',
+				slot: 'reflexes',
+				details: { name: 'nobody/nothing', kind: 'action' }
+			})
+		);
+	});
+
+	it('is content with a rule naming a tool or action the bot really has', () => {
+		const built = spec();
+		built.bricks.push({
+			slot: 'reflexes',
+			kind: 'starter/if-then',
+			configVersion: 1,
+			config: {
+				rules: [{ ifSees: 'key', then: { kind: 'action', name: 'starter/playroom/pick_up' } }]
+			}
+		});
+
+		expect(validateSpec(built, buildRegistry())).toEqual([]);
+	});
+
 	it('reports every brick that is wrong, not merely the first', () => {
 		const built = spec();
 		built.bricks.push({ slot: 'brain', kind: 'nobody/nothing', configVersion: 1, config: {} });

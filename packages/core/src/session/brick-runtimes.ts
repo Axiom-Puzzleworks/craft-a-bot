@@ -55,6 +55,10 @@ export interface FittedRuntime {
  * per `14-…` §5.1 — rather than reordering anything: no bot built before this
  * stage has a planner brick fitted, so inserting a new entry cannot move any
  * existing one and the golden trace stays exactly as byte-stable as it was.
+ *
+ * `'reflexes'` (If/Then sizing, stage B) is appended right after `mobility` —
+ * mobility-adjacent, per `14-…` §5.2 — for the same reason: no existing bot
+ * has an If/Then brick fitted, so this is an insertion, never a reorder.
  */
 const SLOT_ORDER: SlotId[] = [
 	'brain',
@@ -63,6 +67,7 @@ const SLOT_ORDER: SlotId[] = [
 	'equipment',
 	'perception',
 	'mobility',
+	'reflexes',
 	'safety'
 ];
 

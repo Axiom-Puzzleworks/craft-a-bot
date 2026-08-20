@@ -27,6 +27,14 @@
 	 * for the original six.
 	 */
 	--cab-rose: #a8467a;
+	/*
+	 * Added If/Then sizing, stage B, for the If/Then brick's own concept
+	 * colour below — a bright, electric hue distinct from every warm colour
+	 * already spoken for (red, yellow, orange, rose) and from the cooler blues
+	 * already in use (blue, sky, teal), the same "genuinely new hue" reasoning
+	 * `--cab-rose` itself followed for Planner.
+	 */
+	--cab-indigo: #3f51b5;
 
 	/*
 	 * Secondary text (§2.3, added WP17 §2.7).
@@ -138,7 +146,8 @@
  *
  * `--cab-brick-planner` (WP30 stage A) is the first addition since this
  * mapping was fixed — a new concept getting its own colour, not one of the
- * original six being reassigned.
+ * original six being reassigned. `--cab-brick-reflexes` (If/Then sizing,
+ * stage B) is the second.
  */
 :root {
 	--cab-brick-llm: var(--cab-blue);
@@ -148,6 +157,7 @@
 	--cab-brick-actions: var(--cab-red);
 	--cab-brick-safety: var(--cab-yellow);
 	--cab-brick-planner: var(--cab-rose);
+	--cab-brick-reflexes: var(--cab-indigo);
 }
 
 /*
@@ -167,6 +177,7 @@
 	--cab-brick-slot-equipment: var(--cab-brick-tools);
 	--cab-brick-slot-perception: var(--cab-brick-sense);
 	--cab-brick-slot-mobility: var(--cab-brick-actions);
+	--cab-brick-slot-reflexes: var(--cab-brick-reflexes);
 	--cab-brick-slot-safety: var(--cab-brick-safety);
 }
 

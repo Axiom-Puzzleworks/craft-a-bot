@@ -38,6 +38,21 @@ import type { Observation, WorldActionDefinition } from './world.js';
  * > its own dormant stage rather than alongside the brick that first uses it —
  * > the same "prove the seam first" discipline `23-…`'s own stage A and B held
  * > to before `SessionGroup` was built on top of them.
+ *
+ * > **Amended 2026-08-20 (If/Then sizing, stage B, correcting stage B's own
+ * > opening claim):** `'reflexes'` joins as a ninth socket. Sizing this brick
+ * > called the socket question "cheap — `mobility` has no slot contract, so
+ * > If/Then can register there alongside Actions, the same 'equipment' shape
+ * > WP31 proved for Radio + Tools." That reasoning was wrong in a way a build
+ * > check caught immediately: `equipment` holding two *registered kinds* has
+ * > always meant a builder can choose *either* Tools *or* Radio for the one
+ * > equipment socket — never both fitted at once (V1's one-brick-per-socket
+ * > rule, `14-…` §2.3, applies to a socket regardless of which kind is in it).
+ * > If/Then and Actions are not a choice; a bot needs both at once — Actions
+ * > to have anything to *do*, If/Then to react instead of thinking through it
+ * > — so sharing `mobility` was never actually available, and the honest
+ * > answer turns out to be the one Planner already set the precedent for: a
+ * > genuinely new, dormant socket.
  */
 export const SLOT_IDS = [
 	'brain',
@@ -46,6 +61,7 @@ export const SLOT_IDS = [
 	'memory',
 	'equipment',
 	'mobility',
+	'reflexes',
 	'safety'
 ] as const;
 export type SlotId = (typeof SLOT_IDS)[number];

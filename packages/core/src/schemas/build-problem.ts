@@ -37,7 +37,9 @@ export const buildProblemCodeSchema = z.enum([
 	/** Two bricks fitted to one socket, which V1's teaching-aid rule forbids. */
 	'slot-already-filled',
 	/** A policy card id (`14-…` §4.6, WP22) no installed pack registered. */
-	'unknown-policy-card'
+	'unknown-policy-card',
+	/** An If/Then rule's `then` names a tool or action nothing has installed. */
+	'unknown-if-then-target'
 ]);
 export type BuildProblemCode = z.infer<typeof buildProblemCodeSchema>;
 

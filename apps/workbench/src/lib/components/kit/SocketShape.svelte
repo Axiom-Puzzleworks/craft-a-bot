@@ -52,6 +52,9 @@
 	.socket--planner {
 		--socket-colour: var(--cab-brick-slot-planner);
 	}
+	.socket--reflexes {
+		--socket-colour: var(--cab-brick-slot-reflexes);
+	}
 	.socket--memory {
 		--socket-colour: var(--cab-brick-slot-memory);
 	}

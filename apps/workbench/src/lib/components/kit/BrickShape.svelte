@@ -196,6 +196,9 @@
 	.brick--planner {
 		--brick-colour: var(--cab-brick-slot-planner);
 	}
+	.brick--reflexes {
+		--brick-colour: var(--cab-brick-slot-reflexes);
+	}
 	.brick--memory {
 		--brick-colour: var(--cab-brick-slot-memory);
 	}

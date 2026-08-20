@@ -10,7 +10,7 @@
 	/**
 	 * The baseplate (03-UI-UX-DESIGN.md §4.2): the bot chassis with shaped
 	 * sockets, so a piece only fits where it belongs. The bricks visually become
-	 * body parts — head, shoulder, backpack, belt, visor, wheels, chest.
+	 * body parts — head, shoulder, backpack, belt, visor, wheels, knee, chest.
 	 *
 	 * > **Amended 2026-08-13 (WP14 slice 4b):** the sockets are the **six slot
 	 * > families** core owns (`14-…` §2.3), not six named bricks. The chassis was
@@ -22,6 +22,15 @@
 	 * > registers a brick kind for it; the type system (`SlotId`) is what forces
 	 * > this file, and everywhere else a socket is enumerated, to already know
 	 * > about it.
+	 *
+	 * > **Amended 2026-08-20 (If/Then sizing, stage B):** an eighth, `knee` —
+	 * > "knee-jerk", the toy's own name for a reflex — mobility-adjacent per
+	 * > `14-…` §5.2, the same reasoning `shoulder` was placed beside `head`.
+	 * > Sizing this brick first assumed it could share the `wheels` socket with
+	 * > Actions and found out from a failing build check that no socket has
+	 * > ever allowed two bricks fitted at once — `equipment` holding two
+	 * > *registered* kinds (Radio, Tools) has always meant a builder chooses
+	 * > one, never both together.
 	 */
 	interface Props {
 		controller: DndController;
@@ -106,14 +115,15 @@
 		display: grid;
 		/*
 		 * `shoulder` (WP30 stage A) fills what was an empty cell beside `head` —
-		 * a clipboard riding at the shoulder, not a grid restructure. Every other
+		 * a clipboard riding at the shoulder, not a grid restructure. `knee`
+		 * (If/Then sizing, stage B) does the same beside `wheels`. Every other
 		 * area keeps its exact previous cell.
 		 */
 		grid-template-areas:
 			'.        head     shoulder'
 			'.        visor    .'
 			'backpack chest    belt'
-			'.        wheels   .';
+			'knee     wheels   .';
 		grid-template-columns: 1fr 1.4fr 1fr;
 		gap: var(--cab-space-3);
 		padding: var(--cab-space-5) var(--cab-space-4) var(--cab-space-4);
@@ -160,6 +170,9 @@
 	}
 	.socket--wheels {
 		grid-area: wheels;
+	}
+	.socket--knee {
+		grid-area: knee;
 	}
 
 	.slot {
