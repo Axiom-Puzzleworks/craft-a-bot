@@ -8,7 +8,7 @@ Two purposes, in priority order: (1) an accessible training ground for agentic-A
 
 Stack: TypeScript + Svelte 5 (runes) + SvelteKit static. Monorepo (npm workspaces + Turborepo). Local-first, no backend. OpenAI out of the box (BYO key).
 
-**Where we are (2026-08-20):** V1.0 ("My Very First Agent") shipped WP0–WP10. Day 2 Phases A–D are closed (WP11–WP25): engine trust fixed, the brick contract opened, teaching-aid UX and the professional Workshop both shipped, plus a full governance layer (policy cards, Safety Brick v2, three scenario cards). **Phase E (expansion era) is fully closed**: WP26, WP27, WP28 and WP29 (multi-agent core — `SessionGroup`, the Playroom's `forAgent`, group-altitude events, a minimal Workshop surface; full design of record and close-out in `docs/design-day2/23-MULTI-AGENT-DESIGN.md`) are all done. **Phase F ("Agent Builder" kit, WP30–34) is under way: WP31 (Radio brick + the Robot Friends duo experience, including the ASI07 spoofed-message scenario) is now done too** — full design of record and close-out in `docs/design-day2/24-ROBOT-FRIENDS-DESIGN.md`. WP30, WP32, WP33 and WP34 remain — see "Next up" below.
+**Where we are (2026-08-20):** V1.0 ("My Very First Agent") shipped WP0–WP10. Day 2 Phases A–D are closed (WP11–WP25): engine trust fixed, the brick contract opened, teaching-aid UX and the professional Workshop both shipped, plus a full governance layer (policy cards, Safety Brick v2, three scenario cards). **Phase E (expansion era) is fully closed**: WP26, WP27, WP28 and WP29 (multi-agent core — `SessionGroup`, the Playroom's `forAgent`, group-altitude events, a minimal Workshop surface; full design of record and close-out in `docs/design-day2/23-MULTI-AGENT-DESIGN.md`) are all done. **Phase F ("Agent Builder" kit, WP30–34) is under way: WP31 (Radio brick + the Robot Friends duo experience, including the ASI07 spoofed-message scenario) is done**, full design of record and close-out in `docs/design-day2/24-ROBOT-FRIENDS-DESIGN.md`, **and WP33's identity badge half (the Passport, and its Agent Card export) is done too** — sized down before it started, per its own dated amendment in `14-…` §5.8. WP33's other half (kit-line packaging) stays genuinely blocked on WP30/WP32 shipping real content to bundle, not merely unstarted. WP30, WP32, the rest of WP33, and WP34 remain — see "Next up" below.
 
 ## Source of truth: `docs/design-day2/`
 
@@ -45,14 +45,14 @@ Where a Day 2 doc and its Day 1 counterpart differ, **Day 2 wins** — the banne
 
 Find the WP in `18-…` §3, read the docs it names, **propose a task breakdown before writing code**, then build. One WP per branch (`wp{n}-{slug}`) and PR.
 
-Next up per `18-…` §7 (most recent entry: item 23, 2026-08-20): Phase E is fully closed (WP26–29 all shipped), and Phase F's first WP is now done too — **WP31 (Radio brick + Robot Friends duo experience, including the ASI07 scenario) shipped 2026-08-20**, across eight stages, full close-out in `docs/design-day2/24-ROBOT-FRIENDS-DESIGN.md` §8/§11 and `18-…` §7 item 23. Four Phase F WPs remain, none dependent on WP31 or on each other:
+Next up per `18-…` §7 (most recent entry: item 24, 2026-08-20): Phase E is fully closed (WP26–29 all shipped). Phase F has WP31 fully done and WP33 half done:
 
-- **WP30:** Planner + If/Then bricks (`14-…` §5.1–5.2) with their leaflet chapters.
+- **WP30:** Planner + If/Then bricks (`14-…` §5.1–5.2) with their leaflet chapters. Not yet sized against the real post-WP31 codebase — `14-…` §5.1's own "second socket in the Agent Builder chassis" line has not been checked against the fact that `SLOT_IDS` still holds only the original six; that check belongs at the start of whichever session picks this WP up, the same way `23-…`/`24-…` re-derived their own sizing before building.
 - **WP32:** Librarian + Connector bricks (`14-…` §5.5–5.6) + scope-permission leaflet chapter.
-- **WP33:** Identity badges + kit-line packaging (`14-…` §5.8; box art per expansion pack; the 5–11 kit as a curated pack bundle; export formats).
+- **WP33 (remaining):** kit-line packaging (`14-…` §5.8's own dated amendment) — box art per expansion pack, the 5–11 kit as a curated pack bundle. Genuinely blocked, not merely unstarted: it needs WP30/WP32's actual bricks to exist before there is a bundle to curate, and no purchase/licensing mechanism exists in this local-first, no-backend app for "purchasable" to mean anything yet. Do not pick this up before WP30 and WP32 have shipped something real.
 - **WP34:** Workshop maturity (audit centre) — see `18-…` §3 for its own row and DoD.
 
-None of the four is fixed as "the" next WP by this file — read `18-…` §3/§7 and confirm with the user which to start.
+None of the remaining three buildable WPs (WP30, WP32, WP34) is fixed as "the" next one by this file — read `18-…` §3/§7 and confirm with the user which to start.
 
 Use your judgement inside a WP — the docs fix the destination and the contracts, not every step. Where a doc is silent, decide and note it. Where implementation must diverge from a doc, change the doc in the same PR with a dated note (`> **Amended 2026-08-13:** …`); don't leave the two disagreeing.
 
