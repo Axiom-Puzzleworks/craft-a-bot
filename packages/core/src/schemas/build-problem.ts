@@ -41,7 +41,11 @@ export const buildProblemCodeSchema = z.enum([
 	/** An If/Then rule's `then` names a tool or action nothing has installed. */
 	'unknown-if-then-target',
 	/** A Librarian brick's `books` names a book its own catalogue does not carry. */
-	'unknown-book'
+	'unknown-book',
+	/** A Connector brick's `serviceId` names a service its own catalogue does not carry. */
+	'unknown-service',
+	/** A Connector brick's `scopes` names an operation its configured service does not offer. */
+	'unknown-scope'
 ]);
 export type BuildProblemCode = z.infer<typeof buildProblemCodeSchema>;
 

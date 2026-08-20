@@ -136,6 +136,10 @@ export const toolStrings = {
 		badArgs: 'You need to say what to look up.',
 		nothingFound: (title: string, query: string) =>
 			`The ${title} book has nothing to say about "${query}".`
+	},
+	/** One tool per operation (WP32 stage B) — the operation's own name/description carry the copy, this is just the shared "the line is busy" failure. */
+	connector: {
+		busy: 'The line is busy — try again in a moment.'
 	}
 } as const;
 
@@ -187,6 +191,24 @@ export const librarianStrings = {
 			: `${memory}, and the ${bookTitles.join(', ')} book${bookTitles.length === 1 ? '' : 's'}`;
 	},
 	unknownBook: (bookId: string) => `"${bookId}" is not a book this bot's library carries.`
+} as const;
+
+export const connectorStrings = {
+	name: 'Connector Brick',
+	description:
+		'A wire to one outside line, and permission slips for what it may ask that line to do.',
+	realName: 'Scoped remote capability',
+	realExplanation:
+		'A connection to one simulated remote service, plus a list of the specific operations it is allowed to use there. The connection itself can reach every operation the service offers; a rule checked before each attempt refuses any that is not on the permission list — the same shape a real API scope grant takes, and the same shape a confused deputy is tricked into ignoring: having access to something is not the same as being allowed to use it.',
+	describeFitted: (serviceName: string | undefined, scopeNames: string[]) => {
+		if (serviceName === undefined) return 'not connected to anything yet';
+		return scopeNames.length === 0
+			? `connected to ${serviceName}, with no permissions granted yet`
+			: `connected to ${serviceName}, allowed to: ${scopeNames.join(', ')}`;
+	},
+	unknownService: (serviceId: string) => `"${serviceId}" is not a line this bot's connector knows.`,
+	unknownScope: (scopeId: string, serviceId: string) =>
+		`"${scopeId}" is not an operation "${serviceId}" offers.`
 } as const;
 
 export const senseStrings = {

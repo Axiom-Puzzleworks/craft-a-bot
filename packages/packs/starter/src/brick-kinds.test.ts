@@ -25,7 +25,7 @@ describe('the starter brick kinds', () => {
 		expect(registry.getBrickKind('nobody/planner')).toBeUndefined();
 	});
 
-	it('fills every chassis socket — one kind each, except equipment and memory (WP31 stage F, WP32 stage A)', () => {
+	it('fills every chassis socket — one kind each, except equipment and memory (WP31 stage F, WP32 stages A–B)', () => {
 		const bySlot = new Map<SlotId, number>();
 		for (const kind of starterBrickKinds) {
 			bySlot.set(kind.slot, (bySlot.get(kind.slot) ?? 0) + 1);
@@ -34,20 +34,21 @@ describe('the starter brick kinds', () => {
 		/*
 		 * V1's one-brick-per-socket rule (`14-…` §2.3) applies to a socket
 		 * regardless of which kind is in it — the contract permits more than
-		 * one kind *registered* for a slot family (equipment: Radio + Tools;
-		 * memory: Librarian + Scrapbook), which is a builder's choice of one
-		 * or the other, never both fitted at once. If/Then (`14-…` §5.2)
-		 * first tried to share `mobility` with Actions on exactly that
-		 * mistaken reading and a failing build check caught it — it needs its
-		 * own `'reflexes'` socket instead, since a bot needs Actions *and*
-		 * If/Then at the same time, not a choice between them (`types/brick.ts`'s
-		 * own dated amendment on `SLOT_IDS`). Librarian (`14-…` §5.5) is the
-		 * opposite case: it genuinely *is* a choice — a Librarian-fitted bot
-		 * gets the same turn-window memory the Scrapbook gives, plus a
-		 * bookshelf, so there is nothing left for a second, separate memory
-		 * brick to add.
+		 * one kind *registered* for a slot family (equipment: Radio + Tools +
+		 * Connector; memory: Librarian + Scrapbook), which is a builder's
+		 * choice of one or the other, never both fitted at once. If/Then
+		 * (`14-…` §5.2) first tried to share `mobility` with Actions on
+		 * exactly that mistaken reading and a failing build check caught it —
+		 * it needs its own `'reflexes'` socket instead, since a bot needs
+		 * Actions *and* If/Then at the same time, not a choice between them
+		 * (`types/brick.ts`'s own dated amendment on `SLOT_IDS`). Librarian
+		 * (`14-…` §5.5) and Connector (`14-…` §5.6) are the opposite case:
+		 * each genuinely *is* a choice — a Librarian-fitted bot gets the same
+		 * turn-window memory the Scrapbook gives, plus a bookshelf, and a
+		 * Connector is a third, equally legitimate way to fill `equipment`
+		 * alongside Tools and Radio, not something a bot needs on top of them.
 		 */
-		expect(bySlot.get('equipment')).toBe(2);
+		expect(bySlot.get('equipment')).toBe(3);
 		expect(bySlot.get('memory')).toBe(2);
 		const otherSlots = [...bySlot.entries()].filter(
 			([slot]) => slot !== 'equipment' && slot !== 'memory'
@@ -66,7 +67,7 @@ describe('the starter brick kinds', () => {
 				.listBrickKinds('equipment')
 				.map((kind) => kind.id)
 				.sort()
-		).toEqual(['starter/radio', 'starter/tools']);
+		).toEqual(['starter/connector', 'starter/radio', 'starter/tools']);
 		expect(
 			registry
 				.listBrickKinds('memory')
@@ -75,7 +76,7 @@ describe('the starter brick kinds', () => {
 		).toEqual(['starter/librarian', 'starter/memory']);
 		expect(registry.listBrickKinds('mobility').map((kind) => kind.id)).toEqual(['starter/actions']);
 		expect(registry.listBrickKinds('reflexes').map((kind) => kind.id)).toEqual(['starter/if-then']);
-		expect(registry.listBrickKinds()).toHaveLength(10);
+		expect(registry.listBrickKinds()).toHaveLength(11);
 	});
 
 	it('gives every kind a toy face and a real face', () => {

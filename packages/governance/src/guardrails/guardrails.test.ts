@@ -5,6 +5,7 @@ import { APPROVAL_MODE_ID, createApprovalModeGuardrail } from './approval-mode.j
 import { NO_REPETITION_ID, createNoRepetitionGuardrail } from './no-repetition.js';
 import { STEP_BUDGET_ID, createStepBudgetGuardrail } from './step-budget.js';
 import { TOKEN_BUDGET_ID, createTokenBudgetGuardrail } from './token-budget.js';
+import { TOOL_BLOCKLIST_ID, createToolBlocklistGuardrail } from './tool-blocklist.js';
 
 /**
  * The three V1 rules (08-GOVERNANCE-GUARDRAILS.md §3). Each is a pure function
@@ -122,6 +123,58 @@ describe('action blocklist', () => {
 		expect(empty.check(context({ hook: 'pre-act', proposed: action('open') }))).toStrictEqual({
 			allow: true
 		});
+	});
+});
+
+describe('tool blocklist', () => {
+	const guardrail = createToolBlocklistGuardrail(['connector_weather_alert']);
+
+	it('blocks a listed tool without ending the run', () => {
+		const verdict = guardrail.check(
+			context({ hook: 'pre-act', proposed: tool('connector_weather_alert') })
+		);
+		expect(verdict).toStrictEqual({
+			allow: false,
+			reason: 'connector_weather_alert is on the blocked list.',
+			disposition: 'block-action'
+		});
+	});
+
+	it('allows a tool that is not listed', () => {
+		expect(
+			guardrail.check(context({ hook: 'pre-act', proposed: tool('connector_weather_forecast') }))
+		).toStrictEqual({ allow: true });
+	});
+
+	it('never blocks an action, only tools', () => {
+		expect(
+			guardrail.check(context({ hook: 'pre-act', proposed: action('connector_weather_alert') }))
+		).toStrictEqual({ allow: true });
+	});
+
+	it('allows when there is nothing proposed at all', () => {
+		expect(guardrail.check(context({ hook: 'pre-act' }))).toStrictEqual({ allow: true });
+	});
+
+	it('describes itself by what it blocks', () => {
+		expect(guardrail.hooks).toStrictEqual(['pre-act']);
+		expect(guardrail.id).toBe(TOOL_BLOCKLIST_ID);
+		expect(guardrail.description).toBe('Blocks these tools: connector_weather_alert.');
+		expect(createToolBlocklistGuardrail([]).description).toBe('No tools are blocked.');
+	});
+
+	it('matches a qualified id in the list against the short name the model uses', () => {
+		const qualified = createToolBlocklistGuardrail(['starter/connector_weather_alert']);
+		expect(
+			qualified.check(context({ hook: 'pre-act', proposed: tool('connector_weather_alert') }))
+		).toMatchObject({ allow: false, disposition: 'block-action' });
+	});
+
+	it('blocks nothing when the list is empty', () => {
+		const empty = createToolBlocklistGuardrail([]);
+		expect(
+			empty.check(context({ hook: 'pre-act', proposed: tool('connector_weather_alert') }))
+		).toStrictEqual({ allow: true });
 	});
 });
 

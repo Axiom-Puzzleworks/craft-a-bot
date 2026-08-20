@@ -5,6 +5,7 @@ import {
 	safetyBrickSchemaV2,
 	senseBrickSchema,
 	toolsBrickSchema,
+	type BrickConfigProblem,
 	type BrickKindDefinition
 } from '@craftabot/core';
 import {
@@ -13,13 +14,15 @@ import {
 	createApprovalModeGuardrail,
 	createNoRepetitionGuardrail,
 	createStepBudgetGuardrail,
-	createTokenBudgetGuardrail
+	createTokenBudgetGuardrail,
+	createToolBlocklistGuardrail
 } from '@craftabot/governance';
 import { z } from 'zod';
 import { starterBricks } from './bricks.js';
-import { ifThenStrings, librarianStrings, plannerStrings } from './strings.js';
+import { connectorStrings, ifThenStrings, librarianStrings, plannerStrings } from './strings.js';
 import { BOOKS, type BookId } from './world/bookshelf.js';
 import { qualifyPlayroomId } from './world/playroom.js';
+import { OPERATIONS, SERVICES, operationsFor, type ServiceId } from './world/services.js';
 
 /**
  * **The six V1 bricks, ported onto the open contract** (`14-…` §2, WP14).
@@ -456,6 +459,103 @@ const librarianBrickKind: BrickKindDefinition<LibrarianBrickConfig> = {
 	})
 };
 
+const SERVICE_IDS = SERVICES.map((service) => service.id);
+
+const connectorConfigSchema = z.object({
+	/** Empty means "brick fitted, no line chosen yet" — the same normal, saveable half-built state `llmBrickSchema`'s own empty `cartridgeId` is. */
+	serviceId: z.string().default(''),
+	/**
+	 * Operation ids this bot may actually use on `serviceId`'s own line —
+	 * `string[]`, not a closed enum, for the same reason the Librarian's own
+	 * `books` is (`brick-kinds.ts`'s note on that field): an unknown scope is
+	 * a `validateConfig` warning, not a schema failure that blocks GO.
+	 */
+	scopes: z.array(z.string()).default([])
+});
+type ConnectorBrickConfig = z.infer<typeof connectorConfigSchema>;
+
+/**
+ * **The Connector brick** (WP32 stage B, `14-…` §5.6) — `equipment`'s third
+ * registered kind, a builder's choice alongside Tools and Radio (`14-…`
+ * §5.5's own note on what "two kinds, one slot" actually means, corrected
+ * during If/Then's own sizing).
+ *
+ * `contributeCalls` offers every operation the *connected service* has,
+ * regardless of `scopes` — reach is what the connection grants. `scopes` is
+ * enforced separately, by a `pre-act` guardrail built from a tool blocklist
+ * (`@craftabot/governance`'s `createToolBlocklistGuardrail`, WP32 stage B's
+ * own addition, `tools/connector.ts`'s doc comment carries the full
+ * reasoning): the blocked set is every operation the connected service
+ * offers that `scopes` does *not* name, computed fresh from this bot's own
+ * config, so an unauthorised attempt is a visible, narrated refusal rather
+ * than a tool that silently never existed.
+ *
+ * No new core mechanism, confirming the sizing pass's own guess:
+ * `contributeCalls` and `contributeGuardrails` were each already exactly
+ * the hook this brick needed, the same way they were for the Librarian
+ * (`14-…` §5.5's own dated amendment).
+ */
+const connectorBrickKind: BrickKindDefinition<ConnectorBrickConfig> = {
+	id: 'starter/connector',
+	slot: 'equipment',
+	name: connectorStrings.name,
+	description: connectorStrings.description,
+	realName: connectorStrings.realName,
+	realExplanation: connectorStrings.realExplanation,
+	configSchema: connectorConfigSchema,
+	configVersion: 1,
+	defaults: { serviceId: '', scopes: [] },
+	describeFitted: (config) => {
+		const service = SERVICES.find((candidate) => candidate.id === config.serviceId);
+		const scopeNames = config.scopes
+			.map(
+				(scopeId) =>
+					OPERATIONS.find((op) => op.service === config.serviceId && op.id === scopeId)?.name
+			)
+			.filter((name): name is string => name !== undefined);
+		return connectorStrings.describeFitted(service?.name, scopeNames);
+	},
+	validateConfig: (config) => {
+		if (config.serviceId === '') return [];
+		if (!(SERVICE_IDS as string[]).includes(config.serviceId)) {
+			const problem: BrickConfigProblem = {
+				code: 'unknown-service',
+				severity: 'warning',
+				message: connectorStrings.unknownService(config.serviceId),
+				details: { serviceId: config.serviceId }
+			};
+			return [problem];
+		}
+		const known = new Set(operationsFor(config.serviceId as ServiceId).map((op) => op.id));
+		return config.scopes
+			.filter((scopeId) => !known.has(scopeId))
+			.map((scopeId): BrickConfigProblem => ({
+				code: 'unknown-scope',
+				severity: 'warning',
+				message: connectorStrings.unknownScope(scopeId, config.serviceId),
+				details: { scopeId, serviceId: config.serviceId }
+			}));
+	},
+	createRuntime: (config) => ({
+		contributeCalls: () => ({
+			toolIds:
+				config.serviceId === ''
+					? []
+					: operationsFor(config.serviceId as ServiceId).map(
+							(op) => `starter/connector_${op.service}_${op.id}`
+						)
+		}),
+		contributeGuardrails: () => {
+			if (config.serviceId === '') return [];
+			const blocked = operationsFor(config.serviceId as ServiceId)
+				.filter((op) => !config.scopes.includes(op.id))
+				.map((op) => `starter/connector_${op.service}_${op.id}`);
+			if (blocked.length === 0) return [];
+			return [createToolBlocklistGuardrail(blocked)];
+		}
+	})
+};
+
 export const starterBrickKinds: BrickKindDefinition[] = [
 	{
 		id: 'starter/llm',
@@ -698,5 +798,6 @@ export const starterBrickKinds: BrickKindDefinition[] = [
 	radioBrickKind as BrickKindDefinition,
 	plannerBrickKind as BrickKindDefinition,
 	ifThenBrickKind as BrickKindDefinition,
-	librarianBrickKind as BrickKindDefinition
+	librarianBrickKind as BrickKindDefinition,
+	connectorBrickKind as BrickKindDefinition
 ];

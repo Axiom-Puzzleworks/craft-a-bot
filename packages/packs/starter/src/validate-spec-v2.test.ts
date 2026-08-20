@@ -238,6 +238,71 @@ describe('validating a v2 spec against registered kinds', () => {
 		expect(validateSpec(built, buildRegistry())).toEqual([]);
 	});
 
+	/** The Connector brick's own version of the same fourth question (WP32 stage B). */
+	it('reports a service its own catalogue does not carry', () => {
+		const built = spec();
+		built.bricks.push({
+			slot: 'equipment',
+			kind: 'starter/connector',
+			configVersion: 1,
+			config: { serviceId: 'nobody-has-this-line', scopes: [] }
+		});
+
+		const problems = validateSpec(built, buildRegistry());
+		expect(problems).toContainEqual(
+			expect.objectContaining({
+				code: 'unknown-service',
+				severity: 'warning',
+				slot: 'equipment',
+				details: { serviceId: 'nobody-has-this-line' }
+			})
+		);
+	});
+
+	it('reports a scope naming an operation its connected service does not offer', () => {
+		const built = spec();
+		built.bricks.push({
+			slot: 'equipment',
+			kind: 'starter/connector',
+			configVersion: 1,
+			config: { serviceId: 'weather', scopes: ['nobody-has-this-operation'] }
+		});
+
+		const problems = validateSpec(built, buildRegistry());
+		expect(problems).toContainEqual(
+			expect.objectContaining({
+				code: 'unknown-scope',
+				severity: 'warning',
+				slot: 'equipment',
+				details: { scopeId: 'nobody-has-this-operation', serviceId: 'weather' }
+			})
+		);
+	});
+
+	it('is content with a real service and a scope it really offers', () => {
+		const built = spec();
+		built.bricks.push({
+			slot: 'equipment',
+			kind: 'starter/connector',
+			configVersion: 1,
+			config: { serviceId: 'weather', scopes: ['forecast'] }
+		});
+
+		expect(validateSpec(built, buildRegistry())).toEqual([]);
+	});
+
+	it('is content with a connector that has not chosen a line yet', () => {
+		const built = spec();
+		built.bricks.push({
+			slot: 'equipment',
+			kind: 'starter/connector',
+			configVersion: 1,
+			config: { serviceId: '', scopes: [] }
+		});
+
+		expect(validateSpec(built, buildRegistry())).toEqual([]);
+	});
+
 	it('reports every brick that is wrong, not merely the first', () => {
 		const built = spec();
 		built.bricks.push({ slot: 'brain', kind: 'nobody/nothing', configVersion: 1, config: {} });

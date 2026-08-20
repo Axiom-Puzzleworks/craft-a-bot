@@ -38,6 +38,7 @@ export {
 export { NO_REPETITION_ID, createNoRepetitionGuardrail } from './guardrails/no-repetition.js';
 export { STEP_BUDGET_ID, createStepBudgetGuardrail } from './guardrails/step-budget.js';
 export { TOKEN_BUDGET_ID, createTokenBudgetGuardrail } from './guardrails/token-budget.js';
+export { TOOL_BLOCKLIST_ID, createToolBlocklistGuardrail } from './guardrails/tool-blocklist.js';
 /** The policy-card compiler (`14-…` §4.6, WP22) — see `08-…` §5's growth-path row: this is the piece named to ship standalone. */
 export {
 	compilePolicyCard,

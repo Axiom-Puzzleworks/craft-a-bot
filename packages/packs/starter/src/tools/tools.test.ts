@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
 	calculator,
 	checkOffStep,
+	connectorTools,
 	dice,
 	evaluate,
 	lookUpManual,
@@ -23,7 +24,7 @@ function context(overrides: Partial<ToolContext> = {}): ToolContext {
 }
 
 describe('the starter tool set', () => {
-	it('ships the five V1 tools plus the Planner brick’s own two (WP30 stage B) and the Librarian’s own per-book two (WP32 stage A), all namespaced with JSON schemas', () => {
+	it('ships the five V1 tools plus the Planner brick’s own two (WP30 stage B), the Librarian’s own per-book two (WP32 stage A), and the Connector’s own per-operation two (WP32 stage B), all namespaced with JSON schemas', () => {
 		expect(starterTools.map((tool) => tool.id)).toEqual([
 			'starter/calculator',
 			'starter/dice',
@@ -33,7 +34,9 @@ describe('the starter tool set', () => {
 			'starter/make_plan',
 			'starter/check_off_step',
 			'starter/library_games',
-			'starter/library_history'
+			'starter/library_history',
+			'starter/connector_weather_forecast',
+			'starter/connector_weather_alert'
 		]);
 		for (const tool of starterTools) {
 			expect(tool.parameters, tool.id).toMatchObject({ type: 'object' });
@@ -198,5 +201,33 @@ describe('check_off_step', () => {
 
 	it('rejects a missing index', async () => {
 		expect((await checkOffStep.execute({}, context())).ok).toBe(false);
+	});
+});
+
+describe('connector tools', () => {
+	const forecast = connectorTools.find((tool) => tool.id === 'starter/connector_weather_forecast')!;
+	const alert = connectorTools.find((tool) => tool.id === 'starter/connector_weather_alert')!;
+
+	it('answers when the simulated line does not fail', async () => {
+		// `forecast`'s own `failureChance` is 0.2 — anything at or above it draws
+		// a success, the same threshold the tool's own `execute()` checks.
+		const result = await forecast.execute({}, context({ random: () => 0.99 }));
+		expect(result.ok).toBe(true);
+		expect(result.output.length).toBeGreaterThan(0);
+	});
+
+	it('reports a busy line when the simulated failure draws, drawn from the injected randomness only', async () => {
+		const result = await forecast.execute({}, context({ random: () => 0 }));
+		expect(result.ok).toBe(false);
+		expect(result.output).toContain('busy');
+	});
+
+	it('marks the read-only operation observe and the broadcast one irreversible', () => {
+		expect(forecast.riskTier).toBe('observe');
+		expect(alert.riskTier).toBe('irreversible');
+	});
+
+	it('needs no arguments — the operation itself is the whole request', () => {
+		expect(forecast.parameters).toMatchObject({ type: 'object' });
 	});
 });
