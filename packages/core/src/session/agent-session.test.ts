@@ -824,6 +824,97 @@ describe('what onTickEnd learns about the call (WP30 stage B)', () => {
 	});
 });
 
+/**
+ * **WP30 stage C**: `contributeState`/`brick.state` — the door a
+ * pack-contributed brick uses to put its own structured state on the trace,
+ * since core has no privileged view into a brick it did not write (unlike
+ * `memory.updated`, which core emits directly because Memory is its own
+ * concept). Proven against a real session, the same reasoning as stage B's
+ * own tests above: what matters is that `tick()` actually emits the event
+ * for a fitted brick that implements the hook, and never for one that
+ * doesn't, not merely that the type permits it.
+ */
+describe('brick.state — a fitted brick reporting its own live state (WP30 stage C)', () => {
+	function registryWithReporter(state: unknown): PackRegistry {
+		const registry = buildRegistry();
+		registry.registerPack({
+			id: 'reporter-pack',
+			name: 'Reporter pack',
+			version: '1.0.0',
+			requiresCore: '>=0.0.1',
+			brickKinds: [
+				{
+					id: 'test/reporter',
+					slot: 'planner',
+					name: 'Reporter',
+					description: 'test/reporter',
+					realName: 'test/reporter',
+					realExplanation: 'test/reporter',
+					configSchema: z.object({}),
+					configVersion: 1,
+					defaults: {},
+					createRuntime: () => ({ contributeState: () => state })
+				} as BrickKindDefinition
+			]
+		});
+		return registry;
+	}
+
+	function specWithReporter(overrides: Partial<AgentSpec['bricks']> = {}) {
+		const migrated = migrateAgentSpec(buildSpec(overrides));
+		if ('kind' in migrated) throw new Error(migrated.message);
+		migrated.bricks.push({ slot: 'planner', kind: 'test/reporter', configVersion: 1, config: {} });
+		return migrated;
+	}
+
+	it('emits brick.state, tagged with the fitted slot and kind, carrying whatever the brick reported', async () => {
+		const events: EngineEvent[] = [];
+		const session = createSession({
+			spec: specWithReporter(),
+			registry: registryWithReporter({ steps: ['Find the key'], done: [false] }),
+			provider: createMockProvider({ script: [turn('Ping.', 'ping')] }),
+			guardrails: [],
+			options: { now: () => '2026-08-20T00:00:00Z', newId: () => 'id', random: () => 0 }
+		});
+		session.events.onAny((event) => events.push(event));
+		await session.step();
+
+		const reported = events.find((event) => event.type === 'brick.state');
+		expect(reported).toMatchObject({
+			type: 'brick.state',
+			payload: {
+				slot: 'planner',
+				kind: 'test/reporter',
+				state: { steps: ['Find the key'], done: [false] }
+			}
+		});
+	});
+
+	it('emits nothing when the brick has nothing new to report this tick', async () => {
+		const events: EngineEvent[] = [];
+		const session = createSession({
+			spec: specWithReporter(),
+			registry: registryWithReporter(undefined),
+			provider: createMockProvider({ script: [turn('Ping.', 'ping')] }),
+			guardrails: [],
+			options: { now: () => '2026-08-20T00:00:00Z', newId: () => 'id', random: () => 0 }
+		});
+		session.events.onAny((event) => events.push(event));
+		await session.step();
+
+		expect(events.some((event) => event.type === 'brick.state')).toBe(false);
+	});
+
+	it('emits nothing at all when no fitted brick implements the hook', async () => {
+		const { session } = makeSession({ script: [turn('Ping.', 'ping')] });
+		const events: EngineEvent[] = [];
+		session.events.onAny((event) => events.push(event));
+		await session.step();
+
+		expect(events.some((event) => event.type === 'brick.state')).toBe(false);
+	});
+});
+
 describe('budgets', () => {
 	it('ends the run when the token budget is spent', async () => {
 		const { session } = makeSession({

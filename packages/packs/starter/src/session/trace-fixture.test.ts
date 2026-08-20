@@ -1,4 +1,4 @@
-import { createSession, type EngineEvent, type Guardrail } from '@craftabot/core';
+import { createSession, migrateAgentSpec, type EngineEvent, type Guardrail } from '@craftabot/core';
 import { createMockProvider, createTestClock, obedient, turn } from '@craftabot/core/testing';
 import { describe, expect, it } from 'vitest';
 import { buildRegistry, buildSpec, runToCompletion } from './harness.js';
@@ -24,6 +24,7 @@ const EVENT_CATALOGUE = [
 	'tool.executed',
 	'action.performed',
 	'memory.updated',
+	'brick.state',
 	'guardrail.checked',
 	'guardrail.tripped',
 	'approval.requested',
@@ -115,7 +116,7 @@ describe('the captured trace fixture', () => {
 });
 
 describe('the event catalogue (02-AGENT-MODEL.md §7)', () => {
-	it('produces every one of the nineteen event types across the scripted runs', async () => {
+	it('produces every one of the twenty event types across the scripted runs', async () => {
 		const seen = new Set<string>();
 		for (const events of await gatherAllEventTypes()) {
 			for (const event of events) seen.add(event.type);
@@ -153,6 +154,22 @@ async function gatherAllEventTypes(): Promise<EngineEvent[][]> {
 		maxTicks: 1
 	});
 	traces.push(withTool.events);
+
+	// A Planner brick's own live state, for brick.state (WP30 stage C).
+	const plannerMigrated = migrateAgentSpec(buildSpec());
+	if ('kind' in plannerMigrated) throw new Error(plannerMigrated.message);
+	plannerMigrated.bricks.push({
+		slot: 'planner',
+		kind: 'starter/planner',
+		config: {},
+		configVersion: 1
+	});
+	const withPlanner = await runToCompletion({
+		script: obedient([{ say: 'Planning.', call: 'make_plan', args: { steps: ['Find Teddy'] } }]),
+		spec: plannerMigrated,
+		maxTicks: 1
+	});
+	traces.push(withPlanner.events);
 
 	// A tripped guardrail.
 	const stopper: Guardrail = {

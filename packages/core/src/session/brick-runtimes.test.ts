@@ -15,6 +15,7 @@ import {
 	collectContext,
 	collectGuardrails,
 	collectSenses,
+	collectState,
 	collectWorldConfig,
 	disposeRuntimes,
 	notifyTickEnd
@@ -401,6 +402,39 @@ describe('collecting the world config the bricks contribute (WP31 stage F)', () 
 				}
 			])
 		).toEqual({ shared: 'second' });
+	});
+});
+
+describe('collecting what the bricks report about their own live state (WP30 stage C)', () => {
+	const reports = (state: unknown): BrickRuntime => ({ contributeState: () => state });
+
+	it('collects one entry per brick that has something to report, tagged with slot and kind', () => {
+		expect(
+			collectState([
+				{ slot: 'planner', kind: 'test/planner', name: 'p', runtime: reports({ steps: ['a'] }) },
+				{ slot: 'brain', kind: 'test/brain', name: 'b', runtime: {} }
+			])
+		).toEqual([{ slot: 'planner', kind: 'test/planner', state: { steps: ['a'] } }]);
+	});
+
+	it('asks nothing of a brick that never implements the hook', () => {
+		expect(collectState([{ slot: 'brain', kind: 'test/brain', name: 'b', runtime: {} }])).toEqual(
+			[]
+		);
+	});
+
+	it('omits a brick that implements the hook but has nothing new this tick', () => {
+		expect(
+			collectState([
+				{ slot: 'planner', kind: 'test/planner', name: 'p', runtime: reports(undefined) }
+			])
+		).toEqual([]);
+	});
+
+	it('keeps a falsy-but-defined state — only `undefined` means "nothing to report"', () => {
+		expect(
+			collectState([{ slot: 'planner', kind: 'test/planner', name: 'p', runtime: reports(0) }])
+		).toEqual([{ slot: 'planner', kind: 'test/planner', state: 0 }]);
 	});
 });
 

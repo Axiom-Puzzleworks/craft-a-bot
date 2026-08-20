@@ -131,6 +131,23 @@ const planArgsSchema = z.object({ steps: z.array(z.string()) });
 const checkOffArgsSchema = z.object({ index: z.number() });
 
 /**
+ * The Planner's own live state (WP30 stage C, `contributeState`) — the
+ * structured counterpart to `renderChecklist`'s prose: the same plan and
+ * done-set, exported so the workbench can type its own `brick.state`
+ * projection instead of trusting `state: unknown` at every call site.
+ *
+ * `done` is parallel to `steps`, not a set of indices, so a UI can zip the
+ * two arrays without a second lookup — the wire-friendliest shape, since
+ * `unknown` crosses the event boundary with no guarantee a `Set` even
+ * round-trips through it.
+ */
+export interface PlannerState {
+	steps: string[];
+	done: boolean[];
+	notice?: string;
+}
+
+/**
  * **The Planner brick** (WP30 stage B, `14-…` §5.1) — the second brick to
  * join a socket the open contract didn't have a home for (`types/brick.ts`'s
  * own `'planner'` amendment, WP30 stage A), and, like Radio, carries its own
@@ -139,11 +156,16 @@ const checkOffArgsSchema = z.object({ index: z.number() });
  * `strings.ts`'s header comment already claims to be "every user-facing
  * string this pack produces" and this brick takes that literally.
  *
- * Needed no core change beyond stage A's socket and the small, additive
- * `TickRecord.call`/`.ok` widening `onTickEnd` now reads — `contributeCalls`,
- * `contributeContext` and `onTickEnd` were each already exactly the hook this
- * brick needed, once a runtime could tell *what* was attempted and *whether*
- * it worked (`24-…`-style finding, recorded properly in `18-…` §7 at close-out).
+ * Stage B needed no core change beyond stage A's socket and the small,
+ * additive `TickRecord.call`/`.ok` widening `onTickEnd` now reads —
+ * `contributeCalls`, `contributeContext` and `onTickEnd` were each already
+ * exactly the hook this brick needed, once a runtime could tell *what* was
+ * attempted and *whether* it worked (`24-…`-style finding, recorded properly
+ * in `18-…` §7 at close-out). Stage C needed one more: `contributeState`
+ * (`types/brick.ts`), because `contributeContext`'s prose is the only place
+ * this brick's state existed before, and a UI reading it structurally would
+ * have had to parse `plannerStrings`' own copy — brittle in a way a typed
+ * `brick.state` event (`02-…` §7) is not.
  *
  * `make_plan`/`check_off_step` are ordinary tools — `contributeCalls` offers
  * them regardless of whether a Tool Belt is fitted at all, exactly as Radio's
@@ -193,6 +215,19 @@ const plannerBrickKind: BrickKindDefinition<PlannerBrickConfig> = {
 				}
 				return { sections };
 			},
+			/*
+			 * Reads `notice` without clearing it — `contributeContext` above is
+			 * the one consumer that gets to do that, at the *start* of the next
+			 * tick. This runs at the *end* of the current one (`collectState`,
+			 * right after `onTickEnd`), so what it reports here is exactly what
+			 * the next prompt will show — a live widget and the prompt can never
+			 * disagree about what the bot currently believes its plan is.
+			 */
+			contributeState: (): PlannerState => ({
+				steps: [...plan],
+				done: plan.map((_, index) => done.has(index)),
+				...(notice !== undefined ? { notice } : {})
+			}),
 			onTickEnd: (record) => {
 				if (record.call === undefined || record.refused !== undefined) {
 					// Nothing was attempted, or a guardrail stopped it before it ran —

@@ -29,6 +29,7 @@
 	import { endCardHint } from '$lib/end-card-hint.js';
 	import { safetyTally } from '$lib/safety-tally.js';
 	import HeadUp from '$lib/components/play/HeadUp.svelte';
+	import PlannerChecklist from '$lib/components/play/PlannerChecklist.svelte';
 	import RunControls from '$lib/components/play/RunControls.svelte';
 	import SayToBot from '$lib/components/play/SayToBot.svelte';
 	import StoryStrip from '$lib/components/play/StoryStrip.svelte';
@@ -93,6 +94,10 @@
 	);
 	const canHear = $derived(
 		record ? offers(capabilitiesOf(record.spec, registry).channels, 'hearing') : false
+	);
+	/** Whether a Planner brick is fitted, for the live checklist (WP30 stage C). */
+	const hasPlanner = $derived(
+		record ? capabilitiesOf(record.spec, registry).filled.has('planner') : false
 	);
 
 	// Only the keyless demo brain follows a script; a real model does not.
@@ -468,6 +473,9 @@
 					/>
 				{/if}
 				<ThoughtBubble thought={view.thought} narration={view.narration} />
+				{#if hasPlanner}
+					<PlannerChecklist events={view.events} />
+				{/if}
 				<DidYouMean
 					choices={view.didYouMean}
 					{canHear}

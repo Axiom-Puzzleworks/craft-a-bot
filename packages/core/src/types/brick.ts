@@ -178,6 +178,22 @@ export interface BrickRuntime {
 	contributeGuardrails?(): Guardrail[];
 	/** Learn or record once the tick has resolved (Memory). */
 	onTickEnd?(record: TickRecord): void;
+	/**
+	 * A brick's own live state, for the trace and the UI (WP30 stage C).
+	 *
+	 * `contributeContext`'s prose already carries this for a Planner-style
+	 * brick — the checklist text sits in the prompt every tick — but prose is
+	 * not something a UI can read structurally without parsing pack-specific
+	 * copy, which breaks quietly the moment that copy changes. This is the
+	 * structured counterpart: called once per tick, right after `onTickEnd`,
+	 * opaque to core the same way `contributeWorldConfig`'s bag already is —
+	 * the *shape* of the state is the brick's own business, never core's.
+	 *
+	 * Return `undefined` when there is nothing new to report; a brick that
+	 * never implements this hook simply never appears in the `brick.state`
+	 * trace, the same "additive, opt-in" contract as every hook above it.
+	 */
+	contributeState?(): unknown;
 	dispose?(): void;
 }
 

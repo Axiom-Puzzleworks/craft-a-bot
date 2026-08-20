@@ -27,6 +27,12 @@ const LANES: Record<EventType, TraceLane> = {
 	'action.performed': 'action',
 	'world.changed': 'action',
 	'memory.updated': 'memory',
+	// A pack-contributed brick's own live state (WP30 stage C) — the same
+	// lane as `memory.updated`, since both are "a brick reporting what it is
+	// holding onto", not an action/tool/sense/guardrail concept. Hard rule 6
+	// keeps the mapping fixed, so this reuses an existing lane rather than
+	// inventing one, the same reasoning `group.started`/`group.finished` used.
+	'brick.state': 'memory',
 	'guardrail.checked': 'guardrail',
 	'guardrail.tripped': 'guardrail',
 	'approval.requested': 'guardrail',
@@ -61,6 +67,7 @@ const LABELS: Record<EventType, string> = {
 	'action.performed': 'Did something',
 	'world.changed': 'The world changed',
 	'memory.updated': 'Remembered',
+	'brick.state': 'Reported its own state',
 	'guardrail.checked': 'Safety check',
 	'guardrail.tripped': 'Safety rule stopped it',
 	'approval.requested': 'Asked permission',

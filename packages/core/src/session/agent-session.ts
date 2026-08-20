@@ -34,6 +34,7 @@ import {
 	collectContext,
 	collectGuardrails,
 	collectSenses,
+	collectState,
 	collectWorldConfig,
 	disposeRuntimes,
 	notifyTickEnd
@@ -782,6 +783,15 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 				entries: memory.size(),
 				notebookUpdated: memory.writes() > notebookLinesAtTickStart
 			});
+		}
+		/*
+		 * A pack-contributed brick's own live state (WP30 stage C) — unlike
+		 * Memory above, core has no privileged view into what these bricks
+		 * hold, so this is generic: whatever `contributeState` returned, for
+		 * whichever fitted bricks returned anything this tick.
+		 */
+		for (const contribution of collectState(runtimes)) {
+			emit('brick.state', contribution);
 		}
 
 		/*

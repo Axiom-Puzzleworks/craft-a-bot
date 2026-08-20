@@ -209,6 +209,27 @@ export function notifyTickEnd(runtimes: readonly FittedRuntime[], record: TickRe
 	for (const fitted of runtimes) fitted.runtime.onTickEnd?.(record);
 }
 
+/** One fitted brick's own live state, as reported this tick (WP30 stage C). */
+export interface BrickStateContribution {
+	slot: SlotId;
+	kind: string;
+	state: unknown;
+}
+
+/**
+ * Every fitted brick's own live state this tick, for the bricks that have
+ * anything new to report — `contributeState` is opt-in, so most bricks
+ * contribute nothing here and this is usually empty or short.
+ */
+export function collectState(runtimes: readonly FittedRuntime[]): BrickStateContribution[] {
+	const contributions: BrickStateContribution[] = [];
+	for (const fitted of runtimes) {
+		const state = fitted.runtime.contributeState?.();
+		if (state !== undefined) contributions.push({ slot: fitted.slot, kind: fitted.kind, state });
+	}
+	return contributions;
+}
+
 /** Let every brick put itself away. Called once, when the run is over. */
 export function disposeRuntimes(runtimes: readonly FittedRuntime[]): void {
 	for (const fitted of runtimes) fitted.runtime.dispose?.();

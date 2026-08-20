@@ -217,7 +217,7 @@ Validation: `validateSpec(spec, registry)` returns structured problems (`missing
 
 All events share `{ id, runId, tick, timestamp, type, payload }`, strictly typed per `type`. V1 catalogue:
 
-`run.started` · `run.finished` · `tick.started` · `tick.completed` · `sense` · `prompt.composed` (full messages + token estimate) · `think.started` · `think.token` (streaming deltas) · `think.completed` (raw response, usage) · `decision` (thought + parsed call) · `tool.executed` (args, result, duration) · `action.performed` (args, world narration, world-state diff) · `memory.updated` · `guardrail.checked` · `guardrail.tripped` · `approval.requested` · `approval.resolved` · `world.changed` · `error`
+`run.started` · `run.finished` · `tick.started` · `tick.completed` · `sense` · `prompt.composed` (full messages + token estimate) · `think.started` · `think.token` (streaming deltas) · `think.completed` (raw response, usage) · `decision` (thought + parsed call) · `tool.executed` (args, result, duration) · `action.performed` (args, world narration, world-state diff) · `memory.updated` · `brick.state` (slot, kind, opaque state) · `guardrail.checked` · `guardrail.tripped` · `approval.requested` · `approval.resolved` · `world.changed` · `error`
 
 > **Amended 2026-08-13 (WP13):** the catalogue gains one event and one payload field, both additive (E2, `14-…` §3).
 >
@@ -240,6 +240,12 @@ All events share `{ id, runId, tick, timestamp, type, payload }`, strictly typed
 > - **`group.finished`** `{ outcome, reason?, rounds, usage }` — how the group ended: `outcome` is derived from every member's own outcome (`SUCCESS` only if all members reached it; a stop or error on any member propagates), `usage` is the group's running token total (summed from each member's own `think.completed` events, the same mechanism the group-token-budget guardrail reads), `rounds` counts scheduler rounds, not per-member ticks. Always the last event on a group's merged stream — every member's own `run.finished` still lands on that member's own trace first.
 >
 > A group's merged stream is the union of these two events with every member session's own unmodified event stream (each still opening `run.started` and closing `run.finished`, per §4.7 of `23-…`); nothing about a member's own trace changes when it runs inside a group instead of solo.
+
+> **Amended 2026-08-20 (WP30 stage C):** one new event, additive, plus one new `BrickRuntime` hook it comes from (`14-…` §2.1's own contract, `types/brick.ts`).
+>
+> - **`brick.state`** `{ slot, kind, state }` — a fitted brick's own live state, reported once per tick for the bricks that have anything new to say. `state` is opaque to core, the same "core owns the pipe, the pack owns the shape" stance `contributeWorldConfig`'s bag already takes. Unlike `memory.updated`, which core has always emitted directly because Memory is a concept core itself owns, a pack-contributed brick's internal state (the Planner's plan and checklist, `14-…` §5.1) lives entirely in a closure core cannot see into — `contributeState?(): unknown` on `BrickRuntime` is the door such a brick uses to put it on the trace anyway, called once per tick right after `onTickEnd`, additive and opt-in like every hook beside it.
+> - Why not read `tool.executed` instead, for a brick like the Planner whose state changes through its own tool calls? Because a tool's `execute()` is stateless and pack-wide — it validates shape, not a specific bot's config (`maxSteps`, an in-range check-off index) — so `tool.executed.data` can legitimately disagree with what the brick actually did with a call (a plan trimmed to `maxSteps`, an out-of-range check-off silently ignored). `contributeState` reports the brick's own authoritative belief instead, the same one `contributeContext`'s prompt text already carries, just structured.
+> - No `formatVersion` bump: every trace written before WP30 simply never contains a `brick.state` event, which is honestly true of them.
 
 Rules: events are **append-only facts**; payloads are JSON-serialisable; the trace is simply the ordered event list of a run (persisted per `07-DATA-MODEL-PERSISTENCE.md`); _anything_ the UI shows about a run must be derivable from events — if it isn't in an event, it didn't happen.
 

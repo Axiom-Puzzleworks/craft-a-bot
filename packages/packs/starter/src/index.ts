@@ -37,7 +37,7 @@ export {
 	starterTools
 } from './tools/index.js';
 export { playroom, PLAYROOM_WORLD_ID, qualifyPlayroomId } from './world/playroom.js';
-export { starterBrickKinds } from './brick-kinds.js';
+export { starterBrickKinds, type PlannerState } from './brick-kinds.js';
 export { playroomLayouts } from './world/layouts.js';
 export { playroomActions, playroomActionDefinitions, carriedItem } from './world/actions.js';
 export { playroomSenses, observePlayroom } from './world/senses.js';

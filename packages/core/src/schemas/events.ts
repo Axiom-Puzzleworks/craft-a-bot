@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { SLOT_IDS } from '../types/brick.js';
 
 /**
  * The event catalogue (02-AGENT-MODEL.md §7) — the observability spine.
@@ -236,6 +237,25 @@ const memoryUpdatedEvent = eventSchema(
 	})
 );
 /**
+ * A fitted brick's own live state, opaque to core (WP30 stage C,
+ * `types/brick.ts`'s `contributeState`). Emitted only for bricks that
+ * implement the hook and only on ticks they have something new to report —
+ * most traces will never contain one, the same "additive, opt-in" shape as
+ * `contributeWorldConfig`'s own bag. Sits alongside `memory.updated` in the
+ * loop (both are post-tick, per-brick reports) but is not a replacement for
+ * it — Memory stays its own bespoke event, since core already owns that
+ * brick's state directly; this is the door a *pack-contributed* brick uses
+ * to report state core has no privileged access to.
+ */
+const brickStateEvent = eventSchema(
+	'brick.state',
+	z.object({
+		slot: z.enum(SLOT_IDS),
+		kind: z.string(),
+		state: z.unknown()
+	})
+);
+/**
  * Which policy card fired, when a guardrail was compiled from one (`14-…`
  * §4.6, WP22). Optional and additive: a hand-written guardrail has no card
  * behind it, and every trace written before WP22 still parses with it absent.
@@ -319,6 +339,7 @@ export const engineEventSchema = z.discriminatedUnion('type', [
 	toolExecutedEvent,
 	actionPerformedEvent,
 	memoryUpdatedEvent,
+	brickStateEvent,
 	guardrailCheckedEvent,
 	guardrailTrippedEvent,
 	approvalRequestedEvent,
