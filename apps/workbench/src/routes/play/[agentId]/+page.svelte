@@ -156,7 +156,11 @@
 				view?.events
 					.filter((event) => event.type === 'tool.executed')
 					.map((event) => (event.type === 'tool.executed' ? event.payload.name : '')) ?? [],
-			sawApproval: view?.events.some((event) => event.type === 'approval.requested') ?? false
+			sawApproval: view?.events.some((event) => event.type === 'approval.requested') ?? false,
+			sawReflex:
+				view?.events.some(
+					(event) => event.type === 'decision' && event.payload.source === 'reflex'
+				) ?? false
 		});
 	});
 

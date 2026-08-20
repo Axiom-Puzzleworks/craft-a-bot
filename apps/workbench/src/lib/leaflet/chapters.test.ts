@@ -59,6 +59,24 @@ function withPlanner(built: AgentSpec) {
 	return capabilitiesOf(migrated, createRegistry());
 }
 
+/**
+ * A Planner-and-If/Then-fitted bot's capabilities (WP30's own If/Then
+ * sizing, stage C) — chapter 9 needs both: the Planner from chapter 8, still
+ * fitted, plus the reflexes socket a rule occupies.
+ */
+function withPlannerAndIfThen(
+	built: AgentSpec,
+	rules: { ifSees: string; then: { kind: 'tool' | 'action'; name: string; arguments?: unknown } }[]
+) {
+	const migrated = migrateAgentSpec(built);
+	if ('kind' in migrated) throw new Error(migrated.message);
+	migrated.bricks.push(
+		{ slot: 'planner', kind: 'starter/planner', config: {}, configVersion: 1 },
+		{ slot: 'reflexes', kind: 'starter/if-then', config: { rules }, configVersion: 1 }
+	);
+	return capabilitiesOf(migrated, createRegistry());
+}
+
 function spec(over: Partial<AgentSpec> & { bricks?: AgentSpec['bricks'] } = {}): AgentSpec {
 	return {
 		id: '44444444-4444-4444-8444-444444444444',
@@ -89,6 +107,7 @@ function ctx(over: Partial<LeafletContext> & { spec?: AgentSpec } = {}): Leaflet
 		ticks: 0,
 		usedTools: [],
 		sawApproval: false,
+		sawReflex: false,
 		acked: new Set<string>(),
 		...rest
 	};
@@ -104,13 +123,14 @@ function ctx(over: Partial<LeafletContext> & { spec?: AgentSpec } = {}): Leaflet
 }
 
 describe('the shape of the arc', () => {
-	it('has the eight chapters of 02 §9, numbered in order', () => {
+	it('has the nine chapters of 02 §9, numbered in order', () => {
 		// Seven since WP17 §2.2: the six brick chapters plus "Turning the dials",
 		// which teaches the settings the other six never mention. Eight since
 		// WP30 stage D: the Planner brick's own chapter, the first for a brick
-		// that joined after the open contract rather than shipping in V1.
-		expect(CHAPTERS).toHaveLength(8);
-		expect(CHAPTERS.map((chapter) => chapter.number)).toStrictEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+		// that joined after the open contract rather than shipping in V1. Nine
+		// since WP30's own If/Then sizing, stage C: a second such chapter.
+		expect(CHAPTERS).toHaveLength(9);
+		expect(CHAPTERS.map((chapter) => chapter.number)).toStrictEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
 	});
 
 	it('gives every chapter a distinct badge', () => {
@@ -135,7 +155,8 @@ describe('the shape of the arc', () => {
 			tools: 'starter/sums-for-teddy',
 			retrieval: 'starter/locked-chest',
 			governance: 'starter/locked-chest',
-			planning: 'starter/tidy-the-blocks'
+			planning: 'starter/tidy-the-blocks',
+			reflexes: 'starter/tidy-the-blocks'
 		};
 		const sixBricks: AgentSpec['bricks'] = {
 			llm: { cartridgeId: 'demo', temperature: 0, maxTokens: 256, personality: '' },
@@ -148,12 +169,20 @@ describe('the shape of the arc', () => {
 
 		for (const chapter of CHAPTERS) {
 			const goalCardId = CARD_FOR[chapter.id] ?? 'starter/say-hello';
-			// Chapter 8's own step needs a Planner brick, which a v1 `AgentSpec`
-			// (this fixture's usual shape) cannot carry at all — see `withPlanner`.
+			// Chapters 8 and 9's own steps need a Planner brick (and, for 9, an
+			// If/Then rule too), which a v1 `AgentSpec` (this fixture's usual
+			// shape) cannot carry at all — see `withPlanner`/`withPlannerAndIfThen`.
 			const can =
 				chapter.id === 'planning'
 					? withPlanner(spec({ bricks: sixBricks, goalCardId }))
-					: capabilitiesOf(spec({ bricks: sixBricks, goalCardId }), createRegistry());
+					: chapter.id === 'reflexes'
+						? withPlannerAndIfThen(spec({ bricks: sixBricks, goalCardId }), [
+								{
+									ifSees: 'yellow',
+									then: { kind: 'action', name: 'pick_up', arguments: { item: 'yellow block' } }
+								}
+							])
+						: capabilitiesOf(spec({ bricks: sixBricks, goalCardId }), createRegistry());
 
 			const finished = ctx({
 				route: 'play',
@@ -162,7 +191,8 @@ describe('the shape of the arc', () => {
 				outcome: 'SUCCESS',
 				ticks: 12,
 				usedTools: ['calculator', 'look_up_manual', 'make_plan'],
-				sawApproval: true
+				sawApproval: true,
+				sawReflex: true
 			});
 
 			for (const step of chapter.steps.filter((candidate) => !candidate.done(finished))) {
@@ -173,7 +203,7 @@ describe('the shape of the arc', () => {
 
 	it('finds chapters by number', () => {
 		expect(chapterByNumber(3)?.id).toBe('memory');
-		expect(chapterByNumber(9)).toBeUndefined();
+		expect(chapterByNumber(10)).toBeUndefined();
 	});
 });
 
@@ -500,6 +530,81 @@ describe('chapter 8 — think it through', () => {
 			can: withPlanner(spec({ bricks: built, goalCardId: 'starter/tidy-the-blocks' })),
 			outcome: 'SUCCESS',
 			usedTools: []
+		});
+		expect(isChapterComplete(chapter, stuck)).toBe(false);
+	});
+});
+
+describe('chapter 9 — skip the thinking', () => {
+	const brain = { cartridgeId: 'demo', temperature: 0, maxTokens: 256, personality: '' };
+	const built = {
+		llm: brain,
+		actions: ACTIONS,
+		sense: SIGHT,
+		memory: MEMORY,
+		tools: { enabled: ['starter/calculator', 'starter/look_up_manual'] },
+		safety: { maxTicks: 30, blockedActions: [], approvalMode: true }
+	};
+	const chapter = chapterByNumber(9)!;
+	const rule = {
+		ifSees: 'east: a yellow letter block',
+		then: { kind: 'action' as const, name: 'pick_up', arguments: { item: 'yellow block' } }
+	};
+
+	it('walks from noticing the cost to the badge, once a reflex actually fires', () => {
+		// The context chapter 8 leaves behind: still on "Tidy the blocks",
+		// Planner fitted, its own run already finished successfully. Chapter 9
+		// opens on that context directly, per its own top comment — the
+		// "watch it think" evidence is that run, not a fresh one.
+		const justFinished = ctx({
+			route: 'play',
+			can: withPlanner(spec({ bricks: built, goalCardId: 'starter/tidy-the-blocks' })),
+			goalCardId: 'starter/tidy-the-blocks',
+			outcome: 'SUCCESS',
+			ticks: 20,
+			usedTools: ['make_plan']
+		});
+		expect(currentStepOf(chapter, justFinished)?.id).toBe('notice-thinking');
+
+		const read = ctx({ ...justFinished, acked: new Set(['notice-thinking']) });
+		expect(currentStepOf(chapter, read)?.id).toBe('fit-if-then');
+
+		const fitted = ctx({
+			...read,
+			can: withPlannerAndIfThen(spec({ bricks: built, goalCardId: 'starter/tidy-the-blocks' }), []),
+			// A capability change resets the last run's evidence in the real
+			// controller (`leaflet.svelte.ts`'s own `rebuilt` branch) — modelled
+			// by hand here, since this file drives `currentStepOf` directly
+			// rather than through the controller. Without it, `fitted` would
+			// still carry `justFinished`'s stale `outcome: 'SUCCESS'` forward,
+			// and `reacted` would read as already satisfied before the reader
+			// had done anything this chapter asked.
+			outcome: undefined,
+			ticks: 0,
+			usedTools: [],
+			sawApproval: false,
+			sawReflex: false
+		});
+		expect(currentStepOf(chapter, fitted)?.id).toBe('add-rule');
+
+		const ruleRead = ctx({ ...fitted, acked: new Set(['notice-thinking', 'add-rule']) });
+		expect(currentStepOf(chapter, ruleRead)?.id).toBe('react');
+
+		const reacted = ctx({ ...ruleRead, sawReflex: true });
+		expect(currentStepOf(chapter, reacted)?.id).toBe('reacted');
+
+		expect(isChapterComplete(chapter, ctx({ ...reacted, outcome: 'SUCCESS' }))).toBe(true);
+	});
+
+	it('is not completed by a run that fired no reflex, even with a rule fitted', () => {
+		const stuck = ctx({
+			route: 'play',
+			can: withPlannerAndIfThen(spec({ bricks: built, goalCardId: 'starter/tidy-the-blocks' }), [
+				rule
+			]),
+			outcome: 'SUCCESS',
+			sawReflex: false,
+			acked: new Set(['notice-thinking', 'add-rule'])
 		});
 		expect(isChapterComplete(chapter, stuck)).toBe(false);
 	});

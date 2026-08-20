@@ -102,7 +102,9 @@ test('the leaflet greets a first-timer and can be waved away', async ({ page }) 
 	await expect(page.getByTestId('leaflet')).toBeVisible();
 });
 
-test('walks the six brick chapters plus Planner, and collects their badges', async ({ page }) => {
+test('walks the six brick chapters plus Planner and If/Then, and collects their badges', async ({
+	page
+}) => {
 	test.slow();
 	await page.goto('/');
 	await expect(page.getByTestId('leaflet')).toBeVisible();
@@ -327,12 +329,62 @@ test('walks the six brick chapters plus Planner, and collects their badges', asy
 	await expect(page.getByTestId('badge-earned')).toBeVisible();
 	await page.getByTestId('badge-dismiss').click();
 
-	// Chapter 8 was the last one: the leaflet has already switched to its own
+	// ── Chapter 9: skip the thinking ──────────────────────────────────────────
+	// WP30's own If/Then sizing, stage C: a second chapter for a brick that
+	// joined after the open contract. It reuses "Tidy the blocks" rather than
+	// picking a new card — the run chapter 8 just finished is its own "watch
+	// it think" evidence (the block sitting right in front of the bot on tick
+	// 4 still cost a full think), so this chapter opens on an `ack` of that
+	// run rather than forcing a second, identical one just to re-prove it.
+	await expect(page.getByTestId('leaflet-title')).toHaveText('Skip the thinking');
+	await expect(currentStep(page)).toContainText('stopped to think');
+	await page.getByTestId('leaflet-ack').click();
+
+	await expect(currentStep(page)).toContainText('Add the If/Then brick');
+	await backToBench(page);
+	await fitBrick(page, 'ifThen');
+
+	// A rule, typed into the hand-written panel (WP30's If/Then sizing, stage
+	// B) rather than pushed as config — the same real UI the reader has used
+	// for every brick so far.
+	const ifThenPanel = page.getByTestId('brick-controls-reflexes');
+	await expect(currentStep(page)).toContainText('add a rule');
+	await ifThenPanel.getByRole('button', { name: 'Add a rule' }).click();
+	// The exact phrase matters (`chapters.ts`'s own comment on `add-rule`):
+	// the full sight description keeps naming a held item in its own "You
+	// are carrying…" line for as long as the bot holds it, so a rule
+	// watching for the bare colour never stops matching once the pick-up
+	// already happened — found live, as an endless `pick_up` loop.
+	await ifThenPanel.getByLabel('If it sees').fill('east: a yellow letter block');
+	await ifThenPanel.getByLabel('Then').selectOption({ label: 'Pick up (action)' });
+	await ifThenPanel.getByLabel('The item').fill('yellow block');
+	await page.getByTestId('leaflet-ack').click();
+
+	await go(page);
+	// Tick 1 is `make_plan` again — a tool, not gated by approval. Ticks 2
+	// and 3 are the same approach moves (north, east) chapter 8's own run
+	// made; tick 4 is where the rule now fires instead of the brain — still
+	// gated by approval mode, exactly as a brain-driven action would be
+	// (`if-then.test.ts`'s own pre-act guardrail case, walked here live).
+	await stepTimes(page, 1);
+	await stepPastApprovals(page, 3);
+	await expect(currentStep(page)).toContainText('rest of the job');
+
+	// The rest of the run is unchanged from chapter 8's own script — the rule
+	// only ever covers the one thing it names, so everything else (the blue
+	// block, opening the chest, celebrating) still goes through the brain.
+	await stepPastApprovals(page, 20);
+	await expect(page.getByTestId('end-card')).toHaveAttribute('data-outcome', 'SUCCESS');
+	await expect(page.getByTestId('badge-earned')).toBeVisible();
+	await page.getByTestId('badge-dismiss').click();
+
+	// Chapter 9 was the last one: the leaflet has already switched to its own
 	// "all chapters built" screen, which shows every badge unconditionally —
 	// no `leaflet-badges` toggle to click, unlike the still-working-through-it
 	// view chapter 7's own check used.
-	await expect(page.getByTestId('leaflet-title')).toHaveText('All 8 chapters built!');
+	await expect(page.getByTestId('leaflet-title')).toHaveText('All 9 chapters built!');
 	await expect(page.getByTestId('badge-planner-pro')).toHaveAttribute('data-earned', 'true');
+	await expect(page.getByTestId('badge-quick-reflexes')).toHaveAttribute('data-earned', 'true');
 });
 
 /**

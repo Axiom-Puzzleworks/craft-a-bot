@@ -63,6 +63,14 @@ export interface LeafletContext {
 	usedTools: readonly string[];
 	/** True once a run has asked a human to approve an action. */
 	sawApproval: boolean;
+	/**
+	 * True once a run has had a decision come from a fitted brick's own
+	 * reflex rather than the brain (WP30's If/Then sizing, stage C) — a
+	 * `decision` event with `source: 'reflex'`. The one thing chapter 9 needs
+	 * that no earlier chapter did: not that the bot *acted*, but that a
+	 * particular tick's call skipped thinking altogether.
+	 */
+	sawReflex: boolean;
 	/** Ids of `ack` steps the reader has ticked off. */
 	acked: ReadonlySet<string>;
 }
@@ -130,6 +138,8 @@ const asksPermission = (ctx: LeafletContext) =>
 /** Enough turns for the failure to be plain, without waiting for the budget. */
 const watched = (ctx: LeafletContext, turns: number) => ctx.ticks >= turns;
 const succeeded = (ctx: LeafletContext) => ctx.outcome === 'SUCCESS';
+/** A fitted brick's rule pre-empted the brain at least once this run. */
+const firedReflex = (ctx: LeafletContext) => ctx.sawReflex;
 
 export const CHAPTERS: Chapter[] = [
 	{
@@ -538,6 +548,91 @@ export const CHAPTERS: Chapter[] = [
 				id: 'planned',
 				latch: true,
 				text: 'It ticks off each step as it goes, and follows the list straight through.',
+				anchor: ANCHORS.stepButton,
+				done: (ctx) => succeeded(ctx)
+			}
+		]
+	},
+	/**
+	 * WP30's own If/Then sizing, stage C: a second chapter for a brick that
+	 * joined after the open contract, the same failure→fix template chapter 8
+	 * set as precedent.
+	 *
+	 * Reuses "Tidy the blocks" rather than a new card. On tick 4 of that
+	 * card's own scripted run — the tick chapter 8 just watched succeed — the
+	 * bot spends a full think deciding to pick up a block that is sitting
+	 * right in front of it, because "IF you see yellow THEN pick it up" is
+	 * exactly the kind of decision a rule can make on the spot. The real
+	 * engine proves the same tick genuinely skips COMPOSE/THINK/DECIDE once
+	 * that rule is fitted (`packages/packs/starter/src/session/if-then.test.ts`)
+	 * — this chapter is that proof, walked in the Kit.
+	 *
+	 * The "watch it think" half is an `ack` against evidence from the run the
+	 * reader already just finished, rather than a freshly-forced re-run — the
+	 * same thing chapter 2's own `blind` step already does, pointing back at
+	 * chapter 1's finishing run instead of manufacturing a new one to prove
+	 * an already-proven point. Found live, walking this chapter in the
+	 * browser: an `ack` step reads a stale `succeeded(ctx)` left over from
+	 * the previous chapter exactly the same way a real, non-ack predicate
+	 * would, and `leaflet.svelte.ts`'s `advanceIfComplete` now clears that
+	 * evidence on every chapter change for exactly this reason — see its own
+	 * comment for the failure this chapter's own `reacted` step hit before
+	 * that existed.
+	 *
+	 * `add-rule`'s own exact phrase — "east: a yellow letter block", not just
+	 * "yellow" — is not padding, and not the compact one-line form the
+	 * narration bubble shows either (that one reads "…you could see a
+	 * yellow letter block (B) to the east…", which `Observation.text` never
+	 * is here — `contributeReflex` reads the full `sightLines` form instead,
+	 * "To the east: a yellow letter block (B).", found only by printing it).
+	 * That form keeps naming a *held* item too, in its own "You are carrying
+	 * …" line, for as long as the bot holds it — so a rule watching for the
+	 * bare colour never stops matching once the pick-up it asked for has
+	 * already happened. Found live, as an endless `pick_up` loop that ran
+	 * out the Safety Brick's repeat limit instead of ever reaching "Open the
+	 * chest". "east: a yellow letter block" names words the "carrying" line
+	 * never uses — checked turn by turn over a full scripted run, not just
+	 * asserted, before it went in the leaflet's own copy.
+	 */
+	{
+		id: 'reflexes',
+		number: 9,
+		title: 'Skip the thinking',
+		teaches:
+			'Reflex / short-circuit policies: a rule that matches something obvious can act on the spot, with the brain never consulted — no prompt, no tokens, no wait.',
+		badge: { id: 'quick-reflexes', name: 'Quick Reflexes' },
+		steps: [
+			{
+				id: 'notice-thinking',
+				ack: true,
+				text: 'Back in that run: the block was sitting right there, and it still stopped to think before grabbing it — a full prompt, same as every other turn.',
+				anchor: ANCHORS.flightRecorder,
+				done: wasRead('notice-thinking')
+			},
+			{
+				id: 'fit-if-then',
+				text: 'Back to the bench. Add the If/Then brick.',
+				anchor: ANCHORS.trayIfThen,
+				done: (ctx) => filled(ctx, 'reflexes')
+			},
+			{
+				id: 'add-rule',
+				ack: true,
+				text: 'In its panel, add a rule: if it sees "east: a yellow letter block", then Pick up — with "yellow block" as the item.',
+				anchor: ANCHORS.brickPanel,
+				done: wasRead('add-rule')
+			},
+			{
+				id: 'react',
+				latch: true,
+				text: 'Run it again. This time it grabs the block the instant it sees it — no thinking, straight to the hands.',
+				anchor: ANCHORS.flightRecorder,
+				done: firedReflex
+			},
+			{
+				id: 'reacted',
+				latch: true,
+				text: 'The rest of the job still goes through the brain as before — the rule only ever covers what it names.',
 				anchor: ANCHORS.stepButton,
 				done: (ctx) => succeeded(ctx)
 			}

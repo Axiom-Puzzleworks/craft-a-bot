@@ -100,6 +100,7 @@ export function createLeaflet(deps: LeafletDeps = {}): LeafletController {
 			ticks: 0,
 			usedTools: [],
 			sawApproval: false,
+			sawReflex: false,
 			acked: new SvelteSet<string>()
 		} as LeafletContext
 	});
@@ -141,6 +142,35 @@ export function createLeaflet(deps: LeafletDeps = {}): LeafletController {
 		// cannot satisfy a same-named step later.
 		state.acked = new SvelteSet<string>();
 		state.latched = new SvelteSet<string>();
+		/*
+		 * The run evidence goes with it (WP30's own If/Then sizing, stage C —
+		 * found live, not designed in from the start).
+		 *
+		 * Without this, the chapter that just finished leaves its own
+		 * `outcome: 'SUCCESS'` sitting in context, untouched until the reader's
+		 * build next changes (the `rebuilt` branch below). Every earlier
+		 * chapter's own first *latch* step happens to be shielded from that by
+		 * a *structural* step ahead of it in the list — `fit-memory`,
+		 * `fit-tools`, `fit-planner` — so `latchSatisfied` can misfire on a
+		 * stale `succeeded(ctx)` and it never shows: `isChapterComplete` still
+		 * waits on the brick nobody has fitted yet. Chapter 9 has no such step
+		 * after its own `react`: its last step, `reacted`, is *itself* a latch
+		 * on `succeeded(ctx)`, and it read as done the instant the reader
+		 * acknowledged the chapter's very first reading step — awarding the
+		 * badge before the If/Then brick was even fitted. Clearing the last
+		 * run's evidence here, the same moment `acked`/`latched` already clear,
+		 * closes the hole for every chapter's own latch steps, not only this
+		 * one's.
+		 */
+		state.context = {
+			...state.context,
+			outcome: undefined,
+			variant: undefined,
+			ticks: 0,
+			usedTools: [],
+			sawApproval: false,
+			sawReflex: false
+		};
 		settings.update({ tutorialChapter: state.completed, badges: state.badges });
 	}
 
@@ -248,6 +278,7 @@ export function createLeaflet(deps: LeafletDeps = {}): LeafletController {
 			next.ticks = 0;
 			next.usedTools = [];
 			next.sawApproval = false;
+			next.sawReflex = false;
 		}
 
 		state.context = next;

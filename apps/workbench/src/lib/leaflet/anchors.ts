@@ -30,6 +30,8 @@ export const ANCHORS = {
 	trayTools: 'tray-starter/tools',
 	traySafety: 'tray-starter/safety',
 	trayPlanner: 'tray-starter/planner',
+	/** WP30's own If/Then sizing, stage C — chapter 9 points at it directly. */
+	trayIfThen: 'tray-starter/if-then',
 	baseplate: 'baseplate',
 	goalCards: 'goal-cards',
 	brickPanel: 'brick-panel',
