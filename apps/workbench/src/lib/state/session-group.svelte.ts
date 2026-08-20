@@ -216,6 +216,19 @@ export function createGroupSessionView(deps: GroupSessionViewDeps): GroupSession
 			world = event.payload.state as GridWorldState;
 			foregroundedAgentId = event.agentId;
 		}
+		/*
+		 * Tracked from every event's own `tick`, not only inside `stepRound()`'s
+		 * own wrapper below (WP31 stage D — found while wiring a live
+		 * `GroupRunRecord.rounds` off `state.round`, which stayed at 0 through an
+		 * entire PLAY run). PLAY drives the core's own `groupPlayLoop()`, which
+		 * calls `SessionGroup.stepRound()` directly — never through this view's
+		 * wrapper — so a value set only there is a value PLAY mode never touches.
+		 * Round-robin block-ordering guarantees `event.tick` only ever grows
+		 * across the merged stream (`group-replay-projection.ts`'s own header
+		 * comment makes the same argument), so the max seen so far is exactly the
+		 * round the group has reached, regardless of which path drove it there.
+		 */
+		if (event.tick > state.round) state.round = event.tick;
 		deps.onEvent?.(event);
 		state.status = group.status;
 	}
@@ -309,8 +322,10 @@ export function createGroupSessionView(deps: GroupSessionViewDeps): GroupSession
 			state.status = group.status;
 		},
 		async stepRound() {
+			// `state.round` is not set here: `absorb` already tracks it from every
+			// event's own `tick` as this call streams them out, which is also what
+			// keeps it correct when PLAY drives rounds instead (see `absorb`).
 			const result = await group.stepRound();
-			state.round = result.round;
 			state.status = group.status;
 			return result;
 		},

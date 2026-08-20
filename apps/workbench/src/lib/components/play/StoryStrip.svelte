@@ -33,7 +33,7 @@
 		 * §4.4). Absent for a solo run, where there is only one bot and naming
 		 * it would say nothing the caption doesn't.
 		 */
-		actors?: ReadonlyMap<string, string>;
+		actors?: ReadonlyMap<string, string> | undefined;
 	}
 
 	let { events, onseemore, readAloud = false, narrator, actors }: Props = $props();

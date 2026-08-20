@@ -277,6 +277,31 @@ export function describeStorageContract(name: string, open: () => Promise<Storag
 				expect(await storage.getEvents(uuid(1000))).toEqual([]);
 				expect(await storage.getEvents(uuid(1002))).toHaveLength(1);
 			});
+
+			/**
+			 * WP31, `24-ROBOT-FRIENDS-DESIGN.md` §4.5: a run carrying a
+			 * `groupRunId` is never evicted on its own — doing so would corrupt
+			 * its still-live `GroupRunRecord`, whose `memberRunIds` would then
+			 * point at a run that 404s. Deliberately conservative rather than a
+			 * group-aware retention scheme (`23-…` §8's own "worth getting right
+			 * against real usage" reasoning, now that WP31 is the live producer
+			 * it was waiting on) — a grouped run sits outside the cap entirely.
+			 */
+			it('never evicts a run that belongs to a group episode, even as the oldest', async () => {
+				const storage = await open();
+				const groupRunId = uuid(3999);
+				await storage.putRun(
+					// Older than every `seedRuns` run below, and its own id kept out
+					// of that helper's `1000..` range so the two cannot collide.
+					makeRun({ id: uuid(3998), startedAt: '2026-08-09T10:00:00Z', groupRunId })
+				);
+				await seedRuns(storage, 4);
+
+				const evicted = await storage.evictOldRuns(3);
+				expect(evicted).not.toContain(uuid(3998));
+				const remaining = (await storage.listRuns()).map((run) => run.id);
+				expect(remaining).toContain(uuid(3998));
+			});
 		});
 
 		describe('clear', () => {

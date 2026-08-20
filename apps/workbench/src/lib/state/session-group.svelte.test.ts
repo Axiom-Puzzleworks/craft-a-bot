@@ -141,6 +141,29 @@ describe('createGroupSessionView', () => {
 		expect(view.pendingApproval).toBeUndefined();
 	});
 
+	/**
+	 * **WP31 stage D**: found while wiring a live `GroupRunRecord.rounds` off
+	 * `view.round` — PLAY drives the core's own `groupPlayLoop()` directly,
+	 * never through this view's `stepRound()` wrapper, so a `view.round` only
+	 * ever set inside that wrapper stayed `0` through an entire PLAY run.
+	 */
+	it('keeps view.round current when PLAY drives the group, not only when stepRound() is called directly', async () => {
+		const view = createGroupSessionView({
+			members: twoMembers(),
+			goalCardId: GOAL_CARD_ID,
+			baseTickDelayMs: 0
+		});
+
+		view.start('play');
+		for (let i = 0; i < 2000 && view.status !== 'finished'; i++) {
+			await Promise.resolve();
+		}
+
+		expect(view.status).toBe('finished');
+		expect(view.outcome).toBe('SUCCESS');
+		expect(view.round).toBe(12);
+	});
+
 	it('deliverInput reaches the shared world, and every event flows to onEvent', async () => {
 		const events: EngineEvent[] = [];
 		const view = createGroupSessionView({

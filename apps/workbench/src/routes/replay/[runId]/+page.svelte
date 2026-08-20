@@ -1,12 +1,13 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
-	import type { EngineEvent, RunRecord } from '@craftabot/core';
+	import type { EngineEvent, GroupRunRecord, RunRecord } from '@craftabot/core';
 	import StoryStrip from '$lib/components/play/StoryStrip.svelte';
 	import WorldView from '$lib/components/play/WorldView.svelte';
 	import { botExpression } from '$lib/bot-expression.js';
-	import { outcomeFace, outcomeWords, stepsWords, whenWords } from '$lib/scrapbook.js';
+	import { outcomeFace, outcomeWords, roundsWords, stepsWords, whenWords } from '$lib/scrapbook.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
+	import { projectGroupThrough } from '$lib/state/group-replay-projection.js';
 	import { projectThrough } from '$lib/state/run-projection.js';
 	import { preferences } from '$lib/state/preferences.svelte.js';
 
@@ -23,18 +24,32 @@
 	 * Slice a's constraint is what makes the story strip work unchanged: it
 	 * narrates from events alone, so it neither knows nor cares that this run
 	 * finished yesterday.
+	 *
+	 * **A group episode** (WP31, `24-…` §4.5) falls back the same way the
+	 * Workshop's Run Lab already does — `storage.getRun(id)` first,
+	 * `storage.getGroupRun(id)` second — and folds through `projectGroupThrough`
+	 * instead of the bare `projectThrough`, since a merged two-agent trace needs
+	 * the per-member isolation that fold provides (see its own header comment).
+	 * `actors` is built from both members' own `RunRecord`s and passed into
+	 * `narrate()` so the story strip names both robots (§4.4).
 	 */
 
 	const runId = $derived(page.params.runId ?? '');
 
 	let run = $state<RunRecord | undefined>(undefined);
+	/** Set instead of `run` when `runId` names a group episode, not a solo run. */
+	let groupRun = $state<GroupRunRecord | undefined>(undefined);
+	/** Each group member's own row — for the header's two names and `actors`. */
+	let groupMembers = $state<RunRecord[]>([]);
 	let events = $state<EngineEvent[]>([]);
 	let loaded = $state(false);
 	/** Which turn the scrubber is showing. */
 	let tick = $state(0);
 
 	const lastTick = $derived(events.length === 0 ? 0 : (events.at(-1)?.tick ?? 0));
-	const shown = $derived(projectThrough(events, tick));
+	const shown = $derived(
+		groupRun ? projectGroupThrough(events, tick).member : projectThrough(events, tick)
+	);
 	const shownEvents = $derived(events.filter((event) => event.tick <= tick));
 	const expression = $derived(
 		botExpression({
@@ -44,6 +59,26 @@
 			lastActionOk: shown.lastActionOk
 		})
 	);
+	/**
+	 * agentId → display name, for `StoryStrip` to narrate both robots by name
+	 * (`24-…` §4.4) — `undefined` for a solo replay, not an empty map: an empty
+	 * map would still make every beat resolve to the "unrecognised id" fallback
+	 * ("A robot: …"), which is not byte-identical to a solo replay's own
+	 * unlabelled captions.
+	 */
+	const actors = $derived(
+		groupRun ? new Map(groupMembers.map((member) => [member.agentId, member.agentName])) : undefined
+	);
+	/**
+	 * Teddy's own face reads the *group's* outcome, not one member's own
+	 * (matches the live duo route's `view.outcome`). `GroupRunRecord.outcome`
+	 * can be `'IN_PROGRESS'`, which `WorldView` has no special face for — the
+	 * same "nothing to say yet" `undefined` a solo run in progress gets.
+	 */
+	const worldOutcome = $derived.by(() => {
+		if (!groupRun) return shown.outcome;
+		return groupRun.outcome === 'IN_PROGRESS' ? undefined : groupRun.outcome;
+	});
 
 	$effect(() => {
 		void load(runId);
@@ -52,6 +87,12 @@
 	async function load(id: string): Promise<void> {
 		const storage = await appStorage();
 		run = await storage.getRun(id);
+		groupRun = run ? undefined : await storage.getGroupRun(id);
+		groupMembers = groupRun
+			? (
+					await Promise.all(groupRun.memberRunIds.map((memberId) => storage.getRun(memberId)))
+				).filter((member) => member !== undefined)
+			: [];
 		events = (await storage.getEvents(id)).map((row) => row.event);
 		// Open on the last turn: the natural question about a finished adventure
 		// is "how did it go", and the answer is at the end.
@@ -63,31 +104,43 @@
 <svelte:head><title>Watch it again — Craft A Bot</title></svelte:head>
 
 <main>
-	{#if loaded && !run}
+	{#if loaded && !run && !groupRun}
 		<p class="missing" data-testid="replay-missing">
 			That adventure is not in the scrapbook any more. The oldest ones get tidied away to make room
 			— pin the ones you want to keep.
 		</p>
-	{:else if run}
+	{:else if run || groupRun}
 		<header>
-			<a class="back" href={resolve('/scrapbook/[agentId]', { agentId: run.agentId })}>
-				← {run.agentName}'s adventures
-			</a>
-			<h1>
-				<span aria-hidden="true">{outcomeFace(run.outcome)}</span>
-				{outcomeWords(run.outcome)}
-			</h1>
-			<p class="detail" data-testid="replay-detail">
-				{run.agentName} · {stepsWords(run.ticks)} · {whenWords(run.startedAt)}
-			</p>
+			{#if groupRun}
+				<a class="back" href={resolve('/scrapbook')}>← Robot Friends adventures</a>
+				<h1>
+					<span aria-hidden="true">{outcomeFace(groupRun.outcome)}</span>
+					{outcomeWords(groupRun.outcome)}
+				</h1>
+				<p class="detail" data-testid="replay-detail">
+					{groupMembers.map((member) => member.agentName).join(' & ') || 'Robot Friends'} ·
+					{roundsWords(groupRun.rounds)} · {whenWords(groupRun.startedAt)}
+				</p>
+			{:else if run}
+				<a class="back" href={resolve('/scrapbook/[agentId]', { agentId: run.agentId })}>
+					← {run.agentName}'s adventures
+				</a>
+				<h1>
+					<span aria-hidden="true">{outcomeFace(run.outcome)}</span>
+					{outcomeWords(run.outcome)}
+				</h1>
+				<p class="detail" data-testid="replay-detail">
+					{run.agentName} · {stepsWords(run.ticks)} · {whenWords(run.startedAt)}
+				</p>
+			{/if}
 		</header>
 
 		<WorldView
 			world={shown.world}
 			saying={shown.saying}
 			{expression}
-			outcome={shown.outcome}
-			events={shownEvents}
+			outcome={worldOutcome}
+			events={shown.events}
 		/>
 
 		<div class="scrubber">
@@ -109,7 +162,7 @@
 			/>
 		</div>
 
-		<StoryStrip events={shownEvents} readAloud={preferences.readAloud} />
+		<StoryStrip events={shownEvents} readAloud={preferences.readAloud} {actors} />
 	{/if}
 </main>
 

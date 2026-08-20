@@ -1,4 +1,4 @@
-import type { RunRecord } from '@craftabot/core';
+import type { GroupRunRecord, RunRecord } from '@craftabot/core';
 
 /**
  * **How an adventure reads on the shelf** (`16-…` §1.4).
@@ -87,4 +87,17 @@ export function whenWords(iso: string, now: Date = new Date()): string {
  */
 export function runsForAgent(runs: readonly RunRecord[], agentId: string): RunRecord[] {
 	return runs.filter((run) => run.agentId === agentId);
+}
+
+/** "3 rounds", not "3 steps" — a shared adventure card's own unit (WP31, `24-…` §4.5). */
+export function roundsWords(rounds: number): string {
+	return rounds === 1 ? '1 round' : `${rounds} rounds`;
+}
+
+/** The group episodes either bot took part in, newest first — `runsForAgent`'s group counterpart. */
+export function groupsForAgent(
+	groups: readonly GroupRunRecord[],
+	agentId: string
+): GroupRunRecord[] {
+	return groups.filter((group) => group.memberAgentIds.includes(agentId));
 }

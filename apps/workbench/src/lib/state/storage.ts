@@ -88,15 +88,29 @@ export function byNewestFirst(a: { startedAt: string }, b: { startedAt: string }
 }
 
 /**
- * Which runs to drop to get back under the cap: unpinned only, oldest first.
+ * Which runs to drop to get back under the cap: unpinned, ungrouped only,
+ * oldest first.
  *
  * `07` §2 calls this "LRU" but §8 says "oldest-first", and we do not track
  * access times — so this is oldest-first by `startedAt`, and named that way to
  * avoid reading like a broken LRU.
+ *
+ * **A run carrying a `groupRunId` is never a candidate here** (WP31, `24-…`
+ * §4.5). `23-MULTI-AGENT-DESIGN.md` §8 left group episodes out of eviction
+ * entirely on the reasoning that there was "no live producer yet... worth
+ * getting right against real usage rather than guessing" — WP31 is that
+ * producer, and evicting one member's own row out from under a still-live
+ * `GroupRunRecord` would corrupt the episode (a shared adventure with a
+ * `memberRunIds` entry that 404s) rather than merely losing a run cleanly, the
+ * way an ordinary solo eviction does. Excluding grouped runs from the cap
+ * entirely — rather than half-designing a group-aware retention scheme here —
+ * is the same conservative choice `23-…` made, just drawn one layer deeper
+ * now that the condition it was waiting on is true.
  */
 export function selectRunsToEvict(runs: readonly RunRecord[], cap: number): string[] {
-	const unpinned = runs.filter((run) => !run.pinned);
-	const keptPinned = runs.length - unpinned.length;
+	const candidates = runs.filter((run) => run.groupRunId === undefined);
+	const unpinned = candidates.filter((run) => !run.pinned);
+	const keptPinned = candidates.length - unpinned.length;
 	const allowedUnpinned = Math.max(0, cap - keptPinned);
 	const excess = unpinned.length - allowedUnpinned;
 	if (excess <= 0) return [];

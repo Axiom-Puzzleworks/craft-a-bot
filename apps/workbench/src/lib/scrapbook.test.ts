@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import type { RunRecord } from '@craftabot/core';
-import { outcomeFace, outcomeWords, runsForAgent, stepsWords, whenWords } from './scrapbook.js';
+import type { GroupRunRecord, RunRecord } from '@craftabot/core';
+import {
+	groupsForAgent,
+	outcomeFace,
+	outcomeWords,
+	roundsWords,
+	runsForAgent,
+	stepsWords,
+	whenWords
+} from './scrapbook.js';
 
 /**
  * **How an adventure reads on the shelf** (`16-…` §1.4).
@@ -86,5 +94,37 @@ describe('runsForAgent', () => {
 
 	it('is empty for a bot with no adventures', () => {
 		expect(runsForAgent([run('a', 'bot-1')], 'bot-2')).toEqual([]);
+	});
+});
+
+describe('roundsWords', () => {
+	it('does not say "1 rounds"', () => {
+		expect(roundsWords(1)).toBe('1 round');
+	});
+
+	it('counts the rest', () => {
+		expect(roundsWords(0)).toBe('0 rounds');
+		expect(roundsWords(12)).toBe('12 rounds');
+	});
+});
+
+describe('groupsForAgent (WP31, `24-…` §4.5)', () => {
+	const group = (id: string, memberAgentIds: string[]): GroupRunRecord =>
+		({ id, memberAgentIds }) as unknown as GroupRunRecord;
+
+	it('keeps only the episodes either named bot took part in', () => {
+		const groups = [group('g1', ['robo', 'bolt']), group('g2', ['other-1', 'other-2'])];
+
+		expect(groupsForAgent(groups, 'robo').map((g) => g.id)).toEqual(['g1']);
+	});
+
+	it('finds an episode by either of its two members', () => {
+		const groups = [group('g1', ['robo', 'bolt'])];
+
+		expect(groupsForAgent(groups, 'bolt').map((g) => g.id)).toEqual(['g1']);
+	});
+
+	it('is empty for a bot with no shared adventures', () => {
+		expect(groupsForAgent([group('g1', ['robo', 'bolt'])], 'someone-else')).toEqual([]);
 	});
 });
