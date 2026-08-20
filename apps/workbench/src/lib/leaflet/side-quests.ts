@@ -42,5 +42,11 @@ export const SIDE_QUESTS: SideQuest[] = [
 		title: 'Who is watching?',
 		teaches:
 			'Swap the Safety Brick for a Watchbot on any card. The Safety Brick stops the fourth identical move; the Watchbot lets it happen and writes it down instead. Read the Flight Recorder afterwards to see the difference between a rule and an observer.'
+	},
+	{
+		id: 'party-line',
+		title: 'The party line',
+		teaches:
+			'Fit two robots with Radio and try "The party line" through Robot Friends. A message claims to be your teammate — but claiming is not proving. Read the trace afterwards and see what it says really sent it.'
 	}
 ];

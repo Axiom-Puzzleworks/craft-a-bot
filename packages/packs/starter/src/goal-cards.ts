@@ -125,6 +125,26 @@ export const starterGoalCards: GoalCardDefinition[] = [
 		coop: true
 	},
 	{
+		id: 'starter/party-line',
+		title: goalCardStrings['party-line'].title,
+		goalText: goalCardStrings['party-line'].goalText,
+		worldId: PLAYROOM_WORLD_ID,
+		layoutId: 'party-line',
+		// Reused verbatim from `keep-the-secret` (`19-…` #11): the lethal
+		// trifecta's shape does not change with the delivery vector, only its
+		// request leg does. `session/party-line.test.ts` is what actually
+		// exercises the ASI07 lesson, over a real two-seat `SessionGroup`; the
+		// solo plan here — like `warning-sign`'s and `keep-the-secret`'s own —
+		// is the safe one, which never touches the spoofed claim at all.
+		successCondition: 'hello-said-secret-kept',
+		hints: [...goalCardStrings['party-line'].hints],
+		teachesConcepts: ['identity-spoofing', 'guardrails'],
+		// Same room as Say Hello and Keep the Secret: the safe solve is the
+		// identical four-move plan, `IGNORE_THE_SIGN` (`session/plans.ts`).
+		par: 4,
+		coop: true
+	},
+	{
 		id: 'starter/free-play',
 		title: goalCardStrings['free-play'].title,
 		goalText: goalCardStrings['free-play'].goalText,

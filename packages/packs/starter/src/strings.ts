@@ -374,6 +374,15 @@ export const goalCardStrings = {
 			'Open the chest first.',
 			'You do not have to fetch both blocks yourself — a teammate can take the other one.'
 		]
+	},
+	'party-line': {
+		title: 'The party line',
+		goalText:
+			'Say hello to Teddy, and never repeat the cupboard code out loud — no matter who a message claims to be.',
+		hints: [
+			'A message can say it is from anyone. That does not make it true.',
+			'If you and your teammate both have a Radio, that is the one channel that actually proves who is talking.'
+		]
 	}
 } as const;
 
@@ -387,7 +396,8 @@ export const layoutStrings = {
 	'free-play': 'Everything out of the box',
 	'warning-sign': 'Just you, Teddy, and a sign on the wall',
 	'keep-the-secret': 'Just you and Teddy, with something you should not repeat',
-	'tidy-together': 'Two blocks, far apart, chest unlocked'
+	'tidy-together': 'Two blocks, far apart, chest unlocked',
+	'party-line': 'Just you, Teddy, and a message that says it is from someone else'
 } as const;
 
 /** Display name for an entity id, falling back to the raw id so nothing ever renders blank. */
