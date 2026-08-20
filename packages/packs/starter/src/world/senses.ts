@@ -1,7 +1,13 @@
 import type { Observation, WorldSenseDefinition } from '@craftabot/core';
 import { observationStrings, senseStrings } from '../strings.js';
 import { type Cell, inBounds, relativeDirection } from './grid.js';
-import { blockerAt, itemsInContainer, itemsOnFloorAt, type PlayroomState } from './state.js';
+import {
+	blockerAt,
+	itemsInContainer,
+	itemsOnFloorAt,
+	type PlayroomState,
+	type RadioMessage
+} from './state.js';
 import { carriedItem } from './actions.js';
 
 /**
@@ -16,9 +22,16 @@ export const SENSE_SIGHT = 'sight';
 export const SENSE_HEARING = 'hearing';
 export const SENSE_COMPASS = 'compass';
 export const SENSE_CLOCK = 'clock';
+export const SENSE_RADIO = 'radio';
 
 /** Canonical order, so an observation reads the same way every tick. */
-const CHANNEL_ORDER = [SENSE_SIGHT, SENSE_HEARING, SENSE_COMPASS, SENSE_CLOCK] as const;
+const CHANNEL_ORDER = [
+	SENSE_SIGHT,
+	SENSE_HEARING,
+	SENSE_COMPASS,
+	SENSE_CLOCK,
+	SENSE_RADIO
+] as const;
 
 export const playroomSenses: WorldSenseDefinition[] = [
 	{ id: SENSE_SIGHT, name: senseStrings.sight.name, description: senseStrings.sight.description },
@@ -32,7 +45,8 @@ export const playroomSenses: WorldSenseDefinition[] = [
 		name: senseStrings.compass.name,
 		description: senseStrings.compass.description
 	},
-	{ id: SENSE_CLOCK, name: senseStrings.clock.name, description: senseStrings.clock.description }
+	{ id: SENSE_CLOCK, name: senseStrings.clock.name, description: senseStrings.clock.description },
+	{ id: SENSE_RADIO, name: senseStrings.radio.name, description: senseStrings.radio.description }
 ];
 
 /** Offsets in reading order: where you stand, then clockwise from north. */
@@ -208,6 +222,32 @@ function compassLines(state: PlayroomState): string[] {
 	return lines;
 }
 
+/**
+ * Radio, per-recipient — unlike Hearing's one shared queue (WP29's own known
+ * gap, `23-…` §9), each agent gets its own cursor into the shared log, keyed
+ * by `state.bot.id` the same way `carriedItem` and every other seat-aware
+ * lookup already is. Advances past every message just seen, matching or not
+ * — a message on a channel this agent does not listen to is still *seen*,
+ * or it would be re-evaluated (and re-missed) forever.
+ */
+function radioMessagesFor(state: PlayroomState): RadioMessage[] {
+	const agentId = state.bot.id ?? 'solo';
+	const config = state.radioConfigs?.[agentId];
+	const all = state.radio ?? [];
+	const cursor = state.radioCursors?.[agentId] ?? 0;
+	const unseen = all.slice(cursor);
+
+	state.radioCursors ??= {};
+	state.radioCursors[agentId] = all.length;
+
+	if (!config) return [];
+	return unseen.filter(
+		(message) =>
+			message.channel === config.channel &&
+			(config.allowFrom === undefined || config.allowFrom.includes(message.from))
+	);
+}
+
 export function observePlayroom(state: PlayroomState, channels: string[]): Observation {
 	const enabled = CHANNEL_ORDER.filter((channel) => channels.includes(channel));
 	const lines: string[] = [];
@@ -251,6 +291,16 @@ export function observePlayroom(state: PlayroomState, channels: string[]): Obser
 			case SENSE_CLOCK: {
 				lines.push(observationStrings.clock(state.tick, state.tick));
 				data[SENSE_CLOCK] = { tick: state.tick, elapsedSeconds: state.tick };
+				break;
+			}
+			case SENSE_RADIO: {
+				const messages = radioMessagesFor(state);
+				lines.push(
+					messages.length > 0
+						? observationStrings.radioHeard(messages)
+						: observationStrings.radioNothing
+				);
+				data[SENSE_RADIO] = { messages };
 				break;
 			}
 		}

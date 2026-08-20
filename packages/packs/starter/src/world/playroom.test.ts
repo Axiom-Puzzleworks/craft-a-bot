@@ -27,8 +27,8 @@ describe('the Playroom world definition', () => {
 	it('declares its id, layouts, actions, senses, and predicates', () => {
 		expect(playroom.id).toBe(PLAYROOM_WORLD_ID);
 		expect(playroom.layouts).toHaveLength(10);
-		expect(playroom.actions).toHaveLength(7);
-		expect(playroom.senses).toHaveLength(4);
+		expect(playroom.actions).toHaveLength(8);
+		expect(playroom.senses).toHaveLength(5);
 		expect(Object.keys(playroom.predicates)).toHaveLength(7);
 	});
 

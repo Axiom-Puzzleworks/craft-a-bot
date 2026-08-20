@@ -62,6 +62,12 @@ export const actionStrings = {
 		description: 'Say something out loud. Everyone nearby hears it.',
 		text: 'What to say.'
 	},
+	radio_send: {
+		name: 'Radio',
+		description:
+			'Send a short message over the radio. Only robots listening on your channel hear it.',
+		text: 'What to send.'
+	},
 	celebrate: {
 		name: 'Celebrate',
 		description: 'Do a little victory dance — use this only when the goal is truly done.'
@@ -114,7 +120,11 @@ export const senseStrings = {
 	sight: { name: 'Sight', description: 'What is in your square and the eight around it.' },
 	hearing: { name: 'Hearing', description: 'Anything a person has said to you.' },
 	compass: { name: 'Compass', description: 'Where you are, and which way the big furniture is.' },
-	clock: { name: 'Clock', description: 'Which tick this is and how long the run has been going.' }
+	clock: { name: 'Clock', description: 'Which tick this is and how long the run has been going.' },
+	radio: {
+		name: 'Radio',
+		description: 'Messages other robots have sent on your own radio channel.'
+	}
 } as const;
 
 export const predicateStrings = {
@@ -196,6 +206,9 @@ export const narration = {
 		`${sentenceCase(container)} is locked. Something must open it — but not your bare hands.`,
 
 	said: (text: string) => `You say, "${text}"`,
+	radioSent: (text: string) => `You send over the radio, "${text}"`,
+	/** `radio_send` before `configure()` has run — should never actually happen (WP31 stage F). */
+	radioNotConfigured: 'Your radio has no channel set, so nothing goes out.',
 	celebrated: 'You do a little victory dance!',
 	/**
 	 * Celebrating twice does nothing, and says so (E12, `14-…` §3).
@@ -268,6 +281,10 @@ export const observationStrings = {
 
 	heard: (lines: string[]) => `You hear: ${lines.map((line) => `"${line}"`).join(' ')}`,
 	heardNothing: 'Nobody has said anything to you.',
+
+	radioHeard: (messages: { fromName: string; text: string }[]) =>
+		`Over the radio: ${messages.map((message) => `${message.fromName} says, "${message.text}"`).join(' ')}`,
+	radioNothing: 'Nothing new on the radio.',
 
 	clock: (tick: number, seconds: number) =>
 		seconds === 1

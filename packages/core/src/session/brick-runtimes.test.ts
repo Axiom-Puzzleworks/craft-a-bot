@@ -15,6 +15,7 @@ import {
 	collectContext,
 	collectGuardrails,
 	collectSenses,
+	collectWorldConfig,
 	disposeRuntimes,
 	notifyTickEnd
 } from './brick-runtimes.js';
@@ -342,6 +343,64 @@ describe('collecting what the bricks can sense', () => {
 		expect(collectSenses([{ slot: 'brain', kind: 'test/brain', name: 'b', runtime: {} }])).toEqual(
 			[]
 		);
+	});
+});
+
+describe('collecting the world config the bricks contribute (WP31 stage F)', () => {
+	const configures = (bag: Record<string, unknown>): BrickRuntime => ({
+		contributeWorldConfig: () => bag
+	});
+
+	it('merges every brick’s own bag into one, keyed by whatever id each entry names', () => {
+		expect(
+			collectWorldConfig([
+				{
+					slot: 'equipment',
+					kind: 'test/radio',
+					name: 'r',
+					runtime: configures({ 'radio/send': { channel: 'work' } })
+				},
+				{
+					slot: 'perception',
+					kind: 'test/visor',
+					name: 'v',
+					runtime: configures({ sight: { keen: true } })
+				}
+			])
+		).toEqual({ 'radio/send': { channel: 'work' }, sight: { keen: true } });
+	});
+
+	it('asks nothing of a brick with no world config to contribute', () => {
+		expect(
+			collectWorldConfig([{ slot: 'brain', kind: 'test/brain', name: 'b', runtime: {} }])
+		).toEqual({});
+	});
+
+	/**
+	 * A `Record` cannot hold two values under one key, so unlike
+	 * `collectCalls`/`collectSenses` (which keep every duplicate for a build
+	 * check to arbitrate) the later brick's entry simply wins — documented
+	 * behaviour, not silent data loss, since two bricks configuring the same
+	 * id is exactly as much a build question as two bricks offering the same
+	 * tool.
+	 */
+	it('lets a later brick’s entry for the same key win over an earlier one', () => {
+		expect(
+			collectWorldConfig([
+				{
+					slot: 'equipment',
+					kind: 'test/first',
+					name: 'f',
+					runtime: configures({ shared: 'first' })
+				},
+				{
+					slot: 'mobility',
+					kind: 'test/second',
+					name: 's',
+					runtime: configures({ shared: 'second' })
+				}
+			])
+		).toEqual({ shared: 'second' });
 	});
 });
 

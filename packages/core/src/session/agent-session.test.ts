@@ -1554,6 +1554,61 @@ describe('a host-supplied world (WP29)', () => {
 		// one handed in, this world's own state would never have moved.
 		expect(world.snapshot()).toMatchObject({ won: true });
 	});
+
+	/**
+	 * **WP31 stage F**: the door a fitted brick's own config crosses into the
+	 * world — `AgentHandle` itself never carries it. Proven here rather than
+	 * only against `collectWorldConfig` in isolation, because the thing that
+	 * actually matters is that `createSession` calls `world.configure` at
+	 * all, with the bag the fitted bricks actually produced.
+	 */
+	it('hands the world whatever the fitted bricks contributed via contributeWorldConfig', async () => {
+		const configure = vi.fn();
+		const world: WorldInstance = { ...createTinyWorld().create('only'), configure };
+
+		const registry = buildRegistry();
+		registry.registerPack({
+			id: 'configurer-pack',
+			name: 'Configurer pack',
+			version: '1.0.0',
+			requiresCore: '>=0.0.1',
+			brickKinds: [
+				{
+					id: 'test/configurer',
+					slot: 'equipment',
+					name: 'Configurer',
+					description: 'test/configurer',
+					realName: 'test/configurer',
+					realExplanation: 'test/configurer',
+					configSchema: z.object({}),
+					configVersion: 1,
+					defaults: {},
+					createRuntime: () => ({
+						contributeWorldConfig: () => ({ 'tiny/channel': { setting: 'on' } })
+					})
+				} as BrickKindDefinition
+			]
+		});
+
+		const spec = {
+			...buildSpec(),
+			schemaVersion: 2 as const,
+			identity: { displayName: 'Tinybot', boxArtSeed: 'seed' },
+			bricks: [
+				{ slot: 'equipment' as const, kind: 'test/configurer', configVersion: 1, config: {} }
+			]
+		};
+
+		createSession({
+			spec,
+			registry,
+			provider: createMockProvider({ script: [] }),
+			guardrails: [],
+			world
+		});
+
+		expect(configure).toHaveBeenCalledExactlyOnceWith({ 'tiny/channel': { setting: 'on' } });
+	});
 });
 
 describe('parentRunId (WP29)', () => {

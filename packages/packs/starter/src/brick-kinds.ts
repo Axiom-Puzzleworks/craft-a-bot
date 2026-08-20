@@ -15,6 +15,7 @@ import {
 	createStepBudgetGuardrail,
 	createTokenBudgetGuardrail
 } from '@craftabot/governance';
+import { z } from 'zod';
 import { starterBricks } from './bricks.js';
 import { qualifyPlayroomId } from './world/playroom.js';
 
@@ -59,6 +60,59 @@ function facesOf(id: string) {
 		realExplanation: brick.realExplanation
 	};
 }
+
+/**
+ * **The Radio brick** (WP31, `24-ROBOT-FRIENDS-DESIGN.md` §4.7) — the first
+ * brick this pack ships *after* the open contract, so unlike the six above it
+ * carries its own presentation directly rather than through `facesOf()`
+ * (`bricks.ts`'s own note on why).
+ *
+ * `channel` (which board this bot listens to) and `allowFrom` (which senders
+ * on it count as authenticated; absent means "anyone") are the two dials
+ * `14-…` §5.4 named. Both reach the Playroom through `contributeWorldConfig`
+ * — the door `AgentHandle` itself deliberately never carries a brick's own
+ * config through (`types/world.ts`) — keyed by the same qualified ids
+ * `contributeCalls`/`contributeSenses` name below, so `senses.ts`/`actions.ts`
+ * can look a bot's own config up by the one thing they are ever handed: which
+ * agent is asking.
+ */
+const radioConfigSchema = z.object({
+	channel: z.string().min(1),
+	/**
+	 * Raw agent ids, not names — `describeFitted` below only ever reports a
+	 * *count* ("trusting 1 other robot") rather than resolving them, because a
+	 * `BrickKindDefinition`'s own hooks are handed a brick's config and
+	 * nothing else: no registry, no fellow agent's own record to read a name
+	 * off. Full ids in the prompt would be true and useless; a count is both.
+	 */
+	allowFrom: z.array(z.string()).optional()
+});
+
+type RadioBrickConfig = z.infer<typeof radioConfigSchema>;
+
+const radioBrickKind: BrickKindDefinition<RadioBrickConfig> = {
+	id: 'starter/radio',
+	slot: 'equipment',
+	name: 'Radio Brick',
+	description: 'Send and hear short messages with another robot on the same channel.',
+	realName: 'Inter-agent messaging',
+	realExplanation:
+		"A message board the world hosts: sending appends to it, listening reads whatever has arrived since this bot last checked, narrowed to its own channel and, if set, to senders it trusts. Every message is attributed by the engine itself, honestly, regardless of what the message's own text claims — the distinction a real multi-agent system also has to get right between who sent something and who a message says sent it.",
+	configSchema: radioConfigSchema,
+	configVersion: 1,
+	defaults: { channel: 'shared' },
+	describeFitted: (config) =>
+		config.allowFrom !== undefined && config.allowFrom.length > 0
+			? `listens on channel "${config.channel}", trusting ${config.allowFrom.length === 1 ? 'one other robot' : `${config.allowFrom.length} other robots`}`
+			: `listens on channel "${config.channel}"`,
+	createRuntime: (config) => ({
+		contributeCalls: () => ({ actionIds: [qualifyPlayroomId('radio_send')] }),
+		contributeSenses: () => [qualifyPlayroomId('radio')],
+		contributeWorldConfig: () => ({
+			[qualifyPlayroomId('radio')]: { channel: config.channel, allowFrom: config.allowFrom }
+		})
+	})
+};
 
 export const starterBrickKinds: BrickKindDefinition[] = [
 	{
@@ -298,5 +352,6 @@ export const starterBrickKinds: BrickKindDefinition[] = [
 				return guardrails;
 			}
 		})
-	} as BrickKindDefinition
+	} as BrickKindDefinition,
+	radioBrickKind as BrickKindDefinition
 ];

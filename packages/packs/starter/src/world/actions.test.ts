@@ -17,7 +17,7 @@ function act(state: PlayroomState, id: string, args: unknown = {}) {
 }
 
 describe('action definitions', () => {
-	it('ships the seven V1 actions (02-AGENT-MODEL.md §2.5)', () => {
+	it('ships the seven V1 actions plus radio_send (02-AGENT-MODEL.md §2.5, WP31 stage F)', () => {
 		expect(playroomActions.map((action) => action.definition.id)).toEqual([
 			'move',
 			'pick_up',
@@ -25,6 +25,7 @@ describe('action definitions', () => {
 			'give',
 			'open',
 			'say',
+			'radio_send',
 			'celebrate'
 		]);
 	});
@@ -362,6 +363,37 @@ describe('say and celebrate', () => {
 		expect(result.ok).toBe(false);
 		expect(result.narration).toContain('judged by the room');
 		expect(result.stateDiff).toEqual([]);
+	});
+});
+
+describe('radio_send', () => {
+	it('refuses to send when the bot has no radio channel configured', () => {
+		const state = testState();
+		const result = act(state, 'radio_send', { text: 'Hello' });
+		expect(result.ok).toBe(false);
+		expect(result.narration).toContain('no channel set');
+		expect(state.radio).toBeUndefined();
+	});
+
+	it('appends an attributed message once a channel is configured', () => {
+		const state = testState({
+			tick: 3,
+			bot: { position: { x: 4, y: 3 }, id: 'robo' },
+			agents: [{ id: 'robo', name: 'Robo', position: { x: 4, y: 3 } }],
+			radioConfigs: { robo: { channel: 'work' } }
+		});
+		const result = act(state, 'radio_send', { text: 'Hello Bolt' });
+		expect(result.ok).toBe(true);
+		expect(state.radio).toEqual([
+			{ from: 'robo', fromName: 'Robo', channel: 'work', text: 'Hello Bolt', tick: 3 }
+		]);
+	});
+
+	it('falls back to "You" when no roster names the sender — a solo bot with a channel set', () => {
+		const state = testState({ tick: 1, radioConfigs: { solo: { channel: 'work' } } });
+		const result = act(state, 'radio_send', { text: 'Anyone there?' });
+		expect(result.ok).toBe(true);
+		expect(state.radio?.[0]).toMatchObject({ from: 'solo', fromName: 'You' });
 	});
 });
 

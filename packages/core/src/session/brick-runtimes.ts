@@ -151,6 +151,24 @@ export function collectSenses(runtimes: readonly FittedRuntime[]): string[] {
 }
 
 /**
+ * Every fitted brick's own world config, merged into one bag keyed by
+ * sense-channel or action id (WP31 stage F, `types/brick.ts`'s own
+ * `contributeWorldConfig`).
+ *
+ * Merged rather than kept as a list, unlike `collectSenses`/`collectCalls`:
+ * this bag is looked up by key, not iterated, so a later brick's entry for a
+ * key an earlier one also used simply wins — the same "a brick fitting the
+ * same slot twice is a build question, not something to arbitrate here"
+ * stance those two already take, just expressed as last-write instead of
+ * duplication, because a `Record` cannot hold two values under one key.
+ */
+export function collectWorldConfig(runtimes: readonly FittedRuntime[]): Record<string, unknown> {
+	const config: Record<string, unknown> = {};
+	for (const fitted of runtimes) Object.assign(config, fitted.runtime.contributeWorldConfig?.());
+	return config;
+}
+
+/**
  * Every rule the fitted bricks install, in slot order (WP14 slice 3d).
  *
  * This is the hook `14-…` §2.1 declared and nothing implemented: until now a

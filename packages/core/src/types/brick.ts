@@ -134,6 +134,20 @@ export interface BrickRuntime {
 	 * sweep shows.
 	 */
 	contributeSenses?(): string[];
+	/**
+	 * Config the world needs to act on a brick's behalf, keyed by whichever
+	 * sense-channel or action id it concerns (WP31 stage F).
+	 *
+	 * `contributeCalls`/`contributeSenses` tell the world *which* ids a brick
+	 * opens; some bricks also need the world to *use* per-agent config while
+	 * handling them — the Radio brick's own `channel`/`allowFrom`, needed to
+	 * tag an outgoing message and filter an incoming one. `AgentHandle`
+	 * deliberately carries identity only, never a fitted brick's config
+	 * (`types/world.ts`), so this is the door such config actually crosses:
+	 * collected once per session (`collectWorldConfig`) and handed to
+	 * `WorldInstance.configure?()` before the first tick, never per-call.
+	 */
+	contributeWorldConfig?(): Record<string, unknown>;
 	/** Policy (Safety, and later Monitor). */
 	contributeGuardrails?(): Guardrail[];
 	/** Learn or record once the tick has resolved (Memory). */

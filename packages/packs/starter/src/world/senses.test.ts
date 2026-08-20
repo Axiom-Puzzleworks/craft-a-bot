@@ -3,6 +3,7 @@ import {
 	SENSE_CLOCK,
 	SENSE_COMPASS,
 	SENSE_HEARING,
+	SENSE_RADIO,
 	SENSE_SIGHT,
 	observePlayroom,
 	playroomSenses
@@ -10,12 +11,13 @@ import {
 import { carried, chest, inContainer, onFloor, testState } from './test-state.js';
 
 describe('sense definitions', () => {
-	it('ships the four V1 channels (02-AGENT-MODEL.md §2.4)', () => {
+	it('ships the four V1 channels plus Radio (02-AGENT-MODEL.md §2.4, WP31 stage F)', () => {
 		expect(playroomSenses.map((sense) => sense.id)).toEqual([
 			SENSE_SIGHT,
 			SENSE_HEARING,
 			SENSE_COMPASS,
-			SENSE_CLOCK
+			SENSE_CLOCK,
+			SENSE_RADIO
 		]);
 	});
 });

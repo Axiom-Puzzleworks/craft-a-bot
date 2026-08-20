@@ -121,4 +121,19 @@ export interface WorldInstance {
 	 * a world's own behaviour is unchanged whether or not it implements it.
 	 */
 	forAgent?(handle: AgentHandle): WorldInstance;
+	/**
+	 * Per-agent config a fitted brick contributes, keyed by whichever
+	 * sense-channel or action id it concerns (WP31 stage F,
+	 * `types/brick.ts`'s own `BrickRuntime.contributeWorldConfig`).
+	 *
+	 * Called at most once, right after the session builds its runtimes and
+	 * before the first tick — never per-call, because the config it carries
+	 * (the Radio brick's own `channel`/`allowFrom`) is fixed for the spec's
+	 * whole lifetime. `AgentHandle` stays identity-only; this is the separate,
+	 * explicit door such config actually crosses, so that boundary never has
+	 * to bend to let a brick's own settings reach the world. A world that
+	 * omits this simply never receives any — every world written before this
+	 * stage, and any brick that never calls `contributeWorldConfig`.
+	 */
+	configure?(config: Record<string, unknown>): void;
 }

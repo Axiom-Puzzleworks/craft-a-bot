@@ -34,6 +34,7 @@ import {
 	collectContext,
 	collectGuardrails,
 	collectSenses,
+	collectWorldConfig,
 	disposeRuntimes,
 	notifyTickEnd
 } from './brick-runtimes.js';
@@ -151,6 +152,14 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		}
 	});
 	const fittedBricks = describeFittedBricks(deps.spec, registry);
+
+	/*
+	 * Hand the world whatever per-agent config its bricks contributed (WP31
+	 * stage F) — once, now that the runtimes exist and before anything can
+	 * possibly call `observe`/`perform`. `AgentHandle` stays identity-only;
+	 * this is the config-carrying door beside it (`types/world.ts`).
+	 */
+	world.configure?.(collectWorldConfig(runtimes));
 
 	/*
 	 * Policy: the bricks' rules first, then whatever the host adds (slice 3d).

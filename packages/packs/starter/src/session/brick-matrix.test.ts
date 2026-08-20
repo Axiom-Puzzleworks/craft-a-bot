@@ -20,7 +20,9 @@ import { buildSpec, runToCompletion, type SpecOverrides } from './harness.js';
  * listening to the switch. Two bricks have already shipped in exactly that
  * state (the Safety Brick before WP8, the Actions brick before WP9).
  *
- * Six bricks · 22 toggles · 5 valued controls.
+ * Six V1 bricks · 22 toggles · 5 valued controls, plus the Radio brick
+ * (WP31 stage F) — its own on/off switch, proved solo here; what it does
+ * once *on* needs a second seat and lives in `radio.test.ts`.
  */
 
 /** Runs a session and keeps the requests that reached the provider. */
@@ -65,6 +67,52 @@ async function run(
 
 const PING = () => obedient([{ say: 'Ping.', call: 'say', args: { text: 'Ping!' } }]);
 const toolNames = (requests: ChatRequest[]) => (requests[0]?.tools ?? []).map((tool) => tool.name);
+
+/**
+ * Radio (`starter/radio`) has no V1 counterpart — `buildSpec`'s own
+ * `SpecOverrides` only ever knew the six V1 bricks — so a Radio-fitted spec
+ * is built the same way `v2WithSafety` below patches in v2-only Safety
+ * fields: migrate to v2, then push the brick on directly.
+ */
+function withRadio(
+	overrides: SpecOverrides,
+	radio: { channel: string; allowFrom?: string[] } | null
+): AgentSpecV2 {
+	const migrated = migrateAgentSpec(buildSpec(overrides));
+	if ('kind' in migrated) throw new Error(migrated.message);
+	if (radio) {
+		migrated.bricks.push({
+			slot: 'equipment',
+			kind: 'starter/radio',
+			config: radio,
+			configVersion: 1
+		});
+	}
+	return migrated;
+}
+
+/** `run()`'s own shape, over an already-built spec rather than `SpecOverrides` — Radio has no V1 form to build from. */
+async function runSpec(spec: AgentSpecV2, script: Parameters<typeof runToCompletion>[0]['script']) {
+	const requests: ChatRequest[] = [];
+	const inner = createMockProvider({ script });
+	const provider: LLMProvider = {
+		...inner,
+		chat(request, opts) {
+			requests.push(request);
+			return inner.chat(request, opts);
+		}
+	};
+	const result = await runToCompletion({ script, spec, provider });
+	const observationOf = (index = 0) => {
+		const sensed = result.byType('sense').at(index);
+		return sensed?.type === 'sense' ? sensed.payload.observation.text : '';
+	};
+	const narrations = () =>
+		result
+			.byType('action.performed')
+			.map((event) => (event.type === 'action.performed' ? event.payload.result.narration : ''));
+	return { ...result, requests, observationOf, narrations };
+}
 
 // ─── Brain brick ─────────────────────────────────────────────────────────────
 
@@ -462,5 +510,44 @@ describe('Safety brick', () => {
 
 		expect(everythingRun.byType('approval.requested')).toHaveLength(5);
 		expect(riskyRun.byType('approval.requested')).toHaveLength(1);
+	});
+});
+
+// ─── Radio brick (WP31 stage F) ────────────────────────────────────────────
+
+/**
+ * Only the switch itself, solo: is `radio_send` offered, is the `radio`
+ * sense channel present. What the switch actually *does* — attribution,
+ * channel/allowFrom filtering, per-recipient delivery — needs a second seat
+ * to mean anything and lives in `session/radio.test.ts`, over a real
+ * `SessionGroup`.
+ */
+describe('Radio brick', () => {
+	it('off: radio_send is not offered to the model', async () => {
+		const result = await runSpec(withRadio({}, null), PING());
+		expect(toolNames(result.requests)).not.toContain('radio_send');
+	});
+
+	it('on: radio_send is offered to the model', async () => {
+		const result = await runSpec(withRadio({}, { channel: 'work' }), PING());
+		expect(toolNames(result.requests)).toContain('radio_send');
+	});
+
+	it('off: no mention of the radio in the observation', async () => {
+		const result = await runSpec(withRadio({}, null), PING());
+		expect(result.observationOf()).not.toMatch(/radio/i);
+	});
+
+	it('on: the radio channel reports in, even with nothing new to say', async () => {
+		const result = await runSpec(withRadio({}, { channel: 'work' }), PING());
+		expect(result.observationOf()).toContain('Nothing new on the radio');
+	});
+
+	it('off: calling radio_send anyway does not execute it', async () => {
+		const result = await runSpec(
+			withRadio({}, null),
+			obedient([{ say: 'Trying.', call: 'radio_send', args: { text: 'Hi' } }])
+		);
+		expect(result.narrations()[0]).toContain('not been built with any way to do it');
 	});
 });

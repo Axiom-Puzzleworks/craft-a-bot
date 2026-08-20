@@ -49,6 +49,19 @@ export type SpokenLine = {
 	position: Cell;
 };
 
+/** One message sent over Radio, in the shared log every channel is drawn from (WP31 stage F). */
+export type RadioMessage = {
+	/** The true sender, from the seat-swap trick — honest regardless of the message's own text. */
+	from: string;
+	fromName: string;
+	channel: string;
+	text: string;
+	tick: number;
+};
+
+/** A Radio brick's own config, written once via `WorldInstance.configure` and read by both ends. */
+export type RadioConfig = { channel: string; allowFrom?: string[] };
+
 export type PlayroomState = {
 	width: number;
 	height: number;
@@ -89,6 +102,25 @@ export type PlayroomState = {
 	 * omits it is simply not offering a second seat.
 	 */
 	coopStarts?: Cell[];
+	/**
+	 * Every message ever sent over Radio, in arrival order (WP31 stage F).
+	 * Shared across every channel value — a bot's own `RadioConfig.channel`
+	 * is what narrows this down to the board it actually listens to.
+	 */
+	radio?: RadioMessage[];
+	/**
+	 * Each agent's own read cursor into `radio` — the index of the first
+	 * message it has not yet seen. Keyed by `bot.id`, falling back to
+	 * `'solo'` on a layout that never opts into `forAgent` (WP31 stage F).
+	 */
+	radioCursors?: Record<string, number>;
+	/**
+	 * Each agent's own Radio brick config, set once via `configure()` before
+	 * the first tick and read by both the sending and the receiving end
+	 * (WP31 stage F) — `PlayroomState`'s own copy of config `AgentHandle`
+	 * deliberately never carries.
+	 */
+	radioConfigs?: Record<string, RadioConfig>;
 };
 
 /** One field-level change, as `ActionResult.stateDiff` for the trace drawer (03-UI-UX-DESIGN.md §5.2). */

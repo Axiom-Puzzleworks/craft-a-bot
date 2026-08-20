@@ -16,7 +16,7 @@ import {
 	playroomProgress
 } from './predicates.js';
 import { SENSE_SIGHT, observePlayroom, playroomSenses } from './senses.js';
-import type { PlayroomAgent, PlayroomState } from './state.js';
+import type { PlayroomAgent, PlayroomState, RadioConfig } from './state.js';
 
 export const PLAYROOM_WORLD_ID = 'starter/playroom';
 
@@ -99,6 +99,20 @@ function createPlayroomInstance(layoutId: string): WorldInstance {
 		}
 	}
 
+	/**
+	 * The one thing `configure()` currently does: absorb this agent's own
+	 * Radio brick config, keyed by `qualifyPlayroomId('radio')` — the same
+	 * key `starter/radio`'s `contributeWorldConfig` writes it under (WP31
+	 * stage F). Ignored entirely for a bot with no Radio brick fitted, since
+	 * the bag simply has nothing under that key.
+	 */
+	function applyWorldConfig(agentId: string, config: Record<string, unknown>): void {
+		const radioConfig = config[qualifyPlayroomId('radio')] as RadioConfig | undefined;
+		if (!radioConfig) return;
+		state.radioConfigs ??= {};
+		state.radioConfigs[agentId] = radioConfig;
+	}
+
 	function facadeFor(handle: AgentHandle): WorldInstance {
 		// Reserved at bind time, not on first use: `SessionGroup` calls
 		// `forAgent` for every member synchronously, in member order, before any
@@ -138,6 +152,9 @@ function createPlayroomInstance(layoutId: string): WorldInstance {
 				seat(handle);
 				if (!channels.includes(SENSE_SIGHT)) return undefined;
 				return playroomProgress[predicate]?.(state);
+			},
+			configure(config): void {
+				applyWorldConfig(handle.agentId, config);
 			}
 		};
 	}
@@ -171,6 +188,13 @@ function createPlayroomInstance(layoutId: string): WorldInstance {
 			// have to look at, so it is gated on Sight exactly as the observation is.
 			if (!channels.includes(SENSE_SIGHT)) return undefined;
 			return playroomProgress[predicate]?.(state);
+		},
+
+		configure(config): void {
+			// No `handle` on the solo path — `'solo'` is the same fallback key
+			// `state.bot.id ?? 'solo'` already uses everywhere else a Radio-aware
+			// handler needs one (`actions.ts`, `senses.ts`).
+			applyWorldConfig('solo', config);
 		},
 
 		forAgent: facadeFor

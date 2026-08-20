@@ -18,7 +18,8 @@ import {
 } from './state.js';
 
 /**
- * The Playroom's seven actions (02-AGENT-MODEL.md §2.5). Each pairs a Zod
+ * The Playroom's eight actions (02-AGENT-MODEL.md §2.5 — `radio_send` added
+ * WP31 stage F). Each pairs a Zod
  * schema — LLM tool arguments are a runtime boundary (10-CODING-STANDARDS.md §1)
  * — with the JSON schema derived from it, so the wire contract and the
  * validation can never drift apart.
@@ -379,6 +380,44 @@ const say = defineAction({
 	}
 });
 
+/**
+ * Sending over Radio (WP31 stage F, `24-…` §4.7). `riskTier: 'observe'` —
+ * talking is not consequential the way `open` is.
+ *
+ * The channel a message goes out on is never a model-supplied argument: it
+ * is the *sending* bot's own Radio brick config, written into
+ * `state.radioConfigs` by `configure()` before the first tick (the door
+ * `AgentHandle` itself deliberately never carries a brick's config through).
+ * Reading it here, keyed by `state.bot.id`, is the same "who is asking"
+ * trick every other seat-aware handler already uses.
+ */
+const radioSend = defineAction({
+	id: 'radio_send',
+	name: actionStrings.radio_send.name,
+	description: actionStrings.radio_send.description,
+	schema: z.object({ text: z.string().describe(actionStrings.radio_send.text) }),
+	riskTier: 'observe',
+	run: (state, args) => {
+		const fromId = state.bot.id ?? 'solo';
+		const config = state.radioConfigs?.[fromId];
+		if (!config) return fail(narration.radioNotConfigured);
+
+		const fromName = state.agents?.find((agent) => agent.id === fromId)?.name ?? 'You';
+		state.radio ??= [];
+		const before = state.radio.length;
+		state.radio.push({
+			from: fromId,
+			fromName,
+			channel: config.channel,
+			text: args.text,
+			tick: state.tick
+		});
+		return succeed(narration.radioSent(args.text), [
+			{ path: 'radio', from: before, to: state.radio.length }
+		]);
+	}
+});
+
 const celebrate = defineAction({
 	id: 'celebrate',
 	name: actionStrings.celebrate.name,
@@ -400,6 +439,7 @@ export const playroomActions: PlayroomAction[] = [
 	give,
 	open,
 	say,
+	radioSend,
 	celebrate
 ];
 

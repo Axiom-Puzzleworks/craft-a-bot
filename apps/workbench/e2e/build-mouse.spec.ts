@@ -15,17 +15,33 @@ async function newBot(page: Page): Promise<void> {
 	await expect(page.getByTestId('baseplate')).toBeVisible();
 }
 
-/** Lift a brick out of its tray well and drop it on a socket. */
+/**
+ * Lift a brick out of its tray well and drop it on a socket.
+ *
+ * The tray has no `overflow`/`max-height` (`PartsTray.svelte`) — it simply
+ * grows as more brick kinds are registered, so a well far enough down the
+ * list (and, symmetrically, a socket far enough down the baseplate) can sit
+ * outside the viewport `boundingBox()` was read against. Scrolling each side
+ * into view right before reading its box, rather than once for the whole
+ * gesture, is what keeps this working as the catalogue keeps growing
+ * (Radio joined the tray in WP31 stage F; Planner/Librarian/Connector are
+ * still to come). A real held mouse button survives the scroll fine — the
+ * page moving under a stationary pointer fires no `pointermove` of its own.
+ */
 async function dragBrickToSocket(page: Page, kind: BrickName): Promise<void> {
 	const brick = page.getByTestId(`tray-${BRICKS[kind].id}`);
 	const socket = page.getByTestId(`socket-${BRICKS[kind].slot}`);
 
+	await brick.scrollIntoViewIfNeeded();
 	const from = await brick.boundingBox();
-	const to = await socket.boundingBox();
-	if (!from || !to) throw new Error(`missing bounding box for ${kind}`);
+	if (!from) throw new Error(`missing bounding box for ${kind}`);
 
 	await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
 	await page.mouse.down();
+
+	await socket.scrollIntoViewIfNeeded();
+	const to = await socket.boundingBox();
+	if (!to) throw new Error(`missing bounding box for ${kind}`);
 	// Two moves: the first starts the carry, the second lands on the socket.
 	await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 8 });
 	await page.mouse.up();

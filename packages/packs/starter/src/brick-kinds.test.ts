@@ -25,15 +25,18 @@ describe('the starter brick kinds', () => {
 		expect(registry.getBrickKind('nobody/planner')).toBeUndefined();
 	});
 
-	it('fills all six chassis sockets, one kind each for now', () => {
+	it('fills all six chassis sockets — one kind each, except equipment (WP31 stage F: Radio joins Tools)', () => {
 		const bySlot = new Map<SlotId, number>();
 		for (const kind of starterBrickKinds) {
 			bySlot.set(kind.slot, (bySlot.get(kind.slot) ?? 0) + 1);
 		}
 		expect([...bySlot.keys()].sort()).toEqual([...SLOT_IDS].sort());
-		// V1's teaching-aid rule is one brick per slot; the contract permits
-		// more, which is how the Agent Builder chassis grows a second socket.
-		expect([...bySlot.values()].every((count) => count === 1)).toBe(true);
+		// V1's teaching-aid rule was one brick per slot; the contract permits
+		// more, which is exactly what lets a second equipment kind (Radio) join
+		// the first (Tools) rather than needing a second socket to exist for it.
+		expect(bySlot.get('equipment')).toBe(2);
+		const otherSlots = [...bySlot.entries()].filter(([slot]) => slot !== 'equipment');
+		expect(otherSlots.every(([, count]) => count === 1)).toBe(true);
 	});
 
 	it('can be listed by socket, which is what a parts tray needs', () => {
@@ -41,7 +44,13 @@ describe('the starter brick kinds', () => {
 		registry.registerPack(starterPack);
 
 		expect(registry.listBrickKinds('brain').map((kind) => kind.id)).toEqual(['starter/llm']);
-		expect(registry.listBrickKinds()).toHaveLength(6);
+		expect(
+			registry
+				.listBrickKinds('equipment')
+				.map((kind) => kind.id)
+				.sort()
+		).toEqual(['starter/radio', 'starter/tools']);
+		expect(registry.listBrickKinds()).toHaveLength(7);
 	});
 
 	it('gives every kind a toy face and a real face', () => {
@@ -54,11 +63,15 @@ describe('the starter brick kinds', () => {
 	});
 
 	it('says the same thing as the presentation data it came from', () => {
-		// Two sources for one brick's name is how they drift apart.
-		for (const kind of starterBrickKinds) {
-			const brick = starterBricks.find((candidate) => candidate.id === kind.id);
-			expect(brick?.name, kind.id).toBe(kind.name);
-			expect(brick?.realName, kind.id).toBe(kind.realName);
+		// Two sources for one brick's name is how they drift apart — checked for
+		// the six bricks old enough to have a separate `bricks.ts` entry at all.
+		// A brick that joined after the open contract (Radio, WP31 stage F)
+		// carries its presentation straight on the kind and has no second copy
+		// to drift from (`bricks.ts`'s own note on why).
+		for (const brick of starterBricks) {
+			const kind = starterBrickKinds.find((candidate) => candidate.id === brick.id);
+			expect(kind?.name, brick.id).toBe(brick.name);
+			expect(kind?.realName, brick.id).toBe(brick.realName);
 		}
 	});
 
