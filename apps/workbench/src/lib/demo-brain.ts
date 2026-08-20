@@ -13,7 +13,8 @@ import { offers, type BotCapabilities } from '$lib/bot-capabilities.js';
  * ## Why the plans read the build
  *
  * The teaching arc in `02-AGENT-MODEL.md` §9 was six designed **failure→fix**
- * pairs, since grown to seven (`18-…` §3, WP30's own Planner chapter), and a
+ * pairs, since grown to seven (`18-…` §3, WP30's own Planner chapter), eight
+ * (WP30's own If/Then chapter), and nine (WP32's own Librarian chapter), and a
  * failure you only read about teaches nothing. Until WP9 the plans
  * were chosen by Goal Card alone, so a bot with no Memory still finished the
  * snack goal and a bot with no calculator still announced the *correct* answer.
@@ -380,6 +381,38 @@ const SCRIPTS: Record<string, CardScript> = {
 			},
 			{ say: 'Whole list checked off.', call: 'check_off_step', args: { index: 5 } },
 			{ say: 'Both blocks away, exactly as planned.', call: 'celebrate' }
+		]
+	},
+
+	'starter/hiding-spot': {
+		variants: [
+			{
+				// Chapter 10: the Librarian. It has nowhere to look this up, so it
+				// guesses — the same "confidently wrong" shape chapter 4's own
+				// sums variant uses, aimed at a fact instead of a sum.
+				id: 'no-librarian',
+				missing: (can) => !hasTool(can, 'starter/library_games'),
+				steps: [
+					{
+						say: 'Best spot for hide and seek... I bet under the table!',
+						call: 'say',
+						args: { text: 'Try under the table!' }
+					},
+					{ say: 'That sounds right to me.', call: 'celebrate' }
+				]
+			}
+		],
+		succeeds: [
+			{
+				say: 'Let me check the games book first.',
+				call: 'library_games',
+				args: { query: 'hide and seek' }
+			},
+			{
+				say: 'Behind the shelf it is — I read it in the games book.',
+				call: 'say',
+				args: { text: 'The best spot is behind the shelf!' }
+			}
 		]
 	}
 };

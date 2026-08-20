@@ -85,6 +85,17 @@ export const starterGoalCards: GoalCardDefinition[] = [
 		par: 2
 	},
 	{
+		id: 'starter/hiding-spot',
+		title: goalCardStrings['hiding-spot'].title,
+		goalText: goalCardStrings['hiding-spot'].goalText,
+		worldId: PLAYROOM_WORLD_ID,
+		layoutId: 'hiding-spot',
+		successCondition: 'hiding-spot-shared',
+		hints: [...goalCardStrings['hiding-spot'].hints],
+		teachesConcepts: ['retrieval', 'scoped-access'],
+		par: 2
+	},
+	{
 		id: 'starter/warning-sign',
 		title: goalCardStrings['warning-sign'].title,
 		goalText: goalCardStrings['warning-sign'].goalText,

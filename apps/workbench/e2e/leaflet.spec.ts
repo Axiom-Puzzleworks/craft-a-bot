@@ -102,7 +102,7 @@ test('the leaflet greets a first-timer and can be waved away', async ({ page }) 
 	await expect(page.getByTestId('leaflet')).toBeVisible();
 });
 
-test('walks the six brick chapters plus Planner and If/Then, and collects their badges', async ({
+test('walks the six brick chapters plus Planner, If/Then and Librarian, and collects their badges', async ({
 	page
 }) => {
 	test.slow();
@@ -378,13 +378,66 @@ test('walks the six brick chapters plus Planner and If/Then, and collects their 
 	await expect(page.getByTestId('badge-earned')).toBeVisible();
 	await page.getByTestId('badge-dismiss').click();
 
-	// Chapter 9 was the last one: the leaflet has already switched to its own
-	// "all chapters built" screen, which shows every badge unconditionally —
-	// no `leaflet-badges` toggle to click, unlike the still-working-through-it
-	// view chapter 7's own check used.
-	await expect(page.getByTestId('leaflet-title')).toHaveText('All 9 chapters built!');
+	// ── Chapter 10: ask before you guess ──────────────────────────────────────
+	// WP32 stage C: a third chapter for a brick that joined after the open
+	// contract, and the first that needed a genuinely new goal card — every
+	// earlier chapter reused one already in the pack, and Librarian's own
+	// lesson (a fact nowhere else in the world) had no existing card whose
+	// win depended on one.
+	await expect(page.getByTestId('leaflet-title')).toHaveText('Ask before you guess');
+	await expect(currentStep(page)).toContainText('Hide and Seek Tip');
+
+	await backToBench(page);
+	await page.getByTestId('card-hiding-spot').click();
+	await go(page);
+	// Both scripted steps of the "no-librarian" run are world actions (say,
+	// then celebrate) — approval mode is still on from chapter 6, so both
+	// pause for a person. Checked one turn at a time, the same reason chapter
+	// 4's own check is: the second turn's celebrate overwrites the narration,
+	// so the wrong guess has to be read before it runs.
+	await stepPastApprovals(page, 1);
+	// The designed failure: a confident, wrong guess — "Sums for Teddy"'s own
+	// shape (chapter 4), aimed at a fact instead of a sum.
+	await expect(page.getByTestId('narration')).toContainText('under the table');
+	await stepPastApprovals(page, 1);
+	await expect(currentStep(page)).toContainText('Take the Scrapbook Brick off');
+
+	await backToBench(page);
+	// Librarian is `memory`'s other registered kind (`14-…` §5.5) — a
+	// builder's choice of one against Scrapbook, so it has to come off first.
+	// `socket-memory` is the testid on the socket's outer div (`Baseplate.svelte`);
+	// the focusable, Delete-handling element is the button nested inside it.
+	await page.getByTestId('socket-memory').getByRole('button').focus();
+	await page.keyboard.press('Delete');
+	await fitBrick(page, 'librarian');
+
+	await page.getByTestId('socket-memory').getByRole('button').click();
+	const librarianPanel = page.getByTestId('brick-controls-memory');
+	// The generic schema panel's `idList` control (`SchemaPanel.svelte`) commits
+	// on `onchange`, not `oninput` — unlike the hand-written If/Then panel above,
+	// a `fill()` alone leaves the value sitting unsaved until the field blurs.
+	await librarianPanel.getByLabel('Books').fill('games');
+	await librarianPanel.getByLabel('Books').press('Tab');
+	await expect(currentStep(page)).toContainText('checks the games book');
+
+	await go(page);
+	// Tick 1 is `library_games` — a tool, never gated by approval, the same
+	// reason `make_plan` and `look_up_manual` never are. Tick 2 is the `say`
+	// that actually wins the card, still gated.
+	await stepTimes(page, 1);
+	await stepPastApprovals(page, 1);
+	await expect(page.getByTestId('end-card')).toHaveAttribute('data-outcome', 'SUCCESS');
+	await expect(page.getByTestId('badge-earned')).toBeVisible();
+	await page.getByTestId('badge-dismiss').click();
+
+	// Chapter 10 was the last one: the leaflet has already switched to its
+	// own "all chapters built" screen, which shows every badge
+	// unconditionally — no `leaflet-badges` toggle to click, unlike the
+	// still-working-through-it view chapter 7's own check used.
+	await expect(page.getByTestId('leaflet-title')).toHaveText('All 10 chapters built!');
 	await expect(page.getByTestId('badge-planner-pro')).toHaveAttribute('data-earned', 'true');
 	await expect(page.getByTestId('badge-quick-reflexes')).toHaveAttribute('data-earned', 'true');
+	await expect(page.getByTestId('badge-well-read')).toHaveAttribute('data-earned', 'true');
 });
 
 /**

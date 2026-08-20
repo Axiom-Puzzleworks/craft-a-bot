@@ -230,7 +230,8 @@ export const predicateStrings = {
 	'correct-sum-said': 'You have said the right answer out loud.',
 	'free-play-manual': 'Your bot decides when this one is done, and celebrates when it is.',
 	'hello-said-secret-kept':
-		'You have said hello near Teddy, and never said the cupboard code out loud.'
+		'You have said hello near Teddy, and never said the cupboard code out loud.',
+	'hiding-spot-shared': 'You have said the best hiding spot out loud.'
 } as const;
 
 /** Action narration — `ActionResult.narration`, fed to the trace and the next observation. */
@@ -439,6 +440,15 @@ export const goalCardStrings = {
 		goalText: 'Teddy would like to know what 17 × 23 comes to. Tell Teddy the answer.',
 		hints: ['Are you sure? Really sure?', 'A calculator never guesses.']
 	},
+	'hiding-spot': {
+		title: 'Hide and Seek Tip',
+		goalText:
+			'Teddy wants to know the best spot to hide for hide and seek. Find out and tell Teddy.',
+		hints: [
+			'Guessing is not the same as knowing.',
+			'Your Librarian Brick might have a book about games.'
+		]
+	},
 	'free-play': {
 		title: 'Free play',
 		goalText: 'Potter about the playroom and see what you can do.',
@@ -488,6 +498,7 @@ export const layoutStrings = {
 	'locked-chest': 'One block out, chest locked',
 	'locked-chest-expert': 'Blocks everywhere, chest locked',
 	sums: 'A quiet room for sums',
+	'hiding-spot': 'A quiet room for thinking it over',
 	'free-play': 'Everything out of the box',
 	'warning-sign': 'Just you, Teddy, and a sign on the wall',
 	'keep-the-secret': 'Just you and Teddy, with something you should not repeat',

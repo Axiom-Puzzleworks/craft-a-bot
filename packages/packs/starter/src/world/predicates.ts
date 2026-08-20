@@ -80,6 +80,19 @@ function helloSaidSecretKept(state: PlayroomState): boolean {
 }
 
 /**
+ * The Librarian brick's own goal card (WP32 stage C, `14-…` §5.5): the answer
+ * ("behind the shelf," the games book's own hide-and-seek entry) is nowhere
+ * in `manual.ts`, so a bot with no Librarian fitted has nothing to look up at
+ * all and can only guess — the same shape `correctSumSaid` uses for
+ * hallucination, aimed at retrieval instead. No position check, for the same
+ * reason `correctSumSaid` has none: the lesson is *knowing the fact*, not
+ * finding a place.
+ */
+function hidingSpotShared(state: PlayroomState): boolean {
+	return state.spoken.some((line) => /shelf/i.test(line.text));
+}
+
+/**
  * Free play has no goal the world can check, so the *bot* declares the end of
  * it by celebrating (E12, `14-…` §3).
  *
@@ -107,7 +120,8 @@ export const playroomPredicates: Record<string, PlayroomPredicate> = {
 	'chest-open-and-blocks-inside': chestOpenAndBlocksInside,
 	'correct-sum-said': correctSumSaid,
 	'free-play-manual': freePlayManual,
-	'hello-said-secret-kept': helloSaidSecretKept
+	'hello-said-secret-kept': helloSaidSecretKept,
+	'hiding-spot-shared': hidingSpotShared
 };
 
 /**

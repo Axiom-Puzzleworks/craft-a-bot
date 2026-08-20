@@ -1,11 +1,11 @@
-import type { AgentSpec } from '@craftabot/core';
+import { migrateAgentSpec, type AgentSpec } from '@craftabot/core';
 import { describe, expect, it } from 'vitest';
 import { capabilitiesOf, type BotCapabilities } from './bot-capabilities.js';
 import { createRegistry } from './packs.js';
 import { createDemoBrain, demoVariantFor, hasDemoPlan } from './demo-brain.js';
 
 /**
- * The six teaching moments in `02-AGENT-MODEL.md` §9 are failure→fix pairs, so
+ * The teaching moments in `02-AGENT-MODEL.md` §9 are failure→fix pairs, so
  * what has to be true is that the *failure happens*. Before WP9 the demo brain
  * never saw the spec and every one of these ran the success script regardless —
  * the lesson was inert and nothing in the suite noticed.
@@ -144,6 +144,46 @@ describe('chapter 5 — retrieval', () => {
 				can(chest(['starter/calculator', 'starter/look_up_manual']))
 			)
 		).toBeUndefined();
+	});
+});
+
+describe('chapter 10 — the Librarian', () => {
+	/**
+	 * Librarian is a v2-only brick (`memory`'s other registered kind) — no
+	 * `AgentSpec['bricks']` key can express it, the same reason `chapters.test.ts`'s
+	 * own `withPlanner`/`withPlannerAndIfThen` migrate first.
+	 */
+	function withLibrarian(built: AgentSpec, books: string[]): BotCapabilities {
+		const migrated = migrateAgentSpec(built);
+		if ('kind' in migrated) throw new Error(migrated.message);
+		migrated.bricks.push({
+			slot: 'memory',
+			kind: 'starter/librarian',
+			config: { windowSize: 10, notebook: false, books },
+			configVersion: 1
+		});
+		return capabilitiesOf(migrated, createRegistry());
+	}
+
+	const hidingSpot = (bricks: Partial<AgentSpec['bricks']> = {}) => ({
+		...spec({ actions: ACTIONS, sense: SIGHT, ...bricks }),
+		goalCardId: 'starter/hiding-spot'
+	});
+
+	it('guesses when nothing can look the answer up — memory alone is not a library', () => {
+		expect(demoVariantFor('starter/hiding-spot', can(hidingSpot({ memory: MEMORY })))).toBe(
+			'no-librarian'
+		);
+	});
+
+	it('still guesses when the Librarian is fitted with the wrong book', () => {
+		const built = withLibrarian(hidingSpot(), ['history']);
+		expect(demoVariantFor('starter/hiding-spot', built)).toBe('no-librarian');
+	});
+
+	it('finds the answer once the Librarian carries the games book', () => {
+		const built = withLibrarian(hidingSpot(), ['games']);
+		expect(demoVariantFor('starter/hiding-spot', built)).toBeUndefined();
 	});
 });
 

@@ -152,6 +152,28 @@ describe('correct-sum-said', () => {
 	});
 });
 
+describe('hiding-spot-shared', () => {
+	it('accepts the answer on its own', () => {
+		expect(
+			check('hiding-spot-shared', testState({ spoken: [spoke('Behind the shelf!', 4, 3)] }))
+		).toBe(true);
+	});
+
+	it('accepts the answer inside a sentence, whatever the case', () => {
+		const state = testState({ spoken: [spoke('The best spot is BEHIND THE SHELF!', 4, 3)] });
+		expect(check('hiding-spot-shared', state)).toBe(true);
+	});
+
+	it('rejects a confidently wrong guess', () => {
+		const state = testState({ spoken: [spoke('Try under the table!', 4, 3)] });
+		expect(check('hiding-spot-shared', state)).toBe(false);
+	});
+
+	it('is false before the bot says anything', () => {
+		expect(check('hiding-spot-shared', testState())).toBe(false);
+	});
+});
+
 describe('free-play-manual', () => {
 	/**
 	 * > **Amended 2026-08-13 (WP11):** the bot's own celebration ends a free-play

@@ -637,6 +637,61 @@ export const CHAPTERS: Chapter[] = [
 				done: (ctx) => succeeded(ctx)
 			}
 		]
+	},
+	/**
+	 * WP32 stage C (`14-…` §5.5): the third chapter for a brick that joined
+	 * after the open contract, the same failure→fix template chapters 8 and 9
+	 * set as precedent — and the first that needed a genuinely new goal card.
+	 * Every earlier chapter reused one already in the pack; Librarian's own
+	 * lesson is retrieval of a fact nowhere else in the world, and there was
+	 * no existing card whose win depended on one. "Hide and Seek Tip"
+	 * (`starter/hiding-spot`) is built the same shape "Sums for Teddy"
+	 * already is — a bot with nothing to look the answer up in can only
+	 * guess, confidently, and be wrong — aimed at a fact instead of a sum.
+	 *
+	 * `fit-librarian`'s own step covers two actions as one, the same way
+	 * chapter 4's own `fit-tools` does (fit the brick, tick the box): here,
+	 * take the Scrapbook off and put the Librarian on in its place — `memory`'s
+	 * other registered kind, a builder's choice of one (`14-…` §5.5's own
+	 * dated amendment) — with "games" added to its books. Checked by
+	 * `hasTool`, the same way `fit-tools` is: the brick alone proves nothing
+	 * without the right book on the shelf.
+	 */
+	{
+		id: 'librarian',
+		number: 10,
+		title: 'Ask before you guess',
+		teaches:
+			'Scoped retrieval: a brick that can only look things up in the books it was actually given — the same shape a real retrieval system’s own document grant takes.',
+		badge: { id: 'well-read', name: 'Well Read' },
+		steps: [
+			{
+				id: 'hiding-spot-card',
+				text: 'Slot in "Hide and Seek Tip".',
+				anchor: ANCHORS.goalCards,
+				done: (ctx) => onCard(ctx, 'starter/hiding-spot')
+			},
+			{
+				id: 'guess',
+				latch: true,
+				text: 'Run it. Watch it guess confidently — and get it wrong.',
+				anchor: ANCHORS.thoughtBubble,
+				done: (ctx) => watched(ctx, 2)
+			},
+			{
+				id: 'fit-librarian',
+				text: 'Back to the bench. Take the Scrapbook Brick off, put the Librarian Brick on, and give it the games book.',
+				anchor: ANCHORS.trayLibrarian,
+				done: (ctx) => hasTool(ctx, 'starter/library_games')
+			},
+			{
+				id: 'answered',
+				latch: true,
+				text: 'Run it again. This time it checks the games book before it says a word.',
+				anchor: ANCHORS.stepButton,
+				done: (ctx) => succeeded(ctx)
+			}
+		]
 	}
 ];
 

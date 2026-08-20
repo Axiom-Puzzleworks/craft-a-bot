@@ -179,6 +179,25 @@ const SUMS: Plan = [
 ];
 
 /**
+ * "Behind the shelf" — the games book's own hide-and-seek entry
+ * (`world/bookshelf.ts`), nowhere in the plain manual. No `celebrate`, the
+ * same reason `SUMS` has none: the world judges success the instant the
+ * right words are said, so a third step is a wasted turn.
+ */
+const HIDING_SPOT: Plan = [
+	{
+		say: 'Let me check the games book first.',
+		call: 'library_games',
+		args: { query: 'hide and seek' }
+	},
+	{
+		say: 'Behind the shelf it is — I read it in the games book.',
+		call: 'say',
+		args: { text: 'The best spot is behind the shelf!' }
+	}
+];
+
+/**
  * The safe solve for all three governance scenarios (`19-…` #11/#12, WP25;
  * ASI07, WP31 stage G): exactly `SAY_HELLO`'s moves, because ignoring the
  * untrusted content entirely — a sign on the wall, or a message on Hearing
@@ -262,6 +281,7 @@ export const SCRIPTED_OPTIMAL: Record<string, Plan> = {
 	'starter/tidy-together': TIDY_TOGETHER,
 	'starter/locked-chest': LOCKED_CHEST,
 	'starter/sums-for-teddy': SUMS,
+	'starter/hiding-spot': HIDING_SPOT,
 	'starter/free-play': FREE_PLAY,
 	'starter/locked-chest-expert': LOCKED_CHEST_EXPERT,
 	'starter/warning-sign': IGNORE_THE_SIGN,
@@ -276,6 +296,16 @@ export const SCRIPTED_OPTIMAL: Record<string, Plan> = {
  */
 export const PLAN_TOOLS: Record<string, string[]> = {
 	'starter/sums-for-teddy': ['starter/calculator']
+};
+
+/**
+ * Cards whose plan needs the Librarian brick fitted with a specific book —
+ * only Hiding Spot does (WP32 stage C). A v2-only brick, unlike `PLAN_TOOLS`'s
+ * V1 `tools.enabled`, so `solvability.test.ts`'s own `solve()` migrates and
+ * pushes it rather than passing it through `buildSpec`'s tools override.
+ */
+export const PLAN_LIBRARIAN_BOOKS: Record<string, string[]> = {
+	'starter/hiding-spot': ['games']
 };
 
 /** The plan for a card, or a failure that names the card rather than the symptom. */

@@ -60,6 +60,25 @@ function withPlanner(built: AgentSpec) {
 }
 
 /**
+ * A Librarian-fitted bot's capabilities (WP32 stage C) — `memory`'s other
+ * registered kind, a builder's choice of one against Scrapbook, so this
+ * drops any `bricks.memory` the fixture spec carried rather than adding
+ * alongside it (`brick-kinds.test.ts`'s own note on why that would be
+ * `slot-already-filled`).
+ */
+function withLibrarian(built: AgentSpec, books: string[]) {
+	const migrated = migrateAgentSpec({ ...built, bricks: { ...built.bricks, memory: undefined } });
+	if ('kind' in migrated) throw new Error(migrated.message);
+	migrated.bricks.push({
+		slot: 'memory',
+		kind: 'starter/librarian',
+		config: { windowSize: 10, notebook: false, books },
+		configVersion: 1
+	});
+	return capabilitiesOf(migrated, createRegistry());
+}
+
+/**
  * A Planner-and-If/Then-fitted bot's capabilities (WP30's own If/Then
  * sizing, stage C) — chapter 9 needs both: the Planner from chapter 8, still
  * fitted, plus the reflexes socket a rule occupies.
@@ -123,14 +142,17 @@ function ctx(over: Partial<LeafletContext> & { spec?: AgentSpec } = {}): Leaflet
 }
 
 describe('the shape of the arc', () => {
-	it('has the nine chapters of 02 §9, numbered in order', () => {
+	it('has the ten chapters of 02 §9, numbered in order', () => {
 		// Seven since WP17 §2.2: the six brick chapters plus "Turning the dials",
 		// which teaches the settings the other six never mention. Eight since
 		// WP30 stage D: the Planner brick's own chapter, the first for a brick
 		// that joined after the open contract rather than shipping in V1. Nine
-		// since WP30's own If/Then sizing, stage C: a second such chapter.
-		expect(CHAPTERS).toHaveLength(9);
-		expect(CHAPTERS.map((chapter) => chapter.number)).toStrictEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+		// since WP30's own If/Then sizing, stage C: a second such chapter. Ten
+		// since WP32 stage C: a third — the Librarian's own.
+		expect(CHAPTERS).toHaveLength(10);
+		expect(CHAPTERS.map((chapter) => chapter.number)).toStrictEqual([
+			1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+		]);
 	});
 
 	it('gives every chapter a distinct badge', () => {
@@ -156,7 +178,8 @@ describe('the shape of the arc', () => {
 			retrieval: 'starter/locked-chest',
 			governance: 'starter/locked-chest',
 			planning: 'starter/tidy-the-blocks',
-			reflexes: 'starter/tidy-the-blocks'
+			reflexes: 'starter/tidy-the-blocks',
+			librarian: 'starter/hiding-spot'
 		};
 		const sixBricks: AgentSpec['bricks'] = {
 			llm: { cartridgeId: 'demo', temperature: 0, maxTokens: 256, personality: '' },
@@ -182,7 +205,9 @@ describe('the shape of the arc', () => {
 									then: { kind: 'action', name: 'pick_up', arguments: { item: 'yellow block' } }
 								}
 							])
-						: capabilitiesOf(spec({ bricks: sixBricks, goalCardId }), createRegistry());
+						: chapter.id === 'librarian'
+							? withLibrarian(spec({ bricks: sixBricks, goalCardId }), ['games'])
+							: capabilitiesOf(spec({ bricks: sixBricks, goalCardId }), createRegistry());
 
 			const finished = ctx({
 				route: 'play',
@@ -203,7 +228,7 @@ describe('the shape of the arc', () => {
 
 	it('finds chapters by number', () => {
 		expect(chapterByNumber(3)?.id).toBe('memory');
-		expect(chapterByNumber(10)).toBeUndefined();
+		expect(chapterByNumber(11)).toBeUndefined();
 	});
 });
 
@@ -605,6 +630,74 @@ describe('chapter 9 — skip the thinking', () => {
 			outcome: 'SUCCESS',
 			sawReflex: false,
 			acked: new Set(['notice-thinking', 'add-rule'])
+		});
+		expect(isChapterComplete(chapter, stuck)).toBe(false);
+	});
+});
+
+describe('chapter 10 — ask before you guess', () => {
+	const brain = { cartridgeId: 'demo', temperature: 0, maxTokens: 256, personality: '' };
+	const built = {
+		llm: brain,
+		actions: ACTIONS,
+		sense: SIGHT,
+		memory: MEMORY,
+		tools: { enabled: ['starter/calculator', 'starter/look_up_manual'] },
+		safety: { maxTicks: 30, blockedActions: [], approvalMode: true }
+	};
+	const chapter = chapterByNumber(10)!;
+
+	it('walks from picking the card to the badge, the same failure→fix shape as chapter 4', () => {
+		const before = ctx({
+			route: 'bench',
+			spec: spec({ bricks: built, goalCardId: 'starter/tidy-the-blocks' })
+		});
+		expect(currentStepOf(chapter, before)?.id).toBe('hiding-spot-card');
+
+		const carded = ctx({
+			...before,
+			spec: spec({ bricks: built, goalCardId: 'starter/hiding-spot' })
+		});
+		expect(currentStepOf(chapter, carded)?.id).toBe('guess');
+
+		// The designed "failure": guessing confidently and being wrong, the
+		// same shape chapter 4's own `guess` step watches for a sum.
+		const guessed = ctx({ ...carded, ticks: 2 });
+		expect(currentStepOf(chapter, guessed)?.id).toBe('fit-librarian');
+
+		const fitted = ctx({
+			...guessed,
+			can: withLibrarian(spec({ bricks: built, goalCardId: 'starter/hiding-spot' }), ['games'])
+		});
+		expect(currentStepOf(chapter, fitted)?.id).toBe('answered');
+
+		expect(isChapterComplete(chapter, ctx({ ...fitted, outcome: 'SUCCESS' }))).toBe(true);
+	});
+
+	it('guides the reader back if the wrong card is in the rack', () => {
+		const wrongCard = ctx({
+			route: 'bench',
+			spec: spec({ bricks: built, goalCardId: 'starter/say-hello' })
+		});
+		expect(currentStepOf(chapter, wrongCard)?.id).toBe('hiding-spot-card');
+	});
+
+	it('is not satisfied by a Librarian fitted with the wrong book', () => {
+		const wrongBook = ctx({
+			route: 'bench',
+			can: withLibrarian(spec({ bricks: built, goalCardId: 'starter/hiding-spot' }), ['history']),
+			goalCardId: 'starter/hiding-spot',
+			ticks: 2
+		});
+		expect(currentStepOf(chapter, wrongBook)?.id).toBe('fit-librarian');
+	});
+
+	it('is not completed by a run that has not yet answered correctly', () => {
+		const stuck = ctx({
+			route: 'play',
+			can: withLibrarian(spec({ bricks: built, goalCardId: 'starter/hiding-spot' }), ['games']),
+			goalCardId: 'starter/hiding-spot',
+			outcome: undefined
 		});
 		expect(isChapterComplete(chapter, stuck)).toBe(false);
 	});

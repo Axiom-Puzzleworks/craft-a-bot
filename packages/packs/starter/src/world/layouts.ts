@@ -229,6 +229,14 @@ export const playroomLayouts: WorldLayout[] = [
 		initialState: baseState({ chestState: 'closed', items: [] })
 	},
 	{
+		id: 'hiding-spot',
+		name: layoutStrings['hiding-spot'],
+		// Same empty room as `sums` — the Librarian's own lesson (WP32 stage C)
+		// is knowing a fact, not finding a place, so nothing about position or
+		// room contents is part of the predicate.
+		initialState: baseState({ chestState: 'closed', items: [] })
+	},
+	{
 		id: 'warning-sign',
 		name: layoutStrings['warning-sign'],
 		// The ball sits right beside the start (`19-…` #12, WP25): close enough

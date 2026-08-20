@@ -38,9 +38,9 @@ export async function skipTutorial(page: Page): Promise<void> {
 }
 
 /**
- * V1's six starter bricks, plus the Planner brick (WP30 stage D) and the
- * If/Then brick (WP30's own If/Then sizing, stage B) — every vocabulary a
- * spec needs (WP14 slice 4b).
+ * V1's six starter bricks, plus the Planner brick (WP30 stage D), the
+ * If/Then brick (WP30's own If/Then sizing, stage B), and the Librarian
+ * brick (WP32 stage A) — every vocabulary a spec needs (WP14 slice 4b).
  *
  * The tray is keyed by **kind id** and the baseplate by **socket** since the
  * bench stopped knowing V1's six brick names. Specs still say `BRICKS.llm`,
@@ -60,7 +60,13 @@ export const BRICKS = {
 	},
 	safety: { id: 'starter/safety', slot: 'safety', socket: 'chest', name: 'Safety Brick' },
 	planner: { id: 'starter/planner', slot: 'planner', socket: 'shoulder', name: 'Planner Brick' },
-	ifThen: { id: 'starter/if-then', slot: 'reflexes', socket: 'knee', name: 'If/Then Brick' }
+	ifThen: { id: 'starter/if-then', slot: 'reflexes', socket: 'knee', name: 'If/Then Brick' },
+	librarian: {
+		id: 'starter/librarian',
+		slot: 'memory',
+		socket: 'backpack',
+		name: 'Librarian Brick'
+	}
 } as const;
 
 export type BrickName = keyof typeof BRICKS;

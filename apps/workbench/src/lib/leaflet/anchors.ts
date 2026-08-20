@@ -32,6 +32,8 @@ export const ANCHORS = {
 	trayPlanner: 'tray-starter/planner',
 	/** WP30's own If/Then sizing, stage C — chapter 9 points at it directly. */
 	trayIfThen: 'tray-starter/if-then',
+	/** WP32 stage C — chapter 10 points at it directly. */
+	trayLibrarian: 'tray-starter/librarian',
 	baseplate: 'baseplate',
 	goalCards: 'goal-cards',
 	brickPanel: 'brick-panel',
