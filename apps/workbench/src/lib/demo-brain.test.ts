@@ -155,10 +155,12 @@ describe('the brain itself', () => {
 	});
 
 	it('still answers for a card with no script at all', () => {
-		expect(hasDemoPlan('starter/tidy-the-blocks')).toBe(false);
-		expect(demoVariantFor('starter/tidy-the-blocks', can(spec()))).toBeUndefined();
+		// Free Play has no fixed goal to script against — 'starter/tidy-the-blocks'
+		// served this role until WP30 stage D gave it a real scripted pair.
+		expect(hasDemoPlan('starter/free-play')).toBe(false);
+		expect(demoVariantFor('starter/free-play', can(spec()))).toBeUndefined();
 		// The wanderer is itself honest: a bot that looks busy and achieves nothing.
-		expect(createDemoBrain('starter/tidy-the-blocks', can(spec()))).toBeDefined();
+		expect(createDemoBrain('starter/free-play', can(spec()))).toBeDefined();
 	});
 
 	it('falls back to the success script when handed no spec at all', () => {

@@ -29,6 +29,7 @@ export const ANCHORS = {
 	trayMemory: 'tray-starter/memory',
 	trayTools: 'tray-starter/tools',
 	traySafety: 'tray-starter/safety',
+	trayPlanner: 'tray-starter/planner',
 	baseplate: 'baseplate',
 	goalCards: 'goal-cards',
 	brickPanel: 'brick-panel',
@@ -38,6 +39,8 @@ export const ANCHORS = {
 	stepButton: 'step-button',
 	thoughtBubble: 'thought-bubble',
 	flightRecorder: 'flight-recorder',
+	/** The live checklist, WP30 stage C — chapter 8 points at it directly. */
+	plannerChecklist: 'planner-checklist',
 	/*
 	 * The composed-prompt row itself, not the drawer around it (`16-…` §2.2).
 	 * Chapter 2 asks the reader to "read the first prompt" and pointed at the

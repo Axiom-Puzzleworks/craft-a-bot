@@ -4,8 +4,9 @@ import { offers, type BotCapabilities } from '$lib/bot-capabilities.js';
 import { ANCHORS, type AnchorId } from './anchors.js';
 
 /**
- * The Instruction Leaflet's six chapters (`02-AGENT-MODEL.md` §9,
- * `03-UI-UX-DESIGN.md` §6).
+ * The Instruction Leaflet's chapters (`02-AGENT-MODEL.md` §9,
+ * `03-UI-UX-DESIGN.md` §6) — six for V1's own bricks, plus "Turning the
+ * dials" and, since WP30 stage D, the Planner brick's own chapter.
  *
  * Written as **data, not components**, for one reason: the roadmap's definition
  * of done is "every designed teaching moment reachable", and a claim like that
@@ -481,6 +482,64 @@ export const CHAPTERS: Chapter[] = [
 				text: 'Switch on its notebook. Now it can write things down and read them back — memory it chooses, rather than memory it is given.',
 				anchor: ANCHORS.brickPanel,
 				done: (ctx) => ctx.can?.notebook === true
+			}
+		]
+	},
+	/**
+	 * WP30 stage D (`18-…` §3): the first chapter for a brick that joined
+	 * *after* the open contract (`14-…` §5.1). Everything above teaches one of
+	 * V1's six bricks or the dials on them; this is the same failure→fix
+	 * template, aimed at a brick a pack contributed rather than one core ships.
+	 *
+	 * The failure is softer than chapters 1–5's: a bot with no Planner still
+	 * reaches the goal — planning changes *how legibly*, not *whether*. So the
+	 * "watch it fail" step watches indecision, not a stalled run: turn by turn
+	 * deciding, no list, no order. `demo-brain.ts`'s `starter/tidy-the-blocks`
+	 * entry is deliberately a new card, never touched by chapters 1–7 — reusing
+	 * one of theirs would mean a fully-built reader's own bot (which has no
+	 * Planner yet at any point before this chapter) hijacks *their* `succeeds`
+	 * path the moment every earlier variant's gap was already closed.
+	 */
+	{
+		id: 'planning',
+		number: 8,
+		title: 'Think it through',
+		teaches:
+			'Plan-then-execute: laying the whole job out before taking a single step, then following the list instead of deciding turn by turn.',
+		badge: { id: 'planner-pro', name: 'Planner Pro' },
+		steps: [
+			{
+				id: 'tidy-card',
+				text: 'Slot in "Tidy the blocks" — two blocks, one chest, several trips.',
+				anchor: ANCHORS.goalCards,
+				done: (ctx) => onCard(ctx, 'starter/tidy-the-blocks')
+			},
+			{
+				id: 'wing-it',
+				latch: true,
+				text: 'Run it. Watch it decide what to do next, turn by turn, with no list in mind.',
+				anchor: ANCHORS.stepButton,
+				done: (ctx) => watched(ctx, 4)
+			},
+			{
+				id: 'fit-planner',
+				text: 'Back to the bench. Add the Planner brick.',
+				anchor: ANCHORS.trayPlanner,
+				done: (ctx) => filled(ctx, 'planner')
+			},
+			{
+				id: 'see-plan',
+				latch: true,
+				text: 'Run it again. First it lays out the whole job — watch the checklist appear.',
+				anchor: ANCHORS.plannerChecklist,
+				done: (ctx) => ctx.usedTools.includes('make_plan')
+			},
+			{
+				id: 'planned',
+				latch: true,
+				text: 'It ticks off each step as it goes, and follows the list straight through.',
+				anchor: ANCHORS.stepButton,
+				done: (ctx) => succeeded(ctx)
 			}
 		]
 	}

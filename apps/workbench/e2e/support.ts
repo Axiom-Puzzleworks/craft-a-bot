@@ -38,7 +38,8 @@ export async function skipTutorial(page: Page): Promise<void> {
 }
 
 /**
- * The six starter bricks, in every vocabulary a spec needs (WP14 slice 4b).
+ * V1's six starter bricks, plus the Planner brick (WP30 stage D) — every
+ * vocabulary a spec needs (WP14 slice 4b).
  *
  * The tray is keyed by **kind id** and the baseplate by **socket** since the
  * bench stopped knowing V1's six brick names. Specs still say `BRICKS.llm`,
@@ -56,7 +57,8 @@ export const BRICKS = {
 		socket: 'wheels',
 		name: 'Hands & Wheels Brick'
 	},
-	safety: { id: 'starter/safety', slot: 'safety', socket: 'chest', name: 'Safety Brick' }
+	safety: { id: 'starter/safety', slot: 'safety', socket: 'chest', name: 'Safety Brick' },
+	planner: { id: 'starter/planner', slot: 'planner', socket: 'shoulder', name: 'Planner Brick' }
 } as const;
 
 export type BrickName = keyof typeof BRICKS;

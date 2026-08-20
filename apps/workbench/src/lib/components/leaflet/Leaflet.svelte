@@ -99,7 +99,7 @@
 		{:else if leaflet.chapter}
 			{@const chapter = leaflet.chapter}
 			<header>
-				<p class="eyebrow">Chapter {chapter.number} of 6</p>
+				<p class="eyebrow">Chapter {chapter.number} of {CHAPTERS.length}</p>
 				<h2 data-testid="leaflet-title">{chapter.title}</h2>
 			</header>
 			<p class="teaches" data-testid="leaflet-teaches">{chapter.teaches}</p>

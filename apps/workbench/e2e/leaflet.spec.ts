@@ -44,6 +44,34 @@ async function stepTimes(page: Page, times: number): Promise<void> {
 	}
 }
 
+/**
+ * `stepTimes`, for a run whose Safety Brick still has "Before every action"
+ * switched on (`08 §3`) — chapter 6 turns it on and nothing later turns it
+ * back off, so every tick from chapter 7 onward proposes an action and pauses
+ * for it. One `STEP` click starts a tick and reaches the pause; `approve-allow`
+ * lets the paused action through and finishes it, which is what "one turn"
+ * means here.
+ */
+async function stepPastApprovals(page: Page, times: number): Promise<void> {
+	for (let turn = 0; turn < times; turn++) {
+		const stepButton = page.getByTestId('step');
+		if (!(await stepButton.isEnabled())) break;
+		await stepButton.click();
+		// The pause arrives once the model finishes thinking, not the instant
+		// the click registers — waited for rather than polled once, so a still-
+		// streaming reply is not mistaken for a tick with nothing to approve.
+		// Short on purpose: the demo brain never touches the network, so a real
+		// pause shows up in well under this, and a tool-call tick (never
+		// approval-gated) should not cost this run a slow three-second wait.
+		await page
+			.getByTestId('approval-card')
+			.waitFor({ state: 'visible', timeout: 800 })
+			.then(() => page.getByTestId('approval-allow').click())
+			.catch(() => {});
+		if (await page.getByTestId('end-card').isVisible()) break;
+	}
+}
+
 async function backToBench(page: Page): Promise<void> {
 	const endCard = page.getByTestId('end-card');
 	if (await endCard.isVisible()) {
@@ -74,7 +102,7 @@ test('the leaflet greets a first-timer and can be waved away', async ({ page }) 
 	await expect(page.getByTestId('leaflet')).toBeVisible();
 });
 
-test('walks the six brick chapters and collects their badges', async ({ page }) => {
+test('walks the six brick chapters plus Planner, and collects their badges', async ({ page }) => {
 	test.slow();
 	await page.goto('/');
 	await expect(page.getByTestId('leaflet')).toBeVisible();
@@ -207,11 +235,11 @@ test('walks the six brick chapters and collects their badges', async ({ page }) 
 	await page.getByTestId('badge-dismiss').click();
 
 	/*
-	 * Chapter 7 ("Turning the dials") hands over here, and its own walk lives in
-	 * `chapters.test.ts` alongside every other chapter's. Driving it through the
-	 * browser as well would add a minute to the slowest test in the suite to
-	 * re-prove predicates a unit walk already pins — what only a browser can
-	 * settle is that the arc *reaches* it, which is what this asserts.
+	 * Chapter 7 ("Turning the dials") is mostly reading rather than doing —
+	 * its full step-by-step walk lives in `chapters.test.ts` alongside every
+	 * other chapter's, so what follows here confirms only that the arc
+	 * *reaches* it and clicks it closed on the way to chapter 8, rather than
+	 * re-proving each of its four reading steps in a browser.
 	 */
 	await page.getByRole('link', { name: /Back to the bench/ }).click();
 	await expect(page.getByTestId('baseplate')).toBeVisible();
@@ -245,6 +273,66 @@ test('walks the six brick chapters and collects their badges', async ({ page }) 
 	]) {
 		await expect(page.getByTestId(`side-quest-${quest}`)).toBeVisible();
 	}
+
+	// ── Chapter 7: turning the dials ──────────────────────────────────────────
+	// The four reading steps, then the one genuinely checked control.
+	for (let step = 0; step < 4; step++) {
+		await page.getByTestId('leaflet-ack').click();
+	}
+	await expect(currentStep(page)).toContainText('notebook');
+	await page.getByTestId('socket-memory').getByRole('button').click();
+	await page
+		.getByTestId('brick-controls-memory')
+		.getByRole('checkbox', { name: /Notebook/ })
+		.check();
+	await expect(page.getByTestId('badge-earned')).toBeVisible();
+	await page.getByTestId('badge-dismiss').click();
+
+	// ── Chapter 8: think it through ───────────────────────────────────────────
+	// WP30 stage D (`18-…` §3): the first chapter for a brick that joined after
+	// the open contract, e2e'd in full like chapters 1–6 rather than only
+	// "reached" the way chapter 7 was — the roadmap's own definition of done
+	// for this WP.
+	await expect(page.getByTestId('leaflet-title')).toHaveText('Think it through');
+	await expect(currentStep(page)).toContainText('Tidy the blocks');
+
+	await page.getByTestId('card-tidy-the-blocks').click();
+	await go(page);
+	// Approval mode is still on from chapter 6 — nothing in the arc turns it
+	// back off, so every tick from here on pauses for a person before acting.
+	await stepPastApprovals(page, 4);
+	// The designed "failure": not a stalled run — the bot reaches the goal
+	// either way. What is missing is legibility: no list, deciding turn by
+	// turn. `demo-brain.ts`'s own `no-planner` variant thinks exactly that
+	// out loud — the thought bubble shows the fourth turn's, deciding what
+	// to fetch next rather than following a list.
+	await expect(page.getByTestId('thought-text')).toContainText('while I am out here');
+
+	await backToBench(page);
+	await fitBrick(page, 'planner');
+	await go(page);
+	// `make_plan` is a tool, not a world action — like chapter 6's own
+	// `look_up_manual`, it never pauses for approval, so the plain `stepTimes`
+	// is enough for this first tick.
+	await stepTimes(page, 1);
+	// The checklist widget WP30 stage C built, showing the plan the bot just
+	// laid out before taking a single real step.
+	await expect(page.getByTestId('planner-checklist')).toContainText('Get the yellow block');
+
+	// The rest of the run is real world actions (move, pick up, open, put
+	// down, celebrate) interleaved with more tool calls — back to pausing for
+	// approval on every one that actually moves anything.
+	await stepPastApprovals(page, 20);
+	await expect(page.getByTestId('end-card')).toHaveAttribute('data-outcome', 'SUCCESS');
+	await expect(page.getByTestId('badge-earned')).toBeVisible();
+	await page.getByTestId('badge-dismiss').click();
+
+	// Chapter 8 was the last one: the leaflet has already switched to its own
+	// "all chapters built" screen, which shows every badge unconditionally —
+	// no `leaflet-badges` toggle to click, unlike the still-working-through-it
+	// view chapter 7's own check used.
+	await expect(page.getByTestId('leaflet-title')).toHaveText('All 8 chapters built!');
+	await expect(page.getByTestId('badge-planner-pro')).toHaveAttribute('data-earned', 'true');
 });
 
 /**

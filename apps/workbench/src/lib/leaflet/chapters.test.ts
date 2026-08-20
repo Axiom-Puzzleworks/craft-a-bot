@@ -1,4 +1,4 @@
-import type { AgentSpec } from '@craftabot/core';
+import { migrateAgentSpec, type AgentSpec } from '@craftabot/core';
 import { describe, expect, it } from 'vitest';
 import { capabilitiesOf } from '$lib/bot-capabilities.js';
 import { createRegistry } from '$lib/packs.js';
@@ -38,6 +38,26 @@ const SIGHT = { channels: ['sight', 'compass'] };
  * never turned it on.
  */
 const MEMORY = { windowSize: 10 as const, notebook: true };
+
+/**
+ * A Planner-fitted bot's capabilities. `spec()` builds a v1 `AgentSpec`,
+ * whose `bricks` is a closed six-key object (`agent-spec.ts`) with no room
+ * for a seventh — planner only exists on the v2 array shape, so this chapter
+ * is the one fixture builder in this file that cannot go through `spec()`
+ * unmodified and has to migrate first, the same way `planner.test.ts` and
+ * `trace-fixture.test.ts` (pack-starter) already do.
+ */
+function withPlanner(built: AgentSpec) {
+	const migrated = migrateAgentSpec(built);
+	if ('kind' in migrated) throw new Error(migrated.message);
+	migrated.bricks.push({
+		slot: 'planner',
+		kind: 'starter/planner',
+		config: {},
+		configVersion: 1
+	});
+	return capabilitiesOf(migrated, createRegistry());
+}
 
 function spec(over: Partial<AgentSpec> & { bricks?: AgentSpec['bricks'] } = {}): AgentSpec {
 	return {
@@ -84,11 +104,13 @@ function ctx(over: Partial<LeafletContext> & { spec?: AgentSpec } = {}): Leaflet
 }
 
 describe('the shape of the arc', () => {
-	it('has the seven chapters of 02 §9, numbered in order', () => {
+	it('has the eight chapters of 02 §9, numbered in order', () => {
 		// Seven since WP17 §2.2: the six brick chapters plus "Turning the dials",
-		// which teaches the settings the other six never mention.
-		expect(CHAPTERS).toHaveLength(7);
-		expect(CHAPTERS.map((chapter) => chapter.number)).toStrictEqual([1, 2, 3, 4, 5, 6, 7]);
+		// which teaches the settings the other six never mention. Eight since
+		// WP30 stage D: the Planner brick's own chapter, the first for a brick
+		// that joined after the open contract rather than shipping in V1.
+		expect(CHAPTERS).toHaveLength(8);
+		expect(CHAPTERS.map((chapter) => chapter.number)).toStrictEqual([1, 2, 3, 4, 5, 6, 7, 8]);
 	});
 
 	it('gives every chapter a distinct badge', () => {
@@ -112,26 +134,34 @@ describe('the shape of the arc', () => {
 			memory: 'starter/snack',
 			tools: 'starter/sums-for-teddy',
 			retrieval: 'starter/locked-chest',
-			governance: 'starter/locked-chest'
+			governance: 'starter/locked-chest',
+			planning: 'starter/tidy-the-blocks'
+		};
+		const sixBricks: AgentSpec['bricks'] = {
+			llm: { cartridgeId: 'demo', temperature: 0, maxTokens: 256, personality: '' },
+			actions: ACTIONS,
+			sense: SIGHT,
+			memory: MEMORY,
+			tools: { enabled: ['starter/calculator', 'starter/look_up_manual'] },
+			safety: { maxTicks: 30, blockedActions: [], approvalMode: true }
 		};
 
 		for (const chapter of CHAPTERS) {
+			const goalCardId = CARD_FOR[chapter.id] ?? 'starter/say-hello';
+			// Chapter 8's own step needs a Planner brick, which a v1 `AgentSpec`
+			// (this fixture's usual shape) cannot carry at all — see `withPlanner`.
+			const can =
+				chapter.id === 'planning'
+					? withPlanner(spec({ bricks: sixBricks, goalCardId }))
+					: capabilitiesOf(spec({ bricks: sixBricks, goalCardId }), createRegistry());
+
 			const finished = ctx({
 				route: 'play',
-				spec: spec({
-					bricks: {
-						llm: { cartridgeId: 'demo', temperature: 0, maxTokens: 256, personality: '' },
-						actions: ACTIONS,
-						sense: SIGHT,
-						memory: MEMORY,
-						tools: { enabled: ['starter/calculator', 'starter/look_up_manual'] },
-						safety: { maxTicks: 30, blockedActions: [], approvalMode: true }
-					},
-					goalCardId: CARD_FOR[chapter.id] ?? 'starter/say-hello'
-				}),
+				can,
+				goalCardId,
 				outcome: 'SUCCESS',
 				ticks: 12,
-				usedTools: ['calculator', 'look_up_manual'],
+				usedTools: ['calculator', 'look_up_manual', 'make_plan'],
 				sawApproval: true
 			});
 
@@ -408,5 +438,69 @@ describe('chapters 2 to 6 each reach their badge', () => {
 				})
 			)
 		).toBe(true);
+	});
+});
+
+describe('chapter 8 — think it through', () => {
+	const brain = { cartridgeId: 'demo', temperature: 0, maxTokens: 256, personality: '' };
+	const built = {
+		llm: brain,
+		actions: ACTIONS,
+		sense: SIGHT,
+		memory: MEMORY,
+		tools: { enabled: ['starter/calculator', 'starter/look_up_manual'] },
+		safety: { maxTicks: 30, blockedActions: [], approvalMode: true }
+	};
+	const chapter = chapterByNumber(8)!;
+
+	it('walks from picking the card to the badge, the same failure→fix shape as 1–5', () => {
+		const before = ctx({
+			route: 'bench',
+			spec: spec({ bricks: built, goalCardId: 'starter/snack' })
+		});
+		expect(currentStepOf(chapter, before)?.id).toBe('tidy-card');
+
+		const carded = ctx({
+			...before,
+			spec: spec({ bricks: built, goalCardId: 'starter/tidy-the-blocks' })
+		});
+		expect(currentStepOf(chapter, carded)?.id).toBe('wing-it');
+
+		// The designed "failure": not a stalled run — planning changes how
+		// legibly the bot gets there, not whether it can. Four turns of
+		// deciding turn by turn is the lesson, the same way chapter 4 watches
+		// four turns of a confident wrong answer rather than waiting for an
+		// outcome.
+		const wound = ctx({ ...carded, ticks: 4 });
+		expect(currentStepOf(chapter, wound)?.id).toBe('fit-planner');
+
+		const planned = ctx({
+			...wound,
+			can: withPlanner(spec({ bricks: built, goalCardId: 'starter/tidy-the-blocks' }))
+		});
+		expect(currentStepOf(chapter, planned)?.id).toBe('see-plan');
+
+		const madePlan = ctx({ ...planned, usedTools: ['make_plan'] });
+		expect(currentStepOf(chapter, madePlan)?.id).toBe('planned');
+
+		expect(isChapterComplete(chapter, ctx({ ...madePlan, outcome: 'SUCCESS' }))).toBe(true);
+	});
+
+	it('guides the reader back if the wrong card is in the rack', () => {
+		const wrongCard = ctx({
+			route: 'bench',
+			spec: spec({ bricks: built, goalCardId: 'starter/say-hello' })
+		});
+		expect(currentStepOf(chapter, wrongCard)?.id).toBe('tidy-card');
+	});
+
+	it('is not completed by a run that has not made a plan yet, even on a Planner-fitted bot', () => {
+		const stuck = ctx({
+			route: 'play',
+			can: withPlanner(spec({ bricks: built, goalCardId: 'starter/tidy-the-blocks' })),
+			outcome: 'SUCCESS',
+			usedTools: []
+		});
+		expect(isChapterComplete(chapter, stuck)).toBe(false);
 	});
 });

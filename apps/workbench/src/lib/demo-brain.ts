@@ -12,8 +12,9 @@ import { offers, type BotCapabilities } from '$lib/bot-capabilities.js';
  *
  * ## Why the plans read the build
  *
- * The teaching arc in `02-AGENT-MODEL.md` §9 is six designed **failure→fix**
- * pairs, and a failure you only read about teaches nothing. Until WP9 the plans
+ * The teaching arc in `02-AGENT-MODEL.md` §9 was six designed **failure→fix**
+ * pairs, since grown to seven (`18-…` §3, WP30's own Planner chapter), and a
+ * failure you only read about teaches nothing. Until WP9 the plans
  * were chosen by Goal Card alone, so a bot with no Memory still finished the
  * snack goal and a bot with no calculator still announced the *correct* answer.
  * Every lesson was inert.
@@ -58,6 +59,7 @@ const canSee = (can: BotCapabilities) => offers(can.channels, 'sight');
 /** Remembering is the memory socket's job, whatever is filling it. */
 const hasMemory = (can: BotCapabilities) => can.filled.has('memory');
 const hasTool = (can: BotCapabilities, id: string) => offers(can.toolIds, id);
+const hasPlanner = (can: BotCapabilities) => can.filled.has('planner');
 
 const SCRIPTS: Record<string, CardScript> = {
 	'starter/say-hello': {
@@ -297,6 +299,87 @@ const SCRIPTS: Record<string, CardScript> = {
 				args: { item: 'block-c', container: 'toy-chest' }
 			},
 			{ say: 'Chest open, blocks away. That is the card done.', call: 'celebrate' }
+		]
+	},
+
+	'starter/tidy-the-blocks': {
+		variants: [
+			{
+				// Chapter 8: think it through. It gets there in the end without a
+				// plan, but it decides what to do next turn by turn — no list, no
+				// order, just whatever seems sensible right now.
+				id: 'no-planner',
+				missing: (can) => !hasPlanner(can),
+				steps: [
+					{
+						say: 'Two blocks, one chest. I will start with... this one, I suppose.',
+						call: 'move',
+						args: { direction: 'north' }
+					},
+					{
+						say: 'Should I open the chest first, or get a block first? Let me just grab this one.',
+						call: 'move',
+						args: { direction: 'east' }
+					},
+					{
+						say: 'Got the yellow block. Now, where was the chest again?',
+						call: 'pick_up',
+						args: { item: 'yellow block' }
+					},
+					{
+						say: 'Back that way, I think. Or maybe I should fetch the blue one while I am out here.',
+						call: 'move',
+						args: { direction: 'north' }
+					}
+				]
+			}
+		],
+		succeeds: [
+			{
+				say: 'Two blocks, one chest. Let me lay out the whole job before I move.',
+				call: 'make_plan',
+				args: {
+					steps: [
+						'Get the yellow block',
+						'Open the chest',
+						'Put the yellow block in',
+						'Get the blue block',
+						'Put the blue block in'
+					]
+				}
+			},
+			{
+				say: 'Step one: the yellow block is north of here.',
+				call: 'move',
+				args: { direction: 'north' }
+			},
+			{ say: 'And east a little.', call: 'move', args: { direction: 'east' } },
+			{ say: 'Got it.', call: 'pick_up', args: { item: 'yellow block' } },
+			{ say: 'First step done — on to the next.', call: 'check_off_step', args: { index: 1 } },
+			{ say: 'Back to the chest with it.', call: 'move', args: { direction: 'north' } },
+			{ say: 'Beside it now.', call: 'move', args: { direction: 'north' } },
+			{ say: 'Lid up.', call: 'open', args: { container: 'toy chest' } },
+			{
+				say: 'Chest open — that one is checked off too.',
+				call: 'check_off_step',
+				args: { index: 2 }
+			},
+			{
+				say: 'In it goes.',
+				call: 'put_down',
+				args: { item: 'yellow block', container: 'toy chest' }
+			},
+			{ say: 'Yellow block away.', call: 'check_off_step', args: { index: 3 } },
+			{ say: 'Now the blue one, exactly as planned.', call: 'move', args: { direction: 'east' } },
+			{ say: 'Got it.', call: 'pick_up', args: { item: 'blue block' } },
+			{ say: 'Fourth step done.', call: 'check_off_step', args: { index: 4 } },
+			{
+				say: 'And in it goes.',
+				call: 'put_down',
+				args: { item: 'blue block', container: 'toy chest' }
+			},
+			{ say: 'Whole list checked off.', call: 'check_off_step', args: { index: 5 } },
+			{ say: 'Both blocks away, exactly as planned.', call: 'celebrate' }
 		]
 	}
 };

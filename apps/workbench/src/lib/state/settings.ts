@@ -34,8 +34,19 @@ export const settingsSchema = z.object({
 	 * the link meant to follow it.
 	 */
 	workshop: z.boolean().default(false),
-	/** Highest instruction-leaflet chapter completed, 0 = not started. */
-	tutorialChapter: z.number().int().min(0).max(6).default(0),
+	/**
+	 * Highest instruction-leaflet chapter completed, 0 = not started.
+	 *
+	 * No upper bound on purpose (`WP30 stage D`, after `.max(6)` was found to
+	 * throw the moment a reader finished the leaflet's new eighth chapter):
+	 * `chapterByNumber` already treats a number past the end as "no such
+	 * chapter", the same way `LeafletController.complete` already compares
+	 * against `CHAPTERS.length` rather than a literal. A cap here would only
+	 * ever be a second count to keep in step with the first, and `update()`
+	 * uses `.parse()`, not `.safeParse()` — a value the schema rejects throws
+	 * inside the same synchronous call that would otherwise award the badge.
+	 */
+	tutorialChapter: z.number().int().min(0).default(0),
 	/**
 	 * Set by "I've built kits before" (03 §6). Kept separate from
 	 * `tutorialChapter` so skipping does not pretend the chapters were done —
