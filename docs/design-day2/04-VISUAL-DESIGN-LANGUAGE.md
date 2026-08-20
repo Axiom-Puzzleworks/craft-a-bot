@@ -45,6 +45,8 @@ Derived from the box art. Canonical hex values for CSS custom properties (`--cab
 
 LLM = blue · Memory = green · Tools = purple · Sense = sky · Actions = red · Safety = yellow/black · Connectors & wheels = yellow · Goal Cards = cream with green header rule. Trace rows, panel accents, meters, and documentation diagrams must all follow this mapping. **Never reassign these colours.**
 
+> **Amended 2026-08-20 (WP30 stage A):** **Planner = rose** (`--cab-rose`, `#a8467a`) joins the mapping — the first addition since it was fixed, not a reassignment of any of the above. Deliberately not `--cab-teal`/`--cab-orange`: both already exist in the brand palette but carry no fixed concept of their own (box-art tint variety, the Goal Card difficulty chip), so reusing one for a brick concept would have given one colour two meanings. A genuinely new hue keeps "the colour is the concept" true for every concept, old or new.
+
 ### 2.3 Support neutrals
 
 `--cab-shadow: #00000026` (soft drop shadows) · `--cab-plastic-hi: #FFFFFF59` (specular) · `--cab-board: #7A5C3E` (wooden shelf/bench wood) · `--cab-rug: #C9705E` (playroom rug terracotta).

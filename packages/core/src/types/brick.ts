@@ -22,16 +22,26 @@ import type { WorldActionDefinition } from './world.js';
  */
 
 /**
- * The six socket families on the chassis (`14-…` §2.3).
+ * The socket families on the chassis (`14-…` §2.3).
  *
  * Named for the body, because the piece-fits-hole affordance is the whole
  * point of a construction toy: a brick that goes in the head is a brain, one
  * that goes on the belt is equipment. Many *kinds* may share a family — that is
  * what makes an expansion pack possible — while V1 keeps the teaching-aid rule
  * of one brick per slot.
+ *
+ * > **Amended 2026-08-20 (WP30 stage A):** `'planner'` joins the original six
+ * > — the first socket added since the open contract shipped. Nothing can fit
+ * > it yet; no `BrickKindDefinition` claims it until WP30 stage B. Adding the
+ * > `SlotId` here is what forces every `Record<SlotId, …>` in the codebase to
+ * > account for it at compile time, which is the whole reason this lands as
+ * > its own dormant stage rather than alongside the brick that first uses it —
+ * > the same "prove the seam first" discipline `23-…`'s own stage A and B held
+ * > to before `SessionGroup` was built on top of them.
  */
 export const SLOT_IDS = [
 	'brain',
+	'planner',
 	'perception',
 	'memory',
 	'equipment',

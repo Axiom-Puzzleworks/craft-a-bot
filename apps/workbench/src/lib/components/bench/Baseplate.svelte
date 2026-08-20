@@ -10,12 +10,18 @@
 	/**
 	 * The baseplate (03-UI-UX-DESIGN.md §4.2): the bot chassis with shaped
 	 * sockets, so a piece only fits where it belongs. The bricks visually become
-	 * body parts — head, backpack, belt, visor, wheels, chest.
+	 * body parts — head, shoulder, backpack, belt, visor, wheels, chest.
 	 *
 	 * > **Amended 2026-08-13 (WP14 slice 4b):** the sockets are the **six slot
 	 * > families** core owns (`14-…` §2.3), not six named bricks. The chassis was
 	 * > always the fixed part of this — what changed is that it no longer implies
 	 * > there is exactly one brick that can go in each hole.
+	 *
+	 * > **Amended 2026-08-20 (WP30 stage A):** a seventh, `shoulder` — the first
+	 * > socket added since the open contract shipped. Empty until WP30 stage B
+	 * > registers a brick kind for it; the type system (`SlotId`) is what forces
+	 * > this file, and everywhere else a socket is enumerated, to already know
+	 * > about it.
 	 */
 	interface Props {
 		controller: DndController;
@@ -98,8 +104,13 @@
 	.baseplate {
 		position: relative;
 		display: grid;
+		/*
+		 * `shoulder` (WP30 stage A) fills what was an empty cell beside `head` —
+		 * a clipboard riding at the shoulder, not a grid restructure. Every other
+		 * area keeps its exact previous cell.
+		 */
 		grid-template-areas:
-			'.        head     .'
+			'.        head     shoulder'
 			'.        visor    .'
 			'backpack chest    belt'
 			'.        wheels   .';
@@ -131,6 +142,9 @@
 
 	.socket--head {
 		grid-area: head;
+	}
+	.socket--shoulder {
+		grid-area: shoulder;
 	}
 	.socket--visor {
 		grid-area: visor;

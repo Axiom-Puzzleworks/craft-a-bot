@@ -25,12 +25,16 @@ describe('the starter brick kinds', () => {
 		expect(registry.getBrickKind('nobody/planner')).toBeUndefined();
 	});
 
-	it('fills all six chassis sockets — one kind each, except equipment (WP31 stage F: Radio joins Tools)', () => {
+	it('fills every chassis socket but one — one kind each, except equipment (WP31 stage F: Radio joins Tools) and planner (WP30 stage A: the socket exists, dormant until stage B)', () => {
 		const bySlot = new Map<SlotId, number>();
 		for (const kind of starterBrickKinds) {
 			bySlot.set(kind.slot, (bySlot.get(kind.slot) ?? 0) + 1);
 		}
-		expect([...bySlot.keys()].sort()).toEqual([...SLOT_IDS].sort());
+		// `planner` is a real socket (`SLOT_IDS`) with no kind claiming it yet —
+		// exactly what "dormant" means. Every other socket is filled.
+		expect([...bySlot.keys()].sort()).toEqual(
+			[...SLOT_IDS].filter((slot) => slot !== 'planner').sort()
+		);
 		// V1's teaching-aid rule was one brick per slot; the contract permits
 		// more, which is exactly what lets a second equipment kind (Radio) join
 		// the first (Tools) rather than needing a second socket to exist for it.

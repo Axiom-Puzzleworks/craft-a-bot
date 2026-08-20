@@ -48,8 +48,21 @@ export interface FittedRuntime {
  * what the migration writes, and what the parts tray shows. Slice 3's gate is
  * that a golden trace stays byte-stable, and a prettier order would spend that
  * on nothing.
+ *
+ * `'planner'` (WP30 stage A) is appended right after `brain` — brain-adjacent,
+ * per `14-…` §5.1 — rather than reordering anything: no bot built before this
+ * stage has a planner brick fitted, so inserting a new entry cannot move any
+ * existing one and the golden trace stays exactly as byte-stable as it was.
  */
-const SLOT_ORDER: SlotId[] = ['brain', 'memory', 'equipment', 'perception', 'mobility', 'safety'];
+const SLOT_ORDER: SlotId[] = [
+	'brain',
+	'planner',
+	'memory',
+	'equipment',
+	'perception',
+	'mobility',
+	'safety'
+];
 
 export interface BuildRuntimesOptions {
 	spec: AnyAgentSpec;

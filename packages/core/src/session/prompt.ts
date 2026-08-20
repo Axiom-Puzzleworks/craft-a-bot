@@ -277,5 +277,19 @@ export function describeFittedBricks(spec: AnyAgentSpec, registry: PackRegistry)
 	return fitted.length > 0 ? fitted : ['nothing much, honestly'];
 }
 
-/** V1's order, which is what this list has always been in. */
-const BRICK_ORDER = ['brain', 'memory', 'equipment', 'perception', 'mobility', 'safety'] as const;
+/**
+ * V1's order, which is what this list has always been in.
+ *
+ * `'planner'` (WP30 stage A) is appended right after `brain` — brain-adjacent,
+ * per `14-…` §5.1 — an insertion, not a reorder, so a bot built before this
+ * stage describes itself exactly as it always has.
+ */
+const BRICK_ORDER = [
+	'brain',
+	'planner',
+	'memory',
+	'equipment',
+	'perception',
+	'mobility',
+	'safety'
+] as const;

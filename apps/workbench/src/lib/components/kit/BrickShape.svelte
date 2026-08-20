@@ -193,6 +193,9 @@
 	.brick--brain {
 		--brick-colour: var(--cab-brick-slot-brain);
 	}
+	.brick--planner {
+		--brick-colour: var(--cab-brick-slot-planner);
+	}
 	.brick--memory {
 		--brick-colour: var(--cab-brick-slot-memory);
 	}

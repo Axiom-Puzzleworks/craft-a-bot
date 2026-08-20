@@ -49,6 +49,9 @@
 	.socket--brain {
 		--socket-colour: var(--cab-brick-slot-brain);
 	}
+	.socket--planner {
+		--socket-colour: var(--cab-brick-slot-planner);
+	}
 	.socket--memory {
 		--socket-colour: var(--cab-brick-slot-memory);
 	}

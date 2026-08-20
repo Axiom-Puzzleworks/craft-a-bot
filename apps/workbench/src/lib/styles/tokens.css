@@ -18,6 +18,15 @@
 	--cab-sky: #5484bb;
 	--cab-teal: #3e8f8a;
 	--cab-orange: #d77a3c;
+	/*
+	 * Added WP30 stage A, for the Planner brick's own concept colour below —
+	 * not `--cab-teal`/`--cab-orange`, which are already spoken for
+	 * decoratively (box-art tints, the difficulty chip) with no fixed concept
+	 * of their own. A genuinely new hue keeps every concept-bearing colour
+	 * meaning exactly one thing, the same promise `04-…` §2.2 already makes
+	 * for the original six.
+	 */
+	--cab-rose: #a8467a;
 
 	/*
 	 * Secondary text (§2.3, added WP17 §2.7).
@@ -126,6 +135,10 @@
  * Brick colour ↔ concept mapping (04 §2.2). Fixed — never reassigned.
  * Colour never carries meaning alone: every brick also has a distinct
  * silhouette and an embossed name (04 §7).
+ *
+ * `--cab-brick-planner` (WP30 stage A) is the first addition since this
+ * mapping was fixed — a new concept getting its own colour, not one of the
+ * original six being reassigned.
  */
 :root {
 	--cab-brick-llm: var(--cab-blue);
@@ -134,10 +147,11 @@
 	--cab-brick-sense: var(--cab-sky);
 	--cab-brick-actions: var(--cab-red);
 	--cab-brick-safety: var(--cab-yellow);
+	--cab-brick-planner: var(--cab-rose);
 }
 
 /*
- * The same six colours, keyed by chassis socket (WP14 slice 4a).
+ * The same colours, keyed by chassis socket (WP14 slice 4a).
  *
  * Not a second palette and not a reassignment: each is an alias of the mapping
  * above, so the colour↔concept law is still stated exactly once. What changes
@@ -148,6 +162,7 @@
  */
 :root {
 	--cab-brick-slot-brain: var(--cab-brick-llm);
+	--cab-brick-slot-planner: var(--cab-brick-planner);
 	--cab-brick-slot-memory: var(--cab-brick-memory);
 	--cab-brick-slot-equipment: var(--cab-brick-tools);
 	--cab-brick-slot-perception: var(--cab-brick-sense);

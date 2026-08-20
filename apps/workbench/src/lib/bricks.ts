@@ -28,6 +28,7 @@ import { SLOT_IDS, type SlotId } from '@craftabot/core';
  */
 export const SLOT_ORDER: SlotId[] = [
 	'brain',
+	'planner',
 	'memory',
 	'equipment',
 	'perception',
@@ -55,6 +56,7 @@ export function filledSockets(bricks: readonly { slot: SlotId }[]): SlotId[] {
 /** Where each socket lives on the chassis (03 §4.2), in the body's language. */
 export const SOCKET_LABELS: Record<SlotId, string> = {
 	brain: 'head',
+	planner: 'shoulder',
 	memory: 'backpack',
 	equipment: 'belt',
 	perception: 'visor',
@@ -65,6 +67,7 @@ export const SOCKET_LABELS: Record<SlotId, string> = {
 /** The grid area each socket occupies on the baseplate. */
 export const SOCKET_PLACEMENT: Record<SlotId, string> = {
 	brain: 'head',
+	planner: 'shoulder',
 	perception: 'visor',
 	memory: 'backpack',
 	equipment: 'belt',
