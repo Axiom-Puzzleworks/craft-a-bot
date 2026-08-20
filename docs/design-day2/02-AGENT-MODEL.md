@@ -154,6 +154,8 @@ One **tick** = one journey around the loop. Pseudocode of `AgentSession.tick()`:
             else if tick budget exhausted → OUT_OF_STEPS                → event: tick.completed | run.finished
 ```
 
+> **Amended 2026-08-20 (WP30's If/Then sizing, stage A, `§7`'s own amendment carries the full close-out):** a fitted brick may pre-empt steps 2–5 entirely. Right after step 1, the loop asks every fitted brick's own `contributeReflex` for a call to try instead of thinking; if one fires, COMPOSE/THINK/DECIDE are skipped outright — no prompt composed, no model called — and the loop rejoins at step 6 with the reflex's own proposal, still through the exact same `pre-act` guardrail chain a brain-driven call gets. Step 3's guardrails still run for a reflex tick too, just without a preceding COMPOSE. The rest of the loop (6–9) is unchanged either way; `decision.source` says which path a given tick took.
+
 Loop rules:
 
 - **One decision per tick.** The LLM may call at most one tool/action per tick in V1 (chattier but far more legible for learners; parallel calls are an Agent Builder concept).
@@ -217,7 +219,7 @@ Validation: `validateSpec(spec, registry)` returns structured problems (`missing
 
 All events share `{ id, runId, tick, timestamp, type, payload }`, strictly typed per `type`. V1 catalogue:
 
-`run.started` · `run.finished` · `tick.started` · `tick.completed` · `sense` · `prompt.composed` (full messages + token estimate) · `think.started` · `think.token` (streaming deltas) · `think.completed` (raw response, usage) · `decision` (thought + parsed call) · `tool.executed` (args, result, duration) · `action.performed` (args, world narration, world-state diff) · `memory.updated` · `brick.state` (slot, kind, opaque state) · `guardrail.checked` · `guardrail.tripped` · `approval.requested` · `approval.resolved` · `world.changed` · `error`
+`run.started` · `run.finished` · `tick.started` · `tick.completed` · `sense` · `prompt.composed` (full messages + token estimate) · `think.started` · `think.token` (streaming deltas) · `think.completed` (raw response, usage) · `decision` (thought + parsed call + source) · `tool.executed` (args, result, duration) · `action.performed` (args, world narration, world-state diff) · `memory.updated` · `brick.state` (slot, kind, opaque state) · `guardrail.checked` · `guardrail.tripped` · `approval.requested` · `approval.resolved` · `world.changed` · `error`
 
 > **Amended 2026-08-13 (WP13):** the catalogue gains one event and one payload field, both additive (E2, `14-…` §3).
 >
@@ -246,6 +248,12 @@ All events share `{ id, runId, tick, timestamp, type, payload }`, strictly typed
 > - **`brick.state`** `{ slot, kind, state }` — a fitted brick's own live state, reported once per tick for the bricks that have anything new to say. `state` is opaque to core, the same "core owns the pipe, the pack owns the shape" stance `contributeWorldConfig`'s bag already takes. Unlike `memory.updated`, which core has always emitted directly because Memory is a concept core itself owns, a pack-contributed brick's internal state (the Planner's plan and checklist, `14-…` §5.1) lives entirely in a closure core cannot see into — `contributeState?(): unknown` on `BrickRuntime` is the door such a brick uses to put it on the trace anyway, called once per tick right after `onTickEnd`, additive and opt-in like every hook beside it.
 > - Why not read `tool.executed` instead, for a brick like the Planner whose state changes through its own tool calls? Because a tool's `execute()` is stateless and pack-wide — it validates shape, not a specific bot's config (`maxSteps`, an in-range check-off index) — so `tool.executed.data` can legitimately disagree with what the brick actually did with a call (a plan trimmed to `maxSteps`, an out-of-range check-off silently ignored). `contributeState` reports the brick's own authoritative belief instead, the same one `contributeContext`'s prompt text already carries, just structured.
 > - No `formatVersion` bump: every trace written before WP30 simply never contains a `brick.state` event, which is honestly true of them.
+
+> **Amended 2026-08-20 (WP30's If/Then sizing, stage A):** one payload field, additive, plus one new `BrickRuntime` hook and a genuine branch in the loop itself (§5's own step list, above) — the first hook that changes *whether* steps 2–5 run this tick, not merely what they see.
+>
+> - **`decision.source?`** `'brain' | 'reflex'` — where this tick's call came from. Optional, so every trace written before this WP still parses; absent there means exactly what it always meant, a brain-driven tick, since nothing could propose the other kind until now.
+> - **`contributeReflex?(context): ReflexProposal | undefined`** on `BrickRuntime` (`14-…` §2.1) — a fitted brick may propose a call right after SENSE, before the brain is ever asked. A firing reflex skips COMPOSE/THINK/DECIDE entirely: no `prompt.composed`, no `think.*` events, genuinely zero tokens and zero latency, which is the actual point (`14-…` §5.2's own "reflex/short-circuit… latency & cost lesson" — a soft nudge folded into `contributeContext`'s prose would still call the brain every tick and could not teach this).
+> - **Still governed, not a way around governance.** A firing reflex is checked against `pre-think` guardrails exactly as a brain-driven tick is (a `stop-run` policy card's deadline applies to every tick, or a rule becomes a way past it), and its proposed call still goes through `pre-act` guardrails before it runs, same as any other. Token budget is the one check skipped for a reflex, deliberately: it spends no tokens, so gating a free action on a spend limit would refuse it for a resource it never touches. `contributeReflex` decides *what to try*; the guardrail chain still decides *whether it is allowed* — that division never moves.
 
 Rules: events are **append-only facts**; payloads are JSON-serialisable; the trace is simply the ordered event list of a run (persisted per `07-DATA-MODEL-PERSISTENCE.md`); _anything_ the UI shows about a run must be derivable from events — if it isn't in an event, it didn't happen.
 

@@ -18,7 +18,8 @@ import {
 	collectState,
 	collectWorldConfig,
 	disposeRuntimes,
-	notifyTickEnd
+	notifyTickEnd,
+	resolveReflex
 } from './brick-runtimes.js';
 
 /**
@@ -218,6 +219,73 @@ describe('building runtimes', () => {
 		);
 		buildRuntimes({ spec: spec([fitted('brain', 'test/brain')]), registry, context });
 		expect(rolls).toEqual([0.5]);
+	});
+});
+
+describe('resolving a reflex (WP30 stage A, If/Then)', () => {
+	const observation = { channels: ['sight'], text: 'nothing nearby' };
+	const reflexContext = { tick: 1, channels: ['sight'], observation };
+	const proposes = (proposal: {
+		kind: 'tool' | 'action';
+		name: string;
+		arguments: unknown;
+		thought: string;
+	}): BrickRuntime => ({
+		contributeReflex: () => proposal
+	});
+
+	it('returns undefined when nothing is fitted, or nothing fitted has a reflex to offer', () => {
+		expect(
+			resolveReflex(
+				[{ slot: 'mobility', kind: 'test/actions', name: 'a', runtime: {} }],
+				reflexContext
+			)
+		).toBeUndefined();
+	});
+
+	it('returns the one fitted brick’s own proposal', () => {
+		const proposal = {
+			kind: 'action' as const,
+			name: 'pick_up',
+			arguments: { item: 'key' },
+			thought: 'Saw the key. Rule: pick it up.'
+		};
+		expect(
+			resolveReflex(
+				[{ slot: 'mobility', kind: 'test/if-then', name: 'r', runtime: proposes(proposal) }],
+				reflexContext
+			)
+		).toEqual(proposal);
+	});
+
+	it('the first fitted brick to propose one wins, in slot order — not a list to merge', () => {
+		const first = {
+			kind: 'action' as const,
+			name: 'pick_up',
+			arguments: {},
+			thought: 'first'
+		};
+		const second = {
+			kind: 'action' as const,
+			name: 'move',
+			arguments: {},
+			thought: 'second'
+		};
+		expect(
+			resolveReflex(
+				[
+					{ slot: 'mobility', kind: 'test/first', name: 'f', runtime: proposes(first) },
+					{ slot: 'mobility', kind: 'test/second', name: 's', runtime: proposes(second) }
+				],
+				reflexContext
+			)
+		).toEqual(first);
+	});
+
+	it('asks nothing of a brick with no reflex hook', () => {
+		expect(
+			resolveReflex([{ slot: 'brain', kind: 'test/brain', name: 'b', runtime: {} }], reflexContext)
+		).toBeUndefined();
 	});
 });
 

@@ -2,7 +2,7 @@ import type { ZodType } from 'zod';
 import type { BuildProblem } from '../schemas/build-problem.js';
 import type { PolicyCard } from '../schemas/policy-card.js';
 import type { Guardrail } from './guardrail.js';
-import type { WorldActionDefinition } from './world.js';
+import type { Observation, WorldActionDefinition } from './world.js';
 
 /**
  * **The open brick contract** (`14-…` §2, closing `12-…` D11).
@@ -114,6 +114,35 @@ export interface TickContext {
 	channels: readonly string[];
 }
 
+/**
+ * What the loop hands a runtime when it checks for a reflex (WP30 stage A,
+ * If/Then) — `TickContext` plus the observation a rule needs to evaluate
+ * "IF you see X". Not folded into `TickContext` itself: `contributeContext`
+ * never needed the observation (the loop composes it into its own message),
+ * and widening the shape everything else already takes would be a change to
+ * every existing hook for the sake of the one new one.
+ */
+export interface ReflexContext extends TickContext {
+	observation: Observation;
+}
+
+/**
+ * A reflex a brick proposes instead of asking the brain (WP30 stage A,
+ * If/Then) — always a call, never "nothing": returning `undefined` from the
+ * hook itself is how a brick says no reflex applies this tick.
+ */
+export interface ReflexProposal {
+	kind: 'tool' | 'action';
+	name: string;
+	arguments: unknown;
+	/**
+	 * Stands in for the brain's own thought in the trace and the prompt
+	 * history — a reflex still owes the reader *why*, even though nothing
+	 * reasoned about it this tick.
+	 */
+	thought: string;
+}
+
 /** What happened in a tick, handed to bricks that learn from it. */
 export interface TickRecord {
 	tick: number;
@@ -146,6 +175,25 @@ export interface TickRecord {
  * prompt; the Sense brick the reverse.
  */
 export interface BrickRuntime {
+	/**
+	 * Propose a call before the brain is ever asked (Mobility, WP30 stage A —
+	 * the If/Then brick). Checked once per tick, right after SENSE: the first
+	 * fitted brick (in slot order) to return a proposal wins, and the loop
+	 * skips composing a prompt and calling the model entirely for that tick —
+	 * genuinely zero tokens, zero latency, not merely a nudge folded into
+	 * `contributeContext`'s prose.
+	 *
+	 * A firing reflex is still checked against `pre-think` guardrails exactly
+	 * as a brain-driven tick is — a stop-run policy card's deadline, say, has
+	 * to apply to every tick or a rule becomes a way around it — and its
+	 * proposed call still goes through `pre-act` guardrails before it runs,
+	 * for the same reason. `contributeReflex` decides *what to try*, never
+	 * *whether it is allowed* — that stays entirely the guardrail chain's job.
+	 *
+	 * Return `undefined` when nothing applies; a brick that never implements
+	 * this hook is never asked and the loop behaves exactly as it always has.
+	 */
+	contributeReflex?(context: ReflexContext): ReflexProposal | undefined;
 	/** Prompt sections (Sense, Memory). */
 	contributeContext?(tick: TickContext): ContextContribution;
 	/** Tools and actions offered to the model (Equipment, Mobility). */

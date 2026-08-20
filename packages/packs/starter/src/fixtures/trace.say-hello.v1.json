@@ -319,7 +319,8 @@
 				"arguments": {
 					"direction": "east"
 				}
-			}
+			},
+			"source": "brain"
 		}
 	},
 	{
@@ -610,7 +611,8 @@
 				"arguments": {
 					"direction": "east"
 				}
-			}
+			},
+			"source": "brain"
 		}
 	},
 	{
@@ -923,7 +925,8 @@
 				"arguments": {
 					"direction": "east"
 				}
-			}
+			},
+			"source": "brain"
 		}
 	},
 	{
@@ -1236,7 +1239,8 @@
 				"arguments": {
 					"text": "Hello Teddy, I am your new robot!"
 				}
-			}
+			},
+			"source": "brain"
 		}
 	},
 	{

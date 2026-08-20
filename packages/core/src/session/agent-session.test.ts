@@ -915,6 +915,196 @@ describe('brick.state — a fitted brick reporting its own live state (WP30 stag
 	});
 });
 
+/**
+ * **WP30's If/Then sizing, stage A**: `contributeReflex`/`resolveReflex` —
+ * the door a fitted brick uses to propose a call *before* the brain is ever
+ * asked, and the loop's own branch that skips COMPOSE/THINK/DECIDE when one
+ * fires. Proven against a real session, the same reasoning as every other
+ * stage-A mechanism proof this WP has used: what matters is that `tick()`
+ * genuinely takes the shortcut — no prompt composed, no model called, no
+ * tokens spent — and that doing so never becomes a way around the guardrail
+ * chain, which is the one property a reflex brick must never be able to
+ * break.
+ */
+describe('reflex — a fitted brick proposing a call before the brain (WP30 stage A)', () => {
+	function registryWithReflex(
+		proposal:
+			{ kind: 'tool' | 'action'; name: string; arguments: unknown; thought: string } | undefined
+	): PackRegistry {
+		const registry = buildRegistry();
+		registry.registerPack({
+			id: 'reflex-pack',
+			name: 'Reflex pack',
+			version: '1.0.0',
+			requiresCore: '>=0.0.1',
+			brickKinds: [
+				{
+					id: 'test/if-then',
+					slot: 'mobility',
+					name: 'test/if-then',
+					description: 'test/if-then',
+					realName: 'test/if-then',
+					realExplanation: 'test/if-then',
+					configSchema: z.object({}),
+					configVersion: 1,
+					defaults: {},
+					createRuntime: () => ({ contributeReflex: () => proposal })
+				} as BrickKindDefinition
+			]
+		});
+		return registry;
+	}
+
+	function specWithReflex(overrides: Partial<AgentSpec['bricks']> = {}) {
+		const migrated = migrateAgentSpec(buildSpec(overrides));
+		if ('kind' in migrated) throw new Error(migrated.message);
+		migrated.bricks.push({
+			slot: 'mobility',
+			kind: 'test/if-then',
+			configVersion: 1,
+			config: {}
+		});
+		return migrated;
+	}
+
+	const PING_PROPOSAL = {
+		kind: 'action' as const,
+		name: 'ping',
+		arguments: {},
+		thought: 'Rule fired: ping.'
+	};
+
+	it('skips COMPOSE/THINK/DECIDE entirely — no prompt.composed, no think.* events', async () => {
+		const events: EngineEvent[] = [];
+		const session = createSession({
+			spec: specWithReflex(),
+			registry: registryWithReflex(PING_PROPOSAL),
+			// The mock brain would throw on a real request; an empty script is
+			// the point — the brain must never be asked.
+			provider: createMockProvider({ script: [] }),
+			guardrails: [],
+			options: { now: () => '2026-08-20T00:00:00Z', newId: () => 'id', random: () => 0 }
+		});
+		session.events.onAny((event) => events.push(event));
+		await session.step();
+
+		expect(events.some((event) => event.type === 'prompt.composed')).toBe(false);
+		expect(events.some((event) => event.type === 'think.started')).toBe(false);
+		expect(events.some((event) => event.type === 'think.completed')).toBe(false);
+	});
+
+	it('the decision event names the reflex as its source, carrying the call and thought it proposed', async () => {
+		const events: EngineEvent[] = [];
+		const session = createSession({
+			spec: specWithReflex(),
+			registry: registryWithReflex(PING_PROPOSAL),
+			provider: createMockProvider({ script: [] }),
+			guardrails: [],
+			options: { now: () => '2026-08-20T00:00:00Z', newId: () => 'id', random: () => 0 }
+		});
+		session.events.onAny((event) => events.push(event));
+		await session.step();
+
+		const decisionEvent = events.find((event) => event.type === 'decision');
+		expect(decisionEvent).toMatchObject({
+			type: 'decision',
+			payload: {
+				thought: 'Rule fired: ping.',
+				call: { kind: 'action', name: 'ping', arguments: {} },
+				source: 'reflex'
+			}
+		});
+	});
+
+	it('a brain-driven tick still names its own source, for the trace to tell the two apart', async () => {
+		const { session } = makeSession({ script: [turn('Ping.', 'ping')] });
+		const events: EngineEvent[] = [];
+		session.events.onAny((event) => events.push(event));
+		await session.step();
+
+		const decisionEvent = events.find((event) => event.type === 'decision');
+		expect(decisionEvent).toMatchObject({ type: 'decision', payload: { source: 'brain' } });
+	});
+
+	it('still runs pre-think guardrails — a stop-run rule stops a reflex tick exactly as it would a brain-driven one', async () => {
+		const stopper: Guardrail = {
+			id: 'test/stop-everything',
+			name: 'Stop',
+			description: 'Stops everything, always.',
+			hooks: ['pre-think'],
+			check: () => ({ allow: false, reason: 'Not today.', disposition: 'stop-run' })
+		};
+		const session = createSession({
+			spec: specWithReflex(),
+			registry: registryWithReflex(PING_PROPOSAL),
+			provider: createMockProvider({ script: [] }),
+			guardrails: [stopper],
+			options: { now: () => '2026-08-20T00:00:00Z', newId: () => 'id', random: () => 0 }
+		});
+		const result = await session.step();
+
+		expect(result.outcome).toBe('STOPPED_BY_GUARDRAIL');
+	});
+
+	it('still runs pre-act guardrails — a blocklist refuses a reflex-proposed action, and the run carries on', async () => {
+		const blocker: Guardrail = {
+			id: 'test/no-ping',
+			name: 'No Ping',
+			description: 'Blocks pinging.',
+			hooks: ['pre-act'],
+			check: (ctx) =>
+				ctx.proposed?.name === 'ping'
+					? { allow: false, reason: 'pinging is banned', disposition: 'block-action' }
+					: { allow: true }
+		};
+		const session = createSession({
+			spec: specWithReflex(),
+			registry: registryWithReflex(PING_PROPOSAL),
+			provider: createMockProvider({ script: [] }),
+			guardrails: [blocker],
+			options: { now: () => '2026-08-20T00:00:00Z', newId: () => 'id', random: () => 0 }
+		});
+		const result = await session.step();
+
+		expect(result.outcome).toBeUndefined();
+	});
+
+	it('fires even with the token budget already exhausted — a reflex spends none', async () => {
+		const session = createSession({
+			spec: specWithReflex(),
+			registry: registryWithReflex(PING_PROPOSAL),
+			provider: createMockProvider({ script: [] }),
+			guardrails: [],
+			options: {
+				now: () => '2026-08-20T00:00:00Z',
+				newId: () => 'id',
+				random: () => 0,
+				budgets: { maxTokens: 0 }
+			}
+		});
+		const result = await session.step();
+
+		expect(result.outcome).toBeUndefined();
+	});
+
+	it('does nothing different when nothing proposes a reflex — the existing loop is untouched', async () => {
+		const session = createSession({
+			spec: specWithReflex(),
+			registry: registryWithReflex(undefined),
+			provider: createMockProvider({ script: [turn('Ping.', 'ping')] }),
+			guardrails: [],
+			options: { now: () => '2026-08-20T00:00:00Z', newId: () => 'id', random: () => 0 }
+		});
+		const events: EngineEvent[] = [];
+		session.events.onAny((event) => events.push(event));
+		await session.step();
+
+		expect(events.some((event) => event.type === 'prompt.composed')).toBe(true);
+		const decisionEvent = events.find((event) => event.type === 'decision');
+		expect(decisionEvent).toMatchObject({ type: 'decision', payload: { source: 'brain' } });
+	});
+});
+
 describe('budgets', () => {
 	it('ends the run when the token budget is spent', async () => {
 		const { session } = makeSession({

@@ -195,7 +195,15 @@ const decisionEvent = eventSchema(
 		thought: z.string(),
 		call: z
 			.object({ kind: z.enum(['tool', 'action']), name: z.string(), arguments: z.unknown() })
-			.nullable()
+			.nullable(),
+		/**
+		 * Where this tick's call came from (WP30 stage A, If/Then): the brain,
+		 * or a brick's own reflex that pre-empted it. Optional so every trace
+		 * written before this WP still parses — absent there means exactly what
+		 * it always meant, a brain-driven tick, since nothing could propose a
+		 * reflex until now.
+		 */
+		source: z.enum(['brain', 'reflex']).optional()
 	})
 );
 const toolExecutedEvent = eventSchema(

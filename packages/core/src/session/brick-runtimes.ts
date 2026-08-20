@@ -7,6 +7,8 @@ import type {
 	BrickRuntimeContext,
 	CallContribution,
 	ContextContribution,
+	ReflexContext,
+	ReflexProposal,
 	SlotId,
 	TickContext,
 	TickRecord
@@ -105,6 +107,25 @@ export function buildRuntimes(options: BuildRuntimesOptions): FittedRuntime[] {
 	}
 
 	return built;
+}
+
+/**
+ * Ask every fitted brick, in slot order, whether it wants to propose a call
+ * before the brain is asked (WP30 stage A, If/Then). The first one that
+ * returns anything wins — a reflex is a single call, not a list to merge, the
+ * same "first non-allow wins" shape a guardrail chain already has, for the
+ * same reason: two bricks both wanting to act this tick is a build question
+ * for whoever fitted them, not something to arbitrate here.
+ */
+export function resolveReflex(
+	runtimes: readonly FittedRuntime[],
+	context: ReflexContext
+): ReflexProposal | undefined {
+	for (const fitted of runtimes) {
+		const proposal = fitted.runtime.contributeReflex?.(context);
+		if (proposal !== undefined) return proposal;
+	}
+	return undefined;
 }
 
 /**

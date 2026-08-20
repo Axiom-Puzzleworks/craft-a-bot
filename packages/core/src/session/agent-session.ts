@@ -37,7 +37,8 @@ import {
 	collectState,
 	collectWorldConfig,
 	disposeRuntimes,
-	notifyTickEnd
+	notifyTickEnd,
+	resolveReflex
 } from './brick-runtimes.js';
 import { createMemory, type TickMemory } from './memory.js';
 import { describeFittedBricks, estimateTokens } from './prompt.js';
@@ -662,48 +663,77 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		const observation = world.observe(worldChannels);
 		emit('sense', { channels: [...channels], observation });
 
-		// 2. COMPOSE
-		const progress = world.describeProgress?.(goalCard.successCondition, worldChannels);
-		const notebookLines = memory.notebook.read();
-		const promptInput = {
-			brickSections: collectContext(runtimes, { tick: run.tick, channels }).sections ?? [],
-			goalCard,
-			// The goal its builder wrote, if they wrote one (`16-…` §2.5). Captured
-			// since WP5 and never passed on until now.
-			...(spec.customGoalText !== undefined ? { customGoalText: spec.customGoalText } : {}),
-			observation: observation.text,
-			memoryWindow: memory.window(),
-			fittedBricks,
-			feedback: run.feedback,
-			...(notebookLines.length > 0 ? { notebookLines } : {}),
-			...(progress !== undefined ? { progress } : {})
-		};
-		let messages = strategies.prompt.compose(promptInput);
-		run.feedback = [];
-		emit('prompt.composed', { messages, estimatedTokens: estimateTokens(messages) });
+		// REFLEX (WP30 stage A, If/Then) — a fitted brick may propose a call
+		// before the brain is ever asked. Checked here, right after SENSE,
+		// because it decides whether COMPOSE/THINK/DECIDE happen at all.
+		const reflex = resolveReflex(runtimes, { tick: run.tick, channels, observation });
 
-		// 3. GUARD (pre-think)
-		const preThink = await runGuards('pre-think');
-		if (!('allow' in preThink.verdict && preThink.verdict.allow)) {
-			return finish('STOPPED_BY_GUARDRAIL');
-		}
-		if (tokenBudgetExhausted(usage, budgets)) return finish('OUT_OF_STEPS');
+		let thought: string;
+		let decision: Decision;
 
-		// 4. THINK + 5. DECIDE, with the one permitted re-prompt on a mumble.
-		let response = await callProviderWithRetry(messages);
-		let decision = decide(response, { toolNames, actionNames });
-		if (decision.kind === 'malformed') {
-			messages = [...messages, { role: 'user', content: REPROMPT_INSTRUCTION }];
+		if (reflex !== undefined) {
+			// Still checked against pre-think policy — a stop-run policy card's
+			// deadline applies to every tick, not only ones the brain reasons
+			// through, or a reflex becomes a way around whatever pre-think
+			// already guards. Token budget is deliberately not checked here: a
+			// reflex spends no tokens, so gating a free action on a spend limit
+			// would refuse it for a resource it never touches.
+			const preThink = await runGuards('pre-think');
+			if (!('allow' in preThink.verdict && preThink.verdict.allow)) {
+				return finish('STOPPED_BY_GUARDRAIL');
+			}
+			thought = reflex.thought;
+			decision = {
+				kind: 'call',
+				thought,
+				call: { kind: reflex.kind, name: reflex.name, arguments: reflex.arguments }
+			};
+			emit('decision', { thought, call: { ...decision.call }, source: 'reflex' });
+		} else {
+			// 2. COMPOSE
+			const progress = world.describeProgress?.(goalCard.successCondition, worldChannels);
+			const notebookLines = memory.notebook.read();
+			const promptInput = {
+				brickSections: collectContext(runtimes, { tick: run.tick, channels }).sections ?? [],
+				goalCard,
+				// The goal its builder wrote, if they wrote one (`16-…` §2.5). Captured
+				// since WP5 and never passed on until now.
+				...(spec.customGoalText !== undefined ? { customGoalText: spec.customGoalText } : {}),
+				observation: observation.text,
+				memoryWindow: memory.window(),
+				fittedBricks,
+				feedback: run.feedback,
+				...(notebookLines.length > 0 ? { notebookLines } : {}),
+				...(progress !== undefined ? { progress } : {})
+			};
+			let messages = strategies.prompt.compose(promptInput);
+			run.feedback = [];
 			emit('prompt.composed', { messages, estimatedTokens: estimateTokens(messages) });
-			response = await callProviderWithRetry(messages);
-			decision = decide(response, { toolNames, actionNames });
-		}
 
-		const thought = decision.kind === 'malformed' ? '' : decision.thought;
-		emit('decision', {
-			thought,
-			call: decision.kind === 'call' ? { ...decision.call } : null
-		});
+			// 3. GUARD (pre-think)
+			const preThink = await runGuards('pre-think');
+			if (!('allow' in preThink.verdict && preThink.verdict.allow)) {
+				return finish('STOPPED_BY_GUARDRAIL');
+			}
+			if (tokenBudgetExhausted(usage, budgets)) return finish('OUT_OF_STEPS');
+
+			// 4. THINK + 5. DECIDE, with the one permitted re-prompt on a mumble.
+			let response = await callProviderWithRetry(messages);
+			decision = decide(response, { toolNames, actionNames });
+			if (decision.kind === 'malformed') {
+				messages = [...messages, { role: 'user', content: REPROMPT_INSTRUCTION }];
+				emit('prompt.composed', { messages, estimatedTokens: estimateTokens(messages) });
+				response = await callProviderWithRetry(messages);
+				decision = decide(response, { toolNames, actionNames });
+			}
+
+			thought = decision.kind === 'malformed' ? '' : decision.thought;
+			emit('decision', {
+				thought,
+				call: decision.kind === 'call' ? { ...decision.call } : null,
+				source: 'brain'
+			});
+		}
 
 		// 6. GUARD (pre-act) + 7. ACT
 		let acted: { summary: string; result: string; ok: boolean } | undefined;
