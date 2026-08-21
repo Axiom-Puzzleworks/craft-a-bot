@@ -8,7 +8,7 @@ Two purposes, in priority order: (1) an accessible training ground for agentic-A
 
 Stack: TypeScript + Svelte 5 (runes) + SvelteKit static. Monorepo (npm workspaces + Turborepo). Local-first, no backend. OpenAI out of the box (BYO key).
 
-**Where we are (2026-08-21):** V1.0 ("My Very First Agent") shipped WP0–WP10. Day 2 Phases A–D are closed (WP11–WP25): engine trust fixed, the brick contract opened, teaching-aid UX and the professional Workshop both shipped, plus a full governance layer (policy cards, Safety Brick v2, three scenario cards). **Phase E (expansion era) is fully closed**: WP26, WP27, WP28 and WP29 (multi-agent core — `SessionGroup`, the Playroom's `forAgent`, group-altitude events, a minimal Workshop surface; full design of record and close-out in `docs/design-day2/23-MULTI-AGENT-DESIGN.md`) are all done. **Phase F ("Agent Builder" kit, WP30–34) is now fully closed too** — every WP the roadmap named for it is done: WP31 (Radio brick + the Robot Friends duo experience, including the ASI07 spoofed-message scenario), full design of record and close-out in `docs/design-day2/24-ROBOT-FRIENDS-DESIGN.md`; WP30 (Planner brick, its live checklist and eighth leaflet chapter; the If/Then brick, its `reflexes` socket, and its own ninth leaflet chapter), per its own dated amendments in `14-…` §5.1 and §5.2; WP32 (Librarian + Connector bricks) — the Librarian's own tenth leaflet chapter ("Ask before you guess," on a genuinely new goal card) and Connector's own confused-deputy mini-scenario (`starter/false-alarm`, shipped as a side quest rather than a chapter), per its own dated amendment in `14-…` §5.6; WP34 (Workshop maturity) — four new screens (`/telemetry`, `/incidents`, `/safety-case`, and the Audit Centre at `/export`), none needing a core change, closed out across `17-…` §4.7–§4.10; and **WP33 (Identity badges + kit-line packaging) is now fully done too** — the Passport/Agent Card half (sized down before it started) and, as of today, the kit-line half: the Shelf's Expansion Packs section is now data-driven over all seven `18-…` §4 packs plus a curated "Agent Builder" bundle box, with one honest finding — Tool Shop Pack's own content does not exist anywhere yet, so it ships marked `coming-soon` rather than `unlocked` — per `14-…` §5.8's own dated amendment. **The roadmap's forward plan (`18-…`) now has nothing left it names** — see "Next up" below for what that means in practice.
+**Where we are (2026-08-21):** V1.0 and Day 2 Phases A–F are fully shipped — every WP `18-…` names, WP0 through WP34, is done. The roadmap's forward plan has nothing left in it. Full history — what each WP built, in what stages, with what divergences — lives in `18-…` §7 (the dated close-out log) and in each WP's own dated amendment inside the doc it touched; this file doesn't restate it. **Starting new work needs a fresh planning pass first** — see Workflow below.
 
 ## Source of truth: `docs/design-day2/`
 
@@ -28,13 +28,13 @@ Stack: TypeScript + Svelte 5 (runes) + SvelteKit static. Monorepo (npm workspace
 | `08-GOVERNANCE-GUARDRAILS.md` | Guardrails, approval, trace guarantees |
 | `10-CODING-STANDARDS.md` | Always — conventions and definition of done |
 | `11-VISUAL-ASSET-MANIFEST.md` | Assets, placeholders, art swap-in |
-| `12-CURRENT-STATE-ASSESSMENT.md` | Always at Day 2 start — root causes C1–C8, defect register D1–D17/T1–T5 |
+| `12-CURRENT-STATE-ASSESSMENT.md` | Root causes C1–C8, defect register D1–D17/T1–T5 — check before planning new work |
 | `13-BRICK-TEST-STRATEGY.md` | Writing tests; the L0–L5 pyramid, per-brick charters, eval harness, conformance kit |
 | `14-BRICK-REFERENCE-DESIGNS.md` | Touching any brick or engine shape — the open brick contract, evolutions E1–E12, v2 schemas |
 | `15-UIUX-DUAL-MODE.md` | Anything spanning Kit and Workshop |
 | `16-TEACHING-AID-UIUX-IMPROVEMENTS.md` | Kit UX work — P0/P1/P2 with acceptance criteria |
 | `17-PRO-MODE-UI-DESIGN.md` + `mockups/pro-mode-mockup.html` | Workshop (professional mode) work |
-| `18-DAY2-ROADMAP.md` | **Starting any work package** — Phases A–F, WP11–WP34 |
+| `18-DAY2-ROADMAP.md` | The full WP0–WP34 record and close-out log (§7) — read before proposing new phases |
 | `19-AI-SAFETY-GOVERNANCE-REFERENCE.md` | Governance features — the 38-control catalogue, dip in as needed |
 
 `09-ROADMAP.md` is history only (the WP0–WP10 record); `18-…` supersedes its forward plan.
@@ -43,11 +43,9 @@ Where a Day 2 doc and its Day 1 counterpart differ, **Day 2 wins** — the banne
 
 ## Workflow
 
-Find the WP in `18-…` §3, read the docs it names, **propose a task breakdown before writing code**, then build. One WP per branch (`wp{n}-{slug}`) and PR.
+**No work package is currently queued** — `18-…`'s forward plan is exhausted (WP0–WP34 all done). Before building anything, read `18-…` §7's closing entries and `12-…`'s defect register for anything that quietly deserves a follow-up, then confirm with the user what they actually want: new scope needs a fresh planning pass (a new roadmap document or phase), not an assumption.
 
-Next up per `18-…` §7 (most recent entry: item 29, 2026-08-21): **Phases A–F are all fully closed** — every WP `18-…` §3 named, WP0 through WP34, is done. The roadmap's own forward plan has nothing left it names, so there is no single next WP to read off the table the way every prior session in this project could. Before starting new work, read `18-…` §7's own closing entries (items 26–29) and `12-…`'s defect register for anything that quietly deserves a follow-up, then ask the user what they actually want next: new scope needs a fresh planning pass (a new roadmap document or phase), not an assumption about what "next" means once the plan of record is exhausted.
-
-Use your judgement inside a WP — the docs fix the destination and the contracts, not every step. Where a doc is silent, decide and note it. Where implementation must diverge from a doc, change the doc in the same PR with a dated note (`> **Amended 2026-08-13:** …`); don't leave the two disagreeing.
+Once there's a WP to build (from a new plan, or a defect worth fixing): read the docs it names, **propose a task breakdown before writing code**, then build. One WP per branch (`wp{n}-{slug}`) and PR. Use your judgement inside a WP — the docs fix the destination and the contracts, not every step. Where a doc is silent, decide and note it. Where implementation must diverge from a doc, change the doc in the same PR with a dated note (`> **Amended 2026-08-13:** …`); don't leave the two disagreeing.
 
 ## Hard rules (violations are bugs)
 
