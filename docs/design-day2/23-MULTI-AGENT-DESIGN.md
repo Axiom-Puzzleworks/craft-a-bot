@@ -220,6 +220,8 @@ Both are emitted with `runId = groupRunId` and no `agentId` (they happened to th
 - **The group trace:** the merged stream is stored under `groupRunId` via the same `appendEvents(groupRunId, mergedEvents)` — the storage layer needs *no changes*, because `StoredEvent.seq` (assigned in append order) is the merge order, and each stored event still carries its true `runId`/`agentId` inside. A lightweight `GroupRunRecord` (id, member run ids, card, outcome, rounds, usage, timestamps) is stored alongside so the Run Browser can list the episode; exact shape decided at stage F against the store's real constraints.
 - **Replay:** replaying the group = `getEvents(groupRunId)` folded through the existing `projectThrough` — no new reducer (principle: one fold, everywhere). Byte-stability of the merged trace is stage E's gated proof.
 - **Export/digest:** `buildTraceFile` stays single-run in WP29. A group export format (bundling N member traces + the merge + a digest over the whole) is real work with its own questions and is **deferred to the Workshop-maturity era (WP34's audit centre)** — recorded here rather than half-built.
+>
+> **Amended 2026-08-21 (WP34 closed):** did not ship. WP34's Audit Centre (`17-…` §4.10) reads `storage.listRuns()` alone — the solo `RunRecord` list — so it never lists a `GroupRunRecord` and a group's own member run, picked individually, exports only its own trace. The bundle format this section deferred to WP34 remains real, undecided work, now with no WP named for it — a fair target for whoever next touches the Audit Centre, not a promise this phase quietly dropped.
 
 ### 4.8 The Playroom's co-op opt-in (the only pack that changes)
 
@@ -244,6 +246,8 @@ The Playroom implements `forAgent` and gains **one co-op layout and one co-op go
 | Inter-agent comms + spoofed-message scenario (ASI07) | Radio brick, world-mediated messages | **WP31**, by roadmap |
 | Group trace export with digest | Group bundle format | **WP34** audit centre |
 
+> **Amended 2026-08-21:** the last row did not resolve when WP34 closed — see this section's own dated amendment above and `07-…` §5's matching one. The other WP29→later-WP predictions in this table (WP31's rows) did land as named.
+
 ## 5. UX trajectory (validating the core against the destinations)
 
 **5.1 The student (WP31, sketched here only to prove the rails reach it).** The Robot Friends bench: pick a co-op card, the bench asks for a second bot from the shelf, both robots appear in one Playroom, STEP advances one *round*, the story strip narrates both by name ("Robo picked up the red block. Bolt is heading for the chest."), and the scrapbook files one shared adventure that either robot's page can open. Everything in that sentence maps onto a WP29 artefact: the round is `stepRound()`, the two-name narration is the facade's actor-naming, the shared adventure is the group trace, the per-robot page is the per-agent trace. Nothing requires reopening the core.
@@ -258,7 +262,7 @@ Two known hazards, handled: **wall-clock timestamps** differ between live runs �
 
 ## 7. Non-goals (inherited from `14-…` §6, reaffirmed)
 
-No concurrent world mutation; no shared memory stores between agents; no dynamic agent spawning; no direct agent-to-agent channels (world-mediated only, and that is WP31); no group trace export format (WP34); no Kit UI in WP29 (WP31); no N>2 UX (the contract allows N, nothing is built or tested beyond duo).
+No concurrent world mutation; no shared memory stores between agents; no dynamic agent spawning; no direct agent-to-agent channels (world-mediated only, and that is WP31); no group trace export format (deferred past WP34 as of 2026-08-21 — §4.7's own amendment above); no Kit UI in WP29 (WP31); no N>2 UX (the contract allows N, nothing is built or tested beyond duo).
 
 ## 8. Divergences from the `14-…` §6 sketch, with reasons
 

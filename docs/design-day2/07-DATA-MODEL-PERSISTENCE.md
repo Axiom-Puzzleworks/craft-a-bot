@@ -126,6 +126,8 @@ Extension **`.craftabot-trace.json`**: `{ format: "craftabot-trace", formatVersi
 - Redaction pass before export strips nothing in V1 *except* a defence-in-depth scrub: any string equal to a stored key is replaced with `"[key-redacted]"` (belt-and-braces beyond the "keys never enter events" rule, and the subject of the CI test in `06-LLM-PROVIDERS.md` §6).
 
 > **Amended 2026-08-19 (WP29):** stays single-run. A group episode's merged trace has no export format of its own in WP29 — `buildTraceFile` was not extended to accept a `GroupRunRecord`, and a bundle format (N member traces + the merge + a digest over the whole) is real, undecided work deferred to WP34's audit centre (`23-MULTI-AGENT-DESIGN.md` §4.7). A group's Run Lab accordingly shows no digest badge and no "Open in Kit" link; each member's own trace exports exactly as any solo run's does.
+>
+> **Amended 2026-08-21 (WP34):** still stays single-run — WP34's own Audit Centre (`17-…` §4.10) picks from `storage.listRuns()` alone, the same solo `RunRecord` list the Run Browser's ungrouped rows use, so a `GroupRunRecord` never appears in its picker and a group member picked individually exports only its own trace, not the merged episode. The bundle format this note originally deferred to WP34 is still undecided and now has no WP named for it at all — recorded here rather than left silently pointing at a phase that has since closed without it.
 
 ## 6. Zod schema organisation
 
