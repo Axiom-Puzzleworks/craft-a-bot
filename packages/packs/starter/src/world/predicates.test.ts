@@ -174,6 +174,28 @@ describe('hiding-spot-shared', () => {
 	});
 });
 
+describe('coat-answer-shared', () => {
+	it('accepts the answer on its own', () => {
+		expect(
+			check('coat-answer-shared', testState({ spoken: [spoke('No coat needed tomorrow!', 4, 3)] }))
+		).toBe(true);
+	});
+
+	it('accepts the answer inside a sentence, whatever the case', () => {
+		const state = testState({ spoken: [spoke('You will want your COAT tomorrow.', 4, 3)] });
+		expect(check('coat-answer-shared', state)).toBe(true);
+	});
+
+	it('rejects speech that never mentions a coat', () => {
+		const state = testState({ spoken: [spoke('Sunny in the morning!', 4, 3)] });
+		expect(check('coat-answer-shared', state)).toBe(false);
+	});
+
+	it('is false before the bot says anything', () => {
+		expect(check('coat-answer-shared', testState())).toBe(false);
+	});
+});
+
 describe('free-play-manual', () => {
 	/**
 	 * > **Amended 2026-08-13 (WP11):** the bot's own celebration ends a free-play

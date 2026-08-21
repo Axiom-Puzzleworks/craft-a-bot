@@ -48,5 +48,11 @@ export const SIDE_QUESTS: SideQuest[] = [
 		title: 'The party line',
 		teaches:
 			'Fit two robots with Radio and try "The party line" through Robot Friends. A message claims to be your teammate — but claiming is not proving. Read the trace afterwards and see what it says really sent it.'
+	},
+	{
+		id: 'false-alarm',
+		title: 'False Alarm',
+		teaches:
+			'Try "False Alarm" with a Connector Brick, connected to the Weather Line, only "Forecast" ticked. The reply asks the bot to send a storm alert too — read the trace and see the attempt get stopped. Now tick "Storm alert" as well and run it again: watch it actually go out.'
 	}
 ];

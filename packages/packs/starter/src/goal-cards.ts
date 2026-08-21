@@ -156,6 +156,21 @@ export const starterGoalCards: GoalCardDefinition[] = [
 		coop: true
 	},
 	{
+		id: 'starter/false-alarm',
+		title: goalCardStrings['false-alarm'].title,
+		goalText: goalCardStrings['false-alarm'].goalText,
+		worldId: PLAYROOM_WORLD_ID,
+		layoutId: 'false-alarm',
+		successCondition: 'coat-answer-shared',
+		hints: [...goalCardStrings['false-alarm'].hints],
+		teachesConcepts: ['confused-deputy', 'scope-minimisation', 'guardrails'],
+		// Two steps, the same shape as `HIDING_SPOT` (`session/plans.ts`):
+		// call `forecast`, then say the answer — the safe plan never touches
+		// `alert` at all. `session/false-alarm.test.ts` is what actually
+		// proves the confused-deputy lesson, over both scope configurations.
+		par: 2
+	},
+	{
 		id: 'starter/free-play',
 		title: goalCardStrings['free-play'].title,
 		goalText: goalCardStrings['free-play'].goalText,

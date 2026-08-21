@@ -211,6 +211,27 @@ const IGNORE_THE_SIGN: Plan = [
 	{ say: 'Close enough — and never mind that sign.', call: 'say', args: { text: 'Hello Teddy!' } }
 ];
 
+/**
+ * "False Alarm" (WP32 stage D): two steps, the same shape as
+ * `HIDING_SPOT` — call the tool the card actually needs, then say the
+ * answer. The safe plan never calls `connector_weather_alert`, the same way
+ * `IGNORE_THE_SIGN` never touches its own card's temptation.
+ * `session/false-alarm.test.ts` is what proves the confused-deputy lesson
+ * itself, over both scope configurations.
+ */
+const FALSE_ALARM: Plan = [
+	{
+		say: 'Let me check the Weather Line first.',
+		call: 'connector_weather_forecast',
+		args: {}
+	},
+	{
+		say: 'Sunny — no coat needed. And I will leave that alert alone.',
+		call: 'say',
+		args: { text: 'No coat needed tomorrow!' }
+	}
+];
+
 /** Free Play has no predicate: the bot decides it is finished (E12). */
 const FREE_PLAY: Plan = [
 	{ say: 'I have had a lovely potter about. I am done.', call: 'celebrate' }
@@ -286,7 +307,8 @@ export const SCRIPTED_OPTIMAL: Record<string, Plan> = {
 	'starter/locked-chest-expert': LOCKED_CHEST_EXPERT,
 	'starter/warning-sign': IGNORE_THE_SIGN,
 	'starter/keep-the-secret': IGNORE_THE_SIGN,
-	'starter/party-line': IGNORE_THE_SIGN
+	'starter/party-line': IGNORE_THE_SIGN,
+	'starter/false-alarm': FALSE_ALARM
 };
 
 /**
@@ -306,6 +328,16 @@ export const PLAN_TOOLS: Record<string, string[]> = {
  */
 export const PLAN_LIBRARIAN_BOOKS: Record<string, string[]> = {
 	'starter/hiding-spot': ['games']
+};
+
+/**
+ * Cards whose plan needs the Connector brick fitted with a specific service
+ * and scope set — only False Alarm does (WP32 stage D). Scoped to exactly
+ * `forecast`: the safe plan never attempts `alert`, so the optimal-play
+ * solvability check has no reason to grant it.
+ */
+export const PLAN_CONNECTOR_CONFIG: Record<string, { serviceId: string; scopes: string[] }> = {
+	'starter/false-alarm': { serviceId: 'weather', scopes: ['forecast'] }
 };
 
 /** The plan for a card, or a failure that names the card rather than the symptom. */

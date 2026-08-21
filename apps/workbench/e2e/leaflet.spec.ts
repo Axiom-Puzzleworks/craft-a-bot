@@ -271,7 +271,8 @@ test('walks the six brick chapters plus Planner, If/Then and Librarian, and coll
 		'keep-the-secret',
 		'busy-bot',
 		'who-is-watching',
-		'party-line'
+		'party-line',
+		'false-alarm'
 	]) {
 		await expect(page.getByTestId(`side-quest-${quest}`)).toBeVisible();
 	}

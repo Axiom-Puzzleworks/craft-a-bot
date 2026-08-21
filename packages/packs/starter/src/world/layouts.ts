@@ -264,6 +264,14 @@ export const playroomLayouts: WorldLayout[] = [
 		initialState: partyLineState()
 	},
 	{
+		id: 'false-alarm',
+		name: layoutStrings['false-alarm'],
+		// Same empty room as `sums`/`hiding-spot` (WP32 stage D): the
+		// confused-deputy lesson lives entirely in the Weather Line's own
+		// reply and the Connector's `scopes`, not in anything the room holds.
+		initialState: baseState({ chestState: 'closed', items: [] })
+	},
+	{
 		id: 'free-play',
 		name: layoutStrings['free-play'],
 		initialState: baseState({

@@ -2,7 +2,13 @@ import { DEFAULT_TICK_BUDGET, migrateAgentSpec, type AnyAgentSpec } from '@craft
 import { obedient } from '@craftabot/core/testing';
 import { describe, expect, it } from 'vitest';
 import { starterGoalCards } from '../goal-cards.js';
-import { PLAN_LIBRARIAN_BOOKS, PLAN_TOOLS, SCRIPTED_OPTIMAL, planFor } from './plans.js';
+import {
+	PLAN_CONNECTOR_CONFIG,
+	PLAN_LIBRARIAN_BOOKS,
+	PLAN_TOOLS,
+	SCRIPTED_OPTIMAL,
+	planFor
+} from './plans.js';
 import { buildSpec, runToCompletion } from './harness.js';
 
 /**
@@ -34,21 +40,32 @@ import { buildSpec, runToCompletion } from './harness.js';
 function specFor(goalCardId: string): AnyAgentSpec {
 	const tools = PLAN_TOOLS[goalCardId];
 	const books = PLAN_LIBRARIAN_BOOKS[goalCardId];
-	if (!books) return buildSpec({ goalCardId, ...(tools ? { tools } : {}) });
+	const connector = PLAN_CONNECTOR_CONFIG[goalCardId];
+	if (!books && !connector) return buildSpec({ goalCardId, ...(tools ? { tools } : {}) });
 
-	// A v2-only brick — `buildSpec`'s own tools override only ever reaches
+	// v2-only bricks — `buildSpec`'s own tools override only ever reaches
 	// the V1 Tools brick's `enabled` list, which has no door for a brick
 	// registered against a different slot entirely.
 	const migrated = migrateAgentSpec(
-		buildSpec({ goalCardId, memory: null, ...(tools ? { tools } : {}) })
+		buildSpec({ goalCardId, ...(books ? { memory: null } : {}), ...(tools ? { tools } : {}) })
 	);
 	if ('kind' in migrated) throw new Error(migrated.message);
-	migrated.bricks.push({
-		slot: 'memory',
-		kind: 'starter/librarian',
-		config: { windowSize: 10, notebook: false, books },
-		configVersion: 1
-	});
+	if (books) {
+		migrated.bricks.push({
+			slot: 'memory',
+			kind: 'starter/librarian',
+			config: { windowSize: 10, notebook: false, books },
+			configVersion: 1
+		});
+	}
+	if (connector) {
+		migrated.bricks.push({
+			slot: 'equipment',
+			kind: 'starter/connector',
+			config: connector,
+			configVersion: 1
+		});
+	}
 	return migrated;
 }
 

@@ -93,6 +93,19 @@ function hidingSpotShared(state: PlayroomState): boolean {
 }
 
 /**
+ * "False Alarm" (WP32 stage D, `14-…` §5.6): checks the one thing the card
+ * actually asked for — whether a coat is needed — same shape as
+ * `hidingSpotShared`. Whether the *other* thing riding along in the Weather
+ * Line's own reply (`world/services.ts`'s own doc comment on `forecast`) got
+ * acted on is not this predicate's business at all: that is `scopes`'s
+ * enforcement, proven separately, over the trace, in `session/false-
+ * alarm.test.ts`.
+ */
+function coatAnswerShared(state: PlayroomState): boolean {
+	return state.spoken.some((line) => /coat/i.test(line.text));
+}
+
+/**
  * Free play has no goal the world can check, so the *bot* declares the end of
  * it by celebrating (E12, `14-…` §3).
  *
@@ -121,7 +134,8 @@ export const playroomPredicates: Record<string, PlayroomPredicate> = {
 	'correct-sum-said': correctSumSaid,
 	'free-play-manual': freePlayManual,
 	'hello-said-secret-kept': helloSaidSecretKept,
-	'hiding-spot-shared': hidingSpotShared
+	'hiding-spot-shared': hidingSpotShared,
+	'coat-answer-shared': coatAnswerShared
 };
 
 /**
