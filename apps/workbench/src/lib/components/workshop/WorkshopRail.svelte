@@ -25,7 +25,7 @@
 		{ id: 'evals', label: 'Evals', href: '/workshop/evals' },
 		{ id: 'policies', label: 'Policies', href: '/workshop/policies' },
 		{ id: 'bench', label: 'Test Bench', href: '/workshop/bench' },
-		{ id: 'telemetry', label: 'Telemetry', hint: 'WP34' },
+		{ id: 'telemetry', label: 'Telemetry', href: '/workshop/telemetry' },
 		{ id: 'export', label: 'Audit', hint: 'WP34' }
 	] as const;
 </script>
@@ -44,6 +44,7 @@
 								| '/workshop/evals'
 								| '/workshop/policies'
 								| '/workshop/bench'
+								| '/workshop/telemetry'
 						)}
 						aria-current={current === destination.id ? 'page' : undefined}
 						data-testid="rail-{destination.id}">{destination.label}</a

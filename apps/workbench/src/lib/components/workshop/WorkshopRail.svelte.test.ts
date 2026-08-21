@@ -12,10 +12,13 @@ import WorkshopRail from './WorkshopRail.svelte';
  * kind of thing it exists to stop other software doing.
  */
 describe('the Workshop rail', () => {
-	it.each(['dashboard', 'runs', 'evals', 'policies'])('links to %s, which is built', (built) => {
-		render(WorkshopRail, { props: { current: 'runs' } });
-		expect(screen.getByTestId(`rail-${built}`).tagName).toBe('A');
-	});
+	it.each(['dashboard', 'runs', 'evals', 'policies', 'bench', 'telemetry'])(
+		'links to %s, which is built',
+		(built) => {
+			render(WorkshopRail, { props: { current: 'runs' } });
+			expect(screen.getByTestId(`rail-${built}`).tagName).toBe('A');
+		}
+	);
 
 	it('marks the current screen', () => {
 		render(WorkshopRail, { props: { current: 'runs' } });
@@ -24,7 +27,7 @@ describe('the Workshop rail', () => {
 
 	it('shows what is not built, without pretending it is a link', () => {
 		render(WorkshopRail, { props: { current: 'runs' } });
-		for (const pending of ['spec', 'telemetry', 'export']) {
+		for (const pending of ['spec', 'export']) {
 			expect(screen.getByTestId(`rail-${pending}`).tagName, pending).not.toBe('A');
 		}
 	});
@@ -32,7 +35,7 @@ describe('the Workshop rail', () => {
 	it('names the work package each unbuilt screen is waiting on', () => {
 		// So the answer to "when?" is in the product rather than only in a doc.
 		render(WorkshopRail, { props: { current: 'runs' } });
-		expect(screen.getByTestId('rail-telemetry')).toHaveTextContent('WP34');
+		expect(screen.getByTestId('rail-export')).toHaveTextContent('WP34');
 		// The Spec Lab is built but has no screen of its own — it is always about a
 		// particular bot, so the rail says how to reach it rather than pretending
 		// it is missing.
