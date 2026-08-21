@@ -26,6 +26,7 @@
 ├── /policies                    — Policy Studio: author/test policy cards
 ├── /bench                       — Test Bench: assertion cards run against a stored run's trace (14-… §5.7)
 ├── /telemetry                   — Cross-run dashboards (Phase D+)
+├── /incidents                   — Incident log: derived from failing trace events (19-… #31, WP34)
 └── /export                      — Audit centre: traces, reports, cards, OTel export (Phase F)
 ```
 
@@ -97,6 +98,12 @@ Cross-run trends: success/loop/cost per card per cartridge over time, guardrail 
 > **Added and built 2026-08-18 (WP27), retrofitted into this section rather than at the point of first mention in `14-…` §5.7's brick table** to avoid renumbering every existing cross-reference this doc's siblings carry to §4.1–§4.6 by ordinal.
 
 Not in the original eight-screen IA (§2, as first written) — `14-…` §5.7 named the concept ("Assertion cards run against traces … 'Check your robot's homework'") but never wove it into this doc's screen map. Picks one stored run, runs a fixed set of `AssertionCard`s against its trace (`packages/core/src/schemas/assertion-card.ts`, reusing WP22's `PredicateExpr`), shows each as a pass/fail chip with the turns it matched, and links out to the full Run Lab. No authoring UI ships — the cards are a small built-in set (`apps/workbench/src/lib/workshop/assertion-cards.ts`), the same scope decision the Policy Studio's own persistence gap (§4.5, above) already recorded: a content-authoring store shared between modes is a real feature with its own id-collision and versioning questions, not a rider on the screen that first wants it.
+
+### 4.8 Incidents (`/incidents`)
+
+> **Added and built 2026-08-21 (WP34 stage B)**, retrofitted in here the same way §4.7's Test Bench was: WP34's own roadmap row names "incident log" (`19-…` #31) but neither §2's original IA nor `18-…` fixed it a route of its own.
+
+Also not authored — an incident is derived, not logged by hand, the same discipline §4.7 already set for assertion cards. Every stored run carrying at least one event `timeline.ts`'s own `isFailure` already flags (a guardrail catch, a failed action, a denied approval, an error, or a run that never reached `SUCCESS`) appears as one incident, its findings tagged by a small OECD-taxonomy-shaped kind and quoted from the event's own payload — never invented text. A run with a clean trace is not an incident and does not appear; a fleet with runs but nothing wrong says so explicitly rather than showing an empty list indistinguishable from "nothing has loaded yet". Each incident links out to the full Run Lab, the same forensic depth every other Workshop screen defers to rather than duplicating.
 
 ## 5. Design language
 

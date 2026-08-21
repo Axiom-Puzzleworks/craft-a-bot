@@ -13,7 +13,15 @@
 	 */
 	interface Props {
 		current:
-			'runs' | 'dashboard' | 'spec' | 'evals' | 'policies' | 'bench' | 'telemetry' | 'export';
+			| 'runs'
+			| 'dashboard'
+			| 'spec'
+			| 'evals'
+			| 'policies'
+			| 'bench'
+			| 'telemetry'
+			| 'incidents'
+			| 'export';
 	}
 
 	let { current }: Props = $props();
@@ -26,6 +34,7 @@
 		{ id: 'policies', label: 'Policies', href: '/workshop/policies' },
 		{ id: 'bench', label: 'Test Bench', href: '/workshop/bench' },
 		{ id: 'telemetry', label: 'Telemetry', href: '/workshop/telemetry' },
+		{ id: 'incidents', label: 'Incidents', href: '/workshop/incidents' },
 		{ id: 'export', label: 'Audit', hint: 'WP34' }
 	] as const;
 </script>
@@ -45,6 +54,7 @@
 								| '/workshop/policies'
 								| '/workshop/bench'
 								| '/workshop/telemetry'
+								| '/workshop/incidents'
 						)}
 						aria-current={current === destination.id ? 'page' : undefined}
 						data-testid="rail-{destination.id}">{destination.label}</a

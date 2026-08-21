@@ -12,7 +12,7 @@ import WorkshopRail from './WorkshopRail.svelte';
  * kind of thing it exists to stop other software doing.
  */
 describe('the Workshop rail', () => {
-	it.each(['dashboard', 'runs', 'evals', 'policies', 'bench', 'telemetry'])(
+	it.each(['dashboard', 'runs', 'evals', 'policies', 'bench', 'telemetry', 'incidents'])(
 		'links to %s, which is built',
 		(built) => {
 			render(WorkshopRail, { props: { current: 'runs' } });
