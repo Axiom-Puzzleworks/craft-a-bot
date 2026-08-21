@@ -5,6 +5,7 @@
 	import { storageStatus } from '$lib/state/app-storage.svelte.js';
 	import { filledSockets } from '$lib/bricks.js';
 	import { boxArtFor } from '$lib/box-art.js';
+	import { AGENT_BUILDER_BUNDLE, EXPANSION_PACKS } from '$lib/expansion-packs.js';
 	import { TEMPLATES } from '$lib/assets/index.js';
 	import Art from '$lib/components/art/Art.svelte';
 	import TakeApartConfirm from '$lib/components/kit/TakeApartConfirm.svelte';
@@ -13,6 +14,14 @@
 	 * The Shelf (03-UI-UX-DESIGN.md §3): your bots as toy boxes on a wooden
 	 * shelf, plus the expansion packs "still in the shop" — establishing the
 	 * merchandising fiction from the first screen.
+	 *
+	 * The shop itself is `18-…` §4's own kit-line table (WP33's own
+	 * kit-line-packaging half), rendered rather than hand-written: every pack
+	 * that table names, plus the curated "Agent Builder" bundle. "Unlocked!"
+	 * is the only status a local-first, no-backend app can honestly claim —
+	 * there is no purchase gate, nothing to actually lock (`00-…` §3.5) —
+	 * except Tool Shop, whose own content genuinely does not exist in any
+	 * pack yet; `expansion-packs.ts` carries that one honest exception.
 	 */
 
 	const storage = storageStatus();
@@ -245,14 +254,29 @@
 
 	<section class="shelf shelf--shop" aria-labelledby="expansions">
 		<h2 id="expansions">Expansion packs</h2>
+		<ul class="boxes" data-testid="expansion-packs">
+			{#each EXPANSION_PACKS as pack (pack.id)}
+				<li>
+					<article class="box box--shop" data-testid="pack-{pack.id}">
+						<h3>{pack.name}</h3>
+						<p class="contents">{pack.contents}</p>
+						<p class="sticker" data-status={pack.status}>
+							{pack.status === 'unlocked' ? 'Unlocked!' : 'Coming soon'}
+						</p>
+					</article>
+				</li>
+			{/each}
+		</ul>
+	</section>
+
+	<section class="shelf shelf--bundle" aria-labelledby="bundle">
+		<h2 id="bundle">The full kit</h2>
 		<ul class="boxes">
 			<li>
-				<article class="box box--shop">
-					<h3>LLM Multi-Pack</h3>
-					<p class="contents">
-						6 special-skill cartridges, 4 model brands — all in your Brain Brick!
-					</p>
-					<p class="sticker">Unlocked!</p>
+				<article class="box box--bundle" data-testid="agent-builder-bundle">
+					<h3>{AGENT_BUILDER_BUNDLE.name}</h3>
+					<p class="contents">{AGENT_BUILDER_BUNDLE.contents}</p>
+					<p class="teaches">{AGENT_BUILDER_BUNDLE.teaches}</p>
 				</article>
 			</li>
 		</ul>
@@ -574,6 +598,40 @@
 		font-size: var(--cab-text-xs);
 		font-weight: 700;
 		transform: rotate(-4deg);
+	}
+
+	/*
+	 * A pack whose own content does not exist yet (Tool Shop, `expansion-
+	 * packs.ts`) gets a muted pill, not the yellow "Unlocked!" one — the same
+	 * "muted, not dimmed" language the Workshop rail's own pending screens
+	 * use (`04-…` §2.3): still readable, honestly a different claim.
+	 */
+	.sticker[data-status='coming-soon'] {
+		background: var(--cab-paper);
+		color: var(--cab-ink-muted);
+		border: 1px solid var(--cab-ink-muted);
+	}
+
+	/*
+	 * The bundle is the flagship, not a browsable accessory — it keeps its
+	 * colour rather than joining the shop boxes' own greyscale treatment,
+	 * and gets its own section so a reader is never asking whether it is an
+	 * eighth pack.
+	 */
+	.box--bundle {
+		border-color: var(--cab-blue);
+		background: color-mix(in srgb, var(--cab-blue) 6%, var(--cab-cream));
+	}
+
+	.box--bundle h3 {
+		color: var(--cab-blue-text);
+	}
+
+	.teaches {
+		margin: 0;
+		font-size: var(--cab-text-xs);
+		font-style: italic;
+		color: var(--cab-ink-muted);
 	}
 
 	@media (prefers-reduced-motion: reduce) {

@@ -8,6 +8,35 @@ test('the Shelf page loads', async ({ page }) => {
 	await expect(page.getByRole('heading', { name: 'Craft A Bot' })).toBeVisible();
 });
 
+/**
+ * The kit line (WP33's own kit-line-packaging half): every pack `18-…` §4
+ * names, plus the curated Agent Builder bundle, both real on the Shelf a
+ * reader sees first — not just in the design doc's own table.
+ */
+test('the kit line shows every pack, honestly, and the curated bundle', async ({ page }) => {
+	await page.goto('/');
+
+	for (const id of [
+		'llm-multipack',
+		'safety-patrol',
+		'planner',
+		'robot-friends',
+		'explorers-world',
+		'library',
+		'tool-shop'
+	]) {
+		await expect(page.getByTestId(`pack-${id}`)).toBeVisible();
+	}
+
+	// Six packs are real, built content; Tool Shop's own tools do not exist
+	// anywhere yet, and the shelf says so rather than claiming otherwise.
+	await expect(page.getByTestId('pack-llm-multipack')).toContainText('Unlocked!');
+	await expect(page.getByTestId('pack-tool-shop')).toContainText('Coming soon');
+
+	await expect(page.getByTestId('agent-builder-bundle')).toBeVisible();
+	await expect(page.getByTestId('agent-builder-bundle')).toContainText('Agent Builder');
+});
+
 async function streamToString(stream: NodeJS.ReadableStream): Promise<string> {
 	const chunks: Buffer[] = [];
 	for await (const chunk of stream) chunks.push(Buffer.from(chunk as Buffer));
