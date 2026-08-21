@@ -21,6 +21,7 @@
 			| 'bench'
 			| 'telemetry'
 			| 'incidents'
+			| 'safety-case'
 			| 'export';
 	}
 
@@ -35,6 +36,7 @@
 		{ id: 'bench', label: 'Test Bench', href: '/workshop/bench' },
 		{ id: 'telemetry', label: 'Telemetry', href: '/workshop/telemetry' },
 		{ id: 'incidents', label: 'Incidents', href: '/workshop/incidents' },
+		{ id: 'safety-case', label: 'Safety case', href: '/workshop/safety-case' },
 		{ id: 'export', label: 'Audit', hint: 'WP34' }
 	] as const;
 </script>
@@ -55,6 +57,7 @@
 								| '/workshop/bench'
 								| '/workshop/telemetry'
 								| '/workshop/incidents'
+								| '/workshop/safety-case'
 						)}
 						aria-current={current === destination.id ? 'page' : undefined}
 						data-testid="rail-{destination.id}">{destination.label}</a

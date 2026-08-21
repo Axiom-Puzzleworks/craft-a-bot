@@ -37,6 +37,7 @@
 		if (path.startsWith('/workshop/bench')) return 'bench' as const;
 		if (path.startsWith('/workshop/telemetry')) return 'telemetry' as const;
 		if (path.startsWith('/workshop/incidents')) return 'incidents' as const;
+		if (path.startsWith('/workshop/safety-case')) return 'safety-case' as const;
 		return 'dashboard' as const;
 	});
 </script>

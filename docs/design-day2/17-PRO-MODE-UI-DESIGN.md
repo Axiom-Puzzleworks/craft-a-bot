@@ -27,6 +27,7 @@
 ├── /bench                       — Test Bench: assertion cards run against a stored run's trace (14-… §5.7)
 ├── /telemetry                   — Cross-run dashboards (Phase D+)
 ├── /incidents                   — Incident log: derived from failing trace events (19-… #31, WP34)
+├── /safety-case                 — Safety case worksheet: inability/control/trustworthiness, per bot (19-… #28, WP34)
 └── /export                      — Audit centre: traces, reports, cards, OTel export (Phase F)
 ```
 
@@ -104,6 +105,12 @@ Not in the original eight-screen IA (§2, as first written) — `14-…` §5.7 n
 > **Added and built 2026-08-21 (WP34 stage B)**, retrofitted in here the same way §4.7's Test Bench was: WP34's own roadmap row names "incident log" (`19-…` #31) but neither §2's original IA nor `18-…` fixed it a route of its own.
 
 Also not authored — an incident is derived, not logged by hand, the same discipline §4.7 already set for assertion cards. Every stored run carrying at least one event `timeline.ts`'s own `isFailure` already flags (a guardrail catch, a failed action, a denied approval, an error, or a run that never reached `SUCCESS`) appears as one incident, its findings tagged by a small OECD-taxonomy-shaped kind and quoted from the event's own payload — never invented text. A run with a clean trace is not an incident and does not appear; a fleet with runs but nothing wrong says so explicitly rather than showing an empty list indistinguishable from "nothing has loaded yet". Each incident links out to the full Run Lab, the same forensic depth every other Workshop screen defers to rather than duplicating.
+
+### 4.9 Safety case (`/safety-case`)
+
+> **Added and built 2026-08-21 (WP34 stage C)**, retrofitted the same way §4.7 and §4.8 were: `19-…` #28 names the concept but neither §2's original IA nor `18-…` fixed it a route.
+
+The one screen in this section that picks a **bot** rather than a run — every other question this app answers is "what happened here"; this one is "what is true of this build", which only means something held against one bot's whole history. Auto-assembled, never authored, in UK AISI's own three-argument shape (§6.6): **inability** compares the full irreversible-tier catalogue (every world action and tool carrying `riskTier: 'irreversible'`, `14-…` §4.5) against what `BotCapabilities` says this build actually reaches — what is not reached is a real inability claim, and what *is* reached is named too (`reach`), not hidden, since a safety case that only shows absence of danger is not honest; **control** is `capabilities.guardrailIds` verbatim, every rule this build's fitted bricks actually install; **trustworthiness** reuses §4.8's own `incidentsFrom`, scoped to this one bot's runs, alongside its success rate. No eval-matrix figure ships — nothing yet ties a stored eval run back to one bot, and a worksheet that invented that link would be worse than one that left it out. No new mechanism anywhere: every input already existed (`BotCapabilities`, the world/tool catalogues' own `riskTier`, `incidentsFrom`), confirming the same "the open contract already had the hook" property WP32's own bricks found.
 
 ## 5. Design language
 

@@ -12,13 +12,19 @@ import WorkshopRail from './WorkshopRail.svelte';
  * kind of thing it exists to stop other software doing.
  */
 describe('the Workshop rail', () => {
-	it.each(['dashboard', 'runs', 'evals', 'policies', 'bench', 'telemetry', 'incidents'])(
-		'links to %s, which is built',
-		(built) => {
-			render(WorkshopRail, { props: { current: 'runs' } });
-			expect(screen.getByTestId(`rail-${built}`).tagName).toBe('A');
-		}
-	);
+	it.each([
+		'dashboard',
+		'runs',
+		'evals',
+		'policies',
+		'bench',
+		'telemetry',
+		'incidents',
+		'safety-case'
+	])('links to %s, which is built', (built) => {
+		render(WorkshopRail, { props: { current: 'runs' } });
+		expect(screen.getByTestId(`rail-${built}`).tagName).toBe('A');
+	});
 
 	it('marks the current screen', () => {
 		render(WorkshopRail, { props: { current: 'runs' } });
