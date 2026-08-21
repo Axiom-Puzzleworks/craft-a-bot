@@ -5,11 +5,11 @@ import WorkshopRail from './WorkshopRail.svelte';
 /**
  * The rail's job is partly navigation and partly honesty.
  *
- * `17-…` §2 specifies eight screens; one exists. A rail that listed only the
- * built one would misrepresent the product to somebody deciding whether it is
- * worth their time, and one that linked to all eight would be worse — a
- * governance tool whose menu promises rooms that are not there is exactly the
- * kind of thing it exists to stop other software doing.
+ * `17-…` §2's information architecture grew from one built screen to every
+ * one of them, across WP20–WP34. A rail that listed only the built ones
+ * would have misrepresented the product to somebody deciding whether it was
+ * worth their time; now that every screen exists, `spec` is the one entry
+ * that stays a non-link on purpose, not because it is unbuilt.
  */
 describe('the Workshop rail', () => {
 	it.each([
@@ -20,7 +20,8 @@ describe('the Workshop rail', () => {
 		'bench',
 		'telemetry',
 		'incidents',
-		'safety-case'
+		'safety-case',
+		'export'
 	])('links to %s, which is built', (built) => {
 		render(WorkshopRail, { props: { current: 'runs' } });
 		expect(screen.getByTestId(`rail-${built}`).tagName).toBe('A');
@@ -31,20 +32,9 @@ describe('the Workshop rail', () => {
 		expect(screen.getByTestId('rail-runs')).toHaveAttribute('aria-current', 'page');
 	});
 
-	it('shows what is not built, without pretending it is a link', () => {
+	it('shows the Spec Lab as a pointer, not a link — it is always about a particular bot', () => {
 		render(WorkshopRail, { props: { current: 'runs' } });
-		for (const pending of ['spec', 'export']) {
-			expect(screen.getByTestId(`rail-${pending}`).tagName, pending).not.toBe('A');
-		}
-	});
-
-	it('names the work package each unbuilt screen is waiting on', () => {
-		// So the answer to "when?" is in the product rather than only in a doc.
-		render(WorkshopRail, { props: { current: 'runs' } });
-		expect(screen.getByTestId('rail-export')).toHaveTextContent('WP34');
-		// The Spec Lab is built but has no screen of its own — it is always about a
-		// particular bot, so the rail says how to reach it rather than pretending
-		// it is missing.
+		expect(screen.getByTestId('rail-spec').tagName).not.toBe('A');
 		expect(screen.getByTestId('rail-spec')).toHaveTextContent('per bot');
 	});
 

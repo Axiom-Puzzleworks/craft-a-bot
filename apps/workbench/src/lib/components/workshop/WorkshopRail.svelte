@@ -4,12 +4,15 @@
 	/**
 	 * The Workshop's persistent left rail (`17-…` §2).
 	 *
-	 * Built from a list rather than seven hand-written links because the
-	 * information architecture in §2 is eight screens and only one of them exists
-	 * yet. A rail that silently omitted the rest would misrepresent the product;
-	 * one that linked to them would be lying about what is there. Unbuilt screens
-	 * are shown, disabled, with the work package that brings them — the same
-	 * honesty the Kit's "Coming soon" expansion box already uses.
+	 * Built from a list rather than hand-written links because the information
+	 * architecture grew, screen by screen, from one built entry to every one
+	 * of them (`17-…` §4.7–§4.9's own retrofits) — a rail that silently
+	 * omitted an unbuilt screen would misrepresent the product, and one that
+	 * linked to it early would be lying about what is there. `spec` is the
+	 * one entry that stays a non-link permanently by design, not because it
+	 * is unbuilt: the Spec Lab has no screen of its own, it is always about a
+	 * particular bot, so the rail says how to reach it rather than pretending
+	 * it is missing.
 	 */
 	interface Props {
 		current:
@@ -37,7 +40,7 @@
 		{ id: 'telemetry', label: 'Telemetry', href: '/workshop/telemetry' },
 		{ id: 'incidents', label: 'Incidents', href: '/workshop/incidents' },
 		{ id: 'safety-case', label: 'Safety case', href: '/workshop/safety-case' },
-		{ id: 'export', label: 'Audit', hint: 'WP34' }
+		{ id: 'export', label: 'Audit', href: '/workshop/export' }
 	] as const;
 </script>
 
@@ -58,6 +61,7 @@
 								| '/workshop/telemetry'
 								| '/workshop/incidents'
 								| '/workshop/safety-case'
+								| '/workshop/export'
 						)}
 						aria-current={current === destination.id ? 'page' : undefined}
 						data-testid="rail-{destination.id}">{destination.label}</a
