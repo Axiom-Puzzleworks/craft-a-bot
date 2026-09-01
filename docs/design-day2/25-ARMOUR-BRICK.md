@@ -318,6 +318,8 @@ The world is untouched; randomness still flows only through `dice`. Hosted verdi
 
 *(Stages append dated notes here as they land.)*
 
+> **Amended 2026-09-01 (Stage A).** §4.1's envelope spells out `pi_and_jailbreak`'s and `rai`'s result shapes in full but leaves `malicious_uris` and `csam` as "…" — Stage A's fixtures and `reading.ts` fill both in as a single `{executionState, matchState}` result keyed `maliciousUriFilterResult`/`csamFilterResult`, the same shape `pi_and_jailbreak` uses without the confidence field, on the reasoning that Model Armor's own filter results are internally consistent. Not sourced from a live capture — Stage B's real traffic (§10's own "platform drift" risk) is what confirms or corrects it; if it differs, only `reading.ts`'s schema and the two fixtures change, per the same risk register entry ("fixtures are verbatim envelopes so a shape change fails a test, not a run").
+
 ---
 
 ## 9. Decisions of record (2026-09-01)

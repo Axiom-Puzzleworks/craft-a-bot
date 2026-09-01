@@ -1,0 +1,50 @@
+{
+	"sanitizationResult": {
+		"filterMatchState": "NO_MATCH_FOUND",
+		"invocationResult": "PARTIAL",
+		"filterResults": {
+			"pi_and_jailbreak": {
+				"piAndJailbreakFilterResult": {
+					"executionState": "EXECUTION_SKIPPED",
+					"matchState": "NO_MATCH_FOUND"
+				}
+			},
+			"rai": {
+				"raiFilterResult": {
+					"executionState": "EXECUTION_SUCCESS",
+					"matchState": "NO_MATCH_FOUND",
+					"raiFilterTypeResults": {
+						"HATE_SPEECH": { "matchState": "NO_MATCH_FOUND" },
+						"HARASSMENT": { "matchState": "NO_MATCH_FOUND" },
+						"DANGEROUS": { "matchState": "NO_MATCH_FOUND" },
+						"SEXUALLY_EXPLICIT": { "matchState": "NO_MATCH_FOUND" }
+					}
+				}
+			},
+			"sdp": {
+				"sdpFilterResult": {
+					"inspectResult": {
+						"executionState": "EXECUTION_SUCCESS",
+						"matchState": "NO_MATCH_FOUND"
+					}
+				}
+			},
+			"malicious_uris": {
+				"maliciousUriFilterResult": {
+					"executionState": "EXECUTION_SUCCESS",
+					"matchState": "NO_MATCH_FOUND"
+				}
+			},
+			"csam": {
+				"csamFilterResult": {
+					"executionState": "EXECUTION_SUCCESS",
+					"matchState": "NO_MATCH_FOUND"
+				}
+			}
+		},
+		"sanitizationMetadata": {
+			"errorCode": "TOKEN_LIMIT_EXCEEDED",
+			"errorMessage": "pi_and_jailbreak filter exceeded the 65536-token limit and was skipped."
+		}
+	}
+}
