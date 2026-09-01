@@ -82,6 +82,27 @@ describe('createModelArmorClient — requests', () => {
 		});
 	});
 
+	/**
+	 * Found live: a token pasted from a terminal (`gcloud auth print-access-token`,
+	 * the Armour Studio and Settings' own paste fields) easily carries a
+	 * trailing newline or space, which Google rejects as invalid credentials —
+	 * the same generic message a genuinely wrong token gets, indistinguishable
+	 * from the caller's side without inspecting the raw header.
+	 */
+	it('trims a pasted token before it reaches the Authorization header', async () => {
+		let seenInit: RequestInit | undefined;
+		const fetchSpy: typeof globalThis.fetch = (_input, init) => {
+			seenInit = init;
+			return Promise.resolve(jsonResponse(fixtures.clean));
+		};
+		const client = createModelArmorClient({
+			...baseOptions(fetchSpy),
+			token: () => `  ${TOKEN}\n`
+		});
+		await client.sanitizeUserPrompt('look around the room');
+		expect((seenInit?.headers as Record<string, string>).authorization).toBe(`Bearer ${TOKEN}`);
+	});
+
 	it('sends the modelResponseData envelope with userPrompt context when given', async () => {
 		let seenInit: RequestInit | undefined;
 		const fetchSpy: typeof globalThis.fetch = (_input, init) => {

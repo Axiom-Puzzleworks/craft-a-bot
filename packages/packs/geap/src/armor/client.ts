@@ -73,7 +73,12 @@ async function callSanitize(
 	method: 'sanitizeUserPrompt' | 'sanitizeModelResponse',
 	body: unknown
 ): Promise<ArmorClientResult> {
-	const token = options.token() ?? '';
+	// Trimmed, not just defaulted: a token pasted from a terminal easily
+	// carries a trailing newline or space, which Google's own OAuth
+	// validation rejects outright — as a 401 indistinguishable, from the
+	// caller's side, from a genuinely wrong token (found live: the exact
+	// same generic "invalid authentication credentials" message either way).
+	const token = (options.token() ?? '').trim();
 	const url = describeEndpoint(options, method);
 	const controller = new AbortController();
 	const timer = setTimeout(() => controller.abort(), options.timeoutMs);
