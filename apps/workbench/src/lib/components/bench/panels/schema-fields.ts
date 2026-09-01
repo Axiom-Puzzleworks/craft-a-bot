@@ -67,6 +67,8 @@ interface ZodInternals {
 		element?: ZodType;
 		options?: ZodType[];
 		values?: unknown[];
+		/** `z.enum(...)`'s own values live here, keyed by themselves — real zod 4 has no `values` for an enum def. */
+		entries?: Record<string, unknown>;
 		checks?: Array<{ _zod?: { def?: NumericCheck }; def?: NumericCheck }>;
 	};
 }
@@ -172,7 +174,7 @@ function controlFor(schema: ZodType, hint: ControlHint): FieldControl {
 		}
 
 		case 'enum': {
-			const values = def.values ?? [];
+			const values = def.entries ? Object.values(def.entries) : [];
 			return { kind: 'choice', options: values.map((value) => labelled(value, hint)) };
 		}
 

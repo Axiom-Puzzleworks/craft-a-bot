@@ -41,6 +41,34 @@ describe('inferring controls from a schema alone', () => {
 		});
 	});
 
+	/**
+	 * `z.enum(...)`'s own internal shape keys its values under `entries`, not
+	 * `values` — every other test above reaches 'choice' through a
+	 * `z.union([z.literal(...)])`, which does carry `values`, so a reader that
+	 * only ever looked for `values` passed every test here while rendering a
+	 * real `z.enum(...)` field (`pack-geap`'s own `screenObservation` et al.)
+	 * as an empty, unselectable dropdown on the actual bench.
+	 */
+	it('enumerates a real z.enum into a choice, not an empty one', () => {
+		const [field] = describeFields(z.object({ mode: z.enum(['off', 'note', 'stop']) }));
+		expect(field?.control).toEqual({
+			kind: 'choice',
+			options: [
+				{ value: 'off', label: 'off' },
+				{ value: 'note', label: 'note' },
+				{ value: 'stop', label: 'stop' }
+			]
+		});
+	});
+
+	it('enumerates a z.enum(...).default(...) into a choice too', () => {
+		const [field] = describeFields(
+			z.object({ mode: z.enum(['off', 'note', 'stop']).default('off') })
+		);
+		expect(field?.control.kind).toBe('choice');
+		expect(field?.control.kind === 'choice' ? field.control.options.length : 0).toBe(3);
+	});
+
 	it('marks an optional field optional, and still reads its shape', () => {
 		const [field] = describeFields(z.object({ limit: z.number().min(2).max(10).optional() }));
 		expect(field?.optional).toBe(true);
