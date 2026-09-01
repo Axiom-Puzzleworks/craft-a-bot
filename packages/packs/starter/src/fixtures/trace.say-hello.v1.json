@@ -105,8 +105,8 @@
 		"type": "sense",
 		"payload": {
 			"channels": [
-				"sight",
-				"compass"
+				"starter/playroom/sight",
+				"starter/playroom/compass"
 			],
 			"observation": {
 				"channels": [
@@ -459,8 +459,8 @@
 		"type": "sense",
 		"payload": {
 			"channels": [
-				"sight",
-				"compass"
+				"starter/playroom/sight",
+				"starter/playroom/compass"
 			],
 			"observation": {
 				"channels": [
@@ -751,8 +751,8 @@
 		"type": "sense",
 		"payload": {
 			"channels": [
-				"sight",
-				"compass"
+				"starter/playroom/sight",
+				"starter/playroom/compass"
 			],
 			"observation": {
 				"channels": [
@@ -1065,8 +1065,8 @@
 		"type": "sense",
 		"payload": {
 			"channels": [
-				"sight",
-				"compass"
+				"starter/playroom/sight",
+				"starter/playroom/compass"
 			],
 			"observation": {
 				"channels": [

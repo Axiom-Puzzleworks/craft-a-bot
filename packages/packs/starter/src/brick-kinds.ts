@@ -556,6 +556,18 @@ const connectorBrickKind: BrickKindDefinition<ConnectorBrickConfig> = {
 	})
 };
 
+/**
+ * Re-qualifies whatever bare, pre-qualification ids a v1 config carries —
+ * `starter/sense`'s `channels` and `starter/actions`' `enabled` share this,
+ * one array of strings each. An id that already has a `/` in it (this
+ * world's own qualified form, or another world's) is left exactly as it
+ * was; only a plain local id like `'move'` gets `qualifyPlayroomId`'s prefix.
+ */
+function requalify(raw: unknown): string[] {
+	if (!Array.isArray(raw)) return [];
+	return raw.map((id) => (typeof id === 'string' && !id.includes('/') ? qualifyPlayroomId(id) : id));
+}
+
 export const starterBrickKinds: BrickKindDefinition[] = [
 	{
 		id: 'starter/llm',
@@ -617,7 +629,19 @@ export const starterBrickKinds: BrickKindDefinition[] = [
 		slot: 'perception',
 		...facesOf('starter/sense'),
 		configSchema: senseBrickSchema,
-		configVersion: 1,
+		configVersion: 2,
+		/**
+		 * v1 → v2 (found live: a bot built before channel ids were qualified
+		 * with their world's own prefix kept a bare `sight`/`hearing`/… forever
+		 * — nothing ever re-visited a saved config, so `registry.getSenseChannel`
+		 * looked up a channel that was never registered under that bare name,
+		 * and the ribbon reported a correctly-fitted brick as "not installed").
+		 * Only a bare id (no `/` in it already) is qualified — an id already
+		 * qualified for this world or another one passes through unchanged.
+		 */
+		migrateConfig: {
+			1: (raw) => ({ ...raw, channels: requalify(raw.channels) })
+		},
 		defaults: { channels: [qualifyPlayroomId('sight'), qualifyPlayroomId('compass')] },
 		describeFitted: (config: { channels: string[] }) =>
 			config.channels.length > 0 ? 'senses' : '',
@@ -635,7 +659,11 @@ export const starterBrickKinds: BrickKindDefinition[] = [
 		slot: 'mobility',
 		...facesOf('starter/actions'),
 		configSchema: actionsBrickSchema,
-		configVersion: 1,
+		configVersion: 2,
+		/** v1 → v2 — the same fix as `starter/sense`'s own note, for `enabled`. */
+		migrateConfig: {
+			1: (raw) => ({ ...raw, enabled: requalify(raw.enabled) })
+		},
 		defaults: {
 			enabled: ['move', 'pick_up', 'put_down', 'give', 'open', 'say', 'celebrate'].map(
 				qualifyPlayroomId
