@@ -24,6 +24,7 @@
 		"preview": "npm run preview --workspace=apps/workbench",
 		"budget": "node scripts/bundle-budget.mjs",
 		"smoke:openai": "npm run smoke --workspace=@craftabot/pack-openai",
+		"smoke:geap": "npm run smoke --workspace=@craftabot/pack-geap",
 		"evals": "npm run evals --workspace=packages/evals --"
 	},
 	"devDependencies": {

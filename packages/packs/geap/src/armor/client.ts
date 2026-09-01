@@ -1,4 +1,4 @@
-import fixtureClean from '../fixtures/clean.json';
+import fixtureClean from '../fixtures/clean.json' with { type: 'json' };
 import {
 	armorErrorFromNetworkFailure,
 	armorErrorFromStatus,
