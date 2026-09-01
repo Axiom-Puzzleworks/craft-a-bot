@@ -109,7 +109,65 @@ the same run. Model Armor is priced at $0.10 per million tokens past the free
 tier (2026-09-01 pricing — check Google Cloud's own current pricing page
 before relying on this).
 
-## 5. Testing without any of this
+## 5. What triggers a warning or a block
+
+Model Armor is a **text classifier**, not an action-risk model — it has no
+notion that `open` on a locked chest is riskier than `say`. What lines up
+with "the actions the agent is taking" is *what gets sent*, not what the
+guard understands about it:
+
+| Hook | Dial | What's actually screened | Model Armor call |
+|---|---|---|---|
+| Before it thinks | Screen what it sees | The latest sense observation's raw text — not the full composed prompt, so your own goal/system wording never trips a false positive | `sanitizeUserPrompt` |
+| Before it acts | Screen what it decides | The bot's own reasoning plus the rendered call it's about to make, e.g. `open(container: "locked chest")`, with the last observation sent alongside as context | `sanitizeModelResponse` |
+| After it acts | Screen what it did | The action's narration, or the tool's stringified result, whichever is newer | `sanitizeModelResponse` |
+
+The "decide" screen is the closest thing to action-aware — the real call name
+and arguments are rendered into plain text before they're sent — but it is
+still only reacting to *patterns in the words*, the same four filters
+regardless of hook:
+
+| Filter | Trips on | Dialable? |
+|---|---|---|
+| Sneaky instructions (`pi_and_jailbreak`) | Prompt injection / jailbreak attempts | Yes, plus its own confidence threshold (Fairly/Quite/Very sure) |
+| Harmful content (`rai`: hate, harassment, dangerous, sexual) | Hate speech, harassment, dangerous content, sexual content | Yes, as one group |
+| Secrets (`sdp`) | Sensitive data (keys, PII-shaped strings) | Yes |
+| Dangerous links (`malicious_uris`) | Known-bad URLs | Yes |
+| CSAM | Child sexual abuse material | **Never** — always stops the run outright, regardless of any dial |
+
+Anything about an action's own risk or irreversibility is the Safety Brick's
+job (blocklists, risk tiers) — the two are deliberately complementary, not
+overlapping.
+
+**The disposition ladder, clamped by hook.** Every dial runs Off → Just make
+a note → Ask me first → Stop that one thing → Stop the whole run (a
+per-filter override wins over its hook's own dial; `inherit` defers to it).
+But before it thinks / after it acts, there is no single "thing" to block or
+ask about, so a `block`/`ask` setting there clamps up to a full stop —
+**before it acts** is the only hook where a match can block just that one
+action (the bot is told why and tries again) or ask you first (an approval
+card). Out of the box, only decisions are screened, and a match asks for
+approval — everything else starts off.
+
+**When the guard itself can't be reached** is a separate, transport-level
+outcome, routed through the brick's own "If the guard can't be reached" dial
+(stop the run, or carry on and make a note) rather than the filter ladder
+above:
+
+| Outcome | Meaning |
+|---|---|
+| `bad-token` | Battery token rejected (expired, invalid, or malformed) |
+| `no-permission` | This GCP project isn't allowed to use the template |
+| `no-template` | Template not found |
+| `quota` | Rate-limited |
+| `timeout` | No answer in time |
+| `unavailable` | Couldn't be reached at all (offline, DNS, CORS) |
+
+Every one of these — a content match or a transport failure — lands on the
+trace as a `guardrail.external` row with its own latency and filter
+breakdown, so nothing is invisible even when the outcome is just a note.
+
+## 6. Testing without any of this
 
 Every screen defaults to reading `offline` on a freshly-fitted brick — no
 Google account, no template, no token, and every scenario in this repo's own
