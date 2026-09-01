@@ -2,8 +2,15 @@
 import adapter from '@sveltejs/adapter-static';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
+import { fileURLToPath } from 'node:url';
 
 export default defineConfig({
+	// Vite's own default envDir is wherever this file lives, not the monorepo
+	// root — but the one `.env` this repo documents (`.env.example`,
+	// `docs/geap-setup.md` §3) lives at the root, alongside every other
+	// build-time/smoke-test variable. Without this, `VITE_GEAP_OAUTH_CLIENT_ID`
+	// there is silently never read.
+	envDir: fileURLToPath(new URL('../../', import.meta.url)),
 	plugins: [
 		sveltekit({
 			compilerOptions: {

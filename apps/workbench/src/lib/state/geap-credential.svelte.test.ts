@@ -35,13 +35,22 @@ describe('createGeapCredentialBay', () => {
 		});
 		expect(configured.clientIdConfigured).toBe(true);
 
+		// Stubbed rather than merely omitted (deps.clientId falls back to
+		// import.meta.env['VITE_GEAP_OAUTH_CLIENT_ID']): vitest.config.ts's own
+		// envDir now reads the same root .env the built app does, so a dev
+		// machine with a real client id configured for the built app would
+		// otherwise make this "unconfigured" case flake against the ambient
+		// environment rather than testing what it says it tests.
+		vi.stubEnv('VITE_GEAP_OAUTH_CLIENT_ID', '');
 		const unconfigured = createGeapCredentialBay({
 			vault: createKeyVault(memoryWebStorage())
 		});
 		expect(unconfigured.clientIdConfigured).toBe(false);
+		vi.unstubAllEnvs();
 	});
 
 	it('signIn() with no client id configured never touches GIS and explains why', async () => {
+		vi.stubEnv('VITE_GEAP_OAUTH_CLIENT_ID', '');
 		const loadGis = vi.fn(() => Promise.resolve());
 		const bay = createGeapCredentialBay({
 			vault: createKeyVault(memoryWebStorage()),
@@ -51,6 +60,7 @@ describe('createGeapCredentialBay', () => {
 		expect(loadGis).not.toHaveBeenCalled();
 		expect(bay.status).toBe('empty');
 		expect(bay.message).toContain('VITE_GEAP_OAUTH_CLIENT_ID');
+		vi.unstubAllEnvs();
 	});
 
 	it('signIn() stores the token, sets a real TTL and reports success', async () => {
