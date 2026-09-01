@@ -33,6 +33,10 @@ const LANES: Record<EventType, TraceLane> = {
 	// keeps the mapping fixed, so this reuses an existing lane rather than
 	// inventing one, the same reasoning `group.started`/`group.finished` used.
 	'brick.state': 'memory',
+	// A hosted guardrail's own network call (`25-…` §4.7, WP35 stage B) — the
+	// same lane as the verdict it produced, since it is the same governance
+	// concept, just the network half of it.
+	'guardrail.external': 'guardrail',
 	'guardrail.checked': 'guardrail',
 	'guardrail.tripped': 'guardrail',
 	'approval.requested': 'guardrail',
@@ -68,6 +72,7 @@ const LABELS: Record<EventType, string> = {
 	'world.changed': 'The world changed',
 	'memory.updated': 'Remembered',
 	'brick.state': 'Reported its own state',
+	'guardrail.external': 'Guard asked',
 	'guardrail.checked': 'Safety check',
 	'guardrail.tripped': 'Safety rule stopped it',
 	'approval.requested': 'Asked permission',
@@ -101,6 +106,9 @@ export function labelForEvent(event: EngineEvent): string {
 		return 'The bot mumbled';
 	}
 	if (event.type === 'error') return errorLabel(event.payload.kind ?? '');
+	if (event.type === 'guardrail.external') {
+		return `${labelOf(event.type)} (${summariseGuardrailExternal(event.payload)})`;
+	}
 	if (
 		(event.type === 'guardrail.checked' || event.type === 'guardrail.tripped') &&
 		event.payload.policyCardId
@@ -108,6 +116,48 @@ export function labelForEvent(event: EngineEvent): string {
 		return `${labelOf(event.type)} (${policyCardLocalName(event.payload.policyCardId)})`;
 	}
 	return labelOf(event.type);
+}
+
+/**
+ * Kit-language labels for the Armour Brick's own filter keys (`25-…` §4.4)
+ * and non-`ok` outcomes, for the `guardrail.external` row's own summary — a
+ * small local copy, the same "generic trace UI, no pack-specific dependency"
+ * shape `ERROR_COPY` below already holds to for provider failures.
+ */
+const ARMOR_FILTER_COPY: Record<string, string> = {
+	injection: 'a sneaky instruction',
+	hate: 'hateful language',
+	harassment: 'harassing language',
+	dangerous: 'something dangerous',
+	sexual: 'sexual content',
+	sensitiveData: 'a secret',
+	maliciousUri: 'a dangerous link',
+	csam: 'content that must always be stopped'
+};
+
+const ARMOR_OUTCOME_COPY: Record<string, string> = {
+	offline: 'offline — pretend all clear',
+	'bad-token': 'the battery token was rejected',
+	'no-permission': 'not allowed to use the guard',
+	'no-template': 'the template could not be found',
+	quota: 'too many checks this minute',
+	timeout: 'took too long to answer',
+	unavailable: 'could not be reached',
+	partial: 'the guard did not finish checking',
+	failure: 'the guard did not finish checking'
+};
+
+function summariseGuardrailExternal(
+	payload: Extract<EngineEvent, { type: 'guardrail.external' }>['payload']
+): string {
+	const outcomeCopy = ARMOR_OUTCOME_COPY[payload.outcome];
+	if (outcomeCopy) return `${payload.latencyMs} ms — ${outcomeCopy}`;
+
+	const matched = Object.entries(payload.filters ?? {})
+		.filter(([, filter]) => filter.matched)
+		.map(([key]) => ARMOR_FILTER_COPY[key] ?? key);
+	const summary = matched.length === 0 ? 'all clear' : matched.join(', ');
+	return `${payload.latencyMs} ms — ${summary}`;
 }
 
 /**

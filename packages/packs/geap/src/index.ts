@@ -8,7 +8,11 @@
 export { armorConfigSchema } from './armor/config.js';
 export type { ArmorConfig, ArmorDisposition } from './armor/config.js';
 
-export { createModelArmorClient, createOfflineArmorClient } from './armor/client.js';
+export {
+	createModelArmorClient,
+	createOfflineArmorClient,
+	describeEndpoint
+} from './armor/client.js';
 export type { ArmorClient, ArmorClientResult, ModelArmorClientOptions } from './armor/client.js';
 
 export { readSanitizationResult } from './armor/reading.js';

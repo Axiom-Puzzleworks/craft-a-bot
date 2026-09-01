@@ -1713,6 +1713,96 @@ describe('guardrails', () => {
 	});
 
 	/**
+	 * `guardrail.external` (`25-…` §4.7, WP35 stage B): a hosted guardrail's
+	 * own network call, emitted immediately before the `guardrail.checked` it
+	 * produced — never by the guardrail itself.
+	 */
+	describe('checkWithRecord and guardrail.external', () => {
+		const EXTERNAL_RECORD = {
+			service: 'model-armor' as const,
+			endpoint: 'https://modelarmor.europe-west2.rep.googleapis.com/v1/…:sanitizeUserPrompt',
+			template: 'cab-armour',
+			latencyMs: 37,
+			charsScreened: 42,
+			outcome: 'ok' as const
+		};
+
+		const hostedAllow: Guardrail = {
+			id: 'test/hosted',
+			name: 'Hosted',
+			description: 'A hosted guardrail that reports its own call.',
+			hooks: ['pre-think'],
+			check: () => ({ allow: true }),
+			checkWithRecord: () =>
+				Promise.resolve({ verdict: { allow: true }, external: EXTERNAL_RECORD })
+		};
+
+		it('emits guardrail.external immediately before guardrail.checked', async () => {
+			const { session, log } = makeSession({
+				script: [turn('Ping.', 'ping')],
+				guardrails: [hostedAllow]
+			});
+			await session.step();
+
+			const types = log.map((event) => event.type);
+			const externalIndex = types.indexOf('guardrail.external');
+			const checkedIndex = types.indexOf('guardrail.checked');
+			expect(externalIndex).toBeGreaterThanOrEqual(0);
+			expect(checkedIndex).toBe(externalIndex + 1);
+		});
+
+		it("carries the guardrailId, hook and the record's own fields onto the event", async () => {
+			const { session, log } = makeSession({
+				script: [turn('Ping.', 'ping')],
+				guardrails: [hostedAllow]
+			});
+			await session.step();
+
+			const external = log.find((event) => event.type === 'guardrail.external');
+			expect(external?.type === 'guardrail.external' ? external.payload : undefined).toEqual({
+				guardrailId: 'test/hosted',
+				hook: 'pre-think',
+				...EXTERNAL_RECORD
+			});
+		});
+
+		it('never emits guardrail.external for a check()-only guardrail', async () => {
+			const { session, seen } = makeSession({
+				script: [turn('Ping.', 'ping')],
+				guardrails: [stopEverything]
+			});
+			await session.step();
+
+			expect(seen).not.toContain('guardrail.external');
+		});
+
+		it('a hosted guardrail can still stop the run, with the record on the trace before the stop', async () => {
+			const hostedStop: Guardrail = {
+				...hostedAllow,
+				id: 'test/hosted-stop',
+				checkWithRecord: () =>
+					Promise.resolve({
+						verdict: { allow: false, reason: 'guard says no', disposition: 'stop-run' },
+						external: { ...EXTERNAL_RECORD, outcome: 'timeout' as const }
+					})
+			};
+			const { session, log, seen } = makeSession({
+				script: [turn('Ping.', 'ping')],
+				guardrails: [hostedStop]
+			});
+			const result = await session.step();
+
+			expect(result.outcome).toBe('STOPPED_BY_GUARDRAIL');
+			expect(seen).toContain('guardrail.external');
+			expect(seen).toContain('guardrail.tripped');
+			const external = log.find((event) => event.type === 'guardrail.external');
+			expect(external?.type === 'guardrail.external' ? external.payload.outcome : undefined).toBe(
+				'timeout'
+			);
+		});
+	});
+
+	/**
 	 * The runtime a *live* session builds gets the same `getPolicyCard` a
 	 * build-check runtime does (`validate-spec.test.ts`'s equivalent) — one
 	 * `BrickRuntimeContext`, not two implementations that could drift.

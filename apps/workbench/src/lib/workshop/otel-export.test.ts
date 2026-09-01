@@ -103,6 +103,66 @@ describe('otelTraceFor', () => {
 		]);
 	});
 
+	it('turns a guardrail.external into a child evaluate_guardrail span, kind CLIENT', () => {
+		const trace = otelTraceFor(run(), [
+			event(
+				'guardrail.external',
+				{
+					guardrailId: 'geap/armor:decision',
+					hook: 'pre-act',
+					service: 'model-armor',
+					endpoint: 'https://modelarmor.europe-west2.rep.googleapis.com/v1/…:sanitizeModelResponse',
+					template: 'cab-armour',
+					latencyMs: 280,
+					charsScreened: 42,
+					outcome: 'ok'
+				},
+				4
+			)
+		]);
+		const spans = trace.resourceSpans[0].scopeSpans[0].spans;
+		const guard = spans.find((span) => span.name === 'evaluate_guardrail');
+		expect(guard).toBeDefined();
+		expect(guard?.kind).toBe(3);
+		expect(guard?.parentSpanId).toBe(spans[0]?.spanId);
+		expect(guard?.attributes).toContainEqual({
+			key: 'gen_ai.evaluation.name',
+			value: { stringValue: 'geap/armor:decision' }
+		});
+		expect(guard?.attributes).toContainEqual({
+			key: 'craft_a_bot.guardrail.template',
+			value: { stringValue: 'cab-armour' }
+		});
+		expect(guard?.attributes).toContainEqual({
+			key: 'craft_a_bot.guardrail.latency_ms',
+			value: { intValue: '280' }
+		});
+		expect(guard?.attributes).toContainEqual({
+			key: 'craft_a_bot.guardrail.outcome',
+			value: { stringValue: 'ok' }
+		});
+	});
+
+	it('never puts the token or the screened text on the guardrail span, because guardrail.external never carries them', () => {
+		const trace = otelTraceFor(run(), [
+			event(
+				'guardrail.external',
+				{
+					guardrailId: 'geap/armor:decision',
+					hook: 'pre-act',
+					service: 'model-armor',
+					endpoint: 'https://modelarmor.europe-west2.rep.googleapis.com/v1/…:sanitizeModelResponse',
+					template: 'cab-armour',
+					latencyMs: 280,
+					charsScreened: 42,
+					outcome: 'ok'
+				},
+				4
+			)
+		]);
+		expect(JSON.stringify(trace)).not.toContain('Bearer');
+	});
+
 	it('carries no events array at all when nothing tripped', () => {
 		const trace = otelTraceFor(run(), [event('action.performed', { name: 'move' }, 1)]);
 		expect(trace.resourceSpans[0].scopeSpans[0].spans[0]?.events).toBeUndefined();

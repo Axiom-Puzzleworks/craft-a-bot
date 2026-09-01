@@ -405,8 +405,13 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			guardrails,
 			hook,
 			guardrailContext(hook, proposed),
-			(guardrail, verdict) => {
+			(guardrail, verdict, external) => {
 				const policyCardId = guardrail.policyCardId;
+				// A hosted guardrail's own call, immediately before the verdict it
+				// produced (`25-…` §4.7) — never emitted by the guardrail itself.
+				if (external) {
+					emit('guardrail.external', { guardrailId: guardrail.id, hook, ...external });
+				}
 				emit('guardrail.checked', {
 					guardrailId: guardrail.id,
 					hook,

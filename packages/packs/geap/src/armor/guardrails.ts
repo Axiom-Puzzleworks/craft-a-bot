@@ -1,13 +1,15 @@
 import type {
 	EngineEvent,
+	ExternalCallRecord,
 	Guardrail,
 	GuardrailContext,
 	GuardrailHook,
 	GuardrailVerdict
 } from '@craftabot/core';
+import { describeEndpoint } from './client.js';
 import type { ArmorClient, ArmorClientResult } from './client.js';
 import type { ArmorConfig } from './config.js';
-import type { ArmorFilterKey } from './reading.js';
+import type { ArmorFilterKey, ArmorFilterReading } from './reading.js';
 import {
 	ALL_CLEAR_NOTE,
 	GUARD_DID_NOT_FINISH,
@@ -143,6 +145,65 @@ function isDecisionScreen(screen: string | DecisionScreen): screen is DecisionSc
 	return typeof screen === 'object';
 }
 
+function methodFor(hook: GuardrailHook): 'sanitizeUserPrompt' | 'sanitizeModelResponse' {
+	return hook === 'pre-think' ? 'sanitizeUserPrompt' : 'sanitizeModelResponse';
+}
+
+/** `reading.filters` reshaped for the trace — same keys, string-keyed per the event schema. */
+function filtersForRecord(
+	filters: Record<ArmorFilterKey, ArmorFilterReading>
+): ExternalCallRecord['filters'] {
+	const entries = Object.entries(filters) as Array<[ArmorFilterKey, ArmorFilterReading]>;
+	return Object.fromEntries(
+		entries.map(([key, filter]) => [
+			key,
+			filter.confidence !== undefined
+				? { ran: filter.ran, matched: filter.matched, confidence: filter.confidence }
+				: { ran: filter.ran, matched: filter.matched }
+		])
+	);
+}
+
+/** `guardrail.external`'s closed outcome set: the reading's own outcome, a transport-error kind, or `'offline'` when no call was made at all (`25-…` §4.5/§6). */
+function outcomeFor(result: ArmorClientResult, offline: boolean): ExternalCallRecord['outcome'] {
+	if (offline) return 'offline';
+	return 'error' in result ? result.error.kind : result.reading.outcome;
+}
+
+async function runArmorCheck(
+	hook: GuardrailHook,
+	selector: ArmorTextSelector,
+	config: ArmorConfig,
+	client: ArmorClient,
+	ctx: GuardrailContext
+): Promise<{ verdict: GuardrailVerdict; external?: ExternalCallRecord }> {
+	const screen = selector(ctx.history, ctx.proposed);
+	if (screen === undefined) return { verdict: { allow: true, note: NOTHING_TO_CHECK } };
+
+	const text = isDecisionScreen(screen) ? screen.text : screen;
+	const method = isDecisionScreen(screen) ? 'sanitizeModelResponse' : methodFor(hook);
+
+	const startedAt = Date.now();
+	const result = isDecisionScreen(screen)
+		? await client.sanitizeModelResponse(screen.text, screen.userPrompt)
+		: hook === 'pre-think'
+			? await client.sanitizeUserPrompt(screen)
+			: await client.sanitizeModelResponse(screen);
+	const latencyMs = Math.max(0, Date.now() - startedAt);
+
+	const verdict = verdictFor(result, hook, config);
+	const external: ExternalCallRecord = {
+		service: 'model-armor',
+		endpoint: describeEndpoint(config, method),
+		template: config.templateId,
+		latencyMs,
+		charsScreened: text.length,
+		outcome: outcomeFor(result, config.offline),
+		...('reading' in result ? { filters: filtersForRecord(result.reading.filters) } : {})
+	};
+	return { verdict, external };
+}
+
 export function armorGuardrail(
 	id: string,
 	hook: GuardrailHook,
@@ -150,22 +211,18 @@ export function armorGuardrail(
 	config: ArmorConfig,
 	client: ArmorClient
 ): Guardrail {
+	const checkWithRecord = (ctx: GuardrailContext) =>
+		runArmorCheck(hook, selector, config, client, ctx);
 	return {
 		id,
 		name: HOOK_NAME[hook],
 		description: HOOK_DESCRIPTION[hook],
 		hooks: [hook],
-		check: async (ctx: GuardrailContext): Promise<GuardrailVerdict> => {
-			const screen = selector(ctx.history, ctx.proposed);
-			if (screen === undefined) return { allow: true, note: NOTHING_TO_CHECK };
-
-			const result = isDecisionScreen(screen)
-				? await client.sanitizeModelResponse(screen.text, screen.userPrompt)
-				: hook === 'pre-think'
-					? await client.sanitizeUserPrompt(screen)
-					: await client.sanitizeModelResponse(screen);
-
-			return verdictFor(result, hook, config);
-		}
+		// `check` delegates to `checkWithRecord` and drops the record, so a host
+		// that has not been updated for the new seam still runs this guardrail
+		// correctly (`25-…` §4.7).
+		check: async (ctx: GuardrailContext): Promise<GuardrailVerdict> =>
+			(await checkWithRecord(ctx)).verdict,
+		checkWithRecord
 	};
 }

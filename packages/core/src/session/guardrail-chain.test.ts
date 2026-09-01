@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 import { isAllowed, isPause, runGuardrailChain } from './guardrail-chain.js';
-import type { Guardrail, GuardrailContext, GuardrailVerdict } from '../types/guardrail.js';
+import type {
+	ExternalCallRecord,
+	Guardrail,
+	GuardrailContext,
+	GuardrailVerdict
+} from '../types/guardrail.js';
 
 function guardrail(
 	id: string,
@@ -89,6 +94,101 @@ describe('runGuardrailChain', () => {
 			() => {}
 		);
 		expect(isPause(outcome.verdict)).toBe(true);
+		expect(isAllowed(outcome.verdict)).toBe(false);
+	});
+});
+
+const EXTERNAL: ExternalCallRecord = {
+	service: 'model-armor',
+	endpoint: 'https://modelarmor.europe-west2.rep.googleapis.com/v1/…:sanitizeUserPrompt',
+	template: 'cab-armour',
+	latencyMs: 42,
+	charsScreened: 120,
+	outcome: 'ok'
+};
+
+function hostedGuardrail(
+	id: string,
+	result: { verdict: GuardrailVerdict; external?: ExternalCallRecord }
+): Guardrail {
+	return {
+		id,
+		name: id,
+		description: id,
+		hooks: ['pre-act'],
+		check: () => result.verdict,
+		checkWithRecord: () => Promise.resolve(result)
+	};
+}
+
+describe('runGuardrailChain — checkWithRecord (25-… §4.7)', () => {
+	it('prefers checkWithRecord over check when both are present', async () => {
+		const checkSpy = vi.fn(() => ({ allow: true }) as GuardrailVerdict);
+		const checkWithRecordSpy = vi.fn(() =>
+			Promise.resolve({ verdict: { allow: true } as GuardrailVerdict, external: EXTERNAL })
+		);
+		const guard: Guardrail = {
+			id: 'hosted',
+			name: 'hosted',
+			description: 'hosted',
+			hooks: ['pre-act'],
+			check: checkSpy,
+			checkWithRecord: checkWithRecordSpy
+		};
+		await runGuardrailChain([guard], 'pre-act', context, () => {});
+		expect(checkWithRecordSpy).toHaveBeenCalledOnce();
+		expect(checkSpy).not.toHaveBeenCalled();
+	});
+
+	it('hands the external record to onChecked', async () => {
+		const onChecked = vi.fn();
+		await runGuardrailChain(
+			[hostedGuardrail('hosted', { verdict: { allow: true }, external: EXTERNAL })],
+			'pre-act',
+			context,
+			onChecked
+		);
+		expect(onChecked).toHaveBeenCalledWith(
+			expect.objectContaining({ id: 'hosted' }),
+			{ allow: true },
+			EXTERNAL
+		);
+	});
+
+	it('passes undefined external when checkWithRecord omits it', async () => {
+		const onChecked = vi.fn();
+		await runGuardrailChain(
+			[hostedGuardrail('hosted', { verdict: { allow: true } })],
+			'pre-act',
+			context,
+			onChecked
+		);
+		expect(onChecked).toHaveBeenCalledWith(
+			expect.objectContaining({ id: 'hosted' }),
+			{ allow: true },
+			undefined
+		);
+	});
+
+	it('a check()-only guardrail (every rule before WP35) still gets a defined-but-undefined external', async () => {
+		const onChecked = vi.fn();
+		await runGuardrailChain([guardrail('plain', { allow: true })], 'pre-act', context, onChecked);
+		expect(onChecked).toHaveBeenCalledWith(
+			expect.objectContaining({ id: 'plain' }),
+			{ allow: true },
+			undefined
+		);
+	});
+
+	it('still stops the chain on a non-allow verdict produced via checkWithRecord', async () => {
+		const denied: GuardrailVerdict = { allow: false, reason: 'blocked', disposition: 'stop-run' };
+		const outcome = await runGuardrailChain(
+			[hostedGuardrail('hosted', { verdict: denied, external: EXTERNAL })],
+			'pre-act',
+			context,
+			() => {}
+		);
+		expect(outcome.guardrail?.id).toBe('hosted');
 		expect(isAllowed(outcome.verdict)).toBe(false);
 	});
 });

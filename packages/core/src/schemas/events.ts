@@ -18,6 +18,7 @@ import {
 	actionResultSchema,
 	chatMessageSchema,
 	chatResponseSchema,
+	externalCallRecordSchema,
 	guardrailHookSchema,
 	guardrailVerdictSchema,
 	observationSchema,
@@ -270,6 +271,20 @@ const brickStateEvent = eventSchema(
  */
 const policyCardIdField = z.string().optional();
 
+/**
+ * A hosted guardrail's own network call (`25-…` §4.7, WP35 stage B), emitted
+ * by core immediately before the matching `guardrail.checked` — never by the
+ * guardrail itself (`Guardrail.checkWithRecord` returns the record; core
+ * turns it into this event). Never the token, never the screened text: just
+ * host + method + template + timing + which filters ran and matched.
+ */
+const guardrailExternalEvent = eventSchema(
+	'guardrail.external',
+	externalCallRecordSchema.extend({
+		guardrailId: z.string(),
+		hook: guardrailHookSchema
+	})
+);
 const guardrailCheckedEvent = eventSchema(
 	'guardrail.checked',
 	z.object({
@@ -348,6 +363,7 @@ export const engineEventSchema = z.discriminatedUnion('type', [
 	actionPerformedEvent,
 	memoryUpdatedEvent,
 	brickStateEvent,
+	guardrailExternalEvent,
 	guardrailCheckedEvent,
 	guardrailTrippedEvent,
 	approvalRequestedEvent,

@@ -406,3 +406,180 @@ describe('armorGuardrail — never throws on a transport error', () => {
 		});
 	});
 });
+
+describe('armorGuardrail — checkWithRecord (25-… §4.7, WP35 stage B)', () => {
+	it('check() and checkWithRecord() agree on the verdict', async () => {
+		const result = ok(
+			reading({ matched: true }, { injection: { ran: true, matched: true, confidence: 'HIGH' } })
+		);
+		const client = fakeClient(result);
+		const guardrail = armorGuardrail(
+			'geap/armor:decision',
+			'pre-act',
+			() => 'say("hi")',
+			config({ screenDecision: 'block' }),
+			client
+		);
+
+		const viaCheck = await guardrail.check(ctx());
+		const viaRecord = await guardrail.checkWithRecord?.(ctx());
+		expect(viaRecord?.verdict).toEqual(viaCheck);
+	});
+
+	it('returns no external record when the selector finds nothing to check', async () => {
+		const client = fakeClient(ok(reading()));
+		const guardrail = armorGuardrail(
+			'geap/armor:decision',
+			'pre-act',
+			() => undefined,
+			config(),
+			client
+		);
+		const outcome = await guardrail.checkWithRecord?.(ctx());
+		expect(outcome).toEqual({ verdict: { allow: true, note: NOTHING_TO_CHECK } });
+	});
+
+	it('records service, template, endpoint (with the right method suffix) and charsScreened', async () => {
+		const client = fakeClient(ok(reading()));
+		const guardrail = armorGuardrail(
+			'geap/armor:observation',
+			'pre-think',
+			() => 'a rug and a lamp',
+			config({ templateId: 'cab-armour', location: 'europe-west2' }),
+			client
+		);
+		const outcome = await guardrail.checkWithRecord?.(ctx({ hook: 'pre-think' }));
+		expect(outcome?.external).toMatchObject({
+			service: 'model-armor',
+			template: 'cab-armour',
+			charsScreened: 'a rug and a lamp'.length
+		});
+		expect(outcome?.external?.endpoint).toContain('europe-west2');
+		expect(outcome?.external?.endpoint).toContain(':sanitizeUserPrompt');
+	});
+
+	it('uses the modelResponse method suffix at pre-act and post-act', async () => {
+		const client = fakeClient(ok(reading()));
+		const decision = armorGuardrail(
+			'geap/armor:decision',
+			'pre-act',
+			() => ({ text: 'say("hi")' }) satisfies DecisionScreen,
+			config(),
+			client
+		);
+		const result = armorGuardrail(
+			'geap/armor:result',
+			'post-act',
+			() => 'you moved north',
+			config(),
+			client
+		);
+
+		expect((await decision.checkWithRecord?.(ctx()))?.external?.endpoint).toContain(
+			':sanitizeModelResponse'
+		);
+		expect(
+			(await result.checkWithRecord?.(ctx({ hook: 'post-act' })))?.external?.endpoint
+		).toContain(':sanitizeModelResponse');
+	});
+
+	it('measures a non-negative latency', async () => {
+		const client = fakeClient(ok(reading()));
+		const guardrail = armorGuardrail(
+			'geap/armor:decision',
+			'pre-act',
+			() => 'say("hi")',
+			config(),
+			client
+		);
+		const outcome = await guardrail.checkWithRecord?.(ctx());
+		expect(outcome?.external?.latencyMs).toBeGreaterThanOrEqual(0);
+	});
+
+	it("labels outcome from the reading's own outcome on success", async () => {
+		const client = fakeClient(ok(reading({ outcome: 'partial' })));
+		const guardrail = armorGuardrail(
+			'geap/armor:decision',
+			'pre-act',
+			() => 'say("hi")',
+			config(),
+			client
+		);
+		const outcome = await guardrail.checkWithRecord?.(ctx());
+		expect(outcome?.external?.outcome).toBe('partial');
+	});
+
+	it('labels outcome from the transport error kind on failure', async () => {
+		const client = fakeClient({ error: { kind: 'quota', message: 'x' } });
+		const guardrail = armorGuardrail(
+			'geap/armor:decision',
+			'pre-act',
+			() => 'say("hi")',
+			config(),
+			client
+		);
+		const outcome = await guardrail.checkWithRecord?.(ctx());
+		expect(outcome?.external?.outcome).toBe('quota');
+	});
+
+	it("labels outcome 'offline' when the config is offline, even though the fake client still resolved a reading", async () => {
+		const client = fakeClient(ok(reading()));
+		const guardrail = armorGuardrail(
+			'geap/armor:decision',
+			'pre-act',
+			() => 'say("hi")',
+			config({ offline: true }),
+			client
+		);
+		const outcome = await guardrail.checkWithRecord?.(ctx());
+		expect(outcome?.external?.outcome).toBe('offline');
+	});
+
+	it('carries the filter breakdown on a successful reading, keyed the same as ArmorReading.filters', async () => {
+		const client = fakeClient(
+			ok(
+				reading({ matched: true }, { injection: { ran: true, matched: true, confidence: 'HIGH' } })
+			)
+		);
+		const guardrail = armorGuardrail(
+			'geap/armor:decision',
+			'pre-act',
+			() => 'say("hi")',
+			config(),
+			client
+		);
+		const outcome = await guardrail.checkWithRecord?.(ctx());
+		expect(outcome?.external?.filters?.injection).toEqual({
+			ran: true,
+			matched: true,
+			confidence: 'HIGH'
+		});
+		expect(outcome?.external?.filters?.csam).toEqual({ ran: true, matched: false });
+	});
+
+	it('omits filters entirely on a transport error, since nothing ran', async () => {
+		const client = fakeClient({ error: { kind: 'unavailable', message: 'x' } });
+		const guardrail = armorGuardrail(
+			'geap/armor:decision',
+			'pre-act',
+			() => 'say("hi")',
+			config(),
+			client
+		);
+		const outcome = await guardrail.checkWithRecord?.(ctx());
+		expect(outcome?.external?.filters).toBeUndefined();
+	});
+
+	it('never carries the token or any screened text on the external record', async () => {
+		const client = fakeClient(ok(reading()));
+		const guardrail = armorGuardrail(
+			'geap/armor:decision',
+			'pre-act',
+			() => 'a very secret sentence nobody should see',
+			config(),
+			client
+		);
+		const outcome = await guardrail.checkWithRecord?.(ctx());
+		expect(JSON.stringify(outcome?.external)).not.toContain('a very secret sentence');
+	});
+});

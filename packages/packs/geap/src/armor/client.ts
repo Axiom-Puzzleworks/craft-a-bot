@@ -54,13 +54,27 @@ function templateUrl(
 	return `${host}/v1/projects/${encodeURIComponent(options.projectId)}/locations/${encodeURIComponent(options.location)}/templates/${encodeURIComponent(options.templateId)}`;
 }
 
+/**
+ * The exact URL a call to `method` will hit — exported so `guardrails.ts`'s
+ * `checkWithRecord` (`25-…` §4.7) can put the real endpoint on the trace
+ * without re-deriving the URL-building rules itself, which is what let a
+ * global host slip in unnoticed the last time this repo duplicated a
+ * request-shaping rule (`pack-gemini/errors.ts`'s own key-in-header note).
+ */
+export function describeEndpoint(
+	options: Pick<ModelArmorClientOptions, 'projectId' | 'location' | 'templateId'>,
+	method: 'sanitizeUserPrompt' | 'sanitizeModelResponse'
+): string {
+	return `${templateUrl(options)}:${method}`;
+}
+
 async function callSanitize(
 	options: ModelArmorClientOptions,
 	method: 'sanitizeUserPrompt' | 'sanitizeModelResponse',
 	body: unknown
 ): Promise<ArmorClientResult> {
 	const token = options.token() ?? '';
-	const url = `${templateUrl(options)}:${method}`;
+	const url = describeEndpoint(options, method);
 	const controller = new AbortController();
 	const timer = setTimeout(() => controller.abort(), options.timeoutMs);
 

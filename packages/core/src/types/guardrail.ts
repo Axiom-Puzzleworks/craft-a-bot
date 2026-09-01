@@ -16,8 +16,8 @@ import type { WorldState } from './world.js';
  * event, so it crosses the trace boundary and the schema is the type.
  * `schemas/shared.ts` carries the shapes and why the union is closed.
  */
-import type { GuardrailHook, GuardrailVerdict } from '../schemas/shared.js';
-export type { GuardrailHook, GuardrailVerdict };
+import type { ExternalCallRecord, GuardrailHook, GuardrailVerdict } from '../schemas/shared.js';
+export type { ExternalCallRecord, GuardrailHook, GuardrailVerdict };
 
 export interface GuardrailContext {
 	hook: GuardrailHook;
@@ -48,6 +48,18 @@ export interface Guardrail {
 	description: string;
 	hooks: GuardrailHook[];
 	check(ctx: GuardrailContext): Promise<GuardrailVerdict> | GuardrailVerdict;
+	/**
+	 * A hosted guardrail's alternative to `check` (`25-…` §4.7, WP35 stage B):
+	 * same verdict, plus a record of the network call it made. Optional and
+	 * additive — a guardrail that only implements `check` (every rule before
+	 * WP35) keeps working exactly as before. `runGuardrailChain` prefers this
+	 * when present and turns `external` into a `guardrail.external` event
+	 * immediately before `guardrail.checked`; guardrails stay pure because
+	 * this *returns* the record rather than writing it anywhere (`08-…` §2).
+	 */
+	checkWithRecord?(
+		ctx: GuardrailContext
+	): Promise<{ verdict: GuardrailVerdict; external?: ExternalCallRecord }>;
 	/**
 	 * The policy card (`14-…` §4.6, WP22) this guardrail was compiled from, if
 	 * any. Set by `@craftabot/governance`'s `compilePolicyCard` and nothing
