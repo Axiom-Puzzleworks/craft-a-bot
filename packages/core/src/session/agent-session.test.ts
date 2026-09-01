@@ -1904,6 +1904,162 @@ describe('guardrails', () => {
 		expect(seen).toEqual([undefined]);
 	});
 
+	/**
+	 * The credential/network seam (`25-…` §4.6, WP35 stage C) — a test-only
+	 * kind, the same shape `getPolicyCard`/`getAction`'s own proofs above
+	 * use, reading a secret through `ctx.getCredential` and calling
+	 * `ctx.fetch` rather than the raw global, so the seam is proven generic
+	 * before any real brick (the Armour Brick, stage D) is built on it.
+	 */
+	describe('the credential/network seam', () => {
+		function watchesCredentialKind(seen: (string | undefined)[]): BrickKindDefinition {
+			return {
+				id: 'expansion5/watches',
+				slot: 'safety',
+				name: 'Watches',
+				description: 'Reads a credential through the seam.',
+				realName: 'Watches',
+				realExplanation: 'Reads a credential through the seam.',
+				configSchema: z.object({}),
+				configVersion: 1,
+				defaults: {},
+				createRuntime: (_config: unknown, ctx) => {
+					seen.push(ctx.getCredential('test/cred'));
+					return {};
+				}
+			} as BrickKindDefinition;
+		}
+
+		function watchesSpec(kindId: string) {
+			return {
+				id: '44444444-4444-4444-8444-444444444444',
+				name: 'Watched Tinybot',
+				schemaVersion: 2 as const,
+				bricks: [{ slot: 'safety' as const, kind: kindId, configVersion: 1, config: {} }],
+				goalCardId: 'tiny/goal',
+				identity: { displayName: 'Watched Tinybot', boxArtSeed: 'seed' },
+				createdAt: '2026-08-16T09:00:00.000Z',
+				updatedAt: '2026-08-16T09:00:00.000Z'
+			};
+		}
+
+		it('gives a fitted brick’s own runtime undefined when the host supplies no getCredential', () => {
+			const registry = buildRegistry();
+			const seen: (string | undefined)[] = [];
+			registry.registerPack({
+				id: 'expansion5',
+				name: 'Expansion 5',
+				version: '1.0.0',
+				requiresCore: '>=0.0.1',
+				brickKinds: [watchesCredentialKind(seen)]
+			});
+
+			createSession({
+				spec: watchesSpec('expansion5/watches'),
+				registry,
+				provider: createMockProvider({ script: [turn('Off I go.', 'win')] }),
+				guardrails: []
+			});
+			expect(seen).toEqual([undefined]);
+		});
+
+		it('gives a fitted brick’s own runtime the real secret when the host supplies getCredential', () => {
+			const registry = buildRegistry();
+			const seen: (string | undefined)[] = [];
+			registry.registerPack({
+				id: 'expansion5',
+				name: 'Expansion 5',
+				version: '1.0.0',
+				requiresCore: '>=0.0.1',
+				brickKinds: [watchesCredentialKind(seen)]
+			});
+
+			createSession({
+				spec: watchesSpec('expansion5/watches'),
+				registry,
+				provider: createMockProvider({ script: [turn('Off I go.', 'win')] }),
+				guardrails: [],
+				getCredential: (id) => (id === 'test/cred' ? 'super-secret-token' : undefined)
+			});
+			expect(seen).toEqual(['super-secret-token']);
+		});
+
+		it('gives every runtime the real platform fetch by default', () => {
+			const registry = buildRegistry();
+			const seenFetch: (typeof globalThis.fetch)[] = [];
+			registry.registerPack({
+				id: 'expansion6',
+				name: 'Expansion 6',
+				version: '1.0.0',
+				requiresCore: '>=0.0.1',
+				brickKinds: [
+					{
+						id: 'expansion6/watches',
+						slot: 'safety',
+						name: 'Watches',
+						description: 'Notes the fetch it was handed.',
+						realName: 'Watches',
+						realExplanation: 'Notes the fetch it was handed.',
+						configSchema: z.object({}),
+						configVersion: 1,
+						defaults: {},
+						createRuntime: (_config: unknown, ctx) => {
+							seenFetch.push(ctx.fetch);
+							return {};
+						}
+					} as BrickKindDefinition
+				]
+			});
+
+			createSession({
+				spec: watchesSpec('expansion6/watches'),
+				registry,
+				provider: createMockProvider({ script: [turn('Off I go.', 'win')] }),
+				guardrails: []
+			});
+			expect(seenFetch[0]).toBeTypeOf('function');
+		});
+
+		it('gives every runtime an injected fetch when options.fetch is supplied, for testability', () => {
+			const registry = buildRegistry();
+			const seenFetch: unknown[] = [];
+			const fakeFetch = (() =>
+				Promise.resolve(new Response('{}'))) as unknown as typeof globalThis.fetch;
+			registry.registerPack({
+				id: 'expansion7',
+				name: 'Expansion 7',
+				version: '1.0.0',
+				requiresCore: '>=0.0.1',
+				brickKinds: [
+					{
+						id: 'expansion7/watches',
+						slot: 'safety',
+						name: 'Watches',
+						description: 'Notes the fetch it was handed.',
+						realName: 'Watches',
+						realExplanation: 'Notes the fetch it was handed.',
+						configSchema: z.object({}),
+						configVersion: 1,
+						defaults: {},
+						createRuntime: (_config: unknown, ctx) => {
+							seenFetch.push(ctx.fetch);
+							return {};
+						}
+					} as BrickKindDefinition
+				]
+			});
+
+			createSession({
+				spec: watchesSpec('expansion7/watches'),
+				registry,
+				provider: createMockProvider({ script: [turn('Off I go.', 'win')] }),
+				guardrails: [],
+				options: { fetch: fakeFetch }
+			});
+			expect(seenFetch[0]).toBe(fakeFetch);
+		});
+	});
+
 	it('blocks one action without ending the run, and tells the agent why', async () => {
 		const { session, seen } = makeSession({
 			script: () => turn('Ping.', 'ping'),

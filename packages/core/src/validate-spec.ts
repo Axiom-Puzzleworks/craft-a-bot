@@ -34,9 +34,26 @@ import type { BrickValidationContext, SlotId } from './types/brick.js';
  * > notebook are read through *slot contracts*, because they are what core needs
  * > rather than what a brick contributes (`schemas/slot-contracts.ts`).
  */
-export function validateSpec(input: AnyAgentSpec, registry: PackRegistry): BuildProblem[] {
+export interface ValidateSpecOptions {
+	/**
+	 * Whether the host's vault holds a secret under a credential id (`25-…`
+	 * §4.6, WP35 stage C) — the build-check counterpart to `createSession`'s
+	 * own `CreateSessionDeps.getCredential`. Absent means "no credential",
+	 * the honest default for every caller that has not been updated to pass
+	 * one, and every kind before this one, which declares no credential to
+	 * ask about.
+	 */
+	hasCredential?: (id: string) => boolean;
+}
+
+export function validateSpec(
+	input: AnyAgentSpec,
+	registry: PackRegistry,
+	options: ValidateSpecOptions = {}
+): BuildProblem[] {
 	const spec = toSpecV2(input);
 	const problems: BuildProblem[] = validateSpecV2(spec, registry);
+	const hasCredential = options.hasCredential ?? (() => false);
 
 	/*
 	 * The bricks, live, so they can be asked what they offer.
@@ -47,6 +64,8 @@ export function validateSpec(input: AnyAgentSpec, registry: PackRegistry): Build
 	 * only what a *working* brick asks for. Randomness is fixed because nothing
 	 * built here is ever run; a brick that used it to decide what it offers
 	 * would be offering something different every time the ribbon refreshed.
+	 * `fetch`/`getCredential` are stubbed the same way — nothing built here is
+	 * ever called, only asked what it would offer.
 	 */
 	const runtimes = buildRuntimes({
 		spec,
@@ -54,7 +73,9 @@ export function validateSpec(input: AnyAgentSpec, registry: PackRegistry): Build
 		context: {
 			random: () => 0,
 			getPolicyCard: (id) => registry.getPolicyCard(id),
-			getAction: (id) => registry.getAction(id)
+			getAction: (id) => registry.getAction(id),
+			fetch: () => Promise.reject(new Error('fetch is not available while validating a spec')),
+			getCredential: () => undefined
 		}
 	});
 	try {
@@ -62,7 +83,7 @@ export function validateSpec(input: AnyAgentSpec, registry: PackRegistry): Build
 		problems.push(...goalCardProblems(spec, registry));
 		problems.push(...callProblems(spec, registry, runtimes));
 		problems.push(...senseProblems(registry, runtimes));
-		problems.push(...ownProblems(spec, registry));
+		problems.push(...ownProblems(spec, registry, hasCredential));
 	} finally {
 		// Built only to be asked a question, so they are put away immediately.
 		disposeRuntimes(runtimes);
@@ -220,13 +241,18 @@ function senseProblems(registry: PackRegistry, runtimes: readonly FittedRuntime[
  * Over the *fitted bricks* rather than the runtimes, because a brick that is
  * pure configuration has a config to be wrong about too.
  */
-function ownProblems(spec: ReturnType<typeof toSpecV2>, registry: PackRegistry): BuildProblem[] {
+function ownProblems(
+	spec: ReturnType<typeof toSpecV2>,
+	registry: PackRegistry,
+	hasCredential: (id: string) => boolean
+): BuildProblem[] {
 	const context: BrickValidationContext = {
 		hasTool: (id) => registry.getTool(id) !== undefined,
 		hasAction: (id) => registry.getAction(id) !== undefined,
 		hasSenseChannel: (id) => registry.getSenseChannel(id) !== undefined,
 		hasCartridge: (id) => registry.getCartridge(id) !== undefined,
-		hasPolicyCard: (id) => registry.getPolicyCard(id) !== undefined
+		hasPolicyCard: (id) => registry.getPolicyCard(id) !== undefined,
+		hasCredential
 	};
 
 	const problems: BuildProblem[] = [];

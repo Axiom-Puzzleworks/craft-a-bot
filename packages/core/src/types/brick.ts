@@ -2,6 +2,7 @@ import type { ZodType } from 'zod';
 import type { BuildProblem } from '../schemas/build-problem.js';
 import type { PolicyCard } from '../schemas/policy-card.js';
 import type { Guardrail } from './guardrail.js';
+import type { KeyCheck } from './provider.js';
 import type { Observation, WorldActionDefinition } from './world.js';
 
 /**
@@ -284,6 +285,22 @@ export interface BrickRuntimeContext {
 	 * moment it builds its approval guardrail, not just that the id exists.
 	 */
 	getAction(id: string): WorldActionDefinition | undefined;
+	/**
+	 * The platform `fetch`, injected (`25-…` §4.6, WP35 stage C) so a brick
+	 * that talks to a network is testable on canned responses the same way a
+	 * provider pack already is — never the raw global, so a test can hand a
+	 * fixture-backed stand-in and a live session gets the real thing.
+	 */
+	fetch: typeof globalThis.fetch;
+	/**
+	 * A secret by the id a kind declared in `BrickKindDefinition.credential`
+	 * (`25-…` §4.6), read from the host's own vault at call time — never
+	 * cached by the brick, the same "read it fresh, never hold it" discipline
+	 * `getPolicyCard`/`getAction` already model for registry lookups. `id`
+	 * that names no credential the host knows about — including every brick
+	 * before this one, which declares none — returns `undefined`.
+	 */
+	getCredential(id: string): string | undefined;
 }
 
 /**
@@ -301,6 +318,14 @@ export interface BrickValidationContext {
 	hasCartridge(id: string): boolean;
 	/** Whether a policy card id (`14-…` §4.6, WP22) is one an installed pack registered. */
 	hasPolicyCard(id: string): boolean;
+	/**
+	 * Whether the host's vault holds a secret under this credential id
+	 * (`25-…` §4.6, WP35 stage C) — the build-time counterpart to
+	 * `BrickRuntimeContext.getCredential`, so `validateConfig` can warn
+	 * "fitted but not plugged in" without the config schema ever seeing a
+	 * secret's value.
+	 */
+	hasCredential(id: string): boolean;
 }
 
 /**
@@ -460,4 +485,35 @@ export interface BrickKindDefinition<C = unknown> {
 
 	/** A brick with no runtime is pure configuration — legal, and occasionally right. */
 	createRuntime?(config: C, ctx: BrickRuntimeContext): BrickRuntime;
+
+	/**
+	 * A secret this kind needs (`25-…` §4.6, WP35 stage C) — the Armour
+	 * Brick's own OAuth token is the first, but the shape is generic: any
+	 * kind that talks to a host outside the browser declares one. The host
+	 * lists it in Settings beside the providers' own batteries, under `id`;
+	 * `BrickRuntimeContext.getCredential(id)` and
+	 * `BrickValidationContext.hasCredential(id)` are how a kind reads it and
+	 * checks for it. Omitted for every kind that needs no credential — which
+	 * is every kind before this one.
+	 */
+	credential?: {
+		id: string;
+		name: string;
+		kind: 'api-key' | 'oauth-token';
+		keysUrl?: string;
+		validate?(secret: string, fetch: typeof globalThis.fetch): Promise<KeyCheck>;
+	};
+
+	/**
+	 * Who this kind is offered to (`25-…` §4.6/§4.8, WP35 stage C). Omitted
+	 * means `'kit'` — every kind before this one, and the default for any
+	 * kind that says nothing. A `'workshop'` kind still validates and runs
+	 * anywhere a kit file carrying it is opened; only the *offering* — the
+	 * parts tray, the Settings credential compartment — is gated on the
+	 * Workshop door being open (`preferences.workshop`), never the engine.
+	 * `15-…` §4's "the Kit never gets a capability the Workshop lacks" was
+	 * always a superset rule; this is that superset expressed on a bench the
+	 * two modes otherwise share byte-for-byte.
+	 */
+	audience?: 'kit' | 'workshop';
 }

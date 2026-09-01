@@ -38,7 +38,13 @@ function policyOf(spec: AnyAgentSpec): string[] {
 		buildRuntimes({
 			spec,
 			registry: buildRegistry(),
-			context: { random: () => 0, getPolicyCard: () => undefined, getAction: () => undefined }
+			context: {
+				random: () => 0,
+				getPolicyCard: () => undefined,
+				getAction: () => undefined,
+				fetch: () => Promise.reject(new Error('fetch is not used in these tests')),
+				getCredential: () => undefined
+			}
 		})
 	).map((rule) => `${rule.id}: ${rule.description}`);
 }

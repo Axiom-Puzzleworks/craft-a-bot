@@ -12,6 +12,7 @@ import {
 } from '@craftabot/core';
 import { createRegistry } from '$lib/packs.js';
 import { appStorage } from './app-storage.svelte.js';
+import { createBrowserKeyVault } from './keys.js';
 import type { Storage } from './storage.js';
 
 /**
@@ -119,7 +120,11 @@ export function createBenchStore(deps: BenchStoreDeps = {}): BenchStore {
 	let pendingSave: Promise<void> = Promise.resolve();
 
 	function revalidate(): void {
-		state.problems = state.spec ? validateSpec(state.spec, registry) : [];
+		state.problems = state.spec
+			? validateSpec(state.spec, registry, {
+					hasCredential: (id) => createBrowserKeyVault().get(id) !== undefined
+				})
+			: [];
 	}
 
 	async function save(): Promise<void> {

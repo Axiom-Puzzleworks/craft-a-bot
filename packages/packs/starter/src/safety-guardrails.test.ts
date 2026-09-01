@@ -56,7 +56,9 @@ function guardrailsFor(safety: SafetyConfig) {
 			context: {
 				random: () => 0,
 				getPolicyCard: (id) => reg.getPolicyCard(id),
-				getAction: (id) => reg.getAction(id)
+				getAction: (id) => reg.getAction(id),
+				fetch: () => Promise.reject(new Error('fetch is not used in these tests')),
+				getCredential: () => undefined
 			}
 		})
 	);

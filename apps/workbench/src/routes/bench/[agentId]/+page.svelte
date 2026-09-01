@@ -9,6 +9,7 @@
 	import { createDndController } from '$lib/dnd/dnd-state.svelte.js';
 	import { agentsStore } from '$lib/state/agents.svelte.js';
 	import { benchStore } from '$lib/state/bench.svelte.js';
+	import { createBrowserKeyVault } from '$lib/state/keys.js';
 	import { leafletStore } from '$lib/leaflet/leaflet.svelte.js';
 	import { preferences } from '$lib/state/preferences.svelte.js';
 	import Announcer from '$lib/components/bench/Announcer.svelte';
@@ -135,9 +136,9 @@
 	function isGoReady(candidate: AgentRecord): boolean {
 		const can = capabilitiesOf(candidate.spec, registry);
 		const candidateCartridge = registry.getCartridge(can.cartridgeId);
-		const blocking = validateSpec(candidate.spec, registry).some(
-			(problem) => problem.severity === 'blocking'
-		);
+		const blocking = validateSpec(candidate.spec, registry, {
+			hasCredential: (id) => createBrowserKeyVault().get(id) !== undefined
+		}).some((problem) => problem.severity === 'blocking');
 		return !blocking && !needsBattery(candidateCartridge, registry);
 	}
 

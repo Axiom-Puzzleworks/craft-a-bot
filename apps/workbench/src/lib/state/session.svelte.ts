@@ -12,6 +12,7 @@ import {
 import type { GridWorldState } from '@craftabot/core';
 import { botExpression, type BotExpression } from '$lib/bot-expression.js';
 import { createRegistry } from '$lib/packs.js';
+import { createBrowserKeyVault } from '$lib/state/keys.js';
 import {
 	applyEvent,
 	emptyProjection,
@@ -135,6 +136,9 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 			registry,
 			provider: deps.provider,
 			guardrails: deps.guardrails ?? [],
+			// The credential/network seam (`25-…` §4.6, WP35 stage C) — the same
+			// call `brain.ts` already makes for a provider's own battery.
+			getCredential: (id) => createBrowserKeyVault().get(id),
 			options: {
 				tickDelayMs: tickDelayFor(speed),
 				...(deps.maxTicks !== undefined ? { budgets: { maxTicks: deps.maxTicks } } : {})
