@@ -87,6 +87,8 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 	const newId = options.newId ?? (() => crypto.randomUUID());
 	const now = options.now ?? (() => new Date().toISOString());
 	const random = options.random ?? (() => Math.random());
+	const fetchImpl = options.fetch ?? globalThis.fetch.bind(globalThis);
+	const getCredential = deps.getCredential ?? (() => undefined);
 	/**
 	 * Mutable, because the speed dial is a control a person turns *while
 	 * watching* (`16-…` §1.6). Captured as a constant, the play loop kept the
@@ -150,7 +152,9 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		context: {
 			random,
 			getPolicyCard: (id) => registry.getPolicyCard(id),
-			getAction: (id) => registry.getAction(id)
+			getAction: (id) => registry.getAction(id),
+			fetch: fetchImpl,
+			getCredential
 		}
 	});
 	const fittedBricks = describeFittedBricks(deps.spec, registry);
@@ -405,8 +409,13 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			guardrails,
 			hook,
 			guardrailContext(hook, proposed),
-			(guardrail, verdict) => {
+			(guardrail, verdict, external) => {
 				const policyCardId = guardrail.policyCardId;
+				// A hosted guardrail's own call, immediately before the verdict it
+				// produced (`25-…` §4.7) — never emitted by the guardrail itself.
+				if (external) {
+					emit('guardrail.external', { guardrailId: guardrail.id, hook, ...external });
+				}
 				emit('guardrail.checked', {
 					guardrailId: guardrail.id,
 					hook,

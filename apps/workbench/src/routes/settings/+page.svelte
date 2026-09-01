@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import BatteryCompartment from '$lib/components/settings/BatteryCompartment.svelte';
+	import GeapCredentialCompartment from '$lib/components/settings/GeapCredentialCompartment.svelte';
 	import Panel from '$lib/components/kit/Panel.svelte';
 	import Rocker from '$lib/components/kit/Rocker.svelte';
 	import { createBatteryBay } from '$lib/state/battery.svelte.js';
+	import { createGeapCredentialBay } from '$lib/state/geap-credential.svelte.js';
 	import { leafletStore } from '$lib/leaflet/leaflet.svelte.js';
 	import { preferences } from '$lib/state/preferences.svelte.js';
 	import { createRegistry } from '$lib/packs.js';
@@ -33,6 +35,10 @@
 				validate: (key) => provider.create({ apiKey: key }).validateKey(key)
 			})
 		}));
+	// The Armour Brick's own battery (`25-…` §4.6/§4.8, WP35 stage E) — shown
+	// only while the Workshop door is open, the same gate `PartsTray.svelte`
+	// already uses for the brick itself (stage C).
+	const geapBay = createGeapCredentialBay();
 	const leaflet = leafletStore();
 
 	const SPEEDS = [0.5, 1, 2, 4];
@@ -54,6 +60,10 @@
 			keysUrl={provider.keysUrl ?? ''}
 		/>
 	{/each}
+
+	{#if preferences.workshop}
+		<GeapCredentialCompartment bay={geapBay} />
+	{/if}
 
 	<Panel title="Preferences" accent="var(--cab-blue)">
 		<div class="prefs" data-testid="preferences">

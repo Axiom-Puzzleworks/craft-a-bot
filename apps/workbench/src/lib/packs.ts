@@ -1,5 +1,6 @@
 import { createPackRegistry, type PackRegistry } from '@craftabot/core';
 import anthropicPack from '@craftabot/pack-anthropic';
+import geapPack from '@craftabot/pack-geap';
 import geminiPack from '@craftabot/pack-gemini';
 import monitorPack from '@craftabot/pack-monitor';
 import ollamaPack from '@craftabot/pack-ollama';
@@ -64,6 +65,16 @@ import { demoPack } from './demo-pack.js';
  * endpoint field is still unresolved, recorded as deferred rather than
  * quietly built around). Gets no battery compartment: `keyRequirement:
  * 'none'` means Settings has nothing to render for it.
+ *
+ * **`geapPack` joins the box, 2026-09-01 (WP35 stage D).** The Armour Brick,
+ * `geap/armor` — the first `audience: 'workshop'` kind (`25-ARMOUR-BRICK.md`
+ * §4.8): installed exactly like every other kind above, so a kit file
+ * carrying it validates and runs anywhere, but offered on the bench and in
+ * Settings only while the Workshop door is open (`PartsTray.svelte`'s own
+ * `audience` filter, WP35 stage C). Occupies the `safety` slot beside
+ * `starter/safety` and `monitor/watchbot` — a third posture in the same
+ * socket (local rules, observe-only, hosted service), swap one for another
+ * per V1's one-brick-per-socket rule.
  */
 export const installedPacks = [
 	starterPack,
@@ -74,6 +85,7 @@ export const installedPacks = [
 	ollamaPack,
 	monitorPack,
 	workshopPack,
+	geapPack,
 	demoPack
 ];
 

@@ -25,7 +25,8 @@
 			| 'telemetry'
 			| 'incidents'
 			| 'safety-case'
-			| 'export';
+			| 'export'
+			| 'armour';
 	}
 
 	let { current }: Props = $props();
@@ -40,7 +41,10 @@
 		{ id: 'telemetry', label: 'Telemetry', href: '/workshop/telemetry' },
 		{ id: 'incidents', label: 'Incidents', href: '/workshop/incidents' },
 		{ id: 'safety-case', label: 'Safety case', href: '/workshop/safety-case' },
-		{ id: 'export', label: 'Audit', href: '/workshop/export' }
+		{ id: 'export', label: 'Audit', href: '/workshop/export' },
+		// WP35 stage B (`25-ARMOUR-BRICK.md` §11) — the seam's own proof lane,
+		// ahead of Stage D's fitted brick.
+		{ id: 'armour', label: 'Cloud Armour', href: '/workshop/armour' }
 	] as const;
 </script>
 
@@ -62,6 +66,7 @@
 								| '/workshop/incidents'
 								| '/workshop/safety-case'
 								| '/workshop/export'
+								| '/workshop/armour'
 						)}
 						aria-current={current === destination.id ? 'page' : undefined}
 						data-testid="rail-{destination.id}">{destination.label}</a

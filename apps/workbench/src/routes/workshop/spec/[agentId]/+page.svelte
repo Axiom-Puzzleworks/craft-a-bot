@@ -10,6 +10,7 @@
 	import { SOCKET_LABELS } from '$lib/bricks.js';
 	import { createRegistry, packVersions } from '$lib/packs.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
+	import { createBrowserKeyVault } from '$lib/state/keys.js';
 
 	/**
 	 * **The Spec Lab** (`17-…` §4.2): the whole `AgentSpec`, at full fidelity,
@@ -48,7 +49,13 @@
 	 * divergence `15-…` §7 rule 1 exists to prevent, and it is worse here than on
 	 * the bench: this is the screen somebody checks *before* sharing a bot.
 	 */
-	const problems = $derived<BuildProblem[]>(record ? validateSpec(record.spec, registry) : []);
+	const problems = $derived<BuildProblem[]>(
+		record
+			? validateSpec(record.spec, registry, {
+					hasCredential: (id) => createBrowserKeyVault().get(id) !== undefined
+				})
+			: []
+	);
 	const brickKinds = $derived(record ? brickKindsFor(record.spec, registry) : {});
 	const json = $derived(record ? JSON.stringify(record.spec, null, 2) : '');
 

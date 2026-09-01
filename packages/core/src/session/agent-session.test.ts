@@ -1713,6 +1713,96 @@ describe('guardrails', () => {
 	});
 
 	/**
+	 * `guardrail.external` (`25-…` §4.7, WP35 stage B): a hosted guardrail's
+	 * own network call, emitted immediately before the `guardrail.checked` it
+	 * produced — never by the guardrail itself.
+	 */
+	describe('checkWithRecord and guardrail.external', () => {
+		const EXTERNAL_RECORD = {
+			service: 'model-armor' as const,
+			endpoint: 'https://modelarmor.europe-west2.rep.googleapis.com/v1/…:sanitizeUserPrompt',
+			template: 'cab-armour',
+			latencyMs: 37,
+			charsScreened: 42,
+			outcome: 'ok' as const
+		};
+
+		const hostedAllow: Guardrail = {
+			id: 'test/hosted',
+			name: 'Hosted',
+			description: 'A hosted guardrail that reports its own call.',
+			hooks: ['pre-think'],
+			check: () => ({ allow: true }),
+			checkWithRecord: () =>
+				Promise.resolve({ verdict: { allow: true }, external: EXTERNAL_RECORD })
+		};
+
+		it('emits guardrail.external immediately before guardrail.checked', async () => {
+			const { session, log } = makeSession({
+				script: [turn('Ping.', 'ping')],
+				guardrails: [hostedAllow]
+			});
+			await session.step();
+
+			const types = log.map((event) => event.type);
+			const externalIndex = types.indexOf('guardrail.external');
+			const checkedIndex = types.indexOf('guardrail.checked');
+			expect(externalIndex).toBeGreaterThanOrEqual(0);
+			expect(checkedIndex).toBe(externalIndex + 1);
+		});
+
+		it("carries the guardrailId, hook and the record's own fields onto the event", async () => {
+			const { session, log } = makeSession({
+				script: [turn('Ping.', 'ping')],
+				guardrails: [hostedAllow]
+			});
+			await session.step();
+
+			const external = log.find((event) => event.type === 'guardrail.external');
+			expect(external?.type === 'guardrail.external' ? external.payload : undefined).toEqual({
+				guardrailId: 'test/hosted',
+				hook: 'pre-think',
+				...EXTERNAL_RECORD
+			});
+		});
+
+		it('never emits guardrail.external for a check()-only guardrail', async () => {
+			const { session, seen } = makeSession({
+				script: [turn('Ping.', 'ping')],
+				guardrails: [stopEverything]
+			});
+			await session.step();
+
+			expect(seen).not.toContain('guardrail.external');
+		});
+
+		it('a hosted guardrail can still stop the run, with the record on the trace before the stop', async () => {
+			const hostedStop: Guardrail = {
+				...hostedAllow,
+				id: 'test/hosted-stop',
+				checkWithRecord: () =>
+					Promise.resolve({
+						verdict: { allow: false, reason: 'guard says no', disposition: 'stop-run' },
+						external: { ...EXTERNAL_RECORD, outcome: 'timeout' as const }
+					})
+			};
+			const { session, log, seen } = makeSession({
+				script: [turn('Ping.', 'ping')],
+				guardrails: [hostedStop]
+			});
+			const result = await session.step();
+
+			expect(result.outcome).toBe('STOPPED_BY_GUARDRAIL');
+			expect(seen).toContain('guardrail.external');
+			expect(seen).toContain('guardrail.tripped');
+			const external = log.find((event) => event.type === 'guardrail.external');
+			expect(external?.type === 'guardrail.external' ? external.payload.outcome : undefined).toBe(
+				'timeout'
+			);
+		});
+	});
+
+	/**
 	 * The runtime a *live* session builds gets the same `getPolicyCard` a
 	 * build-check runtime does (`validate-spec.test.ts`'s equivalent) — one
 	 * `BrickRuntimeContext`, not two implementations that could drift.
@@ -1812,6 +1902,162 @@ describe('guardrails', () => {
 			guardrails: []
 		});
 		expect(seen).toEqual([undefined]);
+	});
+
+	/**
+	 * The credential/network seam (`25-…` §4.6, WP35 stage C) — a test-only
+	 * kind, the same shape `getPolicyCard`/`getAction`'s own proofs above
+	 * use, reading a secret through `ctx.getCredential` and calling
+	 * `ctx.fetch` rather than the raw global, so the seam is proven generic
+	 * before any real brick (the Armour Brick, stage D) is built on it.
+	 */
+	describe('the credential/network seam', () => {
+		function watchesCredentialKind(seen: (string | undefined)[]): BrickKindDefinition {
+			return {
+				id: 'expansion5/watches',
+				slot: 'safety',
+				name: 'Watches',
+				description: 'Reads a credential through the seam.',
+				realName: 'Watches',
+				realExplanation: 'Reads a credential through the seam.',
+				configSchema: z.object({}),
+				configVersion: 1,
+				defaults: {},
+				createRuntime: (_config: unknown, ctx) => {
+					seen.push(ctx.getCredential('test/cred'));
+					return {};
+				}
+			} as BrickKindDefinition;
+		}
+
+		function watchesSpec(kindId: string) {
+			return {
+				id: '44444444-4444-4444-8444-444444444444',
+				name: 'Watched Tinybot',
+				schemaVersion: 2 as const,
+				bricks: [{ slot: 'safety' as const, kind: kindId, configVersion: 1, config: {} }],
+				goalCardId: 'tiny/goal',
+				identity: { displayName: 'Watched Tinybot', boxArtSeed: 'seed' },
+				createdAt: '2026-08-16T09:00:00.000Z',
+				updatedAt: '2026-08-16T09:00:00.000Z'
+			};
+		}
+
+		it('gives a fitted brick’s own runtime undefined when the host supplies no getCredential', () => {
+			const registry = buildRegistry();
+			const seen: (string | undefined)[] = [];
+			registry.registerPack({
+				id: 'expansion5',
+				name: 'Expansion 5',
+				version: '1.0.0',
+				requiresCore: '>=0.0.1',
+				brickKinds: [watchesCredentialKind(seen)]
+			});
+
+			createSession({
+				spec: watchesSpec('expansion5/watches'),
+				registry,
+				provider: createMockProvider({ script: [turn('Off I go.', 'win')] }),
+				guardrails: []
+			});
+			expect(seen).toEqual([undefined]);
+		});
+
+		it('gives a fitted brick’s own runtime the real secret when the host supplies getCredential', () => {
+			const registry = buildRegistry();
+			const seen: (string | undefined)[] = [];
+			registry.registerPack({
+				id: 'expansion5',
+				name: 'Expansion 5',
+				version: '1.0.0',
+				requiresCore: '>=0.0.1',
+				brickKinds: [watchesCredentialKind(seen)]
+			});
+
+			createSession({
+				spec: watchesSpec('expansion5/watches'),
+				registry,
+				provider: createMockProvider({ script: [turn('Off I go.', 'win')] }),
+				guardrails: [],
+				getCredential: (id) => (id === 'test/cred' ? 'super-secret-token' : undefined)
+			});
+			expect(seen).toEqual(['super-secret-token']);
+		});
+
+		it('gives every runtime the real platform fetch by default', () => {
+			const registry = buildRegistry();
+			const seenFetch: (typeof globalThis.fetch)[] = [];
+			registry.registerPack({
+				id: 'expansion6',
+				name: 'Expansion 6',
+				version: '1.0.0',
+				requiresCore: '>=0.0.1',
+				brickKinds: [
+					{
+						id: 'expansion6/watches',
+						slot: 'safety',
+						name: 'Watches',
+						description: 'Notes the fetch it was handed.',
+						realName: 'Watches',
+						realExplanation: 'Notes the fetch it was handed.',
+						configSchema: z.object({}),
+						configVersion: 1,
+						defaults: {},
+						createRuntime: (_config: unknown, ctx) => {
+							seenFetch.push(ctx.fetch);
+							return {};
+						}
+					} as BrickKindDefinition
+				]
+			});
+
+			createSession({
+				spec: watchesSpec('expansion6/watches'),
+				registry,
+				provider: createMockProvider({ script: [turn('Off I go.', 'win')] }),
+				guardrails: []
+			});
+			expect(seenFetch[0]).toBeTypeOf('function');
+		});
+
+		it('gives every runtime an injected fetch when options.fetch is supplied, for testability', () => {
+			const registry = buildRegistry();
+			const seenFetch: unknown[] = [];
+			const fakeFetch = (() =>
+				Promise.resolve(new Response('{}'))) as unknown as typeof globalThis.fetch;
+			registry.registerPack({
+				id: 'expansion7',
+				name: 'Expansion 7',
+				version: '1.0.0',
+				requiresCore: '>=0.0.1',
+				brickKinds: [
+					{
+						id: 'expansion7/watches',
+						slot: 'safety',
+						name: 'Watches',
+						description: 'Notes the fetch it was handed.',
+						realName: 'Watches',
+						realExplanation: 'Notes the fetch it was handed.',
+						configSchema: z.object({}),
+						configVersion: 1,
+						defaults: {},
+						createRuntime: (_config: unknown, ctx) => {
+							seenFetch.push(ctx.fetch);
+							return {};
+						}
+					} as BrickKindDefinition
+				]
+			});
+
+			createSession({
+				spec: watchesSpec('expansion7/watches'),
+				registry,
+				provider: createMockProvider({ script: [turn('Off I go.', 'win')] }),
+				guardrails: [],
+				options: { fetch: fakeFetch }
+			});
+			expect(seenFetch[0]).toBe(fakeFetch);
+		});
 	});
 
 	it('blocks one action without ending the run, and tells the agent why', async () => {

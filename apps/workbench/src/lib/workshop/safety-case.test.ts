@@ -179,4 +179,105 @@ describe('safetyCaseFor', () => {
 			incidentRuns: 1
 		});
 	});
+
+	/**
+	 * `hostedScreening` (`25-ARMOUR-BRICK.md` §11 Stage E) — `undefined` when
+	 * no `geap/armor` guardrail is fitted at all; `{ fired, decisions }`
+	 * otherwise, read as "hosted content screening ran on `fired` of
+	 * `decisions` decisions" (`25-…` §5's own UX trajectory wording).
+	 */
+	describe('hostedScreening', () => {
+		it('is undefined when no geap/armor guardrail is fitted', () => {
+			const result = safetyCaseFor(
+				AGENT,
+				capabilities({ guardrailIds: ['safety/step-budget'] }),
+				playroom(),
+				[],
+				[],
+				new Map()
+			);
+			expect(result.hostedScreening).toBeUndefined();
+		});
+
+		it('counts every real decision and every pre-act guardrail.external, once the Armour Brick is fitted', () => {
+			const runs = [run({ id: 'r1' })];
+			const eventsByRun = new Map([
+				[
+					'r1',
+					[
+						event(
+							'decision',
+							{ thought: 'go', call: { kind: 'action', name: 'move', arguments: {} } },
+							1
+						),
+						event(
+							'guardrail.external',
+							{
+								guardrailId: 'geap/armor:decision',
+								hook: 'pre-act',
+								service: 'model-armor',
+								endpoint: 'x',
+								template: 't',
+								latencyMs: 1,
+								charsScreened: 4,
+								outcome: 'ok'
+							},
+							1
+						),
+						event('decision', { thought: 'mumble', call: null }, 2)
+					]
+				]
+			]);
+			const result = safetyCaseFor(
+				AGENT,
+				capabilities({ guardrailIds: ['geap/armor:decision'] }),
+				playroom(),
+				[],
+				runs,
+				eventsByRun
+			);
+			// Two decision events, only one carrying a real call — the mumble
+			// (call: null) is not a decision the guard could have screened.
+			expect(result.hostedScreening).toEqual({ fired: 1, decisions: 1 });
+		});
+
+		it('does not count a guardrail.external at a different hook (observation/result screening)', () => {
+			const runs = [run({ id: 'r1' })];
+			const eventsByRun = new Map([
+				[
+					'r1',
+					[
+						event(
+							'decision',
+							{ thought: 'go', call: { kind: 'action', name: 'move', arguments: {} } },
+							1
+						),
+						event(
+							'guardrail.external',
+							{
+								guardrailId: 'geap/armor:observation',
+								hook: 'pre-think',
+								service: 'model-armor',
+								endpoint: 'x',
+								template: 't',
+								latencyMs: 1,
+								charsScreened: 4,
+								outcome: 'ok'
+							},
+							1
+						)
+					]
+				]
+			]);
+			const result = safetyCaseFor(
+				AGENT,
+				capabilities({ guardrailIds: ['geap/armor:observation'] }),
+				playroom(),
+				[],
+				runs,
+				eventsByRun
+			);
+			expect(result.hostedScreening).toEqual({ fired: 0, decisions: 1 });
+		});
+	});
 });

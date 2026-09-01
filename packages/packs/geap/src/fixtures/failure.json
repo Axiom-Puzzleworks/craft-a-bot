@@ -1,0 +1,10 @@
+{
+	"sanitizationResult": {
+		"filterMatchState": "NO_MATCH_FOUND",
+		"invocationResult": "FAILURE",
+		"sanitizationMetadata": {
+			"errorCode": "INTERNAL",
+			"errorMessage": "The sanitize call could not be completed."
+		}
+	}
+}

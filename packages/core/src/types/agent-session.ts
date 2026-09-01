@@ -89,6 +89,12 @@ export interface SessionOptions {
 	newId?: () => string;
 	random?: () => number;
 	/**
+	 * Injected `fetch`, for `BrickRuntimeContext.fetch` (`25-…` §4.6, WP35
+	 * stage C). Production uses the real platform `fetch`; a test hands a
+	 * fixture-backed stand-in the same way a provider pack's own tests do.
+	 */
+	fetch?: typeof globalThis.fetch;
+	/**
 	 * Override how context is kept and composed (E7, `14-…` §3).
 	 *
 	 * The spec's Memory brick names a pairing and that is how a *built bot*
@@ -132,6 +138,18 @@ export interface CreateSessionDeps {
 	 * *deployment* rather than to any brick on the baseplate.
 	 */
 	guardrails?: Guardrail[];
+	/**
+	 * A secret by the credential id a fitted brick's kind declared
+	 * (`BrickKindDefinition.credential`, `25-…` §4.6, WP35 stage C) — the
+	 * host-supplied lookup `BrickRuntimeContext.getCredential` and
+	 * `validateSpec`'s own `hasCredential` are both built from. Keys are
+	 * sacred (hard rule 2): core never reads a vault itself, so this is how a
+	 * host that has one — the workbench's own `createBrowserKeyVault`, the
+	 * same call `brain.ts` already makes for providers — hands a lookup in
+	 * rather than the secret store. Absent means "no credential", exactly
+	 * as it does for every session built before this field existed.
+	 */
+	getCredential?: (id: string) => string | undefined;
 	options?: SessionOptions;
 	/**
 	 * A world handed in by the host (WP29, `23-MULTI-AGENT-DESIGN.md` §4.5).

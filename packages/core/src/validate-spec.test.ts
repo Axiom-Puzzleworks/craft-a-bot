@@ -347,6 +347,122 @@ describe('validateSpec', () => {
 	});
 
 	/**
+	 * The credential seam (`25-…` §4.6, WP35 stage C) — `hasCredential` is the
+	 * build-check counterpart to `createSession`'s own `getCredential`: a kind
+	 * can ask whether the host's vault holds a secret under its own
+	 * credential id, without the config schema ever seeing the value.
+	 */
+	describe('hasCredential', () => {
+		function curiousAboutCredential(problem: (has: boolean) => void): BrickKindDefinition {
+			return {
+				id: 'expansion8/curious',
+				slot: 'perception',
+				name: 'Curious',
+				description: 'Asks whether its own credential is plugged in.',
+				realName: 'Curious',
+				realExplanation: 'Asks whether its own credential is plugged in.',
+				configSchema: z.object({}),
+				configVersion: 1,
+				defaults: {},
+				validateConfig: (_config: unknown, ctx) => {
+					problem(ctx.hasCredential('test/cred'));
+					return [];
+				}
+			} as BrickKindDefinition;
+		}
+
+		function withCuriousBrick(registry: PackRegistry, kind: BrickKindDefinition) {
+			registry.registerPack({
+				id: 'expansion8',
+				name: 'Expansion 8',
+				version: '1.0.0',
+				requiresCore: '>=1.0.0',
+				brickKinds: [kind]
+			});
+			const spec = migrated(validSpec({ bricks: { ...validSpec().bricks, sense: undefined } }));
+			spec.bricks.push({
+				slot: 'perception',
+				kind: 'expansion8/curious',
+				configVersion: 1,
+				config: {}
+			});
+			return spec;
+		}
+
+		it('defaults to false when the caller supplies no hasCredential', () => {
+			const registry = buildRegistry();
+			let seen: boolean | undefined;
+			const spec = withCuriousBrick(
+				registry,
+				curiousAboutCredential((has) => (seen = has))
+			);
+
+			validateSpec(spec, registry);
+			expect(seen).toBe(false);
+		});
+
+		it("reports what the caller's own hasCredential says", () => {
+			const registry = buildRegistry();
+			let seen: boolean | undefined;
+			const spec = withCuriousBrick(
+				registry,
+				curiousAboutCredential((has) => (seen = has))
+			);
+
+			validateSpec(spec, registry, { hasCredential: (id) => id === 'test/cred' });
+			expect(seen).toBe(true);
+		});
+
+		/**
+		 * Nothing built for validation is ever run (this file's own comment,
+		 * above `ownProblems`) — a build-check runtime's `ctx.fetch` is a stub
+		 * that rejects rather than the platform `fetch`, so a kind that called
+		 * it while the ribbon merely refreshes gets a clear rejection instead
+		 * of a real network call nobody asked for.
+		 */
+		it('gives a build-check runtime a fetch that rejects rather than the real network, and a getCredential that answers undefined', async () => {
+			const registry = buildRegistry();
+			let seenFetch: typeof globalThis.fetch | undefined;
+			let seenCredential: string | undefined = 'not yet called';
+			registry.registerPack({
+				id: 'expansion9',
+				name: 'Expansion 9',
+				version: '1.0.0',
+				requiresCore: '>=1.0.0',
+				brickKinds: [
+					{
+						id: 'expansion9/watches',
+						slot: 'perception',
+						name: 'Watches',
+						description: 'Notes the fetch and credential a build-check runtime was handed.',
+						realName: 'Watches',
+						realExplanation: 'Notes the fetch and credential a build-check runtime was handed.',
+						configSchema: z.object({}),
+						configVersion: 1,
+						defaults: {},
+						createRuntime: (_config: unknown, ctx) => {
+							seenFetch = ctx.fetch;
+							seenCredential = ctx.getCredential('test/cred');
+							return {};
+						}
+					} as BrickKindDefinition
+				]
+			});
+			const spec = migrated(validSpec({ bricks: { ...validSpec().bricks, sense: undefined } }));
+			spec.bricks.push({
+				slot: 'perception',
+				kind: 'expansion9/watches',
+				configVersion: 1,
+				config: {}
+			});
+
+			validateSpec(spec, registry);
+			await expect(seenFetch?.('https://example.com')).rejects.toThrow();
+			expect(seenCredential).toBeUndefined();
+		});
+	});
+
+	/**
 	 * The runtimes `validateSpec` builds to ask `callProblems`/`senseProblems`
 	 * what a brick offers (`14-…` §2.1) are handed the same
 	 * `BrickRuntimeContext` a live session would use — `getPolicyCard`

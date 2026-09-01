@@ -96,7 +96,13 @@ describe('what the bricks contribute to the prompt', () => {
 			buildRuntimes({
 				spec,
 				registry: registry(),
-				context: { random: () => 0, getPolicyCard: () => undefined, getAction: () => undefined }
+				context: {
+					random: () => 0,
+					getPolicyCard: () => undefined,
+					getAction: () => undefined,
+					fetch: () => Promise.reject(new Error('fetch is not used in these tests')),
+					getCredential: () => undefined
+				}
 			}),
 			{
 				tick: 1,
@@ -125,7 +131,13 @@ describe('what the bricks offer the model', () => {
 			buildRuntimes({
 				spec,
 				registry: registry(),
-				context: { random: () => 0, getPolicyCard: () => undefined, getAction: () => undefined }
+				context: {
+					random: () => 0,
+					getPolicyCard: () => undefined,
+					getAction: () => undefined,
+					fetch: () => Promise.reject(new Error('fetch is not used in these tests')),
+					getCredential: () => undefined
+				}
 			})
 		);
 
@@ -156,7 +168,13 @@ describe('what the bricks let a bot sense', () => {
 		const runtimes = buildRuntimes({
 			spec,
 			registry: registry(),
-			context: { random: () => 0, getPolicyCard: () => undefined, getAction: () => undefined }
+			context: {
+				random: () => 0,
+				getPolicyCard: () => undefined,
+				getAction: () => undefined,
+				fetch: () => Promise.reject(new Error('fetch is not used in these tests')),
+				getCredential: () => undefined
+			}
 		});
 		expect(collectSenses(runtimes)).toEqual(['starter/playroom/sight']);
 	});
@@ -168,7 +186,13 @@ describe('what the bricks let a bot sense', () => {
 				buildRuntimes({
 					spec: bare,
 					registry: registry(),
-					context: { random: () => 0, getPolicyCard: () => undefined, getAction: () => undefined }
+					context: {
+						random: () => 0,
+						getPolicyCard: () => undefined,
+						getAction: () => undefined,
+						fetch: () => Promise.reject(new Error('fetch is not used in these tests')),
+						getCredential: () => undefined
+					}
 				})
 			)
 		).toEqual([]);

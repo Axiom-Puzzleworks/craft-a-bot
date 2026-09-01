@@ -18,6 +18,15 @@ import type { EngineEvent, RunRecord } from '@craftabot/core';
  * plain world actions) has an OTel GenAI equivalent, so nothing else is
  * forced into one.
  *
+ * **Amended 2026-09-01 (WP35 stage B, `25-ARMOUR-BRICK.md` §4.7):** each
+ * `guardrail.external` becomes a child span, kind CLIENT — a real network
+ * call this run made, the same reason `chat`/`execute_tool` are spans and
+ * not events. `evaluate_guardrail` is not a GenAI semconv span name (the
+ * spec has none for a content-safety call); named to match `chat`'s and
+ * `execute_tool`'s own verb_noun shape rather than invented ceremony. The
+ * token and the screened text never reach this file — `guardrail.external`
+ * itself never carries them (`02-…` §7's own amendment).
+ *
  * ids: OTLP wants a 32-hex-char `traceId` and a 16-hex-char `spanId`. Every
  * id already in a trace is a UUID, which is 32 hex characters once its own
  * dashes are stripped — exactly a `traceId`'s shape — so ids are derived,
@@ -113,6 +122,28 @@ export function otelTraceFor(run: RunRecord, events: readonly EngineEvent[]): Ot
 				attributes: [
 					stringAttr('gen_ai.operation.name', 'execute_tool'),
 					stringAttr('gen_ai.tool.name', event.payload.name),
+					intAttr('craft_a_bot.tick', event.tick)
+				]
+			});
+		} else if (event.type === 'guardrail.external') {
+			const at = nanosOf(event.timestamp);
+			childSpans.push({
+				traceId,
+				spanId: spanIdOf(event.id),
+				parentSpanId: rootSpanId,
+				name: 'evaluate_guardrail',
+				kind: 3,
+				startTimeUnixNano: at,
+				endTimeUnixNano: at,
+				attributes: [
+					stringAttr('gen_ai.operation.name', 'evaluate_guardrail'),
+					stringAttr('gen_ai.evaluation.name', event.payload.guardrailId),
+					stringAttr('craft_a_bot.guardrail.service', event.payload.service),
+					stringAttr('craft_a_bot.guardrail.endpoint', event.payload.endpoint),
+					stringAttr('craft_a_bot.guardrail.template', event.payload.template),
+					stringAttr('craft_a_bot.guardrail.outcome', event.payload.outcome),
+					intAttr('craft_a_bot.guardrail.latency_ms', event.payload.latencyMs),
+					intAttr('craft_a_bot.guardrail.chars_screened', event.payload.charsScreened),
 					intAttr('craft_a_bot.tick', event.tick)
 				]
 			});

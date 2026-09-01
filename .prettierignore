@@ -27,6 +27,8 @@ CLAUDE.md
 # snapshot writer disagree about formatting, and the snapshot writer has to win
 # — otherwise formatting the file breaks the test that regenerates it.
 packages/packs/starter/src/fixtures/trace.say-hello.v1.json
+# Same reason (see golden-trace.test.ts, WP35 stage D).
+packages/packs/geap/src/fixtures/trace.geap-armour-offline.v1.json
 
 # Generated eval artefacts: the scorecard and baselines are written by
 # `npm run evals`, so formatting them here would fight the generator and make

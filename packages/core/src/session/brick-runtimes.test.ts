@@ -87,7 +87,13 @@ const speaks = (line: string): BrickRuntime => ({
 	contributeContext: () => ({ sections: [line] })
 });
 
-const context = { random: () => 0.5, getPolicyCard: () => undefined, getAction: () => undefined };
+const context = {
+	random: () => 0.5,
+	getPolicyCard: () => undefined,
+	getAction: () => undefined,
+	fetch: () => Promise.reject(new Error('fetch is not used in these tests')),
+	getCredential: () => undefined
+};
 
 describe('building runtimes', () => {
 	it('builds one per fitted brick, handing each its own parsed config', () => {

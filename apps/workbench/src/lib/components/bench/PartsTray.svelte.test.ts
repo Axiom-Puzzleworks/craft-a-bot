@@ -29,6 +29,20 @@ const monitorKind = {
 	defaults: { watchFor: [] }
 } as BrickKindDefinition;
 
+/** A Workshop-only kind (`25-…` §4.8, WP35 stage C) — the tray's own gate under test below. */
+const hostedKind = {
+	id: 'expansion/hosted',
+	slot: 'perception',
+	name: 'Hosted Watcher',
+	description: 'Talks to a service outside the browser.',
+	realName: 'Hosted Watcher',
+	realExplanation: 'Talks to a service outside the browser.',
+	configSchema: z.object({}),
+	configVersion: 1,
+	defaults: {},
+	audience: 'workshop'
+} as BrickKindDefinition;
+
 vi.mock('$lib/packs.js', async () => {
 	const core = await import('@craftabot/core');
 	const starter = (await import('@craftabot/pack-starter')).default;
@@ -41,7 +55,7 @@ vi.mock('$lib/packs.js', async () => {
 				name: 'Expansion',
 				version: '1.0.0',
 				requiresCore: '>=1.0.0',
-				brickKinds: [monitorKind]
+				brickKinds: [monitorKind, hostedKind]
 			});
 			return registry;
 		}
@@ -50,6 +64,7 @@ vi.mock('$lib/packs.js', async () => {
 
 // Imported after the mock so the component picks it up.
 const { default: PartsTray } = await import('./PartsTray.svelte');
+const { preferences } = await import('$lib/state/preferences.svelte.js');
 
 /** The starter safety brick, for the socket-taken case. */
 const SAFETY = { kindId: 'starter/safety', name: 'Safety Brick' };
@@ -77,6 +92,7 @@ function mount(fittedIn: (slot: SlotId) => { kindId: string; name: string } | un
 
 beforeEach(() => {
 	vi.clearAllMocks();
+	preferences.setWorkshop(false);
 });
 
 describe('a brick from a pack the workbench ships no code for', () => {
@@ -152,5 +168,32 @@ describe('two bricks wanting one socket', () => {
 		const monitor = screen.getByTestId('tray-expansion/monitor');
 		monitor.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
 		expect(controller.liftWithKeyboard).not.toHaveBeenCalled();
+	});
+});
+
+/**
+ * `audience: 'workshop'` (`25-ARMOUR-BRICK.md` §4.8, WP35 stage C) — a kind
+ * the Workshop has and the Kit does not, gated on the same
+ * `preferences.workshop` switch the Kit's own nav already uses. The engine
+ * never gates on it (a kit file carrying one still validates and runs
+ * anywhere); only the offering — this tray — does.
+ */
+describe('a Workshop-only kind', () => {
+	it('is hidden from the tray while the Workshop door is shut', () => {
+		mount(() => undefined);
+		expect(screen.queryByTestId('tray-expansion/hosted')).not.toBeInTheDocument();
+	});
+
+	it('appears in the tray once the Workshop door is open', () => {
+		preferences.setWorkshop(true);
+		mount(() => undefined);
+		expect(screen.getByTestId('tray-expansion/hosted')).toBeInTheDocument();
+	});
+
+	it('leaves every other kind unaffected either way', () => {
+		preferences.setWorkshop(true);
+		mount(() => undefined);
+		expect(screen.getByTestId('tray-expansion/monitor')).toBeInTheDocument();
+		expect(screen.getByTestId('tray-starter/safety')).toBeInTheDocument();
 	});
 });

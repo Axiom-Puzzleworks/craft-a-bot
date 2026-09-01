@@ -10,6 +10,7 @@ import {
 } from '@craftabot/core';
 import { createRegistry, installedBrickKinds, packVersions } from '$lib/packs.js';
 import { appStorage } from './app-storage.svelte.js';
+import { createBrowserKeyVault } from './keys.js';
 import type { Storage } from './storage.js';
 
 /**
@@ -86,7 +87,9 @@ export function createAgentsStore(deps: AgentsStoreDeps = {}): AgentsStore {
 	const state = $state<{ agents: AgentRecord[]; loading: boolean }>({ agents: [], loading: false });
 
 	function validationOf(spec: AgentSpecV2) {
-		return validateSpec(spec, createRegistry());
+		return validateSpec(spec, createRegistry(), {
+			hasCredential: (id) => createBrowserKeyVault().get(id) !== undefined
+		});
 	}
 
 	async function persist(record: AgentRecord): Promise<void> {

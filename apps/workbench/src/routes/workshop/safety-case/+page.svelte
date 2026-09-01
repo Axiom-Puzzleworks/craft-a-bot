@@ -163,6 +163,12 @@
 					{/each}
 				</ul>
 			{/if}
+			{#if worksheet.hostedScreening}
+				<p class="status" data-testid="hosted-screening">
+					Hosted content screening ran on {worksheet.hostedScreening.fired} of {worksheet
+						.hostedScreening.decisions} decisions.
+				</p>
+			{/if}
 		</section>
 
 		<section aria-labelledby="trust-h">

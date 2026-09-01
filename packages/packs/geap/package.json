@@ -1,0 +1,29 @@
+{
+	"name": "@craftabot/pack-geap",
+	"private": true,
+	"version": "0.0.1",
+	"type": "module",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"scripts": {
+		"build": "tsc -p tsconfig.build.json",
+		"test": "vitest run --coverage",
+		"check": "tsc --noEmit",
+		"smoke": "npm run build && node --env-file-if-exists=../../../.env scripts/smoke.ts"
+	},
+	"dependencies": {
+		"@craftabot/core": "*",
+		"@craftabot/governance": "*",
+		"zod": "^4.4.3"
+	},
+	"devDependencies": {
+		"@craftabot/pack-starter": "*",
+		"@craftabot/pack-testkit": "*"
+	}
+}

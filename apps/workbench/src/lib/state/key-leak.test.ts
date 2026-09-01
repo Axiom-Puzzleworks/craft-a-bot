@@ -31,6 +31,8 @@ import { recordTrace } from './trace-recorder.js';
 
 /** Distinctive enough that a match cannot be a coincidence. */
 const FAKE_KEY = 'sk-craftabot-test-DO-NOT-LEAK-3f9a2b7c';
+/** The Armour Brick's own credential (`25-…` §4.6, WP35 stage E) — an OAuth access token, not an API key, but the same vault and the same sweep. */
+const FAKE_GEAP_TOKEN = 'ya29.craftabot-test-DO-NOT-LEAK-9c2f7a3e';
 
 function memoryWebStorage() {
 	const map = new Map<string, string>();
@@ -75,6 +77,7 @@ const PLAN = [
 async function runAndExport() {
 	const vault = createKeyVault(memoryWebStorage());
 	vault.set('openai', FAKE_KEY);
+	vault.set('geap', FAKE_GEAP_TOKEN);
 
 	const registry = createRegistry();
 	registry.registerPack({
@@ -182,6 +185,15 @@ describe('the key-leak gate', () => {
 		expect(JSON.stringify(traceFile)).not.toContain(FAKE_KEY);
 	});
 
+	it('keeps the geap token out of everything the same way — the vault sweep is generic, not openai-specific', async () => {
+		const { storedEvents, kitFile, traceFile, secrets } = await runAndExport();
+		expect(secrets).toContain(FAKE_GEAP_TOKEN);
+		expect(containsSecret(storedEvents, secrets)).toBe(false);
+		expect(containsSecret(kitFile, secrets)).toBe(false);
+		expect(containsSecret(traceFile, secrets)).toBe(false);
+		expect(JSON.stringify(traceFile)).not.toContain(FAKE_GEAP_TOKEN);
+	});
+
 	it('keeps the key out of everything the app could hand to a user, in one sweep', async () => {
 		const { storage, storedEvents, kitFile, traceFile } = await runAndExport();
 		const everythingExportable = JSON.stringify({
@@ -192,12 +204,15 @@ describe('the key-leak gate', () => {
 			runs: await storage.listRuns()
 		});
 		expect(everythingExportable).not.toContain(FAKE_KEY);
+		expect(everythingExportable).not.toContain(FAKE_GEAP_TOKEN);
 		expect(everythingExportable).not.toMatch(/sk-craftabot/);
+		expect(everythingExportable).not.toMatch(/ya29\.craftabot/);
 	});
 
-	it('still has the key in the vault — we are testing containment, not deletion', async () => {
+	it('still has both the key and the token in the vault — we are testing containment, not deletion', async () => {
 		const { vault } = await runAndExport();
 		expect(vault.get('openai')).toBe(FAKE_KEY);
+		expect(vault.get('geap')).toBe(FAKE_GEAP_TOKEN);
 	});
 
 	it('would catch a leak: the same sweep fails when a key is deliberately planted', async () => {

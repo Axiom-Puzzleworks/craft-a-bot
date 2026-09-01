@@ -27,6 +27,21 @@ import { incidentsFrom } from './incidents.js';
  * runs. No eval-matrix figure — nothing here ties a stored eval run back to
  * one bot yet, and a worksheet that invented that link would be worse than
  * one that left it out.
+ *
+ * **Hosted screening** (`25-ARMOUR-BRICK.md` §11 Stage E) is `control`'s own
+ * specific case for a hosted guardrail: `guardrails` already lists
+ * `geap/armor:*` ids verbatim like any other rule, but a fired hosted check
+ * is real, countable evidence a local rule's own presence in that list
+ * cannot show — `guardrail.external` only exists on the trace when the guard
+ * actually ran. `undefined` when the Armour Brick is not fitted at all, the
+ * same "absence is a fact worth stating plainly" discipline `inability`
+ * already holds to; `{ fired, decisions }` otherwise, read as "hosted
+ * content screening ran on `fired` of `decisions` decisions" (`25-…` §5's
+ * own UX trajectory wording) — `decisions` counts every real decision this
+ * bot's stored runs made, `fired` counts how many of those were actually
+ * sent to Model Armor's `sanitizeModelResponse` (the `pre-act` hook,
+ * `25-…` §4.5 — screening observations/results is a different question this
+ * one figure does not answer).
  */
 
 export interface SafetyCase {
@@ -46,6 +61,8 @@ export interface SafetyCase {
 		successRate: number | undefined;
 		incidentRuns: number;
 	};
+	/** `undefined` when no `geap/armor` guardrail is fitted at all. */
+	hostedScreening: { fired: number; decisions: number } | undefined;
 }
 
 export function safetyCaseFor(
@@ -86,6 +103,18 @@ export function safetyCaseFor(
 	const succeeded = finished.filter((run) => run.outcome === 'SUCCESS');
 	const incidents = incidentsFrom(runs, eventsByRun);
 
+	const armourFitted = capabilities.guardrailIds.some((id) => id.startsWith('geap/armor:'));
+	let decisions = 0;
+	let fired = 0;
+	if (armourFitted) {
+		for (const run of runs) {
+			for (const event of eventsByRun.get(run.id) ?? []) {
+				if (event.type === 'decision' && event.payload.call !== null) decisions += 1;
+				if (event.type === 'guardrail.external' && event.payload.hook === 'pre-act') fired += 1;
+			}
+		}
+	}
+
 	return {
 		agentId: agent.id,
 		agentName: agent.name,
@@ -98,6 +127,7 @@ export function safetyCaseFor(
 			finishedRuns: finished.length,
 			successRate: finished.length === 0 ? undefined : succeeded.length / finished.length,
 			incidentRuns: incidents.length
-		}
+		},
+		hostedScreening: armourFitted ? { fired, decisions } : undefined
 	};
 }

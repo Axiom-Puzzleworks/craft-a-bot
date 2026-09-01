@@ -4,6 +4,7 @@
 	import { createRegistry } from '$lib/packs.js';
 	import type { CarriedBrick, DndController } from '$lib/dnd/dnd-state.svelte.js';
 	import { draggable } from '$lib/dnd/draggable.svelte.js';
+	import { preferences } from '$lib/state/preferences.svelte.js';
 	import BrickShape from '$lib/components/kit/BrickShape.svelte';
 
 	/**
@@ -20,6 +21,13 @@
 	 * > by itself. V1's one-brick-per-socket rule (`14-…` §2.3) means a Monitor
 	 * > cannot go in while the Safety Brick is in, and the well says which brick
 	 * > is in the way rather than simply refusing.
+	 *
+	 * > **Amended 2026-09-01 (WP35 stage C, `25-ARMOUR-BRICK.md` §4.8):** a kind
+	 * > whose `audience` is `'workshop'` is offered only while the Workshop
+	 * > door is open (`preferences.workshop`) — the same shared-bench gate
+	 * > `15-…` §4 names, expressed for the first time in the other direction: a
+	 * > kind the Workshop has and the Kit does not. A kit file already carrying
+	 * > one still validates and runs anywhere; only the *offering* is gated.
 	 */
 	interface Props {
 		controller: DndController;
@@ -32,8 +40,12 @@
 
 	const registry = createRegistry();
 
-	/** Every installed kind, grouped the way the chassis is read: top to bottom. */
-	const kinds = $derived(SLOT_ORDER.flatMap((slot) => registry.listBrickKinds(slot)));
+	/** Every installed kind, grouped the way the chassis is read: top to bottom — minus any Workshop-only kind while the door is shut. */
+	const kinds = $derived(
+		SLOT_ORDER.flatMap((slot) => registry.listBrickKinds(slot)).filter(
+			(kind) => kind.audience !== 'workshop' || preferences.workshop
+		)
+	);
 
 	const carried = (kind: BrickKindDefinition): CarriedBrick => ({
 		kindId: kind.id,

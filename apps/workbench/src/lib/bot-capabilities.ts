@@ -110,7 +110,9 @@ export function capabilitiesOf(
 		context: {
 			random: () => 0,
 			getPolicyCard: (id) => registry.getPolicyCard(id),
-			getAction: (id) => registry.getAction(id)
+			getAction: (id) => registry.getAction(id),
+			fetch: () => Promise.reject(new Error('fetch is not available while reading capabilities')),
+			getCredential: () => undefined
 		}
 	});
 	try {

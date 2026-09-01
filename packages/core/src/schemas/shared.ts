@@ -141,6 +141,45 @@ export const guardrailVerdictSchema = z.union([
 export type GuardrailVerdict = z.infer<typeof guardrailVerdictSchema>;
 
 /**
+ * A hosted guardrail's own record of the network call it made (`25-…` §4.7,
+ * WP35 stage B). Returned by `Guardrail.checkWithRecord`, never emitted by the
+ * guardrail itself — core turns it into a `guardrail.external` event
+ * immediately before `guardrail.checked`, which is what keeps guardrails pure
+ * (`08-…` §2, `25-…` decision D3): the guardrail *returns* what it saw, it
+ * does not write to a side channel.
+ *
+ * `service` is a single literal today because the Armour Brick is the first
+ * hosted guardrail; a second one (`25-…` §7's non-goal, "the natural second
+ * GEAP brick") widens it rather than adding a parallel event.
+ */
+export const externalCallRecordSchema = z.object({
+	service: z.literal('model-armor'),
+	endpoint: z.string(),
+	template: z.string(),
+	latencyMs: z.number().int().nonnegative(),
+	charsScreened: z.number().int().nonnegative(),
+	outcome: z.enum([
+		'ok',
+		'partial',
+		'failure',
+		'offline',
+		'bad-token',
+		'no-permission',
+		'no-template',
+		'quota',
+		'timeout',
+		'unavailable'
+	]),
+	filters: z
+		.record(
+			z.string(),
+			z.object({ ran: z.boolean(), matched: z.boolean(), confidence: z.string().optional() })
+		)
+		.optional()
+});
+export type ExternalCallRecord = z.infer<typeof externalCallRecordSchema>;
+
+/**
  * A stored shape that could not be read, as a value rather than a throw
  * (`10-…` §1).
  *

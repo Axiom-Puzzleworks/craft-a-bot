@@ -72,6 +72,72 @@ describe('a policy card firing (14-… §4.6, WP22)', () => {
 	});
 });
 
+describe("a hosted guardrail's own call (25-… §4.7, WP35 stage B)", () => {
+	const external = (payload: Record<string, unknown>): EngineEvent =>
+		({
+			id: 'e4',
+			runId: 'r1',
+			tick: 1,
+			timestamp: '2026-09-01T09:00:00.000Z',
+			type: 'guardrail.external',
+			payload: {
+				guardrailId: 'geap/armor:decision',
+				hook: 'pre-act',
+				service: 'model-armor',
+				endpoint: 'https://modelarmor.europe-west2.rep.googleapis.com/v1/…:sanitizeModelResponse',
+				template: 'cab-armour',
+				latencyMs: 280,
+				charsScreened: 42,
+				outcome: 'ok',
+				...payload
+			}
+		}) as EngineEvent;
+
+	it('files it in the guardrail lane', () => {
+		expect(laneOf('guardrail.external')).toBe('guardrail');
+	});
+
+	it('summarises an all-clear call with its latency', () => {
+		expect(labelForEvent(external({}))).toBe('Guard asked (280 ms — all clear)');
+	});
+
+	it('names every matched filter in kit language', () => {
+		expect(
+			labelForEvent(
+				external({
+					outcome: 'ok',
+					filters: {
+						injection: { ran: true, matched: true, confidence: 'HIGH' },
+						sensitiveData: { ran: true, matched: true },
+						csam: { ran: true, matched: false }
+					}
+				})
+			)
+		).toBe('Guard asked (280 ms — a sneaky instruction, a secret)');
+	});
+
+	it('reads offline as offline, not as a clean check', () => {
+		expect(labelForEvent(external({ outcome: 'offline' }))).toBe(
+			'Guard asked (280 ms — offline — pretend all clear)'
+		);
+	});
+
+	it('reads a transport failure in kit language', () => {
+		expect(labelForEvent(external({ outcome: 'timeout' }))).toBe(
+			'Guard asked (280 ms — took too long to answer)'
+		);
+		expect(labelForEvent(external({ outcome: 'bad-token' }))).toBe(
+			'Guard asked (280 ms — the battery token was rejected)'
+		);
+	});
+
+	it('reads a partial result as "did not finish", the same reason the verdict itself carries', () => {
+		expect(labelForEvent(external({ outcome: 'partial', filters: {} }))).toBe(
+			'Guard asked (280 ms — the guard did not finish checking)'
+		);
+	});
+});
+
 describe('provider errors in kit language (03 §9, 06 §7)', () => {
 	const errorEvent = (kind: string): EngineEvent =>
 		({

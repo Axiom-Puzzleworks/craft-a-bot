@@ -27,6 +27,7 @@ export type {
 	ToolSchema
 } from './types/provider.js';
 export type {
+	ExternalCallRecord,
 	Guardrail,
 	GuardrailContext,
 	GuardrailHook,
