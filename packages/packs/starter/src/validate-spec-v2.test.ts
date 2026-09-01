@@ -159,6 +159,40 @@ describe('validating a v2 spec against registered kinds', () => {
 		expect(validateSpec(built, buildRegistry())).toEqual([]);
 	});
 
+	/**
+	 * Found live: a genuinely fitted Hands & Wheels / Eyes & Ears brick, built
+	 * before `starter/actions`'/`starter/sense`'s own ids were qualified with
+	 * their world's prefix, still carries the bare `configVersion: 1` shape
+	 * (`enabled: ['move', …]`, `channels: ['sight', …]`) — nothing ever
+	 * re-visited an already-saved config, so `registry.getAction`/
+	 * `getSenseChannel` never recognised the bare form, and the ribbon
+	 * reported a correctly-fitted brick as "not installed". `migrateBrickConfig`
+	 * (driven by the v1 → v2 bump on both kinds) is what closes this, and this
+	 * is exactly the path `validateSpec` — hence `buildRuntimes` and a real
+	 * session — takes to reach it.
+	 */
+	it('recognises pre-qualification bare action and sense-channel ids from an old save', () => {
+		const built = spec();
+		built.bricks = built.bricks
+			.filter((brick) => brick.slot !== 'mobility' && brick.slot !== 'perception')
+			.concat([
+				{
+					slot: 'mobility',
+					kind: 'starter/actions',
+					configVersion: 1,
+					config: { enabled: ['move', 'pick_up', 'put_down', 'give', 'open', 'say', 'celebrate'] }
+				},
+				{
+					slot: 'perception',
+					kind: 'starter/sense',
+					configVersion: 1,
+					config: { channels: ['sight', 'compass'] }
+				}
+			]);
+
+		expect(validateSpec(built, buildRegistry())).toEqual([]);
+	});
+
 	/** The If/Then brick's own version of the same fourth question (WP30's If/Then sizing, stage B). */
 	it('reports a rule whose "then" names a tool or action nothing has installed', () => {
 		const built = spec();
