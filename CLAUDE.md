@@ -8,7 +8,7 @@ Two purposes, in priority order: (1) an accessible training ground for agentic-A
 
 Stack: TypeScript + Svelte 5 (runes) + SvelteKit static. Monorepo (npm workspaces + Turborepo). Local-first, no backend. OpenAI out of the box (BYO key).
 
-**Where we are (2026-08-21):** V1.0 and Day 2 Phases A–F are fully shipped — every WP `18-…` names, WP0 through WP34, is done. The roadmap's forward plan has nothing left in it. Full history — what each WP built, in what stages, with what divergences — lives in `18-…` §7 (the dated close-out log) and in each WP's own dated amendment inside the doc it touched; this file doesn't restate it. **Starting new work needs a fresh planning pass first** — see Workflow below.
+**Where we are (2026-08-21):** V1.0 and Day 2 Phases A–F are fully shipped — every WP `18-…` names, WP0 through WP34, is done. The roadmap's forward plan has nothing left in it. **Amended 2026-09-01:** Phase G is open with one WP queued — **WP35, the Armour Brick** (`25-ARMOUR-BRICK.md`, `18-…` §3 Phase G). Nothing has been built yet; Stage A is next. Full history — what each WP built, in what stages, with what divergences — lives in `18-…` §7 (the dated close-out log) and in each WP's own dated amendment inside the doc it touched; this file doesn't restate it. **Starting new work needs a fresh planning pass first** — see Workflow below.
 
 ## Source of truth: `docs/design-day2/`
 
@@ -36,6 +36,7 @@ Stack: TypeScript + Svelte 5 (runes) + SvelteKit static. Monorepo (npm workspace
 | `17-PRO-MODE-UI-DESIGN.md` + `mockups/pro-mode-mockup.html` | Workshop (professional mode) work |
 | `18-DAY2-ROADMAP.md` | The full WP0–WP34 record and close-out log (§7) — read before proposing new phases |
 | `19-AI-SAFETY-GOVERNANCE-REFERENCE.md` | Governance features — the 38-control catalogue, dip in as needed |
+| `25-ARMOUR-BRICK.md` | WP35 (Phase G) — the Armour Brick: Model Armor as a hosted, Workshop-only safety brick; the credential/network seams, `guardrail.external`, decisions D1–D5, stages A–E |
 
 `09-ROADMAP.md` is history only (the WP0–WP10 record); `18-…` supersedes its forward plan.
 
@@ -43,7 +44,7 @@ Where a Day 2 doc and its Day 1 counterpart differ, **Day 2 wins** — the banne
 
 ## Workflow
 
-**No work package is currently queued** — `18-…`'s forward plan is exhausted (WP0–WP34 all done). Before building anything, read `18-…` §7's closing entries and `12-…`'s defect register for anything that quietly deserves a follow-up, then confirm with the user what they actually want: new scope needs a fresh planning pass (a new roadmap document or phase), not an assumption.
+**One work package is queued — WP35, the Armour Brick** (`25-ARMOUR-BRICK.md`, opened 2026-09-01). Build it stage by stage (§11 there: A library → B Workshop lane → C core seams → D brick → E battery/docs/smoke), one branch `wp35-armour-brick`, each stage gated by its own DoD and logging its divergences dated in `25-…` §8. Beyond WP35, `18-…`'s forward plan is exhausted (WP0–WP34 all done): before building anything else, read `18-…` §7's closing entries and `12-…`'s defect register for anything that quietly deserves a follow-up, then confirm with the user what they actually want: new scope needs a fresh planning pass (a new roadmap document or phase), not an assumption.
 
 Once there's a WP to build (from a new plan, or a defect worth fixing): read the docs it names, **propose a task breakdown before writing code**, then build. One WP per branch (`wp{n}-{slug}`) and PR. Use your judgement inside a WP — the docs fix the destination and the contracts, not every step. Where a doc is silent, decide and note it. Where implementation must diverge from a doc, change the doc in the same PR with a dated note (`> **Amended 2026-08-13:** …`); don't leave the two disagreeing.
 
