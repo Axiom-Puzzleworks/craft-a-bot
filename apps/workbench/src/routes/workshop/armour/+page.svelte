@@ -5,16 +5,19 @@
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import { labelForEvent } from '$lib/trace-style.js';
 	import { runArmourProbe, type ArmourProbeResult } from '$lib/workshop/armour-studio.js';
+	import { createBrowserKeyVault } from '$lib/state/keys.js';
 
 	/**
 	 * **The Armour Studio** (`25-ARMOUR-BRICK.md` §11 Stage B) — a Workshop-only
 	 * lane proving the seam before Stage D turns it into a fitted brick: a
 	 * project/region/template, the three screen dials and the per-filter
-	 * overrides, a token pasted in and held only in this page's own memory
-	 * (never the vault, never saved — `25-…` §11's own row), and a button that
-	 * runs the sign-hijack scenario (`starter/warning-sign`) with the resulting
-	 * guardrails fitted through `CreateSessionDeps.guardrails`, the host seam
-	 * `armour-studio.ts` uses instead of any fitted brick.
+	 * overrides, a token field seeded from the Cloud Armour battery (Stage E)
+	 * if one is already charged, held only in this page's own memory from
+	 * there on (an edit here never writes back to the vault, and a reload
+	 * re-seeds from whatever the battery holds now — `25-…` §11's own row),
+	 * and a button that runs the sign-hijack scenario (`starter/warning-sign`)
+	 * with the resulting guardrails fitted through `CreateSessionDeps.guardrails`,
+	 * the host seam `armour-studio.ts` uses instead of any fitted brick.
 	 *
 	 * The run this button starts is a **real, stored run** — visible in Runs
 	 * and the Audit Centre like any other (`25-…` §11's own DoD for this
@@ -47,8 +50,16 @@
 	let timeoutMs = $state(3000);
 	/** Defaults on: a blank project/template pointed at a real endpoint is a request going nowhere useful. */
 	let offline = $state(true);
-	/** Pasted, never persisted — cleared by a page reload, exactly like the design doc's own "held in memory" (§11 Stage B). */
-	let token = $state('');
+	/**
+	 * Seeded from the Cloud Armour battery (`createBrowserKeyVault`, the same
+	 * vault Settings' own "Insert"/"Sign in with Google" and the fitted
+	 * brick's own credential seam already read) so a builder who already
+	 * charged that battery does not have to paste the same token in twice.
+	 * Still never written back — an edit here is this page's own, exactly
+	 * like the design doc's "held in memory" (§11 Stage B); it just no
+	 * longer *starts* from nothing when a battery already exists.
+	 */
+	let token = $state(createBrowserKeyVault().get('geap') ?? '');
 
 	const draft = $derived({
 		projectId,
@@ -244,7 +255,10 @@
 			</div>
 
 			<label class="field">
-				<span>Token — pasted here for this session only, never saved</span>
+				<span
+					>Token — from your Cloud Armour battery if one's charged, or pasted here for this session
+					only, never saved</span
+				>
 				<input
 					type="password"
 					autocomplete="off"
