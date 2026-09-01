@@ -1,8 +1,12 @@
+import type { PackManifest } from '@craftabot/core';
+import { armorBrickKind } from './armor/brick-kind.js';
+
 /**
- * `@craftabot/pack-geap` — Stage A (`25-…` §11): the Model Armor client
- * library, offline and brick-free. `PackManifest`/`armorBrickKind` are added
- * in Stage D once the credential/network seams (Stage C) exist for a brick
- * to use.
+ * `@craftabot/pack-geap` — the Model Armor client library (Stage A), the
+ * hosted-call trace record (Stage B), the credential/network core seam it
+ * runs on (Stage C), and now the fitted kind itself (`25-…` §11 Stage D):
+ * `geap/armor`, the Armour Brick, Workshop-only, in the `safety` socket
+ * beside the Safety Brick and the Watchbot.
  */
 
 export { armorConfigSchema } from './armor/config.js';
@@ -35,4 +39,21 @@ export type { MatchedFilter } from './armor/strings.js';
 export { armorGuardrail, verdictFor } from './armor/guardrails.js';
 export type { ArmorTextSelector } from './armor/guardrails.js';
 
+export {
+	ARMOR_CREDENTIAL_ID,
+	armorBrickKind,
+	armorConfigDefaults,
+	describeArmorFitted
+} from './armor/brick-kind.js';
+
 export const CRAFTABOT_PACK_GEAP_VERSION = '0.0.1';
+
+const geapPack: PackManifest = {
+	id: 'geap',
+	name: 'Cloud Armour',
+	version: CRAFTABOT_PACK_GEAP_VERSION,
+	requiresCore: '>=0.0.1',
+	brickKinds: [armorBrickKind]
+};
+
+export default geapPack;

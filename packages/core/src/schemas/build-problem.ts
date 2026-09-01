@@ -45,7 +45,18 @@ export const buildProblemCodeSchema = z.enum([
 	/** A Connector brick's `serviceId` names a service its own catalogue does not carry. */
 	'unknown-service',
 	/** A Connector brick's `scopes` names an operation its configured service does not offer. */
-	'unknown-scope'
+	'unknown-scope',
+	/**
+	 * The Armour Brick's own four (`25-ARMOUR-BRICK.md` §4.3, WP35 stage D):
+	 * a region this build does not recognise (never blocking — the schema
+	 * accepts any string); a per-filter override of `block`/`ask` that clamps
+	 * to `stop`/`note` outside `pre-act`; every screen off while not
+	 * offline; and fitted but no `geap` credential while not offline.
+	 */
+	'unrecognised-armour-region',
+	'clamped-armour-disposition',
+	'armour-checks-nothing',
+	'armour-not-plugged-in'
 ]);
 export type BuildProblemCode = z.infer<typeof buildProblemCodeSchema>;
 
