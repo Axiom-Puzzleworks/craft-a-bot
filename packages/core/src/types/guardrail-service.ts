@@ -64,6 +64,14 @@ export interface ScreenRequest {
 	proposed?: GuardrailContext['proposed'];
 	/** Pointers a service may forward, never the whole trace. */
 	envelope: { runId?: string; agentId: string; tick: number };
+	/**
+	 * The policy decision point's input document (WP45, `33-POLICY-V2-PDP.md`
+	 * §4.3): spec identity, the proposed call, usage and the world's
+	 * predicates, built by governance's `pdpRequestFor` and attached by the
+	 * shell at every hook — so a PDP service reads this and nothing else.
+	 * Opaque here; `governance` owns the shape.
+	 */
+	policyInput?: unknown;
 }
 
 /**

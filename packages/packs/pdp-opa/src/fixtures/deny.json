@@ -1,0 +1,11 @@
+{
+	"result": {
+		"allow": false,
+		"violations": [
+			{
+				"policy": "craftabot.no_secrets_out_loud",
+				"message": "the cupboard code may not be said"
+			}
+		]
+	}
+}

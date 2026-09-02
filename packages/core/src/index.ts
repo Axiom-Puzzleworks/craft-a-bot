@@ -186,6 +186,9 @@ export {
 export {
 	POLICY_CARD_SCHEMA_VERSION,
 	parsePolicyCard,
+	SAFE_PATTERN_MAX_LENGTH,
+	describeUnsafePattern,
+	isSafePattern,
 	policyCardSchema,
 	policyDispositionSchema,
 	policyRuleSchema,

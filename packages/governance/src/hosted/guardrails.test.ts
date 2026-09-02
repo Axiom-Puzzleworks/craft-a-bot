@@ -107,6 +107,7 @@ describe('a check', () => {
 				text: 'I will say hello\nsay(text: hello)',
 				context: 'a red ball',
 				proposed: PROPOSED,
+				policyInput: expect.anything(),
 				envelope: { agentId: 'agent-1', tick: 3 }
 			}
 		]);

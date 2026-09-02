@@ -11,6 +11,7 @@ import type {
 	ScreenRequest,
 	ScreenResult
 } from '@craftabot/core';
+import { pdpRequestFor } from '../pdp.js';
 import type { HostedScreenConfig } from './config.js';
 import { defaultSelectors, type TextSelector } from './selectors.js';
 import { defaultHostedStrings, type HostedStrings } from './strings.js';
@@ -132,7 +133,9 @@ export function createHostedGuardrails(options: CreateHostedGuardrailsOptions): 
 			text: screen.text,
 			...(screen.context !== undefined ? { context: screen.context } : {}),
 			...(ctx.proposed ? { proposed: ctx.proposed } : {}),
-			envelope: options.envelope(ctx)
+			envelope: options.envelope(ctx),
+			// The PDP's document rides on every request (WP45): a policy service reads it, a content filter ignores it.
+			policyInput: pdpRequestFor(ctx)
 		};
 
 		const startedAt = now();

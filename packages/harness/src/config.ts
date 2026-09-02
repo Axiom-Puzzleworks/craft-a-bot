@@ -10,6 +10,7 @@ import geminiPack from '@craftabot/pack-gemini';
 import monitorPack from '@craftabot/pack-monitor';
 import ollamaPack from '@craftabot/pack-ollama';
 import openAiPack from '@craftabot/pack-openai';
+import pdpOpaPack from '@craftabot/pack-pdp-opa';
 import personasPack from '@craftabot/pack-personas';
 import starterPack from '@craftabot/pack-starter';
 import workshopPack from '@craftabot/pack-workshop';
@@ -46,6 +47,7 @@ export function defaultPacks(): PackManifest[] {
 		geapPack,
 		guardLocalPack,
 		azureContentSafetyPack,
+		pdpOpaPack,
 		evaluatorsPack
 	];
 }

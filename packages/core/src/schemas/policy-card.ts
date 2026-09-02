@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { guardrailHookSchema } from './shared.js';
+import type { GuardrailHook } from './shared.js';
 
 /**
  * **PolicyCard v1** (`14-…` §4.6, WP22): "a `PolicyCard` is data … compiled …
@@ -40,6 +41,39 @@ export interface PredicateExprUsageAtLeast {
 	field: 'ticks' | 'inputTokens' | 'outputTokens';
 	value: number;
 }
+/**
+ * The six v2 leaves (WP45, `33-POLICY-V2-PDP.md` §4.1): additive under the
+ * same discriminator, so every v1 card is a valid v2 card.
+ */
+export interface PredicateExprArgumentContains {
+	kind: 'argument-contains';
+	path: string;
+	value: string;
+}
+export interface PredicateExprArgumentMatches {
+	kind: 'argument-matches';
+	path: string;
+	/** The bounded subset `isSafePattern` accepts — no groups, no backreferences, at most 200 characters. */
+	pattern: string;
+}
+export interface PredicateExprObservationContains {
+	kind: 'observation-contains';
+	value: string;
+}
+export interface PredicateExprWorldPredicate {
+	kind: 'world-predicate';
+	predicateId: string;
+}
+export interface PredicateExprHistoryCount {
+	kind: 'history-count';
+	type: string;
+	name?: string | undefined;
+	atLeast: number;
+}
+export interface PredicateExprHookIs {
+	kind: 'hook-is';
+	hook: GuardrailHook;
+}
 export interface PredicateExprAnd {
 	kind: 'and';
 	all: PredicateExpr[];
@@ -58,9 +92,41 @@ export type PredicateExpr =
 	| PredicateExprCallNameIs
 	| PredicateExprArgumentEquals
 	| PredicateExprUsageAtLeast
+	| PredicateExprArgumentContains
+	| PredicateExprArgumentMatches
+	| PredicateExprObservationContains
+	| PredicateExprWorldPredicate
+	| PredicateExprHistoryCount
+	| PredicateExprHookIs
 	| PredicateExprAnd
 	| PredicateExprOr
 	| PredicateExprNot;
+
+export const SAFE_PATTERN_MAX_LENGTH = 200;
+
+/**
+ * Why a pattern is refused, or `undefined` when it is safe (WP45, `33-…`
+ * §4.1). The subset rules out what makes a regular expression hang a loop:
+ * groups (so no nested quantifiers), backreferences, and unbounded length.
+ */
+export function describeUnsafePattern(pattern: string): string | undefined {
+	if (pattern.length === 0) return 'a pattern cannot be empty';
+	if (pattern.length > SAFE_PATTERN_MAX_LENGTH) {
+		return `a pattern is at most ${SAFE_PATTERN_MAX_LENGTH} characters`;
+	}
+	if (/[(){}]/.test(pattern)) return 'a pattern may not use groups or braces — ( ) { }';
+	if (/\\\d/.test(pattern)) return 'a pattern may not use backreferences';
+	try {
+		new RegExp(pattern);
+	} catch {
+		return 'a pattern must be a valid regular expression';
+	}
+	return undefined;
+}
+
+export function isSafePattern(pattern: string): boolean {
+	return describeUnsafePattern(pattern) === undefined;
+}
 
 export const predicateExprSchema: z.ZodType<PredicateExpr> = z.lazy(() =>
 	z.discriminatedUnion('kind', [
@@ -72,6 +138,27 @@ export const predicateExprSchema: z.ZodType<PredicateExpr> = z.lazy(() =>
 			field: usageFieldSchema,
 			value: z.number().int().nonnegative()
 		}),
+		z.object({
+			kind: z.literal('argument-contains'),
+			path: z.string().min(1),
+			value: z.string().min(1)
+		}),
+		z.object({
+			kind: z.literal('argument-matches'),
+			path: z.string().min(1),
+			pattern: z.string().refine((pattern) => isSafePattern(pattern), {
+				error: (issue) => describeUnsafePattern(String(issue.input)) ?? 'unsafe pattern'
+			})
+		}),
+		z.object({ kind: z.literal('observation-contains'), value: z.string().min(1) }),
+		z.object({ kind: z.literal('world-predicate'), predicateId: z.string().min(1) }),
+		z.object({
+			kind: z.literal('history-count'),
+			type: z.string().min(1),
+			name: z.string().min(1).optional(),
+			atLeast: z.number().int().positive()
+		}),
+		z.object({ kind: z.literal('hook-is'), hook: guardrailHookSchema }),
 		z.object({ kind: z.literal('and'), all: z.array(predicateExprSchema).min(1) }),
 		z.object({ kind: z.literal('or'), any: z.array(predicateExprSchema).min(1) }),
 		z.object({ kind: z.literal('not'), expr: predicateExprSchema })

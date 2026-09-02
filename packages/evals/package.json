@@ -26,6 +26,7 @@
 	},
 	"devDependencies": {
 		"@craftabot/pack-azure-content-safety": "*",
+		"@craftabot/pack-pdp-opa": "*",
 		"@craftabot/pack-evaluators": "*",
 		"@craftabot/pack-guard-local": "*",
 		"@craftabot/pack-workshop": "*",

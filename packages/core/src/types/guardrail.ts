@@ -55,6 +55,13 @@ export interface GuardrailContext {
 	messages?: readonly ChatMessage[];
 	/** The brain's answer — present at `pre-act` and `post-act` on a brain-driven tick; absent for a reflex. */
 	response?: ChatResponse;
+	/**
+	 * The world's own questions (WP45, `33-POLICY-V2-PDP.md` §4.2): `test` is
+	 * the instance's, `predicates` the definition's ids — so a `world-predicate`
+	 * leaf and a PDP's input document can ask them. Optional: a host that
+	 * predates the field hands none.
+	 */
+	world?: { test(predicateId: string): boolean; predicates: readonly string[] };
 }
 
 export interface Guardrail {

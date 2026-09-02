@@ -50,16 +50,15 @@ export const NO_REPETITION_ID = 'safety/no-repetition';
 /** How far back the rule looks. Ten decisions is a third of the default budget. */
 const WINDOW = 10;
 
-/**
- * Actions that, when they work, mean the bot has got somewhere.
- *
- * Naming a world action inside a guardrail is a wart, and a deliberate one:
- * `14-…` §4.6 specifies the movement exemption in exactly these terms, and the
- * alternative — inferring "did this take me somewhere new" from a state diff —
- * is guesswork dressed up as generality. Policy cards (`14-…` §4.6) will let a
- * world declare this about its own actions, at which point the constant goes.
- */
-const MOVEMENT = new Set(['move']);
+export interface NoRepetitionOptions {
+	/**
+	 * Whether a successful call of this action is progress (WP45, `33-…`
+	 * §4.2) — declared by the world on the action, answered here by whoever
+	 * fits the guardrail. Governance knows no action's name; without an
+	 * answer, nothing is exempt.
+	 */
+	isProgress?: (actionName: string) => boolean;
+}
 
 function signatureOf(call: { kind: string; name: string; arguments: unknown }): string {
 	return `${call.kind}:${call.name}:${JSON.stringify(call.arguments ?? null)}`;
@@ -76,7 +75,10 @@ type PastCall = { signature: string; counts: boolean };
  * now — the engine emits `decision` before pre-act guards run — and its fate
  * has not been written yet.
  */
-function recentCalls(history: ReadonlyArray<EngineEvent>): PastCall[] {
+function recentCalls(
+	history: ReadonlyArray<EngineEvent>,
+	isProgress: (actionName: string) => boolean
+): PastCall[] {
 	const calls: PastCall[] = [];
 	let current: PastCall | undefined;
 
@@ -90,7 +92,7 @@ function recentCalls(history: ReadonlyArray<EngineEvent>): PastCall[] {
 				break;
 			}
 			case 'action.performed': {
-				if (current && event.payload.result.ok && MOVEMENT.has(event.payload.name)) {
+				if (current && event.payload.result.ok && isProgress(event.payload.name)) {
 					current.counts = false;
 				}
 				break;
@@ -100,7 +102,11 @@ function recentCalls(history: ReadonlyArray<EngineEvent>): PastCall[] {
 	return calls.reverse();
 }
 
-export function createNoRepetitionGuardrail(limit: number): Guardrail {
+export function createNoRepetitionGuardrail(
+	limit: number,
+	options: NoRepetitionOptions = {}
+): Guardrail {
+	const isProgress = options.isProgress ?? (() => false);
 	return {
 		id: NO_REPETITION_ID,
 		name: 'No Repetition',
@@ -111,7 +117,7 @@ export function createNoRepetitionGuardrail(limit: number): Guardrail {
 			if (!proposed) return { allow: true };
 
 			const signature = signatureOf(proposed);
-			const repeats = recentCalls(ctx.history)
+			const repeats = recentCalls(ctx.history, isProgress)
 				.slice(0, WINDOW)
 				.filter((call) => call.signature === signature && call.counts).length;
 

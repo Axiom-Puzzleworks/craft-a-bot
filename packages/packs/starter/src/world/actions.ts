@@ -141,6 +141,8 @@ export function carriedItem(state: PlayroomState) {
 
 type ActionSpec<Schema extends z.ZodType> = {
 	id: string;
+	/** A successful call is progress (WP45): the world's answer to the no-repetition guardrail. */
+	progress?: boolean;
 	name: string;
 	description: string;
 	schema: Schema;
@@ -166,7 +168,8 @@ function defineAction<Schema extends z.ZodType>(spec: ActionSpec<Schema>): Playr
 			name: spec.name,
 			description: spec.description,
 			parameters: z.toJSONSchema(spec.schema),
-			riskTier: spec.riskTier
+			riskTier: spec.riskTier,
+			...(spec.progress ? { progress: true } : {})
 		},
 		perform: (state, args) => {
 			const parsed = spec.schema.safeParse(args ?? {});
@@ -185,6 +188,8 @@ const move = defineAction({
 	id: 'move',
 	name: actionStrings.move.name,
 	description: actionStrings.move.description,
+	// A move that worked is progress (WP45): the no-repetition guardrail never counts it.
+	progress: true,
 	schema: z.object({
 		direction: z.enum(ORTHOGONAL_DIRECTIONS).describe(actionStrings.move.direction)
 	}),

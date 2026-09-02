@@ -8,6 +8,7 @@ import geminiPack from '@craftabot/pack-gemini';
 import monitorPack from '@craftabot/pack-monitor';
 import ollamaPack from '@craftabot/pack-ollama';
 import openAiPack from '@craftabot/pack-openai';
+import pdpOpaPack from '@craftabot/pack-pdp-opa';
 import personasPack from '@craftabot/pack-personas';
 import starterPack from '@craftabot/pack-starter';
 import workshopPack from '@craftabot/pack-workshop';
@@ -92,6 +93,8 @@ export const installedPacks = [
 	// WP42 (`30-SECOND-VENDORS.md`): two more guard services, fitted through `workshop/guard`.
 	guardLocalPack,
 	azureContentSafetyPack,
+	// WP45 (`33-POLICY-V2-PDP.md` §4.3) — OPA as a policy decision point at pre-act.
+	pdpOpaPack,
 	// WP43 (`31-EVALUATORS.md`): the rubric judge.
 	evaluatorsPack,
 	demoPack

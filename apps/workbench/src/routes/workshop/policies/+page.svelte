@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { GuardrailHook, PolicyCard, PolicyDisposition, RunRecord } from '@craftabot/core';
-	import { policyCardSchema } from '@craftabot/core';
+	import { describeUnsafePattern, policyCardSchema } from '@craftabot/core';
 	import PolicyCardChip from '$lib/components/shared/PolicyCardChip.svelte';
 	import { installedPacks, createRegistry } from '$lib/packs.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
@@ -56,7 +56,14 @@
 		{ id: 'call-kind-is', label: 'the call is a…' },
 		{ id: 'call-name-is', label: 'the call is named…' },
 		{ id: 'argument-equals', label: 'an argument equals…' },
-		{ id: 'usage-at-least', label: 'usage has reached…' }
+		{ id: 'usage-at-least', label: 'usage has reached…' },
+		// The v2 leaves (WP45, `33-POLICY-V2-PDP.md` §4.4).
+		{ id: 'argument-contains', label: 'an argument contains…' },
+		{ id: 'argument-matches', label: 'an argument matches the pattern…' },
+		{ id: 'observation-contains', label: 'the bot can see…' },
+		{ id: 'world-predicate', label: 'the world says…' },
+		{ id: 'history-count', label: 'the trace already has…' },
+		{ id: 'hook-is', label: 'the hook is…' }
 	] as const;
 
 	let id = $state('workshop/policy/untitled');
@@ -222,6 +229,47 @@
 									/>
 									<span class="eq">=</span>
 									<input type="text" placeholder="value" bind:value={condition.argValue} />
+								{:else if condition.kind === 'argument-contains'}
+									<input type="text" placeholder="path, e.g. text" bind:value={condition.path} />
+									<span class="eq">∋</span>
+									<input type="text" placeholder="text" bind:value={condition.argValue} />
+								{:else if condition.kind === 'argument-matches'}
+									<input type="text" placeholder="path, e.g. text" bind:value={condition.path} />
+									<span class="eq">~</span>
+									<input
+										type="text"
+										placeholder="pattern, e.g. [0-9][0-9][0-9][0-9]"
+										bind:value={condition.pattern}
+										data-testid="condition-pattern-{ruleIndex}-{conditionIndex}"
+									/>
+									{#if condition.pattern !== '' && describeUnsafePattern(condition.pattern)}
+										<span class="hint" data-testid="pattern-problem-{ruleIndex}-{conditionIndex}"
+											>{describeUnsafePattern(condition.pattern)}</span
+										>
+									{/if}
+								{:else if condition.kind === 'observation-contains'}
+									<input type="text" placeholder="e.g. chest" bind:value={condition.argValue} />
+								{:else if condition.kind === 'world-predicate'}
+									<input
+										type="text"
+										placeholder="predicate id, e.g. said-hello-near-teddy"
+										bind:value={condition.predicateId}
+									/>
+								{:else if condition.kind === 'history-count'}
+									<input
+										type="text"
+										placeholder="event type, e.g. action.performed"
+										bind:value={condition.eventType}
+									/>
+									<input type="text" placeholder="name (optional)" bind:value={condition.name} />
+									<span class="eq">≥</span>
+									<input type="number" min="1" bind:value={condition.count} />
+								{:else if condition.kind === 'hook-is'}
+									<select bind:value={condition.hook}>
+										{#each HOOKS as hook (hook)}
+											<option value={hook}>{hook}</option>
+										{/each}
+									</select>
 								{:else}
 									<select bind:value={condition.field}>
 										<option value="ticks">ticks</option>

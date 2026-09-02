@@ -127,6 +127,9 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 	 * session builds its own world exactly as every session has since WP2.
 	 */
 	const world = deps.world ?? createWorld(goalCard);
+	// The world's own questions, for `world-predicate` leaves and a PDP's input (WP45).
+	const worldPredicates = Object.keys(registry.getWorld(goalCard.worldId)?.predicates ?? {});
+	const worldQuestions = { test: (id: string) => world.test(id), predicates: worldPredicates };
 	const budgets = resolveBudgets(deps.spec, registry, options.budgets);
 	/*
 	 * The two sockets core reads rather than is contributed to (slice 3c). See
@@ -410,6 +413,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			spec,
 			usage: { ...usage },
 			worldState: world.snapshot(),
+			world: worldQuestions,
 			/*
 			 * A view, not a copy (E9, `14-…` §3).
 			 *

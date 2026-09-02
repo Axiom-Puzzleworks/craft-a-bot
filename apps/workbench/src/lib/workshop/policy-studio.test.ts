@@ -229,3 +229,126 @@ describe('runScriptedProbe', () => {
 		expect(result.hits).toEqual([]);
 	});
 });
+
+describe('the v2 leaves in the Studio (WP45)', () => {
+	const row = (overrides: Partial<ConditionRow>): ConditionRow => ({
+		...newCondition(),
+		...overrides
+	});
+
+	it('builds each of the six leaves from a condition row', () => {
+		expect(
+			conditionToExpr(row({ kind: 'argument-contains', path: 'text', argValue: '7734' }))
+		).toEqual({
+			kind: 'argument-contains',
+			path: 'text',
+			value: '7734'
+		});
+		expect(
+			conditionToExpr(row({ kind: 'argument-matches', path: 'text', pattern: '[0-9][0-9]' }))
+		).toEqual({ kind: 'argument-matches', path: 'text', pattern: '[0-9][0-9]' });
+		expect(conditionToExpr(row({ kind: 'observation-contains', argValue: 'chest' }))).toEqual({
+			kind: 'observation-contains',
+			value: 'chest'
+		});
+		expect(conditionToExpr(row({ kind: 'world-predicate', predicateId: 'chest-open' }))).toEqual({
+			kind: 'world-predicate',
+			predicateId: 'chest-open'
+		});
+		expect(
+			conditionToExpr(
+				row({ kind: 'history-count', eventType: 'action.performed', name: 'say', count: 2 })
+			)
+		).toEqual({ kind: 'history-count', type: 'action.performed', name: 'say', atLeast: 2 });
+		expect(
+			conditionToExpr(row({ kind: 'history-count', eventType: 'tool.executed', count: 1 }))
+		).toEqual({
+			kind: 'history-count',
+			type: 'tool.executed',
+			atLeast: 1
+		});
+		expect(conditionToExpr(row({ kind: 'hook-is', hook: 'post-act', negate: true }))).toEqual({
+			kind: 'not',
+			expr: { kind: 'hook-is', hook: 'post-act' }
+		});
+	});
+
+	it('the replay stands at pre-act with the trace so far and the last observation', () => {
+		const at = (tick: number, type: string, payload: unknown): EngineEvent =>
+			({
+				id: `e${tick}-${type}`,
+				runId: 'r',
+				tick,
+				at: '2026-09-02T00:00:00.000Z',
+				type,
+				payload
+			}) as unknown as EngineEvent;
+		const say = (tick: number, text: string) =>
+			at(tick, 'decision', {
+				thought: 'hm',
+				call: { kind: 'action', name: 'say', arguments: { text } }
+			});
+		const events = [
+			at(1, 'sense', {
+				channels: ['sight'],
+				observation: { channels: ['sight'], text: 'A toy chest.' }
+			}),
+			say(1, 'one'),
+			at(1, 'action.performed', {
+				name: 'say',
+				arguments: { text: 'one' },
+				result: { ok: true, narration: '', stateDiff: [] }
+			}),
+			at(2, 'sense', {
+				channels: ['sight'],
+				observation: { channels: ['sight'], text: 'Nothing here.' }
+			}),
+			say(2, 'two'),
+			at(2, 'action.performed', {
+				name: 'say',
+				arguments: { text: 'two' },
+				result: { ok: true, narration: '', stateDiff: [] }
+			}),
+			say(3, 'three')
+		];
+		const card: PolicyCard = {
+			id: 'w/policy/v2',
+			title: 'v2',
+			schemaVersion: 1,
+			rules: [
+				{
+					hook: 'pre-act',
+					when: { kind: 'observation-contains', value: 'chest' },
+					then: 'block-action',
+					reason: 'chest in sight'
+				},
+				{
+					hook: 'pre-act',
+					when: { kind: 'history-count', type: 'action.performed', name: 'say', atLeast: 2 },
+					then: 'block-action',
+					reason: 'two said'
+				},
+				{
+					hook: 'pre-act',
+					when: { kind: 'hook-is', hook: 'pre-act' },
+					then: 'block-action',
+					reason: 'always'
+				},
+				{
+					hook: 'pre-act',
+					when: { kind: 'world-predicate', predicateId: 'x' },
+					then: 'stop-run',
+					reason: 'never in replay'
+				}
+			]
+		};
+		const hits = replayCard(card, events);
+		expect(hits.map((hit) => [hit.tick, hit.ruleIndex])).toEqual([
+			[1, 0],
+			[1, 2],
+			[2, 2],
+			[3, 1],
+			[3, 2]
+		]);
+	});
+});

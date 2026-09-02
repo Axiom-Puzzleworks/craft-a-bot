@@ -278,7 +278,8 @@ describe('token budget', () => {
 });
 
 describe('no repetition (v2 — windowed, movement-exempt)', () => {
-	const guardrail = createNoRepetitionGuardrail(3);
+	// The world says what progress is (WP45): this test stands in for the Playroom and names `move` itself.
+	const guardrail = createNoRepetitionGuardrail(3, { isProgress: (name) => name === 'move' });
 
 	/**
 	 * A history builder that records what became of each decision, because v2

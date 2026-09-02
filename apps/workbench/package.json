@@ -34,6 +34,7 @@
 		"@craftabot/governance": "*",
 		"@craftabot/pack-anthropic": "*",
 		"@craftabot/pack-azure-content-safety": "*",
+		"@craftabot/pack-pdp-opa": "*",
 		"@craftabot/pack-evaluators": "*",
 		"@craftabot/pack-geap": "*",
 		"@craftabot/pack-gemini": "*",

@@ -35,7 +35,11 @@ export {
 	createApprovalModeGuardrail,
 	type ApprovalMode
 } from './guardrails/approval-mode.js';
-export { NO_REPETITION_ID, createNoRepetitionGuardrail } from './guardrails/no-repetition.js';
+export {
+	NO_REPETITION_ID,
+	createNoRepetitionGuardrail,
+	type NoRepetitionOptions
+} from './guardrails/no-repetition.js';
 export { STEP_BUDGET_ID, createStepBudgetGuardrail } from './guardrails/step-budget.js';
 export { TOKEN_BUDGET_ID, createTokenBudgetGuardrail } from './guardrails/token-budget.js';
 export { TOOL_BLOCKLIST_ID, createToolBlocklistGuardrail } from './guardrails/tool-blocklist.js';
@@ -43,6 +47,7 @@ export { TOOL_BLOCKLIST_ID, createToolBlocklistGuardrail } from './guardrails/to
 export {
 	compilePolicyCard,
 	evaluatePredicate,
+	predicateContextFor,
 	type PredicateEvalContext
 } from './policy-compiler.js';
 
@@ -95,3 +100,5 @@ export {
 } from './evaluators.js';
 
 export const CRAFTABOT_GOVERNANCE_VERSION = '0.0.1';
+/** The PDP input document (`33-POLICY-V2-PDP.md` §4.3, WP45). */
+export { PDP_INPUT_VERSION, pdpInputSchema, pdpRequestFor, type PdpInput } from './pdp.js';

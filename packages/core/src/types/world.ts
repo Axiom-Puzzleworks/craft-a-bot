@@ -29,6 +29,12 @@ export interface WorldActionDefinition {
 	 * asking anyone to sign off on it.
 	 */
 	riskTier?: RiskTier;
+	/**
+	 * A successful call of this action is progress (WP45, `33-…` §4.2): the
+	 * no-repetition guardrail never counts it as a repeat. The world says so;
+	 * governance stops knowing any action's name.
+	 */
+	progress?: boolean;
 }
 
 export interface WorldSenseDefinition {
