@@ -2,6 +2,8 @@ import type {
 	ActionCall,
 	ActionResult,
 	CartridgeDefinition,
+	EvaluationInput,
+	Evaluator,
 	Guardrail,
 	GuardrailContext,
 	GuardrailService,
@@ -205,6 +207,67 @@ export const exampleGuardService: GuardrailService = {
 	})
 };
 
+/** An evaluator done right (WP43): deterministic, cites the events it read, says nothing it was not shown. */
+export const exampleEvaluator: Evaluator = {
+	id: `${EXAMPLE_PACK_ID}/counts-actions`,
+	name: 'Counts actions',
+	description: 'Passes when at least one action was performed.',
+	kind: 'deterministic',
+	evaluate: (input) => {
+		const acted = input.events.filter((event) => event.type === 'action.performed');
+		return Promise.resolve({
+			evaluatorId: `${EXAMPLE_PACK_ID}/counts-actions`,
+			verdict: acted.length > 0 ? 'pass' : 'fail',
+			score: acted.length > 0 ? 1 : 0,
+			explanation: `${acted.length} action(s) performed.`,
+			evidence: acted.map((event) => ({ eventId: event.id, tick: event.tick }))
+		});
+	}
+};
+
+/** The smallest input an evaluator can be handed: one action, on one run. */
+export function exampleEvaluationInput(): EvaluationInput {
+	const event = {
+		id: '00000000-0000-4000-8000-00000000e001',
+		runId: '00000000-0000-4000-8000-00000000a001',
+		agentId: '00000000-0000-4000-8000-00000000b001',
+		tick: 1,
+		timestamp: '2026-09-02T12:00:00.000Z',
+		type: 'action.performed',
+		payload: { name: 'increment', arguments: {}, result: { ok: true, narration: 'Counted.' } }
+	} as unknown as EvaluationInput['events'][number];
+	return {
+		run: {
+			id: event.runId,
+			agentId: event.agentId ?? '',
+			agentName: 'Example',
+			goalCardId: '',
+			specSnapshot: {
+				id: event.agentId ?? '',
+				name: 'Example',
+				schemaVersion: 2,
+				identity: { displayName: 'Example', boxArtSeed: 'x' },
+				goalCardId: '',
+				bricks: [],
+				createdAt: event.timestamp,
+				updatedAt: event.timestamp
+			},
+			packVersions: {},
+			mode: 'step',
+			outcome: 'SUCCESS',
+			ticks: 1,
+			usage: { inputTokens: 0, outputTokens: 0 },
+			budgets: { maxTicks: 30, maxTokens: 1, requestTimeoutMs: 1 },
+			providerId: 'mock',
+			wireModel: 'mock',
+			pinned: false,
+			startedAt: event.timestamp,
+			schemaVersion: 2
+		},
+		events: [event]
+	};
+}
+
 export const examplePack: PackManifest = {
 	id: EXAMPLE_PACK_ID,
 	name: 'Example Pack',
@@ -213,7 +276,8 @@ export const examplePack: PackManifest = {
 	tools: [echoTool],
 	worlds: [exampleWorld],
 	cartridges: [exampleCartridge],
-	guardrailServices: [exampleGuardService]
+	guardrailServices: [exampleGuardService],
+	evaluators: [exampleEvaluator]
 };
 
 export const exampleFixture: PackConformanceFixture = {
@@ -243,6 +307,12 @@ export const exampleFixture: PackConformanceFixture = {
 				text: 'hello',
 				envelope: { agentId: 'a', tick: 1 }
 			})),
+			plantedSecret: 'planted-secret-xyz'
+		}
+	},
+	evaluators: {
+		[exampleEvaluator.id]: {
+			inputs: [exampleEvaluationInput()],
 			plantedSecret: 'planted-secret-xyz'
 		}
 	}

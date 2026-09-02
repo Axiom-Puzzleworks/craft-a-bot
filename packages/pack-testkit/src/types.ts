@@ -4,6 +4,7 @@ import type {
 	CartridgeDefinition,
 	Guardrail,
 	GuardrailContext,
+	EvaluationInput,
 	PackManifest,
 	ScreenRequest
 } from '@craftabot/core';
@@ -113,6 +114,17 @@ export interface GuardrailServiceConformanceFixture {
 	plantedSecret: string;
 }
 
+/**
+ * An evaluator's fixture (`31-EVALUATORS.md` §4.4, WP43): inputs it is run
+ * over, its config, and a secret that must never reach a result. Keyed by
+ * evaluator id in `PackConformanceFixture.evaluators`.
+ */
+export interface EvaluatorConformanceFixture {
+	inputs: EvaluationInput[];
+	config?: unknown;
+	plantedSecret: string;
+}
+
 /** A scripted run through the whole stack, checked for catalogue-only events. */
 export interface GoldenTraceConformanceFixture {
 	spec: AnyAgentSpec;
@@ -137,6 +149,8 @@ export interface PackConformanceFixture {
 	guardrails?: GuardrailConformanceFixture;
 	/** One per service the manifest ships, keyed by service id (`29-…` §4.7). */
 	guardrailServices?: Record<string, GuardrailServiceConformanceFixture>;
+	/** One per evaluator the manifest ships, keyed by evaluator id (`31-…` §4.4). */
+	evaluators?: Record<string, EvaluatorConformanceFixture>;
 	goldenTrace?: GoldenTraceConformanceFixture;
 }
 

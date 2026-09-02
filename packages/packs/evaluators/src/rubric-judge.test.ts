@@ -145,4 +145,13 @@ describe('the rubric judge', () => {
 	});
 });
 
-describeConformance({ manifest: pack });
+describeConformance({
+	manifest: pack,
+	evaluators: {
+		[rubricJudge.id]: {
+			inputs: [input],
+			config: { rubric: 'r' },
+			plantedSecret: 'planted-secret-xyz'
+		}
+	}
+});

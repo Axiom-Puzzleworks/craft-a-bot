@@ -1,3 +1,4 @@
+import type { EvaluationRecord } from '../schemas/evaluation.js';
 import type { EngineEvent } from '../schemas/events.js';
 import {
 	TRACE_FORMAT_VERSION,
@@ -20,6 +21,8 @@ import { redactSecrets } from './redact.js';
 
 export interface BuildTraceFileOptions {
 	secrets?: readonly string[];
+	/** The run's evaluations, carried in the file (WP43); redacted like everything else. */
+	evaluations?: readonly EvaluationRecord[];
 }
 
 export async function buildTraceFile(
@@ -36,6 +39,9 @@ export async function buildTraceFile(
 		formatVersion: TRACE_FORMAT_VERSION,
 		run: safeRun,
 		events: safeEvents,
+		...(options.evaluations !== undefined
+			? { evaluations: redactSecrets([...options.evaluations], secrets) }
+			: {}),
 		traceDigest: await computeTraceDigest(safeEvents)
 	});
 }

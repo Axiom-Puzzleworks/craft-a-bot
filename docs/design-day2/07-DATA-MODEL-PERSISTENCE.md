@@ -28,6 +28,7 @@
 | `cab.events` | IndexedDB object store (indexed by `runId`, `seq`) | Trace events, append-only — a group episode's merged stream stores here too, keyed by its own `groupRunId` |
 | `cab.runSummaries` | IndexedDB object store (keyed by `runId`, `DATABASE_VERSION` 3) | `RunSummary` — a finished run's folded facts (WP36 stage C); a cache of the trace, never authored; gone with its run |
 | `cab.campaigns` | IndexedDB object store (keyed by `id`, `DATABASE_VERSION` 4) | `StoredCampaignReport` — a campaign report's envelope with the report opaque inside (WP38 stage D, `28-…` §4.9); outside the run cap; the harness keeps the same rows at `campaigns/<id>.json` |
+| `cab.evaluations` | IndexedDB object store (keyed by `id`, indexed by `runId`, `DATABASE_VERSION` 5) | `EvaluationRecord` — one evaluator's verdict over one run (WP43, `31-…` §4.1); deleted with its run; the harness keeps the same rows at `runs/<runId>/evaluations.jsonl` |
 | `cab.settings` | `localStorage` (`cab.settings.v1`) | Preferences (sound, motion, speed), tutorial progress, badges |
 | `cab.keys` | `localStorage` (`cab.keys.v1`) | `{ [providerId]: apiKey }` — see key rules |
 

@@ -9,6 +9,7 @@
  */
 export { checkCartridge } from './checks/cartridge.js';
 export { checkGoldenTrace } from './checks/golden-trace.js';
+export { checkEvaluator } from './checks/evaluator.js';
 export { checkGuardrail } from './checks/guardrail.js';
 export { checkGuardrailService, hostMatches } from './checks/guardrail-service.js';
 export { checkManifest } from './checks/manifest.js';
@@ -20,6 +21,7 @@ export type {
 	GoldenTraceConformanceFixture,
 	GuardrailConformanceEntry,
 	GuardrailConformanceFixture,
+	EvaluatorConformanceFixture,
 	GuardrailServiceConformanceFixture,
 	PackConformanceFixture,
 	ToolConformanceFixture,

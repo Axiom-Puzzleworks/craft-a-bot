@@ -3,6 +3,7 @@ import { writeFile } from 'node:fs/promises';
 import { defaultConfig, loadConfig, type HarnessConfig } from './config.js';
 import { credentialsFromEnv, type CredentialSource } from './credentials.js';
 import { bundleRun } from './commands/bundle.js';
+import { evaluateRun, renderEvaluations } from './commands/evaluate.js';
 import { runCampaignFile } from './commands/campaign.js';
 import { describePacks, renderPacks } from './commands/packs.js';
 import { reportIncidents, reportSafetyCase, reportTelemetry } from './commands/report.js';
@@ -76,6 +77,13 @@ Usage:
   craftabot bundle --run <runId> [--out ./runs] [--file <path>]
       Write a stored run back out as a .craftabot-trace.json (to --file, or
       stdout), redacted and digest-signed.
+
+  craftabot evaluate --run <runId> [--evaluators <id,id>] [--rubric <text>] [--out ./runs]
+      Run evaluators over a stored run and write the records beside it —
+      every deterministic evaluator (every assertion card) by default. A
+      model evaluator such as evals/judge/rubric asks the run's own provider
+      when CRAFTABOT_CREDENTIAL_<ID> is set, and answers inconclusive
+      offline otherwise; --rubric is that judge's rubric.
 
   craftabot campaign --file <campaign.json> [--out ./campaign-out] [--strict]
                      [--egress declared|none]
@@ -201,6 +209,22 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 					);
 				}
 				return args.flags['strict'] === true && !report.passed ? 1 : 0;
+			}
+			case 'evaluate': {
+				const runId = stringFlag(args, 'run');
+				if (runId === undefined) throw new Error('evaluate needs --run <runId>');
+				const storage = await createFileStorage(stringFlag(args, 'out') ?? './runs');
+				const registry = createRegistry(await configFrom(args));
+				const ids = stringFlag(args, 'evaluators');
+				const rubric = stringFlag(args, 'rubric');
+				const report = await evaluateRun(storage, registry, runId, {
+					credentials: credentialsFromEnv(io.env),
+					...(ids !== undefined ? { evaluatorIds: ids.split(',').map((id) => id.trim()) } : {}),
+					...(rubric !== undefined ? { configs: { 'evals/judge/rubric': { rubric } } } : {})
+				});
+				io.stdout(`evaluated ${runId}
+${renderEvaluations(report)}`);
+				return report.unknown.length > 0 ? 1 : 0;
 			}
 			case 'report': {
 				const storage = await createFileStorage(stringFlag(args, 'out') ?? './runs');

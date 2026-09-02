@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { checkCartridge } from './checks/cartridge.js';
-import type { GuardrailService } from '@craftabot/core';
+import type { Evaluator, GuardrailService } from '@craftabot/core';
+import { checkEvaluator } from './checks/evaluator.js';
 import { checkGuardrail } from './checks/guardrail.js';
 import { checkGuardrailService, hostMatches } from './checks/guardrail-service.js';
 import { checkManifest } from './checks/manifest.js';
@@ -10,6 +11,8 @@ import { describeConformance } from './describe-conformance.js';
 import {
 	alwaysAllowGuardrail,
 	echoTool,
+	exampleEvaluationInput,
+	exampleEvaluator,
 	exampleFixture,
 	exampleGuardService,
 	exampleGuardrailContext,
@@ -19,6 +22,9 @@ import {
 	badVerdictGuardrail,
 	brokenGuardrailContext,
 	brokenPack,
+	coinFlipEvaluator,
+	fabulistEvaluator,
+	homelessJudge,
 	fussyService,
 	leakingService,
 	malformedService,
@@ -210,6 +216,32 @@ describe('checkGuardrailService against broken services (29-… §4.7)', () => {
 			false
 		);
 		expect(hostMatches('guard.example.test', 'evil.example.test')).toBe(false);
+	});
+});
+
+describe('checkEvaluator against broken evaluators (31-… §4.4)', () => {
+	const fixture = { inputs: [exampleEvaluationInput()], plantedSecret: 'planted-secret-xyz' };
+	const checks = async (evaluator: Evaluator) => [
+		...new Set((await checkEvaluator(evaluator, fixture)).map((issue) => issue.check))
+	];
+
+	it('reports a deterministic evaluator that is not', async () => {
+		expect(await checks(coinFlipEvaluator)).toEqual(['evaluator.deterministic']);
+	});
+
+	it('reports made-up evidence and a leaked credential', async () => {
+		expect(await checks(fabulistEvaluator)).toEqual([
+			'evaluator.evidence-real',
+			'evaluator.no-secret-leaks'
+		]);
+	});
+
+	it('reports a model evaluator with no offline form', async () => {
+		expect(await checks(homelessJudge)).toEqual(['evaluator.offline-present']);
+	});
+
+	it('passes the example evaluator', async () => {
+		expect(await checkEvaluator(exampleEvaluator, fixture)).toEqual([]);
 	});
 });
 

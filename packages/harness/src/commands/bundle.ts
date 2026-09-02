@@ -16,5 +16,6 @@ export async function bundleRun(
 	const run = await storage.getRun(runId);
 	if (!run) throw new Error(`no run '${runId}' in ${storage.root}`);
 	const events = (await storage.getEvents(runId)).map((row) => row.event);
-	return buildTraceFile(run, events, { secrets });
+	const evaluations = await storage.listEvaluations(runId);
+	return buildTraceFile(run, events, { secrets, evaluations });
 }

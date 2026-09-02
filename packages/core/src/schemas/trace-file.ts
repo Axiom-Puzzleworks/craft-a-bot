@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { agentSpecSchema } from './agent-spec.js';
 import { agentSpecV2Schema } from './agent-spec-v2.js';
 import { engineEventSchema, type EngineEvent } from './events.js';
+import { evaluationRecordSchema } from './evaluation.js';
 import { runOutcomeSchema, usageSchema, type MigrationError } from './shared.js';
 
 /**
@@ -86,6 +87,8 @@ export const traceFileSchema = z.object({
 	formatVersion: z.literal(2),
 	run: runRecordSchema,
 	events: z.array(engineEventSchema),
+	/** The run's stored evaluations (WP43, `31-EVALUATORS.md` §4.4) — carried, not digested: a verdict is data beside the run. */
+	evaluations: z.array(evaluationRecordSchema).optional(),
 	traceDigest: z.string().min(1)
 });
 export type TraceFile = z.infer<typeof traceFileSchema>;

@@ -2,6 +2,7 @@ import type {
 	ActionCall,
 	ActionResult,
 	CartridgeDefinition,
+	Evaluator,
 	Guardrail,
 	GuardrailContext,
 	GuardrailService,
@@ -299,6 +300,55 @@ export const fussyService: GuardrailService = {
 			})
 	})
 };
+
+// --- evaluators: one failing each check (`31-EVALUATORS.md` §4.4) --
+
+let flips = 0;
+/** Says it is deterministic and is not. */
+export const coinFlipEvaluator: Evaluator = {
+	id: `${BROKEN_PACK_ID}/coin-flip`,
+	name: 'Coin flip',
+	description: 'Deterministic in name only.',
+	kind: 'deterministic',
+	evaluate: () => {
+		flips += 1;
+		return Promise.resolve({
+			evaluatorId: `${BROKEN_PACK_ID}/coin-flip`,
+			verdict: flips % 2 === 0 ? 'pass' : 'fail',
+			explanation: `flip ${flips}`,
+			evidence: []
+		});
+	}
+};
+
+/** Cites an event that was never shown to it, and puts the credential in the explanation. */
+export const fabulistEvaluator: Evaluator = {
+	id: `${BROKEN_PACK_ID}/fabulist`,
+	name: 'Fabulist',
+	description: 'Makes up evidence and repeats secrets.',
+	kind: 'deterministic',
+	evaluate: (_input, deps) =>
+		Promise.resolve({
+			evaluatorId: `${BROKEN_PACK_ID}/fabulist`,
+			verdict: 'pass',
+			explanation: `checked with ${deps.getCredential('broken')}`,
+			evidence: [{ eventId: 'never-happened', tick: 99 }]
+		})
+};
+
+/** A model evaluator with no offline stand-in. */
+export const homelessJudge = {
+	id: `${BROKEN_PACK_ID}/homeless-judge`,
+	name: 'Homeless judge',
+	description: 'Needs a model and has no offline form.',
+	kind: 'model',
+	evaluate: () =>
+		Promise.resolve({
+			evaluatorId: `${BROKEN_PACK_ID}/homeless-judge`,
+			explanation: '',
+			evidence: []
+		})
+} as Evaluator;
 
 export const brokenPack: PackManifest = {
 	id: BROKEN_PACK_ID,

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { checkCartridge } from './checks/cartridge.js';
 import { checkGoldenTrace } from './checks/golden-trace.js';
 import { checkGuardrail } from './checks/guardrail.js';
+import { checkEvaluator } from './checks/evaluator.js';
 import { checkGuardrailService } from './checks/guardrail-service.js';
 import { checkManifest } from './checks/manifest.js';
 import { checkTool } from './checks/tool.js';
@@ -69,6 +70,17 @@ export function describeConformance(fixture: PackConformanceFixture): void {
 					throw new Error(`no fixture supplied for guardrail service "${service.id}"`);
 				}
 				const issues = await checkGuardrailService(service, serviceFixture);
+				expect(issues, format(issues)).toEqual([]);
+			});
+		}
+
+		for (const evaluator of manifest.evaluators ?? []) {
+			it(`evaluator "${evaluator.id}" is well-shaped, cites real events, is deterministic if it says so, and leaks nothing`, async () => {
+				const evaluatorFixture = fixture.evaluators?.[evaluator.id];
+				if (evaluatorFixture === undefined) {
+					throw new Error(`no fixture supplied for evaluator "${evaluator.id}"`);
+				}
+				const issues = await checkEvaluator(evaluator, evaluatorFixture);
 				expect(issues, format(issues)).toEqual([]);
 			});
 		}

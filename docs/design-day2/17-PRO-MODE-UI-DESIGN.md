@@ -23,6 +23,7 @@
 ├── /runs                        — Run Browser: filter, pin, compare, import
 ├── /runs/[runId]               — Run Lab: world + timeline + inspector (the flagship)
 ├── /evals                       — Eval Matrix: configure, execute, scorecards, baselines
+├── /evaluators                  — Evaluators: every registered evaluator run over a stored run, verdicts persisted (31-… §4.3, WP43)
 ├── /campaigns                   — Campaigns: the guardrail regression suite as a file — edit, run, gates, grid, drill, downloads (28-… §4.9, WP38)
 ├── /policies                    — Policy Studio: author/test policy cards
 ├── /bench                       — Test Bench: assertion cards run against a stored run's trace (14-… §5.7)
