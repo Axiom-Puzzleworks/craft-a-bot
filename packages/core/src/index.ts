@@ -448,3 +448,14 @@ export {
 	runGuardrailChain,
 	type ChainOutcome
 } from './session/guardrail-chain.js';
+/** The trace sink contract (`35-TELEMETRY.md` §4.1, WP47) — implemented by `@craftabot/telemetry`. */
+export {
+	describeSinkProblems,
+	type CreateSinkOptions,
+	type SinkError,
+	type SinkInstance,
+	type SinkResult,
+	type SinkStatus,
+	type TraceExport,
+	type TraceSink
+} from './types/trace-sink.js';

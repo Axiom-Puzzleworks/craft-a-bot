@@ -35,7 +35,8 @@
 		"@craftabot/pack-openai": "*",
 		"@craftabot/pack-personas": "*",
 		"@craftabot/pack-starter": "*",
-		"@craftabot/pack-workshop": "*"
+		"@craftabot/pack-workshop": "*",
+		"@craftabot/telemetry": "*"
 	},
 	"devDependencies": {
 		"@types/node": "^24.10.1"

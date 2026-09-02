@@ -89,6 +89,41 @@ export default defineConfig(
 	},
 	{
 		/**
+		 * Telemetry dependency direction (`35-TELEMETRY.md` §3, WP47): a sink
+		 * package meant to run beside real agent stacks depends on `core` only,
+		 * exactly as `@craftabot/governance` does above.
+		 */
+		files: ['packages/telemetry/**/*.{ts,js}'],
+		// Its tests may use the conformance kit; the package itself may not.
+		ignores: ['packages/telemetry/**/*.test.ts'],
+		rules: {
+			'no-restricted-imports': [
+				'error',
+				{
+					patterns: [
+						{
+							group: [
+								'@craftabot/pack-*',
+								'@craftabot/governance',
+								'@craftabot/workbench',
+								'$lib/*',
+								'$app/*'
+							],
+							message:
+								'@craftabot/telemetry may depend only on @craftabot/core — see docs/design-day2/35-TELEMETRY.md §3.'
+						},
+						{
+							group: ['svelte', 'svelte/*', '@sveltejs/*'],
+							message:
+								'Engine/pack code must not import Svelte or SvelteKit — see docs/design/01-ARCHITECTURE.md §1.3.'
+						}
+					]
+				}
+			]
+		}
+	},
+	{
+		/**
 		 * Pack-testkit dependency direction (`13-…` §7).
 		 *
 		 * A conformance kit that special-cased one pack to pass would be testing

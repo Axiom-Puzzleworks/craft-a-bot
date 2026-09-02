@@ -6,7 +6,8 @@ import type {
 	GuardrailContext,
 	EvaluationInput,
 	PackManifest,
-	ScreenRequest
+	ScreenRequest,
+	TraceExport
 } from '@craftabot/core';
 import type { MockScript } from '@craftabot/core/testing';
 
@@ -123,6 +124,15 @@ export interface EvaluatorConformanceFixture {
 	inputs: EvaluationInput[];
 	config?: unknown;
 	plantedSecret: string;
+}
+
+/** A trace sink (WP47, `35-TELEMETRY.md` §4.4): a config it accepts, a finished run to attach and export, a secret that must never leak. */
+export interface SinkConformanceFixture {
+	config: unknown;
+	input: TraceExport;
+	plantedSecret: string;
+	/** `false` for a sink that never calls out (a file sink): a refused network is then not expected to count as a failure. */
+	expectsNetwork?: boolean;
 }
 
 /** A scripted run through the whole stack, checked for catalogue-only events. */

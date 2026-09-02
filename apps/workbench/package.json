@@ -44,6 +44,7 @@
 		"@craftabot/pack-personas": "*",
 		"@craftabot/pack-starter": "*",
 		"@craftabot/pack-workshop": "*",
+		"@craftabot/telemetry": "*",
 		"idb": "^8.0.3"
 	}
 }
