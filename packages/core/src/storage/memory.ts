@@ -1,8 +1,10 @@
 import {
 	safeParseAgentRecord,
+	safeParseRunSummary,
 	safeParseStoredEvent,
 	type AgentRecord,
 	type GroupRunRecord,
+	type RunSummary,
 	type StoredEvent
 } from '../schemas/records.js';
 import type { RunRecord } from '../schemas/trace-file.js';
@@ -38,6 +40,7 @@ export function createMemoryStorage(): MemoryStorage {
 	const runs = new Map<string, RunRecord>();
 	const groupRuns = new Map<string, GroupRunRecord>();
 	const events = new Map<string, StoredEvent[]>();
+	const summaries = new Map<string, RunSummary>();
 	const quarantine = emptyQuarantine();
 
 	return {
@@ -80,6 +83,7 @@ export function createMemoryStorage(): MemoryStorage {
 		deleteRun(id) {
 			runs.delete(id);
 			events.delete(id);
+			summaries.delete(id);
 			return Promise.resolve();
 		},
 		setRunPinned(id, pinned) {
@@ -130,11 +134,25 @@ export function createMemoryStorage(): MemoryStorage {
 			return Promise.resolve();
 		},
 
+		putRunSummary(summary) {
+			const parsed = safeParseRunSummary(summary);
+			if (!parsed.success) {
+				return Promise.reject(
+					new Error(`Refusing to store an invalid run summary: ${parsed.error.message}`)
+				);
+			}
+			summaries.set(summary.runId, structuredClone(summary));
+			return Promise.resolve();
+		},
+		getRunSummary: (runId) => Promise.resolve(copy(summaries.get(runId))),
+		listRunSummaries: () => Promise.resolve([...summaries.values()].map(copy)),
+
 		async evictOldRuns(cap = DEFAULT_RUN_CAP) {
 			const doomed = selectRunsToEvict([...runs.values()], cap);
 			for (const id of doomed) {
 				runs.delete(id);
 				events.delete(id);
+				summaries.delete(id);
 			}
 			return Promise.resolve(doomed);
 		},
@@ -144,6 +162,7 @@ export function createMemoryStorage(): MemoryStorage {
 			runs.clear();
 			groupRuns.clear();
 			events.clear();
+			summaries.clear();
 			return Promise.resolve();
 		}
 	};

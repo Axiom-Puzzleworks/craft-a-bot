@@ -1,16 +1,17 @@
 <script lang="ts">
-	import type { EngineEvent, RunRecord } from '@craftabot/core';
-	import { appStorage } from '$lib/state/app-storage.svelte.js';
+	import type { RunRecord, RunSummary } from '@craftabot/core';
 	import {
-		autonomyTelemetry,
-		guardrailMix,
+		autonomyTelemetryFromSummaries,
+		guardrailMixFromSummaries,
 		telemetryByCard,
 		telemetryByCartridge,
 		type AutonomyTelemetry,
 		type CartridgeTelemetry,
 		type GoalCardTelemetry,
 		type GuardrailMixEntry
-	} from '$lib/workshop/telemetry.js';
+	} from '@craftabot/governance/reports';
+	import { appStorage } from '$lib/state/app-storage.svelte.js';
+	import { ensureRunSummaries } from '$lib/state/run-summaries.js';
 
 	/**
 	 * **Telemetry** (`17-…` §4.6, WP34 stage A): the fleet's numbers, broken
@@ -29,30 +30,28 @@
 	 */
 
 	let runs = $state<RunRecord[]>([]);
-	let eventsByRun = $state<Map<string, readonly EngineEvent[]>>(new Map());
+	let summaries = $state<Map<string, RunSummary>>(new Map());
 	let loaded = $state(false);
 
 	$effect(() => {
 		void load();
 	});
 
+	/* One summary row per run rather than one whole trace per run (WP36 stage C). */
 	async function load(): Promise<void> {
 		const storage = await appStorage();
 		const stored = await storage.listRuns();
-		const pairs = await Promise.all(
-			stored.map(
-				async (run) => [run.id, (await storage.getEvents(run.id)).map((row) => row.event)] as const
-			)
-		);
+		summaries = await ensureRunSummaries(storage, stored);
 		runs = stored;
-		eventsByRun = new Map(pairs);
 		loaded = true;
 	}
 
 	const byCard = $derived<GoalCardTelemetry[]>(telemetryByCard(runs));
 	const byCartridge = $derived<CartridgeTelemetry[]>(telemetryByCartridge(runs));
-	const mix = $derived<GuardrailMixEntry[]>(guardrailMix(eventsByRun));
-	const autonomy = $derived<AutonomyTelemetry>(autonomyTelemetry(runs, eventsByRun));
+	const mix = $derived<GuardrailMixEntry[]>(guardrailMixFromSummaries(summaries.values()));
+	const autonomy = $derived<AutonomyTelemetry>(
+		autonomyTelemetryFromSummaries(runs, summaries.values())
+	);
 	const busiestTrip = $derived(mix[0]?.trips ?? 0);
 
 	const pct = (rate: number | undefined) =>

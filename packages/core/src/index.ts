@@ -191,10 +191,15 @@ export {
 	migrateAgentRecord,
 	parseAgentRecord,
 	safeParseAgentRecord,
+	safeParseRunSummary,
 	safeParseStoredEvent,
+	runSummaryFindingSchema,
+	runSummarySchema,
 	storedEventSchema,
 	type AgentRecord,
 	type GroupRunRecord,
+	type RunSummary,
+	type RunSummaryFinding,
 	type StoredEvent
 } from './schemas/records.js';
 

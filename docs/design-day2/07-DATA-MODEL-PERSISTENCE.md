@@ -24,12 +24,15 @@
 | `cab.runs` | IndexedDB object store | `RunRecord` (run summary) |
 | `cab.groupRuns` | IndexedDB object store | `GroupRunRecord` (a multi-agent episode's own summary — WP29) |
 | `cab.events` | IndexedDB object store (indexed by `runId`, `seq`) | Trace events, append-only — a group episode's merged stream stores here too, keyed by its own `groupRunId` |
+| `cab.runSummaries` | IndexedDB object store (keyed by `runId`, `DATABASE_VERSION` 3) | `RunSummary` — a finished run's folded facts (WP36 stage C); a cache of the trace, never authored; gone with its run |
 | `cab.settings` | `localStorage` (`cab.settings.v1`) | Preferences (sound, motion, speed), tutorial progress, badges |
 | `cab.keys` | `localStorage` (`cab.keys.v1`) | `{ [providerId]: apiKey }` — see key rules |
 
 IndexedDB via the `idb` wrapper; one database `craftabot`, versioned migrations from day one (`upgrade(db, oldVersion)` switch — even v1 ships as migration 1, so the pattern exists before it's needed).
 
 Retention: traces are big; default cap 50 stored runs (LRU eviction with a friendly notice); "keep this run" pin exempts a run from eviction.
+
+> **Amended 2026-09-02 (WP36 stage C):** the cap is a preference now — `settings.runCap` in `cab.settings.v1`, 5–500, default 50, offered only while the Workshop door is open — and both Play routes pass it to `evictOldRuns`. A row written before the field existed reads as 50. Grouped runs stay outside the cap (WP31's rule, unchanged).
 
 ## 3. Entities
 

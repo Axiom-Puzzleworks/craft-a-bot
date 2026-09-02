@@ -35,11 +35,14 @@ export interface Preferences {
 	readonly readAloud: boolean;
 	/** Whether the Workshop door is shown in the nav (`15-…` §2). */
 	readonly workshop: boolean;
+	/** How many runs to keep before evicting the oldest (WP36 stage C). */
+	readonly runCap: number;
 	setReducedMotion(value: boolean): void;
 	setTickSpeed(value: number): void;
 	setSound(value: boolean): void;
 	setReadAloud(value: boolean): void;
 	setWorkshop(value: boolean): void;
+	setRunCap(value: number): void;
 	/** Play a cue, if sound is on. Safe to call from anywhere. */
 	cue(name: SoundCue): void;
 }
@@ -56,7 +59,8 @@ export function createPreferences(store?: SettingsStore, player?: SoundPlayer): 
 		tickSpeed: initial.tickSpeed,
 		sound: initial.sound,
 		readAloud: initial.readAloud,
-		workshop: initial.workshop
+		workshop: initial.workshop,
+		runCap: initial.runCap
 	});
 
 	return {
@@ -98,6 +102,15 @@ export function createPreferences(store?: SettingsStore, player?: SoundPlayer): 
 			state.workshop = value;
 			settings.update({ workshop: value });
 		},
+		get runCap() {
+			return state.runCap;
+		},
+		setRunCap(value) {
+			// The schema bounds it; a value it rejects throws here rather than
+			// storing nonsense, the same rule `tickSpeed` already lives by.
+			const next = settings.update({ runCap: value });
+			state.runCap = next.runCap;
+		},
 		cue(name) {
 			sound.play(name);
 		}
@@ -123,6 +136,10 @@ export const preferences: Preferences = {
 	get workshop() {
 		return (shared ??= createPreferences()).workshop;
 	},
+	get runCap() {
+		return (shared ??= createPreferences()).runCap;
+	},
+	setRunCap: (value) => (shared ??= createPreferences()).setRunCap(value),
 	setReducedMotion: (value) => (shared ??= createPreferences()).setReducedMotion(value),
 	setTickSpeed: (value) => (shared ??= createPreferences()).setTickSpeed(value),
 	setSound: (value) => (shared ??= createPreferences()).setSound(value),

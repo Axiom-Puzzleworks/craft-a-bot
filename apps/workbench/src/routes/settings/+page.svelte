@@ -63,6 +63,38 @@
 
 	{#if preferences.workshop}
 		<GeapCredentialCompartment bay={geapBay} />
+
+		<!--
+			The run cap (WP36 stage C): `07-…` §2's fifty was a constant, and a
+			practitioner building an experiment corpus needs the scrapbook to
+			keep more than a child's does. Workshop-gated like the Armour
+			battery above — a child never needs to see it, and the default is
+			exactly the cap the Kit has always had.
+		-->
+		<Panel title="Workshop" accent="var(--cab-ink)">
+			<div class="prefs" data-testid="workshop-preferences">
+				<label class="cap">
+					<span>Runs to keep</span>
+					<input
+						type="number"
+						min="5"
+						max="500"
+						step="5"
+						data-testid="run-cap"
+						value={preferences.runCap}
+						onchange={(event) => {
+							const value = Number((event.currentTarget as HTMLInputElement).value);
+							if (Number.isInteger(value) && value >= 5 && value <= 500)
+								preferences.setRunCap(value);
+						}}
+					/>
+				</label>
+				<p class="hint">
+					How many adventures the scrapbook keeps before the oldest unpinned ones are tidied away.
+					Pinned adventures and Robot Friends episodes never count. Default 50.
+				</p>
+			</div>
+		</Panel>
 	{/if}
 
 	<Panel title="Preferences" accent="var(--cab-blue)">

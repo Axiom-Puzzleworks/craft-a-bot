@@ -2,8 +2,8 @@
 	import { resolve } from '$app/paths';
 	import type { AgentRecord, RunRecord } from '@craftabot/core';
 	import { SOCKET_LABELS } from '$lib/bricks.js';
-	import { safetyTally } from '$lib/safety-tally.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
+	import { ensureRunSummaries } from '$lib/state/run-summaries.js';
 	import { fleetRows, telemetryFrom, type Telemetry } from '$lib/workshop/fleet.js';
 
 	/**
@@ -44,15 +44,14 @@
 		runs = await storage.listRuns();
 
 		/*
-		 * Guardrail saves live in the events, not in the run record, so the tile
-		 * costs one read per run. Bounded on purpose: the store caps runs at 50,
-		 * so this is fifty small reads and not a scan of everything ever.
+		 * Guardrail saves live in the events, not in the run record. Since WP36
+		 * stage C each finished run keeps a `RunSummary` with the count already
+		 * folded, so this is one small row per run rather than one whole trace
+		 * per run — the N+1 this screen carried since WP34, retired.
 		 */
+		const summaries = await ensureRunSummaries(storage, runs);
 		const tallies: Record<string, number> = {};
-		for (const run of runs) {
-			const events = await storage.getEvents(run.id);
-			tallies[run.id] = safetyTally(events.map((row) => row.event)).saves;
-		}
+		for (const [runId, summary] of summaries) tallies[runId] = summary.saves;
 		saves = tallies;
 		loaded = true;
 	}

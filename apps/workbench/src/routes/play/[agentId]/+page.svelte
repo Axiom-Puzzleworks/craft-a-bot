@@ -16,6 +16,7 @@
 	import { demoVariantFor, hasDemoPlan } from '$lib/demo-brain.js';
 	import { leafletStore } from '$lib/leaflet/leaflet.svelte.js';
 	import { preferences } from '$lib/state/preferences.svelte.js';
+	import { persistRunSummary } from '$lib/state/run-summaries.js';
 	import { createRegistry, packVersions } from '$lib/packs.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import type { Storage } from '$lib/state/storage.js';
@@ -264,15 +265,19 @@
 		const existing = await storage.getRun(session.runId);
 		await storage.putRun(toRunRecord(session, record, { pinned: existing?.pinned ?? false }));
 		// Events are already stored — the recorder wrote them as they happened.
+		// The run's summary is folded once, here, now that it is finished
+		// (WP36 stage C) — the Workshop's screens read it instead of the trace.
+		await persistRunSummary(storage, session.runId, session.events);
 
 		/**
 		 * Eviction was silent (`12-…` D15): the cap is real and runs genuinely
 		 * disappeared, and the only place that was ever visible was a scrapbook
 		 * that had one fewer row than the child remembered. `evictOldRuns` has
 		 * always returned the ids it dropped precisely so this could be said out
-		 * loud — nothing consumed them.
+		 * loud — nothing consumed them. The cap itself is a preference since
+		 * WP36 stage C; its default is the fifty it always was.
 		 */
-		evicted = (await storage.evictOldRuns()).length;
+		evicted = (await storage.evictOldRuns(preferences.runCap)).length;
 	}
 
 	/**

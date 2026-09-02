@@ -1,29 +1,27 @@
-import type { EngineEvent, RunRecord } from '@craftabot/core';
+import type { EngineEvent, RunRecord, RunSummary, RunSummaryFinding } from '@craftabot/core';
 import { isFailure } from './failures.js';
+import { summariesOf } from './summary.js';
 
 /**
  * **The incident log** (`19-…` #31, WP34 stage B) — derived, not authored.
  *
- * `timeline.ts`'s own `isFailure` already answers "what went wrong in a
- * run" (its own doc comment: "the question an incident starts with"), so an
- * incident is exactly that, reused rather than redefined: a stored run
- * carrying at least one failing event, with each one tagged by a small,
- * OECD-taxonomy-shaped kind. There is no second store here and no authoring
- * UI — the trace stays the one source of truth (07 §1.5, and the same scope
- * line `17-…` §4.7 already drew for the Test Bench's own assertion cards:
- * a content-authoring store is a real feature with its own id-collision and
- * versioning questions, not a rider on the screen that first wants one).
+ * `isFailure` already answers "what went wrong in a run" (its own doc
+ * comment: "the question an incident starts with"), so an incident is exactly
+ * that, reused rather than redefined: a stored run carrying at least one
+ * failing event, with each one tagged by a small, OECD-taxonomy-shaped kind.
+ * There is no second store here and no authoring UI — the trace stays the one
+ * source of truth (07 §1.5, and the same scope line `17-…` §4.7 already drew
+ * for the Test Bench's own assertion cards: a content-authoring store is a
+ * real feature with its own id-collision and versioning questions, not a
+ * rider on the screen that first wants one).
+ *
+ * Since WP36 stage C the findings are carried on each run's `RunSummary`, so
+ * the log lists without re-reading a trace; `incidentsFrom` over events is
+ * kept as a wrapper that summarises first.
  */
 
-export type IncidentKind =
-	'error' | 'guardrail-catch' | 'action-failure' | 'approval-denied' | 'run-failure';
-
-export interface IncidentFinding {
-	kind: IncidentKind;
-	tick: number;
-	/** One line, drawn from the event's own payload — never invented. */
-	summary: string;
-}
+export type IncidentFinding = RunSummaryFinding;
+export type IncidentKind = IncidentFinding['kind'];
 
 export interface Incident {
 	runId: string;
@@ -40,12 +38,12 @@ export interface Incident {
  * clean trace is not an incident and does not appear — an empty log is the
  * honest report for a fleet that has never tripped anything.
  */
-export function incidentsFrom(
+export function incidentsFromSummaries(
 	runs: readonly RunRecord[],
-	eventsByRun: ReadonlyMap<string, readonly EngineEvent[]>
+	summaries: ReadonlyMap<string, RunSummary>
 ): Incident[] {
 	return runs
-		.map((run) => ({ run, findings: findingsIn(eventsByRun.get(run.id) ?? []) }))
+		.map((run) => ({ run, findings: summaries.get(run.id)?.findings ?? [] }))
 		.filter((entry) => entry.findings.length > 0)
 		.map(({ run, findings }) => ({
 			runId: run.id,
@@ -54,12 +52,21 @@ export function incidentsFrom(
 			goalCardId: run.goalCardId,
 			outcome: run.outcome,
 			startedAt: run.startedAt,
-			findings
+			findings: [...findings]
 		}))
 		.sort((a, b) => b.startedAt.localeCompare(a.startedAt));
 }
 
-function findingsIn(events: readonly EngineEvent[]): IncidentFinding[] {
+/** The pre-summary signature, kept: fold the events into summaries, then list. */
+export function incidentsFrom(
+	runs: readonly RunRecord[],
+	eventsByRun: ReadonlyMap<string, readonly EngineEvent[]>
+): Incident[] {
+	return incidentsFromSummaries(runs, summariesOf(runs, eventsByRun));
+}
+
+/** The per-event lines a run's summary carries — `summariseRun`'s own source for `findings`. */
+export function findingsIn(events: readonly EngineEvent[]): IncidentFinding[] {
 	return events
 		.filter(isFailure)
 		.map((event) => ({ kind: kindOf(event), tick: event.tick, summary: summarise(event, events) }));

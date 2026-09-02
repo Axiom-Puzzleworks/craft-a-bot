@@ -1,11 +1,16 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
-	import type { AgentRecord, EngineEvent, RunRecord } from '@craftabot/core';
-	import { capabilitiesOf } from '$lib/bot-capabilities.js';
+	import {
+		capabilitiesOf,
+		type AgentRecord,
+		type RunRecord,
+		type RunSummary
+	} from '@craftabot/core';
+	import { safetyCaseFromSummaries, type SafetyCase } from '@craftabot/governance/reports';
 	import { createRegistry } from '$lib/packs.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
-	import { safetyCaseFor, type SafetyCase } from '$lib/workshop/safety-case.js';
+	import { ensureRunSummaries } from '$lib/state/run-summaries.js';
 
 	/**
 	 * **The safety-case worksheet** (`19-…` #28, WP34 stage C): "why is this
@@ -24,7 +29,7 @@
 	let selectedId = $state('');
 	let record = $state<AgentRecord | undefined>(undefined);
 	let runs = $state<RunRecord[]>([]);
-	let eventsByRun = $state<Map<string, readonly EngineEvent[]>>(new Map());
+	let summaries = $state<Map<string, RunSummary>>(new Map());
 	let loaded = $state(false);
 
 	const queryAgentId = $derived(page.url.searchParams.get('agent') ?? '');
@@ -51,7 +56,7 @@
 		if (!id) {
 			record = undefined;
 			runs = [];
-			eventsByRun = new Map();
+			summaries = new Map();
 			return;
 		}
 		const storage = await appStorage();
@@ -59,30 +64,27 @@
 		if (!agent) {
 			record = undefined;
 			runs = [];
-			eventsByRun = new Map();
+			summaries = new Map();
 			return;
 		}
 		const allRuns = await storage.listRuns();
 		const mine = allRuns.filter((run) => run.agentId === id);
-		const pairs = await Promise.all(
-			mine.map(
-				async (run) => [run.id, (await storage.getEvents(run.id)).map((row) => row.event)] as const
-			)
-		);
+		// One summary row per run rather than one whole trace per run (WP36 stage C).
+		const folded = await ensureRunSummaries(storage, mine);
 		record = agent;
 		runs = mine;
-		eventsByRun = new Map(pairs);
+		summaries = folded;
 	}
 
 	const worksheet = $derived<SafetyCase | undefined>(
 		record
-			? safetyCaseFor(
+			? safetyCaseFromSummaries(
 					{ id: record.id, name: record.spec.name, goalCardId: record.spec.goalCardId },
 					capabilitiesOf(record.spec, registry),
 					registry.getWorld(registry.getGoalCard(record.spec.goalCardId)?.worldId ?? ''),
 					registry.listTools(),
 					runs,
-					eventsByRun
+					summaries
 				)
 			: undefined
 	);

@@ -1,11 +1,13 @@
 import {
 	migrateAgentRecord,
 	safeParseAgentRecord,
+	safeParseRunSummary,
 	safeParseStoredEvent,
 	type AgentRecord,
 	type EngineEvent,
 	type GroupRunRecord,
 	type RunRecord,
+	type RunSummary,
 	type StoredEvent
 } from '@craftabot/core';
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
@@ -28,13 +30,14 @@ import {
  */
 
 export const DATABASE_NAME = 'craftabot';
-export const DATABASE_VERSION = 2;
+export const DATABASE_VERSION = 3;
 
 interface CraftABotDB extends DBSchema {
 	agents: { key: string; value: AgentRecord };
 	runs: { key: string; value: RunRecord; indexes: { startedAt: string } };
 	events: { key: [string, number]; value: StoredEvent; indexes: { runId: string } };
 	groupRuns: { key: string; value: GroupRunRecord; indexes: { startedAt: string } };
+	runSummaries: { key: string; value: RunSummary };
 }
 
 export interface IdbStorage extends Storage {
@@ -63,6 +66,13 @@ function upgrade(db: IDBPDatabase<CraftABotDB>, oldVersion: number): void {
 	if (oldVersion < 2) {
 		const groupRuns = db.createObjectStore('groupRuns', { keyPath: 'id' });
 		groupRuns.createIndex('startedAt', 'startedAt');
+	}
+	// A finished run's summary (WP36 stage C, `26-…` §6.14) — its own store,
+	// keyed by the run it summarises. Runs stored before this version simply
+	// have no row here; the host folds one from the events on first read and
+	// writes it back, so nothing is migrated and nothing is lost.
+	if (oldVersion < 3) {
+		db.createObjectStore('runSummaries', { keyPath: 'runId' });
 	}
 }
 
@@ -118,6 +128,7 @@ export async function createIdbStorage(name = DATABASE_NAME): Promise<IdbStorage
 		},
 		async deleteRun(id) {
 			await db.delete('runs', id);
+			await db.delete('runSummaries', id);
 			await deleteEventsFor(db, id);
 		},
 		async setRunPinned(id, pinned) {
@@ -168,10 +179,21 @@ export async function createIdbStorage(name = DATABASE_NAME): Promise<IdbStorage
 		},
 		deleteEvents: (runId) => deleteEventsFor(db, runId),
 
+		async putRunSummary(summary) {
+			const parsed = safeParseRunSummary(summary);
+			if (!parsed.success) {
+				throw new Error(`Refusing to store an invalid run summary: ${parsed.error.message}`);
+			}
+			await db.put('runSummaries', summary);
+		},
+		getRunSummary: (runId) => db.get('runSummaries', runId),
+		listRunSummaries: () => db.getAll('runSummaries'),
+
 		async evictOldRuns(cap = DEFAULT_RUN_CAP) {
 			const doomed = selectRunsToEvict(await readRuns(), cap);
 			for (const id of doomed) {
 				await db.delete('runs', id);
+				await db.delete('runSummaries', id);
 				await deleteEventsFor(db, id);
 			}
 			return doomed;
@@ -182,6 +204,7 @@ export async function createIdbStorage(name = DATABASE_NAME): Promise<IdbStorage
 			await db.clear('runs');
 			await db.clear('groupRuns');
 			await db.clear('events');
+			await db.clear('runSummaries');
 		}
 	};
 }

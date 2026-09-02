@@ -22,6 +22,7 @@ import {
 } from '@craftabot/pack-geap';
 import starterPack from '@craftabot/pack-starter';
 import { packVersions } from '$lib/packs.js';
+import { persistRunSummary } from '$lib/state/run-summaries.js';
 import type { Storage } from '$lib/state/storage.js';
 
 /**
@@ -199,6 +200,7 @@ export async function runArmourProbe(
 
 	await storage.appendEvents(session.runId, events);
 	await storage.putRun(toProbeRunRecord(session.runId, spec, events, outcome));
+	await persistRunSummary(storage, session.runId, events);
 
 	return { runId: session.runId, outcome, events };
 }

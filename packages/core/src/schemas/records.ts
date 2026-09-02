@@ -172,6 +172,49 @@ export const groupRunRecordSchema = z.object({
 });
 export type GroupRunRecord = z.infer<typeof groupRunRecordSchema>;
 
+/**
+ * **What a finished run adds up to** (WP36 stage C, `26-TARGET-DESIGN-V3.md`
+ * §6.14) — the per-run facts the Workshop's fleet, incident, telemetry and
+ * safety-case screens need, folded once from the events when the run ends
+ * and stored beside its `RunRecord`, so a dashboard over N runs is N small
+ * reads rather than N whole traces. Everything here is derivable from the
+ * trace and nothing else (`14-…` §1 tenet 4); the trace stays the source of
+ * truth and a summary is a cache of it, never authored.
+ *
+ * `findings` carries the incident log's own per-event lines verbatim so the
+ * log can be listed without re-reading a single trace; a run with none is a
+ * run that never went wrong.
+ */
+export const runSummaryFindingSchema = z.object({
+	kind: z.enum(['error', 'guardrail-catch', 'action-failure', 'approval-denied', 'run-failure']),
+	tick: z.number().int().nonnegative(),
+	/** One line, drawn from the event's own payload — never invented. */
+	summary: z.string()
+});
+export type RunSummaryFinding = z.infer<typeof runSummaryFindingSchema>;
+
+export const runSummarySchema = z.object({
+	runId: z.string().uuid(),
+	/** Every rule the engine consulted, and the ones that said no. */
+	checks: z.number().int().nonnegative(),
+	saves: z.number().int().nonnegative(),
+	/** `guardrail.tripped` counts by guardrail id — the trip mix. */
+	guardrailTrips: z.record(z.string(), z.number().int().nonnegative()),
+	/** `approval.resolved` counts — how often a person was asked, and said yes. */
+	approvalsRequested: z.number().int().nonnegative(),
+	approvalsGranted: z.number().int().nonnegative(),
+	findings: z.array(runSummaryFindingSchema),
+	/** Decisions that proposed a call, and how many of those a hosted guard screened at `pre-act`. */
+	decisions: z.number().int().nonnegative(),
+	hostedPreActScreens: z.number().int().nonnegative(),
+	schemaVersion: z.literal(1)
+});
+export type RunSummary = z.infer<typeof runSummarySchema>;
+
+export function safeParseRunSummary(value: unknown): ReturnType<typeof runSummarySchema.safeParse> {
+	return runSummarySchema.safeParse(value);
+}
+
 export function parseAgentRecord(value: unknown): AgentRecord {
 	return agentRecordSchema.parse(value);
 }

@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import type { Storage } from '../storage/storage.js';
-import { makeAgent, makeEvent, makeGroupRun, makeRun, makeSpec, uuid } from './storage-fixtures.js';
+import {
+	makeAgent,
+	makeEvent,
+	makeGroupRun,
+	makeRun,
+	makeRunSummary,
+	makeSpec,
+	uuid
+} from './storage-fixtures.js';
 
 /**
  * One suite, run against every `Storage` implementation.
@@ -176,6 +184,71 @@ export function describeStorageContract(name: string, open: () => Promise<Storag
 				await storage.putGroupRun(makeGroupRun());
 				await storage.clear();
 				expect(await storage.listGroupRuns()).toEqual([]);
+			});
+		});
+
+		/** WP36 stage C — a finished run's summary, kept beside its record and gone with it. */
+		describe('run summaries', () => {
+			it('round-trips a run summary', async () => {
+				const storage = await open();
+				const summary = makeRunSummary();
+				await storage.putRunSummary(summary);
+				expect(await storage.getRunSummary(summary.runId)).toEqual(summary);
+				expect(await storage.listRunSummaries()).toEqual([summary]);
+			});
+
+			it('returns undefined for a run that has no summary yet', async () => {
+				const storage = await open();
+				expect(await storage.getRunSummary(uuid(999))).toBeUndefined();
+			});
+
+			it('overwrites a summary for the same run', async () => {
+				const storage = await open();
+				await storage.putRunSummary(makeRunSummary({ saves: 1 }));
+				await storage.putRunSummary(makeRunSummary({ saves: 4 }));
+				expect((await storage.listRunSummaries()).map((s) => s.saves)).toEqual([4]);
+			});
+
+			it('refuses to store a summary that fails its schema', async () => {
+				const storage = await open();
+				await expect(storage.putRunSummary({ ...makeRunSummary(), checks: -1 })).rejects.toThrow();
+			});
+
+			it('deleting a run takes its summary with it', async () => {
+				const storage = await open();
+				const run = makeRun();
+				await storage.putRun(run);
+				await storage.putRunSummary(makeRunSummary({ runId: run.id }));
+				await storage.deleteRun(run.id);
+				expect(await storage.getRunSummary(run.id)).toBeUndefined();
+			});
+
+			it('evicting a run takes its summary with it', async () => {
+				const storage = await open();
+				await storage.putRun(makeRun({ id: uuid(1000), startedAt: '2026-08-10T10:00:00Z' }));
+				await storage.putRun(makeRun({ id: uuid(1001), startedAt: '2026-08-11T10:00:00Z' }));
+				await storage.putRunSummary(makeRunSummary({ runId: uuid(1000) }));
+				await storage.putRunSummary(makeRunSummary({ runId: uuid(1001) }));
+
+				await storage.evictOldRuns(1);
+				expect(await storage.getRunSummary(uuid(1000))).toBeUndefined();
+				expect(await storage.getRunSummary(uuid(1001))).toBeDefined();
+			});
+
+			it('clear() forgets summaries too', async () => {
+				const storage = await open();
+				await storage.putRunSummary(makeRunSummary());
+				await storage.clear();
+				expect(await storage.listRunSummaries()).toEqual([]);
+			});
+
+			it('does not hand out live references to a summary', async () => {
+				const storage = await open();
+				const summary = makeRunSummary();
+				await storage.putRunSummary(summary);
+				const fetched = await storage.getRunSummary(summary.runId);
+				if (fetched) fetched.findings.length = 0;
+				expect((await storage.getRunSummary(summary.runId))?.findings).toHaveLength(1);
 			});
 		});
 

@@ -1,6 +1,14 @@
-import type { EngineEvent, RunRecord, ToolDefinition, WorldDefinition } from '@craftabot/core';
-import { offers, type BotCapabilities } from '@craftabot/core';
-import { incidentsFrom } from './incidents.js';
+import type {
+	BotCapabilities,
+	EngineEvent,
+	RunRecord,
+	RunSummary,
+	ToolDefinition,
+	WorldDefinition
+} from '@craftabot/core';
+import { offers } from '@craftabot/core';
+import { incidentsFromSummaries } from './incidents.js';
+import { summariesOf } from './summary.js';
 
 /**
  * **The safety-case worksheet** (`19-…` #28, WP34 stage C): a "why is my
@@ -22,11 +30,11 @@ import { incidentsFrom } from './incidents.js';
  * build's fitted bricks actually install, the same list `contributeGuardrails`
  * feeds the session.
  *
- * **Trustworthiness** is run history, scoped to this one bot: `incidents.ts`'s
- * own derivation, reused rather than reimplemented, over only this agent's
- * runs. No eval-matrix figure — nothing here ties a stored eval run back to
- * one bot yet, and a worksheet that invented that link would be worse than
- * one that left it out.
+ * **Trustworthiness** is run history, scoped to this one bot: the incident
+ * log's own derivation, reused rather than reimplemented, over only this
+ * agent's runs. No eval-matrix figure — nothing here ties a stored eval run
+ * back to one bot yet, and a worksheet that invented that link would be
+ * worse than one that left it out.
  *
  * **Hosted screening** (`25-ARMOUR-BRICK.md` §11 Stage E) is `control`'s own
  * specific case for a hosted guardrail: `guardrails` already lists
@@ -42,6 +50,9 @@ import { incidentsFrom } from './incidents.js';
  * sent to Model Armor's `sanitizeModelResponse` (the `pre-act` hook,
  * `25-…` §4.5 — screening observations/results is a different question this
  * one figure does not answer).
+ *
+ * Since WP36 stage C every count here is read from the runs' `RunSummary`
+ * rows; `safetyCaseFor` over events is kept as a wrapper that summarises first.
  */
 
 export interface SafetyCase {
@@ -65,13 +76,13 @@ export interface SafetyCase {
 	hostedScreening: { fired: number; decisions: number } | undefined;
 }
 
-export function safetyCaseFor(
+export function safetyCaseFromSummaries(
 	agent: { id: string; name: string; goalCardId: string },
 	capabilities: BotCapabilities,
 	world: WorldDefinition | undefined,
 	tools: readonly ToolDefinition[],
 	runs: readonly RunRecord[],
-	eventsByRun: ReadonlyMap<string, readonly EngineEvent[]>
+	summaries: ReadonlyMap<string, RunSummary>
 ): SafetyCase {
 	const inability: string[] = [];
 	const reach: string[] = [];
@@ -101,17 +112,17 @@ export function safetyCaseFor(
 
 	const finished = runs.filter((run) => run.outcome !== 'IN_PROGRESS');
 	const succeeded = finished.filter((run) => run.outcome === 'SUCCESS');
-	const incidents = incidentsFrom(runs, eventsByRun);
+	const incidents = incidentsFromSummaries(runs, summaries);
 
 	const armourFitted = capabilities.guardrailIds.some((id) => id.startsWith('geap/armor:'));
 	let decisions = 0;
 	let fired = 0;
 	if (armourFitted) {
 		for (const run of runs) {
-			for (const event of eventsByRun.get(run.id) ?? []) {
-				if (event.type === 'decision' && event.payload.call !== null) decisions += 1;
-				if (event.type === 'guardrail.external' && event.payload.hook === 'pre-act') fired += 1;
-			}
+			const summary = summaries.get(run.id);
+			if (!summary) continue;
+			decisions += summary.decisions;
+			fired += summary.hostedPreActScreens;
 		}
 	}
 
@@ -130,4 +141,23 @@ export function safetyCaseFor(
 		},
 		hostedScreening: armourFitted ? { fired, decisions } : undefined
 	};
+}
+
+/** The pre-summary signature, kept: summarise the events, then assemble. */
+export function safetyCaseFor(
+	agent: { id: string; name: string; goalCardId: string },
+	capabilities: BotCapabilities,
+	world: WorldDefinition | undefined,
+	tools: readonly ToolDefinition[],
+	runs: readonly RunRecord[],
+	eventsByRun: ReadonlyMap<string, readonly EngineEvent[]>
+): SafetyCase {
+	return safetyCaseFromSummaries(
+		agent,
+		capabilities,
+		world,
+		tools,
+		runs,
+		summariesOf(runs, eventsByRun)
+	);
 }

@@ -45,4 +45,21 @@ describe('preferences', () => {
 		expect(createSettingsStore(storage).read().reducedMotion).toBe(true);
 		expect(createSettingsStore(storage).read().tickSpeed).toBe(4);
 	});
+
+	/** WP36 stage C: the run cap, a Workshop preference the play routes read at eviction time. */
+	it('keeps fifty runs by default and persists a bigger cap', () => {
+		const storage = fakeStore();
+		const prefs = createPreferences(createSettingsStore(storage));
+		expect(prefs.runCap).toBe(50);
+
+		prefs.setRunCap(120);
+		expect(prefs.runCap).toBe(120);
+		expect(createSettingsStore(storage).read().runCap).toBe(120);
+	});
+
+	it('refuses a cap the schema rejects, leaving the old one in place', () => {
+		const prefs = createPreferences(createSettingsStore(fakeStore()));
+		expect(() => prefs.setRunCap(2)).toThrow();
+		expect(prefs.runCap).toBe(50);
+	});
 });

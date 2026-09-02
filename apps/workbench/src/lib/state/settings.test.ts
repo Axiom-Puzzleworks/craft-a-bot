@@ -19,6 +19,22 @@ describe('settings', () => {
 		expect(settings.tutorialChapter).toBe(0);
 	});
 
+	/** WP36 stage C: the run cap is a preference whose default is the fifty it always was. */
+	it('keeps fifty runs by default, and bounds the cap rather than storing nonsense', () => {
+		const store = createSettingsStore(fakeStore());
+		expect(store.read().runCap).toBe(50);
+		expect(store.update({ runCap: 200 }).runCap).toBe(200);
+		expect(() => store.update({ runCap: 1 })).toThrow();
+		expect(() => store.update({ runCap: 5000 })).toThrow();
+		expect(store.read().runCap).toBe(200);
+	});
+
+	it('reads a settings row written before the run cap existed as fifty', () => {
+		const withoutCap = JSON.stringify({ ...DEFAULT_SETTINGS, runCap: undefined });
+		const store = createSettingsStore(fakeStore({ [SETTINGS_STORAGE_KEY]: withoutCap }));
+		expect(store.read().runCap).toBe(50);
+	});
+
 	it('round-trips a written value', () => {
 		const store = createSettingsStore(fakeStore());
 		store.write({ ...DEFAULT_SETTINGS, sound: true, tickSpeed: 2 });

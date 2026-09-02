@@ -12,6 +12,7 @@
 		type MatrixSpec
 	} from '@craftabot/evals';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
+	import { persistRunSummary } from '$lib/state/run-summaries.js';
 	import { rampStep, recordForCell, summaryAt } from '$lib/workshop/eval-cells.js';
 
 	/**
@@ -114,6 +115,7 @@
 		const storage = await appStorage();
 		await storage.putRun(record);
 		await storage.appendEvents(record.id, trace.events);
+		await persistRunSummary(storage, record.id, trace.events);
 		await goto(resolve('/workshop/runs/[runId]', { runId: record.id }));
 	}
 

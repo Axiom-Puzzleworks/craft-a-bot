@@ -16,8 +16,12 @@ import type { EngineEvent } from '@craftabot/core';
 export function isFailure(event: EngineEvent): boolean {
 	if (event.type === 'error') return true;
 	if (event.type === 'guardrail.tripped') return true;
-	if (event.type === 'action.performed') return !event.payload.result.ok;
-	if (event.type === 'approval.resolved') return !event.payload.approved;
+	// Read as "the world said no", not "the world said nothing": an event that
+	// names the type but not the payload its type promises (a hand-built stub,
+	// a row from a build that recorded less) is no evidence of failure — the
+	// same stance the migration's `unrecorded` takes on an old trace (`14-…` §3).
+	if (event.type === 'action.performed') return event.payload.result?.ok === false;
+	if (event.type === 'approval.resolved') return event.payload.approved === false;
 	if (event.type === 'run.finished') return event.payload.outcome !== 'SUCCESS';
 	return false;
 }

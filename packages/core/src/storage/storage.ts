@@ -1,5 +1,5 @@
 import type { EngineEvent } from '../schemas/events.js';
-import type { AgentRecord, GroupRunRecord, StoredEvent } from '../schemas/records.js';
+import type { AgentRecord, GroupRunRecord, RunSummary, StoredEvent } from '../schemas/records.js';
 import type { RunRecord } from '../schemas/trace-file.js';
 
 /**
@@ -53,8 +53,25 @@ export interface Storage {
 	setGroupRunPinned(id: string, pinned: boolean): Promise<void>;
 
 	/**
+	 * A finished run's own summary (WP36 stage C, `26-TARGET-DESIGN-V3.md`
+	 * §6.14): the per-run facts the fleet, incident, telemetry and safety-case
+	 * screens need, folded once from the trace when the run ends and kept
+	 * beside its `RunRecord` — so a screen over N runs reads N small rows
+	 * rather than N whole traces. The store only *keeps* summaries; the fold
+	 * that produces one lives with the reports (`@craftabot/governance/reports`
+	 * `summariseRun`), because the store must not know what an incident is.
+	 * Deleting or evicting a run takes its summary with it, as it does its
+	 * events; a run without one is folded on demand by the host and, once
+	 * finished, written back.
+	 */
+	putRunSummary(summary: RunSummary): Promise<void>;
+	getRunSummary(runId: string): Promise<RunSummary | undefined>;
+	listRunSummaries(): Promise<RunSummary[]>;
+
+	/**
 	 * Trim unpinned runs oldest-first until at most `cap` remain, deleting their
-	 * events too. Returns the ids evicted so the UI can show the friendly notice.
+	 * events (and summaries) too. Returns the ids evicted so the UI can show
+	 * the friendly notice.
 	 */
 	evictOldRuns(cap?: number): Promise<string[]>;
 

@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import type { EngineEvent, RunRecord } from '@craftabot/core';
+	import type { RunRecord, RunSummary } from '@craftabot/core';
+	import { incidentsFromSummaries, type Incident } from '@craftabot/governance/reports';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
-	import { incidentsFrom, type Incident } from '$lib/workshop/incidents.js';
+	import { ensureRunSummaries } from '$lib/state/run-summaries.js';
 
 	/**
 	 * **The incident log** (`19-…` #31, WP34 stage B): derived, not authored.
@@ -15,27 +16,27 @@
 	 */
 
 	let runs = $state<RunRecord[]>([]);
-	let eventsByRun = $state<Map<string, readonly EngineEvent[]>>(new Map());
+	let summaries = $state<Map<string, RunSummary>>(new Map());
 	let loaded = $state(false);
 
 	$effect(() => {
 		void load();
 	});
 
+	/*
+	 * One summary row per run rather than one whole trace per run (WP36 stage
+	 * C): the findings this screen lists are folded once, when the run ends,
+	 * and kept beside its record.
+	 */
 	async function load(): Promise<void> {
 		const storage = await appStorage();
 		const stored = await storage.listRuns();
-		const pairs = await Promise.all(
-			stored.map(
-				async (run) => [run.id, (await storage.getEvents(run.id)).map((row) => row.event)] as const
-			)
-		);
+		summaries = await ensureRunSummaries(storage, stored);
 		runs = stored;
-		eventsByRun = new Map(pairs);
 		loaded = true;
 	}
 
-	const incidents = $derived<Incident[]>(incidentsFrom(runs, eventsByRun));
+	const incidents = $derived<Incident[]>(incidentsFromSummaries(runs, summaries));
 
 	const KIND_LABEL: Record<Incident['findings'][number]['kind'], string> = {
 		error: 'Error',

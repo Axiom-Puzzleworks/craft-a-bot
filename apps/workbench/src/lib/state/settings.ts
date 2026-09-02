@@ -35,6 +35,15 @@ export const settingsSchema = z.object({
 	 */
 	workshop: z.boolean().default(false),
 	/**
+	 * How many runs the scrapbook keeps before tidying the oldest away
+	 * (WP36 stage C, `26-…` §6.14). `07-…` §2's cap of 50 was a constant; a
+	 * practitioner running an experiment corpus needs more, and the store's
+	 * own `DEFAULT_RUN_CAP` stays the default so a child's scrapbook behaves
+	 * exactly as before. Set from the Workshop's own preferences; pinned and
+	 * grouped runs never count against it either way.
+	 */
+	runCap: z.number().int().min(5).max(500).default(50),
+	/**
 	 * Highest instruction-leaflet chapter completed, 0 = not started.
 	 *
 	 * No upper bound on purpose (`WP30 stage D`, after `.max(6)` was found to

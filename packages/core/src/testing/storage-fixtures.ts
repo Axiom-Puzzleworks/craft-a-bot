@@ -1,7 +1,7 @@
 import type { AgentSpec } from '../schemas/agent-spec.js';
 import { toSpecV2, type AgentSpecV2 } from '../schemas/agent-spec-v2.js';
 import type { EngineEvent } from '../schemas/events.js';
-import type { AgentRecord, GroupRunRecord } from '../schemas/records.js';
+import type { AgentRecord, GroupRunRecord, RunSummary } from '../schemas/records.js';
 import type { RunRecord } from '../schemas/trace-file.js';
 
 /** Shared fixtures for the storage tests. */
@@ -105,6 +105,23 @@ export function makeGroupRun(overrides: Partial<GroupRunRecord> = {}): GroupRunR
 		pinned: false,
 		startedAt: '2026-08-19T10:00:00Z',
 		finishedAt: '2026-08-19T10:00:12Z',
+		schemaVersion: 1,
+		...overrides
+	};
+}
+
+/** A finished run's summary (WP36 stage C), keyed to `makeRun()`'s own id by default. */
+export function makeRunSummary(overrides: Partial<RunSummary> = {}): RunSummary {
+	return {
+		runId: uuid(100),
+		checks: 3,
+		saves: 1,
+		guardrailTrips: { 'safety/step-budget': 1 },
+		approvalsRequested: 0,
+		approvalsGranted: 0,
+		findings: [{ kind: 'guardrail-catch', tick: 2, summary: 'Out of steps.' }],
+		decisions: 3,
+		hostedPreActScreens: 0,
 		schemaVersion: 1,
 		...overrides
 	};

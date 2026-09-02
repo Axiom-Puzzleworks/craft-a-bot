@@ -8,6 +8,7 @@ export {
 	makeEvent,
 	makeGroupRun,
 	makeRun,
+	makeRunSummary,
 	makeSpec,
 	makeSpecV1,
 	uuid

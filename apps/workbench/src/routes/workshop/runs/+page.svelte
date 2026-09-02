@@ -7,6 +7,7 @@
 		type RunRecord
 	} from '@craftabot/core';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
+	import { persistRunSummary } from '$lib/state/run-summaries.js';
 	import {
 		durationMs,
 		facetsOf,
@@ -106,6 +107,7 @@
 			const storage = await appStorage();
 			await storage.putRun(trace.run);
 			await storage.appendEvents(trace.run.id, trace.events);
+			await persistRunSummary(storage, trace.run.id, trace.events);
 			await load();
 			importNote = verified
 				? { ok: true, text: `Imported ${trace.run.agentName}'s run — digest verified.` }

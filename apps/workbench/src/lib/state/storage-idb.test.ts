@@ -2,7 +2,13 @@ import 'fake-indexeddb/auto';
 import { afterEach, describe, expect, it } from 'vitest';
 import { DATABASE_VERSION, createIdbStorage } from './storage-idb.js';
 import { describeStorageContract } from './storage-contract.js';
-import { makeAgent, makeAgentV1, makeGroupRun } from './storage-fixtures.js';
+import {
+	makeAgent,
+	makeAgentV1,
+	makeGroupRun,
+	makeRun,
+	makeRunSummary
+} from './storage-fixtures.js';
 
 /**
  * The same contract as the in-memory store, plus the things only a real
@@ -33,8 +39,8 @@ describe('the IndexedDB store specifically', () => {
 		expect(storage.kind).toBe('indexeddb');
 	});
 
-	it('ships at schema version 2, with the migration switch already in place', () => {
-		expect(DATABASE_VERSION).toBe(2);
+	it('ships at schema version 3, with the migration switch already in place', () => {
+		expect(DATABASE_VERSION).toBe(3);
 	});
 
 	it('survives being closed and reopened — the whole point of persisting', async () => {
@@ -154,6 +160,48 @@ describe('the IndexedDB store specifically', () => {
 		const groupRun = makeGroupRun();
 		await storage.putGroupRun(groupRun);
 		expect(await storage.getGroupRun(groupRun.id)).toEqual(groupRun);
+	});
+
+	/**
+	 * WP36 stage C: a version-2 database — everyone who played between WP29
+	 * and this change — gets `runSummaries` added on top of what it already
+	 * had. Its runs have no summary row yet, which is exactly what
+	 * `ensureRunSummaries` folds on first read; nothing is migrated.
+	 */
+	it('adds the run-summaries store to a version-2 database, leaving what was already there', async () => {
+		const name = 'craftabot-v2-database';
+		const v2 = await new Promise<IDBDatabase>((resolve, reject) => {
+			const request = indexedDB.open(name, 2);
+			request.onupgradeneeded = () => {
+				const db = request.result;
+				db.createObjectStore('agents', { keyPath: 'id' });
+				const runs = db.createObjectStore('runs', { keyPath: 'id' });
+				runs.createIndex('startedAt', 'startedAt');
+				const events = db.createObjectStore('events', { keyPath: ['runId', 'seq'] });
+				events.createIndex('runId', 'runId');
+				const groupRuns = db.createObjectStore('groupRuns', { keyPath: 'id' });
+				groupRuns.createIndex('startedAt', 'startedAt');
+			};
+			request.onsuccess = () => resolve(request.result);
+			request.onerror = () => reject(request.error);
+		});
+		await new Promise<void>((resolve, reject) => {
+			const tx = v2.transaction('runs', 'readwrite');
+			tx.objectStore('runs').put(makeRun());
+			tx.oncomplete = () => resolve();
+			tx.onerror = () => reject(tx.error);
+		});
+		v2.close();
+
+		const storage = await createIdbStorage(name);
+		opened.push(storage);
+
+		expect(await storage.listRuns()).toHaveLength(1);
+		expect(await storage.getRunSummary(makeRun().id)).toBeUndefined();
+
+		const summary = makeRunSummary();
+		await storage.putRunSummary(summary);
+		expect(await storage.getRunSummary(summary.runId)).toEqual(summary);
 	});
 
 	it('refuses to store an invalid agent', async () => {
