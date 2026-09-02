@@ -25,6 +25,7 @@ describe('the default pack list', () => {
 			'geap',
 			'guard-local',
 			'azure-content-safety',
+			'pdp-opa',
 			'evals'
 		]);
 		expect(ids).not.toContain('demo');
@@ -43,7 +44,7 @@ describe('the default pack list', () => {
 	it('reports pack versions in the workbench’s own shape', () => {
 		const versions = packVersions(defaultConfig());
 		expect(versions['starter']).toMatch(/^\d+\.\d+\.\d+$/);
-		expect(Object.keys(versions)).toHaveLength(12);
+		expect(Object.keys(versions)).toHaveLength(13);
 	});
 });
 
