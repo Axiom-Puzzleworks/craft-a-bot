@@ -21,7 +21,10 @@
 	"dependencies": {
 		"@craftabot/core": "*",
 		"@craftabot/governance": "*",
+		"@craftabot/pack-azure-content-safety": "*",
+		"@craftabot/pack-guard-local": "*",
 		"@craftabot/pack-starter": "*",
+		"@craftabot/pack-workshop": "*",
 		"zod": "^4.4.3"
 	},
 	"devDependencies": {

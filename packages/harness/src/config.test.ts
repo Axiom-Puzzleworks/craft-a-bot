@@ -22,7 +22,9 @@ describe('the default pack list', () => {
 			'ollama',
 			'monitor',
 			'workshop',
-			'geap'
+			'geap',
+			'guard-local',
+			'azure-content-safety'
 		]);
 		expect(ids).not.toContain('demo');
 
@@ -40,7 +42,7 @@ describe('the default pack list', () => {
 	it('reports pack versions in the workbench’s own shape', () => {
 		const versions = packVersions(defaultConfig());
 		expect(versions['starter']).toMatch(/^\d+\.\d+\.\d+$/);
-		expect(Object.keys(versions)).toHaveLength(9);
+		expect(Object.keys(versions)).toHaveLength(11);
 	});
 });
 

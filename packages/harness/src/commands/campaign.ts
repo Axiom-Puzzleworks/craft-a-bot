@@ -68,6 +68,7 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 		packVersions: versions,
 		providerFor: (brain) => providerFor(brain, registry, options),
 		egress: options.egress ?? 'declared',
+		packs: options.config.packs,
 		onCell: (_cell, done, total) => options.onCell?.(done, total),
 		...(options.now ? { now: options.now } : {}),
 		...(options.newId ? { newId: options.newId } : {}),

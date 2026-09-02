@@ -53,7 +53,7 @@ describe('craftabot campaign', () => {
 		});
 
 		expect(result.report.passed).toBe(true);
-		expect(result.report.cells).toHaveLength(16);
+		expect(result.report.cells).toHaveLength(32);
 		expect(parseCampaignReport(JSON.parse(await readFile(result.reportFile, 'utf8'))).id).toBe(
 			result.report.id
 		);
@@ -66,12 +66,12 @@ describe('craftabot campaign', () => {
 		// Every cell is a run directory a person can open.
 		const storage = await createFileStorage(join(out, 'runs'));
 		const runs = await storage.listRuns();
-		expect(runs).toHaveLength(16);
+		expect(runs).toHaveLength(32);
 		for (const cell of result.report.cells) {
 			expect(runs.some((run) => run.id === cell.runId)).toBe(true);
 			expect(await storage.getRunSummary(cell.runId!)).toBeDefined();
 		}
-		expect((await readdir(join(out, 'runs', 'runs'))).length).toBe(16);
+		expect((await readdir(join(out, 'runs', 'runs'))).length).toBe(32);
 	});
 
 	it('exits 1 under --strict when a guard is removed from a scenario that expects one', async () => {

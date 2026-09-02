@@ -14,6 +14,7 @@
 		type CampaignCell,
 		type CampaignReport
 	} from '@craftabot/evals';
+	import { installedPacks } from '$lib/packs.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import { persistRunSummary } from '$lib/state/run-summaries.js';
 	import {
@@ -106,6 +107,7 @@
 			const result = await runCampaign(parsed.campaign, {
 				// A macrotask between cells, so the count can paint (the Eval Matrix's own lesson).
 				betweenCells: () => new Promise((r) => setTimeout(r, 0)),
+				packs: installedPacks,
 				onCell: (_cell, done, total) => (progress = { done, total }),
 				onTrace: (cell, trace) => {
 					if (cell.runId) collected[cell.runId] = trace;

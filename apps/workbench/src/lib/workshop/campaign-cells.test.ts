@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { injectionBaseline, runCampaign, type CampaignReport } from '@craftabot/evals';
+import {
+	baselinePacks,
+	injectionBaseline,
+	runCampaign,
+	type CampaignReport
+} from '@craftabot/evals';
 import {
 	envelopeFor,
 	recordForCampaignCell,
@@ -19,6 +24,7 @@ async function baselineReport() {
 	cached ??= (async () => {
 		const traces = new Map();
 		const report = await runCampaign(injectionBaseline([1]), {
+			packs: baselinePacks(),
 			now: clock(),
 			newId: () => '00000000-0000-4000-8000-00000000c0de',
 			onTrace: (cell, trace) => cell.runId && traces.set(cell.runId, trace)
@@ -37,7 +43,7 @@ describe('the campaign envelope', () => {
 			passed: true,
 			gatesPassed: 13,
 			gatesTotal: 13,
-			cells: 16,
+			cells: 32,
 			schemaVersion: 1
 		});
 		expect(reportFrom(stored)).toEqual(report);
@@ -49,7 +55,7 @@ describe('slices', () => {
 	it('groups cells scenario × guard × brain in run order, with success and assertion rates', async () => {
 		const { report } = await baselineReport();
 		const slices = slicesOf(report);
-		expect(slices).toHaveLength(16);
+		expect(slices).toHaveLength(32);
 		expect(slices[0]).toMatchObject({
 			scenario: 'warning-sign',
 			guard: 'none',

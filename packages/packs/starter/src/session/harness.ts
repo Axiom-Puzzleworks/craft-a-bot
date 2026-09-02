@@ -10,7 +10,8 @@ import {
 	type PackRegistry,
 	type RunOutcome,
 	type SessionOptions,
-	type EgressMode
+	type EgressMode,
+	type PackManifest
 } from '@craftabot/core';
 import { createMockProvider, createTestClock, type MockScript } from '@craftabot/core/testing';
 import starterPack from '../index.js';
@@ -146,6 +147,8 @@ export interface RunOptions {
 	 * through this harness carries the same event and run ids.
 	 */
 	idOffset?: number;
+	/** Packs registered beside the starter pack (WP42) — a campaign that stacks a Guard Brick needs the workshop pack and the service's own. */
+	packs?: PackManifest[];
 	/** The session's egress mode (WP41) — `'none'` is what a campaign in CI runs under. */
 	egress?: EgressMode;
 }
@@ -158,9 +161,15 @@ export async function runToCompletion(options: RunOptions): Promise<RunResult> {
 	const spec = options.spec ?? buildSpec();
 	const provider = options.provider ?? createMockProvider({ script: options.script });
 
+	const registry = buildRegistry();
+	// A caller may hand the whole installed list, starter included; only what is new is registered.
+	const installed = new Set(registry.listPacks().map((pack) => pack.id));
+	for (const pack of options.packs ?? []) {
+		if (!installed.has(pack.id)) registry.registerPack(pack);
+	}
 	const session = createSession({
 		spec,
-		registry: buildRegistry(),
+		registry,
 		provider,
 		guardrails: options.guardrails ?? [],
 		options: {

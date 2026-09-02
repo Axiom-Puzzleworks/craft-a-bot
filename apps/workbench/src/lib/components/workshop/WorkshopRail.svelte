@@ -27,6 +27,7 @@
 			| 'safety-case'
 			| 'export'
 			| 'armour'
+			| 'guards'
 			| 'campaigns';
 	}
 
@@ -45,9 +46,9 @@
 		{ id: 'incidents', label: 'Incidents', href: '/workshop/incidents' },
 		{ id: 'safety-case', label: 'Safety case', href: '/workshop/safety-case' },
 		{ id: 'export', label: 'Audit', href: '/workshop/export' },
-		// WP35 stage B (`25-ARMOUR-BRICK.md` §11) — the seam's own proof lane,
-		// ahead of Stage D's fitted brick.
-		{ id: 'armour', label: 'Cloud Armour', href: '/workshop/armour' }
+		// WP42 (`30-SECOND-VENDORS.md` §5) — the Guard Rack, grown from WP35's
+		// Armour Studio, which now redirects here.
+		{ id: 'guards', label: 'Guards', href: '/workshop/guards' }
 	] as const;
 </script>
 
@@ -70,6 +71,7 @@
 								| '/workshop/safety-case'
 								| '/workshop/export'
 								| '/workshop/armour'
+								| '/workshop/guards'
 								| '/workshop/campaigns'
 						)}
 						aria-current={current === destination.id ? 'page' : undefined}

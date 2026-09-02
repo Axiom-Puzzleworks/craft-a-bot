@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { injectionBaseline, NEVER_SAYS_THE_CODE } from './baseline-campaign.js';
+import { baselinePacks, injectionBaseline, NEVER_SAYS_THE_CODE } from './baseline-campaign.js';
 import {
 	campaignCells,
 	evaluateGate,
@@ -33,8 +33,8 @@ describe('the campaign file', () => {
 	it('parses the baseline and lays out its cells in axis order, honouring guard.for', () => {
 		const campaign = parseCampaign(small());
 		const cells = campaignCells(campaign);
-		// 4 scenarios × 1 build × (none + its own guard) × 2 brains × 2 seeds
-		expect(cells).toHaveLength(4 * 1 * 2 * 2 * 2);
+		// 4 scenarios × 1 build × (none + its own guard + the two WP42 stacks) × 2 brains × 2 seeds
+		expect(cells).toHaveLength(4 * 1 * 4 * 2 * 2);
 		expect(cells.map((cell) => cell.ordinal)).toEqual(cells.map((_, index) => index));
 		expect(
 			cells
@@ -64,7 +64,11 @@ describe('the campaign file', () => {
 
 describe('running the baseline', () => {
 	it('proves every attack lands unguarded and every guard holds, with the goal still reachable', async () => {
-		const report = await runCampaign(small(), { now: clock(), newId: ids() });
+		const report = await runCampaign(small(), {
+			now: clock(),
+			newId: ids(),
+			packs: baselinePacks()
+		});
 		expect(parseCampaignReport(report)).toEqual(report);
 
 		const failed = report.gates.filter((gate) => !gate.passed);
@@ -87,7 +91,11 @@ describe('running the baseline', () => {
 		const policyCard = campaign.guards.find((g) => g.id === 'policy-card')!;
 		policyCard.fit = [];
 
-		const report = await runCampaign(campaign, { now: clock(), newId: ids() });
+		const report = await runCampaign(campaign, {
+			now: clock(),
+			newId: ids(),
+			packs: baselinePacks()
+		});
 		expect(report.passed).toBe(false);
 		const failed = report.gates.filter((gate) => !gate.passed).map((gate) => gate.id);
 		expect(failed.sort()).toEqual(['guard-holds:keep-the-secret', 'guard-holds:party-line']);
@@ -97,14 +105,18 @@ describe('running the baseline', () => {
 	});
 
 	it('is reproducible: the same file yields the same cells and gates', async () => {
-		const a = await runCampaign(small(), { now: clock(), newId: ids() });
-		const b = await runCampaign(small(), { now: clock(), newId: ids() });
+		const a = await runCampaign(small(), { now: clock(), newId: ids(), packs: baselinePacks() });
+		const b = await runCampaign(small(), { now: clock(), newId: ids(), packs: baselinePacks() });
 		expect(b.cells).toEqual(a.cells);
 		expect(b.gates).toEqual(a.gates);
 	});
 
 	it('renders a scorecard that leads with the verdict', async () => {
-		const report = await runCampaign(small(), { now: clock(), newId: ids() });
+		const report = await runCampaign(small(), {
+			now: clock(),
+			newId: ids(),
+			packs: baselinePacks()
+		});
 		const text = renderCampaignScorecard(report);
 		expect(text).toContain('✅ PASSED');
 		expect(text).toContain('`guard-holds:false-alarm`');
@@ -155,7 +167,11 @@ describe('a stacked guard', () => {
 		expect(
 			cells.every((cell) => specFor(cell).bricks.filter((b) => b.slot === 'safety').length === 2)
 		).toBe(true);
-		const report = await runCampaign(campaign, { now: clock(), newId: ids() });
+		const report = await runCampaign(campaign, {
+			now: clock(),
+			newId: ids(),
+			packs: baselinePacks()
+		});
 		expect(report.cells.every((cell) => cell.error === undefined)).toBe(true);
 		expect(new Set(report.cells.map((cell) => cell.guard))).toEqual(new Set(['floor+blocklist']));
 		expect(report.gates[0]).toMatchObject({ id: 'stack-holds', passed: true });
@@ -273,7 +289,11 @@ describe('gates', () => {
 			inconclusive: true
 		});
 
-		const baseline = await runCampaign(small(), { now: clock(), newId: ids() });
+		const baseline = await runCampaign(small(), {
+			now: clock(),
+			newId: ids(),
+			packs: baselinePacks()
+		});
 		const same = evaluateGate(
 			{ ...gate, require: { kind: 'no-regression', tolerance: 0 } },
 			baseline.cells,

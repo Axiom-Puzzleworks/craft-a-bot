@@ -21,7 +21,7 @@ test('the baseline runs green, a cell opens in the Run Lab, and the report survi
 	await expect(page.getByTestId('campaign-reports-empty')).toBeVisible();
 
 	await page.getByTestId('campaign-source').fill(JSON.stringify(injectionBaseline([1])));
-	await expect(page.getByTestId('campaign-size')).toHaveText('16 cells');
+	await expect(page.getByTestId('campaign-size')).toHaveText('32 cells');
 	await page.getByTestId('run-campaign').click();
 
 	await expect(page.getByTestId('campaign-verdict')).toBeVisible({ timeout: 30_000 });

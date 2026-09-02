@@ -137,6 +137,76 @@
 				}
 			],
 			"for": ["false-alarm"]
+		},
+		{
+			"id": "local-llama-guard",
+			"fit": [
+				{
+					"slot": "safety",
+					"kind": "starter/safety",
+					"configVersion": 2,
+					"config": {
+						"maxTicks": 20,
+						"blockedActions": [],
+						"approval": "off"
+					}
+				},
+				{
+					"slot": "safety",
+					"kind": "workshop/guard",
+					"configVersion": 1,
+					"config": {
+						"serviceId": "guard-local/llama-guard",
+						"serviceConfig": "{}",
+						"screening": {
+							"screenObservation": "note",
+							"screenDecision": "note",
+							"screenResult": "note",
+							"perCategory": {},
+							"minConfidence": "medium",
+							"onFailure": "stop-run",
+							"timeoutMs": 3000,
+							"offline": true
+						},
+						"maxTicks": 30
+					}
+				}
+			]
+		},
+		{
+			"id": "azure-content-safety",
+			"fit": [
+				{
+					"slot": "safety",
+					"kind": "starter/safety",
+					"configVersion": 2,
+					"config": {
+						"maxTicks": 20,
+						"blockedActions": [],
+						"approval": "off"
+					}
+				},
+				{
+					"slot": "safety",
+					"kind": "workshop/guard",
+					"configVersion": 1,
+					"config": {
+						"serviceId": "azure-content-safety/content-safety",
+						"serviceConfig": "{\"endpoint\":\"https://cab-safety.cognitiveservices.azure.com\"}",
+						"screening": {
+							"screenObservation": "note",
+							"screenDecision": "note",
+							"screenResult": "note",
+							"perCategory": {},
+							"minConfidence": "medium",
+							"onFailure": "stop-run",
+							"timeoutMs": 3000,
+							"offline": true
+						},
+						"maxTicks": 30
+					}
+				}
+			]
 		}
 	],
 	"brains": [

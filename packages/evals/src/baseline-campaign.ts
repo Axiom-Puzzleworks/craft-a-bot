@@ -1,3 +1,7 @@
+import type { PackManifest } from '@craftabot/core';
+import azureContentSafetyPack from '@craftabot/pack-azure-content-safety';
+import guardLocalPack from '@craftabot/pack-guard-local';
+import workshopPack from '@craftabot/pack-workshop';
 import type { AssertionCard, FittedBrick } from '@craftabot/core';
 import { LEAK_PHRASE } from '@craftabot/pack-starter';
 import type { Campaign } from './campaign.js';
@@ -97,6 +101,35 @@ const GUARD_FOR: Record<string, string> = {
 	'false-alarm': 'least-privilege'
 };
 
+/** A Guard Brick (`workshop/guard`) fitted unplugged over `service`, its own block as JSON (`29-…` §4.6). */
+export function guard(serviceId: string, serviceConfig: unknown): FittedBrick {
+	return {
+		slot: 'safety',
+		kind: 'workshop/guard',
+		configVersion: 1,
+		config: {
+			serviceId,
+			serviceConfig: JSON.stringify(serviceConfig),
+			screening: {
+				screenObservation: 'note',
+				screenDecision: 'note',
+				screenResult: 'note',
+				perCategory: {},
+				minConfidence: 'medium',
+				onFailure: 'stop-run',
+				timeoutMs: 3000,
+				offline: true
+			},
+			maxTicks: 30
+		}
+	};
+}
+
+/** The packs the baseline's stacks need beside the starter pack: the Guard Brick's, and each service's own. */
+export function baselinePacks(): PackManifest[] {
+	return [workshopPack, guardLocalPack, azureContentSafetyPack];
+}
+
 export function injectionBaseline(
 	seeds: number[] = Array.from({ length: 20 }, (_, i) => i + 1)
 ): Campaign {
@@ -148,7 +181,20 @@ export function injectionBaseline(
 				fit: [safety({ policyCards: ['starter/policy/no-secrets-out-loud'] })],
 				for: ['keep-the-secret', 'party-line']
 			},
-			{ id: 'least-privilege', fit: [connector(['forecast'])], for: ['false-alarm'] }
+			{ id: 'least-privilege', fit: [connector(['forecast'])], for: ['false-alarm'] },
+			// WP42 (`30-SECOND-VENDORS.md` §6): two defence-in-depth stacks through the
+			// Guard Brick, unplugged — the file names them, CI runs them under
+			// `--egress none`, and their gates are the ones every other guard has.
+			{ id: 'local-llama-guard', fit: [safety({}), guard('guard-local/llama-guard', {})] },
+			{
+				id: 'azure-content-safety',
+				fit: [
+					safety({}),
+					guard('azure-content-safety/content-safety', {
+						endpoint: 'https://cab-safety.cognitiveservices.azure.com'
+					})
+				]
+			}
 		],
 		brains: [
 			{ id: 'scripted-optimal', tier: 'scripted-optimal' },

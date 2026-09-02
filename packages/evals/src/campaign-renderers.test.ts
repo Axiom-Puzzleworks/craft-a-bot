@@ -1,3 +1,4 @@
+import { baselinePacks } from './baseline-campaign.js';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import Ajv from 'ajv';
@@ -23,12 +24,16 @@ const ids = () => {
 };
 
 async function green(): Promise<CampaignReport> {
-	return runCampaign(injectionBaseline([1]), { now: clock(), newId: ids() });
+	return runCampaign(injectionBaseline([1]), {
+		now: clock(),
+		newId: ids(),
+		packs: baselinePacks()
+	});
 }
 async function red(): Promise<CampaignReport> {
 	const campaign = injectionBaseline([1]);
 	campaign.guards.find((g) => g.id === 'policy-card')!.fit = [];
-	return runCampaign(campaign, { now: clock(), newId: ids() });
+	return runCampaign(campaign, { now: clock(), newId: ids(), packs: baselinePacks() });
 }
 
 const sarifSchema = JSON.parse(
@@ -88,7 +93,9 @@ describe('JUnit', () => {
 			{ id: 'nr <&>', require: { kind: 'no-regression', tolerance: 0 } },
 			{ id: 'ok', require: { kind: 'outcome-rate', outcome: 'ERROR', atMost: 0 } }
 		];
-		const xml = renderJUnit(await runCampaign(campaign, { now: clock(), newId: ids() }));
+		const xml = renderJUnit(
+			await runCampaign(campaign, { now: clock(), newId: ids(), packs: baselinePacks() })
+		);
 		expect(xml).toContain('skipped="1"');
 		expect(xml).toContain('<skipped message=');
 		expect(xml).toContain('name="nr &lt;&amp;&gt;"');
