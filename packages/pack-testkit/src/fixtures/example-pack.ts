@@ -4,6 +4,7 @@ import type {
 	CartridgeDefinition,
 	Guardrail,
 	GuardrailContext,
+	GuardrailService,
 	Observation,
 	PackManifest,
 	ToolDefinition,
@@ -11,6 +12,7 @@ import type {
 	WorldInstance,
 	WorldState
 } from '@craftabot/core';
+import { z } from 'zod';
 import type { PackConformanceFixture } from '../types.js';
 
 /**
@@ -134,6 +136,75 @@ export const exampleCartridge: CartridgeDefinition = {
 	defaults: { temperature: 0, maxTokens: 256 }
 };
 
+/** A hosted guardrail service done right (`29-GUARD-SHELL.md` §4.7): answers offline, never throws, never leaks, declares its host. */
+export const exampleGuardService: GuardrailService = {
+	id: `${EXAMPLE_PACK_ID}/guard`,
+	name: 'Example guard',
+	description: 'A content screen that finds nothing, politely.',
+	hooks: ['pre-think', 'pre-act', 'post-act'],
+	egress: [{ host: 'guard.example.test', purpose: 'content screening', sends: ['decision'] }],
+	configSchema: z.object({ policy: z.string().default('default') }),
+	create: ({ config, fetch, getCredential }) => ({
+		async screen(request) {
+			const policy = (config as { policy: string }).policy;
+			const record = {
+				service: 'example-guard',
+				endpoint: 'https://guard.example.test/screen',
+				policyRef: policy
+			};
+			try {
+				const response = await fetch('https://guard.example.test/screen', {
+					method: 'POST',
+					headers: { authorization: `Bearer ${getCredential('example') ?? ''}` },
+					body: JSON.stringify({ text: request.text })
+				});
+				if (!response.ok) {
+					return {
+						error: { kind: 'unavailable', message: `guard returned ${response.status}` },
+						record
+					};
+				}
+				const body = (await response.json()) as { matched?: boolean };
+				return {
+					reading: {
+						outcome: 'ok',
+						matched: body.matched === true,
+						findings: [
+							{
+								category: 'other',
+								vendorLabel: 'anything',
+								ran: true,
+								matched: body.matched === true
+							}
+						]
+					},
+					record
+				};
+			} catch {
+				return {
+					error: { kind: 'unavailable', message: 'the guard could not be reached' },
+					record
+				};
+			}
+		}
+	}),
+	createOffline: (config) => ({
+		screen: () =>
+			Promise.resolve({
+				reading: {
+					outcome: 'ok',
+					matched: false,
+					findings: [{ category: 'other', vendorLabel: 'anything', ran: true, matched: false }]
+				},
+				record: {
+					service: 'example-guard',
+					endpoint: 'https://guard.example.test/screen',
+					policyRef: (config as { policy: string }).policy
+				}
+			})
+	})
+};
+
 export const examplePack: PackManifest = {
 	id: EXAMPLE_PACK_ID,
 	name: 'Example Pack',
@@ -141,7 +212,8 @@ export const examplePack: PackManifest = {
 	requiresCore: '>=0.0.1',
 	tools: [echoTool],
 	worlds: [exampleWorld],
-	cartridges: [exampleCartridge]
+	cartridges: [exampleCartridge],
+	guardrailServices: [exampleGuardService]
 };
 
 export const exampleFixture: PackConformanceFixture = {
@@ -162,5 +234,16 @@ export const exampleFixture: PackConformanceFixture = {
 	tools: { examples: { [echoTool.id]: { text: 'hello' } } },
 	guardrails: {
 		guardrails: [{ guardrail: alwaysAllowGuardrail, context: exampleGuardrailContext() }]
+	},
+	guardrailServices: {
+		[exampleGuardService.id]: {
+			config: { policy: 'strict' },
+			requests: (['pre-think', 'pre-act', 'post-act'] as const).map((hook) => ({
+				hook,
+				text: 'hello',
+				envelope: { agentId: 'a', tick: 1 }
+			})),
+			plantedSecret: 'planted-secret-xyz'
+		}
 	}
 };

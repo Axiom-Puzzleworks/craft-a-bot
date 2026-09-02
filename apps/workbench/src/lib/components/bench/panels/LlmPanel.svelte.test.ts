@@ -46,6 +46,7 @@ function mount(config: Record<string, unknown>, onupdate = vi.fn()) {
 			senseChannels: [],
 			worldActions: [],
 			policyCards: [],
+			guardrailServices: [],
 			onupdate
 		}
 	});

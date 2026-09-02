@@ -108,6 +108,8 @@ The full 2⁶ on/off space is covered cheaply by the existing matrix; these name
 
 ## 7. Pack-conformance kit
 
+> **Amended 2026-09-02 (WP39 stage E, `29-GUARD-SHELL.md` §4.7):** the kit gained `checkGuardrailService(service, fixture)` — well-formed, config parses, offline answers, `create` never throws over a rejecting fetch / a 500 / an empty body, no planted secret in any result, every host called matches a declared `egress` pattern — and `describeConformance` runs it for every `guardrailServices` entry a manifest ships, from a `PackConformanceFixture.guardrailServices` map keyed by service id. The deliberately-broken fixture pack ships four services that fail it one check each.
+
 A published test suite (`@craftabot/pack-testkit`) any pack must pass — the mechanical half of "re-usable":
 
 - Manifest validates; ids qualified and collision-free; semver ranges evaluated (D13).

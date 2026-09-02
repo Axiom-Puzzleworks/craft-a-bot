@@ -98,6 +98,18 @@ const fixture: PackConformanceFixture = {
 	goldenTrace: {
 		spec,
 		script: obedient(SAY_HELLO_PLAN)
+	},
+	/** WP39 stage E (`29-…` §4.7): the service through the generic conformance check. */
+	guardrailServices: {
+		'geap/model-armor': {
+			config: { projectId: 'proj-1', location: 'europe-west2', templateId: 'cab-armour' },
+			requests: (['pre-think', 'pre-act', 'post-act'] as const).map((hook) => ({
+				hook,
+				text: 'Hello Teddy',
+				envelope: { agentId: spec.id, tick: 1 }
+			})),
+			plantedSecret: 'ya29.planted-secret-token'
+		}
 	}
 };
 

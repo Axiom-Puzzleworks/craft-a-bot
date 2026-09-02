@@ -23,7 +23,12 @@ export type FieldControl =
 	| { kind: 'text' }
 	| { kind: 'number'; min?: number; max?: number; step: number }
 	| { kind: 'dial'; min: number; max: number; step: number; bands?: ReadonlyArray<Band> }
-	| { kind: 'choice'; options: ReadonlyArray<{ value: unknown; label: string }> }
+	/** One of a list — the kind's own `options`, or a catalogue named by `source` (`29-…` §4.6: a `guardrailServices` picker). */
+	| {
+			kind: 'choice';
+			options?: ReadonlyArray<{ value: unknown; label: string }>;
+			source?: ControlSource;
+	  }
 	/**
 	 * A set of ids to tick.
 	 *
@@ -34,7 +39,13 @@ export type FieldControl =
 	 * as a text box for the builder to type ids into.
 	 */
 	| { kind: 'checklist'; source?: ControlSource; entries?: ReadonlyArray<Entry> }
-	| { kind: 'idList' };
+	| { kind: 'idList' }
+	/**
+	 * A nested `z.object` (WP39 stage E, `29-…` §4.6): its own fields, drawn
+	 * inside a fieldset and patched back as one value. Hints for the inner
+	 * fields are looked up dotted — `'screening.screenDecision'`.
+	 */
+	| { kind: 'object'; fields: FieldDescriptor[] };
 
 /** One tickable option a kind declared for itself. */
 export interface Entry {
@@ -88,19 +99,23 @@ const internals = (schema: ZodType): ZodInternals['def'] => (schema as unknown a
  * stale, and a kind that hints only half its fields should still show all of
  * them.
  */
-export function describeFields(schema: ZodType, hints: ControlHints = {}): FieldDescriptor[] {
+export function describeFields(
+	schema: ZodType,
+	hints: ControlHints = {},
+	prefix = ''
+): FieldDescriptor[] {
 	const shape = internals(schema).shape;
 	if (!shape) return [];
 
 	return Object.entries(shape).map(([name, field]) => {
-		const hint = hints[name] ?? {};
+		const hint = hints[`${prefix}${name}`] ?? {};
 		const { inner, optional } = unwrap(field);
 		return {
 			name,
 			label: hint.label ?? humanise(name),
 			...(hint.hint !== undefined ? { hint: hint.hint } : {}),
 			optional,
-			control: controlFor(inner, hint)
+			control: controlFor(inner, hint, hints, `${prefix}${name}.`)
 		};
 	});
 }
@@ -108,8 +123,13 @@ export function describeFields(schema: ZodType, hints: ControlHints = {}): Field
 /** `z.number().optional()` is a number that may be absent, not a separate kind of thing. */
 function unwrap(schema: ZodType): { inner: ZodType; optional: boolean } {
 	const def = internals(schema);
+	// `prefault` is Zod 4's "default the *input*, then parse" — a nested block
+	// that defaults to its own defaults (`29-…` §4.6's `screening`) reads that way.
 	if (
-		(def.type === 'optional' || def.type === 'nullable' || def.type === 'default') &&
+		(def.type === 'optional' ||
+			def.type === 'nullable' ||
+			def.type === 'default' ||
+			def.type === 'prefault') &&
 		def.innerType
 	) {
 		return { inner: unwrap(def.innerType).inner, optional: true };
@@ -117,8 +137,18 @@ function unwrap(schema: ZodType): { inner: ZodType; optional: boolean } {
 	return { inner: schema, optional: false };
 }
 
-function controlFor(schema: ZodType, hint: ControlHint): FieldControl {
+function controlFor(
+	schema: ZodType,
+	hint: ControlHint,
+	hints: ControlHints = {},
+	prefix = ''
+): FieldControl {
 	const def = internals(schema);
+
+	// A choice drawn from one of core's catalogues — the bench resolves it.
+	if (hint.source && hint.control === 'choice') {
+		return { kind: 'choice', source: hint.source };
+	}
 
 	/*
 	 * A hint naming a source settles it: only the hint can know that an array of
@@ -177,6 +207,9 @@ function controlFor(schema: ZodType, hint: ControlHint): FieldControl {
 			const values = def.entries ? Object.values(def.entries) : [];
 			return { kind: 'choice', options: values.map((value) => labelled(value, hint)) };
 		}
+
+		case 'object':
+			return { kind: 'object', fields: describeFields(schema, hints, prefix) };
 
 		case 'array':
 			// No source, so nothing here knows what these strings are. A list of ids

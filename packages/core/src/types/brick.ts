@@ -365,7 +365,14 @@ export type BrickConfigProblem = Omit<BuildProblem, 'slot'>;
  * > catalogue the workbench, not the kind, owns" answer every other id-array
  * > field already had.
  */
-export type ControlSource = 'tools' | 'actions' | 'senseChannels' | 'cartridges' | 'policyCards';
+export type ControlSource =
+	| 'tools'
+	| 'actions'
+	| 'senseChannels'
+	| 'cartridges'
+	| 'policyCards'
+	/** Registered hosted guardrail services (`29-GUARD-SHELL.md` §4.6, WP39) — what the generic Guard brick picks from. */
+	| 'guardrailServices';
 
 /**
  * How one config field should be offered to a builder.

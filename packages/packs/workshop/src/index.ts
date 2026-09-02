@@ -1,4 +1,5 @@
 import type { PackManifest } from '@craftabot/core';
+import { guardBrickKind } from './bricks/guard.js';
 import { workshopGoalCards } from './goal-cards.js';
 import { workshop } from './world/workshop.js';
 
@@ -19,12 +20,23 @@ export const workshopPack: PackManifest = {
 	version: '0.1.0',
 	requiresCore: '>=0.0.1',
 	worlds: [workshop],
-	goalCards: workshopGoalCards
+	goalCards: workshopGoalCards,
+	/** The generic Guard brick (`29-GUARD-SHELL.md` §4.6, WP39) — this pack's first brick kind. */
+	brickKinds: [guardBrickKind]
 };
 
 export default workshopPack;
 
 export { workshopGoalCards } from './goal-cards.js';
+export {
+	GUARD_BRICK_ID,
+	guardBrickKind,
+	guardConfigDefaults,
+	guardConfigSchema,
+	parseServiceConfig,
+	type GuardConfig,
+	type GuardConfigInput
+} from './bricks/guard.js';
 export { workshop, WORKSHOP_WORLD_ID, qualifyWorkshopId } from './world/workshop.js';
 export { workshopLayouts } from './world/layouts.js';
 export { workshopActions, workshopActionDefinitions } from './world/actions.js';

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { checkCartridge } from './checks/cartridge.js';
+import type { GuardrailService } from '@craftabot/core';
 import { checkGuardrail } from './checks/guardrail.js';
+import { checkGuardrailService, hostMatches } from './checks/guardrail-service.js';
 import { checkManifest } from './checks/manifest.js';
 import { checkTool } from './checks/tool.js';
 import { checkWorld } from './checks/world.js';
@@ -9,6 +11,7 @@ import {
 	alwaysAllowGuardrail,
 	echoTool,
 	exampleFixture,
+	exampleGuardService,
 	exampleGuardrailContext,
 	exampleWorld
 } from './fixtures/example-pack.js';
@@ -16,6 +19,10 @@ import {
 	badVerdictGuardrail,
 	brokenGuardrailContext,
 	brokenPack,
+	fussyService,
+	leakingService,
+	malformedService,
+	throwingService,
 	brokenWorld,
 	collidingCompanionPack,
 	dishonestSchemaTool,
@@ -150,6 +157,59 @@ describe('checkGuardrail against broken guardrails', () => {
 	it('passes a well-formed, pure guardrail', async () => {
 		const issues = await checkGuardrail(alwaysAllowGuardrail, exampleGuardrailContext());
 		expect(issues).toEqual([]);
+	});
+});
+
+describe('checkGuardrailService against broken services (29-… §4.7)', () => {
+	const fixture = {
+		config: {},
+		requests: [{ hook: 'pre-act' as const, text: 'hi', envelope: { agentId: 'a', tick: 1 } }],
+		plantedSecret: 'planted-secret-xyz'
+	};
+	const checks = async (service: GuardrailService, config: unknown = {}) => [
+		...new Set((await checkGuardrailService(service, { ...fixture, config })).map((i) => i.check))
+	];
+
+	it('reports a malformed service and stops there', async () => {
+		expect(await checks(malformedService)).toEqual(['guardrailService.well-formed']);
+	});
+
+	it('reports a service that throws offline or live', async () => {
+		expect(await checks(throwingService)).toEqual([
+			'guardrailService.offline-answers',
+			'guardrailService.create-never-throws'
+		]);
+	});
+
+	it('reports a leaked credential, a repeated label and an undeclared host', async () => {
+		expect(await checks(leakingService)).toEqual([
+			'guardrailService.offline-answers',
+			'guardrailService.no-secret-leaks',
+			'guardrailService.egress-declared'
+		]);
+	});
+
+	it('reports a config the service refuses, and an error of unknown kind', async () => {
+		expect(await checks(fussyService)).toEqual(['guardrailService.config-parses']);
+		expect(await checks(fussyService, { mustHave: 'x' })).toEqual([
+			'guardrailService.offline-answers'
+		]);
+	});
+
+	it('passes the example service', async () => {
+		const serviceFixture = exampleFixture.guardrailServices![exampleGuardService.id]!;
+		expect(await checkGuardrailService(exampleGuardService, serviceFixture)).toEqual([]);
+	});
+
+	it('matches egress host patterns exactly or with one wildcard label', () => {
+		expect(hostMatches('guard.example.test', 'guard.example.test')).toBe(true);
+		expect(
+			hostMatches('modelarmor.*.rep.googleapis.com', 'modelarmor.europe-west2.rep.googleapis.com')
+		).toBe(true);
+		expect(hostMatches('modelarmor.*.rep.googleapis.com', 'modelarmor.rep.googleapis.com')).toBe(
+			false
+		);
+		expect(hostMatches('guard.example.test', 'evil.example.test')).toBe(false);
 	});
 });
 

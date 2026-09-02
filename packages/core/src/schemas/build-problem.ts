@@ -56,7 +56,15 @@ export const buildProblemCodeSchema = z.enum([
 	'unrecognised-armour-region',
 	'clamped-armour-disposition',
 	'armour-checks-nothing',
-	'armour-not-plugged-in'
+	'armour-not-plugged-in',
+	/**
+	 * The Guard Brick's own three (`29-GUARD-SHELL.md` §4.6, WP39 stage E):
+	 * no service chosen; a service no installed pack ships; a service block
+	 * that is not JSON. All warnings — the local floor still runs.
+	 */
+	'guard-no-service',
+	'unknown-guard-service',
+	'guard-service-config-not-json'
 ]);
 export type BuildProblemCode = z.infer<typeof buildProblemCodeSchema>;
 

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { checkCartridge } from './checks/cartridge.js';
 import { checkGoldenTrace } from './checks/golden-trace.js';
 import { checkGuardrail } from './checks/guardrail.js';
+import { checkGuardrailService } from './checks/guardrail-service.js';
 import { checkManifest } from './checks/manifest.js';
 import { checkTool } from './checks/tool.js';
 import { checkWorld } from './checks/world.js';
@@ -57,6 +58,17 @@ export function describeConformance(fixture: PackConformanceFixture): void {
 		for (const entry of fixture.guardrails?.guardrails ?? []) {
 			it(`guardrail "${entry.guardrail.id}" is pure, legal, and describes itself`, async () => {
 				const issues = await checkGuardrail(entry.guardrail, entry.context);
+				expect(issues, format(issues)).toEqual([]);
+			});
+		}
+
+		for (const service of manifest.guardrailServices ?? []) {
+			it(`guardrail service "${service.id}" answers offline, never throws, never leaks, and declares its egress`, async () => {
+				const serviceFixture = fixture.guardrailServices?.[service.id];
+				if (serviceFixture === undefined) {
+					throw new Error(`no fixture supplied for guardrail service "${service.id}"`);
+				}
+				const issues = await checkGuardrailService(service, serviceFixture);
 				expect(issues, format(issues)).toEqual([]);
 			});
 		}

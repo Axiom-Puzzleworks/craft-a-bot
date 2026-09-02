@@ -66,7 +66,37 @@ describe('inferring controls from a schema alone', () => {
 			z.object({ mode: z.enum(['off', 'note', 'stop']).default('off') })
 		);
 		expect(field?.control.kind).toBe('choice');
-		expect(field?.control.kind === 'choice' ? field.control.options.length : 0).toBe(3);
+		expect(field?.control.kind === 'choice' ? (field.control.options?.length ?? 0) : 0).toBe(3);
+	});
+
+	/** WP39 stage E (`29-…` §4.6): a choice drawn from a catalogue, and a nested object with dotted hints. */
+	it('draws a hinted choice from a catalogue source, and a nested object as its own fields', () => {
+		const fields = describeFields(
+			z.object({
+				serviceId: z.string().default(''),
+				screening: z
+					.object({
+						screenDecision: z.enum(['off', 'ask']).default('ask'),
+						offline: z.boolean().default(false)
+					})
+					.prefault({})
+			}),
+			{
+				serviceId: { control: 'choice', source: 'guardrailServices', label: 'Guard' },
+				screening: { label: 'Screens' },
+				'screening.screenDecision': { label: 'Screen what it decides' }
+			}
+		);
+		expect(fields[0]?.control).toEqual({ kind: 'choice', source: 'guardrailServices' });
+		expect(fields[0]?.label).toBe('Guard');
+		const nested = fields[1]?.control;
+		expect(nested?.kind).toBe('object');
+		if (nested?.kind !== 'object') throw new Error('expected an object control');
+		expect(fields[1]?.label).toBe('Screens');
+		expect(nested.fields.map((f) => [f.name, f.label, f.control.kind])).toEqual([
+			['screenDecision', 'Screen what it decides', 'choice'],
+			['offline', 'Offline', 'switch']
+		]);
 	});
 
 	it('marks an optional field optional, and still reads its shape', () => {

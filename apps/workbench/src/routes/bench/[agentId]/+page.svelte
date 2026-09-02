@@ -103,6 +103,7 @@
 	// stays exactly what it was before WP29 shipped any of them.
 	const goalCards = $derived(registry.listGoalCards().filter((card) => !card.coop));
 	const policyCards = $derived(registry.listPolicyCards());
+	const guardrailServices = $derived(registry.listGuardrailServices());
 
 	const cartridge = $derived(registry.getCartridge(capabilities.cartridgeId));
 	/**
@@ -302,6 +303,7 @@
 						{senseChannels}
 						{worldActions}
 						{policyCards}
+						{guardrailServices}
 						onupdate={(patch) => selected && benchStore.updateBrick(selected, patch)}
 						onremove={() => {
 							if (selected) benchStore.removeBrick(selected);

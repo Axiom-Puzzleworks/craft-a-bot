@@ -4,7 +4,8 @@ import type {
 	CartridgeDefinition,
 	Guardrail,
 	GuardrailContext,
-	PackManifest
+	PackManifest,
+	ScreenRequest
 } from '@craftabot/core';
 import type { MockScript } from '@craftabot/core/testing';
 
@@ -98,6 +99,20 @@ export interface GuardrailConformanceFixture {
 	guardrails: GuardrailConformanceEntry[];
 }
 
+/**
+ * A hosted guardrail service's own fixture (`29-GUARD-SHELL.md` §4.7, WP39):
+ * a config its `configSchema` accepts, requests its offline client must
+ * answer, and a secret that must never leak. Keyed by service id in
+ * `PackConformanceFixture.guardrailServices`.
+ */
+export interface GuardrailServiceConformanceFixture {
+	config: unknown;
+	/** At least one per hook the service supports. */
+	requests: ScreenRequest[];
+	/** Planted as the credential; must not appear in any result. */
+	plantedSecret: string;
+}
+
 /** A scripted run through the whole stack, checked for catalogue-only events. */
 export interface GoldenTraceConformanceFixture {
 	spec: AnyAgentSpec;
@@ -120,6 +135,8 @@ export interface PackConformanceFixture {
 	world?: WorldConformanceFixture;
 	tools?: ToolConformanceFixture;
 	guardrails?: GuardrailConformanceFixture;
+	/** One per service the manifest ships, keyed by service id (`29-…` §4.7). */
+	guardrailServices?: Record<string, GuardrailServiceConformanceFixture>;
 	goldenTrace?: GoldenTraceConformanceFixture;
 }
 
