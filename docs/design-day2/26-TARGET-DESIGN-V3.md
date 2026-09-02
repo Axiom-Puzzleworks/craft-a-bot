@@ -628,6 +628,8 @@ The world is untouched. Hosted verdicts and evaluations are recorded, so replay 
 
 > **Amended 2026-09-02 (WP44 — scenarios).** §6.3 landed through `32-SCENARIOS.md`. Two things this document did not say: **a tool sees the world through `ToolContext.worldState`** — a snapshot the session hands every tool call — because two of the four injection kinds (`manual-entry`, `tool-result`) land in state only a tool reads, and no tool had ever seen the world (`32-…` §7 D-a); and **a campaign scenario may name `scenarioId`** in place of `goalCardId`, inheriting the card, the tags and the injections. The corpus importer is JSONL rows over one base card, delivered as manual entries by default; imports are scenario pack files, content only. `27-…` §8 item 13 carries the gate.
 
+> **Amended 2026-09-02 (WP45 — policy v2 and the PDP).** §6.4 landed through `33-POLICY-V2-PDP.md`. Three things this document did not say: **`GuardrailContext.world`** — the world's own `test()` and predicate ids, one optional field the session fills, because the leaves' context was not in fact all on the context; **`ScreenRequest.policyInput`** — the shell attaches `pdpRequestFor(ctx)` to every request, since a service only ever sees a request; **progress is an action flag** (`WorldActionDefinition.progress`), not a world predicate — the no-repetition guardrail needs to know which past action counted, which is a declaration on the action. The OPA pack keeps the engine on localhost (egress is static per service). `27-…` §8 item 14 carries the gate and the live checkpoint.
+
 ---
 
 ## 13. Risks
