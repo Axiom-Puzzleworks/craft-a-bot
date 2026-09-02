@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Storage } from '../storage/storage.js';
 import {
 	makeAgent,
+	makeCampaignReport,
 	makeEvent,
 	makeGroupRun,
 	makeRun,
@@ -249,6 +250,73 @@ export function describeStorageContract(name: string, open: () => Promise<Storag
 				const fetched = await storage.getRunSummary(summary.runId);
 				if (fetched) fetched.findings.length = 0;
 				expect((await storage.getRunSummary(summary.runId))?.findings).toHaveLength(1);
+			});
+		});
+
+		/** WP38 stage D — a campaign report's envelope, listed newest first, outside the run cap. */
+		describe('campaign reports', () => {
+			it('round-trips a campaign report', async () => {
+				const storage = await open();
+				const report = makeCampaignReport();
+				await storage.putCampaignReport(report);
+				expect(await storage.getCampaignReport(report.id)).toEqual(report);
+				expect(await storage.listCampaignReports()).toEqual([report]);
+			});
+
+			it('returns undefined for a report that is not there', async () => {
+				const storage = await open();
+				expect(await storage.getCampaignReport(uuid(999))).toBeUndefined();
+			});
+
+			it('lists reports newest first', async () => {
+				const storage = await open();
+				await storage.putCampaignReport(
+					makeCampaignReport({ id: uuid(401), createdAt: '2026-09-01T10:00:00Z' })
+				);
+				await storage.putCampaignReport(
+					makeCampaignReport({ id: uuid(402), createdAt: '2026-09-03T10:00:00Z' })
+				);
+				await storage.putCampaignReport(
+					makeCampaignReport({ id: uuid(403), createdAt: '2026-09-02T10:00:00Z' })
+				);
+				expect((await storage.listCampaignReports()).map((r) => r.id)).toEqual([
+					uuid(402),
+					uuid(403),
+					uuid(401)
+				]);
+			});
+
+			it('refuses a report that fails its envelope schema', async () => {
+				const storage = await open();
+				await expect(
+					storage.putCampaignReport({ ...makeCampaignReport(), gatesTotal: -1 })
+				).rejects.toThrow();
+			});
+
+			it('deletes a report', async () => {
+				const storage = await open();
+				const report = makeCampaignReport();
+				await storage.putCampaignReport(report);
+				await storage.deleteCampaignReport(report.id);
+				expect(await storage.listCampaignReports()).toEqual([]);
+			});
+
+			it('is not touched by run eviction, and is forgotten by clear()', async () => {
+				const storage = await open();
+				await storage.putCampaignReport(makeCampaignReport());
+				await storage.evictOldRuns(0);
+				expect(await storage.listCampaignReports()).toHaveLength(1);
+				await storage.clear();
+				expect(await storage.listCampaignReports()).toEqual([]);
+			});
+
+			it('does not hand out live references to a report', async () => {
+				const storage = await open();
+				const report = makeCampaignReport();
+				await storage.putCampaignReport(report);
+				const fetched = await storage.getCampaignReport(report.id);
+				if (fetched) fetched.title = 'Tampered';
+				expect((await storage.getCampaignReport(report.id))?.title).toBe('Injection baseline');
 			});
 		});
 

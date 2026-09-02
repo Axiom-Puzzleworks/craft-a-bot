@@ -211,6 +211,36 @@ export const runSummarySchema = z.object({
 });
 export type RunSummary = z.infer<typeof runSummarySchema>;
 
+/**
+ * **A campaign report, as the store keeps it** (WP38 stage D, `28-…` §4.9).
+ *
+ * The report's own schema lives with the runner in `@craftabot/evals`, which
+ * `core` must not depend on — so the store keeps an *envelope*: the handful
+ * of fields a list needs to show without opening the report, and the report
+ * itself as opaque JSON that `@craftabot/evals`' `parseCampaignReport`
+ * validates on the way back out. Small on purpose: a report carries metrics
+ * and verdicts, never a trace.
+ */
+export const storedCampaignReportSchema = z.object({
+	id: z.string().min(1),
+	campaignId: z.string().min(1),
+	title: z.string().min(1),
+	createdAt: z.string().datetime(),
+	passed: z.boolean(),
+	gatesPassed: z.number().int().nonnegative(),
+	gatesTotal: z.number().int().nonnegative(),
+	cells: z.number().int().nonnegative(),
+	report: z.record(z.string(), z.unknown()),
+	schemaVersion: z.literal(1)
+});
+export type StoredCampaignReport = z.infer<typeof storedCampaignReportSchema>;
+
+export function safeParseStoredCampaignReport(
+	value: unknown
+): ReturnType<typeof storedCampaignReportSchema.safeParse> {
+	return storedCampaignReportSchema.safeParse(value);
+}
+
 export function safeParseRunSummary(value: unknown): ReturnType<typeof runSummarySchema.safeParse> {
 	return runSummarySchema.safeParse(value);
 }

@@ -2,17 +2,20 @@ import {
 	migrateAgentRecord,
 	safeParseAgentRecord,
 	safeParseRunSummary,
+	safeParseStoredCampaignReport,
 	safeParseStoredEvent,
 	type AgentRecord,
 	type EngineEvent,
 	type GroupRunRecord,
 	type RunRecord,
 	type RunSummary,
+	type StoredCampaignReport,
 	type StoredEvent
 } from '@craftabot/core';
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import {
 	DEFAULT_RUN_CAP,
+	byNewestCreated,
 	byNewestFirst,
 	emptyQuarantine,
 	selectRunsToEvict,
@@ -30,7 +33,7 @@ import {
  */
 
 export const DATABASE_NAME = 'craftabot';
-export const DATABASE_VERSION = 3;
+export const DATABASE_VERSION = 4;
 
 interface CraftABotDB extends DBSchema {
 	agents: { key: string; value: AgentRecord };
@@ -38,6 +41,7 @@ interface CraftABotDB extends DBSchema {
 	events: { key: [string, number]; value: StoredEvent; indexes: { runId: string } };
 	groupRuns: { key: string; value: GroupRunRecord; indexes: { startedAt: string } };
 	runSummaries: { key: string; value: RunSummary };
+	campaigns: { key: string; value: StoredCampaignReport };
 }
 
 export interface IdbStorage extends Storage {
@@ -73,6 +77,11 @@ function upgrade(db: IDBPDatabase<CraftABotDB>, oldVersion: number): void {
 	// writes it back, so nothing is migrated and nothing is lost.
 	if (oldVersion < 3) {
 		db.createObjectStore('runSummaries', { keyPath: 'runId' });
+	}
+	// Campaign reports (WP38 stage D, `28-…` §4.9) — the envelope the list
+	// shows, the report opaque inside; outside the run cap.
+	if (oldVersion < 4) {
+		db.createObjectStore('campaigns', { keyPath: 'id' });
 	}
 }
 
@@ -189,6 +198,21 @@ export async function createIdbStorage(name = DATABASE_NAME): Promise<IdbStorage
 		getRunSummary: (runId) => db.get('runSummaries', runId),
 		listRunSummaries: () => db.getAll('runSummaries'),
 
+		async putCampaignReport(report) {
+			const parsed = safeParseStoredCampaignReport(report);
+			if (!parsed.success) {
+				throw new Error(`Refusing to store an invalid campaign report: ${parsed.error.message}`);
+			}
+			await db.put('campaigns', report);
+		},
+		getCampaignReport: (id) => db.get('campaigns', id),
+		async listCampaignReports() {
+			return (await db.getAll('campaigns')).sort(byNewestCreated);
+		},
+		async deleteCampaignReport(id) {
+			await db.delete('campaigns', id);
+		},
+
 		async evictOldRuns(cap = DEFAULT_RUN_CAP) {
 			const doomed = selectRunsToEvict(await readRuns(), cap);
 			for (const id of doomed) {
@@ -205,6 +229,7 @@ export async function createIdbStorage(name = DATABASE_NAME): Promise<IdbStorage
 			await db.clear('groupRuns');
 			await db.clear('events');
 			await db.clear('runSummaries');
+			await db.clear('campaigns');
 		}
 	};
 }

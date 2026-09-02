@@ -5,6 +5,7 @@ import { describeStorageContract } from './storage-contract.js';
 import {
 	makeAgent,
 	makeAgentV1,
+	makeCampaignReport,
 	makeGroupRun,
 	makeRun,
 	makeRunSummary
@@ -39,8 +40,8 @@ describe('the IndexedDB store specifically', () => {
 		expect(storage.kind).toBe('indexeddb');
 	});
 
-	it('ships at schema version 3, with the migration switch already in place', () => {
-		expect(DATABASE_VERSION).toBe(3);
+	it('ships at schema version 4, with the migration switch already in place', () => {
+		expect(DATABASE_VERSION).toBe(4);
 	});
 
 	it('survives being closed and reopened — the whole point of persisting', async () => {
@@ -202,6 +203,43 @@ describe('the IndexedDB store specifically', () => {
 		const summary = makeRunSummary();
 		await storage.putRunSummary(summary);
 		expect(await storage.getRunSummary(summary.runId)).toEqual(summary);
+	});
+
+	/** WP38 stage D: a version-3 database gets `campaigns` added, and keeps everything it had. */
+	it('adds the campaigns store to a version-3 database, leaving what was already there', async () => {
+		const name = 'craftabot-v3-database';
+		const v3 = await new Promise<IDBDatabase>((resolve, reject) => {
+			const request = indexedDB.open(name, 3);
+			request.onupgradeneeded = () => {
+				const db = request.result;
+				db.createObjectStore('agents', { keyPath: 'id' });
+				const runs = db.createObjectStore('runs', { keyPath: 'id' });
+				runs.createIndex('startedAt', 'startedAt');
+				const events = db.createObjectStore('events', { keyPath: ['runId', 'seq'] });
+				events.createIndex('runId', 'runId');
+				const groupRuns = db.createObjectStore('groupRuns', { keyPath: 'id' });
+				groupRuns.createIndex('startedAt', 'startedAt');
+				db.createObjectStore('runSummaries', { keyPath: 'runId' });
+			};
+			request.onsuccess = () => resolve(request.result);
+			request.onerror = () => reject(request.error);
+		});
+		await new Promise<void>((resolve, reject) => {
+			const tx = v3.transaction('runSummaries', 'readwrite');
+			tx.objectStore('runSummaries').put(makeRunSummary());
+			tx.oncomplete = () => resolve();
+			tx.onerror = () => reject(tx.error);
+		});
+		v3.close();
+
+		const storage = await createIdbStorage(name);
+		opened.push(storage);
+
+		expect(await storage.listRunSummaries()).toHaveLength(1);
+		expect(await storage.listCampaignReports()).toEqual([]);
+		const report = makeCampaignReport();
+		await storage.putCampaignReport(report);
+		expect(await storage.getCampaignReport(report.id)).toEqual(report);
 	});
 
 	it('refuses to store an invalid agent', async () => {

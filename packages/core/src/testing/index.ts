@@ -24,6 +24,7 @@ export { describeStorageContract } from './storage-contract.js';
 export {
 	makeAgent,
 	makeAgentV1,
+	makeCampaignReport,
 	makeEvent,
 	makeGroupRun,
 	makeRun,

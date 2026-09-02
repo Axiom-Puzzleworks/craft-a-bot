@@ -1,5 +1,11 @@
 import type { EngineEvent } from '../schemas/events.js';
-import type { AgentRecord, GroupRunRecord, RunSummary, StoredEvent } from '../schemas/records.js';
+import type {
+	AgentRecord,
+	GroupRunRecord,
+	RunSummary,
+	StoredCampaignReport,
+	StoredEvent
+} from '../schemas/records.js';
 import type { RunRecord } from '../schemas/trace-file.js';
 
 /**
@@ -70,6 +76,17 @@ export interface Storage {
 	listRunSummaries(): Promise<RunSummary[]>;
 
 	/**
+	 * Campaign reports (WP38 stage D, `28-…` §4.9): an envelope the list can
+	 * show and the report as opaque JSON. Newest first. Not touched by
+	 * `evictOldRuns` — a report is small and is the record of an experiment,
+	 * not one of the runs the cap exists to bound.
+	 */
+	putCampaignReport(report: StoredCampaignReport): Promise<void>;
+	getCampaignReport(id: string): Promise<StoredCampaignReport | undefined>;
+	listCampaignReports(): Promise<StoredCampaignReport[]>;
+	deleteCampaignReport(id: string): Promise<void>;
+
+	/**
 	 * Trim unpinned runs oldest-first until at most `cap` remain, deleting their
 	 * events (and summaries) too. Returns the ids evicted so the UI can show
 	 * the friendly notice.
@@ -102,6 +119,11 @@ export function emptyQuarantine(): QuarantineReport {
  */
 export function byNewestFirst(a: { startedAt: string }, b: { startedAt: string }): number {
 	return b.startedAt.localeCompare(a.startedAt);
+}
+
+/** The same rule for rows that record when they were *made* rather than started (campaign reports). */
+export function byNewestCreated(a: { createdAt: string }, b: { createdAt: string }): number {
+	return b.createdAt.localeCompare(a.createdAt);
 }
 
 /**

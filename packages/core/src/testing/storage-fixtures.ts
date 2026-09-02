@@ -1,7 +1,12 @@
 import type { AgentSpec } from '../schemas/agent-spec.js';
 import { toSpecV2, type AgentSpecV2 } from '../schemas/agent-spec-v2.js';
 import type { EngineEvent } from '../schemas/events.js';
-import type { AgentRecord, GroupRunRecord, RunSummary } from '../schemas/records.js';
+import type {
+	AgentRecord,
+	GroupRunRecord,
+	RunSummary,
+	StoredCampaignReport
+} from '../schemas/records.js';
 import type { RunRecord } from '../schemas/trace-file.js';
 
 /** Shared fixtures for the storage tests. */
@@ -122,6 +127,25 @@ export function makeRunSummary(overrides: Partial<RunSummary> = {}): RunSummary 
 		findings: [{ kind: 'guardrail-catch', tick: 2, summary: 'Out of steps.' }],
 		decisions: 3,
 		hostedPreActScreens: 0,
+		schemaVersion: 1,
+		...overrides
+	};
+}
+
+/** A stored campaign report (WP38 stage D) — the envelope, with a small opaque report inside. */
+export function makeCampaignReport(
+	overrides: Partial<StoredCampaignReport> = {}
+): StoredCampaignReport {
+	return {
+		id: uuid(400),
+		campaignId: 'injection-baseline',
+		title: 'Injection baseline',
+		createdAt: '2026-09-02T12:00:00Z',
+		passed: true,
+		gatesPassed: 13,
+		gatesTotal: 13,
+		cells: 320,
+		report: { schemaVersion: 1, id: uuid(400), cells: [], gates: [] },
 		schemaVersion: 1,
 		...overrides
 	};

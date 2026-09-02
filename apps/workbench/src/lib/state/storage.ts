@@ -6,6 +6,7 @@
  */
 export {
 	DEFAULT_RUN_CAP,
+	byNewestCreated,
 	byNewestFirst,
 	emptyQuarantine,
 	selectRunsToEvict,

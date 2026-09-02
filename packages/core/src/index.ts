@@ -192,14 +192,17 @@ export {
 	parseAgentRecord,
 	safeParseAgentRecord,
 	safeParseRunSummary,
+	safeParseStoredCampaignReport,
 	safeParseStoredEvent,
 	runSummaryFindingSchema,
 	runSummarySchema,
+	storedCampaignReportSchema,
 	storedEventSchema,
 	type AgentRecord,
 	type GroupRunRecord,
 	type RunSummary,
 	type RunSummaryFinding,
+	type StoredCampaignReport,
 	type StoredEvent
 } from './schemas/records.js';
 
@@ -208,6 +211,7 @@ export {
 // plus the in-memory implementation. IndexedDB stays in the workbench.
 export {
 	DEFAULT_RUN_CAP,
+	byNewestCreated,
 	byNewestFirst,
 	emptyQuarantine,
 	selectRunsToEvict,

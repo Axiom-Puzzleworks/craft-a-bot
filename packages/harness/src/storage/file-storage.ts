@@ -2,11 +2,13 @@ import { mkdir, readdir, readFile, rm, stat, writeFile, appendFile } from 'node:
 import { join } from 'node:path';
 import {
 	DEFAULT_RUN_CAP,
+	byNewestCreated,
 	byNewestFirst,
 	emptyQuarantine,
 	migrateAgentRecord,
 	safeParseAgentRecord,
 	safeParseRunSummary,
+	safeParseStoredCampaignReport,
 	safeParseStoredEvent,
 	selectRunsToEvict,
 	type AgentRecord,
@@ -16,6 +18,7 @@ import {
 	type RunRecord,
 	type RunSummary,
 	type Storage,
+	type StoredCampaignReport,
 	type StoredEvent
 } from '@craftabot/core';
 
@@ -35,7 +38,7 @@ import {
  *   runs/<runId>/run.json          RunRecord
  *   runs/<runId>/events.jsonl      one StoredEvent per line, in seq order
  *   runs/<runId>/summary.json      RunSummary, once the run has finished
- *   group-runs/<groupRunId>.json   GroupRunRecord (its merged stream lives at runs/<groupRunId>/events.jsonl)
+ $1 *   campaigns/<reportId>.json     StoredCampaignReport (WP38 — the envelope, the report opaque inside)
  * ```
  *
  * Reads validate and quarantine bad rows rather than throwing (07 §1.5), as
@@ -54,12 +57,14 @@ export interface FileStorage extends Storage {
 const AGENTS = 'agents';
 const RUNS = 'runs';
 const GROUP_RUNS = 'group-runs';
+const CAMPAIGNS = 'campaigns';
 
 export async function createFileStorage(root: string): Promise<FileStorage> {
 	const quarantine = emptyQuarantine();
 	await mkdir(join(root, AGENTS), { recursive: true });
 	await mkdir(join(root, RUNS), { recursive: true });
 	await mkdir(join(root, GROUP_RUNS), { recursive: true });
+	await mkdir(join(root, CAMPAIGNS), { recursive: true });
 
 	const agentPath = (id: string) => join(root, AGENTS, `${id}.json`);
 	const runDir = (id: string) => join(root, RUNS, id);
@@ -67,6 +72,7 @@ export async function createFileStorage(root: string): Promise<FileStorage> {
 	const eventsPath = (id: string) => join(runDir(id), 'events.jsonl');
 	const summaryPath = (id: string) => join(runDir(id), 'summary.json');
 	const groupRunPath = (id: string) => join(root, GROUP_RUNS, `${id}.json`);
+	const campaignPath = (id: string) => join(root, CAMPAIGNS, `${id}.json`);
 
 	async function readJson(path: string): Promise<unknown | undefined> {
 		try {
@@ -274,6 +280,38 @@ export async function createFileStorage(root: string): Promise<FileStorage> {
 			return summaries;
 		},
 
+		async putCampaignReport(report) {
+			const parsed = safeParseStoredCampaignReport(report);
+			if (!parsed.success) {
+				throw new Error(`Refusing to store an invalid campaign report: ${parsed.error.message}`);
+			}
+			await writeJson(campaignPath(report.id), report);
+		},
+		async getCampaignReport(id) {
+			const raw = await readJson(campaignPath(id));
+			if (raw === undefined || raw === SYMBOL_CORRUPT) return undefined;
+			return raw as StoredCampaignReport;
+		},
+		async listCampaignReports() {
+			let names: string[];
+			try {
+				names = (await readdir(join(root, CAMPAIGNS))).filter((name) => name.endsWith('.json'));
+			} catch (error) {
+				if (isMissing(error)) return [];
+				throw error;
+			}
+			const rows: StoredCampaignReport[] = [];
+			for (const name of names) {
+				const raw = await readJson(join(root, CAMPAIGNS, name));
+				if (raw === undefined || raw === SYMBOL_CORRUPT) continue;
+				rows.push(raw as StoredCampaignReport);
+			}
+			return rows.sort(byNewestCreated);
+		},
+		async deleteCampaignReport(id) {
+			await rm(campaignPath(id), { force: true });
+		},
+
 		async evictOldRuns(cap = DEFAULT_RUN_CAP) {
 			const doomed = selectRunsToEvict(await readRuns(), cap);
 			for (const id of doomed) await removeRunDir(id);
@@ -281,7 +319,7 @@ export async function createFileStorage(root: string): Promise<FileStorage> {
 		},
 
 		async clear() {
-			for (const dir of [AGENTS, RUNS, GROUP_RUNS]) {
+			for (const dir of [AGENTS, RUNS, GROUP_RUNS, CAMPAIGNS]) {
 				await rm(join(root, dir), { recursive: true, force: true });
 				await mkdir(join(root, dir), { recursive: true });
 			}

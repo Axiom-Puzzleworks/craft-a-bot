@@ -1,15 +1,18 @@
 import {
 	safeParseAgentRecord,
 	safeParseRunSummary,
+	safeParseStoredCampaignReport,
 	safeParseStoredEvent,
 	type AgentRecord,
 	type GroupRunRecord,
 	type RunSummary,
+	type StoredCampaignReport,
 	type StoredEvent
 } from '../schemas/records.js';
 import type { RunRecord } from '../schemas/trace-file.js';
 import {
 	DEFAULT_RUN_CAP,
+	byNewestCreated,
 	byNewestFirst,
 	emptyQuarantine,
 	selectRunsToEvict,
@@ -41,6 +44,7 @@ export function createMemoryStorage(): MemoryStorage {
 	const groupRuns = new Map<string, GroupRunRecord>();
 	const events = new Map<string, StoredEvent[]>();
 	const summaries = new Map<string, RunSummary>();
+	const campaigns = new Map<string, StoredCampaignReport>();
 	const quarantine = emptyQuarantine();
 
 	return {
@@ -147,6 +151,24 @@ export function createMemoryStorage(): MemoryStorage {
 		getRunSummary: (runId) => Promise.resolve(copy(summaries.get(runId))),
 		listRunSummaries: () => Promise.resolve([...summaries.values()].map(copy)),
 
+		putCampaignReport(report) {
+			const parsed = safeParseStoredCampaignReport(report);
+			if (!parsed.success) {
+				return Promise.reject(
+					new Error(`Refusing to store an invalid campaign report: ${parsed.error.message}`)
+				);
+			}
+			campaigns.set(report.id, structuredClone(report));
+			return Promise.resolve();
+		},
+		getCampaignReport: (id) => Promise.resolve(copy(campaigns.get(id))),
+		listCampaignReports: () =>
+			Promise.resolve([...campaigns.values()].sort(byNewestCreated).map(copy)),
+		deleteCampaignReport(id) {
+			campaigns.delete(id);
+			return Promise.resolve();
+		},
+
 		async evictOldRuns(cap = DEFAULT_RUN_CAP) {
 			const doomed = selectRunsToEvict([...runs.values()], cap);
 			for (const id of doomed) {
@@ -163,6 +185,7 @@ export function createMemoryStorage(): MemoryStorage {
 			groupRuns.clear();
 			events.clear();
 			summaries.clear();
+			campaigns.clear();
 			return Promise.resolve();
 		}
 	};

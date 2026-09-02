@@ -26,7 +26,8 @@
 			| 'incidents'
 			| 'safety-case'
 			| 'export'
-			| 'armour';
+			| 'armour'
+			| 'campaigns';
 	}
 
 	let { current }: Props = $props();
@@ -36,6 +37,8 @@
 		{ id: 'runs', label: 'Runs', href: '/workshop/runs' },
 		{ id: 'spec', label: 'Spec Lab', hint: 'per bot' },
 		{ id: 'evals', label: 'Evals', href: '/workshop/evals' },
+		// WP38 (`28-CAMPAIGNS.md` §4.9) — the guardrail regression suite as a file.
+		{ id: 'campaigns', label: 'Campaigns', href: '/workshop/campaigns' },
 		{ id: 'policies', label: 'Policies', href: '/workshop/policies' },
 		{ id: 'bench', label: 'Test Bench', href: '/workshop/bench' },
 		{ id: 'telemetry', label: 'Telemetry', href: '/workshop/telemetry' },
@@ -67,6 +70,7 @@
 								| '/workshop/safety-case'
 								| '/workshop/export'
 								| '/workshop/armour'
+								| '/workshop/campaigns'
 						)}
 						aria-current={current === destination.id ? 'page' : undefined}
 						data-testid="rail-{destination.id}">{destination.label}</a
