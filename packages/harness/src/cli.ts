@@ -3,7 +3,9 @@ import { defaultConfig, loadConfig, type HarnessConfig } from './config.js';
 import { credentialsFromEnv, type CredentialSource } from './credentials.js';
 import { bundleRun } from './commands/bundle.js';
 import { describePacks, renderPacks } from './commands/packs.js';
+import { reportIncidents, reportSafetyCase, reportTelemetry } from './commands/report.js';
 import { runKit, type BrainTier } from './commands/run.js';
+import { createRegistry } from './config.js';
 import { createFileStorage } from './storage/file-storage.js';
 
 /**
@@ -72,6 +74,13 @@ Usage:
       Write a stored run back out as a .craftabot-trace.json (to --file, or
       stdout), redacted and digest-signed.
 
+  craftabot report --safety-case [--agent <agentId>] | --incidents | --telemetry
+                   [--out ./runs] [--file <path>] [--config …]
+      The governance artefacts the Workshop's Safety Case, Incidents and
+      Telemetry screens render, as JSON, from the runs under --out — produced
+      by the same folds over the same stored summaries. --safety-case needs
+      --agent unless the store holds exactly one bot.
+
 Credentials are read only from the environment, as CRAFTABOT_CREDENTIAL_<ID>
 (for example CRAFTABOT_CREDENTIAL_OPENAI), and are never written to any file.
 `;
@@ -130,6 +139,29 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 				const storage = await createFileStorage(stringFlag(args, 'out') ?? './runs');
 				const trace = await bundleRun(storage, runId, credentialsFromEnv(io.env).secrets());
 				const text = `${JSON.stringify(trace, null, '\t')}\n`;
+				const file = stringFlag(args, 'file');
+				if (file !== undefined) {
+					await writeFile(file, text, 'utf8');
+					io.stdout(`wrote ${file}\n`);
+				} else {
+					io.stdout(text);
+				}
+				return 0;
+			}
+			case 'report': {
+				const storage = await createFileStorage(stringFlag(args, 'out') ?? './runs');
+				let report: unknown;
+				if (args.flags['safety-case'] !== undefined) {
+					const registry = createRegistry(await configFrom(args));
+					report = await reportSafetyCase(storage, registry, stringFlag(args, 'agent'));
+				} else if (args.flags['incidents'] !== undefined) {
+					report = await reportIncidents(storage);
+				} else if (args.flags['telemetry'] !== undefined) {
+					report = await reportTelemetry(storage);
+				} else {
+					throw new Error('report needs one of --safety-case, --incidents or --telemetry');
+				}
+				const text = `${JSON.stringify(report, null, '\t')}\n`;
 				const file = stringFlag(args, 'file');
 				if (file !== undefined) {
 					await writeFile(file, text, 'utf8');

@@ -19,6 +19,7 @@
  */
 export { isFailure } from './failures.js';
 export { summariesOf, summariseRun } from './summary.js';
+export { ensureRunSummaries, persistRunSummary } from './run-summaries.js';
 export {
 	findingsIn,
 	incidentsFrom,

@@ -23,5 +23,11 @@ export {
 export { describePacks, type PackReport } from './commands/packs.js';
 export { runKit, type BrainTier, type RunKitOptions, type RunKitReport } from './commands/run.js';
 export { bundleRun } from './commands/bundle.js';
+export {
+	reportIncidents,
+	reportSafetyCase,
+	reportTelemetry,
+	type TelemetryReport
+} from './commands/report.js';
 export { runRecordFrom } from './run-record.js';
 export { main as cli, parseArgs, type CliIo } from './cli.js';

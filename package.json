@@ -25,6 +25,7 @@
 		"budget": "node scripts/bundle-budget.mjs",
 		"smoke:openai": "npm run smoke --workspace=@craftabot/pack-openai",
 		"smoke:geap": "npm run smoke --workspace=@craftabot/pack-geap",
+		"smoke:harness": "npm run build --workspace=packages/harness && node --env-file-if-exists=.env packages/harness/dist/main.js run --kit packages/harness/fixtures/snackbot.craftabot.json --provider openai --max-ticks 6 --out ./runs",
 		"evals": "npm run evals --workspace=packages/evals --",
 		"craftabot": "node packages/harness/dist/main.js"
 	},
