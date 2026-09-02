@@ -105,6 +105,8 @@ export const modelArmorService: GuardrailService = {
 	],
 	/** `csam` is never dialable (`25-…` §4.3). */
 	alwaysStop: ['csam'],
+	/** Confirmed by WP35's live checkpoint (`25-…` §11 stage B): the regional endpoint answers a browser's preflight. */
+	browserCapable: true,
 	configSchema: armorServiceConfigSchema,
 	create: ({ config, fetch, getCredential, timeoutMs }) => {
 		const parsed = armorServiceConfigSchema.parse(config);

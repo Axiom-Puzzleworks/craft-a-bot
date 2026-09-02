@@ -115,6 +115,13 @@ export interface GuardrailService {
 	egress: EgressDeclaration[];
 	/** Vendor labels that stop the run regardless of any dial — `csam` for Model Armor (`29-…` §8 D-c). */
 	alwaysStop?: string[];
+	/**
+	 * Whether a browser can call this service directly (`30-…` stage B): set
+	 * from a live CORS checkpoint, `false` until one has been taken. When
+	 * `false`, the harness is the host that runs it live; the browser runs it
+	 * offline. Omitted means unknown.
+	 */
+	browserCapable?: boolean;
 	/** Zod for the service block of a fitted brick's config (project/region/template; guardrail id/version; policy path …). */
 	configSchema: z.ZodType<unknown>;
 	/** A live client. `fetch` and `getCredential` come from `BrickRuntimeContext`; `config` has already passed `configSchema`. */

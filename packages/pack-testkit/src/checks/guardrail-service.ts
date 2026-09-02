@@ -2,6 +2,7 @@ import {
 	describeGuardrailServiceProblems,
 	externalOutcomeKindSchema,
 	hostMatches,
+	hostOf,
 	type GuardrailService,
 	type ScreenResult
 } from '@craftabot/core';
@@ -144,15 +145,6 @@ export async function checkGuardrailService(
 	}
 
 	return issues;
-}
-
-function hostOf(input: string | URL | Request): string {
-	try {
-		const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
-		return new URL(url).host;
-	} catch {
-		return String(input);
-	}
 }
 
 export { hostMatches };

@@ -1,6 +1,8 @@
 import { createPackRegistry, type PackRegistry } from '@craftabot/core';
 import anthropicPack from '@craftabot/pack-anthropic';
+import azureContentSafetyPack from '@craftabot/pack-azure-content-safety';
 import geapPack from '@craftabot/pack-geap';
+import guardLocalPack from '@craftabot/pack-guard-local';
 import geminiPack from '@craftabot/pack-gemini';
 import monitorPack from '@craftabot/pack-monitor';
 import ollamaPack from '@craftabot/pack-ollama';
@@ -86,6 +88,9 @@ export const installedPacks = [
 	monitorPack,
 	workshopPack,
 	geapPack,
+	// WP42 (`30-SECOND-VENDORS.md`): two more guard services, fitted through `workshop/guard`.
+	guardLocalPack,
+	azureContentSafetyPack,
 	demoPack
 ];
 
