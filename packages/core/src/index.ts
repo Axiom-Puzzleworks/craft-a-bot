@@ -167,6 +167,8 @@ export {
 	assistantToolCallSchema,
 	chatMessageSchema,
 	chatResponseSchema,
+	externalCallRecordSchema,
+	externalOutcomeKindSchema,
 	guardrailHookSchema,
 	guardrailVerdictSchema,
 	observationSchema,
@@ -174,6 +176,7 @@ export {
 	runOutcomeSchema,
 	usageSchema,
 	type AssistantToolCall,
+	type ExternalOutcomeKind,
 	type ProposedStep,
 	type TokenUsage
 } from './schemas/shared.js';

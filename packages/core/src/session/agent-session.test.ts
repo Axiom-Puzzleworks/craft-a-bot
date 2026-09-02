@@ -7,7 +7,7 @@ import { migrateAgentSpec } from '../schemas/agent-spec-v2.js';
 import type { AgentSpec } from '../schemas/agent-spec.js';
 import type { EngineEvent } from '../schemas/events.js';
 import type { BrickKindDefinition } from '../types/brick.js';
-import type { Guardrail, GuardrailVerdict } from '../types/guardrail.js';
+import type { Guardrail, GuardrailHook, GuardrailVerdict } from '../types/guardrail.js';
 import type { ToolDefinition } from '../types/tool.js';
 import type { WorldDefinition, WorldInstance } from '../types/world.js';
 
@@ -1639,6 +1639,49 @@ describe('pause', () => {
 });
 
 describe('guardrails', () => {
+	/**
+	 * WP39 stage A (`29-GUARD-SHELL.md` §4.2): what the tick has in hand
+	 * reaches every hook — the observation from SENSE, the composed prompt
+	 * from COMPOSE, the brain's answer from THINK — and nothing arrives
+	 * before it exists.
+	 */
+	it('hands each hook the observation, the prompt and the response the tick has so far', async () => {
+		const seen: Array<{
+			hook: GuardrailHook;
+			observation: boolean;
+			messages: number | undefined;
+			response: string | undefined;
+		}> = [];
+		const recorder: Guardrail = {
+			id: 'test/recorder',
+			name: 'Recorder',
+			description: 'Notes what each hook is handed.',
+			hooks: ['pre-think', 'pre-act', 'post-act'],
+			check: (ctx) => {
+				seen.push({
+					hook: ctx.hook,
+					observation: ctx.observation !== undefined && ctx.observation.text.length > 0,
+					messages: ctx.messages?.length,
+					response: ctx.response?.text
+				});
+				return Promise.resolve({ allow: true });
+			}
+		};
+		const { session } = makeSession({
+			script: [turn('Ping.', 'ping')],
+			guardrails: [recorder]
+		});
+		await session.step();
+
+		expect(seen.map((s) => s.hook)).toEqual(['pre-think', 'pre-act', 'post-act']);
+		for (const entry of seen) expect(entry.observation).toBe(true);
+		expect(seen[0]?.messages).toBeGreaterThan(0);
+		expect(seen[0]?.response).toBeUndefined();
+		expect(seen[1]?.response).toBe('Ping.');
+		expect(seen[2]?.response).toBe('Ping.');
+		expect(seen[2]?.messages).toBe(seen[0]?.messages);
+	});
+
 	const stopEverything: Guardrail = {
 		id: 'test/stop',
 		name: 'Stop',

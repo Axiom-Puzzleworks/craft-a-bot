@@ -140,7 +140,17 @@ export function otelTraceFor(run: RunRecord, events: readonly EngineEvent[]): Ot
 					stringAttr('gen_ai.evaluation.name', event.payload.guardrailId),
 					stringAttr('craft_a_bot.guardrail.service', event.payload.service),
 					stringAttr('craft_a_bot.guardrail.endpoint', event.payload.endpoint),
-					stringAttr('craft_a_bot.guardrail.template', event.payload.template),
+					// Optional since the record widened (WP39 stage A, `29-…` §4.1):
+					// a vendor writes the reference words it has, none of the rest.
+					...(event.payload.template !== undefined
+						? [stringAttr('craft_a_bot.guardrail.template', event.payload.template)]
+						: []),
+					...(event.payload.policyRef !== undefined
+						? [stringAttr('craft_a_bot.guardrail.policy_ref', event.payload.policyRef)]
+						: []),
+					...(event.payload.method !== undefined
+						? [stringAttr('craft_a_bot.guardrail.method', event.payload.method)]
+						: []),
 					stringAttr('craft_a_bot.guardrail.outcome', event.payload.outcome),
 					intAttr('craft_a_bot.guardrail.latency_ms', event.payload.latencyMs),
 					intAttr('craft_a_bot.guardrail.chars_screened', event.payload.charsScreened),

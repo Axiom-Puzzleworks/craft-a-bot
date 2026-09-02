@@ -372,12 +372,20 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		}
 	}
 
+	/**
+	 * What the current tick has in hand for guardrails (`29-…` §4.2): reset at
+	 * `tick.started`, filled as SENSE, COMPOSE and THINK happen. Spread into
+	 * every context of the tick so a hook sees exactly what exists by then.
+	 */
+	let inHand: Pick<GuardrailContext, 'observation' | 'messages' | 'response'> = {};
+
 	function guardrailContext(
 		hook: GuardrailHook,
 		proposed?: GuardrailContext['proposed']
 	): GuardrailContext {
 		return {
 			hook,
+			...inHand,
 			tick: run.tick,
 			spec,
 			usage: { ...usage },
@@ -660,6 +668,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		usage.ticks += 1;
 		run.tick = usage.ticks;
 		emit('tick.started', {});
+		inHand = {};
 		// Counted before anything happens, so "did it write this tick?" is a
 		// comparison rather than a guess (E8).
 		const notebookLinesAtTickStart = memory.writes();
@@ -671,6 +680,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		const worldChannels = senseChannelsForWorld(channels);
 		const observation = world.observe(worldChannels);
 		emit('sense', { channels: [...channels], observation });
+		inHand = { observation };
 
 		// REFLEX (WP30 stage A, If/Then) — a fitted brick may propose a call
 		// before the brain is ever asked. Checked here, right after SENSE,
@@ -718,6 +728,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			let messages = strategies.prompt.compose(promptInput);
 			run.feedback = [];
 			emit('prompt.composed', { messages, estimatedTokens: estimateTokens(messages) });
+			inHand = { ...inHand, messages };
 
 			// 3. GUARD (pre-think)
 			const preThink = await runGuards('pre-think');
@@ -737,6 +748,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			}
 
 			thought = decision.kind === 'malformed' ? '' : decision.thought;
+			inHand = { ...inHand, messages, response };
 			emit('decision', {
 				thought,
 				call: decision.kind === 'call' ? { ...decision.call } : null,

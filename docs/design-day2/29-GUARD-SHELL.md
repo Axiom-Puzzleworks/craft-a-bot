@@ -273,6 +273,8 @@ Unchanged. `createOffline` is the canned client; `latencyMs` is 0 offline (the g
 
 Stage-level notes are appended below as each lands.
 
+> **Amended 2026-09-02 (Stage A).** The widening landed as §4.1–§4.2 describe, with two notes. **`ExternalOutcomeKind` is a Zod enum in `schemas/shared.ts`** (`externalOutcomeKindSchema`), and the record's `outcome` is built from it plus the four reading outcomes, so the two sets cannot drift; `pack-geap`'s `ArmorErrorKind` is proven assignable both ways in `record-compat.test.ts`, which also parses every event and every `guardrail.external` row of the golden trace through the widened schemas. **The session threads the three fields through one closure value** (`inHand`, reset at `tick.started`, set after SENSE, COMPOSE and THINK) spread into every context of the tick, rather than three new parameters on `guardrailContext`; `agent-session.test.ts` proves `pre-think` sees the observation and the prompt but no response, and `pre-act`/`post-act` see all three. One consumer needed a change: the Audit Centre's OTel export wrote `template` unconditionally and now writes `template`, `policyRef` and `method` each only when present. Gate: core 39 files / 580 tests with thresholds; geap 12 / 166; both golden traces byte-identical; every package's suite, `npm run lint` (28 tasks) and the full build green.
+
 ---
 
 ## 9. Risk register
