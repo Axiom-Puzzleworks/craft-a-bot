@@ -25,7 +25,8 @@
 		"budget": "node scripts/bundle-budget.mjs",
 		"smoke:openai": "npm run smoke --workspace=@craftabot/pack-openai",
 		"smoke:geap": "npm run smoke --workspace=@craftabot/pack-geap",
-		"evals": "npm run evals --workspace=packages/evals --"
+		"evals": "npm run evals --workspace=packages/evals --",
+		"craftabot": "node packages/harness/dist/main.js"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",

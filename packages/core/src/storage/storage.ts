@@ -19,7 +19,8 @@ import type { RunRecord } from '../schemas/trace-file.js';
 export const DEFAULT_RUN_CAP = 50;
 
 export interface Storage {
-	readonly kind: 'indexeddb' | 'memory';
+	/** `'file'` is the headless host's directory store (WP37, `26-…` §6.8). */
+	readonly kind: 'indexeddb' | 'memory' | 'file';
 
 	listAgents(): Promise<AgentRecord[]>;
 	getAgent(id: string): Promise<AgentRecord | undefined>;
