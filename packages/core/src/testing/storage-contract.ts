@@ -3,6 +3,7 @@ import type { Storage } from '../storage/storage.js';
 import {
 	makeAgent,
 	makeCampaignReport,
+	makeEvaluation,
 	makeEvent,
 	makeGroupRun,
 	makeRun,
@@ -317,6 +318,63 @@ export function describeStorageContract(name: string, open: () => Promise<Storag
 				const fetched = await storage.getCampaignReport(report.id);
 				if (fetched) fetched.title = 'Tampered';
 				expect((await storage.getCampaignReport(report.id))?.title).toBe('Injection baseline');
+			});
+		});
+
+		/** WP43 — evaluations live beside their run and go with it. */
+		describe('evaluations', () => {
+			it('round-trips an evaluation, listed by run and all together', async () => {
+				const storage = await open();
+				const mine = makeEvaluation({ id: uuid(501), runId: uuid(1) });
+				const other = makeEvaluation({ id: uuid(502), runId: uuid(2) });
+				await storage.putEvaluation(mine);
+				await storage.putEvaluation(other);
+				expect(await storage.listEvaluations(uuid(1))).toEqual([mine]);
+				expect(await storage.listEvaluations(uuid(999))).toEqual([]);
+				expect((await storage.listAllEvaluations()).map((r) => r.id).sort()).toEqual([
+					uuid(501),
+					uuid(502)
+				]);
+			});
+
+			it('refuses an evaluation that fails its schema', async () => {
+				const storage = await open();
+				await expect(
+					storage.putEvaluation(
+						makeEvaluation({ result: { evaluatorId: '', explanation: 'x', evidence: [] } })
+					)
+				).rejects.toThrow();
+			});
+
+			it("deletes a run's evaluations on request, with the run, and on eviction", async () => {
+				const storage = await open();
+				const run = makeRun({ id: uuid(1) });
+				await storage.putRun(run);
+				await storage.putEvaluation(makeEvaluation({ id: uuid(503), runId: run.id }));
+				await storage.putEvaluation(makeEvaluation({ id: uuid(504), runId: uuid(2) }));
+				await storage.deleteEvaluationsFor(uuid(2));
+				expect(await storage.listAllEvaluations()).toHaveLength(1);
+				await storage.deleteRun(run.id);
+				expect(await storage.listAllEvaluations()).toEqual([]);
+
+				const evicted = makeRun({ id: uuid(3), startedAt: '2020-01-01T00:00:00Z' });
+				await storage.putRun(evicted);
+				await storage.putEvaluation(makeEvaluation({ id: uuid(505), runId: evicted.id }));
+				await storage.evictOldRuns(0);
+				expect(await storage.listAllEvaluations()).toEqual([]);
+			});
+
+			it('is forgotten by clear(), and hands out no live references', async () => {
+				const storage = await open();
+				const record = makeEvaluation();
+				await storage.putEvaluation(record);
+				const fetched = (await storage.listEvaluations(record.runId))[0];
+				if (fetched) fetched.result.explanation = 'Tampered';
+				expect((await storage.listEvaluations(record.runId))[0]?.result.explanation).toBe(
+					'Nothing to see.'
+				);
+				await storage.clear();
+				expect(await storage.listAllEvaluations()).toEqual([]);
 			});
 		});
 

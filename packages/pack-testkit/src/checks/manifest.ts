@@ -48,6 +48,12 @@ export function checkManifest(
 	for (const service of manifest.guardrailServices ?? []) {
 		if (!service.id.startsWith(prefix)) unqualified.push(`guardrailService "${service.id}"`);
 	}
+	for (const evaluator of manifest.evaluators ?? []) {
+		if (!evaluator.id.startsWith(prefix)) unqualified.push(`evaluator "${evaluator.id}"`);
+	}
+	for (const card of manifest.assertionCards ?? []) {
+		if (!card.id.startsWith(prefix)) unqualified.push(`assertionCard "${card.id}"`);
+	}
 	if (unqualified.length > 0) {
 		issues.push({
 			check: 'manifest.ids-qualified',

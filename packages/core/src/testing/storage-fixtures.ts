@@ -5,6 +5,7 @@ import type {
 	AgentRecord,
 	GroupRunRecord,
 	RunSummary,
+	EvaluationRecord,
 	StoredCampaignReport
 } from '../schemas/records.js';
 import type { RunRecord } from '../schemas/trace-file.js';
@@ -146,6 +147,25 @@ export function makeCampaignReport(
 		gatesTotal: 13,
 		cells: 320,
 		report: { schemaVersion: 1, id: uuid(400), cells: [], gates: [] },
+		schemaVersion: 1,
+		...overrides
+	};
+}
+
+/** A stored evaluation (WP43) — one evaluator's verdict over one run. */
+export function makeEvaluation(overrides: Partial<EvaluationRecord> = {}): EvaluationRecord {
+	return {
+		id: uuid(500),
+		runId: uuid(1),
+		evaluatorId: 'test/always-pass',
+		result: {
+			evaluatorId: 'test/always-pass',
+			verdict: 'pass',
+			score: 1,
+			explanation: 'Nothing to see.',
+			evidence: [{ eventId: uuid(2), tick: 1 }]
+		},
+		evaluatedAt: '2026-09-02T12:00:00Z',
 		schemaVersion: 1,
 		...overrides
 	};

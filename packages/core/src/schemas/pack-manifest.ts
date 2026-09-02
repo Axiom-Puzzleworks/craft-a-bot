@@ -1,7 +1,9 @@
 import { z } from 'zod';
 import type { BrickKindDefinition } from '../types/brick.js';
 import type { Guardrail, GuardrailHook } from '../types/guardrail.js';
+import type { Evaluator } from '../types/evaluator.js';
 import type { GuardrailService } from '../types/guardrail-service.js';
+import type { AssertionCard } from './assertion-card.js';
 import type { ToolDefinition } from '../types/tool.js';
 import type { ProviderFactory } from '../types/provider.js';
 import type { WorldDefinition } from '../types/world.js';
@@ -184,6 +186,10 @@ export interface PackManifest extends PackManifestMetadata {
 	 * reason. A brick kind names one by qualified id.
 	 */
 	guardrailServices?: GuardrailService[];
+	/** Evaluators (`31-EVALUATORS.md` §4.1, WP43): what judges a finished trace. Function-valued like `providers`. */
+	evaluators?: Evaluator[];
+	/** Assertion cards a pack ships (WP43), the way it ships policy cards — the Test Bench and campaigns read them from the registry. */
+	assertionCards?: AssertionCard[];
 	/**
 	 * Policy cards (`14-…` §4.6, WP22) — declarative guardrail configs, data
 	 * rather than code. Registered content like everything else above: a

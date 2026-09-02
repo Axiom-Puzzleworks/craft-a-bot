@@ -8,10 +8,12 @@ import type {
 	PackManifestMetadata
 } from './schemas/pack-manifest.js';
 import type { PolicyCard } from './schemas/policy-card.js';
+import { describeEvaluatorProblems, type Evaluator } from './types/evaluator.js';
 import {
 	describeGuardrailServiceProblems,
 	type GuardrailService
 } from './types/guardrail-service.js';
+import type { AssertionCard } from './schemas/assertion-card.js';
 import type { ProviderFactory } from './types/provider.js';
 import type { ToolDefinition } from './types/tool.js';
 import type {
@@ -50,6 +52,10 @@ export interface PackRegistry {
 	getGuardrail(id: string): GuardrailDefinition | undefined;
 	/** A hosted guardrail service (`29-GUARD-SHELL.md` §4.3, WP39), by qualified id. */
 	getGuardrailService(id: string): GuardrailService | undefined;
+	/** An evaluator (`31-EVALUATORS.md` §4.1, WP43), by qualified id. */
+	getEvaluator(id: string): Evaluator | undefined;
+	/** An assertion card a pack shipped (WP43), by qualified id. */
+	getAssertionCard(id: string): AssertionCard | undefined;
 	/** Sense channels are declared per-world (02-AGENT-MODEL.md §4); this searches every registered world. */
 	getSenseChannel(id: string): WorldSenseDefinition | undefined;
 	/** Actions are declared per-world; this searches every registered world. */
@@ -65,6 +71,8 @@ export interface PackRegistry {
 	listWorlds(): WorldDefinition[];
 	listPolicyCards(): PolicyCard[];
 	listGuardrailServices(): GuardrailService[];
+	listEvaluators(): Evaluator[];
+	listAssertionCards(): AssertionCard[];
 	listProviderFactories(): ProviderFactory[];
 }
 
@@ -80,6 +88,8 @@ export function createPackRegistry(): PackRegistry {
 	const guardrails = new Map<string, GuardrailDefinition>();
 	const policyCards = new Map<string, PolicyCard>();
 	const guardrailServices = new Map<string, GuardrailService>();
+	const evaluators = new Map<string, Evaluator>();
+	const assertionCards = new Map<string, AssertionCard>();
 	const providers = new Map<string, ProviderFactory>();
 
 	function insertUnique<T>(map: Map<string, T>, id: string, value: T, kind: string): void {
@@ -123,6 +133,17 @@ export function createPackRegistry(): PackRegistry {
 			}
 			insertUnique(guardrailServices, service.id, service, 'guardrail service');
 		}
+		for (const evaluator of manifest.evaluators ?? []) {
+			const problems = describeEvaluatorProblems(evaluator);
+			if (problems.length > 0) {
+				throw new Error(
+					`Pack "${manifest.id}" ships an evaluator "${evaluator.id}" that ${problems.join(', ')}.`
+				);
+			}
+			insertUnique(evaluators, evaluator.id, evaluator, 'evaluator');
+		}
+		for (const card of manifest.assertionCards ?? [])
+			insertUnique(assertionCards, card.id, card, 'assertion card');
 		for (const provider of manifest.providers ?? [])
 			insertUnique(providers, provider.id, provider, 'provider');
 	}
@@ -185,6 +206,8 @@ export function createPackRegistry(): PackRegistry {
 		getAction,
 		getPolicyCard: (id) => policyCards.get(id),
 		getGuardrailService: (id) => guardrailServices.get(id),
+		getEvaluator: (id) => evaluators.get(id),
+		getAssertionCard: (id) => assertionCards.get(id),
 		getProviderFactory: (id) => providers.get(id),
 		listPacks: () => [...packs.values()],
 		listTools: () => [...tools.values()],
@@ -193,6 +216,8 @@ export function createPackRegistry(): PackRegistry {
 		listWorlds: () => [...worlds.values()],
 		listPolicyCards: () => [...policyCards.values()],
 		listGuardrailServices: () => [...guardrailServices.values()],
+		listEvaluators: () => [...evaluators.values()],
+		listAssertionCards: () => [...assertionCards.values()],
 		listProviderFactories: () => [...providers.values()]
 	};
 }

@@ -1,11 +1,13 @@
 import {
 	safeParseAgentRecord,
 	safeParseRunSummary,
+	safeParseEvaluationRecord,
 	safeParseStoredCampaignReport,
 	safeParseStoredEvent,
 	type AgentRecord,
 	type GroupRunRecord,
 	type RunSummary,
+	type EvaluationRecord,
 	type StoredCampaignReport,
 	type StoredEvent
 } from '../schemas/records.js';
@@ -45,6 +47,7 @@ export function createMemoryStorage(): MemoryStorage {
 	const events = new Map<string, StoredEvent[]>();
 	const summaries = new Map<string, RunSummary>();
 	const campaigns = new Map<string, StoredCampaignReport>();
+	const evaluations = new Map<string, EvaluationRecord>();
 	const quarantine = emptyQuarantine();
 
 	return {
@@ -88,6 +91,7 @@ export function createMemoryStorage(): MemoryStorage {
 			runs.delete(id);
 			events.delete(id);
 			summaries.delete(id);
+			for (const [key, record] of evaluations) if (record.runId === id) evaluations.delete(key);
 			return Promise.resolve();
 		},
 		setRunPinned(id, pinned) {
@@ -169,12 +173,33 @@ export function createMemoryStorage(): MemoryStorage {
 			return Promise.resolve();
 		},
 
+		putEvaluation(record) {
+			const parsed = safeParseEvaluationRecord(record);
+			if (!parsed.success) {
+				return Promise.reject(
+					new Error(`Refusing to store an invalid evaluation: ${parsed.error.message}`)
+				);
+			}
+			evaluations.set(record.id, structuredClone(record));
+			return Promise.resolve();
+		},
+		listEvaluations: (runId) =>
+			Promise.resolve(
+				[...evaluations.values()].filter((record) => record.runId === runId).map(copy)
+			),
+		listAllEvaluations: () => Promise.resolve([...evaluations.values()].map(copy)),
+		deleteEvaluationsFor(runId) {
+			for (const [id, record] of evaluations) if (record.runId === runId) evaluations.delete(id);
+			return Promise.resolve();
+		},
+
 		async evictOldRuns(cap = DEFAULT_RUN_CAP) {
 			const doomed = selectRunsToEvict([...runs.values()], cap);
 			for (const id of doomed) {
 				runs.delete(id);
 				events.delete(id);
 				summaries.delete(id);
+				for (const [key, record] of evaluations) if (record.runId === id) evaluations.delete(key);
 			}
 			return Promise.resolve(doomed);
 		},
@@ -186,6 +211,7 @@ export function createMemoryStorage(): MemoryStorage {
 			events.clear();
 			summaries.clear();
 			campaigns.clear();
+			evaluations.clear();
 			return Promise.resolve();
 		}
 	};

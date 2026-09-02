@@ -27,6 +27,15 @@ export type {
 	ToolSchema
 } from './types/provider.js';
 export {
+	describeEvaluatorProblems,
+	type EvaluationEvidence,
+	type EvaluationInput,
+	type EvaluationResult,
+	type EvaluationVerdict,
+	type Evaluator,
+	type EvaluatorDeps
+} from './types/evaluator.js';
+export {
 	EgressRefusedError,
 	createEgressGuard,
 	hostMatches,
@@ -219,16 +228,21 @@ export {
 	parseAgentRecord,
 	safeParseAgentRecord,
 	safeParseRunSummary,
+	safeParseEvaluationRecord,
 	safeParseStoredCampaignReport,
 	safeParseStoredEvent,
 	runSummaryFindingSchema,
 	runSummarySchema,
+	evaluationRecordSchema,
+	evaluationResultSchema,
 	storedCampaignReportSchema,
 	storedEventSchema,
 	type AgentRecord,
 	type GroupRunRecord,
 	type RunSummary,
 	type RunSummaryFinding,
+	type EvaluationRecord,
+	type EvaluationResultRecord,
 	type StoredCampaignReport,
 	type StoredEvent
 } from './schemas/records.js';

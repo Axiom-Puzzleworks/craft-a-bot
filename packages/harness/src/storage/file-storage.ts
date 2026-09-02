@@ -8,6 +8,7 @@ import {
 	migrateAgentRecord,
 	safeParseAgentRecord,
 	safeParseRunSummary,
+	safeParseEvaluationRecord,
 	safeParseStoredCampaignReport,
 	safeParseStoredEvent,
 	selectRunsToEvict,
@@ -18,6 +19,7 @@ import {
 	type RunRecord,
 	type RunSummary,
 	type Storage,
+	type EvaluationRecord,
 	type StoredCampaignReport,
 	type StoredEvent
 } from '@craftabot/core';
@@ -38,7 +40,8 @@ import {
  *   runs/<runId>/run.json          RunRecord
  *   runs/<runId>/events.jsonl      one StoredEvent per line, in seq order
  *   runs/<runId>/summary.json      RunSummary, once the run has finished
- $1 *   campaigns/<reportId>.json     StoredCampaignReport (WP38 — the envelope, the report opaque inside)
+ *   runs/<runId>/evaluations.jsonl one EvaluationRecord per line (WP43)
+ *   campaigns/<reportId>.json     StoredCampaignReport (WP38 — the envelope, the report opaque inside)
  * ```
  *
  * Reads validate and quarantine bad rows rather than throwing (07 §1.5), as
@@ -71,6 +74,7 @@ export async function createFileStorage(root: string): Promise<FileStorage> {
 	const runPath = (id: string) => join(runDir(id), 'run.json');
 	const eventsPath = (id: string) => join(runDir(id), 'events.jsonl');
 	const summaryPath = (id: string) => join(runDir(id), 'summary.json');
+	const evaluationsPath = (id: string) => join(runDir(id), 'evaluations.jsonl');
 	const groupRunPath = (id: string) => join(root, GROUP_RUNS, `${id}.json`);
 	const campaignPath = (id: string) => join(root, CAMPAIGNS, `${id}.json`);
 
@@ -136,6 +140,27 @@ export async function createFileStorage(root: string): Promise<FileStorage> {
 			else quarantine.events += 1;
 		}
 		return valid.sort((a, b) => a.seq - b.seq);
+	}
+
+	async function readEvaluations(runId: string): Promise<EvaluationRecord[]> {
+		let text: string;
+		try {
+			text = await readFile(evaluationsPath(runId), 'utf8');
+		} catch (error) {
+			if (isMissing(error)) return [];
+			throw error;
+		}
+		const valid: EvaluationRecord[] = [];
+		for (const line of text.split('\n')) {
+			if (line.trim() === '') continue;
+			try {
+				const parsed = safeParseEvaluationRecord(JSON.parse(line));
+				if (parsed.success) valid.push(parsed.data);
+			} catch {
+				// a corrupt line is skipped, as a corrupt event line is
+			}
+		}
+		return valid;
 	}
 
 	async function removeRunDir(id: string): Promise<void> {
@@ -310,6 +335,30 @@ export async function createFileStorage(root: string): Promise<FileStorage> {
 		},
 		async deleteCampaignReport(id) {
 			await rm(campaignPath(id), { force: true });
+		},
+
+		async putEvaluation(record) {
+			const parsed = safeParseEvaluationRecord(record);
+			if (!parsed.success) {
+				throw new Error(`Refusing to store an invalid evaluation: ${parsed.error.message}`);
+			}
+			// The same id replaces its earlier line: rewrite rather than append.
+			const kept = (await readEvaluations(record.runId)).filter((row) => row.id !== record.id);
+			await mkdir(runDir(record.runId), { recursive: true });
+			await writeFile(
+				evaluationsPath(record.runId),
+				[...kept, record].map((row) => JSON.stringify(row)).join('\n') + '\n',
+				'utf8'
+			);
+		},
+		listEvaluations: readEvaluations,
+		async listAllEvaluations() {
+			const all: EvaluationRecord[] = [];
+			for (const id of await listRunIds()) all.push(...(await readEvaluations(id)));
+			return all;
+		},
+		async deleteEvaluationsFor(runId) {
+			await rm(evaluationsPath(runId), { force: true });
 		},
 
 		async evictOldRuns(cap = DEFAULT_RUN_CAP) {

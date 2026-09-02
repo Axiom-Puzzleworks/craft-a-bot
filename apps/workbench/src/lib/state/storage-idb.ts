@@ -2,6 +2,7 @@ import {
 	migrateAgentRecord,
 	safeParseAgentRecord,
 	safeParseRunSummary,
+	safeParseEvaluationRecord,
 	safeParseStoredCampaignReport,
 	safeParseStoredEvent,
 	type AgentRecord,
@@ -9,6 +10,7 @@ import {
 	type GroupRunRecord,
 	type RunRecord,
 	type RunSummary,
+	type EvaluationRecord,
 	type StoredCampaignReport,
 	type StoredEvent
 } from '@craftabot/core';
@@ -33,7 +35,7 @@ import {
  */
 
 export const DATABASE_NAME = 'craftabot';
-export const DATABASE_VERSION = 4;
+export const DATABASE_VERSION = 5;
 
 interface CraftABotDB extends DBSchema {
 	agents: { key: string; value: AgentRecord };
@@ -42,6 +44,7 @@ interface CraftABotDB extends DBSchema {
 	groupRuns: { key: string; value: GroupRunRecord; indexes: { startedAt: string } };
 	runSummaries: { key: string; value: RunSummary };
 	campaigns: { key: string; value: StoredCampaignReport };
+	evaluations: { key: string; value: EvaluationRecord; indexes: { runId: string } };
 }
 
 export interface IdbStorage extends Storage {
@@ -82,6 +85,11 @@ function upgrade(db: IDBPDatabase<CraftABotDB>, oldVersion: number): void {
 	// shows, the report opaque inside; outside the run cap.
 	if (oldVersion < 4) {
 		db.createObjectStore('campaigns', { keyPath: 'id' });
+	}
+	// Evaluations (WP43, `31-EVALUATORS.md` §4.1) — one evaluator's verdict over one run, indexed by run.
+	if (oldVersion < 5) {
+		const evaluations = db.createObjectStore('evaluations', { keyPath: 'id' });
+		evaluations.createIndex('runId', 'runId');
 	}
 }
 
@@ -139,6 +147,7 @@ export async function createIdbStorage(name = DATABASE_NAME): Promise<IdbStorage
 			await db.delete('runs', id);
 			await db.delete('runSummaries', id);
 			await deleteEventsFor(db, id);
+			await deleteEvaluationsIn(db, id);
 		},
 		async setRunPinned(id, pinned) {
 			const run = await db.get('runs', id);
@@ -213,12 +222,24 @@ export async function createIdbStorage(name = DATABASE_NAME): Promise<IdbStorage
 			await db.delete('campaigns', id);
 		},
 
+		async putEvaluation(record) {
+			const parsed = safeParseEvaluationRecord(record);
+			if (!parsed.success) {
+				throw new Error(`Refusing to store an invalid evaluation: ${parsed.error.message}`);
+			}
+			await db.put('evaluations', record);
+		},
+		listEvaluations: (runId) => db.getAllFromIndex('evaluations', 'runId', runId),
+		listAllEvaluations: () => db.getAll('evaluations'),
+		deleteEvaluationsFor: (runId) => deleteEvaluationsIn(db, runId),
+
 		async evictOldRuns(cap = DEFAULT_RUN_CAP) {
 			const doomed = selectRunsToEvict(await readRuns(), cap);
 			for (const id of doomed) {
 				await db.delete('runs', id);
 				await db.delete('runSummaries', id);
 				await deleteEventsFor(db, id);
+				await deleteEvaluationsIn(db, id);
 			}
 			return doomed;
 		},
@@ -230,8 +251,15 @@ export async function createIdbStorage(name = DATABASE_NAME): Promise<IdbStorage
 			await db.clear('events');
 			await db.clear('runSummaries');
 			await db.clear('campaigns');
+			await db.clear('evaluations');
 		}
 	};
+}
+
+/** Every evaluation stored for a run (WP43), by the `runId` index. */
+async function deleteEvaluationsIn(db: IDBPDatabase<CraftABotDB>, runId: string): Promise<void> {
+	const keys = await db.getAllKeysFromIndex('evaluations', 'runId', runId);
+	for (const key of keys) await db.delete('evaluations', key);
 }
 
 async function deleteEventsFor(db: IDBPDatabase<CraftABotDB>, runId: string): Promise<void> {

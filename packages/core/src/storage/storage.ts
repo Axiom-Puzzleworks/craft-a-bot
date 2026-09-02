@@ -3,6 +3,7 @@ import type {
 	AgentRecord,
 	GroupRunRecord,
 	RunSummary,
+	EvaluationRecord,
 	StoredCampaignReport,
 	StoredEvent
 } from '../schemas/records.js';
@@ -85,6 +86,16 @@ export interface Storage {
 	getCampaignReport(id: string): Promise<StoredCampaignReport | undefined>;
 	listCampaignReports(): Promise<StoredCampaignReport[]>;
 	deleteCampaignReport(id: string): Promise<void>;
+
+	/**
+	 * Evaluations (`31-EVALUATORS.md` §4.1, WP43): one evaluator's verdict
+	 * over one run, stored beside it. Deleting or evicting a run takes its
+	 * evaluations with it; `clear()` clears them.
+	 */
+	putEvaluation(record: EvaluationRecord): Promise<void>;
+	listEvaluations(runId: string): Promise<EvaluationRecord[]>;
+	listAllEvaluations(): Promise<EvaluationRecord[]>;
+	deleteEvaluationsFor(runId: string): Promise<void>;
 
 	/**
 	 * Trim unpinned runs oldest-first until at most `cap` remain, deleting their

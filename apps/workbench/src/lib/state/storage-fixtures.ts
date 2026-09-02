@@ -6,6 +6,7 @@ export {
 	makeAgent,
 	makeAgentV1,
 	makeCampaignReport,
+	makeEvaluation,
 	makeEvent,
 	makeGroupRun,
 	makeRun,
