@@ -27,6 +27,8 @@ export type ChargeState = 'empty' | 'unchecked' | 'checking' | 'charged' | 'flat
 
 export interface BatteryBay {
 	readonly charge: ChargeState;
+	/** Seconds a timed credential has left — `undefined` for an untimed key (WP41, `26-…` §6.11). */
+	readonly secondsRemaining: number | undefined;
 	readonly message: string;
 	readonly hasKey: boolean;
 	insert(key: string): Promise<void>;
@@ -68,6 +70,11 @@ export function createBatteryBay(deps: BatteryBayDeps): BatteryBay {
 		},
 		get hasKey() {
 			return state.hasKey;
+		},
+		get secondsRemaining() {
+			const expiresAt = vault.expiry(providerId);
+			if (expiresAt === undefined) return undefined;
+			return Math.max(0, Math.round((expiresAt - Date.now()) / 1000));
 		},
 
 		async insert(key) {

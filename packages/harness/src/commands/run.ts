@@ -1,3 +1,4 @@
+import type { EgressMode } from '@craftabot/core';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import {
@@ -59,6 +60,8 @@ export interface RunKitOptions {
 	newId?: () => string;
 	/** Injected `fetch` for a live brain, as every provider pack's own tests do. */
 	fetch?: typeof globalThis.fetch;
+	/** The session's egress mode (WP41): `'declared'` by default, `'none'` for a run that must not touch the network. */
+	egress?: EgressMode;
 }
 
 export interface RunKitReport {
@@ -113,6 +116,7 @@ export async function runKit(options: RunKitOptions): Promise<RunKitReport> {
 			tickDelayMs: 0,
 			...(options.newId ? { newId: options.newId } : {}),
 			...(options.fetch ? { fetch: options.fetch } : {}),
+			egress: options.egress ?? 'declared',
 			...(options.maxTicks !== undefined ? { budgets: { maxTicks: options.maxTicks } } : {})
 		}
 	});

@@ -1680,6 +1680,132 @@ it('lets a fitted brick resolve a guardrail service when the session builds it',
 	expect(resolved).toBe('tiny/stub');
 });
 
+/** WP41 (`26-…` §6.6): the session hands out a guarded `fetch`; a call to an undeclared host is refused on the trace. */
+describe('egress', () => {
+	function callingProvider(url: string) {
+		const calls: string[] = [];
+		const provider = {
+			id: 'caller',
+			name: 'Caller',
+			keyRequirement: 'none' as const,
+			egress: [
+				{ host: 'api.declared.test', purpose: 'LLM completions', sends: ['prompt' as const] }
+			],
+			validateKey: () => Promise.resolve({ ok: true, message: '' }),
+			chat: async () => {
+				calls.push(url);
+				await fetchSeen(url);
+				return { text: 'Ping.', toolCalls: [], usage: { inputTokens: 1, outputTokens: 1 } };
+			}
+		};
+		let fetchSeen: (url: string) => Promise<unknown> = () => Promise.resolve();
+		return { provider, calls, useFetch: (f: typeof fetchSeen) => (fetchSeen = f) };
+	}
+
+	function sessionWith(egress: 'declared' | 'none' | undefined, url: string) {
+		const registry = buildRegistry();
+		const upstreamCalls: string[] = [];
+		const upstream: typeof fetch = (input) => {
+			upstreamCalls.push(String(input));
+			return Promise.resolve(new Response('{}'));
+		};
+		const { provider, useFetch } = callingProvider(url);
+		let guarded: typeof fetch | undefined;
+		// A brick that keeps the session's fetch so the provider stub can use it.
+		registry.registerPack({
+			id: 'keeper',
+			name: 'Keeper',
+			version: '1.0.0',
+			requiresCore: '>=0.0.1',
+			brickKinds: [
+				{
+					id: 'keeper/keep',
+					slot: 'safety',
+					name: 'Keep',
+					description: 'Keeps the fetch.',
+					realName: 'Keep',
+					realExplanation: 'Keeps the fetch.',
+					configSchema: z.object({}),
+					configVersion: 1,
+					defaults: {},
+					createRuntime: (_config: unknown, ctx) => {
+						guarded = ctx.fetch;
+						return {
+							egress: [
+								{ host: 'guard.declared.test', purpose: 'content screening', sends: ['decision'] }
+							]
+						};
+					}
+				} as BrickKindDefinition
+			]
+		});
+		useFetch((target) => (guarded ?? upstream)(target));
+		const spec = toSpecV2(buildSpec());
+		spec.bricks.push({ slot: 'safety', kind: 'keeper/keep', configVersion: 1, config: {} });
+		const session = createSession({
+			spec,
+			registry,
+			provider: provider as unknown as Parameters<typeof createSession>[0]['provider'],
+			guardrails: [],
+			options: { fetch: upstream, ...(egress !== undefined ? { egress } : {}) }
+		});
+		const log: EngineEvent[] = [];
+		session.events.onAny((event) => log.push(event));
+		return { session, log, upstreamCalls };
+	}
+
+	it('allows a declared host, and records the mode and every declared host on run.started', async () => {
+		const { session, log, upstreamCalls } = sessionWith('declared', 'https://api.declared.test/v1');
+		await session.step();
+		expect(upstreamCalls).toEqual(['https://api.declared.test/v1']);
+		const started = log.find((e) => e.type === 'run.started');
+		expect(started?.type === 'run.started' ? started.payload.egress : undefined).toEqual({
+			mode: 'declared',
+			hosts: ['api.declared.test', 'guard.declared.test']
+		});
+		expect(log.some((e) => e.type === 'error')).toBe(false);
+	});
+
+	it('refuses a planted undeclared host with an error event naming it, and no upstream call', async () => {
+		const { session, log, upstreamCalls } = sessionWith(
+			'declared',
+			'https://evil.example.test/exfil'
+		);
+		await session.step();
+		expect(upstreamCalls).toEqual([]);
+		const error = log.find((e) => e.type === 'error');
+		expect(error?.type === 'error' ? error.payload : undefined).toEqual({
+			kind: 'egress-refused',
+			message:
+				'Refused a call to "evil.example.test": no fitted component declared it (egress: declared).'
+		});
+	});
+
+	it('under none refuses even a declared host', async () => {
+		const { session, log, upstreamCalls } = sessionWith('none', 'https://api.declared.test/v1');
+		await session.step();
+		expect(upstreamCalls).toEqual([]);
+		// One `error` row — the guard's; the run's own terminal error is the same
+		// refusal and is not written twice.
+		expect(
+			log.filter((e) => e.type === 'error').map((e) => (e.type === 'error' ? e.payload.kind : ''))
+		).toEqual(['egress-refused']);
+		const started = log.find((e) => e.type === 'run.started');
+		expect(started?.type === 'run.started' ? started.payload.egress?.mode : undefined).toBe('none');
+	});
+
+	it('guards by default, but writes nothing on run.started until a host names a mode', async () => {
+		const { session, log, upstreamCalls } = sessionWith(
+			undefined,
+			'https://evil.example.test/exfil'
+		);
+		await session.step();
+		expect(upstreamCalls).toEqual([]);
+		const started = log.find((e) => e.type === 'run.started');
+		expect(started?.type === 'run.started' ? 'egress' in started.payload : undefined).toBe(false);
+	});
+});
+
 describe('guardrails', () => {
 	/** WP40 (`26-…` §6.13): a safety stack runs every brick's rules, in fitted order, at every hook, before the host's. */
 	it('runs a stack of safety bricks in fitted order at each hook, brick rules before host rules', async () => {
@@ -2167,7 +2293,7 @@ describe('guardrails', () => {
 			expect(seenFetch[0]).toBeTypeOf('function');
 		});
 
-		it('gives every runtime an injected fetch when options.fetch is supplied, for testability', () => {
+		it('gives every runtime an injected fetch when options.fetch is supplied, for testability', async () => {
 			const registry = buildRegistry();
 			const seenFetch: unknown[] = [];
 			const fakeFetch = (() =>
@@ -2203,7 +2329,14 @@ describe('guardrails', () => {
 				guardrails: [],
 				options: { fetch: fakeFetch }
 			});
-			expect(seenFetch[0]).toBe(fakeFetch);
+			// Since WP41 the runtime gets the egress guard *over* the injected
+			// fetch, never the platform global: a declared host reaches the
+			// injected one, an undeclared host is refused before it.
+			const handed = seenFetch[0] as typeof globalThis.fetch;
+			expect(handed).not.toBe(globalThis.fetch);
+			await expect(handed('https://anywhere.test/')).rejects.toMatchObject({
+				kind: 'egress-refused'
+			});
 		});
 	});
 

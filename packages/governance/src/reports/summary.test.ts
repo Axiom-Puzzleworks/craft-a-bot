@@ -139,6 +139,35 @@ function busyRun(runId: string): EngineEvent[] {
 	];
 }
 
+/** WP41: `run.started.egress` is carried onto the summary when present, and absent otherwise. */
+describe('egress on the summary', () => {
+	it('carries the mode and the hosts, or nothing', () => {
+		const started = {
+			id: 'e1',
+			runId: 'r1',
+			agentId: 'a1',
+			tick: 0,
+			timestamp: '2026-09-02T12:00:00.000Z',
+			type: 'run.started',
+			payload: {
+				mode: 'step',
+				budgets: { maxTicks: 30, maxTokens: 1000, requestTimeoutMs: 1000 },
+				providerId: 'mock',
+				wireModel: 'mock',
+				cartridgeId: 'c',
+				strategies: { memory: 'm', prompt: 'p' },
+				egress: { mode: 'none', hosts: ['api.openai.com'] }
+			}
+		} as unknown as Parameters<typeof summariseRun>[1][number];
+		expect(summariseRun('r1', [started]).egress).toEqual({
+			mode: 'none',
+			hosts: ['api.openai.com']
+		});
+		const bare = { ...started, payload: { ...(started.payload as object), egress: undefined } };
+		expect('egress' in summariseRun('r1', [bare as typeof started])).toBe(false);
+	});
+});
+
 describe('summariseRun', () => {
 	it('counts every fact the reports read, once', () => {
 		const summary = summariseRun(uuid(1), busyRun(uuid(1)));

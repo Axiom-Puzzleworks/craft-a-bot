@@ -1,3 +1,4 @@
+import type { EgressMode } from '../egress.js';
 import type { AnyAgentSpec } from '../schemas/agent-spec-v2.js';
 import type { RunOutcome } from '../schemas/shared.js';
 import type { EventBus } from '../event-bus.js';
@@ -94,6 +95,15 @@ export interface SessionOptions {
 	 * fixture-backed stand-in the same way a provider pack's own tests do.
 	 */
 	fetch?: typeof globalThis.fetch;
+	/**
+	 * Where this run may send bytes (`26-…` §6.6, WP41). `'declared'` — the
+	 * default — allows exactly the hosts the provider and every fitted
+	 * runtime declared and refuses the rest; `'none'` refuses every call,
+	 * which is what CI runs. A refusal is an `error` event of kind
+	 * `egress-refused` and a rejected `fetch`, never a silent failure. When a
+	 * host names a mode, `run.started` records it and the allowed hosts.
+	 */
+	egress?: EgressMode;
 	/**
 	 * Override how context is kept and composed (E7, `14-…` §3).
 	 *

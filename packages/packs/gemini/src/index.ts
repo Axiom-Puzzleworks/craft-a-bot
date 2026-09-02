@@ -1,4 +1,4 @@
-import type { PackManifest } from '@craftabot/core';
+import type { EgressDeclaration, LLMProvider, PackManifest } from '@craftabot/core';
 import { GEMINI_KEYS_URL, GEMINI_PROVIDER_ID, geminiCartridges } from './catalogue.js';
 import { createGeminiProvider } from './provider.js';
 
@@ -8,6 +8,19 @@ import { createGeminiProvider } from './provider.js';
  * against `@craftabot/pack-openai`'s template and the provider registry
  * seam (`core/types/provider.ts`).
  */
+/** Where this pack sends bytes (`26-…` §6.6, WP41) — the session refuses any other host. */
+export const GEMINI_EGRESS: EgressDeclaration[] = [
+	{
+		host: 'generativelanguage.googleapis.com',
+		purpose: 'LLM completions',
+		sends: ['prompt', 'credential-header']
+	}
+];
+
+function withEgress(provider: LLMProvider, egress: EgressDeclaration[]): LLMProvider {
+	return { ...provider, egress };
+}
+
 export const geminiPack: PackManifest = {
 	id: 'gemini',
 	name: 'Gemini Model Cartridges',
@@ -19,8 +32,10 @@ export const geminiPack: PackManifest = {
 			id: GEMINI_PROVIDER_ID,
 			name: 'Gemini',
 			keyRequirement: 'required',
+			egress: GEMINI_EGRESS,
 			keysUrl: GEMINI_KEYS_URL,
-			create: ({ apiKey, fetch }) => createGeminiProvider({ apiKey, ...(fetch ? { fetch } : {}) })
+			create: ({ apiKey, fetch }) =>
+				withEgress(createGeminiProvider({ apiKey, ...(fetch ? { fetch } : {}) }), GEMINI_EGRESS)
 		}
 	]
 };

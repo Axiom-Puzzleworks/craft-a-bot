@@ -1,4 +1,4 @@
-import type { PackManifest } from '@craftabot/core';
+import type { EgressDeclaration, LLMProvider, PackManifest } from '@craftabot/core';
 import { OLLAMA_PROVIDER_ID, ollamaCartridges } from './catalogue.js';
 import { createOllamaProvider } from './provider.js';
 
@@ -13,6 +13,16 @@ import { createOllamaProvider } from './provider.js';
  * calls `create({apiKey: ''})` straight away rather than checking the vault
  * first, the same branch a keyless provider always takes.
  */
+/** Where this pack sends bytes (`26-…` §6.6, WP41) — the session refuses any other host. */
+export const OLLAMA_EGRESS: EgressDeclaration[] = [
+	{ host: 'localhost', purpose: 'LLM completions', sends: ['prompt'] },
+	{ host: '127.0.0.1', purpose: 'LLM completions', sends: ['prompt'] }
+];
+
+function withEgress(provider: LLMProvider, egress: EgressDeclaration[]): LLMProvider {
+	return { ...provider, egress };
+}
+
 export const ollamaPack: PackManifest = {
 	id: 'ollama',
 	name: 'Ollama Local Cartridges',
@@ -24,7 +34,9 @@ export const ollamaPack: PackManifest = {
 			id: OLLAMA_PROVIDER_ID,
 			name: 'Ollama',
 			keyRequirement: 'none',
-			create: ({ fetch }) => createOllamaProvider({ ...(fetch ? { fetch } : {}) })
+			egress: OLLAMA_EGRESS,
+			create: ({ fetch }) =>
+				withEgress(createOllamaProvider({ ...(fetch ? { fetch } : {}) }), OLLAMA_EGRESS)
 		}
 	]
 };

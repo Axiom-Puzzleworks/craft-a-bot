@@ -210,6 +210,8 @@ export const guardBrickKind: BrickKindDefinition<GuardConfig> = {
 		const parsed = service ? parseServiceConfig(service, config.serviceConfig) : undefined;
 		if (!service || !parsed || !parsed.ok) return { contributeGuardrails: () => floor };
 		return {
+			// Where the shell may call on this brick's behalf (WP41) — nothing when unplugged.
+			egress: config.screening.offline ? [] : service.egress,
 			contributeGuardrails: () => [
 				...floor,
 				...createHostedGuardrails({

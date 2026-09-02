@@ -207,6 +207,8 @@ export const runSummarySchema = z.object({
 	/** Decisions that proposed a call, and how many of those a hosted guard screened at `pre-act`. */
 	decisions: z.number().int().nonnegative(),
 	hostedPreActScreens: z.number().int().nonnegative(),
+	/** Where the run was allowed to call (WP41, `26-…` §6.6) — `run.started.egress`, when the host named a mode. */
+	egress: z.object({ mode: z.enum(['declared', 'none']), hosts: z.array(z.string()) }).optional(),
 	schemaVersion: z.literal(1)
 });
 export type RunSummary = z.infer<typeof runSummarySchema>;

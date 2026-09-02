@@ -33,11 +33,13 @@ describe('armorBrickKind — shape', () => {
 		expect(armorBrickKind.id).toBe('geap/armor');
 		expect(armorBrickKind.slot).toBe('safety');
 		expect(armorBrickKind.audience).toBe('workshop');
-		expect(armorBrickKind.credential).toEqual({
+		expect(armorBrickKind.credential).toMatchObject({
 			id: ARMOR_CREDENTIAL_ID,
 			name: 'Cloud Armour',
 			kind: 'oauth-token'
 		});
+		// "Test the guard" lives on the kind since WP41 (`26-…` §6.11).
+		expect(typeof armorBrickKind.credential?.validate).toBe('function');
 	});
 
 	it('carries both a toy face and a real face (00-… §6)', () => {

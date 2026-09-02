@@ -16,6 +16,15 @@ function io(env: NodeJS.ProcessEnv = {}): CliIo & { out: string; err: string } {
 	return sink;
 }
 
+/** WP41: `--egress` takes exactly two values; a typo must not widen what a run may call. */
+describe('--egress', () => {
+	it('refuses anything but declared or none', async () => {
+		const sink = io();
+		expect(await main(['run', '--kit', 'x.json', '--egress', 'everything'], sink)).toBe(1);
+		expect(sink.err).toContain('--egress must be "declared" or "none"');
+	});
+});
+
 describe('parseArgs', () => {
 	it('reads a command, --flag value, --flag=value, bare --flag and positionals', () => {
 		expect(parseArgs(['run', '--kit', 'bot.json', '--seed=7', 'extra', '--strict'])).toEqual({

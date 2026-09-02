@@ -58,6 +58,8 @@ export type { MatchedFilter } from './armor/strings.js';
 export { armorGuardrail, verdictFor } from './armor/guardrails.js';
 export type { ArmorTextSelector } from './armor/guardrails.js';
 
+export { KNOWN_INJECTION, validateArmourCredential } from './armor/validate.js';
+
 export {
 	ARMOR_CREDENTIAL_ID,
 	armorBrickKind,

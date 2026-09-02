@@ -1,3 +1,4 @@
+import type { EgressMode } from '@craftabot/core';
 import { z } from 'zod';
 import {
 	assertionCardSchema,
@@ -282,6 +283,8 @@ export interface RunCampaignOptions {
 		trace: { events: readonly EngineEvent[]; spec: AgentSpecV2 }
 	) => void;
 	betweenCells?: () => Promise<void>;
+	/** Every cell's session egress mode (WP41, `26-…` §6.6); the CI baseline runs `'none'`. */
+	egress?: EgressMode;
 }
 
 /** The same stride the matrix uses (`runner.ts`), for the same reason: a cell's ids depend only on its position. */
@@ -380,7 +383,8 @@ async function runCell(
 			stepLimit: (maxTicks ?? 30) + 10,
 			idOffset: cell.ordinal * ID_STRIDE,
 			...(maxTicks !== undefined ? { maxTicks } : {}),
-			...(brain.tier === 'live' ? { provider: providerForLive(brain, options) } : {})
+			...(brain.tier === 'live' ? { provider: providerForLive(brain, options) } : {}),
+			...(options.egress !== undefined ? { egress: options.egress } : {})
 		});
 
 		const started = run.events.find((event) => event.type === 'run.started');

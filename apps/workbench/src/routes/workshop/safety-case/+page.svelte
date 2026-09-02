@@ -171,6 +171,27 @@
 						.hostedScreening.decisions} decisions.
 				</p>
 			{/if}
+			<!-- Where the bot was allowed to call (WP41, `26-…` §6.6): one control row per declared host. -->
+			<h3 class="sub">Where it may call</h3>
+			{#if worksheet.egress.recordedRuns === 0}
+				<p class="status" data-testid="egress-unrecorded">No run has recorded its egress yet.</p>
+			{:else if worksheet.egress.hosts.length === 0}
+				<p class="status" data-testid="egress-none">
+					Nowhere — every recorded run allowed no network at all.
+				</p>
+			{:else}
+				<ul class="mono" data-testid="egress-hosts">
+					{#each worksheet.egress.hosts as host (host)}
+						<li>{host}</li>
+					{/each}
+				</ul>
+				{#if worksheet.egress.noNetworkRuns > 0}
+					<p class="status">
+						{worksheet.egress.noNetworkRuns} of {worksheet.egress.recordedRuns} recorded runs allowed
+						no network at all.
+					</p>
+				{/if}
+			{/if}
 		</section>
 
 		<section aria-labelledby="trust-h">

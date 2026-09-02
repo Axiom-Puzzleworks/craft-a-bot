@@ -9,7 +9,8 @@ import {
 	type LLMProvider,
 	type PackRegistry,
 	type RunOutcome,
-	type SessionOptions
+	type SessionOptions,
+	type EgressMode
 } from '@craftabot/core';
 import { createMockProvider, createTestClock, type MockScript } from '@craftabot/core/testing';
 import starterPack from '../index.js';
@@ -145,6 +146,8 @@ export interface RunOptions {
 	 * through this harness carries the same event and run ids.
 	 */
 	idOffset?: number;
+	/** The session's egress mode (WP41) — `'none'` is what a campaign in CI runs under. */
+	egress?: EgressMode;
 }
 
 /** Drives a session in step mode until it finishes, and hands back the trace. */
@@ -165,7 +168,8 @@ export async function runToCompletion(options: RunOptions): Promise<RunResult> {
 			newId: clock.newId,
 			random: clock.random,
 			...(options.maxTicks !== undefined ? { budgets: { maxTicks: options.maxTicks } } : {}),
-			...(options.strategies !== undefined ? { strategies: options.strategies } : {})
+			...(options.strategies !== undefined ? { strategies: options.strategies } : {}),
+			...(options.egress !== undefined ? { egress: options.egress } : {})
 		}
 	});
 

@@ -21,6 +21,7 @@ import {
 	transportReason
 } from './strings.js';
 import { decisionText, observationText, resultText } from './text.js';
+import { validateArmourCredential } from './validate.js';
 
 /**
  * **Model Armor as a `GuardrailService`** (`29-GUARD-SHELL.md` §4.5, WP39
@@ -89,7 +90,12 @@ export const modelArmorService: GuardrailService = {
 	description:
 		'Google Cloud Model Armor: screens text for prompt injection, harmful content, sensitive data and malicious links.',
 	hooks: ['pre-think', 'pre-act', 'post-act'],
-	credential: { id: ARMOR_CREDENTIAL_ID, name: 'Cloud Armour', kind: 'oauth-token' },
+	credential: {
+		id: ARMOR_CREDENTIAL_ID,
+		name: 'Cloud Armour',
+		kind: 'oauth-token',
+		validate: (secret, fetchImpl, config) => validateArmourCredential(secret, fetchImpl, config)
+	},
 	egress: [
 		{
 			host: 'modelarmor.*.rep.googleapis.com',

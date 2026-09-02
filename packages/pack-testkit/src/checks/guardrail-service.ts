@@ -1,6 +1,7 @@
 import {
 	describeGuardrailServiceProblems,
 	externalOutcomeKindSchema,
+	hostMatches,
 	type GuardrailService,
 	type ScreenResult
 } from '@craftabot/core';
@@ -154,10 +155,4 @@ function hostOf(input: string | URL | Request): string {
 	}
 }
 
-/** An egress `host` pattern against a real host: exact, or `*` standing for one label. */
-export function hostMatches(pattern: string, host: string): boolean {
-	const patternLabels = pattern.split('.');
-	const hostLabels = host.split('.');
-	if (patternLabels.length !== hostLabels.length) return false;
-	return patternLabels.every((label, i) => label === '*' || label === hostLabels[i]);
-}
+export { hostMatches };

@@ -41,6 +41,7 @@ import {
 	resolveReflex
 } from './brick-runtimes.js';
 import { createMemory, type TickMemory } from './memory.js';
+import { EgressRefusedError, createEgressGuard } from '../egress.js';
 import { describeFittedBricks, estimateTokens } from './prompt.js';
 import { resolveStrategies } from './strategies.js';
 
@@ -87,7 +88,21 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 	const newId = options.newId ?? (() => crypto.randomUUID());
 	const now = options.now ?? (() => new Date().toISOString());
 	const random = options.random ?? (() => Math.random());
-	const fetchImpl = options.fetch ?? globalThis.fetch.bind(globalThis);
+	/**
+	 * Every `fetch` a brick or the provider gets is the egress guard's
+	 * (`26-…` §6.6, WP41): allowed hosts are filled in as the runtimes are
+	 * built below, and a call to any other host is refused with an `error`
+	 * event on the trace before the rejection reaches the caller.
+	 */
+	const egressMode = options.egress ?? 'declared';
+	const egress = createEgressGuard({
+		mode: egressMode,
+		fetch: options.fetch ?? globalThis.fetch.bind(globalThis),
+		onRefused: (error) => {
+			if (run.status !== 'idle') emit('error', { message: error.message, kind: error.kind });
+		}
+	});
+	const fetchImpl = egress.fetch;
 	const getCredential = deps.getCredential ?? (() => undefined);
 	/**
 	 * Mutable, because the speed dial is a control a person turns *while
@@ -158,6 +173,8 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			getCredential
 		}
 	});
+	egress.allow(provider.egress ?? []);
+	for (const fitted of runtimes) egress.allow(fitted.runtime.egress ?? []);
 	const fittedBricks = describeFittedBricks(deps.spec, registry);
 
 	/*
@@ -928,7 +945,11 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			// (06-LLM-PROVIDERS.md §7). Passing it through means the trace says
 			// "bad-key" rather than a generic engine failure, which is what the
 			// friendly error copy in 03 §9 keys off.
-			emit('error', { message, kind: errorKind(error) });
+			// An egress refusal is already on the trace — the guard wrote it before
+			// the rejection reached the caller (WP41) — so it is not written twice.
+			if (!(error instanceof EgressRefusedError)) {
+				emit('error', { message, kind: errorKind(error) });
+			}
 			return finish('ERROR');
 		}
 	}
@@ -950,6 +971,12 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			providerId: provider.id,
 			wireModel: cartridgeModel(),
 			cartridgeId: brain?.cartridgeId ?? '',
+			// Written only when the host named a mode (WP41): the guard runs
+			// either way, but a trace written before the field existed — the
+			// golden traces among them — keeps its bytes.
+			...(options.egress !== undefined
+				? { egress: { mode: egressMode, hosts: egress.hosts() } }
+				: {}),
 			strategies: { memory: strategies.memory.id, prompt: strategies.prompt.id }
 		});
 		// The opening scene needs an event behind it too. Without this the UI would

@@ -74,6 +74,12 @@ export interface SafetyCase {
 	};
 	/** `undefined` when no `geap/armor` guardrail is fitted at all. */
 	hostedScreening: { fired: number; decisions: number } | undefined;
+	/**
+	 * Every host pattern any of this bot's runs was allowed to call (WP41,
+	 * `26-…` §6.6) — one control row each. Empty when no run has recorded
+	 * its egress yet; `noNetworkRuns` counts the runs that allowed none.
+	 */
+	egress: { hosts: string[]; recordedRuns: number; noNetworkRuns: number };
 }
 
 export function safetyCaseFromSummaries(
@@ -117,6 +123,16 @@ export function safetyCaseFromSummaries(
 	const armourFitted = capabilities.guardrailIds.some((id) => id.startsWith('geap/armor:'));
 	let decisions = 0;
 	let fired = 0;
+	const hosts = new Set<string>();
+	let recordedRuns = 0;
+	let noNetworkRuns = 0;
+	for (const run of runs) {
+		const egress = summaries.get(run.id)?.egress;
+		if (!egress) continue;
+		recordedRuns += 1;
+		if (egress.mode === 'none') noNetworkRuns += 1;
+		for (const host of egress.hosts) hosts.add(host);
+	}
 	if (armourFitted) {
 		for (const run of runs) {
 			const summary = summaries.get(run.id);
@@ -139,7 +155,8 @@ export function safetyCaseFromSummaries(
 			successRate: finished.length === 0 ? undefined : succeeded.length / finished.length,
 			incidentRuns: incidents.length
 		},
-		hostedScreening: armourFitted ? { fired, decisions } : undefined
+		hostedScreening: armourFitted ? { fired, decisions } : undefined,
+		egress: { hosts: [...hosts].sort(), recordedRuns, noNetworkRuns }
 	};
 }
 

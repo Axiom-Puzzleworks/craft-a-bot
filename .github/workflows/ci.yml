@@ -53,7 +53,7 @@ jobs:
 
       - name: Run the baseline campaign
         run: >
-          npm run craftabot -- campaign --file campaigns/injection-baseline.json --strict
+          npm run craftabot -- campaign --file campaigns/injection-baseline.json --strict --egress none
           --out campaign-out --junit campaign-out/junit.xml --sarif campaign-out/results.sarif
           --markdown campaign-out/scorecard.md
 

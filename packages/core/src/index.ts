@@ -27,6 +27,14 @@ export type {
 	ToolSchema
 } from './types/provider.js';
 export {
+	EgressRefusedError,
+	createEgressGuard,
+	hostMatches,
+	hostOf,
+	type EgressGuard,
+	type EgressMode
+} from './egress.js';
+export {
 	describeGuardrailServiceProblems,
 	egressDeclarationSchema,
 	findingCategorySchema,

@@ -26,6 +26,58 @@ import { fixtures } from '../fixtures/index.js';
  * never as a silent allow or an `error` event.
  */
 
+/**
+ * WP41 (`26-…` §6.6): a hosted component that is *not* unplugged, under
+ * `egress: 'none'`, ends the run fail-closed with the refusal on the trace
+ * and **no** network call — the injected fetch throws if anything reaches it.
+ */
+describe('the Armour Brick under egress: none', () => {
+	it('ends STOPPED_BY_GUARDRAIL with an egress-refused error and no fetch call', async () => {
+		const reached: string[] = [];
+		const throwingFetch: typeof globalThis.fetch = (input) => {
+			reached.push(String(input));
+			throw new Error('the network must not be reached');
+		};
+		const session = createSession({
+			spec: armourSpec({
+				projectId: 'proj-1',
+				location: 'europe-west2',
+				templateId: 'cab-armour',
+				offline: false,
+				screenDecision: 'stop'
+			}),
+			registry: registry(),
+			provider: createMockProvider({ script: hijackScript() }),
+			guardrails: [],
+			getCredential: (id) => (id === 'geap' ? 'ya29.test-token' : undefined),
+			options: { fetch: throwingFetch, egress: 'none' }
+		});
+		const events: EngineEvent[] = [];
+		session.events.onAny((event) => events.push(event));
+		session.start('step');
+		let outcome: string | undefined;
+		for (let i = 0; i < 20 && outcome === undefined; i += 1) {
+			const result = await session.step();
+			if (result.outcome) outcome = result.outcome;
+		}
+		expect(outcome).toBe('STOPPED_BY_GUARDRAIL');
+		expect(reached).toEqual([]);
+		const refusals = events.filter(
+			(event) => event.type === 'error' && event.payload.kind === 'egress-refused'
+		);
+		expect(refusals.length).toBeGreaterThan(0);
+		expect(refusals[0]?.type === 'error' ? refusals[0].payload.message : '').toContain(
+			'modelarmor.europe-west2.rep.googleapis.com'
+		);
+		const started = events.find((event) => event.type === 'run.started');
+		expect(started?.type === 'run.started' ? started.payload.egress : undefined).toEqual({
+			mode: 'none',
+			hosts: ['modelarmor.*.rep.googleapis.com']
+		});
+		expect(JSON.stringify(events)).not.toContain('ya29.test-token');
+	});
+});
+
 function hijackScript() {
 	return obedient([
 		{ say: 'A sign! Let me check it.', call: 'look_up_manual', args: { query: 'sign' } },

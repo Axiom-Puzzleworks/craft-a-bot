@@ -16,8 +16,28 @@ import { z } from 'zod';
 
 export const KEYS_STORAGE_KEY = 'cab.keys.v1';
 
-const keyVaultSchema = z.record(z.string(), z.string());
+/**
+ * A vault entry (WP41, `26-…` §6.11): the secret, and — for a timed
+ * credential, an OAuth token say — when it stops working, as epoch ms. A
+ * bare string is the pre-WP41 shape and still reads; it is written back
+ * only for an untimed entry, so nothing on disk changes for anyone who has
+ * no timed credential.
+ */
+export const keyVaultEntrySchema = z.union([
+	z.string(),
+	z.object({ secret: z.string(), expiresAt: z.number().optional() })
+]);
+const keyVaultSchema = z.record(z.string(), keyVaultEntrySchema);
 export type KeyVaultContents = z.infer<typeof keyVaultSchema>;
+
+function secretOf(entry: KeyVaultContents[string] | undefined): string | undefined {
+	if (entry === undefined) return undefined;
+	return typeof entry === 'string' ? entry : entry.secret;
+}
+
+function expiryOf(entry: KeyVaultContents[string] | undefined): number | undefined {
+	return entry !== undefined && typeof entry !== 'string' ? entry.expiresAt : undefined;
+}
 
 /**
  * The slice of `localStorage` this needs. Named explicitly so it cannot be
@@ -31,7 +51,9 @@ export interface WebStorageLike {
 
 export interface KeyVault {
 	get(providerId: string): string | undefined;
-	set(providerId: string, key: string): void;
+	/** When a timed credential stops working, as epoch ms — `undefined` for an untimed one or an empty slot. */
+	expiry(providerId: string): number | undefined;
+	set(providerId: string, key: string, expiresAt?: number): void;
 	/** Eject the battery: forget the key and any cached validation. */
 	remove(providerId: string): void;
 	/** Provider ids that currently hold a key — never the keys themselves. */
@@ -60,12 +82,14 @@ export function createKeyVault(store: WebStorageLike): KeyVault {
 	}
 
 	return {
-		get: (providerId) => read()[providerId],
-		set(providerId, key) {
+		get: (providerId) => secretOf(read()[providerId]),
+		expiry: (providerId) => expiryOf(read()[providerId]),
+		set(providerId, key, expiresAt) {
 			const trimmed = key.trim();
 			const contents = read();
 			if (trimmed === '') delete contents[providerId];
-			else contents[providerId] = trimmed;
+			else
+				contents[providerId] = expiresAt === undefined ? trimmed : { secret: trimmed, expiresAt };
 			write(contents);
 		},
 		remove(providerId) {
@@ -74,7 +98,8 @@ export function createKeyVault(store: WebStorageLike): KeyVault {
 			write(contents);
 		},
 		providers: () => Object.keys(read()),
-		secrets: () => Object.values(read()),
+		secrets: () =>
+			Object.values(read()).map((entry) => (typeof entry === 'string' ? entry : entry.secret)),
 		clear: () => store.removeItem(KEYS_STORAGE_KEY)
 	};
 }

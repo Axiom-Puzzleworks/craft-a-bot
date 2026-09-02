@@ -1,3 +1,4 @@
+import type { EgressMode } from '@craftabot/core';
 import { writeFile } from 'node:fs/promises';
 import { defaultConfig, loadConfig, type HarnessConfig } from './config.js';
 import { credentialsFromEnv, type CredentialSource } from './credentials.js';
@@ -62,6 +63,7 @@ Usage:
 
   craftabot run --kit <bot.craftabot.json> [--card <goalCardId>]
                 [--brain scripted-optimal|scripted-noisy|live] [--provider <id>]
+                [--egress declared|none]
                 [--seed <n>] [--max-ticks <n>] [--deny] [--out ./runs]
       Run a kit file to completion and write the run — run.json, events.jsonl,
       summary.json and a <runId>.craftabot-trace.json the Workshop imports —
@@ -76,12 +78,15 @@ Usage:
       stdout), redacted and digest-signed.
 
   craftabot campaign --file <campaign.json> [--out ./campaign-out] [--strict]
+                     [--egress declared|none]
                      [--baseline <report.json>] [--junit <path>] [--sarif <path>]
                      [--markdown <path>] [--no-keep-runs] [--config …]
       Run a campaign (scenarios × builds × guards × brains × seeds, with
       gates) and write <reportId>.campaign-report.json under --out, plus the
       renderings named. Every cell's run is kept under --out/runs unless
-      --no-keep-runs. --strict exits 1 on any failed gate. A live brain needs
+      --no-keep-runs. --strict exits 1 on any failed gate. --egress none
+      refuses every network call (what CI runs); declared, the default,
+      allows only the hosts fitted components declare. A live brain needs
       the campaign's own budget and its provider's CRAFTABOT_CREDENTIAL_<ID>.
 
   craftabot report --safety-case [--agent <agentId>] | --incidents | --telemetry
@@ -117,6 +122,7 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 				}
 				const card = stringFlag(args, 'card');
 				const maxTicks = numberFlag(args, 'max-ticks');
+				const egress = egressFlag(args);
 				const report = await runKit({
 					kitPath,
 					brain: brainFlag as BrainTier,
@@ -127,7 +133,8 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 					credentials: credentialsFromEnv(io.env),
 					...(card !== undefined ? { card } : {}),
 					...(providerFlag !== undefined ? { provider: providerFlag } : {}),
-					...(maxTicks !== undefined ? { maxTicks } : {})
+					...(maxTicks !== undefined ? { maxTicks } : {}),
+					...(egress !== undefined ? { egress } : {})
 				});
 				io.stdout(
 					[
@@ -166,6 +173,7 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 				const junit = stringFlag(args, 'junit');
 				const sarif = stringFlag(args, 'sarif');
 				const markdown = stringFlag(args, 'markdown');
+				const campaignEgress = egressFlag(args);
 				const { report, reportFile, written } = await runCampaignFile({
 					file,
 					out,
@@ -175,7 +183,8 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 					...(baseline !== undefined ? { baseline } : {}),
 					...(junit !== undefined ? { junit } : {}),
 					...(sarif !== undefined ? { sarif } : {}),
-					...(markdown !== undefined ? { markdown } : {})
+					...(markdown !== undefined ? { markdown } : {}),
+					...(campaignEgress !== undefined ? { egress: campaignEgress } : {})
 				});
 				const failed = report.gates.filter((gate) => !gate.passed);
 				io.stdout(
@@ -234,6 +243,16 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 async function configFrom(args: ParsedArgs): Promise<HarnessConfig> {
 	const path = args.flags['config'];
 	return typeof path === 'string' ? loadConfig(path) : defaultConfig();
+}
+
+/** `--egress declared|none` (WP41) — anything else is refused, since a typo here would silently widen what a run may call. */
+function egressFlag(args: ParsedArgs): EgressMode | undefined {
+	const value = stringFlag(args, 'egress');
+	if (value === undefined) return undefined;
+	if (value !== 'declared' && value !== 'none') {
+		throw new Error(`--egress must be "declared" or "none", not "${value}"`);
+	}
+	return value;
 }
 
 function stringFlag(args: ParsedArgs, name: string): string | undefined {

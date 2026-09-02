@@ -18,6 +18,15 @@ function fakeStore(
 	};
 }
 
+function memoryStore() {
+	const map = new Map<string, string>();
+	return {
+		getItem: (key: string) => map.get(key) ?? null,
+		setItem: (key: string, value: string) => void map.set(key, value),
+		removeItem: (key: string) => void map.delete(key)
+	};
+}
+
 describe('the battery vault', () => {
 	it('stores and returns a key', () => {
 		const vault = createKeyVault(fakeStore());
@@ -78,6 +87,32 @@ describe('the battery vault', () => {
 		vault.set('openai', 'sk-abc');
 		vault.remove('openai');
 		expect(store.raw().has(KEYS_STORAGE_KEY)).toBe(false);
+	});
+
+	/** WP41 (`26-…` §6.11): a timed credential keeps its expiry; an untimed one is stored exactly as before. */
+	it('keeps expiresAt for a timed credential, reads a bare string as untimed, and sweeps both', () => {
+		const store = memoryStore();
+		const vault = createKeyVault(store);
+		vault.set('openai', 'sk-untimed');
+		vault.set('geap', 'ya29.timed', 1_800_000_000_000);
+
+		expect(vault.get('openai')).toBe('sk-untimed');
+		expect(vault.expiry('openai')).toBeUndefined();
+		expect(vault.expiry('nobody')).toBeUndefined();
+		expect(vault.get('geap')).toBe('ya29.timed');
+		expect(vault.expiry('geap')).toBe(1_800_000_000_000);
+		expect(vault.secrets().sort()).toEqual(['sk-untimed', 'ya29.timed']);
+		expect(vault.providers().sort()).toEqual(['geap', 'openai']);
+
+		// On disk: the untimed entry is the bare string it always was.
+		const raw = JSON.parse(store.getItem(KEYS_STORAGE_KEY) ?? '{}') as Record<string, unknown>;
+		expect(raw['openai']).toBe('sk-untimed');
+		expect(raw['geap']).toEqual({ secret: 'ya29.timed', expiresAt: 1_800_000_000_000 });
+
+		// A vault written before WP41 reads unchanged.
+		store.setItem(KEYS_STORAGE_KEY, JSON.stringify({ openai: 'sk-old' }));
+		expect(createKeyVault(store).get('openai')).toBe('sk-old');
+		expect(createKeyVault(store).expiry('openai')).toBeUndefined();
 	});
 
 	it('forgets everything on clear (the settings "forget everything" path)', () => {

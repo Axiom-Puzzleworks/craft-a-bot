@@ -86,6 +86,12 @@ const runStartedEvent = eventSchema(
 		wireModel: z.string(),
 		cartridgeId: z.string(),
 		/**
+		 * Where this run was allowed to call (`26-…` §6.6, WP41): the mode and
+		 * every host pattern a fitted component declared. Present once the host
+		 * names a mode; a run that predates the field parses unchanged.
+		 */
+		egress: z.object({ mode: z.enum(['declared', 'none']), hosts: z.array(z.string()) }).optional(),
+		/**
 		 * How context was assembled (E7): which retention strategy kept the
 		 * history, and which prompt strategy rendered it.
 		 *
@@ -313,6 +319,12 @@ const worldChangedEvent = eventSchema(
 	'world.changed',
 	z.object({ state: z.record(z.string(), z.unknown()) })
 );
+/**
+ * `kind` is open, and two values are spoken for: `'engine'` (the session's
+ * own default) and `'egress-refused'` (WP41 — a call to an undeclared host,
+ * emitted by the session's `fetch` guard before it throws, so the trace
+ * shows the refusal even when the caller swallows the error).
+ */
 const errorEvent = eventSchema(
 	'error',
 	z.object({ message: z.string(), kind: z.string().optional() })

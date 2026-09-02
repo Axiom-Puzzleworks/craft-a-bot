@@ -12,6 +12,7 @@ import {
 import { armorConfigSchema } from './config.js';
 import type { ArmorConfig, ArmorDisposition } from './config.js';
 import { HOOK_DESCRIPTION, HOOK_NAME } from './guardrails.js';
+import { validateArmourCredential } from './validate.js';
 import {
 	ARMOR_CREDENTIAL_ID,
 	armorSelectors,
@@ -265,7 +266,12 @@ export const armorBrickKind: BrickKindDefinition<ArmorConfig> = {
 	defaults: armorConfigDefaults,
 
 	audience: 'workshop',
-	credential: { id: ARMOR_CREDENTIAL_ID, name: 'Cloud Armour', kind: 'oauth-token' },
+	credential: {
+		id: ARMOR_CREDENTIAL_ID,
+		name: 'Cloud Armour',
+		kind: 'oauth-token',
+		validate: validateArmourCredential
+	},
 
 	controlHints: armorControlHints,
 	describeFitted: describeArmorFitted,
@@ -275,6 +281,8 @@ export const armorBrickKind: BrickKindDefinition<ArmorConfig> = {
 	// brick's config splits into the service block and the screening dials,
 	// and `createHostedGuardrails` builds one guardrail per dial that is on.
 	createRuntime: (config, ctx) => ({
+		// Where the shell may call on this brick's behalf (WP41) — nothing when unplugged.
+		egress: config.offline ? [] : modelArmorService.egress,
 		contributeGuardrails: () => [
 			createStepBudgetGuardrail(config.maxTicks),
 			...(config.repeatLimit !== undefined

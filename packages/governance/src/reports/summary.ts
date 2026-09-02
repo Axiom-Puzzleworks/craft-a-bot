@@ -22,6 +22,7 @@ export function summariseRun(runId: string, events: readonly EngineEvent[]): Run
 	let approvalsGranted = 0;
 	let decisions = 0;
 	let hostedPreActScreens = 0;
+	let egress: RunSummary['egress'];
 	const guardrailTrips: Record<string, number> = {};
 
 	for (const event of events) {
@@ -44,6 +45,10 @@ export function summariseRun(runId: string, events: readonly EngineEvent[]): Run
 			case 'guardrail.external':
 				if (event.payload.hook === 'pre-act') hostedPreActScreens += 1;
 				break;
+			case 'run.started':
+				// Where the run could call (WP41) — present once the host named a mode.
+				if (event.payload.egress) egress = event.payload.egress;
+				break;
 			default:
 				break;
 		}
@@ -59,6 +64,7 @@ export function summariseRun(runId: string, events: readonly EngineEvent[]): Run
 		findings: findingsIn(events),
 		decisions,
 		hostedPreActScreens,
+		...(egress ? { egress } : {}),
 		schemaVersion: 1
 	};
 }

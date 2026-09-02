@@ -140,6 +140,8 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 			// call `brain.ts` already makes for a provider's own battery.
 			getCredential: (id) => createBrowserKeyVault().get(id),
 			options: {
+				// The app always names its mode (WP41), so every trace it writes says where the run could call.
+				egress: 'declared',
 				tickDelayMs: tickDelayFor(speed),
 				...(deps.maxTicks !== undefined ? { budgets: { maxTicks: deps.maxTicks } } : {})
 			}

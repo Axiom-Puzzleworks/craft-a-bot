@@ -1,7 +1,7 @@
 import type { ZodType } from 'zod';
 import type { BuildProblem } from '../schemas/build-problem.js';
 import type { PolicyCard } from '../schemas/policy-card.js';
-import type { GuardrailService } from './guardrail-service.js';
+import type { EgressDeclaration, GuardrailService } from './guardrail-service.js';
 import type { Guardrail } from './guardrail.js';
 import type { KeyCheck } from './provider.js';
 import type { Observation, WorldActionDefinition } from './world.js';
@@ -236,6 +236,12 @@ export interface BrickRuntime {
 	contributeContext?(tick: TickContext): ContextContribution;
 	/** Tools and actions offered to the model (Equipment, Mobility). */
 	contributeCalls?(): CallContribution;
+	/**
+	 * Where this brick's runtime sends bytes (`26-…` §6.6, WP41) — a hosted
+	 * guard's service hosts, say. The session allows exactly the union of every
+	 * fitted runtime's declarations and the provider's; anything else is refused.
+	 */
+	egress?: EgressDeclaration[];
 	/**
 	 * Which of the world's sense channels this brick opens (Perception).
 	 *
@@ -536,9 +542,23 @@ export interface BrickKindDefinition<C = unknown> {
 	credential?: {
 		id: string;
 		name: string;
-		kind: 'api-key' | 'oauth-token';
+		/**
+		 * `api-key` — a long-lived key pasted in; `oauth-token` — obtained by a
+		 * sign-in flow, and timed; `bearer-token` (WP41, `26-…` §6.11) — an opaque
+		 * token pasted in, timed or not; `header` — an arbitrary named header
+		 * value, which is how several enterprise services authenticate.
+		 */
+		kind: 'api-key' | 'oauth-token' | 'bearer-token' | 'header';
+		/** For `header`: the header's name. Omitted for every other kind. */
+		headerName?: string;
 		keysUrl?: string;
-		validate?(secret: string, fetch: typeof globalThis.fetch): Promise<KeyCheck>;
+		/**
+		 * Check a secret against the real service. `config` (WP41) is the
+		 * fitted component's own service block — a project, region and
+		 * template, say — which a check that has to *use* the credential
+		 * needs and could not have before (`25-…` §8 stage E finding 2).
+		 */
+		validate?(secret: string, fetch: typeof globalThis.fetch, config?: unknown): Promise<KeyCheck>;
 	};
 
 	/**

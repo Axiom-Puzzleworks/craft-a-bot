@@ -16,6 +16,8 @@
 
 ## 2. Provider abstraction (`@craftabot/core`)
 
+> **Amended 2026-09-02 (WP41, `26-…` §6.6):** every `ProviderFactory` and the `LLMProvider` it builds declare `egress: EgressDeclaration[]` — the hosts they call and what leaves (`prompt`, `credential-header`). The four shipped packs declare `api.openai.com`, `api.anthropic.com`, `generativelanguage.googleapis.com` and, for Ollama, `localhost`/`127.0.0.1`. The session hands every provider a `fetch` that refuses any other host.
+
 The engine consumes one interface; packs implement it:
 
 ```ts

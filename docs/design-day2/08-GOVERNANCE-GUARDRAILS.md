@@ -111,6 +111,8 @@ Also always-on, brick or no brick (engine-level, not optional): token budget per
 
 ## 4. The trace as a governance artefact
 
+> **Amended 2026-09-02 (WP41, `26-…` §6.6):** egress is a control the trace can quote. Under `egress: 'declared'` (the session's default) the only hosts a run can reach are the ones its provider and fitted bricks declared; under `'none'` it can reach none — what the CI campaign job runs. `run.started.egress` records both, the run summary carries it, and the safety case's control section lists one row per declared host ("Where it may call") beside the guardrails.
+
 `07-DATA-MODEL-PERSISTENCE.md` defines the trace; governance requirements on it:
 
 - **Complete:** every prompt, response, decision, action, world change, guardrail check — nothing off-record. If it isn't in the trace, it didn't happen.

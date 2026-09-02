@@ -1,3 +1,4 @@
+import type { EgressMode } from '@craftabot/core';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { type LLMProvider, type PackRegistry } from '@craftabot/core';
@@ -38,6 +39,8 @@ export interface CampaignFileOptions {
 	now?: () => string;
 	newId?: () => string;
 	fetch?: typeof globalThis.fetch;
+	/** Every cell's egress mode (WP41); the CI job passes `'none'`. */
+	egress?: EgressMode;
 	onCell?: (done: number, total: number) => void;
 }
 
@@ -64,6 +67,7 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 		...(baseline ? { baseline } : {}),
 		packVersions: versions,
 		providerFor: (brain) => providerFor(brain, registry, options),
+		egress: options.egress ?? 'declared',
 		onCell: (_cell, done, total) => options.onCell?.(done, total),
 		...(options.now ? { now: options.now } : {}),
 		...(options.newId ? { newId: options.newId } : {}),

@@ -18,6 +18,8 @@
 
 ## 2. Storage map (V1)
 
+> **Amended 2026-09-02 (WP41, `26-…` §6.11):** a `cab.keys.v1` entry is either the bare secret string it always was or `{ secret, expiresAt? }` for a timed credential (an OAuth token's epoch-ms expiry). The bare shape is read unchanged and is still what an untimed key is written as; only a timed entry takes the object form. `KeyVault.get` returns the secret either way; `KeyVault.expiry(id)` returns the expiry; `secrets()` sweeps both shapes, so the key-leak tests cover a timed entry exactly as before.
+
 | Store | Mechanism | Contents |
 |---|---|---|
 | `cab.agents` | IndexedDB object store | `AgentRecord` (the `AgentSpec` + shelf metadata) |

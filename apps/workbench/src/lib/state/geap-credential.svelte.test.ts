@@ -28,6 +28,26 @@ describe('createGeapCredentialBay', () => {
 		expect(bay.secondsRemaining).toBeUndefined();
 	});
 
+	/** WP41 (`26-…` §6.11): the vault keeps `expiresAt`, so a reload keeps the countdown. */
+	it('starts live with its remaining life known when the vault kept the expiry', () => {
+		const store = memoryWebStorage();
+		const vault = createKeyVault(store);
+		vault.set('geap', 'ya29.kept', Date.now() + 600_000);
+		const bay = createGeapCredentialBay({ vault });
+		expect(bay.status).toBe('live');
+		expect(bay.secondsRemaining).toBeGreaterThan(500);
+		expect(bay.message).toBe('A token was found from an earlier session.');
+	});
+
+	it('starts expired when the vault kept an expiry that has passed', () => {
+		const store = memoryWebStorage();
+		const vault = createKeyVault(store);
+		vault.set('geap', 'ya29.stale', Date.now() - 1000);
+		const bay = createGeapCredentialBay({ vault });
+		expect(bay.status).toBe('expired');
+		expect(bay.secondsRemaining).toBe(0);
+	});
+
 	it('reports whether a client id is configured', () => {
 		const configured = createGeapCredentialBay({
 			vault: createKeyVault(memoryWebStorage()),
