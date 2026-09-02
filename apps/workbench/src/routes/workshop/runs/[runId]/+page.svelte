@@ -5,6 +5,7 @@
 		buildTraceFile,
 		verifyTraceDigest,
 		type EngineEvent,
+		type EvaluationRecord,
 		type GroupRunRecord,
 		type RunRecord
 	} from '@craftabot/core';
@@ -52,6 +53,8 @@
 	/** Each group member's own row, for the header's links back to their standalone traces. */
 	let groupMembers = $state<RunRecord[]>([]);
 	let events = $state<EngineEvent[]>([]);
+	/** Stored evaluations of this run (WP43, `31-…` §4.3). */
+	let evaluations = $state<EvaluationRecord[]>([]);
 	let loaded = $state(false);
 	/**
 	 * `undefined` while it is being computed, then true/false — or a message if
@@ -119,6 +122,7 @@
 				).filter((member) => member !== undefined)
 			: [];
 		events = (await storage.getEvents(id)).map((row) => row.event);
+		evaluations = await storage.listEvaluations(id);
 		tick = events.at(-1)?.tick ?? 0;
 		loaded = true;
 		// Digest verification stays single-run (`23-…` §4.7): a group has no one
@@ -348,6 +352,31 @@
 		</section>
 
 		<section class="inspector" aria-label="Inspector">
+			{#if evaluations.length > 0}
+				<!-- Evaluations (WP43): every stored verdict over this run; an evidence tick scrubs to it. -->
+				<div class="evaluations" data-testid="evaluations">
+					<h2>Evaluations</h2>
+					<ul>
+						{#each evaluations as record (record.id)}
+							<li data-testid="run-evaluation-{record.evaluatorId}" data-verdict={record.result.verdict ?? 'none'}>
+								<strong>{record.result.verdict ?? '—'}</strong>
+								<span class="mono">{record.evaluatorId}</span>
+								{#if record.result.score !== undefined}<span class="mono">score {record.result.score}</span>{/if}
+								<p>{record.result.explanation}</p>
+								{#if record.result.evidence.length > 0}
+									<p class="evidence">
+										{#each record.result.evidence as row (row.eventId)}
+											<button type="button" class="tick" onclick={() => (tick = row.tick)}>
+												tick {row.tick}
+											</button>
+										{/each}
+									</p>
+								{/if}
+							</li>
+						{/each}
+					</ul>
+				</div>
+			{/if}
 			<div class="inspector-head">
 				<h2>Inspector</h2>
 				{#if promptDiff}
@@ -649,6 +678,44 @@
 	.mono {
 		font-family: var(--cab-font-mono);
 		font-size: var(--cab-text-xs);
+	}
+
+	.evaluations {
+		margin-bottom: var(--cab-space-3);
+		padding-bottom: var(--cab-space-2);
+		border-bottom: 1px solid color-mix(in srgb, var(--cab-ink) 12%, transparent);
+	}
+
+	.evaluations h2 {
+		margin: 0 0 var(--cab-space-1);
+		font-size: var(--cab-text-xs);
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: var(--cab-ink-muted);
+	}
+
+	.evaluations ul {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		display: grid;
+		gap: var(--cab-space-1);
+		font-size: var(--cab-text-sm);
+	}
+
+	.evaluations p {
+		margin: 2px 0 0;
+	}
+
+	.evaluations .tick {
+		font: inherit;
+		font-size: var(--cab-text-xs);
+		margin-right: var(--cab-space-1);
+		padding: 0 var(--cab-space-1);
+		border: 1px solid var(--cab-ink-muted);
+		border-radius: var(--cab-radius-part);
+		background: var(--cab-paper);
+		cursor: pointer;
 	}
 
 	.inspector-head {

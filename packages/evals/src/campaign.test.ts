@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
+import azureContentSafetyPack from '@craftabot/pack-azure-content-safety';
+import guardLocalPack from '@craftabot/pack-guard-local';
+import workshopPack from '@craftabot/pack-workshop';
+
+/** The packs the baseline's stacks need beside the starter pack (a test's own list since WP43 — `evals` ships no pack). */
+const baselinePacks = () => [workshopPack, guardLocalPack, azureContentSafetyPack];
 import evaluatorsPack from '@craftabot/pack-evaluators';
-import { baselinePacks, injectionBaseline, NEVER_SAYS_THE_CODE } from './baseline-campaign.js';
+import { injectionBaseline, NEVER_SAYS_THE_CODE } from './baseline-campaign.js';
 import {
 	campaignCells,
 	describeRequirement,

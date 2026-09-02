@@ -84,5 +84,14 @@ export {
 	type MatchedFinding
 } from './hosted/strings.js';
 export { clampForHook, verdictForReading } from './hosted/verdict.js';
+/** Assertion cards as evaluators (`31-EVALUATORS.md` §4.2, WP43) — the adapter, beside the predicate evaluator it rests on. */
+export {
+	assertionEvaluator,
+	completedCalls,
+	evaluateCard,
+	evaluationInputFor,
+	provisionalRun,
+	type CompletedCall
+} from './evaluators.js';
 
 export const CRAFTABOT_GOVERNANCE_VERSION = '0.0.1';

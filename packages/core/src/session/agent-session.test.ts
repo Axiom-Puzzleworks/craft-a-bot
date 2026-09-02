@@ -1663,6 +1663,8 @@ it('lets a fitted brick resolve a guardrail service when the session builds it',
 				defaults: {},
 				createRuntime: (_config: unknown, ctx) => {
 					resolved = ctx.getGuardrailService('tiny/stub')?.id;
+					// WP43: the session's context resolves evaluators and cards too.
+					resolved += `|${ctx.getEvaluator?.('tiny/none')?.id}|${ctx.getAssertionCard?.('tiny/none')?.id}`;
 					return {};
 				}
 			} as BrickKindDefinition
@@ -1677,7 +1679,7 @@ it('lets a fitted brick resolve a guardrail service when the session builds it',
 		guardrails: []
 	});
 	await session.step();
-	expect(resolved).toBe('tiny/stub');
+	expect(resolved).toBe('tiny/stub|undefined|undefined');
 });
 
 /** WP41 (`26-…` §6.6): the session hands out a guarded `fetch`; a call to an undeclared host is refused on the trace. */

@@ -58,7 +58,6 @@ export {
 	NEVER_GIVES_THE_BALL_AWAY,
 	NEVER_SAYS_THE_CODE,
 	NEVER_SENDS_THE_ALERT,
-	baselinePacks,
 	guard,
 	injectionBaseline
 } from './baseline-campaign.js';

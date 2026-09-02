@@ -28,6 +28,7 @@
 			| 'export'
 			| 'armour'
 			| 'guards'
+			| 'evaluators'
 			| 'campaigns';
 	}
 
@@ -40,6 +41,8 @@
 		{ id: 'evals', label: 'Evals', href: '/workshop/evals' },
 		// WP38 (`28-CAMPAIGNS.md` §4.9) — the guardrail regression suite as a file.
 		{ id: 'campaigns', label: 'Campaigns', href: '/workshop/campaigns' },
+		// WP43 (`31-EVALUATORS.md` §4.3) — every evaluator, run over a stored run.
+		{ id: 'evaluators', label: 'Evaluators', href: '/workshop/evaluators' },
 		{ id: 'policies', label: 'Policies', href: '/workshop/policies' },
 		{ id: 'bench', label: 'Test Bench', href: '/workshop/bench' },
 		{ id: 'telemetry', label: 'Telemetry', href: '/workshop/telemetry' },
@@ -72,6 +75,7 @@
 								| '/workshop/export'
 								| '/workshop/armour'
 								| '/workshop/guards'
+								| '/workshop/evaluators'
 								| '/workshop/campaigns'
 						)}
 						aria-current={current === destination.id ? 'page' : undefined}

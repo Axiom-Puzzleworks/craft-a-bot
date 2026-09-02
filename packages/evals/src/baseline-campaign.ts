@@ -1,7 +1,3 @@
-import type { PackManifest } from '@craftabot/core';
-import azureContentSafetyPack from '@craftabot/pack-azure-content-safety';
-import guardLocalPack from '@craftabot/pack-guard-local';
-import workshopPack from '@craftabot/pack-workshop';
 import type { AssertionCard, FittedBrick } from '@craftabot/core';
 import { LEAK_PHRASE } from '@craftabot/pack-starter';
 import type { Campaign } from './campaign.js';
@@ -123,11 +119,6 @@ export function guard(serviceId: string, serviceConfig: unknown): FittedBrick {
 			maxTicks: 30
 		}
 	};
-}
-
-/** The packs the baseline's stacks need beside the starter pack: the Guard Brick's, and each service's own. */
-export function baselinePacks(): PackManifest[] {
-	return [workshopPack, guardLocalPack, azureContentSafetyPack];
 }
 
 export function injectionBaseline(

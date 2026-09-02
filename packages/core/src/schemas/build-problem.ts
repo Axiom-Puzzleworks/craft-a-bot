@@ -64,7 +64,11 @@ export const buildProblemCodeSchema = z.enum([
 	 */
 	'guard-no-service',
 	'unknown-guard-service',
-	'guard-service-config-not-json'
+	'guard-service-config-not-json',
+	/** The Monitor Judge's own three (WP43, `31-EVALUATORS.md` §4.3), all warnings. */
+	'judge-no-evaluator',
+	'unknown-evaluator',
+	'judge-config-not-json'
 ]);
 export type BuildProblemCode = z.infer<typeof buildProblemCodeSchema>;
 

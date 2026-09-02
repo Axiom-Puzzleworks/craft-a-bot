@@ -84,10 +84,10 @@ describe('the adapter', () => {
 	});
 
 	it('renders a call for the evidence note', () => {
-		expect(renderCall({ name: 'say', arguments: { text: 'hi' } })).toBe('say(text: hi)');
-		expect(renderCall({ name: 'look', arguments: undefined })).toBe('look()');
-		expect(renderCall({ name: 'go', arguments: 'north' })).toBe('go("north")');
-		expect(renderCall({ name: 'roll', arguments: 6 })).toBe('roll(6)');
+		expect(renderCall('say', { text: 'hi' })).toBe('say(text: hi)');
+		expect(renderCall('look', undefined)).toBe('look()');
+		expect(renderCall('go', 'north')).toBe('go("north")');
+		expect(renderCall('roll', 6)).toBe('roll(6)');
 	});
 });
 

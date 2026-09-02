@@ -365,6 +365,15 @@ describe('validateSpec', () => {
 				version: '1.0.0',
 				requiresCore: '>=1.0.0',
 				guardrailServices: [service],
+				assertionCards: [
+					{
+						id: 'expansion9/card',
+						title: 'A card',
+						schemaVersion: 1,
+						quantifier: 'never',
+						when: { kind: 'call-name-is', value: 'move' }
+					}
+				],
 				brickKinds: [
 					{
 						id: 'expansion9/guarded',
@@ -379,10 +388,15 @@ describe('validateSpec', () => {
 						validateConfig: (_config: unknown, ctx) => {
 							seen.push(`validate:${ctx.hasGuardrailService('expansion9/stub')}`);
 							seen.push(`validate-missing:${ctx.hasGuardrailService('expansion9/none')}`);
+							// WP43: evaluators and assertion cards answer the same way.
+							seen.push(`evaluator:${ctx.hasEvaluator?.('expansion9/card')}`);
+							seen.push(`evaluator-missing:${ctx.hasEvaluator?.('expansion9/none')}`);
 							return [];
 						},
 						createRuntime: (_config: unknown, ctx) => {
 							seen.push(`runtime:${ctx.getGuardrailService('expansion9/stub')?.id}`);
+							seen.push(`runtime-card:${ctx.getAssertionCard?.('expansion9/card')?.id}`);
+							seen.push(`runtime-evaluator:${ctx.getEvaluator?.('expansion9/none')?.id}`);
 							return {};
 						}
 					} as BrickKindDefinition
@@ -397,7 +411,15 @@ describe('validateSpec', () => {
 			});
 
 			validateSpec(spec, registry);
-			expect(seen).toEqual(['runtime:expansion9/stub', 'validate:true', 'validate-missing:false']);
+			expect(seen).toEqual([
+				'runtime:expansion9/stub',
+				'runtime-card:expansion9/card',
+				'runtime-evaluator:undefined',
+				'validate:true',
+				'validate-missing:false',
+				'evaluator:true',
+				'evaluator-missing:false'
+			]);
 		});
 	});
 

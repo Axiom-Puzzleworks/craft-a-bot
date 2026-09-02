@@ -1,5 +1,5 @@
 import type { AssertionCard, EngineEvent, RunRecord } from '@craftabot/core';
-import { evaluateCard, evaluationInputFor } from './evaluators.js';
+import { evaluateCard, evaluationInputFor } from '@craftabot/governance';
 
 /**
  * Assertion cards over a finished trace (`14-…` §5.7's Test Bench). Since

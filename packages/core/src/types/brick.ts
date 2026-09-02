@@ -1,6 +1,8 @@
 import type { ZodType } from 'zod';
 import type { BuildProblem } from '../schemas/build-problem.js';
 import type { PolicyCard } from '../schemas/policy-card.js';
+import type { AssertionCard } from '../schemas/assertion-card.js';
+import type { Evaluator } from './evaluator.js';
 import type { EgressDeclaration, GuardrailService } from './guardrail-service.js';
 import type { Guardrail } from './guardrail.js';
 import type { KeyCheck } from './provider.js';
@@ -335,6 +337,13 @@ export interface BrickRuntimeContext {
 	 * guardrails, not merely know the id exists.
 	 */
 	getGuardrailService(id: string): GuardrailService | undefined;
+	/**
+	 * A registered evaluator, or an assertion card, by qualified id (WP43,
+	 * `31-EVALUATORS.md` §4.3) — what the Monitor Judge resolves at build.
+	 * Optional so a host that predates the contract still builds every brick.
+	 */
+	getEvaluator?(id: string): Evaluator | undefined;
+	getAssertionCard?(id: string): AssertionCard | undefined;
 }
 
 /**
@@ -362,6 +371,8 @@ export interface BrickValidationContext {
 	hasCredential(id: string): boolean;
 	/** Whether a hosted guardrail service id (`29-…` §4.3, WP39) is one an installed pack registered. */
 	hasGuardrailService(id: string): boolean;
+	/** Whether an evaluator or assertion card id (WP43) is one an installed pack registered. Optional as above. */
+	hasEvaluator?(id: string): boolean;
 }
 
 /**

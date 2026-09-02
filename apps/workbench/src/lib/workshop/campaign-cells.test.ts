@@ -1,10 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import {
-	baselinePacks,
-	injectionBaseline,
-	runCampaign,
-	type CampaignReport
-} from '@craftabot/evals';
+import { injectionBaseline, runCampaign, type CampaignReport } from '@craftabot/evals';
+import { installedPacks } from '../packs.js';
+
+const baselinePacks = () => installedPacks;
 import {
 	envelopeFor,
 	recordForCampaignCell,
