@@ -1,32 +1,16 @@
-import type { AssertionCard, EngineEvent } from '@craftabot/core';
-import { evaluatePredicate } from '@craftabot/governance';
+import type { AssertionCard, EngineEvent, RunRecord } from '@craftabot/core';
+import { evaluateCard, evaluationInputFor } from './evaluators.js';
 
 /**
- * **The Test Bench brick's evaluator** (`14-…` §5.7, WP27): "Assertion cards
- * run against traces … feeds the eval harness." Lives beside `scoreRun`
- * rather than in a new package for the same reason `scoreRun` lives here —
- * "computed from a trace and nothing else" is this package's whole
- * discipline (see the header comment on `metrics.ts`), and an assertion is
- * exactly that: a pure fold over a finished run's `EngineEvent[]`.
- *
- * Reuses WP22's `PredicateExpr`/`evaluatePredicate` rather than inventing a
- * second condition language — a policy card asks "would this call be allowed
- * right now?" mid-run; an assertion card asks the same shape of question
- * after the fact: "did any call in this finished run match?". Only
- * `action.performed` and `tool.executed` are examined — a call a guardrail
- * blocked never ran, so it cannot be what "the bot touched the snack" means.
- *
- * `PredicateEvalContext.usage` has no natural per-call reading outside a live
- * guardrail check, so every event is scored against zeroed usage. No shipped
- * card uses `usage-at-least`, and a card that tried to would silently never
- * fire rather than throw — recorded here rather than hidden, so whoever
- * writes the first usage-based card knows to extend this instead of being
- * surprised by it.
+ * Assertion cards over a finished trace (`14-…` §5.7's Test Bench). Since
+ * WP43 (`31-EVALUATORS.md` §4.2) this is a thin face over the evaluator
+ * path — `assertionEvaluator` / `evaluateCard` — kept so every caller that
+ * wanted `{ card, pass, matches }` still gets it, from the same verdict a
+ * stored `EvaluationRecord` would carry. Hand it the `RunRecord` when you
+ * have one; without it, usage is folded provisionally from the events, which
+ * is already more than the zeroes this function used to score against.
  */
 
-const ZERO_USAGE = { ticks: 0, inputTokens: 0, outputTokens: 0 };
-
-/** One call the assertion looked at, and whether it matched. */
 export interface AssertionMatch {
 	tick: number;
 	kind: 'tool' | 'action';
@@ -36,56 +20,36 @@ export interface AssertionMatch {
 export interface AssertionResult {
 	card: AssertionCard;
 	pass: boolean;
-	/** Every call the predicate matched, in run order — the drill-down list. */
 	matches: AssertionMatch[];
-}
-
-function completedCalls(
-	events: readonly EngineEvent[]
-): { tick: number; kind: 'tool' | 'action'; name: string; arguments: unknown }[] {
-	const calls: { tick: number; kind: 'tool' | 'action'; name: string; arguments: unknown }[] = [];
-	for (const event of events) {
-		if (event.type === 'tool.executed') {
-			calls.push({
-				tick: event.tick,
-				kind: 'tool',
-				name: event.payload.name,
-				arguments: event.payload.arguments
-			});
-		} else if (event.type === 'action.performed') {
-			calls.push({
-				tick: event.tick,
-				kind: 'action',
-				name: event.payload.name,
-				arguments: event.payload.arguments
-			});
-		}
-	}
-	return calls;
 }
 
 /** Runs one assertion card against a finished run's events. */
 export function evaluateAssertion(
 	card: AssertionCard,
-	events: readonly EngineEvent[]
+	events: readonly EngineEvent[],
+	run?: RunRecord
 ): AssertionResult {
-	const matches: AssertionMatch[] = [];
-	for (const call of completedCalls(events)) {
-		const fires = evaluatePredicate(card.when, {
-			proposed: { kind: call.kind, name: call.name, arguments: call.arguments },
-			usage: ZERO_USAGE
-		});
-		if (fires) matches.push({ tick: call.tick, kind: call.kind, name: call.name });
-	}
-
-	const pass = card.quantifier === 'never' ? matches.length === 0 : matches.length > 0;
-	return { card, pass, matches };
+	const result = evaluateCard(card, evaluationInputFor(events, run));
+	const byId = new Map(events.map((event) => [event.id, event]));
+	const matches: AssertionMatch[] = result.evidence.map((row) => {
+		const event = byId.get(row.eventId);
+		return {
+			tick: row.tick,
+			kind: event?.type === 'tool.executed' ? 'tool' : 'action',
+			name:
+				event?.type === 'tool.executed' || event?.type === 'action.performed'
+					? event.payload.name
+					: (row.note ?? '')
+		};
+	});
+	return { card, pass: result.verdict === 'pass', matches };
 }
 
 /** Runs a whole bench of cards against the same run, in card order. */
 export function runTestBench(
 	cards: readonly AssertionCard[],
-	events: readonly EngineEvent[]
+	events: readonly EngineEvent[],
+	run?: RunRecord
 ): AssertionResult[] {
-	return cards.map((card) => evaluateAssertion(card, events));
+	return cards.map((card) => evaluateAssertion(card, events, run));
 }

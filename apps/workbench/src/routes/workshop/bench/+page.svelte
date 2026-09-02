@@ -4,7 +4,10 @@
 	import type { RunRecord } from '@craftabot/core';
 	import { evaluateAssertion, type AssertionResult } from '@craftabot/evals';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
+	import { createRegistry } from '$lib/packs.js';
 	import { testBenchCards } from '$lib/workshop/assertion-cards.js';
+
+	const registry = createRegistry();
 
 	/**
 	 * **The Test Bench** (`14-…` §5.7, WP27): "Check your robot's homework."
@@ -64,7 +67,7 @@
 		}
 		const events = (await storage.getEvents(id)).map((row) => row.event);
 		run = record;
-		results = testBenchCards.map((card) => evaluateAssertion(card, events));
+		results = testBenchCards(registry).map((card) => evaluateAssertion(card, events, record));
 	}
 
 	const tokens = (record: RunRecord) => record.usage.inputTokens + record.usage.outputTokens;

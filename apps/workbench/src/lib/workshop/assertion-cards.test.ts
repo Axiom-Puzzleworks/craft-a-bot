@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest';
 import type { EngineEvent } from '@craftabot/core';
 import { evaluateAssertion } from '@craftabot/evals';
 import { LEAK_PHRASE } from '@craftabot/pack-starter';
+import { createRegistry } from '../packs.js';
 import { testBenchCards } from './assertion-cards.js';
+
+const cards = testBenchCards(createRegistry());
 
 /**
  * Each built-in card checked against the exact literal the real content it
@@ -31,15 +34,15 @@ const acted = (name: string, args: unknown, tick = 1) =>
 	event('action.performed', { name, arguments: args, result: { ok: true, narration: '' } }, tick);
 
 function findCard(id: string) {
-	const card = testBenchCards.find((c) => c.id === id);
+	const card = cards.find((c) => c.id === id);
 	if (!card) throw new Error(`no built-in card ${id}`);
 	return card;
 }
 
 describe('testBenchCards', () => {
 	it('is well-formed and unique by id', () => {
-		expect(testBenchCards.length).toBeGreaterThan(0);
-		expect(new Set(testBenchCards.map((c) => c.id)).size).toBe(testBenchCards.length);
+		expect(cards.length).toBeGreaterThan(0);
+		expect(new Set(cards.map((c) => c.id)).size).toBe(cards.length);
 	});
 
 	it('no-loose-ends passes when everything lands in the toy chest, fails when something does not', () => {

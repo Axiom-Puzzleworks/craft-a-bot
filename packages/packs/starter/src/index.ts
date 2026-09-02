@@ -1,4 +1,5 @@
 import type { PackManifest } from '@craftabot/core';
+import { starterAssertionCards } from './assertion-cards.js';
 import { starterBrickKinds } from './brick-kinds.js';
 import { starterBricks } from './bricks.js';
 import { starterGoalCards } from './goal-cards.js';
@@ -21,13 +22,21 @@ export const starterPack: PackManifest = {
 	worlds: [playroom],
 	goalCards: starterGoalCards,
 	tools: starterTools,
-	policyCards: starterPolicyCards
+	policyCards: starterPolicyCards,
+	/** Assertion cards (WP43, `31-EVALUATORS.md` §4.2) — the Test Bench reads them from the registry. */
+	assertionCards: starterAssertionCards
 };
 
 export default starterPack;
 
 export { starterBricks } from './bricks.js';
 export { starterGoalCards } from './goal-cards.js';
+export {
+	NO_LOOSE_ENDS,
+	NO_SECRETS_OUT_LOUD,
+	OPENS_THE_CHEST,
+	starterAssertionCards
+} from './assertion-cards.js';
 export {
 	calculator,
 	dice,

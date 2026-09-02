@@ -95,6 +95,17 @@ export {
 } from './baseline.js';
 export { renderScorecard } from './scorecard.js';
 export {
+	assertionEvaluator,
+	completedCalls,
+	evaluateCard,
+	evaluationInputFor,
+	evaluatorsOf,
+	provisionalRun,
+	renderCall,
+	resolveEvaluator,
+	type CompletedCall
+} from './evaluators.js';
+export {
 	evaluateAssertion,
 	runTestBench,
 	type AssertionMatch,

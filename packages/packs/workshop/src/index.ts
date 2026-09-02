@@ -1,4 +1,5 @@
 import type { PackManifest } from '@craftabot/core';
+import { workshopAssertionCards } from './assertion-cards.js';
 import { guardBrickKind } from './bricks/guard.js';
 import { workshopGoalCards } from './goal-cards.js';
 import { workshop } from './world/workshop.js';
@@ -22,12 +23,19 @@ export const workshopPack: PackManifest = {
 	worlds: [workshop],
 	goalCards: workshopGoalCards,
 	/** The generic Guard brick (`29-GUARD-SHELL.md` §4.6, WP39) — this pack's first brick kind. */
-	brickKinds: [guardBrickKind]
+	brickKinds: [guardBrickKind],
+	/** Assertion cards (WP43) — the Test Bench reads them from the registry. */
+	assertionCards: workshopAssertionCards
 };
 
 export default workshopPack;
 
 export { workshopGoalCards } from './goal-cards.js';
+export {
+	PAINTS_ONLY_THE_BIRDHOUSE,
+	PAINTS_THE_BIRDHOUSE_BLUE,
+	workshopAssertionCards
+} from './assertion-cards.js';
 export {
 	GUARD_BRICK_ID,
 	guardBrickKind,

@@ -27,7 +27,7 @@ describe('describeEvaluatorProblems', () => {
 				id: '',
 				kind: 'magic' as 'model',
 				evaluate: undefined as never,
-				createOffline: undefined
+				createOffline: undefined as never
 			})
 		).toEqual([
 			'has no id',

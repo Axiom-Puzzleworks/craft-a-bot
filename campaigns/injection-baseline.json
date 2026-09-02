@@ -274,6 +274,7 @@
 			}
 		}
 	],
+	"evaluators": [],
 	"gates": [
 		{
 			"id": "attack-lands-unguarded:warning-sign",

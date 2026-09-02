@@ -1,4 +1,5 @@
 import type { EgressMode, PackManifest } from '@craftabot/core';
+import starterPack from '@craftabot/pack-starter';
 import { z } from 'zod';
 import {
 	assertionCardSchema,
@@ -7,6 +8,7 @@ import {
 	migrateAgentSpec,
 	runOutcomeSchema,
 	type AgentSpecV2,
+	createPackRegistry,
 	type EngineEvent,
 	type FittedBrick,
 	type LLMProvider,
@@ -21,6 +23,7 @@ import {
 	type SpecOverrides
 } from '@craftabot/pack-starter/testing';
 import { evaluateAssertion } from './assertions.js';
+import { evaluationInputFor, resolveEvaluator } from './evaluators.js';
 import {
 	DEFAULT_NOISE,
 	scriptedAdversary,
@@ -113,6 +116,12 @@ export type GateWhere = z.infer<typeof gateWhereSchema>;
 export const gateRequireSchema = z.discriminatedUnion('kind', [
 	z.object({ kind: z.literal('outcome-rate'), outcome: runOutcomeSchema, ...rateBounds }),
 	z.object({ kind: z.literal('assertion-pass-rate'), cardId: z.string().min(1), ...rateBounds }),
+	/** WP43 (`31-EVALUATORS.md` §4.2): `pass` over the cells whose verdict is not `inconclusive`. */
+	z.object({
+		kind: z.literal('evaluator-pass-rate'),
+		evaluatorId: z.string().min(1),
+		...rateBounds
+	}),
 	z.object({
 		kind: z.literal('metric'),
 		name: metricNameSchema,
@@ -175,6 +184,10 @@ export const campaignSchema = z.object({
 	seeds: z.array(z.number().int()).min(1),
 	noise: noiseRatesSchema.partial().optional(),
 	assertionCards: z.array(assertionCardSchema).default([]),
+	/** Evaluators run over every cell (WP43): by registered id, with the evaluator's own config; non-deterministic kinds run offline. */
+	evaluators: z
+		.array(z.object({ id: z.string().min(1), config: z.unknown().optional() }))
+		.default([]),
 	gates: z.array(gateSchema).min(1),
 	budget: z
 		.object({
@@ -202,6 +215,8 @@ export const campaignCellSchema = z.object({
 	outcome: runOutcomeSchema.optional(),
 	metrics: runMetricsSchema,
 	assertions: z.record(z.string(), z.boolean()),
+	/** Evaluator verdicts (WP43), keyed by evaluator id. */
+	evaluations: z.record(z.string(), z.enum(['pass', 'fail', 'inconclusive'])).default({}),
 	error: z.string().optional()
 });
 export type CampaignCell = z.infer<typeof campaignCellSchema>;
@@ -398,7 +413,8 @@ async function runCell(
 			metrics: scoreRun(run.events),
 			assertions: Object.fromEntries(
 				campaign.assertionCards.map((card) => [card.id, evaluateAssertion(card, run.events).pass])
-			)
+			),
+			evaluations: await evaluateCell(campaign, run.events, options)
 		};
 		options.onTrace?.(scored, { events: run.events, spec });
 		return scored;
@@ -407,6 +423,7 @@ async function runCell(
 			...identity,
 			metrics: scoreRun([]),
 			assertions: empty(),
+			evaluations: {},
 			error: error instanceof Error ? error.message : String(error)
 		};
 	}
@@ -417,6 +434,52 @@ async function runCell(
  * the same socket — "fitted over" means the guard wins. Sockets are
  * single-occupancy (`validate-spec-v2.ts`); WP40 widens `safety`.
  */
+/**
+ * Every evaluator the campaign names, over one cell's trace (WP43). Ids are
+ * resolved against the packs the runner has — a shipped evaluator or an
+ * assertion card's adapter — and a non-deterministic evaluator always runs
+ * its offline stand-in here: a campaign is a regression suite, and CI has
+ * no model to ask. An id nobody ships is `inconclusive`, never a throw.
+ */
+async function evaluateCell(
+	campaign: Campaign,
+	events: readonly EngineEvent[],
+	options: RunCampaignOptions
+): Promise<Record<string, 'pass' | 'fail' | 'inconclusive'>> {
+	if (campaign.evaluators.length === 0) return {};
+	const registry = createPackRegistry();
+	registry.registerPack(starterPack);
+	for (const pack of options.packs ?? []) {
+		if (!registry.listPacks().some((installed) => installed.id === pack.id))
+			registry.registerPack(pack);
+	}
+	const input = evaluationInputFor(events);
+	const verdicts: Record<string, 'pass' | 'fail' | 'inconclusive'> = {};
+	for (const named of campaign.evaluators) {
+		const evaluator = resolveEvaluator(registry, named.id);
+		if (!evaluator) {
+			verdicts[named.id] = 'inconclusive';
+			continue;
+		}
+		const runner = evaluator.kind === 'deterministic' ? evaluator : evaluator.createOffline?.();
+		if (!runner) {
+			verdicts[named.id] = 'inconclusive';
+			continue;
+		}
+		try {
+			const result = await runner.evaluate(input, {
+				config: named.config,
+				fetch: () => Promise.reject(new Error('a campaign evaluates offline')),
+				getCredential: () => undefined
+			});
+			verdicts[named.id] = result.verdict ?? 'inconclusive';
+		} catch {
+			verdicts[named.id] = 'inconclusive';
+		}
+	}
+	return verdicts;
+}
+
 export function specFor(cell: Pick<CampaignCellSpec, 'scenario' | 'build' | 'guard'>): AgentSpecV2 {
 	const { scenario, build, guard } = cell;
 	let spec: AgentSpecV2;
@@ -525,6 +588,24 @@ export function evaluateGate(
 		case 'assertion-pass-rate':
 			observed = rate(selected, (cell) => cell.assertions[require.cardId] === true);
 			break;
+		case 'evaluator-pass-rate': {
+			// Inconclusive cells are left out; none left is an inconclusive gate, as `no-regression` is.
+			const judged = selected.filter(
+				(cell) =>
+					cell.evaluations[require.evaluatorId] !== undefined &&
+					cell.evaluations[require.evaluatorId] !== 'inconclusive'
+			);
+			if (judged.length === 0) {
+				return {
+					...base,
+					required: describeRequirement(require),
+					passed: true,
+					inconclusive: true
+				};
+			}
+			observed = rate(judged, (cell) => cell.evaluations[require.evaluatorId] === 'pass');
+			break;
+		}
 		case 'metric': {
 			const values = selected.map((cell) => metricValue(cell.metrics, require.name));
 			observed = aggregate(values, require.aggregate);
@@ -620,6 +701,8 @@ export function describeRequirement(require: GateRequire): string {
 			return `${require.outcome} rate ${bounds(require.atLeast, require.atMost)}`;
 		case 'assertion-pass-rate':
 			return `${require.cardId} pass rate ${bounds(require.atLeast, require.atMost)}`;
+		case 'evaluator-pass-rate':
+			return `${require.evaluatorId} verdict pass rate ${bounds(require.atLeast, require.atMost)}`;
 		case 'metric':
 			return `${require.aggregate} ${require.name} ${bounds(require.atLeast, require.atMost, false)}`;
 		case 'no-regression':

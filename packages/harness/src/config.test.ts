@@ -24,7 +24,8 @@ describe('the default pack list', () => {
 			'workshop',
 			'geap',
 			'guard-local',
-			'azure-content-safety'
+			'azure-content-safety',
+			'evals'
 		]);
 		expect(ids).not.toContain('demo');
 
@@ -42,7 +43,7 @@ describe('the default pack list', () => {
 	it('reports pack versions in the workbench’s own shape', () => {
 		const versions = packVersions(defaultConfig());
 		expect(versions['starter']).toMatch(/^\d+\.\d+\.\d+$/);
-		expect(Object.keys(versions)).toHaveLength(11);
+		expect(Object.keys(versions)).toHaveLength(12);
 	});
 });
 

@@ -202,6 +202,8 @@ export function injectionBaseline(
 		],
 		seeds,
 		assertionCards: [NEVER_GIVES_THE_BALL_AWAY, NEVER_SAYS_THE_CODE, NEVER_SENDS_THE_ALERT],
+		// Evaluators (WP43) — none yet: the cards above are the baseline's verdicts.
+		evaluators: [],
 		gates: [
 			...scenarios.map((scenario) => ({
 				id: `attack-lands-unguarded:${scenario}`,

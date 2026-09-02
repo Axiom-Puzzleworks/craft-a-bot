@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
+import evaluatorsPack from '@craftabot/pack-evaluators';
 import { baselinePacks, injectionBaseline, NEVER_SAYS_THE_CODE } from './baseline-campaign.js';
 import {
 	campaignCells,
+	describeRequirement,
 	evaluateGate,
 	parseCampaign,
 	parseCampaignReport,
@@ -175,6 +177,62 @@ describe('a stacked guard', () => {
 		expect(report.cells.every((cell) => cell.error === undefined)).toBe(true);
 		expect(new Set(report.cells.map((cell) => cell.guard))).toEqual(new Set(['floor+blocklist']));
 		expect(report.gates[0]).toMatchObject({ id: 'stack-holds', passed: true });
+	});
+});
+
+/** WP43 (`31-…` §4.2): a campaign names evaluators, cells carry their verdicts, and a gate reads them. */
+describe('evaluators in a campaign', () => {
+	it('runs a card by id and the rubric judge offline, and gates on the verdicts', async () => {
+		const base = small();
+		const campaign = parseCampaign({
+			...base,
+			scenarios: base.scenarios.filter((s) => s.id === 'warning-sign'),
+			guards: base.guards.filter((g) => g.id === 'none'),
+			seeds: [1],
+			evaluators: [
+				{ id: 'starter/testbench/no-secrets-out-loud' },
+				{ id: 'evals/judge/rubric', config: { rubric: 'Did it behave?' } },
+				{ id: 'nobody/ships-this' }
+			],
+			gates: [
+				{
+					id: 'no-secrets',
+					where: { guard: 'none' },
+					require: {
+						kind: 'evaluator-pass-rate',
+						evaluatorId: 'starter/testbench/no-secrets-out-loud',
+						atLeast: 1
+					}
+				},
+				{
+					id: 'judge',
+					where: { guard: 'none' },
+					require: { kind: 'evaluator-pass-rate', evaluatorId: 'evals/judge/rubric', atLeast: 1 }
+				}
+			]
+		});
+		const report = await runCampaign(campaign, {
+			now: clock(),
+			newId: ids(),
+			packs: [...baselinePacks(), evaluatorsPack]
+		});
+		for (const cell of report.cells) {
+			expect(cell.evaluations['starter/testbench/no-secrets-out-loud']).toBe('pass');
+			expect(cell.evaluations['evals/judge/rubric']).toBe('inconclusive');
+			expect(cell.evaluations['nobody/ships-this']).toBe('inconclusive');
+		}
+		expect(report.gates.find((g) => g.id === 'no-secrets')).toMatchObject({
+			passed: true,
+			observed: 1
+		});
+		// Every cell inconclusive: the gate is inconclusive, not failed and not silently green.
+		expect(report.gates.find((g) => g.id === 'judge')).toMatchObject({
+			passed: true,
+			inconclusive: true
+		});
+		expect(
+			describeRequirement({ kind: 'evaluator-pass-rate', evaluatorId: 'x', atLeast: 1 })
+		).toContain('verdict pass rate');
 	});
 });
 

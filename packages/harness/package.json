@@ -25,6 +25,7 @@
 		"@craftabot/governance": "*",
 		"@craftabot/pack-anthropic": "*",
 		"@craftabot/pack-azure-content-safety": "*",
+		"@craftabot/pack-evaluators": "*",
 		"@craftabot/pack-geap": "*",
 		"@craftabot/pack-gemini": "*",
 		"@craftabot/pack-guard-local": "*",
