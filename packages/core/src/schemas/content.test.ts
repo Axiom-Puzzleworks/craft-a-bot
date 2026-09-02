@@ -175,3 +175,78 @@ describe('kit files carry local content (WP46)', () => {
 		expect(result.ok && result.imported.localContent).toEqual([]);
 	});
 });
+
+describe('kit files carry local content — the edges (WP46)', () => {
+	const requires = { core: '>=0.0.1', packs: { starter: '0.0.1' }, brickKinds: {} };
+	const safety = (policyCards: unknown[]) => ({
+		slot: 'safety' as const,
+		kind: 'starter/safety',
+		configVersion: 1,
+		config: { maxTicks: 10, blockedActions: [], approvalMode: false, policyCards }
+	});
+
+	it('an empty local content list leaves the block out', () => {
+		const kit = buildKitFile(makeSpec(), { exportedBy: 'test', requires, localContent: [] });
+		expect(kit.requires.localContent).toBeUndefined();
+	});
+
+	it('names every missing card, and ignores entries that are not ids', () => {
+		const spec = {
+			...makeSpec(),
+			bricks: [
+				...makeSpec().bricks,
+				safety(['local/policy/a', 7, 'local/policy/b', 'starter/policy/x'])
+			]
+		};
+		expect(localContentReferencedBy(spec)).toEqual(['local/policy/a', 'local/policy/b']);
+		const kit = buildKitFile(spec, { exportedBy: 'test', requires });
+		const result = importKitFile(JSON.parse(JSON.stringify(kit)), { installedPacks: ['starter'] });
+		expect(result.ok).toBe(false);
+		if (!result.ok) {
+			expect(result.problem).toMatchObject({
+				kind: 'missing-local-content',
+				missing: ['local/policy/a', 'local/policy/b']
+			});
+			expect(result.problem.message).toContain('cards of its own');
+		}
+	});
+
+	it('rebuilds an embedded record whose inside is not an object, and rewrites only string references', () => {
+		const spec = {
+			...makeSpec(),
+			bricks: [...makeSpec().bricks, safety(['local/policy/no-shouting', 7])]
+		};
+		const kit = buildKitFile(spec, {
+			exportedBy: 'test',
+			requires,
+			localContent: [
+				makeContent(),
+				{
+					id: 'local/campaigns/notes',
+					kind: 'campaign',
+					title: 'Notes',
+					record: 'just a string',
+					savedAt: '2026-09-02T00:00:00.000Z',
+					schemaVersion: 1
+				}
+			]
+		});
+		const result = importKitFile(JSON.parse(JSON.stringify(kit)), {
+			installedPacks: ['starter'],
+			newId: () => 'ffffff'
+		});
+		if (!result.ok) throw new Error(result.problem.message);
+		expect(result.imported.localContent.map((r) => [r.id, r.record])).toEqual([
+			[
+				'local/policy/no-shouting-ffffff',
+				expect.objectContaining({ id: 'local/policy/no-shouting-ffffff' })
+			],
+			['local/campaigns/notes-ffffff', 'just a string']
+		]);
+		const fitted = result.imported.spec.bricks.find((brick) => brick.slot === 'safety');
+		expect((fitted?.config as { policyCards: unknown[] }).policyCards).toEqual([
+			'local/policy/no-shouting-ffffff',
+			7
+		]);
+	});
+});

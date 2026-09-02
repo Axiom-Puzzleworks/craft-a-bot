@@ -6,6 +6,8 @@ import { bundleRun } from './commands/bundle.js';
 import { evaluateRun, renderEvaluations } from './commands/evaluate.js';
 import { runCampaignFile } from './commands/campaign.js';
 import { importCorpusFile } from './commands/scenarios.js';
+import { DEFAULT_CONTENT_DIR, addContent, listContent, renderContent } from './commands/content.js';
+import { readContentDir } from './storage/file-storage.js';
 import { describePacks, renderPacks } from './commands/packs.js';
 import { reportIncidents, reportSafetyCase, reportTelemetry } from './commands/report.js';
 import { runKit, type BrainTier } from './commands/run.js';
@@ -59,6 +61,13 @@ export function parseArgs(argv: readonly string[]): ParsedArgs {
 export const USAGE = `craftabot — the Craft A Bot headless host
 
 Usage:
+  craftabot content list [--content ./content]
+  craftabot content add --file <record.json> [--content ./content]
+      The Workshop content store's file form: authored policy cards,
+      assertion cards, scenarios and campaigns as ContentRecord JSON under
+      <dir>/<segment>/<slug>.json, read into the local pack by every
+      command (--content names the directory; ./content by default).
+
   craftabot packs [--config craftabot.config.mjs]
       List the packs, brick kinds, providers and goal cards this host can
       assemble, and which CRAFTABOT_CREDENTIAL_<ID> variables it would read.
@@ -123,6 +132,22 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 	const args = parseArgs(argv);
 	try {
 		switch (args.command) {
+			case 'content': {
+				const verb = args.positional[0];
+				const dir = contentDirFrom(args);
+				if (verb === 'list' || verb === undefined) {
+					io.stdout(renderContent(await listContent(dir)));
+					return 0;
+				}
+				if (verb === 'add') {
+					const file = stringFlag(args, 'file');
+					if (file === undefined) throw new Error('content add needs --file <record.json>');
+					const record = await addContent(dir, file);
+					io.stdout(`added ${record.kind} ${record.id} — ${record.title}\n`);
+					return 0;
+				}
+				throw new Error(`content: unknown verb "${verb}" — list or add`);
+			}
 			case 'packs': {
 				const config = await configFrom(args);
 				io.stdout(renderPacks(describePacks(config, credentialsFromEnv(io.env))));
@@ -309,7 +334,14 @@ ${renderEvaluations(report)}`);
 
 async function configFrom(args: ParsedArgs): Promise<HarnessConfig> {
 	const path = args.flags['config'];
-	return typeof path === 'string' ? loadConfig(path) : defaultConfig();
+	const config = typeof path === 'string' ? await loadConfig(path) : defaultConfig();
+	// Authored content (WP46): `--content <dir>`, `./content` by default, into the `local` pack.
+	const content = await readContentDir(contentDirFrom(args));
+	return content.length > 0 ? { ...config, content } : config;
+}
+
+function contentDirFrom(args: ParsedArgs): string {
+	return stringFlag(args, 'content') ?? DEFAULT_CONTENT_DIR;
 }
 
 /** `--egress declared|none` (WP41) — anything else is refused, since a typo here would silently widen what a run may call. */

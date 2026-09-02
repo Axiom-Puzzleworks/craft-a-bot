@@ -1,6 +1,12 @@
 import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
-import { createPackRegistry, type PackManifest, type PackRegistry } from '@craftabot/core';
+import {
+	createPackRegistry,
+	localPackFrom,
+	type ContentRecord,
+	type PackManifest,
+	type PackRegistry
+} from '@craftabot/core';
 import anthropicPack from '@craftabot/pack-anthropic';
 import azureContentSafetyPack from '@craftabot/pack-azure-content-safety';
 import evaluatorsPack from '@craftabot/pack-evaluators';
@@ -32,6 +38,8 @@ import workshopPack from '@craftabot/pack-workshop';
  */
 export interface HarnessConfig {
 	packs: PackManifest[];
+	/** Authored content (WP46, `34-CONTENT-STORE.md` §4.5) — the `content/` directory's records, registered as the `local` pack. */
+	content?: ContentRecord[];
 }
 
 export function defaultPacks(): PackManifest[] {
@@ -89,6 +97,8 @@ function isManifest(value: unknown): value is PackManifest {
 export function createRegistry(config: HarnessConfig): PackRegistry {
 	const registry = createPackRegistry();
 	for (const pack of config.packs) registry.registerPack(pack);
+	// Authored content as the `local` pack (WP46) — present even when empty, so `local/*` ids resolve the same way everywhere.
+	registry.registerPack(localPackFrom(config.content ?? []));
 	return registry;
 }
 

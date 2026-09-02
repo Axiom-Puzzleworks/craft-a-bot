@@ -1,7 +1,7 @@
 import type { EgressMode } from '@craftabot/core';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
-import { type LLMProvider, type PackRegistry } from '@craftabot/core';
+import { localPackFrom, type LLMProvider, type PackRegistry } from '@craftabot/core';
 import {
 	packFromScenarioFile,
 	parseCampaign,
@@ -65,7 +65,10 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 		)
 	);
 	const packs = [...options.config.packs, ...scenarioPacks];
-	const registry = createRegistry({ packs });
+	const content = options.config.content;
+	const registry = createRegistry({ packs, ...(content ? { content } : {}) });
+	// The runner registers what it is handed and skips what it already has: the local pack rides along (WP46).
+	const runnerPacks = content ? [...packs, localPackFrom(content)] : packs;
 	const now = options.now ?? (() => new Date().toISOString());
 	const versions = packVersions(options.config);
 	const keepRuns = options.keepRuns ?? true;
@@ -77,7 +80,7 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 		packVersions: versions,
 		providerFor: (brain) => providerFor(brain, registry, options),
 		egress: options.egress ?? 'declared',
-		packs,
+		packs: runnerPacks,
 		onCell: (_cell, done, total) => options.onCell?.(done, total),
 		...(options.now ? { now: options.now } : {}),
 		...(options.newId ? { newId: options.newId } : {}),
