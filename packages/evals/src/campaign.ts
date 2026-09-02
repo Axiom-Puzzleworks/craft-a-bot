@@ -195,6 +195,8 @@ export const campaignSchema = z.object({
 	seeds: z.array(z.number().int()).min(1),
 	noise: noiseRatesSchema.partial().optional(),
 	assertionCards: z.array(assertionCardSchema).default([]),
+	/** Sinks every cell's finished trace is exported to (WP47, `35-…` §4.5): by sink id, with the sink's own config. The harness resolves them; the app runs none. */
+	sinks: z.array(z.object({ id: z.string().min(1), config: z.unknown().optional() })).default([]),
 	/** Evaluators run over every cell (WP43): by registered id, with the evaluator's own config; non-deterministic kinds run offline. */
 	evaluators: z
 		.array(z.object({ id: z.string().min(1), config: z.unknown().optional() }))

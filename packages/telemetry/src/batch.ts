@@ -24,7 +24,7 @@ export interface BatchingOptions {
 }
 
 export interface Batcher {
-	attach(events: EventBus, run: { runId: string; agentId: string }): Unsubscribe;
+	attach(events: EventBus, run: { runId?: string; agentId: string }): Unsubscribe;
 	export(input: TraceExport): Promise<SinkResult>;
 	flush(): Promise<void>;
 	status(): SinkStatus;
@@ -85,9 +85,11 @@ export function createBatcher(options: BatchingOptions): Batcher {
 
 	return {
 		attach(events, run) {
-			current = run;
+			current = run.runId !== undefined ? { runId: run.runId, agentId: run.agentId } : undefined;
 			attached = true;
 			const off = events.onAny((event) => {
+				// A host that attaches before the run starts leaves the id to the stream (WP47).
+				current ??= { runId: event.runId, agentId: run.agentId };
 				buffer.push(event);
 				if (event.type === 'run.finished' || event.type === 'group.finished') {
 					void flushNow();

@@ -23,6 +23,7 @@ import { createRegistry, packVersions, type HarnessConfig } from '../config.js';
 import { credentialVariable, type CredentialSource } from '../credentials.js';
 import { mulberry32 } from '../random.js';
 import { runRecordFrom } from '../run-record.js';
+import { buildSink, parseSinkConfig, sinkById } from '../sinks.js';
 import { createFileStorage } from '../storage/file-storage.js';
 
 /**
@@ -62,6 +63,8 @@ export interface RunKitOptions {
 	fetch?: typeof globalThis.fetch;
 	/** The session's egress mode (WP41): `'declared'` by default, `'none'` for a run that must not touch the network. */
 	egress?: EgressMode;
+	/** A sink to stream the run to (WP47, `35-…` §4.5) — by id, with its config as JSON. */
+	sink?: { id: string; config?: string };
 }
 
 export interface RunKitReport {
@@ -74,6 +77,8 @@ export interface RunKitReport {
 	directory: string;
 	traceFile: string;
 	providerId: string;
+	/** What the sink reported, when one was attached: `<id>: sent N, failed M`. */
+	sink?: string;
 }
 
 export async function runKit(options: RunKitOptions): Promise<RunKitReport> {
@@ -147,6 +152,19 @@ export async function runKit(options: RunKitOptions): Promise<RunKitReport> {
 	});
 	session.events.on('approval.requested', () => session.resolveApproval(options.approve ?? true));
 
+	// A sink rides along the live run (WP47): attached before the first event, detached and flushed after the last.
+	const sinkDefinition = options.sink ? sinkById(options.sink.id) : undefined;
+	const sink =
+		sinkDefinition && options.sink
+			? buildSink({
+					sink: sinkDefinition,
+					config: parseSinkConfig(sinkDefinition, options.sink.config),
+					credentials: options.credentials,
+					...(options.fetch ? { fetch: options.fetch } : {}),
+					...(options.egress ? { egress: options.egress } : {})
+				})
+			: undefined;
+	const detachSink = sink?.attach(session.events, { agentId: spec.id });
 	session.start('step');
 	let outcome: RunOutcome | undefined;
 	const budgetTicks = budgetOf(events) ?? options.maxTicks ?? 30;
@@ -161,6 +179,8 @@ export async function runKit(options: RunKitOptions): Promise<RunKitReport> {
 	}
 	await flush();
 	await writing;
+	detachSink?.();
+	await sink?.flush();
 
 	const finishedAt = now();
 	const run = runRecordFrom({
@@ -195,7 +215,12 @@ export async function runKit(options: RunKitOptions): Promise<RunKitReport> {
 		events: events.length,
 		directory: join(options.out, 'runs', session.runId),
 		traceFile,
-		providerId
+		providerId,
+		...(sink && sinkDefinition
+			? {
+					sink: `${sinkDefinition.id}: sent ${sink.status().sent}, failed ${sink.status().failed}${sink.status().lastError ? ` (${sink.status().lastError})` : ''}`
+				}
+			: {})
 	};
 }
 

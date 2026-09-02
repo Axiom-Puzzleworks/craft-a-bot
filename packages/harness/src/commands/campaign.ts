@@ -17,6 +17,7 @@ import { summariseRun } from '@craftabot/governance/reports';
 import { createRegistry, packVersions, type HarnessConfig } from '../config.js';
 import { credentialVariable, type CredentialSource } from '../credentials.js';
 import { runRecordFrom } from '../run-record.js';
+import { buildSink, sinkById } from '../sinks.js';
 import { createFileStorage } from '../storage/file-storage.js';
 
 /**
@@ -51,6 +52,8 @@ export interface CampaignFileReport {
 	report: CampaignReport;
 	reportFile: string;
 	written: string[];
+	/** Every sink export that failed (WP47) — the campaign itself is unaffected. */
+	sinkFailures: string[];
 }
 
 export async function runCampaignFile(options: CampaignFileOptions): Promise<CampaignFileReport> {
@@ -74,6 +77,19 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 	const keepRuns = options.keepRuns ?? true;
 	const storage = keepRuns ? await createFileStorage(join(options.out, 'runs')) : undefined;
 
+	// The file's sinks (WP47): every cell's finished trace goes to each, built once behind their guards.
+	const sinks = campaign.sinks.map((entry) => {
+		const sink = sinkById(entry.id);
+		return buildSink({
+			sink,
+			config: sink.configSchema.parse(entry.config ?? {}),
+			credentials: options.credentials,
+			...(options.fetch ? { fetch: options.fetch } : {}),
+			...(options.egress ? { egress: options.egress } : {})
+		});
+	});
+	const sinkFailures: string[] = [];
+
 	let writing: Promise<void> = Promise.resolve();
 	const report = await runCampaign(campaign, {
 		...(baseline ? { baseline } : {}),
@@ -85,7 +101,25 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 		...(options.now ? { now: options.now } : {}),
 		...(options.newId ? { newId: options.newId } : {}),
 		onTrace: (cell, trace) => {
-			if (!storage || cell.runId === undefined) return;
+			if (cell.runId === undefined) return;
+			if (sinks.length > 0) {
+				const exported = runRecordFrom({
+					runId: cell.runId,
+					spec: trace.spec,
+					events: trace.events,
+					packVersions: versions,
+					startedAt: now(),
+					finishedAt: now(),
+					...(cell.outcome !== undefined ? { outcome: cell.outcome } : {})
+				});
+				for (const sink of sinks) {
+					writing = writing.then(async () => {
+						const result = await sink.export({ run: exported, events: trace.events });
+						if (!result.ok) sinkFailures.push(result.error);
+					});
+				}
+			}
+			if (!storage) return;
 			const runId = cell.runId;
 			const stamp = now();
 			const run = runRecordFrom({
@@ -126,7 +160,7 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 		written.push(path);
 	}
 
-	return { report, reportFile, written };
+	return { report, reportFile, written, sinkFailures };
 }
 
 function providerFor(

@@ -7,6 +7,7 @@ import { evaluateRun, renderEvaluations } from './commands/evaluate.js';
 import { runCampaignFile } from './commands/campaign.js';
 import { importCorpusFile } from './commands/scenarios.js';
 import { DEFAULT_CONTENT_DIR, addContent, listContent, renderContent } from './commands/content.js';
+import { exportRun } from './commands/export.js';
 import { readContentDir } from './storage/file-storage.js';
 import { describePacks, renderPacks } from './commands/packs.js';
 import { reportIncidents, reportSafetyCase, reportTelemetry } from './commands/report.js';
@@ -88,6 +89,13 @@ Usage:
       Write a stored run back out as a .craftabot-trace.json (to --file, or
       stdout), redacted and digest-signed.
 
+  craftabot export --run <runId> --sink <sinkId> [--sink-config <json>] [--out ./runs]
+      Send a stored run to a sink in one go: telemetry/otlp-http (an OTLP
+      collector, config {"url": ...}) or telemetry/file (JSONL, config
+      {"path": ...}). A run may also stream live: craftabot run ... --sink
+      <sinkId> [--sink-config <json>]; a campaign file's "sinks" list does
+      the same for every cell.
+
   craftabot evaluate --run <runId> [--evaluators <id,id>] [--rubric <text>] [--out ./runs]
       Run evaluators over a stored run and write the records beside it —
       every deterministic evaluator (every assertion card) by default. A
@@ -165,6 +173,8 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 				const card = stringFlag(args, 'card');
 				const maxTicks = numberFlag(args, 'max-ticks');
 				const egress = egressFlag(args);
+				const sinkId = stringFlag(args, 'sink');
+				const sinkConfig = stringFlag(args, 'sink-config');
 				const report = await runKit({
 					kitPath,
 					brain: brainFlag as BrainTier,
@@ -176,7 +186,10 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 					...(card !== undefined ? { card } : {}),
 					...(providerFlag !== undefined ? { provider: providerFlag } : {}),
 					...(maxTicks !== undefined ? { maxTicks } : {}),
-					...(egress !== undefined ? { egress } : {})
+					...(egress !== undefined ? { egress } : {}),
+					...(sinkId !== undefined
+						? { sink: { id: sinkId, ...(sinkConfig !== undefined ? { config: sinkConfig } : {}) } }
+						: {})
 				});
 				io.stdout(
 					[
@@ -187,6 +200,7 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 						`  outcome    ${report.outcome} after ${report.ticks} ticks (${report.events} events)`,
 						`  directory  ${report.directory}`,
 						`  trace      ${report.traceFile}`,
+						...(report.sink ? [`  sink       ${report.sink}`] : []),
 						''
 					].join('\n')
 				);
@@ -276,6 +290,28 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 				io.stdout(
 					`imported ${result.count} scenarios over ${card} into ${result.file} (tags: ${result.tags.join(', ') || 'none'})\n`
 				);
+				return 0;
+			}
+			case 'export': {
+				const runId = stringFlag(args, 'run');
+				const sinkId = stringFlag(args, 'sink');
+				if (runId === undefined || sinkId === undefined) {
+					throw new Error('export needs --run <runId> --sink <sinkId>');
+				}
+				const sinkConfig = stringFlag(args, 'sink-config');
+				const storage = await createFileStorage(stringFlag(args, 'out') ?? './runs');
+				const result = await exportRun({
+					storage,
+					runId,
+					sinkId,
+					credentials: credentialsFromEnv(io.env),
+					...(sinkConfig !== undefined ? { sinkConfig } : {})
+				});
+				if (!result.ok) {
+					io.stderr(`export failed: ${result.error}\n`);
+					return 1;
+				}
+				io.stdout(`exported run ${runId} to ${sinkId}: ${result.sent} spans\n`);
 				return 0;
 			}
 			case 'evaluate': {

@@ -5,6 +5,7 @@
 	import { agentsStore } from '$lib/state/agents.svelte.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import { otelTraceFor } from '$lib/workshop/otel-export.js';
+	import { sinksStore } from '$lib/state/sinks.svelte.js';
 
 	/**
 	 * **The Audit Centre** (`17-…` §2, Phase F): "traces, reports, cards, OTel
@@ -53,6 +54,21 @@
 		}
 		const storage = await appStorage();
 		run = await storage.getRun(id);
+	}
+
+	let sendNote = $state<Record<string, string>>({});
+
+	// "Send to…" (WP47, `35-…` §4.5): the same trace the download builds, to a configured sink.
+	async function sendTo(sinkId: string): Promise<void> {
+		if (!run) return;
+		const storage = await appStorage();
+		const events = (await storage.getEvents(run.id)).map((row) => row.event);
+		const evaluations = await storage.listEvaluations(run.id);
+		const result = await sinksStore.send(sinkId, { run, events, evaluations });
+		sendNote = {
+			...sendNote,
+			[sinkId]: result.ok ? `Sent ${result.sent} spans.` : `Could not send: ${result.error}`
+		};
 	}
 
 	function download(json: string, filename: string): void {
@@ -153,6 +169,24 @@
 						>Download OTel trace</button
 					>
 				</li>
+				{#each sinksStore.configurations as entry (entry.sinkId)}
+					<li>
+						<div>
+							<strong>Send to {sinksStore.sinkById(entry.sinkId)?.name ?? entry.sinkId}</strong>
+							<p>
+								The same trace, to a sink configured on the Sinks page.
+								{#if sendNote[entry.sinkId]}<span data-testid="export-sent-{entry.sinkId}"
+										>{sendNote[entry.sinkId]}</span
+									>{/if}
+							</p>
+						</div>
+						<button
+							type="button"
+							data-testid="export-send-{entry.sinkId}"
+							onclick={() => sendTo(entry.sinkId)}>Send to sink</button
+						>
+					</li>
+				{/each}
 				<li>
 					<div>
 						<strong>Agent Card</strong>

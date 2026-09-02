@@ -50,8 +50,8 @@ export interface SinkStatus {
 }
 
 export interface SinkInstance {
-	/** Live: subscribe to a bus; the sink batches and flushes on its own schedule. Never throws. */
-	attach(events: EventBus, run: { runId: string; agentId: string }): Unsubscribe;
+	/** Live: subscribe to a bus; the sink batches and flushes on its own schedule. Never throws. The run id may be left to the first event, which carries it. */
+	attach(events: EventBus, run: { runId?: string; agentId: string }): Unsubscribe;
 	/** Stored: export a finished run (or a group episode) in one go. Never rejects: a failure is `{ ok: false }`. */
 	export(input: TraceExport): Promise<SinkResult>;
 	/** Send whatever is buffered now. Never rejects. */

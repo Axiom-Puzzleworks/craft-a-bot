@@ -12,6 +12,7 @@ import {
 import type { GridWorldState } from '@craftabot/core';
 import { botExpression, type BotExpression } from '$lib/bot-expression.js';
 import { createRegistry } from '$lib/packs.js';
+import { sinksStore } from './sinks.svelte.js';
 import { createBrowserKeyVault } from '$lib/state/keys.js';
 import {
 	applyEvent,
@@ -147,6 +148,9 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 			}
 		});
 		created.events.onAny(absorb);
+		// Configured sinks ride along (WP47, `35-…` §4.5): consumers of the bus, detached and flushed when the run ends.
+		const detachSinks = sinksStore.attach(created.events, { agentId: deps.spec.id });
+		created.events.on('run.finished', () => detachSinks());
 		return created;
 	}
 

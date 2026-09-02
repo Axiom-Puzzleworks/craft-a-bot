@@ -30,6 +30,7 @@
 			| 'guards'
 			| 'evaluators'
 			| 'scenarios'
+			| 'sinks'
 			| 'campaigns';
 	}
 
@@ -46,6 +47,8 @@
 		{ id: 'evaluators', label: 'Evaluators', href: '/workshop/evaluators' },
 		// WP44 (`32-SCENARIOS.md` §4.5) — every scenario a pack ships, and a corpus imported over a card.
 		{ id: 'scenarios', label: 'Scenarios', href: '/workshop/scenarios' },
+		// WP47 (`35-TELEMETRY.md` §4.5) — where a run's trace goes besides this browser.
+		{ id: 'sinks', label: 'Sinks', href: '/workshop/sinks' },
 		{ id: 'policies', label: 'Policies', href: '/workshop/policies' },
 		{ id: 'bench', label: 'Test Bench', href: '/workshop/bench' },
 		{ id: 'telemetry', label: 'Telemetry', href: '/workshop/telemetry' },
@@ -80,6 +83,7 @@
 								| '/workshop/guards'
 								| '/workshop/evaluators'
 								| '/workshop/scenarios'
+								| '/workshop/sinks'
 								| '/workshop/campaigns'
 						)}
 						aria-current={current === destination.id ? 'page' : undefined}
