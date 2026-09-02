@@ -23,6 +23,7 @@
 ├── /runs                        — Run Browser: filter, pin, compare, import
 ├── /runs/[runId]               — Run Lab: world + timeline + inspector (the flagship)
 ├── /evals                       — Eval Matrix: configure, execute, scorecards, baselines
+├── /campaigns                   — Campaigns: the guardrail regression suite as a file — edit, run, gates, grid, drill, downloads (28-… §4.9, WP38)
 ├── /policies                    — Policy Studio: author/test policy cards
 ├── /bench                       — Test Bench: assertion cards run against a stored run's trace (14-… §5.7)
 ├── /telemetry                   — Cross-run dashboards (Phase D+)
@@ -30,6 +31,8 @@
 ├── /safety-case                 — Safety case worksheet: inability/control/trustworthiness, per bot (19-… #28, WP34)
 └── /export                      — Audit centre: traces, reports, cards, OTel export (Phase F)
 ```
+
+> **Amended 2026-09-02 (WP38 stage D):** `/campaigns` added to the tree and the rail, between Evals and Policies. It is the Workshop's view of `28-CAMPAIGNS.md` §4.9 — the same `runCampaign` the harness and CI call, scripted cells only in the browser, the report persisted in `cab.campaigns` and listed on the screen, a cell drilled into the Run Lab persisting only that run.
 
 Persistent left rail (instrument-panel styling); every screen has a "View in Kit" flip where a Kit equivalent exists. All screens are consumers of the same stores + event data (`15-…` §7 rule 1).
 

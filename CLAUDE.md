@@ -49,7 +49,7 @@ Where a Day 2 doc and its Day 1 counterpart differ, **Day 2 wins** — the banne
 
 **Phase G is closed — WP35, the Armour Brick, shipped in full** (`25-ARMOUR-BRICK.md`, opened 2026-09-01, closed the same day across stages A–E plus the live Google Cloud checkpoint; `18-…` §7 items 30–32). `18-…`'s forward plan is exhausted (WP0–WP35 all done).
 
-**The fresh planning pass is done (2026-09-02):** `26-TARGET-DESIGN-V3.md` is the target design and `27-DAY3-ROADMAP.md` is the forward plan — Phases H–L, WP36–WP52. **Amended 2026-09-02, later the same day:** WP36 and WP37 are done (`27-…` §8 items 1–6 — the storage contract and the analytic folds live in `core`/`governance`, run summaries retire the N+1 screens, and `@craftabot/harness` runs, bundles and reports headless). The next WP is **WP38** (campaigns), the last of Phase H — an L, so its design-of-record note (`28-CAMPAIGNS.md`) comes before its stage A (`27-…` §5).
+**The fresh planning pass is done (2026-09-02):** `26-TARGET-DESIGN-V3.md` is the target design and `27-DAY3-ROADMAP.md` is the forward plan — Phases H–L, WP36–WP52. **Amended 2026-09-02, later the same day:** WP36 and WP37 are done (`27-…` §8 items 1–6 — the storage contract and the analytic folds live in `core`/`governance`, run summaries retire the N+1 screens, and `@craftabot/harness` runs, bundles and reports headless). **Amended 2026-09-02, later still:** WP38 (campaigns) is done too (`27-…` §8 item 7, `28-CAMPAIGNS.md` §8) — **Phase H is closed.** Next are **WP39** (the vendor-neutral guard shell — an L, so `29-GUARD-SHELL.md` comes before its stage A, `27-…` §5) and **WP40** (socket capacity), which are independent of each other.
 
 Once there's a WP to build (from a new plan, or a defect worth fixing): read the docs it names, **propose a task breakdown before writing code**, then build. One WP per branch (`wp{n}-{slug}`) and PR. Use your judgement inside a WP — the docs fix the destination and the contracts, not every step. Where a doc is silent, decide and note it. Where implementation must diverge from a doc, change the doc in the same PR with a dated note (`> **Amended 2026-08-13:** …`); don't leave the two disagreeing.
 
@@ -77,7 +77,7 @@ npm run build          # all packages + static app + bundle budget
 npm run preview        # serve the built app
 npm run budget         # bundle-size budget only
 npm run smoke:openai   # live OpenAI smoke test — explicit env key, never in CI
-npm run craftabot -- … # the headless host (WP37): packs | run | bundle | report — see packages/harness/README.md
+npm run craftabot -- … # the headless host (WP37/38): packs | run | bundle | report | campaign — see packages/harness/README.md
 npm run smoke:harness  # live harness run on OpenAI — CRAFTABOT_CREDENTIAL_OPENAI in the env, never in CI
 ```
 
