@@ -565,7 +565,9 @@ const connectorBrickKind: BrickKindDefinition<ConnectorBrickConfig> = {
  */
 function requalify(raw: unknown): string[] {
 	if (!Array.isArray(raw)) return [];
-	return raw.map((id) => (typeof id === 'string' && !id.includes('/') ? qualifyPlayroomId(id) : id));
+	return raw.map((id) =>
+		typeof id === 'string' && !id.includes('/') ? qualifyPlayroomId(id) : id
+	);
 }
 
 export const starterBrickKinds: BrickKindDefinition[] = [
