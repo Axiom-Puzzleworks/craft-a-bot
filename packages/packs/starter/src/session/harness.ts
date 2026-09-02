@@ -5,7 +5,9 @@ import {
 	type AgentSpec,
 	type AnyAgentSpec,
 	type EngineEvent,
+	type EventBus,
 	type Guardrail,
+	type Unsubscribe,
 	type LLMProvider,
 	type PackRegistry,
 	type RunOutcome,
@@ -231,6 +233,11 @@ export interface GroupRunOptions {
 	/** Stop after this many `stepRound()` calls, so a stuck group cannot spin forever. */
 	roundLimit?: number;
 	idOffset?: number;
+	/** Group-level policy and readers (WP48, `36-…` §4.2), handed straight to `createSessionGroup`. */
+	groupGuardrails?: Guardrail[];
+	observers?: Array<(events: EventBus, group: { groupRunId: string }) => Unsubscribe>;
+	/** Deliver a line to the shared world after this many rounds — a message between turns, heard by every seat. */
+	deliverAfterRound?: { round: number; text: string };
 }
 
 export interface GroupRunResult {
@@ -266,12 +273,14 @@ export async function runGroupToCompletion(options: GroupRunOptions): Promise<Gr
 		members,
 		registry,
 		goalCardId,
+		...(options.groupGuardrails !== undefined ? { groupGuardrails: options.groupGuardrails } : {}),
 		options: {
 			now: clock.now,
 			newId: clock.newId,
 			random: clock.random,
 			...(options.groupMaxTokens !== undefined ? { groupMaxTokens: options.groupMaxTokens } : {}),
-			...(options.maxRounds !== undefined ? { maxRounds: options.maxRounds } : {})
+			...(options.maxRounds !== undefined ? { maxRounds: options.maxRounds } : {}),
+			...(options.observers !== undefined ? { observers: options.observers } : {})
 		}
 	});
 
@@ -283,6 +292,10 @@ export async function runGroupToCompletion(options: GroupRunOptions): Promise<Gr
 	const limit = options.roundLimit ?? 40;
 	for (let round = 0; round < limit; round++) {
 		const result = await group.stepRound();
+		// A line between turns (WP48): into the shared world once, for every seat to hear.
+		if (options.deliverAfterRound && result.round === options.deliverAfterRound.round) {
+			group.deliverInput(options.deliverAfterRound.text);
+		}
 		if (result.outcome) {
 			outcome = result.outcome;
 			rounds = result.round;

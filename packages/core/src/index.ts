@@ -459,3 +459,16 @@ export {
 	type TraceExport,
 	type TraceSink
 } from './types/trace-sink.js';
+/** The trace bundle (`36-BUNDLE-AND-GROUPS.md` §4.1, WP48): member traces, the merged stream, a digest over every digest. */
+export {
+	BUNDLE_FORMAT_VERSION,
+	computeBundleDigest,
+	parseTraceBundle,
+	traceBundleSchema,
+	type TraceBundle
+} from './schemas/trace-bundle.js';
+export {
+	buildTraceBundle,
+	verifyBundleDigest,
+	type BuildTraceBundleOptions
+} from './persistence/bundle.js';

@@ -230,6 +230,15 @@ function compassLines(state: PlayroomState): string[] {
  * — a message on a channel this agent does not listen to is still *seen*,
  * or it would be re-evaluated (and re-missed) forever.
  */
+function heardFor(state: PlayroomState): string[] {
+	const agentId = state.bot.id ?? 'solo';
+	const cursor = state.heardCursors?.[agentId] ?? 0;
+	const unheard = state.heard.slice(cursor);
+	state.heardCursors ??= {};
+	state.heardCursors[agentId] = state.heard.length;
+	return unheard;
+}
+
 function radioMessagesFor(state: PlayroomState): RadioMessage[] {
 	const agentId = state.bot.id ?? 'solo';
 	const config = state.radioConfigs?.[agentId];
@@ -263,16 +272,11 @@ export function observePlayroom(state: PlayroomState, channels: string[]): Obser
 				break;
 			}
 			case SENSE_HEARING: {
-				// Draining is deliberate: a message is heard once, then it is old news.
-				//
-				// One shared queue, drained by whichever agent's turn observes it
-				// first (WP29): on a co-op layout, a message delivered between two
-				// agents' turns is heard by only one of them, never both. No card
-				// shipped through WP29 fits Hearing to more than one seat, so this
-				// is unexercised rather than untrue — a duo card that does would
-				// need a per-agent queue, which is real, undone work, not a trap
-				// this comment quietly papers over.
-				const heard = state.heard.splice(0, state.heard.length);
+				// A message is heard once *per seat* (WP48, `36-…` §4.3): `heard` is
+				// append-only and each seat keeps its own cursor into it, the way
+				// Radio always did — so a line delivered between two robots' turns
+				// reaches both, and the solo seat reads exactly as it did before.
+				const heard = heardFor(state);
 				lines.push(
 					heard.length > 0 ? observationStrings.heard(heard) : observationStrings.heardNothing
 				);

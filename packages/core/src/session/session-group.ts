@@ -134,6 +134,10 @@ export function createSessionGroup(deps: CreateSessionGroupDeps): SessionGroup {
 	});
 
 	const events = createEventBus();
+	// Observers (WP48) hear the merged stream from before the first event; they are let go when the group finishes.
+	const observerUnsubscribes = (options.observers ?? []).map((observe) =>
+		observe(events, { groupRunId })
+	);
 	/** The merge (§4.4/§4.7): every member's events in arrival order, plus the group's own. */
 	const mergedHistory: EngineEvent[] = [];
 	let groupUsage = { inputTokens: 0, outputTokens: 0 };
@@ -314,6 +318,7 @@ export function createSessionGroup(deps: CreateSessionGroupDeps): SessionGroup {
 			rounds: state.round,
 			usage: { ...groupUsage }
 		});
+		for (const off of observerUnsubscribes) off();
 	}
 
 	function startGroup(): void {
