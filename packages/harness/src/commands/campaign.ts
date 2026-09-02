@@ -1,0 +1,138 @@
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
+import { type LLMProvider, type PackRegistry } from '@craftabot/core';
+import {
+	parseCampaign,
+	parseCampaignReport,
+	renderCampaignScorecard,
+	renderJUnit,
+	renderSarif,
+	runCampaign,
+	type CampaignBrain,
+	type CampaignReport
+} from '@craftabot/evals';
+import { summariseRun } from '@craftabot/governance/reports';
+import { createRegistry, packVersions, type HarnessConfig } from '../config.js';
+import { credentialVariable, type CredentialSource } from '../credentials.js';
+import { runRecordFrom } from '../run-record.js';
+import { createFileStorage } from '../storage/file-storage.js';
+
+/**
+ * `craftabot campaign` (WP38 stage C, `28-CAMPAIGNS.md` §4.7): a campaign
+ * file in, a report and its renderings out — and, by default, every cell's
+ * run directory beside them, so a failed gate's run ids open with
+ * `craftabot bundle`. The same `runCampaign` the Workshop calls; the harness
+ * only adds persistence, providers and files.
+ */
+export interface CampaignFileOptions {
+	file: string;
+	out: string;
+	baseline?: string;
+	junit?: string;
+	sarif?: string;
+	markdown?: string;
+	/** Persist every cell's run under `<out>/runs` — the default; a directory has no cap. */
+	keepRuns?: boolean;
+	config: HarnessConfig;
+	credentials: CredentialSource;
+	now?: () => string;
+	newId?: () => string;
+	fetch?: typeof globalThis.fetch;
+	onCell?: (done: number, total: number) => void;
+}
+
+export interface CampaignFileReport {
+	report: CampaignReport;
+	reportFile: string;
+	written: string[];
+}
+
+export async function runCampaignFile(options: CampaignFileOptions): Promise<CampaignFileReport> {
+	const campaign = parseCampaign(JSON.parse(await readFile(options.file, 'utf8')));
+	const baseline =
+		options.baseline === undefined
+			? undefined
+			: parseCampaignReport(JSON.parse(await readFile(options.baseline, 'utf8')));
+	const registry = createRegistry(options.config);
+	const now = options.now ?? (() => new Date().toISOString());
+	const versions = packVersions(options.config);
+	const keepRuns = options.keepRuns ?? true;
+	const storage = keepRuns ? await createFileStorage(join(options.out, 'runs')) : undefined;
+
+	let writing: Promise<void> = Promise.resolve();
+	const report = await runCampaign(campaign, {
+		...(baseline ? { baseline } : {}),
+		packVersions: versions,
+		providerFor: (brain) => providerFor(brain, registry, options),
+		onCell: (_cell, done, total) => options.onCell?.(done, total),
+		...(options.now ? { now: options.now } : {}),
+		...(options.newId ? { newId: options.newId } : {}),
+		onTrace: (cell, trace) => {
+			if (!storage || cell.runId === undefined) return;
+			const runId = cell.runId;
+			const stamp = now();
+			const run = runRecordFrom({
+				runId,
+				spec: trace.spec,
+				events: trace.events,
+				packVersions: versions,
+				startedAt: stamp,
+				finishedAt: stamp,
+				...(cell.outcome !== undefined ? { outcome: cell.outcome } : {})
+			});
+			writing = writing
+				.then(() => storage.putRun(run))
+				.then(() => storage.appendEvents(runId, trace.events))
+				.then(() => storage.putRunSummary(summariseRun(runId, trace.events)));
+		}
+	});
+	await writing;
+
+	await mkdir(options.out, { recursive: true });
+	const reportFile = join(options.out, `${report.id}.campaign-report.json`);
+	const written: string[] = [reportFile];
+	await writeFile(reportFile, `${JSON.stringify(report, null, '\t')}\n`, 'utf8');
+
+	const renderings: Array<[string | undefined, () => string]> = [
+		[options.markdown, () => renderCampaignScorecard(report)],
+		[options.junit, () => renderJUnit(report)],
+		[
+			options.sarif,
+			() =>
+				`${JSON.stringify(renderSarif(report, { campaignUri: options.file.replace(/\\/g, '/') }), null, '\t')}\n`
+		]
+	];
+	for (const [path, render] of renderings) {
+		if (path === undefined) continue;
+		await mkdir(dirname(path), { recursive: true });
+		await writeFile(path, render(), 'utf8');
+		written.push(path);
+	}
+
+	return { report, reportFile, written };
+}
+
+function providerFor(
+	brain: CampaignBrain,
+	registry: PackRegistry,
+	options: CampaignFileOptions
+): LLMProvider {
+	if (brain.cartridgeId === undefined) {
+		throw new Error(`live brain '${brain.id}' names no cartridgeId`);
+	}
+	const cartridge = registry.getCartridge(brain.cartridgeId);
+	if (!cartridge)
+		throw new Error(`live brain '${brain.id}': no cartridge '${brain.cartridgeId}' is installed`);
+	const factory = registry.getProviderFactory(cartridge.providerId);
+	if (!factory)
+		throw new Error(`live brain '${brain.id}': no provider '${cartridge.providerId}' is installed`);
+	let apiKey = '';
+	if (factory.keyRequirement === 'required') {
+		const key = options.credentials.get(factory.id);
+		if (key === undefined) {
+			throw new Error(`provider ${factory.id} needs a key: set ${credentialVariable(factory.id)}`);
+		}
+		apiKey = key;
+	}
+	return factory.create({ apiKey, ...(options.fetch ? { fetch: options.fetch } : {}) });
+}

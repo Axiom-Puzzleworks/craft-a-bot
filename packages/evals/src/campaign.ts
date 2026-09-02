@@ -195,6 +195,8 @@ export const campaignCellSchema = z.object({
 	brain: z.string(),
 	tier: evalTierSchema,
 	seed: z.number().int(),
+	/** The scenario's tags, carried so a report can be grouped and gated by them without the campaign. */
+	tags: z.array(z.string()).default([]),
 	runId: z.string().optional(),
 	outcome: runOutcomeSchema.optional(),
 	metrics: runMetricsSchema,
@@ -301,9 +303,7 @@ export async function runCampaign(
 		if (options.betweenCells) await options.betweenCells();
 	}
 
-	const gates = campaign.gates.map((gate) =>
-		evaluateGate(gate, results, campaign, options.baseline)
-	);
+	const gates = campaign.gates.map((gate) => evaluateGate(gate, results, options.baseline));
 	return {
 		schemaVersion: CAMPAIGN_REPORT_SCHEMA_VERSION,
 		id: options.newId?.() ?? crypto.randomUUID(),
@@ -365,7 +365,8 @@ async function runCell(
 		guard: guard.id,
 		brain: brain.id,
 		tier: brain.tier,
-		seed
+		seed,
+		tags: scenario.tags
 	};
 	const empty = () => Object.fromEntries(campaign.assertionCards.map((card) => [card.id, false]));
 
@@ -475,10 +476,9 @@ function providerForLive(brain: CampaignBrain, options: RunCampaignOptions): LLM
 export function evaluateGate(
 	gate: Gate,
 	cells: readonly CampaignCell[],
-	campaign: Campaign,
 	baseline?: CampaignReport
 ): GateVerdict {
-	const selected = cells.filter((cell) => matches(gate.where, cell, campaign));
+	const selected = selectCells(gate.where, cells);
 	const base = {
 		id: gate.id,
 		kind: gate.require.kind,
@@ -496,7 +496,7 @@ export function evaluateGate(
 				inconclusive: true
 			};
 		}
-		const worst = worstDrop(selected, baseline, campaign);
+		const worst = worstDrop(selected, baseline);
 		return {
 			...base,
 			required: `no slice falls by more than ${pct(require.tolerance)}`,
@@ -530,16 +530,21 @@ export function evaluateGate(
 	return { ...base, required: describeRequirement(require), observed, passed };
 }
 
-function matches(where: GateWhere | undefined, cell: CampaignCell, campaign: Campaign): boolean {
+/** The cells a gate's `where` names — exported so a renderer can list a failed gate's runs. */
+export function selectCells(
+	where: GateWhere | undefined,
+	cells: readonly CampaignCell[]
+): CampaignCell[] {
+	return cells.filter((cell) => matches(where, cell));
+}
+
+function matches(where: GateWhere | undefined, cell: CampaignCell): boolean {
 	if (!where) return true;
 	if (where.scenario !== undefined && cell.scenario !== where.scenario) return false;
 	if (where.build !== undefined && cell.build !== where.build) return false;
 	if (where.guard !== undefined && cell.guard !== where.guard) return false;
 	if (where.brain !== undefined && cell.brain !== where.brain) return false;
-	if (where.tag !== undefined) {
-		const scenario = campaign.scenarios.find((entry) => entry.id === cell.scenario);
-		if (!scenario?.tags.includes(where.tag)) return false;
-	}
+	if (where.tag !== undefined && !cell.tags.includes(where.tag)) return false;
 	return true;
 }
 
@@ -573,15 +578,12 @@ function aggregate(values: number[], how: 'mean' | 'median' | 'max'): number {
 }
 
 /** The largest fall in success rate between a slice (scenario × guard × brain) now and in the baseline; 0 when nothing fell. */
-function worstDrop(
-	cells: readonly CampaignCell[],
-	baseline: CampaignReport,
-	campaign: Campaign
-): number {
+function worstDrop(cells: readonly CampaignCell[], baseline: CampaignReport): number {
 	const sliceOf = (cell: CampaignCell) => `${cell.scenario} ${cell.guard} ${cell.brain}`;
 	const now = successBySlice(cells, sliceOf);
+	const scenarios = new Set(cells.map((cell) => cell.scenario));
 	const then = successBySlice(
-		baseline.cells.filter((cell) => campaign.scenarios.some((s) => s.id === cell.scenario)),
+		baseline.cells.filter((cell) => scenarios.has(cell.scenario)),
 		sliceOf
 	);
 	let worst = 0;

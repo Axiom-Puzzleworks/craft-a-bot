@@ -61,6 +61,9 @@ export {
 	injectionBaseline
 } from './baseline-campaign.js';
 export { renderCampaignScorecard } from './campaign-scorecard.js';
+export { renderJUnit } from './campaign-junit.js';
+export { renderSarif, type SarifLog, type SarifOptions } from './campaign-sarif.js';
+export { selectCells } from './campaign.js';
 export {
 	EVAL_REPORT_SCHEMA_VERSION,
 	evalReportSchema,

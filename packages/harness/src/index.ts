@@ -24,6 +24,11 @@ export { describePacks, type PackReport } from './commands/packs.js';
 export { runKit, type BrainTier, type RunKitOptions, type RunKitReport } from './commands/run.js';
 export { bundleRun } from './commands/bundle.js';
 export {
+	runCampaignFile,
+	type CampaignFileOptions,
+	type CampaignFileReport
+} from './commands/campaign.js';
+export {
 	reportIncidents,
 	reportSafetyCase,
 	reportTelemetry,

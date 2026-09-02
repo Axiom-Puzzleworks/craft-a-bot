@@ -7,7 +7,6 @@ import {
 	parseCampaignReport,
 	runCampaign,
 	specFor,
-	type Campaign,
 	type CampaignCell
 } from './campaign.js';
 import { renderCampaignScorecard } from './campaign-scorecard.js';
@@ -149,6 +148,7 @@ describe('gates', () => {
 		brain: 'x',
 		tier: 'scripted-optimal',
 		seed: 1,
+		tags: ['t1'],
 		outcome: 'SUCCESS',
 		metrics: {
 			outcome: 'SUCCESS',
@@ -166,10 +166,6 @@ describe('gates', () => {
 		assertions: { card: true },
 		...over
 	});
-	const campaign: Campaign = {
-		...small(),
-		scenarios: [{ id: 's', goalCardId: 'starter/say-hello', tags: ['t1'], fit: [] }]
-	};
 
 	it('fails a gate that matched no cells — a rule nobody ran did not hold', () => {
 		const verdict = evaluateGate(
@@ -178,8 +174,7 @@ describe('gates', () => {
 				where: { guard: 'nowhere' },
 				require: { kind: 'outcome-rate', outcome: 'SUCCESS', atLeast: 1 }
 			},
-			[cell({})],
-			campaign
+			[cell({})]
 		);
 		expect(verdict).toMatchObject({ passed: false, cells: 0 });
 		expect(verdict.observed).toBeUndefined();
@@ -197,8 +192,7 @@ describe('gates', () => {
 					where: { tag: 't1' },
 					require: { kind: 'metric', name: 'ticksUsed', aggregate: 'mean', atMost: 4 }
 				},
-				cells,
-				campaign
+				cells
 			)
 		).toMatchObject({ passed: true, observed: 4, cells: 2 });
 		expect(
@@ -208,8 +202,7 @@ describe('gates', () => {
 					where: { tag: 'other' },
 					require: { kind: 'metric', name: 'guardrailTrips', aggregate: 'max', atLeast: 1 }
 				},
-				cells,
-				campaign
+				cells
 			)
 		).toMatchObject({ passed: false, cells: 0 });
 		expect(
@@ -218,15 +211,14 @@ describe('gates', () => {
 					id: 'm',
 					require: { kind: 'metric', name: 'guardrailTrips', aggregate: 'median', atLeast: 2 }
 				},
-				cells,
-				campaign
+				cells
 			)
 		).toMatchObject({ passed: true, observed: 2 });
 	});
 
 	it('is inconclusive on no-regression without a baseline, and honest with one', async () => {
 		const gate = { id: 'nr', require: { kind: 'no-regression' as const, tolerance: 0 } };
-		expect(evaluateGate(gate, [cell({})], campaign)).toMatchObject({
+		expect(evaluateGate(gate, [cell({})])).toMatchObject({
 			passed: true,
 			inconclusive: true
 		});
@@ -235,7 +227,6 @@ describe('gates', () => {
 		const same = evaluateGate(
 			{ ...gate, require: { kind: 'no-regression', tolerance: 0 } },
 			baseline.cells,
-			small(),
 			baseline
 		);
 		expect(same).toMatchObject({ passed: true, observed: 0 });
@@ -243,7 +234,7 @@ describe('gates', () => {
 		const worse = baseline.cells.map((c) =>
 			c.brain === 'scripted-optimal' ? { ...c, outcome: 'OUT_OF_STEPS' as const } : c
 		);
-		expect(evaluateGate(gate, worse, small(), baseline)).toMatchObject({
+		expect(evaluateGate(gate, worse, baseline)).toMatchObject({
 			passed: false,
 			observed: 1
 		});

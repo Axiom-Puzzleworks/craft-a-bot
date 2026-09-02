@@ -9,7 +9,13 @@ npm run craftabot -- run --kit packages/harness/fixtures/snackbot.craftabot.json
 npm run craftabot -- report --safety-case --out ./runs
 npm run craftabot -- report --incidents --out ./runs
 npm run craftabot -- bundle --run <runId> --out ./runs --file trace.craftabot-trace.json
+npm run craftabot -- campaign --file campaigns/injection-baseline.json --strict --out ./campaign-out \
+    --junit ./campaign-out/junit.xml --sarif ./campaign-out/results.sarif --markdown ./campaign-out/scorecard.md
 ```
+
+## Campaigns
+
+A campaign (`docs/design-day2/28-CAMPAIGNS.md`) is scenarios × builds × guards × brains × seeds with gates — a guardrail regression suite as a file. `craftabot campaign` runs one and writes `<reportId>.campaign-report.json` plus the renderings you name (markdown for a person, JUnit for CI, SARIF for code scanning), and keeps every cell's run under `--out/runs` so a failed gate's run ids open with `bundle`. `--strict` exits 1 on any failed gate; that is what CI runs on `campaigns/injection-baseline.json`. A live brain needs the campaign's own `budget` and its provider's credential.
 
 ## What a run writes
 

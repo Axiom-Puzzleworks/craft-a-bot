@@ -2,6 +2,7 @@ import { writeFile } from 'node:fs/promises';
 import { defaultConfig, loadConfig, type HarnessConfig } from './config.js';
 import { credentialsFromEnv, type CredentialSource } from './credentials.js';
 import { bundleRun } from './commands/bundle.js';
+import { runCampaignFile } from './commands/campaign.js';
 import { describePacks, renderPacks } from './commands/packs.js';
 import { reportIncidents, reportSafetyCase, reportTelemetry } from './commands/report.js';
 import { runKit, type BrainTier } from './commands/run.js';
@@ -73,6 +74,15 @@ Usage:
   craftabot bundle --run <runId> [--out ./runs] [--file <path>]
       Write a stored run back out as a .craftabot-trace.json (to --file, or
       stdout), redacted and digest-signed.
+
+  craftabot campaign --file <campaign.json> [--out ./campaign-out] [--strict]
+                     [--baseline <report.json>] [--junit <path>] [--sarif <path>]
+                     [--markdown <path>] [--no-keep-runs] [--config …]
+      Run a campaign (scenarios × builds × guards × brains × seeds, with
+      gates) and write <reportId>.campaign-report.json under --out, plus the
+      renderings named. Every cell's run is kept under --out/runs unless
+      --no-keep-runs. --strict exits 1 on any failed gate. A live brain needs
+      the campaign's own budget and its provider's CRAFTABOT_CREDENTIAL_<ID>.
 
   craftabot report --safety-case [--agent <agentId>] | --incidents | --telemetry
                    [--out ./runs] [--file <path>] [--config …]
@@ -147,6 +157,41 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 					io.stdout(text);
 				}
 				return 0;
+			}
+			case 'campaign': {
+				const file = stringFlag(args, 'file');
+				if (file === undefined) throw new Error('campaign needs --file <campaign.json>');
+				const out = stringFlag(args, 'out') ?? './campaign-out';
+				const baseline = stringFlag(args, 'baseline');
+				const junit = stringFlag(args, 'junit');
+				const sarif = stringFlag(args, 'sarif');
+				const markdown = stringFlag(args, 'markdown');
+				const { report, reportFile, written } = await runCampaignFile({
+					file,
+					out,
+					keepRuns: args.flags['no-keep-runs'] !== true,
+					config: await configFrom(args),
+					credentials: credentialsFromEnv(io.env),
+					...(baseline !== undefined ? { baseline } : {}),
+					...(junit !== undefined ? { junit } : {}),
+					...(sarif !== undefined ? { sarif } : {}),
+					...(markdown !== undefined ? { markdown } : {})
+				});
+				const failed = report.gates.filter((gate) => !gate.passed);
+				io.stdout(
+					[
+						`campaign ${report.campaignId} — ${report.passed ? '✅ PASSED' : '❌ FAILED'}: ${report.gates.length - failed.length} of ${report.gates.length} gates, ${report.cells.length} cells, ${report.budget.liveCells} live`,
+						`  report     ${reportFile}`,
+						...written.slice(1).map((path) => `  wrote      ${path}`),
+						''
+					].join('\n')
+				);
+				for (const gate of failed) {
+					io.stderr(
+						`  ✗ ${gate.id}: ${gate.observed === undefined ? 'no cells matched' : `observed ${gate.kind === 'metric' ? gate.observed : `${Math.round(gate.observed * 100)}%`}`}, required ${gate.required}\n`
+					);
+				}
+				return args.flags['strict'] === true && !report.passed ? 1 : 0;
 			}
 			case 'report': {
 				const storage = await createFileStorage(stringFlag(args, 'out') ?? './runs');
