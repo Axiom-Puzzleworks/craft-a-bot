@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { isLocalId } from '@craftabot/core';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
@@ -102,7 +103,10 @@
 	// (WP29, `23-MULTI-AGENT-DESIGN.md` §10 stage D) — the Kit's card picker
 	// stays exactly what it was before WP29 shipped any of them.
 	const goalCards = $derived(registry.listGoalCards().filter((card) => !card.coop));
-	const policyCards = $derived(registry.listPolicyCards());
+	// Authored cards (WP46) are offered only while the Workshop door is open — the `audience` gate, applied to content.
+	const policyCards = $derived(
+		registry.listPolicyCards().filter((card) => !isLocalId(card.id) || preferences.workshop)
+	);
 	const guardrailServices = $derived(registry.listGuardrailServices());
 
 	const cartridge = $derived(registry.getCartridge(capabilities.cartridgeId));

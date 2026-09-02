@@ -16,6 +16,8 @@
 	} from '@craftabot/evals';
 	import { installedPacks } from '$lib/packs.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
+	import { contentStore } from '$lib/state/content.svelte.js';
+	import { slugOf } from '@craftabot/core';
 	import { persistRunSummary } from '$lib/state/run-summaries.js';
 	import {
 		envelopeFor,
@@ -49,6 +51,26 @@
 	let fromStore = $state(false);
 	let openSlice = $state<CampaignSlice | undefined>(undefined);
 	let importNote = $state('');
+	let saveNote = $state('');
+
+	async function saveCampaign(): Promise<void> {
+		if (!parsed.ok) return;
+		const id = `local/campaigns/${slugOf(parsed.campaign.id)}`;
+		await contentStore.save({
+			id,
+			kind: 'campaign',
+			title: parsed.campaign.title,
+			record: JSON.parse(source) as unknown,
+			savedAt: new Date().toISOString(),
+			schemaVersion: 1
+		});
+		saveNote = `Saved as ${id}.`;
+	}
+
+	function loadSaved(record: unknown): void {
+		source = JSON.stringify(record, null, '\t');
+		report = undefined;
+	}
 	type Trace = { events: readonly EngineEvent[]; spec: AgentSpecV2 };
 	// Raw on purpose: hundreds of event arrays that never change once collected.
 	let traces = $state.raw<Record<string, Trace>>({});
@@ -177,6 +199,10 @@
 				/>
 			</label>
 			{#if importNote}<span class="hint">{importNote}</span>{/if}
+			<button type="button" disabled={!parsed.ok} data-testid="save-campaign" onclick={saveCampaign}
+				>Save to your content</button
+			>
+			{#if saveNote}<span class="hint" data-testid="campaign-saved">{saveNote}</span>{/if}
 			<div class="go">
 				<p class="size" data-testid="campaign-size">
 					{#if parsed.ok}{size} cells{:else}—{/if}
@@ -205,6 +231,17 @@
 				harness — <code>npm run craftabot -- campaign --file …</code> — with the campaign's own
 				<code>budget</code>.
 			</p>
+		{/if}
+		{#if contentStore.of('campaign').length > 0}
+			<ul class="saved" data-testid="local-campaigns">
+				{#each contentStore.of('campaign') as entry (entry.id)}
+					<li data-testid="local-campaign-{entry.id}">
+						{entry.title} <span class="hint">{entry.id}</span>
+						<button type="button" onclick={() => loadSaved(entry.record)}>Load</button>
+						<button type="button" onclick={() => contentStore.remove(entry.id)}>Delete</button>
+					</li>
+				{/each}
+			</ul>
 		{/if}
 	</section>
 

@@ -1,5 +1,6 @@
 <script lang="ts">
-	import type { ScenarioPackFile } from '@craftabot/core';
+	import { contentRecordFor, slugOf, type ScenarioPackFile } from '@craftabot/core';
+	import { contentStore } from '$lib/state/content.svelte.js';
 	import { createRegistry, installedPacks } from '$lib/packs.js';
 	import {
 		describeRun,
@@ -18,13 +19,31 @@
 	 * plan or unsafe, and the scenario's own expectations are checked.
 	 */
 
-	const registry = createRegistry();
-	const cards = importableCards(registry);
+	// Rebuilt whenever the content store changes, so a saved scenario is in the library at once (WP46).
+	const registry = $derived.by(() => {
+		void contentStore.records;
+		return createRegistry();
+	});
+	const cards = $derived(importableCards(registry));
+
+	async function saveImported(file: ScenarioPackFile): Promise<void> {
+		const savedAt = new Date().toISOString();
+		await contentStore.saveAll(
+			file.scenarios.map((scenario) =>
+				contentRecordFor('scenario', scenario, {
+					savedAt,
+					slug: slugOf(`${file.id}-${scenario.id.replace(/^.*\//, '')}`)
+				})
+			)
+		);
+		imported = imported.filter((entry) => entry !== file);
+	}
 
 	let imported = $state<ScenarioPackFile[]>([]);
 	let corpusText = $state('');
+	const firstCards = importableCards(createRegistry());
 	let corpusCard = $state(
-		cards.find((card) => card.id === 'starter/warning-sign')?.id ?? cards[0]?.id ?? ''
+		firstCards.find((card) => card.id === 'starter/warning-sign')?.id ?? firstCards[0]?.id ?? ''
 	);
 	let corpusKey = $state('sign');
 	let importError = $state<string | undefined>(undefined);
@@ -145,6 +164,14 @@
 		<p class="hint" data-testid="corpus-count">
 			{imported.reduce((n, file) => n + file.scenarios.length, 0)} imported this session
 		</p>
+		{#each imported as file (file.id)}
+			<p class="hint">
+				<span class="mono">{file.id}</span> — {file.scenarios.length} scenarios
+				<button type="button" data-testid="save-corpus-{file.id}" onclick={() => saveImported(file)}
+					>Save to your content</button
+				>
+			</p>
+		{/each}
 	</section>
 </main>
 

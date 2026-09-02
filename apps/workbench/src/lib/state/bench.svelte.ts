@@ -11,6 +11,7 @@ import {
 	type SlotId
 } from '@craftabot/core';
 import { createRegistry } from '$lib/packs.js';
+import { contentStore } from './content.svelte.js';
 import { appStorage } from './app-storage.svelte.js';
 import { createBrowserKeyVault } from './keys.js';
 import type { Storage } from './storage.js';
@@ -97,7 +98,11 @@ export function createBenchStore(deps: BenchStoreDeps = {}): BenchStore {
 	// eslint-disable-next-line svelte/prefer-svelte-reactivity
 	const now = deps.now ?? (() => new Date().toISOString());
 	const debounceMs = deps.saveDebounceMs ?? SAVE_DEBOUNCE_MS;
-	const registry = createRegistry();
+	// Rebuilt whenever authored content changes (WP46): a card saved in the Studio validates on the bench at once.
+	const registry = $derived.by(() => {
+		void contentStore.records;
+		return createRegistry();
+	});
 
 	const state = $state<{
 		record: AgentRecord | undefined;

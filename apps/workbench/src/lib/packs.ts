@@ -13,6 +13,7 @@ import personasPack from '@craftabot/pack-personas';
 import starterPack from '@craftabot/pack-starter';
 import workshopPack from '@craftabot/pack-workshop';
 import { demoPack } from './demo-pack.js';
+import { contentStore } from './state/content.svelte.js';
 
 /**
  * The explicit pack registry (01-ARCHITECTURE.md §4, 05-TECH-STACK.md §3).
@@ -103,6 +104,8 @@ export const installedPacks = [
 export function createRegistry(): PackRegistry {
 	const registry = createPackRegistry();
 	for (const pack of installedPacks) registry.registerPack(pack);
+	// Authored content (WP46, `34-CONTENT-STORE.md` §4.4): the `local` pack, as the store stands now.
+	registry.registerPack(contentStore.localPack);
 	return registry;
 }
 

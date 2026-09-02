@@ -6,8 +6,40 @@
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import { createRegistry } from '$lib/packs.js';
 	import { testBenchCards } from '$lib/workshop/assertion-cards.js';
+	import { assertionCardSchema, contentRecordFor } from '@craftabot/core';
+	import { contentStore } from '$lib/state/content.svelte.js';
 
-	const registry = createRegistry();
+	// Rebuilt whenever the content store changes, so a saved card is on the bench at once (WP46).
+	const registry = $derived.by(() => {
+		void contentStore.records;
+		return createRegistry();
+	});
+	let cardText = $state('');
+	let cardProblem = $state('');
+
+	async function saveCard(): Promise<void> {
+		cardProblem = '';
+		let raw: unknown;
+		try {
+			raw = JSON.parse(cardText);
+		} catch {
+			cardProblem = 'Not JSON.';
+			return;
+		}
+		const parsed = assertionCardSchema.safeParse({
+			id: 'local/testbench/pending',
+			...(raw as object)
+		});
+		if (!parsed.success) {
+			cardProblem = `Not an assertion card: ${parsed.error.issues[0]?.message ?? 'invalid'}`;
+			return;
+		}
+		await contentStore.save(
+			contentRecordFor('assertion-card', parsed.data, { savedAt: new Date().toISOString() })
+		);
+		cardText = '';
+		if (selectedId) await loadSelected(selectedId);
+	}
 
 	/**
 	 * **The Test Bench** (`14-…` §5.7, WP27): "Check your robot's homework."
@@ -95,6 +127,36 @@
 			</select>
 		</label>
 	</header>
+
+	<section class="author" aria-label="Your cards">
+		<h2>Your cards</h2>
+		<p class="hint">
+			Paste an assertion card as JSON — title, description, predicate; the id is minted from the
+			title.
+		</p>
+		<textarea
+			rows="4"
+			bind:value={cardText}
+			data-testid="assertion-card-text"
+			aria-label="Assertion card JSON"></textarea>
+		<button
+			type="button"
+			disabled={cardText.trim() === ''}
+			data-testid="assertion-card-save"
+			onclick={saveCard}>Save card</button
+		>
+		{#if cardProblem}<p class="status" data-testid="assertion-card-problem">{cardProblem}</p>{/if}
+		{#if contentStore.of('assertion-card').length > 0}
+			<ul data-testid="local-assertion-cards">
+				{#each contentStore.of('assertion-card') as entry (entry.id)}
+					<li data-testid="local-assertion-{entry.id}">
+						{entry.title} <span class="hint">{entry.id}</span>
+						<button type="button" onclick={() => contentStore.remove(entry.id)}>Delete</button>
+					</li>
+				{/each}
+			</ul>
+		{/if}
+	</section>
 
 	{#if !loaded}
 		<p class="status">Reading the run store…</p>

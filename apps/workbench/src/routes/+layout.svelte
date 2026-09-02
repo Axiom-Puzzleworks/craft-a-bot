@@ -7,6 +7,7 @@
 	import { leafletStore } from '$lib/leaflet/leaflet.svelte.js';
 	import type { LeafletRoute } from '$lib/leaflet/chapters.js';
 	import { preferences } from '$lib/state/preferences.svelte.js';
+	import { contentStore } from '$lib/state/content.svelte.js';
 
 	/**
 	 * The leaflet lives here rather than in any one screen: half its chapters run
@@ -21,6 +22,11 @@
 	let { children } = $props();
 
 	const leaflet = leafletStore();
+
+	// Authored content (WP46) is read once, before any registry is built from it.
+	$effect(() => {
+		void contentStore.load();
+	});
 
 	function routeOf(pathname: string): LeafletRoute {
 		if (pathname.startsWith('/bench')) return 'bench';

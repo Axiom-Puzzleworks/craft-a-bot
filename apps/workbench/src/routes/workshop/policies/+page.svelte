@@ -1,6 +1,12 @@
 <script lang="ts">
 	import type { GuardrailHook, PolicyCard, PolicyDisposition, RunRecord } from '@craftabot/core';
-	import { describeUnsafePattern, policyCardSchema } from '@craftabot/core';
+	import {
+		contentRecordFor,
+		describeUnsafePattern,
+		isLocalId,
+		policyCardSchema
+	} from '@craftabot/core';
+	import { contentStore } from '$lib/state/content.svelte.js';
 	import PolicyCardChip from '$lib/components/shared/PolicyCardChip.svelte';
 	import { installedPacks, createRegistry } from '$lib/packs.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
@@ -101,7 +107,28 @@
 
 	// --- library: every policy card an installed pack ships -----------------------------------
 
-	const registry = createRegistry();
+	// Rebuilt whenever the content store changes, so a saved card is in the library at once (WP46).
+	const registry = $derived.by(() => {
+		void contentStore.records;
+		return createRegistry();
+	});
+	let saveNote = $state('');
+
+	async function saveCard(): Promise<void> {
+		if (!validation.success) return;
+		const record = contentRecordFor('policy-card', validation.data, {
+			savedAt: new Date().toISOString(),
+			...(isLocalId(id) ? { slug: id.replace(/^local\/policy\//, '') } : {})
+		});
+		await contentStore.save(record);
+		id = record.id;
+		saveNote = `Saved as ${record.id}.`;
+	}
+
+	async function removeCard(cardId: string): Promise<void> {
+		await contentStore.remove(cardId);
+		if (id === cardId) saveNote = '';
+	}
 	const library = $derived(
 		registry.listPolicyCards().map((card) => ({
 			card,
@@ -311,6 +338,27 @@
 				{/if}
 
 				<pre class="json" data-testid="policy-json">{draftJson}</pre>
+				<div class="row">
+					<button
+						type="button"
+						disabled={!validation.success}
+						data-testid="policy-save"
+						onclick={saveCard}>Save to your content</button
+					>
+					{#if saveNote}<span class="hint mono" data-testid="policy-saved">{saveNote}</span>{/if}
+				</div>
+				{#if contentStore.of('policy-card').length > 0}
+					<ul class="yours" data-testid="local-policy-cards">
+						{#each contentStore.of('policy-card') as entry (entry.id)}
+							<li data-testid="local-policy-{entry.id}">
+								<span class="mono">{entry.id}</span> — {entry.title}
+								<button type="button" class="remove" onclick={() => removeCard(entry.id)}
+									>Delete</button
+								>
+							</li>
+						{/each}
+					</ul>
+				{/if}
 			</div>
 		</div>
 	</section>
