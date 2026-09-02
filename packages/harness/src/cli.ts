@@ -5,6 +5,7 @@ import { credentialsFromEnv, type CredentialSource } from './credentials.js';
 import { bundleRun } from './commands/bundle.js';
 import { evaluateRun, renderEvaluations } from './commands/evaluate.js';
 import { runCampaignFile } from './commands/campaign.js';
+import { importCorpusFile } from './commands/scenarios.js';
 import { describePacks, renderPacks } from './commands/packs.js';
 import { reportIncidents, reportSafetyCase, reportTelemetry } from './commands/report.js';
 import { runKit, type BrainTier } from './commands/run.js';
@@ -85,8 +86,16 @@ Usage:
       when CRAFTABOT_CREDENTIAL_<ID> is set, and answers inconclusive
       offline otherwise; --rubric is that judge's rubric.
 
+  craftabot scenarios --import <rows.jsonl> --card <goalCardId> --out <pack.json>
+                      [--id <packId>] [--name <name>] [--key <manual key>]
+                      [--tags <tag,tag>]
+      Turn a JSONL corpus ({"text": …, "tags"?: […], "expectedOutcome"?: …}
+      per line) into a scenario pack file over one goal card, each row a
+      manual entry keyed --key (default "sign") that the adversary plan
+      looks up. Name the file to campaign --scenarios to run it.
+
   craftabot campaign --file <campaign.json> [--out ./campaign-out] [--strict]
-                     [--egress declared|none]
+                     [--egress declared|none] [--scenarios <pack.json,…>]
                      [--baseline <report.json>] [--junit <path>] [--sarif <path>]
                      [--markdown <path>] [--no-keep-runs] [--config …]
       Run a campaign (scenarios × builds × guards × brains × seeds, with
@@ -182,6 +191,9 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 				const sarif = stringFlag(args, 'sarif');
 				const markdown = stringFlag(args, 'markdown');
 				const campaignEgress = egressFlag(args);
+				const scenarioPacks = stringFlag(args, 'scenarios')
+					?.split(',')
+					.filter((s) => s !== '');
 				const { report, reportFile, written } = await runCampaignFile({
 					file,
 					out,
@@ -192,7 +204,8 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 					...(junit !== undefined ? { junit } : {}),
 					...(sarif !== undefined ? { sarif } : {}),
 					...(markdown !== undefined ? { markdown } : {}),
-					...(campaignEgress !== undefined ? { egress: campaignEgress } : {})
+					...(campaignEgress !== undefined ? { egress: campaignEgress } : {}),
+					...(scenarioPacks !== undefined ? { scenarioPacks } : {})
 				});
 				const failed = report.gates.filter((gate) => !gate.passed);
 				io.stdout(
@@ -209,6 +222,36 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 					);
 				}
 				return args.flags['strict'] === true && !report.passed ? 1 : 0;
+			}
+			case 'scenarios': {
+				const file = stringFlag(args, 'import');
+				const card = stringFlag(args, 'card');
+				const out = stringFlag(args, 'out');
+				if (file === undefined || card === undefined || out === undefined) {
+					throw new Error(
+						'scenarios needs --import <rows.jsonl> --card <goalCardId> --out <pack.json>'
+					);
+				}
+				const id = stringFlag(args, 'id');
+				const name = stringFlag(args, 'name');
+				const key = stringFlag(args, 'key');
+				const tags = stringFlag(args, 'tags')
+					?.split(',')
+					.filter((t) => t !== '');
+				const result = await importCorpusFile({
+					file,
+					card,
+					out,
+					config: await configFrom(args),
+					...(id !== undefined ? { id } : {}),
+					...(name !== undefined ? { name } : {}),
+					...(key !== undefined ? { key } : {}),
+					...(tags !== undefined ? { tags } : {})
+				});
+				io.stdout(
+					`imported ${result.count} scenarios over ${card} into ${result.file} (tags: ${result.tags.join(', ') || 'none'})\n`
+				);
+				return 0;
 			}
 			case 'evaluate': {
 				const runId = stringFlag(args, 'run');

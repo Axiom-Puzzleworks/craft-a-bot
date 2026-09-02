@@ -36,25 +36,38 @@ export class ScenarioRefusedError extends Error {
 	}
 }
 
-/** The world a scenario runs in, injected — or the refusal, before any run starts. */
-export function worldForScenario(
+/**
+ * A goal card's world with injections applied — or the refusal, before any
+ * run starts. `scenarioId` is only for the messages.
+ */
+export function injectedWorld(
 	registry: PackRegistry,
-	scenario: ScenarioDefinition
+	goalCardId: string,
+	injections: readonly Injection[],
+	scenarioId: string
 ): WorldInstance {
-	const card = registry.getGoalCard(scenario.goalCardId);
+	const card = registry.getGoalCard(goalCardId);
 	if (!card)
 		throw new Error(
-			`scenario "${scenario.id}" names goal card "${scenario.goalCardId}", which no pack ships`
+			`scenario "${scenarioId}" names goal card "${goalCardId}", which no pack ships`
 		);
 	const definition = registry.getWorld(card.worldId);
 	if (!definition)
 		throw new Error(`goal card "${card.id}" names world "${card.worldId}", which no pack ships`);
 	const world = definition.create(card.layoutId);
-	if (scenario.injections.length > 0) {
-		if (!world.inject) throw new ScenarioRefusedError(scenario.id, card.worldId);
-		for (const injection of scenario.injections) world.inject(injection);
+	if (injections.length > 0) {
+		if (!world.inject) throw new ScenarioRefusedError(scenarioId, card.worldId);
+		for (const injection of injections) world.inject(injection);
 	}
 	return world;
+}
+
+/** The world a scenario runs in, injected — or the refusal, before any run starts. */
+export function worldForScenario(
+	registry: PackRegistry,
+	scenario: ScenarioDefinition
+): WorldInstance {
+	return injectedWorld(registry, scenario.goalCardId, scenario.injections, scenario.id);
 }
 
 export interface RunScenarioOptions {

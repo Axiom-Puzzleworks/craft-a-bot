@@ -29,6 +29,7 @@
 			| 'armour'
 			| 'guards'
 			| 'evaluators'
+			| 'scenarios'
 			| 'campaigns';
 	}
 
@@ -43,6 +44,8 @@
 		{ id: 'campaigns', label: 'Campaigns', href: '/workshop/campaigns' },
 		// WP43 (`31-EVALUATORS.md` §4.3) — every evaluator, run over a stored run.
 		{ id: 'evaluators', label: 'Evaluators', href: '/workshop/evaluators' },
+		// WP44 (`32-SCENARIOS.md` §4.5) — every scenario a pack ships, and a corpus imported over a card.
+		{ id: 'scenarios', label: 'Scenarios', href: '/workshop/scenarios' },
 		{ id: 'policies', label: 'Policies', href: '/workshop/policies' },
 		{ id: 'bench', label: 'Test Bench', href: '/workshop/bench' },
 		{ id: 'telemetry', label: 'Telemetry', href: '/workshop/telemetry' },
@@ -76,6 +79,7 @@
 								| '/workshop/armour'
 								| '/workshop/guards'
 								| '/workshop/evaluators'
+								| '/workshop/scenarios'
 								| '/workshop/campaigns'
 						)}
 						aria-current={current === destination.id ? 'page' : undefined}

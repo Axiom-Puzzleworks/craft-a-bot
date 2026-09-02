@@ -3,6 +3,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { type LLMProvider, type PackRegistry } from '@craftabot/core';
 import {
+	packFromScenarioFile,
 	parseCampaign,
 	parseCampaignReport,
 	renderCampaignScorecard,
@@ -41,6 +42,8 @@ export interface CampaignFileOptions {
 	fetch?: typeof globalThis.fetch;
 	/** Every cell's egress mode (WP41); the CI job passes `'none'`. */
 	egress?: EgressMode;
+	/** Scenario pack files (WP44) registered beside the config's packs, so a campaign can name their scenarios. */
+	scenarioPacks?: string[];
 	onCell?: (done: number, total: number) => void;
 }
 
@@ -56,7 +59,13 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 		options.baseline === undefined
 			? undefined
 			: parseCampaignReport(JSON.parse(await readFile(options.baseline, 'utf8')));
-	const registry = createRegistry(options.config);
+	const scenarioPacks = await Promise.all(
+		(options.scenarioPacks ?? []).map(async (path) =>
+			packFromScenarioFile(JSON.parse(await readFile(path, 'utf8')))
+		)
+	);
+	const packs = [...options.config.packs, ...scenarioPacks];
+	const registry = createRegistry({ packs });
 	const now = options.now ?? (() => new Date().toISOString());
 	const versions = packVersions(options.config);
 	const keepRuns = options.keepRuns ?? true;
@@ -68,7 +77,7 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 		packVersions: versions,
 		providerFor: (brain) => providerFor(brain, registry, options),
 		egress: options.egress ?? 'declared',
-		packs: options.config.packs,
+		packs,
 		onCell: (_cell, done, total) => options.onCell?.(done, total),
 		...(options.now ? { now: options.now } : {}),
 		...(options.newId ? { newId: options.newId } : {}),

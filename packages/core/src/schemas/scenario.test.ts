@@ -64,6 +64,7 @@ describe('the registry (WP44)', () => {
 		id: 'p',
 		name: 'P',
 		version: '0.0.1',
+		requiresCore: '>=0.0.1',
 		...(scenarios ? { scenarios } : {})
 	});
 

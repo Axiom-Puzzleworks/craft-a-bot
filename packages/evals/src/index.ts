@@ -93,9 +93,22 @@ export {
 	type Tolerances
 } from './baseline.js';
 export { renderScorecard } from './scorecard.js';
+/** The corpus importer (`32-SCENARIOS.md` §4.5, WP44): JSONL rows become scenarios over one base card, in a scenario pack file. */
+export {
+	DEFAULT_CORPUS_DELIVERY,
+	corpusRowSchema,
+	packFromScenarioFile,
+	parseCorpusJsonl,
+	scenarioPackFrom,
+	scenariosFromCorpus,
+	type CorpusDelivery,
+	type CorpusImportOptions,
+	type CorpusRow
+} from './corpus.js';
 /** Scenarios (`32-SCENARIOS.md` §4.4, WP44): a goal card plus what a test needs, run through an injected world. */
 export {
 	ScenarioRefusedError,
+	injectedWorld,
 	registryForScenario,
 	runScenario,
 	worldForScenario,

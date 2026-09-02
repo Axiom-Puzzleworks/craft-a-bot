@@ -1,4 +1,5 @@
-import type { EgressMode, PackManifest } from '@craftabot/core';
+import type { EgressMode, PackManifest, PackRegistry } from '@craftabot/core';
+import { injectionSchema } from '@craftabot/core';
 import starterPack from '@craftabot/pack-starter';
 import { z } from 'zod';
 import {
@@ -24,6 +25,7 @@ import {
 } from '@craftabot/pack-starter/testing';
 import { evaluateAssertion } from './assertions.js';
 import { evaluationInputFor, resolveEvaluator } from './evaluators.js';
+import { injectedWorld, registryForScenario } from './scenarios.js';
 import {
 	DEFAULT_NOISE,
 	scriptedAdversary,
@@ -140,13 +142,22 @@ export const gateSchema = z.object({
 });
 export type Gate = z.infer<typeof gateSchema>;
 
-export const campaignScenarioSchema = z.object({
-	id: z.string().min(1),
-	goalCardId: z.string().min(1),
-	tags: z.array(z.string()).default([]),
-	fit: z.array(fittedBrickSchema).default([]),
-	maxTicks: z.number().int().positive().optional()
-});
+export const campaignScenarioSchema = z
+	.object({
+		id: z.string().min(1),
+		/** The card, named directly — or inherited from `scenarioId` (WP44). */
+		goalCardId: z.string().min(1).optional(),
+		/** A registered scenario (`32-SCENARIOS.md` §4.6): its card, tags and injections come with it. */
+		scenarioId: z.string().min(1).optional(),
+		tags: z.array(z.string()).default([]),
+		/** Injections beside the scenario's own, applied to every cell's world. */
+		injections: z.array(injectionSchema).default([]),
+		fit: z.array(fittedBrickSchema).default([]),
+		maxTicks: z.number().int().positive().optional()
+	})
+	.refine((scenario) => scenario.goalCardId !== undefined || scenario.scenarioId !== undefined, {
+		message: 'a campaign scenario names a goalCardId or a scenarioId'
+	});
 export type CampaignScenario = z.infer<typeof campaignScenarioSchema>;
 
 export const campaignBuildSchema = z.object({
@@ -307,17 +318,54 @@ export interface RunCampaignOptions {
 /** The same stride the matrix uses (`runner.ts`), for the same reason: a cell's ids depend only on its position. */
 const ID_STRIDE = 100_000;
 
+/**
+ * A campaign with every `scenarioId` resolved against the registry (WP44,
+ * `32-…` §4.6): the card comes from the scenario unless named, the tags are
+ * the union, the injections are the scenario's followed by the campaign's.
+ */
+export function resolveCampaign(campaign: Campaign, registry: PackRegistry): Campaign {
+	return {
+		...campaign,
+		scenarios: campaign.scenarios.map((scenario) => {
+			if (scenario.scenarioId === undefined) return scenario;
+			const definition = registry.getScenario(scenario.scenarioId);
+			if (!definition) {
+				throw new Error(
+					`campaign scenario "${scenario.id}" names scenario "${scenario.scenarioId}", which no pack ships`
+				);
+			}
+			return {
+				...scenario,
+				goalCardId: scenario.goalCardId ?? definition.goalCardId,
+				tags: [...new Set([...definition.tags, ...scenario.tags])],
+				injections: [...definition.injections, ...scenario.injections]
+			};
+		})
+	};
+}
+
+function goalCardOf(scenario: CampaignScenario): string {
+	if (scenario.goalCardId === undefined) {
+		throw new Error(
+			`campaign scenario "${scenario.id}" has no goal card — resolve its scenarioId first`
+		);
+	}
+	return scenario.goalCardId;
+}
+
 export async function runCampaign(
-	campaign: Campaign,
+	unresolved: Campaign,
 	options: RunCampaignOptions = {}
 ): Promise<CampaignReport> {
+	const registry = registryForScenario(options.packs);
+	const campaign = resolveCampaign(unresolved, registry);
 	const cells = campaignCells(campaign);
 	const noise = noiseFor(campaign.noise);
 	guardBudget(campaign, cells);
 
 	const results: CampaignCell[] = [];
 	for (const spec of cells) {
-		const cell = await runCell(spec, campaign, noise, options);
+		const cell = await runCell(spec, campaign, noise, options, registry);
 		results.push(cell);
 		options.onCell?.(cell, results.length, cells.length);
 		if (options.betweenCells) await options.betweenCells();
@@ -376,7 +424,8 @@ async function runCell(
 	cell: CampaignCellSpec,
 	campaign: Campaign,
 	noise: NoiseRates,
-	options: RunCampaignOptions
+	options: RunCampaignOptions,
+	registry: PackRegistry
 ): Promise<CampaignCell> {
 	const { scenario, build, guard, brain, seed } = cell;
 	const identity = {
@@ -392,11 +441,19 @@ async function runCell(
 
 	try {
 		const spec = specFor(cell);
-		const script = scriptFor(brain.tier, scenario.goalCardId, seed, noise);
+		const goalCardId = goalCardOf(scenario);
+		const script = scriptFor(brain.tier, goalCardId, seed, noise);
 		const maxTicks = scenario.maxTicks;
+		// A scenario's injections land in a world built here (WP44) — a world
+		// that cannot take them refuses before the run, and the cell records it.
+		const world =
+			scenario.injections.length > 0
+				? injectedWorld(registry, goalCardId, scenario.injections, scenario.id)
+				: undefined;
 		const run = await runToCompletion({
 			script,
 			spec,
+			...(world ? { world } : {}),
 			stepLimit: (maxTicks ?? 30) + 10,
 			idOffset: cell.ordinal * ID_STRIDE,
 			...(maxTicks !== undefined ? { maxTicks } : {}),
@@ -483,10 +540,11 @@ async function evaluateCell(
 export function specFor(cell: Pick<CampaignCellSpec, 'scenario' | 'build' | 'guard'>): AgentSpecV2 {
 	const { scenario, build, guard } = cell;
 	let spec: AgentSpecV2;
+	const goalCardId = goalCardOf(scenario);
 	if (build.base.kind === 'kit') {
-		spec = { ...build.base.kit.agent, goalCardId: scenario.goalCardId };
+		spec = { ...build.base.kit.agent, goalCardId };
 	} else {
-		const v1 = buildSpec({ goalCardId: scenario.goalCardId, ...cleanOverrides(build.overrides) });
+		const v1 = buildSpec({ goalCardId, ...cleanOverrides(build.overrides) });
 		const migrated = migrateAgentSpec(v1);
 		if ('kind' in migrated) throw new Error(migrated.message);
 		spec = migrated;
