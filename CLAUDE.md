@@ -8,7 +8,7 @@ Two purposes, in priority order: (1) an accessible training ground for agentic-A
 
 Stack: TypeScript + Svelte 5 (runes) + SvelteKit static. Monorepo (npm workspaces + Turborepo). Local-first, no backend. OpenAI out of the box (BYO key).
 
-**Where we are (2026-08-21):** V1.0 and Day 2 Phases A–F are fully shipped — every WP `18-…` names, WP0 through WP34, is done. The roadmap's forward plan has nothing left in it. **Amended 2026-09-01:** Phase G is now fully closed — **WP35, the Armour Brick** (`25-ARMOUR-BRICK.md`, `18-…` §3 Phase G), all five stages built and the live Google Cloud checkpoint (a real Model Armor verdict, the CORS go/no-go on direct browser calls) confirmed clear. The roadmap's forward plan again has nothing left in it. Full history — what each WP built, in what stages, with what divergences — lives in `18-…` §7 (the dated close-out log) and in each WP's own dated amendment inside the doc it touched; this file doesn't restate it. **Starting new work needs a fresh planning pass first** — see Workflow below.
+**Where we are (2026-08-21):** V1.0 and Day 2 Phases A–F are fully shipped — every WP `18-…` names, WP0 through WP34, is done. The roadmap's forward plan has nothing left in it. **Amended 2026-09-01:** Phase G is now fully closed — **WP35, the Armour Brick** (`25-ARMOUR-BRICK.md`, `18-…` §3 Phase G), all five stages built and the live Google Cloud checkpoint (a real Model Armor verdict, the CORS go/no-go on direct browser calls) confirmed clear. **Amended 2026-09-02:** a fresh planning pass produced `26-TARGET-DESIGN-V3.md` (the target design) and `27-DAY3-ROADMAP.md` (Phases H–L, WP36–WP52); the forward plan is `27-…`, and nothing in it has been built yet. Full history — what each WP built, in what stages, with what divergences — lives in `18-…` §7 (the dated close-out log) and in each WP's own dated amendment inside the doc it touched; this file doesn't restate it. **Starting new work needs a fresh planning pass first** — see Workflow below.
 
 ## Source of truth: `docs/design-day2/`
 
@@ -37,6 +37,8 @@ Stack: TypeScript + Svelte 5 (runes) + SvelteKit static. Monorepo (npm workspace
 | `18-DAY2-ROADMAP.md` | The full WP0–WP34 record and close-out log (§7) — read before proposing new phases |
 | `19-AI-SAFETY-GOVERNANCE-REFERENCE.md` | Governance features — the 38-control catalogue, dip in as needed |
 | `25-ARMOUR-BRICK.md` | WP35 (Phase G) — the Armour Brick: Model Armor as a hosted, Workshop-only safety brick; the credential/network seams, `guardrail.external`, decisions D1–D5, stages A–E |
+| `26-TARGET-DESIGN-V3.md` | **The current target design** (Day 3) — the safety proving ground: gap register G1–G20, the vendor-neutral guardrail-service shell, evaluators, scenarios, campaigns, egress, telemetry sinks, the headless harness, socket capacity; read before any Phase H–L work |
+| `27-DAY3-ROADMAP.md` | **The current forward plan** — Phases H–L, WP36–WP52, each mapped to a `26-…` section and the gaps it retires; §8 is the session-sized to-do |
 
 `09-ROADMAP.md` is history only (the WP0–WP10 record); `18-…` supersedes its forward plan.
 
@@ -44,7 +46,9 @@ Where a Day 2 doc and its Day 1 counterpart differ, **Day 2 wins** — the banne
 
 ## Workflow
 
-**Phase G is closed — WP35, the Armour Brick, shipped in full** (`25-ARMOUR-BRICK.md`, opened 2026-09-01, closed the same day across stages A–E plus the live Google Cloud checkpoint; `18-…` §7 items 30–32). `18-…`'s forward plan is exhausted again (WP0–WP35 all done): before building anything else, read `18-…` §7's closing entries and `12-…`'s defect register for anything that quietly deserves a follow-up, then confirm with the user what they actually want: new scope needs a fresh planning pass (a new roadmap document or phase), not an assumption.
+**Phase G is closed — WP35, the Armour Brick, shipped in full** (`25-ARMOUR-BRICK.md`, opened 2026-09-01, closed the same day across stages A–E plus the live Google Cloud checkpoint; `18-…` §7 items 30–32). `18-…`'s forward plan is exhausted (WP0–WP35 all done).
+
+**The fresh planning pass is done (2026-09-02):** `26-TARGET-DESIGN-V3.md` is the target design and `27-DAY3-ROADMAP.md` is the forward plan — Phases H–L, WP36–WP52. Nothing in it is built yet. The next WP is **WP36** (storage contract + analytic folds move; `27-…` §8 steps 1–3); Phase H (WP36 → WP37 → WP38) comes strictly first. L-sized WPs write their own design-of-record note before stage A (`27-…` §5).
 
 Once there's a WP to build (from a new plan, or a defect worth fixing): read the docs it names, **propose a task breakdown before writing code**, then build. One WP per branch (`wp{n}-{slug}`) and PR. Use your judgement inside a WP — the docs fix the destination and the contracts, not every step. Where a doc is silent, decide and note it. Where implementation must diverge from a doc, change the doc in the same PR with a dated note (`> **Amended 2026-08-13:** …`); don't leave the two disagreeing.
 

@@ -1,0 +1,159 @@
+# 27 — Day 3 Roadmap: Phases H–L, WP36–WP52
+
+> The phased plan from today's `main` (`8776fcb`, Phases A–G closed, WP0–WP35 done) to the target design in `26-TARGET-DESIGN-V3.md`. Written 2026-09-02. Supersedes `18-DAY2-ROADMAP.md`'s forward plan (which is exhausted); `18-…` §3–§7 remain the record of what was built. Every WP below names the `26-…` section it implements and the gap ids (`26-…` §3) it retires, so the two documents can be read against each other.
+>
+> Prerequisite reading: `26-…` (the destination — read it first, this document assumes it), `18-…` §7 items 28–32 (the close-out entries this plan inherits follow-ups from), `23-…` §10 / `24-…` §10 / `25-…` §11 (the stage-gated build discipline every L-sized WP here follows).
+
+---
+
+## 1. Scope decision of record
+
+1. **This roadmap builds the safety proving ground (purpose 2) and nothing else.** No Kit change is scheduled. Every screen, brick, package and CLI here is Workshop-only or headless, gated exactly as the Armour Brick is (`audience: 'workshop'`, `preferences.workshop`) or not in the browser at all.
+2. **Post-training only.** No WP reads, writes or generates training data. `26-…` §11 is binding; a WP that drifts toward it stops and re-sizes.
+3. **Additive, never transformative.** Every core contract change is an optional field, an optional method, a widened enum, or a file relocation with a re-export. The golden traces (`starter`'s `say-hello`, `geap`'s offline armour trace) stay byte-stable at every stage of every WP, or the stage does not land — `23-…` §3 principle 1, kept.
+4. **Vendors are packs.** No vendor-specific code lands in `core`, `governance`, `evals`, `telemetry` or `harness`. The test for every WP in Phase I and J is "could a third party ship the next one as a pack".
+5. **Local-first holds.** No backend, no accounts, no dynamic loading. The harness is a local process; a sink is the user's own collector; the content store is IndexedDB or a directory.
+6. **Live spend is an artefact property.** A campaign cell that calls a real model or a real vendor requires an explicit `budget` in the campaign file or refuses. No default spend, ever.
+
+## 2. Priority logic
+
+1. **Rig before vendors** (Phase H). A headless host, persistent campaigns and a CI gate are what turn every later WP from "a thing the Workshop can show" into "a thing a pipeline can fail on". They also retire the N+1/50-run ceiling that would otherwise cap every experiment Phase I–K produces.
+2. **The shell before the second vendor** (Phase I). Extracting the hosted-guardrail mechanism from `pack-geap` *first*, with the offline golden trace as the gate, is what makes the second and third vendors small. Building a second vendor by copying `pack-geap` would prove nothing and leave two copies of the policy to drift.
+3. **Layered defence early** (WP40). Socket capacity is small, unblocks the defence-in-depth configuration every campaign wants to name, and has no dependency on any vendor.
+4. **Evaluators and scenarios ride on campaigns** (Phase J). A judge with nothing to gate and a corpus with nothing to run through are shelf-ware; both land once a campaign can consume them.
+5. **Telemetry and export last but not least** (Phase K–L). They consume everything above and change nothing beneath; sequencing them after the contracts means the OTel mapping and the bundle are written once against the final event shapes.
+
+## 3. Phases and work packages
+
+Sizing: **S** = one session, one stage; **M** = two to three gated stages; **L** = four to six gated stages and a design-of-record note (`23-…`/`24-…`/`25-…`'s shape) written *before* stage A — the "re-derive before building" rule `18-…` §7 items 21–22 established. Every stage lands green on the full gate (unit suites, `check`, `lint`, build + budget, all e2e, both golden traces) and is independently committable. One WP per branch (`wp{n}-{slug}`) and PR.
+
+### Phase H — Rig foundations (headless host, campaigns, CI) — *do first*
+
+| WP | Deliverable | DoD | Size | Retires |
+|---|---|---|---|---|
+| **WP36** | **Storage and the folds move** (`26-…` §6.7, §6.14). `Storage` contract + `createMemoryStorage` + `storage-contract` suite → `@craftabot/core/persistence`; `run-projection`/`group-replay-projection` → core; `isFailure`/`incidentsFrom`/`safety-case`/`telemetry`/`safety-tally` → `@craftabot/governance/reports`; the workbench re-exports every old path for one release. `RunSummary` written at `run.finished`; `Storage.summariseRuns(filter)`; the four N+1 screens read summaries. Run cap becomes a Workshop setting. | Zero behaviour change: every workbench and pack test green with no assertion edited; both golden traces byte-identical; the dashboard/incidents/telemetry/safety-case e2e specs pass reading summaries; a unit test proves `summariseRuns` and a full events fold agree on every stored fixture run. `governance` still builds with `core` as its only dependency (ESLint rule unchanged). | M | G19, G4-part |
+| **WP37** | **`@craftabot/harness` v1** (`26-…` §6.8). Node package + `craftabot` CLI: `run`, `bundle`, `report --safety-case\|--incidents\|--telemetry`, `packs`; `createFileStorage(dir)` (one directory per run: `run.json`, `events.jsonl`, `summary.json`); `craftabot.config.ts` as the explicit pack list; credentials from `CRAFTABOT_CREDENTIAL_<id>` env only; the demo brain and scripted tiers keyless. | `craftabot run --kit fixtures/snackbot.craftabot.json --card starter/snack --seed 7 --out ./runs` produces a run whose directory the Workshop's Run Browser imports with no conversion and whose digest verifies; `craftabot report --safety-case` emits the same JSON `/workshop/safety-case` renders for the same bot; a harness key-leak test plants one secret per declared credential and sweeps every file written; `smoke:openai` reimplemented as `craftabot run --provider openai` (env key, never CI). | M | G4 |
+| **WP38** | **Campaigns v1** (`26-…` §6.9). `Campaign`/`CampaignReport` schemas in `evals`; `runCampaign` (browser- and Node-safe); the `scripted-adversary` brain tier; gates (`evaluator-pass-rate`, `outcome-rate`, `metric`, `no-regression`); three renderers — markdown, **JUnit XML**, **SARIF**; `--strict`; `budget` required for any live cell; `campaigns/injection-baseline.json` (the four shipped governance cards × {none, Safety Brick + policy card, offline Armour} × {optimal, adversary} × 20 seeds); `ci.yml` gains a `campaign` job; `/workshop/campaigns` (author/import, run scripted cells in-browser with a Worker if the main-thread yield proves insufficient, persist `CampaignReport` to a new `cab.campaigns` store, view gates, download all three renderings). | The baseline campaign runs in CI under two minutes and **fails** when a guard is removed from a scenario expecting one (proven by a deliberate red run in the PR); JUnit and SARIF fixtures validate against the published schemas; a campaign report persists in the browser and is reopenable after reload; the harness runs the same file with `craftabot campaign` and writes the same report shape; a live cell with no `budget` refuses with a message naming the field. Design-of-record note (`28-CAMPAIGNS.md`) written before stage B. | L | G5, G4-part |
+
+Phase H exit: a guardrail regression suite exists as a file, runs on every PR, and the same file runs headless with real models under a budget.
+
+### Phase I — Vendor-neutral guardrails
+
+| WP | Deliverable | DoD | Size | Retires |
+|---|---|---|---|---|
+| **WP39** | **The hosted-guardrail shell** (`26-…` §6.1). Stage A: `ExternalCallRecord` widened (`service: string`, `method?`, `template?`, `policyRef?`); `GuardrailContext` gains `response?`/`observation?`/`messages?`; trace fixtures prove old traces parse. Stage B: `GuardrailService`/`ScreenRequest`/`ScreenReading` in core; `PackManifest.guardrailServices`; registry lookups; `PackManifest.guardrails` deprecated. Stage C: `createHostedGuardrails` + `hostedScreenConfigSchema` + `verdictForReading` in `governance`, table-tested over hook × dial × category × confidence × outcome × clamp × failure. Stage D: `pack-geap` refactored onto the shell — `client.ts`/`reading.ts`/`strings.ts`/fixtures kept, `guardrails.ts`/`text.ts`/`config.ts` reduced to the service block and a `GuardrailService`; `createOffline` mandatory. Stage E: `workshop/guard` generic brick (`ControlSource: 'guardrailServices'`); `SchemaPanel` `'object'` case; `checkGuardrailService` in `pack-testkit`. | `pack-geap`'s full suite green; **`fixtures/trace.geap-armour-offline.v1.json` byte-identical** (stage D's only gate that matters); a test-only `GuardrailService` in `governance`'s suite exercised at all three hooks and every disposition through the shell; `checkGuardrailService` rejects a broken fixture service on every check; `workshop/guard` fits on the bench with the door open, is invisible with it shut, and runs `starter/warning-sign` against the offline geap service with the same verdicts as `geap/armor`; a diff of `packages/packs/geap/src` shows no disposition/clamp/timeout/scrub/record code remaining. Design-of-record note (`29-GUARD-SHELL.md`) before stage A. | L | G1, G2, G20, G15-part |
+| **WP40** | **Socket capacity** (`26-…` §6.13). `SLOT_CAPACITY` in core (`safety: 4`); `validateSpecV2` reads it; Spec Lab fits additional safety bricks; Kit chest socket shows "+n more, see Workshop"; `describeFittedBricks` lists all; campaign `guards` axis names stacks. | A spec with `starter/safety` + `monitor/watchbot` + two `workshop/guard` validates, runs, and its trace shows every chain at every hook in fitted order; every existing spec fixture validates unchanged; the Kit bench e2e proves the one-well rule still holds on the bench and the chip renders; a campaign cell keyed by a stack id appears in the report grouped by it. | S–M | G18 |
+| **WP41** | **Egress and credentials v2** (`26-…` §6.6, §6.11). `EgressDeclaration` on every `ProviderFactory`, `GuardrailService`, hosted `Evaluator`, `TraceSink`; the `fetch` wrapper in `createSession` under `options.egress: 'declared' \| 'none'`; `run.started.egress`; `error.kind: 'egress-refused'`; harness and CI campaign job run `--egress none`; vault entries gain `expiresAt` (on-read migration from bare string); credential kinds `bearer-token`/`header`; `credential.validate(secret, fetch, config?)`; battery meters honest for every timed credential; "Test the guard" moves onto the kind; safety case gains one control row per declared host. | Every provider e2e passes under `'declared'`; a run with a hosted component and `offline: false` under `'none'` ends `STOPPED_BY_GUARDRAIL` with an `egress-refused` error event and **no** `fetch` call (asserted with an injected fetch that throws on any call); `key-leak.test.ts` sweeps `expiresAt` entries exactly as before; the geap OAuth flow, once a client id exists, stores `expiresAt` and the meter counts down; a planted undeclared host in a test-only pack is refused with a message naming the pack and the host. | M | G9, G10 |
+| **WP42** | **Second and third guardrail services + the Guard Rack** (`26-…` §6.1, §9). `@craftabot/pack-guard-local`: Llama Prompt Guard 2 and Llama Guard 4 served by the user's own Ollama (`localhost:11434`, no credential, CI-able through fixtures) — the proof that the shell does not care where the classifier runs. One enterprise vendor pack, chosen at stage A from {AWS Bedrock Guardrails `ApplyGuardrail`, Azure AI Content Safety Prompt Shields, Lakera Guard} by a written comparison of auth model, CORS, request shape and free tier — with a **live checkpoint at stage B** exactly as `25-…` §11 stage B took it: real verdict, CORS go/no-go, latency numbers, `browserCapable` set accordingly, harness as the fallback host. `/workshop/guards` (the Guard Rack): every registered service, credential state, egress, offline switch, "test the guard" on a fixture, fit into a bot; `/workshop/armour` becomes a redirect. | Both packs contain a `GuardrailService`, a client, a reading parser, fixtures and strings and **nothing else** (acceptance 1 of `26-…` §14, checked by reading the diff); both pass `checkGuardrailService`; `injection-baseline.json` gains both as guard stacks and still runs in CI offline; the enterprise vendor's live checkpoint is recorded as a dated note in this row; the Guard Rack e2e fits a service into a bot and runs `warning-sign` offline. | L | G1/G2 proven, G15-part |
+
+Phase I exit: three vendors (one Google, one local, one other enterprise) on one shell, stackable on one chassis, every call traced and egress-declared.
+
+### Phase J — Evaluators, scenarios, policy v2, authored content
+
+| WP | Deliverable | DoD | Size | Retires |
+|---|---|---|---|---|
+| **WP43** | **Evaluators** (`26-…` §6.2). `Evaluator`/`EvaluationInput`/`EvaluationResult` in core; `EvaluationRecord` + `cab.evaluations` / `evaluations.jsonl`; `PackManifest.evaluators` and `assertionCards`; `assertionEvaluator(card)` (fixing the zeroed-`usage` gap); `evals/judge/rubric` — LLM-as-judge through any registered `ProviderFactory`, `createOffline` returning a canned verdict; `workshop/monitor-judge` brick (in-run, `note`-only, `post-act`); campaigns gate on evaluator verdicts; `/workshop/evaluators`; Run Lab "Evaluations" inspector; `craftabot evaluate`; `checkEvaluator`. | Every built-in assertion card is an `Evaluator` and the Test Bench renders through the new path with identical results (its e2e unchanged); a `usage-at-least` card fires for the first time (new test); the rubric judge scores a stored run in the Workshop through Ollama and in the harness through any provider, its call recorded as `result.external`; an evaluation persists and appears in the Run Lab and in the bundle; `checkEvaluator` rejects a non-deterministic "deterministic" evaluator and a missing `createOffline`. Design-of-record note (`30-EVALUATORS.md`) before stage A. | L | G3 |
+| **WP44** | **Scenarios** (`26-…` §6.3). `ScenarioDefinition` + `injectionSchema` in core; `PackManifest.scenarios`; `WorldInstance.inject?` (Playroom implements `heard`, `manual-entry`, `tool-result`, `radio`); the four shipped governance cards wrapped as scenarios with `tags` (ASI ids, `19-…` #n) and `expect`; JSONL corpus importer (harness + Scenario Library); `/workshop/scenarios`; campaigns reference scenario ids; reports group by tag. | The four scenarios' scripted proofs (`governance-scenarios.test.ts`, `party-line.test.ts`, `false-alarm.test.ts`) pass unchanged **and** a second copy of each runs through the scenario path with identical outcomes; a 50-row JSONL of injection strings imports into scenarios over `starter/warning-sign` and runs as a campaign with per-tag pass rates; a world without `inject` refuses a scenario carrying injections with a named build problem; no starter goal card changed shape. | M–L | G6 |
+| **WP45** | **Policy-as-code v2 + external PDP** (`26-…` §6.4). Six additive `PredicateExpr` leaves; `evaluatePredicate` reads `worldState`/`history`/`observation`; `no-repetition`'s `MOVEMENT` wart retired via a world-declared `world-predicate`; Policy Studio builds the new leaves (still flat AND, explicitly); `pdpRequestFor(ctx)` in governance; `@craftabot/pack-pdp-opa` — OPA as a `GuardrailService` at `pre-act` (`policy-violation` findings carry the policy id), fixtures from a real OPA response, offline client, egress declared. | Every shipped policy card parses and compiles unchanged (v1 is valid v2); a card using each new leaf is proven by an L5-style scripted run; `no-repetition` behaves byte-identically on the starter golden trace after the wart's removal; the OPA pack passes `checkGuardrailService`; a live checkpoint against a local OPA (`docker run openpolicyagent/opa`) is recorded dated in this row; the PDP fits through `workshop/guard` and stacks with `starter/safety` (WP40). | M–L | G8, G17-part |
+| **WP46** | **Workshop content store** (`26-…` §6.10). `cab.content` (IDB) / `content/` (harness); the synthetic `local` pack registered at start; save in Policy Studio, Test Bench, Scenario Library, Campaigns; `KitFile.requires.localContent` embedding `local/*` cards; import rebuilds under fresh ids; Kit picker lists `local/*` cards while the door is open. | A card authored in the Studio is pickable on the Kit bench (door open), fitted, runs, reads back in the Spec Lab — the reverse of WP22's round trip, closing `17-…` §4.5's recorded gap; a kit file carrying a `local/*` card imports on a machine that never saw it; a `local/` id can never collide with a shipped id (registry test); the leaflet coverage test is unchanged. | M | G11 |
+
+Phase J exit: a campaign can name imported scenarios, stacked guards, a judge and a PDP, and gate on all of them.
+
+### Phase K — Telemetry, audit and multi-agent completion
+
+| WP | Deliverable | DoD | Size | Retires |
+|---|---|---|---|---|
+| **WP47** | **`@craftabot/telemetry`** (`26-…` §6.5). `TraceSink` contract; `otelTraceFor` moved (workbench re-exports), extended to every `guardrail.external` vendor and to group episodes; `telemetry/file` and `telemetry/otlp-http` sinks; live `attach` with batching and no back-pressure on the loop; `/workshop/sinks`; Audit Centre "send to sink"; `craftabot export`; `checkSink`. ESLint-restricted to `core` like `governance`. | A stored run and a group episode export to a local OTLP collector (a test container in the e2e, not a real vendor) and the collector's received spans match a fixture; a live Workshop run streams to the collector and, with the collector killed mid-run, the run finishes unaffected and the sink reports its failure; the Audit Centre's OTel download is byte-identical to before the move for every existing fixture; `checkSink` rejects a sink that throws from `attach`. | M–L | G7 |
+| **WP48** | **Trace bundle and multi-agent completion** (`26-…` §6.7, §6.12). `craftabot-bundle` v1 + `buildTraceBundle`/`verifyBundleDigest` in core; Audit Centre and harness `bundle`; group episodes in the Audit Centre picker; `SessionGroup.options.observers` and a group-level Watchbot contributing group guardrails; the Hearing channel's per-seat queue. | A group episode exports as one bundle whose digest verifies after a round trip and fails after one byte is changed; the Run Lab's integrity badge verifies bundles; a group Watchbot's note appears on the merged stream and a group guardrail it contributes stops the group through the existing chokepoint (test over `tidy-together`); a duo card fitting Hearing on both robots delivers a mid-episode message to both seats (new test, the `23-…` §9 risk row closed). | M | G12 |
+| **WP49** | **Drift, safety case v2, live Run Lab** (`26-…` §6.15). `/telemetry` time axis (daily buckets; drift = change in trip mix / loop score); safety case gains evaluation evidence, egress rows (WP41) and campaign results per bot; Run Lab breakpoints ("pause on guardrail trip / tool call / action failure") and live trailing over an attached bus; `/workshop` campaign tiles. | Telemetry renders a two-week fixture corpus as a series and flags a planted drift; the safety case for a bot that ran in a campaign quotes its gate results; a breakpoint pauses a live Workshop run at the first `guardrail.tripped` (e2e); `17-…` §3's "not built" list shrinks to fork-from-tick only. | M | G14, G16-part |
+
+### Phase L — Export and integration
+
+| WP | Deliverable | DoD | Size | Retires |
+|---|---|---|---|---|
+| **WP50** | **`@craftabot/governance` 1.0** (`26-…` §6.15). README, TSDoc on every export, `examples/plain-node-agent/` — a loop with no Craft A Bot world gating tool calls through `runGuardrailChain`, a policy card, and a hosted service via the shell; `docs/governance-mapping.md` (`08-…` §6's promised table); `1.0.0-rc` with a `npm pack` dry-run in CI; `private: false` decision recorded. | The example runs from a clean checkout with one `npm install`; the package tarball contains no toy, no pack, no Svelte; `08-…` §5's last row is marked met with a dated note; the mapping doc traces every shipped control to a framework clause without a compliance claim. | M | G13 |
+| **WP51** | **Hosted evaluator: `geap/eval/*`** (`26-…` §6.2). The Gen AI evaluation service as an `Evaluator` of kind `hosted` in `pack-geap`, sharing the `geap` credential id; fixtures; `createOffline`; egress declared; a live checkpoint against the owner's project. | A stored run is scored by a real evaluation-service call from the harness and from the Workshop, recorded as `result.external`; `smoke:geap` gains an evaluation leg; a campaign gates on it under a `budget`; the offline fixture keeps CI green. | M | G3-proof |
+| **WP52** | **Debts** (`26-…` §6.15). `autonomy` picker in the Spec Lab; `D13` semver evaluation in `importKitFile` and `checkManifest`; Ollama endpoint as a Settings field validated to loopback only; verify `ArmourPanel.svelte` is no longer needed after WP39's `'object'` case and record it; `personas` declaring its own provider dependency honestly. | Each item has its own test; `13-…` §7's two "unchecked bullets" are checked; the Spec Lab e2e picks an autonomy preset and reads back concrete `approval`/budget values. | S–M | G17, G15 |
+
+**Not scheduled, on purpose:** Tool Shop Pack content (Kit content, `18-…` §4 — not this roadmap's purpose); fork-from-tick (wants a real design of its own: forking a trace means re-seeding a world mid-run, which touches determinism claims); a Cloud Run proxy (`25-…` §4.6, still not needed); any Kit chapter; anything in `26-…` §11.
+
+## 4. Dependency sketch
+
+```mermaid
+graph LR
+  H36[WP36 storage + folds] --> H37[WP37 harness]
+  H36 --> H38[WP38 campaigns]
+  H37 --> H38
+  H36 --> I39[WP39 guard shell]
+  I40[WP40 socket capacity]
+  I39 --> I41[WP41 egress + credentials]
+  I39 --> I42[WP42 vendors + Guard Rack]
+  I41 --> I42
+  I40 --> I42
+  H38 --> J43[WP43 evaluators]
+  H36 --> J43
+  H38 --> J44[WP44 scenarios]
+  I39 --> J45[WP45 policy v2 + PDP]
+  J44 --> J46[WP46 content store]
+  J45 --> J46
+  H36 --> K47[WP47 telemetry]
+  I39 --> K47
+  K47 --> K48[WP48 bundle + group]
+  J43 --> K49[WP49 drift + safety case v2]
+  K47 --> K49
+  I39 --> L50[WP50 governance 1.0]
+  J45 --> L50
+  J43 --> L51[WP51 geap eval]
+  I41 --> L51
+  L52[WP52 debts]
+```
+
+Phase H is strictly first (WP36 → WP37 → WP38). WP39 and WP40 can start the moment WP36 lands and are independent of each other and of the harness. Phase J needs WP38 (campaigns) and WP39 (shell); WP45 needs only WP39. Phase K needs WP36 and WP39. Phase L is last. WP40 and WP52 fit into any gap.
+
+## 5. Build discipline (inherited, three additions)
+
+Everything `23-…` §10, `24-…` §10 and `25-…` §11 established holds: stage-gated, one stage per session, each stage independently committable, every stage on the full gate, the golden traces as the byte-stability oracle, a dated note in the owning doc for every divergence, and the "stop, re-size, present the finding — do not absorb it silently" rule when a stage grows. Three additions for this roadmap:
+
+1. **Every L-sized WP writes its design of record before stage A** (`28-CAMPAIGNS.md`, `29-GUARD-SHELL.md`, `30-EVALUATORS.md`, and a note for WP42's vendor choice) — anchored against the real codebase on the day, quoting files, with its own §8-style divergence log. `26-…` is the target; those notes are the maps.
+2. **Every WP that adds a network component takes a live checkpoint** in the `25-…` §11 stage-B mould — real call, CORS go/no-go, latency, recorded as a dated note in the WP's row here — and never lets the checkpoint block the offline stages (`25-…`'s "build first, sort the account later" worked; keep it).
+3. **Every WP that touches `packages/` runs the "could a third party ship the next one" test in its PR description**: name the pack that would ship the *next* vendor/evaluator/sink/scenario and confirm it needs no change to core, governance, evals, telemetry or harness. If it does, that change is the WP's job, not the next pack's.
+
+## 6. Controls adopted from `19-…` §9, in order
+
+Continuing `18-…` §6's list (which reached #20 OTel export at Phase F): **#9/#10** input/output guardrail bricks in vendor-neutral hosted and local form (WP39/42); **#14** policy-as-code with an external PDP (WP45); **#16** sandboxing's browser analogue — declared egress and a no-network mode (WP41); **#24** eval-harness integration as campaigns with gates (WP38/43); **#26** automated red-team as the adversary tier + corpus import (WP38/44); **#27** monitor agent as an in-run judge and a group Watchbot (WP43/48); **#23** drift dashboard (WP49); **#28** safety case with eval evidence (WP49); **#33/#34** supervisor chokepoint + circuit breaker via group observers (WP48); **#20/#21** OTel export as a live sink and every vendor's verdict as `evaluate_guardrail` (WP47); **#38** MCP-security mini-curriculum's headless half — the confused-deputy and tool-poisoning scenarios as importable corpus rows (WP44).
+
+## 7. Follow-ups carried in, and where each lands
+
+| Named in | Follow-up | WP |
+|---|---|---|
+| `25-…` §8 (WP35 close-out) | `ArmourPanel.svelte` for the `filters` nested control | WP39 stage E (`'object'` case; panel not needed), verified WP52 |
+| `25-…` §8 | OAuth client id unconfigured; token TTL | WP41 (`expiresAt`, honest meter); the client id itself is a maintainer action, not a WP |
+| `23-…` §4.7, `07-…` §5 | Group trace export with digest | WP48 |
+| `23-…` §9 | Hearing queue per room, not per seat | WP48 |
+| `18-…` §7 item 28 | Drift over time | WP49 |
+| `17-…` §4.5, §4.7 | Studio-authored cards cannot persist; assertion cards not authorable | WP46 |
+| `14-…` §4.6 (WP24) | `autonomy` picker | WP52 |
+| `14-…` §5.3 (WP27) | Monitor's "2nd chest socket" | WP40 (capacity instead; recorded as the divergence in `26-…` §12) |
+| `13-…` §7 | Semver ranges never evaluated (`D13`) | WP52 |
+| `13-…` §8, `18-…` §7 item 7 | Live eval lane's spend decision | WP38 (`budget` required) |
+| `06-…` §5/§8 | Ollama endpoint fixed | WP52 |
+| `17-…` §3 | Breakpoints, live trailing, fork-from-tick | WP49 (first two); fork unscheduled |
+| `evals/src/assertions.ts` | `usage-at-least` never fires | WP43 |
+| `governance/src/guardrails/no-repetition.ts` | `MOVEMENT` wart | WP45 |
+| `26-…` §2 | `PackManifest.guardrails` dead lane | WP39 (deprecated) |
+
+## 8. Session-sized next steps (the immediate to-do)
+
+1. **WP36 stage A** — move `Storage` + `createMemoryStorage` + the contract suite into `@craftabot/core/persistence`, re-export from the workbench, every test green untouched. Small, mechanical, and it is the floor for everything else.
+2. **WP36 stage B** — move the folds (`run-projection` → core; the five report folds → `governance/reports`), re-export, prove byte-identical outputs on every stored fixture.
+3. **WP36 stage C** — `RunSummary` + `summariseRuns`; the four N+1 screens read it; cap becomes a setting.
+4. **WP37** — the harness, two stages: file storage + `run`/`bundle`/`packs`; then `report` over the moved folds and the key-leak sweep.
+5. **Write `28-CAMPAIGNS.md`**, then WP38 stage by stage. The first artefact worth showing anyone is `campaigns/injection-baseline.json` failing a PR that removes a guard.
+6. **In parallel with 5, once WP36 has landed: write `29-GUARD-SHELL.md`**, then WP39 stage A (the schema widening, with old-trace fixtures) — the smallest possible first step toward the second vendor, and one that changes no behaviour.
+7. Revisit this roadmap at the end of each phase; amendments get dated notes here, as ever.
+
+*(Close-out entries append here, numbered, in the `18-…` §7 mould — what shipped, what diverged, what was found.)*
+
+## 9. What "done" looks like for this roadmap
+
+`26-…` §14's twelve acceptance criteria, all met, plus one that is this document's own: a practitioner with a fresh checkout, no Google account and no API key can run `npm ci && npx craftabot campaign --file campaigns/injection-baseline.json --egress none --strict` and read a SARIF file that says which guard stopped which attack on which scenario — and then, with a key and a `budget`, run the same file against a real model and a real vendor and get the same report shape. That is the proving ground meeting a workflow.
