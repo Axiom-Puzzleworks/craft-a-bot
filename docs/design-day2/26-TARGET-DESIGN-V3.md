@@ -630,6 +630,8 @@ The world is untouched. Hosted verdicts and evaluations are recorded, so replay 
 
 > **Amended 2026-09-02 (WP45 — policy v2 and the PDP).** §6.4 landed through `33-POLICY-V2-PDP.md`. Three things this document did not say: **`GuardrailContext.world`** — the world's own `test()` and predicate ids, one optional field the session fills, because the leaves' context was not in fact all on the context; **`ScreenRequest.policyInput`** — the shell attaches `pdpRequestFor(ctx)` to every request, since a service only ever sees a request; **progress is an action flag** (`WorldActionDefinition.progress`), not a world predicate — the no-repetition guardrail needs to know which past action counted, which is a declaration on the action. The OPA pack keeps the engine on localhost (egress is static per service). `27-…` §8 item 14 carries the gate and the live checkpoint.
 
+> **Amended 2026-09-02 (WP46 — the content store; Phase J closed).** §6.10 landed through `34-CONTENT-STORE.md`. Two things this document did not say: **a campaign is stored but is not pack content** — the registry has no campaign field and `core` cannot import the campaign schema, so the record is opaque in the store and the Campaigns page lists it; and **only policy cards ride in kit files** (`requires.localContent`), since a spec references policy cards and nothing else authored. The harness reads the same records from a `content/` directory (`--content`). `27-…` §8 item 15 carries the gate.
+
 ---
 
 ## 13. Risks
