@@ -268,6 +268,7 @@ describe('gates', () => {
 	const cell = (over: Partial<CampaignCell>): CampaignCell => ({
 		scenario: 's',
 		build: 'b',
+		evaluations: {},
 		guard: 'g',
 		brain: 'x',
 		tier: 'scripted-optimal',
