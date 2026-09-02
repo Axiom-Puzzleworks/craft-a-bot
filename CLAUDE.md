@@ -39,6 +39,7 @@ Stack: TypeScript + Svelte 5 (runes) + SvelteKit static. Monorepo (npm workspace
 | `25-ARMOUR-BRICK.md` | WP35 (Phase G) — the Armour Brick: Model Armor as a hosted, Workshop-only safety brick; the credential/network seams, `guardrail.external`, decisions D1–D5, stages A–E |
 | `26-TARGET-DESIGN-V3.md` | **The current target design** (Day 3) — the safety proving ground: gap register G1–G20, the vendor-neutral guardrail-service shell, evaluators, scenarios, campaigns, egress, telemetry sinks, the headless harness, socket capacity; read before any Phase H–L work |
 | `27-DAY3-ROADMAP.md` | **The current forward plan** — Phases H–L, WP36–WP52, each mapped to a `26-…` section and the gaps it retires; §8 is the session-sized to-do |
+| `29-GUARD-SHELL.md` | WP39 (Phase I) — the guard shell: `GuardrailService` contract, `createHostedGuardrails` in governance, `pack-geap` on the shell with its golden trace byte-identical, `workshop/guard`, `checkGuardrailService`; stages A–E |
 | `28-CAMPAIGNS.md` | WP38 (Phase H) — campaigns: the campaign file and its gates, the adversary tier, the report and its three renderings, the baseline campaign and CI job, `craftabot campaign`, `/workshop/campaigns`; stages A–E |
 
 `09-ROADMAP.md` is history only (the WP0–WP10 record); `18-…` supersedes its forward plan.
