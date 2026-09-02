@@ -43,9 +43,7 @@ export const decisionSelector: TextSelector = (ctx) => {
 };
 
 export const resultSelector: TextSelector = (ctx) => {
-	for (let i = ctx.history.length - 1; i >= 0; i -= 1) {
-		const event = ctx.history[i];
-		if (event === undefined) continue;
+	for (const event of ctx.history.slice().reverse()) {
 		if (event.type === 'action.performed') return { text: event.payload.result.narration };
 		if (event.type === 'tool.executed') return { text: stringifyToolResult(event.payload.result) };
 	}

@@ -133,6 +133,20 @@ describe('a check', () => {
 		]);
 	});
 
+	it('measures latency on the wall clock when none is injected, and hands the client a timeout signal', async () => {
+		const service = stubService();
+		const [decision] = createHostedGuardrails({
+			idPrefix: 'test/guard',
+			service,
+			serviceConfig: { flavour: 'plain' },
+			screening: screening(),
+			ctx: { fetch: () => Promise.reject(new Error('no network')), getCredential: () => undefined },
+			envelope
+		});
+		const { external } = await check(decision!);
+		expect(external?.latencyMs).toBeGreaterThanOrEqual(0);
+	});
+
 	it('measures latency on the injected clock', async () => {
 		let t = 0;
 		const [, decision] = build(stubService(), { now: () => (t += 7) });

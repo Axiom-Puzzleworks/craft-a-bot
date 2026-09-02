@@ -102,10 +102,6 @@ function outcomeFor(result: ScreenResult, offline: boolean): ExternalCallRecord[
 	return 'error' in result ? result.error.kind : result.reading.outcome;
 }
 
-function timeoutSignal(ms: number): AbortSignal | undefined {
-	return typeof AbortSignal.timeout === 'function' ? AbortSignal.timeout(ms) : undefined;
-}
-
 export function createHostedGuardrails(options: CreateHostedGuardrailsOptions): Guardrail[] {
 	const { service, screening } = options;
 	const strings = options.strings ?? defaultHostedStrings;
@@ -140,7 +136,7 @@ export function createHostedGuardrails(options: CreateHostedGuardrailsOptions): 
 		};
 
 		const startedAt = now();
-		const result = await client.screen(request, timeoutSignal(screening.timeoutMs));
+		const result = await client.screen(request, AbortSignal.timeout(screening.timeoutMs));
 		const latencyMs = Math.max(0, now() - startedAt);
 
 		const verdict = verdictForReading(result, hook, screening, alwaysStop, strings);

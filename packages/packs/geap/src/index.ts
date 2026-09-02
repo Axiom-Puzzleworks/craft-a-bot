@@ -1,5 +1,6 @@
 import type { PackManifest } from '@craftabot/core';
 import { armorBrickKind } from './armor/brick-kind.js';
+import { modelArmorService } from './armor/service.js';
 
 /**
  * `@craftabot/pack-geap` — the Model Armor client library (Stage A), the
@@ -19,8 +20,26 @@ export {
 } from './armor/client.js';
 export type { ArmorClient, ArmorClientResult, ModelArmorClientOptions } from './armor/client.js';
 
-export { readSanitizationResult } from './armor/reading.js';
+export {
+	ARMOR_CATEGORY,
+	ARMOR_FILTER_KEYS,
+	readSanitizationResult,
+	toScreenReading
+} from './armor/reading.js';
 export type { ArmorFilterKey, ArmorFilterReading, ArmorReading } from './armor/reading.js';
+
+/** Model Armor as a `GuardrailService` (`29-GUARD-SHELL.md` §4.5, WP39) — what the generic Guard brick fits. */
+export {
+	armorSelectors,
+	armorServiceClient,
+	armorServiceConfigSchema,
+	armorStrings,
+	modelArmorService,
+	screeningFor,
+	serviceConfigFor,
+	toScreenResult
+} from './armor/service.js';
+export type { ArmorServiceConfig } from './armor/service.js';
 
 export {
 	armorErrorFromNetworkFailure,
@@ -53,7 +72,8 @@ const geapPack: PackManifest = {
 	name: 'Cloud Armour',
 	version: CRAFTABOT_PACK_GEAP_VERSION,
 	requiresCore: '>=0.0.1',
-	brickKinds: [armorBrickKind]
+	brickKinds: [armorBrickKind],
+	guardrailServices: [modelArmorService]
 };
 
 export default geapPack;

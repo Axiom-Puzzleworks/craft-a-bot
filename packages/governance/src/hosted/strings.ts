@@ -68,6 +68,6 @@ export const defaultHostedStrings: HostedStrings = {
 
 export function joinWithAnd(parts: readonly string[]): string {
 	if (parts.length === 0) return '';
-	if (parts.length === 1) return parts[0] ?? '';
-	return `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1] ?? ''}`;
+	if (parts.length === 1) return String(parts[0]);
+	return `${parts.slice(0, -1).join(', ')} and ${String(parts.at(-1))}`;
 }

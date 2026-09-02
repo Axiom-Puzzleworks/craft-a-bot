@@ -202,6 +202,19 @@ describe('several findings', () => {
 	});
 });
 
+describe('several findings, the other way round', () => {
+	it('the strictest wins whichever comes first', () => {
+		const findings = [
+			finding({ category: 'injection', vendorLabel: 'injection', matched: true }),
+			finding({ category: 'sensitive-data', vendorLabel: 'sdp', matched: true })
+		];
+		const config = screening({ screenDecision: 'note', perCategory: { injection: 'block' } });
+		expect(verdictForReading(ok({ findings }), 'pre-act', config, [], S)).toMatchObject({
+			disposition: 'block-action'
+		});
+	});
+});
+
 describe('alwaysStop', () => {
 	it.each(HOOKS)(
 		'a matched always-stop label stops the run at %s before any dial is read',
