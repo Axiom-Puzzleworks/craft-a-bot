@@ -40,7 +40,14 @@ export default defineConfig({
 				'src/lib/state/storage.ts',
 				'src/lib/state/storage-memory.ts',
 				'src/lib/state/storage-contract.ts',
-				'src/lib/state/storage-fixtures.ts'
+				'src/lib/state/storage-fixtures.ts',
+				// WP36 stage B shims: the folds live in core and governance now.
+				'src/lib/state/run-projection.ts',
+				'src/lib/state/group-replay-projection.ts',
+				'src/lib/bot-capabilities.ts',
+				'src/lib/workshop/incidents.ts',
+				'src/lib/workshop/safety-case.ts',
+				'src/lib/workshop/telemetry.ts'
 			],
 			reporter: ['text', 'json-summary'],
 			// The storage layer holds everything the user has made, and the key vault

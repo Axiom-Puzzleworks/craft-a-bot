@@ -211,6 +211,22 @@ export {
 } from './storage/storage.js';
 export { createMemoryStorage, type MemoryStorage } from './storage/memory.js';
 
+// The one trace→state fold every viewer shares, and a bot read as capabilities
+// (WP36 stage B, 26-TARGET-DESIGN-V3.md §6.14) — pure, Svelte-free, and what a
+// headless host needs to replay a trace or assemble a safety case.
+export {
+	applyEvent,
+	emptyProjection,
+	projectThrough,
+	type PendingApproval,
+	type RunProjection
+} from './projection/run-projection.js';
+export {
+	projectGroupThrough,
+	type GroupReplayProjection
+} from './projection/group-replay-projection.js';
+export { capabilitiesOf, offers, type BotCapabilities } from './capabilities.js';
+
 // Persistence helpers (07-DATA-MODEL-PERSISTENCE.md §4–5)
 export {
 	brickKindsFor,
