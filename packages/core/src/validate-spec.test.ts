@@ -401,6 +401,44 @@ describe('validateSpec', () => {
 		});
 	});
 
+	/** WP40 (`26-…` §6.13): sockets have a capacity — one everywhere but `safety`, which holds four. */
+	describe('socket capacity', () => {
+		function withSafetyStack(count: number) {
+			const registry = buildRegistry();
+			const spec = migrated(validSpec());
+			const safety = spec.bricks.find((brick) => brick.slot === 'safety');
+			if (!safety) throw new Error('the valid spec has no safety brick');
+			for (let i = 1; i < count; i += 1) spec.bricks.push(structuredClone(safety));
+			return validateSpec(spec, registry).filter((p) => p.code === 'slot-already-filled');
+		}
+
+		it('lets four safety bricks share the socket', () => {
+			expect(withSafetyStack(4)).toEqual([]);
+		});
+
+		it('refuses a fifth, naming the count and the capacity', () => {
+			const problems = withSafetyStack(5);
+			expect(problems).toHaveLength(1);
+			expect(problems[0]?.message).toBe(
+				'There are 5 bricks in the safety socket, and only 4 will fit.'
+			);
+			expect(problems[0]?.details).toMatchObject({ slot: 'safety', capacity: 4 });
+		});
+
+		it('still holds every other socket to one', () => {
+			const registry = buildRegistry();
+			const spec = migrated(validSpec());
+			const memory = spec.bricks.find((brick) => brick.slot === 'memory');
+			if (!memory) throw new Error('the valid spec has no memory brick');
+			spec.bricks.push(structuredClone(memory));
+			const problems = validateSpec(spec, registry).filter((p) => p.code === 'slot-already-filled');
+			expect(problems).toHaveLength(1);
+			expect(problems[0]?.message).toBe(
+				'There are two bricks in the memory socket, and only one will fit.'
+			);
+		});
+	});
+
 	describe('hasCredential', () => {
 		function curiousAboutCredential(problem: (has: boolean) => void): BrickKindDefinition {
 			return {

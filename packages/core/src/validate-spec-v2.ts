@@ -2,7 +2,7 @@ import { migrateBrickConfig } from './brick-config.js';
 import type { PackRegistry } from './pack-registry.js';
 import type { AgentSpecV2 } from './schemas/agent-spec-v2.js';
 import type { BuildProblem } from './schemas/build-problem.js';
-import type { SlotId } from './types/brick.js';
+import { SLOT_CAPACITY, type SlotId } from './types/brick.js';
 
 /**
  * **Generic build checks for spec v2** (`14-…` §2.1, WP14).
@@ -32,23 +32,28 @@ import type { SlotId } from './types/brick.js';
  * `validateConfig`. Every check `validateSpec` runs is now generic.
  */
 
-/** V1's rule, kept for the teaching aid: one brick per socket (`14-…` §2.3). */
-const ONE_PER_SLOT = true;
-
 export function validateSpecV2(spec: AgentSpecV2, registry: PackRegistry): BuildProblem[] {
 	const problems: BuildProblem[] = [];
-	const filled = new Set<SlotId>();
+	// One brick per socket was V1's rule (`14-…` §2.3); WP40 makes it the
+	// socket's own capacity (`SLOT_CAPACITY`), which is still one everywhere
+	// but `safety`.
+	const filled = new Map<SlotId, number>();
 
 	for (const brick of spec.bricks) {
-		if (ONE_PER_SLOT && filled.has(brick.slot)) {
+		const count = (filled.get(brick.slot) ?? 0) + 1;
+		filled.set(brick.slot, count);
+		const capacity = SLOT_CAPACITY[brick.slot];
+		if (count > capacity) {
 			problems.push({
 				code: 'slot-already-filled',
 				severity: 'blocking',
-				message: `There are two bricks in the ${brick.slot} socket, and only one will fit.`,
-				details: { slot: brick.slot, kind: brick.kind }
+				message:
+					capacity === 1
+						? `There are two bricks in the ${brick.slot} socket, and only one will fit.`
+						: `There are ${count} bricks in the ${brick.slot} socket, and only ${capacity} will fit.`,
+				details: { slot: brick.slot, kind: brick.kind, capacity }
 			});
 		}
-		filled.add(brick.slot);
 
 		const kind = registry.getBrickKind(brick.kind);
 		if (!kind) {

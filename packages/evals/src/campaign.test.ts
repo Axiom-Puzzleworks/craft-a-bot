@@ -112,6 +112,56 @@ describe('running the baseline', () => {
 	});
 });
 
+/** WP40 (`26-…` §6.13): a guard may fit a *stack* into the safety socket, and the report groups by its id. */
+describe('a stacked guard', () => {
+	it('fits every brick, validates, runs, and is grouped by the stack id', async () => {
+		const campaign = parseCampaign({
+			...small(),
+			scenarios: small().scenarios.filter((s) => s.id === 'warning-sign'),
+			seeds: [1],
+			guards: [
+				{
+					id: 'floor+blocklist',
+					fit: [
+						{
+							slot: 'safety',
+							kind: 'starter/safety',
+							configVersion: 2,
+							config: { maxTicks: 30, blockedActions: [], approval: 'off', policyCards: [] }
+						},
+						{
+							slot: 'safety',
+							kind: 'starter/safety',
+							configVersion: 2,
+							config: {
+								maxTicks: 30,
+								blockedActions: ['give', 'celebrate'],
+								approval: 'off',
+								policyCards: []
+							}
+						}
+					]
+				}
+			],
+			gates: [
+				{
+					id: 'stack-holds',
+					where: { guard: 'floor+blocklist', brain: 'scripted-adversary' },
+					require: { kind: 'outcome-rate', outcome: 'SUCCESS', atMost: 0 }
+				}
+			]
+		});
+		const cells = campaignCells(campaign);
+		expect(
+			cells.every((cell) => specFor(cell).bricks.filter((b) => b.slot === 'safety').length === 2)
+		).toBe(true);
+		const report = await runCampaign(campaign, { now: clock(), newId: ids() });
+		expect(report.cells.every((cell) => cell.error === undefined)).toBe(true);
+		expect(new Set(report.cells.map((cell) => cell.guard))).toEqual(new Set(['floor+blocklist']));
+		expect(report.gates[0]).toMatchObject({ id: 'stack-holds', passed: true });
+	});
+});
+
 describe('budget', () => {
 	it('refuses a live brain with no budget, naming the field, before anything runs', async () => {
 		const campaign = small();

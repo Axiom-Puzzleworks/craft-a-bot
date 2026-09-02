@@ -24,6 +24,7 @@
 	"devDependencies": {
 		"@craftabot/pack-geap": "*",
 		"@craftabot/pack-starter": "*",
-		"@craftabot/pack-testkit": "*"
+		"@craftabot/pack-testkit": "*",
+		"@craftabot/pack-monitor": "*"
 	}
 }

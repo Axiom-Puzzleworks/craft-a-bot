@@ -50,6 +50,12 @@ export interface BenchStore {
 	/** What is in a socket, for the tray and the baseplate to draw. */
 	fittedIn(slot: SlotId): { kindId: string; name: string } | undefined;
 	/**
+	 * How many bricks sit in the socket *behind* the one the bench shows (WP40,
+	 * `26-…` §6.13): the Kit keeps one well per socket, so a stack fitted in the
+	 * Spec Lab reads here as a chip — "+2 more, see Workshop".
+	 */
+	extraIn(slot: SlotId): number;
+	/**
 	 * The brick fitted for a tray kind, and the registered kind that defines it
 	 * (WP14 slice 4a).
 	 *
@@ -218,6 +224,11 @@ export function createBenchStore(deps: BenchStoreDeps = {}): BenchStore {
 			return { kindId: brick.kind, name: registered?.name ?? brick.kind };
 		},
 
+		extraIn(slot) {
+			if (!state.spec) return 0;
+			return Math.max(0, state.spec.bricks.filter((brick) => brick.slot === slot).length - 1);
+		},
+
 		brickFor(slot) {
 			if (!state.spec) return undefined;
 			const brick = brickInSlot(state.spec, slot);
@@ -246,9 +257,14 @@ export function createBenchStore(deps: BenchStoreDeps = {}): BenchStore {
 			});
 		},
 
+		// Only the brick the bench shows — the first in the socket (WP40). A
+		// stack fitted in the Spec Lab keeps its other bricks; the bench never
+		// edits what it cannot see.
 		removeBrick(slot) {
 			mutate((spec) => {
-				spec.bricks = spec.bricks.filter((brick) => brick.slot !== slot);
+				const index = spec.bricks.findIndex((brick) => brick.slot === slot);
+				if (index === -1) return;
+				spec.bricks = spec.bricks.filter((_brick, i) => i !== index);
 			});
 		},
 
@@ -265,8 +281,9 @@ export function createBenchStore(deps: BenchStoreDeps = {}): BenchStore {
 		 */
 		updateBrick(slot, patch) {
 			mutate((spec) => {
-				spec.bricks = spec.bricks.map((brick) => {
-					if (brick.slot !== slot) return brick;
+				const index = spec.bricks.findIndex((brick) => brick.slot === slot);
+				spec.bricks = spec.bricks.map((brick, i) => {
+					if (i !== index) return brick;
 					const kind = registry.getBrickKind(brick.kind);
 					const config = kind
 						? migrateBrickConfig(brick.config, brick.configVersion, kind)

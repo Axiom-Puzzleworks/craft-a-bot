@@ -69,6 +69,26 @@ export const SLOT_IDS = [
 export type SlotId = (typeof SLOT_IDS)[number];
 
 /**
+ * **How many bricks a socket holds** (`26-TARGET-DESIGN-V3.md` §6.13, WP40).
+ * One everywhere but `safety`, which holds four — the defence-in-depth stack
+ * a campaign wants to name: the local floor, an observer, a hosted
+ * classifier, a policy decision point. The engine never needed the limit
+ * (`collectGuardrails` runs every fitted brick in slot order, then fitted
+ * order); the validator reads it, and the Kit's bench keeps its one well
+ * per socket as a *bench* rule — the Spec Lab is where a stack is fitted.
+ */
+export const SLOT_CAPACITY: Record<SlotId, number> = {
+	brain: 1,
+	planner: 1,
+	perception: 1,
+	memory: 1,
+	equipment: 1,
+	mobility: 1,
+	reflexes: 1,
+	safety: 4
+};
+
+/**
  * Migrating a brick's own config, keyed by the version being migrated *from* —
  * the same table shape kit files and traces use (`07-…` §6).
  *

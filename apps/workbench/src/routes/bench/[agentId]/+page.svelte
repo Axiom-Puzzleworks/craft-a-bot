@@ -259,6 +259,7 @@
 				<Baseplate
 					{controller}
 					fittedIn={(slot) => benchStore.fittedIn(slot)}
+					extraIn={(slot) => benchStore.extraIn(slot)}
 					{selected}
 					onselect={selectSlot}
 					onremove={(slot) => {

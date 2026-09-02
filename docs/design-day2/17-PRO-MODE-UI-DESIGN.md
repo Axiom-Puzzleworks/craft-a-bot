@@ -62,6 +62,8 @@ Header strip: outcome chip, cartridge + wire model, effective budgets (from the 
 Fleet table of bots (bricks fitted as colour-chip strip, last outcome, last run time) + telemetry stat tiles: runs this week, success rate, mean ticks-to-success, guardrail saves, spend estimate. Tiles are stat-tile-first (numbers, not charts) with 30-day sparklines where a trend exists. Quick actions: new bot, import kit/trace, open eval matrix.
 
 ### 4.2 Spec Lab (`/spec/[agentId]`)
+
+> **Amended 2026-09-02 (WP40, `26-…` §6.13):** the Spec Lab gained its first *editing* surface — the **Safety stack**: the safety bricks in fitted order (the first marked as the one the Kit's bench shows), "Take off" per brick, and "Fit another" from every safety kind an installed pack ships, Workshop audience included, up to `SLOT_CAPACITY.safety`. It writes the record back through the same store the bench uses. Everything else on the page stays read-only, as the scope note above says.
 The bench, grown up: same baseplate/sockets on the left (drag still works — the toy interaction *is* good UX); right side replaces the toy panel with the **full schema-driven form** for the selected brick (every `14-…` §4 field incl. strategies, autonomy dial, reasoning effort) plus a **JSON editor** view of the whole `AgentSpec` with inline Zod diagnostics and version/migration info. Bottom: build-checks (same component), plus "contract view" — which brick kinds/packs/versions this spec requires (kit-file `requires` made visible).
 
 ### 4.3 Run Browser (`/runs`)

@@ -9,6 +9,7 @@ import {
 } from '@craftabot/core';
 import { createMockProvider, obedient } from '@craftabot/core/testing';
 import geapPack from '@craftabot/pack-geap';
+import monitorPack from '@craftabot/pack-monitor';
 import starterPack from '@craftabot/pack-starter';
 import workshopPack from '../index.js';
 import {
@@ -58,7 +59,7 @@ const HIJACK = [
 
 const ARMOUR = { projectId: 'proj-1', location: 'europe-west2', templateId: 'cab-armour' };
 
-function spec(safety: AgentSpecV2['bricks'][number]): AgentSpecV2 {
+function spec(...safety: AgentSpecV2['bricks'][number][]): AgentSpecV2 {
 	return {
 		id: '88888888-8888-4888-8888-888888888888',
 		name: 'Guarded Tinybot',
@@ -103,19 +104,19 @@ function spec(safety: AgentSpecV2['bricks'][number]): AgentSpecV2 {
 					]
 				}
 			},
-			safety
+			...safety
 		],
 		createdAt: '2026-09-02T09:00:00.000Z',
 		updatedAt: '2026-09-02T09:00:00.000Z'
 	};
 }
 
-async function run(safety: AgentSpecV2['bricks'][number]): Promise<EngineEvent[]> {
+async function run(...safety: AgentSpecV2['bricks'][number][]): Promise<EngineEvent[]> {
 	const registry = createPackRegistry();
-	for (const pack of [starterPack, CARTRIDGE_PACK, geapPack, workshopPack])
+	for (const pack of [starterPack, CARTRIDGE_PACK, geapPack, monitorPack, workshopPack])
 		registry.registerPack(pack);
 	const session = createSession({
-		spec: spec(safety),
+		spec: spec(...safety),
 		registry,
 		provider: createMockProvider({ script: obedient(HIJACK) }),
 		guardrails: []
@@ -208,6 +209,66 @@ describe('the Guard Brick against the offline Model Armor service', () => {
 		);
 		expect([...ids].some((id) => id.startsWith('workshop/guard:'))).toBe(false);
 		expect(events.some((e) => e.type === 'guardrail.external')).toBe(false);
+	});
+});
+
+/** WP40's own DoD (`27-…` row): the reference defence-in-depth stack validates, runs, and every chain runs at every hook in fitted order. */
+describe('the reference stack: starter/safety → monitor/watchbot → workshop/guard → workshop/guard', () => {
+	it("runs with every brick's rules at every hook, in fitted order", async () => {
+		const guard = (screenDecision: 'note' | 'ask') => ({
+			slot: 'safety' as const,
+			kind: 'workshop/guard',
+			configVersion: 1,
+			config: {
+				serviceId: 'geap/model-armor',
+				serviceConfig: JSON.stringify(ARMOUR),
+				screening: {
+					screenObservation: 'note',
+					screenDecision,
+					screenResult: 'note',
+					offline: true
+				}
+			}
+		});
+		const events = await run(
+			{
+				slot: 'safety',
+				kind: 'starter/safety',
+				configVersion: 2,
+				config: { maxTicks: 30, blockedActions: [], approval: 'off', policyCards: [] }
+			},
+			{
+				slot: 'safety',
+				kind: 'monitor/watchbot',
+				configVersion: 1,
+				config: { watchFor: ['monitor/going-in-circles'] }
+			},
+			guard('note'),
+			guard('note')
+		);
+		const finished = events.find((e) => e.type === 'run.finished');
+		expect(finished?.type === 'run.finished' ? finished.payload.outcome : undefined).toBeDefined();
+
+		const firstTick = events.filter((e) => e.tick === 1 && e.type === 'guardrail.checked');
+		const order = firstTick.map((e) =>
+			e.type === 'guardrail.checked' ? `${e.payload.hook} ${e.payload.guardrailId}` : ''
+		);
+		// Fitted order, at every hook: the floor's own step budget, then each
+		// Guard Brick's floor and its observation screen, in the order they were
+		// fitted; the Watchbot speaks only at `post-act`, and before the guards
+		// because it was fitted before them.
+		expect(order).toEqual([
+			'pre-think safety/step-budget',
+			'pre-think safety/step-budget',
+			'pre-think workshop/guard:observation',
+			'pre-think safety/step-budget',
+			'pre-think workshop/guard:observation',
+			'pre-act workshop/guard:decision',
+			'pre-act workshop/guard:decision',
+			'post-act monitor/going-in-circles',
+			'post-act workshop/guard:result',
+			'post-act workshop/guard:result'
+		]);
 	});
 });
 

@@ -297,6 +297,7 @@ export {
 export { createPackRegistry, type PackRegistry } from './pack-registry.js';
 /** The open brick contract (`14-…` §2, WP14). */
 export {
+	SLOT_CAPACITY,
 	SLOT_IDS,
 	type BrickConfigMigration,
 	type BrickConfigMigrationTable,

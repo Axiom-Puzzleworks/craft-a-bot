@@ -1681,6 +1681,68 @@ it('lets a fitted brick resolve a guardrail service when the session builds it',
 });
 
 describe('guardrails', () => {
+	/** WP40 (`26-…` §6.13): a safety stack runs every brick's rules, in fitted order, at every hook, before the host's. */
+	it('runs a stack of safety bricks in fitted order at each hook, brick rules before host rules', async () => {
+		const registry = buildRegistry();
+		const seen: string[] = [];
+		const recorder = (id: string): Guardrail => ({
+			id,
+			name: id,
+			description: `Notes when ${id} is asked.`,
+			hooks: ['pre-think', 'pre-act', 'post-act'],
+			check: (ctx) => {
+				seen.push(`${ctx.hook} ${id}`);
+				return Promise.resolve({ allow: true });
+			}
+		});
+		registry.registerPack({
+			id: 'stack',
+			name: 'Stack',
+			version: '1.0.0',
+			requiresCore: '>=0.0.1',
+			brickKinds: ['a', 'b', 'c'].map(
+				(name) =>
+					({
+						id: `stack/${name}`,
+						slot: 'safety',
+						name,
+						description: name,
+						realName: name,
+						realExplanation: name,
+						configSchema: z.object({}),
+						configVersion: 1,
+						defaults: {},
+						createRuntime: () => ({ contributeGuardrails: () => [recorder(`stack/${name}`)] })
+					}) as BrickKindDefinition
+			)
+		});
+		const spec = toSpecV2(buildSpec());
+		for (const name of ['c', 'a', 'b']) {
+			spec.bricks.push({ slot: 'safety', kind: `stack/${name}`, configVersion: 1, config: {} });
+		}
+		const session = createSession({
+			spec,
+			registry,
+			provider: createMockProvider({ script: [turn('Ping.', 'ping')] }),
+			guardrails: [recorder('host')]
+		});
+		await session.step();
+		expect(seen).toEqual([
+			'pre-think stack/c',
+			'pre-think stack/a',
+			'pre-think stack/b',
+			'pre-think host',
+			'pre-act stack/c',
+			'pre-act stack/a',
+			'pre-act stack/b',
+			'pre-act host',
+			'post-act stack/c',
+			'post-act stack/a',
+			'post-act stack/b',
+			'post-act host'
+		]);
+	});
+
 	/**
 	 * WP39 stage A (`29-GUARD-SHELL.md` §4.2): what the tick has in hand
 	 * reaches every hook — the observation from SENSE, the composed prompt
