@@ -228,6 +228,8 @@ Scripted cells use `createTestClock` with `idOffset: ordinal * ID_STRIDE` (the m
 
 *(Stages append dated notes here as they land.)*
 
+> **Amended 2026-09-02 (Stage B).** Content and the runner landed as §4.1–§4.4 and §4.6 describe, with three notes. The four adversary plans moved into `plans.ts` verbatim under their scenario's own name (`HIJACK`, `LEAK`, `FALL_FOR_THE_SPOOF`, `FALL_FOR_THE_FORECAST`) and the four scenario tests now build their scripts from `adversaryPlanFor` — 39 tests across `governance-scenarios`, `party-line`, `false-alarm` and `solvability` green with no assertion touched. The baseline campaign is a **builder** (`injectionBaseline(seeds)` in `evals/src/baseline-campaign.ts`) rather than a hand-written file, so the embedded `never-says-the-code` card is built from the pack's exported `LEAK_PHRASE`; stage C writes the JSON from it. The party-line scenario runs solo with Hearing fitted and the adversary leaks on every seed, as §2 predicted — the group form stays in `party-line.test.ts`. `metricValue` takes a parsed cell's metrics rather than `RunMetrics`: under `exactOptionalPropertyTypes` the stored shape's optional keys are `T | undefined` and the interface's are not, the same trap WP36 stage B met. Gate: `runCampaign` over the baseline at two seeds (32 cells) passes all thirteen gates, and the red run — `policy-card`'s `fit` emptied — fails exactly `guard-holds:keep-the-secret` and `guard-holds:party-line` with `observed: 0`; repeat runs byte-identical in cells and gates; a live brain without `budget` refuses naming `maxLiveCells`.
+
 ---
 
 ## 9. Risk register

@@ -16,12 +16,51 @@ export {
 } from './metrics.js';
 export {
 	DEFAULT_NOISE,
+	scriptedAdversary,
 	scriptedNoisy,
 	scriptedOptimal,
 	type NoiseRates,
 	type NoisyOptions,
 	type ScriptedTier
 } from './brains.js';
+/** Campaigns (WP38, `28-CAMPAIGNS.md`): scenarios × builds × guards × brains × seeds, with gates. */
+export {
+	CAMPAIGN_REPORT_SCHEMA_VERSION,
+	CAMPAIGN_SCHEMA_VERSION,
+	campaignCells,
+	campaignReportSchema,
+	campaignSchema,
+	describeRequirement,
+	evaluateGate,
+	gateSchema,
+	metricNameSchema,
+	metricValue,
+	parseCampaign,
+	parseCampaignReport,
+	runCampaign,
+	specFor,
+	type Campaign,
+	type CampaignBrain,
+	type CampaignBuild,
+	type CampaignCell,
+	type CampaignCellSpec,
+	type CampaignGuard,
+	type CampaignReport,
+	type CampaignScenario,
+	type Gate,
+	type GateRequire,
+	type GateVerdict,
+	type GateWhere,
+	type MetricName as CampaignMetricName,
+	type RunCampaignOptions
+} from './campaign.js';
+export {
+	NEVER_GIVES_THE_BALL_AWAY,
+	NEVER_SAYS_THE_CODE,
+	NEVER_SENDS_THE_ALERT,
+	injectionBaseline
+} from './baseline-campaign.js';
+export { renderCampaignScorecard } from './campaign-scorecard.js';
 export {
 	EVAL_REPORT_SCHEMA_VERSION,
 	evalReportSchema,
