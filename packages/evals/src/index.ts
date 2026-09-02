@@ -93,6 +93,16 @@ export {
 	type Tolerances
 } from './baseline.js';
 export { renderScorecard } from './scorecard.js';
+/** Scenarios (`32-SCENARIOS.md` §4.4, WP44): a goal card plus what a test needs, run through an injected world. */
+export {
+	ScenarioRefusedError,
+	registryForScenario,
+	runScenario,
+	worldForScenario,
+	type RunScenarioOptions,
+	type ScenarioExpectationCheck,
+	type ScenarioRun
+} from './scenarios.js';
 export {
 	assertionEvaluator,
 	completedCalls,

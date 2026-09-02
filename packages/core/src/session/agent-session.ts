@@ -624,7 +624,9 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			const result = await tool.execute(call.arguments, {
 				tick: run.tick,
 				notebook: memory.notebook,
-				random
+				random,
+				// A snapshot, never the live state (WP44): a tool reads the world, it does not act in it.
+				worldState: world.snapshot()
 			});
 			emit('tool.executed', {
 				name: call.name,

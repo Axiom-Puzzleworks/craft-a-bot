@@ -62,7 +62,20 @@ export type RadioMessage = {
 /** A Radio brick's own config, written once via `WorldInstance.configure` and read by both ends. */
 export type RadioConfig = { channel: string; allowFrom?: string[] };
 
+/** A manual entry a scenario injected (WP44) — searched beside the static manual. */
+export interface InjectedManualEntry {
+	id: string;
+	keywords: string[];
+	text: string;
+}
+
 export type PlayroomState = {
+	/** Lines a scenario said the bot should overhear at a later tick (WP44); released into `heard` when that tick is observed. */
+	scheduledHeard?: Array<{ atTick: number; text: string }>;
+	/** Manual entries a scenario injected (WP44). */
+	manualExtras?: InjectedManualEntry[];
+	/** A connector tool's answer, overridden by a scenario (WP44), keyed by the tool's qualified id. */
+	serviceOverrides?: Record<string, unknown>;
 	width: number;
 	height: number;
 	tick: number;

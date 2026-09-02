@@ -1,7 +1,7 @@
 import type { ToolDefinition } from '@craftabot/core';
 import { z } from 'zod';
 import { toolStrings } from '../strings.js';
-import { searchManual } from '../world/manual.js';
+import { searchEntries, searchManual, type ManualEntry } from '../world/manual.js';
 
 /**
  * `look_up_manual` (02-AGENT-MODEL.md §2.3) — queries the Encyclopedia of the
@@ -20,12 +20,18 @@ export const lookUpManual: ToolDefinition = {
 	description: toolStrings.lookUpManual.description,
 	parameters: z.toJSONSchema(argsSchema),
 	riskTier: 'observe',
-	execute(rawArgs) {
+	execute(rawArgs, context) {
 		const parsed = argsSchema.safeParse(rawArgs ?? {});
 		if (!parsed.success) {
 			return { ok: false, output: toolStrings.lookUpManual.badArgs };
 		}
-		const entries = searchManual(parsed.data.query);
+		// The static manual, plus whatever a scenario injected into this room (WP44, `32-…` §4.2).
+		const extras =
+			(context?.worldState as { manualExtras?: ManualEntry[] } | undefined)?.manualExtras ?? [];
+		const entries = [
+			...searchManual(parsed.data.query),
+			...searchEntries(extras, parsed.data.query)
+		];
 		if (entries.length === 0) {
 			return {
 				ok: true,

@@ -4,6 +4,7 @@ import type { Guardrail, GuardrailHook } from '../types/guardrail.js';
 import type { Evaluator } from '../types/evaluator.js';
 import type { GuardrailService } from '../types/guardrail-service.js';
 import type { AssertionCard } from './assertion-card.js';
+import type { ScenarioDefinition } from './scenario.js';
 import type { ToolDefinition } from '../types/tool.js';
 import type { ProviderFactory } from '../types/provider.js';
 import type { WorldDefinition } from '../types/world.js';
@@ -190,6 +191,8 @@ export interface PackManifest extends PackManifestMetadata {
 	evaluators?: Evaluator[];
 	/** Assertion cards a pack ships (WP43), the way it ships policy cards — the Test Bench and campaigns read them from the registry. */
 	assertionCards?: AssertionCard[];
+	/** Scenarios (`32-SCENARIOS.md` §4.1, WP44): a goal card plus what a test needs — pure data. */
+	scenarios?: ScenarioDefinition[];
 	/**
 	 * Policy cards (`14-…` §4.6, WP22) — declarative guardrail configs, data
 	 * rather than code. Registered content like everything else above: a

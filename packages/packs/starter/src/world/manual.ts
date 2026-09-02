@@ -82,8 +82,11 @@ export const playroomManual: ManualEntry[] = [
 
 /** Case-insensitive keyword match; returns every entry whose keywords appear in the query. */
 export function searchManual(query: string): ManualEntry[] {
+	return searchEntries(playroomManual, query);
+}
+
+/** The same search over any entries — a scenario's injected ones beside the static manual (WP44). */
+export function searchEntries(entries: readonly ManualEntry[], query: string): ManualEntry[] {
 	const needle = query.toLowerCase();
-	return playroomManual.filter((entry) =>
-		entry.keywords.some((keyword) => needle.includes(keyword))
-	);
+	return entries.filter((entry) => entry.keywords.some((keyword) => needle.includes(keyword)));
 }

@@ -54,6 +54,9 @@ export function checkManifest(
 	for (const card of manifest.assertionCards ?? []) {
 		if (!card.id.startsWith(prefix)) unqualified.push(`assertionCard "${card.id}"`);
 	}
+	for (const scenario of manifest.scenarios ?? []) {
+		if (!scenario.id.startsWith(prefix)) unqualified.push(`scenario "${scenario.id}"`);
+	}
 	if (unqualified.length > 0) {
 		issues.push({
 			check: 'manifest.ids-qualified',

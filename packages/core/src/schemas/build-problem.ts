@@ -68,7 +68,9 @@ export const buildProblemCodeSchema = z.enum([
 	/** The Monitor Judge's own three (WP43, `31-EVALUATORS.md` §4.3), all warnings. */
 	'judge-no-evaluator',
 	'unknown-evaluator',
-	'judge-config-not-json'
+	'judge-config-not-json',
+	/** A scenario carrying injections met a world with no `inject()` (WP44, `32-SCENARIOS.md` §4.1). */
+	'world-cannot-inject'
 ]);
 export type BuildProblemCode = z.infer<typeof buildProblemCodeSchema>;
 

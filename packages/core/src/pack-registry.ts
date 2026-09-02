@@ -14,6 +14,7 @@ import {
 	type GuardrailService
 } from './types/guardrail-service.js';
 import type { AssertionCard } from './schemas/assertion-card.js';
+import type { ScenarioDefinition } from './schemas/scenario.js';
 import type { ProviderFactory } from './types/provider.js';
 import type { ToolDefinition } from './types/tool.js';
 import type {
@@ -56,6 +57,8 @@ export interface PackRegistry {
 	getEvaluator(id: string): Evaluator | undefined;
 	/** An assertion card a pack shipped (WP43), by qualified id. */
 	getAssertionCard(id: string): AssertionCard | undefined;
+	/** A scenario (`32-SCENARIOS.md` §4.1, WP44), by qualified id. */
+	getScenario(id: string): ScenarioDefinition | undefined;
 	/** Sense channels are declared per-world (02-AGENT-MODEL.md §4); this searches every registered world. */
 	getSenseChannel(id: string): WorldSenseDefinition | undefined;
 	/** Actions are declared per-world; this searches every registered world. */
@@ -73,6 +76,7 @@ export interface PackRegistry {
 	listGuardrailServices(): GuardrailService[];
 	listEvaluators(): Evaluator[];
 	listAssertionCards(): AssertionCard[];
+	listScenarios(): ScenarioDefinition[];
 	listProviderFactories(): ProviderFactory[];
 }
 
@@ -90,6 +94,7 @@ export function createPackRegistry(): PackRegistry {
 	const guardrailServices = new Map<string, GuardrailService>();
 	const evaluators = new Map<string, Evaluator>();
 	const assertionCards = new Map<string, AssertionCard>();
+	const scenarios = new Map<string, ScenarioDefinition>();
 	const providers = new Map<string, ProviderFactory>();
 
 	function insertUnique<T>(map: Map<string, T>, id: string, value: T, kind: string): void {
@@ -144,6 +149,8 @@ export function createPackRegistry(): PackRegistry {
 		}
 		for (const card of manifest.assertionCards ?? [])
 			insertUnique(assertionCards, card.id, card, 'assertion card');
+		for (const scenario of manifest.scenarios ?? [])
+			insertUnique(scenarios, scenario.id, scenario, 'scenario');
 		for (const provider of manifest.providers ?? [])
 			insertUnique(providers, provider.id, provider, 'provider');
 	}
@@ -208,6 +215,7 @@ export function createPackRegistry(): PackRegistry {
 		getGuardrailService: (id) => guardrailServices.get(id),
 		getEvaluator: (id) => evaluators.get(id),
 		getAssertionCard: (id) => assertionCards.get(id),
+		getScenario: (id) => scenarios.get(id),
 		getProviderFactory: (id) => providers.get(id),
 		listPacks: () => [...packs.values()],
 		listTools: () => [...tools.values()],
@@ -218,6 +226,7 @@ export function createPackRegistry(): PackRegistry {
 		listGuardrailServices: () => [...guardrailServices.values()],
 		listEvaluators: () => [...evaluators.values()],
 		listAssertionCards: () => [...assertionCards.values()],
+		listScenarios: () => [...scenarios.values()],
 		listProviderFactories: () => [...providers.values()]
 	};
 }

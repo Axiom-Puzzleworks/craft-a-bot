@@ -11,7 +11,8 @@ import {
 	type RunOutcome,
 	type SessionOptions,
 	type EgressMode,
-	type PackManifest
+	type PackManifest,
+	type WorldInstance
 } from '@craftabot/core';
 import { createMockProvider, createTestClock, type MockScript } from '@craftabot/core/testing';
 import starterPack from '../index.js';
@@ -149,6 +150,8 @@ export interface RunOptions {
 	idOffset?: number;
 	/** Packs registered beside the starter pack (WP42) — a campaign that stacks a Guard Brick needs the workshop pack and the service's own. */
 	packs?: PackManifest[];
+	/** A world built (and injected) by the caller (WP44) — the session uses it instead of building the card's own. */
+	world?: WorldInstance;
 	/** The session's egress mode (WP41) — `'none'` is what a campaign in CI runs under. */
 	egress?: EgressMode;
 }
@@ -179,7 +182,8 @@ export async function runToCompletion(options: RunOptions): Promise<RunResult> {
 			...(options.maxTicks !== undefined ? { budgets: { maxTicks: options.maxTicks } } : {}),
 			...(options.strategies !== undefined ? { strategies: options.strategies } : {}),
 			...(options.egress !== undefined ? { egress: options.egress } : {})
-		}
+		},
+		...(options.world ? { world: options.world } : {})
 	});
 
 	const events: EngineEvent[] = [];

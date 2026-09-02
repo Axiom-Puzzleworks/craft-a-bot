@@ -27,6 +27,19 @@ export type {
 	ToolSchema
 } from './types/provider.js';
 export {
+	SCENARIO_SCHEMA_VERSION,
+	injectionSchema,
+	parseScenarioDefinition,
+	safeParseScenarioDefinition,
+	scenarioDefinitionSchema,
+	scenarioExpectationSchema,
+	scenarioPackFileSchema,
+	type Injection,
+	type ScenarioDefinition,
+	type ScenarioDefinitionInput,
+	type ScenarioPackFile
+} from './schemas/scenario.js';
+export {
 	describeEvaluatorProblems,
 	type EvaluationEvidence,
 	type EvaluationInput,

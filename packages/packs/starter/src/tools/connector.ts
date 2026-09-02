@@ -38,6 +38,17 @@ function connectorTool(operation: ServiceOperation): ToolDefinition {
 			if (context.random() < operation.failureChance) {
 				return { ok: false, output: toolStrings.connector.busy };
 			}
+			// A scenario may have overridden this tool's answer (WP44, `32-…` §4.2).
+			const overrides = (
+				context.worldState as { serviceOverrides?: Record<string, unknown> } | undefined
+			)?.serviceOverrides;
+			const override = overrides?.[`starter/connector_${operation.service}_${operation.id}`];
+			if (override !== undefined) {
+				return {
+					ok: true,
+					output: typeof override === 'string' ? override : JSON.stringify(override)
+				};
+			}
 			return { ok: true, output: operation.respond() };
 		}
 	};
