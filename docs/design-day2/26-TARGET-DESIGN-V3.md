@@ -634,6 +634,8 @@ The world is untouched. Hosted verdicts and evaluations are recorded, so replay 
 
 > **Amended 2026-09-02 (WP47 — telemetry sinks).** §6.5 landed through `35-TELEMETRY.md`, with six divergences recorded there: the `TraceSink` contract's types live in `core` beside the other contracts (the package implements them); `export` takes a `TraceExport` (a stored run's fields) until WP48's bundle exists; a sink's `egress` is a function of its config, since the host is what the person typed; the JSONL file sink lives on `@craftabot/telemetry/node` so the main entry stays browser-safe; the e2e's collector is a Playwright route, not a container; and a sink's failures surface through `status()` and `onError`. Two sinks ship as this document says, the Kit attaches none, and the Sinks screen and the harness are the two places one is configured. `27-…` §8 item 16 carries the gate.
 
+> **Amended 2026-09-02 (WP48 — the bundle and multi-agent completion; Phase K closed).** §6.7 and §6.12 landed through `36-BUNDLE-AND-GROUPS.md`. The bundle's group section carries its own digest so the bundle digest is over digests only; the observer signature is `(events, { groupRunId })`; the group Watchbot is an `observe` for the note and `guardrails` for the chokepoint, since an observer has the group's ear but not its hand; Hearing is per seat by a cursor, as Radio always was. `27-…` §8 item 17 carries the gate.
+
 ---
 
 ## 13. Risks

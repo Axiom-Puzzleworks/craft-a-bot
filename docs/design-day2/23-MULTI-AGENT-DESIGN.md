@@ -223,6 +223,8 @@ Both are emitted with `runId = groupRunId` and no `agentId` (they happened to th
 >
 > **Amended 2026-08-21 (WP34 closed):** did not ship. WP34's Audit Centre (`17-…` §4.10) reads `storage.listRuns()` alone — the solo `RunRecord` list — so it never lists a `GroupRunRecord` and a group's own member run, picked individually, exports only its own trace. The bundle format this section deferred to WP34 remains real, undecided work, now with no WP named for it — a fair target for whoever next touches the Audit Centre, not a promise this phase quietly dropped.
 
+> **Amended 2026-09-02 (WP48).** The group export this section deferred exists: `craftabot-bundle` v1 (`36-BUNDLE-AND-GROUPS.md` §4.1) — every member's trace file, the merged stream with its own digest, the evaluations, and a digest over the whole; the Audit Centre lists episodes and downloads it, the Run Lab's badge verifies it, `craftabot bundle --group` writes it. The Hearing row in §9 is closed the same day: `heard` is append-only with a cursor per seat.
+
 ### 4.8 The Playroom's co-op opt-in (the only pack that changes)
 
 The Playroom implements `forAgent` and gains **one co-op layout and one co-op goal card**; every existing layout, card, predicate, narration string and test is untouched.
