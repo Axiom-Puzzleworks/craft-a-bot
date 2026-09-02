@@ -15,9 +15,9 @@ const ok: Evaluator = {
 describe('describeEvaluatorProblems', () => {
 	it('accepts a well-formed evaluator and a deterministic one without createOffline', () => {
 		expect(describeEvaluatorProblems(ok)).toEqual([]);
-		expect(
-			describeEvaluatorProblems({ ...ok, kind: 'deterministic', createOffline: undefined })
-		).toEqual([]);
+		const { createOffline: _offline, ...bare } = ok;
+		void _offline;
+		expect(describeEvaluatorProblems({ ...bare, kind: 'deterministic' })).toEqual([]);
 	});
 
 	it('names every problem', () => {
