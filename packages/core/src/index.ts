@@ -198,6 +198,19 @@ export {
 	type StoredEvent
 } from './schemas/records.js';
 
+// The persistence seam (07-DATA-MODEL-PERSISTENCE.md §8; WP36 stage A,
+// 26-TARGET-DESIGN-V3.md §6.7): the contract every host stores runs through,
+// plus the in-memory implementation. IndexedDB stays in the workbench.
+export {
+	DEFAULT_RUN_CAP,
+	byNewestFirst,
+	emptyQuarantine,
+	selectRunsToEvict,
+	type QuarantineReport,
+	type Storage
+} from './storage/storage.js';
+export { createMemoryStorage, type MemoryStorage } from './storage/memory.js';
+
 // Persistence helpers (07-DATA-MODEL-PERSISTENCE.md §4–5)
 export {
 	brickKindsFor,

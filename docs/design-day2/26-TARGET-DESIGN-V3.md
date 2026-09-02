@@ -606,6 +606,8 @@ The world is untouched. Hosted verdicts and evaluations are recorded, so replay 
 
 *(Stages append dated notes here as they land, per `10-…` §7.)*
 
+> **Amended 2026-09-02 (WP36 stage A).** §6.7 says the `Storage` contract moves to "`@craftabot/core/persistence`". It moved to **`packages/core/src/storage/`** instead (`storage.ts`, `memory.ts`), exported from the main barrel, and the contract suite plus its fixtures went to **`src/testing/`** under the existing `@craftabot/core/testing` entry point. Two reasons, both found by doing it rather than planning it: `persistence/**` carries a 100 %/95 % coverage gate written for the key-containment code (`redact.ts`, the exporters), and the store's own gates were 100/90 and 95/85 in the workbench — moving them into that directory would have either tightened a gate nobody decided to tighten or loosened one that protects hard rule 2; and `storage-contract.ts` imports `vitest`, which belongs beside `mock-provider.ts` and `test-clock.ts` on the testing subpath, never on the production barrel. The workbench keeps four one-line re-export shims at the old paths, excluded from its coverage; the two threshold entries moved to `packages/core/vitest.config.ts` unchanged. No consumer, no test assertion and neither golden trace changed. §6.7's and §6.14's later references to `core/persistence/projection` should be read as `core/src/storage/` for the store and — when stage B lands — a sibling directory for the folds, decided then.
+
 ---
 
 ## 13. Risks

@@ -32,24 +32,23 @@ export default defineConfig({
 		coverage: {
 			provider: 'v8',
 			include: ['src/lib/**/*.ts'],
-			// Test scaffolding, not behaviour.
+			// Test scaffolding, not behaviour — and the four re-export shims left at
+			// the old storage paths (WP36 stage A), whose code now lives and is
+			// gated in `@craftabot/core`.
 			exclude: [
 				'src/lib/**/*.test.ts',
+				'src/lib/state/storage.ts',
+				'src/lib/state/storage-memory.ts',
 				'src/lib/state/storage-contract.ts',
 				'src/lib/state/storage-fixtures.ts'
 			],
 			reporter: ['text', 'json-summary'],
 			// The storage layer holds everything the user has made, and the key vault
-			// carries hard rule 2. Both are gated rather than merely measured.
+			// carries hard rule 2. Both are gated rather than merely measured. The
+			// contract and the in-memory store carry the same gates in core's own
+			// vitest config since WP36 stage A moved them.
 			thresholds: {
 				'src/lib/state/keys.ts': { statements: 100, branches: 100, functions: 100, lines: 100 },
-				'src/lib/state/storage.ts': { statements: 100, branches: 90, functions: 100, lines: 100 },
-				'src/lib/state/storage-memory.ts': {
-					statements: 95,
-					branches: 85,
-					functions: 95,
-					lines: 95
-				},
 				'src/lib/state/storage-idb.ts': { statements: 90, branches: 80, functions: 90, lines: 90 }
 			}
 		}

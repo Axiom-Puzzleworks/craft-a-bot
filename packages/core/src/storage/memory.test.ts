@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { createMemoryStorage } from './storage-memory.js';
-import { describeStorageContract } from './storage-contract.js';
+import { createMemoryStorage } from './memory.js';
+import { describeStorageContract } from '../testing/storage-contract.js';
 
 describeStorageContract('memory', () => Promise.resolve(createMemoryStorage()));
 
