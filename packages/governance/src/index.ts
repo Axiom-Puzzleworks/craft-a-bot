@@ -46,4 +46,43 @@ export {
 	type PredicateEvalContext
 } from './policy-compiler.js';
 
+/**
+ * The hosted-guardrail shell (`29-GUARD-SHELL.md` §4.4, WP39 stage C): what
+ * turns any `GuardrailService` into guardrails at its hooks — the dials, the
+ * verdict mapping, the selectors, the strings, and the trace record.
+ */
+export {
+	categoryDispositionSchema,
+	dispositionSchema,
+	hostedScreenConfigSchema,
+	type CategoryDisposition,
+	type Disposition,
+	type HostedScreenConfig,
+	type HostedScreenConfigInput
+} from './hosted/config.js';
+export {
+	createHostedGuardrails,
+	filtersForRecord,
+	type CreateHostedGuardrailsOptions,
+	type HostedGuardrailNames
+} from './hosted/guardrails.js';
+export {
+	decisionSelector,
+	defaultSelectors,
+	observationSelector,
+	observationText,
+	renderCall,
+	resultSelector,
+	stringifyToolResult,
+	type Screen,
+	type TextSelector
+} from './hosted/selectors.js';
+export {
+	defaultHostedStrings,
+	joinWithAnd,
+	type HostedStrings,
+	type MatchedFinding
+} from './hosted/strings.js';
+export { clampForHook, verdictForReading } from './hosted/verdict.js';
+
 export const CRAFTABOT_GOVERNANCE_VERSION = '0.0.1';
