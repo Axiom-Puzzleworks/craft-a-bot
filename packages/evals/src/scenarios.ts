@@ -132,7 +132,7 @@ export async function runScenario(
 		...(options.stepLimit !== undefined ? { stepLimit: options.stepLimit } : {})
 	});
 	const outcome = run.outcome as RunOutcome | undefined;
-	const input = evaluationInputFor(run.events as EngineEvent[]);
+	const input = evaluationInputFor(run.events as EngineEvent[], undefined, scenario);
 	const checks: ScenarioExpectationCheck[] = [];
 	for (const expectation of scenario.expect.evaluators) {
 		const expected =

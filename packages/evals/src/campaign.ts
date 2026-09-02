@@ -471,7 +471,7 @@ async function runCell(
 			assertions: Object.fromEntries(
 				campaign.assertionCards.map((card) => [card.id, evaluateAssertion(card, run.events).pass])
 			),
-			evaluations: await evaluateCell(campaign, run.events, options)
+			evaluations: await evaluateCell(campaign, run.events, options, scenario)
 		};
 		options.onTrace?.(scored, { events: run.events, spec });
 		return scored;
@@ -501,7 +501,8 @@ async function runCell(
 async function evaluateCell(
 	campaign: Campaign,
 	events: readonly EngineEvent[],
-	options: RunCampaignOptions
+	options: RunCampaignOptions,
+	scenario: CampaignScenario
 ): Promise<Record<string, 'pass' | 'fail' | 'inconclusive'>> {
 	if (campaign.evaluators.length === 0) return {};
 	const registry = createPackRegistry();
@@ -510,7 +511,7 @@ async function evaluateCell(
 		if (!registry.listPacks().some((installed) => installed.id === pack.id))
 			registry.registerPack(pack);
 	}
-	const input = evaluationInputFor(events);
+	const input = evaluationInputFor(events, undefined, scenario);
 	const verdicts: Record<string, 'pass' | 'fail' | 'inconclusive'> = {};
 	for (const named of campaign.evaluators) {
 		const evaluator = resolveEvaluator(registry, named.id);

@@ -110,9 +110,15 @@ export function provisionalRun(events: readonly EngineEvent[]): RunRecord {
 /** The input an evaluator takes, from what a caller has: a stored run and its events, or the events alone. */
 export function evaluationInputFor(
 	events: readonly EngineEvent[],
-	run?: RunRecord
+	run?: RunRecord,
+	/** The scenario the run was part of (WP44) — opaque here, a `ScenarioDefinition` or a campaign's scenario to whoever knows. */
+	scenario?: unknown
 ): EvaluationInput {
-	return { run: run ?? provisionalRun(events), events };
+	return {
+		run: run ?? provisionalRun(events),
+		events,
+		...(scenario !== undefined ? { scenario } : {})
+	};
 }
 
 export function assertionEvaluator(card: AssertionCard): Evaluator {

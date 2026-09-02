@@ -3,7 +3,7 @@ import { playroom } from './playroom.js';
 import type { PlayroomState } from './state.js';
 import { lookUpManual } from '../tools/look-up-manual.js';
 import { connectorTools } from '../tools/connector.js';
-import type { ToolContext } from '@craftabot/core';
+import type { ToolContext, WorldState } from '@craftabot/core';
 
 /**
  * **The Playroom's four doors** (WP44, `32-SCENARIOS.md` §4.2): every
@@ -19,7 +19,7 @@ function context(state: unknown): ToolContext {
 		tick: 0,
 		notebook: { read: () => [], append: () => undefined },
 		random: () => 0.99,
-		worldState: state as ToolContext['worldState']
+		...(state !== undefined ? { worldState: state as WorldState } : {})
 	};
 }
 
