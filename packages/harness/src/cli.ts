@@ -5,6 +5,7 @@ import { credentialsFromEnv, type CredentialSource } from './credentials.js';
 import { bundleRun } from './commands/bundle.js';
 import { evaluateRun, renderEvaluations } from './commands/evaluate.js';
 import { runCampaignFile } from './commands/campaign.js';
+import { bundleGroup } from './commands/bundle.js';
 import { importCorpusFile } from './commands/scenarios.js';
 import { DEFAULT_CONTENT_DIR, addContent, listContent, renderContent } from './commands/content.js';
 import { exportRun } from './commands/export.js';
@@ -85,9 +86,11 @@ Usage:
       --provider names the provider the cartridge must belong to. --deny
       answers every approval with no (default: yes).
 
-  craftabot bundle --run <runId> [--out ./runs] [--file <path>]
-      Write a stored run back out as a .craftabot-trace.json (to --file, or
-      stdout), redacted and digest-signed.
+  craftabot bundle --run <runId> | --group <groupRunId> [--out ./runs] [--file <path>]
+      Write a stored run back out as a .craftabot-trace.json, or a group
+      episode as a .craftabot-bundle.json (every member's trace, the merged
+      stream, one digest over all of them), redacted and digest-signed, to
+      --file or stdout.
 
   craftabot export --run <runId> --sink <sinkId> [--sink-config <json>] [--out ./runs]
       Send a stored run to a sink in one go: telemetry/otlp-http (an OTLP
@@ -208,9 +211,17 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 			}
 			case 'bundle': {
 				const runId = stringFlag(args, 'run');
-				if (runId === undefined) throw new Error('bundle needs --run <runId>');
+				const groupId = stringFlag(args, 'group');
+				if (runId === undefined && groupId === undefined) {
+					throw new Error('bundle needs --run <runId> or --group <groupRunId>');
+				}
 				const storage = await createFileStorage(stringFlag(args, 'out') ?? './runs');
-				const trace = await bundleRun(storage, runId, credentialsFromEnv(io.env).secrets());
+				const secrets = credentialsFromEnv(io.env).secrets();
+				// A group episode (WP48) leaves as a craftabot-bundle; a run as the trace file it always was.
+				const trace =
+					groupId !== undefined
+						? await bundleGroup(storage, groupId, secrets)
+						: await bundleRun(storage, runId as string, secrets);
 				const text = `${JSON.stringify(trace, null, '\t')}\n`;
 				const file = stringFlag(args, 'file');
 				if (file !== undefined) {

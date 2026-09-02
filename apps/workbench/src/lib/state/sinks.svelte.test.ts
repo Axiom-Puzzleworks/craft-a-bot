@@ -27,25 +27,44 @@ describe('the sinks store (WP47)', () => {
 		const storage = memoryStorage();
 		const store = createSinksStore({ storage, fetch: collector().fetchImpl });
 		expect(store.available.map((sink) => sink.id)).toEqual(['telemetry/otlp-http']);
-		store.set({ sinkId: 'telemetry/otlp-http', config: { url: 'http://localhost:4318' }, enabled: false });
+		store.set({
+			sinkId: 'telemetry/otlp-http',
+			config: { url: 'http://localhost:4318' },
+			enabled: false
+		});
 		expect(JSON.parse(storage.dump()[SINKS_STORAGE_KEY] ?? '{}').sinks).toHaveLength(1);
 		expect(store.instances()).toEqual([]);
-		store.set({ sinkId: 'telemetry/otlp-http', config: { url: 'http://localhost:4318' }, enabled: true });
+		store.set({
+			sinkId: 'telemetry/otlp-http',
+			config: { url: 'http://localhost:4318' },
+			enabled: true
+		});
 		expect(store.instances().map((entry) => entry.sink.id)).toEqual(['telemetry/otlp-http']);
 		store.set({ sinkId: 'telemetry/otlp-http', config: { nope: true }, enabled: true });
 		expect(store.instances()).toEqual([]);
 		store.remove('telemetry/otlp-http');
 		expect(store.configurations).toEqual([]);
 		// A second store reads what the first wrote.
-		store.set({ sinkId: 'telemetry/otlp-http', config: { url: 'http://localhost:4318' }, enabled: true });
+		store.set({
+			sinkId: 'telemetry/otlp-http',
+			config: { url: 'http://localhost:4318' },
+			enabled: true
+		});
 		expect(createSinksStore({ storage }).configurations).toHaveLength(1);
-		expect(createSinksStore({ storage: { getItem: () => 'not json', setItem: () => undefined } }).configurations).toEqual([]);
+		expect(
+			createSinksStore({ storage: { getItem: () => 'not json', setItem: () => undefined } })
+				.configurations
+		).toEqual([]);
 	});
 
 	it('sends a stored run through the egress guard: the configured host is allowed, another is refused on the sink', async () => {
 		const allowed = collector();
 		const store = createSinksStore({ storage: memoryStorage(), fetch: allowed.fetchImpl });
-		store.set({ sinkId: 'telemetry/otlp-http', config: { url: 'http://localhost:4318' }, enabled: true });
+		store.set({
+			sinkId: 'telemetry/otlp-http',
+			config: { url: 'http://localhost:4318' },
+			enabled: true
+		});
 		const result = await store.send('telemetry/otlp-http', { run: makeRun(), events: [] });
 		expect(result).toEqual({ ok: true, sent: 1 });
 		expect(allowed.calls).toEqual(['http://localhost:4318/v1/traces']);
@@ -58,7 +77,11 @@ describe('the sinks store (WP47)', () => {
 
 	it('attaches every enabled sink to a live bus and reports the failure of a dead collector on the sink', async () => {
 		const dead = collector(500);
-		const store = createSinksStore({ storage: memoryStorage(), fetch: dead.fetchImpl, sinks: [otlpHttpSink] });
+		const store = createSinksStore({
+			storage: memoryStorage(),
+			fetch: dead.fetchImpl,
+			sinks: [otlpHttpSink]
+		});
 		store.set({
 			sinkId: 'telemetry/otlp-http',
 			config: { url: 'http://localhost:4318', batchSize: 1 },
@@ -72,7 +95,14 @@ describe('the sinks store (WP47)', () => {
 			tick: 1,
 			timestamp: '2026-09-02T00:00:00.000Z',
 			type: 'think.completed',
-			payload: { response: { text: 'hi', raw: {}, finishReason: 'stop', usage: { inputTokens: 1, outputTokens: 1 } } }
+			payload: {
+				response: {
+					text: 'hi',
+					raw: {},
+					finishReason: 'stop',
+					usage: { inputTokens: 1, outputTokens: 1 }
+				}
+			}
 		} as unknown as EngineEvent);
 		detach();
 		await new Promise((resolve) => setTimeout(resolve, 20));

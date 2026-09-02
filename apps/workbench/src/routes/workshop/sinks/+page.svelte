@@ -18,8 +18,7 @@
 				sink.id,
 				JSON.stringify(
 					sinksStore.configurations.find((entry) => entry.sinkId === sink.id)?.config ??
-						sink.configSchema.safeParse({}).data ??
-						{ url: 'http://localhost:4318' },
+						sink.configSchema.safeParse({}).data ?? { url: 'http://localhost:4318' },
 					null,
 					2
 				)
@@ -108,14 +107,21 @@
 	{#each sinksStore.available as sink (sink.id)}
 		{@const entry = configured(sink.id)}
 		{@const status = sinksStore.statuses[sink.id]}
-		<section aria-label={sink.name} data-testid="sink-{sink.id}" data-enabled={entry?.enabled ?? false}>
+		<section
+			aria-label={sink.name}
+			data-testid="sink-{sink.id}"
+			data-enabled={entry?.enabled ?? false}
+		>
 			<h2>{sink.name} <span class="mono">{sink.id}</span></h2>
 			<p class="hint">{sink.description}</p>
 			<label class="field">
 				<span>Config (JSON)</span>
-				<textarea rows="4" bind:value={drafts[sink.id]} data-testid="sink-config-{sink.id}"></textarea>
+				<textarea rows="4" bind:value={drafts[sink.id]} data-testid="sink-config-{sink.id}"
+				></textarea>
 			</label>
-			{#if problems[sink.id]}<p class="error" data-testid="sink-problem-{sink.id}">{problems[sink.id]}</p>{/if}
+			{#if problems[sink.id]}<p class="error" data-testid="sink-problem-{sink.id}">
+					{problems[sink.id]}
+				</p>{/if}
 			<p class="hint">
 				Will call:
 				{#each egressOf(sink.id) as declaration (declaration.host)}
@@ -125,11 +131,15 @@
 				{/each}
 			</p>
 			<div class="row">
-				<button type="button" onclick={() => save(sink.id, true)} data-testid="sink-enable-{sink.id}"
-					>Save and enable</button
+				<button
+					type="button"
+					onclick={() => save(sink.id, true)}
+					data-testid="sink-enable-{sink.id}">Save and enable</button
 				>
-				<button type="button" onclick={() => save(sink.id, false)} data-testid="sink-disable-{sink.id}"
-					>Save, disabled</button
+				<button
+					type="button"
+					onclick={() => save(sink.id, false)}
+					data-testid="sink-disable-{sink.id}">Save, disabled</button
 				>
 				<button
 					type="button"
@@ -141,7 +151,9 @@
 						>{entry.enabled ? 'enabled' : 'saved, disabled'}</span
 					>{/if}
 			</div>
-			{#if sendNote[sink.id]}<p class="hint" data-testid="sink-sent-{sink.id}">{sendNote[sink.id]}</p>{/if}
+			{#if sendNote[sink.id]}<p class="hint" data-testid="sink-sent-{sink.id}">
+					{sendNote[sink.id]}
+				</p>{/if}
 			{#if status}
 				<p class="hint mono" data-testid="sink-status-{sink.id}">
 					sent {status.sent} · failed {status.failed} · buffered {status.buffered}{status.lastError

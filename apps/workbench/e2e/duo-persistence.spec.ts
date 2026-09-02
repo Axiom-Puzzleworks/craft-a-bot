@@ -35,6 +35,11 @@ test('a live-played duo run turns up in the Workshop Run Browser and the Scrapbo
 	await groupRow.getByRole('link').click();
 	await expect(page.getByTestId('group-header')).toHaveText('2-robot episode');
 	await expect(page.getByTestId('world-view')).toBeVisible();
+	// The integrity badge verifies the episode's bundle (WP48, `36-…` §4.4).
+	await expect(page.locator('.integrity')).toHaveAttribute('data-verified', 'true', {
+		timeout: 10_000
+	});
+	await expect(page.locator('.integrity')).toContainText('trace integrity');
 
 	// The Kit's own scrapbook: one shared-adventure card, not two solo ones
 	// duplicating the same episode (`24-…` §4.5's own "alongside", not "as well as").

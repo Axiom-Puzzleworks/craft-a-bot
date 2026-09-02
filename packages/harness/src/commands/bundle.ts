@@ -1,4 +1,9 @@
-import { buildTraceFile, type TraceFile } from '@craftabot/core';
+import {
+	buildTraceBundle,
+	buildTraceFile,
+	type TraceBundle,
+	type TraceFile
+} from '@craftabot/core';
 import type { FileStorage } from '../storage/file-storage.js';
 
 /**
@@ -18,4 +23,36 @@ export async function bundleRun(
 	const events = (await storage.getEvents(runId)).map((row) => row.event);
 	const evaluations = await storage.listEvaluations(runId);
 	return buildTraceFile(run, events, { secrets, evaluations });
+}
+
+/** A group episode as one `craftabot-bundle` (WP48, `36-…` §4.4): every member's trace file, the merged stream, the evaluations, one digest. */
+export async function bundleGroup(
+	storage: FileStorage,
+	groupRunId: string,
+	secrets: readonly string[]
+): Promise<TraceBundle> {
+	const group = await storage.getGroupRun(groupRunId);
+	if (!group) throw new Error(`no group episode '${groupRunId}' in ${storage.root}`);
+	const runs: Array<{
+		run: NonNullable<Awaited<ReturnType<FileStorage['getRun']>>>;
+		events: TraceFile['events'];
+	}> = [];
+	for (const memberId of group.memberRunIds) {
+		const run = await storage.getRun(memberId);
+		if (!run) continue;
+		runs.push({ run, events: (await storage.getEvents(memberId)).map((row) => row.event) });
+	}
+	if (runs.length === 0)
+		throw new Error(`episode '${groupRunId}' has no member runs in ${storage.root}`);
+	const events = (await storage.getEvents(groupRunId)).map((row) => row.event);
+	const evaluations = (
+		await Promise.all(group.memberRunIds.map((id) => storage.listEvaluations(id)))
+	).flat();
+	return buildTraceBundle({
+		runs,
+		group: { record: group, events },
+		evaluations,
+		secrets,
+		exportedBy: 'craftabot-harness/0.0.1'
+	});
 }

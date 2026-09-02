@@ -4,6 +4,7 @@
 	import {
 		buildTraceFile,
 		verifyTraceDigest,
+		verifyBundleDigest,
 		type EngineEvent,
 		type EvaluationRecord,
 		type GroupRunRecord,
@@ -11,6 +12,7 @@
 	} from '@craftabot/core';
 	import { botExpression } from '$lib/bot-expression.js';
 	import { labelForEvent, laneLabel } from '$lib/trace-style.js';
+	import { bundleForGroup } from '$lib/workshop/bundles.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import { projectThrough } from '$lib/state/run-projection.js';
 	import { createBrowserKeyVault } from '$lib/state/keys.js';
@@ -125,10 +127,9 @@
 		evaluations = await storage.listEvaluations(id);
 		tick = events.at(-1)?.tick ?? 0;
 		loaded = true;
-		// Digest verification stays single-run (`23-…` §4.7): a group has no one
-		// spec to rebuild a `TraceFile` from, and a bundle format that could is
-		// deferred to WP34's audit centre rather than half-built here.
+		// A solo run verifies its trace file; a group verifies its bundle (WP48, `36-…` §4.4).
 		if (run) void verify(run);
+		else if (groupRun) void verifyGroup(groupRun);
 	}
 
 	/**
@@ -139,6 +140,16 @@
 	 * it was earned this second. The trace is rebuilt from the store and its
 	 * digest checked against the events actually held.
 	 */
+	async function verifyGroup(record: GroupRunRecord): Promise<void> {
+		try {
+			const storage = await appStorage();
+			const bundle = await bundleForGroup(storage, $state.snapshot(record), createBrowserKeyVault().secrets());
+			verified = await verifyBundleDigest(bundle);
+		} catch (error) {
+			verified = { error: error instanceof Error ? error.message : String(error) };
+		}
+	}
+
 	async function verify(record: RunRecord): Promise<void> {
 		try {
 			const secrets = createBrowserKeyVault().secrets();
@@ -233,13 +244,29 @@
 			<!--
 				A group episode's header (WP29, `23-…` §5.2, §10 stage F). No single
 				agent, model or budget to show — several, one per member below —
-				and no digest badge or "Open in Kit": both stay single-run (`23-…`
-				§4.7), and there is no Kit UI for a group to open into.
+				and no "Open in Kit": there is no Kit UI for a group to open into.
+				The digest badge verifies the episode's bundle (WP48, `36-…` §4.4).
 			-->
 			<h1 data-testid="group-header">{groupMembers.length}-robot episode</h1>
 			<span class="chip" data-outcome={groupRun.outcome} data-testid="header-outcome"
 				>{groupRun.outcome}</span
 			>
+			<span
+				class="integrity"
+				data-verified={typeof verified === 'boolean' ? verified : 'unknown'}
+				title={typeof verified === 'object' ? verified.error : undefined}
+				data-testid="digest-badge"
+			>
+				{#if verified === undefined}
+					checking integrity…
+				{:else if verified === true}
+					✓ trace integrity
+				{:else if verified === false}
+					✗ digest does not match this episode
+				{:else}
+					? integrity not checked
+				{/if}
+			</span>
 			<dl>
 				<div>
 					<dt>Card</dt>
