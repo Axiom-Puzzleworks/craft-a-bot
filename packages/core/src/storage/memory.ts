@@ -12,6 +12,7 @@ import {
 	type StoredEvent
 } from '../schemas/records.js';
 import type { RunRecord } from '../schemas/trace-file.js';
+import { safeParseContentRecord, type ContentRecord } from '../schemas/content.js';
 import {
 	DEFAULT_RUN_CAP,
 	byNewestCreated,
@@ -48,6 +49,7 @@ export function createMemoryStorage(): MemoryStorage {
 	const summaries = new Map<string, RunSummary>();
 	const campaigns = new Map<string, StoredCampaignReport>();
 	const evaluations = new Map<string, EvaluationRecord>();
+	const content = new Map<string, ContentRecord>();
 	const quarantine = emptyQuarantine();
 
 	return {
@@ -193,6 +195,29 @@ export function createMemoryStorage(): MemoryStorage {
 			return Promise.resolve();
 		},
 
+		putContent(record) {
+			const parsed = safeParseContentRecord(record);
+			if (!parsed.success) {
+				return Promise.reject(
+					new Error(`Refusing to store invalid content: ${parsed.error.message}`)
+				);
+			}
+			content.set(record.id, structuredClone(record));
+			return Promise.resolve();
+		},
+		getContent: (id) => Promise.resolve(copy(content.get(id))),
+		listContent: (kind) =>
+			Promise.resolve(
+				[...content.values()]
+					.filter((record) => kind === undefined || record.kind === kind)
+					.sort((a, b) => a.id.localeCompare(b.id))
+					.map(copy)
+			),
+		deleteContent(id) {
+			content.delete(id);
+			return Promise.resolve();
+		},
+
 		async evictOldRuns(cap = DEFAULT_RUN_CAP) {
 			const doomed = selectRunsToEvict([...runs.values()], cap);
 			for (const id of doomed) {
@@ -212,6 +237,7 @@ export function createMemoryStorage(): MemoryStorage {
 			summaries.clear();
 			campaigns.clear();
 			evaluations.clear();
+			content.clear();
 			return Promise.resolve();
 		}
 	};

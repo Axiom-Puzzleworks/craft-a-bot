@@ -14,6 +14,7 @@ import {
 	type GuardrailService
 } from './types/guardrail-service.js';
 import type { AssertionCard } from './schemas/assertion-card.js';
+import { LOCAL_PACK_ID, isLocalId } from './schemas/content.js';
 import type { ScenarioDefinition } from './schemas/scenario.js';
 import type { ProviderFactory } from './types/provider.js';
 import type { ToolDefinition } from './types/tool.js';
@@ -107,6 +108,20 @@ export function createPackRegistry(): PackRegistry {
 	function registerPack(manifest: PackManifest): void {
 		if (packs.has(manifest.id)) {
 			throw new Error(`Pack "${manifest.id}" is already registered.`);
+		}
+		// `local/` is the content store's (WP46, `34-…` §4.1): a shipped pack may not use it.
+		if (manifest.id !== LOCAL_PACK_ID) {
+			const trespasser = [
+				...(manifest.policyCards ?? []),
+				...(manifest.assertionCards ?? []),
+				...(manifest.scenarios ?? []),
+				...(manifest.goalCards ?? [])
+			].find((item) => isLocalId(item.id));
+			if (trespasser) {
+				throw new Error(
+					`Pack "${manifest.id}" ships "${trespasser.id}", but the local/ prefix is reserved for authored content.`
+				);
+			}
 		}
 		packs.set(manifest.id, {
 			id: manifest.id,

@@ -2,6 +2,7 @@ import {
 	migrateAgentRecord,
 	safeParseAgentRecord,
 	safeParseRunSummary,
+	safeParseContentRecord,
 	safeParseEvaluationRecord,
 	safeParseStoredCampaignReport,
 	safeParseStoredEvent,
@@ -10,6 +11,7 @@ import {
 	type GroupRunRecord,
 	type RunRecord,
 	type RunSummary,
+	type ContentRecord,
 	type EvaluationRecord,
 	type StoredCampaignReport,
 	type StoredEvent
@@ -35,7 +37,7 @@ import {
  */
 
 export const DATABASE_NAME = 'craftabot';
-export const DATABASE_VERSION = 5;
+export const DATABASE_VERSION = 6;
 
 interface CraftABotDB extends DBSchema {
 	agents: { key: string; value: AgentRecord };
@@ -45,6 +47,7 @@ interface CraftABotDB extends DBSchema {
 	runSummaries: { key: string; value: RunSummary };
 	campaigns: { key: string; value: StoredCampaignReport };
 	evaluations: { key: string; value: EvaluationRecord; indexes: { runId: string } };
+	content: { key: string; value: ContentRecord; indexes: { kind: string } };
 }
 
 export interface IdbStorage extends Storage {
@@ -90,6 +93,11 @@ function upgrade(db: IDBPDatabase<CraftABotDB>, oldVersion: number): void {
 	if (oldVersion < 5) {
 		const evaluations = db.createObjectStore('evaluations', { keyPath: 'id' });
 		evaluations.createIndex('runId', 'runId');
+	}
+	// Authored content (WP46, `34-CONTENT-STORE.md` §4.2) — one record per local id, by kind.
+	if (oldVersion < 6) {
+		const content = db.createObjectStore('content', { keyPath: 'id' });
+		content.createIndex('kind', 'kind');
 	}
 }
 
@@ -233,6 +241,23 @@ export async function createIdbStorage(name = DATABASE_NAME): Promise<IdbStorage
 		listAllEvaluations: () => db.getAll('evaluations'),
 		deleteEvaluationsFor: (runId) => deleteEvaluationsIn(db, runId),
 
+		async putContent(record) {
+			const parsed = safeParseContentRecord(record);
+			if (!parsed.success) {
+				throw new Error(`Refusing to store invalid content: ${parsed.error.message}`);
+			}
+			await db.put('content', record);
+		},
+		getContent: (id) => db.get('content', id),
+		async listContent(kind) {
+			const rows =
+				kind === undefined
+					? await db.getAll('content')
+					: await db.getAllFromIndex('content', 'kind', kind);
+			return rows.sort((a, b) => a.id.localeCompare(b.id));
+		},
+		deleteContent: (id) => db.delete('content', id),
+
 		async evictOldRuns(cap = DEFAULT_RUN_CAP) {
 			const doomed = selectRunsToEvict(await readRuns(), cap);
 			for (const id of doomed) {
@@ -252,6 +277,7 @@ export async function createIdbStorage(name = DATABASE_NAME): Promise<IdbStorage
 			await db.clear('runSummaries');
 			await db.clear('campaigns');
 			await db.clear('evaluations');
+			await db.clear('content');
 		}
 	};
 }

@@ -3,6 +3,7 @@ import type { Storage } from '../storage/storage.js';
 import {
 	makeAgent,
 	makeCampaignReport,
+	makeContent,
 	makeEvaluation,
 	makeEvent,
 	makeGroupRun,
@@ -318,6 +319,62 @@ export function describeStorageContract(name: string, open: () => Promise<Storag
 				const fetched = await storage.getCampaignReport(report.id);
 				if (fetched) fetched.title = 'Tampered';
 				expect((await storage.getCampaignReport(report.id))?.title).toBe('Injection baseline');
+			});
+		});
+
+		/** WP46 — authored content, one record per local id. */
+		describe('content', () => {
+			it('round-trips a record, lists by kind and all together, replaces on the same id', async () => {
+				const storage = await open();
+				const card = makeContent();
+				const scenario = makeContent({
+					id: 'local/scenarios/one',
+					kind: 'scenario',
+					title: 'One',
+					record: {
+						id: 'local/scenarios/one',
+						title: 'One',
+						goalCardId: 'starter/say-hello',
+						tags: [],
+						injections: [],
+						expect: { evaluators: [] },
+						plans: {},
+						schemaVersion: 1
+					}
+				});
+				await storage.putContent(card);
+				await storage.putContent(scenario);
+				expect(await storage.getContent(card.id)).toEqual(card);
+				expect(await storage.getContent('local/policy/nope')).toBeUndefined();
+				expect((await storage.listContent()).map((r) => r.id)).toEqual([card.id, scenario.id]);
+				expect((await storage.listContent('scenario')).map((r) => r.id)).toEqual([scenario.id]);
+				const renamed = {
+					...card,
+					title: 'No shouting at all',
+					record: { ...(card.record as object), title: 'No shouting at all' }
+				};
+				await storage.putContent(renamed);
+				expect((await storage.listContent('policy-card')).map((r) => r.title)).toEqual([
+					'No shouting at all'
+				]);
+			});
+
+			it('refuses a record that fails its schema, or whose inner card disagrees with the envelope', async () => {
+				const storage = await open();
+				await expect(storage.putContent(makeContent({ id: 'starter/policy/x' }))).rejects.toThrow();
+				await expect(
+					storage.putContent(makeContent({ record: { id: 'local/policy/other', title: 'x' } }))
+				).rejects.toThrow();
+			});
+
+			it('deletes on request and on clear', async () => {
+				const storage = await open();
+				await storage.putContent(makeContent());
+				await storage.deleteContent('local/policy/no-shouting');
+				expect(await storage.listContent()).toEqual([]);
+				await storage.putContent(makeContent());
+				await storage.clear();
+				expect(await storage.listContent()).toEqual([]);
 			});
 		});
 

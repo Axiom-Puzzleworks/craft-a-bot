@@ -27,6 +27,22 @@ export type {
 	ToolSchema
 } from './types/provider.js';
 export {
+	CONTENT_SCHEMA_VERSION,
+	CONTENT_SEGMENT,
+	LOCAL_PACK_ID,
+	contentKindSchema,
+	contentRecordFor,
+	contentRecordSchema,
+	isLocalId,
+	localContentId,
+	localPackFrom,
+	parseContentRecord,
+	safeParseContentRecord,
+	slugOf,
+	type ContentKind,
+	type ContentRecord
+} from './schemas/content.js';
+export {
 	SCENARIO_SCHEMA_VERSION,
 	injectionSchema,
 	parseScenarioDefinition,
@@ -298,6 +314,7 @@ export {
 	brickKindsFor,
 	buildKitFile,
 	importKitFile,
+	localContentReferencedBy,
 	type BuildKitFileOptions,
 	type ImportKitFileOptions,
 	type ImportProblem,

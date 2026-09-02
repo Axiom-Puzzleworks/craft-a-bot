@@ -1,3 +1,4 @@
+import type { ContentKind, ContentRecord } from '../schemas/content.js';
 import type { EngineEvent } from '../schemas/events.js';
 import type {
 	AgentRecord,
@@ -96,6 +97,12 @@ export interface Storage {
 	listEvaluations(runId: string): Promise<EvaluationRecord[]>;
 	listAllEvaluations(): Promise<EvaluationRecord[]>;
 	deleteEvaluationsFor(runId: string): Promise<void>;
+
+	/** Authored content (WP46, `34-CONTENT-STORE.md` §4.2) — one record per local id, listed by kind. */
+	putContent(record: ContentRecord): Promise<void>;
+	getContent(id: string): Promise<ContentRecord | undefined>;
+	listContent(kind?: ContentKind): Promise<ContentRecord[]>;
+	deleteContent(id: string): Promise<void>;
 
 	/**
 	 * Trim unpinned runs oldest-first until at most `cap` remain, deleting their

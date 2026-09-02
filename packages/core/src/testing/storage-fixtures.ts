@@ -1,3 +1,4 @@
+import type { ContentRecord } from '../schemas/content.js';
 import type { AgentSpec } from '../schemas/agent-spec.js';
 import { toSpecV2, type AgentSpecV2 } from '../schemas/agent-spec-v2.js';
 import type { EngineEvent } from '../schemas/events.js';
@@ -153,6 +154,31 @@ export function makeCampaignReport(
 }
 
 /** A stored evaluation (WP43) — one evaluator's verdict over one run. */
+export function makeContent(overrides: Partial<ContentRecord> = {}): ContentRecord {
+	const id = overrides.id ?? 'local/policy/no-shouting';
+	return {
+		id,
+		kind: 'policy-card',
+		title: 'No shouting',
+		record: {
+			id,
+			title: 'No shouting',
+			schemaVersion: 1,
+			rules: [
+				{
+					hook: 'pre-act',
+					when: { kind: 'call-name-is', value: 'say' },
+					then: 'block-action',
+					reason: 'quiet, please'
+				}
+			]
+		},
+		savedAt: '2026-09-02T12:00:00.000Z',
+		schemaVersion: 1,
+		...overrides
+	};
+}
+
 export function makeEvaluation(overrides: Partial<EvaluationRecord> = {}): EvaluationRecord {
 	return {
 		id: uuid(500),

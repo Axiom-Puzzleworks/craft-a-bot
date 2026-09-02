@@ -1,5 +1,5 @@
 import { mkdir, readdir, readFile, rm, stat, writeFile, appendFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import {
 	DEFAULT_RUN_CAP,
 	byNewestCreated,
@@ -8,6 +8,7 @@ import {
 	migrateAgentRecord,
 	safeParseAgentRecord,
 	safeParseRunSummary,
+	safeParseContentRecord,
 	safeParseEvaluationRecord,
 	safeParseStoredCampaignReport,
 	safeParseStoredEvent,
@@ -19,6 +20,7 @@ import {
 	type RunRecord,
 	type RunSummary,
 	type Storage,
+	type ContentRecord,
 	type EvaluationRecord,
 	type StoredCampaignReport,
 	type StoredEvent
@@ -42,6 +44,7 @@ import {
  *   runs/<runId>/summary.json      RunSummary, once the run has finished
  *   runs/<runId>/evaluations.jsonl one EvaluationRecord per line (WP43)
  *   campaigns/<reportId>.json     StoredCampaignReport (WP38 — the envelope, the report opaque inside)
+ *   content/<segment>/<slug>.json ContentRecord (WP46 — authored content under local/<segment>/<slug>)
  * ```
  *
  * Reads validate and quarantine bad rows rather than throwing (07 §1.5), as
@@ -61,6 +64,42 @@ const AGENTS = 'agents';
 const RUNS = 'runs';
 const GROUP_RUNS = 'group-runs';
 const CAMPAIGNS = 'campaigns';
+const CONTENT = 'content';
+
+/**
+ * Every content record under a directory — `<segment>/<slug>.json`, the
+ * harness's `content/` layout (WP46). A file that is not a record is
+ * skipped, never a crash: the directory is hand-edited by design.
+ */
+export async function readContentDir(dir: string): Promise<ContentRecord[]> {
+	let segments: string[];
+	try {
+		segments = await readdir(dir);
+	} catch (error) {
+		if (isMissing(error)) return [];
+		throw error;
+	}
+	const rows: ContentRecord[] = [];
+	for (const segment of segments) {
+		let names: string[];
+		try {
+			names = (await readdir(join(dir, segment))).filter((name) => name.endsWith('.json'));
+		} catch {
+			continue;
+		}
+		for (const name of names) {
+			let raw: unknown;
+			try {
+				raw = JSON.parse(await readFile(join(dir, segment, name), 'utf8'));
+			} catch {
+				continue;
+			}
+			const parsed = safeParseContentRecord(raw);
+			if (parsed.success) rows.push(parsed.data);
+		}
+	}
+	return rows;
+}
 
 export async function createFileStorage(root: string): Promise<FileStorage> {
 	const quarantine = emptyQuarantine();
@@ -68,6 +107,8 @@ export async function createFileStorage(root: string): Promise<FileStorage> {
 	await mkdir(join(root, RUNS), { recursive: true });
 	await mkdir(join(root, GROUP_RUNS), { recursive: true });
 	await mkdir(join(root, CAMPAIGNS), { recursive: true });
+	await mkdir(join(root, CONTENT), { recursive: true });
+	const contentPath = (id: string) => join(root, CONTENT, `${id.replace(/^local\//, '')}.json`);
 
 	const agentPath = (id: string) => join(root, AGENTS, `${id}.json`);
 	const runDir = (id: string) => join(root, RUNS, id);
@@ -361,6 +402,30 @@ export async function createFileStorage(root: string): Promise<FileStorage> {
 			await rm(evaluationsPath(runId), { force: true });
 		},
 
+		async putContent(record) {
+			const parsed = safeParseContentRecord(record);
+			if (!parsed.success) {
+				throw new Error(`Refusing to store invalid content: ${parsed.error.message}`);
+			}
+			await mkdir(dirname(contentPath(record.id)), { recursive: true });
+			await writeJson(contentPath(record.id), record);
+		},
+		async getContent(id) {
+			const raw = await readJson(contentPath(id));
+			if (raw === undefined || raw === SYMBOL_CORRUPT) return undefined;
+			const parsed = safeParseContentRecord(raw);
+			return parsed.success ? parsed.data : undefined;
+		},
+		async listContent(kind) {
+			const rows = await readContentDir(join(root, CONTENT));
+			return rows
+				.filter((record) => kind === undefined || record.kind === kind)
+				.sort((a, b) => a.id.localeCompare(b.id));
+		},
+		async deleteContent(id) {
+			await rm(contentPath(id), { force: true });
+		},
+
 		async evictOldRuns(cap = DEFAULT_RUN_CAP) {
 			const doomed = selectRunsToEvict(await readRuns(), cap);
 			for (const id of doomed) await removeRunDir(id);
@@ -368,7 +433,7 @@ export async function createFileStorage(root: string): Promise<FileStorage> {
 		},
 
 		async clear() {
-			for (const dir of [AGENTS, RUNS, GROUP_RUNS, CAMPAIGNS]) {
+			for (const dir of [AGENTS, RUNS, GROUP_RUNS, CAMPAIGNS, CONTENT]) {
 				await rm(join(root, dir), { recursive: true, force: true });
 				await mkdir(join(root, dir), { recursive: true });
 			}

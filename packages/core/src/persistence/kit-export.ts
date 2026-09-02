@@ -1,3 +1,4 @@
+import { isLocalId, type ContentRecord } from '../schemas/content.js';
 import type { PackRegistry } from '../pack-registry.js';
 import { toSpecV2, type AgentSpecV2, type AnyAgentSpec } from '../schemas/agent-spec-v2.js';
 import {
@@ -23,6 +24,8 @@ export interface BuildKitFileOptions {
 	 * registry — `brickKindsFor` turns one into the map this wants.
 	 */
 	requires: { core: string; packs: Record<string, string>; brickKinds: Record<string, string> };
+	/** The `local/*` cards the spec references (WP46) — `localContentReferencedBy` names them; the host supplies the records. */
+	localContent?: readonly ContentRecord[];
 	notes?: string;
 	exportedAt?: string;
 	/** Belt-and-braces scrub (07 §5); keys should never be in a spec to begin with. */
@@ -57,7 +60,10 @@ export function buildKitFile(spec: AnyAgentSpec, options: BuildKitFileOptions): 
 		requires: {
 			core: options.requires.core,
 			packs: { ...options.requires.packs },
-			brickKinds: { ...options.requires.brickKinds }
+			brickKinds: { ...options.requires.brickKinds },
+			...(options.localContent && options.localContent.length > 0
+				? { localContent: [...options.localContent] }
+				: {})
 		},
 		agent: toSpecV2(spec),
 		...(options.notes !== undefined ? { notes: options.notes } : {})
@@ -67,6 +73,7 @@ export function buildKitFile(spec: AnyAgentSpec, options: BuildKitFileOptions): 
 
 export type ImportProblem =
 	| { kind: 'invalid-file'; message: string }
+	| { kind: 'missing-local-content'; message: string; missing: string[] }
 	| { kind: 'missing-packs'; message: string; missing: string[] }
 	/** The pack is installed, but at a version without the brick this bot uses. */
 	| { kind: 'missing-bricks'; message: string; missing: string[]; packs: string[] };
@@ -92,6 +99,38 @@ export interface ImportedKit {
 	spec: AgentSpecV2;
 	/** True when the incoming id collided and a fresh one was minted. */
 	idWasRegenerated: boolean;
+	/** The embedded cards, rebuilt under fresh `local/` ids and already referenced by `spec` (WP46). */
+	localContent: ContentRecord[];
+}
+
+/** Every `local/*` id a spec's fitted bricks reference — today, policy cards on any brick's `policyCards`. */
+export function localContentReferencedBy(spec: AnyAgentSpec): string[] {
+	const ids = new Set<string>();
+	const v2 = toSpecV2(spec);
+	for (const brick of v2.bricks) {
+		const cards = (brick.config as { policyCards?: unknown }).policyCards;
+		if (!Array.isArray(cards)) continue;
+		for (const id of cards) if (typeof id === 'string' && isLocalId(id)) ids.add(id);
+	}
+	return [...ids];
+}
+
+function rewriteLocalReferences(spec: AgentSpecV2, renames: Map<string, string>): AgentSpecV2 {
+	if (renames.size === 0) return spec;
+	return {
+		...spec,
+		bricks: spec.bricks.map((brick) => {
+			const cards = (brick.config as { policyCards?: unknown }).policyCards;
+			if (!Array.isArray(cards)) return brick;
+			return {
+				...brick,
+				config: {
+					...brick.config,
+					policyCards: cards.map((id) => (typeof id === 'string' ? (renames.get(id) ?? id) : id))
+				}
+			};
+		})
+	};
 }
 
 /**
@@ -160,9 +199,41 @@ export function importKitFile(
 	const now = options.now ?? (() => new Date().toISOString());
 	const collides = (options.existingAgentIds ?? []).includes(kit.agent.id);
 
-	const spec: AgentSpecV2 = collides
+	// Authored cards travel inside the file and arrive as copies (WP46, `34-…`
+	// §4.3): a fresh local id each, the spec's references rewritten to match.
+	const embedded = new Map((kit.requires.localContent ?? []).map((record) => [record.id, record]));
+	const referenced = localContentReferencedBy(kit.agent);
+	const missingLocal = referenced.filter((id) => !embedded.has(id));
+	if (missingLocal.length > 0) {
+		return {
+			ok: false,
+			problem: {
+				kind: 'missing-local-content',
+				message: `This bot fits ${missingLocal.length === 1 ? 'a card' : 'cards'} of its own that the file does not carry: ${missingLocal.join(', ')}.`,
+				missing: missingLocal
+			}
+		};
+	}
+	const renames = new Map<string, string>();
+	const localContent: ContentRecord[] = [];
+	for (const record of embedded.values()) {
+		const suffix = newId()
+			.replace(/[^a-z0-9]/gi, '')
+			.slice(0, 6)
+			.toLowerCase();
+		const id = `${record.id}-${suffix}`;
+		renames.set(record.id, id);
+		const inner =
+			record.record !== null && typeof record.record === 'object'
+				? { ...(record.record as Record<string, unknown>), id }
+				: record.record;
+		localContent.push({ ...record, id, record: inner, savedAt: now() });
+	}
+
+	const base: AgentSpecV2 = collides
 		? { ...kit.agent, id: newId(), updatedAt: now() }
 		: { ...kit.agent };
+	const spec = rewriteLocalReferences(base, renames);
 
-	return { ok: true, imported: { kit, spec, idWasRegenerated: collides } };
+	return { ok: true, imported: { kit, spec, idWasRegenerated: collides, localContent } };
 }
