@@ -1,6 +1,7 @@
 import type { ZodType } from 'zod';
 import type { BuildProblem } from '../schemas/build-problem.js';
 import type { PolicyCard } from '../schemas/policy-card.js';
+import type { GuardrailService } from './guardrail-service.js';
 import type { Guardrail } from './guardrail.js';
 import type { KeyCheck } from './provider.js';
 import type { Observation, WorldActionDefinition } from './world.js';
@@ -301,6 +302,13 @@ export interface BrickRuntimeContext {
 	 * before this one, which declares none — returns `undefined`.
 	 */
 	getCredential(id: string): string | undefined;
+	/**
+	 * A registered hosted guardrail service (`29-GUARD-SHELL.md` §4.3, WP39),
+	 * by qualified id — the `getPolicyCard` reasoning once more: a generic
+	 * Guard brick must resolve the service the moment it builds its
+	 * guardrails, not merely know the id exists.
+	 */
+	getGuardrailService(id: string): GuardrailService | undefined;
 }
 
 /**
@@ -326,6 +334,8 @@ export interface BrickValidationContext {
 	 * secret's value.
 	 */
 	hasCredential(id: string): boolean;
+	/** Whether a hosted guardrail service id (`29-…` §4.3, WP39) is one an installed pack registered. */
+	hasGuardrailService(id: string): boolean;
 }
 
 /**

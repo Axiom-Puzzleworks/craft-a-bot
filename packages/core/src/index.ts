@@ -26,6 +26,22 @@ export type {
 	ProviderFactory,
 	ToolSchema
 } from './types/provider.js';
+export {
+	describeGuardrailServiceProblems,
+	egressDeclarationSchema,
+	findingCategorySchema,
+	findingConfidenceSchema,
+	type EgressDeclaration,
+	type FindingCategory,
+	type FindingConfidence,
+	type GuardrailService,
+	type GuardrailServiceClient,
+	type ScreenFinding,
+	type ScreenReading,
+	type ScreenRecord,
+	type ScreenRequest,
+	type ScreenResult
+} from './types/guardrail-service.js';
 export type {
 	ExternalCallRecord,
 	Guardrail,

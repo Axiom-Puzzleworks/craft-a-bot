@@ -152,6 +152,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		context: {
 			random,
 			getPolicyCard: (id) => registry.getPolicyCard(id),
+			getGuardrailService: (id) => registry.getGuardrailService(id),
 			getAction: (id) => registry.getAction(id),
 			fetch: fetchImpl,
 			getCredential

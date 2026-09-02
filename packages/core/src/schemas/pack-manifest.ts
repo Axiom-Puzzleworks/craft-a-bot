@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { BrickKindDefinition } from '../types/brick.js';
 import type { Guardrail, GuardrailHook } from '../types/guardrail.js';
+import type { GuardrailService } from '../types/guardrail-service.js';
 import type { ToolDefinition } from '../types/tool.js';
 import type { ProviderFactory } from '../types/provider.js';
 import type { WorldDefinition } from '../types/world.js';
@@ -168,7 +169,21 @@ export interface PackManifest extends PackManifestMetadata {
 	worlds?: WorldDefinition[];
 	cartridges?: CartridgeDefinition[];
 	goalCards?: GoalCardDefinition[];
+	/**
+	 * @deprecated since WP39 (`29-GUARD-SHELL.md` §4.3): nothing has ever
+	 * read this lane but the registry's own insert — a pack's guardrails
+	 * reach a run through a brick kind's `contributeGuardrails`, a policy
+	 * card, or a `GuardrailService`. Kept so no manifest breaks; removal is
+	 * WP52's if nothing has adopted it by then.
+	 */
 	guardrails?: GuardrailDefinition[];
+	/**
+	 * Hosted guardrail services (`29-GUARD-SHELL.md` §4.3, WP39): a vendor's
+	 * client behind the one contract the shell in `@craftabot/governance`
+	 * turns into guardrails. Function-valued like `providers`, for the same
+	 * reason. A brick kind names one by qualified id.
+	 */
+	guardrailServices?: GuardrailService[];
 	/**
 	 * Policy cards (`14-…` §4.6, WP22) — declarative guardrail configs, data
 	 * rather than code. Registered content like everything else above: a

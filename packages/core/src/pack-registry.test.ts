@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { stubService } from './types/guardrail-service.test.js';
 import { createPackRegistry } from './pack-registry.js';
 import type { PackManifest } from './schemas/pack-manifest.js';
 import type { WorldDefinition } from './types/world.js';
@@ -124,6 +125,41 @@ describe('PackRegistry', () => {
 		expect(registry.listCartridges()).toHaveLength(1);
 		expect(registry.listGoalCards()).toHaveLength(1);
 		expect(registry.listWorlds()).toHaveLength(1);
+	});
+
+	it('registers guardrail services a pack ships (29-… §4.3, WP39), and refuses a broken one', () => {
+		const registry = createPackRegistry();
+		const service = stubService({ id: 'test-guard/stub' });
+		registry.registerPack({
+			id: 'test-guard',
+			name: 'Test guard',
+			version: '1.0.0',
+			requiresCore: '>=0.0.1',
+			guardrailServices: [service]
+		});
+		expect(registry.getGuardrailService('test-guard/stub')).toBe(service);
+		expect(registry.listGuardrailServices()).toEqual([service]);
+		expect(registry.getGuardrailService('test-guard/nope')).toBeUndefined();
+
+		expect(() =>
+			registry.registerPack({
+				id: 'test-guard-2',
+				name: 'Again',
+				version: '1.0.0',
+				requiresCore: '>=0.0.1',
+				guardrailServices: [stubService({ id: 'test-guard/stub' })]
+			})
+		).toThrow(/guardrail service/);
+
+		expect(() =>
+			registry.registerPack({
+				id: 'test-guard-3',
+				name: 'Broken',
+				version: '1.0.0',
+				requiresCore: '>=0.0.1',
+				guardrailServices: [stubService({ id: 'test-guard-3/broken', hooks: [] })]
+			})
+		).toThrow(/declares no hooks/);
 	});
 
 	it('registers policy cards a pack ships (14-… §4.6, WP22)', () => {

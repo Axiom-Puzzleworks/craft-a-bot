@@ -259,7 +259,8 @@ describe('no Safety Brick at all', () => {
 						getPolicyCard: () => undefined,
 						getAction: () => undefined,
 						fetch: () => Promise.reject(new Error('fetch is not used in these tests')),
-						getCredential: () => undefined
+						getCredential: () => undefined,
+						getGuardrailService: () => undefined
 					}
 				})
 			)

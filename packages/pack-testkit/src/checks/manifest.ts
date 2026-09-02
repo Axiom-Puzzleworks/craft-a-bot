@@ -45,6 +45,9 @@ export function checkManifest(
 	for (const card of manifest.policyCards ?? []) {
 		if (!card.id.startsWith(prefix)) unqualified.push(`policyCard "${card.id}"`);
 	}
+	for (const service of manifest.guardrailServices ?? []) {
+		if (!service.id.startsWith(prefix)) unqualified.push(`guardrailService "${service.id}"`);
+	}
 	if (unqualified.length > 0) {
 		issues.push({
 			check: 'manifest.ids-qualified',

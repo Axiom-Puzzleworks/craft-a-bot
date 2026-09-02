@@ -65,9 +65,13 @@ export const nondeterministicTool: ToolDefinition = {
 	description: 'Reaches for Math.random instead of the injected source (hard rule 5).',
 	parameters: { type: 'object', properties: {}, additionalProperties: false },
 	execute() {
-		return { ok: true, output: 'rolled', data: { roll: Math.floor(Math.random() * 6) } };
+		// A counter rather than a real die: a die matches itself one time in
+		// six, and a fixture that only *usually* misbehaves is a flaky test.
+		nondeterministicCalls += 1;
+		return { ok: true, output: 'rolled', data: { roll: nondeterministicCalls } };
 	}
 };
+let nondeterministicCalls = 0;
 
 export const brokenTools: ToolDefinition[] = [
 	unqualifiedTool,

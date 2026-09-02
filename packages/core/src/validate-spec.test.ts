@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { stubService } from './types/guardrail-service.test.js';
 import { z } from 'zod';
 import { validateSpec } from './validate-spec.js';
 import { createPackRegistry, type PackRegistry } from './pack-registry.js';
@@ -352,6 +353,54 @@ describe('validateSpec', () => {
 	 * can ask whether the host's vault holds a secret under its own
 	 * credential id, without the config schema ever seeing the value.
 	 */
+	/** WP39 stage B (`29-…` §4.3): both contexts resolve a registered guardrail service. */
+	describe('guardrail services', () => {
+		it('a brick can ask for a registered service while validating and while being built', () => {
+			const registry = buildRegistry();
+			const service = stubService({ id: 'expansion9/stub' });
+			const seen: string[] = [];
+			registry.registerPack({
+				id: 'expansion9',
+				name: 'Expansion 9',
+				version: '1.0.0',
+				requiresCore: '>=1.0.0',
+				guardrailServices: [service],
+				brickKinds: [
+					{
+						id: 'expansion9/guarded',
+						slot: 'perception',
+						name: 'Guarded',
+						description: 'Names a service.',
+						realName: 'Guarded',
+						realExplanation: 'Names a service.',
+						configSchema: z.object({}),
+						configVersion: 1,
+						defaults: {},
+						validateConfig: (_config: unknown, ctx) => {
+							seen.push(`validate:${ctx.hasGuardrailService('expansion9/stub')}`);
+							seen.push(`validate-missing:${ctx.hasGuardrailService('expansion9/none')}`);
+							return [];
+						},
+						createRuntime: (_config: unknown, ctx) => {
+							seen.push(`runtime:${ctx.getGuardrailService('expansion9/stub')?.id}`);
+							return {};
+						}
+					} as BrickKindDefinition
+				]
+			});
+			const spec = migrated(validSpec({ bricks: { ...validSpec().bricks, sense: undefined } }));
+			spec.bricks.push({
+				slot: 'perception',
+				kind: 'expansion9/guarded',
+				configVersion: 1,
+				config: {}
+			});
+
+			validateSpec(spec, registry);
+			expect(seen).toEqual(['runtime:expansion9/stub', 'validate:true', 'validate-missing:false']);
+		});
+	});
+
 	describe('hasCredential', () => {
 		function curiousAboutCredential(problem: (has: boolean) => void): BrickKindDefinition {
 			return {

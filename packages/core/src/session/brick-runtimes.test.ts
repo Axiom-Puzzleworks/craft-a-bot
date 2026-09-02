@@ -92,7 +92,8 @@ const context = {
 	getPolicyCard: () => undefined,
 	getAction: () => undefined,
 	fetch: () => Promise.reject(new Error('fetch is not used in these tests')),
-	getCredential: () => undefined
+	getCredential: () => undefined,
+	getGuardrailService: () => undefined
 };
 
 describe('building runtimes', () => {

@@ -23,6 +23,7 @@ function validationCtx(overrides: Partial<BrickValidationContext> = {}): BrickVa
 		hasCartridge: () => false,
 		hasPolicyCard: () => false,
 		hasCredential: () => false,
+		hasGuardrailService: () => false,
 		...overrides
 	};
 }
@@ -109,7 +110,7 @@ describe('armorBrickKind.validateConfig', () => {
 	it('reports nothing for a sensible, plugged-in, non-offline config', () => {
 		const problems = validate(
 			config({ offline: false, screenDecision: 'ask' }),
-			validationCtx({ hasCredential: () => true })
+			validationCtx({ hasCredential: () => true, hasGuardrailService: () => false })
 		);
 		expect(problems).toEqual([]);
 	});
@@ -170,7 +171,7 @@ describe('armorBrickKind.validateConfig', () => {
 				screenDecision: 'off',
 				screenResult: 'off'
 			}),
-			validationCtx({ hasCredential: () => true })
+			validationCtx({ hasCredential: () => true, hasGuardrailService: () => false })
 		);
 		expect(problems).toContainEqual(expect.objectContaining({ code: 'armour-checks-nothing' }));
 	});
@@ -190,7 +191,7 @@ describe('armorBrickKind.validateConfig', () => {
 	it('warns "not plugged in" when not offline and the host has no geap credential', () => {
 		const problems = validate(
 			config({ offline: false }),
-			validationCtx({ hasCredential: () => false })
+			validationCtx({ hasCredential: () => false, hasGuardrailService: () => false })
 		);
 		expect(problems).toContainEqual(expect.objectContaining({ code: 'armour-not-plugged-in' }));
 	});
@@ -198,7 +199,7 @@ describe('armorBrickKind.validateConfig', () => {
 	it('does not warn "not plugged in" once a credential is present', () => {
 		const problems = validate(
 			config({ offline: false }),
-			validationCtx({ hasCredential: () => true })
+			validationCtx({ hasCredential: () => true, hasGuardrailService: () => false })
 		);
 		expect(problems.some((p) => p.code === 'armour-not-plugged-in')).toBe(false);
 	});
@@ -206,7 +207,7 @@ describe('armorBrickKind.validateConfig', () => {
 	it('never warns "not plugged in" while offline', () => {
 		const problems = validate(
 			config({ offline: true }),
-			validationCtx({ hasCredential: () => false })
+			validationCtx({ hasCredential: () => false, hasGuardrailService: () => false })
 		);
 		expect(problems.some((p) => p.code === 'armour-not-plugged-in')).toBe(false);
 	});
@@ -219,7 +220,8 @@ describe('armorBrickKind.createRuntime — guardrail composition', () => {
 			getPolicyCard: () => undefined,
 			getAction: () => undefined,
 			fetch: () => Promise.reject(new Error('not used')),
-			getCredential: () => undefined
+			getCredential: () => undefined,
+			getGuardrailService: () => undefined
 		};
 	}
 

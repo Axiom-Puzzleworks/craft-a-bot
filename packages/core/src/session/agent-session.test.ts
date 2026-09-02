@@ -1,9 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
+import { stubService } from '../types/guardrail-service.test.js';
 import { createSession } from './agent-session.js';
 import { createPackRegistry, type PackRegistry } from '../pack-registry.js';
 import { createMockProvider, createTestClock, turn, v1BrickKinds } from '../testing/index.js';
-import { migrateAgentSpec } from '../schemas/agent-spec-v2.js';
+import { migrateAgentSpec, toSpecV2 } from '../schemas/agent-spec-v2.js';
 import type { AgentSpec } from '../schemas/agent-spec.js';
 import type { EngineEvent } from '../schemas/events.js';
 import type { BrickKindDefinition } from '../types/brick.js';
@@ -1636,6 +1637,47 @@ describe('pause', () => {
 		// A viewing control should never be the thing that ends a run.
 		expect(() => session.setTickDelayMs(-1000)).not.toThrow();
 	});
+});
+
+/** WP39 stage B: the session's own runtime context resolves a registered service. */
+it('lets a fitted brick resolve a guardrail service when the session builds it', async () => {
+	const registry = buildRegistry();
+	const service = stubService({ id: 'tiny/stub' });
+	let resolved: string | undefined;
+	registry.registerPack({
+		id: 'tiny-guard',
+		name: 'Tiny guard',
+		version: '1.0.0',
+		requiresCore: '>=0.0.1',
+		guardrailServices: [service],
+		brickKinds: [
+			{
+				id: 'tiny-guard/asks',
+				slot: 'safety',
+				name: 'Asks',
+				description: 'Resolves a service.',
+				realName: 'Asks',
+				realExplanation: 'Resolves a service.',
+				configSchema: z.object({}),
+				configVersion: 1,
+				defaults: {},
+				createRuntime: (_config: unknown, ctx) => {
+					resolved = ctx.getGuardrailService('tiny/stub')?.id;
+					return {};
+				}
+			} as BrickKindDefinition
+		]
+	});
+	const spec = toSpecV2(buildSpec());
+	spec.bricks.push({ slot: 'safety', kind: 'tiny-guard/asks', configVersion: 1, config: {} });
+	const session = createSession({
+		spec,
+		registry,
+		provider: createMockProvider({ script: [turn('Ping.', 'ping')] }),
+		guardrails: []
+	});
+	await session.step();
+	expect(resolved).toBe('tiny/stub');
 });
 
 describe('guardrails', () => {

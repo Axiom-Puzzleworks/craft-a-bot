@@ -8,6 +8,10 @@ import type {
 	PackManifestMetadata
 } from './schemas/pack-manifest.js';
 import type { PolicyCard } from './schemas/policy-card.js';
+import {
+	describeGuardrailServiceProblems,
+	type GuardrailService
+} from './types/guardrail-service.js';
 import type { ProviderFactory } from './types/provider.js';
 import type { ToolDefinition } from './types/tool.js';
 import type {
@@ -42,7 +46,10 @@ export interface PackRegistry {
 	getCartridge(id: string): CartridgeDefinition | undefined;
 	getGoalCard(id: string): GoalCardDefinition | undefined;
 	getWorld(id: string): WorldDefinition | undefined;
+	/** @deprecated with `PackManifest.guardrails` (WP39) — see `getGuardrailService`. */
 	getGuardrail(id: string): GuardrailDefinition | undefined;
+	/** A hosted guardrail service (`29-GUARD-SHELL.md` §4.3, WP39), by qualified id. */
+	getGuardrailService(id: string): GuardrailService | undefined;
 	/** Sense channels are declared per-world (02-AGENT-MODEL.md §4); this searches every registered world. */
 	getSenseChannel(id: string): WorldSenseDefinition | undefined;
 	/** Actions are declared per-world; this searches every registered world. */
@@ -57,6 +64,7 @@ export interface PackRegistry {
 	listGoalCards(): GoalCardDefinition[];
 	listWorlds(): WorldDefinition[];
 	listPolicyCards(): PolicyCard[];
+	listGuardrailServices(): GuardrailService[];
 	listProviderFactories(): ProviderFactory[];
 }
 
@@ -71,6 +79,7 @@ export function createPackRegistry(): PackRegistry {
 	const worlds = new Map<string, WorldDefinition>();
 	const guardrails = new Map<string, GuardrailDefinition>();
 	const policyCards = new Map<string, PolicyCard>();
+	const guardrailServices = new Map<string, GuardrailService>();
 	const providers = new Map<string, ProviderFactory>();
 
 	function insertUnique<T>(map: Map<string, T>, id: string, value: T, kind: string): void {
@@ -105,6 +114,15 @@ export function createPackRegistry(): PackRegistry {
 			insertUnique(guardrails, guardrail.id, guardrail, 'guardrail');
 		for (const card of manifest.policyCards ?? [])
 			insertUnique(policyCards, card.id, card, 'policy card');
+		for (const service of manifest.guardrailServices ?? []) {
+			const problems = describeGuardrailServiceProblems(service);
+			if (problems.length > 0) {
+				throw new Error(
+					`Pack "${manifest.id}" ships a guardrail service "${service.id}" that ${problems.join(', ')}.`
+				);
+			}
+			insertUnique(guardrailServices, service.id, service, 'guardrail service');
+		}
 		for (const provider of manifest.providers ?? [])
 			insertUnique(providers, provider.id, provider, 'provider');
 	}
@@ -166,6 +184,7 @@ export function createPackRegistry(): PackRegistry {
 		getSenseChannel,
 		getAction,
 		getPolicyCard: (id) => policyCards.get(id),
+		getGuardrailService: (id) => guardrailServices.get(id),
 		getProviderFactory: (id) => providers.get(id),
 		listPacks: () => [...packs.values()],
 		listTools: () => [...tools.values()],
@@ -173,6 +192,7 @@ export function createPackRegistry(): PackRegistry {
 		listGoalCards: () => [...goalCards.values()],
 		listWorlds: () => [...worlds.values()],
 		listPolicyCards: () => [...policyCards.values()],
+		listGuardrailServices: () => [...guardrailServices.values()],
 		listProviderFactories: () => [...providers.values()]
 	};
 }
