@@ -1,0 +1,85 @@
+{
+	"format": "craftabot-kit",
+	"formatVersion": 2,
+	"exportedAt": "2026-09-02T09:00:00.000Z",
+	"exportedBy": "craftabot-harness/fixture",
+	"requires": {
+		"core": ">=0.0.1",
+		"packs": {
+			"starter": "0.3.0",
+			"openai": "1.0.0",
+			"personas": "1.0.0",
+			"anthropic": "1.0.0",
+			"gemini": "1.0.0",
+			"ollama": "1.0.0",
+			"monitor": "0.0.1",
+			"workshop": "0.1.0",
+			"geap": "0.0.1"
+		},
+		"brickKinds": {
+			"starter/llm": "starter",
+			"starter/memory": "starter",
+			"starter/tools": "starter",
+			"starter/sense": "starter",
+			"starter/actions": "starter"
+		}
+	},
+	"agent": {
+		"id": "11111111-1111-4111-8111-111111111111",
+		"name": "Testbot",
+		"schemaVersion": 2,
+		"bricks": [
+			{
+				"slot": "brain",
+				"kind": "starter/llm",
+				"configVersion": 1,
+				"config": {
+					"cartridgeId": "openai/quick-thinker",
+					"temperature": 0,
+					"maxTokens": 256,
+					"personality": "You are a cheerful little robot."
+				}
+			},
+			{
+				"slot": "memory",
+				"kind": "starter/memory",
+				"configVersion": 1,
+				"config": {
+					"windowSize": 10,
+					"notebook": true
+				}
+			},
+			{
+				"slot": "equipment",
+				"kind": "starter/tools",
+				"configVersion": 1,
+				"config": {
+					"enabled": ["calculator", "dice", "look_up_manual"]
+				}
+			},
+			{
+				"slot": "perception",
+				"kind": "starter/sense",
+				"configVersion": 1,
+				"config": {
+					"channels": ["sight", "compass"]
+				}
+			},
+			{
+				"slot": "mobility",
+				"kind": "starter/actions",
+				"configVersion": 1,
+				"config": {
+					"enabled": ["move", "pick_up", "put_down", "give", "open", "say", "celebrate"]
+				}
+			}
+		],
+		"goalCardId": "starter/say-hello",
+		"identity": {
+			"displayName": "Testbot",
+			"boxArtSeed": ""
+		},
+		"createdAt": "2026-08-12T09:00:00Z",
+		"updatedAt": "2026-08-12T09:00:00Z"
+	}
+}

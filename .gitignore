@@ -17,6 +17,10 @@ coverage
 playwright-report
 test-results
 
+# The harness's default output directory (`craftabot run --out ./runs`) —
+# runs are evidence a person keeps deliberately, never something to commit.
+runs
+
 # OS
 .DS_Store
 Thumbs.db

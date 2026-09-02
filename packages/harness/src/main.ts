@@ -7,7 +7,16 @@ import { main } from './cli.js';
  * assertion and the process dies with a native crash instead of the tidy
  * failure it just printed (`packages/packs/openai/scripts/smoke.ts` found
  * this first).
+ *
+ * A closed pipe is not an error either: `craftabot bundle … | head` closes
+ * stdout early, and a CLI that crashes with a stack trace for that is one
+ * nobody wants in a shell pipeline.
  */
+process.stdout.on('error', (error: NodeJS.ErrnoException) => {
+	if (error.code === 'EPIPE') process.exitCode = 0;
+	else throw error;
+});
+
 process.exitCode = await main(process.argv.slice(2), {
 	stdout: (text) => process.stdout.write(text),
 	stderr: (text) => process.stderr.write(text),
