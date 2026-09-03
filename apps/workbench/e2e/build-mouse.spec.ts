@@ -18,10 +18,10 @@ async function newBot(page: Page): Promise<void> {
 /**
  * Lift a brick out of its tray well and drop it on a socket.
  *
- * The tray has no `overflow`/`max-height` (`PartsTray.svelte`) — it simply
- * grows as more brick kinds are registered, so a well far enough down the
- * list (and, symmetrically, a socket far enough down the baseplate) can sit
- * outside the viewport `boundingBox()` was read against. Scrolling each side
+ * Since 2026-09-03 the tray is a compact sticky grid that keeps every well on
+ * screen (the test below asserts it), but a socket far enough down the
+ * baseplate can still sit outside the viewport `boundingBox()` was read
+ * against. Scrolling each side
  * into view right before reading its box, rather than once for the whole
  * gesture, is what keeps this working as the catalogue keeps growing
  * (Radio joined the tray in WP31 stage F; Planner/Librarian/Connector are
@@ -71,6 +71,41 @@ test('builds a bot with the mouse and pulls the GO lever', async ({ page }) => {
 	// Slot a Goal Card.
 	await page.getByTestId('card-snack').click();
 	await expect(page.getByTestId('active-goal')).toContainText('Find a snack');
+});
+
+/**
+ * A fuller tray (2026-09-03): every well stays on screen, so a drag can start
+ * from any brick without scrolling, and a double-click fits a brick without
+ * the drag at all — the same fit a drop makes, with the drag kept.
+ */
+test('every brick in the tray is on screen, and a double-click fits one without dragging', async ({
+	page
+}) => {
+	await newBot(page);
+	const viewport = page.viewportSize();
+	if (!viewport) throw new Error('no viewport');
+	const wells = page.locator('[data-testid^="tray-"]');
+	const count = await wells.count();
+	expect(count).toBeGreaterThanOrEqual(8);
+	for (let i = 0; i < count; i += 1) {
+		const box = await wells.nth(i).boundingBox();
+		if (!box) throw new Error(`well ${i} has no box`);
+		expect(box.y).toBeGreaterThanOrEqual(0);
+		expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
+	}
+
+	await page.getByTestId(`tray-${BRICKS.llm.id}`).dblclick();
+	await expect(page.getByTestId('socket-brain')).toHaveAttribute('data-fitted', 'true');
+	await expect(page.getByTestId('announcer')).toContainText(
+		'Fitted the Brain Brick to the head socket'
+	);
+	// The well is spent, and the brick's panel opened, exactly as after a drop.
+	await expect(page.getByTestId(`tray-${BRICKS.llm.id}`)).toBeDisabled();
+	await expect(page.getByTestId('cartridge-select')).toBeVisible();
+
+	// The drag still works beside it.
+	await dragBrickToSocket(page, 'sense');
+	await expect(page.getByTestId('socket-perception')).toHaveAttribute('data-fitted', 'true');
 });
 
 test('a brick dragged off the baseplate goes back to the tray', async ({ page }) => {

@@ -29,14 +29,31 @@
 	 * > kind the Workshop has and the Kit does not. A kit file already carrying
 	 * > one still validates and runs anywhere; only the *offering* is gated.
 	 */
+	/*
+	 * > **Amended 2026-09-03:** two things a fuller tray needed. The wells are
+	 * > a compact grid that stays on screen (`position: sticky`) rather than a
+	 * > single column that grew past the bottom of the page as packs added
+	 * > bricks — a well you cannot see is a well you cannot drag from. And a
+	 * > **double-click fits the brick straight into its socket**, the shortcut
+	 * > for anyone who does not want to drag across the bench; the drag stays,
+	 * > and Enter still lifts for the keyboard. `onfit` is the page's own
+	 * > `fitBrick`, the same call a drop makes.
+	 */
 	interface Props {
 		controller: DndController;
 		/** What is in a socket right now, if anything. */
 		fittedIn: (slot: SlotId) => { kindId: string; name: string } | undefined;
 		onselect: (slot: SlotId) => void;
+		/** Fit a kind without dragging — a double-click on its well. */
+		onfit?: (kindId: string) => void;
 	}
 
-	let { controller, fittedIn, onselect }: Props = $props();
+	let { controller, fittedIn, onselect, onfit }: Props = $props();
+
+	function onDoubleClick(kind: BrickKindDefinition): void {
+		if (controller.carrying || fittedIn(kind.slot) || !onfit) return;
+		onfit(kind.id);
+	}
 
 	const registry = createRegistry();
 
@@ -90,9 +107,11 @@
 				data-fitted={isThisOne}
 				aria-label="{kind.name}. {occupant
 					? unavailable(kind, occupant)
-					: `${kind.description} Press Enter to pick it up.`}"
+					: `${kind.description} Press Enter to pick it up, or double-click to fit it.`}"
+				title={occupant ? unavailable(kind, occupant) : kind.description}
 				disabled={occupant !== undefined}
 				onclick={() => onselect(kind.slot)}
+				ondblclick={() => onDoubleClick(kind)}
 				onkeydown={(event) => onKeyDown(event, kind)}
 				{@attach draggable({
 					brick: carried(kind),
@@ -103,24 +122,47 @@
 			>
 				<span class="art"><BrickShape kindId={kind.id} slot={kind.slot} /></span>
 				<span class="name">{kind.name}</span>
-				<span class="whisper">
-					{#if isThisOne}Fitted{:else if occupant}Socket taken{:else}{kind.description}{/if}
-				</span>
+				<!-- One short line: a well's state, or nothing — the description is the button's label and its hover title. -->
+				{#if occupant}
+					<span class="whisper">{isThisOne ? 'Fitted' : 'Socket taken'}</span>
+				{/if}
 			</button>
 		</li>
 	{/each}
 </ul>
+<p class="how" data-testid="parts-tray-hint">
+	Drag a brick to its socket, or double-click it to fit it.
+</p>
 
 <style>
+	/*
+	 * A compact grid that stays on screen: as many wells across as the column
+	 * takes (three at the bench's own width), and the whole tray sticks to the
+	 * top of the viewport as the page scrolls, so every brick is where a drag
+	 * can start from however many packs are in the box. The scroll is only a
+	 * fallback for a very small window; at 1280×720 every well is visible.
+	 */
 	.tray {
 		list-style: none;
 		margin: 0;
 		padding: var(--cab-space-2);
 		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
 		gap: var(--cab-space-2);
 		background: color-mix(in srgb, var(--cab-ink) 8%, var(--cab-paper));
 		border-radius: var(--cab-radius-panel);
 		box-shadow: inset 0 2px 6px var(--cab-shadow);
+		position: sticky;
+		top: var(--cab-space-3);
+		max-height: calc(100vh - var(--cab-space-4) * 2);
+		overflow-y: auto;
+	}
+
+	.how {
+		margin: var(--cab-space-1) 0 0;
+		font-size: var(--cab-text-xs);
+		opacity: 0.75;
+		text-align: center;
 	}
 
 	.well {
@@ -162,17 +204,22 @@
 	.art {
 		display: block;
 		margin-inline: auto;
-		max-width: calc(var(--cab-sub) * 4);
+		max-width: calc(var(--cab-sub) * 2.25);
 	}
 
 	.name {
 		font-size: var(--cab-text-sm);
 		font-weight: 700;
+		line-height: 1.15;
 	}
 
+	/* One line each, so a tray of a dozen bricks keeps its height; the full whisper is the button's own label. */
 	.whisper {
 		font-size: var(--cab-text-xs);
 		opacity: 0.75;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	@media (prefers-reduced-motion: reduce) {

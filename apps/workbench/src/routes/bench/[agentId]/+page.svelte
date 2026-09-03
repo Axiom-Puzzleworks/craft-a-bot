@@ -7,6 +7,7 @@
 	import { capabilitiesOf } from '$lib/bot-capabilities.js';
 	import { needsBattery, noBatteryMessage } from '$lib/brain.js';
 	import { createRegistry } from '$lib/packs.js';
+	import { SOCKET_LABELS } from '$lib/bricks.js';
 	import { createDndController } from '$lib/dnd/dnd-state.svelte.js';
 	import { agentsStore } from '$lib/state/agents.svelte.js';
 	import { benchStore } from '$lib/state/bench.svelte.js';
@@ -256,6 +257,13 @@
 					{controller}
 					fittedIn={(slot) => benchStore.fittedIn(slot)}
 					onselect={selectSlot}
+					onfit={(kindId) => {
+						// A double-click is a drop without the drag: the same fit, cue, panel and announcement.
+						benchStore.fitBrick(kindId);
+						preferences.cue('snap');
+						selectSlot(slotOfKind(kindId));
+						announcement = `Fitted the ${benchStore.fittedIn(slotOfKind(kindId))?.name ?? 'brick'} to the ${SOCKET_LABELS[slotOfKind(kindId)]} socket.`;
+					}}
 				/>
 			</section>
 
@@ -443,7 +451,8 @@
 
 	.columns {
 		display: grid;
-		grid-template-columns: minmax(150px, 200px) minmax(0, 1fr) minmax(230px, 320px);
+		/* The tray column is wide enough for two wells across (PartsTray's compact grid, 2026-09-03). */
+		grid-template-columns: minmax(216px, 260px) minmax(0, 1fr) minmax(230px, 320px);
 		gap: var(--cab-space-4);
 		align-items: start;
 	}
