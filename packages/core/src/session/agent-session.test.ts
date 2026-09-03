@@ -2602,3 +2602,76 @@ describe('parentRunId (WP29)', () => {
 		}
 	});
 });
+
+/**
+ * **Resume** (WP49, `37-…` §4.3). `start()` on a paused run used to call
+ * `startRun` again — tick 0, a second `run.started` in the same trace — which
+ * is what the Playroom's Play button did after Pause, and what a breakpoint
+ * would have done every time it let go. A run that has begun goes on.
+ */
+describe('resume', () => {
+	function playable(turns = 6) {
+		const clock = createTestClock();
+		const session = createSession({
+			spec: buildSpec(),
+			registry: buildRegistry(),
+			provider: createMockProvider({
+				script: (_request, index) => (index >= turns ? turn('Win!', 'win') : turn('Ping.', 'ping'))
+			}),
+			guardrails: [],
+			options: { now: clock.now, newId: clock.newId, random: clock.random, tickDelayMs: 1 }
+		});
+		const seen: EngineEvent['type'][] = [];
+		session.events.onAny((event) => seen.push(event.type));
+		return { session, seen };
+	}
+
+	it('goes on from the tick in hand after a pause, with one run.started on the trace', async () => {
+		const { session, seen } = playable(40);
+		session.start('play');
+		await vi.waitFor(() =>
+			expect(seen.filter((type) => type === 'tick.completed').length).toBeGreaterThan(1)
+		);
+		session.pause();
+		await vi.waitFor(() => expect(session.status).toBe('paused'));
+		const ticksBefore = seen.filter((type) => type === 'tick.completed').length;
+
+		session.start('play');
+		expect(session.status).toBe('running');
+		await vi.waitFor(() =>
+			expect(seen.filter((type) => type === 'tick.completed').length).toBeGreaterThan(ticksBefore)
+		);
+		session.pause();
+		await vi.waitFor(() => expect(session.status).toBe('paused'));
+
+		expect(seen.filter((type) => type === 'run.started')).toHaveLength(1);
+	});
+
+	it('resumes a stepped run into play mode, and a paused play run back into step mode', async () => {
+		const { session, seen } = playable(40);
+		await session.step();
+		expect(session.status).toBe('paused');
+		session.start('play');
+		await vi.waitFor(() =>
+			expect(seen.filter((type) => type === 'tick.completed').length).toBeGreaterThan(2)
+		);
+		session.start('step');
+		await vi.waitFor(() => expect(session.status).toBe('paused'));
+		const ticks = seen.filter((type) => type === 'tick.completed').length;
+		await session.step();
+		expect(seen.filter((type) => type === 'tick.completed')).toHaveLength(ticks + 1);
+		expect(seen.filter((type) => type === 'run.started')).toHaveLength(1);
+	});
+
+	it('ignores start() while a run is going', async () => {
+		const { session, seen } = playable(40);
+		session.start('play');
+		session.start('play');
+		await vi.waitFor(() =>
+			expect(seen.filter((type) => type === 'tick.completed').length).toBeGreaterThan(0)
+		);
+		session.pause();
+		await vi.waitFor(() => expect(session.status).toBe('paused'));
+		expect(seen.filter((type) => type === 'run.started')).toHaveLength(1);
+	});
+});

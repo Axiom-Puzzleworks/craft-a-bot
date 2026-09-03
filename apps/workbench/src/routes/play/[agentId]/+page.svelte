@@ -21,6 +21,7 @@
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import type { Storage } from '$lib/state/storage.js';
 	import { createBrowserKeyVault } from '$lib/state/keys.js';
+	import { liveRun } from '$lib/state/live-run.svelte.js';
 	import { createSessionView, type SessionView } from '$lib/state/session.svelte.js';
 	import { recordTrace, type TraceRecorder } from '$lib/state/trace-recorder.js';
 	import ApprovalCard from '$lib/components/play/ApprovalCard.svelte';
@@ -107,6 +108,21 @@
 	$effect(() => {
 		// Loading the agent and standing up a session is async work.
 		void openAgent(agentId);
+	});
+
+	/*
+	 * Leaving the Playroom with nothing running takes the bot off the live bus.
+	 * A run still going stays on it: the session keeps ticking and this page's
+	 * recorder keeps writing whether or not the page is showing, and the Run
+	 * Lab is exactly where someone who left mid-run is likely to be going.
+	 */
+	$effect(() => {
+		const attached = view;
+		return () => {
+			if (attached && (attached.outcome !== undefined || !attached.started)) {
+				liveRun.release(attached);
+			}
+		};
 	});
 
 	// A muted fanfare the first time a run succeeds (04 §6).
@@ -197,10 +213,14 @@
 		view = createSessionView({
 			spec: loaded.spec,
 			provider: brain.provider,
-			onEvent: onRunEvent
+			onEvent: onRunEvent,
+			// The Workshop's breakpoints (WP49) — a preference, so they hold here too.
+			breakpoints: () => preferences.breakpoints
 		});
 		view.setSpeed(speed);
 		runStartedAt = new Date().toISOString();
+		// On the live bus (WP49, `37-…` §4.3), so the Run Lab can trail this run.
+		liveRun.attach({ view, agentId: loaded.id, agentName: loaded.spec.name });
 	}
 
 	/**
@@ -456,6 +476,28 @@
 			<p class="notice" role="status" data-testid="eviction-notice">{evictionMessage}</p>
 		{/if}
 
+		{#if view.breakpoint}
+			<!-- A breakpoint (WP49, `37-…` §4.3): the Workshop's preference, honoured here. -->
+			<p class="notice" role="status" data-testid="breakpoint-notice">
+				Paused at a breakpoint — {view.breakpoint.kind === 'guardrail-trip'
+					? 'a safety rule tripped'
+					: view.breakpoint.kind === 'tool-call'
+						? 'a tool was called'
+						: 'an action failed'} on turn {view.breakpoint.tick}.
+				<button type="button" data-testid="breakpoint-resume" onclick={() => view?.resume()}>
+					Resume
+				</button>
+			</p>
+		{/if}
+
+		{#if preferences.workshop && view.runId}
+			<a
+				class="lab-link"
+				data-testid="open-in-run-lab"
+				href={resolve('/workshop/runs/[runId]', { runId: view.runId })}>Open in the Run Lab →</a
+			>
+		{/if}
+
 		<div class="stage">
 			<section class="world" aria-label="The Playroom">
 				<WorldView
@@ -556,6 +598,15 @@
 		padding: var(--cab-space-4);
 		display: grid;
 		gap: var(--cab-space-4);
+	}
+
+	.lab-link {
+		justify-self: end;
+		font-size: var(--cab-text-sm);
+	}
+
+	.notice button {
+		margin-inline-start: var(--cab-space-2);
 	}
 
 	.loading {

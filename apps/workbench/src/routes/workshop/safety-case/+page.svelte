@@ -4,13 +4,16 @@
 	import {
 		capabilitiesOf,
 		type AgentRecord,
+		type EvaluationRecord,
 		type RunRecord,
 		type RunSummary
 	} from '@craftabot/core';
+	import type { CampaignReport } from '@craftabot/evals';
 	import { safetyCaseFromSummaries, type SafetyCase } from '@craftabot/governance/reports';
 	import { createRegistry } from '$lib/packs.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import { ensureRunSummaries } from '$lib/state/run-summaries.js';
+	import { reportFrom } from '$lib/workshop/campaign-cells.js';
 
 	/**
 	 * **The safety-case worksheet** (`19-…` #28, WP34 stage C): "why is this
@@ -30,6 +33,9 @@
 	let record = $state<AgentRecord | undefined>(undefined);
 	let runs = $state<RunRecord[]>([]);
 	let summaries = $state<Map<string, RunSummary>>(new Map());
+	/** The evidence sections' inputs (WP49, `37-…` §4.2): the store's evaluations and its campaign reports; the fold keeps this bot's. */
+	let evaluations = $state<EvaluationRecord[]>([]);
+	let campaignReports = $state<CampaignReport[]>([]);
 	let loaded = $state(false);
 
 	const queryAgentId = $derived(page.url.searchParams.get('agent') ?? '');
@@ -71,6 +77,10 @@
 		const mine = allRuns.filter((run) => run.agentId === id);
 		// One summary row per run rather than one whole trace per run (WP36 stage C).
 		const folded = await ensureRunSummaries(storage, mine);
+		evaluations = await storage.listAllEvaluations();
+		campaignReports = (await storage.listCampaignReports())
+			.map(reportFrom)
+			.filter((report) => report !== undefined);
 		record = agent;
 		runs = mine;
 		summaries = folded;
@@ -84,10 +94,14 @@
 					registry.getWorld(registry.getGoalCard(record.spec.goalCardId)?.worldId ?? ''),
 					registry.listTools(),
 					runs,
-					summaries
+					summaries,
+					evaluations,
+					campaignReports
 				)
 			: undefined
 	);
+	const score = (value: number | undefined) => (value === undefined ? '—' : value.toFixed(2));
+	const when = (iso: string) => new Date(iso).toLocaleString();
 
 	const pct = (rate: number | undefined) =>
 		rate === undefined ? '—' : `${Math.round(rate * 100)}%`;
@@ -221,6 +235,82 @@
 			</dl>
 			<a class="lab" href={resolve('/workshop/incidents')}>See the full incident log →</a>
 		</section>
+
+		<section aria-labelledby="evaluation-h">
+			<h3 id="evaluation-h">Evaluation evidence</h3>
+			<p class="lead">
+				Every evaluator that has judged one of this build's runs, verdicts as stored.
+			</p>
+			{#if worksheet.evaluations.length === 0}
+				<p class="status" data-testid="evaluation-evidence-empty">
+					Nothing has evaluated a run of this build yet.
+				</p>
+			{:else}
+				<table data-testid="evaluation-evidence">
+					<thead>
+						<tr>
+							<th scope="col">Evaluator</th>
+							<th scope="col">Pass</th>
+							<th scope="col">Fail</th>
+							<th scope="col">Inconclusive</th>
+							<th scope="col">Mean score</th>
+						</tr>
+					</thead>
+					<tbody>
+						{#each worksheet.evaluations as row (row.evaluatorId)}
+							<tr data-testid="evaluation-evidence-{row.evaluatorId}">
+								<td class="mono">{row.evaluatorId}</td>
+								<td>{row.pass}</td>
+								<td>{row.fail}</td>
+								<td>{row.inconclusive + row.noVerdict}</td>
+								<td>{score(row.meanScore)}</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			{/if}
+		</section>
+
+		<section aria-labelledby="campaign-h">
+			<h3 id="campaign-h">Campaign results</h3>
+			<p class="lead">
+				Every stored campaign in which a build was this bot, and the gates that applied to it.
+			</p>
+			{#if worksheet.campaigns.length === 0}
+				<p class="status" data-testid="campaign-evidence-empty">
+					This build has not run in a campaign yet.
+					<a href={resolve('/workshop/campaigns')}>Add it as a build →</a>
+				</p>
+			{:else}
+				<ul class="campaigns" data-testid="campaign-evidence">
+					{#each worksheet.campaigns as row (row.reportId + row.buildId)}
+						<li data-testid="campaign-evidence-{row.reportId}">
+							<p>
+								<strong>{row.title}</strong>
+								<span class="denominator"
+									>{when(row.createdAt)} · build <span class="mono">{row.buildId}</span> · {row.cells}
+									cells</span
+								>
+								<span class="verdict" data-passed={row.passed}
+									>{row.passed ? '✅ passed' : '❌ failed'}</span
+								>
+							</p>
+							<ul class="gates">
+								{#each row.gates as gate (gate.id)}
+									<li data-testid="campaign-gate-{gate.id}" data-passed={gate.passed}>
+										{gate.passed ? '✅' : '❌'}
+										<span class="mono">{gate.id}</span>
+										{gate.required}{#if gate.observed !== undefined}
+											— observed {Math.round(gate.observed * 100) / 100}{/if}
+										{#if gate.scoped}<span class="denominator">(this build)</span>{/if}
+									</li>
+								{/each}
+							</ul>
+						</li>
+					{/each}
+				</ul>
+			{/if}
+		</section>
 	{/if}
 </main>
 
@@ -237,6 +327,59 @@
 		justify-content: space-between;
 		flex-wrap: wrap;
 		gap: var(--cab-space-3);
+	}
+
+	table {
+		width: 100%;
+		border-collapse: collapse;
+		background: var(--cab-cream);
+		border: var(--cab-border-panel) solid var(--cab-ink-muted);
+		border-radius: var(--cab-radius-panel);
+		overflow: hidden;
+		font-size: var(--cab-text-sm);
+	}
+
+	th,
+	td {
+		padding: var(--cab-space-1) var(--cab-space-2);
+		text-align: left;
+	}
+
+	th {
+		font-size: var(--cab-text-xs);
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: var(--cab-ink-muted);
+		border-bottom: 1px solid var(--cab-ink-muted);
+	}
+
+	.campaigns,
+	.gates {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		display: grid;
+		gap: var(--cab-space-2);
+	}
+
+	.campaigns > li {
+		padding: var(--cab-space-2);
+		background: var(--cab-cream);
+		border: var(--cab-border-panel) solid var(--cab-ink-muted);
+		border-radius: var(--cab-radius-panel);
+		font-size: var(--cab-text-sm);
+	}
+
+	.campaigns p {
+		margin: 0 0 var(--cab-space-1);
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--cab-space-2);
+		align-items: baseline;
+	}
+
+	.gates {
+		gap: var(--cab-space-1);
 	}
 
 	h1 {

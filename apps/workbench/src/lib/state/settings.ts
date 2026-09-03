@@ -44,6 +44,13 @@ export const settingsSchema = z.object({
 	 */
 	runCap: z.number().int().min(5).max(500).default(50),
 	/**
+	 * The Run Lab's breakpoints (WP49, `37-…` §4.3): which events pause a
+	 * live play-mode run. None by default — the Kit's runs never stop on
+	 * their own; a practitioner arms these in the Workshop, and the Playroom
+	 * honours them because they are a preference, not a screen's state.
+	 */
+	breakpoints: z.array(z.enum(['guardrail-trip', 'tool-call', 'action-failure'])).default([]),
+	/**
 	 * Highest instruction-leaflet chapter completed, 0 = not started.
 	 *
 	 * No upper bound on purpose (`WP30 stage D`, after `.max(6)` was found to
@@ -67,6 +74,12 @@ export const settingsSchema = z.object({
 	schemaVersion: z.literal(1).default(1)
 });
 export type Settings = z.infer<typeof settingsSchema>;
+export type BreakpointKind = Settings['breakpoints'][number];
+export const BREAKPOINT_KINDS: readonly BreakpointKind[] = [
+	'guardrail-trip',
+	'tool-call',
+	'action-failure'
+];
 
 export const DEFAULT_SETTINGS: Settings = settingsSchema.parse({});
 

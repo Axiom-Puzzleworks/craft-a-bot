@@ -1,4 +1,4 @@
-import { createSettingsStore, type SettingsStore } from './settings.js';
+import { createSettingsStore, type BreakpointKind, type SettingsStore } from './settings.js';
 import type { WebStorageLike } from './keys.js';
 import { createSoundPlayer, type SoundCue, type SoundPlayer } from '../sound.js';
 
@@ -37,6 +37,9 @@ export interface Preferences {
 	readonly workshop: boolean;
 	/** How many runs to keep before evicting the oldest (WP36 stage C). */
 	readonly runCap: number;
+	/** Which events pause a live play-mode run (WP49, `37-…` §4.3). */
+	readonly breakpoints: readonly BreakpointKind[];
+	setBreakpoints(value: readonly BreakpointKind[]): void;
 	setReducedMotion(value: boolean): void;
 	setTickSpeed(value: number): void;
 	setSound(value: boolean): void;
@@ -60,7 +63,8 @@ export function createPreferences(store?: SettingsStore, player?: SoundPlayer): 
 		sound: initial.sound,
 		readAloud: initial.readAloud,
 		workshop: initial.workshop,
-		runCap: initial.runCap
+		runCap: initial.runCap,
+		breakpoints: initial.breakpoints
 	});
 
 	return {
@@ -111,6 +115,13 @@ export function createPreferences(store?: SettingsStore, player?: SoundPlayer): 
 			const next = settings.update({ runCap: value });
 			state.runCap = next.runCap;
 		},
+		get breakpoints() {
+			return state.breakpoints;
+		},
+		setBreakpoints(value) {
+			const next = settings.update({ breakpoints: [...value] });
+			state.breakpoints = next.breakpoints;
+		},
 		cue(name) {
 			sound.play(name);
 		}
@@ -140,6 +151,10 @@ export const preferences: Preferences = {
 		return (shared ??= createPreferences()).runCap;
 	},
 	setRunCap: (value) => (shared ??= createPreferences()).setRunCap(value),
+	get breakpoints() {
+		return (shared ??= createPreferences()).breakpoints;
+	},
+	setBreakpoints: (value) => (shared ??= createPreferences()).setBreakpoints(value),
 	setReducedMotion: (value) => (shared ??= createPreferences()).setReducedMotion(value),
 	setTickSpeed: (value) => (shared ??= createPreferences()).setTickSpeed(value),
 	setSound: (value) => (shared ??= createPreferences()).setSound(value),

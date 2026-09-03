@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import type { AgentRecord, RunRecord } from '@craftabot/core';
+	import type { AgentRecord, RunRecord, StoredCampaignReport } from '@craftabot/core';
 	import { SOCKET_LABELS } from '$lib/bricks.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import { ensureRunSummaries } from '$lib/state/run-summaries.js';
@@ -29,6 +29,8 @@
 	let agents = $state<AgentRecord[]>([]);
 	let runs = $state<RunRecord[]>([]);
 	let saves = $state<Record<string, number>>({});
+	/** The newest stored campaign reports, for the tiles (WP49, `26-…` §9). */
+	let reports = $state<StoredCampaignReport[]>([]);
 	let loaded = $state(false);
 
 	const rows = $derived(fleetRows(agents, runs));
@@ -42,6 +44,9 @@
 		const storage = await appStorage();
 		agents = await storage.listAgents();
 		runs = await storage.listRuns();
+		reports = (await storage.listCampaignReports())
+			.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+			.slice(0, 4);
 
 		/*
 		 * Guardrail saves live in the events, not in the run record. Since WP36
@@ -96,6 +101,39 @@
 			<span class="value scope" data-testid="tile-saves">{stats.guardrailSaves}</span>
 			<span class="label">guardrail saves</span>
 		</div>
+	</section>
+
+	<section aria-label="Campaigns">
+		<div class="head">
+			<h2>Campaigns</h2>
+			<a href={resolve('/workshop/campaigns')}>Campaigns →</a>
+		</div>
+		{#if !loaded}
+			<p class="empty">Reading the stores…</p>
+		{:else if reports.length === 0}
+			<p class="empty" data-testid="campaign-tiles-empty">
+				No campaign has been run here yet. The baseline is one click away on the Campaigns page.
+			</p>
+		{:else}
+			<!-- One tile per stored report, newest first (WP49, `26-…` §9): the verdict and its denominators, never a chart. -->
+			<div class="tiles campaign-tiles" data-testid="campaign-tiles">
+				{#each reports as report (report.id)}
+					<a
+						class="tile"
+						href={resolve('/workshop/campaigns')}
+						data-testid="campaign-tile-{report.id}"
+						data-passed={report.passed}
+					>
+						<span class="value"
+							>{report.passed ? '✅' : '❌'} {report.gatesPassed}/{report.gatesTotal}</span
+						>
+						<span class="label">
+							{report.title}<em>{report.cells} cells · {when(report.createdAt)}</em>
+						</span>
+					</a>
+				{/each}
+			</div>
+		{/if}
 	</section>
 
 	<section aria-label="Fleet">
@@ -190,6 +228,17 @@
 		border: var(--cab-border-panel) solid var(--cab-ink-muted);
 		border-radius: var(--cab-radius-panel);
 		padding: var(--cab-space-3);
+	}
+
+	.campaign-tiles {
+		padding: 0;
+		border: 0;
+		background: transparent;
+	}
+
+	a.tile {
+		text-decoration: none;
+		color: inherit;
 	}
 
 	.head {

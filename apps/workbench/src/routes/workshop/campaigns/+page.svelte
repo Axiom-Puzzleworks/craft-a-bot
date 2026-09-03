@@ -1,7 +1,15 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import type { AgentSpecV2, EngineEvent, StoredCampaignReport } from '@craftabot/core';
+	import {
+		brickKindsFor,
+		buildKitFile,
+		localContentReferencedBy,
+		type AgentRecord,
+		type AgentSpecV2,
+		type EngineEvent,
+		type StoredCampaignReport
+	} from '@craftabot/core';
 	import {
 		campaignCells,
 		campaignSchema,
@@ -14,7 +22,7 @@
 		type CampaignCell,
 		type CampaignReport
 	} from '@craftabot/evals';
-	import { installedPacks } from '$lib/packs.js';
+	import { createRegistry, installedPacks, packVersions } from '$lib/packs.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import { contentStore } from '$lib/state/content.svelte.js';
 	import { slugOf } from '@craftabot/core';
@@ -52,6 +60,49 @@
 	let openSlice = $state<CampaignSlice | undefined>(undefined);
 	let importNote = $state('');
 	let saveNote = $state('');
+	/** The shelf, for "add a bot as a build" (WP49, `37-…` §4.2). */
+	let agents = $state<AgentRecord[]>([]);
+	let shelfPick = $state('');
+
+	/**
+	 * A shelf bot as a `kit` build: the same kit file the Kit exports, with
+	 * the bot's own id inside, so the report can be held against its safety
+	 * case. Appended to the JSON in the editor — the campaign stays the file
+	 * CI would run, with one more build in it.
+	 */
+	function addShelfBot(): void {
+		if (!parsed.ok || !shelfPick) return;
+		const found = agents.find((agent) => agent.id === shelfPick);
+		if (!found) return;
+		// A plain copy: the shelf is reactive state, and the kit builder clones the spec it is handed.
+		const record = $state.snapshot(found);
+		try {
+			const kit = buildKitFile(record.spec, {
+				exportedBy: 'craftabot-workbench/0.0.1',
+				requires: {
+					core: '>=0.0.1',
+					packs: packVersions(),
+					brickKinds: brickKindsFor(record.spec, createRegistry())
+				},
+				// The bot's own cards travel with it (WP46), exactly as the shelf's export sends them.
+				localContent: localContentReferencedBy(record.spec)
+					.map((cardId) => contentStore.records.find((entry) => entry.id === cardId))
+					.filter((entry): entry is NonNullable<typeof entry> => entry !== undefined)
+			});
+			const id = `shelf-${slugOf(record.spec.name)}`;
+			const campaign = {
+				...parsed.campaign,
+				builds: [
+					...parsed.campaign.builds.filter((build) => build.id !== id),
+					{ id, base: { kind: 'kit', kit } }
+				]
+			};
+			source = JSON.stringify(campaign, null, '\t');
+			importNote = `Added ${record.spec.name} as build ${id}.`;
+		} catch (error) {
+			importNote = `Could not add ${record.spec.name}: ${error instanceof Error ? error.message : String(error)}`;
+		}
+	}
 
 	async function saveCampaign(): Promise<void> {
 		if (!parsed.ok) return;
@@ -101,6 +152,7 @@
 	async function loadStored(): Promise<void> {
 		const storage = await appStorage();
 		stored = await storage.listCampaignReports();
+		agents = await storage.listAgents();
 	}
 
 	function loadBaseline(): void {
@@ -198,7 +250,26 @@
 					onchange={importFile}
 				/>
 			</label>
-			{#if importNote}<span class="hint">{importNote}</span>{/if}
+			{#if importNote}<span class="hint" data-testid="campaign-note">{importNote}</span>{/if}
+			<label class="shelf">
+				Add a shelf bot as a build
+				<select
+					data-testid="shelf-bot-picker"
+					value={shelfPick}
+					onchange={(e) => (shelfPick = e.currentTarget.value)}
+				>
+					<option value="">Choose a bot…</option>
+					{#each agents as agent (agent.id)}
+						<option value={agent.id}>{agent.spec.name}</option>
+					{/each}
+				</select>
+				<button
+					type="button"
+					disabled={!parsed.ok || !shelfPick}
+					data-testid="add-shelf-bot"
+					onclick={addShelfBot}>Add</button
+				>
+			</label>
 			<button type="button" disabled={!parsed.ok} data-testid="save-campaign" onclick={saveCampaign}
 				>Save to your content</button
 			>
@@ -504,6 +575,13 @@
 		gap: var(--cab-space-2);
 		align-items: center;
 		margin-bottom: var(--cab-space-2);
+	}
+
+	.shelf {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--cab-space-1);
+		font-size: var(--cab-text-sm);
 	}
 
 	.import {

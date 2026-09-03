@@ -16,6 +16,9 @@
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import { projectThrough } from '$lib/state/run-projection.js';
 	import { createBrowserKeyVault } from '$lib/state/keys.js';
+	import { liveRun } from '$lib/state/live-run.svelte.js';
+	import { preferences } from '$lib/state/preferences.svelte.js';
+	import { BREAKPOINT_KINDS, type BreakpointKind } from '$lib/state/settings.js';
 	import { buildTimeline, lanesPresent, type TimelineFilter } from '$lib/workshop/timeline.js';
 	import { diffPrompts, previousPrompt } from '$lib/workshop/prompt-diff.js';
 	import type { TraceLane } from '$lib/trace-style.js';
@@ -54,7 +57,30 @@
 	let groupRun = $state<GroupRunRecord | undefined>(undefined);
 	/** Each group member's own row, for the header's links back to their standalone traces. */
 	let groupMembers = $state<RunRecord[]>([]);
-	let events = $state<EngineEvent[]>([]);
+	/** The events as the store holds them. */
+	let stored = $state<EngineEvent[]>([]);
+	/**
+	 * **Live trailing** (WP49, `37-…` §4.3): when this run is the one on the
+	 * app's live bus, the timeline reads the session view's own `events` —
+	 * the same array the Playroom draws from — instead of the store's copy,
+	 * and the scrubber follows the head until a person takes hold of it.
+	 * Stored and live go through the same fold below; nothing here reads
+	 * the session's world.
+	 */
+	const live = $derived(
+		liveRun.current && liveRun.current.view.runId === runId ? liveRun.current : undefined
+	);
+	const events = $derived(live ? live.view.events : stored);
+	let follow = $state(true);
+	const BREAKPOINT_LABELS: Record<BreakpointKind, string> = {
+		'guardrail-trip': 'guardrail trip',
+		'tool-call': 'tool call',
+		'action-failure': 'action failure'
+	};
+	function toggleBreakpoint(kind: BreakpointKind, on: boolean): void {
+		const armed = preferences.breakpoints.filter((entry) => entry !== kind);
+		preferences.setBreakpoints(on ? [...armed, kind] : armed);
+	}
 	/** Stored evaluations of this run (WP43, `31-…` §4.3). */
 	let evaluations = $state<EvaluationRecord[]>([]);
 	let loaded = $state(false);
@@ -123,14 +149,30 @@
 					await Promise.all(groupRun.memberRunIds.map((memberId) => storage.getRun(memberId)))
 				).filter((member) => member !== undefined)
 			: [];
-		events = (await storage.getEvents(id)).map((row) => row.event);
+		stored = (await storage.getEvents(id)).map((row) => row.event);
 		evaluations = await storage.listEvaluations(id);
 		tick = events.at(-1)?.tick ?? 0;
 		loaded = true;
+		// A live run has no digest to verify yet; it is checked when it finishes (the effect below).
+		if (live && live.view.outcome === undefined) return;
 		// A solo run verifies its trace file; a group verifies its bundle (WP48, `36-…` §4.4).
 		if (run) void verify(run);
 		else if (groupRun) void verifyGroup(groupRun);
 	}
+
+	// Trail the head while following; a person moving the scrubber takes over.
+	$effect(() => {
+		if (live && follow) tick = lastTick;
+	});
+
+	// When the live run ends, read it back from the store: its record, its digest, its summary.
+	let finishedSeen = $state(false);
+	$effect(() => {
+		if (live?.view.outcome !== undefined && !finishedSeen) {
+			finishedSeen = true;
+			setTimeout(() => void load(runId), 300);
+		}
+	});
 
 	/**
 	 * The `✓ trace integrity` badge (`17-…` §3, header strip).
@@ -199,6 +241,12 @@
 			<h1>{run.agentName}</h1>
 			<span class="chip" data-outcome={run.outcome} data-testid="header-outcome">{run.outcome}</span
 			>
+			{#if live}
+				<!-- On the live bus (WP49): the session's own status, as it is this second. -->
+				<span class="chip live" data-status={live.view.status} data-testid="live-chip"
+					>LIVE · {live.view.status}</span
+				>
+			{/if}
 			<dl>
 				<div>
 					<dt>Card</dt>
@@ -305,6 +353,58 @@
 				outcome={shown.outcome}
 				events={events.filter((event) => event.tick <= tick)}
 			/>
+			{#if live}
+				<!--
+					Run controls and breakpoints over the live bus (`17-…` §3's left
+					region, built in WP49). The breakpoints are the Workshop's
+					preference — armed here, honoured by the Playroom's session too.
+				-->
+				<div class="live-controls" data-testid="live-controls">
+					<fieldset class="breakpoints">
+						<legend>Pause on</legend>
+						{#each BREAKPOINT_KINDS as kind (kind)}
+							<label>
+								<input
+									type="checkbox"
+									data-testid="breakpoint-{kind}"
+									checked={preferences.breakpoints.includes(kind)}
+									onchange={(e) => toggleBreakpoint(kind, e.currentTarget.checked)}
+								/>
+								{BREAKPOINT_LABELS[kind]}
+							</label>
+						{/each}
+					</fieldset>
+					<div class="live-buttons">
+						{#if live.view.status === 'running'}
+							<button type="button" data-testid="live-pause" onclick={() => live?.view.pause()}
+								>Pause</button
+							>
+						{:else if live.view.outcome === undefined}
+							<button type="button" data-testid="live-resume" onclick={() => live?.view.resume()}
+								>{live.view.started ? 'Resume' : 'Play'}</button
+							>
+						{/if}
+						<button
+							type="button"
+							data-testid="live-stop"
+							disabled={live.view.outcome !== undefined}
+							onclick={() => live?.view.stop()}>Stop</button
+						>
+						{#if !follow}
+							<button type="button" data-testid="follow-live" onclick={() => (follow = true)}
+								>Follow</button
+							>
+						{/if}
+					</div>
+					{#if live.view.breakpoint}
+						<p class="breakpoint-hit" role="status" data-testid="live-breakpoint">
+							Paused at a breakpoint: {BREAKPOINT_LABELS[live.view.breakpoint.kind]} on turn {live
+								.view.breakpoint.tick}
+							(<span class="mono">{live.view.breakpoint.eventType}</span>).
+						</p>
+					{/if}
+				</div>
+			{/if}
 			<label class="scrubber">
 				<span>Turn {tick} of {lastTick}</span>
 				<input
@@ -313,7 +413,10 @@
 					max={lastTick}
 					value={tick}
 					data-testid="run-scrubber"
-					oninput={(e) => (tick = Number(e.currentTarget.value))}
+					oninput={(e) => {
+						follow = false;
+						tick = Number(e.currentTarget.value);
+					}}
 				/>
 			</label>
 		</section>
@@ -457,6 +560,49 @@
 <style>
 	.missing {
 		font-size: var(--cab-text-sm);
+	}
+
+	/* The live chip is the oscilloscope green `17-…` §5 reserves for "this is moving" — with its word beside it. */
+	.chip.live {
+		border-color: var(--cab-scope);
+		color: var(--cab-ink);
+		background: color-mix(in srgb, var(--cab-scope) 25%, transparent);
+	}
+
+	.live-controls {
+		display: grid;
+		gap: var(--cab-space-2);
+		padding: var(--cab-space-2);
+		background: var(--cab-cream);
+		border: var(--cab-border-panel) solid var(--cab-ink-muted);
+		border-radius: var(--cab-radius-panel);
+		font-size: var(--cab-text-sm);
+	}
+
+	.breakpoints {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--cab-space-2);
+		margin: 0;
+		padding: var(--cab-space-1) var(--cab-space-2);
+		border: 1px solid var(--cab-ink-muted);
+		border-radius: var(--cab-radius-part);
+	}
+
+	.breakpoints legend {
+		font-size: var(--cab-text-xs);
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: var(--cab-ink-muted);
+	}
+
+	.live-buttons {
+		display: flex;
+		gap: var(--cab-space-2);
+	}
+
+	.breakpoint-hit {
+		margin: 0;
 	}
 
 	.strip {

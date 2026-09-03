@@ -235,6 +235,8 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		mode: 'step' as RunMode,
 		outcome: undefined as RunOutcome | undefined,
 		tick: 0,
+		/** Whether `run.started` has been emitted — what tells a resume from a start (WP49). */
+		begun: false,
 		pauseRequested: false,
 		stopRequested: undefined as string | undefined,
 		pendingApproval: undefined as ((approved: boolean) => void) | undefined,
@@ -966,6 +968,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		run.mode = runMode;
 		run.status = 'running';
 		run.tick = 0;
+		run.begun = true;
 		emit('run.started', {
 			mode: runMode,
 			// The limits and the model, recorded where the run begins (E8). An
@@ -994,8 +997,19 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		emit('world.changed', { state: world.snapshot() });
 	}
 
+	/**
+	 * Which play loop is the live one. A resume (WP49) starts a fresh loop;
+	 * the one it replaces may still be sitting in its inter-tick delay, and
+	 * without this it would wake, see no pause request, and tick alongside.
+	 * A loop that finds it has been superseded leaves without touching the
+	 * run's status.
+	 */
+	let loopGeneration = 0;
+
 	async function playLoop(): Promise<void> {
+		const mine = ++loopGeneration;
 		while (
+			mine === loopGeneration &&
 			currentStatus() !== 'finished' &&
 			!run.pauseRequested &&
 			run.stopRequested === undefined
@@ -1004,6 +1018,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			if (currentStatus() === 'finished') break;
 			if (tickDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, tickDelayMs));
 		}
+		if (mine !== loopGeneration) return;
 		if (run.pauseRequested) {
 			run.pauseRequested = false;
 			if (currentStatus() !== 'finished') run.status = 'paused';
@@ -1019,6 +1034,26 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		events,
 		start(runMode) {
 			if (run.status === 'finished') return;
+			/*
+			 * A paused run told to go on goes on (WP49, `37-…` §4.3). This used to
+			 * call `startRun` regardless, so a run paused mid-way — by the Pause
+			 * button, or at a breakpoint — restarted from tick 0 with a second
+			 * `run.started` in the same trace. Only a run that has not begun is
+			 * started; one that has is resumed in the mode asked for, and in play
+			 * mode the loop picks up from the tick in hand.
+			 */
+			if (run.begun && run.status === 'paused') {
+				// Whatever loop asked to pause is done with; a stale request must not stop the new one.
+				loopGeneration += 1;
+				run.pauseRequested = false;
+				run.mode = runMode;
+				if (runMode === 'play') {
+					run.status = 'running';
+					void playLoop();
+				}
+				return;
+			}
+			if (run.status !== 'idle') return;
 			startRun(runMode);
 			if (runMode === 'play') void playLoop();
 			else run.status = 'paused';
