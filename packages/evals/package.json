@@ -31,6 +31,7 @@
 		"@craftabot/pack-guard-local": "*",
 		"@craftabot/pack-workshop": "*",
 		"@types/node": "^24.10.1",
-		"ajv": "^8.17.1"
+		"ajv": "^8.17.1",
+		"@craftabot/pack-geap": "*"
 	}
 }

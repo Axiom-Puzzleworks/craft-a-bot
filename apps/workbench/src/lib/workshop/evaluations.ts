@@ -15,8 +15,9 @@ import { createBrowserKeyVault } from '$lib/state/keys.js';
  * `deterministic` evaluator runs as it is; a `model` one runs through the
  * run's own provider and wire model when that provider's battery is in, and
  * through its offline stand-in otherwise — never a silent pass; a `hosted`
- * one runs offline in the browser (its live host is the harness). Every
- * result is persisted as an `EvaluationRecord` beside the run.
+ * one runs live when its battery is in the vault and a config is handed in
+ * (WP51), and offline otherwise. Every result is persisted as an
+ * `EvaluationRecord` beside the run.
  */
 
 export interface RunEvaluatorOptions {
@@ -60,7 +61,13 @@ export async function runEvaluator(
 		provider = options.provider ?? providerForRun(run, registry);
 		if (!provider) runner = evaluator.createOffline?.() ?? evaluator;
 	} else if (evaluator.kind === 'hosted') {
-		runner = evaluator.createOffline?.() ?? evaluator;
+		// Live when its battery is in the vault and a config points it somewhere (WP51, `39-…` §4.3); offline otherwise.
+		const credentialId = evaluator.credential?.id;
+		const live =
+			credentialId !== undefined &&
+			createBrowserKeyVault().get(credentialId) !== undefined &&
+			options.config !== undefined;
+		if (!live) runner = evaluator.createOffline?.() ?? evaluator;
 	}
 
 	const result = await runner.evaluate(input, {

@@ -17,7 +17,23 @@ export function hostMatches(pattern: string, host: string): boolean {
 	const patternLabels = pattern.toLowerCase().split('.');
 	const hostLabels = host.toLowerCase().split('.');
 	if (patternLabels.length !== hostLabels.length) return false;
-	return patternLabels.every((label, i) => label === '*' || label === hostLabels[i]);
+	return patternLabels.every((label, i) => labelMatches(label, hostLabels[i] ?? ''));
+}
+
+/**
+ * One label of a pattern against one label of a host: exact, `*` for any
+ * whole label, or `*-suffix` for any label ending in `-suffix` (WP51,
+ * `39-HOSTED-EVALUATOR.md` §4.2) — the Vertex AI hosts are
+ * `{location}-aiplatform.googleapis.com`, and a pattern that could only
+ * name a whole label would have had to name every Google host to reach one.
+ */
+function labelMatches(pattern: string, label: string): boolean {
+	if (pattern === '*') return true;
+	if (pattern.startsWith('*-')) {
+		const suffix = pattern.slice(1);
+		return label.length > suffix.length && label.endsWith(suffix);
+	}
+	return pattern === label;
 }
 
 /** The host a `fetch` input names — `hostname`, so a port never disguises a destination. */

@@ -22,8 +22,10 @@ export interface EvaluateRunOptions {
 	credentials: CredentialSource;
 	/** Evaluator ids to run; every deterministic one when omitted. */
 	evaluatorIds?: string[];
-	/** Config per evaluator id (the rubric judge's rubric, say). */
+	/** Config per evaluator id (the rubric judge's rubric, say; a hosted evaluator's project and location). */
 	configs?: Record<string, unknown>;
+	/** `'none'` keeps every hosted evaluator offline whatever else is set (WP41's mode, WP51). */
+	egress?: 'declared' | 'none';
 	fetch?: typeof globalThis.fetch;
 	now?: () => string;
 	newId?: () => string;
@@ -81,7 +83,14 @@ export async function evaluateRun(
 			provider = providerFor(run, registry, options);
 			if (!provider) runner = evaluator.createOffline?.() ?? evaluator;
 		} else if (evaluator.kind === 'hosted') {
-			runner = evaluator.createOffline?.() ?? evaluator;
+			// Live only with its battery, a config to point it at, and a network to use (WP51, `39-…` §4.3).
+			const credentialId = evaluator.credential?.id;
+			const live =
+				credentialId !== undefined &&
+				options.credentials.get(credentialId) !== undefined &&
+				options.configs?.[evaluator.id] !== undefined &&
+				options.egress !== 'none';
+			if (!live) runner = evaluator.createOffline?.() ?? evaluator;
 		}
 		const config = options.configs?.[evaluator.id];
 		const result = await runner.evaluate(input, {

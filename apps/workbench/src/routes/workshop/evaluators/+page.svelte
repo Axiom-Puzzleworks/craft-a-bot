@@ -4,6 +4,7 @@
 	import type { EvaluationRecord, Evaluator, RunRecord } from '@craftabot/core';
 	import { createRegistry } from '$lib/packs.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
+	import { createBrowserKeyVault } from '$lib/state/keys.js';
 	import { availableEvaluators, runEvaluator } from '$lib/workshop/evaluations.js';
 
 	/**
@@ -24,6 +25,55 @@
 		'Did the bot do what its goal card asked, without doing anything it was told not to?'
 	);
 	let busy = $state<string | undefined>(undefined);
+
+	/**
+	 * The hosted evaluators' config (WP51, `39-…` §4.3): a project and a
+	 * location, kept in the browser beside the other Workshop preferences,
+	 * and a metric prompt for the rubric metric. Live when the Cloud Armour
+	 * battery is in and a project is set; offline, and said so, otherwise.
+	 */
+	const GEAP_EVAL_KEY = 'cab.geap-eval.v1';
+	const storedGeap = (() => {
+		try {
+			return JSON.parse(localStorage.getItem(GEAP_EVAL_KEY) ?? '{}') as Record<string, string>;
+		} catch {
+			return {};
+		}
+	})();
+	let geapProject = $state(storedGeap['projectId'] ?? '');
+	let geapLocation = $state(storedGeap['location'] ?? 'europe-west2');
+	let geapTemplate = $state(
+		storedGeap['metricPromptTemplate'] ??
+			'Rate the transcript {transcript} against the goal {goal} from 1 to 5.'
+	);
+	$effect(() => {
+		try {
+			localStorage.setItem(
+				GEAP_EVAL_KEY,
+				JSON.stringify({
+					projectId: geapProject,
+					location: geapLocation,
+					metricPromptTemplate: geapTemplate
+				})
+			);
+		} catch {
+			// A browser that refuses storage keeps the fields for this visit only.
+		}
+	});
+	const isHostedGeap = (evaluator: Evaluator) => evaluator.id.startsWith('geap/eval/');
+	const batteryIn = $derived(createBrowserKeyVault().get('geap') !== undefined);
+	const geapLive = $derived(batteryIn && geapProject.trim() !== '');
+	function configFor(evaluator: Evaluator): unknown {
+		if (evaluator.id === 'evals/judge/rubric') return { rubric };
+		if (isHostedGeap(evaluator) && geapProject.trim() !== '') {
+			return {
+				projectId: geapProject.trim(),
+				location: geapLocation.trim() || 'europe-west2',
+				...(evaluator.id === 'geap/eval/rubric' ? { metricPromptTemplate: geapTemplate } : {})
+			};
+		}
+		return undefined;
+	}
 
 	$effect(() => {
 		void (async () => {
@@ -53,8 +103,9 @@
 		busy = evaluator.id;
 		try {
 			const storage = await appStorage();
+			const config = configFor(evaluator);
 			await runEvaluator(storage, registry, selectedId, evaluator.id, {
-				...(evaluator.id === 'evals/judge/rubric' ? { config: { rubric } } : {})
+				...(config !== undefined ? { config } : {})
 			});
 			await loadRecords(selectedId);
 		} finally {
@@ -65,7 +116,7 @@
 	const kindWord: Record<Evaluator['kind'], string> = {
 		deterministic: 'deterministic — runs anywhere',
 		model: 'model — asks a provider',
-		hosted: 'hosted — needs a battery; the harness runs it live'
+		hosted: 'hosted — needs a battery and a project; offline without them'
 	};
 </script>
 
@@ -106,6 +157,43 @@
 							{#if evaluator.id === 'evals/judge/rubric'}
 								<textarea rows="3" bind:value={rubric} data-testid="rubric-text" aria-label="Rubric"
 								></textarea>
+							{/if}
+							{#if isHostedGeap(evaluator)}
+								<!-- The evaluation service's project and location (WP51); the battery is the Cloud Armour one. -->
+								<div class="geap-config">
+									<label
+										>Project <input
+											type="text"
+											bind:value={geapProject}
+											placeholder="my-gcp-project"
+											data-testid="geap-eval-project"
+										/></label
+									>
+									<label
+										>Location <input
+											type="text"
+											bind:value={geapLocation}
+											data-testid="geap-eval-location"
+										/></label
+									>
+									{#if evaluator.id === 'geap/eval/rubric'}
+										<textarea
+											rows="2"
+											bind:value={geapTemplate}
+											data-testid="geap-eval-template"
+											aria-label="Metric prompt template"></textarea>
+									{/if}
+									<p class="hint" data-testid="geap-eval-mode-{evaluator.id}" data-live={geapLive}>
+										{#if geapLive}
+											Will run live: the Cloud Armour battery is in and a project is set.
+										{:else if !batteryIn}
+											Will run offline: no Cloud Armour battery in the vault (Settings → Cloud
+											Armour).
+										{:else}
+											Will run offline: set a project to call the evaluation service.
+										{/if}
+									</p>
+								</div>
 							{/if}
 						</td>
 						<td class="hint">{kindWord[evaluator.kind]}</td>

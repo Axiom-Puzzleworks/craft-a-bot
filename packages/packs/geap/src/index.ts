@@ -1,6 +1,7 @@
 import type { PackManifest } from '@craftabot/core';
 import { armorBrickKind } from './armor/brick-kind.js';
 import { modelArmorService } from './armor/service.js';
+import { evalEvaluators } from './eval/evaluator.js';
 
 /**
  * `@craftabot/pack-geap` — the Model Armor client library (Stage A), the
@@ -67,6 +68,31 @@ export {
 	describeArmorFitted
 } from './armor/brick-kind.js';
 
+/** The Gen AI evaluation service as `geap/eval/*` (`39-HOSTED-EVALUATOR.md`, WP51) — the second GEAP integration, on the same battery. */
+export {
+	EVAL_ID_PREFIX,
+	evalConfigSchema,
+	evalEvaluator,
+	evalEvaluators,
+	evalIdFor,
+	evalRequestFor,
+	evaluateWithService,
+	fulfillmentEvaluator,
+	offlineResult,
+	rubricEvaluator,
+	safetyEvaluator
+} from './eval/evaluator.js';
+export type { EvalConfig, EvalConfigInput } from './eval/evaluator.js';
+export { createEvalClient, describeEvalEndpoint } from './eval/client.js';
+export type { EvalClient, EvalClientOptions, EvalClientResult } from './eval/client.js';
+export { EVAL_METRICS, normaliseScore, readEvalResponse } from './eval/reading.js';
+export type { EvalMetric, EvalReading } from './eval/reading.js';
+export { goalText, renderTranscript, transcriptText } from './eval/transcript.js';
+export type { TranscriptLine } from './eval/transcript.js';
+/** The response envelopes the evaluators are proven against — a host's tests answer with them. */
+export { evalFixtures } from './fixtures/eval/index.js';
+export type { EvalFixtureName } from './fixtures/eval/index.js';
+
 export const CRAFTABOT_PACK_GEAP_VERSION = '0.0.1';
 
 const geapPack: PackManifest = {
@@ -75,7 +101,8 @@ const geapPack: PackManifest = {
 	version: CRAFTABOT_PACK_GEAP_VERSION,
 	requiresCore: '>=0.0.1',
 	brickKinds: [armorBrickKind],
-	guardrailServices: [modelArmorService]
+	guardrailServices: [modelArmorService],
+	evaluators: [...evalEvaluators]
 };
 
 export default geapPack;

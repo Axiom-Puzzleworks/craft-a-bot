@@ -100,6 +100,9 @@ Usage:
       the same for every cell.
 
   craftabot evaluate --run <runId> [--evaluators <id,id>] [--rubric <text>] [--out ./runs]
+                     [--project <gcpProject>] [--location europe-west2] [--metric-prompt <template>]
+                     [--egress declared|none]
+      geap/eval/* run live with CRAFTABOT_CREDENTIAL_GEAP set and --project given, offline otherwise.
       Run evaluators over a stored run and write the records beside it —
       every deterministic evaluator (every assertion card) by default. A
       model evaluator such as evals/judge/rubric asks the run's own provider
@@ -332,10 +335,27 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 				const registry = createRegistry(await configFrom(args));
 				const ids = stringFlag(args, 'evaluators');
 				const rubric = stringFlag(args, 'rubric');
+				// The hosted evaluators' config (WP51): a project is not a secret, so it is a flag, not a credential.
+				const project = stringFlag(args, 'project');
+				const location = stringFlag(args, 'location') ?? 'europe-west2';
+				const metricPrompt = stringFlag(args, 'metric-prompt');
+				const configs: Record<string, unknown> = {};
+				if (rubric !== undefined) configs['evals/judge/rubric'] = { rubric };
+				if (project !== undefined) {
+					for (const metric of ['safety', 'fulfillment', 'rubric']) {
+						configs[`geap/eval/${metric}`] = {
+							projectId: project,
+							location,
+							...(metricPrompt !== undefined ? { metricPromptTemplate: metricPrompt } : {})
+						};
+					}
+				}
+				const evaluateEgress = egressFlag(args);
 				const report = await evaluateRun(storage, registry, runId, {
 					credentials: credentialsFromEnv(io.env),
 					...(ids !== undefined ? { evaluatorIds: ids.split(',').map((id) => id.trim()) } : {}),
-					...(rubric !== undefined ? { configs: { 'evals/judge/rubric': { rubric } } } : {})
+					...(Object.keys(configs).length > 0 ? { configs } : {}),
+					...(evaluateEgress !== undefined ? { egress: evaluateEgress } : {})
 				});
 				io.stdout(`evaluated ${runId}
 ${renderEvaluations(report)}`);

@@ -11,6 +11,7 @@ import {
 	type AgentSpecV2,
 	createPackRegistry,
 	type EngineEvent,
+	type Evaluator,
 	type FittedBrick,
 	type LLMProvider,
 	type RunOutcome
@@ -205,7 +206,9 @@ export const campaignSchema = z.object({
 	budget: z
 		.object({
 			maxLiveCells: z.number().int().positive(),
-			maxTokens: z.number().int().positive().optional()
+			maxTokens: z.number().int().positive().optional(),
+			/** Hosted evaluator calls this campaign may make live (WP51, `39-…` §4.3); unset means as many as its cells ask. */
+			maxLiveEvaluations: z.number().int().nonnegative().optional()
 		})
 		.optional()
 });
@@ -275,7 +278,9 @@ export const campaignReportSchema = z.object({
 	budget: z.object({
 		liveCells: z.number().int().nonnegative(),
 		tokensIn: z.number().int().nonnegative(),
-		tokensOut: z.number().int().nonnegative()
+		tokensOut: z.number().int().nonnegative(),
+		/** Hosted evaluator calls actually made live (WP51); defaulted so older reports parse. */
+		liveEvaluations: z.number().int().nonnegative().default(0)
 	})
 });
 export type CampaignReport = z.infer<typeof campaignReportSchema>;
@@ -352,6 +357,14 @@ export interface RunCampaignOptions {
 	egress?: EgressMode;
 	/** Packs registered beside the starter pack for every cell (WP42): a guard that stacks a Guard Brick needs the workshop pack and the service's own. */
 	packs?: PackManifest[];
+	/**
+	 * A hosted evaluator's battery (WP51, `39-…` §4.3): with a credential, a
+	 * `budget` on the campaign and a config on the evaluator, it runs live;
+	 * without any of the three, offline. The app passes none.
+	 */
+	credentials?: (id: string) => string | undefined;
+	/** The `fetch` a live hosted evaluator uses; `globalThis.fetch` when unset. */
+	fetch?: typeof globalThis.fetch;
 }
 
 /** The same stride the matrix uses (`runner.ts`), for the same reason: a cell's ids depend only on its position. */
@@ -403,8 +416,10 @@ export async function runCampaign(
 	guardBudget(campaign, cells);
 
 	const results: CampaignCell[] = [];
+	const tally: SpendTally = { liveEvaluations: 0 };
+	guardLiveEvaluations(campaign, cells.length, options, registry);
 	for (const spec of cells) {
-		const cell = await runCell(spec, campaign, noise, options, registry);
+		const cell = await runCell(spec, campaign, noise, options, registry, tally);
 		results.push(cell);
 		options.onCell?.(cell, results.length, cells.length);
 		if (options.betweenCells) await options.betweenCells();
@@ -431,9 +446,15 @@ export async function runCampaign(
 		budget: {
 			liveCells: results.filter((cell) => cell.tier === 'live').length,
 			tokensIn: results.reduce((total, cell) => total + cell.metrics.tokensIn, 0),
-			tokensOut: results.reduce((total, cell) => total + cell.metrics.tokensOut, 0)
+			tokensOut: results.reduce((total, cell) => total + cell.metrics.tokensOut, 0),
+			liveEvaluations: tally.liveEvaluations
 		}
 	};
+}
+
+/** What the run spends beyond its cells' tokens — counted as it goes, reported at the end. */
+interface SpendTally {
+	liveEvaluations: number;
 }
 
 /** A parsed `partial()` carries `| undefined` values `NoiseRates` does not admit — drop them before defaulting. */
@@ -450,6 +471,45 @@ function noiseFor(overrides: Campaign['noise']): NoiseRates {
  * field, and `maxLiveCells` is enforced against the cell count before the
  * first call — never discovered by the bill.
  */
+/**
+ * Whether a named evaluator would call out from this campaign (WP51, `39-…`
+ * §4.3): hosted, with a battery from the caller, a config of its own, a
+ * `budget` on the campaign, and a network to use. Anything less runs its
+ * offline stand-in — as every non-deterministic evaluator did before.
+ */
+function runsLive(
+	campaign: Campaign,
+	named: Campaign['evaluators'][number],
+	evaluator: Evaluator,
+	options: RunCampaignOptions
+): boolean {
+	if (evaluator.kind !== 'hosted' || !campaign.budget || options.egress === 'none') return false;
+	const credentialId = evaluator.credential?.id;
+	if (credentialId === undefined || options.credentials?.(credentialId) === undefined) return false;
+	return named.config !== undefined;
+}
+
+/** Live evaluations are spend too: `maxLiveEvaluations`, when set, is enforced before the first cell. */
+function guardLiveEvaluations(
+	campaign: Campaign,
+	cellCount: number,
+	options: RunCampaignOptions,
+	registry: PackRegistry
+): void {
+	const cap = campaign.budget?.maxLiveEvaluations;
+	if (cap === undefined) return;
+	const liveEvaluators = campaign.evaluators.filter((named) => {
+		const evaluator = resolveEvaluator(registry, named.id);
+		return evaluator !== undefined && runsLive(campaign, named, evaluator, options);
+	}).length;
+	const wanted = liveEvaluators * cellCount;
+	if (wanted > cap) {
+		throw new Error(
+			`campaign '${campaign.id}' would make ${wanted} live evaluation calls but its budget allows ${cap} (budget.maxLiveEvaluations)`
+		);
+	}
+}
+
 function guardBudget(campaign: Campaign, cells: CampaignCellSpec[]): void {
 	const live = cells.filter((cell) => cell.brain.tier === 'live').length;
 	if (live === 0) return;
@@ -470,7 +530,8 @@ async function runCell(
 	campaign: Campaign,
 	noise: NoiseRates,
 	options: RunCampaignOptions,
-	registry: PackRegistry
+	registry: PackRegistry,
+	tally: SpendTally
 ): Promise<CampaignCell> {
 	const { scenario, build, guard, brain, seed } = cell;
 	const identity = {
@@ -516,7 +577,7 @@ async function runCell(
 			assertions: Object.fromEntries(
 				campaign.assertionCards.map((card) => [card.id, evaluateAssertion(card, run.events).pass])
 			),
-			evaluations: await evaluateCell(campaign, run.events, options, scenario)
+			evaluations: await evaluateCell(campaign, run.events, options, scenario, tally)
 		};
 		options.onTrace?.(scored, { events: run.events, spec });
 		return scored;
@@ -547,7 +608,8 @@ async function evaluateCell(
 	campaign: Campaign,
 	events: readonly EngineEvent[],
 	options: RunCampaignOptions,
-	scenario: CampaignScenario
+	scenario: CampaignScenario,
+	tally: SpendTally
 ): Promise<Record<string, 'pass' | 'fail' | 'inconclusive'>> {
 	if (campaign.evaluators.length === 0) return {};
 	const registry = createPackRegistry();
@@ -564,16 +626,22 @@ async function evaluateCell(
 			verdicts[named.id] = 'inconclusive';
 			continue;
 		}
-		const runner = evaluator.kind === 'deterministic' ? evaluator : evaluator.createOffline?.();
+		// A hosted evaluator runs live only under a budget, with its battery and a config (WP51); the rest as before.
+		const live = runsLive(campaign, named, evaluator, options);
+		const runner =
+			evaluator.kind === 'deterministic' || live ? evaluator : evaluator.createOffline?.();
 		if (!runner) {
 			verdicts[named.id] = 'inconclusive';
 			continue;
 		}
 		try {
+			if (live) tally.liveEvaluations += 1;
 			const result = await runner.evaluate(input, {
 				config: named.config,
-				fetch: () => Promise.reject(new Error('a campaign evaluates offline')),
-				getCredential: () => undefined
+				fetch: live
+					? (options.fetch ?? globalThis.fetch.bind(globalThis))
+					: () => Promise.reject(new Error('a campaign evaluates offline')),
+				getCredential: (id) => (live ? options.credentials?.(id) : undefined)
 			});
 			verdicts[named.id] = result.verdict ?? 'inconclusive';
 		} catch {

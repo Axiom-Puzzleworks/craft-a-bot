@@ -1,5 +1,6 @@
-import type { AgentSpecV2, PackManifest } from '@craftabot/core';
-import { obedient } from '@craftabot/core/testing';
+import type { AgentSpecV2, EngineEvent, PackManifest } from '@craftabot/core';
+import { makeRun, obedient } from '@craftabot/core/testing';
+import trace from './fixtures/trace.geap-armour-offline.v1.json' with { type: 'json' };
 import starterPack from '@craftabot/pack-starter';
 import { describeConformance, type PackConformanceFixture } from '@craftabot/pack-testkit';
 import geapPack from './index.js';
@@ -110,7 +111,27 @@ const fixture: PackConformanceFixture = {
 			})),
 			plantedSecret: 'ya29.planted-secret-token'
 		}
-	}
+	},
+	/** WP51 (`39-…` §4.2): the three hosted evaluators through `checkEvaluator` — offline-present, evidence real, no leak. */
+	evaluators: Object.fromEntries(
+		['safety', 'fulfillment', 'rubric'].map((metric) => [
+			`geap/eval/${metric}`,
+			{
+				inputs: [
+					{
+						run: makeRun({ id: (trace as unknown as EngineEvent[])[0]?.runId ?? '' }),
+						events: trace as unknown as EngineEvent[]
+					}
+				],
+				config: {
+					projectId: 'proj-1',
+					location: 'europe-west2',
+					metricPromptTemplate: 'Rate {transcript} against {goal} from 1 to 5.'
+				},
+				plantedSecret: 'ya29.planted-secret-token'
+			}
+		])
+	)
 };
 
 describeConformance(fixture);

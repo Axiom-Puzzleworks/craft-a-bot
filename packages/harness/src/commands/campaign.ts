@@ -98,6 +98,9 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 		providerFor: (brain) => providerFor(brain, registry, options),
 		egress: options.egress ?? 'declared',
 		packs: runnerPacks,
+		// A hosted evaluator's battery (WP51): from the environment, live only under the file's own `budget`.
+		credentials: (id) => options.credentials.get(id),
+		...(options.fetch ? { fetch: options.fetch } : {}),
 		onCell: (_cell, done, total) => options.onCell?.(done, total),
 		...(options.now ? { now: options.now } : {}),
 		...(options.newId ? { newId: options.newId } : {}),

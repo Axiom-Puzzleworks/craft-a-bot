@@ -1,0 +1,7 @@
+{
+	"fulfillmentResult": {
+		"score": 5,
+		"explanation": "The response fully carries out the instruction: the robot reached Teddy and greeted it.",
+		"confidence": 0.87
+	}
+}
