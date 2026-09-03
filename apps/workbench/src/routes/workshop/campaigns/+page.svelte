@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import {
+		caretRangesFor,
 		brickKindsFor,
 		buildKitFile,
 		localContentReferencedBy,
@@ -81,7 +82,7 @@
 				exportedBy: 'craftabot-workbench/0.0.1',
 				requires: {
 					core: '>=0.0.1',
-					packs: packVersions(),
+					packs: caretRangesFor(packVersions()),
 					brickKinds: brickKindsFor(record.spec, createRegistry())
 				},
 				// The bot's own cards travel with it (WP46), exactly as the shelf's export sends them.

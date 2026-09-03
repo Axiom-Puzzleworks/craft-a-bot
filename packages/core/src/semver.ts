@@ -90,6 +90,22 @@ function comparatorFor(token: string): Comparator | undefined {
 	}
 }
 
+/**
+ * The range a kit file writes for a pack it was built with: `^x.y.z` of the
+ * installed version, so the same pack at a compatible later version still
+ * imports, and a version that cannot be read is written as it is.
+ */
+export function caretRangeFor(version: string): string {
+	return parseVersion(version) ? `^${version.trim().replace(/^v/, '')}` : version;
+}
+
+/** `caretRangeFor` over a `{ packId: version }` record — what `requires.packs` is built from. */
+export function caretRangesFor(versions: Readonly<Record<string, string>>): Record<string, string> {
+	return Object.fromEntries(
+		Object.entries(versions).map(([id, version]) => [id, caretRangeFor(version)])
+	);
+}
+
 /** Whether `version` satisfies `range`; `false` for anything unreadable. */
 export function satisfiesRange(version: string, range: string): boolean {
 	const parsed = parseVersion(version);

@@ -9,6 +9,7 @@
 	import { leafletStore } from '$lib/leaflet/leaflet.svelte.js';
 	import { preferences } from '$lib/state/preferences.svelte.js';
 	import { createRegistry } from '$lib/packs.js';
+	import { OLLAMA_BASE_URL } from '@craftabot/pack-ollama';
 
 	/**
 	 * Settings (03-UI-UX-DESIGN.md §7): the battery compartment, preferences, and
@@ -42,6 +43,8 @@
 	const leaflet = leafletStore();
 
 	const SPEEDS = [0.5, 1, 2, 4];
+	/** The reason the last Ollama address was refused, if it was (WP52). */
+	let endpointProblem = $state<string | undefined>(undefined);
 </script>
 
 <svelte:head><title>Settings — Craft A Bot</title></svelte:head>
@@ -96,6 +99,39 @@
 			</div>
 		</Panel>
 	{/if}
+
+	<!--
+		Where Ollama listens (WP52, `40-DEBTS.md` §4.3): the one endpoint a person
+		may set, and only to this computer — `06-…` §5's "revisit for Ollama later
+		with localhost-only validation", done. Refused before it is stored, with the
+		reason; the pack refuses anything else a second time.
+	-->
+	<Panel title="Local models" accent="var(--cab-ink)">
+		<div class="prefs" data-testid="local-models">
+			<label class="cap">
+				<span>Ollama address</span>
+				<input
+					type="url"
+					data-testid="ollama-endpoint"
+					value={preferences.ollamaEndpoint}
+					onchange={(event) => {
+						const value = (event.currentTarget as HTMLInputElement).value;
+						endpointProblem = preferences.setOllamaEndpoint(value);
+						if (endpointProblem !== undefined)
+							(event.currentTarget as HTMLInputElement).value = preferences.ollamaEndpoint;
+					}}
+				/>
+			</label>
+			{#if endpointProblem}
+				<p class="hint" role="alert" data-testid="ollama-endpoint-refused">{endpointProblem}</p>
+			{:else}
+				<p class="hint" data-testid="ollama-endpoint-note">
+					Only this computer is allowed — localhost or 127.0.0.1. Default
+					<span class="mono">{OLLAMA_BASE_URL}</span>.
+				</p>
+			{/if}
+		</div>
+	</Panel>
 
 	<Panel title="Preferences" accent="var(--cab-blue)">
 		<div class="prefs" data-testid="preferences">

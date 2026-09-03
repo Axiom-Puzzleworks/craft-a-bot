@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { compareVersions, parseVersion, satisfiesRange } from './semver.js';
+import {
+	caretRangeFor,
+	caretRangesFor,
+	compareVersions,
+	parseVersion,
+	satisfiesRange
+} from './semver.js';
 
 describe('parseVersion / compareVersions', () => {
 	it('reads x.y.z with an optional prerelease and build, and orders them', () => {
@@ -62,5 +68,19 @@ describe('satisfiesRange', () => {
 		expect(satisfiesRange('1.0.0-rc.1', '>=1.0.0')).toBe(false);
 		expect(satisfiesRange('1.0.0-rc.1', '>=1.0.0-rc.1')).toBe(true);
 		expect(satisfiesRange('1.0.0', '>=1.0.0-rc.1')).toBe(true);
+	});
+});
+
+describe('caretRangeFor', () => {
+	it('writes ^x.y.z for a version, leaves what it cannot read, and maps a record', () => {
+		expect(caretRangeFor('0.2.0')).toBe('^0.2.0');
+		expect(caretRangeFor('v1.0.0')).toBe('^1.0.0');
+		expect(caretRangeFor('latest')).toBe('latest');
+		expect(caretRangesFor({ starter: '0.2.0', geap: '0.0.1' })).toEqual({
+			starter: '^0.2.0',
+			geap: '^0.0.1'
+		});
+		expect(satisfiesRange('0.2.7', caretRangeFor('0.2.0'))).toBe(true);
+		expect(satisfiesRange('0.3.0', caretRangeFor('0.2.0'))).toBe(false);
 	});
 });

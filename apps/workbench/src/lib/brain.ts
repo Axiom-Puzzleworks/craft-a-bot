@@ -2,6 +2,7 @@ import type { CartridgeDefinition, LLMProvider, PackRegistry } from '@craftabot/
 import type { BotCapabilities } from './bot-capabilities.js';
 import { createDemoBrain } from './demo-brain.js';
 import { createBrowserKeyVault } from './state/keys.js';
+import { preferences } from './state/preferences.svelte.js';
 
 /**
  * Choosing a brain for a run.
@@ -45,7 +46,12 @@ export function chooseBrain(
 
 	if (factory) {
 		if (factory.keyRequirement === 'none') {
-			return { ok: true, provider: factory.create({ apiKey: '' }), keyless: true };
+			// A local provider is told where to listen (WP52, `40-DEBTS.md` §4.3); the factory holds it to loopback again.
+			return {
+				ok: true,
+				provider: factory.create({ apiKey: '', endpoint: preferences.ollamaEndpoint }),
+				keyless: true
+			};
 		}
 		const apiKey = createBrowserKeyVault().get(factory.id);
 		if (apiKey === undefined) return { ok: false, reason: 'no-key', providerId: factory.id };

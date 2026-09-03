@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { OLLAMA_BASE_URL, isLoopbackEndpoint } from '@craftabot/pack-ollama';
 import type { WebStorageLike } from './keys.js';
 
 /**
@@ -50,6 +51,16 @@ export const settingsSchema = z.object({
 	 * honours them because they are a preference, not a screen's state.
 	 */
 	breakpoints: z.array(z.enum(['guardrail-trip', 'tool-call', 'action-failure'])).default([]),
+	/**
+	 * Where Ollama listens (WP52, `40-DEBTS.md` §4.3; `06-…` §5's "revisit
+	 * for Ollama later with localhost-only validation"). Loopback only —
+	 * `localhost` or `127.0.0.1` — so a stored value that points anywhere
+	 * else falls back to the default like any other unreadable preference.
+	 */
+	ollamaEndpoint: z
+		.string()
+		.refine((value) => isLoopbackEndpoint(value), { message: 'Only this computer is allowed.' })
+		.default(OLLAMA_BASE_URL),
 	/**
 	 * Highest instruction-leaflet chapter completed, 0 = not started.
 	 *

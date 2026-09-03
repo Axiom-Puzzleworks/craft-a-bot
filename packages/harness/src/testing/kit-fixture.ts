@@ -1,4 +1,4 @@
-import { brickKindsFor, buildKitFile, type KitFile } from '@craftabot/core';
+import { caretRangesFor, brickKindsFor, buildKitFile, type KitFile } from '@craftabot/core';
 import { buildSpec } from '@craftabot/pack-starter/testing';
 import { createRegistry, defaultConfig, packVersions } from '../config.js';
 
@@ -24,7 +24,7 @@ export function snackbotKit(goalCardId = 'starter/say-hello'): KitFile {
 		exportedAt: '2026-09-02T09:00:00.000Z',
 		requires: {
 			core: '>=0.0.1',
-			packs: packVersions(config),
+			packs: caretRangesFor(packVersions(config)),
 			brickKinds: brickKindsFor(spec, registry)
 		}
 	});

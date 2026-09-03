@@ -1,3 +1,4 @@
+import { describeEndpointProblem } from '@craftabot/pack-ollama';
 import { createSettingsStore, type BreakpointKind, type SettingsStore } from './settings.js';
 import type { WebStorageLike } from './keys.js';
 import { createSoundPlayer, type SoundCue, type SoundPlayer } from '../sound.js';
@@ -40,6 +41,10 @@ export interface Preferences {
 	/** Which events pause a live play-mode run (WP49, `37-…` §4.3). */
 	readonly breakpoints: readonly BreakpointKind[];
 	setBreakpoints(value: readonly BreakpointKind[]): void;
+	/** Where Ollama listens (WP52) — loopback only; the schema refuses anything else. */
+	readonly ollamaEndpoint: string;
+	/** Returns the problem when the value is refused, `undefined` when it was stored. */
+	setOllamaEndpoint(value: string): string | undefined;
 	setReducedMotion(value: boolean): void;
 	setTickSpeed(value: number): void;
 	setSound(value: boolean): void;
@@ -64,7 +69,8 @@ export function createPreferences(store?: SettingsStore, player?: SoundPlayer): 
 		readAloud: initial.readAloud,
 		workshop: initial.workshop,
 		runCap: initial.runCap,
-		breakpoints: initial.breakpoints
+		breakpoints: initial.breakpoints,
+		ollamaEndpoint: initial.ollamaEndpoint
 	});
 
 	return {
@@ -122,6 +128,17 @@ export function createPreferences(store?: SettingsStore, player?: SoundPlayer): 
 			const next = settings.update({ breakpoints: [...value] });
 			state.breakpoints = next.breakpoints;
 		},
+		get ollamaEndpoint() {
+			return state.ollamaEndpoint;
+		},
+		setOllamaEndpoint(value) {
+			// Refused before it is stored, with the reason — never written and later ignored.
+			const problem = describeEndpointProblem(value);
+			if (problem !== undefined) return problem;
+			const next = settings.update({ ollamaEndpoint: value.trim() });
+			state.ollamaEndpoint = next.ollamaEndpoint;
+			return undefined;
+		},
 		cue(name) {
 			sound.play(name);
 		}
@@ -155,6 +172,10 @@ export const preferences: Preferences = {
 		return (shared ??= createPreferences()).breakpoints;
 	},
 	setBreakpoints: (value) => (shared ??= createPreferences()).setBreakpoints(value),
+	get ollamaEndpoint() {
+		return (shared ??= createPreferences()).ollamaEndpoint;
+	},
+	setOllamaEndpoint: (value) => (shared ??= createPreferences()).setOllamaEndpoint(value),
 	setReducedMotion: (value) => (shared ??= createPreferences()).setReducedMotion(value),
 	setTickSpeed: (value) => (shared ??= createPreferences()).setTickSpeed(value),
 	setSound: (value) => (shared ??= createPreferences()).setSound(value),

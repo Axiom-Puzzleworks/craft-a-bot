@@ -1,4 +1,6 @@
 import {
+	caretRangesFor,
+	CRAFTABOT_CORE_VERSION,
 	brickKindsFor,
 	buildAgentCard,
 	buildKitFile,
@@ -207,7 +209,8 @@ export function createAgentsStore(deps: AgentsStoreDeps = {}): AgentsStore {
 				exportedBy: 'craftabot-workbench/0.0.1',
 				requires: {
 					core: '>=0.0.1',
-					packs: packVersions(),
+					// Ranges, not pins (WP52): the same pack at a compatible later version still imports.
+					packs: caretRangesFor(packVersions()),
 					// Which pack each brick came from, so a reader missing one is told
 					// the brick's name and not merely "you need an expansion".
 					brickKinds: brickKindsFor(record.spec, createRegistry())
@@ -241,6 +244,9 @@ export function createAgentsStore(deps: AgentsStoreDeps = {}): AgentsStore {
 
 			const result = importKitFile(parsed, {
 				installedPacks: Object.keys(packVersions()),
+				// Ranges evaluated, not only presence (WP52, D13).
+				installedPackVersions: packVersions(),
+				coreVersion: CRAFTABOT_CORE_VERSION,
 				installedBrickKinds: installedBrickKinds(),
 				existingAgentIds: state.agents.map((agent) => agent.id),
 				newId,

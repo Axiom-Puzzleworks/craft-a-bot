@@ -2,6 +2,7 @@ import type { EgressMode } from '@craftabot/core';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import {
+	CRAFTABOT_CORE_VERSION,
 	brainSlotSchema,
 	buildTraceFile,
 	createSession,
@@ -236,6 +237,9 @@ async function loadSpec(options: RunKitOptions, registry: PackRegistry): Promise
 	}
 	const imported = importKitFile(json, {
 		installedPacks: options.config.packs.map((pack) => pack.id),
+		// Ranges evaluated, not only presence (WP52, D13).
+		installedPackVersions: packVersions(options.config),
+		coreVersion: CRAFTABOT_CORE_VERSION,
 		installedBrickKinds: registry.listBrickKinds().map((kind) => kind.id)
 	});
 	if (!imported.ok) throw new Error(imported.problem.message);
