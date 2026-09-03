@@ -640,6 +640,8 @@ The world is untouched. Hosted verdicts and evaluations are recorded, so replay 
 
 > **Amended 2026-09-03 (WP50 — `@craftabot/governance` 1.0).** §6.15's first sentence landed through `38-GOVERNANCE-1-0.md`: the README, TSDoc on every export with an audit test, `examples/plain-node-agent` as a workspace with its own test, `docs/governance-mapping.md`, `1.0.0-rc.1` with `private: false` and the `npm pack` dry-run checked in CI. Two decisions recorded: `@craftabot/core` stays private, so a real publish waits on it; and `zod` is now a declared dependency, since a tarball cannot rely on hoisting. `27-…` §8 item 19 carries the gate.
 
+> **Amended 2026-09-03 (WP51 — the hosted evaluator).** §6.2's third evaluator landed through `39-HOSTED-EVALUATOR.md`: `geap/eval/safety`, `geap/eval/fulfillment` and `geap/eval/rubric` over one `evaluateInstances` client, kind `hosted` on the `geap` battery, fixtures and an offline stand-in whose record says `offline`. Three divergences: `hostMatches` grew a `*-suffix` label form for the `{location}-aiplatform` hosts; a campaign's live evaluations are budgeted by their own `maxLiveEvaluations` and counted as `liveEvaluations`, since a hosted evaluator over a scripted cell is spend with no live brain; the project id travels as config, not as a credential. The live checkpoint is pending for want of a fresh token (`39-…` stage A's note says how). `27-…` §8 item 20 carries the gate.
+
 ---
 
 ## 13. Risks

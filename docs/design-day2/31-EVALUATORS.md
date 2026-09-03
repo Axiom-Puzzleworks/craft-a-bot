@@ -124,6 +124,7 @@ export interface Evaluator {
 - **D-a — `EvaluatorDeps.model`**: a `model` evaluator needs the wire model as well as the provider; §6.2's deps had only the provider.
 - **D-b — `scenario` is `unknown`** until WP44 defines `ScenarioDefinition`.
 - **D-c — `geap/eval/*` not shipped** (§5).
+  > **Amended 2026-09-03 (WP51):** shipped — `39-HOSTED-EVALUATOR.md`; three metrics over the Gen AI evaluation service, kind `hosted`, on the `geap` battery, with the live checkpoint pending for want of a fresh token.
 - **D-d — the in-run judge runs deterministic evaluators live and the rest offline** (§4.3).
 
 Stage notes are appended below.

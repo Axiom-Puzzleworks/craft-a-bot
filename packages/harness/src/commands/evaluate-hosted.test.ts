@@ -47,7 +47,7 @@ async function storedRun() {
 const TOKEN = 'ya29.harness-test-token';
 const config = { projectId: 'proj-1', location: 'europe-west2' };
 
-function answering(seen: { url?: string; authorization?: string; calls: number }) {
+function answering(seen: { url?: string; authorization?: string | undefined; calls: number }) {
 	return (async (url: string | URL | Request, init?: RequestInit) => {
 		seen.calls += 1;
 		seen.url = String(url);
@@ -62,7 +62,11 @@ function answering(seen: { url?: string; authorization?: string; calls: number }
 describe('craftabot evaluate with geap/eval/*', () => {
 	it('scores a stored run live with the battery and a project, recording the call', async () => {
 		const { storage, runId } = await storedRun();
-		const seen = { calls: 0 } as { url?: string; authorization?: string; calls: number };
+		const seen = { calls: 0 } as {
+			url?: string;
+			authorization?: string | undefined;
+			calls: number;
+		};
 		const report = await evaluateRun(storage, createRegistry(defaultConfig()), runId, {
 			credentials: credentialsFromEnv({ CRAFTABOT_CREDENTIAL_GEAP: TOKEN }),
 			evaluatorIds: ['geap/eval/safety'],

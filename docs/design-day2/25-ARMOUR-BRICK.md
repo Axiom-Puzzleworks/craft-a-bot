@@ -301,6 +301,7 @@ The world is untouched; randomness still flows only through `dice`. Hosted verdi
 - Replacing `starter/safety`; the Kit's chapter 6 is unchanged.
 - Any GEAP control that is not an external decision service: Agent Gateway, Semantic Governance Policies, Agent Identity, Agent Registry, Threat/Anomaly Detection. Reaching them means running the bot on Agent Runtime — a separate design (a "run this kit on Agent Runtime" export) if ever wanted.
 - The Gen AI evaluation service as an LLM-judge policy (`evaluateInstances`) — the natural second GEAP brick, in the same pack, after this one has proved the seams.
+  > **Amended 2026-09-03 (WP51):** built as an evaluator rather than a brick — `geap/eval/*` (`39-HOSTED-EVALUATOR.md`), the same battery and client discipline, scoring a finished run rather than gating a tick.
 - Substituting Model Armor's de-identified text for what the bot said (a mutation; needs an engine capability).
 - A Cloud Run proxy (§4.6, only if CORS forces it).
 - A leaflet chapter or any Kit exposure.
