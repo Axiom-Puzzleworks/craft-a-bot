@@ -131,7 +131,13 @@ export const packManifestMetadataSchema = z.object({
 	id: z.string().min(1),
 	name: z.string().min(1),
 	version: z.string().min(1),
-	requiresCore: z.string().min(1)
+	requiresCore: z.string().min(1),
+	/**
+	 * Packs this one's content depends on, by id and semver range (WP52,
+	 * `40-DEBTS.md` §4.5) — a persona cartridge that names another pack's
+	 * provider says so here, and the registry refuses the pack without them.
+	 */
+	requiresPacks: z.record(z.string().min(1), z.string().min(1)).optional()
 });
 export type PackManifestMetadata = z.infer<typeof packManifestMetadataSchema>;
 

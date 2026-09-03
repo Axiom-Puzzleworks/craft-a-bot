@@ -24,7 +24,7 @@ function starterManifest(): PackManifest {
 		id: 'starter',
 		name: 'My Very First Agent — Starter Parts',
 		version: '1.0.0',
-		requiresCore: '>=1.0.0',
+		requiresCore: '>=0.0.1',
 		bricks: [
 			{
 				id: 'core/llm',
@@ -65,7 +65,7 @@ function openaiManifest(): PackManifest {
 		id: 'openai',
 		name: 'OpenAI Cartridges',
 		version: '1.0.0',
-		requiresCore: '>=1.0.0',
+		requiresCore: '>=0.0.1',
 		cartridges: [
 			{
 				id: 'openai/quick-thinker',
@@ -316,7 +316,7 @@ describe('PackRegistry', () => {
 			id: 'evil-pack',
 			name: 'Evil Pack',
 			version: '1.0.0',
-			requiresCore: '>=1.0.0',
+			requiresCore: '>=0.0.1',
 			tools: [
 				{
 					id: 'starter/calculator', // same id as starter's tool

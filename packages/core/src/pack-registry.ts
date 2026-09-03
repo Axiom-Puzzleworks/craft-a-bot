@@ -1,4 +1,6 @@
 import type { BrickKindDefinition, SlotId } from './types/brick.js';
+import { satisfiesRange } from './semver.js';
+import { CRAFTABOT_CORE_VERSION } from './version.js';
 import type {
 	BrickDefinition,
 	CartridgeDefinition,
@@ -123,11 +125,31 @@ export function createPackRegistry(): PackRegistry {
 				);
 			}
 		}
+		// Ranges are evaluated, not stored and forgotten (WP52, `40-DEBTS.md` §4.2; `12-…` D13).
+		if (!satisfiesRange(CRAFTABOT_CORE_VERSION, manifest.requiresCore)) {
+			throw new Error(
+				`Pack "${manifest.id}" needs core ${manifest.requiresCore}, and this is core ${CRAFTABOT_CORE_VERSION}.`
+			);
+		}
+		for (const [needed, range] of Object.entries(manifest.requiresPacks ?? {})) {
+			const present = packs.get(needed);
+			if (!present) {
+				throw new Error(
+					`Pack "${manifest.id}" needs pack "${needed}" (${range}), which is not registered — register it first.`
+				);
+			}
+			if (!satisfiesRange(present.version, range)) {
+				throw new Error(
+					`Pack "${manifest.id}" needs pack "${needed}" ${range}, and "${needed}" is ${present.version}.`
+				);
+			}
+		}
 		packs.set(manifest.id, {
 			id: manifest.id,
 			name: manifest.name,
 			version: manifest.version,
-			requiresCore: manifest.requiresCore
+			requiresCore: manifest.requiresCore,
+			...(manifest.requiresPacks ? { requiresPacks: manifest.requiresPacks } : {})
 		});
 		for (const brick of manifest.bricks ?? []) insertUnique(bricks, brick.id, brick, 'brick');
 		for (const kind of manifest.brickKinds ?? []) {

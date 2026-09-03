@@ -57,7 +57,7 @@ function registryOf(...kinds: BrickKindDefinition[]): PackRegistry {
 		id: 'test',
 		name: 'Test',
 		version: '1.0.0',
-		requiresCore: '>=1.0.0',
+		requiresCore: '>=0.0.1',
 		brickKinds: kinds
 	});
 	return registry;

@@ -38,7 +38,7 @@ function buildRegistry(): PackRegistry {
 		id: 'starter',
 		name: 'Starter',
 		version: '1.0.0',
-		requiresCore: '>=1.0.0',
+		requiresCore: '>=0.0.1',
 		tools: [
 			{
 				id: 'starter/calculator',
@@ -97,7 +97,7 @@ function buildRegistry(): PackRegistry {
 		id: 'openai',
 		name: 'OpenAI',
 		version: '1.0.0',
-		requiresCore: '>=1.0.0',
+		requiresCore: '>=0.0.1',
 		cartridges: [
 			{
 				id: 'openai/quick-thinker',
@@ -255,7 +255,7 @@ describe('validateSpec', () => {
 			id: 'expansion',
 			name: 'Expansion',
 			version: '1.0.0',
-			requiresCore: '>=1.0.0',
+			requiresCore: '>=0.0.1',
 			brickKinds: [
 				{
 					id: 'expansion/warden',
@@ -310,7 +310,7 @@ describe('validateSpec', () => {
 			id: 'expansion',
 			name: 'Expansion',
 			version: '1.0.0',
-			requiresCore: '>=1.0.0',
+			requiresCore: '>=0.0.1',
 			brickKinds: [
 				{
 					id: 'expansion/curious',
@@ -363,7 +363,7 @@ describe('validateSpec', () => {
 				id: 'expansion9',
 				name: 'Expansion 9',
 				version: '1.0.0',
-				requiresCore: '>=1.0.0',
+				requiresCore: '>=0.0.1',
 				guardrailServices: [service],
 				assertionCards: [
 					{
@@ -485,7 +485,7 @@ describe('validateSpec', () => {
 				id: 'expansion8',
 				name: 'Expansion 8',
 				version: '1.0.0',
-				requiresCore: '>=1.0.0',
+				requiresCore: '>=0.0.1',
 				brickKinds: [kind]
 			});
 			const spec = migrated(validSpec({ bricks: { ...validSpec().bricks, sense: undefined } }));
@@ -537,7 +537,7 @@ describe('validateSpec', () => {
 				id: 'expansion9',
 				name: 'Expansion 9',
 				version: '1.0.0',
-				requiresCore: '>=1.0.0',
+				requiresCore: '>=0.0.1',
 				brickKinds: [
 					{
 						id: 'expansion9/watches',
@@ -586,7 +586,7 @@ describe('validateSpec', () => {
 			id: 'expansion2',
 			name: 'Expansion 2',
 			version: '1.0.0',
-			requiresCore: '>=1.0.0',
+			requiresCore: '>=0.0.1',
 			brickKinds: [
 				{
 					id: 'expansion2/watches',
@@ -621,7 +621,7 @@ describe('validateSpec', () => {
 			id: 'expansion3',
 			name: 'Expansion 3',
 			version: '1.0.0',
-			requiresCore: '>=1.0.0',
+			requiresCore: '>=0.0.1',
 			brickKinds: [
 				{
 					id: 'expansion3/watches',

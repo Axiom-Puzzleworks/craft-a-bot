@@ -15,6 +15,8 @@ export const personasPack: PackManifest = {
 	name: 'LLM Multi-Pack — Persona Cartridges',
 	version: '1.0.0',
 	requiresCore: '>=0.0.1',
+	/** Every persona is an OpenAI-provider cartridge; said in the manifest, not only in the catalogue (WP52). */
+	requiresPacks: { openai: '>=1.0.0' },
 	cartridges: personaCartridges
 };
 

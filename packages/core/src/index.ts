@@ -472,3 +472,7 @@ export {
 	verifyBundleDigest,
 	type BuildTraceBundleOptions
 } from './persistence/bundle.js';
+
+/** Semver ranges, evaluated (WP52, `40-DEBTS.md` §4.2; `12-…` D13). */
+export { compareVersions, parseVersion, satisfiesRange, type Version } from './semver.js';
+export { CRAFTABOT_CORE_VERSION } from './version.js';

@@ -1,4 +1,5 @@
 import { isLocalId, type ContentRecord } from '../schemas/content.js';
+import { satisfiesRange } from '../semver.js';
 import type { PackRegistry } from '../pack-registry.js';
 import { toSpecV2, type AgentSpecV2, type AnyAgentSpec } from '../schemas/agent-spec-v2.js';
 import {
@@ -76,11 +77,27 @@ export type ImportProblem =
 	| { kind: 'missing-local-content'; message: string; missing: string[] }
 	| { kind: 'missing-packs'; message: string; missing: string[] }
 	/** The pack is installed, but at a version without the brick this bot uses. */
-	| { kind: 'missing-bricks'; message: string; missing: string[]; packs: string[] };
+	| { kind: 'missing-bricks'; message: string; missing: string[]; packs: string[] }
+	/** A named pack (or core) is installed at a version outside the range the kit asks for (WP52, D13). */
+	| { kind: 'version-mismatch'; message: string; mismatches: VersionMismatch[] };
+
+export interface VersionMismatch {
+	/** `'core'` or a pack id. */
+	id: string;
+	required: string;
+	installed: string;
+}
 
 export interface ImportKitFileOptions {
 	/** Pack ids currently registered, for the `requires` check. */
 	installedPacks: readonly string[];
+	/**
+	 * Versions by pack id, and the core version, for the range check (WP52,
+	 * `40-DEBTS.md` §4.2). Optional like `installedBrickKinds`: omitted, the
+	 * ranges are not evaluated rather than failed.
+	 */
+	installedPackVersions?: Readonly<Record<string, string>>;
+	coreVersion?: string;
 	/**
 	 * Brick kind ids currently registered.
 	 *
@@ -174,6 +191,32 @@ export function importKitFile(
 				missing
 			}
 		};
+	}
+
+	if (options.installedPackVersions !== undefined || options.coreVersion !== undefined) {
+		const mismatches: VersionMismatch[] = [];
+		if (
+			options.coreVersion !== undefined &&
+			!satisfiesRange(options.coreVersion, kit.requires.core)
+		) {
+			mismatches.push({ id: 'core', required: kit.requires.core, installed: options.coreVersion });
+		}
+		for (const [packId, range] of Object.entries(kit.requires.packs)) {
+			const installed = options.installedPackVersions?.[packId];
+			if (installed !== undefined && !satisfiesRange(installed, range)) {
+				mismatches.push({ id: packId, required: range, installed });
+			}
+		}
+		if (mismatches.length > 0) {
+			return {
+				ok: false,
+				problem: {
+					kind: 'version-mismatch',
+					message: `This bot needs ${mismatches.map((m) => `${m.id} ${m.required} (you have ${m.installed})`).join(', ')} — update the set, or the bot.`,
+					mismatches
+				}
+			};
+		}
 	}
 
 	if (options.installedBrickKinds !== undefined) {

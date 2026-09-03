@@ -54,7 +54,7 @@ vi.mock('$lib/packs.js', async () => {
 				id: 'expansion',
 				name: 'Expansion',
 				version: '1.0.0',
-				requiresCore: '>=1.0.0',
+				requiresCore: '>=0.0.1',
 				brickKinds: [monitorKind, hostedKind]
 			});
 			return registry;

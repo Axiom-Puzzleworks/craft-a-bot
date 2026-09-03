@@ -1,5 +1,6 @@
 import type { EgressDeclaration, LLMProvider, PackManifest } from '@craftabot/core';
 import { OLLAMA_PROVIDER_ID, ollamaCartridges } from './catalogue.js';
+import { isLoopbackEndpoint } from './endpoint.js';
 import { createOllamaProvider } from './provider.js';
 
 /**
@@ -35,8 +36,15 @@ export const ollamaPack: PackManifest = {
 			name: 'Ollama',
 			keyRequirement: 'none',
 			egress: OLLAMA_EGRESS,
-			create: ({ fetch }) =>
-				withEgress(createOllamaProvider({ ...(fetch ? { fetch } : {}) }), OLLAMA_EGRESS)
+			// A host's endpoint is honoured only when it is loopback (WP52, `40-DEBTS.md` §4.3); anything else is the default.
+			create: ({ fetch, endpoint }) =>
+				withEgress(
+					createOllamaProvider({
+						...(fetch ? { fetch } : {}),
+						...(endpoint !== undefined && isLoopbackEndpoint(endpoint) ? { baseUrl: endpoint } : {})
+					}),
+					OLLAMA_EGRESS
+				)
 		}
 	]
 };
@@ -54,3 +62,4 @@ export {
 } from './errors.js';
 export { DONE, createSseParser, type SseFrame, type SseParser } from './sse.js';
 export { buildRequestBody, createStreamAccumulator, streamChunkSchema } from './wire.js';
+export { isLoopbackEndpoint, describeEndpointProblem } from './endpoint.js';

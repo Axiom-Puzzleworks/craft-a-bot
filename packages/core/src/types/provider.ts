@@ -56,7 +56,12 @@ export interface ProviderFactory {
 	/** The hosts every provider this factory builds will call (`26-…` §6.6, WP41); the built provider carries the same list. */
 	egress?: EgressDeclaration[];
 	/** `apiKey` is `''` for a keyless provider — still called, so local providers (Ollama) build the same way as any other. */
-	create(options: { apiKey: string; fetch?: typeof globalThis.fetch }): LLMProvider;
+	create(options: {
+		apiKey: string;
+		fetch?: typeof globalThis.fetch;
+		/** A host's endpoint for a local provider (WP52, `40-DEBTS.md` §4.3); every other factory ignores it. */
+		endpoint?: string;
+	}): LLMProvider;
 }
 
 export type ChatRole = ChatMessage['role'];

@@ -103,7 +103,7 @@ describe('brickKindsFor', () => {
 			id: 'starter',
 			name: 'Starter',
 			version: '1.0.0',
-			requiresCore: '>=1.0.0',
+			requiresCore: '>=0.0.1',
 			brickKinds: kindIds.map((id) => ({
 				id,
 				slot: 'brain' as const,
