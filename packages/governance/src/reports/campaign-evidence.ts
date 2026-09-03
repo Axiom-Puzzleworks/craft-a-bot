@@ -35,6 +35,7 @@ export interface CampaignReportLike {
 	}>;
 }
 
+/** What one campaign report says about one build that was this bot. */
 export interface CampaignEvidence {
 	reportId: string;
 	title: string;

@@ -118,6 +118,7 @@ export function telemetrySeries(
 	return series;
 }
 
+/** `driftIn`'s knobs: the baseline window, the minimum runs, and the two thresholds. */
 export interface DriftOptions {
 	/** How many earlier non-empty days make the baseline. Default 3. */
 	window?: number;
@@ -129,6 +130,7 @@ export interface DriftOptions {
 	loopThreshold?: number;
 }
 
+/** The thresholds `driftIn` uses unless told otherwise. */
 export const DRIFT_DEFAULTS: Required<DriftOptions> = {
 	window: 3,
 	minRuns: 3,
@@ -136,6 +138,7 @@ export const DRIFT_DEFAULTS: Required<DriftOptions> = {
 	loopThreshold: 0.3
 };
 
+/** A day whose trip mix or loop rate moved against the days before it. */
 export interface DriftFlag {
 	day: string;
 	kind: 'trip-mix' | 'loop-rate';

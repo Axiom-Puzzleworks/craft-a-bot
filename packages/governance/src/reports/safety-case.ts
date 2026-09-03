@@ -97,6 +97,7 @@ export interface SafetyCase {
 	campaigns: CampaignEvidence[];
 }
 
+/** One evaluator's verdicts over this bot's runs, counted as stored. */
 export interface EvaluationEvidence {
 	evaluatorId: string;
 	pass: number;
@@ -154,6 +155,7 @@ function evaluationEvidenceFor(
 		);
 }
 
+/** The worksheet from summary rows (WP36 stage C); the evidence sections (WP49) come from the two optional trailing arguments. */
 export function safetyCaseFromSummaries(
 	agent: { id: string; name: string; goalCardId: string },
 	capabilities: BotCapabilities,

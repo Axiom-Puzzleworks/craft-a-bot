@@ -10,7 +10,8 @@
 	"workspaces": [
 		"apps/*",
 		"packages/*",
-		"packages/packs/*"
+		"packages/packs/*",
+		"examples/*"
 	],
 	"scripts": {
 		"dev": "turbo run dev",
@@ -27,7 +28,9 @@
 		"smoke:geap": "npm run smoke --workspace=@craftabot/pack-geap",
 		"smoke:harness": "npm run build --workspace=packages/harness && node --env-file-if-exists=.env packages/harness/dist/main.js run --kit packages/harness/fixtures/snackbot.craftabot.json --provider openai --max-ticks 6 --out ./runs",
 		"evals": "npm run evals --workspace=packages/evals --",
-		"craftabot": "node packages/harness/dist/main.js"
+		"craftabot": "node packages/harness/dist/main.js",
+		"example:governance": "node examples/plain-node-agent/dist/main.js",
+		"check:governance-pack": "node scripts/check-governance-pack.mjs"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",

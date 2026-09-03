@@ -21,8 +21,10 @@ import { summariesOf } from './summary.js';
  */
 
 export type IncidentFinding = RunSummaryFinding;
+/** The kinds of finding an incident carries. */
 export type IncidentKind = IncidentFinding['kind'];
 
+/** A run that went wrong, with the findings that say how. */
 export interface Incident {
 	runId: string;
 	agentId: string;

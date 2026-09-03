@@ -26,6 +26,7 @@ export interface SafetyTally {
 	saves: number;
 }
 
+/** The ticker the Kit and the Workshop both show: how many times a rule was consulted, and how many times it said no. */
 export function safetyTally(events: readonly EngineEvent[]): SafetyTally {
 	let checks = 0;
 	let saves = 0;

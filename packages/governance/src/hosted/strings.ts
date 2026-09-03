@@ -16,6 +16,7 @@ export interface MatchedFinding {
 	vendorConfidence?: string;
 }
 
+/** Every reason and note the shell writes, so a host can reword them. */
 export interface HostedStrings {
 	nothingToCheck: string;
 	allClear: string;
@@ -50,6 +51,7 @@ const TRANSPORT_REASON: Record<ExternalOutcomeKind, string> = {
 	unavailable: 'the guard could not check — it could not be reached'
 };
 
+/** The shell's own wording. */
 export const defaultHostedStrings: HostedStrings = {
 	nothingToCheck: 'nothing to check',
 	allClear: 'guard ran — all clear',
@@ -66,6 +68,7 @@ export const defaultHostedStrings: HostedStrings = {
 		)}`
 };
 
+/** `a`; `a and b`; `a, b and c`. */
 export function joinWithAnd(parts: readonly string[]): string {
 	if (parts.length === 0) return '';
 	if (parts.length === 1) return String(parts[0]);

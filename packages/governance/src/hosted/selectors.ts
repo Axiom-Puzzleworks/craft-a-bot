@@ -22,17 +22,21 @@ export interface Screen {
 	context?: string;
 }
 
+/** Picks what to screen from a `GuardrailContext`; `undefined` skips the screen for that call. */
 export type TextSelector = (ctx: GuardrailContext) => Screen | undefined;
 
+/** The current observation as text, when the tick has one. */
 export function observationText(ctx: GuardrailContext): string | undefined {
 	return ctx.observation?.text ?? findLast(ctx.history, 'sense')?.payload.observation.text;
 }
 
+/** `pre-think`: the observation. */
 export const observationSelector: TextSelector = (ctx) => {
 	const text = observationText(ctx);
 	return text === undefined ? undefined : { text };
 };
 
+/** `pre-act`: the proposed call, rendered, with the observation as context. */
 export const decisionSelector: TextSelector = (ctx) => {
 	if (!ctx.proposed) return undefined;
 	const thought = ctx.response?.text ?? findLast(ctx.history, 'decision')?.payload.thought;
@@ -42,6 +46,7 @@ export const decisionSelector: TextSelector = (ctx) => {
 	return context !== undefined ? { text, context } : { text };
 };
 
+/** `post-act`: the tool result or the action's outcome. */
 export const resultSelector: TextSelector = (ctx) => {
 	for (const event of ctx.history.slice().reverse()) {
 		if (event.type === 'action.performed') return { text: event.payload.result.narration };
@@ -50,6 +55,7 @@ export const resultSelector: TextSelector = (ctx) => {
 	return undefined;
 };
 
+/** The shell's default selector for each hook. */
 export const defaultSelectors: Record<GuardrailHook, TextSelector> = {
 	'pre-think': observationSelector,
 	'pre-act': decisionSelector,
@@ -80,6 +86,7 @@ export function renderCall(name: string, args: unknown): string {
 	return `${name}(${JSON.stringify(args)})`;
 }
 
+/** A tool result as screenable text — a string as it is, anything else as JSON. */
 export function stringifyToolResult(result: unknown): string {
 	if (typeof result === 'string') return result;
 	try {

@@ -99,6 +99,7 @@ export {
 	type CompletedCall
 } from './evaluators.js';
 
-export const CRAFTABOT_GOVERNANCE_VERSION = '0.0.1';
+/** The package's own version, as `package.json` says it — a test keeps the two in step. */
+export const CRAFTABOT_GOVERNANCE_VERSION = '1.0.0-rc.1';
 /** The PDP input document (`33-POLICY-V2-PDP.md` §4.3, WP45). */
 export { PDP_INPUT_VERSION, pdpInputSchema, pdpRequestFor, type PdpInput } from './pdp.js';

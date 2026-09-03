@@ -50,6 +50,7 @@ export const NO_REPETITION_ID = 'safety/no-repetition';
 /** How far back the rule looks. Ten decisions is a third of the default budget. */
 const WINDOW = 10;
 
+/** `isProgress` names the calls that count as progress and so never trip the loop-breaker (WP45). */
 export interface NoRepetitionOptions {
 	/**
 	 * Whether a successful call of this action is progress (WP45, `33-…`
@@ -102,6 +103,7 @@ function recentCalls(
 	return calls.reverse();
 }
 
+/** The loop-breaker: stops the run when the same non-progress call is proposed `limit` times running. */
 export function createNoRepetitionGuardrail(
 	limit: number,
 	options: NoRepetitionOptions = {}

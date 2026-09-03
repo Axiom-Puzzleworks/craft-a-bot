@@ -12,6 +12,7 @@ import { z } from 'zod';
 
 export const PDP_INPUT_VERSION = 1;
 
+/** The policy decision point's input document (`33-…` §4.3): agent identity, the proposed call, usage, the hook and tick, and the world's predicates. */
 export const pdpInputSchema = z.object({
 	version: z.literal(PDP_INPUT_VERSION),
 	hook: z.enum(['pre-think', 'pre-act', 'post-act']),
@@ -31,8 +32,10 @@ export const pdpInputSchema = z.object({
 	}),
 	world: z.object({ predicates: z.record(z.string(), z.boolean()) })
 });
+/** A parsed PDP input document. */
 export type PdpInput = z.infer<typeof pdpInputSchema>;
 
+/** Builds the PDP input document from a `GuardrailContext`. */
 export function pdpRequestFor(ctx: GuardrailContext): PdpInput {
 	const predicates: Record<string, boolean> = {};
 	for (const id of ctx.world?.predicates ?? []) predicates[id] = ctx.world?.test(id) === true;

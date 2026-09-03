@@ -26,8 +26,10 @@ import type { Guardrail } from '@craftabot/core';
 
 export const APPROVAL_MODE_ID = 'safety/approval-mode';
 
+/** Which proposed calls pause for a person: every one, or only the risky ones. */
 export type ApprovalMode = 'everything' | 'risky';
 
+/** The human-approval gate (`08-…` §3): pauses the run at `pre-act` for a person's yes or no, as `mode` says. */
 export function createApprovalModeGuardrail(
 	mode: ApprovalMode,
 	isRisky?: (actionName: string) => boolean

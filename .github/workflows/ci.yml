@@ -24,6 +24,9 @@ jobs:
 
       - run: npm run build
 
+      # The governance tarball is the library and nothing else (WP50, `38-…` §4.1).
+      - run: node scripts/check-governance-pack.mjs
+
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 

@@ -59,6 +59,7 @@ function matched(finding: ScreenFinding): MatchedFinding {
 	};
 }
 
+/** The verdict a reading earns under the screening dials, clamped to what the hook allows. */
 export function verdictForReading(
 	result: ScreenResult,
 	hook: GuardrailHook,

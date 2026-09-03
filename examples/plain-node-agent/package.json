@@ -1,0 +1,22 @@
+{
+	"name": "@craftabot/example-plain-node-agent",
+	"private": true,
+	"version": "0.0.1",
+	"description": "A plain Node agent loop gating tool calls through @craftabot/governance — no Craft A Bot world, pack or UI.",
+	"type": "module",
+	"main": "./dist/index.js",
+	"scripts": {
+		"build": "tsc -p tsconfig.json",
+		"start": "node dist/main.js",
+		"test": "vitest run",
+		"check": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@craftabot/core": "*",
+		"@craftabot/governance": "*",
+		"zod": "^4.4.3"
+	},
+	"devDependencies": {
+		"@types/node": "^24.10.1"
+	}
+}

@@ -39,6 +39,7 @@ export interface HostedGuardrailNames {
 	description: string;
 }
 
+/** What `createHostedGuardrails` needs: the service and its parsed config, the screening dials, the runtime's `fetch` and credential reader, and the envelope builder. */
 export interface CreateHostedGuardrailsOptions {
 	/** `'geap/armor'` → `'geap/armor:observation'` | `':decision'` | `':result'`. */
 	idPrefix: string;
@@ -103,6 +104,7 @@ function outcomeFor(result: ScreenResult, offline: boolean): ExternalCallRecord[
 	return 'error' in result ? result.error.kind : result.reading.outcome;
 }
 
+/** Turns a `GuardrailService` into one guardrail per hook it screens — the verdict mapping, selectors, strings and trace record are the shell's (`29-…` §4.4). */
 export function createHostedGuardrails(options: CreateHostedGuardrailsOptions): Guardrail[] {
 	const { service, screening } = options;
 	const strings = options.strings ?? defaultHostedStrings;

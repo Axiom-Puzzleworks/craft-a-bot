@@ -33,6 +33,7 @@ export interface CompletedCall {
 	arguments: unknown;
 }
 
+/** Every completed tool call and action in a run's events, decision paired with outcome. */
 export function completedCalls(events: readonly EngineEvent[]): CompletedCall[] {
 	const calls: CompletedCall[] = [];
 	for (const event of events) {
@@ -121,6 +122,7 @@ export function evaluationInputFor(
 	};
 }
 
+/** An assertion card as an `Evaluator` (`31-…` §4.2): deterministic, over the run's real usage. */
 export function assertionEvaluator(card: AssertionCard): Evaluator {
 	return {
 		id: card.id,

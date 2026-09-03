@@ -15,6 +15,7 @@ import type { Guardrail } from '@craftabot/core';
 
 export const TOKEN_BUDGET_ID = 'safety/token-budget';
 
+/** The token budget: stops the run at `pre-think` once `maxTokens` tokens have been spent. */
 export function createTokenBudgetGuardrail(maxTokens: number): Guardrail {
 	return {
 		id: TOKEN_BUDGET_ID,
