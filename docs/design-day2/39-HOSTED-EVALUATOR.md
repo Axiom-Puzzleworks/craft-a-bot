@@ -31,7 +31,7 @@ The evaluator contract has three kinds and two of them ship: every assertion car
 
 ### 4.1 The client and the readings (stage A)
 
-`packs/geap/src/eval/client.ts` — `createEvalClient({ projectId, location, timeoutMs, fetch, token })` with `evaluate(request): Promise<{ response } | { error: ArmorError }>` and `describeEvalEndpoint(config)`. The same discipline as `armor/client.ts`: a regional URL only, `Bearer` from the thunk, trimmed; never throws; `armorErrorFromStatus`/`FromNetworkFailure`/`FromTimeout` reused (they are HTTP errors, not Model Armor's), every message through `scrubToken`. `createOfflineEvalClient()` answers `{ error: { kind: 'offline' … } }` — no, offline is the evaluator's own stand-in (§4.2); the offline client is not needed and not built.
+`packs/geap/src/eval/client.ts` — `createEvalClient({ projectId, location, timeoutMs, fetch, token })` with `evaluate(request): Promise<{ response } | { error: ArmorError }>` and `describeEvalEndpoint(config)`. The same discipline as `armor/client.ts`: a regional URL only, `Bearer` from the thunk, trimmed; never throws; `armorErrorFromStatus`/`FromNetworkFailure`/`FromTimeout` reused (they are HTTP errors, not Model Armor's), every message through `scrubToken`. There is no offline client: offline is the evaluator's own stand-in (§4.2), which never builds a client at all.
 
 `packs/geap/src/eval/reading.ts` — `readEvalResponse(json, metric)` parses `safetyResult`/`fulfillmentResult`/`pointwiseMetricResult` with zod (unknown extra fields ignored; a missing result for the metric asked is a `'partial'` reading), returning `{ score, explanation, confidence? }`. `normaliseScore(metric, score, scale)`.
 
