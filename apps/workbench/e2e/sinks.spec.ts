@@ -12,7 +12,9 @@ import { buildAndGo, skipTutorial } from './support.js';
 const COLLECTOR = 'http://localhost:4318';
 
 interface Collected {
-	bodies: Array<{ resourceSpans: Array<{ scopeSpans: Array<{ spans: Array<{ name: string }> }> }> }>;
+	bodies: Array<{
+		resourceSpans: Array<{ scopeSpans: Array<{ spans: Array<{ name: string }> }> }>;
+	}>;
 	refuse: boolean;
 }
 
@@ -52,8 +54,8 @@ test('a live run streams to the collector as one trace, and a stored run can be 
 	await page.getByTestId('play').click();
 	await expect(page.getByTestId('end-card')).toBeVisible({ timeout: 30_000 });
 	await expect.poll(() => collected.bodies.length, { timeout: 10_000 }).toBeGreaterThan(0);
-	const names = collected.bodies.flatMap((body) =>
-		body.resourceSpans[0]?.scopeSpans[0]?.spans.map((span) => span.name) ?? []
+	const names = collected.bodies.flatMap(
+		(body) => body.resourceSpans[0]?.scopeSpans[0]?.spans.map((span) => span.name) ?? []
 	);
 	expect(names.some((name) => name.startsWith('invoke_agent'))).toBe(true);
 	expect(names).toContain('chat');

@@ -45,8 +45,9 @@ function run(overrides: Partial<RunRecord> = {}): RunRecord {
 describe('otelTraceForGroup (WP47)', () => {
 	it('is one trace: an invoke_group root, one invoke_agent per member beneath it, their children beneath those', () => {
 		const group = makeGroupRun();
-		const a = run({ id: group.memberRunIds[0], agentName: 'Robo' });
-		const b = run({ id: group.memberRunIds[1], agentName: 'Bolt' });
+		const [aId, bId] = group.memberRunIds as [string, string];
+		const a = run({ id: aId, agentName: 'Robo' });
+		const b = run({ id: bId, agentName: 'Bolt' });
 		const trace = otelTraceForGroup({
 			record: group,
 			events: [],

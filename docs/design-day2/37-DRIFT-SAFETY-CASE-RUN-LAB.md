@@ -37,6 +37,8 @@ interface TelemetryBucket {
 	day: string; // YYYY-MM-DD, UTC
 	runs: number;
 	finishedRuns: number;
+	succeededRuns: number;
+	loopedRuns: number;
 	successRate: number | undefined; // over finished
 	loopRate: number | undefined; // OUT_OF_STEPS over finished — the loop score the roadmap names
 	trips: Record<string, number>; // guardrail id → trips, from the summaries
@@ -56,7 +58,7 @@ A flag is `{ day, kind, magnitude, detail }` where `detail` names the two things
 `SafetyCase` gains two sections:
 
 ```ts
-evaluations: Array<{ evaluatorId: string; pass: number; fail: number; inconclusive: number; unscored: number; meanScore: number | undefined }>;
+evaluations: Array<{ evaluatorId: string; pass: number; fail: number; inconclusive: number; noVerdict: number; meanScore: number | undefined }>;
 campaigns: CampaignEvidence[];
 ```
 
@@ -112,4 +114,11 @@ Fork-from-tick (`27-…` §3's "not scheduled" list). Group episodes on the live
 - **Resume is a core change §6.15 did not list.** Breakpoints without a resume are a stop button with extra steps; the change also retires a latent defect — a paused Kit run told to play again started a second run inside the same trace.
 - **The campaign report names its builds' bots.** §6.9's report shape had no way to hold a report against a shelf bot; `builds` is the smallest addition that does, and the Workshop's build picker is what makes the DoD's "a bot that ran in a campaign" reachable without a file round trip.
 - **The live bus is the app's own session, not a harness stream.** §6.15 tied breakpoints and trailing to the harness's sink streaming into the Run Lab; the Run Lab trails the Playroom's session instead, which needs no socket, and the harness half is left recorded rather than approximated.
+- **`17-…` §3's "not built" list shrinks to fork-from-tick and causal row linking, not fork-from-tick alone.** The roadmap's DoD counted the three items it named (breakpoints, live trailing, fork); the section's own list also carried causal row linking and "Re-run with same seed", which no WP in `27-…` schedules. Recorded rather than quietly claimed.
 - **`egress summary` on the Bench (§9) is not added** — the safety case already carries the egress rows per bot (WP41), and a fleet-wide list of hosts with no bot beside it says nothing a person can act on. Campaign tiles are added as §9 and the WP row say.
+
+> **Amended 2026-09-03 (stage A done).** As §4.1–4.2. `governance/src/reports/drift.ts` — `telemetrySeries` (one UTC-day bucket from the first run to the last, empty days included), `driftIn` (each day with `minRuns` finished runs against the pooled `window` earlier non-empty days; `trip-mix` by total-variation distance, `loop-rate` by difference), `mixDistance`, `DRIFT_DEFAULTS`; `campaign-evidence.ts` — `CampaignReportLike`, `campaignEvidenceFor`; `SafetyCase.evaluations` and `.campaigns` with two optional trailing arguments on both signatures. The evals report gained `builds` and `campaignEnvelope` (the envelope builder moved out of the app so the harness files a report the way the Workshop does); `runCampaignFile` files it; `craftabot report --telemetry` carries `series` and `drift`, `--safety-case` the two evidence sections. Tests: `drift.test.ts` (the two-week fixture — day 11 flagged for both kinds, day 12 once more while the baseline catches up, a quiet corpus flags nothing, the `minRuns` bar, gaps, thresholds), `campaign-evidence.test.ts`, `safety-case-v2.test.ts`, evals `campaign-builds.test.ts`, harness `report-v2.test.ts` (a run evaluated and a campaign with the kit as a second build, both quoted).
+
+> **Amended 2026-09-03 (stage B done).** As §4.3–4.4. Core: `start()` on a paused run resumes it (`run.begun`, a loop generation so the superseded loop leaves quietly, `pauseRequested` cleared) — three new tests in `agent-session.test.ts`; the golden traces are byte-identical. Workbench: `settings.breakpoints` with `BREAKPOINT_KINDS`, `preferences.breakpoints`/`setBreakpoints`; `createSessionView({ breakpoints })` with `breakpointFor`, `SessionView.breakpoint` and `resume()`, and `settleStatus` (a pause lands when the tick ends and no event marks it, so the view watches the session until it is no longer running); `lib/state/live-run.svelte.ts`; the Playroom attaches its view, shows `breakpoint-notice` with Resume, links to the Run Lab behind the Workshop door, and leaves a running run on the bus when the page is left; the Run Lab's `LIVE` chip, breakpoint checkboxes, Pause/Resume/Stop, Follow, the head-trailing scrubber, and a reload from the store when the live run ends. Screens: Drift and Over time on `/telemetry`; Evaluation evidence and Campaign results on `/safety-case`; "Add a shelf bot as a build" on `/campaigns` (a `$state.snapshot` of the record, or the kit builder's clone throws); Campaigns tiles on the Bench. E2e: `telemetry-drift.spec.ts` (fifty-six rows seeded into the app's own IndexedDB from one real run, the planted day flagged), `safety-case-v2.spec.ts`, `run-lab-live.spec.ts` (a breakpoint pauses a live run at the first `guardrail.tripped`, the Run Lab trailed it, Stop ends it, the badge verifies).
+
+> **Amended 2026-09-03 (stage C — WP49 closed; Phase K closed).** Gate: lint (38 tasks), every suite green, build within budget (930 kB of 1465 kB), e2e 159/159. `17-…` §3, §4.6 and §4.9 carry dated notes; `27-…` §8 item 18 carries the summary and corrects item 17's "Phase K closed".
