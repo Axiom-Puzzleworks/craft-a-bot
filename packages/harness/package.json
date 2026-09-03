@@ -1,0 +1,44 @@
+{
+	"name": "@craftabot/harness",
+	"private": true,
+	"version": "0.0.1",
+	"type": "module",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"bin": {
+		"craftabot": "./dist/main.js"
+	},
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"scripts": {
+		"build": "tsc -p tsconfig.build.json",
+		"test": "vitest run --coverage",
+		"check": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@craftabot/core": "*",
+		"@craftabot/evals": "*",
+		"@craftabot/governance": "*",
+		"@craftabot/pack-anthropic": "*",
+		"@craftabot/pack-azure-content-safety": "*",
+		"@craftabot/pack-pdp-opa": "*",
+		"@craftabot/pack-evaluators": "*",
+		"@craftabot/pack-geap": "*",
+		"@craftabot/pack-gemini": "*",
+		"@craftabot/pack-guard-local": "*",
+		"@craftabot/pack-monitor": "*",
+		"@craftabot/pack-ollama": "*",
+		"@craftabot/pack-openai": "*",
+		"@craftabot/pack-personas": "*",
+		"@craftabot/pack-starter": "*",
+		"@craftabot/pack-workshop": "*",
+		"@craftabot/telemetry": "*"
+	},
+	"devDependencies": {
+		"@types/node": "^24.10.1"
+	}
+}

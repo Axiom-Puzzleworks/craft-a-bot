@@ -1,16 +1,22 @@
 <script lang="ts">
-	import type { EngineEvent, RunRecord } from '@craftabot/core';
-	import { appStorage } from '$lib/state/app-storage.svelte.js';
+	import type { RunRecord, RunSummary } from '@craftabot/core';
 	import {
-		autonomyTelemetry,
-		guardrailMix,
+		DRIFT_DEFAULTS,
+		autonomyTelemetryFromSummaries,
+		driftIn,
+		guardrailMixFromSummaries,
 		telemetryByCard,
 		telemetryByCartridge,
+		telemetrySeries,
 		type AutonomyTelemetry,
 		type CartridgeTelemetry,
+		type DriftFlag,
 		type GoalCardTelemetry,
-		type GuardrailMixEntry
-	} from '$lib/workshop/telemetry.js';
+		type GuardrailMixEntry,
+		type TelemetryBucket
+	} from '@craftabot/governance/reports';
+	import { appStorage } from '$lib/state/app-storage.svelte.js';
+	import { ensureRunSummaries } from '$lib/state/run-summaries.js';
 
 	/**
 	 * **Telemetry** (`17-…` §4.6, WP34 stage A): the fleet's numbers, broken
@@ -29,31 +35,43 @@
 	 */
 
 	let runs = $state<RunRecord[]>([]);
-	let eventsByRun = $state<Map<string, readonly EngineEvent[]>>(new Map());
+	let summaries = $state<Map<string, RunSummary>>(new Map());
 	let loaded = $state(false);
 
 	$effect(() => {
 		void load();
 	});
 
+	/* One summary row per run rather than one whole trace per run (WP36 stage C). */
 	async function load(): Promise<void> {
 		const storage = await appStorage();
 		const stored = await storage.listRuns();
-		const pairs = await Promise.all(
-			stored.map(
-				async (run) => [run.id, (await storage.getEvents(run.id)).map((row) => row.event)] as const
-			)
-		);
+		summaries = await ensureRunSummaries(storage, stored);
 		runs = stored;
-		eventsByRun = new Map(pairs);
 		loaded = true;
 	}
 
 	const byCard = $derived<GoalCardTelemetry[]>(telemetryByCard(runs));
 	const byCartridge = $derived<CartridgeTelemetry[]>(telemetryByCartridge(runs));
-	const mix = $derived<GuardrailMixEntry[]>(guardrailMix(eventsByRun));
-	const autonomy = $derived<AutonomyTelemetry>(autonomyTelemetry(runs, eventsByRun));
+	const mix = $derived<GuardrailMixEntry[]>(guardrailMixFromSummaries(summaries.values()));
+	const autonomy = $derived<AutonomyTelemetry>(
+		autonomyTelemetryFromSummaries(runs, summaries.values())
+	);
 	const busiestTrip = $derived(mix[0]?.trips ?? 0);
+	/**
+	 * The time axis and its drift flags (WP49, `37-…` §4.1): one bucket per
+	 * day from the first stored run to the last, and each day with enough
+	 * finished runs held against the days before it. The thresholds are
+	 * stated beside the verdict, so "no drift" says what it would have taken.
+	 */
+	const series = $derived<TelemetryBucket[]>(telemetrySeries(runs, summaries));
+	const drift = $derived<DriftFlag[]>(driftIn(series));
+	const busiestDay = $derived(Math.max(0, ...series.map((bucket) => bucket.runs)));
+	const comparableDays = $derived(
+		series.filter((bucket) => bucket.finishedRuns >= DRIFT_DEFAULTS.minRuns).length
+	);
+	const busiestGuardrail = (bucket: TelemetryBucket) =>
+		Object.entries(bucket.trips).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0]?.[0];
 
 	const pct = (rate: number | undefined) =>
 		rate === undefined ? '—' : `${Math.round(rate * 100)}%`;
@@ -149,6 +167,69 @@
 					{/each}
 				</ul>
 			{/if}
+		</section>
+
+		<section aria-labelledby="drift-h">
+			<h2 id="drift-h">Drift</h2>
+			{#if drift.length > 0}
+				<ul class="drift" data-testid="telemetry-drift">
+					{#each drift as flag (flag.day + flag.kind)}
+						<li data-testid="drift-{flag.day}-{flag.kind}">
+							<strong>{flag.day}</strong>
+							<span class="kind">{flag.kind === 'trip-mix' ? 'trip mix' : 'loop rate'}</span>
+							<span class="mono">{flag.detail}</span>
+						</li>
+					{/each}
+				</ul>
+			{:else if comparableDays === 0}
+				<p class="status" data-testid="telemetry-drift-short">
+					Not enough history to compare: drift is judged over days with at least {DRIFT_DEFAULTS.minRuns}
+					finished runs, held against the {DRIFT_DEFAULTS.window} non-empty days before them.
+				</p>
+			{:else}
+				<p class="status" data-testid="telemetry-drift-none">
+					No drift flagged: no day's guardrail trip mix moved by {Math.round(
+						DRIFT_DEFAULTS.mixThreshold * 100
+					)}% or more, and no day's loop rate by {Math.round(DRIFT_DEFAULTS.loopThreshold * 100)}
+					points or more, against the days before it.
+				</p>
+			{/if}
+		</section>
+
+		<section aria-labelledby="series-h">
+			<h2 id="series-h">Over time</h2>
+			<table data-testid="telemetry-series">
+				<thead>
+					<tr>
+						<th scope="col">Day</th>
+						<th scope="col">Runs</th>
+						<th scope="col">Success</th>
+						<th scope="col">Looped</th>
+						<th scope="col">Trips / run</th>
+						<th scope="col">Busiest guardrail</th>
+					</tr>
+				</thead>
+				<tbody>
+					{#each series as bucket (bucket.day)}
+						<tr data-testid="series-{bucket.day}" data-runs={bucket.runs}>
+							<td class="mono">{bucket.day}</td>
+							<td>
+								<span class="series-bar" aria-hidden="true">
+									<span
+										class="mix-fill"
+										style="width: {busiestDay === 0 ? 0 : (bucket.runs / busiestDay) * 100}%"
+									></span>
+								</span>
+								{bucket.runs}
+							</td>
+							<td>{pct(bucket.successRate)}</td>
+							<td>{pct(bucket.loopRate)}</td>
+							<td>{round(bucket.tripsPerRun)}</td>
+							<td class="mono">{busiestGuardrail(bucket) ?? '—'}</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
 		</section>
 
 		<section aria-labelledby="autonomy-h">
@@ -280,6 +361,43 @@
 	.mix-count {
 		font-variant-numeric: tabular-nums;
 		text-align: right;
+	}
+
+	/* The series' bars are the same single hue as the mix: one axis, magnitude only, the number beside each. */
+	.series-bar {
+		display: inline-block;
+		width: 6rem;
+		height: 10px;
+		margin-inline-end: var(--cab-space-1);
+		vertical-align: middle;
+		background: var(--cab-paper);
+		border: 1px solid var(--cab-ink-muted);
+		border-radius: var(--cab-radius-part);
+	}
+
+	.drift {
+		display: grid;
+		gap: var(--cab-space-1);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.drift li {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--cab-space-2);
+		align-items: baseline;
+		padding: var(--cab-space-1) var(--cab-space-2);
+		background: var(--cab-cream);
+		border-left: 4px solid var(--cab-scope);
+	}
+
+	.drift .kind {
+		font-size: var(--cab-text-xs);
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: var(--cab-ink-muted);
 	}
 
 	.autonomy {

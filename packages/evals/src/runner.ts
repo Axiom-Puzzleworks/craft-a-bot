@@ -1,12 +1,19 @@
 import type { AgentSpec, EngineEvent, LLMProvider } from '@craftabot/core';
 import {
 	PLAN_TOOLS,
+	adversaryPlanFor,
 	buildSpec,
 	planFor,
 	runToCompletion,
 	type SpecOverrides
 } from '@craftabot/pack-starter/testing';
-import { DEFAULT_NOISE, scriptedNoisy, scriptedOptimal, type NoiseRates } from './brains.js';
+import {
+	DEFAULT_NOISE,
+	scriptedAdversary,
+	scriptedNoisy,
+	scriptedOptimal,
+	type NoiseRates
+} from './brains.js';
 import { scoreRun } from './metrics.js';
 import {
 	EVAL_REPORT_SCHEMA_VERSION,
@@ -213,7 +220,9 @@ async function runCell(cell: CellSpec, options: RunMatrixOptions): Promise<EvalC
 			script:
 				brain.tier === 'scripted-noisy'
 					? scriptedNoisy(plan, { seed, rates: cell.noise })
-					: scriptedOptimal(plan),
+					: brain.tier === 'scripted-adversary'
+						? scriptedAdversary(adversaryPlanFor(goalCardId))
+						: scriptedOptimal(plan),
 			spec,
 			// Enough headroom that the *budget* ends a run rather than the harness
 			// running out of patience — an OUT_OF_STEPS is a result, a truncated

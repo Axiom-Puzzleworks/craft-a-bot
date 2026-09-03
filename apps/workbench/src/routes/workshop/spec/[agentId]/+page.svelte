@@ -2,6 +2,7 @@
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import {
+		SLOT_CAPACITY,
 		brickKindsFor,
 		validateSpec,
 		type AgentRecord,
@@ -11,6 +12,13 @@
 	import { createRegistry, packVersions } from '$lib/packs.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import { createBrowserKeyVault } from '$lib/state/keys.js';
+	import {
+		AUTONOMY_LEVELS,
+		AUTONOMY_PRESETS,
+		applyAutonomy,
+		autonomyOf,
+		type AutonomyLevel
+	} from '$lib/workshop/autonomy.js';
 
 	/**
 	 * **The Spec Lab** (`17-…` §4.2): the whole `AgentSpec`, at full fidelity,
@@ -38,6 +46,21 @@
 	let record = $state<AgentRecord | undefined>(undefined);
 	let loaded = $state(false);
 	let showJson = $state(true);
+
+	/**
+	 * **The autonomy dial** (WP52, `40-DEBTS.md` §4.1; `14-…` §4.6's own
+	 * design): a preset written into the fitted Safety Brick's `approval` and
+	 * budgets, with the level recorded. The readback below reads the spec, not
+	 * the preset, so it cannot say more than the bot carries.
+	 */
+	let autonomyPick = $state<AutonomyLevel>('collaborator');
+	const autonomy = $derived(record ? autonomyOf(record.spec) : { fitted: false });
+	async function applyAutonomyPreset(): Promise<void> {
+		if (!record) return;
+		const next = applyAutonomy($state.snapshot(record.spec) as AgentRecord['spec'], autonomyPick);
+		if (!next) return;
+		await persist(next.bricks);
+	}
 
 	/**
 	 * `validateSpec`, not `validateSpecV2` — the same function the Kit's bench
@@ -81,6 +104,58 @@
 		const storage = await appStorage();
 		record = await storage.getAgent(id);
 		loaded = true;
+	}
+
+	/**
+	 * **The safety stack** (WP40, `26-…` §6.13): the one socket that holds
+	 * more than one brick, and this is where the second, third and fourth are
+	 * fitted — the Kit's bench keeps its one well and shows the rest as a chip.
+	 * Every safety kind an installed pack ships is offered here, Workshop
+	 * audience included: this *is* the Workshop.
+	 */
+	const safetyKinds = $derived(registry.listBrickKinds('safety'));
+	const safetyBricks = $derived(
+		(record?.spec.bricks ?? [])
+			.map((brick, index) => ({ brick, index }))
+			.filter(({ brick }) => brick.slot === 'safety')
+	);
+	const stackFull = $derived(safetyBricks.length >= SLOT_CAPACITY.safety);
+	let stackKindId = $state('');
+
+	async function persist(bricks: AgentRecord['spec']['bricks']): Promise<void> {
+		if (!record) return;
+		// A plain object, not the state proxy — IndexedDB structured-clones what it stores.
+		const base = $state.snapshot(record) as AgentRecord;
+		const next: AgentRecord = {
+			...base,
+			spec: {
+				...base.spec,
+				bricks: $state.snapshot(bricks) as AgentRecord['spec']['bricks'],
+				updatedAt: new Date().toISOString()
+			}
+		};
+		const storage = await appStorage();
+		await storage.putAgent(next);
+		record = next;
+	}
+
+	async function fitToStack(): Promise<void> {
+		const kind = registry.getBrickKind(stackKindId);
+		if (!record || !kind || kind.slot !== 'safety' || stackFull) return;
+		await persist([
+			...record.spec.bricks,
+			{
+				slot: 'safety',
+				kind: kind.id,
+				configVersion: kind.configVersion,
+				config: structuredClone(kind.defaults as Record<string, unknown>)
+			}
+		]);
+	}
+
+	async function unfitFromStack(index: number): Promise<void> {
+		if (!record) return;
+		await persist(record.spec.bricks.filter((_brick, i) => i !== index));
 	}
 
 	const blocking = $derived(problems.filter((problem) => problem.severity === 'blocking'));
@@ -185,6 +260,98 @@
 					</tbody>
 				</table>
 			{/if}
+
+			<h3>Safety stack</h3>
+			<!-- WP40 (`26-…` §6.13): up to four bricks in the one socket that holds a stack. -->
+			<div class="stack" data-testid="safety-stack">
+				{#if safetyBricks.length === 0}
+					<p class="hint" data-testid="no-safety-bricks">No safety brick fitted.</p>
+				{:else}
+					<ol class="stack-list">
+						{#each safetyBricks as { brick, index }, position (index)}
+							<li data-testid="safety-stack-{position}">
+								<span class="mono">{brick.kind}</span>
+								{#if position === 0}
+									<em class="hint">on the Kit's bench</em>
+								{/if}
+								<button
+									type="button"
+									class="unfit"
+									data-testid="unfit-safety-{position}"
+									onclick={() => unfitFromStack(index)}
+								>
+									Take off
+								</button>
+							</li>
+						{/each}
+					</ol>
+				{/if}
+				<div class="stack-add">
+					<label class="field">
+						<span>Fit another</span>
+						<select bind:value={stackKindId} data-testid="safety-kind-select" disabled={stackFull}>
+							<option value="">— choose a safety brick —</option>
+							{#each safetyKinds as kind (kind.id)}
+								<option value={kind.id}>{kind.name} ({kind.id})</option>
+							{/each}
+						</select>
+					</label>
+					<button
+						type="button"
+						data-testid="fit-safety-brick"
+						disabled={stackFull || stackKindId === ''}
+						onclick={fitToStack}
+					>
+						Fit
+					</button>
+					<span class="hint" data-testid="stack-capacity"
+						>{safetyBricks.length} of {SLOT_CAPACITY.safety}{stackFull ? ' — full' : ''}</span
+					>
+				</div>
+			</div>
+
+			<h3>Autonomy</h3>
+			<!-- WP52 (`40-DEBTS.md` §4.1): a preset written into the Safety Brick; the readback is the spec's own values. -->
+			<div class="autonomy" data-testid="autonomy">
+				{#if !autonomy.fitted}
+					<p class="hint" data-testid="autonomy-unfitted">
+						Fit a Safety Brick first — the dial writes into it.
+					</p>
+				{:else}
+					<p class="hint" data-testid="autonomy-readback">
+						{#if autonomy.level}
+							Level <strong>{autonomy.level}</strong> —
+						{:else}
+							No level recorded —
+						{/if}
+						approval <span class="mono">{autonomy.approval ?? '—'}</span>, max turns
+						<span class="mono">{autonomy.maxTicks ?? '—'}</span>, max tokens
+						<span class="mono">{autonomy.maxTokens ?? '—'}</span>.
+					</p>
+				{/if}
+				<div class="stack-add">
+					<label class="field">
+						<span>Level</span>
+						<select
+							bind:value={autonomyPick}
+							data-testid="autonomy-select"
+							disabled={!autonomy.fitted}
+						>
+							{#each AUTONOMY_LEVELS as level (level)}
+								<option value={level}>{level} — {AUTONOMY_PRESETS[level].blurb}</option>
+							{/each}
+						</select>
+					</label>
+					<button
+						type="button"
+						data-testid="apply-autonomy"
+						disabled={!autonomy.fitted}
+						onclick={applyAutonomyPreset}
+					>
+						Apply
+					</button>
+				</div>
+			</div>
 
 			<h3>Policy cards fitted</h3>
 			{#if policyCardIds.length === 0}
@@ -408,5 +575,27 @@
 		.regions {
 			grid-template-columns: 1fr;
 		}
+	}
+	.stack-list {
+		margin: 0 0 var(--cab-space-2);
+		padding-left: var(--cab-space-4);
+		font-size: var(--cab-text-sm);
+	}
+
+	.stack-list li {
+		display: flex;
+		gap: var(--cab-space-2);
+		align-items: baseline;
+	}
+
+	.stack-add {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--cab-space-2);
+		align-items: end;
+	}
+
+	.unfit {
+		font-size: var(--cab-text-xs);
 	}
 </style>

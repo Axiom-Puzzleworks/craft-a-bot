@@ -148,28 +148,35 @@ export type GuardrailVerdict = z.infer<typeof guardrailVerdictSchema>;
  * (`08-…` §2, `25-…` decision D3): the guardrail *returns* what it saw, it
  * does not write to a side channel.
  *
- * `service` is a single literal today because the Armour Brick is the first
- * hosted guardrail; a second one (`25-…` §7's non-goal, "the natural second
- * GEAP brick") widens it rather than adding a parallel event.
+ * Widened for the guard shell (WP39 stage A, `29-GUARD-SHELL.md` §4.1):
+ * `service` is any non-empty string — the service's own record name
+ * (`'model-armor'`), not its registry id (`29-…` §8 D-a) — `template` is
+ * optional (Model Armor's word for a policy reference) beside the neutral
+ * `policyRef`, and `method` carries the vendor's own call name. Every trace
+ * written before the widening parses unchanged; nothing writes the new keys
+ * for the Armour Brick, whose golden trace is the gate.
  */
+
+/** The transport-side outcomes — what a hosted call can fail with before any reading exists. */
+export const externalOutcomeKindSchema = z.enum([
+	'bad-token',
+	'no-permission',
+	'no-template',
+	'quota',
+	'timeout',
+	'unavailable'
+]);
+export type ExternalOutcomeKind = z.infer<typeof externalOutcomeKindSchema>;
+
 export const externalCallRecordSchema = z.object({
-	service: z.literal('model-armor'),
+	service: z.string().min(1),
+	method: z.string().optional(),
 	endpoint: z.string(),
-	template: z.string(),
+	template: z.string().optional(),
+	policyRef: z.string().optional(),
 	latencyMs: z.number().int().nonnegative(),
 	charsScreened: z.number().int().nonnegative(),
-	outcome: z.enum([
-		'ok',
-		'partial',
-		'failure',
-		'offline',
-		'bad-token',
-		'no-permission',
-		'no-template',
-		'quota',
-		'timeout',
-		'unavailable'
-	]),
+	outcome: z.enum(['ok', 'partial', 'failure', 'offline', ...externalOutcomeKindSchema.options]),
 	filters: z
 		.record(
 			z.string(),

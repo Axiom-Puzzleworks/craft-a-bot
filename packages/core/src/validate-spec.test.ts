@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { stubService } from './types/guardrail-service.test.js';
 import { z } from 'zod';
 import { validateSpec } from './validate-spec.js';
 import { createPackRegistry, type PackRegistry } from './pack-registry.js';
@@ -37,7 +38,7 @@ function buildRegistry(): PackRegistry {
 		id: 'starter',
 		name: 'Starter',
 		version: '1.0.0',
-		requiresCore: '>=1.0.0',
+		requiresCore: '>=0.0.1',
 		tools: [
 			{
 				id: 'starter/calculator',
@@ -96,7 +97,7 @@ function buildRegistry(): PackRegistry {
 		id: 'openai',
 		name: 'OpenAI',
 		version: '1.0.0',
-		requiresCore: '>=1.0.0',
+		requiresCore: '>=0.0.1',
 		cartridges: [
 			{
 				id: 'openai/quick-thinker',
@@ -254,7 +255,7 @@ describe('validateSpec', () => {
 			id: 'expansion',
 			name: 'Expansion',
 			version: '1.0.0',
-			requiresCore: '>=1.0.0',
+			requiresCore: '>=0.0.1',
 			brickKinds: [
 				{
 					id: 'expansion/warden',
@@ -309,7 +310,7 @@ describe('validateSpec', () => {
 			id: 'expansion',
 			name: 'Expansion',
 			version: '1.0.0',
-			requiresCore: '>=1.0.0',
+			requiresCore: '>=0.0.1',
 			brickKinds: [
 				{
 					id: 'expansion/curious',
@@ -352,6 +353,114 @@ describe('validateSpec', () => {
 	 * can ask whether the host's vault holds a secret under its own
 	 * credential id, without the config schema ever seeing the value.
 	 */
+	/** WP39 stage B (`29-…` §4.3): both contexts resolve a registered guardrail service. */
+	describe('guardrail services', () => {
+		it('a brick can ask for a registered service while validating and while being built', () => {
+			const registry = buildRegistry();
+			const service = stubService({ id: 'expansion9/stub' });
+			const seen: string[] = [];
+			registry.registerPack({
+				id: 'expansion9',
+				name: 'Expansion 9',
+				version: '1.0.0',
+				requiresCore: '>=0.0.1',
+				guardrailServices: [service],
+				assertionCards: [
+					{
+						id: 'expansion9/card',
+						title: 'A card',
+						schemaVersion: 1,
+						quantifier: 'never',
+						when: { kind: 'call-name-is', value: 'move' }
+					}
+				],
+				brickKinds: [
+					{
+						id: 'expansion9/guarded',
+						slot: 'perception',
+						name: 'Guarded',
+						description: 'Names a service.',
+						realName: 'Guarded',
+						realExplanation: 'Names a service.',
+						configSchema: z.object({}),
+						configVersion: 1,
+						defaults: {},
+						validateConfig: (_config: unknown, ctx) => {
+							seen.push(`validate:${ctx.hasGuardrailService('expansion9/stub')}`);
+							seen.push(`validate-missing:${ctx.hasGuardrailService('expansion9/none')}`);
+							// WP43: evaluators and assertion cards answer the same way.
+							seen.push(`evaluator:${ctx.hasEvaluator?.('expansion9/card')}`);
+							seen.push(`evaluator-missing:${ctx.hasEvaluator?.('expansion9/none')}`);
+							return [];
+						},
+						createRuntime: (_config: unknown, ctx) => {
+							seen.push(`runtime:${ctx.getGuardrailService('expansion9/stub')?.id}`);
+							seen.push(`runtime-card:${ctx.getAssertionCard?.('expansion9/card')?.id}`);
+							seen.push(`runtime-evaluator:${ctx.getEvaluator?.('expansion9/none')?.id}`);
+							return {};
+						}
+					} as BrickKindDefinition
+				]
+			});
+			const spec = migrated(validSpec({ bricks: { ...validSpec().bricks, sense: undefined } }));
+			spec.bricks.push({
+				slot: 'perception',
+				kind: 'expansion9/guarded',
+				configVersion: 1,
+				config: {}
+			});
+
+			validateSpec(spec, registry);
+			expect(seen).toEqual([
+				'runtime:expansion9/stub',
+				'runtime-card:expansion9/card',
+				'runtime-evaluator:undefined',
+				'validate:true',
+				'validate-missing:false',
+				'evaluator:true',
+				'evaluator-missing:false'
+			]);
+		});
+	});
+
+	/** WP40 (`26-…` §6.13): sockets have a capacity — one everywhere but `safety`, which holds four. */
+	describe('socket capacity', () => {
+		function withSafetyStack(count: number) {
+			const registry = buildRegistry();
+			const spec = migrated(validSpec());
+			const safety = spec.bricks.find((brick) => brick.slot === 'safety');
+			if (!safety) throw new Error('the valid spec has no safety brick');
+			for (let i = 1; i < count; i += 1) spec.bricks.push(structuredClone(safety));
+			return validateSpec(spec, registry).filter((p) => p.code === 'slot-already-filled');
+		}
+
+		it('lets four safety bricks share the socket', () => {
+			expect(withSafetyStack(4)).toEqual([]);
+		});
+
+		it('refuses a fifth, naming the count and the capacity', () => {
+			const problems = withSafetyStack(5);
+			expect(problems).toHaveLength(1);
+			expect(problems[0]?.message).toBe(
+				'There are 5 bricks in the safety socket, and only 4 will fit.'
+			);
+			expect(problems[0]?.details).toMatchObject({ slot: 'safety', capacity: 4 });
+		});
+
+		it('still holds every other socket to one', () => {
+			const registry = buildRegistry();
+			const spec = migrated(validSpec());
+			const memory = spec.bricks.find((brick) => brick.slot === 'memory');
+			if (!memory) throw new Error('the valid spec has no memory brick');
+			spec.bricks.push(structuredClone(memory));
+			const problems = validateSpec(spec, registry).filter((p) => p.code === 'slot-already-filled');
+			expect(problems).toHaveLength(1);
+			expect(problems[0]?.message).toBe(
+				'There are two bricks in the memory socket, and only one will fit.'
+			);
+		});
+	});
+
 	describe('hasCredential', () => {
 		function curiousAboutCredential(problem: (has: boolean) => void): BrickKindDefinition {
 			return {
@@ -376,7 +485,7 @@ describe('validateSpec', () => {
 				id: 'expansion8',
 				name: 'Expansion 8',
 				version: '1.0.0',
-				requiresCore: '>=1.0.0',
+				requiresCore: '>=0.0.1',
 				brickKinds: [kind]
 			});
 			const spec = migrated(validSpec({ bricks: { ...validSpec().bricks, sense: undefined } }));
@@ -428,7 +537,7 @@ describe('validateSpec', () => {
 				id: 'expansion9',
 				name: 'Expansion 9',
 				version: '1.0.0',
-				requiresCore: '>=1.0.0',
+				requiresCore: '>=0.0.1',
 				brickKinds: [
 					{
 						id: 'expansion9/watches',
@@ -477,7 +586,7 @@ describe('validateSpec', () => {
 			id: 'expansion2',
 			name: 'Expansion 2',
 			version: '1.0.0',
-			requiresCore: '>=1.0.0',
+			requiresCore: '>=0.0.1',
 			brickKinds: [
 				{
 					id: 'expansion2/watches',
@@ -512,7 +621,7 @@ describe('validateSpec', () => {
 			id: 'expansion3',
 			name: 'Expansion 3',
 			version: '1.0.0',
-			requiresCore: '>=1.0.0',
+			requiresCore: '>=0.0.1',
 			brickKinds: [
 				{
 					id: 'expansion3/watches',

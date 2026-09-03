@@ -51,6 +51,8 @@ Three-column layout:
 - Each well shows the brick's sprite, name, and a stock state: available / already fitted (empty well with a shadow outline) / needs-something (e.g. LLM brick shows "no battery" tag if no API key is configured).
 - Hover = brick lifts slightly + one-line whisper of what it does. A small **"?"** flips the tray card to the "what this really is" side.
 
+> **Amended 2026-09-03:** with a dozen kinds across the installed packs the single-column tray grew past the bottom of the page, and a well below the fold could not be dragged from. The tray is now a compact two-across grid that sticks to the top of the viewport (`position: sticky`, its own scroll only if a very small window forces it), so every well is on screen wherever the page has scrolled. Beside the drag, **a double-click on a well fits the brick straight into its socket** — the same fit, cue, panel and announcement a drop makes — and the tray says so under the wells. Enter still lifts a brick for the keyboard; the drag is kept, as the nicest way to do it.
+
 ### 4.2 Baseplate (centre)
 
 - The bot chassis outline with **shaped sockets**: head socket (LLM), backpack (Memory), belt (Tools), visor (Sense), feet/wheels (Actions), chest (Safety), plus the **card holder** slot for the Goal Card. Sockets are shaped/coloured to match their brick — the classic "the piece only fits where it belongs" affordance.

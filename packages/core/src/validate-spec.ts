@@ -73,6 +73,9 @@ export function validateSpec(
 		context: {
 			random: () => 0,
 			getPolicyCard: (id) => registry.getPolicyCard(id),
+			getGuardrailService: (id) => registry.getGuardrailService(id),
+			getEvaluator: (id) => registry.getEvaluator(id),
+			getAssertionCard: (id) => registry.getAssertionCard(id),
 			getAction: (id) => registry.getAction(id),
 			fetch: () => Promise.reject(new Error('fetch is not available while validating a spec')),
 			getCredential: () => undefined
@@ -252,6 +255,9 @@ function ownProblems(
 		hasSenseChannel: (id) => registry.getSenseChannel(id) !== undefined,
 		hasCartridge: (id) => registry.getCartridge(id) !== undefined,
 		hasPolicyCard: (id) => registry.getPolicyCard(id) !== undefined,
+		hasGuardrailService: (id) => registry.getGuardrailService(id) !== undefined,
+		hasEvaluator: (id) =>
+			registry.getEvaluator(id) !== undefined || registry.getAssertionCard(id) !== undefined,
 		hasCredential
 	};
 

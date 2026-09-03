@@ -1,4 +1,6 @@
 import type { BrickKindDefinition, SlotId } from './types/brick.js';
+import { satisfiesRange } from './semver.js';
+import { CRAFTABOT_CORE_VERSION } from './version.js';
 import type {
 	BrickDefinition,
 	CartridgeDefinition,
@@ -8,6 +10,14 @@ import type {
 	PackManifestMetadata
 } from './schemas/pack-manifest.js';
 import type { PolicyCard } from './schemas/policy-card.js';
+import { describeEvaluatorProblems, type Evaluator } from './types/evaluator.js';
+import {
+	describeGuardrailServiceProblems,
+	type GuardrailService
+} from './types/guardrail-service.js';
+import type { AssertionCard } from './schemas/assertion-card.js';
+import { LOCAL_PACK_ID, isLocalId } from './schemas/content.js';
+import type { ScenarioDefinition } from './schemas/scenario.js';
 import type { ProviderFactory } from './types/provider.js';
 import type { ToolDefinition } from './types/tool.js';
 import type {
@@ -42,7 +52,16 @@ export interface PackRegistry {
 	getCartridge(id: string): CartridgeDefinition | undefined;
 	getGoalCard(id: string): GoalCardDefinition | undefined;
 	getWorld(id: string): WorldDefinition | undefined;
+	/** @deprecated with `PackManifest.guardrails` (WP39) — see `getGuardrailService`. */
 	getGuardrail(id: string): GuardrailDefinition | undefined;
+	/** A hosted guardrail service (`29-GUARD-SHELL.md` §4.3, WP39), by qualified id. */
+	getGuardrailService(id: string): GuardrailService | undefined;
+	/** An evaluator (`31-EVALUATORS.md` §4.1, WP43), by qualified id. */
+	getEvaluator(id: string): Evaluator | undefined;
+	/** An assertion card a pack shipped (WP43), by qualified id. */
+	getAssertionCard(id: string): AssertionCard | undefined;
+	/** A scenario (`32-SCENARIOS.md` §4.1, WP44), by qualified id. */
+	getScenario(id: string): ScenarioDefinition | undefined;
 	/** Sense channels are declared per-world (02-AGENT-MODEL.md §4); this searches every registered world. */
 	getSenseChannel(id: string): WorldSenseDefinition | undefined;
 	/** Actions are declared per-world; this searches every registered world. */
@@ -57,6 +76,10 @@ export interface PackRegistry {
 	listGoalCards(): GoalCardDefinition[];
 	listWorlds(): WorldDefinition[];
 	listPolicyCards(): PolicyCard[];
+	listGuardrailServices(): GuardrailService[];
+	listEvaluators(): Evaluator[];
+	listAssertionCards(): AssertionCard[];
+	listScenarios(): ScenarioDefinition[];
 	listProviderFactories(): ProviderFactory[];
 }
 
@@ -71,6 +94,10 @@ export function createPackRegistry(): PackRegistry {
 	const worlds = new Map<string, WorldDefinition>();
 	const guardrails = new Map<string, GuardrailDefinition>();
 	const policyCards = new Map<string, PolicyCard>();
+	const guardrailServices = new Map<string, GuardrailService>();
+	const evaluators = new Map<string, Evaluator>();
+	const assertionCards = new Map<string, AssertionCard>();
+	const scenarios = new Map<string, ScenarioDefinition>();
 	const providers = new Map<string, ProviderFactory>();
 
 	function insertUnique<T>(map: Map<string, T>, id: string, value: T, kind: string): void {
@@ -84,11 +111,45 @@ export function createPackRegistry(): PackRegistry {
 		if (packs.has(manifest.id)) {
 			throw new Error(`Pack "${manifest.id}" is already registered.`);
 		}
+		// `local/` is the content store's (WP46, `34-…` §4.1): a shipped pack may not use it.
+		if (manifest.id !== LOCAL_PACK_ID) {
+			const trespasser = [
+				...(manifest.policyCards ?? []),
+				...(manifest.assertionCards ?? []),
+				...(manifest.scenarios ?? []),
+				...(manifest.goalCards ?? [])
+			].find((item) => isLocalId(item.id));
+			if (trespasser) {
+				throw new Error(
+					`Pack "${manifest.id}" ships "${trespasser.id}", but the local/ prefix is reserved for authored content.`
+				);
+			}
+		}
+		// Ranges are evaluated, not stored and forgotten (WP52, `40-DEBTS.md` §4.2; `12-…` D13).
+		if (!satisfiesRange(CRAFTABOT_CORE_VERSION, manifest.requiresCore)) {
+			throw new Error(
+				`Pack "${manifest.id}" needs core ${manifest.requiresCore}, and this is core ${CRAFTABOT_CORE_VERSION}.`
+			);
+		}
+		for (const [needed, range] of Object.entries(manifest.requiresPacks ?? {})) {
+			const present = packs.get(needed);
+			if (!present) {
+				throw new Error(
+					`Pack "${manifest.id}" needs pack "${needed}" (${range}), which is not registered — register it first.`
+				);
+			}
+			if (!satisfiesRange(present.version, range)) {
+				throw new Error(
+					`Pack "${manifest.id}" needs pack "${needed}" ${range}, and "${needed}" is ${present.version}.`
+				);
+			}
+		}
 		packs.set(manifest.id, {
 			id: manifest.id,
 			name: manifest.name,
 			version: manifest.version,
-			requiresCore: manifest.requiresCore
+			requiresCore: manifest.requiresCore,
+			...(manifest.requiresPacks ? { requiresPacks: manifest.requiresPacks } : {})
 		});
 		for (const brick of manifest.bricks ?? []) insertUnique(bricks, brick.id, brick, 'brick');
 		for (const kind of manifest.brickKinds ?? []) {
@@ -105,6 +166,28 @@ export function createPackRegistry(): PackRegistry {
 			insertUnique(guardrails, guardrail.id, guardrail, 'guardrail');
 		for (const card of manifest.policyCards ?? [])
 			insertUnique(policyCards, card.id, card, 'policy card');
+		for (const service of manifest.guardrailServices ?? []) {
+			const problems = describeGuardrailServiceProblems(service);
+			if (problems.length > 0) {
+				throw new Error(
+					`Pack "${manifest.id}" ships a guardrail service "${service.id}" that ${problems.join(', ')}.`
+				);
+			}
+			insertUnique(guardrailServices, service.id, service, 'guardrail service');
+		}
+		for (const evaluator of manifest.evaluators ?? []) {
+			const problems = describeEvaluatorProblems(evaluator);
+			if (problems.length > 0) {
+				throw new Error(
+					`Pack "${manifest.id}" ships an evaluator "${evaluator.id}" that ${problems.join(', ')}.`
+				);
+			}
+			insertUnique(evaluators, evaluator.id, evaluator, 'evaluator');
+		}
+		for (const card of manifest.assertionCards ?? [])
+			insertUnique(assertionCards, card.id, card, 'assertion card');
+		for (const scenario of manifest.scenarios ?? [])
+			insertUnique(scenarios, scenario.id, scenario, 'scenario');
 		for (const provider of manifest.providers ?? [])
 			insertUnique(providers, provider.id, provider, 'provider');
 	}
@@ -166,6 +249,10 @@ export function createPackRegistry(): PackRegistry {
 		getSenseChannel,
 		getAction,
 		getPolicyCard: (id) => policyCards.get(id),
+		getGuardrailService: (id) => guardrailServices.get(id),
+		getEvaluator: (id) => evaluators.get(id),
+		getAssertionCard: (id) => assertionCards.get(id),
+		getScenario: (id) => scenarios.get(id),
 		getProviderFactory: (id) => providers.get(id),
 		listPacks: () => [...packs.values()],
 		listTools: () => [...tools.values()],
@@ -173,6 +260,10 @@ export function createPackRegistry(): PackRegistry {
 		listGoalCards: () => [...goalCards.values()],
 		listWorlds: () => [...worlds.values()],
 		listPolicyCards: () => [...policyCards.values()],
+		listGuardrailServices: () => [...guardrailServices.values()],
+		listEvaluators: () => [...evaluators.values()],
+		listAssertionCards: () => [...assertionCards.values()],
+		listScenarios: () => [...scenarios.values()],
 		listProviderFactories: () => [...providers.values()]
 	};
 }

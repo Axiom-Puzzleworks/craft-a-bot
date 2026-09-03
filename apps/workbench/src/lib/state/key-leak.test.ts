@@ -77,7 +77,7 @@ const PLAN = [
 async function runAndExport() {
 	const vault = createKeyVault(memoryWebStorage());
 	vault.set('openai', FAKE_KEY);
-	vault.set('geap', FAKE_GEAP_TOKEN);
+	vault.set('geap', FAKE_GEAP_TOKEN, Date.now() + 3600_000); // timed (WP41): swept exactly as before;
 
 	const registry = createRegistry();
 	registry.registerPack({

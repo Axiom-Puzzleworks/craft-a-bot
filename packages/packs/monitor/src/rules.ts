@@ -1,4 +1,11 @@
-import type { EngineEvent, Guardrail, GuardrailContext } from '@craftabot/core';
+import type {
+	EngineEvent,
+	EventBus,
+	Guardrail,
+	GuardrailContext,
+	GuardrailHook,
+	Unsubscribe
+} from '@craftabot/core';
 
 /**
  * **What a Watchbot can be told to watch for** (`14-…` §5.3).
@@ -136,4 +143,101 @@ export function rulesFor(watchFor: readonly string[]): Guardrail[] {
 
 export function isMonitorRule(id: string): id is MonitorRuleId {
 	return id in FACTORIES;
+}
+
+/**
+ * **The circuit breaker** (WP48, `36-…` §4.2; `19-…` #34): the one rule a
+ * group Watchbot contributes that is not a note — once the merged stream
+ * holds this many trips, the group stops through the chokepoint it already
+ * has. A group's `pre-think` is where it checks.
+ */
+export const GROUP_CIRCUIT_BREAKER_ID = 'monitor/group-circuit-breaker';
+
+export function createGroupCircuitBreaker(refusalLimit: number): Guardrail {
+	return {
+		id: GROUP_CIRCUIT_BREAKER_ID,
+		name: 'Circuit breaker',
+		description: `Stops the group once ${refusalLimit} things its robots tried were refused by a rule.`,
+		hooks: ['pre-think'],
+		check: (ctx: GuardrailContext) => {
+			const refusals = ctx.history.filter((event) => event.type === 'guardrail.tripped').length;
+			if (refusals < refusalLimit) return { allow: true };
+			return {
+				allow: false,
+				reason: `${refusals} attempts refused across the group — the circuit breaker has tripped.`,
+				disposition: 'stop-run'
+			};
+		}
+	};
+}
+
+export interface GroupWatchbotOptions {
+	watchFor: readonly string[];
+	/** Trips across the merged stream before the breaker stops the group; omit for no breaker. */
+	refusalLimit?: number;
+}
+
+export interface GroupWatchbot {
+	/** The observer the host installs on the group (`options.observers`): a `brick.state` note on the merged stream whenever a watched rule holds. */
+	observe: (events: EventBus, group: { groupRunId: string }) => Unsubscribe;
+	/** The rules the host installs at the group's chokepoint (`groupGuardrails`): the watched rules at `pre-think`, and the breaker. */
+	guardrails: Guardrail[];
+}
+
+/**
+ * **A Watchbot on no chassis** (WP48, `36-…` §4.2): the monitor's rules
+ * read the merged stream instead of one robot's history, note on the
+ * merged bus, and stop the group through its own chokepoint. Two things,
+ * because an observer has the group's ear but not its hand.
+ */
+export function createGroupWatchbot(options: GroupWatchbotOptions): GroupWatchbot {
+	const rules = rulesFor(options.watchFor).map((rule) => ({
+		...rule,
+		hooks: ['pre-think'] as GuardrailHook[]
+	}));
+	const guardrails: Guardrail[] = [
+		...rules,
+		...(options.refusalLimit !== undefined ? [createGroupCircuitBreaker(options.refusalLimit)] : [])
+	];
+	return {
+		guardrails,
+		observe(events, group) {
+			const history: EngineEvent[] = [];
+			const noted = new Set<string>();
+			return events.onAny((event) => {
+				history.push(event);
+				if (event.type !== 'action.performed' && event.type !== 'guardrail.tripped') return;
+				for (const rule of rules) {
+					const verdict = rule.check({
+						hook: 'post-act',
+						tick: event.tick,
+						spec: {
+							id: group.groupRunId,
+							name: 'group',
+							goalCardId: '',
+							schemaVersion: 1
+						} as never,
+						usage: { ticks: event.tick, inputTokens: 0, outputTokens: 0 },
+						worldState: {},
+						history
+					});
+					const note = 'note' in verdict ? verdict.note : undefined;
+					if (note === undefined || noted.has(`${rule.id}:${note}`)) continue;
+					noted.add(`${rule.id}:${note}`);
+					events.emit({
+						id: `${group.groupRunId}:watchbot:${history.length}`,
+						runId: group.groupRunId,
+						tick: event.tick,
+						timestamp: event.timestamp,
+						type: 'brick.state',
+						payload: {
+							slot: 'safety',
+							kind: 'monitor/group-watchbot',
+							state: { rule: rule.id, note }
+						}
+					} as EngineEvent);
+				}
+			});
+		}
+	};
 }

@@ -26,7 +26,12 @@
 			| 'incidents'
 			| 'safety-case'
 			| 'export'
-			| 'armour';
+			| 'armour'
+			| 'guards'
+			| 'evaluators'
+			| 'scenarios'
+			| 'sinks'
+			| 'campaigns';
 	}
 
 	let { current }: Props = $props();
@@ -36,15 +41,23 @@
 		{ id: 'runs', label: 'Runs', href: '/workshop/runs' },
 		{ id: 'spec', label: 'Spec Lab', hint: 'per bot' },
 		{ id: 'evals', label: 'Evals', href: '/workshop/evals' },
+		// WP38 (`28-CAMPAIGNS.md` §4.9) — the guardrail regression suite as a file.
+		{ id: 'campaigns', label: 'Campaigns', href: '/workshop/campaigns' },
+		// WP43 (`31-EVALUATORS.md` §4.3) — every evaluator, run over a stored run.
+		{ id: 'evaluators', label: 'Evaluators', href: '/workshop/evaluators' },
+		// WP44 (`32-SCENARIOS.md` §4.5) — every scenario a pack ships, and a corpus imported over a card.
+		{ id: 'scenarios', label: 'Scenarios', href: '/workshop/scenarios' },
+		// WP47 (`35-TELEMETRY.md` §4.5) — where a run's trace goes besides this browser.
+		{ id: 'sinks', label: 'Sinks', href: '/workshop/sinks' },
 		{ id: 'policies', label: 'Policies', href: '/workshop/policies' },
 		{ id: 'bench', label: 'Test Bench', href: '/workshop/bench' },
 		{ id: 'telemetry', label: 'Telemetry', href: '/workshop/telemetry' },
 		{ id: 'incidents', label: 'Incidents', href: '/workshop/incidents' },
 		{ id: 'safety-case', label: 'Safety case', href: '/workshop/safety-case' },
 		{ id: 'export', label: 'Audit', href: '/workshop/export' },
-		// WP35 stage B (`25-ARMOUR-BRICK.md` §11) — the seam's own proof lane,
-		// ahead of Stage D's fitted brick.
-		{ id: 'armour', label: 'Cloud Armour', href: '/workshop/armour' }
+		// WP42 (`30-SECOND-VENDORS.md` §5) — the Guard Rack, grown from WP35's
+		// Armour Studio, which now redirects here.
+		{ id: 'guards', label: 'Guards', href: '/workshop/guards' }
 	] as const;
 </script>
 
@@ -67,6 +80,11 @@
 								| '/workshop/safety-case'
 								| '/workshop/export'
 								| '/workshop/armour'
+								| '/workshop/guards'
+								| '/workshop/evaluators'
+								| '/workshop/scenarios'
+								| '/workshop/sinks'
+								| '/workshop/campaigns'
 						)}
 						aria-current={current === destination.id ? 'page' : undefined}
 						data-testid="rail-{destination.id}">{destination.label}</a

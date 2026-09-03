@@ -5,11 +5,16 @@ import {
 	type AgentSpec,
 	type AnyAgentSpec,
 	type EngineEvent,
+	type EventBus,
 	type Guardrail,
+	type Unsubscribe,
 	type LLMProvider,
 	type PackRegistry,
 	type RunOutcome,
-	type SessionOptions
+	type SessionOptions,
+	type EgressMode,
+	type PackManifest,
+	type WorldInstance
 } from '@craftabot/core';
 import { createMockProvider, createTestClock, type MockScript } from '@craftabot/core/testing';
 import starterPack from '../index.js';
@@ -145,6 +150,12 @@ export interface RunOptions {
 	 * through this harness carries the same event and run ids.
 	 */
 	idOffset?: number;
+	/** Packs registered beside the starter pack (WP42) — a campaign that stacks a Guard Brick needs the workshop pack and the service's own. */
+	packs?: PackManifest[];
+	/** A world built (and injected) by the caller (WP44) — the session uses it instead of building the card's own. */
+	world?: WorldInstance;
+	/** The session's egress mode (WP41) — `'none'` is what a campaign in CI runs under. */
+	egress?: EgressMode;
 }
 
 /** Drives a session in step mode until it finishes, and hands back the trace. */
@@ -155,9 +166,15 @@ export async function runToCompletion(options: RunOptions): Promise<RunResult> {
 	const spec = options.spec ?? buildSpec();
 	const provider = options.provider ?? createMockProvider({ script: options.script });
 
+	const registry = buildRegistry();
+	// A caller may hand the whole installed list, starter included; only what is new is registered.
+	const installed = new Set(registry.listPacks().map((pack) => pack.id));
+	for (const pack of options.packs ?? []) {
+		if (!installed.has(pack.id)) registry.registerPack(pack);
+	}
 	const session = createSession({
 		spec,
-		registry: buildRegistry(),
+		registry,
 		provider,
 		guardrails: options.guardrails ?? [],
 		options: {
@@ -165,8 +182,10 @@ export async function runToCompletion(options: RunOptions): Promise<RunResult> {
 			newId: clock.newId,
 			random: clock.random,
 			...(options.maxTicks !== undefined ? { budgets: { maxTicks: options.maxTicks } } : {}),
-			...(options.strategies !== undefined ? { strategies: options.strategies } : {})
-		}
+			...(options.strategies !== undefined ? { strategies: options.strategies } : {}),
+			...(options.egress !== undefined ? { egress: options.egress } : {})
+		},
+		...(options.world ? { world: options.world } : {})
 	});
 
 	const events: EngineEvent[] = [];
@@ -214,6 +233,11 @@ export interface GroupRunOptions {
 	/** Stop after this many `stepRound()` calls, so a stuck group cannot spin forever. */
 	roundLimit?: number;
 	idOffset?: number;
+	/** Group-level policy and readers (WP48, `36-…` §4.2), handed straight to `createSessionGroup`. */
+	groupGuardrails?: Guardrail[];
+	observers?: Array<(events: EventBus, group: { groupRunId: string }) => Unsubscribe>;
+	/** Deliver a line to the shared world after this many rounds — a message between turns, heard by every seat. */
+	deliverAfterRound?: { round: number; text: string };
 }
 
 export interface GroupRunResult {
@@ -249,12 +273,14 @@ export async function runGroupToCompletion(options: GroupRunOptions): Promise<Gr
 		members,
 		registry,
 		goalCardId,
+		...(options.groupGuardrails !== undefined ? { groupGuardrails: options.groupGuardrails } : {}),
 		options: {
 			now: clock.now,
 			newId: clock.newId,
 			random: clock.random,
 			...(options.groupMaxTokens !== undefined ? { groupMaxTokens: options.groupMaxTokens } : {}),
-			...(options.maxRounds !== undefined ? { maxRounds: options.maxRounds } : {})
+			...(options.maxRounds !== undefined ? { maxRounds: options.maxRounds } : {}),
+			...(options.observers !== undefined ? { observers: options.observers } : {})
 		}
 	});
 
@@ -266,6 +292,10 @@ export async function runGroupToCompletion(options: GroupRunOptions): Promise<Gr
 	const limit = options.roundLimit ?? 40;
 	for (let round = 0; round < limit; round++) {
 		const result = await group.stepRound();
+		// A line between turns (WP48): into the shared world once, for every seat to hear.
+		if (options.deliverAfterRound && result.round === options.deliverAfterRound.round) {
+			group.deliverInput(options.deliverAfterRound.text);
+		}
 		if (result.outcome) {
 			outcome = result.outcome;
 			rounds = result.round;

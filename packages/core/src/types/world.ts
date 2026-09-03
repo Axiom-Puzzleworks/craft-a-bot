@@ -1,3 +1,4 @@
+import type { Injection } from '../schemas/scenario.js';
 import type { JsonSchema } from './json-schema.js';
 import type { ActionId, SenseChannelId, WorldPredicateId } from './ids.js';
 import type { RiskTier } from '../schemas/risk-tier.js';
@@ -28,6 +29,12 @@ export interface WorldActionDefinition {
 	 * asking anyone to sign off on it.
 	 */
 	riskTier?: RiskTier;
+	/**
+	 * A successful call of this action is progress (WP45, `33-…` §4.2): the
+	 * no-repetition guardrail never counts it as a repeat. The world says so;
+	 * governance stops knowing any action's name.
+	 */
+	progress?: boolean;
 }
 
 export interface WorldSenseDefinition {
@@ -136,4 +143,12 @@ export interface WorldInstance {
 	 * stage, and any brick that never calls `contributeWorldConfig`.
 	 */
 	configure?(config: Record<string, unknown>): void;
+	/**
+	 * Deliver a scenario's injection through a door this world already has
+	 * (`32-SCENARIOS.md` §4.1, WP44): a line overheard, a manual entry, a
+	 * tool's answer, a radio message. Optional: a world without such doors
+	 * omits it, and a scenario carrying injections is refused before the run
+	 * with the `world-cannot-inject` problem, never silently dropped.
+	 */
+	inject?(injection: Injection): void;
 }

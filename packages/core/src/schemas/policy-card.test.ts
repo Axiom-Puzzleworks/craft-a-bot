@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { policyCardSchema, predicateExprSchema } from './policy-card.js';
+import {
+	POLICY_CARD_SCHEMA_VERSION,
+	SAFE_PATTERN_MAX_LENGTH,
+	describeUnsafePattern,
+	isSafePattern,
+	policyCardSchema,
+	predicateExprSchema
+} from './policy-card.js';
 
 /**
  * `PredicateExpr` (`14-…` §4.6, WP22) — deliberately tiny, and composable.
@@ -101,5 +108,48 @@ describe('policyCardSchema', () => {
 
 	it('rejects a schemaVersion this build does not understand', () => {
 		expect(policyCardSchema.safeParse(card({ schemaVersion: 2 })).success).toBe(false);
+	});
+});
+
+describe('the v2 leaves (WP45)', () => {
+	it('accepts each of the six, and a v1 card is a valid v2 card', () => {
+		const leaves = [
+			{ kind: 'argument-contains', path: 'text', value: '7734' },
+			{ kind: 'argument-matches', path: 'text', pattern: '^[0-9][0-9][0-9][0-9]$' },
+			{ kind: 'observation-contains', value: 'chest' },
+			{ kind: 'world-predicate', predicateId: 'hello-said' },
+			{ kind: 'history-count', type: 'action.performed', name: 'say', atLeast: 2 },
+			{ kind: 'history-count', type: 'guardrail.tripped', atLeast: 1 },
+			{ kind: 'hook-is', hook: 'pre-act' }
+		];
+		for (const leaf of leaves) expect(predicateExprSchema.safeParse(leaf).success).toBe(true);
+		expect(POLICY_CARD_SCHEMA_VERSION).toBe(1);
+	});
+
+	it('refuses an unsafe pattern and says why', () => {
+		expect(describeUnsafePattern('(a+)+$')).toMatch(/groups/);
+		expect(describeUnsafePattern('a{1,3}')).toMatch(/groups or braces/);
+		expect(describeUnsafePattern('(a)' + String.fromCharCode(92) + '1')).toMatch(/groups/);
+		expect(describeUnsafePattern(String.fromCharCode(92) + '1')).toMatch(/backreferences/);
+		expect(describeUnsafePattern('')).toMatch(/empty/);
+		expect(describeUnsafePattern('a'.repeat(SAFE_PATTERN_MAX_LENGTH + 1))).toMatch(/at most/);
+		expect(describeUnsafePattern('[')).toMatch(/valid regular expression/);
+		expect(isSafePattern('^say [a-z]+ .*7734.*$')).toBe(true);
+		const parsed = predicateExprSchema.safeParse({
+			kind: 'argument-matches',
+			path: 'text',
+			pattern: '(a+)+'
+		});
+		expect(parsed.success).toBe(false);
+		if (!parsed.success) expect(parsed.error.issues[0]?.message).toMatch(/groups/);
+	});
+
+	it('refuses a history count of zero and an unknown hook', () => {
+		expect(
+			predicateExprSchema.safeParse({ kind: 'history-count', type: 'x', atLeast: 0 }).success
+		).toBe(false);
+		expect(predicateExprSchema.safeParse({ kind: 'hook-is', hook: 'mid-think' }).success).toBe(
+			false
+		);
 	});
 });

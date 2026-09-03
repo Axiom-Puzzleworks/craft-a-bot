@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { isLocalId } from '@craftabot/core';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
@@ -6,6 +7,7 @@
 	import { capabilitiesOf } from '$lib/bot-capabilities.js';
 	import { needsBattery, noBatteryMessage } from '$lib/brain.js';
 	import { createRegistry } from '$lib/packs.js';
+	import { SOCKET_LABELS } from '$lib/bricks.js';
 	import { createDndController } from '$lib/dnd/dnd-state.svelte.js';
 	import { agentsStore } from '$lib/state/agents.svelte.js';
 	import { benchStore } from '$lib/state/bench.svelte.js';
@@ -102,7 +104,11 @@
 	// (WP29, `23-MULTI-AGENT-DESIGN.md` §10 stage D) — the Kit's card picker
 	// stays exactly what it was before WP29 shipped any of them.
 	const goalCards = $derived(registry.listGoalCards().filter((card) => !card.coop));
-	const policyCards = $derived(registry.listPolicyCards());
+	// Authored cards (WP46) are offered only while the Workshop door is open — the `audience` gate, applied to content.
+	const policyCards = $derived(
+		registry.listPolicyCards().filter((card) => !isLocalId(card.id) || preferences.workshop)
+	);
+	const guardrailServices = $derived(registry.listGuardrailServices());
 
 	const cartridge = $derived(registry.getCartridge(capabilities.cartridgeId));
 	/**
@@ -251,6 +257,13 @@
 					{controller}
 					fittedIn={(slot) => benchStore.fittedIn(slot)}
 					onselect={selectSlot}
+					onfit={(kindId) => {
+						// A double-click is a drop without the drag: the same fit, cue, panel and announcement.
+						benchStore.fitBrick(kindId);
+						preferences.cue('snap');
+						selectSlot(slotOfKind(kindId));
+						announcement = `Fitted the ${benchStore.fittedIn(slotOfKind(kindId))?.name ?? 'brick'} to the ${SOCKET_LABELS[slotOfKind(kindId)]} socket.`;
+					}}
 				/>
 			</section>
 
@@ -258,6 +271,7 @@
 				<Baseplate
 					{controller}
 					fittedIn={(slot) => benchStore.fittedIn(slot)}
+					extraIn={(slot) => benchStore.extraIn(slot)}
 					{selected}
 					onselect={selectSlot}
 					onremove={(slot) => {
@@ -302,6 +316,7 @@
 						{senseChannels}
 						{worldActions}
 						{policyCards}
+						{guardrailServices}
 						onupdate={(patch) => selected && benchStore.updateBrick(selected, patch)}
 						onremove={() => {
 							if (selected) benchStore.removeBrick(selected);
@@ -436,7 +451,8 @@
 
 	.columns {
 		display: grid;
-		grid-template-columns: minmax(150px, 200px) minmax(0, 1fr) minmax(230px, 320px);
+		/* The tray column is wide enough for two wells across (PartsTray's compact grid, 2026-09-03). */
+		grid-template-columns: minmax(216px, 260px) minmax(0, 1fr) minmax(230px, 320px);
 		gap: var(--cab-space-4);
 		align-items: start;
 	}

@@ -1,7 +1,7 @@
-import type { PolicyCard, PredicateExpr } from '@craftabot/core';
+import type { EngineEvent, PolicyCard, PredicateExpr } from '@craftabot/core';
 import { describe, expect, it } from 'vitest';
 import { action, context, tool } from './test-context.js';
-import { compilePolicyCard, evaluatePredicate } from './policy-compiler.js';
+import { compilePolicyCard, evaluatePredicate, predicateContextFor } from './policy-compiler.js';
 
 /**
  * The policy-card compiler (`14-…` §4.6, WP22) — a card is data, compiled
@@ -214,5 +214,138 @@ describe('compilePolicyCard', () => {
 		expect(guardrail!.check(structuredClone(ctx))).toStrictEqual(
 			guardrail!.check(structuredClone(ctx))
 		);
+	});
+});
+
+describe('the v2 leaves (WP45)', () => {
+	const usage = { ticks: 0, inputTokens: 0, outputTokens: 0 };
+
+	it('argument-contains: a substring of a string, or a member of an array', () => {
+		const expr: PredicateExpr = { kind: 'argument-contains', path: 'text', value: '7734' };
+		expect(
+			evaluatePredicate(expr, { proposed: action('say', { text: 'the code is 7734!' }), usage })
+		).toBe(true);
+		expect(evaluatePredicate(expr, { proposed: action('say', { text: 'hello' }), usage })).toBe(
+			false
+		);
+		expect(
+			evaluatePredicate(expr, { proposed: action('say', { text: ['a', '7734'] }), usage })
+		).toBe(true);
+		expect(evaluatePredicate(expr, { proposed: action('say', { text: 7734 }), usage })).toBe(false);
+		expect(evaluatePredicate(expr, { usage })).toBe(false);
+	});
+
+	it('argument-matches: the bounded pattern against a string argument only', () => {
+		const expr: PredicateExpr = {
+			kind: 'argument-matches',
+			path: 'text',
+			pattern: '[0-9][0-9][0-9][0-9]'
+		};
+		expect(
+			evaluatePredicate(expr, { proposed: action('say', { text: 'code 7734 here' }), usage })
+		).toBe(true);
+		expect(evaluatePredicate(expr, { proposed: action('say', { text: 'code 77' }), usage })).toBe(
+			false
+		);
+		expect(evaluatePredicate(expr, { proposed: action('say', { text: 7734 }), usage })).toBe(false);
+	});
+
+	it('observation-contains: the current observation, absent means false', () => {
+		const expr: PredicateExpr = { kind: 'observation-contains', value: 'chest' };
+		expect(
+			evaluatePredicate(expr, {
+				usage,
+				observation: { channels: [], text: 'A toy chest sits here.' }
+			})
+		).toBe(true);
+		expect(
+			evaluatePredicate(expr, { usage, observation: { channels: [], text: 'Nothing.' } })
+		).toBe(false);
+		expect(evaluatePredicate(expr, { usage })).toBe(false);
+	});
+
+	it('world-predicate: the world answers, absent means false', () => {
+		const expr: PredicateExpr = { kind: 'world-predicate', predicateId: 'chest-open' };
+		const world = { test: (id: string) => id === 'chest-open', predicates: ['chest-open'] };
+		expect(evaluatePredicate(expr, { usage, world })).toBe(true);
+		expect(
+			evaluatePredicate({ kind: 'world-predicate', predicateId: 'other' }, { usage, world })
+		).toBe(false);
+		expect(evaluatePredicate(expr, { usage })).toBe(false);
+	});
+
+	it('history-count: events of a type, optionally by name', () => {
+		const performed = (name: string) =>
+			({
+				type: 'action.performed',
+				payload: { name, arguments: {}, result: { ok: true, narration: '', stateDiff: [] } }
+			}) as unknown as EngineEvent;
+		const history = [performed('say'), performed('move'), performed('say')];
+		expect(
+			evaluatePredicate(
+				{ kind: 'history-count', type: 'action.performed', name: 'say', atLeast: 2 },
+				{ usage, history }
+			)
+		).toBe(true);
+		expect(
+			evaluatePredicate(
+				{ kind: 'history-count', type: 'action.performed', name: 'say', atLeast: 3 },
+				{ usage, history }
+			)
+		).toBe(false);
+		expect(
+			evaluatePredicate(
+				{ kind: 'history-count', type: 'action.performed', atLeast: 3 },
+				{ usage, history }
+			)
+		).toBe(true);
+		expect(
+			evaluatePredicate({ kind: 'history-count', type: 'tool.executed', atLeast: 1 }, { usage })
+		).toBe(false);
+	});
+
+	it('hook-is: the hook being checked', () => {
+		expect(
+			evaluatePredicate({ kind: 'hook-is', hook: 'pre-act' }, { usage, hook: 'pre-act' })
+		).toBe(true);
+		expect(
+			evaluatePredicate({ kind: 'hook-is', hook: 'pre-act' }, { usage, hook: 'post-act' })
+		).toBe(false);
+		expect(evaluatePredicate({ kind: 'hook-is', hook: 'pre-act' }, { usage })).toBe(false);
+	});
+
+	it('predicateContextFor hands a rule the whole guardrail context', () => {
+		const ctx = {
+			...context({ hook: 'pre-act', proposed: action('say', { text: 'hi' }) }),
+			observation: { channels: [], text: 'A chest.' }
+		};
+		const evalCtx = predicateContextFor({
+			...ctx,
+			world: { test: () => true, predicates: ['x'] }
+		});
+		expect(evalCtx.hook).toBe('pre-act');
+		expect(evalCtx.observation?.text).toBe('A chest.');
+		expect(evalCtx.world?.test('x')).toBe(true);
+		expect(evalCtx.history).toBe(ctx.history);
+		// A compiled rule sees it: a card on the world's own predicate fires.
+		const card: PolicyCard = {
+			id: 'p/world',
+			title: 'World',
+			schemaVersion: 1,
+			rules: [
+				{
+					hook: 'pre-act',
+					when: { kind: 'world-predicate', predicateId: 'x' },
+					then: 'stop-run',
+					reason: 'the world says so'
+				}
+			]
+		};
+		const [rule] = compilePolicyCard(card);
+		expect(rule?.check({ ...ctx, world: { test: () => true, predicates: ['x'] } })).toMatchObject({
+			allow: false,
+			disposition: 'stop-run'
+		});
+		expect(rule?.check(ctx)).toEqual({ allow: true });
 	});
 });

@@ -1,10 +1,13 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
-	import type { RunRecord } from '@craftabot/core';
+	import type { GroupRunRecord, RunRecord } from '@craftabot/core';
+	import { createBrowserKeyVault } from '$lib/state/keys.js';
+	import { bundleForGroup, bundleForRun, exportForGroup } from '$lib/workshop/bundles.js';
 	import { agentsStore } from '$lib/state/agents.svelte.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import { otelTraceFor } from '$lib/workshop/otel-export.js';
+	import { sinksStore } from '$lib/state/sinks.svelte.js';
 
 	/**
 	 * **The Audit Centre** (`17-…` §2, Phase F): "traces, reports, cards, OTel
@@ -25,6 +28,9 @@
 	let selectedId = $state('');
 	let run = $state<RunRecord | undefined>(undefined);
 	let loaded = $state(false);
+	// Group episodes (WP48, `36-…` §4.4): picked as `group:<id>`, exported as one bundle.
+	let groups = $state<GroupRunRecord[]>([]);
+	let group = $state<GroupRunRecord | undefined>(undefined);
 
 	const queryRunId = $derived(page.url.searchParams.get('run') ?? '');
 
@@ -43,16 +49,67 @@
 	async function loadRuns(): Promise<void> {
 		const storage = await appStorage();
 		runs = await storage.listRuns();
+		groups = await storage.listGroupRuns();
 		loaded = true;
 	}
 
 	async function loadSelected(id: string): Promise<void> {
 		if (!id) {
 			run = undefined;
+			group = undefined;
 			return;
 		}
 		const storage = await appStorage();
+		if (id.startsWith('group:')) {
+			run = undefined;
+			group = await storage.getGroupRun(id.slice('group:'.length));
+			return;
+		}
+		group = undefined;
 		run = await storage.getRun(id);
+	}
+
+	async function downloadBundle(): Promise<void> {
+		const storage = await appStorage();
+		const secrets = createBrowserKeyVault().secrets();
+		if (group) {
+			const bundle = await bundleForGroup(storage, $state.snapshot(group), secrets);
+			download(
+				JSON.stringify(bundle, null, '\t'),
+				`${slug(group.goalCardId)}.craftabot-bundle.json`
+			);
+		} else if (run) {
+			const bundle = await bundleForRun(storage, $state.snapshot(run), secrets);
+			download(JSON.stringify(bundle, null, '\t'), `${slug(run.agentName)}.craftabot-bundle.json`);
+		}
+	}
+
+	async function sendGroupTo(sinkId: string): Promise<void> {
+		if (!group) return;
+		const storage = await appStorage();
+		const result = await sinksStore.send(
+			sinkId,
+			await exportForGroup(storage, $state.snapshot(group))
+		);
+		sendNote = {
+			...sendNote,
+			[sinkId]: result.ok ? `Sent ${result.sent} spans.` : `Could not send: ${result.error}`
+		};
+	}
+
+	let sendNote = $state<Record<string, string>>({});
+
+	// "Send to…" (WP47, `35-…` §4.5): the same trace the download builds, to a configured sink.
+	async function sendTo(sinkId: string): Promise<void> {
+		if (!run) return;
+		const storage = await appStorage();
+		const events = (await storage.getEvents(run.id)).map((row) => row.event);
+		const evaluations = await storage.listEvaluations(run.id);
+		const result = await sinksStore.send(sinkId, { run, events, evaluations });
+		sendNote = {
+			...sendNote,
+			[sinkId]: result.ok ? `Sent ${result.sent} spans.` : `Could not send: ${result.error}`
+		};
 	}
 
 	function download(json: string, filename: string): void {
@@ -103,18 +160,71 @@
 						>{candidate.agentName} — {candidate.goalCardId} — {when(candidate.startedAt)}</option
 					>
 				{/each}
+				{#each groups as candidate (candidate.id)}
+					<option value={`group:${candidate.id}`} data-testid="export-group-option-{candidate.id}"
+						>Episode — {candidate.goalCardId} — {candidate.memberRunIds.length} robots — {when(
+							candidate.startedAt
+						)}</option
+					>
+				{/each}
 			</select>
 		</label>
 	</header>
 
 	{#if !loaded}
 		<p class="status">Reading the run store…</p>
-	{:else if runs.length === 0}
+	{:else if runs.length === 0 && groups.length === 0}
 		<p class="status" data-testid="export-empty">
 			No runs stored yet. Play a run in the Kit and it will appear here.
 		</p>
 	{:else if !selectedId}
 		<p class="status" data-testid="export-unselected">Pick a run to build its audit bundle.</p>
+	{:else if group}
+		<section class="run-head" data-testid="export-group-head">
+			<h2>Episode — {group.goalCardId}</h2>
+			<span class="chip" data-outcome={group.outcome}>{group.outcome}</span>
+			<dl>
+				<dt>Robots</dt>
+				<dd>{group.memberRunIds.length}</dd>
+				<dt>Rounds</dt>
+				<dd>{group.rounds}</dd>
+			</dl>
+		</section>
+		<section class="bundle" aria-labelledby="group-bundle-h">
+			<h3 id="group-bundle-h">Trace bundle</h3>
+			<ul class="items">
+				<li>
+					<div>
+						<strong>Bundle</strong>
+						<p>
+							Every robot's own trace, the merged stream, the evaluations — and a digest over every
+							digest inside (<code>craftabot-bundle</code> v1).
+						</p>
+					</div>
+					<button type="button" data-testid="export-download-bundle" onclick={downloadBundle}
+						>Download bundle</button
+					>
+				</li>
+				{#each sinksStore.configurations as entry (entry.sinkId)}
+					<li>
+						<div>
+							<strong>Send to {sinksStore.sinkById(entry.sinkId)?.name ?? entry.sinkId}</strong>
+							<p>
+								The episode as one trace, to a sink configured on the Sinks page.
+								{#if sendNote[entry.sinkId]}<span data-testid="export-sent-{entry.sinkId}"
+										>{sendNote[entry.sinkId]}</span
+									>{/if}
+							</p>
+						</div>
+						<button
+							type="button"
+							data-testid="export-send-group-{entry.sinkId}"
+							onclick={() => sendGroupTo(entry.sinkId)}>Send to sink</button
+						>
+					</li>
+				{/each}
+			</ul>
+		</section>
 	{:else if !run}
 		<p class="status" data-testid="export-missing-run">That run is no longer in the store.</p>
 	{:else}
@@ -153,6 +263,36 @@
 						>Download OTel trace</button
 					>
 				</li>
+				<li>
+					<div>
+						<strong>Trace bundle</strong>
+						<p>
+							This run's trace file inside a <code>craftabot-bundle</code> — the same wrapper an episode
+							gets, with a digest over the whole.
+						</p>
+					</div>
+					<button type="button" data-testid="export-download-bundle" onclick={downloadBundle}
+						>Download bundle</button
+					>
+				</li>
+				{#each sinksStore.configurations as entry (entry.sinkId)}
+					<li>
+						<div>
+							<strong>Send to {sinksStore.sinkById(entry.sinkId)?.name ?? entry.sinkId}</strong>
+							<p>
+								The same trace, to a sink configured on the Sinks page.
+								{#if sendNote[entry.sinkId]}<span data-testid="export-sent-{entry.sinkId}"
+										>{sendNote[entry.sinkId]}</span
+									>{/if}
+							</p>
+						</div>
+						<button
+							type="button"
+							data-testid="export-send-{entry.sinkId}"
+							onclick={() => sendTo(entry.sinkId)}>Send to sink</button
+						>
+					</li>
+				{/each}
 				<li>
 					<div>
 						<strong>Agent Card</strong>

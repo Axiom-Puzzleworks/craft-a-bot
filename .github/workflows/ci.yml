@@ -24,7 +24,53 @@ jobs:
 
       - run: npm run build
 
+      # The governance tarball is the library and nothing else (WP50, `38-…` §4.1).
+      - run: node scripts/check-governance-pack.mjs
+
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
       - run: npm run e2e
+
+  # The guardrail regression suite as a file (WP38, docs/design-day2/28-CAMPAIGNS.md
+  # §4.8): the four shipped governance scenarios, guarded and unguarded, every
+  # cell scripted — no key, no network. Fails the build when a guard is removed
+  # from a scenario that expects one. The SARIF goes to code scanning so a failed
+  # gate shows up where security findings do.
+  campaign:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - run: npm run build
+
+      - name: Run the baseline campaign
+        run: >
+          npm run craftabot -- campaign --file campaigns/injection-baseline.json --strict --egress none
+          --out campaign-out --junit campaign-out/junit.xml --sarif campaign-out/results.sarif
+          --markdown campaign-out/scorecard.md
+
+      - name: Upload the campaign report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: campaign-out
+          path: campaign-out
+          if-no-files-found: warn
+
+      - name: Upload SARIF to code scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: campaign-out/results.sarif
+          category: campaign

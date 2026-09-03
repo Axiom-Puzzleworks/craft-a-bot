@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { checkCartridge } from './checks/cartridge.js';
+import type { Evaluator, GuardrailService } from '@craftabot/core';
+import { checkEvaluator } from './checks/evaluator.js';
 import { checkGuardrail } from './checks/guardrail.js';
+import { checkGuardrailService, hostMatches } from './checks/guardrail-service.js';
 import { checkManifest } from './checks/manifest.js';
 import { checkTool } from './checks/tool.js';
 import { checkWorld } from './checks/world.js';
@@ -8,7 +11,10 @@ import { describeConformance } from './describe-conformance.js';
 import {
 	alwaysAllowGuardrail,
 	echoTool,
+	exampleEvaluationInput,
+	exampleEvaluator,
 	exampleFixture,
+	exampleGuardService,
 	exampleGuardrailContext,
 	exampleWorld
 } from './fixtures/example-pack.js';
@@ -16,6 +22,13 @@ import {
 	badVerdictGuardrail,
 	brokenGuardrailContext,
 	brokenPack,
+	coinFlipEvaluator,
+	fabulistEvaluator,
+	homelessJudge,
+	fussyService,
+	leakingService,
+	malformedService,
+	throwingService,
 	brokenWorld,
 	collidingCompanionPack,
 	dishonestSchemaTool,
@@ -150,6 +163,85 @@ describe('checkGuardrail against broken guardrails', () => {
 	it('passes a well-formed, pure guardrail', async () => {
 		const issues = await checkGuardrail(alwaysAllowGuardrail, exampleGuardrailContext());
 		expect(issues).toEqual([]);
+	});
+});
+
+describe('checkGuardrailService against broken services (29-… §4.7)', () => {
+	const fixture = {
+		config: {},
+		requests: [{ hook: 'pre-act' as const, text: 'hi', envelope: { agentId: 'a', tick: 1 } }],
+		plantedSecret: 'planted-secret-xyz'
+	};
+	const checks = async (service: GuardrailService, config: unknown = {}) => [
+		...new Set((await checkGuardrailService(service, { ...fixture, config })).map((i) => i.check))
+	];
+
+	it('reports a malformed service and stops there', async () => {
+		expect(await checks(malformedService)).toEqual(['guardrailService.well-formed']);
+	});
+
+	it('reports a service that throws offline or live', async () => {
+		expect(await checks(throwingService)).toEqual([
+			'guardrailService.offline-answers',
+			'guardrailService.create-never-throws'
+		]);
+	});
+
+	it('reports a leaked credential, a repeated label and an undeclared host', async () => {
+		expect(await checks(leakingService)).toEqual([
+			'guardrailService.offline-answers',
+			'guardrailService.no-secret-leaks',
+			'guardrailService.egress-declared'
+		]);
+	});
+
+	it('reports a config the service refuses, and an error of unknown kind', async () => {
+		expect(await checks(fussyService)).toEqual(['guardrailService.config-parses']);
+		expect(await checks(fussyService, { mustHave: 'x' })).toEqual([
+			'guardrailService.offline-answers'
+		]);
+	});
+
+	it('passes the example service', async () => {
+		const serviceFixture = exampleFixture.guardrailServices![exampleGuardService.id]!;
+		expect(await checkGuardrailService(exampleGuardService, serviceFixture)).toEqual([]);
+	});
+
+	it('matches egress host patterns exactly or with one wildcard label', () => {
+		expect(hostMatches('guard.example.test', 'guard.example.test')).toBe(true);
+		expect(
+			hostMatches('modelarmor.*.rep.googleapis.com', 'modelarmor.europe-west2.rep.googleapis.com')
+		).toBe(true);
+		expect(hostMatches('modelarmor.*.rep.googleapis.com', 'modelarmor.rep.googleapis.com')).toBe(
+			false
+		);
+		expect(hostMatches('guard.example.test', 'evil.example.test')).toBe(false);
+	});
+});
+
+describe('checkEvaluator against broken evaluators (31-… §4.4)', () => {
+	const fixture = { inputs: [exampleEvaluationInput()], plantedSecret: 'planted-secret-xyz' };
+	const checks = async (evaluator: Evaluator) => [
+		...new Set((await checkEvaluator(evaluator, fixture)).map((issue) => issue.check))
+	];
+
+	it('reports a deterministic evaluator that is not', async () => {
+		expect(await checks(coinFlipEvaluator)).toEqual(['evaluator.deterministic']);
+	});
+
+	it('reports made-up evidence and a leaked credential', async () => {
+		expect(await checks(fabulistEvaluator)).toEqual([
+			'evaluator.evidence-real',
+			'evaluator.no-secret-leaks'
+		]);
+	});
+
+	it('reports a model evaluator with no offline form', async () => {
+		expect(await checks(homelessJudge)).toEqual(['evaluator.offline-present']);
+	});
+
+	it('passes the example evaluator', async () => {
+		expect(await checkEvaluator(exampleEvaluator, fixture)).toEqual([]);
 	});
 });
 

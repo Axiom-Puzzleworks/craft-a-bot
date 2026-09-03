@@ -1,5 +1,13 @@
 import type { EngineEvent } from '@craftabot/core';
+import { isFailure } from '@craftabot/governance/reports';
 import { laneOf, type TraceLane } from '$lib/trace-style.js';
+
+/**
+ * "What went wrong" moved to `@craftabot/governance/reports` in WP36 stage B —
+ * the incident log and the safety case derive from it, and a headless host
+ * has to answer the same question. Still exported from here for one release.
+ */
+export { isFailure };
 
 /**
  * **The step timeline's spine** (`17-…` §3, centre region).
@@ -36,23 +44,6 @@ export interface TimelineFilter {
 	text?: string;
 	onlyFailures?: boolean;
 	onlyGuardrails?: boolean;
-}
-
-/**
- * What "went wrong" means, in one place.
- *
- * Deliberately broader than `error`: a refused action and a tripped guardrail
- * are both things a practitioner scanning for trouble wants the filter to
- * catch, and neither is an error in the engine's sense. A guardrail trip is
- * *the system working* — but it is still the row you were looking for.
- */
-export function isFailure(event: EngineEvent): boolean {
-	if (event.type === 'error') return true;
-	if (event.type === 'guardrail.tripped') return true;
-	if (event.type === 'action.performed') return !event.payload.result.ok;
-	if (event.type === 'approval.resolved') return !event.payload.approved;
-	if (event.type === 'run.finished') return event.payload.outcome !== 'SUCCESS';
-	return false;
 }
 
 export function buildTimeline(

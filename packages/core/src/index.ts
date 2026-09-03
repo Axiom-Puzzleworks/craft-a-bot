@@ -26,6 +26,68 @@ export type {
 	ProviderFactory,
 	ToolSchema
 } from './types/provider.js';
+export {
+	CONTENT_SCHEMA_VERSION,
+	CONTENT_SEGMENT,
+	LOCAL_PACK_ID,
+	contentKindSchema,
+	contentRecordFor,
+	contentRecordSchema,
+	isLocalId,
+	localContentId,
+	localPackFrom,
+	parseContentRecord,
+	safeParseContentRecord,
+	slugOf,
+	type ContentKind,
+	type ContentRecord
+} from './schemas/content.js';
+export {
+	SCENARIO_SCHEMA_VERSION,
+	injectionSchema,
+	parseScenarioDefinition,
+	safeParseScenarioDefinition,
+	scenarioDefinitionSchema,
+	scenarioExpectationSchema,
+	scenarioPackFileSchema,
+	type Injection,
+	type ScenarioDefinition,
+	type ScenarioDefinitionInput,
+	type ScenarioPackFile
+} from './schemas/scenario.js';
+export {
+	describeEvaluatorProblems,
+	type EvaluationEvidence,
+	type EvaluationInput,
+	type EvaluationResult,
+	type EvaluationVerdict,
+	type Evaluator,
+	type EvaluatorDeps
+} from './types/evaluator.js';
+export {
+	EgressRefusedError,
+	createEgressGuard,
+	hostMatches,
+	hostOf,
+	type EgressGuard,
+	type EgressMode
+} from './egress.js';
+export {
+	describeGuardrailServiceProblems,
+	egressDeclarationSchema,
+	findingCategorySchema,
+	findingConfidenceSchema,
+	type EgressDeclaration,
+	type FindingCategory,
+	type FindingConfidence,
+	type GuardrailService,
+	type GuardrailServiceClient,
+	type ScreenFinding,
+	type ScreenReading,
+	type ScreenRecord,
+	type ScreenRequest,
+	type ScreenResult
+} from './types/guardrail-service.js';
 export type {
 	ExternalCallRecord,
 	Guardrail,
@@ -140,6 +202,9 @@ export {
 export {
 	POLICY_CARD_SCHEMA_VERSION,
 	parsePolicyCard,
+	SAFE_PATTERN_MAX_LENGTH,
+	describeUnsafePattern,
+	isSafePattern,
 	policyCardSchema,
 	policyDispositionSchema,
 	policyRuleSchema,
@@ -167,6 +232,8 @@ export {
 	assistantToolCallSchema,
 	chatMessageSchema,
 	chatResponseSchema,
+	externalCallRecordSchema,
+	externalOutcomeKindSchema,
 	guardrailHookSchema,
 	guardrailVerdictSchema,
 	observationSchema,
@@ -174,6 +241,7 @@ export {
 	runOutcomeSchema,
 	usageSchema,
 	type AssistantToolCall,
+	type ExternalOutcomeKind,
 	type ProposedStep,
 	type TokenUsage
 } from './schemas/shared.js';
@@ -191,18 +259,62 @@ export {
 	migrateAgentRecord,
 	parseAgentRecord,
 	safeParseAgentRecord,
+	safeParseRunSummary,
+	safeParseEvaluationRecord,
+	safeParseStoredCampaignReport,
 	safeParseStoredEvent,
+	runSummaryFindingSchema,
+	runSummarySchema,
+	evaluationRecordSchema,
+	evaluationResultSchema,
+	storedCampaignReportSchema,
 	storedEventSchema,
 	type AgentRecord,
 	type GroupRunRecord,
+	type RunSummary,
+	type RunSummaryFinding,
+	type EvaluationRecord,
+	type EvaluationResultRecord,
+	type StoredCampaignReport,
 	type StoredEvent
 } from './schemas/records.js';
+
+// The persistence seam (07-DATA-MODEL-PERSISTENCE.md §8; WP36 stage A,
+// 26-TARGET-DESIGN-V3.md §6.7): the contract every host stores runs through,
+// plus the in-memory implementation. IndexedDB stays in the workbench.
+export {
+	DEFAULT_RUN_CAP,
+	byNewestCreated,
+	byNewestFirst,
+	emptyQuarantine,
+	selectRunsToEvict,
+	type QuarantineReport,
+	type Storage
+} from './storage/storage.js';
+export { createMemoryStorage, type MemoryStorage } from './storage/memory.js';
+
+// The one trace→state fold every viewer shares, and a bot read as capabilities
+// (WP36 stage B, 26-TARGET-DESIGN-V3.md §6.14) — pure, Svelte-free, and what a
+// headless host needs to replay a trace or assemble a safety case.
+export {
+	applyEvent,
+	emptyProjection,
+	projectThrough,
+	type PendingApproval,
+	type RunProjection
+} from './projection/run-projection.js';
+export {
+	projectGroupThrough,
+	type GroupReplayProjection
+} from './projection/group-replay-projection.js';
+export { capabilitiesOf, offers, type BotCapabilities } from './capabilities.js';
 
 // Persistence helpers (07-DATA-MODEL-PERSISTENCE.md §4–5)
 export {
 	brickKindsFor,
 	buildKitFile,
 	importKitFile,
+	localContentReferencedBy,
 	type BuildKitFileOptions,
 	type ImportKitFileOptions,
 	type ImportProblem,
@@ -240,6 +352,7 @@ export {
 export { createPackRegistry, type PackRegistry } from './pack-registry.js';
 /** The open brick contract (`14-…` §2, WP14). */
 export {
+	SLOT_CAPACITY,
 	SLOT_IDS,
 	type BrickConfigMigration,
 	type BrickConfigMigrationTable,
@@ -335,3 +448,38 @@ export {
 	runGuardrailChain,
 	type ChainOutcome
 } from './session/guardrail-chain.js';
+/** The trace sink contract (`35-TELEMETRY.md` §4.1, WP47) — implemented by `@craftabot/telemetry`. */
+export {
+	describeSinkProblems,
+	type CreateSinkOptions,
+	type SinkError,
+	type SinkInstance,
+	type SinkResult,
+	type SinkStatus,
+	type TraceExport,
+	type TraceSink
+} from './types/trace-sink.js';
+/** The trace bundle (`36-BUNDLE-AND-GROUPS.md` §4.1, WP48): member traces, the merged stream, a digest over every digest. */
+export {
+	BUNDLE_FORMAT_VERSION,
+	computeBundleDigest,
+	parseTraceBundle,
+	traceBundleSchema,
+	type TraceBundle
+} from './schemas/trace-bundle.js';
+export {
+	buildTraceBundle,
+	verifyBundleDigest,
+	type BuildTraceBundleOptions
+} from './persistence/bundle.js';
+
+/** Semver ranges, evaluated (WP52, `40-DEBTS.md` §4.2; `12-…` D13). */
+export {
+	caretRangeFor,
+	caretRangesFor,
+	compareVersions,
+	parseVersion,
+	satisfiesRange,
+	type Version
+} from './semver.js';
+export { CRAFTABOT_CORE_VERSION } from './version.js';

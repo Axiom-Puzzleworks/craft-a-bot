@@ -33,13 +33,18 @@
 		"@craftabot/evals": "*",
 		"@craftabot/governance": "*",
 		"@craftabot/pack-anthropic": "*",
+		"@craftabot/pack-azure-content-safety": "*",
+		"@craftabot/pack-pdp-opa": "*",
+		"@craftabot/pack-evaluators": "*",
 		"@craftabot/pack-geap": "*",
 		"@craftabot/pack-gemini": "*",
+		"@craftabot/pack-guard-local": "*",
 		"@craftabot/pack-ollama": "*",
 		"@craftabot/pack-openai": "*",
 		"@craftabot/pack-personas": "*",
 		"@craftabot/pack-starter": "*",
 		"@craftabot/pack-workshop": "*",
+		"@craftabot/telemetry": "*",
 		"idb": "^8.0.3"
 	}
 }

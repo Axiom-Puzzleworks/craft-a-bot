@@ -222,15 +222,15 @@ describe('a Watchbot on a running bot', () => {
 
 describe('the Watchbot beside the Safety Brick', () => {
 	/**
-	 * Both live in the chest socket, and V1's one-per-socket rule (`14-…` §2.3)
-	 * means fitting one excludes the other. That is a *product* constraint rather
-	 * than a contract one — the spec format holds two happily, and `14-…` §5.3
-	 * envisages a second chest socket — so what is asserted here is that the
-	 * engine's answer is the honest one: this is a build problem, reported, not a
-	 * crash and not a silent drop.
+	 * Both live in the chest socket. V1's one-per-socket rule (`14-…` §2.3)
+	 * once made fitting one exclude the other; WP40 (`26-…` §6.13) gave the
+	 * socket a capacity of four instead of the second chest socket `14-…` §5.3
+	 * envisaged. So what is asserted now is the honest answer the other way:
+	 * the pair validates, and both chains run — the floor's rules first, the
+	 * Watchbot's after, because that is the order they were fitted in.
 	 */
-	it('is refused as a second brick in one socket, and says so', () => {
-		const spec = bot([
+	const pair = () =>
+		bot([
 			BRAIN,
 			WHEELS,
 			{
@@ -242,7 +242,22 @@ describe('the Watchbot beside the Safety Brick', () => {
 			watchbot(['monitor/all-talk'])
 		]);
 
-		const problems = validateSpec(spec, registry());
-		expect(problems.some((problem) => problem.code === 'slot-already-filled')).toBe(true);
+	it('is accepted as a second brick in the one socket that holds a stack', () => {
+		const problems = validateSpec(pair(), registry());
+		expect(problems.some((problem) => problem.code === 'slot-already-filled')).toBe(false);
+	});
+
+	it('runs beside it, after it', async () => {
+		const events = await run(
+			pair(),
+			obedient([{ say: 'Off I go.', call: 'move', args: { direction: 'east' } }])
+		);
+		const ids = events
+			.filter((event) => event.type === 'guardrail.checked')
+			.map((event) => (event.type === 'guardrail.checked' ? event.payload.guardrailId : ''));
+		expect(ids.some((id) => id.startsWith('safety/'))).toBe(true);
+		expect(ids.some((id) => id.startsWith('monitor/'))).toBe(true);
+		const firstMonitor = ids.findIndex((id) => id.startsWith('monitor/'));
+		expect(ids.slice(0, firstMonitor).some((id) => id.startsWith('safety/'))).toBe(true);
 	});
 });

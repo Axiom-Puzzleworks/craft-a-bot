@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { OLLAMA_BASE_URL, isLoopbackEndpoint } from '@craftabot/pack-ollama';
 import type { WebStorageLike } from './keys.js';
 
 /**
@@ -35,6 +36,32 @@ export const settingsSchema = z.object({
 	 */
 	workshop: z.boolean().default(false),
 	/**
+	 * How many runs the scrapbook keeps before tidying the oldest away
+	 * (WP36 stage C, `26-…` §6.14). `07-…` §2's cap of 50 was a constant; a
+	 * practitioner running an experiment corpus needs more, and the store's
+	 * own `DEFAULT_RUN_CAP` stays the default so a child's scrapbook behaves
+	 * exactly as before. Set from the Workshop's own preferences; pinned and
+	 * grouped runs never count against it either way.
+	 */
+	runCap: z.number().int().min(5).max(500).default(50),
+	/**
+	 * The Run Lab's breakpoints (WP49, `37-…` §4.3): which events pause a
+	 * live play-mode run. None by default — the Kit's runs never stop on
+	 * their own; a practitioner arms these in the Workshop, and the Playroom
+	 * honours them because they are a preference, not a screen's state.
+	 */
+	breakpoints: z.array(z.enum(['guardrail-trip', 'tool-call', 'action-failure'])).default([]),
+	/**
+	 * Where Ollama listens (WP52, `40-DEBTS.md` §4.3; `06-…` §5's "revisit
+	 * for Ollama later with localhost-only validation"). Loopback only —
+	 * `localhost` or `127.0.0.1` — so a stored value that points anywhere
+	 * else falls back to the default like any other unreadable preference.
+	 */
+	ollamaEndpoint: z
+		.string()
+		.refine((value) => isLoopbackEndpoint(value), { message: 'Only this computer is allowed.' })
+		.default(OLLAMA_BASE_URL),
+	/**
 	 * Highest instruction-leaflet chapter completed, 0 = not started.
 	 *
 	 * No upper bound on purpose (`WP30 stage D`, after `.max(6)` was found to
@@ -58,6 +85,12 @@ export const settingsSchema = z.object({
 	schemaVersion: z.literal(1).default(1)
 });
 export type Settings = z.infer<typeof settingsSchema>;
+export type BreakpointKind = Settings['breakpoints'][number];
+export const BREAKPOINT_KINDS: readonly BreakpointKind[] = [
+	'guardrail-trip',
+	'tool-call',
+	'action-failure'
+];
 
 export const DEFAULT_SETTINGS: Settings = settingsSchema.parse({});
 

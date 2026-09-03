@@ -18,18 +18,25 @@
 
 ## 2. Storage map (V1)
 
+> **Amended 2026-09-02 (WP41, `26-…` §6.11):** a `cab.keys.v1` entry is either the bare secret string it always was or `{ secret, expiresAt? }` for a timed credential (an OAuth token's epoch-ms expiry). The bare shape is read unchanged and is still what an untimed key is written as; only a timed entry takes the object form. `KeyVault.get` returns the secret either way; `KeyVault.expiry(id)` returns the expiry; `secrets()` sweeps both shapes, so the key-leak tests cover a timed entry exactly as before.
+
 | Store | Mechanism | Contents |
 |---|---|---|
 | `cab.agents` | IndexedDB object store | `AgentRecord` (the `AgentSpec` + shelf metadata) |
 | `cab.runs` | IndexedDB object store | `RunRecord` (run summary) |
 | `cab.groupRuns` | IndexedDB object store | `GroupRunRecord` (a multi-agent episode's own summary — WP29) |
 | `cab.events` | IndexedDB object store (indexed by `runId`, `seq`) | Trace events, append-only — a group episode's merged stream stores here too, keyed by its own `groupRunId` |
+| `cab.runSummaries` | IndexedDB object store (keyed by `runId`, `DATABASE_VERSION` 3) | `RunSummary` — a finished run's folded facts (WP36 stage C); a cache of the trace, never authored; gone with its run |
+| `cab.campaigns` | IndexedDB object store (keyed by `id`, `DATABASE_VERSION` 4) | `StoredCampaignReport` — a campaign report's envelope with the report opaque inside (WP38 stage D, `28-…` §4.9); outside the run cap; the harness keeps the same rows at `campaigns/<id>.json` |
+| `cab.evaluations` | IndexedDB object store (keyed by `id`, indexed by `runId`, `DATABASE_VERSION` 5) | `EvaluationRecord` — one evaluator's verdict over one run (WP43, `31-…` §4.1); deleted with its run; the harness keeps the same rows at `runs/<runId>/evaluations.jsonl` |
 | `cab.settings` | `localStorage` (`cab.settings.v1`) | Preferences (sound, motion, speed), tutorial progress, badges |
 | `cab.keys` | `localStorage` (`cab.keys.v1`) | `{ [providerId]: apiKey }` — see key rules |
 
 IndexedDB via the `idb` wrapper; one database `craftabot`, versioned migrations from day one (`upgrade(db, oldVersion)` switch — even v1 ships as migration 1, so the pattern exists before it's needed).
 
 Retention: traces are big; default cap 50 stored runs (LRU eviction with a friendly notice); "keep this run" pin exempts a run from eviction.
+
+> **Amended 2026-09-02 (WP36 stage C):** the cap is a preference now — `settings.runCap` in `cab.settings.v1`, 5–500, default 50, offered only while the Workshop door is open — and both Play routes pass it to `evictOldRuns`. A row written before the field existed reads as 50. Grouped runs stay outside the cap (WP31's rule, unchanged).
 
 ## 3. Entities
 
@@ -155,3 +162,5 @@ Conflict policy for future sync: last-write-wins on `updatedAt` per whole entity
 - IndexedDB unavailable (private browsing, corp lockdown): app runs fully in-memory; a shelf banner explains nothing will survive a reload; export buttons become the hero path.
 - Quota pressure: on write failure, evict unpinned traces oldest-first, retry once, then surface the storage notice (`03-UI-UX-DESIGN.md` §9).
 - All persistence behind a thin `Storage` interface in the app (`lib/state/storage.ts`) so tests run against an in-memory implementation and the future Supabase adapter has a seam.
+
+> **Amended 2026-09-02 (WP36 stage A, `26-TARGET-DESIGN-V3.md` §6.7):** the `Storage` interface, its helpers (`DEFAULT_RUN_CAP`, `selectRunsToEvict`, `byNewestFirst`, `emptyQuarantine`) and `createMemoryStorage` now live in `@craftabot/core` (`packages/core/src/storage/`), exported from the main barrel; the conformance suite every implementation must pass, `describeStorageContract`, and its fixtures live on `@craftabot/core/testing`. The reason is the one this bullet already gives — a seam — drawn one layer further out: a headless host (`27-DAY3-ROADMAP.md` WP37) has to store runs against the same contract the browser does. The IndexedDB implementation stays in the app, because IndexedDB is a browser API (hard rule 1); `apps/workbench/src/lib/state/storage*.ts` keep the old import paths alive as re-exports for one release.

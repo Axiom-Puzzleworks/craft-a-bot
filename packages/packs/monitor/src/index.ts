@@ -1,6 +1,13 @@
 import { z } from 'zod';
 import type { BrickKindDefinition, PackManifest } from '@craftabot/core';
 import { MONITOR_RULE_IDS, MONITOR_RULE_LABELS, isMonitorRule, rulesFor } from './rules.js';
+export {
+	GROUP_CIRCUIT_BREAKER_ID,
+	createGroupCircuitBreaker,
+	createGroupWatchbot,
+	type GroupWatchbot,
+	type GroupWatchbotOptions
+} from './rules.js';
 
 /**
  * **`@craftabot/pack-monitor` — the Watchbot** (`14-…` §5.3).

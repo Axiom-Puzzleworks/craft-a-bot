@@ -1,0 +1,895 @@
+import type { EgressMode, PackManifest, PackRegistry, StoredCampaignReport } from '@craftabot/core';
+import { injectionSchema } from '@craftabot/core';
+import starterPack from '@craftabot/pack-starter';
+import { z } from 'zod';
+import {
+	assertionCardSchema,
+	fittedBrickSchema,
+	kitFileSchema,
+	migrateAgentSpec,
+	runOutcomeSchema,
+	type AgentSpecV2,
+	createPackRegistry,
+	type EngineEvent,
+	type Evaluator,
+	type FittedBrick,
+	type LLMProvider,
+	type RunOutcome
+} from '@craftabot/core';
+import {
+	adversaryPlanFor,
+	buildSpec,
+	planFor,
+	runToCompletion,
+	type Plan,
+	type SpecOverrides
+} from '@craftabot/pack-starter/testing';
+import { evaluateAssertion } from './assertions.js';
+import { evaluationInputFor, resolveEvaluator } from './evaluators.js';
+import { injectedWorld, registryForScenario } from './scenarios.js';
+import {
+	DEFAULT_NOISE,
+	scriptedAdversary,
+	scriptedNoisy,
+	scriptedOptimal,
+	type NoiseRates
+} from './brains.js';
+import { scoreRun } from './metrics.js';
+import { evalTierSchema, runMetricsSchema, type EvalTier } from './report.js';
+
+/**
+ * **Campaigns** (WP38, `28-CAMPAIGNS.md`): `MatrixSpec` grown two axes — the
+ * *scenario* (a card and the bricks it needs, adversarial ones included) and
+ * the *guard* (the defence fitted against it) — and given *gates*, rules over
+ * the resulting cells that pass or fail. A campaign is a file; running one
+ * produces a report that is a file; a pipeline can fail on the report.
+ *
+ * Deliberately narrow where the target design (`26-…` §6.9) names contracts
+ * that do not exist yet: gates are over outcomes, metrics and the assertion
+ * cards the campaign carries inline (evaluators are WP43); a scenario is a
+ * goal card plus fitted bricks (the scenario contract is WP44). Where a field
+ * cannot be honoured today it is absent, not present and ignored.
+ */
+
+export const CAMPAIGN_SCHEMA_VERSION = 1;
+export const CAMPAIGN_REPORT_SCHEMA_VERSION = 1;
+
+const memoryOverrideSchema = z.object({
+	windowSize: z.union([z.literal(3), z.literal(10), z.literal(30)]),
+	notebook: z.boolean(),
+	strategy: z.enum(['window', 'transcript']).optional()
+});
+const safetyOverrideSchema = z.object({
+	maxTicks: z.number().int().positive(),
+	blockedActions: z.array(z.string()),
+	approvalMode: z.boolean(),
+	repeatLimit: z.number().int().optional(),
+	policyCards: z.array(z.string()).optional()
+});
+
+/** `SpecOverrides` from the starter pack's harness, as data — minus the card and tools a scenario decides. */
+export const specOverridesSchema = z.object({
+	id: z.string().optional(),
+	name: z.string().optional(),
+	senses: z.array(z.string()).optional(),
+	actions: z.array(z.string()).optional(),
+	memory: memoryOverrideSchema.nullable().optional(),
+	safety: safetyOverrideSchema.nullable().optional(),
+	llm: z.boolean().optional(),
+	temperature: z.number().optional(),
+	maxTokens: z.number().int().optional(),
+	personality: z.string().optional()
+});
+
+export const noiseRatesSchema = z.object({
+	misname: z.number().min(0).max(1),
+	wastedMove: z.number().min(0).max(1),
+	prematureCelebrate: z.number().min(0).max(1)
+});
+
+export const metricNameSchema = z.enum([
+	'ticksUsed',
+	'tokensIn',
+	'tokensOut',
+	'wastedTickRatio',
+	'loop.longestStreak',
+	'loop.repeatedFailures',
+	'namingMisses',
+	'namingAmbiguities',
+	'approvalsRequested',
+	'approvalsDenied',
+	'guardrailTrips'
+]);
+export type MetricName = z.infer<typeof metricNameSchema>;
+
+const rateBounds = {
+	atLeast: z.number().min(0).max(1).optional(),
+	atMost: z.number().min(0).max(1).optional()
+};
+
+export const gateWhereSchema = z.object({
+	scenario: z.string().optional(),
+	tag: z.string().optional(),
+	build: z.string().optional(),
+	guard: z.string().optional(),
+	brain: z.string().optional()
+});
+export type GateWhere = z.infer<typeof gateWhereSchema>;
+
+export const gateRequireSchema = z.discriminatedUnion('kind', [
+	z.object({ kind: z.literal('outcome-rate'), outcome: runOutcomeSchema, ...rateBounds }),
+	z.object({ kind: z.literal('assertion-pass-rate'), cardId: z.string().min(1), ...rateBounds }),
+	/** WP43 (`31-EVALUATORS.md` §4.2): `pass` over the cells whose verdict is not `inconclusive`. */
+	z.object({
+		kind: z.literal('evaluator-pass-rate'),
+		evaluatorId: z.string().min(1),
+		...rateBounds
+	}),
+	z.object({
+		kind: z.literal('metric'),
+		name: metricNameSchema,
+		aggregate: z.enum(['mean', 'median', 'max']).default('mean'),
+		atMost: z.number().optional(),
+		atLeast: z.number().optional()
+	}),
+	z.object({ kind: z.literal('no-regression'), tolerance: z.number().min(0).max(1).default(0) })
+]);
+export type GateRequire = z.infer<typeof gateRequireSchema>;
+
+export const gateSchema = z.object({
+	id: z.string().min(1),
+	where: gateWhereSchema.optional(),
+	require: gateRequireSchema
+});
+export type Gate = z.infer<typeof gateSchema>;
+
+export const campaignScenarioSchema = z
+	.object({
+		id: z.string().min(1),
+		/** The card, named directly — or inherited from `scenarioId` (WP44). */
+		goalCardId: z.string().min(1).optional(),
+		/** A registered scenario (`32-SCENARIOS.md` §4.6): its card, tags and injections come with it. */
+		scenarioId: z.string().min(1).optional(),
+		tags: z.array(z.string()).default([]),
+		/** Injections beside the scenario's own, applied to every cell's world. */
+		injections: z.array(injectionSchema).default([]),
+		fit: z.array(fittedBrickSchema).default([]),
+		maxTicks: z.number().int().positive().optional()
+	})
+	.refine((scenario) => scenario.goalCardId !== undefined || scenario.scenarioId !== undefined, {
+		message: 'a campaign scenario names a goalCardId or a scenarioId'
+	});
+export type CampaignScenario = z.infer<typeof campaignScenarioSchema>;
+
+export const campaignBuildSchema = z.object({
+	id: z.string().min(1),
+	base: z.discriminatedUnion('kind', [
+		z.object({ kind: z.literal('starter-default') }),
+		z.object({ kind: z.literal('kit'), kit: kitFileSchema })
+	]),
+	overrides: specOverridesSchema.optional()
+});
+export type CampaignBuild = z.infer<typeof campaignBuildSchema>;
+
+export const campaignGuardSchema = z.object({
+	id: z.string().min(1),
+	fit: z.array(fittedBrickSchema).default([]),
+	for: z.array(z.string()).optional()
+});
+export type CampaignGuard = z.infer<typeof campaignGuardSchema>;
+
+export const campaignBrainSchema = z.object({
+	id: z.string().min(1),
+	tier: evalTierSchema,
+	cartridgeId: z.string().optional()
+});
+export type CampaignBrain = z.infer<typeof campaignBrainSchema>;
+
+export const campaignSchema = z.object({
+	schemaVersion: z.literal(CAMPAIGN_SCHEMA_VERSION),
+	id: z.string().min(1),
+	title: z.string().min(1),
+	scenarios: z.array(campaignScenarioSchema).min(1),
+	builds: z.array(campaignBuildSchema).min(1),
+	guards: z.array(campaignGuardSchema).min(1),
+	brains: z.array(campaignBrainSchema).min(1),
+	seeds: z.array(z.number().int()).min(1),
+	noise: noiseRatesSchema.partial().optional(),
+	assertionCards: z.array(assertionCardSchema).default([]),
+	/** Sinks every cell's finished trace is exported to (WP47, `35-…` §4.5): by sink id, with the sink's own config. The harness resolves them; the app runs none. */
+	sinks: z.array(z.object({ id: z.string().min(1), config: z.unknown().optional() })).default([]),
+	/** Evaluators run over every cell (WP43): by registered id, with the evaluator's own config; non-deterministic kinds run offline. */
+	evaluators: z
+		.array(z.object({ id: z.string().min(1), config: z.unknown().optional() }))
+		.default([]),
+	gates: z.array(gateSchema).min(1),
+	budget: z
+		.object({
+			maxLiveCells: z.number().int().positive(),
+			maxTokens: z.number().int().positive().optional(),
+			/** Hosted evaluator calls this campaign may make live (WP51, `39-…` §4.3); unset means as many as its cells ask. */
+			maxLiveEvaluations: z.number().int().nonnegative().optional()
+		})
+		.optional()
+});
+export type Campaign = z.infer<typeof campaignSchema>;
+
+export function parseCampaign(value: unknown): Campaign {
+	return campaignSchema.parse(value);
+}
+
+export const campaignCellSchema = z.object({
+	scenario: z.string(),
+	build: z.string(),
+	guard: z.string(),
+	brain: z.string(),
+	tier: evalTierSchema,
+	seed: z.number().int(),
+	/** The scenario's tags, carried so a report can be grouped and gated by them without the campaign. */
+	tags: z.array(z.string()).default([]),
+	runId: z.string().optional(),
+	outcome: runOutcomeSchema.optional(),
+	metrics: runMetricsSchema,
+	assertions: z.record(z.string(), z.boolean()),
+	/** Evaluator verdicts (WP43), keyed by evaluator id. */
+	evaluations: z.record(z.string(), z.enum(['pass', 'fail', 'inconclusive'])).default({}),
+	error: z.string().optional()
+});
+export type CampaignCell = z.infer<typeof campaignCellSchema>;
+
+export const gateVerdictSchema = z.object({
+	id: z.string(),
+	kind: z.string(),
+	where: gateWhereSchema.optional(),
+	required: z.string(),
+	observed: z.number().optional(),
+	cells: z.number().int().nonnegative(),
+	passed: z.boolean(),
+	inconclusive: z.literal(true).optional()
+});
+export type GateVerdict = z.infer<typeof gateVerdictSchema>;
+
+export const campaignReportSchema = z.object({
+	schemaVersion: z.literal(CAMPAIGN_REPORT_SCHEMA_VERSION),
+	id: z.string(),
+	campaignId: z.string(),
+	campaignTitle: z.string(),
+	createdAt: z.string(),
+	packVersions: z.record(z.string(), z.string()),
+	noise: noiseRatesSchema,
+	/**
+	 * Which bot each build was (WP49, `37-…` §4.2): a build made from a kit
+	 * file carries that kit's agent id and name, so a stored report can be
+	 * held against a shelf bot's safety case; a `starter-default` build is
+	 * nobody's. Defaulted, so every report written before the field parses.
+	 */
+	builds: z
+		.array(
+			z.object({
+				id: z.string(),
+				agentId: z.string().optional(),
+				agentName: z.string().optional()
+			})
+		)
+		.default([]),
+	cells: z.array(campaignCellSchema),
+	gates: z.array(gateVerdictSchema),
+	passed: z.boolean(),
+	budget: z.object({
+		liveCells: z.number().int().nonnegative(),
+		tokensIn: z.number().int().nonnegative(),
+		tokensOut: z.number().int().nonnegative(),
+		/** Hosted evaluator calls actually made live (WP51); defaulted so older reports parse. */
+		liveEvaluations: z.number().int().nonnegative().default(0)
+	})
+});
+export type CampaignReport = z.infer<typeof campaignReportSchema>;
+
+export function parseCampaignReport(value: unknown): CampaignReport {
+	return campaignReportSchema.parse(value);
+}
+
+/**
+ * The envelope a store keeps a report in (`StoredCampaignReport`, `28-…`
+ * §4.9): the fields a list shows without opening the report, and the report
+ * itself as opaque JSON. Here rather than in the app since WP49, so the
+ * harness files a report the same way the Workshop does and `craftabot
+ * report --safety-case` can quote it.
+ */
+export function campaignEnvelope(report: CampaignReport): StoredCampaignReport {
+	return {
+		id: report.id,
+		campaignId: report.campaignId,
+		title: report.campaignTitle,
+		createdAt: report.createdAt,
+		passed: report.passed,
+		gatesPassed: report.gates.filter((gate) => gate.passed).length,
+		gatesTotal: report.gates.length,
+		cells: report.cells.length,
+		report: report as unknown as Record<string, unknown>,
+		schemaVersion: 1
+	};
+}
+
+/** One cell, before it runs: the point in the campaign's five axes. */
+export interface CampaignCellSpec {
+	scenario: CampaignScenario;
+	build: CampaignBuild;
+	guard: CampaignGuard;
+	brain: CampaignBrain;
+	seed: number;
+	ordinal: number;
+}
+
+/** Every cell a campaign will run, in the order it will run them — scenarios × builds × guards(applicable) × brains × seeds. */
+export function campaignCells(campaign: Campaign): CampaignCellSpec[] {
+	const cells: CampaignCellSpec[] = [];
+	for (const scenario of campaign.scenarios) {
+		for (const build of campaign.builds) {
+			for (const guard of campaign.guards) {
+				if (guard.for !== undefined && !guard.for.includes(scenario.id)) continue;
+				for (const brain of campaign.brains) {
+					for (const seed of campaign.seeds) {
+						cells.push({ scenario, build, guard, brain, seed, ordinal: cells.length });
+					}
+				}
+			}
+		}
+	}
+	return cells;
+}
+
+export interface RunCampaignOptions {
+	/** Where a `live` cell's provider comes from; a live cell with none is recorded as an error, never faked. */
+	providerFor?: (brain: CampaignBrain) => LLMProvider;
+	/** The previous report, for `no-regression` gates; without one they are inconclusive. */
+	baseline?: CampaignReport;
+	packVersions?: Record<string, string>;
+	now?: () => string;
+	newId?: () => string;
+	onCell?: (cell: CampaignCell, index: number, total: number) => void;
+	onTrace?: (
+		cell: CampaignCell,
+		trace: { events: readonly EngineEvent[]; spec: AgentSpecV2 }
+	) => void;
+	betweenCells?: () => Promise<void>;
+	/** Every cell's session egress mode (WP41, `26-…` §6.6); the CI baseline runs `'none'`. */
+	egress?: EgressMode;
+	/** Packs registered beside the starter pack for every cell (WP42): a guard that stacks a Guard Brick needs the workshop pack and the service's own. */
+	packs?: PackManifest[];
+	/**
+	 * A hosted evaluator's battery (WP51, `39-…` §4.3): with a credential, a
+	 * `budget` on the campaign and a config on the evaluator, it runs live;
+	 * without any of the three, offline. The app passes none.
+	 */
+	credentials?: (id: string) => string | undefined;
+	/** The `fetch` a live hosted evaluator uses; `globalThis.fetch` when unset. */
+	fetch?: typeof globalThis.fetch;
+}
+
+/** The same stride the matrix uses (`runner.ts`), for the same reason: a cell's ids depend only on its position. */
+const ID_STRIDE = 100_000;
+
+/**
+ * A campaign with every `scenarioId` resolved against the registry (WP44,
+ * `32-…` §4.6): the card comes from the scenario unless named, the tags are
+ * the union, the injections are the scenario's followed by the campaign's.
+ */
+export function resolveCampaign(campaign: Campaign, registry: PackRegistry): Campaign {
+	return {
+		...campaign,
+		scenarios: campaign.scenarios.map((scenario) => {
+			if (scenario.scenarioId === undefined) return scenario;
+			const definition = registry.getScenario(scenario.scenarioId);
+			if (!definition) {
+				throw new Error(
+					`campaign scenario "${scenario.id}" names scenario "${scenario.scenarioId}", which no pack ships`
+				);
+			}
+			return {
+				...scenario,
+				goalCardId: scenario.goalCardId ?? definition.goalCardId,
+				tags: [...new Set([...definition.tags, ...scenario.tags])],
+				injections: [...definition.injections, ...scenario.injections]
+			};
+		})
+	};
+}
+
+function goalCardOf(scenario: CampaignScenario): string {
+	if (scenario.goalCardId === undefined) {
+		throw new Error(
+			`campaign scenario "${scenario.id}" has no goal card — resolve its scenarioId first`
+		);
+	}
+	return scenario.goalCardId;
+}
+
+export async function runCampaign(
+	unresolved: Campaign,
+	options: RunCampaignOptions = {}
+): Promise<CampaignReport> {
+	const registry = registryForScenario(options.packs);
+	const campaign = resolveCampaign(unresolved, registry);
+	const cells = campaignCells(campaign);
+	const noise = noiseFor(campaign.noise);
+	guardBudget(campaign, cells);
+
+	const results: CampaignCell[] = [];
+	const tally: SpendTally = { liveEvaluations: 0 };
+	guardLiveEvaluations(campaign, cells.length, options, registry);
+	for (const spec of cells) {
+		const cell = await runCell(spec, campaign, noise, options, registry, tally);
+		results.push(cell);
+		options.onCell?.(cell, results.length, cells.length);
+		if (options.betweenCells) await options.betweenCells();
+	}
+
+	const gates = campaign.gates.map((gate) => evaluateGate(gate, results, options.baseline));
+	return {
+		schemaVersion: CAMPAIGN_REPORT_SCHEMA_VERSION,
+		id: options.newId?.() ?? crypto.randomUUID(),
+		campaignId: campaign.id,
+		campaignTitle: campaign.title,
+		createdAt: options.now?.() ?? new Date().toISOString(),
+		packVersions: options.packVersions ?? {},
+		noise,
+		builds: campaign.builds.map((build) => ({
+			id: build.id,
+			...(build.base.kind === 'kit'
+				? { agentId: build.base.kit.agent.id, agentName: build.base.kit.agent.name }
+				: {})
+		})),
+		cells: results,
+		gates,
+		passed: gates.every((gate) => gate.passed),
+		budget: {
+			liveCells: results.filter((cell) => cell.tier === 'live').length,
+			tokensIn: results.reduce((total, cell) => total + cell.metrics.tokensIn, 0),
+			tokensOut: results.reduce((total, cell) => total + cell.metrics.tokensOut, 0),
+			liveEvaluations: tally.liveEvaluations
+		}
+	};
+}
+
+/** What the run spends beyond its cells' tokens — counted as it goes, reported at the end. */
+interface SpendTally {
+	liveEvaluations: number;
+}
+
+/** A parsed `partial()` carries `| undefined` values `NoiseRates` does not admit — drop them before defaulting. */
+function noiseFor(overrides: Campaign['noise']): NoiseRates {
+	const defined = Object.fromEntries(
+		Object.entries(overrides ?? {}).filter(([, value]) => value !== undefined)
+	) as Partial<NoiseRates>;
+	return { ...DEFAULT_NOISE, ...defined };
+}
+
+/**
+ * Live spend is a property of the artefact (`27-…` §1 rule 6): a campaign
+ * with a live brain and no `budget` refuses before anything runs, naming the
+ * field, and `maxLiveCells` is enforced against the cell count before the
+ * first call — never discovered by the bill.
+ */
+/**
+ * Whether a named evaluator would call out from this campaign (WP51, `39-…`
+ * §4.3): hosted, with a battery from the caller, a config of its own, a
+ * `budget` on the campaign, and a network to use. Anything less runs its
+ * offline stand-in — as every non-deterministic evaluator did before.
+ */
+function runsLive(
+	campaign: Campaign,
+	named: Campaign['evaluators'][number],
+	evaluator: Evaluator,
+	options: RunCampaignOptions
+): boolean {
+	if (evaluator.kind !== 'hosted' || !campaign.budget || options.egress === 'none') return false;
+	const credentialId = evaluator.credential?.id;
+	if (credentialId === undefined || options.credentials?.(credentialId) === undefined) return false;
+	return named.config !== undefined;
+}
+
+/** Live evaluations are spend too: `maxLiveEvaluations`, when set, is enforced before the first cell. */
+function guardLiveEvaluations(
+	campaign: Campaign,
+	cellCount: number,
+	options: RunCampaignOptions,
+	registry: PackRegistry
+): void {
+	const cap = campaign.budget?.maxLiveEvaluations;
+	if (cap === undefined) return;
+	const liveEvaluators = campaign.evaluators.filter((named) => {
+		const evaluator = resolveEvaluator(registry, named.id);
+		return evaluator !== undefined && runsLive(campaign, named, evaluator, options);
+	}).length;
+	const wanted = liveEvaluators * cellCount;
+	if (wanted > cap) {
+		throw new Error(
+			`campaign '${campaign.id}' would make ${wanted} live evaluation calls but its budget allows ${cap} (budget.maxLiveEvaluations)`
+		);
+	}
+}
+
+function guardBudget(campaign: Campaign, cells: CampaignCellSpec[]): void {
+	const live = cells.filter((cell) => cell.brain.tier === 'live').length;
+	if (live === 0) return;
+	if (!campaign.budget) {
+		throw new Error(
+			`campaign '${campaign.id}' has ${live} live cell${live === 1 ? '' : 's'} and no budget — add "budget": { "maxLiveCells": N } to run them, or drop the live brain`
+		);
+	}
+	if (live > campaign.budget.maxLiveCells) {
+		throw new Error(
+			`campaign '${campaign.id}' would run ${live} live cells but its budget allows ${campaign.budget.maxLiveCells} (budget.maxLiveCells)`
+		);
+	}
+}
+
+async function runCell(
+	cell: CampaignCellSpec,
+	campaign: Campaign,
+	noise: NoiseRates,
+	options: RunCampaignOptions,
+	registry: PackRegistry,
+	tally: SpendTally
+): Promise<CampaignCell> {
+	const { scenario, build, guard, brain, seed } = cell;
+	const identity = {
+		scenario: scenario.id,
+		build: build.id,
+		guard: guard.id,
+		brain: brain.id,
+		tier: brain.tier,
+		seed,
+		tags: scenario.tags
+	};
+	const empty = () => Object.fromEntries(campaign.assertionCards.map((card) => [card.id, false]));
+
+	try {
+		const spec = specFor(cell);
+		const goalCardId = goalCardOf(scenario);
+		const script = scriptFor(brain.tier, goalCardId, seed, noise);
+		const maxTicks = scenario.maxTicks;
+		// A scenario's injections land in a world built here (WP44) — a world
+		// that cannot take them refuses before the run, and the cell records it.
+		const world =
+			scenario.injections.length > 0
+				? injectedWorld(registry, goalCardId, scenario.injections, scenario.id)
+				: undefined;
+		const run = await runToCompletion({
+			script,
+			spec,
+			...(world ? { world } : {}),
+			stepLimit: (maxTicks ?? 30) + 10,
+			idOffset: cell.ordinal * ID_STRIDE,
+			...(maxTicks !== undefined ? { maxTicks } : {}),
+			...(brain.tier === 'live' ? { provider: providerForLive(brain, options) } : {}),
+			...(options.egress !== undefined ? { egress: options.egress } : {}),
+			...(options.packs !== undefined ? { packs: options.packs } : {})
+		});
+
+		const started = run.events.find((event) => event.type === 'run.started');
+		const scored: CampaignCell = {
+			...identity,
+			...(started ? { runId: started.runId } : {}),
+			...(run.outcome !== undefined ? { outcome: run.outcome as RunOutcome } : {}),
+			metrics: scoreRun(run.events),
+			assertions: Object.fromEntries(
+				campaign.assertionCards.map((card) => [card.id, evaluateAssertion(card, run.events).pass])
+			),
+			evaluations: await evaluateCell(campaign, run.events, options, scenario, tally)
+		};
+		options.onTrace?.(scored, { events: run.events, spec });
+		return scored;
+	} catch (error) {
+		return {
+			...identity,
+			metrics: scoreRun([]),
+			assertions: empty(),
+			evaluations: {},
+			error: error instanceof Error ? error.message : String(error)
+		};
+	}
+}
+
+/**
+ * Build → scenario `fit` → guard `fit`, each replacing any earlier brick in
+ * the same socket — "fitted over" means the guard wins. Sockets are
+ * single-occupancy (`validate-spec-v2.ts`); WP40 widens `safety`.
+ */
+/**
+ * Every evaluator the campaign names, over one cell's trace (WP43). Ids are
+ * resolved against the packs the runner has — a shipped evaluator or an
+ * assertion card's adapter — and a non-deterministic evaluator always runs
+ * its offline stand-in here: a campaign is a regression suite, and CI has
+ * no model to ask. An id nobody ships is `inconclusive`, never a throw.
+ */
+async function evaluateCell(
+	campaign: Campaign,
+	events: readonly EngineEvent[],
+	options: RunCampaignOptions,
+	scenario: CampaignScenario,
+	tally: SpendTally
+): Promise<Record<string, 'pass' | 'fail' | 'inconclusive'>> {
+	if (campaign.evaluators.length === 0) return {};
+	const registry = createPackRegistry();
+	registry.registerPack(starterPack);
+	for (const pack of options.packs ?? []) {
+		if (!registry.listPacks().some((installed) => installed.id === pack.id))
+			registry.registerPack(pack);
+	}
+	const input = evaluationInputFor(events, undefined, scenario);
+	const verdicts: Record<string, 'pass' | 'fail' | 'inconclusive'> = {};
+	for (const named of campaign.evaluators) {
+		const evaluator = resolveEvaluator(registry, named.id);
+		if (!evaluator) {
+			verdicts[named.id] = 'inconclusive';
+			continue;
+		}
+		// A hosted evaluator runs live only under a budget, with its battery and a config (WP51); the rest as before.
+		const live = runsLive(campaign, named, evaluator, options);
+		const runner =
+			evaluator.kind === 'deterministic' || live ? evaluator : evaluator.createOffline?.();
+		if (!runner) {
+			verdicts[named.id] = 'inconclusive';
+			continue;
+		}
+		try {
+			if (live) tally.liveEvaluations += 1;
+			const result = await runner.evaluate(input, {
+				config: named.config,
+				fetch: live
+					? (options.fetch ?? globalThis.fetch.bind(globalThis))
+					: () => Promise.reject(new Error('a campaign evaluates offline')),
+				getCredential: (id) => (live ? options.credentials?.(id) : undefined)
+			});
+			verdicts[named.id] = result.verdict ?? 'inconclusive';
+		} catch {
+			verdicts[named.id] = 'inconclusive';
+		}
+	}
+	return verdicts;
+}
+
+export function specFor(cell: Pick<CampaignCellSpec, 'scenario' | 'build' | 'guard'>): AgentSpecV2 {
+	const { scenario, build, guard } = cell;
+	let spec: AgentSpecV2;
+	const goalCardId = goalCardOf(scenario);
+	if (build.base.kind === 'kit') {
+		spec = { ...build.base.kit.agent, goalCardId };
+	} else {
+		const v1 = buildSpec({ goalCardId, ...cleanOverrides(build.overrides) });
+		const migrated = migrateAgentSpec(v1);
+		if ('kind' in migrated) throw new Error(migrated.message);
+		spec = migrated;
+	}
+	return fit(fit(spec, scenario.fit), guard.fit);
+}
+
+function fit(spec: AgentSpecV2, bricks: readonly FittedBrick[]): AgentSpecV2 {
+	if (bricks.length === 0) return spec;
+	const kept = spec.bricks.filter((brick) => !bricks.some((fitted) => fitted.slot === brick.slot));
+	return { ...spec, bricks: [...kept, ...bricks] };
+}
+
+/** `exactOptionalPropertyTypes`: a parsed optional is `T | undefined`, which `SpecOverrides` does not admit — drop the undefineds. */
+function cleanOverrides(
+	overrides: CampaignBuild['overrides']
+): Omit<SpecOverrides, 'goalCardId' | 'tools'> {
+	if (!overrides) return {};
+	return Object.fromEntries(
+		Object.entries(overrides).filter(([, value]) => value !== undefined)
+	) as Omit<SpecOverrides, 'goalCardId' | 'tools'>;
+}
+
+function scriptFor(tier: EvalTier, goalCardId: string, seed: number, noise: NoiseRates) {
+	switch (tier) {
+		case 'scripted-adversary':
+			return scriptedAdversary(adversaryPlanFor(goalCardId));
+		case 'scripted-noisy':
+			return scriptedNoisy(planFor(goalCardId), { seed, rates: noise });
+		case 'scripted-optimal':
+			return scriptedOptimal(planFor(goalCardId));
+		case 'live':
+			// A live cell is driven by its provider; the script is only what the
+			// harness's own signature requires, and is never consulted.
+			return scriptedOptimal(planIfAny(goalCardId));
+	}
+}
+
+function planIfAny(goalCardId: string): Plan {
+	try {
+		return planFor(goalCardId);
+	} catch {
+		return [];
+	}
+}
+
+function providerForLive(brain: CampaignBrain, options: RunCampaignOptions): LLMProvider {
+	const provider = options.providerFor?.(brain);
+	if (!provider) {
+		throw new Error(`the "${brain.id}" brain is live and no providerFor was supplied`);
+	}
+	return provider;
+}
+
+// ── Gates ───────────────────────────────────────────────────────────────────
+
+export function evaluateGate(
+	gate: Gate,
+	cells: readonly CampaignCell[],
+	baseline?: CampaignReport
+): GateVerdict {
+	const selected = selectCells(gate.where, cells);
+	const base = {
+		id: gate.id,
+		kind: gate.require.kind,
+		...(gate.where ? { where: gate.where } : {}),
+		cells: selected.length
+	};
+	const require = gate.require;
+
+	if (require.kind === 'no-regression') {
+		if (!baseline) {
+			return {
+				...base,
+				required: `no slice falls by more than ${pct(require.tolerance)}`,
+				passed: true,
+				inconclusive: true
+			};
+		}
+		const worst = worstDrop(selected, baseline);
+		return {
+			...base,
+			required: `no slice falls by more than ${pct(require.tolerance)}`,
+			observed: worst,
+			passed: worst <= require.tolerance + 1e-9
+		};
+	}
+
+	// A rule nobody ran is not a rule that held.
+	if (selected.length === 0) {
+		return { ...base, required: describeRequirement(require), passed: false };
+	}
+
+	let observed: number;
+	switch (require.kind) {
+		case 'outcome-rate':
+			observed = rate(selected, (cell) => cell.outcome === require.outcome);
+			break;
+		case 'assertion-pass-rate':
+			observed = rate(selected, (cell) => cell.assertions[require.cardId] === true);
+			break;
+		case 'evaluator-pass-rate': {
+			// Inconclusive cells are left out; none left is an inconclusive gate, as `no-regression` is.
+			const judged = selected.filter(
+				(cell) =>
+					cell.evaluations[require.evaluatorId] !== undefined &&
+					cell.evaluations[require.evaluatorId] !== 'inconclusive'
+			);
+			if (judged.length === 0) {
+				return {
+					...base,
+					required: describeRequirement(require),
+					passed: true,
+					inconclusive: true
+				};
+			}
+			observed = rate(judged, (cell) => cell.evaluations[require.evaluatorId] === 'pass');
+			break;
+		}
+		case 'metric': {
+			const values = selected.map((cell) => metricValue(cell.metrics, require.name));
+			observed = aggregate(values, require.aggregate);
+			break;
+		}
+	}
+	const passed =
+		(require.atLeast === undefined || observed >= require.atLeast - 1e-9) &&
+		(require.atMost === undefined || observed <= require.atMost + 1e-9);
+	return { ...base, required: describeRequirement(require), observed, passed };
+}
+
+/** The cells a gate's `where` names — exported so a renderer can list a failed gate's runs. */
+export function selectCells(
+	where: GateWhere | undefined,
+	cells: readonly CampaignCell[]
+): CampaignCell[] {
+	return cells.filter((cell) => matches(where, cell));
+}
+
+function matches(where: GateWhere | undefined, cell: CampaignCell): boolean {
+	if (!where) return true;
+	if (where.scenario !== undefined && cell.scenario !== where.scenario) return false;
+	if (where.build !== undefined && cell.build !== where.build) return false;
+	if (where.guard !== undefined && cell.guard !== where.guard) return false;
+	if (where.brain !== undefined && cell.brain !== where.brain) return false;
+	if (where.tag !== undefined && !cell.tags.includes(where.tag)) return false;
+	return true;
+}
+
+function rate(cells: readonly CampaignCell[], match: (cell: CampaignCell) => boolean): number {
+	return cells.filter(match).length / cells.length;
+}
+
+/** Over the stored shape (a parsed cell's metrics), which `RunMetrics` narrows only in its optional keys. */
+export function metricValue(metrics: CampaignCell['metrics'], name: MetricName): number {
+	switch (name) {
+		case 'loop.longestStreak':
+			return metrics.loop.longestStreak;
+		case 'loop.repeatedFailures':
+			return metrics.loop.repeatedFailures;
+		case 'guardrailTrips':
+			return Object.values(metrics.guardrailTrips).reduce((total, trips) => total + trips, 0);
+		default:
+			return metrics[name];
+	}
+}
+
+function aggregate(values: number[], how: 'mean' | 'median' | 'max'): number {
+	if (values.length === 0) return 0;
+	if (how === 'max') return Math.max(...values);
+	if (how === 'mean') return values.reduce((total, value) => total + value, 0) / values.length;
+	const sorted = [...values].sort((a, b) => a - b);
+	const middle = Math.floor(sorted.length / 2);
+	return sorted.length % 2 === 0
+		? ((sorted[middle - 1] as number) + (sorted[middle] as number)) / 2
+		: (sorted[middle] as number);
+}
+
+/** The largest fall in success rate between a slice (scenario × guard × brain) now and in the baseline; 0 when nothing fell. */
+function worstDrop(cells: readonly CampaignCell[], baseline: CampaignReport): number {
+	const sliceOf = (cell: CampaignCell) => `${cell.scenario} ${cell.guard} ${cell.brain}`;
+	const now = successBySlice(cells, sliceOf);
+	const scenarios = new Set(cells.map((cell) => cell.scenario));
+	const then = successBySlice(
+		baseline.cells.filter((cell) => scenarios.has(cell.scenario)),
+		sliceOf
+	);
+	let worst = 0;
+	for (const [slice, current] of now) {
+		const previous = then.get(slice);
+		if (previous === undefined) continue;
+		worst = Math.max(worst, previous - current);
+	}
+	return worst;
+}
+
+function successBySlice(cells: readonly CampaignCell[], sliceOf: (cell: CampaignCell) => string) {
+	const groups = new Map<string, CampaignCell[]>();
+	for (const cell of cells) {
+		const list = groups.get(sliceOf(cell));
+		if (list) list.push(cell);
+		else groups.set(sliceOf(cell), [cell]);
+	}
+	return new Map(
+		[...groups].map(([slice, mine]) => [slice, rate(mine, (c) => c.outcome === 'SUCCESS')])
+	);
+}
+
+export function describeRequirement(require: GateRequire): string {
+	switch (require.kind) {
+		case 'outcome-rate':
+			return `${require.outcome} rate ${bounds(require.atLeast, require.atMost)}`;
+		case 'assertion-pass-rate':
+			return `${require.cardId} pass rate ${bounds(require.atLeast, require.atMost)}`;
+		case 'evaluator-pass-rate':
+			return `${require.evaluatorId} verdict pass rate ${bounds(require.atLeast, require.atMost)}`;
+		case 'metric':
+			return `${require.aggregate} ${require.name} ${bounds(require.atLeast, require.atMost, false)}`;
+		case 'no-regression':
+			return `no slice falls by more than ${pct(require.tolerance)}`;
+	}
+}
+
+function bounds(atLeast: number | undefined, atMost: number | undefined, asRate = true): string {
+	const show = (value: number) => (asRate ? pct(value) : String(value));
+	const parts: string[] = [];
+	if (atLeast !== undefined) parts.push(`≥ ${show(atLeast)}`);
+	if (atMost !== undefined) parts.push(`≤ ${show(atMost)}`);
+	return parts.join(' and ') || '(no bound)';
+}
+
+export function pct(value: number): string {
+	return `${Math.round(value * 100)}%`;
+}

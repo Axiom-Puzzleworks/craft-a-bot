@@ -1,3 +1,4 @@
+import { contentRecordSchema } from './content.js';
 import { z } from 'zod';
 import { agentSpecV2Schema, migrateAgentSpec } from './agent-spec-v2.js';
 import type { MigrationError } from './shared.js';
@@ -33,7 +34,9 @@ export const kitFileSchema = z
 			 * the registry is what actually knows who registered what, and a kit
 			 * file that guesses would be wrong exactly when it mattered.
 			 */
-			brickKinds: z.record(z.string(), z.string())
+			brickKinds: z.record(z.string(), z.string()),
+			/** Authored cards this bot fits (WP46, `34-…` §4.3) — embedded, since no other machine has them. */
+			localContent: z.array(contentRecordSchema).optional()
 		}),
 		agent: agentSpecV2Schema,
 		notes: z.string().optional()

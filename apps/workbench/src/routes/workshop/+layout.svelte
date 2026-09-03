@@ -40,6 +40,10 @@
 		if (path.startsWith('/workshop/safety-case')) return 'safety-case' as const;
 		if (path.startsWith('/workshop/export')) return 'export' as const;
 		if (path.startsWith('/workshop/armour')) return 'armour' as const;
+		if (path.startsWith('/workshop/guards')) return 'guards' as const;
+		if (path.startsWith('/workshop/evaluators')) return 'evaluators' as const;
+		if (path.startsWith('/workshop/scenarios')) return 'scenarios' as const;
+		if (path.startsWith('/workshop/sinks')) return 'sinks' as const;
 		return 'dashboard' as const;
 	});
 </script>

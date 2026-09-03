@@ -1,3 +1,4 @@
+import type { EgressDeclaration } from './guardrail-service.js';
 import type { JsonSchema } from './json-schema.js';
 import type { ChatMessage, ChatResponse } from '../schemas/shared.js';
 
@@ -16,6 +17,8 @@ export interface LLMProvider {
 	id: string; // "openai", "mock", later: "anthropic", ...
 	name: string;
 	keyRequirement: 'required' | 'none'; // ollama/mock: none
+	/** Where this provider sends bytes (`26-…` §6.6, WP41) — the session refuses any other host. A keyless local provider still declares its loopback host. */
+	egress?: EgressDeclaration[];
 	validateKey(key: string): Promise<KeyCheck>;
 	chat(
 		req: ChatRequest,
@@ -50,8 +53,15 @@ export interface ProviderFactory {
 	keyRequirement: 'required' | 'none';
 	/** Where a user manages this provider's keys, for the battery compartment's link. Omitted for a keyless provider. */
 	keysUrl?: string;
+	/** The hosts every provider this factory builds will call (`26-…` §6.6, WP41); the built provider carries the same list. */
+	egress?: EgressDeclaration[];
 	/** `apiKey` is `''` for a keyless provider — still called, so local providers (Ollama) build the same way as any other. */
-	create(options: { apiKey: string; fetch?: typeof globalThis.fetch }): LLMProvider;
+	create(options: {
+		apiKey: string;
+		fetch?: typeof globalThis.fetch;
+		/** A host's endpoint for a local provider (WP52, `40-DEBTS.md` §4.3); every other factory ignores it. */
+		endpoint?: string;
+	}): LLMProvider;
 }
 
 export type ChatRole = ChatMessage['role'];

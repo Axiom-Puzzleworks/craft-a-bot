@@ -139,6 +139,61 @@ describe('fitting and removing bricks', () => {
 	});
 });
 
+/** WP40 (`26-…` §6.13): the Kit keeps one well; a stack fitted elsewhere shows as a chip and is never edited here. */
+describe('a safety stack on the bench', () => {
+	async function openStacked() {
+		const storage = createMemoryStorage();
+		const record = makeRecord();
+		record.spec.bricks = [
+			{
+				slot: 'safety',
+				kind: 'starter/safety',
+				configVersion: 2,
+				config: {
+					maxTicks: 30,
+					blockedActions: [],
+					approval: 'off',
+					repeatLimit: 3,
+					policyCards: []
+				}
+			},
+			{
+				slot: 'safety',
+				kind: 'starter/safety',
+				configVersion: 2,
+				config: {
+					maxTicks: 5,
+					blockedActions: ['say'],
+					approval: 'off',
+					repeatLimit: 3,
+					policyCards: []
+				}
+			}
+		];
+		await storage.putAgent(record);
+		const bench = createBenchStore({ storage: () => Promise.resolve(storage), saveDebounceMs: 0 });
+		await bench.open(AGENT_ID);
+		return bench;
+	}
+
+	it('shows the first brick and counts the rest', async () => {
+		const bench = await openStacked();
+		expect(bench.fittedIn('safety')?.kindId).toBe('starter/safety');
+		expect(bench.extraIn('safety')).toBe(1);
+		expect(bench.extraIn('memory')).toBe(0);
+	});
+
+	it('edits and removes only the brick it shows', async () => {
+		const bench = await openStacked();
+		bench.updateBrick('safety', { maxTicks: 10 });
+		expect(bench.spec?.bricks.map((brick) => brick.config['maxTicks'])).toEqual([10, 5]);
+		bench.removeBrick('safety');
+		expect(bench.spec?.bricks).toHaveLength(1);
+		expect(bench.spec?.bricks[0]?.config['maxTicks']).toBe(5);
+		expect(bench.extraIn('safety')).toBe(0);
+	});
+});
+
 describe('live validation', () => {
 	it('clears the blocking problem once a brain and cartridge are in', async () => {
 		const { bench } = await openBench();

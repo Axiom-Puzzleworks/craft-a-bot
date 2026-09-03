@@ -185,10 +185,28 @@ describe('hearing', () => {
 		);
 	});
 
-	it('reports pending messages and then drains them — a message is heard once', () => {
+	it('reports pending messages and then moves past them — a message is heard once per seat', () => {
 		const state = testState({ heard: ['try the chest'] });
 		expect(observePlayroom(state, [SENSE_HEARING]).text).toContain('try the chest');
-		expect(state.heard).toEqual([]);
+		// Append-only (WP48): the line stays, the seat's cursor moves past it.
+		expect(state.heard).toEqual(['try the chest']);
+		expect(state.heardCursors).toEqual({ solo: 1 });
+		expect(observePlayroom(state, [SENSE_HEARING]).text).toContain('Nobody has said anything');
+	});
+
+	it('two seats each hear a line delivered between their turns (WP48)', () => {
+		const state = testState({ heard: [] });
+		state.agents = [
+			{ id: 'a', name: 'Robo', position: { x: 0, y: 0 } },
+			{ id: 'b', name: 'Bolt', position: { x: 1, y: 0 } }
+		];
+		state.bot = { position: { x: 0, y: 0 }, id: 'a' };
+		expect(observePlayroom(state, [SENSE_HEARING]).text).toContain('Nobody has said anything');
+		state.heard.push('Meet at the chest.');
+		state.bot = { position: { x: 1, y: 0 }, id: 'b' };
+		expect(observePlayroom(state, [SENSE_HEARING]).text).toContain('Meet at the chest.');
+		state.bot = { position: { x: 0, y: 0 }, id: 'a' };
+		expect(observePlayroom(state, [SENSE_HEARING]).text).toContain('Meet at the chest.');
 		expect(observePlayroom(state, [SENSE_HEARING]).text).toContain('Nobody has said anything');
 	});
 });

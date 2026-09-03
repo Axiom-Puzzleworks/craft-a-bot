@@ -73,6 +73,14 @@
 			<p>
 				A battery is fitted. The key itself is never shown again — eject and paste a new one to
 				change it.
+				{#if bay.secondsRemaining !== undefined}
+					<!-- A timed credential's meter (WP41, `26-…` §6.11) — honest for every kind, not only geap's. -->
+					<span class="meter" data-testid="battery-meter-{providerId}">
+						{bay.secondsRemaining <= 0
+							? 'It has expired.'
+							: `About ${Math.max(1, Math.round(bay.secondsRemaining / 60))} min left.`}
+					</span>
+				{/if}
 			</p>
 			<div class="row">
 				<button

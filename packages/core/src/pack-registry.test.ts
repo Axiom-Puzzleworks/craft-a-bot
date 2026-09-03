@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { stubService } from './types/guardrail-service.test.js';
 import { createPackRegistry } from './pack-registry.js';
 import type { PackManifest } from './schemas/pack-manifest.js';
 import type { WorldDefinition } from './types/world.js';
@@ -23,7 +24,7 @@ function starterManifest(): PackManifest {
 		id: 'starter',
 		name: 'My Very First Agent — Starter Parts',
 		version: '1.0.0',
-		requiresCore: '>=1.0.0',
+		requiresCore: '>=0.0.1',
 		bricks: [
 			{
 				id: 'core/llm',
@@ -64,7 +65,7 @@ function openaiManifest(): PackManifest {
 		id: 'openai',
 		name: 'OpenAI Cartridges',
 		version: '1.0.0',
-		requiresCore: '>=1.0.0',
+		requiresCore: '>=0.0.1',
 		cartridges: [
 			{
 				id: 'openai/quick-thinker',
@@ -124,6 +125,86 @@ describe('PackRegistry', () => {
 		expect(registry.listCartridges()).toHaveLength(1);
 		expect(registry.listGoalCards()).toHaveLength(1);
 		expect(registry.listWorlds()).toHaveLength(1);
+	});
+
+	it('registers guardrail services a pack ships (29-… §4.3, WP39), and refuses a broken one', () => {
+		const registry = createPackRegistry();
+		const service = stubService({ id: 'test-guard/stub' });
+		registry.registerPack({
+			id: 'test-guard',
+			name: 'Test guard',
+			version: '1.0.0',
+			requiresCore: '>=0.0.1',
+			guardrailServices: [service]
+		});
+		expect(registry.getGuardrailService('test-guard/stub')).toBe(service);
+		expect(registry.listGuardrailServices()).toEqual([service]);
+		expect(registry.getGuardrailService('test-guard/nope')).toBeUndefined();
+
+		expect(() =>
+			registry.registerPack({
+				id: 'test-guard-2',
+				name: 'Again',
+				version: '1.0.0',
+				requiresCore: '>=0.0.1',
+				guardrailServices: [stubService({ id: 'test-guard/stub' })]
+			})
+		).toThrow(/guardrail service/);
+
+		expect(() =>
+			registry.registerPack({
+				id: 'test-guard-3',
+				name: 'Broken',
+				version: '1.0.0',
+				requiresCore: '>=0.0.1',
+				guardrailServices: [stubService({ id: 'test-guard-3/broken', hooks: [] })]
+			})
+		).toThrow(/declares no hooks/);
+	});
+
+	it('registers evaluators and assertion cards a pack ships (31-… §4.1, WP43), refusing a broken evaluator', () => {
+		const registry = createPackRegistry();
+		const evaluator = {
+			id: 'test-eval/always-pass',
+			name: 'Always pass',
+			description: 'Passes.',
+			kind: 'deterministic' as const,
+			evaluate: () =>
+				Promise.resolve({
+					evaluatorId: 'test-eval/always-pass',
+					verdict: 'pass' as const,
+					explanation: 'ok',
+					evidence: []
+				})
+		};
+		const card = {
+			id: 'test-eval/card',
+			title: 'A card',
+			schemaVersion: 1 as const,
+			quantifier: 'never' as const,
+			when: { kind: 'call-name-is' as const, value: 'move' }
+		};
+		registry.registerPack({
+			id: 'test-eval',
+			name: 'Test eval',
+			version: '1.0.0',
+			requiresCore: '>=0.0.1',
+			evaluators: [evaluator],
+			assertionCards: [card]
+		});
+		expect(registry.getEvaluator('test-eval/always-pass')).toBe(evaluator);
+		expect(registry.listEvaluators()).toEqual([evaluator]);
+		expect(registry.getAssertionCard('test-eval/card')).toBe(card);
+		expect(registry.listAssertionCards()).toEqual([card]);
+		expect(() =>
+			registry.registerPack({
+				id: 'test-eval-2',
+				name: 'Broken',
+				version: '1.0.0',
+				requiresCore: '>=0.0.1',
+				evaluators: [{ ...evaluator, id: 'test-eval-2/judge', kind: 'model' }]
+			})
+		).toThrow(/is model but has no createOffline/);
 	});
 
 	it('registers policy cards a pack ships (14-… §4.6, WP22)', () => {
@@ -235,7 +316,7 @@ describe('PackRegistry', () => {
 			id: 'evil-pack',
 			name: 'Evil Pack',
 			version: '1.0.0',
-			requiresCore: '>=1.0.0',
+			requiresCore: '>=0.0.1',
 			tools: [
 				{
 					id: 'starter/calculator', // same id as starter's tool

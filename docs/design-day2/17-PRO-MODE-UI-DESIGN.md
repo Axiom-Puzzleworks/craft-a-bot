@@ -23,6 +23,8 @@
 ├── /runs                        — Run Browser: filter, pin, compare, import
 ├── /runs/[runId]               — Run Lab: world + timeline + inspector (the flagship)
 ├── /evals                       — Eval Matrix: configure, execute, scorecards, baselines
+├── /evaluators                  — Evaluators: every registered evaluator run over a stored run, verdicts persisted (31-… §4.3, WP43)
+├── /campaigns                   — Campaigns: the guardrail regression suite as a file — edit, run, gates, grid, drill, downloads (28-… §4.9, WP38)
 ├── /policies                    — Policy Studio: author/test policy cards
 ├── /bench                       — Test Bench: assertion cards run against a stored run's trace (14-… §5.7)
 ├── /telemetry                   — Cross-run dashboards (Phase D+)
@@ -30,6 +32,8 @@
 ├── /safety-case                 — Safety case worksheet: inability/control/trustworthiness, per bot (19-… #28, WP34)
 └── /export                      — Audit centre: traces, reports, cards, OTel export (Phase F)
 ```
+
+> **Amended 2026-09-02 (WP38 stage D):** `/campaigns` added to the tree and the rail, between Evals and Policies. It is the Workshop's view of `28-CAMPAIGNS.md` §4.9 — the same `runCampaign` the harness and CI call, scripted cells only in the browser, the report persisted in `cab.campaigns` and listed on the screen, a cell drilled into the Run Lab persisting only that run.
 
 Persistent left rail (instrument-panel styling); every screen has a "View in Kit" flip where a Kit equivalent exists. All screens are consumers of the same stores + event data (`15-…` §7 rule 1).
 
@@ -45,6 +49,8 @@ Header strip: outcome chip, cartridge + wire model, effective budgets (from the 
 
 > **Built 2026-08-15 (WP20).** The Run Lab and the Run Browser are live at `/workshop/runs`, over stored runs, read-only. What is *not* built: breakpoints, live-run trailing, causal row linking, and "Re-run with same seed" / "Fork from this tick" — the last two are Phase E by this section's own note, and the first three want a live session rather than a stored one.
 >
+> **Amended 2026-09-03 (WP49).** Breakpoints and live-run trailing are built (`37-DRIFT-SAFETY-CASE-RUN-LAB.md` §4.3): the Run Lab opened on the run the Playroom is playing sits on the app's own live bus — a `LIVE` chip with the session's status, "pause on" checkboxes (a Workshop preference the Playroom honours too), Pause / Resume / Stop, a scrubber that trails the head until taken hold of — and the engine's `start()` now resumes a paused run rather than starting a second one. Still not built: causal row linking, "Re-run with same seed" and "Fork from this tick" (the last deliberately unscheduled, `27-…` §3).
+>
 > **Two things this section did not anticipate.**
 >
 > 1. **The integrity badge needs three states, not two.** "Checking…" and a verdict is not enough: the check can *fail to run*, and a badge stuck on "checking integrity…" reads as "still working" rather than "you learned nothing here". That happened on the first build.
@@ -59,6 +65,8 @@ Header strip: outcome chip, cartridge + wire model, effective budgets (from the 
 Fleet table of bots (bricks fitted as colour-chip strip, last outcome, last run time) + telemetry stat tiles: runs this week, success rate, mean ticks-to-success, guardrail saves, spend estimate. Tiles are stat-tile-first (numbers, not charts) with 30-day sparklines where a trend exists. Quick actions: new bot, import kit/trace, open eval matrix.
 
 ### 4.2 Spec Lab (`/spec/[agentId]`)
+
+> **Amended 2026-09-02 (WP40, `26-…` §6.13):** the Spec Lab gained its first *editing* surface — the **Safety stack**: the safety bricks in fitted order (the first marked as the one the Kit's bench shows), "Take off" per brick, and "Fit another" from every safety kind an installed pack ships, Workshop audience included, up to `SLOT_CAPACITY.safety`. It writes the record back through the same store the bench uses. Everything else on the page stays read-only, as the scope note above says.
 The bench, grown up: same baseplate/sockets on the left (drag still works — the toy interaction *is* good UX); right side replaces the toy panel with the **full schema-driven form** for the selected brick (every `14-…` §4 field incl. strategies, autonomy dial, reasoning effort) plus a **JSON editor** view of the whole `AgentSpec` with inline Zod diagnostics and version/migration info. Bottom: build-checks (same component), plus "contract view" — which brick kinds/packs/versions this spec requires (kit-file `requires` made visible).
 
 ### 4.3 Run Browser (`/runs`)
@@ -83,6 +91,8 @@ Configure a matrix — goal cards × cartridges × brick-config variants × seed
 ### 4.5 Policy Studio (`/policies`) (mock-up tab 3)
 Author policy cards (`14-…` §4.6): a rule builder (hook → condition → disposition → reason) with the same card rendered in Kit style live (the toy face *is* the documentation); a **test bench**: run the card against (a) stored traces ("would this card have fired?") — instant, free, and the governance-forensics workflow in miniature — and (b) scripted adversarial runs (13 §L5 efficacy suite as a button). Library view: cards versioned, exportable, shareable; provenance shown.
 
+> **Amended 2026-09-02 (WP46).** The persistence gap the WP22 note below recorded is closed: Studio-authored cards save to the Workshop content store under `local/policy/<slug>` (`34-CONTENT-STORE.md`), the Kit's picker offers them while the Workshop door is open, kit files carry them, and the Test Bench's cards are authorable the same way.
+
 > **Built 2026-08-16 (WP22).** All four pieces this subsection names exist: the rule builder, the live `PolicyCardChip` preview (shared verbatim with the Kit's Safety Brick panel — the same component, not a lookalike), test bench (a) and (b), and a library of every card an installed pack ships, with provenance. The DoD — "a card round-trips Kit ⇄ Workshop" — is met and walked by an e2e: a card fitted through the real Kit bench picker reads back in the Spec Lab (which gained a "Policy cards fitted" section for this) with no export, import or conversion.
 >
 > **The rule builder's condition is flatter than `PredicateExpr`.** The schema (`14-…` §4.6, as shipped in `packages/core/src/schemas/policy-card.ts`) is a full and/or/not tree over four leaves — `call-kind-is`, `call-name-is`, `argument-equals`, `usage-at-least` — because a *pack* needs that expressiveness (`starter/policy/no-loose-ends` nests `not` inside `and`). The Studio's form builds only a flat, ANDed list of those four leaves, each optionally negated: "hook → condition → disposition → reason" is what this subsection actually asked for, and a form that built arbitrary trees would have been most of a small programming language. A pack-authored card using `or`, or nesting deeper than one level, still previews and test-benches correctly here — it is just not *editable* from this form.
@@ -93,6 +103,8 @@ Author policy cards (`14-…` §4.6): a rule builder (hook → condition → dis
 
 ### 4.6 Telemetry (`/telemetry`, Phase D+)
 Cross-run trends: success/loop/cost per card per cartridge over time, guardrail trip mix, approval rates + interruption counts (autonomy telemetry, `19-…` #36). Charts follow the dataviz rules: one axis, single-hue sequential for magnitude, lane colours only where they mean lanes, tables always available.
+
+> **Amended 2026-09-03 (WP49).** "Over time" is built: a daily series from the first stored run to the last (`telemetrySeries`, `37-…` §4.1) drawn as a table with single-hue bars, and a Drift list above it — each day with enough finished runs held against the pooled days before it, flagged when the guardrail trip mix moves by half or more (total-variation distance) or the loop rate by thirty points; the thresholds are stated beside a "no drift" verdict. Still no cost figure, for the reason `18-…` §7 item 28 gives.
 
 ### 4.7 Test Bench (`/bench`)
 
@@ -110,7 +122,9 @@ Also not authored — an incident is derived, not logged by hand, the same disci
 
 > **Added and built 2026-08-21 (WP34 stage C)**, retrofitted the same way §4.7 and §4.8 were: `19-…` #28 names the concept but neither §2's original IA nor `18-…` fixed it a route.
 
-The one screen in this section that picks a **bot** rather than a run — every other question this app answers is "what happened here"; this one is "what is true of this build", which only means something held against one bot's whole history. Auto-assembled, never authored, in UK AISI's own three-argument shape (§6.6): **inability** compares the full irreversible-tier catalogue (every world action and tool carrying `riskTier: 'irreversible'`, `14-…` §4.5) against what `BotCapabilities` says this build actually reaches — what is not reached is a real inability claim, and what *is* reached is named too (`reach`), not hidden, since a safety case that only shows absence of danger is not honest; **control** is `capabilities.guardrailIds` verbatim, every rule this build's fitted bricks actually install; **trustworthiness** reuses §4.8's own `incidentsFrom`, scoped to this one bot's runs, alongside its success rate. No eval-matrix figure ships — nothing yet ties a stored eval run back to one bot, and a worksheet that invented that link would be worse than one that left it out. No new mechanism anywhere: every input already existed (`BotCapabilities`, the world/tool catalogues' own `riskTier`, `incidentsFrom`), confirming the same "the open contract already had the hook" property WP32's own bricks found.
+The one screen in this section that picks a **bot** rather than a run — every other question this app answers is "what happened here"; this one is "what is true of this build", which only means something held against one bot's whole history. Auto-assembled, never authored, in UK AISI's own three-argument shape (§6.6): **inability** compares the full irreversible-tier catalogue (every world action and tool carrying `riskTier: 'irreversible'`, `14-…` §4.5) against what `BotCapabilities` says this build actually reaches — what is not reached is a real inability claim, and what *is* reached is named too (`reach`), not hidden, since a safety case that only shows absence of danger is not honest; **control** is `capabilities.guardrailIds` verbatim, every rule this build's fitted bricks actually install; **trustworthiness** reuses §4.8's own `incidentsFrom`, scoped to this one bot's runs, alongside its success rate. No eval-matrix figure ships — nothing yet ties a stored eval run back to one bot, and a worksheet that invented that link would be worse than one that left it out.
+>
+> **Amended 2026-09-03 (WP49).** That link now exists and the worksheet quotes it (`37-…` §4.2): **Evaluation evidence** — every evaluator that has judged one of this bot's runs, with its verdicts counted as stored (`EvaluationRecord.runId` is the tie); **Campaign results** — every stored campaign report in which a build was this bot (`builds[].agentId`, written by `runCampaign` for a build made from a kit file), with the gates that applied to that build or to every build, and a gate scoped to another build left out. The campaigns page can add a shelf bot as a build directly. The egress rows arrived with WP41. No new mechanism anywhere: every input already existed (`BotCapabilities`, the world/tool catalogues' own `riskTier`, `incidentsFrom`), confirming the same "the open contract already had the hook" property WP32's own bricks found.
 
 ### 4.10 Audit centre (`/export`)
 

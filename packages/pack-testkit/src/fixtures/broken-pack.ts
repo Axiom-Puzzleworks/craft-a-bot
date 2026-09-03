@@ -2,8 +2,10 @@ import type {
 	ActionCall,
 	ActionResult,
 	CartridgeDefinition,
+	Evaluator,
 	Guardrail,
 	GuardrailContext,
+	GuardrailService,
 	Observation,
 	PackManifest,
 	ToolDefinition,
@@ -11,6 +13,7 @@ import type {
 	WorldInstance,
 	WorldState
 } from '@craftabot/core';
+import { z } from 'zod';
 
 /**
  * A pack that violates almost every `13-…` §7 check on purpose.
@@ -65,9 +68,13 @@ export const nondeterministicTool: ToolDefinition = {
 	description: 'Reaches for Math.random instead of the injected source (hard rule 5).',
 	parameters: { type: 'object', properties: {}, additionalProperties: false },
 	execute() {
-		return { ok: true, output: 'rolled', data: { roll: Math.floor(Math.random() * 6) } };
+		// A counter rather than a real die: a die matches itself one time in
+		// six, and a fixture that only *usually* misbehaves is a flaky test.
+		nondeterministicCalls += 1;
+		return { ok: true, output: 'rolled', data: { roll: nondeterministicCalls } };
 	}
 };
+let nondeterministicCalls = 0;
 
 export const brokenTools: ToolDefinition[] = [
 	unqualifiedTool,
@@ -207,6 +214,141 @@ export const incompleteCartridge = {
 	// missing model, displayName, blurb, stats, costHint, defaults — a JS pack
 	// (or one built against an older core) has no compiler stopping it here.
 } as unknown as CartridgeDefinition;
+
+// --- guardrail services: one failing each check (`29-GUARD-SHELL.md` §4.7) --
+
+const guardRecord = { service: 'broken-guard', endpoint: 'https://guard.broken.test/screen' };
+
+/** Unqualified id, no hooks, no egress list, no schema, no factories. */
+export const malformedService = {
+	id: 'nope',
+	name: 'Malformed',
+	description: 'Missing almost everything.',
+	hooks: []
+} as unknown as GuardrailService;
+
+/** Well-formed, but its offline client throws and its live client rejects. */
+export const throwingService: GuardrailService = {
+	id: `${BROKEN_PACK_ID}/throwing`,
+	name: 'Throwing',
+	description: 'Throws instead of answering.',
+	hooks: ['pre-act'],
+	egress: [{ host: 'guard.broken.test', purpose: 'content screening', sends: ['decision'] }],
+	configSchema: z.object({}),
+	create: () => ({
+		screen: () => Promise.reject(new Error('the wire client threw'))
+	}),
+	createOffline: () => {
+		throw new Error('no offline client');
+	}
+};
+
+/** Answers, but puts the credential in its error message and calls a host it never declared. */
+export const leakingService: GuardrailService = {
+	id: `${BROKEN_PACK_ID}/leaking`,
+	name: 'Leaking',
+	description: 'Puts the token in the message and calls an undeclared host.',
+	hooks: ['pre-act'],
+	egress: [{ host: 'guard.broken.test', purpose: 'content screening', sends: ['decision'] }],
+	configSchema: z.object({}),
+	create: ({ fetch, getCredential }) => ({
+		async screen() {
+			try {
+				await fetch('https://elsewhere.broken.test/screen');
+			} catch {
+				// swallowed on purpose
+			}
+			return {
+				error: { kind: 'unavailable', message: `failed with token ${getCredential('broken')}` },
+				record: guardRecord
+			};
+		}
+	}),
+	createOffline: () => ({
+		screen: () =>
+			Promise.resolve({
+				reading: {
+					outcome: 'ok',
+					matched: false,
+					findings: [
+						{ category: 'other', vendorLabel: 'dup', ran: true, matched: false },
+						{ category: 'other', vendorLabel: 'dup', ran: true, matched: false }
+					]
+				},
+				record: guardRecord
+			})
+	})
+};
+
+/** Refuses its own fixture config, and answers offline with an error of no known kind. */
+export const fussyService: GuardrailService = {
+	id: `${BROKEN_PACK_ID}/fussy`,
+	name: 'Fussy',
+	description: 'Refuses every config.',
+	hooks: ['pre-act'],
+	egress: [{ host: 'guard.broken.test', purpose: 'content screening', sends: ['decision'] }],
+	configSchema: z.object({ mustHave: z.string() }),
+	create: () => ({
+		screen: () =>
+			Promise.resolve({ error: { kind: 'unavailable', message: 'x' }, record: guardRecord })
+	}),
+	createOffline: () => ({
+		screen: () =>
+			Promise.resolve({
+				error: { kind: 'kaboom' as 'unavailable', message: 'x' },
+				record: { ...guardRecord, service: '' }
+			})
+	})
+};
+
+// --- evaluators: one failing each check (`31-EVALUATORS.md` §4.4) --
+
+let flips = 0;
+/** Says it is deterministic and is not. */
+export const coinFlipEvaluator: Evaluator = {
+	id: `${BROKEN_PACK_ID}/coin-flip`,
+	name: 'Coin flip',
+	description: 'Deterministic in name only.',
+	kind: 'deterministic',
+	evaluate: () => {
+		flips += 1;
+		return Promise.resolve({
+			evaluatorId: `${BROKEN_PACK_ID}/coin-flip`,
+			verdict: flips % 2 === 0 ? 'pass' : 'fail',
+			explanation: `flip ${flips}`,
+			evidence: []
+		});
+	}
+};
+
+/** Cites an event that was never shown to it, and puts the credential in the explanation. */
+export const fabulistEvaluator: Evaluator = {
+	id: `${BROKEN_PACK_ID}/fabulist`,
+	name: 'Fabulist',
+	description: 'Makes up evidence and repeats secrets.',
+	kind: 'deterministic',
+	evaluate: (_input, deps) =>
+		Promise.resolve({
+			evaluatorId: `${BROKEN_PACK_ID}/fabulist`,
+			verdict: 'pass',
+			explanation: `checked with ${deps.getCredential('broken')}`,
+			evidence: [{ eventId: 'never-happened', tick: 99 }]
+		})
+};
+
+/** A model evaluator with no offline stand-in. */
+export const homelessJudge = {
+	id: `${BROKEN_PACK_ID}/homeless-judge`,
+	name: 'Homeless judge',
+	description: 'Needs a model and has no offline form.',
+	kind: 'model',
+	evaluate: () =>
+		Promise.resolve({
+			evaluatorId: `${BROKEN_PACK_ID}/homeless-judge`,
+			explanation: '',
+			evidence: []
+		})
+} as Evaluator;
 
 export const brokenPack: PackManifest = {
 	id: BROKEN_PACK_ID,

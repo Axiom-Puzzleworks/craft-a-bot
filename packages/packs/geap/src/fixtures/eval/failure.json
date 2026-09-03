@@ -1,0 +1,7 @@
+{
+	"error": {
+		"code": 403,
+		"message": "Permission 'aiplatform.endpoints.predict' denied on resource '//aiplatform.googleapis.com/projects/proj-1/locations/europe-west2' (or it may not exist).",
+		"status": "PERMISSION_DENIED"
+	}
+}

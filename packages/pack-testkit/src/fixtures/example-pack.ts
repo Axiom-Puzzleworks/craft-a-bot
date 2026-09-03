@@ -2,8 +2,11 @@ import type {
 	ActionCall,
 	ActionResult,
 	CartridgeDefinition,
+	EvaluationInput,
+	Evaluator,
 	Guardrail,
 	GuardrailContext,
+	GuardrailService,
 	Observation,
 	PackManifest,
 	ToolDefinition,
@@ -11,6 +14,7 @@ import type {
 	WorldInstance,
 	WorldState
 } from '@craftabot/core';
+import { z } from 'zod';
 import type { PackConformanceFixture } from '../types.js';
 
 /**
@@ -134,6 +138,136 @@ export const exampleCartridge: CartridgeDefinition = {
 	defaults: { temperature: 0, maxTokens: 256 }
 };
 
+/** A hosted guardrail service done right (`29-GUARD-SHELL.md` §4.7): answers offline, never throws, never leaks, declares its host. */
+export const exampleGuardService: GuardrailService = {
+	id: `${EXAMPLE_PACK_ID}/guard`,
+	name: 'Example guard',
+	description: 'A content screen that finds nothing, politely.',
+	hooks: ['pre-think', 'pre-act', 'post-act'],
+	egress: [{ host: 'guard.example.test', purpose: 'content screening', sends: ['decision'] }],
+	configSchema: z.object({ policy: z.string().default('default') }),
+	create: ({ config, fetch, getCredential }) => ({
+		async screen(request) {
+			const policy = (config as { policy: string }).policy;
+			const record = {
+				service: 'example-guard',
+				endpoint: 'https://guard.example.test/screen',
+				policyRef: policy
+			};
+			try {
+				const response = await fetch('https://guard.example.test/screen', {
+					method: 'POST',
+					headers: { authorization: `Bearer ${getCredential('example') ?? ''}` },
+					body: JSON.stringify({ text: request.text })
+				});
+				if (!response.ok) {
+					return {
+						error: { kind: 'unavailable', message: `guard returned ${response.status}` },
+						record
+					};
+				}
+				const body = (await response.json()) as { matched?: boolean };
+				return {
+					reading: {
+						outcome: 'ok',
+						matched: body.matched === true,
+						findings: [
+							{
+								category: 'other',
+								vendorLabel: 'anything',
+								ran: true,
+								matched: body.matched === true
+							}
+						]
+					},
+					record
+				};
+			} catch {
+				return {
+					error: { kind: 'unavailable', message: 'the guard could not be reached' },
+					record
+				};
+			}
+		}
+	}),
+	createOffline: (config) => ({
+		screen: () =>
+			Promise.resolve({
+				reading: {
+					outcome: 'ok',
+					matched: false,
+					findings: [{ category: 'other', vendorLabel: 'anything', ran: true, matched: false }]
+				},
+				record: {
+					service: 'example-guard',
+					endpoint: 'https://guard.example.test/screen',
+					policyRef: (config as { policy: string }).policy
+				}
+			})
+	})
+};
+
+/** An evaluator done right (WP43): deterministic, cites the events it read, says nothing it was not shown. */
+export const exampleEvaluator: Evaluator = {
+	id: `${EXAMPLE_PACK_ID}/counts-actions`,
+	name: 'Counts actions',
+	description: 'Passes when at least one action was performed.',
+	kind: 'deterministic',
+	evaluate: (input) => {
+		const acted = input.events.filter((event) => event.type === 'action.performed');
+		return Promise.resolve({
+			evaluatorId: `${EXAMPLE_PACK_ID}/counts-actions`,
+			verdict: acted.length > 0 ? 'pass' : 'fail',
+			score: acted.length > 0 ? 1 : 0,
+			explanation: `${acted.length} action(s) performed.`,
+			evidence: acted.map((event) => ({ eventId: event.id, tick: event.tick }))
+		});
+	}
+};
+
+/** The smallest input an evaluator can be handed: one action, on one run. */
+export function exampleEvaluationInput(): EvaluationInput {
+	const event = {
+		id: '00000000-0000-4000-8000-00000000e001',
+		runId: '00000000-0000-4000-8000-00000000a001',
+		agentId: '00000000-0000-4000-8000-00000000b001',
+		tick: 1,
+		timestamp: '2026-09-02T12:00:00.000Z',
+		type: 'action.performed',
+		payload: { name: 'increment', arguments: {}, result: { ok: true, narration: 'Counted.' } }
+	} as unknown as EvaluationInput['events'][number];
+	return {
+		run: {
+			id: event.runId,
+			agentId: event.agentId ?? '',
+			agentName: 'Example',
+			goalCardId: '',
+			specSnapshot: {
+				id: event.agentId ?? '',
+				name: 'Example',
+				schemaVersion: 2,
+				identity: { displayName: 'Example', boxArtSeed: 'x' },
+				goalCardId: '',
+				bricks: [],
+				createdAt: event.timestamp,
+				updatedAt: event.timestamp
+			},
+			packVersions: {},
+			mode: 'step',
+			outcome: 'SUCCESS',
+			ticks: 1,
+			usage: { inputTokens: 0, outputTokens: 0 },
+			budgets: { maxTicks: 30, maxTokens: 1, requestTimeoutMs: 1 },
+			providerId: 'mock',
+			wireModel: 'mock',
+			pinned: false,
+			startedAt: event.timestamp,
+			schemaVersion: 2
+		},
+		events: [event]
+	};
+}
+
 export const examplePack: PackManifest = {
 	id: EXAMPLE_PACK_ID,
 	name: 'Example Pack',
@@ -141,7 +275,9 @@ export const examplePack: PackManifest = {
 	requiresCore: '>=0.0.1',
 	tools: [echoTool],
 	worlds: [exampleWorld],
-	cartridges: [exampleCartridge]
+	cartridges: [exampleCartridge],
+	guardrailServices: [exampleGuardService],
+	evaluators: [exampleEvaluator]
 };
 
 export const exampleFixture: PackConformanceFixture = {
@@ -162,5 +298,22 @@ export const exampleFixture: PackConformanceFixture = {
 	tools: { examples: { [echoTool.id]: { text: 'hello' } } },
 	guardrails: {
 		guardrails: [{ guardrail: alwaysAllowGuardrail, context: exampleGuardrailContext() }]
+	},
+	guardrailServices: {
+		[exampleGuardService.id]: {
+			config: { policy: 'strict' },
+			requests: (['pre-think', 'pre-act', 'post-act'] as const).map((hook) => ({
+				hook,
+				text: 'hello',
+				envelope: { agentId: 'a', tick: 1 }
+			})),
+			plantedSecret: 'planted-secret-xyz'
+		}
+	},
+	evaluators: {
+		[exampleEvaluator.id]: {
+			inputs: [exampleEvaluationInput()],
+			plantedSecret: 'planted-secret-xyz'
+		}
 	}
 };

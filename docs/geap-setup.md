@@ -173,3 +173,37 @@ Every screen defaults to reading `offline` on a freshly-fitted brick — no
 Google account, no template, no token, and every scenario in this repo's own
 test suite runs this way in CI. Switch `offline` off only once you have done
 steps 1–2 above.
+
+## 7. The evaluation service (`geap/eval/*`)
+
+The same battery scores a finished run through the
+[Gen AI evaluation service](https://cloud.google.com/vertex-ai/generative-ai/docs/models/evaluation-overview)
+(`39-HOSTED-EVALUATOR.md`, WP51): three evaluators — `geap/eval/safety`,
+`geap/eval/fulfillment` and `geap/eval/rubric` — each one `evaluateInstances`
+call to `{location}-aiplatform.googleapis.com`. Enable the API and give the
+account the role, on the same project:
+
+```bash
+gcloud services enable aiplatform.googleapis.com
+gcloud projects add-iam-policy-binding PROJECT_ID --member="user:you@example.com" --role="roles/aiplatform.user"
+```
+
+The token from §2 covers it (`cloud-platform` scope). Where each host runs it:
+
+- **the harness** — `CRAFTABOT_CREDENTIAL_GEAP` in the environment and
+  `--project PROJECT_ID [--location europe-west2]` on `craftabot evaluate`;
+  without both, the evaluator answers `inconclusive` with `outcome: offline`
+  on its record. `--egress none` keeps it offline whatever is set.
+- **the Workshop** — the Cloud Armour battery in Settings and a project on the
+  Evaluators page; the page says which it will do before you press Run.
+- **a campaign** — only under a `budget`, with the credential in the
+  environment and a `config` on the evaluator entry; `maxLiveEvaluations`
+  caps the calls and the report counts them as `budget.liveEvaluations`.
+
+**What leaves:** the run's own transcript — what the bot saw, thought, did
+and was told back, per tick (the same lines the rubric judge reads) — and,
+for fulfillment, the goal as the bot was given it. Never the spec, never the
+token. The smoke test's evaluation leg (`npm run smoke:geap` with
+`GEAP_PROJECT_ID` set) makes one safety call over a fixed two-line
+transcript. Pricing is per evaluated token on Vertex AI's own schedule —
+check Google Cloud's current pricing page before relying on any figure.

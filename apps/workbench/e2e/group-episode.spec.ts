@@ -82,7 +82,10 @@ test('a scripted duo episode is browsable and replayable in the Workshop', async
 	await expect(page.getByTestId('timeline')).toBeVisible();
 	await expect(page.getByTestId('run-scrubber')).toBeVisible();
 	// No digest badge and no "open in Kit" — both stay single-run (`23-…` §4.7).
-	await expect(page.getByTestId('digest-badge')).toHaveCount(0);
+	// The badge verifies the episode's bundle now (WP48, `36-…` §4.4); "Open in Kit" stays single-run.
+	await expect(page.getByTestId('digest-badge')).toHaveAttribute('data-verified', 'true', {
+		timeout: 10_000
+	});
 	await expect(page.getByTestId('open-in-kit')).toHaveCount(0);
 
 	// Each member's own trace also opens standalone (acceptance criterion 5).

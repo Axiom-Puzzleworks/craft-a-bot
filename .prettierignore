@@ -34,3 +34,6 @@ packages/packs/geap/src/fixtures/trace.geap-armour-offline.v1.json
 # `npm run evals`, so formatting them here would fight the generator and make
 # every run show a spurious diff.
 packages/evals/baselines
+
+# Vendored upstream schema, kept byte-for-byte (WP38).
+packages/evals/schemas/

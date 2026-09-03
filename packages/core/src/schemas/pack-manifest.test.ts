@@ -90,7 +90,7 @@ describe('pack-manifest schemas', () => {
 			id: 'starter',
 			name: 'My Very First Agent — Starter Parts',
 			version: '1.0.0',
-			requiresCore: '>=1.0.0'
+			requiresCore: '>=0.0.1'
 		});
 		expect(result.success).toBe(true);
 	});

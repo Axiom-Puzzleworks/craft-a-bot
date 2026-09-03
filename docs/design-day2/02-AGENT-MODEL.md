@@ -217,6 +217,8 @@ Validation: `validateSpec(spec, registry)` returns structured problems (`missing
 
 ## 7. Event catalogue (the observability spine)
 
+> **Amended 2026-09-02 (WP41, `26-TARGET-DESIGN-V3.md` §6.6):** `run.started` gains an optional `egress: { mode: 'declared' | 'none', hosts: string[] }` — the mode the host named and every host pattern a fitted component declared — written only once the host names a mode, so every trace written before it, the golden traces among them, keeps its bytes. `error.kind` has two spoken-for values: `'engine'` and `'egress-refused'`, the latter emitted by the session's `fetch` guard *before* the rejection reaches the caller, so a refusal is on the trace even when a client swallows it; the run's own terminal error is not written a second time for the same refusal.
+
 All events share `{ id, runId, tick, timestamp, type, payload }`, strictly typed per `type`. V1 catalogue:
 
 `run.started` · `run.finished` · `tick.started` · `tick.completed` · `sense` · `prompt.composed` (full messages + token estimate) · `think.started` · `think.token` (streaming deltas) · `think.completed` (raw response, usage) · `decision` (thought + parsed call + source) · `tool.executed` (args, result, duration) · `action.performed` (args, world narration, world-state diff) · `memory.updated` · `brick.state` (slot, kind, opaque state) · `guardrail.external` (a hosted guardrail's own network call) · `guardrail.checked` · `guardrail.tripped` · `approval.requested` · `approval.resolved` · `world.changed` · `error`

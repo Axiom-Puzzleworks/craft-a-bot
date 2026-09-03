@@ -54,7 +54,7 @@ vi.mock('$lib/packs.js', async () => {
 				id: 'expansion',
 				name: 'Expansion',
 				version: '1.0.0',
-				requiresCore: '>=1.0.0',
+				requiresCore: '>=0.0.1',
 				brickKinds: [monitorKind, hostedKind]
 			});
 			return registry;
@@ -100,7 +100,10 @@ describe('a brick from a pack the workbench ships no code for', () => {
 		mount(() => undefined);
 		expect(screen.getByTestId('tray-expansion/monitor')).toBeInTheDocument();
 		expect(screen.getByText('Watchbot')).toBeInTheDocument();
-		expect(screen.getByText('Keeps an eye on things.')).toBeInTheDocument();
+		// The description is the well's own label and tooltip (2026-09-03: the compact tray shows one line per well).
+		const well = screen.getByTestId('tray-expansion/monitor');
+		expect(well.getAttribute('title')).toBe('Keeps an eye on things.');
+		expect(well.getAttribute('aria-label')).toContain('Keeps an eye on things.');
 	});
 
 	it('sits beside the starter bricks rather than replacing them', () => {

@@ -9,7 +9,11 @@
  */
 export { checkCartridge } from './checks/cartridge.js';
 export { checkGoldenTrace } from './checks/golden-trace.js';
+export { checkEvaluator } from './checks/evaluator.js';
+export { checkSink } from './checks/sink.js';
+export { describeSinkConformance } from './describe-sink.js';
 export { checkGuardrail } from './checks/guardrail.js';
+export { checkGuardrailService, hostMatches } from './checks/guardrail-service.js';
 export { checkManifest } from './checks/manifest.js';
 export { checkTool } from './checks/tool.js';
 export { checkWorld } from './checks/world.js';
@@ -19,6 +23,9 @@ export type {
 	GoldenTraceConformanceFixture,
 	GuardrailConformanceEntry,
 	GuardrailConformanceFixture,
+	EvaluatorConformanceFixture,
+	SinkConformanceFixture,
+	GuardrailServiceConformanceFixture,
 	PackConformanceFixture,
 	ToolConformanceFixture,
 	WorldConformanceFixture,

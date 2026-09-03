@@ -4,7 +4,10 @@ import type {
 	CartridgeDefinition,
 	Guardrail,
 	GuardrailContext,
-	PackManifest
+	EvaluationInput,
+	PackManifest,
+	ScreenRequest,
+	TraceExport
 } from '@craftabot/core';
 import type { MockScript } from '@craftabot/core/testing';
 
@@ -98,6 +101,40 @@ export interface GuardrailConformanceFixture {
 	guardrails: GuardrailConformanceEntry[];
 }
 
+/**
+ * A hosted guardrail service's own fixture (`29-GUARD-SHELL.md` §4.7, WP39):
+ * a config its `configSchema` accepts, requests its offline client must
+ * answer, and a secret that must never leak. Keyed by service id in
+ * `PackConformanceFixture.guardrailServices`.
+ */
+export interface GuardrailServiceConformanceFixture {
+	config: unknown;
+	/** At least one per hook the service supports. */
+	requests: ScreenRequest[];
+	/** Planted as the credential; must not appear in any result. */
+	plantedSecret: string;
+}
+
+/**
+ * An evaluator's fixture (`31-EVALUATORS.md` §4.4, WP43): inputs it is run
+ * over, its config, and a secret that must never reach a result. Keyed by
+ * evaluator id in `PackConformanceFixture.evaluators`.
+ */
+export interface EvaluatorConformanceFixture {
+	inputs: EvaluationInput[];
+	config?: unknown;
+	plantedSecret: string;
+}
+
+/** A trace sink (WP47, `35-TELEMETRY.md` §4.4): a config it accepts, a finished run to attach and export, a secret that must never leak. */
+export interface SinkConformanceFixture {
+	config: unknown;
+	input: TraceExport;
+	plantedSecret: string;
+	/** `false` for a sink that never calls out (a file sink): a refused network is then not expected to count as a failure. */
+	expectsNetwork?: boolean;
+}
+
 /** A scripted run through the whole stack, checked for catalogue-only events. */
 export interface GoldenTraceConformanceFixture {
 	spec: AnyAgentSpec;
@@ -120,6 +157,10 @@ export interface PackConformanceFixture {
 	world?: WorldConformanceFixture;
 	tools?: ToolConformanceFixture;
 	guardrails?: GuardrailConformanceFixture;
+	/** One per service the manifest ships, keyed by service id (`29-…` §4.7). */
+	guardrailServices?: Record<string, GuardrailServiceConformanceFixture>;
+	/** One per evaluator the manifest ships, keyed by evaluator id (`31-…` §4.4). */
+	evaluators?: Record<string, EvaluatorConformanceFixture>;
 	goldenTrace?: GoldenTraceConformanceFixture;
 }
 

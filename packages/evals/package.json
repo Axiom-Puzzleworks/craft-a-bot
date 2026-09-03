@@ -15,7 +15,8 @@
 		"build": "tsc -p tsconfig.build.json",
 		"test": "vitest run --coverage",
 		"check": "tsc --noEmit",
-		"evals": "tsc -p tsconfig.build.json && node dist/main.js"
+		"evals": "tsc -p tsconfig.build.json && node dist/main.js",
+		"campaign:baseline": "tsc -p tsconfig.build.json && node dist/write-baseline-campaign-main.js"
 	},
 	"dependencies": {
 		"@craftabot/core": "*",
@@ -24,6 +25,13 @@
 		"zod": "^4.4.3"
 	},
 	"devDependencies": {
-		"@types/node": "^24.10.1"
+		"@craftabot/pack-azure-content-safety": "*",
+		"@craftabot/pack-pdp-opa": "*",
+		"@craftabot/pack-evaluators": "*",
+		"@craftabot/pack-guard-local": "*",
+		"@craftabot/pack-workshop": "*",
+		"@types/node": "^24.10.1",
+		"ajv": "^8.17.1",
+		"@craftabot/pack-geap": "*"
 	}
 }

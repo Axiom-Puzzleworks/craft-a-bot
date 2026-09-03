@@ -1,9 +1,14 @@
 import type {
+	EngineEvent,
 	Guardrail,
+	GuardrailContext,
+	GuardrailHook,
+	Observation,
 	PolicyCard,
 	PolicyRule,
 	PredicateExpr,
-	ProposedStep
+	ProposedStep,
+	WorldState
 } from '@craftabot/core';
 
 /**
@@ -23,6 +28,40 @@ import type {
 export interface PredicateEvalContext {
 	proposed?: ProposedStep | undefined;
 	usage: { ticks: number; inputTokens: number; outputTokens: number };
+	/** The rest of what a v2 leaf reads (WP45, `33-…` §4.2) — all optional, all straight off `GuardrailContext`. */
+	hook?: GuardrailHook;
+	worldState?: Readonly<WorldState>;
+	history?: ReadonlyArray<EngineEvent>;
+	observation?: Observation;
+	world?: GuardrailContext['world'];
+}
+
+/** The evaluation context a full guardrail context yields — every field a leaf can read. */
+export function predicateContextFor(ctx: GuardrailContext): PredicateEvalContext {
+	return {
+		proposed: ctx.proposed,
+		usage: ctx.usage,
+		hook: ctx.hook,
+		worldState: ctx.worldState,
+		history: ctx.history,
+		...(ctx.observation !== undefined ? { observation: ctx.observation } : {}),
+		...(ctx.world !== undefined ? { world: ctx.world } : {})
+	};
+}
+
+const patterns = new Map<string, RegExp>();
+function patternFor(source: string): RegExp {
+	let compiled = patterns.get(source);
+	if (!compiled) {
+		compiled = new RegExp(source);
+		patterns.set(source, compiled);
+	}
+	return compiled;
+}
+
+function eventName(event: EngineEvent): string | undefined {
+	const payload = event.payload as { name?: unknown } | undefined;
+	return typeof payload?.name === 'string' ? payload.name : undefined;
 }
 
 /** A single-level-or-dotted lookup into a call's arguments, without assuming they are an object. */
@@ -63,6 +102,32 @@ export function evaluatePredicate(expr: PredicateExpr, ctx: PredicateEvalContext
 			return getPath(ctx.proposed?.arguments, expr.path) === expr.value;
 		case 'usage-at-least':
 			return ctx.usage[expr.field] >= expr.value;
+		case 'argument-contains': {
+			const value = getPath(ctx.proposed?.arguments, expr.path);
+			if (typeof value === 'string') return value.includes(expr.value);
+			return Array.isArray(value) && value.includes(expr.value);
+		}
+		case 'argument-matches': {
+			const value = getPath(ctx.proposed?.arguments, expr.path);
+			return typeof value === 'string' && patternFor(expr.pattern).test(value);
+		}
+		case 'observation-contains':
+			return ctx.observation?.text.includes(expr.value) ?? false;
+		case 'world-predicate':
+			return ctx.world?.test(expr.predicateId) === true;
+		case 'history-count': {
+			const events = ctx.history ?? [];
+			let count = 0;
+			for (const event of events) {
+				if (event.type !== expr.type) continue;
+				if (expr.name !== undefined && eventName(event) !== expr.name) continue;
+				count += 1;
+				if (count >= expr.atLeast) return true;
+			}
+			return false;
+		}
+		case 'hook-is':
+			return ctx.hook === expr.hook;
 		case 'and':
 			return expr.all.every((sub) => evaluatePredicate(sub, ctx));
 		case 'or':
@@ -80,7 +145,7 @@ function compileRule(card: PolicyCard, rule: PolicyRule, index: number): Guardra
 		hooks: [rule.hook],
 		policyCardId: card.id,
 		check(ctx) {
-			const fires = evaluatePredicate(rule.when, { proposed: ctx.proposed, usage: ctx.usage });
+			const fires = evaluatePredicate(rule.when, predicateContextFor(ctx));
 			if (!fires) return { allow: true };
 
 			switch (rule.then) {

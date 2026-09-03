@@ -12,6 +12,8 @@ import {
 import type { GridWorldState } from '@craftabot/core';
 import { botExpression, type BotExpression } from '$lib/bot-expression.js';
 import { createRegistry } from '$lib/packs.js';
+import type { BreakpointKind } from './settings.js';
+import { sinksStore } from './sinks.svelte.js';
 import { createBrowserKeyVault } from '$lib/state/keys.js';
 import {
 	applyEvent,
@@ -78,7 +80,11 @@ export interface SessionView {
 	 * with no ears ignores it and the trace records that it did.
 	 */
 	deliverInput(text: string): void;
+	/** Set while the run is paused at a breakpoint (WP49); cleared when it goes on. */
+	readonly breakpoint: BreakpointHit | undefined;
 	start(mode: RunMode): void;
+	/** Go on in play mode from a pause — a breakpoint's or a person's. */
+	resume(): void;
 	step(): Promise<void>;
 	pause(): void;
 	stop(): void;
@@ -103,6 +109,39 @@ export interface SessionViewDeps {
 	/** Base delay between ticks in play mode, before the speed dial divides it. */
 	baseTickDelayMs?: number;
 	onEvent?: (event: EngineEvent) => void;
+	/**
+	 * Which events pause a play-mode run (WP49, `37-…` §4.3) — read each
+	 * time, so a preference changed mid-run applies to the next event.
+	 */
+	breakpoints?: () => readonly BreakpointKind[];
+}
+
+/** Why a live run stopped at a breakpoint: the kind that matched, and where. */
+export interface BreakpointHit {
+	kind: BreakpointKind;
+	tick: number;
+	eventType: EngineEvent['type'];
+	/** Index into `events` of the row that tripped it. */
+	eventIndex: number;
+}
+
+/** The breakpoint an event trips, if any (`37-…` §4.3's three kinds). */
+export function breakpointFor(
+	event: EngineEvent,
+	armed: readonly BreakpointKind[]
+): BreakpointKind | undefined {
+	if (armed.length === 0) return undefined;
+	if (event.type === 'guardrail.tripped' && armed.includes('guardrail-trip'))
+		return 'guardrail-trip';
+	if (event.type === 'tool.executed' && armed.includes('tool-call')) return 'tool-call';
+	if (
+		event.type === 'action.performed' &&
+		!event.payload.result.ok &&
+		armed.includes('action-failure')
+	) {
+		return 'action-failure';
+	}
+	return undefined;
 }
 
 const BASE_TICK_DELAY_MS = 700;
@@ -124,6 +163,7 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 	let speed = $state(1);
 	let session = build();
 	let runId = $state<string | undefined>(undefined);
+	let breakpoint = $state<BreakpointHit | undefined>(undefined);
 
 	/** One place that knows how the dial becomes a delay, so build and setSpeed agree. */
 	function tickDelayFor(multiplier: number): number {
@@ -140,11 +180,16 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 			// call `brain.ts` already makes for a provider's own battery.
 			getCredential: (id) => createBrowserKeyVault().get(id),
 			options: {
+				// The app always names its mode (WP41), so every trace it writes says where the run could call.
+				egress: 'declared',
 				tickDelayMs: tickDelayFor(speed),
 				...(deps.maxTicks !== undefined ? { budgets: { maxTicks: deps.maxTicks } } : {})
 			}
 		});
 		created.events.onAny(absorb);
+		// Configured sinks ride along (WP47, `35-…` §4.5): consumers of the bus, detached and flushed when the run ends.
+		const detachSinks = sinksStore.attach(created.events, { agentId: deps.spec.id });
+		created.events.on('run.finished', () => detachSinks());
 		return created;
 	}
 
@@ -157,6 +202,39 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 		runId ??= event.runId;
 		deps.onEvent?.(event);
 		state.status = session.status;
+		/*
+		 * Breakpoints (WP49, `37-…` §4.3): a host decision over an event just
+		 * absorbed, honoured with the engine's own pause — the loop finishes the
+		 * tick in hand and stops, as it does for the Pause button. Only a play
+		 * run has anything to pause; a stepped run stops every tick anyway.
+		 */
+		if (breakpoint === undefined && session.status === 'running') {
+			const kind = breakpointFor(event, deps.breakpoints?.() ?? []);
+			if (kind !== undefined) {
+				breakpoint = {
+					kind,
+					tick: event.tick,
+					eventType: event.type,
+					eventIndex: state.events.length - 1
+				};
+				session.pause();
+				void settleStatus();
+			}
+		}
+	}
+
+	/**
+	 * A pause lands when the tick in hand ends, and no event marks that moment
+	 * — so after asking for one, watch the session until it is no longer
+	 * running and then let the UI know. Polling a status field a few times a
+	 * second is cheap; a Pause button that stays "running" is not.
+	 */
+	async function settleStatus(): Promise<void> {
+		const mine = session;
+		while (mine === session && mine.status === 'running') {
+			await new Promise((resolve) => setTimeout(resolve, 20));
+		}
+		if (mine === session) state.status = session.status;
 	}
 
 	return {
@@ -256,17 +334,28 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 			session.resolveApproval(approved);
 			state.status = session.status;
 		},
+		get breakpoint() {
+			return breakpoint;
+		},
 		start(mode) {
+			breakpoint = undefined;
 			session.start(mode);
 			state.status = session.status;
 		},
+		resume() {
+			breakpoint = undefined;
+			session.start('play');
+			state.status = session.status;
+		},
 		async step() {
+			breakpoint = undefined;
 			await session.step();
 			state.status = session.status;
 		},
 		pause() {
 			session.pause();
 			state.status = session.status;
+			void settleStatus();
 		},
 		stop() {
 			session.stop('stopped from the Playroom');
@@ -292,6 +381,7 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 			Object.assign(state, emptyProjection());
 			state.status = 'idle';
 			runId = undefined;
+			breakpoint = undefined;
 			session = build();
 		}
 	};

@@ -1,9 +1,16 @@
 import { z } from 'zod';
+export {
+	evaluationRecordSchema,
+	evaluationResultSchema,
+	safeParseEvaluationRecord,
+	type EvaluationRecord,
+	type EvaluationResultRecord
+} from './evaluation.js';
 import { agentSpecSchema } from './agent-spec.js';
 import { agentSpecV2Schema, migrateAgentSpec } from './agent-spec-v2.js';
 import { buildProblemSchema } from './build-problem.js';
 import { engineEventSchema } from './events.js';
-import { runOutcomeSchema, usageSchema, type MigrationError } from './shared.js';
+import { runOutcomeSchema, type MigrationError, usageSchema } from './shared.js';
 
 /**
  * The stored entities (07-DATA-MODEL-PERSISTENCE.md §3). Every one carries a
@@ -171,6 +178,81 @@ export const groupRunRecordSchema = z.object({
 	schemaVersion: z.literal(1)
 });
 export type GroupRunRecord = z.infer<typeof groupRunRecordSchema>;
+
+/**
+ * **What a finished run adds up to** (WP36 stage C, `26-TARGET-DESIGN-V3.md`
+ * §6.14) — the per-run facts the Workshop's fleet, incident, telemetry and
+ * safety-case screens need, folded once from the events when the run ends
+ * and stored beside its `RunRecord`, so a dashboard over N runs is N small
+ * reads rather than N whole traces. Everything here is derivable from the
+ * trace and nothing else (`14-…` §1 tenet 4); the trace stays the source of
+ * truth and a summary is a cache of it, never authored.
+ *
+ * `findings` carries the incident log's own per-event lines verbatim so the
+ * log can be listed without re-reading a single trace; a run with none is a
+ * run that never went wrong.
+ */
+export const runSummaryFindingSchema = z.object({
+	kind: z.enum(['error', 'guardrail-catch', 'action-failure', 'approval-denied', 'run-failure']),
+	tick: z.number().int().nonnegative(),
+	/** One line, drawn from the event's own payload — never invented. */
+	summary: z.string()
+});
+export type RunSummaryFinding = z.infer<typeof runSummaryFindingSchema>;
+
+export const runSummarySchema = z.object({
+	runId: z.string().uuid(),
+	/** Every rule the engine consulted, and the ones that said no. */
+	checks: z.number().int().nonnegative(),
+	saves: z.number().int().nonnegative(),
+	/** `guardrail.tripped` counts by guardrail id — the trip mix. */
+	guardrailTrips: z.record(z.string(), z.number().int().nonnegative()),
+	/** `approval.resolved` counts — how often a person was asked, and said yes. */
+	approvalsRequested: z.number().int().nonnegative(),
+	approvalsGranted: z.number().int().nonnegative(),
+	findings: z.array(runSummaryFindingSchema),
+	/** Decisions that proposed a call, and how many of those a hosted guard screened at `pre-act`. */
+	decisions: z.number().int().nonnegative(),
+	hostedPreActScreens: z.number().int().nonnegative(),
+	/** Where the run was allowed to call (WP41, `26-…` §6.6) — `run.started.egress`, when the host named a mode. */
+	egress: z.object({ mode: z.enum(['declared', 'none']), hosts: z.array(z.string()) }).optional(),
+	schemaVersion: z.literal(1)
+});
+export type RunSummary = z.infer<typeof runSummarySchema>;
+
+/**
+ * **A campaign report, as the store keeps it** (WP38 stage D, `28-…` §4.9).
+ *
+ * The report's own schema lives with the runner in `@craftabot/evals`, which
+ * `core` must not depend on — so the store keeps an *envelope*: the handful
+ * of fields a list needs to show without opening the report, and the report
+ * itself as opaque JSON that `@craftabot/evals`' `parseCampaignReport`
+ * validates on the way back out. Small on purpose: a report carries metrics
+ * and verdicts, never a trace.
+ */
+export const storedCampaignReportSchema = z.object({
+	id: z.string().min(1),
+	campaignId: z.string().min(1),
+	title: z.string().min(1),
+	createdAt: z.string().datetime(),
+	passed: z.boolean(),
+	gatesPassed: z.number().int().nonnegative(),
+	gatesTotal: z.number().int().nonnegative(),
+	cells: z.number().int().nonnegative(),
+	report: z.record(z.string(), z.unknown()),
+	schemaVersion: z.literal(1)
+});
+export type StoredCampaignReport = z.infer<typeof storedCampaignReportSchema>;
+
+export function safeParseStoredCampaignReport(
+	value: unknown
+): ReturnType<typeof storedCampaignReportSchema.safeParse> {
+	return storedCampaignReportSchema.safeParse(value);
+}
+
+export function safeParseRunSummary(value: unknown): ReturnType<typeof runSummarySchema.safeParse> {
+	return runSummarySchema.safeParse(value);
+}
 
 export function parseAgentRecord(value: unknown): AgentRecord {
 	return agentRecordSchema.parse(value);

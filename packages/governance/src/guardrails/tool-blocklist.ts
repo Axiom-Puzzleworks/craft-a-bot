@@ -26,6 +26,7 @@ function callName(id: string): string {
 	return lastSlash === -1 ? id : id.slice(lastSlash + 1);
 }
 
+/** Refuses any tool call named in `blockedTools` at `pre-act` (`block-action`), and tells the bot why. */
 export function createToolBlocklistGuardrail(blockedTools: readonly string[]): Guardrail {
 	const blocked = new Set(blockedTools.map(callName));
 

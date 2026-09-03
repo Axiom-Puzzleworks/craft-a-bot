@@ -3,6 +3,7 @@ import { buildTraceFile, verifyTraceDigest } from './trace-export.js';
 import { REDACTED } from './redact.js';
 import type { EngineEvent } from '../schemas/events.js';
 import type { RunRecord } from '../schemas/trace-file.js';
+import { makeEvaluation } from '../testing/storage-fixtures.js';
 
 function makeRun(overrides: Partial<RunRecord> = {}): RunRecord {
 	return {
@@ -61,6 +62,31 @@ const events: EngineEvent[] = [
 ];
 
 describe('buildTraceFile', () => {
+	/** WP43 (`31-…` §4.4): a run's evaluations ride in the file, redacted like everything else, outside the digest. */
+	it('carries evaluations when handed them, redacted, and leaves the digest to the events', async () => {
+		const run = makeRun();
+		const evaluation = makeEvaluation({
+			runId: run.id,
+			result: {
+				evaluatorId: 'test/always-pass',
+				verdict: 'pass',
+				// Whole-string, as the scrubber matches (`redact.ts`): the secret *is* the explanation.
+				explanation: 'sk-secret-1',
+				evidence: []
+			}
+		});
+		const bare = await buildTraceFile(run, [], { secrets: ['sk-secret-1'] });
+		expect('evaluations' in bare).toBe(false);
+		const full = await buildTraceFile(run, [], {
+			secrets: ['sk-secret-1'],
+			evaluations: [evaluation]
+		});
+		expect(full.evaluations).toHaveLength(1);
+		expect(full.evaluations?.[0]?.result.explanation).toBe(REDACTED);
+		expect(JSON.stringify(full)).not.toContain('sk-secret-1');
+		expect(full.traceDigest).toBe(bare.traceDigest);
+	});
+
 	it('produces a self-contained record: spec snapshot, pack versions, every event', async () => {
 		const trace = await buildTraceFile(makeRun(), events);
 

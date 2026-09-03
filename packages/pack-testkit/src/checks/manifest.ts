@@ -1,15 +1,19 @@
-import { createPackRegistry, packManifestMetadataSchema, type PackManifest } from '@craftabot/core';
+import {
+	CRAFTABOT_CORE_VERSION,
+	createPackRegistry,
+	packManifestMetadataSchema,
+	satisfiesRange,
+	type PackManifest
+} from '@craftabot/core';
 import type { ConformanceIssue } from '../types.js';
 
 /**
  * "Manifest validates; ids qualified and collision-free" (`13-…` §7).
  *
- * Semver range evaluation is deliberately not checked here — see the module
- * doc comment in `../types.ts` and the dated amendment in `13-…` §7. This
- * checks what the codebase actually does today: the metadata shape parses,
- * every id the pack registers is qualified `{packId}/{localId}`, and
- * registering it (alongside whatever companions it needs) does not collide
- * with anything.
+ * The metadata shape parses, every id the pack registers is qualified
+ * `{packId}/{localId}`, registering it (alongside whatever companions it
+ * needs) does not collide with anything — and, since WP52, `requiresCore`
+ * and `requiresPacks` are evaluated as ranges (`13-…` §7's D13 bullet).
  */
 export function checkManifest(
 	manifest: PackManifest,
@@ -45,10 +49,40 @@ export function checkManifest(
 	for (const card of manifest.policyCards ?? []) {
 		if (!card.id.startsWith(prefix)) unqualified.push(`policyCard "${card.id}"`);
 	}
+	for (const service of manifest.guardrailServices ?? []) {
+		if (!service.id.startsWith(prefix)) unqualified.push(`guardrailService "${service.id}"`);
+	}
+	for (const evaluator of manifest.evaluators ?? []) {
+		if (!evaluator.id.startsWith(prefix)) unqualified.push(`evaluator "${evaluator.id}"`);
+	}
+	for (const card of manifest.assertionCards ?? []) {
+		if (!card.id.startsWith(prefix)) unqualified.push(`assertionCard "${card.id}"`);
+	}
+	for (const scenario of manifest.scenarios ?? []) {
+		if (!scenario.id.startsWith(prefix)) unqualified.push(`scenario "${scenario.id}"`);
+	}
 	if (unqualified.length > 0) {
 		issues.push({
 			check: 'manifest.ids-qualified',
 			message: `ids not prefixed "${prefix}" (the "{packId}/{localId}" convention, E6): ${unqualified.join(', ')}`
+		});
+	}
+
+	// "Semver ranges evaluated (D13)" — the bullet `13-…` §7 left unchecked until WP52.
+	const unmet: string[] = [];
+	if (!satisfiesRange(CRAFTABOT_CORE_VERSION, manifest.requiresCore)) {
+		unmet.push(`core ${manifest.requiresCore} (this is core ${CRAFTABOT_CORE_VERSION})`);
+	}
+	for (const [needed, range] of Object.entries(manifest.requiresPacks ?? {})) {
+		const companion = (options.companionPacks ?? []).find((pack) => pack.id === needed);
+		if (!companion) unmet.push(`pack "${needed}" ${range} (not among the companion packs)`);
+		else if (!satisfiesRange(companion.version, range))
+			unmet.push(`pack "${needed}" ${range} (companion is ${companion.version})`);
+	}
+	if (unmet.length > 0) {
+		issues.push({
+			check: 'manifest.requires-satisfied',
+			message: `requirements not met: ${unmet.join('; ')}`
 		});
 	}
 

@@ -39,7 +39,7 @@ function registry() {
 		id: 'test',
 		name: 'Test',
 		version: '1.0.0',
-		requiresCore: '>=1.0.0',
+		requiresCore: '>=0.0.1',
 		brickKinds: v1BrickKinds()
 	});
 	return built;
@@ -98,7 +98,7 @@ describe('the Safety Brick and the backstop', () => {
 			id: 'test',
 			name: 'Test',
 			version: '1.0.0',
-			requiresCore: '>=1.0.0',
+			requiresCore: '>=0.0.1',
 			brickKinds: [
 				{
 					id: 'test/monitor',

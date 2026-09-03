@@ -43,7 +43,8 @@ function policyOf(spec: AnyAgentSpec): string[] {
 				getPolicyCard: () => undefined,
 				getAction: () => undefined,
 				fetch: () => Promise.reject(new Error('fetch is not used in these tests')),
-				getCredential: () => undefined
+				getCredential: () => undefined,
+				getGuardrailService: () => undefined
 			}
 		})
 	).map((rule) => `${rule.id}: ${rule.description}`);

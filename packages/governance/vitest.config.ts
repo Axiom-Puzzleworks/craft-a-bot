@@ -5,7 +5,7 @@ export default defineConfig({
 		coverage: {
 			provider: 'v8',
 			include: ['src/**/*.ts'],
-			exclude: ['src/**/*.test.ts', 'src/test-context.ts'],
+			exclude: ['src/**/*.test.ts', 'src/test-context.ts', 'src/hosted/test-service.ts'],
 			reporter: ['text', 'json-summary'],
 			/**
 			 * These are the whole point of the package, and `08` §7.2 asks that all
@@ -15,7 +15,9 @@ export default defineConfig({
 			 */
 			thresholds: {
 				'src/guardrails/*.ts': { statements: 100, branches: 100, functions: 100, lines: 100 },
-				'src/spec-guardrails.ts': { statements: 100, branches: 100, functions: 100, lines: 100 }
+				'src/spec-guardrails.ts': { statements: 100, branches: 100, functions: 100, lines: 100 },
+				// The shell (WP39): every vendor's disposition, clamp, fail-closed and record path runs through here.
+				'src/hosted/*.ts': { statements: 100, branches: 100, functions: 100, lines: 100 }
 			}
 		}
 	}

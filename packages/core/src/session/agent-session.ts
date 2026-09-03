@@ -41,6 +41,7 @@ import {
 	resolveReflex
 } from './brick-runtimes.js';
 import { createMemory, type TickMemory } from './memory.js';
+import { EgressRefusedError, createEgressGuard } from '../egress.js';
 import { describeFittedBricks, estimateTokens } from './prompt.js';
 import { resolveStrategies } from './strategies.js';
 
@@ -87,7 +88,21 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 	const newId = options.newId ?? (() => crypto.randomUUID());
 	const now = options.now ?? (() => new Date().toISOString());
 	const random = options.random ?? (() => Math.random());
-	const fetchImpl = options.fetch ?? globalThis.fetch.bind(globalThis);
+	/**
+	 * Every `fetch` a brick or the provider gets is the egress guard's
+	 * (`26-…` §6.6, WP41): allowed hosts are filled in as the runtimes are
+	 * built below, and a call to any other host is refused with an `error`
+	 * event on the trace before the rejection reaches the caller.
+	 */
+	const egressMode = options.egress ?? 'declared';
+	const egress = createEgressGuard({
+		mode: egressMode,
+		fetch: options.fetch ?? globalThis.fetch.bind(globalThis),
+		onRefused: (error) => {
+			if (run.status !== 'idle') emit('error', { message: error.message, kind: error.kind });
+		}
+	});
+	const fetchImpl = egress.fetch;
 	const getCredential = deps.getCredential ?? (() => undefined);
 	/**
 	 * Mutable, because the speed dial is a control a person turns *while
@@ -112,6 +127,9 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 	 * session builds its own world exactly as every session has since WP2.
 	 */
 	const world = deps.world ?? createWorld(goalCard);
+	// The world's own questions, for `world-predicate` leaves and a PDP's input (WP45).
+	const worldPredicates = Object.keys(registry.getWorld(goalCard.worldId)?.predicates ?? {});
+	const worldQuestions = { test: (id: string) => world.test(id), predicates: worldPredicates };
 	const budgets = resolveBudgets(deps.spec, registry, options.budgets);
 	/*
 	 * The two sockets core reads rather than is contributed to (slice 3c). See
@@ -152,11 +170,16 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		context: {
 			random,
 			getPolicyCard: (id) => registry.getPolicyCard(id),
+			getGuardrailService: (id) => registry.getGuardrailService(id),
+			getEvaluator: (id) => registry.getEvaluator(id),
+			getAssertionCard: (id) => registry.getAssertionCard(id),
 			getAction: (id) => registry.getAction(id),
 			fetch: fetchImpl,
 			getCredential
 		}
 	});
+	egress.allow(provider.egress ?? []);
+	for (const fitted of runtimes) egress.allow(fitted.runtime.egress ?? []);
 	const fittedBricks = describeFittedBricks(deps.spec, registry);
 
 	/*
@@ -212,6 +235,8 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		mode: 'step' as RunMode,
 		outcome: undefined as RunOutcome | undefined,
 		tick: 0,
+		/** Whether `run.started` has been emitted — what tells a resume from a start (WP49). */
+		begun: false,
 		pauseRequested: false,
 		stopRequested: undefined as string | undefined,
 		pendingApproval: undefined as ((approved: boolean) => void) | undefined,
@@ -372,16 +397,25 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		}
 	}
 
+	/**
+	 * What the current tick has in hand for guardrails (`29-…` §4.2): reset at
+	 * `tick.started`, filled as SENSE, COMPOSE and THINK happen. Spread into
+	 * every context of the tick so a hook sees exactly what exists by then.
+	 */
+	let inHand: Pick<GuardrailContext, 'observation' | 'messages' | 'response'> = {};
+
 	function guardrailContext(
 		hook: GuardrailHook,
 		proposed?: GuardrailContext['proposed']
 	): GuardrailContext {
 		return {
 			hook,
+			...inHand,
 			tick: run.tick,
 			spec,
 			usage: { ...usage },
 			worldState: world.snapshot(),
+			world: worldQuestions,
 			/*
 			 * A view, not a copy (E9, `14-…` §3).
 			 *
@@ -596,7 +630,9 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			const result = await tool.execute(call.arguments, {
 				tick: run.tick,
 				notebook: memory.notebook,
-				random
+				random,
+				// A snapshot, never the live state (WP44): a tool reads the world, it does not act in it.
+				worldState: world.snapshot()
 			});
 			emit('tool.executed', {
 				name: call.name,
@@ -660,6 +696,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		usage.ticks += 1;
 		run.tick = usage.ticks;
 		emit('tick.started', {});
+		inHand = {};
 		// Counted before anything happens, so "did it write this tick?" is a
 		// comparison rather than a guess (E8).
 		const notebookLinesAtTickStart = memory.writes();
@@ -671,6 +708,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		const worldChannels = senseChannelsForWorld(channels);
 		const observation = world.observe(worldChannels);
 		emit('sense', { channels: [...channels], observation });
+		inHand = { observation };
 
 		// REFLEX (WP30 stage A, If/Then) — a fitted brick may propose a call
 		// before the brain is ever asked. Checked here, right after SENSE,
@@ -718,6 +756,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			let messages = strategies.prompt.compose(promptInput);
 			run.feedback = [];
 			emit('prompt.composed', { messages, estimatedTokens: estimateTokens(messages) });
+			inHand = { ...inHand, messages };
 
 			// 3. GUARD (pre-think)
 			const preThink = await runGuards('pre-think');
@@ -737,6 +776,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			}
 
 			thought = decision.kind === 'malformed' ? '' : decision.thought;
+			inHand = { ...inHand, messages, response };
 			emit('decision', {
 				thought,
 				call: decision.kind === 'call' ? { ...decision.call } : null,
@@ -915,7 +955,11 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			// (06-LLM-PROVIDERS.md §7). Passing it through means the trace says
 			// "bad-key" rather than a generic engine failure, which is what the
 			// friendly error copy in 03 §9 keys off.
-			emit('error', { message, kind: errorKind(error) });
+			// An egress refusal is already on the trace — the guard wrote it before
+			// the rejection reached the caller (WP41) — so it is not written twice.
+			if (!(error instanceof EgressRefusedError)) {
+				emit('error', { message, kind: errorKind(error) });
+			}
 			return finish('ERROR');
 		}
 	}
@@ -924,6 +968,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		run.mode = runMode;
 		run.status = 'running';
 		run.tick = 0;
+		run.begun = true;
 		emit('run.started', {
 			mode: runMode,
 			// The limits and the model, recorded where the run begins (E8). An
@@ -937,6 +982,12 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			providerId: provider.id,
 			wireModel: cartridgeModel(),
 			cartridgeId: brain?.cartridgeId ?? '',
+			// Written only when the host named a mode (WP41): the guard runs
+			// either way, but a trace written before the field existed — the
+			// golden traces among them — keeps its bytes.
+			...(options.egress !== undefined
+				? { egress: { mode: egressMode, hosts: egress.hosts() } }
+				: {}),
 			strategies: { memory: strategies.memory.id, prompt: strategies.prompt.id }
 		});
 		// The opening scene needs an event behind it too. Without this the UI would
@@ -946,8 +997,19 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		emit('world.changed', { state: world.snapshot() });
 	}
 
+	/**
+	 * Which play loop is the live one. A resume (WP49) starts a fresh loop;
+	 * the one it replaces may still be sitting in its inter-tick delay, and
+	 * without this it would wake, see no pause request, and tick alongside.
+	 * A loop that finds it has been superseded leaves without touching the
+	 * run's status.
+	 */
+	let loopGeneration = 0;
+
 	async function playLoop(): Promise<void> {
+		const mine = ++loopGeneration;
 		while (
+			mine === loopGeneration &&
 			currentStatus() !== 'finished' &&
 			!run.pauseRequested &&
 			run.stopRequested === undefined
@@ -956,6 +1018,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			if (currentStatus() === 'finished') break;
 			if (tickDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, tickDelayMs));
 		}
+		if (mine !== loopGeneration) return;
 		if (run.pauseRequested) {
 			run.pauseRequested = false;
 			if (currentStatus() !== 'finished') run.status = 'paused';
@@ -971,6 +1034,26 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		events,
 		start(runMode) {
 			if (run.status === 'finished') return;
+			/*
+			 * A paused run told to go on goes on (WP49, `37-…` §4.3). This used to
+			 * call `startRun` regardless, so a run paused mid-way — by the Pause
+			 * button, or at a breakpoint — restarted from tick 0 with a second
+			 * `run.started` in the same trace. Only a run that has not begun is
+			 * started; one that has is resumed in the mode asked for, and in play
+			 * mode the loop picks up from the tick in hand.
+			 */
+			if (run.begun && run.status === 'paused') {
+				// Whatever loop asked to pause is done with; a stale request must not stop the new one.
+				loopGeneration += 1;
+				run.pauseRequested = false;
+				run.mode = runMode;
+				if (runMode === 'play') {
+					run.status = 'running';
+					void playLoop();
+				}
+				return;
+			}
+			if (run.status !== 'idle') return;
 			startRun(runMode);
 			if (runMode === 'play') void playLoop();
 			else run.status = 'paused';

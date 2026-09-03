@@ -36,12 +36,14 @@
 		controller: DndController;
 		/** What is in a socket right now, if anything. */
 		fittedIn: (slot: SlotId) => { kindId: string; name: string } | undefined;
+		/** Bricks in the socket behind the one shown (WP40) — drawn as a chip, never as a second well. */
+		extraIn?: (slot: SlotId) => number;
 		selected: SlotId | undefined;
 		onselect: (slot: SlotId) => void;
 		onremove: (slot: SlotId) => void;
 	}
 
-	let { controller, fittedIn, selected, onselect, onremove }: Props = $props();
+	let { controller, fittedIn, extraIn = () => 0, selected, onselect, onremove }: Props = $props();
 
 	function socketState(slot: SlotId): 'empty' | 'candidate' | 'rejecting' | 'occupied' {
 		if (controller.candidate === slot) return 'candidate';
@@ -101,6 +103,12 @@
 				{#if occupant}
 					<BrickShape kindId={occupant.kindId} {slot} fitted />
 					<span class="fitted-name">{occupant.name}</span>
+					{#if extraIn(slot) > 0}
+						<!-- The Kit's one well holds; the rest of a stack lives in the Workshop (WP40, `26-…` §6.13). -->
+						<span class="stack-chip" data-testid="stack-{slot}"
+							>+{extraIn(slot)} more, see Workshop</span
+						>
+					{/if}
 				{:else}
 					<span class="socket-name">{SOCKET_LABELS[slot]}</span>
 				{/if}
@@ -110,6 +118,18 @@
 </div>
 
 <style>
+	.stack-chip {
+		display: inline-block;
+		margin-top: 2px;
+		padding: 0 var(--cab-space-1);
+		font-size: var(--cab-text-xs);
+		line-height: 1.6;
+		color: var(--cab-ink);
+		background: var(--cab-cream);
+		border: 1px solid var(--cab-ink-muted);
+		border-radius: var(--cab-radius-part);
+	}
+
 	.baseplate {
 		position: relative;
 		display: grid;

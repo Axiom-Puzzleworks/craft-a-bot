@@ -4,6 +4,7 @@ import {
 	type AgentSpec,
 	type EngineEvent,
 	type GuardrailHook,
+	type Observation,
 	type PackManifest,
 	type PolicyCard,
 	type PolicyDisposition,
@@ -25,7 +26,17 @@ import starterPack from '@craftabot/pack-starter';
  * fired?" — test bench part (a).
  */
 
-export type LeafKind = 'call-kind-is' | 'call-name-is' | 'argument-equals' | 'usage-at-least';
+export type LeafKind =
+	| 'call-kind-is'
+	| 'call-name-is'
+	| 'argument-equals'
+	| 'usage-at-least'
+	| 'argument-contains'
+	| 'argument-matches'
+	| 'observation-contains'
+	| 'world-predicate'
+	| 'history-count'
+	| 'hook-is';
 
 /**
  * One row of the rule builder's flat condition list. A rule's `when` is this
@@ -44,6 +55,12 @@ export interface ConditionRow {
 	argValue: string;
 	field: 'ticks' | 'inputTokens' | 'outputTokens';
 	threshold: number;
+	/** The v2 leaves' fields (WP45, `33-…` §4.4). */
+	pattern: string;
+	predicateId: string;
+	eventType: string;
+	hook: GuardrailHook;
+	count: number;
 }
 
 export interface DraftRule {
@@ -62,7 +79,12 @@ export function newCondition(): ConditionRow {
 		path: '',
 		argValue: '',
 		field: 'ticks',
-		threshold: 10
+		threshold: 10,
+		pattern: '',
+		predicateId: '',
+		eventType: 'action.performed',
+		hook: 'pre-act',
+		count: 2
 	};
 }
 
@@ -85,6 +107,23 @@ export function conditionToExpr(row: ConditionRow): PredicateExpr {
 	else if (row.kind === 'call-name-is') base = { kind: 'call-name-is', value: row.name };
 	else if (row.kind === 'argument-equals') {
 		base = { kind: 'argument-equals', path: row.path, value: parseLiteral(row.argValue) };
+	} else if (row.kind === 'argument-contains') {
+		base = { kind: 'argument-contains', path: row.path, value: row.argValue };
+	} else if (row.kind === 'argument-matches') {
+		base = { kind: 'argument-matches', path: row.path, pattern: row.pattern };
+	} else if (row.kind === 'observation-contains') {
+		base = { kind: 'observation-contains', value: row.argValue };
+	} else if (row.kind === 'world-predicate') {
+		base = { kind: 'world-predicate', predicateId: row.predicateId };
+	} else if (row.kind === 'history-count') {
+		base = {
+			kind: 'history-count',
+			type: row.eventType,
+			...(row.name.trim() !== '' ? { name: row.name } : {}),
+			atLeast: row.count
+		};
+	} else if (row.kind === 'hook-is') {
+		base = { kind: 'hook-is', hook: row.hook };
 	} else base = { kind: 'usage-at-least', field: row.field, value: row.threshold };
 	return row.negate ? { kind: 'not', expr: base } : base;
 }
@@ -130,18 +169,36 @@ export function replayCard(card: PolicyCard, events: readonly EngineEvent[]): Re
 	let inputTokens = 0;
 	let outputTokens = 0;
 
-	for (const event of events) {
+	// The replay stands where pre-act stood (WP45): the trace so far is the
+	// history, the last observation is what the bot could see. The world's own
+	// questions are not on a stored trace, so a `world-predicate` leaf never
+	// fires in replay — the scripted probe and a real run are where it shows.
+	let observation: Observation | undefined;
+	for (const [index, event] of events.entries()) {
 		if (event.type === 'think.completed') {
 			inputTokens += event.payload.response.usage.inputTokens;
 			outputTokens += event.payload.response.usage.outputTokens;
+			continue;
+		}
+		if (event.type === 'sense') {
+			observation = event.payload.observation;
 			continue;
 		}
 		if (event.type !== 'decision' || !event.payload.call) continue;
 
 		const call = event.payload.call;
 		const usage = { ticks: event.tick, inputTokens, outputTokens };
+		const history = events.slice(0, index);
 		card.rules.forEach((rule, ruleIndex) => {
-			if (evaluatePredicate(rule.when, { proposed: call, usage })) {
+			if (
+				evaluatePredicate(rule.when, {
+					proposed: call,
+					usage,
+					hook: 'pre-act',
+					history,
+					...(observation !== undefined ? { observation } : {})
+				})
+			) {
 				hits.push({
 					tick: event.tick,
 					callKind: call.kind,

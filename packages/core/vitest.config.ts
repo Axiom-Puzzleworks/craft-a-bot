@@ -24,7 +24,11 @@ export default defineConfig({
 				'src/session/decide.ts': { statements: 100, branches: 100, functions: 100, lines: 100 },
 				// Persistence carries the key-containment guarantee (hard rule 2), so
 				// it is held at the same bar as the loop.
-				'src/persistence/**': { statements: 100, branches: 95, functions: 100, lines: 100 }
+				'src/persistence/**': { statements: 100, branches: 95, functions: 100, lines: 100 },
+				// The storage seam holds everything a user has made (WP36 stage A —
+				// the same gates it carried in the workbench, moved with the code).
+				'src/storage/storage.ts': { statements: 100, branches: 90, functions: 100, lines: 100 },
+				'src/storage/memory.ts': { statements: 95, branches: 85, functions: 95, lines: 95 }
 			}
 		}
 	}

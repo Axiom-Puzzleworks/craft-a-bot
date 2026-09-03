@@ -1,16 +1,25 @@
 import {
 	migrateAgentRecord,
 	safeParseAgentRecord,
+	safeParseRunSummary,
+	safeParseContentRecord,
+	safeParseEvaluationRecord,
+	safeParseStoredCampaignReport,
 	safeParseStoredEvent,
 	type AgentRecord,
 	type EngineEvent,
 	type GroupRunRecord,
 	type RunRecord,
+	type RunSummary,
+	type ContentRecord,
+	type EvaluationRecord,
+	type StoredCampaignReport,
 	type StoredEvent
 } from '@craftabot/core';
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import {
 	DEFAULT_RUN_CAP,
+	byNewestCreated,
 	byNewestFirst,
 	emptyQuarantine,
 	selectRunsToEvict,
@@ -28,13 +37,17 @@ import {
  */
 
 export const DATABASE_NAME = 'craftabot';
-export const DATABASE_VERSION = 2;
+export const DATABASE_VERSION = 6;
 
 interface CraftABotDB extends DBSchema {
 	agents: { key: string; value: AgentRecord };
 	runs: { key: string; value: RunRecord; indexes: { startedAt: string } };
 	events: { key: [string, number]; value: StoredEvent; indexes: { runId: string } };
 	groupRuns: { key: string; value: GroupRunRecord; indexes: { startedAt: string } };
+	runSummaries: { key: string; value: RunSummary };
+	campaigns: { key: string; value: StoredCampaignReport };
+	evaluations: { key: string; value: EvaluationRecord; indexes: { runId: string } };
+	content: { key: string; value: ContentRecord; indexes: { kind: string } };
 }
 
 export interface IdbStorage extends Storage {
@@ -63,6 +76,28 @@ function upgrade(db: IDBPDatabase<CraftABotDB>, oldVersion: number): void {
 	if (oldVersion < 2) {
 		const groupRuns = db.createObjectStore('groupRuns', { keyPath: 'id' });
 		groupRuns.createIndex('startedAt', 'startedAt');
+	}
+	// A finished run's summary (WP36 stage C, `26-…` §6.14) — its own store,
+	// keyed by the run it summarises. Runs stored before this version simply
+	// have no row here; the host folds one from the events on first read and
+	// writes it back, so nothing is migrated and nothing is lost.
+	if (oldVersion < 3) {
+		db.createObjectStore('runSummaries', { keyPath: 'runId' });
+	}
+	// Campaign reports (WP38 stage D, `28-…` §4.9) — the envelope the list
+	// shows, the report opaque inside; outside the run cap.
+	if (oldVersion < 4) {
+		db.createObjectStore('campaigns', { keyPath: 'id' });
+	}
+	// Evaluations (WP43, `31-EVALUATORS.md` §4.1) — one evaluator's verdict over one run, indexed by run.
+	if (oldVersion < 5) {
+		const evaluations = db.createObjectStore('evaluations', { keyPath: 'id' });
+		evaluations.createIndex('runId', 'runId');
+	}
+	// Authored content (WP46, `34-CONTENT-STORE.md` §4.2) — one record per local id, by kind.
+	if (oldVersion < 6) {
+		const content = db.createObjectStore('content', { keyPath: 'id' });
+		content.createIndex('kind', 'kind');
 	}
 }
 
@@ -118,7 +153,9 @@ export async function createIdbStorage(name = DATABASE_NAME): Promise<IdbStorage
 		},
 		async deleteRun(id) {
 			await db.delete('runs', id);
+			await db.delete('runSummaries', id);
 			await deleteEventsFor(db, id);
+			await deleteEvaluationsIn(db, id);
 		},
 		async setRunPinned(id, pinned) {
 			const run = await db.get('runs', id);
@@ -168,11 +205,66 @@ export async function createIdbStorage(name = DATABASE_NAME): Promise<IdbStorage
 		},
 		deleteEvents: (runId) => deleteEventsFor(db, runId),
 
+		async putRunSummary(summary) {
+			const parsed = safeParseRunSummary(summary);
+			if (!parsed.success) {
+				throw new Error(`Refusing to store an invalid run summary: ${parsed.error.message}`);
+			}
+			await db.put('runSummaries', summary);
+		},
+		getRunSummary: (runId) => db.get('runSummaries', runId),
+		listRunSummaries: () => db.getAll('runSummaries'),
+
+		async putCampaignReport(report) {
+			const parsed = safeParseStoredCampaignReport(report);
+			if (!parsed.success) {
+				throw new Error(`Refusing to store an invalid campaign report: ${parsed.error.message}`);
+			}
+			await db.put('campaigns', report);
+		},
+		getCampaignReport: (id) => db.get('campaigns', id),
+		async listCampaignReports() {
+			return (await db.getAll('campaigns')).sort(byNewestCreated);
+		},
+		async deleteCampaignReport(id) {
+			await db.delete('campaigns', id);
+		},
+
+		async putEvaluation(record) {
+			const parsed = safeParseEvaluationRecord(record);
+			if (!parsed.success) {
+				throw new Error(`Refusing to store an invalid evaluation: ${parsed.error.message}`);
+			}
+			await db.put('evaluations', record);
+		},
+		listEvaluations: (runId) => db.getAllFromIndex('evaluations', 'runId', runId),
+		listAllEvaluations: () => db.getAll('evaluations'),
+		deleteEvaluationsFor: (runId) => deleteEvaluationsIn(db, runId),
+
+		async putContent(record) {
+			const parsed = safeParseContentRecord(record);
+			if (!parsed.success) {
+				throw new Error(`Refusing to store invalid content: ${parsed.error.message}`);
+			}
+			await db.put('content', record);
+		},
+		getContent: (id) => db.get('content', id),
+		async listContent(kind) {
+			const rows =
+				kind === undefined
+					? await db.getAll('content')
+					: await db.getAllFromIndex('content', 'kind', kind);
+			return rows.sort((a, b) => a.id.localeCompare(b.id));
+		},
+		deleteContent: (id) => db.delete('content', id),
+
 		async evictOldRuns(cap = DEFAULT_RUN_CAP) {
 			const doomed = selectRunsToEvict(await readRuns(), cap);
 			for (const id of doomed) {
 				await db.delete('runs', id);
+				await db.delete('runSummaries', id);
 				await deleteEventsFor(db, id);
+				await deleteEvaluationsIn(db, id);
 			}
 			return doomed;
 		},
@@ -182,8 +274,18 @@ export async function createIdbStorage(name = DATABASE_NAME): Promise<IdbStorage
 			await db.clear('runs');
 			await db.clear('groupRuns');
 			await db.clear('events');
+			await db.clear('runSummaries');
+			await db.clear('campaigns');
+			await db.clear('evaluations');
+			await db.clear('content');
 		}
 	};
+}
+
+/** Every evaluation stored for a run (WP43), by the `runId` index. */
+async function deleteEvaluationsIn(db: IDBPDatabase<CraftABotDB>, runId: string): Promise<void> {
+	const keys = await db.getAllKeysFromIndex('evaluations', 'runId', runId);
+	for (const key of keys) await db.delete('evaluations', key);
 }
 
 async function deleteEventsFor(db: IDBPDatabase<CraftABotDB>, runId: string): Promise<void> {

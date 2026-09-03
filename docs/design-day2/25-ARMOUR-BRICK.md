@@ -301,6 +301,7 @@ The world is untouched; randomness still flows only through `dice`. Hosted verdi
 - Replacing `starter/safety`; the Kit's chapter 6 is unchanged.
 - Any GEAP control that is not an external decision service: Agent Gateway, Semantic Governance Policies, Agent Identity, Agent Registry, Threat/Anomaly Detection. Reaching them means running the bot on Agent Runtime — a separate design (a "run this kit on Agent Runtime" export) if ever wanted.
 - The Gen AI evaluation service as an LLM-judge policy (`evaluateInstances`) — the natural second GEAP brick, in the same pack, after this one has proved the seams.
+  > **Amended 2026-09-03 (WP51):** built as an evaluator rather than a brick — `geap/eval/*` (`39-HOSTED-EVALUATOR.md`), the same battery and client discipline, scoring a finished run rather than gating a tick.
 - Substituting Model Armor's de-identified text for what the bot said (a mutation; needs an engine capability).
 - A Cloud Run proxy (§4.6, only if CORS forces it).
 - A leaflet chapter or any Kit exposure.
@@ -359,6 +360,8 @@ The world is untouched; randomness still flows only through `dice`. Hosted verdi
 > 3. **Armour Studio's own token field (`/workshop/armour`, Stage B) never read the vault Stage E's credential later added.** Built before the `oauth-token` battery existed, its `token` field always started as `''`, so a builder who had already signed in and charged the Cloud Armour battery in Settings still had to paste a fresh token into Armour Studio by hand, every reload — indistinguishable, from the builder's side, from "the credential doesn't persist between Settings and the Workshop." Fixed by seeding `token` from `createBrowserKeyVault().get('geap')` at load, same vault every other battery already reads; the field stays editable and still never writes back to the vault, matching the design's original "held in memory" intent — it just no longer starts from nothing when a battery already exists.
 >
 > WP35 is now substantively complete: all five stages built and green, and both live checkpoints this file's own DoD named are closed. What remains is the named-and-deferred UI gap from Stage D (a hand-written `ArmourPanel.svelte` for the `filters` nested-object control) and Stage E's own OAuth Client ID (a one-time maintainer setup, `docs/geap-setup.md` §3, still unconfigured) — neither blocks calling WP35 done, since both were always scoped as follow-ups rather than DoD clauses.
+>
+> **Amended 2026-09-03 (WP52, `40-DEBTS.md` §4.4):** the `ArmourPanel.svelte` follow-up is closed without a panel — WP39's `'object'` case in the schema panel renders `filters` as a fieldset of per-filter controls, and `schema-fields-armour.test.ts` pins that over the real kind. The OAuth client id remains the maintainer's one-time setup.
 
 ---
 

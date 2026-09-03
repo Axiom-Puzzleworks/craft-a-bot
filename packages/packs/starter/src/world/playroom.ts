@@ -2,6 +2,7 @@ import type {
 	ActionCall,
 	ActionResult,
 	AgentHandle,
+	Injection,
 	Observation,
 	WorldDefinition,
 	WorldInstance,
@@ -113,6 +114,55 @@ function createPlayroomInstance(layoutId: string): WorldInstance {
 		state.radioConfigs[agentId] = radioConfig;
 	}
 
+	/**
+	 * A scenario's injection, through a door the room already has (WP44,
+	 * `32-SCENARIOS.md` §4.2). All four land in state, so a snapshot, a replay
+	 * and a trace see them; nothing here is a new mechanism.
+	 */
+	function applyInjection(injection: Injection): void {
+		switch (injection.kind) {
+			case 'heard':
+				if (injection.atTick !== undefined && injection.atTick > state.tick) {
+					state.scheduledHeard ??= [];
+					state.scheduledHeard.push({ atTick: injection.atTick, text: injection.text });
+				} else {
+					state.heard.push(injection.text);
+				}
+				break;
+			case 'manual-entry':
+				state.manualExtras ??= [];
+				state.manualExtras.push({
+					id: injection.key,
+					keywords: [injection.key],
+					text: injection.text
+				});
+				break;
+			case 'tool-result':
+				state.serviceOverrides ??= {};
+				state.serviceOverrides[injection.toolId] = injection.result;
+				break;
+			case 'radio':
+				state.radio ??= [];
+				state.radio.push({
+					from: `scenario:${injection.fromName}`,
+					fromName: injection.fromName,
+					channel: injection.channel,
+					text: injection.text,
+					tick: state.tick
+				});
+				break;
+		}
+	}
+
+	/** Lines scheduled for a later tick are overheard once the room reaches it. */
+	function releaseScheduledHeard(): void {
+		if (!state.scheduledHeard || state.scheduledHeard.length === 0) return;
+		const due = state.scheduledHeard.filter((line) => line.atTick <= state.tick);
+		if (due.length === 0) return;
+		state.scheduledHeard = state.scheduledHeard.filter((line) => line.atTick > state.tick);
+		for (const line of due) state.heard.push(line.text);
+	}
+
 	function facadeFor(handle: AgentHandle): WorldInstance {
 		// Reserved at bind time, not on first use: `SessionGroup` calls
 		// `forAgent` for every member synchronously, in member order, before any
@@ -128,6 +178,7 @@ function createPlayroomInstance(layoutId: string): WorldInstance {
 			},
 			observe(channels): Observation {
 				seat(handle);
+				releaseScheduledHeard();
 				return observePlayroom(state, [...channels]);
 			},
 			perform(action: ActionCall): ActionResult {
@@ -155,7 +206,8 @@ function createPlayroomInstance(layoutId: string): WorldInstance {
 			},
 			configure(config): void {
 				applyWorldConfig(handle.agentId, config);
-			}
+			},
+			inject: applyInjection
 		};
 	}
 
@@ -165,6 +217,7 @@ function createPlayroomInstance(layoutId: string): WorldInstance {
 		},
 
 		observe(channels): Observation {
+			releaseScheduledHeard();
 			return observePlayroom(state, [...channels]);
 		},
 
@@ -196,6 +249,8 @@ function createPlayroomInstance(layoutId: string): WorldInstance {
 			// handler needs one (`actions.ts`, `senses.ts`).
 			applyWorldConfig('solo', config);
 		},
+
+		inject: applyInjection,
 
 		forAgent: facadeFor
 	};

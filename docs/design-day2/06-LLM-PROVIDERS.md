@@ -16,6 +16,8 @@
 
 ## 2. Provider abstraction (`@craftabot/core`)
 
+> **Amended 2026-09-02 (WP41, `26-…` §6.6):** every `ProviderFactory` and the `LLMProvider` it builds declare `egress: EgressDeclaration[]` — the hosts they call and what leaves (`prompt`, `credential-header`). The four shipped packs declare `api.openai.com`, `api.anthropic.com`, `generativelanguage.googleapis.com` and, for Ollama, `localhost`/`127.0.0.1`. The session hands every provider a `fetch` that refuses any other host.
+
 The engine consumes one interface; packs implement it:
 
 ```ts
@@ -155,3 +157,5 @@ Raw error payloads always attach to the trace event; friendly copy is a layer, n
 > - **The Gemini key goes in `x-goog-api-key`, never `?key=`** — Google's own docs default to the query-parameter form, which is a hard rule 2 violation the moment it happens (a key in a URL turns up in browser history and referrer headers). The header form is documented and equivalent; `pack-gemini` only ever uses it, and an e2e test asserts the request URL never contains the key rather than trusting a code comment to stay true.
 >
 > Ollama's own base URL stays a fixed constant (`http://localhost:11434/v1`), not user-configurable — this section's §5 note ("no custom endpoint field in V1... revisit for Ollama later with `localhost`-only validation") is still open. The safe version of "later" is a real, separate piece of scope (a Settings field, a validator, its own tests), not a line changed alongside three other providers, and is recorded here rather than quietly built around.
+>
+> **Amended 2026-09-03 (WP52, `40-DEBTS.md` §4.3):** built as that separate piece of scope — `settings.ollamaEndpoint`, refined to `localhost`/`127.0.0.1` over `http(s)`, a "Local models" panel in Settings that refuses anything else with the reason, `ProviderFactory.create`'s optional `endpoint`, and the Ollama factory honouring it only when `isLoopbackEndpoint` agrees; the egress declaration is unchanged and would refuse a third time.

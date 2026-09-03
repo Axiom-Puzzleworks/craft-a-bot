@@ -1,3 +1,4 @@
+import type { WorldState } from './world.js';
 import type { ToolMetadata } from '../schemas/pack-manifest.js';
 
 /**
@@ -19,6 +20,14 @@ export interface ToolContext {
 	 * Injected so a recorded run replays identically.
 	 */
 	random(): number;
+	/**
+	 * A snapshot of the world the tool acts in (`32-SCENARIOS.md` §4.1 D-a,
+	 * WP44). Two of a scenario's injection kinds — a manual entry, a tool's
+	 * answer — land in state that only a tool reads, and a tool had never seen
+	 * the world; a world-specific tool reads what it recognises and ignores
+	 * the rest. Optional: a host that predates the seam hands nothing.
+	 */
+	worldState?: Readonly<WorldState>;
 }
 
 export interface NotebookAccess {

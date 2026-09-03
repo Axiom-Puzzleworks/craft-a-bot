@@ -1,13 +1,14 @@
 import { describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
+import { stubService } from '../types/guardrail-service.test.js';
 import { createSession } from './agent-session.js';
 import { createPackRegistry, type PackRegistry } from '../pack-registry.js';
 import { createMockProvider, createTestClock, turn, v1BrickKinds } from '../testing/index.js';
-import { migrateAgentSpec } from '../schemas/agent-spec-v2.js';
+import { migrateAgentSpec, toSpecV2 } from '../schemas/agent-spec-v2.js';
 import type { AgentSpec } from '../schemas/agent-spec.js';
 import type { EngineEvent } from '../schemas/events.js';
 import type { BrickKindDefinition } from '../types/brick.js';
-import type { Guardrail, GuardrailVerdict } from '../types/guardrail.js';
+import type { Guardrail, GuardrailHook, GuardrailVerdict } from '../types/guardrail.js';
 import type { ToolDefinition } from '../types/tool.js';
 import type { WorldDefinition, WorldInstance } from '../types/world.js';
 
@@ -1638,7 +1639,281 @@ describe('pause', () => {
 	});
 });
 
+/** WP39 stage B: the session's own runtime context resolves a registered service. */
+it('lets a fitted brick resolve a guardrail service when the session builds it', async () => {
+	const registry = buildRegistry();
+	const service = stubService({ id: 'tiny/stub' });
+	let resolved: string | undefined;
+	registry.registerPack({
+		id: 'tiny-guard',
+		name: 'Tiny guard',
+		version: '1.0.0',
+		requiresCore: '>=0.0.1',
+		guardrailServices: [service],
+		brickKinds: [
+			{
+				id: 'tiny-guard/asks',
+				slot: 'safety',
+				name: 'Asks',
+				description: 'Resolves a service.',
+				realName: 'Asks',
+				realExplanation: 'Resolves a service.',
+				configSchema: z.object({}),
+				configVersion: 1,
+				defaults: {},
+				createRuntime: (_config: unknown, ctx) => {
+					resolved = ctx.getGuardrailService('tiny/stub')?.id;
+					// WP43: the session's context resolves evaluators and cards too.
+					resolved += `|${ctx.getEvaluator?.('tiny/none')?.id}|${ctx.getAssertionCard?.('tiny/none')?.id}`;
+					return {};
+				}
+			} as BrickKindDefinition
+		]
+	});
+	const spec = toSpecV2(buildSpec());
+	spec.bricks.push({ slot: 'safety', kind: 'tiny-guard/asks', configVersion: 1, config: {} });
+	const session = createSession({
+		spec,
+		registry,
+		provider: createMockProvider({ script: [turn('Ping.', 'ping')] }),
+		guardrails: []
+	});
+	await session.step();
+	expect(resolved).toBe('tiny/stub|undefined|undefined');
+});
+
+/** WP41 (`26-…` §6.6): the session hands out a guarded `fetch`; a call to an undeclared host is refused on the trace. */
+describe('egress', () => {
+	function callingProvider(url: string) {
+		const calls: string[] = [];
+		const provider = {
+			id: 'caller',
+			name: 'Caller',
+			keyRequirement: 'none' as const,
+			egress: [
+				{ host: 'api.declared.test', purpose: 'LLM completions', sends: ['prompt' as const] }
+			],
+			validateKey: () => Promise.resolve({ ok: true, message: '' }),
+			chat: async () => {
+				calls.push(url);
+				await fetchSeen(url);
+				return { text: 'Ping.', toolCalls: [], usage: { inputTokens: 1, outputTokens: 1 } };
+			}
+		};
+		let fetchSeen: (url: string) => Promise<unknown> = () => Promise.resolve();
+		return { provider, calls, useFetch: (f: typeof fetchSeen) => (fetchSeen = f) };
+	}
+
+	function sessionWith(egress: 'declared' | 'none' | undefined, url: string) {
+		const registry = buildRegistry();
+		const upstreamCalls: string[] = [];
+		const upstream: typeof fetch = (input) => {
+			upstreamCalls.push(String(input));
+			return Promise.resolve(new Response('{}'));
+		};
+		const { provider, useFetch } = callingProvider(url);
+		let guarded: typeof fetch | undefined;
+		// A brick that keeps the session's fetch so the provider stub can use it.
+		registry.registerPack({
+			id: 'keeper',
+			name: 'Keeper',
+			version: '1.0.0',
+			requiresCore: '>=0.0.1',
+			brickKinds: [
+				{
+					id: 'keeper/keep',
+					slot: 'safety',
+					name: 'Keep',
+					description: 'Keeps the fetch.',
+					realName: 'Keep',
+					realExplanation: 'Keeps the fetch.',
+					configSchema: z.object({}),
+					configVersion: 1,
+					defaults: {},
+					createRuntime: (_config: unknown, ctx) => {
+						guarded = ctx.fetch;
+						return {
+							egress: [
+								{ host: 'guard.declared.test', purpose: 'content screening', sends: ['decision'] }
+							]
+						};
+					}
+				} as BrickKindDefinition
+			]
+		});
+		useFetch((target) => (guarded ?? upstream)(target));
+		const spec = toSpecV2(buildSpec());
+		spec.bricks.push({ slot: 'safety', kind: 'keeper/keep', configVersion: 1, config: {} });
+		const session = createSession({
+			spec,
+			registry,
+			provider: provider as unknown as Parameters<typeof createSession>[0]['provider'],
+			guardrails: [],
+			options: { fetch: upstream, ...(egress !== undefined ? { egress } : {}) }
+		});
+		const log: EngineEvent[] = [];
+		session.events.onAny((event) => log.push(event));
+		return { session, log, upstreamCalls };
+	}
+
+	it('allows a declared host, and records the mode and every declared host on run.started', async () => {
+		const { session, log, upstreamCalls } = sessionWith('declared', 'https://api.declared.test/v1');
+		await session.step();
+		expect(upstreamCalls).toEqual(['https://api.declared.test/v1']);
+		const started = log.find((e) => e.type === 'run.started');
+		expect(started?.type === 'run.started' ? started.payload.egress : undefined).toEqual({
+			mode: 'declared',
+			hosts: ['api.declared.test', 'guard.declared.test']
+		});
+		expect(log.some((e) => e.type === 'error')).toBe(false);
+	});
+
+	it('refuses a planted undeclared host with an error event naming it, and no upstream call', async () => {
+		const { session, log, upstreamCalls } = sessionWith(
+			'declared',
+			'https://evil.example.test/exfil'
+		);
+		await session.step();
+		expect(upstreamCalls).toEqual([]);
+		const error = log.find((e) => e.type === 'error');
+		expect(error?.type === 'error' ? error.payload : undefined).toEqual({
+			kind: 'egress-refused',
+			message:
+				'Refused a call to "evil.example.test": no fitted component declared it (egress: declared).'
+		});
+	});
+
+	it('under none refuses even a declared host', async () => {
+		const { session, log, upstreamCalls } = sessionWith('none', 'https://api.declared.test/v1');
+		await session.step();
+		expect(upstreamCalls).toEqual([]);
+		// One `error` row — the guard's; the run's own terminal error is the same
+		// refusal and is not written twice.
+		expect(
+			log.filter((e) => e.type === 'error').map((e) => (e.type === 'error' ? e.payload.kind : ''))
+		).toEqual(['egress-refused']);
+		const started = log.find((e) => e.type === 'run.started');
+		expect(started?.type === 'run.started' ? started.payload.egress?.mode : undefined).toBe('none');
+	});
+
+	it('guards by default, but writes nothing on run.started until a host names a mode', async () => {
+		const { session, log, upstreamCalls } = sessionWith(
+			undefined,
+			'https://evil.example.test/exfil'
+		);
+		await session.step();
+		expect(upstreamCalls).toEqual([]);
+		const started = log.find((e) => e.type === 'run.started');
+		expect(started?.type === 'run.started' ? 'egress' in started.payload : undefined).toBe(false);
+	});
+});
+
 describe('guardrails', () => {
+	/** WP40 (`26-…` §6.13): a safety stack runs every brick's rules, in fitted order, at every hook, before the host's. */
+	it('runs a stack of safety bricks in fitted order at each hook, brick rules before host rules', async () => {
+		const registry = buildRegistry();
+		const seen: string[] = [];
+		const recorder = (id: string): Guardrail => ({
+			id,
+			name: id,
+			description: `Notes when ${id} is asked.`,
+			hooks: ['pre-think', 'pre-act', 'post-act'],
+			check: (ctx) => {
+				seen.push(`${ctx.hook} ${id}`);
+				return Promise.resolve({ allow: true });
+			}
+		});
+		registry.registerPack({
+			id: 'stack',
+			name: 'Stack',
+			version: '1.0.0',
+			requiresCore: '>=0.0.1',
+			brickKinds: ['a', 'b', 'c'].map(
+				(name) =>
+					({
+						id: `stack/${name}`,
+						slot: 'safety',
+						name,
+						description: name,
+						realName: name,
+						realExplanation: name,
+						configSchema: z.object({}),
+						configVersion: 1,
+						defaults: {},
+						createRuntime: () => ({ contributeGuardrails: () => [recorder(`stack/${name}`)] })
+					}) as BrickKindDefinition
+			)
+		});
+		const spec = toSpecV2(buildSpec());
+		for (const name of ['c', 'a', 'b']) {
+			spec.bricks.push({ slot: 'safety', kind: `stack/${name}`, configVersion: 1, config: {} });
+		}
+		const session = createSession({
+			spec,
+			registry,
+			provider: createMockProvider({ script: [turn('Ping.', 'ping')] }),
+			guardrails: [recorder('host')]
+		});
+		await session.step();
+		expect(seen).toEqual([
+			'pre-think stack/c',
+			'pre-think stack/a',
+			'pre-think stack/b',
+			'pre-think host',
+			'pre-act stack/c',
+			'pre-act stack/a',
+			'pre-act stack/b',
+			'pre-act host',
+			'post-act stack/c',
+			'post-act stack/a',
+			'post-act stack/b',
+			'post-act host'
+		]);
+	});
+
+	/**
+	 * WP39 stage A (`29-GUARD-SHELL.md` §4.2): what the tick has in hand
+	 * reaches every hook — the observation from SENSE, the composed prompt
+	 * from COMPOSE, the brain's answer from THINK — and nothing arrives
+	 * before it exists.
+	 */
+	it('hands each hook the observation, the prompt and the response the tick has so far', async () => {
+		const seen: Array<{
+			hook: GuardrailHook;
+			observation: boolean;
+			messages: number | undefined;
+			response: string | undefined;
+		}> = [];
+		const recorder: Guardrail = {
+			id: 'test/recorder',
+			name: 'Recorder',
+			description: 'Notes what each hook is handed.',
+			hooks: ['pre-think', 'pre-act', 'post-act'],
+			check: (ctx) => {
+				seen.push({
+					hook: ctx.hook,
+					observation: ctx.observation !== undefined && ctx.observation.text.length > 0,
+					messages: ctx.messages?.length,
+					response: ctx.response?.text
+				});
+				return Promise.resolve({ allow: true });
+			}
+		};
+		const { session } = makeSession({
+			script: [turn('Ping.', 'ping')],
+			guardrails: [recorder]
+		});
+		await session.step();
+
+		expect(seen.map((s) => s.hook)).toEqual(['pre-think', 'pre-act', 'post-act']);
+		for (const entry of seen) expect(entry.observation).toBe(true);
+		expect(seen[0]?.messages).toBeGreaterThan(0);
+		expect(seen[0]?.response).toBeUndefined();
+		expect(seen[1]?.response).toBe('Ping.');
+		expect(seen[2]?.response).toBe('Ping.');
+		expect(seen[2]?.messages).toBe(seen[0]?.messages);
+	});
+
 	const stopEverything: Guardrail = {
 		id: 'test/stop',
 		name: 'Stop',
@@ -2020,7 +2295,7 @@ describe('guardrails', () => {
 			expect(seenFetch[0]).toBeTypeOf('function');
 		});
 
-		it('gives every runtime an injected fetch when options.fetch is supplied, for testability', () => {
+		it('gives every runtime an injected fetch when options.fetch is supplied, for testability', async () => {
 			const registry = buildRegistry();
 			const seenFetch: unknown[] = [];
 			const fakeFetch = (() =>
@@ -2056,7 +2331,14 @@ describe('guardrails', () => {
 				guardrails: [],
 				options: { fetch: fakeFetch }
 			});
-			expect(seenFetch[0]).toBe(fakeFetch);
+			// Since WP41 the runtime gets the egress guard *over* the injected
+			// fetch, never the platform global: a declared host reaches the
+			// injected one, an undeclared host is refused before it.
+			const handed = seenFetch[0] as typeof globalThis.fetch;
+			expect(handed).not.toBe(globalThis.fetch);
+			await expect(handed('https://anywhere.test/')).rejects.toMatchObject({
+				kind: 'egress-refused'
+			});
 		});
 	});
 
@@ -2318,5 +2600,78 @@ describe('parentRunId (WP29)', () => {
 				'99999999-9999-4999-8999-999999999999'
 			);
 		}
+	});
+});
+
+/**
+ * **Resume** (WP49, `37-…` §4.3). `start()` on a paused run used to call
+ * `startRun` again — tick 0, a second `run.started` in the same trace — which
+ * is what the Playroom's Play button did after Pause, and what a breakpoint
+ * would have done every time it let go. A run that has begun goes on.
+ */
+describe('resume', () => {
+	function playable(turns = 6) {
+		const clock = createTestClock();
+		const session = createSession({
+			spec: buildSpec(),
+			registry: buildRegistry(),
+			provider: createMockProvider({
+				script: (_request, index) => (index >= turns ? turn('Win!', 'win') : turn('Ping.', 'ping'))
+			}),
+			guardrails: [],
+			options: { now: clock.now, newId: clock.newId, random: clock.random, tickDelayMs: 1 }
+		});
+		const seen: EngineEvent['type'][] = [];
+		session.events.onAny((event) => seen.push(event.type));
+		return { session, seen };
+	}
+
+	it('goes on from the tick in hand after a pause, with one run.started on the trace', async () => {
+		const { session, seen } = playable(40);
+		session.start('play');
+		await vi.waitFor(() =>
+			expect(seen.filter((type) => type === 'tick.completed').length).toBeGreaterThan(1)
+		);
+		session.pause();
+		await vi.waitFor(() => expect(session.status).toBe('paused'));
+		const ticksBefore = seen.filter((type) => type === 'tick.completed').length;
+
+		session.start('play');
+		expect(session.status).toBe('running');
+		await vi.waitFor(() =>
+			expect(seen.filter((type) => type === 'tick.completed').length).toBeGreaterThan(ticksBefore)
+		);
+		session.pause();
+		await vi.waitFor(() => expect(session.status).toBe('paused'));
+
+		expect(seen.filter((type) => type === 'run.started')).toHaveLength(1);
+	});
+
+	it('resumes a stepped run into play mode, and a paused play run back into step mode', async () => {
+		const { session, seen } = playable(40);
+		await session.step();
+		expect(session.status).toBe('paused');
+		session.start('play');
+		await vi.waitFor(() =>
+			expect(seen.filter((type) => type === 'tick.completed').length).toBeGreaterThan(2)
+		);
+		session.start('step');
+		await vi.waitFor(() => expect(session.status).toBe('paused'));
+		const ticks = seen.filter((type) => type === 'tick.completed').length;
+		await session.step();
+		expect(seen.filter((type) => type === 'tick.completed')).toHaveLength(ticks + 1);
+		expect(seen.filter((type) => type === 'run.started')).toHaveLength(1);
+	});
+
+	it('ignores start() while a run is going', async () => {
+		const { session, seen } = playable(40);
+		session.start('play');
+		session.start('play');
+		await vi.waitFor(() =>
+			expect(seen.filter((type) => type === 'tick.completed').length).toBeGreaterThan(0)
+		);
+		session.pause();
+		await vi.waitFor(() => expect(session.status).toBe('paused'));
+		expect(seen.filter((type) => type === 'run.started')).toHaveLength(1);
 	});
 });

@@ -20,7 +20,7 @@ function registryWith(...kinds: BrickKindDefinition[]) {
 		id: 'somebody-else',
 		name: 'Somebody Else',
 		version: '1.0.0',
-		requiresCore: '>=1.0.0',
+		requiresCore: '>=0.0.1',
 		brickKinds: kinds
 	});
 	return registry;

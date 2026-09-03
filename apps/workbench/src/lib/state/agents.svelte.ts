@@ -1,14 +1,18 @@
 import {
+	caretRangesFor,
+	CRAFTABOT_CORE_VERSION,
 	brickKindsFor,
 	buildAgentCard,
 	buildKitFile,
 	importKitFile,
+	localContentReferencedBy,
 	validateSpec,
 	type AgentRecord,
 	type AgentSpecV2,
 	type ImportProblem
 } from '@craftabot/core';
 import { createRegistry, installedBrickKinds, packVersions } from '$lib/packs.js';
+import { contentStore } from './content.svelte.js';
 import { appStorage } from './app-storage.svelte.js';
 import { createBrowserKeyVault } from './keys.js';
 import type { Storage } from './storage.js';
@@ -205,11 +209,16 @@ export function createAgentsStore(deps: AgentsStoreDeps = {}): AgentsStore {
 				exportedBy: 'craftabot-workbench/0.0.1',
 				requires: {
 					core: '>=0.0.1',
-					packs: packVersions(),
+					// Ranges, not pins (WP52): the same pack at a compatible later version still imports.
+					packs: caretRangesFor(packVersions()),
 					// Which pack each brick came from, so a reader missing one is told
 					// the brick's name and not merely "you need an expansion".
 					brickKinds: brickKindsFor(record.spec, createRegistry())
-				}
+				},
+				// The bot's own cards travel with it (WP46, `34-…` §4.3) — no other machine has them.
+				localContent: localContentReferencedBy(record.spec)
+					.map((id) => contentStore.records.find((entry) => entry.id === id))
+					.filter((entry): entry is NonNullable<typeof entry> => entry !== undefined)
 			});
 			// Pretty-printed on purpose: a kit file is teaching material, not a blob (07 §1.3).
 			return JSON.stringify(kit, null, '\t');
@@ -235,6 +244,9 @@ export function createAgentsStore(deps: AgentsStoreDeps = {}): AgentsStore {
 
 			const result = importKitFile(parsed, {
 				installedPacks: Object.keys(packVersions()),
+				// Ranges evaluated, not only presence (WP52, D13).
+				installedPackVersions: packVersions(),
+				coreVersion: CRAFTABOT_CORE_VERSION,
 				installedBrickKinds: installedBrickKinds(),
 				existingAgentIds: state.agents.map((agent) => agent.id),
 				newId,
@@ -261,6 +273,10 @@ export function createAgentsStore(deps: AgentsStoreDeps = {}): AgentsStore {
 				updatedAt: timestamp,
 				schemaVersion: 2
 			};
+			// Its cards first, so the bot never references a card the store lacks (WP46).
+			if (result.imported.localContent.length > 0) {
+				await contentStore.saveAll(result.imported.localContent);
+			}
 			await persist(record);
 			await refresh();
 			return { ok: true, agent: record };

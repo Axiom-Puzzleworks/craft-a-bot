@@ -27,6 +27,7 @@ import type { Guardrail } from '@craftabot/core';
 
 export const STEP_BUDGET_ID = 'safety/step-budget';
 
+/** The step budget: stops the run at `pre-think` once `maxTicks` turns have been used. */
 export function createStepBudgetGuardrail(maxTicks: number): Guardrail {
 	return {
 		id: STEP_BUDGET_ID,

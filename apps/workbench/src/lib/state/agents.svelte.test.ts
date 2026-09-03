@@ -277,7 +277,7 @@ describe('importing a kit', () => {
 			formatVersion: 1,
 			exportedAt: '2026-08-12T10:00:00Z',
 			exportedBy: 'craftabot-workbench/1.0.0',
-			requires: { core: '>=0.0.1', packs: { starter: '0.0.1' } },
+			requires: { core: '>=0.0.1', packs: { starter: '>=0.0.1' } },
 			agent: {
 				id: '11111111-1111-4111-8111-111111111111',
 				name: 'Old Timer',
@@ -314,7 +314,7 @@ describe('importing a kit', () => {
 			exportedBy: 'craftabot-workbench/9.9.9',
 			requires: {
 				core: '>=0.0.1',
-				packs: { starter: '0.0.1' },
+				packs: { starter: '>=0.0.1' },
 				// Genuinely fictional — `starter/planner` used to serve this role
 				// until WP30 stage B shipped it for real, which is exactly the
 				// staleness this comment now guards the next such swap against.

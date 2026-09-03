@@ -1,6 +1,6 @@
 import type { AnyAgentSpec } from '../schemas/agent-spec-v2.js';
 import type { RunOutcome } from '../schemas/shared.js';
-import type { EventBus } from '../event-bus.js';
+import type { EventBus, Unsubscribe } from '../event-bus.js';
 import type { PackRegistry } from '../pack-registry.js';
 import type { AgentSession, RunMode, SessionOptions, SessionStatus } from './agent-session.js';
 import type { Guardrail } from './guardrail.js';
@@ -48,6 +48,12 @@ export interface CreateSessionGroupDeps {
 		groupMaxTokens?: number;
 		/** Ceiling on scheduler rounds — a round is one tick offered to each live agent. */
 		maxRounds?: number;
+		/**
+		 * Readers with the group's ear (WP48, `36-…` §4.2): each subscribes to
+		 * the merged bus before any member starts and is detached when the group
+		 * finishes. What one contributes as policy goes through `groupGuardrails`.
+		 */
+		observers?: Array<(events: EventBus, group: { groupRunId: string }) => Unsubscribe>;
 	};
 }
 

@@ -58,7 +58,8 @@ function guardrailsFor(safety: SafetyConfig) {
 				getPolicyCard: (id) => reg.getPolicyCard(id),
 				getAction: (id) => reg.getAction(id),
 				fetch: () => Promise.reject(new Error('fetch is not used in these tests')),
-				getCredential: () => undefined
+				getCredential: () => undefined,
+				getGuardrailService: () => undefined
 			}
 		})
 	);

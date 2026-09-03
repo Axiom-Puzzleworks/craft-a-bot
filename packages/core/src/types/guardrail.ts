@@ -1,5 +1,6 @@
 import type { AnyAgentSpec } from '../schemas/agent-spec-v2.js';
 import type { EngineEvent } from '../schemas/events.js';
+import type { ChatMessage, ChatResponse, Observation } from '../schemas/shared.js';
 import type { WorldState } from './world.js';
 
 /**
@@ -40,6 +41,27 @@ export interface GuardrailContext {
 	 * changing under a guardrail that thought it had a snapshot.
 	 */
 	history: ReadonlyArray<EngineEvent>;
+	/**
+	 * What the tick has in hand so far (WP39 stage A, `29-GUARD-SHELL.md`
+	 * §4.2) — so an output filter screens `response.text` directly instead
+	 * of walking `history` for it. All three optional: a host that predates
+	 * the widening hands none, a reflex tick has no `response`, and nothing
+	 * exists before SENSE. A guardrail that reads them must still cope with
+	 * their absence, the history walk being the fallback that always works.
+	 */
+	/** The current observation — present at every hook once SENSE has run this tick. */
+	observation?: Observation;
+	/** The composed prompt — present from `pre-think` on a brain-driven tick. */
+	messages?: readonly ChatMessage[];
+	/** The brain's answer — present at `pre-act` and `post-act` on a brain-driven tick; absent for a reflex. */
+	response?: ChatResponse;
+	/**
+	 * The world's own questions (WP45, `33-POLICY-V2-PDP.md` §4.2): `test` is
+	 * the instance's, `predicates` the definition's ids — so a `world-predicate`
+	 * leaf and a PDP's input document can ask them. Optional: a host that
+	 * predates the field hands none.
+	 */
+	world?: { test(predicateId: string): boolean; predicates: readonly string[] };
 }
 
 export interface Guardrail {

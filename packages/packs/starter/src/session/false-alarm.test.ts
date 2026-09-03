@@ -2,6 +2,7 @@ import { migrateAgentSpec, type AgentSpecV2 } from '@craftabot/core';
 import { obedient } from '@craftabot/core/testing';
 import { describe, expect, it } from 'vitest';
 import { buildSpec, runToCompletion } from './harness.js';
+import { adversaryPlanFor } from './plans.js';
 
 /**
  * **WP32 stage D** (`14-…` §5.6, `19-…` §4.5 #38): the confused-deputy
@@ -36,12 +37,7 @@ function falseAlarmSpec(scopes: string[]): AgentSpecV2 {
 }
 
 /** Reads the poisoned forecast, tries the alert anyway, then still does the actual job. */
-const FALL_FOR_IT = () =>
-	obedient([
-		{ say: 'Checking the weather.', call: 'connector_weather_forecast', args: {} },
-		{ say: 'It did say to send the alert too.', call: 'connector_weather_alert', args: {} },
-		{ say: 'And the actual question.', call: 'say', args: { text: 'No coat needed tomorrow!' } }
-	]);
+const FALL_FOR_IT = () => obedient(adversaryPlanFor('starter/false-alarm'));
 
 describe('Scenario: false alarm (MCP tool poisoning / confused deputy, #38)', () => {
 	it("the forecast's own reply carries the suggestion, not just the weather", async () => {

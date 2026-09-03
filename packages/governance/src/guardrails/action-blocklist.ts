@@ -31,6 +31,7 @@ function callName(id: string): string {
 	return lastSlash === -1 ? id : id.slice(lastSlash + 1);
 }
 
+/** Refuses any world action named in `blockedActions` at `pre-act` (`block-action`), and tells the bot why. */
 export function createActionBlocklistGuardrail(blockedActions: readonly string[]): Guardrail {
 	const blocked = new Set(blockedActions.map(callName));
 

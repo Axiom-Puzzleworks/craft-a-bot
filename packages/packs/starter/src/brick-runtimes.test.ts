@@ -101,7 +101,8 @@ describe('what the bricks contribute to the prompt', () => {
 					getPolicyCard: () => undefined,
 					getAction: () => undefined,
 					fetch: () => Promise.reject(new Error('fetch is not used in these tests')),
-					getCredential: () => undefined
+					getCredential: () => undefined,
+					getGuardrailService: () => undefined
 				}
 			}),
 			{
@@ -136,7 +137,8 @@ describe('what the bricks offer the model', () => {
 					getPolicyCard: () => undefined,
 					getAction: () => undefined,
 					fetch: () => Promise.reject(new Error('fetch is not used in these tests')),
-					getCredential: () => undefined
+					getCredential: () => undefined,
+					getGuardrailService: () => undefined
 				}
 			})
 		);
@@ -173,7 +175,8 @@ describe('what the bricks let a bot sense', () => {
 				getPolicyCard: () => undefined,
 				getAction: () => undefined,
 				fetch: () => Promise.reject(new Error('fetch is not used in these tests')),
-				getCredential: () => undefined
+				getCredential: () => undefined,
+				getGuardrailService: () => undefined
 			}
 		});
 		expect(collectSenses(runtimes)).toEqual(['starter/playroom/sight']);
@@ -191,7 +194,8 @@ describe('what the bricks let a bot sense', () => {
 						getPolicyCard: () => undefined,
 						getAction: () => undefined,
 						fetch: () => Promise.reject(new Error('fetch is not used in these tests')),
-						getCredential: () => undefined
+						getCredential: () => undefined,
+						getGuardrailService: () => undefined
 					}
 				})
 			)

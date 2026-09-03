@@ -4,12 +4,23 @@ import type {
 	BrickValidationContext,
 	ControlHints
 } from '@craftabot/core';
-import { createNoRepetitionGuardrail, createStepBudgetGuardrail } from '@craftabot/governance';
+import {
+	createHostedGuardrails,
+	createNoRepetitionGuardrail,
+	createStepBudgetGuardrail
+} from '@craftabot/governance';
 import { armorConfigSchema } from './config.js';
 import type { ArmorConfig, ArmorDisposition } from './config.js';
-import { createModelArmorClient, createOfflineArmorClient } from './client.js';
-import { armorGuardrail } from './guardrails.js';
-import { decisionText, observationText, resultText } from './text.js';
+import { HOOK_DESCRIPTION, HOOK_NAME } from './guardrails.js';
+import { validateArmourCredential } from './validate.js';
+import {
+	ARMOR_CREDENTIAL_ID,
+	armorSelectors,
+	armorStrings,
+	modelArmorService,
+	screeningFor,
+	serviceConfigFor
+} from './service.js';
 
 /**
  * The Armour Brick (`25-…` §4.3, WP35 stage D): the fitted kind, composing
@@ -22,8 +33,7 @@ import { decisionText, observationText, resultText } from './text.js';
  * (`armour-studio.ts`, stage B — kept as the seam's own proof, unchanged).
  */
 
-/** The vault id this kind's own battery lives under (`25-…` §4.6). */
-export const ARMOR_CREDENTIAL_ID = 'geap';
+export { ARMOR_CREDENTIAL_ID } from './service.js';
 
 /**
  * A freshly-snapped brick: `offline` on, `screenDecision` on (D1's own
@@ -256,40 +266,43 @@ export const armorBrickKind: BrickKindDefinition<ArmorConfig> = {
 	defaults: armorConfigDefaults,
 
 	audience: 'workshop',
-	credential: { id: ARMOR_CREDENTIAL_ID, name: 'Cloud Armour', kind: 'oauth-token' },
+	credential: {
+		id: ARMOR_CREDENTIAL_ID,
+		name: 'Cloud Armour',
+		kind: 'oauth-token',
+		validate: validateArmourCredential
+	},
 
 	controlHints: armorControlHints,
 	describeFitted: describeArmorFitted,
 	validateConfig: validateArmorConfig,
 
-	createRuntime: (config, ctx) => {
-		const client = config.offline
-			? createOfflineArmorClient()
-			: createModelArmorClient({
-					projectId: config.projectId,
-					location: config.location,
-					templateId: config.templateId,
-					timeoutMs: config.timeoutMs,
-					fetch: ctx.fetch,
-					token: () => ctx.getCredential(ARMOR_CREDENTIAL_ID)
-				});
-
-		return {
-			contributeGuardrails: () => [
-				createStepBudgetGuardrail(config.maxTicks),
-				...(config.repeatLimit !== undefined
-					? [createNoRepetitionGuardrail(config.repeatLimit)]
-					: []),
-				...(config.screenObservation !== 'off'
-					? [armorGuardrail('geap/armor:observation', 'pre-think', observationText, config, client)]
-					: []),
-				...(config.screenDecision !== 'off'
-					? [armorGuardrail('geap/armor:decision', 'pre-act', decisionText, config, client)]
-					: []),
-				...(config.screenResult !== 'off'
-					? [armorGuardrail('geap/armor:result', 'post-act', resultText, config, client)]
-					: [])
-			]
-		};
-	}
+	// The local floor first, then the shell (`29-GUARD-SHELL.md` §4.5): the
+	// brick's config splits into the service block and the screening dials,
+	// and `createHostedGuardrails` builds one guardrail per dial that is on.
+	createRuntime: (config, ctx) => ({
+		// Where the shell may call on this brick's behalf (WP41) — nothing when unplugged.
+		egress: config.offline ? [] : modelArmorService.egress,
+		contributeGuardrails: () => [
+			createStepBudgetGuardrail(config.maxTicks),
+			...(config.repeatLimit !== undefined
+				? [createNoRepetitionGuardrail(config.repeatLimit)]
+				: []),
+			...createHostedGuardrails({
+				idPrefix: 'geap/armor',
+				names: {
+					'pre-think': { name: HOOK_NAME['pre-think'], description: HOOK_DESCRIPTION['pre-think'] },
+					'pre-act': { name: HOOK_NAME['pre-act'], description: HOOK_DESCRIPTION['pre-act'] },
+					'post-act': { name: HOOK_NAME['post-act'], description: HOOK_DESCRIPTION['post-act'] }
+				},
+				service: modelArmorService,
+				serviceConfig: serviceConfigFor(config),
+				screening: screeningFor(config),
+				ctx,
+				envelope: (guardCtx) => ({ agentId: guardCtx.spec.id, tick: guardCtx.tick }),
+				selectors: armorSelectors,
+				strings: armorStrings
+			})
+		]
+	})
 };

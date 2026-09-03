@@ -123,7 +123,8 @@ async function behaviourOf(spec: AgentSpec): Promise<string> {
 					getPolicyCard: (id) => policyRegistry.getPolicyCard(id),
 					getAction: (id) => policyRegistry.getAction(id),
 					fetch: () => Promise.reject(new Error('fetch is not used in these tests')),
-					getCredential: () => undefined
+					getCredential: () => undefined,
+					getGuardrailService: () => undefined
 				}
 			})
 		).map((guardrail) => `${guardrail.id}: ${guardrail.description}`)

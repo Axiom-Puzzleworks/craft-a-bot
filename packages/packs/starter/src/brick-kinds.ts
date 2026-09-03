@@ -805,7 +805,12 @@ export const starterBrickKinds: BrickKindDefinition[] = [
 					guardrails.push(createActionBlocklistGuardrail(config.blockedActions));
 				}
 				if (config.repeatLimit !== undefined) {
-					guardrails.push(createNoRepetitionGuardrail(config.repeatLimit));
+					guardrails.push(
+						createNoRepetitionGuardrail(config.repeatLimit, {
+							// The world says which of its actions are progress (WP45).
+							isProgress: (name) => ctx.getAction(name)?.progress === true
+						})
+					);
 				}
 				if (config.approval === 'everything') {
 					guardrails.push(createApprovalModeGuardrail('everything'));

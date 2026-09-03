@@ -15,6 +15,8 @@
 	import { chooseBrain, noBatteryMessage } from '$lib/brain.js';
 	import { createRegistry, packVersions } from '$lib/packs.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
+	import { preferences } from '$lib/state/preferences.svelte.js';
+	import { persistRunSummary } from '$lib/state/run-summaries.js';
 	import type { Storage } from '$lib/state/storage.js';
 	import {
 		createGroupSessionView,
@@ -266,8 +268,13 @@
 	}
 
 	async function finishMember(agentId: string): Promise<void> {
-		await memberRecorders.get(agentId)?.stop();
+		const recorder = memberRecorders.get(agentId);
+		await recorder?.stop();
 		await putMemberRow(agentId);
+		// Each member's own summary, folded once now its run is finished (WP36
+		// stage C) — from the recorder's own copy of exactly what it stored.
+		const runId = view?.members.find((entry) => entry.agentId === agentId)?.runId;
+		if (storage && runId && recorder) await persistRunSummary(storage, runId, recorder.events());
 	}
 
 	async function finishGroup(): Promise<void> {
@@ -276,7 +283,7 @@
 		// The unit of retention is the episode, not either bot's own half of it
 		// — solo evicts on every finished run, and a duo Kit session that never
 		// finishes a solo run of its own deserves the same housekeeping.
-		await storage?.evictOldRuns();
+		await storage?.evictOldRuns(preferences.runCap);
 	}
 
 	/** The member whose own turn `WorldView` should foreground right now (`23-…` §4.3). */

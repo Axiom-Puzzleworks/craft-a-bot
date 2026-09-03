@@ -1,3 +1,4 @@
+import type { EngineEvent } from '@craftabot/core';
 import { describe, expect, it } from 'vitest';
 import { action, context, tool } from '../test-context.js';
 import { ACTION_BLOCKLIST_ID, createActionBlocklistGuardrail } from './action-blocklist.js';
@@ -278,7 +279,8 @@ describe('token budget', () => {
 });
 
 describe('no repetition (v2 — windowed, movement-exempt)', () => {
-	const guardrail = createNoRepetitionGuardrail(3);
+	// The world says what progress is (WP45): this test stands in for the Playroom and names `move` itself.
+	const guardrail = createNoRepetitionGuardrail(3, { isProgress: (name) => name === 'move' });
 
 	/**
 	 * A history builder that records what became of each decision, because v2
@@ -539,5 +541,47 @@ describe('no repetition (v2 — windowed, movement-exempt)', () => {
 		expect(guardrail.id).toBe(NO_REPETITION_ID);
 		expect(guardrail.hooks).toStrictEqual(['pre-act']);
 		expect(guardrail.description).toContain('3 times');
+	});
+});
+
+describe('no repetition without a progress answer (WP45)', () => {
+	it('exempts nothing — a move that worked counts like any other repeat', () => {
+		const guardrail = createNoRepetitionGuardrail(2);
+		const walking: EngineEvent[] = [];
+		for (let tick = 1; tick <= 3; tick += 1) {
+			walking.push(
+				{
+					id: `d${tick}`,
+					runId: 'r',
+					tick,
+					at: '2026-09-02T00:00:00.000Z',
+					type: 'decision',
+					payload: {
+						thought: 'east',
+						call: { kind: 'action', name: 'move', arguments: { direction: 'east' } }
+					}
+				} as unknown as EngineEvent,
+				{
+					id: `a${tick}`,
+					runId: 'r',
+					tick,
+					at: '2026-09-02T00:00:00.000Z',
+					type: 'action.performed',
+					payload: {
+						name: 'move',
+						arguments: { direction: 'east' },
+						result: { ok: true, narration: 'You step east.', stateDiff: [] }
+					}
+				} as unknown as EngineEvent
+			);
+		}
+		const verdict = guardrail.check(
+			context({
+				hook: 'pre-act',
+				history: walking,
+				proposed: action('move', { direction: 'east' })
+			})
+		);
+		expect(verdict).toMatchObject({ allow: false, disposition: 'block-action' });
 	});
 });

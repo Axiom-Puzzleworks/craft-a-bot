@@ -1,14 +1,19 @@
 import { createPackRegistry, type PackRegistry } from '@craftabot/core';
 import anthropicPack from '@craftabot/pack-anthropic';
+import azureContentSafetyPack from '@craftabot/pack-azure-content-safety';
+import evaluatorsPack from '@craftabot/pack-evaluators';
 import geapPack from '@craftabot/pack-geap';
+import guardLocalPack from '@craftabot/pack-guard-local';
 import geminiPack from '@craftabot/pack-gemini';
 import monitorPack from '@craftabot/pack-monitor';
 import ollamaPack from '@craftabot/pack-ollama';
 import openAiPack from '@craftabot/pack-openai';
+import pdpOpaPack from '@craftabot/pack-pdp-opa';
 import personasPack from '@craftabot/pack-personas';
 import starterPack from '@craftabot/pack-starter';
 import workshopPack from '@craftabot/pack-workshop';
 import { demoPack } from './demo-pack.js';
+import { contentStore } from './state/content.svelte.js';
 
 /**
  * The explicit pack registry (01-ARCHITECTURE.md §4, 05-TECH-STACK.md §3).
@@ -86,12 +91,21 @@ export const installedPacks = [
 	monitorPack,
 	workshopPack,
 	geapPack,
+	// WP42 (`30-SECOND-VENDORS.md`): two more guard services, fitted through `workshop/guard`.
+	guardLocalPack,
+	azureContentSafetyPack,
+	// WP45 (`33-POLICY-V2-PDP.md` §4.3) — OPA as a policy decision point at pre-act.
+	pdpOpaPack,
+	// WP43 (`31-EVALUATORS.md`): the rubric judge.
+	evaluatorsPack,
 	demoPack
 ];
 
 export function createRegistry(): PackRegistry {
 	const registry = createPackRegistry();
 	for (const pack of installedPacks) registry.registerPack(pack);
+	// Authored content (WP46, `34-CONTENT-STORE.md` §4.4): the `local` pack, as the store stands now.
+	registry.registerPack(contentStore.localPack);
 	return registry;
 }
 

@@ -1,3 +1,4 @@
+import type { FindingCategory, ScreenFinding, ScreenReading } from '@craftabot/core';
 import { z } from 'zod';
 
 /**
@@ -175,5 +176,62 @@ export function readSanitizationResult(raw: unknown): ArmorReading {
 		...(sdp?.deidentifyResult?.data?.text !== undefined
 			? { redactedText: sdp.deidentifyResult.data.text }
 			: {})
+	};
+}
+
+/**
+ * **The reading in the shell's vocabulary** (`29-GUARD-SHELL.md` §4.5, WP39
+ * stage D). Each of the eight filters becomes a `ScreenFinding` whose
+ * `vendorLabel` is the key it has always had on the trace and whose
+ * `vendorConfidence` is Model Armor's own string — so `guardrail.external`
+ * reads exactly as it did — beside the neutral category and confidence the
+ * shell dials on. `csam` is `harmful` with `alwaysStop` naming it
+ * (`29-…` §8 D-c). Order is the order the trace has always had.
+ */
+export const ARMOR_FILTER_KEYS: readonly ArmorFilterKey[] = [
+	'injection',
+	'hate',
+	'harassment',
+	'dangerous',
+	'sexual',
+	'sensitiveData',
+	'maliciousUri',
+	'csam'
+];
+
+export const ARMOR_CATEGORY: Record<ArmorFilterKey, FindingCategory> = {
+	injection: 'injection',
+	hate: 'harmful',
+	harassment: 'harmful',
+	dangerous: 'harmful',
+	sexual: 'harmful',
+	sensitiveData: 'sensitive-data',
+	maliciousUri: 'malicious-link',
+	csam: 'harmful'
+};
+
+const NEUTRAL_CONFIDENCE: Record<
+	'LOW_AND_ABOVE' | 'MEDIUM_AND_ABOVE' | 'HIGH',
+	'low' | 'medium' | 'high'
+> = { LOW_AND_ABOVE: 'low', MEDIUM_AND_ABOVE: 'medium', HIGH: 'high' };
+
+export function toScreenReading(reading: ArmorReading): ScreenReading {
+	const findings: ScreenFinding[] = ARMOR_FILTER_KEYS.map((key) => {
+		const filter = reading.filters[key];
+		return {
+			category: ARMOR_CATEGORY[key],
+			vendorLabel: key,
+			ran: filter.ran,
+			matched: filter.matched,
+			...(filter.confidence !== undefined
+				? { confidence: NEUTRAL_CONFIDENCE[filter.confidence], vendorConfidence: filter.confidence }
+				: {})
+		};
+	});
+	return {
+		outcome: reading.outcome,
+		matched: reading.matched,
+		findings,
+		...(reading.redactedText !== undefined ? { redactedText: reading.redactedText } : {})
 	};
 }

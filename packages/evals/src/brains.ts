@@ -25,7 +25,7 @@ import type { Plan } from '@craftabot/pack-starter/testing';
  * declaring victory early.
  */
 
-export type ScriptedTier = 'scripted-optimal' | 'scripted-noisy';
+export type ScriptedTier = 'scripted-optimal' | 'scripted-noisy' | 'scripted-adversary';
 
 export interface NoiseRates {
 	/** Chance a turn names something almost, but not quite, right. */
@@ -59,6 +59,17 @@ export interface NoisyOptions {
 
 /** The solvability floor: follow the plan exactly. */
 export function scriptedOptimal(plan: Plan): MockScript {
+	return obedient(plan);
+}
+
+/**
+ * The attacker's brain (WP38, `28-CAMPAIGNS.md` §4.3): a bot that does what
+ * the untrusted content says — obediently, deterministically, with no noise.
+ * Its own tier name, so a report never files an attack under the optimal
+ * brain's column; the plan itself is content (`ADVERSARY_PLANS`), proved by
+ * the scenario tests that import it.
+ */
+export function scriptedAdversary(plan: Plan): MockScript {
 	return obedient(plan);
 }
 

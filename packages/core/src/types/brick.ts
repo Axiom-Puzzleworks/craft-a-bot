@@ -1,6 +1,9 @@
 import type { ZodType } from 'zod';
 import type { BuildProblem } from '../schemas/build-problem.js';
 import type { PolicyCard } from '../schemas/policy-card.js';
+import type { AssertionCard } from '../schemas/assertion-card.js';
+import type { Evaluator } from './evaluator.js';
+import type { EgressDeclaration, GuardrailService } from './guardrail-service.js';
 import type { Guardrail } from './guardrail.js';
 import type { KeyCheck } from './provider.js';
 import type { Observation, WorldActionDefinition } from './world.js';
@@ -66,6 +69,26 @@ export const SLOT_IDS = [
 	'safety'
 ] as const;
 export type SlotId = (typeof SLOT_IDS)[number];
+
+/**
+ * **How many bricks a socket holds** (`26-TARGET-DESIGN-V3.md` §6.13, WP40).
+ * One everywhere but `safety`, which holds four — the defence-in-depth stack
+ * a campaign wants to name: the local floor, an observer, a hosted
+ * classifier, a policy decision point. The engine never needed the limit
+ * (`collectGuardrails` runs every fitted brick in slot order, then fitted
+ * order); the validator reads it, and the Kit's bench keeps its one well
+ * per socket as a *bench* rule — the Spec Lab is where a stack is fitted.
+ */
+export const SLOT_CAPACITY: Record<SlotId, number> = {
+	brain: 1,
+	planner: 1,
+	perception: 1,
+	memory: 1,
+	equipment: 1,
+	mobility: 1,
+	reflexes: 1,
+	safety: 4
+};
 
 /**
  * Migrating a brick's own config, keyed by the version being migrated *from* —
@@ -216,6 +239,12 @@ export interface BrickRuntime {
 	/** Tools and actions offered to the model (Equipment, Mobility). */
 	contributeCalls?(): CallContribution;
 	/**
+	 * Where this brick's runtime sends bytes (`26-…` §6.6, WP41) — a hosted
+	 * guard's service hosts, say. The session allows exactly the union of every
+	 * fitted runtime's declarations and the provider's; anything else is refused.
+	 */
+	egress?: EgressDeclaration[];
+	/**
 	 * Which of the world's sense channels this brick opens (Perception).
 	 *
 	 * Ids, for the same reason `contributeCalls` returns ids: the *world* owns
@@ -301,6 +330,20 @@ export interface BrickRuntimeContext {
 	 * before this one, which declares none — returns `undefined`.
 	 */
 	getCredential(id: string): string | undefined;
+	/**
+	 * A registered hosted guardrail service (`29-GUARD-SHELL.md` §4.3, WP39),
+	 * by qualified id — the `getPolicyCard` reasoning once more: a generic
+	 * Guard brick must resolve the service the moment it builds its
+	 * guardrails, not merely know the id exists.
+	 */
+	getGuardrailService(id: string): GuardrailService | undefined;
+	/**
+	 * A registered evaluator, or an assertion card, by qualified id (WP43,
+	 * `31-EVALUATORS.md` §4.3) — what the Monitor Judge resolves at build.
+	 * Optional so a host that predates the contract still builds every brick.
+	 */
+	getEvaluator?(id: string): Evaluator | undefined;
+	getAssertionCard?(id: string): AssertionCard | undefined;
 }
 
 /**
@@ -326,6 +369,10 @@ export interface BrickValidationContext {
 	 * secret's value.
 	 */
 	hasCredential(id: string): boolean;
+	/** Whether a hosted guardrail service id (`29-…` §4.3, WP39) is one an installed pack registered. */
+	hasGuardrailService(id: string): boolean;
+	/** Whether an evaluator or assertion card id (WP43) is one an installed pack registered. Optional as above. */
+	hasEvaluator?(id: string): boolean;
 }
 
 /**
@@ -355,7 +402,14 @@ export type BrickConfigProblem = Omit<BuildProblem, 'slot'>;
  * > catalogue the workbench, not the kind, owns" answer every other id-array
  * > field already had.
  */
-export type ControlSource = 'tools' | 'actions' | 'senseChannels' | 'cartridges' | 'policyCards';
+export type ControlSource =
+	| 'tools'
+	| 'actions'
+	| 'senseChannels'
+	| 'cartridges'
+	| 'policyCards'
+	/** Registered hosted guardrail services (`29-GUARD-SHELL.md` §4.6, WP39) — what the generic Guard brick picks from. */
+	| 'guardrailServices';
 
 /**
  * How one config field should be offered to a builder.
@@ -499,9 +553,23 @@ export interface BrickKindDefinition<C = unknown> {
 	credential?: {
 		id: string;
 		name: string;
-		kind: 'api-key' | 'oauth-token';
+		/**
+		 * `api-key` — a long-lived key pasted in; `oauth-token` — obtained by a
+		 * sign-in flow, and timed; `bearer-token` (WP41, `26-…` §6.11) — an opaque
+		 * token pasted in, timed or not; `header` — an arbitrary named header
+		 * value, which is how several enterprise services authenticate.
+		 */
+		kind: 'api-key' | 'oauth-token' | 'bearer-token' | 'header';
+		/** For `header`: the header's name. Omitted for every other kind. */
+		headerName?: string;
 		keysUrl?: string;
-		validate?(secret: string, fetch: typeof globalThis.fetch): Promise<KeyCheck>;
+		/**
+		 * Check a secret against the real service. `config` (WP41) is the
+		 * fitted component's own service block — a project, region and
+		 * template, say — which a check that has to *use* the credential
+		 * needs and could not have before (`25-…` §8 stage E finding 2).
+		 */
+		validate?(secret: string, fetch: typeof globalThis.fetch, config?: unknown): Promise<KeyCheck>;
 	};
 
 	/**

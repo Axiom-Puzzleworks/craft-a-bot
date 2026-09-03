@@ -3,7 +3,12 @@
 	import Dial from '$lib/components/kit/Dial.svelte';
 	import Rocker from '$lib/components/kit/Rocker.svelte';
 	import { toggle, type BrickPanelProps } from './panel-props.js';
-	import { bandLabel, describeFields, type FieldDescriptor } from './schema-fields.js';
+	import {
+		bandLabel,
+		describeFields,
+		type FieldControl,
+		type FieldDescriptor
+	} from './schema-fields.js';
 
 	/**
 	 * **The panel a brick gets when the workbench has never heard of it**
@@ -32,6 +37,7 @@
 		senseChannels,
 		worldActions,
 		policyCards,
+		guardrailServices,
 		onupdate
 	}: Props = $props();
 
@@ -49,6 +55,13 @@
 				...(card.description !== undefined ? { description: card.description } : {})
 			}));
 		}
+		if (source === 'guardrailServices') {
+			return guardrailServices.map((service) => ({
+				id: service.id,
+				name: service.name,
+				description: service.description
+			}));
+		}
 		return cartridges.map((cartridge) => ({
 			id: cartridge.id,
 			name: cartridge.displayName,
@@ -56,28 +69,46 @@
 		}));
 	}
 
-	const listOf = (field: FieldDescriptor): string[] =>
-		(config[field.name] as string[] | undefined) ?? [];
-	const numberOf = (field: FieldDescriptor): number => Number(config[field.name] ?? 0);
+	/** A `choice`'s options: the kind's own, or a catalogue's entries as value/label pairs. */
+	function choicesOf(control: Extract<FieldControl, { kind: 'choice' }>) {
+		if (control.options) return control.options;
+		return [
+			{ value: '', label: '— choose —' },
+			...catalogue(control.source ?? 'tools').map((entry) => ({
+				value: entry.id,
+				label: entry.name
+			}))
+		];
+	}
+
+	const listIn = (value: unknown): string[] => (value as string[] | undefined) ?? [];
+	const numberIn = (value: unknown): number => Number(value ?? 0);
+	const objectIn = (value: unknown): Record<string, unknown> =>
+		(value as Record<string, unknown> | undefined) ?? {};
 </script>
 
-{#each fields as field (field.name)}
+{#snippet control(
+	field: FieldDescriptor,
+	value: unknown,
+	set: (next: unknown) => void,
+	path: string
+)}
 	{#if field.control.kind === 'switch'}
 		<Rocker
 			label={field.label}
 			hint={field.hint}
-			checked={config[field.name] === true}
-			onchange={(on) => onupdate({ [field.name]: on })}
+			checked={value === true}
+			onchange={(on) => set(on)}
 		/>
 	{:else if field.control.kind === 'dial'}
 		<Dial
 			label={field.label}
-			value={numberOf(field)}
+			value={numberIn(value)}
 			min={field.control.min}
 			max={field.control.max}
 			step={field.control.step}
-			readout={bandLabel(numberOf(field), field.control.bands)}
-			onchange={(value) => onupdate({ [field.name]: value })}
+			readout={bandLabel(numberIn(value), field.control.bands)}
+			onchange={(next) => set(next)}
 		/>
 	{:else if field.control.kind === 'number'}
 		<label class="field">
@@ -87,24 +118,27 @@
 				min={field.control.min}
 				max={field.control.max}
 				step={field.control.step}
-				value={numberOf(field)}
-				onchange={(event) => onupdate({ [field.name]: Number(event.currentTarget.value) })}
+				value={numberIn(value)}
+				onchange={(event) => set(Number(event.currentTarget.value))}
 			/>
 		</label>
 	{:else if field.control.kind === 'choice'}
+		{@const options = choicesOf(field.control)}
 		<label class="field">
 			<span>{field.label}</span>
 			<select
-				value={String(config[field.name] ?? '')}
+				value={String(value ?? '')}
+				data-testid="choice-{path}"
 				onchange={(event) => {
 					// The select's value is a string; the schema wants whatever the
 					// literal actually was, so it is matched back rather than cast.
-					const chosen = field.control.kind === 'choice' ? field.control.options : [];
-					const match = chosen.find((option) => String(option.value) === event.currentTarget.value);
-					if (match) onupdate({ [field.name]: match.value });
+					const match = options.find(
+						(option) => String(option.value) === event.currentTarget.value
+					);
+					if (match) set(match.value);
 				}}
 			>
-				{#each field.control.options as option (String(option.value))}
+				{#each options as option (String(option.value))}
 					<option value={String(option.value)}>{option.label}</option>
 				{/each}
 			</select>
@@ -117,8 +151,8 @@
 				<Rocker
 					label={entry.name}
 					hint={entry.description}
-					checked={listOf(field).includes(entry.id)}
-					onchange={(on) => onupdate({ [field.name]: toggle(listOf(field), entry.id, on) })}
+					checked={listIn(value).includes(entry.id)}
+					onchange={(on) => set(toggle(listIn(value), entry.id, on))}
 				/>
 			{/each}
 		</div>
@@ -127,25 +161,47 @@
 			<span>{field.label}</span>
 			<input
 				type="text"
-				value={listOf(field).join(', ')}
+				value={listIn(value).join(', ')}
 				placeholder="Separate with commas"
 				onchange={(event) =>
-					onupdate({
-						[field.name]: event.currentTarget.value
+					set(
+						event.currentTarget.value
 							.split(',')
 							.map((entry) => entry.trim())
 							.filter((entry) => entry !== '')
-					})}
+					)}
 			/>
 		</label>
+	{:else if field.control.kind === 'object'}
+		<!-- A nested block (WP39 stage E): its fields, patched back as one value. -->
+		<fieldset class="nested" data-testid="fields-{path}">
+			<legend>{field.label}</legend>
+			{#each field.control.fields as inner (inner.name)}
+				{@render control(
+					inner,
+					objectIn(value)[inner.name],
+					(next) => set({ ...objectIn(value), [inner.name]: next }),
+					`${path}.${inner.name}`
+				)}
+			{/each}
+		</fieldset>
 	{:else}
 		<label class="field">
 			<span>{field.label}</span>
 			<input
 				type="text"
-				value={String(config[field.name] ?? '')}
-				oninput={(event) => onupdate({ [field.name]: event.currentTarget.value })}
+				value={String(value ?? '')}
+				oninput={(event) => set(event.currentTarget.value)}
 			/>
 		</label>
 	{/if}
+{/snippet}
+
+{#each fields as field (field.name)}
+	{@render control(
+		field,
+		config[field.name],
+		(next) => onupdate({ [field.name]: next }),
+		field.name
+	)}
 {/each}

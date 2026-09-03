@@ -15,3 +15,23 @@ export {
 } from './mock-provider.js';
 export { createTestClock, type TestClock } from './test-clock.js';
 export { v1BrickKinds } from './brick-kinds.js';
+/**
+ * The `Storage` conformance suite and its fixtures (WP36 stage A). One suite,
+ * run against every implementation — the in-memory store here, the browser's
+ * IndexedDB store, a headless host's file store — so no two can drift.
+ */
+export { describeStorageContract } from './storage-contract.js';
+export {
+	makeAgent,
+	makeAgentV1,
+	makeCampaignReport,
+	makeContent,
+	makeEvaluation,
+	makeEvent,
+	makeGroupRun,
+	makeRun,
+	makeRunSummary,
+	makeSpec,
+	makeSpecV1,
+	uuid
+} from './storage-fixtures.js';

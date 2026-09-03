@@ -1,7 +1,9 @@
 {
 	"extends": "./tsconfig.json",
+	// The library itself is host-agnostic: Node types are for the tests only.
+	"compilerOptions": { "types": [] },
 	// Test scaffolding stays out of the published artefact: this package is meant
 	// to be usable standalone in real agent stacks (08 §5), and a `test-context`
 	// helper is not part of that surface.
-	"exclude": ["src/**/*.test.ts", "src/test-context.ts"]
+	"exclude": ["src/**/*.test.ts", "src/test-context.ts", "src/hosted/test-service.ts"]
 }

@@ -5,6 +5,7 @@
 		type BrickKindDefinition,
 		type CartridgeDefinition,
 		type FittedBrick,
+		type GuardrailService,
 		type PolicyCard,
 		type ToolDefinition,
 		type WorldActionDefinition
@@ -48,6 +49,8 @@
 		worldActions: WorldActionDefinition[];
 		/** Every policy card an installed pack ships (`14-…` §4.6, WP22). */
 		policyCards: PolicyCard[];
+		/** Every hosted guardrail service an installed pack ships (`29-…` §4.6, WP39). */
+		guardrailServices: GuardrailService[];
 		/** A patch merged into this brick's config. */
 		onupdate: (patch: Record<string, unknown>) => void;
 		onremove: () => void;
@@ -62,6 +65,7 @@
 		senseChannels,
 		worldActions,
 		policyCards,
+		guardrailServices,
 		onupdate,
 		onremove
 	}: Props = $props();
@@ -83,6 +87,7 @@
 		senseChannels,
 		worldActions,
 		policyCards,
+		guardrailServices,
 		onupdate
 	});
 

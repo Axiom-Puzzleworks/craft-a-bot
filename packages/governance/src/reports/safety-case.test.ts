@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { EngineEvent, RunRecord, ToolDefinition, WorldDefinition } from '@craftabot/core';
-import type { BotCapabilities } from '$lib/bot-capabilities.js';
+import type { BotCapabilities } from '@craftabot/core';
 import { safetyCaseFor } from './safety-case.js';
 
 const AGENT = { id: 'a1', name: 'Bolt', goalCardId: 'starter/say-hello' };

@@ -8,6 +8,7 @@ import {
 	type RunRecord
 } from '@craftabot/core';
 import { packVersions } from '../packs.js';
+import { persistRunSummary } from './run-summaries.js';
 import type { Storage } from './storage.js';
 
 /**
@@ -125,6 +126,7 @@ export async function recordGroupEpisode(
 		if (!member || !run) continue;
 		await storage.putRun(run);
 		await storage.appendEvents(run.id, member.events);
+		await persistRunSummary(storage, run.id, member.events);
 	}
 
 	const groupRun = buildGroupRunRecord(episode, memberRuns, pinned);

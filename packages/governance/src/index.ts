@@ -35,7 +35,11 @@ export {
 	createApprovalModeGuardrail,
 	type ApprovalMode
 } from './guardrails/approval-mode.js';
-export { NO_REPETITION_ID, createNoRepetitionGuardrail } from './guardrails/no-repetition.js';
+export {
+	NO_REPETITION_ID,
+	createNoRepetitionGuardrail,
+	type NoRepetitionOptions
+} from './guardrails/no-repetition.js';
 export { STEP_BUDGET_ID, createStepBudgetGuardrail } from './guardrails/step-budget.js';
 export { TOKEN_BUDGET_ID, createTokenBudgetGuardrail } from './guardrails/token-budget.js';
 export { TOOL_BLOCKLIST_ID, createToolBlocklistGuardrail } from './guardrails/tool-blocklist.js';
@@ -43,7 +47,59 @@ export { TOOL_BLOCKLIST_ID, createToolBlocklistGuardrail } from './guardrails/to
 export {
 	compilePolicyCard,
 	evaluatePredicate,
+	predicateContextFor,
 	type PredicateEvalContext
 } from './policy-compiler.js';
 
-export const CRAFTABOT_GOVERNANCE_VERSION = '0.0.1';
+/**
+ * The hosted-guardrail shell (`29-GUARD-SHELL.md` §4.4, WP39 stage C): what
+ * turns any `GuardrailService` into guardrails at its hooks — the dials, the
+ * verdict mapping, the selectors, the strings, and the trace record.
+ */
+export {
+	categoryDispositionSchema,
+	dispositionSchema,
+	hostedScreenConfigSchema,
+	type CategoryDisposition,
+	type Disposition,
+	type HostedScreenConfig,
+	type HostedScreenConfigInput
+} from './hosted/config.js';
+export {
+	createHostedGuardrails,
+	filtersForRecord,
+	type CreateHostedGuardrailsOptions,
+	type HostedGuardrailNames
+} from './hosted/guardrails.js';
+export {
+	decisionSelector,
+	defaultSelectors,
+	observationSelector,
+	observationText,
+	renderCall,
+	resultSelector,
+	stringifyToolResult,
+	type Screen,
+	type TextSelector
+} from './hosted/selectors.js';
+export {
+	defaultHostedStrings,
+	joinWithAnd,
+	type HostedStrings,
+	type MatchedFinding
+} from './hosted/strings.js';
+export { clampForHook, verdictForReading } from './hosted/verdict.js';
+/** Assertion cards as evaluators (`31-EVALUATORS.md` §4.2, WP43) — the adapter, beside the predicate evaluator it rests on. */
+export {
+	assertionEvaluator,
+	completedCalls,
+	evaluateCard,
+	evaluationInputFor,
+	provisionalRun,
+	type CompletedCall
+} from './evaluators.js';
+
+/** The package's own version, as `package.json` says it — a test keeps the two in step. */
+export const CRAFTABOT_GOVERNANCE_VERSION = '1.0.0-rc.1';
+/** The PDP input document (`33-POLICY-V2-PDP.md` §4.3, WP45). */
+export { PDP_INPUT_VERSION, pdpInputSchema, pdpRequestFor, type PdpInput } from './pdp.js';

@@ -1,6 +1,10 @@
 import { z } from 'zod';
 import type { BrickKindDefinition } from '../types/brick.js';
 import type { Guardrail, GuardrailHook } from '../types/guardrail.js';
+import type { Evaluator } from '../types/evaluator.js';
+import type { GuardrailService } from '../types/guardrail-service.js';
+import type { AssertionCard } from './assertion-card.js';
+import type { ScenarioDefinition } from './scenario.js';
 import type { ToolDefinition } from '../types/tool.js';
 import type { ProviderFactory } from '../types/provider.js';
 import type { WorldDefinition } from '../types/world.js';
@@ -127,7 +131,13 @@ export const packManifestMetadataSchema = z.object({
 	id: z.string().min(1),
 	name: z.string().min(1),
 	version: z.string().min(1),
-	requiresCore: z.string().min(1)
+	requiresCore: z.string().min(1),
+	/**
+	 * Packs this one's content depends on, by id and semver range (WP52,
+	 * `40-DEBTS.md` §4.5) — a persona cartridge that names another pack's
+	 * provider says so here, and the registry refuses the pack without them.
+	 */
+	requiresPacks: z.record(z.string().min(1), z.string().min(1)).optional()
 });
 export type PackManifestMetadata = z.infer<typeof packManifestMetadataSchema>;
 
@@ -168,7 +178,27 @@ export interface PackManifest extends PackManifestMetadata {
 	worlds?: WorldDefinition[];
 	cartridges?: CartridgeDefinition[];
 	goalCards?: GoalCardDefinition[];
+	/**
+	 * @deprecated since WP39 (`29-GUARD-SHELL.md` §4.3): nothing has ever
+	 * read this lane but the registry's own insert — a pack's guardrails
+	 * reach a run through a brick kind's `contributeGuardrails`, a policy
+	 * card, or a `GuardrailService`. Kept so no manifest breaks; removal is
+	 * WP52's if nothing has adopted it by then.
+	 */
 	guardrails?: GuardrailDefinition[];
+	/**
+	 * Hosted guardrail services (`29-GUARD-SHELL.md` §4.3, WP39): a vendor's
+	 * client behind the one contract the shell in `@craftabot/governance`
+	 * turns into guardrails. Function-valued like `providers`, for the same
+	 * reason. A brick kind names one by qualified id.
+	 */
+	guardrailServices?: GuardrailService[];
+	/** Evaluators (`31-EVALUATORS.md` §4.1, WP43): what judges a finished trace. Function-valued like `providers`. */
+	evaluators?: Evaluator[];
+	/** Assertion cards a pack ships (WP43), the way it ships policy cards — the Test Bench and campaigns read them from the registry. */
+	assertionCards?: AssertionCard[];
+	/** Scenarios (`32-SCENARIOS.md` §4.1, WP44): a goal card plus what a test needs — pure data. */
+	scenarios?: ScenarioDefinition[];
 	/**
 	 * Policy cards (`14-…` §4.6, WP22) — declarative guardrail configs, data
 	 * rather than code. Registered content like everything else above: a

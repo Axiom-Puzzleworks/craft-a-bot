@@ -26,8 +26,10 @@ export type {
 	SpecOverrides
 } from '../session/harness.js';
 export {
+	ADVERSARY_PLANS,
 	PLAN_TOOLS,
 	SCRIPTED_OPTIMAL,
+	adversaryPlanFor,
 	TIDY_TOGETHER_SEAT_A,
 	TIDY_TOGETHER_SEAT_B,
 	planFor
