@@ -642,6 +642,8 @@ The world is untouched. Hosted verdicts and evaluations are recorded, so replay 
 
 > **Amended 2026-09-03 (WP51 — the hosted evaluator).** §6.2's third evaluator landed through `39-HOSTED-EVALUATOR.md`: `geap/eval/safety`, `geap/eval/fulfillment` and `geap/eval/rubric` over one `evaluateInstances` client, kind `hosted` on the `geap` battery, fixtures and an offline stand-in whose record says `offline`. Three divergences: `hostMatches` grew a `*-suffix` label form for the `{location}-aiplatform` hosts; a campaign's live evaluations are budgeted by their own `maxLiveEvaluations` and counted as `liveEvaluations`, since a hosted evaluator over a scripted cell is spend with no live brain; the project id travels as config, not as a credential. The live checkpoint is pending for want of a fresh token (`39-…` stage A's note says how). `27-…` §8 item 20 carries the gate.
 
+> **Amended 2026-09-03 (WP52 — debts; Phase L closed).** §6.15's remaining sentences landed through `40-DEBTS.md`: the autonomy picker in the Spec Lab, `D13` evaluated (`satisfiesRange` in core, the registry, `importKitFile`, `checkManifest`), the Ollama endpoint as a loopback-only Settings field, `ArmourPanel.svelte` verified unnecessary, and `personas` declaring `requiresPacks`. Two divergences: `requiresPacks` is new manifest metadata (a declaration a registry can enforce, where a comment could not), and kit exports write caret ranges rather than pins, since a pinned `requires.packs` under evaluation would have refused every kit at the next patch release. With this, `27-…`'s forward plan is exhausted.
+
 ---
 
 ## 13. Risks

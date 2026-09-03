@@ -160,6 +160,8 @@ A published test suite (`@craftabot/pack-testkit`) any pack must pass — the me
 >    `volatileStateKeys`, a pack-named allowlist of top-level `WorldState` keys a turn may change
 >    regardless of legality; the mutation check excludes them and nothing else.
 >
+> **Amended 2026-09-03 (WP52, `40-DEBTS.md` §4.2): bullet 1 is checked.** `satisfiesRange` lives in `core`; `registerPack` refuses an unmet `requiresCore` or `requiresPacks`, `importKitFile` refuses a kit whose `requires.core`/`requires.packs` the host's versions do not satisfy, and `checkManifest` reports `manifest.requires-satisfied`. Exports write `^x.y.z`, not pins.
+>
 > **Amended 2026-08-18 (WP26, persona cartridges): bullet 2 is no longer gated.** Picking a
 > cartridge in the Brain brick's panel (`apps/workbench/.../LlmPanel.svelte`) now writes
 > `.defaults.temperature`, `.defaults.maxTokens` and (for a persona cartridge) `personality` into

@@ -100,7 +100,7 @@ Severity: **A** = blocks purpose 1 or 2 in practice; **B** = design debt that wi
 
 | D11 | B | Brick kinds and config schemas **closed in core** (fixed six-slot object, closed `kind` enum, `BrickDefinition` carries no config schema) — "brick" is a taxonomy, not an extension point. Blocks every expansion pack that adds a brick. | `agent-spec.ts`, `pack-manifest.ts` |
 | D12 | B | No conversational tool-result protocol: `ChatMessage` supports `role:'tool'`/`toolCallId` but `composePrompt` never uses them; the model never sees a well-formed function-calling transcript. Pedagogically defensible for V1; must become a selectable strategy. | `prompt.ts` |
-| D13 | C | Pack `requiresCore`/`requires.packs` version strings stored but never semver-evaluated (presence check only). | `kit-export.ts` |
+| D13 | C | Pack `requiresCore`/`requires.packs` version strings stored but never semver-evaluated (presence check only). **Closed 2026-09-03 (WP52, `40-DEBTS.md` §4.2): evaluated by the registry, the kit importer and the conformance kit.** | `kit-export.ts` |
 
 ### Workbench
 
