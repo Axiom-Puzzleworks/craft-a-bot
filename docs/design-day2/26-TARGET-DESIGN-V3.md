@@ -638,6 +638,8 @@ The world is untouched. Hosted verdicts and evaluations are recorded, so replay 
 
 > **Amended 2026-09-03 (WP49 — drift, the safety case v2, the live Run Lab; Phase K closed).** §6.15's middle sentences and §9's `/telemetry`, `/safety-case` and `/workshop` rows landed through `37-DRIFT-SAFETY-CASE-RUN-LAB.md`. Three divergences: `start()` on a paused session resumes it (a core change §6.15 did not list, needed by breakpoints and retiring a latent restart-on-Play defect); the campaign report names its builds' bots (`builds[]`), which is what lets a stored report be held against a shelf bot; and the Run Lab trails the app's own live session rather than a harness stream — the harness half stays unbuilt and recorded. `27-…` §8 item 18 carries the gate.
 
+> **Amended 2026-09-03 (WP50 — `@craftabot/governance` 1.0).** §6.15's first sentence landed through `38-GOVERNANCE-1-0.md`: the README, TSDoc on every export with an audit test, `examples/plain-node-agent` as a workspace with its own test, `docs/governance-mapping.md`, `1.0.0-rc.1` with `private: false` and the `npm pack` dry-run checked in CI. Two decisions recorded: `@craftabot/core` stays private, so a real publish waits on it; and `zod` is now a declared dependency, since a tarball cannot rely on hoisting. `27-…` §8 item 19 carries the gate.
+
 ---
 
 ## 13. Risks

@@ -132,6 +132,8 @@ Mapped to the AI Architect box art (guardrails, permissions, human approval, mon
 | AI Architect era | Evaluation harness (run matrix: N cartridges × M goal cards × K seeds → scorecards); red-team challenge cards (adversarial goals/worlds); monitoring dashboards over stored runs (success rates, token drift, guardrail trip rates); permission models; multi-level approvals | Deterministic worlds + RunRecords + the event stream |
 | Export | `@craftabot/governance` published as a standalone library: the `Guardrail` interface, policy-card compiler, trace schema + integrity tooling — usable in real agent stacks | Everything above; the package boundary that exists **now** |
 
+> **Amended 2026-09-03 (WP50, `38-GOVERNANCE-1-0.md`).** The last row is met as a release candidate: `@craftabot/governance` is `1.0.0-rc.1`, `private: false`, with a README, a doc comment on every export (audited by a test), and `examples/plain-node-agent` — a Node loop with no Craft A Bot world in it, gated by hand-written rules, a policy card and a hosted service through `runGuardrailChain`. `scripts/check-governance-pack.mjs` proves in CI that the tarball is `dist/`, the README and `package.json` and imports no pack, app or Svelte. Publishing itself waits on `@craftabot/core` being published, since the contracts are its types.
+
 The reason `governance` is a separate package from day one (`01-ARCHITECTURE.md` §2) is this last row: it must never grow a dependency on the toy UI or the Playroom — only on `core` types. CI enforces the dependency direction.
 
 ## 6. Framework alignment (reference posture, not compliance claims)
@@ -141,6 +143,7 @@ The governance features should be *describable* in the vocabulary of the major f
 - **NIST AI RMF** functions map cleanly: *Govern* → policy cards & platform floor; *Map* → the spec + world binding (context is explicit); *Measure* → traces, budgets, future evaluations; *Manage* → guardrail dispositions, approval, stop conditions. A future doc page can present the mapping as a table for each shipped feature.
 - **EU AI Act** vocabulary worth mirroring in copy and data: human oversight (Art. 14 ↔ approval mode), record-keeping/logging (Art. 12 ↔ the trace), transparency, accuracy/robustness. The simulator itself is out of scope of the Act (it controls nothing real) — which is precisely its value as a rehearsal space; never claim "compliance", claim *"lets you prototype the mechanisms these frameworks ask for"*.
 - Keep a `docs/governance-mapping.md` (V1.x) tracing each feature → framework clause. Sales-pitch-free, checkable.
+  > **Amended 2026-09-03 (WP50):** written — [`docs/governance-mapping.md`](../governance-mapping.md), one row per shipped control from `19-…` §9 with NIST AI RMF, EU AI Act, ISO/IEC 42001 and OWASP columns, and the controls not shipped named as such.
 
 ## 7. V1 acceptance criteria for purpose 2
 
