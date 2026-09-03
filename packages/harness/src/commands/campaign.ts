@@ -3,6 +3,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { localPackFrom, type LLMProvider, type PackRegistry } from '@craftabot/core';
 import {
+	campaignEnvelope,
 	packFromScenarioFile,
 	parseCampaign,
 	parseCampaignReport,
@@ -140,6 +141,8 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 	await writing;
 
 	await mkdir(options.out, { recursive: true });
+	// The report is filed beside the runs (WP49) so `craftabot report --safety-case` can quote it, as the Workshop does.
+	if (storage) await storage.putCampaignReport(campaignEnvelope(report));
 	const reportFile = join(options.out, `${report.id}.campaign-report.json`);
 	const written: string[] = [reportFile];
 	await writeFile(reportFile, `${JSON.stringify(report, null, '\t')}\n`, 'utf8');

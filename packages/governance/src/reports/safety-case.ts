@@ -1,12 +1,18 @@
 import type {
 	BotCapabilities,
 	EngineEvent,
+	EvaluationRecord,
 	RunRecord,
 	RunSummary,
 	ToolDefinition,
 	WorldDefinition
 } from '@craftabot/core';
 import { offers } from '@craftabot/core';
+import {
+	campaignEvidenceFor,
+	type CampaignEvidence,
+	type CampaignReportLike
+} from './campaign-evidence.js';
 import { incidentsFromSummaries } from './incidents.js';
 import { summariesOf } from './summary.js';
 
@@ -80,6 +86,72 @@ export interface SafetyCase {
 	 * its egress yet; `noNetworkRuns` counts the runs that allowed none.
 	 */
 	egress: { hosts: string[]; recordedRuns: number; noNetworkRuns: number };
+	/**
+	 * **Evaluation evidence** (WP49, `37-…` §4.2): every evaluator that has
+	 * judged one of this bot's runs, with its verdicts counted as stored —
+	 * the figure `17-…` §4.9 withheld until something tied an evaluation to
+	 * a bot. `EvaluationRecord.runId` is that tie. Busiest evaluator first.
+	 */
+	evaluations: EvaluationEvidence[];
+	/** **Campaign results** (WP49): every stored report in which a build was this bot, with the gates that applied to it. */
+	campaigns: CampaignEvidence[];
+}
+
+export interface EvaluationEvidence {
+	evaluatorId: string;
+	pass: number;
+	fail: number;
+	inconclusive: number;
+	/** Records that carried no verdict at all (a score-only evaluator). */
+	noVerdict: number;
+	/** Over the records that carried a score; `undefined` when none did — never 0. */
+	meanScore: number | undefined;
+}
+
+function evaluationEvidenceFor(
+	runs: readonly RunRecord[],
+	evaluations: readonly EvaluationRecord[]
+): EvaluationEvidence[] {
+	const mine = new Set(runs.map((run) => run.id));
+	const rows = new Map<string, EvaluationEvidence & { scored: number; scoreTotal: number }>();
+	for (const record of evaluations) {
+		if (!mine.has(record.runId)) continue;
+		let row = rows.get(record.evaluatorId);
+		if (!row) {
+			row = {
+				evaluatorId: record.evaluatorId,
+				pass: 0,
+				fail: 0,
+				inconclusive: 0,
+				noVerdict: 0,
+				meanScore: undefined,
+				scored: 0,
+				scoreTotal: 0
+			};
+			rows.set(record.evaluatorId, row);
+		}
+		const verdict = record.result.verdict;
+		if (verdict === undefined) row.noVerdict += 1;
+		else row[verdict] += 1;
+		if (record.result.score !== undefined) {
+			row.scored += 1;
+			row.scoreTotal += record.result.score;
+		}
+	}
+	return [...rows.values()]
+		.map(({ scored, scoreTotal, ...row }) => ({
+			...row,
+			meanScore: scored === 0 ? undefined : scoreTotal / scored
+		}))
+		.sort(
+			(a, b) =>
+				b.pass +
+					b.fail +
+					b.inconclusive +
+					b.noVerdict -
+					(a.pass + a.fail + a.inconclusive + a.noVerdict) ||
+				a.evaluatorId.localeCompare(b.evaluatorId)
+		);
 }
 
 export function safetyCaseFromSummaries(
@@ -88,7 +160,9 @@ export function safetyCaseFromSummaries(
 	world: WorldDefinition | undefined,
 	tools: readonly ToolDefinition[],
 	runs: readonly RunRecord[],
-	summaries: ReadonlyMap<string, RunSummary>
+	summaries: ReadonlyMap<string, RunSummary>,
+	evaluations: readonly EvaluationRecord[] = [],
+	campaigns: readonly CampaignReportLike[] = []
 ): SafetyCase {
 	const inability: string[] = [];
 	const reach: string[] = [];
@@ -156,7 +230,9 @@ export function safetyCaseFromSummaries(
 			incidentRuns: incidents.length
 		},
 		hostedScreening: armourFitted ? { fired, decisions } : undefined,
-		egress: { hosts: [...hosts].sort(), recordedRuns, noNetworkRuns }
+		egress: { hosts: [...hosts].sort(), recordedRuns, noNetworkRuns },
+		evaluations: evaluationEvidenceFor(runs, evaluations),
+		campaigns: campaignEvidenceFor(agent.id, campaigns)
 	};
 }
 
@@ -167,7 +243,9 @@ export function safetyCaseFor(
 	world: WorldDefinition | undefined,
 	tools: readonly ToolDefinition[],
 	runs: readonly RunRecord[],
-	eventsByRun: ReadonlyMap<string, readonly EngineEvent[]>
+	eventsByRun: ReadonlyMap<string, readonly EngineEvent[]>,
+	evaluations: readonly EvaluationRecord[] = [],
+	campaigns: readonly CampaignReportLike[] = []
 ): SafetyCase {
 	return safetyCaseFromSummaries(
 		agent,
@@ -175,6 +253,8 @@ export function safetyCaseFor(
 		world,
 		tools,
 		runs,
-		summariesOf(runs, eventsByRun)
+		summariesOf(runs, eventsByRun),
+		evaluations,
+		campaigns
 	);
 }

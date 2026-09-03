@@ -37,6 +37,7 @@ export {
 	metricValue,
 	parseCampaign,
 	parseCampaignReport,
+	campaignEnvelope,
 	runCampaign,
 	specFor,
 	type Campaign,

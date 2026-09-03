@@ -1,4 +1,4 @@
-import type { EgressMode, PackManifest, PackRegistry } from '@craftabot/core';
+import type { EgressMode, PackManifest, PackRegistry, StoredCampaignReport } from '@craftabot/core';
 import { injectionSchema } from '@craftabot/core';
 import starterPack from '@craftabot/pack-starter';
 import { z } from 'zod';
@@ -254,6 +254,21 @@ export const campaignReportSchema = z.object({
 	createdAt: z.string(),
 	packVersions: z.record(z.string(), z.string()),
 	noise: noiseRatesSchema,
+	/**
+	 * Which bot each build was (WP49, `37-…` §4.2): a build made from a kit
+	 * file carries that kit's agent id and name, so a stored report can be
+	 * held against a shelf bot's safety case; a `starter-default` build is
+	 * nobody's. Defaulted, so every report written before the field parses.
+	 */
+	builds: z
+		.array(
+			z.object({
+				id: z.string(),
+				agentId: z.string().optional(),
+				agentName: z.string().optional()
+			})
+		)
+		.default([]),
 	cells: z.array(campaignCellSchema),
 	gates: z.array(gateVerdictSchema),
 	passed: z.boolean(),
@@ -267,6 +282,28 @@ export type CampaignReport = z.infer<typeof campaignReportSchema>;
 
 export function parseCampaignReport(value: unknown): CampaignReport {
 	return campaignReportSchema.parse(value);
+}
+
+/**
+ * The envelope a store keeps a report in (`StoredCampaignReport`, `28-…`
+ * §4.9): the fields a list shows without opening the report, and the report
+ * itself as opaque JSON. Here rather than in the app since WP49, so the
+ * harness files a report the same way the Workshop does and `craftabot
+ * report --safety-case` can quote it.
+ */
+export function campaignEnvelope(report: CampaignReport): StoredCampaignReport {
+	return {
+		id: report.id,
+		campaignId: report.campaignId,
+		title: report.campaignTitle,
+		createdAt: report.createdAt,
+		passed: report.passed,
+		gatesPassed: report.gates.filter((gate) => gate.passed).length,
+		gatesTotal: report.gates.length,
+		cells: report.cells.length,
+		report: report as unknown as Record<string, unknown>,
+		schemaVersion: 1
+	};
 }
 
 /** One cell, before it runs: the point in the campaign's five axes. */
@@ -382,6 +419,12 @@ export async function runCampaign(
 		createdAt: options.now?.() ?? new Date().toISOString(),
 		packVersions: options.packVersions ?? {},
 		noise,
+		builds: campaign.builds.map((build) => ({
+			id: build.id,
+			...(build.base.kind === 'kit'
+				? { agentId: build.base.kit.agent.id, agentName: build.base.kit.agent.name }
+				: {})
+		})),
 		cells: results,
 		gates,
 		passed: gates.every((gate) => gate.passed),

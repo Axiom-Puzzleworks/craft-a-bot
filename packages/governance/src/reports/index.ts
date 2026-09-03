@@ -28,7 +28,27 @@ export {
 	type IncidentFinding,
 	type IncidentKind
 } from './incidents.js';
-export { safetyCaseFor, safetyCaseFromSummaries, type SafetyCase } from './safety-case.js';
+export {
+	safetyCaseFor,
+	safetyCaseFromSummaries,
+	type EvaluationEvidence,
+	type SafetyCase
+} from './safety-case.js';
+export {
+	campaignEvidenceFor,
+	type CampaignEvidence,
+	type CampaignReportLike
+} from './campaign-evidence.js';
+export {
+	DRIFT_DEFAULTS,
+	dayOf,
+	driftIn,
+	mixDistance,
+	telemetrySeries,
+	type DriftFlag,
+	type DriftOptions,
+	type TelemetryBucket
+} from './drift.js';
 export {
 	autonomyTelemetry,
 	autonomyTelemetryFromSummaries,

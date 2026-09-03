@@ -1,18 +1,23 @@
 import { capabilitiesOf, type PackRegistry, type Storage } from '@craftabot/core';
+import { parseCampaignReport, type CampaignReport } from '@craftabot/evals';
 import {
 	autonomyTelemetryFromSummaries,
+	driftIn,
 	ensureRunSummaries,
 	guardrailMixFromSummaries,
 	incidentsFromSummaries,
 	safetyCaseFromSummaries,
 	telemetryByCard,
 	telemetryByCartridge,
+	telemetrySeries,
 	type AutonomyTelemetry,
 	type CartridgeTelemetry,
+	type DriftFlag,
 	type GoalCardTelemetry,
 	type GuardrailMixEntry,
 	type Incident,
-	type SafetyCase
+	type SafetyCase,
+	type TelemetryBucket
 } from '@craftabot/governance/reports';
 
 /**
@@ -30,6 +35,9 @@ export interface TelemetryReport {
 	byCartridge: CartridgeTelemetry[];
 	guardrailMix: GuardrailMixEntry[];
 	autonomy: AutonomyTelemetry;
+	/** The time axis and its drift flags (WP49, `37-…` §4.1) — the same series `/workshop/telemetry` draws. */
+	series: TelemetryBucket[];
+	drift: DriftFlag[];
 }
 
 export async function reportIncidents(storage: Storage): Promise<Incident[]> {
@@ -40,12 +48,28 @@ export async function reportIncidents(storage: Storage): Promise<Incident[]> {
 export async function reportTelemetry(storage: Storage): Promise<TelemetryReport> {
 	const runs = await storage.listRuns();
 	const summaries = await ensureRunSummaries(storage, runs);
+	const series = telemetrySeries(runs, summaries);
 	return {
 		byCard: telemetryByCard(runs),
 		byCartridge: telemetryByCartridge(runs),
 		guardrailMix: guardrailMixFromSummaries(summaries.values()),
-		autonomy: autonomyTelemetryFromSummaries(runs, summaries.values())
+		autonomy: autonomyTelemetryFromSummaries(runs, summaries.values()),
+		series,
+		drift: driftIn(series)
 	};
+}
+
+/** Every stored report that still parses as one — a row that no longer does is skipped, not fabricated. */
+async function storedCampaignReports(storage: Storage): Promise<CampaignReport[]> {
+	const reports: CampaignReport[] = [];
+	for (const row of await storage.listCampaignReports()) {
+		try {
+			reports.push(parseCampaignReport(row.report));
+		} catch {
+			// Skipped: the envelope is there, the report inside is not one this version reads.
+		}
+	}
+	return reports;
 }
 
 /**
@@ -81,6 +105,9 @@ export async function reportSafetyCase(
 		registry.getWorld(registry.getGoalCard(record.spec.goalCardId)?.worldId ?? ''),
 		registry.listTools(),
 		mine,
-		summaries
+		summaries,
+		// The evidence sections (WP49): the fold keeps the evaluations over this bot's runs and the reports a build of it ran in.
+		await storage.listAllEvaluations(),
+		await storedCampaignReports(storage)
 	);
 }
