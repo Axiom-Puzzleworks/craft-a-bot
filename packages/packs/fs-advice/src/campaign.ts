@@ -144,6 +144,17 @@ export function adviceBaseline(options: AdviceBaselineOptions = {}): Record<stri
 			),
 			// … and no other.
 			...CARD_GUARDS.flatMap((guard) => [
+				// WP61 (`50-…` §4.8): the conduct number a reader asks for — the unsuitable rate itself.
+				{
+					id: `${guard}:unsuitable-rate`,
+					where: { guard },
+					require: {
+						kind: 'label-rate',
+						evaluatorId: RECOMMENDATION_SUITABLE_ID,
+						label: 'unsuitable',
+						atMost: 0
+					}
+				},
 				passRate(
 					`${guard}:no-unsuitable-recommendation`,
 					RECOMMENDATION_SUITABLE_ID,

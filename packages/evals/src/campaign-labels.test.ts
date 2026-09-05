@@ -1,5 +1,8 @@
 import type { ConfusionLabelSemantics } from '@craftabot/core';
 import { describe, expect, it } from 'vitest';
+import { renderJUnit } from './campaign-junit.js';
+import { renderSarif } from './campaign-sarif.js';
+import { CASE_TABLE_CAP, renderCampaignScorecard } from './campaign-scorecard.js';
 import { confusionOf, derivedOf, summariseCampaign } from './campaign-summary.js';
 import {
 	CAMPAIGN_REPORT_SCHEMA_VERSION,
@@ -395,5 +398,116 @@ describe('the report v2 and its v1 reader', () => {
 		expect(verdict.required).toContain(
 			`schema v1, this report is v${CAMPAIGN_REPORT_SCHEMA_VERSION}`
 		);
+	});
+});
+
+describe('the three renderings (stage B)', () => {
+	const semantics = () => SEMANTICS;
+	const report = (cells: CampaignCell[], gates: CampaignReport['gates'] = []): CampaignReport => ({
+		schemaVersion: CAMPAIGN_REPORT_SCHEMA_VERSION,
+		id: 'r',
+		campaignId: 'c',
+		campaignTitle: 'C',
+		createdAt: '2026-09-05T00:00:00.000Z',
+		packVersions: {},
+		noise: { misname: 0.12, wastedMove: 0.12, prematureCelebrate: 0.04 },
+		builds: [],
+		cells,
+		gates,
+		passed: gates.every((gate) => gate.passed),
+		summary: summariseCampaign(cells, { semantics }),
+		budget: { liveCells: 0, tokensIn: 0, tokensOut: 0, liveEvaluations: 0 }
+	});
+
+	it('markdown carries the matrix, the cohorts with the caveat, the obligations and the cases', () => {
+		const cells = [
+			...MATRIX_CELLS.map((c, i) => ({ ...c, cohort: { ageBand: i % 2 ? '25-34' : '65-74' } }))
+		];
+		const parity = evaluateGate(
+			{
+				id: 'parity',
+				require: {
+					kind: 'parity',
+					across: 'ageBand',
+					of: { kind: 'evaluator-pass-rate', evaluatorId: EVALUATOR },
+					minRatio: 0.8,
+					matched: false
+				}
+			},
+			cells
+		);
+		const text = renderCampaignScorecard(report(cells, [parity]));
+		expect(text).toContain(`## Confusion matrix — \`${EVALUATOR}\``);
+		expect(text).toContain('| **all** | 6 | 2 | 10 | 2 | 0.75 | 0.75 | 0.75 | 0.17 |');
+		expect(text).toContain('## Cohorts');
+		expect(text).toContain('**unmatched** cohorts');
+		expect(text).toContain('| ageBand | 25-34 | 10 |');
+		expect(text).toContain('## Obligations');
+		expect(text).toContain('| fca:cd:support | 20 |');
+		expect(text).toContain('## Cases');
+		expect(text).toContain('| queue | cards | scripted-optimal | 1 | SUCCESS | 4 | 15 | 1 |');
+	});
+
+	it('markdown draws no matrix without semantics, no cohort table without cohorts, and caps the cases', () => {
+		const plain = renderCampaignScorecard({
+			...report(MATRIX_CELLS),
+			summary: summariseCampaign(MATRIX_CELLS)
+		});
+		expect(plain).not.toContain('## Confusion matrix');
+		expect(plain).not.toContain('## Cohorts');
+		expect(plain).toContain('## Obligations');
+		const many = Array.from({ length: CASE_TABLE_CAP + 5 }, (_, i) => cell({ seed: i }));
+		const capped = renderCampaignScorecard(report(many));
+		expect(capped).toContain(`_5 more rows in the report's JSON._`);
+	});
+
+	it('JUnit and SARIF carry the new gate kinds with no change of shape', () => {
+		const cells = MATRIX_CELLS.map((c, i) => ({ ...c, cohort: { ageBand: i % 2 ? 'a' : 'b' } }));
+		const gates = [
+			evaluateGate(
+				{
+					id: 'fn',
+					require: { kind: 'label-rate', evaluatorId: EVALUATOR, label: 'fn', atMost: 0 }
+				},
+				cells
+			),
+			evaluateGate(
+				{
+					id: 'recall',
+					require: {
+						kind: 'derived-metric',
+						evaluatorId: EVALUATOR,
+						derived: 'recall',
+						atLeast: 0.5
+					}
+				},
+				cells,
+				undefined,
+				{ semantics }
+			),
+			evaluateGate(
+				{
+					id: 'parity',
+					require: {
+						kind: 'parity',
+						across: 'ageBand',
+						of: { kind: 'outcome-rate', outcome: 'SUCCESS' },
+						maxDifference: 0.1,
+						matched: true
+					}
+				},
+				cells
+			)
+		];
+		const xml = renderJUnit(report(cells, gates));
+		expect(xml).toContain('classname="label-rate" name="fn"');
+		expect(xml).toContain('classname="derived-metric" name="recall"');
+		expect(xml).toContain('classname="parity" name="parity"');
+		expect(xml).toContain('<failure');
+		const sarif = renderSarif(report(cells, gates)) as {
+			runs: Array<{ tool: { driver: { rules: unknown[] } }; results: unknown[] }>;
+		};
+		expect(sarif.runs[0]?.tool.driver.rules).toHaveLength(3);
+		expect(sarif.runs[0]?.results).toHaveLength(1);
 	});
 });

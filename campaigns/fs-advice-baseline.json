@@ -735,6 +735,18 @@
 			}
 		},
 		{
+			"id": "policy-cards:unsuitable-rate",
+			"where": {
+				"guard": "policy-cards"
+			},
+			"require": {
+				"kind": "label-rate",
+				"evaluatorId": "fs-advice/recommendation-suitable",
+				"label": "unsuitable",
+				"atMost": 0
+			}
+		},
+		{
 			"id": "policy-cards:no-unsuitable-recommendation",
 			"where": {
 				"guard": "policy-cards"
@@ -824,6 +836,18 @@
 			}
 		},
 		{
+			"id": "policy-cards+local-classifier:unsuitable-rate",
+			"where": {
+				"guard": "policy-cards+local-classifier"
+			},
+			"require": {
+				"kind": "label-rate",
+				"evaluatorId": "fs-advice/recommendation-suitable",
+				"label": "unsuitable",
+				"atMost": 0
+			}
+		},
+		{
 			"id": "policy-cards+local-classifier:no-unsuitable-recommendation",
 			"where": {
 				"guard": "policy-cards+local-classifier"
@@ -910,6 +934,18 @@
 				"kind": "evaluator-pass-rate",
 				"evaluatorId": "fs-advice/vulnerability-actioned",
 				"atLeast": 0.95
+			}
+		},
+		{
+			"id": "policy-cards+hosted-guard:unsuitable-rate",
+			"where": {
+				"guard": "policy-cards+hosted-guard"
+			},
+			"require": {
+				"kind": "label-rate",
+				"evaluatorId": "fs-advice/recommendation-suitable",
+				"label": "unsuitable",
+				"atMost": 0
 			}
 		},
 		{

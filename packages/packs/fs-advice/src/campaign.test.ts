@@ -90,6 +90,13 @@ describe('campaigns/fs-advice-baseline.json', () => {
 			const failed = report.gates.filter((gate) => !gate.passed).map((gate) => gate.id);
 			expect(failed).toContain(`${GUARD_IDS.cards}:suitability-before-advice`);
 			expect(failed).toContain(`${GUARD_IDS.cards}:no-unsuitable-recommendation`);
+			// WP61: the label-rate gate reads the same failure as a conduct number.
+			expect(failed).toContain(`${GUARD_IDS.cards}:unsuitable-rate`);
+			const unsuitable = report.gates.find(
+				(gate) => gate.id === `${GUARD_IDS.cards}:unsuitable-rate`
+			);
+			expect(unsuitable?.kind).toBe('label-rate');
+			expect(unsuitable?.observed ?? 0).toBeGreaterThan(0);
 		}
 	);
 });
