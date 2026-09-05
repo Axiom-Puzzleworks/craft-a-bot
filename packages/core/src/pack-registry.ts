@@ -5,7 +5,6 @@ import type {
 	BrickDefinition,
 	CartridgeDefinition,
 	GoalCardDefinition,
-	GuardrailDefinition,
 	PackManifest,
 	PackManifestMetadata
 } from './schemas/pack-manifest.js';
@@ -52,8 +51,6 @@ export interface PackRegistry {
 	getCartridge(id: string): CartridgeDefinition | undefined;
 	getGoalCard(id: string): GoalCardDefinition | undefined;
 	getWorld(id: string): WorldDefinition | undefined;
-	/** @deprecated with `PackManifest.guardrails` (WP39) — see `getGuardrailService`. */
-	getGuardrail(id: string): GuardrailDefinition | undefined;
 	/** A hosted guardrail service (`29-GUARD-SHELL.md` §4.3, WP39), by qualified id. */
 	getGuardrailService(id: string): GuardrailService | undefined;
 	/** An evaluator (`31-EVALUATORS.md` §4.1, WP43), by qualified id. */
@@ -92,7 +89,6 @@ export function createPackRegistry(): PackRegistry {
 	const cartridges = new Map<string, CartridgeDefinition>();
 	const goalCards = new Map<string, GoalCardDefinition>();
 	const worlds = new Map<string, WorldDefinition>();
-	const guardrails = new Map<string, GuardrailDefinition>();
 	const policyCards = new Map<string, PolicyCard>();
 	const guardrailServices = new Map<string, GuardrailService>();
 	const evaluators = new Map<string, Evaluator>();
@@ -110,6 +106,14 @@ export function createPackRegistry(): PackRegistry {
 	function registerPack(manifest: PackManifest): void {
 		if (packs.has(manifest.id)) {
 			throw new Error(`Pack "${manifest.id}" is already registered.`);
+		}
+		// The lane removed at core 1.0.0 (WP56 stage B, `14-…` §7). Refused by
+		// name rather than ignored: a pack written against 0.x that still ships
+		// rules here would otherwise register cleanly and enforce nothing.
+		if ('guardrails' in manifest) {
+			throw new Error(
+				`Pack "${manifest.id}" carries a "guardrails" lane, which core ${CRAFTABOT_CORE_VERSION} no longer has: contribute guardrails from a brick kind's contributeGuardrails, a policy card, or a guardrailServices entry (docs/migrations.md).`
+			);
 		}
 		// `local/` is the content store's (WP46, `34-…` §4.1): a shipped pack may not use it.
 		if (manifest.id !== LOCAL_PACK_ID) {
@@ -162,8 +166,6 @@ export function createPackRegistry(): PackRegistry {
 		for (const goalCard of manifest.goalCards ?? [])
 			insertUnique(goalCards, goalCard.id, goalCard, 'goal card');
 		for (const world of manifest.worlds ?? []) insertUnique(worlds, world.id, world, 'world');
-		for (const guardrail of manifest.guardrails ?? [])
-			insertUnique(guardrails, guardrail.id, guardrail, 'guardrail');
 		for (const card of manifest.policyCards ?? [])
 			insertUnique(policyCards, card.id, card, 'policy card');
 		for (const service of manifest.guardrailServices ?? []) {
@@ -245,7 +247,6 @@ export function createPackRegistry(): PackRegistry {
 		getCartridge: (id) => cartridges.get(id),
 		getGoalCard: (id) => goalCards.get(id),
 		getWorld: (id) => worlds.get(id),
-		getGuardrail: (id) => guardrails.get(id),
 		getSenseChannel,
 		getAction,
 		getPolicyCard: (id) => policyCards.get(id),

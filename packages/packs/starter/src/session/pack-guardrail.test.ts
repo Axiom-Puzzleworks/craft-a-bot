@@ -54,7 +54,6 @@ const guardrailPack: PackManifest = {
 	name: 'Test governance pack',
 	version: '1.0.0',
 	requiresCore: '>=0.0.1',
-	guardrails: [neverTakeTeddysSnack],
 	cartridges: [
 		{
 			id: 'test/mock-brain',
@@ -75,10 +74,12 @@ describe('a guardrail contributed by a pack', () => {
 		registry.registerPack(starterPack);
 		registry.registerPack(guardrailPack);
 
-		// The engine never learns this rule's name — it comes out of the registry
-		// as an ordinary `Guardrail` and goes straight into the chain.
-		const definition = registry.getGuardrail('test/never-take-teddys-snack');
-		if (!definition) throw new Error('the pack-contributed guardrail was not registered');
+		// The engine never learns this rule's name — a pack builds an ordinary
+		// `Guardrail` from its own definition and it goes straight into the
+		// chain (through `contributeGuardrails` in a real brick kind; handed in
+		// directly here). The manifest lane that used to carry definitions is
+		// gone at core 1.0.0 (WP56, `14-…` §7).
+		const definition = neverTakeTeddysSnack;
 
 		const clock = createTestClock();
 		const events: EngineEvent[] = [];

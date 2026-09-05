@@ -141,7 +141,13 @@ export const packManifestMetadataSchema = z.object({
 });
 export type PackManifestMetadata = z.infer<typeof packManifestMetadataSchema>;
 
-/** A pack-contributed guardrail (08-GOVERNANCE-GUARDRAILS.md §5 "policy cards" era generalises this). */
+/**
+ * A pack-authored guardrail, as a definition a pack's own code can build a
+ * `Guardrail` from (08-GOVERNANCE-GUARDRAILS.md §5). No longer a manifest
+ * lane (core 1.0.0, WP56): a pack hands the built guardrail to a run through
+ * a brick kind's `contributeGuardrails`. Kept as a type because pack code
+ * still describes its rules this way.
+ */
 export interface GuardrailDefinition {
 	id: string;
 	name: string;
@@ -178,14 +184,16 @@ export interface PackManifest extends PackManifestMetadata {
 	worlds?: WorldDefinition[];
 	cartridges?: CartridgeDefinition[];
 	goalCards?: GoalCardDefinition[];
-	/**
-	 * @deprecated since WP39 (`29-GUARD-SHELL.md` §4.3): nothing has ever
-	 * read this lane but the registry's own insert — a pack's guardrails
-	 * reach a run through a brick kind's `contributeGuardrails`, a policy
-	 * card, or a `GuardrailService`. Kept so no manifest breaks; removal is
-	 * WP52's if nothing has adopted it by then.
+	/*
+	 * `guardrails?: GuardrailDefinition[]` lived here from V1 to core 0.0.1
+	 * and was deprecated at WP39 (`29-GUARD-SHELL.md` §4.3): nothing ever read
+	 * the lane but the registry's own insert. **Removed at core 1.0.0** (WP56
+	 * stage B, `14-…` §7, `docs/migrations.md`): a pack's guardrails reach a
+	 * run through a brick kind's `contributeGuardrails`, a policy card, or a
+	 * `GuardrailService`. The registry refuses a manifest that still carries
+	 * the key, naming those three, so an old pack fails loudly rather than
+	 * silently losing its rules.
 	 */
-	guardrails?: GuardrailDefinition[];
 	/**
 	 * Hosted guardrail services (`29-GUARD-SHELL.md` §4.3, WP39): a vendor's
 	 * client behind the one contract the shell in `@craftabot/governance`

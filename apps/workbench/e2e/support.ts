@@ -125,6 +125,23 @@ export async function buildReadyBot(page: Page, cardTestId = 'card-snack'): Prom
 }
 
 /** Build a bot that can actually do the snack goal, then pull the GO lever. */
+/**
+ * Wait for a finished solo run to reach storage (WP56 stage A).
+ *
+ * The Play route persists a finished run after `run.finished` and says so on
+ * the end card once the write has landed. A spec that opens a Workshop
+ * screen the moment the run ends was racing that write — on a busy machine
+ * the navigation won, and the screen read a store with no summary in it.
+ */
+export async function awaitRunSaved(page: Page): Promise<void> {
+	await expect(page.getByTestId('run-saved')).toBeVisible({ timeout: 15_000 });
+}
+
+/** The duo route's counterpart: every member's row and summary, and the group's row. */
+export async function awaitDuoSaved(page: Page): Promise<void> {
+	await expect(page.getByTestId('duo-saved')).toBeVisible({ timeout: 15_000 });
+}
+
 export async function buildAndGo(page: Page, cardTestId = 'card-snack'): Promise<void> {
 	await buildReadyBot(page, cardTestId);
 	await page.getByRole('button', { name: /GO/ }).click();

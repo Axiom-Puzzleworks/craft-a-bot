@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { BRICKS, buildAndGo, buildReadyBot, skipTutorial } from './support.js';
+import { BRICKS, buildAndGo, buildReadyBot, skipTutorial, awaitRunSaved } from './support.js';
 
 /**
  * **The incident log** (`19-…` #31, WP34 stage B): derived, not authored —
@@ -53,6 +53,11 @@ test('lists a real guardrail catch, with the reason it actually gave', async ({ 
 	await expect(page.getByTestId('flight-recorder')).toContainText('Safety rule stopped it', {
 		timeout: 10_000
 	});
+	// The guardrail blocked one action; the run itself is still open. End it,
+	// so the evidence read next is a stored run rather than a race with the
+	// recorder's tick write (WP56 stage A).
+	await page.getByTestId('stop').click();
+	await awaitRunSaved(page);
 
 	await page.goto('/workshop/incidents');
 	await expect(page.getByTestId('incidents-list')).toBeVisible();

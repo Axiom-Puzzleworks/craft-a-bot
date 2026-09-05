@@ -1,0 +1,379 @@
+{
+	"$id": "https://craftabot.dev/schemas/campaign-report.schema.json",
+	"title": "Craft A Bot campaign report",
+	"description": "What a campaign run produced: every cell, every gate with its verdict, the slices and the budget spent (28-CAMPAIGNS.md §4.5).",
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"type": "object",
+	"properties": {
+		"schemaVersion": {
+			"type": "number",
+			"const": 1
+		},
+		"id": {
+			"type": "string"
+		},
+		"campaignId": {
+			"type": "string"
+		},
+		"campaignTitle": {
+			"type": "string"
+		},
+		"createdAt": {
+			"type": "string"
+		},
+		"packVersions": {
+			"type": "object",
+			"propertyNames": {
+				"type": "string"
+			},
+			"additionalProperties": {
+				"type": "string"
+			}
+		},
+		"noise": {
+			"type": "object",
+			"properties": {
+				"misname": {
+					"type": "number",
+					"minimum": 0,
+					"maximum": 1
+				},
+				"wastedMove": {
+					"type": "number",
+					"minimum": 0,
+					"maximum": 1
+				},
+				"prematureCelebrate": {
+					"type": "number",
+					"minimum": 0,
+					"maximum": 1
+				}
+			},
+			"required": [
+				"misname",
+				"wastedMove",
+				"prematureCelebrate"
+			]
+		},
+		"builds": {
+			"default": [],
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"agentId": {
+						"type": "string"
+					},
+					"agentName": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"id"
+				]
+			}
+		},
+		"cells": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"scenario": {
+						"type": "string"
+					},
+					"build": {
+						"type": "string"
+					},
+					"guard": {
+						"type": "string"
+					},
+					"brain": {
+						"type": "string"
+					},
+					"tier": {
+						"type": "string",
+						"enum": [
+							"scripted-optimal",
+							"scripted-noisy",
+							"scripted-adversary",
+							"live"
+						]
+					},
+					"seed": {
+						"type": "integer",
+						"minimum": -9007199254740991,
+						"maximum": 9007199254740991
+					},
+					"tags": {
+						"default": [],
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"runId": {
+						"type": "string"
+					},
+					"outcome": {
+						"type": "string",
+						"enum": [
+							"SUCCESS",
+							"OUT_OF_STEPS",
+							"STOPPED_BY_USER",
+							"STOPPED_BY_GUARDRAIL",
+							"ERROR"
+						]
+					},
+					"metrics": {
+						"type": "object",
+						"properties": {
+							"outcome": {
+								"type": "string",
+								"enum": [
+									"SUCCESS",
+									"OUT_OF_STEPS",
+									"STOPPED_BY_USER",
+									"STOPPED_BY_GUARDRAIL",
+									"ERROR"
+								]
+							},
+							"ticksUsed": {
+								"type": "integer",
+								"minimum": 0,
+								"maximum": 9007199254740991
+							},
+							"tokensIn": {
+								"type": "integer",
+								"minimum": 0,
+								"maximum": 9007199254740991
+							},
+							"tokensOut": {
+								"type": "integer",
+								"minimum": 0,
+								"maximum": 9007199254740991
+							},
+							"loop": {
+								"type": "object",
+								"properties": {
+									"longestStreak": {
+										"type": "integer",
+										"minimum": 0,
+										"maximum": 9007199254740991
+									},
+									"repeatedFailures": {
+										"type": "integer",
+										"minimum": 0,
+										"maximum": 9007199254740991
+									}
+								},
+								"required": [
+									"longestStreak",
+									"repeatedFailures"
+								]
+							},
+							"wastedTickRatio": {
+								"type": "number",
+								"minimum": 0,
+								"maximum": 1
+							},
+							"namingMisses": {
+								"type": "integer",
+								"minimum": 0,
+								"maximum": 9007199254740991
+							},
+							"namingAmbiguities": {
+								"type": "integer",
+								"minimum": 0,
+								"maximum": 9007199254740991
+							},
+							"guardrailTrips": {
+								"type": "object",
+								"propertyNames": {
+									"type": "string"
+								},
+								"additionalProperties": {
+									"type": "integer",
+									"minimum": 0,
+									"maximum": 9007199254740991
+								}
+							},
+							"approvalsRequested": {
+								"type": "integer",
+								"minimum": 0,
+								"maximum": 9007199254740991
+							},
+							"approvalsDenied": {
+								"type": "integer",
+								"minimum": 0,
+								"maximum": 9007199254740991
+							},
+							"firstProductiveTick": {
+								"type": "integer",
+								"minimum": 0,
+								"maximum": 9007199254740991
+							}
+						},
+						"required": [
+							"ticksUsed",
+							"tokensIn",
+							"tokensOut",
+							"loop",
+							"wastedTickRatio",
+							"namingMisses",
+							"namingAmbiguities",
+							"guardrailTrips",
+							"approvalsRequested",
+							"approvalsDenied"
+						]
+					},
+					"assertions": {
+						"type": "object",
+						"propertyNames": {
+							"type": "string"
+						},
+						"additionalProperties": {
+							"type": "boolean"
+						}
+					},
+					"evaluations": {
+						"default": {},
+						"type": "object",
+						"propertyNames": {
+							"type": "string"
+						},
+						"additionalProperties": {
+							"type": "string",
+							"enum": [
+								"pass",
+								"fail",
+								"inconclusive"
+							]
+						}
+					},
+					"error": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"scenario",
+					"build",
+					"guard",
+					"brain",
+					"tier",
+					"seed",
+					"metrics",
+					"assertions"
+				]
+			}
+		},
+		"gates": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"kind": {
+						"type": "string"
+					},
+					"where": {
+						"type": "object",
+						"properties": {
+							"scenario": {
+								"type": "string"
+							},
+							"tag": {
+								"type": "string"
+							},
+							"build": {
+								"type": "string"
+							},
+							"guard": {
+								"type": "string"
+							},
+							"brain": {
+								"type": "string"
+							}
+						}
+					},
+					"required": {
+						"type": "string"
+					},
+					"observed": {
+						"type": "number"
+					},
+					"cells": {
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 9007199254740991
+					},
+					"passed": {
+						"type": "boolean"
+					},
+					"inconclusive": {
+						"type": "boolean",
+						"const": true
+					}
+				},
+				"required": [
+					"id",
+					"kind",
+					"required",
+					"cells",
+					"passed"
+				]
+			}
+		},
+		"passed": {
+			"type": "boolean"
+		},
+		"budget": {
+			"type": "object",
+			"properties": {
+				"liveCells": {
+					"type": "integer",
+					"minimum": 0,
+					"maximum": 9007199254740991
+				},
+				"tokensIn": {
+					"type": "integer",
+					"minimum": 0,
+					"maximum": 9007199254740991
+				},
+				"tokensOut": {
+					"type": "integer",
+					"minimum": 0,
+					"maximum": 9007199254740991
+				},
+				"liveEvaluations": {
+					"default": 0,
+					"type": "integer",
+					"minimum": 0,
+					"maximum": 9007199254740991
+				}
+			},
+			"required": [
+				"liveCells",
+				"tokensIn",
+				"tokensOut"
+			]
+		}
+	},
+	"required": [
+		"schemaVersion",
+		"id",
+		"campaignId",
+		"campaignTitle",
+		"createdAt",
+		"packVersions",
+		"noise",
+		"cells",
+		"gates",
+		"passed",
+		"budget"
+	]
+}

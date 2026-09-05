@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { BRICKS, buildReadyBot, skipTutorial } from './support.js';
+import { BRICKS, awaitRunSaved, buildReadyBot, skipTutorial } from './support.js';
 
 /**
  * **The safety-case worksheet** (`19-…` #28, WP34 stage C): "why is this
@@ -60,6 +60,11 @@ test('a blocked run shows up in both control and trustworthiness', async ({ page
 	await expect(page.getByTestId('flight-recorder')).toContainText('Safety rule stopped it', {
 		timeout: 10_000
 	});
+	// The guardrail blocked one action; the run itself is still open. End it,
+	// so the evidence read next is a stored run rather than a race with the
+	// recorder's tick write (WP56 stage A).
+	await page.getByTestId('stop').click();
+	await awaitRunSaved(page);
 
 	await page.goto(`/workshop/safety-case?agent=${agentId}`);
 	await expect(page.getByTestId('control-list')).toContainText('safety/action-blocklist');

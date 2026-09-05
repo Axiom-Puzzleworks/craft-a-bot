@@ -1,0 +1,227 @@
+{
+	"$id": "https://craftabot.dev/schemas/craftabot-scenarios.schema.json",
+	"title": "Craft A Bot scenario pack (craftabot-scenarios v1)",
+	"description": "Scenarios as data — a goal card plus tags, injections, expectations and plans — in a file that registers as a pack (32-SCENARIOS.md §4.1).",
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"type": "object",
+	"properties": {
+		"format": {
+			"type": "string",
+			"const": "craftabot-scenarios"
+		},
+		"formatVersion": {
+			"type": "number",
+			"const": 1
+		},
+		"id": {
+			"type": "string",
+			"minLength": 1
+		},
+		"name": {
+			"type": "string",
+			"minLength": 1
+		},
+		"scenarios": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"minLength": 1
+					},
+					"title": {
+						"type": "string",
+						"minLength": 1
+					},
+					"description": {
+						"type": "string"
+					},
+					"goalCardId": {
+						"type": "string",
+						"minLength": 1
+					},
+					"tags": {
+						"default": [],
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"injections": {
+						"default": [],
+						"type": "array",
+						"items": {
+							"oneOf": [
+								{
+									"type": "object",
+									"properties": {
+										"kind": {
+											"type": "string",
+											"const": "heard"
+										},
+										"text": {
+											"type": "string",
+											"minLength": 1
+										},
+										"atTick": {
+											"type": "integer",
+											"minimum": 0,
+											"maximum": 9007199254740991
+										}
+									},
+									"required": [
+										"kind",
+										"text"
+									]
+								},
+								{
+									"type": "object",
+									"properties": {
+										"kind": {
+											"type": "string",
+											"const": "manual-entry"
+										},
+										"key": {
+											"type": "string",
+											"minLength": 1
+										},
+										"text": {
+											"type": "string",
+											"minLength": 1
+										}
+									},
+									"required": [
+										"kind",
+										"key",
+										"text"
+									]
+								},
+								{
+									"type": "object",
+									"properties": {
+										"kind": {
+											"type": "string",
+											"const": "tool-result"
+										},
+										"toolId": {
+											"type": "string",
+											"minLength": 1
+										},
+										"match": {
+											"type": "string"
+										},
+										"result": {}
+									},
+									"required": [
+										"kind",
+										"toolId",
+										"result"
+									]
+								},
+								{
+									"type": "object",
+									"properties": {
+										"kind": {
+											"type": "string",
+											"const": "radio"
+										},
+										"fromName": {
+											"type": "string",
+											"minLength": 1
+										},
+										"channel": {
+											"type": "string",
+											"minLength": 1
+										},
+										"text": {
+											"type": "string",
+											"minLength": 1
+										}
+									},
+									"required": [
+										"kind",
+										"fromName",
+										"channel",
+										"text"
+									]
+								}
+							]
+						}
+					},
+					"expect": {
+						"default": {
+							"evaluators": []
+						},
+						"type": "object",
+						"properties": {
+							"outcome": {
+								"type": "string",
+								"enum": [
+									"SUCCESS",
+									"OUT_OF_STEPS",
+									"STOPPED_BY_USER",
+									"STOPPED_BY_GUARDRAIL",
+									"ERROR"
+								]
+							},
+							"evaluators": {
+								"default": [],
+								"type": "array",
+								"items": {
+									"type": "object",
+									"properties": {
+										"evaluatorId": {
+											"type": "string",
+											"minLength": 1
+										},
+										"verdict": {
+											"type": "string",
+											"enum": [
+												"pass",
+												"fail"
+											]
+										}
+									},
+									"required": [
+										"evaluatorId",
+										"verdict"
+									]
+								}
+							}
+						}
+					},
+					"plans": {
+						"default": {},
+						"type": "object",
+						"properties": {
+							"safe": {
+								"type": "string"
+							},
+							"unsafe": {
+								"type": "string"
+							}
+						}
+					},
+					"schemaVersion": {
+						"type": "number",
+						"const": 1
+					}
+				},
+				"required": [
+					"id",
+					"title",
+					"goalCardId",
+					"schemaVersion"
+				]
+			}
+		}
+	},
+	"required": [
+		"format",
+		"formatVersion",
+		"id",
+		"name",
+		"scenarios"
+	]
+}

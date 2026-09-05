@@ -14,11 +14,18 @@
 		reason?: string | undefined;
 		/** "What would help?", read from this run's trace (`16-…` §2.3). */
 		hint?: string | undefined;
+		/**
+		 * The run has reached the Scrapbook — its record, its events and its
+		 * summary are all stored (WP56 stage A). Until then the card says
+		 * nothing about saving: a child who shuts the tab on "Saved" should
+		 * find the run there, so the word waits for the write.
+		 */
+		saved?: boolean;
 		onseeTrace: () => void;
 		onbackToBench: () => void;
 	}
 
-	let { outcome, reason, hint, onseeTrace, onbackToBench }: Props = $props();
+	let { outcome, reason, hint, saved = false, onseeTrace, onbackToBench }: Props = $props();
 
 	const CARDS: Record<RunOutcome, { badge: string; title: string; body: string; accent: string }> =
 		{
@@ -97,6 +104,10 @@
 			<p class="hint" data-testid="end-hint">{hint}</p>
 		{/if}
 
+		{#if saved}
+			<p class="saved" role="status" data-testid="run-saved">Saved to your Scrapbook.</p>
+		{/if}
+
 		<div class="actions">
 			<button type="button" data-testid="end-see-trace" onclick={onseeTrace}>
 				See the flight recorder
@@ -117,6 +128,12 @@
 		padding: var(--cab-space-4);
 		background: color-mix(in srgb, var(--cab-ink) 45%, transparent);
 		z-index: 10;
+	}
+
+	.saved {
+		margin: 0;
+		font-size: var(--cab-text-sm);
+		color: var(--cab-ink-muted);
 	}
 
 	.card {

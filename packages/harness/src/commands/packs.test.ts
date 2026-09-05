@@ -4,6 +4,15 @@ import { credentialsFromEnv } from '../credentials.js';
 import { describePacks, renderPacks } from './packs.js';
 
 describe('craftabot packs', () => {
+	it('registers every shipped pack at core 1.0.0, none of them on the removed guardrails lane (WP56, 14 §7)', () => {
+		const config = defaultConfig();
+		expect(config.packs.length).toBeGreaterThan(10);
+		for (const pack of config.packs) expect(pack).not.toHaveProperty('guardrails');
+		// `describePacks` registers every pack; a refused one throws here.
+		const report = describePacks(config, credentialsFromEnv({}));
+		expect(report.packs.map((p) => p.id).sort()).toEqual(config.packs.map((p) => p.id).sort());
+	});
+
 	it('lists what the default config can assemble, and which credentials it would read', () => {
 		const report = describePacks(
 			defaultConfig(),

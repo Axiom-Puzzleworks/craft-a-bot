@@ -5,6 +5,7 @@ import { credentialsFromEnv, type CredentialSource } from './credentials.js';
 import { bundleRun } from './commands/bundle.js';
 import { evaluateRun, renderEvaluations } from './commands/evaluate.js';
 import { runCampaignFile } from './commands/campaign.js';
+import { MATRICES, runMatrixCommand } from './commands/matrix.js';
 import { bundleGroup } from './commands/bundle.js';
 import { importCorpusFile } from './commands/scenarios.js';
 import { DEFAULT_CONTENT_DIR, addContent, listContent, renderContent } from './commands/content.js';
@@ -129,6 +130,14 @@ Usage:
       allows only the hosts fitted components declare. A live brain needs
       the campaign's own budget and its provider's CRAFTABOT_CREDENTIAL_<ID>.
 
+  craftabot campaign --matrix scripted|expert [--out ./campaign-out] [--record] [--strict]
+      An ad-hoc matrix with no gates (what "npm run evals" used to be): every
+      standard card (or the expert card) × both scripted brain tiers × the
+      twenty baseline seeds. Writes <name>.report.json and <name>.scorecard.md
+      under --out and diffs against <name>.baseline.json there if one exists;
+      --record promotes this run to the baseline (summaries only); --strict
+      exits 1 on a regression, which otherwise only the scorecard reports.
+
   craftabot report --safety-case [--agent <agentId>] | --incidents | --telemetry
                    [--out ./runs] [--file <path>] [--config …]
       The governance artefacts the Workshop's Safety Case, Incidents and
@@ -236,8 +245,38 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 				return 0;
 			}
 			case 'campaign': {
+				const matrix = stringFlag(args, 'matrix');
+				if (matrix !== undefined) {
+					// The evals CLI's job (WP56 stage B): an ad-hoc matrix, no gates.
+					if (!(matrix in MATRICES)) {
+						throw new Error(
+							`campaign --matrix wants one of ${Object.keys(MATRICES).join(', ')}, got "${matrix}"`
+						);
+					}
+					const total = { done: 0, of: 0 };
+					const result = await runMatrixCommand({
+						matrix,
+						out: stringFlag(args, 'out') ?? './campaign-out',
+						record: args.flags['record'] === true,
+						strict: args.flags['strict'] === true,
+						onCell: (index, count) => {
+							total.done = index;
+							total.of = count;
+						}
+					});
+					io.stdout(
+						[
+							`matrix ${result.name} — ${total.of} cells`,
+							...result.lines.map((line) => `  ${line}`),
+							''
+						].join('\n')
+					);
+					return result.exitCode;
+				}
 				const file = stringFlag(args, 'file');
-				if (file === undefined) throw new Error('campaign needs --file <campaign.json>');
+				if (file === undefined) {
+					throw new Error('campaign needs --file <campaign.json> or --matrix <scripted|expert>');
+				}
 				const out = stringFlag(args, 'out') ?? './campaign-out';
 				const baseline = stringFlag(args, 'baseline');
 				const junit = stringFlag(args, 'junit');

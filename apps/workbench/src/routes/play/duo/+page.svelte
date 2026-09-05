@@ -161,7 +161,7 @@
 			void putGroupRow();
 		}
 		if (event.type === 'run.finished' && event.agentId !== undefined)
-			void finishMember(event.agentId);
+			memberSaves.push(finishMember(event.agentId));
 		if (event.type === 'group.finished') void finishGroup();
 	}
 
@@ -277,13 +277,24 @@
 		if (storage && runId && recorder) await persistRunSummary(storage, runId, recorder.events());
 	}
 
+	/**
+	 * Each member's own persistence, so the group's ending can wait for all of
+	 * them before it says the episode is saved (WP56 stage A). Reset when a
+	 * group starts.
+	 */
+	let memberSaves: Promise<void>[] = [];
+	/** True once every member's row and summary and the group's row are stored. */
+	let saved = $state(false);
+
 	async function finishGroup(): Promise<void> {
 		await groupRecorder?.stop();
 		await putGroupRow();
+		await Promise.all(memberSaves);
 		// The unit of retention is the episode, not either bot's own half of it
 		// — solo evicts on every finished run, and a duo Kit session that never
 		// finishes a solo run of its own deserves the same housekeeping.
 		await storage?.evictOldRuns(preferences.runCap);
+		saved = true;
 	}
 
 	/** The member whose own turn `WorldView` should foreground right now (`23-…` §4.3). */
@@ -400,6 +411,9 @@
 			-->
 			<p class="finished" role="status" data-testid="duo-finished">
 				The adventure is over: <strong data-outcome={view.outcome}>{view.outcome}</strong>
+				{#if saved}
+					<span data-testid="duo-saved">Saved to the Scrapbook.</span>
+				{/if}
 			</p>
 		{/if}
 	</main>
