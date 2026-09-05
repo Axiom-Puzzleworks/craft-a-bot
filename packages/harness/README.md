@@ -52,3 +52,15 @@ The default pack list is every workspace pack bar the Kit's own demo pack. To us
 ## Not allowed to depend on
 
 Svelte, SvelteKit, `apps/workbench` — the harness is a host beside the workbench, never over it.
+
+## A visitor across the desk (WP55)
+
+`craftabot run --kit <desk-bot.craftabot.json> --counterpart scripted` seats a
+second robot across a desk card: the kit's bot is the clerk, a generated
+visitor plays the desk's own `CounterpartScript` through the
+`scripted-counterpart` brain (no key; the merged stream reproduces from
+`--seed`), and the episode is written as each member's run, the group's
+record and stream, and a `<groupRunId>.craftabot-bundle.json` the Workshop
+imports. `--counterpart live [--counterpart-cartridge <id>]` gives the visitor
+a cartridge instead, with the script's persona as its personality;
+`--max-rounds <n>` caps the episode (default 30). A room refuses the flag.

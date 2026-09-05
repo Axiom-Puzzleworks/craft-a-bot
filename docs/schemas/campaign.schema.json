@@ -139,6 +139,23 @@
 										"channel",
 										"text"
 									]
+								},
+								{
+									"type": "object",
+									"properties": {
+										"kind": {
+											"type": "string",
+											"const": "counterpart"
+										},
+										"scriptId": {
+											"type": "string",
+											"minLength": 1
+										}
+									},
+									"required": [
+										"kind",
+										"scriptId"
+									]
 								}
 							]
 						}
@@ -660,6 +677,7 @@
 							"scripted-optimal",
 							"scripted-noisy",
 							"scripted-adversary",
+							"scripted-counterpart",
 							"live"
 						]
 					},

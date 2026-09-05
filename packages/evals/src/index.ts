@@ -17,6 +17,7 @@ export {
 export {
 	DEFAULT_NOISE,
 	scriptedAdversary,
+	scriptedCounterpart,
 	scriptedNoisy,
 	scriptedOptimal,
 	type NoiseRates,

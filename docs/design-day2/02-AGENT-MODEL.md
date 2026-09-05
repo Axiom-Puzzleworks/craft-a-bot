@@ -270,6 +270,10 @@ Rules: events are **append-only facts**; payloads are JSON-serialisable; the tra
 >
 > - **`run.finished.truth?`** `unknown` — the world's `truth()` at the end of the run, when the world has one (`WorldInstance.truth?()`, `41-…` §6.2). **The only event that ever carries truth:** written once, by `finish()`, after the last decision and after every brick is disposed; never on `world.changed`, never in a `sense`, never in a prompt. Absent — not `null` — when the world has no truth, which is every world written before WP54 and both golden traces. Synthetic by tenet 15, so nothing redacts it; a stored run, a bundle and a campaign cell all carry it so an evaluator over any of them has the same input as one over a live run. Read by `evaluationInputFor` into `EvaluationInput.truth`, and stripped by `inputReadableBy` for every evaluator whose `reads` does not name `'truth'`.
 
+> **Amended 2026-09-05 (WP55 stage A, `46-COUNTERPARTS.md` §4.2):** no new event; two additive fields inside `world.changed`'s desk payload and one injection kind. **`DeskTranscriptLine.pressure?`** (0..1) and **`tags?`** — how hard a scripted counterpart's line pushed and what it was doing, carried on the transcript line so a report can aggregate pressure from the trace and nothing else (hard rule 3). **`injectionSchema`** gains `{ kind: 'counterpart', scriptId }` — a scenario's way to name which of a desk's scripts sits across the desk; a world with no such script ignores it, as every world ignores a kind it does not take.
+
+> **Amended 2026-09-05 (WP55 stage B, `46-COUNTERPARTS.md` §4.3):** one payload field, additive. **`group.started.memberRoles?`** `Record<agentId, 'agent' | 'counterpart'>` — each member's side of the desk, written only when a member of the group was given a role, so every episode written before carries the same payload. A stored episode has to say who was who: the Run Lab draws the `agent` seat's Boundary from it, and a report slices by it.
+
 ## 8. Prompting (V1 canonical prompt)
 
 The composed prompt is assembled from labelled sections, in this order, and shown verbatim in the trace (`prompt.composed`):

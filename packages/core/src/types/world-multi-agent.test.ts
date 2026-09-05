@@ -25,8 +25,12 @@ import type { AgentHandle, WorldInstance } from './world.js';
  */
 
 describe('AgentHandle', () => {
-	it('is an id plus a display name, nothing else required', () => {
-		expectTypeOf<AgentHandle>().toEqualTypeOf<{ agentId: string; name: string }>();
+	it('is an id plus a display name, and (WP55) an optional role — nothing else', () => {
+		expectTypeOf<AgentHandle>().toEqualTypeOf<{
+			agentId: string;
+			name: string;
+			role?: 'agent' | 'counterpart';
+		}>();
 	});
 });
 

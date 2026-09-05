@@ -1,4 +1,5 @@
 import {
+	type AgentRole,
 	createSessionGroup,
 	type AnyAgentSpec,
 	type EngineEvent,
@@ -96,6 +97,8 @@ export interface GroupSessionMemberDeps {
 	spec: AnyAgentSpec;
 	provider: LLMProvider;
 	guardrails?: Guardrail[];
+	/** Which side of a desk this member sits on (WP55, `46-…` §4.6); default `agent`. */
+	role?: AgentRole;
 }
 
 export interface GroupSessionViewDeps {
@@ -169,7 +172,8 @@ export function createGroupSessionView(deps: GroupSessionViewDeps): GroupSession
 			members: deps.members.map((member) => ({
 				spec: member.spec,
 				provider: member.provider,
-				...(member.guardrails ? { guardrails: member.guardrails } : {})
+				...(member.guardrails ? { guardrails: member.guardrails } : {}),
+				...(member.role ? { role: member.role } : {})
 			})),
 			registry,
 			goalCardId: deps.goalCardId,

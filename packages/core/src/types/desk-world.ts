@@ -37,6 +37,10 @@ export type DeskTranscriptLine = {
 	text: string;
 	/** A named channel when the line arrived on one (a radio message, a system note). */
 	channel?: string;
+	/** How hard a counterpart's line pushed, 0..1 (WP55, `46-…` §4.2) — on the trace so a report can aggregate it. */
+	pressure?: number;
+	/** What a counterpart's line was doing: `'social-engineering'`, `'asks-for-guarantee'` … */
+	tags?: string[];
 };
 
 export type DeskQueueStatus = 'open' | 'in-progress' | 'decided' | 'escalated';

@@ -36,7 +36,13 @@ export const injectionSchema = z.discriminatedUnion('kind', [
 		fromName: z.string().min(1),
 		channel: z.string().min(1),
 		text: z.string().min(1)
-	})
+	}),
+	/**
+	 * Which of a desk's counterpart scripts this scenario puts across the desk
+	 * (WP55, `46-COUNTERPARTS.md` §4.2). A world with no script of that id
+	 * ignores it, as every world ignores a kind it does not take.
+	 */
+	z.object({ kind: z.literal('counterpart'), scriptId: z.string().min(1) })
 ]);
 export type Injection = z.infer<typeof injectionSchema>;
 

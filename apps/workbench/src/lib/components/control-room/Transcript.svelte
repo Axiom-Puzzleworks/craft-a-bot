@@ -54,6 +54,18 @@
 							{/if}
 						</span>
 						<span class="text">{line.text}</span>
+						{#if line.pressure !== undefined || (line.tags && line.tags.length > 0)}
+							<span class="push" data-testid="desk-line-{line.seq}-push">
+								{#if line.pressure !== undefined}
+									<span class="pressure" title="How hard this line pushed"
+										>pressure {Math.round(line.pressure * 100)}%</span
+									>
+								{/if}
+								{#each line.tags ?? [] as tag (tag)}
+									<span class="tag">{tag}</span>
+								{/each}
+							</span>
+						{/if}
 					</li>
 				{/each}
 			</ol>
@@ -127,6 +139,21 @@
 
 	.glyph {
 		margin-right: var(--cab-space-1);
+	}
+
+	.push {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--cab-space-1);
+		font-size: var(--cab-text-xs);
+	}
+
+	.pressure,
+	.tag {
+		padding: 0 var(--cab-space-1);
+		border: 1px solid var(--cab-counterpart);
+		border-radius: var(--cab-radius-pill);
+		color: var(--cab-counterpart);
 	}
 
 	.channel {

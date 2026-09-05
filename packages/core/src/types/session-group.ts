@@ -5,6 +5,7 @@ import type { PackRegistry } from '../pack-registry.js';
 import type { AgentSession, RunMode, SessionOptions, SessionStatus } from './agent-session.js';
 import type { Guardrail } from './guardrail.js';
 import type { LLMProvider } from './provider.js';
+import type { AgentRole } from './world.js';
 
 /**
  * The host-level composition WP29 adds (`23-MULTI-AGENT-DESIGN.md` §4.4).
@@ -17,6 +18,8 @@ import type { LLMProvider } from './provider.js';
 export interface GroupMember {
 	spec: AnyAgentSpec;
 	provider: LLMProvider;
+	/** Which side of the desk this member sits on (WP55, `46-…` §4.3); copied onto its `AgentHandle`. Default `agent`. */
+	role?: AgentRole;
 	/** Host guardrails for this agent, as `CreateSessionDeps.guardrails` today. */
 	guardrails?: Guardrail[];
 }

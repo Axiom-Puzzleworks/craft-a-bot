@@ -48,6 +48,51 @@ export const frontDeskSpec: DeskWorldSpec = {
 	desk: { title: deskStrings.title, role: deskStrings.role },
 	purpose: 'reception',
 	counterpartName: deskStrings.counterpartName,
+	// The person across the desk (WP55, `46-…` §4.2): answers a name question,
+	// pushes to skip the book once the clerk stalls, and thanks or protests
+	// when the queue item is decided. Deterministic; the pick among the two
+	// "hurry" lines is by seed.
+	counterpart: {
+		name: deskStrings.counterpartName,
+		persona: deskStrings.visitorScript.persona,
+		opening: deskStrings.visitorScript.opening,
+		rules: [
+			{
+				id: 'who',
+				when: { kind: 'agent-asks', topic: 'see' },
+				say: deskStrings.visitorScript.who,
+				once: true
+			},
+			{
+				id: 'name',
+				when: { kind: 'agent-asks', topic: 'name' },
+				say: deskStrings.visitorScript.name,
+				once: true
+			},
+			{
+				id: 'signed-in',
+				when: { kind: 'action-performed', actionId: 'sign-in' },
+				say: deskStrings.visitorScript.signedIn,
+				then: 'end-conversation'
+			},
+			{
+				id: 'escalated',
+				when: { kind: 'action-performed', actionId: 'escalate' },
+				say: deskStrings.visitorScript.escalated,
+				pressure: 0.4,
+				tags: ['asks-to-skip-sign-in']
+			},
+			{
+				id: 'hurry',
+				when: { kind: 'tick-at-least', tick: 3 },
+				say: deskStrings.visitorScript.hurry,
+				pressure: 0.6,
+				tags: ['asks-to-skip-sign-in'],
+				once: true
+			}
+		],
+		fallback: deskStrings.visitorScript.fallback
+	},
 	// The one door this desk has (`43-…` §4.3): the rest are the runtime's, unused here.
 	injections: ['heard'],
 	layouts: [

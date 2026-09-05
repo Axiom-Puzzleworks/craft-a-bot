@@ -112,7 +112,11 @@ export function createSessionGroup(deps: CreateSessionGroupDeps): SessionGroup {
 	];
 
 	const sessions: AgentSession[] = members.map((member) => {
-		const handle: AgentHandle = { agentId: member.spec.id, name: member.spec.name };
+		const handle: AgentHandle = {
+			agentId: member.spec.id,
+			name: member.spec.name,
+			...(member.role !== undefined ? { role: member.role } : {})
+		};
 		// Non-null: `bindAgent` was checked above; TS cannot see that through
 		// the closure, so it is re-read into a local it can narrow.
 		const facade = bindAgent(handle);
@@ -326,6 +330,15 @@ export function createSessionGroup(deps: CreateSessionGroupDeps): SessionGroup {
 			groupRunId,
 			memberRunIds: sessions.map((session) => session.runId),
 			memberAgentIds: members.map((member) => member.spec.id),
+			// Who was who (WP55, `46-…` §4.3): only written when a member has a
+			// role, so an episode written before carries the same payload.
+			...(members.some((member) => member.role !== undefined)
+				? {
+						memberRoles: Object.fromEntries(
+							members.map((member) => [member.spec.id, member.role ?? 'agent'])
+						)
+					}
+				: {}),
 			goalCardId,
 			scheduler: 'round-robin',
 			budgets: {

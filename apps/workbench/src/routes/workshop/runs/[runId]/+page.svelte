@@ -113,12 +113,29 @@
 	/**
 	 * The Boundary map over this run (WP57, `44-…` §4.5): folded once from the
 	 * run's own spec snapshot, the registry and the events; the scrubber's
-	 * tick lights the edge that fired. A group episode has no single spec, so
-	 * it draws none until WP55 gives the seats their roles.
+	 * tick lights the edge that fired. A group episode draws the `agent`
+	 * seat's — found through `group.started.memberRoles` (WP55, `46-…` §4.6),
+	 * or the first member when no seat was given a role; the other seats are
+	 * the map's counterparts, named and given their roles by the fold.
 	 */
 	const boundaryRegistry = createRegistry();
+	const agentSeat = $derived.by(() => {
+		if (run) return run;
+		const started = events.find((event) => event.type === 'group.started');
+		const roles = started?.type === 'group.started' ? started.payload.memberRoles : undefined;
+		return (
+			groupMembers.find((member) => roles?.[member.agentId] === 'agent') ?? groupMembers[0]
+		);
+	});
 	const boundary = $derived(
-		run && events.length > 0 ? boundaryFor(run.specSnapshot, boundaryRegistry, events) : undefined
+		agentSeat && events.length > 0
+			? boundaryFor(
+					agentSeat.specSnapshot,
+					boundaryRegistry,
+					events,
+					Object.fromEntries(groupMembers.map((member) => [member.agentId, member.agentName]))
+				)
+			: undefined
 	);
 	const selectedEvent = $derived(selected === undefined ? undefined : events[selected]);
 	/**

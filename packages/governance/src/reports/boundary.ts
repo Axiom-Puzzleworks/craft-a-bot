@@ -72,7 +72,8 @@ export interface BoundaryMap {
 	};
 	inside: {
 		world: { id: string; name: string; view: WorldViewKind } | undefined;
-		counterparts: Array<{ agentId: string; name: string }>;
+		/** Every other seat of a group episode, named from its own `run.started` and given its role (WP55) when `group.started` says. */
+		counterparts: Array<{ agentId: string; name: string; role?: 'agent' | 'counterpart' }>;
 	};
 	outside: BoundaryOutside[];
 	human: { approvals: number; principal?: undefined };
@@ -91,6 +92,8 @@ export interface BoundaryOptions {
 	}>;
 	/** Evaluator ids the host will run — a build does not name evaluators; a campaign does. */
 	evaluators?: readonly string[];
+	/** The other seats' display names by agent id (WP55, `46-…` §4.6) — the trace carries none; the host's run records do. */
+	names?: Readonly<Record<string, string>>;
 }
 
 const SAFETY_APPROVAL_KIND = 'starter/safety';
@@ -246,8 +249,10 @@ export function boundaryMapFor(
 	if (group?.type === 'group.started') {
 		for (const agentId of group.payload.memberAgentIds) {
 			if (agentId === v2.id) continue;
-			// The envelope carries no name; WP55 labels the seat's role and name.
-			counterparts.push({ agentId, name: agentId });
+			// Named by the host (its run records know), given its role by the trace (WP55, `46-…` §4.6).
+			const name = options.names?.[agentId] ?? agentId;
+			const role = group.payload.memberRoles?.[agentId];
+			counterparts.push({ agentId, name, ...(role !== undefined ? { role } : {}) });
 		}
 	}
 

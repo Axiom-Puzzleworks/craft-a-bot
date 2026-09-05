@@ -28,10 +28,13 @@ export function configuredSinksForBoundary(): NonNullable<BoundaryOptions['sinks
 export function boundaryFor(
 	spec: AnyAgentSpec,
 	registry: PackRegistry,
-	events?: readonly EngineEvent[]
+	events?: readonly EngineEvent[],
+	/** The other seats' names by agent id, for a group episode (WP55). */
+	names?: Readonly<Record<string, string>>
 ): BoundaryMap {
 	return boundaryMapFor(spec, registry, {
 		sinks: configuredSinksForBoundary(),
-		...(events ? { events } : {})
+		...(events ? { events } : {}),
+		...(names ? { names } : {})
 	});
 }

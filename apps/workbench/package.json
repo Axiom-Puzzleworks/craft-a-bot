@@ -44,6 +44,7 @@
 		"@craftabot/pack-openai": "*",
 		"@craftabot/pack-personas": "*",
 		"@craftabot/pack-starter": "*",
+		"@craftabot/desk": "*",
 		"@craftabot/pack-workshop": "*",
 		"@craftabot/telemetry": "*",
 		"idb": "^8.0.3"
