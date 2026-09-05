@@ -3,103 +3,134 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Craft A Bot — Workshop (professional mode mock-up)</title>
+<title>Craft A Bot — Workshop (Control Room mock-up)</title>
 <style>
-  /* ── Tokens: brand palette per 04-VISUAL-DESIGN-LANGUAGE + Workshop skin per 15 §5 ── */
+  /* ── Tokens: the brand palette per 04-VISUAL-DESIGN-LANGUAGE §2 and the Control Room's extension (44-CONTROL-ROOM §4.1). The same names as tokens.css. ── */
   :root{
-    --cab-cream:#F3E9D2; --cab-paper:#EFE3C8; --cab-ink:#2B2620;
+    --cab-cream:#F3E9D2; --cab-paper:#EFE3C8; --cab-ink:#2B2620; --cab-ink-muted:#5C5348;
     --cab-blue:#2456A6; --cab-red:#C93A2E; --cab-green:#4E8A3C; --cab-yellow:#E9B62F;
-    --cab-purple:#6C4F9E; --cab-sky:#5484BB; --cab-teal:#3E8F8A;
+    --cab-purple:#6C4F9E; --cab-sky:#5484BB; --cab-teal:#3E8F8A; --cab-rose:#A8467A; --cab-indigo:#3F51B5;
     --cab-green-fill:#407131; --cab-red-fill:#BB362B;
     --cab-blue-text:#1C4485; --cab-green-text:#3A6E2C; --cab-red-text:#A72E24; --cab-purple-text:#55407E;
-    --wk-panel:#DED9CC; --wk-metal:#C9C4B6; --wk-metal-dark:#A9A395; --wk-graph:#EFE8D6;
-    --wk-ink-2:#5A5348; --wk-live:#2F6E3B;
-    --radius:10px; --mono:"IBM Plex Mono","Consolas",monospace;
+    --cab-panel:#4A453D; --cab-scope:#3A6124;
+    --cab-metal:#C9C4B6; --cab-engrave:#4D463C; --cab-graph:#EFE8D6;
+    --cab-counterpart:#6E4A2F; --cab-truth:#5A2D5C;
+    --cab-pass:#2F5A24; --cab-fail:#A72E24; --cab-inconclusive:#6B5000;
+    --radius:6px; --mono:"IBM Plex Mono","Consolas",monospace;
+    --graph-rule:linear-gradient(rgba(36,86,166,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(36,86,166,.06) 1px,transparent 1px);
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:"Archivo","Segoe UI",system-ui,sans-serif;background:var(--wk-panel);color:var(--cab-ink);font-size:13px;line-height:1.45}
-  .engraved{text-transform:uppercase;letter-spacing:.08em;font-weight:600;color:var(--wk-ink-2);font-size:10.5px}
+  body{font-family:"Archivo","Segoe UI",system-ui,sans-serif;background:var(--cab-paper);color:var(--cab-ink);font-size:13px;line-height:1.45}
+  .engraved{text-transform:uppercase;letter-spacing:.08em;font-weight:600;color:var(--cab-engrave);font-size:10.5px}
   /* ── App bar ── */
-  header{background:linear-gradient(180deg,var(--wk-metal),var(--wk-metal-dark));border-bottom:3px solid var(--cab-ink);padding:10px 18px;display:flex;align-items:center;gap:18px}
+  header{background:linear-gradient(180deg,var(--cab-metal),#A9A395);border-bottom:3px solid var(--cab-ink);padding:10px 18px;display:flex;align-items:center;gap:18px}
   .logo{font-weight:800;font-size:17px;letter-spacing:.03em}
   .logo b{color:var(--cab-blue-text)} .logo i{color:var(--cab-red-text);font-style:normal} .logo u{color:var(--cab-green-text);text-decoration:none}
   .logo .wk{background:var(--cab-ink);color:var(--cab-cream);border-radius:4px;padding:2px 7px;margin-left:8px;font-size:11px;letter-spacing:.12em}
   nav{display:flex;gap:6px;margin-left:24px}
-  nav button{font:inherit;font-weight:600;border:2px solid var(--cab-ink);background:var(--cab-cream);border-radius:8px 8px 0 0;padding:7px 16px;cursor:pointer;border-bottom:none;opacity:.65}
-  nav button.active{opacity:1;background:var(--wk-graph);box-shadow:inset 0 -3px 0 var(--cab-yellow)}
+  nav button{font:inherit;font-weight:600;border:2px solid var(--cab-ink);background:var(--cab-cream);border-radius:6px 6px 0 0;padding:7px 16px;cursor:pointer;border-bottom:none;opacity:.65}
+  nav button.active{opacity:1;background:var(--cab-graph);box-shadow:inset 0 -3px 0 var(--cab-yellow)}
   .kitflip{margin-left:auto;font-weight:600;font-size:12px;border:2px solid var(--cab-ink);border-radius:999px;background:var(--cab-yellow);padding:6px 14px;cursor:pointer}
   /* ── Layout ── */
   main{padding:14px 18px 28px;max-width:1500px;margin:0 auto}
   .screen{display:none}.screen.active{display:block}
-  .strip{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--wk-graph);border:2px solid var(--cab-ink);border-radius:var(--radius);padding:9px 14px;margin-bottom:12px;
-    background-image:linear-gradient(rgba(36,86,166,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(36,86,166,.05) 1px,transparent 1px);background-size:16px 16px}
+  /* ── Strip: an engraved label on graph paper with readouts (44 §4.4) ── */
+  .strip{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--cab-graph);border:2px solid var(--cab-ink);border-radius:var(--radius);padding:9px 14px;margin-bottom:12px;background-image:var(--graph-rule);background-size:16px 16px}
   .chip{border:2px solid var(--cab-ink);border-radius:999px;padding:3px 10px;font-weight:600;font-size:11.5px;background:var(--cab-cream)}
   .chip.ok{background:var(--cab-green-fill);color:var(--cab-cream)} .chip.warn{background:var(--cab-yellow)}
   .chip.mono{font-family:var(--mono);font-weight:500}
   .spacer{flex:1}
-  .btn{font:inherit;font-weight:600;border:2px solid var(--cab-ink);border-radius:8px;background:var(--cab-cream);padding:6px 12px;cursor:pointer;box-shadow:0 2px 0 var(--cab-ink)}
+  .btn{font:inherit;font-weight:600;border:2px solid var(--cab-ink);border-radius:6px;background:var(--cab-cream);padding:6px 12px;cursor:pointer;box-shadow:0 2px 0 var(--cab-ink)}
   .btn.primary{background:var(--cab-blue);color:#fff}
   .cols{display:grid;grid-template-columns:300px 1fr 360px;gap:12px;align-items:start}
   .panel{background:var(--cab-cream);border:2px solid var(--cab-ink);border-radius:var(--radius);overflow:hidden}
-  .panel>h3{background:var(--wk-metal);border-bottom:2px solid var(--cab-ink);padding:6px 12px;font-size:11px;text-transform:uppercase;letter-spacing:.1em}
+  .panel>h3{background:var(--cab-metal);border-bottom:2px solid var(--cab-ink);padding:6px 12px;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--cab-engrave)}
   .panel .pad{padding:10px 12px}
+  /* ── Instruments (44 §4.4) ── */
+  .readout{display:inline-grid;gap:2px;background:var(--cab-metal);border:2px solid var(--cab-ink);border-radius:var(--radius);padding:6px 12px;min-width:110px}
+  .readout .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--cab-engrave);font-weight:700}
+  .readout .val{font-family:var(--mono);font-size:22px;line-height:1.1}
+  .readout .val small{font-size:11px;color:var(--cab-engrave);margin-left:4px}
+  .readout .delta{font-size:11px;font-weight:700} .delta.up{color:var(--cab-pass)} .delta.down{color:var(--cab-fail)}
+  .lamp{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:11.5px;border:1.5px solid var(--cab-ink);border-radius:999px;padding:2px 9px 2px 4px;background:var(--cab-graph)}
+  .lamp i{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;color:#fff;font-style:normal;font-size:11px}
+  .lamp.pass i{background:var(--cab-pass)} .lamp.fail i{background:var(--cab-fail)} .lamp.inc i{background:var(--cab-inconclusive)} .lamp.live i{background:var(--cab-scope);animation:pulse 1.2s infinite}
+  @keyframes pulse{50%{opacity:.5}}
+  .meter{display:grid;justify-items:center;background:var(--cab-graph);background-image:var(--graph-rule);background-size:12px 12px;border:2px solid var(--cab-ink);border-radius:var(--radius);padding:8px 10px 6px}
+  .meter svg{width:120px;height:70px;overflow:visible}
+  .meter .num{font-family:var(--mono);font-size:16px}
+  .tape{background:var(--cab-graph);background-image:var(--graph-rule);background-size:12px 12px;border:2px solid var(--cab-ink);border-radius:var(--radius);padding:8px}
+  .tape svg{width:100%;height:90px}
+  .legend{display:flex;gap:12px;font-size:11px;margin-top:4px}
+  .legend span::before{content:attr(data-glyph);margin-right:4px;font-weight:700}
+  .matrix{border-collapse:collapse;width:100%}
+  .matrix th,.matrix td{border:1.5px solid var(--cab-ink);padding:6px 8px;text-align:center;font-size:12.5px}
+  .matrix th{background:var(--cab-metal);text-transform:uppercase;font-size:10.5px;letter-spacing:.06em;color:var(--cab-engrave)}
+  .matrix td b{display:block;font-size:15px}
+  .matrix td span{color:var(--cab-ink-muted);font-size:10.5px}
+  .matrix .sum{background:var(--cab-graph);font-weight:700}
   /* ── World ── */
-  .world{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;background:#8a5a4a;border:3px solid var(--cab-ink);border-radius:8px;padding:4px;margin-bottom:10px}
+  .world{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;background:#8a5a4a;border:3px solid var(--cab-ink);border-radius:6px;padding:4px;margin-bottom:10px}
   .cell{aspect-ratio:1;background:#C9705E;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:16px}
   .cell.bot{background:var(--cab-yellow)}
-  .meter{display:flex;gap:8px;align-items:center;margin:4px 0}
-  .meter .bar{flex:1;height:10px;border:2px solid var(--cab-ink);border-radius:5px;background:#fff;overflow:hidden}
-  .meter .bar i{display:block;height:100%;background:var(--wk-live)}
-  .bp label{display:flex;gap:8px;align-items:center;padding:2px 0;font-size:12px}
   .scrub{width:100%;accent-color:var(--cab-blue);margin-top:6px}
+  /* ── Desk (44 §4.4 Transcript / CaseFile / Queue) ── */
+  .desk{display:grid;gap:8px;background:var(--cab-cream);border:2px solid var(--cab-ink);border-radius:var(--radius);padding:10px}
+  .sim{justify-self:start;font-size:10px;font-weight:700;letter-spacing:.08em;border:2px solid var(--cab-ink);border-radius:999px;padding:2px 8px}
+  .desk h4{font-size:14px}
+  .panes{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:8px}
+  .pane{background:var(--cab-graph);background-image:var(--graph-rule);background-size:12px 12px;border:1.5px solid var(--cab-ink);border-radius:var(--radius);padding:8px;min-width:0}
+  .pane h5{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--cab-engrave);margin-bottom:6px}
+  .line{display:grid;gap:2px;padding:6px 8px;border-left:4px solid var(--cab-ink-muted);background:var(--cab-cream);border-radius:4px;margin-bottom:6px;font-size:12px}
+  .line .who{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+  .line.agent{border-left-color:var(--cab-red);margin-left:14px} .line.agent .who{color:var(--cab-red-text)}
+  .line.counterpart{border-left-color:var(--cab-counterpart);margin-right:14px} .line.counterpart .who{color:var(--cab-counterpart)}
+  .line.system{text-align:center;color:var(--cab-ink-muted)}
+  .rec{background:var(--cab-cream);border-radius:4px;padding:6px 8px;margin-bottom:6px;font-size:12px}
+  .rec b{display:block}
+  .badge{font-size:10px;border:1px solid var(--cab-ink);border-radius:999px;padding:0 6px;margin-left:6px;font-weight:400}
+  .rec.truth{border:2px dashed var(--cab-truth)} .rec.truth b{color:var(--cab-truth)}
+  .qitem{display:grid;gap:2px;background:var(--cab-cream);border-radius:4px;padding:6px 8px;font-size:12px}
   /* ── Timeline ── */
-  .filters{display:flex;gap:6px;flex-wrap:wrap;padding:8px 10px;border-bottom:2px solid var(--cab-ink);background:var(--wk-graph)}
+  .filters{display:flex;gap:6px;flex-wrap:wrap;padding:8px 10px;border-bottom:2px solid var(--cab-ink);background:var(--cab-graph)}
   .lane-chip{font-size:10.5px;font-weight:700;border:1.5px solid var(--cab-ink);border-radius:999px;padding:2px 9px;background:#fff;cursor:pointer}
   .lane-chip[data-on="1"]{outline:2px solid var(--cab-blue)}
   .search{font:inherit;border:1.5px solid var(--cab-ink);border-radius:6px;padding:3px 8px;flex:1;min-width:120px}
   .tl{max-height:520px;overflow:auto}
-  .tick-h{background:var(--wk-metal);padding:3px 12px;font-family:var(--mono);font-size:10.5px;border-block:1px solid var(--wk-metal-dark);display:flex;justify-content:space-between}
+  .tick-h{background:var(--cab-metal);padding:3px 12px;font-family:var(--mono);font-size:10.5px;border-block:1px solid #A9A395;display:flex;justify-content:space-between;color:var(--cab-engrave)}
   .row{display:grid;grid-template-columns:26px 92px 1fr 70px;gap:8px;padding:4px 10px 4px 6px;border-left:5px solid transparent;cursor:pointer;align-items:center}
   .row:hover{background:#fff}
   .row.sel{background:#fff;outline:2px solid var(--cab-blue);outline-offset:-2px}
-  .row .t{font-family:var(--mono);font-size:11px;color:var(--wk-ink-2);text-align:right}
+  .row .t{font-family:var(--mono);font-size:11px;color:var(--cab-ink-muted);text-align:right}
   .row .lane{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
   .row .lbl{font-size:12.5px}
-  .row .lbl code{font-family:var(--mono);font-size:11px;background:var(--wk-graph);padding:0 4px;border-radius:3px}
+  .row .lbl code{font-family:var(--mono);font-size:11px;background:var(--cab-graph);padding:0 4px;border-radius:3px}
   .l-sense{border-left-color:var(--cab-sky)} .l-sense .lane{color:var(--cab-blue-text)}
   .l-think{border-left-color:var(--cab-blue)} .l-think .lane{color:var(--cab-blue-text)}
   .l-tool{border-left-color:var(--cab-purple)} .l-tool .lane{color:var(--cab-purple-text)}
   .l-action{border-left-color:var(--cab-red)} .l-action .lane{color:var(--cab-red-text)}
   .l-memory{border-left-color:var(--cab-green)} .l-memory .lane{color:var(--cab-green-text)}
-  .l-guard{border-left-color:var(--cab-yellow)} .l-guard .lane{color:#7a5c00}
+  .l-guard{border-left-color:var(--cab-yellow)} .l-guard .lane{color:var(--cab-inconclusive)}
+  .l-counterpart{border-left-color:var(--cab-counterpart)} .l-counterpart .lane{color:var(--cab-counterpart)}
   /* ── Inspector ── */
-  .insp .sec{border:1.5px solid var(--wk-metal-dark);border-radius:7px;margin-bottom:8px;overflow:hidden}
-  .insp .sec>b{display:flex;gap:8px;align-items:center;background:var(--wk-graph);padding:4px 9px;font-size:10.5px;text-transform:uppercase;letter-spacing:.08em}
+  .insp .sec{border:1.5px solid #A9A395;border-radius:5px;margin-bottom:8px;overflow:hidden}
+  .insp .sec>b{display:flex;gap:8px;align-items:center;background:var(--cab-graph);padding:4px 9px;font-size:10.5px;text-transform:uppercase;letter-spacing:.08em}
   .insp .sec>div{padding:7px 9px;font-family:var(--mono);font-size:11.5px;white-space:pre-wrap;color:#3a3428}
-  .rolechip{border:1.5px solid var(--cab-ink);border-radius:999px;padding:0 8px;background:var(--cab-cream);font-size:10px}
   .kv{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;font-size:12px;padding:2px 0}
-  .kv dt{color:var(--wk-ink-2);font-weight:600} .kv dd{font-family:var(--mono)}
-  /* ── Eval matrix ── */
-  .grid-table{border-collapse:collapse;width:100%}
-  .grid-table th,.grid-table td{border:1.5px solid var(--cab-ink);padding:8px 10px;text-align:center;font-size:12.5px}
-  .grid-table th{background:var(--wk-metal);text-transform:uppercase;font-size:10.5px;letter-spacing:.06em}
-  .grid-table td b{display:block;font-size:15px}
-  .grid-table td span{color:var(--wk-ink-2);font-size:10.5px}
-  .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
-  .stat{background:var(--cab-cream);border:2px solid var(--cab-ink);border-radius:var(--radius);padding:10px 12px}
-  .stat b{display:block;font-size:22px} .stat span{font-size:11px;color:var(--wk-ink-2)}
-  .delta-up{color:var(--cab-green-text);font-weight:700} .delta-down{color:var(--cab-red-text);font-weight:700}
-  /* ── Policy studio ── */
-  .rule{display:grid;grid-template-columns:110px 1fr;gap:6px 10px;align-items:center;margin-bottom:8px}
-  .rule select,.rule input{font:inherit;border:1.5px solid var(--cab-ink);border-radius:6px;padding:4px 8px;background:#fff;width:100%}
-  .card-preview{background:var(--cab-cream);border:2.5px solid var(--cab-ink);border-radius:12px;padding:0 0 12px;box-shadow:4px 4px 0 rgba(0,0,0,.15)}
-  .card-preview h4{background:var(--cab-yellow);border-bottom:3px solid var(--cab-ink);padding:8px 12px;font-size:13px;background-image:repeating-linear-gradient(45deg,transparent 0 14px,rgba(43,38,32,.9) 14px 22px);color:var(--cab-ink)}
-  .card-preview h4 em{background:var(--cab-yellow);padding:2px 8px;border-radius:4px;font-style:normal}
-  .card-preview ul{list-style:none;padding:10px 14px 0}
-  .card-preview li{padding:4px 0;border-bottom:1px dashed var(--wk-metal-dark);font-size:12.5px}
-  .fired{display:flex;justify-content:space-between;padding:6px 10px;border-bottom:1px solid var(--wk-metal-dark);font-size:12px}
-  .fired .yes{color:var(--cab-red-text);font-weight:700} .fired .no{color:var(--wk-ink-2)}
-  footer{padding:16px 18px;font-size:11px;color:var(--wk-ink-2);text-align:center}
+  .kv dt{color:var(--cab-engrave);font-weight:600} .kv dd{font-family:var(--mono)}
+  /* ── Boundary map (44 §4.5) ── */
+  .bmap{background:var(--cab-graph);background-image:var(--graph-rule);background-size:16px 16px;border:2px solid var(--cab-ink);border-radius:var(--radius);padding:10px}
+  .bmap svg{width:100%;max-width:980px;display:block;margin:0 auto;font-family:"Archivo",system-ui,sans-serif}
+  .bmap .lbl{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;fill:var(--cab-engrave)}
+  .bmap .host{font-family:var(--mono);font-size:9.5px;fill:var(--cab-ink-muted)}
+  .bmap .edge{stroke:var(--cab-ink);stroke-width:1.5;fill:none}
+  .bmap .edge.lit{stroke:var(--cab-scope);stroke-width:3}
+  .bmap .edge.local{stroke-dasharray:4 3}
+  .bmap .node{fill:var(--cab-cream);stroke:var(--cab-ink);stroke-width:1.5}
+  .bmap .ring{fill:var(--cab-metal);stroke:var(--cab-ink);stroke-width:2}
+  .bmap .inside{fill:var(--cab-cream);stroke:var(--cab-ink);stroke-width:1.5;stroke-dasharray:3 3}
+  .edges{columns:2;font-size:11.5px;margin-top:10px;padding-left:18px}
+  footer{padding:16px 18px;font-size:11px;color:var(--cab-ink-muted);text-align:center}
 </style>
 </head>
 <body>
@@ -107,236 +138,248 @@
   <div class="logo"><b>CRAFT</b> <i>A</i> <u>BOT</u><span class="wk">WORKSHOP</span></div>
   <nav>
     <button class="active" data-tab="runlab">Run Lab</button>
-    <button data-tab="evals">Eval Matrix</button>
-    <button data-tab="policies">Policy Studio</button>
+    <button data-tab="boundary">Boundary</button>
+    <button data-tab="evals">Campaigns</button>
+    <button data-tab="instruments">Instruments</button>
   </nav>
   <button class="kitflip">🧸 View in Kit</button>
 </header>
 <main>
 
-<!-- ══════════════ TAB 1 · RUN LAB ══════════════ -->
+<!-- ══════════════ TAB 1 · RUN LAB — a Desk run ══════════════ -->
 <section class="screen active" id="runlab">
   <div class="strip">
-    <span class="chip ok">✔ SUCCESS</span>
-    <span class="chip">Snackbot 3000 · <em>Help the teddy get a snack</em></span>
-    <span class="chip mono">Quick Thinker → gpt-5-mini · openai</span>
-    <span class="chip mono">budgets 30t / 100k tok · seed 41</span>
-    <span class="chip mono">14 ticks · 9,412 tok</span>
-    <span class="chip">🔒 trace integrity ✓</span>
+    <span class="engraved">Run</span>
+    <span class="lamp pass"><i>✓</i>SUCCESS</span>
+    <span class="chip">Deskbot · <em>Sign the visitor in</em></span>
+    <span class="chip mono">Demo Brain → scripted · mock</span>
+    <span class="chip mono">budgets 30t / 100k tok · seed 7</span>
+    <span class="readout"><span class="lbl">Ticks</span><span class="val">3<small>of 30</small></span></span>
+    <span class="readout"><span class="lbl">Tokens</span><span class="val">412</span></span>
+    <span class="lamp pass"><i>✓</i>trace integrity</span>
     <span class="spacer"></span>
-    <button class="btn">↻ Re-run same seed</button>
     <button class="btn">⑂ Fork from tick</button>
     <button class="btn primary">Export trace</button>
   </div>
 
   <div class="cols">
-    <!-- World & controls -->
+    <!-- The Desk -->
     <div>
       <div class="panel">
-        <h3>Playroom · replay</h3>
+        <h3>The Front Desk · replay</h3>
         <div class="pad">
-          <div class="world" aria-label="8 by 6 playroom grid">
-            <div class="cell">🧰</div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell">🗄</div><div class="cell"></div>
-            <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
-            <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell">🛋</div><div class="cell bot">🤖🍪</div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
-            <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
-            <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell">🧸</div><div class="cell"></div><div class="cell"></div>
-            <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell">⚽</div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+          <div class="desk">
+            <span class="sim">FOR SIMULATION ONLY</span>
+            <h4>The Front Desk <small style="color:var(--cab-ink-muted);font-weight:400">· Receptionist</small></h4>
+            <div class="panes" style="grid-template-columns:1fr">
+              <div class="pane">
+                <h5>Transcript</h5>
+                <div class="line agent"><span class="who">▶ You</span><span>Hello, who are you here to see?</span></div>
+                <div class="line counterpart"><span class="who">◀ Visitor</span><span>Mr Patel, for Dr Okafor.</span></div>
+                <div class="line system"><span class="who">• Desk</span><span>Mr Patel signed in.</span></div>
+              </div>
+              <div class="pane">
+                <h5>Case file</h5>
+                <div class="rec"><b>House rule <span class="badge">public</span></b>Every visitor is signed in before they go through.</div>
+                <div class="rec"><b>Visitor <span class="badge">personal</span></b>name Mr Patel · here to see Dr Okafor · expected true</div>
+                <div class="rec truth"><b>Case file (truth) — after the run</b>expected true · visitor known to reception · WP54</div>
+              </div>
+              <div class="pane">
+                <h5>Queue</h5>
+                <div class="qitem"><span class="lamp pass"><i>✓</i>decided</span><span>Sign the visitor in</span><span style="color:var(--cab-ink-muted)">Signed in: Mr Patel</span></div>
+              </div>
+            </div>
           </div>
-          <div class="meter"><span class="engraved">Steps</span><div class="bar"><i style="width:47%"></i></div><span class="chip mono">14/30</span></div>
-          <div class="meter"><span class="engraved">Tokens</span><div class="bar"><i style="width:9%"></i></div><span class="chip mono">9.4k</span></div>
-          <input class="scrub" type="range" min="0" max="14" value="9" aria-label="Tick scrubber">
-          <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:10.5px;color:var(--wk-ink-2)"><span>t0</span><span>▶ tick 9 of 14</span><span>t14</span></div>
-        </div>
-      </div>
-      <div class="panel" style="margin-top:12px">
-        <h3>Breakpoints</h3>
-        <div class="pad bp">
-          <label><input type="checkbox" checked> Pause on guardrail trip</label>
-          <label><input type="checkbox"> Pause on tool call</label>
-          <label><input type="checkbox" checked> Pause on action failure</label>
-          <label><input type="checkbox"> Pause on approval request</label>
+          <input class="scrub" type="range" min="0" max="3" value="3" aria-label="Tick scrubber">
+          <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:10.5px;color:var(--cab-ink-muted)"><span>t0</span><span>▶ tick 3 of 3</span><span>t3</span></div>
         </div>
       </div>
     </div>
 
     <!-- Timeline -->
     <div class="panel">
-      <h3>Step timeline · 96 events</h3>
+      <h3>Step timeline · 45 events</h3>
       <div class="filters">
         <span class="lane-chip" data-on="1">👀 sense</span><span class="lane-chip" data-on="1">💭 think</span>
-        <span class="lane-chip" data-on="1">🔧 tool</span><span class="lane-chip" data-on="1">🚗 action</span>
-        <span class="lane-chip" data-on="1">📗 memory</span><span class="lane-chip" data-on="1">🛡 guardrail</span>
-        <input class="search" placeholder="Search events… e.g. pick_up">
-        <span class="lane-chip">only failures</span>
+        <span class="lane-chip" data-on="1">🚗 action</span><span class="lane-chip" data-on="1">📗 memory</span>
+        <span class="lane-chip" data-on="1">🛡 guardrail</span><span class="lane-chip" data-on="1">◀ counterpart</span>
+        <input class="search" placeholder="Search events… e.g. sign-in">
       </div>
       <div class="tl">
-        <div class="tick-h"><span>TICK 8</span><span>642 tok · 1.9s</span></div>
-        <div class="row l-sense"><span>👀</span><span class="lane">sense</span><span class="lbl">Looked around — snack here, Teddy 2 SE</span><span class="t">+0ms</span></div>
-        <div class="row l-guard"><span>🛡</span><span class="lane">guardrail</span><span class="lbl">step-budget checked · <code>22 turns left</code></span><span class="t">+2ms</span></div>
-        <div class="row l-think"><span>💭</span><span class="lane">think</span><span class="lbl">"The snack is right here. I should pick it up."</span><span class="t">1.4s</span></div>
-        <div class="row l-action"><span>🚗</span><span class="lane">action</span><span class="lbl"><code>pick_up("snack")</code> → carrying the snack</span><span class="t">+8ms</span></div>
-        <div class="row l-memory"><span>📗</span><span class="lane">memory</span><span class="lbl">Remembered tick 8 (window 6/10)</span><span class="t">+1ms</span></div>
-        <div class="tick-h"><span>TICK 9 · ⛔ blocked</span><span>580 tok · 1.7s</span></div>
-        <div class="row l-sense"><span>👀</span><span class="lane">sense</span><span class="lbl">Looked around — carrying snack, chest to N</span><span class="t">+0ms</span></div>
-        <div class="row l-think"><span>💭</span><span class="lane">think</span><span class="lbl">"Maybe the snack belongs in the toy chest…"</span><span class="t">1.3s</span></div>
-        <div class="row l-guard sel"><span>🛡</span><span class="lane">guardrail</span><span class="lbl">⛔ action-blocklist tripped · <code>open</code> is on the blocked list</span><span class="t">+3ms</span></div>
-        <div class="row l-memory"><span>📗</span><span class="lane">memory</span><span class="lbl">Remembered refusal (window 7/10)</span><span class="t">+1ms</span></div>
-        <div class="tick-h"><span>TICK 10 · ✋ approval</span><span>619 tok · 6.2s</span></div>
-        <div class="row l-think"><span>💭</span><span class="lane">think</span><span class="lbl">"A rule stopped me. I will bring the snack to Teddy instead."</span><span class="t">1.5s</span></div>
-        <div class="row l-guard"><span>🛡</span><span class="lane">guardrail</span><span class="lbl">✋ approval requested · <code>give(snack, teddy)</code> — approved by human (4.6s)</span><span class="t">4.6s</span></div>
-        <div class="row l-action"><span>🚗</span><span class="lane">action</span><span class="lbl"><code>give("snack","teddy")</code> → Teddy takes the snack 🎉</span><span class="t">+9ms</span></div>
+        <div class="tick-h"><span>TICK 1</span><span>140 tok · scripted</span></div>
+        <div class="row l-sense"><span>👀</span><span class="lane">sense</span><span class="lbl">Queue: Sign the visitor in (open) · nothing said yet</span><span class="t">+0ms</span></div>
+        <div class="row l-think"><span>💭</span><span class="lane">think</span><span class="lbl">"Someone is at the desk. Best to say hello."</span><span class="t">+1ms</span></div>
+        <div class="row l-action"><span>🚗</span><span class="lane">action</span><span class="lbl"><code>say("Hello, who are you here to see?")</code></span><span class="t">+2ms</span></div>
+        <div class="row l-counterpart"><span>◀</span><span class="lane">counterpart</span><span class="lbl">Visitor: "Mr Patel, for Dr Okafor." <code>heard</code></span><span class="t">+2ms</span></div>
+        <div class="tick-h"><span>TICK 2</span><span>131 tok</span></div>
+        <div class="row l-sense"><span>👀</span><span class="lane">sense</span><span class="lbl">Since you last listened: Visitor: Mr Patel, for Dr Okafor.</span><span class="t">+0ms</span></div>
+        <div class="row l-action sel"><span>🚗</span><span class="lane">action</span><span class="lbl"><code>look-up("visitor")</code> → You open Visitor: name Mr Patel…</span><span class="t">+3ms</span></div>
+        <div class="tick-h"><span>TICK 3 · ✓ goal</span><span>141 tok</span></div>
+        <div class="row l-guard"><span>🛡</span><span class="lane">guardrail</span><span class="lbl">risk tier <code>reversible</code> · autonomy collaborator · allowed</span><span class="t">+1ms</span></div>
+        <div class="row l-action"><span>🚗</span><span class="lane">action</span><span class="lbl"><code>sign-in("Mr Patel")</code> → You sign Mr Patel in.</span><span class="t">+3ms</span></div>
       </div>
     </div>
 
     <!-- Inspector -->
     <div class="panel insp">
-      <h3>Inspector · guardrail.tripped @ tick 9</h3>
+      <h3>Inspector · action.performed @ tick 2</h3>
       <div class="pad">
         <dl class="kv">
-          <dt>rule</dt><dd>safety/action-blocklist</dd>
-          <dt>hook</dt><dd>pre-act</dd>
-          <dt>proposed</dt><dd>action · open · {"container":"toy chest"}</dd>
-          <dt>disposition</dt><dd>block-action</dd>
-          <dt>policy card</dt><dd>starter/hands-off-the-chest v1</dd>
-          <dt>fed back</dt><dd>"…a safety rule stopped you"</dd>
+          <dt>action</dt><dd>workshop/the-desk/look-up</dd>
+          <dt>tier</dt><dd>observe</dd>
+          <dt>arguments</dt><dd>{"record":"visitor"}</dd>
+          <dt>revealed</dt><dd>visitor · personal</dd>
+          <dt>purpose</dt><dd>reception</dd>
         </dl>
-        <div class="sec"><b><span class="rolechip">next prompt</span> RIGHT NOW · diff vs tick 8 <label style="margin-left:auto;font-weight:400"><input type="checkbox" checked> diff</label></b>
-<div><span style="background:#d9ecd4">+ You tried to open, but a safety rule
-+ stopped you: open is on the blocked list.</span>
-You look around:
-Right where you stand: nothing but rug.
-To the north: the toy chest (closed).
-You are carrying the snack.</div></div>
-        <div class="sec"><b><span class="rolechip">raw</span> event JSON</b>
-<div>{
-  "type": "guardrail.tripped",
-  "runId": "r_7f3a…", "agentId": "a_19c2…",
-  "tick": 9,
-  "payload": { "id": "safety/action-blocklist",
-    "verdict": { "allow": false,
-      "reason": "open is on the blocked list.",
-      "disposition": "block-action" } }
-}</div></div>
-        <button class="btn" style="width:100%">Open linked decision ↔ action pair</button>
+        <div class="sec"><b>Boundary · this tick</b>
+<div>world ◀▶ agent   sense, action
+provider ← agent   think (mock)
+human               —
+guard-service       —</div></div>
+        <div class="sec"><b>raw · event JSON</b>
+<div>{ "type": "action.performed", "tick": 2,
+  "payload": { "name": "look-up",
+    "arguments": { "record": "visitor" },
+    "result": { "ok": true, "narration": "You open Visitor: …" } } }</div></div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ══════════════ TAB 2 · EVAL MATRIX ══════════════ -->
+<!-- ══════════════ TAB 2 · BOUNDARY ══════════════ -->
+<section class="screen" id="boundary">
+  <div class="strip">
+    <span class="engraved">Boundary</span>
+    <span class="chip">Fraud Desk analyst · <em>fs-fraud/the-fraud-desk</em></span>
+    <span class="chip mono">egress declared · 4 hosts</span>
+    <span class="chip mono">approval: risky · autonomy collaborator</span>
+    <span class="lamp live"><i>●</i>tick 7 · file-sar</span>
+    <span class="spacer"></span>
+    <span class="engraved">the picture of the data model — drawn from the registry, the spec and the trace, never the engine</span>
+  </div>
+  <div class="bmap" role="img" aria-label="The analyst bot at the centre of its boundary. Inside the boundary: the Fraud Desk and a scripted caller. On the ring: the safety stack of three bricks, the egress gate with four hosts, and the approval gate with two approvals. Outside: the model provider, the guard service, three of the bank's service lines, an evaluator and a sink.">
+    <svg viewBox="0 0 980 560">
+      <!-- outside nodes -->
+      <g id="providers">
+        <rect class="node" x="420" y="18" width="140" height="44" rx="6"/><text class="lbl" x="490" y="36" text-anchor="middle">provider · openai</text><text class="host" x="490" y="52" text-anchor="middle">api.openai.com · prompt, credential-header 🔑</text>
+        <path class="edge" d="M490 62 L490 150"/>
+      </g>
+      <g id="guards">
+        <rect class="node" x="800" y="120" width="160" height="44" rx="6"/><text class="lbl" x="880" y="138" text-anchor="middle">guard-service · Model Armor</text><text class="host" x="880" y="154" text-anchor="middle">modelarmor.*.rep.googleapis.com 🔑</text>
+        <path class="edge lit" d="M800 142 L650 220"/>
+        <rect class="node" x="800" y="200" width="160" height="44" rx="6"/><text class="lbl" x="880" y="218" text-anchor="middle">guard-service · Llama Guard</text><text class="host" x="880" y="234" text-anchor="middle">localhost · local</text>
+        <path class="edge local" d="M800 222 L655 260"/>
+      </g>
+      <g id="lines">
+        <rect class="node" x="20" y="120" width="160" height="44" rx="6"/><text class="lbl" x="100" y="138" text-anchor="middle">service-line · fs-bank/payments</text><text class="host" x="100" y="154" text-anchor="middle">simulated · release, hold, send</text>
+        <path class="edge" d="M180 142 L330 220"/>
+        <rect class="node" x="20" y="200" width="160" height="44" rx="6"/><text class="lbl" x="100" y="218" text-anchor="middle">service-line · fs-bank/crm</text><text class="host" x="100" y="234" text-anchor="middle">simulated · read, update</text>
+        <path class="edge" d="M180 222 L325 262"/>
+        <rect class="node" x="20" y="280" width="160" height="44" rx="6"/><text class="lbl" x="100" y="298" text-anchor="middle">service-line · fs-bank/sar-filing</text><text class="host" x="100" y="314" text-anchor="middle">simulated · file (irreversible)</text>
+        <path class="edge lit" d="M180 302 L325 305"/>
+      </g>
+      <g id="sinks">
+        <rect class="node" x="330" y="500" width="150" height="44" rx="6"/><text class="lbl" x="405" y="518" text-anchor="middle">sink · otlp-http</text><text class="host" x="405" y="534" text-anchor="middle">collector.internal · trace</text>
+        <path class="edge" d="M405 500 L450 420"/>
+        <rect class="node" x="520" y="500" width="150" height="44" rx="6"/><text class="lbl" x="595" y="518" text-anchor="middle">evaluator · alert-decision</text><text class="host" x="595" y="534" text-anchor="middle">deterministic · reads truth</text>
+        <path class="edge local" d="M595 500 L540 420"/>
+      </g>
+      <!-- the ring -->
+      <circle class="ring" cx="490" cy="285" r="135"/>
+      <circle class="inside" cx="490" cy="285" r="112"/>
+      <!-- ring segments: safety stack -->
+      <text class="lbl" x="490" y="160" text-anchor="middle">safety stack · action-blocklist · Never tip off · Guard (Model Armor)</text>
+      <text class="lbl" x="640" y="300" text-anchor="start">egress gate</text><text class="host" x="640" y="314" text-anchor="start">declared · 4 hosts</text>
+      <!-- the human on the ring -->
+      <circle class="node" cx="352" cy="365" r="14"/><text x="352" y="370" text-anchor="middle" font-size="14">🙋</text>
+      <text class="lbl" x="352" y="395" text-anchor="middle">approval · 2</text>
+      <!-- inside: world and counterpart -->
+      <rect class="node" x="440" y="330" width="100" height="36" rx="4"/><text class="lbl" x="490" y="352" text-anchor="middle">desk · Fraud Desk</text>
+      <rect class="node" x="545" y="330" width="90" height="36" rx="18" style="stroke:var(--cab-counterpart)"/><text class="lbl" x="590" y="352" text-anchor="middle" style="fill:var(--cab-counterpart)">◀ caller</text>
+      <!-- the chassis -->
+      <rect x="455" y="205" width="70" height="90" rx="10" fill="var(--cab-cream)" stroke="var(--cab-ink)" stroke-width="2"/>
+      <rect x="470" y="212" width="40" height="16" rx="3" fill="var(--cab-blue)"/>
+      <rect x="470" y="232" width="40" height="12" rx="3" fill="var(--cab-sky)"/>
+      <rect x="470" y="248" width="40" height="12" rx="3" fill="var(--cab-green)"/>
+      <rect x="470" y="264" width="40" height="12" rx="3" fill="var(--cab-red)"/>
+      <rect x="470" y="280" width="40" height="10" rx="3" fill="var(--cab-yellow)" stroke="var(--cab-ink)"/>
+      <text class="lbl" x="490" y="312" text-anchor="middle">analyst bot</text>
+    </svg>
+    <ol class="edges" aria-label="Every edge, for a reader">
+      <li>provider openai — api.openai.com — sends prompt, credential-header</li>
+      <li>guard-service Model Armor — modelarmor.*.rep.googleapis.com — sends decision · <b>lit at tick 7</b></li>
+      <li>guard-service Llama Guard — local</li>
+      <li>service-line fs-bank/payments — simulated</li>
+      <li>service-line fs-bank/crm — simulated</li>
+      <li>service-line fs-bank/sar-filing — simulated · <b>lit at tick 7 (file-sar)</b></li>
+      <li>sink otlp-http — collector.internal — sends trace</li>
+      <li>evaluator alert-decision — local, reads truth</li>
+      <li>human — 2 approvals</li>
+    </ol>
+  </div>
+  <p style="font-size:11px;color:var(--cab-ink-muted);margin-top:8px">Static in the Spec Lab (no activity); over a trace in the Run Lab, where the scrubber lights the edge that fired at that tick. Every host on an outside edge must match <code>run.started.egress.hosts</code> — a mismatch is drawn in the fail colour.</p>
+</section>
+
+<!-- ══════════════ TAB 3 · CAMPAIGNS (Matrix, CaseTable) ══════════════ -->
 <section class="screen" id="evals">
   <div class="strip">
-    <span class="chip">Matrix: 6 goal cards × 3 cartridges × 20 seeds</span>
-    <span class="chip mono">brains: scripted-noisy + live</span>
-    <span class="chip warn">est. live spend ≤ $4.20</span>
+    <span class="engraved">Campaign</span>
+    <span class="chip">fs-fraud-baseline · 640 cells</span>
+    <span class="lamp pass"><i>✓</i>13 of 13 gates</span>
+    <span class="readout"><span class="lbl">Recall</span><span class="val">0.94<small>≥ 0.90</small></span></span>
+    <span class="readout"><span class="lbl">False-freeze</span><span class="val">0.03<small>≤ 0.05</small></span></span>
+    <span class="readout"><span class="lbl">Spent</span><span class="val">$0.00<small>scripted</small></span></span>
     <span class="spacer"></span>
-    <button class="btn">Load baseline 2026-08-12</button>
-    <button class="btn primary">▶ Run matrix</button>
-  </div>
-  <div class="stat-row">
-    <div class="stat"><b>78%</b><span>overall success · <span class="delta-up">▲ 11pts vs baseline</span></span></div>
-    <div class="stat"><b>2.1</b><span>median loop score · <span class="delta-up">▼ from 4.8</span></span></div>
-    <div class="stat"><b>17%</b><span>wasted-tick ratio · <span class="delta-up">▼ from 29%</span></span></div>
-    <div class="stat"><b>$0.048</b><span>mean cost per success · <span class="delta-down">▲ from $0.041</span></span></div>
+    <button class="btn primary">▶ Run again</button>
   </div>
   <div class="cols" style="grid-template-columns:1fr 340px">
     <div class="panel">
-      <h3>Success rate — goal card × cartridge (20 seeds each · click a cell for its runs)</h3>
+      <h3>Confusion matrix · alert-decision · full stack</h3>
       <div class="pad">
-        <table class="grid-table">
-          <tr><th style="text-align:left">Goal card</th><th>Penny Thinker<br>gpt-5-nano</th><th>Quick Thinker<br>gpt-5-mini</th><th>Deep Thinker<br>gpt-5</th></tr>
-          <tr><td style="text-align:left">Say Hello!</td><td style="background:#cddcf0"><b>90%</b><span>~5 ticks</span></td><td style="background:#b3cbe9"><b>100%</b><span>~4 ticks</span></td><td style="background:#b3cbe9"><b>100%</b><span>~4 ticks</span></td></tr>
-          <tr><td style="text-align:left">Sums for Teddy</td><td style="background:#d9e4f3"><b>85%</b><span>~3 ticks</span></td><td style="background:#b3cbe9"><b>100%</b><span>~2 ticks</span></td><td style="background:#b3cbe9"><b>100%</b><span>~2 ticks</span></td></tr>
-          <tr><td style="text-align:left">Help the teddy get a snack</td><td style="background:#eaf0f8"><b>45%</b><span>loop 4.1</span></td><td style="background:#d9e4f3"><b>80%</b><span>~11 ticks</span></td><td style="background:#cddcf0"><b>90%</b><span>~9 ticks</span></td></tr>
-          <tr><td style="text-align:left">Tidy the blocks ①</td><td style="background:#f3f6fa"><b>20%</b><span>out of steps</span></td><td style="background:#e2eaf6"><b>65%</b><span>~24 ticks</span></td><td style="background:#d9e4f3"><b>75%</b><span>~21 ticks</span></td></tr>
-          <tr><td style="text-align:left">The locked chest ①</td><td style="background:#f6f8fb"><b>10%</b><span>starved ②</span></td><td style="background:#eaf0f8"><b>45%</b><span>manual used 88%</span></td><td style="background:#e2eaf6"><b>60%</b><span>~26 ticks</span></td></tr>
-          <tr><td style="text-align:left">Free play (celebrate-ends)</td><td style="background:#d9e4f3"><b>85%</b><span>self-ended</span></td><td style="background:#cddcf0"><b>90%</b><span>self-ended</span></td><td style="background:#cddcf0"><b>95%</b><span>self-ended</span></td></tr>
+        <table class="matrix">
+          <tr><th>truth ＼ decided</th><th>released</th><th>held / frozen</th><th>escalated</th><th class="sum">Σ</th></tr>
+          <tr><th>genuine</th><td style="background:#b3cbe9"><b>412</b><span>tn</span></td><td style="background:#eaf0f8"><b>14</b><span>fp</span></td><td style="background:#f3f6fa"><b>6</b><span>cost</span></td><td class="sum">432</td></tr>
+          <tr><th>fraud</th><td style="background:#f6f8fb"><b>9</b><span>fn</span></td><td style="background:#cddcf0"><b>151</b><span>tp</span></td><td style="background:#d9e4f3"><b>28</b><span>tp</span></td><td class="sum">188</td></tr>
+          <tr><th>mule</th><td style="background:#f6f8fb"><b>2</b><span>fn</span></td><td style="background:#e2eaf6"><b>15</b><span>tp</span></td><td style="background:#eaf0f8"><b>3</b><span>tp</span></td><td class="sum">20</td></tr>
+          <tr><th class="sum">Σ</th><td class="sum">423</td><td class="sum">180</td><td class="sum">37</td><td class="sum">640</td></tr>
         </table>
-        <p style="margin-top:8px;font-size:11px;color:var(--wk-ink-2)">① post re-scope (par 22 / par 28) · ② empty replies at 400 max tokens — see catalogue note · shading = success rate (single-hue). Table view is canonical; every cell links to its 20 runs.</p>
+        <div class="legend"><span data-glyph="▮">sequential fill = count (single hue)</span><span data-glyph="#">value in every cell</span></div>
       </div>
     </div>
     <div class="panel">
-      <h3>Cell detail · Snack × Quick Thinker</h3>
+      <h3>Cohort · false-freeze rate</h3>
       <div class="pad">
-        <dl class="kv">
-          <dt>success</dt><dd>16 / 20 seeds</dd>
-          <dt>median ticks</dt><dd>11 (par 9)</dd>
-          <dt>loop score</dt><dd>median 2 · worst 6 (seed 13)</dd>
-          <dt>naming misses</dt><dd>0.4 / run</dd>
-          <dt>guardrail trips</dt><dd>3 (all no-repetition)</dd>
-          <dt>tokens / run</dt><dd>10.2k in · 1.9k out</dd>
-        </dl>
-        <div style="border-top:1.5px solid var(--wk-metal-dark);margin:8px 0"></div>
-        <div class="fired"><span>seed 13 · OUT_OF_STEPS · loop 6</span><span class="yes">inspect →</span></div>
-        <div class="fired"><span>seed 07 · SUCCESS · 9 ticks</span><span class="no">inspect →</span></div>
-        <div class="fired"><span>seed 02 · SUCCESS · 12 ticks</span><span class="no">inspect →</span></div>
-        <button class="btn" style="width:100%;margin-top:10px">Promote matrix to baseline</button>
+        <div class="meter"><svg viewBox="0 0 120 70"><path d="M10 60 A50 50 0 0 1 110 60" fill="none" stroke="var(--cab-ink)" stroke-width="2"/><path d="M10 60 A50 50 0 0 1 60 10" fill="none" stroke="var(--cab-pass)" stroke-width="6"/><line x1="60" y1="60" x2="30" y2="25" stroke="var(--cab-ink)" stroke-width="3"/><line x1="86" y1="20" x2="92" y2="12" stroke="var(--cab-fail)" stroke-width="3"/><text x="60" y="68" text-anchor="middle" font-size="9" fill="var(--cab-engrave)">gate ≤ 0.05</text></svg><span class="num">0.03</span><span class="engraved">age 18–24</span></div>
+        <div class="meter" style="margin-top:8px"><svg viewBox="0 0 120 70"><path d="M10 60 A50 50 0 0 1 110 60" fill="none" stroke="var(--cab-ink)" stroke-width="2"/><path d="M10 60 A50 50 0 0 1 60 10" fill="none" stroke="var(--cab-pass)" stroke-width="6"/><line x1="60" y1="60" x2="36" y2="22" stroke="var(--cab-ink)" stroke-width="3"/><line x1="86" y1="20" x2="92" y2="12" stroke="var(--cab-fail)" stroke-width="3"/><text x="60" y="68" text-anchor="middle" font-size="9" fill="var(--cab-engrave)">gate ≤ 0.05</text></svg><span class="num">0.04</span><span class="engraved">age 65+</span></div>
+        <p style="margin-top:8px"><span class="lamp pass"><i>✓</i>parity · spread 0.01 ≤ 0.02</span></p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ══════════════ TAB 3 · POLICY STUDIO ══════════════ -->
-<section class="screen" id="policies">
+<!-- ══════════════ TAB 4 · INSTRUMENTS (the component set) ══════════════ -->
+<section class="screen" id="instruments">
   <div class="strip">
-    <span class="chip">Policy card: <em>Hands off the chest</em> · v2 draft</span>
-    <span class="chip mono">compiles to 2 guardrails</span>
-    <span class="spacer"></span>
-    <button class="btn">Export card</button>
-    <button class="btn primary">Save version</button>
+    <span class="engraved">Instruments · the component set (44 §4.4)</span>
   </div>
-  <div class="cols" style="grid-template-columns:1fr 320px 1fr">
-    <div class="panel">
-      <h3>Rule builder</h3>
-      <div class="pad">
-        <p class="engraved" style="margin-bottom:6px">Rule 1</p>
-        <div class="rule">
-          <span class="engraved">hook</span><select><option>pre-act</option><option>pre-think</option><option>post-act (monitor)</option></select>
-          <span class="engraved">when</span><input value='call.name == "open" && call.args.container == "toy chest"'>
-          <span class="engraved">then</span><select><option>block-action</option><option>require-approval</option><option>stop-run</option></select>
-          <span class="engraved">reason</span><input value="The toy chest is off-limits today.">
-        </div>
-        <p class="engraved" style="margin:10px 0 6px">Rule 2</p>
-        <div class="rule">
-          <span class="engraved">hook</span><select><option>pre-act</option></select>
-          <span class="engraved">when</span><input value='call.riskTier == "irreversible"'>
-          <span class="engraved">then</span><select><option>require-approval</option></select>
-          <span class="engraved">reason</span><input value="Big changes need a grown-up's signature.">
-        </div>
-        <button class="btn" style="margin-top:8px">+ Add rule</button>
-      </div>
-    </div>
-    <div>
-      <div class="card-preview">
-        <h4><em>🛡 POLICY CARD</em></h4>
-        <ul>
-          <li><b>Hands off the chest</b> · v2</li>
-          <li>⛔ Never <code>open</code> the toy chest — <i>"off-limits today"</i></li>
-          <li>✋ Ask a human before anything irreversible</li>
-          <li style="border:none;color:var(--wk-ink-2);font-size:11px">Slots into the Safety brick · shareable · versioned</li>
-        </ul>
-      </div>
-      <p style="font-size:11px;color:var(--wk-ink-2);margin-top:8px;text-align:center">↑ the same card as the Kit renders it — the toy face is the documentation</p>
-    </div>
-    <div class="panel">
-      <h3>Test bench</h3>
-      <div class="pad">
-        <p class="engraved" style="margin-bottom:6px">Against 12 stored traces — would it have fired?</p>
-        <div class="fired"><span>run r_7f3a · Snack · tick 9</span><span class="yes">⛔ rule 1 fires</span></div>
-        <div class="fired"><span>run r_2bb1 · Tidy · ticks 6, 14, 21</span><span class="yes">⛔ rule 1 fires ×3</span></div>
-        <div class="fired"><span>run r_91c4 · Say Hello!</span><span class="no">— no match</span></div>
-        <div class="fired"><span>9 more traces…</span><span class="no">— no match</span></div>
-        <p class="engraved" style="margin:10px 0 6px">Adversarial proof (scripted)</p>
-        <div class="fired"><span>chest-raider brain vs this card</span><span class="yes">blocked 5/5 ✓</span></div>
-        <div class="fired"><span>approval-flood brain (fatigue test)</span><span class="no">3 prompts · tiering OK ✓</span></div>
-        <button class="btn primary" style="width:100%;margin-top:10px">▶ Run efficacy suite</button>
-      </div>
-    </div>
+  <div class="cols" style="grid-template-columns:1fr 1fr 1fr">
+    <div class="panel"><h3>Readout · Strip · Lamp</h3><div class="pad" style="display:grid;gap:8px">
+      <div><span class="readout"><span class="lbl">Runs this week</span><span class="val">37</span><span class="delta up">▲ 12</span></span> <span class="readout"><span class="lbl">Success</span><span class="val">81<small>%</small></span><span class="delta down">▼ 3 pts</span></span></div>
+      <div><span class="lamp pass"><i>✓</i>pass</span> <span class="lamp fail"><i>✕</i>fail</span> <span class="lamp inc"><i>?</i>inconclusive</span> <span class="lamp live"><i>●</i>live</span></div>
+      <p style="font-size:11px;color:var(--cab-ink-muted)">A lamp is a disc, a glyph and a word — never the disc alone.</p>
+    </div></div>
+    <div class="panel"><h3>Meter</h3><div class="pad">
+      <div class="meter"><svg viewBox="0 0 120 70"><path d="M10 60 A50 50 0 0 1 110 60" fill="none" stroke="var(--cab-ink)" stroke-width="2"/><path d="M10 60 A50 50 0 0 1 60 10" fill="none" stroke="var(--cab-fail)" stroke-width="6"/><path d="M60 10 A50 50 0 0 1 110 60" fill="none" stroke="var(--cab-pass)" stroke-width="6"/><line x1="60" y1="60" x2="95" y2="26" stroke="var(--cab-ink)" stroke-width="3"/><text x="60" y="68" text-anchor="middle" font-size="9" fill="var(--cab-engrave)">gate ≥ 0.90</text></svg><span class="num">0.94</span><span class="engraved">recall · full stack</span></div>
+      <p style="font-size:11px;color:var(--cab-ink-muted);margin-top:6px">A needle at the value, a mark at the gate, the number engraved beneath; <code>direction</code> says which side is good.</p>
+    </div></div>
+    <div class="panel"><h3>Tape</h3><div class="pad">
+      <div class="tape"><svg viewBox="0 0 300 90"><polyline fill="none" stroke="var(--cab-blue)" stroke-width="2" points="10,60 50,55 90,58 130,40 170,42 210,20 250,24 290,22"/><polyline fill="none" stroke="var(--cab-red)" stroke-width="2" points="10,75 50,74 90,70 130,72 170,60 210,62 250,45 290,48"/><text x="210" y="14" font-size="11" fill="var(--cab-fail)" font-weight="700">✕</text><line x1="10" y1="82" x2="290" y2="82" stroke="var(--cab-ink)"/><text x="10" y="90" font-size="8" fill="var(--cab-ink-muted)">08-17</text><text x="270" y="90" font-size="8" fill="var(--cab-ink-muted)">08-31</text></svg>
+      <div class="legend"><span data-glyph="—" style="color:var(--cab-blue-text)">success rate</span><span data-glyph="—" style="color:var(--cab-red-text)">loop rate</span><span data-glyph="✕" style="color:var(--cab-fail)">drift flagged</span></div></div>
+    </div></div>
   </div>
 </section>
 </main>
-<footer>Craft A Bot · Workshop mock-up · design-day2/17-PRO-MODE-UI-DESIGN.md · wireframe of record, not production code</footer>
+<footer>Craft A Bot · Control Room mock-up (WP57) · design-day2/44-CONTROL-ROOM.md · wireframe of record, not production code</footer>
 <script>
   document.querySelectorAll('nav button').forEach(function(b){
     b.addEventListener('click',function(){
