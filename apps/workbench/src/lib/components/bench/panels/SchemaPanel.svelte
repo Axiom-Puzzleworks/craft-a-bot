@@ -38,6 +38,7 @@
 		worldActions,
 		policyCards,
 		guardrailServices,
+		serviceLines,
 		onupdate
 	}: Props = $props();
 
@@ -60,6 +61,13 @@
 				id: service.id,
 				name: service.name,
 				description: service.description
+			}));
+		}
+		if (source === 'serviceLines') {
+			return serviceLines.map((line) => ({
+				id: line.id,
+				name: line.name,
+				description: line.description
 			}));
 		}
 		return cartridges.map((cartridge) => ({

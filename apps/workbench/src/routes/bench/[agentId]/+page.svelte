@@ -114,6 +114,8 @@
 		registry.listPolicyCards().filter((card) => !isLocalId(card.id) || preferences.workshop)
 	);
 	const guardrailServices = $derived(registry.listGuardrailServices());
+	/** Every line an installed pack ships (WP58) — the Connector brick's picker. */
+	const serviceLines = $derived(registry.listServiceLines());
 
 	const cartridge = $derived(registry.getCartridge(capabilities.cartridgeId));
 	/**
@@ -324,6 +326,7 @@
 						{worldActions}
 						{policyCards}
 						{guardrailServices}
+						{serviceLines}
 						onupdate={(patch) => selected && benchStore.updateBrick(selected, patch)}
 						onremove={() => {
 							if (selected) benchStore.removeBrick(selected);

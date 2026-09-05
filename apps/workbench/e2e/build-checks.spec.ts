@@ -87,3 +87,29 @@ test('every brick panel has a flip side in real terminology', async ({ page }) =
 	await expect(flip).toContainText('LLM (large language model)');
 	await expect(flip).toContainText('chat-completions call');
 });
+
+test('the Connector brick picks a registered service line from the registry (WP58)', async ({
+	page
+}) => {
+	await skipTutorial(page);
+	await page.goto('/');
+	await page.getByTestId('new-bot').click();
+	await expect(page.getByTestId('baseplate')).toBeVisible();
+	// The keyboard lift, the way `buildReadyBot` fits every brick: the Connector goes on the belt.
+	await page.getByTestId('tray-starter/connector').focus();
+	await page.keyboard.press('Enter');
+	for (let step = 0; step < 8; step++) {
+		const said = await page.getByTestId('announcer').textContent();
+		if (said?.includes('belt socket — this one fits')) break;
+		await page.keyboard.press('ArrowDown');
+	}
+	await page.keyboard.press('Enter');
+	await page.getByTestId('socket-equipment').getByRole('button').click();
+	const picker = page.getByTestId('brick-controls-equipment').getByTestId('choice-serviceId');
+	await expect(picker).toBeVisible();
+	// Both of the starter's lines are offered, from the registry, not from a list in the brick.
+	await expect(picker.locator('option', { hasText: 'Open-Meteo' })).toHaveCount(1);
+	await expect(picker.locator('option', { hasText: 'the Weather Line' })).toHaveCount(1);
+	await picker.selectOption({ label: 'Open-Meteo' });
+	await expect(picker).toHaveValue('starter/open-meteo');
+});

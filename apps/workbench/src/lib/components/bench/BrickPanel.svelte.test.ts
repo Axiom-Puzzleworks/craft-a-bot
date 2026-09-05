@@ -89,6 +89,7 @@ function mount(
 			worldActions: world,
 			policyCards: [],
 			guardrailServices: [],
+			serviceLines: [],
 			onupdate,
 			onremove
 		}
