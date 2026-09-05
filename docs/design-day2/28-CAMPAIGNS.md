@@ -240,6 +240,8 @@ Scripted cells use `createTestClock` with `idOffset: ordinal * ID_STRIDE` (the m
 
 > **Amended 2026-09-02 (Stage E — WP38 closed).** Against §11: (1) the baseline runs in CI with no key and fails on the red edit — stage C; (2) SARIF validates against the vendored 2.1.0 schema, JUnit structurally — stage C; (3) a report persists and reopens after reload, and the harness writes the same `CampaignReport` from the same file — stages C and D; (4) a live cell with no `budget` refuses naming `maxLiveCells`, checked before the first call — stage B; (5) a cell opens in the Run Lab or bundles from the harness — stages C and D; (6) the four scenario tests import the plans — stage B; (7) the Kit is untouched — no file under `apps/workbench/src/routes/` outside `workshop/` changed. Not built, and named so the next WP does not look for it: `evaluator-pass-rate` (waits on WP43's evaluators; `assertion-pass-rate` over inline cards stands in), the comparison-to-baseline view in the screen (a `no-regression` gate needs a report passed as `baseline` to `runCampaign`, which the harness accepts and the screen does not yet offer), and the Worker.
 
+> **Amended 2026-09-05 (WP61, `50-DOMAIN-METRICS.md`):** the campaign report is **v2** — a cell carries `labels`, `caseMetrics` and `cohort`; the report carries `summary` (slices, confusion matrices, cohorts, obligations, cases); `metricNameSchema` admits `case:<id>` and `evaluator:<id>:<derived>`; `where.cohort`; three more gate kinds — `derived-metric`, `label-rate`, `parity`. A v1 report parses with its version kept and a summary folded on read; a `no-regression` gate against a v1 baseline is inconclusive and says so. JUnit and SARIF are unchanged in shape.
+
 ## 9. Risk register
 
 | Risk | Handling |

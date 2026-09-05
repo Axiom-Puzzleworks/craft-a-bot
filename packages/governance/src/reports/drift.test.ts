@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { RunOutcome, RunRecord, RunSummary } from '@craftabot/core';
+import type { EvaluationRecord, RunOutcome, RunRecord, RunSummary } from '@craftabot/core';
 import { DRIFT_DEFAULTS, dayOf, driftIn, mixDistance, telemetrySeries } from './drift.js';
 
 /**
@@ -176,5 +176,118 @@ describe('driftIn', () => {
 		const { runs, summaries } = corpus(14, 10);
 		const series = telemetrySeries(runs, summaries);
 		expect(driftIn(series, { mixThreshold: 1.01, loopThreshold: 1.01 })).toEqual([]);
+	});
+});
+
+/**
+ * The domain series (WP61, `50-DOMAIN-METRICS.md` §4.7): evaluation records
+ * and campaign reports become series a day at a time — a pass rate, a
+ * label's share, a case metric's mean, a cohort spread — and `driftIn`
+ * flags a step change in any of them with the default thresholds.
+ */
+describe('domain series', () => {
+	const EVALUATOR = 'fs-advice/recommendation-suitable';
+	let n = 0;
+	const evaluation = (
+		dayIndex: number,
+		verdict: 'pass' | 'fail',
+		label: string
+	): EvaluationRecord => ({
+		id: `eval-${++n}`,
+		runId: `run-${n}`,
+		evaluatorId: EVALUATOR,
+		result: { evaluatorId: EVALUATOR, verdict, label, explanation: '.', evidence: [] },
+		evaluatedAt: new Date(START + dayIndex * DAY_MS + 12 * 60 * 60 * 1000).toISOString(),
+		schemaVersion: 1
+	});
+	/** Four evaluations a day: one unsuitable on a quiet day, three from the planted day on. */
+	const evaluationCorpus = (days: number, driftFrom: number | undefined) =>
+		Array.from({ length: days }, (_, day) =>
+			Array.from({ length: 4 }, (_, i) => {
+				const unsuitable = driftFrom !== undefined && day >= driftFrom ? i < 3 : i === 0;
+				return evaluation(
+					day,
+					unsuitable ? 'fail' : 'pass',
+					unsuitable ? 'unsuitable' : 'suitable'
+				);
+			})
+		).flat();
+
+	it('folds evaluation records into a pass-rate and label-share series with no runs at all', () => {
+		const series = telemetrySeries([], new Map(), { evaluations: evaluationCorpus(3, undefined) });
+		expect(series).toHaveLength(3);
+		expect(series[0]?.runs).toBe(0);
+		expect(series[0]?.series).toEqual({
+			[`evaluator:${EVALUATOR}:passRate`]: 0.75,
+			[`evaluator:${EVALUATOR}:label:suitable`]: 0.75,
+			[`evaluator:${EVALUATOR}:label:unsuitable`]: 0.25
+		});
+		expect(series[0]?.seriesSamples[`evaluator:${EVALUATOR}:passRate`]).toBe(4);
+	});
+
+	it('flags the planted step change in a two-week corpus with the default thresholds, and nothing before it', () => {
+		const flags = driftIn(
+			telemetrySeries([], new Map(), { evaluations: evaluationCorpus(14, 10) })
+		);
+		const passRate = flags.filter((flag) => flag.series === `evaluator:${EVALUATOR}:passRate`);
+		expect(passRate[0]).toMatchObject({ day: '2026-08-27', kind: 'series' });
+		expect(passRate[0]?.detail).toBe(`evaluator:${EVALUATOR}:passRate 0.75 → 0.25`);
+		expect(passRate[0]?.magnitude).toBeCloseTo(0.5);
+		expect(flags.every((flag) => flag.day >= '2026-08-27')).toBe(true);
+		expect(flags.some((flag) => flag.series === `evaluator:${EVALUATOR}:label:unsuitable`)).toBe(
+			true
+		);
+		expect(
+			driftIn(telemetrySeries([], new Map(), { evaluations: evaluationCorpus(14, undefined) }))
+		).toEqual([]);
+	});
+
+	it('folds a campaign report’s cells into case-metric means and a cohort spread, on the report’s day', () => {
+		const report = {
+			createdAt: new Date(START + 2 * DAY_MS).toISOString(),
+			cells: [
+				{
+					outcome: 'SUCCESS',
+					evaluations: { e: 'pass' as const },
+					caseMetrics: { ticksPerCase: 4 },
+					cohort: { ageBand: 'a' }
+				},
+				{
+					outcome: 'SUCCESS',
+					evaluations: { e: 'pass' as const },
+					caseMetrics: { ticksPerCase: 6 },
+					cohort: { ageBand: 'a' }
+				},
+				{
+					outcome: 'OUT_OF_STEPS',
+					evaluations: { e: 'fail' as const },
+					caseMetrics: { ticksPerCase: 8 },
+					cohort: { ageBand: 'b' }
+				},
+				{
+					outcome: 'SUCCESS',
+					evaluations: { e: 'inconclusive' as const },
+					labels: { e: 'x' },
+					cohort: { ageBand: 'b' }
+				}
+			]
+		};
+		const series = telemetrySeries([], new Map(), { reports: [report] });
+		expect(series).toHaveLength(1);
+		expect(series[0]?.day).toBe('2026-08-19');
+		expect(series[0]?.series['case:ticksPerCase']).toBe(6);
+		expect(series[0]?.series['cohort:ageBand:spread']).toBeCloseTo(0.5);
+		expect(series[0]?.series['evaluator:e:passRate']).toBeCloseTo(2 / 3);
+		expect(series[0]?.series['evaluator:e:label:x']).toBe(1);
+	});
+
+	it('skips a series day, or a baseline, with too few samples, and honours seriesThreshold', () => {
+		const thin = evaluationCorpus(14, 10).filter((_, index) => index % 4 < 2);
+		expect(driftIn(telemetrySeries([], new Map(), { evaluations: thin }))).toEqual([]);
+		const loose = driftIn(
+			telemetrySeries([], new Map(), { evaluations: evaluationCorpus(14, 10) }),
+			{ seriesThreshold: 0.6 }
+		);
+		expect(loose).toEqual([]);
 	});
 });
