@@ -39,6 +39,8 @@ Persistent left rail (instrument-panel styling); every screen has a "View in Kit
 
 ## 3. The flagship: Run Lab (`/runs/[runId]`)
 
+> **Amended 2026-09-05 (WP57 stage C, `44-CONTROL-ROOM.md` §4.5):** a fourth region — the **Boundary** map, full-width beneath the world — folded once from the run's spec snapshot, the registry and its events, its edges lit by the same scrubber the world and the timeline read. A group episode draws none until WP55 labels the seats. The three regions below are otherwise as built.
+
 Three-region layout (mock-up tab 1):
 
 - **Left — World & Controls:** the same WorldView component (Workshop skin), seed + budget readouts, run controls plus **breakpoints** ("pause on: guardrail trip · tool call · action failure"), and a **time scrubber** over the stored/live event stream. In replay, the scrubber drives `createSessionView`; in live runs it trails the head.
@@ -65,6 +67,8 @@ Header strip: outcome chip, cartridge + wire model, effective budgets (from the 
 Fleet table of bots (bricks fitted as colour-chip strip, last outcome, last run time) + telemetry stat tiles: runs this week, success rate, mean ticks-to-success, guardrail saves, spend estimate. Tiles are stat-tile-first (numbers, not charts) with 30-day sparklines where a trend exists. Quick actions: new bot, import kit/trace, open eval matrix.
 
 ### 4.2 Spec Lab (`/spec/[agentId]`)
+
+> **Amended 2026-09-05 (WP57 stage C):** a **Boundary** section under the contract — the build's map from the registry and the spec alone, no run, so no edge lit and the egress mode "not yet named" (`44-…` §4.5).
 
 > **Amended 2026-09-02 (WP40, `26-…` §6.13):** the Spec Lab gained its first *editing* surface — the **Safety stack**: the safety bricks in fitted order (the first marked as the one the Kit's bench shows), "Take off" per brick, and "Fit another" from every safety kind an installed pack ships, Workshop audience included, up to `SLOT_CAPACITY.safety`. It writes the record back through the same store the bench uses. Everything else on the page stays read-only, as the scope note above says.
 The bench, grown up: same baseplate/sockets on the left (drag still works — the toy interaction *is* good UX); right side replaces the toy panel with the **full schema-driven form** for the selected brick (every `14-…` §4 field incl. strategies, autonomy dial, reasoning effort) plus a **JSON editor** view of the whole `AgentSpec` with inline Zod diagnostics and version/migration info. Bottom: build-checks (same component), plus "contract view" — which brick kinds/packs/versions this spec requires (kit-file `requires` made visible).

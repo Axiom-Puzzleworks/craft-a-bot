@@ -18,6 +18,18 @@ export default defineConfig({
 	},
 	testDir: 'e2e',
 	/*
+	 * Two projects (WP57 stage C, `44-…` §4.6): `default` is the suite CI
+	 * runs; `visual` is the screenshot set, run on demand (`npm run
+	 * e2e:visual`) with its snapshots committed per platform — the CI runner
+	 * is Linux, so its baselines are WP71's to generate.
+	 */
+	projects: [
+		{ name: 'default', testIgnore: /visual\.spec\.ts$/ },
+		{ name: 'visual', testMatch: /visual\.spec\.ts$/ }
+	],
+	snapshotPathTemplate: '{testDir}/__screenshots__/{platform}/{arg}{ext}',
+	expect: { toHaveScreenshot: { maxDiffPixelRatio: 0.01 } },
+	/*
 	 * One retry, in CI only (WP56 stage A, `41-…` §6.13 G36). The suite has a
 	 * class of test that opens a Workshop screen straight after a run and
 	 * reads what was persisted; those now wait on the Play route's own saved

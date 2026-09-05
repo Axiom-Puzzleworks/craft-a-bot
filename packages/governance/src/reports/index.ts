@@ -62,3 +62,12 @@ export {
 	type GuardrailMixEntry
 } from './telemetry.js';
 export { safetyTally, type SafetyTally } from './safety-tally.js';
+export {
+	boundaryMapFor,
+	litEdgesAt,
+	type BoundaryActivity,
+	type BoundaryMap,
+	type BoundaryOptions,
+	type BoundaryOutside,
+	type BoundaryOutsideKind
+} from './boundary.js';
