@@ -58,6 +58,21 @@ describe('campaigns/fs-advice-baseline.json', () => {
 		expect(report.passed).toBe(true);
 		expect(report.cells).toHaveLength(30 * 4 * 2 * 3);
 		expect(report.cells.every((cell) => cell.error === undefined)).toBe(true);
+		// WP61: every cell carries the case's cohort from truth, the desk's metrics and the labels.
+		expect(report.schemaVersion).toBe(2);
+		expect(report.cells.every((cell) => cell.cohort?.['ageBand'] !== undefined)).toBe(true);
+		expect(report.cells.every((cell) => cell.caseMetrics['ticksPerCase'] !== undefined)).toBe(true);
+		const labelled = report.cells.filter(
+			(cell) => cell.labels['fs-advice/recommendation-suitable'] !== undefined
+		);
+		expect(labelled.length).toBe(report.cells.length);
+		expect(report.summary?.obligations.map((row) => row.tag).slice(0, 3)).toEqual([
+			'fca:cd:products-services',
+			'fca:cd:price-value',
+			'fca:cd:understanding'
+		]);
+		expect(report.summary?.cohorts.some((row) => row.attribute === 'ageBand')).toBe(true);
+		expect(report.summary?.matrices).toEqual([]);
 	});
 
 	it(

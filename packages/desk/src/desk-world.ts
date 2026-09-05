@@ -30,6 +30,7 @@ import {
 	type CounterpartMemory,
 	type CounterpartScript
 } from './counterpart.js';
+import { deskMetrics } from './metrics.js';
 import { DEFAULT_SEED, seedFrom, seededRandom } from './seeded.js';
 import { runtimeStrings } from './strings.js';
 
@@ -55,6 +56,13 @@ export interface DeskTruth {
 	records: DeskRecord[];
 	/** Plain facts with no record shape — a label, a band, a flag. */
 	facts?: Record<string, string | number | boolean>;
+	/**
+	 * The case's cohort (WP61, `50-…` §4.3): attribute → value, the fourth
+	 * slice key a campaign reads from `run.finished.truth` and never from the
+	 * prompt. A value here is either shown on a record or absent from the
+	 * snapshot (`checkDesk`'s truth rule).
+	 */
+	cohort?: Record<string, string>;
 }
 
 /** A generated case: what the desk starts with. */
@@ -768,6 +776,13 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 			Object.entries(spec.predicates).map(([id, predicate]) => [id, predicate.description])
 		),
 		create: createInstance,
+		// The five per-case metrics (WP61), folded by a campaign over a finished run.
+		metrics: deskMetrics(
+			(actionName) =>
+				actionDefinitions.find(
+					(action) => action.id === actionName || action.id.endsWith(`/${bareOf(actionName)}`)
+				)?.riskTier
+		),
 		spec
 	};
 }

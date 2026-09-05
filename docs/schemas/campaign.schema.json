@@ -822,6 +822,10 @@
 							},
 							"brain": {
 								"type": "string"
+							},
+							"cohort": {
+								"type": "string",
+								"pattern": "^[^=]+=.+$"
 							}
 						}
 					},
@@ -922,19 +926,31 @@
 										"const": "metric"
 									},
 									"name": {
-										"type": "string",
-										"enum": [
-											"ticksUsed",
-											"tokensIn",
-											"tokensOut",
-											"wastedTickRatio",
-											"loop.longestStreak",
-											"loop.repeatedFailures",
-											"namingMisses",
-											"namingAmbiguities",
-											"approvalsRequested",
-											"approvalsDenied",
-											"guardrailTrips"
+										"anyOf": [
+											{
+												"type": "string",
+												"enum": [
+													"ticksUsed",
+													"tokensIn",
+													"tokensOut",
+													"wastedTickRatio",
+													"loop.longestStreak",
+													"loop.repeatedFailures",
+													"namingMisses",
+													"namingAmbiguities",
+													"approvalsRequested",
+													"approvalsDenied",
+													"guardrailTrips"
+												]
+											},
+											{
+												"type": "string",
+												"pattern": "^case:[A-Za-z0-9_.-]+$"
+											},
+											{
+												"type": "string",
+												"pattern": "^evaluator:(.+):(precision|recall|f1|falsePositiveRate)$"
+											}
 										]
 									},
 									"aggregate": {
@@ -974,6 +990,249 @@
 								},
 								"required": [
 									"kind"
+								]
+							},
+							{
+								"type": "object",
+								"properties": {
+									"kind": {
+										"type": "string",
+										"const": "derived-metric"
+									},
+									"evaluatorId": {
+										"type": "string",
+										"minLength": 1
+									},
+									"derived": {
+										"type": "string",
+										"enum": [
+											"precision",
+											"recall",
+											"f1",
+											"falsePositiveRate"
+										]
+									},
+									"atLeast": {
+										"type": "number",
+										"minimum": 0,
+										"maximum": 1
+									},
+									"atMost": {
+										"type": "number",
+										"minimum": 0,
+										"maximum": 1
+									}
+								},
+								"required": [
+									"kind",
+									"evaluatorId",
+									"derived"
+								]
+							},
+							{
+								"type": "object",
+								"properties": {
+									"kind": {
+										"type": "string",
+										"const": "label-rate"
+									},
+									"evaluatorId": {
+										"type": "string",
+										"minLength": 1
+									},
+									"label": {
+										"type": "string",
+										"minLength": 1
+									},
+									"atLeast": {
+										"type": "number",
+										"minimum": 0,
+										"maximum": 1
+									},
+									"atMost": {
+										"type": "number",
+										"minimum": 0,
+										"maximum": 1
+									}
+								},
+								"required": [
+									"kind",
+									"evaluatorId",
+									"label"
+								]
+							},
+							{
+								"type": "object",
+								"properties": {
+									"kind": {
+										"type": "string",
+										"const": "parity"
+									},
+									"across": {
+										"type": "string",
+										"minLength": 1
+									},
+									"of": {
+										"oneOf": [
+											{
+												"type": "object",
+												"properties": {
+													"kind": {
+														"type": "string",
+														"const": "outcome-rate"
+													},
+													"outcome": {
+														"type": "string",
+														"enum": [
+															"SUCCESS",
+															"OUT_OF_STEPS",
+															"STOPPED_BY_USER",
+															"STOPPED_BY_GUARDRAIL",
+															"ERROR"
+														]
+													}
+												},
+												"required": [
+													"kind",
+													"outcome"
+												]
+											},
+											{
+												"type": "object",
+												"properties": {
+													"kind": {
+														"type": "string",
+														"const": "evaluator-pass-rate"
+													},
+													"evaluatorId": {
+														"type": "string",
+														"minLength": 1
+													}
+												},
+												"required": [
+													"kind",
+													"evaluatorId"
+												]
+											},
+											{
+												"type": "object",
+												"properties": {
+													"kind": {
+														"type": "string",
+														"const": "label-rate"
+													},
+													"evaluatorId": {
+														"type": "string",
+														"minLength": 1
+													},
+													"label": {
+														"type": "string",
+														"minLength": 1
+													}
+												},
+												"required": [
+													"kind",
+													"evaluatorId",
+													"label"
+												]
+											},
+											{
+												"type": "object",
+												"properties": {
+													"kind": {
+														"type": "string",
+														"const": "derived-metric"
+													},
+													"evaluatorId": {
+														"type": "string",
+														"minLength": 1
+													},
+													"derived": {
+														"type": "string",
+														"enum": [
+															"precision",
+															"recall",
+															"f1",
+															"falsePositiveRate"
+														]
+													}
+												},
+												"required": [
+													"kind",
+													"evaluatorId",
+													"derived"
+												]
+											},
+											{
+												"type": "object",
+												"properties": {
+													"kind": {
+														"type": "string",
+														"const": "metric"
+													},
+													"name": {
+														"anyOf": [
+															{
+																"type": "string",
+																"enum": [
+																	"ticksUsed",
+																	"tokensIn",
+																	"tokensOut",
+																	"wastedTickRatio",
+																	"loop.longestStreak",
+																	"loop.repeatedFailures",
+																	"namingMisses",
+																	"namingAmbiguities",
+																	"approvalsRequested",
+																	"approvalsDenied",
+																	"guardrailTrips"
+																]
+															},
+															{
+																"type": "string",
+																"pattern": "^case:[A-Za-z0-9_.-]+$"
+															},
+															{
+																"type": "string",
+																"pattern": "^evaluator:(.+):(precision|recall|f1|falsePositiveRate)$"
+															}
+														]
+													},
+													"aggregate": {
+														"default": "mean",
+														"type": "string",
+														"enum": [
+															"mean",
+															"median",
+															"max"
+														]
+													}
+												},
+												"required": [
+													"kind",
+													"name"
+												]
+											}
+										]
+									},
+									"maxDifference": {
+										"type": "number",
+										"minimum": 0
+									},
+									"minRatio": {
+										"type": "number",
+										"minimum": 0,
+										"maximum": 1
+									},
+									"matched": {
+										"default": false,
+										"type": "boolean"
+									}
+								},
+								"required": [
+									"kind",
+									"across",
+									"of"
 								]
 							}
 						]

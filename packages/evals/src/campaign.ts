@@ -10,6 +10,7 @@ import {
 	runOutcomeSchema,
 	type AgentSpecV2,
 	createPackRegistry,
+	type ConfusionLabelSemantics,
 	type EngineEvent,
 	type Evaluator,
 	type FittedBrick,
@@ -33,6 +34,13 @@ import {
 	type NoiseRates
 } from './brains.js';
 import { scoreRun } from './metrics.js';
+import {
+	campaignSummarySchema,
+	DERIVED_NAMES,
+	derivedOf,
+	summariseCampaign,
+	type DerivedName
+} from './campaign-summary.js';
 import { starterPlans, type PlanSource } from './plans.js';
 import { evalTierSchema, runMetricsSchema, type EvalTier } from './report.js';
 
@@ -51,7 +59,8 @@ import { evalTierSchema, runMetricsSchema, type EvalTier } from './report.js';
  */
 
 export const CAMPAIGN_SCHEMA_VERSION = 1;
-export const CAMPAIGN_REPORT_SCHEMA_VERSION = 1;
+/** v2 (WP61, `50-DOMAIN-METRICS.md` §4.5): labels, case metrics and the cohort on a cell, the summary on the report. v1 reads as before. */
+export const CAMPAIGN_REPORT_SCHEMA_VERSION = 2;
 
 const memoryOverrideSchema = z.object({
 	windowSize: z.union([z.literal(3), z.literal(10), z.literal(30)]),
@@ -86,7 +95,7 @@ export const noiseRatesSchema = z.object({
 	prematureCelebrate: z.number().min(0).max(1)
 });
 
-export const metricNameSchema = z.enum([
+export const runMetricNameSchema = z.enum([
 	'ticksUsed',
 	'tokensIn',
 	'tokensOut',
@@ -98,6 +107,22 @@ export const metricNameSchema = z.enum([
 	'approvalsRequested',
 	'approvalsDenied',
 	'guardrailTrips'
+]);
+export type RunMetricName = z.infer<typeof runMetricNameSchema>;
+
+/**
+ * A metric a gate may name (WP61, `50-…` §4.4): a run metric, a world's
+ * per-case metric (`case:<id>`, over `caseMetrics`, cells with none left
+ * out), or a derived rate of a labelled evaluator
+ * (`evaluator:<id>:precision|recall|f1|falsePositiveRate`, folded over the
+ * selected cells as a set). A pattern, not an enum edit.
+ */
+export const CASE_METRIC_PATTERN = /^case:[A-Za-z0-9_.-]+$/;
+export const DERIVED_METRIC_PATTERN = /^evaluator:(.+):(precision|recall|f1|falsePositiveRate)$/;
+export const metricNameSchema = z.union([
+	runMetricNameSchema,
+	z.string().regex(CASE_METRIC_PATTERN),
+	z.string().regex(DERIVED_METRIC_PATTERN)
 ]);
 export type MetricName = z.infer<typeof metricNameSchema>;
 
@@ -111,9 +136,16 @@ export const gateWhereSchema = z.object({
 	tag: z.string().optional(),
 	build: z.string().optional(),
 	guard: z.string().optional(),
-	brain: z.string().optional()
+	brain: z.string().optional(),
+	/** `<attribute>=<value>`, matched against the cell's cohort read from truth (WP61). */
+	cohort: z
+		.string()
+		.regex(/^[^=]+=.+$/)
+		.optional()
 });
 export type GateWhere = z.infer<typeof gateWhereSchema>;
+
+export const derivedNameSchema = z.enum(DERIVED_NAMES);
 
 export const gateRequireSchema = z.discriminatedUnion('kind', [
 	z.object({ kind: z.literal('outcome-rate'), outcome: runOutcomeSchema, ...rateBounds }),
@@ -131,7 +163,50 @@ export const gateRequireSchema = z.discriminatedUnion('kind', [
 		atMost: z.number().optional(),
 		atLeast: z.number().optional()
 	}),
-	z.object({ kind: z.literal('no-regression'), tolerance: z.number().min(0).max(1).default(0) })
+	z.object({ kind: z.literal('no-regression'), tolerance: z.number().min(0).max(1).default(0) }),
+	// WP61 (`50-…` §4.4): over a labelled evaluator's matrix, over one label's share, and across a cohort.
+	z.object({
+		kind: z.literal('derived-metric'),
+		evaluatorId: z.string().min(1),
+		derived: derivedNameSchema,
+		...rateBounds
+	}),
+	z.object({
+		kind: z.literal('label-rate'),
+		evaluatorId: z.string().min(1),
+		label: z.string().min(1),
+		...rateBounds
+	}),
+	z.object({
+		kind: z.literal('parity'),
+		/** The cohort attribute to compare across. */
+		across: z.string().min(1),
+		of: z.discriminatedUnion('kind', [
+			z.object({ kind: z.literal('outcome-rate'), outcome: runOutcomeSchema }),
+			z.object({ kind: z.literal('evaluator-pass-rate'), evaluatorId: z.string().min(1) }),
+			z.object({
+				kind: z.literal('label-rate'),
+				evaluatorId: z.string().min(1),
+				label: z.string().min(1)
+			}),
+			z.object({
+				kind: z.literal('derived-metric'),
+				evaluatorId: z.string().min(1),
+				derived: derivedNameSchema
+			}),
+			z.object({
+				kind: z.literal('metric'),
+				name: metricNameSchema,
+				aggregate: z.enum(['mean', 'median', 'max']).default('mean')
+			})
+		]),
+		/** Fails when the largest value minus the smallest exceeds this. */
+		maxDifference: z.number().min(0).optional(),
+		/** Fails when the smallest over the largest is below this — `0.8` is the four-fifths rule. */
+		minRatio: z.number().min(0).max(1).optional(),
+		/** The campaign's own claim that its cohorts are matched pairs; the verdict repeats it. Default false. */
+		matched: z.boolean().default(false)
+	})
 ]);
 export type GateRequire = z.infer<typeof gateRequireSchema>;
 
@@ -232,6 +307,12 @@ export const campaignCellSchema = z.object({
 	assertions: z.record(z.string(), z.boolean()),
 	/** Evaluator verdicts (WP43), keyed by evaluator id. */
 	evaluations: z.record(z.string(), z.enum(['pass', 'fail', 'inconclusive'])).default({}),
+	/** `EvaluationResult.label` per evaluator that gave one (WP61). */
+	labels: z.record(z.string(), z.string()).default({}),
+	/** The world's declared per-case metrics, folded over the run (WP61). */
+	caseMetrics: z.record(z.string(), z.number()).default({}),
+	/** From `run.finished.truth.cohort`, when the world has one (WP61): attribute → value. */
+	cohort: z.record(z.string(), z.string()).optional(),
 	error: z.string().optional()
 });
 export type CampaignCell = z.infer<typeof campaignCellSchema>;
@@ -244,12 +325,16 @@ export const gateVerdictSchema = z.object({
 	observed: z.number().optional(),
 	cells: z.number().int().nonnegative(),
 	passed: z.boolean(),
-	inconclusive: z.literal(true).optional()
+	inconclusive: z.literal(true).optional(),
+	/** A `parity` verdict (WP61): the campaign's claim that the cohorts were matched, and the number in each value. */
+	matched: z.boolean().optional(),
+	values: z.record(z.string(), z.number()).optional()
 });
 export type GateVerdict = z.infer<typeof gateVerdictSchema>;
 
 export const campaignReportSchema = z.object({
-	schemaVersion: z.literal(CAMPAIGN_REPORT_SCHEMA_VERSION),
+	/** 2 since WP61; a v1 report parses and is upgraded on read (`parseCampaignReport`). */
+	schemaVersion: z.union([z.literal(1), z.literal(2)]),
 	id: z.string(),
 	campaignId: z.string(),
 	campaignTitle: z.string(),
@@ -274,6 +359,8 @@ export const campaignReportSchema = z.object({
 	cells: z.array(campaignCellSchema),
 	gates: z.array(gateVerdictSchema),
 	passed: z.boolean(),
+	/** The readers' numbers (WP61, `50-…` §4.5), folded once from the cells; a v1 report gets it on read. */
+	summary: campaignSummarySchema.optional(),
 	budget: z.object({
 		liveCells: z.number().int().nonnegative(),
 		tokensIn: z.number().int().nonnegative(),
@@ -284,8 +371,24 @@ export const campaignReportSchema = z.object({
 });
 export type CampaignReport = z.infer<typeof campaignReportSchema>;
 
+/**
+ * A report, v1 or v2. A v1 report keeps its `schemaVersion: 1` (so a
+ * `no-regression` gate against it says so) and gains a `summary` folded
+ * from its cells — with no matrices, since it never recorded what its
+ * labels meant; a v2 report's stored matrices supply the semantics.
+ */
 export function parseCampaignReport(value: unknown): CampaignReport {
-	return campaignReportSchema.parse(value);
+	const parsed = campaignReportSchema.parse(value);
+	if (parsed.summary) return parsed;
+	return { ...parsed, summary: summariseCampaign(parsed.cells) };
+}
+
+/** What a stored report's matrices say each labelled evaluator's labels mean — the semantics travel with the report. */
+export function semanticsFromReport(
+	report: Pick<CampaignReport, 'summary'>
+): (evaluatorId: string) => ConfusionLabelSemantics | undefined {
+	return (evaluatorId) =>
+		report.summary?.matrices.find((matrix) => matrix.evaluatorId === evaluatorId)?.semantics;
 }
 
 /**
@@ -426,7 +529,13 @@ export async function runCampaign(
 		if (options.betweenCells) await options.betweenCells();
 	}
 
-	const gates = campaign.gates.map((gate) => evaluateGate(gate, results, options.baseline));
+	const semantics = (evaluatorId: string): ConfusionLabelSemantics | undefined => {
+		const found = resolveEvaluator(registry, evaluatorId)?.labelSemantics;
+		return found?.kind === 'confusion' ? found : undefined;
+	};
+	const gates = campaign.gates.map((gate) =>
+		evaluateGate(gate, results, options.baseline, { semantics })
+	);
 	return {
 		schemaVersion: CAMPAIGN_REPORT_SCHEMA_VERSION,
 		id: options.newId?.() ?? crypto.randomUUID(),
@@ -444,6 +553,7 @@ export async function runCampaign(
 		cells: results,
 		gates,
 		passed: gates.every((gate) => gate.passed),
+		summary: summariseCampaign(results, { semantics }),
 		budget: {
 			liveCells: results.filter((cell) => cell.tier === 'live').length,
 			tokensIn: results.reduce((total, cell) => total + cell.metrics.tokensIn, 0),
@@ -570,6 +680,16 @@ async function runCell(
 		});
 
 		const started = run.events.find((event) => event.type === 'run.started');
+		const judged = await evaluateCell(campaign, run.events, options, scenario, tally);
+		// The world's per-case metrics and the case's cohort, both from what the run left (WP61).
+		const truth = evaluationInputFor(run.events).truth;
+		const worldDefinition = registry.getWorld(registry.getGoalCard(goalCardId)?.worldId ?? '');
+		const caseMetrics: Record<string, number> = {};
+		for (const metric of worldDefinition?.metrics ?? []) {
+			const value = metric.fold(run.events, truth);
+			if (value !== undefined && Number.isFinite(value)) caseMetrics[metric.id] = value;
+		}
+		const cohort = cohortOf(truth);
 		const scored: CampaignCell = {
 			...identity,
 			...(started ? { runId: started.runId } : {}),
@@ -578,7 +698,10 @@ async function runCell(
 			assertions: Object.fromEntries(
 				campaign.assertionCards.map((card) => [card.id, evaluateAssertion(card, run.events).pass])
 			),
-			evaluations: await evaluateCell(campaign, run.events, options, scenario, tally)
+			evaluations: judged.verdicts,
+			labels: judged.labels,
+			caseMetrics,
+			...(cohort ? { cohort } : {})
 		};
 		options.onTrace?.(scored, { events: run.events, spec });
 		return scored;
@@ -588,6 +711,8 @@ async function runCell(
 			metrics: scoreRun([]),
 			assertions: empty(),
 			evaluations: {},
+			labels: {},
+			caseMetrics: {},
 			error: error instanceof Error ? error.message : String(error)
 		};
 	}
@@ -611,8 +736,12 @@ async function evaluateCell(
 	options: RunCampaignOptions,
 	scenario: CampaignScenario,
 	tally: SpendTally
-): Promise<Record<string, 'pass' | 'fail' | 'inconclusive'>> {
-	if (campaign.evaluators.length === 0) return {};
+): Promise<{
+	verdicts: Record<string, 'pass' | 'fail' | 'inconclusive'>;
+	labels: Record<string, string>;
+}> {
+	const labels: Record<string, string> = {};
+	if (campaign.evaluators.length === 0) return { verdicts: {}, labels };
 	const registry = createPackRegistry();
 	registry.registerPack(starterPack);
 	for (const pack of options.packs ?? []) {
@@ -645,11 +774,22 @@ async function evaluateCell(
 				getCredential: (id) => (live ? options.credentials?.(id) : undefined)
 			});
 			verdicts[named.id] = result.verdict ?? 'inconclusive';
+			if (result.label !== undefined) labels[named.id] = result.label;
 		} catch {
 			verdicts[named.id] = 'inconclusive';
 		}
 	}
-	return verdicts;
+	return { verdicts, labels };
+}
+
+/** The cohort a truth block carries (WP61, `50-…` §4.3): a flat record of strings under `cohort`, or nothing. */
+export function cohortOf(truth: unknown): Record<string, string> | undefined {
+	const block = (truth as { cohort?: unknown } | undefined)?.cohort;
+	if (!block || typeof block !== 'object' || Array.isArray(block)) return undefined;
+	const entries = Object.entries(block as Record<string, unknown>).filter(
+		(entry): entry is [string, string] => typeof entry[1] === 'string' && entry[1] !== ''
+	);
+	return entries.length === 0 ? undefined : Object.fromEntries(entries);
 }
 
 export function specFor(cell: Pick<CampaignCellSpec, 'scenario' | 'build' | 'guard'>): AgentSpecV2 {
@@ -727,10 +867,16 @@ function providerForLive(brain: CampaignBrain, options: RunCampaignOptions): LLM
 
 // ── Gates ───────────────────────────────────────────────────────────────────
 
+export interface GateOptions {
+	/** What a labelled evaluator's labels mean, for `derived-metric`, `parity` and the derived metric names. */
+	semantics?: (evaluatorId: string) => ConfusionLabelSemantics | undefined;
+}
+
 export function evaluateGate(
 	gate: Gate,
 	cells: readonly CampaignCell[],
-	baseline?: CampaignReport
+	baseline?: CampaignReport,
+	options: GateOptions = {}
 ): GateVerdict {
 	const selected = selectCells(gate.where, cells);
 	const base = {
@@ -746,6 +892,15 @@ export function evaluateGate(
 			return {
 				...base,
 				required: `no slice falls by more than ${pct(require.tolerance)}`,
+				passed: true,
+				inconclusive: true
+			};
+		}
+		// The `compareToBaseline` precedent: a report from another schema is not the same instrument.
+		if (baseline.schemaVersion !== CAMPAIGN_REPORT_SCHEMA_VERSION) {
+			return {
+				...base,
+				required: `no slice falls by more than ${pct(require.tolerance)} — baseline is schema v${baseline.schemaVersion}, this report is v${CAMPAIGN_REPORT_SCHEMA_VERSION}`,
 				passed: true,
 				inconclusive: true
 			};
@@ -791,9 +946,69 @@ export function evaluateGate(
 			break;
 		}
 		case 'metric': {
-			const values = selected.map((cell) => metricValue(cell.metrics, require.name));
-			observed = aggregate(values, require.aggregate);
+			const folded = metricOver(selected, require.name, require.aggregate, options);
+			if (folded === undefined) {
+				return {
+					...base,
+					required: describeRequirement(require),
+					passed: true,
+					inconclusive: true
+				};
+			}
+			observed = folded;
 			break;
+		}
+		case 'derived-metric': {
+			const semantics = options.semantics?.(require.evaluatorId);
+			const value = semantics
+				? derivedOf(selected, require.evaluatorId, require.derived, semantics)
+				: undefined;
+			if (value === undefined) {
+				return {
+					...base,
+					required: describeRequirement(require),
+					passed: true,
+					inconclusive: true
+				};
+			}
+			observed = value;
+			break;
+		}
+		case 'label-rate': {
+			const value = labelRate(selected, require.evaluatorId, require.label);
+			if (value === undefined) {
+				return {
+					...base,
+					required: describeRequirement(require),
+					passed: true,
+					inconclusive: true
+				};
+			}
+			observed = value;
+			break;
+		}
+		case 'parity': {
+			const values = parityValues(selected, require, options);
+			const required = describeRequirement(require);
+			if (Object.keys(values).length < 2) {
+				return { ...base, required, passed: true, inconclusive: true, matched: require.matched };
+			}
+			const numbers = Object.values(values);
+			const max = Math.max(...numbers);
+			const min = Math.min(...numbers);
+			const difference = max - min;
+			const ratio = max === 0 ? 1 : min / max;
+			const held =
+				(require.maxDifference === undefined || difference <= require.maxDifference + 1e-9) &&
+				(require.minRatio === undefined || ratio >= require.minRatio - 1e-9);
+			return {
+				...base,
+				required,
+				observed: require.maxDifference !== undefined ? difference : ratio,
+				passed: held,
+				matched: require.matched,
+				values
+			};
 		}
 	}
 	const passed =
@@ -817,7 +1032,97 @@ function matches(where: GateWhere | undefined, cell: CampaignCell): boolean {
 	if (where.guard !== undefined && cell.guard !== where.guard) return false;
 	if (where.brain !== undefined && cell.brain !== where.brain) return false;
 	if (where.tag !== undefined && !cell.tags.includes(where.tag)) return false;
+	if (where.cohort !== undefined) {
+		const at = where.cohort.indexOf('=');
+		const attribute = where.cohort.slice(0, at);
+		const value = where.cohort.slice(at + 1);
+		if (cell.cohort?.[attribute] !== value) return false;
+	}
 	return true;
+}
+
+/** One label's share of the cells the evaluator labelled; `undefined` when it labelled none. */
+function labelRate(cells: readonly CampaignCell[], evaluatorId: string, label: string) {
+	const labelled = cells.filter((cell) => cell.labels?.[evaluatorId] !== undefined);
+	if (labelled.length === 0) return undefined;
+	return rate(labelled, (cell) => cell.labels?.[evaluatorId] === label);
+}
+
+/** A `metric` gate's number over a set: a run metric per cell, a case metric per cell that has it, or a derived rate over the set. */
+function metricOver(
+	cells: readonly CampaignCell[],
+	name: MetricName,
+	how: 'mean' | 'median' | 'max',
+	options: GateOptions
+): number | undefined {
+	const derived = DERIVED_METRIC_PATTERN.exec(name);
+	if (derived) {
+		const [, evaluatorId, which] = derived as unknown as [string, string, DerivedName];
+		const semantics = options.semantics?.(evaluatorId);
+		return semantics ? derivedOf(cells, evaluatorId, which, semantics) : undefined;
+	}
+	if (CASE_METRIC_PATTERN.test(name)) {
+		const id = name.slice('case:'.length);
+		const values = cells
+			.map((cell) => cell.caseMetrics?.[id])
+			.filter((value): value is number => value !== undefined);
+		return values.length === 0 ? undefined : aggregate(values, how);
+	}
+	return aggregate(
+		cells.map((cell) => metricValue(cell.metrics, name as RunMetricName)),
+		how
+	);
+}
+
+/** A parity gate's number in every value of the attribute (cells with none left out; a value with nothing to judge left out). */
+function parityValues(
+	cells: readonly CampaignCell[],
+	require: Extract<GateRequire, { kind: 'parity' }>,
+	options: GateOptions
+): Record<string, number> {
+	const groups = new Map<string, CampaignCell[]>();
+	for (const cell of cells) {
+		const value = cell.cohort?.[require.across];
+		if (value === undefined) continue;
+		const list = groups.get(value);
+		if (list) list.push(cell);
+		else groups.set(value, [cell]);
+	}
+	const values: Record<string, number> = {};
+	for (const [value, mine] of groups) {
+		const of = require.of;
+		let number: number | undefined;
+		switch (of.kind) {
+			case 'outcome-rate':
+				number = rate(mine, (cell) => cell.outcome === of.outcome);
+				break;
+			case 'evaluator-pass-rate': {
+				const judged = mine.filter(
+					(cell) =>
+						cell.evaluations[of.evaluatorId] !== undefined &&
+						cell.evaluations[of.evaluatorId] !== 'inconclusive'
+				);
+				number =
+					judged.length === 0
+						? undefined
+						: rate(judged, (cell) => cell.evaluations[of.evaluatorId] === 'pass');
+				break;
+			}
+			case 'label-rate':
+				number = labelRate(mine, of.evaluatorId, of.label);
+				break;
+			case 'derived-metric': {
+				const semantics = options.semantics?.(of.evaluatorId);
+				number = semantics ? derivedOf(mine, of.evaluatorId, of.derived, semantics) : undefined;
+				break;
+			}
+			case 'metric':
+				number = metricOver(mine, of.name, of.aggregate, options);
+				break;
+		}
+		if (number !== undefined) values[value] = number;
+	}
+	return values;
 }
 
 function rate(cells: readonly CampaignCell[], match: (cell: CampaignCell) => boolean): number {
@@ -825,7 +1130,7 @@ function rate(cells: readonly CampaignCell[], match: (cell: CampaignCell) => boo
 }
 
 /** Over the stored shape (a parsed cell's metrics), which `RunMetrics` narrows only in its optional keys. */
-export function metricValue(metrics: CampaignCell['metrics'], name: MetricName): number {
+export function metricValue(metrics: CampaignCell['metrics'], name: RunMetricName): number {
 	switch (name) {
 		case 'loop.longestStreak':
 			return metrics.loop.longestStreak;
@@ -891,6 +1196,28 @@ export function describeRequirement(require: GateRequire): string {
 			return `${require.aggregate} ${require.name} ${bounds(require.atLeast, require.atMost, false)}`;
 		case 'no-regression':
 			return `no slice falls by more than ${pct(require.tolerance)}`;
+		case 'derived-metric':
+			return `${require.evaluatorId} ${require.derived} ${bounds(require.atLeast, require.atMost)}`;
+		case 'label-rate':
+			return `${require.evaluatorId} label "${require.label}" rate ${bounds(require.atLeast, require.atMost)}`;
+		case 'parity': {
+			const of = require.of;
+			const measure =
+				of.kind === 'outcome-rate'
+					? `${of.outcome} rate`
+					: of.kind === 'evaluator-pass-rate'
+						? `${of.evaluatorId} pass rate`
+						: of.kind === 'label-rate'
+							? `${of.evaluatorId} label "${of.label}" rate`
+							: of.kind === 'derived-metric'
+								? `${of.evaluatorId} ${of.derived}`
+								: `${of.aggregate} ${of.name}`;
+			const bound = [
+				...(require.maxDifference !== undefined ? [`spread ≤ ${require.maxDifference}`] : []),
+				...(require.minRatio !== undefined ? [`ratio ≥ ${require.minRatio}`] : [])
+			].join(' and ');
+			return `${measure} across ${require.across}: ${bound || '(no bound)'}${require.matched ? '' : ' (unmatched cohorts)'}`;
+		}
 	}
 }
 

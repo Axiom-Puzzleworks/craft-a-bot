@@ -35,6 +35,7 @@ export {
 	type CounterpartTurn
 } from './counterpart.js';
 export { DEFAULT_SEED, seededRandom, seedFrom } from './seeded.js';
+export { deskMetrics } from './metrics.js';
 export { runtimeStrings } from './strings.js';
 export {
 	luhnCheckDigit,

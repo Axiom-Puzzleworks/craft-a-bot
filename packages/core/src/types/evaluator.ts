@@ -74,6 +74,22 @@ export interface EvaluatorDeps {
 	signal?: AbortSignal;
 }
 
+/**
+ * What an evaluator's labels *mean* (WP61, `50-DOMAIN-METRICS.md` §4.1):
+ * with `confusion`, four of its label values are the four cells of a
+ * confusion matrix, and a campaign can fold precision, recall, F1 and the
+ * false-positive rate from them. An evaluator with no semantics gets label
+ * counts and `label-rate` gates, never a matrix. Optional, additive.
+ */
+export interface ConfusionLabelSemantics {
+	kind: 'confusion';
+	truePositive: string;
+	falsePositive: string;
+	trueNegative: string;
+	falseNegative: string;
+}
+export type LabelSemantics = ConfusionLabelSemantics;
+
 export interface Evaluator {
 	/** Qualified like every other pack contribution: `starter/testbench/no-secrets-out-loud`, `evals/judge/rubric`. */
 	id: string;
@@ -90,6 +106,8 @@ export interface Evaluator {
 	 * run, and `checkEvaluator` proves a planted truth never reaches a result.
 	 */
 	reads?: EvaluatorReads[];
+	/** What this evaluator's `label` values mean, when they are the cells of a matrix (WP61). */
+	labelSemantics?: LabelSemantics;
 	evaluate(input: EvaluationInput, deps: EvaluatorDeps): Promise<EvaluationResult>;
 	/** The canned stand-in every non-deterministic evaluator must provide. */
 	createOffline?(): Pick<Evaluator, 'evaluate'>;
@@ -104,5 +122,20 @@ export function describeEvaluatorProblems(evaluator: Evaluator): string[] {
 	if (typeof evaluator.evaluate !== 'function') problems.push('has no evaluate()');
 	if (evaluator.kind !== 'deterministic' && typeof evaluator.createOffline !== 'function')
 		problems.push(`is ${evaluator.kind} but has no createOffline()`);
+	const semantics = evaluator.labelSemantics;
+	if (semantics) {
+		const labels = [
+			semantics.truePositive,
+			semantics.falsePositive,
+			semantics.trueNegative,
+			semantics.falseNegative
+		];
+		if (semantics.kind !== 'confusion')
+			problems.push(`has an unknown labelSemantics kind "${String(semantics.kind)}"`);
+		if (labels.some((label) => typeof label !== 'string' || label.length === 0))
+			problems.push('has labelSemantics with an empty label');
+		if (new Set(labels).size !== labels.length)
+			problems.push('has labelSemantics whose four labels are not distinct');
+	}
 	return problems;
 }
