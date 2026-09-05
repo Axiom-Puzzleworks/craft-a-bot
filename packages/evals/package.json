@@ -15,7 +15,6 @@
 		"build": "tsc -p tsconfig.build.json",
 		"test": "vitest run --coverage",
 		"check": "tsc --noEmit",
-		"evals": "tsc -p tsconfig.build.json && node dist/main.js",
 		"campaign:baseline": "tsc -p tsconfig.build.json && node dist/write-baseline-campaign-main.js"
 	},
 	"dependencies": {

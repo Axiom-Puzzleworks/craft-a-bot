@@ -39,7 +39,7 @@ describe('registered content ids', () => {
 		check((starterPack.goalCards ?? []).map((card) => card.id));
 		check((starterPack.worlds ?? []).map((world) => world.id));
 		check((starterPack.bricks ?? []).map((brick) => brick.id));
-		check((starterPack.guardrails ?? []).map((guardrail) => guardrail.id));
+		check((starterPack.policyCards ?? []).map((card) => card.id));
 
 		expect(unqualified).toEqual([]);
 	});

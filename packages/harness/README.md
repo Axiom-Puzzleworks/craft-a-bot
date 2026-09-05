@@ -17,6 +17,8 @@ npm run craftabot -- campaign --file campaigns/injection-baseline.json --strict 
 
 A campaign (`docs/design-day2/28-CAMPAIGNS.md`) is scenarios × builds × guards × brains × seeds with gates — a guardrail regression suite as a file. `craftabot campaign` runs one and writes `<reportId>.campaign-report.json` plus the renderings you name (markdown for a person, JUnit for CI, SARIF for code scanning), and keeps every cell's run under `--out/runs` so a failed gate's run ids open with `bundle`. `--strict` exits 1 on any failed gate; that is what CI runs on `campaigns/injection-baseline.json`. A live brain needs the campaign's own `budget` and its provider's credential.
 
+`craftabot campaign --matrix scripted|expert [--out dir] [--record] [--strict]` is the one thing a campaign file does not do — an ad-hoc matrix with no gates, scored and diffed against a baseline in `--out` — and is what `npm run evals` now runs (WP56; it replaced `@craftabot/evals`' own CLI, which duplicated this host). The committed baselines live in `packages/evals/baselines/`; `--record` rewrites one, summaries only.
+
 ## What a run writes
 
 One directory per run under `--out` (default `./runs`, gitignored):

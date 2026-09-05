@@ -151,6 +151,8 @@ export interface GuardrailService {
 
 **Registration.** `PackManifest.guardrailServices?: GuardrailService[]` (validated as data: id qualified with the pack id, `hooks` non-empty, `configSchema` present, both factories functions). `PackRegistry.getGuardrailService(id)` / `listGuardrailServices()`. `BrickRuntimeContext.getGuardrailService(id)` and `BrickValidationContext.hasGuardrailService(id)` — the `getPolicyCard`/`hasPolicyCard` pair again, for the same reason: the generic brick must resolve the service at `createRuntime`, and must refuse at `validate` when the id names nothing. `PackManifest.guardrails` and `getGuardrail` are marked `@deprecated` with a pointer here; removal is WP52's if nothing has adopted it by then.
 
+> **Amended 2026-09-05 (WP56 stage B):** WP52 did not remove them; WP56 did, with `@craftabot/core`'s major bump to `1.0.0` (`14-…` §7, `docs/migrations.md`). The registry now refuses a manifest carrying the key, naming the three lanes above.
+
 ### 4.4 The shell (governance, stage C)
 
 `packages/governance/src/hosted/`:

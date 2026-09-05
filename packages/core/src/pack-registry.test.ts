@@ -236,34 +236,19 @@ describe('PackRegistry', () => {
 		expect(registry.listPolicyCards()).toHaveLength(1);
 	});
 
-	it('registers guardrails a pack contributes, without any engine change (08 §7.3)', () => {
+	it('refuses the guardrails lane removed at core 1.0.0, naming where guardrails go now (WP56, 14 §7)', () => {
 		const registry = createPackRegistry();
-		registry.registerPack({
-			id: 'test-guardrails',
-			name: 'Test guardrails',
+		// The lane is no longer on the type; an old pack reaches the registry as data.
+		const oldPack = {
+			id: 'test-old-guardrails',
+			name: 'Test old guardrails',
 			version: '1.0.0',
 			requiresCore: '>=0.0.1',
-			guardrails: [
-				{
-					id: 'test/always-allow',
-					name: 'Always Allow',
-					description: 'A do-nothing guardrail, proving packs can contribute them.',
-					hooks: ['pre-act'],
-					create: () => ({
-						id: 'test/always-allow',
-						name: 'Always Allow',
-						description: 'A do-nothing guardrail.',
-						hooks: ['pre-act'],
-						check: () => ({ allow: true })
-					})
-				}
-			]
-		});
-
-		const definition = registry.getGuardrail('test/always-allow');
-		expect(definition?.name).toBe('Always Allow');
-		expect(definition?.create().check({} as never)).toEqual({ allow: true });
-		expect(registry.getGuardrail('test/nope')).toBeUndefined();
+			guardrails: []
+		} as unknown as PackManifest;
+		expect(() => registry.registerPack(oldPack)).toThrow(/"guardrails" lane/);
+		expect(() => registry.registerPack(oldPack)).toThrow(/contributeGuardrails/);
+		expect(registry.listPacks()).toHaveLength(0);
 	});
 
 	it('registers providers a pack contributes (06-… §8, WP26)', () => {
