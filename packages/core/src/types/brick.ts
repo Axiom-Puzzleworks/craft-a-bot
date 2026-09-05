@@ -3,6 +3,7 @@ import type { BuildProblem } from '../schemas/build-problem.js';
 import type { PolicyCard } from '../schemas/policy-card.js';
 import type { AssertionCard } from '../schemas/assertion-card.js';
 import type { Evaluator } from './evaluator.js';
+import type { ServiceLine } from './service-line.js';
 import type { EgressDeclaration, GuardrailService } from './guardrail-service.js';
 import type { Guardrail } from './guardrail.js';
 import type { KeyCheck } from './provider.js';
@@ -344,6 +345,13 @@ export interface BrickRuntimeContext {
 	 */
 	getEvaluator?(id: string): Evaluator | undefined;
 	getAssertionCard?(id: string): AssertionCard | undefined;
+	/**
+	 * A registered service line (`47-SERVICE-LINES.md` §4.1, WP58), by
+	 * qualified id — what the Connector brick resolves to offer a line's
+	 * operations and blocklist the ones its scopes do not name. Optional so
+	 * a host that predates the contract still builds every brick.
+	 */
+	getServiceLine?(id: string): ServiceLine | undefined;
 }
 
 /**
@@ -371,6 +379,8 @@ export interface BrickValidationContext {
 	hasCredential(id: string): boolean;
 	/** Whether a hosted guardrail service id (`29-…` §4.3, WP39) is one an installed pack registered. */
 	hasGuardrailService(id: string): boolean;
+	/** The service line an id names (`47-…` §4.1, WP58), so a Connector can check its scopes against the line's operations. Optional for hosts that predate it. */
+	getServiceLine?(id: string): ServiceLine | undefined;
 	/** Whether an evaluator or assertion card id (WP43) is one an installed pack registered. Optional as above. */
 	hasEvaluator?(id: string): boolean;
 }
@@ -409,7 +419,9 @@ export type ControlSource =
 	| 'cartridges'
 	| 'policyCards'
 	/** Registered hosted guardrail services (`29-GUARD-SHELL.md` §4.6, WP39) — what the generic Guard brick picks from. */
-	| 'guardrailServices';
+	| 'guardrailServices'
+	/** Registered service lines (`47-SERVICE-LINES.md` §4.1, WP58) — what the Connector brick's `serviceId` picks from. */
+	| 'serviceLines';
 
 /**
  * How one config field should be offered to a builder.

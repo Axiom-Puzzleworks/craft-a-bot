@@ -1,4 +1,6 @@
 import {
+	serviceLineToolId,
+	type ServiceLine,
 	actionsBrickSchema,
 	llmBrickSchema,
 	memoryBrickSchema,
@@ -22,7 +24,7 @@ import { starterBricks } from './bricks.js';
 import { connectorStrings, ifThenStrings, librarianStrings, plannerStrings } from './strings.js';
 import { BOOKS, type BookId } from './world/bookshelf.js';
 import { qualifyPlayroomId } from './world/playroom.js';
-import { OPERATIONS, SERVICES, operationsFor, type ServiceId } from './world/services.js';
+import { weatherLine } from './world/service-lines.js';
 
 /**
  * **The six V1 bricks, ported onto the open contract** (`14-…` §2, WP14).
@@ -459,8 +461,6 @@ const librarianBrickKind: BrickKindDefinition<LibrarianBrickConfig> = {
 	})
 };
 
-const SERVICE_IDS = SERVICES.map((service) => service.id);
-
 const connectorConfigSchema = z.object({
 	/** Empty means "brick fitted, no line chosen yet" — the same normal, saveable half-built state `llmBrickSchema`'s own empty `cartridgeId` is. */
 	serviceId: z.string().default(''),
@@ -505,19 +505,26 @@ const connectorBrickKind: BrickKindDefinition<ConnectorBrickConfig> = {
 	configSchema: connectorConfigSchema,
 	configVersion: 1,
 	defaults: { serviceId: '', scopes: [] },
+	// The line picker lists every registered line (WP58, `47-…` §4.1); scopes stay an id list (§8).
+	controlHints: { serviceId: { control: 'choice', source: 'serviceLines' } },
 	describeFitted: (config) => {
-		const service = SERVICES.find((candidate) => candidate.id === config.serviceId);
+		// No context here (`47-…` §8): the starter names its own line; another
+		// pack's shows by its id.
+		const line = lineFor(config.serviceId, undefined);
 		const scopeNames = config.scopes
-			.map(
-				(scopeId) =>
-					OPERATIONS.find((op) => op.service === config.serviceId && op.id === scopeId)?.name
-			)
+			.map((scopeId) => line?.operations.find((op) => op.id === scopeId)?.name ?? scopeId)
 			.filter((name): name is string => name !== undefined);
-		return connectorStrings.describeFitted(service?.name, scopeNames);
+		return connectorStrings.describeFitted(
+			line?.name ?? (config.serviceId === '' ? undefined : config.serviceId),
+			scopeNames
+		);
 	},
-	validateConfig: (config) => {
+	validateConfig: (config, ctx) => {
 		if (config.serviceId === '') return [];
-		if (!(SERVICE_IDS as string[]).includes(config.serviceId)) {
+		// A line from any installed pack (WP58, `47-…` §4.1): the registry's, or
+		// — on a host that predates the contract — the starter's own.
+		const line = lineFor(config.serviceId, ctx?.getServiceLine);
+		if (!line) {
 			const problem: BrickConfigProblem = {
 				code: 'unknown-service',
 				severity: 'warning',
@@ -526,7 +533,7 @@ const connectorBrickKind: BrickKindDefinition<ConnectorBrickConfig> = {
 			};
 			return [problem];
 		}
-		const known = new Set(operationsFor(config.serviceId as ServiceId).map((op) => op.id));
+		const known = new Set(line.operations.map((op) => op.id));
 		return config.scopes
 			.filter((scopeId) => !known.has(scopeId))
 			.map((scopeId): BrickConfigProblem => ({
@@ -536,25 +543,46 @@ const connectorBrickKind: BrickKindDefinition<ConnectorBrickConfig> = {
 				details: { scopeId, serviceId: config.serviceId }
 			}));
 	},
-	createRuntime: (config) => ({
-		contributeCalls: () => ({
-			toolIds:
-				config.serviceId === ''
-					? []
-					: operationsFor(config.serviceId as ServiceId).map(
-							(op) => `starter/connector_${op.service}_${op.id}`
-						)
-		}),
-		contributeGuardrails: () => {
-			if (config.serviceId === '') return [];
-			const blocked = operationsFor(config.serviceId as ServiceId)
-				.filter((op) => !config.scopes.includes(op.id))
-				.map((op) => `starter/connector_${op.service}_${op.id}`);
-			if (blocked.length === 0) return [];
-			return [createToolBlocklistGuardrail(blocked)];
-		}
-	})
+	createRuntime: (config, ctx) => {
+		const line =
+			config.serviceId === '' ? undefined : lineFor(config.serviceId, ctx.getServiceLine);
+		const packId = line ? packIdOf(line.id) : 'starter';
+		const toolIds = line
+			? line.operations.map((op) => serviceLineToolId(packId, line.id, op.id))
+			: [];
+		return {
+			contributeCalls: () => ({ toolIds }),
+			contributeGuardrails: () => {
+				if (!line) return [];
+				const blocked = line.operations
+					.filter((op) => !config.scopes.includes(op.id))
+					.map((op) => serviceLineToolId(packId, line.id, op.id));
+				if (blocked.length === 0) return [];
+				return [createToolBlocklistGuardrail(blocked)];
+			}
+		};
+	}
 };
+
+/**
+ * The line a Connector's `serviceId` names (WP58): a bare `weather` is the
+ * starter's own `starter/weather` — the id every kit written since WP32
+ * carries — and a qualified id is any installed pack's, through the
+ * registry when the host offers it.
+ */
+function lineFor(
+	serviceId: string,
+	getServiceLine: ((id: string) => ServiceLine | undefined) | undefined
+): ServiceLine | undefined {
+	const qualified = serviceId.includes('/') ? serviceId : `starter/${serviceId}`;
+	return getServiceLine?.(qualified) ?? (qualified === weatherLine.id ? weatherLine : undefined);
+}
+
+/** `fs-bank/crm` → `fs-bank`; a line's tools carry its pack's id. */
+function packIdOf(lineId: string): string {
+	const slash = lineId.lastIndexOf('/');
+	return slash === -1 ? 'starter' : lineId.slice(0, slash);
+}
 
 /**
  * Re-qualifies whatever bare, pre-qualification ids a v1 config carries —

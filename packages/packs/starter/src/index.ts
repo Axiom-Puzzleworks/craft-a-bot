@@ -6,6 +6,7 @@ import { starterBricks } from './bricks.js';
 import { starterGoalCards } from './goal-cards.js';
 import { starterPolicyCards } from './policy-cards.js';
 import { starterTools } from './tools/index.js';
+import { starterServiceLines } from './world/service-lines.js';
 import { playroom } from './world/playroom.js';
 
 /**
@@ -23,6 +24,7 @@ export const starterPack: PackManifest = {
 	worlds: [playroom],
 	goalCards: starterGoalCards,
 	tools: starterTools,
+	serviceLines: starterServiceLines,
 	policyCards: starterPolicyCards,
 	/** Assertion cards (WP43, `31-EVALUATORS.md` §4.2) — the Test Bench reads them from the registry. */
 	assertionCards: starterAssertionCards,

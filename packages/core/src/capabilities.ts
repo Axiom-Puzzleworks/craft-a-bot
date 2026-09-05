@@ -111,6 +111,7 @@ export function capabilitiesOf(
 			getEvaluator: (id) => registry.getEvaluator(id),
 			getAssertionCard: (id) => registry.getAssertionCard(id),
 			getAction: (id) => registry.getAction(id),
+			getServiceLine: (id) => registry.getServiceLine(id),
 			fetch: () => Promise.reject(new Error('fetch is not available while reading capabilities')),
 			getCredential: () => undefined
 		}

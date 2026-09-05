@@ -1,5 +1,7 @@
 import type { ToolContext } from '@craftabot/core';
+import { createPackRegistry } from '@craftabot/core';
 import { describe, expect, it } from 'vitest';
+import starterPack from '../index.js';
 import {
 	calculator,
 	checkOffStep,
@@ -24,7 +26,7 @@ function context(overrides: Partial<ToolContext> = {}): ToolContext {
 }
 
 describe('the starter tool set', () => {
-	it('ships the five V1 tools plus the Planner brick’s own two (WP30 stage B), the Librarian’s own per-book two (WP32 stage A), and the Connector’s own per-operation two (WP32 stage B), all namespaced with JSON schemas', () => {
+	it('ships the five V1 tools plus the Planner brick’s own two (WP30 stage B) and the Librarian’s own per-book two (WP32 stage A), all namespaced with JSON schemas; the Connector’s per-operation two come from the registry (WP58)', () => {
 		expect(starterTools.map((tool) => tool.id)).toEqual([
 			'starter/calculator',
 			'starter/dice',
@@ -34,14 +36,25 @@ describe('the starter tool set', () => {
 			'starter/make_plan',
 			'starter/check_off_step',
 			'starter/library_games',
-			'starter/library_history',
-			'starter/connector_weather_forecast',
-			'starter/connector_weather_alert'
+			'starter/library_history'
 		]);
-		for (const tool of starterTools) {
+		for (const tool of [...starterTools, ...connectorTools]) {
 			expect(tool.parameters, tool.id).toMatchObject({ type: 'object' });
 			expect(tool.description.length, tool.id).toBeGreaterThan(0);
 		}
+		// The Weather Line's operations are the same two tools, under the same ids, synthesised at registerPack.
+		const registry = createPackRegistry();
+		registry.registerPack(starterPack);
+		expect(registry.listTools().map((tool) => tool.id)).toEqual(
+			expect.arrayContaining([
+				'starter/connector_weather_forecast',
+				'starter/connector_weather_alert'
+			])
+		);
+		expect(registry.getServiceLine('starter/weather')?.operations.map((op) => op.id)).toEqual([
+			'forecast',
+			'alert'
+		]);
 	});
 
 	it('marks only the notebook tools as needing the notebook', () => {

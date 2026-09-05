@@ -2675,3 +2675,40 @@ describe('resume', () => {
 		expect(seen.filter((type) => type === 'run.started')).toHaveLength(1);
 	});
 });
+
+describe('a service line’s miss on the trace (WP58, `47-…` §4.1)', () => {
+	it('emits an error with the tool result’s kind beside the failed tool.executed', async () => {
+		const registry = buildRegistry();
+		registry.registerPack({
+			id: 'acme',
+			name: 'Acme',
+			version: '1.0.0',
+			requiresCore: '>=0.0.1',
+			serviceLines: [
+				{
+					id: 'acme/void',
+					name: 'the void',
+					description: 'A line with no simulation and no recording.',
+					operations: [{ id: 'ping', name: 'Ping', description: 'Ping.', riskTier: 'observe' }]
+				}
+			]
+		});
+		const clock = createTestClock();
+		const session = createSession({
+			spec: buildSpec({ tools: { enabled: ['acme/connector_void_ping'] } }),
+			registry,
+			provider: createMockProvider({ script: [turn('Pinging the void.', 'connector_void_ping')] }),
+			guardrails: [],
+			options: { now: clock.now, newId: clock.newId, random: clock.random }
+		});
+		const log: EngineEvent[] = [];
+		session.events.onAny((event) => log.push(event));
+		session.start('step');
+		await session.step();
+		const executed = log.find((event) => event.type === 'tool.executed');
+		expect(executed?.payload).toMatchObject({ name: 'connector_void_ping' });
+		const error = log.find((event) => event.type === 'error');
+		expect(error?.payload).toMatchObject({ kind: 'cassette-miss' });
+		expect(log.indexOf(error!)).toBeGreaterThan(log.indexOf(executed!));
+	});
+});

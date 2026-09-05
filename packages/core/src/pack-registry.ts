@@ -19,6 +19,8 @@ import { LOCAL_PACK_ID, isLocalId } from './schemas/content.js';
 import type { ScenarioDefinition } from './schemas/scenario.js';
 import type { ProviderFactory } from './types/provider.js';
 import type { ToolDefinition } from './types/tool.js';
+import type { ServiceLine } from './types/service-line.js';
+import { serviceLineTools } from './service-line-tools.js';
 import type {
 	WorldActionDefinition,
 	WorldDefinition,
@@ -55,6 +57,8 @@ export interface PackRegistry {
 	getGuardrailService(id: string): GuardrailService | undefined;
 	/** An evaluator (`31-EVALUATORS.md` §4.1, WP43), by qualified id. */
 	getEvaluator(id: string): Evaluator | undefined;
+	/** A service line (`47-SERVICE-LINES.md` §4.1, WP58), by qualified id. */
+	getServiceLine(id: string): ServiceLine | undefined;
 	/** An assertion card a pack shipped (WP43), by qualified id. */
 	getAssertionCard(id: string): AssertionCard | undefined;
 	/** A scenario (`32-SCENARIOS.md` §4.1, WP44), by qualified id. */
@@ -75,6 +79,7 @@ export interface PackRegistry {
 	listPolicyCards(): PolicyCard[];
 	listGuardrailServices(): GuardrailService[];
 	listEvaluators(): Evaluator[];
+	listServiceLines(): ServiceLine[];
 	listAssertionCards(): AssertionCard[];
 	listScenarios(): ScenarioDefinition[];
 	listProviderFactories(): ProviderFactory[];
@@ -92,6 +97,7 @@ export function createPackRegistry(): PackRegistry {
 	const policyCards = new Map<string, PolicyCard>();
 	const guardrailServices = new Map<string, GuardrailService>();
 	const evaluators = new Map<string, Evaluator>();
+	const serviceLines = new Map<string, ServiceLine>();
 	const assertionCards = new Map<string, AssertionCard>();
 	const scenarios = new Map<string, ScenarioDefinition>();
 	const providers = new Map<string, ProviderFactory>();
@@ -186,6 +192,12 @@ export function createPackRegistry(): PackRegistry {
 			}
 			insertUnique(evaluators, evaluator.id, evaluator, 'evaluator');
 		}
+		for (const line of manifest.serviceLines ?? []) {
+			insertUnique(serviceLines, line.id, line, 'service line');
+			// The line's operations as the tools the session offers (WP58, `47-…` §4.1).
+			for (const tool of serviceLineTools(manifest.id, line))
+				insertUnique(tools, tool.id, tool, 'tool');
+		}
 		for (const card of manifest.assertionCards ?? [])
 			insertUnique(assertionCards, card.id, card, 'assertion card');
 		for (const scenario of manifest.scenarios ?? [])
@@ -252,6 +264,7 @@ export function createPackRegistry(): PackRegistry {
 		getPolicyCard: (id) => policyCards.get(id),
 		getGuardrailService: (id) => guardrailServices.get(id),
 		getEvaluator: (id) => evaluators.get(id),
+		getServiceLine: (id) => serviceLines.get(id),
 		getAssertionCard: (id) => assertionCards.get(id),
 		getScenario: (id) => scenarios.get(id),
 		getProviderFactory: (id) => providers.get(id),
@@ -263,6 +276,7 @@ export function createPackRegistry(): PackRegistry {
 		listPolicyCards: () => [...policyCards.values()],
 		listGuardrailServices: () => [...guardrailServices.values()],
 		listEvaluators: () => [...evaluators.values()],
+		listServiceLines: () => [...serviceLines.values()],
 		listAssertionCards: () => [...assertionCards.values()],
 		listScenarios: () => [...scenarios.values()],
 		listProviderFactories: () => [...providers.values()]

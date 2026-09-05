@@ -1,7 +1,6 @@
 import type { ToolDefinition } from '@craftabot/core';
 import { calculator } from './calculator.js';
 import { checkOffStep } from './check-off-step.js';
-import { connectorTools } from './connector.js';
 import { dice } from './dice.js';
 import { libraryTools } from './library.js';
 import { lookUpManual } from './look-up-manual.js';
@@ -23,8 +22,9 @@ export const starterTools: ToolDefinition[] = [
 	lookUpManual,
 	makePlan,
 	checkOffStep,
-	...libraryTools,
-	...connectorTools
+	...libraryTools
+	// The Connector's per-operation tools are synthesised by the registry from
+	// the Weather Line (WP58, `47-…` §4.1) — `serviceLines` on the manifest.
 ];
 
 export { calculator } from './calculator.js';

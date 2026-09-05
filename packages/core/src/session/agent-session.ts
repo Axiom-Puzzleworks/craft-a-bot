@@ -174,6 +174,8 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			getEvaluator: (id) => registry.getEvaluator(id),
 			getAssertionCard: (id) => registry.getAssertionCard(id),
 			getAction: (id) => registry.getAction(id),
+			/* istanbul ignore next -- a forwarding lambda; the Connector brick in pack-starter is its caller */
+			getServiceLine: (id) => registry.getServiceLine(id),
 			fetch: fetchImpl,
 			getCredential
 		}
@@ -648,6 +650,11 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 				...(result.data !== undefined ? { data: result.data } : {}),
 				durationMs: Math.max(0, Date.now() - started)
 			});
+			// A failure with a named kind is on the trace as an error too (WP58,
+			// `47-…` §4.1): a cassette miss reads like an egress refusal.
+			if (!result.ok && result.errorKind !== undefined) {
+				emit('error', { message: result.output, kind: result.errorKind });
+			}
 			return { summary: `used the ${call.name} tool`, result: result.output, ok: result.ok };
 		}
 
