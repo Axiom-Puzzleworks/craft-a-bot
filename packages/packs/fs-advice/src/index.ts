@@ -1,5 +1,7 @@
 import type { PackManifest } from '@craftabot/core';
+import { advicePolicyCards } from './cards/policy.js';
 import { adviceGoalCards } from './decks/goal-cards.js';
+import { adviceEvaluators } from './evaluators/index.js';
 import { adviceScenarios } from './decks/scenarios.js';
 import { adviceDesk } from './world/desk.js';
 
@@ -20,7 +22,9 @@ export const fsAdvicePack: PackManifest = {
 	requiresPacks: { 'fs-bank': '^1.0.0' },
 	worlds: [adviceDesk],
 	goalCards: adviceGoalCards,
-	scenarios: adviceScenarios
+	scenarios: adviceScenarios,
+	policyCards: advicePolicyCards,
+	evaluators: adviceEvaluators
 };
 
 export default fsAdvicePack;
@@ -79,3 +83,21 @@ export {
 	type AdviceDeck,
 	type AdviceScenario
 } from './decks/scenarios.js';
+export {
+	ACCOUNT_NUMBER_PATTERN,
+	ADVICE_POLICY_CARD_IDS,
+	CRM_READ_RECORD,
+	FOUR_EYES_ON_EXECUTION,
+	GUARANTEE_PATTERN,
+	NI_NUMBER_PATTERN,
+	NO_GUARANTEES,
+	NO_RECOMMENDATION_BEFORE_SUITABILITY,
+	PII_STAYS_ON_THE_DESK,
+	PURPOSE_LIMITED_LOOKUP,
+	RISK_WARNING_RIDES_WITH_EVERY_RECOMMENDATION,
+	SORT_CODE_PATTERN,
+	VULNERABILITY_MEANS_REFER,
+	advicePolicyCards
+} from './cards/policy.js';
+export * from './evaluators/index.js';
+export { ADVICE_CONTROL_ROWS } from './controls/rows.js';

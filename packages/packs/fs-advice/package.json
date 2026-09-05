@@ -23,6 +23,7 @@
 	"dependencies": {
 		"@craftabot/core": "*",
 		"@craftabot/desk": "*",
+		"@craftabot/governance": "*",
 		"@craftabot/pack-evaluators": "*",
 		"@craftabot/pack-fs-bank": "*",
 		"zod": "^4.4.3"

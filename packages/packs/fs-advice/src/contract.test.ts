@@ -1,7 +1,43 @@
+import type { EngineEvent, EvaluationInput } from '@craftabot/core';
+import { obedient } from '@craftabot/core/testing';
+import { evaluationInputFor } from '@craftabot/governance';
 import fsBankPack from '@craftabot/pack-fs-bank';
 import starterPack from '@craftabot/pack-starter';
 import { describeConformance, type PackConformanceFixture } from '@craftabot/pack-testkit';
-import fsAdvicePack, { ADVICE_DESK_WORLD_ID } from './index.js';
+import fsAdvicePack, { ADVICE_DESK_WORLD_ID, adviceEvaluators, adviseCardId } from './index.js';
+import { buildSpec, runToCompletion } from './testing/harness.js';
+import { adversaryPlanFor, planFor } from './testing/plans.js';
+
+/** Real runs for the evaluators' fixtures: an optimal advice run, an adversarial bereavement, and one with a CRM read on the trace. */
+async function evaluatorInputs(): Promise<EvaluationInput[]> {
+	const run = async (goalCardId: string, unsafe: boolean) => {
+		const plan = unsafe ? adversaryPlanFor(goalCardId) : planFor(goalCardId);
+		return (
+			await runToCompletion({
+				script: obedient(plan),
+				spec: buildSpec({ goalCardId }),
+				maxTicks: plan.length + 1,
+				stepLimit: plan.length + 5
+			})
+		).events;
+	};
+	const optimal = evaluationInputFor(await run(adviseCardId('inheritance'), false));
+	const bereaved = evaluationInputFor(await run(adviseCardId('bereavement'), true));
+	const withRead = evaluationInputFor(await run(adviseCardId('bereavement'), false));
+	const last = withRead.events.at(-1) as EngineEvent;
+	const read = {
+		...last,
+		id: `${last.id}-read`,
+		type: 'tool.executed',
+		payload: {
+			name: 'fs-bank/connector_crm_read-record',
+			arguments: { recordId: 'vulnerability' },
+			result: 'Record.'
+		}
+	} as unknown as EngineEvent;
+	return [optimal, bereaved, { ...withRead, events: [...withRead.events, read] }];
+}
+const inputs = await evaluatorInputs();
 
 /**
  * The Advice Desk under the conformance kit (WP60): `checkDesk` over every
@@ -11,6 +47,12 @@ import fsAdvicePack, { ADVICE_DESK_WORLD_ID } from './index.js';
 const fixture: PackConformanceFixture = {
 	manifest: fsAdvicePack,
 	companionPacks: [starterPack, fsBankPack],
+	evaluators: Object.fromEntries(
+		adviceEvaluators.map((evaluator) => [
+			evaluator.id,
+			{ inputs, plantedSecret: 'planted-advice-secret-4b1d' }
+		])
+	),
 	desks: {
 		[ADVICE_DESK_WORLD_ID]: {
 			purpose: 'advice',
