@@ -42,6 +42,11 @@ import { checkWorld } from './world.js';
  *   fixture script. A desk with no `truth` passes trivially.
  * - `desk.truth-not-in-snapshot` (WP54): the snapshot never carries such a
  *   value either — truth lives beside the state, never in it.
+ * - `desk.counterpart-script` (WP55, `46-COUNTERPARTS.md` §4.2): every
+ *   counterpart script the definition carries has a non-empty `fallback`,
+ *   rule ids unique within it, a trigger kind from the five, pressures in
+ *   0..1 and valid patterns. Mirrors `describeScriptProblems` in `desk`
+ *   (the kit is `core`-only).
  *
  * Runs `checkWorld` first when the fixture carries scripts, so a desk is a
  * conforming world before it is a conforming desk.
@@ -113,8 +118,85 @@ export function checkDesk(
 
 	checkPurity(world, layoutIds, scripts, issues);
 	checkTruth(world, layoutIds, scripts, issues);
+	checkScripts(world, issues);
 
 	return issues;
+}
+
+const TRIGGER_KINDS = new Set([
+	'agent-says-matches',
+	'agent-asks',
+	'action-performed',
+	'tick-at-least',
+	'always'
+]);
+
+type ScriptShape = {
+	name?: unknown;
+	fallback?: unknown;
+	rules?: Array<{ id?: unknown; when?: { kind?: unknown; pattern?: unknown }; pressure?: unknown }>;
+};
+
+/** Every script a `createDeskWorld` definition carries: the default, the library, and each layout's default-seed case. */
+function scriptsOf(world: WorldDefinition): ScriptShape[] {
+	const spec = (world as { spec?: Record<string, unknown> }).spec;
+	if (!spec) return [];
+	const found: ScriptShape[] = [];
+	if (spec['counterpart']) found.push(spec['counterpart'] as ScriptShape);
+	const library = spec['counterparts'];
+	if (library && typeof library === 'object') {
+		for (const script of Object.values(library as Record<string, unknown>)) {
+			found.push(script as ScriptShape);
+		}
+	}
+	return found;
+}
+
+function checkScripts(world: WorldDefinition, issues: ConformanceIssue[]): void {
+	for (const script of scriptsOf(world)) {
+		const name = typeof script.name === 'string' ? script.name : '(unnamed)';
+		if (typeof script.fallback !== 'string' || script.fallback.trim() === '') {
+			issues.push({
+				check: 'desk.counterpart-script',
+				message: `script "${name}" has no fallback — a counterpart must always have something to say`
+			});
+		}
+		const seen = new Set<unknown>();
+		for (const rule of script.rules ?? []) {
+			if (seen.has(rule.id)) {
+				issues.push({
+					check: 'desk.counterpart-script',
+					message: `script "${name}" repeats rule id "${String(rule.id)}"`
+				});
+			}
+			seen.add(rule.id);
+			if (!TRIGGER_KINDS.has(String(rule.when?.kind))) {
+				issues.push({
+					check: 'desk.counterpart-script',
+					message: `script "${name}" rule "${String(rule.id)}" has an unknown trigger kind "${String(rule.when?.kind)}"`
+				});
+			}
+			if (
+				typeof rule.pressure === 'number' &&
+				(rule.pressure < 0 || rule.pressure > 1 || Number.isNaN(rule.pressure))
+			) {
+				issues.push({
+					check: 'desk.counterpart-script',
+					message: `script "${name}" rule "${String(rule.id)}" has a pressure outside 0..1`
+				});
+			}
+			if (rule.when?.kind === 'agent-says-matches') {
+				try {
+					new RegExp(String(rule.when.pattern), 'i');
+				} catch {
+					issues.push({
+						check: 'desk.counterpart-script',
+						message: `script "${name}" rule "${String(rule.id)}" has an invalid pattern`
+					});
+				}
+			}
+		}
+	}
 }
 
 /** How many seeds the truth property runs over (`45-…` §4.3). */
@@ -316,7 +398,8 @@ const SAMPLE: Record<Injection['kind'], Injection> = {
 	heard: { kind: 'heard', text: 'A line overheard.' },
 	'manual-entry': { kind: 'manual-entry', key: 'note', text: 'A note.' },
 	'tool-result': { kind: 'tool-result', toolId: 'probe', result: { ok: true } },
-	radio: { kind: 'radio', fromName: 'Probe', channel: 'probe', text: 'A message.' }
+	radio: { kind: 'radio', fromName: 'Probe', channel: 'probe', text: 'A message.' },
+	counterpart: { kind: 'counterpart', scriptId: 'probe' }
 };
 
 function checkInjections(

@@ -139,6 +139,23 @@
 										"channel",
 										"text"
 									]
+								},
+								{
+									"type": "object",
+									"properties": {
+										"kind": {
+											"type": "string",
+											"const": "counterpart"
+										},
+										"scriptId": {
+											"type": "string",
+											"minLength": 1
+										}
+									},
+									"required": [
+										"kind",
+										"scriptId"
+									]
 								}
 							]
 						}

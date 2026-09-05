@@ -37,6 +37,8 @@ export const runtimeStrings = {
 			`${open} open, ${done} done${last ? ` — last said: ${last}` : ''}`
 	},
 	narration: {
+		counterpartEscalates: (name: string) => `${name} is asking for someone senior.`,
+		counterpartLeft: (name: string) => `${name} has ended the conversation.`,
 		said: (text: string) => `You say: "${text}"`,
 		badArguments: (action: string, problem: string) => `${action} could not run: ${problem}.`,
 		unknownAction: (name: string) => `"${name}" is not something you can do at this desk.`,

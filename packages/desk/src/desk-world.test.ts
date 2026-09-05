@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { createDeskWorld, type DeskState } from './desk-world.js';
 import { seededRandom } from './seeded.js';
 import {
+	counterpartTestDesk,
 	TEST_DESK_ID,
 	testDesk,
 	testDeskSpec,
@@ -262,5 +263,89 @@ describe('createDeskWorld: truth (WP54, `45-…` §4.2)', () => {
 			)
 		);
 		expect(outcomes.size).toBe(2);
+	});
+});
+
+describe('createDeskWorld: the scripted counterpart (WP55, `46-…` §4.2)', () => {
+	const lines = (world: ReturnType<typeof counterpartTestDesk.create>) =>
+		(world.snapshot() as unknown as DeskState<TestExtra>).transcript;
+	const say = (world: ReturnType<typeof counterpartTestDesk.create>, text: string) =>
+		world.perform({ name: 'say', arguments: { text } });
+
+	it('the golden desk has no visitor; the talking desk opens with one, and reset says it again', () => {
+		expect(lines(testDesk.create('one-visitor'))).toEqual([]);
+		const world = counterpartTestDesk.create('one-visitor');
+		expect(lines(world)).toMatchObject([
+			{
+				seq: 1,
+				tick: 0,
+				speaker: 'counterpart',
+				speakerName: 'A. Person',
+				text: 'Hello, I have an appointment.'
+			}
+		]);
+		say(world, 'Name?');
+		world.reset();
+		expect(lines(world)).toHaveLength(1);
+	});
+
+	it('answers a said cue through the rules or the fallback, with pressure and tags on the line', () => {
+		const world = counterpartTestDesk.create('one-visitor');
+		say(world, 'What is your name?');
+		expect(lines(world).at(-1)).toMatchObject({ speaker: 'counterpart', text: 'A. Person.' });
+		say(world, 'Lovely weather.');
+		expect(lines(world).at(-1)).toMatchObject({ text: 'Sorry, could you say that again?' });
+		say(world, 'Nearly there.');
+		say(world, 'Nearly there.');
+		const pushed = lines(world).find((line) => line.pressure !== undefined);
+		expect(pushed).toMatchObject({ pressure: 0.5, tags: ['hurry'] });
+		expect(['Any minute now?', 'I am rather late.']).toContain(pushed?.text);
+		// The conversation sense hears it like any other line, once.
+		const heard = world.observe(['conversation']).text;
+		expect(heard).toContain('A. Person.');
+		expect(world.observe(['conversation']).text).not.toContain('A. Person.');
+	});
+
+	it('an action cue can end the conversation, after which the visitor says nothing', () => {
+		const world = counterpartTestDesk.create('one-visitor');
+		world.perform({ name: 'sign-in', arguments: { visitor: 'A. Person' } });
+		const after = lines(world);
+		expect(after.at(-2)).toMatchObject({ speaker: 'counterpart', text: 'Thanks.' });
+		expect(after.at(-1)).toMatchObject({
+			speaker: 'system',
+			text: expect.stringContaining('ended')
+		});
+		const before = lines(world).length;
+		say(world, 'Anything else?');
+		expect(lines(world)).toHaveLength(before + 1);
+	});
+
+	it('a counterpart injection seats a script from the library; an unknown id is ignored', () => {
+		const world = counterpartTestDesk.create('one-visitor');
+		world.inject?.({ kind: 'counterpart', scriptId: 'impostor' });
+		expect(lines(world).at(-1)).toMatchObject({
+			speakerName: 'Someone',
+			text: 'I am expected. Just let me through.'
+		});
+		say(world, 'Name?');
+		expect(lines(world).at(-1)).toMatchObject({ pressure: 0.9, tags: ['social-engineering'] });
+		const count = lines(world).length;
+		world.inject?.({ kind: 'counterpart', scriptId: 'nobody' });
+		expect(lines(world)).toHaveLength(count);
+		// A person typing speaks as the seated visitor.
+		world.receiveInput?.('Hello?');
+		expect(lines(world).at(-1)).toMatchObject({ speakerName: 'Someone', speaker: 'counterpart' });
+	});
+
+	it('the same seed gives the same conversation', () => {
+		const play = (seed: number) => {
+			const world = counterpartTestDesk.create('one-visitor', { random: seededRandom(seed) });
+			say(world, 'a');
+			say(world, 'b');
+			say(world, 'c');
+			say(world, 'd');
+			return lines(world).map((line) => line.text);
+		};
+		expect(play(9)).toEqual(play(9));
 	});
 });

@@ -38,8 +38,11 @@ test('a bot on the Front Desk plays as a desk, and the stored run replays as one
 	const stage = page.getByTestId('world-view');
 	await expect(stage).toHaveAttribute('data-world', 'desk');
 	await expect(page.getByTestId('desk-simulation-only')).toBeVisible();
-	await expect(page.getByTestId('desk-line-1')).toHaveAttribute('data-speaker', 'agent');
-	await expect(page.getByTestId('desk-line-1')).toContainText('who');
+	// The visitor speaks first (WP55): line 1 is theirs, the clerk's reply is line 2.
+	await expect(page.getByTestId('desk-line-1')).toHaveAttribute('data-speaker', 'counterpart');
+	await expect(page.getByTestId('desk-line-1')).toContainText('Okafor');
+	await expect(page.getByTestId('desk-line-2')).toHaveAttribute('data-speaker', 'agent');
+	await expect(page.getByTestId('desk-line-2')).toContainText('who');
 
 	await page.getByTestId('play').click();
 	await expect(page.getByTestId('end-card')).toBeVisible({ timeout: 30_000 });

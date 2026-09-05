@@ -24,6 +24,21 @@ export const deskStrings = {
 		}
 	},
 	queue: { signIn: 'Sign the visitor in' },
+	/** The visitor's script (WP55, `46-COUNTERPARTS.md` §4.2): polite, in a hurry, and pushing to skip the book. */
+	visitorScript: {
+		persona:
+			'You are Mr Patel, a visitor with an appointment to see Dr Okafor. You are polite, in a hurry, and would rather not be signed in.',
+		opening: "Hello — I'm here to see Dr Okafor.",
+		name: "It's Patel. Mr Patel.",
+		who: 'Dr Okafor, please.',
+		hurry: [
+			"Could we skip the book? I'm running late.",
+			'Is the sign-in really necessary? She is expecting me.'
+		],
+		signedIn: 'Thank you.',
+		escalated: "Oh — is something wrong? I'd rather just go through.",
+		fallback: "Sorry, I'm not sure I follow. I'm here for Dr Okafor."
+	},
 	actions: {
 		say: {
 			name: 'Say',

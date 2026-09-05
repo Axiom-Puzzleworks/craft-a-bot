@@ -22,6 +22,13 @@ import type {
 } from '@craftabot/core';
 import { z, type ZodType } from 'zod';
 import { closest } from './closest.js';
+import {
+	advanceCounterpart,
+	freshCounterpartMemory,
+	type CounterpartCue,
+	type CounterpartMemory,
+	type CounterpartScript
+} from './counterpart.js';
 import { DEFAULT_SEED, seedFrom, seededRandom } from './seeded.js';
 import { runtimeStrings } from './strings.js';
 
@@ -67,6 +74,8 @@ export interface DeskCase<Extra = Record<string, unknown>> {
 	 * label belongs here.
 	 */
 	truth?: DeskTruth;
+	/** This case's person across the desk (WP55, `46-…` §4.2), overriding the desk's default. */
+	counterpart?: CounterpartScript;
 }
 
 /** A layout is a case generator: the same `random` stream, the same case. */
@@ -156,9 +165,18 @@ export interface DeskWorldSpec<Extra = Record<string, unknown>> {
 	predicates: Record<string, { description: string; test(state: DeskState<Extra>): boolean }>;
 	/** One line of progress per predicate, when the desk can say. */
 	progress?: Partial<Record<string, (state: DeskState<Extra>) => string | undefined>>;
-	/** Who `receiveInput` and a `heard` injection speak as. Default "Customer". */
+	/** Who `receiveInput` and a `heard` injection speak as when no script names them. Default "Customer". */
 	counterpartName?: string;
-	/** Which injection kinds this desk takes. Default: all four. A kind not listed is a no-op. */
+	/**
+	 * The desk's default visitor (WP55, `46-…` §4.2): a script advanced inside
+	 * `perform` when the agent speaks or acts, its lines in the transcript as
+	 * `speaker: 'counterpart'`. A case may override it; a scenario may pick
+	 * one from `counterparts` through the `counterpart` injection.
+	 */
+	counterpart?: CounterpartScript;
+	/** The desk's library of personas a scenario may name by id. */
+	counterparts?: Record<string, CounterpartScript>;
+	/** Which injection kinds this desk takes. Default: all five. A kind not listed is a no-op. */
 	injections?: Injection['kind'][];
 }
 
@@ -184,13 +202,17 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 	const bareOf = (name: string): string =>
 		name.startsWith(`${spec.id}/`) ? name.slice(spec.id.length + 1) : name;
 	const accepted = new Set<Injection['kind']>(
-		spec.injections ?? ['heard', 'manual-entry', 'tool-result', 'radio']
+		spec.injections ?? ['heard', 'manual-entry', 'tool-result', 'radio', 'counterpart']
 	);
 
 	function buildState(
 		layout: DeskLayoutSpec<Extra>,
 		seed: number
-	): { state: DeskState<Extra>; truth: DeskTruth | undefined } {
+	): {
+		state: DeskState<Extra>;
+		truth: DeskTruth | undefined;
+		counterpart: CounterpartScript | undefined;
+	} {
 		const generated = layout.case(seededRandom(seed));
 		const state: DeskState<Extra> = {
 			desk: { ...spec.desk },
@@ -206,7 +228,11 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 			toolOverrides: {},
 			extra: structuredClone(generated.extra ?? ({} as Extra))
 		};
-		return { state, truth: generated.truth ? structuredClone(generated.truth) : undefined };
+		return {
+			state,
+			truth: generated.truth ? structuredClone(generated.truth) : undefined,
+			counterpart: generated.counterpart ?? spec.counterpart
+		};
 	}
 
 	const actionDefinitions: WorldActionDefinition[] = spec.actions.map((action) => {
@@ -259,12 +285,52 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 		let truth = built.truth;
 		let random = seededRandom(seed ^ 0x9e3779b9);
 		let seq = 0;
+		// The person across the desk (`46-…` §4.2): the script and where it has
+		// got to, in the closure like the truth; the transcript is what shows.
+		let counterpart: { script: CounterpartScript; memory: CounterpartMemory } | undefined;
+		function seat(script: CounterpartScript | undefined): void {
+			counterpart = script ? { script, memory: freshCounterpartMemory() } : undefined;
+			if (script?.opening) line('counterpart', script.name, script.opening);
+		}
+		function speak(cue: CounterpartCue): void {
+			if (!counterpart) return;
+			const { turn, memory } = advanceCounterpart(
+				counterpart.script,
+				cue,
+				counterpart.memory,
+				state.tick,
+				random
+			);
+			counterpart.memory = memory;
+			if (!turn) return;
+			const name = counterpart.script.name;
+			if (turn.text !== undefined) {
+				line('counterpart', name, turn.text, undefined, {
+					...(turn.rule?.pressure !== undefined ? { pressure: turn.rule.pressure } : {}),
+					...(turn.rule?.tags !== undefined && turn.rule.tags.length > 0
+						? { tags: [...turn.rule.tags] }
+						: {})
+				});
+			}
+			if (turn.then === 'escalate') {
+				state.alerts.push({
+					id: `alert-${state.alerts.length + 1}`,
+					severity: 'warning',
+					text: runtimeStrings.narration.counterpartEscalates(name),
+					tick: state.tick
+				});
+			}
+			if (turn.then === 'end-conversation') {
+				line('system', runtimeStrings.systemName, runtimeStrings.narration.counterpartLeft(name));
+			}
+		}
 
 		function line(
 			speaker: DeskTranscriptSpeaker,
 			speakerName: string,
 			text: string,
-			channel?: string
+			channel?: string,
+			extras: { pressure?: number; tags?: string[] } = {}
 		): void {
 			seq += 1;
 			state.transcript.push({
@@ -273,8 +339,13 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 				speaker,
 				speakerName,
 				text,
-				...(channel !== undefined ? { channel } : {})
+				...(channel !== undefined ? { channel } : {}),
+				...extras
 			});
+		}
+
+		function counterpartName(): string {
+			return counterpart?.script.name ?? spec.counterpartName ?? runtimeStrings.counterpartName;
 		}
 
 		function releaseScheduledHeard(): void {
@@ -283,7 +354,7 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 			if (due.length === 0) return;
 			state.scheduledHeard = state.scheduledHeard.filter((entry) => entry.atTick > state.tick);
 			for (const entry of due) {
-				line('counterpart', spec.counterpartName ?? runtimeStrings.counterpartName, entry.text);
+				line('counterpart', counterpartName(), entry.text);
 			}
 		}
 
@@ -319,10 +390,7 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 					});
 				},
 				line(speaker, text, channel) {
-					const name =
-						speaker === 'system'
-							? runtimeStrings.systemName
-							: (spec.counterpartName ?? runtimeStrings.counterpartName);
+					const name = speaker === 'system' ? runtimeStrings.systemName : counterpartName();
 					line(speaker, name, text, channel);
 				}
 			};
@@ -392,15 +460,18 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 				const parsed = SAY_SCHEMA.safeParse(call.arguments ?? {});
 				if (!parsed.success) return badArguments(action.id, parsed.error);
 				line('agent', runtimeStrings.agentName, parsed.data.text);
+				const before = seq;
+				speak({ kind: 'said', text: parsed.data.text });
 				return {
 					ok: true,
 					narration: runtimeStrings.narration.said(parsed.data.text),
-					stateDiff: [{ path: 'transcript.length', from: seq - 1, to: seq }]
+					stateDiff: [{ path: 'transcript.length', from: before - 1, to: seq }]
 				};
 			}
 			const parsed = action.schema.safeParse(call.arguments ?? {});
 			if (!parsed.success) return badArguments(action.id, parsed.error);
 			const outcome = action.perform(state, parsed.data, context());
+			speak({ kind: 'acted', actionId: action.id });
 			return {
 				ok: outcome.ok,
 				narration: outcome.narration,
@@ -419,6 +490,8 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 			};
 		}
 
+		seat(built.counterpart);
+
 		return {
 			snapshot(): WorldState {
 				return structuredClone(state) as unknown as WorldState;
@@ -435,6 +508,7 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 				truth = rebuilt.truth;
 				random = seededRandom(seed ^ 0x9e3779b9);
 				seq = 0;
+				seat(rebuilt.counterpart);
 			},
 			// Present only when the case has a truth, so `'truth' in instance` is
 			// honest for a desk that keeps nothing from the bot (the golden desk).
@@ -442,7 +516,7 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 				? { truth: (): unknown => (truth ? structuredClone(truth) : undefined) }
 				: {}),
 			receiveInput(text: string): void {
-				line('counterpart', spec.counterpartName ?? runtimeStrings.counterpartName, text);
+				line('counterpart', counterpartName(), text);
 			},
 			describeProgress(predicate, channels): string | undefined {
 				// Progress is perception (`world.ts`'s own rule): only a bot that can
@@ -466,11 +540,7 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 						if (injection.atTick !== undefined && injection.atTick > state.tick) {
 							state.scheduledHeard.push({ text: injection.text, atTick: injection.atTick });
 						} else {
-							line(
-								'counterpart',
-								spec.counterpartName ?? runtimeStrings.counterpartName,
-								injection.text
-							);
+							line('counterpart', counterpartName(), injection.text);
 						}
 						break;
 					case 'manual-entry':
@@ -492,6 +562,11 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 					case 'radio':
 						line('system', injection.fromName, injection.text, injection.channel);
 						break;
+					case 'counterpart': {
+						const script = spec.counterparts?.[injection.scriptId];
+						if (script) seat(script);
+						break;
+					}
 				}
 			}
 		};

@@ -269,3 +269,46 @@ describe('checkDesk: the truth property (WP54, `45-…` §4.3)', () => {
 		expect(issues.map((i) => i.check)).toContain('desk.truth-not-in-snapshot');
 	});
 });
+
+describe('checkDesk: counterpart scripts (WP55, `46-…` §4.2)', () => {
+	const withScript = (script: unknown) => ({
+		...desk({ purpose: 'p' }),
+		spec: { counterpart: script }
+	});
+
+	it('passes a sound script and ignores a desk with none', () => {
+		const sound = {
+			name: 'V',
+			fallback: 'Sorry?',
+			rules: [{ id: 'a', when: { kind: 'agent-asks', topic: 'name' }, say: 'Me.', pressure: 0.5 }]
+		};
+		expect(checkDesk(withScript(sound)).map((i) => i.check)).not.toContain(
+			'desk.counterpart-script'
+		);
+		expect(checkDesk(desk({ purpose: 'p' })).map((i) => i.check)).not.toContain(
+			'desk.counterpart-script'
+		);
+	});
+
+	it('names a missing fallback, a repeated id, an unknown kind, a bad pressure and a bad pattern', () => {
+		const broken = {
+			name: 'B',
+			fallback: '',
+			rules: [
+				{ id: 'a', when: { kind: 'always' } },
+				{ id: 'a', when: { kind: 'sometimes' } },
+				{ id: 'b', when: { kind: 'always' }, pressure: 7 },
+				{ id: 'c', when: { kind: 'agent-says-matches', pattern: '(' } }
+			]
+		};
+		const messages = checkDesk(withScript(broken))
+			.filter((i) => i.check === 'desk.counterpart-script')
+			.map((i) => i.message);
+		expect(messages).toHaveLength(5);
+		expect(messages.join('\n')).toMatch(/no fallback/);
+		expect(messages.join('\n')).toMatch(/repeats rule id "a"/);
+		expect(messages.join('\n')).toMatch(/unknown trigger kind "sometimes"/);
+		expect(messages.join('\n')).toMatch(/pressure outside/);
+		expect(messages.join('\n')).toMatch(/invalid pattern/);
+	});
+});

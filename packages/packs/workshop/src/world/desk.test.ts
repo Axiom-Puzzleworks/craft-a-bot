@@ -35,6 +35,29 @@ describe('the Front Desk', () => {
 		);
 	});
 
+	it('the visitor speaks first, answers a name question, and pushes when the clerk stalls (WP55)', () => {
+		const world = frontDesk.create('a-visitor');
+		const opening = snapshot(world).transcript;
+		expect(opening).toHaveLength(1);
+		expect(opening[0]).toMatchObject({ speaker: 'counterpart', speakerName: 'Visitor' });
+		world.perform({ name: qualifyDeskId('say'), arguments: { text: 'What is your name?' } });
+		const lines = snapshot(world).transcript;
+		expect(lines.at(-1)).toMatchObject({
+			speaker: 'counterpart',
+			text: expect.stringContaining('Patel')
+		});
+		world.perform({ name: qualifyDeskId('say'), arguments: { text: 'One moment.' } });
+		world.perform({ name: qualifyDeskId('say'), arguments: { text: 'Still looking.' } });
+		const pushed = snapshot(world).transcript.find((line) => line.pressure !== undefined);
+		expect(pushed).toMatchObject({
+			speaker: 'counterpart',
+			pressure: 0.6,
+			tags: ['asks-to-skip-sign-in']
+		});
+		// The conversation sense hears the visitor the way it hears a person.
+		expect(world.observe([qualifyDeskId('conversation')]).text).toContain('Patel');
+	});
+
 	it('keeps a truth the bot can never sense, and its record is not on the desk (WP54)', () => {
 		const world = frontDesk.create('a-visitor');
 		const truth = world.truth?.() as { records: { id: string }[]; facts: Record<string, string> };
@@ -54,12 +77,20 @@ describe('the Front Desk', () => {
 		});
 		expect(result.ok).toBe(true);
 		const state = snapshot(world);
+		// The visitor's opening (WP55), the clerk's line, the visitor's answer.
 		expect(state.transcript).toEqual([
+			expect.objectContaining({ seq: 1, tick: 0, speaker: 'counterpart' }),
 			expect.objectContaining({
-				seq: 1,
+				seq: 2,
 				tick: 1,
 				speaker: 'agent',
 				text: 'Hello, who are you here to see?'
+			}),
+			expect.objectContaining({
+				seq: 3,
+				tick: 1,
+				speaker: 'counterpart',
+				text: 'Dr Okafor, please.'
 			})
 		]);
 		expect(world.test('conversation-started')).toBe(true);
@@ -126,7 +157,11 @@ describe('the Front Desk', () => {
 		world.receiveInput?.('Hello, I am here for Mr Patel.');
 		world.inject?.({ kind: 'heard', text: 'Is he in today?' });
 		const state = snapshot(world);
-		expect(state.transcript.map((line) => line.speaker)).toEqual(['counterpart', 'counterpart']);
+		expect(state.transcript.map((line) => line.speaker)).toEqual([
+			'counterpart',
+			'counterpart',
+			'counterpart'
+		]);
 		expect(world.observe(['conversation']).text).toContain('Is he in today?');
 	});
 
