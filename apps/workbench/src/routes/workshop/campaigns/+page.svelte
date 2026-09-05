@@ -188,11 +188,14 @@
 					if (cell.runId) collected[cell.runId] = trace;
 				}
 			});
-			traces = collected;
-			report = result;
 			const storage = await appStorage();
 			await storage.putCampaignReport(envelopeFor(result));
 			await loadStored();
+			// Shown only once stored (WP56 stage A): a verdict on screen used to
+			// be a few milliseconds ahead of the report a safety case reads, and
+			// a navigation in that gap left the screen honest and the store empty.
+			traces = collected;
+			report = result;
 		} finally {
 			running = false;
 		}

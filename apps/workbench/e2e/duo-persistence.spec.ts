@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { buildReadyBot, skipTutorial } from './support.js';
+import { buildReadyBot, skipTutorial, awaitDuoSaved } from './support.js';
 
 /**
  * **WP31 stage D** (`24-ROBOT-FRIENDS-DESIGN.md` §10): "a played duo run is
@@ -20,6 +20,7 @@ test('a live-played duo run turns up in the Workshop Run Browser and the Scrapbo
 
 	await page.getByTestId('play').click();
 	await expect(page.getByTestId('duo-finished')).toBeVisible({ timeout: 30_000 });
+	await awaitDuoSaved(page);
 
 	// The Workshop Run Browser: one new group row, newest first.
 	await page.goto('/workshop/runs');

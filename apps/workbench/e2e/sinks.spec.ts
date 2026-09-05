@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { buildAndGo, skipTutorial } from './support.js';
+import { buildAndGo, skipTutorial, awaitRunSaved } from './support.js';
 
 /**
  * **Sinks** (`35-TELEMETRY.md` §6 stage B DoD, WP47): a live Workshop run
@@ -53,6 +53,7 @@ test('a live run streams to the collector as one trace, and a stored run can be 
 	await buildAndGo(page, 'card-snack');
 	await page.getByTestId('play').click();
 	await expect(page.getByTestId('end-card')).toBeVisible({ timeout: 30_000 });
+	await awaitRunSaved(page);
 	await expect.poll(() => collected.bodies.length, { timeout: 10_000 }).toBeGreaterThan(0);
 	const names = collected.bodies.flatMap(
 		(body) => body.resourceSpans[0]?.scopeSpans[0]?.spans.map((span) => span.name) ?? []
@@ -88,6 +89,7 @@ test('a collector that starts refusing mid-run never touches the run; the sink r
 	collected.refuse = true;
 	await page.getByTestId('play').click();
 	await expect(page.getByTestId('end-card')).toBeVisible({ timeout: 30_000 });
+	await awaitRunSaved(page);
 	await expect(page.getByTestId('end-card')).not.toHaveAttribute('data-outcome', 'ERROR');
 
 	await page.goto('/workshop/sinks');

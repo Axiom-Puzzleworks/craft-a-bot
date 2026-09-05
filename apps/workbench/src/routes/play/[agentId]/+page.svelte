@@ -56,6 +56,8 @@
 	let speed = $state(preferences.tickSpeed);
 	let busy = $state(false);
 	let dismissedEndCard = $state(false);
+	/** True once `persistRun` has resolved for the current run (WP56 stage A). */
+	let runSaved = $state(false);
 	/** How many old runs the last save tidied away, so the child is told (`12-…` D15). */
 	let evicted = $state(0);
 	const evictionMessage = $derived(evictionNotice(evicted));
@@ -259,6 +261,7 @@
 	}
 
 	function beginRun(id: string): void {
+		runSaved = false;
 		if (!record || !view || !storage) return;
 		recorder = recordTrace(id, storage);
 		// The opening record. `finishedAt` is deliberately absent — a run that has
@@ -272,6 +275,7 @@
 		await recorder?.stop();
 		recorder = undefined;
 		await persistRun(view);
+		runSaved = true;
 	}
 
 	/**
@@ -287,7 +291,17 @@
 		// Events are already stored — the recorder wrote them as they happened.
 		// The run's summary is folded once, here, now that it is finished
 		// (WP36 stage C) — the Workshop's screens read it instead of the trace.
-		await persistRunSummary(storage, session.runId, session.events);
+		/*
+		 * `$state.snapshot`, for the same reason `toRunRecord` takes one (below):
+		 * `session.events` is a reactive proxy, the summary fold keeps references
+		 * into it, and IndexedDB refuses to clone a proxy. This write was
+		 * fire-and-forget until WP56 stage A awaited it and the end card waited
+		 * on it — at which point it turned out **no solo run's summary had ever
+		 * been stored from this screen**: the `DataCloneError` was an unhandled
+		 * rejection nothing looked at, and the Workshop's `ensureRunSummaries`
+		 * folded the summary on every read, so no screen ever noticed.
+		 */
+		await persistRunSummary(storage, session.runId, $state.snapshot(session.events));
 
 		/**
 		 * Eviction was silent (`12-…` D15): the cap is real and runs genuinely
@@ -585,6 +599,7 @@
 			outcome={view.outcome}
 			reason={view.finishedReason}
 			hint={endCardHint(view.outcome, view.events)?.text}
+			saved={runSaved}
 			onseeTrace={() => (dismissedEndCard = true)}
 			onbackToBench={() => goto(resolve('/bench/[agentId]', { agentId }))}
 		/>

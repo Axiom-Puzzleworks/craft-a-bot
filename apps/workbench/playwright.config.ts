@@ -17,6 +17,15 @@ export default defineConfig({
 		reuseExistingServer: false
 	},
 	testDir: 'e2e',
+	/*
+	 * One retry, in CI only (WP56 stage A, `41-…` §6.13 G36). The suite has a
+	 * class of test that opens a Workshop screen straight after a run and
+	 * reads what was persisted; those now wait on the Play route's own saved
+	 * notice rather than racing the write, and the retry is the budget for
+	 * whatever a busy runner does that a wait cannot cover. Locally it stays
+	 * at zero, so a flake is seen rather than absorbed.
+	 */
+	retries: process.env.CI ? 1 : 0,
 	use: {
 		baseURL: 'http://localhost:4173'
 	}

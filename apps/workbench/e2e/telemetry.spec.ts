@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { BRICKS, buildAndGo, buildReadyBot, skipTutorial } from './support.js';
+import { BRICKS, buildAndGo, buildReadyBot, skipTutorial, awaitRunSaved } from './support.js';
 
 /**
  * **Telemetry** (`17-…` §4.6, WP34 stage A): cross-run trends broken down by
@@ -64,6 +64,11 @@ test('counts a tripped guardrail into the mix', async ({ page }) => {
 	await expect(page.getByTestId('flight-recorder')).toContainText('Safety rule stopped it', {
 		timeout: 10_000
 	});
+	// The guardrail blocked one action; the run itself is still open. End it,
+	// so the evidence read next is a stored run rather than a race with the
+	// recorder's tick write (WP56 stage A).
+	await page.getByTestId('stop').click();
+	await awaitRunSaved(page);
 
 	await page.goto('/workshop/telemetry');
 	await expect(page.getByTestId('telemetry-mix')).toBeVisible();
