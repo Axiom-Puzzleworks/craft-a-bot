@@ -1,5 +1,6 @@
 import type { AgentSpec, EngineEvent, RunRecord } from '@craftabot/core';
 import type { EvalCell, EvalSummary } from '@craftabot/evals';
+import { SEQUENTIAL_TEAL, sequential, type RampStep } from '$lib/control-room/dataviz.js';
 
 /**
  * **The Eval Matrix's two awkward jobs** (`17-…` §4.4), kept out of the
@@ -28,33 +29,17 @@ import type { EvalCell, EvalSummary } from '@craftabot/evals';
  * cells whose own numbers were unreadable. Luminance is strictly decreasing,
  * which is the check that actually applies to a sequential ramp.
  */
-export const SUCCESS_RAMP = [
-	{ fill: '#ecf8f7', ink: true },
-	{ fill: '#c3e7e4', ink: true },
-	{ fill: '#93cbc7', ink: true },
-	{ fill: '#63a6a1', ink: true },
-	{ fill: '#356b67', ink: false },
-	{ fill: '#20514e', ink: false }
-] as const;
-
-export interface RampStep {
-	fill: string;
-	/** Whether the in-cell label is ink; cream otherwise. */
-	ink: boolean;
-}
+export const SUCCESS_RAMP = SEQUENTIAL_TEAL;
+export type { RampStep };
 
 /**
- * The step for a rate in 0…1.
- *
- * Banded rather than continuous, because a reader compares cells to each other
- * and six distinguishable steps do that better than 101 shades that all look
- * the same. The top band is exact: 100 % is the answer people look for first,
- * and it should not share a colour with 96 %.
+ * Since WP57 (`44-CONTROL-ROOM.md` §4.3) the six steps above live in the
+ * Control Room's grammar as `SEQUENTIAL_TEAL` — byte-identical — and this
+ * is the grammar's `sequential` over them. The screen keeps calling it
+ * until WP71 puts the grid on `Matrix`.
  */
 export function rampStep(rate: number): RampStep {
-	if (rate >= 1) return SUCCESS_RAMP[5];
-	const index = Math.min(SUCCESS_RAMP.length - 2, Math.floor(rate * (SUCCESS_RAMP.length - 1)));
-	return SUCCESS_RAMP[index] as RampStep;
+	return sequential(rate, SEQUENTIAL_TEAL);
 }
 
 /** The square of the grid a summary belongs to. */
