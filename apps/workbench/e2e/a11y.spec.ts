@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { buildAndGo, skipTutorial } from './support.js';
+import { awaitRunSaved, buildAndGo, buildDeskBotAndGo, skipTutorial } from './support.js';
 
 /**
  * **The accessibility audit** (`16-…` §2.7; the WP17 definition of done is
@@ -95,6 +95,31 @@ test('the Playroom has no accessibility violations, mid-run and at the end', asy
 	// The end card is a different page as far as a reader is concerned.
 	await page.getByTestId('play').click();
 	await expect(page.getByTestId('end-card')).toBeVisible({ timeout: 30_000 });
+
+	expect(describe((await audit(page)).violations)).toBe('');
+});
+
+test('the Desk has no accessibility violations, mid-run, at the end, and in the Run Lab', async ({
+	page
+}) => {
+	await buildDeskBotAndGo(page);
+	await page.getByTestId('step').click();
+	await expect(page.getByTestId('desk-line-1')).toBeVisible();
+
+	expect(describe((await audit(page)).violations)).toBe('');
+
+	await page.getByTestId('play').click();
+	await expect(page.getByTestId('end-card')).toBeVisible({ timeout: 30_000 });
+
+	expect(describe((await audit(page)).violations)).toBe('');
+	await awaitRunSaved(page);
+
+	// The Workshop's own layer over the same Desk.
+	await page.goto('/workshop/runs');
+	const row = page.locator('[data-testid^="run-row-"]').first();
+	const runId = (await row.getAttribute('data-testid'))?.replace('run-row-', '') ?? '';
+	await page.goto(`/workshop/runs/${runId}`);
+	await expect(page.getByTestId('desk-line-1')).toBeVisible();
 
 	expect(describe((await audit(page)).violations)).toBe('');
 });

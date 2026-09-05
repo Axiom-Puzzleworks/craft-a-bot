@@ -1,13 +1,8 @@
 import type { PackManifest } from '@craftabot/core';
 import { obedient } from '@craftabot/core/testing';
 import starterPack from '@craftabot/pack-starter';
-import {
-	checkWorld,
-	describeConformance,
-	type PackConformanceFixture
-} from '@craftabot/pack-testkit';
-import { describe, expect, it } from 'vitest';
-import { frontDesk, FRONT_DESK_WORLD_ID } from './world/desk.js';
+import { describeConformance, type PackConformanceFixture } from '@craftabot/pack-testkit';
+import { FRONT_DESK_WORLD_ID } from './world/desk.js';
 import { workshopGoalCards } from './goal-cards.js';
 import workshopPack from './index.js';
 import { buildSpec } from './session/harness.js';
@@ -86,20 +81,11 @@ const fixture: PackConformanceFixture = {
 	goldenTrace: {
 		spec: buildSpec({ goalCardId: 'workshop/find-the-paint-pot' }),
 		script: obedient(SCRIPTED_OPTIMAL['workshop/find-the-paint-pot'] ?? [])
-	}
-};
-
-describeConformance(fixture);
-
-/**
- * The Front Desk under the same world conformance as the room (`43-…` §4.3):
- * `describeConformance` takes one world fixture per manifest, so the second
- * world is checked directly. Its scripts reach every predicate it declares.
- */
-describe('the Front Desk conforms as a world', () => {
-	it('passes checkWorld with its scripts and illegal calls', () => {
-		const issues = checkWorld(frontDesk, {
-			worldId: FRONT_DESK_WORLD_ID,
+	},
+	// The Front Desk (WP53, `43-…` §4.8): a conforming world, then a conforming desk.
+	desks: {
+		[FRONT_DESK_WORLD_ID]: {
+			acceptedInjections: ['heard'],
 			scripts: {
 				'workshop/sign-the-visitor-in': {
 					layoutId: 'a-visitor',
@@ -120,10 +106,9 @@ describe('the Front Desk conforms as a world', () => {
 				{ layoutId: 'a-visitor', call: { name: 'teleport', arguments: {} } },
 				{ layoutId: 'a-visitor', call: { name: 'say', arguments: { text: '' } } },
 				{ layoutId: 'a-visitor', call: { name: 'look-up', arguments: { record: 'the boiler' } } }
-			],
-			// A turn is a turn, legal or not — the same clock discipline as the room.
-			volatileStateKeys: ['tick']
-		});
-		expect(issues).toEqual([]);
-	});
-});
+			]
+		}
+	}
+};
+
+describeConformance(fixture);

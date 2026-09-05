@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { awaitRunSaved, buildReadyBot, skipTutorial } from './support.js';
+import { awaitRunSaved, buildDeskBotAndGo, DESK_CARD, skipTutorial } from './support.js';
 
 /**
  * A Desk on every screen that shows a world (WP53 stage A, `43-…` §10): the
@@ -8,8 +8,6 @@ import { awaitRunSaved, buildReadyBot, skipTutorial } from './support.js';
  * stored run opens in the Run Lab and the replay with the same transcript.
  */
 test.beforeEach(async ({ page }) => skipTutorial(page));
-
-const DESK_CARD = 'card-workshop/sign-the-visitor-in';
 
 async function openTheWorkshopDoor(page: import('@playwright/test').Page) {
 	await page.goto('/settings');
@@ -31,22 +29,7 @@ test('the Front Desk card stays off the rack until the Workshop door is open', a
 test('a bot on the Front Desk plays as a desk, and the stored run replays as one', async ({
 	page
 }) => {
-	await openTheWorkshopDoor(page);
-	await buildReadyBot(page, DESK_CARD);
-
-	// The starter Sense and Actions bricks default to the Playroom's channels
-	// and actions; on any other world the player ticks that world's own in
-	// the brick panels, which is what a child does at the bench too.
-	await page.getByTestId('socket-perception').getByRole('button').click();
-	for (const name of ['Conversation', 'Case file', 'Queue']) {
-		await page.getByTestId('brick-controls-perception').getByRole('checkbox', { name }).check();
-	}
-	await page.getByTestId('socket-mobility').getByRole('button').click();
-	for (const name of ['Say', 'Look up', 'Sign in', 'Escalate']) {
-		await page.getByTestId('brick-controls-mobility').getByRole('checkbox', { name }).check();
-	}
-	await page.getByRole('button', { name: /GO/ }).click();
-	await expect(page).toHaveURL(/\/play\//);
+	await buildDeskBotAndGo(page);
 
 	// Before the first frame the stage says which world is coming.
 	await expect(page.getByTestId('world-waiting')).toContainText('open the desk');

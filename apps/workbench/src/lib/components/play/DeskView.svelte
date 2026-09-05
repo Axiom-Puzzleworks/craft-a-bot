@@ -2,17 +2,22 @@
 	import type { DeskRecord, DeskWorldState, RunOutcome } from '@craftabot/core';
 
 	/**
-	 * **The Desk** (WP53 stage A, `43-DESK-WORLDS.md` §4.2) — the first cut.
-	 * Three plain panes over `DeskWorldState` and nothing else: the
-	 * transcript, the case file as the world has revealed it, and the queue —
-	 * plus an alerts strip and the "FOR SIMULATION ONLY" strip every Desk
-	 * carries in every mode (`41-…` §13).
+	 * **The Desk** (WP53, `43-DESK-WORLDS.md` §4.2 and §4.7): three panes over
+	 * `DeskWorldState` and nothing else — the transcript, the case file as
+	 * the world has revealed it, the queue — plus an alerts strip and the
+	 * "FOR SIMULATION ONLY" strip every Desk carries in every mode (`41-…`
+	 * §13). The state comes entirely from `world.changed` events (hard rule
+	 * 3), the same way `WorldView`'s does; nothing here reaches the engine.
 	 *
-	 * The state comes entirely from `world.changed` events (hard rule 3), the
-	 * same way `WorldView`'s does; nothing here reaches the engine. Tokens
-	 * only. Stage C makes this proper for the Kit skin and the Workshop
-	 * layer; WP57 rebuilds it on the Control Room's `Transcript`, `CaseFile`
-	 * and `Queue` components. Its test ids are the contract those keep.
+	 * Tokens only, and the Kit's; the Workshop's `[data-mode='workshop']`
+	 * layer densifies it as it does every screen. Every lane carries a label
+	 * and a glyph, never colour alone: the agent's lane in the Actions red
+	 * (what a bot *does*), the counterpart's in ink, the system's in muted
+	 * ink. The transcript is a live region. Rows become focusable when WP57
+	 * makes them interactive (a queue item that scrolls the case file); until
+	 * then they are content. WP57 rebuilds this on the Control Room's
+	 * `Transcript`, `CaseFile` and `Queue`; the test ids are the contract
+	 * those keep.
 	 *
 	 * `data-testid="world-view"` on the outer element on purpose: every e2e
 	 * that waits for "the world" keeps its selector whichever world it is.
@@ -39,10 +44,18 @@
 		`${world.desk.title}. ${world.transcript.length} lines said, ${world.records.length} records on the desk, ${world.queue.length} in the queue.`
 	);
 
-	const SPEAKER_LABEL: Record<DeskWorldState['transcript'][number]['speaker'], string> = {
-		agent: 'Bot',
-		counterpart: 'Visitor',
-		system: 'Desk'
+	const LANE: Record<
+		DeskWorldState['transcript'][number]['speaker'],
+		{ glyph: string; fallback: string }
+	> = {
+		agent: { glyph: '▶', fallback: 'Bot' },
+		counterpart: { glyph: '◀', fallback: 'Visitor' },
+		system: { glyph: '•', fallback: 'Desk' }
+	};
+
+	const CLASSIFICATION_TITLE: Record<string, string> = {
+		personal: 'Personal data — shown because this desk needs it.',
+		'special-category': 'Special-category data — shown only for this desk’s purpose.'
 	};
 </script>
 
@@ -58,7 +71,7 @@
 	</header>
 
 	{#if world.alerts.length > 0}
-		<ul class="alerts" data-testid="desk-alerts">
+		<ul class="alerts" aria-label="Alerts" data-testid="desk-alerts">
 			{#each world.alerts as alert (alert.id)}
 				<li data-severity={alert.severity}>
 					<span class="severity">{alert.severity}</span>
@@ -74,17 +87,23 @@
 			{#if world.transcript.length === 0}
 				<p class="empty">Nothing has been said yet.</p>
 			{:else}
-				<ol>
-					{#each world.transcript as line (line.seq)}
-						<li data-testid="desk-line-{line.seq}" data-speaker={line.speaker}>
-							<span class="speaker"
-								>{line.speakerName || SPEAKER_LABEL[line.speaker]}{#if line.channel}
-									<span class="channel">{line.channel}</span>{/if}</span
-							>
-							<span class="text">{line.text}</span>
-						</li>
-					{/each}
-				</ol>
+				<!-- The live region wraps the list rather than being it: a list with another role has no list items, as far as a reader is concerned. -->
+				<div role="log" aria-live="polite" aria-relevant="additions">
+					<ol>
+						{#each world.transcript as line (line.seq)}
+							<li data-testid="desk-line-{line.seq}" data-speaker={line.speaker}>
+								<span class="speaker">
+									<span class="glyph" aria-hidden="true">{LANE[line.speaker].glyph}</span>
+									{line.speakerName || LANE[line.speaker].fallback}
+									{#if line.channel}
+										<span class="channel">on {line.channel}</span>
+									{/if}
+								</span>
+								<span class="text">{line.text}</span>
+							</li>
+						{/each}
+					</ol>
+				</div>
 			{/if}
 		</section>
 
@@ -99,11 +118,16 @@
 						<article
 							data-testid="desk-record-{record.id}"
 							data-classification={record.classification}
+							aria-label="{record.title}{record.classification && record.classification !== 'public'
+								? `, ${record.classification}`
+								: ''}"
 						>
 							<h5>
 								{record.title}
 								{#if record.classification && record.classification !== 'public'}
-									<span class="badge" title="Classification">{record.classification}</span>
+									<span class="badge" title={CLASSIFICATION_TITLE[record.classification]}
+										>{record.classification}</span
+									>
 								{/if}
 							</h5>
 							<dl>
@@ -125,7 +149,11 @@
 			{:else}
 				<ul>
 					{#each world.queue as item (item.id)}
-						<li data-testid="desk-queue-{item.id}" data-status={item.status}>
+						<li
+							data-testid="desk-queue-{item.id}"
+							data-status={item.status}
+							aria-label="{item.title}, {item.status}{item.decision ? `: ${item.decision}` : ''}"
+						>
 							<span class="status">{item.status}</span>
 							<span class="item-title">{item.title}</span>
 							{#if item.decision}
@@ -158,7 +186,7 @@
 		font-weight: 700;
 		letter-spacing: 0.08em;
 		border: 2px solid var(--cab-ink);
-		border-radius: var(--cab-radius-chip);
+		border-radius: var(--cab-radius-pill);
 	}
 
 	.head {
@@ -220,7 +248,7 @@
 		min-width: 0;
 		padding: var(--cab-space-3);
 		background: var(--cab-paper);
-		border-radius: var(--cab-radius-chip);
+		border-radius: var(--cab-radius-part);
 	}
 
 	.pane h3 {
@@ -260,17 +288,24 @@
 		display: grid;
 		gap: var(--cab-space-1);
 		padding: var(--cab-space-2);
-		border-radius: var(--cab-radius-chip);
+		border-radius: var(--cab-radius-part);
 		border-left: 4px solid var(--cab-ink-muted);
 		background: var(--cab-cream);
 	}
 
 	.transcript li[data-speaker='agent'] {
 		border-left-color: var(--cab-red);
+		margin-left: var(--cab-space-4);
 	}
 
 	.transcript li[data-speaker='counterpart'] {
 		border-left-color: var(--cab-ink);
+		margin-right: var(--cab-space-4);
+	}
+
+	.transcript li[data-speaker='system'] {
+		text-align: center;
+		color: var(--cab-ink-muted);
 	}
 
 	.speaker {
@@ -278,6 +313,10 @@
 		font-weight: 700;
 		text-transform: uppercase;
 		letter-spacing: 0.06em;
+	}
+
+	.glyph {
+		margin-right: var(--cab-space-1);
 	}
 
 	.channel {
@@ -298,7 +337,7 @@
 		font-weight: 400;
 		padding: 0 var(--cab-space-1);
 		border: 1px solid var(--cab-ink);
-		border-radius: var(--cab-radius-chip);
+		border-radius: var(--cab-radius-pill);
 	}
 
 	dl {
@@ -323,7 +362,7 @@
 		gap: var(--cab-space-1);
 		padding: var(--cab-space-2);
 		background: var(--cab-cream);
-		border-radius: var(--cab-radius-chip);
+		border-radius: var(--cab-radius-part);
 	}
 
 	.status {
@@ -334,7 +373,11 @@
 	}
 
 	.queue li[data-status='decided'] .status {
-		color: var(--cab-green);
+		color: var(--cab-green-text);
+	}
+
+	.queue li[data-status='escalated'] .status {
+		color: var(--cab-red-text);
 	}
 
 	.decision {
