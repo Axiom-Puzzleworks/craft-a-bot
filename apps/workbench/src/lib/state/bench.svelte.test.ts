@@ -253,6 +253,38 @@ describe('the goal card', () => {
 		expect(bench.goalCard?.title).toBe('Help the teddy get a snack');
 	});
 
+	it('re-points the Sense and Actions bricks when the card changes world (D20, Phase M exit)', async () => {
+		const { bench } = await openBench();
+		bench.fitBrick('starter/sense');
+		bench.fitBrick('starter/actions');
+		bench.updateBrick('mobility', { enabled: ['starter/playroom/move', 'starter/playroom/say'] });
+		// To the Front Desk: `say` carries over by its bare name; the Playroom's senses do not, so every desk sense is fitted.
+		bench.setGoalCard('workshop/sign-the-visitor-in');
+		const sense = brickInSlot(bench.spec!, 'perception')?.config as { channels: string[] };
+		const actions = brickInSlot(bench.spec!, 'mobility')?.config as { enabled: string[] };
+		expect(sense.channels).toEqual([
+			'workshop/the-desk/conversation',
+			'workshop/the-desk/case-file',
+			'workshop/the-desk/queue',
+			'workshop/the-desk/brief'
+		]);
+		expect(actions.enabled).toEqual(['workshop/the-desk/say']);
+		// Back to a room: the desk's `say` carries over again; the senses reset to the room's.
+		bench.setGoalCard('starter/snack');
+		expect((brickInSlot(bench.spec!, 'mobility')?.config as { enabled: string[] }).enabled).toEqual(
+			['starter/playroom/say']
+		);
+		expect(
+			(brickInSlot(bench.spec!, 'perception')?.config as { channels: string[] }).channels.length
+		).toBeGreaterThan(1);
+		// A card on the same world leaves the bricks alone.
+		bench.updateBrick('mobility', { enabled: ['starter/playroom/move'] });
+		bench.setGoalCard('starter/say-hello');
+		expect((brickInSlot(bench.spec!, 'mobility')?.config as { enabled: string[] }).enabled).toEqual(
+			['starter/playroom/move']
+		);
+	});
+
 	it('stores and clears the Free Play text', async () => {
 		const { bench } = await openBench();
 		bench.setCustomGoalText('Tidy up, then say hello.');

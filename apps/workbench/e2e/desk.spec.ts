@@ -118,3 +118,24 @@ test('two robots at the Front Desk: the second is the visitor, and the Run Lab s
 	// The visitor is a node inside the clerk's boundary, named after the second robot.
 	await expect(page.locator('[data-testid^="boundary-edge-counterpart:"]')).toHaveCount(1);
 });
+
+test('the desk’s own channels and actions are already fitted when a bot moves to the Front Desk (D20)', async ({
+	page
+}) => {
+	await page.goto('/settings');
+	await page.getByLabel('Show the Workshop').click();
+	// `buildDeskBot` fits the Playroom's defaults first and picks the desk card after; the bench re-points the bricks on the change of world.
+	await buildDeskBot(page);
+	await page.getByTestId('socket-perception').getByRole('button').click();
+	for (const name of ['Conversation', 'Case file', 'Queue']) {
+		await expect(
+			page.getByTestId('brick-controls-perception').getByRole('checkbox', { name })
+		).toBeChecked();
+	}
+	await page.getByTestId('socket-mobility').getByRole('button').click();
+	for (const name of ['Say', 'Look up', 'Sign in', 'Escalate']) {
+		await expect(
+			page.getByTestId('brick-controls-mobility').getByRole('checkbox', { name })
+		).toBeChecked();
+	}
+});
