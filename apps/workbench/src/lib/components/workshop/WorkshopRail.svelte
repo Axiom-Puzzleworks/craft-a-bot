@@ -49,6 +49,8 @@
 		{ id: 'scenarios', label: 'Scenarios', href: '/workshop/scenarios' },
 		// WP47 (`35-TELEMETRY.md` §4.5) — where a run's trace goes besides this browser.
 		{ id: 'sinks', label: 'Sinks', href: '/workshop/sinks' },
+		// WP59 (`48-FS-BANK.md` §4.8) — the synthetic bank, read: a case from a seed and the nine lines.
+		{ id: 'playground', label: 'Playground', href: '/workshop/playground' },
 		{ id: 'policies', label: 'Policies', href: '/workshop/policies' },
 		{ id: 'bench', label: 'Test Bench', href: '/workshop/bench' },
 		{ id: 'telemetry', label: 'Telemetry', href: '/workshop/telemetry' },

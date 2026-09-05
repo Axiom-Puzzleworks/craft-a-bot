@@ -71,6 +71,15 @@ export const EXPANSION_PACKS: readonly ExpansionPack[] = [
 		status: 'unlocked'
 	},
 	{
+		// WP59 (`48-FS-BANK.md` §4.8): the bank exists; the three desks say "coming" in docs/playground.md.
+		id: 'retail-bank-playground',
+		name: 'Retail Bank Playground',
+		contents:
+			'A synthetic high-street bank: customers, accounts, a product shelf, nine service lines — and three desks to come',
+		teaches: 'governance in a regulated domain; truth, purpose, fairness',
+		status: 'unlocked'
+	},
+	{
 		id: 'tool-shop',
 		name: 'Tool Shop Pack',
 		contents: 'Extra tools (measuring tape, camera, walkie-talkie link to Radio)',
