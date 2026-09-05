@@ -124,6 +124,44 @@ export default defineConfig(
 	},
 	{
 		/**
+		 * Desk dependency direction (`43-DESK-WORLDS.md` §4.4, WP53): the
+		 * business-world runtime depends on `core` (and `zod`) only, exactly as
+		 * `@craftabot/governance` and `@craftabot/telemetry` do above — a desk
+		 * pack imports it, never the other way round.
+		 */
+		files: ['packages/desk/**/*.{ts,js}'],
+		// Its tests may use the conformance kit; the package itself may not.
+		ignores: ['packages/desk/**/*.test.ts'],
+		rules: {
+			'no-restricted-imports': [
+				'error',
+				{
+					patterns: [
+						{
+							group: [
+								'@craftabot/pack-*',
+								'@craftabot/governance',
+								'@craftabot/telemetry',
+								'@craftabot/evals',
+								'@craftabot/workbench',
+								'$lib/*',
+								'$app/*'
+							],
+							message:
+								'@craftabot/desk may depend only on @craftabot/core — see docs/design-day2/43-DESK-WORLDS.md §4.4.'
+						},
+						{
+							group: ['svelte', 'svelte/*', '@sveltejs/*'],
+							message:
+								'Engine/pack code must not import Svelte or SvelteKit — see docs/design/01-ARCHITECTURE.md §1.3.'
+						}
+					]
+				}
+			]
+		}
+	},
+	{
+		/**
 		 * Pack-testkit dependency direction (`13-…` §7).
 		 *
 		 * A conformance kit that special-cased one pack to pass would be testing

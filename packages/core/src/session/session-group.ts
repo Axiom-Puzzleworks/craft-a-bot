@@ -93,7 +93,7 @@ export function createSessionGroup(deps: CreateSessionGroupDeps): SessionGroup {
 
 	// The one root instance every member's facade shares (§4.2) — created
 	// once, owned only here; members never see it directly.
-	const rootWorld = worldDefinition.create(goalCard.layoutId);
+	const rootWorld = worldDefinition.create(goalCard.layoutId, { random });
 	const bindAgent = rootWorld.forAgent;
 	if (!bindAgent) {
 		throw new Error(

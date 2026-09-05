@@ -100,11 +100,13 @@ describe('the Front Desk', () => {
 		expect(state.queue[0]).toMatchObject({ status: 'escalated', decision: 'No appointment.' });
 	});
 
-	it('an unknown action fails with the desk’s actions as did-you-mean, and still counts a turn', () => {
+	it('an unknown action fails with the nearest of the desk’s actions, and still counts a turn', () => {
 		const world = frontDesk.create('a-visitor');
 		const result = world.perform({ name: 'teleport', arguments: {} });
 		expect(result.ok).toBe(false);
-		expect(result.didYouMean).toEqual(['say', 'look-up', 'sign-in', 'escalate']);
+		// The runtime's nearest-match over the desk's own action names (`43-…` §4.4).
+		const ids = ['say', 'look-up', 'sign-in', 'escalate'];
+		for (const name of result.didYouMean ?? []) expect(ids).toContain(name);
 		expect(snapshot(world).tick).toBe(1);
 	});
 

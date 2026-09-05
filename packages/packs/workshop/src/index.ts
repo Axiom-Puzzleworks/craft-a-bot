@@ -58,13 +58,12 @@ export {
 export { workshop, WORKSHOP_WORLD_ID, qualifyWorkshopId } from './world/workshop.js';
 export {
 	frontDesk,
+	frontDeskSpec,
 	FRONT_DESK_WORLD_ID,
 	qualifyDeskId,
 	frontDeskActionDefinitions,
 	frontDeskSenses,
-	frontDeskPredicates,
 	frontDeskPredicateDescriptions,
-	observeFrontDesk,
 	type FrontDeskState
 } from './world/desk.js';
 export { workshopLayouts } from './world/layouts.js';

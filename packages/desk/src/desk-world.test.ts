@@ -1,0 +1,209 @@
+import { isDeskWorldState, isGridWorldState } from '@craftabot/core';
+import { checkWorld } from '@craftabot/pack-testkit';
+import { describe, expect, it } from 'vitest';
+import { createDeskWorld, type DeskState } from './desk-world.js';
+import { seededRandom } from './seeded.js';
+import { TEST_DESK_ID, testDesk, testDeskSpec, type TestExtra } from './test-desk.js';
+
+const snapshot = (world = testDesk.create('one-visitor')) =>
+	world.snapshot() as unknown as DeskState<TestExtra>;
+
+describe('createDeskWorld: the definition', () => {
+	it('is a desk, with qualified ids, a tier on every action and the spec on the side', () => {
+		expect(testDesk.view).toBe('desk');
+		expect(testDesk.spec).toBe(testDeskSpec);
+		expect(testDesk.actions.map((a) => a.id)).toEqual([
+			`${TEST_DESK_ID}/say`,
+			`${TEST_DESK_ID}/look-up`,
+			`${TEST_DESK_ID}/sign-in`,
+			`${TEST_DESK_ID}/escalate`
+		]);
+		for (const action of testDesk.actions) expect(action.riskTier).toBeDefined();
+		expect(testDesk.actions[2]).toMatchObject({ riskTier: 'reversible', progress: true });
+		expect(testDesk.senses.map((s) => s.id)).toEqual([
+			`${TEST_DESK_ID}/conversation`,
+			`${TEST_DESK_ID}/case-file`,
+			`${TEST_DESK_ID}/queue`,
+			`${TEST_DESK_ID}/mood`
+		]);
+		expect(testDesk.predicates).toEqual({
+			'signed-in': 'The visitor is signed in.',
+			escalated: 'Handed over.'
+		});
+		expect(testDesk.layouts[0]?.initialState).toMatchObject({ desk: { title: 'The Test Desk' } });
+	});
+
+	it('advertises a JSON Schema derived from each action’s Zod schema', () => {
+		const signIn = testDesk.actions.find((a) => a.id.endsWith('/sign-in'));
+		expect(signIn?.parameters).toMatchObject({ type: 'object', required: ['visitor'] });
+		const say = testDesk.actions.find((a) => a.id.endsWith('/say'));
+		expect(say?.parameters).toMatchObject({ type: 'object', required: ['text'] });
+	});
+
+	it('refuses an unknown layout the way every world does', () => {
+		expect(() => testDesk.create('nope')).toThrow(/Known layouts: one-visitor/);
+	});
+});
+
+describe('createDeskWorld: the instance', () => {
+	it('snapshots a DeskWorldState plus its own fields, never a grid', () => {
+		const state = snapshot();
+		expect(isDeskWorldState(state)).toBe(true);
+		expect(isGridWorldState(state)).toBe(false);
+		expect(state.records.map((r) => r.id)).toEqual(['notice']);
+		expect(state.hidden.map((r) => r.id)).toEqual(['visitor']);
+		expect(state.extra).toEqual({ consulted: 0 });
+		expect(state.tick).toBe(0);
+	});
+
+	it('say appends an agent line the conversation sense hears once; summary names the last line', () => {
+		const world = testDesk.create('one-visitor');
+		const said = world.perform({ name: 'say', arguments: { text: 'Hello.' } });
+		expect(said).toMatchObject({ ok: true, narration: 'You say: "Hello."' });
+		const first = world.observe(['conversation']);
+		expect(first.channels).toEqual(['conversation']);
+		expect(first.text).toContain('You: Hello.');
+		expect(first.summary).toContain('last said: Hello.');
+		expect(world.observe([`${TEST_DESK_ID}/conversation`]).text).toContain('Nobody has said');
+	});
+
+	it('a handler reveals through the context, mutates extra, and the case-file sense shows it', () => {
+		const world = testDesk.create('one-visitor');
+		expect(world.perform({ name: 'look-up', arguments: { record: 'ghost' } }).ok).toBe(false);
+		expect(world.perform({ name: 'look-up', arguments: { record: 'visitor' } }).ok).toBe(true);
+		expect(world.perform({ name: 'look-up', arguments: { record: 'notice' } }).ok).toBe(true);
+		const state = snapshot(world);
+		expect(state.records.map((r) => r.id)).toEqual(['notice', 'visitor']);
+		expect(state.hidden).toEqual([]);
+		expect(state.extra.consulted).toBe(1);
+		expect(world.observe(['case-file']).text).toContain('Visitor');
+	});
+
+	it('decide, alert and line reach the queue, the alerts and the transcript; predicates and progress follow', () => {
+		const world = testDesk.create('one-visitor');
+		expect(world.test('signed-in')).toBe(false);
+		expect(world.describeProgress?.('signed-in', ['queue'])).toBe('Not yet.');
+		expect(world.perform({ name: 'sign-in', arguments: { visitor: 'A. Person' } }).ok).toBe(true);
+		expect(world.test('signed-in')).toBe(true);
+		expect(world.describeProgress?.('signed-in', ['conversation'])).toBe('Signed in.');
+		expect(world.describeProgress?.('signed-in', ['case-file'])).toBeUndefined();
+		expect(world.test('unknown')).toBe(false);
+		const state = snapshot(world);
+		expect(state.queue[0]).toMatchObject({ status: 'decided', decision: 'Signed in: A. Person' });
+		expect(state.transcript.at(-1)).toMatchObject({
+			speaker: 'system',
+			text: 'A. Person signed in.'
+		});
+
+		const other = testDesk.create('one-visitor');
+		other.perform({ name: 'escalate', arguments: { reason: 'No appointment.' } });
+		expect(other.test('escalated')).toBe(true);
+		expect(snapshot(other).alerts[0]).toMatchObject({ severity: 'warning', tick: 1 });
+		expect(other.observe(['mood']).text).toBe('The desk is tense.');
+		expect(testDesk.create('one-visitor').observe(['mood']).text).toContain('no sense');
+	});
+
+	it('an unknown action fails with the nearest names and still costs a turn; bad arguments fail before the handler', () => {
+		const world = testDesk.create('one-visitor');
+		const unknown = world.perform({ name: 'sign-up', arguments: {} });
+		expect(unknown.ok).toBe(false);
+		expect(unknown.didYouMean).toEqual(['sign-in']);
+		expect(snapshot(world).tick).toBe(1);
+		const bad = world.perform({ name: `${TEST_DESK_ID}/sign-in`, arguments: { visitor: '' } });
+		expect(bad.ok).toBe(false);
+		expect(bad.narration).toContain('sign-in could not run');
+		expect(snapshot(world).queue[0]?.status).toBe('open');
+	});
+
+	it('the counterpart speaks through receiveInput and every injection kind lands where the note says', () => {
+		const world = testDesk.create('one-visitor');
+		world.receiveInput?.('Hello, I am here to sign in.');
+		world.inject?.({ kind: 'heard', text: 'Now, please.' });
+		world.inject?.({ kind: 'heard', text: 'Later.', atTick: 2 });
+		world.inject?.({ kind: 'manual-entry', key: 'sticky', text: 'Back in five.' });
+		world.inject?.({ kind: 'tool-result', toolId: 'crm', result: { ok: true } });
+		world.inject?.({ kind: 'radio', fromName: 'Security', channel: 'ops', text: 'All clear.' });
+		let state = snapshot(world);
+		expect(state.transcript.map((l) => [l.speaker, l.speakerName])).toEqual([
+			['counterpart', 'Visitor'],
+			['counterpart', 'Visitor'],
+			['system', 'Desk'],
+			['system', 'Security']
+		]);
+		expect(state.transcript.at(-1)).toMatchObject({ channel: 'ops' });
+		expect(state.records.find((r) => r.id === 'manual/sticky')).toMatchObject({ kind: 'manual' });
+		expect(state.toolOverrides).toEqual({ crm: { ok: true } });
+		expect(state.scheduledHeard).toEqual([{ text: 'Later.', atTick: 2 }]);
+		// Scheduled for tick 2: not heard at tick 1, heard once the desk gets there.
+		world.perform({ name: 'say', arguments: { text: 'One.' } });
+		expect(world.observe(['conversation']).text).not.toContain('Later.');
+		world.perform({ name: 'say', arguments: { text: 'Two.' } });
+		expect(world.observe(['conversation']).text).toContain('Later.');
+		state = snapshot(world);
+		expect(state.scheduledHeard).toEqual([]);
+	});
+
+	it('a desk that declines a kind ignores it; configure is kept', () => {
+		const picky = createDeskWorld({ ...testDeskSpec, id: 'test/picky', injections: ['heard'] });
+		const world = picky.create('one-visitor');
+		world.inject?.({ kind: 'radio', fromName: 'X', channel: 'c', text: 'ignored' });
+		world.inject?.({ kind: 'manual-entry', key: 'k', text: 'ignored' });
+		world.configure?.({ channel: 'ops' });
+		const state = snapshot(world);
+		expect(state.transcript).toEqual([]);
+		expect(state.records).toHaveLength(1);
+		expect(state.config).toEqual({ channel: 'ops' });
+	});
+
+	it('generates the case from the random it is handed, one draw, and resets to the same case', () => {
+		const stream = seededRandom(42);
+		const draws: number[] = [];
+		const random = () => {
+			const value = stream();
+			draws.push(value);
+			return value;
+		};
+		const world = testDesk.create('one-visitor', { random });
+		expect(draws).toHaveLength(1);
+		const opening = snapshot(world);
+		world.perform({ name: 'look-up', arguments: { record: 'visitor' } });
+		world.perform({ name: 'say', arguments: { text: 'x' } });
+		world.reset();
+		expect(snapshot(world)).toEqual(opening);
+		expect(draws).toHaveLength(1);
+
+		// The same seed, the same visitor; a different seed may differ, the default never does.
+		const again = testDesk.create('one-visitor', { random: seededRandom(42) });
+		expect(snapshot(again)).toEqual(opening);
+		expect(snapshot(testDesk.create('one-visitor'))).toEqual(
+			snapshot(testDesk.create('one-visitor'))
+		);
+	});
+
+	it('passes the conformance kit’s checkWorld', () => {
+		const issues = checkWorld(testDesk, {
+			worldId: TEST_DESK_ID,
+			scripts: {
+				win: {
+					layoutId: 'one-visitor',
+					calls: [
+						{ name: 'say', arguments: { text: 'Hello.' } },
+						{ name: 'look-up', arguments: { record: 'visitor' } },
+						{ name: 'sign-in', arguments: { visitor: 'A. Person' } }
+					]
+				},
+				escalate: {
+					layoutId: 'one-visitor',
+					calls: [{ name: 'escalate', arguments: { reason: 'Nope.' } }]
+				}
+			},
+			illegalActions: [
+				{ layoutId: 'one-visitor', call: { name: 'teleport', arguments: {} } },
+				{ layoutId: 'one-visitor', call: { name: 'say', arguments: { text: '' } } },
+				{ layoutId: 'one-visitor', call: { name: 'look-up', arguments: { record: 'ghost' } } }
+			],
+			volatileStateKeys: ['tick']
+		});
+		expect(issues).toEqual([]);
+	});
+});

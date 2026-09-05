@@ -283,7 +283,8 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 				`Goal card "${card.id}" needs world "${card.worldId}", which is not installed.`
 			);
 		}
-		return definition.create(card.layoutId);
+		// The session's own seeded stream, so a generated layout varies and replays by seed (WP53).
+		return definition.create(card.layoutId, { random });
 	}
 
 	function resolveTools(offeredIds: readonly string[]) {

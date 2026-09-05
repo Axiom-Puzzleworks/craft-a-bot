@@ -101,6 +101,7 @@ export type {
 	AgentHandle,
 	Observation,
 	WorldActionDefinition,
+	WorldCreateOptions,
 	WorldDefinition,
 	WorldInstance,
 	WorldViewKind,

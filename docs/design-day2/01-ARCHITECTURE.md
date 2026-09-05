@@ -43,6 +43,8 @@ Notes:
 - **`packs/openai`** is deliberately separate from `starter` even in V1 — it proves the cartridge/expansion mechanism works, and it is the template for every future LLM pack.
 - **`governance`** is separate from `core` because purpose 2 requires exporting it for real-world use. It depends only on `core`'s event/types surface.
 - **`apps/workbench`** is the only package with Svelte in it.
+
+> **Amended 2026-09-05 (WP53 stage B, `43-DESK-WORLDS.md` §4.4):** `packages/desk/` — `@craftabot/desk`, the business-world runtime: `createDeskWorld(spec)` turns records, a transcript, a queue and a handful of handlers into a `WorldDefinition` drawn as a Desk. Depends on `core` (and `zod`) only, held there by ESLint as `governance` and `telemetry` are; a desk pack (`pack-workshop` today, the Playground's desks later) depends on it, never the other way round. Not published in this WP.
 - A future private repo can host `@craftabot/pack-*` packages that install into the same slots. The public app discovers packs via an explicit registry list — nothing dynamic or magical in V1.
 
 ## 3. Runtime architecture (V1)

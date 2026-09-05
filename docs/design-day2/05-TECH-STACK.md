@@ -44,7 +44,7 @@ apps/workbench/src/
 │   ├── state/              # runes-based app state: agents.svelte.ts, session.svelte.ts, settings.svelte.ts
 │   ├── components/
 │   │   ├── bench/          # PartsTray, Baseplate, BrickPanel, GoalCardRack, BuildChecks
-│   │   ├── play/           # WorldView, HeadUp, RunControls, ThoughtBubble, EndCard
+│   │   ├── play/           # WorldStage → WorldView | DeskView (WP53), HeadUp, RunControls, ThoughtBubble, EndCard
 │   │   ├── trace/          # TraceDrawer, TraceRow, PayloadView
 │   │   ├── kit/            # KitBox, Shelf, Leaflet, Badge, Dial, Rocker, Meter, GoLever
 │   │   └── settings/       # BatteryCompartment

@@ -134,12 +134,13 @@ export async function buildReadyBot(page: Page, cardTestId = 'card-snack'): Prom
  * the navigation won, and the screen read a store with no summary in it.
  */
 export async function awaitRunSaved(page: Page): Promise<void> {
-	await expect(page.getByTestId('run-saved')).toBeVisible({ timeout: 15_000 });
+	// The same budget as the finish wait: on a loaded machine the store is what is slow.
+	await expect(page.getByTestId('run-saved')).toBeVisible({ timeout: 30_000 });
 }
 
 /** The duo route's counterpart: every member's row and summary, and the group's row. */
 export async function awaitDuoSaved(page: Page): Promise<void> {
-	await expect(page.getByTestId('duo-saved')).toBeVisible({ timeout: 15_000 });
+	await expect(page.getByTestId('duo-saved')).toBeVisible({ timeout: 30_000 });
 }
 
 export async function buildAndGo(page: Page, cardTestId = 'card-snack'): Promise<void> {

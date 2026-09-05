@@ -1,7 +1,7 @@
 {
-	"name": "@craftabot/pack-workshop",
+	"name": "@craftabot/desk",
 	"private": true,
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"type": "module",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
@@ -18,14 +18,9 @@
 	},
 	"dependencies": {
 		"@craftabot/core": "*",
-		"@craftabot/desk": "*",
-		"@craftabot/governance": "*",
 		"zod": "^4.4.3"
 	},
 	"devDependencies": {
-		"@craftabot/pack-geap": "*",
-		"@craftabot/pack-starter": "*",
-		"@craftabot/pack-testkit": "*",
-		"@craftabot/pack-monitor": "*"
+		"@craftabot/pack-testkit": "*"
 	}
 }
