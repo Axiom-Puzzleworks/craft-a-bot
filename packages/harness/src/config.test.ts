@@ -27,7 +27,8 @@ describe('the default pack list', () => {
 			'azure-content-safety',
 			'pdp-opa',
 			'evals',
-			'fs-bank'
+			'fs-bank',
+			'fs-advice'
 		]);
 		expect(ids).not.toContain('demo');
 
@@ -45,7 +46,7 @@ describe('the default pack list', () => {
 	it('reports pack versions in the workbench’s own shape', () => {
 		const versions = packVersions(defaultConfig());
 		expect(versions['starter']).toMatch(/^\d+\.\d+\.\d+$/);
-		expect(Object.keys(versions)).toHaveLength(14);
+		expect(Object.keys(versions)).toHaveLength(15);
 	});
 });
 

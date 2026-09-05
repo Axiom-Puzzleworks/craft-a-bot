@@ -2,6 +2,7 @@ import { createPackRegistry, type PackRegistry } from '@craftabot/core';
 import anthropicPack from '@craftabot/pack-anthropic';
 import azureContentSafetyPack from '@craftabot/pack-azure-content-safety';
 import evaluatorsPack from '@craftabot/pack-evaluators';
+import fsAdvicePack from '@craftabot/pack-fs-advice';
 import fsBankPack from '@craftabot/pack-fs-bank';
 import geapPack from '@craftabot/pack-geap';
 import guardLocalPack from '@craftabot/pack-guard-local';
@@ -100,6 +101,8 @@ export const installedPacks = [
 	// WP43 (`31-EVALUATORS.md`): the rubric judge.
 	evaluatorsPack,
 	fsBankPack,
+	// WP60 (`49-FS-ADVICE.md`): the first desk on the bank.
+	fsAdvicePack,
 	demoPack
 ];
 

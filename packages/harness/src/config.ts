@@ -10,6 +10,7 @@ import {
 import anthropicPack from '@craftabot/pack-anthropic';
 import azureContentSafetyPack from '@craftabot/pack-azure-content-safety';
 import evaluatorsPack from '@craftabot/pack-evaluators';
+import fsAdvicePack from '@craftabot/pack-fs-advice';
 import fsBankPack from '@craftabot/pack-fs-bank';
 import geapPack from '@craftabot/pack-geap';
 import guardLocalPack from '@craftabot/pack-guard-local';
@@ -58,7 +59,8 @@ export function defaultPacks(): PackManifest[] {
 		azureContentSafetyPack,
 		pdpOpaPack,
 		evaluatorsPack,
-		fsBankPack
+		fsBankPack,
+		fsAdvicePack
 	];
 }
 
