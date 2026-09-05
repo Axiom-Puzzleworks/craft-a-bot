@@ -17,9 +17,11 @@ export { checkGuardrailService, hostMatches } from './checks/guardrail-service.j
 export { checkManifest } from './checks/manifest.js';
 export { checkTool } from './checks/tool.js';
 export { checkWorld } from './checks/world.js';
+export { checkDesk } from './checks/desk.js';
 export { describeConformance } from './describe-conformance.js';
 export type {
 	ConformanceIssue,
+	DeskConformanceFixture,
 	GoldenTraceConformanceFixture,
 	GuardrailConformanceEntry,
 	GuardrailConformanceFixture,

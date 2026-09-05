@@ -1,6 +1,7 @@
 import { createPackRegistry } from '@craftabot/core';
 import { describe, expect, it } from 'vitest';
 import { checkCartridge } from './checks/cartridge.js';
+import { checkDesk } from './checks/desk.js';
 import { checkGoldenTrace } from './checks/golden-trace.js';
 import { checkGuardrail } from './checks/guardrail.js';
 import { checkEvaluator } from './checks/evaluator.js';
@@ -41,6 +42,13 @@ export function describeConformance(fixture: PackConformanceFixture): void {
 					);
 				}
 				const issues = checkWorld(world, worldFixture);
+				expect(issues, format(issues)).toEqual([]);
+			});
+		}
+
+		for (const desk of (manifest.worlds ?? []).filter((world) => world.view === 'desk')) {
+			it(`desk "${desk.id}" is a desk in shape, tiers every action, stays pure, resets, and takes injections as it says`, () => {
+				const issues = checkDesk(desk, fixture.desks?.[desk.id]);
 				expect(issues, format(issues)).toEqual([]);
 			});
 		}

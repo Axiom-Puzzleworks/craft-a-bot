@@ -23,7 +23,7 @@
 	import { diffPrompts, previousPrompt } from '$lib/workshop/prompt-diff.js';
 	import type { TraceLane } from '$lib/trace-style.js';
 	import PayloadView from '$lib/components/trace/PayloadView.svelte';
-	import WorldView from '$lib/components/play/WorldView.svelte';
+	import WorldStage from '$lib/components/play/WorldStage.svelte';
 
 	/**
 	 * **The Run Lab** (`17-…` §3) — the Workshop's flagship, and the screen
@@ -346,7 +346,7 @@
 
 	<div class="regions">
 		<section class="world" aria-label="The world at this turn">
-			<WorldView
+			<WorldStage
 				world={shown.world}
 				saying={shown.saying}
 				{expression}

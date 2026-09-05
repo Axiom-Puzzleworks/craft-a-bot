@@ -2,6 +2,7 @@ import type { PackManifest } from '@craftabot/core';
 import { obedient } from '@craftabot/core/testing';
 import starterPack from '@craftabot/pack-starter';
 import { describeConformance, type PackConformanceFixture } from '@craftabot/pack-testkit';
+import { FRONT_DESK_WORLD_ID } from './world/desk.js';
 import { workshopGoalCards } from './goal-cards.js';
 import workshopPack from './index.js';
 import { buildSpec } from './session/harness.js';
@@ -40,11 +41,12 @@ const CARTRIDGE_PACK: PackManifest = {
 
 /** Bare action ids the Workshop actually answers to — not hand-copied. */
 const WORLD_ACTION_IDS = new Set(workshopActionDefinitions.map((action) => action.id));
+const ROOM_CARDS = workshopGoalCards.filter((card) => card.worldId !== FRONT_DESK_WORLD_ID);
 
 const worldScripts: PackConformanceFixture['world'] = {
 	worldId: WORKSHOP_WORLD_ID,
 	scripts: Object.fromEntries(
-		workshopGoalCards.map((card) => [
+		ROOM_CARDS.map((card) => [
 			card.id,
 			{
 				layoutId: card.layoutId,
@@ -79,6 +81,33 @@ const fixture: PackConformanceFixture = {
 	goldenTrace: {
 		spec: buildSpec({ goalCardId: 'workshop/find-the-paint-pot' }),
 		script: obedient(SCRIPTED_OPTIMAL['workshop/find-the-paint-pot'] ?? [])
+	},
+	// The Front Desk (WP53, `43-…` §4.8): a conforming world, then a conforming desk.
+	desks: {
+		[FRONT_DESK_WORLD_ID]: {
+			acceptedInjections: ['heard'],
+			scripts: {
+				'workshop/sign-the-visitor-in': {
+					layoutId: 'a-visitor',
+					calls: (SCRIPTED_OPTIMAL['workshop/sign-the-visitor-in'] ?? []).map((step) => ({
+						name: step.call,
+						arguments: step.args ?? {}
+					}))
+				},
+				'hand-them-over': {
+					layoutId: 'a-visitor',
+					calls: [
+						{ name: 'say', arguments: { text: 'One moment.' } },
+						{ name: 'escalate', arguments: { reason: 'No appointment on the list.' } }
+					]
+				}
+			},
+			illegalActions: [
+				{ layoutId: 'a-visitor', call: { name: 'teleport', arguments: {} } },
+				{ layoutId: 'a-visitor', call: { name: 'say', arguments: { text: '' } } },
+				{ layoutId: 'a-visitor', call: { name: 'look-up', arguments: { record: 'the boiler' } } }
+			]
+		}
 	}
 };
 

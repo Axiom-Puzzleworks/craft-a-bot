@@ -5,7 +5,7 @@
 	import { botExpression } from '$lib/bot-expression.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import { projectThrough } from '$lib/state/run-projection.js';
-	import WorldView from '$lib/components/play/WorldView.svelte';
+	import WorldStage from '$lib/components/play/WorldStage.svelte';
 
 	/**
 	 * **Compare** (`17-…` §4.3) — the Multi-Pack "compare" promise, delivered
@@ -131,7 +131,7 @@
 								data-testid="compare-open-lab-{panel.id}">Open full Run Lab →</a
 							>
 						</header>
-						<WorldView
+						<WorldStage
 							world={shown.world}
 							saying={shown.saying}
 							{expression}

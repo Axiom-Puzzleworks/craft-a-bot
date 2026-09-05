@@ -1,0 +1,947 @@
+[
+	{
+		"id": "00000000-0000-4000-8000-000000000002",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 0,
+		"timestamp": "2026-08-12T10:00:00.000Z",
+		"type": "run.started",
+		"payload": {
+			"mode": "step",
+			"budgets": {
+				"maxTicks": 30,
+				"maxTokens": 100000,
+				"requestTimeoutMs": 60000
+			},
+			"providerId": "mock",
+			"wireModel": "mock-1",
+			"cartridgeId": "test/brain",
+			"strategies": {
+				"memory": "window-v1",
+				"prompt": "sections-v1"
+			}
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000003",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 0,
+		"timestamp": "2026-08-12T10:00:01.000Z",
+		"type": "world.changed",
+		"payload": {
+			"state": {
+				"desk": {
+					"title": "The Test Desk",
+					"role": "Clerk"
+				},
+				"records": [
+					{
+						"id": "notice",
+						"kind": "notice",
+						"title": "Notice",
+						"classification": "public",
+						"fields": {
+							"text": "Everyone signs in."
+						}
+					}
+				],
+				"transcript": [],
+				"queue": [
+					{
+						"id": "sign-in",
+						"title": "Sign in",
+						"status": "open",
+						"recordIds": [
+							"visitor"
+						]
+					}
+				],
+				"alerts": [],
+				"tick": 0,
+				"hidden": [
+					{
+						"id": "visitor",
+						"kind": "visitor",
+						"title": "Visitor",
+						"classification": "personal",
+						"fields": {
+							"name": "A. Person",
+							"expected": true
+						}
+					}
+				],
+				"heardCursor": 0,
+				"scheduledHeard": [],
+				"toolOverrides": {},
+				"extra": {
+					"consulted": 0
+				},
+				"config": {}
+			}
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000004",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 1,
+		"timestamp": "2026-08-12T10:00:02.000Z",
+		"type": "tick.started",
+		"payload": {}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000005",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 1,
+		"timestamp": "2026-08-12T10:00:03.000Z",
+		"type": "sense",
+		"payload": {
+			"channels": [
+				"conversation",
+				"case-file",
+				"queue"
+			],
+			"observation": {
+				"channels": [
+					"conversation",
+					"case-file",
+					"queue"
+				],
+				"text": "Nobody has said anything since you last listened.\nOpen on the desk:\n  Notice: text Everyone signs in.\nQueue: Sign in (open)",
+				"summary": "1 open, 0 done"
+			}
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000006",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 1,
+		"timestamp": "2026-08-12T10:00:04.000Z",
+		"type": "prompt.composed",
+		"payload": {
+			"messages": [
+				{
+					"role": "system",
+					"content": "You are a small robot in a simulated playroom. You take one turn at a time. On each turn you are told what you can sense, and you may think briefly and then take at most one action or use at most one tool.\n\nYour goal: Find out who has come and sign them in.\n\nParts you have been built with: starter/llm, starter/memory, starter/sense, starter/actions.\n\nHow to reply:\n- Think briefly — a sentence or two, out loud.\n- Then call at most one tool or action. Never more than one per turn.\n- Only use `celebrate` when the goal is genuinely finished. Claiming success early is worse than taking another turn."
+				},
+				{
+					"role": "user",
+					"content": "Right now:\nNobody has said anything since you last listened.\nOpen on the desk:\n  Notice: text Everyone signs in.\nQueue: Sign in (open)\nNot yet."
+				}
+			],
+			"estimatedTokens": 186
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000007",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 1,
+		"timestamp": "2026-08-12T10:00:05.000Z",
+		"type": "think.started",
+		"payload": {
+			"wireModel": "mock-1",
+			"providerId": "mock",
+			"cartridgeId": "test/brain"
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000008",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 1,
+		"timestamp": "2026-08-12T10:00:06.000Z",
+		"type": "think.token",
+		"payload": {
+			"delta": "Someone "
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000009",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 1,
+		"timestamp": "2026-08-12T10:00:07.000Z",
+		"type": "think.token",
+		"payload": {
+			"delta": "is "
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000000a",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 1,
+		"timestamp": "2026-08-12T10:00:08.000Z",
+		"type": "think.token",
+		"payload": {
+			"delta": "here. "
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000000b",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 1,
+		"timestamp": "2026-08-12T10:00:09.000Z",
+		"type": "think.token",
+		"payload": {
+			"delta": "Hello."
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000000c",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 1,
+		"timestamp": "2026-08-12T10:00:10.000Z",
+		"type": "think.completed",
+		"payload": {
+			"response": {
+				"text": "Someone is here. Hello.",
+				"toolCall": {
+					"name": "say",
+					"arguments": {
+						"text": "Hello, who are you here to see?"
+					}
+				},
+				"usage": {
+					"inputTokens": 186,
+					"outputTokens": 6
+				},
+				"raw": {
+					"mock": true,
+					"turnIndex": 0,
+					"turn": {
+						"text": "Someone is here. Hello.",
+						"toolCall": {
+							"name": "say",
+							"arguments": {
+								"text": "Hello, who are you here to see?"
+							}
+						}
+					}
+				},
+				"finishReason": "tool_call"
+			}
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000000d",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 1,
+		"timestamp": "2026-08-12T10:00:11.000Z",
+		"type": "decision",
+		"payload": {
+			"thought": "Someone is here. Hello.",
+			"call": {
+				"kind": "action",
+				"name": "say",
+				"arguments": {
+					"text": "Hello, who are you here to see?"
+				}
+			},
+			"source": "brain"
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000000e",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 1,
+		"timestamp": "2026-08-12T10:00:12.000Z",
+		"type": "action.performed",
+		"payload": {
+			"name": "say",
+			"arguments": {
+				"text": "Hello, who are you here to see?"
+			},
+			"result": {
+				"ok": true,
+				"narration": "You say: \"Hello, who are you here to see?\"",
+				"stateDiff": [
+					{
+						"path": "transcript.length",
+						"from": 0,
+						"to": 1
+					}
+				]
+			}
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000000f",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 1,
+		"timestamp": "2026-08-12T10:00:13.000Z",
+		"type": "world.changed",
+		"payload": {
+			"state": {
+				"desk": {
+					"title": "The Test Desk",
+					"role": "Clerk"
+				},
+				"records": [
+					{
+						"id": "notice",
+						"kind": "notice",
+						"title": "Notice",
+						"classification": "public",
+						"fields": {
+							"text": "Everyone signs in."
+						}
+					}
+				],
+				"transcript": [
+					{
+						"seq": 1,
+						"tick": 1,
+						"speaker": "agent",
+						"speakerName": "You",
+						"text": "Hello, who are you here to see?"
+					}
+				],
+				"queue": [
+					{
+						"id": "sign-in",
+						"title": "Sign in",
+						"status": "open",
+						"recordIds": [
+							"visitor"
+						]
+					}
+				],
+				"alerts": [],
+				"tick": 1,
+				"hidden": [
+					{
+						"id": "visitor",
+						"kind": "visitor",
+						"title": "Visitor",
+						"classification": "personal",
+						"fields": {
+							"name": "A. Person",
+							"expected": true
+						}
+					}
+				],
+				"heardCursor": 0,
+				"scheduledHeard": [],
+				"toolOverrides": {},
+				"extra": {
+					"consulted": 0
+				},
+				"config": {}
+			}
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000010",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 1,
+		"timestamp": "2026-08-12T10:00:14.000Z",
+		"type": "memory.updated",
+		"payload": {
+			"windowSize": 10,
+			"entries": 1,
+			"notebookUpdated": false
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000011",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 1,
+		"timestamp": "2026-08-12T10:00:15.000Z",
+		"type": "tick.completed",
+		"payload": {}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000012",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 2,
+		"timestamp": "2026-08-12T10:00:16.000Z",
+		"type": "tick.started",
+		"payload": {}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000013",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 2,
+		"timestamp": "2026-08-12T10:00:17.000Z",
+		"type": "sense",
+		"payload": {
+			"channels": [
+				"conversation",
+				"case-file",
+				"queue"
+			],
+			"observation": {
+				"channels": [
+					"conversation",
+					"case-file",
+					"queue"
+				],
+				"text": "Since you last listened:\n  You: Hello, who are you here to see?\nOpen on the desk:\n  Notice: text Everyone signs in.\nQueue: Sign in (open)",
+				"summary": "1 open, 0 done — last said: Hello, who are you here to see?"
+			}
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000014",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 2,
+		"timestamp": "2026-08-12T10:00:18.000Z",
+		"type": "prompt.composed",
+		"payload": {
+			"messages": [
+				{
+					"role": "system",
+					"content": "You are a small robot in a simulated playroom. You take one turn at a time. On each turn you are told what you can sense, and you may think briefly and then take at most one action or use at most one tool.\n\nYour goal: Find out who has come and sign them in.\n\nParts you have been built with: starter/llm, starter/memory, starter/sense, starter/actions.\n\nHow to reply:\n- Think briefly — a sentence or two, out loud.\n- Then call at most one tool or action. Never more than one per turn.\n- Only use `celebrate` when the goal is genuinely finished. Claiming success early is worse than taking another turn."
+				},
+				{
+					"role": "user",
+					"content": "What you remember of earlier turns, oldest first:\nTick 1: you saw — 1 open, 0 done; you thought — Someone is here. Hello.; you did — tried to say; what happened — You say: \"Hello, who are you here to see?\""
+				},
+				{
+					"role": "user",
+					"content": "Right now:\nSince you last listened:\n  You: Hello, who are you here to see?\nOpen on the desk:\n  Notice: text Everyone signs in.\nQueue: Sign in (open)\nNot yet."
+				}
+			],
+			"estimatedTokens": 241
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000015",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 2,
+		"timestamp": "2026-08-12T10:00:19.000Z",
+		"type": "think.started",
+		"payload": {
+			"wireModel": "mock-1",
+			"providerId": "mock",
+			"cartridgeId": "test/brain"
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000016",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 2,
+		"timestamp": "2026-08-12T10:00:20.000Z",
+		"type": "think.token",
+		"payload": {
+			"delta": "Let "
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000017",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 2,
+		"timestamp": "2026-08-12T10:00:21.000Z",
+		"type": "think.token",
+		"payload": {
+			"delta": "me "
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000018",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 2,
+		"timestamp": "2026-08-12T10:00:22.000Z",
+		"type": "think.token",
+		"payload": {
+			"delta": "open "
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000019",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 2,
+		"timestamp": "2026-08-12T10:00:23.000Z",
+		"type": "think.token",
+		"payload": {
+			"delta": "their "
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000001a",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 2,
+		"timestamp": "2026-08-12T10:00:24.000Z",
+		"type": "think.token",
+		"payload": {
+			"delta": "record."
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000001b",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 2,
+		"timestamp": "2026-08-12T10:00:25.000Z",
+		"type": "think.completed",
+		"payload": {
+			"response": {
+				"text": "Let me open their record.",
+				"toolCall": {
+					"name": "look-up",
+					"arguments": {
+						"record": "visitor"
+					}
+				},
+				"usage": {
+					"inputTokens": 241,
+					"outputTokens": 7
+				},
+				"raw": {
+					"mock": true,
+					"turnIndex": 1,
+					"turn": {
+						"text": "Let me open their record.",
+						"toolCall": {
+							"name": "look-up",
+							"arguments": {
+								"record": "visitor"
+							}
+						}
+					}
+				},
+				"finishReason": "tool_call"
+			}
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000001c",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 2,
+		"timestamp": "2026-08-12T10:00:26.000Z",
+		"type": "decision",
+		"payload": {
+			"thought": "Let me open their record.",
+			"call": {
+				"kind": "action",
+				"name": "look-up",
+				"arguments": {
+					"record": "visitor"
+				}
+			},
+			"source": "brain"
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000001d",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 2,
+		"timestamp": "2026-08-12T10:00:27.000Z",
+		"type": "action.performed",
+		"payload": {
+			"name": "look-up",
+			"arguments": {
+				"record": "visitor"
+			},
+			"result": {
+				"ok": true,
+				"narration": "Opened Visitor.",
+				"stateDiff": []
+			}
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000001e",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 2,
+		"timestamp": "2026-08-12T10:00:28.000Z",
+		"type": "world.changed",
+		"payload": {
+			"state": {
+				"desk": {
+					"title": "The Test Desk",
+					"role": "Clerk"
+				},
+				"records": [
+					{
+						"id": "notice",
+						"kind": "notice",
+						"title": "Notice",
+						"classification": "public",
+						"fields": {
+							"text": "Everyone signs in."
+						}
+					},
+					{
+						"id": "visitor",
+						"kind": "visitor",
+						"title": "Visitor",
+						"classification": "personal",
+						"fields": {
+							"name": "A. Person",
+							"expected": true
+						}
+					}
+				],
+				"transcript": [
+					{
+						"seq": 1,
+						"tick": 1,
+						"speaker": "agent",
+						"speakerName": "You",
+						"text": "Hello, who are you here to see?"
+					}
+				],
+				"queue": [
+					{
+						"id": "sign-in",
+						"title": "Sign in",
+						"status": "open",
+						"recordIds": [
+							"visitor"
+						]
+					}
+				],
+				"alerts": [],
+				"tick": 2,
+				"hidden": [],
+				"heardCursor": 1,
+				"scheduledHeard": [],
+				"toolOverrides": {},
+				"extra": {
+					"consulted": 0
+				},
+				"config": {}
+			}
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000001f",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 2,
+		"timestamp": "2026-08-12T10:00:29.000Z",
+		"type": "memory.updated",
+		"payload": {
+			"windowSize": 10,
+			"entries": 2,
+			"notebookUpdated": false
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000020",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 2,
+		"timestamp": "2026-08-12T10:00:30.000Z",
+		"type": "tick.completed",
+		"payload": {}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000021",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 3,
+		"timestamp": "2026-08-12T10:00:31.000Z",
+		"type": "tick.started",
+		"payload": {}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000022",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 3,
+		"timestamp": "2026-08-12T10:00:32.000Z",
+		"type": "sense",
+		"payload": {
+			"channels": [
+				"conversation",
+				"case-file",
+				"queue"
+			],
+			"observation": {
+				"channels": [
+					"conversation",
+					"case-file",
+					"queue"
+				],
+				"text": "Nobody has said anything since you last listened.\nOpen on the desk:\n  Notice: text Everyone signs in.\n  Visitor: name A. Person, expected true\nQueue: Sign in (open)",
+				"summary": "1 open, 0 done — last said: Hello, who are you here to see?"
+			}
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000023",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 3,
+		"timestamp": "2026-08-12T10:00:33.000Z",
+		"type": "prompt.composed",
+		"payload": {
+			"messages": [
+				{
+					"role": "system",
+					"content": "You are a small robot in a simulated playroom. You take one turn at a time. On each turn you are told what you can sense, and you may think briefly and then take at most one action or use at most one tool.\n\nYour goal: Find out who has come and sign them in.\n\nParts you have been built with: starter/llm, starter/memory, starter/sense, starter/actions.\n\nHow to reply:\n- Think briefly — a sentence or two, out loud.\n- Then call at most one tool or action. Never more than one per turn.\n- Only use `celebrate` when the goal is genuinely finished. Claiming success early is worse than taking another turn."
+				},
+				{
+					"role": "user",
+					"content": "What you remember of earlier turns, oldest first:\nTick 1: you saw — 1 open, 0 done; you thought — Someone is here. Hello.; you did — tried to say; what happened — You say: \"Hello, who are you here to see?\"\nTick 2: you saw — 1 open, 0 done — last said: Hello, who are you here to see?; you thought — Let me open their record.; you did — tried to look-up; what happened — Opened Visitor."
+				},
+				{
+					"role": "user",
+					"content": "Right now:\nNobody has said anything since you last listened.\nOpen on the desk:\n  Notice: text Everyone signs in.\n  Visitor: name A. Person, expected true\nQueue: Sign in (open)\nNot yet."
+				}
+			],
+			"estimatedTokens": 293
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000024",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 3,
+		"timestamp": "2026-08-12T10:00:34.000Z",
+		"type": "think.started",
+		"payload": {
+			"wireModel": "mock-1",
+			"providerId": "mock",
+			"cartridgeId": "test/brain"
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000025",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 3,
+		"timestamp": "2026-08-12T10:00:35.000Z",
+		"type": "think.token",
+		"payload": {
+			"delta": "Signing "
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000026",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 3,
+		"timestamp": "2026-08-12T10:00:36.000Z",
+		"type": "think.token",
+		"payload": {
+			"delta": "them "
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000027",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 3,
+		"timestamp": "2026-08-12T10:00:37.000Z",
+		"type": "think.token",
+		"payload": {
+			"delta": "in."
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000028",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 3,
+		"timestamp": "2026-08-12T10:00:38.000Z",
+		"type": "think.completed",
+		"payload": {
+			"response": {
+				"text": "Signing them in.",
+				"toolCall": {
+					"name": "sign-in",
+					"arguments": {
+						"visitor": "A. Person"
+					}
+				},
+				"usage": {
+					"inputTokens": 293,
+					"outputTokens": 4
+				},
+				"raw": {
+					"mock": true,
+					"turnIndex": 2,
+					"turn": {
+						"text": "Signing them in.",
+						"toolCall": {
+							"name": "sign-in",
+							"arguments": {
+								"visitor": "A. Person"
+							}
+						}
+					}
+				},
+				"finishReason": "tool_call"
+			}
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-000000000029",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 3,
+		"timestamp": "2026-08-12T10:00:39.000Z",
+		"type": "decision",
+		"payload": {
+			"thought": "Signing them in.",
+			"call": {
+				"kind": "action",
+				"name": "sign-in",
+				"arguments": {
+					"visitor": "A. Person"
+				}
+			},
+			"source": "brain"
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000002a",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 3,
+		"timestamp": "2026-08-12T10:00:40.000Z",
+		"type": "action.performed",
+		"payload": {
+			"name": "sign-in",
+			"arguments": {
+				"visitor": "A. Person"
+			},
+			"result": {
+				"ok": true,
+				"narration": "Signed A. Person in.",
+				"stateDiff": []
+			}
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000002b",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 3,
+		"timestamp": "2026-08-12T10:00:41.000Z",
+		"type": "world.changed",
+		"payload": {
+			"state": {
+				"desk": {
+					"title": "The Test Desk",
+					"role": "Clerk"
+				},
+				"records": [
+					{
+						"id": "notice",
+						"kind": "notice",
+						"title": "Notice",
+						"classification": "public",
+						"fields": {
+							"text": "Everyone signs in."
+						}
+					},
+					{
+						"id": "visitor",
+						"kind": "visitor",
+						"title": "Visitor",
+						"classification": "personal",
+						"fields": {
+							"name": "A. Person",
+							"expected": true
+						}
+					}
+				],
+				"transcript": [
+					{
+						"seq": 1,
+						"tick": 1,
+						"speaker": "agent",
+						"speakerName": "You",
+						"text": "Hello, who are you here to see?"
+					},
+					{
+						"seq": 2,
+						"tick": 3,
+						"speaker": "system",
+						"speakerName": "Desk",
+						"text": "A. Person signed in."
+					}
+				],
+				"queue": [
+					{
+						"id": "sign-in",
+						"title": "Sign in",
+						"status": "decided",
+						"recordIds": [
+							"visitor"
+						],
+						"decision": "Signed in: A. Person"
+					}
+				],
+				"alerts": [],
+				"tick": 3,
+				"hidden": [],
+				"heardCursor": 1,
+				"scheduledHeard": [],
+				"toolOverrides": {},
+				"extra": {
+					"consulted": 0
+				},
+				"config": {}
+			}
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000002c",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 3,
+		"timestamp": "2026-08-12T10:00:42.000Z",
+		"type": "memory.updated",
+		"payload": {
+			"windowSize": 10,
+			"entries": 3,
+			"notebookUpdated": false
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000002d",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 3,
+		"timestamp": "2026-08-12T10:00:43.000Z",
+		"type": "tick.completed",
+		"payload": {
+			"outcome": "SUCCESS"
+		}
+	},
+	{
+		"id": "00000000-0000-4000-8000-00000000002e",
+		"runId": "00000000-0000-4000-8000-000000000001",
+		"agentId": "33333333-3333-4333-8333-333333333333",
+		"tick": 3,
+		"timestamp": "2026-08-12T10:00:44.000Z",
+		"type": "run.finished",
+		"payload": {
+			"outcome": "SUCCESS",
+			"ticks": 3,
+			"usage": {
+				"inputTokens": 720,
+				"outputTokens": 17
+			}
+		}
+	}
+]

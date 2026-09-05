@@ -72,6 +72,19 @@ export interface SpecOverrides {
 
 const ALL_SENSES = ['workshop/the-workshop/sight', 'workshop/the-workshop/smell'];
 const ALL_ACTIONS = ['workshop/the-workshop/move', 'workshop/the-workshop/paint'];
+// The Front Desk's own (WP53): a spec on its card gets these instead.
+const DESK_SENSES = [
+	'workshop/the-desk/conversation',
+	'workshop/the-desk/case-file',
+	'workshop/the-desk/queue'
+];
+const DESK_ACTIONS = [
+	'workshop/the-desk/say',
+	'workshop/the-desk/look-up',
+	'workshop/the-desk/sign-in',
+	'workshop/the-desk/escalate'
+];
+const onTheDesk = (goalCardId: string | undefined) => goalCardId === 'workshop/sign-the-visitor-in';
 
 export function buildSpec(overrides: SpecOverrides = {}): AgentSpec {
 	const spec: AgentSpec = {
@@ -84,8 +97,12 @@ export function buildSpec(overrides: SpecOverrides = {}): AgentSpec {
 				maxTokens: 256,
 				personality: 'You are a cheerful little robot.'
 			},
-			sense: { channels: overrides.senses ?? ALL_SENSES },
-			actions: { enabled: overrides.actions ?? ALL_ACTIONS }
+			sense: {
+				channels: overrides.senses ?? (onTheDesk(overrides.goalCardId) ? DESK_SENSES : ALL_SENSES)
+			},
+			actions: {
+				enabled: overrides.actions ?? (onTheDesk(overrides.goalCardId) ? DESK_ACTIONS : ALL_ACTIONS)
+			}
 		},
 		goalCardId: overrides.goalCardId ?? 'workshop/find-the-paint-pot',
 		createdAt: '2026-08-16T09:00:00Z',

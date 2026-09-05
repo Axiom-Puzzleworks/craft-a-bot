@@ -122,7 +122,15 @@ export const goalCardDefinitionSchema = z.object({
 	 * break that promise. WP31 is expected to give this flag a picker of its
 	 * own; until then it just keeps the card off the one that already exists.
 	 */
-	coop: z.boolean().optional()
+	coop: z.boolean().optional(),
+	/**
+	 * Who the card is for (WP53, `43-DESK-WORLDS.md` §4.3): `'workshop'` keeps
+	 * it off the Kit's rack until the Workshop door is open — the gate brick
+	 * kinds (`audience`, WP35) and authored content (`local/`, WP46) already
+	 * use, applied to goal cards. Absent means `'kit'`: every card written
+	 * before this field existed.
+	 */
+	audience: z.enum(['kit', 'workshop']).optional()
 });
 export type GoalCardDefinition = z.infer<typeof goalCardDefinitionSchema>;
 

@@ -9,7 +9,7 @@ import {
 	type RunOutcome,
 	type SessionStatus
 } from '@craftabot/core';
-import type { GridWorldState } from '@craftabot/core';
+import type { WorldViewState } from '@craftabot/core';
 import { botExpression, type BotExpression } from '$lib/bot-expression.js';
 import { createRegistry } from '$lib/packs.js';
 import type { BreakpointKind } from './settings.js';
@@ -47,7 +47,8 @@ export interface SessionView {
 	readonly lamp: LampState;
 	/** The bot's face — how the run is going, where `lamp` is what it is doing. */
 	readonly expression: BotExpression;
-	readonly world: GridWorldState | undefined;
+	/** A room or a desk (WP53) — whatever the last `world.changed` carried. */
+	readonly world: WorldViewState | undefined;
 	readonly thought: string;
 	/** True while tokens are still arriving for this turn. */
 	readonly streamingNow: boolean;

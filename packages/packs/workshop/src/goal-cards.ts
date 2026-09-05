@@ -1,5 +1,6 @@
 import type { GoalCardDefinition } from '@craftabot/core';
 import { goalCardStrings } from './strings.js';
+import { FRONT_DESK_WORLD_ID } from './world/desk.js';
 import { WORKSHOP_WORLD_ID } from './world/workshop.js';
 
 /**
@@ -38,5 +39,18 @@ export const workshopGoalCards: GoalCardDefinition[] = [
 		hints: [...goalCardStrings['paint-the-birdhouse'].hints],
 		teachesConcepts: ['multi-step-behaviour', 'irreversible-actions', 'sense'],
 		par: 10
+	},
+	{
+		// The Front Desk (WP53, `43-…` §4.3): Workshop-only until the Playground's box (WP59).
+		id: 'workshop/sign-the-visitor-in',
+		title: goalCardStrings['sign-the-visitor-in'].title,
+		goalText: goalCardStrings['sign-the-visitor-in'].goalText,
+		worldId: FRONT_DESK_WORLD_ID,
+		layoutId: 'a-visitor',
+		successCondition: 'visitor-signed-in',
+		hints: [...goalCardStrings['sign-the-visitor-in'].hints],
+		teachesConcepts: ['the-loop', 'actions', 'sense'],
+		par: 3,
+		audience: 'workshop'
 	}
 ];

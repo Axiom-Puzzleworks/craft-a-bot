@@ -1,4 +1,5 @@
 import type {
+	Injection,
 	ActionCall,
 	AnyAgentSpec,
 	CartridgeDefinition,
@@ -150,6 +151,26 @@ export interface GoldenTraceConformanceFixture {
  * skips whatever a fixture omits rather than failing it for content it never
  * shipped.
  */
+/**
+ * What `checkDesk` (WP53 stage C, `43-DESK-WORLDS.md` §4.8) is told about a
+ * desk. Everything is optional: a desk with no fixture at all is still
+ * checked for its shape, its tiers, its purity over its senses, its reset
+ * and its injection doors. Scripts and illegal calls also run it through
+ * `checkWorld`.
+ */
+export interface DeskConformanceFixture {
+	/** Which layouts to exercise; default every one the world declares. */
+	layoutIds?: string[];
+	/** The desk's purpose, when the definition does not carry it (`createDeskWorld` leaves it on `spec`). */
+	purpose?: string;
+	/** The injection kinds the desk takes; default all four. A kind it declines must leave it unchanged. */
+	acceptedInjections?: Injection['kind'][];
+	scripts?: Record<string, WorldScriptFixture>;
+	illegalActions?: WorldIllegalCallFixture[];
+	/** Default `['tick', 'heardCursor']` — the runtime's own clock and cursor. */
+	volatileStateKeys?: string[];
+}
+
 export interface PackConformanceFixture {
 	manifest: PackManifest;
 	/** Other packs to register alongside this one before any check runs — a cartridge pack a brain brick resolves against, say. */
@@ -162,6 +183,8 @@ export interface PackConformanceFixture {
 	/** One per evaluator the manifest ships, keyed by evaluator id (`31-…` §4.4). */
 	evaluators?: Record<string, EvaluatorConformanceFixture>;
 	goldenTrace?: GoldenTraceConformanceFixture;
+	/** One per desk world the manifest ships, keyed by world id (WP53); a desk without an entry is checked with the defaults. */
+	desks?: Record<string, DeskConformanceFixture>;
 }
 
 export type { CartridgeDefinition };

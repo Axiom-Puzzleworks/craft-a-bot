@@ -81,6 +81,8 @@ Three-column layout:
 
 ### 5.1 Layout
 
+> **Amended 2026-09-05 (WP53 stage A, `43-DESK-WORLDS.md` §4.2):** the centre is a `WorldStage`, which draws a room through `WorldView` as ever and a Desk (`DeskWorldState`) through `DeskView` — a transcript, a case file and a queue, with a "FOR SIMULATION ONLY" strip. Every screen that shows a world (Play, duo, replay, the Run Lab, Compare) mounts the stage; the Playroom's own layout below is unchanged. A Desk reaches a child's bench only through a goal card marked `audience: 'workshop'`, which waits for the Workshop door.
+
 - **Centre:** the world view — the 8×6 playroom rendered as a warm flat-illustrated scene (rug, toy chest, shelf, table, Teddy, items, and the user's bot). One action per tick animates legibly (bot slides one cell, item hops into its hands, speech bubbles for `say`).
 - **Top bar ("head-up"):** the bot's face (from its build), goal text, tick counter vs budget ("steps left" as a battery/fuel gauge), token meter, status lamp (thinking = pulsing amber, acting = green, paused = blue, tripped = red).
 - **Controls (bottom):** **STEP** (one tick), **PLAY/PAUSE** with speed dial (0.5×–4×), **STOP**, **RESET WORLD**. In the tutorial, STEP is the hero button.

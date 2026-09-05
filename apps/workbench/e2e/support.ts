@@ -134,12 +134,38 @@ export async function buildReadyBot(page: Page, cardTestId = 'card-snack'): Prom
  * the navigation won, and the screen read a store with no summary in it.
  */
 export async function awaitRunSaved(page: Page): Promise<void> {
-	await expect(page.getByTestId('run-saved')).toBeVisible({ timeout: 15_000 });
+	// The same budget as the finish wait: on a loaded machine the store is what is slow.
+	await expect(page.getByTestId('run-saved')).toBeVisible({ timeout: 30_000 });
 }
 
 /** The duo route's counterpart: every member's row and summary, and the group's row. */
 export async function awaitDuoSaved(page: Page): Promise<void> {
-	await expect(page.getByTestId('duo-saved')).toBeVisible({ timeout: 15_000 });
+	await expect(page.getByTestId('duo-saved')).toBeVisible({ timeout: 30_000 });
+}
+
+/**
+ * A bot on the Front Desk, at the Play route (WP53). Opens the Workshop door
+ * (the desk's card waits for it), builds the bot on the card, and ticks the
+ * desk's own channels and actions in the brick panels — the starter Sense
+ * and Actions bricks default to the Playroom's, so on any other world the
+ * player does this at the bench too.
+ */
+export const DESK_CARD = 'card-workshop/sign-the-visitor-in';
+
+export async function buildDeskBotAndGo(page: Page): Promise<void> {
+	await page.goto('/settings');
+	await page.getByLabel('Show the Workshop').click();
+	await buildReadyBot(page, DESK_CARD);
+	await page.getByTestId('socket-perception').getByRole('button').click();
+	for (const name of ['Conversation', 'Case file', 'Queue']) {
+		await page.getByTestId('brick-controls-perception').getByRole('checkbox', { name }).check();
+	}
+	await page.getByTestId('socket-mobility').getByRole('button').click();
+	for (const name of ['Say', 'Look up', 'Sign in', 'Escalate']) {
+		await page.getByTestId('brick-controls-mobility').getByRole('checkbox', { name }).check();
+	}
+	await page.getByRole('button', { name: /GO/ }).click();
+	await expect(page).toHaveURL(/\/play\//);
 }
 
 export async function buildAndGo(page: Page, cardTestId = 'card-snack'): Promise<void> {

@@ -384,6 +384,23 @@ const SCRIPTS: Record<string, CardScript> = {
 		]
 	},
 
+	// The Front Desk (WP53): the Demo Brain plays the desk as it plays a room.
+	'workshop/sign-the-visitor-in': {
+		succeeds: [
+			{
+				say: 'Someone is at the desk. Best to say hello and ask.',
+				call: 'say',
+				args: { text: 'Hello, who are you here to see?' }
+			},
+			{ say: 'Let me open their record.', call: 'look-up', args: { record: 'visitor' } },
+			{
+				say: 'Mr Patel, for Dr Okafor. Signing them in.',
+				call: 'sign-in',
+				args: { visitor: 'Mr Patel' }
+			}
+		]
+	},
+
 	'starter/hiding-spot': {
 		variants: [
 			{

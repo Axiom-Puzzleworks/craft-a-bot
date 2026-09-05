@@ -103,7 +103,12 @@
 	// `coop` cards are built for a `SessionGroup`, not this one-robot bench
 	// (WP29, `23-MULTI-AGENT-DESIGN.md` §10 stage D) — the Kit's card picker
 	// stays exactly what it was before WP29 shipped any of them.
-	const goalCards = $derived(registry.listGoalCards().filter((card) => !card.coop));
+	// A `'workshop'` card (WP53, `43-…` §4.3) waits for the Workshop door, like authored content below.
+	const forThisRack = (card: { audience?: 'kit' | 'workshop' | undefined }) =>
+		card.audience !== 'workshop' || preferences.workshop;
+	const goalCards = $derived(
+		registry.listGoalCards().filter((card) => !card.coop && forThisRack(card))
+	);
 	// Authored cards (WP46) are offered only while the Workshop door is open — the `audience` gate, applied to content.
 	const policyCards = $derived(
 		registry.listPolicyCards().filter((card) => !isLocalId(card.id) || preferences.workshop)
@@ -126,7 +131,9 @@
 	 * exact *inverse* of `goalCards`' own filter above, over the same
 	 * `listGoalCards()` call, never touched twice for different reasons.
 	 */
-	const coopGoalCards = $derived(registry.listGoalCards().filter((card) => card.coop));
+	const coopGoalCards = $derived(
+		registry.listGoalCards().filter((card) => card.coop && forThisRack(card))
+	);
 
 	/**
 	 * "GO-ready", asked about a shelf bot that is not the one open here —

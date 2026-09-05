@@ -56,14 +56,40 @@ export interface ActionCall {
 	arguments: unknown;
 }
 
+/**
+ * How a host draws a world's state (WP53, `43-DESK-WORLDS.md` §4.1): a room
+ * (`GridWorldState`) or a desk (`DeskWorldState`, `types/desk-world.ts`).
+ */
+export type WorldViewKind = 'grid' | 'desk';
+
+/**
+ * What a session hands a world at `create` (WP53 stage B, `43-DESK-WORLDS.md`
+ * §4.4). `random` is the session's own seeded stream, so a world whose
+ * layout is *generated* — a desk's case — varies by seed and replays by
+ * seed. A caller that passes nothing (every test written before, the
+ * conformance kit) gets whatever the world does without one; the grid
+ * worlds ignore it, a desk falls back to a fixed seed.
+ */
+export interface WorldCreateOptions {
+	random?: () => number;
+}
+
 export interface WorldDefinition {
 	id: string; // "starter/playroom"
 	name: string;
+	/**
+	 * How a host draws this world's state. `'grid'` is every world written
+	 * before this field existed (`GridWorldState`); `'desk'` is a business
+	 * world (`DeskWorldState`). A host that knows neither draws the snapshot
+	 * as JSON and says so. Optional; absent means `'grid'`.
+	 */
+	view?: WorldViewKind;
 	layouts: WorldLayout[];
 	actions: WorldActionDefinition[];
 	senses: WorldSenseDefinition[];
 	predicates: Record<WorldPredicateId, string>;
-	create(layoutId: string): WorldInstance;
+	/** The second argument is optional and additive (WP53): a world that takes only the layout is still a world. */
+	create(layoutId: string, options?: WorldCreateOptions): WorldInstance;
 }
 
 /**

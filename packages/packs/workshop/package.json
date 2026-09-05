@@ -18,6 +18,7 @@
 	},
 	"dependencies": {
 		"@craftabot/core": "*",
+		"@craftabot/desk": "*",
 		"@craftabot/governance": "*",
 		"zod": "^4.4.3"
 	},

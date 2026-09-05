@@ -48,7 +48,22 @@ const PAINT_THE_BIRDHOUSE: Plan = [
  * Keyed by goal card id. `solvability.test.ts` asserts this covers the pack
  * exactly.
  */
+const SIGN_THE_VISITOR_IN: Plan = [
+	{
+		say: 'Someone is at the desk. Best to say hello.',
+		call: 'say',
+		args: { text: 'Hello, who are you here to see?' }
+	},
+	{ say: 'Let me open their record.', call: 'look-up', args: { record: 'visitor' } },
+	{
+		say: 'Mr Patel, for Dr Okafor. Signing them in.',
+		call: 'sign-in',
+		args: { visitor: 'Mr Patel' }
+	}
+];
+
 export const SCRIPTED_OPTIMAL: Record<string, Plan> = {
+	'workshop/sign-the-visitor-in': SIGN_THE_VISITOR_IN,
 	'workshop/find-the-paint-pot': FIND_THE_PAINT_POT,
 	'workshop/paint-the-birdhouse': PAINT_THE_BIRDHOUSE
 };

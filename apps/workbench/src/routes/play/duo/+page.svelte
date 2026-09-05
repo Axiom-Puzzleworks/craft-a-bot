@@ -28,7 +28,7 @@
 	import RunControls from '$lib/components/play/RunControls.svelte';
 	import StoryStrip from '$lib/components/play/StoryStrip.svelte';
 	import ThoughtBubble from '$lib/components/play/ThoughtBubble.svelte';
-	import WorldView from '$lib/components/play/WorldView.svelte';
+	import WorldStage from '$lib/components/play/WorldStage.svelte';
 
 	/**
 	 * **The Playroom, for two** (WP31, `24-ROBOT-FRIENDS-DESIGN.md` §4.3, §10
@@ -347,8 +347,9 @@
 
 		<div class="stage">
 			<section class="world" aria-label="The Playroom">
-				<WorldView
+				<WorldStage
 					world={view.world}
+					view={goalCard ? registry.getWorld(goalCard.worldId)?.view : undefined}
 					saying={foregrounded?.saying}
 					expression={foregrounded?.expression ?? 'idle'}
 					outcome={view.outcome}
