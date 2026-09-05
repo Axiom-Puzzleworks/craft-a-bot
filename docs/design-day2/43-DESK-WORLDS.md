@@ -260,6 +260,8 @@ The Kit skin uses the Kit's surface tokens; the Workshop's `[data-mode='workshop
 
 ### 4.8 `checkDesk` (stage C, `pack-testkit`) — first cut
 
+> **Amended 2026-09-05 (WP54 stage B, `45-TRUTH-SYNTHETIC.md` §4.3):** the real gate this section deferred to is built — `desk.truth-never-sensed` and `desk.truth-not-in-snapshot`, the tenet-13 property over a hundred seeds. `DeskCase` gained `truth?: DeskTruth`, kept beside the state and never in it (§4.4's `hidden` remains what the bot may *earn*; truth is what nobody at the desk can see).
+
 ```ts
 export function checkDesk(world: WorldDefinition, fixture: DeskConformanceFixture): ConformanceIssue[];
 ```

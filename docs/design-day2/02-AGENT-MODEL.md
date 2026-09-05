@@ -266,6 +266,10 @@ All events share `{ id, runId, tick, timestamp, type, payload }`, strictly typed
 
 Rules: events are **append-only facts**; payloads are JSON-serialisable; the trace is simply the ordered event list of a run (persisted per `07-DATA-MODEL-PERSISTENCE.md`); _anything_ the UI shows about a run must be derivable from events — if it isn't in an event, it didn't happen.
 
+> **Amended 2026-09-05 (WP54 stage A, `45-TRUTH-SYNTHETIC.md` §4.1):** one payload field, additive.
+>
+> - **`run.finished.truth?`** `unknown` — the world's `truth()` at the end of the run, when the world has one (`WorldInstance.truth?()`, `41-…` §6.2). **The only event that ever carries truth:** written once, by `finish()`, after the last decision and after every brick is disposed; never on `world.changed`, never in a `sense`, never in a prompt. Absent — not `null` — when the world has no truth, which is every world written before WP54 and both golden traces. Synthetic by tenet 15, so nothing redacts it; a stored run, a bundle and a campaign cell all carry it so an evaluator over any of them has the same input as one over a live run. Read by `evaluationInputFor` into `EvaluationInput.truth`, and stripped by `inputReadableBy` for every evaluator whose `reads` does not name `'truth'`.
+
 ## 8. Prompting (V1 canonical prompt)
 
 The composed prompt is assembled from labelled sections, in this order, and shown verbatim in the trace (`prompt.composed`):

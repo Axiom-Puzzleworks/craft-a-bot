@@ -6,7 +6,12 @@ import type {
 	RunRecord,
 	Storage
 } from '@craftabot/core';
-import { evaluationInputFor, evaluatorsOf, resolveEvaluator } from '@craftabot/evals';
+import {
+	evaluationInputFor,
+	evaluatorsOf,
+	inputReadableBy,
+	resolveEvaluator
+} from '@craftabot/evals';
 import { createBrowserKeyVault } from '$lib/state/keys.js';
 
 /**
@@ -70,7 +75,7 @@ export async function runEvaluator(
 		if (!live) runner = evaluator.createOffline?.() ?? evaluator;
 	}
 
-	const result = await runner.evaluate(input, {
+	const result = await runner.evaluate(inputReadableBy(evaluator, input), {
 		...(options.config !== undefined ? { config: options.config } : {}),
 		...(provider ? { provider, model: run.wireModel } : {}),
 		fetch: globalThis.fetch.bind(globalThis),

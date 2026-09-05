@@ -6,7 +6,7 @@ import type {
 	Guardrail,
 	GuardrailContext
 } from '@craftabot/core';
-import { assertionEvaluator, evaluationInputFor } from '@craftabot/governance';
+import { assertionEvaluator, evaluationInputFor, inputReadableBy } from '@craftabot/governance';
 import { z } from 'zod';
 
 /**
@@ -89,7 +89,7 @@ export function monitorJudgeGuardrail(
 			if (ctx.tick % everyTicks !== 0) return { allow: true, note: 'judge: not this tick' };
 			const input = evaluationInputFor(ctx.history);
 			try {
-				const result = await runner.evaluate(input, {
+				const result = await runner.evaluate(inputReadableBy(evaluator, input), {
 					config,
 					fetch: () => Promise.reject(new Error('the Monitor Judge does not call out')),
 					getCredential: () => undefined

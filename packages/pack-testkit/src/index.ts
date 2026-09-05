@@ -18,6 +18,13 @@ export { checkManifest } from './checks/manifest.js';
 export { checkTool } from './checks/tool.js';
 export { checkWorld } from './checks/world.js';
 export { checkDesk } from './checks/desk.js';
+export {
+	checkSynthetic,
+	ibanValid,
+	luhnValid,
+	reservedDomain,
+	type SyntheticSweepFile
+} from './checks/synthetic.js';
 export { describeConformance } from './describe-conformance.js';
 export type {
 	ConformanceIssue,

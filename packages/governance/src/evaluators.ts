@@ -115,11 +115,41 @@ export function evaluationInputFor(
 	/** The scenario the run was part of (WP44) — opaque here, a `ScenarioDefinition` or a campaign's scenario to whoever knows. */
 	scenario?: unknown
 ): EvaluationInput {
+	// The one place truth crosses from the trace to an evaluator (WP54, `45-…`
+	// §4.1): the last `run.finished` carries it, or nothing does. A history
+	// mid-run has no `run.finished`, so a Monitor Judge never sees truth.
+	let truth: unknown;
+	for (let index = events.length - 1; index >= 0; index -= 1) {
+		const event = events[index];
+		if (event?.type === 'run.finished') {
+			truth = event.payload.truth;
+			break;
+		}
+	}
 	return {
 		run: run ?? provisionalRun(events),
 		events,
-		...(scenario !== undefined ? { scenario } : {})
+		...(scenario !== undefined ? { scenario } : {}),
+		...(truth !== undefined ? { truth } : {})
 	};
+}
+
+/**
+ * The input an evaluator is entitled to (WP54, `45-…` §4.1): `truth` stays
+ * only when the evaluator's `reads` names it, and is *removed* — not set to
+ * `undefined` — otherwise, so a reader that spreads or serialises the input
+ * cannot find it either. Every path that runs an evaluator goes through this;
+ * `checkEvaluator` proves a planted truth never reaches an undeclared reader.
+ */
+export function inputReadableBy(
+	evaluator: Pick<Evaluator, 'reads'>,
+	input: EvaluationInput
+): EvaluationInput {
+	if (evaluator.reads?.includes('truth')) return input;
+	if (!('truth' in input)) return input;
+	const rest = { ...input };
+	delete rest.truth;
+	return rest;
 }
 
 /** An assertion card as an `Evaluator` (`31-…` §4.2): deterministic, over the run's real usage. */

@@ -123,3 +123,44 @@ export const testDeskSpec: DeskWorldSpec<TestExtra> = {
 };
 
 export const testDesk = createDeskWorld(testDeskSpec);
+
+/**
+ * The same desk with a truth (WP54, `45-…` §4.2): whether the visitor really
+ * is expected, drawn from the seed. A second spec, not a change to the
+ * first, because `testDesk` is the golden trace's oracle and a truth on it
+ * would put `run.finished.truth` into the golden.
+ */
+export const TRUTHFUL_TEST_DESK_ID = 'test/truthful-desk';
+
+export const truthfulTestDeskSpec: DeskWorldSpec<TestExtra> = {
+	...testDeskSpec,
+	id: TRUTHFUL_TEST_DESK_ID,
+	name: 'The Truthful Test Desk',
+	layouts: [
+		{
+			id: 'one-visitor',
+			name: 'One visitor',
+			case: (random) => {
+				const base = testDeskSpec.layouts[0]!.case(random);
+				const actuallyExpected = random() < 0.5;
+				return {
+					...base,
+					truth: {
+						records: [
+							{
+								id: 'visitor-truth',
+								kind: 'visitor',
+								title: 'Visitor (truth)',
+								classification: 'personal',
+								fields: { actually_expected: actuallyExpected, reason: 'appointment-book' }
+							}
+						],
+						facts: { outcome: actuallyExpected ? 'admit' : 'refuse' }
+					}
+				};
+			}
+		}
+	]
+};
+
+export const truthfulTestDesk = createDeskWorld(truthfulTestDeskSpec);

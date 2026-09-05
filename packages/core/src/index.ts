@@ -62,7 +62,8 @@ export {
 	type EvaluationResult,
 	type EvaluationVerdict,
 	type Evaluator,
-	type EvaluatorDeps
+	type EvaluatorDeps,
+	type EvaluatorReads
 } from './types/evaluator.js';
 export {
 	EgressRefusedError,

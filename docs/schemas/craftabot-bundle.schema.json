@@ -708,7 +708,8 @@
 												},
 												"reason": {
 													"type": "string"
-												}
+												},
+												"truth": {}
 											},
 											"required": [
 												"outcome",
@@ -3123,7 +3124,8 @@
 											},
 											"reason": {
 												"type": "string"
-											}
+											},
+											"truth": {}
 										},
 										"required": [
 											"outcome",

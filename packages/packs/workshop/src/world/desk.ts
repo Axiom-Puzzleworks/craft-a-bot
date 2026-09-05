@@ -60,7 +60,23 @@ export const frontDeskSpec: DeskWorldSpec = {
 				queue: [
 					{ id: 'sign-in', title: deskStrings.queue.signIn, status: 'open', recordIds: ['visitor'] }
 				],
-				activeCaseId: 'sign-in'
+				activeCaseId: 'sign-in',
+				// What was actually so (WP54, `45-…` §4.2): the visitor really is on
+				// the list. Nothing at the desk can read this; the Run Lab's flap
+				// shows it after the run ends and an evaluator that declares
+				// `reads: ['truth']` may compare the bot's decision with it.
+				truth: {
+					records: [
+						{
+							id: 'visitor-truth',
+							kind: 'visitor',
+							title: deskStrings.records.visitorTruth.title,
+							classification: 'personal',
+							fields: { on_the_list: true, appointment_with: deskStrings.records.visitor.hereToSee }
+						}
+					],
+					facts: { right_decision: deskStrings.records.visitorTruth.rightDecision }
+				}
 			})
 		}
 	],

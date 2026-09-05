@@ -364,6 +364,7 @@
 				saying={shown.saying}
 				{expression}
 				outcome={shown.outcome}
+				truth={shown.truth}
 				events={events.filter((event) => event.tick <= tick)}
 			/>
 			{#if live}

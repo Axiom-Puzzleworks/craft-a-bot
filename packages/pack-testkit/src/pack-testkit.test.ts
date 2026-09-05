@@ -13,6 +13,7 @@ import {
 	echoTool,
 	exampleEvaluationInput,
 	exampleEvaluator,
+	exampleTruthEvaluator,
 	exampleFixture,
 	exampleGuardService,
 	exampleGuardrailContext,
@@ -22,8 +23,10 @@ import {
 	badVerdictGuardrail,
 	brokenGuardrailContext,
 	brokenPack,
+	blindfoldedEvaluator,
 	coinFlipEvaluator,
 	fabulistEvaluator,
+	peekingEvaluator,
 	homelessJudge,
 	fussyService,
 	leakingService,
@@ -242,6 +245,29 @@ describe('checkEvaluator against broken evaluators (31-… §4.4)', () => {
 
 	it('passes the example evaluator', async () => {
 		expect(await checkEvaluator(exampleEvaluator, fixture)).toEqual([]);
+	});
+
+	// WP54 (`45-…` §4.1): truth reaches a declared reader and nobody else.
+	const truthful = {
+		inputs: [{ ...exampleEvaluationInput(), truth: { shouldAct: true } }],
+		plantedSecret: 'planted-secret-xyz'
+	};
+
+	it('passes a declared truth reader whose verdict depends on truth', async () => {
+		expect(await checkEvaluator(exampleTruthEvaluator, truthful)).toEqual([]);
+	});
+
+	it('reports a declared reader whose fixture carries no truth, and one that ignores it', async () => {
+		expect(await checks(exampleTruthEvaluator)).toEqual(['evaluator.reads-truth']);
+		expect([
+			...new Set((await checkEvaluator(blindfoldedEvaluator, truthful)).map((i) => i.check))
+		]).toEqual(['evaluator.reads-truth']);
+	});
+
+	it('reports an undeclared reader that lets a planted truth into its result', async () => {
+		expect(await checks(peekingEvaluator)).toEqual(['evaluator.truth-hidden']);
+		// The honest example never sees the sentinel, with or without truth on the input.
+		expect(await checkEvaluator(exampleEvaluator, truthful)).toEqual([]);
 	});
 });
 

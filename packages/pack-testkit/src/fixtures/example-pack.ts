@@ -225,6 +225,29 @@ export const exampleEvaluator: Evaluator = {
 	}
 };
 
+/** An evaluator that reads truth and says so (WP54, `45-…` §4.1): the verdict depends on what was actually so. */
+export const exampleTruthEvaluator: Evaluator = {
+	id: `${EXAMPLE_PACK_ID}/agrees-with-truth`,
+	name: 'Agrees with truth',
+	description: 'Passes when the run acted and the truth says it should have.',
+	kind: 'deterministic',
+	reads: ['truth'],
+	evaluate: (input) => {
+		const acted = input.events.filter((event) => event.type === 'action.performed');
+		const truth = input.truth as { shouldAct?: boolean } | undefined;
+		const agreed = truth !== undefined && acted.length > 0 === (truth.shouldAct ?? false);
+		return Promise.resolve({
+			evaluatorId: `${EXAMPLE_PACK_ID}/agrees-with-truth`,
+			verdict: truth === undefined ? 'inconclusive' : agreed ? 'pass' : 'fail',
+			explanation:
+				truth === undefined
+					? 'No truth to compare against.'
+					: `Truth says ${String(truth.shouldAct)}.`,
+			evidence: acted.map((event) => ({ eventId: event.id, tick: event.tick }))
+		});
+	}
+};
+
 /** The smallest input an evaluator can be handed: one action, on one run. */
 export function exampleEvaluationInput(): EvaluationInput {
 	const event = {
