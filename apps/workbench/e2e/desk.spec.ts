@@ -1,5 +1,12 @@
 import { expect, test } from '@playwright/test';
-import { awaitRunSaved, buildDeskBotAndGo, DESK_CARD, skipTutorial } from './support.js';
+import {
+	awaitDuoSaved,
+	awaitRunSaved,
+	buildDeskBot,
+	buildDeskBotAndGo,
+	DESK_CARD,
+	skipTutorial
+} from './support.js';
 
 /**
  * A Desk on every screen that shows a world (WP53 stage A, `43-…` §10): the
@@ -72,4 +79,42 @@ test('a bot on the Front Desk plays as a desk, and the stored run replays as one
 	await expect(page.getByTestId('world-view')).toHaveAttribute('data-world', 'desk');
 	await expect(page.getByTestId('desk-transcript')).toContainText('who');
 	await expect(page.getByTestId('desk-truth')).toHaveCount(0);
+});
+
+test('two robots at the Front Desk: the second is the visitor, and the Run Lab shows both voices with a Boundary', async ({
+	page
+}) => {
+	await page.goto('/settings');
+	await page.getByLabel('Show the Workshop').click();
+	const clerk = await buildDeskBot(page);
+	const visitor = await buildDeskBot(page);
+	await page.goto(`/play/duo?a=${clerk}&b=${visitor}&card=workshop/sign-the-visitor-in`);
+	await expect(page.getByTestId('duo-roles')).toContainText('is the visitor');
+
+	await page.getByTestId('play').click();
+	await expect(page.getByTestId('duo-finished')).toBeVisible({ timeout: 30_000 });
+	await awaitDuoSaved(page);
+	// Both voices on one transcript (WP55, `46-…` §4.6): the visitor's opening, the clerk's question, the visitor's answer.
+	await expect(
+		page.locator('[data-testid^="desk-line-"][data-speaker="agent"]').first()
+	).toBeVisible();
+	await expect(page.locator('[data-testid^="desk-line-"][data-speaker="counterpart"]')).toHaveCount(
+		await page.locator('[data-testid^="desk-line-"][data-speaker="counterpart"]').count()
+	);
+
+	// The stored episode in the Run Lab: the same transcript, and the clerk's Boundary with the visitor inside it.
+	await page.goto('/workshop/runs');
+	const groupRow = page.locator('[data-testid^="group-row-"]').first();
+	await expect(groupRow).toBeVisible();
+	await groupRow.getByRole('link').click();
+	await expect(page.getByTestId('world-view')).toHaveAttribute('data-world', 'desk');
+	await expect(
+		page.locator('[data-testid^="desk-line-"][data-speaker="counterpart"]').first()
+	).toBeVisible();
+	await expect(
+		page.locator('[data-testid^="desk-line-"][data-speaker="agent"]').first()
+	).toBeVisible();
+	await expect(page.getByTestId('run-boundary')).toBeVisible();
+	// The visitor is a node inside the clerk's boundary, named after the second robot.
+	await expect(page.locator('[data-testid^="boundary-edge-counterpart:"]')).toHaveCount(1);
 });

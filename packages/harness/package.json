@@ -21,6 +21,7 @@
 	},
 	"dependencies": {
 		"@craftabot/core": "*",
+		"@craftabot/desk": "*",
 		"@craftabot/evals": "*",
 		"@craftabot/governance": "*",
 		"@craftabot/pack-anthropic": "*",

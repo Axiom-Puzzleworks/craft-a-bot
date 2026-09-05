@@ -79,13 +79,19 @@ Usage:
                 [--brain scripted-optimal|scripted-noisy|live] [--provider <id>]
                 [--egress declared|none]
                 [--seed <n>] [--max-ticks <n>] [--deny] [--out ./runs]
+                [--counterpart scripted|live] [--counterpart-cartridge <id>] [--max-rounds <n>]
       Run a kit file to completion and write the run — run.json, events.jsonl,
       summary.json and a <runId>.craftabot-trace.json the Workshop imports —
       under --out (default ./runs). The scripted brains need no key and are
       reproducible from --seed (default 1); --brain live uses the kit's own
       cartridge, with its provider's key read from CRAFTABOT_CREDENTIAL_<ID>.
       --provider names the provider the cartridge must belong to. --deny
-      answers every approval with no (default: yes).
+      answers every approval with no (default: yes). --counterpart seats a
+      visitor across a desk card (WP55): the kit's bot and a generated
+      counterpart run as a two-seat episode, the visitor driven along the
+      desk's own script (scripted, no key, reproducible from --seed) or by a
+      cartridge (live; --counterpart-cartridge, default the kit's own); the
+      episode is written with a <groupRunId>.craftabot-bundle.json.
 
   craftabot bundle --run <runId> | --group <groupRunId> [--out ./runs] [--file <path>]
       Write a stored run back out as a .craftabot-trace.json, or a group
@@ -190,6 +196,16 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 				const egress = egressFlag(args);
 				const sinkId = stringFlag(args, 'sink');
 				const sinkConfig = stringFlag(args, 'sink-config');
+				const counterpartFlag = stringFlag(args, 'counterpart');
+				if (
+					counterpartFlag !== undefined &&
+					counterpartFlag !== 'scripted' &&
+					counterpartFlag !== 'live'
+				) {
+					throw new Error('--counterpart must be scripted or live');
+				}
+				const counterpartCartridge = stringFlag(args, 'counterpart-cartridge');
+				const maxRounds = numberFlag(args, 'max-rounds');
 				const report = await runKit({
 					kitPath,
 					brain: brainFlag as BrainTier,
@@ -204,10 +220,22 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 					...(egress !== undefined ? { egress } : {}),
 					...(sinkId !== undefined
 						? { sink: { id: sinkId, ...(sinkConfig !== undefined ? { config: sinkConfig } : {}) } }
-						: {})
+						: {}),
+					...(counterpartFlag !== undefined
+						? {
+								counterpart: {
+									brain: counterpartFlag,
+									...(counterpartCartridge !== undefined
+										? { cartridgeId: counterpartCartridge }
+										: {})
+								}
+							}
+						: {}),
+					...(maxRounds !== undefined ? { maxRounds } : {})
 				});
 				io.stdout(
 					[
+						...(report.groupRunId ? [`episode ${report.groupRunId}`] : []),
 						`run ${report.runId}`,
 						`  bot        ${report.agentId}`,
 						`  card       ${report.goalCardId}`,
@@ -215,6 +243,13 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 						`  outcome    ${report.outcome} after ${report.ticks} ticks (${report.events} events)`,
 						`  directory  ${report.directory}`,
 						`  trace      ${report.traceFile}`,
+						...(report.counterpartAgentId
+							? [
+									`  visitor    ${report.counterpartAgentId} (${report.counterpartProviderId})`,
+									`  rounds     ${report.rounds}`,
+									`  bundle     ${report.bundleFile}`
+								]
+							: []),
 						...(report.sink ? [`  sink       ${report.sink}`] : []),
 						''
 					].join('\n')

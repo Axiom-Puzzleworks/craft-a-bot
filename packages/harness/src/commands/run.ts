@@ -20,12 +20,14 @@ import { createMockProvider } from '@craftabot/core/testing';
 import { scriptedNoisy, scriptedOptimal } from '@craftabot/evals';
 import { summariseRun } from '@craftabot/governance/reports';
 import { planFor } from '@craftabot/pack-starter/testing';
+import { planFor as workshopPlanFor } from '@craftabot/pack-workshop/testing';
 import { createRegistry, packVersions, type HarnessConfig } from '../config.js';
 import { credentialVariable, type CredentialSource } from '../credentials.js';
 import { mulberry32 } from '../random.js';
 import { runRecordFrom } from '../run-record.js';
 import { buildSink, parseSinkConfig, sinkById } from '../sinks.js';
 import { createFileStorage } from '../storage/file-storage.js';
+import { runKitDuo, type CounterpartOptions } from './run-duo.js';
 
 /**
  * `craftabot run` (WP37 stage B, `26-…` §6.8): a kit file in, a run
@@ -66,6 +68,14 @@ export interface RunKitOptions {
 	egress?: EgressMode;
 	/** A sink to stream the run to (WP47, `35-…` §4.5) — by id, with its config as JSON. */
 	sink?: { id: string; config?: string };
+	/**
+	 * Seat a visitor across the desk (WP55, `46-COUNTERPARTS.md` §4.6): the
+	 * kit's bot and a generated counterpart run as a group over a desk card,
+	 * and the episode is written with a `craftabot-bundle`. Rooms refuse it.
+	 */
+	counterpart?: CounterpartOptions;
+	/** With `counterpart`, the round limit of the episode (default 30). */
+	maxRounds?: number;
 }
 
 export interface RunKitReport {
@@ -80,6 +90,12 @@ export interface RunKitReport {
 	providerId: string;
 	/** What the sink reported, when one was attached: `<id>: sent N, failed M`. */
 	sink?: string;
+	/** Present when a counterpart was seated (WP55): the episode's id, its bundle, the visitor's seat. */
+	groupRunId?: string;
+	bundleFile?: string;
+	rounds?: number;
+	counterpartAgentId?: string;
+	counterpartProviderId?: string;
 }
 
 export async function runKit(options: RunKitOptions): Promise<RunKitReport> {
@@ -97,6 +113,44 @@ export async function runKit(options: RunKitOptions): Promise<RunKitReport> {
 	}
 
 	const { provider, providerId } = chooseBrain(spec, registry, options);
+
+	if (options.counterpart) {
+		const duo = await runKitDuo({
+			spec,
+			provider,
+			providerId,
+			registry,
+			config: options.config,
+			credentials: options.credentials,
+			counterpart: options.counterpart,
+			seed: options.seed,
+			out: options.out,
+			...(options.approve !== undefined ? { approve: options.approve } : {}),
+			...(options.maxTicks !== undefined ? { maxTicks: options.maxTicks } : {}),
+			...(options.maxRounds !== undefined ? { maxRounds: options.maxRounds } : {}),
+			...(options.now ? { now: options.now } : {}),
+			...(options.newId ? { newId: options.newId } : {}),
+			...(options.fetch ? { fetch: options.fetch } : {}),
+			...(options.egress ? { egress: options.egress } : {})
+		});
+		return {
+			runId: duo.runId,
+			agentId: duo.agentId,
+			goalCardId: duo.goalCardId,
+			outcome: duo.outcome,
+			ticks: duo.ticks,
+			events: duo.events,
+			directory: duo.directory,
+			traceFile: join(options.out, 'runs', duo.runId, `${duo.runId}.craftabot-trace.json`),
+			providerId: duo.providerId,
+			groupRunId: duo.groupRunId,
+			bundleFile: duo.bundleFile,
+			rounds: duo.rounds,
+			counterpartAgentId: duo.counterpartAgentId,
+			counterpartProviderId: duo.counterpartProviderId
+		};
+	}
+
 	const storage = await createFileStorage(options.out);
 	const now = options.now ?? (() => new Date().toISOString());
 	const versions = packVersions(options.config);
@@ -267,9 +321,14 @@ function chooseBrain(
 		try {
 			plan = planFor(spec.goalCardId);
 		} catch {
-			throw new Error(
-				`no scripted plan exists for '${spec.goalCardId}' — the scripted brains only know the starter pack's cards; use --brain live`
-			);
+			// The Workshop pack's desks have their own plans (WP55): a desk card plays scripted too.
+			try {
+				plan = workshopPlanFor(spec.goalCardId);
+			} catch {
+				throw new Error(
+					`no scripted plan exists for '${spec.goalCardId}' — the scripted brains only know the starter and Workshop packs' cards; use --brain live`
+				);
+			}
 		}
 		const script =
 			options.brain === 'scripted-noisy'

@@ -121,20 +121,22 @@ describe('craftabot run', () => {
 		expect(c.runId).not.toBe(a.runId);
 	});
 
-	it('refuses a card with no scripted plan, pointing at --brain live', async () => {
+	it('plays a Workshop card scripted too, on the Workshop pack’s own plans (WP55)', async () => {
+		// Until WP55 this card was the "no scripted plan" refusal; the harness now reads
+		// `@craftabot/pack-workshop/testing` after the starter's plans.
 		const root = await tmp();
 		const kitPath = await writeKit(root);
-		await expect(
-			runKit({
-				kitPath,
-				card: 'workshop/find-the-paint-pot',
-				brain: 'scripted-optimal',
-				seed: 1,
-				out: join(root, 'runs'),
-				config,
-				credentials
-			})
-		).rejects.toThrow(/no scripted plan/);
+		const report = await runKit({
+			kitPath,
+			card: 'workshop/find-the-paint-pot',
+			brain: 'scripted-optimal',
+			seed: 1,
+			out: join(root, 'runs'),
+			config,
+			credentials
+		});
+		expect(report.providerId).toBe('scripted-optimal');
+		expect(report.goalCardId).toBe('workshop/find-the-paint-pot');
 	});
 
 	it('refuses an unknown card, listing the ones it has', async () => {

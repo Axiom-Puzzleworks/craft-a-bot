@@ -29,6 +29,8 @@
 	import StoryStrip from '$lib/components/play/StoryStrip.svelte';
 	import ThoughtBubble from '$lib/components/play/ThoughtBubble.svelte';
 	import WorldStage from '$lib/components/play/WorldStage.svelte';
+	import { createMockProvider } from '@craftabot/core/testing';
+	import { scriptedCounterpart, type CounterpartScript } from '@craftabot/desk';
 
 	/**
 	 * **The Playroom, for two** (WP31, `24-ROBOT-FRIENDS-DESIGN.md` §4.3, §10
@@ -75,6 +77,8 @@
 	let storage: Storage | undefined;
 	/** Each member's own launch-time spec (§4.1) — what its `RunRecord.specSnapshot` needs. */
 	let memberSpecs = new Map<string, AnyAgentSpec>();
+	/** Whether this card's world is a desk with a visitor's script, so the second robot sits across it (WP55). */
+	let deskSeating = $state(false);
 	/** One `TraceRecorder` per member, keyed by `agentId`; created together on `group.started`. */
 	let memberRecorders = new Map<string, TraceRecorder>();
 	/** The group's own merged trace, fed every event — the live counterpart to `group-recorder.ts`'s batch `mergedEvents`. */
@@ -138,11 +142,37 @@
 
 		memberSpecs = new Map(launches.map((launch) => [launch.spec.id, launch.spec]));
 
+		/*
+		 * A desk seats a visitor (WP55, `46-…` §4.6): on a desk card the second
+		 * robot is the person across the desk, by position. A keyless second
+		 * robot is driven along the desk's own script — the Demo Brain would
+		 * otherwise play the clerk's plan from the visitor's chair; a robot
+		 * with a real cartridge and a battery keeps its own brain, with the
+		 * script's persona as its brief.
+		 */
+		const world = registry.getWorld(card.worldId);
+		const script = (world as { spec?: { counterpart?: CounterpartScript } } | undefined)?.spec
+			?.counterpart;
+		deskSeating = world?.view === 'desk' && script !== undefined;
+
 		view = createGroupSessionView({
-			members: launches.map((launch) => ({
-				spec: launch.spec,
-				provider: (launch.brain as { ok: true; provider: LLMProvider }).provider
-			})),
+			members: launches.map((launch, index) => {
+				const chosen = launch.brain as { ok: true; provider: LLMProvider; keyless: boolean };
+				if (deskSeating && index === 1 && script) {
+					return {
+						spec: launch.spec,
+						role: 'counterpart' as const,
+						provider: chosen.keyless
+							? createMockProvider({
+									id: 'demo-counterpart',
+									name: 'Demo visitor (no battery needed)',
+									script: scriptedCounterpart(script, { selfName: launch.spec.name })
+								})
+							: chosen.provider
+					};
+				}
+				return { spec: launch.spec, provider: chosen.provider, role: 'agent' as const };
+			}),
 			goalCardId: cardId,
 			onEvent: onGroupEvent
 		});
@@ -343,6 +373,11 @@
 	<main class="play" data-testid="duo-play">
 		{#if goalCard}
 			<p class="goal" data-testid="duo-goal">{goalCard.goalText}</p>
+		{/if}
+		{#if deskSeating && view.members.length === 2}
+			<p class="roles" data-testid="duo-roles">
+				{view.members[0]?.name} is at the desk; {view.members[1]?.name} is the visitor.
+			</p>
 		{/if}
 
 		<div class="stage">

@@ -155,7 +155,14 @@ export const DESK_CARD = 'card-workshop/sign-the-visitor-in';
 export async function buildDeskBotAndGo(page: Page): Promise<void> {
 	await page.goto('/settings');
 	await page.getByLabel('Show the Workshop').click();
-	await buildReadyBot(page, DESK_CARD);
+	await buildDeskBot(page);
+	await page.getByRole('button', { name: /GO/ }).click();
+	await expect(page).toHaveURL(/\/play\//);
+}
+
+/** A bot built for the Front Desk, GO-ready and saved, its id returned — the Workshop door must already be open. */
+export async function buildDeskBot(page: Page): Promise<string> {
+	const id = await buildReadyBot(page, DESK_CARD);
 	await page.getByTestId('socket-perception').getByRole('button').click();
 	for (const name of ['Conversation', 'Case file', 'Queue']) {
 		await page.getByTestId('brick-controls-perception').getByRole('checkbox', { name }).check();
@@ -164,8 +171,9 @@ export async function buildDeskBotAndGo(page: Page): Promise<void> {
 	for (const name of ['Say', 'Look up', 'Sign in', 'Escalate']) {
 		await page.getByTestId('brick-controls-mobility').getByRole('checkbox', { name }).check();
 	}
-	await page.getByRole('button', { name: /GO/ }).click();
-	await expect(page).toHaveURL(/\/play\//);
+	// The same debounce `buildReadyBot` waits out: the brick edits must reach storage before navigating away.
+	await page.waitForTimeout(300);
+	return id;
 }
 
 export async function buildAndGo(page: Page, cardTestId = 'card-snack'): Promise<void> {
