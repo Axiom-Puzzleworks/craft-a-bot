@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import type { BoundaryMap } from '@craftabot/governance/reports';
 	import {
 		bankCase,
@@ -65,8 +66,10 @@
 <h1>The Retail Bank Playground</h1>
 <p class="lede">
 	A synthetic high-street bank: customers, accounts, a product shelf and nine service lines, every
-	one generated from a seed and none of it real. Three desks work this bank — advice, fraud, lending
-	— and are coming next; this page shows the bank itself.
+	one generated from a seed and none of it real. Three desks work this bank — <a
+		href={resolve('/workshop/playground/advice')}
+		data-testid="playground-advice-link">the Advice Desk</a
+	> is here; fraud and lending are coming. This page shows the bank itself.
 </p>
 <p class="simulation" data-testid="playground-simulation-only">FOR SIMULATION ONLY</p>
 

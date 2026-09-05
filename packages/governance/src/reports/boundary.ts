@@ -23,9 +23,10 @@ import {
  * registry and (when given) the trace — never from the engine's live
  * objects (hard rule 3). Pure; snapshot-tested over the golden traces.
  *
- * `service-line`, `pdp` and `evidence-store` are reserved kinds: nothing
- * registers them yet (WP58, WP70; the OPA pack is a `guard-service`), and
- * the shape is fixed now so the map does not change when they arrive.
+ * `pdp` and `evidence-store` are reserved kinds: nothing registers them yet
+ * (WP70; the OPA pack is a `guard-service`), and the shape is fixed now so
+ * the map does not change when they arrive. `service-line` arrived with
+ * WP60: a Connector's line, its live hosts outside.
  * `human.principal` waits for WP65's field.
  */
 
@@ -210,6 +211,26 @@ export function boundaryMapFor(
 			});
 			for (const host of hostsOf(service.egress)) declaredHosts.add(host);
 		}
+	}
+	// Service lines (WP60, `49-FS-ADVICE.md` §4.8 — the kind `44-…` §4.5 reserved
+	// for them): a Connector names a registered line in its config, bare for the
+	// starter's own (`weather`) or qualified (`fs-bank/crm`). Its hosts are the
+	// line's live egress; a line with no live path is drawn local.
+	for (const brick of v2.bricks) {
+		const named = (brick.config as { serviceId?: unknown } | undefined)?.serviceId;
+		if (typeof named !== 'string' || named === '') continue;
+		const line = registry.getServiceLine(named.includes('/') ? named : `starter/${named}`);
+		if (!line || outside.some((entry) => entry.kind === 'service-line' && entry.id === line.id))
+			continue;
+		outside.push({
+			kind: 'service-line',
+			id: line.id,
+			name: line.name,
+			hosts: hostsOf(line.live?.egress),
+			sends: sendsOf(line.live?.egress),
+			...(line.live?.credential ? { credential: line.live.credential.id } : {})
+		});
+		for (const host of hostsOf(line.live?.egress)) declaredHosts.add(host);
 	}
 	for (const id of options.evaluators ?? []) {
 		const evaluator = registry.getEvaluator(id);

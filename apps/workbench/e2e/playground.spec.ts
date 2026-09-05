@@ -32,3 +32,33 @@ test('the Playground generates a case from a seed and shows the nine lines', asy
 	await expect(page.locator('[data-testid^="playground-line-"]')).toHaveCount(9);
 	await expect(page.locator('[data-testid^="playground-map-node-service-line-"]')).toHaveCount(9);
 });
+
+test('the Advice Desk page generates a case with its suitable set under the flap, and lists the decks, cards and evaluators on a map', async ({
+	page
+}) => {
+	await skipTutorial(page);
+	await page.goto('/workshop/playground');
+	await page.getByTestId('playground-advice-link').click();
+	await expect(page).toHaveURL(/\/workshop\/playground\/advice/);
+	await expect(page.getByTestId('advice-simulation-only')).toBeVisible();
+	await page.getByTestId('advice-layout').selectOption('bereavement');
+	await page.getByTestId('advice-seed').fill('11');
+	await page.getByTestId('advice-generate').click();
+	await expect(
+		page.getByTestId('advice-revealed').getByTestId('desk-record-desk-brief')
+	).toBeVisible();
+	await expect(
+		page.getByTestId('advice-hidden').getByTestId('desk-record-answer-goal')
+	).toBeVisible();
+	await expect(
+		page.getByTestId('advice-hidden').getByTestId('desk-truth-suitable-set')
+	).toBeAttached();
+	await expect(
+		page.getByTestId('advice-hidden').getByTestId('desk-truth-fact-discloses')
+	).toHaveText('true');
+	// Thirty scenarios, seven cards, thirteen evaluators, and the CRM line outside the map.
+	await expect(page.getByTestId('advice-decks').locator('tbody tr')).toHaveCount(30);
+	await expect(page.getByTestId('advice-cards').locator('li')).toHaveCount(7);
+	await expect(page.getByTestId('advice-evaluators').locator('li')).toHaveCount(13);
+	await expect(page.locator('[data-testid^="advice-map-node-service-line-"]')).toHaveCount(1);
+});

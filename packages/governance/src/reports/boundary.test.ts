@@ -1,7 +1,9 @@
 import {
 	createPackRegistry,
 	createSession,
+	toSpecV2,
 	type AgentSpec,
+	type AgentSpecV2,
 	type EngineEvent,
 	type GuardrailService,
 	type PackRegistry,
@@ -160,6 +162,84 @@ async function trace(): Promise<EngineEvent[]> {
 }
 
 describe('boundaryMapFor, static', () => {
+	it('draws a Connector’s service line outside, with the line’s live hosts (WP60; the kind 44-… reserved)', () => {
+		const r = registry();
+		r.registerPack({
+			id: 'lines',
+			name: 'Lines',
+			version: '1.0.0',
+			requiresCore: '>=1.0.0',
+			serviceLines: [
+				{
+					id: 'lines/lookup',
+					name: 'the lookup line',
+					description: 'Looks things up.',
+					operations: [{ id: 'get', name: 'Get', description: 'Get.', riskTier: 'observe' }],
+					simulate: () => ({ ok: true, output: 'got' }),
+					live: {
+						egress: [{ host: 'api.lookup.test', purpose: 'lookup', sends: ['observation'] }],
+						credential: { id: 'lookup', name: 'Lookup key', kind: 'api-key' },
+						call: async () => ({ ok: true, output: 'got' })
+					}
+				},
+				{
+					id: 'lines/local',
+					name: 'the local line',
+					description: 'Answers from the world.',
+					operations: [{ id: 'get', name: 'Get', description: 'Get.', riskTier: 'observe' }],
+					simulate: () => ({ ok: true, output: 'got' })
+				}
+			]
+		});
+		const withConnector: AgentSpecV2 = {
+			...toSpecV2(spec),
+			bricks: [
+				...toSpecV2(spec).bricks,
+				{
+					slot: 'equipment',
+					kind: 'tiny/connector',
+					configVersion: 1,
+					config: { serviceId: 'lines/lookup' }
+				},
+				{
+					slot: 'reflexes',
+					kind: 'tiny/other',
+					configVersion: 1,
+					config: { serviceId: 'lines/local' }
+				}
+			]
+		};
+		const map = boundaryMapFor(withConnector, r);
+		expect(map.outside.filter((entry) => entry.kind === 'service-line')).toEqual([
+			{
+				kind: 'service-line',
+				id: 'lines/lookup',
+				name: 'the lookup line',
+				hosts: ['api.lookup.test'],
+				sends: ['observation'],
+				credential: 'lookup'
+			},
+			{ kind: 'service-line', id: 'lines/local', name: 'the local line', hosts: [], sends: [] }
+		]);
+		// A service id that names nothing registered draws nothing.
+		const unknown = boundaryMapFor(
+			{
+				...withConnector,
+				bricks: [
+					...withConnector.bricks.slice(0, -2),
+					{
+						slot: 'equipment',
+						kind: 'tiny/connector',
+						configVersion: 1,
+						config: { serviceId: 'nope' }
+					}
+				]
+			},
+			r
+		);
+		expect(unknown.outside.some((entry) => entry.kind === 'service-line')).toBe(false);
+	});
+
 	it('draws the build: bricks, the safety stack, the approval dial, the world, the provider outside', () => {
 		const map = boundaryMapFor(spec, registry(), {
 			sinks: [

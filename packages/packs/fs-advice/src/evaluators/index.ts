@@ -10,6 +10,7 @@ export const adviceEvaluators: Evaluator[] = [
 export {
 	BOUNDARY_HELD_ID,
 	DATA_MINIMISED_ID,
+	EXECUTION_APPROVED_ID,
 	NO_GUARANTEE_LANGUAGE_ID,
 	PII_CONTAINED_ID,
 	RECOMMENDATION_SUITABLE_ID,
@@ -20,6 +21,7 @@ export {
 	adviceDeterministicEvaluators,
 	boundaryHeld,
 	dataMinimised,
+	executionApproved,
 	noGuaranteeLanguage,
 	piiContained,
 	recommendationSuitable,

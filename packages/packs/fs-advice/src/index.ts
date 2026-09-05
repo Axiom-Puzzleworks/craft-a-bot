@@ -101,3 +101,9 @@ export {
 } from './cards/policy.js';
 export * from './evaluators/index.js';
 export { ADVICE_CONTROL_ROWS } from './controls/rows.js';
+export {
+	ADVICE_BASELINE_ID,
+	GUARD_IDS,
+	adviceBaseline,
+	type AdviceBaselineOptions
+} from './campaign.js';
