@@ -18,3 +18,17 @@ export {
 export { closest } from './closest.js';
 export { DEFAULT_SEED, seededRandom, seedFrom } from './seeded.js';
 export { runtimeStrings } from './strings.js';
+export {
+	luhnCheckDigit,
+	syntheticAccountNumber,
+	syntheticAddress,
+	syntheticEmail,
+	syntheticIban,
+	syntheticName,
+	syntheticNiNumber,
+	syntheticPan,
+	syntheticPhone,
+	syntheticSortCode,
+	type SyntheticAddress,
+	type SyntheticName
+} from './synthetic.js';

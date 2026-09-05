@@ -160,8 +160,16 @@ function leaves(value: unknown, out: string[] = []): string[] {
  * appears in most sentences' worth of JSON, and `7` in every trace.
  */
 function truthOnlyValues(truth: unknown, state: DeskWorldState): string[] {
+	// What the desk already shows or may earn: records, hidden records, the
+	// queue and the desk's own nameplate. A truth value that is also one of
+	// these is not a secret — and a queue item's id is in every snapshot.
 	const known = new Set(
-		leaves([...state.records, ...((state as { hidden?: DeskRecord[] }).hidden ?? [])])
+		leaves([
+			...state.records,
+			...((state as { hidden?: DeskRecord[] }).hidden ?? []),
+			...state.queue,
+			state.desk
+		])
 	);
 	return [...new Set(leaves(truth))].filter(
 		(value) => value.length >= 3 && value !== 'true' && value !== 'false' && !known.has(value)
