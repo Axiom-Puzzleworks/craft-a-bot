@@ -371,6 +371,8 @@ Selection rationale: 5.1–5.4 are the Agent Builder box-art promises (planner, 
 | `EvalReport`              | new, schema-versioned (13 §8)                                                                                 | starts at v1 with fixtures             |
 | PolicyCard                | new, versioned, shareable (§4.6)                                                                              | starts at v1                           |
 
+> **Amended 2026-09-05:** the first breaking change to `PackManifest` — the removal of the `guardrails` lane deprecated since WP39 — is WP56's (`42-DAY4-ROADMAP.md` §3), and it takes `@craftabot/core` and `CRAFTABOT_CORE_VERSION` from `0.0.1` to **`1.0.0`** (decided 2026-09-05: `governance` is already at 1.0 and `docs/schemas/` is about to cite core's version, so treating 0.x minors as breaking was the weaker choice). Every pack's `requiresCore` and every kit file's `requires.core` are re-evaluated against `1.0.0` in the same PR, with the fixture proving every shipped manifest and kit file still loads.
+
 **Compatibility policy:** additive changes never bump `formatVersion`; breaking shape changes bump it with a migration and a fixture; content ids are stable forever once shipped (`10-CODING-STANDARDS.md` §4 upheld — E6 ships with kit migration precisely because it breaks this once, deliberately, before any public release).
 
 ## 8. Acceptance
