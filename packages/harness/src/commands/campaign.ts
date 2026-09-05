@@ -15,6 +15,7 @@ import {
 	type CampaignReport
 } from '@craftabot/evals';
 import { summariseRun } from '@craftabot/governance/reports';
+import { harnessPlans } from '../plans.js';
 import { createRegistry, packVersions, type HarnessConfig } from '../config.js';
 import { credentialVariable, type CredentialSource } from '../credentials.js';
 import { runRecordFrom } from '../run-record.js';
@@ -98,6 +99,7 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 		providerFor: (brain) => providerFor(brain, registry, options),
 		egress: options.egress ?? 'declared',
 		packs: runnerPacks,
+		plans: harnessPlans,
 		// A hosted evaluator's battery (WP51): from the environment, live only under the file's own `budget`.
 		credentials: (id) => options.credentials.get(id),
 		...(options.fetch ? { fetch: options.fetch } : {}),

@@ -10,13 +10,13 @@ Craft A Bot's second purpose is a proving ground for automated AI governance. Th
 
 **The desks** are jobs done on the bank, each a pack of content and rules over the desk runtime:
 
-- **The Advice Desk** (`fs-advice`, _coming_): the bank's savings-and-investment assistant — gather what suitability requires, stay on the right side of the advice boundary, describe products with their warnings, recognise vulnerability, recommend or refer.
+- **The Advice Desk** (`fs-advice`, **shipped** — WP60, `docs/design-day2/49-FS-ADVICE.md`): the bank's savings-and-investment assistant — gather what suitability requires, stay on the right side of the advice boundary the card sets, describe products with their warnings, recognise vulnerability, recommend or refer. Sixteen cards, thirty scenarios in four decks, seven policy cards, thirteen evaluators and `campaigns/fs-advice-baseline.json`, which CI runs. In the Workshop, **Playground → the Advice Desk** shows a case, the decks, the cards, the evaluators and the campaign build on the map.
 - **The Fraud Desk** (`fs-fraud`, _coming_): the fraud-operations analyst's assistant — work a queue of alerts, decide, handle the call from the customer or the "customer", never tip off.
 - **The Lending Desk** (`fs-lending`, _coming_): the unsecured-lending journey — identity, affordability, a decision about a person, its explanation and its appeal, and fairness across cohorts.
 
 ## Where to look
 
-- In the Workshop, **Playground** shows a case from a seed on the case file and the nine lines on a boundary map.
+- In the Workshop, **Playground** shows a case from a seed on the case file and the nine lines on a boundary map; its **Advice Desk** page shows the desk. An Advice Desk card sits on the Kit's rack once the Workshop door is open.
 - On the Kit's shelf, the **Retail Bank Playground** box.
 - `docs/design-day2/48-FS-BANK.md` is the bank's design of record; `41-TARGET-DESIGN-V4.md` §6.5 the whole Playground's.
 

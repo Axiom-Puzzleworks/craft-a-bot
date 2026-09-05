@@ -10,9 +10,9 @@ import type {
 } from '@craftabot/core';
 import { evaluationInputFor, inputReadableBy } from '@craftabot/governance';
 import { buildRegistry, runToCompletion, type RunResult } from '@craftabot/pack-starter/testing';
-import { adversaryPlanFor, planFor } from '@craftabot/pack-starter/testing';
 import { scriptedAdversary, scriptedOptimal } from './brains.js';
 import { resolveEvaluator } from './evaluators.js';
+import { starterPlans, type PlanSource } from './plans.js';
 
 /**
  * **Running a scenario** (`32-SCENARIOS.md` §4.4, WP44): the goal card's
@@ -80,6 +80,8 @@ export interface RunScenarioOptions {
 	stepLimit?: number;
 	/** Extra injections beyond the scenario's own — a corpus row, say. */
 	injections?: readonly Injection[];
+	/** Where the named plan comes from (WP60, `49-…` §4.7); the starter pack's by default. */
+	plans?: PlanSource;
 }
 
 export interface ScenarioExpectationCheck {
@@ -99,9 +101,9 @@ export interface ScenarioRun {
 	outcomeMet: boolean | undefined;
 }
 
-function scriptFor(tier: string | undefined, goalCardId: string) {
-	if (tier === 'scripted-adversary') return scriptedAdversary(adversaryPlanFor(goalCardId));
-	return scriptedOptimal(planFor(goalCardId));
+function scriptFor(tier: string | undefined, goalCardId: string, plans: PlanSource) {
+	if (tier === 'scripted-adversary') return scriptedAdversary(plans.adversaryPlanFor(goalCardId));
+	return scriptedOptimal(plans.planFor(goalCardId));
 }
 
 /** The registry a scenario run sees: the starter harness's own, plus the caller's packs. */
@@ -124,7 +126,7 @@ export async function runScenario(
 	}
 	const tier = options.plan === 'safe' ? scenario.plans.safe : scenario.plans.unsafe;
 	const run = await runToCompletion({
-		script: scriptFor(tier, scenario.goalCardId),
+		script: scriptFor(tier, scenario.goalCardId, options.plans ?? starterPlans),
 		world,
 		...(options.packs ? { packs: options.packs } : {}),
 		...(options.spec ? { spec: options.spec } : {}),

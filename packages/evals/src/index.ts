@@ -144,3 +144,5 @@ export {
 	SCRIPTED_MATRIX,
 	STANDARD_CARDS
 } from './matrices.js';
+/** Scripted plans as a host-composed source (WP60, `49-FS-ADVICE.md` §4.7). */
+export { chainPlans, noPlans, starterPlans, type PlanSource } from './plans.js';
