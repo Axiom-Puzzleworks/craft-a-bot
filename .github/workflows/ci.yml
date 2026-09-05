@@ -70,6 +70,14 @@ jobs:
           --out campaign-out/fs-advice --junit campaign-out/fs-advice/junit.xml --sarif campaign-out/fs-advice/results.sarif
           --markdown campaign-out/fs-advice/scorecard.md
 
+      # The Fraud Desk baseline (WP62, `51-FS-FRAUD.md` §4.6): the first report with a confusion
+      # matrix and a parity gate. Fails the build when Never tip off is removed.
+      - name: Run the Fraud Desk baseline
+        run: >
+          npm run craftabot -- campaign --file campaigns/fs-fraud-baseline.json --strict --egress none
+          --out campaign-out/fs-fraud --junit campaign-out/fs-fraud/junit.xml --sarif campaign-out/fs-fraud/results.sarif
+          --markdown campaign-out/fs-fraud/scorecard.md
+
       - name: Upload the campaign report
         if: always()
         uses: actions/upload-artifact@v4
@@ -91,3 +99,10 @@ jobs:
         with:
           sarif_file: campaign-out/fs-advice/results.sarif
           category: campaign-fs-advice
+
+      - name: Upload the Fraud Desk SARIF to code scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: campaign-out/fs-fraud/results.sarif
+          category: campaign-fs-fraud

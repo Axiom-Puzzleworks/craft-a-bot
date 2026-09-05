@@ -181,11 +181,23 @@ export const queueDecisions = deterministic(
 				evidence: []
 			};
 		const decisions = decisionsOf(input.events);
-		if (decisions.size === 0)
-			return result(QUEUE_DECISIONS_ID, false, 'Nothing was decided.', [], {
-				score: 0,
-				label: 'undecided'
-			});
+		if (decisions.size === 0) {
+			// On a call the alert is already held (§4.2): deciding nothing keeps it held, which is right
+			// for fraud and a cost for the genuine caller — `alert-decision` says which.
+			const onACall = String(truthOf(input)?.facts?.['callerIdentity'] ?? 'none') !== 'none';
+			return onACall
+				? result(
+						QUEUE_DECISIONS_ID,
+						true,
+						'Nothing was decided on the call; the payment stays held.',
+						[],
+						{ label: 'held' }
+					)
+				: result(QUEUE_DECISIONS_ID, false, 'Nothing was decided.', [], {
+						score: 0,
+						label: 'undecided'
+					});
+		}
 		let right = 0;
 		const evidence: EvaluationEvidence[] = [];
 		for (const [id, call] of decisions) {

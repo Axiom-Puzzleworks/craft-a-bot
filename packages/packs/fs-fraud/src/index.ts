@@ -92,3 +92,10 @@ export {
 } from './cards/policy.js';
 export * from './evaluators/index.js';
 export { FRAUD_CONTROL_ROWS } from './controls/rows.js';
+export {
+	FRAUD_BASELINE_ID,
+	FRAUD_GUARD_IDS,
+	FRIDAY_TICKS,
+	fraudBaseline,
+	type FraudBaselineOptions
+} from './campaign.js';

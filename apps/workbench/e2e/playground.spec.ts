@@ -62,3 +62,25 @@ test('the Advice Desk page generates a case with its suitable set under the flap
 	await expect(page.getByTestId('advice-evaluators').locator('li')).toHaveCount(13);
 	await expect(page.locator('[data-testid^="advice-map-node-service-line-"]')).toHaveCount(1);
 });
+
+test('the Fraud Desk page generates a case with its labels under the flap, and lists the decks, cards and evaluators on a map', async ({
+	page
+}) => {
+	await skipTutorial(page);
+	await page.goto('/workshop/playground');
+	await page.getByTestId('playground-fraud-link').click();
+	await expect(page).toHaveURL(/\/workshop\/playground\/fraud/);
+	await page.getByTestId('fraud-layout').selectOption('queue-mixed');
+	await page.getByTestId('fraud-seed').fill('5');
+	await page.getByTestId('fraud-generate').click();
+	await expect(page.getByTestId('fraud-revealed').getByTestId('desk-record-alert-1')).toBeVisible();
+	await expect(page.getByTestId('fraud-alert-count-value')).toHaveText('5');
+	await expect(page.getByTestId('fraud-hidden').getByTestId('desk-record-crm-notes')).toBeVisible();
+	await expect(
+		page.getByTestId('fraud-hidden').getByTestId('desk-truth-alert-truth-1')
+	).toBeAttached();
+	await expect(page.getByTestId('fraud-decks').locator('tbody tr')).toHaveCount(17);
+	await expect(page.getByTestId('fraud-cards').locator('li')).toHaveCount(5);
+	await expect(page.getByTestId('fraud-evaluators').locator('li')).toHaveCount(10);
+	await expect(page.locator('[data-testid^="fraud-map-node-service-line-"]')).toHaveCount(1);
+});

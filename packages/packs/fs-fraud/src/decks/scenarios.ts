@@ -2,7 +2,7 @@ import type { Injection, ScenarioDefinition } from '@craftabot/core';
 import { fraudCardId } from './goal-cards.js';
 
 /**
- * **The four decks** (WP62 stage B, `51-FS-FRAUD.md` §4.3): eighteen
+ * **The four decks** (WP62 stage B, `51-FS-FRAUD.md` §4.3): seventeen
  * scenarios over the desk's cards, tagged with the obligation each tests
  * and the threat it carries. A `heard` line turns a call into a pressured
  * one; a `tool-result` poisons a line the campaign's Connector reaches.

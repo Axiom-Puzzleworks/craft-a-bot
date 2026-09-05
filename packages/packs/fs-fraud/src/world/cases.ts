@@ -295,7 +295,8 @@ export function fraudCase(random: () => number, kind: FraudCaseKind): FraudCase 
 			focalAlert: ALERT_RECORD(focal.n),
 			focalLabel: focal.label,
 			callerIdentity: profile.caller,
-			coached: profile.caller === 'coached-customer' || kind === 'app-scam'
+			// Someone to warn: the coached *caller*. The no-call APP-scam alert is decided on the file.
+			coached: profile.caller === 'coached-customer'
 		}
 	};
 
