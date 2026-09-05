@@ -1,0 +1,122 @@
+{
+	"$id": "https://craftabot.dev/schemas/craftabot-cassette.schema.json",
+	"title": "Craft A Bot cassette (craftabot-cassette v1)",
+	"description": "One service line’s recording of a real sandbox: each call’s operation, arguments and their digest, the result and the latency, redacted at write (47-SERVICE-LINES.md §4.2).",
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"type": "object",
+	"properties": {
+		"format": {
+			"type": "string",
+			"const": "craftabot-cassette"
+		},
+		"formatVersion": {
+			"type": "number",
+			"const": 1
+		},
+		"lineId": {
+			"type": "string",
+			"minLength": 1
+		},
+		"recordedAt": {
+			"type": "string",
+			"format": "date-time",
+			"pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+		},
+		"recordedBy": {
+			"type": "string",
+			"minLength": 1
+		},
+		"egress": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"host": {
+						"type": "string",
+						"minLength": 1
+					},
+					"purpose": {
+						"type": "string",
+						"minLength": 1
+					},
+					"sends": {
+						"minItems": 1,
+						"type": "array",
+						"items": {
+							"type": "string",
+							"enum": [
+								"prompt",
+								"observation",
+								"decision",
+								"result",
+								"trace",
+								"credential-header"
+							]
+						}
+					}
+				},
+				"required": [
+					"host",
+					"purpose",
+					"sends"
+				]
+			}
+		},
+		"entries": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"op": {
+						"type": "string",
+						"minLength": 1
+					},
+					"argsDigest": {
+						"type": "string",
+						"minLength": 1
+					},
+					"args": {},
+					"result": {
+						"type": "object",
+						"properties": {
+							"ok": {
+								"type": "boolean"
+							},
+							"output": {
+								"type": "string"
+							},
+							"data": {},
+							"errorKind": {
+								"type": "string"
+							}
+						},
+						"required": [
+							"ok",
+							"output"
+						]
+					},
+					"latencyMs": {
+						"type": "number",
+						"minimum": 0
+					}
+				},
+				"required": [
+					"op",
+					"argsDigest",
+					"args",
+					"result",
+					"latencyMs"
+				]
+			}
+		}
+	},
+	"required": [
+		"format",
+		"formatVersion",
+		"lineId",
+		"recordedAt",
+		"recordedBy",
+		"egress",
+		"entries"
+	]
+}

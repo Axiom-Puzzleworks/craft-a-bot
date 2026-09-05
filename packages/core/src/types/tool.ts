@@ -41,6 +41,14 @@ export interface ToolResult {
 	output: string;
 	/** Anything structured the trace should show alongside the text. */
 	data?: unknown;
+	/**
+	 * Why a failed call failed, in a fixed word a trace reader can filter on
+	 * (WP58, `47-SERVICE-LINES.md` §4.1): `'cassette-miss'` for a service
+	 * line with no recorded answer. The session puts an `error` event with
+	 * this `kind` beside the `tool.executed`, the way an egress refusal is
+	 * `'egress-refused'`. Absent on a success and on an ordinary failure.
+	 */
+	errorKind?: string;
 }
 
 export interface ToolDefinition extends ToolMetadata {

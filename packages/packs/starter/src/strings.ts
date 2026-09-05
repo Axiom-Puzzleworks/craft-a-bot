@@ -139,7 +139,8 @@ export const toolStrings = {
 	},
 	/** One tool per operation (WP32 stage B) — the operation's own name/description carry the copy, this is just the shared "the line is busy" failure. */
 	connector: {
-		busy: 'The line is busy — try again in a moment.'
+		busy: 'The line is busy — try again in a moment.',
+		weatherLine: 'the Weather Line'
 	}
 } as const;
 

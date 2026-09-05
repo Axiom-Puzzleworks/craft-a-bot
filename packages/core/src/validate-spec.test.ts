@@ -391,12 +391,15 @@ describe('validateSpec', () => {
 							// WP43: evaluators and assertion cards answer the same way.
 							seen.push(`evaluator:${ctx.hasEvaluator?.('expansion9/card')}`);
 							seen.push(`evaluator-missing:${ctx.hasEvaluator?.('expansion9/none')}`);
+							// WP58: a service line answers the same way, through both contexts.
+							seen.push(`line-missing:${ctx.getServiceLine?.('expansion9/none')?.id}`);
 							return [];
 						},
 						createRuntime: (_config: unknown, ctx) => {
 							seen.push(`runtime:${ctx.getGuardrailService('expansion9/stub')?.id}`);
 							seen.push(`runtime-card:${ctx.getAssertionCard?.('expansion9/card')?.id}`);
 							seen.push(`runtime-evaluator:${ctx.getEvaluator?.('expansion9/none')?.id}`);
+							seen.push(`runtime-line:${ctx.getServiceLine?.('expansion9/none')?.id}`);
 							return {};
 						}
 					} as BrickKindDefinition
@@ -415,10 +418,12 @@ describe('validateSpec', () => {
 				'runtime:expansion9/stub',
 				'runtime-card:expansion9/card',
 				'runtime-evaluator:undefined',
+				'runtime-line:undefined',
 				'validate:true',
 				'validate-missing:false',
 				'evaluator:true',
-				'evaluator-missing:false'
+				'evaluator-missing:false',
+				'line-missing:undefined'
 			]);
 		});
 	});

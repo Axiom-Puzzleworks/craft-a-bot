@@ -64,3 +64,16 @@ record and stream, and a `<groupRunId>.craftabot-bundle.json` the Workshop
 imports. `--counterpart live [--counterpart-cartridge <id>]` gives the visitor
 a cartridge instead, with the script's persona as its personality;
 `--max-rounds <n>` caps the episode (default 30). A room refuses the flag.
+
+## Recording a service line (WP58)
+
+`craftabot record --line <lineId> --script calls.json [--out ./cassettes]`
+runs a line's `live` client once per `{ "op", "args" }` in the script, under
+an egress guard that allows the line's own declared hosts and nothing else,
+and writes a `<line>.craftabot-cassette.json` redacted against every
+`CRAFTABOT_CREDENTIAL_*` the process holds. A pack ships the cassette under
+`src/cassettes/` and sets `line.cassette`; a session replays it by operation
+and argument digest and never calls out — a miss is `error.kind:
+'cassette-miss'` on the trace. The report says whether the first response
+carried `access-control-allow-origin: *`, the browser checkpoint. `--egress
+none` refuses every call.

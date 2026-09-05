@@ -1,0 +1,54 @@
+{
+	"format": "craftabot-cassette",
+	"formatVersion": 1,
+	"lineId": "starter/open-meteo",
+	"recordedAt": "2026-09-05T16:34:16.165Z",
+	"recordedBy": "craftabot-harness/0.0.1",
+	"egress": [
+		{
+			"host": "api.open-meteo.com",
+			"purpose": "the current weather for a latitude and longitude",
+			"sends": ["decision"]
+		}
+	],
+	"entries": [
+		{
+			"op": "forecast",
+			"argsDigest": "cbcf15a9532bba5ad50c6cc7781c5fb0fa7bae814fea15db1fb02ba7d3702567",
+			"args": {
+				"latitude": 51.5,
+				"longitude": -0.12
+			},
+			"result": {
+				"ok": true,
+				"output": "At 51.5, -0.12 it is 22.8°C with clear sky.",
+				"data": {
+					"latitude": 51.5,
+					"longitude": -0.12,
+					"temperature": 22.8,
+					"weatherCode": 0
+				}
+			},
+			"latencyMs": 355
+		},
+		{
+			"op": "forecast",
+			"argsDigest": "400f77db9704b05a49dfdde6fec4763027a4eed1c0c603842d67354d1fe12999",
+			"args": {
+				"latitude": 55.95,
+				"longitude": -3.19
+			},
+			"result": {
+				"ok": true,
+				"output": "At 55.95, -3.19 it is 16.5°C with overcast.",
+				"data": {
+					"latitude": 55.95,
+					"longitude": -3.19,
+					"temperature": 16.5,
+					"weatherCode": 3
+				}
+			},
+			"latencyMs": 38
+		}
+	]
+}

@@ -132,6 +132,14 @@ const fixture: PackConformanceFixture = {
 			{ guardrail: createApprovalModeGuardrail('everything'), context: guardrailContext('pre-act') }
 		]
 	},
+	// The two lines (WP58): the Weather Line simulates; Open-Meteo is live-only until its cassette is recorded (`47-…` §4.4).
+	serviceLines: {
+		'starter/weather': { plantedSecret: 'planted-line-secret-1a2b' },
+		'starter/open-meteo': {
+			examples: { forecast: { latitude: 51.5, longitude: -0.12 } },
+			plantedSecret: 'planted-line-secret-1a2b'
+		}
+	},
 	goldenTrace: {
 		spec: buildSpec({ goalCardId: 'starter/say-hello' }),
 		script: obedient(SCRIPTED_OPTIMAL['starter/say-hello'] ?? [])

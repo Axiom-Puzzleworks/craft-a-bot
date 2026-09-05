@@ -7,6 +7,7 @@ import type { AssertionCard } from './assertion-card.js';
 import type { ScenarioDefinition } from './scenario.js';
 import type { ToolDefinition } from '../types/tool.js';
 import type { ProviderFactory } from '../types/provider.js';
+import type { ServiceLine } from '../types/service-line.js';
 import type { WorldDefinition } from '../types/world.js';
 import type { PolicyCard } from './policy-card.js';
 import { riskTierSchema } from './risk-tier.js';
@@ -211,6 +212,13 @@ export interface PackManifest extends PackManifestMetadata {
 	guardrailServices?: GuardrailService[];
 	/** Evaluators (`31-EVALUATORS.md` §4.1, WP43): what judges a finished trace. Function-valued like `providers`. */
 	evaluators?: Evaluator[];
+	/**
+	 * Service lines (`47-SERVICE-LINES.md` §4.1, WP58): what a Connector
+	 * brick reaches outside the toy — simulated, recorded or live. The
+	 * registry turns each operation into the tool the session offers, under
+	 * `${packId}/connector_${line}_${op}`; a pack never ships those tools.
+	 */
+	serviceLines?: ServiceLine[];
 	/** Assertion cards a pack ships (WP43), the way it ships policy cards — the Test Bench and campaigns read them from the registry. */
 	assertionCards?: AssertionCard[];
 	/** Scenarios (`32-SCENARIOS.md` §4.1, WP44): a goal card plus what a test needs — pure data. */

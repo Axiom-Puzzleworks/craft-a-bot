@@ -501,3 +501,28 @@ export {
 	type Version
 } from './semver.js';
 export { CRAFTABOT_CORE_VERSION } from './version.js';
+/** Service lines and cassettes (`47-SERVICE-LINES.md`, WP58). */
+export type {
+	ServiceLine,
+	ServiceLineContext,
+	ServiceLineLive,
+	ServiceOperation
+} from './types/service-line.js';
+export {
+	CASSETTE_FORMAT_VERSION,
+	argsDigest,
+	canonicalJson,
+	cassetteEntrySchema,
+	cassetteFileSchema,
+	parseCassetteFile,
+	replayFromCassette,
+	type CassetteEntry,
+	type CassetteFile
+} from './schemas/cassette.js';
+export {
+	CASSETTE_MISS,
+	bareLineId,
+	serviceLineStrings,
+	serviceLineToolId,
+	serviceLineTools
+} from './service-line-tools.js';

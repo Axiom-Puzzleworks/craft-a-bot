@@ -274,6 +274,8 @@ Rules: events are **append-only facts**; payloads are JSON-serialisable; the tra
 
 > **Amended 2026-09-05 (WP55 stage B, `46-COUNTERPARTS.md` §4.3):** one payload field, additive. **`group.started.memberRoles?`** `Record<agentId, 'agent' | 'counterpart'>` — each member's side of the desk, written only when a member of the group was given a role, so every episode written before carries the same payload. A stored episode has to say who was who: the Run Lab draws the `agent` seat's Boundary from it, and a report slices by it.
 
+> **Amended 2026-09-05 (WP58 stage A, `47-SERVICE-LINES.md` §4.1):** no new event; one new value for an open field. **`error.kind: 'cassette-miss'`** — a service line's operation with no recorded answer for these arguments: the session emits it beside the failed `tool.executed`, from `ToolResult.errorKind` (additive on the tool contract), the way an egress refusal is `'egress-refused'`. Nothing was sent; a person re-records the cassette.
+
 ## 8. Prompting (V1 canonical prompt)
 
 The composed prompt is assembled from labelled sections, in this order, and shown verbatim in the trace (`prompt.composed`):
