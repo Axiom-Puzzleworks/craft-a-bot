@@ -120,7 +120,15 @@ const runFinishedEvent = eventSchema(
 		 * the world's predicate and a goal declared finished by a person are
 		 * both `SUCCESS`, and an audit wants to know which.
 		 */
-		reason: z.string().optional()
+		reason: z.string().optional(),
+		/**
+		 * The world's `truth()` at the end of the run, when it has one (WP54,
+		 * `45-…` §4.1). The only event that ever carries truth: written once,
+		 * after the last decision, so an evaluator over a stored run has the
+		 * same input as one over a live run. Synthetic by tenet 15, so nothing
+		 * redacts it.
+		 */
+		truth: z.unknown().optional()
 	})
 );
 

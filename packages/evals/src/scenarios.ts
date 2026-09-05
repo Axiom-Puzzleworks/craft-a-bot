@@ -8,7 +8,7 @@ import type {
 	ScenarioDefinition,
 	WorldInstance
 } from '@craftabot/core';
-import { evaluationInputFor } from '@craftabot/governance';
+import { evaluationInputFor, inputReadableBy } from '@craftabot/governance';
 import { buildRegistry, runToCompletion, type RunResult } from '@craftabot/pack-starter/testing';
 import { adversaryPlanFor, planFor } from '@craftabot/pack-starter/testing';
 import { scriptedAdversary, scriptedOptimal } from './brains.js';
@@ -146,7 +146,7 @@ export async function runScenario(
 		if (evaluator) {
 			const runner =
 				evaluator.kind === 'deterministic' ? evaluator : (evaluator.createOffline?.() ?? evaluator);
-			const result = await runner.evaluate(input, {
+			const result = await runner.evaluate(inputReadableBy(evaluator, input), {
 				fetch: () => Promise.reject(new Error('a scenario run evaluates offline')),
 				getCredential: () => undefined
 			});

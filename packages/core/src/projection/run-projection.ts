@@ -37,6 +37,12 @@ export interface RunProjection {
 	 * and `16-…` §2.5 wants the end card to tell them apart.
 	 */
 	finishedReason: string | undefined;
+	/**
+	 * The world's truth as `run.finished` carried it (WP54, `45-…` §4.4);
+	 * `undefined` until the run ends, so a projection through an earlier
+	 * tick has none — the Run Lab's flap closes when the scrubber moves back.
+	 */
+	truth: unknown;
 	events: EngineEvent[];
 	tripped: boolean;
 	thinking: boolean;
@@ -74,6 +80,7 @@ export function emptyProjection(): RunProjection {
 		tick: 0,
 		usage: { inputTokens: 0, outputTokens: 0 },
 		outcome: undefined,
+		truth: undefined,
 		finishedReason: undefined,
 		events: [],
 		tripped: false,
@@ -155,6 +162,7 @@ export function applyEvent(state: RunProjection, event: EngineEvent): void {
 		case 'run.finished':
 			state.outcome = event.payload.outcome;
 			state.finishedReason = event.payload.reason;
+			state.truth = event.payload.truth;
 			break;
 	}
 }

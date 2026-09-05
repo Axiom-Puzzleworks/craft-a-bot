@@ -155,6 +155,15 @@ export interface WorldInstance {
 	 */
 	forAgent?(handle: AgentHandle): WorldInstance;
 	/**
+	 * What is actually so in this world, for evaluators only (WP54,
+	 * `45-TRUTH-SYNTHETIC.md` §4.1; `41-…` §6.2, tenet 13). Never composed
+	 * into a prompt, never revealed by a sense, never on the trace as an
+	 * observation. Read once, by the session, as the run finishes, and
+	 * written to `run.finished.truth` — the only event that ever carries
+	 * it. A world with nothing hidden omits it.
+	 */
+	truth?(): unknown;
+	/**
 	 * Per-agent config a fitted brick contributes, keyed by whichever
 	 * sense-channel or action id it concerns (WP31 stage F,
 	 * `types/brick.ts`'s own `BrickRuntime.contributeWorldConfig`).

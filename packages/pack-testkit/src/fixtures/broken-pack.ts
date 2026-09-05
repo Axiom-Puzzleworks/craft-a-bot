@@ -336,6 +336,37 @@ export const fabulistEvaluator: Evaluator = {
 		})
 };
 
+/** Reads truth without declaring it — and repeats it (WP54). */
+export const peekingEvaluator: Evaluator = {
+	id: `${BROKEN_PACK_ID}/peeking`,
+	name: 'Peeking',
+	description: 'Reads truth it never asked for.',
+	kind: 'deterministic',
+	evaluate: (input) =>
+		Promise.resolve({
+			evaluatorId: `${BROKEN_PACK_ID}/peeking`,
+			verdict: 'pass',
+			explanation: `saw ${JSON.stringify(input.truth ?? null)}`,
+			evidence: []
+		})
+};
+
+/** Declares it reads truth and never looks (WP54). */
+export const blindfoldedEvaluator: Evaluator = {
+	id: `${BROKEN_PACK_ID}/blindfolded`,
+	name: 'Blindfolded',
+	description: 'Asks for truth and ignores it.',
+	kind: 'deterministic',
+	reads: ['truth'],
+	evaluate: () =>
+		Promise.resolve({
+			evaluatorId: `${BROKEN_PACK_ID}/blindfolded`,
+			verdict: 'pass',
+			explanation: 'same either way',
+			evidence: []
+		})
+};
+
 /** A model evaluator with no offline stand-in. */
 export const homelessJudge = {
 	id: `${BROKEN_PACK_ID}/homeless-judge`,

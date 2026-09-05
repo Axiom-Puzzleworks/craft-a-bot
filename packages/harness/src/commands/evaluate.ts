@@ -6,7 +6,12 @@ import type {
 	RunRecord,
 	Storage
 } from '@craftabot/core';
-import { evaluationInputFor, evaluatorsOf, resolveEvaluator } from '@craftabot/evals';
+import {
+	evaluationInputFor,
+	evaluatorsOf,
+	inputReadableBy,
+	resolveEvaluator
+} from '@craftabot/evals';
 import type { CredentialSource } from '../credentials.js';
 
 /**
@@ -93,7 +98,7 @@ export async function evaluateRun(
 			if (!live) runner = evaluator.createOffline?.() ?? evaluator;
 		}
 		const config = options.configs?.[evaluator.id];
-		const result = await runner.evaluate(input, {
+		const result = await runner.evaluate(inputReadableBy(evaluator, input), {
 			...(config !== undefined ? { config } : {}),
 			...(provider ? { provider, model: run.wireModel } : {}),
 			fetch: options.fetch ?? globalThis.fetch.bind(globalThis),

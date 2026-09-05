@@ -25,7 +25,7 @@ import {
 	type SpecOverrides
 } from '@craftabot/pack-starter/testing';
 import { evaluateAssertion } from './assertions.js';
-import { evaluationInputFor, resolveEvaluator } from './evaluators.js';
+import { evaluationInputFor, inputReadableBy, resolveEvaluator } from './evaluators.js';
 import { injectedWorld, registryForScenario } from './scenarios.js';
 import {
 	DEFAULT_NOISE,
@@ -636,7 +636,7 @@ async function evaluateCell(
 		}
 		try {
 			if (live) tally.liveEvaluations += 1;
-			const result = await runner.evaluate(input, {
+			const result = await runner.evaluate(inputReadableBy(evaluator, input), {
 				config: named.config,
 				fetch: live
 					? (options.fetch ?? globalThis.fetch.bind(globalThis))

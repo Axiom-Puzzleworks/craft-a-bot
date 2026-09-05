@@ -30,7 +30,16 @@ export interface EvaluationInput {
 	};
 	/** The scenario's own expectations, once WP44 defines them; opaque until then. */
 	scenario?: unknown;
+	/**
+	 * The world's `truth()` at the end of the run, when the world has one —
+	 * lifted from `run.finished.truth` (WP54, `45-…` §4.1). Handed only to an
+	 * evaluator whose `reads` names it; every run path strips it otherwise.
+	 */
+	truth?: unknown;
 }
+
+/** What an evaluator may read beyond the trace (WP54). One member today; a union so more can join. */
+export type EvaluatorReads = 'truth';
 
 export type EvaluationVerdict = 'pass' | 'fail' | 'inconclusive';
 
@@ -74,6 +83,13 @@ export interface Evaluator {
 	configSchema?: z.ZodType<unknown>;
 	credential?: BrickKindDefinition['credential'];
 	egress?: EgressDeclaration[];
+	/**
+	 * What this evaluator reads beyond the run and its events (WP54, `45-…`
+	 * §4.1). An evaluator that does not name `'truth'` never receives it:
+	 * `inputReadableBy` in governance removes it on every path an evaluator is
+	 * run, and `checkEvaluator` proves a planted truth never reaches a result.
+	 */
+	reads?: EvaluatorReads[];
 	evaluate(input: EvaluationInput, deps: EvaluatorDeps): Promise<EvaluationResult>;
 	/** The canned stand-in every non-deterministic evaluator must provide. */
 	createOffline?(): Pick<Evaluator, 'evaluate'>;

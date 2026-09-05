@@ -497,6 +497,10 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		run.status = 'finished';
 		// Every brick gets to put itself away, once, however the run ended.
 		disposeRuntimes(runtimes);
+		// What was actually so, read once after the last decision (WP54,
+		// `45-…` §4.1); a world with nothing hidden has no `truth` and the
+		// field is absent rather than null.
+		const truth = world.truth?.();
 		emit('run.finished', {
 			outcome,
 			ticks: usage.ticks,
@@ -504,7 +508,8 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			// Why it ended, when the outcome alone does not say — a declared
 			// success and a predicate success are both SUCCESS, and an audit
 			// wants to know which (E2).
-			...(reason !== undefined ? { reason } : {})
+			...(reason !== undefined ? { reason } : {}),
+			...(truth !== undefined ? { truth } : {})
 		});
 		return { tick: run.tick, outcome };
 	}

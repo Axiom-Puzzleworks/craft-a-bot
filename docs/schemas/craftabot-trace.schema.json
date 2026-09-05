@@ -685,7 +685,8 @@
 									},
 									"reason": {
 										"type": "string"
-									}
+									},
+									"truth": {}
 								},
 								"required": [
 									"outcome",
