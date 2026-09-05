@@ -235,8 +235,11 @@ export const fraudDeskSpec: DeskWorldSpec<FraudExtra> = {
 				const lastMerchant =
 					given.lastMerchant ??
 					state.extra.bank.transactions.map((t) => t.merchant).find((m) => heard.text.includes(m));
-				if (year === undefined && postcode === undefined && lastMerchant === undefined)
-					return { ok: false, narration: fraudStrings.narration.nothingToVerify };
+				// A caller who answered nothing is a finding, not a failed action: the check ran and verified no one.
+				if (year === undefined && postcode === undefined && lastMerchant === undefined) {
+					state.extra.fraud.verifyAttempts += 1;
+					return { ok: true, narration: fraudStrings.narration.nothingToVerify };
+				}
 				const norm = (s: string) => s.replaceAll(' ', '').toUpperCase();
 				const lastTransaction = state.extra.bank.transactions.at(-1);
 				const right = [

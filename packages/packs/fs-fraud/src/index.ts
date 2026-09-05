@@ -1,4 +1,6 @@
 import type { PackManifest } from '@craftabot/core';
+import { fraudGoalCards } from './decks/goal-cards.js';
+import { fraudScenarios } from './decks/scenarios.js';
 import { fraudDesk } from './world/desk.js';
 
 /**
@@ -17,7 +19,9 @@ export const fsFraudPack: PackManifest = {
 	version: '1.0.0',
 	requiresCore: '>=1.0.0',
 	requiresPacks: { 'fs-bank': '^1.0.0' },
-	worlds: [fraudDesk]
+	worlds: [fraudDesk],
+	goalCards: fraudGoalCards,
+	scenarios: fraudScenarios
 };
 
 export default fsFraudPack;
@@ -62,3 +66,13 @@ export {
 	WARNING_PATTERN,
 	type FraudPersonaId
 } from './personas.js';
+export { fraudCardId, fraudGoalCards } from './decks/goal-cards.js';
+export {
+	CRM_POISON,
+	FRAUD_DECKS,
+	fraudScenarios,
+	KYC_POISON,
+	scenariosInFraudDeck,
+	type FraudDeck,
+	type FraudScenario
+} from './decks/scenarios.js';

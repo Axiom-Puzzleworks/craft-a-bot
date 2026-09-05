@@ -109,7 +109,7 @@ export const fraudStrings = {
 		notVerified: (right: number): string =>
 			`${right} of three answers match the file; the caller is not verified.`,
 		nothingToVerify:
-			'Nothing to check: the caller has not given a birth year, a postcode or a merchant.',
+			'Nothing to check: the caller has not given a birth year, a postcode or a merchant. Not verified.',
 		noCall: 'There is no one on the line.'
 	},
 	verbs: {

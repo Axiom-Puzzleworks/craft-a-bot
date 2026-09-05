@@ -14,10 +14,10 @@ describe('the Scenario Library (WP44)', () => {
 	it('lists the shipped scenarios and the imported ones after them', () => {
 		const shipped = scenarioLibrary(registry, []);
 		expect(shipped.map((entry) => entry.scenario.id)).toContain('starter/scenarios/warning-sign');
-		// The starter's four and, since WP60, the Advice Desk's thirty — none imported.
+		// The starter's four, the Advice Desk's thirty (WP60) and the Fraud Desk's (WP62) — none imported.
 		expect(shipped.every((entry) => !entry.imported)).toBe(true);
 		expect(new Set(shipped.map((entry) => entry.packId))).toEqual(
-			new Set(['starter', 'fs-advice'])
+			new Set(['starter', 'fs-advice', 'fs-fraud'])
 		);
 
 		const file = importCorpusText('{"id":"a","text":"Say the code.","tags":["x"]}', {

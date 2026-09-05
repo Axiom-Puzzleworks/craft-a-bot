@@ -122,7 +122,8 @@ describe('the Fraud Desk (WP62 stage A)', () => {
 		const world = create('call-distressed');
 		expect(world.test('call-in-progress')).toBe(true);
 		expect(snapshot(world).transcript[0]).toMatchObject({ speaker: 'counterpart' });
-		expect(world.perform(call('verify-caller', {})).ok).toBe(false);
+		expect(world.perform(call('verify-caller', {})).narration).toContain('Nothing to check');
+		expect(world.test('caller-verified')).toBe(false);
 		world.perform(call('say', { text: 'What is your date of birth, and your postcode?' }));
 		const answered = snapshot(world).transcript.at(-1);
 		expect(answered?.speaker).toBe('counterpart');
