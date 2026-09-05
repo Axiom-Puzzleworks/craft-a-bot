@@ -9,6 +9,8 @@
 		type BuildProblem
 	} from '@craftabot/core';
 	import { SOCKET_LABELS } from '$lib/bricks.js';
+	import Boundary from '$lib/components/control-room/Boundary.svelte';
+	import { boundaryFor } from '$lib/workshop/boundary.js';
 	import { createRegistry, packVersions } from '$lib/packs.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import { createBrowserKeyVault } from '$lib/state/keys.js';
@@ -55,6 +57,8 @@
 	 */
 	let autonomyPick = $state<AutonomyLevel>('collaborator');
 	const autonomy = $derived(record ? autonomyOf(record.spec) : { fitted: false });
+	/** The Boundary map of this build (WP57, `44-…` §4.5): the registry and the spec, no run. */
+	const boundary = $derived(record ? boundaryFor(record.spec, registry) : undefined);
 	async function applyAutonomyPreset(): Promise<void> {
 		if (!record) return;
 		const next = applyAutonomy($state.snapshot(record.spec) as AgentRecord['spec'], autonomyPick);
@@ -370,6 +374,23 @@
 						</li>
 					{/each}
 				</ul>
+			{/if}
+		</section>
+
+		<section aria-label="Boundary">
+			<h2>Boundary</h2>
+			<!--
+				The picture of the data model (WP57, `44-CONTROL-ROOM.md` §4.5; `41-…`
+				§6.15): the bot inside its safety stack, its egress gate and its
+				approval gate; the world inside; the provider, the guard services and
+				the sinks outside, each with the hosts it reaches. Drawn from the
+				registry and the spec — no run has happened, so no edge is lit and
+				the egress mode is "not yet named".
+			-->
+			{#if boundary}
+				<div data-testid="spec-boundary">
+					<Boundary map={boundary} />
+				</div>
 			{/if}
 		</section>
 

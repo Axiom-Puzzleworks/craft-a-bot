@@ -35,6 +35,40 @@ export default defineConfig(
 		}
 	},
 	{
+		/**
+		 * The Control Room's chart rule (WP57, `44-CONTROL-ROOM.md` §4.4): no
+		 * chart is drawn outside `dataviz.ts`'s grammar. In practice — no
+		 * `<svg>` or `<canvas>` under `components/control-room` or
+		 * `routes/workshop` except inside the three instruments that draw with
+		 * one (`Meter`, `Tape`, `Boundary`). `Matrix` is a table. The rule is
+		 * the floor; review keeps the `div`-width charts honest until WP71.
+		 */
+		files: [
+			'apps/workbench/src/lib/components/control-room/**/*.svelte',
+			'apps/workbench/src/routes/workshop/**/*.svelte'
+		],
+		ignores: [
+			'apps/workbench/src/lib/components/control-room/Meter.svelte',
+			'apps/workbench/src/lib/components/control-room/Tape.svelte',
+			'apps/workbench/src/lib/components/control-room/Boundary.svelte'
+		],
+		rules: {
+			'no-restricted-syntax': [
+				'error',
+				{
+					selector: 'SvelteElement[kind="html"][name.name="svg"]',
+					message:
+						'Draw a chart through Meter, Tape, Matrix or Boundary (components/control-room) — the grammar lives in lib/control-room/dataviz.ts (44-CONTROL-ROOM.md §4.4).'
+				},
+				{
+					selector: 'SvelteElement[kind="html"][name.name="canvas"]',
+					message:
+						'Draw a chart through Meter, Tape, Matrix or Boundary (components/control-room) — the grammar lives in lib/control-room/dataviz.ts (44-CONTROL-ROOM.md §4.4).'
+				}
+			]
+		}
+	},
+	{
 		// Engine/UI boundary (01-ARCHITECTURE.md §1.3, §3; 05-TECH-STACK.md §4):
 		// core/governance/packs must stay headless — no Svelte or SvelteKit imports.
 		files: ['packages/**/*.{ts,js}'],

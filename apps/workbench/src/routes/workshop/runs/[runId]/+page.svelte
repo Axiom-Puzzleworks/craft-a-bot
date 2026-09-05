@@ -24,6 +24,9 @@
 	import type { TraceLane } from '$lib/trace-style.js';
 	import PayloadView from '$lib/components/trace/PayloadView.svelte';
 	import WorldStage from '$lib/components/play/WorldStage.svelte';
+	import Boundary from '$lib/components/control-room/Boundary.svelte';
+	import { boundaryFor } from '$lib/workshop/boundary.js';
+	import { createRegistry } from '$lib/packs.js';
 
 	/**
 	 * **The Run Lab** (`17-…` §3) — the Workshop's flagship, and the screen
@@ -107,6 +110,16 @@
 	const lanes = $derived(lanesPresent(events));
 	const ticks = $derived(buildTimeline(events, filter));
 	const shown = $derived(projectThrough(events, tick));
+	/**
+	 * The Boundary map over this run (WP57, `44-…` §4.5): folded once from the
+	 * run's own spec snapshot, the registry and the events; the scrubber's
+	 * tick lights the edge that fired. A group episode has no single spec, so
+	 * it draws none until WP55 gives the seats their roles.
+	 */
+	const boundaryRegistry = createRegistry();
+	const boundary = $derived(
+		run && events.length > 0 ? boundaryFor(run.specSnapshot, boundaryRegistry, events) : undefined
+	);
 	const selectedEvent = $derived(selected === undefined ? undefined : events[selected]);
 	/**
 	 * The prompt diff, when there is one to show.
@@ -421,6 +434,15 @@
 			</label>
 		</section>
 
+		{#if boundary}
+			<section class="boundary-region" aria-label="Boundary">
+				<h2>Boundary</h2>
+				<div data-testid="run-boundary">
+					<Boundary map={boundary} {tick} />
+				</div>
+			</section>
+		{/if}
+
 		<section class="timeline" aria-label="Step timeline">
 			<div class="toolbar">
 				{#each lanes as lane (lane)}
@@ -691,6 +713,11 @@
 		grid-template-columns: minmax(280px, 1fr) minmax(240px, 0.9fr) minmax(260px, 1.1fr);
 		gap: var(--cab-space-3);
 		align-items: start;
+	}
+
+	/* The fourth region (WP57): the map wants the width, so it takes the whole row beneath the world. */
+	.boundary-region {
+		grid-column: 1 / -1;
 	}
 
 	section {

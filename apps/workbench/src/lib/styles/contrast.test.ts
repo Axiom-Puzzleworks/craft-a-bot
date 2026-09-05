@@ -160,12 +160,68 @@ const WORKSHOP_PAIRS: [string, string, string][] = [
 	['ink', 'paper', 'the page behind everything'],
 	['ink-muted', 'cream', 'secondary detail in tables'],
 	['ink-muted', 'paper', 'hints and captions'],
-	['scope', 'cream', 'live telemetry accents']
+	['scope', 'cream', 'live telemetry accents'],
+	// The Control Room's lane and status tokens are `:root`'s; the Workshop's grounds are darker, so they are checked here too.
+	['counterpart', 'cream', 'the counterpart lane in the Workshop'],
+	['counterpart', 'paper', 'the counterpart’s label on the Workshop’s page'],
+	['truth', 'paper', 'the truth flap on the Workshop’s page'],
+	['pass', 'paper', 'a pass verdict on the Workshop’s page'],
+	['fail', 'paper', 'a fail verdict on the Workshop’s page'],
+	['inconclusive', 'paper', 'an inconclusive verdict on the Workshop’s page']
 ];
+
+/**
+ * **The Control Room's tokens** (WP57, `44-CONTROL-ROOM.md` §4.1), on every
+ * ground each one sits on — the Kit's cream and paper, the graph paper and
+ * the metal, and the Workshop layer's darker cream and paper, read from
+ * inside its block. Text pairs at 4.5:1; the two lane colours as borders at
+ * 3:1 as well.
+ */
+const CONTROL_ROOM_TEXT_PAIRS: [string, string, string][] = [
+	['engrave', 'metal', 'engraved labels on the brushed panel'],
+	['ink', 'metal', 'values on a panel header'],
+	['ink', 'graph', 'readouts on graph paper'],
+	['ink-muted', 'graph', 'axis labels and units on graph paper'],
+	['engrave', 'graph', 'engraved labels on graph paper'],
+	['counterpart', 'cream', 'the counterpart’s speaker label in the Kit'],
+	['counterpart', 'paper', 'the counterpart’s speaker label on a card'],
+	['counterpart', 'graph', 'the counterpart lane in a Transcript'],
+	['truth', 'cream', 'the truth flap’s label'],
+	['truth', 'paper', 'the truth flap’s label on a card'],
+	['pass', 'cream', 'a pass lamp’s label'],
+	['pass', 'paper', 'a pass verdict in a table'],
+	['pass', 'graph', 'a pass mark on an instrument'],
+	['fail', 'cream', 'a fail lamp’s label'],
+	['fail', 'paper', 'a fail verdict in a table'],
+	['fail', 'graph', 'a fail mark on an instrument'],
+	['inconclusive', 'cream', 'an inconclusive lamp’s label'],
+	['inconclusive', 'paper', 'an inconclusive verdict in a table'],
+	['inconclusive', 'graph', 'an inconclusive mark on an instrument']
+];
+
+const CONTROL_ROOM_NON_TEXT_PAIRS: [string, string, string][] = [
+	['counterpart', 'cream', 'the counterpart lane’s border'],
+	['truth', 'cream', 'the truth flap’s border'],
+	['pass', 'graph', 'a pass lamp’s disc'],
+	['fail', 'graph', 'a fail lamp’s disc']
+];
+
+describe('AA contrast for the Control Room’s tokens (4.5:1)', () => {
+	it.each(CONTROL_ROOM_TEXT_PAIRS)('%s on %s — %s', (foreground, background) => {
+		expect(ratio(token(foreground), token(background))).toBeGreaterThanOrEqual(4.5);
+	});
+});
+
+describe('non-text contrast for the Control Room’s tokens (3:1)', () => {
+	it.each(CONTROL_ROOM_NON_TEXT_PAIRS)('%s against %s — %s', (foreground, background) => {
+		expect(ratio(token(foreground), token(background))).toBeGreaterThanOrEqual(3);
+	});
+});
 
 describe('AA contrast in the Workshop skin (4.5:1)', () => {
 	it.each(WORKSHOP_PAIRS)('%s on %s — %s', (foreground, background) => {
-		const fg = foreground === 'cream-muted' ? token('cream-muted') : workshopToken(foreground);
+		const ROOT_ONLY = ['cream-muted', 'counterpart', 'truth', 'pass', 'fail', 'inconclusive'];
+		const fg = ROOT_ONLY.includes(foreground) ? token(foreground) : workshopToken(foreground);
 		expect(ratio(fg, workshopToken(background))).toBeGreaterThanOrEqual(4.5);
 	});
 

@@ -81,6 +81,25 @@
 	--cab-green-text: #3a6e2c;
 	--cab-purple-text: #55407e;
 
+	/*
+	 * The Control Room (WP57, `44-CONTROL-ROOM.md` §4.1; `04-…` §2's dated
+	 * amendment). Three finishes, two additions to the colour law, three
+	 * status tokens. Defined here rather than in the Workshop layer because a
+	 * verdict means the same thing in both modes and an instrument may one
+	 * day sit on the Kit's Test Bench; the Workshop block leaves them alone.
+	 * Every value was checked against every ground it sits on — `--cab-pass`
+	 * and `--cab-inconclusive` are darker than the text hues they descend
+	 * from because the Workshop's paper is darker than the Kit's.
+	 */
+	--cab-metal: #c9c4b6;
+	--cab-engrave: #4d463c;
+	--cab-graph: #efe8d6;
+	--cab-counterpart: #6e4a2f;
+	--cab-truth: #5a2d5c;
+	--cab-pass: #2f5a24;
+	--cab-fail: #a72e24;
+	--cab-inconclusive: #6b5000;
+
 	/* Motion durations (§6) */
 	--cab-snap-ms: 150ms;
 	--cab-pop-ms: 120ms;
