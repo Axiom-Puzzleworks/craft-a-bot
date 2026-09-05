@@ -28,7 +28,8 @@ describe('the default pack list', () => {
 			'pdp-opa',
 			'evals',
 			'fs-bank',
-			'fs-advice'
+			'fs-advice',
+			'fs-fraud'
 		]);
 		expect(ids).not.toContain('demo');
 
@@ -46,7 +47,7 @@ describe('the default pack list', () => {
 	it('reports pack versions in the workbench’s own shape', () => {
 		const versions = packVersions(defaultConfig());
 		expect(versions['starter']).toMatch(/^\d+\.\d+\.\d+$/);
-		expect(Object.keys(versions)).toHaveLength(15);
+		expect(Object.keys(versions)).toHaveLength(16);
 	});
 });
 

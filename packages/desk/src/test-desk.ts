@@ -82,6 +82,19 @@ export const testDeskSpec: DeskWorldSpec<TestExtra> = {
 			}
 		},
 		{
+			id: 'open',
+			name: 'Open',
+			description: 'Take the item up.',
+			schema: z.object({ item: z.string().min(1) }),
+			riskTier: 'observe',
+			perform: (_state, args, ctx) => {
+				const { item } = args as { item: string };
+				return ctx.open(item)
+					? { ok: true, narration: `Opened ${item}.` }
+					: { ok: false, narration: `Cannot open ${item}.` };
+			}
+		},
+		{
 			id: 'escalate',
 			name: 'Escalate',
 			description: 'Hand over.',

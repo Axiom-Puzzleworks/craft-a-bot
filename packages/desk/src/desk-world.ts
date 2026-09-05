@@ -120,6 +120,13 @@ export interface DeskActionContext {
 	reveal(recordId: string): DeskRecord | undefined;
 	/** Every record the desk knows, revealed or not — for a handler to search by title. */
 	find(predicate: (record: DeskRecord) => boolean): DeskRecord | undefined;
+	/**
+	 * Take a queue item up: `open` → `in-progress`, and `activeCaseId` follows
+	 * (WP62, `51-FS-FRAUD.md` §2 item 1 — the status was unreachable from a
+	 * handler). Idempotent on an item already in progress; `false` for an
+	 * unknown or closed item.
+	 */
+	open(queueItemId: string): boolean;
 	/** Decide a queue item, or escalate it. */
 	decide(
 		queueItemId: string,
@@ -171,7 +178,16 @@ export interface DeskWorldSpec<Extra = Record<string, unknown>> {
 	layouts: DeskLayoutSpec<Extra>[];
 	actions: DeskActionSpec<Extra>[];
 	senses: DeskSenseSpec<Extra>[];
-	predicates: Record<string, { description: string; test(state: DeskState<Extra>): boolean }>;
+	/**
+	 * `test` sees the state and, second, the case's truth (WP62, `51-…` §2):
+	 * a rule about what was *so* — every fraud alert actioned — may read it. A
+	 * predicate returns a boolean, never a value, so the snapshot still
+	 * carries no truth; a spec that ignores the argument is unchanged.
+	 */
+	predicates: Record<
+		string,
+		{ description: string; test(state: DeskState<Extra>, truth: DeskTruth | undefined): boolean }
+	>;
 	/** One line of progress per predicate, when the desk can say. */
 	progress?: Partial<Record<string, (state: DeskState<Extra>) => string | undefined>>;
 	/** Who `receiveInput` and a `heard` injection speak as when no script names them. Default "Customer". */
@@ -424,6 +440,13 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 				},
 				find(predicate) {
 					return [...state.records, ...state.hidden].find(predicate);
+				},
+				open(queueItemId) {
+					const item = state.queue.find((entry) => entry.id === queueItemId);
+					if (!item || item.status === 'decided' || item.status === 'escalated') return false;
+					item.status = 'in-progress';
+					state.activeCaseId = queueItemId;
+					return true;
 				},
 				decide(queueItemId, decision, status = 'decided') {
 					const item = state.queue.find((entry) => entry.id === queueItemId);
@@ -691,7 +714,7 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 			perform,
 			test(predicate): boolean {
 				const check = spec.predicates[predicate];
-				return check ? check.test(state) : false;
+				return check ? check.test(state, truth) : false;
 			},
 			reset(): void {
 				const rebuilt = buildState(layout, seed);

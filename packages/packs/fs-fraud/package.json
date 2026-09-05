@@ -1,17 +1,18 @@
 {
-	"name": "@craftabot/harness",
+	"name": "@craftabot/pack-fs-fraud",
 	"private": true,
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"type": "module",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
-	"bin": {
-		"craftabot": "./dist/main.js"
-	},
 	"exports": {
 		".": {
 			"types": "./dist/index.d.ts",
 			"default": "./dist/index.js"
+		},
+		"./testing": {
+			"types": "./dist/testing/index.d.ts",
+			"default": "./dist/testing/index.js"
 		}
 	},
 	"scripts": {
@@ -22,27 +23,17 @@
 	"dependencies": {
 		"@craftabot/core": "*",
 		"@craftabot/desk": "*",
-		"@craftabot/evals": "*",
 		"@craftabot/governance": "*",
-		"@craftabot/pack-anthropic": "*",
-		"@craftabot/pack-azure-content-safety": "*",
-		"@craftabot/pack-pdp-opa": "*",
 		"@craftabot/pack-evaluators": "*",
-		"@craftabot/pack-fs-advice": "*",
 		"@craftabot/pack-fs-bank": "*",
-		"@craftabot/pack-fs-fraud": "*",
-		"@craftabot/pack-geap": "*",
-		"@craftabot/pack-gemini": "*",
-		"@craftabot/pack-guard-local": "*",
-		"@craftabot/pack-monitor": "*",
-		"@craftabot/pack-ollama": "*",
-		"@craftabot/pack-openai": "*",
-		"@craftabot/pack-personas": "*",
-		"@craftabot/pack-starter": "*",
-		"@craftabot/pack-workshop": "*",
-		"@craftabot/telemetry": "*"
+		"zod": "^4.4.3"
 	},
 	"devDependencies": {
-		"@types/node": "^24.10.1"
+		"@craftabot/evals": "*",
+		"@craftabot/pack-geap": "*",
+		"@craftabot/pack-guard-local": "*",
+		"@craftabot/pack-starter": "*",
+		"@craftabot/pack-workshop": "*",
+		"@craftabot/pack-testkit": "*"
 	}
 }
