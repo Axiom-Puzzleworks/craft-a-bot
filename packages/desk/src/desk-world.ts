@@ -33,9 +33,21 @@ import { runtimeStrings } from './strings.js';
  * the runtime supplies once. A desk never implements `observe`, `perform`,
  * `inject` or `forAgent` (`41-…` §14.1); `forAgent` itself is WP55's.
  *
- * Nothing here is truth (`41-…` §6.2, WP54): `hidden` is what a look-up has
- * not yet revealed, not what the evaluators alone may read.
+ * `hidden` is not truth (`41-…` §6.2): it is what a look-up has not yet
+ * revealed — a fact the bot may *earn*. Truth (WP54, `45-…` §4.2) is what
+ * nobody at the desk can see: a case's `truth` block is kept in the
+ * instance's closure beside the state, never in it, so `snapshot()` (and so
+ * `world.changed`) cannot carry it; the session reads `truth()` once as the
+ * run finishes and writes it to `run.finished.truth`.
  */
+
+/** What is actually so, for evaluators only (WP54, `45-…` §4.2). */
+export interface DeskTruth {
+	/** Records the evaluators alone may read, in `DeskRecord` shape so the Run Lab's flap draws them. */
+	records: DeskRecord[];
+	/** Plain facts with no record shape — a label, a band, a flag. */
+	facts?: Record<string, string | number | boolean>;
+}
 
 /** A generated case: what the desk starts with. */
 export interface DeskCase<Extra = Record<string, unknown>> {
@@ -48,6 +60,13 @@ export interface DeskCase<Extra = Record<string, unknown>> {
 	activeCaseId?: string;
 	/** Whatever else the desk keeps. Opaque to the runtime; serialised into the snapshot under `extra`. */
 	extra?: Extra;
+	/**
+	 * What is actually so (WP54): never in the snapshot, never in a sense,
+	 * never reachable from a handler's context — `ctx.find` searches revealed
+	 * and hidden only. A fact a handler must act on belongs in `hidden`; its
+	 * label belongs here.
+	 */
+	truth?: DeskTruth;
 }
 
 /** A layout is a case generator: the same `random` stream, the same case. */
@@ -168,7 +187,10 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 		spec.injections ?? ['heard', 'manual-entry', 'tool-result', 'radio']
 	);
 
-	function buildState(layout: DeskLayoutSpec<Extra>, seed: number): DeskState<Extra> {
+	function buildState(
+		layout: DeskLayoutSpec<Extra>,
+		seed: number
+	): { state: DeskState<Extra>; truth: DeskTruth | undefined } {
 		const generated = layout.case(seededRandom(seed));
 		const state: DeskState<Extra> = {
 			desk: { ...spec.desk },
@@ -184,7 +206,7 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 			toolOverrides: {},
 			extra: structuredClone(generated.extra ?? ({} as Extra))
 		};
-		return state;
+		return { state, truth: generated.truth ? structuredClone(generated.truth) : undefined };
 	}
 
 	const actionDefinitions: WorldActionDefinition[] = spec.actions.map((action) => {
@@ -217,7 +239,7 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 		id: layout.id,
 		name: layout.name,
 		// The case a bare `create(layoutId)` would generate — what a registry or a testkit sees.
-		initialState: buildState(layout, DEFAULT_SEED) as unknown as WorldState
+		initialState: buildState(layout, DEFAULT_SEED).state as unknown as WorldState
 	}));
 
 	function createInstance(layoutId: string, options?: WorldCreateOptions): WorldInstance {
@@ -230,7 +252,11 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 			);
 		}
 		const seed = seedFrom(options?.random);
-		let state = buildState(layout, seed);
+		const built = buildState(layout, seed);
+		let state = built.state;
+		// Beside the state, never in it (`45-…` §4.2): nothing that clones the
+		// state can reach it, and nothing but `truth()` reads it.
+		let truth = built.truth;
 		let random = seededRandom(seed ^ 0x9e3779b9);
 		let seq = 0;
 
@@ -404,10 +430,17 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 				return check ? check.test(state) : false;
 			},
 			reset(): void {
-				state = buildState(layout, seed);
+				const rebuilt = buildState(layout, seed);
+				state = rebuilt.state;
+				truth = rebuilt.truth;
 				random = seededRandom(seed ^ 0x9e3779b9);
 				seq = 0;
 			},
+			// Present only when the case has a truth, so `'truth' in instance` is
+			// honest for a desk that keeps nothing from the bot (the golden desk).
+			...(built.truth !== undefined
+				? { truth: (): unknown => (truth ? structuredClone(truth) : undefined) }
+				: {}),
 			receiveInput(text: string): void {
 				line('counterpart', spec.counterpartName ?? runtimeStrings.counterpartName, text);
 			},

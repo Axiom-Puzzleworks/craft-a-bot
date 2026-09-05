@@ -3,7 +3,13 @@ import { checkWorld } from '@craftabot/pack-testkit';
 import { describe, expect, it } from 'vitest';
 import { createDeskWorld, type DeskState } from './desk-world.js';
 import { seededRandom } from './seeded.js';
-import { TEST_DESK_ID, testDesk, testDeskSpec, type TestExtra } from './test-desk.js';
+import {
+	TEST_DESK_ID,
+	testDesk,
+	testDeskSpec,
+	truthfulTestDesk,
+	type TestExtra
+} from './test-desk.js';
 
 const snapshot = (world = testDesk.create('one-visitor')) =>
 	world.snapshot() as unknown as DeskState<TestExtra>;
@@ -205,5 +211,56 @@ describe('createDeskWorld: the instance', () => {
 			volatileStateKeys: ['tick']
 		});
 		expect(issues).toEqual([]);
+	});
+});
+
+describe('createDeskWorld: truth (WP54, `45-…` §4.2)', () => {
+	const senses = truthfulTestDesk.senses.map((sense) => sense.id);
+
+	it('the golden desk has no truth at all; the truthful desk has one, per seed', () => {
+		expect('truth' in testDesk.create('one-visitor')).toBe(false);
+		const world = truthfulTestDesk.create('one-visitor', { random: seededRandom(7) });
+		const truth = world.truth?.() as { records: unknown[]; facts: { outcome: string } };
+		expect(truth.records).toHaveLength(1);
+		expect(['admit', 'refuse']).toContain(truth.facts.outcome);
+		// A clone each time, so a reader cannot mutate what the next reader sees.
+		expect(world.truth?.()).not.toBe(world.truth?.());
+		expect(world.truth?.()).toEqual(truth);
+	});
+
+	it('never puts truth into the snapshot, an observation or the progress line', () => {
+		for (const seed of [1, 2, 3, 4, 5]) {
+			const world = truthfulTestDesk.create('one-visitor', { random: seededRandom(seed) });
+			const truth = JSON.stringify(world.truth?.());
+			const secrets = ['visitor-truth', 'actually_expected', 'appointment-book', 'admit', 'refuse'];
+			world.perform({ name: 'look-up', arguments: { record: 'visitor' } });
+			world.perform({ name: 'say', arguments: { text: 'Hello.' } });
+			const seen = [
+				JSON.stringify(world.snapshot()),
+				world.observe(senses).text,
+				world.describeProgress?.('signed-in', senses) ?? ''
+			].join('\n');
+			for (const secret of secrets) expect(seen).not.toContain(secret);
+			expect(truth).toContain('visitor-truth');
+		}
+	});
+
+	it('resets to the same truth, and a different seed may decide differently', () => {
+		const world = truthfulTestDesk.create('one-visitor', { random: seededRandom(11) });
+		const before = world.truth?.();
+		world.perform({ name: 'escalate', arguments: { reason: 'x' } });
+		world.reset();
+		expect(world.truth?.()).toEqual(before);
+		const outcomes = new Set(
+			[1, 2, 3, 4, 5, 6, 7, 8].map(
+				(seed) =>
+					(
+						truthfulTestDesk.create('one-visitor', { random: seededRandom(seed) }).truth?.() as {
+							facts: { outcome: string };
+						}
+					).facts.outcome
+			)
+		);
+		expect(outcomes.size).toBe(2);
 	});
 });

@@ -17,6 +17,7 @@ export const deskStrings = {
 	systemName: 'Desk',
 	records: {
 		visitor: { title: 'Visitor', name: 'Mr Patel', hereToSee: 'Dr Okafor' },
+		visitorTruth: { title: 'Visitor (truth)', rightDecision: 'sign-in' },
 		houseRule: {
 			title: 'House rule',
 			text: 'Every visitor is signed in before they go through. Ask who they are here to see.'

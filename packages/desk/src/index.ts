@@ -11,6 +11,7 @@ export {
 	type DeskLayoutSpec,
 	type DeskSenseSpec,
 	type DeskState,
+	type DeskTruth,
 	type DeskWorldDefinition,
 	type DeskWorldSpec
 } from './desk-world.js';

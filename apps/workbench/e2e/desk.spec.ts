@@ -56,8 +56,17 @@ test('a bot on the Front Desk plays as a desk, and the stored run replays as one
 	await expect(page.getByTestId('world-view')).toHaveAttribute('data-world', 'desk');
 	await expect(page.getByTestId('desk-line-1')).toBeVisible();
 
-	// The Kit's replay: the same again.
+	// The flap (WP54, `45-…` §4.4): open at the last turn, where `run.finished`
+	// carried the truth; gone when the scrubber moves back before the end.
+	await expect(page.getByTestId('desk-truth')).toBeVisible();
+	await expect(page.getByTestId('desk-truth-visitor-truth')).toContainText('on the list');
+	await expect(page.getByTestId('desk-truth-fact-right_decision')).toHaveText('sign-in');
+	await page.getByTestId('run-scrubber').fill('0');
+	await expect(page.getByTestId('desk-truth')).toHaveCount(0);
+
+	// The Kit's replay: the same again — and never the flap.
 	await page.goto(`/replay/${runId}`);
 	await expect(page.getByTestId('world-view')).toHaveAttribute('data-world', 'desk');
 	await expect(page.getByTestId('desk-transcript')).toContainText('who');
+	await expect(page.getByTestId('desk-truth')).toHaveCount(0);
 });

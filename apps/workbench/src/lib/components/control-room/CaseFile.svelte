@@ -13,10 +13,14 @@
 		records: readonly DeskRecord[];
 		/** The case file's truth, shown only once a run has ended (WP54). */
 		truth?: readonly DeskRecord[] | undefined;
+		/** Plain facts beside the truth records (`45-…` §4.2). */
+		facts?: Readonly<Record<string, string | number | boolean>> | undefined;
 		testId?: string;
 	}
 
-	let { records, truth, testId = 'desk-case-file' }: Props = $props();
+	let { records, truth, facts, testId = 'desk-case-file' }: Props = $props();
+	const factEntries = $derived(facts ? Object.entries(facts) : []);
+	const hasTruth = $derived((truth !== undefined && truth.length > 0) || factEntries.length > 0);
 
 	const group = (list: readonly DeskRecord[]): [string, DeskRecord[]][] => {
 		const groups: [string, DeskRecord[]][] = [];
@@ -70,9 +74,17 @@
 			{/each}
 		{/each}
 	{/if}
-	{#if truth && truth.length > 0}
+	{#if hasTruth}
 		<details class="truth" data-testid="desk-truth">
 			<summary>Case file (truth) — what was actually so</summary>
+			{#if factEntries.length > 0}
+				<dl class="facts" data-testid="desk-truth-facts">
+					{#each factEntries as [key, value] (key)}
+						<dt>{key.replaceAll('_', ' ')}</dt>
+						<dd data-testid="desk-truth-fact-{key}">{String(value)}</dd>
+					{/each}
+				</dl>
+			{/if}
 			{#each truthByKind as [kind, group] (kind)}
 				<h4>{kind}</h4>
 				{#each group as record (record.id)}

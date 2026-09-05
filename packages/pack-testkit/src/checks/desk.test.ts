@@ -48,6 +48,10 @@ function opening(): State {
 }
 
 interface Knobs {
+	/** Give the desk a truth (WP54); `leaksTruth` puts it into the look sense, `snapshotsTruth` into the state. */
+	truth?: boolean;
+	leaksTruth?: boolean;
+	snapshotsTruth?: boolean;
 	tier?: boolean;
 	readsClock?: boolean;
 	revealsHealth?: boolean;
@@ -67,16 +71,25 @@ function desk(knobs: Knobs = {}): WorldDefinition & { purpose?: string } {
 			...(tier ? { riskTier: 'observe' as const } : {})
 		}
 	];
-	const create = (): WorldInstance => {
+	const create = (_layoutId: string, options?: { random?: () => number }): WorldInstance => {
 		let state = opening();
+		const draw = options?.random ?? (() => 0.25);
+		const verdict = draw() < 0.5 ? 'genuine-visitor' : 'impostor-visitor';
+		const truth = { records: [], facts: { verdict } };
+		if (knobs.snapshotsTruth) (state as State & { truth?: unknown }).truth = truth;
 		return {
 			snapshot: () => structuredClone(state),
 			observe: (channels) => ({
 				channels: [...channels],
-				text: knobs.revealsHealth
-					? `On the desk: ${[...state.records, ...state.hidden].map((r) => r.title).join(', ')}`
-					: `On the desk: ${state.records.map((r) => r.title).join(', ')}`
+				text: `${
+					knobs.revealsHealth
+						? `On the desk: ${[...state.records, ...state.hidden].map((r) => r.title).join(', ')}`
+						: `On the desk: ${state.records.map((r) => r.title).join(', ')}`
+				}${knobs.leaksTruth ? ` (${verdict})` : ''}`
 			}),
+			...(knobs.truth || knobs.leaksTruth || knobs.snapshotsTruth
+				? { truth: () => structuredClone(truth) }
+				: {}),
 			perform: (call) => {
 				state.tick += 1;
 				if (knobs.readsClock)
@@ -101,6 +114,7 @@ function desk(knobs: Knobs = {}): WorldDefinition & { purpose?: string } {
 			test: (predicate) => predicate === 'spoke' && state.transcript.length > 0,
 			reset: () => {
 				state = opening();
+				if (knobs.snapshotsTruth) (state as State & { truth?: unknown }).truth = truth;
 			},
 			receiveInput: (text) => {
 				state.transcript.push({
@@ -230,5 +244,28 @@ describe('checkDesk', () => {
 		expect(typeof Date.now()).toBe('number');
 		expect(Math.random()).toBeLessThan(1);
 		expect(typeof crypto.randomUUID()).toBe('string');
+	});
+});
+
+describe('checkDesk: the truth property (WP54, `45-…` §4.3)', () => {
+	it('passes a desk that keeps its truth to itself, over a hundred seeds and the scripts', () => {
+		expect(
+			checkDesk(desk({ truth: true, purpose: 'p' }), {
+				scripts: SCRIPTS,
+				acceptedInjections: [...fixture.acceptedInjections]
+			})
+		).toEqual([]);
+	});
+
+	it('rejects a desk whose sense lets a truth-only value out, naming the sense and the value', () => {
+		const issues = checkDesk(desk({ leaksTruth: true, purpose: 'p' }));
+		const leak = issues.find((i) => i.check === 'desk.truth-never-sensed');
+		expect(leak?.message).toContain('sense "d/look"');
+		expect(leak?.message).toMatch(/genuine-visitor|impostor-visitor/);
+	});
+
+	it('rejects a desk that carries its truth in the snapshot', () => {
+		const issues = checkDesk(desk({ snapshotsTruth: true, purpose: 'p' }));
+		expect(issues.map((i) => i.check)).toContain('desk.truth-not-in-snapshot');
 	});
 });

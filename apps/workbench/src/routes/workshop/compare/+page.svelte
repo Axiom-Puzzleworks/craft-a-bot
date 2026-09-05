@@ -136,6 +136,7 @@
 							saying={shown.saying}
 							{expression}
 							outcome={shown.outcome}
+							truth={shown.truth}
 							events={panel.events.filter((event) => event.tick <= Math.min(tick, panel.lastTick))}
 						/>
 					</section>

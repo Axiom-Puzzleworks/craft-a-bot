@@ -35,6 +35,17 @@ describe('the Front Desk', () => {
 		);
 	});
 
+	it('keeps a truth the bot can never sense, and its record is not on the desk (WP54)', () => {
+		const world = frontDesk.create('a-visitor');
+		const truth = world.truth?.() as { records: { id: string }[]; facts: Record<string, string> };
+		expect(truth.records.map((record) => record.id)).toEqual(['visitor-truth']);
+		expect(truth.facts['right_decision']).toBe('sign-in');
+		world.perform({ name: qualifyDeskId('look-up'), arguments: { record: 'visitor' } });
+		const everything = frontDesk.senses.map((sense) => sense.id);
+		expect(world.observe(everything).text).not.toContain('truth');
+		expect(JSON.stringify(world.snapshot())).not.toContain('visitor-truth');
+	});
+
 	it('say appends an agent line; the conversation sense hears it once', () => {
 		const world = frontDesk.create('a-visitor');
 		const result = world.perform({

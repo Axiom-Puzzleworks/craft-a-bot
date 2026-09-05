@@ -34,9 +34,11 @@
 		expression?: BotExpression;
 		outcome?: RunOutcome | undefined;
 		events?: readonly EngineEvent[];
+		/** A finished run's truth, for the Desk's flap (WP54) — Workshop screens only. */
+		truth?: unknown;
 	}
 
-	let { world, view, saying, expression = 'idle', outcome, events = [] }: Props = $props();
+	let { world, view, saying, expression = 'idle', outcome, events = [], truth }: Props = $props();
 </script>
 
 {#if world === undefined}
@@ -48,7 +50,7 @@
 		<WorldView world={undefined} {saying} {expression} {outcome} {events} />
 	{/if}
 {:else if isDeskWorldState(world)}
-	<DeskView {world} {outcome} />
+	<DeskView {world} {outcome} {truth} />
 {:else if isGridWorldState(world)}
 	<WorldView {world} {saying} {expression} {outcome} {events} />
 {:else}

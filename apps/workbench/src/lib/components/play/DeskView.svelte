@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { DeskWorldState, RunOutcome } from '@craftabot/core';
+	import type { DeskRecord, DeskWorldState, RunOutcome } from '@craftabot/core';
 	import CaseFile from '$lib/components/control-room/CaseFile.svelte';
 	import Queue from '$lib/components/control-room/Queue.svelte';
 	import Transcript from '$lib/components/control-room/Transcript.svelte';
@@ -20,9 +20,36 @@
 	interface Props {
 		world: DeskWorldState;
 		outcome?: RunOutcome | undefined;
+		/**
+		 * What was actually so — `run.finished.truth` as the projection folded
+		 * it (WP54, `45-…` §4.4). Only the Workshop's screens hand it in; the
+		 * Kit's never do (a test over their source holds that). Narrowed here
+		 * by shape, since a world's truth is `unknown` to the engine.
+		 */
+		truth?: unknown;
 	}
 
-	let { world, outcome }: Props = $props();
+	let { world, outcome, truth }: Props = $props();
+
+	type DeskTruthShape = {
+		records: DeskRecord[];
+		facts?: Record<string, string | number | boolean>;
+	};
+	const isRecord = (value: unknown): value is DeskRecord =>
+		typeof value === 'object' &&
+		value !== null &&
+		typeof (value as DeskRecord).id === 'string' &&
+		typeof (value as DeskRecord).title === 'string' &&
+		typeof (value as DeskRecord).fields === 'object';
+	const deskTruth = $derived.by((): DeskTruthShape | undefined => {
+		if (typeof truth !== 'object' || truth === null) return undefined;
+		const candidate = truth as Partial<DeskTruthShape>;
+		if (!Array.isArray(candidate.records) || !candidate.records.every(isRecord)) return undefined;
+		return {
+			records: candidate.records,
+			...(candidate.facts && typeof candidate.facts === 'object' ? { facts: candidate.facts } : {})
+		};
+	});
 
 	const label = $derived(
 		`${world.desk.title}. ${world.transcript.length} lines said, ${world.records.length} records on the desk, ${world.queue.length} in the queue.`
@@ -53,7 +80,7 @@
 
 	<div class="panes">
 		<Transcript lines={world.transcript} />
-		<CaseFile records={world.records} />
+		<CaseFile records={world.records} truth={deskTruth?.records} facts={deskTruth?.facts} />
 		<Queue items={world.queue} />
 	</div>
 </div>

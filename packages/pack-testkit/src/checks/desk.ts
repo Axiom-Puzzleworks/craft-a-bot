@@ -35,6 +35,13 @@ import { checkWorld } from './world.js';
  *   `purpose`. The first cut — WP54's truth property is the real gate.
  * - `desk.reset-identical`: `reset()` returns the desk to the state a fresh
  *   `create` of the same layout gives.
+ * - `desk.truth-never-sensed` (WP54, `45-TRUTH-SYNTHETIC.md` §4.3, tenet 13):
+ *   over a hundred seeds, no sense's text and no progress line contains a
+ *   value only `truth()` knows — a leaf of a truth record or fact that no
+ *   revealed or hidden record carries — at the opening and after every
+ *   fixture script. A desk with no `truth` passes trivially.
+ * - `desk.truth-not-in-snapshot` (WP54): the snapshot never carries such a
+ *   value either — truth lives beside the state, never in it.
  *
  * Runs `checkWorld` first when the fixture carries scripts, so a desk is a
  * conforming world before it is a conforming desk.
@@ -105,8 +112,125 @@ export function checkDesk(
 	}
 
 	checkPurity(world, layoutIds, scripts, issues);
+	checkTruth(world, layoutIds, scripts, issues);
 
 	return issues;
+}
+
+/** How many seeds the truth property runs over (`45-…` §4.3). */
+const TRUTH_SEEDS = 100;
+
+/**
+ * mulberry32, eleven lines, so the kit can hand a desk a seeded `random`
+ * without depending on `@craftabot/desk` (the kit tests the contract, not
+ * the runtime).
+ */
+function seededRandom(seed: number): () => number {
+	let a = seed >>> 0;
+	return () => {
+		a = (a + 0x6d2b79f5) >>> 0;
+		let t = a;
+		t = Math.imul(t ^ (t >>> 15), t | 1);
+		t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+		return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+	};
+}
+
+/** Every string, number and boolean leaf under a value, stringified. */
+function leaves(value: unknown, out: string[] = []): string[] {
+	if (value === null || value === undefined) return out;
+	if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+		out.push(String(value));
+		return out;
+	}
+	if (Array.isArray(value)) {
+		for (const entry of value) leaves(entry, out);
+		return out;
+	}
+	if (typeof value === 'object') {
+		for (const entry of Object.values(value as Record<string, unknown>)) leaves(entry, out);
+	}
+	return out;
+}
+
+/**
+ * The values only truth knows: leaves of the truth block that no revealed or
+ * hidden record carries. Short values (under three characters) and the two
+ * booleans are compared as whole leaves rather than substrings — `true`
+ * appears in most sentences' worth of JSON, and `7` in every trace.
+ */
+function truthOnlyValues(truth: unknown, state: DeskWorldState): string[] {
+	const known = new Set(
+		leaves([...state.records, ...((state as { hidden?: DeskRecord[] }).hidden ?? [])])
+	);
+	return [...new Set(leaves(truth))].filter(
+		(value) => value.length >= 3 && value !== 'true' && value !== 'false' && !known.has(value)
+	);
+}
+
+function checkTruth(
+	world: WorldDefinition,
+	layoutIds: readonly string[],
+	scripts: Record<string, WorldScriptFixture>,
+	issues: ConformanceIssue[]
+): void {
+	const channels = world.senses.map((sense) => sense.id);
+	const predicates = Object.keys(world.predicates);
+	for (const layoutId of layoutIds) {
+		const probe = world.create(layoutId);
+		if (typeof probe.truth !== 'function') continue;
+		for (let seed = 1; seed <= TRUTH_SEEDS; seed += 1) {
+			const instance = world.create(layoutId, { random: seededRandom(seed) });
+			const runs: Array<{ label: string; calls: WorldScriptFixture['calls'] }> = [
+				{ label: 'the opening', calls: [] },
+				...Object.entries(scripts)
+					.filter(([, script]) => script.layoutId === layoutId)
+					.map(([name, script]) => ({ label: `after script "${name}"`, calls: script.calls }))
+			];
+			for (const run of runs) {
+				instance.reset();
+				for (const call of run.calls) instance.perform(call);
+				const snapshot = instance.snapshot();
+				if (!isDeskWorldState(snapshot)) return;
+				const secrets = truthOnlyValues(instance.truth?.(), snapshot);
+				if (secrets.length === 0) continue;
+				const leakedInSnapshot = secrets.filter((secret) =>
+					JSON.stringify(snapshot).includes(secret)
+				);
+				if (leakedInSnapshot.length > 0) {
+					issues.push({
+						check: 'desk.truth-not-in-snapshot',
+						message: `layout "${layoutId}", seed ${seed}, ${run.label}: the snapshot carries truth-only value(s) ${leakedInSnapshot
+							.map((value) => JSON.stringify(value))
+							.join(', ')}`
+					});
+					return;
+				}
+				const texts: Array<{ where: string; text: string }> = [
+					...channels.map((channel) => ({
+						where: `sense "${channel}"`,
+						text: instance.observe([channel]).text
+					})),
+					...predicates.map((predicate) => ({
+						where: `progress for "${predicate}"`,
+						text: instance.describeProgress?.(predicate, channels) ?? ''
+					}))
+				];
+				for (const { where, text } of texts) {
+					const leaked = secrets.filter((secret) => text.includes(secret));
+					if (leaked.length > 0) {
+						issues.push({
+							check: 'desk.truth-never-sensed',
+							message: `layout "${layoutId}", seed ${seed}, ${run.label}: ${where} reveals truth-only value(s) ${leaked
+								.map((value) => JSON.stringify(value))
+								.join(', ')}`
+						});
+						return;
+					}
+				}
+			}
+		}
+	}
 }
 
 /** `createDeskWorld` leaves its spec on the definition; a hand-written desk may carry `purpose` itself. */
