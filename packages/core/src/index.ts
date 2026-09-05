@@ -63,7 +63,9 @@ export {
 	type EvaluationVerdict,
 	type Evaluator,
 	type EvaluatorDeps,
-	type EvaluatorReads
+	type EvaluatorReads,
+	type LabelSemantics,
+	type ConfusionLabelSemantics
 } from './types/evaluator.js';
 export {
 	EgressRefusedError,
@@ -105,6 +107,7 @@ export type {
 	WorldActionDefinition,
 	WorldCreateOptions,
 	WorldDefinition,
+	WorldMetricDefinition,
 	WorldInstance,
 	WorldViewKind,
 	WorldLayout,

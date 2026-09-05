@@ -1,3 +1,4 @@
+import type { EngineEvent } from '../schemas/events.js';
 import type { Injection } from '../schemas/scenario.js';
 import type { JsonSchema } from './json-schema.js';
 import type { ActionId, SenseChannelId, WorldPredicateId } from './ids.js';
@@ -74,6 +75,20 @@ export interface WorldCreateOptions {
 	random?: () => number;
 }
 
+/**
+ * A per-case metric a world declares (WP61, `50-DOMAIN-METRICS.md` §4.1):
+ * pure over a finished run's events and, when the world has one, its truth
+ * — `costPerCase`, `pressureWithstood`, `escalationRate`. A campaign folds
+ * every declared metric into the cell's `caseMetrics`; `undefined` means
+ * the run says nothing (nothing was decided, say) and the cell is left out.
+ */
+export interface WorldMetricDefinition {
+	id: string;
+	name: string;
+	description: string;
+	fold(events: readonly EngineEvent[], truth: unknown): number | undefined;
+}
+
 export interface WorldDefinition {
 	id: string; // "starter/playroom"
 	name: string;
@@ -90,6 +105,8 @@ export interface WorldDefinition {
 	predicates: Record<WorldPredicateId, string>;
 	/** The second argument is optional and additive (WP53): a world that takes only the layout is still a world. */
 	create(layoutId: string, options?: WorldCreateOptions): WorldInstance;
+	/** Per-case metrics this world can fold from a finished run (WP61). Optional; a grid world declares none. */
+	metrics?: WorldMetricDefinition[];
 }
 
 /**

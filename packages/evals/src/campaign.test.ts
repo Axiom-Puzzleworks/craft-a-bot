@@ -275,6 +275,8 @@ describe('gates', () => {
 		scenario: 's',
 		build: 'b',
 		evaluations: {},
+		labels: {},
+		caseMetrics: {},
 		guard: 'g',
 		brain: 'x',
 		tier: 'scripted-optimal',

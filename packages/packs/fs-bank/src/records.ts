@@ -181,6 +181,8 @@ export function bankRecords(bank: BankCase): BankRecords {
 				fields: { actual: driverList(customer.vulnerability) }
 			}
 		],
+		// The slice key a campaign reads (WP61, `50-…` §4.3).
+		cohort: { ageBand: customer.cohort.ageBand, incomeBand: customer.cohort.incomeBand },
 		facts: {
 			vulnerable: hasAnyDriver(customer.vulnerability),
 			cohortKey: `ageBand=${customer.cohort.ageBand};incomeBand=${customer.cohort.incomeBand}`

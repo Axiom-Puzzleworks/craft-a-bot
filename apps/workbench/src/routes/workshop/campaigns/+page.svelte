@@ -19,10 +19,14 @@
 		renderJUnit,
 		renderSarif,
 		runCampaign,
+		summariseCampaign,
 		type Campaign,
 		type CampaignCell,
-		type CampaignReport
+		type CampaignReport,
+		type ConfusionMatrix
 	} from '@craftabot/evals';
+	import CaseTable from '$lib/components/control-room/CaseTable.svelte';
+	import Matrix from '$lib/components/control-room/Matrix.svelte';
 	import { createRegistry, installedPacks, packVersions } from '$lib/packs.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import { contentStore } from '$lib/state/content.svelte.js';
@@ -145,6 +149,96 @@
 	const cardIds = $derived(
 		report ? [...new Set(report.cells.flatMap((cell) => Object.keys(cell.assertions)))] : []
 	);
+	/**
+	 * The readers' numbers (WP61, `50-DOMAIN-METRICS.md` §4.6): the summary the
+	 * run folded once — a stored v1 report gets one on read. Each pane appears
+	 * only when the summary has something for it: no labelled evaluator, no
+	 * matrix; no cohort, no cohort table; never an empty pane.
+	 */
+	const summary = $derived(
+		report ? (report.summary ?? summariseCampaign(report.cells)) : undefined
+	);
+	const wholeMatrices = $derived(
+		(summary?.matrices ?? []).filter((matrix) => matrix.slice.scenario === undefined)
+	);
+	const cohortEvaluators = $derived(
+		[
+			...new Set((summary?.cohorts ?? []).flatMap((row) => Object.keys(row.evaluatorPassRates)))
+		].sort()
+	);
+	const obligationEvaluators = $derived(
+		[
+			...new Set((summary?.obligations ?? []).flatMap((row) => Object.keys(row.evaluatorPassRates)))
+		].sort()
+	);
+	const parityGates = $derived((report?.gates ?? []).filter((gate) => gate.kind === 'parity'));
+	const unmatchedParity = $derived(parityGates.filter((gate) => gate.matched !== true).length);
+	const CASE_ROWS = 200;
+	const caseColumns = $derived([
+		{ id: 'scenario', label: 'Scenario', kind: 'text' as const },
+		{ id: 'guard', label: 'Guard', kind: 'text' as const },
+		{ id: 'brain', label: 'Brain', kind: 'text' as const },
+		{ id: 'seed', label: 'Seed', kind: 'number' as const },
+		{ id: 'outcome', label: 'Outcome', kind: 'text' as const },
+		{ id: 'ticks', label: 'Ticks', kind: 'number' as const },
+		{ id: 'cost', label: 'Cost', kind: 'number' as const },
+		{ id: 'approvals', label: 'Approvals', kind: 'number' as const },
+		...[...new Set((summary?.cases ?? []).flatMap((row) => Object.keys(row.cohort ?? {})))]
+			.sort()
+			.map((attribute) => ({ id: `cohort:${attribute}`, label: attribute, kind: 'text' as const })),
+		...[...new Set((summary?.cases ?? []).flatMap((row) => Object.keys(row.labels)))]
+			.sort()
+			.map((id) => ({ id: `label:${id}`, label: short(id), kind: 'text' as const }))
+	]);
+	const caseRows = $derived(
+		(summary?.cases ?? []).slice(0, CASE_ROWS).map((row, index) => ({
+			id: `${row.scenario}-${row.guard}-${row.brain}-${row.seed}-${index}`,
+			cells: {
+				scenario: row.scenario,
+				guard: row.guard,
+				brain: row.brain,
+				seed: row.seed,
+				outcome: row.error ? 'error' : (row.outcome ?? '—'),
+				ticks: row.ticks,
+				cost: row.cost,
+				approvals: row.approvals,
+				...Object.fromEntries(
+					Object.entries(row.cohort ?? {}).map(([attribute, value]) => [
+						`cohort:${attribute}`,
+						value
+					])
+				),
+				...Object.fromEntries(
+					Object.entries(row.labels).map(([id, label]) => [`label:${id}`, label])
+				)
+			}
+		}))
+	);
+	/** A confusion matrix as `Matrix` draws it: actual down, predicted across, the count as the fact and the fill. */
+	function confusionCell(matrix: ConfusionMatrix) {
+		const counts: Record<string, number> = {
+			'actual-positive/predicted-positive': matrix.tp,
+			'actual-positive/predicted-negative': matrix.fn,
+			'actual-negative/predicted-positive': matrix.fp,
+			'actual-negative/predicted-negative': matrix.tn
+		};
+		const most = Math.max(1, ...Object.values(counts));
+		return (rowId: string, colId: string) => {
+			const count = counts[`${rowId}/${colId}`] ?? 0;
+			return { value: count / most, label: String(count) };
+		};
+	}
+	const MATRIX_ROWS = [
+		{ id: 'actual-positive', label: 'actual +' },
+		{ id: 'actual-negative', label: 'actual −' }
+	];
+	const MATRIX_COLS = [
+		{ id: 'predicted-positive', label: 'predicted +' },
+		{ id: 'predicted-negative', label: 'predicted −' }
+	];
+	const num = (value: number | undefined): string =>
+		value === undefined ? '—' : String(Math.round(value * 100) / 100);
+	const slug = (value: string): string => value.replace(/[^a-z0-9-]/gi, '-');
 
 	$effect(() => {
 		void loadStored();
@@ -497,6 +591,123 @@
 						{/each}
 					</tbody>
 				</table>
+			</section>
+		{/if}
+
+		{#if wholeMatrices.length > 0}
+			<section aria-label="Confusion matrices" data-testid="campaign-matrices">
+				<h2>Confusion matrices</h2>
+				<div class="matrices">
+					{#each wholeMatrices as matrix (matrix.evaluatorId)}
+						<div class="matrix" data-testid="campaign-matrix-{slug(matrix.evaluatorId)}">
+							<h3 class="mono">{matrix.evaluatorId}</h3>
+							<Matrix
+								corner="all cells"
+								rows={MATRIX_ROWS}
+								cols={MATRIX_COLS}
+								cell={confusionCell(matrix)}
+								testId="matrix-{slug(matrix.evaluatorId)}"
+							/>
+							<p class="hint">
+								precision {num(matrix.precision)} · recall {num(matrix.recall)} · F1 {num(
+									matrix.f1
+								)}
+								· FPR {num(matrix.falsePositiveRate)}
+							</p>
+						</div>
+					{/each}
+				</div>
+			</section>
+		{/if}
+
+		{#if summary && summary.cohorts.length > 0}
+			<section aria-label="Cohorts" data-testid="campaign-cohorts">
+				<h2>Cohorts</h2>
+				{#if parityGates.length > 0}
+					<p class="hint" data-testid="campaign-cohorts-matched">
+						{#if unmatchedParity > 0}
+							{unmatchedParity} of {parityGates.length} parity gates compare
+							<strong>unmatched</strong> cohorts: the cases differ in more than the attribute, so a spread
+							is a caveat, not a finding.
+						{:else}
+							Every parity gate compares matched cohorts.
+						{/if}
+					</p>
+				{/if}
+				<table>
+					<thead>
+						<tr>
+							<th scope="col">Attribute</th>
+							<th scope="col">Value</th>
+							<th scope="col">Cells</th>
+							<th scope="col">Success</th>
+							{#each cohortEvaluators as id (id)}<th scope="col" class="mono">{short(id)}</th
+								>{/each}
+						</tr>
+					</thead>
+					<tbody>
+						{#each summary.cohorts as row (`${row.attribute}=${row.value}`)}
+							<tr data-testid="cohort-{slug(row.attribute)}-{slug(row.value)}">
+								<td class="mono">{row.attribute}</td>
+								<td class="mono">{row.value}</td>
+								<td class="num">{row.cells}</td>
+								<td class="num">{pct(row.successRate)}</td>
+								{#each cohortEvaluators as id (id)}
+									<td class="num">
+										{row.evaluatorPassRates[id] === undefined
+											? '—'
+											: pct(row.evaluatorPassRates[id] ?? 0)}
+									</td>
+								{/each}
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</section>
+		{/if}
+
+		{#if summary && summary.obligations.length > 0 && obligationEvaluators.length > 0}
+			<section aria-label="Obligations" data-testid="campaign-obligations">
+				<h2>Obligations</h2>
+				<table>
+					<thead>
+						<tr>
+							<th scope="col">Tag</th>
+							<th scope="col">Cells</th>
+							<th scope="col">Success</th>
+							{#each obligationEvaluators as id (id)}<th scope="col" class="mono">{short(id)}</th
+								>{/each}
+						</tr>
+					</thead>
+					<tbody>
+						{#each summary.obligations as row (row.tag)}
+							<tr data-testid="obligation-{slug(row.tag)}">
+								<td class="mono">{row.tag}</td>
+								<td class="num">{row.cells}</td>
+								<td class="num">{pct(row.successRate)}</td>
+								{#each obligationEvaluators as id (id)}
+									<td class="num">
+										{row.evaluatorPassRates[id] === undefined
+											? '—'
+											: pct(row.evaluatorPassRates[id] ?? 0)}
+									</td>
+								{/each}
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</section>
+		{/if}
+
+		{#if summary && summary.cases.length > 0}
+			<section aria-label="Cases" data-testid="campaign-cases">
+				<h2>Cases</h2>
+				{#if summary.cases.length > CASE_ROWS}
+					<p class="hint">
+						The first {CASE_ROWS} of {summary.cases.length}; the rest are in the report's JSON.
+					</p>
+				{/if}
+				<CaseTable columns={caseColumns} rows={caseRows} testId="campaign-case-table" />
 			</section>
 		{/if}
 	{/if}

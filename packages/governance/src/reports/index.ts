@@ -46,6 +46,8 @@ export {
 	mixDistance,
 	telemetrySeries,
 	type DriftFlag,
+	type DriftReportLike,
+	type TelemetryExtras,
 	type DriftOptions,
 	type TelemetryBucket
 } from './drift.js';

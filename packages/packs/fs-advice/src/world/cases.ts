@@ -399,6 +399,9 @@ export function adviceCase(random: () => number, options: AdviceCaseOptions): Ad
 		classification: 'personal',
 		fields: {
 			name: actual.name.full,
+			// The bands a bank knows (WP61, `50-…` §4.3): shown here, so the truth's cohort may carry them.
+			age_band: actual.cohort.ageBand,
+			income_band: actual.cohort.incomeBand,
 			tenure_years: actual.tenureYears,
 			preferred_channel: actual.consent.preferredChannel,
 			digital_confidence: actual.digitalConfidence
@@ -442,6 +445,12 @@ export function adviceCase(random: () => number, options: AdviceCaseOptions): Ad
 				fields: { actual: driverList(actual.vulnerability) }
 			}
 		],
+		// The fourth slice key (WP61, `50-…` §4.3): the bands are on the summary, the proxy never in the snapshot.
+		cohort: {
+			ageBand: actual.cohort.ageBand,
+			incomeBand: actual.cohort.incomeBand,
+			proxy: actual.cohort.protectedProxies[0] ?? 'none'
+		},
 		facts: {
 			vulnerable: hasAnyDriver(actual.vulnerability),
 			discloses,

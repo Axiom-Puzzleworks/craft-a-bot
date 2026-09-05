@@ -146,3 +146,30 @@ export {
 } from './matrices.js';
 /** Scripted plans as a host-composed source (WP60, `49-FS-ADVICE.md` §4.7). */
 export { chainPlans, noPlans, starterPlans, type PlanSource } from './plans.js';
+/** The campaign summary (WP61, `50-DOMAIN-METRICS.md` §4.5): the readers' numbers, folded once from the cells. */
+export {
+	campaignSummarySchema,
+	confusionOf,
+	DERIVED_NAMES,
+	derivedOf,
+	evaluatorPassRates,
+	labelCountsOf,
+	summariseCampaign,
+	type CampaignSliceSummary,
+	type CampaignSummary,
+	type CaseRow,
+	type CohortRow,
+	type ConfusionMatrix,
+	type DerivedName,
+	type ObligationRow,
+	type SummaryOptions
+} from './campaign-summary.js';
+export {
+	CASE_METRIC_PATTERN,
+	cohortOf,
+	DERIVED_METRIC_PATTERN,
+	runMetricNameSchema,
+	semanticsFromReport,
+	type GateOptions,
+	type RunMetricName
+} from './campaign.js';

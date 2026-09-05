@@ -41,7 +41,7 @@ test('renders a two-week corpus as a daily series and flags the planted drift', 
 
 		const DAY = 24 * 60 * 60 * 1000;
 		const start = Date.UTC(2026, 7, 17);
-		const tx = db.transaction(['runs', 'runSummaries'], 'readwrite');
+		const tx = db.transaction(['runs', 'runSummaries', 'evaluations'], 'readwrite');
 		let count = 0;
 		for (let day = 0; day < 14; day += 1) {
 			const drifted = day >= 10;
@@ -57,6 +57,21 @@ test('renders a two-week corpus as a daily series and flags the planted drift', 
 					pinned: false,
 					startedAt,
 					finishedAt: new Date(Date.parse(startedAt) + 60_000).toISOString()
+				});
+				// WP61: an evaluation record a day per run — the unsuitable rate steps up on the planted day.
+				tx.objectStore('evaluations').put({
+					id: crypto.randomUUID(),
+					runId: id,
+					evaluatorId: 'fs-advice/recommendation-suitable',
+					result: {
+						evaluatorId: 'fs-advice/recommendation-suitable',
+						verdict: looped ? 'fail' : 'pass',
+						label: looped ? 'unsuitable' : 'suitable',
+						explanation: 'seeded',
+						evidence: []
+					},
+					evaluatedAt: startedAt,
+					schemaVersion: 1
 				});
 				tx.objectStore('runSummaries').put({
 					runId: id,
@@ -96,6 +111,14 @@ test('renders a two-week corpus as a daily series and flags the planted drift', 
 	await expect(page.getByTestId('drift-2026-08-27-trip-mix')).toContainText('safety/step-budget');
 	await expect(page.getByTestId('drift-2026-08-27-loop-rate')).toContainText('looped 25% → 75%');
 	await expect(page.getByTestId('drift-2026-08-20-trip-mix')).toHaveCount(0);
+	// WP61: the domain series from the seeded evaluations, and the step change in the pass rate flagged.
+	await expect(page.getByTestId('telemetry-domain-series')).toBeVisible();
+	await expect(
+		page.getByTestId('domain-series-evaluator-fs-advice-recommendation-suitable-passRate')
+	).toContainText('14');
+	await expect(
+		page.getByTestId('drift-2026-08-27-series-evaluator-fs-advice-recommendation-suitable-passRate')
+	).toContainText('recommendation-suitable:passRate 0.75 → 0.25');
 });
 
 test('says what it would have taken when nothing has drifted', async ({ page }) => {

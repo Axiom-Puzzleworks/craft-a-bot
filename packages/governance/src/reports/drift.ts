@@ -1,4 +1,4 @@
-import type { RunRecord, RunSummary } from '@craftabot/core';
+import type { EvaluationRecord, RunRecord, RunSummary } from '@craftabot/core';
 
 /**
  * **Telemetry over time, and drift** (`37-DRIFT-SAFETY-CASE-RUN-LAB.md`
@@ -38,6 +38,38 @@ export interface TelemetryBucket {
 	trips: Record<string, number>;
 	/** Total trips over the runs that have a summary; `undefined` when none has one. */
 	tripsPerRun: number | undefined;
+	/**
+	 * Domain series (WP61, `50-DOMAIN-METRICS.md` §4.7), by name:
+	 * `evaluator:<id>:passRate`, `evaluator:<id>:label:<label>` (a share),
+	 * `case:<metric>` (a mean), `cohort:<attribute>:spread` (max − min success
+	 * rate across the attribute's values) — from the day's evaluation records
+	 * and campaign reports. Absent names had nothing that day.
+	 */
+	series: Record<string, number>;
+	/** How many samples each series value rests on — a flag over two is noise. */
+	seriesSamples: Record<string, number>;
+}
+
+/**
+ * A campaign report as the drift detector reads it (WP61): structural, so
+ * `governance` never imports `evals`. A cell's labels, case metrics and
+ * cohort are optional — a v1 report has none.
+ */
+export interface DriftReportLike {
+	createdAt: string;
+	cells: ReadonlyArray<{
+		outcome?: string | undefined;
+		evaluations: Readonly<Record<string, 'pass' | 'fail' | 'inconclusive'>>;
+		labels?: Readonly<Record<string, string>> | undefined;
+		caseMetrics?: Readonly<Record<string, number>> | undefined;
+		cohort?: Readonly<Record<string, string>> | undefined;
+	}>;
+}
+
+/** What `telemetrySeries` reads beyond the runs (WP61): evaluation records and campaign reports. */
+export interface TelemetryExtras {
+	evaluations?: readonly EvaluationRecord[];
+	reports?: readonly DriftReportLike[];
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -57,8 +89,69 @@ function emptyBucket(day: string): TelemetryBucket {
 		successRate: undefined,
 		loopRate: undefined,
 		trips: {},
-		tripsPerRun: undefined
+		tripsPerRun: undefined,
+		series: {},
+		seriesSamples: {}
 	};
+}
+
+/** A day's tallies behind the domain series, folded to numbers when the bucket is closed. */
+interface DomainTally {
+	verdicts: Map<string, { pass: number; fail: number }>;
+	labels: Map<string, Map<string, number>>;
+	labelled: Map<string, number>;
+	caseMetrics: Map<string, { sum: number; n: number }>;
+	cohorts: Map<string, Map<string, { success: number; n: number }>>;
+}
+
+const emptyTally = (): DomainTally => ({
+	verdicts: new Map(),
+	labels: new Map(),
+	labelled: new Map(),
+	caseMetrics: new Map(),
+	cohorts: new Map()
+});
+
+function tallyVerdict(tally: DomainTally, evaluatorId: string, verdict: string | undefined): void {
+	if (verdict !== 'pass' && verdict !== 'fail') return;
+	const counts = tally.verdicts.get(evaluatorId) ?? { pass: 0, fail: 0 };
+	counts[verdict] += 1;
+	tally.verdicts.set(evaluatorId, counts);
+}
+
+function tallyLabel(tally: DomainTally, evaluatorId: string, label: string | undefined): void {
+	if (label === undefined) return;
+	const counts = tally.labels.get(evaluatorId) ?? new Map<string, number>();
+	counts.set(label, (counts.get(label) ?? 0) + 1);
+	tally.labels.set(evaluatorId, counts);
+	tally.labelled.set(evaluatorId, (tally.labelled.get(evaluatorId) ?? 0) + 1);
+}
+
+function foldTally(tally: DomainTally): Pick<TelemetryBucket, 'series' | 'seriesSamples'> {
+	const series: Record<string, number> = {};
+	const samples: Record<string, number> = {};
+	for (const [id, { pass, fail }] of tally.verdicts) {
+		series[`evaluator:${id}:passRate`] = pass / (pass + fail);
+		samples[`evaluator:${id}:passRate`] = pass + fail;
+	}
+	for (const [id, labels] of tally.labels) {
+		const total = tally.labelled.get(id) ?? 0;
+		for (const [label, count] of labels) {
+			series[`evaluator:${id}:label:${label}`] = count / total;
+			samples[`evaluator:${id}:label:${label}`] = total;
+		}
+	}
+	for (const [id, { sum, n }] of tally.caseMetrics) {
+		series[`case:${id}`] = sum / n;
+		samples[`case:${id}`] = n;
+	}
+	for (const [attribute, values] of tally.cohorts) {
+		if (values.size < 2) continue;
+		const rates = [...values.values()].map(({ success, n }) => success / n);
+		series[`cohort:${attribute}:spread`] = Math.max(...rates) - Math.min(...rates);
+		samples[`cohort:${attribute}:spread`] = [...values.values()].reduce((t, v) => t + v.n, 0);
+	}
+	return { series, seriesSamples: samples };
 }
 
 /**
@@ -67,14 +160,17 @@ function emptyBucket(day: string): TelemetryBucket {
  */
 export function telemetrySeries(
 	runs: readonly RunRecord[],
-	summaries: ReadonlyMap<string, RunSummary>
+	summaries: ReadonlyMap<string, RunSummary>,
+	extras: TelemetryExtras = {}
 ): TelemetryBucket[] {
-	if (runs.length === 0) return [];
+	const evaluations = extras.evaluations ?? [];
+	const reports = extras.reports ?? [];
+	if (runs.length === 0 && evaluations.length === 0 && reports.length === 0) return [];
 	const byDay = new Map<string, TelemetryBucket & { summarised: number; tripTotal: number }>();
+	const tallies = new Map<string, DomainTally>();
 	let first = Infinity;
 	let last = -Infinity;
-	for (const run of runs) {
-		const day = dayOf(run.startedAt);
+	const open = (day: string) => {
 		const at = Date.parse(`${day}T00:00:00.000Z`);
 		first = Math.min(first, at);
 		last = Math.max(last, at);
@@ -83,6 +179,49 @@ export function telemetrySeries(
 			bucket = { ...emptyBucket(day), summarised: 0, tripTotal: 0 };
 			byDay.set(day, bucket);
 		}
+		return bucket;
+	};
+	const tallyFor = (day: string) => {
+		open(day);
+		let tally = tallies.get(day);
+		if (!tally) {
+			tally = emptyTally();
+			tallies.set(day, tally);
+		}
+		return tally;
+	};
+	// The domain series (WP61): every record and every report cell, on the day it was made.
+	for (const record of evaluations) {
+		const tally = tallyFor(dayOf(record.evaluatedAt));
+		tallyVerdict(tally, record.evaluatorId, record.result.verdict);
+		tallyLabel(tally, record.evaluatorId, record.result.label);
+	}
+	for (const report of reports) {
+		const tally = tallyFor(dayOf(report.createdAt));
+		for (const cell of report.cells) {
+			for (const [id, verdict] of Object.entries(cell.evaluations))
+				tallyVerdict(tally, id, verdict);
+			for (const [id, label] of Object.entries(cell.labels ?? {})) tallyLabel(tally, id, label);
+			for (const [id, value] of Object.entries(cell.caseMetrics ?? {})) {
+				const stat = tally.caseMetrics.get(id) ?? { sum: 0, n: 0 };
+				stat.sum += value;
+				stat.n += 1;
+				tally.caseMetrics.set(id, stat);
+			}
+			for (const [attribute, value] of Object.entries(cell.cohort ?? {})) {
+				const values =
+					tally.cohorts.get(attribute) ?? new Map<string, { success: number; n: number }>();
+				const count = values.get(value) ?? { success: 0, n: 0 };
+				count.n += 1;
+				if (cell.outcome === 'SUCCESS') count.success += 1;
+				values.set(value, count);
+				tally.cohorts.set(attribute, values);
+			}
+		}
+	}
+	for (const run of runs) {
+		const day = dayOf(run.startedAt);
+		const bucket = open(day);
 		bucket.runs += 1;
 		if (run.outcome !== 'IN_PROGRESS') {
 			bucket.finishedRuns += 1;
@@ -108,11 +247,13 @@ export function telemetrySeries(
 			continue;
 		}
 		const { summarised, tripTotal, ...rest } = bucket;
+		const tally = tallies.get(day);
 		series.push({
 			...rest,
 			successRate: rest.finishedRuns === 0 ? undefined : rest.succeededRuns / rest.finishedRuns,
 			loopRate: rest.finishedRuns === 0 ? undefined : rest.loopedRuns / rest.finishedRuns,
-			tripsPerRun: summarised === 0 ? undefined : tripTotal / summarised
+			tripsPerRun: summarised === 0 ? undefined : tripTotal / summarised,
+			...(tally ? foldTally(tally) : { series: {}, seriesSamples: {} })
 		});
 	}
 	return series;
@@ -128,6 +269,8 @@ export interface DriftOptions {
 	mixThreshold?: number;
 	/** Absolute change in loop rate at or above which a day is flagged. Default 0.3. */
 	loopThreshold?: number;
+	/** Absolute change in a domain series (WP61) at or above which a day is flagged. Default 0.3, the loop rate's. */
+	seriesThreshold?: number;
 }
 
 /** The thresholds `driftIn` uses unless told otherwise. */
@@ -135,13 +278,16 @@ export const DRIFT_DEFAULTS: Required<DriftOptions> = {
 	window: 3,
 	minRuns: 3,
 	mixThreshold: 0.5,
-	loopThreshold: 0.3
+	loopThreshold: 0.3,
+	seriesThreshold: 0.3
 };
 
 /** A day whose trip mix or loop rate moved against the days before it. */
 export interface DriftFlag {
 	day: string;
-	kind: 'trip-mix' | 'loop-rate';
+	kind: 'trip-mix' | 'loop-rate' | 'series';
+	/** The domain series that moved, for a `series` flag (WP61). */
+	series?: string;
 	/** The distance or difference that crossed the threshold, in [0, 1]. */
 	magnitude: number;
 	/** What was compared with what, in the guardrails' and outcomes' own names. */
@@ -188,6 +334,7 @@ export function mixDistance(a: Record<string, number>, b: Record<string, number>
 }
 
 const pct = (share: number) => `${Math.round(share * 100)}%`;
+const round = (value: number) => String(Math.round(value * 100) / 100);
 
 function mixDetail(before: Record<string, number>, after: Record<string, number>): string {
 	const p = sharesOf(before);
@@ -213,10 +360,38 @@ export function driftIn(
 	series: readonly TelemetryBucket[],
 	options: DriftOptions = {}
 ): DriftFlag[] {
-	const { window, minRuns, mixThreshold, loopThreshold } = { ...DRIFT_DEFAULTS, ...options };
+	const { window, minRuns, mixThreshold, loopThreshold, seriesThreshold } = {
+		...DRIFT_DEFAULTS,
+		...options
+	};
 	const flags: DriftFlag[] = [];
 	for (let index = 0; index < series.length; index += 1) {
 		const bucket = series[index] as TelemetryBucket;
+		// The domain series (WP61): each name the day carries, against the mean of the
+		// earlier days that carry it — its own samples floor, since a campaign's cells are not runs.
+		for (const [name, value] of Object.entries(bucket.series)) {
+			if ((bucket.seriesSamples[name] ?? 0) < minRuns) continue;
+			const earlier: number[] = [];
+			let pooledSamples = 0;
+			for (let back = index - 1; back >= 0 && earlier.length < window; back -= 1) {
+				const candidate = series[back] as TelemetryBucket;
+				if (candidate.series[name] === undefined) continue;
+				earlier.push(candidate.series[name] as number);
+				pooledSamples += candidate.seriesSamples[name] ?? 0;
+			}
+			if (earlier.length === 0 || pooledSamples < minRuns) continue;
+			const baseline = earlier.reduce((total, v) => total + v, 0) / earlier.length;
+			const change = Math.abs(value - baseline);
+			if (change >= seriesThreshold) {
+				flags.push({
+					day: bucket.day,
+					kind: 'series',
+					series: name,
+					magnitude: Math.min(1, change),
+					detail: `${name} ${round(baseline)} → ${round(value)}`
+				});
+			}
+		}
 		if (bucket.finishedRuns < minRuns) continue;
 		const earlier: TelemetryBucket[] = [];
 		for (let back = index - 1; back >= 0 && earlier.length < window; back -= 1) {

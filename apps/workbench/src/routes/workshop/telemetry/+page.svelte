@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { RunRecord, RunSummary } from '@craftabot/core';
+	import type { EvaluationRecord, RunRecord, RunSummary } from '@craftabot/core';
 	import {
 		DRIFT_DEFAULTS,
 		autonomyTelemetryFromSummaries,
@@ -13,8 +13,10 @@
 		type DriftFlag,
 		type GoalCardTelemetry,
 		type GuardrailMixEntry,
+		type DriftReportLike,
 		type TelemetryBucket
 	} from '@craftabot/governance/reports';
+	import { reportFrom } from '$lib/workshop/campaign-cells.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import { ensureRunSummaries } from '$lib/state/run-summaries.js';
 
@@ -36,6 +38,9 @@
 
 	let runs = $state<RunRecord[]>([]);
 	let summaries = $state<Map<string, RunSummary>>(new Map());
+	/** The domain series' inputs (WP61, `50-…` §4.7): every stored evaluation record and campaign report. */
+	let evaluations = $state<EvaluationRecord[]>([]);
+	let reports = $state<DriftReportLike[]>([]);
 	let loaded = $state(false);
 
 	$effect(() => {
@@ -48,6 +53,10 @@
 		const stored = await storage.listRuns();
 		summaries = await ensureRunSummaries(storage, stored);
 		runs = stored;
+		evaluations = await storage.listAllEvaluations();
+		reports = (await storage.listCampaignReports())
+			.map((row) => reportFrom(row))
+			.filter((report): report is NonNullable<typeof report> => report !== undefined);
 		loaded = true;
 	}
 
@@ -64,7 +73,22 @@
 	 * finished runs held against the days before it. The thresholds are
 	 * stated beside the verdict, so "no drift" says what it would have taken.
 	 */
-	const series = $derived<TelemetryBucket[]>(telemetrySeries(runs, summaries));
+	const series = $derived<TelemetryBucket[]>(
+		telemetrySeries(runs, summaries, { evaluations, reports })
+	);
+	/** Every domain series any day carries (WP61), with its first and last value and its samples. */
+	const domainSeries = $derived(
+		[...new Set(series.flatMap((bucket) => Object.keys(bucket.series)))].sort().map((name) => {
+			const days = series.filter((bucket) => bucket.series[name] !== undefined);
+			return {
+				name,
+				days: days.length,
+				samples: days.reduce((total, bucket) => total + (bucket.seriesSamples[name] ?? 0), 0),
+				first: days[0]?.series[name],
+				last: days.at(-1)?.series[name]
+			};
+		})
+	);
 	const drift = $derived<DriftFlag[]>(driftIn(series));
 	const busiestDay = $derived(Math.max(0, ...series.map((bucket) => bucket.runs)));
 	const comparableDays = $derived(
@@ -77,6 +101,8 @@
 		rate === undefined ? '—' : `${Math.round(rate * 100)}%`;
 	const round = (value: number | undefined) =>
 		value === undefined ? '—' : Math.round(value * 10) / 10;
+	const round2 = (value: number | undefined) =>
+		value === undefined ? '—' : Math.round(value * 100) / 100;
 </script>
 
 <svelte:head><title>Telemetry — Workshop</title></svelte:head>
@@ -173,10 +199,20 @@
 			<h2 id="drift-h">Drift</h2>
 			{#if drift.length > 0}
 				<ul class="drift" data-testid="telemetry-drift">
-					{#each drift as flag (flag.day + flag.kind)}
-						<li data-testid="drift-{flag.day}-{flag.kind}">
+					{#each drift as flag (flag.day + flag.kind + (flag.series ?? ''))}
+						<li
+							data-testid="drift-{flag.day}-{flag.kind}{flag.series
+								? `-${flag.series.replace(/[^a-z0-9-]/gi, '-')}`
+								: ''}"
+						>
 							<strong>{flag.day}</strong>
-							<span class="kind">{flag.kind === 'trip-mix' ? 'trip mix' : 'loop rate'}</span>
+							<span class="kind"
+								>{flag.kind === 'trip-mix'
+									? 'trip mix'
+									: flag.kind === 'loop-rate'
+										? 'loop rate'
+										: 'series'}</span
+							>
 							<span class="mono">{flag.detail}</span>
 						</li>
 					{/each}
@@ -190,11 +226,44 @@
 				<p class="status" data-testid="telemetry-drift-none">
 					No drift flagged: no day's guardrail trip mix moved by {Math.round(
 						DRIFT_DEFAULTS.mixThreshold * 100
-					)}% or more, and no day's loop rate by {Math.round(DRIFT_DEFAULTS.loopThreshold * 100)}
-					points or more, against the days before it.
+					)}% or more, no day's loop rate by {Math.round(DRIFT_DEFAULTS.loopThreshold * 100)}
+					points or more, and no domain series by {Math.round(DRIFT_DEFAULTS.seriesThreshold * 100)} points
+					or more, against the days before it.
 				</p>
 			{/if}
 		</section>
+
+		{#if domainSeries.length > 0}
+			<section aria-labelledby="domain-h">
+				<h2 id="domain-h">Domain series</h2>
+				<p class="status">
+					Pass rates, label shares, case metrics and cohort spreads from the stored evaluations and
+					campaign reports, a day at a time — the same drift rule watches them.
+				</p>
+				<table data-testid="telemetry-domain-series">
+					<thead>
+						<tr>
+							<th scope="col">Series</th>
+							<th scope="col">Days</th>
+							<th scope="col">Samples</th>
+							<th scope="col">First</th>
+							<th scope="col">Last</th>
+						</tr>
+					</thead>
+					<tbody>
+						{#each domainSeries as row (row.name)}
+							<tr data-testid="domain-series-{row.name.replace(/[^a-z0-9-]/gi, '-')}">
+								<td class="mono">{row.name}</td>
+								<td>{row.days}</td>
+								<td>{row.samples}</td>
+								<td>{round2(row.first)}</td>
+								<td>{round2(row.last)}</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</section>
+		{/if}
 
 		<section aria-labelledby="series-h">
 			<h2 id="series-h">Over time</h2>

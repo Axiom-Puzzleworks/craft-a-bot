@@ -28,6 +28,13 @@ test('the baseline runs green, a cell opens in the Run Lab, and the report survi
 	await expect(page.getByTestId('campaign-verdict')).toContainText('✅ PASSED');
 	await expect(page.getByTestId('campaign-verdict')).toContainText('13 of 13 gates');
 	await expect(page.getByTestId('gate-guard-holds:false-alarm')).toContainText('✅ pass');
+	// WP61: the readers' panes — the obligation table by tag and the case table; no matrix,
+	// since no evaluator here says what its labels mean, and no cohort, since no world has one.
+	await expect(page.getByTestId('campaign-obligations')).toHaveCount(0);
+	await expect(page.getByTestId('campaign-cases')).toBeVisible();
+	await expect(page.getByTestId('campaign-case-table').locator('tbody tr')).toHaveCount(32);
+	await expect(page.getByTestId('campaign-matrices')).toHaveCount(0);
+	await expect(page.getByTestId('campaign-cohorts')).toHaveCount(0);
 
 	// The attack really lands unguarded — the slice says so before anyone drills in.
 	await page.getByTestId('slice-warning-sign-none-scripted-adversary').click();
