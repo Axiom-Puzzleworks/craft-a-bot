@@ -21,6 +21,7 @@
 		"@craftabot/desk": "*"
 	},
 	"devDependencies": {
+		"@craftabot/pack-starter": "*",
 		"@craftabot/pack-testkit": "*"
 	}
 }
