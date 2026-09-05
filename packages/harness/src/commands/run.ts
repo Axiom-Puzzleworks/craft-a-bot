@@ -19,10 +19,9 @@ import {
 import { createMockProvider } from '@craftabot/core/testing';
 import { scriptedNoisy, scriptedOptimal } from '@craftabot/evals';
 import { summariseRun } from '@craftabot/governance/reports';
-import { planFor } from '@craftabot/pack-starter/testing';
-import { planFor as workshopPlanFor } from '@craftabot/pack-workshop/testing';
 import { createRegistry, packVersions, type HarnessConfig } from '../config.js';
 import { credentialVariable, type CredentialSource } from '../credentials.js';
+import { harnessPlans } from '../plans.js';
 import { mulberry32 } from '../random.js';
 import { runRecordFrom } from '../run-record.js';
 import { buildSink, parseSinkConfig, sinkById } from '../sinks.js';
@@ -319,16 +318,12 @@ function chooseBrain(
 	if (options.brain !== 'live') {
 		let plan;
 		try {
-			plan = planFor(spec.goalCardId);
+			// Every installed pack's plans, in one chain (WP60): the starter's, the Workshop's desks, the Advice Desk's.
+			plan = harnessPlans.planFor(spec.goalCardId);
 		} catch {
-			// The Workshop pack's desks have their own plans (WP55): a desk card plays scripted too.
-			try {
-				plan = workshopPlanFor(spec.goalCardId);
-			} catch {
-				throw new Error(
-					`no scripted plan exists for '${spec.goalCardId}' — the scripted brains only know the starter and Workshop packs' cards; use --brain live`
-				);
-			}
+			throw new Error(
+				`no scripted plan exists for '${spec.goalCardId}' — the scripted brains only know the starter, Workshop and Advice Desk cards; use --brain live`
+			);
 		}
 		const script =
 			options.brain === 'scripted-noisy'

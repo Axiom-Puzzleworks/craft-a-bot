@@ -1,4 +1,6 @@
 import type { PackManifest } from '@craftabot/core';
+import { adviceGoalCards } from './decks/goal-cards.js';
+import { adviceScenarios } from './decks/scenarios.js';
 import { adviceDesk } from './world/desk.js';
 
 /**
@@ -16,7 +18,9 @@ export const fsAdvicePack: PackManifest = {
 	version: '1.0.0',
 	requiresCore: '>=1.0.0',
 	requiresPacks: { 'fs-bank': '^1.0.0' },
-	worlds: [adviceDesk]
+	worlds: [adviceDesk],
+	goalCards: adviceGoalCards,
+	scenarios: adviceScenarios
 };
 
 export default fsAdvicePack;
@@ -67,3 +71,11 @@ export {
 	type SuitabilityOptions
 } from './world/suitability.js';
 export { advicePersona, advicePersonas } from './personas.js';
+export { adviceGoalCards, adviseCardId, guideCardId, isGuidanceCard } from './decks/goal-cards.js';
+export {
+	ADVICE_DECKS,
+	adviceScenarios,
+	scenariosInDeck,
+	type AdviceDeck,
+	type AdviceScenario
+} from './decks/scenarios.js';

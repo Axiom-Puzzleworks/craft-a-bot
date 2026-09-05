@@ -28,6 +28,7 @@
 		"zod": "^4.4.3"
 	},
 	"devDependencies": {
+		"@craftabot/evals": "*",
 		"@craftabot/pack-starter": "*",
 		"@craftabot/pack-testkit": "*"
 	}

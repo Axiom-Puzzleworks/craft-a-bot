@@ -17,9 +17,7 @@ import {
 	type RunOutcome
 } from '@craftabot/core';
 import {
-	adversaryPlanFor,
 	buildSpec,
-	planFor,
 	runToCompletion,
 	type Plan,
 	type SpecOverrides
@@ -35,6 +33,7 @@ import {
 	type NoiseRates
 } from './brains.js';
 import { scoreRun } from './metrics.js';
+import { starterPlans, type PlanSource } from './plans.js';
 import { evalTierSchema, runMetricsSchema, type EvalTier } from './report.js';
 
 /**
@@ -357,6 +356,8 @@ export interface RunCampaignOptions {
 	egress?: EgressMode;
 	/** Packs registered beside the starter pack for every cell (WP42): a guard that stacks a Guard Brick needs the workshop pack and the service's own. */
 	packs?: PackManifest[];
+	/** Where a scripted cell's plan comes from (WP60, `49-…` §4.7): the host composes its packs' `/testing` plans; the starter pack's by default. */
+	plans?: PlanSource;
 	/**
 	 * A hosted evaluator's battery (WP51, `39-…` §4.3): with a credential, a
 	 * `budget` on the campaign and a config on the evaluator, it runs live;
@@ -548,7 +549,7 @@ async function runCell(
 	try {
 		const spec = specFor(cell);
 		const goalCardId = goalCardOf(scenario);
-		const script = scriptFor(brain.tier, goalCardId, seed, noise);
+		const script = scriptFor(brain.tier, goalCardId, seed, noise, options.plans ?? starterPlans);
 		const maxTicks = scenario.maxTicks;
 		// A scenario's injections land in a world built here (WP44) — a world
 		// that cannot take them refuses before the run, and the cell records it.
@@ -682,29 +683,35 @@ function cleanOverrides(
 	) as Omit<SpecOverrides, 'goalCardId' | 'tools'>;
 }
 
-function scriptFor(tier: EvalTier, goalCardId: string, seed: number, noise: NoiseRates) {
+function scriptFor(
+	tier: EvalTier,
+	goalCardId: string,
+	seed: number,
+	noise: NoiseRates,
+	plans: PlanSource
+) {
 	switch (tier) {
 		case 'scripted-adversary':
-			return scriptedAdversary(adversaryPlanFor(goalCardId));
+			return scriptedAdversary(plans.adversaryPlanFor(goalCardId));
 		case 'scripted-counterpart':
 			// A counterpart's brain, never the agent's (`46-…` §4.5); a two-seat cell is WP58's shape.
 			throw new Error(
 				'scripted-counterpart is a counterpart seat’s brain and cannot drive a campaign cell’s agent'
 			);
 		case 'scripted-noisy':
-			return scriptedNoisy(planFor(goalCardId), { seed, rates: noise });
+			return scriptedNoisy(plans.planFor(goalCardId), { seed, rates: noise });
 		case 'scripted-optimal':
-			return scriptedOptimal(planFor(goalCardId));
+			return scriptedOptimal(plans.planFor(goalCardId));
 		case 'live':
 			// A live cell is driven by its provider; the script is only what the
 			// harness's own signature requires, and is never consulted.
-			return scriptedOptimal(planIfAny(goalCardId));
+			return scriptedOptimal(planIfAny(goalCardId, plans));
 	}
 }
 
-function planIfAny(goalCardId: string): Plan {
+function planIfAny(goalCardId: string, plans: PlanSource): Plan {
 	try {
-		return planFor(goalCardId);
+		return plans.planFor(goalCardId);
 	} catch {
 		return [];
 	}

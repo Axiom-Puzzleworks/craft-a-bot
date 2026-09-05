@@ -5,14 +5,30 @@ import type {
 	ScenarioPackFile
 } from '@craftabot/core';
 import {
+	chainPlans,
+	noPlans,
 	packFromScenarioFile,
 	parseCorpusJsonl,
+	registryForScenario,
 	runScenario,
 	scenarioPackFrom,
 	scenariosFromCorpus,
+	starterPlans,
 	type ScenarioRun
 } from '@craftabot/evals';
+import {
+	adversaryPlanFor as advicePlanUnsafe,
+	planFor as advicePlanFor
+} from '@craftabot/pack-fs-advice/testing';
 import { buildSpec } from '@craftabot/pack-starter/testing';
+import { planFor as workshopPlanFor } from '@craftabot/pack-workshop/testing';
+
+/** Every installed pack's scripted plans (WP60, `49-FS-ADVICE.md` §4.7) — the harness's own chain, here. */
+const workshopPlans = chainPlans(
+	starterPlans,
+	{ planFor: workshopPlanFor, adversaryPlanFor: noPlans('adversarial') },
+	{ planFor: advicePlanFor, adversaryPlanFor: advicePlanUnsafe }
+);
 
 /**
  * **The Scenario Library** (`32-SCENARIOS.md` §4.5, WP44): every scenario a
@@ -86,16 +102,28 @@ export function runLibraryScenario(
 	packs: readonly PackManifest[],
 	imported: readonly ScenarioPackFile[]
 ): Promise<ScenarioRun> {
+	const allPacks = [...packs, ...imported.map(packFromScenarioFile)];
+	// A desk card's bot is fitted with the desk's own senses and actions (WP60); a room's with the manual.
+	const world = registryForScenario(allPacks).getWorld(
+		registryForScenario(allPacks).getGoalCard(scenario.goalCardId)?.worldId ?? ''
+	);
+	const onADesk = world?.view === 'desk';
 	const spec = buildSpec({
 		goalCardId: scenario.goalCardId,
-		tools: ['starter/look_up_manual'],
+		...(onADesk
+			? {
+					senses: world.senses.map((sense) => sense.id),
+					actions: world.actions.map((action) => action.id)
+				}
+			: { tools: ['starter/look_up_manual'] }),
 		safety: { maxTicks: 12, blockedActions: [], approvalMode: false }
 	});
 	return runScenario(scenario, {
 		plan,
 		spec,
 		stepLimit: 16,
-		packs: [...packs, ...imported.map(packFromScenarioFile)]
+		packs: allPacks,
+		plans: workshopPlans
 	});
 }
 
