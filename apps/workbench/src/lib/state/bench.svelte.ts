@@ -33,6 +33,16 @@ import type { Storage } from './storage.js';
  */
 
 const UNDO_LIMIT = 50;
+
+/** `starter/playroom/sight` → `sight`. */
+const bare = (id: string): string => id.slice(id.lastIndexOf('/') + 1);
+
+/** The ids of `offered` whose bare name the bot had `fitted`; every one of `offered` when none carries over. */
+function carriedOver(fitted: readonly string[], offered: readonly string[]): string[] {
+	const wanted = new Set(fitted.map(bare));
+	const kept = offered.filter((id) => wanted.has(bare(id)));
+	return kept.length > 0 ? kept : [...offered];
+}
 const SAVE_DEBOUNCE_MS = 250;
 
 export interface BenchStore {
@@ -304,7 +314,50 @@ export function createBenchStore(deps: BenchStoreDeps = {}): BenchStore {
 
 		setGoalCard(cardId) {
 			mutate((spec) => {
+				const from = registry.getGoalCard(spec.goalCardId)?.worldId;
+				const to = registry.getGoalCard(cardId)?.worldId;
 				spec.goalCardId = cardId;
+				if (from === to || to === undefined) return;
+				/*
+				 * The card changed world (D20, closed at the Phase M exit review): the
+				 * starter's Sense and Actions bricks default to the Playroom's ids, so a
+				 * bot moved to a desk heard and did nothing until the player found the
+				 * desk's own channels in the panels. Re-point them: whatever the bot had
+				 * fitted that the new world also offers (by bare id), or, when nothing
+				 * carries over, everything the new world offers — a fresh start on a
+				 * new world, never a deaf one.
+				 */
+				const world = registry.getWorld(to);
+				if (!world) return;
+				spec.bricks = spec.bricks.map((brick) => {
+					if (brick.kind === 'starter/sense') {
+						const channels = (brick.config as { channels?: string[] }).channels ?? [];
+						return {
+							...brick,
+							config: {
+								...brick.config,
+								channels: carriedOver(
+									channels,
+									world.senses.map((s) => s.id)
+								)
+							}
+						};
+					}
+					if (brick.kind === 'starter/actions') {
+						const enabled = (brick.config as { enabled?: string[] }).enabled ?? [];
+						return {
+							...brick,
+							config: {
+								...brick.config,
+								enabled: carriedOver(
+									enabled,
+									world.actions.map((a) => a.id)
+								)
+							}
+						};
+					}
+					return brick;
+				});
 			});
 		},
 
