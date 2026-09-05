@@ -1,0 +1,1290 @@
+{
+	"$id": "https://craftabot.dev/schemas/campaign.schema.json",
+	"title": "Craft A Bot campaign file",
+	"description": "Scenarios × builds × guards × brains × seeds, with gates: a guardrail regression suite as a file (28-CAMPAIGNS.md §4).",
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"type": "object",
+	"properties": {
+		"schemaVersion": {
+			"type": "number",
+			"const": 1
+		},
+		"id": {
+			"type": "string",
+			"minLength": 1
+		},
+		"title": {
+			"type": "string",
+			"minLength": 1
+		},
+		"scenarios": {
+			"minItems": 1,
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"minLength": 1
+					},
+					"goalCardId": {
+						"type": "string",
+						"minLength": 1
+					},
+					"scenarioId": {
+						"type": "string",
+						"minLength": 1
+					},
+					"tags": {
+						"default": [],
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"injections": {
+						"default": [],
+						"type": "array",
+						"items": {
+							"oneOf": [
+								{
+									"type": "object",
+									"properties": {
+										"kind": {
+											"type": "string",
+											"const": "heard"
+										},
+										"text": {
+											"type": "string",
+											"minLength": 1
+										},
+										"atTick": {
+											"type": "integer",
+											"minimum": 0,
+											"maximum": 9007199254740991
+										}
+									},
+									"required": [
+										"kind",
+										"text"
+									]
+								},
+								{
+									"type": "object",
+									"properties": {
+										"kind": {
+											"type": "string",
+											"const": "manual-entry"
+										},
+										"key": {
+											"type": "string",
+											"minLength": 1
+										},
+										"text": {
+											"type": "string",
+											"minLength": 1
+										}
+									},
+									"required": [
+										"kind",
+										"key",
+										"text"
+									]
+								},
+								{
+									"type": "object",
+									"properties": {
+										"kind": {
+											"type": "string",
+											"const": "tool-result"
+										},
+										"toolId": {
+											"type": "string",
+											"minLength": 1
+										},
+										"match": {
+											"type": "string"
+										},
+										"result": {}
+									},
+									"required": [
+										"kind",
+										"toolId",
+										"result"
+									]
+								},
+								{
+									"type": "object",
+									"properties": {
+										"kind": {
+											"type": "string",
+											"const": "radio"
+										},
+										"fromName": {
+											"type": "string",
+											"minLength": 1
+										},
+										"channel": {
+											"type": "string",
+											"minLength": 1
+										},
+										"text": {
+											"type": "string",
+											"minLength": 1
+										}
+									},
+									"required": [
+										"kind",
+										"fromName",
+										"channel",
+										"text"
+									]
+								}
+							]
+						}
+					},
+					"fit": {
+						"default": [],
+						"type": "array",
+						"items": {
+							"type": "object",
+							"properties": {
+								"slot": {
+									"type": "string",
+									"enum": [
+										"brain",
+										"planner",
+										"perception",
+										"memory",
+										"equipment",
+										"mobility",
+										"reflexes",
+										"safety"
+									]
+								},
+								"kind": {
+									"type": "string",
+									"minLength": 1
+								},
+								"configVersion": {
+									"type": "integer",
+									"exclusiveMinimum": 0,
+									"maximum": 9007199254740991
+								},
+								"config": {
+									"type": "object",
+									"propertyNames": {
+										"type": "string"
+									},
+									"additionalProperties": {}
+								}
+							},
+							"required": [
+								"slot",
+								"kind",
+								"configVersion",
+								"config"
+							]
+						}
+					},
+					"maxTicks": {
+						"type": "integer",
+						"exclusiveMinimum": 0,
+						"maximum": 9007199254740991
+					}
+				},
+				"required": [
+					"id"
+				]
+			}
+		},
+		"builds": {
+			"minItems": 1,
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"minLength": 1
+					},
+					"base": {
+						"oneOf": [
+							{
+								"type": "object",
+								"properties": {
+									"kind": {
+										"type": "string",
+										"const": "starter-default"
+									}
+								},
+								"required": [
+									"kind"
+								]
+							},
+							{
+								"type": "object",
+								"properties": {
+									"kind": {
+										"type": "string",
+										"const": "kit"
+									},
+									"kit": {
+										"type": "object",
+										"properties": {
+											"format": {
+												"type": "string",
+												"const": "craftabot-kit"
+											},
+											"formatVersion": {
+												"type": "number",
+												"const": 2
+											},
+											"exportedAt": {
+												"type": "string",
+												"format": "date-time",
+												"pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+											},
+											"exportedBy": {
+												"type": "string",
+												"minLength": 1
+											},
+											"requires": {
+												"type": "object",
+												"properties": {
+													"core": {
+														"type": "string",
+														"minLength": 1
+													},
+													"packs": {
+														"type": "object",
+														"propertyNames": {
+															"type": "string"
+														},
+														"additionalProperties": {
+															"type": "string"
+														}
+													},
+													"brickKinds": {
+														"type": "object",
+														"propertyNames": {
+															"type": "string"
+														},
+														"additionalProperties": {
+															"type": "string"
+														}
+													},
+													"localContent": {
+														"type": "array",
+														"items": {
+															"type": "object",
+															"properties": {
+																"id": {
+																	"type": "string",
+																	"pattern": "^local\\/(policy|testbench|scenarios|campaigns)\\/[a-z0-9][a-z0-9-]*$"
+																},
+																"kind": {
+																	"type": "string",
+																	"enum": [
+																		"policy-card",
+																		"assertion-card",
+																		"scenario",
+																		"campaign"
+																	]
+																},
+																"title": {
+																	"type": "string",
+																	"minLength": 1
+																},
+																"record": {},
+																"savedAt": {
+																	"type": "string",
+																	"format": "date-time",
+																	"pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+																},
+																"schemaVersion": {
+																	"type": "number",
+																	"const": 1
+																}
+															},
+															"required": [
+																"id",
+																"kind",
+																"title",
+																"record",
+																"savedAt",
+																"schemaVersion"
+															]
+														}
+													}
+												},
+												"required": [
+													"core",
+													"packs",
+													"brickKinds"
+												]
+											},
+											"agent": {
+												"type": "object",
+												"properties": {
+													"id": {
+														"type": "string",
+														"format": "uuid",
+														"pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+													},
+													"name": {
+														"type": "string",
+														"minLength": 1
+													},
+													"schemaVersion": {
+														"type": "number",
+														"const": 2
+													},
+													"bricks": {
+														"type": "array",
+														"items": {
+															"type": "object",
+															"properties": {
+																"slot": {
+																	"type": "string",
+																	"enum": [
+																		"brain",
+																		"planner",
+																		"perception",
+																		"memory",
+																		"equipment",
+																		"mobility",
+																		"reflexes",
+																		"safety"
+																	]
+																},
+																"kind": {
+																	"type": "string",
+																	"minLength": 1
+																},
+																"configVersion": {
+																	"type": "integer",
+																	"exclusiveMinimum": 0,
+																	"maximum": 9007199254740991
+																},
+																"config": {
+																	"type": "object",
+																	"propertyNames": {
+																		"type": "string"
+																	},
+																	"additionalProperties": {}
+																}
+															},
+															"required": [
+																"slot",
+																"kind",
+																"configVersion",
+																"config"
+															]
+														}
+													},
+													"goalCardId": {
+														"type": "string",
+														"minLength": 1
+													},
+													"customGoalText": {
+														"type": "string"
+													},
+													"identity": {
+														"type": "object",
+														"properties": {
+															"displayName": {
+																"type": "string",
+																"minLength": 1
+															},
+															"boxArtSeed": {
+																"type": "string"
+															}
+														},
+														"required": [
+															"displayName",
+															"boxArtSeed"
+														]
+													},
+													"createdAt": {
+														"type": "string",
+														"format": "date-time",
+														"pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+													},
+													"updatedAt": {
+														"type": "string",
+														"format": "date-time",
+														"pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+													}
+												},
+												"required": [
+													"id",
+													"name",
+													"schemaVersion",
+													"bricks",
+													"goalCardId",
+													"identity",
+													"createdAt",
+													"updatedAt"
+												]
+											},
+											"notes": {
+												"type": "string"
+											}
+										},
+										"required": [
+											"format",
+											"formatVersion",
+											"exportedAt",
+											"exportedBy",
+											"requires",
+											"agent"
+										],
+										"additionalProperties": {}
+									}
+								},
+								"required": [
+									"kind",
+									"kit"
+								]
+							}
+						]
+					},
+					"overrides": {
+						"type": "object",
+						"properties": {
+							"id": {
+								"type": "string"
+							},
+							"name": {
+								"type": "string"
+							},
+							"senses": {
+								"type": "array",
+								"items": {
+									"type": "string"
+								}
+							},
+							"actions": {
+								"type": "array",
+								"items": {
+									"type": "string"
+								}
+							},
+							"memory": {
+								"anyOf": [
+									{
+										"type": "object",
+										"properties": {
+											"windowSize": {
+												"anyOf": [
+													{
+														"type": "number",
+														"const": 3
+													},
+													{
+														"type": "number",
+														"const": 10
+													},
+													{
+														"type": "number",
+														"const": 30
+													}
+												]
+											},
+											"notebook": {
+												"type": "boolean"
+											},
+											"strategy": {
+												"type": "string",
+												"enum": [
+													"window",
+													"transcript"
+												]
+											}
+										},
+										"required": [
+											"windowSize",
+											"notebook"
+										]
+									},
+									{
+										"type": "null"
+									}
+								]
+							},
+							"safety": {
+								"anyOf": [
+									{
+										"type": "object",
+										"properties": {
+											"maxTicks": {
+												"type": "integer",
+												"exclusiveMinimum": 0,
+												"maximum": 9007199254740991
+											},
+											"blockedActions": {
+												"type": "array",
+												"items": {
+													"type": "string"
+												}
+											},
+											"approvalMode": {
+												"type": "boolean"
+											},
+											"repeatLimit": {
+												"type": "integer",
+												"minimum": -9007199254740991,
+												"maximum": 9007199254740991
+											},
+											"policyCards": {
+												"type": "array",
+												"items": {
+													"type": "string"
+												}
+											}
+										},
+										"required": [
+											"maxTicks",
+											"blockedActions",
+											"approvalMode"
+										]
+									},
+									{
+										"type": "null"
+									}
+								]
+							},
+							"llm": {
+								"type": "boolean"
+							},
+							"temperature": {
+								"type": "number"
+							},
+							"maxTokens": {
+								"type": "integer",
+								"minimum": -9007199254740991,
+								"maximum": 9007199254740991
+							},
+							"personality": {
+								"type": "string"
+							}
+						}
+					}
+				},
+				"required": [
+					"id",
+					"base"
+				]
+			}
+		},
+		"guards": {
+			"minItems": 1,
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"minLength": 1
+					},
+					"fit": {
+						"default": [],
+						"type": "array",
+						"items": {
+							"type": "object",
+							"properties": {
+								"slot": {
+									"type": "string",
+									"enum": [
+										"brain",
+										"planner",
+										"perception",
+										"memory",
+										"equipment",
+										"mobility",
+										"reflexes",
+										"safety"
+									]
+								},
+								"kind": {
+									"type": "string",
+									"minLength": 1
+								},
+								"configVersion": {
+									"type": "integer",
+									"exclusiveMinimum": 0,
+									"maximum": 9007199254740991
+								},
+								"config": {
+									"type": "object",
+									"propertyNames": {
+										"type": "string"
+									},
+									"additionalProperties": {}
+								}
+							},
+							"required": [
+								"slot",
+								"kind",
+								"configVersion",
+								"config"
+							]
+						}
+					},
+					"for": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					}
+				},
+				"required": [
+					"id"
+				]
+			}
+		},
+		"brains": {
+			"minItems": 1,
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"minLength": 1
+					},
+					"tier": {
+						"type": "string",
+						"enum": [
+							"scripted-optimal",
+							"scripted-noisy",
+							"scripted-adversary",
+							"live"
+						]
+					},
+					"cartridgeId": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"id",
+					"tier"
+				]
+			}
+		},
+		"seeds": {
+			"minItems": 1,
+			"type": "array",
+			"items": {
+				"type": "integer",
+				"minimum": -9007199254740991,
+				"maximum": 9007199254740991
+			}
+		},
+		"noise": {
+			"type": "object",
+			"properties": {
+				"misname": {
+					"type": "number",
+					"minimum": 0,
+					"maximum": 1
+				},
+				"wastedMove": {
+					"type": "number",
+					"minimum": 0,
+					"maximum": 1
+				},
+				"prematureCelebrate": {
+					"type": "number",
+					"minimum": 0,
+					"maximum": 1
+				}
+			}
+		},
+		"assertionCards": {
+			"default": [],
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"minLength": 1
+					},
+					"title": {
+						"type": "string",
+						"minLength": 1
+					},
+					"description": {
+						"type": "string"
+					},
+					"schemaVersion": {
+						"type": "number",
+						"const": 1
+					},
+					"quantifier": {
+						"type": "string",
+						"enum": [
+							"never",
+							"at-least-once"
+						]
+					},
+					"when": {
+						"$ref": "#/$defs/__schema0"
+					}
+				},
+				"required": [
+					"id",
+					"title",
+					"schemaVersion",
+					"quantifier",
+					"when"
+				]
+			}
+		},
+		"sinks": {
+			"default": [],
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"minLength": 1
+					},
+					"config": {}
+				},
+				"required": [
+					"id"
+				]
+			}
+		},
+		"evaluators": {
+			"default": [],
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"minLength": 1
+					},
+					"config": {}
+				},
+				"required": [
+					"id"
+				]
+			}
+		},
+		"gates": {
+			"minItems": 1,
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"minLength": 1
+					},
+					"where": {
+						"type": "object",
+						"properties": {
+							"scenario": {
+								"type": "string"
+							},
+							"tag": {
+								"type": "string"
+							},
+							"build": {
+								"type": "string"
+							},
+							"guard": {
+								"type": "string"
+							},
+							"brain": {
+								"type": "string"
+							}
+						}
+					},
+					"require": {
+						"oneOf": [
+							{
+								"type": "object",
+								"properties": {
+									"kind": {
+										"type": "string",
+										"const": "outcome-rate"
+									},
+									"outcome": {
+										"type": "string",
+										"enum": [
+											"SUCCESS",
+											"OUT_OF_STEPS",
+											"STOPPED_BY_USER",
+											"STOPPED_BY_GUARDRAIL",
+											"ERROR"
+										]
+									},
+									"atLeast": {
+										"type": "number",
+										"minimum": 0,
+										"maximum": 1
+									},
+									"atMost": {
+										"type": "number",
+										"minimum": 0,
+										"maximum": 1
+									}
+								},
+								"required": [
+									"kind",
+									"outcome"
+								]
+							},
+							{
+								"type": "object",
+								"properties": {
+									"kind": {
+										"type": "string",
+										"const": "assertion-pass-rate"
+									},
+									"cardId": {
+										"type": "string",
+										"minLength": 1
+									},
+									"atLeast": {
+										"type": "number",
+										"minimum": 0,
+										"maximum": 1
+									},
+									"atMost": {
+										"type": "number",
+										"minimum": 0,
+										"maximum": 1
+									}
+								},
+								"required": [
+									"kind",
+									"cardId"
+								]
+							},
+							{
+								"type": "object",
+								"properties": {
+									"kind": {
+										"type": "string",
+										"const": "evaluator-pass-rate"
+									},
+									"evaluatorId": {
+										"type": "string",
+										"minLength": 1
+									},
+									"atLeast": {
+										"type": "number",
+										"minimum": 0,
+										"maximum": 1
+									},
+									"atMost": {
+										"type": "number",
+										"minimum": 0,
+										"maximum": 1
+									}
+								},
+								"required": [
+									"kind",
+									"evaluatorId"
+								]
+							},
+							{
+								"type": "object",
+								"properties": {
+									"kind": {
+										"type": "string",
+										"const": "metric"
+									},
+									"name": {
+										"type": "string",
+										"enum": [
+											"ticksUsed",
+											"tokensIn",
+											"tokensOut",
+											"wastedTickRatio",
+											"loop.longestStreak",
+											"loop.repeatedFailures",
+											"namingMisses",
+											"namingAmbiguities",
+											"approvalsRequested",
+											"approvalsDenied",
+											"guardrailTrips"
+										]
+									},
+									"aggregate": {
+										"default": "mean",
+										"type": "string",
+										"enum": [
+											"mean",
+											"median",
+											"max"
+										]
+									},
+									"atMost": {
+										"type": "number"
+									},
+									"atLeast": {
+										"type": "number"
+									}
+								},
+								"required": [
+									"kind",
+									"name"
+								]
+							},
+							{
+								"type": "object",
+								"properties": {
+									"kind": {
+										"type": "string",
+										"const": "no-regression"
+									},
+									"tolerance": {
+										"default": 0,
+										"type": "number",
+										"minimum": 0,
+										"maximum": 1
+									}
+								},
+								"required": [
+									"kind"
+								]
+							}
+						]
+					}
+				},
+				"required": [
+					"id",
+					"require"
+				]
+			}
+		},
+		"budget": {
+			"type": "object",
+			"properties": {
+				"maxLiveCells": {
+					"type": "integer",
+					"exclusiveMinimum": 0,
+					"maximum": 9007199254740991
+				},
+				"maxTokens": {
+					"type": "integer",
+					"exclusiveMinimum": 0,
+					"maximum": 9007199254740991
+				},
+				"maxLiveEvaluations": {
+					"type": "integer",
+					"minimum": 0,
+					"maximum": 9007199254740991
+				}
+			},
+			"required": [
+				"maxLiveCells"
+			]
+		}
+	},
+	"required": [
+		"schemaVersion",
+		"id",
+		"title",
+		"scenarios",
+		"builds",
+		"guards",
+		"brains",
+		"seeds",
+		"gates"
+	],
+	"$defs": {
+		"__schema0": {
+			"oneOf": [
+				{
+					"type": "object",
+					"properties": {
+						"kind": {
+							"type": "string",
+							"const": "call-kind-is"
+						},
+						"value": {
+							"type": "string",
+							"enum": [
+								"tool",
+								"action"
+							]
+						}
+					},
+					"required": [
+						"kind",
+						"value"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"kind": {
+							"type": "string",
+							"const": "call-name-is"
+						},
+						"value": {
+							"type": "string",
+							"minLength": 1
+						}
+					},
+					"required": [
+						"kind",
+						"value"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"kind": {
+							"type": "string",
+							"const": "argument-equals"
+						},
+						"path": {
+							"type": "string",
+							"minLength": 1
+						},
+						"value": {
+							"anyOf": [
+								{
+									"type": "string"
+								},
+								{
+									"type": "number"
+								},
+								{
+									"type": "boolean"
+								},
+								{
+									"type": "null"
+								}
+							]
+						}
+					},
+					"required": [
+						"kind",
+						"path",
+						"value"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"kind": {
+							"type": "string",
+							"const": "usage-at-least"
+						},
+						"field": {
+							"type": "string",
+							"enum": [
+								"ticks",
+								"inputTokens",
+								"outputTokens"
+							]
+						},
+						"value": {
+							"type": "integer",
+							"minimum": 0,
+							"maximum": 9007199254740991
+						}
+					},
+					"required": [
+						"kind",
+						"field",
+						"value"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"kind": {
+							"type": "string",
+							"const": "argument-contains"
+						},
+						"path": {
+							"type": "string",
+							"minLength": 1
+						},
+						"value": {
+							"type": "string",
+							"minLength": 1
+						}
+					},
+					"required": [
+						"kind",
+						"path",
+						"value"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"kind": {
+							"type": "string",
+							"const": "argument-matches"
+						},
+						"path": {
+							"type": "string",
+							"minLength": 1
+						},
+						"pattern": {
+							"type": "string"
+						}
+					},
+					"required": [
+						"kind",
+						"path",
+						"pattern"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"kind": {
+							"type": "string",
+							"const": "observation-contains"
+						},
+						"value": {
+							"type": "string",
+							"minLength": 1
+						}
+					},
+					"required": [
+						"kind",
+						"value"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"kind": {
+							"type": "string",
+							"const": "world-predicate"
+						},
+						"predicateId": {
+							"type": "string",
+							"minLength": 1
+						}
+					},
+					"required": [
+						"kind",
+						"predicateId"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"kind": {
+							"type": "string",
+							"const": "history-count"
+						},
+						"type": {
+							"type": "string",
+							"minLength": 1
+						},
+						"name": {
+							"type": "string",
+							"minLength": 1
+						},
+						"atLeast": {
+							"type": "integer",
+							"exclusiveMinimum": 0,
+							"maximum": 9007199254740991
+						}
+					},
+					"required": [
+						"kind",
+						"type",
+						"atLeast"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"kind": {
+							"type": "string",
+							"const": "hook-is"
+						},
+						"hook": {
+							"type": "string",
+							"enum": [
+								"pre-think",
+								"pre-act",
+								"post-act"
+							]
+						}
+					},
+					"required": [
+						"kind",
+						"hook"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"kind": {
+							"type": "string",
+							"const": "and"
+						},
+						"all": {
+							"minItems": 1,
+							"type": "array",
+							"items": {
+								"$ref": "#/$defs/__schema0"
+							}
+						}
+					},
+					"required": [
+						"kind",
+						"all"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"kind": {
+							"type": "string",
+							"const": "or"
+						},
+						"any": {
+							"minItems": 1,
+							"type": "array",
+							"items": {
+								"$ref": "#/$defs/__schema0"
+							}
+						}
+					},
+					"required": [
+						"kind",
+						"any"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"kind": {
+							"type": "string",
+							"const": "not"
+						},
+						"expr": {
+							"$ref": "#/$defs/__schema0"
+						}
+					},
+					"required": [
+						"kind",
+						"expr"
+					]
+				}
+			]
+		}
+	}
+}

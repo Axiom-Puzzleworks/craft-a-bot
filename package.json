@@ -15,7 +15,8 @@
 	],
 	"scripts": {
 		"dev": "turbo run dev",
-		"build": "turbo run build",
+		"build": "turbo run build && node scripts/json-schema.mjs --check",
+		"schemas": "node scripts/json-schema.mjs",
 		"test": "turbo run test",
 		"check": "turbo run check",
 		"lint": "prettier --check . && eslint . && turbo run check",

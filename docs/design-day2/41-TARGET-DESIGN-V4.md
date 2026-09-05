@@ -626,6 +626,8 @@ The `Boundary` component (§6.12's set, built in WP57) draws it as concentric re
 
 Every artefact that crosses a boundary is already Zod-defined (`10-…` §1's rule). `scripts/json-schema.mjs` generates a JSON Schema per artefact — `craftabot-trace`, `craftabot-bundle`, `craftabot-scenarios`, `craftabot-cassette`, the campaign file and report, `EvaluationRecord`, `AssurancePack`, `BoundaryMap` — into `docs/schemas/` on every build, with a test that a fixture of each validates against its schema and that the schemas changed only when a version did. A Python reader validates with `jsonschema`; a Python evaluator scores a bundle and writes `EvaluationRecord`s the Workshop imports beside a trace; a Python classifier is a `GuardrailService` behind HTTP. No Python code lands in this repo; `examples/python-reader/` (one script, one `requirements.txt`, tested in CI only if `python3` is present) shows the shape. That is the whole of it.
 
+> **Amended 2026-09-05 (WP56 stage C):** the seam is open — `scripts/json-schema.mjs`, `npm run schemas`, and `--check` at the end of `npm run build` — for the six artefacts that exist today (`craftabot-trace`, `craftabot-bundle`, `craftabot-scenarios`, the campaign file and report, `EvaluationRecord`). `craftabot-cassette` (WP58), `AssurancePack` (WP67) and `BoundaryMap` (WP57) are added to the generator's list by the WP that creates each. The generator reads the built `dist/`, so it runs after the packages build rather than "on every build" of each package; the effect a reader sees is the same.
+
 ---
 
 ## 7. Data model v4 (summary of record)

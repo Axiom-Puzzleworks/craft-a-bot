@@ -37,3 +37,6 @@ packages/evals/baselines
 
 # Vendored upstream schema, kept byte-for-byte (WP38).
 packages/evals/schemas/
+
+# Generated from the Zod sources by scripts/json-schema.mjs (WP56); npm run schemas rewrites them
+docs/schemas

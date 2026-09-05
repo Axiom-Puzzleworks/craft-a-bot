@@ -1,0 +1,174 @@
+{
+	"$id": "https://craftabot.dev/schemas/evaluation-record.schema.json",
+	"title": "Craft A Bot evaluation record (v1)",
+	"description": "One evaluator’s verdict over one stored run — the record a Python evaluator writes for the Workshop to import (31-EVALUATORS.md §4.4).",
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"type": "object",
+	"properties": {
+		"id": {
+			"type": "string",
+			"minLength": 1
+		},
+		"runId": {
+			"type": "string",
+			"minLength": 1
+		},
+		"evaluatorId": {
+			"type": "string",
+			"minLength": 1
+		},
+		"campaignId": {
+			"type": "string"
+		},
+		"result": {
+			"type": "object",
+			"properties": {
+				"evaluatorId": {
+					"type": "string",
+					"minLength": 1
+				},
+				"verdict": {
+					"type": "string",
+					"enum": [
+						"pass",
+						"fail",
+						"inconclusive"
+					]
+				},
+				"score": {
+					"type": "number",
+					"minimum": 0,
+					"maximum": 1
+				},
+				"label": {
+					"type": "string"
+				},
+				"explanation": {
+					"type": "string"
+				},
+				"evidence": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"eventId": {
+								"type": "string"
+							},
+							"tick": {
+								"type": "integer",
+								"minimum": -9007199254740991,
+								"maximum": 9007199254740991
+							},
+							"note": {
+								"type": "string"
+							}
+						},
+						"required": [
+							"eventId",
+							"tick"
+						]
+					}
+				},
+				"external": {
+					"type": "object",
+					"properties": {
+						"service": {
+							"type": "string",
+							"minLength": 1
+						},
+						"method": {
+							"type": "string"
+						},
+						"endpoint": {
+							"type": "string"
+						},
+						"template": {
+							"type": "string"
+						},
+						"policyRef": {
+							"type": "string"
+						},
+						"latencyMs": {
+							"type": "integer",
+							"minimum": 0,
+							"maximum": 9007199254740991
+						},
+						"charsScreened": {
+							"type": "integer",
+							"minimum": 0,
+							"maximum": 9007199254740991
+						},
+						"outcome": {
+							"type": "string",
+							"enum": [
+								"ok",
+								"partial",
+								"failure",
+								"offline",
+								"bad-token",
+								"no-permission",
+								"no-template",
+								"quota",
+								"timeout",
+								"unavailable"
+							]
+						},
+						"filters": {
+							"type": "object",
+							"propertyNames": {
+								"type": "string"
+							},
+							"additionalProperties": {
+								"type": "object",
+								"properties": {
+									"ran": {
+										"type": "boolean"
+									},
+									"matched": {
+										"type": "boolean"
+									},
+									"confidence": {
+										"type": "string"
+									}
+								},
+								"required": [
+									"ran",
+									"matched"
+								]
+							}
+						}
+					},
+					"required": [
+						"service",
+						"endpoint",
+						"latencyMs",
+						"charsScreened",
+						"outcome"
+					]
+				}
+			},
+			"required": [
+				"evaluatorId",
+				"explanation",
+				"evidence"
+			]
+		},
+		"evaluatedAt": {
+			"type": "string",
+			"format": "date-time",
+			"pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+		},
+		"schemaVersion": {
+			"type": "number",
+			"const": 1
+		}
+	},
+	"required": [
+		"id",
+		"runId",
+		"evaluatorId",
+		"result",
+		"evaluatedAt",
+		"schemaVersion"
+	]
+}
