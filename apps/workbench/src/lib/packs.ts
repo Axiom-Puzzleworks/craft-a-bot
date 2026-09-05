@@ -2,6 +2,7 @@ import { createPackRegistry, type PackRegistry } from '@craftabot/core';
 import anthropicPack from '@craftabot/pack-anthropic';
 import azureContentSafetyPack from '@craftabot/pack-azure-content-safety';
 import evaluatorsPack from '@craftabot/pack-evaluators';
+import fsBankPack from '@craftabot/pack-fs-bank';
 import geapPack from '@craftabot/pack-geap';
 import guardLocalPack from '@craftabot/pack-guard-local';
 import geminiPack from '@craftabot/pack-gemini';
@@ -98,6 +99,7 @@ export const installedPacks = [
 	pdpOpaPack,
 	// WP43 (`31-EVALUATORS.md`): the rubric judge.
 	evaluatorsPack,
+	fsBankPack,
 	demoPack
 ];
 

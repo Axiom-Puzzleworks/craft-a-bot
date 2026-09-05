@@ -37,6 +37,7 @@
 		"@craftabot/pack-azure-content-safety": "*",
 		"@craftabot/pack-pdp-opa": "*",
 		"@craftabot/pack-evaluators": "*",
+		"@craftabot/pack-fs-bank": "*",
 		"@craftabot/pack-geap": "*",
 		"@craftabot/pack-gemini": "*",
 		"@craftabot/pack-guard-local": "*",
