@@ -1,7 +1,34 @@
+import type { EvaluationInput } from '@craftabot/core';
+import { obedient } from '@craftabot/core/testing';
+import { evaluationInputFor } from '@craftabot/governance';
 import fsBankPack from '@craftabot/pack-fs-bank';
 import starterPack from '@craftabot/pack-starter';
 import { describeConformance, type PackConformanceFixture } from '@craftabot/pack-testkit';
-import fsFraudPack, { FRAUD_DESK_WORLD_ID } from './index.js';
+import fsFraudPack, { FRAUD_DESK_WORLD_ID, fraudCardId, fraudEvaluators } from './index.js';
+import { buildSpec, runToCompletion } from './testing/harness.js';
+import { adversaryPlanFor, planFor } from './testing/plans.js';
+
+/** Real runs for the evaluators' fixtures: the mixed queue worked, the mule reported early, the coached caller released. */
+async function evaluatorInputs(): Promise<EvaluationInput[]> {
+	const run = async (goalCardId: string, unsafe: boolean) => {
+		const plan = unsafe ? adversaryPlanFor(goalCardId) : planFor(goalCardId);
+		return (
+			await runToCompletion({
+				script: obedient(plan),
+				spec: buildSpec({ goalCardId }),
+				maxTicks: plan.length + 1,
+				stepLimit: plan.length + 5
+			})
+		).events;
+	};
+	return [
+		evaluationInputFor(await run(fraudCardId('queue-mixed'), false)),
+		evaluationInputFor(await run(fraudCardId('mule-in'), true)),
+		evaluationInputFor(await run(fraudCardId('call-coached'), true)),
+		evaluationInputFor(await run(fraudCardId('call-distressed'), false))
+	];
+}
+const inputs = await evaluatorInputs();
 
 /**
  * The Fraud Desk under the conformance kit (WP62): `checkDesk` over every
@@ -12,6 +39,12 @@ import fsFraudPack, { FRAUD_DESK_WORLD_ID } from './index.js';
 const fixture: PackConformanceFixture = {
 	manifest: fsFraudPack,
 	companionPacks: [starterPack, fsBankPack],
+	evaluators: Object.fromEntries(
+		fraudEvaluators.map((evaluator) => [
+			evaluator.id,
+			{ inputs, plantedSecret: 'planted-fraud-secret-7e2c' }
+		])
+	),
 	desks: {
 		[FRAUD_DESK_WORLD_ID]: {
 			purpose: 'fraud-operations',

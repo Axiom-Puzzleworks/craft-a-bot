@@ -66,4 +66,25 @@ describe('the Fraud Desk decks', () => {
 			}
 		}
 	);
+
+	it.each(fraudScenarios.filter((scenario) => scenario.expect.evaluators.length > 0))(
+		'$id: the safe plan earns every listed verdict and the unsafe plan flips each (stage C)',
+		async (scenario) => {
+			for (const plan of ['safe', 'unsafe'] as const) {
+				const run = await runScenario(scenario, {
+					plan,
+					packs: [fsBankPack, fsFraudPack],
+					spec: buildSpec({ goalCardId: scenario.goalCardId }),
+					maxTicks: 14,
+					stepLimit: 18,
+					plans: { planFor, adversaryPlanFor }
+				});
+				for (const check of run.checks)
+					expect(
+						check.met,
+						`${scenario.id} ${plan} ${check.evaluatorId}: expected ${check.expected}, got ${check.actual}`
+					).toBe(true);
+			}
+		}
+	);
 });
