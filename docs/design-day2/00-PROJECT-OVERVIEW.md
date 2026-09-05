@@ -28,11 +28,14 @@ The brand is structured like a toy manufacturer's range. Box art already exists 
 | **My Very First Agent** | "Ages 2–5 · Big, Safe, Chunky Parts" | V1.0. One agent, five brick types, Goal Cards, one simulated world. *Build · Connect · Give it a Goal · Watch it Act.* |
 | **Agent Builder — The Advanced Agent Kit** | "Ages 5–11 · 150+ Parts" | Future release. Planner/sequencer, if/then decisions, tools & APIs, MCP connectors, short/long-term memory split, feedback loops, guardrails & safety bricks, test & checks. *Plan · Reason · Use Tools · Test · Improve.* |
 | **AI Architect — Machine Learning & Autonomous Agents Lab** | "Ages 11+ · 300+ Components" | Future release. Datasets, train/validate/test, inference, multi-agent orchestration, evaluation (accuracy/robustness/bias), red-team challenge cards, model versions, deployment, permissions, human approval, monitoring. *Design · Train · Evaluate · Deploy · Govern.* |
+| **AI Architect — Retail Financial Services Playground** (the first AI Architect box) | "Ages 11+ · One Bank · Three Desks" | Planned (`41-TARGET-DESIGN-V4.md`, `42-DAY4-ROADMAP.md`). One synthetic bank; the Advice, Fraud and Lending Desks; decks of scenarios; counterparts; cohorts and parity; the assurance pack. *Fit · Run · Measure · File.* |
 | **LLM Multi-Pack** (expansion) | "6 Models · 6 Special Skills" | Expansion pack pattern: additional LLM providers/models arrive as snap-in **model cartridges** (Storyteller, Explainer, Researcher, Planner, Coder, Creator). *Choose · Connect · Prompt · Compare.* |
 
 The "ages" are part of the joke and the charm. The **real audience for V1 is adults learning agentic AI** — professionals, hobbyists, and students who are new to agents. The toy framing is the hook; the concepts underneath are taught properly, with real terminology surfaced alongside the playful names (every brick has a toy name *and* a "what this really is" explanation).
 
 **Current focus: My Very First Agent (V1.0) only.** The other kits inform architecture (we must not paint ourselves into a corner) but nothing from them is built yet.
+
+> **Amended 2026-09-05:** the AI Architect row above promised datasets, training and deployment; `18-…` §1 ruled training out and `26-…` §11 keeps it out. The first AI Architect box is the Retail Financial Services Playground (`41-…` §1, §12) — the half of that promise that now exists (evaluation, red-team decks, human approval, monitoring, model versions) put in a domain. The training half stays out; the box art and age band are the range's own fiction.
 
 ## 3. Product principles
 
@@ -75,6 +78,19 @@ The "ages" are part of the joke and the charm. The **real audience for V1 is adu
 | **Kit file** | Exported agent JSON | Portable agent definition (never contains keys). |
 | **Expansion pack** | Plugin module | Adds bricks/cartridges/worlds/cards behind the pack interface. |
 | **Instruction leaflet** | In-app tutorial | Step-numbered, diagram-led, like a real kit's paper instructions. |
+| **Playground** | The retail financial services expansion — the box | "AI Architect — Retail Financial Services Playground". One synthetic bank, several desks, many decks, in one box. |
+| **The bank** | The shared synthetic domain model | Customers, accounts, products, transactions, complaints, a bureau — one pack every desk depends on. |
+| **Desk** | A journey as a world, and its view | "The Advice Desk", "The Fraud Desk", "The Lending Desk". The Playroom is a grid; a Desk is a transcript, a case file and a queue. |
+| **Deck** | A set of scenarios on a desk | "Fraud & scams", "Vulnerable customer", "Red team". Scenarios, counterpart scripts and goal cards, tagged by obligation and threat. |
+| **Case file** | Ground truth | What the world knows to be true about a case. The bot never sees it whole; evaluators do. |
+| **Cohort** | The customer attributes fairness is measured across | Held in the case file; a campaign slices by it; a `parity` gate reads it. |
+| **Counterpart** | The other party in a conversation | A customer, a caller, a fraudster, a complainant. Scripted (world-side, deterministic) or live (a second seat with its own brain). |
+| **Service line** | A simulated or recorded external system | The Connector brick's "Weather Line" generalised: the CRM, core banking, KYC, payments, the bureau, SAR filing. |
+| **Cassette** | A recorded request/response set | Lets a real sandbox API be called once, under declared egress, and replayed forever. |
+| **Assurance pack** | The filed evidence | Safety case + campaign results + drift + incidents + inventory entry + the control map, rendered. |
+| **Control Room** | The Workshop's visual system v2 | The instrument-panel skin, grown from a token layer into a design system. |
+
+> **Amended 2026-09-05:** the eleven rows from **Playground** down are `41-TARGET-DESIGN-V4.md` §1.3's additions — toy names in the Kit and on box art, real names in code, as ever.
 
 ## 7. Document map
 

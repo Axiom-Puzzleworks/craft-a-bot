@@ -114,6 +114,8 @@ Rules:
 - The public app never lists it; a private build of the app (or a future pack-loading mechanism) does.
 - **Discipline required now:** interfaces in `core` are the compatibility contract. Breaking changes to `core` interfaces require a major version bump and a migration note in `docs/`, from the very first release.
 
+> **Amended 2026-09-05:** "a packaging decision, not a rewrite" becomes concrete as **editions** (`41-TARGET-DESIGN-V4.md` §6.14, decision D3; built by WP69): one codebase, three static builds — `simulator`, `workshop`, `playground` (and `full`, today's build) — from a build-time `CAB_EDITION`, each with its own pack list, route allow-list, `paths.base` and bundle budget. No runtime flag decides what a visitor sees; whether a section is access-controlled is a hosting rule in front of its folder, and the app never knows. The first breaking `core` change under the rule above is WP56's removal of the long-deprecated `PackManifest.guardrails` lane, taking `core` from `0.0.1` to `1.0.0` with a fixture proving every shipped manifest and kit file still loads (`42-…` §3, `14-…` §7).
+
 ## 6. Where a backend fits (when it becomes necessary)
 
 V1 needs none. The first features that will genuinely require one: sharing kit files by link, community galleries, classroom/team spaces, cloud trace archives. When that happens:
@@ -133,9 +135,11 @@ V1 needs none. The first features that will genuinely require one: sharing kit f
 
 | Concern | Target |
 |---|---|
-| First load | < 2s on a mid-range laptop, < 1.5 MB JS (excluding art) |
+| First load | < 2s on a mid-range laptop, < 1.5 MB JS (excluding art) — **per build** from 2026-09-05, see the note below |
 | Agent tick latency | UI reflects each loop phase in < 100ms after the provider responds |
 | Trace capacity | 10,000 events per run without UI degradation (virtualised list) |
 | Browsers | Latest Chrome, Edge, Firefox, Safari; no IE/legacy |
 | Accessibility | Keyboard-operable workbench; WCAG 2.1 AA contrast within the retro palette (see `04-VISUAL-DESIGN-LANGUAGE.md` §7) |
+
+> **Amended 2026-09-05:** the JS budget is a budget **per build**, not one number over everything (`41-TARGET-DESIGN-V4.md` §2.1 G42, §6.14). `scripts/bundle-budget.mjs` takes a limit and reports per-route sizes (WP56); the `full` build keeps 1.5 MB, and each edition (`simulator`, `workshop`, `playground`) is measured against its own budget once WP69 builds them. A single budget would have made the Kit and the Playground compete for the same bytes.
 | Offline | App shell loads offline (static PWA-ready); running a bot obviously needs the network for the LLM |
