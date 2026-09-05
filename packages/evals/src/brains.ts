@@ -25,7 +25,18 @@ import type { Plan } from '@craftabot/pack-starter/testing';
  * declaring victory early.
  */
 
-export type ScriptedTier = 'scripted-optimal' | 'scripted-noisy' | 'scripted-adversary';
+export type ScriptedTier =
+	'scripted-optimal' | 'scripted-noisy' | 'scripted-adversary' | 'scripted-counterpart';
+
+/**
+ * The counterpart seat's brain (WP55, `46-COUNTERPARTS.md` §4.5): drives a
+ * live seat along a `CounterpartScript` through the same interpreter the
+ * desk runtime uses, so a two-seat episode reproduces without a model. It
+ * lives in `@craftabot/desk` beside the interpreter (this package depends on
+ * that one, so it cannot be here without a cycle) and is re-exported under
+ * the tier's name.
+ */
+export { scriptedCounterpart } from '@craftabot/desk';
 
 export interface NoiseRates {
 	/** Chance a turn names something almost, but not quite, right. */

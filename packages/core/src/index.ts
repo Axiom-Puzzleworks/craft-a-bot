@@ -100,6 +100,7 @@ export type {
 	ActionCall,
 	ActionResult,
 	AgentHandle,
+	AgentRole,
 	Observation,
 	WorldActionDefinition,
 	WorldCreateOptions,

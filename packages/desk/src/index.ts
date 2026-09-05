@@ -17,6 +17,11 @@ export {
 } from './desk-world.js';
 export { closest } from './closest.js';
 export {
+	lastAgentLine,
+	scriptedCounterpart,
+	type ScriptedCounterpartOptions
+} from './counterpart-brain.js';
+export {
 	advanceCounterpart,
 	COUNTERPART_TRIGGER_KINDS,
 	describeScriptProblems,

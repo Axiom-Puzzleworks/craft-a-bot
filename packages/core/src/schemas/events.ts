@@ -350,6 +350,8 @@ const groupStartedEvent = eventSchema(
 		groupRunId: z.string().uuid(),
 		memberRunIds: z.array(z.string().uuid()),
 		memberAgentIds: z.array(z.string().uuid()),
+		/** Each member's side of the desk, by agent id (WP55, `46-…` §4.3); absent when no member had a role. */
+		memberRoles: z.record(z.string(), z.enum(['agent', 'counterpart'])).optional(),
 		goalCardId: z.string(),
 		scheduler: z.literal('round-robin'),
 		budgets: z.object({

@@ -686,6 +686,11 @@ function scriptFor(tier: EvalTier, goalCardId: string, seed: number, noise: Nois
 	switch (tier) {
 		case 'scripted-adversary':
 			return scriptedAdversary(adversaryPlanFor(goalCardId));
+		case 'scripted-counterpart':
+			// A counterpart's brain, never the agent's (`46-…` §4.5); a two-seat cell is WP58's shape.
+			throw new Error(
+				'scripted-counterpart is a counterpart seat’s brain and cannot drive a campaign cell’s agent'
+			);
 		case 'scripted-noisy':
 			return scriptedNoisy(planFor(goalCardId), { seed, rates: noise });
 		case 'scripted-optimal':

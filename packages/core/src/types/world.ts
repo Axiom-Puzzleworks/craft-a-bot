@@ -104,7 +104,17 @@ export interface AgentHandle {
 	agentId: string;
 	/** The bot's display name, for narration that names actors ("Robo moved east"). */
 	name: string;
+	/**
+	 * Which side of the desk this seat is (WP55, `46-COUNTERPARTS.md` §4.3):
+	 * the bot under test, or the person across from it. A role is identity,
+	 * not capability — what the seat may do stays with its session. Absent
+	 * means `agent`; every world written before WP55 ignores it.
+	 */
+	role?: AgentRole;
 }
+
+/** The two sides of a desk (WP55). */
+export type AgentRole = 'agent' | 'counterpart';
 
 export interface WorldInstance {
 	snapshot(): WorldState;

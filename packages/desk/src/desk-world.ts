@@ -1,4 +1,5 @@
 import type {
+	AgentHandle,
 	ActionCall,
 	ActionResult,
 	DeskAlert,
@@ -176,6 +177,13 @@ export interface DeskWorldSpec<Extra = Record<string, unknown>> {
 	counterpart?: CounterpartScript;
 	/** The desk's library of personas a scenario may name by id. */
 	counterparts?: Record<string, CounterpartScript>;
+	/**
+	 * What the person across the desk knows (WP55, `46-…` §4.4) — the only
+	 * path from truth to a prompt, and it is the counterpart seat's prompt,
+	 * never the agent's. A genuine customer knows their own income; a
+	 * fraudster knows the cover story.
+	 */
+	counterpartKnows?: (truth: DeskTruth | undefined, state: DeskState<Extra>) => string | undefined;
 	/** Which injection kinds this desk takes. Default: all five. A kind not listed is a no-op. */
 	injections?: Injection['kind'][];
 }
@@ -194,6 +202,15 @@ const isBuiltInSense = <Extra>(
 ): sense is Extract<DeskSenseSpec<Extra>, { kind: string }> => 'kind' in sense;
 
 const SAY_SCHEMA = z.object({ text: z.string().min(1).describe(runtimeStrings.say.text) });
+/** The counterpart seat's second action (`46-…` §4.4). */
+const HANG_UP = 'hang-up';
+const HANG_UP_SCHEMA = z.object({
+	reason: z.string().optional().describe(runtimeStrings.hangUp.reason)
+});
+/** The counterpart seat's own sense: the persona and what truth says it knows. */
+const BRIEF = 'brief';
+/** Where a seat has heard up to; the solo instance keeps its own in the state. */
+type Cursor = { get(): number; set(at: number): void };
 
 export function createDeskWorld<Extra = Record<string, unknown>>(
 	spec: DeskWorldSpec<Extra>
@@ -255,11 +272,34 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 		};
 	});
 
+	// A desk with a script can seat a live counterpart (`46-…` §4.4): the
+	// seat's own action and sense are declared here because the session
+	// validates a seat's bricks against the definition. The agent facade
+	// refuses `hang-up` and answers `brief` with nothing.
+	const hasScript =
+		spec.counterpart !== undefined || Object.keys(spec.counterparts ?? {}).length > 0;
+	if (hasScript) {
+		actionDefinitions.push({
+			id: qualify(HANG_UP),
+			name: runtimeStrings.hangUp.name,
+			description: runtimeStrings.hangUp.description,
+			parameters: z.toJSONSchema(HANG_UP_SCHEMA) as JsonSchema,
+			riskTier: 'observe'
+		});
+	}
+
 	const senseDefinitions: WorldSenseDefinition[] = spec.senses.map((sense) => ({
 		id: qualify(sense.id),
 		name: sense.name,
 		description: sense.description
 	}));
+	if (hasScript) {
+		senseDefinitions.push({
+			id: qualify(BRIEF),
+			name: runtimeStrings.brief.name,
+			description: runtimeStrings.brief.description
+		});
+	}
 
 	const layouts: WorldLayout[] = spec.layouts.map((layout) => ({
 		id: layout.id,
@@ -292,8 +332,11 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 			counterpart = script ? { script, memory: freshCounterpartMemory() } : undefined;
 			if (script?.opening) line('counterpart', script.name, script.opening);
 		}
+		/** A live counterpart seat, once bound, speaks instead of the script (`46-…` §4.4). */
+		let scriptSuspended = false;
+		const boundRoles = new Set<string>();
 		function speak(cue: CounterpartCue): void {
-			if (!counterpart) return;
+			if (!counterpart || scriptSuspended) return;
 			const { turn, memory } = advanceCounterpart(
 				counterpart.script,
 				cue,
@@ -400,7 +443,42 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 			return channels.includes(localId) || channels.includes(qualify(localId));
 		}
 
+		/** The solo instance's cursor lives in the state (WP53); a seat's lives in its facade (`46-…` §4.4). */
+		const stateCursor: Cursor = {
+			get: () => state.heardCursor,
+			set: (at) => {
+				state.heardCursor = at;
+			}
+		};
+
+		function conversationSince(cursor: Cursor): string {
+			const unheard = state.transcript.slice(cursor.get());
+			cursor.set(state.transcript.length);
+			return unheard.length === 0
+				? runtimeStrings.observation.nothingSaid
+				: runtimeStrings.observation.heard(
+						unheard.map((entry) => `${entry.speakerName}: ${entry.text}`)
+					);
+		}
+
+		function finishObservation(used: string[], lines: string[]): Observation {
+			const open = state.queue.filter(
+				(item) => item.status === 'open' || item.status === 'in-progress'
+			).length;
+			const last = state.transcript.at(-1);
+			return {
+				channels: used,
+				text: lines.length === 0 ? runtimeStrings.observation.noSenses : lines.join('\n'),
+				summary: runtimeStrings.observation.summary(open, state.queue.length - open, last?.text)
+			};
+		}
+
 		function observe(channels: readonly string[]): Observation {
+			return observeAs(channels, stateCursor);
+		}
+
+		/** The agent's view: every sense the desk declares, the conversation since this seat's cursor. */
+		function observeAs(channels: readonly string[], cursor: Cursor): Observation {
 			releaseScheduledHeard();
 			const used: string[] = [];
 			const lines: string[] = [];
@@ -409,14 +487,7 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 				let text: string | undefined;
 				if (isBuiltInSense(sense)) {
 					if (sense.kind === 'conversation') {
-						const unheard = state.transcript.slice(state.heardCursor);
-						state.heardCursor = state.transcript.length;
-						text =
-							unheard.length === 0
-								? runtimeStrings.observation.nothingSaid
-								: runtimeStrings.observation.heard(
-										unheard.map((entry) => `${entry.speakerName}: ${entry.text}`)
-									);
+						text = conversationSince(cursor);
 					} else if (sense.kind === 'case-file') {
 						text = runtimeStrings.observation.caseFile(state.records);
 					} else {
@@ -429,21 +500,48 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 				used.push(sense.id);
 				lines.push(text);
 			}
-			const open = state.queue.filter(
-				(item) => item.status === 'open' || item.status === 'in-progress'
-			).length;
-			const last = state.transcript.at(-1);
-			return {
-				channels: used,
-				text: lines.length === 0 ? runtimeStrings.observation.noSenses : lines.join('\n'),
-				summary: runtimeStrings.observation.summary(open, state.queue.length - open, last?.text)
-			};
+			return finishObservation(used, lines);
+		}
+
+		/** The counterpart seat's view (`46-…` §4.4): the conversation and its own brief, nothing of the desk. */
+		function observeAsCounterpart(channels: readonly string[], cursor: Cursor): Observation {
+			releaseScheduledHeard();
+			const used: string[] = [];
+			const lines: string[] = [];
+			const conversation = spec.senses.find(
+				(sense) => isBuiltInSense(sense) && sense.kind === 'conversation'
+			);
+			if (conversation && hasChannel(channels, conversation.id)) {
+				used.push(conversation.id);
+				lines.push(conversationSince(cursor));
+			}
+			if (hasChannel(channels, BRIEF) && counterpart) {
+				used.push(BRIEF);
+				lines.push(
+					runtimeStrings.observation.brief(
+						counterpart.script.persona,
+						spec.counterpartKnows?.(truth, state)
+					)
+				);
+			}
+			return finishObservation(used, lines);
 		}
 
 		function perform(call: ActionCall): ActionResult {
+			return performAs(call, runtimeStrings.agentName);
+		}
+
+		function performAs(call: ActionCall, speakerName: string): ActionResult {
 			// A turn is a turn, legal or not — both grid worlds' own clock discipline.
 			state.tick += 1;
 			const bare = bareOf(call.name);
+			if (bare === HANG_UP) {
+				return {
+					ok: false,
+					narration: runtimeStrings.narration.onlyTheVisitorHangsUp,
+					stateDiff: []
+				};
+			}
 			const action = spec.actions.find((candidate) => candidate.id === bare);
 			if (!action) {
 				return {
@@ -459,7 +557,7 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 			if (isBuiltInAction(action)) {
 				const parsed = SAY_SCHEMA.safeParse(call.arguments ?? {});
 				if (!parsed.success) return badArguments(action.id, parsed.error);
-				line('agent', runtimeStrings.agentName, parsed.data.text);
+				line('agent', speakerName, parsed.data.text);
 				const before = seq;
 				speak({ kind: 'said', text: parsed.data.text });
 				return {
@@ -492,7 +590,92 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 
 		seat(built.counterpart);
 
-		return {
+		function performAsCounterpart(call: ActionCall, handle: AgentHandle): ActionResult {
+			state.tick += 1;
+			const bare = bareOf(call.name);
+			if (bare === HANG_UP) {
+				const parsed = HANG_UP_SCHEMA.safeParse(call.arguments ?? {});
+				if (!parsed.success) return badArguments(HANG_UP, parsed.error);
+				if (counterpart) counterpart.memory = { ...counterpart.memory, ended: true };
+				line(
+					'system',
+					runtimeStrings.systemName,
+					runtimeStrings.narration.hungUp(handle.name, parsed.data.reason)
+				);
+				return {
+					ok: true,
+					narration: runtimeStrings.narration.hungUp(handle.name, parsed.data.reason),
+					stateDiff: []
+				};
+			}
+			const action = spec.actions.find((candidate) => candidate.id === bare);
+			if (action && isBuiltInAction(action)) {
+				const parsed = SAY_SCHEMA.safeParse(call.arguments ?? {});
+				if (!parsed.success) return badArguments(action.id, parsed.error);
+				const before = seq;
+				line('counterpart', handle.name, parsed.data.text);
+				return {
+					ok: true,
+					narration: runtimeStrings.narration.said(parsed.data.text),
+					stateDiff: [{ path: 'transcript.length', from: before, to: seq }]
+				};
+			}
+			return {
+				ok: false,
+				narration: runtimeStrings.narration.counterpartCannot(bare),
+				stateDiff: []
+			};
+		}
+
+		/**
+		 * Two seats over one desk (`46-…` §4.4): the clerk, and the person
+		 * across from them. Each seat hears the conversation from its own
+		 * cursor; the counterpart's only actions are to speak and to hang up,
+		 * and its only other sense is its brief. Binding a counterpart seat
+		 * suspends the scripted visitor — one visitor, not two.
+		 */
+		function forAgent(handle: AgentHandle): WorldInstance {
+			const role = handle.role ?? 'agent';
+			let at = 0;
+			const cursor: Cursor = {
+				get: () => at,
+				set: (value) => {
+					at = value;
+				}
+			};
+			const shared: Pick<
+				WorldInstance,
+				'snapshot' | 'test' | 'reset' | 'receiveInput' | 'configure' | 'inject'
+			> = {
+				snapshot: () => instance.snapshot(),
+				test: (predicate) => instance.test(predicate),
+				reset: () => instance.reset(),
+				receiveInput: (text) => instance.receiveInput?.(text),
+				configure: (config) => instance.configure?.(config),
+				inject: (injection) => instance.inject?.(injection)
+			};
+			if (role === 'counterpart') {
+				boundRoles.add('counterpart');
+				scriptSuspended = true;
+				return {
+					...shared,
+					observe: (channels) => observeAsCounterpart(channels, cursor),
+					perform: (call) => performAsCounterpart(call, handle),
+					describeProgress: () => undefined
+				};
+			}
+			if (boundRoles.has('agent')) throw new Error(runtimeStrings.narration.secondAgentSeat);
+			boundRoles.add('agent');
+			return {
+				...shared,
+				...(built.truth !== undefined ? { truth: () => instance.truth?.() } : {}),
+				observe: (channels) => observeAs(channels, cursor),
+				perform: (call) => performAs(call, handle.name),
+				describeProgress: (predicate, channels) => instance.describeProgress?.(predicate, channels)
+			};
+		}
+
+		const instance: WorldInstance = {
 			snapshot(): WorldState {
 				return structuredClone(state) as unknown as WorldState;
 			},
@@ -570,6 +753,8 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 				}
 			}
 		};
+
+		return { ...instance, forAgent };
 	}
 
 	return {

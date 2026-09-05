@@ -30,6 +30,7 @@ packages/packs/starter/src/fixtures/trace.say-hello.v1.json
 # Same reason (see golden-trace.test.ts, WP35 stage D).
 packages/packs/geap/src/fixtures/trace.geap-armour-offline.v1.json
 packages/desk/src/fixtures/trace.desk-minimal.v1.json
+packages/desk/src/fixtures/trace.desk-counterpart-offline.v1.json
 
 # Generated eval artefacts: the scorecard and baselines are written by
 # `npm run evals`, so formatting them here would fight the generator and make

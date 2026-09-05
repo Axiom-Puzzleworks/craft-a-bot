@@ -99,6 +99,7 @@
 							"scripted-optimal",
 							"scripted-noisy",
 							"scripted-adversary",
+							"scripted-counterpart",
 							"live"
 						]
 					},

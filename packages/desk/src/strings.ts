@@ -20,7 +20,20 @@ export const runtimeStrings = {
 		description: 'Say something to the person at the desk.',
 		text: 'What to say.'
 	},
+	/** The counterpart seat's second action (WP55, `46-…` §4.4). */
+	hangUp: {
+		name: 'Hang up',
+		description: 'End the conversation and leave the desk.',
+		reason: 'Why, if you want to say.'
+	},
+	/** The counterpart seat's own sense: who you are and what you know. */
+	brief: {
+		name: 'Brief',
+		description: 'Who you are, and what you know that the desk does not.'
+	},
 	observation: {
+		brief: (persona: string, knows: string | undefined) =>
+			knows === undefined ? persona : `${persona}\n${knows}`,
 		nothingSaid: 'Nobody has said anything since you last listened.',
 		heard: (lines: string[]) =>
 			`Since you last listened:\n${lines.map((l) => `  ${l}`).join('\n')}`,
@@ -36,7 +49,15 @@ export const runtimeStrings = {
 		summary: (open: number, done: number, last: string | undefined) =>
 			`${open} open, ${done} done${last ? ` — last said: ${last}` : ''}`
 	},
+	/** What the scripted-counterpart brain thinks when it has nothing to say. */
+	counterpartBrain: { waiting: 'Waiting for the clerk.', leaving: 'Leaving.' },
 	narration: {
+		hungUp: (name: string, reason: string | undefined) =>
+			reason ? `${name} ends the conversation: ${reason}` : `${name} ends the conversation.`,
+		onlyTheVisitorHangsUp: 'Only the person across the desk can hang up.',
+		counterpartCannot: (action: string) =>
+			`The person across the desk cannot "${action}" — they can only speak, or hang up.`,
+		secondAgentSeat: 'A desk has one clerk; a second agent seat cannot be bound.',
 		counterpartEscalates: (name: string) => `${name} is asking for someone senior.`,
 		counterpartLeft: (name: string) => `${name} has ended the conversation.`,
 		said: (text: string) => `You say: "${text}"`,
