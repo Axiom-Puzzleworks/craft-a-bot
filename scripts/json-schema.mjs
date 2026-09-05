@@ -50,6 +50,12 @@ export async function artefactSchemas() {
 			description:
 				'A group episode or a campaign cell: every member trace, the merged stream, evaluations, and one digest over every digest inside (36-BUNDLE-AND-GROUPS.md §4.1).'
 		},
+		'craftabot-cassette': {
+			schema: core.cassetteFileSchema,
+			title: 'Craft A Bot cassette (craftabot-cassette v1)',
+			description:
+				'One service line’s recording of a real sandbox: each call’s operation, arguments and their digest, the result and the latency, redacted at write (47-SERVICE-LINES.md §4.2).'
+		},
 		'craftabot-scenarios': {
 			schema: core.scenarioPackFileSchema,
 			title: 'Craft A Bot scenario pack (craftabot-scenarios v1)',

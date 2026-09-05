@@ -5,6 +5,7 @@ import { checkDesk } from './checks/desk.js';
 import { checkGoldenTrace } from './checks/golden-trace.js';
 import { checkGuardrail } from './checks/guardrail.js';
 import { checkEvaluator } from './checks/evaluator.js';
+import { checkServiceLine } from './checks/service-line.js';
 import { checkGuardrailService } from './checks/guardrail-service.js';
 import { checkManifest } from './checks/manifest.js';
 import { checkTool } from './checks/tool.js';
@@ -78,6 +79,16 @@ export function describeConformance(fixture: PackConformanceFixture): void {
 					throw new Error(`no fixture supplied for guardrail service "${service.id}"`);
 				}
 				const issues = await checkGuardrailService(service, serviceFixture);
+				expect(issues, format(issues)).toEqual([]);
+			});
+		}
+
+		for (const line of manifest.serviceLines ?? []) {
+			it(`service line "${line.id}" tiers every operation, simulates purely, replays its cassette, never calls out, and leaks nothing`, async () => {
+				const issues = await checkServiceLine(line, {
+					packId: manifest.id,
+					...(fixture.serviceLines?.[line.id] ?? {})
+				});
 				expect(issues, format(issues)).toEqual([]);
 			});
 		}

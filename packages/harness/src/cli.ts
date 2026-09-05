@@ -10,6 +10,7 @@ import { bundleGroup } from './commands/bundle.js';
 import { importCorpusFile } from './commands/scenarios.js';
 import { DEFAULT_CONTENT_DIR, addContent, listContent, renderContent } from './commands/content.js';
 import { exportRun } from './commands/export.js';
+import { recordCassette } from './commands/record.js';
 import { readContentDir } from './storage/file-storage.js';
 import { describePacks, renderPacks } from './commands/packs.js';
 import { reportIncidents, reportSafetyCase, reportTelemetry } from './commands/report.js';
@@ -98,6 +99,14 @@ Usage:
       episode as a .craftabot-bundle.json (every member's trace, the merged
       stream, one digest over all of them), redacted and digest-signed, to
       --file or stdout.
+
+  craftabot record --line <lineId> --script <calls.json> [--out ./cassettes] [--egress declared|none]
+      Record a service line's live client to a cassette (WP58): every
+      {"op", "args"} in the script is called once under an egress guard that
+      allows the line's own declared hosts and nothing else, timed, and
+      written redacted against every CRAFTABOT_CREDENTIAL_* the process
+      holds — a fixture a pack ships under src/cassettes/ and a session
+      replays with no network. --egress none refuses every call.
 
   craftabot export --run <runId> --sink <sinkId> [--sink-config <json>] [--out ./runs]
       Send a stored run to a sink in one go: telemetry/otlp-http (an OTLP
@@ -377,6 +386,34 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 				});
 				io.stdout(
 					`imported ${result.count} scenarios over ${card} into ${result.file} (tags: ${result.tags.join(', ') || 'none'})\n`
+				);
+				return 0;
+			}
+			case 'record': {
+				const lineId = stringFlag(args, 'line');
+				const scriptPath = stringFlag(args, 'script');
+				if (lineId === undefined || scriptPath === undefined) {
+					throw new Error('record needs --line <lineId> --script <calls.json>');
+				}
+				const egress = egressFlag(args);
+				const report = await recordCassette({
+					lineId,
+					scriptPath,
+					out: stringFlag(args, 'out') ?? './cassettes',
+					config: await configFrom(args),
+					credentials: credentialsFromEnv(io.env),
+					...(egress !== undefined ? { egress } : {})
+				});
+				io.stdout(
+					[
+						`recorded ${report.lineId}`,
+						`  entries    ${report.entries} (${report.refused} refused by the egress guard)`,
+						`  hosts      ${report.hosts.join(', ') || 'none'}`,
+						`  latency    ${report.latencyMs.min}–${report.latencyMs.max} ms`,
+						`  browser    ${report.browserCapable === undefined ? 'unknown' : report.browserCapable ? 'CORS open — a browser could call this line' : 'no CORS — the harness is the host'}`,
+						`  cassette   ${report.file}`,
+						''
+					].join('\n')
 				);
 				return 0;
 			}

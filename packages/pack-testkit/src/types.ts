@@ -127,6 +127,22 @@ export interface EvaluatorConformanceFixture {
 	plantedSecret: string;
 }
 
+/**
+ * A service line's fixture (WP58, `47-SERVICE-LINES.md` §4.3): example
+ * arguments per operation for `simulate` and `live`, the world state a
+ * simulation reads, the pack id its tools carry, and a secret that must
+ * never reach a result or a cassette. Every field optional — a line with no
+ * entry is checked with the defaults.
+ */
+export interface ServiceLineConformanceFixture {
+	/** Default: the prefix of the line's id. */
+	packId?: string;
+	/** Arguments per operation id; default `{}` for every operation. */
+	examples?: Record<string, unknown>;
+	worldState?: Record<string, unknown>;
+	plantedSecret?: string;
+}
+
 /** A trace sink (WP47, `35-TELEMETRY.md` §4.4): a config it accepts, a finished run to attach and export, a secret that must never leak. */
 export interface SinkConformanceFixture {
 	config: unknown;
@@ -185,6 +201,8 @@ export interface PackConformanceFixture {
 	goldenTrace?: GoldenTraceConformanceFixture;
 	/** One per desk world the manifest ships, keyed by world id (WP53); a desk without an entry is checked with the defaults. */
 	desks?: Record<string, DeskConformanceFixture>;
+	/** One per service line the manifest ships, keyed by line id (WP58); a line without an entry is checked with the defaults. */
+	serviceLines?: Record<string, ServiceLineConformanceFixture>;
 }
 
 export type { CartridgeDefinition };

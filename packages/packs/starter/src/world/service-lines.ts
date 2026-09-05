@@ -1,5 +1,6 @@
 import type { ServiceLine } from '@craftabot/core';
 import { toolStrings } from '../strings.js';
+import { openMeteoLine } from './open-meteo.js';
 
 /**
  * **The Weather Line** on the `ServiceLine` contract (WP58 stage A,
@@ -51,4 +52,4 @@ export const weatherLine: ServiceLine = {
 	})
 };
 
-export const starterServiceLines: ServiceLine[] = [weatherLine];
+export const starterServiceLines: ServiceLine[] = [weatherLine, openMeteoLine];

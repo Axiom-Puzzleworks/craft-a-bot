@@ -38,11 +38,12 @@ describe('docs/schemas', () => {
 		}
 	});
 
-	it('names six artefacts, each with an $id, a title and a draft-2020-12 marker', () => {
+	it('names seven artefacts, each with an $id, a title and a draft-2020-12 marker', () => {
 		expect(Object.keys(schemas).sort()).toEqual([
 			'campaign',
 			'campaign-report',
 			'craftabot-bundle',
+			'craftabot-cassette',
 			'craftabot-scenarios',
 			'craftabot-trace',
 			'evaluation-record'
