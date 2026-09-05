@@ -103,6 +103,7 @@ export type {
 	WorldActionDefinition,
 	WorldDefinition,
 	WorldInstance,
+	WorldViewKind,
 	WorldLayout,
 	WorldSenseDefinition,
 	WorldState
@@ -178,6 +179,20 @@ export {
 	type ToolMetadata
 } from './schemas/pack-manifest.js';
 export type { NotebookAccess, ToolContext, ToolDefinition, ToolResult } from './types/tool.js';
+export {
+	isDeskWorldState,
+	isGridWorldState,
+	type DeskAlert,
+	type DeskAlertSeverity,
+	type DeskQueueItem,
+	type DeskQueueStatus,
+	type DeskRecord,
+	type DeskRecordClassification,
+	type DeskTranscriptLine,
+	type DeskTranscriptSpeaker,
+	type DeskWorldState,
+	type WorldViewState
+} from './types/desk-world.js';
 export type {
 	GridPosition,
 	GridWorldAgent,

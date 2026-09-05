@@ -95,3 +95,24 @@ describe('pack-manifest schemas', () => {
 		expect(result.success).toBe(true);
 	});
 });
+
+describe('goal card audience (WP53)', () => {
+	const card = {
+		id: 'x/card',
+		title: 'Card',
+		goalText: 'Do the thing.',
+		worldId: 'x/world',
+		layoutId: 'a',
+		successCondition: 'done',
+		hints: [],
+		teachesConcepts: []
+	};
+
+	it('is optional, and only kit or workshop', () => {
+		expect(goalCardDefinitionSchema.safeParse(card).success).toBe(true);
+		expect(goalCardDefinitionSchema.safeParse({ ...card, audience: 'workshop' }).success).toBe(
+			true
+		);
+		expect(goalCardDefinitionSchema.safeParse({ ...card, audience: 'adults' }).success).toBe(false);
+	});
+});

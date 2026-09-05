@@ -56,9 +56,22 @@ export interface ActionCall {
 	arguments: unknown;
 }
 
+/**
+ * How a host draws a world's state (WP53, `43-DESK-WORLDS.md` §4.1): a room
+ * (`GridWorldState`) or a desk (`DeskWorldState`, `types/desk-world.ts`).
+ */
+export type WorldViewKind = 'grid' | 'desk';
+
 export interface WorldDefinition {
 	id: string; // "starter/playroom"
 	name: string;
+	/**
+	 * How a host draws this world's state. `'grid'` is every world written
+	 * before this field existed (`GridWorldState`); `'desk'` is a business
+	 * world (`DeskWorldState`). A host that knows neither draws the snapshot
+	 * as JSON and says so. Optional; absent means `'grid'`.
+	 */
+	view?: WorldViewKind;
 	layouts: WorldLayout[];
 	actions: WorldActionDefinition[];
 	senses: WorldSenseDefinition[];

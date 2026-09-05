@@ -1,6 +1,6 @@
 import type { EngineEvent } from '../schemas/events.js';
 import type { RunOutcome } from '../schemas/shared.js';
-import type { GridWorldState } from '../types/grid-world.js';
+import type { WorldViewState } from '../types/desk-world.js';
 
 /**
  * **What a run looks like, folded up from its events** (`15-…` §3).
@@ -23,7 +23,8 @@ import type { GridWorldState } from '../types/grid-world.js';
  * it, and a replay that has no session at all can use it unchanged.
  */
 export interface RunProjection {
-	world: GridWorldState | undefined;
+	/** Whatever the last `world.changed` carried — a room or a desk (WP53); the fold never decides which. */
+	world: WorldViewState | undefined;
 	thought: string;
 	saying: string | undefined;
 	narration: string;
@@ -99,7 +100,7 @@ export function applyEvent(state: RunProjection, event: EngineEvent): void {
 			break;
 		case 'world.changed':
 			// Cast: the Playroom authored this state; the event carries it opaquely.
-			state.world = event.payload.state as GridWorldState;
+			state.world = event.payload.state as WorldViewState;
 			break;
 		case 'think.started':
 			state.thinking = true;

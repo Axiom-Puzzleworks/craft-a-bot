@@ -100,6 +100,8 @@ Card definition interface: `GoalCardDefinition { id, title, goalText, worldId, l
 
 ## 4. The Playroom (V1 world)
 
+> **Amended 2026-09-05 (WP53 stage A, `43-DESK-WORLDS.md` §4.1):** a world is no longer a grid by definition. `WorldDefinition` gained `view?: 'grid' | 'desk'` (absent means `'grid'`, every world written before), and `types/desk-world.ts` gives a business world its own drawable vocabulary — `DeskWorldState`: a transcript, the records the world has revealed, a queue, alerts — beside `GridWorldState`'s room. A host draws whichever shape the `world.changed` payload has (`isDeskWorldState`/`isGridWorldState`). **No event changed:** a Desk's first frame and every frame after it are the same `world.changed` a room's are, and §7's catalogue is untouched. The first desk is `workshop/the-desk`, the Front Desk, in the Workshop pack.
+
 A deliberately small, warm, readable grid world — the nursery-room floor from the box art.
 
 - **Space:** 8×6 grid of floor tiles (rug). Some cells hold furniture (toy chest, shelf, table), items (snack, blocks ×3, red key, ball), and characters (Teddy; the Bot itself).

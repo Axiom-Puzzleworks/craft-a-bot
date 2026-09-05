@@ -3,7 +3,7 @@
 	import { resolve } from '$app/paths';
 	import type { EngineEvent, GroupRunRecord, RunRecord } from '@craftabot/core';
 	import StoryStrip from '$lib/components/play/StoryStrip.svelte';
-	import WorldView from '$lib/components/play/WorldView.svelte';
+	import WorldStage from '$lib/components/play/WorldStage.svelte';
 	import { botExpression } from '$lib/bot-expression.js';
 	import { outcomeFace, outcomeWords, roundsWords, stepsWords, whenWords } from '$lib/scrapbook.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
@@ -135,7 +135,7 @@
 			{/if}
 		</header>
 
-		<WorldView
+		<WorldStage
 			world={shown.world}
 			saying={shown.saying}
 			{expression}

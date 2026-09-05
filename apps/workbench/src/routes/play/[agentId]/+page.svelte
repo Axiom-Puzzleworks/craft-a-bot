@@ -36,7 +36,7 @@
 	import SayToBot from '$lib/components/play/SayToBot.svelte';
 	import StoryStrip from '$lib/components/play/StoryStrip.svelte';
 	import ThoughtBubble from '$lib/components/play/ThoughtBubble.svelte';
-	import WorldView from '$lib/components/play/WorldView.svelte';
+	import WorldStage from '$lib/components/play/WorldStage.svelte';
 	import TraceDrawer from '$lib/components/trace/TraceDrawer.svelte';
 
 	/**
@@ -514,8 +514,9 @@
 
 		<div class="stage">
 			<section class="world" aria-label="The Playroom">
-				<WorldView
+				<WorldStage
 					world={view.world}
+					view={goalCard ? registry.getWorld(goalCard.worldId)?.view : undefined}
 					saying={view.saying}
 					expression={view.expression}
 					outcome={view.outcome}

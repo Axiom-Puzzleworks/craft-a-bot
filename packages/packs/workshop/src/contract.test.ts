@@ -1,7 +1,13 @@
 import type { PackManifest } from '@craftabot/core';
 import { obedient } from '@craftabot/core/testing';
 import starterPack from '@craftabot/pack-starter';
-import { describeConformance, type PackConformanceFixture } from '@craftabot/pack-testkit';
+import {
+	checkWorld,
+	describeConformance,
+	type PackConformanceFixture
+} from '@craftabot/pack-testkit';
+import { describe, expect, it } from 'vitest';
+import { frontDesk, FRONT_DESK_WORLD_ID } from './world/desk.js';
 import { workshopGoalCards } from './goal-cards.js';
 import workshopPack from './index.js';
 import { buildSpec } from './session/harness.js';
@@ -40,11 +46,12 @@ const CARTRIDGE_PACK: PackManifest = {
 
 /** Bare action ids the Workshop actually answers to — not hand-copied. */
 const WORLD_ACTION_IDS = new Set(workshopActionDefinitions.map((action) => action.id));
+const ROOM_CARDS = workshopGoalCards.filter((card) => card.worldId !== FRONT_DESK_WORLD_ID);
 
 const worldScripts: PackConformanceFixture['world'] = {
 	worldId: WORKSHOP_WORLD_ID,
 	scripts: Object.fromEntries(
-		workshopGoalCards.map((card) => [
+		ROOM_CARDS.map((card) => [
 			card.id,
 			{
 				layoutId: card.layoutId,
@@ -83,3 +90,40 @@ const fixture: PackConformanceFixture = {
 };
 
 describeConformance(fixture);
+
+/**
+ * The Front Desk under the same world conformance as the room (`43-…` §4.3):
+ * `describeConformance` takes one world fixture per manifest, so the second
+ * world is checked directly. Its scripts reach every predicate it declares.
+ */
+describe('the Front Desk conforms as a world', () => {
+	it('passes checkWorld with its scripts and illegal calls', () => {
+		const issues = checkWorld(frontDesk, {
+			worldId: FRONT_DESK_WORLD_ID,
+			scripts: {
+				'workshop/sign-the-visitor-in': {
+					layoutId: 'a-visitor',
+					calls: (SCRIPTED_OPTIMAL['workshop/sign-the-visitor-in'] ?? []).map((step) => ({
+						name: step.call,
+						arguments: step.args ?? {}
+					}))
+				},
+				'hand-them-over': {
+					layoutId: 'a-visitor',
+					calls: [
+						{ name: 'say', arguments: { text: 'One moment.' } },
+						{ name: 'escalate', arguments: { reason: 'No appointment on the list.' } }
+					]
+				}
+			},
+			illegalActions: [
+				{ layoutId: 'a-visitor', call: { name: 'teleport', arguments: {} } },
+				{ layoutId: 'a-visitor', call: { name: 'say', arguments: { text: '' } } },
+				{ layoutId: 'a-visitor', call: { name: 'look-up', arguments: { record: 'the boiler' } } }
+			],
+			// A turn is a turn, legal or not — the same clock discipline as the room.
+			volatileStateKeys: ['tick']
+		});
+		expect(issues).toEqual([]);
+	});
+});

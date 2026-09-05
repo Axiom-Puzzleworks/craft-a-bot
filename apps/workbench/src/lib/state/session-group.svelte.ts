@@ -3,7 +3,7 @@ import {
 	type AnyAgentSpec,
 	type EngineEvent,
 	type Guardrail,
-	type GridWorldState,
+	type WorldViewState,
 	type LLMProvider,
 	type RunMode,
 	type RunOutcome,
@@ -61,7 +61,7 @@ export interface GroupSessionView {
 	readonly status: SessionStatus;
 	readonly groupRunId: string | undefined;
 	/** The shared room — positions come from `agents`, stable across whichever member acted last (`23-…` §4.3). */
-	readonly world: GridWorldState | undefined;
+	readonly world: WorldViewState | undefined;
 	readonly round: number;
 	/** The group's own outcome (`group.finished`), distinct from any one member's own. */
 	readonly outcome: RunOutcome | undefined;
@@ -156,7 +156,7 @@ export function createGroupSessionView(deps: GroupSessionViewDeps): GroupSession
 	 * regardless of which member's turn produced it, so there is nothing a
 	 * third fold would add (`24-…` §4.2).
 	 */
-	let world = $state<GridWorldState | undefined>(undefined);
+	let world = $state<WorldViewState | undefined>(undefined);
 	/** Whichever member's `world.changed` most recently produced `world` — see `foregroundedAgentId`. */
 	let foregroundedAgentId = $state<string | undefined>(undefined);
 	/** Every event in arrival order — see `GroupSessionView.mergedEvents`. */
@@ -213,7 +213,7 @@ export function createGroupSessionView(deps: GroupSessionViewDeps): GroupSession
 			if (member) applyEvent(member.projection, event);
 		}
 		if (event.type === 'world.changed') {
-			world = event.payload.state as GridWorldState;
+			world = event.payload.state as WorldViewState;
 			foregroundedAgentId = event.agentId;
 		}
 		/*

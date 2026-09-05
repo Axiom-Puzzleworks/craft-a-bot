@@ -4,6 +4,105 @@
  * follows (`09-ROADMAP.md` §5). UK English, warm, second person.
  */
 
+/**
+ * The Front Desk (WP53 stage A, `43-DESK-WORLDS.md` §4.3) — a desk, not a
+ * room. Fictional throughout: no real name, place or firm.
+ */
+export const deskStrings = {
+	title: 'The Front Desk',
+	role: 'Receptionist',
+	layout: 'A visitor at the desk',
+	agentName: 'You',
+	counterpartName: 'Visitor',
+	systemName: 'Desk',
+	records: {
+		visitor: { title: 'Visitor', name: 'Mr Patel', hereToSee: 'Dr Okafor' },
+		houseRule: {
+			title: 'House rule',
+			text: 'Every visitor is signed in before they go through. Ask who they are here to see.'
+		}
+	},
+	queue: { signIn: 'Sign the visitor in' },
+	actions: {
+		say: {
+			name: 'Say',
+			description: 'Say something to the visitor at the desk.',
+			text: 'What to say.'
+		},
+		lookUp: {
+			name: 'Look up',
+			description: 'Open a record on the desk by name — the visitor, or a notice.',
+			record: 'Which record to open, by name.'
+		},
+		signIn: {
+			name: 'Sign in',
+			description: 'Sign the visitor in, once you know who they are here to see.',
+			visitor: 'Who you are signing in.'
+		},
+		escalate: {
+			name: 'Escalate',
+			description: 'Hand the visitor to a colleague rather than signing them in.',
+			reason: 'Why.'
+		}
+	},
+	senses: {
+		conversation: {
+			name: 'Conversation',
+			description: 'What has been said at the desk since you last listened.'
+		},
+		caseFile: { name: 'Case file', description: 'The records open on the desk.' },
+		queue: { name: 'Queue', description: 'What is waiting to be dealt with.' }
+	},
+	predicates: {
+		visitorSignedIn: 'The visitor has been signed in.',
+		escalated: 'The visitor was handed to a colleague.',
+		conversationStarted: 'You have said something to the visitor.'
+	},
+	progress: {
+		signedIn: 'The visitor is signed in.',
+		notYet: 'The visitor is not signed in yet.'
+	},
+	observation: {
+		nothingSaid: 'Nobody has said anything since you last listened.',
+		heard: (lines: string[]) =>
+			`Since you last listened:\n${lines.map((l) => `  ${l}`).join('\n')}`,
+		caseFile: (records: { title: string; fields: Record<string, unknown> }[]) =>
+			records.length === 0
+				? 'Nothing is open on the desk.'
+				: `Open on the desk:\n${records
+						.map(
+							(r) =>
+								`  ${r.title}: ${Object.entries(r.fields)
+									.map(([k, v]) => `${k.replaceAll('_', ' ')} ${String(v)}`)
+									.join(', ')}`
+						)
+						.join('\n')}`,
+		queue: (items: { title: string; status: string }[]) =>
+			`Queue: ${items.map((i) => `${i.title} (${i.status})`).join('; ')}`,
+		noSenses: 'You have no sense of the desk switched on.',
+		summary: (open: number, done: number, last: string | undefined) =>
+			`${open} open, ${done} done${last ? ` — last said: ${last}` : ''}`
+	},
+	narration: {
+		said: (text: string) => `You say: "${text}"`,
+		badArguments: (action: string, problem: string) => `${action} could not run: ${problem}.`,
+		noSuchRecord: (name: string, known: string[]) =>
+			`There is nothing called "${name}" on the desk. On the desk: ${known.join(', ')}.`,
+		lookedUp: (record: { title: string; fields: Record<string, unknown> }) =>
+			`You open ${record.title}: ${Object.entries(record.fields)
+				.map(([k, v]) => `${k.replaceAll('_', ' ')} ${String(v)}`)
+				.join(', ')}.`,
+		signedIn: (visitor: string) => `You sign ${visitor} in. They go through.`,
+		signedInDecision: (visitor: string) => `Signed in: ${visitor}`,
+		signedInLine: (visitor: string) => `${visitor} signed in.`,
+		alreadySignedIn: 'The visitor is already dealt with.',
+		escalated: (reason: string) => `You call a colleague over: ${reason}`,
+		escalatedAlert: (reason: string) => `Escalated — ${reason}`,
+		cannotEscalate: 'There is nobody left at the desk to escalate.',
+		unknownAction: (name: string) => `"${name}" is not something you can do at this desk.`
+	}
+} as const;
+
 export const worldStrings = {
 	name: 'The Workshop',
 	description:
@@ -47,6 +146,15 @@ export const predicateStrings = {
 } as const;
 
 export const goalCardStrings = {
+	'sign-the-visitor-in': {
+		title: 'Sign the visitor in',
+		goalText: 'Someone has come to the desk. Find out who they are here to see, then sign them in.',
+		hints: [
+			'Say hello first — the conversation is how you find things out.',
+			'Look up the visitor to see who they are here to see.',
+			'Sign them in once you know.'
+		]
+	},
 	'find-the-paint-pot': {
 		title: 'Find the paint pot',
 		goalText: "There's a paint pot somewhere in the workshop. Go and find it.",
