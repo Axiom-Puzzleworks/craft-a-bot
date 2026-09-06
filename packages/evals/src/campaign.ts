@@ -555,7 +555,7 @@ export interface RunCampaignOptions {
 	 * placing each result by its ordinal so the report reads the same
 	 * whatever the scheduling. Absent, the runner runs the cell itself.
 	 */
-	execute?: (cell: CampaignCellSpec) => Promise<CellResult>;
+	execute?: (cell: CampaignCellSpec, run: () => Promise<CellResult>) => Promise<CellResult>;
 	/** How many cells are in flight at once through `execute`; 1 by default. */
 	concurrency?: number;
 	/** Run only the `index`-th of `of` slices of the cells (1-based); the report says so. */
@@ -676,8 +676,8 @@ export async function runCampaign(
 
 	const tally: SpendTally = { liveEvaluations: 0 };
 	guardLiveEvaluations(campaign, allCells.length, options, registry);
-	const execute =
-		options.execute ?? ((spec: CampaignCellSpec) => runCampaignCell(spec, prepared, options));
+	const runHere = (spec: CampaignCellSpec) => runCampaignCell(spec, prepared, options);
+	const execute = options.execute ?? runHere;
 	// Placed by ordinal, whatever the scheduling (`57-…` §3): the report reads the same however it was made.
 	const placed = new Map<number, CampaignCell>();
 	let done = 0;
@@ -686,7 +686,7 @@ export async function runCampaign(
 	async function lane(): Promise<void> {
 		while (next < cells.length) {
 			const spec = cells[next++] as CampaignCellSpec;
-			const result = await execute(spec);
+			const result = await execute(spec, () => runHere(spec));
 			placed.set(spec.ordinal, result.cell);
 			tally.liveEvaluations += result.liveEvaluations ?? 0;
 			if (result.trace) options.onTrace?.(result.cell, result.trace);

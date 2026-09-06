@@ -175,11 +175,17 @@ Usage:
       allows only the hosts fitted components declare. A live brain needs
       the campaign's own budget and its provider's CRAFTABOT_CREDENTIAL_<ID>.
 
-  craftabot campaign … [--jobs <n>] [--shard <i>/<n>] [--seeds <a>-<b>]
+  craftabot campaign … [--jobs <n>] [--shard <i>/<n>] [--seeds <a>-<b>] [--resume]
       At scale (WP68): --jobs runs cells in a pool of worker threads (the
       report is placed by cell order, so it reads the same as --jobs 1);
       --shard runs the i-th of n slices and marks the report a shard;
-      --seeds replaces the file's seeds with a range.
+      --seeds replaces the file's seeds with a range; --resume reuses every
+      cell a stopped run finished whose run still verifies (cells.jsonl
+      under --out) and runs the rest.
+
+  craftabot index --rebuild [--out ./runs]
+      Write the store's index.jsonl again from its run directories (WP68) —
+      what a listing reads instead of opening every directory.
 
   craftabot merge --file <campaign.json> [--out ./campaign-out] [--strict] <report.json>…
                   [--baseline <report.json>] [--junit <path>] [--sarif <path>] [--markdown <path>]
@@ -437,6 +443,7 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 					...(seeds !== undefined ? { seeds } : {}),
 					...(configPath !== undefined ? { configPath } : {}),
 					contentDir: contentDirFrom(args),
+					...(args.flags['resume'] === true ? { resume: true } : {}),
 					...(baseline !== undefined ? { baseline } : {}),
 					...(junit !== undefined ? { junit } : {}),
 					...(sarif !== undefined ? { sarif } : {}),
@@ -459,6 +466,16 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 					);
 				}
 				return args.flags['strict'] === true && !report.passed ? 1 : 0;
+			}
+			case 'index': {
+				// WP68 (`57-…` §4.4): the store's index, written again from the run directories.
+				if (args.flags['rebuild'] !== true) throw new Error('index wants --rebuild');
+				const storage = await createFileStorage(stringFlag(args, 'out') ?? './runs');
+				const lines = await storage.rebuildIndex();
+				io.stdout(
+					`index rebuilt: ${lines.length} run${lines.length === 1 ? '' : 's'} in ${storage.root}\n`
+				);
+				return 0;
 			}
 			case 'merge': {
 				// WP68 (`57-…` §4.2): shard reports folded into one, the gates over the whole.

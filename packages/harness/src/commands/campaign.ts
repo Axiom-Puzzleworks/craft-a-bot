@@ -1,7 +1,13 @@
 import type { EgressMode, Principal } from '@craftabot/core';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
-import { localPackFrom, type LLMProvider, type PackRegistry } from '@craftabot/core';
+import {
+	computeTraceDigest,
+	engineEventSchema,
+	localPackFrom,
+	type LLMProvider,
+	type PackRegistry
+} from '@craftabot/core';
 import {
 	campaignEnvelope,
 	packFromScenarioFile,
@@ -12,6 +18,7 @@ import {
 	renderSarif,
 	runCampaign,
 	type CampaignBrain,
+	type CampaignCell,
 	type CampaignReport
 } from '@craftabot/evals';
 import { summariseRun } from '@craftabot/governance/reports';
@@ -20,7 +27,7 @@ import { createRegistry, packVersions, type HarnessConfig } from '../config.js';
 import { credentialVariable, type CredentialSource } from '../credentials.js';
 import { runRecordFrom } from '../run-record.js';
 import { buildSink, sinkById } from '../sinks.js';
-import { createFileStorage } from '../storage/file-storage.js';
+import { createFileStorage, runExists, type FileStorage } from '../storage/file-storage.js';
 import { createCellPool } from './cell-pool.js';
 
 /**
@@ -60,7 +67,56 @@ export interface CampaignFileOptions {
 	/** The config file and content directory the CLI resolved, so a worker builds the same registry (the config object itself cannot cross to a worker). */
 	configPath?: string;
 	contentDir?: string;
+	/**
+	 * Pick up where a stopped run left off (WP68, `57-…` §4.3): a cell whose
+	 * line in `<out>/cells.jsonl` names a run whose events still digest to
+	 * what the line recorded is reused; every other cell runs. Needs the
+	 * runs kept.
+	 */
+	resume?: boolean;
+	/** Called after each cell with whether it was reused from a previous run (WP68). */
+	onCellDone?: (done: number, total: number, reused: boolean) => void;
 }
+
+/** One line of `<out>/cells.jsonl` (WP68): which run was which cell, and the events' digest a resume verifies. */
+export interface CellLine {
+	ordinal: number;
+	runId: string;
+	digest: string;
+	cell: CampaignCell;
+}
+
+/** The cells a stopped run finished and left verifiable on disk: `cells.jsonl` lines whose run's events still digest to what they recorded. */
+export async function reusableCells(
+	out: string,
+	storage: FileStorage
+): Promise<Map<number, CellLine>> {
+	let text: string;
+	try {
+		text = await readFile(join(out, CELLS), 'utf8');
+	} catch {
+		return new Map();
+	}
+	const reusable = new Map<number, CellLine>();
+	for (const line of text.split('\n')) {
+		if (line.trim() === '') continue;
+		let parsed: CellLine;
+		try {
+			parsed = JSON.parse(line) as CellLine;
+		} catch {
+			continue;
+		}
+		if (typeof parsed.ordinal !== 'number' || typeof parsed.runId !== 'string') continue;
+		if (!(await runExists(storage, parsed.runId))) continue;
+		const events = (await storage.getEvents(parsed.runId)).map((row) => row.event);
+		if (events.length === 0) continue;
+		if ((await computeTraceDigest(events)) !== parsed.digest) continue;
+		reusable.set(parsed.ordinal, parsed);
+	}
+	return reusable;
+}
+
+const CELLS = 'cells.jsonl';
 
 export interface CampaignFileReport {
 	report: CampaignReport;
@@ -98,6 +154,12 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 	const versions = packVersions(options.config);
 	const keepRuns = options.keepRuns ?? true;
 	const storage = keepRuns ? await createFileStorage(join(options.out, 'runs')) : undefined;
+	if (options.resume && !storage) {
+		throw new Error('--resume needs the runs kept: drop --no-keep-runs');
+	}
+	const reusable =
+		options.resume && storage ? await reusableCells(options.out, storage) : new Map();
+	await mkdir(options.out, { recursive: true });
 
 	// The file's sinks (WP47): every cell's finished trace goes to each, built once behind their guards.
 	const sinks = campaign.sinks.map((entry) => {
@@ -127,59 +189,97 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 			: undefined;
 
 	let writing: Promise<void> = Promise.resolve();
-	const report = await runCampaign(campaign, {
-		...(baseline ? { baseline } : {}),
-		...(pool ? { execute: (spec) => pool.execute(spec), concurrency: jobs } : {}),
-		...(options.shard ? { shard: options.shard } : {}),
-		packVersions: versions,
-		providerFor: (brain) => providerFor(brain, registry, options),
-		egress: options.egress ?? 'declared',
-		...(options.principal ? { principal: options.principal } : {}),
-		packs: runnerPacks,
-		plans: harnessPlans,
-		// A hosted evaluator's battery (WP51): from the environment, live only under the file's own `budget`.
-		credentials: (id) => options.credentials.get(id),
-		...(options.fetch ? { fetch: options.fetch } : {}),
-		onCell: (_cell, done, total) => options.onCell?.(done, total),
-		...(options.now ? { now: options.now } : {}),
-		...(options.newId ? { newId: options.newId } : {}),
-		onTrace: (cell, trace) => {
-			if (cell.runId === undefined) return;
-			if (sinks.length > 0) {
-				const exported = runRecordFrom({
-					runId: cell.runId,
+	const reusedOrdinals = new Set<number>();
+	let report: CampaignReport;
+	try {
+		report = await runCampaign(campaign, {
+			...(baseline ? { baseline } : {}),
+			// Reuse what a stopped run finished (WP68), then the pool or the runner's own way.
+			execute: (spec, run) => {
+				const kept = reusable.get(spec.ordinal);
+				if (kept) {
+					reusedOrdinals.add(spec.ordinal);
+					return Promise.resolve({ cell: kept.cell });
+				}
+				return pool ? pool.execute(spec) : run();
+			},
+			...(pool ? { concurrency: jobs } : {}),
+			...(options.shard ? { shard: options.shard } : {}),
+			packVersions: versions,
+			providerFor: (brain) => providerFor(brain, registry, options),
+			egress: options.egress ?? 'declared',
+			...(options.principal ? { principal: options.principal } : {}),
+			packs: runnerPacks,
+			plans: harnessPlans,
+			// A hosted evaluator's battery (WP51): from the environment, live only under the file's own `budget`.
+			credentials: (id) => options.credentials.get(id),
+			...(options.fetch ? { fetch: options.fetch } : {}),
+			onCell: (cell, done, total) => {
+				options.onCell?.(done, total);
+				options.onCellDone?.(
+					done,
+					total,
+					cell.ordinal !== undefined && reusedOrdinals.has(cell.ordinal)
+				);
+			},
+			...(options.now ? { now: options.now } : {}),
+			...(options.newId ? { newId: options.newId } : {}),
+			onTrace: (cell, trace) => {
+				if (cell.runId === undefined) return;
+				if (sinks.length > 0) {
+					const exported = runRecordFrom({
+						runId: cell.runId,
+						spec: trace.spec,
+						events: trace.events,
+						packVersions: versions,
+						startedAt: now(),
+						finishedAt: now(),
+						...(cell.outcome !== undefined ? { outcome: cell.outcome } : {})
+					});
+					for (const sink of sinks) {
+						writing = writing.then(async () => {
+							const result = await sink.export({ run: exported, events: trace.events });
+							if (!result.ok) sinkFailures.push(result.error);
+						});
+					}
+				}
+				if (!storage) return;
+				const runId = cell.runId;
+				const stamp = now();
+				const run = runRecordFrom({
+					runId,
 					spec: trace.spec,
 					events: trace.events,
 					packVersions: versions,
-					startedAt: now(),
-					finishedAt: now(),
+					startedAt: stamp,
+					finishedAt: stamp,
 					...(cell.outcome !== undefined ? { outcome: cell.outcome } : {})
 				});
-				for (const sink of sinks) {
-					writing = writing.then(async () => {
-						const result = await sink.export({ run: exported, events: trace.events });
-						if (!result.ok) sinkFailures.push(result.error);
+				writing = writing
+					.then(() => storage.putRun(run))
+					.then(() => storage.appendEvents(runId, trace.events))
+					.then(() => storage.putRunSummary(summariseRun(runId, trace.events)))
+					// Which run was which cell (WP68): the line a resume reads and verifies.
+					.then(async () => {
+						if (cell.ordinal === undefined) return;
+						const line: CellLine = {
+							ordinal: cell.ordinal,
+							runId,
+							// Over the events as the store will read them back (`12-…` D21): parsed, keys in schema order.
+							digest: await computeTraceDigest(engineEventSchema.array().parse(trace.events)),
+							cell
+						};
+						await appendFile(join(options.out, CELLS), `${JSON.stringify(line)}\n`, 'utf8');
 					});
-				}
 			}
-			if (!storage) return;
-			const runId = cell.runId;
-			const stamp = now();
-			const run = runRecordFrom({
-				runId,
-				spec: trace.spec,
-				events: trace.events,
-				packVersions: versions,
-				startedAt: stamp,
-				finishedAt: stamp,
-				...(cell.outcome !== undefined ? { outcome: cell.outcome } : {})
-			});
-			writing = writing
-				.then(() => storage.putRun(run))
-				.then(() => storage.appendEvents(runId, trace.events))
-				.then(() => storage.putRunSummary(summariseRun(runId, trace.events)));
-		}
-	});
+		});
+	} catch (error) {
+		// Whatever stopped the run, what was written stays whole and the pool is let go; the stop is the error.
+		await writing.catch(() => undefined);
+		await pool?.close();
+		throw error;
+	}
+	// A write that failed is a failure of the campaign: never swallowed.
 	await writing;
 	await pool?.close();
 

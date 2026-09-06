@@ -1,4 +1,5 @@
 import { mkdir, readdir, readFile, rm, stat, writeFile, appendFile } from 'node:fs/promises';
+import { computeTraceDigest } from '@craftabot/core';
 import { dirname, join } from 'node:path';
 import {
 	DEFAULT_RUN_CAP,
@@ -54,9 +55,31 @@ import {
  * actually on disk.
  */
 
+/**
+ * One line of `index.jsonl` (WP68, `57-HARNESS-AT-SCALE.md` §4.4): what a
+ * listing needs to know about a run without opening its directory. The
+ * last line for an id wins; a `deleted` line retires it.
+ */
+export interface RunIndexLine {
+	id: string;
+	agentId: string;
+	agentName: string;
+	goalCardId: string;
+	outcome: string;
+	/** Whether `summary.json` has been written — `listRunSummaries` opens only these. */
+	summary: boolean;
+	/** The events' digest, as `buildTraceFile` would stamp it, once the summary is written. */
+	digest?: string;
+	deleted?: true;
+}
+
 export interface FileStorage extends Storage {
 	readonly kind: 'file';
 	readonly root: string;
+	/** The index folded (WP68): one entry per live run id, in index order. */
+	readIndex(): Promise<RunIndexLine[]>;
+	/** The index written again from the run directories (WP68); what `craftabot index --rebuild` calls. */
+	rebuildIndex(): Promise<RunIndexLine[]>;
 	quarantined(): QuarantineReport;
 }
 
@@ -64,6 +87,7 @@ const AGENTS = 'agents';
 const RUNS = 'runs';
 const GROUP_RUNS = 'group-runs';
 const CAMPAIGNS = 'campaigns';
+const INDEX = 'index.jsonl';
 const CONTENT = 'content';
 
 /**
@@ -118,6 +142,96 @@ export async function createFileStorage(root: string): Promise<FileStorage> {
 	const evaluationsPath = (id: string) => join(runDir(id), 'evaluations.jsonl');
 	const groupRunPath = (id: string) => join(root, GROUP_RUNS, `${id}.json`);
 	const campaignPath = (id: string) => join(root, CAMPAIGNS, `${id}.json`);
+	const indexPath = join(root, INDEX);
+
+	/**
+	 * The index (WP68, `57-…` §4.4), folded once per store instance and kept
+	 * in step with every write: a listing reads this and opens only what it
+	 * returns, never `readdir` over ten thousand directories. A store with no
+	 * index — one written before, or one whose file went missing — rebuilds it
+	 * from the directories on first read.
+	 */
+	let index: Map<string, RunIndexLine> | undefined;
+	function foldIndexLines(text: string): Map<string, RunIndexLine> {
+		const folded = new Map<string, RunIndexLine>();
+		for (const line of text.split('\n')) {
+			if (line.trim() === '') continue;
+			let raw: unknown;
+			try {
+				raw = JSON.parse(line);
+			} catch {
+				continue;
+			}
+			const entry = raw as RunIndexLine;
+			if (typeof entry?.id !== 'string') continue;
+			if (entry.deleted) folded.delete(entry.id);
+			else folded.set(entry.id, entry);
+		}
+		return folded;
+	}
+	async function loadIndex(): Promise<Map<string, RunIndexLine>> {
+		if (index) return index;
+		let text: string | undefined;
+		try {
+			text = await readFile(indexPath, 'utf8');
+		} catch (error) {
+			if (!isMissing(error)) throw error;
+		}
+		if (text === undefined) {
+			const lines = await rebuildIndexFile();
+			index = new Map(lines.map((line) => [line.id, line]));
+			return index;
+		}
+		index = foldIndexLines(text);
+		return index;
+	}
+	async function writeIndexLine(line: RunIndexLine): Promise<void> {
+		const folded = await loadIndex();
+		if (line.deleted) folded.delete(line.id);
+		else folded.set(line.id, line);
+		await appendFile(indexPath, `${JSON.stringify(line)}\n`, 'utf8');
+	}
+	async function digestOf(runId: string): Promise<string> {
+		const stored = await readStoredEvents(runId);
+		return computeTraceDigest(stored.map((row) => row.event));
+	}
+	type Listed = Pick<RunRecord, 'id' | 'agentId' | 'agentName' | 'goalCardId'> & {
+		outcome: string;
+	};
+	function lineFor(record: Listed, summary: boolean, digest?: string): RunIndexLine {
+		return {
+			id: record.id,
+			agentId: record.agentId,
+			agentName: record.agentName,
+			goalCardId: record.goalCardId,
+			outcome: record.outcome,
+			summary,
+			...(digest !== undefined ? { digest } : {})
+		};
+	}
+	async function rebuildIndexFile(): Promise<RunIndexLine[]> {
+		const lines: RunIndexLine[] = [];
+		for (const id of await listRunIds()) {
+			const raw = await readJson(runPath(id));
+			const summary = await readJson(summaryPath(id));
+			const hasSummary = summary !== undefined && summary !== SYMBOL_CORRUPT;
+			if (raw === SYMBOL_CORRUPT) continue;
+			// A group's merged stream has no run.json and no summary; a summary-only directory still lists.
+			if (raw === undefined && !hasSummary) continue;
+			const record: Listed =
+				raw === undefined
+					? { id, agentId: '', agentName: '', goalCardId: '', outcome: '' }
+					: (raw as RunRecord);
+			lines.push(lineFor(record, hasSummary, hasSummary ? await digestOf(id) : undefined));
+		}
+		index = new Map(lines.map((line) => [line.id, line]));
+		await writeFile(
+			indexPath,
+			lines.length === 0 ? '' : `${lines.map((line) => JSON.stringify(line)).join('\n')}\n`,
+			'utf8'
+		);
+		return lines;
+	}
 
 	async function readJson(path: string): Promise<unknown | undefined> {
 		try {
@@ -146,7 +260,8 @@ export async function createFileStorage(root: string): Promise<FileStorage> {
 
 	async function readRuns(): Promise<RunRecord[]> {
 		const runs: RunRecord[] = [];
-		for (const id of await listRunIds()) {
+		// By the index (WP68), never by `readdir`: a listing opens only what it returns.
+		for (const id of [...(await loadIndex()).keys()]) {
 			const raw = await readJson(runPath(id));
 			if (raw === undefined) continue; // a group's merged stream has no run.json
 			if (raw === SYMBOL_CORRUPT) {
@@ -208,10 +323,28 @@ export async function createFileStorage(root: string): Promise<FileStorage> {
 		await rm(runDir(id), { recursive: true, force: true });
 	}
 
+	/** A run gone from disk is gone from the index too (WP68). */
+	async function deleteRunAndIndex(id: string): Promise<void> {
+		await removeRunDir(id);
+		if ((await loadIndex()).has(id)) {
+			await writeIndexLine({
+				id,
+				agentId: '',
+				agentName: '',
+				goalCardId: '',
+				outcome: '',
+				summary: false,
+				deleted: true
+			});
+		}
+	}
+
 	return {
 		kind: 'file',
 		root,
 		quarantined: () => ({ ...quarantine }),
+		readIndex: async () => [...(await loadIndex()).values()],
+		rebuildIndex: rebuildIndexFile,
 
 		async listAgents() {
 			let names: string[];
@@ -260,8 +393,10 @@ export async function createFileStorage(root: string): Promise<FileStorage> {
 		async putRun(record) {
 			await mkdir(runDir(record.id), { recursive: true });
 			await writeJson(runPath(record.id), record);
+			const known = (await loadIndex()).get(record.id);
+			await writeIndexLine(lineFor(record, known?.summary ?? false, known?.digest));
 		},
-		deleteRun: removeRunDir,
+		deleteRun: deleteRunAndIndex,
 		async setRunPinned(id, pinned) {
 			const raw = await readJson(runPath(id));
 			if (raw === undefined || raw === SYMBOL_CORRUPT) return;
@@ -330,6 +465,20 @@ export async function createFileStorage(root: string): Promise<FileStorage> {
 			}
 			await mkdir(runDir(summary.runId), { recursive: true });
 			await writeJson(summaryPath(summary.runId), summary);
+			// The run finished (WP68): the index line gains the summary and the events' digest.
+			// A summary with no run record beside it (the contract allows one) still lists.
+			const raw = await readJson(runPath(summary.runId));
+			const record =
+				raw !== undefined && raw !== SYMBOL_CORRUPT
+					? (raw as RunRecord)
+					: ((await loadIndex()).get(summary.runId) ?? {
+							id: summary.runId,
+							agentId: '',
+							agentName: '',
+							goalCardId: '',
+							outcome: ''
+						});
+			await writeIndexLine(lineFor(record, true, await digestOf(summary.runId)));
 		},
 		async getRunSummary(runId) {
 			const raw = await readJson(summaryPath(runId));
@@ -338,7 +487,11 @@ export async function createFileStorage(root: string): Promise<FileStorage> {
 		},
 		async listRunSummaries() {
 			const summaries: RunSummary[] = [];
-			for (const id of await listRunIds()) {
+			// Only the runs the index says have a summary (WP68): no `readdir`, no opening of runs still going.
+			const ids = [...(await loadIndex()).values()]
+				.filter((line) => line.summary)
+				.map((line) => line.id);
+			for (const id of ids) {
 				const raw = await readJson(summaryPath(id));
 				if (raw === undefined || raw === SYMBOL_CORRUPT) continue;
 				summaries.push(raw as RunSummary);
@@ -428,7 +581,7 @@ export async function createFileStorage(root: string): Promise<FileStorage> {
 
 		async evictOldRuns(cap = DEFAULT_RUN_CAP) {
 			const doomed = selectRunsToEvict(await readRuns(), cap);
-			for (const id of doomed) await removeRunDir(id);
+			for (const id of doomed) await deleteRunAndIndex(id);
 			return doomed;
 		},
 
@@ -437,6 +590,8 @@ export async function createFileStorage(root: string): Promise<FileStorage> {
 				await rm(join(root, dir), { recursive: true, force: true });
 				await mkdir(join(root, dir), { recursive: true });
 			}
+			index = undefined;
+			await rm(indexPath, { force: true });
 		}
 	};
 }
