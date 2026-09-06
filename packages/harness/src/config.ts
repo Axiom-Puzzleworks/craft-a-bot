@@ -12,6 +12,7 @@ import azureContentSafetyPack from '@craftabot/pack-azure-content-safety';
 import evaluatorsPack from '@craftabot/pack-evaluators';
 import fsAdvicePack from '@craftabot/pack-fs-advice';
 import fsBankPack from '@craftabot/pack-fs-bank';
+import fsFraudPack from '@craftabot/pack-fs-fraud';
 import geapPack from '@craftabot/pack-geap';
 import guardLocalPack from '@craftabot/pack-guard-local';
 import geminiPack from '@craftabot/pack-gemini';
@@ -60,7 +61,8 @@ export function defaultPacks(): PackManifest[] {
 		pdpOpaPack,
 		evaluatorsPack,
 		fsBankPack,
-		fsAdvicePack
+		fsAdvicePack,
+		fsFraudPack
 	];
 }
 

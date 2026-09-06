@@ -4,6 +4,7 @@ import azureContentSafetyPack from '@craftabot/pack-azure-content-safety';
 import evaluatorsPack from '@craftabot/pack-evaluators';
 import fsAdvicePack from '@craftabot/pack-fs-advice';
 import fsBankPack from '@craftabot/pack-fs-bank';
+import fsFraudPack from '@craftabot/pack-fs-fraud';
 import geapPack from '@craftabot/pack-geap';
 import guardLocalPack from '@craftabot/pack-guard-local';
 import geminiPack from '@craftabot/pack-gemini';
@@ -103,6 +104,8 @@ export const installedPacks = [
 	fsBankPack,
 	// WP60 (`49-FS-ADVICE.md`): the first desk on the bank.
 	fsAdvicePack,
+	// WP62 (`51-FS-FRAUD.md`): the second desk, written against the contracts alone.
+	fsFraudPack,
 	demoPack
 ];
 

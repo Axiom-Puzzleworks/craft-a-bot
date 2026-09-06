@@ -300,6 +300,8 @@ A desk's case is generated from the `random` handed to `create` (the session's o
 - **A desk in the Kit's leaflet, a chapter, a side quest** — never in this roadmap (`42-…` §1.1).
 - **Publishing `@craftabot/desk`** — not in WP53; its README says so.
 
+> **Amended 2026-09-05 (WP62, `51-FS-FRAUD.md` §2):** the second desk, written against this runtime alone, needed two additions: `DeskActionContext.open(queueItemId)` — `open` → `in-progress`, `activeCaseId` following, refused on a closed item — and a second argument on every predicate, `test(state, truth)`, so a rule about what was *so* can read the case's truth (a boolean comes back; the snapshot still carries none). Both covered on the test desk; every desk written before takes the state alone and is unchanged.
+
 ## 8. Divergences from `41-…` §6.1, with reasons
 
 | `41-…` §6.1 says | This note does | Why |

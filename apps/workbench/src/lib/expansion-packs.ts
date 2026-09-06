@@ -75,7 +75,7 @@ export const EXPANSION_PACKS: readonly ExpansionPack[] = [
 		id: 'retail-bank-playground',
 		name: 'Retail Bank Playground',
 		contents:
-			'A synthetic high-street bank: customers, accounts, a product shelf, nine service lines — and the Advice Desk, with two desks to come',
+			'A synthetic high-street bank: customers, accounts, a product shelf, nine service lines — and the Advice and Fraud Desks, with the Lending Desk to come',
 		teaches: 'governance in a regulated domain; truth, purpose, fairness',
 		status: 'unlocked'
 	},

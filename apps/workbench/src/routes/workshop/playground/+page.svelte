@@ -69,7 +69,11 @@
 	one generated from a seed and none of it real. Three desks work this bank — <a
 		href={resolve('/workshop/playground/advice')}
 		data-testid="playground-advice-link">the Advice Desk</a
-	> is here; fraud and lending are coming. This page shows the bank itself.
+	>
+	and
+	<a href={resolve('/workshop/playground/fraud')} data-testid="playground-fraud-link"
+		>the Fraud Desk</a
+	> are here; lending is coming. This page shows the bank itself.
 </p>
 <p class="simulation" data-testid="playground-simulation-only">FOR SIMULATION ONLY</p>
 

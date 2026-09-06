@@ -23,6 +23,7 @@ describe('createDeskWorld: the definition', () => {
 			`${TEST_DESK_ID}/say`,
 			`${TEST_DESK_ID}/look-up`,
 			`${TEST_DESK_ID}/sign-in`,
+			`${TEST_DESK_ID}/open`,
 			`${TEST_DESK_ID}/escalate`
 		]);
 		for (const action of testDesk.actions) expect(action.riskTier).toBeDefined();
@@ -101,6 +102,16 @@ describe('createDeskWorld: the instance', () => {
 			speaker: 'system',
 			text: 'A. Person signed in.'
 		});
+
+		// ctx.open (WP62): open → in-progress, activeCaseId follows, closed items refuse.
+		const opened = testDesk.create('one-visitor');
+		expect(opened.perform({ name: 'open', arguments: { item: 'sign-in' } }).ok).toBe(true);
+		expect(snapshot(opened).queue[0]?.status).toBe('in-progress');
+		expect(snapshot(opened).activeCaseId).toBe('sign-in');
+		expect(opened.perform({ name: 'open', arguments: { item: 'sign-in' } }).ok).toBe(true);
+		expect(opened.perform({ name: 'open', arguments: { item: 'nope' } }).ok).toBe(false);
+		opened.perform({ name: 'sign-in', arguments: { visitor: 'B. Person' } });
+		expect(opened.perform({ name: 'open', arguments: { item: 'sign-in' } }).ok).toBe(false);
 
 		const other = testDesk.create('one-visitor');
 		other.perform({ name: 'escalate', arguments: { reason: 'No appointment.' } });
