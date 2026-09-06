@@ -140,6 +140,14 @@ export interface WorldInstance {
 	test(predicate: WorldPredicateId): boolean;
 	reset(): void;
 	/**
+	 * Put the world back to a snapshot it made (WP66, `54-FORK-EXPLAIN.md` §2
+	 * item 1) — the door a fork uses. Optional: a world without it is rebuilt
+	 * by replaying its recorded calls, which is exact for a deterministic
+	 * world whose creation drew nothing the fork cannot redraw; a world that
+	 * keeps anything beside its snapshot implements this and includes it.
+	 */
+	restore?(snapshot: WorldState): void;
+	/**
 	 * Deliver a user message into the world, for worlds with a "hearing"-style
 	 * sense channel (the Playroom's chat bubble, 02-AGENT-MODEL.md §2.4).
 	 * Optional: worlds the user cannot talk to simply omit it. Exists so the UI

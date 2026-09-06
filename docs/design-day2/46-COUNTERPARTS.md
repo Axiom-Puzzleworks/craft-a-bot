@@ -152,6 +152,8 @@ The script's picks and the seat's turns draw from the desk's own stream and the 
 - No Workshop duo route; the Kit's duo route and the harness are the two hosts.
 - No counterpart brief for the agent seat, ever.
 
+> **Amended 2026-09-06 (WP66, `54-FORK-EXPLAIN.md` §4.2):** `DeskState` gains `counterpart?: { fired, ended }` — the person across the desk's memory, in the state so a fork puts it back and a `once` rule does not fire twice — and `draws`, how many times the desk's own random has been drawn, so `restore(snapshot)` reseeds and redraws to the same place. `DeskView` reads neither. The desk golden traces are re-recorded for the two fields; nothing else in them moved.
+
 ## 8. Divergences from `41-…` §6.3, with reasons
 
 | `41-…` says | This note does | Why |

@@ -106,7 +106,15 @@ const runStartedEvent = eventSchema(
 		 * means the pairing that was the only one available, `window-v1` +
 		 * `sections-v1`.
 		 */
-		strategies: z.object({ memory: z.string(), prompt: z.string() }).optional()
+		strategies: z.object({ memory: z.string(), prompt: z.string() }).optional(),
+		/** A fork (WP66, `54-…` §4.1): the origin run and the tick this run continues after; additive. */
+		forkedFrom: z
+			.object({
+				runId: z.string(),
+				tick: z.number().int().nonnegative(),
+				notebook: z.enum(['restored', 'empty'])
+			})
+			.optional()
 	})
 );
 const runFinishedEvent = eventSchema(

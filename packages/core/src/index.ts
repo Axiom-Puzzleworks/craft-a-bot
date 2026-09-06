@@ -405,6 +405,19 @@ export { validateSpecV2 } from './validate-spec-v2.js';
 
 // The running engine (02-AGENT-MODEL.md §5)
 export { createSession } from './session/agent-session.js';
+export {
+	brainTurnsThrough,
+	eventsThrough,
+	feedbackAfter,
+	forkSession,
+	notebookFrom,
+	rebuildWorld,
+	tickMemoryFrom,
+	worldStateThrough,
+	type ForkFrom,
+	type ForkOptions,
+	type ForkOverrides
+} from './session/fork.js';
 // Multi-agent core (WP29, `23-MULTI-AGENT-DESIGN.md` §4.4, stage C)
 export { createGroupTokenBudgetGuardrail, createSessionGroup } from './session/session-group.js';
 export type {

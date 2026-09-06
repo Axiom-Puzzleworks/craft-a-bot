@@ -302,6 +302,8 @@ A desk's case is generated from the `random` handed to `create` (the session's o
 
 > **Amended 2026-09-05 (WP62, `51-FS-FRAUD.md` §2):** the second desk, written against this runtime alone, needed two additions: `DeskActionContext.open(queueItemId)` — `open` → `in-progress`, `activeCaseId` following, refused on a closed item — and a second argument on every predicate, `test(state, truth)`, so a rule about what was *so* can read the case's truth (a boolean comes back; the snapshot still carries none). Both covered on the test desk; every desk written before takes the state alone and is unchanged.
 
+> **Amended 2026-09-06 (WP66, `54-FORK-EXPLAIN.md` §4.2):** `DeskState` gains `counterpart?: { fired, ended }` — the person across the desk's memory, in the state so a fork puts it back and a `once` rule does not fire twice — and `draws`, how many times the desk's own random has been drawn, so `restore(snapshot)` reseeds and redraws to the same place. `DeskView` reads neither. The desk golden traces are re-recorded for the two fields; nothing else in them moved.
+
 ## 8. Divergences from `41-…` §6.1, with reasons
 
 | `41-…` §6.1 says | This note does | Why |

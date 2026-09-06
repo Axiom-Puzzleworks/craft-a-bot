@@ -110,6 +110,15 @@ export type DeskState<Extra = Record<string, unknown>> = DeskWorldState & {
 	toolOverrides: Record<string, unknown>;
 	/** What `configure` was handed. Nothing reads it yet. */
 	config?: Record<string, unknown>;
+	/**
+	 * Where the person across the desk has got to (WP66, `54-…` §4.2): the
+	 * rules that have fired and whether they left — in the state so a fork
+	 * puts them back and a `once` rule does not fire twice. `DeskView` never
+	 * reads it.
+	 */
+	counterpart?: CounterpartMemory;
+	/** How many times the desk's own random has been drawn, so a restore can redraw to the same place (WP66). */
+	draws: number;
 	extra: Extra;
 };
 
@@ -263,6 +272,7 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 			alerts: structuredClone(generated.alerts ?? []),
 			...(generated.activeCaseId !== undefined ? { activeCaseId: generated.activeCaseId } : {}),
 			tick: 0,
+			draws: 0,
 			hidden: structuredClone(generated.hidden ?? []),
 			heardCursor: 0,
 			scheduledHeard: [],
@@ -347,13 +357,19 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 		// Beside the state, never in it (`45-…` §4.2): nothing that clones the
 		// state can reach it, and nothing but `truth()` reads it.
 		let truth = built.truth;
-		let random = seededRandom(seed ^ 0x9e3779b9);
+		let baseRandom = seededRandom(seed ^ 0x9e3779b9);
+		// Counted in the state (WP66): a restore reseeds and redraws `state.draws` times.
+		const random = (): number => {
+			state.draws += 1;
+			return baseRandom();
+		};
 		let seq = 0;
 		// The person across the desk (`46-…` §4.2): the script and where it has
 		// got to, in the closure like the truth; the transcript is what shows.
 		let counterpart: { script: CounterpartScript; memory: CounterpartMemory } | undefined;
 		function seat(script: CounterpartScript | undefined): void {
 			counterpart = script ? { script, memory: freshCounterpartMemory() } : undefined;
+			if (counterpart) state.counterpart = counterpart.memory;
 			if (script?.opening) line('counterpart', script.name, script.opening);
 		}
 		/** A live counterpart seat, once bound, speaks instead of the script (`46-…` §4.4). */
@@ -369,6 +385,7 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 				random
 			);
 			counterpart.memory = memory;
+			state.counterpart = memory;
 			if (!turn) return;
 			const name = counterpart.script.name;
 			if (turn.text !== undefined) {
@@ -720,9 +737,19 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 				const rebuilt = buildState(layout, seed);
 				state = rebuilt.state;
 				truth = rebuilt.truth;
-				random = seededRandom(seed ^ 0x9e3779b9);
+				baseRandom = seededRandom(seed ^ 0x9e3779b9);
 				seq = 0;
 				seat(rebuilt.counterpart);
+			},
+			// A fork's door (WP66, `54-…` §4.2): the state wholesale, the counterpart's memory from it, the random redrawn to where it was.
+			restore(snapshot): void {
+				state = structuredClone(snapshot) as unknown as DeskState<Extra>;
+				seq = state.transcript.reduce((max, line) => Math.max(max, line.seq), 0);
+				baseRandom = seededRandom(seed ^ 0x9e3779b9);
+				const draws = state.draws;
+				state.draws = 0;
+				for (let i = 0; i < draws; i += 1) random();
+				if (counterpart) counterpart.memory = state.counterpart ?? freshCounterpartMemory();
 			},
 			// Present only when the case has a truth, so `'truth' in instance` is
 			// honest for a desk that keeps nothing from the bot (the golden desk).

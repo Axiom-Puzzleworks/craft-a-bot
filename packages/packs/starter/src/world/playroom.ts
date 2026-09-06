@@ -232,6 +232,11 @@ function createPlayroomInstance(layoutId: string): WorldInstance {
 			resetState();
 		},
 
+		// A fork's door (WP66, `54-…` §4.2): everything the Playroom keeps is in its state.
+		restore(snapshot: WorldState): void {
+			state = structuredClone(snapshot) as PlayroomState;
+		},
+
 		receiveInput(text: string): void {
 			state.heard.push(text);
 		},

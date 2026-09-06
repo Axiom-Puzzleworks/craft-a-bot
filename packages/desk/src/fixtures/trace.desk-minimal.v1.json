@@ -59,6 +59,7 @@
 				],
 				"alerts": [],
 				"tick": 0,
+				"draws": 0,
 				"hidden": [
 					{
 						"id": "visitor",
@@ -318,6 +319,7 @@
 				],
 				"alerts": [],
 				"tick": 1,
+				"draws": 0,
 				"hidden": [
 					{
 						"id": "visitor",
@@ -618,6 +620,7 @@
 				],
 				"alerts": [],
 				"tick": 2,
+				"draws": 0,
 				"hidden": [],
 				"heardCursor": 1,
 				"scheduledHeard": [],
@@ -893,6 +896,7 @@
 				],
 				"alerts": [],
 				"tick": 3,
+				"draws": 0,
 				"hidden": [],
 				"heardCursor": 1,
 				"scheduledHeard": [],
