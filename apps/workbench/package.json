@@ -12,7 +12,8 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"test": "vitest run --coverage",
 		"e2e": "playwright test --project default",
-		"e2e:visual": "playwright test --project visual"
+		"e2e:visual": "playwright test --project visual",
+		"e2e:editions": "playwright test --config playwright.editions.config.ts"
 	},
 	"devDependencies": {
 		"@axe-core/playwright": "^4.13.0",
