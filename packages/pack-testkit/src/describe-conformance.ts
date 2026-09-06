@@ -29,7 +29,10 @@ export function describeConformance(fixture: PackConformanceFixture): void {
 
 	describe(`pack conformance: ${manifest.id}`, () => {
 		it('manifest validates, ids are qualified, and registers without collision', () => {
-			const issues = checkManifest(manifest, { companionPacks });
+			const issues = checkManifest(manifest, {
+				companionPacks,
+				...(fixture.controlMaps ? { controlMaps: fixture.controlMaps } : {})
+			});
 			expect(issues, format(issues)).toEqual([]);
 		});
 

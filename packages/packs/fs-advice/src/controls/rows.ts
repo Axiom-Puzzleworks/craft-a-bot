@@ -1,4 +1,4 @@
-import type { ControlMapRow } from '@craftabot/pack-fs-bank';
+import type { ControlMap, ControlMapRow } from '@craftabot/core';
 
 /**
  * **The desk's control-map rows** (WP60 stage C, `49-FS-ADVICE.md` §4.6;
@@ -22,6 +22,7 @@ export const ADVICE_CONTROL_ROWS: readonly ControlMapRow[] = [
 				note: 'against the truth’s suitable set'
 			}
 		],
+		status: 'unreviewed',
 		tags: ['fca:cobs-9:suitability', 'fca:cd:products-services']
 	},
 	{
@@ -36,6 +37,7 @@ export const ADVICE_CONTROL_ROWS: readonly ControlMapRow[] = [
 			{ kind: 'evaluator', id: 'fs-advice/warning-given' },
 			{ kind: 'evaluator', id: 'fs-advice/rubric/understanding', note: 'the paraphrases' }
 		],
+		status: 'unreviewed',
 		tags: ['fca:cobs-4:promotions', 'fca:cd:understanding']
 	},
 	{
@@ -49,6 +51,7 @@ export const ADVICE_CONTROL_ROWS: readonly ControlMapRow[] = [
 			{ kind: 'evaluator', id: 'fs-advice/vulnerability-actioned' },
 			{ kind: 'evaluator', id: 'fs-advice/rubric/support' }
 		],
+		status: 'unreviewed',
 		tags: ['fca:fg21-1:vulnerability', 'fca:cd:support']
 	},
 	{
@@ -57,6 +60,7 @@ export const ADVICE_CONTROL_ROWS: readonly ControlMapRow[] = [
 		title: 'Price and value',
 		obligation: 'Where a cheaper suitable product exists, charges are explained.',
 		evidence: [{ kind: 'evaluator', id: 'fs-advice/rubric/price-value' }],
+		status: 'unreviewed',
 		tags: ['fca:cd:price-value']
 	},
 	{
@@ -65,6 +69,7 @@ export const ADVICE_CONTROL_ROWS: readonly ControlMapRow[] = [
 		title: 'Guidance is not advice',
 		obligation: 'On a guidance-only card the desk explains and refers; it never recommends.',
 		evidence: [{ kind: 'evaluator', id: 'fs-advice/boundary-held' }],
+		status: 'unreviewed',
 		tags: ['fca:cobs-9:suitability']
 	},
 	{
@@ -76,6 +81,7 @@ export const ADVICE_CONTROL_ROWS: readonly ControlMapRow[] = [
 			{ kind: 'policy-card', id: 'fs-advice/policy/four-eyes-on-execution' },
 			{ kind: 'trace-guarantee', id: 'approval.requested' }
 		],
+		status: 'unreviewed',
 		tags: ['pra:ss1-23:mitigants']
 	},
 	{
@@ -90,6 +96,16 @@ export const ADVICE_CONTROL_ROWS: readonly ControlMapRow[] = [
 			{ kind: 'evaluator', id: 'fs-advice/pii-contained' },
 			{ kind: 'evaluator', id: 'fs-advice/data-minimised' }
 		],
+		status: 'unreviewed',
 		tags: ['ukgdpr:data-minimisation', 'ukgdpr:purpose-limitation']
 	}
 ];
+
+/** The rows as the map the manifest registers (WP67, `53-…` §4.1). */
+export const adviceControlMap: ControlMap = {
+	id: 'fs-advice/control-map',
+	title: 'The Advice Desk',
+	description:
+		'The Advice Desk’s claims of relevance: suitability, promotions, vulnerability, data minimisation, four eyes on execution. Relevance, not compliance.',
+	rows: [...ADVICE_CONTROL_ROWS]
+};

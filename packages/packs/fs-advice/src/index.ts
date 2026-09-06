@@ -1,4 +1,5 @@
 import type { PackManifest } from '@craftabot/core';
+import { adviceControlMap } from './controls/rows.js';
 import { advicePolicyCards } from './cards/policy.js';
 import { adviceGoalCards } from './decks/goal-cards.js';
 import { adviceEvaluators } from './evaluators/index.js';
@@ -24,7 +25,8 @@ export const fsAdvicePack: PackManifest = {
 	goalCards: adviceGoalCards,
 	scenarios: adviceScenarios,
 	policyCards: advicePolicyCards,
-	evaluators: adviceEvaluators
+	evaluators: adviceEvaluators,
+	controlMaps: [adviceControlMap]
 };
 
 export default fsAdvicePack;
@@ -100,7 +102,7 @@ export {
 	advicePolicyCards
 } from './cards/policy.js';
 export * from './evaluators/index.js';
-export { ADVICE_CONTROL_ROWS } from './controls/rows.js';
+export { ADVICE_CONTROL_ROWS, adviceControlMap } from './controls/rows.js';
 export {
 	ADVICE_BASELINE_ID,
 	GUARD_IDS,

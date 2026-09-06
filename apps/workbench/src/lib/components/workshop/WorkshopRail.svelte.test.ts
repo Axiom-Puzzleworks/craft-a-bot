@@ -21,6 +21,7 @@ describe('the Workshop rail', () => {
 		'telemetry',
 		'incidents',
 		'safety-case',
+		'assurance',
 		'export'
 	])('links to %s, which is built', (built) => {
 		render(WorkshopRail, { props: { current: 'runs' } });

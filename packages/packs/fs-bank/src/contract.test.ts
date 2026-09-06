@@ -18,6 +18,8 @@ const fixture: PackConformanceFixture = {
 	manifest: fsBankPack,
 	// The bank requires the starter (its Connector brick is how a line is fitted).
 	companionPacks: [starterPack],
+	// The bank's map cites the three desks' evidence; the harness's config test resolves it with every pack installed (WP67).
+	controlMaps: { resolve: false },
 	serviceLines: {
 		'fs-bank/crm': {
 			worldState,

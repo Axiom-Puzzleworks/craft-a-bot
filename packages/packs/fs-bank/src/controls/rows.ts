@@ -1,30 +1,16 @@
+import type { ControlEvidenceKind, ControlMap, ControlMapRow } from '@craftabot/core';
+
+/** Re-exported for the packs that imported them from here before WP67 moved the type to `core`. */
+export type { ControlEvidenceKind, ControlMapRow };
+
 /**
  * **The bank's control-map rows** (WP59 stage B, `48-FS-BANK.md` §4.7;
- * `41-…` §6.7): the UK retail rows, shipped as data now and registered by
- * WP67 when `PackManifest.controlMaps` and `checkControlMap` exist. Each
+ * `41-…` §6.7): the UK retail rows, registered on the manifest as
+ * `bankControlMap` since WP67 and resolved by `checkControlMap`. Each
  * row is a *claim of relevance* — "this obligation is evidenced by these
  * ids" — worded as such; none is a claim of compliance. The evidence ids
  * are the ones the desks will use, decided here so WP67 can resolve them.
  */
-export type ControlEvidenceKind =
-	| 'guardrail'
-	| 'policy-card'
-	| 'evaluator'
-	| 'gate'
-	| 'trace-guarantee'
-	| 'egress'
-	| 'principal'
-	| 'artefact';
-
-export interface ControlMapRow {
-	framework: string;
-	ref: string;
-	title: string;
-	obligation: string;
-	evidence: Array<{ kind: ControlEvidenceKind; id: string; note?: string }>;
-	/** The obligation tags this row groups (`obligations.ts`). */
-	tags: string[];
-}
 
 export const BANK_CONTROL_ROWS: readonly ControlMapRow[] = [
 	{
@@ -37,6 +23,7 @@ export const BANK_CONTROL_ROWS: readonly ControlMapRow[] = [
 			{ kind: 'evaluator', id: 'fs-advice/recommendation-suitable' },
 			{ kind: 'evaluator', id: 'fs-advice/rubric/products-services' }
 		],
+		status: 'unreviewed',
 		tags: ['fca:cd:products-services']
 	},
 	{
@@ -46,6 +33,7 @@ export const BANK_CONTROL_ROWS: readonly ControlMapRow[] = [
 		obligation:
 			'Where a cheaper suitable product exists, it is surfaced and charges are explained.',
 		evidence: [{ kind: 'evaluator', id: 'fs-advice/rubric/price-value' }],
+		status: 'unreviewed',
 		tags: ['fca:cd:price-value']
 	},
 	{
@@ -58,6 +46,7 @@ export const BANK_CONTROL_ROWS: readonly ControlMapRow[] = [
 			{ kind: 'evaluator', id: 'fs-advice/rubric/understanding' },
 			{ kind: 'evaluator', id: 'fs-lending/explanation-faithful' }
 		],
+		status: 'unreviewed',
 		tags: ['fca:cd:understanding']
 	},
 	{
@@ -70,6 +59,7 @@ export const BANK_CONTROL_ROWS: readonly ControlMapRow[] = [
 			{ kind: 'evaluator', id: 'fs-advice/rubric/support' },
 			{ kind: 'evaluator', id: 'fs-fraud/rubric/distressed-call' }
 		],
+		status: 'unreviewed',
 		tags: ['fca:cd:support']
 	},
 	{
@@ -84,6 +74,7 @@ export const BANK_CONTROL_ROWS: readonly ControlMapRow[] = [
 			{ kind: 'policy-card', id: 'fs-advice/policy/no-guarantees' },
 			{ kind: 'evaluator', id: 'fs-advice/warning-given' }
 		],
+		status: 'unreviewed',
 		tags: ['fca:cobs-9:suitability', 'fca:cobs-4:promotions']
 	},
 	{
@@ -97,6 +88,7 @@ export const BANK_CONTROL_ROWS: readonly ControlMapRow[] = [
 			{ kind: 'policy-card', id: 'fs-lending/policy/no-decision-before-affordability' },
 			{ kind: 'evaluator', id: 'fs-lending/explanation-faithful' }
 		],
+		status: 'unreviewed',
 		tags: ['fca:conc:affordability', 'fca:conc:creditworthiness']
 	},
 	{
@@ -110,6 +102,7 @@ export const BANK_CONTROL_ROWS: readonly ControlMapRow[] = [
 			{ kind: 'evaluator', id: 'fs-advice/data-minimised' },
 			{ kind: 'policy-card', id: 'fs-advice/policy/purpose-limited-lookup' }
 		],
+		status: 'unreviewed',
 		tags: ['fca:fg21-1:vulnerability', 'ukgdpr:purpose-limitation']
 	},
 	{
@@ -118,7 +111,10 @@ export const BANK_CONTROL_ROWS: readonly ControlMapRow[] = [
 		title: 'Complaints acknowledged, root-caused, redressed within bounds',
 		obligation:
 			'A complaint is logged, acknowledged, answered with a reason and redressed within the rules.',
-		evidence: [{ kind: 'evaluator', id: 'fs-advice/complaint-handled' }],
+		// The complaints deck is WP72's (`53-…` §2 item 2): pending, never evidenced.
+		evidence: [],
+		status: 'pending',
+		note: 'Waits for WP72, the complaints deck, and its complaint-handled evaluator.',
 		tags: ['fca:disp:complaints']
 	},
 	{
@@ -134,6 +130,7 @@ export const BANK_CONTROL_ROWS: readonly ControlMapRow[] = [
 			{ kind: 'artefact', id: 'campaign-report', note: 'with builds and no-regression gates' },
 			{ kind: 'gate', id: 'no-regression' }
 		],
+		status: 'unreviewed',
 		tags: [
 			'pra:ss1-23:identification',
 			'pra:ss1-23:governance',
@@ -153,6 +150,7 @@ export const BANK_CONTROL_ROWS: readonly ControlMapRow[] = [
 			{ kind: 'policy-card', id: 'fs-fraud/policy/never-tip-off' },
 			{ kind: 'evaluator', id: 'fs-fraud/caller-verified-before-action' }
 		],
+		status: 'unreviewed',
 		tags: ['poca:tipping-off', 'mlr:kyc']
 	},
 	{
@@ -166,6 +164,7 @@ export const BANK_CONTROL_ROWS: readonly ControlMapRow[] = [
 			{ kind: 'policy-card', id: 'fs-advice/policy/purpose-limited-lookup' },
 			{ kind: 'trace-guarantee', id: 'tool.executed', note: 'every line read is on the trace' }
 		],
+		status: 'unreviewed',
 		tags: ['ukgdpr:data-minimisation', 'ukgdpr:purpose-limitation']
 	},
 	{
@@ -178,6 +177,7 @@ export const BANK_CONTROL_ROWS: readonly ControlMapRow[] = [
 			{ kind: 'gate', id: 'parity' },
 			{ kind: 'policy-card', id: 'fs-lending/policy/cohort-blind' }
 		],
+		status: 'unreviewed',
 		tags: ['equality-act:fairness']
 	},
 	{
@@ -186,7 +186,19 @@ export const BANK_CONTROL_ROWS: readonly ControlMapRow[] = [
 		title: 'Degraded service handled safely and told plainly',
 		obligation:
 			'When the model degrades the customer is told in plain words rather than given a wrong answer.',
-		evidence: [{ kind: 'policy-card', id: 'fs-bank/policy/fallback' }],
+		// The operational-incident deck and the fallback card are WP72's: pending, never evidenced.
+		evidence: [],
+		status: 'pending',
+		note: 'Waits for WP72, the operational-incident deck, and its fallback card.',
 		tags: ['pra:ss1-21:resilience']
 	}
 ];
+
+/** The rows as the map the manifest registers (WP67, `53-…` §4.1). */
+export const bankControlMap: ControlMap = {
+	id: 'fs-bank/control-map',
+	title: 'The bank — UK retail obligations',
+	description:
+		'The Consumer Duty’s outcomes, COBS, CONC, FG21/1, DISP, PRA SS1/23, POCA and the MLR, UK GDPR, the Equality Act and SS1/21, evidenced across the three desks. Relevance, not compliance.',
+	rows: [...BANK_CONTROL_ROWS]
+};

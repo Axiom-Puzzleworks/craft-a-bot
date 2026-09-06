@@ -8,6 +8,13 @@
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import { otelTraceFor } from '$lib/workshop/otel-export.js';
 	import { sinksStore } from '$lib/state/sinks.svelte.js';
+	import {
+		assurancePackFromStorage,
+		renderAssurancePackHtml,
+		type AssuranceCampaignReportLike
+	} from '@craftabot/governance/reports';
+	import { createRegistry } from '$lib/packs.js';
+	import { reportFrom } from '$lib/workshop/campaign-cells.js';
 
 	/**
 	 * **The Audit Centre** (`17-…` §2, Phase F): "traces, reports, cards, OTel
@@ -129,6 +136,24 @@
 		const events = (await storage.getEvents(run.id)).map((row) => row.event);
 		const trace = otelTraceFor(run, events);
 		download(JSON.stringify(trace, null, '\t'), `${slug(run.agentName)}.otel-trace.json`);
+	}
+
+	// The assurance pack (WP67, `53-…` §4.3): the same HTML `/workshop/assurance` and `craftabot assurance` write, for this run's bot.
+	async function downloadAssurance(): Promise<void> {
+		if (!run) return;
+		const storage = await appStorage();
+		const pack = await assurancePackFromStorage(run.agentId, storage, createRegistry(), {
+			parseReport: (raw) =>
+				reportFrom({ report: raw } as never) as unknown as AssuranceCampaignReportLike | undefined
+		});
+		const url = URL.createObjectURL(
+			new Blob([renderAssurancePackHtml(pack)], { type: 'text/html' })
+		);
+		const link = document.createElement('a');
+		link.href = url;
+		link.download = `${slug(run.agentName)}.assurance-pack.html`;
+		link.click();
+		URL.revokeObjectURL(url);
 	}
 
 	async function downloadCard(): Promise<void> {
@@ -300,6 +325,18 @@
 					</div>
 					<button type="button" data-testid="export-download-card" onclick={downloadCard}
 						>Download Agent Card</button
+					>
+				</li>
+				<li>
+					<div>
+						<strong>Assurance pack</strong>
+						<p>
+							{run.agentName}'s evidence filed against the control maps — one HTML file a reviewer
+							opens with no app. Relevance, never compliance.
+						</p>
+					</div>
+					<button type="button" data-testid="export-download-assurance" onclick={downloadAssurance}
+						>Download the assurance pack</button
 					>
 				</li>
 				<li>

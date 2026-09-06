@@ -38,6 +38,7 @@
 		if (path.startsWith('/workshop/telemetry')) return 'telemetry' as const;
 		if (path.startsWith('/workshop/incidents')) return 'incidents' as const;
 		if (path.startsWith('/workshop/safety-case')) return 'safety-case' as const;
+		if (path.startsWith('/workshop/assurance')) return 'assurance' as const;
 		if (path.startsWith('/workshop/export')) return 'export' as const;
 		if (path.startsWith('/workshop/armour')) return 'armour' as const;
 		if (path.startsWith('/workshop/guards')) return 'guards' as const;

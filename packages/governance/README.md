@@ -108,7 +108,9 @@ shell attaches it to every request as `policyInput`.
 (`safetyCaseFromSummaries`, with evaluation and campaign evidence), telemetry by card and
 cartridge, the guardrail trip mix, autonomy figures, the daily series and its drift flags
 (`telemetrySeries`, `driftIn`), `reasonsUsed` — what a decision had in hand when it was made,
-the first field of the explain-this-decision fold — and `assertionEvaluator` for assertion cards
+the first field of the explain-this-decision fold — `genericControlMap`, the NIST, EU AI Act,
+ISO/IEC 42001 and OWASP ASI rows a host registers as the control map's generic half — and
+`assertionEvaluator` for assertion cards
 as evaluators.
 Every fold is pure; a headless host produces the same JSON the Workshop renders.
 

@@ -66,6 +66,12 @@ export {
 export { safetyTally, type SafetyTally } from './safety-tally.js';
 export { reasonsUsed, type ReasonsUsed } from './decision-explanation.js';
 export {
+	GENERIC_CONTROL_MAP_ID,
+	GENERIC_CONTROL_MAP_MANIFEST,
+	GOVERNANCE_GUARDRAIL_IDS,
+	genericControlMap
+} from './control-map.js';
+export {
 	boundaryMapFor,
 	litEdgesAt,
 	type BoundaryActivity,
@@ -74,3 +80,28 @@ export {
 	type BoundaryOutside,
 	type BoundaryOutsideKind
 } from './boundary.js';
+export {
+	ASSURANCE_PACK_FORMAT,
+	ASSURANCE_PACK_VERSION,
+	ASSURANCE_POSTURE,
+	assurancePackDigest,
+	assurancePackFor,
+	assurancePackFromStorage,
+	canonicalJson,
+	type AssuranceCampaign,
+	type AssuranceCampaignReportLike,
+	type AssuranceControlMap,
+	type AssuranceControlRow,
+	type AssuranceEvaluation,
+	type AssuranceEvidence,
+	type AssuranceOutcome,
+	type AssurancePack,
+	type AssurancePackInput,
+	type EvidencePresence,
+	type NotRecorded
+} from './assurance-pack.js';
+export {
+	ASSURANCE_TOKENS,
+	renderAssurancePackHtml,
+	renderAssurancePackMarkdown
+} from './assurance-pack-render.js';

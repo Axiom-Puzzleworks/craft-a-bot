@@ -1,4 +1,5 @@
 import type { PackManifest } from '@craftabot/core';
+import { fraudControlMap } from './controls/rows.js';
 import { fraudPolicyCards } from './cards/policy.js';
 import { fraudGoalCards } from './decks/goal-cards.js';
 import { fraudEvaluators } from './evaluators/index.js';
@@ -25,7 +26,8 @@ export const fsFraudPack: PackManifest = {
 	goalCards: fraudGoalCards,
 	scenarios: fraudScenarios,
 	policyCards: fraudPolicyCards,
-	evaluators: fraudEvaluators
+	evaluators: fraudEvaluators,
+	controlMaps: [fraudControlMap]
 };
 
 export default fsFraudPack;
@@ -91,7 +93,7 @@ export {
 	fraudPolicyCards
 } from './cards/policy.js';
 export * from './evaluators/index.js';
-export { FRAUD_CONTROL_ROWS } from './controls/rows.js';
+export { FRAUD_CONTROL_ROWS, fraudControlMap } from './controls/rows.js';
 export {
 	FRAUD_BASELINE_ID,
 	FRAUD_GUARD_IDS,

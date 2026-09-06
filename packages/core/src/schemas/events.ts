@@ -401,6 +401,11 @@ export const engineEventSchema = z.discriminatedUnion('type', [
 export type EngineEvent = z.infer<typeof engineEventSchema>;
 export type EventType = EngineEvent['type'];
 
+/** Every event type the trace can carry (WP67, `53-…` §2 item 4) — what a control map's `trace-guarantee` id must be. */
+export const EVENT_TYPES: readonly EventType[] = engineEventSchema.options.map(
+	(option) => option.shape.type.value as EventType
+);
+
 export function parseEngineEvent(value: unknown): EngineEvent {
 	return engineEventSchema.parse(value);
 }

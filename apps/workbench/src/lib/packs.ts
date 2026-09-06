@@ -1,4 +1,4 @@
-import { createPackRegistry, type PackRegistry } from '@craftabot/core';
+import { createPackRegistry, type PackManifest, type PackRegistry } from '@craftabot/core';
 import anthropicPack from '@craftabot/pack-anthropic';
 import azureContentSafetyPack from '@craftabot/pack-azure-content-safety';
 import evaluatorsPack from '@craftabot/pack-evaluators';
@@ -6,6 +6,7 @@ import fsAdvicePack from '@craftabot/pack-fs-advice';
 import fsBankPack from '@craftabot/pack-fs-bank';
 import fsFraudPack from '@craftabot/pack-fs-fraud';
 import fsLendingPack from '@craftabot/pack-fs-lending';
+import { GENERIC_CONTROL_MAP_MANIFEST } from '@craftabot/governance/reports';
 import geapPack from '@craftabot/pack-geap';
 import guardLocalPack from '@craftabot/pack-guard-local';
 import geminiPack from '@craftabot/pack-gemini';
@@ -109,6 +110,8 @@ export const installedPacks = [
 	fsFraudPack,
 	// WP63 (`52-FS-LENDING.md`): the third desk — the decision about a person, and fairness.
 	fsLendingPack,
+	// WP67 (`53-…` §4.1): the generic control map under governance's synthetic manifest.
+	GENERIC_CONTROL_MAP_MANIFEST as unknown as PackManifest,
 	demoPack
 ];
 

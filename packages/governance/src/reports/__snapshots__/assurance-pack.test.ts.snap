@@ -1,0 +1,938 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`assurancePackFor > folds a fixture bot with one campaign and one incident — the snapshot 1`] = `
+{
+  "bot": {
+    "goalCardId": "test/card",
+    "id": "11111111-1111-4111-8111-111111111111",
+    "name": "Bolt",
+  },
+  "controlMaps": [
+    {
+      "description": "A map.",
+      "id": "test/control-map",
+      "rows": [
+        {
+          "evidence": [
+            {
+              "id": "test/judge",
+              "kind": "evaluator",
+              "presence": "present",
+            },
+            {
+              "id": "test/policy/no-fire",
+              "kind": "policy-card",
+              "presence": "present",
+            },
+            {
+              "id": "parity",
+              "kind": "gate",
+              "presence": "present",
+            },
+            {
+              "id": "campaign-report",
+              "kind": "artefact",
+              "presence": "present",
+            },
+            {
+              "id": "run.started.principal",
+              "kind": "principal",
+              "presence": "not-recorded",
+            },
+          ],
+          "framework": "FCA Consumer Duty (PRIN 2A)",
+          "obligation": "Help under pressure.",
+          "ref": "support",
+          "status": "unreviewed",
+          "tags": [
+            "fca:cd:support",
+          ],
+          "title": "Support",
+        },
+        {
+          "evidence": [],
+          "framework": "FCA DISP",
+          "note": "Waits for WP72.",
+          "obligation": "Answered in time.",
+          "ref": "complaints",
+          "status": "pending",
+          "tags": [
+            "fca:disp:complaints",
+          ],
+          "title": "Complaints",
+        },
+      ],
+      "title": "Test map",
+    },
+    {
+      "description": "NIST AI RMF, the EU AI Act, ISO/IEC 42001 and OWASP ASI — the clauses the shipped mechanisms can be described under. Relevance, not compliance.",
+      "id": "governance/control-map",
+      "rows": [
+        {
+          "evidence": [
+            {
+              "id": "safety/action-blocklist",
+              "kind": "guardrail",
+              "presence": "available",
+            },
+            {
+              "id": "connector/tool-blocklist",
+              "kind": "guardrail",
+              "presence": "available",
+            },
+            {
+              "id": "guardrail.checked",
+              "kind": "trace-guarantee",
+              "presence": "present",
+            },
+          ],
+          "framework": "NIST AI RMF 1.0",
+          "obligation": "Rules about what an agent may do are written down as data and enforced at runtime.",
+          "ref": "govern-1.2",
+          "status": "unreviewed",
+          "tags": [
+            "pra:ss1-23:governance",
+          ],
+          "title": "Govern 1.2 — policies for AI risk",
+        },
+        {
+          "evidence": [
+            {
+              "id": "decision",
+              "kind": "trace-guarantee",
+              "presence": "present",
+            },
+            {
+              "id": "action.performed",
+              "kind": "trace-guarantee",
+              "presence": "present",
+            },
+            {
+              "id": "trace-bundle",
+              "kind": "artefact",
+              "presence": "available",
+            },
+          ],
+          "framework": "NIST AI RMF 1.0",
+          "obligation": "Every prompt, decision, action and check is on a digest-covered trace.",
+          "ref": "govern-1.5",
+          "status": "unreviewed",
+          "tags": [
+            "pra:ss1-23:governance",
+          ],
+          "title": "Govern 1.5 — accountability through records",
+        },
+        {
+          "evidence": [
+            {
+              "id": "safety-case",
+              "kind": "artefact",
+              "note": "the reach section",
+              "presence": "present",
+            },
+            {
+              "id": "agent-card",
+              "kind": "artefact",
+              "presence": "present",
+            },
+          ],
+          "framework": "NIST AI RMF 1.0",
+          "obligation": "Irreversible capability is named per build, never hidden.",
+          "ref": "map-5.1",
+          "status": "unreviewed",
+          "tags": [
+            "pra:ss1-23:identification",
+          ],
+          "title": "Map 5.1 — likelihood and magnitude of impacts",
+        },
+        {
+          "evidence": [
+            {
+              "id": "campaign-report",
+              "kind": "artefact",
+              "presence": "present",
+            },
+            {
+              "id": "no-regression",
+              "kind": "gate",
+              "presence": "available",
+            },
+            {
+              "id": "evaluator-pass-rate",
+              "kind": "gate",
+              "presence": "available",
+            },
+          ],
+          "framework": "NIST AI RMF 1.0",
+          "obligation": "Campaigns with gates are the test evidence; no-regression gates are change control.",
+          "ref": "measure-2.3",
+          "status": "unreviewed",
+          "tags": [
+            "pra:ss1-23:development",
+          ],
+          "title": "Measure 2.3 — performance measured",
+        },
+        {
+          "evidence": [
+            {
+              "id": "drift-series",
+              "kind": "artefact",
+              "presence": "present",
+            },
+            {
+              "id": "incident-log",
+              "kind": "artefact",
+              "presence": "present",
+            },
+          ],
+          "framework": "NIST AI RMF 1.0",
+          "obligation": "A daily series over runs, evaluations and campaigns with drift flagged.",
+          "ref": "measure-2.4",
+          "status": "unreviewed",
+          "tags": [
+            "pra:ss1-23:validation",
+          ],
+          "title": "Measure 2.4 — monitoring in deployment",
+        },
+        {
+          "evidence": [
+            {
+              "id": "guardrail.external",
+              "kind": "trace-guarantee",
+              "presence": "present",
+            },
+            {
+              "id": "none",
+              "kind": "egress",
+              "presence": "present",
+            },
+            {
+              "id": "outcome-rate",
+              "kind": "gate",
+              "presence": "present",
+            },
+          ],
+          "framework": "NIST AI RMF 1.0",
+          "obligation": "Untrusted input is screened, egress is declared or refused, adversarial scenarios are run.",
+          "ref": "measure-2.7",
+          "status": "unreviewed",
+          "tags": [
+            "pra:ss1-23:mitigants",
+          ],
+          "title": "Measure 2.7 — security and resilience",
+        },
+        {
+          "evidence": [
+            {
+              "id": "safety/step-budget",
+              "kind": "guardrail",
+              "presence": "available",
+            },
+            {
+              "id": "safety/token-budget",
+              "kind": "guardrail",
+              "presence": "available",
+            },
+            {
+              "id": "safety/no-repetition",
+              "kind": "guardrail",
+              "presence": "available",
+            },
+            {
+              "id": "safety/approval-mode",
+              "kind": "guardrail",
+              "presence": "available",
+            },
+            {
+              "id": "run.finished",
+              "kind": "trace-guarantee",
+              "note": "STOPPED_BY_USER",
+              "presence": "present",
+            },
+          ],
+          "framework": "NIST AI RMF 1.0",
+          "obligation": "A budget, a blocklist, a loop-breaker, an approval gate and a stop.",
+          "ref": "manage-2.4",
+          "status": "unreviewed",
+          "tags": [
+            "pra:ss1-23:mitigants",
+          ],
+          "title": "Manage 2.4 — mechanisms to supersede or disengage",
+        },
+        {
+          "evidence": [
+            {
+              "id": "safety-case",
+              "kind": "artefact",
+              "presence": "present",
+            },
+            {
+              "id": "campaign-report",
+              "kind": "artefact",
+              "presence": "present",
+            },
+            {
+              "id": "safety/action-blocklist",
+              "kind": "guardrail",
+              "presence": "available",
+            },
+          ],
+          "framework": "EU AI Act",
+          "obligation": "Risks identified per build and mitigated by the safety stack; tested by campaigns.",
+          "ref": "art-9",
+          "status": "unreviewed",
+          "tags": [
+            "pra:ss1-23:mitigants",
+          ],
+          "title": "Article 9 — risk management",
+        },
+        {
+          "evidence": [
+            {
+              "id": "prompt.composed",
+              "kind": "trace-guarantee",
+              "presence": "present",
+            },
+            {
+              "id": "action.performed",
+              "kind": "trace-guarantee",
+              "presence": "present",
+            },
+            {
+              "id": "trace-bundle",
+              "kind": "artefact",
+              "presence": "available",
+            },
+          ],
+          "framework": "EU AI Act",
+          "obligation": "Automatic logging of every event, exportable with a digest.",
+          "ref": "art-12",
+          "status": "unreviewed",
+          "tags": [
+            "pra:ss1-23:governance",
+          ],
+          "title": "Article 12 — record-keeping",
+        },
+        {
+          "evidence": [
+            {
+              "id": "safety/approval-mode",
+              "kind": "guardrail",
+              "presence": "available",
+            },
+            {
+              "id": "approval.requested",
+              "kind": "trace-guarantee",
+              "presence": "present",
+            },
+            {
+              "id": "approval.resolved",
+              "kind": "trace-guarantee",
+              "presence": "present",
+            },
+            {
+              "id": "approval.resolved.by",
+              "kind": "principal",
+              "presence": "not-recorded",
+            },
+          ],
+          "framework": "EU AI Act",
+          "obligation": "A person can pause, approve, refuse and stop; the record says when they did.",
+          "ref": "art-14",
+          "status": "unreviewed",
+          "tags": [
+            "pra:ss1-23:governance",
+          ],
+          "title": "Article 14 — human oversight",
+        },
+        {
+          "evidence": [
+            {
+              "id": "safety/step-budget",
+              "kind": "guardrail",
+              "presence": "available",
+            },
+            {
+              "id": "guardrail.external",
+              "kind": "trace-guarantee",
+              "presence": "present",
+            },
+            {
+              "id": "declared",
+              "kind": "egress",
+              "presence": "available",
+            },
+          ],
+          "framework": "EU AI Act",
+          "obligation": "Deterministic replay, budgets, screened inputs, declared egress.",
+          "ref": "art-15",
+          "status": "unreviewed",
+          "tags": [
+            "pra:ss1-23:mitigants",
+          ],
+          "title": "Article 15 — accuracy, robustness, cybersecurity",
+        },
+        {
+          "evidence": [
+            {
+              "id": "drift-series",
+              "kind": "artefact",
+              "presence": "present",
+            },
+            {
+              "id": "incident-log",
+              "kind": "artefact",
+              "presence": "present",
+            },
+          ],
+          "framework": "EU AI Act",
+          "obligation": "The drift series and the incident log over stored runs.",
+          "ref": "art-72",
+          "status": "unreviewed",
+          "tags": [
+            "pra:ss1-23:validation",
+          ],
+          "title": "Article 72 — post-market monitoring",
+        },
+        {
+          "evidence": [
+            {
+              "id": "safety-case",
+              "kind": "artefact",
+              "presence": "present",
+            },
+            {
+              "id": "safety/approval-mode",
+              "kind": "guardrail",
+              "presence": "available",
+            },
+          ],
+          "framework": "ISO/IEC 42001:2023",
+          "obligation": "Risk-tiered actions; the safety case names inability and reach.",
+          "ref": "clause-6.1",
+          "status": "unreviewed",
+          "tags": [
+            "pra:ss1-23:identification",
+          ],
+          "title": "6.1 — risk assessment",
+        },
+        {
+          "evidence": [
+            {
+              "id": "campaign-report",
+              "kind": "artefact",
+              "presence": "present",
+            },
+            {
+              "id": "evaluator-pass-rate",
+              "kind": "gate",
+              "presence": "available",
+            },
+            {
+              "id": "parity",
+              "kind": "gate",
+              "presence": "present",
+            },
+          ],
+          "framework": "ISO/IEC 42001:2023",
+          "obligation": "Campaigns, gates and evaluators over every stored run.",
+          "ref": "a.6.2.4",
+          "status": "unreviewed",
+          "tags": [
+            "pra:ss1-23:validation",
+          ],
+          "title": "A.6.2.4 — verification and validation",
+        },
+        {
+          "evidence": [
+            {
+              "id": "guardrail.checked",
+              "kind": "trace-guarantee",
+              "presence": "present",
+            },
+            {
+              "id": "trace-bundle",
+              "kind": "artefact",
+              "presence": "available",
+            },
+          ],
+          "framework": "ISO/IEC 42001:2023",
+          "obligation": "Typed events, a digest, exportable traces and bundles.",
+          "ref": "a.6.2.8",
+          "status": "unreviewed",
+          "tags": [
+            "pra:ss1-23:governance",
+          ],
+          "title": "A.6.2.8 — event logging",
+        },
+        {
+          "evidence": [
+            {
+              "id": "safety/approval-mode",
+              "kind": "guardrail",
+              "presence": "available",
+            },
+            {
+              "id": "approval.requested",
+              "kind": "trace-guarantee",
+              "presence": "present",
+            },
+          ],
+          "framework": "ISO/IEC 42001:2023",
+          "obligation": "The approval gate, the autonomy dial, the stop.",
+          "ref": "a.9.2",
+          "status": "unreviewed",
+          "tags": [
+            "pra:ss1-23:governance",
+          ],
+          "title": "A.9.2 — human oversight measures",
+        },
+        {
+          "evidence": [
+            {
+              "id": "guardrail.external",
+              "kind": "trace-guarantee",
+              "presence": "present",
+            },
+            {
+              "id": "outcome-rate",
+              "kind": "gate",
+              "presence": "present",
+            },
+          ],
+          "framework": "OWASP Top 10 for Agentic Applications",
+          "obligation": "Injection scenarios in every deck; input screening at pre-think.",
+          "ref": "asi01",
+          "status": "unreviewed",
+          "tags": [
+            "ASI01",
+          ],
+          "title": "ASI01 — agent goal hijack",
+        },
+        {
+          "evidence": [
+            {
+              "id": "connector/tool-blocklist",
+              "kind": "guardrail",
+              "presence": "available",
+            },
+            {
+              "id": "safety/action-blocklist",
+              "kind": "guardrail",
+              "presence": "available",
+            },
+            {
+              "id": "tool.executed",
+              "kind": "trace-guarantee",
+              "presence": "present",
+            },
+          ],
+          "framework": "OWASP Top 10 for Agentic Applications",
+          "obligation": "Tool and action blocklists; policy cards over arguments; poisoned-line scenarios.",
+          "ref": "asi02",
+          "status": "unreviewed",
+          "tags": [
+            "ASI02",
+          ],
+          "title": "ASI02 — tool misuse and exploitation",
+        },
+        {
+          "evidence": [
+            {
+              "id": "declared",
+              "kind": "egress",
+              "presence": "available",
+            },
+            {
+              "id": "none",
+              "kind": "egress",
+              "presence": "present",
+            },
+          ],
+          "framework": "OWASP Top 10 for Agentic Applications",
+          "obligation": "Declared egress and a no-network mode; nothing runs that was not declared.",
+          "ref": "asi05",
+          "status": "unreviewed",
+          "tags": [
+            "ASI05",
+          ],
+          "title": "ASI05 — unexpected code execution",
+        },
+        {
+          "evidence": [
+            {
+              "id": "memory.updated",
+              "kind": "trace-guarantee",
+              "presence": "present",
+            },
+          ],
+          "framework": "OWASP Top 10 for Agentic Applications",
+          "obligation": "Notebook writes carry provenance on the trace.",
+          "ref": "asi06",
+          "status": "unreviewed",
+          "tags": [
+            "ASI06",
+          ],
+          "title": "ASI06 — memory and context poisoning",
+        },
+        {
+          "evidence": [
+            {
+              "id": "approval.requested",
+              "kind": "trace-guarantee",
+              "presence": "present",
+            },
+            {
+              "id": "safety/approval-mode",
+              "kind": "guardrail",
+              "presence": "available",
+            },
+          ],
+          "framework": "OWASP Top 10 for Agentic Applications",
+          "obligation": "Approvals are recorded; a person sees what was proposed before it runs.",
+          "ref": "asi09",
+          "status": "unreviewed",
+          "tags": [
+            "ASI09",
+          ],
+          "title": "ASI09 — human-agent trust exploitation",
+        },
+        {
+          "evidence": [
+            {
+              "id": "safety/step-budget",
+              "kind": "guardrail",
+              "presence": "available",
+            },
+            {
+              "id": "safety/no-repetition",
+              "kind": "guardrail",
+              "presence": "available",
+            },
+            {
+              "id": "run.finished",
+              "kind": "trace-guarantee",
+              "presence": "present",
+            },
+          ],
+          "framework": "OWASP Top 10 for Agentic Applications",
+          "obligation": "Budgets, the loop-breaker and the stop bound every run.",
+          "ref": "asi10",
+          "status": "unreviewed",
+          "tags": [
+            "ASI10",
+          ],
+          "title": "ASI10 — rogue agents",
+        },
+      ],
+      "title": "Generic frameworks",
+    },
+  ],
+  "development": {
+    "campaigns": [
+      {
+        "buildId": "bolt",
+        "campaignId": "c1",
+        "cells": 2,
+        "cohorts": [
+          {
+            "attribute": "proxy",
+            "cells": 1,
+            "successRate": 1,
+            "value": "proxy-a",
+          },
+          {
+            "attribute": "proxy",
+            "cells": 1,
+            "successRate": 1,
+            "value": "proxy-b",
+          },
+        ],
+        "createdAt": "2026-09-05T09:00:00.000Z",
+        "gates": [
+          {
+            "id": "wins",
+            "observed": 1,
+            "passed": true,
+            "required": "SUCCESS ≥ 100%",
+            "scoped": false,
+          },
+          {
+            "id": "parity:pair",
+            "observed": 0,
+            "passed": true,
+            "required": "agree across proxy: spread ≤ 0",
+            "scoped": true,
+          },
+        ],
+        "matrices": [
+          {
+            "evaluatorId": "test/judge",
+            "falsePositiveRate": 0,
+            "fn": 0,
+            "fp": 0,
+            "precision": 1,
+            "recall": 1,
+            "slice": {},
+            "tn": 1,
+            "tp": 1,
+          },
+        ],
+        "obligations": [
+          {
+            "cells": 2,
+            "successRate": 1,
+            "tag": "fca:cd:support",
+          },
+        ],
+        "outcomes": {
+          "SUCCESS": 2,
+        },
+        "parity": [
+          {
+            "id": "parity:pair",
+            "matched": true,
+            "passed": true,
+            "required": "agree across proxy: spread ≤ 0",
+            "values": {
+              "proxy-a": 1,
+              "proxy-b": 1,
+            },
+          },
+        ],
+        "passed": true,
+        "reportId": "r1",
+        "runIds": [
+          "22222222-2222-4222-8222-222222222221",
+          "22222222-2222-4222-8222-222222222222",
+        ],
+        "title": "The baseline",
+      },
+    ],
+  },
+  "digest": "0575478c526426bf82afaf3ad6bb1591f7f5303fcd23a90dbf6a14e03dc82099",
+  "format": "craftabot-assurance-pack",
+  "formatVersion": 1,
+  "generatedAt": "2026-09-06T12:00:00.000Z",
+  "governance": {
+    "approvals": {
+      "granted": 1,
+      "requested": 1,
+      "runIds": [
+        "22222222-2222-4222-8222-222222222221",
+      ],
+    },
+    "egress": {
+      "hosts": [],
+      "noNetworkRuns": 2,
+      "recordedRuns": 2,
+      "runIds": [
+        "22222222-2222-4222-8222-222222222221",
+        "22222222-2222-4222-8222-222222222222",
+      ],
+    },
+    "guardrails": [],
+    "principal": {
+      "note": "The principal on each run is not recorded in this build (WP65).",
+      "recorded": false,
+    },
+  },
+  "inventory": {
+    "agentCard": {
+      "bricks": [
+        {
+          "description": "test/safety",
+          "kind": "test/safety",
+          "name": "test/safety",
+          "slot": "safety",
+        },
+      ],
+      "goalCardId": "test/card",
+      "name": "Bolt",
+      "provenance": {
+        "brickKinds": {},
+        "packs": {},
+      },
+    },
+    "goalCard": {
+      "id": "test/card",
+      "title": "The card",
+    },
+    "packVersions": {
+      "governance": "1.0.0",
+      "test": "1.2.3",
+    },
+    "requires": {
+      "brickKinds": {},
+      "core": ">=1.0.0",
+      "packs": {},
+    },
+  },
+  "mitigants": {
+    "guardrails": [],
+    "hostedScreening": undefined,
+    "inability": [],
+    "killSwitch": "run.finished with STOPPED_BY_USER — a person can stop any run, and the trace records it.",
+    "reach": [],
+  },
+  "monitoring": {
+    "drift": [],
+    "explanations": {
+      "note": "What each decision saw is not recorded in this build (WP66).",
+      "recorded": false,
+    },
+    "incidents": [
+      {
+        "agentId": "11111111-1111-4111-8111-111111111111",
+        "agentName": "Bolt",
+        "findings": [
+          {
+            "kind": "guardrail-catch",
+            "summary": "No fire blocked fire.",
+            "tick": 2,
+          },
+        ],
+        "goalCardId": "test/card",
+        "outcome": "FAILURE",
+        "runId": "22222222-2222-4222-8222-222222222222",
+        "startedAt": "2026-09-05T10:00:00.000Z",
+      },
+    ],
+    "series": [
+      {
+        "day": "2026-09-04",
+        "finishedRuns": 1,
+        "loopRate": 0,
+        "loopedRuns": 0,
+        "runs": 1,
+        "series": {},
+        "seriesSamples": {},
+        "succeededRuns": 1,
+        "successRate": 1,
+        "trips": {},
+        "tripsPerRun": 0,
+      },
+      {
+        "day": "2026-09-05",
+        "finishedRuns": 1,
+        "loopRate": 0,
+        "loopedRuns": 0,
+        "runs": 1,
+        "series": {
+          "cohort:proxy:spread": 0,
+          "evaluator:test/judge:passRate": 0.5,
+        },
+        "seriesSamples": {
+          "cohort:proxy:spread": 2,
+          "evaluator:test/judge:passRate": 2,
+        },
+        "succeededRuns": 0,
+        "successRate": 0,
+        "trips": {
+          "test/policy/no-fire": 1,
+        },
+        "tripsPerRun": 1,
+      },
+      {
+        "day": "2026-09-06",
+        "finishedRuns": 0,
+        "loopRate": undefined,
+        "loopedRuns": 0,
+        "runs": 0,
+        "series": {
+          "evaluator:test/judge:passRate": 0.5,
+        },
+        "seriesSamples": {
+          "evaluator:test/judge:passRate": 2,
+        },
+        "succeededRuns": 0,
+        "successRate": undefined,
+        "trips": {},
+        "tripsPerRun": undefined,
+      },
+    ],
+  },
+  "outcomes": [
+    {
+      "evaluations": [],
+      "rows": [],
+      "tag": "fca:cd:products-services",
+      "title": "Products and services",
+    },
+    {
+      "evaluations": [],
+      "rows": [],
+      "tag": "fca:cd:price-value",
+      "title": "Price and value",
+    },
+    {
+      "evaluations": [],
+      "rows": [],
+      "tag": "fca:cd:understanding",
+      "title": "Consumer understanding",
+    },
+    {
+      "evaluations": [
+        {
+          "evaluatorId": "test/judge",
+          "fail": 1,
+          "inconclusive": 0,
+          "meanScore": undefined,
+          "noVerdict": 0,
+          "pass": 1,
+          "runIds": [
+            "22222222-2222-4222-8222-222222222221",
+            "22222222-2222-4222-8222-222222222222",
+          ],
+        },
+      ],
+      "rows": [
+        "test/control-map/support",
+      ],
+      "tag": "fca:cd:support",
+      "title": "Consumer support",
+    },
+  ],
+  "posture": "This pack files evidence against obligations as claims of relevance. It is not a claim of compliance with any of them, and the simulator it describes controls nothing real.",
+  "review": {
+    "pending": 1,
+    "reviewed": 0,
+    "rows": 24,
+    "unreviewed": 23,
+  },
+  "runs": [
+    {
+      "goalCardId": "test/card",
+      "id": "22222222-2222-4222-8222-222222222221",
+      "outcome": "SUCCESS",
+      "startedAt": "2026-09-04T10:00:00.000Z",
+    },
+    {
+      "goalCardId": "test/card",
+      "id": "22222222-2222-4222-8222-222222222222",
+      "outcome": "FAILURE",
+      "startedAt": "2026-09-05T10:00:00.000Z",
+    },
+  ],
+  "validation": {
+    "evaluations": [
+      {
+        "evaluatorId": "test/judge",
+        "fail": 1,
+        "inconclusive": 0,
+        "meanScore": undefined,
+        "noVerdict": 0,
+        "pass": 1,
+        "runIds": [
+          "22222222-2222-4222-8222-222222222221",
+          "22222222-2222-4222-8222-222222222222",
+        ],
+      },
+    ],
+    "validatedBy": {
+      "note": "Who validated this build is not recorded in this build (WP65).",
+      "recorded": false,
+    },
+  },
+}
+`;

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { BrickKindDefinition } from '../types/brick.js';
+import type { ControlMap } from '../types/control-map.js';
 import type { Guardrail, GuardrailHook } from '../types/guardrail.js';
 import type { Evaluator } from '../types/evaluator.js';
 import type { GuardrailService } from '../types/guardrail-service.js';
@@ -231,6 +232,13 @@ export interface PackManifest extends PackManifestMetadata {
 	 * turns the registered card into ordinary guardrails at runtime.
 	 */
 	policyCards?: PolicyCard[];
+	/**
+	 * Control maps (WP67, `53-ASSURANCE-PACK.md` §4.1): rows of relevance —
+	 * "this obligation is evidenced by these ids" — content a compliance
+	 * reader edits, registered like everything else above and resolved by
+	 * `checkControlMap`. The assurance pack files a bot's evidence against them.
+	 */
+	controlMaps?: ControlMap[];
 	artwork?: PackArtwork;
 	/**
 	 * LLM providers this pack makes available (`06-…` §8, WP26). Function-valued

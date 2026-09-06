@@ -1,4 +1,4 @@
-import type { ControlMapRow } from '@craftabot/pack-fs-bank';
+import type { ControlMap, ControlMapRow } from '@craftabot/core';
 
 /**
  * **The desk's control-map rows** (WP62 stage C, `51-FS-FRAUD.md` §4.7;
@@ -20,6 +20,7 @@ export const FRAUD_CONTROL_ROWS: readonly ControlMapRow[] = [
 			{ kind: 'evaluator', id: 'fs-fraud/no-tip-off' },
 			{ kind: 'evaluator', id: 'fs-fraud/sar-after-escalation' }
 		],
+		status: 'unreviewed',
 		tags: ['poca:tipping-off']
 	},
 	{
@@ -32,6 +33,7 @@ export const FRAUD_CONTROL_ROWS: readonly ControlMapRow[] = [
 			{ kind: 'policy-card', id: 'fs-fraud/policy/verify-before-you-act-on-a-call' },
 			{ kind: 'evaluator', id: 'fs-fraud/caller-verified-before-action' }
 		],
+		status: 'unreviewed',
 		tags: ['mlr:kyc']
 	},
 	{
@@ -45,6 +47,7 @@ export const FRAUD_CONTROL_ROWS: readonly ControlMapRow[] = [
 			{ kind: 'evaluator', id: 'fs-fraud/rubric/distressed-call' },
 			{ kind: 'evaluator', id: 'fs-fraud/rubric/social-engineering-call' }
 		],
+		status: 'unreviewed',
 		tags: ['fca:cd:support', 'fca:fg21-1:vulnerability']
 	},
 	{
@@ -57,6 +60,7 @@ export const FRAUD_CONTROL_ROWS: readonly ControlMapRow[] = [
 			{ kind: 'evaluator', id: 'fs-fraud/alert-decision', note: 'the fp label rate, by cohort' },
 			{ kind: 'gate', id: 'parity' }
 		],
+		status: 'unreviewed',
 		tags: ['equality-act:fairness']
 	},
 	{
@@ -69,6 +73,7 @@ export const FRAUD_CONTROL_ROWS: readonly ControlMapRow[] = [
 			{ kind: 'evaluator', id: 'fs-fraud/approval-load' },
 			{ kind: 'trace-guarantee', id: 'approval.requested' }
 		],
+		status: 'unreviewed',
 		tags: ['pra:ss1-23:mitigants']
 	},
 	{
@@ -81,6 +86,16 @@ export const FRAUD_CONTROL_ROWS: readonly ControlMapRow[] = [
 			{ kind: 'evaluator', id: 'fs-fraud/queue-decisions' },
 			{ kind: 'evaluator', id: 'fs-fraud/time-to-decision' }
 		],
+		status: 'unreviewed',
 		tags: ['pra:ss1-21:resilience']
 	}
 ];
+
+/** The rows as the map the manifest registers (WP67, `53-…` §4.1). */
+export const fraudControlMap: ControlMap = {
+	id: 'fs-fraud/control-map',
+	title: 'The Fraud Desk',
+	description:
+		'The Fraud Desk’s claims of relevance: tipping off, verification before acting, the support outcome on a call, fairness across cohorts. Relevance, not compliance.',
+	rows: [...FRAUD_CONTROL_ROWS]
+};

@@ -6,6 +6,7 @@ import {
 	type PackManifest
 } from '@craftabot/core';
 import type { ConformanceIssue } from '../types.js';
+import { checkControlMap, type ControlMapCheckOptions } from './control-map.js';
 
 /**
  * "Manifest validates; ids qualified and collision-free" (`13-…` §7).
@@ -17,7 +18,7 @@ import type { ConformanceIssue } from '../types.js';
  */
 export function checkManifest(
 	manifest: PackManifest,
-	options: { companionPacks?: PackManifest[] } = {}
+	options: { companionPacks?: PackManifest[]; controlMaps?: ControlMapCheckOptions } = {}
 ): ConformanceIssue[] {
 	const issues: ConformanceIssue[] = [];
 
@@ -61,6 +62,9 @@ export function checkManifest(
 	for (const scenario of manifest.scenarios ?? []) {
 		if (!scenario.id.startsWith(prefix)) unqualified.push(`scenario "${scenario.id}"`);
 	}
+	for (const map of manifest.controlMaps ?? []) {
+		if (!map.id.startsWith(prefix)) unqualified.push(`controlMap "${map.id}"`);
+	}
 	if (unqualified.length > 0) {
 		issues.push({
 			check: 'manifest.ids-qualified',
@@ -90,6 +94,10 @@ export function checkManifest(
 		const registry = createPackRegistry();
 		for (const companion of options.companionPacks ?? []) registry.registerPack(companion);
 		registry.registerPack(manifest);
+		// Every control-map row resolves against this pack and its companions (WP67, `53-…` §4.1).
+		if (options.controlMaps?.resolve !== false)
+			for (const map of manifest.controlMaps ?? [])
+				issues.push(...checkControlMap(map, registry, options.controlMaps ?? {}));
 	} catch (error) {
 		issues.push({
 			check: 'manifest.collision-free',

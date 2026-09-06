@@ -202,7 +202,9 @@ describe('the vocabulary and the rows', () => {
 		for (const row of BANK_CONTROL_ROWS) {
 			expect(row.framework.length).toBeGreaterThan(0);
 			expect(row.obligation.length).toBeGreaterThan(20);
-			expect(row.evidence.length).toBeGreaterThan(0);
+			// A pending row (WP67, `53-…` §2 item 2) names its WP instead of citing evidence it does not have yet.
+			if (row.status === 'pending') expect(row.note).toContain('WP');
+			else expect(row.evidence.length).toBeGreaterThan(0);
 			for (const tag of row.tags) expect(isObligationTag(tag), tag).toBe(true);
 		}
 	});
