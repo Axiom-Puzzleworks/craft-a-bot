@@ -466,7 +466,9 @@
 				</label>
 			</div>
 			{#if showJson}
-				<pre class="json" data-testid="spec-json">{json}</pre>
+				<!-- Focusable: a scrolling region a keyboard user can reach — axe's scrollable-region-focusable rule (WP71, `60-…` §4.3); Svelte's own rule objects to the tabindex, and axe is the one that reads the page. -->
+				<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+				<pre class="json" data-testid="spec-json" tabindex="0">{json}</pre>
 			{:else}
 				<p class="hint">Hidden. The spec is the source of truth for everything above it.</p>
 			{/if}

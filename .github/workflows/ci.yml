@@ -32,6 +32,40 @@ jobs:
 
       - run: npm run e2e
 
+  # The visual-regression pass (WP71, docs/design-day2/60-CONTROL-ROOM-V2.md §4.2):
+  # every Workshop route and the Kit's screens shot on the fixture corpus and
+  # diffed against the Linux baselines committed under e2e/__screenshots__/linux/.
+  # A shape change re-baselines deliberately: run the project with
+  # --update-snapshots here, download the artefact, commit it with a dated note.
+  visual:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - run: npx turbo run build --filter=@craftabot/workbench^...
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - run: npm run e2e:visual
+
+      - name: Upload the screenshots and the diffs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual
+          path: |
+            apps/workbench/e2e/__screenshots__
+            apps/workbench/test-results
+          if-no-files-found: warn
+
   # The three sections of the site (WP69, docs/design-day2/59-EDITIONS.md §4.5):
   # each edition built under its own base and within its own budget, each
   # smoke spec run against its folder, the three folders uploaded as one

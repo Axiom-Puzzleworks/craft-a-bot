@@ -237,13 +237,13 @@
 									<input type="checkbox" bind:checked={condition.negate} />
 									not
 								</label>
-								<select bind:value={condition.kind}>
+								<select bind:value={condition.kind} aria-label="Condition">
 									{#each CONDITION_KINDS as ck (ck.id)}
 										<option value={ck.id}>{ck.label}</option>
 									{/each}
 								</select>
 								{#if condition.kind === 'call-kind-is'}
-									<select bind:value={condition.callKind}>
+									<select bind:value={condition.callKind} aria-label="Call kind">
 										<option value="action">action</option>
 										<option value="tool">tool</option>
 									</select>
@@ -293,15 +293,15 @@
 									/>
 									<input type="text" placeholder="name (optional)" bind:value={condition.name} />
 									<span class="eq">≥</span>
-									<input type="number" min="1" bind:value={condition.count} />
+									<input type="number" min="1" bind:value={condition.count} aria-label="Count" />
 								{:else if condition.kind === 'hook-is'}
-									<select bind:value={condition.hook}>
+									<select bind:value={condition.hook} aria-label="Hook">
 										{#each HOOKS as hook (hook)}
 											<option value={hook}>{hook}</option>
 										{/each}
 									</select>
 								{:else}
-									<select bind:value={condition.field}>
+									<select bind:value={condition.field} aria-label="Field">
 										<option value="ticks">ticks</option>
 										<option value="inputTokens">input tokens</option>
 										<option value="outputTokens">output tokens</option>
@@ -340,7 +340,9 @@
 					</p>
 				{/if}
 
-				<pre class="json" data-testid="policy-json">{draftJson}</pre>
+				<!-- Focusable for the keyboard (axe, WP71) — see the Spec Lab's note. -->
+				<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+				<pre class="json" data-testid="policy-json" tabindex="0">{draftJson}</pre>
 				<div class="row">
 					<button
 						type="button"
@@ -626,7 +628,8 @@
 	.error {
 		margin: 0;
 		font-size: var(--cab-text-xs);
-		color: var(--cab-red, #a33);
+		/* The fail token: a verdict colour that reads on the Workshop's paper (axe, WP71). */
+		color: var(--cab-fail);
 	}
 
 	.json {

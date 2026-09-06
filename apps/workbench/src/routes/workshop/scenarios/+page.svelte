@@ -75,6 +75,8 @@
 	}
 </script>
 
+<svelte:head><title>Scenarios — Workshop</title></svelte:head>
+
 <main data-testid="scenarios-page">
 	<h1>Scenario Library</h1>
 	<p class="hint">
