@@ -11,6 +11,7 @@
 	import { createRegistry } from '$lib/packs.js';
 	import { OLLAMA_BASE_URL } from '@craftabot/pack-ollama';
 	import { evidenceStores } from '@craftabot/evidence';
+	import { allowsRoute, edition, sectionFor } from '$lib/edition.js';
 
 	/**
 	 * Settings (03-UI-UX-DESIGN.md §7): the battery compartment, preferences, and
@@ -59,6 +60,9 @@
 			})
 		}));
 	const leaflet = leafletStore();
+	// The door (WP69, `59-…` §4.3): in a box with no Workshop, a link to the section that has it — not a toggle.
+	const workshopHere = allowsRoute(edition, '/workshop');
+	const workshopSection = sectionFor('/workshop');
 
 	const SPEEDS = [0.5, 1, 2, 4];
 	/** The reason the last Ollama address was refused, if it was (WP52). */
@@ -209,12 +213,21 @@
 				someone has been given still opens, because a link that silently does
 				nothing is worse than one that opens something unexpected.
 			-->
-			<Rocker
-				label="Show the Workshop"
-				hint="The grown-up view of the same bots and runs: full traces, filters, prompt diffs. Off by default."
-				checked={preferences.workshop}
-				onchange={(value) => preferences.setWorkshop(value)}
-			/>
+			{#if workshopHere}
+				<Rocker
+					label="Show the Workshop"
+					hint="The grown-up view of the same bots and runs: full traces, filters, prompt diffs. Off by default."
+					checked={preferences.workshop}
+					onchange={(value) => preferences.setWorkshop(value)}
+				/>
+			{:else if workshopSection}
+				<p class="door-link" data-testid="workshop-door-link">
+					The Workshop — the grown-up view of the same bots and runs — is in another box:
+					<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- another section of the same host, not a route of this app -->
+					<a href="{workshopSection.base}/">open {workshopSection.title}</a>. Export a bot here and
+					import it there.
+				</p>
+			{/if}
 
 			<fieldset class="speed">
 				<legend>Playroom speed</legend>

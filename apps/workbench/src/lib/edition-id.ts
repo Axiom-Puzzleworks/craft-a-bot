@@ -40,7 +40,7 @@ const WORKSHOP_PACK_IDS = [
 	'guard-local',
 	'azure-content-safety',
 	'pdp-opa',
-	'evaluators',
+	'evals',
 	'evidence',
 	'governance'
 ];

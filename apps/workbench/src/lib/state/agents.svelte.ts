@@ -12,6 +12,7 @@ import {
 	type ImportProblem
 } from '@craftabot/core';
 import { createRegistry, installedBrickKinds, packVersions } from '$lib/packs.js';
+import { edition, editionWithPacks } from '$lib/edition.js';
 import { contentStore } from './content.svelte.js';
 import { appStorage } from './app-storage.svelte.js';
 import { createBrowserKeyVault } from './keys.js';
@@ -252,7 +253,22 @@ export function createAgentsStore(deps: AgentsStoreDeps = {}): AgentsStore {
 				newId,
 				now
 			});
-			if (!result.ok) return { ok: false, problem: result.problem };
+			if (!result.ok) {
+				// A pack from another section of the site (WP69, `59-…` §4.4): say which one.
+				if (result.problem.kind === 'missing-packs') {
+					const section = editionWithPacks(result.problem.missing);
+					if (section && section.id !== edition.id) {
+						return {
+							ok: false,
+							problem: {
+								...result.problem,
+								message: `This bot uses parts from ${section.title} (${result.problem.missing.join(', ')}) — open ${section.base}/ to build it there.`
+							}
+						};
+					}
+				}
+				return { ok: false, problem: result.problem };
+			}
 
 			const timestamp = now();
 			const spec = result.imported.spec;
