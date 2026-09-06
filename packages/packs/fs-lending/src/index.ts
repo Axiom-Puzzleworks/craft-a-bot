@@ -1,5 +1,7 @@
 import type { PackManifest } from '@craftabot/core';
+import { lendingPolicyCards } from './cards/policy.js';
 import { lendingGoalCards } from './decks/goal-cards.js';
+import { lendingEvaluators } from './evaluators/index.js';
 import { lendingScenarios } from './decks/scenarios.js';
 import { lendingDesk } from './world/desk.js';
 
@@ -22,13 +24,27 @@ export const fsLendingPack: PackManifest = {
 	requiresPacks: { 'fs-bank': '^1.0.0' },
 	worlds: [lendingDesk],
 	goalCards: lendingGoalCards,
-	scenarios: lendingScenarios
+	scenarios: lendingScenarios,
+	policyCards: lendingPolicyCards,
+	evaluators: lendingEvaluators
 };
 
 export default fsLendingPack;
 
 export { lendingStrings } from './strings.js';
 export { lendingCardId, lendingGoalCards } from './decks/goal-cards.js';
+export {
+	COHORT_BLIND,
+	DISBURSEMENT_IS_FOUR_EYES,
+	LENDING_POLICY_CARD_IDS,
+	NO_DECISION_BEFORE_AFFORDABILITY,
+	REASONS_ARE_REAL,
+	REFER_WHEN_THE_RULES_SAY_REFER,
+	UNREVEALED_ATTRIBUTE_WORDS,
+	lendingPolicyCards
+} from './cards/policy.js';
+export * from './evaluators/index.js';
+export { LENDING_CONTROL_ROWS } from './controls/rows.js';
 export {
 	BUREAU_POISON,
 	LENDING_DECKS,

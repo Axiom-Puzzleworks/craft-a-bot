@@ -386,7 +386,9 @@ export function lendingCase(random: () => number, kind: LendingCaseKind): Lendin
 		facts: {
 			verdict: `should-${verdict.verdict}`,
 			shouldRefer: verdict.verdict === 'refer',
-			...(pairSide ? { pairSide } : {})
+			...(pairSide ? { pairSide } : {}),
+			// A decision already on the file when the case opens: `appeal-handled` applies.
+			...(profile.prior ? { appealCase: true } : {})
 		}
 	};
 

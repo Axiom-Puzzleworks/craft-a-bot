@@ -106,6 +106,8 @@ export interface RunOptions {
 	approve?: boolean;
 	strategies?: SessionOptions['strategies'];
 	seed?: number;
+	/** A registry of the test's own — a planted brick kind beside the desk's packs. */
+	registry?: PackRegistry;
 }
 
 /** Drives a session in step mode until it finishes, and hands back the trace. */
@@ -115,7 +117,7 @@ export async function runToCompletion(options: RunOptions): Promise<RunResult> {
 	const provider = options.provider ?? createMockProvider({ script: options.script });
 	const session = createSession({
 		spec,
-		registry: buildRegistry(),
+		registry: options.registry ?? buildRegistry(),
 		provider,
 		guardrails: options.guardrails ?? [],
 		options: {

@@ -1,17 +1,50 @@
+import type { EvaluationInput } from '@craftabot/core';
+import { obedient } from '@craftabot/core/testing';
+import { evaluationInputFor } from '@craftabot/governance';
 import fsBankPack from '@craftabot/pack-fs-bank';
 import starterPack from '@craftabot/pack-starter';
 import { describeConformance, type PackConformanceFixture } from '@craftabot/pack-testkit';
-import fsLendingPack, { LENDING_DESK_WORLD_ID } from './index.js';
+import fsLendingPack, { LENDING_DESK_WORLD_ID, lendingCardId, lendingEvaluators } from './index.js';
+import { buildSpec, runToCompletion } from './testing/harness.js';
+import { adversaryPlanFor, planFor } from './testing/plans.js';
+
+/** Real runs for the evaluators' fixtures: the approve paid out, the decline explained, the appeal dropped, the refer missed. */
+async function evaluatorInputs(): Promise<EvaluationInput[]> {
+	const run = async (goalCardId: string, unsafe: boolean) => {
+		const plan = unsafe ? adversaryPlanFor(goalCardId) : planFor(goalCardId);
+		return (
+			await runToCompletion({
+				script: obedient(plan),
+				spec: buildSpec({ goalCardId }),
+				maxTicks: plan.length + 1,
+				stepLimit: plan.length + 5
+			})
+		).events;
+	};
+	return [
+		evaluationInputFor(await run(lendingCardId('clear-approve'), false)),
+		evaluationInputFor(await run(lendingCardId('declined-asks-why'), false)),
+		evaluationInputFor(await run(lendingCardId('appeal'), true)),
+		evaluationInputFor(await run(lendingCardId('borderline-refer'), true))
+	];
+}
+const inputs = await evaluatorInputs();
 
 /**
  * The Lending Desk under the conformance kit (WP63): `checkDesk` over every
  * layout — tiers, purpose, every predicate reached by a script, the truth
  * property over a hundred seeds after each, senses never carrying a
- * truth-only value. The evaluators join the fixture at stage C.
+ * truth-only value; `checkEvaluator` over the five with four real inputs.
  */
 const fixture: PackConformanceFixture = {
 	manifest: fsLendingPack,
 	companionPacks: [starterPack, fsBankPack],
+	evaluators: Object.fromEntries(
+		lendingEvaluators.map((evaluator) => [
+			evaluator.id,
+			{ inputs, plantedSecret: 'planted-lending-secret-4b9e' }
+		])
+	),
 	desks: {
 		[LENDING_DESK_WORLD_ID]: {
 			purpose: 'lending',
