@@ -8,6 +8,7 @@
 	} from '@craftabot/core';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import { persistRunSummary } from '$lib/state/run-summaries.js';
+	import { looksLikeSinkLines, parseSinkLines } from '$lib/workshop/sink-import.js';
 	import {
 		durationMs,
 		facetsOf,
@@ -98,11 +99,36 @@
 	 * "digest verification surfaced").
 	 */
 	async function importTrace(event: Event): Promise<void> {
-		const file = (event.currentTarget as HTMLInputElement).files?.[0];
+		const input = event.currentTarget as HTMLInputElement;
+		const file = input.files?.[0];
 		if (!file) return;
+		// The same file can be picked again to catch up (WP68): a picker will not fire on the same name twice unless cleared.
+		input.value = '';
 
 		try {
-			const trace = parseTraceFile(JSON.parse(await file.text()));
+			const text = await file.text();
+			// The file sink's lines (WP68, `57-…` §4.5): a run the harness may still be writing.
+			if (file.name.endsWith('.jsonl') || looksLikeSinkLines(text)) {
+				const imported = parseSinkLines(text);
+				const storage = await appStorage();
+				// Caught up, not appended: the file is the whole of what the sink has written so far.
+				await storage.deleteEvents(imported.run.id);
+				await storage.putRun(imported.run);
+				await storage.appendEvents(imported.run.id, imported.events);
+				if (!imported.inProgress) await persistRunSummary(storage, imported.run.id, imported.events);
+				await load();
+				importNote = imported.inProgress
+					? {
+							ok: true,
+							text: `Imported ${imported.run.agentName}'s run from the file sink — still going after ${imported.events.length} events; re-import the file to catch up.`
+						}
+					: {
+							ok: true,
+							text: `Imported ${imported.run.agentName}'s run from the file sink — caught up: ${imported.run.outcome} after ${imported.events.length} events.`
+						};
+				return;
+			}
+			const trace = parseTraceFile(JSON.parse(text));
 			const verified = await verifyTraceDigest(trace);
 			const storage = await appStorage();
 			await storage.putRun(trace.run);
@@ -142,7 +168,7 @@
 			Import trace…
 			<input
 				type="file"
-				accept=".json,application/json"
+				accept=".json,.jsonl,application/json,application/x-ndjson"
 				data-testid="import-trace"
 				onchange={importTrace}
 			/>
