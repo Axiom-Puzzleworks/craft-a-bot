@@ -5,6 +5,7 @@ import type { BrickKindDefinition, PackManifest } from '@craftabot/core';
 import { parseCampaign, runCampaign } from '@craftabot/evals';
 import fsBankPack from '@craftabot/pack-fs-bank';
 import geapPack from '@craftabot/pack-geap';
+import monitorPack from '@craftabot/pack-monitor';
 import guardLocalPack from '@craftabot/pack-guard-local';
 import workshopPack from '@craftabot/pack-workshop';
 import { describe, expect, it } from 'vitest';
@@ -38,7 +39,7 @@ export const LENDING_BASELINE_PATH = resolve(
 	'fs-lending-baseline.json'
 );
 
-const packs = [fsBankPack, fsLendingPack, workshopPack, guardLocalPack, geapPack];
+const packs = [fsBankPack, fsLendingPack, workshopPack, guardLocalPack, geapPack, monitorPack];
 const plans = { planFor, adversaryPlanFor };
 
 /** The cohort-sensitive build: a reflex that declines the older applicant once the worksheet is on the desk. */

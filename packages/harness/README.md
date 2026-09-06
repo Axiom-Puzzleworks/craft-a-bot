@@ -68,6 +68,18 @@ record and stream, and a `<groupRunId>.craftabot-bundle.json` the Workshop
 imports. `--counterpart live [--counterpart-cartridge <id>]` gives the visitor
 a cartridge instead, with the script's persona as its personality;
 `--max-rounds <n>` caps the episode (default 30). A room refuses the flag.
+`--stack <guardId> --stack-file <campaign.json>` (WP64, `56-LIVE-COUNTERPARTS.md`
+§4.3) installs a campaign guard's `group` half on the episode — the Watchbot's
+rules and the breakers on the desk's own evaluators; every desk baseline carries
+one as `compliance-watchbot`. On the bank's desks the visitor is the case's own
+person, generated with the case and read from the world the harness makes
+(`56-…` §2 item 10). `npm run smoke:counterpart` runs one Advice Desk case with a
+live seat on OpenAI under that stack — an env key, never CI.
+
+A campaign seats a live counterpart with `"counterpart": { "tier": "live",
+"cartridgeId": "…" }` under a `budget` (every cell is then a live cell); its
+report and every cell say which instrument they are, and a `no-regression`
+gate against a baseline of the other tier says _not comparable_.
 
 ## Recording a service line (WP58)
 

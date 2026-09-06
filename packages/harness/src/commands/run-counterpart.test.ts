@@ -2,12 +2,14 @@ import { brickKindsFor, buildKitFile, caretRangesFor, parseTraceBundle } from '@
 import { buildSpec } from '@craftabot/pack-starter/testing';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { afterAll, describe, expect, it } from 'vitest';
 import { createRegistry, defaultConfig, packVersions } from '../config.js';
 import { credentialsFromEnv } from '../credentials.js';
 import { createFileStorage } from '../storage/file-storage.js';
 import { FIXTURE_CARTRIDGE } from '../testing/kit-fixture.js';
+import { parseCampaign } from '@craftabot/evals';
 import { runKit } from './run.js';
 
 /**
@@ -65,6 +67,18 @@ async function writeDeskKit(root: string): Promise<string> {
 	return path;
 }
 
+const HERE = dirname(fileURLToPath(import.meta.url));
+const ADVICE_FIXTURE = resolve(HERE, '..', '..', 'fixtures', 'advice-desk.craftabot.json');
+const ADVICE_BASELINE = resolve(
+	HERE,
+	'..',
+	'..',
+	'..',
+	'..',
+	'campaigns',
+	'fs-advice-baseline.json'
+);
+
 const clock = () => {
 	let calls = 0;
 	return () => new Date(Date.UTC(2026, 8, 5, 9, 0, calls++)).toISOString();
@@ -120,6 +134,61 @@ describe('craftabot run --counterpart', () => {
 		const group = await storage.getGroupRun(report.groupRunId!);
 		expect(group?.memberRunIds).toHaveLength(2);
 		expect(await storage.getRun(report.runId)).toMatchObject({ groupRunId: report.groupRunId });
+	});
+
+	it('seats the case’s own person on the Advice Desk and installs the Compliance Watchbot from the baseline (WP64)', async () => {
+		const root = await tmp();
+		// The committed fixture, its cartridge swapped for the test one — the scripted brains need no key.
+		const kit = JSON.parse(await readFile(ADVICE_FIXTURE, 'utf8')) as {
+			agent: { bricks: Array<{ slot: string; config: Record<string, unknown> }> };
+		};
+		const brain = kit.agent.bricks.find((brick) => brick.slot === 'brain');
+		if (brain) brain.config['cartridgeId'] = FIXTURE_CARTRIDGE;
+		const kitPath = join(root, 'advice.craftabot.json');
+		await writeFile(kitPath, JSON.stringify(kit), 'utf8');
+		const campaign = parseCampaign(JSON.parse(await readFile(ADVICE_BASELINE, 'utf8')));
+		const stack = campaign.guards.find((guard) => guard.id === 'compliance-watchbot');
+		expect(stack?.group?.breakOn).toEqual([
+			{ evaluatorId: 'fs-advice/suitability-complete', labels: [], onFail: true }
+		]);
+		const out = join(root, 'runs');
+		const report = await runKit({
+			kitPath,
+			brain: 'scripted-optimal',
+			seed: 5,
+			out,
+			config,
+			credentials,
+			counterpart: { brain: 'scripted' },
+			maxRounds: 10,
+			now: clock(),
+			newId: ids(),
+			...(stack ? { stack } : {})
+		});
+		expect(report.groupRunId).toBeDefined();
+		const bundle = parseTraceBundle(JSON.parse(await readFile(report.bundleFile!, 'utf8')));
+		expect(bundle.runs).toHaveLength(2);
+		// The visitor is the case's person, generated with the case — not the desk's static name (`56-…` §2 item 10).
+		const visitor = bundle.runs.find((run) => run.run.id !== report.runId);
+		expect(visitor?.run.agentName).toBeDefined();
+		expect(visitor?.run.agentName).not.toBe('Customer');
+		expect(visitor?.run.agentName).not.toBe('');
+		// The stack sat at the chokepoint: the breaker looked every round; the optimal clerk never tripped it.
+		const groupEvents = bundle.group?.events ?? [];
+		expect(
+			groupEvents.some(
+				(event) =>
+					event.type === 'guardrail.checked' &&
+					event.payload.guardrailId === 'monitor/evaluator-breaker:fs-advice/suitability-complete'
+			)
+		).toBe(true);
+		expect(
+			groupEvents.some(
+				(event) =>
+					event.type === 'guardrail.tripped' &&
+					event.payload.guardrailId.startsWith('monitor/evaluator-breaker:')
+			)
+		).toBe(false);
 	});
 
 	it('reproduces the merged stream from the seed', async () => {

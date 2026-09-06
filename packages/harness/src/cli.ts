@@ -1,7 +1,8 @@
 import type { EgressMode } from '@craftabot/core';
-import { writeFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { defaultConfig, loadConfig, type HarnessConfig } from './config.js';
 import { principalFromEnv } from './principal.js';
+import { parseCampaign, type CampaignGuard } from '@craftabot/evals';
 import { credentialsFromEnv, type CredentialSource } from './credentials.js';
 import { bundleRun } from './commands/bundle.js';
 import { evaluateRun, renderEvaluations } from './commands/evaluate.js';
@@ -84,7 +85,7 @@ Usage:
                 [--egress declared|none]
                 [--seed <n>] [--max-ticks <n>] [--deny] [--out ./runs]
                 [--counterpart scripted|live] [--counterpart-cartridge <id>] [--max-rounds <n>]
-                [--principal <name>]
+                [--principal <name>] [--stack <guardId> --stack-file <campaign.json>]
       Run a kit file to completion and write the run — run.json, events.jsonl,
       summary.json and a <runId>.craftabot-trace.json the Workshop imports —
       under --out (default ./runs). The scripted brains need no key and are
@@ -96,7 +97,10 @@ Usage:
       counterpart run as a two-seat episode, the visitor driven along the
       desk's own script (scripted, no key, reproducible from --seed) or by a
       cartridge (live; --counterpart-cartridge, default the kit's own); the
-      episode is written with a <groupRunId>.craftabot-bundle.json.
+      episode is written with a <groupRunId>.craftabot-bundle.json. --stack
+      names a guard in a campaign file (WP64) and installs its group half on
+      the episode: the Watchbot's rules and the breakers on the desk's own
+      evaluators — the Compliance Watchbot, on every desk's baseline.
 
   craftabot assurance [--agent <id>] [--out ./runs] [--file <pack.json>] [--markdown <pack.md>] [--html <pack.html>]
       The assurance pack for one bot (WP67): its inventory entry, safety
@@ -245,6 +249,19 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 				}
 				const counterpartCartridge = stringFlag(args, 'counterpart-cartridge');
 				const maxRounds = numberFlag(args, 'max-rounds');
+				// A named stack's chokepoint half on the episode (WP64): `--stack <guardId> --stack-file <campaign.json>`.
+				const stackId = stringFlag(args, 'stack');
+				const stackFile = stringFlag(args, 'stack-file');
+				if ((stackId === undefined) !== (stackFile === undefined)) {
+					throw new Error('--stack <guardId> and --stack-file <campaign.json> go together');
+				}
+				if (stackId !== undefined && counterpartFlag === undefined) {
+					throw new Error('--stack installs a group stack on an episode: it needs --counterpart');
+				}
+				const stack =
+					stackId !== undefined && stackFile !== undefined
+						? await guardFromCampaignFile(stackFile, stackId)
+						: undefined;
 				const report = await runKit({
 					kitPath,
 					brain: brainFlag as BrainTier,
@@ -271,7 +288,8 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 								}
 							}
 						: {}),
-					...(maxRounds !== undefined ? { maxRounds } : {})
+					...(maxRounds !== undefined ? { maxRounds } : {}),
+					...(stack !== undefined ? { stack } : {})
 				});
 				io.stdout(
 					[
@@ -634,7 +652,22 @@ function numberFlag(args: ParsedArgs, name: string): number | undefined {
 }
 
 /** Exposed so a test can hand the CLI a planted environment without touching `process.env`. */
-export /** The harness's principal for this invocation (WP65): `--principal <name>`, else the environment, else the hostname. */
+export /** A guard by id out of a campaign file (WP64, `--stack`): its `group` half is what an episode installs. */
+async function guardFromCampaignFile(file: string, guardId: string): Promise<CampaignGuard> {
+	const campaign = parseCampaign(JSON.parse(await readFile(file, 'utf8')));
+	const guard = campaign.guards.find((entry) => entry.id === guardId);
+	if (!guard) {
+		throw new Error(
+			`campaign '${campaign.id}' has no guard '${guardId}' (it has ${campaign.guards.map((entry) => entry.id).join(', ')})`
+		);
+	}
+	if (!guard.group) {
+		throw new Error(`guard '${guardId}' has no group half — nothing to install on an episode`);
+	}
+	return guard;
+}
+
+/** The harness's principal for this invocation (WP65): `--principal <name>`, else the environment, else the hostname. */
 function principalFor(io: CliIo, args: ParsedArgs) {
 	const name = stringFlag(args, 'principal');
 	return principalFromEnv(io.env, name !== undefined ? { name } : {});

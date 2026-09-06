@@ -17,7 +17,9 @@ import {
 	counterpartScriptFor,
 	counterpartSpec,
 	deskFor,
-	scriptedCounterpart
+	groupStackFor,
+	scriptedCounterpart,
+	type CampaignGuard
 } from '@craftabot/evals';
 import { summariseRun } from '@craftabot/governance/reports';
 import type { CounterpartScript } from '@craftabot/desk';
@@ -65,6 +67,8 @@ export interface RunDuoInput {
 	egress?: 'declared' | 'none';
 	/** The group's principal (WP65): each seat acts `onBehalfOf` it; the harness answers approvals as it. */
 	principal?: Principal;
+	/** A named stack's chokepoint half (WP64, `56-…` §4.3): a campaign file's guard, its `group` installed on the episode. */
+	stack?: CampaignGuard;
 }
 
 export interface RunDuoReport {
@@ -137,6 +141,9 @@ export async function runKitDuo(input: RunDuoInput): Promise<RunDuoReport> {
 	const { card, world } = deskFor(input.registry, input.spec.goalCardId);
 	const rootWorld = world.create(card.layoutId, { random });
 	const { script } = counterpartScriptFor(input.registry, input.spec.goalCardId, rootWorld);
+	const stack = input.stack
+		? groupStackFor(input.stack, input.registry)
+		: { guardrails: [], observers: [] };
 	const visitorBrain = counterpartProvider(input, script, mulberry32(input.seed ^ 0x9e3779b9));
 	const visitor = counterpartSpec(
 		script,
@@ -157,11 +164,13 @@ export async function runKitDuo(input: RunDuoInput): Promise<RunDuoReport> {
 		registry: input.registry,
 		goalCardId: input.spec.goalCardId,
 		world: rootWorld,
+		...(stack.guardrails.length > 0 ? { groupGuardrails: stack.guardrails } : {}),
 		options: {
 			now,
 			newId,
 			random,
 			tickDelayMs: 0,
+			...(stack.observers.length > 0 ? { observers: stack.observers } : {}),
 			...(input.fetch ? { fetch: input.fetch } : {}),
 			egress: input.egress ?? 'declared',
 			...(input.principal ? { principal: input.principal } : {}),

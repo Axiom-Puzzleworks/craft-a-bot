@@ -41,6 +41,7 @@ export {
 	campaignEnvelope,
 	campaignCounterpartSchema,
 	campaignGuardGroupSchema,
+	groupStackFor,
 	runCampaign,
 	specFor,
 	type Campaign,

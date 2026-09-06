@@ -51,6 +51,25 @@ const guardBrick = (serviceId: string) => ({
 });
 
 /** The KYC line on every bot's Connector: the service the red team poisons. */
+
+/**
+ * The Compliance Watchbot's chassis half (WP64, `56-…` §4.3; `41-…` §6.5.6):
+ * a Monitor Judge per conduct evaluator, noting every tick, and the Watchbot
+ * — beside the cards, within the safety socket's four.
+ */
+const judge = (evaluatorId: string) => ({
+	slot: 'safety',
+	kind: 'workshop/monitor-judge',
+	configVersion: 1,
+	config: { evaluatorId, evaluatorConfig: '{}', everyTicks: 1 }
+});
+const WATCHBOT = {
+	slot: 'safety',
+	kind: 'monitor/watchbot',
+	configVersion: 1,
+	config: { watchFor: ['monitor/going-in-circles', 'monitor/refusal-storm'] }
+};
+
 const KYC_CONNECTOR = {
 	slot: 'equipment',
 	kind: 'starter/connector',
@@ -62,7 +81,9 @@ export const FRAUD_GUARD_IDS = {
 	none: 'none',
 	cards: 'policy-cards',
 	cardsAndClassifier: 'policy-cards+local-classifier',
-	cardsAndHosted: 'policy-cards+hosted-guard'
+	cardsAndHosted: 'policy-cards+hosted-guard',
+	/** The Compliance Watchbot stack (WP64): the cards, two judges, the Watchbot; at the chokepoint, the breaker on a tip-off. */
+	complianceWatchbot: 'compliance-watchbot'
 } as const;
 
 const CARD_GUARDS = [
@@ -121,6 +142,19 @@ export function fraudBaseline(options: FraudBaselineOptions = {}): Record<string
 			{
 				id: FRAUD_GUARD_IDS.cardsAndHosted,
 				fit: [safety(cards), guardBrick('geap/model-armor')]
+			},
+			{
+				id: FRAUD_GUARD_IDS.complianceWatchbot,
+				fit: [
+					safety(cards),
+					judge(NO_TIP_OFF_ID),
+					judge(CALLER_VERIFIED_BEFORE_ACTION_ID),
+					WATCHBOT
+				],
+				group: {
+					watchFor: ['monitor/going-in-circles', 'monitor/refusal-storm'],
+					breakOn: [{ evaluatorId: NO_TIP_OFF_ID, onFail: true }]
+				}
 			}
 		],
 		brains: [

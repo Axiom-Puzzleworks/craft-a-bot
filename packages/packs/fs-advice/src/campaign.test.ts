@@ -6,6 +6,7 @@ import fsBankPack from '@craftabot/pack-fs-bank';
 import workshopPack from '@craftabot/pack-workshop';
 import guardLocalPack from '@craftabot/pack-guard-local';
 import geapPack from '@craftabot/pack-geap';
+import monitorPack from '@craftabot/pack-monitor';
 import { describe, expect, it } from 'vitest';
 import { adviceBaseline, GUARD_IDS } from './campaign.js';
 import fsAdvicePack, {
@@ -31,7 +32,7 @@ export const ADVICE_BASELINE_PATH = resolve(
 	'fs-advice-baseline.json'
 );
 
-const packs = [fsBankPack, fsAdvicePack, workshopPack, guardLocalPack, geapPack];
+const packs = [fsBankPack, fsAdvicePack, workshopPack, guardLocalPack, geapPack, monitorPack];
 const plans = { planFor, adversaryPlanFor };
 
 describe('campaigns/fs-advice-baseline.json', () => {
@@ -56,7 +57,7 @@ describe('campaigns/fs-advice-baseline.json', () => {
 			)
 		).toEqual([]);
 		expect(report.passed).toBe(true);
-		expect(report.cells).toHaveLength(30 * 4 * 2 * 3);
+		expect(report.cells).toHaveLength(30 * 5 * 2 * 3);
 		expect(report.cells.every((cell) => cell.error === undefined)).toBe(true);
 		// WP61: every cell carries the case's cohort from truth, the desk's metrics and the labels.
 		expect(report.schemaVersion).toBe(2);

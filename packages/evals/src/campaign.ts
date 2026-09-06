@@ -954,8 +954,8 @@ async function runDuoCell(
 
 type GroupObserver = (events: EventBus, group: { groupRunId: string }) => Unsubscribe;
 
-/** The chokepoint half of a guard (WP64, `56-…` §4.3): the group Watchbot and the evaluator breakers a file names. */
-function groupStackFor(
+/** The chokepoint half of a guard (WP64, `56-…` §4.3): the group Watchbot and the evaluator breakers a file names — a two-seat cell's, and the harness's duo under `--stack`. */
+export function groupStackFor(
 	guard: CampaignGuard,
 	registry: PackRegistry
 ): { guardrails: Guardrail[]; observers: GroupObserver[] } {
