@@ -6,6 +6,8 @@ import { buildSpec } from '@craftabot/pack-starter/testing';
 import { capabilitiesOf } from '../bot-capabilities.js';
 import { createDemoBrain } from '../demo-brain.js';
 import { createRegistry } from '../packs.js';
+import { preferences } from '../state/preferences.svelte.js';
+import { browserPrincipal } from '../state/principal.js';
 import { createSessionView } from '../state/session.svelte.js';
 import { completedTicks, forkStoredRun } from './fork.js';
 
@@ -25,7 +27,9 @@ async function playOrigin() {
 	const view = createSessionView({
 		spec,
 		provider: createDemoBrain('starter/snack', can),
-		onEvent: (event) => events.push(event)
+		onEvent: (event) => events.push(event),
+		// The same person the fork will name (WP65), so the attestations compare too.
+		principal: browserPrincipal(preferences.displayName)
 	});
 	for (let step = 0; step < 40 && view.outcome === undefined; step += 1) await view.step();
 	expect(view.outcome).toBeDefined();

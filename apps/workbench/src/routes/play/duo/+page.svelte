@@ -24,6 +24,7 @@
 		type MemberView
 	} from '$lib/state/session-group.svelte.js';
 	import { recordTrace, type TraceRecorder } from '$lib/state/trace-recorder.js';
+	import { browserPrincipal } from '$lib/state/principal.js';
 	import ApprovalCard from '$lib/components/play/ApprovalCard.svelte';
 	import RunControls from '$lib/components/play/RunControls.svelte';
 	import StoryStrip from '$lib/components/play/StoryStrip.svelte';
@@ -174,7 +175,9 @@
 				return { spec: launch.spec, provider: chosen.provider, role: 'agent' as const };
 			}),
 			goalCardId: cardId,
-			onEvent: onGroupEvent
+			onEvent: onGroupEvent,
+			// The person at the keyboard is the group's principal (WP65); each seat acts for them.
+			principal: browserPrincipal(preferences.displayName)
 		});
 	}
 
@@ -401,8 +404,18 @@
 					<ApprovalCard
 						approval={view.pendingApproval}
 						botName={asking?.name ?? 'A robot'}
-						onallow={() => view?.resolveApproval(view.pendingApproval?.agentId ?? '', true)}
-						ondeny={() => view?.resolveApproval(view.pendingApproval?.agentId ?? '', false)}
+						onallow={() =>
+							view?.resolveApproval(
+								view.pendingApproval?.agentId ?? '',
+								true,
+								browserPrincipal(preferences.displayName)
+							)}
+						ondeny={() =>
+							view?.resolveApproval(
+								view.pendingApproval?.agentId ?? '',
+								false,
+								browserPrincipal(preferences.displayName)
+							)}
 					/>
 				{/if}
 

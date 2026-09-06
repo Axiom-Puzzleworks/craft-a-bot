@@ -96,6 +96,26 @@
 					How many adventures the scrapbook keeps before the oldest unpinned ones are tidied away.
 					Pinned adventures and Robot Friends episodes never count. Default 50.
 				</p>
+				<!--
+					The name on the trace (WP65, `55-…` §4.2): every run this browser
+					starts and every approval it answers names its principal — an id
+					minted once for this browser, and this name when given.
+				-->
+				<label class="cap">
+					<span>Your name, on the trace</span>
+					<input
+						type="text"
+						maxlength="60"
+						data-testid="display-name"
+						value={preferences.displayName}
+						onchange={(event) =>
+							preferences.setDisplayName((event.currentTarget as HTMLInputElement).value)}
+					/>
+				</label>
+				<p class="hint" data-testid="display-name-note">
+					Written on every run you start and every approval you answer, beside an id this browser
+					made up once. Leave it blank and the trace carries the id alone.
+				</p>
 			</div>
 		</Panel>
 	{/if}

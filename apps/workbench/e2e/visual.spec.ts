@@ -38,6 +38,9 @@ test('the Front Desk at play', async ({ page }) => {
 
 test('the Spec Lab and the Run Lab with a Boundary', async ({ page }) => {
 	await openTheWorkshopDoor(page);
+	// A name on the trace (WP65), so the Run Lab's "started by" reads the same in every shot — the id alone is minted fresh per browser.
+	await page.getByTestId('display-name').fill('Sam');
+	await page.getByTestId('display-name').press('Enter');
 	const agentId = await buildReadyBot(page, 'card-snack');
 	await page.goto(`/workshop/spec/${agentId}`);
 	await expect(page.getByTestId('spec-boundary')).toBeVisible();
@@ -54,6 +57,8 @@ test('the Spec Lab and the Run Lab with a Boundary', async ({ page }) => {
 	const runId = (await row.getAttribute('data-testid'))?.replace('run-row-', '') ?? '';
 	await page.goto(`/workshop/runs/${runId}`);
 	await expect(page.getByTestId('run-boundary')).toBeVisible();
+	// WP65: the run names who started it — the browser's principal, by id here since no name was set.
+	await expect(page.getByTestId('run-principal')).toBeVisible();
 	await expect(page).toHaveScreenshot('workshop-run-lab.png', { fullPage: true });
 
 	// WP66 (`54-…` §5): the same screen with a decision explained and its related rows lit.

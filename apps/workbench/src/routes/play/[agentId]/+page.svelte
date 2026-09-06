@@ -21,6 +21,7 @@
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import type { Storage } from '$lib/state/storage.js';
 	import { createBrowserKeyVault } from '$lib/state/keys.js';
+	import { browserPrincipal } from '$lib/state/principal.js';
 	import { liveRun } from '$lib/state/live-run.svelte.js';
 	import { createSessionView, type SessionView } from '$lib/state/session.svelte.js';
 	import { recordTrace, type TraceRecorder } from '$lib/state/trace-recorder.js';
@@ -217,7 +218,9 @@
 			provider: brain.provider,
 			onEvent: onRunEvent,
 			// The Workshop's breakpoints (WP49) — a preference, so they hold here too.
-			breakpoints: () => preferences.breakpoints
+			breakpoints: () => preferences.breakpoints,
+			// Who is at the keyboard (WP65): the browser's principal, named as Settings says.
+			principal: browserPrincipal(preferences.displayName)
 		});
 		view.setSpeed(speed);
 		runStartedAt = new Date().toISOString();
@@ -534,8 +537,8 @@
 					<ApprovalCard
 						approval={view.pendingApproval}
 						botName={record.spec.name}
-						onallow={() => view?.resolveApproval(true)}
-						ondeny={() => view?.resolveApproval(false)}
+						onallow={() => view?.resolveApproval(true, browserPrincipal(preferences.displayName))}
+						ondeny={() => view?.resolveApproval(false, browserPrincipal(preferences.displayName))}
 					/>
 				{/if}
 				<ThoughtBubble thought={view.thought} narration={view.narration} />

@@ -26,6 +26,7 @@
 	import PayloadView from '$lib/components/trace/PayloadView.svelte';
 	import WorldStage from '$lib/components/play/WorldStage.svelte';
 	import Boundary from '$lib/components/control-room/Boundary.svelte';
+	import Chain from '$lib/components/control-room/Chain.svelte';
 	import { boundaryFor } from '$lib/workshop/boundary.js';
 	import { createRegistry } from '$lib/packs.js';
 	import { decisionExplanation } from '@craftabot/governance/reports';
@@ -147,6 +148,18 @@
 			: undefined
 	);
 	const selectedEvent = $derived(selected === undefined ? undefined : events[selected]);
+	/** Who started the run (WP65) — `run.started.principal`, when the host named one. */
+	const runPrincipal = $derived.by(() => {
+		const started = events.find((event) => event.type === 'run.started');
+		return started?.type === 'run.started' ? started.payload.principal : undefined;
+	});
+	const principalLabel = (principal: { name?: string; id: string }) => principal.name ?? principal.id;
+	/** The chain, one line, for the chip's tooltip: `person Sam for service craftabot-harness`. */
+	const principalChainText = $derived.by(() => {
+		const parts: string[] = [];
+		for (let at = runPrincipal; at; at = at.onBehalfOf) parts.push(`${at.kind} ${principalLabel(at)}`);
+		return parts.join(' for ');
+	});
 	/**
 	 * **Explain** (WP66, `54-…` §4.4–4.5): the decision of the selected row's
 	 * tick — the row itself when it is one, else the tick's first — explained
@@ -370,6 +383,15 @@
 					? integrity not checked
 				{/if}
 			</span>
+			{#if runPrincipal}
+				<!-- Who started it (WP65, `55-…` §4.5): the principal on `run.started`, the chain as the tooltip. -->
+				<span
+					class="chip principal"
+					data-testid="run-principal"
+					data-kind={runPrincipal.kind}
+					title={principalChainText}>started by {principalLabel(runPrincipal)}</span
+				>
+			{/if}
 			{#if run.forkedFrom}
 				<!-- A fork names its origin (WP66): the run it continues and the last turn it kept. -->
 				<a
@@ -815,6 +837,12 @@
 					</div>
 				{/if}
 			{:else}
+				{#if selectedEvent?.type === 'action.performed' && selectedEvent.payload.attestation}
+					<!-- The chain behind an action (WP65, `55-…` §4.5): who, for whom, who approved, which rules passed. -->
+					<Chain attestation={selectedEvent.payload.attestation} testId="chain" />
+				{:else if selectedEvent?.type === 'approval.resolved' && selectedEvent.payload.by}
+					<Chain by={selectedEvent.payload.by} testId="chain" />
+				{/if}
 				<PayloadView event={selectedEvent} />
 			{/if}
 		</section>
@@ -953,6 +981,12 @@
 	.forked {
 		font-size: var(--cab-text-xs);
 		color: var(--cab-ink-muted);
+	}
+
+	.chip.principal {
+		font-weight: 400;
+		letter-spacing: 0;
+		text-transform: none;
 	}
 
 	.fork {

@@ -1,7 +1,13 @@
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { brickKindsFor, buildKitFile, caretRangesFor, type KitFile } from '@craftabot/core';
+import {
+	brickKindsFor,
+	buildKitFile,
+	caretRangesFor,
+	type EngineEvent,
+	type KitFile
+} from '@craftabot/core';
 import { buildSpec as lendingSpec } from '@craftabot/pack-fs-lending/testing';
 import { lendingCardId, LENDING_POLICY_CARD_IDS } from '@craftabot/pack-fs-lending';
 import { afterAll, describe, expect, it } from 'vitest';
@@ -9,7 +15,7 @@ import { createRegistry, defaultConfig, packVersions } from '../config.js';
 import { credentialsFromEnv } from '../credentials.js';
 import { createFileStorage } from '../storage/file-storage.js';
 import { FIXTURE_CARTRIDGE, snackbotKit } from '../testing/kit-fixture.js';
-import { forkRun } from './fork.js';
+import { divergenceAfter, forkRun } from './fork.js';
 import { runKit } from './run.js';
 
 /**
@@ -173,6 +179,39 @@ describe('craftabot fork', () => {
 		});
 		expect(different.acts).toMatchObject({ same: false, atTick: 3 });
 		expect(different.outcome).not.toBe('SUCCESS');
+	});
+
+	it('a divergence is about what the bot did, not who was behind it (WP65): attestations and bys are left out', () => {
+		const base = {
+			id: 'e',
+			runId: 'r',
+			tick: 2,
+			timestamp: '2026-09-06T09:00:00.000Z'
+		};
+		const acted = (principal: { kind: 'person' | 'service'; id: string }): EngineEvent =>
+			({
+				...base,
+				type: 'action.performed',
+				payload: {
+					name: 'move',
+					arguments: {},
+					result: { ok: true, narration: 'ok', stateDiff: [] },
+					attestation: { principal, guardrailsPassed: [] }
+				}
+			}) as EngineEvent;
+		const answered = (by?: { kind: 'person'; id: string }): EngineEvent =>
+			({
+				...base,
+				type: 'approval.resolved',
+				payload: { approved: true, ...(by ? { by } : {}) }
+			}) as EngineEvent;
+		expect(
+			divergenceAfter(
+				[answered({ kind: 'person', id: 'p' }), acted({ kind: 'person', id: 'p' })],
+				[answered(), acted({ kind: 'service', id: 'craftabot-harness' })],
+				1
+			)
+		).toEqual({ diverged: false });
 	});
 
 	it('refuses a run it does not hold and a tick the origin never completed', async () => {

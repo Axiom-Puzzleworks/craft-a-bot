@@ -100,6 +100,13 @@ export function actsAfter(
 	return { same: true };
 }
 
+/**
+ * What two rows are compared on: type, tick and payload — less the clock
+ * (`durationMs`), less what says a run is a fork, and less *who* (WP65): a
+ * fork is a new run by whoever forked it, so its attestations and `by`s
+ * name the forker, and a divergence is about what the bot did, not who was
+ * at the keyboard.
+ */
 const comparable = (event: EngineEvent) => ({
 	type: event.type,
 	tick: event.tick,
@@ -107,8 +114,18 @@ const comparable = (event: EngineEvent) => ({
 		event.type === 'tool.executed'
 			? { ...event.payload, durationMs: 0 }
 			: event.type === 'run.started'
-				? Object.fromEntries(Object.entries(event.payload).filter(([key]) => key !== 'forkedFrom'))
-				: event.payload
+				? Object.fromEntries(
+						Object.entries(event.payload).filter(
+							([key]) => key !== 'forkedFrom' && key !== 'principal'
+						)
+					)
+				: event.type === 'action.performed'
+					? Object.fromEntries(
+							Object.entries(event.payload).filter(([key]) => key !== 'attestation')
+						)
+					: event.type === 'approval.resolved'
+						? { approved: event.payload.approved }
+						: event.payload
 });
 
 /** Where two traces first part after `tick` — in type, tick or payload — or nowhere. */
