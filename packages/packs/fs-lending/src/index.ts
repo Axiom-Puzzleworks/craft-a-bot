@@ -1,4 +1,6 @@
 import type { PackManifest } from '@craftabot/core';
+import { lendingGoalCards } from './decks/goal-cards.js';
+import { lendingScenarios } from './decks/scenarios.js';
 import { lendingDesk } from './world/desk.js';
 
 /**
@@ -18,12 +20,23 @@ export const fsLendingPack: PackManifest = {
 	version: '1.0.0',
 	requiresCore: '>=1.0.0',
 	requiresPacks: { 'fs-bank': '^1.0.0' },
-	worlds: [lendingDesk]
+	worlds: [lendingDesk],
+	goalCards: lendingGoalCards,
+	scenarios: lendingScenarios
 };
 
 export default fsLendingPack;
 
 export { lendingStrings } from './strings.js';
+export { lendingCardId, lendingGoalCards } from './decks/goal-cards.js';
+export {
+	BUREAU_POISON,
+	LENDING_DECKS,
+	lendingScenarios,
+	scenariosInLendingDeck,
+	type LendingDeck,
+	type LendingScenario
+} from './decks/scenarios.js';
 export {
 	LENDING_DESK_WORLD_ID,
 	lendingDesk,

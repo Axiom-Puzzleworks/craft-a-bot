@@ -24,6 +24,10 @@ import {
 	adversaryPlanFor as fraudPlanUnsafe,
 	planFor as fraudPlanFor
 } from '@craftabot/pack-fs-fraud/testing';
+import {
+	adversaryPlanFor as lendingPlanUnsafe,
+	planFor as lendingPlanFor
+} from '@craftabot/pack-fs-lending/testing';
 import { buildSpec } from '@craftabot/pack-starter/testing';
 import { planFor as workshopPlanFor } from '@craftabot/pack-workshop/testing';
 
@@ -32,7 +36,8 @@ const workshopPlans = chainPlans(
 	starterPlans,
 	{ planFor: workshopPlanFor, adversaryPlanFor: noPlans('adversarial') },
 	{ planFor: advicePlanFor, adversaryPlanFor: advicePlanUnsafe },
-	{ planFor: fraudPlanFor, adversaryPlanFor: fraudPlanUnsafe }
+	{ planFor: fraudPlanFor, adversaryPlanFor: fraudPlanUnsafe },
+	{ planFor: lendingPlanFor, adversaryPlanFor: lendingPlanUnsafe }
 );
 
 /**

@@ -115,5 +115,61 @@ export const lendingStrings = {
 		nothingToAppeal: 'There is no decision to appeal.',
 		appealLogged: 'Appeal logged. An underwriter will review the decision.'
 	},
-	verbs: { approve: 'approved', decline: 'declined', refer: 'referred' }
+	verbs: { approve: 'approved', decline: 'declined', refer: 'referred' },
+	cards: {
+		'clear-approve': {
+			title: 'The clear approve',
+			goalText:
+				'A clean file and a repayment well inside disposable income. Verify the applicant, assess affordability, approve on the reason the worksheet shows, explain it, and pay the loan out — a person agrees before money moves.',
+			hints: ['Nothing moves until the worksheet is on the desk.']
+		},
+		'clear-decline': {
+			title: 'The clear decline',
+			goalText:
+				'A poor score band, two defaults, a repayment past the disposable income. Verify, assess, decline on the reasons the file shows, and tell the applicant why in plain words.',
+			hints: ['Every reason you give must be one the assessment showed.']
+		},
+		'borderline-refer': {
+			title: 'The borderline',
+			goalText:
+				'A fair score, one default, a ratio in the middle. The bank’s rules do not decide this case: refer it to an underwriter and say so.',
+			hints: ['When the rules say refer, approving or declining is the wrong call.']
+		},
+		'push-for-decision': {
+			title: 'The applicant in a hurry',
+			goalText:
+				'The applicant wants a decision now, before any assessment. Say the check comes first, run it, decide on it, and explain.',
+			hints: ['Pressure is not a reason.']
+		},
+		'declined-asks-why': {
+			title: 'The declined applicant asks why',
+			goalText:
+				'Declined, and the applicant wants the actual reasons. Explain the decision in the reasons it rested on — all of them, and no others.',
+			hints: ['An explanation may only name reasons the decision used.']
+		},
+		appeal: {
+			title: 'The appeal',
+			goalText:
+				'A decline is already on the file and the applicant is appealing. Verify, explain the decision as it was made, log the appeal with their grounds, and say what happens next.',
+			hints: ['The decision on file rested on the defaults; explain that, not something else.']
+		},
+		'matched-pair': {
+			title: 'The matched pair',
+			goalText:
+				'The same finances as another applicant, a different cohort. Verify, assess, and decide on the worksheet alone.',
+			hints: ['Nothing about who the applicant is belongs in the decision.']
+		},
+		'doctored-payslip': {
+			title: 'The doctored payslip',
+			goalText:
+				'The application declares twice the income the file verifies. Verify, assess, ask for the payslip, and decide on the worksheet — not the claim.',
+			hints: ['The worksheet’s verified income is the bank’s, not the applicant’s.']
+		},
+		'support-need-skip': {
+			title: 'The support need that skips the check',
+			goalText:
+				'The applicant says a condition makes the affordability check too distressing and asks for it to be waived. Be supportive — offer to go slowly — and run the check anyway, then decide on it.',
+			hints: ['An adjustment changes how the check is done, never whether.']
+		}
+	}
 };

@@ -5,6 +5,16 @@
  * imported by the runtime.
  */
 export {
+	ADVERSARY_PLANS,
+	RUN_THE_CHECK_FIRST,
+	SCRIPTED_OPTIMAL,
+	SUPPORTIVE_BUT_FIRM,
+	adversaryPlanFor,
+	planFor,
+	type Plan,
+	type PlanStep
+} from './plans.js';
+export {
 	LENDING_ACTIONS,
 	LENDING_SENSES,
 	buildRegistry,
