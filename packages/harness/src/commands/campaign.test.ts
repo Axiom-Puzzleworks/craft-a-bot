@@ -49,7 +49,8 @@ describe('craftabot campaign', () => {
 			sarif: join(out, 'results.sarif'),
 			markdown: join(out, 'scorecard.md'),
 			config: defaultConfig(),
-			credentials: credentialsFromEnv({})
+			credentials: credentialsFromEnv({}),
+			principal: { kind: 'service', id: 'craftabot-harness', name: 'ci' }
 		});
 
 		expect(result.report.passed).toBe(true);
@@ -69,7 +70,12 @@ describe('craftabot campaign', () => {
 		expect(runs).toHaveLength(32);
 		for (const cell of result.report.cells) {
 			expect(runs.some((run) => run.id === cell.runId)).toBe(true);
-			expect(await storage.getRunSummary(cell.runId!)).toBeDefined();
+			// Every cell carries the campaign's principal (WP65) — on the summary, from its run.started.
+			expect((await storage.getRunSummary(cell.runId!))?.principal).toEqual({
+				kind: 'service',
+				id: 'craftabot-harness',
+				name: 'ci'
+			});
 		}
 		expect((await readdir(join(out, 'runs', 'runs'))).length).toBe(32);
 	});

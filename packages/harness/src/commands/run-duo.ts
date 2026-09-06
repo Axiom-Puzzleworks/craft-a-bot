@@ -9,6 +9,7 @@ import {
 	type GroupRunRecord,
 	type LLMProvider,
 	type PackRegistry,
+	type Principal,
 	type RunOutcome,
 	type WorldDefinition
 } from '@craftabot/core';
@@ -58,6 +59,8 @@ export interface RunDuoInput {
 	newId?: () => string;
 	fetch?: typeof globalThis.fetch;
 	egress?: 'declared' | 'none';
+	/** The group's principal (WP65): each seat acts `onBehalfOf` it; the harness answers approvals as it. */
+	principal?: Principal;
 }
 
 export interface RunDuoReport {
@@ -194,6 +197,7 @@ export async function runKitDuo(input: RunDuoInput): Promise<RunDuoReport> {
 			tickDelayMs: 0,
 			...(input.fetch ? { fetch: input.fetch } : {}),
 			egress: input.egress ?? 'declared',
+			...(input.principal ? { principal: input.principal } : {}),
 			...(input.maxTicks !== undefined ? { budgets: { maxTicks: input.maxTicks } } : {}),
 			maxRounds: input.maxRounds ?? 30
 		}

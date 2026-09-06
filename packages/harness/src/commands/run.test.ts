@@ -194,6 +194,42 @@ describe('craftabot run', () => {
 	});
 });
 
+describe('craftabot run with a principal (WP65)', () => {
+	it('writes the principal on run.started, an attestation on every action, its own name on each approval, and the summary carries it', async () => {
+		const root = await tmp();
+		const kitPath = await writeKit(root);
+		const out = join(root, 'runs');
+		const principal = { kind: 'service' as const, id: 'craftabot-harness', name: 'ci' };
+		const report = await runKit({
+			kitPath,
+			brain: 'scripted-optimal',
+			seed: 7,
+			out,
+			config,
+			credentials,
+			now: clock(),
+			principal
+		});
+		const storage = await createFileStorage(out);
+		const events = (await storage.getEvents(report.runId)).map((row) => row.event);
+		const started = events.find((event) => event.type === 'run.started');
+		expect(started?.type === 'run.started' && started.payload.principal).toEqual(principal);
+		const actions = events.filter((event) => event.type === 'action.performed');
+		expect(actions.length).toBeGreaterThan(0);
+		for (const action of actions) {
+			expect(action.type === 'action.performed' && action.payload.attestation?.principal).toEqual(
+				principal
+			);
+		}
+		for (const resolved of events.filter((event) => event.type === 'approval.resolved')) {
+			expect(resolved.type === 'approval.resolved' && resolved.payload.by).toEqual(principal);
+		}
+		expect((await storage.getRunSummary(report.runId))?.principal).toEqual(principal);
+		const trace = parseTraceFile(JSON.parse(await readFile(report.traceFile, 'utf8')));
+		expect(await verifyTraceDigest(trace)).toBe(true);
+	});
+});
+
 describe('craftabot bundle', () => {
 	it('writes a stored run back out with a verifying digest', async () => {
 		const root = await tmp();

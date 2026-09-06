@@ -102,13 +102,16 @@ export {
 	type AssuranceEvaluation,
 	type AssuranceEvidence,
 	type AssuranceOutcome,
+	principalsOver,
 	type AssurancePack,
 	type AssurancePackInput,
+	type AssurancePrincipal,
 	type EvidencePresence,
 	type NotRecorded
 } from './assurance-pack.js';
 export {
 	ASSURANCE_TOKENS,
+	principalLine,
 	renderAssurancePackHtml,
 	renderAssurancePackMarkdown
 } from './assurance-pack-render.js';

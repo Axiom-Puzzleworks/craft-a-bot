@@ -45,6 +45,8 @@ The scripted brains only know cards with a plan (the starter pack's); anything e
 
 ## Credentials
 
+**The principal** (WP65, `55-PRINCIPAL.md` §4.2). Every run, fork and campaign cell the harness starts carries `{ kind: 'service', id: 'craftabot-harness', name }` on `run.started`, on every action's attestation and as the `by` of every approval it answers — `name` from `--principal <name>`, else `CRAFTABOT_PRINCIPAL`, else the machine's hostname. Nothing is verified; the trace records what the host said.
+
 Read only from `CRAFTABOT_CREDENTIAL_<ID>` — `<ID>` the provider or brick credential id, upper-cased, non-alphanumerics folded to `_` (`CRAFTABOT_CREDENTIAL_OPENAI`, `CRAFTABOT_CREDENTIAL_GEAP`). Never from a file the harness wrote, never printed, and every file it writes is redacted against every secret it holds. `key-leak.test.ts` plants one secret per declared credential and sweeps.
 
 ## Packs

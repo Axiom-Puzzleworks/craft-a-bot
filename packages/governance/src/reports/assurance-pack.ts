@@ -1,3 +1,4 @@
+import type { Principal } from '@craftabot/core';
 import {
 	CRAFTABOT_CORE_VERSION,
 	brickKindsFor,
@@ -52,6 +53,29 @@ export const ASSURANCE_POSTURE =
 export interface NotRecorded {
 	recorded: false;
 	note: string;
+}
+
+/** One principal and the runs of this bot it is on (WP65). */
+export interface AssurancePrincipal {
+	principal: Principal;
+	runIds: string[];
+}
+
+/** The distinct principals over some runs' summaries, by kind and id, each with the runs it started — oldest run first. */
+export function principalsOver(
+	runs: readonly RunRecord[],
+	summaries: ReadonlyMap<string, RunSummary>
+): AssurancePrincipal[] {
+	const byKey = new Map<string, AssurancePrincipal>();
+	for (const run of runs) {
+		const principal = summaries.get(run.id)?.principal;
+		if (!principal) continue;
+		const key = `${principal.kind}:${principal.id}`;
+		const entry = byKey.get(key) ?? { principal, runIds: [] };
+		entry.runIds.push(run.id);
+		byKey.set(key, entry);
+	}
+	return [...byKey.values()];
 }
 
 /** The campaign report fields the pack reads — structural, so `governance` need not import `@craftabot/evals`. */
@@ -188,12 +212,22 @@ export interface AssurancePack {
 		guardrails: string[];
 		approvals: { requested: number; granted: number; runIds: string[] };
 		egress: { hosts: string[]; recordedRuns: number; noNetworkRuns: number; runIds: string[] };
-		principal: NotRecorded;
+		/** Every distinct principal that started a run of this bot (WP65, `55-…` §4.4), with the runs each started; *not recorded* when none did. */
+		principal: NotRecorded | { recorded: true; principals: AssurancePrincipal[] };
 	};
 	/** Principle 3 — development, implementation and use: the campaigns as test evidence. */
 	development: { campaigns: AssuranceCampaign[]; note?: string };
 	/** Principle 4 — independent validation. */
-	validation: { validatedBy: NotRecorded; evaluations: AssuranceEvaluation[]; note?: string };
+	validation: {
+		/**
+		 * The distinct principals of the runs an evaluator judged (WP65, `55-…`
+		 * §2 item 7). Independence from the builder is not established: no
+		 * record names who built the bot, and the note says so.
+		 */
+		validatedBy: NotRecorded | { recorded: true; validators: AssurancePrincipal[]; note: string };
+		evaluations: AssuranceEvaluation[];
+		note?: string;
+	};
 	/** Principle 5 — risk mitigants. */
 	mitigants: {
 		inability: string[];
@@ -334,6 +368,13 @@ export async function assurancePackFor(input: AssurancePackInput): Promise<Assur
 		runIds: approvalRuns.map((run) => run.id)
 	};
 	const egressRuns = mine.filter((run) => summaries.get(run.id)?.egress !== undefined);
+	// Who started the runs, and who started the ones an evaluator judged (WP65, `55-…` §4.4).
+	const principals = principalsOver(mine, summaries);
+	const judgedIds = new Set(evaluations.map((record) => record.runId));
+	const validators = principalsOver(
+		mine.filter((run) => judgedIds.has(run.id)),
+		summaries
+	);
 
 	// Development: the campaigns, each with its matrices, cohorts, obligations and parity caveats.
 	const evidence = campaignEvidenceFor(agent.id, campaignReports);
@@ -429,7 +470,7 @@ export async function assurancePackFor(input: AssurancePackInput): Promise<Assur
 			case 'egress':
 				return egressModes.has(item.id as 'declared' | 'none') ? 'present' : 'available';
 			case 'principal':
-				return 'not-recorded';
+				return principals.length > 0 ? 'present' : 'not-recorded';
 			case 'artefact':
 				return artefactsPresent.has(item.id) ? 'present' : 'available';
 			default:
@@ -499,7 +540,10 @@ export async function assurancePackFor(input: AssurancePackInput): Promise<Assur
 			guardrails: [...safetyCase.guardrails],
 			approvals,
 			egress: { ...safetyCase.egress, runIds: egressRuns.map((run) => run.id) },
-			principal: notRecorded('The principal on each run', 'WP65')
+			principal:
+				principals.length > 0
+					? { recorded: true, principals }
+					: notRecorded('The principal on each run', 'WP65')
 		},
 		development: {
 			campaigns,
@@ -510,7 +554,14 @@ export async function assurancePackFor(input: AssurancePackInput): Promise<Assur
 				: {})
 		},
 		validation: {
-			validatedBy: notRecorded('Who validated this build', 'WP65'),
+			validatedBy:
+				validators.length > 0
+					? {
+							recorded: true,
+							validators,
+							note: 'The principals of the runs an evaluator judged. Whether any is independent of the builder cannot be said: no record names who built this bot.'
+						}
+					: notRecorded('Who validated this build', 'WP65'),
 			evaluations: evaluationRows,
 			...(evaluationRows.length === 0
 				? {

@@ -13,6 +13,7 @@ import {
 	type RunOutcome,
 	type SessionOptions,
 	type EgressMode,
+	type Principal,
 	type PackManifest,
 	type WorldInstance
 } from '@craftabot/core';
@@ -163,6 +164,8 @@ export interface RunOptions {
 	world?: WorldInstance;
 	/** The session's egress mode (WP41) — `'none'` is what a campaign in CI runs under. */
 	egress?: EgressMode;
+	/** Who is running this (WP65): on `run.started` and every attestation when given. */
+	principal?: Principal;
 }
 
 /** Drives a session in step mode until it finishes, and hands back the trace. */
@@ -191,7 +194,8 @@ export async function runToCompletion(options: RunOptions): Promise<RunResult> {
 			random: clock.random,
 			...(options.maxTicks !== undefined ? { budgets: { maxTicks: options.maxTicks } } : {}),
 			...(options.strategies !== undefined ? { strategies: options.strategies } : {}),
-			...(options.egress !== undefined ? { egress: options.egress } : {})
+			...(options.egress !== undefined ? { egress: options.egress } : {}),
+			...(options.principal !== undefined ? { principal: options.principal } : {})
 		},
 		...(options.world ? { world: options.world } : {})
 	});

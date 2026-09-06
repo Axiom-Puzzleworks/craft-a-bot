@@ -243,13 +243,17 @@ const runs = [
 	run(RUN_A, 'SUCCESS', '2026-09-04T10:00:00.000Z'),
 	run(RUN_B, 'FAILURE', '2026-09-05T10:00:00.000Z')
 ];
+/** RUN_A was started by a person, RUN_B by the harness (WP65): the pack names both, and the validator is whoever's run an evaluator judged. */
+const PERSON = { kind: 'person', id: 'browser-1', name: 'Sam' } as const;
+const SERVICE = { kind: 'service', id: 'craftabot-harness', name: 'ci' } as const;
 const summaries = new Map<string, RunSummary>([
-	[RUN_A, summary(RUN_A, { approvalsRequested: 1, approvalsGranted: 1 })],
+	[RUN_A, summary(RUN_A, { approvalsRequested: 1, approvalsGranted: 1, principal: PERSON })],
 	[
 		RUN_B,
 		summary(RUN_B, {
 			findings: [{ kind: 'guardrail-catch', tick: 2, summary: 'No fire blocked fire.' }],
-			guardrailTrips: { [card.id]: 1 }
+			guardrailTrips: { [card.id]: 1 },
+			principal: SERVICE
 		})
 	]
 ]);
@@ -333,6 +337,28 @@ describe('assurancePackFor', () => {
 			callsAvailable: []
 		});
 		expect(pack.monitoring.explanations).toMatchObject({ recorded: true });
+		// The principals (WP65): every distinct one with its runs; the validators are those of the evaluated runs.
+		expect(pack.governance.principal).toEqual({
+			recorded: true,
+			principals: [
+				{ principal: PERSON, runIds: [RUN_A] },
+				{ principal: SERVICE, runIds: [RUN_B] }
+			]
+		});
+		expect(pack.validation.validatedBy).toMatchObject({
+			recorded: true,
+			validators: [
+				{ principal: PERSON, runIds: [RUN_A] },
+				{ principal: SERVICE, runIds: [RUN_B] }
+			]
+		});
+		expect(
+			pack.controlMaps
+				.flatMap((map) => map.rows)
+				.flatMap((row) => row.evidence)
+				.filter((item) => item.kind === 'principal')
+				.map((item) => item.presence)
+		).toEqual(expect.arrayContaining(['present']));
 		expect(pack.governance.approvals).toEqual({ requested: 1, granted: 1, runIds: [RUN_A] });
 		expect(pack.validation.evaluations[0]).toMatchObject({
 			evaluatorId: judge.id,
@@ -350,13 +376,13 @@ describe('assurancePackFor', () => {
 			`${card.id}:present`,
 			'parity:present',
 			'campaign-report:present',
-			'run.started.principal:not-recorded'
+			'run.started.principal:present'
 		]);
 		expect(pack.inventory.requires).toMatchObject({
 			core: expect.stringMatching(/^>=/),
 			brickKinds: {}
 		});
-		expect(pack.governance.principal.recorded).toBe(false);
+		expect(pack.governance.principal.recorded).toBe(true);
 		expect(pack).toMatchSnapshot();
 	});
 
@@ -476,7 +502,10 @@ describe('the renderings', () => {
 		for (const line of figures) expect(citing(line), line).toBe(true);
 		expect(md).toContain(`[${RUN_A}]`.slice(1, -1));
 		expect(md).toContain('pending — Waits for WP72.');
-		expect(md).toContain('not recorded in this build (WP65)');
+		// The principal is recorded (WP65): the chain, citing the run it started.
+		expect(md).toContain('person "Sam" (browser-1)');
+		expect(md).toContain('service "ci" (craftabot-harness)');
+		expect(md).not.toContain('not recorded in this build (WP65)');
 	});
 
 	it('HTML: one file, no script, the app’s tokens inlined, every run id an anchor into the appendix', async () => {

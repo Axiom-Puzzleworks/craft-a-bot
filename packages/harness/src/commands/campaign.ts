@@ -1,4 +1,4 @@
-import type { EgressMode } from '@craftabot/core';
+import type { EgressMode, Principal } from '@craftabot/core';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { localPackFrom, type LLMProvider, type PackRegistry } from '@craftabot/core';
@@ -45,6 +45,8 @@ export interface CampaignFileOptions {
 	fetch?: typeof globalThis.fetch;
 	/** Every cell's egress mode (WP41); the CI job passes `'none'`. */
 	egress?: EgressMode;
+	/** Every cell's principal (WP65) — the harness's service principal. */
+	principal?: Principal;
 	/** Scenario pack files (WP44) registered beside the config's packs, so a campaign can name their scenarios. */
 	scenarioPacks?: string[];
 	onCell?: (done: number, total: number) => void;
@@ -98,6 +100,7 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 		packVersions: versions,
 		providerFor: (brain) => providerFor(brain, registry, options),
 		egress: options.egress ?? 'declared',
+		...(options.principal ? { principal: options.principal } : {}),
 		packs: runnerPacks,
 		plans: harnessPlans,
 		// A hosted evaluator's battery (WP51): from the environment, live only under the file's own `budget`.

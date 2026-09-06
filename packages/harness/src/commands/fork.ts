@@ -7,6 +7,7 @@ import {
 	type AgentSpecV2,
 	type EgressMode,
 	type EngineEvent,
+	type Principal,
 	type RunOutcome
 } from '@craftabot/core';
 import { summariseRun } from '@craftabot/governance/reports';
@@ -41,6 +42,8 @@ export interface ForkRunOptions {
 	now?: () => string;
 	newId?: () => string;
 	egress?: EgressMode;
+	/** Who is forking (WP65): the fork is a new run by whoever forked it, not the origin's principal. */
+	principal?: Principal;
 }
 
 export interface ForkRunReport {
@@ -171,7 +174,8 @@ export async function forkRun(options: ForkRunOptions): Promise<ForkRunReport> {
 				random: mulberry32(options.seed),
 				tickDelayMs: 0,
 				...(options.newId ? { newId: options.newId } : {}),
-				egress: options.egress ?? 'declared'
+				egress: options.egress ?? 'declared',
+				...(options.principal ? { principal: options.principal } : {})
 			}
 		},
 		{ from: { events: originEvents, tick }, ...(options.kitPath ? { overrides: { spec } } : {}) }
@@ -181,7 +185,9 @@ export async function forkRun(options: ForkRunOptions): Promise<ForkRunReport> {
 	const startedAt = now();
 	const versions = packVersions(options.config);
 	session.events.onAny((event) => events.push(event));
-	session.events.on('approval.requested', () => session.resolveApproval(options.approve ?? true));
+	session.events.on('approval.requested', () =>
+		session.resolveApproval(options.approve ?? true, options.principal)
+	);
 	session.start('step');
 	let outcome: RunOutcome | undefined;
 	const budget = origin.budgets.maxTicks;
