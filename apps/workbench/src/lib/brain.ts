@@ -40,7 +40,9 @@ export function chooseBrain(
 	cartridge: CartridgeDefinition | undefined,
 	goalCardId: string,
 	registry: PackRegistry,
-	can?: BotCapabilities
+	can?: BotCapabilities,
+	/** For a fork (WP66): how many turns the origin's brain had already taken — a scripted brain resumes there; a real one has no script to resume. */
+	options: { startAt?: number } = {}
 ): BrainChoice {
 	const factory = cartridge ? registry.getProviderFactory(cartridge.providerId) : undefined;
 
@@ -62,7 +64,7 @@ export function chooseBrain(
 	// file from a build with more packs installed, say — runs on the scripted
 	// mock rather than crashing the bench. Everything else runs it too: no
 	// cartridge fitted at all, or the Demo Brain cartridge itself.
-	return { ok: true, provider: createDemoBrain(goalCardId, can), keyless: true };
+	return { ok: true, provider: createDemoBrain(goalCardId, can, options), keyless: true };
 }
 
 /** Does this cartridge need a battery before GO will light? (03 §9) */

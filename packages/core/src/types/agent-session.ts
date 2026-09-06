@@ -1,5 +1,7 @@
 import type { EgressMode } from '../egress.js';
 import type { AnyAgentSpec } from '../schemas/agent-spec-v2.js';
+import type { EngineEvent } from '../schemas/events.js';
+import type { TickMemory } from '../session/memory.js';
 import type { RunOutcome } from '../schemas/shared.js';
 import type { EventBus } from '../event-bus.js';
 import type { PackRegistry } from '../pack-registry.js';
@@ -128,6 +130,22 @@ export interface SessionOptions {
 	parentRunId?: string;
 }
 
+/**
+ * What `forkSession` hands `createSession` so a run begins where another
+ * left off (WP66, `54-…` §4.1): the origin's rows through the fork tick as
+ * the guardrails' history, the memory window and the notebook refilled,
+ * usage restored, the prompt's pending feedback, and what `run.started`
+ * says about the fork. Built by `forkSession`, never by hand.
+ */
+export interface ForkState {
+	history: readonly EngineEvent[];
+	memory: readonly TickMemory[];
+	notebook: readonly string[];
+	feedback: readonly string[];
+	usage: { ticks: number; inputTokens: number; outputTokens: number };
+	forkedFrom: { runId: string; tick: number; notebook: 'restored' | 'empty' };
+}
+
 export interface CreateSessionDeps {
 	/** Either spec shape; the session normalises (WP14 slice 2b). */
 	spec: AnyAgentSpec;
@@ -148,6 +166,8 @@ export interface CreateSessionDeps {
 	 * *deployment* rather than to any brick on the baseplate.
 	 */
 	guardrails?: Guardrail[];
+	/** A fork's starting state (WP66) — `forkSession` fills it; a plain session has none. */
+	fork?: ForkState;
 	/**
 	 * A secret by the credential id a fitted brick's kind declared
 	 * (`BrickKindDefinition.credential`, `25-…` §4.6, WP35 stage C) — the

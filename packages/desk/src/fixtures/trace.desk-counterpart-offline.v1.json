@@ -96,6 +96,7 @@
 				],
 				"alerts": [],
 				"tick": 0,
+				"draws": 0,
 				"hidden": [
 					{
 						"id": "visitor",
@@ -113,6 +114,10 @@
 				"toolOverrides": {},
 				"extra": {
 					"consulted": 0
+				},
+				"counterpart": {
+					"fired": [],
+					"ended": false
 				},
 				"config": {}
 			}
@@ -188,6 +193,7 @@
 				],
 				"alerts": [],
 				"tick": 0,
+				"draws": 0,
 				"hidden": [
 					{
 						"id": "visitor",
@@ -205,6 +211,10 @@
 				"toolOverrides": {},
 				"extra": {
 					"consulted": 0
+				},
+				"counterpart": {
+					"fired": [],
+					"ended": false
 				},
 				"config": {}
 			}
@@ -454,6 +464,7 @@
 				],
 				"alerts": [],
 				"tick": 1,
+				"draws": 0,
 				"hidden": [
 					{
 						"id": "visitor",
@@ -471,6 +482,10 @@
 				"toolOverrides": {},
 				"extra": {
 					"consulted": 0
+				},
+				"counterpart": {
+					"fired": [],
+					"ended": false
 				},
 				"config": {}
 			}
@@ -737,6 +752,7 @@
 				],
 				"alerts": [],
 				"tick": 2,
+				"draws": 0,
 				"hidden": [
 					{
 						"id": "visitor",
@@ -754,6 +770,10 @@
 				"toolOverrides": {},
 				"extra": {
 					"consulted": 0
+				},
+				"counterpart": {
+					"fired": [],
+					"ended": false
 				},
 				"config": {}
 			}
@@ -1042,12 +1062,17 @@
 				],
 				"alerts": [],
 				"tick": 3,
+				"draws": 0,
 				"hidden": [],
 				"heardCursor": 0,
 				"scheduledHeard": [],
 				"toolOverrides": {},
 				"extra": {
 					"consulted": 0
+				},
+				"counterpart": {
+					"fired": [],
+					"ended": false
 				},
 				"config": {}
 			}
@@ -1531,12 +1556,17 @@
 				],
 				"alerts": [],
 				"tick": 4,
+				"draws": 0,
 				"hidden": [],
 				"heardCursor": 0,
 				"scheduledHeard": [],
 				"toolOverrides": {},
 				"extra": {
 					"consulted": 0
+				},
+				"counterpart": {
+					"fired": [],
+					"ended": false
 				},
 				"config": {}
 			}

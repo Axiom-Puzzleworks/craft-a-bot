@@ -232,6 +232,8 @@ All events share `{ id, runId, tick, timestamp, type, payload }`, strictly typed
 
 > **Amended 2026-08-14 (WP15, E7):** one payload field, additive.
 >
+> **Amended 2026-09-06 (WP66, `54-FORK-EXPLAIN.md` §4.1):** `run.started` gains `forkedFrom?: { runId, tick, notebook: 'restored' | 'empty' }` — present on a run `forkSession` began where a stored run left off; additive, and the only thing that says a run is a fork. `RunRecord.forkedFrom?` mirrors it.
+
 > - **`run.started.strategies?`** `{ memory, prompt }` — the ids of the strategies that assembled this run's context (`window-v1` + `sections-v1` by default). The trace could already show *what* went to the model, message by message, and had no way to say what **rule** produced it. "Was this run in realism mode?" is a governance question, because two runs of the same bot under the same budgets can decide differently when their context was shaped differently, and reverse-engineering the answer from the message shapes is a guess rather than an audit.
 > - Optional, so every trace written before WP15 still parses; absent means the only pairing that was then available. No `formatVersion` bump and no migration entry — an unrecorded field on old traces is honestly unrecorded.
 > - `ChatMessage` also gains **`toolCalls?`**, the assistant half of the tool protocol, which `transcript-v1` writes and `sections-v1` never does. It is carried verbatim into `prompt.composed` like the rest of the message, so the realism mode needs no event of its own.

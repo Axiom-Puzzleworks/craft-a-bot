@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import {
 		buildTraceFile,
@@ -27,6 +28,9 @@
 	import Boundary from '$lib/components/control-room/Boundary.svelte';
 	import { boundaryFor } from '$lib/workshop/boundary.js';
 	import { createRegistry } from '$lib/packs.js';
+	import { decisionExplanation } from '@craftabot/governance/reports';
+	import { capabilitiesOf } from '$lib/bot-capabilities.js';
+	import { completedTicks, forkStoredRun } from '$lib/workshop/fork.js';
 
 	/**
 	 * **The Run Lab** (`17-…` §3) — the Workshop's flagship, and the screen
@@ -105,6 +109,11 @@
 	let showRaw = $state(false);
 	/** "Diff vs previous prompt" (`17-…` §3) — off until asked for. */
 	let showDiff = $state(false);
+	/** "Explain this decision" (WP66, `54-…` §4.5) — the fold over the selected row's tick, off until asked for. */
+	let showExplain = $state(false);
+	/** "Fork from this tick": running, or what went wrong the last time. */
+	let forking = $state(false);
+	let forkError = $state<string | undefined>(undefined);
 
 	const lastTick = $derived(events.at(-1)?.tick ?? 0);
 	const lanes = $derived(lanesPresent(events));
@@ -138,6 +147,52 @@
 			: undefined
 	);
 	const selectedEvent = $derived(selected === undefined ? undefined : events[selected]);
+	/**
+	 * **Explain** (WP66, `54-…` §4.4–4.5): the decision of the selected row's
+	 * tick — the row itself when it is one, else the tick's first — explained
+	 * from the trace alone by governance's fold, with the calls the build
+	 * offered read from the run's own spec snapshot (the trace carries the
+	 * prompt but not the tool list). `related` is what the timeline lights.
+	 */
+	const explanation = $derived.by(() => {
+		if (!showExplain || !run || selectedEvent === undefined) return undefined;
+		const decision =
+			selectedEvent.type === 'decision'
+				? selectedEvent
+				: events.find((event) => event.type === 'decision' && event.tick === selectedEvent.tick);
+		if (!decision) return undefined;
+		const can = capabilitiesOf(run.specSnapshot, boundaryRegistry);
+		return decisionExplanation(events, decision.id, {
+			callsAvailable: [...can.toolIds, ...can.actionIds]
+		});
+	});
+	const relatedIds = $derived(new Set(explanation?.related ?? []));
+	/** Jump the inspector to the row with this event id — the Explain panel's links. */
+	function selectById(id: string): void {
+		const index = events.findIndex((event) => event.id === id);
+		if (index !== -1) selectRow(index, events[index]!.tick);
+	}
+	const completed = $derived(completedTicks(events));
+	/** A fork keeps a completed tick of a run that is over; a live run's head is still moving. */
+	const canFork = $derived(
+		run !== undefined && !live && !forking && tick >= 1 && completed.includes(tick)
+	);
+	async function forkFromTick(): Promise<void> {
+		if (!run || !canFork) return;
+		forking = true;
+		forkError = undefined;
+		try {
+			const storage = await appStorage();
+			const fork = await forkStoredRun(storage, run.id, tick, boundaryRegistry);
+			await goto(
+				`${resolve('/workshop/compare')}?a=${encodeURIComponent(run.id)}&b=${encodeURIComponent(fork.runId)}&from=${tick}`
+			);
+		} catch (error) {
+			forkError = error instanceof Error ? error.message : String(error);
+		} finally {
+			forking = false;
+		}
+	}
 	/**
 	 * The prompt diff, when there is one to show.
 	 *
@@ -315,6 +370,32 @@
 					? integrity not checked
 				{/if}
 			</span>
+			{#if run.forkedFrom}
+				<!-- A fork names its origin (WP66): the run it continues and the last turn it kept. -->
+				<a
+					class="forked"
+					href={resolve('/workshop/runs/[runId]', { runId: run.forkedFrom.runId })}
+					data-testid="forked-from"
+					title="Played again from that run, after that turn">forked from turn {run.forkedFrom.tick}</a
+				>
+			{/if}
+			<!--
+				"Fork from this tick" (WP66, `54-…` §4.5): a new run from the
+				scrubber's turn with this bot as it was, then both side by side.
+				The Workshop forks without overrides; a different build is the
+				harness's `craftabot fork --kit`.
+			-->
+			<button
+				type="button"
+				class="fork"
+				data-testid="fork-from-tick"
+				disabled={!canFork}
+				title="Play it again from this turn and compare"
+				onclick={() => void forkFromTick()}>{forking ? 'Forking…' : `Fork from turn ${tick}`}</button
+			>
+			{#if forkError}
+				<span class="fork-error" role="alert" data-testid="fork-error">{forkError}</span>
+			{/if}
 			<a class="kit" href={resolve('/replay/[runId]', { runId })} data-testid="open-in-kit"
 				>Open in Kit</a
 			>
@@ -504,7 +585,9 @@
 							class="row"
 							class:row--failed={row.failed}
 							class:row--selected={selected === row.index}
+							class:row--related={relatedIds.has(row.event.id)}
 							data-lane={row.lane}
+							data-related={relatedIds.has(row.event.id) ? 'true' : undefined}
 							data-testid="row-{row.index}"
 							onclick={() => selectRow(row.index, row.event.tick)}
 						>
@@ -557,8 +640,149 @@
 				<label class="check">
 					<input type="checkbox" bind:checked={showRaw} data-testid="show-raw" /> Raw JSON
 				</label>
+				{#if run}
+					<label class="check">
+						<input type="checkbox" bind:checked={showExplain} data-testid="show-explain" /> Explain
+					</label>
+				{/if}
 			</div>
-			{#if showRaw && selectedEvent}
+			{#if showExplain && selectedEvent}
+				{#if explanation}
+					<!--
+						Explain this decision (WP66, `54-…` §4.4): one fold, from the
+						trace alone — what it saw, what it was offered, what it chose,
+						who checked it, what happened. Each line is a link to its row;
+						the timeline lights every related row while this is open.
+					-->
+					<div class="explain" data-testid="explain" data-tick={explanation.tick}>
+						<h3>
+							Turn {explanation.tick} · decided by the {explanation.source}
+						</h3>
+						<dl>
+							<div>
+								<dt>Saw</dt>
+								<dd>
+									{#if explanation.observation}
+										<button type="button" class="link" onclick={() => selectById(explanation.related[0] ?? '')}
+											>{explanation.observation.text || '(nothing)'}</button
+										>
+										{#if explanation.observation.channels.length > 0}
+											<span class="mono">via {explanation.observation.channels.join(', ')}</span>
+										{/if}
+									{:else}
+										nothing this turn
+									{/if}
+								</dd>
+							</div>
+							<div>
+								<dt>Prompt</dt>
+								<dd>
+									{#if explanation.prompt}
+										<span class="mono"
+											>{explanation.prompt.sections
+												.map((section) => `${section.role} ${section.chars}ch`)
+												.join(' · ')} · ~{explanation.prompt.estimatedTokens} tokens</span
+										>
+									{:else}
+										none — a reflex, not a thought
+									{/if}
+								</dd>
+							</div>
+							<div>
+								<dt>Offered</dt>
+								<dd class="mono" data-testid="explain-offered">
+									{explanation.callsAvailable.length > 0
+										? explanation.callsAvailable.join(', ')
+										: 'nothing'}
+								</dd>
+							</div>
+							<div>
+								<dt>Chose</dt>
+								<dd data-testid="explain-chose">
+									<button type="button" class="link" onclick={() => selectById(explanation.decisionEventId)}>
+										{#if explanation.decision.call}
+											<span class="mono">{explanation.decision.call.name}</span>
+											<span class="mono args">{JSON.stringify(explanation.decision.call.arguments)}</span>
+										{:else}
+											nothing
+										{/if}
+									</button>
+									{#if explanation.decision.thought}
+										<q>{explanation.decision.thought}</q>
+									{/if}
+								</dd>
+							</div>
+							<div>
+								<dt>Checked</dt>
+								<dd>
+									{#if explanation.checks.length === 0}
+										no rule looked at it
+									{:else}
+										<ul class="checks" data-testid="explain-checks">
+											{#each explanation.checks as check, index (index)}
+												<li data-verdict={check.verdict}>
+													<span class="mono">{check.guardrailId}</span>
+													<strong>{check.verdict}</strong>
+													{#if check.reason}<span>{check.reason}</span>{/if}
+													{#if check.policyCardId}<span class="mono">{check.policyCardId}</span>{/if}
+												</li>
+											{/each}
+										</ul>
+									{/if}
+								</dd>
+							</div>
+							{#if explanation.approval}
+								<div>
+									<dt>Asked</dt>
+									<dd>
+										{explanation.approval.approved === undefined
+											? 'a person, and is still waiting'
+											: explanation.approval.approved
+												? 'a person, who said yes'
+												: 'a person, who said no'}
+										{#if explanation.approval.reason}<span>— {explanation.approval.reason}</span>{/if}
+									</dd>
+								</div>
+							{/if}
+							<div>
+								<dt>Did</dt>
+								<dd data-testid="explain-did">
+									{#if explanation.result}
+										<span class="mono">{explanation.result.name}</span>
+										<strong>{explanation.result.ok ? 'ok' : 'failed'}</strong>
+										{#if explanation.result.narration}<span>{explanation.result.narration}</span>{/if}
+										{#if explanation.result.output}<span class="mono">{explanation.result.output}</span>{/if}
+										{#if explanation.result.stateDiff !== undefined}
+											<pre class="diff-json">{JSON.stringify(explanation.result.stateDiff, null, 2)}</pre>
+										{/if}
+									{:else}
+										nothing — it never got that far
+									{/if}
+								</dd>
+							</div>
+							<div>
+								<dt>Had in hand</dt>
+								<dd>
+									{explanation.reasonsUsed.actions.length} earlier call{explanation.reasonsUsed.actions
+										.length === 1
+										? ''
+										: 's'}
+									{#if explanation.reasonsUsed.records.length > 0}
+										· records <span class="mono">{explanation.reasonsUsed.records.join(', ')}</span>
+									{/if}
+								</dd>
+							</div>
+						</dl>
+						<p class="related-note">
+							{explanation.related.length} related rows are lit in the timeline.
+						</p>
+					</div>
+				{:else}
+					<p class="empty" data-testid="explain-empty">
+						No decision on turn {selectedEvent.tick} — pick a row of a turn where the bot chose something.
+					</p>
+				{/if}
+			{:else if showRaw && selectedEvent}
 				<pre class="raw" data-testid="raw-json">{JSON.stringify(selectedEvent, null, 2)}</pre>
 			{:else if showDiff && promptDiff}
 				{#if promptDiff.first}
@@ -724,6 +948,122 @@
 
 	.kit {
 		margin-left: auto;
+	}
+
+	.forked {
+		font-size: var(--cab-text-xs);
+		color: var(--cab-ink-muted);
+	}
+
+	.fork {
+		font: inherit;
+		font-size: var(--cab-text-sm);
+		padding: 2px var(--cab-space-2);
+		background: var(--cab-cream);
+		border: var(--cab-border-panel) solid var(--cab-ink);
+		border-radius: var(--cab-radius-pill);
+		cursor: pointer;
+	}
+
+	.fork:disabled {
+		cursor: default;
+		opacity: 0.5;
+	}
+
+	.fork-error {
+		font-size: var(--cab-text-xs);
+		color: var(--cab-red);
+	}
+
+	.row--related {
+		outline: 2px dashed var(--cab-teal);
+		outline-offset: -2px;
+	}
+
+	.explain {
+		display: grid;
+		gap: var(--cab-space-2);
+		font-size: var(--cab-text-sm);
+	}
+
+	.explain h3 {
+		margin: 0;
+		font-size: var(--cab-text-sm);
+	}
+
+	.explain dl {
+		display: grid;
+		gap: var(--cab-space-1);
+		margin: 0;
+	}
+
+	.explain dl > div {
+		display: grid;
+		grid-template-columns: 6.5em 1fr;
+		gap: var(--cab-space-2);
+	}
+
+	.explain dt {
+		font-size: var(--cab-text-xs);
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--cab-ink-muted);
+	}
+
+	.explain dd {
+		margin: 0;
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--cab-space-1);
+		align-items: baseline;
+	}
+
+	.explain .link {
+		font: inherit;
+		padding: 0;
+		background: none;
+		border: none;
+		color: inherit;
+		text-decoration: underline dotted;
+		cursor: pointer;
+		text-align: left;
+	}
+
+	.explain .args {
+		font-size: var(--cab-text-xs);
+		color: var(--cab-ink-muted);
+	}
+
+	.explain .checks {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		display: grid;
+		gap: 2px;
+	}
+
+	.explain .checks li {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--cab-space-1);
+	}
+
+	.explain .checks li[data-verdict='block'] strong,
+	.explain .checks li[data-verdict='stop'] strong {
+		color: var(--cab-red);
+	}
+
+	.explain .diff-json {
+		margin: 0;
+		width: 100%;
+		font-size: var(--cab-text-xs);
+		white-space: pre-wrap;
+	}
+
+	.related-note {
+		margin: 0;
+		font-size: var(--cab-text-xs);
+		color: var(--cab-ink-muted);
 	}
 
 	.regions {

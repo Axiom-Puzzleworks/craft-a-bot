@@ -710,7 +710,7 @@ exports[`assurancePackFor > folds a fixture bot with one campaign and one incide
       },
     ],
   },
-  "digest": "0575478c526426bf82afaf3ad6bb1591f7f5303fcd23a90dbf6a14e03dc82099",
+  "digest": "3930afe7e13c43a64cd348bce939bfb76c4a4e1fd89a711f2f955d9ca1e38371",
   "format": "craftabot-assurance-pack",
   "formatVersion": 1,
   "generatedAt": "2026-09-06T12:00:00.000Z",
@@ -778,13 +778,60 @@ exports[`assurancePackFor > folds a fixture bot with one campaign and one incide
   "monitoring": {
     "drift": [],
     "explanations": {
-      "note": "What each decision saw is not recorded in this build (WP66).",
-      "recorded": false,
+      "note": "Each incident’s findings carry the explanation of the decision made at that tick — what the bot saw, was offered, chose, and what checked it.",
+      "recorded": true,
     },
     "incidents": [
       {
         "agentId": "11111111-1111-4111-8111-111111111111",
         "agentName": "Bolt",
+        "explanations": [
+          {
+            "approval": undefined,
+            "callsAvailable": [],
+            "checks": [
+              {
+                "guardrailId": "policy/no-fire",
+                "hook": "pre-act",
+                "policyCardId": "test/policy/no-fire",
+                "reason": "No fire.",
+                "verdict": "block",
+              },
+            ],
+            "decision": {
+              "call": {
+                "arguments": {},
+                "kind": "action",
+                "name": "fire",
+              },
+              "thought": "Light it.",
+            },
+            "decisionEventId": "33333333-3333-4333-8333-000000000002",
+            "observation": {
+              "channels": [
+                "look",
+              ],
+              "text": "A match.",
+            },
+            "prompt": undefined,
+            "reasonsUsed": {
+              "actions": [],
+              "found": true,
+              "records": [],
+              "text": "A match.",
+            },
+            "related": [
+              "33333333-3333-4333-8333-000000000001",
+              "33333333-3333-4333-8333-000000000002",
+              "33333333-3333-4333-8333-000000000003",
+            ],
+            "result": undefined,
+            "runId": "22222222-2222-4222-8222-222222222222",
+            "source": "brain",
+            "tick": 2,
+            "version": 1,
+          },
+        ],
         "findings": [
           {
             "kind": "guardrail-catch",

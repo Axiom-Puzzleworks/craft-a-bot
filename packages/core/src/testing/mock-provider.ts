@@ -24,12 +24,14 @@ export interface MockProviderOptions {
 	name?: string;
 	/** What to do once a fixed script runs out. Defaults to an idle shrug. */
 	whenExhausted?: MockTurn;
+	/** Begin at this turn of the script (WP66): a fork resumes a scripted brain where the origin left it. */
+	startAt?: number;
 }
 
 const SHRUG: MockTurn = { text: 'I am not sure what to do next.', toolCall: null };
 
 export function createMockProvider(options: MockProviderOptions): LLMProvider {
-	let turnIndex = 0;
+	let turnIndex = options.startAt ?? 0;
 
 	return {
 		id: options.id ?? 'mock',

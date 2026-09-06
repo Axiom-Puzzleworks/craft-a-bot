@@ -367,6 +367,23 @@
 									"type": "string"
 								}
 							},
+							"forkedFrom": {
+								"type": "object",
+								"properties": {
+									"runId": {
+										"type": "string"
+									},
+									"tick": {
+										"type": "integer",
+										"minimum": 0,
+										"maximum": 9007199254740991
+									}
+								},
+								"required": [
+									"runId",
+									"tick"
+								]
+							},
 							"mode": {
 								"type": "string",
 								"enum": [
@@ -611,6 +628,31 @@
 													"required": [
 														"memory",
 														"prompt"
+													]
+												},
+												"forkedFrom": {
+													"type": "object",
+													"properties": {
+														"runId": {
+															"type": "string"
+														},
+														"tick": {
+															"type": "integer",
+															"minimum": 0,
+															"maximum": 9007199254740991
+														},
+														"notebook": {
+															"type": "string",
+															"enum": [
+																"restored",
+																"empty"
+															]
+														}
+													},
+													"required": [
+														"runId",
+														"tick",
+														"notebook"
 													]
 												}
 											},
@@ -3040,6 +3082,31 @@
 												"required": [
 													"memory",
 													"prompt"
+												]
+											},
+											"forkedFrom": {
+												"type": "object",
+												"properties": {
+													"runId": {
+														"type": "string"
+													},
+													"tick": {
+														"type": "integer",
+														"minimum": 0,
+														"maximum": 9007199254740991
+													},
+													"notebook": {
+														"type": "string",
+														"enum": [
+															"restored",
+															"empty"
+														]
+													}
+												},
+												"required": [
+													"runId",
+													"tick",
+													"notebook"
 												]
 											}
 										},

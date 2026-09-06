@@ -16,6 +16,7 @@ import { describePacks, renderPacks } from './commands/packs.js';
 import { reportIncidents, reportSafetyCase, reportTelemetry } from './commands/report.js';
 import { reportAssurance } from './commands/assurance.js';
 import { runKit, type BrainTier } from './commands/run.js';
+import { forkRun } from './commands/fork.js';
 import { createRegistry } from './config.js';
 import { createFileStorage } from './storage/file-storage.js';
 
@@ -103,6 +104,18 @@ Usage:
       --file or stdout; --markdown and --html write the two renderings, the
       HTML one self-contained file a reader opens with no app. Relevance,
       never compliance.
+
+  craftabot fork --run <runId> [--tick <n>] [--kit <other.craftabot.json>]
+                 [--brain scripted-optimal|scripted-noisy] [--seed <n>] [--deny]
+                 [--egress declared|none] [--out ./runs]
+      A new run that begins where a stored one was after --tick (WP66): the
+      world put back, the memory, notebook and usage restored, the scripted
+      brain resumed where the origin left it, then run to completion and
+      written as run writes a run — with run.started.forkedFrom naming the
+      origin, and a verdict on whether the fork diverged from the origin
+      and at which tick. --kit forks a counterfactual build onto the same
+      goal card; without it the origin's own spec runs again. --tick
+      defaults to the origin's last completed tick but one.
 
   craftabot bundle --run <runId> | --group <groupRunId> [--out ./runs] [--file <path>]
       Write a stored run back out as a .craftabot-trace.json, or a group
@@ -274,6 +287,32 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 					].join('\n')
 				);
 				return report.outcome === 'ERROR' ? 1 : 0;
+			}
+			case 'fork': {
+				// WP66 (`54-FORK-EXPLAIN.md` §4.3): a new run from a stored one's state after --tick.
+				const runId = stringFlag(args, 'run');
+				if (runId === undefined) throw new Error('fork needs --run <runId>');
+				const brainFlag = stringFlag(args, 'brain') ?? 'scripted-optimal';
+				if (!BRAINS.includes(brainFlag as BrainTier)) {
+					throw new Error(`--brain must be one of ${BRAINS.join(', ')}`);
+				}
+				const tick = numberFlag(args, 'tick');
+				const kitPath = stringFlag(args, 'kit');
+				const egress = egressFlag(args);
+				const report = await forkRun({
+					runId,
+					brain: brainFlag as BrainTier,
+					seed: numberFlag(args, 'seed') ?? 1,
+					out: stringFlag(args, 'out') ?? './runs',
+					approve: args.flags['deny'] !== true,
+					config: await configFrom(args),
+					credentials: credentialsFor(io),
+					...(tick !== undefined ? { tick } : {}),
+					...(kitPath !== undefined ? { kitPath } : {}),
+					...(egress !== undefined ? { egress } : {})
+				});
+				io.stdout(`${JSON.stringify(report, null, '\t')}\n`);
+				return 0;
 			}
 			case 'bundle': {
 				const runId = stringFlag(args, 'run');

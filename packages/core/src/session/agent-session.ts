@@ -153,6 +153,12 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		options.strategies
 	);
 	const memory = createMemory(memoryConfig, strategies.memory);
+	// A fork (WP66, `54-…` §4.1) starts with the origin's window and notebook.
+	const fork = deps.fork;
+	if (fork) {
+		for (const entry of fork.memory) memory.remember({ ...entry });
+		for (const line of fork.notebook) memory.notebook.append(line);
+	}
 	const events: EventBus = createEventBus();
 	const runId = newId();
 
@@ -223,8 +229,9 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 	const toolNames = new Set(toolsByWireName.keys());
 	assertNoWireNameCollisions();
 
-	const usage: Usage = { ticks: 0, inputTokens: 0, outputTokens: 0 };
-	const history: EngineEvent[] = [];
+	const usage: Usage = fork ? { ...fork.usage } : { ticks: 0, inputTokens: 0, outputTokens: 0 };
+	// The guardrails' past (WP66): the origin's rows through the fork tick, never re-emitted.
+	const history: EngineEvent[] = fork ? [...fork.history] : [];
 	events.onAny((event) => history.push(event));
 
 	/**
@@ -246,7 +253,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		declaredOutcome: undefined as RunOutcome | undefined,
 		declaredReason: undefined as string | undefined,
 		/** Things the agent should be told next turn: world refusals, guardrail denials. */
-		feedback: [] as string[],
+		feedback: (fork ? [...fork.feedback] : []) as string[],
 		inFlight: undefined as AbortController | undefined
 	};
 
@@ -980,7 +987,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 	function startRun(runMode: RunMode): void {
 		run.mode = runMode;
 		run.status = 'running';
-		run.tick = 0;
+		run.tick = fork?.usage.ticks ?? 0;
 		run.begun = true;
 		emit('run.started', {
 			mode: runMode,
@@ -995,6 +1002,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			providerId: provider.id,
 			wireModel: cartridgeModel(),
 			cartridgeId: brain?.cartridgeId ?? '',
+			...(fork ? { forkedFrom: fork.forkedFrom } : {}),
 			// Written only when the host named a mode (WP41): the guard runs
 			// either way, but a trace written before the field existed — the
 			// golden traces among them — keeps its bytes.

@@ -9,6 +9,7 @@ npm run craftabot -- run --kit packages/harness/fixtures/snackbot.craftabot.json
 npm run craftabot -- report --safety-case --out ./runs
 npm run craftabot -- report --incidents --out ./runs
 npm run craftabot -- assurance --agent <id> --out ./runs --html ./assurance-pack.html   # WP67: the evidence, filed
+npm run craftabot -- fork --run <runId> --tick 2 --kit other.craftabot.json --out ./runs   # WP66: the counterfactual, run
 npm run craftabot -- bundle --run <runId> --out ./runs --file trace.craftabot-trace.json
 npm run craftabot -- campaign --file campaigns/injection-baseline.json --strict --out ./campaign-out \
     --junit ./campaign-out/junit.xml --sarif ./campaign-out/results.sarif --markdown ./campaign-out/scorecard.md

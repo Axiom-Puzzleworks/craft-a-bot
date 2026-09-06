@@ -26,7 +26,7 @@ import { TEST_DESK_ID, testDesk } from './test-desk.js';
  * cartridge, the test clock. No pack is involved, so the oracle cannot move
  * when a pack's content does.
  */
-function buildRegistry(): PackRegistry {
+export function buildRegistry(): PackRegistry {
 	const registry = createPackRegistry();
 	registry.registerPack({
 		id: 'test',
@@ -64,7 +64,7 @@ function buildRegistry(): PackRegistry {
 	return registry;
 }
 
-const SPEC: AgentSpec = {
+export const SPEC: AgentSpec = {
 	id: '33333333-3333-4333-8333-333333333333',
 	name: 'Deskbot',
 	bricks: {
@@ -79,7 +79,7 @@ const SPEC: AgentSpec = {
 	schemaVersion: 1
 };
 
-const PLAN = [
+export const PLAN = [
 	{
 		say: 'Someone is here. Hello.',
 		call: 'say',

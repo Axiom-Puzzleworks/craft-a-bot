@@ -35,6 +35,18 @@
 
 	const idA = $derived(page.url.searchParams.get('a') ?? '');
 	const idB = $derived(page.url.searchParams.get('b') ?? '');
+	/**
+	 * The fork point (WP66, `54-…` §4.5): when `b` was forked from `a` after
+	 * this tick, `b`'s panel folds `a`'s events through it before `b`'s own,
+	 * so the two worlds share every turn up to the fork and the scrubber
+	 * opens there. Honoured only when `b`'s record says so — a `from` on
+	 * two unrelated runs is ignored.
+	 */
+	const from = $derived.by(() => {
+		const raw = page.url.searchParams.get('from');
+		return raw === null || raw === '' || Number.isNaN(Number(raw)) ? undefined : Number(raw);
+	});
+	let forkPoint = $state<number | undefined>(undefined);
 
 	let panelA = $state<Panel | undefined>(undefined);
 	let panelB = $state<Panel | undefined>(undefined);
@@ -54,8 +66,21 @@
 	}
 
 	async function load(a: string, b: string): Promise<void> {
-		[panelA, panelB] = await Promise.all([loadPanel(a), loadPanel(b)]);
-		tick = Math.max(panelA.lastTick, panelB.lastTick);
+		const [left, right] = await Promise.all([loadPanel(a), loadPanel(b)]);
+		const forked = right.run?.forkedFrom;
+		if (forked && forked.runId === a && from === forked.tick) {
+			forkPoint = forked.tick;
+			right.events = [
+				...left.events.filter((event) => event.tick <= forked.tick),
+				...right.events.filter((event) => event.tick > forked.tick)
+			];
+			right.lastTick = right.events.at(-1)?.tick ?? 0;
+		} else {
+			forkPoint = undefined;
+		}
+		panelA = left;
+		panelB = right;
+		tick = forkPoint ?? Math.max(panelA.lastTick, panelB.lastTick);
 		loaded = true;
 	}
 
@@ -85,7 +110,10 @@
 		</p>
 	{:else}
 		<label class="scrubber">
-			<span>Turn {tick} of {overallLastTick}</span>
+			<span
+				>Turn {tick} of {overallLastTick}{#if forkPoint !== undefined}
+					· <span data-testid="compare-forked">forked after turn {forkPoint}</span>{/if}</span
+			>
 			<input
 				type="range"
 				min="0"
@@ -111,6 +139,11 @@
 						<header class="panel-head">
 							<h2>{run.agentName}</h2>
 							<span class="chip" data-outcome={run.outcome}>{run.outcome}</span>
+							{#if forkPoint !== undefined && panel.id === idB}
+								<span class="chip" data-testid="compare-fork-chip"
+									>fork · shares turns 0–{forkPoint}</span
+								>
+							{/if}
 							<dl>
 								<div>
 									<dt>Card</dt>

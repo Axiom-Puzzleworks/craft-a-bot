@@ -27,6 +27,8 @@ export const runRecordSchema = z.object({
 	 */
 	specSnapshot: z.union([agentSpecSchema, agentSpecV2Schema]),
 	packVersions: z.record(z.string(), z.string()),
+	/** The run this one was forked from and the tick it continues after (WP66); additive. */
+	forkedFrom: z.object({ runId: z.string(), tick: z.number().int().nonnegative() }).optional(),
 	mode: z.enum(['step', 'play']),
 	/**
 	 * The run's outcome, plus the one state a *record* can be in that a run
