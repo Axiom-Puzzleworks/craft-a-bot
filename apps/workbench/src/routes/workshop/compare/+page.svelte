@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import Lamp from '$lib/components/control-room/Lamp.svelte';
+	import { statusOfOutcome } from '$lib/control-room/outcome.js';
 	import { resolve } from '$app/paths';
 	import type { EngineEvent, RunRecord } from '@craftabot/core';
 	import { botExpression } from '$lib/bot-expression.js';
@@ -138,7 +140,9 @@
 					<section class="panel" data-testid="compare-panel-{panel.id}">
 						<header class="panel-head">
 							<h2>{run.agentName}</h2>
-							<span class="chip" data-outcome={run.outcome}>{run.outcome}</span>
+							<span class="chip" data-outcome={run.outcome}
+								><Lamp status={statusOfOutcome(run.outcome)} label={run.outcome} /></span
+							>
 							{#if forkPoint !== undefined && panel.id === idB}
 								<span class="chip" data-testid="compare-fork-chip"
 									>fork · shares turns 0–{forkPoint}</span

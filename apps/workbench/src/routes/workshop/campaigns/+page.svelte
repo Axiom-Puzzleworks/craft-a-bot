@@ -27,6 +27,8 @@
 	} from '@craftabot/evals';
 	import CaseTable from '$lib/components/control-room/CaseTable.svelte';
 	import Matrix from '$lib/components/control-room/Matrix.svelte';
+	import Lamp from '$lib/components/control-room/Lamp.svelte';
+	import Meter from '$lib/components/control-room/Meter.svelte';
 	import { createRegistry, installedPacks, packVersions } from '$lib/packs.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import { contentStore } from '$lib/state/content.svelte.js';
@@ -217,6 +219,22 @@
 			}
 		}))
 	);
+	/**
+	 * A rate gate as a `Meter` (WP71, `60-…` §4.1): the observed rate against
+	 * the required one, the needle's good side from the operator. A gate whose
+	 * requirement is not a rate (a metric, a count, a parity spread) has no
+	 * meter — a meter is for a rate against a gate, nothing else.
+	 */
+	function meterFor(gate: { required: string; observed?: number | undefined; kind: string }) {
+		if (gate.observed === undefined || gate.kind === 'metric') return undefined;
+		const match = /^(>=|<=|>|<)\s*(0(?:\.\d+)?|1(?:\.0+)?)$/.exec(gate.required.trim());
+		if (!match) return undefined;
+		return {
+			gate: Number(match[2]),
+			direction: match[1]?.startsWith('<') ? ('down' as const) : ('up' as const)
+		};
+	}
+
 	/** A confusion matrix as `Matrix` draws it: actual down, predicted across, the count as the fact and the fill. */
 	function confusionCell(matrix: ConfusionMatrix) {
 		const counts: Record<string, number> = {
@@ -441,7 +459,11 @@
 		<section aria-label="Verdict">
 			<h2>Verdict</h2>
 			<p class="verdict" data-testid="campaign-verdict">
-				<strong>{report.passed ? '✅ PASSED' : '❌ FAILED'}</strong>
+				<Lamp
+					status={report.passed ? 'pass' : 'fail'}
+					label={report.passed ? 'PASSED' : 'FAILED'}
+					testId="campaign-verdict-lamp"
+				/>
 				— {report.gates.filter((g) => g.passed).length} of {report.gates.length} gates ·
 				{report.cells.length} cells · {report.campaignTitle}
 				{#if fromStore}<em
@@ -504,6 +526,7 @@
 				</thead>
 				<tbody>
 					{#each report.gates as gate (gate.id)}
+						{@const meter = meterFor(gate)}
 						<tr data-testid="gate-{gate.id}" class:failed={!gate.passed}>
 							<td class="mono">{gate.id}</td>
 							<td class="mono">
@@ -516,14 +539,29 @@
 							</td>
 							<td>{gate.required}</td>
 							<td class="num">
-								{gate.observed === undefined
-									? '—'
-									: gate.kind === 'metric'
-										? Math.round(gate.observed * 100) / 100
-										: pct(gate.observed)}
+								{#if meter && gate.observed !== undefined}
+									<Meter
+										value={gate.observed}
+										gate={meter.gate}
+										direction={meter.direction}
+										label={gate.id}
+										testId="gate-meter-{gate.id}"
+									/>
+								{:else}
+									{gate.observed === undefined
+										? '—'
+										: gate.kind === 'metric'
+											? Math.round(gate.observed * 100) / 100
+											: pct(gate.observed)}
+								{/if}
 							</td>
 							<td class="num">{gate.cells}</td>
-							<td>{gate.inconclusive ? '⚪ inconclusive' : gate.passed ? '✅ pass' : '❌ fail'}</td>
+							<td>
+								<Lamp
+									status={gate.inconclusive ? 'inconclusive' : gate.passed ? 'pass' : 'fail'}
+									testId="gate-lamp-{gate.id}"
+								/>
+							</td>
 						</tr>
 					{/each}
 				</tbody>
@@ -594,7 +632,7 @@
 								<td>{cell.error ? `error: ${cell.error}` : (cell.outcome ?? '—')}</td>
 								<td class="num">{cell.metrics.ticksUsed}</td>
 								{#each cardIds as id (id)}
-									<td>{cell.assertions[id] ? '✅' : '❌'}</td>
+									<td><Lamp status={cell.assertions[id] ? 'pass' : 'fail'} /></td>
 								{/each}
 								<td>
 									{#if cell.runId && traces[cell.runId]}
@@ -657,68 +695,52 @@
 						{/if}
 					</p>
 				{/if}
-				<table>
-					<thead>
-						<tr>
-							<th scope="col">Attribute</th>
-							<th scope="col">Value</th>
-							<th scope="col">Cells</th>
-							<th scope="col">Success</th>
-							{#each cohortEvaluators as id (id)}<th scope="col" class="mono">{short(id)}</th
-								>{/each}
-						</tr>
-					</thead>
-					<tbody>
-						{#each summary.cohorts as row (`${row.attribute}=${row.value}`)}
-							<tr data-testid="cohort-{slug(row.attribute)}-{slug(row.value)}">
-								<td class="mono">{row.attribute}</td>
-								<td class="mono">{row.value}</td>
-								<td class="num">{row.cells}</td>
-								<td class="num">{pct(row.successRate)}</td>
-								{#each cohortEvaluators as id (id)}
-									<td class="num">
-										{row.evaluatorPassRates[id] === undefined
-											? '—'
-											: pct(row.evaluatorPassRates[id] ?? 0)}
-									</td>
-								{/each}
-							</tr>
-						{/each}
-					</tbody>
-				</table>
+				<!-- The cohort comparison on a Matrix (WP71, `60-…` §4.1): a row per cohort value, success and every evaluator across, the rate in the cell. -->
+				<Matrix
+					corner="Cohort"
+					rows={summary.cohorts.map((row) => ({
+						id: `${slug(row.attribute)}-${slug(row.value)}`,
+						label: `${row.attribute} = ${row.value} (${row.cells})`
+					}))}
+					cols={[
+						{ id: 'success', label: 'success' },
+						...cohortEvaluators.map((id) => ({ id, label: short(id) }))
+					]}
+					cell={(rowId, colId) => {
+						const row = summary.cohorts.find(
+							(candidate) => `${slug(candidate.attribute)}-${slug(candidate.value)}` === rowId
+						);
+						if (!row) return undefined;
+						const rate = colId === 'success' ? row.successRate : row.evaluatorPassRates[colId];
+						return rate === undefined ? undefined : { value: rate, label: pct(rate) };
+					}}
+					testId="cohort"
+				/>
 			</section>
 		{/if}
 
 		{#if summary && summary.obligations.length > 0 && obligationEvaluators.length > 0}
 			<section aria-label="Obligations" data-testid="campaign-obligations">
 				<h2>Obligations</h2>
-				<table>
-					<thead>
-						<tr>
-							<th scope="col">Tag</th>
-							<th scope="col">Cells</th>
-							<th scope="col">Success</th>
-							{#each obligationEvaluators as id (id)}<th scope="col" class="mono">{short(id)}</th
-								>{/each}
-						</tr>
-					</thead>
-					<tbody>
-						{#each summary.obligations as row (row.tag)}
-							<tr data-testid="obligation-{slug(row.tag)}">
-								<td class="mono">{row.tag}</td>
-								<td class="num">{row.cells}</td>
-								<td class="num">{pct(row.successRate)}</td>
-								{#each obligationEvaluators as id (id)}
-									<td class="num">
-										{row.evaluatorPassRates[id] === undefined
-											? '—'
-											: pct(row.evaluatorPassRates[id] ?? 0)}
-									</td>
-								{/each}
-							</tr>
-						{/each}
-					</tbody>
-				</table>
+				<!-- The obligation table on a Matrix (WP71): a row per tag, success and every evaluator across. -->
+				<Matrix
+					corner="Obligation"
+					rows={summary.obligations.map((row) => ({
+						id: slug(row.tag),
+						label: `${row.tag} (${row.cells})`
+					}))}
+					cols={[
+						{ id: 'success', label: 'success' },
+						...obligationEvaluators.map((id) => ({ id, label: short(id) }))
+					]}
+					cell={(rowId, colId) => {
+						const row = summary.obligations.find((candidate) => slug(candidate.tag) === rowId);
+						if (!row) return undefined;
+						const rate = colId === 'success' ? row.successRate : row.evaluatorPassRates[colId];
+						return rate === undefined ? undefined : { value: rate, label: pct(rate) };
+					}}
+					testId="obligation"
+				/>
 			</section>
 		{/if}
 
@@ -758,7 +780,12 @@
 							<td>{row.title}</td>
 							<td class="num">{row.gatesPassed}/{row.gatesTotal}</td>
 							<td class="num">{row.cells}</td>
-							<td>{row.passed ? '✅ passed' : '❌ failed'}</td>
+							<td
+								><Lamp
+									status={row.passed ? 'pass' : 'fail'}
+									label={row.passed ? 'passed' : 'failed'}
+								/></td
+							>
 							<td>
 								<button
 									type="button"

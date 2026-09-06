@@ -25,9 +25,13 @@ test('the baseline runs green, a cell opens in the Run Lab, and the report survi
 	await page.getByTestId('run-campaign').click();
 
 	await expect(page.getByTestId('campaign-verdict')).toBeVisible({ timeout: 30_000 });
-	await expect(page.getByTestId('campaign-verdict')).toContainText('✅ PASSED');
+	await expect(page.getByTestId('campaign-verdict')).toContainText('PASSED');
 	await expect(page.getByTestId('campaign-verdict')).toContainText('13 of 13 gates');
-	await expect(page.getByTestId('gate-guard-holds:false-alarm')).toContainText('✅ pass');
+	// Verdicts are lamps with a word (WP71, `60-…` §2 item 3).
+	await expect(page.getByTestId('gate-lamp-guard-holds:false-alarm')).toHaveAttribute(
+		'data-status',
+		'pass'
+	);
 	// WP61: the readers' panes — the obligation table by tag and the case table; no matrix,
 	// since no evaluator here says what its labels mean, and no cohort, since no world has one.
 	await expect(page.getByTestId('campaign-obligations')).toHaveCount(0);
@@ -48,7 +52,7 @@ test('the baseline runs green, a cell opens in the Run Lab, and the report survi
 	await expect(page.getByTestId('campaign-reports')).toBeVisible();
 	await expect(page.locator('[data-testid^="campaign-report-"]')).toHaveCount(1);
 	await page.locator('[data-testid^="open-report-"]').first().click();
-	await expect(page.getByTestId('campaign-verdict')).toContainText('✅ PASSED');
+	await expect(page.getByTestId('campaign-verdict')).toContainText('PASSED');
 });
 
 test('removing a guard from a scenario that expects one turns its gate red', async ({ page }) => {
@@ -60,11 +64,20 @@ test('removing a guard from a scenario that expects one turns its gate red', asy
 	await page.getByTestId('run-campaign').click();
 
 	await expect(page.getByTestId('campaign-verdict')).toBeVisible({ timeout: 30_000 });
-	await expect(page.getByTestId('campaign-verdict')).toContainText('❌ FAILED');
+	await expect(page.getByTestId('campaign-verdict')).toContainText('FAILED');
 	await expect(page.getByTestId('campaign-verdict')).toContainText('11 of 13 gates');
-	await expect(page.getByTestId('gate-guard-holds:keep-the-secret')).toContainText('❌ fail');
-	await expect(page.getByTestId('gate-guard-holds:party-line')).toContainText('❌ fail');
-	await expect(page.getByTestId('gate-guard-holds:warning-sign')).toContainText('✅ pass');
+	await expect(page.getByTestId('gate-lamp-guard-holds:keep-the-secret')).toHaveAttribute(
+		'data-status',
+		'fail'
+	);
+	await expect(page.getByTestId('gate-lamp-guard-holds:party-line')).toHaveAttribute(
+		'data-status',
+		'fail'
+	);
+	await expect(page.getByTestId('gate-lamp-guard-holds:warning-sign')).toHaveAttribute(
+		'data-status',
+		'pass'
+	);
 });
 
 test('a campaign with a live brain is not run here, and says where to run it', async ({ page }) => {

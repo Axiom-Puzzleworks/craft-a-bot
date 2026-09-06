@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import Lamp from '$lib/components/control-room/Lamp.svelte';
+	import { statusOfOutcome } from '$lib/control-room/outcome.js';
 	import type { RunRecord, RunSummary } from '@craftabot/core';
 	import { incidentsFromSummaries, type Incident } from '@craftabot/governance/reports';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
@@ -72,7 +74,9 @@
 				<li class="incident" data-testid="incident-{incident.runId}">
 					<div class="head">
 						<h2>{incident.agentName}</h2>
-						<span class="chip" data-outcome={incident.outcome}>{incident.outcome}</span>
+						<span class="chip" data-outcome={incident.outcome}
+							><Lamp status={statusOfOutcome(incident.outcome)} label={incident.outcome} /></span
+						>
 						<span class="card mono">{incident.goalCardId}</span>
 						<time class="when">{when(incident.startedAt)}</time>
 						<a class="lab" href={resolve('/workshop/runs/[runId]', { runId: incident.runId })}

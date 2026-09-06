@@ -77,7 +77,7 @@ test('a scripted duo episode is browsable and replayable in the Workshop', async
 	// Into the Run Lab, over the merged trace.
 	await groupRow.getByRole('link').click();
 	await expect(page.getByTestId('group-header')).toHaveText('2-robot episode');
-	await expect(page.getByTestId('header-outcome')).toHaveText('SUCCESS');
+	await expect(page.getByTestId('header-outcome')).toContainText('SUCCESS');
 	await expect(page.getByTestId('world-view')).toBeVisible();
 	await expect(page.getByTestId('timeline')).toBeVisible();
 	await expect(page.getByTestId('run-scrubber')).toBeVisible();

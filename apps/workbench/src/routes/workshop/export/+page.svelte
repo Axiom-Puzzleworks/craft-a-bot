@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import Lamp from '$lib/components/control-room/Lamp.svelte';
+	import { statusOfOutcome } from '$lib/control-room/outcome.js';
 	import { resolve } from '$app/paths';
 	import type { GroupRunRecord, RunRecord } from '@craftabot/core';
 	import { createBrowserKeyVault } from '$lib/state/keys.js';
@@ -238,7 +240,9 @@
 	{:else if group}
 		<section class="run-head" data-testid="export-group-head">
 			<h2>Episode — {group.goalCardId}</h2>
-			<span class="chip" data-outcome={group.outcome}>{group.outcome}</span>
+			<span class="chip" data-outcome={group.outcome}
+				><Lamp status={statusOfOutcome(group.outcome)} label={group.outcome} /></span
+			>
 			<dl>
 				<dt>Robots</dt>
 				<dd>{group.memberRunIds.length}</dd>
@@ -308,7 +312,9 @@
 	{:else}
 		<section class="run-head" data-testid="export-run-head">
 			<h2>{run.agentName}</h2>
-			<span class="chip" data-outcome={run.outcome}>{run.outcome}</span>
+			<span class="chip" data-outcome={run.outcome}
+				><Lamp status={statusOfOutcome(run.outcome)} label={run.outcome} /></span
+			>
 			<dl>
 				<div>
 					<dt>Card</dt>

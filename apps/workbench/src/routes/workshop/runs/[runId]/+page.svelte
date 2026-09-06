@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import Lamp from '$lib/components/control-room/Lamp.svelte';
+	import { statusOfOutcome } from '$lib/control-room/outcome.js';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import {
@@ -337,7 +339,8 @@
 		<a class="back" href={resolve('/workshop/runs')}>← Runs</a>
 		{#if run}
 			<h1>{run.agentName}</h1>
-			<span class="chip" data-outcome={run.outcome} data-testid="header-outcome">{run.outcome}</span
+			<span class="chip" data-outcome={run.outcome} data-testid="header-outcome"
+				><Lamp status={statusOfOutcome(run.outcome)} label={run.outcome} /></span
 			>
 			{#if live}
 				<!-- On the live bus (WP49): the session's own status, as it is this second. -->
@@ -435,7 +438,7 @@
 			-->
 			<h1 data-testid="group-header">{groupMembers.length}-robot episode</h1>
 			<span class="chip" data-outcome={groupRun.outcome} data-testid="header-outcome"
-				>{groupRun.outcome}</span
+				><Lamp status={statusOfOutcome(groupRun.outcome)} label={groupRun.outcome} /></span
 			>
 			<span
 				class="integrity"
@@ -561,10 +564,157 @@
 		</section>
 
 		{#if boundary}
+			<!-- The map, and beside it the explanation and the chain of the selected row (WP71, `60-…` §2 item 4). -->
 			<section class="boundary-region" aria-label="Boundary">
-				<h2>Boundary</h2>
-				<div data-testid="run-boundary">
-					<Boundary map={boundary} {tick} />
+				<div class="boundary-map">
+					<h2>Boundary</h2>
+					<div data-testid="run-boundary">
+						<Boundary map={boundary} {tick} />
+					</div>
+				</div>
+				<div class="beside" data-testid="beside-boundary">
+					{#if showExplain && selectedEvent}
+					{#if explanation}
+						<!--
+							Explain this decision (WP66, `54-…` §4.4): one fold, from the
+							trace alone — what it saw, what it was offered, what it chose,
+							who checked it, what happened. Each line is a link to its row;
+							the timeline lights every related row while this is open.
+						-->
+						<div class="explain" data-testid="explain" data-tick={explanation.tick}>
+							<h3>
+								Turn {explanation.tick} · decided by the {explanation.source}
+							</h3>
+							<dl>
+								<div>
+									<dt>Saw</dt>
+									<dd>
+										{#if explanation.observation}
+											<button type="button" class="link" onclick={() => selectById(explanation.related[0] ?? '')}
+												>{explanation.observation.text || '(nothing)'}</button
+											>
+											{#if explanation.observation.channels.length > 0}
+												<span class="mono">via {explanation.observation.channels.join(', ')}</span>
+											{/if}
+										{:else}
+											nothing this turn
+										{/if}
+									</dd>
+								</div>
+								<div>
+									<dt>Prompt</dt>
+									<dd>
+										{#if explanation.prompt}
+											<span class="mono"
+												>{explanation.prompt.sections
+													.map((section) => `${section.role} ${section.chars}ch`)
+													.join(' · ')} · ~{explanation.prompt.estimatedTokens} tokens</span
+											>
+										{:else}
+											none — a reflex, not a thought
+										{/if}
+									</dd>
+								</div>
+								<div>
+									<dt>Offered</dt>
+									<dd class="mono" data-testid="explain-offered">
+										{explanation.callsAvailable.length > 0
+											? explanation.callsAvailable.join(', ')
+											: 'nothing'}
+									</dd>
+								</div>
+								<div>
+									<dt>Chose</dt>
+									<dd data-testid="explain-chose">
+										<button type="button" class="link" onclick={() => selectById(explanation.decisionEventId)}>
+											{#if explanation.decision.call}
+												<span class="mono">{explanation.decision.call.name}</span>
+												<span class="mono args">{JSON.stringify(explanation.decision.call.arguments)}</span>
+											{:else}
+												nothing
+											{/if}
+										</button>
+										{#if explanation.decision.thought}
+											<q>{explanation.decision.thought}</q>
+										{/if}
+									</dd>
+								</div>
+								<div>
+									<dt>Checked</dt>
+									<dd>
+										{#if explanation.checks.length === 0}
+											no rule looked at it
+										{:else}
+											<ul class="checks" data-testid="explain-checks">
+												{#each explanation.checks as check, index (index)}
+													<li data-verdict={check.verdict}>
+														<span class="mono">{check.guardrailId}</span>
+														<strong>{check.verdict}</strong>
+														{#if check.reason}<span>{check.reason}</span>{/if}
+														{#if check.policyCardId}<span class="mono">{check.policyCardId}</span>{/if}
+													</li>
+												{/each}
+											</ul>
+										{/if}
+									</dd>
+								</div>
+								{#if explanation.approval}
+									<div>
+										<dt>Asked</dt>
+										<dd>
+											{explanation.approval.approved === undefined
+												? 'a person, and is still waiting'
+												: explanation.approval.approved
+													? 'a person, who said yes'
+													: 'a person, who said no'}
+											{#if explanation.approval.reason}<span>— {explanation.approval.reason}</span>{/if}
+										</dd>
+									</div>
+								{/if}
+								<div>
+									<dt>Did</dt>
+									<dd data-testid="explain-did">
+										{#if explanation.result}
+											<span class="mono">{explanation.result.name}</span>
+											<strong>{explanation.result.ok ? 'ok' : 'failed'}</strong>
+											{#if explanation.result.narration}<span>{explanation.result.narration}</span>{/if}
+											{#if explanation.result.output}<span class="mono">{explanation.result.output}</span>{/if}
+											{#if explanation.result.stateDiff !== undefined}
+												<pre class="diff-json">{JSON.stringify(explanation.result.stateDiff, null, 2)}</pre>
+											{/if}
+										{:else}
+											nothing — it never got that far
+										{/if}
+									</dd>
+								</div>
+								<div>
+									<dt>Had in hand</dt>
+									<dd>
+										{explanation.reasonsUsed.actions.length} earlier call{explanation.reasonsUsed.actions
+											.length === 1
+											? ''
+											: 's'}
+										{#if explanation.reasonsUsed.records.length > 0}
+											· records <span class="mono">{explanation.reasonsUsed.records.join(', ')}</span>
+										{/if}
+									</dd>
+								</div>
+							</dl>
+							<p class="related-note">
+								{explanation.related.length} related rows are lit in the timeline.
+							</p>
+						</div>
+					{:else}
+						<p class="empty" data-testid="explain-empty">
+							No decision on turn {selectedEvent.tick} — pick a row of a turn where the bot chose something.
+						</p>
+					{/if}
+					{/if}
+					{#if selectedEvent?.type === 'action.performed' && selectedEvent.payload.attestation}
+						<Chain attestation={selectedEvent.payload.attestation} testId="chain" />
+					{:else if selectedEvent?.type === 'approval.resolved' && selectedEvent.payload.by}
+						<Chain by={selectedEvent.payload.by} testId="chain" />
+					{/if}
 				</div>
 			</section>
 		{/if}
@@ -674,141 +824,7 @@
 				{/if}
 			</div>
 			{#if showExplain && selectedEvent}
-				{#if explanation}
-					<!--
-						Explain this decision (WP66, `54-…` §4.4): one fold, from the
-						trace alone — what it saw, what it was offered, what it chose,
-						who checked it, what happened. Each line is a link to its row;
-						the timeline lights every related row while this is open.
-					-->
-					<div class="explain" data-testid="explain" data-tick={explanation.tick}>
-						<h3>
-							Turn {explanation.tick} · decided by the {explanation.source}
-						</h3>
-						<dl>
-							<div>
-								<dt>Saw</dt>
-								<dd>
-									{#if explanation.observation}
-										<button type="button" class="link" onclick={() => selectById(explanation.related[0] ?? '')}
-											>{explanation.observation.text || '(nothing)'}</button
-										>
-										{#if explanation.observation.channels.length > 0}
-											<span class="mono">via {explanation.observation.channels.join(', ')}</span>
-										{/if}
-									{:else}
-										nothing this turn
-									{/if}
-								</dd>
-							</div>
-							<div>
-								<dt>Prompt</dt>
-								<dd>
-									{#if explanation.prompt}
-										<span class="mono"
-											>{explanation.prompt.sections
-												.map((section) => `${section.role} ${section.chars}ch`)
-												.join(' · ')} · ~{explanation.prompt.estimatedTokens} tokens</span
-										>
-									{:else}
-										none — a reflex, not a thought
-									{/if}
-								</dd>
-							</div>
-							<div>
-								<dt>Offered</dt>
-								<dd class="mono" data-testid="explain-offered">
-									{explanation.callsAvailable.length > 0
-										? explanation.callsAvailable.join(', ')
-										: 'nothing'}
-								</dd>
-							</div>
-							<div>
-								<dt>Chose</dt>
-								<dd data-testid="explain-chose">
-									<button type="button" class="link" onclick={() => selectById(explanation.decisionEventId)}>
-										{#if explanation.decision.call}
-											<span class="mono">{explanation.decision.call.name}</span>
-											<span class="mono args">{JSON.stringify(explanation.decision.call.arguments)}</span>
-										{:else}
-											nothing
-										{/if}
-									</button>
-									{#if explanation.decision.thought}
-										<q>{explanation.decision.thought}</q>
-									{/if}
-								</dd>
-							</div>
-							<div>
-								<dt>Checked</dt>
-								<dd>
-									{#if explanation.checks.length === 0}
-										no rule looked at it
-									{:else}
-										<ul class="checks" data-testid="explain-checks">
-											{#each explanation.checks as check, index (index)}
-												<li data-verdict={check.verdict}>
-													<span class="mono">{check.guardrailId}</span>
-													<strong>{check.verdict}</strong>
-													{#if check.reason}<span>{check.reason}</span>{/if}
-													{#if check.policyCardId}<span class="mono">{check.policyCardId}</span>{/if}
-												</li>
-											{/each}
-										</ul>
-									{/if}
-								</dd>
-							</div>
-							{#if explanation.approval}
-								<div>
-									<dt>Asked</dt>
-									<dd>
-										{explanation.approval.approved === undefined
-											? 'a person, and is still waiting'
-											: explanation.approval.approved
-												? 'a person, who said yes'
-												: 'a person, who said no'}
-										{#if explanation.approval.reason}<span>— {explanation.approval.reason}</span>{/if}
-									</dd>
-								</div>
-							{/if}
-							<div>
-								<dt>Did</dt>
-								<dd data-testid="explain-did">
-									{#if explanation.result}
-										<span class="mono">{explanation.result.name}</span>
-										<strong>{explanation.result.ok ? 'ok' : 'failed'}</strong>
-										{#if explanation.result.narration}<span>{explanation.result.narration}</span>{/if}
-										{#if explanation.result.output}<span class="mono">{explanation.result.output}</span>{/if}
-										{#if explanation.result.stateDiff !== undefined}
-											<pre class="diff-json">{JSON.stringify(explanation.result.stateDiff, null, 2)}</pre>
-										{/if}
-									{:else}
-										nothing — it never got that far
-									{/if}
-								</dd>
-							</div>
-							<div>
-								<dt>Had in hand</dt>
-								<dd>
-									{explanation.reasonsUsed.actions.length} earlier call{explanation.reasonsUsed.actions
-										.length === 1
-										? ''
-										: 's'}
-									{#if explanation.reasonsUsed.records.length > 0}
-										· records <span class="mono">{explanation.reasonsUsed.records.join(', ')}</span>
-									{/if}
-								</dd>
-							</div>
-						</dl>
-						<p class="related-note">
-							{explanation.related.length} related rows are lit in the timeline.
-						</p>
-					</div>
-				{:else}
-					<p class="empty" data-testid="explain-empty">
-						No decision on turn {selectedEvent.tick} — pick a row of a turn where the bot chose something.
-					</p>
-				{/if}
+				<p class="empty" data-testid="explain-beside">The explanation is beside the Boundary map.</p>
 			{:else if showRaw && selectedEvent}
 				<pre class="raw" data-testid="raw-json">{JSON.stringify(selectedEvent, null, 2)}</pre>
 			{:else if showDiff && promptDiff}
@@ -842,12 +858,6 @@
 					</div>
 				{/if}
 			{:else}
-				{#if selectedEvent?.type === 'action.performed' && selectedEvent.payload.attestation}
-					<!-- The chain behind an action (WP65, `55-…` §4.5): who, for whom, who approved, which rules passed. -->
-					<Chain attestation={selectedEvent.payload.attestation} testId="chain" />
-				{:else if selectedEvent?.type === 'approval.resolved' && selectedEvent.payload.by}
-					<Chain by={selectedEvent.payload.by} testId="chain" />
-				{/if}
 				<PayloadView event={selectedEvent} />
 			{/if}
 		</section>
@@ -1115,6 +1125,15 @@
 	/* The fourth region (WP57): the map wants the width, so it takes the whole row beneath the world. */
 	.boundary-region {
 		grid-column: 1 / -1;
+		display: grid;
+		grid-template-columns: minmax(280px, 1.4fr) minmax(240px, 1fr);
+		gap: var(--cab-space-3);
+		align-items: start;
+	}
+
+	.beside {
+		display: grid;
+		gap: var(--cab-space-2);
 	}
 
 	section {

@@ -51,7 +51,7 @@ test('a file sink’s lines import as a run still going, and re-importing the fi
 	await expect(page.getByTestId(`run-row-${runId}`)).toBeVisible();
 
 	await page.goto(`/workshop/runs/${runId}`);
-	await expect(page.getByTestId('header-outcome')).toHaveText('IN_PROGRESS');
+	await expect(page.getByTestId('header-outcome')).toContainText('IN_PROGRESS');
 	await expect(page.getByTestId('run-in-progress')).toContainText('re-import');
 
 	// The finished file: the same run, caught up.
@@ -63,6 +63,6 @@ test('a file sink’s lines import as a run still going, and re-importing the fi
 	});
 	await expect(page.getByTestId('import-note')).toContainText('caught up');
 	await page.goto(`/workshop/runs/${runId}`);
-	await expect(page.getByTestId('header-outcome')).toHaveText('SUCCESS');
+	await expect(page.getByTestId('header-outcome')).toContainText('SUCCESS');
 	await expect(page.getByTestId('run-in-progress')).toHaveCount(0);
 });

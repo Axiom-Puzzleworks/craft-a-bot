@@ -83,7 +83,7 @@ test('a breakpoint pauses a live run at the first guardrail trip, the Run Lab tr
 
 	// Stop ends it; the Run Lab reads the finished run back and verifies its digest.
 	await page.getByTestId('live-stop').click();
-	await expect(page.getByTestId('header-outcome')).toHaveText('STOPPED_BY_USER', {
+	await expect(page.getByTestId('header-outcome')).toContainText('STOPPED_BY_USER', {
 		timeout: 10_000
 	});
 	await expect(page.getByTestId('digest-badge')).toHaveAttribute('data-verified', 'true', {
@@ -94,5 +94,5 @@ test('a breakpoint pauses a live run at the first guardrail trip, the Run Lab tr
 	await page.reload();
 	await expect(page.getByTestId('run-header')).toBeVisible();
 	await expect(page.getByTestId('live-controls')).toHaveCount(0);
-	await expect(page.getByTestId('header-outcome')).toHaveText('STOPPED_BY_USER');
+	await expect(page.getByTestId('header-outcome')).toContainText('STOPPED_BY_USER');
 });

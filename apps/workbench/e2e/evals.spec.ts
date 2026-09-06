@@ -23,11 +23,12 @@ test('a matrix is configured, run, and drilled down to one trace', async ({ page
 	await expect(page.getByTestId('success-grid')).toBeVisible({ timeout: 30_000 });
 
 	// The optimal row is the solvability floor and should be a clean sweep.
-	await expect(page.getByTestId('square-say-hello-scripted-optimal')).toHaveText('100%');
+	// The grid is a `Matrix` (WP71): its cells are `success-grid-<card>-<brain>`, the value in the cell.
+	await expect(page.getByTestId('success-grid-say-hello-scripted-optimal')).toHaveText('100%');
 	await expect(page.getByTestId('scorecard')).toBeVisible();
 
 	// Drill: square → the runs behind it → one run in the Run Lab.
-	await page.getByTestId('square-say-hello-scripted-noisy').click();
+	await page.getByTestId('success-grid-say-hello-scripted-noisy').getByRole('button').click();
 	await expect(page.getByTestId('square-runs')).toBeVisible();
 	await page.getByTestId('open-cell-1').click();
 
@@ -56,7 +57,7 @@ test('two cells of one matrix are two different runs', async ({ page }) => {
 		await page.getByTestId('run-matrix').click();
 		await expect(page.getByTestId('success-grid')).toBeVisible({ timeout: 30_000 });
 
-		await page.getByTestId('square-say-hello-scripted-noisy').click();
+		await page.getByTestId('success-grid-say-hello-scripted-noisy').getByRole('button').click();
 		await page.getByTestId(`open-cell-${seed}`).click();
 		await expect(page.getByTestId('run-header')).toBeVisible();
 		return new URL(page.url()).pathname;

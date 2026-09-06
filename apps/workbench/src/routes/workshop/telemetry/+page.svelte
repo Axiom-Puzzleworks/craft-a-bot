@@ -18,6 +18,9 @@
 	} from '@craftabot/governance/reports';
 	import { reportFrom } from '$lib/workshop/campaign-cells.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
+	import Matrix from '$lib/components/control-room/Matrix.svelte';
+	import Tape, { type TapeFlag, type TapeSeries } from '$lib/components/control-room/Tape.svelte';
+	import type { LaneId } from '$lib/control-room/dataviz.js';
 	import { ensureRunSummaries } from '$lib/state/run-summaries.js';
 
 	/**
@@ -90,6 +93,79 @@
 		})
 	);
 	const drift = $derived<DriftFlag[]>(driftIn(series));
+
+	/**
+	 * The day axis on two tapes (WP71, `60-…` §4.1, §2 item 8): counts on one
+	 * (runs, finished, succeeded), rates in [0, 1] on the other (success,
+	 * loop, every domain series in its own lane) — the two scales never share
+	 * an axis. A drift flag sits on the series it flags.
+	 */
+	const SERIES_LANES: LaneId[] = ['memory', 'tool', 'planner', 'reflexes', 'sense', 'counterpart'];
+	const countTape = $derived<TapeSeries[]>([
+		{
+			id: 'runs',
+			label: 'runs',
+			lane: 'action',
+			points: series.map((b, i) => ({ x: i, y: b.runs }))
+		},
+		{
+			id: 'finished',
+			label: 'finished',
+			lane: 'think',
+			points: series.map((b, i) => ({ x: i, y: b.finishedRuns }))
+		},
+		{
+			id: 'succeeded',
+			label: 'succeeded',
+			lane: 'guardrail',
+			points: series.map((b, i) => ({ x: i, y: b.succeededRuns }))
+		}
+	]);
+	const rateTape = $derived<TapeSeries[]>([
+		{
+			id: 'success',
+			label: 'success rate',
+			lane: 'guardrail',
+			points: series.flatMap((b, i) =>
+				b.successRate === undefined ? [] : [{ x: i, y: b.successRate }]
+			)
+		},
+		{
+			id: 'loop',
+			label: 'loop rate',
+			lane: 'action',
+			points: series.flatMap((b, i) => (b.loopRate === undefined ? [] : [{ x: i, y: b.loopRate }]))
+		},
+		...domainSeries.map((entry, index) => ({
+			id: `series:${entry.name}`,
+			label: entry.name,
+			lane: SERIES_LANES[index % SERIES_LANES.length] as LaneId,
+			points: series.flatMap((b, i) => {
+				const value = b.series[entry.name];
+				return value === undefined ? [] : [{ x: i, y: value }];
+			})
+		}))
+	]);
+	const dayIndex = (day: string) => series.findIndex((bucket) => bucket.day === day);
+	const countFlags = $derived<TapeFlag[]>(
+		drift
+			.filter((flag) => flag.kind === 'trip-mix')
+			.map((flag) => ({ seriesId: 'runs', x: dayIndex(flag.day), label: 'trip mix moved' }))
+	);
+	const rateFlags = $derived<TapeFlag[]>(
+		drift
+			.filter((flag) => flag.kind !== 'trip-mix')
+			.map((flag) => ({
+				seriesId: flag.kind === 'loop-rate' ? 'loop' : `series:${flag.series ?? ''}`,
+				x: dayIndex(flag.day),
+				label: flag.kind === 'loop-rate' ? 'loop rate moved' : `${flag.series ?? 'series'} moved`
+			}))
+	);
+	const xLabels = $derived(
+		series.length > 0
+			? { first: series[0]?.day ?? '', last: series[series.length - 1]?.day ?? '' }
+			: undefined
+	);
 	const busiestDay = $derived(Math.max(0, ...series.map((bucket) => bucket.runs)));
 	const comparableDays = $derived(
 		series.filter((bucket) => bucket.finishedRuns >= DRIFT_DEFAULTS.minRuns).length
@@ -171,6 +247,19 @@
 			</table>
 		</section>
 
+		<section aria-labelledby="days-h">
+			<h2 id="days-h">By day</h2>
+			<!-- The series on tapes (WP71): counts on one, rates on the other, drift flags on the series they flag. -->
+			<Tape series={countTape} flags={countFlags} {xLabels} testId="telemetry-tape-counts" />
+			<Tape
+				series={rateTape}
+				flags={rateFlags}
+				{xLabels}
+				range={{ min: 0, max: 1 }}
+				testId="telemetry-tape-rates"
+			/>
+		</section>
+
 		<section aria-labelledby="mix-h">
 			<h2 id="mix-h">Guardrail trip mix</h2>
 			{#if mix.length === 0}
@@ -178,20 +267,22 @@
 					No guardrail has tripped in any stored run.
 				</p>
 			{:else}
-				<ul class="mix" data-testid="telemetry-mix">
-					{#each mix as entry (entry.guardrailId)}
-						<li>
-							<span class="mix-label mono">{entry.guardrailId}</span>
-							<span class="mix-bar" aria-hidden="true">
-								<span
-									class="mix-fill"
-									style="width: {busiestTrip === 0 ? 0 : (entry.trips / busiestTrip) * 100}%"
-								></span>
-							</span>
-							<span class="mix-count">{entry.trips}</span>
-						</li>
-					{/each}
-				</ul>
+				<!-- The mix on a Matrix (WP71): the count in the cell, the fill its share of the busiest guardrail. -->
+				<Matrix
+					corner="Guardrail"
+					rows={mix.map((entry) => ({ id: entry.guardrailId, label: entry.guardrailId }))}
+					cols={[{ id: 'trips', label: 'trips' }]}
+					cell={(rowId) => {
+						const entry = mix.find((candidate) => candidate.guardrailId === rowId);
+						return entry
+							? {
+									value: busiestTrip === 0 ? 0 : entry.trips / busiestTrip,
+									label: String(entry.trips)
+								}
+							: undefined;
+					}}
+					testId="telemetry-mix"
+				/>
 			{/if}
 		</section>
 
@@ -387,50 +478,11 @@
 		font-size: var(--cab-text-xs);
 	}
 
-	.mix {
-		display: grid;
-		gap: var(--cab-space-1);
-		margin: 0;
-		padding: 0;
-		list-style: none;
-	}
-
-	.mix li {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) 2fr auto;
-		align-items: center;
-		gap: var(--cab-space-2);
-	}
-
-	.mix-label {
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-
 	/*
 	 * Single-hue sequential for magnitude, oscilloscope green — the token
 	 * `17-…` §5 reserves for exactly this ("this number is moving"). The
 	 * count sits beside every bar, never colour alone.
 	 */
-	.mix-bar {
-		display: block;
-		height: 10px;
-		background: var(--cab-paper);
-		border: 1px solid var(--cab-ink-muted);
-		border-radius: var(--cab-radius-part);
-	}
-
-	.mix-fill {
-		display: block;
-		height: 100%;
-		background: var(--cab-scope);
-	}
-
-	.mix-count {
-		font-variant-numeric: tabular-nums;
-		text-align: right;
-	}
 
 	/* The series' bars are the same single hue as the mix: one axis, magnitude only, the number beside each. */
 	.series-bar {
