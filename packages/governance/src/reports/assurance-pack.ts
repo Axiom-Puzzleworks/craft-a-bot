@@ -10,6 +10,7 @@ import {
 	type ControlEvidence,
 	type ControlMap,
 	type ControlMapRow,
+	type EngineEvent,
 	type EvaluationRecord,
 	type PackRegistry,
 	type RunRecord,
@@ -18,6 +19,7 @@ import {
 } from '@craftabot/core';
 import { campaignEvidenceFor, type CampaignEvidence } from './campaign-evidence.js';
 import { driftIn, telemetrySeries, type DriftFlag, type TelemetryBucket } from './drift.js';
+import { explanationsForTicks, type DecisionExplanation } from './decision-explanation.js';
 import { incidentsFromSummaries, type Incident } from './incidents.js';
 import { ensureRunSummaries } from './run-summaries.js';
 import {
@@ -200,12 +202,13 @@ export interface AssurancePack {
 		killSwitch: string;
 		hostedScreening: SafetyCase['hostedScreening'];
 	};
-	/** Ongoing monitoring: the series, its flags, the incidents. */
+	/** Ongoing monitoring: the series, its flags, the incidents — each with its findings' decisions explained (WP66). */
 	monitoring: {
 		series: TelemetryBucket[];
 		drift: DriftFlag[];
-		incidents: Incident[];
-		explanations: NotRecorded;
+		incidents: Array<Incident & { explanations: DecisionExplanation[] }>;
+		/** Whether the host handed the incidents' traces in; the harness and the Workshop do. */
+		explanations: NotRecorded | { recorded: true; note: string };
 		note?: string;
 	};
 	/** The Consumer Duty's four outcomes as the second axis. */
@@ -225,6 +228,8 @@ export interface AssurancePackInput {
 	campaignReports: readonly AssuranceCampaignReportLike[];
 	/** Every control map to file against — the registry's, by default. */
 	controlMaps?: readonly ControlMap[];
+	/** The traces of the runs the incident log names (WP66), so each finding's decision can be explained; absent, the section says so. */
+	incidentEvents?: ReadonlyMap<string, readonly EngineEvent[]>;
 	/** Injected so a pack is reproducible; the digest does not cover it. */
 	now?: () => string;
 }
@@ -374,7 +379,21 @@ export async function assurancePackFor(input: AssurancePackInput): Promise<Assur
 			(report.builds ?? []).some((build) => build.agentId === agent.id)
 		)
 	});
-	const incidents = incidentsFromSummaries(mine, summaries);
+	const capabilities = capabilitiesOf(spec, registry);
+	const callsAvailable = [...capabilities.toolIds, ...capabilities.actionIds];
+	const incidents = incidentsFromSummaries(mine, summaries).map((incident) => {
+		const trace = input.incidentEvents?.get(incident.runId);
+		return {
+			...incident,
+			explanations: trace
+				? explanationsForTicks(
+						trace,
+						incident.findings.map((finding) => finding.tick),
+						{ callsAvailable }
+					)
+				: []
+		};
+	});
 
 	// The control maps, each evidence item annotated with what this build shows of it.
 	const maps = input.controlMaps ?? registry.listControlMaps();
@@ -511,7 +530,12 @@ export async function assurancePackFor(input: AssurancePackInput): Promise<Assur
 			series,
 			drift: driftIn(series),
 			incidents,
-			explanations: notRecorded('What each decision saw', 'WP66'),
+			explanations: input.incidentEvents
+				? {
+						recorded: true,
+						note: 'Each incident’s findings carry the explanation of the decision made at that tick — what the bot saw, was offered, chose, and what checked it.'
+					}
+				: notRecorded('What each decision saw (the host handed no traces in)', 'WP66'),
 			...(mine.length === 0
 				? {
 						note: 'This bot has no stored runs: there is no series to monitor and no incident to log.'
@@ -561,6 +585,15 @@ export async function assurancePackFromStorage(
 			// Skipped: the envelope is there, the report inside is not one this version reads.
 		}
 	}
+	// The incidents' own traces (WP66), for the explanations — read for those runs only.
+	const incidentEvents = new Map<string, EngineEvent[]>();
+	for (const run of runs) {
+		if ((summaries.get(run.id)?.findings.length ?? 0) === 0) continue;
+		incidentEvents.set(
+			run.id,
+			(await storage.getEvents(run.id)).map((row) => row.event)
+		);
+	}
 	return assurancePackFor({
 		agent: { id: record.id, name: record.spec.name, spec: record.spec },
 		registry,
@@ -568,6 +601,7 @@ export async function assurancePackFromStorage(
 		summaries,
 		evaluations,
 		campaignReports,
+		incidentEvents,
 		...(options.now ? { now: options.now } : {})
 	});
 }

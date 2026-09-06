@@ -279,41 +279,54 @@ export async function runKit(options: RunKitOptions): Promise<RunKitReport> {
 }
 
 async function loadSpec(options: RunKitOptions, registry: PackRegistry): Promise<AgentSpecV2> {
+	return loadSpecFrom(options.kitPath, options.config, registry, options.card);
+}
+
+/** A kit file read and imported against this host's packs, optionally re-pointed at a card — `run`'s and `fork`'s shared door (WP66). */
+export async function loadSpecFrom(
+	kitPath: string,
+	config: HarnessConfig,
+	registry: PackRegistry,
+	card?: string
+): Promise<AgentSpecV2> {
 	let json: unknown;
 	try {
-		json = JSON.parse(await readFile(options.kitPath, 'utf8'));
+		json = JSON.parse(await readFile(kitPath, 'utf8'));
 	} catch (error) {
 		throw new Error(
-			`could not read the kit file at ${options.kitPath}: ${error instanceof Error ? error.message : String(error)}`,
+			`could not read the kit file at ${kitPath}: ${error instanceof Error ? error.message : String(error)}`,
 			{ cause: error }
 		);
 	}
 	const imported = importKitFile(json, {
-		installedPacks: options.config.packs.map((pack) => pack.id),
+		installedPacks: config.packs.map((pack) => pack.id),
 		// Ranges evaluated, not only presence (WP52, D13).
-		installedPackVersions: packVersions(options.config),
+		installedPackVersions: packVersions(config),
 		coreVersion: CRAFTABOT_CORE_VERSION,
 		installedBrickKinds: registry.listBrickKinds().map((kind) => kind.id)
 	});
 	if (!imported.ok) throw new Error(imported.problem.message);
 
 	const spec = imported.imported.spec;
-	if (options.card === undefined) return spec;
-	if (!registry.getGoalCard(options.card)) {
+	if (card === undefined) return spec;
+	if (!registry.getGoalCard(card)) {
 		throw new Error(
-			`no goal card '${options.card}' is installed — try one of: ${registry
+			`no goal card '${card}' is installed — try one of: ${registry
 				.listGoalCards()
-				.map((card) => card.id)
+				.map((entry) => entry.id)
 				.join(', ')}`
 		);
 	}
-	return { ...spec, goalCardId: options.card };
+	return { ...spec, goalCardId: card };
 }
 
-function chooseBrain(
+/** The brain a run or a fork thinks with (WP66 exported it): a scripted tier from the plan chain, resumed at `startAt` for a fork, or the kit's live cartridge. */
+export function chooseBrain(
 	spec: AgentSpecV2,
 	registry: PackRegistry,
-	options: RunKitOptions
+	options: Pick<RunKitOptions, 'brain' | 'seed' | 'provider' | 'credentials' | 'fetch'> & {
+		startAt?: number;
+	}
 ): { provider: LLMProvider; providerId: string } {
 	if (options.brain !== 'live') {
 		let plan;
@@ -330,7 +343,11 @@ function chooseBrain(
 				? scriptedNoisy(plan, { seed: options.seed })
 				: scriptedOptimal(plan);
 		return {
-			provider: createMockProvider({ script, id: options.brain }),
+			provider: createMockProvider({
+				script,
+				id: options.brain,
+				...(options.startAt !== undefined ? { startAt: options.startAt } : {})
+			}),
 			providerId: options.brain
 		};
 	}

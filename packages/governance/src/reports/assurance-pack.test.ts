@@ -7,6 +7,7 @@ import {
 	type AgentRecord,
 	type AgentSpecV2,
 	type ControlMap,
+	type EngineEvent,
 	type EvaluationRecord,
 	type PackManifest,
 	type RunRecord,
@@ -253,6 +254,41 @@ const summaries = new Map<string, RunSummary>([
 	]
 ]);
 const evaluations = [evaluation(RUN_A, 'pass'), evaluation(RUN_B, 'fail')];
+/** The incident run's own rows at the finding's tick (WP66): what its explanation is folded from. */
+let eventSeq = 0;
+const row = (type: EngineEvent['type'], payload: unknown, tick: number): EngineEvent =>
+	({
+		id: `33333333-3333-4333-8333-${String(++eventSeq).padStart(12, '0')}`,
+		runId: RUN_B,
+		tick,
+		timestamp: NOW(),
+		type,
+		payload
+	}) as EngineEvent;
+const INCIDENT_EVENTS: EngineEvent[] = [
+	row('sense', { channels: ['look'], observation: { channels: ['look'], text: 'A match.' } }, 2),
+	row(
+		'decision',
+		{
+			thought: 'Light it.',
+			call: { kind: 'action', name: 'fire', arguments: {} },
+			source: 'brain'
+		},
+		2
+	),
+	row(
+		'guardrail.checked',
+		{
+			guardrailId: 'policy/no-fire',
+			hook: 'pre-act',
+			verdict: { allow: false, reason: 'No fire.', disposition: 'block-action' },
+			policyCardId: card.id
+		},
+		2
+	),
+	row('tick.completed', {}, 2)
+];
+const incidentEvents = new Map<string, readonly EngineEvent[]>([[RUN_B, INCIDENT_EVENTS]]);
 
 const fullPack = () =>
 	assurancePackFor({
@@ -262,6 +298,7 @@ const fullPack = () =>
 		summaries,
 		evaluations,
 		campaignReports: [report],
+		incidentEvents,
 		now: NOW
 	});
 const emptyPack = () =>
@@ -287,6 +324,15 @@ describe('assurancePackFor', () => {
 			values: { 'proxy-a': 1, 'proxy-b': 1 }
 		});
 		expect(pack.monitoring.incidents.map((incident) => incident.runId)).toEqual([RUN_B]);
+		// The incident's finding at tick 2 carries the decision it explains (WP66), with the fitted card's check.
+		expect(pack.monitoring.incidents[0]?.explanations).toHaveLength(1);
+		expect(pack.monitoring.incidents[0]?.explanations[0]).toMatchObject({
+			tick: 2,
+			decision: { call: { name: 'fire' } },
+			checks: [{ guardrailId: 'policy/no-fire', verdict: 'block', policyCardId: card.id }],
+			callsAvailable: []
+		});
+		expect(pack.monitoring.explanations).toMatchObject({ recorded: true });
 		expect(pack.governance.approvals).toEqual({ requested: 1, granted: 1, runIds: [RUN_A] });
 		expect(pack.validation.evaluations[0]).toMatchObject({
 			evaluatorId: judge.id,
@@ -344,6 +390,7 @@ describe('assurancePackFor', () => {
 			summaries,
 			evaluations,
 			campaignReports: [report],
+			incidentEvents,
 			now: () => '2027-01-01T00:00:00.000Z'
 		});
 		expect(again.digest).toBe(a.digest);
@@ -355,6 +402,7 @@ describe('assurancePackFor', () => {
 			summaries,
 			evaluations,
 			campaignReports: [report],
+			incidentEvents,
 			now: NOW
 		});
 		expect(fewerRuns.digest).not.toBe(a.digest);
@@ -365,6 +413,7 @@ describe('assurancePackFor', () => {
 			summaries,
 			evaluations,
 			campaignReports: [],
+			incidentEvents,
 			now: NOW
 		});
 		expect(noCampaign.digest).not.toBe(a.digest);
@@ -388,6 +437,7 @@ describe('assurancePackFor', () => {
 		for (const entry of runs) await storage.putRun(entry);
 		for (const value of summaries.values()) await storage.putRunSummary(value);
 		for (const evaluationRecord of evaluations) await storage.putEvaluation(evaluationRecord);
+		await storage.appendEvents(RUN_B, INCIDENT_EVENTS);
 		await storage.putCampaignReport({
 			id: report.id,
 			campaignId: 'c1',

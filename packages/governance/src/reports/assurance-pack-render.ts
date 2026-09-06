@@ -137,11 +137,16 @@ export function renderAssurancePackMarkdown(pack: AssurancePack): string {
 		`- Series: ${pack.monitoring.series.length} days; drift flags: ${pack.monitoring.drift.length === 0 ? 'none' : pack.monitoring.drift.map((flag) => `${flag.day} ${flag.kind}${flag.series ? ` ${flag.series}` : ''}`).join('; ')}`
 	);
 	out.push(`- Incidents: ${pack.monitoring.incidents.length === 0 ? 'none' : ''}`);
-	for (const incident of pack.monitoring.incidents)
+	for (const incident of pack.monitoring.incidents) {
 		out.push(
 			`  - run \`${incident.runId}\` (${incident.startedAt}, ${incident.outcome ?? 'unfinished'}): ${incident.findings.map((finding) => finding.kind).join(', ')}`
 		);
-	out.push(`- Explanations: ${notRecorded(pack.monitoring.explanations)}`);
+		for (const explanation of incident.explanations)
+			out.push(
+				`    - tick ${explanation.tick}: saw "${(explanation.observation?.text ?? '').slice(0, 80)}"; chose ${explanation.decision.call ? `\`${explanation.decision.call.name}\`` : 'nothing'}; checks ${explanation.checks.map((check) => `${check.guardrailId} ${check.verdict}`).join(', ') || 'none'}; ${explanation.approval ? `a person said ${explanation.approval.approved === false ? 'no' : 'yes'}; ` : ''}${explanation.result ? `result: ${explanation.result.ok ? 'ok' : 'failed'}` : 'no result'} (runs: ${incident.runId})`
+			);
+	}
+	out.push(`- Explanations: ${pack.monitoring.explanations.note}`);
 	out.push('');
 	out.push('## 7. The Consumer Duty outcomes');
 	out.push('');
@@ -337,8 +342,8 @@ ${
 	const monitoring = `${pack.monitoring.note ? `<p class="note">${escape(pack.monitoring.note)}</p>` : ''}<ul>
 <li>Series: ${pack.monitoring.series.length} days; drift flags: ${pack.monitoring.drift.length === 0 ? 'none' : pack.monitoring.drift.map((flag) => escape(`${flag.day} ${flag.kind}${flag.series ? ` ${flag.series}` : ''}`)).join('; ')}</li>
 <li>Incidents: ${pack.monitoring.incidents.length === 0 ? 'none' : ''}</li>
-${pack.monitoring.incidents.map((incident) => `<li>Run ${runLink(incident.runId)} (${escape(incident.startedAt)}, ${escape(incident.outcome ?? 'unfinished')}): ${incident.findings.map((finding) => escape(finding.kind)).join(', ')}</li>`).join('')}
-<li>Explanations: ${notRec(pack.monitoring.explanations)}</li>
+${pack.monitoring.incidents.map((incident) => `<li>Run ${runLink(incident.runId)} (${escape(incident.startedAt)}, ${escape(incident.outcome ?? 'unfinished')}): ${incident.findings.map((finding) => escape(finding.kind)).join(', ')}${incident.explanations.length > 0 ? `<ul>${incident.explanations.map((explanation) => `<li>Tick ${explanation.tick}: saw <q>${escape((explanation.observation?.text ?? '').slice(0, 80))}</q>; chose ${explanation.decision.call ? `<code>${escape(explanation.decision.call.name)}</code>` : 'nothing'}; checks ${explanation.checks.length === 0 ? 'none' : explanation.checks.map((check) => `<code>${escape(check.guardrailId)}</code> ${escape(check.verdict)}`).join(', ')}; ${explanation.approval ? `a person said ${explanation.approval.approved === false ? 'no' : 'yes'}; ` : ''}${explanation.result ? `result: ${explanation.result.ok ? 'ok' : 'failed'}` : 'no result'} ${citeHtml([incident.runId])}</li>`).join('')}</ul>` : ''}</li>`).join('')}
+<li>Explanations: <span class="${'recorded' in pack.monitoring.explanations && pack.monitoring.explanations.recorded ? 'meta' : 'not-recorded'}">${escape(pack.monitoring.explanations.note)}</span></li>
 </ul>`;
 
 	const outcomes = pack.outcomes

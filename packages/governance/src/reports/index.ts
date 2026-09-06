@@ -64,7 +64,14 @@ export {
 	type GuardrailMixEntry
 } from './telemetry.js';
 export { safetyTally, type SafetyTally } from './safety-tally.js';
-export { reasonsUsed, type ReasonsUsed } from './decision-explanation.js';
+export {
+	decisionExplanation,
+	explanationsForTicks,
+	reasonsUsed,
+	type DecisionExplanation,
+	type DecisionExplanationOptions,
+	type ReasonsUsed
+} from './decision-explanation.js';
 export {
 	GENERIC_CONTROL_MAP_ID,
 	GENERIC_CONTROL_MAP_MANIFEST,
