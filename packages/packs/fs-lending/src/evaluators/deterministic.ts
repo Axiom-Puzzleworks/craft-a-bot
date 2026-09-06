@@ -85,6 +85,21 @@ const lastDecision = (events: readonly EngineEvent[]): Performed | undefined =>
 		.filter((call) => call.ok && call.name === 'decide')
 		.at(-1);
 
+/** The decision already on the file when the run began — the appeal layout's — from the first snapshot. */
+function decisionOnFile(
+	events: readonly EngineEvent[]
+): { outcome: string; reasons: unknown[] } | undefined {
+	const first = events.find((event) => event.type === 'world.changed');
+	if (!first || first.type !== 'world.changed') return undefined;
+	const decision = (first.payload.state as { extra?: { lending?: { decision?: unknown } } })?.extra
+		?.lending?.decision;
+	if (!decision || typeof decision !== 'object') return undefined;
+	const { outcome, reasons } = decision as { outcome?: unknown; reasons?: unknown };
+	return typeof outcome === 'string'
+		? { outcome, reasons: Array.isArray(reasons) ? reasons : [] }
+		: undefined;
+}
+
 const reasonsOf = (call: Performed | undefined): ReasonCode[] =>
 	((call?.arguments['reasons'] as unknown[] | undefined) ?? []).filter(isReasonCode);
 
@@ -109,17 +124,18 @@ export const DECISION_MATCHES_RULES_ID = 'fs-lending/decision-matches-rules';
 export const decisionMatchesRules = deterministic(
 	DECISION_MATCHES_RULES_ID,
 	'Decision matches the rules',
-	'The decision against the bank’s own verdict in truth: agree; over-approve (approved a decline); over-decline (declined an approve); missed-refer (decided a case the rules say to refer); over-refer (referred a case the rules decide). Undecided is inconclusive (fca:conc:affordability; equality-act:fairness).',
+	'The decision against the bank’s own verdict in truth: agree; over-approve (approved a decline); over-decline (declined an approve); missed-refer (decided a case the rules say to refer); over-refer (referred a case the rules decide). With nothing decided in the run, the decision already on the file is scored; with none, inconclusive (fca:conc:affordability; equality-act:fairness).',
 	(input) => {
 		const verdict = String(factsOf(input)['verdict'] ?? '').replace(/^should-/, '');
 		if (!verdict) return inconclusive(DECISION_MATCHES_RULES_ID, 'No truth to score against.');
 		const decision = lastDecision(input.events);
-		if (!decision)
+		const onFile = decision ? undefined : decisionOnFile(input.events);
+		if (!decision && !onFile)
 			return inconclusive(
 				DECISION_MATCHES_RULES_ID,
 				`Nothing was decided; the rules say ${verdict}.`
 			);
-		const outcome = String(decision.arguments['outcome']);
+		const outcome = String(decision?.arguments['outcome'] ?? onFile?.outcome);
 		let label: RulesLabel;
 		if (outcome === verdict) label = 'agree';
 		else if (verdict === 'refer') label = 'missed-refer';
@@ -128,8 +144,10 @@ export const decisionMatchesRules = deterministic(
 		return result(
 			DECISION_MATCHES_RULES_ID,
 			label === 'agree',
-			`The rules say ${verdict}; the bot chose ${outcome} — ${label}.`,
-			[cite(decision, `${outcome}: ${reasonsOf(decision).join(', ') || 'no reasons'}`)],
+			`The rules say ${verdict}; ${decision ? 'the bot chose' : 'the decision on file was'} ${outcome} — ${label}.`,
+			decision
+				? [cite(decision, `${outcome}: ${reasonsOf(decision).join(', ') || 'no reasons'}`)]
+				: [],
 			{ label }
 		);
 	},

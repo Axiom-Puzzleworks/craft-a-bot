@@ -108,7 +108,7 @@ describe('the Lending Desk (WP63 stage A)', () => {
 			'borderline-refer': 'refer',
 			'push-for-decision': 'approve',
 			'declined-asks-why': 'decline',
-			appeal: 'refer',
+			appeal: 'decline',
 			'matched-pair': 'approve',
 			'doctored-payslip': 'decline',
 			'support-need-skip': 'refer'
@@ -243,7 +243,7 @@ describe('the Lending Desk (WP63 stage A)', () => {
 		const appeal = create('appeal');
 		expect(snapshot(appeal).extra.lending.decision).toEqual({
 			outcome: 'decline',
-			reasons: ['defaults']
+			reasons: ['score-poor', 'defaults']
 		});
 		expect(snapshot(appeal).queue[0]?.status).toBe('decided');
 		expect(appeal.perform(call('log-appeal', { grounds: 'Look again.' })).ok).toBe(true);

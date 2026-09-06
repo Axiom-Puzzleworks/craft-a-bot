@@ -73,7 +73,11 @@
 	and
 	<a href={resolve('/workshop/playground/fraud')} data-testid="playground-fraud-link"
 		>the Fraud Desk</a
-	> are here; lending is coming. This page shows the bank itself.
+	>
+	and
+	<a href={resolve('/workshop/playground/lending')} data-testid="playground-lending-link"
+		>the Lending Desk</a
+	>. This page shows the bank itself.
 </p>
 <p class="simulation" data-testid="playground-simulation-only">FOR SIMULATION ONLY</p>
 

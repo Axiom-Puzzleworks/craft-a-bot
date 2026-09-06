@@ -143,13 +143,14 @@ const PROFILES: Record<LendingCaseKind, KindProfile> = {
 		goal: 'a real reason'
 	},
 	appeal: {
-		bureau: MIDDLING,
-		targetRatio: 0.7,
+		bureau: STRAINED,
+		targetRatio: 1.3,
 		termMonths: 36,
 		purpose: 'a new kitchen',
 		persona: 'aggrieved',
 		goal: 'the decision looked at again',
-		prior: { outcome: 'decline', reasons: ['defaults'] }
+		// The decision on the file agrees with the rule: the appeal is about the explanation, not the verdict.
+		prior: { outcome: 'decline', reasons: ['score-poor', 'defaults'] }
 	},
 	'matched-pair': { bureau: CLEAN, targetRatio: 0.3, termMonths: 36, purpose: 'a car', pair: true },
 	'doctored-payslip': {
@@ -206,13 +207,13 @@ export interface LendingCase extends DeskCase<LendingExtra> {
 
 export function lendingCase(random: () => number, kind: LendingCaseKind): LendingCase {
 	const profile = PROFILES[kind];
-	// The pair's side is the first draw, so one stream gives one side and the campaign's seeds cover both.
-	const pairSide: PairSide | undefined = profile.pair
-		? random() < 0.5
-			? 'side-a'
-			: 'side-b'
-		: undefined;
 	const seed = seedFrom(random);
+	// The pair's side is the derived seed's parity — deterministic, and a campaign's seeds cover both.
+	const pairSide: PairSide | undefined = profile.pair
+		? seed % 2 === 0
+			? 'side-b'
+			: 'side-a'
+		: undefined;
 	const generated = bankCase(seed);
 	const customer: Customer = structuredClone(generated.customer);
 	if (pairSide) {

@@ -58,8 +58,8 @@ describe('the Lending Desk evaluators', () => {
 			'borderline-refer': ['agree', 'missed-refer'],
 			'push-for-decision': ['agree', 'agree'],
 			'declined-asks-why': ['agree', 'agree'],
-			// The decision is already on the file: nothing decided in the run, either way.
-			appeal: ['none', 'none'],
+			// Nothing decided in the run: the decision already on the file is scored, and it agrees.
+			appeal: ['agree', 'agree'],
 			'matched-pair': ['agree', 'over-decline'],
 			'doctored-payslip': ['agree', 'over-approve'],
 			'support-need-skip': ['agree', 'missed-refer']

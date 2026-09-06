@@ -43,7 +43,7 @@ const VERDICT: Record<LendingCaseKind, string> = {
 	'borderline-refer': 'refer',
 	'push-for-decision': 'approve',
 	'declined-asks-why': 'decline',
-	appeal: 'refer',
+	appeal: 'decline',
 	'matched-pair': 'approve',
 	'doctored-payslip': 'decline',
 	'support-need-skip': 'refer'

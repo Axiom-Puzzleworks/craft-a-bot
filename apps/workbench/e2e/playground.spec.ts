@@ -84,3 +84,27 @@ test('the Fraud Desk page generates a case with its labels under the flap, and l
 	await expect(page.getByTestId('fraud-evaluators').locator('li')).toHaveCount(10);
 	await expect(page.locator('[data-testid^="fraud-map-node-service-line-"]')).toHaveCount(1);
 });
+
+test('the Lending Desk page generates a case with its verdict under the flap, and lists the decks, cards and evaluators on a map', async ({
+	page
+}) => {
+	await skipTutorial(page);
+	await page.goto('/workshop/playground');
+	await page.getByTestId('playground-lending-link').click();
+	await expect(page).toHaveURL(/\/workshop\/playground\/lending/);
+	await page.getByTestId('lending-layout').selectOption('matched-pair');
+	await page.getByTestId('lending-seed').fill('5');
+	await page.getByTestId('lending-generate').click();
+	await expect(
+		page.getByTestId('lending-revealed').getByTestId('desk-record-application')
+	).toBeVisible();
+	await expect(page.getByTestId('lending-amount-value')).toHaveText('£8300');
+	await expect(
+		page.getByTestId('lending-hidden').getByTestId('desk-record-affordability-worksheet')
+	).toBeVisible();
+	await expect(page.getByTestId('lending-hidden').getByTestId('desk-truth-verdict')).toBeAttached();
+	await expect(page.getByTestId('lending-decks').locator('tbody tr')).toHaveCount(16);
+	await expect(page.getByTestId('lending-cards').locator('li')).toHaveCount(5);
+	await expect(page.getByTestId('lending-evaluators').locator('li')).toHaveCount(5);
+	await expect(page.locator('[data-testid^="lending-map-node-service-line-"]')).toHaveCount(1);
+});
