@@ -53,17 +53,15 @@ describe('the installed control maps', () => {
 		}
 	});
 
-	it('the bank’s two pending rows name WP72 and carry no evidence; every other row is unreviewed', () => {
+	it('no row is pending any more (WP72 resolved the bank’s two); every row is unreviewed, the bank’s DISP and SS1/21 rows with evidence', () => {
 		const registry = createRegistry(defaultConfig());
 		const bank = registry.getControlMap('fs-bank/control-map')!;
-		const pending = bank.rows.filter((row) => row.status === 'pending');
-		expect(pending.map((row) => row.ref).sort()).toEqual(['complaints', 'resilience']);
-		for (const row of pending) {
-			expect(row.evidence).toEqual([]);
-			expect(row.note).toContain('WP72');
+		for (const ref of ['complaints', 'resilience']) {
+			const row = bank.rows.find((entry) => entry.ref === ref)!;
+			expect(row.status, ref).toBe('unreviewed');
+			expect(row.evidence.length, ref).toBeGreaterThan(0);
 		}
 		for (const map of registry.listControlMaps())
-			for (const row of map.rows.filter((entry) => entry.status !== 'pending'))
-				expect(row.status, `${map.id}/${row.ref}`).toBe('unreviewed');
+			for (const row of map.rows) expect(row.status, `${map.id}/${row.ref}`).toBe('unreviewed');
 	});
 });

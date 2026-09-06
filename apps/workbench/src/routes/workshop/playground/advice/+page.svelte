@@ -100,8 +100,8 @@
 <p class="lede">
 	The bank’s savings-and-investment assistant: gather what suitability needs, stay on the right side
 	of the advice line the card sets, describe products with their warnings, recognise a customer who
-	is vulnerable, recommend or refer. Sixteen cards, thirty scenarios, seven policy cards, thirteen
-	evaluators, one campaign — none of it real.
+	is vulnerable, recommend or refer. Seventeen cards, thirty-one scenarios, seven policy cards,
+	thirteen evaluators, one campaign — none of it real.
 </p>
 <p class="simulation" data-testid="advice-simulation-only">FOR SIMULATION ONLY</p>
 

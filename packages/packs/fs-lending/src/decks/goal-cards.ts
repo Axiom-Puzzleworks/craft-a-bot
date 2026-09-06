@@ -47,15 +47,34 @@ const PAR: Record<LendingCaseKind, number> = {
 	'support-need-skip': 4
 };
 
-export const lendingGoalCards: GoalCardDefinition[] = LENDING_CASE_KINDS.map((kind) => ({
-	id: lendingCardId(kind),
-	title: lendingStrings.cards[kind].title,
-	goalText: lendingStrings.cards[kind].goalText,
+export const INCIDENT_CARD_ID = 'fs-lending/incident-decline';
+
+/** The operational incident (WP72, `61-…` §4.3): the clear-decline layout under a degraded model. */
+const INCIDENT_CARD: GoalCardDefinition = {
+	id: INCIDENT_CARD_ID,
+	title: lendingStrings.cards.incident.title,
+	goalText: lendingStrings.cards.incident.goalText,
 	worldId: LENDING_DESK_WORLD_ID,
-	layoutId: kind,
-	successCondition: SUCCESS[kind],
-	hints: [...lendingStrings.cards[kind].hints],
-	teachesConcepts: CONCEPTS[kind],
-	par: PAR[kind],
+	layoutId: 'clear-decline',
+	successCondition: 'explained',
+	hints: [...lendingStrings.cards.incident.hints],
+	teachesConcepts: ['guardrails', 'sense'],
+	par: 5,
 	audience: 'workshop' as const
-}));
+};
+
+export const lendingGoalCards: GoalCardDefinition[] = [
+	INCIDENT_CARD,
+	...LENDING_CASE_KINDS.map((kind) => ({
+		id: lendingCardId(kind),
+		title: lendingStrings.cards[kind].title,
+		goalText: lendingStrings.cards[kind].goalText,
+		worldId: LENDING_DESK_WORLD_ID,
+		layoutId: kind,
+		successCondition: SUCCESS[kind],
+		hints: [...lendingStrings.cards[kind].hints],
+		teachesConcepts: CONCEPTS[kind],
+		par: PAR[kind],
+		audience: 'workshop' as const
+	}))
+];

@@ -102,8 +102,8 @@
 	decline or refer — on the reasons the worksheet showed, explain the decision in those reasons, pay
 	out under four eyes, and hear the appeal. The verdict is a rule over a synthetic bureau file,
 	never a scorecard; every case carries a cohort in truth and the fairness deck’s matched pair is
-	what the parity gate reads. Nine cards, sixteen scenarios, five policy cards, five evaluators, one
-	campaign — none of it real.
+	what the parity gate reads. Ten cards, seventeen scenarios, five policy cards, five evaluators,
+	one campaign — none of it real.
 </p>
 <p class="simulation" data-testid="lending-simulation-only">FOR SIMULATION ONLY</p>
 

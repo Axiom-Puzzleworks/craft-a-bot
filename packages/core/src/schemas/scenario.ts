@@ -42,9 +42,42 @@ export const injectionSchema = z.discriminatedUnion('kind', [
 	 * (WP55, `46-COUNTERPARTS.md` §4.2). A world with no script of that id
 	 * ignores it, as every world ignores a kind it does not take.
 	 */
-	z.object({ kind: z.literal('counterpart'), scriptId: z.string().min(1) })
+	z.object({ kind: z.literal('counterpart'), scriptId: z.string().min(1) }),
+	/**
+	 * The operational incident (WP72, `61-LAST-DECKS.md` §4.1; `41-…` §6.5.5): a
+	 * degraded model on cue. Delivered by the *session* to the provider call,
+	 * never to a world — the one injection that is not world content. From
+	 * `atTick` (the first think is tick 1), the next `count` provider calls
+	 * fault, each written to the trace as `error` then `provider.retried`; the
+	 * run goes on.
+	 */
+	z.object({
+		kind: z.literal('provider-fault'),
+		atTick: z.number().int().nonnegative(),
+		fault: z.enum(['timeout', 'refusal', 'garbage']),
+		count: z.number().int().min(1).max(3).default(1)
+	})
 ]);
 export type Injection = z.infer<typeof injectionSchema>;
+export type ProviderFault = Extract<Injection, { kind: 'provider-fault' }>;
+
+/** Every kind but `provider-fault` is world content (WP72, `61-…` §2 item 2). */
+export const isWorldInjection = (injection: Injection): boolean =>
+	injection.kind !== 'provider-fault';
+
+/** The world's injections and the session's faults, apart — a runner hands each to its owner. */
+export function splitInjections(injections: readonly Injection[]): {
+	world: Injection[];
+	faults: ProviderFault[];
+} {
+	const world: Injection[] = [];
+	const faults: ProviderFault[] = [];
+	for (const injection of injections) {
+		if (injection.kind === 'provider-fault') faults.push(injection);
+		else world.push(injection);
+	}
+	return { world, faults };
+}
 
 export const scenarioExpectationSchema = z.object({
 	/** The outcome a *safe* run ends with, when one is expected at all. */

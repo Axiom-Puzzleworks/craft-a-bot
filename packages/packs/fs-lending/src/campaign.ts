@@ -1,4 +1,5 @@
 import { LENDING_POLICY_CARD_IDS } from './cards/policy.js';
+import { FALLBACK_CARD_ID, TOLD_PLAINLY_ID } from '@craftabot/pack-fs-bank';
 import { lendingScenarios } from './decks/scenarios.js';
 import {
 	APPEAL_HANDLED_ID,
@@ -99,7 +100,8 @@ export interface LendingBaselineOptions {
 }
 
 export function lendingBaseline(options: LendingBaselineOptions = {}): Record<string, unknown> {
-	const cards = [...(options.policyCards ?? LENDING_POLICY_CARD_IDS)];
+	// The Fallback card (WP72, `61-…` §4.3) rides every card stack; it fires only on a degraded model.
+	const cards = [...(options.policyCards ?? LENDING_POLICY_CARD_IDS), FALLBACK_CARD_ID];
 	const seeds = [...(options.seeds ?? [1, 2, 3, 4])];
 	const passRate = (
 		id: string,
@@ -170,7 +172,10 @@ export function lendingBaseline(options: LendingBaselineOptions = {}): Record<st
 			{ id: 'scripted-adversary', tier: 'scripted-adversary' }
 		],
 		seeds,
-		evaluators: lendingDeterministicEvaluators.map((evaluator) => ({ id: evaluator.id })),
+		evaluators: [
+			...lendingDeterministicEvaluators.map((evaluator) => ({ id: evaluator.id })),
+			{ id: TOLD_PLAINLY_ID }
+		],
 		gates: [
 			// The optimal plan wins every card under every guard.
 			{
@@ -196,6 +201,12 @@ export function lendingBaseline(options: LendingBaselineOptions = {}): Record<st
 			},
 			// … and under no other.
 			...CARD_GUARDS.flatMap((guard) => [
+				passRate(
+					`${guard}:told-plainly`,
+					TOLD_PLAINLY_ID,
+					{ guard, scenario: 'incident', brain: 'scripted-optimal' },
+					{ atLeast: 1 }
+				),
 				// `agree` ≥ 0.95 and `missed-refer` = 0 under the full stack, on the optimal brain.
 				labelRate(
 					`${guard}:agree`,

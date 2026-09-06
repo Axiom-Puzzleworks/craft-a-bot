@@ -370,7 +370,7 @@ Candidate controls (Area → §above; Fit: **Kids** = teaching mode, **Pro** = p
 | 2 | Human approval gate for consequential actions (pause + show exact action) | §3.6 | Widely adopted | Both |
 | 3 | Risk-tiered approvals (only irreversible/high-impact actions prompt) | §8.3 | Emerging | Both |
 | 4 | Big red kill switch (halt run, revoke tool access, safe teardown) | §3.7 | Widely adopted | Both |
-| 5 | Safe-mode degradation (read-only tools / mock provider on guardrail trip) | §3.7 | Emerging | Both |
+| 5 | Safe-mode degradation (read-only tools / mock provider on guardrail trip) — **adopted 2026-09-06 (WP72, `61-LAST-DECKS.md` §4.3): the `provider-fault` injection, the *Fallback* card and the *told plainly* evaluator on every desk** | §3.7 | Emerging | Both |
 | 6 | Step/token/cost budget caps with hard stop | §3.5 | Widely adopted | Both |
 | 7 | Loop detection (repeated tool calls, no-progress heuristic) | §5.5 | Emerging | Both |
 | 8 | Levels-of-autonomy dial (Operator→Observer, L1-L5) on the agent | §8.1 | Emerging | Both |

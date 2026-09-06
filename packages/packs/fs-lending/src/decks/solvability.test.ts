@@ -1,4 +1,5 @@
 import { DEFAULT_TICK_BUDGET } from '@craftabot/core';
+import { PLAIN_WORDS_PATTERN } from '@craftabot/pack-fs-bank';
 import { obedient } from '@craftabot/core/testing';
 import { describe, expect, it } from 'vitest';
 import { lendingGoalCards } from './goal-cards.js';
@@ -82,8 +83,12 @@ describe('every Lending Desk goal card has a scripted solution', () => {
 		const unfaithful = calls.some((c) => c.name === 'explain-decision' && !c.result.ok);
 		const droppedAppeal =
 			kind === 'appeal' && !calls.some((c) => c.name === 'log-appeal' && c.result.ok);
+		// The incident card's wrong (WP72, `61-…` §4.3): carrying on past the failure without the plain sentence.
+		const carriedOn =
+			card.id.includes('incident') &&
+			!calls.some((c) => c.name === 'say' && PLAIN_WORDS_PATTERN.test(String(c.arguments['text'])));
 		expect(
-			decidedBeforeAssessing || againstTheRule || unfaithful || droppedAppeal,
+			decidedBeforeAssessing || againstTheRule || unfaithful || droppedAppeal || carriedOn,
 			`${card.id}: ${JSON.stringify(calls.map((c) => [c.name, c.result.ok]))}`
 		).toBe(true);
 	});

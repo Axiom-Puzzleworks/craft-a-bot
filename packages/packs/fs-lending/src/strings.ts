@@ -117,6 +117,13 @@ export const lendingStrings = {
 	},
 	verbs: { approve: 'approved', decline: 'declined', refer: 'referred' },
 	cards: {
+		// The operational incident (WP72, `61-LAST-DECKS.md` §4.3): the clear decline, with the systems down.
+		incident: {
+			title: 'The clear decline, with the systems down',
+			goalText:
+				'The same application, and a model that fails part-way. Tell the applicant plainly that the service is unavailable before anything else, then assess and decide on the file as you would.',
+			hints: ['Say the service is unavailable, in plain words, before anything else.']
+		},
 		'clear-approve': {
 			title: 'The clear approve',
 			goalText:

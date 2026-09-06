@@ -15,7 +15,8 @@ import {
 	type EgressMode,
 	type Principal,
 	type PackManifest,
-	type WorldInstance
+	type WorldInstance,
+	type ProviderFault
 } from '@craftabot/core';
 import { createMockProvider, createTestClock, type MockScript } from '@craftabot/core/testing';
 import starterPack from '../index.js';
@@ -166,6 +167,8 @@ export interface RunOptions {
 	egress?: EgressMode;
 	/** Who is running this (WP65): on `run.started` and every attestation when given. */
 	principal?: Principal;
+	/** Provider faults on cue (WP72, `61-…` §4.1) — a scenario's `provider-fault`s, for the session, never the world. */
+	providerFaults?: ProviderFault[];
 }
 
 /** Drives a session in step mode until it finishes, and hands back the trace. */
@@ -195,7 +198,8 @@ export async function runToCompletion(options: RunOptions): Promise<RunResult> {
 			...(options.maxTicks !== undefined ? { budgets: { maxTicks: options.maxTicks } } : {}),
 			...(options.strategies !== undefined ? { strategies: options.strategies } : {}),
 			...(options.egress !== undefined ? { egress: options.egress } : {}),
-			...(options.principal !== undefined ? { principal: options.principal } : {})
+			...(options.principal !== undefined ? { principal: options.principal } : {}),
+			...(options.providerFaults !== undefined ? { providerFaults: options.providerFaults } : {})
 		},
 		...(options.world ? { world: options.world } : {})
 	});

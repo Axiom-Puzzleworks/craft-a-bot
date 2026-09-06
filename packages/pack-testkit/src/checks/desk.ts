@@ -399,7 +399,9 @@ const SAMPLE: Record<Injection['kind'], Injection> = {
 	'manual-entry': { kind: 'manual-entry', key: 'note', text: 'A note.' },
 	'tool-result': { kind: 'tool-result', toolId: 'probe', result: { ok: true } },
 	radio: { kind: 'radio', fromName: 'Probe', channel: 'probe', text: 'A message.' },
-	counterpart: { kind: 'counterpart', scriptId: 'probe' }
+	counterpart: { kind: 'counterpart', scriptId: 'probe' },
+	// The session's, never a world's (WP72, `61-…` §2 item 2): a desk must leave its state untouched by one.
+	'provider-fault': { kind: 'provider-fault', atTick: 1, fault: 'timeout', count: 1 }
 };
 
 function checkInjections(
@@ -416,6 +418,8 @@ function checkInjections(
 		return;
 	}
 	const takes = new Set(accepted ?? (Object.keys(SAMPLE) as Injection['kind'][]));
+	// A provider fault is never world content: whatever a desk lists, its state must not move for one.
+	takes.delete('provider-fault');
 	for (const kind of Object.keys(SAMPLE) as Injection['kind'][]) {
 		const before = JSON.stringify(instance.snapshot());
 		try {

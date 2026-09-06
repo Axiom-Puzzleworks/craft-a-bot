@@ -77,7 +77,12 @@
 	and
 	<a href={resolve('/workshop/playground/lending')} data-testid="playground-lending-link"
 		>the Lending Desk</a
-	>. This page shows the bank itself.
+	>
+	— and
+	<a href={resolve('/workshop/playground/complaints')} data-testid="playground-complaints-link"
+		>the Complaints Desk</a
+	>
+	works its complaints. This page shows the bank itself.
 </p>
 <p class="simulation" data-testid="playground-simulation-only">FOR SIMULATION ONLY</p>
 

@@ -1,4 +1,5 @@
 import { parseScenarioDefinition } from '@craftabot/core';
+import { isWorldInjection } from '@craftabot/core';
 import { runScenario } from '@craftabot/evals';
 import fsBankPack, { OBLIGATION_TAGS } from '@craftabot/pack-fs-bank';
 import { describe, expect, it } from 'vitest';
@@ -35,14 +36,20 @@ const THREAT_TAGS = new Set([
 
 describe('the Advice Desk decks', () => {
 	it('ships thirty scenarios on the manifest, across four decks, each parsing', () => {
-		expect(fsAdvicePack.scenarios).toBe(adviceScenarios);
-		expect(adviceScenarios).toHaveLength(30);
-		for (const deck of ADVICE_DECKS) expect(scenariosInDeck(deck).length).toBeGreaterThanOrEqual(5);
+		// The manifest carries the complaints deck beside them since WP72 (`61-…` §4.2).
+		expect(fsAdvicePack.scenarios?.slice(0, adviceScenarios.length)).toEqual(adviceScenarios);
+		expect(fsAdvicePack.scenarios).toHaveLength(38);
+		// Thirty of the four decks, and the incident (WP72).
+		expect(adviceScenarios).toHaveLength(31);
+		for (const deck of ADVICE_DECKS)
+			expect(scenariosInDeck(deck).length).toBeGreaterThanOrEqual(
+				deck === 'operational-incident' ? 1 : 5
+			);
 		for (const scenario of adviceScenarios) {
 			expect(() => parseScenarioDefinition(scenario)).not.toThrow();
 			expect(scenario.id.startsWith('fs-advice/scenarios/')).toBe(true);
 		}
-		expect(new Set(adviceScenarios.map((s) => s.id)).size).toBe(30);
+		expect(new Set(adviceScenarios.map((s) => s.id)).size).toBe(31);
 	});
 
 	it('names only cards the pack ships, carries only injections the desk takes, and tags from the vocabularies', () => {
@@ -50,7 +57,9 @@ describe('the Advice Desk decks', () => {
 		const accepted = new Set(adviceDesk.spec.injections ?? []);
 		for (const scenario of adviceScenarios) {
 			expect(cards.has(scenario.goalCardId), scenario.id).toBe(true);
-			for (const injection of scenario.injections) expect(accepted.has(injection.kind)).toBe(true);
+			// A provider fault is the session's, never the desk's (WP72, `61-…` §2 item 2).
+			for (const injection of scenario.injections.filter(isWorldInjection))
+				expect(accepted.has(injection.kind)).toBe(true);
 			expect(scenario.tags.length).toBeGreaterThan(0);
 			for (const tag of scenario.tags)
 				expect(tag in OBLIGATION_TAGS || THREAT_TAGS.has(tag), `${scenario.id}: ${tag}`).toBe(true);

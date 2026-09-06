@@ -6,6 +6,7 @@ import { createPackRegistry, type PackRegistry } from '../pack-registry.js';
 import { createMockProvider, createTestClock, turn, v1BrickKinds } from '../testing/index.js';
 import { migrateAgentSpec, toSpecV2 } from '../schemas/agent-spec-v2.js';
 import type { AgentSpec } from '../schemas/agent-spec.js';
+import type { ProviderFault } from '../schemas/scenario.js';
 import type { EngineEvent } from '../schemas/events.js';
 import type { BrickKindDefinition } from '../types/brick.js';
 import type { Guardrail, GuardrailHook, GuardrailVerdict } from '../types/guardrail.js';
@@ -182,6 +183,8 @@ function makeSession(config: {
 	world?: WorldInstance;
 	/** WP29, `23-…` §4.5: stamped into every emitted event's envelope. */
 	parentRunId?: string;
+	/** WP72, `61-…` §4.1: provider faults on cue. */
+	providerFaults?: ProviderFault[];
 }) {
 	const clock = createTestClock();
 	const session = createSession({
@@ -195,7 +198,8 @@ function makeSession(config: {
 			newId: clock.newId,
 			random: clock.random,
 			...(config.budgets ? { budgets: config.budgets } : {}),
-			...(config.parentRunId ? { parentRunId: config.parentRunId } : {})
+			...(config.parentRunId ? { parentRunId: config.parentRunId } : {}),
+			...(config.providerFaults ? { providerFaults: config.providerFaults } : {})
 		}
 	});
 	const seen: string[] = [];
@@ -2726,5 +2730,62 @@ describe('a service line’s miss on the trace (WP58, `47-…` §4.1)', () => {
 		const error = log.find((event) => event.type === 'error');
 		expect(error?.payload).toMatchObject({ kind: 'cassette-miss' });
 		expect(log.indexOf(error!)).toBeGreaterThan(log.indexOf(executed!));
+	});
+});
+
+/**
+ * **Provider faults on cue** (WP72, `61-LAST-DECKS.md` §4.1, §11 item 1): a
+ * `provider-fault` on the options spends its count on the calls from its
+ * tick, each written as `error` then `provider.retried`, and the call then
+ * proceeds — a transient on the trace, never a real failure.
+ */
+describe('provider faults', () => {
+	const ping = () => turn('Ping.', 'ping');
+	const byType = (log: EngineEvent[], type: string) => log.filter((event) => event.type === type);
+
+	it('spends its count from its tick as error + retried pairs, and the run goes on', async () => {
+		const { session, log } = makeSession({
+			script: [ping(), ping(), ping()],
+			budgets: { maxTicks: 3 },
+			// The first think is tick 1; a fault at tick 2 sleeps through the first step.
+			providerFaults: [{ kind: 'provider-fault', atTick: 2, fault: 'timeout', count: 2 }]
+		});
+		await session.step();
+		expect(byType(log, 'error')).toHaveLength(0);
+		await session.step();
+		expect(byType(log, 'error').map((event) => (event.payload as { kind: string }).kind)).toEqual([
+			'timeout',
+			'timeout'
+		]);
+		expect(byType(log, 'provider.retried').map((event) => event.payload)).toEqual([
+			{ kind: 'timeout', afterMs: 0, attempt: 1 },
+			{ kind: 'timeout', afterMs: 0, attempt: 2 }
+		]);
+		// The think still completed: the fault was a transient, and the run is not over.
+		expect(byType(log, 'think.completed')).toHaveLength(2);
+		expect(byType(log, 'run.finished')).toHaveLength(0);
+		await session.step();
+		expect(byType(log, 'error')).toHaveLength(2);
+		const finished = byType(log, 'run.finished')[0];
+		expect((finished?.payload as { outcome: string }).outcome).not.toBe('ERROR');
+	});
+
+	it('maps each fault to its kind, and two faults each spend their own count', async () => {
+		const { session, log } = makeSession({
+			script: [ping()],
+			budgets: { maxTicks: 1 },
+			providerFaults: [
+				{ kind: 'provider-fault', atTick: 1, fault: 'refusal', count: 1 },
+				{ kind: 'provider-fault', atTick: 1, fault: 'garbage', count: 1 }
+			]
+		});
+		await session.step();
+		expect(byType(log, 'error').map((event) => (event.payload as { kind: string }).kind)).toEqual([
+			'refused',
+			'malformed-response'
+		]);
+		expect(
+			byType(log, 'provider.retried').map((event) => (event.payload as { attempt: number }).attempt)
+		).toEqual([1, 2]);
 	});
 });

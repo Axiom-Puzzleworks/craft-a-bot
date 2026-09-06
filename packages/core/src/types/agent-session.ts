@@ -1,4 +1,5 @@
 import type { EgressMode } from '../egress.js';
+import type { ProviderFault } from '../schemas/scenario.js';
 import type { Principal } from '../schemas/shared.js';
 import type { AnyAgentSpec } from '../schemas/agent-spec-v2.js';
 import type { EngineEvent } from '../schemas/events.js';
@@ -81,6 +82,13 @@ export interface AgentSession {
 }
 
 export interface SessionOptions {
+	/**
+	 * Provider faults on cue (WP72, `61-LAST-DECKS.md` §4.1): the
+	 * `provider-fault` injections a scenario carries, delivered here rather
+	 * than to the world. Each spends its `count` on the calls from `atTick`,
+	 * writing `error` and `provider.retried`; the call then proceeds.
+	 */
+	providerFaults?: ProviderFault[];
 	/** Delay between ticks in `play` mode, so a human can watch (02-AGENT-MODEL.md §5). */
 	tickDelayMs?: number;
 	budgets?: { maxTicks?: number; maxTokens?: number; requestTimeoutMs?: number };
