@@ -204,7 +204,11 @@ export interface PackConformanceFixture {
 	/** One per service line the manifest ships, keyed by line id (WP58); a line without an entry is checked with the defaults. */
 	serviceLines?: Record<string, ServiceLineConformanceFixture>;
 	/** How the manifest's control maps are resolved (WP67): the host's own guardrail ids and the tag vocabularies. */
-	controlMaps?: { knownGuardrails?: readonly string[]; knownTags?: readonly string[] };
+	controlMaps?: {
+		knownGuardrails?: readonly string[];
+		knownTags?: readonly string[];
+		resolve?: boolean;
+	};
 }
 
 export type { CartridgeDefinition };
