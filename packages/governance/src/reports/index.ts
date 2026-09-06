@@ -64,6 +64,7 @@ export {
 	type GuardrailMixEntry
 } from './telemetry.js';
 export { safetyTally, type SafetyTally } from './safety-tally.js';
+export { reasonsUsed, type ReasonsUsed } from './decision-explanation.js';
 export {
 	boundaryMapFor,
 	litEdgesAt,

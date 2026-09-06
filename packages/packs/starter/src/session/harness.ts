@@ -150,6 +150,13 @@ export interface RunOptions {
 	 * through this harness carries the same event and run ids.
 	 */
 	idOffset?: number;
+	/**
+	 * The clock's random seed (WP63, `52-FS-LENDING.md` §2 item 4) — what the
+	 * world's case is built from. A campaign cell hands its own seed here so
+	 * two seeds are two cases; without it every run through this harness saw
+	 * the same one, and a parity gate had one cohort to compare.
+	 */
+	seed?: number;
 	/** Packs registered beside the starter pack (WP42) — a campaign that stacks a Guard Brick needs the workshop pack and the service's own. */
 	packs?: PackManifest[];
 	/** A world built (and injected) by the caller (WP44) — the session uses it instead of building the card's own. */
@@ -160,9 +167,10 @@ export interface RunOptions {
 
 /** Drives a session in step mode until it finishes, and hands back the trace. */
 export async function runToCompletion(options: RunOptions): Promise<RunResult> {
-	const clock = createTestClock(
-		options.idOffset === undefined ? {} : { idOffset: options.idOffset }
-	);
+	const clock = createTestClock({
+		...(options.idOffset === undefined ? {} : { idOffset: options.idOffset }),
+		...(options.seed === undefined ? {} : { seed: options.seed })
+	});
 	const spec = options.spec ?? buildSpec();
 	const provider = options.provider ?? createMockProvider({ script: options.script });
 

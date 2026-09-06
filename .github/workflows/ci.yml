@@ -78,6 +78,14 @@ jobs:
           --out campaign-out/fs-fraud --junit campaign-out/fs-fraud/junit.xml --sarif campaign-out/fs-fraud/results.sarif
           --markdown campaign-out/fs-fraud/scorecard.md
 
+      # The Lending Desk baseline (WP63, `52-FS-LENDING.md` §4.6): the first matched parity gate.
+      # Fails the build when No decision before affordability is removed.
+      - name: Run the Lending Desk baseline
+        run: >
+          npm run craftabot -- campaign --file campaigns/fs-lending-baseline.json --strict --egress none
+          --out campaign-out/fs-lending --junit campaign-out/fs-lending/junit.xml --sarif campaign-out/fs-lending/results.sarif
+          --markdown campaign-out/fs-lending/scorecard.md
+
       - name: Upload the campaign report
         if: always()
         uses: actions/upload-artifact@v4
@@ -106,3 +114,10 @@ jobs:
         with:
           sarif_file: campaign-out/fs-fraud/results.sarif
           category: campaign-fs-fraud
+
+      - name: Upload the Lending Desk SARIF to code scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: campaign-out/fs-lending/results.sarif
+          category: campaign-fs-lending

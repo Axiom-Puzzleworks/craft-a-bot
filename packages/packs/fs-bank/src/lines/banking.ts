@@ -69,12 +69,16 @@ export const coreBankingLine: ServiceLine = {
 				case 'balances':
 					return {
 						ok: true,
-						output: extra.bank.accounts
-							.map((a) => {
+						output: [
+							...extra.bank.accounts.map((a) => {
 								const frozen = extra.ledger.freezes.some((f) => f.accountId === a.id);
 								return `${a.kind} ${a.id}: ${a.balance < 0 ? '-' : ''}${money(a.balance)} (${frozen ? 'frozen' : a.status})`;
-							})
-							.join('; '),
+							}),
+							...extra.ledger.loans.map(
+								(loan) =>
+									`loan (disbursed) on ${loan.accountId}: ${money(loan.amount)} over ${loan.termMonths} months at ${money(loan.monthlyRepayment)} a month`
+							)
+						].join('; '),
 						data: {
 							accounts: extra.bank.accounts.map((a) => ({
 								id: a.id,

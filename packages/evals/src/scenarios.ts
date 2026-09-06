@@ -44,7 +44,9 @@ export function injectedWorld(
 	registry: PackRegistry,
 	goalCardId: string,
 	injections: readonly Injection[],
-	scenarioId: string
+	scenarioId: string,
+	/** The case's random (WP63, `52-…` §2 item 4) — a campaign cell's seed; the world's default when absent. */
+	random?: () => number
 ): WorldInstance {
 	const card = registry.getGoalCard(goalCardId);
 	if (!card)
@@ -54,7 +56,7 @@ export function injectedWorld(
 	const definition = registry.getWorld(card.worldId);
 	if (!definition)
 		throw new Error(`goal card "${card.id}" names world "${card.worldId}", which no pack ships`);
-	const world = definition.create(card.layoutId);
+	const world = definition.create(card.layoutId, random ? { random } : undefined);
 	if (injections.length > 0) {
 		if (!world.inject) throw new ScenarioRefusedError(scenarioId, card.worldId);
 		for (const injection of injections) world.inject(injection);

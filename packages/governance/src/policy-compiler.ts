@@ -33,6 +33,8 @@ export interface PredicateEvalContext {
 	worldState?: Readonly<WorldState>;
 	history?: ReadonlyArray<EngineEvent>;
 	observation?: Observation;
+	/** The composed prompt (WP63, `52-…` §2 item 1) — what `prompt-contains` reads; absent before `pre-think` and on a reflex tick. */
+	messages?: GuardrailContext['messages'];
 	world?: GuardrailContext['world'];
 }
 
@@ -45,6 +47,7 @@ export function predicateContextFor(ctx: GuardrailContext): PredicateEvalContext
 		worldState: ctx.worldState,
 		history: ctx.history,
 		...(ctx.observation !== undefined ? { observation: ctx.observation } : {}),
+		...(ctx.messages !== undefined ? { messages: ctx.messages } : {}),
 		...(ctx.world !== undefined ? { world: ctx.world } : {})
 	};
 }
@@ -113,6 +116,8 @@ export function evaluatePredicate(expr: PredicateExpr, ctx: PredicateEvalContext
 		}
 		case 'observation-contains':
 			return ctx.observation?.text.includes(expr.value) ?? false;
+		case 'prompt-contains':
+			return ctx.messages?.some((message) => message.content.includes(expr.value)) ?? false;
 		case 'world-predicate':
 			return ctx.world?.test(expr.predicateId) === true;
 		case 'history-count': {

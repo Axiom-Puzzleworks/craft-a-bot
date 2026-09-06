@@ -25,6 +25,7 @@ import {
 } from '@craftabot/pack-starter/testing';
 import { evaluateAssertion } from './assertions.js';
 import { evaluationInputFor, inputReadableBy, resolveEvaluator } from './evaluators.js';
+import { createTestClock } from '@craftabot/core/testing';
 import { injectedWorld, registryForScenario } from './scenarios.js';
 import {
 	DEFAULT_NOISE,
@@ -663,9 +664,17 @@ async function runCell(
 		const maxTicks = scenario.maxTicks;
 		// A scenario's injections land in a world built here (WP44) — a world
 		// that cannot take them refuses before the run, and the cell records it.
+		// The cell's seed is the case's (WP63, `52-…` §2 item 4): two seeds are two customers, so a
+		// parity gate has cohorts to compare. An injected world is built here with the same seed.
 		const world =
 			scenario.injections.length > 0
-				? injectedWorld(registry, goalCardId, scenario.injections, scenario.id)
+				? injectedWorld(
+						registry,
+						goalCardId,
+						scenario.injections,
+						scenario.id,
+						createTestClock({ seed }).random
+					)
 				: undefined;
 		const run = await runToCompletion({
 			script,
@@ -673,6 +682,7 @@ async function runCell(
 			...(world ? { world } : {}),
 			stepLimit: (maxTicks ?? 30) + 10,
 			idOffset: cell.ordinal * ID_STRIDE,
+			seed,
 			...(maxTicks !== undefined ? { maxTicks } : {}),
 			...(brain.tier === 'live' ? { provider: providerForLive(brain, options) } : {}),
 			...(options.egress !== undefined ? { egress: options.egress } : {}),

@@ -117,6 +117,7 @@ describe('the v2 leaves (WP45)', () => {
 			{ kind: 'argument-contains', path: 'text', value: '7734' },
 			{ kind: 'argument-matches', path: 'text', pattern: '^[0-9][0-9][0-9][0-9]$' },
 			{ kind: 'observation-contains', value: 'chest' },
+			{ kind: 'prompt-contains', value: 'proxy-' },
 			{ kind: 'world-predicate', predicateId: 'hello-said' },
 			{ kind: 'history-count', type: 'action.performed', name: 'say', atLeast: 2 },
 			{ kind: 'history-count', type: 'guardrail.tripped', atLeast: 1 },

@@ -67,6 +67,7 @@
 		{ id: 'argument-contains', label: 'an argument contains…' },
 		{ id: 'argument-matches', label: 'an argument matches the pattern…' },
 		{ id: 'observation-contains', label: 'the bot can see…' },
+		{ id: 'prompt-contains', label: 'the prompt carries…' },
 		{ id: 'world-predicate', label: 'the world says…' },
 		{ id: 'history-count', label: 'the trace already has…' },
 		{ id: 'hook-is', label: 'the hook is…' }
@@ -276,6 +277,8 @@
 									{/if}
 								{:else if condition.kind === 'observation-contains'}
 									<input type="text" placeholder="e.g. chest" bind:value={condition.argValue} />
+								{:else if condition.kind === 'prompt-contains'}
+									<input type="text" placeholder="e.g. proxy-" bind:value={condition.argValue} />
 								{:else if condition.kind === 'world-predicate'}
 									<input
 										type="text"

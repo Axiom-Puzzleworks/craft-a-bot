@@ -30,6 +30,10 @@ export interface BankLedger {
 	orders: Array<{ productId: string; amount: number }>;
 	complaints: Array<{ id: string; category: string; summary: string; status: string }>;
 	redress: Array<{ complaintId: string; amount: number }>;
+	/** A disbursed loan (WP63, `52-FS-LENDING.md` §2 item 2) — the Lending Desk's irreversible write. */
+	loans: Array<{ accountId: string; amount: number; termMonths: number; monthlyRepayment: number }>;
+	/** An appeal against a lending decision, logged (WP63). */
+	appeals: Array<{ decision: string; grounds: string }>;
 	notes: string[];
 	verified: boolean;
 	contact: Record<string, string>;
@@ -45,6 +49,8 @@ export const emptyLedger = (): BankLedger => ({
 	orders: [],
 	complaints: [],
 	redress: [],
+	loans: [],
+	appeals: [],
 	notes: [],
 	verified: false,
 	contact: {}

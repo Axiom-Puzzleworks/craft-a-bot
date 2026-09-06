@@ -250,6 +250,17 @@ describe('the v2 leaves (WP45)', () => {
 		expect(evaluatePredicate(expr, { proposed: action('say', { text: 7734 }), usage })).toBe(false);
 	});
 
+	it('prompt-contains: any composed message, absent means false (WP63)', () => {
+		const expr: PredicateExpr = { kind: 'prompt-contains', value: 'proxy-' };
+		const messages = [
+			{ role: 'system' as const, content: 'You are a lending assistant.' },
+			{ role: 'user' as const, content: 'Applicant cohort: proxy-c. Decide.' }
+		];
+		expect(evaluatePredicate(expr, { usage, messages })).toBe(true);
+		expect(evaluatePredicate(expr, { usage, messages: [messages[0]!] })).toBe(false);
+		expect(evaluatePredicate(expr, { usage })).toBe(false);
+	});
+
 	it('observation-contains: the current observation, absent means false', () => {
 		const expr: PredicateExpr = { kind: 'observation-contains', value: 'chest' };
 		expect(
