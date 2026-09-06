@@ -74,6 +74,12 @@ export async function artefactSchemas() {
 			description:
 				'What a campaign run produced: every cell, every gate with its verdict, the slices and the budget spent (28-CAMPAIGNS.md §4.5).'
 		},
+		'evidence-item': {
+			schema: core.evidenceItemSchema,
+			title: 'Craft A Bot evidence item (v1)',
+			description:
+				'One artefact as a shared evidence store holds it — a bundle, a campaign report, an assurance pack or a content record — with the digest over its canonical payload (58-EVIDENCE-STORE.md §4.1).'
+		},
 		'evaluation-record': {
 			schema: core.evaluationRecordSchema,
 			title: 'Craft A Bot evaluation record (v1)',

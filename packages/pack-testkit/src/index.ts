@@ -11,6 +11,8 @@ export { checkCartridge } from './checks/cartridge.js';
 export { checkGoldenTrace } from './checks/golden-trace.js';
 export { checkEvaluator } from './checks/evaluator.js';
 export { checkSink } from './checks/sink.js';
+export { checkEvidenceStore } from './checks/evidence-store.js';
+export { describeEvidenceStoreConformance } from './describe-evidence-store.js';
 export { describeSinkConformance } from './describe-sink.js';
 export { checkGuardrail } from './checks/guardrail.js';
 export { checkGuardrailService, hostMatches } from './checks/guardrail-service.js';
@@ -37,6 +39,7 @@ export type {
 	GuardrailConformanceFixture,
 	EvaluatorConformanceFixture,
 	SinkConformanceFixture,
+	EvidenceStoreConformanceFixture,
 	GuardrailServiceConformanceFixture,
 	PackConformanceFixture,
 	ToolConformanceFixture,

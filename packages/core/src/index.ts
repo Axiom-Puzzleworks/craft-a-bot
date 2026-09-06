@@ -497,6 +497,29 @@ export {
 	type TraceExport,
 	type TraceSink
 } from './types/trace-sink.js';
+/** The evidence store (`58-EVIDENCE-STORE.md` §4.1, WP70): a sync target for artefacts only. */
+export {
+	describeEvidenceStoreProblems,
+	type CreateEvidenceStoreOptions,
+	type EvidenceStore,
+	type EvidenceStoreInstance
+} from './types/evidence-store.js';
+export {
+	computeEvidenceDigest,
+	evidenceIdFor,
+	evidenceItemFor,
+	evidenceItemSchema,
+	evidenceKindSchema,
+	evidenceReceiptSchema,
+	parseEvidenceItem,
+	verifyEvidenceItem,
+	type EvidenceItem,
+	type EvidenceItemOptions,
+	type EvidenceKind,
+	type EvidencePayloadOf,
+	type EvidenceQuery,
+	type EvidenceReceipt
+} from './schemas/evidence.js';
 /** The trace bundle (`36-BUNDLE-AND-GROUPS.md` §4.1, WP48): member traces, the merged stream, a digest over every digest. */
 export {
 	BUNDLE_FORMAT_VERSION,
