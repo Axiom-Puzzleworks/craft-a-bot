@@ -55,6 +55,15 @@ test('the Spec Lab and the Run Lab with a Boundary', async ({ page }) => {
 	await page.goto(`/workshop/runs/${runId}`);
 	await expect(page.getByTestId('run-boundary')).toBeVisible();
 	await expect(page).toHaveScreenshot('workshop-run-lab.png', { fullPage: true });
+
+	// WP66 (`54-…` §5): the same screen with a decision explained and its related rows lit.
+	await page
+		.locator('[data-testid^="row-"] .type', { hasText: /^decision$/ })
+		.first()
+		.click();
+	await page.getByTestId('show-explain').check();
+	await expect(page.getByTestId('explain')).toBeVisible();
+	await expect(page).toHaveScreenshot('workshop-run-lab-explain.png', { fullPage: true });
 });
 
 // WP67 (`53-…` §5): the assurance pack, filed for a bot with one run — the first Workshop screen a reviewer reads.

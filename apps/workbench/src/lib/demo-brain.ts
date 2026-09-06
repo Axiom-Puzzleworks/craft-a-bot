@@ -444,8 +444,17 @@ export function demoVariantFor(goalCardId: string, can: BotCapabilities): string
 	return script.variants?.find((variant) => variant.missing(can))?.id;
 }
 
-/** The brain for a given Goal Card and build. Unscripted cards get the wanderer. */
-export function createDemoBrain(goalCardId: string, can?: BotCapabilities): LLMProvider {
+/**
+ * The brain for a given Goal Card and build. Unscripted cards get the wanderer.
+ * `startAt` resumes the script where a forked run's origin left it (WP66) —
+ * the turn the origin's trace had reached, so the fork asks the same
+ * questions the origin would have asked next.
+ */
+export function createDemoBrain(
+	goalCardId: string,
+	can?: BotCapabilities,
+	options: { startAt?: number } = {}
+): LLMProvider {
 	const script = SCRIPTS[goalCardId];
 	const variant = script && can ? script.variants?.find((entry) => entry.missing(can)) : undefined;
 	const steps = variant?.steps ?? script?.succeeds;
@@ -454,6 +463,7 @@ export function createDemoBrain(goalCardId: string, can?: BotCapabilities): LLMP
 		id: 'demo',
 		name: 'Demo brain (no battery needed)',
 		script: steps ? obedient(steps) : wanderer(),
+		...(options.startAt !== undefined ? { startAt: options.startAt } : {}),
 		whenExhausted: {
 			text: 'I think that is everything I know how to do here.',
 			toolCall: null

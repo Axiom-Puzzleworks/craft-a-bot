@@ -1,8 +1,11 @@
 import {
 	createSession,
 	displayedTickBudget,
+	forkSession,
 	type AnyAgentSpec,
+	type CreateSessionDeps,
 	type EngineEvent,
+	type ForkFrom,
 	type Guardrail,
 	type LLMProvider,
 	type RunMode,
@@ -115,6 +118,14 @@ export interface SessionViewDeps {
 	 * time, so a preference changed mid-run applies to the next event.
 	 */
 	breakpoints?: () => readonly BreakpointKind[];
+	/**
+	 * Begin where a stored run was after a tick (WP66, `54-…` §4.5): the
+	 * origin's events and the last tick kept. The session is `forkSession`'s
+	 * rather than `createSession`'s — same bus, same fold, one more field on
+	 * `run.started`. The Workshop's fork carries no overrides; a
+	 * counterfactual build is the harness's `craftabot fork --kit`.
+	 */
+	forkFrom?: ForkFrom;
 }
 
 /** Why a live run stopped at a breakpoint: the kind that matched, and where. */
@@ -172,7 +183,7 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 	}
 
 	function build() {
-		const created = createSession({
+		const sessionDeps: CreateSessionDeps = {
 			spec: deps.spec,
 			registry,
 			provider: deps.provider,
@@ -186,7 +197,10 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 				tickDelayMs: tickDelayFor(speed),
 				...(deps.maxTicks !== undefined ? { budgets: { maxTicks: deps.maxTicks } } : {})
 			}
-		});
+		};
+		const created = deps.forkFrom
+			? forkSession(sessionDeps, { from: deps.forkFrom })
+			: createSession(sessionDeps);
 		created.events.onAny(absorb);
 		// Configured sinks ride along (WP47, `35-…` §4.5): consumers of the bus, detached and flushed when the run ends.
 		const detachSinks = sinksStore.attach(created.events, { agentId: deps.spec.id });
