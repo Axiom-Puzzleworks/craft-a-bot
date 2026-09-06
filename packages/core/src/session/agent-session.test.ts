@@ -2610,6 +2610,16 @@ describe('parentRunId (WP29)', () => {
  * would have done every time it let go. A run that has begun goes on.
  */
 describe('resume', () => {
+	/**
+	 * A run that keeps going for `turns` ticks at a 1 ms tick delay, with a
+	 * budget to match. The three resume tests below used to ask for forty:
+	 * on a fast Linux runner forty 1 ms ticks are over inside a couple of
+	 * `vi.waitFor` polls (50 ms apart), so the run had *finished* by the time
+	 * the second pause landed and `status` read `finished`, not `paused`
+	 * (`12-…` D22). They now ask for two thousand — more than any poll
+	 * cadence can get through — and the budget follows the script, since the
+	 * default thirty-tick backstop would end the run just as surely.
+	 */
 	function playable(turns = 6) {
 		const clock = createTestClock();
 		const session = createSession({
@@ -2619,7 +2629,13 @@ describe('resume', () => {
 				script: (_request, index) => (index >= turns ? turn('Win!', 'win') : turn('Ping.', 'ping'))
 			}),
 			guardrails: [],
-			options: { now: clock.now, newId: clock.newId, random: clock.random, tickDelayMs: 1 }
+			options: {
+				now: clock.now,
+				newId: clock.newId,
+				random: clock.random,
+				tickDelayMs: 1,
+				budgets: { maxTicks: turns + 10 }
+			}
 		});
 		const seen: EngineEvent['type'][] = [];
 		session.events.onAny((event) => seen.push(event.type));
@@ -2627,7 +2643,7 @@ describe('resume', () => {
 	}
 
 	it('goes on from the tick in hand after a pause, with one run.started on the trace', async () => {
-		const { session, seen } = playable(40);
+		const { session, seen } = playable(2000);
 		session.start('play');
 		await vi.waitFor(() =>
 			expect(seen.filter((type) => type === 'tick.completed').length).toBeGreaterThan(1)
@@ -2648,7 +2664,7 @@ describe('resume', () => {
 	});
 
 	it('resumes a stepped run into play mode, and a paused play run back into step mode', async () => {
-		const { session, seen } = playable(40);
+		const { session, seen } = playable(2000);
 		await session.step();
 		expect(session.status).toBe('paused');
 		session.start('play');
@@ -2664,7 +2680,7 @@ describe('resume', () => {
 	});
 
 	it('ignores start() while a run is going', async () => {
-		const { session, seen } = playable(40);
+		const { session, seen } = playable(2000);
 		session.start('play');
 		session.start('play');
 		await vi.waitFor(() =>
