@@ -251,6 +251,10 @@ describe('the v2 leaves in the Studio (WP45)', () => {
 			kind: 'observation-contains',
 			value: 'chest'
 		});
+		expect(conditionToExpr(row({ kind: 'prompt-contains', argValue: 'proxy-' }))).toEqual({
+			kind: 'prompt-contains',
+			value: 'proxy-'
+		});
 		expect(conditionToExpr(row({ kind: 'world-predicate', predicateId: 'chest-open' }))).toEqual({
 			kind: 'world-predicate',
 			predicateId: 'chest-open'

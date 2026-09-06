@@ -1445,6 +1445,23 @@
 					"properties": {
 						"kind": {
 							"type": "string",
+							"const": "prompt-contains"
+						},
+						"value": {
+							"type": "string",
+							"minLength": 1
+						}
+					},
+					"required": [
+						"kind",
+						"value"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"kind": {
+							"type": "string",
 							"const": "world-predicate"
 						},
 						"predicateId": {

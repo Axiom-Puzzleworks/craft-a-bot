@@ -5,6 +5,7 @@ import evaluatorsPack from '@craftabot/pack-evaluators';
 import fsAdvicePack from '@craftabot/pack-fs-advice';
 import fsBankPack from '@craftabot/pack-fs-bank';
 import fsFraudPack from '@craftabot/pack-fs-fraud';
+import fsLendingPack from '@craftabot/pack-fs-lending';
 import geapPack from '@craftabot/pack-geap';
 import guardLocalPack from '@craftabot/pack-guard-local';
 import geminiPack from '@craftabot/pack-gemini';
@@ -106,6 +107,8 @@ export const installedPacks = [
 	fsAdvicePack,
 	// WP62 (`51-FS-FRAUD.md`): the second desk, written against the contracts alone.
 	fsFraudPack,
+	// WP63 (`52-FS-LENDING.md`): the third desk — the decision about a person, and fairness.
+	fsLendingPack,
 	demoPack
 ];
 

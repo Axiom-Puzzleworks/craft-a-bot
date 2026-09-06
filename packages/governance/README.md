@@ -107,7 +107,9 @@ shell attaches it to every request as `policyInput`.
 `summariseRun`, the incident log (`incidentsFromSummaries`), the safety-case worksheet
 (`safetyCaseFromSummaries`, with evaluation and campaign evidence), telemetry by card and
 cartridge, the guardrail trip mix, autonomy figures, the daily series and its drift flags
-(`telemetrySeries`, `driftIn`), and `assertionEvaluator` for assertion cards as evaluators.
+(`telemetrySeries`, `driftIn`), `reasonsUsed` — what a decision had in hand when it was made,
+the first field of the explain-this-decision fold — and `assertionEvaluator` for assertion cards
+as evaluators.
 Every fold is pure; a headless host produces the same JSON the Workshop renders.
 
 ## What it does not do

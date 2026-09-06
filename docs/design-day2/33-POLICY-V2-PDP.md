@@ -38,6 +38,9 @@ A policy card can say four things about a proposed call today — its kind, its 
 | `world-predicate` | `predicateId` | the world's own `test(predicateId)` is true |
 | `history-count` | `type`, `name?`, `atLeast` | at least `atLeast` events of `type` (and, named, with that `payload.name`) are on the trace so far |
 | `hook-is` | `hook` | the rule is being checked at that hook |
+| `prompt-contains` | `value` | any composed message's content contains `value` (`GuardrailContext.messages`; absent means false) |
+
+> **Amended 2026-09-06 (WP63, `52-FS-LENDING.md` §2 item 1):** a seventh v2 leaf, `prompt-contains`, since no leaf read the composed prompt and the Lending Desk's *Cohort-blind* card is specified over it. `PredicateEvalContext.messages` is filled from `GuardrailContext.messages` by `predicateContextFor`; the Studio's rule builder offers it as "the prompt carries…". Additive: every earlier card is unchanged.
 
 `argument-matches` patterns are the bounded subset: at most 200 characters; no `(`, `)`, `{`, `}`, and no backslash followed by a digit; must compile. `isSafePattern` is exported so the Studio can say why a pattern is refused. Matching is case-sensitive and anchored only where the pattern says.
 

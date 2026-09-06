@@ -34,6 +34,7 @@ export type LeafKind =
 	| 'argument-contains'
 	| 'argument-matches'
 	| 'observation-contains'
+	| 'prompt-contains'
 	| 'world-predicate'
 	| 'history-count'
 	| 'hook-is';
@@ -113,6 +114,8 @@ export function conditionToExpr(row: ConditionRow): PredicateExpr {
 		base = { kind: 'argument-matches', path: row.path, pattern: row.pattern };
 	} else if (row.kind === 'observation-contains') {
 		base = { kind: 'observation-contains', value: row.argValue };
+	} else if (row.kind === 'prompt-contains') {
+		base = { kind: 'prompt-contains', value: row.argValue };
 	} else if (row.kind === 'world-predicate') {
 		base = { kind: 'world-predicate', predicateId: row.predicateId };
 	} else if (row.kind === 'history-count') {

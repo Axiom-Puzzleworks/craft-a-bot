@@ -60,6 +60,17 @@ export interface PredicateExprObservationContains {
 	kind: 'observation-contains';
 	value: string;
 }
+/**
+ * The eleventh leaf (WP63, `52-FS-LENDING.md` §2 item 1): the composed
+ * prompt — `GuardrailContext.messages`, present from `pre-think` — contains
+ * `value` in any message's content. What *Cohort-blind* reads: a card can
+ * refuse a decision whose prompt carries an attribute the journey never
+ * revealed. Absent messages (a reflex tick, an older host) mean false.
+ */
+export interface PredicateExprPromptContains {
+	kind: 'prompt-contains';
+	value: string;
+}
 export interface PredicateExprWorldPredicate {
 	kind: 'world-predicate';
 	predicateId: string;
@@ -95,6 +106,7 @@ export type PredicateExpr =
 	| PredicateExprArgumentContains
 	| PredicateExprArgumentMatches
 	| PredicateExprObservationContains
+	| PredicateExprPromptContains
 	| PredicateExprWorldPredicate
 	| PredicateExprHistoryCount
 	| PredicateExprHookIs
@@ -151,6 +163,7 @@ export const predicateExprSchema: z.ZodType<PredicateExpr> = z.lazy(() =>
 			})
 		}),
 		z.object({ kind: z.literal('observation-contains'), value: z.string().min(1) }),
+		z.object({ kind: z.literal('prompt-contains'), value: z.string().min(1) }),
 		z.object({ kind: z.literal('world-predicate'), predicateId: z.string().min(1) }),
 		z.object({
 			kind: z.literal('history-count'),
