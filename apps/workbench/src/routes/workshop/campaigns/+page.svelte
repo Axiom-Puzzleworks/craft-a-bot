@@ -32,6 +32,9 @@
 	import { contentStore } from '$lib/state/content.svelte.js';
 	import { slugOf } from '@craftabot/core';
 	import { persistRunSummary } from '$lib/state/run-summaries.js';
+	import { evidenceStoresStore } from '$lib/state/evidence.svelte.js';
+	import { browserPrincipalId } from '$lib/state/principal.js';
+	import { itemForReport } from '$lib/workshop/evidence.js';
 	import {
 		envelopeFor,
 		recordForCampaignCell,
@@ -243,6 +246,26 @@
 	$effect(() => {
 		void loadStored();
 	});
+
+	let pushNote = $state<Record<string, string>>({});
+
+	// Push a saved report to the evidence store (WP70, `58-…` §4.5) — shown only once a store is configured.
+	async function pushReport(row: StoredCampaignReport): Promise<void> {
+		const storeId = evidenceStoresStore.configurations[0]?.storeId ?? '';
+		const instance = evidenceStoresStore.instance(storeId);
+		if (!instance) return;
+		try {
+			const receipt = await instance.push(
+				await itemForReport($state.snapshot(row), { principal: browserPrincipalId() })
+			);
+			pushNote = { ...pushNote, [row.id]: `pushed ${receipt.digest.slice(0, 12)}…` };
+		} catch (error) {
+			pushNote = {
+				...pushNote,
+				[row.id]: `could not push: ${error instanceof Error ? error.message : String(error)}`
+			};
+		}
+	}
 
 	async function loadStored(): Promise<void> {
 		const storage = await appStorage();
@@ -745,6 +768,19 @@
 								>
 									Open
 								</button>
+								{#if evidenceStoresStore.configured}
+									<button
+										type="button"
+										class="drill"
+										data-testid="push-report-{row.id}"
+										onclick={() => pushReport(row)}
+									>
+										Push
+									</button>
+									{#if pushNote[row.id]}<span class="hint" data-testid="pushed-report-{row.id}"
+											>{pushNote[row.id]}</span
+										>{/if}
+								{/if}
 							</td>
 						</tr>
 					{/each}

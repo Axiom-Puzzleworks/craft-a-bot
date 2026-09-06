@@ -32,6 +32,7 @@
 			| 'evaluators'
 			| 'scenarios'
 			| 'sinks'
+			| 'evidence'
 			| 'campaigns';
 	}
 
@@ -50,6 +51,8 @@
 		{ id: 'scenarios', label: 'Scenarios', href: '/workshop/scenarios' },
 		// WP47 (`35-TELEMETRY.md` §4.5) — where a run's trace goes besides this browser.
 		{ id: 'sinks', label: 'Sinks', href: '/workshop/sinks' },
+		// WP70 (`58-EVIDENCE-STORE.md` §4.5) — the shared evidence store: artefacts pushed and pulled, never a key.
+		{ id: 'evidence', label: 'Evidence', href: '/workshop/evidence' },
 		// WP59 (`48-FS-BANK.md` §4.8) — the synthetic bank, read: a case from a seed and the nine lines.
 		{ id: 'playground', label: 'Playground', href: '/workshop/playground' },
 		{ id: 'policies', label: 'Policies', href: '/workshop/policies' },

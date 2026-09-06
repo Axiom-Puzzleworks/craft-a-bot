@@ -123,7 +123,7 @@ Rules:
 V1 needs none. The first features that will genuinely require one: sharing kit files by link, community galleries, classroom/team spaces, cloud trace archives. When that happens:
 
 - **Supabase** is the chosen platform (Postgres + Auth + Storage + Row-Level Security).
-- The local-first design is preserved: Supabase becomes a *sync target*, not the source of truth for a solo user. `07-DATA-MODEL-PERSISTENCE.md` keeps every entity UUID-keyed and timestamped so sync can be added without schema surgery.
+- The local-first design is preserved: Supabase becomes a *sync target*, not the source of truth for a solo user. > **Amended 2026-09-06 (WP70, `58-EVIDENCE-STORE.md`; `41-…` §6.11, decision D1).** Built exactly so: `evidence/supabase` is a sync target for four artefacts only — trace bundles, campaign reports, assurance packs and `local/*` content — behind the `EvidenceStore` contract in `core`; a workspace token is a credential like any other, the anon key is configuration, and nothing in the app requires the store. `07-DATA-MODEL-PERSISTENCE.md` keeps every entity UUID-keyed and timestamped so sync can be added without schema surgery.
 - **API keys never go to the backend.** Server-side key custody, if ever offered, is a separate, explicit product decision — the default remains keys-stay-in-the-browser.
 
 ## 7. Security & privacy posture (V1)

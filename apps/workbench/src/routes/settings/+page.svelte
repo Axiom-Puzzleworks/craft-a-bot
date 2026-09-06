@@ -10,6 +10,7 @@
 	import { preferences } from '$lib/state/preferences.svelte.js';
 	import { createRegistry } from '$lib/packs.js';
 	import { OLLAMA_BASE_URL } from '@craftabot/pack-ollama';
+	import { evidenceStores } from '@craftabot/evidence';
 
 	/**
 	 * Settings (03-UI-UX-DESIGN.md §7): the battery compartment, preferences, and
@@ -40,6 +41,23 @@
 	// only while the Workshop door is open, the same gate `PartsTray.svelte`
 	// already uses for the brick itself (stage C).
 	const geapBay = createGeapCredentialBay();
+	// The evidence store's workspace token (WP70, `58-…` §4.5): a bearer token
+	// minted by the team, so there is nothing to validate against but the store
+	// itself — the compartment reads "fitted — not checked yet" and the Evidence
+	// page's push is the check.
+	const evidenceCompartments = evidenceStores
+		.filter((store) => store.credential !== undefined)
+		.map((store) => ({
+			store,
+			credential: store.credential as NonNullable<(typeof store)['credential']>,
+			bay: createBatteryBay({
+				providerId: (store.credential as NonNullable<(typeof store)['credential']>).id,
+				validate: async (key) => ({
+					ok: key.trim() !== '',
+					message: 'Fitted; the Evidence page checks it against the store.'
+				})
+			})
+		}));
 	const leaflet = leafletStore();
 
 	const SPEEDS = [0.5, 1, 2, 4];
@@ -66,6 +84,14 @@
 
 	{#if preferences.workshop}
 		<GeapCredentialCompartment bay={geapBay} />
+		{#each evidenceCompartments as { store, credential, bay } (store.id)}
+			<BatteryCompartment
+				{bay}
+				providerId={credential.id}
+				providerName={`${store.name} — ${credential.name}`}
+				keysUrl={credential.keysUrl ?? ''}
+			/>
+		{/each}
 
 		<!--
 			The run cap (WP36 stage C): `07-…` §2's fifty was a constant, and a
