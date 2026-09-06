@@ -1,4 +1,5 @@
 import {
+	canonicalJson,
 	describeEvidenceStoreProblems,
 	verifyEvidenceItem,
 	type EvidenceItem,
@@ -117,7 +118,8 @@ export async function checkEvidenceStore(
 					message: `"${store.id}" does not pull back ${item.kind} "${item.id}"`
 				});
 			} else if (
-				JSON.stringify(match.payload) !== JSON.stringify(item.payload) ||
+				// Canonically: a store may keep the payload as `jsonb`, which reorders keys — the digest is over canonical JSON for that reason.
+				canonicalJson(match.payload) !== canonicalJson(item.payload) ||
 				match.digest !== item.digest ||
 				!(await verifyEvidenceItem(match))
 			) {

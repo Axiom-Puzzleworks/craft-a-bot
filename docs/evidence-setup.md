@@ -85,6 +85,8 @@ console.log(`${body}.${createHmac("sha256", secret).update(body).digest("base64u
 ' "$SUPABASE_JWT_SECRET" team-a 30
 ```
 
+> **From the live checkpoint (2026-09-06).** A project that has moved to asymmetric _JWT Signing Keys_ still verifies an HS256 token signed with the **Legacy JWT Secret** (the second tab on that page) for as long as the legacy key is listed among the previous keys — do not revoke it while a workspace token is in use. Leave the header without a `kid`; naming the legacy key was refused. On Windows, paste the secret into a plain prompt and clear the screen after (a masked PowerShell prompt drops a paste in some terminals), and pass `--store-config` to `node packages/harness/dist/main.js` directly with the inner quotes escaped — `npm run … --` in Windows PowerShell swallows the flags.
+
 The token names one workspace (`team-a` above) and expires (30 days above).
 Mint one per team; rotate by minting again. **Treat it as a key:** it goes in
 the Workshop's vault (Settings → the _Workspace token_ compartment, kept in
