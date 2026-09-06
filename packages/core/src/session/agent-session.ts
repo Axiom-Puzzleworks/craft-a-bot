@@ -544,7 +544,34 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 	 * policy: a second failure is a real failure, and a bot that quietly
 	 * retried forever would hide exactly the cost lesson this toy is for.
 	 */
+	/**
+	 * Injected faults (WP72, `61-…` §4.1): a scenario's `provider-fault`s,
+	 * spent one call at a time from their tick. Each is a transient on the
+	 * trace — `error` then `provider.retried` — and the call proceeds once no
+	 * fault is armed, so what the bot does *after* a degradation is what the
+	 * incident deck judges. Never a real failure: the run goes on.
+	 */
+	const faults = (deps.options?.providerFaults ?? []).map((fault) => ({
+		...fault,
+		remaining: fault.count
+	}));
+	const FAULT_KINDS = { timeout: 'timeout', refusal: 'refused', garbage: 'malformed-response' };
+	let faultAttempts = 0;
+	function spendFault(): boolean {
+		const armed = faults.find((fault) => fault.remaining > 0 && fault.atTick <= run.tick);
+		if (!armed) return false;
+		armed.remaining -= 1;
+		faultAttempts += 1;
+		const kind = FAULT_KINDS[armed.fault];
+		emit('error', { message: `the model faulted (${armed.fault}) — injected`, kind });
+		emit('provider.retried', { kind, afterMs: 0, attempt: faultAttempts });
+		return true;
+	}
+
 	async function callProviderWithRetry(messages: ChatMessage[]): Promise<ChatResponse> {
+		while (spendFault()) {
+			// Each faulted call is one attempt; the next call is the retry.
+		}
 		try {
 			return await callProvider(messages);
 		} catch (error) {

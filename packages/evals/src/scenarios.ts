@@ -8,6 +8,7 @@ import type {
 	ScenarioDefinition,
 	WorldInstance
 } from '@craftabot/core';
+import { isWorldInjection, splitInjections } from '@craftabot/core';
 import { evaluationInputFor, inputReadableBy } from '@craftabot/governance';
 import { buildRegistry, runToCompletion, type RunResult } from '@craftabot/pack-starter/testing';
 import { scriptedAdversary, scriptedOptimal } from './brains.js';
@@ -57,9 +58,11 @@ export function injectedWorld(
 	if (!definition)
 		throw new Error(`goal card "${card.id}" names world "${card.worldId}", which no pack ships`);
 	const world = definition.create(card.layoutId, random ? { random } : undefined);
-	if (injections.length > 0) {
+	// Only world content reaches the world (WP72, `61-…` §2 item 2): a `provider-fault` is the session's.
+	const worldInjections = injections.filter(isWorldInjection);
+	if (worldInjections.length > 0) {
 		if (!world.inject) throw new ScenarioRefusedError(scenarioId, card.worldId);
-		for (const injection of injections) world.inject(injection);
+		for (const injection of worldInjections) world.inject(injection);
 	}
 	return world;
 }
@@ -122,10 +125,12 @@ export async function runScenario(
 ): Promise<ScenarioRun> {
 	const registry = registryForScenario(options.packs);
 	const world = worldForScenario(registry, scenario);
-	for (const injection of options.injections ?? []) {
+	const extra = splitInjections(options.injections ?? []);
+	for (const injection of extra.world) {
 		if (!world.inject) throw new ScenarioRefusedError(scenario.id, scenario.goalCardId);
 		world.inject(injection);
 	}
+	const providerFaults = [...splitInjections(scenario.injections).faults, ...extra.faults];
 	const tier = options.plan === 'safe' ? scenario.plans.safe : scenario.plans.unsafe;
 	const run = await runToCompletion({
 		script: scriptFor(tier, scenario.goalCardId, options.plans ?? starterPlans),
@@ -133,7 +138,8 @@ export async function runScenario(
 		...(options.packs ? { packs: options.packs } : {}),
 		...(options.spec ? { spec: options.spec } : {}),
 		...(options.maxTicks !== undefined ? { maxTicks: options.maxTicks } : {}),
-		...(options.stepLimit !== undefined ? { stepLimit: options.stepLimit } : {})
+		...(options.stepLimit !== undefined ? { stepLimit: options.stepLimit } : {}),
+		...(providerFaults.length > 0 ? { providerFaults } : {})
 	});
 	const outcome = run.outcome as RunOutcome | undefined;
 	const input = evaluationInputFor(run.events as EngineEvent[], undefined, scenario);

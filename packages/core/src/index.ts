@@ -45,12 +45,15 @@ export {
 export {
 	SCENARIO_SCHEMA_VERSION,
 	injectionSchema,
+	isWorldInjection,
+	splitInjections,
 	parseScenarioDefinition,
 	safeParseScenarioDefinition,
 	scenarioDefinitionSchema,
 	scenarioExpectationSchema,
 	scenarioPackFileSchema,
 	type Injection,
+	type ProviderFault,
 	type ScenarioDefinition,
 	type ScenarioDefinitionInput,
 	type ScenarioPackFile

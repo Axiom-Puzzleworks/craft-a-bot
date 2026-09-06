@@ -217,3 +217,61 @@ describe('worldForScenario', () => {
 		).toThrow(/no pack ships/);
 	});
 });
+
+describe('runScenario — a provider fault (WP72, `61-LAST-DECKS.md` §2 item 2)', () => {
+	it('reaches the session as error + retried, and never reaches the world', async () => {
+		const injected: string[] = [];
+		const registry = registryForScenario();
+		const definition = registry.getWorld(
+			registry.getGoalCard(WARNING_SIGN_SCENARIO.goalCardId)?.worldId ?? ''
+		);
+		expect(definition).toBeDefined();
+		const scenario = {
+			...WARNING_SIGN_SCENARIO,
+			injections: [
+				...WARNING_SIGN_SCENARIO.injections,
+				{ kind: 'provider-fault' as const, atTick: 1, fault: 'timeout' as const, count: 1 }
+			]
+		};
+		// A spy on the world: every injection it is handed is recorded.
+		const result = await runScenario(scenario, {
+			plan: 'safe',
+			spec: warningSignSpec([]),
+			stepLimit: 10,
+			packs: [
+				{
+					id: 'spy',
+					name: 'Spy',
+					version: '0.0.1',
+					requiresCore: '>=0.0.1',
+					worlds: [
+						{
+							...(definition as NonNullable<typeof definition>),
+							id: 'spy/world',
+							create: (...args: unknown[]) => {
+								const world = (definition as NonNullable<typeof definition>).create(
+									...(args as Parameters<NonNullable<typeof definition>['create']>)
+								);
+								const inject = world.inject?.bind(world);
+								return {
+									...world,
+									inject: inject
+										? (injection: Parameters<typeof inject>[0]) => {
+												injected.push(injection.kind);
+												inject(injection);
+											}
+										: undefined
+								} as typeof world;
+							}
+						}
+					]
+				}
+			]
+		});
+		expect(result.outcome).toBe('SUCCESS');
+		const events = result.run.events;
+		expect(events.some((event) => event.type === 'error')).toBe(true);
+		expect(events.some((event) => event.type === 'provider.retried')).toBe(true);
+		expect(injected).not.toContain('provider-fault');
+	});
+});
