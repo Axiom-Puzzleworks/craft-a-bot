@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import Lamp from '$lib/components/control-room/Lamp.svelte';
 	import { resolve } from '$app/paths';
 	import {
 		capabilitiesOf,
@@ -291,14 +292,17 @@
 									>{when(row.createdAt)} · build <span class="mono">{row.buildId}</span> · {row.cells}
 									cells</span
 								>
-								<span class="verdict" data-passed={row.passed}
-									>{row.passed ? '✅ passed' : '❌ failed'}</span
-								>
+								<span class="verdict" data-passed={row.passed}>
+									<Lamp
+										status={row.passed ? 'pass' : 'fail'}
+										label={row.passed ? 'passed' : 'failed'}
+									/>
+								</span>
 							</p>
 							<ul class="gates">
 								{#each row.gates as gate (gate.id)}
 									<li data-testid="campaign-gate-{gate.id}" data-passed={gate.passed}>
-										{gate.passed ? '✅' : '❌'}
+										<Lamp status={gate.passed ? 'pass' : 'fail'} />
 										<span class="mono">{gate.id}</span>
 										{gate.required}{#if gate.observed !== undefined}
 											— observed {Math.round(gate.observed * 100) / 100}{/if}

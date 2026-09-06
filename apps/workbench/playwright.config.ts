@@ -25,7 +25,12 @@ export default defineConfig({
 	 */
 	projects: [
 		{ name: 'default', testIgnore: [/visual\.spec\.ts$/, /[\\/]editions[\\/]/] },
-		{ name: 'visual', testMatch: /visual\.spec\.ts$/ }
+		// The clock and the locale pinned (WP71, `60-…` §2 item 6): a screen prints dates, and a runner in another zone must shoot the same picture.
+		{
+			name: 'visual',
+			testMatch: /visual\.spec\.ts$/,
+			use: { locale: 'en-GB', timezoneId: 'UTC' }
+		}
 	],
 	snapshotPathTemplate: '{testDir}/__screenshots__/{platform}/{arg}{ext}',
 	expect: { toHaveScreenshot: { maxDiffPixelRatio: 0.01 } },

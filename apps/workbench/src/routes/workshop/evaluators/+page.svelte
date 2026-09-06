@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import Lamp from '$lib/components/control-room/Lamp.svelte';
 	import { resolve } from '$app/paths';
 	import type { EvaluationRecord, Evaluator, RunRecord } from '@craftabot/core';
 	import { createRegistry } from '$lib/packs.js';
@@ -226,7 +227,14 @@
 						data-testid="evaluation-{record.evaluatorId}"
 						data-verdict={record.result.verdict ?? 'none'}
 					>
-						<span class="verdict">{record.result.verdict ?? '—'}</span>
+						<Lamp
+							status={record.result.verdict === 'pass'
+								? 'pass'
+								: record.result.verdict === 'fail'
+									? 'fail'
+									: 'inconclusive'}
+							label={record.result.verdict ?? 'no verdict'}
+						/>
 						<span class="mono">{record.evaluatorId}</span>
 						{#if record.result.score !== undefined}<span class="hint"
 								>score {record.result.score}</span
@@ -376,16 +384,5 @@
 	.records p {
 		margin: var(--cab-space-1) 0 0;
 		font-size: var(--cab-text-sm);
-	}
-
-	.verdict {
-		font-weight: 700;
-		text-transform: uppercase;
-		letter-spacing: 0.06em;
-		margin-right: var(--cab-space-2);
-	}
-
-	[data-verdict='fail'] .verdict {
-		color: var(--cab-red-text, var(--cab-ink));
 	}
 </style>

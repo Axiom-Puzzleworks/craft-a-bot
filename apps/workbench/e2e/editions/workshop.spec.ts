@@ -25,7 +25,7 @@ test('the door starts open and a run opens in the Run Lab under /workshop/', asy
 	await expect(row).toBeVisible();
 	const runId = ((await row.getAttribute('data-testid')) ?? '').replace('run-row-', '');
 	await clientGoto(page, 'workshop', `/workshop/runs/${runId}`);
-	await expect(page.getByTestId('header-outcome')).toHaveText('SUCCESS');
+	await expect(page.getByTestId('header-outcome')).toContainText('SUCCESS');
 });
 
 test('the shelf sends the Playground box to its section, and the Playground route is not in this box', async ({

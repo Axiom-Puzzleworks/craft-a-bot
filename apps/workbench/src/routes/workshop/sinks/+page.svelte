@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { RunRecord } from '@craftabot/core';
+	import Lamp from '$lib/components/control-room/Lamp.svelte';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import { sinksStore } from '$lib/state/sinks.svelte.js';
 
@@ -156,6 +157,11 @@
 				</p>{/if}
 			{#if status}
 				<p class="hint mono" data-testid="sink-status-{sink.id}">
+					<Lamp
+						status={status.attached ? 'live' : status.failed > 0 ? 'fail' : 'pass'}
+						label={status.attached ? 'attached' : status.failed > 0 ? 'failing' : 'ok'}
+						testId="sink-lamp-{sink.id}"
+					/>
 					sent {status.sent} · failed {status.failed} · buffered {status.buffered}{status.lastError
 						? ` · ${status.lastError}`
 						: ''}

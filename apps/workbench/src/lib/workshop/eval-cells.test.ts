@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import type { AgentSpec, EngineEvent } from '@craftabot/core';
 import type { EvalCell } from '@craftabot/evals';
-import { SUCCESS_RAMP, rampStep, recordForCell, summaryAt } from './eval-cells.js';
+import { sequential } from '../control-room/dataviz.js';
+import { SUCCESS_RAMP, recordForCell, summaryAt } from './eval-cells.js';
+
+// The grid's ramp step is the grammar's (WP71): `rampStep` retired with its last caller.
+const rampStep = (rate: number) => sequential(rate, SUCCESS_RAMP);
 
 /**
  * The grid's colour ramp and the record assembly behind its drill-down.

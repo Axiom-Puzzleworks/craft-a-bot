@@ -1,6 +1,6 @@
 import type { AgentSpec, EngineEvent, RunRecord } from '@craftabot/core';
 import type { EvalCell, EvalSummary } from '@craftabot/evals';
-import { SEQUENTIAL_TEAL, sequential, type RampStep } from '$lib/control-room/dataviz.js';
+import { SEQUENTIAL_TEAL, type RampStep } from '$lib/control-room/dataviz.js';
 
 /**
  * **The Eval Matrix's two awkward jobs** (`17-…` §4.4), kept out of the
@@ -31,16 +31,6 @@ import { SEQUENTIAL_TEAL, sequential, type RampStep } from '$lib/control-room/da
  */
 export const SUCCESS_RAMP = SEQUENTIAL_TEAL;
 export type { RampStep };
-
-/**
- * Since WP57 (`44-CONTROL-ROOM.md` §4.3) the six steps above live in the
- * Control Room's grammar as `SEQUENTIAL_TEAL` — byte-identical — and this
- * is the grammar's `sequential` over them. The screen keeps calling it
- * until WP71 puts the grid on `Matrix`.
- */
-export function rampStep(rate: number): RampStep {
-	return sequential(rate, SEQUENTIAL_TEAL);
-}
 
 /** The square of the grid a summary belongs to. */
 export const squareKey = (goalCardId: string, brainId: string) => `${goalCardId} × ${brainId}`;

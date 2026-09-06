@@ -13,7 +13,8 @@
 	} from '@craftabot/evals';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import { persistRunSummary } from '$lib/state/run-summaries.js';
-	import { rampStep, recordForCell, summaryAt } from '$lib/workshop/eval-cells.js';
+	import Matrix from '$lib/components/control-room/Matrix.svelte';
+	import { recordForCell, summaryAt } from '$lib/workshop/eval-cells.js';
 
 	/**
 	 * **The Eval Matrix** (`17-…` §4.4), over WP19's harness.
@@ -199,50 +200,28 @@
 	</section>
 
 	{#if report}
+		{@const grid = report}
 		{@const brains = report.matrix.brains}
 		<section aria-label="Success rate">
 			<h2>Success rate</h2>
-			<table class="grid" data-testid="success-grid">
-				<thead>
-					<tr>
-						<th scope="col">Goal card</th>
-						{#each brains as brain (brain.id)}<th scope="col">{brain.id}</th>{/each}
-					</tr>
-				</thead>
-				<tbody>
-					{#each report.matrix.goalCardIds as card (card)}
-						<tr>
-							<th scope="row" class="mono">{short(card)}</th>
-							{#each brains as brain (brain.id)}
-								{@const summary = summaryAt(report.summaries, card, brain.id)}
-								<td class="cell">
-									{#if summary}
-										{@const step = rampStep(summary.successRate)}
-										<!--
-											The value is in the cell, always. Colour is the magnitude
-											encoding and the number is the fact — `04-…` §7, and the
-											reason every ramp step has a readable label colour.
-										-->
-										<button
-											type="button"
-											class="square"
-											style="--fill: {step.fill}; --label: {step.ink
-												? 'var(--cab-ink)'
-												: 'var(--cab-cream)'}"
-											data-testid="square-{short(card)}-{brain.id}"
-											onclick={() => (openSquare = { goalCardId: card, brainId: brain.id })}
-										>
-											{pct(summary.successRate)}
-										</button>
-									{:else}
-										<span class="none">—</span>
-									{/if}
-								</td>
-							{/each}
-						</tr>
-					{/each}
-				</tbody>
-			</table>
+			<!-- The grid on the grammar (WP71, `60-…` §4.1): the value in every cell, teal for magnitude, a click for the runs behind it. -->
+			<Matrix
+				corner="Goal card"
+				rows={grid.matrix.goalCardIds.map((card) => ({ id: short(card), label: short(card) }))}
+				cols={brains.map((brain) => ({ id: brain.id, label: brain.id }))}
+				cell={(rowId, colId) => {
+					const card = grid.matrix.goalCardIds.find((id) => short(id) === rowId);
+					const summary = card ? summaryAt(grid.summaries, card, colId) : undefined;
+					return summary
+						? { value: summary.successRate, label: pct(summary.successRate) }
+						: undefined;
+				}}
+				onCell={(rowId, colId) => {
+					const card = grid.matrix.goalCardIds.find((id) => short(id) === rowId);
+					if (card) openSquare = { goalCardId: card, brainId: colId };
+				}}
+				testId="success-grid"
+			/>
 			<p class="hint">Darker is more successful. Click a square for the runs behind it.</p>
 		</section>
 
@@ -471,28 +450,6 @@
 	.mono {
 		font-family: var(--cab-font-mono);
 		font-size: var(--cab-text-xs);
-	}
-
-	/* The grid's cells carry the fill; nothing else on the page does. */
-	.grid td {
-		padding: 2px;
-	}
-
-	.square {
-		width: 100%;
-		padding: var(--cab-space-2);
-		font-variant-numeric: tabular-nums;
-		font-weight: 600;
-		background: var(--fill);
-		color: var(--label);
-		border: 0;
-		/* A 2px surface gap between fills, so adjacent squares stay separate. */
-		outline: 2px solid var(--cab-cream);
-		outline-offset: -1px;
-	}
-
-	.none {
-		color: var(--cab-ink-muted);
 	}
 
 	.drill {

@@ -5,6 +5,11 @@
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import { ensureRunSummaries } from '$lib/state/run-summaries.js';
 	import { fleetRows, telemetryFrom, type Telemetry } from '$lib/workshop/fleet.js';
+	import { telemetrySeries } from '@craftabot/governance/reports';
+	import Lamp from '$lib/components/control-room/Lamp.svelte';
+	import Readout from '$lib/components/control-room/Readout.svelte';
+	import Strip from '$lib/components/control-room/Strip.svelte';
+	import Tape from '$lib/components/control-room/Tape.svelte';
 
 	/**
 	 * **The Bench Dashboard** (`17-…` §4.1): the fleet, and what it has been
@@ -29,6 +34,8 @@
 	let agents = $state<AgentRecord[]>([]);
 	let runs = $state<RunRecord[]>([]);
 	let saves = $state<Record<string, number>>({});
+	/** Runs per day over the stored runs — the dashboard's sparkline (WP71, `60-…` §4.1; `44-…` §8's deferred `Tape`). */
+	let perDay = $state<{ x: number; y: number }[]>([]);
 	/** The newest stored campaign reports, for the tiles (WP49, `26-…` §9). */
 	let reports = $state<StoredCampaignReport[]>([]);
 	let loaded = $state(false);
@@ -58,6 +65,10 @@
 		const tallies: Record<string, number> = {};
 		for (const [runId, summary] of summaries) tallies[runId] = summary.saves;
 		saves = tallies;
+		perDay = telemetrySeries(runs, summaries).map((bucket, index) => ({
+			x: index,
+			y: bucket.runs
+		}));
 		loaded = true;
 	}
 
@@ -72,36 +83,29 @@
 <main>
 	<h1>Bench</h1>
 
-	<section class="tiles" aria-label="Telemetry">
-		<div class="tile">
-			<span class="value" data-testid="tile-runs">{stats.runsThisWeek}</span>
-			<span class="label">runs this week</span>
-		</div>
-		<div class="tile">
-			<span class="value" data-testid="tile-success">{pct(stats.successRate)}</span>
-			<!--
-				The denominator is on the tile, and it is the denominator the rate
-				actually used — `finishedRuns`, not `runs`. They differ the moment
-				anything is still in progress, and showing the larger one would make
-				a weak claim look like a strong one.
-			-->
-			<span class="label">
-				success rate<em>
-					of {stats.finishedRuns} finished{stats.runs !== stats.finishedRuns
-						? ` (${stats.runs} total)`
-						: ''}</em
-				>
-			</span>
-		</div>
-		<div class="tile">
-			<span class="value" data-testid="tile-ticks">{round(stats.meanTicksToSuccess)}</span>
-			<span class="label">mean turns to success</span>
-		</div>
-		<div class="tile">
-			<span class="value scope" data-testid="tile-saves">{stats.guardrailSaves}</span>
-			<span class="label">guardrail saves</span>
-		</div>
-	</section>
+	<!-- The readouts on a strip (WP71, `60-…` §4.1): the same four numbers, on instruments; the denominator the rate used stays on its label. -->
+	<Strip label="Telemetry" testId="telemetry-strip">
+		<Readout label="runs this week" value={stats.runsThisWeek} testId="tile-runs" />
+		<Readout
+			label="success rate"
+			value={pct(stats.successRate)}
+			unit={`of ${stats.finishedRuns} finished${stats.runs !== stats.finishedRuns ? ` (${stats.runs} total)` : ''}`}
+			testId="tile-success"
+		/>
+		<Readout
+			label="mean turns to success"
+			value={round(stats.meanTicksToSuccess)}
+			testId="tile-ticks"
+		/>
+		<Readout label="guardrail saves" value={stats.guardrailSaves} testId="tile-saves" />
+		{#if perDay.length > 1}
+			<Tape
+				series={[{ id: 'runs', label: 'runs per day', lane: 'action', points: perDay }]}
+				compact
+				testId="runs-per-day"
+			/>
+		{/if}
+	</Strip>
 
 	<section aria-label="Campaigns">
 		<div class="head">
@@ -124,9 +128,13 @@
 						data-testid="campaign-tile-{report.id}"
 						data-passed={report.passed}
 					>
-						<span class="value"
-							>{report.passed ? '✅' : '❌'} {report.gatesPassed}/{report.gatesTotal}</span
-						>
+						<span class="value">
+							<Lamp
+								status={report.passed ? 'pass' : 'fail'}
+								label={`${report.gatesPassed}/${report.gatesTotal}`}
+								testId="campaign-tile-lamp-{report.id}"
+							/>
+						</span>
 						<span class="label">
 							{report.title}<em>{report.cells} cells · {when(report.createdAt)}</em>
 						</span>
@@ -266,11 +274,6 @@
 		font-weight: 700;
 		font-variant-numeric: tabular-nums;
 		line-height: 1;
-	}
-
-	/* Oscilloscope green, reserved for the number that means "working". */
-	.scope {
-		color: var(--cab-scope);
 	}
 
 	.label {

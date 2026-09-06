@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import Lamp from '$lib/components/control-room/Lamp.svelte';
+	import { statusOfOutcome } from '$lib/control-room/outcome.js';
 	import { resolve } from '$app/paths';
 	import type { RunRecord } from '@craftabot/core';
 	import { evaluateAssertion, type AssertionResult } from '@craftabot/evals';
@@ -173,7 +175,9 @@
 	{:else}
 		<section class="run-head" data-testid="bench-run-head">
 			<h2>{run.agentName}</h2>
-			<span class="chip" data-outcome={run.outcome}>{run.outcome}</span>
+			<span class="chip" data-outcome={run.outcome}
+				><Lamp status={statusOfOutcome(run.outcome)} label={run.outcome} /></span
+			>
 			<dl>
 				<div>
 					<dt>Card</dt>

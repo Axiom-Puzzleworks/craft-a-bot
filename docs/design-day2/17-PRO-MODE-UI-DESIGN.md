@@ -70,6 +70,8 @@ Header strip: outcome chip, cartridge + wire model, effective budgets (from the 
 ### 4.1 Bench Dashboard (home)
 Fleet table of bots (bricks fitted as colour-chip strip, last outcome, last run time) + telemetry stat tiles: runs this week, success rate, mean ticks-to-success, guardrail saves, spend estimate. Tiles are stat-tile-first (numbers, not charts) with 30-day sparklines where a trend exists. Quick actions: new bot, import kit/trace, open eval matrix.
 
+> **Amended 2026-09-06 (WP71, `60-CONTROL-ROOM-V2.md` §4.1).** The four tiles are `Readout`s on a `Strip`, with a compact `Tape` of runs per day beside them; a campaign tile carries a `Lamp` for its verdict. The fleet table is unchanged.
+
 ### 4.2 Spec Lab (`/spec/[agentId]`)
 
 > **Amended 2026-09-05 (WP57 stage C):** a **Boundary** section under the contract — the build's map from the registry and the spec alone, no run, so no edge lit and the egress mode "not yet named" (`44-…` §4.5).
@@ -78,6 +80,8 @@ Fleet table of bots (bricks fitted as colour-chip strip, last outcome, last run 
 
 > **Amended 2026-09-06 (WP64, `56-LIVE-COUNTERPARTS.md` §4.4).** Under the Safety stack, **Named stacks**: the Compliance Watchbot as a preset — the desk's own cards on the Safety Brick, a Monitor Judge per conduct evaluator, the Watchbot — written into the safety socket for a desk bot the way the autonomy dial writes into the Safety Brick, with the plan shown first (which cards, which judges) and the readback taken from the bricks. A bot in a room is told why it cannot have one.
 The bench, grown up: same baseplate/sockets on the left (drag still works — the toy interaction *is* good UX); right side replaces the toy panel with the **full schema-driven form** for the selected brick (every `14-…` §4 field incl. strategies, autonomy dial, reasoning effort) plus a **JSON editor** view of the whole `AgentSpec` with inline Zod diagnostics and version/migration info. Bottom: build-checks (same component), plus "contract view" — which brick kinds/packs/versions this spec requires (kit-file `requires` made visible).
+
+> **Amended 2026-09-06 (WP71, `60-…` §4.1).** The Run Lab's Boundary region is two columns: the map, and beside it the Explain panel (when asked for) and the Chain of the selected row; the inspector keeps the diff and the raw JSON. The header's outcome is a `Lamp`.
 
 ### 4.3 Run Browser (`/runs`)
 Filterable table (bot, card, outcome, cartridge, date, pinned) over the run store; multi-select → **Compare** (side-by-side Run Labs with synced tick scrubbing — the Multi-Pack "compare" promise, `06-…` §8, delivered here first); import a `.craftabot-trace.json` to inspect foreign runs (digest verification surfaced).
@@ -104,6 +108,8 @@ Configure a matrix — goal cards × cartridges × brick-config variants × seed
 >
 > **Three bugs this WP found by being run**, all recorded in the commits: the matrix froze the tab (every scripted await settles on the microtask queue, so `runMatrix` never yielded); every cell of a matrix carried the same `runId`, which made §4.4's "every number links to the runs behind it" false and would have spliced two cells' traces together; and the Bench Dashboard's success tile quoted a denominator the rate had not used.
 
+> **Amended 2026-09-06 (WP71, `60-…` §4.1).** The success grid is the Control Room's `Matrix`: the value in every cell, teal for magnitude, a click for the runs behind it (`success-grid-<card>-<brain>`); `rampStep` is retired.
+
 ### 4.5 Policy Studio (`/policies`) (mock-up tab 3)
 Author policy cards (`14-…` §4.6): a rule builder (hook → condition → disposition → reason) with the same card rendered in Kit style live (the toy face *is* the documentation); a **test bench**: run the card against (a) stored traces ("would this card have fired?") — instant, free, and the governance-forensics workflow in miniature — and (b) scripted adversarial runs (13 §L5 efficacy suite as a button). Library view: cards versioned, exportable, shareable; provenance shown.
 
@@ -122,6 +128,8 @@ Cross-run trends: success/loop/cost per card per cartridge over time, guardrail 
 
 > **Amended 2026-09-03 (WP49).** "Over time" is built: a daily series from the first stored run to the last (`telemetrySeries`, `37-…` §4.1) drawn as a table with single-hue bars, and a Drift list above it — each day with enough finished runs held against the pooled days before it, flagged when the guardrail trip mix moves by half or more (total-variation distance) or the loop rate by thirty points; the thresholds are stated beside a "no drift" verdict. Still no cost figure, for the reason `18-…` §7 item 28 gives.
 
+> **Amended 2026-09-06 (WP71, `60-…` §4.1).** The day axis on two `Tape`s — counts on one, rates and every domain series on the other, the drift flags on the series they flag — and the guardrail mix on a one-column `Matrix`; the flag list stays as text.
+
 ### 4.7 Test Bench (`/bench`)
 
 > **Added and built 2026-08-18 (WP27), retrofitted into this section rather than at the point of first mention in `14-…` §5.7's brick table** to avoid renumbering every existing cross-reference this doc's siblings carry to §4.1–§4.6 by ordinal.
@@ -134,6 +142,8 @@ Not in the original eight-screen IA (§2, as first written) — `14-…` §5.7 n
 
 Also not authored — an incident is derived, not logged by hand, the same discipline §4.7 already set for assertion cards. Every stored run carrying at least one event `timeline.ts`'s own `isFailure` already flags (a guardrail catch, a failed action, a denied approval, an error, or a run that never reached `SUCCESS`) appears as one incident, its findings tagged by a small OECD-taxonomy-shaped kind and quoted from the event's own payload — never invented text. A run with a clean trace is not an incident and does not appear; a fleet with runs but nothing wrong says so explicitly rather than showing an empty list indistinguishable from "nothing has loaded yet". Each incident links out to the full Run Lab, the same forensic depth every other Workshop screen defers to rather than duplicating.
 
+> **Amended 2026-09-06 (WP71, `60-…` §4.1).** An incident's outcome is a `Lamp` (SUCCESS passes, a stop is inconclusive, the rest fail), the outcome as its word.
+
 ### 4.9 Safety case (`/safety-case`)
 
 > **Added and built 2026-08-21 (WP34 stage C)**, retrofitted the same way §4.7 and §4.8 were: `19-…` #28 names the concept but neither §2's original IA nor `18-…` fixed it a route.
@@ -141,6 +151,8 @@ Also not authored — an incident is derived, not logged by hand, the same disci
 The one screen in this section that picks a **bot** rather than a run — every other question this app answers is "what happened here"; this one is "what is true of this build", which only means something held against one bot's whole history. Auto-assembled, never authored, in UK AISI's own three-argument shape (§6.6): **inability** compares the full irreversible-tier catalogue (every world action and tool carrying `riskTier: 'irreversible'`, `14-…` §4.5) against what `BotCapabilities` says this build actually reaches — what is not reached is a real inability claim, and what *is* reached is named too (`reach`), not hidden, since a safety case that only shows absence of danger is not honest; **control** is `capabilities.guardrailIds` verbatim, every rule this build's fitted bricks actually install; **trustworthiness** reuses §4.8's own `incidentsFrom`, scoped to this one bot's runs, alongside its success rate. No eval-matrix figure ships — nothing yet ties a stored eval run back to one bot, and a worksheet that invented that link would be worse than one that left it out.
 >
 > **Amended 2026-09-03 (WP49).** That link now exists and the worksheet quotes it (`37-…` §4.2): **Evaluation evidence** — every evaluator that has judged one of this bot's runs, with its verdicts counted as stored (`EvaluationRecord.runId` is the tie); **Campaign results** — every stored campaign report in which a build was this bot (`builds[].agentId`, written by `runCampaign` for a build made from a kit file), with the gates that applied to that build or to every build, and a gate scoped to another build left out. The campaigns page can add a shelf bot as a build directly. The egress rows arrived with WP41. No new mechanism anywhere: every input already existed (`BotCapabilities`, the world/tool catalogues' own `riskTier`, `incidentsFrom`), confirming the same "the open contract already had the hook" property WP32's own bricks found.
+
+> **Amended 2026-09-06 (WP71, `60-…` §4.1).** A campaign row's verdict and each of its gates are `Lamp`s.
 
 ### 4.10 Audit centre (`/export`)
 
@@ -166,3 +178,5 @@ Per `15-…` §5: the **bench instrument** skin — brushed panel greys, graph-p
 | D | Spec Lab; Policy Studio v1 (author + test-against-traces); Eval Matrix over the harness; Bench Dashboard |
 | E | Compare runs; fork-from-tick; group traces (multi-agent); telemetry v1 |
 | F | Audit centre: OTel-mapped export, agent cards, safety-case worksheet (`19-…` #20, #28–30) |
+
+> **Amended 2026-09-06 (WP71, `60-CONTROL-ROOM-V2.md` §4.1) — the Audit Centre, Compare, Evaluators, Sinks, Campaigns.** Every outcome and verdict chip is a `Lamp` with its word; Campaigns' gates carry a `Meter` where the gate is a rate, and the cohort comparison and the obligation table are `Matrix`es. §4.2 of `60-…` records the visual-regression pass over every Workshop route and §4.3 the axe audit over them, which found and fixed a focusable `<pre>` on the Spec Lab and the Policy Studio, a missing title on Scenarios, and the Studio's error colour and unlabelled condition controls.
