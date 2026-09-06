@@ -372,6 +372,8 @@ export const campaignCellSchema = z.object({
 	caseMetrics: z.record(z.string(), z.number()).default({}),
 	/** From `run.finished.truth.cohort`, when the world has one (WP61): attribute → value. */
 	cohort: z.record(z.string(), z.string()).optional(),
+	/** The cell's number in the campaign's own order (WP68, `57-…` §2 item 2): what a merge sorts by. Absent on a report written before, which was whole and in order. */
+	ordinal: z.number().int().nonnegative().optional(),
 	/** The seat across the desk in this cell (WP64): the tier, and for a live seat who sat there. Defaulted so every stored report parses. */
 	counterpart: z
 		.object({
@@ -430,6 +432,10 @@ export const campaignReportSchema = z.object({
 	passed: z.boolean(),
 	/** Which instrument this report is (WP64, `56-…` §4.2); absent on a report written before, which is a scripted one. */
 	counterpart: campaignCounterpartSchema.optional(),
+	/** A slice of the campaign (WP68, `57-…` §4.2): the `index`-th of `of`, its gates over its own cells; `craftabot merge` folds slices back. */
+	shard: z
+		.object({ index: z.number().int().positive(), of: z.number().int().positive() })
+		.optional(),
 	/** The readers' numbers (WP61, `50-…` §4.5), folded once from the cells; a v1 report gets it on read. */
 	summary: campaignSummarySchema.optional(),
 	budget: z.object({
@@ -542,6 +548,33 @@ export interface RunCampaignOptions {
 	credentials?: (id: string) => string | undefined;
 	/** The `fetch` a live hosted evaluator uses; `globalThis.fetch` when unset. */
 	fetch?: typeof globalThis.fetch;
+	/**
+	 * **The seam** (WP68, `57-HARNESS-AT-SCALE.md` §4.1): a host that wants
+	 * to run a cell elsewhere — a worker, another process — supplies this and
+	 * the runner still owns the cells, the budget, the gates and the report,
+	 * placing each result by its ordinal so the report reads the same
+	 * whatever the scheduling. Absent, the runner runs the cell itself.
+	 */
+	execute?: (cell: CampaignCellSpec, run: () => Promise<CellResult>) => Promise<CellResult>;
+	/** How many cells are in flight at once through `execute`; 1 by default. */
+	concurrency?: number;
+	/** Run only the `index`-th of `of` slices of the cells (1-based); the report says so. */
+	shard?: { index: number; of: number };
+}
+
+/** What running one cell yields (WP68): the scored cell, its trace when the host wants to keep it, and what it spent beyond tokens. */
+export interface CellResult {
+	cell: CampaignCell;
+	trace?: { events: EngineEvent[]; spec: AgentSpecV2 };
+	liveEvaluations?: number;
+}
+
+/** A campaign made ready to run (WP68): the resolved campaign, its cells, the registry and the noise — what a cell needs, wherever it runs. */
+export interface PreparedCampaign {
+	campaign: Campaign;
+	cells: CampaignCellSpec[];
+	registry: PackRegistry;
+	noise: NoiseRates;
 }
 
 /** The same stride the matrix uses (`runner.ts`), for the same reason: a cell's ids depend only on its position. */
@@ -582,25 +615,88 @@ function goalCardOf(scenario: CampaignScenario): string {
 	return scenario.goalCardId;
 }
 
+/** The campaign made ready (WP68, `57-…` §4.1): resolved against a registry built from the host's packs, its cells enumerated. */
+export function prepareCampaign(
+	unresolved: Campaign,
+	options: Pick<RunCampaignOptions, 'packs'> = {}
+): PreparedCampaign {
+	const registry = registryForScenario(options.packs);
+	const campaign = resolveCampaign(unresolved, registry);
+	return { campaign, cells: campaignCells(campaign), registry, noise: noiseFor(campaign.noise) };
+}
+
+/**
+ * One cell, run exactly as the runner runs it (WP68): what a host's worker
+ * calls. The trace is returned rather than handed to `onTrace`, so the
+ * caller — this process or another — decides who keeps it.
+ */
+export async function runCampaignCell(
+	spec: CampaignCellSpec,
+	prepared: PreparedCampaign,
+	options: RunCampaignOptions = {}
+): Promise<CellResult> {
+	const tally: SpendTally = { liveEvaluations: 0 };
+	let trace: CellResult['trace'];
+	const cell = await runCell(
+		spec,
+		prepared.campaign,
+		prepared.noise,
+		{
+			...options,
+			onTrace: (_cell, captured) => {
+				trace = { events: [...captured.events], spec: captured.spec };
+			}
+		},
+		prepared.registry,
+		tally
+	);
+	return { cell, ...(trace ? { trace } : {}), liveEvaluations: tally.liveEvaluations };
+}
+
+/** The cells of the `index`-th of `of` slices (WP68, `57-…` §4.2): by ordinal, so every slice is deterministic and they tile the whole. */
+export function shardCells(
+	cells: readonly CampaignCellSpec[],
+	shard: { index: number; of: number }
+): CampaignCellSpec[] {
+	if (shard.of < 1 || shard.index < 1 || shard.index > shard.of) {
+		throw new Error(`--shard wants i/n with 1 ≤ i ≤ n, got ${shard.index}/${shard.of}`);
+	}
+	return cells.filter((cell) => cell.ordinal % shard.of === shard.index - 1);
+}
+
 export async function runCampaign(
 	unresolved: Campaign,
 	options: RunCampaignOptions = {}
 ): Promise<CampaignReport> {
-	const registry = registryForScenario(options.packs);
-	const campaign = resolveCampaign(unresolved, registry);
-	const cells = campaignCells(campaign);
-	const noise = noiseFor(campaign.noise);
-	guardBudget(campaign, cells);
+	const prepared = prepareCampaign(unresolved, options);
+	const { campaign, registry, noise } = prepared;
+	const allCells = prepared.cells;
+	guardBudget(campaign, allCells);
+	const cells = options.shard ? shardCells(allCells, options.shard) : allCells;
 
-	const results: CampaignCell[] = [];
 	const tally: SpendTally = { liveEvaluations: 0 };
-	guardLiveEvaluations(campaign, cells.length, options, registry);
-	for (const spec of cells) {
-		const cell = await runCell(spec, campaign, noise, options, registry, tally);
-		results.push(cell);
-		options.onCell?.(cell, results.length, cells.length);
-		if (options.betweenCells) await options.betweenCells();
+	guardLiveEvaluations(campaign, allCells.length, options, registry);
+	const runHere = (spec: CampaignCellSpec) => runCampaignCell(spec, prepared, options);
+	const execute = options.execute ?? runHere;
+	// Placed by ordinal, whatever the scheduling (`57-…` §3): the report reads the same however it was made.
+	const placed = new Map<number, CampaignCell>();
+	let done = 0;
+	let next = 0;
+	const concurrency = Math.max(1, Math.floor(options.concurrency ?? 1));
+	async function lane(): Promise<void> {
+		while (next < cells.length) {
+			const spec = cells[next++] as CampaignCellSpec;
+			const result = await execute(spec, () => runHere(spec));
+			placed.set(spec.ordinal, result.cell);
+			tally.liveEvaluations += result.liveEvaluations ?? 0;
+			if (result.trace) options.onTrace?.(result.cell, result.trace);
+			done += 1;
+			options.onCell?.(result.cell, done, cells.length);
+			if (options.betweenCells) await options.betweenCells();
+		}
 	}
+	await Promise.all(Array.from({ length: Math.min(concurrency, cells.length) }, () => lane()));
+	const results = cells.map((spec) => placed.get(spec.ordinal) as CampaignCell);
 
 	const semantics = (evaluatorId: string): ConfusionLabelSemantics | undefined => {
 		const found = resolveEvaluator(registry, evaluatorId)?.labelSemantics;
@@ -630,6 +726,7 @@ export async function runCampaign(
 		gates,
 		passed: gates.every((gate) => gate.passed),
 		counterpart: campaign.counterpart ?? { tier: 'scripted' },
+		...(options.shard ? { shard: { ...options.shard } } : {}),
 		summary: summariseCampaign(results, { semantics }),
 		budget: {
 			// A live seat is a live cell whatever the agent's brain (WP64).
@@ -738,7 +835,8 @@ async function runCell(
 		brain: brain.id,
 		tier: brain.tier,
 		seed,
-		tags: scenario.tags
+		tags: scenario.tags,
+		ordinal: cell.ordinal
 	};
 	const empty = () => Object.fromEntries(campaign.assertionCards.map((card) => [card.id, false]));
 

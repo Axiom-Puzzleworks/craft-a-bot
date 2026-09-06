@@ -344,6 +344,11 @@
 				<span class="chip live" data-status={live.view.status} data-testid="live-chip"
 					>LIVE · {live.view.status}</span
 				>
+			{:else if run.outcome === 'IN_PROGRESS'}
+				<!-- Imported from a file sink while the harness was still writing (WP68, `57-…` §4.5). -->
+				<span class="chip" data-testid="run-in-progress"
+					>still going — re-import the sink file to catch up</span
+				>
 			{/if}
 			<dl>
 				<div>

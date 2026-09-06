@@ -86,6 +86,12 @@ jobs:
           --out campaign-out/fs-lending --junit campaign-out/fs-lending/junit.xml --sarif campaign-out/fs-lending/results.sarif
           --markdown campaign-out/fs-lending/scorecard.md
 
+      # WP68 (`57-HARNESS-AT-SCALE.md` §4.6): two thousand scripted cells through the worker pool, timed by the step.
+      - name: The scale check — 2,016 cells on four workers
+        run: >
+          npm run craftabot -- campaign --file campaigns/injection-baseline.json --seeds 1-63 --jobs 4
+          --no-keep-runs --strict --egress none --out campaign-out/scale
+
       - name: Upload the campaign report
         if: always()
         uses: actions/upload-artifact@v4

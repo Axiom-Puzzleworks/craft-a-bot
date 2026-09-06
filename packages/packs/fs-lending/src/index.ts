@@ -102,3 +102,10 @@ export {
 	supportNeedSkip,
 	type LendingPersonaId
 } from './personas.js';
+export {
+	LENDING_BASELINE_ID,
+	LENDING_GUARD_IDS,
+	MATCHED_PAIR_SCENARIO,
+	lendingBaseline,
+	type LendingBaselineOptions
+} from './campaign.js';
