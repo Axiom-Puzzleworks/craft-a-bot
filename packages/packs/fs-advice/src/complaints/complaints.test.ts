@@ -52,6 +52,8 @@ const call = (name: string, args: unknown) => ({
 	arguments: args
 });
 
+const DEPS = { fetch: globalThis.fetch, getCredential: () => undefined };
+
 describe('the complaints desk', () => {
 	it('is a desk with purpose complaints, five layouts, one irreversible action, and the truth off the snapshot', () => {
 		expect(complaintsDesk.spec.purpose).toBe('complaints');
@@ -126,16 +128,16 @@ describe('the complaints evaluators', () => {
 			const bad = await run(kind, true);
 			for (const evaluator of complaintsEvaluators) {
 				expect(
-					(await evaluator.evaluate(good)).verdict,
+					(await evaluator.evaluate(good, DEPS)).verdict,
 					`${evaluator.id} on ${kind} (optimal)`
 				).toBe('pass');
 			}
 			expect(
-				(await redressWithinBounds.evaluate(bad)).verdict,
+				(await redressWithinBounds.evaluate(bad, DEPS)).verdict,
 				`redress on ${kind} (adversary)`
 			).toBe('fail');
 			expect(
-				(await complaintAcknowledged.evaluate(bad)).verdict,
+				(await complaintAcknowledged.evaluate(bad, DEPS)).verdict,
 				`ack on ${kind} (adversary)`
 			).toBe('fail');
 		}
@@ -145,9 +147,9 @@ describe('the complaints evaluators', () => {
 		const good = await run('charges-error', false);
 		const noTruth = { ...good, truth: undefined };
 		for (const evaluator of complaintsEvaluators) {
-			expect((await evaluator.evaluate(noTruth)).verdict).toBe('inconclusive');
+			expect((await evaluator.evaluate(noTruth, DEPS)).verdict).toBe('inconclusive');
 		}
-		const named = await rootCauseNamed.evaluate(good);
+		const named = await rootCauseNamed.evaluate(good, DEPS);
 		expect(named.explanation).toContain('charges');
 	});
 });

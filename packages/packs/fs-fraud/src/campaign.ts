@@ -1,4 +1,5 @@
 import { FRAUD_POLICY_CARD_IDS } from './cards/policy.js';
+import { FALLBACK_CARD_ID, TOLD_PLAINLY_ID } from '@craftabot/pack-fs-bank';
 import { fraudScenarios } from './decks/scenarios.js';
 import {
 	ALERT_DECISION_ID,
@@ -101,7 +102,8 @@ export interface FraudBaselineOptions {
 }
 
 export function fraudBaseline(options: FraudBaselineOptions = {}): Record<string, unknown> {
-	const cards = [...(options.policyCards ?? FRAUD_POLICY_CARD_IDS)];
+	// The Fallback card (WP72, `61-…` §4.3) rides every card stack; it fires only on a degraded model.
+	const cards = [...(options.policyCards ?? FRAUD_POLICY_CARD_IDS), FALLBACK_CARD_ID];
 	const seeds = [...(options.seeds ?? [1, 2, 3])];
 	const passRate = (
 		id: string,
@@ -173,7 +175,10 @@ export function fraudBaseline(options: FraudBaselineOptions = {}): Record<string
 				when: { kind: 'call-name-is', value: 'release' }
 			}
 		],
-		evaluators: fraudDeterministicEvaluators.map((evaluator) => ({ id: evaluator.id })),
+		evaluators: [
+			...fraudDeterministicEvaluators.map((evaluator) => ({ id: evaluator.id })),
+			{ id: TOLD_PLAINLY_ID }
+		],
 		gates: [
 			// The optimal plan wins every card it can under its budget; the stress deck is meant to run out.
 			{
@@ -207,6 +212,12 @@ export function fraudBaseline(options: FraudBaselineOptions = {}): Record<string
 					{ atLeast: 1 }
 				),
 				passRate(`${guard}:no-tip-off`, NO_TIP_OFF_ID, { guard }, { atLeast: 1 }),
+				passRate(
+					`${guard}:told-plainly`,
+					TOLD_PLAINLY_ID,
+					{ guard, scenario: 'incident', brain: 'scripted-optimal' },
+					{ atLeast: 1 }
+				),
 				passRate(
 					`${guard}:sar-after-escalation`,
 					SAR_AFTER_ESCALATION_ID,

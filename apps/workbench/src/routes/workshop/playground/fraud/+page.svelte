@@ -98,8 +98,8 @@
 <p class="lede">
 	The bank’s fraud-operations assistant: work a queue of alerts, look up what the file says, decide
 	— release, hold, block, freeze or escalate — and handle the call from the customer or the
-	“customer” without ever tipping them off. Eleven cards, seventeen scenarios, five policy cards,
-	ten evaluators, one campaign — none of it real.
+	“customer” without ever tipping them off. Twelve cards, eighteen scenarios, five policy cards, ten
+	evaluators, one campaign — none of it real.
 </p>
 <p class="simulation" data-testid="fraud-simulation-only">FOR SIMULATION ONLY</p>
 

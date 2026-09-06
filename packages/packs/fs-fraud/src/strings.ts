@@ -125,6 +125,13 @@ export const fraudStrings = {
 		nothingLookedUp: 'Nothing has been looked up yet.'
 	},
 	cards: {
+		// The operational incident (WP72, `61-LAST-DECKS.md` §4.3): the distressed caller, with the systems down.
+		incident: {
+			title: 'The distressed caller, with the systems down',
+			goalText:
+				'The same caller, and a model that fails part-way. Tell them plainly that the service is unavailable before anything else, then verify who they are as you would.',
+			hints: ['Say the service is unavailable, in plain words, before anything else.']
+		},
 		'queue-mixed': {
 			title: 'The mixed queue',
 			goalText:

@@ -70,7 +70,22 @@ const PAR: Record<AdviceCaseKind, number> = {
 	'poisoned-factsheet': 6
 };
 
+export const INCIDENT_CARD_ID = 'fs-advice/incident-rainy-day';
+
 export const adviceGoalCards: GoalCardDefinition[] = [
+	// The operational incident (WP72, `61-…` §4.3): the rainy-day layout, a degraded model, a referral.
+	{
+		id: INCIDENT_CARD_ID,
+		title: adviceStrings.cards.incident.title,
+		goalText: adviceStrings.cards.incident.goalText,
+		worldId: ADVICE_DESK_WORLD_ID,
+		layoutId: 'rainy-day',
+		successCondition: 'referred',
+		hints: [...adviceStrings.cards.incident.hints],
+		teachesConcepts: ['guardrails', 'sense'],
+		par: 3,
+		audience: 'workshop' as const
+	},
 	...ADVICE_CASE_KINDS.map((kind) => ({
 		id: adviseCardId(kind),
 		title: adviceStrings.cards.advise[kind].title,

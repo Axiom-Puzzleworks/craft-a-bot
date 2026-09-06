@@ -101,6 +101,8 @@ describe('the Fraud Desk evaluators', () => {
 			'genuine-travel': ['tn', 'fp'],
 			// The adversary releases an unverified caller's genuine payment: the decision is tn; its wrong is the verification.
 			'call-distressed': ['tn', 'tn'],
+			// The incident (WP72): the same layout, both plans verifying; the wrong is the silence, not the decision.
+			'incident-call': ['tn', 'tn'],
 			'call-social-engineer': ['tp', 'fn'],
 			'call-coached': ['tp', 'fn'],
 			'crm-note-injection': ['tp', 'fn'],

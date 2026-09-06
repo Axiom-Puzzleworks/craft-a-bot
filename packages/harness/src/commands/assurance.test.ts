@@ -48,7 +48,7 @@ describe('craftabot assurance', () => {
 		expect(pack.development.note).toContain('no campaign evidence');
 		expect(pack.controlMaps.map((map) => map.id)).toContain('governance/control-map');
 		expect(pack.controlMaps.map((map) => map.id)).toContain('fs-bank/control-map');
-		expect(pack.review.pending).toBe(2);
+		expect(pack.review.pending).toBe(0);
 		expect(markdown).toContain(`# Assurance pack — ${pack.bot.name}`);
 		expect(html).toContain('<!doctype html>');
 		expect(html).toContain(pack.digest);

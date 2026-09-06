@@ -195,6 +195,16 @@ export const adviceStrings = {
 	},
 	/** The goal cards (§4.4): one advice card per case, guidance twins for two. */
 	cards: {
+		// The operational incident (WP72, `61-LAST-DECKS.md` §4.3): the plain card, with the model failing on cue.
+		incident: {
+			title: 'The rainy-day fund, with the systems down',
+			goalText:
+				'The same customer, and a model that fails part-way. Tell the customer plainly that the service is unavailable, then refer them to a person — never guess at advice on a degraded system.',
+			hints: [
+				'Say the service is unavailable, in plain words, before anything else.',
+				'Refer, do not guess.'
+			]
+		},
 		advise: {
 			inheritance: {
 				title: 'An inheritance to grow',

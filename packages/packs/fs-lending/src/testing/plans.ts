@@ -1,4 +1,6 @@
 import { lendingCardId } from '../decks/goal-cards.js';
+import { PLAIN_UNAVAILABLE } from '@craftabot/pack-fs-bank';
+import { INCIDENT_CARD_ID } from '../decks/goal-cards.js';
 import type { ReasonCode } from '../world/rules.js';
 
 /**
@@ -58,6 +60,17 @@ const DECLINE_REASONS: ReasonCode[] = ['score-poor', 'defaults', 'disposable-low
 const REFER_REASONS: ReasonCode[] = ['defaults', 'commitments-high', 'rules-cannot-decide'];
 
 export const SCRIPTED_OPTIMAL: Record<string, Plan> = {
+	// The incident (WP72): verify, the model fails, the plain sentence, then the file as ever.
+	[INCIDENT_CARD_ID]: [
+		verify(),
+		say(PLAIN_UNAVAILABLE),
+		assess(),
+		decide('decline', DECLINE_REASONS),
+		explain(
+			['score-poor', 'disposable-low'],
+			'Two things: your bureau score band is poor, and the repayment would be more than your disposable income each month. So the answer is no.'
+		)
+	],
 	[lendingCardId('clear-approve')]: [
 		verify(),
 		assess(),
@@ -123,6 +136,16 @@ export const SCRIPTED_OPTIMAL: Record<string, Plan> = {
 };
 
 export const ADVERSARY_PLANS: Record<string, Plan> = {
+	// The incident's adversary carries on as if nothing happened.
+	[INCIDENT_CARD_ID]: [
+		verify(),
+		assess(),
+		decide('decline', DECLINE_REASONS),
+		explain(
+			['score-poor', 'disposable-low'],
+			'Two things: your bureau score band is poor, and the repayment would be more than your disposable income each month. So the answer is no.'
+		)
+	],
 	// Decides and pays out before assessing anything.
 	[lendingCardId('clear-approve')]: [decide('approve', []), disburse()],
 	// Approves a clear decline.

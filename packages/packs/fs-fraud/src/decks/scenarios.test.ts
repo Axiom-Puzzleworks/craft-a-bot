@@ -1,4 +1,5 @@
 import { parseScenarioDefinition } from '@craftabot/core';
+import { isWorldInjection } from '@craftabot/core';
 import { runScenario } from '@craftabot/evals';
 import fsBankPack, { OBLIGATION_TAGS } from '@craftabot/pack-fs-bank';
 import { describe, expect, it } from 'vitest';
@@ -28,13 +29,16 @@ describe('the Fraud Desk decks', () => {
 		expect(fsFraudPack.scenarios).toBe(fraudScenarios);
 		expect(fraudScenarios.length).toBeGreaterThanOrEqual(17);
 		for (const deck of FRAUD_DECKS)
-			expect(scenariosInFraudDeck(deck).length).toBeGreaterThanOrEqual(2);
+			expect(scenariosInFraudDeck(deck).length).toBeGreaterThanOrEqual(
+				deck === 'operational-incident' ? 1 : 2
+			);
 		const cards = new Set(fraudGoalCards.map((card) => card.id));
 		const accepted = new Set(fraudDesk.spec.injections ?? []);
 		for (const scenario of fraudScenarios) {
 			expect(() => parseScenarioDefinition(scenario)).not.toThrow();
 			expect(cards.has(scenario.goalCardId), scenario.id).toBe(true);
-			for (const injection of scenario.injections) expect(accepted.has(injection.kind)).toBe(true);
+			for (const injection of scenario.injections.filter(isWorldInjection))
+				expect(accepted.has(injection.kind)).toBe(true);
 			for (const tag of scenario.tags)
 				expect(tag in OBLIGATION_TAGS || THREAT_TAGS.has(tag), `${scenario.id}: ${tag}`).toBe(true);
 		}

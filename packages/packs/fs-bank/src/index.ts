@@ -1,6 +1,7 @@
 import type { PackManifest } from '@craftabot/core';
 import { bankControlMap } from './controls/rows.js';
 import { bankServiceLines } from './lines/index.js';
+import { FALLBACK, toldPlainly } from './incident.js';
 
 /**
  * **`@craftabot/pack-fs-bank`** — the synthetic bank (WP59, `48-FS-BANK.md`;
@@ -21,6 +22,9 @@ const manifest: PackManifest = {
 	requiresPacks: { starter: '>=0.3.0' },
 	/** The nine lines (`48-…` §4.5); the registry synthesises their tools under `fs-bank/connector_<line>_<op>`. */
 	serviceLines: bankServiceLines,
+	// The operational incident's two pieces (WP72, `61-…` §4.3): one card and one evaluator every desk gates on.
+	policyCards: [FALLBACK],
+	evaluators: [toldPlainly],
 	/** The UK retail rows (WP67, `53-…` §4.1), every evidence id resolved by `checkControlMap`. */
 	controlMaps: [bankControlMap]
 };
@@ -74,3 +78,11 @@ export {
 	type ControlEvidenceKind,
 	type ControlMapRow
 } from './controls/rows.js';
+export {
+	FALLBACK,
+	FALLBACK_CARD_ID,
+	PLAIN_UNAVAILABLE,
+	PLAIN_WORDS_PATTERN,
+	TOLD_PLAINLY_ID,
+	toldPlainly
+} from './incident.js';

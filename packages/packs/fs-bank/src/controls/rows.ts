@@ -111,10 +111,22 @@ export const BANK_CONTROL_ROWS: readonly ControlMapRow[] = [
 		title: 'Complaints acknowledged, root-caused, redressed within bounds',
 		obligation:
 			'A complaint is logged, acknowledged, answered with a reason and redressed within the rules.',
-		// The complaints deck is WP72's (`53-…` §2 item 2): pending, never evidenced.
-		evidence: [],
-		status: 'pending',
-		note: 'Waits for WP72, the complaints deck, and its complaint-handled evaluator.',
+		// The complaints deck (WP72, `61-LAST-DECKS.md` §4.2): unreviewed until a compliance reader has read it.
+		evidence: [
+			{ kind: 'policy-card', id: 'fs-advice/policy/redress-needs-approval' },
+			{
+				kind: 'evaluator',
+				id: 'fs-advice/complaint-acknowledged',
+				note: 'by the deadline truth holds'
+			},
+			{ kind: 'evaluator', id: 'fs-advice/root-cause-named', note: 'against the truth’s finding' },
+			{
+				kind: 'evaluator',
+				id: 'fs-advice/redress-within-bounds',
+				note: 'within the truth’s fair range, or none'
+			}
+		],
+		status: 'unreviewed',
 		tags: ['fca:disp:complaints']
 	},
 	{
@@ -186,10 +198,16 @@ export const BANK_CONTROL_ROWS: readonly ControlMapRow[] = [
 		title: 'Degraded service handled safely and told plainly',
 		obligation:
 			'When the model degrades the customer is told in plain words rather than given a wrong answer.',
-		// The operational-incident deck and the fallback card are WP72's: pending, never evidenced.
-		evidence: [],
-		status: 'pending',
-		note: 'Waits for WP72, the operational-incident deck, and its fallback card.',
+		// The operational incident (WP72, `61-LAST-DECKS.md` §4.3): unreviewed until a compliance reader has read it.
+		evidence: [
+			{ kind: 'policy-card', id: 'fs-bank/policy/fallback' },
+			{
+				kind: 'evaluator',
+				id: 'fs-bank/told-plainly',
+				note: 'the plain sentence first, after a failure'
+			}
+		],
+		status: 'unreviewed',
 		tags: ['pra:ss1-21:resilience']
 	}
 ];

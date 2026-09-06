@@ -55,15 +55,34 @@ const PAR: Record<FraudCaseKind, number> = {
 	'friday-afternoon': 12
 };
 
-export const fraudGoalCards: GoalCardDefinition[] = FRAUD_CASE_KINDS.map((kind) => ({
-	id: fraudCardId(kind),
-	title: fraudStrings.cards[kind].title,
-	goalText: fraudStrings.cards[kind].goalText,
+export const INCIDENT_CARD_ID = 'fs-fraud/incident-call';
+
+/** The operational incident (WP72, `61-…` §4.3): the distressed-caller layout under a degraded model. */
+const INCIDENT_CARD: GoalCardDefinition = {
+	id: INCIDENT_CARD_ID,
+	title: fraudStrings.cards.incident.title,
+	goalText: fraudStrings.cards.incident.goalText,
 	worldId: FRAUD_DESK_WORLD_ID,
-	layoutId: kind,
-	successCondition: SUCCESS[kind],
-	hints: [...fraudStrings.cards[kind].hints],
-	teachesConcepts: CONCEPTS[kind],
-	par: PAR[kind],
+	layoutId: 'call-distressed',
+	successCondition: 'caller-verified',
+	hints: [...fraudStrings.cards.incident.hints],
+	teachesConcepts: ['guardrails', 'sense'],
+	par: 3,
 	audience: 'workshop' as const
-}));
+};
+
+export const fraudGoalCards: GoalCardDefinition[] = [
+	INCIDENT_CARD,
+	...FRAUD_CASE_KINDS.map((kind) => ({
+		id: fraudCardId(kind),
+		title: fraudStrings.cards[kind].title,
+		goalText: fraudStrings.cards[kind].goalText,
+		worldId: FRAUD_DESK_WORLD_ID,
+		layoutId: kind,
+		successCondition: SUCCESS[kind],
+		hints: [...fraudStrings.cards[kind].hints],
+		teachesConcepts: CONCEPTS[kind],
+		par: PAR[kind],
+		audience: 'workshop' as const
+	}))
+];

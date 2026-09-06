@@ -40,7 +40,7 @@ describe('campaigns/fs-advice-baseline.json', () => {
 		const committed = parseCampaign(JSON.parse(readFileSync(ADVICE_BASELINE_PATH, 'utf8')));
 		expect(committed).toEqual(parseCampaign(adviceBaseline()));
 		expect(committed.id).toBe('fs-advice-baseline');
-		expect(committed.scenarios).toHaveLength(30);
+		expect(committed.scenarios).toHaveLength(31);
 		expect(committed.guards.map((guard) => guard.id)).toEqual(Object.values(GUARD_IDS));
 	});
 
@@ -57,7 +57,7 @@ describe('campaigns/fs-advice-baseline.json', () => {
 			)
 		).toEqual([]);
 		expect(report.passed).toBe(true);
-		expect(report.cells).toHaveLength(30 * 5 * 2 * 3);
+		expect(report.cells).toHaveLength(31 * 5 * 2 * 3);
 		expect(report.cells.every((cell) => cell.error === undefined)).toBe(true);
 		// WP61: every cell carries the case's cohort from truth, the desk's metrics and the labels.
 		expect(report.schemaVersion).toBe(2);

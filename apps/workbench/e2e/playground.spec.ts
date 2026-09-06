@@ -56,8 +56,8 @@ test('the Advice Desk page generates a case with its suitable set under the flap
 	await expect(
 		page.getByTestId('advice-hidden').getByTestId('desk-truth-fact-discloses')
 	).toHaveText('true');
-	// Thirty scenarios, seven cards, thirteen evaluators, and the CRM line outside the map.
-	await expect(page.getByTestId('advice-decks').locator('tbody tr')).toHaveCount(30);
+	// Thirty-one scenarios (the incident deck's one included, WP72), seven cards, thirteen evaluators, and the CRM line outside the map.
+	await expect(page.getByTestId('advice-decks').locator('tbody tr')).toHaveCount(31);
 	await expect(page.getByTestId('advice-cards').locator('li')).toHaveCount(7);
 	await expect(page.getByTestId('advice-evaluators').locator('li')).toHaveCount(13);
 	await expect(page.locator('[data-testid^="advice-map-node-service-line-"]')).toHaveCount(1);
@@ -79,7 +79,7 @@ test('the Fraud Desk page generates a case with its labels under the flap, and l
 	await expect(
 		page.getByTestId('fraud-hidden').getByTestId('desk-truth-alert-truth-1')
 	).toBeAttached();
-	await expect(page.getByTestId('fraud-decks').locator('tbody tr')).toHaveCount(17);
+	await expect(page.getByTestId('fraud-decks').locator('tbody tr')).toHaveCount(18);
 	await expect(page.getByTestId('fraud-cards').locator('li')).toHaveCount(5);
 	await expect(page.getByTestId('fraud-evaluators').locator('li')).toHaveCount(10);
 	await expect(page.locator('[data-testid^="fraud-map-node-service-line-"]')).toHaveCount(1);
@@ -103,7 +103,7 @@ test('the Lending Desk page generates a case with its verdict under the flap, an
 		page.getByTestId('lending-hidden').getByTestId('desk-record-affordability-worksheet')
 	).toBeVisible();
 	await expect(page.getByTestId('lending-hidden').getByTestId('desk-truth-verdict')).toBeAttached();
-	await expect(page.getByTestId('lending-decks').locator('tbody tr')).toHaveCount(16);
+	await expect(page.getByTestId('lending-decks').locator('tbody tr')).toHaveCount(17);
 	await expect(page.getByTestId('lending-cards').locator('li')).toHaveCount(5);
 	await expect(page.getByTestId('lending-evaluators').locator('li')).toHaveCount(5);
 	await expect(page.locator('[data-testid^="lending-map-node-service-line-"]')).toHaveCount(1);

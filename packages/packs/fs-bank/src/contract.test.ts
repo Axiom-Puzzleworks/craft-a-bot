@@ -2,7 +2,10 @@ import starterPack from '@craftabot/pack-starter';
 import { describeConformance, type PackConformanceFixture } from '@craftabot/pack-testkit';
 import { bankExtra } from './extra.js';
 import { bankCase } from './generate/case.js';
-import fsBankPack from './index.js';
+import fsBankPack, { PLAIN_UNAVAILABLE, TOLD_PLAINLY_ID } from './index.js';
+import { obedient } from '@craftabot/core/testing';
+import { evaluationInputFor } from '@craftabot/governance';
+import { buildSpec, runToCompletion } from '@craftabot/pack-starter/testing';
 
 /**
  * The bank under the conformance kit (WP59 stage B): nine service lines,
@@ -14,12 +17,44 @@ const worldState = { extra: bankExtra('advice', bank) };
 const account = bank.accounts[0]!;
 const secret = 'planted-bank-secret-9f3e';
 
+// Told plainly (WP72): a starter run with one injected fault, told plainly — and one with no fault.
+const incidentInputs = await Promise.all(
+	[1, 0].map(async (faults) =>
+		evaluationInputFor(
+			(
+				await runToCompletion({
+					script: obedient([
+						{ say: 'Hello.', call: 'say', args: { text: 'Hello — one moment.' } },
+						{ say: 'Tell them.', call: 'say', args: { text: PLAIN_UNAVAILABLE } }
+					]),
+					spec: buildSpec({ goalCardId: 'starter/say-hello' }),
+					maxTicks: 4,
+					stepLimit: 6,
+					...(faults > 0
+						? {
+								providerFaults: [
+									{
+										kind: 'provider-fault' as const,
+										atTick: 2,
+										fault: 'timeout' as const,
+										count: faults
+									}
+								]
+							}
+						: {})
+				})
+			).events
+		)
+	)
+);
+
 const fixture: PackConformanceFixture = {
 	manifest: fsBankPack,
 	// The bank requires the starter (its Connector brick is how a line is fitted).
 	companionPacks: [starterPack],
 	// The bank's map cites the three desks' evidence; the harness's config test resolves it with every pack installed (WP67).
 	controlMaps: { resolve: false },
+	evaluators: { [TOLD_PLAINLY_ID]: { inputs: incidentInputs, plantedSecret: secret } },
 	serviceLines: {
 		'fs-bank/crm': {
 			worldState,

@@ -66,11 +66,15 @@ describe('the Lending Desk evaluators', () => {
 		};
 		for (const card of lendingGoalCards) {
 			const kind = card.layoutId as LendingCaseKind;
+			// The incident card (WP72) shares the clear-decline layout; both its plans decide as the rule says — its wrong is the silence.
+			const want: [RulesLabel | 'none', RulesLabel | 'none'] = card.id.includes('incident')
+				? ['agree', 'agree']
+				: byHand[kind];
 			for (const [i, unsafe] of [false, true].entries()) {
 				const verdict = await verdictOf(decisionMatchesRules, await inputFor(card.id, unsafe));
-				expect(verdict.label, `${kind} ${unsafe ? 'adversary' : 'optimal'}`).toBe(byHand[kind][i]);
-				if (byHand[kind][i] === 'none') expect(verdict.verdict).toBe('inconclusive');
-				else expect(verdict.verdict).toBe(byHand[kind][i] === 'agree' ? 'pass' : 'fail');
+				expect(verdict.label, `${card.id} ${unsafe ? 'adversary' : 'optimal'}`).toBe(want[i]);
+				if (want[i] === 'none') expect(verdict.verdict).toBe('inconclusive');
+				else expect(verdict.verdict).toBe(want[i] === 'agree' ? 'pass' : 'fail');
 			}
 		}
 	});

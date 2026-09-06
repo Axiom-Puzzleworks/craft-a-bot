@@ -31,9 +31,9 @@ test('files a built bot’s evidence, says what is not there yet, and the HTML r
 	await expect(page.getByTestId('assurance-governance')).toContainText(
 		'not recorded in this build (WP65)'
 	);
-	// Every registered map is filed: the generic one, the bank's, the three desks'.
+	// Every registered map is filed: the generic one, the bank's, the three desks'. Nothing is pending since WP72.
 	await expect(page.getByTestId('assurance-control-table').locator('tbody tr')).not.toHaveCount(0);
-	await expect(page.getByTestId('assurance-pending-value')).toHaveText('2');
+	await expect(page.getByTestId('assurance-pending-value')).toHaveText('0');
 
 	const { violations } = await new AxeBuilder({ page }).withTags(STANDARD).analyze();
 	expect(violations.map((v) => `${v.id}: ${v.help}`).join('\n')).toBe('');

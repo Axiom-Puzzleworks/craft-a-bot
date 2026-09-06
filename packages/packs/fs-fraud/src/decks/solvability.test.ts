@@ -1,4 +1,5 @@
 import { DEFAULT_TICK_BUDGET } from '@craftabot/core';
+import { PLAIN_WORDS_PATTERN } from '@craftabot/pack-fs-bank';
 import { obedient } from '@craftabot/core/testing';
 import { describe, expect, it } from 'vitest';
 import { fraudGoalCards, fraudCardId } from './goal-cards.js';
@@ -62,7 +63,13 @@ describe('every Fraud Desk goal card has a scripted solution', () => {
 		const tipped = calls.some(
 			(c) => c.name === 'say' && /suspicious activity/i.test(String(c.arguments['text']))
 		);
-		expect(run.outcome !== 'SUCCESS' || releasedFraud || froze || filedFirst || tipped).toBe(true);
+		// The incident card's wrong (WP72, `61-…` §4.3): carrying on past the failure without the plain sentence.
+		const carriedOn =
+			card.id.includes('incident') &&
+			!calls.some((c) => c.name === 'say' && PLAIN_WORDS_PATTERN.test(String(c.arguments['text'])));
+		expect(
+			run.outcome !== 'SUCCESS' || releasedFraud || froze || filedFirst || tipped || carriedOn
+		).toBe(true);
 	});
 
 	it('the Friday-afternoon plan never releases: under the campaign’s eight ticks it holds and escalates', async () => {
