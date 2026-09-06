@@ -201,7 +201,7 @@ describe('the Advice Desk (WP60 stage A)', () => {
 		}
 	);
 
-	it('ships no runtime: no createDeskWorld call but the one, and no observe/perform/inject/forAgent', () => {
+	it('ships no runtime: no createDeskWorld call but the two desks’, and no observe/perform/inject/forAgent', () => {
 		const files: string[] = [];
 		const walk = (dir: string) => {
 			for (const name of readdirSync(dir)) {
@@ -221,6 +221,7 @@ describe('the Advice Desk (WP60 stage A)', () => {
 		expect(offenders).toEqual([]);
 		expect(
 			files.filter((file) => readFileSync(file, 'utf8').includes('createDeskWorld('))
-		).toHaveLength(1);
+			// The Advice Desk and, since WP72, the complaints desk (`61-…` §4.2).
+		).toHaveLength(2);
 	});
 });

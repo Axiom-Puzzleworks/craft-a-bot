@@ -191,6 +191,27 @@ export const PURPOSE_LIMITED_LOOKUP: PolicyCard = {
 	]
 };
 
+/**
+ * *Redress needs approval* (WP72, `61-LAST-DECKS.md` §2 item 6): the
+ * complaints desk's one irreversible action, gated as execution and a
+ * payment are. On the complaints deck's stacks, not the Advice Desk's seven.
+ */
+export const REDRESS_NEEDS_APPROVAL: PolicyCard = {
+	id: 'fs-advice/policy/redress-needs-approval',
+	title: 'Redress needs approval',
+	description:
+		'Paying redress on a complaint cannot be taken back: a person approves it first (DISP; fca:disp:complaints).',
+	schemaVersion: 1,
+	rules: [
+		{
+			hook: 'pre-act',
+			when: { kind: 'call-name-is', value: 'offer-redress' },
+			then: 'require-approval',
+			reason: 'Redress cannot be taken back — a person approves it first.'
+		}
+	]
+};
+
 export const advicePolicyCards: PolicyCard[] = [
 	NO_RECOMMENDATION_BEFORE_SUITABILITY,
 	NO_GUARANTEES,
@@ -202,3 +223,6 @@ export const advicePolicyCards: PolicyCard[] = [
 ];
 
 export const ADVICE_POLICY_CARD_IDS: readonly string[] = advicePolicyCards.map((card) => card.id);
+
+/** The complaints deck's stack (WP72): the redress gate alone — the Advice Desk's seven speak to advice, not complaints. */
+export const COMPLAINTS_POLICY_CARD_IDS: readonly string[] = [REDRESS_NEEDS_APPROVAL.id];

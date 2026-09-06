@@ -14,6 +14,7 @@ import fsBankPack from '@craftabot/pack-fs-bank';
 import starterPack from '@craftabot/pack-starter';
 import fsAdvicePack from '../index.js';
 import { adviceDesk } from '../world/desk.js';
+import { complaintsDesk } from '../complaints/desk.js';
 
 /**
  * The Advice Desk's headless harness, the Workshop pack's precedent
@@ -52,6 +53,13 @@ export function buildRegistry(): PackRegistry {
 /** Every sense and action the desk has, qualified — what a bot on any Advice Desk card is fitted with. */
 export const ADVICE_SENSES: readonly string[] = adviceDesk.senses.map((sense) => sense.id);
 export const ADVICE_ACTIONS: readonly string[] = adviceDesk.actions.map((action) => action.id);
+export const COMPLAINTS_SENSES: readonly string[] = complaintsDesk.senses.map((sense) => sense.id);
+export const COMPLAINTS_ACTIONS: readonly string[] = complaintsDesk.actions.map(
+	(action) => action.id
+);
+/** A complaints card sits on the complaints desk (WP72): its senses and actions are that desk's. */
+const onComplaintsDesk = (goalCardId: string | undefined): boolean =>
+	goalCardId !== undefined && goalCardId.startsWith('fs-advice/complaint-');
 
 export interface SpecOverrides {
 	goalCardId?: string;
@@ -77,8 +85,16 @@ export function buildSpec(overrides: SpecOverrides = {}): AgentSpec {
 				maxTokens: 256,
 				personality: 'You are the bank’s assistant.'
 			},
-			sense: { channels: overrides.senses ?? [...ADVICE_SENSES] },
-			actions: { enabled: overrides.actions ?? [...ADVICE_ACTIONS] },
+			sense: {
+				channels:
+					overrides.senses ??
+					(onComplaintsDesk(overrides.goalCardId) ? [...COMPLAINTS_SENSES] : [...ADVICE_SENSES])
+			},
+			actions: {
+				enabled:
+					overrides.actions ??
+					(onComplaintsDesk(overrides.goalCardId) ? [...COMPLAINTS_ACTIONS] : [...ADVICE_ACTIONS])
+			},
 			memory: { windowSize: 10, notebook: true }
 		},
 		goalCardId: overrides.goalCardId ?? 'fs-advice/advise-inheritance',

@@ -108,3 +108,21 @@ test('the Lending Desk page generates a case with its verdict under the flap, an
 	await expect(page.getByTestId('lending-evaluators').locator('li')).toHaveCount(5);
 	await expect(page.locator('[data-testid^="lending-map-node-service-line-"]')).toHaveCount(1);
 });
+
+// WP72 (`61-LAST-DECKS.md` §5): the complaints desk beside the three, a case from a seed with the finding under the flap.
+test('the Complaints Desk generates a case with its bounds, and lists its deck', async ({
+	page
+}) => {
+	await page.goto('/settings');
+	await page.getByLabel('Show the Workshop').click();
+	await page.goto('/workshop/playground');
+	await page.getByTestId('playground-complaints-link').click();
+	await expect(page.getByTestId('complaints-simulation-only')).toBeVisible();
+	await page.getByTestId('complaints-layout').selectOption('unfounded');
+	await page.getByTestId('complaints-generate').click();
+	await expect(page.getByTestId('complaints-bounds')).toContainText('£0–£0');
+	await expect(page.getByTestId('complaints-ack-by')).toContainText('turn 2');
+	await expect(page.getByTestId('complaints-case')).toBeVisible();
+	await expect(page.getByTestId('complaints-deck').locator('tbody tr')).toHaveCount(7);
+	await expect(page.getByTestId('complaints-evaluators').locator('li')).toHaveCount(3);
+});

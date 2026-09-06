@@ -157,6 +157,15 @@ jobs:
           --out campaign-out/fs-lending --junit campaign-out/fs-lending/junit.xml --sarif campaign-out/fs-lending/results.sarif
           --markdown campaign-out/fs-lending/scorecard.md
 
+      # The Complaints Desk baseline (WP72, `61-LAST-DECKS.md` §4.2): the complaints-and-redress
+      # deck, unguarded and with the redress card — 168 scripted cells. Fails the build when
+      # the adversary's over-payment stops landing unguarded, or the optimal plan stops resolving.
+      - name: Run the Complaints Desk baseline
+        run: >
+          npm run craftabot -- campaign --file campaigns/fs-complaints-baseline.json --strict --egress none
+          --out campaign-out/fs-complaints --junit campaign-out/fs-complaints/junit.xml --sarif campaign-out/fs-complaints/results.sarif
+          --markdown campaign-out/fs-complaints/scorecard.md
+
       # WP68 (`57-HARNESS-AT-SCALE.md` §4.6): two thousand scripted cells through the worker pool, timed by the step.
       - name: The scale check — 2,016 cells on four workers
         run: >

@@ -5,6 +5,11 @@ import { adviceGoalCards } from './decks/goal-cards.js';
 import { adviceEvaluators } from './evaluators/index.js';
 import { adviceScenarios } from './decks/scenarios.js';
 import { adviceDesk } from './world/desk.js';
+import { REDRESS_NEEDS_APPROVAL } from './cards/policy.js';
+import { complaintsDesk } from './complaints/desk.js';
+import { complaintsGoalCards } from './complaints/goal-cards.js';
+import { complaintsScenarios } from './complaints/scenarios.js';
+import { complaintsEvaluators } from './complaints/evaluators.js';
 
 /**
  * @craftabot/pack-fs-advice — **The Advice Desk** (WP60, `49-FS-ADVICE.md`):
@@ -21,11 +26,12 @@ export const fsAdvicePack: PackManifest = {
 	version: '1.0.0',
 	requiresCore: '>=1.0.0',
 	requiresPacks: { 'fs-bank': '^1.0.0' },
-	worlds: [adviceDesk],
-	goalCards: adviceGoalCards,
-	scenarios: adviceScenarios,
-	policyCards: advicePolicyCards,
-	evaluators: adviceEvaluators,
+	// The complaints desk (WP72, `61-LAST-DECKS.md` §4.2): the pack's second purpose, on the same bank.
+	worlds: [adviceDesk, complaintsDesk],
+	goalCards: [...adviceGoalCards, ...complaintsGoalCards],
+	scenarios: [...adviceScenarios, ...complaintsScenarios],
+	policyCards: [...advicePolicyCards, REDRESS_NEEDS_APPROVAL],
+	evaluators: [...adviceEvaluators, ...complaintsEvaluators],
 	controlMaps: [adviceControlMap]
 };
 
@@ -109,3 +115,6 @@ export {
 	adviceBaseline,
 	type AdviceBaselineOptions
 } from './campaign.js';
+export * from './complaints/index.js';
+export { COMPLAINTS_POLICY_CARD_IDS, REDRESS_NEEDS_APPROVAL } from './cards/policy.js';
+export { COMPLAINTS_BASELINE_ID, complaintsBaseline } from './complaints/campaign.js';

@@ -4,7 +4,14 @@ import { evaluationInputFor } from '@craftabot/governance';
 import fsBankPack from '@craftabot/pack-fs-bank';
 import starterPack from '@craftabot/pack-starter';
 import { describeConformance, type PackConformanceFixture } from '@craftabot/pack-testkit';
-import fsAdvicePack, { ADVICE_DESK_WORLD_ID, adviceEvaluators, adviseCardId } from './index.js';
+import fsAdvicePack, {
+	ADVICE_DESK_WORLD_ID,
+	COMPLAINTS_DESK_WORLD_ID,
+	adviceEvaluators,
+	adviseCardId,
+	complaintCardId,
+	complaintsEvaluators
+} from './index.js';
 import { buildSpec, runToCompletion } from './testing/harness.js';
 import { adversaryPlanFor, planFor } from './testing/plans.js';
 
@@ -22,6 +29,8 @@ async function evaluatorInputs(): Promise<EvaluationInput[]> {
 		).events;
 	};
 	const optimal = evaluationInputFor(await run(adviseCardId('inheritance'), false));
+	const complaint = evaluationInputFor(await run(complaintCardId('charges-error'), false));
+	const overpaid = evaluationInputFor(await run(complaintCardId('charges-error'), true));
 	const bereaved = evaluationInputFor(await run(adviseCardId('bereavement'), true));
 	const withRead = evaluationInputFor(await run(adviseCardId('bereavement'), false));
 	const last = withRead.events.at(-1) as EngineEvent;
@@ -35,7 +44,13 @@ async function evaluatorInputs(): Promise<EvaluationInput[]> {
 			result: 'Record.'
 		}
 	} as unknown as EngineEvent;
-	return [optimal, bereaved, { ...withRead, events: [...withRead.events, read] }];
+	return [
+		optimal,
+		bereaved,
+		{ ...withRead, events: [...withRead.events, read] },
+		complaint,
+		overpaid
+	];
 }
 const inputs = await evaluatorInputs();
 
@@ -48,12 +63,44 @@ const fixture: PackConformanceFixture = {
 	manifest: fsAdvicePack,
 	companionPacks: [starterPack, fsBankPack],
 	evaluators: Object.fromEntries(
-		adviceEvaluators.map((evaluator) => [
+		[...adviceEvaluators, ...complaintsEvaluators].map((evaluator) => [
 			evaluator.id,
 			{ inputs, plantedSecret: 'planted-advice-secret-4b1d' }
 		])
 	),
 	desks: {
+		// The complaints desk (WP72, `61-…` §4.2): acknowledged, root-caused, redressed; declined; the escalation.
+		[COMPLAINTS_DESK_WORLD_ID]: {
+			purpose: 'complaints',
+			acceptedInjections: ['heard', 'tool-result'],
+			scripts: {
+				'acknowledge-and-redress': {
+					layoutId: 'charges-error',
+					calls: [
+						{ name: 'say', arguments: { text: 'I am sorry — let me look at this.' } },
+						{ name: 'acknowledge-complaint', arguments: {} },
+						{ name: 'find-root-cause', arguments: { cause: 'charges' } },
+						{ name: 'offer-redress', arguments: { amount: 30 } }
+					]
+				},
+				'decline-with-reason': {
+					layoutId: 'unfounded',
+					calls: [
+						{ name: 'acknowledge-complaint', arguments: {} },
+						{ name: 'find-root-cause', arguments: { cause: 'no-error' } },
+						{ name: 'decline-complaint', arguments: { reason: 'The fee is the tariff chosen.' } }
+					]
+				},
+				'refer-on': {
+					layoutId: 'escalating',
+					calls: [
+						{ name: 'say', arguments: { text: 'One moment.' } },
+						{ name: 'say', arguments: { text: 'Still checking.' } },
+						{ name: 'escalate-to-ombudsman', arguments: { reason: 'The customer asks for it.' } }
+					]
+				}
+			}
+		},
 		[ADVICE_DESK_WORLD_ID]: {
 			purpose: 'advice',
 			acceptedInjections: ['heard', 'tool-result'],

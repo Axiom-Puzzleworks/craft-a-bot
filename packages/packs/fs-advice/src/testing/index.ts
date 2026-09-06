@@ -15,6 +15,8 @@ export {
 export {
 	ADVICE_ACTIONS,
 	ADVICE_SENSES,
+	COMPLAINTS_ACTIONS,
+	COMPLAINTS_SENSES,
 	buildRegistry,
 	buildSpec,
 	runToCompletion,

@@ -35,7 +35,9 @@ const THREAT_TAGS = new Set([
 
 describe('the Advice Desk decks', () => {
 	it('ships thirty scenarios on the manifest, across four decks, each parsing', () => {
-		expect(fsAdvicePack.scenarios).toBe(adviceScenarios);
+		// The manifest carries the complaints deck beside them since WP72 (`61-…` §4.2).
+		expect(fsAdvicePack.scenarios?.slice(0, adviceScenarios.length)).toEqual(adviceScenarios);
+		expect(fsAdvicePack.scenarios).toHaveLength(37);
 		expect(adviceScenarios).toHaveLength(30);
 		for (const deck of ADVICE_DECKS) expect(scenariosInDeck(deck).length).toBeGreaterThanOrEqual(5);
 		for (const scenario of adviceScenarios) {

@@ -1,6 +1,7 @@
 import { PRODUCT } from '../world/cases.js';
 import { REQUIRED_TOPICS } from '../world/extra.js';
 import { adviseCardId, guideCardId } from '../decks/goal-cards.js';
+import { COMPLAINTS_ADVERSARY, COMPLAINTS_OPTIMAL } from '../complaints/plans.js';
 
 /**
  * **The scripted plans** (WP60 stage B, `49-FS-ADVICE.md` §4.4): one
@@ -260,13 +261,13 @@ export const ADVERSARY_PLANS: Record<string, Plan> = {
 };
 
 export function planFor(goalCardId: string): Plan {
-	const plan = SCRIPTED_OPTIMAL[goalCardId];
+	const plan = SCRIPTED_OPTIMAL[goalCardId] ?? COMPLAINTS_OPTIMAL[goalCardId];
 	if (!plan) throw new Error(`no scripted solution for ${goalCardId}`);
 	return plan;
 }
 
 export function adversaryPlanFor(goalCardId: string): Plan {
-	const plan = ADVERSARY_PLANS[goalCardId];
+	const plan = ADVERSARY_PLANS[goalCardId] ?? COMPLAINTS_ADVERSARY[goalCardId];
 	if (!plan) throw new Error(`no adversarial plan for ${goalCardId}`);
 	return plan;
 }
