@@ -13,7 +13,9 @@ export {
 	type DeskState,
 	type DeskTruth,
 	type DeskWorldDefinition,
-	type DeskWorldSpec
+	type DeskWorldInstance,
+	type DeskWorldSpec,
+	seatedCounterpartOf
 } from './desk-world.js';
 export { closest } from './closest.js';
 export {

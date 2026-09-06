@@ -27,6 +27,7 @@ import { runRecordFrom } from '../run-record.js';
 import { buildSink, parseSinkConfig, sinkById } from '../sinks.js';
 import { createFileStorage } from '../storage/file-storage.js';
 import { runKitDuo, type CounterpartOptions } from './run-duo.js';
+import type { CampaignGuard } from '@craftabot/evals';
 
 /**
  * `craftabot run` (WP37 stage B, `26-…` §6.8): a kit file in, a run
@@ -77,6 +78,8 @@ export interface RunKitOptions {
 	counterpart?: CounterpartOptions;
 	/** With `counterpart`, the round limit of the episode (default 30). */
 	maxRounds?: number;
+	/** With `counterpart`, a campaign file's guard whose `group` half is installed on the episode (WP64, `--stack`). */
+	stack?: CampaignGuard;
 }
 
 export interface RunKitReport {
@@ -133,7 +136,8 @@ export async function runKit(options: RunKitOptions): Promise<RunKitReport> {
 			...(options.newId ? { newId: options.newId } : {}),
 			...(options.fetch ? { fetch: options.fetch } : {}),
 			...(options.egress ? { egress: options.egress } : {}),
-			...(options.principal ? { principal: options.principal } : {})
+			...(options.principal ? { principal: options.principal } : {}),
+			...(options.stack ? { stack: options.stack } : {})
 		});
 		return {
 			runId: duo.runId,

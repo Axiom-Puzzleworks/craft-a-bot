@@ -1,0 +1,108 @@
+{
+	"format": "craftabot-kit",
+	"formatVersion": 2,
+	"exportedAt": "2026-09-06T09:00:00.000Z",
+	"exportedBy": "craftabot-harness/fixture",
+	"requires": {
+		"core": ">=0.0.1",
+		"packs": {
+			"starter": "^0.3.0",
+			"openai": "^1.0.0",
+			"personas": "^1.0.0",
+			"anthropic": "^1.0.0",
+			"gemini": "^1.0.0",
+			"ollama": "^1.0.0",
+			"monitor": "^0.0.1",
+			"workshop": "^0.1.0",
+			"geap": "^0.0.1",
+			"guard-local": "^0.0.1",
+			"azure-content-safety": "^0.0.1",
+			"pdp-opa": "^0.0.1",
+			"evals": "^0.0.1",
+			"fs-bank": "^1.0.0",
+			"fs-advice": "^1.0.0",
+			"fs-fraud": "^1.0.0",
+			"fs-lending": "^1.0.0",
+			"governance": "^1.0.0"
+		},
+		"brickKinds": {
+			"starter/llm": "starter",
+			"starter/memory": "starter",
+			"starter/sense": "starter",
+			"starter/actions": "starter",
+			"starter/safety": "starter"
+		}
+	},
+	"agent": {
+		"id": "44444444-4444-4444-8444-444444444444",
+		"name": "Advice Desk bot",
+		"schemaVersion": 2,
+		"bricks": [
+			{
+				"slot": "brain",
+				"kind": "starter/llm",
+				"configVersion": 1,
+				"config": {
+					"cartridgeId": "openai/quick-thinker",
+					"temperature": 0,
+					"maxTokens": 256,
+					"personality": "You are the bank’s assistant."
+				}
+			},
+			{
+				"slot": "memory",
+				"kind": "starter/memory",
+				"configVersion": 1,
+				"config": {
+					"windowSize": 10,
+					"notebook": true
+				}
+			},
+			{
+				"slot": "perception",
+				"kind": "starter/sense",
+				"configVersion": 1,
+				"config": {
+					"channels": [
+						"fs-advice/the-advice-desk/conversation",
+						"fs-advice/the-advice-desk/customer-record",
+						"fs-advice/the-advice-desk/product-shelf"
+					]
+				}
+			},
+			{
+				"slot": "mobility",
+				"kind": "starter/actions",
+				"configVersion": 1,
+				"config": {
+					"enabled": [
+						"fs-advice/the-advice-desk/say",
+						"fs-advice/the-advice-desk/ask-suitability-question",
+						"fs-advice/the-advice-desk/record-customer-fact",
+						"fs-advice/the-advice-desk/recommend-product",
+						"fs-advice/the-advice-desk/refer-to-adviser",
+						"fs-advice/the-advice-desk/execute-investment"
+					]
+				}
+			},
+			{
+				"slot": "safety",
+				"kind": "starter/safety",
+				"configVersion": 1,
+				"config": {
+					"maxTicks": 12,
+					"blockedActions": [],
+					"approvalMode": false,
+					"policyCards": []
+				}
+			}
+		],
+		"goalCardId": "fs-advice/advise-rainy-day",
+		"identity": {
+			"displayName": "Advice Desk bot",
+			"boxArtSeed": ""
+		},
+		"createdAt": "2026-09-06T09:00:00.000Z",
+		"updatedAt": "2026-09-06T09:00:00.000Z"
+	}
+}

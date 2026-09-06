@@ -6,6 +6,7 @@
 		brickKindsFor,
 		validateSpec,
 		type AgentRecord,
+		type AgentSpecV2,
 		type BuildProblem
 	} from '@craftabot/core';
 	import { SOCKET_LABELS } from '$lib/bricks.js';
@@ -21,6 +22,13 @@
 		autonomyOf,
 		type AutonomyLevel
 	} from '$lib/workshop/autonomy.js';
+	import {
+		STACK_PRESETS,
+		applyStack,
+		complianceWatchbotFor,
+		stackOf,
+		type StackPresetId
+	} from '$lib/workshop/stacks.js';
 
 	/**
 	 * **The Spec Lab** (`17-…` §4.2): the whole `AgentSpec`, at full fidelity,
@@ -59,6 +67,22 @@
 	const autonomy = $derived(record ? autonomyOf(record.spec) : { fitted: false });
 	/** The Boundary map of this build (WP57, `44-…` §4.5): the registry and the spec, no run. */
 	const boundary = $derived(record ? boundaryFor(record.spec, registry) : undefined);
+	/**
+	 * **Named stacks** (WP64, `56-…` §4.4): a preset written into the safety
+	 * socket the way the dial is written into the Safety Brick; the readback
+	 * is the bricks' own shape, never the pick.
+	 */
+	let stackPick = $state<StackPresetId>('compliance-watchbot');
+	const stackPlan = $derived(
+		record ? complianceWatchbotFor(record.spec as AgentSpecV2, registry) : undefined
+	);
+	const fittedStack = $derived(record ? stackOf(record.spec as AgentSpecV2) : undefined);
+	async function applyStackPreset(): Promise<void> {
+		if (!record) return;
+		const next = applyStack($state.snapshot(record.spec) as AgentSpecV2, stackPick, registry);
+		if (!next) return;
+		await persist(next.bricks);
+	}
 	async function applyAutonomyPreset(): Promise<void> {
 		if (!record) return;
 		const next = applyAutonomy($state.snapshot(record.spec) as AgentRecord['spec'], autonomyPick);
@@ -242,7 +266,8 @@
 						</tr>
 					</thead>
 					<tbody>
-						{#each record.spec.bricks as brick (brick.slot + brick.kind)}
+						<!-- Keyed by position, not slot + kind: a stack may hold two of a kind (two Monitor Judges), and a duplicate key threw (`12-…` D23). -->
+						{#each record.spec.bricks as brick, position (position)}
 							<tr>
 								<td>{SOCKET_LABELS[brick.slot] ?? brick.slot}</td>
 								<td class="mono">{brick.kind}</td>
@@ -311,6 +336,45 @@
 					<span class="hint" data-testid="stack-capacity"
 						>{safetyBricks.length} of {SLOT_CAPACITY.safety}{stackFull ? ' — full' : ''}</span
 					>
+				</div>
+			</div>
+
+			<h3>Named stacks</h3>
+			<!-- WP64 (`56-…` §4.4): the Compliance Watchbot as a preset over the safety socket — the desk's cards, its judges, the Watchbot. -->
+			<div class="autonomy" data-testid="stack-presets">
+				{#if fittedStack}
+					<p class="hint" data-testid="stack-readback">
+						This is the <strong>{STACK_PRESETS[fittedStack].name}</strong> stack.
+					</p>
+				{/if}
+				{#if stackPlan && !stackPlan.ok}
+					<p class="hint" data-testid="stack-unavailable">{stackPlan.reason}</p>
+				{:else if stackPlan}
+					<p class="hint" data-testid="stack-plan">
+						{STACK_PRESETS[stackPick].blurb} On this desk: {stackPlan.policyCards.length} cards, judges
+						for
+						<span class="mono"
+							>{stackPlan.evaluatorIds.slice(0, SLOT_CAPACITY.safety - 2).join(', ')}</span
+						>.
+					</p>
+				{/if}
+				<div class="stack-add">
+					<label class="field">
+						<span>Stack</span>
+						<select bind:value={stackPick} data-testid="stack-preset-select">
+							{#each Object.entries(STACK_PRESETS) as [id, preset] (id)}
+								<option value={id}>{preset.name}</option>
+							{/each}
+						</select>
+					</label>
+					<button
+						type="button"
+						data-testid="apply-stack"
+						disabled={!stackPlan || !stackPlan.ok}
+						onclick={() => void applyStackPreset()}
+					>
+						Fit this stack
+					</button>
 				</div>
 			</div>
 

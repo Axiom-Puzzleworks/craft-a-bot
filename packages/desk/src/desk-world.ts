@@ -227,6 +227,22 @@ export interface DeskWorldDefinition<Extra = Record<string, unknown>> extends Wo
 	spec: DeskWorldSpec<Extra>;
 }
 
+/**
+ * A desk instance (WP64, `56-…` §2 item 10): the script seated across it,
+ * readable by a host that wants to give that person a live seat — the
+ * name and the persona are the case's, generated with it, so only the
+ * instance knows them. Absent on a desk with no script.
+ */
+export interface DeskWorldInstance extends WorldInstance {
+	seatedCounterpart?(): CounterpartScript | undefined;
+}
+
+/** The script seated across a desk instance, when it is one and has one. */
+export function seatedCounterpartOf(world: WorldInstance): CounterpartScript | undefined {
+	const seated = (world as DeskWorldInstance).seatedCounterpart;
+	return typeof seated === 'function' ? seated.call(world) : undefined;
+}
+
 const isBuiltInAction = <Extra>(
 	action: DeskActionSpec<Extra>
 ): action is Extract<DeskActionSpec<Extra>, { kind: 'say' }> => 'kind' in action;
@@ -812,7 +828,12 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 			}
 		};
 
-		return { ...instance, forAgent };
+		const seated: DeskWorldInstance = {
+			...instance,
+			forAgent,
+			seatedCounterpart: () => counterpart?.script
+		};
+		return seated;
 	}
 
 	return {

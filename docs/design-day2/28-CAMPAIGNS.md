@@ -278,3 +278,5 @@ Sizing: B is the largest (the runner and gates are new machinery); C is medium; 
 5. Every cell opens in the Run Lab (Workshop) or `craftabot bundle`s (harness) — the same trace either way.
 6. The four scenario tests still prove the four adversarial plans, now imported from content.
 7. The Kit is untouched.
+
+> **Amended 2026-09-06 (WP64, `56-LIVE-COUNTERPARTS.md` §4.2).** The campaign file gains `counterpart?: { tier: 'scripted' | 'live', cartridgeId?, maxRounds? }` — one per campaign, absent meaning the desk's own interpreter — and `guards[].group?: { watchFor, refusalLimit?, breakOn: [{ evaluatorId, labels, onFail }] }`, the chokepoint half of a named stack that a two-seat cell installs (a single-seat cell has no chokepoint). A live seat makes every cell a live cell under `budget.maxLiveCells`. The report carries `counterpart` (`{ tier: 'scripted' }` on its face when the campaign named none) and each two-seat cell its seat's tier, name, cartridge and run id; a `no-regression` gate against a baseline of the other tier is `inconclusive` — *not comparable*. The scorecard names the instrument.

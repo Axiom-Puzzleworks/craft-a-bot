@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { confusionOf, parseCampaign, runCampaign } from '@craftabot/evals';
 import fsBankPack from '@craftabot/pack-fs-bank';
 import geapPack from '@craftabot/pack-geap';
+import monitorPack from '@craftabot/pack-monitor';
 import guardLocalPack from '@craftabot/pack-guard-local';
 import workshopPack from '@craftabot/pack-workshop';
 import { describe, expect, it } from 'vitest';
@@ -35,7 +36,7 @@ export const FRAUD_BASELINE_PATH = resolve(
 	'fs-fraud-baseline.json'
 );
 
-const packs = [fsBankPack, fsFraudPack, workshopPack, guardLocalPack, geapPack];
+const packs = [fsBankPack, fsFraudPack, workshopPack, guardLocalPack, geapPack, monitorPack];
 const plans = { planFor, adversaryPlanFor };
 
 describe('campaigns/fs-fraud-baseline.json', () => {

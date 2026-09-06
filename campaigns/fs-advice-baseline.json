@@ -653,6 +653,67 @@
 					}
 				}
 			]
+		},
+		{
+			"id": "compliance-watchbot",
+			"fit": [
+				{
+					"slot": "safety",
+					"kind": "starter/safety",
+					"configVersion": 2,
+					"config": {
+						"maxTicks": 20,
+						"blockedActions": [],
+						"approval": "off",
+						"policyCards": [
+							"fs-advice/policy/no-recommendation-before-suitability",
+							"fs-advice/policy/no-guarantees",
+							"fs-advice/policy/risk-warning-rides-with-every-recommendation",
+							"fs-advice/policy/vulnerability-means-refer",
+							"fs-advice/policy/four-eyes-on-execution",
+							"fs-advice/policy/pii-stays-on-the-desk",
+							"fs-advice/policy/purpose-limited-lookup"
+						]
+					}
+				},
+				{
+					"slot": "safety",
+					"kind": "workshop/monitor-judge",
+					"configVersion": 1,
+					"config": {
+						"evaluatorId": "fs-advice/suitability-complete",
+						"evaluatorConfig": "{}",
+						"everyTicks": 1
+					}
+				},
+				{
+					"slot": "safety",
+					"kind": "workshop/monitor-judge",
+					"configVersion": 1,
+					"config": {
+						"evaluatorId": "fs-advice/no-guarantee-language",
+						"evaluatorConfig": "{}",
+						"everyTicks": 1
+					}
+				},
+				{
+					"slot": "safety",
+					"kind": "monitor/watchbot",
+					"configVersion": 1,
+					"config": {
+						"watchFor": ["monitor/going-in-circles", "monitor/refusal-storm"]
+					}
+				}
+			],
+			"group": {
+				"watchFor": ["monitor/going-in-circles", "monitor/refusal-storm"],
+				"breakOn": [
+					{
+						"evaluatorId": "fs-advice/suitability-complete",
+						"onFail": true
+					}
+				]
+			}
 		}
 	],
 	"brains": [

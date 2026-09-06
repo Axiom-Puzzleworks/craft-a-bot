@@ -39,10 +39,15 @@ export {
 	parseCampaign,
 	parseCampaignReport,
 	campaignEnvelope,
+	campaignCounterpartSchema,
+	campaignGuardGroupSchema,
+	groupStackFor,
 	runCampaign,
 	specFor,
 	type Campaign,
 	type CampaignBrain,
+	type CampaignCounterpart,
+	type CampaignGuardGroup,
 	type CampaignBuild,
 	type CampaignCell,
 	type CampaignCellSpec,
@@ -173,3 +178,5 @@ export {
 	type GateOptions,
 	type RunMetricName
 } from './campaign.js';
+/** The counterpart seat (WP64, `56-…` §4.1): a desk's script as a second member's spec, shared by the harness and a live-seat cell. */
+export { counterpartScriptFor, counterpartSpec, deskFor } from './counterpart-seat.js';

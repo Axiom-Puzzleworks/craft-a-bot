@@ -32,6 +32,7 @@
 		"@craftabot/evals": "*",
 		"@craftabot/pack-geap": "*",
 		"@craftabot/pack-guard-local": "*",
+		"@craftabot/pack-monitor": "*",
 		"@craftabot/pack-starter": "*",
 		"@craftabot/pack-workshop": "*",
 		"@craftabot/pack-testkit": "*"

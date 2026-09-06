@@ -66,6 +66,28 @@ describe('craftabot', () => {
 		expect(sink.out).not.toContain('sk-planted-secret');
 	});
 
+	it('--stack wants its file and a counterpart (WP64)', async () => {
+		const sink = io();
+		expect(await main(['run', '--kit', 'x.json', '--stack', 'compliance-watchbot'], sink)).toBe(1);
+		expect(sink.err).toContain('--stack-file');
+		const both = io();
+		expect(
+			await main(
+				[
+					'run',
+					'--kit',
+					'x.json',
+					'--stack',
+					'compliance-watchbot',
+					'--stack-file',
+					'campaigns/fs-advice-baseline.json'
+				],
+				both
+			)
+		).toBe(1);
+		expect(both.err).toContain('needs --counterpart');
+	});
+
 	it('reports a config file it cannot load, honestly', async () => {
 		const sink = io();
 		expect(await main(['packs', '--config', './does-not-exist.mjs'], sink)).toBe(1);

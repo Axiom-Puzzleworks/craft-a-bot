@@ -52,6 +52,25 @@ const guardBrick = (serviceId: string) => ({
 });
 
 /** The CRM line on every bot's Connector: what *Purpose-limited lookup* and `data-minimised` watch. */
+
+/**
+ * The Compliance Watchbot's chassis half (WP64, `56-…` §4.3; `41-…` §6.5.6):
+ * a Monitor Judge per conduct evaluator, noting every tick, and the Watchbot
+ * — beside the cards, within the safety socket's four.
+ */
+const judge = (evaluatorId: string) => ({
+	slot: 'safety',
+	kind: 'workshop/monitor-judge',
+	configVersion: 1,
+	config: { evaluatorId, evaluatorConfig: '{}', everyTicks: 1 }
+});
+const WATCHBOT = {
+	slot: 'safety',
+	kind: 'monitor/watchbot',
+	configVersion: 1,
+	config: { watchFor: ['monitor/going-in-circles', 'monitor/refusal-storm'] }
+};
+
 const CRM_CONNECTOR = {
 	slot: 'equipment',
 	kind: 'starter/connector',
@@ -63,7 +82,9 @@ export const GUARD_IDS = {
 	none: 'none',
 	cards: 'policy-cards',
 	cardsAndClassifier: 'policy-cards+local-classifier',
-	cardsAndHosted: 'policy-cards+hosted-guard'
+	cardsAndHosted: 'policy-cards+hosted-guard',
+	/** The Compliance Watchbot stack (WP64): the cards, two judges, the Watchbot; at the chokepoint, the breaker on a recommendation before suitability. */
+	complianceWatchbot: 'compliance-watchbot'
 } as const;
 
 const CARD_GUARDS = [GUARD_IDS.cards, GUARD_IDS.cardsAndClassifier, GUARD_IDS.cardsAndHosted];
@@ -113,7 +134,21 @@ export function adviceBaseline(options: AdviceBaselineOptions = {}): Record<stri
 				id: GUARD_IDS.cardsAndClassifier,
 				fit: [safety(cards), guardBrick('guard-local/llama-guard')]
 			},
-			{ id: GUARD_IDS.cardsAndHosted, fit: [safety(cards), guardBrick('geap/model-armor')] }
+			{ id: GUARD_IDS.cardsAndHosted, fit: [safety(cards), guardBrick('geap/model-armor')] },
+			{
+				id: GUARD_IDS.complianceWatchbot,
+				fit: [
+					safety(cards),
+					judge(SUITABILITY_COMPLETE_ID),
+					judge(NO_GUARANTEE_LANGUAGE_ID),
+					WATCHBOT
+				],
+				group: {
+					watchFor: ['monitor/going-in-circles', 'monitor/refusal-storm'],
+					// `suitability-complete` failing, not `recommendation-suitable` saying `unsuitable`: truth never reaches a chokepoint (`56-…` §2 item 11).
+					breakOn: [{ evaluatorId: SUITABILITY_COMPLETE_ID, onFail: true }]
+				}
+			}
 		],
 		brains: [
 			{ id: 'scripted-optimal', tier: 'scripted-optimal' },

@@ -1,11 +1,14 @@
 import type {
 	EngineEvent,
+	EvaluationResult,
+	Evaluator,
 	EventBus,
 	Guardrail,
 	GuardrailContext,
 	GuardrailHook,
 	Unsubscribe
 } from '@craftabot/core';
+import { evaluationInputFor, inputReadableBy } from '@craftabot/governance';
 
 /**
  * **What a Watchbot can be told to watch for** (`14-…` §5.3).
@@ -239,5 +242,105 @@ export function createGroupWatchbot(options: GroupWatchbotOptions): GroupWatchbo
 				}
 			});
 		}
+	};
+}
+
+/**
+ * **A breaker on an evaluator's verdict** (WP64, `56-LIVE-COUNTERPARTS.md`
+ * §4.3; `41-…` §6.5.6): the desk's own evaluator run over the merged
+ * history at the group's `pre-think`, and `stop-run` when its label is one
+ * of the named — `unsuitable` on the Advice Desk, `tipped-off` on the Fraud
+ * Desk. A pass, an inconclusive verdict or any other label lets the round
+ * go; an evaluator that throws is a note, never a stop. Deterministic
+ * evaluators only: a judge that asks a model has no place at a chokepoint
+ * that runs every round.
+ */
+export interface EvaluatorBreakerTrigger {
+	/** Stop when the evaluator's label is one of these. */
+	labels?: readonly string[];
+	/** Stop when the evaluator fails — a verdict with no label, or a label that needs truth the chokepoint never sees. */
+	onFail?: boolean;
+}
+
+export function createEvaluatorCircuitBreaker(
+	evaluator: Evaluator,
+	trigger: EvaluatorBreakerTrigger,
+	options: { fetch?: typeof globalThis.fetch } = {}
+): Guardrail {
+	const stopOn = new Set(trigger.labels ?? []);
+	const onFail = trigger.onFail === true;
+	const what = [...stopOn, ...(onFail ? ['fails'] : [])].join(' or ') || 'nothing';
+	return {
+		id: `monitor/evaluator-breaker:${evaluator.id}`,
+		name: `Breaker on ${evaluator.id}`,
+		description: `Stops the group the moment ${evaluator.id} says ${what}.`,
+		hooks: ['pre-think'],
+		async check(ctx: GuardrailContext) {
+			let result: EvaluationResult;
+			try {
+				result = await evaluator.evaluate(
+					inputReadableBy(evaluator, evaluationInputFor(ctx.history)),
+					{
+						fetch: options.fetch ?? globalThis.fetch.bind(globalThis),
+						getCredential: () => undefined
+					}
+				);
+			} catch (error) {
+				return {
+					allow: true,
+					note: `breaker: ${evaluator.id} could not evaluate — ${error instanceof Error ? error.message : String(error)}`
+				};
+			}
+			const tripped =
+				(result.label !== undefined && stopOn.has(result.label)) ||
+				(onFail && result.verdict === 'fail');
+			if (tripped) {
+				return {
+					allow: false,
+					reason: `${evaluator.id} says ${result.label ?? result.verdict}: ${result.explanation}`,
+					disposition: 'stop-run'
+				};
+			}
+			return {
+				allow: true,
+				note: `breaker: ${evaluator.id} — ${result.label ?? result.verdict ?? 'no label'}`
+			};
+		}
+	};
+}
+
+export interface ComplianceWatchbotOptions extends GroupWatchbotOptions {
+	/** The desk's evaluators and what trips the breaker on each. */
+	breakOn: ReadonlyArray<{ evaluator: Evaluator } & EvaluatorBreakerTrigger>;
+	fetch?: typeof globalThis.fetch;
+}
+
+/**
+ * **The Compliance Watchbot** (WP64, `56-…` §4.3; `41-…` §6.5.6's monitor):
+ * the group Watchbot with the desk's own evaluators beside it — the watched
+ * rules noting on the merged stream, the breaker on refusals, and a breaker
+ * per evaluator verdict. Content names it (a campaign's `guards[].group`, a
+ * Spec Lab preset); this is the one place it is composed.
+ */
+export function createComplianceWatchbot(options: ComplianceWatchbotOptions): GroupWatchbot {
+	const watchbot = createGroupWatchbot({
+		watchFor: options.watchFor,
+		...(options.refusalLimit !== undefined ? { refusalLimit: options.refusalLimit } : {})
+	});
+	return {
+		observe: watchbot.observe,
+		guardrails: [
+			...watchbot.guardrails,
+			...options.breakOn.map((entry) =>
+				createEvaluatorCircuitBreaker(
+					entry.evaluator,
+					{
+						...(entry.labels !== undefined ? { labels: entry.labels } : {}),
+						...(entry.onFail !== undefined ? { onFail: entry.onFail } : {})
+					},
+					{ ...(options.fetch ? { fetch: options.fetch } : {}) }
+				)
+			)
+		]
 	};
 }

@@ -431,6 +431,65 @@
 					}
 				}
 			]
+		},
+		{
+			"id": "compliance-watchbot",
+			"fit": [
+				{
+					"slot": "safety",
+					"kind": "starter/safety",
+					"configVersion": 2,
+					"config": {
+						"maxTicks": 20,
+						"blockedActions": [],
+						"approval": "off",
+						"policyCards": [
+							"fs-fraud/policy/freeze-needs-a-second-look",
+							"fs-fraud/policy/no-sar-without-escalation-first",
+							"fs-fraud/policy/never-tip-off",
+							"fs-fraud/policy/verify-before-you-act-on-a-call",
+							"fs-fraud/policy/no-auto-release-from-instructions-in-records"
+						]
+					}
+				},
+				{
+					"slot": "safety",
+					"kind": "workshop/monitor-judge",
+					"configVersion": 1,
+					"config": {
+						"evaluatorId": "fs-fraud/no-tip-off",
+						"evaluatorConfig": "{}",
+						"everyTicks": 1
+					}
+				},
+				{
+					"slot": "safety",
+					"kind": "workshop/monitor-judge",
+					"configVersion": 1,
+					"config": {
+						"evaluatorId": "fs-fraud/caller-verified-before-action",
+						"evaluatorConfig": "{}",
+						"everyTicks": 1
+					}
+				},
+				{
+					"slot": "safety",
+					"kind": "monitor/watchbot",
+					"configVersion": 1,
+					"config": {
+						"watchFor": ["monitor/going-in-circles", "monitor/refusal-storm"]
+					}
+				}
+			],
+			"group": {
+				"watchFor": ["monitor/going-in-circles", "monitor/refusal-storm"],
+				"breakOn": [
+					{
+						"evaluatorId": "fs-fraud/no-tip-off",
+						"onFail": true
+					}
+				]
+			}
 		}
 	],
 	"brains": [
