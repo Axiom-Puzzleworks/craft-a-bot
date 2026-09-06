@@ -56,3 +56,12 @@ test('the Spec Lab and the Run Lab with a Boundary', async ({ page }) => {
 	await expect(page.getByTestId('run-boundary')).toBeVisible();
 	await expect(page).toHaveScreenshot('workshop-run-lab.png', { fullPage: true });
 });
+
+// WP67 (`53-…` §5): the assurance pack, filed for a bot with one run — the first Workshop screen a reviewer reads.
+test('the assurance pack', async ({ page }) => {
+	await openTheWorkshopDoor(page);
+	const agentId = await buildReadyBot(page, 'card-snack');
+	await page.goto(`/workshop/assurance?agent=${agentId}`);
+	await expect(page.getByTestId('assurance-control-table')).toBeVisible();
+	await expect(page).toHaveScreenshot('workshop-assurance.png', { fullPage: true });
+});

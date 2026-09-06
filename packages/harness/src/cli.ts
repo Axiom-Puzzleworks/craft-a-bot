@@ -14,6 +14,7 @@ import { recordCassette } from './commands/record.js';
 import { readContentDir } from './storage/file-storage.js';
 import { describePacks, renderPacks } from './commands/packs.js';
 import { reportIncidents, reportSafetyCase, reportTelemetry } from './commands/report.js';
+import { reportAssurance } from './commands/assurance.js';
 import { runKit, type BrainTier } from './commands/run.js';
 import { createRegistry } from './config.js';
 import { createFileStorage } from './storage/file-storage.js';
@@ -93,6 +94,15 @@ Usage:
       desk's own script (scripted, no key, reproducible from --seed) or by a
       cartridge (live; --counterpart-cartridge, default the kit's own); the
       episode is written with a <groupRunId>.craftabot-bundle.json.
+
+  craftabot assurance [--agent <id>] [--out ./runs] [--file <pack.json>] [--markdown <pack.md>] [--html <pack.html>]
+      The assurance pack for one bot (WP67): its inventory entry, safety
+      stack, campaigns, evaluations, mitigants, drift and incidents filed
+      against every installed control map, sectioned by PRA SS1/23's
+      principles — the same fold /workshop/assurance renders. JSON to
+      --file or stdout; --markdown and --html write the two renderings, the
+      HTML one self-contained file a reader opens with no app. Relevance,
+      never compliance.
 
   craftabot bundle --run <runId> | --group <groupRunId> [--out ./runs] [--file <path>]
       Write a stored run back out as a .craftabot-trace.json, or a group
@@ -471,6 +481,35 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 				io.stdout(`evaluated ${runId}
 ${renderEvaluations(report)}`);
 				return report.unknown.length > 0 ? 1 : 0;
+			}
+			case 'assurance': {
+				// WP67 (`53-ASSURANCE-PACK.md` §4.3): the pack for one bot, and its two renderings.
+				const storage = await createFileStorage(stringFlag(args, 'out') ?? './runs');
+				const registry = createRegistry(await configFrom(args));
+				const { pack, markdown, html } = await reportAssurance(
+					storage,
+					registry,
+					stringFlag(args, 'agent')
+				);
+				const json = `${JSON.stringify(pack, null, '\t')}\n`;
+				const file = stringFlag(args, 'file');
+				const markdownPath = stringFlag(args, 'markdown');
+				const htmlPath = stringFlag(args, 'html');
+				if (markdownPath !== undefined) {
+					await writeFile(markdownPath, markdown, 'utf8');
+					io.stdout(`wrote ${markdownPath}\n`);
+				}
+				if (htmlPath !== undefined) {
+					await writeFile(htmlPath, html, 'utf8');
+					io.stdout(`wrote ${htmlPath}\n`);
+				}
+				if (file !== undefined) {
+					await writeFile(file, json, 'utf8');
+					io.stdout(`wrote ${file}\n`);
+				} else if (markdownPath === undefined && htmlPath === undefined) {
+					io.stdout(json);
+				}
+				return 0;
 			}
 			case 'report': {
 				const storage = await createFileStorage(stringFlag(args, 'out') ?? './runs');

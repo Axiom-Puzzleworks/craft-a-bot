@@ -25,6 +25,7 @@
 			| 'telemetry'
 			| 'incidents'
 			| 'safety-case'
+			| 'assurance'
 			| 'export'
 			| 'armour'
 			| 'guards'
@@ -56,6 +57,8 @@
 		{ id: 'telemetry', label: 'Telemetry', href: '/workshop/telemetry' },
 		{ id: 'incidents', label: 'Incidents', href: '/workshop/incidents' },
 		{ id: 'safety-case', label: 'Safety case', href: '/workshop/safety-case' },
+		// WP67 (`53-ASSURANCE-PACK.md` §4.3): the evidence, filed.
+		{ id: 'assurance', label: 'Assurance', href: '/workshop/assurance' },
 		{ id: 'export', label: 'Audit', href: '/workshop/export' },
 		// WP42 (`30-SECOND-VENDORS.md` §5) — the Guard Rack, grown from WP35's
 		// Armour Studio, which now redirects here.
@@ -80,6 +83,7 @@
 								| '/workshop/telemetry'
 								| '/workshop/incidents'
 								| '/workshop/safety-case'
+								| '/workshop/assurance'
 								| '/workshop/export'
 								| '/workshop/armour'
 								| '/workshop/guards'
