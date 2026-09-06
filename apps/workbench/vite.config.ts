@@ -4,7 +4,24 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 import { fileURLToPath } from 'node:url';
 
+/**
+ * The edition (WP69, `59-EDITIONS.md` §4.2): `CAB_EDITION` names one of the
+ * three sections of the site; unset — `npm run build`, `npm run dev`, every
+ * test — the build is `full`, today's app, into `build/` under no base. A
+ * named edition builds into `build/<edition>/` under `/<edition>`. The same
+ * variable reaches the bundle through `envPrefix`, so `edition.ts` reads it.
+ */
+const EDITION_IDS = ['simulator', 'workshop', 'playground'];
+const CAB_EDITION = process.env['CAB_EDITION'];
+if (CAB_EDITION !== undefined && CAB_EDITION !== 'full' && !EDITION_IDS.includes(CAB_EDITION)) {
+	throw new Error(
+		`CAB_EDITION must be one of ${EDITION_IDS.join(', ')} or full, got "${CAB_EDITION}"`
+	);
+}
+const edition = CAB_EDITION !== undefined && CAB_EDITION !== 'full' ? CAB_EDITION : undefined;
+
 export default defineConfig({
+	envPrefix: ['VITE_', 'CAB_'],
 	// Vite's own default envDir is wherever this file lives, not the monorepo
 	// root — but the one `.env` this repo documents (`.env.example`,
 	// `docs/geap-setup.md` §3) lives at the root, alongside every other
@@ -22,7 +39,13 @@ export default defineConfig({
 			// Static, local-first build (05-TECH-STACK.md §1). SPA fallback because
 			// dynamic per-agent routes (/bench/[agentId], /play/[agentId]) can't be
 			// prerendered — see routes/+layout.ts (`ssr = false`).
-			adapter: adapter({ fallback: 'index.html' })
+			adapter: adapter({
+				fallback: 'index.html',
+				...(edition ? { pages: `build/${edition}`, assets: `build/${edition}` } : {})
+			}),
+			...(edition ? { paths: { base: `/${edition}` } } : {}),
+			// The edition's packs: one module per box, so a bundle carries only its own (`59-…` §4.1).
+			alias: { '$edition-packs': `src/lib/editions/${edition ?? 'full'}.ts` }
 		})
 	],
 	test: {

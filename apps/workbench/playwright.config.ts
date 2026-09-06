@@ -24,7 +24,7 @@ export default defineConfig({
 	 * is Linux, so its baselines are WP71's to generate.
 	 */
 	projects: [
-		{ name: 'default', testIgnore: /visual\.spec\.ts$/ },
+		{ name: 'default', testIgnore: [/visual\.spec\.ts$/, /[\\/]editions[\\/]/] },
 		{ name: 'visual', testMatch: /visual\.spec\.ts$/ }
 	],
 	snapshotPathTemplate: '{testDir}/__screenshots__/{platform}/{arg}{ext}',

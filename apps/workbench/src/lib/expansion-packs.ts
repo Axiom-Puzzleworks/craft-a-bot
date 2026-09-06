@@ -17,7 +17,8 @@
  * sticker invented for the occasion.
  */
 
-export type PackStatus = 'unlocked' | 'coming-soon';
+/** `in-another-edition` (WP69, `59-…` §4.3): the box exists, in another section of the site — `href` says where. */
+export type PackStatus = 'unlocked' | 'coming-soon' | 'in-another-edition';
 
 export interface ExpansionPack {
 	id: string;
@@ -25,6 +26,8 @@ export interface ExpansionPack {
 	contents: string;
 	teaches: string;
 	status: PackStatus;
+	/** Where the box lives when it is in another edition — a path on the same host. */
+	href?: string;
 }
 
 export const EXPANSION_PACKS: readonly ExpansionPack[] = [

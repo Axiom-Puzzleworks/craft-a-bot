@@ -26,6 +26,7 @@
 		"demo": "npm run build && echo \"Demo built at apps/workbench/build \u00e2\u20ac\u201d serve it with any static host, or npm run preview\"",
 		"preview": "npm run preview --workspace=apps/workbench",
 		"budget": "node scripts/bundle-budget.mjs",
+		"build:editions": "node scripts/build-editions.mjs",
 		"smoke:openai": "npm run smoke --workspace=@craftabot/pack-openai",
 		"smoke:geap": "npm run smoke --workspace=@craftabot/pack-geap",
 		"smoke:harness": "npm run build --workspace=packages/harness && node --env-file-if-exists=.env packages/harness/dist/main.js run --kit packages/harness/fixtures/snackbot.craftabot.json --provider openai --max-ticks 6 --out ./runs",

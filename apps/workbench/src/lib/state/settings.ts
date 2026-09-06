@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { EDITION_MODE, editionId } from '../edition-id.js';
 import { OLLAMA_BASE_URL, isLoopbackEndpoint } from '@craftabot/pack-ollama';
 import type { WebStorageLike } from './keys.js';
 
@@ -34,7 +35,7 @@ export const settingsSchema = z.object({
 	 * worse than one that opens something unexpected, and an adult who was given
 	 * the link meant to follow it.
 	 */
-	workshop: z.boolean().default(false),
+	workshop: z.boolean().default(EDITION_MODE[editionId] === 'workshop'),
 	/**
 	 * How many runs the scrapbook keeps before tidying the oldest away
 	 * (WP36 stage C, `26-…` §6.14). `07-…` §2's cap of 50 was a constant; a
