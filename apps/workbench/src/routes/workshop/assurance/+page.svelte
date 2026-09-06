@@ -4,6 +4,7 @@
 	import type { AgentRecord } from '@craftabot/core';
 	import {
 		assurancePackFromStorage,
+		principalLine,
 		renderAssurancePackHtml,
 		renderAssurancePackMarkdown,
 		type AssuranceCampaignReportLike,
@@ -276,7 +277,17 @@
 					Egress: {pack.governance.egress.hosts.join(', ') || 'no hosts'}; {pack.governance.egress
 						.recordedRuns} runs recorded, {pack.governance.egress.noNetworkRuns} allowed none
 				</li>
-				<li class="not-recorded">{pack.governance.principal.note}</li>
+				{#if pack.governance.principal.recorded}
+					<!-- Who started the runs (WP65): every distinct principal, the chain rendered, with its runs. -->
+					<li data-testid="assurance-principals">
+						Principal: {#each pack.governance.principal.principals as entry, index (index)}{index >
+							0
+								? '; '
+								: ''}{principalLine(entry.principal)} (runs: {entry.runIds.join(', ')}){/each}
+					</li>
+				{:else}
+					<li class="not-recorded">{pack.governance.principal.note}</li>
+				{/if}
 			</ul>
 		</section>
 
@@ -295,7 +306,17 @@
 
 		<section aria-labelledby="validation-h">
 			<h2 id="validation-h">4. Independent validation</h2>
-			<p class="not-recorded">{pack.validation.validatedBy.note}</p>
+			{#if pack.validation.validatedBy.recorded}
+				<p data-testid="assurance-validators">
+					Validated by: {#each pack.validation.validatedBy.validators as entry, index (index)}{index >
+						0
+							? '; '
+							: ''}{principalLine(entry.principal)} (runs: {entry.runIds.join(', ')}){/each}
+				</p>
+				<p class="not-recorded">{pack.validation.validatedBy.note}</p>
+			{:else}
+				<p class="not-recorded">{pack.validation.validatedBy.note}</p>
+			{/if}
 			{#if pack.validation.note}
 				<p class="status" data-testid="assurance-no-evaluations">{pack.validation.note}</p>
 			{:else}

@@ -8,6 +8,7 @@ import {
 	type ForkFrom,
 	type Guardrail,
 	type LLMProvider,
+	type Principal,
 	type RunMode,
 	type RunOutcome,
 	type SessionStatus
@@ -71,8 +72,8 @@ export interface SessionView {
 	/** Set while the run is suspended waiting for a human (approval mode). */
 	readonly pendingApproval: PendingApproval | undefined;
 
-	/** Answer an approval request. Ignored when nothing is pending. */
-	resolveApproval(approved: boolean): void;
+	/** Answer an approval request. Ignored when nothing is pending. `by` names who answered (WP65). */
+	resolveApproval(approved: boolean, by?: Principal): void;
 	/**
 	 * End the run on a judgement the world cannot make (`16-…` §2.5). Free Play
 	 * has no predicate but `celebrate`, so somebody has to decide it is done —
@@ -126,6 +127,8 @@ export interface SessionViewDeps {
 	 * counterfactual build is the harness's `craftabot fork --kit`.
 	 */
 	forkFrom?: ForkFrom;
+	/** Who is running this (WP65, `55-…` §4.2): on `run.started` and every attestation. The Play route names the browser's person. */
+	principal?: Principal;
 }
 
 /** Why a live run stopped at a breakpoint: the kind that matched, and where. */
@@ -195,6 +198,7 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 				// The app always names its mode (WP41), so every trace it writes says where the run could call.
 				egress: 'declared',
 				tickDelayMs: tickDelayFor(speed),
+				...(deps.principal ? { principal: deps.principal } : {}),
 				...(deps.maxTicks !== undefined ? { budgets: { maxTicks: deps.maxTicks } } : {})
 			}
 		};
@@ -343,10 +347,10 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 		deliverInput(text) {
 			session.deliverInput(text);
 		},
-		resolveApproval(approved) {
+		resolveApproval(approved, by) {
 			// `state.pendingApproval` is cleared by the `approval.resolved` event
 			// rather than here, so the UI stays a pure function of the trace.
-			session.resolveApproval(approved);
+			session.resolveApproval(approved, by);
 			state.status = session.status;
 		},
 		get breakpoint() {

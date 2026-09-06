@@ -1,3 +1,4 @@
+import type { Principal } from '@craftabot/core';
 import {
 	capabilitiesOf,
 	hostMatches,
@@ -77,7 +78,8 @@ export interface BoundaryMap {
 		counterparts: Array<{ agentId: string; name: string; role?: 'agent' | 'counterpart' }>;
 	};
 	outside: BoundaryOutside[];
-	human: { approvals: number; principal?: undefined };
+	/** The person on the ring: how often the run crossed to them, and who they were when `run.started` says (WP65). */
+	human: { approvals: number; principal?: Principal };
 	activity?: BoundaryActivity[];
 }
 
@@ -258,6 +260,7 @@ export function boundaryMapFor(
 	// ---- the trace, when given
 	const started = events.find((event) => event.type === 'run.started');
 	const runEgress = started?.type === 'run.started' ? started.payload.egress : undefined;
+	const principal = started?.type === 'run.started' ? started.payload.principal : undefined;
 	const egress: BoundaryMap['boundary']['egress'] = runEgress
 		? { mode: runEgress.mode, hosts: [...runEgress.hosts] }
 		: { hosts: [...declaredHosts].sort() };
@@ -349,7 +352,7 @@ export function boundaryMapFor(
 			counterparts
 		},
 		outside,
-		human: { approvals },
+		human: { approvals, ...(principal ? { principal } : {}) },
 		...(options.events ? { activity } : {})
 	};
 }

@@ -382,8 +382,8 @@ Candidate controls (Area → §above; Fit: **Kids** = teaching mode, **Pro** = p
 | 14 | Policy-as-code Safety brick (declarative rules: trigger→predicate→block/ask, à la AgentSpec/OPA) | §3.2/3.3 | Emerging | Pro (simplified for Kids) |
 | 15 | Least-privilege scopes: agent starts with minimal tool grants, requests elevation (MCP scope minimisation) | §4.5 | Widely adopted | Both |
 | 16 | Sandboxed tool execution (simulated "playpen" for risky tools; real sandboxing in Pro export) | §3.4 | Widely adopted | Both |
-| 17 | Per-agent identity & credentials (agents as named principals; no shared keys) | §4.1/4.4 | Emerging | Pro |
-| 18 | Delegation-chain recording (human→agent→sub-agent attribution in every trace event) | §4.4 | Emerging | Both |
+| 17 | Per-agent identity & credentials (agents as named principals; no shared keys) | §4.1/4.4 | Emerging — **adopted 2026-09-06 (WP65, `55-PRINCIPAL.md`): `run.started.principal`; credentials stay the vault's** | Pro |
+| 18 | Delegation-chain recording (human→agent→sub-agent attribution in every trace event) | §4.4 | Emerging — **adopted 2026-09-06 (WP65): `onBehalfOf` on the principal, `action.performed.attestation`, `approval.resolved.by`** | Both |
 | 19 | Immutable audit trail of every prompt/decision/action (already a Craft-a-Bot hard rule) | §4.4/5.3 | Widely adopted | Both |
 | 20 | OTel GenAI-compatible trace export (invoke_agent/execute_tool spans, token accounting) | §5.1 | Emerging | Pro |
 | 21 | Guardrail verdicts as first-class trace events (OpenInference GUARDRAIL span kind; gen_ai.evaluation.result) | §5.1/5.2 | Emerging | Both |

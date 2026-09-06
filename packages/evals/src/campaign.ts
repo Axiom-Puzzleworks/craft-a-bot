@@ -1,4 +1,10 @@
-import type { EgressMode, PackManifest, PackRegistry, StoredCampaignReport } from '@craftabot/core';
+import type {
+	EgressMode,
+	PackManifest,
+	PackRegistry,
+	Principal,
+	StoredCampaignReport
+} from '@craftabot/core';
 import { injectionSchema } from '@craftabot/core';
 import starterPack from '@craftabot/pack-starter';
 import { z } from 'zod';
@@ -458,6 +464,8 @@ export interface RunCampaignOptions {
 	betweenCells?: () => Promise<void>;
 	/** Every cell's session egress mode (WP41, `26-…` §6.6); the CI baseline runs `'none'`. */
 	egress?: EgressMode;
+	/** Every cell's principal (WP65, `55-…` §4.2): the host running the campaign, on each cell's `run.started`. */
+	principal?: Principal;
 	/** Packs registered beside the starter pack for every cell (WP42): a guard that stacks a Guard Brick needs the workshop pack and the service's own. */
 	packs?: PackManifest[];
 	/** Where a scripted cell's plan comes from (WP60, `49-…` §4.7): the host composes its packs' `/testing` plans; the starter pack's by default. */
@@ -686,6 +694,7 @@ async function runCell(
 			...(maxTicks !== undefined ? { maxTicks } : {}),
 			...(brain.tier === 'live' ? { provider: providerForLive(brain, options) } : {}),
 			...(options.egress !== undefined ? { egress: options.egress } : {}),
+			...(options.principal !== undefined ? { principal: options.principal } : {}),
 			...(options.packs !== undefined ? { packs: options.packs } : {})
 		});
 

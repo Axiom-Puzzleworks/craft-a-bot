@@ -42,6 +42,89 @@ function run(overrides: Partial<RunRecord> = {}): RunRecord {
 	return makeRun(overrides);
 }
 
+describe('the principal on the spans (WP65)', () => {
+	const started = (principal: unknown, runId = 'r') =>
+		at(
+			0,
+			'run.started',
+			{
+				mode: 'step',
+				budgets: { maxTicks: 5, maxTokens: 100, requestTimeoutMs: 1000 },
+				providerId: 'mock',
+				wireModel: 'm',
+				cartridgeId: 'c',
+				strategies: { memory: 'window', prompt: 'default' },
+				...(principal ? { principal } : {})
+			},
+			runId
+		);
+	const tool = (tick: number, runId = 'r') =>
+		at(tick, 'tool.executed', { name: 'echo', arguments: {}, result: 'ok', durationMs: 1 }, runId);
+
+	it('puts the agent id on the root and every execute_tool span, and the chain when the run names a principal', () => {
+		const stored = run();
+		const principal = {
+			kind: 'agent',
+			id: stored.agentId,
+			name: 'Bolt',
+			onBehalfOf: { kind: 'person', id: 'browser-1', name: 'Sam' }
+		};
+		const trace = otelTraceFor(stored, [started(principal), tool(1)]);
+		const [toolSpan, root] = trace.resourceSpans[0].scopeSpans[0].spans;
+		for (const span of [root, toolSpan]) {
+			expect(span?.attributes).toContainEqual({
+				key: 'gen_ai.agent.id',
+				value: { stringValue: stored.agentId }
+			});
+			expect(span?.attributes).toContainEqual({
+				key: 'craft_a_bot.principal.chain',
+				value: { stringValue: `agent:${stored.agentId} <- person:browser-1` }
+			});
+		}
+		expect(root?.attributes).toContainEqual({
+			key: 'craft_a_bot.principal.name',
+			value: { stringValue: 'Bolt' }
+		});
+	});
+
+	it('names none when the run names none — a trace written before the field keeps its attributes', () => {
+		const trace = otelTraceFor(run(), [started(undefined), tool(1)]);
+		const keys = trace.resourceSpans[0].scopeSpans[0].spans.flatMap((span) =>
+			span.attributes.map((attribute) => attribute.key)
+		);
+		expect(keys.some((key) => key.startsWith('craft_a_bot.principal'))).toBe(false);
+		expect(keys).toContain('gen_ai.agent.id');
+	});
+
+	it("the group root carries the group's own principal from group.started", () => {
+		const group = makeGroupRun();
+		const trace = otelTraceForGroup({
+			record: group,
+			events: [
+				at(
+					0,
+					'group.started',
+					{
+						groupRunId: group.id,
+						memberRunIds: group.memberRunIds,
+						memberAgentIds: group.memberAgentIds,
+						principal: { kind: 'service', id: 'craftabot-harness', name: 'ci' },
+						goalCardId: group.goalCardId,
+						scheduler: 'round-robin',
+						budgets: {}
+					},
+					group.id
+				)
+			],
+			members: []
+		});
+		expect(trace.resourceSpans[0].scopeSpans[0].spans[0]?.attributes).toContainEqual({
+			key: 'craft_a_bot.principal.chain',
+			value: { stringValue: 'service:craftabot-harness' }
+		});
+	});
+});
+
 describe('otelTraceForGroup (WP47)', () => {
 	it('is one trace: an invoke_group root, one invoke_agent per member beneath it, their children beneath those', () => {
 		const group = makeGroupRun();

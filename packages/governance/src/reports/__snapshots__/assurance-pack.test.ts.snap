@@ -37,7 +37,7 @@ exports[`assurancePackFor > folds a fixture bot with one campaign and one incide
             {
               "id": "run.started.principal",
               "kind": "principal",
-              "presence": "not-recorded",
+              "presence": "present",
             },
           ],
           "framework": "FCA Consumer Duty (PRIN 2A)",
@@ -333,7 +333,7 @@ exports[`assurancePackFor > folds a fixture bot with one campaign and one incide
             {
               "id": "approval.resolved.by",
               "kind": "principal",
-              "presence": "not-recorded",
+              "presence": "present",
             },
           ],
           "framework": "EU AI Act",
@@ -710,7 +710,7 @@ exports[`assurancePackFor > folds a fixture bot with one campaign and one incide
       },
     ],
   },
-  "digest": "3930afe7e13c43a64cd348bce939bfb76c4a4e1fd89a711f2f955d9ca1e38371",
+  "digest": "e59f1382acdad34fd697639b890a9157bbede37dfeb8d29dc4da9862990eb23c",
   "format": "craftabot-assurance-pack",
   "formatVersion": 1,
   "generatedAt": "2026-09-06T12:00:00.000Z",
@@ -733,8 +733,29 @@ exports[`assurancePackFor > folds a fixture bot with one campaign and one incide
     },
     "guardrails": [],
     "principal": {
-      "note": "The principal on each run is not recorded in this build (WP65).",
-      "recorded": false,
+      "principals": [
+        {
+          "principal": {
+            "id": "browser-1",
+            "kind": "person",
+            "name": "Sam",
+          },
+          "runIds": [
+            "22222222-2222-4222-8222-222222222221",
+          ],
+        },
+        {
+          "principal": {
+            "id": "craftabot-harness",
+            "kind": "service",
+            "name": "ci",
+          },
+          "runIds": [
+            "22222222-2222-4222-8222-222222222222",
+          ],
+        },
+      ],
+      "recorded": true,
     },
   },
   "inventory": {
@@ -977,8 +998,30 @@ exports[`assurancePackFor > folds a fixture bot with one campaign and one incide
       },
     ],
     "validatedBy": {
-      "note": "Who validated this build is not recorded in this build (WP65).",
-      "recorded": false,
+      "note": "The principals of the runs an evaluator judged. Whether any is independent of the builder cannot be said: no record names who built this bot.",
+      "recorded": true,
+      "validators": [
+        {
+          "principal": {
+            "id": "browser-1",
+            "kind": "person",
+            "name": "Sam",
+          },
+          "runIds": [
+            "22222222-2222-4222-8222-222222222221",
+          ],
+        },
+        {
+          "principal": {
+            "id": "craftabot-harness",
+            "kind": "service",
+            "name": "ci",
+          },
+          "runIds": [
+            "22222222-2222-4222-8222-222222222222",
+          ],
+        },
+      ],
     },
   },
 }

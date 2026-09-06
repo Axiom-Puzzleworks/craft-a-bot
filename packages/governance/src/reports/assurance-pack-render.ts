@@ -1,4 +1,10 @@
-import type { AssuranceCampaign, AssurancePack, NotRecorded } from './assurance-pack.js';
+import type { Principal } from '@craftabot/core';
+import type {
+	AssuranceCampaign,
+	AssurancePack,
+	AssurancePrincipal,
+	NotRecorded
+} from './assurance-pack.js';
 
 /**
  * **The two renderings** (WP67, `53-ASSURANCE-PACK.md` §4.2): markdown for a
@@ -31,6 +37,15 @@ const list = (ids: readonly string[]): string => (ids.length === 0 ? 'none' : id
 const cite = (ids: readonly string[]): string =>
 	ids.length === 0 ? '(no runs behind this figure)' : `(runs: ${ids.join(', ')})`;
 const notRecorded = (entry: NotRecorded): string => entry.note;
+/** A principal and its chain, one line: `person "Sam" (browser-1) for service craftabot-harness`. */
+export const principalLine = (principal: Principal): string => {
+	const one = (p: Principal) => `${p.kind}${p.name ? ` "${p.name}"` : ''} (${p.id})`;
+	const chain: string[] = [];
+	for (let at: Principal | undefined = principal; at; at = at.onBehalfOf) chain.push(one(at));
+	return chain.join(' for ');
+};
+const principalsMd = (entries: readonly AssurancePrincipal[]): string =>
+	entries.map((entry) => `${principalLine(entry.principal)} ${cite(entry.runIds)}`).join('; ');
 
 function campaignLines(campaign: AssuranceCampaign): string[] {
 	const lines: string[] = [];
@@ -104,7 +119,9 @@ export function renderAssurancePackMarkdown(pack: AssurancePack): string {
 	out.push(
 		`- Egress: hosts ${list(pack.governance.egress.hosts)}; ${pack.governance.egress.recordedRuns} runs recorded their egress, ${pack.governance.egress.noNetworkRuns} allowed none ${cite(pack.governance.egress.runIds)}`
 	);
-	out.push(`- Principal: ${notRecorded(pack.governance.principal)}`);
+	out.push(
+		`- Principal: ${pack.governance.principal.recorded ? principalsMd(pack.governance.principal.principals) : notRecorded(pack.governance.principal)}`
+	);
 	out.push('');
 	out.push('## 3. Development, implementation and use (principle 3) — the campaigns');
 	out.push('');
@@ -113,7 +130,9 @@ export function renderAssurancePackMarkdown(pack: AssurancePack): string {
 	out.push('');
 	out.push('## 4. Independent validation (principle 4)');
 	out.push('');
-	out.push(`- Validated by: ${notRecorded(pack.validation.validatedBy)}`);
+	out.push(
+		`- Validated by: ${pack.validation.validatedBy.recorded ? `${principalsMd(pack.validation.validatedBy.validators)} — ${pack.validation.validatedBy.note}` : notRecorded(pack.validation.validatedBy)}`
+	);
 	if (pack.validation.note) out.push(`- ${pack.validation.note}`);
 	for (const row of pack.validation.evaluations)
 		out.push(
@@ -221,6 +240,10 @@ th{background:var(--cab-cream)}code{font-size:.9em}
 		`<section><h2>${escape(title)}</h2>${body}</section>`;
 	const notRec = (entry: NotRecorded): string =>
 		`<span class="not-recorded">${escape(entry.note)}</span>`;
+	const principalsHtml = (entries: readonly AssurancePrincipal[]): string =>
+		entries
+			.map((entry) => `${escape(principalLine(entry.principal))} ${citeHtml(entry.runIds)}`)
+			.join('; ');
 
 	const inventory = `<ul>
 <li>Agent card: <strong>${escape(pack.inventory.agentCard.name)}</strong>, goal card <code>${escape(pack.inventory.agentCard.goalCardId)}</code>; bricks: ${pack.inventory.agentCard.bricks.length === 0 ? 'none' : pack.inventory.agentCard.bricks.map((brick) => `<code>${escape(brick.kind)}</code>`).join(', ')}</li>
@@ -239,7 +262,7 @@ ${pack.inventory.world ? `<li>World: ${escape(pack.inventory.world.name)} (<code
 <li>Safety stack: ${listHtml(pack.governance.guardrails)}</li>
 <li>Approvals: ${pack.governance.approvals.requested} requested, ${pack.governance.approvals.granted} granted ${citeHtml(pack.governance.approvals.runIds)}</li>
 <li>Egress: hosts ${listHtml(pack.governance.egress.hosts)}; ${pack.governance.egress.recordedRuns} runs recorded their egress, ${pack.governance.egress.noNetworkRuns} allowed none ${citeHtml(pack.governance.egress.runIds)}</li>
-<li>Principal: ${notRec(pack.governance.principal)}</li>
+<li>Principal: ${pack.governance.principal.recorded ? principalsHtml(pack.governance.principal.principals) : notRec(pack.governance.principal)}</li>
 </ul>`;
 
 	const development =
@@ -329,7 +352,7 @@ ${
 				citeHtml(row.runIds)
 			])
 		);
-	const validation = `<p>Validated by: ${notRec(pack.validation.validatedBy)}</p>${pack.validation.note ? `<p class="note">${escape(pack.validation.note)}</p>` : evaluationRows(pack.validation.evaluations)}`;
+	const validation = `<p>Validated by: ${pack.validation.validatedBy.recorded ? `${principalsHtml(pack.validation.validatedBy.validators)} <span class="note">${escape(pack.validation.validatedBy.note)}</span>` : notRec(pack.validation.validatedBy)}</p>${pack.validation.note ? `<p class="note">${escape(pack.validation.note)}</p>` : evaluationRows(pack.validation.evaluations)}`;
 
 	const mitigants = `<ul>
 <li>Cannot: ${pack.mitigants.inability.length === 0 ? 'none' : pack.mitigants.inability.map(escape).join('; ')}</li>

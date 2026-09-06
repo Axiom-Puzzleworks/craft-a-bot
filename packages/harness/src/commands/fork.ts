@@ -7,6 +7,7 @@ import {
 	type AgentSpecV2,
 	type EgressMode,
 	type EngineEvent,
+	type Principal,
 	type RunOutcome
 } from '@craftabot/core';
 import { summariseRun } from '@craftabot/governance/reports';
@@ -41,6 +42,8 @@ export interface ForkRunOptions {
 	now?: () => string;
 	newId?: () => string;
 	egress?: EgressMode;
+	/** Who is forking (WP65): the fork is a new run by whoever forked it, not the origin's principal. */
+	principal?: Principal;
 }
 
 export interface ForkRunReport {
@@ -97,6 +100,13 @@ export function actsAfter(
 	return { same: true };
 }
 
+/**
+ * What two rows are compared on: type, tick and payload — less the clock
+ * (`durationMs`), less what says a run is a fork, and less *who* (WP65): a
+ * fork is a new run by whoever forked it, so its attestations and `by`s
+ * name the forker, and a divergence is about what the bot did, not who was
+ * at the keyboard.
+ */
 const comparable = (event: EngineEvent) => ({
 	type: event.type,
 	tick: event.tick,
@@ -104,8 +114,18 @@ const comparable = (event: EngineEvent) => ({
 		event.type === 'tool.executed'
 			? { ...event.payload, durationMs: 0 }
 			: event.type === 'run.started'
-				? Object.fromEntries(Object.entries(event.payload).filter(([key]) => key !== 'forkedFrom'))
-				: event.payload
+				? Object.fromEntries(
+						Object.entries(event.payload).filter(
+							([key]) => key !== 'forkedFrom' && key !== 'principal'
+						)
+					)
+				: event.type === 'action.performed'
+					? Object.fromEntries(
+							Object.entries(event.payload).filter(([key]) => key !== 'attestation')
+						)
+					: event.type === 'approval.resolved'
+						? { approved: event.payload.approved }
+						: event.payload
 });
 
 /** Where two traces first part after `tick` — in type, tick or payload — or nowhere. */
@@ -171,7 +191,8 @@ export async function forkRun(options: ForkRunOptions): Promise<ForkRunReport> {
 				random: mulberry32(options.seed),
 				tickDelayMs: 0,
 				...(options.newId ? { newId: options.newId } : {}),
-				egress: options.egress ?? 'declared'
+				egress: options.egress ?? 'declared',
+				...(options.principal ? { principal: options.principal } : {})
 			}
 		},
 		{ from: { events: originEvents, tick }, ...(options.kitPath ? { overrides: { spec } } : {}) }
@@ -181,7 +202,9 @@ export async function forkRun(options: ForkRunOptions): Promise<ForkRunReport> {
 	const startedAt = now();
 	const versions = packVersions(options.config);
 	session.events.onAny((event) => events.push(event));
-	session.events.on('approval.requested', () => session.resolveApproval(options.approve ?? true));
+	session.events.on('approval.requested', () =>
+		session.resolveApproval(options.approve ?? true, options.principal)
+	);
 	session.start('step');
 	let outcome: RunOutcome | undefined;
 	const budget = origin.budgets.maxTicks;

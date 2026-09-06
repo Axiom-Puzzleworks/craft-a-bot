@@ -442,6 +442,24 @@ describe('boundaryMapFor, over a trace', () => {
 		});
 		expect(map.human.approvals).toBe(1);
 		expect(litEdgesAt(map, 3).has('human')).toBe(true);
+		// No principal on this run's `run.started`: the human is unnamed (WP65).
+		expect(map.human.principal).toBeUndefined();
+		const named = boundaryMapFor(spec, registry(), {
+			events: [
+				{
+					...started,
+					payload: {
+						...(started as { payload: object }).payload,
+						principal: { kind: 'person', id: 'browser-1', name: 'Sam' }
+					}
+				} as unknown as EngineEvent,
+				asked
+			]
+		});
+		expect(named.human).toEqual({
+			approvals: 1,
+			principal: { kind: 'person', id: 'browser-1', name: 'Sam' }
+		});
 		const [reached, offline] = map.activity ?? [];
 		expect(reached).toMatchObject({
 			edge: 'guard-service:screen',

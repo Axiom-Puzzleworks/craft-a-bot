@@ -1,4 +1,5 @@
 import { createEventBus, type EventBus } from '../event-bus.js';
+import type { Attestation, Principal } from '../schemas/shared.js';
 import { toSpecV2 } from '../schemas/agent-spec-v2.js';
 import {
 	brainSlotSchema,
@@ -119,6 +120,8 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 	let tickDelayMs = options.tickDelayMs ?? 0;
 	/** Set only when this session is a group member (WP29, `23-…` §4.5). */
 	const parentRunId = options.parentRunId;
+	/** Who is running this (WP65, `55-…` §4.1) — on `run.started` and every attestation, only when named. */
+	const principal = options.principal;
 
 	const goalCard = requireGoalCard(registry.getGoalCard(spec.goalCardId), spec.goalCardId);
 	/*
@@ -248,7 +251,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		begun: false,
 		pauseRequested: false,
 		stopRequested: undefined as string | undefined,
-		pendingApproval: undefined as ((approved: boolean) => void) | undefined,
+		pendingApproval: undefined as ((approved: boolean, by?: Principal) => void) | undefined,
 		/** Set by `declareOutcome` mid-tick; honoured at JUDGE (E2). */
 		declaredOutcome: undefined as RunOutcome | undefined,
 		declaredReason: undefined as string | undefined,
@@ -447,7 +450,9 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 
 	async function runGuards(
 		hook: GuardrailHook,
-		proposed?: GuardrailContext['proposed']
+		proposed?: GuardrailContext['proposed'],
+		/** Filled with the ids of the guardrails that allowed — an attestation's `guardrailsPassed` (WP65). */
+		passed?: string[]
 	): Promise<ChainOutcome> {
 		return runGuardrailChain(
 			guardrails,
@@ -455,6 +460,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			guardrailContext(hook, proposed),
 			(guardrail, verdict, external) => {
 				const policyCardId = guardrail.policyCardId;
+				if (passed && 'allow' in verdict && verdict.allow) passed.push(guardrail.id);
 				// A hosted guardrail's own call, immediately before the verdict it
 				// produced (`25-…` §4.7) — never emitted by the guardrail itself.
 				if (external) {
@@ -629,7 +635,11 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		run.feedback.push(narration);
 	}
 
-	async function performCall(decision: Extract<Decision, { kind: 'call' }>): Promise<{
+	async function performCall(
+		decision: Extract<Decision, { kind: 'call' }>,
+		/** Who and what let this through (WP65) — present when the session has a principal. */
+		attestation?: Attestation
+	): Promise<{
 		summary: string;
 		result: string;
 		/** Whether the attempt succeeded (WP30 stage B) — see `TickMemory.ok`. */
@@ -685,7 +695,8 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			emit('action.performed', {
 				name: call.name,
 				arguments: call.arguments,
-				result: { ok: false, narration, stateDiff: [] }
+				result: { ok: false, narration, stateDiff: [] },
+				...(attestation ? { attestation } : {})
 			});
 			noteWorldFailure(narration);
 			return { summary: `tried to ${call.name}`, result: narration, ok: false };
@@ -698,7 +709,8 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		emit('action.performed', {
 			name: call.name,
 			arguments: call.arguments,
-			result: actionResult
+			result: actionResult,
+			...(attestation ? { attestation } : {})
 		});
 		if (actionResult.ok) {
 			emit('world.changed', { state: world.snapshot() });
@@ -814,7 +826,17 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 				name: decision.call.name,
 				arguments: decision.call.arguments
 			};
-			const preAct = await runGuards('pre-act', proposed);
+			const passed: string[] = [];
+			const preAct = await runGuards('pre-act', proposed, passed);
+			/** The attestation this call carries if it runs (WP65): who, for whom, and the checks that let it through. */
+			const attestationFor = (approvedBy?: Principal): Attestation | undefined =>
+				principal
+					? {
+							principal,
+							...(approvedBy ? { approvedBy } : {}),
+							guardrailsPassed: passed
+						}
+					: undefined;
 
 			if (isPause(preAct.verdict)) {
 				// Arm the resolver *before* announcing, so a host that calls
@@ -822,10 +844,10 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 				// silently ignored — that would deadlock the run.
 				const approval = awaitApproval();
 				emit('approval.requested', { proposed, reason: preAct.verdict.reason });
-				const approved = await approval;
-				emit('approval.resolved', { approved });
+				const { approved, by } = await approval;
+				emit('approval.resolved', { approved, ...(by ? { by } : {}) });
 				if (approved) {
-					acted = await performCall(decision);
+					acted = await performCall(decision, attestationFor(by));
 				} else {
 					const message = `You tried to ${decision.call.name}, but a person said no: ${preAct.verdict.reason}`;
 					run.feedback.push(message);
@@ -837,7 +859,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 				refused = message;
 				if (preAct.verdict.disposition === 'stop-run') return finish('STOPPED_BY_GUARDRAIL');
 			} else {
-				acted = await performCall(decision);
+				acted = await performCall(decision, attestationFor());
 			}
 		} else if (decision.kind === 'malformed') {
 			// The bot mumbled twice — a wasted tick (03-UI-UX-DESIGN.md §9).
@@ -937,13 +959,13 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		return { tick: run.tick };
 	}
 
-	function awaitApproval(): Promise<boolean> {
+	function awaitApproval(): Promise<{ approved: boolean; by?: Principal }> {
 		run.status = 'awaiting-approval';
-		return new Promise<boolean>((resolve) => {
-			run.pendingApproval = (approved) => {
+		return new Promise<{ approved: boolean; by?: Principal }>((resolve) => {
+			run.pendingApproval = (approved, by) => {
 				run.pendingApproval = undefined;
 				run.status = 'running';
-				resolve(approved);
+				resolve({ approved, ...(by ? { by } : {}) });
 			};
 		});
 	}
@@ -1002,6 +1024,8 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			providerId: provider.id,
 			wireModel: cartridgeModel(),
 			cartridgeId: brain?.cartridgeId ?? '',
+			// Who is running this (WP65): only when the host named one, so a trace written before keeps its bytes.
+			...(principal ? { principal } : {}),
 			...(fork ? { forkedFrom: fork.forkedFrom } : {}),
 			// Written only when the host named a mode (WP41): the guard runs
 			// either way, but a trace written before the field existed — the
@@ -1087,8 +1111,8 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			run.pauseRequested = true;
 			if (run.status === 'running' && run.mode === 'step') run.status = 'paused';
 		},
-		resolveApproval(approved) {
-			run.pendingApproval?.(approved);
+		resolveApproval(approved, by) {
+			run.pendingApproval?.(approved, by);
 		},
 		stop(reason) {
 			run.stopRequested = reason ?? 'stopped by user';

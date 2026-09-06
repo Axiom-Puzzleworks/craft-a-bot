@@ -13,6 +13,8 @@ import { persistRunSummary } from '@craftabot/governance/reports';
 import { capabilitiesOf } from '$lib/bot-capabilities.js';
 import { chooseBrain } from '$lib/brain.js';
 import { packVersions } from '$lib/packs.js';
+import { preferences } from '$lib/state/preferences.svelte.js';
+import { browserPrincipal } from '$lib/state/principal.js';
 import { createSessionView } from '$lib/state/session.svelte.js';
 import type { Storage } from '$lib/state/storage.js';
 import { recordTrace, type TraceRecorder } from '$lib/state/trace-recorder.js';
@@ -78,10 +80,13 @@ export async function forkStoredRun(
 	let recorder: TraceRecorder | undefined;
 	let runId: string | undefined;
 	const startedAt = new Date().toISOString();
+	// The fork is a new run by whoever forked it (WP65) — the browser's principal, not the origin's.
+	const principal = browserPrincipal(preferences.displayName);
 	const view = createSessionView({
 		spec,
 		provider: brain.provider,
 		forkFrom: { events, tick },
+		principal,
 		onEvent: (event) => {
 			seen.push(event);
 			if (event.type === 'run.started') {
@@ -90,7 +95,8 @@ export async function forkStoredRun(
 				void storage.putRun(recordFor(event.runId, spec, seen, forkedFrom, startedAt));
 			}
 			recorder?.accept(event);
-			if (event.type === 'approval.requested') queueMicrotask(() => view.resolveApproval(true));
+			if (event.type === 'approval.requested')
+				queueMicrotask(() => view.resolveApproval(true, principal));
 		}
 	});
 

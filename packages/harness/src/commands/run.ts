@@ -1,4 +1,4 @@
-import type { EgressMode } from '@craftabot/core';
+import type { EgressMode, Principal } from '@craftabot/core';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import {
@@ -65,6 +65,8 @@ export interface RunKitOptions {
 	fetch?: typeof globalThis.fetch;
 	/** The session's egress mode (WP41): `'declared'` by default, `'none'` for a run that must not touch the network. */
 	egress?: EgressMode;
+	/** Who is running this (WP65, `55-…` §4.2): on `run.started` and every attestation, and the `by` of every approval the harness answers. */
+	principal?: Principal;
 	/** A sink to stream the run to (WP47, `35-…` §4.5) — by id, with its config as JSON. */
 	sink?: { id: string; config?: string };
 	/**
@@ -130,7 +132,8 @@ export async function runKit(options: RunKitOptions): Promise<RunKitReport> {
 			...(options.now ? { now: options.now } : {}),
 			...(options.newId ? { newId: options.newId } : {}),
 			...(options.fetch ? { fetch: options.fetch } : {}),
-			...(options.egress ? { egress: options.egress } : {})
+			...(options.egress ? { egress: options.egress } : {}),
+			...(options.principal ? { principal: options.principal } : {})
 		});
 		return {
 			runId: duo.runId,
@@ -176,6 +179,7 @@ export async function runKit(options: RunKitOptions): Promise<RunKitReport> {
 			...(options.newId ? { newId: options.newId } : {}),
 			...(options.fetch ? { fetch: options.fetch } : {}),
 			egress: options.egress ?? 'declared',
+			...(options.principal ? { principal: options.principal } : {}),
 			...(options.maxTicks !== undefined ? { budgets: { maxTicks: options.maxTicks } } : {})
 		}
 	});
@@ -204,7 +208,10 @@ export async function runKit(options: RunKitOptions): Promise<RunKitReport> {
 		}
 		if (event.type === 'tick.completed' || event.type === 'run.finished') void flush();
 	});
-	session.events.on('approval.requested', () => session.resolveApproval(options.approve ?? true));
+	// The harness answers every approval, and says who it was (WP65).
+	session.events.on('approval.requested', () =>
+		session.resolveApproval(options.approve ?? true, options.principal)
+	);
 
 	// A sink rides along the live run (WP47): attached before the first event, detached and flushed after the last.
 	const sinkDefinition = options.sink ? sinkById(options.sink.id) : undefined;

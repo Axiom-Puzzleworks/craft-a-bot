@@ -45,6 +45,9 @@ export interface Preferences {
 	readonly ollamaEndpoint: string;
 	/** Returns the problem when the value is refused, `undefined` when it was stored. */
 	setOllamaEndpoint(value: string): string | undefined;
+	/** The name on the trace (WP65) — blank when the person has not said. */
+	readonly displayName: string;
+	setDisplayName(value: string): void;
 	setReducedMotion(value: boolean): void;
 	setTickSpeed(value: number): void;
 	setSound(value: boolean): void;
@@ -70,7 +73,8 @@ export function createPreferences(store?: SettingsStore, player?: SoundPlayer): 
 		workshop: initial.workshop,
 		runCap: initial.runCap,
 		breakpoints: initial.breakpoints,
-		ollamaEndpoint: initial.ollamaEndpoint
+		ollamaEndpoint: initial.ollamaEndpoint,
+		displayName: initial.displayName
 	});
 
 	return {
@@ -139,6 +143,13 @@ export function createPreferences(store?: SettingsStore, player?: SoundPlayer): 
 			state.ollamaEndpoint = next.ollamaEndpoint;
 			return undefined;
 		},
+		get displayName() {
+			return state.displayName;
+		},
+		setDisplayName(value) {
+			const next = settings.update({ displayName: value.slice(0, 60) });
+			state.displayName = next.displayName;
+		},
 		cue(name) {
 			sound.play(name);
 		}
@@ -176,6 +187,10 @@ export const preferences: Preferences = {
 		return (shared ??= createPreferences()).ollamaEndpoint;
 	},
 	setOllamaEndpoint: (value) => (shared ??= createPreferences()).setOllamaEndpoint(value),
+	get displayName() {
+		return (shared ??= createPreferences()).displayName;
+	},
+	setDisplayName: (value) => (shared ??= createPreferences()).setDisplayName(value),
 	setReducedMotion: (value) => (shared ??= createPreferences()).setReducedMotion(value),
 	setTickSpeed: (value) => (shared ??= createPreferences()).setTickSpeed(value),
 	setSound: (value) => (shared ??= createPreferences()).setSound(value),

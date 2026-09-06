@@ -1,4 +1,4 @@
-import type { EngineEvent, RunRecord } from '@craftabot/core';
+import type { EngineEvent, Principal, RunRecord } from '@craftabot/core';
 import type { TraceExport } from './types.js';
 
 /**
@@ -80,6 +80,37 @@ function intAttr(key: string, value: number): OtelAttribute {
 	return { key, value: { intValue: String(Math.trunc(value)) } };
 }
 
+/** The group's own principal, from `group.started` (WP65). */
+function groupPrincipal(events: readonly EngineEvent[]): Principal | undefined {
+	const started = events.find((event) => event.type === 'group.started');
+	return started?.type === 'group.started' ? started.payload.principal : undefined;
+}
+
+/** The chain rendered `kind:id`, innermost first, joined ` <- ` — `agent:bot-1 <- person:browser-1`. */
+export function principalChain(principal: Principal): string {
+	const parts: string[] = [];
+	for (let at: Principal | undefined = principal; at; at = at.onBehalfOf)
+		parts.push(`${at.kind}:${at.id}`);
+	return parts.join(' <- ');
+}
+
+/**
+ * The principal as attributes (WP65, `55-…` §4.3): the conventions have
+ * `gen_ai.agent.id`; a person or service behind the run has none, so the
+ * rest are `craft_a_bot.*`. None when the run named no principal.
+ */
+function principalAttrs(principal: Principal | undefined): OtelAttribute[] {
+	if (!principal) return [];
+	return [
+		stringAttr('craft_a_bot.principal.kind', principal.kind),
+		stringAttr('craft_a_bot.principal.id', principal.id),
+		...(principal.name !== undefined
+			? [stringAttr('craft_a_bot.principal.name', principal.name)]
+			: []),
+		stringAttr('craft_a_bot.principal.chain', principalChain(principal))
+	];
+}
+
 const hex = (id: string): string => id.replace(/-/g, '');
 const traceIdOf = (runId: string): string => hex(runId).padEnd(32, '0').slice(0, 32);
 const spanIdOf = (id: string): string => hex(id).padEnd(16, '0').slice(0, 16);
@@ -91,6 +122,9 @@ export function otelTraceFor(run: RunRecord, events: readonly EngineEvent[]): Ot
 	const rootSpanId = spanIdOf(run.id);
 	const rootEvents: OtelSpanEvent[] = [];
 	const childSpans: OtelSpan[] = [];
+	// The principal on the run (WP65, `55-…` §4.3): `run.started` says, when a host named one.
+	const started = events.find((event) => event.type === 'run.started');
+	const principal = started?.type === 'run.started' ? started.payload.principal : undefined;
 
 	for (const event of events) {
 		if (event.type === 'think.completed') {
@@ -123,6 +157,9 @@ export function otelTraceFor(run: RunRecord, events: readonly EngineEvent[]): Ot
 				attributes: [
 					stringAttr('gen_ai.operation.name', 'execute_tool'),
 					stringAttr('gen_ai.tool.name', event.payload.name),
+					// Whose tool call this was (WP65): the agent, and the chain behind it when the run names one.
+					stringAttr('gen_ai.agent.id', run.agentId),
+					...principalAttrs(principal),
 					intAttr('craft_a_bot.tick', event.tick)
 				]
 			});
@@ -181,7 +218,9 @@ export function otelTraceFor(run: RunRecord, events: readonly EngineEvent[]): Ot
 		endTimeUnixNano: nanosOf(run.finishedAt ?? run.startedAt),
 		attributes: [
 			stringAttr('gen_ai.operation.name', 'invoke_agent'),
+			stringAttr('gen_ai.agent.id', run.agentId),
 			stringAttr('gen_ai.agent.name', run.agentName),
+			...principalAttrs(principal),
 			stringAttr('gen_ai.provider.name', run.providerId),
 			stringAttr('gen_ai.request.model', run.wireModel),
 			stringAttr('craft_a_bot.goal_card_id', run.goalCardId),
@@ -224,6 +263,7 @@ export function otelTraceForGroup(group: NonNullable<TraceExport['group']>): Ote
 			endTimeUnixNano: nanosOf(group.record.finishedAt ?? group.record.startedAt),
 			attributes: [
 				stringAttr('gen_ai.operation.name', 'invoke_group'),
+				...principalAttrs(groupPrincipal(group.events)),
 				stringAttr('craft_a_bot.goal_card_id', group.record.goalCardId),
 				stringAttr('craft_a_bot.outcome', group.record.outcome),
 				intAttr('craft_a_bot.group.members', group.members.length),

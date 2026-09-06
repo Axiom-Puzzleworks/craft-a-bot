@@ -6,6 +6,7 @@ import {
 	type Guardrail,
 	type WorldViewState,
 	type LLMProvider,
+	type Principal,
 	type RunMode,
 	type RunOutcome,
 	type SessionGroup,
@@ -88,7 +89,7 @@ export interface GroupSessionView {
 	stepRound(): Promise<{ round: number; outcome?: RunOutcome }>;
 	pause(): void;
 	stop(): void;
-	resolveApproval(agentId: string, approved: boolean): void;
+	resolveApproval(agentId: string, approved: boolean, by?: Principal): void;
 	deliverInput(text: string): void;
 }
 
@@ -108,6 +109,8 @@ export interface GroupSessionViewDeps {
 	groupGuardrails?: Guardrail[];
 	groupMaxTokens?: number;
 	maxRounds?: number;
+	/** The group's principal (WP65): each seat acts `onBehalfOf` it. The duo names the browser's person. */
+	principal?: Principal;
 	/**
 	 * Delay between rounds, fixed at construction — defaults to solo's own
 	 * `BASE_TICK_DELAY_MS` (700ms) so PLAY paces the same in a duo room.
@@ -181,7 +184,8 @@ export function createGroupSessionView(deps: GroupSessionViewDeps): GroupSession
 			options: {
 				tickDelayMs: deps.baseTickDelayMs ?? BASE_TICK_DELAY_MS,
 				...(deps.groupMaxTokens !== undefined ? { groupMaxTokens: deps.groupMaxTokens } : {}),
-				...(deps.maxRounds !== undefined ? { maxRounds: deps.maxRounds } : {})
+				...(deps.maxRounds !== undefined ? { maxRounds: deps.maxRounds } : {}),
+				...(deps.principal ? { principal: deps.principal } : {})
 			}
 		});
 
@@ -341,11 +345,11 @@ export function createGroupSessionView(deps: GroupSessionViewDeps): GroupSession
 			group.stop('stopped from the Playroom');
 			state.status = group.status;
 		},
-		resolveApproval(agentId, approved) {
+		resolveApproval(agentId, approved, by) {
 			// `pendingApproval` is cleared by the `approval.resolved` event rather
 			// than here, so the UI stays a pure function of the trace — same rule
 			// `session.svelte.ts`'s own `resolveApproval` follows.
-			group.resolveApproval(agentId, approved);
+			group.resolveApproval(agentId, approved, by);
 			state.status = group.status;
 		},
 		deliverInput(text) {

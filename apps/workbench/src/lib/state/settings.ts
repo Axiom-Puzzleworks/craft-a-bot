@@ -62,6 +62,13 @@ export const settingsSchema = z.object({
 		.refine((value) => isLoopbackEndpoint(value), { message: 'Only this computer is allowed.' })
 		.default(OLLAMA_BASE_URL),
 	/**
+	 * The name on the trace (WP65, `55-PRINCIPAL.md` §4.2): what the browser's
+	 * principal is called on every run it starts and every approval it
+	 * answers. Blank by default and blank is fine — the principal then has an
+	 * id and no name. Sixty characters, trimmed.
+	 */
+	displayName: z.string().trim().max(60).default(''),
+	/**
 	 * Highest instruction-leaflet chapter completed, 0 = not started.
 	 *
 	 * No upper bound on purpose (`WP30 stage D`, after `.max(6)` was found to

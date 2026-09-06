@@ -16,12 +16,14 @@ import { SLOT_IDS } from '../types/brick.js';
 
 import {
 	actionResultSchema,
+	attestationSchema,
 	chatMessageSchema,
 	chatResponseSchema,
 	externalCallRecordSchema,
 	guardrailHookSchema,
 	guardrailVerdictSchema,
 	observationSchema,
+	principalSchema,
 	proposedStepSchema,
 	runOutcomeSchema,
 	usageSchema
@@ -107,6 +109,8 @@ const runStartedEvent = eventSchema(
 		 * `sections-v1`.
 		 */
 		strategies: z.object({ memory: z.string(), prompt: z.string() }).optional(),
+		/** Who started this run and, through `onBehalfOf`, for whom (WP65, `55-…` §4.1); written only when the host named one. */
+		principal: principalSchema.optional(),
 		/** A fork (WP66, `54-…` §4.1): the origin run and the tick this run continues after; additive. */
 		forkedFrom: z
 			.object({
@@ -248,7 +252,13 @@ const toolExecutedEvent = eventSchema(
 );
 const actionPerformedEvent = eventSchema(
 	'action.performed',
-	z.object({ name: z.string(), arguments: z.unknown(), result: actionResultSchema })
+	z.object({
+		name: z.string(),
+		arguments: z.unknown(),
+		result: actionResultSchema,
+		/** Who was behind it and what let it through (WP65, `55-…` §4.1); present when the session has a principal. */
+		attestation: attestationSchema.optional()
+	})
 );
 const memoryUpdatedEvent = eventSchema(
 	'memory.updated',
@@ -330,7 +340,14 @@ const approvalRequestedEvent = eventSchema(
 	'approval.requested',
 	z.object({ proposed: proposedStepSchema, reason: z.string() })
 );
-const approvalResolvedEvent = eventSchema('approval.resolved', z.object({ approved: z.boolean() }));
+const approvalResolvedEvent = eventSchema(
+	'approval.resolved',
+	z.object({
+		approved: z.boolean(),
+		/** Who answered (WP65, `55-…` §4.1); present when the caller said. */
+		by: principalSchema.optional()
+	})
+);
 const worldChangedEvent = eventSchema(
 	'world.changed',
 	z.object({ state: z.record(z.string(), z.unknown()) })
@@ -360,6 +377,8 @@ const groupStartedEvent = eventSchema(
 		memberAgentIds: z.array(z.string().uuid()),
 		/** Each member's side of the desk, by agent id (WP55, `46-…` §4.3); absent when no member had a role. */
 		memberRoles: z.record(z.string(), z.enum(['agent', 'counterpart'])).optional(),
+		/** The group's own principal (WP65, `55-…` §4.1); each member acts `onBehalfOf` it. Written only when the host named one. */
+		principal: principalSchema.optional(),
 		goalCardId: z.string(),
 		scheduler: z.literal('round-robin'),
 		budgets: z.object({

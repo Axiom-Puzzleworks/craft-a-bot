@@ -1,6 +1,7 @@
 import type { EgressMode } from '@craftabot/core';
 import { writeFile } from 'node:fs/promises';
 import { defaultConfig, loadConfig, type HarnessConfig } from './config.js';
+import { principalFromEnv } from './principal.js';
 import { credentialsFromEnv, type CredentialSource } from './credentials.js';
 import { bundleRun } from './commands/bundle.js';
 import { evaluateRun, renderEvaluations } from './commands/evaluate.js';
@@ -83,6 +84,7 @@ Usage:
                 [--egress declared|none]
                 [--seed <n>] [--max-ticks <n>] [--deny] [--out ./runs]
                 [--counterpart scripted|live] [--counterpart-cartridge <id>] [--max-rounds <n>]
+                [--principal <name>]
       Run a kit file to completion and write the run — run.json, events.jsonl,
       summary.json and a <runId>.craftabot-trace.json the Workshop imports —
       under --out (default ./runs). The scripted brains need no key and are
@@ -183,6 +185,11 @@ Usage:
       by the same folds over the same stored summaries. --safety-case needs
       --agent unless the store holds exactly one bot.
 
+Every run, fork and campaign cell the harness starts names its principal
+(WP65): a service, craftabot-harness, named --principal <name>, else
+CRAFTABOT_PRINCIPAL, else this machine's hostname — on run.started, on every
+action's attestation, and as the "by" of every approval the harness answers.
+
 Credentials are read only from the environment, as CRAFTABOT_CREDENTIAL_<ID>
 (for example CRAFTABOT_CREDENTIAL_OPENAI), and are never written to any file.
 `;
@@ -246,6 +253,7 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 					approve: args.flags['deny'] !== true,
 					config,
 					credentials: credentialsFromEnv(io.env),
+					principal: principalFor(io, args),
 					...(card !== undefined ? { card } : {}),
 					...(providerFlag !== undefined ? { provider: providerFlag } : {}),
 					...(maxTicks !== undefined ? { maxTicks } : {}),
@@ -307,6 +315,7 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 					approve: args.flags['deny'] !== true,
 					config: await configFrom(args),
 					credentials: credentialsFor(io),
+					principal: principalFor(io, args),
 					...(tick !== undefined ? { tick } : {}),
 					...(kitPath !== undefined ? { kitPath } : {}),
 					...(egress !== undefined ? { egress } : {})
@@ -385,6 +394,7 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 					keepRuns: args.flags['no-keep-runs'] !== true,
 					config: await configFrom(args),
 					credentials: credentialsFromEnv(io.env),
+					principal: principalFor(io, args),
 					...(baseline !== undefined ? { baseline } : {}),
 					...(junit !== undefined ? { junit } : {}),
 					...(sarif !== undefined ? { sarif } : {}),
@@ -624,6 +634,12 @@ function numberFlag(args: ParsedArgs, name: string): number | undefined {
 }
 
 /** Exposed so a test can hand the CLI a planted environment without touching `process.env`. */
-export function credentialsFor(io: CliIo): CredentialSource {
+export /** The harness's principal for this invocation (WP65): `--principal <name>`, else the environment, else the hostname. */
+function principalFor(io: CliIo, args: ParsedArgs) {
+	const name = stringFlag(args, 'principal');
+	return principalFromEnv(io.env, name !== undefined ? { name } : {});
+}
+
+function credentialsFor(io: CliIo): CredentialSource {
 	return credentialsFromEnv(io.env);
 }

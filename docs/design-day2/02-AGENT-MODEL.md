@@ -232,6 +232,8 @@ All events share `{ id, runId, tick, timestamp, type, payload }`, strictly typed
 
 > **Amended 2026-08-14 (WP15, E7):** one payload field, additive.
 >
+> **Amended 2026-09-06 (WP65, `55-PRINCIPAL.md` §4.1):** four additive fields, every one written only when the host names a principal, so every trace written before keeps its bytes. `run.started.principal?: Principal` — `{ kind: 'person' | 'service' | 'agent', id, name?, onBehalfOf?: Principal }`, who started the run and, recursively, for whom; `approval.resolved.by?: Principal` — who answered; `action.performed.attestation?: { principal, approvedBy?, guardrailsPassed: string[] }` — the chain behind the action and the `pre-act` guardrails that allowed it, in order; `group.started.principal?` — the group's own, each member running as an agent `onBehalfOf` it. `RunSummary.principal?` mirrors the run's.
+>
 > **Amended 2026-09-06 (WP66, `54-FORK-EXPLAIN.md` §4.1):** `run.started` gains `forkedFrom?: { runId, tick, notebook: 'restored' | 'empty' }` — present on a run `forkSession` began where a stored run left off; additive, and the only thing that says a run is a fork. `RunRecord.forkedFrom?` mirrors it.
 
 > - **`run.started.strategies?`** `{ memory, prompt }` — the ids of the strategies that assembled this run's context (`window-v1` + `sections-v1` by default). The trace could already show *what* went to the model, message by message, and had no way to say what **rule** produced it. "Was this run in realism mode?" is a governance question, because two runs of the same bot under the same budgets can decide differently when their context was shaped differently, and reverse-engineering the answer from the message shapes is a guess rather than an audit.

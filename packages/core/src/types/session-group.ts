@@ -6,6 +6,7 @@ import type { AgentSession, RunMode, SessionOptions, SessionStatus } from './age
 import type { Guardrail } from './guardrail.js';
 import type { LLMProvider } from './provider.js';
 import type { AgentRole } from './world.js';
+import type { Principal } from '../schemas/shared.js';
 
 /**
  * The host-level composition WP29 adds (`23-MULTI-AGENT-DESIGN.md` §4.4).
@@ -52,6 +53,12 @@ export interface CreateSessionGroupDeps {
 		/** Ceiling on scheduler rounds — a round is one tick offered to each live agent. */
 		maxRounds?: number;
 		/**
+		 * The group's principal (WP65, `55-…` §4.1): written to `group.started`,
+		 * and every member runs as an agent `onBehalfOf` it. Absent, no member
+		 * carries one.
+		 */
+		principal?: Principal;
+		/**
 		 * Readers with the group's ear (WP48, `36-…` §4.2): each subscribes to
 		 * the merged bus before any member starts and is detached when the group
 		 * finishes. What one contributes as policy goes through `groupGuardrails`.
@@ -71,8 +78,8 @@ export interface SessionGroup {
 	/** One round: each unfinished member takes one tick, in fixed member order. */
 	stepRound(): Promise<{ round: number; outcome?: RunOutcome }>;
 	pause(): void;
-	/** Resolves the named agent's own pending approval — approvals stay per-agent. */
-	resolveApproval(agentId: string, approved: boolean): void;
+	/** Resolves the named agent's own pending approval — approvals stay per-agent. `by` names who answered (WP65). */
+	resolveApproval(agentId: string, approved: boolean, by?: Principal): void;
 	stop(reason?: string): void;
 	/** Reaches the shared world once, through whichever member is still live (§4.4). */
 	deliverInput(text: string): void;
