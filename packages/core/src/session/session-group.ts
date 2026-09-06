@@ -131,6 +131,17 @@ export function createSessionGroup(deps: CreateSessionGroupDeps): SessionGroup {
 				newId,
 				random,
 				parentRunId: groupRunId,
+				// Each member acts for the group's principal (WP65, `55-…` §4.1) — written only when the host named one.
+				...(options.principal
+					? {
+							principal: {
+								kind: 'agent' as const,
+								id: member.spec.id,
+								name: member.spec.name,
+								onBehalfOf: options.principal
+							}
+						}
+					: {}),
 				...(options.budgets ? { budgets: options.budgets } : {}),
 				...(options.strategies ? { strategies: options.strategies } : {})
 			}
@@ -339,6 +350,7 @@ export function createSessionGroup(deps: CreateSessionGroupDeps): SessionGroup {
 						)
 					}
 				: {}),
+			...(options.principal ? { principal: options.principal } : {}),
 			goalCardId,
 			scheduler: 'round-robin',
 			budgets: {
@@ -458,9 +470,9 @@ export function createSessionGroup(deps: CreateSessionGroupDeps): SessionGroup {
 			state.pauseRequested = true;
 			if (state.phase === 'running') state.phase = 'paused';
 		},
-		resolveApproval(agentId, approved) {
+		resolveApproval(agentId, approved, by) {
 			const index = members.findIndex((member) => member.spec.id === agentId);
-			sessions[index]?.resolveApproval(approved);
+			sessions[index]?.resolveApproval(approved, by);
 		},
 		stop(reason) {
 			state.stopRequested = reason ?? 'stopped by user';

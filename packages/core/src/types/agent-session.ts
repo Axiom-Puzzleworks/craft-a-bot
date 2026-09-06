@@ -1,4 +1,5 @@
 import type { EgressMode } from '../egress.js';
+import type { Principal } from '../schemas/shared.js';
 import type { AnyAgentSpec } from '../schemas/agent-spec-v2.js';
 import type { EngineEvent } from '../schemas/events.js';
 import type { TickMemory } from '../session/memory.js';
@@ -50,7 +51,7 @@ export interface AgentSession {
 	start(mode: RunMode): void;
 	step(): Promise<TickResult>;
 	pause(): void;
-	resolveApproval(approved: boolean): void;
+	resolveApproval(approved: boolean, by?: Principal): void;
 	/**
 	 * Change the play-mode delay between ticks *while the run is going*
 	 * (`16-…` §1.6). The loop reads it each time round, so the next gap is the
@@ -128,6 +129,14 @@ export interface SessionOptions {
 	 * episode it was part of without a new envelope field.
 	 */
 	parentRunId?: string;
+	/**
+	 * Who is running this session (WP65, `55-PRINCIPAL.md` §4.1): written to
+	 * `run.started.principal` and into every `action.performed.attestation`
+	 * — only when named, so a session built without one writes exactly what
+	 * it wrote before. The browser names a person, the harness a service, a
+	 * group each member as an agent acting `onBehalfOf` the group's own.
+	 */
+	principal?: Principal;
 }
 
 /**

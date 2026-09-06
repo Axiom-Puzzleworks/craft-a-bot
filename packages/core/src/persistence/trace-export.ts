@@ -34,7 +34,15 @@ export async function buildTraceFile(
 	const safeRun = redactSecrets(run, secrets);
 	const safeEvents = redactSecrets([...events], secrets);
 
-	return traceFileSchema.parse({
+	/*
+	 * Parse first, digest second (WP65, `55-…` §2 item 7; `12-…` D21). The
+	 * schema parse rebuilds every event with its keys in *schema* order, and
+	 * a digest taken over the events as emitted only verified while the
+	 * engine happened to emit keys in that order — a fork's `forkedFrom` and
+	 * a principal broke the coincidence. The digest is over the events the
+	 * file actually carries, which is what a reader re-hashes.
+	 */
+	const parsed = traceFileSchema.parse({
 		format: 'craftabot-trace',
 		formatVersion: TRACE_FORMAT_VERSION,
 		run: safeRun,
@@ -42,8 +50,9 @@ export async function buildTraceFile(
 		...(options.evaluations !== undefined
 			? { evaluations: redactSecrets([...options.evaluations], secrets) }
 			: {}),
-		traceDigest: await computeTraceDigest(safeEvents)
+		traceDigest: 'pending'
 	});
+	return { ...parsed, traceDigest: await computeTraceDigest(parsed.events) };
 }
 
 /** Re-checks a trace's digest — the integrity check a recipient runs (08 §4). */

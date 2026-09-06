@@ -630,6 +630,9 @@
 														"prompt"
 													]
 												},
+												"principal": {
+													"$ref": "#/$defs/__schema0"
+												},
 												"forkedFrom": {
 													"type": "object",
 													"properties": {
@@ -1555,6 +1558,27 @@
 														"ok",
 														"narration"
 													]
+												},
+												"attestation": {
+													"type": "object",
+													"properties": {
+														"principal": {
+															"$ref": "#/$defs/__schema0"
+														},
+														"approvedBy": {
+															"$ref": "#/$defs/__schema0"
+														},
+														"guardrailsPassed": {
+															"type": "array",
+															"items": {
+																"type": "string"
+															}
+														}
+													},
+													"required": [
+														"principal",
+														"guardrailsPassed"
+													]
 												}
 											},
 											"required": [
@@ -2187,6 +2211,9 @@
 											"properties": {
 												"approved": {
 													"type": "boolean"
+												},
+												"by": {
+													"$ref": "#/$defs/__schema0"
 												}
 											},
 											"required": [
@@ -2531,6 +2558,9 @@
 															"counterpart"
 														]
 													}
+												},
+												"principal": {
+													"$ref": "#/$defs/__schema0"
 												},
 												"goalCardId": {
 													"type": "string"
@@ -3083,6 +3113,9 @@
 													"memory",
 													"prompt"
 												]
+											},
+											"principal": {
+												"$ref": "#/$defs/__schema0"
 											},
 											"forkedFrom": {
 												"type": "object",
@@ -4009,6 +4042,27 @@
 													"ok",
 													"narration"
 												]
+											},
+											"attestation": {
+												"type": "object",
+												"properties": {
+													"principal": {
+														"$ref": "#/$defs/__schema0"
+													},
+													"approvedBy": {
+														"$ref": "#/$defs/__schema0"
+													},
+													"guardrailsPassed": {
+														"type": "array",
+														"items": {
+															"type": "string"
+														}
+													}
+												},
+												"required": [
+													"principal",
+													"guardrailsPassed"
+												]
 											}
 										},
 										"required": [
@@ -4641,6 +4695,9 @@
 										"properties": {
 											"approved": {
 												"type": "boolean"
+											},
+											"by": {
+												"$ref": "#/$defs/__schema0"
 											}
 										},
 										"required": [
@@ -4985,6 +5042,9 @@
 														"counterpart"
 													]
 												}
+											},
+											"principal": {
+												"$ref": "#/$defs/__schema0"
 											},
 											"goalCardId": {
 												"type": "string"
@@ -5339,5 +5399,34 @@
 		"exportedBy",
 		"runs",
 		"bundleDigest"
-	]
+	],
+	"$defs": {
+		"__schema0": {
+			"type": "object",
+			"properties": {
+				"kind": {
+					"type": "string",
+					"enum": [
+						"person",
+						"service",
+						"agent"
+					]
+				},
+				"id": {
+					"type": "string",
+					"minLength": 1
+				},
+				"name": {
+					"type": "string"
+				},
+				"onBehalfOf": {
+					"$ref": "#/$defs/__schema0"
+				}
+			},
+			"required": [
+				"kind",
+				"id"
+			]
+		}
+	}
 }

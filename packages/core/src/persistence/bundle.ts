@@ -8,6 +8,7 @@ import {
 	type TraceBundle
 } from '../schemas/trace-bundle.js';
 import { computeTraceDigest, type RunRecord } from '../schemas/trace-file.js';
+import { engineEventSchema } from '../schemas/events.js';
 import { redactSecrets } from './redact.js';
 import { buildTraceFile } from './trace-export.js';
 
@@ -37,7 +38,10 @@ export async function buildTraceBundle(options: BuildTraceBundleOptions): Promis
 	const evaluations = redactSecrets([...(options.evaluations ?? [])], secrets);
 	let group: TraceBundle['group'];
 	if (options.group) {
-		const events = redactSecrets([...options.group.events], secrets);
+		// Parsed before it is digested, as `buildTraceFile` does (WP65, `12-…` D21): the digest is over the events the bundle carries.
+		const events = engineEventSchema
+			.array()
+			.parse(redactSecrets([...options.group.events], secrets));
 		group = {
 			record: redactSecrets(options.group.record, secrets),
 			events,

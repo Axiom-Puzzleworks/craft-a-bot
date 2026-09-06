@@ -23,6 +23,7 @@ export function summariseRun(runId: string, events: readonly EngineEvent[]): Run
 	let decisions = 0;
 	let hostedPreActScreens = 0;
 	let egress: RunSummary['egress'];
+	let principal: RunSummary['principal'];
 	const guardrailTrips: Record<string, number> = {};
 
 	for (const event of events) {
@@ -48,6 +49,8 @@ export function summariseRun(runId: string, events: readonly EngineEvent[]): Run
 			case 'run.started':
 				// Where the run could call (WP41) — present once the host named a mode.
 				if (event.payload.egress) egress = event.payload.egress;
+				// Who started it (WP65) — present once the host named one.
+				if (event.payload.principal) principal = event.payload.principal;
 				break;
 			default:
 				break;
@@ -65,6 +68,7 @@ export function summariseRun(runId: string, events: readonly EngineEvent[]): Run
 		decisions,
 		hostedPreActScreens,
 		...(egress ? { egress } : {}),
+		...(principal ? { principal } : {}),
 		schemaVersion: 1
 	};
 }

@@ -10,6 +10,7 @@ import { agentSpecSchema } from './agent-spec.js';
 import { agentSpecV2Schema, migrateAgentSpec } from './agent-spec-v2.js';
 import { buildProblemSchema } from './build-problem.js';
 import { engineEventSchema } from './events.js';
+import { principalSchema } from './shared.js';
 import { runOutcomeSchema, type MigrationError, usageSchema } from './shared.js';
 
 /**
@@ -216,6 +217,8 @@ export const runSummarySchema = z.object({
 	hostedPreActScreens: z.number().int().nonnegative(),
 	/** Where the run was allowed to call (WP41, `26-…` §6.6) — `run.started.egress`, when the host named a mode. */
 	egress: z.object({ mode: z.enum(['declared', 'none']), hosts: z.array(z.string()) }).optional(),
+	/** Who started the run (WP65, `55-…` §4.3) — `run.started.principal`, when the host named one. */
+	principal: principalSchema.optional(),
 	schemaVersion: z.literal(1)
 });
 export type RunSummary = z.infer<typeof runSummarySchema>;

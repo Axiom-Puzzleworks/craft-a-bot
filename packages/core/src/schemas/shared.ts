@@ -210,3 +210,36 @@ export const proposedStepSchema = z.object({
 	arguments: z.unknown()
 });
 export type ProposedStep = z.infer<typeof proposedStepSchema>;
+
+/**
+ * **A principal** (WP65, `55-PRINCIPAL.md` §4.1; `41-…` §6.8; `19-…` #17/#18):
+ * who started a run, who answered an approval, who was behind an action —
+ * and, through `onBehalfOf`, for whom. A person at a browser, a service such
+ * as the harness, or an agent acting inside a group for the group's own
+ * principal. Recorded as the host said it, never verified; written to the
+ * trace only when a host names one, so a trace written before the field
+ * existed keeps its bytes.
+ */
+export interface Principal {
+	kind: 'person' | 'service' | 'agent';
+	id: string;
+	name?: string;
+	onBehalfOf?: Principal;
+}
+export const principalSchema: z.ZodType<Principal> = z.lazy(() =>
+	z.object({
+		kind: z.enum(['person', 'service', 'agent']),
+		id: z.string().min(1),
+		name: z.string().optional(),
+		onBehalfOf: principalSchema.optional()
+	})
+) as z.ZodType<Principal>;
+
+/** What an `action.performed` says about who and what let it through (WP65). */
+export const attestationSchema = z.object({
+	principal: principalSchema,
+	approvedBy: principalSchema.optional(),
+	/** The `pre-act` guardrails that allowed this call, in the order they ran. */
+	guardrailsPassed: z.array(z.string())
+});
+export type Attestation = z.infer<typeof attestationSchema>;
