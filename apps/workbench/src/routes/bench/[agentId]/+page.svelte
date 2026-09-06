@@ -3,7 +3,13 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { validateSpec, type AgentRecord, type BuildProblem, type SlotId } from '@craftabot/core';
+	import {
+		validateSpec,
+		type AgentRecord,
+		type BuildProblem,
+		type GoalCardDefinition,
+		type SlotId
+	} from '@craftabot/core';
 	import { capabilitiesOf } from '$lib/bot-capabilities.js';
 	import { needsBattery, noBatteryMessage } from '$lib/brain.js';
 	import { createRegistry } from '$lib/packs.js';
