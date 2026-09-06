@@ -136,8 +136,7 @@
 	/** A desk with a script seats a visitor (WP64, `56-…` §4.4): its cards join the coop rack without leaving the solo one. */
 	const seatsAVisitor = (card: GoalCardDefinition): boolean => {
 		const world = registry.getWorld(card.worldId) as
-			| { view?: string; spec?: { counterpart?: unknown } }
-			| undefined;
+			{ view?: string; spec?: { counterpart?: unknown } } | undefined;
 		return world?.view === 'desk' && world.spec?.counterpart !== undefined;
 	};
 	const coopGoalCards = $derived(
