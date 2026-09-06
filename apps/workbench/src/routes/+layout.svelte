@@ -8,6 +8,8 @@
 	import type { LeafletRoute } from '$lib/leaflet/chapters.js';
 	import { preferences } from '$lib/state/preferences.svelte.js';
 	import { contentStore } from '$lib/state/content.svelte.js';
+	import NotInThisBox from '$lib/components/kit/NotInThisBox.svelte';
+	import { allowsRoute, edition, routePath } from '$lib/edition.js';
 
 	/**
 	 * The leaflet lives here rather than in any one screen: half its chapters run
@@ -47,7 +49,7 @@
 		 * else "shelf", which is fine for a tutorial and wrong for a nav marker.
 		 * Left to it, the Scrapbook and the replay viewer both lit up "Shelf".
 		 */
-		const path = page.url.pathname;
+		const path = routePath(page.url.pathname);
 		if (path === '/') return 'shelf' as const;
 		if (path.startsWith('/scrapbook')) return 'scrapbook' as const;
 		if (path.startsWith('/settings')) return 'settings' as const;
@@ -55,7 +57,7 @@
 	});
 
 	$effect(() => {
-		leaflet.report({ route: routeOf(page.url.pathname) });
+		leaflet.report({ route: routeOf(routePath(page.url.pathname)) });
 	});
 
 	// Preferences that have to reach the whole document (03 §7).
@@ -75,14 +77,26 @@
 	 * The Workshop brings its own shell (`15-…` §2 — one route tree per mode,
 	 * shared state and components).
 	 */
-	const inKit = $derived(!page.url.pathname.startsWith('/workshop'));
+	const inKit = $derived(!routePath(page.url.pathname).startsWith('/workshop'));
+
+	// The edition's allow-list (WP69, `59-…` §4.3): a route not in this box renders the box's own page.
+	const path = $derived(routePath(page.url.pathname));
+	const inThisBox = $derived(allowsRoute(edition, path));
+
+	$effect(() => {
+		document.documentElement.dataset['edition'] = edition.id;
+	});
 </script>
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 {#if inKit}
 	<NavHeader {current} workshop={preferences.workshop} oninstructions={() => leaflet.show()} />
 {/if}
-{@render children()}
+{#if inThisBox}
+	{@render children()}
+{:else}
+	<NotInThisBox {path} />
+{/if}
 {#if inKit}
 	<Leaflet {leaflet} />
 {/if}

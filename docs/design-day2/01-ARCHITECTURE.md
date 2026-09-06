@@ -118,6 +118,8 @@ Rules:
 
 > **Amended 2026-09-05:** "a packaging decision, not a rewrite" becomes concrete as **editions** (`41-TARGET-DESIGN-V4.md` §6.14, decision D3; built by WP69): one codebase, three static builds — `simulator`, `workshop`, `playground` (and `full`, today's build) — from a build-time `CAB_EDITION`, each with its own pack list, route allow-list, `paths.base` and bundle budget. No runtime flag decides what a visitor sees; whether a section is access-controlled is a hosting rule in front of its folder, and the app never knows. The first breaking `core` change under the rule above is WP56's removal of the long-deprecated `PackManifest.guardrails` lane, taking `core` from `0.0.1` to `1.0.0` with a fixture proving every shipped manifest and kit file still loads (`42-…` §3, `14-…` §7).
 
+> **Amended 2026-09-06 (WP69, `59-EDITIONS.md`; `41-…` §6.14, decision D3).** The public/private split "by packaging" is built as **editions**: `CAB_EDITION` at build time selects one of `simulator`, `workshop`, `playground` (or `full`, the default and today's app), each a folder for a static host under its own base with its own pack list (`lib/editions/<id>.ts`, aliased as `$edition-packs`), route allow-list, shelf and bundle budget — `npm run build:editions`, `docs/publishing.md`. Nothing is decided at run time; a login in front of a folder is a hosting rule the app never knows.
+
 ## 6. Where a backend fits (when it becomes necessary)
 
 V1 needs none. The first features that will genuinely require one: sharing kit files by link, community galleries, classroom/team spaces, cloud trace archives. When that happens:
@@ -145,3 +147,5 @@ V1 needs none. The first features that will genuinely require one: sharing kit f
 
 > **Amended 2026-09-05:** the JS budget is a budget **per build**, not one number over everything (`41-TARGET-DESIGN-V4.md` §2.1 G42, §6.14). `scripts/bundle-budget.mjs` takes a limit and reports per-route sizes (WP56); the `full` build keeps 1.5 MB, and each edition (`simulator`, `workshop`, `playground`) is measured against its own budget once WP69 builds them. A single budget would have made the Kit and the Playground compete for the same bytes.
 | Offline | App shell loads offline (static PWA-ready); running a bot obviously needs the network for the LLM |
+
+> **Amended 2026-09-06 (WP69, `59-EDITIONS.md` §4.2).** The budget is per build (WP56) and now per edition: `full` keeps its limit; `simulator`, `workshop` and `playground` carry their own in `edition.ts`, each checked by `npm run build:editions` and CI's `editions` job.

@@ -22,6 +22,8 @@ V1 already contains the pattern in miniature: every brick has a toy face and a "
 - Rejected alternatives, for the record: *two apps* (duplicates state/persistence code, breaks the shared-artefact story, doubles release cost); *a single UI with density toggles everywhere* (a thousand conditionals, neither audience well served); *pro-as-export-only* (kills the live-inspection value that the event-sourced architecture gives us for free).
 - The public/private packaging rule (`01-…` §5) applies: if Workshop capabilities ever become the private/commercial tier, `/workshop` routes ship as their own lazy-loaded bundle behind the same pack-style registration — a packaging decision, not a rewrite.
 
+> **Amended 2026-09-06 (WP69, `59-EDITIONS.md` §4.3).** The door per edition: in the `simulator` edition the Workshop is not in the box, so Settings shows a link to the `/workshop` section in place of the rocker and the nav has no door; in the `workshop` and `playground` editions the door starts open (`edition.mode` seeds the preference's default). `full` — the default build — is unchanged.
+
 ## 3. The shared foundation (build once, both modes consume)
 
 These are the Day 2 platform investments both modes stand on — they appear once in `18-…` Phase B/C, not once per mode:

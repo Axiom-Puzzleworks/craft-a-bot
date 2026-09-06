@@ -1,24 +1,5 @@
 import { createPackRegistry, type PackManifest, type PackRegistry } from '@craftabot/core';
-import anthropicPack from '@craftabot/pack-anthropic';
-import azureContentSafetyPack from '@craftabot/pack-azure-content-safety';
-import evaluatorsPack from '@craftabot/pack-evaluators';
-import { evidencePack } from '@craftabot/evidence';
-import fsAdvicePack from '@craftabot/pack-fs-advice';
-import fsBankPack from '@craftabot/pack-fs-bank';
-import fsFraudPack from '@craftabot/pack-fs-fraud';
-import fsLendingPack from '@craftabot/pack-fs-lending';
-import { GENERIC_CONTROL_MAP_MANIFEST } from '@craftabot/governance/reports';
-import geapPack from '@craftabot/pack-geap';
-import guardLocalPack from '@craftabot/pack-guard-local';
-import geminiPack from '@craftabot/pack-gemini';
-import monitorPack from '@craftabot/pack-monitor';
-import ollamaPack from '@craftabot/pack-ollama';
-import openAiPack from '@craftabot/pack-openai';
-import pdpOpaPack from '@craftabot/pack-pdp-opa';
-import personasPack from '@craftabot/pack-personas';
-import starterPack from '@craftabot/pack-starter';
-import workshopPack from '@craftabot/pack-workshop';
-import { demoPack } from './demo-pack.js';
+import { edition } from './edition.js';
 import { contentStore } from './state/content.svelte.js';
 
 /**
@@ -87,36 +68,14 @@ import { contentStore } from './state/content.svelte.js';
  * socket (local rules, observe-only, hosted service), swap one for another
  * per V1's one-brick-per-socket rule.
  */
-export const installedPacks = [
-	starterPack,
-	openAiPack,
-	personasPack,
-	anthropicPack,
-	geminiPack,
-	ollamaPack,
-	monitorPack,
-	workshopPack,
-	geapPack,
-	// WP42 (`30-SECOND-VENDORS.md`): two more guard services, fitted through `workshop/guard`.
-	guardLocalPack,
-	azureContentSafetyPack,
-	// WP45 (`33-POLICY-V2-PDP.md` §4.3) — OPA as a policy decision point at pre-act.
-	pdpOpaPack,
-	// WP43 (`31-EVALUATORS.md`): the rubric judge.
-	evaluatorsPack,
-	fsBankPack,
-	// WP60 (`49-FS-ADVICE.md`): the first desk on the bank.
-	fsAdvicePack,
-	// WP62 (`51-FS-FRAUD.md`): the second desk, written against the contracts alone.
-	fsFraudPack,
-	// WP63 (`52-FS-LENDING.md`): the third desk — the decision about a person, and fairness.
-	fsLendingPack,
-	// WP70 (`58-EVIDENCE-STORE.md` §4.2): the evidence stores as registered content.
-	evidencePack,
-	// WP67 (`53-…` §4.1): the generic control map under governance's synthetic manifest.
-	GENERIC_CONTROL_MAP_MANIFEST as unknown as PackManifest,
-	demoPack
-];
+/**
+ * **The list is the edition's** (WP69, `59-EDITIONS.md` §4.1): `full` — what
+ * `npm run build`, `npm run dev` and every test use — lists every pack in the
+ * order this file always did; the three named editions list their own. The
+ * commentary above is the history of how each pack joined the box; the
+ * lists themselves live in `edition.ts`.
+ */
+export const installedPacks: PackManifest[] = edition.packs;
 
 export function createRegistry(): PackRegistry {
 	const registry = createPackRegistry();

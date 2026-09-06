@@ -5,7 +5,8 @@
 	import { storageStatus } from '$lib/state/app-storage.svelte.js';
 	import { filledSockets } from '$lib/bricks.js';
 	import { boxArtFor } from '$lib/box-art.js';
-	import { AGENT_BUILDER_BUNDLE, EXPANSION_PACKS } from '$lib/expansion-packs.js';
+	import { AGENT_BUILDER_BUNDLE } from '$lib/expansion-packs.js';
+	import { edition } from '$lib/edition.js';
 	import { TEMPLATES } from '$lib/assets/index.js';
 	import Art from '$lib/components/art/Art.svelte';
 	import TakeApartConfirm from '$lib/components/kit/TakeApartConfirm.svelte';
@@ -255,13 +256,19 @@
 	<section class="shelf shelf--shop" aria-labelledby="expansions">
 		<h2 id="expansions">Expansion packs</h2>
 		<ul class="boxes" data-testid="expansion-packs">
-			{#each EXPANSION_PACKS as pack (pack.id)}
+			<!-- The edition's shelf (WP69, `59-…` §4.3): a box that lives in another section says so, and links there. -->
+			{#each edition.shelf as pack (pack.id)}
 				<li>
 					<article class="box box--shop" data-testid="pack-{pack.id}">
 						<h3>{pack.name}</h3>
 						<p class="contents">{pack.contents}</p>
 						<p class="sticker" data-status={pack.status}>
-							{pack.status === 'unlocked' ? 'Unlocked!' : 'Coming soon'}
+							{#if pack.status === 'in-another-edition' && pack.href}
+								<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- another section of the same host, not a route of this app -->
+								<a href={pack.href} data-testid="pack-link-{pack.id}">In the Playground →</a>
+							{:else}
+								{pack.status === 'unlocked' ? 'Unlocked!' : 'Coming soon'}
+							{/if}
 						</p>
 					</article>
 				</li>

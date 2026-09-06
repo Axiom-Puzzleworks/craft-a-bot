@@ -2,6 +2,7 @@
 	import { page } from '$app/state';
 	import WorkshopRail from '$lib/components/workshop/WorkshopRail.svelte';
 	import { installGroupEpisodeEntryPoint } from '$lib/state/group-episode-entry-point.js';
+	import { routePath } from '$lib/edition.js';
 
 	/**
 	 * The Workshop shell (`15-…` §2, `17-…` §2).
@@ -30,7 +31,7 @@
 	installGroupEpisodeEntryPoint();
 
 	const current = $derived.by(() => {
-		const path = page.url.pathname;
+		const path = routePath(page.url.pathname);
 		if (path.startsWith('/workshop/runs')) return 'runs' as const;
 		if (path.startsWith('/workshop/evals')) return 'evals' as const;
 		if (path.startsWith('/workshop/policies')) return 'policies' as const;

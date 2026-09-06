@@ -1,5 +1,5 @@
 /// <reference types="@sveltejs/kit" />
-import { build, files, prerendered, version } from '$service-worker';
+import { base, build, files, prerendered, version } from '$service-worker';
 
 /**
  * The offline app shell (`01-ARCHITECTURE.md` §8: "App shell loads offline
@@ -51,7 +51,9 @@ const CACHE = `craftabot-shell-${version}`;
  * `prerendered` carries the rendered routes, and `/` is listed explicitly as
  * the SPA fallback for deep links.
  */
-const SHELL = [...build, ...files, ...prerendered, '/'];
+// Under an edition's base (WP69) the document is `${base}/`; `full` has no base and this is `/`.
+const HOME = `${base}/`;
+const SHELL = [...build, ...files, ...prerendered, HOME];
 
 worker.addEventListener('install', (event) => {
 	if (import.meta.env.DEV) return;
@@ -131,7 +133,7 @@ worker.addEventListener('fetch', (event) => {
 					return await fetch(request);
 				} catch {
 					const cache = await caches.open(CACHE);
-					const fallback = await cache.match('/');
+					const fallback = await cache.match(HOME);
 					if (fallback) return fallback;
 					throw new Error('offline, and this is not in the shell cache');
 				}

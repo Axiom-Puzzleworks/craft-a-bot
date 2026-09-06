@@ -38,7 +38,11 @@ const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_LIMIT_BYTES = 1_500_000;
 
 function parseArgs(argv) {
-	const options = { app: join(REPO, 'apps', 'workbench'), limit: DEFAULT_LIMIT_BYTES };
+	const options = {
+		app: join(REPO, 'apps', 'workbench'),
+		limit: DEFAULT_LIMIT_BYTES,
+		out: 'build'
+	};
 	for (let i = 0; i < argv.length; i++) {
 		const arg = argv[i];
 		if (arg === '--limit') {
@@ -49,6 +53,9 @@ function parseArgs(argv) {
 			options.limit = value;
 		} else if (arg === '--app') {
 			options.app = join(REPO, argv[++i] ?? '');
+		} else if (arg === '--out') {
+			// An edition's folder (WP69): `build/<edition>`, relative to the app.
+			options.out = argv[++i] ?? 'build';
 		} else {
 			throw new Error(`bundle-budget: unknown argument ${arg}`);
 		}
@@ -145,7 +152,7 @@ try {
 	process.exit(2);
 }
 
-const BUILD = join(options.app, 'build');
+const BUILD = join(options.app, options.out);
 const LIMIT_BYTES = options.limit;
 
 let files;
