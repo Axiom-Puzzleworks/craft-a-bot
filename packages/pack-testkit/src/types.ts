@@ -6,6 +6,7 @@ import type {
 	Guardrail,
 	GuardrailContext,
 	EvaluationInput,
+	EvidenceItem,
 	PackManifest,
 	ScreenRequest,
 	TraceExport
@@ -144,6 +145,21 @@ export interface ServiceLineConformanceFixture {
 }
 
 /** A trace sink (WP47, `35-TELEMETRY.md` §4.4): a config it accepts, a finished run to attach and export, a secret that must never leak. */
+/** What `checkEvidenceStore` needs (`58-EVIDENCE-STORE.md` §4.2, WP70). */
+export interface EvidenceStoreConformanceFixture {
+	config: unknown;
+	/** An item of every kind the suite should round-trip; at least one. */
+	items: readonly EvidenceItem[];
+	plantedSecret: string;
+	/**
+	 * `false` for a store that never calls out (the memory store): the suite
+	 * then round-trips with the refusing fetch and expects every push to land.
+	 * `true` (the default): a refused network must reject `push` with a
+	 * message that carries no secret, and `verify` must reject rather than lie.
+	 */
+	expectsNetwork?: boolean;
+}
+
 export interface SinkConformanceFixture {
 	config: unknown;
 	input: TraceExport;

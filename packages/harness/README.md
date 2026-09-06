@@ -93,3 +93,7 @@ and argument digest and never calls out — a miss is `error.kind:
 'cassette-miss'` on the trace. The report says whether the first response
 carried `access-control-allow-origin: *`, the browser checkpoint. `--egress
 none` refuses every call.
+
+## The evidence store (WP70)
+
+`craftabot evidence push --store <storeId> [--store-config <json>] --run <id> | --group <id> | --campaign-report <id> | --assurance [--agent <id>] | --content-file <record.json>` sends one artefact to a shared evidence store (`58-EVIDENCE-STORE.md`; `docs/evidence-setup.md`) and prints the receipt; `craftabot evidence pull --store … [--kind …] [--id …] [--since <iso>] [--limit <n>] [--dir ./evidence]` verifies every item's digest, refuses one that fails (exit 1) and writes the rest under `--dir/<kind>/…` as the files the Workshop imports. `evidence/supabase` reads its workspace token from `CRAFTABOT_CREDENTIAL_EVIDENCE_SUPABASE` and takes `{"url","anonKey","workspace"}` as its config; `evidence/memory` needs nothing and is for seeing the flow. The store's host is declared as egress; under `--egress none` the command is refused before any call. A sync target for artefacts only — never a key, never the source of truth, never required.

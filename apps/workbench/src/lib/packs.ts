@@ -2,6 +2,7 @@ import { createPackRegistry, type PackManifest, type PackRegistry } from '@craft
 import anthropicPack from '@craftabot/pack-anthropic';
 import azureContentSafetyPack from '@craftabot/pack-azure-content-safety';
 import evaluatorsPack from '@craftabot/pack-evaluators';
+import { evidencePack } from '@craftabot/evidence';
 import fsAdvicePack from '@craftabot/pack-fs-advice';
 import fsBankPack from '@craftabot/pack-fs-bank';
 import fsFraudPack from '@craftabot/pack-fs-fraud';
@@ -110,6 +111,8 @@ export const installedPacks = [
 	fsFraudPack,
 	// WP63 (`52-FS-LENDING.md`): the third desk — the decision about a person, and fairness.
 	fsLendingPack,
+	// WP70 (`58-EVIDENCE-STORE.md` §4.2): the evidence stores as registered content.
+	evidencePack,
 	// WP67 (`53-…` §4.1): the generic control map under governance's synthetic manifest.
 	GENERIC_CONTROL_MAP_MANIFEST as unknown as PackManifest,
 	demoPack

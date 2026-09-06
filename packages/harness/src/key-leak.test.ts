@@ -27,8 +27,12 @@ const PLANTED = {
 	CRAFTABOT_CREDENTIAL_OPENAI: 'sk-planted-openai-0123456789abcdef',
 	CRAFTABOT_CREDENTIAL_ANTHROPIC: 'sk-ant-planted-0123456789abcdef',
 	CRAFTABOT_CREDENTIAL_GEMINI: 'AIzaPlantedGemini0123456789',
-	CRAFTABOT_CREDENTIAL_GEAP: 'ya29.planted-geap-token-0123456789'
+	CRAFTABOT_CREDENTIAL_GEAP: 'ya29.planted-geap-token-0123456789',
+	// WP70 (`58-…` §4.4): the evidence store's workspace token.
+	CRAFTABOT_CREDENTIAL_EVIDENCE_SUPABASE: 'eyJ.planted-workspace-token.0123456789'
 };
+/** The anon key is configuration, publishable by design — planted all the same (`58-…` §2 item 4). */
+const PLANTED_ANON_KEY = 'sb_publishable_planted_anon_0123456789';
 
 async function everyFileUnder(dir: string): Promise<string[]> {
 	const entries = await readdir(dir, { withFileTypes: true });
@@ -75,6 +79,26 @@ describe('the harness never writes or prints a credential', () => {
 			)
 		).toBe(0);
 		expect(await main(['packs'], io)).toBe(0);
+		// A push and a pull refused by the egress guard (WP70): neither may echo the token or the anon key.
+		const storeConfig = JSON.stringify({
+			url: 'https://planted-ref.supabase.co',
+			anonKey: PLANTED_ANON_KEY,
+			workspace: 'leak-sweep'
+		});
+		const evidenceArgs = [
+			'--store',
+			'evidence/supabase',
+			'--store-config',
+			storeConfig,
+			'--egress',
+			'none'
+		];
+		expect(
+			await main(['evidence', 'push', ...evidenceArgs, '--run', report.runId, '--out', out], io)
+		).toBe(1);
+		expect(
+			await main(['evidence', 'pull', ...evidenceArgs, '--dir', join(root, 'evidence')], io)
+		).toBe(1);
 		// A live run that fails before any network call still must not echo the key.
 		expect(
 			await main(
@@ -91,7 +115,7 @@ describe('the harness never writes or prints a credential', () => {
 				expect(text, `${file} contains a planted secret`).not.toContain(secret);
 			}
 		}
-		for (const secret of credentials.secrets()) {
+		for (const secret of [...credentials.secrets(), PLANTED_ANON_KEY]) {
 			expect(printed, 'the CLI printed a planted secret').not.toContain(secret);
 		}
 	});

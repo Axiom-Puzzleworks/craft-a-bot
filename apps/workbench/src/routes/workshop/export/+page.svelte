@@ -8,6 +8,9 @@
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import { otelTraceFor } from '$lib/workshop/otel-export.js';
 	import { sinksStore } from '$lib/state/sinks.svelte.js';
+	import { evidenceStoresStore } from '$lib/state/evidence.svelte.js';
+	import { browserPrincipalId } from '$lib/state/principal.js';
+	import { itemForGroup, itemForRun } from '$lib/workshop/evidence.js';
 	import {
 		assurancePackFromStorage,
 		renderAssurancePackHtml,
@@ -105,6 +108,34 @@
 	}
 
 	let sendNote = $state<Record<string, string>>({});
+	let pushNote = $state<Record<string, string>>({});
+
+	// "Push to evidence store" (WP70, `58-…` §4.5): the same bundle the download builds, to a configured store.
+	async function pushTo(storeId: string): Promise<void> {
+		const instance = evidenceStoresStore.instance(storeId);
+		if (!instance) return;
+		try {
+			const storage = await appStorage();
+			const secrets = createBrowserKeyVault().secrets();
+			const options = { principal: browserPrincipalId() };
+			const item = group
+				? await itemForGroup(storage, $state.snapshot(group), secrets, options)
+				: run
+					? await itemForRun(storage, $state.snapshot(run), secrets, options)
+					: undefined;
+			if (!item) return;
+			const receipt = await instance.push(item);
+			pushNote = {
+				...pushNote,
+				[storeId]: `Pushed — digest ${receipt.digest.slice(0, 12)}…, workspace ${receipt.workspace}.`
+			};
+		} catch (error) {
+			pushNote = {
+				...pushNote,
+				[storeId]: `Could not push: ${error instanceof Error ? error.message : String(error)}`
+			};
+		}
+	}
 
 	// "Send to…" (WP47, `35-…` §4.5): the same trace the download builds, to a configured sink.
 	async function sendTo(sinkId: string): Promise<void> {
@@ -230,6 +261,28 @@
 						>Download bundle</button
 					>
 				</li>
+				{#each evidenceStoresStore.configurations as entry (entry.storeId)}
+					<li>
+						<div>
+							<strong
+								>Push to {evidenceStoresStore.storeById(entry.storeId)?.name ??
+									entry.storeId}</strong
+							>
+							<p>
+								The same bundle, digest-stamped, to the evidence store configured on the Evidence
+								page.
+								{#if pushNote[entry.storeId]}<span data-testid="export-pushed-{entry.storeId}"
+										>{pushNote[entry.storeId]}</span
+									>{/if}
+							</p>
+						</div>
+						<button
+							type="button"
+							data-testid="export-push-{entry.storeId}"
+							onclick={() => pushTo(entry.storeId)}>Push to evidence store</button
+						>
+					</li>
+				{/each}
 				{#each sinksStore.configurations as entry (entry.sinkId)}
 					<li>
 						<div>
@@ -300,6 +353,28 @@
 						>Download bundle</button
 					>
 				</li>
+				{#each evidenceStoresStore.configurations as entry (entry.storeId)}
+					<li>
+						<div>
+							<strong
+								>Push to {evidenceStoresStore.storeById(entry.storeId)?.name ??
+									entry.storeId}</strong
+							>
+							<p>
+								The same bundle, digest-stamped, to the evidence store configured on the Evidence
+								page.
+								{#if pushNote[entry.storeId]}<span data-testid="export-pushed-{entry.storeId}"
+										>{pushNote[entry.storeId]}</span
+									>{/if}
+							</p>
+						</div>
+						<button
+							type="button"
+							data-testid="export-push-{entry.storeId}"
+							onclick={() => pushTo(entry.storeId)}>Push to evidence store</button
+						>
+					</li>
+				{/each}
 				{#each sinksStore.configurations as entry (entry.sinkId)}
 					<li>
 						<div>

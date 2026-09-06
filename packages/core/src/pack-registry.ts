@@ -21,6 +21,7 @@ import type { ScenarioDefinition } from './schemas/scenario.js';
 import type { ProviderFactory } from './types/provider.js';
 import type { ToolDefinition } from './types/tool.js';
 import type { ServiceLine } from './types/service-line.js';
+import { describeEvidenceStoreProblems, type EvidenceStore } from './types/evidence-store.js';
 import { serviceLineTools } from './service-line-tools.js';
 import type {
 	WorldActionDefinition,
@@ -60,6 +61,8 @@ export interface PackRegistry {
 	getEvaluator(id: string): Evaluator | undefined;
 	/** A service line (`47-SERVICE-LINES.md` §4.1, WP58), by qualified id. */
 	getServiceLine(id: string): ServiceLine | undefined;
+	/** A registered evidence store (WP70, `58-…` §4.1). */
+	getEvidenceStore(id: string): EvidenceStore | undefined;
 	/** An assertion card a pack shipped (WP43), by qualified id. */
 	getAssertionCard(id: string): AssertionCard | undefined;
 	/** A scenario (`32-SCENARIOS.md` §4.1, WP44), by qualified id. */
@@ -84,6 +87,7 @@ export interface PackRegistry {
 	listGuardrailServices(): GuardrailService[];
 	listEvaluators(): Evaluator[];
 	listServiceLines(): ServiceLine[];
+	listEvidenceStores(): EvidenceStore[];
 	listAssertionCards(): AssertionCard[];
 	listScenarios(): ScenarioDefinition[];
 	listProviderFactories(): ProviderFactory[];
@@ -103,6 +107,7 @@ export function createPackRegistry(): PackRegistry {
 	const guardrailServices = new Map<string, GuardrailService>();
 	const evaluators = new Map<string, Evaluator>();
 	const serviceLines = new Map<string, ServiceLine>();
+	const evidenceStores = new Map<string, EvidenceStore>();
 	const assertionCards = new Map<string, AssertionCard>();
 	const scenarios = new Map<string, ScenarioDefinition>();
 	const providers = new Map<string, ProviderFactory>();
@@ -205,6 +210,15 @@ export function createPackRegistry(): PackRegistry {
 			for (const tool of serviceLineTools(manifest.id, line))
 				insertUnique(tools, tool.id, tool, 'tool');
 		}
+		for (const store of manifest.evidenceStores ?? []) {
+			const problems = describeEvidenceStoreProblems(store);
+			if (problems.length > 0) {
+				throw new Error(
+					`Pack "${manifest.id}" ships an evidence store "${store.id}" that ${problems.join(', ')}.`
+				);
+			}
+			insertUnique(evidenceStores, store.id, store, 'evidence store');
+		}
 		for (const card of manifest.assertionCards ?? [])
 			insertUnique(assertionCards, card.id, card, 'assertion card');
 		for (const scenario of manifest.scenarios ?? [])
@@ -273,6 +287,7 @@ export function createPackRegistry(): PackRegistry {
 		getEvaluator: (id) => evaluators.get(id),
 		getControlMap: (id) => controlMaps.get(id),
 		getServiceLine: (id) => serviceLines.get(id),
+		getEvidenceStore: (id) => evidenceStores.get(id),
 		getAssertionCard: (id) => assertionCards.get(id),
 		getScenario: (id) => scenarios.get(id),
 		getProviderFactory: (id) => providers.get(id),
@@ -286,6 +301,7 @@ export function createPackRegistry(): PackRegistry {
 		listEvaluators: () => [...evaluators.values()],
 		listControlMaps: () => [...controlMaps.values()],
 		listServiceLines: () => [...serviceLines.values()],
+		listEvidenceStores: () => [...evidenceStores.values()],
 		listAssertionCards: () => [...assertionCards.values()],
 		listScenarios: () => [...scenarios.values()],
 		listProviderFactories: () => [...providers.values()]

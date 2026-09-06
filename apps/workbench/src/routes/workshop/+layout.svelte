@@ -45,6 +45,7 @@
 		if (path.startsWith('/workshop/evaluators')) return 'evaluators' as const;
 		if (path.startsWith('/workshop/scenarios')) return 'scenarios' as const;
 		if (path.startsWith('/workshop/sinks')) return 'sinks' as const;
+		if (path.startsWith('/workshop/evidence')) return 'evidence' as const;
 		return 'dashboard' as const;
 	});
 </script>

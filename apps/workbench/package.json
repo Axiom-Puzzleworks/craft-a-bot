@@ -32,6 +32,7 @@
 	"dependencies": {
 		"@craftabot/core": "*",
 		"@craftabot/evals": "*",
+		"@craftabot/evidence": "*",
 		"@craftabot/governance": "*",
 		"@craftabot/pack-anthropic": "*",
 		"@craftabot/pack-azure-content-safety": "*",

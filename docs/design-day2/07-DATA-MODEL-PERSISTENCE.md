@@ -31,6 +31,7 @@
 | `cab.evaluations` | IndexedDB object store (keyed by `id`, indexed by `runId`, `DATABASE_VERSION` 5) | `EvaluationRecord` — one evaluator's verdict over one run (WP43, `31-…` §4.1); deleted with its run; the harness keeps the same rows at `runs/<runId>/evaluations.jsonl` |
 | `cab.settings` | `localStorage` (`cab.settings.v1`) | Preferences (sound, motion, speed), tutorial progress, badges |
 | `cab.keys` | `localStorage` (`cab.keys.v1`) | `{ [providerId]: apiKey }` — see key rules |
+| `cab.evidence` | `localStorage` (`cab.evidence.v1`) | `{ schemaVersion: 1, stores: [{ storeId, config }] }` — the configured evidence stores (WP70, `58-…` §4.5); never the token, which is a `cab.keys.v1` entry under the store's credential id |
 
 IndexedDB via the `idb` wrapper; one database `craftabot`, versioned migrations from day one (`upgrade(db, oldVersion)` switch — even v1 ships as migration 1, so the pattern exists before it's needed).
 

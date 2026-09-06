@@ -158,6 +158,41 @@ export default defineConfig(
 	},
 	{
 		/**
+		 * Evidence dependency direction (`58-EVIDENCE-STORE.md` §4.2, WP70): the
+		 * stores depend on `core` only, as the sinks do.
+		 */
+		files: ['packages/evidence/**/*.{ts,js}'],
+		ignores: ['packages/evidence/**/*.test.ts'],
+		rules: {
+			'no-restricted-imports': [
+				'error',
+				{
+					patterns: [
+						{
+							group: [
+								'@craftabot/pack-*',
+								'@craftabot/governance',
+								'@craftabot/telemetry',
+								'@craftabot/evals',
+								'@craftabot/workbench',
+								'$lib/*',
+								'$app/*'
+							],
+							message:
+								'@craftabot/evidence may depend only on @craftabot/core — see docs/design-day2/58-EVIDENCE-STORE.md §4.2.'
+						},
+						{
+							group: ['svelte', 'svelte/*', '@sveltejs/*'],
+							message:
+								'Engine/pack code must not import Svelte or SvelteKit — see docs/design/01-ARCHITECTURE.md §1.3.'
+						}
+					]
+				}
+			]
+		}
+	},
+	{
+		/**
 		 * Desk dependency direction (`43-DESK-WORLDS.md` §4.4, WP53): the
 		 * business-world runtime depends on `core` (and `zod`) only, exactly as
 		 * `@craftabot/governance` and `@craftabot/telemetry` do above — a desk
