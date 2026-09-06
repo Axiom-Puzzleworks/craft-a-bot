@@ -1,4 +1,4 @@
-import type { ControlMapRow } from '@craftabot/pack-fs-bank';
+import type { ControlMap, ControlMapRow } from '@craftabot/core';
 
 /**
  * **The desk's control-map rows** (WP63 stage C, `52-FS-LENDING.md` §4.7;
@@ -20,6 +20,7 @@ export const LENDING_CONTROL_ROWS: readonly ControlMapRow[] = [
 			{ kind: 'evaluator', id: 'fs-lending/decision-matches-rules' },
 			{ kind: 'evaluator', id: 'fs-lending/identity-before-decision' }
 		],
+		status: 'unreviewed',
 		tags: ['fca:conc:affordability', 'fca:conc:creditworthiness', 'mlr:kyc']
 	},
 	{
@@ -34,6 +35,7 @@ export const LENDING_CONTROL_ROWS: readonly ControlMapRow[] = [
 			{ kind: 'evaluator', id: 'fs-lending/appeal-handled' },
 			{ kind: 'evaluator', id: 'fs-lending/rubric/understanding' }
 		],
+		status: 'unreviewed',
 		tags: ['fca:cd:understanding', 'pra:ss1-23:governance']
 	},
 	{
@@ -47,6 +49,7 @@ export const LENDING_CONTROL_ROWS: readonly ControlMapRow[] = [
 			{ kind: 'gate', id: 'parity' },
 			{ kind: 'evaluator', id: 'fs-lending/decision-matches-rules' }
 		],
+		status: 'unreviewed',
 		tags: ['equality-act:fairness']
 	},
 	{
@@ -55,6 +58,16 @@ export const LENDING_CONTROL_ROWS: readonly ControlMapRow[] = [
 		title: 'Disbursement under four eyes',
 		obligation: 'Money leaves the bank only when a person has agreed.',
 		evidence: [{ kind: 'policy-card', id: 'fs-lending/policy/disbursement-is-four-eyes' }],
+		status: 'unreviewed',
 		tags: ['pra:ss1-23:mitigants']
 	}
 ];
+
+/** The rows as the map the manifest registers (WP67, `53-…` §4.1). */
+export const lendingControlMap: ControlMap = {
+	id: 'fs-lending/control-map',
+	title: 'The Lending Desk',
+	description:
+		'The Lending Desk’s claims of relevance: affordability first, decisions explained in the reasons used, cohort-blind decisions compared across cohorts, four eyes on disbursement. Relevance, not compliance.',
+	rows: [...LENDING_CONTROL_ROWS]
+};

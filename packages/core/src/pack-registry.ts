@@ -1,4 +1,5 @@
 import type { BrickKindDefinition, SlotId } from './types/brick.js';
+import type { ControlMap } from './types/control-map.js';
 import { satisfiesRange } from './semver.js';
 import { CRAFTABOT_CORE_VERSION } from './version.js';
 import type {
@@ -69,6 +70,8 @@ export interface PackRegistry {
 	getAction(id: string): WorldActionDefinition | undefined;
 	/** A registered policy card (`14-…` §4.6, WP22) — declarative guardrail config a Safety Brick names by id. */
 	getPolicyCard(id: string): PolicyCard | undefined;
+	/** A control map by id (WP67). */
+	getControlMap(id: string): ControlMap | undefined;
 	/** An LLM provider (`06-…` §8, WP26) — how to build the `LLMProvider` a cartridge's `providerId` names. */
 	getProviderFactory(id: string): ProviderFactory | undefined;
 	listPacks(): PackManifestMetadata[];
@@ -77,6 +80,7 @@ export interface PackRegistry {
 	listGoalCards(): GoalCardDefinition[];
 	listWorlds(): WorldDefinition[];
 	listPolicyCards(): PolicyCard[];
+	listControlMaps(): ControlMap[];
 	listGuardrailServices(): GuardrailService[];
 	listEvaluators(): Evaluator[];
 	listServiceLines(): ServiceLine[];
@@ -95,6 +99,7 @@ export function createPackRegistry(): PackRegistry {
 	const goalCards = new Map<string, GoalCardDefinition>();
 	const worlds = new Map<string, WorldDefinition>();
 	const policyCards = new Map<string, PolicyCard>();
+	const controlMaps = new Map<string, ControlMap>();
 	const guardrailServices = new Map<string, GuardrailService>();
 	const evaluators = new Map<string, Evaluator>();
 	const serviceLines = new Map<string, ServiceLine>();
@@ -174,6 +179,8 @@ export function createPackRegistry(): PackRegistry {
 		for (const world of manifest.worlds ?? []) insertUnique(worlds, world.id, world, 'world');
 		for (const card of manifest.policyCards ?? [])
 			insertUnique(policyCards, card.id, card, 'policy card');
+		for (const map of manifest.controlMaps ?? [])
+			insertUnique(controlMaps, map.id, map, 'control map');
 		for (const service of manifest.guardrailServices ?? []) {
 			const problems = describeGuardrailServiceProblems(service);
 			if (problems.length > 0) {
@@ -264,6 +271,7 @@ export function createPackRegistry(): PackRegistry {
 		getPolicyCard: (id) => policyCards.get(id),
 		getGuardrailService: (id) => guardrailServices.get(id),
 		getEvaluator: (id) => evaluators.get(id),
+		getControlMap: (id) => controlMaps.get(id),
 		getServiceLine: (id) => serviceLines.get(id),
 		getAssertionCard: (id) => assertionCards.get(id),
 		getScenario: (id) => scenarios.get(id),
@@ -276,6 +284,7 @@ export function createPackRegistry(): PackRegistry {
 		listPolicyCards: () => [...policyCards.values()],
 		listGuardrailServices: () => [...guardrailServices.values()],
 		listEvaluators: () => [...evaluators.values()],
+		listControlMaps: () => [...controlMaps.values()],
 		listServiceLines: () => [...serviceLines.values()],
 		listAssertionCards: () => [...assertionCards.values()],
 		listScenarios: () => [...scenarios.values()],

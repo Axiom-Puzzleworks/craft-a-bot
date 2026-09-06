@@ -1,4 +1,5 @@
 import type { PackManifest } from '@craftabot/core';
+import { lendingControlMap } from './controls/rows.js';
 import { lendingPolicyCards } from './cards/policy.js';
 import { lendingGoalCards } from './decks/goal-cards.js';
 import { lendingEvaluators } from './evaluators/index.js';
@@ -26,7 +27,8 @@ export const fsLendingPack: PackManifest = {
 	goalCards: lendingGoalCards,
 	scenarios: lendingScenarios,
 	policyCards: lendingPolicyCards,
-	evaluators: lendingEvaluators
+	evaluators: lendingEvaluators,
+	controlMaps: [lendingControlMap]
 };
 
 export default fsLendingPack;
@@ -44,7 +46,7 @@ export {
 	lendingPolicyCards
 } from './cards/policy.js';
 export * from './evaluators/index.js';
-export { LENDING_CONTROL_ROWS } from './controls/rows.js';
+export { LENDING_CONTROL_ROWS, lendingControlMap } from './controls/rows.js';
 export {
 	BUREAU_POISON,
 	LENDING_DECKS,

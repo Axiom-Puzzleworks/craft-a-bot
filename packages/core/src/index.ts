@@ -529,3 +529,16 @@ export {
 	serviceLineToolId,
 	serviceLineTools
 } from './service-line-tools.js';
+export {
+	CONTROL_ARTEFACT_IDS,
+	CONTROL_EGRESS_IDS,
+	CONTROL_GATE_KINDS,
+	CONTROL_PRINCIPAL_IDS,
+	type ControlArtefactId,
+	type ControlEvidence,
+	type ControlEvidenceKind,
+	type ControlMap,
+	type ControlMapRow,
+	type ControlRowStatus
+} from './types/control-map.js';
+export { EVENT_TYPES } from './schemas/events.js';

@@ -1,4 +1,5 @@
 import type { PackManifest } from '@craftabot/core';
+import { bankControlMap } from './controls/rows.js';
 import { bankServiceLines } from './lines/index.js';
 
 /**
@@ -19,7 +20,9 @@ const manifest: PackManifest = {
 	/** The Connector brick is the starter's; a line is fitted through it. */
 	requiresPacks: { starter: '>=0.3.0' },
 	/** The nine lines (`48-…` §4.5); the registry synthesises their tools under `fs-bank/connector_<line>_<op>`. */
-	serviceLines: bankServiceLines
+	serviceLines: bankServiceLines,
+	/** The UK retail rows (WP67, `53-…` §4.1), every evidence id resolved by `checkControlMap`. */
+	controlMaps: [bankControlMap]
 };
 
 export default manifest;
@@ -67,6 +70,7 @@ export {
 export { CONSUMER_DUTY_OUTCOMES, OBLIGATION_TAGS, isObligationTag } from './obligations.js';
 export {
 	BANK_CONTROL_ROWS,
+	bankControlMap,
 	type ControlEvidenceKind,
 	type ControlMapRow
 } from './controls/rows.js';
