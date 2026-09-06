@@ -133,8 +133,28 @@
 	 * exact *inverse* of `goalCards`' own filter above, over the same
 	 * `listGoalCards()` call, never touched twice for different reasons.
 	 */
+	/** A desk with a script seats a visitor (WP64, `56-…` §4.4): its cards join the coop rack without leaving the solo one. */
+	const seatsAVisitor = (card: GoalCardDefinition): boolean => {
+		const world = registry.getWorld(card.worldId) as
+			| { view?: string; spec?: { counterpart?: unknown } }
+			| undefined;
+		return world?.view === 'desk' && world.spec?.counterpart !== undefined;
+	};
 	const coopGoalCards = $derived(
-		registry.listGoalCards().filter((card) => card.coop && forThisRack(card))
+		registry
+			.listGoalCards()
+			.filter((card) => (card.coop || seatsAVisitor(card)) && forThisRack(card))
+	);
+	/** Who sits across each desk card (WP64): the desk's own name for the person, from its spec. */
+	const coopVisitors = $derived(
+		Object.fromEntries(
+			coopGoalCards.flatMap((card) => {
+				const world = registry.getWorld(card.worldId) as
+					{ view?: string; spec?: { counterpartName?: string } } | undefined;
+				const name = world?.view === 'desk' ? world.spec?.counterpartName : undefined;
+				return name ? [[card.id, name]] : [];
+			})
+		)
 	);
 
 	/**
@@ -358,6 +378,7 @@
 	<RobotFriendsPicker
 		botName={spec.name}
 		{coopGoalCards}
+		visitors={coopVisitors}
 		candidates={otherReadyBots}
 		oncancel={() => (showRobotFriends = false)}
 		onlaunch={(goalCardId, otherAgentId) => void launchDuo(goalCardId, otherAgentId)}

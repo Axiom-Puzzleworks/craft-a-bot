@@ -223,7 +223,8 @@
 
 		<!-- the chassis -->
 		<rect x={CX - 34} y={CY - 76} width="68" height="86" rx="10" class="chassis" />
-		{#each map.agent.bricks as brick, index (brick.slot + brick.kindId)}
+		<!-- Keyed by position: a stack may hold two of a kind (two Monitor Judges), and slot + kind threw on the duplicate (`12-…` D23). -->
+		{#each map.agent.bricks as brick, index (index)}
 			<rect
 				x={CX - 22}
 				y={CY - 70 + index * 11}

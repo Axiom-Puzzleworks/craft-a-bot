@@ -28,7 +28,13 @@ import { preferences } from './state/preferences.svelte.js';
  */
 
 export type BrainChoice =
-	| { ok: true; provider: LLMProvider; keyless: boolean }
+	| {
+			ok: true;
+			provider: LLMProvider;
+			keyless: boolean;
+			/** A real provider answered (keyed or keyless, Ollama among them) — not the demo brain (WP64, `56-…` §2 item 12). */
+			live: boolean;
+	  }
 	| { ok: false; reason: 'no-key'; providerId: string };
 
 /**
@@ -52,19 +58,25 @@ export function chooseBrain(
 			return {
 				ok: true,
 				provider: factory.create({ apiKey: '', endpoint: preferences.ollamaEndpoint }),
-				keyless: true
+				keyless: true,
+				live: true
 			};
 		}
 		const apiKey = createBrowserKeyVault().get(factory.id);
 		if (apiKey === undefined) return { ok: false, reason: 'no-key', providerId: factory.id };
-		return { ok: true, provider: factory.create({ apiKey }), keyless: false };
+		return { ok: true, provider: factory.create({ apiKey }), keyless: false, live: true };
 	}
 
 	// A cartridge from a provider this build genuinely does not have — a kit
 	// file from a build with more packs installed, say — runs on the scripted
 	// mock rather than crashing the bench. Everything else runs it too: no
 	// cartridge fitted at all, or the Demo Brain cartridge itself.
-	return { ok: true, provider: createDemoBrain(goalCardId, can, options), keyless: true };
+	return {
+		ok: true,
+		provider: createDemoBrain(goalCardId, can, options),
+		keyless: true,
+		live: false
+	};
 }
 
 /** Does this cartridge need a battery before GO will light? (03 §9) */

@@ -80,6 +80,8 @@
 	let memberSpecs = new Map<string, AnyAgentSpec>();
 	/** Whether this card's world is a desk with a visitor's script, so the second robot sits across it (WP55). */
 	let deskSeating = $state(false);
+	/** Who is in the seat (WP64, `56-…` §4.4): the desk's script, or a model — named by its cartridge. */
+	let visitorSeat = $state<{ tier: 'scripted' | 'live'; brain: string } | undefined>(undefined);
 	/** One `TraceRecorder` per member, keyed by `agentId`; created together on `group.started`. */
 	let memberRecorders = new Map<string, TraceRecorder>();
 	/** The group's own merged trace, fed every event — the live counterpart to `group-recorder.ts`'s batch `mergedEvents`. */
@@ -158,12 +160,21 @@
 
 		view = createGroupSessionView({
 			members: launches.map((launch, index) => {
-				const chosen = launch.brain as { ok: true; provider: LLMProvider; keyless: boolean };
+				const chosen = launch.brain as {
+					ok: true;
+					provider: LLMProvider;
+					keyless: boolean;
+					live: boolean;
+				};
 				if (deskSeating && index === 1 && script) {
+					// A real provider — keyed, or keyless like Ollama — plays the seat live; only the demo brain yields to the script (WP64).
+					visitorSeat = chosen.live
+						? { tier: 'live', brain: launch.cartridge?.displayName ?? 'its cartridge' }
+						: { tier: 'scripted', brain: 'the desk’s script' };
 					return {
 						spec: launch.spec,
 						role: 'counterpart' as const,
-						provider: chosen.keyless
+						provider: !chosen.live
 							? createMockProvider({
 									id: 'demo-counterpart',
 									name: 'Demo visitor (no battery needed)',
@@ -378,8 +389,11 @@
 			<p class="goal" data-testid="duo-goal">{goalCard.goalText}</p>
 		{/if}
 		{#if deskSeating && view.members.length === 2}
-			<p class="roles" data-testid="duo-roles">
-				{view.members[0]?.name} is at the desk; {view.members[1]?.name} is the visitor.
+			<p class="roles" data-testid="duo-roles" data-seat={visitorSeat?.tier}>
+				{view.members[0]?.name} is at the desk; {view.members[1]?.name} is the visitor{#if visitorSeat}
+					— {visitorSeat.tier === 'live'
+						? `live, on ${visitorSeat.brain}`
+						: 'scripted, along the desk’s own script'}{/if}.
 			</p>
 		{/if}
 

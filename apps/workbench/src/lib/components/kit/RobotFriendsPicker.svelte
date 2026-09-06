@@ -22,11 +22,13 @@
 		coopGoalCards: GoalCardDefinition[];
 		/** Other GO-ready bots on the shelf — already filtered by the caller. */
 		candidates: AgentRecord[];
+		/** For a desk card, who sits across it (WP64, `56-…` §4.4): the second robot plays that person. By card id. */
+		visitors?: Record<string, string>;
 		oncancel: () => void;
 		onlaunch: (goalCardId: string, otherAgentId: string) => void;
 	}
 
-	let { botName, coopGoalCards, candidates, oncancel, onlaunch }: Props = $props();
+	let { botName, coopGoalCards, candidates, visitors = {}, oncancel, onlaunch }: Props = $props();
 
 	let cardId = $state<string | undefined>(undefined);
 	let agentId = $state<string | undefined>(undefined);
@@ -65,6 +67,13 @@
 							onclick={() => (cardId = goalCard.id)}
 						>
 							{goalCard.title}
+							{#if visitors[goalCard.id]}
+								<small
+									class="visitor"
+									data-testid="rf-visitor-{goalCard.id.replace('starter/', '')}"
+									>across the desk: {visitors[goalCard.id]} — your friend plays them</small
+								>
+							{/if}
 						</button>
 					</li>
 				{/each}
@@ -119,6 +128,12 @@
 </div>
 
 <style>
+	.visitor {
+		display: block;
+		font-size: var(--cab-text-xs);
+		color: var(--cab-ink-muted);
+	}
+
 	.scrim {
 		position: fixed;
 		inset: 0;
