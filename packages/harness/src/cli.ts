@@ -2,6 +2,7 @@ import type { EgressMode } from '@craftabot/core';
 import { readFile, writeFile } from 'node:fs/promises';
 import { defaultConfig, loadConfig, type HarnessConfig } from './config.js';
 import { principalFromEnv } from './principal.js';
+import { mergeReports } from './commands/merge.js';
 import { parseCampaign, type CampaignGuard } from '@craftabot/evals';
 import { credentialsFromEnv, type CredentialSource } from './credentials.js';
 import { bundleRun } from './commands/bundle.js';
@@ -173,6 +174,18 @@ Usage:
       refuses every network call (what CI runs); declared, the default,
       allows only the hosts fitted components declare. A live brain needs
       the campaign's own budget and its provider's CRAFTABOT_CREDENTIAL_<ID>.
+
+  craftabot campaign … [--jobs <n>] [--shard <i>/<n>] [--seeds <a>-<b>]
+      At scale (WP68): --jobs runs cells in a pool of worker threads (the
+      report is placed by cell order, so it reads the same as --jobs 1);
+      --shard runs the i-th of n slices and marks the report a shard;
+      --seeds replaces the file's seeds with a range.
+
+  craftabot merge --file <campaign.json> [--out ./campaign-out] [--strict] <report.json>…
+                  [--baseline <report.json>] [--junit <path>] [--sarif <path>] [--markdown <path>]
+      Fold shard reports into one: the cells in campaign order, the gates and
+      the summary over the whole. Refuses reports of different campaigns,
+      overlapping shards, and a fold whose live cells exceed the budget.
 
   craftabot campaign --matrix scripted|expert [--out ./campaign-out] [--record] [--strict]
       An ad-hoc matrix with no gates (what "npm run evals" used to be): every
@@ -406,6 +419,12 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 				const scenarioPacks = stringFlag(args, 'scenarios')
 					?.split(',')
 					.filter((s) => s !== '');
+				// At scale (WP68, `57-…` §4.2): a worker pool, a slice, a seed range.
+				const jobs = numberFlag(args, 'jobs');
+				const shard = shardFlag(args);
+				const seeds = seedsFlag(args);
+				const configPath =
+					typeof args.flags['config'] === 'string' ? args.flags['config'] : undefined;
 				const { report, reportFile, written } = await runCampaignFile({
 					file,
 					out,
@@ -413,6 +432,11 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 					config: await configFrom(args),
 					credentials: credentialsFromEnv(io.env),
 					principal: principalFor(io, args),
+					...(jobs !== undefined ? { jobs } : {}),
+					...(shard !== undefined ? { shard } : {}),
+					...(seeds !== undefined ? { seeds } : {}),
+					...(configPath !== undefined ? { configPath } : {}),
+					contentDir: contentDirFrom(args),
 					...(baseline !== undefined ? { baseline } : {}),
 					...(junit !== undefined ? { junit } : {}),
 					...(sarif !== undefined ? { sarif } : {}),
@@ -423,7 +447,7 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 				const failed = report.gates.filter((gate) => !gate.passed);
 				io.stdout(
 					[
-						`campaign ${report.campaignId} — ${report.passed ? '✅ PASSED' : '❌ FAILED'}: ${report.gates.length - failed.length} of ${report.gates.length} gates, ${report.cells.length} cells, ${report.budget.liveCells} live`,
+						`campaign ${report.campaignId} — ${report.passed ? '✅ PASSED' : '❌ FAILED'}: ${report.gates.length - failed.length} of ${report.gates.length} gates, ${report.cells.length} cells, ${report.budget.liveCells} live${report.shard ? ` (shard ${report.shard.index}/${report.shard.of} — merge the shards before reading the gates)` : ''}`,
 						`  report     ${reportFile}`,
 						...written.slice(1).map((path) => `  wrote      ${path}`),
 						''
@@ -434,6 +458,36 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 						`  ✗ ${gate.id}: ${gate.observed === undefined ? 'no cells matched' : `observed ${gate.kind === 'metric' ? gate.observed : `${Math.round(gate.observed * 100)}%`}`}, required ${gate.required}\n`
 					);
 				}
+				return args.flags['strict'] === true && !report.passed ? 1 : 0;
+			}
+			case 'merge': {
+				// WP68 (`57-…` §4.2): shard reports folded into one, the gates over the whole.
+				const file = stringFlag(args, 'file');
+				if (file === undefined) throw new Error('merge needs --file <campaign.json>');
+				if (args.positional.length === 0) throw new Error('merge needs the shard reports to fold');
+				const junit = stringFlag(args, 'junit');
+				const sarif = stringFlag(args, 'sarif');
+				const markdown = stringFlag(args, 'markdown');
+				const baseline = stringFlag(args, 'baseline');
+				const { report, reportFile, written } = await mergeReports({
+					file,
+					reports: args.positional,
+					out: stringFlag(args, 'out') ?? './campaign-out',
+					config: await configFrom(args),
+					...(junit !== undefined ? { junit } : {}),
+					...(sarif !== undefined ? { sarif } : {}),
+					...(markdown !== undefined ? { markdown } : {}),
+					...(baseline !== undefined ? { baseline } : {})
+				});
+				const failed = report.gates.filter((gate) => !gate.passed);
+				io.stdout(
+					[
+						`merged ${args.positional.length} reports of ${report.campaignId} — ${report.passed ? '✅ PASSED' : '❌ FAILED'}: ${report.gates.length - failed.length} of ${report.gates.length} gates, ${report.cells.length} cells, ${report.budget.liveCells} live`,
+						`  report     ${reportFile}`,
+						...written.slice(1).map((path) => `  wrote      ${path}`),
+						''
+					].join('\n')
+				);
 				return args.flags['strict'] === true && !report.passed ? 1 : 0;
 			}
 			case 'scenarios': {
@@ -629,6 +683,24 @@ function contentDirFrom(args: ParsedArgs): string {
 }
 
 /** `--egress declared|none` (WP41) — anything else is refused, since a typo here would silently widen what a run may call. */
+/** `--shard i/n` (WP68): the i-th of n slices, 1-based. */
+function shardFlag(args: ParsedArgs): { index: number; of: number } | undefined {
+	const raw = stringFlag(args, 'shard');
+	if (raw === undefined) return undefined;
+	const match = /^(\d+)\/(\d+)$/.exec(raw);
+	if (!match) throw new Error(`--shard wants i/n, got "${raw}"`);
+	return { index: Number(match[1]), of: Number(match[2]) };
+}
+
+/** `--seeds a-b` (WP68): the file's seeds replaced by the range. */
+function seedsFlag(args: ParsedArgs): { from: number; to: number } | undefined {
+	const raw = stringFlag(args, 'seeds');
+	if (raw === undefined) return undefined;
+	const match = /^(\d+)-(\d+)$/.exec(raw);
+	if (!match) throw new Error(`--seeds wants a-b, got "${raw}"`);
+	return { from: Number(match[1]), to: Number(match[2]) };
+}
+
 function egressFlag(args: ParsedArgs): EgressMode | undefined {
 	const value = stringFlag(args, 'egress');
 	if (value === undefined) return undefined;

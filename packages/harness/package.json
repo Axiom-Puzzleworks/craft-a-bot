@@ -16,7 +16,7 @@
 	},
 	"scripts": {
 		"build": "tsc -p tsconfig.build.json",
-		"test": "vitest run --coverage",
+		"test": "npm run build && vitest run --coverage",
 		"check": "tsc --noEmit"
 	},
 	"dependencies": {

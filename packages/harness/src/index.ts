@@ -36,3 +36,11 @@ export {
 } from './commands/report.js';
 export { runRecordFrom } from './run-record.js';
 export { main as cli, parseArgs, type CliIo } from './cli.js';
+/** At scale (WP68, `57-…` §4.2): the fold over shard reports, and the pool a host can reuse. */
+export {
+	mergeCampaignReports,
+	mergeReports,
+	type MergeOptions,
+	type MergeReport
+} from './commands/merge.js';
+export { createCellPool, type CellPool } from './commands/cell-pool.js';

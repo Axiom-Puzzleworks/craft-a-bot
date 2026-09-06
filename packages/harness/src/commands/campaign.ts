@@ -21,6 +21,7 @@ import { credentialVariable, type CredentialSource } from '../credentials.js';
 import { runRecordFrom } from '../run-record.js';
 import { buildSink, sinkById } from '../sinks.js';
 import { createFileStorage } from '../storage/file-storage.js';
+import { createCellPool } from './cell-pool.js';
 
 /**
  * `craftabot campaign` (WP38 stage C, `28-CAMPAIGNS.md` §4.7): a campaign
@@ -50,6 +51,15 @@ export interface CampaignFileOptions {
 	/** Scenario pack files (WP44) registered beside the config's packs, so a campaign can name their scenarios. */
 	scenarioPacks?: string[];
 	onCell?: (done: number, total: number) => void;
+	/** Cells in flight at once (WP68, `57-…` §4.2): above 1, a pool of workers over the harness's built `campaign-worker.js`. */
+	jobs?: number;
+	/** Run the `index`-th of `of` slices only; the report says so, and `craftabot merge` folds slices back. */
+	shard?: { index: number; of: number };
+	/** Replace the file's seeds with `a..b` — a scale run as one flag on a baseline. */
+	seeds?: { from: number; to: number };
+	/** The config file and content directory the CLI resolved, so a worker builds the same registry (the config object itself cannot cross to a worker). */
+	configPath?: string;
+	contentDir?: string;
 }
 
 export interface CampaignFileReport {
@@ -61,7 +71,15 @@ export interface CampaignFileReport {
 }
 
 export async function runCampaignFile(options: CampaignFileOptions): Promise<CampaignFileReport> {
-	const campaign = parseCampaign(JSON.parse(await readFile(options.file, 'utf8')));
+	const fromFile = JSON.parse(await readFile(options.file, 'utf8')) as Record<string, unknown>;
+	if (options.seeds) {
+		const { from, to } = options.seeds;
+		if (!Number.isInteger(from) || !Number.isInteger(to) || to < from) {
+			throw new Error(`--seeds wants a range a-b with a ≤ b, got ${from}-${to}`);
+		}
+		fromFile['seeds'] = Array.from({ length: to - from + 1 }, (_, index) => from + index);
+	}
+	const campaign = parseCampaign(fromFile);
 	const baseline =
 		options.baseline === undefined
 			? undefined
@@ -94,9 +112,25 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 	});
 	const sinkFailures: string[] = [];
 
+	// The `--jobs` pool (WP68): workers compute, this thread writes.
+	const jobs = Math.max(1, Math.floor(options.jobs ?? 1));
+	const pool =
+		jobs > 1
+			? await createCellPool(jobs, {
+					campaign: fromFile,
+					...(options.configPath !== undefined ? { configPath: options.configPath } : {}),
+					...(options.contentDir !== undefined ? { contentDir: options.contentDir } : {}),
+					scenarioPacks: options.scenarioPacks ?? [],
+					egress: options.egress ?? 'declared',
+					...(options.principal ? { principal: options.principal } : {})
+				})
+			: undefined;
+
 	let writing: Promise<void> = Promise.resolve();
 	const report = await runCampaign(campaign, {
 		...(baseline ? { baseline } : {}),
+		...(pool ? { execute: (spec) => pool.execute(spec), concurrency: jobs } : {}),
+		...(options.shard ? { shard: options.shard } : {}),
 		packVersions: versions,
 		providerFor: (brain) => providerFor(brain, registry, options),
 		egress: options.egress ?? 'declared',
@@ -147,6 +181,7 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 		}
 	});
 	await writing;
+	await pool?.close();
 
 	await mkdir(options.out, { recursive: true });
 	// The report is filed beside the runs (WP49) so `craftabot report --safety-case` can quote it, as the Workshop does.

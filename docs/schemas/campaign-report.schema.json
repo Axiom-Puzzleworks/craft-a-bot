@@ -291,6 +291,11 @@
 							"type": "string"
 						}
 					},
+					"ordinal": {
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 9007199254740991
+					},
 					"counterpart": {
 						"type": "object",
 						"properties": {
@@ -431,6 +436,25 @@
 			},
 			"required": [
 				"tier"
+			]
+		},
+		"shard": {
+			"type": "object",
+			"properties": {
+				"index": {
+					"type": "integer",
+					"exclusiveMinimum": 0,
+					"maximum": 9007199254740991
+				},
+				"of": {
+					"type": "integer",
+					"exclusiveMinimum": 0,
+					"maximum": 9007199254740991
+				}
+			},
+			"required": [
+				"index",
+				"of"
 			]
 		},
 		"summary": {
