@@ -1,5 +1,6 @@
 import type { EvidenceStore, PackManifest } from '@craftabot/core';
 import { memoryEvidenceStore } from './memory.js';
+import { supabaseEvidenceStore } from './supabase.js';
 
 /**
  * **`@craftabot/evidence`** (`58-EVIDENCE-STORE.md`, WP70; `41-…` §6.11, D1):
@@ -15,9 +16,18 @@ export {
 	resetMemoryEvidence,
 	type MemoryEvidenceConfig
 } from './memory.js';
+export {
+	EVIDENCE_TABLES,
+	SUPABASE_EVIDENCE_CREDENTIAL_ID,
+	SUPABASE_EVIDENCE_STORE_ID,
+	createSupabaseEvidenceInstance,
+	supabaseEvidenceConfigSchema,
+	supabaseEvidenceStore,
+	type SupabaseEvidenceConfig
+} from './supabase.js';
 
-/** The stores a host lists (the memory store; stage B adds `evidence/supabase`). */
-export const evidenceStores: EvidenceStore[] = [memoryEvidenceStore];
+/** The stores a host lists: the Supabase adapter (§4.3) and the memory store (§4.2). */
+export const evidenceStores: EvidenceStore[] = [supabaseEvidenceStore, memoryEvidenceStore];
 
 /** The `evidence` pack: the stores as registered content, for both hosts. */
 export const evidencePack: PackManifest = {

@@ -19,7 +19,7 @@ import { evidencePack, memoryEvidenceStore, resetMemoryEvidence } from './index.
  * tampered payload does not verify; the ids follow §4.1; the registry lists
  * the store from the manifest and refuses a malformed one.
  */
-const PACK = { agent: { id: 'agent-1' }, generatedAt: '2026-01-01T00:00:00.000Z', digest: 'x' };
+const PACK = { bot: { id: 'agent-1' }, generatedAt: '2026-01-01T00:00:00.000Z', digest: 'x' };
 
 export async function fixtureItems(): Promise<EvidenceItem[]> {
 	const run = makeRun();
@@ -87,7 +87,7 @@ describe('evidence items', () => {
 		expect(report?.pushedBy).toBe('tester');
 		expect(() => evidenceIdFor('bundle', { runs: [] })).toThrow(/no run/);
 		expect(() => evidenceIdFor('content', {})).toThrow(/has an id/);
-		expect(() => evidenceIdFor('assurance-pack', {})).toThrow(/names its agent/);
+		expect(() => evidenceIdFor('assurance-pack', {})).toThrow(/names its bot/);
 	});
 
 	it('is a closed union: a run that is not a bundle is not an item', async () => {
@@ -145,7 +145,10 @@ describe('the manifest', () => {
 	it('registers the store as content, and refuses a store with no egress', () => {
 		const registry = createPackRegistry();
 		registry.registerPack(evidencePack);
-		expect(registry.listEvidenceStores().map((store) => store.id)).toEqual(['evidence/memory']);
+		expect(registry.listEvidenceStores().map((store) => store.id)).toEqual([
+			'evidence/supabase',
+			'evidence/memory'
+		]);
 		expect(registry.getEvidenceStore('evidence/memory')?.name).toBe(memoryEvidenceStore.name);
 		const broken: PackManifest = {
 			...evidencePack,

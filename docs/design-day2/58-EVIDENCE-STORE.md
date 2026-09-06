@@ -59,7 +59,7 @@ interface EvidenceStore {
 
 `evidenceItemSchema` (Zod, the union) validates on the way out of a store; `computeEvidenceDigest(payload)` and `verifyEvidenceItem(item)` are the one digest rule (§2 item 2); `evidenceItemFor(kind, id, payload, { now, principal })` builds an item; `describeEvidenceStoreProblems(store)` is the registry's shape check. The assurance-pack payload is the pack record as `governance/reports` builds it — `core` cannot name that type (the same reason the campaign report is an envelope), so the item carries it opaque and the reader in `governance` parses it.
 
-The ids: a bundle's item id is its first run's id (a group's, the group id); a campaign report's is the stored report's id; an assurance pack's is `assurance/<agentId>/<generatedAt>`; content's is the record's `local/…` id. Pushing the same id again replaces the row (an upsert) — the receipt's digest says which version is there.
+The ids: a bundle's item id is its first run's id (a group's, the group id); a campaign report's is the stored report's id; an assurance pack's is `assurance/<bot.id>/<generatedAt>`; content's is the record's `local/…` id. Pushing the same id again replaces the row (an upsert) — the receipt's digest says which version is there.
 
 ### 4.2 The package (`packages/evidence`)
 

@@ -5,7 +5,7 @@ export default defineConfig({
 		coverage: {
 			provider: 'v8',
 			include: ['src/**/*.ts'],
-			exclude: ['src/**/*.test.ts'],
+			exclude: ['src/**/*.test.ts', 'src/fake-postgrest.ts'],
 			reporter: ['text', 'json-summary']
 		}
 	}

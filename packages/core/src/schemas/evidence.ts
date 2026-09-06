@@ -132,12 +132,13 @@ export function evidenceIdFor(
 			return first;
 		}
 		case 'assurance-pack': {
-			const agent = (payload.agent as { id?: string } | undefined)?.id ?? payload.agentId;
+			// `AssurancePack.bot.id` and `generatedAt` (`53-…` §4.2) — read loosely, since `core` cannot name the type.
+			const bot = (payload.bot as { id?: string } | undefined)?.id;
 			const generatedAt = payload.generatedAt;
-			if (typeof agent !== 'string' || typeof generatedAt !== 'string') {
-				throw new Error('an assurance pack names its agent and generatedAt');
+			if (typeof bot !== 'string' || typeof generatedAt !== 'string') {
+				throw new Error('an assurance pack names its bot and generatedAt');
 			}
-			return `assurance/${agent}/${generatedAt}`;
+			return `assurance/${bot}/${generatedAt}`;
 		}
 		default: {
 			if (typeof payload.id !== 'string' || payload.id === '') {

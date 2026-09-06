@@ -18,6 +18,14 @@ import { readContentDir } from './storage/file-storage.js';
 import { describePacks, renderPacks } from './commands/packs.js';
 import { reportIncidents, reportSafetyCase, reportTelemetry } from './commands/report.js';
 import { reportAssurance } from './commands/assurance.js';
+import {
+	pushEvidence,
+	pullEvidence,
+	renderPulled,
+	type PushEvidenceOptions
+} from './commands/evidence.js';
+import { buildEvidenceStore, evidenceStoreById, parseEvidenceStoreConfig } from './evidence.js';
+import type { EvidenceKind } from '@craftabot/core';
 import { runKit, type BrainTier } from './commands/run.js';
 import { forkRun } from './commands/fork.js';
 import { createRegistry } from './config.js';
@@ -111,6 +119,23 @@ Usage:
       --file or stdout; --markdown and --html write the two renderings, the
       HTML one self-contained file a reader opens with no app. Relevance,
       never compliance.
+
+  craftabot evidence push --store <storeId> [--store-config <json>] [--egress declared|none] [--out ./runs]
+                          --run <runId> | --group <groupRunId> | --campaign-report <id>
+                          | --assurance [--agent <id>] | --content-file <record.json>
+  craftabot evidence pull --store <storeId> [--store-config <json>] [--egress declared|none]
+                          [--kind bundle|campaign-report|assurance-pack|content] [--id <id>]
+                          [--since <iso>] [--limit <n>] [--dir ./evidence]
+      The shared evidence store (WP70, 58-EVIDENCE-STORE.md): a sync target
+      for artefacts only — a run or a group as its bundle, a stored campaign
+      report, the assurance pack for a bot, a content record — and never a
+      key, never required. push prints the receipt as JSON; pull verifies
+      every item's digest, refuses one that fails, and writes the rest under
+      --dir as the files the Workshop imports. The store's token is read
+      from CRAFTABOT_CREDENTIAL_<ID> (evidence/supabase reads
+      CRAFTABOT_CREDENTIAL_EVIDENCE_SUPABASE); --store-config is the store's
+      own JSON ({"url","anonKey","workspace"} for Supabase). Under
+      --egress none the store is refused and the command exits 1.
 
   craftabot fork --run <runId> [--tick <n>] [--kit <other.craftabot.json>]
                  [--brain scripted-optimal|scripted-noisy] [--seed <n>] [--deny]
@@ -620,6 +645,63 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 ${renderEvaluations(report)}`);
 				return report.unknown.length > 0 ? 1 : 0;
 			}
+			case 'evidence': {
+				// WP70 (`58-EVIDENCE-STORE.md` §4.4): the harness half of the shared evidence store.
+				const verb = args.positional[0];
+				const storeId = stringFlag(args, 'store');
+				if ((verb !== 'push' && verb !== 'pull') || storeId === undefined) {
+					throw new Error('evidence needs push|pull --store <storeId>');
+				}
+				const registry = createRegistry(await configFrom(args));
+				const store = evidenceStoreById(registry, storeId);
+				const config = parseEvidenceStoreConfig(store, stringFlag(args, 'store-config'));
+				const credentials = credentialsFromEnv(io.env);
+				const evidenceEgress = egressFlag(args);
+				const instance = buildEvidenceStore({
+					store,
+					config,
+					credentials,
+					...(evidenceEgress ? { egress: evidenceEgress } : {})
+				});
+				if (verb === 'push') {
+					const storage = await createFileStorage(stringFlag(args, 'out') ?? './runs');
+					const what = pushTarget(args);
+					const receipt = await pushEvidence({
+						storage,
+						registry,
+						instance,
+						secrets: credentials.secrets(),
+						what,
+						principal: principalFromEnv(io.env).id
+					});
+					io.stdout(`${JSON.stringify(receipt, null, '\t')}\n`);
+					return 0;
+				}
+				const kind = stringFlag(args, 'kind');
+				if (
+					kind !== undefined &&
+					!['bundle', 'campaign-report', 'assurance-pack', 'content'].includes(kind)
+				) {
+					throw new Error(
+						`evidence pull --kind wants bundle|campaign-report|assurance-pack|content, got "${kind}"`
+					);
+				}
+				const limit = stringFlag(args, 'limit');
+				const since = stringFlag(args, 'since');
+				const id = stringFlag(args, 'id');
+				const pulled = await pullEvidence({
+					instance,
+					dir: stringFlag(args, 'dir') ?? './evidence',
+					query: {
+						...(kind !== undefined ? { kind: kind as EvidenceKind } : {}),
+						...(id !== undefined ? { id } : {}),
+						...(since !== undefined ? { since } : {}),
+						...(limit !== undefined ? { limit: Number(limit) } : {})
+					}
+				});
+				io.stdout(renderPulled(pulled));
+				return pulled.some((line) => !line.verified) ? 1 : 0;
+			}
 			case 'assurance': {
 				// WP67 (`53-ASSURANCE-PACK.md` §4.3): the pack for one bot, and its two renderings.
 				const storage = await createFileStorage(stringFlag(args, 'out') ?? './runs');
@@ -716,6 +798,25 @@ function seedsFlag(args: ParsedArgs): { from: number; to: number } | undefined {
 	const match = /^(\d+)-(\d+)$/.exec(raw);
 	if (!match) throw new Error(`--seeds wants a-b, got "${raw}"`);
 	return { from: Number(match[1]), to: Number(match[2]) };
+}
+
+/** What `evidence push` sends (WP70): exactly one of the five. */
+function pushTarget(args: ParsedArgs): PushEvidenceOptions['what'] {
+	const runId = stringFlag(args, 'run');
+	if (runId !== undefined) return { kind: 'run', runId };
+	const groupRunId = stringFlag(args, 'group');
+	if (groupRunId !== undefined) return { kind: 'group', groupRunId };
+	const reportId = stringFlag(args, 'campaign-report');
+	if (reportId !== undefined) return { kind: 'campaign-report', reportId };
+	const file = stringFlag(args, 'content-file');
+	if (file !== undefined) return { kind: 'content', file };
+	if (args.flags['assurance'] !== undefined) {
+		const agentId = stringFlag(args, 'agent');
+		return { kind: 'assurance-pack', ...(agentId !== undefined ? { agentId } : {}) };
+	}
+	throw new Error(
+		'evidence push needs one of --run, --group, --campaign-report, --assurance or --content-file'
+	);
 }
 
 function egressFlag(args: ParsedArgs): EgressMode | undefined {
