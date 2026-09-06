@@ -10,11 +10,15 @@ import {
 	type LLMProvider,
 	type PackRegistry,
 	type Principal,
-	type RunOutcome,
-	type WorldDefinition
+	type RunOutcome
 } from '@craftabot/core';
 import { createMockProvider } from '@craftabot/core/testing';
-import { scriptedCounterpart } from '@craftabot/evals';
+import {
+	counterpartScriptFor,
+	counterpartSpec,
+	deskFor,
+	scriptedCounterpart
+} from '@craftabot/evals';
 import { summariseRun } from '@craftabot/governance/reports';
 import type { CounterpartScript } from '@craftabot/desk';
 import { writeFile } from 'node:fs/promises';
@@ -80,49 +84,7 @@ export interface RunDuoReport {
 	providerId: string;
 }
 
-/** The desk's script, or why this card cannot seat a visitor. */
-export function counterpartScriptFor(
-	registry: PackRegistry,
-	goalCardId: string
-): { script: CounterpartScript; world: WorldDefinition } {
-	const card = registry.getGoalCard(goalCardId);
-	const world = card ? registry.getWorld(card.worldId) : undefined;
-	if (!card || !world) throw new Error(`no goal card '${goalCardId}' is installed`);
-	if (world.view !== 'desk') {
-		throw new Error(`--counterpart needs a desk; '${goalCardId}' plays in '${world.id}', a room`);
-	}
-	const script = (world as { spec?: { counterpart?: CounterpartScript } }).spec?.counterpart;
-	if (!script) throw new Error(`the desk '${world.id}' has no counterpart script to seat`);
-	return { script, world };
-}
-
-/** The visitor's spec (`46-…` §4.6): the conversation and its brief, `say` and `hang-up`, the persona as its personality. */
-export function counterpartSpec(
-	script: CounterpartScript,
-	goalCardId: string,
-	worldId: string,
-	cartridgeId: string,
-	id: string,
-	createdAt: string
-): AgentSpec {
-	return {
-		id,
-		name: script.name,
-		bricks: {
-			llm: { cartridgeId, temperature: 0, maxTokens: 256, personality: script.persona },
-			// Qualified with the desk's own id: the starter's Sense and Actions
-			// bricks qualify a bare id with the Playroom's (`12-…` D20), which
-			// would leave the visitor deaf at the desk.
-			sense: { channels: [`${worldId}/conversation`, `${worldId}/brief`] },
-			actions: { enabled: [`${worldId}/say`, `${worldId}/hang-up`] },
-			memory: { windowSize: 10, notebook: false }
-		},
-		goalCardId,
-		createdAt,
-		updatedAt: createdAt,
-		schemaVersion: 1
-	};
-}
+export { counterpartScriptFor, counterpartSpec };
 
 function counterpartProvider(
 	input: RunDuoInput,
@@ -167,10 +129,14 @@ function counterpartProvider(
 }
 
 export async function runKitDuo(input: RunDuoInput): Promise<RunDuoReport> {
-	const { script, world } = counterpartScriptFor(input.registry, input.spec.goalCardId);
 	const now = input.now ?? (() => new Date().toISOString());
 	const newId = input.newId ?? (() => crypto.randomUUID());
 	const random = mulberry32(input.seed);
+	// The world is made here and handed to the group (WP64, `56-…` §2 item 10),
+	// so the person seated across it — the case's own, on the bank's desks — can be read.
+	const { card, world } = deskFor(input.registry, input.spec.goalCardId);
+	const rootWorld = world.create(card.layoutId, { random });
+	const { script } = counterpartScriptFor(input.registry, input.spec.goalCardId, rootWorld);
 	const visitorBrain = counterpartProvider(input, script, mulberry32(input.seed ^ 0x9e3779b9));
 	const visitor = counterpartSpec(
 		script,
@@ -190,6 +156,7 @@ export async function runKitDuo(input: RunDuoInput): Promise<RunDuoReport> {
 		],
 		registry: input.registry,
 		goalCardId: input.spec.goalCardId,
+		world: rootWorld,
 		options: {
 			now,
 			newId,

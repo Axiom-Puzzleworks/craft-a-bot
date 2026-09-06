@@ -3,8 +3,12 @@ import type { BrickKindDefinition, PackManifest } from '@craftabot/core';
 import { MONITOR_RULE_IDS, MONITOR_RULE_LABELS, isMonitorRule, rulesFor } from './rules.js';
 export {
 	GROUP_CIRCUIT_BREAKER_ID,
+	createComplianceWatchbot,
+	createEvaluatorCircuitBreaker,
 	createGroupCircuitBreaker,
 	createGroupWatchbot,
+	type ComplianceWatchbotOptions,
+	type EvaluatorBreakerTrigger,
 	type GroupWatchbot,
 	type GroupWatchbotOptions
 } from './rules.js';

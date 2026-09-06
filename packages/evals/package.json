@@ -21,6 +21,7 @@
 		"@craftabot/core": "*",
 		"@craftabot/desk": "*",
 		"@craftabot/governance": "*",
+		"@craftabot/pack-monitor": "*",
 		"@craftabot/pack-starter": "*",
 		"zod": "^4.4.3"
 	},

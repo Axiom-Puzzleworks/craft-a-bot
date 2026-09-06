@@ -1,0 +1,108 @@
+# 56 — Live counterparts and the Compliance Watchbot (WP64)
+
+> **Status (2026-09-06):** the design of record for WP64 (`42-DAY4-ROADMAP.md` §3 Phase N, taken up in Phase O; `41-TARGET-DESIGN-V4.md` §6.3's live half and §6.5.6's specialist-agent configuration; part of G23). Written before stage A; the stage notes at the foot say what landed. WP55 (`46-COUNTERPARTS.md`) built the seat, the script and the `scripted-counterpart` brain; this note is about what runs *in* the seat when a model is there, how a campaign says so and what it may then claim, and the monitor that sits beside an episode.
+
+## 1. Purpose, and who this is for
+
+A scripted counterpart is what CI runs: deterministic, free, and only as pushy as its rules. A **live** counterpart — a model in the seat across the desk, briefed with the persona and what the truth says that person knows — is what a conduct reviewer wants before they believe a number: a customer who rephrases, insists, wanders and lies the way a person does. Two claims follow and the design must keep them apart: a campaign run against a scripted seat and one against a live seat are *different instruments*, and no report may compare one to the other as if they were the same. Beside the episode sits the **Compliance Watchbot** — the group Watchbot WP48 built, fitted with the desk's own evaluators run live in *note* mode and a circuit breaker that stops the episode the moment an evaluator says `unsuitable` or `tipped-off` — the "monitor" link of `41-…` §6.5.6's chain, shipped as content: a named `guards` entry on every desk's campaign and a preset in the Spec Lab.
+
+## 2. Where the code actually is — and what the contract test found
+
+Read for this note: `desk/src/desk-world.ts` (`forAgent` for the `counterpart` role: `observeAsCounterpart` — the conversation and the brief, the persona plus `counterpartKnows(truth, state)`; a bound seat suspends the script), `harness/src/commands/run-duo.ts` (`counterpartScriptFor`, `counterpartSpec`, `counterpartProvider` — scripted through `scriptedCounterpart`, live through any cartridge with its provider's credential — and the group loop that writes both runs and the bundle), the Kit's duo route (`routes/play/duo/+page.svelte`: on a desk card the second robot is the visitor; keyless → the script, a battery → its own cartridge with the persona as brief), `evals/src/campaign.ts` (the campaign schema — `guards[].fit` as bricks, `brains[].tier`, `budget.maxLiveCells`; `runCell` over one `runToCompletion`; `checkBudget`; the `no-regression` gate refusing a baseline of another schema), `evals/src/campaign-summary.ts` (slices by scenario × guard × brain), `packs/monitor/src/rules.ts` (`createGroupWatchbot`: the observer noting on the merged bus, the rules at the group's `pre-think`, `createGroupCircuitBreaker(refusalLimit)`), `packs/workshop/src/bricks/monitor-judge.ts` (an evaluator run live on the chassis, `note` only), `packs/fs-bank/src/personas.ts` (the ten personas over a customer), each desk's `personas.ts` and `world/desk.ts` (`counterpartKnows`), `lib/workshop/autonomy.ts` (the Spec Lab's presets, written into the Safety Brick), `package.json`'s `smoke:harness`.
+
+What the contract test found, numbered as the earlier notes number theirs:
+
+1. **Most of the live seat already exists and is not changed.** `craftabot run --counterpart live [--counterpart-cartridge]`, the seat's brief composed from the persona and `counterpartKnows`, the persona as the seat's `personality`, the Kit's duo seating a battery-bearing second robot live (an Ollama cartridge is keyless, so "free" is already true), the bundle export from the Audit Centre — all WP55's and WP48's. This note records them as built (§8) rather than rebuilding them.
+2. **A campaign cell is one session.** `runCell` runs `runToCompletion` — one seat, the desk's script inside the world. A live seat needs a `SessionGroup`. Fixed in `evals`: a two-seat cell (`runDuoCell`) built the way the harness's `runKitDuo` builds its group, with the seat's spec and script resolution moved into `evals` (`counterpart-seat.ts`: `counterpartScriptFor`, `counterpartSpec`) so the harness imports them instead of owning them.
+3. **A campaign cannot name a counterpart.** The schema has scenarios, builds, guards, brains, seeds. Fixed in `evals`: `campaign.counterpart?: { tier: 'scripted' | 'live'; cartridgeId? }` — one per campaign, since two tiers are two instruments (§4.2); the report and every cell carry it; `budget.maxLiveCells` counts a live seat as a live cell whatever the agent's brain.
+4. **A report cannot say which instrument it is.** Nothing on `CampaignReport` names the seat; a `no-regression` gate would happily compare a live-seat run to a scripted baseline. Fixed in `evals`: `report.counterpart` labelled on the report and in the scorecard, and the gate `inconclusive` with a reason when the baseline's tier differs — `comparable: false`, in the report's own words.
+5. **A guard entry is bricks only.** `guards[].fit` fits a chassis; the group Watchbot and its breaker live at the group's chokepoint, which no campaign file can reach. Fixed in `evals`: `guards[].group?: { watchFor?, refusalLimit?, breakOn?: Array<{ evaluatorId, labels }> }` — the group-level half of a named stack, honoured by a two-seat cell and by the harness's duo; a single-seat cell ignores it and says so in the cell.
+6. **The breaker breaks on refusals only.** `createGroupCircuitBreaker` counts `guardrail.tripped`. `41-…` §6.5.6 wants a breaker on an *evaluator's* verdict. Fixed in `pack-monitor`: `createEvaluatorCircuitBreaker(evaluator, labels)` — the evaluator over the merged history at the group's `pre-think`, `stop-run` when its label is one of the named — and `createComplianceWatchbot({ watchFor, refusalLimit?, evaluators, breakOn })` composing it with the group Watchbot.
+7. **The Spec Lab has one kind of preset.** The autonomy dial writes the Safety Brick. Fixed in the app: `lib/workshop/stacks.ts` — named safety stacks (the Compliance Watchbot: the desk's cards, a Monitor Judge per conduct evaluator, the Watchbot, within `SLOT_CAPACITY.safety`) applied to a spec the way the dial is; the Spec Lab's Safety stack offers them for a desk bot.
+8. **No Advice Desk kit file exists for the harness.** `smoke:harness` runs the snackbot fixture. Added: `harness/fixtures/advice-desk.craftabot.json`, generated from the pack's own `buildSpec` (synthetic by construction; `checkSynthetic` sweeps it), and `smoke:counterpart` — one Advice Desk case, the seat live on the kit's cartridge, an env key, never CI.
+9. **A group cannot take a host's world.** `CreateSessionDeps.world` is the door a solo session has for an injected, seeded world; `CreateSessionGroupDeps` has none, so a two-seat cell could not carry a scenario's injections or the case's seed. Fixed in core: `CreateSessionGroupDeps.world?` — a root instance handed in, used instead of the card's `create`; absent, the group creates the world as it always has.
+10. **The bank's desks seat nobody the host can name.** `counterpartScriptFor` read the desk's *static* `spec.counterpart`, which the Front Desk has and the bank's desks do not — their person is generated with the case, so `run --counterpart` on an Advice Desk card refused ("has no counterpart script to seat") and `smoke:counterpart` could not exist. Fixed in `desk` and `evals`: a desk instance exposes `seatedCounterpart()` (`DeskWorldInstance`, `seatedCounterpartOf`), and `counterpartScriptFor(registry, card, instance)` reads the seated script; both hosts now make the world first (item 9's door) and read the person from it.
+11. **Truth never reaches a chokepoint.** `evaluationInputFor(history)` mid-run has no `run.finished`, so an evaluator that reads truth — `recommendation-suitable`'s `unsuitable` — cannot judge at a group's `pre-think`, and must not: truth is the evaluators' after the run, never a guardrail's during it (`45-…`). Decided, not changed (§8): the breaker also fires `onFail`, and the Advice Desk's stack breaks on `suitability-complete` failing — a recommendation before the questions — which the trace alone can judge.
+
+## 3. Design principles
+
+- **Two instruments, never one number.** A scripted-seat report and a live-seat report each say which they are; a gate that would compare across them says it cannot. The scripted tier stays the CI truth; the live tier is evidence a person reads.
+- **The seat is the seat.** A live counterpart still only talks: `say` and `hang-up`, the conversation and its brief. Nothing here gives it the case file.
+- **Content, not mechanism** (hard rule 4). The Compliance Watchbot is the group Watchbot and the desk's evaluators, named in a campaign file and a preset; the one mechanism added is a breaker on an evaluator's label, in the monitor pack where the breaker on refusals already is.
+- **Under a budget or not at all.** A live seat is a live cell: no `budget`, no run; `maxLiveCells` counts it; the harness refuses without one, as it does for a live brain.
+- **Everything observable** (hard rule 3): the seat's tier is on the report and the cell; the Watchbot's notes are `brick.state` rows on the merged bus; the breaker's stop is a `guardrail.tripped` with its reason. No new event type.
+
+## 4. The design
+
+### 4.1 The two-seat cell (`evals`, stage A)
+
+`counterpart-seat.ts`: `counterpartScriptFor(registry, goalCardId)` (the desk's script, or why a card cannot seat one) and `counterpartSpec(script, goalCardId, worldId, cartridgeId, id, createdAt)` — moved from the harness, which now imports them. `runDuoCell(cell, campaign, options, registry)`: a `SessionGroup` of the agent (the cell's build, guard and brain as today) and the seat (`counterpartSpec`, role `counterpart`, its provider from `options.providerFor({ tier: 'live', id: 'counterpart', cartridgeId })`), stepped in rounds to the scenario's `maxRounds` (default 30), the agent's own events scored exactly as a single-seat cell's are (`scoreRun`, the evaluators, the assertions, the world's metrics, the cohort from truth) and the merged stream handed to `onTrace` with `seat: 'counterpart'` rows marked by `agentId`. A guard's `group` half is installed as `groupGuardrails` and `observers`.
+
+### 4.2 The campaign says which instrument (`evals`, stage A)
+
+```ts
+counterpart?: { tier: 'scripted' | 'live'; cartridgeId?: string }   // absent = 'scripted': the desk's own interpreter, as today
+guards[i].group?: { watchFor?: string[]; refusalLimit?: number; breakOn?: Array<{ evaluatorId: string; labels: string[] }> }
+```
+
+`tier: 'live'` needs `cartridgeId` and `budget`; `checkBudget` counts every cell as live. Each `CampaignCell` gains `counterpart: { tier, name?, cartridgeId? }` and the report `counterpart: { tier, cartridgeId? }` (additive, defaulted to scripted on read so every stored report parses). The scorecard's header names the tier. The `no-regression` gate: a baseline whose `counterpart.tier` differs is not the same instrument — `inconclusive`, `required` saying so — the schema-version precedent extended.
+
+### 4.3 The Compliance Watchbot (`pack-monitor`, the desks, stage B)
+
+`createEvaluatorCircuitBreaker(evaluator, labels, options?)`: a group guardrail at `pre-think` that runs the evaluator over the merged history (the `EvaluationInput` built from the events on hand) and returns `stop-run` when the result's `label` is one of `labels`; `createComplianceWatchbot({ watchFor, refusalLimit?, evaluators: Array<{ evaluator, labels }> })` returns `{ observe, guardrails }` — the group Watchbot's observer and rules plus the breakers. Every desk's campaign gains a guard `compliance-watchbot`: `fit` = the desk's cards plus a `workshop/monitor-judge` per conduct evaluator up to the socket capacity, `group` = the watched rules and `breakOn` for the desk's verdicts (`tipped-off` on the Fraud Desk, `unsuitable` on the Advice Desk, `over-decline`'s label on the Lending Desk); the baselines regenerated and their gates unchanged, since the judge only notes. The harness's `run --counterpart` takes `--stack <guardId>` from a campaign file to install that guard's `group` half on an episode.
+
+### 4.4 The hosts (stage B for the harness, stage C for the Workshop)
+
+- **Harness.** `craftabot campaign` with a live seat: `providerFor` resolves the seat's cartridge as it resolves a live brain; a file naming a live seat without `budget` refuses before anything runs. `smoke:counterpart` (root `package.json`): the Advice Desk fixture, `--counterpart live --provider openai --max-rounds 8`, an env key.
+- **Workshop.** The Robot Friends picker names who sits across a desk card (`counterpartName` from the desk's spec) and the duo's roles line says the seat's tier — *scripted* when the second robot is keyless and plays the script, *live* with the cartridge's name when it has a battery or a keyless provider. `lib/workshop/stacks.ts` and the Spec Lab's Safety stack offering the Compliance Watchbot preset for a desk bot; `applyStack` written into the spec, readback from the bricks.
+
+## 5. UX trajectory
+
+Kit: the picker's one line. Workshop: the Spec Lab's preset. No new screens.
+
+## 6. Determinism
+
+A scripted seat is deterministic from the seed as before. A live seat is not, and is recorded as such: its every utterance is on the trace under its own `agentId`, so replay never re-asks. The breaker and the judge are folds over the trace.
+
+## 7. Non-goals
+
+- No live seat in CI, ever; no persona cartridges as content beyond the persona's `personality` (a cartridge names a provider and a model — the seat takes any installed one).
+- No `script` choice on the campaign's counterpart: the script is the layout's, chosen by the card (`49-…` §4.6).
+- No Workshop campaign runner for live seats (the Workshop's Eval Matrix is scripted); no rubric-judged "stayed in character".
+- No breaker in the Kit; the Watchbot brick there still only notes.
+
+## 8. Divergences from `41-…` §6.3/§6.5.6 and `42-…` §3, with reasons
+
+| Doc says | This note does | Why |
+|---|---|---|
+| "Persona cartridges for every script in the bank's library over any provider" | The persona is the seat's `personality`; the cartridge is any installed one (`--counterpart-cartridge`, the robot's own) | A cartridge is a provider and a model; the persona is already on the seat (WP55) |
+| `counterpart: { tier: 'scripted' \| 'live', script }` on a campaign | `{ tier, cartridgeId? }`; the script is the layout's | The card chooses the case and the case its persona |
+| "the Workshop's duo route offering a desk's counterparts" | The Kit's duo, which names the visitor and the seat's tier | There is still no Workshop duo route (`46-…` §8); the seat's choices are the second robot's brain |
+| "campaigns naming counterpart under budget" per cell | One counterpart per campaign | Two tiers are two instruments; a file that mixed them would produce a report that compares them |
+| The breaker "on `tipped-off`/`unsuitable`" | On any evaluator's named labels, the desks naming theirs | The mechanism takes an evaluator; the labels are content |
+
+## 9. Risk register
+
+| Risk | Mitigation |
+|---|---|
+| A live seat's cell is scored on the wrong events | The agent's own `runId` filters the merged stream; a test scores a two-seat cell and finds the seat's rows absent from the score |
+| The judge slows a scripted baseline | Note mode, deterministic evaluators only; the baselines' CI time measured in the stage note |
+| The breaker stops on an inconclusive verdict | Only the named labels stop; `inconclusive` and `pass` never do — tested |
+
+## 10. Implementation plan
+
+- **Stage A — the two-seat cell and the instrument.** `counterpart-seat.ts` in `evals` (the harness importing it); the schema's `counterpart` and `guards[].group`; `runDuoCell`; the cell's and the report's fields; the budget; the gate's refusal; the scorecard's line; `createEvaluatorCircuitBreaker` and `createComplianceWatchbot`; tests: a live-seat campaign over a mock seat provider scored on the agent's events, refused without a budget, `comparable: false` against a scripted baseline, the breaker stopping an Advice Desk episode on the scripted tier and never on a pass.
+- **Stage B — the desks and the harness.** The `compliance-watchbot` guard on the three desk campaigns, the baselines regenerated, CI timed; `--stack` on `run --counterpart`; the Advice Desk fixture and `smoke:counterpart`; the harness README.
+- **Stage C — the Workshop, the close-out.** The picker's line and the roles' tier; `stacks.ts` and the Spec Lab preset; the e2e with Ollama stubbed: a live-seat episode exported from the Audit Centre as a bundle with both seats and a transcript; the close-out.
+
+## 11. Acceptance criteria (WP64 as a whole)
+
+1. A campaign with `counterpart: { tier: 'live', cartridgeId }` runs two-seat cells under a budget, refuses without one, and its report and every cell say `live`; a scripted campaign's say `scripted`.
+2. A `no-regression` gate between a live-seat report and a scripted-seat baseline is inconclusive and says the instruments differ.
+3. The Compliance Watchbot's breaker stops an Advice Desk episode on `unsuitable` over the scripted tier, and does not stop on a pass.
+4. Every desk campaign carries the `compliance-watchbot` guard; the baselines pass in CI with it.
+5. A live-seat episode through a stubbed Ollama in the Workshop exports as a bundle with both seats and a transcript (e2e).
+6. `smoke:counterpart` runs one Advice Desk case live end to end with an env key (never CI).
+
+> **Stage A landed 2026-09-06.** The two-seat cell and the instrument (§4.1–4.2). `evals/src/counterpart-seat.ts` — `deskFor`, `counterpartScriptFor(registry, card, instance?)` and `counterpartSpec` — moved from the harness's `run-duo.ts`, which now imports them; a desk instance exposes `seatedCounterpart()` (`DeskWorldInstance`, `seatedCounterpartOf` in `desk`) so the bank's desks, whose person is generated with the case, can seat them (§2 item 10); `CreateSessionGroupDeps.world?` in core, the group's door for a host-made world (§2 item 9), used by the harness's duo and the cell alike. The campaign schema: `counterpart?: { tier: 'scripted' | 'live', cartridgeId?, maxRounds? }` (one per campaign), `guards[].group?: { watchFor, refusalLimit?, breakOn: [{ evaluatorId, labels, onFail }] }`; a cell's `counterpart` (the tier, the seat's name, cartridge and run id — absent on a scripted cell, as every cell before) and the report's (`{ tier: 'scripted' }` on its face when the campaign named none); `guardBudget` counting every cell live under a live seat and refusing a seat with no cartridge; `runDuoCell` — the world made and seeded here (injected when the scenario injects), the seat's spec on the campaign's cartridge with its provider from `providerFor({ id: 'counterpart', tier: 'live', cartridgeId })`, the group stepped to `maxRounds`, the agent's own events scored as a solo cell's, the merged stream to `onTrace`; the `no-regression` gate `inconclusive` — *not comparable* — against a baseline of the other tier (`GateOptions.counterpart`); the scorecard's *Counterpart:* line. `pack-monitor`: `createEvaluatorCircuitBreaker(evaluator, { labels?, onFail? })` and `createComplianceWatchbot` (§2 item 6; the pack now depends on `governance` for `evaluationInputFor`). The proofs (§11 items 1–3): the Front Desk's card as a live-seat campaign with a mock in the seat — two cells scored on the clerk's run with the seat's rows on the merged stream, the report and every cell `live`, refused without a budget, a cartridge or headroom, a scripted campaign saying *scripted*, the gate refusing the cross-tier comparison and comparing the same tier as before, the seat's spec (`counterpart-campaign.test.ts`); the breaker on a label, on a fail, never on a pass or an inconclusive, noting on a throw, the Watchbot's composition (`evaluator-breaker.test.ts`); the Compliance Watchbot on an Advice Desk episode over the scripted tier stopping a clerk who recommends before asking — at the seat's `pre-think`, before the person across the desk has a turn — with `STOPPED_BY_GUARDRAIL` and the evaluator's own words, and never stopping a clerk who gathers first (`fs-advice/src/compliance-watchbot.test.ts`; §2 item 11 on why `suitability-complete` failing and not `unsuitable`). `docs/schemas` regenerated. Gate: root lint, every workspace's tests, the build, the evals baseline, the default e2e and the visual set.
+

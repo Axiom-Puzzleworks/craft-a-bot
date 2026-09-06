@@ -5,7 +5,7 @@ import type { PackRegistry } from '../pack-registry.js';
 import type { AgentSession, RunMode, SessionOptions, SessionStatus } from './agent-session.js';
 import type { Guardrail } from './guardrail.js';
 import type { LLMProvider } from './provider.js';
-import type { AgentRole } from './world.js';
+import type { AgentRole, WorldInstance } from './world.js';
 import type { Principal } from '../schemas/shared.js';
 
 /**
@@ -39,6 +39,14 @@ export interface CreateSessionGroupDeps {
 	 * refusal).
 	 */
 	goalCardId: string;
+	/**
+	 * A root world handed in by the host (WP64, `56-…` §2 item 9), the door
+	 * `CreateSessionDeps.world` already is for a solo session: a campaign's
+	 * two-seat cell builds its world with the scenario's injections and the
+	 * case's seed, then seats the group on it. Absent, the group creates the
+	 * card's world itself, as it always has.
+	 */
+	world?: WorldInstance;
 	/**
 	 * Host rules evaluated at the orchestrator chokepoint, above any member's
 	 * own Safety Brick (`19-…` §7.2, `23-…` §4.4/§4.9) — "the seam accepts

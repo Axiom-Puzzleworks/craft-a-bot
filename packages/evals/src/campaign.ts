@@ -1,11 +1,16 @@
 import type {
 	EgressMode,
+	EventBus,
+	Guardrail,
 	PackManifest,
 	PackRegistry,
 	Principal,
-	StoredCampaignReport
+	StoredCampaignReport,
+	Unsubscribe
 } from '@craftabot/core';
-import { injectionSchema } from '@craftabot/core';
+import { createSessionGroup, injectionSchema, toSpecV2 } from '@craftabot/core';
+import { createGroupWatchbot, createEvaluatorCircuitBreaker } from '@craftabot/pack-monitor';
+import { counterpartScriptFor, counterpartSpec, deskFor } from './counterpart-seat.js';
 import starterPack from '@craftabot/pack-starter';
 import { z } from 'zod';
 import {
@@ -31,7 +36,7 @@ import {
 } from '@craftabot/pack-starter/testing';
 import { evaluateAssertion } from './assertions.js';
 import { evaluationInputFor, inputReadableBy, resolveEvaluator } from './evaluators.js';
-import { createTestClock } from '@craftabot/core/testing';
+import { createMockProvider, createTestClock, type MockScript } from '@craftabot/core/testing';
 import { injectedWorld, registryForScenario } from './scenarios.js';
 import {
 	DEFAULT_NOISE,
@@ -252,11 +257,56 @@ export const campaignBuildSchema = z.object({
 });
 export type CampaignBuild = z.infer<typeof campaignBuildSchema>;
 
+/**
+ * The group-level half of a named stack (WP64, `56-…` §4.2): what a
+ * two-seat cell installs at the episode's chokepoint beside the bricks —
+ * the group Watchbot's rules, its breaker on refusals, and a breaker on an
+ * evaluator's verdict (the Compliance Watchbot's `unsuitable`,
+ * `tipped-off`). A single-seat cell has no chokepoint and ignores it.
+ */
+export const campaignGuardGroupSchema = z.object({
+	watchFor: z.array(z.string().min(1)).default([]),
+	refusalLimit: z.number().int().positive().optional(),
+	breakOn: z
+		.array(
+			z
+				.object({
+					evaluatorId: z.string().min(1),
+					/** Stop when the evaluator's label is one of these. */
+					labels: z.array(z.string().min(1)).default([]),
+					/** Stop when the evaluator fails — for a verdict with no label, or one whose label needs truth the chokepoint never sees. */
+					onFail: z.boolean().default(false)
+				})
+				.refine((entry) => entry.labels.length > 0 || entry.onFail, {
+					message: 'a breakOn entry names labels, or onFail, or both'
+				})
+		)
+		.default([])
+});
+export type CampaignGuardGroup = z.infer<typeof campaignGuardGroupSchema>;
+
 export const campaignGuardSchema = z.object({
 	id: z.string().min(1),
 	fit: z.array(fittedBrickSchema).default([]),
-	for: z.array(z.string()).optional()
+	for: z.array(z.string()).optional(),
+	group: campaignGuardGroupSchema.optional()
 });
+
+/**
+ * Which instrument a campaign is (WP64, `56-…` §4.2): `scripted` — the
+ * desk's own interpreter in the world, deterministic, what CI runs — or
+ * `live` — a second seat with a cartridge, under `budget`. One per
+ * campaign, because the two are not comparable and a report must not be
+ * asked to compare them.
+ */
+export const campaignCounterpartSchema = z.object({
+	tier: z.enum(['scripted', 'live']),
+	/** With `live`, the seat's cartridge; the seat takes any installed one. */
+	cartridgeId: z.string().min(1).optional(),
+	/** With `live`, the round cap of each episode (default 30). */
+	maxRounds: z.number().int().positive().optional()
+});
+export type CampaignCounterpart = z.infer<typeof campaignCounterpartSchema>;
 export type CampaignGuard = z.infer<typeof campaignGuardSchema>;
 
 export const campaignBrainSchema = z.object({
@@ -274,6 +324,8 @@ export const campaignSchema = z.object({
 	builds: z.array(campaignBuildSchema).min(1),
 	guards: z.array(campaignGuardSchema).min(1),
 	brains: z.array(campaignBrainSchema).min(1),
+	/** The seat across the desk (WP64): absent means `scripted`, the desk's own interpreter. */
+	counterpart: campaignCounterpartSchema.optional(),
 	seeds: z.array(z.number().int()).min(1),
 	noise: noiseRatesSchema.partial().optional(),
 	assertionCards: z.array(assertionCardSchema).default([]),
@@ -320,6 +372,16 @@ export const campaignCellSchema = z.object({
 	caseMetrics: z.record(z.string(), z.number()).default({}),
 	/** From `run.finished.truth.cohort`, when the world has one (WP61): attribute → value. */
 	cohort: z.record(z.string(), z.string()).optional(),
+	/** The seat across the desk in this cell (WP64): the tier, and for a live seat who sat there. Defaulted so every stored report parses. */
+	counterpart: z
+		.object({
+			tier: z.enum(['scripted', 'live']),
+			name: z.string().optional(),
+			cartridgeId: z.string().optional(),
+			/** The seat's own run, when it had one. */
+			runId: z.string().optional()
+		})
+		.optional(),
 	error: z.string().optional()
 });
 export type CampaignCell = z.infer<typeof campaignCellSchema>;
@@ -366,6 +428,8 @@ export const campaignReportSchema = z.object({
 	cells: z.array(campaignCellSchema),
 	gates: z.array(gateVerdictSchema),
 	passed: z.boolean(),
+	/** Which instrument this report is (WP64, `56-…` §4.2); absent on a report written before, which is a scripted one. */
+	counterpart: campaignCounterpartSchema.optional(),
 	/** The readers' numbers (WP61, `50-…` §4.5), folded once from the cells; a v1 report gets it on read. */
 	summary: campaignSummarySchema.optional(),
 	budget: z.object({
@@ -543,7 +607,10 @@ export async function runCampaign(
 		return found?.kind === 'confusion' ? found : undefined;
 	};
 	const gates = campaign.gates.map((gate) =>
-		evaluateGate(gate, results, options.baseline, { semantics })
+		evaluateGate(gate, results, options.baseline, {
+			semantics,
+			counterpart: campaign.counterpart ?? { tier: 'scripted' }
+		})
 	);
 	return {
 		schemaVersion: CAMPAIGN_REPORT_SCHEMA_VERSION,
@@ -562,9 +629,12 @@ export async function runCampaign(
 		cells: results,
 		gates,
 		passed: gates.every((gate) => gate.passed),
+		counterpart: campaign.counterpart ?? { tier: 'scripted' },
 		summary: summariseCampaign(results, { semantics }),
 		budget: {
-			liveCells: results.filter((cell) => cell.tier === 'live').length,
+			// A live seat is a live cell whatever the agent's brain (WP64).
+			liveCells: results.filter((cell) => cell.tier === 'live' || cell.counterpart?.tier === 'live')
+				.length,
 			tokensIn: results.reduce((total, cell) => total + cell.metrics.tokensIn, 0),
 			tokensOut: results.reduce((total, cell) => total + cell.metrics.tokensOut, 0),
 			liveEvaluations: tally.liveEvaluations
@@ -631,11 +701,18 @@ function guardLiveEvaluations(
 }
 
 function guardBudget(campaign: Campaign, cells: CampaignCellSpec[]): void {
-	const live = cells.filter((cell) => cell.brain.tier === 'live').length;
+	// A live seat makes every cell live (WP64, `56-…` §3), whatever the agent's brain.
+	const liveSeat = campaign.counterpart?.tier === 'live';
+	if (liveSeat && campaign.counterpart?.cartridgeId === undefined) {
+		throw new Error(
+			`campaign '${campaign.id}' seats a live counterpart and names no cartridgeId for it`
+		);
+	}
+	const live = cells.filter((cell) => cell.brain.tier === 'live' || liveSeat).length;
 	if (live === 0) return;
 	if (!campaign.budget) {
 		throw new Error(
-			`campaign '${campaign.id}' has ${live} live cell${live === 1 ? '' : 's'} and no budget — add "budget": { "maxLiveCells": N } to run them, or drop the live brain`
+			`campaign '${campaign.id}' has ${live} live cell${live === 1 ? '' : 's'} and no budget — add "budget": { "maxLiveCells": N } to run them, or drop the live ${liveSeat ? 'counterpart' : 'brain'}`
 		);
 	}
 	if (live > campaign.budget.maxLiveCells) {
@@ -670,6 +747,16 @@ async function runCell(
 		const goalCardId = goalCardOf(scenario);
 		const script = scriptFor(brain.tier, goalCardId, seed, noise, options.plans ?? starterPlans);
 		const maxTicks = scenario.maxTicks;
+		// A live seat: the cell is a two-seat episode (WP64, `56-…` §4.1), scored on the agent's own events.
+		if (campaign.counterpart?.tier === 'live') {
+			return await runDuoCell(cell, campaign, options, registry, tally, {
+				identity,
+				spec,
+				goalCardId,
+				script,
+				...(maxTicks !== undefined ? { maxTicks } : {})
+			});
+		}
 		// A scenario's injections land in a world built here (WP44) — a world
 		// that cannot take them refuses before the run, and the cell records it.
 		// The cell's seed is the case's (WP63, `52-…` §2 item 4): two seeds are two customers, so a
@@ -735,6 +822,161 @@ async function runCell(
 			error: error instanceof Error ? error.message : String(error)
 		};
 	}
+}
+
+/**
+ * **A two-seat cell** (WP64, `56-LIVE-COUNTERPARTS.md` §4.1): the agent —
+ * the cell's build, guard and brain exactly as a single-seat cell fits them
+ * — and the seat across the desk, `counterpartSpec` on the campaign's
+ * cartridge with its provider from `providerFor`, in a `SessionGroup` over
+ * the scenario's world (injected and seeded here as a single seat's is,
+ * through the group's `world` door), stepped in rounds. The cell is scored
+ * on the agent's own events, never the seat's — the evaluators, the
+ * assertions, the world's metrics and the cohort read the same trace a
+ * solo cell would leave, filtered by the agent's run id. A guard's `group`
+ * half is installed at the chokepoint: the group Watchbot's rules and
+ * breaker, and an evaluator breaker per `breakOn`.
+ */
+async function runDuoCell(
+	cell: CampaignCellSpec,
+	campaign: Campaign,
+	options: RunCampaignOptions,
+	registry: PackRegistry,
+	tally: SpendTally,
+	prepared: {
+		identity: Omit<
+			CampaignCell,
+			'metrics' | 'assertions' | 'evaluations' | 'labels' | 'caseMetrics' | 'counterpart'
+		>;
+		spec: AgentSpecV2;
+		goalCardId: string;
+		script: MockScript;
+		maxTicks?: number;
+	}
+): Promise<CampaignCell> {
+	const { scenario, guard, brain, seed } = cell;
+	const { identity, spec, goalCardId, script, maxTicks } = prepared;
+	const counterpart = campaign.counterpart as CampaignCounterpart;
+	const cartridgeId = counterpart.cartridgeId ?? '';
+	const clock = createTestClock({ seed, idOffset: cell.ordinal * ID_STRIDE });
+	// The world is made here and handed to the group (`56-…` §4.1): injected
+	// and seeded as a single seat's is, and read for the person it seated.
+	const { card, world: worldDefinition } = deskFor(registry, goalCardId);
+	const world =
+		scenario.injections.length > 0
+			? injectedWorld(registry, goalCardId, scenario.injections, scenario.id, clock.random)
+			: worldDefinition.create(card.layoutId, { random: clock.random });
+	const { script: seatScript } = counterpartScriptFor(registry, goalCardId, world);
+	const seat = counterpartSpec(
+		seatScript,
+		goalCardId,
+		worldDefinition.id,
+		cartridgeId,
+		clock.newId(),
+		clock.now()
+	);
+	const agentProvider =
+		brain.tier === 'live' ? providerForLive(brain, options) : createMockProvider({ script });
+	const seatProvider = providerForLive({ id: 'counterpart', tier: 'live', cartridgeId }, options);
+	const stack = groupStackFor(guard, registry);
+	const group = createSessionGroup({
+		members: [
+			{ spec, provider: agentProvider, role: 'agent' },
+			{ spec: toSpecV2(seat), provider: seatProvider, role: 'counterpart' }
+		],
+		registry,
+		goalCardId,
+		world,
+		...(stack.guardrails.length > 0 ? { groupGuardrails: stack.guardrails } : {}),
+		options: {
+			now: clock.now,
+			newId: clock.newId,
+			random: clock.random,
+			tickDelayMs: 0,
+			...(options.egress !== undefined ? { egress: options.egress } : {}),
+			...(options.principal !== undefined ? { principal: options.principal } : {}),
+			...(maxTicks !== undefined ? { budgets: { maxTicks } } : {}),
+			maxRounds: counterpart.maxRounds ?? 30,
+			...(stack.observers.length > 0 ? { observers: stack.observers } : {})
+		}
+	});
+	const merged: EngineEvent[] = [];
+	group.events.onAny((event) => merged.push(event));
+	for (const session of group.sessions) {
+		session.events.on('approval.requested', () => session.resolveApproval(true, options.principal));
+	}
+	group.start('step');
+	let outcome: RunOutcome | undefined;
+	const rounds = counterpart.maxRounds ?? 30;
+	for (let round = 0; round < rounds + 2 && outcome === undefined; round += 1) {
+		const result = await group.stepRound();
+		if (result.outcome) outcome = result.outcome;
+	}
+	if (outcome === undefined) group.stop('the campaign gave up');
+
+	// The agent's own trace, as a solo cell would have left it.
+	const agentRunId = group.sessions[0]?.runId;
+	const seatRunId = group.sessions[1]?.runId;
+	const events = merged.filter((event) => event.runId === agentRunId);
+	const finished = events.find((event) => event.type === 'run.finished');
+	const agentOutcome =
+		finished?.type === 'run.finished' ? finished.payload.outcome : (outcome ?? 'STOPPED_BY_USER');
+	const judged = await evaluateCell(campaign, events, options, scenario, tally);
+	const truth = evaluationInputFor(events).truth;
+	const caseMetrics: Record<string, number> = {};
+	for (const metric of worldDefinition.metrics ?? []) {
+		const value = metric.fold(events, truth);
+		if (value !== undefined && Number.isFinite(value)) caseMetrics[metric.id] = value;
+	}
+	const cohort = cohortOf(truth);
+	const scored: CampaignCell = {
+		...identity,
+		...(agentRunId !== undefined ? { runId: agentRunId } : {}),
+		outcome: agentOutcome,
+		metrics: scoreRun(events),
+		assertions: Object.fromEntries(
+			campaign.assertionCards.map((card) => [card.id, evaluateAssertion(card, events).pass])
+		),
+		evaluations: judged.verdicts,
+		labels: judged.labels,
+		caseMetrics,
+		...(cohort ? { cohort } : {}),
+		counterpart: {
+			tier: 'live',
+			name: seatScript.name,
+			cartridgeId,
+			...(seatRunId !== undefined ? { runId: seatRunId } : {})
+		}
+	};
+	options.onTrace?.(scored, { events: merged, spec });
+	return scored;
+}
+
+type GroupObserver = (events: EventBus, group: { groupRunId: string }) => Unsubscribe;
+
+/** The chokepoint half of a guard (WP64, `56-…` §4.3): the group Watchbot and the evaluator breakers a file names. */
+function groupStackFor(
+	guard: CampaignGuard,
+	registry: PackRegistry
+): { guardrails: Guardrail[]; observers: GroupObserver[] } {
+	const group = guard.group;
+	if (!group) return { guardrails: [], observers: [] };
+	const watchbot = createGroupWatchbot({
+		watchFor: group.watchFor,
+		...(group.refusalLimit !== undefined ? { refusalLimit: group.refusalLimit } : {})
+	});
+	const breakers = group.breakOn.flatMap((entry) => {
+		const evaluator = resolveEvaluator(registry, entry.evaluatorId);
+		if (!evaluator)
+			throw new Error(`guard '${guard.id}' breaks on '${entry.evaluatorId}', which no pack ships`);
+		return [
+			createEvaluatorCircuitBreaker(evaluator, { labels: entry.labels, onFail: entry.onFail })
+		];
+	});
+	return {
+		guardrails: [...watchbot.guardrails, ...breakers],
+		observers: group.watchFor.length > 0 ? [watchbot.observe] : []
+	};
 }
 
 /**
@@ -889,6 +1131,8 @@ function providerForLive(brain: CampaignBrain, options: RunCampaignOptions): LLM
 export interface GateOptions {
 	/** What a labelled evaluator's labels mean, for `derived-metric`, `parity` and the derived metric names. */
 	semantics?: (evaluatorId: string) => ConfusionLabelSemantics | undefined;
+	/** Which instrument the report being gated is (WP64); a `no-regression` gate refuses a baseline of the other. */
+	counterpart?: CampaignCounterpart;
 }
 
 export function evaluateGate(
@@ -920,6 +1164,17 @@ export function evaluateGate(
 			return {
 				...base,
 				required: `no slice falls by more than ${pct(require.tolerance)} — baseline is schema v${baseline.schemaVersion}, this report is v${CAMPAIGN_REPORT_SCHEMA_VERSION}`,
+				passed: true,
+				inconclusive: true
+			};
+		}
+		// Nor is a report against another seat (WP64, `56-…` §4.2): a scripted seat and a live one are two instruments.
+		const thisTier = options.counterpart?.tier ?? 'scripted';
+		const baselineTier = baseline.counterpart?.tier ?? 'scripted';
+		if (baselineTier !== thisTier) {
+			return {
+				...base,
+				required: `no slice falls by more than ${pct(require.tolerance)} — not comparable: the baseline's counterpart is ${baselineTier}, this report's is ${thisTier}`,
 				passed: true,
 				inconclusive: true
 			};

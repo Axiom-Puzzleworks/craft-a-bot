@@ -654,6 +654,52 @@
 						"items": {
 							"type": "string"
 						}
+					},
+					"group": {
+						"type": "object",
+						"properties": {
+							"watchFor": {
+								"default": [],
+								"type": "array",
+								"items": {
+									"type": "string",
+									"minLength": 1
+								}
+							},
+							"refusalLimit": {
+								"type": "integer",
+								"exclusiveMinimum": 0,
+								"maximum": 9007199254740991
+							},
+							"breakOn": {
+								"default": [],
+								"type": "array",
+								"items": {
+									"type": "object",
+									"properties": {
+										"evaluatorId": {
+											"type": "string",
+											"minLength": 1
+										},
+										"labels": {
+											"default": [],
+											"type": "array",
+											"items": {
+												"type": "string",
+												"minLength": 1
+											}
+										},
+										"onFail": {
+											"default": false,
+											"type": "boolean"
+										}
+									},
+									"required": [
+										"evaluatorId"
+									]
+								}
+							}
+						}
 					}
 				},
 				"required": [
@@ -690,6 +736,30 @@
 					"tier"
 				]
 			}
+		},
+		"counterpart": {
+			"type": "object",
+			"properties": {
+				"tier": {
+					"type": "string",
+					"enum": [
+						"scripted",
+						"live"
+					]
+				},
+				"cartridgeId": {
+					"type": "string",
+					"minLength": 1
+				},
+				"maxRounds": {
+					"type": "integer",
+					"exclusiveMinimum": 0,
+					"maximum": 9007199254740991
+				}
+			},
+			"required": [
+				"tier"
+			]
 		},
 		"seeds": {
 			"minItems": 1,
