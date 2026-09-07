@@ -82,6 +82,34 @@
 	let stored = $state<StoredCampaignReport[]>([]);
 	let running = $state(false);
 	let progress = $state({ done: 0, total: 0 });
+	/**
+	 * **Cancel, elapsed and remaining** (UX-12). A campaign in the browser
+	 * saturates the main thread between yields, so the one honest thing to say
+	 * is how long it has been and roughly how long is left, and to offer a way
+	 * out. Cancelling stops at the next cell boundary — the runner's own
+	 * `betweenCells` yield — and stores nothing: a partial report would be a
+	 * report over cells it never ran, and the report's digest is over all of them.
+	 */
+	let cancelRequested = $state(false);
+	let cancelled = $state(false);
+	let startedAtMs = $state(0);
+	let nowMs = $state(0);
+	const elapsedMs = $derived(running ? Math.max(0, nowMs - startedAtMs) : 0);
+	const remainingMs = $derived(
+		running && progress.done > 0
+			? Math.round((elapsedMs / progress.done) * (progress.total - progress.done))
+			: undefined
+	);
+	const clock = (ms: number) => {
+		const seconds = Math.round(ms / 1000);
+		return seconds < 60 ? `${seconds}s` : `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
+	};
+	$effect(() => {
+		if (!running) return;
+		const timer = setInterval(() => (nowMs = Date.now()), 1000);
+		return () => clearInterval(timer);
+	});
+	class CancelledError extends Error {}
 	let report = $state<CampaignReport | undefined>(undefined);
 	let fromStore = $state(false);
 	let openSlice = $state<CampaignSlice | undefined>(undefined);
@@ -195,7 +223,43 @@
 	);
 	const parityGates = $derived((report?.gates ?? []).filter((gate) => gate.kind === 'parity'));
 	const unmatchedParity = $derived(parityGates.filter((gate) => gate.matched !== true).length);
-	const CASE_ROWS = 200;
+	/**
+	 * **The cases table, in pages and failures first** (UX-13). The table used
+	 * to render its first 200 rows in cell order and point at the JSON for the
+	 * rest; a reviewer looking for the case that went wrong may not have found
+	 * it on screen at all. Now: the rows that failed — an error, or an outcome
+	 * that is not SUCCESS — come first, a filter narrows by any text on the
+	 * row, and the table grows a page at a time.
+	 */
+	const CASE_ROWS = 100;
+	let caseFilter = $state('');
+	let casePages = $state(1);
+	const failedFirst = (
+		a: { error?: string | undefined; outcome?: string | undefined },
+		b: typeof a
+	) =>
+		Number(!(b.error || (b.outcome && b.outcome !== 'SUCCESS'))) -
+		Number(!(a.error || (a.outcome && a.outcome !== 'SUCCESS')));
+	const matchingCases = $derived.by(() => {
+		const needle = caseFilter.trim().toLowerCase();
+		const all = [...(summary?.cases ?? [])].sort(failedFirst);
+		if (needle === '') return all;
+		return all.filter((row) =>
+			[
+				row.scenario,
+				row.guard,
+				row.brain,
+				String(row.seed),
+				row.error ? 'error' : (row.outcome ?? ''),
+				...Object.values(row.cohort ?? {}),
+				...Object.values(row.labels)
+			]
+				.join(' ')
+				.toLowerCase()
+				.includes(needle)
+		);
+	});
+	const shownCases = $derived(matchingCases.slice(0, CASE_ROWS * casePages));
 	const caseColumns = $derived([
 		{ id: 'scenario', label: 'Scenario', kind: 'text' as const },
 		{ id: 'guard', label: 'Guard', kind: 'text' as const },
@@ -213,7 +277,7 @@
 			.map((id) => ({ id: `label:${id}`, label: short(id), kind: 'text' as const }))
 	]);
 	const caseRows = $derived(
-		(summary?.cases ?? []).slice(0, CASE_ROWS).map((row, index) => ({
+		shownCases.map((row, index) => ({
 			id: `${row.scenario}-${row.guard}-${row.brain}-${row.seed}-${index}`,
 			cells: {
 				scenario: row.scenario,
@@ -326,6 +390,10 @@
 	async function execute(): Promise<void> {
 		if (!parsed.ok || hasLive) return;
 		running = true;
+		cancelRequested = false;
+		cancelled = false;
+		startedAtMs = Date.now();
+		nowMs = startedAtMs;
 		openSlice = undefined;
 		fromStore = false;
 		traces = {};
@@ -333,8 +401,16 @@
 		const collected: Record<string, Trace> = {};
 		try {
 			const result = await runCampaign(parsed.campaign, {
-				// A macrotask between cells, so the count can paint (the Eval Matrix's own lesson).
-				betweenCells: () => new Promise((r) => setTimeout(r, 0)),
+				// A macrotask between cells, so the count can paint (the Eval Matrix's own lesson) — and
+				// the one place a cancel can land (UX-12).
+				betweenCells: () =>
+					new Promise<void>((resolveYield, rejectYield) =>
+						setTimeout(
+							() =>
+								cancelRequested ? rejectYield(new CancelledError('cancelled')) : resolveYield(),
+							0
+						)
+					),
 				packs: installedPacks,
 				onCell: (_cell, done, total) => (progress = { done, total }),
 				onTrace: (cell, trace) => {
@@ -349,6 +425,9 @@
 			// a navigation in that gap left the screen honest and the store empty.
 			traces = collected;
 			report = result;
+		} catch (cause) {
+			if (!(cause instanceof CancelledError)) throw cause;
+			cancelled = true;
 		} finally {
 			running = false;
 		}
@@ -451,6 +530,27 @@
 				>
 					{running ? `Running ${progress.done}/${progress.total}…` : 'Run campaign'}
 				</button>
+				{#if running}
+					<!-- The way out, and the honest clock (UX-12). -->
+					<button
+						type="button"
+						class="cancel"
+						disabled={cancelRequested}
+						data-testid="cancel-campaign"
+						onclick={() => (cancelRequested = true)}
+					>
+						{cancelRequested ? 'Stopping after this cell…' : 'Cancel'}
+					</button>
+					<span class="run-status" role="status" data-testid="campaign-clock">
+						{clock(elapsedMs)} elapsed{remainingMs !== undefined
+							? `, about ${clock(remainingMs)} left`
+							: ''} — the page is busy between cells and may not answer until it finishes.
+					</span>
+				{:else if cancelled}
+					<span class="run-status" role="status" data-testid="campaign-cancelled">
+						Cancelled after {progress.done} of {progress.total} cells; nothing was stored.
+					</span>
+				{/if}
 			</div>
 		</div>
 		<textarea
@@ -773,12 +873,35 @@
 		{#if summary && summary.cases.length > 0}
 			<section aria-label="Cases" data-testid="campaign-cases">
 				<h2>Cases</h2>
-				{#if summary.cases.length > CASE_ROWS}
-					<p class="hint">
-						The first {CASE_ROWS} of {summary.cases.length}; the rest are in the report's JSON.
+				<div class="case-tools">
+					<label>
+						Find
+						<input
+							type="search"
+							placeholder="scenario, guard, brain, seed, outcome, cohort, label"
+							data-testid="campaign-case-filter"
+							value={caseFilter}
+							oninput={(e) => {
+								caseFilter = e.currentTarget.value;
+								casePages = 1;
+							}}
+						/>
+					</label>
+					<span class="hint" data-testid="campaign-case-count">
+						Failures first. Showing {shownCases.length} of {matchingCases.length}{matchingCases.length !==
+						summary.cases.length
+							? ` (${summary.cases.length} in all)`
+							: ''}.
+					</span>
+				</div>
+				<CaseTable columns={caseColumns} rows={caseRows} testId="campaign-case-table" />
+				{#if shownCases.length < matchingCases.length}
+					<p>
+						<button type="button" data-testid="campaign-case-more" onclick={() => (casePages += 1)}>
+							Show the next {Math.min(CASE_ROWS, matchingCases.length - shownCases.length)}
+						</button>
 					</p>
 				{/if}
-				<CaseTable columns={caseColumns} rows={caseRows} testId="campaign-case-table" />
 			</section>
 		{/if}
 	{/if}
@@ -844,11 +967,35 @@
 </main>
 
 <style>
+	/* One measure rule (UX-6): instruments and tables take the width; only prose is capped, per block. */
 	main {
 		display: grid;
 		gap: var(--cab-space-4);
 		align-content: start;
-		max-width: 1100px;
+	}
+	.case-tools {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--cab-space-3);
+		margin-bottom: var(--cab-space-2);
+		font-size: var(--cab-text-sm);
+	}
+	.case-tools input {
+		font: inherit;
+		margin-left: var(--cab-space-1);
+		padding: 2px var(--cab-space-2);
+		min-width: 22rem;
+		border: var(--cab-border-part) solid var(--cab-engrave);
+		border-radius: var(--cab-radius-pill);
+		background: var(--cab-cream);
+	}
+	.run-status {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--cab-space-2);
+		font-size: var(--cab-text-sm);
 	}
 
 	h1 {

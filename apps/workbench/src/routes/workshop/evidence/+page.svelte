@@ -61,6 +61,55 @@
 		)
 	);
 	let problems = $state<Record<string, string>>({});
+	/** What the last *Test connection* said (UX-14): the third tick on the checklist. */
+	let tested = $state<Record<string, { ok: boolean; text: string }>>({});
+
+	/**
+	 * **The config as fields, not hand-typed JSON** (GAP-4). The store's own
+	 * schema names the keys; each gets a labelled input that writes the same
+	 * JSON the textarea below holds, so the two never disagree and a key
+	 * mistyped in a brace is not discovered on the first push. The textarea
+	 * stays: it is the whole config, for pasting from `docs/evidence-setup.md`.
+	 */
+	const fieldKeys = (storeId: string): string[] => {
+		const store = evidenceStoresStore.storeById(storeId);
+		const shape = (store?.configSchema as { shape?: Record<string, unknown> } | undefined)?.shape;
+		return shape ? Object.keys(shape) : [];
+	};
+	const fieldValue = (storeId: string, key: string): string => {
+		const raw = parsedConfig(storeId);
+		const value =
+			raw && typeof raw === 'object' ? (raw as Record<string, unknown>)[key] : undefined;
+		return typeof value === 'string' ? value : value === undefined ? '' : JSON.stringify(value);
+	};
+	function setField(storeId: string, key: string, value: string): void {
+		const raw = parsedConfig(storeId);
+		const next = {
+			...(raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : {}),
+			[key]: value
+		};
+		drafts = { ...drafts, [storeId]: JSON.stringify(next, null, 2) };
+	}
+	/** A key that names a key is typed as one: never echoed on screen (hard rule 2). */
+	const secretField = (key: string) => /key|token|secret/i.test(key);
+
+	/** One real call — a pull of at most one item — so "configured" and "fitted" are joined by "reachable". */
+	async function testConnection(storeId: string): Promise<void> {
+		const instance = evidenceStoresStore.instance(storeId);
+		if (!instance) {
+			tested = { ...tested, [storeId]: { ok: false, text: 'Save the config first.' } };
+			return;
+		}
+		try {
+			for await (const _item of instance.pull({ limit: 1 })) break;
+			tested = { ...tested, [storeId]: { ok: true, text: 'Reached the store and read back.' } };
+		} catch (cause) {
+			tested = {
+				...tested,
+				[storeId]: { ok: false, text: cause instanceof Error ? cause.message : String(cause) }
+			};
+		}
+	}
 	let tokenDraft = $state<Record<string, string>>({});
 	let tokens = $state<Record<string, boolean>>(readTokens());
 
@@ -333,8 +382,54 @@
 		>
 			<h2>{store.name} <span class="mono">{store.id}</span></h2>
 			<p class="hint">{store.description}</p>
+			<!-- The two halves as one job (UX-14): what is done, what is next, in order. -->
+			<ol class="checklist" data-testid="evidence-checklist-{store.id}">
+				<li data-done={entry !== undefined}>
+					<span class="tick" aria-hidden="true">{entry ? '✓' : '1'}</span>
+					Save the store's config below{entry ? ' — saved' : ''}
+				</li>
+				{#if store.credential}
+					<li data-done={tokens[store.id] === true}>
+						<span class="tick" aria-hidden="true">{tokens[store.id] ? '✓' : '2'}</span>
+						Fit the {store.credential.name.toLowerCase()}{tokens[store.id] ? ' — fitted' : ''}
+					</li>
+				{/if}
+				<li data-done={tested[store.id]?.ok === true}>
+					<span class="tick" aria-hidden="true"
+						>{tested[store.id]?.ok ? '✓' : store.credential ? '3' : '2'}</span
+					>
+					Test the connection
+					<button
+						type="button"
+						class="small"
+						disabled={entry === undefined || (store.credential !== undefined && !tokens[store.id])}
+						onclick={() => testConnection(store.id)}
+						data-testid="evidence-test-{store.id}">Test connection</button
+					>
+					{#if tested[store.id]}
+						<span
+							class="hint"
+							class:error={!tested[store.id]?.ok}
+							data-testid="evidence-tested-{store.id}">{tested[store.id]?.text}</span
+						>
+					{/if}
+				</li>
+			</ol>
+			{#each fieldKeys(store.id) as key (key)}
+				<label class="field">
+					<span>{key}</span>
+					<input
+						type={secretField(key) ? 'password' : 'text'}
+						autocomplete="off"
+						spellcheck="false"
+						value={fieldValue(store.id, key)}
+						oninput={(event) => setField(store.id, key, event.currentTarget.value)}
+						data-testid="evidence-field-{store.id}-{key}"
+					/>
+				</label>
+			{/each}
 			<label class="field">
-				<span>Config (JSON)</span>
+				<span>The whole config, as JSON (what the fields above write)</span>
 				<textarea rows="4" bind:value={drafts[store.id]} data-testid="evidence-config-{store.id}"
 				></textarea>
 			</label>
@@ -520,13 +615,60 @@
 		</section>
 	{:else}
 		<p class="hint" data-testid="evidence-unconfigured">
-			No store is configured. Everything else works exactly as before; save a store above to push
-			and pull.
+			No store is configured yet — the checklist above says what is left. Everything else works
+			exactly as before; push and pull appear here once a store is saved.
 		</p>
 	{/if}
 </main>
 
 <style>
+	.checklist {
+		display: grid;
+		gap: var(--cab-space-1);
+		margin: 0 0 var(--cab-space-3);
+		padding: var(--cab-space-2) var(--cab-space-3);
+		list-style: none;
+		font-size: var(--cab-text-sm);
+		background: var(--cab-graph);
+		border: var(--cab-border-part) solid var(--cab-engrave);
+		border-radius: var(--cab-radius-panel);
+	}
+	.checklist li {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--cab-space-2);
+	}
+	.checklist li[data-done='true'] {
+		color: var(--cab-ink-muted);
+	}
+	.checklist .tick {
+		display: inline-grid;
+		place-items: center;
+		width: 1.4em;
+		height: 1.4em;
+		font-weight: 700;
+		border: var(--cab-border-part) solid var(--cab-engrave);
+		border-radius: 50%;
+	}
+	.checklist li[data-done='true'] .tick {
+		background: var(--cab-green);
+		color: var(--cab-cream);
+		border-color: var(--cab-green);
+	}
+	.checklist .small {
+		font: inherit;
+		font-size: var(--cab-text-sm);
+		padding: 2px var(--cab-space-2);
+		border: var(--cab-border-part) solid var(--cab-ink);
+		border-radius: var(--cab-radius-pill);
+		background: var(--cab-cream);
+		cursor: pointer;
+	}
+	.checklist .small:disabled {
+		opacity: 0.5;
+		cursor: default;
+	}
 	main {
 		display: grid;
 		gap: var(--cab-space-3);

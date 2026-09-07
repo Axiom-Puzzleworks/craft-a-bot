@@ -13,9 +13,51 @@
 		customGoalText: string;
 		onselect: (cardId: string) => void;
 		oncustomtext: (text: string) => void;
+		/**
+		 * The world a card is played in, by name (UX-10). With the Playground
+		 * installed the rack holds fifty-odd cards from five worlds in one strip;
+		 * grouped under the world's name, with a filter box, it is a rack again.
+		 * One world means no headings and no box — the Kit's rack does not move.
+		 */
+		worldNameFor?: (worldId: string) => string;
 	}
 
-	let { cards, activeCardId, customGoalText, onselect, oncustomtext }: Props = $props();
+	let {
+		cards,
+		activeCardId,
+		customGoalText,
+		onselect,
+		oncustomtext,
+		worldNameFor = (worldId) => worldId
+	}: Props = $props();
+
+	/** Grouping and filtering only earn their place past a dozen cards (UX-10). */
+	const MANY = 12;
+	let filter = $state('');
+	const matching = $derived.by(() => {
+		const needle = filter.trim().toLowerCase();
+		if (needle === '') return cards;
+		return cards.filter(
+			(card) =>
+				card.title.toLowerCase().includes(needle) ||
+				card.goalText.toLowerCase().includes(needle) ||
+				worldNameFor(card.worldId).toLowerCase().includes(needle)
+		);
+	});
+	const groups = $derived.by(() => {
+		const byWorld = new Map<string, typeof cards>();
+		for (const card of matching) {
+			const list = byWorld.get(card.worldId) ?? [];
+			list.push(card);
+			byWorld.set(card.worldId, list);
+		}
+		return [...byWorld].map(([worldId, list]) => ({
+			worldId,
+			name: worldNameFor(worldId),
+			cards: list
+		}));
+	});
+	const grouped = $derived(cards.length > MANY && groups.length > 1);
 
 	const active = $derived(cards.find((card) => card.id === activeCardId));
 	const isFreePlay = $derived(activeCardId === 'starter/free-play');
@@ -35,25 +77,43 @@
 </script>
 
 <div class="rack" data-testid="goal-card-rack" data-tutorial="goal-cards">
-	<ul class="cards">
-		{#each cards as card (card.id)}
-			<li>
-				<button
-					type="button"
-					class="card"
-					class:card--active={card.id === activeCardId}
-					data-testid="card-{card.id.replace('starter/', '')}"
-					aria-pressed={card.id === activeCardId}
-					onclick={() => onselect(card.id)}
-				>
-					<span class="title">{card.title}</span>
-					<span class="pips" aria-label="Difficulty {pips(card)} of 3">
-						{#each [1, 2, 3] as pip (pip)}
-							<span class="pip" class:pip--filled={pip <= pips(card)}></span>
-						{/each}
-					</span>
-				</button>
-			</li>
+	{#if cards.length > MANY}
+		<label class="find">
+			<span>Find a card</span>
+			<input
+				type="search"
+				data-testid="card-filter"
+				placeholder="a title, a goal, a world"
+				value={filter}
+				oninput={(event) => (filter = event.currentTarget.value)}
+			/>
+			<span class="count" data-testid="card-filter-count">{matching.length} of {cards.length}</span>
+		</label>
+	{/if}
+	<ul class="cards" class:cards--grouped={grouped}>
+		{#each grouped ? groups : [{ worldId: '', name: '', cards: matching }] as group (group.worldId)}
+			{#if grouped}
+				<li class="group-heading" data-testid="card-group-{group.worldId}">{group.name}</li>
+			{/if}
+			{#each group.cards as card (card.id)}
+				<li>
+					<button
+						type="button"
+						class="card"
+						class:card--active={card.id === activeCardId}
+						data-testid="card-{card.id.replace('starter/', '')}"
+						aria-pressed={card.id === activeCardId}
+						onclick={() => onselect(card.id)}
+					>
+						<span class="title">{card.title}</span>
+						<span class="pips" aria-label="Difficulty {pips(card)} of 3">
+							{#each [1, 2, 3] as pip (pip)}
+								<span class="pip" class:pip--filled={pip <= pips(card)}></span>
+							{/each}
+						</span>
+					</button>
+				</li>
+			{/each}
 		{/each}
 	</ul>
 
@@ -93,6 +153,42 @@
 		gap: var(--cab-space-3);
 	}
 
+	.find {
+		display: flex;
+		align-items: center;
+		gap: var(--cab-space-2);
+		font-size: var(--cab-text-sm);
+	}
+	.find input {
+		font: inherit;
+		padding: 2px var(--cab-space-2);
+		border: var(--cab-border-part) solid color-mix(in srgb, var(--cab-ink) 40%, transparent);
+		border-radius: var(--cab-radius-pill);
+		background: var(--cab-cream);
+	}
+	.find .count {
+		color: var(--cab-ink-muted);
+	}
+	/* Grouped (UX-10): the strip wraps, and each world's cards follow its heading. */
+	.cards--grouped {
+		flex-wrap: wrap;
+		max-height: 26rem;
+		overflow-y: auto;
+	}
+	.group-heading {
+		flex-basis: 100%;
+		position: sticky;
+		top: 0;
+		z-index: 1;
+		margin: var(--cab-space-1) 0 0;
+		padding: 2px var(--cab-space-1);
+		font-size: var(--cab-text-sm);
+		font-weight: 700;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: var(--cab-ink-muted);
+		background: color-mix(in srgb, var(--cab-board) 22%, var(--cab-paper));
+	}
 	.cards {
 		list-style: none;
 		margin: 0;

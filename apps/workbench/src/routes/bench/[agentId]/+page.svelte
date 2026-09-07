@@ -374,6 +374,7 @@
 				customGoalText={spec.customGoalText ?? ''}
 				onselect={(cardId) => benchStore.setGoalCard(cardId)}
 				oncustomtext={(text) => benchStore.setCustomGoalText(text)}
+				worldNameFor={(worldId) => registry.getWorld(worldId)?.name ?? worldId}
 			/>
 		</section>
 	</main>

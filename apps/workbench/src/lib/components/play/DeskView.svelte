@@ -152,7 +152,8 @@
 
 	.panes {
 		display: grid;
-		grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
+		/* Transcript wide, case file readable, queue narrow (UX-8). */
+		grid-template-columns: minmax(0, 2fr) minmax(14rem, 1.2fr) minmax(0, 0.8fr);
 		gap: var(--cab-space-3);
 	}
 
