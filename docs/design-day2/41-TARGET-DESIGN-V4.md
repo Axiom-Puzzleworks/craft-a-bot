@@ -771,6 +771,11 @@ The world stays fully deterministic and every hosted verdict, evaluation and liv
 | §6.10: "each worker owns … a sub-directory" (WP68, `57-…` §8) | Workers return the cell and its trace; the main thread writes every run into the one store | One writer keeps the index and `cells.jsonl` ordered |
 | §6.10: `--resume` "skips cells whose run directory holds a verified trace" (WP68) | Verified against the digest on the `cells.jsonl` line, over `events.jsonl` | A campaign run writes no trace file; the digest is the one `buildTraceFile` would stamp |
 | §6.12: "Guards/Evaluators/Sinks (lamps and meters replace the ad-hoc chips)" (WP71, `60-…` §8) | Lamps on Evaluators and Sinks; Guards unchanged | Guards has no chip and no rate — a fixture result is prose |
+| §6.12: the Playground's box art with "the bench's card rack listing a desk's cards when the box is open" (WP73, `62-…` §8) | A box template on the shelf; the rack gated by `audience` and the door, as since WP53/WP60 | The Kit has no "open box" state; the door is the gate |
+| §6.12: ten instrument icons (WP73) | Eleven, with `boundary` | `42-…`'s row lists eleven; the Boundary has a screen of its own |
+| §6.13 / `30-…` stage B: the Azure checkpoint "from the Guard Rack in one click" (WP73) | `npm run smoke:azure`; the Rack click decides only `browserCapable` | A click leaves no numbers behind |
+| §6.16: a reader that "validates with `jsonschema`" (WP73) | Validates and recomputes the three digests | Verification is what a bundle is for |
+| §6.16: "in CI only if `python3` is present" as a workflow condition (WP73) | `scripts/python-reader.mjs` decides at run time | The workflow stays honest on a runner image that changes |
 | §6.5.5: `provider-fault { atTick, kind, count }` (WP72, `61-…` §8) | `{ atTick, fault, count? }` | `kind` is the union's discriminator |
 | §6.5.5: a fault "producing the `error`/`provider.retried` events" — a real failure ends the run (WP72) | Retried through; the run continues | Otherwise nothing follows the fault to judge |
 | §6.5.5: complaints "on the Advice Desk's world with `purpose: 'complaints'`" (WP72) | A second world in the Advice Desk's pack | A spec has one purpose |
