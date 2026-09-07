@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { agentOptionLabel } from '$lib/workshop/agent-labels.js';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import type { AgentRecord, GuardrailService, ScreenResult } from '@craftabot/core';
@@ -161,7 +162,7 @@
 				<option value="">— no bots on the shelf —</option>
 			{/if}
 			{#each agents as agent (agent.id)}
-				<option value={agent.id}>{agent.spec.name}</option>
+				<option value={agent.id}>{agentOptionLabel(agent, agents)}</option>
 			{/each}
 		</select>
 	</label>

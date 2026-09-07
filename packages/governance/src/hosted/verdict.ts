@@ -43,8 +43,10 @@ function confidentEnough(finding: ScreenFinding, screening: HostedScreenConfig):
 }
 
 function verdictForUnreachable(reason: string, screening: HostedScreenConfig): GuardrailVerdict {
+	// The cause rides on the verdict (UX-1): the engine copies it onto
+	// `guardrail.tripped`, so a host can tell an outage from a catch.
 	return screening.onFailure === 'stop-run'
-		? { allow: false, reason, disposition: 'stop-run' }
+		? { allow: false, reason, disposition: 'stop-run', cause: 'could-not-check' }
 		: { allow: true, note: reason };
 }
 

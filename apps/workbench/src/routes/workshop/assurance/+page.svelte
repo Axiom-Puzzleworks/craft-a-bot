@@ -15,6 +15,9 @@
 	import Strip from '$lib/components/control-room/Strip.svelte';
 	import { createRegistry } from '$lib/packs.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
+	import { preferences } from '$lib/state/preferences.svelte.js';
+	import { browserPrincipalId } from '$lib/state/principal.js';
+	import { agentOptionLabel, mostRecentAgent } from '$lib/workshop/agent-labels.js';
 	import { reportFrom } from '$lib/workshop/campaign-cells.js';
 
 	/**
@@ -48,6 +51,24 @@
 	async function loadAgents(): Promise<void> {
 		agents = await (await appStorage()).listAgents();
 		loaded = true;
+		// Nobody chose (UX-20): open on the bot most recently run, as Evaluators
+		// opens on the most recent run, rather than on an empty page.
+		if (!queryAgentId && !selectedId) selectedId = mostRecentAgent(agents)?.id ?? '';
+	}
+
+	/**
+	 * **Who this pack will say ran it** (UX-3). Every run started from this
+	 * browser carries its principal; without a name in Settings that is a bare
+	 * id, which is the least useful thing section 2 can tell a reviewer. Asked
+	 * here, at the point of value — once answered, it stays in Settings.
+	 */
+	let nameDraft = $state('');
+	const needsName = $derived(preferences.displayName.trim() === '');
+	const shortPrincipalId = $derived(browserPrincipalId().slice(0, 8));
+	function saveName(): void {
+		if (nameDraft.trim() === '') return;
+		preferences.setDisplayName(nameDraft.trim());
+		nameDraft = '';
 	}
 
 	/** A stored report as the pack reads it — the Workshop's own reader, so a report this version cannot parse is skipped, never fabricated. */
@@ -191,11 +212,42 @@
 			>
 				<option value="">Choose a bot…</option>
 				{#each agents as agent (agent.id)}
-					<option value={agent.id}>{agent.spec.name}</option>
+					<option value={agent.id}>{agentOptionLabel(agent, agents)}</option>
 				{/each}
 			</select>
 		</label>
 	</header>
+
+	{#if needsName}
+		<!-- The principal's name, asked for where it is worth something (UX-3). -->
+		<form
+			class="name-prompt"
+			data-testid="assurance-name-prompt"
+			onsubmit={(event) => {
+				event.preventDefault();
+				saveName();
+			}}
+		>
+			<p>
+				Runs started from this browser are recorded as <code>person {shortPrincipalId}…</code> with no
+				name. A pack a reviewer reads should say who. Runs already stored keep the id they were written
+				with.
+			</p>
+			<label>
+				Your name, on the trace
+				<input
+					type="text"
+					maxlength="60"
+					autocomplete="name"
+					data-testid="assurance-name-input"
+					bind:value={nameDraft}
+				/>
+			</label>
+			<button type="submit" data-testid="assurance-name-save" disabled={nameDraft.trim() === ''}>
+				Save to Settings
+			</button>
+		</form>
+	{/if}
 
 	{#if !loaded}
 		<p class="status">Reading the fleet…</p>
@@ -375,6 +427,48 @@
 <style>
 	main {
 		padding: var(--cab-space-4);
+	}
+	.name-prompt {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: end;
+		gap: var(--cab-space-3);
+		margin-bottom: var(--cab-space-3);
+		padding: var(--cab-space-3);
+		background: var(--cab-graph);
+		border: var(--cab-border-part) solid var(--cab-engrave);
+		border-radius: var(--cab-radius-panel);
+	}
+	.name-prompt p {
+		flex: 1 1 24rem;
+		margin: 0;
+		font-size: var(--cab-text-sm);
+	}
+	.name-prompt label {
+		display: grid;
+		gap: var(--cab-space-1);
+		font-size: var(--cab-text-sm);
+	}
+	.name-prompt input {
+		font: inherit;
+		padding: var(--cab-space-1) var(--cab-space-2);
+		border: var(--cab-border-part) solid var(--cab-engrave);
+		border-radius: var(--cab-radius-pill);
+		background: var(--cab-cream);
+	}
+	.name-prompt button {
+		font: inherit;
+		font-size: var(--cab-text-sm);
+		padding: var(--cab-space-1) var(--cab-space-3);
+		background: var(--cab-blue);
+		color: var(--cab-cream);
+		border: var(--cab-border-part) solid var(--cab-blue);
+		border-radius: var(--cab-radius-pill);
+		cursor: pointer;
+	}
+	.name-prompt button:disabled {
+		opacity: 0.5;
+		cursor: default;
 	}
 	.top {
 		display: flex;

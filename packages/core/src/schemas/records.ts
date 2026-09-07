@@ -206,6 +206,12 @@ export const runSummarySchema = z.object({
 	/** Every rule the engine consulted, and the ones that said no. */
 	checks: z.number().int().nonnegative(),
 	saves: z.number().int().nonnegative(),
+	/**
+	 * Trips where a hosted guard could not check and failed closed (UX-1,
+	 * 2026-09-07) — counted apart from `saves`, which is rules catching
+	 * something. Optional: every summary folded before the field has none.
+	 */
+	failedClosed: z.number().int().nonnegative().optional(),
 	/** `guardrail.tripped` counts by guardrail id — the trip mix. */
 	guardrailTrips: z.record(z.string(), z.number().int().nonnegative()),
 	/** `approval.resolved` counts — how often a person was asked, and said yes. */

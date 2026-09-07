@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { agentOptionLabel } from '$lib/workshop/agent-labels.js';
 	import { page } from '$app/state';
 	import Lamp from '$lib/components/control-room/Lamp.svelte';
 	import { resolve } from '$app/paths';
@@ -122,7 +123,7 @@
 			>
 				<option value="">Choose a bot…</option>
 				{#each agents as agent (agent.id)}
-					<option value={agent.id}>{agent.spec.name}</option>
+					<option value={agent.id}>{agentOptionLabel(agent, agents)}</option>
 				{/each}
 			</select>
 		</label>

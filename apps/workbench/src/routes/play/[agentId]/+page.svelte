@@ -7,6 +7,7 @@
 		DEFAULT_TICK_BUDGET,
 		DEFAULT_TOKEN_BUDGET,
 		buildTraceFile,
+		isDeskWorldState,
 		type AgentRecord,
 		type EngineEvent,
 		type RunRecord
@@ -57,6 +58,20 @@
 	let speed = $state(preferences.tickSpeed);
 	let busy = $state(false);
 	let dismissedEndCard = $state(false);
+	/**
+	 * Whether the stop that ended the run was a hosted guard failing closed
+	 * (UX-1): the last `stop-run` trip carries `cause: 'could-not-check'`. Read
+	 * from the trace, never guessed from the reason's wording.
+	 */
+	const stoppedByOutage = $derived.by(() => {
+		if (!view || view.outcome !== 'STOPPED_BY_GUARDRAIL') return false;
+		for (let i = view.events.length - 1; i >= 0; i -= 1) {
+			const event = view.events[i];
+			if (event?.type === 'guardrail.tripped' && event.payload.disposition === 'stop-run')
+				return event.payload.cause === 'could-not-check';
+		}
+		return false;
+	});
 	/** True once `persistRun` has resolved for the current run (WP56 stage A). */
 	let runSaved = $state(false);
 	/** How many old runs the last save tidied away, so the child is told (`12-…` D15). */
@@ -461,7 +476,13 @@
 	}
 </script>
 
-<svelte:head><title>Playroom — {record?.spec.name ?? 'Craft A Bot'}</title></svelte:head>
+<!-- A desk is not the Playroom (UX-17): the title names the room the bot is actually in. -->
+<svelte:head
+	><title
+		>{view && isDeskWorldState(view.world) ? 'The desk' : 'Playroom'} — {record?.spec.name ??
+			'Craft A Bot'}</title
+	></svelte:head
+>
 
 {#if missingBattery}
 	<main class="loading" data-testid="play-no-battery">
@@ -603,6 +624,7 @@
 			outcome={view.outcome}
 			reason={view.finishedReason}
 			hint={endCardHint(view.outcome, view.events)?.text}
+			failedClosed={stoppedByOutage}
 			saved={runSaved}
 			onseeTrace={() => (dismissedEndCard = true)}
 			onbackToBench={() => goto(resolve('/bench/[agentId]', { agentId }))}

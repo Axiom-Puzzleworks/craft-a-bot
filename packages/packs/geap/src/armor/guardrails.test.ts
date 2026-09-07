@@ -75,7 +75,8 @@ describe('verdictFor — nothing fired', () => {
 		expect(verdict).toEqual({
 			allow: false,
 			reason: GUARD_DID_NOT_FINISH,
-			disposition: 'stop-run'
+			disposition: 'stop-run',
+			cause: 'could-not-check'
 		});
 	});
 
@@ -84,7 +85,8 @@ describe('verdictFor — nothing fired', () => {
 		expect(verdict).toEqual({
 			allow: false,
 			reason: GUARD_DID_NOT_FINISH,
-			disposition: 'stop-run'
+			disposition: 'stop-run',
+			cause: 'could-not-check'
 		});
 	});
 
@@ -110,10 +112,12 @@ describe('verdictFor — transport/auth errors', () => {
 
 	it.each(KINDS)('stops the run on %s by default', (kind) => {
 		const verdict = verdictFor({ error: { kind, message: 'x' } }, 'pre-act', config());
+		// Fail-closed carries its cause (UX-1), so the trace never calls it a catch.
 		expect(verdict).toEqual({
 			allow: false,
 			reason: transportReason(kind),
-			disposition: 'stop-run'
+			disposition: 'stop-run',
+			cause: 'could-not-check'
 		});
 	});
 

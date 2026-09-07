@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { LampState } from '$lib/state/session.svelte.js';
-	import { safetyWords, type SafetyTally } from '$lib/safety-tally.js';
+	import { failedClosedWords, safetyWords, type SafetyTally } from '$lib/safety-tally.js';
 
 	/**
 	 * The head-up bar (03-UI-UX-DESIGN.md §5.1): the bot's name and goal, steps
@@ -27,10 +27,12 @@
 		maxTicks,
 		usage,
 		lamp,
-		safety = { checks: 0, saves: 0 }
+		safety = { checks: 0, saves: 0, failedClosed: 0 }
 	}: Props = $props();
 
 	const safetyLine = $derived(safetyWords(safety));
+	/** A hosted guard that could not check (UX-1) — said apart from the saves. */
+	const failedClosedLine = $derived(failedClosedWords(safety));
 
 	const stepsLeft = $derived(Math.max(0, maxTicks - tick));
 	const segments = 10;
@@ -95,6 +97,10 @@
 			>
 				<span class="shield" aria-hidden="true">🛡</span>
 				<span class="safety-words">Safety brick: {safetyLine}</span>
+				{#if failedClosedLine}
+					<!-- An outage that failed closed (UX-1) is never folded into the saves. -->
+					<span class="safety-words" data-testid="safety-failed-closed">· {failedClosedLine}</span>
+				{/if}
 			</p>
 		{/if}
 

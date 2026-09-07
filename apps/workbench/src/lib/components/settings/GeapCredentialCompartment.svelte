@@ -27,7 +27,8 @@
 		empty: 'No battery',
 		'signing-in': 'Signing in…',
 		live: 'Charged',
-		expired: 'Expired'
+		expired: 'Expired',
+		rejected: 'Rejected — sign in again'
 	} as const;
 
 	function remainingLabel(): string | undefined {
@@ -47,6 +48,8 @@
 			// token itself, on purpose (hard rule 2).
 			const token = createBrowserKeyVault().get('geap') ?? '';
 			testResult = await testTheGuard(token, testProjectId, testLocation, testTemplateId);
+			// A real call that passed outranks a run's earlier rejection (UX-2).
+			if (testResult.ok) bay.clearRejection();
 		} finally {
 			testing = false;
 		}
@@ -71,10 +74,16 @@
 
 	{#if bay.hasToken}
 		<div class="fitted" data-testid="battery-fitted-geap">
-			<span class="battery" aria-hidden="true">🔋</span>
+			<span class="battery" aria-hidden="true">{bay.status === 'rejected' ? '🪫' : '🔋'}</span>
 			<p>
-				A token is fitted. It is never shown again — eject and sign in again to replace it, or once
-				its own hour runs out.
+				{#if bay.status === 'rejected'}
+					<!-- What the last real call said (UX-2), not what the token's own clock says. -->
+					<strong data-testid="geap-rejected">The guard has already rejected this token.</strong> Eject
+					it and sign in again; the run that found out is in your Scrapbook.
+				{:else}
+					A token is fitted. It is never shown again — eject and sign in again to replace it, or
+					once its own hour runs out.
+				{/if}
 			</p>
 			<div class="row">
 				<button type="button" data-testid="eject-battery-geap" onclick={() => bay.eject()}>

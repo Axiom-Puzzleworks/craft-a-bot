@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { agentOptionLabel } from '$lib/workshop/agent-labels.js';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import {
@@ -399,7 +400,7 @@
 				>
 					<option value="">Choose a bot…</option>
 					{#each agents as agent (agent.id)}
-						<option value={agent.id}>{agent.spec.name}</option>
+						<option value={agent.id}>{agentOptionLabel(agent, agents)}</option>
 					{/each}
 				</select>
 				<button

@@ -197,7 +197,11 @@ describe('summariseRun', () => {
 	it('agrees with the safety tally it replaces', () => {
 		const events = busyRun(uuid(1));
 		const summary = summariseRun(uuid(1), events);
-		expect({ checks: summary.checks, saves: summary.saves }).toEqual(safetyTally(events));
+		expect({
+			checks: summary.checks,
+			saves: summary.saves,
+			failedClosed: summary.failedClosed ?? 0
+		}).toEqual(safetyTally(events));
 	});
 
 	it('is empty for a run with no events', () => {

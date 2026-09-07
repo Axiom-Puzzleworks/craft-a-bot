@@ -1939,6 +1939,12 @@
 															"block-action",
 															"stop-run"
 														]
+													},
+													"cause": {
+														"type": "string",
+														"enum": [
+															"could-not-check"
+														]
 													}
 												},
 												"required": [
@@ -2044,6 +2050,12 @@
 										"enum": [
 											"block-action",
 											"stop-run"
+										]
+									},
+									"cause": {
+										"type": "string",
+										"enum": [
+											"could-not-check"
 										]
 									},
 									"policyCardId": {

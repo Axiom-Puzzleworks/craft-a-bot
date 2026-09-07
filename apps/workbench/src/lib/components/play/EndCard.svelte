@@ -21,11 +21,27 @@
 		 * find the run there, so the word waits for the write.
 		 */
 		saved?: boolean;
+		/**
+		 * The guardrail that ended the run could not check and failed closed
+		 * (UX-1, 2026-09-07) — a hosted guard's token rejected, its service
+		 * unreachable. The same outcome as a catch, and the opposite story: no
+		 * rule fired on anything the customer said, so the card must not say
+		 * one did.
+		 */
+		failedClosed?: boolean;
 		onseeTrace: () => void;
 		onbackToBench: () => void;
 	}
 
-	let { outcome, reason, hint, saved = false, onseeTrace, onbackToBench }: Props = $props();
+	let {
+		outcome,
+		reason,
+		hint,
+		saved = false,
+		failedClosed = false,
+		onseeTrace,
+		onbackToBench
+	}: Props = $props();
 
 	const CARDS: Record<RunOutcome, { badge: string; title: string; body: string; accent: string }> =
 		{
@@ -61,7 +77,17 @@
 			}
 		};
 
-	const card = $derived(CARDS[outcome]);
+	/** The fail-closed card: fail-closed is the system working too, but nothing was caught. */
+	const COULD_NOT_CHECK = {
+		badge: '🔌',
+		title: 'The safety check could not run',
+		body: 'The Armour Brick could not reach its service, so it stopped the run rather than let it carry on unchecked. That is fail-closed. Nothing was wrong with what was said — check the battery in Settings and try again.',
+		accent: 'var(--cab-yellow)'
+	};
+
+	const card = $derived(
+		outcome === 'STOPPED_BY_GUARDRAIL' && failedClosed ? COULD_NOT_CHECK : CARDS[outcome]
+	);
 
 	/**
 	 * Who decided (`16-…` §2.5). Free Play can end because the world's predicate
@@ -75,7 +101,12 @@
 	);
 </script>
 
-<div class="backdrop" data-testid="end-card" data-outcome={outcome}>
+<div
+	class="backdrop"
+	data-testid="end-card"
+	data-outcome={outcome}
+	data-failed-closed={outcome === 'STOPPED_BY_GUARDRAIL' && failedClosed ? 'true' : undefined}
+>
 	<div
 		class="card"
 		style="--accent: {card.accent}"

@@ -20,6 +20,11 @@ import type { BreakpointKind } from './settings.js';
 import { sinksStore } from './sinks.svelte.js';
 import { createBrowserKeyVault } from '$lib/state/keys.js';
 import {
+	credentialIdFor,
+	isCredentialRejection,
+	markRejected
+} from '$lib/state/credential-status.js';
+import {
 	applyEvent,
 	emptyProjection,
 	type PendingApproval,
@@ -219,6 +224,15 @@ export function createSessionView(deps: SessionViewDeps): SessionView {
 		// listener, and the session's own status.
 		applyEvent(state, event);
 		runId ??= event.runId;
+		// A service refusing a credential (UX-2) is noted for the battery
+		// compartment here, where the run sees it — never the token, only the
+		// verdict and the time, from the event's own record.
+		if (event.type === 'guardrail.external' && isCredentialRejection(event.payload.outcome))
+			markRejected(credentialIdFor(event.payload.guardrailId), {
+				kind: event.payload.outcome,
+				at: event.timestamp,
+				by: event.payload.guardrailId
+			});
 		deps.onEvent?.(event);
 		state.status = session.status;
 		/*

@@ -37,9 +37,14 @@ const list = (ids: readonly string[]): string => (ids.length === 0 ? 'none' : id
 const cite = (ids: readonly string[]): string =>
 	ids.length === 0 ? '(no runs behind this figure)' : `(runs: ${ids.join(', ')})`;
 const notRecorded = (entry: NotRecorded): string => entry.note;
-/** A principal and its chain, one line: `person "Sam" (browser-1) for service craftabot-harness`. */
+/**
+ * A principal and its chain, one line: `person "Sam" (browser-1) for service craftabot-harness`.
+ * A person with no name is said to be unnamed (UX-3, 2026-09-07) rather than left as a bare id
+ * a reviewer would take for a name — the id stays, because the pack is evidence.
+ */
 export const principalLine = (principal: Principal): string => {
-	const one = (p: Principal) => `${p.kind}${p.name ? ` "${p.name}"` : ''} (${p.id})`;
+	const one = (p: Principal) =>
+		`${p.kind}${p.name ? ` "${p.name}"` : p.kind === 'person' ? ' (unnamed)' : ''} (${p.id})`;
 	const chain: string[] = [];
 	for (let at: Principal | undefined = principal; at; at = at.onBehalfOf) chain.push(one(at));
 	return chain.join(' for ');

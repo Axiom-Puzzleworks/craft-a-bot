@@ -18,6 +18,7 @@ import { findingsIn } from './incidents.js';
 export function summariseRun(runId: string, events: readonly EngineEvent[]): RunSummary {
 	let checks = 0;
 	let saves = 0;
+	let failedClosed = 0;
 	let approvalsRequested = 0;
 	let approvalsGranted = 0;
 	let decisions = 0;
@@ -32,7 +33,9 @@ export function summariseRun(runId: string, events: readonly EngineEvent[]): Run
 				checks += 1;
 				break;
 			case 'guardrail.tripped':
-				saves += 1;
+				// An outage that failed closed is not a catch (UX-1).
+				if (event.payload.cause === 'could-not-check') failedClosed += 1;
+				else saves += 1;
 				guardrailTrips[event.payload.guardrailId] =
 					(guardrailTrips[event.payload.guardrailId] ?? 0) + 1;
 				break;
@@ -61,6 +64,7 @@ export function summariseRun(runId: string, events: readonly EngineEvent[]): Run
 		runId,
 		checks,
 		saves,
+		...(failedClosed > 0 ? { failedClosed } : {}),
 		guardrailTrips,
 		approvalsRequested,
 		approvalsGranted,

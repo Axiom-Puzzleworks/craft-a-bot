@@ -155,7 +155,10 @@
 		const started = events.find((event) => event.type === 'run.started');
 		return started?.type === 'run.started' ? started.payload.principal : undefined;
 	});
-	const principalLabel = (principal: { name?: string; id: string }) => principal.name ?? principal.id;
+	/** A nameless person is said to be one (UX-3), with the id shortened; the tooltip keeps the whole chain. */
+	const principalLabel = (principal: { kind: string; name?: string; id: string }) =>
+		principal.name ??
+		(principal.kind === 'person' ? `an unnamed person (${principal.id.slice(0, 8)}…)` : principal.id);
 	/** The chain, one line, for the chip's tooltip: `person Sam for service craftabot-harness`. */
 	const principalChainText = $derived.by(() => {
 		const parts: string[] = [];

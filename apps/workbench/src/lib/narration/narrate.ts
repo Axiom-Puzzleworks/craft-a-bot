@@ -183,7 +183,14 @@ function beatFor(
 		}
 
 		case 'guardrail.tripped':
-			return at('stopped', sentence(event.payload.reason));
+			// An outage that failed closed (UX-1) is told as one — not as a rule
+			// catching something, which is the story the strip would otherwise tell.
+			return event.payload.cause === 'could-not-check'
+				? at(
+						'stopped',
+						`The safety check could not run, so it stopped rather than carry on unchecked: ${sentence(event.payload.reason)}`
+					)
+				: at('stopped', sentence(event.payload.reason));
 
 		case 'approval.requested':
 			return at('asked', sentence(`It asked before it did anything: ${event.payload.reason}`));

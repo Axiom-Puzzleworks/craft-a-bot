@@ -27,3 +27,15 @@ export function safetyWords(tally: SafetyTally): string | undefined {
 	const saves = tally.saves === 1 ? '1 save' : `${tally.saves} saves`;
 	return `${checks}, ${saves}`;
 }
+
+/**
+ * The line for a run in which a hosted guard could not check (UX-1): said
+ * beside the ticker rather than folded into it, because "1 save" for an
+ * outage is the one thing the ticker must never say.
+ */
+export function failedClosedWords(tally: SafetyTally): string | undefined {
+	if (tally.failedClosed === 0) return undefined;
+	return tally.failedClosed === 1
+		? '1 check could not run'
+		: `${tally.failedClosed} checks could not run`;
+}

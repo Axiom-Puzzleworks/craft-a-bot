@@ -41,7 +41,7 @@ const tripped = () =>
 
 describe('safetyTally', () => {
 	it('counts nothing before anything has happened', () => {
-		expect(safetyTally([])).toEqual({ checks: 0, saves: 0 });
+		expect(safetyTally([])).toEqual({ checks: 0, saves: 0, failedClosed: 0 });
 	});
 
 	it('counts every rule the engine consulted', () => {
@@ -56,7 +56,27 @@ describe('safetyTally', () => {
 	it('counts a denial once, not twice', () => {
 		const tally = safetyTally([checked(true), checked(false), tripped()]);
 
-		expect(tally).toEqual({ checks: 2, saves: 1 });
+		expect(tally).toEqual({ checks: 2, saves: 1, failedClosed: 0 });
+	});
+
+	/**
+	 * A hosted guard that could not check and stopped the run (UX-1) is
+	 * fail-closed, not a catch: it is counted, but never as a save.
+	 */
+	it('counts a fail-closed stop apart from the saves', () => {
+		const outage = event('guardrail.tripped', {
+			guardrailId: 'geap/armor:observation',
+			hook: 'pre-think',
+			reason: 'the guard could not check — the battery token was rejected',
+			disposition: 'stop-run',
+			cause: 'could-not-check'
+		});
+
+		expect(safetyTally([checked(true), checked(false), outage])).toEqual({
+			checks: 2,
+			saves: 0,
+			failedClosed: 1
+		});
 	});
 
 	it('ignores everything that is not a guardrail', () => {
@@ -66,6 +86,6 @@ describe('safetyTally', () => {
 			event('tick.completed', { tick: 1 })
 		]);
 
-		expect(tally).toEqual({ checks: 1, saves: 0 });
+		expect(tally).toEqual({ checks: 1, saves: 0, failedClosed: 0 });
 	});
 });

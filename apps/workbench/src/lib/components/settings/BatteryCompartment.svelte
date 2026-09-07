@@ -7,6 +7,7 @@
 	 */
 	/* eslint-disable svelte/no-navigation-without-resolve */
 	import type { BatteryBay } from '$lib/state/battery.svelte.js';
+	import { rejectionOf } from '$lib/state/credential-status.js';
 
 	/**
 	 * The battery compartment (03-UI-UX-DESIGN.md §7, 06-LLM-PROVIDERS.md §6).
@@ -27,9 +28,20 @@
 		providerId: string;
 		providerName: string;
 		keysUrl: string;
+		/**
+		 * What kind of credential this is (UX-4, 2026-09-07). `provider` — a
+		 * metered model key, the copy below about bills and spending caps;
+		 * `service` — a team's token for a service the app syncs with (the
+		 * evidence store's workspace token), where nobody is billed per call
+		 * and "manage your keys" is the wrong link. Two templates, one shape.
+		 */
+		role?: 'provider' | 'service';
 	}
 
-	let { bay, providerId, providerName, keysUrl }: Props = $props();
+	let { bay, providerId, providerName, keysUrl, role = 'provider' }: Props = $props();
+
+	/** A run that found the service refusing this credential (UX-2). */
+	const rejection = $derived(bay.hasKey ? rejectionOf(providerId) : undefined);
 
 	let draft = $state('');
 	let busy = $state(false);
@@ -98,14 +110,16 @@
 		</div>
 	{:else}
 		<div class="empty">
-			<label for={inputId}>Paste your {providerName} API key</label>
+			<label for={inputId}>
+				{role === 'service' ? `Paste your ${providerName}` : `Paste your ${providerName} API key`}
+			</label>
 			<div class="row">
 				<input
 					id={inputId}
 					type="password"
 					autocomplete="off"
 					spellcheck="false"
-					placeholder="sk-…"
+					placeholder={role === 'service' ? '' : 'sk-…'}
 					data-testid="key-input-{providerId}"
 					bind:value={draft}
 				/>
@@ -125,6 +139,12 @@
 	{#if bay.message}
 		<p class="message" role="status" data-testid="battery-message-{providerId}">{bay.message}</p>
 	{/if}
+	{#if rejection}
+		<p class="message message--bad" role="status" data-testid="battery-rejected-{providerId}">
+			The service rejected this battery at {new Date(rejection.at).toLocaleTimeString()} ({rejection.by})
+			— eject it and fit a fresh one.
+		</p>
+	{/if}
 
 	<div class="smallprint">
 		<h3>Where your battery lives</h3>
@@ -134,22 +154,38 @@
 				Anyone who can use this browser profile could read it — so please don't use a shared computer
 				for a key you care about.
 			</li>
-			<li>
-				<strong>It goes to {providerName} and nowhere else.</strong> Craft A Bot has no server. Your
-				key is sent straight from this page to the {providerName} API, with your own account footing the
-				bill.
-			</li>
+			{#if role === 'service'}
+				<li>
+					<strong>It goes to {providerName} and nowhere else.</strong> Craft A Bot has no server. The
+					token travels as a header on each push or pull, straight from this page to the service your
+					team set up — nobody is billed per call.
+				</li>
+			{:else}
+				<li>
+					<strong>It goes to {providerName} and nowhere else.</strong> Craft A Bot has no server.
+					Your key is sent straight from this page to the {providerName} API, with your own account footing
+					the bill.
+				</li>
+			{/if}
 			<li>
 				<strong>It never leaves in anything you share.</strong> Kit files and exported traces are scrubbed
 				of it by construction.
 			</li>
-			<li>
-				<strong>Use a spending-capped key.</strong> Make a separate key just for this and give it a
-				budget —
-				<a href={keysUrl} target="_blank" rel="noreferrer noopener">
-					manage your {providerName} keys
-				</a>.
-			</li>
+			{#if role === 'service'}
+				<li>
+					<strong>Use a token with the least reach.</strong> One workspace, one token, minted by
+					whoever runs the store —
+					<a href={keysUrl} target="_blank" rel="noreferrer noopener">how these tokens work</a>.
+				</li>
+			{:else}
+				<li>
+					<strong>Use a spending-capped key.</strong> Make a separate key just for this and give it
+					a budget —
+					<a href={keysUrl} target="_blank" rel="noreferrer noopener">
+						manage your {providerName} keys
+					</a>.
+				</li>
+			{/if}
 		</ul>
 	</div>
 </section>

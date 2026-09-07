@@ -26,6 +26,7 @@ import {
 import {
 	ASSURANCE_TOKENS,
 	renderAssurancePackHtml,
+	principalLine,
 	renderAssurancePackMarkdown
 } from './assurance-pack-render.js';
 import { GENERIC_CONTROL_MAP_MANIFEST } from './control-map.js';
@@ -505,6 +506,8 @@ describe('the renderings', () => {
 		// The principal is recorded (WP65): the chain, citing the run it started.
 		expect(md).toContain('person "Sam" (browser-1)');
 		expect(md).toContain('service "ci" (craftabot-harness)');
+		// A nameless person is said to be one (UX-3), never rendered as a bare id.
+		expect(principalLine({ kind: 'person', id: 'browser-2' })).toBe('person (unnamed) (browser-2)');
 		expect(md).not.toContain('not recorded in this build (WP65)');
 	});
 
