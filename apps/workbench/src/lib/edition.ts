@@ -54,7 +54,7 @@ export const EDITIONS: Record<EditionId, Edition> = {
 		routes: { allow: NOT_WORKSHOP },
 		mode: EDITION_MODE.simulator,
 		shelf: shelfFor(false),
-		budgetBytes: 1_430_000
+		budgetBytes: 1_445_000 // +15 kB 2026-09-07 (WP73): the wave 2 placeholders inlined as markup
 	},
 	workshop: {
 		id: 'workshop',
@@ -74,7 +74,7 @@ export const EDITIONS: Record<EditionId, Edition> = {
 		routes: { allow: EVERYTHING },
 		mode: EDITION_MODE.playground,
 		shelf: shelfFor(true),
-		budgetBytes: 1_465_000
+		budgetBytes: 1_480_000 // +15 kB 2026-09-07 (WP73): the wave 2 placeholders inlined as markup
 	},
 	full: {
 		id: 'full',
