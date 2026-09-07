@@ -3,6 +3,7 @@
 	import WorkshopRail from '$lib/components/workshop/WorkshopRail.svelte';
 	import { installGroupEpisodeEntryPoint } from '$lib/state/group-episode-entry-point.js';
 	import { routePath } from '$lib/edition.js';
+	import { FINISH_PROPERTIES } from '$lib/assets/finishes.js';
 
 	/**
 	 * The Workshop shell (`15-…` §2, `17-…` §2).
@@ -51,7 +52,14 @@
 	});
 </script>
 
-<div class="workshop" data-mode="workshop" data-testid="workshop">
+<!-- The two finishes (WP73, `62-…` §4.2): set once here; every instrument reads them with its own rule as the fallback. -->
+<div
+	class="workshop"
+	data-mode="workshop"
+	data-testid="workshop"
+	style:--cab-finish-metal={FINISH_PROPERTIES['--cab-finish-metal']}
+	style:--cab-finish-graph={FINISH_PROPERTIES['--cab-finish-graph']}
+>
 	<WorkshopRail {current} />
 	<div class="stage">
 		{@render children()}

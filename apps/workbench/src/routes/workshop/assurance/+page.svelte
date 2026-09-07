@@ -212,7 +212,7 @@
 	{:else}
 		<p class="posture" data-testid="assurance-posture">{pack.posture}</p>
 		<section aria-label="At a glance">
-			<Strip label={pack.bot.name}>
+			<Strip label={pack.bot.name} icon="case">
 				<Readout label="Control rows" value={pack.review.rows} testId="assurance-rows" />
 				<Readout label="Unreviewed" value={pack.review.unreviewed} testId="assurance-unreviewed" />
 				<Readout label="Pending" value={pack.review.pending} testId="assurance-pending" />

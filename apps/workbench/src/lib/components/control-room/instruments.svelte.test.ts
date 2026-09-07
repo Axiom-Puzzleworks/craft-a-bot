@@ -219,3 +219,19 @@ describe('the Desk’s three panes', () => {
 		expect(screen.getByTestId('desk-queue-k').textContent).toContain('?');
 	});
 });
+
+describe('Strip with an icon (WP73)', () => {
+	it('draws the roundel before the label, hidden from a reader, and none without one', async () => {
+		const Strip = (await import('./Strip.svelte')).default;
+		const { unmount } = render(Strip, {
+			props: { label: 'A case', icon: 'desk', children: (() => {}) as never }
+		});
+		const roundel = screen.getByTestId('roundel-desk');
+		expect(roundel.getAttribute('aria-hidden')).toBe('true');
+		expect(roundel.querySelector('svg [data-part="glyph"]')).not.toBeNull();
+		expect(screen.getByText('A case')).toBeTruthy();
+		unmount();
+		render(Strip, { props: { label: 'Plain', children: (() => {}) as never } });
+		expect(screen.queryByTestId(/roundel-/)).toBeNull();
+	});
+});

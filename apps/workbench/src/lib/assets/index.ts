@@ -50,6 +50,7 @@ import fxSparkle from './playroom/fx-sparkle.svg?raw';
 import fxZzz from './playroom/fx-zzz.svg?raw';
 
 import boxSticker from './brand/box-sticker.svg?raw';
+import boxPlayground from './brand/box-playground.svg?raw';
 import badgeRosette from './leaflet/badge-rosette.svg?raw';
 
 /** The six `#face-slot` contents (`20-…` §5.1). 48 × 48, no background. */
@@ -137,7 +138,7 @@ export const CELL_HIGHLIGHT = cellHighlight;
  * `var(--part-tint, <token>)`, so setting the property recolours the part and
  * leaving it alone still renders correctly.
  */
-export const TEMPLATES = { boxSticker, badgeRosette } as const;
+export const TEMPLATES = { boxSticker, badgeRosette, boxPlayground } as const;
 
 /** Every delivered file, for the tests that check the set as a whole. */
 export const ALL_ASSETS: Record<string, string> = {

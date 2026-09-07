@@ -260,6 +260,16 @@
 			{#each edition.shelf as pack (pack.id)}
 				<li>
 					<article class="box box--shop" data-testid="pack-{pack.id}">
+						{#if pack.art}
+							<!-- Box art on the lid (WP73, `62-…` §4.1) — decorative; the name beside it is the identity. -->
+							<span
+								class="box-art"
+								data-testid="box-art-{pack.id}"
+								style="--part-tint: {pack.art.tint}"
+							>
+								<Art source={TEMPLATES[pack.art.template]} />
+							</span>
+						{/if}
 						<h3>{pack.name}</h3>
 						<p class="contents">{pack.contents}</p>
 						<p class="sticker" data-status={pack.status}>
@@ -491,6 +501,19 @@
 	 * owns `.sticker` in this file, and the later rule won — three boxes with
 	 * three different seeds all came out the same yellow.
 	 */
+	.box-art {
+		display: block;
+		width: 3rem;
+		height: 3rem;
+		margin-bottom: var(--cab-space-2);
+	}
+
+	.box-art :global(svg) {
+		width: 100%;
+		height: 100%;
+		display: block;
+	}
+
 	.box-sticker {
 		position: absolute;
 		width: 24px;

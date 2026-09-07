@@ -104,7 +104,7 @@
 <p class="simulation" data-testid="fraud-simulation-only">FOR SIMULATION ONLY</p>
 
 <section aria-label="Generate a case">
-	<Strip label="A case">
+	<Strip label="A case" icon="desk">
 		<label class="pick">
 			Layout
 			<select bind:value={layoutId} data-testid="fraud-layout">

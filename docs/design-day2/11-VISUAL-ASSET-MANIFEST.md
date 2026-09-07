@@ -280,6 +280,8 @@ Two sets, one style: **moulded roundels** — white glyph on token-colour disc w
 
 **UI set (14, P0/P1)**: `ui-play` `ui-pause` `ui-step` (footprint arrow) `ui-stop` `ui-reset` (rewind arrow) — P0; `ui-export` (box-with-arrow) `ui-import` `ui-duplicate` `ui-bin` (toy bin) `ui-settings` (screwdriver+screw) `ui-sound-on` `ui-sound-off` `ui-flip` (the "?" flip-over) `ui-pin` — P0 where WP6/7 needs them, rest P1.
 
+> **Amended 2026-09-07 (WP73, `63-ART-COMMISSION-BRIEF-WAVE-2.md` §5.2):** a third set in the same roundel style, the **Workshop instrument set** (11) — `instruments/icon-meter` `icon-lamp` `icon-tape` `icon-matrix` `icon-chain` `icon-case` `icon-desk` `icon-deck` `icon-cassette` `icon-cohort` `icon-boundary` — teal disc (an accent; an instrument is not a brick), cream glyph, authored at 96 × 96 to read at 20 px beside a strip's label. Placeholders in the repo at the exact paths, held by `lib/assets/wave2.test.ts`; the trace/event and UI sets above remain uncommissioned.
+
 ## J. Instruction Leaflet & badges — 13 files
 
 | ID | Spec | Family | Params | Pri |
@@ -319,6 +321,8 @@ Composed scenes: card frame (M2) + bot pose + props. New art = the poses; frames
 | `textures/shrinkwrap-sheen` | Diagonal sheen overlay for the new-bot box | P1 |
 
 *(Plastic speculars and AO are SVG gradient recipes per §4 — defined in code/`tokens.css`, no bitmap needed.)*
+
+> **Amended 2026-09-07 (WP73, `63-…` §5.3):** two Workshop finishes join the library as tileable SVGs rather than bitmaps — `finishes/finish-graph` (16 × 16, the graph-paper rule) and `finishes/finish-metal` (64 × 64, brushed grain) — painted over the components' own `--cab-graph`/`--cab-metal` through two custom properties the Workshop's root sets (`62-THE-TAIL.md` §4.2). Placeholders in the repo. The Playground's box (`brand/box-playground`, 96 × 96, tintable) joins category G's boxes the same way.
 
 ## M. Existing box art (housekeeping) — 4 files
 
