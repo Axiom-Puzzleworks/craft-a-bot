@@ -74,6 +74,6 @@ test('with no name set the run still names the browser, by id alone', async ({ p
 	await page.goto(`/workshop/runs/${runId}`);
 	const chip = page.getByTestId('run-principal');
 	await expect(chip).toContainText('started by');
-	// A UUID, not a name — minted once for this browser.
-	await expect(chip).toContainText(/[0-9a-f]{8}-[0-9a-f]{4}-/);
+	// No name set — said to be an unnamed person, with the browser's id shortened (UX-3), never a bare UUID.
+	await expect(chip).toContainText(/an unnamed person \([0-9a-f]{8}…\)/);
 });

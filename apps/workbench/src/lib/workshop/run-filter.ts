@@ -56,7 +56,7 @@ export function filterRuns(runs: readonly RunRecord[], filter: RunFilter): RunRe
 			if (filter.pinnedOnly === true && !run.pinned) return false;
 			if (filter.agentId !== undefined && run.agentId !== filter.agentId) return false;
 			if (filter.goalCardId !== undefined && run.goalCardId !== filter.goalCardId) return false;
-			if (filter.outcome !== undefined && run.outcome !== filter.outcome) return false;
+			if (filter.outcome !== undefined && displayOutcome(run) !== filter.outcome) return false;
 			if (filter.providerId !== undefined && run.providerId !== filter.providerId) return false;
 			if (needle !== undefined && needle !== '' && !matchesText(run, needle)) return false;
 			return true;
@@ -72,6 +72,16 @@ function matchesText(run: RunRecord, needle: string): boolean {
 	);
 }
 
+/**
+ * What the Run Browser says a run's outcome is (UX-15): the trace's own
+ * outcome, except that a run left `IN_PROGRESS` and marked abandoned reads
+ * ABANDONED — the record keeps `IN_PROGRESS` because no `run.finished` was
+ * ever written, and the screen says what a person decided about it.
+ */
+export function displayOutcome(run: Pick<RunRecord, 'outcome' | 'abandonedAt'>): string {
+	return run.outcome === 'IN_PROGRESS' && run.abandonedAt ? 'ABANDONED' : run.outcome;
+}
+
 export function facetsOf(runs: readonly RunRecord[]): RunFacets {
 	const bots = new Map<string, string>();
 	const cards = new Set<string>();
@@ -81,7 +91,7 @@ export function facetsOf(runs: readonly RunRecord[]): RunFacets {
 	for (const run of runs) {
 		bots.set(run.agentId, run.agentName);
 		cards.add(run.goalCardId);
-		outcomes.add(run.outcome);
+		outcomes.add(displayOutcome(run));
 		providers.add(run.providerId);
 	}
 

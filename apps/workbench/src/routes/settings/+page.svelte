@@ -94,6 +94,7 @@
 				providerId={credential.id}
 				providerName={`${store.name} — ${credential.name}`}
 				keysUrl={credential.keysUrl ?? ''}
+				role="service"
 			/>
 		{/each}
 
@@ -268,7 +269,7 @@
 				<strong>Craft A Bot</strong> — an LLM and agent simulator built as a 1970s construction toy. Everything
 				runs in this browser: your bots, your runs, and your API key never leave it.
 			</p>
-			<p class="hint">Built in public. Licence to be confirmed before release.</p>
+			<p class="hint">Built in public, under the Apache License 2.0.</p>
 		</div>
 	</Panel>
 </main>

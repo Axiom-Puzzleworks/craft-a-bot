@@ -177,7 +177,8 @@ describe('a check', () => {
 		expect(verdict).toEqual({
 			allow: false,
 			reason: defaultHostedStrings.transport('timeout'),
-			disposition: 'stop-run'
+			disposition: 'stop-run',
+			cause: 'could-not-check'
 		});
 		expect(external).toEqual({
 			service: 'stub',

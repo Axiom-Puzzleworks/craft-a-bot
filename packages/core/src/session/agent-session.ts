@@ -478,6 +478,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 						hook,
 						reason: verdict.reason,
 						disposition: verdict.disposition,
+						...(verdict.cause ? { cause: verdict.cause } : {}),
 						...(policyCardId ? { policyCardId } : {})
 					});
 				}

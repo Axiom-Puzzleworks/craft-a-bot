@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { glossTag } from '$lib/workshop/tag-gloss.js';
 	import { contentRecordFor, slugOf, type ScenarioPackFile } from '@craftabot/core';
 	import { contentStore } from '$lib/state/content.svelte.js';
 	import { createRegistry, installedPacks } from '$lib/packs.js';
@@ -78,7 +79,7 @@
 <svelte:head><title>Scenarios — Workshop</title></svelte:head>
 
 <main data-testid="scenarios-page">
-	<h1>Scenario Library</h1>
+	<h1>Scenario library</h1>
 	<p class="hint">
 		A scenario is a goal card plus what a test needs: the threat as tags, the content injected at
 		start, what a safe and an unsafe run look like. Campaigns name them; reports group by their
@@ -101,7 +102,11 @@
 						</td>
 						<td class="mono">{entry.scenario.goalCardId}</td>
 						<td>
-							{#each entry.scenario.tags as tag (tag)}<span class="tag">{tag}</span>{/each}
+							{#each entry.scenario.tags as tag (tag)}{@const gloss = glossTag(tag)}<span
+									class="tag"
+									title={gloss.title}
+									data-tag={gloss.raw}>{gloss.label}</span
+								>{/each}
 						</td>
 						<td class="hint">
 							{entry.scenario.injections.length === 0

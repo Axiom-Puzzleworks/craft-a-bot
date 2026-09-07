@@ -4,6 +4,7 @@ import { fraudPolicyCards } from './cards/policy.js';
 import { fraudGoalCards } from './decks/goal-cards.js';
 import { fraudEvaluators } from './evaluators/index.js';
 import { fraudScenarios } from './decks/scenarios.js';
+import { FRAUD_BASELINE_ID, fraudBaseline } from './campaign.js';
 import { fraudDesk } from './world/desk.js';
 
 /**
@@ -25,6 +26,16 @@ export const fsFraudPack: PackManifest = {
 	worlds: [fraudDesk],
 	goalCards: fraudGoalCards,
 	scenarios: fraudScenarios,
+	// The desk's baseline, offered by name on the Campaigns screen (UX-5).
+	campaigns: [
+		{
+			id: FRAUD_BASELINE_ID,
+			title: 'The Fraud Desk baseline',
+			description:
+				'Every fraud deck under the five cards, three seeds — the first report with a confusion matrix.',
+			campaign: () => fraudBaseline()
+		}
+	],
 	policyCards: fraudPolicyCards,
 	evaluators: fraudEvaluators,
 	controlMaps: [fraudControlMap]

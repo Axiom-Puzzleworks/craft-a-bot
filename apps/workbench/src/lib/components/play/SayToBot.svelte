@@ -22,10 +22,29 @@
 		hasSenseBrick?: boolean;
 		/** No point talking to a bot that has finished. */
 		disabled?: boolean;
+		/**
+		 * The world is a desk (UX-11): a conversation, where the customer's line
+		 * arrives through the desk's *conversation* sense rather than the
+		 * Playroom's *hearing*. Changes the words, not the rule.
+		 */
+		desk?: boolean;
 		onsay: (text: string) => void;
+		/**
+		 * Switch the listening channel on from here (UX-11) — the fix was two
+		 * clicks away in a brick panel a first-timer had no reason to open.
+		 * Offered only when the bot has the brick and the world has the channel.
+		 */
+		onenableHearing?: (() => void) | undefined;
 	}
 
-	let { canHear, hasSenseBrick = false, disabled = false, onsay }: Props = $props();
+	let {
+		canHear,
+		hasSenseBrick = false,
+		disabled = false,
+		desk = false,
+		onsay,
+		onenableHearing
+	}: Props = $props();
 
 	let text = $state('');
 
@@ -69,8 +88,24 @@
 		-->
 		<p class="why" id="say-why" data-testid="say-no-ears">
 			{#if hasSenseBrick}
-				Your bot has the Eyes &amp; Ears brick, but its hearing is switched off. Turn Hearing on in
-				the brick's panel and it will listen while it works.
+				{#if desk}
+					This desk is a conversation, but your bot's Eyes &amp; Ears brick is not listening to it.
+				{:else}
+					Your bot has the Eyes &amp; Ears brick, but its hearing is switched off.
+				{/if}
+				{#if onenableHearing}
+					<button
+						type="button"
+						class="turn-on"
+						data-testid="say-turn-hearing-on"
+						onclick={onenableHearing}
+					>
+						Turn {desk ? 'listening' : 'Hearing'} on
+					</button>
+					— it listens from the next run.
+				{:else}
+					Turn Hearing on in the brick's panel and it will listen while it works.
+				{/if}
 			{:else}
 				Your bot has no ears yet. Fit the Eyes &amp; Ears brick, switch its hearing on, and it will
 				listen while it works.
@@ -80,6 +115,21 @@
 </form>
 
 <style>
+	.turn-on {
+		font: inherit;
+		font-size: var(--cab-text-sm);
+		font-weight: 600;
+		padding: 2px var(--cab-space-2);
+		background: var(--cab-cream);
+		color: var(--cab-ink);
+		border: var(--cab-border-part) solid var(--cab-ink);
+		border-radius: var(--cab-radius-pill);
+		cursor: pointer;
+	}
+	.turn-on:focus-visible {
+		outline: var(--cab-focus-ring);
+		outline-offset: var(--cab-focus-gap);
+	}
 	.say {
 		display: grid;
 		gap: var(--cab-space-1);

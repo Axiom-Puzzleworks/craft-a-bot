@@ -57,6 +57,43 @@
 
 ---
 
+## 2a. What was done about it — 2026-09-07
+
+A pass on branch `ux-gaps-pass`, the same day, against the list above. **Resolved** means the finding as written no longer reproduces; **part** means the small fix landed and the larger one is named; **open** means untouched, with the reason.
+
+| # | Status | What landed |
+|---|---|---|
+| UX-1 | Resolved | `guardrail.tripped.cause: 'could-not-check'` on the fail-closed verdict (core, governance); `safetyTally`/`RunSummary` count it apart from saves; the Kit's end card says *The safety check could not run*, the chip says *1 check could not run*, the story strip says it stopped rather than carry on unchecked |
+| UX-2 | Resolved | A run's `bad-token`/`no-permission` record is noted against the credential (`credential-status.ts`); the Cloud Armour battery reads **Rejected — sign in again** with the time; cleared on sign-in, eject or a passing *Test the guard*; the generic compartment shows the same note |
+| UX-3 | Resolved | The Assurance screen asks for a name where it matters and saves it to Settings; an unnamed person is rendered as one in the pack (`person (unnamed) (id)`) and the Run Lab chip; the id stays, because the pack is evidence |
+| UX-4 | Resolved | `BatteryCompartment.role` — service copy for the evidence store's token: no bill, no "manage your keys" |
+| UX-5 | Resolved | `PackManifest.campaigns`; each desk pack ships its baseline; a picker beside *Load baseline*; `?baseline=<id>`; *Run this desk's campaign* on every desk page; the Playground section opens on the Advice Desk's |
+| UX-6 | Resolved | The Bench dashboard and Campaigns take the width; prose stays capped per block |
+| UX-7 | Open | Collision-aware placement is a component rewrite (`Boundary.svelte`); not attempted in this pass |
+| UX-8 | Resolved | A desk run takes the Run Lab's row, timeline and inspector beneath; the desk's panes re-proportioned (transcript wide, case file at least 14 rem, queue narrow) |
+| UX-9 | Resolved | The start time opens the run; rows have a hover state; the bot's name still opens the run, because every test and habit expects it |
+| UX-10 | Resolved | Past a dozen cards the rack groups by world under sticky headings with a filter box; the Kit's rack does not move |
+| UX-11 | Resolved | The defect was deeper than the default: the play screen tested for a channel called *hearing*, and a desk's ears are its *conversation* sense, so every desk was deaf on screen whatever was fitted. Fixed; and *Turn listening on* sits in the disabled field's own message |
+| UX-12 | Part | **Cancel** (at the next cell boundary; nothing stored — a partial report would carry a digest over cells it never ran), elapsed and estimated remaining, and the busy warning. The Worker is the L-sized option and is not built |
+| UX-13 | Resolved | Failures first, a filter over any text on the row, a hundred rows at a time with *Show the next* |
+| UX-14 | Resolved | A three-step checklist per store with a **Test connection** that makes one real pull |
+| UX-15 | Resolved | `RunRecord.abandonedAt`; the Run Browser offers *Mark them abandoned* for runs left IN_PROGRESS (never the live one) and shows them as ABANDONED, filterable. Telemetry and the fleet table still count the record's own outcome — a later pass |
+| UX-16 | Resolved | `19/#25` reads *policy compliance under pressure* (raw id in the tooltip and `data-tag`) in the Scenario library and the desk deck tables; no work-package number in the assurance pack's notes |
+| UX-17 | Resolved | *The desk — <bot>* |
+| UX-18 | Resolved | One register: the rail's *Spec lab* and *Test bench*, the h1s *Test bench*, *Eval matrix*, *Policy studio*, *Scenario library*; Assurance engraved like the rest |
+| UX-19 | Resolved | *Built in public, under the Apache License 2.0* |
+| UX-20 | Resolved | Assurance opens on the most recently run bot |
+| UX-21 | Resolved | A name shared with another bot earns the first six characters of its id in every picker |
+| UX-22 | Resolved | The count comes from the data |
+| GAP-1 | Open | Review as content — a work package |
+| GAP-2 | Open | The guided path — a work package |
+| GAP-3 | Open | A cohort axis — a work package |
+| GAP-4 | Resolved | Labelled fields from the store's own schema, writing the same JSON; the JSON stays beneath for pasting |
+| GAP-5 | Open | *Talk to this desk* — a work package; UX-11's fix is the first half |
+| GAP-6 | Open | Report comparison — a work package |
+| GAP-7 | Resolved | The README rewritten: three sections, the harness, the reader, every command, the layout, the status |
+| GAP-8 | Resolved | `docs/playground.md` counts |
+
 ## 3. Findings that affect trust in what the product says
 
 These come first because this product's whole proposition is that what it tells you is true.

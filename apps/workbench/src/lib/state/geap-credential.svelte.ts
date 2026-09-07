@@ -1,6 +1,12 @@
 import type { KeyCheck } from '@craftabot/core';
 import { armorBrickKind } from '@craftabot/pack-geap';
-import { createBrowserKeyVault, type KeyVault } from './keys.js';
+import { createBrowserKeyVault, type KeyVault, type WebStorageLike } from './keys.js';
+import {
+	clearRejection,
+	rejectionOf,
+	rejectionTime,
+	type CredentialRejection
+} from './credential-status.js';
 
 /**
  * The Armour Brick's own battery (`25-ARMOUR-BRICK.md` §4.6, WP35 stage E).
@@ -24,7 +30,8 @@ const CREDENTIAL_ID = 'geap';
 const GIS_SCRIPT_SRC = 'https://accounts.google.com/gsi/client';
 const SCOPE = 'https://www.googleapis.com/auth/cloud-platform';
 
-export type GeapTokenStatus = 'empty' | 'signing-in' | 'live' | 'expired';
+/** `rejected` (UX-2): the token is present, and the last real call says the service refused it. */
+export type GeapTokenStatus = 'empty' | 'signing-in' | 'live' | 'expired' | 'rejected';
 
 export interface GeapCredentialBay {
 	readonly status: GeapTokenStatus;
@@ -33,8 +40,12 @@ export interface GeapCredentialBay {
 	/** Seconds remaining, for the meter — `undefined` once expired or empty. */
 	readonly secondsRemaining: number | undefined;
 	readonly clientIdConfigured: boolean;
+	/** What the last real call said, when it refused the token (UX-2). */
+	readonly rejection: CredentialRejection | undefined;
 	signIn(): Promise<void>;
 	eject(): void;
+	/** A real check passed — the compartment's *Test the guard* — so any recorded rejection is stale. */
+	clearRejection(): void;
 }
 
 interface GoogleTokenClient {
@@ -86,6 +97,8 @@ export interface GeapCredentialBayDeps {
 	clientId?: string;
 	/** Injected for tests, so a sign-in can be driven without touching the real GIS script. */
 	loadGis?: () => Promise<void>;
+	/** Where the run's note about a refused token lives (UX-2); defaults to `localStorage`. */
+	statusStore?: WebStorageLike;
 }
 
 export function createGeapCredentialBay(deps: GeapCredentialBayDeps = {}): GeapCredentialBay {
@@ -94,27 +107,39 @@ export function createGeapCredentialBay(deps: GeapCredentialBayDeps = {}): GeapC
 		deps.clientId ?? (import.meta.env['VITE_GEAP_OAUTH_CLIENT_ID'] as string | undefined);
 	const doLoadGis = deps.loadGis ?? loadGis;
 
+	const statusStore =
+		deps.statusStore ?? (typeof localStorage === 'undefined' ? undefined : localStorage);
+
 	const existing = vault.get(CREDENTIAL_ID) !== undefined;
 	// A timed token's remaining life survives a reload now (WP41): the vault keeps `expiresAt`.
 	const storedExpiry = vault.expiry(CREDENTIAL_ID);
+	// What the last run found out (UX-2): a token the guard has already
+	// rejected is not "charged", whatever its own clock says.
+	const rejected = existing ? rejectionOf(CREDENTIAL_ID, statusStore) : undefined;
 	const state = $state<{
 		status: GeapTokenStatus;
 		message: string;
 		hasToken: boolean;
 		expiresAt: number | undefined;
+		rejection: CredentialRejection | undefined;
 	}>({
 		status: existing
-			? storedExpiry !== undefined && storedExpiry <= Date.now()
-				? 'expired'
-				: 'live'
+			? rejected
+				? 'rejected'
+				: storedExpiry !== undefined && storedExpiry <= Date.now()
+					? 'expired'
+					: 'live'
 			: 'empty',
 		message: existing
-			? storedExpiry === undefined
-				? 'A token was found from an earlier session — its own remaining life is unknown until you re-insert.'
-				: 'A token was found from an earlier session.'
+			? rejected
+				? `The guard rejected this token at ${rejectionTime(rejected)} (${rejected.by}) — sign in again.`
+				: storedExpiry === undefined
+					? 'A token was found from an earlier session — its own remaining life is unknown until you re-insert.'
+					: 'A token was found from an earlier session.'
 			: '',
 		hasToken: existing,
-		expiresAt: storedExpiry
+		expiresAt: storedExpiry,
+		rejection: rejected
 	});
 
 	function secondsRemaining(): number | undefined {
@@ -137,6 +162,14 @@ export function createGeapCredentialBay(deps: GeapCredentialBayDeps = {}): GeapC
 		},
 		get clientIdConfigured() {
 			return clientId !== undefined && clientId.trim() !== '';
+		},
+		get rejection() {
+			return state.rejection;
+		},
+		clearRejection() {
+			clearRejection(CREDENTIAL_ID, statusStore);
+			state.rejection = undefined;
+			if (state.status === 'rejected') state.status = 'live';
 		},
 
 		async signIn() {
@@ -180,6 +213,8 @@ export function createGeapCredentialBay(deps: GeapCredentialBayDeps = {}): GeapC
 						}
 						const expiresAt = Date.now() + (response.expires_in ?? 3600) * 1000;
 						vault.set(CREDENTIAL_ID, response.access_token, expiresAt);
+						clearRejection(CREDENTIAL_ID, statusStore);
+						state.rejection = undefined;
 						state.hasToken = true;
 						state.status = 'live';
 						state.expiresAt = expiresAt;
@@ -198,6 +233,8 @@ export function createGeapCredentialBay(deps: GeapCredentialBayDeps = {}): GeapC
 
 		eject() {
 			vault.remove(CREDENTIAL_ID);
+			clearRejection(CREDENTIAL_ID, statusStore);
+			state.rejection = undefined;
 			state.hasToken = false;
 			state.status = 'empty';
 			state.message = '';

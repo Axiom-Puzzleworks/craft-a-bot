@@ -24,15 +24,27 @@ export interface SafetyTally {
 	 * so counting the tripped events counts denials exactly once.
 	 */
 	saves: number;
+	/**
+	 * Trips that were not a catch (UX-1, 2026-09-07): a hosted guard could not
+	 * check — its token was rejected, it timed out — and stopped the run
+	 * rather than let it go on unchecked. Fail-closed is the system working
+	 * too, but it is not "the brick caught something", and counting it as a
+	 * save told a learner the opposite of what happened.
+	 */
+	failedClosed: number;
 }
 
 /** The ticker the Kit and the Workshop both show: how many times a rule was consulted, and how many times it said no. */
 export function safetyTally(events: readonly EngineEvent[]): SafetyTally {
 	let checks = 0;
 	let saves = 0;
+	let failedClosed = 0;
 	for (const event of events) {
 		if (event.type === 'guardrail.checked') checks += 1;
-		else if (event.type === 'guardrail.tripped') saves += 1;
+		else if (event.type === 'guardrail.tripped') {
+			if (event.payload.cause === 'could-not-check') failedClosed += 1;
+			else saves += 1;
+		}
 	}
-	return { checks, saves };
+	return { checks, saves, failedClosed };
 }

@@ -28,7 +28,8 @@ describe('nothing fired', () => {
 			expect(verdictForReading(ok({ outcome }), 'pre-act', screening(), [], S)).toEqual({
 				allow: false,
 				reason: S.didNotFinish,
-				disposition: 'stop-run'
+				disposition: 'stop-run',
+				cause: 'could-not-check'
 			});
 			expect(
 				verdictForReading(
@@ -47,10 +48,12 @@ describe('transport failure', () => {
 	it.each(['timeout', 'quota', 'unavailable', 'bad-token'] as const)(
 		'%s stops the run by default, or allows with the transport note',
 		(kind) => {
+			// The cause names it a fail-closed stop, not a catch (UX-1).
 			expect(verdictForReading(failed(kind), 'pre-think', screening(), [], S)).toEqual({
 				allow: false,
 				reason: S.transport(kind),
-				disposition: 'stop-run'
+				disposition: 'stop-run',
+				cause: 'could-not-check'
 			});
 			expect(
 				verdictForReading(

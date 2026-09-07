@@ -4,6 +4,7 @@ import { lendingPolicyCards } from './cards/policy.js';
 import { lendingGoalCards } from './decks/goal-cards.js';
 import { lendingEvaluators } from './evaluators/index.js';
 import { lendingScenarios } from './decks/scenarios.js';
+import { LENDING_BASELINE_ID, lendingBaseline } from './campaign.js';
 import { lendingDesk } from './world/desk.js';
 
 /**
@@ -26,6 +27,16 @@ export const fsLendingPack: PackManifest = {
 	worlds: [lendingDesk],
 	goalCards: lendingGoalCards,
 	scenarios: lendingScenarios,
+	// The desk's baseline, offered by name on the Campaigns screen (UX-5).
+	campaigns: [
+		{
+			id: LENDING_BASELINE_ID,
+			title: 'The Lending Desk baseline',
+			description:
+				'Every lending deck under the five cards, four seeds — the first report with a matched parity gate.',
+			campaign: () => lendingBaseline()
+		}
+	],
 	policyCards: lendingPolicyCards,
 	evaluators: lendingEvaluators,
 	controlMaps: [lendingControlMap]

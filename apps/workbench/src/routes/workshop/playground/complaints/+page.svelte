@@ -15,6 +15,9 @@
 	import Readout from '$lib/components/control-room/Readout.svelte';
 	import Strip from '$lib/components/control-room/Strip.svelte';
 
+	/** The Campaigns screen opened on this desk's baseline (UX-5). */
+	const campaignHref = `${resolve('/workshop/campaigns')}?baseline=fs-complaints-baseline`;
+
 	/**
 	 * **The complaints desk's page** (WP72, `61-LAST-DECKS.md` §5): the desk,
 	 * read. A layout and a seed make a case on `CaseFile` — the complaint,
@@ -98,6 +101,12 @@
 
 <section aria-label="The deck">
 	<h2>The complaints-and-redress deck</h2>
+	<p>
+		<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- resolve() builds the base path (campaignHref above); its typed surface has no way to attach the ?baseline= query the rule can verify statically (the same exception workshop/runs' compareHref takes). -->
+		<a class="run-campaign" href={campaignHref} data-testid="complaints-run-campaign"
+			>Run this desk’s campaign →</a
+		>
+	</p>
 	<CaseTable columns={deckColumns} rows={deckRows} testId="complaints-deck" />
 </section>
 

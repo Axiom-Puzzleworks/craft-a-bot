@@ -134,7 +134,14 @@ export const guardrailVerdictSchema = z.union([
 	z.object({
 		allow: z.literal(false),
 		reason: z.string(),
-		disposition: z.enum(['block-action', 'stop-run'])
+		disposition: z.enum(['block-action', 'stop-run']),
+		/**
+		 * Why the verdict is a denial, when it is not a rule firing on content
+		 * (UX-1, 2026-09-07): `could-not-check` is a hosted guard that could not
+		 * reach or finish with its service and failed closed. Absent means a
+		 * rule caught something — every verdict written before the field.
+		 */
+		cause: z.enum(['could-not-check']).optional()
 	}),
 	z.object({ pause: z.literal(true), reason: z.string() })
 ]);

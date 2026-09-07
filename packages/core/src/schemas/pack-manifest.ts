@@ -172,6 +172,16 @@ export interface PackArtwork {
 	brickSprites?: Record<string, string>;
 }
 
+/** A campaign a pack ships, built when asked for (UX-5). */
+export interface ShippedCampaign {
+	/** The campaign file's own id — `fs-advice-baseline`. */
+	id: string;
+	title: string;
+	description?: string;
+	/** The campaign file, as JSON the host parses with `parseCampaign`. */
+	campaign(): Record<string, unknown>;
+}
+
 export interface PackManifest extends PackManifestMetadata {
 	bricks?: BrickDefinition[];
 	/**
@@ -232,6 +242,15 @@ export interface PackManifest extends PackManifestMetadata {
 	assertionCards?: AssertionCard[];
 	/** Scenarios (`32-SCENARIOS.md` §4.1, WP44): a goal card plus what a test needs — pure data. */
 	scenarios?: ScenarioDefinition[];
+	/**
+	 * Campaigns a pack ships (UX-5, 2026-09-07; `28-CAMPAIGNS.md` note): each
+	 * desk's baseline, built on demand from the pack's own content, so a host
+	 * can offer "run this desk's campaign" without a file on disk. Content, not
+	 * mechanism (hard rule 4): the campaign file's shape is `@craftabot/evals`'s,
+	 * which is why this is an untyped object here — `core` does not depend on
+	 * `evals`, and the host parses it as it parses an import.
+	 */
+	campaigns?: ShippedCampaign[];
 	/**
 	 * Policy cards (`14-…` §4.6, WP22) — declarative guardrail configs, data
 	 * rather than code. Registered content like everything else above: a

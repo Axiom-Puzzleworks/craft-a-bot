@@ -209,11 +209,11 @@
 </main>
 
 <style>
+	/* One measure rule (UX-6): the dashboard is instruments, and instruments take the width. */
 	main {
 		display: grid;
 		gap: var(--cab-space-4);
 		align-content: start;
-		max-width: 900px;
 	}
 
 	h1 {

@@ -54,7 +54,7 @@ export const EDITIONS: Record<EditionId, Edition> = {
 		routes: { allow: NOT_WORKSHOP },
 		mode: EDITION_MODE.simulator,
 		shelf: shelfFor(false),
-		budgetBytes: 1_445_000 // +15 kB 2026-09-07 (WP73): the wave 2 placeholders inlined as markup
+		budgetBytes: 1_470_000 // +15 kB 2026-09-07 (WP73): the wave 2 placeholders inlined as markup; +25 kB the same day (the UX pass)
 	},
 	workshop: {
 		id: 'workshop',
@@ -64,7 +64,7 @@ export const EDITIONS: Record<EditionId, Edition> = {
 		routes: { allow: NOT_PLAYGROUND },
 		mode: EDITION_MODE.workshop,
 		shelf: shelfFor(false),
-		budgetBytes: 1_450_000
+		budgetBytes: 1_475_000 // +25 kB 2026-09-07 (the UX pass): the rack's grouping, the campaign picker, the cases tools
 	},
 	playground: {
 		id: 'playground',
@@ -74,7 +74,7 @@ export const EDITIONS: Record<EditionId, Edition> = {
 		routes: { allow: EVERYTHING },
 		mode: EDITION_MODE.playground,
 		shelf: shelfFor(true),
-		budgetBytes: 1_480_000 // +15 kB 2026-09-07 (WP73): the wave 2 placeholders inlined as markup
+		budgetBytes: 1_505_000 // +15 kB 2026-09-07 (WP73): the wave 2 placeholders inlined as markup; +25 kB the same day (the UX pass)
 	},
 	full: {
 		id: 'full',
@@ -84,7 +84,7 @@ export const EDITIONS: Record<EditionId, Edition> = {
 		routes: { allow: EVERYTHING },
 		mode: EDITION_MODE.full,
 		shelf: shelfFor(true),
-		budgetBytes: 1_465_000
+		budgetBytes: 1_490_000 // +25 kB 2026-09-07 (the UX pass)
 	}
 };
 

@@ -7,6 +7,7 @@
 		DEFAULT_TICK_BUDGET,
 		DEFAULT_TOKEN_BUDGET,
 		buildTraceFile,
+		isDeskWorldState,
 		type AgentRecord,
 		type EngineEvent,
 		type RunRecord
@@ -57,6 +58,20 @@
 	let speed = $state(preferences.tickSpeed);
 	let busy = $state(false);
 	let dismissedEndCard = $state(false);
+	/**
+	 * Whether the stop that ended the run was a hosted guard failing closed
+	 * (UX-1): the last `stop-run` trip carries `cause: 'could-not-check'`. Read
+	 * from the trace, never guessed from the reason's wording.
+	 */
+	const stoppedByOutage = $derived.by(() => {
+		if (!view || view.outcome !== 'STOPPED_BY_GUARDRAIL') return false;
+		for (let i = view.events.length - 1; i >= 0; i -= 1) {
+			const event = view.events[i];
+			if (event?.type === 'guardrail.tripped' && event.payload.disposition === 'stop-run')
+				return event.payload.cause === 'could-not-check';
+		}
+		return false;
+	});
 	/** True once `persistRun` has resolved for the current run (WP56 stage A). */
 	let runSaved = $state(false);
 	/** How many old runs the last save tidied away, so the child is told (`12-…` D15). */
@@ -97,9 +112,51 @@
 	const hasSenseBrick = $derived(
 		record ? capabilitiesOf(record.spec, registry).filled.has('perception') : false
 	);
+	/**
+	 * The world's listening channel (UX-11): the Playroom's `hearing`, a desk's
+	 * `conversation` — a desk *is* a conversation, and the customer's line lands
+	 * on the transcript through that sense. Testing only for `hearing` left
+	 * every desk deaf on the play screen, whatever was fitted.
+	 */
+	const listeningChannel = $derived.by(() => {
+		if (!record) return undefined;
+		const worldId = registry.getGoalCard(record.spec.goalCardId)?.worldId;
+		const world = worldId ? registry.getWorld(worldId) : undefined;
+		return world?.senses.find((sense) => {
+			const bare = sense.id.split('/').pop();
+			return bare === 'hearing' || bare === 'conversation';
+		})?.id;
+	});
+	const onDesk = $derived(listeningChannel?.split('/').pop() === 'conversation');
 	const canHear = $derived(
-		record ? offers(capabilitiesOf(record.spec, registry).channels, 'hearing') : false
+		record && listeningChannel
+			? offers(
+					capabilitiesOf(record.spec, registry).channels,
+					listeningChannel.split('/').pop() ?? 'hearing'
+				)
+			: false
 	);
+
+	/** Fit the world's listening channel on the sense brick and save the bot (UX-11); it listens from the next run. */
+	async function enableHearing(): Promise<void> {
+		if (!record || !storage || !listeningChannel) return;
+		const channel = listeningChannel;
+		const bricks = record.spec.bricks.map((brick) => {
+			if (brick.kind !== 'starter/sense') return brick;
+			const config = brick.config as { channels?: string[] };
+			const channels = config.channels ?? [];
+			return channels.includes(channel)
+				? brick
+				: { ...brick, config: { ...config, channels: [...channels, channel] } };
+		});
+		const next: AgentRecord = {
+			...$state.snapshot(record),
+			spec: { ...$state.snapshot(record.spec), bricks },
+			updatedAt: new Date().toISOString()
+		};
+		await storage.putAgent(next);
+		record = next;
+	}
 	/** Whether a Planner brick is fitted, for the live checklist (WP30 stage C). */
 	const hasPlanner = $derived(
 		record ? capabilitiesOf(record.spec, registry).filled.has('planner') : false
@@ -461,7 +518,13 @@
 	}
 </script>
 
-<svelte:head><title>Playroom — {record?.spec.name ?? 'Craft A Bot'}</title></svelte:head>
+<!-- A desk is not the Playroom (UX-17): the title names the room the bot is actually in. -->
+<svelte:head
+	><title
+		>{view && isDeskWorldState(view.world) ? 'The desk' : 'Playroom'} — {record?.spec.name ??
+			'Craft A Bot'}</title
+	></svelte:head
+>
 
 {#if missingBattery}
 	<main class="loading" data-testid="play-no-battery">
@@ -584,8 +647,12 @@
 				<SayToBot
 					{canHear}
 					{hasSenseBrick}
+					desk={onDesk}
 					disabled={view.outcome !== undefined}
 					onsay={(text) => view?.deliverInput(text)}
+					onenableHearing={hasSenseBrick && !canHear && listeningChannel
+						? enableHearing
+						: undefined}
 				/>
 				<a
 					class="back"
@@ -603,6 +670,7 @@
 			outcome={view.outcome}
 			reason={view.finishedReason}
 			hint={endCardHint(view.outcome, view.events)?.text}
+			failedClosed={stoppedByOutage}
 			saved={runSaved}
 			onseeTrace={() => (dismissedEndCard = true)}
 			onbackToBench={() => goto(resolve('/bench/[agentId]', { agentId }))}

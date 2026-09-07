@@ -6,6 +6,7 @@
 	import { resolve } from '$app/paths';
 	import {
 		buildTraceFile,
+		isDeskWorldState,
 		verifyTraceDigest,
 		verifyBundleDigest,
 		type EngineEvent,
@@ -155,7 +156,10 @@
 		const started = events.find((event) => event.type === 'run.started');
 		return started?.type === 'run.started' ? started.payload.principal : undefined;
 	});
-	const principalLabel = (principal: { name?: string; id: string }) => principal.name ?? principal.id;
+	/** A nameless person is said to be one (UX-3), with the id shortened; the tooltip keeps the whole chain. */
+	const principalLabel = (principal: { kind: string; name?: string; id: string }) =>
+		principal.name ??
+		(principal.kind === 'person' ? `an unnamed person (${principal.id.slice(0, 8)}…)` : principal.id);
 	/** The chain, one line, for the chip's tooltip: `person Sam for service craftabot-harness`. */
 	const principalChainText = $derived.by(() => {
 		const parts: string[] = [];
@@ -485,7 +489,8 @@
 		{/if}
 	</header>
 
-	<div class="regions">
+	<!-- A desk takes the row (UX-8): three panes in a third of the page were unreadable; the timeline and inspector sit beneath. -->
+	<div class="regions" class:regions--desk={isDeskWorldState(shown.world)}>
 		<section class="world" aria-label="The world at this turn">
 			<WorldStage
 				world={shown.world}
@@ -1120,6 +1125,13 @@
 		grid-template-columns: minmax(280px, 1fr) minmax(240px, 0.9fr) minmax(260px, 1.1fr);
 		gap: var(--cab-space-3);
 		align-items: start;
+	}
+	/* The desk's row (UX-8): the world across the top, the timeline and inspector side by side beneath. */
+	.regions--desk {
+		grid-template-columns: minmax(280px, 1fr) minmax(260px, 1.2fr);
+	}
+	.regions--desk > .world {
+		grid-column: 1 / -1;
 	}
 
 	/* The fourth region (WP57): the map wants the width, so it takes the whole row beneath the world. */

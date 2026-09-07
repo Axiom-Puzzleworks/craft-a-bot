@@ -1,4 +1,8 @@
 <script lang="ts">
+	import { glossTags } from '$lib/workshop/tag-gloss.js';
+
+	/** Deck counts read aloud (UX-22). */
+	const DECK_WORDS = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight'];
 	import { resolve } from '$app/paths';
 	import { migrateAgentSpec, type AgentSpecV2, type DeskWorldState } from '@craftabot/core';
 	import { seededRandom, type DeskTruth } from '@craftabot/desk';
@@ -20,6 +24,9 @@
 	import Strip from '$lib/components/control-room/Strip.svelte';
 	import { createRegistry } from '$lib/packs.js';
 	import { boundaryFor } from '$lib/workshop/boundary.js';
+
+	/** The Campaigns screen opened on this desk's baseline (UX-5). */
+	const campaignHref = `${resolve('/workshop/campaigns')}?baseline=fs-fraud-baseline`;
 
 	/**
 	 * **The Fraud Desk's page** (WP62 stage D, `51-FS-FRAUD.md` §4.7): the
@@ -83,7 +90,7 @@
 				deck,
 				title: scenario.title,
 				card: scenario.goalCardId.replace('fs-fraud/', ''),
-				tags: scenario.tags.join(' ')
+				tags: glossTags(scenario.tags)
 			}
 		}))
 	);
@@ -149,8 +156,17 @@
 {/if}
 
 <section aria-label="The decks">
-	<h2>The four decks — {fraudScenarios.length} scenarios</h2>
+	<!-- The count comes from the data (UX-22): the incident deck arrived after the heading was written. -->
+	<h2>
+		The {DECK_WORDS[FRAUD_DECKS.length] ?? FRAUD_DECKS.length} decks — {fraudScenarios.length} scenarios
+	</h2>
 	<CaseTable columns={deckColumns} rows={deckRows} testId="fraud-decks" />
+	<p>
+		<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- resolve() builds the base path (campaignHref above); its typed surface has no way to attach the ?baseline= query the rule can verify statically (the same exception workshop/runs' compareHref takes). -->
+		<a class="run-campaign" href={campaignHref} data-testid="fraud-run-campaign"
+			>Run this desk’s campaign →</a
+		>
+	</p>
 </section>
 
 <div class="panes">

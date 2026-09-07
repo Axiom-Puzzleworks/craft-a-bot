@@ -126,7 +126,7 @@ test('a finished adventure turns up in the scrapbook, and can be watched again',
 	await expect(rows.first()).toHaveAttribute('data-outcome', 'SUCCESS');
 
 	// Open it, and the run plays back in the same Playroom it happened in.
-	await rows.first().getByRole('link').click();
+	await rows.first().getByRole('link').first().click();
 	await page.waitForURL(/\/replay\//);
 	await expect(page.getByTestId('bot')).toBeVisible();
 	await expect(page.getByTestId('replay-scrubber')).toBeVisible();
