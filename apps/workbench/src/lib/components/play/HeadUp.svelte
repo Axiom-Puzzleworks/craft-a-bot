@@ -33,7 +33,6 @@
 		failedClosed = false
 	}: Props = $props();
 
-
 	const safetyLine = $derived(safetyWords(safety));
 	/** A hosted guard that could not check (UX-1) — said apart from the saves. */
 	const failedClosedLine = $derived(failedClosedWords(safety));

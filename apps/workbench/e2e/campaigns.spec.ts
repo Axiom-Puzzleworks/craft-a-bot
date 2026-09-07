@@ -118,7 +118,8 @@ test('one cell of a desk baseline runs here without erroring', async ({ page }) 
 		scenarios: full.scenarios.slice(0, 1),
 		guards: full.guards.slice(0, 1),
 		brains: full.brains.slice(0, 1),
-		gates: []
+		// A campaign needs a gate; the first one may well be inconclusive over one cell, which is not what this test is about.
+		gates: full.gates.slice(0, 1)
 	};
 	await page.goto('/workshop/campaigns');
 	await page.getByTestId('campaign-source').fill(JSON.stringify(campaign));
