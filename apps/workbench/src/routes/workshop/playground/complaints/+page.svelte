@@ -102,6 +102,7 @@
 <section aria-label="The deck">
 	<h2>The complaints-and-redress deck</h2>
 	<p>
+		<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- resolve() builds the base path (campaignHref above); its typed surface has no way to attach the ?baseline= query the rule can verify statically (the same exception workshop/runs' compareHref takes). -->
 		<a class="run-campaign" href={campaignHref} data-testid="complaints-run-campaign"
 			>Run this desk’s campaign →</a
 		>
