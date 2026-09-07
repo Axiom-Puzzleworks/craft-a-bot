@@ -45,13 +45,9 @@
 		);
 	});
 	const groups = $derived.by(() => {
-		const byWorld = new Map<string, typeof cards>();
-		for (const card of matching) {
-			const list = byWorld.get(card.worldId) ?? [];
-			list.push(card);
-			byWorld.set(card.worldId, list);
-		}
-		return [...byWorld].map(([worldId, list]) => ({
+		const byWorld: Record<string, typeof cards> = {};
+		for (const card of matching) (byWorld[card.worldId] ??= []).push(card);
+		return Object.entries(byWorld).map(([worldId, list]) => ({
 			worldId,
 			name: worldNameFor(worldId),
 			cards: list

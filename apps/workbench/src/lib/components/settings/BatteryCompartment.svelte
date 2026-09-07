@@ -7,7 +7,7 @@
 	 */
 	/* eslint-disable svelte/no-navigation-without-resolve */
 	import type { BatteryBay } from '$lib/state/battery.svelte.js';
-	import { rejectionOf } from '$lib/state/credential-status.js';
+	import { rejectionOf, rejectionTime } from '$lib/state/credential-status.js';
 
 	/**
 	 * The battery compartment (03-UI-UX-DESIGN.md §7, 06-LLM-PROVIDERS.md §6).
@@ -141,8 +141,8 @@
 	{/if}
 	{#if rejection}
 		<p class="message message--bad" role="status" data-testid="battery-rejected-{providerId}">
-			The service rejected this battery at {new Date(rejection.at).toLocaleTimeString()} ({rejection.by})
-			— eject it and fit a fresh one.
+			The service rejected this battery at {rejectionTime(rejection)} ({rejection.by}) — eject it
+			and fit a fresh one.
 		</p>
 	{/if}
 

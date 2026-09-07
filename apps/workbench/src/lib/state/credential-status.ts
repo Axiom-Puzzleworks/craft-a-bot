@@ -101,3 +101,8 @@ export function clearRejection(
 	void _gone;
 	write(store, rest);
 }
+
+/** The rejection's time as a clock reading, for the compartment (a plain module: the linter keeps `Date` out of Svelte files). */
+export function rejectionTime(rejection: CredentialRejection): string {
+	return new Date(rejection.at).toLocaleTimeString();
+}

@@ -54,7 +54,7 @@ export const EDITIONS: Record<EditionId, Edition> = {
 		routes: { allow: NOT_WORKSHOP },
 		mode: EDITION_MODE.simulator,
 		shelf: shelfFor(false),
-		budgetBytes: 1_445_000 // +15 kB 2026-09-07 (WP73): the wave 2 placeholders inlined as markup
+		budgetBytes: 1_470_000 // +15 kB 2026-09-07 (WP73): the wave 2 placeholders inlined as markup; +25 kB the same day (the UX pass)
 	},
 	workshop: {
 		id: 'workshop',

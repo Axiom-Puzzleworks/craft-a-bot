@@ -101,7 +101,10 @@
 			return;
 		}
 		try {
-			for await (const _item of instance.pull({ limit: 1 })) break;
+			for await (const item of instance.pull({ limit: 1 })) {
+				void item;
+				break;
+			}
 			tested = { ...tested, [storeId]: { ok: true, text: 'Reached the store and read back.' } };
 		} catch (cause) {
 			tested = {

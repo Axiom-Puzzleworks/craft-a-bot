@@ -1,7 +1,12 @@
 import type { KeyCheck } from '@craftabot/core';
 import { armorBrickKind } from '@craftabot/pack-geap';
 import { createBrowserKeyVault, type KeyVault, type WebStorageLike } from './keys.js';
-import { clearRejection, rejectionOf, type CredentialRejection } from './credential-status.js';
+import {
+	clearRejection,
+	rejectionOf,
+	rejectionTime,
+	type CredentialRejection
+} from './credential-status.js';
 
 /**
  * The Armour Brick's own battery (`25-ARMOUR-BRICK.md` §4.6, WP35 stage E).
@@ -127,7 +132,7 @@ export function createGeapCredentialBay(deps: GeapCredentialBayDeps = {}): GeapC
 			: 'empty',
 		message: existing
 			? rejected
-				? `The guard rejected this token at ${new Date(rejected.at).toLocaleTimeString()} (${rejected.by}) — sign in again.`
+				? `The guard rejected this token at ${rejectionTime(rejected)} (${rejected.by}) — sign in again.`
 				: storedExpiry === undefined
 					? 'A token was found from an earlier session — its own remaining life is unknown until you re-insert.'
 					: 'A token was found from an earlier session.'

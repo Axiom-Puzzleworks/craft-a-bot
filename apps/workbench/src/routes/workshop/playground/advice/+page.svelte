@@ -25,6 +25,9 @@
 	import { createRegistry } from '$lib/packs.js';
 	import { boundaryFor } from '$lib/workshop/boundary.js';
 
+	/** The Campaigns screen opened on this desk's baseline (UX-5). */
+	const campaignHref = `${resolve('/workshop/campaigns')}?baseline=fs-advice-baseline`;
+
 	/**
 	 * **The Advice Desk's page** (WP60 stage D, `49-FS-ADVICE.md` §4.8): the
 	 * desk, read. A layout and a seed make a case on `CaseFile` — what is on
@@ -167,10 +170,8 @@
 	</h2>
 	<CaseTable columns={deckColumns} rows={deckRows} testId="advice-decks" />
 	<p>
-		<a
-			class="run-campaign"
-			href={`${resolve('/workshop/campaigns')}?baseline=fs-advice-baseline`}
-			data-testid="advice-run-campaign">Run this desk’s campaign →</a
+		<a class="run-campaign" href={campaignHref} data-testid="advice-run-campaign"
+			>Run this desk’s campaign →</a
 		>
 	</p>
 </section>
