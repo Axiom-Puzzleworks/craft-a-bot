@@ -38,6 +38,7 @@
 		min-width: 7rem;
 		padding: var(--cab-space-2) var(--cab-space-3);
 		background: var(--cab-metal);
+		background-image: var(--cab-finish-metal, none); /* the finish seam (WP73) */
 		border: var(--cab-border-part) solid var(--cab-ink);
 		border-radius: var(--cab-radius-part);
 		color: var(--cab-ink);

@@ -87,7 +87,7 @@
 <p class="simulation" data-testid="playground-simulation-only">FOR SIMULATION ONLY</p>
 
 <section class="generate" aria-label="Generate a case">
-	<Strip label="A case">
+	<Strip label="A case" icon="desk">
 		<label class="seed">
 			Seed
 			<input type="number" min="1" step="1" bind:value={seed} data-testid="playground-seed" />

@@ -31,11 +31,13 @@
 		"build:editions": "node scripts/build-editions.mjs",
 		"smoke:openai": "npm run smoke --workspace=@craftabot/pack-openai",
 		"smoke:geap": "npm run smoke --workspace=@craftabot/pack-geap",
+		"smoke:azure": "npm run smoke --workspace=@craftabot/pack-azure-content-safety",
 		"smoke:harness": "npm run build --workspace=packages/harness && node --env-file-if-exists=.env packages/harness/dist/main.js run --kit packages/harness/fixtures/snackbot.craftabot.json --provider openai --max-ticks 6 --out ./runs",
 		"smoke:counterpart": "npm run build --workspace=packages/harness && node --env-file-if-exists=.env packages/harness/dist/main.js run --kit packages/harness/fixtures/advice-desk.craftabot.json --provider openai --counterpart live --max-ticks 10 --max-rounds 8 --stack compliance-watchbot --stack-file campaigns/fs-advice-baseline.json --out ./runs",
 		"evals": "npm run craftabot -- campaign --matrix scripted --out packages/evals/baselines",
 		"craftabot": "node packages/harness/dist/main.js",
 		"example:governance": "node examples/plain-node-agent/dist/main.js",
+		"example:python": "node scripts/python-reader.mjs",
 		"check:governance-pack": "node scripts/check-governance-pack.mjs"
 	},
 	"devDependencies": {

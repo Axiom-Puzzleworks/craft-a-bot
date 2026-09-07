@@ -118,6 +118,7 @@
 
 	th {
 		background: var(--cab-metal);
+		background-image: var(--cab-finish-metal, none); /* the finish seam (WP73) */
 		font-size: var(--cab-text-xs);
 		text-transform: uppercase;
 		letter-spacing: 0.06em;

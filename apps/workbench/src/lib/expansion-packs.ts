@@ -28,6 +28,8 @@ export interface ExpansionPack {
 	status: PackStatus;
 	/** Where the box lives when it is in another edition — a path on the same host. */
 	href?: string;
+	/** Box art on the lid (WP73, `62-THE-TAIL.md` §4.1): a template in `lib/assets` and the tint it takes. */
+	art?: { template: 'boxPlayground'; tint: string };
 }
 
 export const EXPANSION_PACKS: readonly ExpansionPack[] = [
@@ -80,7 +82,8 @@ export const EXPANSION_PACKS: readonly ExpansionPack[] = [
 		contents:
 			'A synthetic high-street bank: customers, accounts, a product shelf, nine service lines — and the Advice, Fraud and Lending Desks',
 		teaches: 'governance in a regulated domain; truth, purpose, fairness',
-		status: 'unlocked'
+		status: 'unlocked',
+		art: { template: 'boxPlayground', tint: 'var(--cab-teal)' }
 	},
 	{
 		id: 'tool-shop',

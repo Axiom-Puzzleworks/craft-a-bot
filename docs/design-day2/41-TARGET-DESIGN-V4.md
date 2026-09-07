@@ -630,6 +630,8 @@ Every artefact that crosses a boundary is already Zod-defined (`10-…` §1's ru
 
 > **Amended 2026-09-05 (WP56 stage C):** the seam is open — `scripts/json-schema.mjs`, `npm run schemas`, and `--check` at the end of `npm run build` — for the six artefacts that exist today (`craftabot-trace`, `craftabot-bundle`, `craftabot-scenarios`, the campaign file and report, `EvaluationRecord`). `craftabot-cassette` (WP58), `AssurancePack` (WP67) and `BoundaryMap` (WP57) are added to the generator's list by the WP that creates each. The generator reads the built `dist/`, so it runs after the packages build rather than "on every build" of each package; the effect a reader sees is the same.
 
+> **Amended 2026-09-07 (WP73 stage B, `62-THE-TAIL.md` §4.4):** `examples/python-reader/` exists — `read_bundle.py` validates a bundle against `docs/schemas/craftabot-bundle.schema.json` with `jsonschema` and recomputes all three digests (`traceDigest`, `groupDigest`, `bundleDigest`) with the standard library, which is more than "validates" and is what a bundle is for; `requirements.txt` is `jsonschema` alone; the fixture is the bundle the app writes over the say-hello golden trace, held byte-equal by `evals/src/python-reader.test.ts`; `npm run example:python` (`scripts/python-reader.mjs`) runs it in CI and skips itself when no `python3` is on `PATH` — the condition decided by the script, not the workflow. `AssurancePack` and `BoundaryMap` are still not in the generator's list (`62-…` §2 item 8): neither crosses a boundary as a file.
+
 ---
 
 ## 7. Data model v4 (summary of record)
@@ -769,6 +771,11 @@ The world stays fully deterministic and every hosted verdict, evaluation and liv
 | §6.10: "each worker owns … a sub-directory" (WP68, `57-…` §8) | Workers return the cell and its trace; the main thread writes every run into the one store | One writer keeps the index and `cells.jsonl` ordered |
 | §6.10: `--resume` "skips cells whose run directory holds a verified trace" (WP68) | Verified against the digest on the `cells.jsonl` line, over `events.jsonl` | A campaign run writes no trace file; the digest is the one `buildTraceFile` would stamp |
 | §6.12: "Guards/Evaluators/Sinks (lamps and meters replace the ad-hoc chips)" (WP71, `60-…` §8) | Lamps on Evaluators and Sinks; Guards unchanged | Guards has no chip and no rate — a fixture result is prose |
+| §6.12: the Playground's box art with "the bench's card rack listing a desk's cards when the box is open" (WP73, `62-…` §8) | A box template on the shelf; the rack gated by `audience` and the door, as since WP53/WP60 | The Kit has no "open box" state; the door is the gate |
+| §6.12: ten instrument icons (WP73) | Eleven, with `boundary` | `42-…`'s row lists eleven; the Boundary has a screen of its own |
+| §6.13 / `30-…` stage B: the Azure checkpoint "from the Guard Rack in one click" (WP73) | `npm run smoke:azure`; the Rack click decides only `browserCapable` | A click leaves no numbers behind |
+| §6.16: a reader that "validates with `jsonschema`" (WP73) | Validates and recomputes the three digests | Verification is what a bundle is for |
+| §6.16: "in CI only if `python3` is present" as a workflow condition (WP73) | `scripts/python-reader.mjs` decides at run time | The workflow stays honest on a runner image that changes |
 | §6.5.5: `provider-fault { atTick, kind, count }` (WP72, `61-…` §8) | `{ atTick, fault, count? }` | `kind` is the union's discriminator |
 | §6.5.5: a fault "producing the `error`/`provider.retried` events" — a real failure ends the run (WP72) | Retried through; the run continues | Otherwise nothing follows the fault to judge |
 | §6.5.5: complaints "on the Advice Desk's world with `purpose: 'complaints'`" (WP72) | A second world in the Advice Desk's pack | A spec has one purpose |

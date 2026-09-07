@@ -101,9 +101,12 @@
 		margin: 0;
 		padding: var(--cab-space-2) var(--cab-space-3) var(--cab-space-1);
 		background-color: var(--cab-graph);
-		background-image:
+		/* The finish seam (WP73, `62-…` §4.2). */
+		background-image: var(
+			--cab-finish-graph,
 			linear-gradient(rgba(36, 86, 166, 0.06) 1px, transparent 1px),
-			linear-gradient(90deg, rgba(36, 86, 166, 0.06) 1px, transparent 1px);
+			linear-gradient(90deg, rgba(36, 86, 166, 0.06) 1px, transparent 1px)
+		);
 		background-size: 12px 12px;
 		border: var(--cab-border-part) solid var(--cab-ink);
 		border-radius: var(--cab-radius-part);

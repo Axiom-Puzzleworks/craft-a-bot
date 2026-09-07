@@ -78,8 +78,7 @@ describe('craftabot campaign', () => {
 			});
 		}
 		expect((await readdir(join(out, 'runs', 'runs'))).length).toBe(32);
-	});
-
+	}, 30_000); // 5 s is not enough under a full `npm test` (twice a load flake, WP72 and WP73)
 	it('exits 1 under --strict when a guard is removed from a scenario that expects one', async () => {
 		const root = await tmp();
 		const campaign = injectionBaseline([1]);

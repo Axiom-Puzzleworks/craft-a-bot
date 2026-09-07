@@ -43,3 +43,7 @@ packages/evals/schemas/
 
 # Generated from the Zod sources by scripts/json-schema.mjs (WP56); npm run schemas rewrites them
 docs/schemas
+
+# The Python reader's fixture is the app's own JSON.stringify output, held byte-equal by
+# evals/src/python-reader.test.ts (WP73); formatting it would break that test.
+examples/python-reader/fixtures

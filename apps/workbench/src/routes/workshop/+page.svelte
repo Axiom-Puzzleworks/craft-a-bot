@@ -84,7 +84,7 @@
 	<h1>Bench</h1>
 
 	<!-- The readouts on a strip (WP71, `60-…` §4.1): the same four numbers, on instruments; the denominator the rate used stays on its label. -->
-	<Strip label="Telemetry" testId="telemetry-strip">
+	<Strip label="Telemetry" icon="tape" testId="telemetry-strip">
 		<Readout label="runs this week" value={stats.runsThisWeek} testId="tile-runs" />
 		<Readout
 			label="success rate"

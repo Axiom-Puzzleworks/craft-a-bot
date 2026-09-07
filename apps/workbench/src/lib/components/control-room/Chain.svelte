@@ -81,6 +81,7 @@
 	.chain {
 		padding: var(--cab-space-2) var(--cab-space-3);
 		background: var(--cab-metal);
+		background-image: var(--cab-finish-metal, none); /* the finish seam (WP73) */
 		border: var(--cab-border-panel) solid var(--cab-ink-muted);
 		border-radius: var(--cab-radius-panel);
 		font-size: var(--cab-text-sm);
