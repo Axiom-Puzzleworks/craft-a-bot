@@ -1,10 +1,50 @@
 # Craft A Bot — UX findings and functionality gaps
 
-> **Second pass — a re-test.** Written 2026-09-07 against `main` at `dcec4eb` (the `ux-gaps-pass` branch merged), driving the rebuilt production build at `localhost:4173` in Chrome at 1568 × 744, with an OpenAI key fitted, a Supabase workspace token fitted, a stale Cloud Armour token, and no Azure key.
+> **Closed.** This register is closed at `main` `4acafc1` (7 September 2026). Thirty-six findings were raised across two passes. Twenty-three of the first thirty, and all six of the second pass's, are resolved and verified in the running product; seven remain as deliberately deferred work packages, listed in §4. Nothing here is outstanding as a defect.
 >
-> The first pass (§7, kept below) raised 22 UX findings and 8 gaps. A fix pass answered them and recorded its own account in §7a. **This document is the check on that account**: every finding re-tested in the running product, with what I saw this time. It also carries six new findings, one of them serious.
+> Companion to `USER-MANUAL.md`, which has been updated to the behaviour described here and no longer carries the caveats this register has closed.
+
+**How to read this document, top to bottom**
+
+| Section | What it is |
+|---|---|
+| §0 | The closing verdict, and what was verified in the product on the day it closed |
+| §1–§2 | The second pass: how it was done, and its verdict on the first fix pass |
+| §3 | The six findings the second pass raised (NEW-1 … NEW-6) |
+| §3a–§3b | What was done about them, what I saw when I checked, and two small things the check turned up |
+| §4 | **The remaining backlog** — the seven deferred items, which is the part still worth acting on |
+| §5–§6 | What is good; a method note |
+| §7 | The first pass and its own fix record, kept unedited |
+
+---
+
+## 0. The closing verdict
+
+**Written 2026-09-07 against `main` at `4acafc1`**, driving the production build at `localhost:4173` in Chrome at 1568 × 744, with an OpenAI key fitted, a Supabase workspace token fitted, a stale Cloud Armour token, and no Azure key.
+
+| | Count |
+|---|---|
+| Raised in the first pass | 30 (22 UX + 8 GAP) |
+| Raised in the second pass | 6 (NEW-1 … NEW-6) |
+| **Resolved and verified** | 23 of 30, and all 6 |
+| **Deferred as work packages** | 7 — UX-7, UX-12's Worker, GAP-1, GAP-2, GAP-3, GAP-5, GAP-6 |
+| Raised at close, not yet triaged | 2 — §3b, both small |
+
+**What I verified in the product on the day it closed** (§3a carries the detail):
+
+- The **Advice Desk baseline ran in the browser**: 930 cells, **34 of 34 gates, PASSED**, `optimal-succeeds` at 100% over 465 cells. The same campaign under the previous build errored in all 930 cells and returned 33 of 34 with every gate inconclusive; both reports are still in the store, an hour apart, and read against each other they are the clearest evidence in this document. **NEW-1 closed.**
+- The Run Browser's banner offered to tidy **one run, and named it as an episode**; pressing it left the episode and both its members reading `ABANDONED`, and the Bench dashboard then read **"5% of 42 finished"** with the fleet's last outcomes `ABANDONED` rather than `IN_PROGRESS`. Two screens, one run, one answer. **NEW-3 closed, and UX-15's residue with it.**
+- The remaining four were confirmed at their cause rather than their surface: the comparator and its test (`lib/workshop/case-order.ts`), the lamp and the story strip reading `guardrail.tripped.cause` (`HeadUp.svelte`, `narrate.ts`), the title reading the card's world before the first turn, and the trailing estimator. **NEW-2, NEW-4, NEW-5, NEW-6 closed.**
+
+**One caution about method.** Two of the second pass's six findings — the inverted comparator and the missing plan source — were invisible on screen and obvious in the source. Both now have tests that assert the *promise* the interface makes rather than the widget that makes it. That is the habit worth keeping (§6).
+
+---
+
+*What follows is the second pass as it was written, before those six were fixed. It is kept in its own tense: where it says "at the time of writing", the time of writing is 7 September, earlier in the day.*
+
+> **Second pass — a re-test.** Written 2026-09-07 against `main` at `dcec4eb` (the `ux-gaps-pass` branch merged), driving the rebuilt production build at `localhost:4173`.
 >
-> Companion to `USER-MANUAL.md`, which has been updated to the behaviour described here.
+> The first pass (§7, kept below) raised 22 UX findings and 8 gaps. A fix pass answered them and recorded its own account in §7a. **This document is the check on that account**: every finding re-tested in the running product, with what I saw. It also carries six new findings, one of them serious.
 
 ---
 
@@ -27,7 +67,7 @@ Twenty-three of the thirty items are resolved and hold up under a re-test. Two o
 
 | | Count |
 |---|---|
-| **Verified resolved** | 21 |
+| **Verified resolved** | 20 |
 | **Resolved, with a residue worth a line** | 3 (UX-13, UX-15, UX-17) |
 | **Part, as recorded** | 1 (UX-12) |
 | **Open, as recorded** | 6 (UX-7, GAP-1, GAP-2, GAP-3, GAP-5, GAP-6) |
@@ -172,25 +212,44 @@ Four seconds into the 930-cell Advice Desk run: *"about 2m 41s left"*. Thirty-ni
 
 ---
 
-### 3a. What was done about the new findings — 2026-09-07, later
+### 3a. What was done about them, and what I saw — 2026-09-07, later
 
-| # | Status | What landed |
-|---|---|---|
-| NEW-1 | Resolved | The Workshop's plan chain moved to `lib/workshop/plans.ts` (the same composition the harness makes) and the Campaigns screen hands it to the runner; the Scenario library reads the same module. The browser suite now runs one cell of the Advice Desk baseline and asserts it does not error |
-| NEW-2 | Resolved | The comparator lives in `lib/workshop/case-order.ts` with a test that asserts the order both ways round |
-| NEW-3 | Resolved | `isRunFinished` and `effectiveOutcome` in `core`, read by the fleet fold, telemetry, the safety case and drift; `GroupRunRecord.abandonedAt`; the tidy reaches episodes and their members and says how many |
-| NEW-4 | Resolved | The lamp reads *Stopped — the check could not run* and the story strip's ending *The safety check could not run, so the run stopped*, both from the event's `cause` |
-| NEW-5 | Resolved | The title reads the card's world before the first turn |
-| NEW-6 | Resolved | A trailing average over the last twenty cells, said as *under a minute*, *about a minute*, *about N minutes* |
+| # | Status | What landed | What I saw when I checked |
+|---|---|---|---|
+| NEW-1 | **Closed** | The Workshop's plan chain moved to `lib/workshop/plans.ts` (the same composition the harness makes) and the Campaigns screen hands it to the runner; the Scenario library reads the same module. The browser suite now runs one cell of the Advice Desk baseline and asserts it does not error | Loaded the Advice Desk baseline and pressed **Run campaign**: 930 cells, **PASSED, 34 of 34 gates**, `optimal-succeeds` 100% over 465 cells, the three `unguarded:*` gates at 0% as they should be. The failed report from before the fix is still beside it in the store for comparison |
+| NEW-2 | **Closed** | The comparator lives in `lib/workshop/case-order.ts` with a test that asserts the order both ways round | The module and its two-row test read correctly, and the sign is right this time; the stored failing report shows every errored case on the first page. The passing report has no failures to sort, which is the honest limit of what the screen alone can show — the test is what holds it |
+| NEW-3 | **Closed** | `isRunFinished` and `effectiveOutcome` in `core`, read by the fleet fold, telemetry, the safety case and drift; `GroupRunRecord.abandonedAt`; the tidy reaches episodes and their members and says how many | The banner read *"One run was left part-way and never finished (one of them an episode)"*; pressing **Mark it abandoned** cleared it, and the episode and both member rows now read `ABANDONED`. The dashboard went from *"of 12 finished (42 total)"* to *"5% of 42 finished"*, and the fleet's last outcomes read `ABANDONED`. See §3b for the sentence itself |
+| NEW-4 | **Closed** | The lamp reads *Stopped — the check could not run* and the story strip's ending *The safety check could not run, so the run stopped*, both from the event's `cause` | Both read from the run's own `guardrail.tripped` events (`failedClosed` derived once in `narrate()`, passed into `HeadUp`), not from a second copy of the fact. The end card, the chip, the lamp and the strip now have one source |
+| NEW-5 | **Closed** | The title reads the card's world before the first turn | The card decides, not the built world, so the tab is right on the screen that says *Press STEP to open the desk* |
+| NEW-6 | **Closed** | A trailing average over the last twenty cells, said as *under a minute*, *about a minute*, *about N minutes* | A trailing window of twenty and a `roughly()` that refuses to print seconds it cannot stand behind. The right shape of fix: the estimate did not become accurate, it became honest about how accurate it is |
 
-## 4. What I would do first
+### 3b. Two things the closing check turned up
 
-1. **NEW-1** — pass the plan chain to `runCampaign`, and add one desk cell to the Campaigns e2e. Until it lands, the manual now tells readers to run desk campaigns from the harness (§19.2, §41).
-2. **NEW-2** — flip the comparator; add the two-row test.
-3. **NEW-3** — one definition of "finished"; extend the tidy to group episodes.
-4. **NEW-4**, **NEW-5**, **NEW-6** — three strings and an estimator.
-5. **UX-12's Worker** — the case is now concrete: 930 cells, eighty seconds, a tab that will not answer, and four such baselines shipped.
-6. Then the work packages that were rightly deferred: **UX-7**, **GAP-1**, **GAP-2**, **GAP-3**, **GAP-5**, **GAP-6**.
+Neither is a defect in the six fixes; both were found while verifying them, and both are small.
+
+**CLOSE-1 — the tidy banner's sentence does not agree with itself when the only item is an episode.** It read *"One run was left part-way and never finished (one of them an episode)"*: singular subject, plural parenthesis. The count is right and the button works. `runs/+page.svelte` composes the two halves independently; the parenthesis needs a singular case reading *"and it is an episode"*, or the sentence needs choosing whole rather than assembling. *Low · S.*
+
+**CLOSE-2 — one origin, one service worker: a second section can open on a blank page.** Serving a build based at `/workshop` and then serving a differently-based build on the same origin left the browser holding the first shell in `craftabot-shell-<version>`, from which it fetched an entry chunk that no longer existed: a white screen, and `Failed to fetch dynamically imported module` in the console, cleared only by unregistering the worker and deleting the cache. This is not a defect in either build — it is the cost of the editions decision (`41-TARGET-DESIGN-V4.md` §6.14) meeting a service worker whose scope is the origin. It matters because the plan is to publish three sections of one codebase behind `Axiom-Verity.com`. Either give each section its own origin or subdomain, or scope and name each edition's worker and cache by `editionId`, before two of them are in front of a reader. *Medium · S — and it belongs inside the editions work package rather than after it.* Recorded in the manual's §41.
+
+## 4. The remaining backlog
+
+Everything raised as a defect is closed. What follows is the work deferred on purpose, in the order I would take it.
+
+| # | What | Why it was deferred | Severity · Effort |
+|---|---|---|---|
+| **UX-12 (Worker)** | A campaign runs on the main thread and holds the tab | The three small halves — **Cancel**, the progress counter, the honest estimate — landed and cover most of the pain | Medium · M |
+| **UX-7** | The boundary map's labels collide where the ring is crowded | Needs `Boundary.svelte` rewritten, not nudged | Medium · M |
+| **CLOSE-2** | One service worker per origin; a second section can open blank (§3b) | Found at close; belongs inside the editions package | Medium · S |
+| **GAP-2** | No guided path through the Playground — a reader has to know where to start | Content and sequencing work, not a defect | Medium · M |
+| **GAP-6** | Two campaign reports cannot be compared | The data is in both reports; the screen is not built | Medium · M |
+| **GAP-3** | The cohort axis exists only inside a campaign report | Wants a home of its own in Telemetry | Low–Medium · M |
+| **GAP-1** | Accepting a control-map row is a content edit, not a click | A real decision about where review lives; the manual states it plainly (§41) | Low · L |
+| **GAP-5** | *Talk to this desk* as a first-class mode | Half of it arrived with UX-11: a desk can now be talked to at all | Low · M |
+| **CLOSE-1** | The tidy banner's singular/plural (§3b) | Found at close | Low · S |
+
+**If only one thing is done next**, make it the Worker. The case is concrete rather than theoretical now: the Advice Desk baseline is 930 cells and about a minute and a half of a tab that will not answer, four such baselines ship, and the desks' cells are the heavy ones. Everything else on this list is an improvement; that one is the difference between a tool a reviewer runs and a tool a reviewer waits for.
+
+**Two things deliberately not on this list.** The two starter cards that cannot be finished inside the thirty-turn budget, and the absence of a cost model, are recorded in the manual (§41) as behaviours rather than defects. Neither should be quietly "fixed": the first is a content decision, and the second is the product refusing to invent a number, which is the better half of its character.
 
 ---
 

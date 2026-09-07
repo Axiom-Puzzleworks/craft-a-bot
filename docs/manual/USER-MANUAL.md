@@ -2,22 +2,34 @@
 =======================================================================
  AXIOM VERITY — BRAND LAYER (PDF production)
  -----------------------------------------------------------------------
- This document is written to be typeset as a branded PDF. The brand slots
- below are placeholders: replace the values, drop the assets into
- docs/manual/brand/, and the typesetter (Pandoc/LaTeX, Typst, InDesign or
- a browser print stylesheet) picks them up. Nothing in the body text
- depends on a brand asset existing — the manual reads correctly as plain
- markdown until they arrive.
+ This document is typeset as a branded PDF. The brand values below are the
+ real ones, taken from the Axiom Verity design system (DESIGN.md in the
+ axiomverity repository, frontmatter + "Colors" and "Typography"), not
+ placeholders. Nothing in the body text depends on them: the manual reads
+ correctly as plain markdown without a single asset.
 
-   brand.wordmark      : docs/manual/brand/axiom-verity-wordmark.svg   [TO SUPPLY]
-   brand.mark          : docs/manual/brand/axiom-verity-mark.svg       [TO SUPPLY]
-   brand.primary       : #______   [TO SUPPLY]  — headings, rules
-   brand.accent        : #______   [TO SUPPLY]  — callouts, links
-   brand.ink           : #1B1B1B                — body text
-   brand.paper         : #FFFFFF                — page
-   brand.type.display  : ________  [TO SUPPLY]  — titles
-   brand.type.body     : ________  [TO SUPPLY]  — body (a humanist serif reads best at this length)
-   brand.type.mono     : ________  [TO SUPPLY]  — code, ids, commands
+   brand.wordmark    : "Axiom" in ink + "Verity" in gold-ink, Newsreader 600,
+                       0.36em word gap  (src/lib/components/BrandWordmark.svelte)
+   brand.mark        : src/lib/assets/axiom-mark.svg — an open navy triangle
+                       (opacity .55, 3px round caps) with three gold nodes
+   brand.navy        : #0e2a4a   structure: rules, the letterhead top rule, fills
+   brand.ink         : #10233a   body text and headings
+   brand.muted-ink   : #4a5a72   captions, leads, secondary copy
+   brand.gold        : #a8781f   large text, rules, non-text UI only
+   brand.gold-ink    : #7a5a1a   any accent text below 18px (AA)
+   brand.gold-tint   : #f2e6c8   the one tinted fill (pills, callout grounds)
+   brand.paper       : #f7f7f5   the page ground — never pure white
+   brand.surface     : #ffffff   tables, panels, figure grounds
+   brand.hairline    : #dde2df / #c4ccd3   every border and rule
+   brand.type.display: Newsreader 600 (Georgia, "Times New Roman", serif)
+   brand.type.body   : Inter 400 (system-ui, sans-serif)
+   brand.type.mono   : IBM Plex Mono (ui-monospace, monospace)
+
+ The four standing rules of the system, honoured here:
+   * one accent — gold-bronze — and nothing else beyond navy/ink/paper
+   * #a8781f never carries small text; #7a5a1a does
+   * every heading is Newsreader; Inter never sets a heading
+   * near-square corners (0.35rem panels, 0.55rem outer), no pills
 
  Running header  : Craft A Bot — User Manual  ·  <section>
  Running footer  : Axiom Verity  ·  <version>  ·  page <n> of <N>
@@ -38,13 +50,13 @@
 | | |
 |---|---|
 | **Document** | Craft A Bot — User Manual |
-| **Version** | 1.1 (draft for review) |
-| **Date** | 7 September 2026 (second edition, after the UX fix pass) |
-| **Applies to** | `main` at `dcec4eb` — V1.0 plus Day 2, Day 3 and Day 4 (WP0–WP73), and the UX fix pass |
+| **Version** | 1.2 (draft for review) |
+| **Date** | 7 September 2026 (third edition, after the second fix pass) |
+| **Applies to** | `main` at `4acafc1` — V1.0 plus Day 2, Day 3 and Day 4 (WP0–WP73), and both UX fix passes |
 | **Publisher** | Axiom Verity |
 | **Audience** | Learners, AI-safety practitioners, conduct and model-risk reviewers, engineers |
 | **Status** | Draft — for internal review before external release |
-| **Classification** | *[TO SUPPLY]* |
+| **Classification** | Unrestricted. The product is open source (Apache-2.0); nothing in this manual is client, personal or production data. |
 
 > **For simulation only.** Craft A Bot simulates customers, accounts, transactions, products and decisions. Every person, account, card, document and case in it is synthetic and generated from a seed. Nothing in this product touches a real customer, real money or a real transaction, and nothing in it is a claim of compliance with any regulation. See §1.4.
 
@@ -446,7 +458,7 @@ A run stopped by a guardrail gets one of two end cards, and the difference matte
 - **The Safety Brick did its job** — a rule you fitted caught something and stopped the run.
 - **The safety check could not run** — a *hosted* guard could not reach its service (an expired token, no network), so it stopped the run rather than let it continue unchecked. That is fail-closed. Nothing was wrong with what was said.
 
-The header chip counts them apart — *"2 checks, nothing to stop · 1 check could not run"* — and the trace carries the distinction as `cause: "could-not-check"` on the `guardrail.tripped` event, so every screen that reads it says the same thing. See §40.1.
+The header chip counts them apart — *"2 checks, nothing to stop · 1 check could not run"* — and the trace carries the distinction as `cause: "could-not-check"` on the `guardrail.tripped` event, so every screen that reads it says the same thing: the status lamp reads **Stopped — the check could not run** rather than *Stopped by a safety rule*, and the story strip ends *"The safety check could not run, so the run stopped."* See §40.1.
 
 ## 9. The Flight Recorder
 
@@ -535,7 +547,7 @@ Every stored run, filterable by **search** (bot, card, model, run id), **bot**, 
 - **Pin** — the star; pinned runs survive the run cap.
 - **Import trace…** — load a `.craftabot-trace.json` from anywhere. Its digest is verified on the way in, so a foreign trace declares whether it has been altered.
 
-When runs have been left part-way and never finished, a banner at the top says how many and offers **Mark them abandoned** — they then read `ABANDONED` and can be filtered out. The run in progress is never touched.
+When runs have been left part-way and never finished, a banner at the top says how many — and, if any of them are episodes, how many of those — and offers **Mark them abandoned**. They then read `ABANDONED` everywhere: in this table, in an episode's own row and its members' rows, on the Bench dashboard's fleet, and in Telemetry, the safety case and drift, which share one definition of *finished*. The run in progress is never touched.
 
 ### 13.2 The Run Lab (`/workshop/runs/<runId>`)
 
@@ -675,9 +687,9 @@ Only scripted, offline cells run in the browser. A cell that calls a real model,
 
 ### 19.2 Running one
 
-Press **Run campaign**. The button becomes a progress counter — *Running 176/640…* — beside **Cancel** and a line reading *"4s elapsed, about 2m 41s left — the page is busy between cells and may not answer until it finishes."* Take that literally: the run holds the tab until it ends or you cancel. The shipped injection baseline is 640 cells and finishes in well under a minute on a laptop; the estimate errs long, especially early on.
+Press **Run campaign**. The button becomes a progress counter — *Running 176/640…* — beside **Cancel** and a line reading *"4s elapsed, about a minute left — the page is busy between cells and may not answer until it finishes."* Take that literally: the run holds the tab until it ends or you cancel. The estimate is a trailing average over the last twenty cells and is deliberately rounded — *under a minute*, *about a minute*, *about three minutes* — because the first cell is the slowest and a mean taken from the start read about twice long.
 
-> **Desk campaigns need the harness today.** The four Playground baselines load and start in the browser, but the browser's runner does not yet carry the desks' scripted plans, so every cell errors and the verdict is a red FAILED with its gates inconclusive. Run them with `craftabot campaign` (§36.2) — which is what CI does — until that is fixed.
+All five shipped baselines run here, offline, including the four Playground ones: the injection baseline is 640 cells and finishes in well under a minute on a laptop; the Advice Desk baseline is 930 cells and takes about twenty seconds longer. What still needs the harness is a cell that calls something real — a live brain, a live counterpart, a hosted evaluator or a hosted guard with no offline stand-in (§36.2, §40.3).
 
 ### 19.3 Reading the report
 
@@ -694,7 +706,7 @@ Press **Run campaign**. The button becomes a progress counter — *Running 176/6
 
 **CELLS** is the grid: one row per scenario × guard × brain, with the success rate and each evaluator's pass rate, and a **runs** button that drills into the runs behind the cell.
 
-**CASES** is one row per run — scenario, guard, brain, seed, outcome, turns, cost, approvals, and a column per cohort and per evaluator label. **Find** narrows by any text on the row (scenario, guard, brain, seed, outcome, cohort, label), and the table grows a hundred rows at a time. It is labelled *Failures first*; at the time of writing the sort is inverted and puts successes first, so filter by outcome — `OUT_OF_STEPS`, `ERROR` — to find the interesting cases.
+**CASES** is one row per run — scenario, guard, brain, seed, outcome, turns, cost, approvals, and a column per cohort and per evaluator label. **Find** narrows by any text on the row (scenario, guard, brain, seed, outcome, cohort, label), and the table grows a hundred rows at a time. It is labelled *Failures first* and sorts that way: anything that errored or ended in something other than `SUCCESS` comes before the rest, stably, so the interesting cases are at the top of the first page.
 
 For a Playground campaign the report also carries the **confusion matrix**, the **cohort slices** and the **obligation table** (§32, §33).
 
@@ -1339,7 +1351,7 @@ The bot needs a pack this section does not carry. The message names the packs an
 
 ### 40.5 The dashboard's success rate looks wrong
 
-Runs you left part-way stay `IN_PROGRESS` for ever and count in the denominator. Filter them out in the Run Browser, or raise **Runs to keep** and let the old ones age out.
+Runs you left part-way stay `IN_PROGRESS` and count in the denominator until somebody says otherwise. Press **Mark them abandoned** in the Run Browser (§13.1): the dashboard, Telemetry, the safety case and drift all read the same definition of *finished*, so the rate settles everywhere at once. Failing that, raise **Runs to keep** and let the old ones age out.
 
 ### 40.6 A guard says "no — the harness runs it live"
 
@@ -1354,9 +1366,9 @@ Recorded rather than hidden.
 - **Control-map review is a content edit.** Rows ship `unreviewed`; accepting one is a change to the pack, not a click in the application.
 - **The browser forks without overrides.** Forking with a different build is the harness's `fork --kit`.
 - **No cost model.** The product counts tokens and does not price them, and the dashboard says so rather than inventing a number.
-- **The Playground's campaigns do not run in the browser yet** — they load, and every cell errors, because the browser's campaign runner does not carry the desks' scripted plans. Run them from the harness (§36.2); CI does.
-- **A campaign report's cases table is labelled *Failures first* but sorts successes first** at the time of writing; filter by outcome instead.
-- **The fleet table and Telemetry still count an abandoned run as `IN_PROGRESS`**, so a run tidied in the Run Browser reads differently on the dashboard until that is reconciled.
+- **A campaign holds the tab while it runs.** There is a **Cancel** and an estimate, but no Worker: 930 cells is about a minute and a half in which the page will not answer.
+- **The boundary map's labels collide** where the ring is crowded — the bank's nine service lines overlap each other and the egress badge. The picture is right; the typesetting is not.
+- **One origin, one service worker.** If two sections (§38) are published on the same origin at different bases, the section installed second inherits the first's cached shell and can open on a blank page until the browser's site data is cleared. Publish each section on its own origin or subdomain, or give each its own service-worker scope, before putting two in front of readers.
 - **The live checkpoints for Azure Content Safety and the Gen AI evaluation service are pending** a key and a token; both are one command (`npm run smoke:azure`, `npm run smoke:geap`).
 - **Provider errors show friendly copy with the raw payload one click away**, but there is no automatic retry.
 
@@ -1477,34 +1489,25 @@ Sources are under `apps/workbench/e2e/__screenshots__/<platform>/`, where `<plat
 
 Also available and not yet placed: `workshop-run-lab-explain.png` (the explanation panel), `ws-runs.png` (the Run Browser), `ws-run-lab-golden.png`, `ws-incidents.png`, `ws-safety-case.png`, `ws-sinks.png`, `ws-test-bench.png`.
 
-## Appendix E — Notes for the PDF production
+## Appendix E — How the PDF is produced
 
-**What is needed before typesetting**
+**The brand.** The values are no longer placeholders: the comment block at the head of this file carries the real Axiom Verity palette, type and marks, read from that project's own design system. The wordmark is set, not an image — *Axiom* in ink `#10233a`, *Verity* in gold-ink `#7a5a1a`, Newsreader 600 — so it stays sharp at any size and needs no asset file. The mark is `axiom-mark.svg`, inlined.
 
-1. The brand assets and values listed in the comment block at the head of this file — wordmark, mark, two brand colours, three typefaces.
-2. A decision on the document classification line in the control table.
-3. Recaptured figures at 2× (Appendix D), or a decision to run them small.
-4. A cover image. The Playground's box art (`Craft A Bot RFS playground.png`) is the obvious candidate and matches the product's own visual language.
+**The toolchain.** The PDF is rendered from this markdown by a self-contained HTML print stylesheet driven through headless Chromium — A4, 20 mm margins, 11 pt body, with the running header and footer supplied as Chromium header/footer templates so the page numbers are real. The three typefaces are embedded from the same self-hosted `@fontsource` files the Axiom Verity site uses, so the PDF and the website set identically. Regenerating it is three scripted steps and no manual layout step (`docs/manual/pdf/`), which matters because this document will be regenerated every time the product moves.
 
-**Recommended structure in the PDF**
+Two alternatives, if the document ever needs finer typesetting than a browser gives:
 
-- Cover: wordmark, title, the subtitle, the box art, the *FOR SIMULATION ONLY* strap.
-- Inside cover: the document control table and the simulation notice in full.
-- Contents, then Parts A–F, then the appendices.
-- Part title pages, with the part's audience line from *How to read this manual*.
-- Running header: *Craft A Bot — User Manual · <section>*. Running footer: *Axiom Verity · v1.0 · page n of N*.
+- **Pandoc → LaTeX** for better control of running heads and of the wide reference tables (§36, Appendix A) — set them `longtable` so they break across pages.
+- **Typst** if the brand is being designed alongside the document; it iterates faster than LaTeX.
 
-**Toolchain suggestions**
-
-- **Pandoc → LaTeX** gives the best control over running heads and tables of this width. Set tables to `longtable` and allow the wide reference tables in §36 and Appendix A to break across pages.
-- **Typst** is the faster iteration if the brand is being designed alongside.
-- Whatever the toolchain, keep code blocks unwrapped and monospaced: several are commands a reader will copy.
+**Figures.** Appendix D lists them. They are the committed visual-regression baselines at 1× and are placed at a width where that still reads; recapture at 2× (`npm run e2e:visual` with the device scale raised) before printing any of them wider than about 120 mm.
 
 **Editorial notes**
 
-- The product's own voice is plain, concrete and a little dry, and it never claims more than it can prove ("no drift flagged", "spend is not shown because there is no cost model"). Keep that voice in any copy added at production.
+- The product's own voice is plain, concrete and a little dry, and it never claims more than it can prove (*"no drift flagged"*, *"spend is not shown because there is no cost model"*). Keep that voice in any copy added at production.
 - Do not soften the simulation notice or the "not a claim of compliance" sentences: they are the reason the material can be shown to a regulated audience at all.
 - Where the manual names an obligation, it names it as a *source*. Keep the wording.
+- The cover is typographic, not illustrated: the letterhead rule, the wordmark, the title in Newsreader, the proof-mark, and the *FOR SIMULATION ONLY* strap. That is a deliberate reading of the brand — Axiom Verity's own system calls for a report cover, not a hero banner — and it also keeps the cover honest, since the Playground's box art is an artist's impression rather than a picture of the product. If the box art is ever wanted on the cover, caption it as an impression.
 
 ---
 
