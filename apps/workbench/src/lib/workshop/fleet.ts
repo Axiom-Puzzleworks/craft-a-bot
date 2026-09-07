@@ -1,3 +1,4 @@
+import { effectiveOutcome, isRunFinished } from '@craftabot/core';
 import type { AgentRecord, RunRecord, SlotId } from '@craftabot/core';
 import { filledSockets } from '$lib/bricks.js';
 
@@ -54,7 +55,8 @@ export interface Telemetry {
 	finishedRuns: number;
 }
 
-const FINISHED = (run: RunRecord) => run.outcome !== 'IN_PROGRESS';
+// One definition of finished (NEW-3), shared with every governance fold.
+const FINISHED = (run: RunRecord) => isRunFinished(run);
 
 export function fleetRows(agents: readonly AgentRecord[], runs: readonly RunRecord[]): FleetRow[] {
 	const byAgent = new Map<string, RunRecord[]>();
@@ -77,7 +79,7 @@ export function fleetRows(agents: readonly AgentRecord[], runs: readonly RunReco
 				name: agent.spec.name,
 				slots: filledSockets(agent.spec.bricks),
 				runs: mine.length,
-				lastOutcome: latest?.outcome,
+				lastOutcome: latest ? (effectiveOutcome(latest) as RunRecord['outcome']) : undefined,
 				lastRunAt: latest?.startedAt
 			};
 		})

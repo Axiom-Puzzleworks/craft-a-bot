@@ -58,10 +58,18 @@
 		)
 	);
 
+	/** Episodes left part-way (NEW-3): the group and every member of it, none of which the solo banner reached. */
+	const abandonedGroups = $derived(
+		groupRuns.filter((group) => group.outcome === 'IN_PROGRESS' && group.abandonedAt === undefined)
+	);
+	const abandonedCount = $derived(abandoned.length + abandonedGroups.length);
+
 	async function tidyAbandoned(): Promise<void> {
 		const storage = await appStorage();
 		const abandonedAt = new Date().toISOString();
 		for (const run of abandoned) await storage.putRun({ ...$state.snapshot(run), abandonedAt });
+		for (const group of abandonedGroups)
+			await storage.putGroupRun({ ...$state.snapshot(group), abandonedAt });
 		await load();
 	}
 
@@ -205,12 +213,14 @@
 		</p>
 	{/if}
 
-	{#if abandoned.length > 0}
+	{#if abandonedCount > 0}
 		<p class="tidy" data-testid="abandoned-note">
-			{abandoned.length === 1 ? 'One run was' : `${abandoned.length} runs were`} left part-way and never
-			finished — they still read IN_PROGRESS and count in every total.
+			{abandonedCount === 1 ? 'One run was' : `${abandonedCount} runs were`} left part-way and never
+			finished{abandonedGroups.length > 0
+				? ` (${abandonedGroups.length === 1 ? 'one of them an episode' : `${abandonedGroups.length} of them episodes`})`
+				: ''} — they still read IN_PROGRESS and count in every total.
 			<button type="button" data-testid="tidy-abandoned" onclick={tidyAbandoned}>
-				Mark {abandoned.length === 1 ? 'it' : 'them'} abandoned
+				Mark {abandonedCount === 1 ? 'it' : 'them'} abandoned
 			</button>
 		</p>
 	{/if}
@@ -345,7 +355,8 @@
 							</td>
 							<td class="mono">{row.group.goalCardId}</td>
 							<td
-								><span class="outcome" data-outcome={row.group.outcome}>{row.group.outcome}</span
+								><span class="outcome" data-outcome={displayOutcome(row.group)}
+									>{displayOutcome(row.group)}</span
 								></td
 							>
 							<td class="num">{row.group.rounds}<span class="of">rounds</span></td>
@@ -386,7 +397,11 @@
 									>
 								</td>
 								<td class="mono">{member.goalCardId}</td>
-								<td><span class="outcome" data-outcome={member.outcome}>{member.outcome}</span></td>
+								<td
+									><span class="outcome" data-outcome={displayOutcome(member)}
+										>{displayOutcome(member)}</span
+									></td
+								>
 								<td class="num">{member.ticks}<span class="of">/{member.budgets.maxTicks}</span></td
 								>
 								<td class="num">{seconds(member)}</td>

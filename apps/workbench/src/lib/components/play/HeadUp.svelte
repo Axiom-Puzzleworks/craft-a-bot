@@ -18,6 +18,8 @@
 		lamp: LampState;
 		/** What the Safety Brick has done this run (`16-…` §2.1). */
 		safety?: SafetyTally;
+		/** The stop was a hosted guard failing closed (NEW-4): the lamp's word says so, not "a safety rule". */
+		failedClosed?: boolean;
 	}
 
 	let {
@@ -27,7 +29,8 @@
 		maxTicks,
 		usage,
 		lamp,
-		safety = { checks: 0, saves: 0, failedClosed: 0 }
+		safety = { checks: 0, saves: 0, failedClosed: 0 },
+		failedClosed = false
 	}: Props = $props();
 
 	const safetyLine = $derived(safetyWords(safety));
@@ -47,6 +50,9 @@
 		tripped: 'Stopped by a safety rule',
 		finished: 'Finished'
 	};
+	const lampWord = $derived(
+		lamp === 'tripped' && failedClosed ? 'Stopped — the check could not run' : LAMP_WORDS[lamp]
+	);
 </script>
 
 <header class="headup" data-testid="head-up">
@@ -106,7 +112,7 @@
 
 		<p class="lamp lamp--{lamp}" data-testid="status-lamp" data-lamp={lamp}>
 			<span class="bulb" aria-hidden="true"></span>
-			{LAMP_WORDS[lamp]}
+			{lampWord}
 		</p>
 	</div>
 </header>

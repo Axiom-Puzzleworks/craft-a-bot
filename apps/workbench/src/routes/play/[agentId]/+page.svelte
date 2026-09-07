@@ -521,8 +521,8 @@
 <!-- A desk is not the Playroom (UX-17): the title names the room the bot is actually in. -->
 <svelte:head
 	><title
-		>{view && isDeskWorldState(view.world) ? 'The desk' : 'Playroom'} — {record?.spec.name ??
-			'Craft A Bot'}</title
+		>{onDesk || (view && isDeskWorldState(view.world)) ? 'The desk' : 'Playroom'} — {record?.spec
+			.name ?? 'Craft A Bot'}</title
 	></svelte:head
 >
 
@@ -543,6 +543,7 @@
 			usage={view.usage}
 			lamp={view.lamp}
 			safety={safetyTally(view.events)}
+			failedClosed={stoppedByOutage}
 		/>
 
 		{#if !scripted}
