@@ -1,3 +1,4 @@
+import { effectiveOutcome } from '@craftabot/core';
 import type { GroupRunRecord, RunRecord } from '@craftabot/core';
 
 /**
@@ -79,7 +80,7 @@ function matchesText(run: RunRecord, needle: string): boolean {
  * ever written, and the screen says what a person decided about it.
  */
 export function displayOutcome(run: Pick<RunRecord, 'outcome' | 'abandonedAt'>): string {
-	return run.outcome === 'IN_PROGRESS' && run.abandonedAt ? 'ABANDONED' : run.outcome;
+	return effectiveOutcome(run);
 }
 
 export function facetsOf(runs: readonly RunRecord[]): RunFacets {

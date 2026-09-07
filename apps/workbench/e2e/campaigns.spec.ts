@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { injectionBaseline } from '@craftabot/evals';
+import { adviceBaseline } from '@craftabot/pack-fs-advice';
 import { skipTutorial } from './support.js';
 
 /**
@@ -96,4 +97,35 @@ test('a file that is not a campaign is refused with the reason', async ({ page }
 	await page.getByTestId('campaign-source').fill('{ "schemaVersion": 1 }');
 	await expect(page.getByTestId('campaign-problem')).toBeVisible();
 	await expect(page.getByTestId('run-campaign')).toBeDisabled();
+});
+
+/**
+ * A desk's campaign runs in this host (NEW-1, `docs/manual/UX-AND-GAPS.md`):
+ * the Campaigns screen hands the runner the Workshop's plan chain, so a
+ * scripted brain on a desk card has a plan and the cell does not error. One
+ * scenario, one guard, one brain, one seed — the promise, not the whole
+ * baseline.
+ */
+test('one cell of a desk baseline runs here without erroring', async ({ page }) => {
+	const full = adviceBaseline({ seeds: [1] }) as {
+		scenarios: unknown[];
+		guards: unknown[];
+		brains: unknown[];
+		gates: unknown[];
+	};
+	const campaign = {
+		...full,
+		scenarios: full.scenarios.slice(0, 1),
+		guards: full.guards.slice(0, 1),
+		brains: full.brains.slice(0, 1),
+		gates: []
+	};
+	await page.goto('/workshop/campaigns');
+	await page.getByTestId('campaign-source').fill(JSON.stringify(campaign));
+	await expect(page.getByTestId('campaign-size')).toHaveText('1 cells');
+	await page.getByTestId('run-campaign').click();
+	await expect(page.getByTestId('campaign-verdict')).toBeVisible({ timeout: 60_000 });
+	const rows = page.getByTestId('campaign-case-table').locator('tbody tr');
+	await expect(rows).toHaveCount(1);
+	await expect(rows.first()).not.toContainText('error');
 });

@@ -136,7 +136,8 @@ const OUTCOME_CAPTIONS: Record<string, string> = {
 function beatFor(
 	event: EngineEvent,
 	eventIndex: number,
-	actors: ReadonlyMap<string, string> | undefined
+	actors: ReadonlyMap<string, string> | undefined,
+	failedClosed = false
 ): Beat | undefined {
 	// A label, not a rewrite: every event already carries its own `agentId`
 	// (E10), so this answers "which robot" without touching a single caption's
@@ -199,7 +200,12 @@ function beatFor(
 			return at('result', event.payload.approved ? 'You said yes.' : 'You said no.');
 
 		case 'run.finished':
-			return at('ended', OUTCOME_CAPTIONS[event.payload.outcome] ?? 'The run ended.');
+			return at(
+				'ended',
+				event.payload.outcome === 'STOPPED_BY_GUARDRAIL' && failedClosed
+					? 'The safety check could not run, so the run stopped.'
+					: (OUTCOME_CAPTIONS[event.payload.outcome] ?? 'The run ended.')
+			);
 
 		default:
 			return undefined;
@@ -227,8 +233,16 @@ export function narrate(
 	const byTick = new Map<number, Beat[]>();
 	const order: number[] = [];
 
+	// Whether the stop that ended the run was a hosted guard failing closed (NEW-4), so the
+	// ending's caption says so rather than "a safety rule stopped the run".
+	const failedClosed = events.some(
+		(event) =>
+			event.type === 'guardrail.tripped' &&
+			event.payload.disposition === 'stop-run' &&
+			event.payload.cause === 'could-not-check'
+	);
 	events.forEach((event, eventIndex) => {
-		const beat = beatFor(event, eventIndex, actors);
+		const beat = beatFor(event, eventIndex, actors, failedClosed);
 		if (!beat) return;
 
 		const tick = event.tick;

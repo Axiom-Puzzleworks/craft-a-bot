@@ -171,6 +171,8 @@ export const groupRunRecordSchema = z.object({
 	memberAgentIds: z.array(z.string().uuid()),
 	/** The record's own "still going" state, exactly as `RunRecord.outcome` widens (E5). */
 	outcome: z.union([runOutcomeSchema, z.literal('IN_PROGRESS')]),
+	/** When a person marked an episode left `IN_PROGRESS` as abandoned (NEW-3, 2026-09-07) — as `RunRecord.abandonedAt`. */
+	abandonedAt: z.string().datetime().optional(),
 	rounds: z.number().int().nonnegative(),
 	usage: usageSchema,
 	pinned: z.boolean(),

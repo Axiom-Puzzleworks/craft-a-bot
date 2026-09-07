@@ -5,40 +5,16 @@ import type {
 	ScenarioPackFile
 } from '@craftabot/core';
 import {
-	chainPlans,
-	noPlans,
 	packFromScenarioFile,
 	parseCorpusJsonl,
 	registryForScenario,
 	runScenario,
 	scenarioPackFrom,
 	scenariosFromCorpus,
-	starterPlans,
 	type ScenarioRun
 } from '@craftabot/evals';
-import {
-	adversaryPlanFor as advicePlanUnsafe,
-	planFor as advicePlanFor
-} from '@craftabot/pack-fs-advice/testing';
-import {
-	adversaryPlanFor as fraudPlanUnsafe,
-	planFor as fraudPlanFor
-} from '@craftabot/pack-fs-fraud/testing';
-import {
-	adversaryPlanFor as lendingPlanUnsafe,
-	planFor as lendingPlanFor
-} from '@craftabot/pack-fs-lending/testing';
 import { buildSpec } from '@craftabot/pack-starter/testing';
-import { planFor as workshopPlanFor } from '@craftabot/pack-workshop/testing';
-
-/** Every installed pack's scripted plans (WP60, `49-FS-ADVICE.md` §4.7) — the harness's own chain, here. */
-const workshopPlans = chainPlans(
-	starterPlans,
-	{ planFor: workshopPlanFor, adversaryPlanFor: noPlans('adversarial') },
-	{ planFor: advicePlanFor, adversaryPlanFor: advicePlanUnsafe },
-	{ planFor: fraudPlanFor, adversaryPlanFor: fraudPlanUnsafe },
-	{ planFor: lendingPlanFor, adversaryPlanFor: lendingPlanUnsafe }
-);
+import { workshopPlans } from './plans.js';
 
 /**
  * **The Scenario Library** (`32-SCENARIOS.md` §4.5, WP44): every scenario a

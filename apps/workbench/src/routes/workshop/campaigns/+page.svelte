@@ -34,6 +34,8 @@
 	import { editionId } from '$lib/edition-id.js';
 	import { createRegistry, installedPacks, packVersions } from '$lib/packs.js';
 	import { defaultShippedCampaign, shippedCampaigns } from '$lib/workshop/shipped-campaigns.js';
+	import { workshopPlans } from '$lib/workshop/plans.js';
+	import { failedFirst } from '$lib/workshop/case-order.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import { contentStore } from '$lib/state/content.svelte.js';
 	import { slugOf } from '@craftabot/core';
@@ -95,14 +97,33 @@
 	let startedAtMs = $state(0);
 	let nowMs = $state(0);
 	const elapsedMs = $derived(running ? Math.max(0, nowMs - startedAtMs) : 0);
-	const remainingMs = $derived(
-		running && progress.done > 0
-			? Math.round((elapsedMs / progress.done) * (progress.total - progress.done))
-			: undefined
-	);
+	/**
+	 * When each cell finished (NEW-6): the estimate is a trailing average over
+	 * the last twenty cells, not the mean since the start — the first cell is
+	 * the slowest, and a mean that includes it ran about twice long and rose
+	 * as the run went on. Said as "about a minute" past a threshold, because
+	 * the seconds were never honest.
+	 */
+	let cellDoneAt: number[] = [];
+	const TRAILING = 20;
+	const remainingMs = $derived.by(() => {
+		if (!running || progress.done < 2) return undefined;
+		void nowMs;
+		const recent = cellDoneAt.slice(-TRAILING - 1);
+		if (recent.length < 2) return undefined;
+		const perCell = ((recent.at(-1) ?? 0) - (recent[0] ?? 0)) / (recent.length - 1);
+		return Math.round(perCell * (progress.total - progress.done));
+	});
 	const clock = (ms: number) => {
 		const seconds = Math.round(ms / 1000);
 		return seconds < 60 ? `${seconds}s` : `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
+	};
+	/** The remaining time as a rough reading: under a minute, about a minute, about N minutes. */
+	const roughly = (ms: number) => {
+		const minutes = ms / 60_000;
+		if (minutes < 0.75) return 'under a minute left';
+		if (minutes < 1.5) return 'about a minute left';
+		return `about ${Math.round(minutes)} minutes left`;
 	};
 	$effect(() => {
 		if (!running) return;
@@ -234,12 +255,6 @@
 	const CASE_ROWS = 100;
 	let caseFilter = $state('');
 	let casePages = $state(1);
-	const failedFirst = (
-		a: { error?: string | undefined; outcome?: string | undefined },
-		b: typeof a
-	) =>
-		Number(!(b.error || (b.outcome && b.outcome !== 'SUCCESS'))) -
-		Number(!(a.error || (a.outcome && a.outcome !== 'SUCCESS')));
 	const matchingCases = $derived.by(() => {
 		const needle = caseFilter.trim().toLowerCase();
 		const all = [...(summary?.cases ?? [])].sort(failedFirst);
@@ -394,6 +409,7 @@
 		cancelled = false;
 		startedAtMs = Date.now();
 		nowMs = startedAtMs;
+		cellDoneAt = [startedAtMs];
 		openSlice = undefined;
 		fromStore = false;
 		traces = {};
@@ -412,7 +428,13 @@
 						)
 					),
 				packs: installedPacks,
-				onCell: (_cell, done, total) => (progress = { done, total }),
+				// The Workshop's plan chain (NEW-1): without it the runner falls back to the
+				// starter's plans and every desk cell errors — the harness composes the same chain.
+				plans: workshopPlans,
+				onCell: (_cell, done, total) => {
+					progress = { done, total };
+					cellDoneAt.push(Date.now());
+				},
 				onTrace: (cell, trace) => {
 					if (cell.runId) collected[cell.runId] = trace;
 				}
@@ -542,9 +564,8 @@
 						{cancelRequested ? 'Stopping after this cell…' : 'Cancel'}
 					</button>
 					<span class="run-status" role="status" data-testid="campaign-clock">
-						{clock(elapsedMs)} elapsed{remainingMs !== undefined
-							? `, about ${clock(remainingMs)} left`
-							: ''} — the page is busy between cells and may not answer until it finishes.
+						{clock(elapsedMs)} elapsed{remainingMs !== undefined ? `, ${roughly(remainingMs)}` : ''} —
+						the page is busy between cells and may not answer until it finishes.
 					</span>
 				{:else if cancelled}
 					<span class="run-status" role="status" data-testid="campaign-cancelled">

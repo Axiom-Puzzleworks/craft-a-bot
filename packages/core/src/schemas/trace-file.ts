@@ -78,6 +78,26 @@ export const runRecordSchema = z.object({
 export type RunRecord = z.infer<typeof runRecordSchema>;
 
 /**
+ * **One definition of "finished"** (NEW-3, `docs/manual/UX-AND-GAPS.md`, 2026-09-07).
+ * Every fold that counted finished runs — the fleet's, telemetry's, the
+ * safety case's, drift's — tested `outcome !== 'IN_PROGRESS'` on its own,
+ * and a run marked abandoned stayed in progress on three screens and
+ * abandoned on the fourth. A record is finished when its trace finished, or
+ * when a person said it never will.
+ */
+export function isRunFinished(run: { outcome: string; abandonedAt?: string | undefined }): boolean {
+	return run.outcome !== 'IN_PROGRESS' || run.abandonedAt !== undefined;
+}
+
+/** The outcome a screen shows: the trace's own, or ABANDONED for a run left in progress and marked so. */
+export function effectiveOutcome(run: {
+	outcome: string;
+	abandonedAt?: string | undefined;
+}): string {
+	return run.outcome === 'IN_PROGRESS' && run.abandonedAt !== undefined ? 'ABANDONED' : run.outcome;
+}
+
+/**
  * Trace export (07-DATA-MODEL-PERSISTENCE.md §5) — the governance artefact
  * (08-GOVERNANCE-GUARDRAILS.md §4).
  *

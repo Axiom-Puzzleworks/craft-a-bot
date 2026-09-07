@@ -38,9 +38,9 @@
 | | |
 |---|---|
 | **Document** | Craft A Bot — User Manual |
-| **Version** | 1.0 (draft for review) |
-| **Date** | 7 September 2026 |
-| **Applies to** | `main` at `38f346d` — V1.0 plus Day 2, Day 3 and Day 4 (WP0–WP73) |
+| **Version** | 1.1 (draft for review) |
+| **Date** | 7 September 2026 (second edition, after the UX fix pass) |
+| **Applies to** | `main` at `dcec4eb` — V1.0 plus Day 2, Day 3 and Day 4 (WP0–WP73), and the UX fix pass |
 | **Publisher** | Axiom Verity |
 | **Audience** | Learners, AI-safety practitioners, conduct and model-risk reviewers, engineers |
 | **Status** | Draft — for internal review before external release |
@@ -91,8 +91,8 @@ Conventions used throughout:
 11. Opening the Workshop
 12. The Bench dashboard
 13. Runs and the Run Lab
-14. The Spec Lab
-15. The Policy Studio and the Test Bench
+14. The Spec lab
+15. The Policy Studio and the Test bench
 16. The Scenario Library
 17. Evaluators
 18. The Eval Matrix
@@ -330,6 +330,8 @@ Ollama needs no battery: it runs on your own machine and its address is a Settin
 
 To fit one: **Settings → the compartment → paste → Insert battery**. The key is never shown again. **Check it** verifies it; **Eject battery** removes it.
 
+A compartment tells you when a key has actually failed. If a guard or a provider rejects a credential during a run, the meter empties and reads **Rejected — sign in again**, with the time it happened, which guardrail found out, and a pointer to the run in your Scrapbook. Signing in again, ejecting, or a passing **Test the guard** clears it.
+
 ### 5.2 Where a key goes, exactly
 
 - **In this browser only.** It is saved in this browser's `localStorage`, in plain text. Anyone who can use this browser profile can read it, so do not use a shared computer for a key you care about.
@@ -394,7 +396,7 @@ Drag a brick to its socket, or double-click it to fit it. Every brick in the tra
 | **Connector** | A line to something outside | Service lines, with scopes — the reach/authority split |
 | **Watchbot**, **Monitor Judge**, **Guard Brick**, **Armour Brick** | Watching, judging, screening | Safety-socket bricks: an observer, an in-run judge, a generic guard service, Model Armor |
 
-The safety socket is the exception to one-brick-per-socket: the engine allows up to four safety bricks in a stack. The Kit bench deliberately shows one well and marks the rest *Socket taken*; stacks are fitted in the Workshop's Spec Lab (§14).
+The safety socket is the exception to one-brick-per-socket: the engine allows up to four safety bricks in a stack. The Kit bench deliberately shows one well and marks the rest *Socket taken*; stacks are fitted in the Workshop's Spec lab (§14).
 
 **Build checks** sit under the baseplate and tell you in plain words whether the bot can run: *Everything checks out — your bot is ready to go*, or what is missing.
 
@@ -402,7 +404,9 @@ The safety socket is the exception to one-brick-per-socket: the engine allows up
 
 ### 7.2 The goal card rack
 
-The rack holds every card the installed packs ship. In the `full` build with the Playground installed that is **fifty-eight cards**: the starter Playroom cards, the Workshop world's cards, and every desk card from the four Playground desks. Co-operative cards are filtered out — they need the Robot Friends bench. Scroll the rack horizontally to reach them.
+The rack holds every card the installed packs ship. In the `full` build with the Playground installed that is **fifty-eight cards**: the starter Playroom cards, the Workshop world's cards, and every desk card from the four Playground desks. Co-operative cards are filtered out — they need the Robot Friends bench.
+
+Past a dozen cards the rack groups itself by world under sticky headings — **THE PLAYROOM**, **THE WORKSHOP**, then each desk — and offers **Find a card** (a title, a goal, a world) with a count beside it, so "58 of 58" becomes "1 of 58" as you type.
 
 Each card shows a difficulty and, once selected, its brief, roughly how many steps it should take, and a hint about what the bot will need.
 
@@ -429,7 +433,7 @@ The header shows **STEPS LEFT** as a meter, **TOKENS** used, and the run's state
 - **The world.** For a Playroom card, the room drawn from the world's own events. For a desk card, the **Desk**: a transcript, the case file as revealed so far, and the queue of what is open. Both are drawn only from what the trace says — never from the engine's internal state.
 - **The thought bubble** shows what the bot is thinking this turn.
 - **The story strip** narrates what happened, in plain words.
-- **Say something to your bot** lets you speak to it mid-run. This only works if the Eyes & Ears brick has **Hearing** switched on; if it is off, the field is disabled and says so. On a desk card, where the whole point is a conversation, turn Hearing on before you start.
+- **Say something to your bot** lets you speak to it mid-run — as the customer, on a desk card. It needs the bot's listening channel: on a Playroom card that is the Eyes & Ears brick's **Hearing**, and on a desk it is the desk's own conversation channel. If the field is disabled it says which switch is missing and offers **Turn listening on** in the message itself.
 
 ### 8.3 How a run ends
 
@@ -437,7 +441,12 @@ An end card appears with the outcome and a route onward — **See the flight rec
 
 Every finished run is saved to the Scrapbook.
 
-> **Note.** A run can stop at the first turn because a *hosted* guard could not be reached — an expired or rejected token, or no network. That is the guard failing closed, which is the safe behaviour, but it is not the same thing as a rule catching something. Check the Run Lab's inspector for the guardrail's own reason before concluding that a control fired. See §40.1.
+A run stopped by a guardrail gets one of two end cards, and the difference matters:
+
+- **The Safety Brick did its job** — a rule you fitted caught something and stopped the run.
+- **The safety check could not run** — a *hosted* guard could not reach its service (an expired token, no network), so it stopped the run rather than let it continue unchecked. That is fail-closed. Nothing was wrong with what was said.
+
+The header chip counts them apart — *"2 checks, nothing to stop · 1 check could not run"* — and the trace carries the distinction as `cause: "could-not-check"` on the `guardrail.tripped` event, so every screen that reads it says the same thing. See §40.1.
 
 ## 9. The Flight Recorder
 
@@ -496,7 +505,7 @@ Everything in the Workshop is a *consumer* of the same stores and the same event
 
 A persistent left rail lists every screen:
 
-**Bench** · **Runs** · *Spec Lab (per bot)* · **Evals** · **Campaigns** · **Evaluators** · **Scenarios** · **Sinks** · **Evidence** · **Playground** · **Policies** · **Test Bench** · **Telemetry** · **Incidents** · **Safety case** · **Assurance** · **Audit** · **Guards**
+**Bench** · **Runs** · *Spec lab (per bot)* · **Evals** · **Campaigns** · **Evaluators** · **Scenarios** · **Sinks** · **Evidence** · **Playground** · **Policies** · **Test bench** · **Telemetry** · **Incidents** · **Safety case** · **Assurance** · **Audit** · **Guards**
 
 **← The Kit** at the foot returns you to the toy.
 
@@ -509,7 +518,7 @@ The Workshop wears the same design system as the Kit in a different register: br
 The Workshop's home. Four readouts across the top — **runs this week**, **success rate**, **mean turns to success**, **guardrail saves** — with a tape chart of activity, then:
 
 - **Campaigns** — the most recent stored campaign reports, or an invitation to run the baseline.
-- **Fleet** — every bot, its fitted bricks as colour chips, how many runs it has, its last outcome and when it last ran. Each name links to that bot's Spec Lab.
+- **Fleet** — every bot, its fitted bricks as colour chips, how many runs it has, its last outcome and when it last ran. Each name links to that bot's Spec lab.
 
 The dashboard says plainly what it does not show: there is no cost model in the product and no thirty days of history, so spend and 30-day trends are absent rather than invented.
 
@@ -521,16 +530,18 @@ The dashboard says plainly what it does not show: there is no cost model in the 
 
 Every stored run, filterable by **search** (bot, card, model, run id), **bot**, **card**, **outcome**, and **pinned only**. The table gives started time, bot, card, outcome, turns used against the budget, elapsed time, model and tokens. A two-robot episode appears as the group with its members indented beneath it.
 
-- **Open a run** by clicking the bot's name in its row.
+- **Open a run** by clicking its started time, or the bot's name, in the row.
 - **Compare** — tick two runs and press **COMPARE** for a side-by-side view with synchronised scrubbing.
 - **Pin** — the star; pinned runs survive the run cap.
 - **Import trace…** — load a `.craftabot-trace.json` from anywhere. Its digest is verified on the way in, so a foreign trace declares whether it has been altered.
+
+When runs have been left part-way and never finished, a banner at the top says how many and offers **Mark them abandoned** — they then read `ABANDONED` and can be filtered out. The run in progress is never touched.
 
 ### 13.2 The Run Lab (`/workshop/runs/<runId>`)
 
 The flagship screen. Four regions.
 
-**The header** — the bot, the outcome, the card, the model, the budgets and what was used, a **✓ trace integrity** badge, a chip saying who started the run, **Fork from turn *n***, and **Open in Kit**.
+**The header** — the bot, the outcome, the card, the model, the budgets and what was used, a **✓ trace integrity** badge, a chip saying who started the run (*started by Sam*, or *started by an unnamed person (18706923…)* until you set a name — §5.3), **Fork from turn *n***, and **Open in Kit**.
 
 **The world.** A Playroom run shows the room; a desk run shows the Desk — **TRANSCRIPT**, **CASE FILE** and **QUEUE**, with a **FOR SIMULATION ONLY** strip and a collapsed **Case file (truth) — what was actually so** panel that opens only after the run has ended, and never appears in the Kit. A turn scrubber runs beneath.
 
@@ -570,7 +581,7 @@ The boundary map answers "what is this agent, what stands between it and the wor
 
 A numbered legend lists each edge in words. Over a trace, scrubbing lights the edge that fired at that turn: a tool call on a line, a screening call to a vendor, an approval crossing to a person.
 
-The same map appears statically on the Spec Lab (for a build), on each desk's Playground page (for that desk's campaign build), and inside the assurance pack.
+The same map appears statically on the Spec lab (for a build), on each desk's Playground page (for that desk's campaign build), and inside the assurance pack.
 
 ### 13.4 Explain, and fork
 
@@ -578,7 +589,7 @@ The same map appears statically on the Spec Lab (for a build), on each desk's Pl
 
 **Fork from turn *n*** replays the run to that turn — exactly, because the world is deterministic — and runs on from there, then opens the fork beside its origin in Compare with the scrubbers synchronised from the fork point. In the browser a fork carries no overrides; to fork with a *different build* — another guard stack, another bot — use the harness (§36.6). This is the counterfactual: *would this have gone differently with that control fitted?*
 
-## 14. The Spec Lab (`/workshop/spec/<agentId>`)
+## 14. The Spec lab (`/workshop/spec/<agentId>`)
 
 The bench, grown up. The same baseplate on the left, and on the right the full picture of the specification:
 
@@ -590,9 +601,9 @@ The bench, grown up. The same baseplate on the left, and on the right the full p
 
 The **Safety stack** is the Workshop's one editing surface: fit up to four safety bricks in order, take one off, and see the capacity. **Named stacks** are the pre-built combinations a campaign refers to, including the **Compliance Watchbot**. **Autonomy** sets how much the bot may do without asking.
 
-> **Figure 6** — The Spec Lab. *(Appendix D, `workshop-spec-lab.png`.)*
+> **Figure 6** — The Spec lab. *(Appendix D, `workshop-spec-lab.png`.)*
 
-## 15. The Policy Studio and the Test Bench
+## 15. The Policy Studio and the Test bench
 
 ### 15.1 The Policy Studio (`/workshop/policies`)
 
@@ -607,7 +618,7 @@ The predicate leaves available are: the kind of call, its name, an argument equa
 
 > **Figure 7** — The Policy Studio. *(Appendix D, `ws-policies.png`.)*
 
-### 15.2 The Test Bench (`/workshop/bench`)
+### 15.2 The Test bench (`/workshop/bench`)
 
 Assertion cards: deterministic checks run against a stored run's trace. **Your cards** lists the ones you have written; every card is also an evaluator (§17), so anything you write here can gate a campaign.
 
@@ -615,7 +626,7 @@ Assertion cards: deterministic checks run against a stored run's trace. **Your c
 
 A scenario is a goal card plus what a test needs. The library lists every scenario the installed packs ship — about eighty in the `full` build — with its card, its tags, its injections, and buttons to play its **Safe plan** or **Unsafe plan** as a scripted run.
 
-The tags are the vocabulary reports group by: threat identifiers (`ASI01`, `ASI02`, `ASI07`, `prompt-injection`, `tool-poisoning`, `confused-deputy`, `social-engineering`, `exfiltration`, `lethal-trifecta`) and obligation identifiers (`fca:cd:*`, `fca:cobs-9:suitability`, `fca:conc:affordability`, `poca:tipping-off`, `ukgdpr:data-minimisation`, `equality-act:fairness`, and the rest — §33).
+The tags are the vocabulary reports group by: threat identifiers (`ASI01`, `ASI02`, `ASI07`, `prompt-injection`, `tool-poisoning`, `confused-deputy`, `social-engineering`, `exfiltration`, and glosses such as *the lethal trifecta*, *indirect prompt injection*, *MCP security* and *policy compliance under pressure*, whose raw ids sit in the tooltip) and obligation identifiers (`fca:cd:*`, `fca:cobs-9:suitability`, `fca:conc:affordability`, `poca:tipping-off`, `ukgdpr:data-minimisation`, `equality-act:fairness`, and the rest — §33).
 
 **Import a corpus** turns a JSONL file — one `{"text": "…", "tags": ["…"]}` per line — into scenarios over a card you choose, with the text filed in that world's manual under a key you name. This is how a third-party prompt-injection corpus is run through a desk. Imported scenarios live for the session only.
 
@@ -653,8 +664,8 @@ A campaign is the product's unit of proof: **scenarios × builds × guards × br
 
 ### 19.1 The screen
 
-- **Load baseline** loads the shipped injection baseline into the editor.
-- **Import…** loads a campaign file from disk — this is how you load the four Playground baselines that ship in `campaigns/` (`fs-advice-baseline.json`, `fs-fraud-baseline.json`, `fs-lending-baseline.json`, `fs-complaints-baseline.json`).
+- **Shipped** is a picker over every campaign the installed packs carry — the injection baseline and the four desk baselines — and **Load baseline** puts the one you chose into the editor. A `?baseline=<id>` link opens straight onto one, which is what each desk page's **Run this desk's campaign** uses.
+- **Import…** loads a campaign file from disk.
 - The **editor** holds the campaign as JSON — the same file the harness runs.
 - **Add a shelf bot as a build** adds one of your own bots as a build in the matrix.
 - **Save to your content** keeps the campaign in this browser.
@@ -664,7 +675,9 @@ Only scripted, offline cells run in the browser. A cell that calls a real model,
 
 ### 19.2 Running one
 
-Press **Run campaign**. The button becomes a progress counter — *Running 176/640…*. The shipped injection baseline is 640 cells and completes in well under a minute on a laptop; the page is busy while it runs, so start it and let it finish.
+Press **Run campaign**. The button becomes a progress counter — *Running 176/640…* — beside **Cancel** and a line reading *"4s elapsed, about 2m 41s left — the page is busy between cells and may not answer until it finishes."* Take that literally: the run holds the tab until it ends or you cancel. The shipped injection baseline is 640 cells and finishes in well under a minute on a laptop; the estimate errs long, especially early on.
+
+> **Desk campaigns need the harness today.** The four Playground baselines load and start in the browser, but the browser's runner does not yet carry the desks' scripted plans, so every cell errors and the verdict is a red FAILED with its gates inconclusive. Run them with `craftabot campaign` (§36.2) — which is what CI does — until that is fixed.
 
 ### 19.3 Reading the report
 
@@ -681,7 +694,7 @@ Press **Run campaign**. The button becomes a progress counter — *Running 176/6
 
 **CELLS** is the grid: one row per scenario × guard × brain, with the success rate and each evaluator's pass rate, and a **runs** button that drills into the runs behind the cell.
 
-**CASES** is one row per run — scenario, guard, brain, seed, outcome, turns, cost and approvals. The screen shows the first 200; the rest are in the report JSON.
+**CASES** is one row per run — scenario, guard, brain, seed, outcome, turns, cost, approvals, and a column per cohort and per evaluator label. **Find** narrows by any text on the row (scenario, guard, brain, seed, outcome, cohort, label), and the table grows a hundred rows at a time. It is labelled *Failures first*; at the time of writing the sort is inverted and puts successes first, so filter by outcome — `OUT_OF_STEPS`, `ERROR` — to find the interesting cases.
 
 For a Playground campaign the report also carries the **confusion matrix**, the **cohort slices** and the **obligation table** (§32, §33).
 
@@ -769,7 +782,7 @@ The body follows PRA SS1/23's principles, with the Consumer Duty outcomes as its
 
 Every number cites the runs behind it. The pack states, at the top and the bottom, that it files evidence against obligations as *claims of relevance*, is not a claim of compliance, and describes a simulator that controls nothing real.
 
-> **Set your name first.** Section 2 records the principal. If **Settings → Workshop → Your name, on the trace** is blank, it will read as a raw browser id (§5.3).
+The screen opens on the bot you ran most recently. If no name is set, a bar at the top says so — *"Runs started from this browser are recorded as person 18706923… with no name. A pack a reviewer reads should say who"* — with a field and **Save to Settings**. Runs already stored keep the id they were written with, because the pack is evidence.
 
 > **Figure 14** — The assurance pack. *(Appendix D, `workshop-assurance.png`.)*
 
@@ -782,12 +795,13 @@ Two stores ship:
 - **`evidence/supabase`** — a table per artefact kind in a Supabase project your team provisions, one workspace per token. See `docs/evidence-setup.md`.
 - **`evidence/memory`** — no project behind it; rows live in the page and vanish with it. For seeing the flow.
 
-Setting one up takes two things, and both are needed:
+Each store carries a three-step checklist, ticked as you go:
 
-1. **The workspace token**, fitted as a battery — on this page or in Settings.
-2. **The store's configuration** — `{"url": "…", "anonKey": "…", "workspace": "…"}` — pasted into the **CONFIG (JSON)** box and **Save**d.
+1. **Save the store's config** — labelled **URL**, **ANONKEY** and **WORKSPACE** fields, with the whole thing as JSON beneath for pasting (the fields write it).
+2. **Fit the workspace token** — here or in Settings.
+3. **Test the connection** — one real pull, enabled once the config is saved.
 
-Until both are done the page says *No store is configured*, and everything else in the product works exactly as before. Once configured, push from the Audit centre or the Campaigns screen, and pull into the Run Browser — every pulled item's digest is verified before it is stored, and one that fails is refused.
+Until the checklist is done the page says so, and everything else in the product works exactly as before. Once configured, push from the Audit centre or the Campaigns screen, and pull into the Run Browser — every pulled item's digest is verified before it is stored, and one that fails is refused.
 
 > **Figure 15** — The Evidence screen. *(Appendix D, `ws-evidence.png`.)*
 
@@ -870,7 +884,7 @@ This is the property that makes the Playground a test rig rather than a demo: wh
 
 The bank's savings-and-investment assistant. It must gather what suitability requires, stay on the right side of the advice boundary the card sets, describe products with their warnings, recognise a customer who is vulnerable, and either recommend or refer.
 
-**Seventeen cards · thirty-one scenarios in five decks · seven policy cards · thirteen evaluators · one campaign.** (The desk page's own heading still says four decks; the operational-incident deck was added later.)
+**Seventeen cards · thirty-one scenarios in five decks · seven policy cards · thirteen evaluators · one campaign.**
 
 ### 27.1 What the bot can do
 
@@ -906,7 +920,7 @@ Nine deterministic — **suitability complete**, **recommendation suitable** (*r
 
 ### 27.5 The campaign
 
-`campaigns/fs-advice-baseline.json` runs the desk's scenarios under four guard stacks against scripted brains, and gates on the things that matter: no unsuitable recommendation under any stack but *none*, PII contained everywhere, vulnerability actioned, nothing executed without approval. CI runs it on every change.
+`campaigns/fs-advice-baseline.json` runs the desk's scenarios under four guard stacks against scripted brains — 930 cells — and gates on the things that matter: no unsuitable recommendation under any stack but *none*, PII contained everywhere, vulnerability actioned, nothing executed without approval. CI runs it on every change, and **Run this desk's campaign →** at the foot of the deck table opens it in the Campaigns screen (see the caveat in §19.2).
 
 > **Figure 18** — The Advice Desk. *(Appendix D, `ws-playground-advice.png`.)*
 
@@ -1303,17 +1317,17 @@ Every component that calls out declares the hosts it may reach and what it sends
 
 ### 40.1 A run stops at the first turn with nothing in it
 
-**Symptom.** The run ends `STOPPED_BY_GUARDRAIL` at turn 1, zero tokens used, and the Kit shows *The Safety Brick did its job*.
+**Symptom.** The run ends `STOPPED_BY_GUARDRAIL` at turn 1, zero tokens used, and the Kit shows **The safety check could not run**.
 
 **Most likely cause.** A hosted guard is fitted and plugged in, but its battery was rejected or its service could not be reached — an expired Cloud Armour token is the common one, because the token lasts about an hour. The guard is designed to **fail closed**: if it cannot check, the run stops.
 
-**How to tell.** Open the run in the Run Lab, select the `guardrail.tripped` row and read `reason`. *"the guard could not check — the battery token was rejected"* is an infrastructure failure, not a rule catching something. A genuine catch names what it found.
+**How to tell.** The end card says which of the two happened, and the header chip counts them apart. For the detail, open the run in the Run Lab, select the `guardrail.tripped` row and read `reason` and `cause`: `"cause": "could-not-check"` with *"the guard could not check — the battery token was rejected"* is an infrastructure failure. A genuine catch names what it found and carries no such cause. Settings will also show that battery as **Rejected — sign in again**.
 
 **Fix.** Settings → **Cloud Armour battery** → sign in again. Or open the Armour Brick's panel and switch **Unplugged** on to run without the hosted guard.
 
-### 40.2 "This bot has no ears"
+### 40.2 "Say something to your bot" is disabled
 
-The Eyes & Ears brick has **Hearing** switched off, so **Say something to your bot** is disabled. On a desk card — where the whole point is a conversation — turn Hearing on in the brick's panel before you start.
+The bot has no listening channel switched on. The message says which one and offers **Turn listening on**; on a Playroom card that is the Eyes & Ears brick's **Hearing**, and on a desk it is the desk's conversation channel.
 
 ### 40.3 A campaign will not run in the browser
 
@@ -1340,7 +1354,9 @@ Recorded rather than hidden.
 - **Control-map review is a content edit.** Rows ship `unreviewed`; accepting one is a change to the pack, not a click in the application.
 - **The browser forks without overrides.** Forking with a different build is the harness's `fork --kit`.
 - **No cost model.** The product counts tokens and does not price them, and the dashboard says so rather than inventing a number.
-- **A campaign report shows its first 200 cases on screen**; the rest are in the report JSON.
+- **The Playground's campaigns do not run in the browser yet** — they load, and every cell errors, because the browser's campaign runner does not carry the desks' scripted plans. Run them from the harness (§36.2); CI does.
+- **A campaign report's cases table is labelled *Failures first* but sorts successes first** at the time of writing; filter by outcome instead.
+- **The fleet table and Telemetry still count an abandoned run as `IN_PROGRESS`**, so a run tidied in the Run Browser reads differently on the dashboard until that is reconciled.
 - **The live checkpoints for Azure Content Safety and the Gen AI evaluation service are pending** a key and a token; both are one command (`npm run smoke:azure`, `npm run smoke:geap`).
 - **Provider errors show friendly copy with the raw payload one click away**, but there is no automatic retry.
 
@@ -1373,13 +1389,13 @@ Routes are given as they appear in the `full` build. In a published section, pre
 | `/workshop/runs` | Run Browser | Filter, pin, compare, import a trace |
 | `/workshop/runs/<runId>` | Run Lab | World or desk, boundary, timeline, inspector, explain, fork |
 | `/workshop/compare` | Compare | Two runs side by side, scrubbers synchronised |
-| `/workshop/spec/<agentId>` | Spec Lab | The specification, the safety stack, autonomy, the boundary, the JSON |
+| `/workshop/spec/<agentId>` | Spec lab | The specification, the safety stack, autonomy, the boundary, the JSON |
 | `/workshop/evals` | Eval Matrix | Cards × cartridges × configurations × seeds, scored against a baseline |
 | `/workshop/campaigns` | Campaigns | Author, import, run, gate, and download a campaign report |
 | `/workshop/evaluators` | Evaluators | Every evaluator; run one over a stored run |
 | `/workshop/scenarios` | Scenario Library | Every scenario, its tags and injections; import a corpus |
 | `/workshop/policies` | Policy Studio | Author and test policy cards |
-| `/workshop/bench` | Test Bench | Assertion cards over a stored trace |
+| `/workshop/bench` | Test bench | Assertion cards over a stored trace |
 | `/workshop/guards` | Guard Rack | Every guard service; test it; fit it |
 | `/workshop/sinks` | Sinks | Configure a telemetry sink; attach it live |
 | `/workshop/telemetry` | Telemetry | By card, by cartridge, by day; trip mix; drift; autonomy |
@@ -1443,7 +1459,7 @@ Sources are under `apps/workbench/e2e/__screenshots__/<platform>/`, where `<plat
 | 3 | `ws-dashboard.png` | The Bench dashboard |
 | 4 | `workshop-run-lab.png` | The Run Lab over a Playroom run |
 | 5 | `desk-play.png` | A desk run: transcript, case file, queue |
-| 6 | `workshop-spec-lab.png` | The Spec Lab |
+| 6 | `workshop-spec-lab.png` | The Spec lab |
 | 7 | `ws-policies.png` | The Policy Studio |
 | 8 | `ws-scenarios.png` | The Scenario Library |
 | 9 | `ws-evaluators.png` | The Evaluators screen |

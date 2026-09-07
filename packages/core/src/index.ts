@@ -363,6 +363,8 @@ export {
 	migrateTraceFile,
 	parseTraceFile,
 	runRecordSchema,
+	isRunFinished,
+	effectiveOutcome,
 	safeParseTraceFile,
 	traceFileSchema,
 	type RunRecord,

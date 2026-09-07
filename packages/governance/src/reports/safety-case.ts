@@ -1,3 +1,4 @@
+import { isRunFinished } from '@craftabot/core';
 import type {
 	BotCapabilities,
 	EngineEvent,
@@ -192,7 +193,7 @@ export function safetyCaseFromSummaries(
 		}
 	}
 
-	const finished = runs.filter((run) => run.outcome !== 'IN_PROGRESS');
+	const finished = runs.filter(isRunFinished);
 	const succeeded = finished.filter((run) => run.outcome === 'SUCCESS');
 	const incidents = incidentsFromSummaries(runs, summaries);
 

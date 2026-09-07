@@ -1,3 +1,4 @@
+import { isRunFinished } from '@craftabot/core';
 import type { EvaluationRecord, RunRecord, RunSummary } from '@craftabot/core';
 
 /**
@@ -223,7 +224,7 @@ export function telemetrySeries(
 		const day = dayOf(run.startedAt);
 		const bucket = open(day);
 		bucket.runs += 1;
-		if (run.outcome !== 'IN_PROGRESS') {
+		if (isRunFinished(run)) {
 			bucket.finishedRuns += 1;
 			if (run.outcome === 'SUCCESS') bucket.succeededRuns += 1;
 			if (run.outcome === 'OUT_OF_STEPS') bucket.loopedRuns += 1;
