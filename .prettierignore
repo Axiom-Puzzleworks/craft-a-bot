@@ -47,3 +47,6 @@ docs/schemas
 # The Python reader's fixture is the app's own JSON.stringify output, held byte-equal by
 # evals/src/python-reader.test.ts (WP73); formatting it would break that test.
 examples/python-reader/fixtures
+
+# The user manual and the UX findings are hand-written prose, kept as written
+docs/manual/
