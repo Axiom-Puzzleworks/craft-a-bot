@@ -185,28 +185,28 @@ jobs:
 
       - name: Upload SARIF to code scanning
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: campaign-out/results.sarif
           category: campaign
 
       - name: Upload the Advice Desk SARIF to code scanning
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: campaign-out/fs-advice/results.sarif
           category: campaign-fs-advice
 
       - name: Upload the Fraud Desk SARIF to code scanning
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: campaign-out/fs-fraud/results.sarif
           category: campaign-fs-fraud
 
       - name: Upload the Lending Desk SARIF to code scanning
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: campaign-out/fs-lending/results.sarif
           category: campaign-fs-lending
