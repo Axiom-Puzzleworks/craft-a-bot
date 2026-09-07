@@ -58,6 +58,13 @@ export const runRecordSchema = z.object({
 	startedAt: z.string().datetime(),
 	finishedAt: z.string().datetime().optional(),
 	/**
+	 * When a person marked a run left `IN_PROGRESS` as abandoned (UX-15,
+	 * 2026-09-07): the tab was closed before it finished, so no `run.finished`
+	 * was ever written and the outcome stays what the trace says. The Run
+	 * Browser shows such a run as ABANDONED and the fleet's rates leave it out.
+	 */
+	abandonedAt: z.string().datetime().optional(),
+	/**
 	 * Which group episode this run belongs to, when it is one (WP29,
 	 * `23-MULTI-AGENT-DESIGN.md` §4.7, §10 stage F) — the same id its own
 	 * events carry as `parentRunId` (E10). Additive and optional, exactly the

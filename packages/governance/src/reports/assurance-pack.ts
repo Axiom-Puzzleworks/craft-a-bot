@@ -275,9 +275,10 @@ const CONSUMER_DUTY: ReadonlyArray<{ tag: string; title: string }> = [
 	{ tag: 'fca:cd:support', title: 'Consumer support' }
 ];
 
-const notRecorded = (what: string, wp: string): NotRecorded => ({
+// No work-package number in a filed artefact (UX-16, 2026-09-07): a reviewer reads the note, not the roadmap.
+const notRecorded = (what: string): NotRecorded => ({
 	recorded: false,
-	note: `${what} is not recorded in this build (${wp}).`
+	note: `${what} is not recorded in this build.`
 });
 
 /** Canonical JSON: keys sorted at every level, so the same pack digests the same. */
@@ -543,7 +544,7 @@ export async function assurancePackFor(input: AssurancePackInput): Promise<Assur
 			principal:
 				principals.length > 0
 					? { recorded: true, principals }
-					: notRecorded('The principal on each run', 'WP65')
+					: notRecorded('The principal on each run')
 		},
 		development: {
 			campaigns,
@@ -561,7 +562,7 @@ export async function assurancePackFor(input: AssurancePackInput): Promise<Assur
 							validators,
 							note: 'The principals of the runs an evaluator judged. Whether any is independent of the builder cannot be said: no record names who built this bot.'
 						}
-					: notRecorded('Who validated this build', 'WP65'),
+					: notRecorded('Who validated this build'),
 			evaluations: evaluationRows,
 			...(evaluationRows.length === 0
 				? {
@@ -586,7 +587,7 @@ export async function assurancePackFor(input: AssurancePackInput): Promise<Assur
 						recorded: true,
 						note: 'Each incident’s findings carry the explanation of the decision made at that tick — what the bot saw, was offered, chose, and what checked it.'
 					}
-				: notRecorded('What each decision saw (the host handed no traces in)', 'WP66'),
+				: notRecorded('What each decision saw (the host handed no traces in)'),
 			...(mine.length === 0
 				? {
 						note: 'This bot has no stored runs: there is no series to monitor and no incident to log.'

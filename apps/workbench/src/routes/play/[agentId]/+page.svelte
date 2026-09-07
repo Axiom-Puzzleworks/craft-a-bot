@@ -112,9 +112,51 @@
 	const hasSenseBrick = $derived(
 		record ? capabilitiesOf(record.spec, registry).filled.has('perception') : false
 	);
+	/**
+	 * The world's listening channel (UX-11): the Playroom's `hearing`, a desk's
+	 * `conversation` — a desk *is* a conversation, and the customer's line lands
+	 * on the transcript through that sense. Testing only for `hearing` left
+	 * every desk deaf on the play screen, whatever was fitted.
+	 */
+	const listeningChannel = $derived.by(() => {
+		if (!record) return undefined;
+		const worldId = registry.getGoalCard(record.spec.goalCardId)?.worldId;
+		const world = worldId ? registry.getWorld(worldId) : undefined;
+		return world?.senses.find((sense) => {
+			const bare = sense.id.split('/').pop();
+			return bare === 'hearing' || bare === 'conversation';
+		})?.id;
+	});
+	const onDesk = $derived(listeningChannel?.split('/').pop() === 'conversation');
 	const canHear = $derived(
-		record ? offers(capabilitiesOf(record.spec, registry).channels, 'hearing') : false
+		record && listeningChannel
+			? offers(
+					capabilitiesOf(record.spec, registry).channels,
+					listeningChannel.split('/').pop() ?? 'hearing'
+				)
+			: false
 	);
+
+	/** Fit the world's listening channel on the sense brick and save the bot (UX-11); it listens from the next run. */
+	async function enableHearing(): Promise<void> {
+		if (!record || !storage || !listeningChannel) return;
+		const channel = listeningChannel;
+		const bricks = record.spec.bricks.map((brick) => {
+			if (brick.kind !== 'starter/sense') return brick;
+			const config = brick.config as { channels?: string[] };
+			const channels = config.channels ?? [];
+			return channels.includes(channel)
+				? brick
+				: { ...brick, config: { ...config, channels: [...channels, channel] } };
+		});
+		const next: AgentRecord = {
+			...$state.snapshot(record),
+			spec: { ...$state.snapshot(record.spec), bricks },
+			updatedAt: new Date().toISOString()
+		};
+		await storage.putAgent(next);
+		record = next;
+	}
 	/** Whether a Planner brick is fitted, for the live checklist (WP30 stage C). */
 	const hasPlanner = $derived(
 		record ? capabilitiesOf(record.spec, registry).filled.has('planner') : false
@@ -605,8 +647,12 @@
 				<SayToBot
 					{canHear}
 					{hasSenseBrick}
+					desk={onDesk}
 					disabled={view.outcome !== undefined}
 					onsay={(text) => view?.deliverInput(text)}
+					onenableHearing={hasSenseBrick && !canHear && listeningChannel
+						? enableHearing
+						: undefined}
 				/>
 				<a
 					class="back"

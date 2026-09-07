@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { liveRun } from '$lib/state/live-run.svelte.js';
 	import { resolve } from '$app/paths';
 	import {
 		parseTraceFile,
@@ -14,7 +15,8 @@
 		facetsOf,
 		filterRuns,
 		groupRows,
-		type RunFilter
+		type RunFilter,
+		displayOutcome
 	} from '$lib/workshop/run-filter.js';
 
 	/**
@@ -40,6 +42,28 @@
 	 * shared scrubber driving everything on screen at once.
 	 */
 	let selected = $state<string[]>([]);
+
+	/**
+	 * Runs left `IN_PROGRESS` by a closed tab (UX-15): every run this browser
+	 * abandoned part-way stayed in progress for ever, and counted in every
+	 * dashboard. Not the live one, and not one already marked. A person marks
+	 * them — the record keeps its trace's outcome and gains `abandonedAt`.
+	 */
+	const abandoned = $derived(
+		runs.filter(
+			(run) =>
+				run.outcome === 'IN_PROGRESS' &&
+				run.abandonedAt === undefined &&
+				run.id !== liveRun.current?.view.runId
+		)
+	);
+
+	async function tidyAbandoned(): Promise<void> {
+		const storage = await appStorage();
+		const abandonedAt = new Date().toISOString();
+		for (const run of abandoned) await storage.putRun({ ...$state.snapshot(run), abandonedAt });
+		await load();
+	}
 
 	const facets = $derived(facetsOf(runs));
 	const shown = $derived(filterRuns(runs, filter));
@@ -178,6 +202,16 @@
 	{#if importNote}
 		<p class="note" class:note--bad={!importNote.ok} role="status" data-testid="import-note">
 			{importNote.text}
+		</p>
+	{/if}
+
+	{#if abandoned.length > 0}
+		<p class="tidy" data-testid="abandoned-note">
+			{abandoned.length === 1 ? 'One run was' : `${abandoned.length} runs were`} left part-way and never
+			finished — they still read IN_PROGRESS and count in every total.
+			<button type="button" data-testid="tidy-abandoned" onclick={tidyAbandoned}>
+				Mark {abandoned.length === 1 ? 'it' : 'them'} abandoned
+			</button>
 		</p>
 	{/if}
 
@@ -385,12 +419,18 @@
 									<span class="visually-hidden">{run.pinned ? 'Pinned' : 'Not pinned'}</span>
 								</button>
 							</td>
-							<td class="when">{when(run.startedAt)}</td>
+							<!-- The start time opens the run too (UX-9): the row's first readable cell, not only the bot's name. -->
+							<td class="when">
+								<a
+									href={resolve('/workshop/runs/[runId]', { runId: run.id })}
+									data-testid="run-open-{run.id}">{when(run.startedAt)}</a
+								>
+							</td>
 							<td>
 								<a href={resolve('/workshop/runs/[runId]', { runId: run.id })}>{run.agentName}</a>
 							</td>
 							<td class="mono">{run.goalCardId}</td>
-							<td><span class="outcome" data-outcome={run.outcome}>{run.outcome}</span></td>
+							<td><span class="outcome" data-outcome={displayOutcome(run)}>{displayOutcome(run)}</span></td>
 							<td class="num">{run.ticks}<span class="of">/{run.budgets.maxTicks}</span></td>
 							<td class="num">{seconds(run)}</td>
 							<td class="mono">{run.wireModel}</td>
@@ -581,6 +621,33 @@
 	 * The outcome is a word first. `04-…` §7 — never colour alone — and here the
 	 * word *is* the whole cell, so the colour is doing nothing but reinforcing.
 	 */
+	.outcome[data-outcome='ABANDONED'] {
+		opacity: 0.55;
+	}
+	tbody tr:hover {
+		background: color-mix(in srgb, var(--cab-blue) 6%, transparent);
+	}
+	.tidy {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--cab-space-2);
+		margin: 0 0 var(--cab-space-3);
+		padding: var(--cab-space-2) var(--cab-space-3);
+		font-size: var(--cab-text-sm);
+		background: color-mix(in srgb, var(--cab-yellow) 25%, var(--cab-cream));
+		border: var(--cab-border-part) solid var(--cab-yellow);
+		border-radius: var(--cab-radius-panel);
+	}
+	.tidy button {
+		font: inherit;
+		font-size: var(--cab-text-sm);
+		padding: var(--cab-space-1) var(--cab-space-2);
+		border: var(--cab-border-part) solid var(--cab-ink);
+		border-radius: var(--cab-radius-pill);
+		background: var(--cab-cream);
+		cursor: pointer;
+	}
 	.outcome[data-outcome='SUCCESS'] {
 		color: var(--cab-green-text);
 	}

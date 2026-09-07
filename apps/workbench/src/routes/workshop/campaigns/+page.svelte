@@ -30,7 +30,10 @@
 	import Matrix from '$lib/components/control-room/Matrix.svelte';
 	import Lamp from '$lib/components/control-room/Lamp.svelte';
 	import Meter from '$lib/components/control-room/Meter.svelte';
+	import { page } from '$app/state';
+	import { editionId } from '$lib/edition-id.js';
 	import { createRegistry, installedPacks, packVersions } from '$lib/packs.js';
+	import { defaultShippedCampaign, shippedCampaigns } from '$lib/workshop/shipped-campaigns.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import { contentStore } from '$lib/state/content.svelte.js';
 	import { slugOf } from '@craftabot/core';
@@ -62,7 +65,20 @@
 	 * listed here — it is the record of an experiment.
 	 */
 
-	let source = $state(JSON.stringify(injectionBaseline(), null, '\t'));
+	/**
+	 * Every campaign the installed packs ship (UX-5): the Playroom's injection
+	 * baseline and each desk's own. `?baseline=<id>` opens on one — the desk
+	 * pages link here that way — and the Playground section opens on the
+	 * Advice Desk's rather than the Playroom's.
+	 */
+	const shipped = shippedCampaigns();
+	const openedOn = defaultShippedCampaign(
+		shipped,
+		page.url.searchParams.get('baseline') ??
+			(editionId === 'playground' ? 'fs-advice-baseline' : undefined)
+	);
+	let baselinePick = $state(openedOn?.id ?? 'injection-baseline');
+	let source = $state(JSON.stringify(openedOn?.campaign() ?? injectionBaseline(), null, '\t'));
 	let stored = $state<StoredCampaignReport[]>([]);
 	let running = $state(false);
 	let progress = $state({ done: 0, total: 0 });
@@ -293,7 +309,8 @@
 	}
 
 	function loadBaseline(): void {
-		source = JSON.stringify(injectionBaseline(), null, '\t');
+		const entry = shipped.find((candidate) => candidate.id === baselinePick);
+		source = JSON.stringify(entry ? entry.campaign() : injectionBaseline(), null, '\t');
 		importNote = '';
 	}
 
@@ -379,6 +396,14 @@
 
 	<section class="editor" aria-label="The campaign">
 		<div class="toolbar">
+			<label class="import">
+				Shipped
+				<select data-testid="baseline-pick" bind:value={baselinePick}>
+					{#each shipped as entry (entry.id)}
+						<option value={entry.id} title={entry.description}>{entry.title}</option>
+					{/each}
+				</select>
+			</label>
 			<button type="button" data-testid="load-baseline" onclick={loadBaseline}>Load baseline</button
 			>
 			<label class="import">

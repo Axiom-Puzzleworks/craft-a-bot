@@ -20,6 +20,9 @@ import { complaintsEvaluators } from './complaints/evaluators.js';
  */
 export const FS_ADVICE_PACK_ID = 'fs-advice';
 
+import { ADVICE_BASELINE_ID, adviceBaseline } from './campaign.js';
+import { COMPLAINTS_BASELINE_ID, complaintsBaseline } from './complaints/campaign.js';
+
 export const fsAdvicePack: PackManifest = {
 	id: FS_ADVICE_PACK_ID,
 	name: 'The Advice Desk (synthetic)',
@@ -30,6 +33,21 @@ export const fsAdvicePack: PackManifest = {
 	worlds: [adviceDesk, complaintsDesk],
 	goalCards: [...adviceGoalCards, ...complaintsGoalCards],
 	scenarios: [...adviceScenarios, ...complaintsScenarios],
+	// The desks' baselines, offered by name on the Campaigns screen (UX-5).
+	campaigns: [
+		{
+			id: ADVICE_BASELINE_ID,
+			title: 'The Advice Desk baseline',
+			description: 'Every advice deck under the seven cards, three seeds — the campaign CI runs.',
+			campaign: () => adviceBaseline()
+		},
+		{
+			id: COMPLAINTS_BASELINE_ID,
+			title: 'The Complaints Desk baseline',
+			description: 'The complaints-and-redress deck under its cards, three seeds.',
+			campaign: () => complaintsBaseline()
+		}
+	],
 	policyCards: [...advicePolicyCards, REDRESS_NEEDS_APPROVAL],
 	evaluators: [...adviceEvaluators, ...complaintsEvaluators],
 	controlMaps: [adviceControlMap]

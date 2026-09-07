@@ -1,4 +1,8 @@
 <script lang="ts">
+	import { glossTags } from '$lib/workshop/tag-gloss.js';
+
+	/** Deck counts read aloud (UX-22). */
+	const DECK_WORDS = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight'];
 	import { resolve } from '$app/paths';
 	import { migrateAgentSpec, type AgentSpecV2, type DeskWorldState } from '@craftabot/core';
 	import { seededRandom, type DeskTruth } from '@craftabot/desk';
@@ -83,7 +87,7 @@
 				deck,
 				title: scenario.title,
 				card: scenario.goalCardId.replace('fs-fraud/', ''),
-				tags: scenario.tags.join(' ')
+				tags: glossTags(scenario.tags)
 			}
 		}))
 	);
@@ -149,8 +153,18 @@
 {/if}
 
 <section aria-label="The decks">
-	<h2>The four decks — {fraudScenarios.length} scenarios</h2>
+	<!-- The count comes from the data (UX-22): the incident deck arrived after the heading was written. -->
+	<h2>
+		The {DECK_WORDS[FRAUD_DECKS.length] ?? FRAUD_DECKS.length} decks — {fraudScenarios.length} scenarios
+	</h2>
 	<CaseTable columns={deckColumns} rows={deckRows} testId="fraud-decks" />
+	<p>
+		<a
+			class="run-campaign"
+			href={`${resolve('/workshop/campaigns')}?baseline=fs-fraud-baseline`}
+			data-testid="fraud-run-campaign">Run this desk’s campaign →</a
+		>
+	</p>
 </section>
 
 <div class="panes">

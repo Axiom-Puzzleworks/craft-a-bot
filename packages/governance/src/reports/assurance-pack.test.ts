@@ -508,7 +508,7 @@ describe('the renderings', () => {
 		expect(md).toContain('service "ci" (craftabot-harness)');
 		// A nameless person is said to be one (UX-3), never rendered as a bare id.
 		expect(principalLine({ kind: 'person', id: 'browser-2' })).toBe('person (unnamed) (browser-2)');
-		expect(md).not.toContain('not recorded in this build (WP65)');
+		expect(md).not.toContain('not recorded in this build');
 	});
 
 	it('HTML: one file, no script, the app’s tokens inlined, every run id an anchor into the appendix', async () => {

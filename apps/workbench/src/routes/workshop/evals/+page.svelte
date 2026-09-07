@@ -127,7 +127,7 @@
 <svelte:head><title>Evals — Workshop</title></svelte:head>
 
 <main>
-	<h1>Eval Matrix</h1>
+	<h1>Eval matrix</h1>
 
 	<section class="config" aria-label="Configure the matrix">
 		<fieldset>

@@ -29,7 +29,7 @@ test('files a built bot’s evidence, says what is not there yet, and the HTML r
 	await expect(page.getByTestId('assurance-no-campaigns')).toContainText('no campaign evidence');
 	await expect(page.getByTestId('assurance-no-runs')).toContainText('no stored runs');
 	await expect(page.getByTestId('assurance-governance')).toContainText(
-		'not recorded in this build (WP65)'
+		'not recorded in this build'
 	);
 	// Every registered map is filed: the generic one, the bank's, the three desks'. Nothing is pending since WP72.
 	await expect(page.getByTestId('assurance-control-table').locator('tbody tr')).not.toHaveCount(0);

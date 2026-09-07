@@ -185,7 +185,7 @@
 <svelte:head><title>Policies — Workshop</title></svelte:head>
 
 <main>
-	<h1>Policy Studio</h1>
+	<h1>Policy studio</h1>
 
 	<section aria-label="Author a card">
 		<h2>Author</h2>

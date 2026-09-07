@@ -112,7 +112,7 @@
 
 <main data-testid="bench-page">
 	<header class="top">
-		<h1>Test Bench</h1>
+		<h1>Test bench</h1>
 		<label class="picker">
 			Run
 			<select

@@ -185,6 +185,7 @@ export {
 	type PackArtwork,
 	type PackManifest,
 	type PackManifestMetadata,
+	type ShippedCampaign,
 	type ToolMetadata
 } from './schemas/pack-manifest.js';
 export type { NotebookAccess, ToolContext, ToolDefinition, ToolResult } from './types/tool.js';

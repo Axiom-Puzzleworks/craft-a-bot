@@ -98,6 +98,13 @@
 
 <section aria-label="The deck">
 	<h2>The complaints-and-redress deck</h2>
+	<p>
+		<a
+			class="run-campaign"
+			href={`${resolve('/workshop/campaigns')}?baseline=fs-complaints-baseline`}
+			data-testid="complaints-run-campaign">Run this desk’s campaign →</a
+		>
+	</p>
 	<CaseTable columns={deckColumns} rows={deckRows} testId="complaints-deck" />
 </section>
 

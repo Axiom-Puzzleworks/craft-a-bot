@@ -41,7 +41,7 @@
 	const DESTINATIONS = [
 		{ id: 'dashboard', label: 'Bench', href: '/workshop' },
 		{ id: 'runs', label: 'Runs', href: '/workshop/runs' },
-		{ id: 'spec', label: 'Spec Lab', hint: 'per bot' },
+		{ id: 'spec', label: 'Spec lab', hint: 'per bot' },
 		{ id: 'evals', label: 'Evals', href: '/workshop/evals' },
 		// WP38 (`28-CAMPAIGNS.md` §4.9) — the guardrail regression suite as a file.
 		{ id: 'campaigns', label: 'Campaigns', href: '/workshop/campaigns' },
@@ -56,7 +56,7 @@
 		// WP59 (`48-FS-BANK.md` §4.8) — the synthetic bank, read: a case from a seed and the nine lines.
 		{ id: 'playground', label: 'Playground', href: '/workshop/playground' },
 		{ id: 'policies', label: 'Policies', href: '/workshop/policies' },
-		{ id: 'bench', label: 'Test Bench', href: '/workshop/bench' },
+		{ id: 'bench', label: 'Test bench', href: '/workshop/bench' },
 		{ id: 'telemetry', label: 'Telemetry', href: '/workshop/telemetry' },
 		{ id: 'incidents', label: 'Incidents', href: '/workshop/incidents' },
 		{ id: 'safety-case', label: 'Safety case', href: '/workshop/safety-case' },

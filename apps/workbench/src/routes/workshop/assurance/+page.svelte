@@ -476,8 +476,12 @@
 		gap: var(--cab-space-4);
 		margin-bottom: var(--cab-space-3);
 	}
+	/* The Workshop's engraved heading (UX-18): the same register as every other screen. */
 	h1 {
 		margin: 0;
+		font-size: var(--cab-text-xl);
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
 	}
 	h2 {
 		margin: var(--cab-space-4) 0 var(--cab-space-2);
