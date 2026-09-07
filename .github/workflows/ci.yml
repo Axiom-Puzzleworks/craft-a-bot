@@ -27,6 +27,9 @@ jobs:
       # The governance tarball is the library and nothing else (WP50, `38-…` §4.1).
       - run: node scripts/check-governance-pack.mjs
 
+      # The Python reader over a bundle (WP73, `62-THE-TAIL.md` §4.4) — the script skips itself when no python3 is present.
+      - run: npm run example:python
+
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 

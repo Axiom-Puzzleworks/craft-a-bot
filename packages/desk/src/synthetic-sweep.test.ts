@@ -17,14 +17,16 @@ import { checkSynthetic, type SyntheticSweepFile } from '@craftabot/pack-testkit
  * bites, so a refactor that blunts it fails the build too.
  */
 const REPO = resolve(import.meta.dirname, '../../..');
-const ROOTS = ['packages', 'campaigns'];
+// `examples` since WP73: the Python reader's bundle fixture is a fixture like any other.
+const ROOTS = ['packages', 'campaigns', 'examples'];
 const SKIP_DIRS = new Set([
 	'node_modules',
 	'dist',
 	'coverage',
 	'__snapshots__',
 	'.svelte-kit',
-	'build'
+	'build',
+	'.venv'
 ]);
 const FIXTURE_DIRS = new Set(['fixtures', 'baselines', 'cassettes', 'scenarios', 'corpus']);
 const EXTENSIONS = new Set(['.json', '.jsonl', '.md', '.ts']);

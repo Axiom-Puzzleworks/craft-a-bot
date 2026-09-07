@@ -36,6 +36,7 @@
 		"evals": "npm run craftabot -- campaign --matrix scripted --out packages/evals/baselines",
 		"craftabot": "node packages/harness/dist/main.js",
 		"example:governance": "node examples/plain-node-agent/dist/main.js",
+		"example:python": "node scripts/python-reader.mjs",
 		"check:governance-pack": "node scripts/check-governance-pack.mjs"
 	},
 	"devDependencies": {

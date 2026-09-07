@@ -630,6 +630,8 @@ Every artefact that crosses a boundary is already Zod-defined (`10-…` §1's ru
 
 > **Amended 2026-09-05 (WP56 stage C):** the seam is open — `scripts/json-schema.mjs`, `npm run schemas`, and `--check` at the end of `npm run build` — for the six artefacts that exist today (`craftabot-trace`, `craftabot-bundle`, `craftabot-scenarios`, the campaign file and report, `EvaluationRecord`). `craftabot-cassette` (WP58), `AssurancePack` (WP67) and `BoundaryMap` (WP57) are added to the generator's list by the WP that creates each. The generator reads the built `dist/`, so it runs after the packages build rather than "on every build" of each package; the effect a reader sees is the same.
 
+> **Amended 2026-09-07 (WP73 stage B, `62-THE-TAIL.md` §4.4):** `examples/python-reader/` exists — `read_bundle.py` validates a bundle against `docs/schemas/craftabot-bundle.schema.json` with `jsonschema` and recomputes all three digests (`traceDigest`, `groupDigest`, `bundleDigest`) with the standard library, which is more than "validates" and is what a bundle is for; `requirements.txt` is `jsonschema` alone; the fixture is the bundle the app writes over the say-hello golden trace, held byte-equal by `evals/src/python-reader.test.ts`; `npm run example:python` (`scripts/python-reader.mjs`) runs it in CI and skips itself when no `python3` is on `PATH` — the condition decided by the script, not the workflow. `AssurancePack` and `BoundaryMap` are still not in the generator's list (`62-…` §2 item 8): neither crosses a boundary as a file.
+
 ---
 
 ## 7. Data model v4 (summary of record)

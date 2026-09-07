@@ -32,6 +32,9 @@ Thumbs.db
 .env.*
 !.env.example
 
+# The Python example's own venv (`npm run example:python` makes it).
+examples/python-reader/.venv
+
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
