@@ -167,7 +167,7 @@
 		background: var(--cab-cream);
 	}
 	.find .count {
-		color: var(--cab-ink-muted);
+		color: var(--cab-ink);
 	}
 	/* Grouped (UX-10): the strip wraps, and each world's cards follow its heading. */
 	.cards--grouped {
@@ -186,7 +186,8 @@
 		font-weight: 700;
 		letter-spacing: 0.04em;
 		text-transform: uppercase;
-		color: var(--cab-ink-muted);
+		/* Full ink, not muted: the tinted board behind it leaves no contrast to spare (axe). */
+		color: var(--cab-ink);
 		background: color-mix(in srgb, var(--cab-board) 22%, var(--cab-paper));
 	}
 	.cards {

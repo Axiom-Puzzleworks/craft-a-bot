@@ -63,7 +63,7 @@ test('a run played in the Kit is forensicable in the Workshop', async ({ page })
 	await expect(firstRun).toBeVisible();
 
 	// Into the Run Lab.
-	await firstRun.getByRole('link').click();
+	await firstRun.getByRole('link').first().click();
 	await expect(page.getByTestId('run-header')).toBeVisible();
 
 	// The three regions the flagship is made of (`17-…` §3).
@@ -83,7 +83,7 @@ test('a run played in the Kit is forensicable in the Workshop', async ({ page })
 test('the timeline filters down to trouble, and says so when there is none', async ({ page }) => {
 	await playARun(page);
 	await page.goto('/workshop/runs');
-	await page.locator('[data-testid^="run-row-"]').first().getByRole('link').click();
+	await page.locator('[data-testid^="run-row-"]').first().getByRole('link').first().click();
 
 	await expect(page.getByTestId('timeline')).toBeVisible();
 	await page.getByTestId('only-failures').check();
@@ -111,7 +111,7 @@ test('the Spec Lab agrees with the Kit bench about the same bot', async ({ page 
 
 	await page.goto('/workshop');
 	await expect(page.getByTestId('fleet')).toBeVisible();
-	await page.locator('[data-testid^="fleet-row-"]').first().getByRole('link').click();
+	await page.locator('[data-testid^="fleet-row-"]').first().getByRole('link').first().click();
 
 	await expect(page.getByTestId('spec-contract')).toBeVisible();
 
