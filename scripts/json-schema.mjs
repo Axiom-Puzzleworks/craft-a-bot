@@ -92,6 +92,12 @@ export async function artefactSchemas() {
 			description:
 				'A batch of work items drawn from a population without the clock — applications, alerts, complaints, advice requests — each with the truth a desk would compute for it, and the population digest and oversampling it was made with (67-PERFORMANCE-AND-BOOKS.md §6).'
 		},
+		'workflow-run': {
+			schema: core.workflowRunSchema,
+			title: 'Craft A Bot workflow run (v1)',
+			description:
+				'One journey over one work item: every stage’s record — executor, input and output digests, guard tally, the agent run it made — the workflow’s own events, and a digest over the records (69-WORKFLOWS.md §4).'
+		},
 		calibration: {
 			schema: core.calibrationTableSchema,
 			title: 'Craft A Bot calibration table',

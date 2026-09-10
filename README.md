@@ -194,6 +194,8 @@ packages/governance       guardrails, hosted guard shell, reports, the assurance
 packages/evals            evaluators, scenarios, campaigns and their reports
 packages/harness          the headless host (`craftabot …`)
 packages/desk             desk worlds, truth, the synthetic primitives
+packages/workflow         journeys as stages with executors over a desk (`runWorkflow`); depends on core and desk only
+packages/metrics          fairness, drift, human-load metrics with their validation suite; depends on core only
 packages/telemetry        trace sinks (OTLP, file)
 packages/evidence         the shared evidence store (memory, Supabase)
 packages/packs/*          content: the Playroom, the Workshop, providers, guard services, the bank and its desks

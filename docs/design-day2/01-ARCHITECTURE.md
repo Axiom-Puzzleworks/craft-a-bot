@@ -148,4 +148,6 @@ V1 needs none. The first features that will genuinely require one: sharing kit f
 > **Amended 2026-09-05:** the JS budget is a budget **per build**, not one number over everything (`41-TARGET-DESIGN-V4.md` §2.1 G42, §6.14). `scripts/bundle-budget.mjs` takes a limit and reports per-route sizes (WP56); the `full` build keeps 1.5 MB, and each edition (`simulator`, `workshop`, `playground`) is measured against its own budget once WP69 builds them. A single budget would have made the Kit and the Playground compete for the same bytes.
 | Offline | App shell loads offline (static PWA-ready); running a bot obviously needs the network for the LLM |
 
+> **Amended 2026-09-10 (WP79).** The simulator edition's budget moves +10 kB to 1.48 MB (`edition.ts`): `core` carries the workflow types, the run record schema and the two events every edition ships, and CI's Linux build landed 3 kB over on the day.
+>
 > **Amended 2026-09-06 (WP69, `59-EDITIONS.md` §4.2).** The budget is per build (WP56) and now per edition: `full` keeps its limit; `simulator`, `workshop` and `playground` carry their own in `edition.ts`, each checked by `npm run build:editions` and CI's `editions` job.

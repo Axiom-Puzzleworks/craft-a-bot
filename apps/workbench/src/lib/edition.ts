@@ -54,7 +54,7 @@ export const EDITIONS: Record<EditionId, Edition> = {
 		routes: { allow: NOT_WORKSHOP },
 		mode: EDITION_MODE.simulator,
 		shelf: shelfFor(false),
-		budgetBytes: 1_470_000 // +15 kB 2026-09-07 (WP73): the wave 2 placeholders inlined as markup; +25 kB the same day (the UX pass)
+		budgetBytes: 1_480_000 // +15 kB 2026-09-07 (WP73): the wave 2 placeholders inlined as markup; +25 kB the same day (the UX pass); +10 kB 2026-09-10 (WP79): core's workflow types and events
 	},
 	workshop: {
 		id: 'workshop',

@@ -2,6 +2,7 @@ import { z } from 'zod';
 import type { BrickKindDefinition } from '../types/brick.js';
 import type { ControlMap } from '../types/control-map.js';
 import type { CalibrationTable } from './calibration.js';
+import type { WorkflowSpec } from '../types/workflow.js';
 import type { Guardrail, GuardrailHook } from '../types/guardrail.js';
 import type { Evaluator } from '../types/evaluator.js';
 import type { GuardrailService } from '../types/guardrail-service.js';
@@ -274,6 +275,12 @@ export interface PackManifest extends PackManifestMetadata {
 	 * reviewer reads, checked by `checkCalibration`, rendered on the bank page.
 	 */
 	calibrations?: CalibrationTable[];
+	/**
+	 * Workflows (WP79, `69-WORKFLOWS.md` §3): a journey as stages with typed
+	 * input and output and an executor each — content over a world the pack
+	 * ships, run by `@craftabot/workflow`. Function-valued like `worlds`.
+	 */
+	workflows?: WorkflowSpec[];
 	artwork?: PackArtwork;
 	/**
 	 * LLM providers this pack makes available (`06-…` §8, WP26). Function-valued

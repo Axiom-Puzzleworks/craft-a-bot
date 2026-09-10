@@ -28,6 +28,7 @@ import { buildEvidenceStore, evidenceStoreById, parseEvidenceStoreConfig } from 
 import type { EvidenceKind } from '@craftabot/core';
 import { runKit, type BrainTier } from './commands/run.js';
 import { forkRun } from './commands/fork.js';
+import { workflowRun } from './commands/workflow.js';
 import { createRegistry } from './config.js';
 import { createFileStorage } from './storage/file-storage.js';
 
@@ -148,6 +149,19 @@ Usage:
       and at which tick. --kit forks a counterfactual build onto the same
       goal card; without it the origin's own spec runs again. --tick
       defaults to the origin's last completed tick but one.
+
+  craftabot workflow run --workflow <id> --item <item.json> [--config <name>]
+                 [--kit <bot.craftabot.json>] [--brain scripted-optimal|scripted-noisy|live]
+                 [--seed <n>] [--decide <stageId>=<option>,…] [--deny]
+                 [--egress declared|none] [--out ./runs]
+      One workflow a pack ships (WP79, 69-WORKFLOWS.md) over one work item:
+      every stage in turn — a rule, the bot on the stage's card, a person,
+      a service line — with typed input and output checked both ways.
+      --config picks one of the workflow's named configurations; --kit is
+      the bot every agent stage seats (needed only when a stage's executor
+      is the bot); --decide answers the human stages. Every agent run is
+      written as run writes a run, and the workflow's own record with its
+      stage records and digest as <out>/workflows/<id>/workflow-run.json.
 
   craftabot bundle --run <runId> | --group <groupRunId> [--out ./runs] [--file <path>]
       Write a stored run back out as a .craftabot-trace.json, or a group
@@ -384,6 +398,41 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 				});
 				io.stdout(`${JSON.stringify(report, null, '\t')}\n`);
 				return 0;
+			}
+			case 'workflow': {
+				// WP79 stage C (`69-WORKFLOWS.md` §8): one workflow over one work item.
+				const verb = args.positional[0];
+				const workflowId = stringFlag(args, 'workflow');
+				const itemPath = stringFlag(args, 'item');
+				if (verb !== 'run' || workflowId === undefined || itemPath === undefined) {
+					throw new Error('workflow needs run --workflow <id> --item <item.json>');
+				}
+				const brainFlag = stringFlag(args, 'brain') ?? 'scripted-optimal';
+				if (!BRAINS.includes(brainFlag as BrainTier)) {
+					throw new Error(`--brain must be one of ${BRAINS.join(', ')}`);
+				}
+				const configName = stringFlag(args, 'config');
+				const kitPath = stringFlag(args, 'kit');
+				const egress = egressFlag(args);
+				const decisions = decisionsFlag(args);
+				const report = await workflowRun({
+					workflowId,
+					itemPath,
+					brain: brainFlag as BrainTier,
+					seed: numberFlag(args, 'seed') ?? 1,
+					out: stringFlag(args, 'out') ?? './runs',
+					approve: args.flags['deny'] !== true,
+					config: await configFrom(args),
+					credentials: credentialsFor(io),
+					principal: principalFor(io, args),
+					...(configName !== undefined ? { configName } : {}),
+					...(kitPath !== undefined ? { kitPath } : {}),
+					...(egress !== undefined ? { egress } : {}),
+					...(decisions !== undefined ? { decisions } : {})
+				});
+				io.stdout(`${JSON.stringify(report, null, '	')}
+`);
+				return report.outcome === 'completed' ? 0 : 1;
 			}
 			case 'bundle': {
 				const runId = stringFlag(args, 'run');
@@ -831,6 +880,19 @@ function egressFlag(args: ParsedArgs): EgressMode | undefined {
 function stringFlag(args: ParsedArgs, name: string): string | undefined {
 	const value = args.flags[name];
 	return typeof value === 'string' ? value : undefined;
+}
+
+/** `--decide sign=approve,review=refer` — the scripted answers for a workflow's human stages (WP79). */
+function decisionsFlag(args: ParsedArgs): Record<string, string> | undefined {
+	const value = stringFlag(args, 'decide');
+	if (value === undefined) return undefined;
+	const decisions: Record<string, string> = {};
+	for (const pair of value.split(',')) {
+		const eq = pair.indexOf('=');
+		if (eq <= 0) throw new Error(`--decide wants <stageId>=<option> pairs, not "${pair}"`);
+		decisions[pair.slice(0, eq).trim()] = pair.slice(eq + 1).trim();
+	}
+	return decisions;
 }
 
 function numberFlag(args: ParsedArgs, name: string): number | undefined {

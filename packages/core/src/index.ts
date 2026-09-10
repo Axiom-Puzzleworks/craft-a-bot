@@ -588,6 +588,26 @@ export {
 	type ControlRowStatus
 } from './types/control-map.js';
 export { EVENT_TYPES } from './schemas/events.js';
+export type {
+	AutonomyLevel as WorkflowAutonomyLevel,
+	Executor,
+	RuleFn,
+	StageSpec,
+	WorkflowConfig,
+	WorkflowSpec
+} from './types/workflow.js';
+export {
+	executorRecordSchema,
+	parseWorkflowRun,
+	stageRecordSchema,
+	stageValueSchema,
+	workflowConfigRecordSchema,
+	workflowRunSchema,
+	type ExecutorRecord,
+	type StageRecord,
+	type WorkflowRun
+} from './schemas/workflow-run.js';
+export { sha256Hex } from './schemas/sha256.js';
 export {
 	bookSchema,
 	bookSourceSchema,

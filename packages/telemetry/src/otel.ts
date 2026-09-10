@@ -195,6 +195,30 @@ export function otelTraceFor(run: RunRecord, events: readonly EngineEvent[]): Ot
 					intAttr('craft_a_bot.tick', event.tick)
 				]
 			});
+		} else if (event.type === 'stage.completed') {
+			// The stage boundary (WP79, `69-…` §6): one child span per stage a bot did, closed when the stage completed.
+			const at = nanosOf(event.timestamp);
+			const opened = events.find(
+				(candidate) =>
+					candidate.type === 'stage.started' && candidate.payload.stageId === event.payload.stageId
+			);
+			childSpans.push({
+				traceId,
+				spanId: spanIdOf(event.id),
+				parentSpanId: rootSpanId,
+				name: `stage ${event.payload.stageId}`,
+				kind: 3,
+				startTimeUnixNano: opened ? nanosOf(opened.timestamp) : at,
+				endTimeUnixNano: at,
+				attributes: [
+					stringAttr('craft_a_bot.workflow.run_id', event.payload.workflowRunId),
+					stringAttr('craft_a_bot.stage.id', event.payload.stageId),
+					stringAttr('craft_a_bot.stage.status', event.payload.status),
+					intAttr('craft_a_bot.stage.guards_checked', event.payload.guards.checked),
+					intAttr('craft_a_bot.stage.guards_tripped', event.payload.guards.tripped),
+					intAttr('craft_a_bot.tick', event.tick)
+				]
+			});
 		} else if (event.type === 'guardrail.tripped') {
 			rootEvents.push({
 				timeUnixNano: nanosOf(event.timestamp),
