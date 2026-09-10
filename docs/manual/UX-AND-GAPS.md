@@ -237,7 +237,7 @@ Everything raised as a defect is closed. What follows is the work deferred on pu
 
 | # | What | Why it was deferred | Severity · Effort |
 |---|---|---|---|
-| **UX-12 (Worker)** | A campaign runs on the main thread and holds the tab | The three small halves — **Cancel**, the progress counter, the honest estimate — landed and cover most of the pain | Medium · M |
+| **UX-12 (Worker)** | A campaign runs on the main thread and holds the tab | The three small halves — **Cancel**, the progress counter, the honest estimate — landed and cover most of the pain. **Built 2026-09-10 as WP77** (`65-DAY5-ROADMAP.md` §3, on the `day5` branch): the run is in a Worker with a queue; the 930-cell Advice baseline takes 24 s with the tab live | Medium · M |
 | **UX-7** | The boundary map's labels collide where the ring is crowded | Needs `Boundary.svelte` rewritten, not nudged | Medium · M |
 | **CLOSE-2** | One service worker per origin; a second section can open blank (§3b) | Found at close; belongs inside the editions package | Medium · S |
 | **GAP-2** | No guided path through the Playground — a reader has to know where to start | Content and sequencing work, not a defect | Medium · M |

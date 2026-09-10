@@ -30,17 +30,29 @@ import { fileURLToPath } from 'node:url';
  * imports are not counted: they are lazy by definition, which is the point of
  * them. The per-route table is a report, not a gate; the gate stays on the
  * total, as the doc has it.
+ *
+ * **The Worker is counted apart** (WP77, `64-TARGET-DESIGN-V5.md` §6.6.1;
+ * `01-…` §8's dated note). Vite bundles a module Worker as its own file
+ * under `_app/immutable/workers/`, with its own copy of everything it
+ * imports — the engine, the packs — because a Worker cannot share the
+ * page's chunks. That file is fetched only when a campaign is run, never on
+ * first load, so it does not belong in the shell's number; but a Worker
+ * that quietly doubled would be a regression too. So the Workers are summed
+ * on their own line against their own limit — `--worker-limit <bytes>`,
+ * default 800 kB — and the shell's gate stays what `01-…` §8 says.
  */
 
 // Resolved from this script, not the working directory: it runs as a build
 // step inside `apps/workbench` as well as by hand from the repo root.
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_LIMIT_BYTES = 1_500_000;
+const DEFAULT_WORKER_LIMIT_BYTES = 800_000;
 
 function parseArgs(argv) {
 	const options = {
 		app: join(REPO, 'apps', 'workbench'),
 		limit: DEFAULT_LIMIT_BYTES,
+		workerLimit: DEFAULT_WORKER_LIMIT_BYTES,
 		out: 'build'
 	};
 	for (let i = 0; i < argv.length; i++) {
@@ -51,6 +63,14 @@ function parseArgs(argv) {
 				throw new Error(`bundle-budget: --limit wants a positive number of bytes, got ${argv[i]}`);
 			}
 			options.limit = value;
+		} else if (arg === '--worker-limit') {
+			const value = Number(argv[++i]);
+			if (!Number.isFinite(value) || value <= 0) {
+				throw new Error(
+					`bundle-budget: --worker-limit wants a positive number of bytes, got ${argv[i]}`
+				);
+			}
+			options.workerLimit = value;
 		} else if (arg === '--app') {
 			options.app = join(REPO, argv[++i] ?? '');
 		} else if (arg === '--out') {
@@ -154,10 +174,20 @@ try {
 
 const BUILD = join(options.app, options.out);
 const LIMIT_BYTES = options.limit;
+const WORKER_LIMIT_BYTES = options.workerLimit;
+// Either slash: the path is absolute, and on Windows it is joined with backslashes.
+const isWorker = (file) => {
+	const parts = file.split(/[\\/]/);
+	const at = parts.indexOf('workers');
+	return at > 1 && parts[at - 1] === 'immutable' && parts[at - 2] === '_app';
+};
 
 let files;
+let workers = [];
 try {
-	files = jsFiles(BUILD);
+	const all = jsFiles(BUILD);
+	files = all.filter((file) => !isWorker(file));
+	workers = all.filter(isWorker);
 } catch {
 	console.error(`bundle-budget: no build at ${BUILD}. Run \`npm run build\` first.`);
 	process.exitCode = 1;
@@ -198,8 +228,21 @@ if (files.length > 0) {
 		console.log(`  per route: no SvelteKit manifests found under ${relative(REPO, options.app)}`);
 	}
 
+	let workerRaw = 0;
+	for (const file of workers) workerRaw += statSync(file).size;
+	if (workers.length > 0) {
+		console.log(
+			`  workers  ${kb(workerRaw)} of ${kb(WORKER_LIMIT_BYTES)} worker budget in ${workers.length} file(s), fetched only when a run starts`
+		);
+	}
+
 	if (raw > LIMIT_BYTES) {
 		console.error(`bundle-budget: OVER BUDGET by ${kb(raw - LIMIT_BYTES)} (01 §8)`);
+		process.exitCode = 1;
+	} else if (workerRaw > WORKER_LIMIT_BYTES) {
+		console.error(
+			`bundle-budget: WORKER OVER BUDGET by ${kb(workerRaw - WORKER_LIMIT_BYTES)} (WP77)`
+		);
 		process.exitCode = 1;
 	} else {
 		console.log('bundle-budget: within budget');

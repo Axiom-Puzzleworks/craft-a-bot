@@ -8,8 +8,6 @@
 		buildKitFile,
 		localContentReferencedBy,
 		type AgentRecord,
-		type AgentSpecV2,
-		type EngineEvent,
 		type StoredCampaignReport
 	} from '@craftabot/core';
 	import {
@@ -19,11 +17,9 @@
 		renderCampaignScorecard,
 		renderJUnit,
 		renderSarif,
-		runCampaign,
 		summariseCampaign,
 		type Campaign,
 		type CampaignCell,
-		type CampaignReport,
 		type ConfusionMatrix
 	} from '@craftabot/evals';
 	import CaseTable from '$lib/components/control-room/CaseTable.svelte';
@@ -32,9 +28,9 @@
 	import Meter from '$lib/components/control-room/Meter.svelte';
 	import { page } from '$app/state';
 	import { editionId } from '$lib/edition-id.js';
-	import { createRegistry, installedPacks, packVersions } from '$lib/packs.js';
+	import { createRegistry, packVersions } from '$lib/packs.js';
 	import { defaultShippedCampaign, shippedCampaigns } from '$lib/workshop/shipped-campaigns.js';
-	import { workshopPlans } from '$lib/workshop/plans.js';
+	import { campaignRunner } from '$lib/state/campaign-runner-app.svelte.js';
 	import { failedFirst } from '$lib/workshop/case-order.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import { contentStore } from '$lib/state/content.svelte.js';
@@ -44,7 +40,6 @@
 	import { browserPrincipalId } from '$lib/state/principal.js';
 	import { itemForReport } from '$lib/workshop/evidence.js';
 	import {
-		envelopeFor,
 		recordForCampaignCell,
 		reportFrom,
 		sliceId,
@@ -82,21 +77,22 @@
 	let baselinePick = $state(openedOn?.id ?? 'injection-baseline');
 	let source = $state(JSON.stringify(openedOn?.campaign() ?? injectionBaseline(), null, '\t'));
 	let stored = $state<StoredCampaignReport[]>([]);
-	let running = $state(false);
-	let progress = $state({ done: 0, total: 0 });
 	/**
-	 * **Cancel, elapsed and remaining** (UX-12). A campaign in the browser
-	 * saturates the main thread between yields, so the one honest thing to say
-	 * is how long it has been and roughly how long is left, and to offer a way
-	 * out. Cancelling stops at the next cell boundary — the runner's own
-	 * `betweenCells` yield — and stores nothing: a partial report would be a
-	 * report over cells it never ran, and the report's digest is over all of them.
+	 * **The run is the runner store's, in a Worker** (WP77, `64-…` §6.6.1;
+	 * UX-12's other half). This page queues a campaign and reads the store:
+	 * the Worker runs it, the store persists the report when it lands, and the
+	 * tab answers throughout — leave for the Run Browser mid-run and the
+	 * report is still stored. **Cancel** stops at the next cell boundary and
+	 * stores nothing: a partial report would be a report over cells it never
+	 * ran, and the report's digest is over all of them.
 	 */
-	let cancelRequested = $state(false);
-	let cancelled = $state(false);
-	let startedAtMs = $state(0);
+	const running = $derived(campaignRunner.running);
+	const progress = $derived(campaignRunner.progress);
+	const cancelRequested = $derived(campaignRunner.cancelRequested);
+	const lastQueued = $derived(campaignRunner.queue.at(-1));
+	const cancelled = $derived(!running && lastQueued?.status === 'cancelled');
 	let nowMs = $state(0);
-	const elapsedMs = $derived(running ? Math.max(0, nowMs - startedAtMs) : 0);
+	const elapsedMs = $derived(running ? Math.max(0, nowMs - campaignRunner.startedAtMs) : 0);
 	/**
 	 * When each cell finished (NEW-6): the estimate is a trailing average over
 	 * the last twenty cells, not the mean since the start — the first cell is
@@ -104,12 +100,11 @@
 	 * as the run went on. Said as "about a minute" past a threshold, because
 	 * the seconds were never honest.
 	 */
-	let cellDoneAt: number[] = [];
 	const TRAILING = 20;
 	const remainingMs = $derived.by(() => {
 		if (!running || progress.done < 2) return undefined;
 		void nowMs;
-		const recent = cellDoneAt.slice(-TRAILING - 1);
+		const recent = campaignRunner.cellDoneAt.slice(-TRAILING - 1);
 		if (recent.length < 2) return undefined;
 		const perCell = ((recent.at(-1) ?? 0) - (recent[0] ?? 0)) / (recent.length - 1);
 		return Math.round(perCell * (progress.total - progress.done));
@@ -130,8 +125,7 @@
 		const timer = setInterval(() => (nowMs = Date.now()), 1000);
 		return () => clearInterval(timer);
 	});
-	class CancelledError extends Error {}
-	let report = $state<CampaignReport | undefined>(undefined);
+	const report = $derived(campaignRunner.report);
 	let fromStore = $state(false);
 	let openSlice = $state<CampaignSlice | undefined>(undefined);
 	let importNote = $state('');
@@ -196,11 +190,9 @@
 
 	function loadSaved(record: unknown): void {
 		source = JSON.stringify(record, null, '\t');
-		report = undefined;
+		campaignRunner.forgetReport();
 	}
-	type Trace = { events: readonly EngineEvent[]; spec: AgentSpecV2 };
-	// Raw on purpose: hundreds of event arrays that never change once collected.
-	let traces = $state.raw<Record<string, Trace>>({});
+	const traces = $derived(campaignRunner.traces);
 
 	const parsed = $derived.by<{ ok: true; campaign: Campaign } | { ok: false; message: string }>(
 		() => {
@@ -402,66 +394,33 @@
 			: `${file.name} is not a campaign: ${parsed.ok ? '' : parsed.message}`;
 	}
 
-	async function execute(): Promise<void> {
+	let runNote = $state('');
+	function execute(): void {
 		if (!parsed.ok || hasLive) return;
-		running = true;
-		cancelRequested = false;
-		cancelled = false;
-		startedAtMs = Date.now();
-		nowMs = startedAtMs;
-		cellDoneAt = [startedAtMs];
 		openSlice = undefined;
 		fromStore = false;
-		traces = {};
-		progress = { done: 0, total: size };
-		const collected: Record<string, Trace> = {};
-		try {
-			const result = await runCampaign(parsed.campaign, {
-				// A macrotask between cells, so the count can paint (the Eval Matrix's own lesson) — and
-				// the one place a cancel can land (UX-12).
-				betweenCells: () =>
-					new Promise<void>((resolveYield, rejectYield) =>
-						setTimeout(
-							() =>
-								cancelRequested ? rejectYield(new CancelledError('cancelled')) : resolveYield(),
-							0
-						)
-					),
-				packs: installedPacks,
-				// The Workshop's plan chain (NEW-1): without it the runner falls back to the
-				// starter's plans and every desk cell errors — the harness composes the same chain.
-				plans: workshopPlans,
-				onCell: (_cell, done, total) => {
-					progress = { done, total };
-					cellDoneAt.push(Date.now());
-				},
-				onTrace: (cell, trace) => {
-					if (cell.runId) collected[cell.runId] = trace;
-				}
-			});
-			const storage = await appStorage();
-			await storage.putCampaignReport(envelopeFor(result));
-			await loadStored();
-			// Shown only once stored (WP56 stage A): a verdict on screen used to
-			// be a few milliseconds ahead of the report a safety case reads, and
-			// a navigation in that gap left the screen honest and the store empty.
-			traces = collected;
-			report = result;
-		} catch (cause) {
-			if (!(cause instanceof CancelledError)) throw cause;
-			cancelled = true;
-		} finally {
-			running = false;
-		}
+		const wasRunning = running;
+		const queued = campaignRunner.enqueue(parsed.campaign);
+		runNote =
+			typeof queued === 'string'
+				? queued
+				: wasRunning
+					? `Queued ${queued.title} (${queued.cells} cells) behind the running one.`
+					: '';
+		nowMs = Date.now();
 	}
+	// The stored list follows the store: a report lands there from the Worker whether or not this page is open.
+	$effect(() => {
+		void campaignRunner.report;
+		void loadStored();
+	});
 
 	function openStored(row: StoredCampaignReport): void {
 		const loaded = reportFrom(row);
 		if (!loaded) return;
-		report = loaded;
+		campaignRunner.showStored(loaded);
 		fromStore = true;
 		openSlice = undefined;
-		traces = {};
 	}
 
 	async function openInRunLab(cell: CampaignCell): Promise<void> {
@@ -546,26 +505,31 @@
 				</p>
 				<button
 					type="button"
-					disabled={running || !parsed.ok || hasLive || size === 0}
+					disabled={!parsed.ok || hasLive || size === 0}
 					data-testid="run-campaign"
 					onclick={execute}
 				>
-					{running ? `Running ${progress.done}/${progress.total}…` : 'Run campaign'}
+					{running ? 'Queue campaign' : 'Run campaign'}
 				</button>
+				{#if runNote}<span class="hint" data-testid="campaign-run-note">{runNote}</span>{/if}
 				{#if running}
+					<span class="run-status" role="status" data-testid="campaign-progress">
+						Running {progress.done}/{progress.total}…
+					</span>
 					<!-- The way out, and the honest clock (UX-12). -->
 					<button
 						type="button"
 						class="cancel"
 						disabled={cancelRequested}
 						data-testid="cancel-campaign"
-						onclick={() => (cancelRequested = true)}
+						onclick={() => campaignRunner.cancel()}
 					>
 						{cancelRequested ? 'Stopping after this cell…' : 'Cancel'}
 					</button>
 					<span class="run-status" role="status" data-testid="campaign-clock">
 						{clock(elapsedMs)} elapsed{remainingMs !== undefined ? `, ${roughly(remainingMs)}` : ''} —
-						the page is busy between cells and may not answer until it finishes.
+						running in a Worker, so this page stays live; the report is stored when it finishes, even
+						if you leave.
 					</span>
 				{:else if cancelled}
 					<span class="run-status" role="status" data-testid="campaign-cancelled">
@@ -574,6 +538,21 @@
 				{/if}
 			</div>
 		</div>
+		{#if campaignRunner.queue.length > 0}
+			<!-- The queue (WP77): several campaigns, one running, in the order they were asked for. -->
+			<ol class="queue" data-testid="campaign-queue" aria-label="The queue">
+				{#each campaignRunner.queue as entry (entry.id)}
+					<li data-testid="queued-{entry.id}" data-status={entry.status}>
+						{entry.title} · {entry.cells} cells · <strong>{entry.status}</strong>{entry.error
+							? ` — ${entry.error}`
+							: ''}
+						{#if entry.status !== 'running'}
+							<button type="button" onclick={() => campaignRunner.remove(entry.id)}>Remove</button>
+						{/if}
+					</li>
+				{/each}
+			</ol>
+		{/if}
 		<textarea
 			bind:value={source}
 			spellcheck="false"
@@ -1010,6 +989,14 @@
 		border: var(--cab-border-part) solid var(--cab-engrave);
 		border-radius: var(--cab-radius-pill);
 		background: var(--cab-cream);
+	}
+	.queue {
+		margin: var(--cab-space-2) 0;
+		padding-left: var(--cab-space-4);
+		font-size: var(--cab-text-sm);
+	}
+	.queue li {
+		margin: var(--cab-space-1) 0;
 	}
 	.run-status {
 		display: flex;

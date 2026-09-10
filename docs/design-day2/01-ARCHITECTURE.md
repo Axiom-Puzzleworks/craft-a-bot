@@ -139,7 +139,7 @@ V1 needs none. The first features that will genuinely require one: sharing kit f
 
 | Concern | Target |
 |---|---|
-| First load | < 2s on a mid-range laptop, < 1.5 MB JS (excluding art) — **per build** from 2026-09-05, see the note below |
+| First load | < 2s on a mid-range laptop, < 1.5 MB JS (excluding art) — **per build** from 2026-09-05, see the note below; **from 2026-09-10 (WP77) the campaign Worker's chunk is counted apart** — fetched only when a run starts, never on first load, it is summed under `_app/immutable/workers/` against its own 800 kB limit (`scripts/bundle-budget.mjs --worker-limit`) rather than the shell's |
 | Agent tick latency | UI reflects each loop phase in < 100ms after the provider responds |
 | Trace capacity | 10,000 events per run without UI degradation (virtualised list) |
 | Browsers | Latest Chrome, Edge, Firefox, Safari; no IE/legacy |

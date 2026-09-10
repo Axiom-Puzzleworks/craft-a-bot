@@ -130,3 +130,33 @@ test('one cell of a desk baseline runs here without erroring', async ({ page }) 
 	await expect(rows).toHaveCount(1);
 	await expect(rows.first()).not.toContainText('error');
 });
+
+/**
+ * **The tab answers during a run** (WP77, `64-…` §6.6.1; UX-12's other
+ * half): the campaign runs in a Worker, so the rail answers a click mid-run
+ * and the route changes — and the report is still stored when the run
+ * finishes, because the run belongs to the runner store, not the page.
+ */
+test('a campaign keeps running in the Worker while the rail changes the route, and its report is stored', async ({
+	page
+}) => {
+	test.setTimeout(90_000);
+	await page.goto('/workshop/campaigns');
+	await page.getByTestId('campaign-source').fill(JSON.stringify(injectionBaseline([1, 2, 3, 4])));
+	await expect(page.getByTestId('campaign-size')).toHaveText('128 cells');
+	await page.getByTestId('run-campaign').click();
+	await expect(page.getByTestId('campaign-progress')).toBeVisible();
+	await expect(page.getByTestId('campaign-queue')).toContainText('running');
+
+	// Mid-run, the rail works.
+	await page.getByTestId('rail-runs').click();
+	await expect(page).toHaveURL(/\/workshop\/runs$/);
+
+	// Back on Campaigns — by the rail, not a reload, which would drop the visit's runner with
+	// everything else in memory — the report arrives, stored, without the page having run anything.
+	await page.getByTestId('rail-campaigns').click();
+	await expect(page.getByTestId('campaign-queue')).toContainText('done', { timeout: 60_000 });
+	await expect(page.locator('[data-testid^="campaign-report-"]')).toHaveCount(1, {
+		timeout: 10_000
+	});
+});

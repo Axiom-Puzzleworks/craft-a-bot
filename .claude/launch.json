@@ -4,9 +4,23 @@
 		{
 			"name": "workbench",
 			"runtimeExecutable": "npm",
-			"runtimeArgs": ["run", "dev", "--workspace=apps/workbench"],
+			"runtimeArgs": [
+				"run",
+				"dev",
+				"--workspace=apps/workbench"
+			],
 			"port": 5173,
 			"autoPort": true
+		},
+		{
+			"name": "preview",
+			"runtimeExecutable": "npm",
+			"runtimeArgs": [
+				"run",
+				"preview",
+				"--workspace=apps/workbench"
+			],
+			"port": 4173
 		}
 	]
 }
