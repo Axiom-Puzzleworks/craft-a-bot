@@ -75,6 +75,26 @@ const fixture: PackConformanceFixture = {
 						}
 					]
 				},
+				// The knobs' predicates (WP78): reachable only under a policy that turns them on.
+				'four-eyes-on-every-decision': {
+					layoutId: 'clear-approve',
+					config: { knobs: { fourEyes: 'all' } },
+					calls: [
+						{ name: 'verify-identity', arguments: {} },
+						{ name: 'assess-affordability', arguments: {} },
+						{ name: 'decide', arguments: { outcome: 'approve', reasons: ['affordable'] } }
+					]
+				},
+				'payslip-before-the-decision': {
+					layoutId: 'clear-approve',
+					config: { knobs: { documentBefore: 'always' } },
+					calls: [
+						{ name: 'verify-identity', arguments: {} },
+						{ name: 'assess-affordability', arguments: {} },
+						{ name: 'request-document', arguments: { kind: 'payslip' } },
+						{ name: 'decide', arguments: { outcome: 'approve', reasons: ['affordable'] } }
+					]
+				},
 				'decline-and-hear-the-appeal': {
 					layoutId: 'declined-asks-why',
 					calls: [

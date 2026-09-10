@@ -120,7 +120,7 @@ export interface WorldDefinition {
 	actions: WorldActionDefinition[]; // schema per action (JSON-schema params)
 	senses: WorldSenseDefinition[]; // what each sense channel yields
 	predicates: Record<WorldPredicateId, string>; // success conditions (evaluated internally)
-	create(layoutId: string): WorldInstance;
+	create(layoutId: string): WorldInstance; // since WP53: create(layoutId, { random? }); since WP78 (2026-09-10): { random?, config? } — config read at create, before the case is generated
 }
 
 export interface WorldInstance {

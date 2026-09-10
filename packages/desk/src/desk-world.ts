@@ -91,7 +91,8 @@ export interface DeskCase<Extra = Record<string, unknown>> {
 export interface DeskLayoutSpec<Extra = Record<string, unknown>> {
 	id: string;
 	name: string;
-	case(random: () => number): DeskCase<Extra>;
+	/** The case, from the seeded stream — and, since WP78, the create-time config (`{ knobs }`) when the host passed one. */
+	case(random: () => number, config?: Record<string, unknown>): DeskCase<Extra>;
 }
 
 /**
@@ -108,7 +109,7 @@ export type DeskState<Extra = Record<string, unknown>> = DeskWorldState & {
 	scheduledHeard: { text: string; atTick: number }[];
 	/** `tool-result` injections, by tool id, for a service line to read (WP58). Carried, not consumed, in WP53. */
 	toolOverrides: Record<string, unknown>;
-	/** What `configure` was handed. Nothing reads it yet. */
+	/** What `create` and `configure` were handed (WP78): a desk reads `config.knobs` for its policy. */
 	config?: Record<string, unknown>;
 	/**
 	 * Where the person across the desk has got to (WP66, `54-…` §4.2): the
@@ -273,13 +274,14 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 
 	function buildState(
 		layout: DeskLayoutSpec<Extra>,
-		seed: number
+		seed: number,
+		config?: Record<string, unknown>
 	): {
 		state: DeskState<Extra>;
 		truth: DeskTruth | undefined;
 		counterpart: CounterpartScript | undefined;
 	} {
-		const generated = layout.case(seededRandom(seed));
+		const generated = layout.case(seededRandom(seed), config);
 		const state: DeskState<Extra> = {
 			desk: { ...spec.desk },
 			records: structuredClone(generated.revealed),
@@ -293,6 +295,7 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 			heardCursor: 0,
 			scheduledHeard: [],
 			toolOverrides: {},
+			...(config ? { config: structuredClone(config) } : {}),
 			extra: structuredClone(generated.extra ?? ({} as Extra))
 		};
 		return {
@@ -368,7 +371,9 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 			);
 		}
 		const seed = seedFrom(options?.random);
-		const built = buildState(layout, seed);
+		// The create-time config (WP78): part of how the case was made, so a reset and a restore rebuild with it.
+		const config = options?.config;
+		const built = buildState(layout, seed, config);
 		let state = built.state;
 		// Beside the state, never in it (`45-…` §4.2): nothing that clones the
 		// state can reach it, and nothing but `truth()` reads it.
@@ -750,7 +755,7 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 				return check ? check.test(state, truth) : false;
 			},
 			reset(): void {
-				const rebuilt = buildState(layout, seed);
+				const rebuilt = buildState(layout, seed, config);
 				state = rebuilt.state;
 				truth = rebuilt.truth;
 				baseRandom = seededRandom(seed ^ 0x9e3779b9);

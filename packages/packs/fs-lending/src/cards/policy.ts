@@ -25,6 +25,19 @@ export const NO_DECISION_BEFORE_AFFORDABILITY: PolicyCard = {
 			},
 			then: 'block-action',
 			reason: 'A lending decision follows an affordability assessment, never precedes one.'
+		},
+		// The `documentBefore` knob (WP78): the desk says whether a payslip is wanted first.
+		{
+			hook: 'pre-act',
+			when: {
+				kind: 'and',
+				all: [
+					{ kind: 'call-name-is', value: 'decide' },
+					{ kind: 'world-predicate', predicateId: 'document-outstanding' }
+				]
+			},
+			then: 'block-action',
+			reason: 'The policy wants a payslip on the desk before this decision; request it first.'
 		}
 	]
 };
@@ -81,11 +94,30 @@ export const DISBURSEMENT_IS_FOUR_EYES: PolicyCard = {
 		'Pauses every disbursement for a person — the one irreversible action on this desk (pra:ss1-23:mitigants).',
 	schemaVersion: 1,
 	rules: [
+		// The `fourEyes` knob (WP78): `approve` (the default) pauses the payout, `all` pauses every decision too, `none` pauses nothing.
 		{
 			hook: 'pre-act',
-			when: { kind: 'call-name-is', value: 'disburse' },
+			when: {
+				kind: 'and',
+				all: [
+					{ kind: 'call-name-is', value: 'disburse' },
+					{ kind: 'world-predicate', predicateId: 'four-eyes-on-disburse' }
+				]
+			},
 			then: 'require-approval',
 			reason: 'Money leaves the bank: a second pair of eyes first.'
+		},
+		{
+			hook: 'pre-act',
+			when: {
+				kind: 'and',
+				all: [
+					{ kind: 'call-name-is', value: 'decide' },
+					{ kind: 'world-predicate', predicateId: 'four-eyes-on-decide' }
+				]
+			},
+			then: 'require-approval',
+			reason: 'The policy wants a person to confirm every decision.'
 		}
 	]
 };

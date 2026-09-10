@@ -55,6 +55,8 @@ export interface ConformanceIssue {
 export interface WorldScriptFixture {
 	layoutId: string;
 	calls: ActionCall[];
+	/** The world's create-time config (WP78) — `{ knobs }` — so a predicate a knob turns on is reachable by a script. */
+	config?: Record<string, unknown>;
 }
 
 /** A call the world must refuse cleanly — never thrown, never silently allowed. */

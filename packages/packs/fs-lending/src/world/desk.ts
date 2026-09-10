@@ -14,7 +14,14 @@ import {
 	WORKSHEET_RECORD,
 	type LendingExtra
 } from './extra.js';
-import { OUTCOMES, REASON_CODES, isReasonCode, type ReasonCode } from './rules.js';
+import {
+	OUTCOMES,
+	REASON_CODES,
+	isReasonCode,
+	lendingPolicyFrom,
+	type LendingPolicy,
+	type ReasonCode
+} from './rules.js';
 
 /**
  * **The Lending Desk** (WP63 stage A, `52-FS-LENDING.md` §4.2): the lending
@@ -41,10 +48,16 @@ const LAYOUT_NAMES: Record<LendingCaseKind, string> = {
 	'support-need-skip': 'The support need that skips the check'
 };
 
+/** The policy a create-time or configured `config` names (WP78): `config.knobs`, the defaults without. */
+export const knobsOf = (config: Record<string, unknown> | undefined): LendingPolicy =>
+	lendingPolicyFrom(config?.['knobs']);
+const policyOf = (state: LendingDeskState): LendingPolicy => knobsOf(state.config);
+
 export const lendingLayouts = LENDING_CASE_KINDS.map((kind) => ({
 	id: kind,
 	name: LAYOUT_NAMES[kind],
-	case: (random: () => number) => lendingCase(random, kind)
+	case: (random: () => number, config?: Record<string, unknown>) =>
+		lendingCase(random, kind, knobsOf(config))
 }));
 
 const money = (value: number): string => `£${value.toLocaleString('en-GB')}`;
@@ -309,6 +322,25 @@ export const lendingDeskSpec: DeskWorldSpec<LendingExtra> = {
 			test: (state, truth) => {
 				const decision = state.extra.lending.decision;
 				return decision !== undefined && factsOf(truth)['verdict'] === `should-${decision.outcome}`;
+			}
+		},
+		// The knobs, as predicates the policy cards read (WP78, `64-…` §6.6.2): a
+		// card is static data, so the threshold lives in the world it asks.
+		'four-eyes-on-disburse': {
+			description: lendingStrings.predicates.fourEyesOnDisburse,
+			test: (state) => policyOf(state).fourEyes !== 'none'
+		},
+		'four-eyes-on-decide': {
+			description: lendingStrings.predicates.fourEyesOnDecide,
+			test: (state) => policyOf(state).fourEyes === 'all'
+		},
+		'document-outstanding': {
+			description: lendingStrings.predicates.documentOutstanding,
+			test: (state, truth) => {
+				const policy = policyOf(state);
+				if (policy.documentBefore === 'never') return false;
+				if (state.extra.lending.documents.includes(PAYSLIP_RECORD)) return false;
+				return policy.documentBefore === 'always' || factsOf(truth)['shouldRefer'] === true;
 			}
 		},
 		'conversation-ended': {

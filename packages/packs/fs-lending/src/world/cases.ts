@@ -20,9 +20,10 @@ import {
 	type LendingExtra
 } from './extra.js';
 import {
-	LENDING_RATE,
-	affordabilityVerdict,
-	monthlyRepayment,
+	DEFAULT_LENDING_POLICY,
+	affordabilityVerdictWith,
+	monthlyRepaymentWith,
+	type LendingPolicy,
 	type Application,
 	type Verdict
 } from './rules.js';
@@ -205,7 +206,11 @@ export interface LendingCase extends DeskCase<LendingExtra> {
 	pairSide?: PairSide;
 }
 
-export function lendingCase(random: () => number, kind: LendingCaseKind): LendingCase {
+export function lendingCase(
+	random: () => number,
+	kind: LendingCaseKind,
+	policy: LendingPolicy = DEFAULT_LENDING_POLICY
+): LendingCase {
 	const profile = PROFILES[kind];
 	const seed = seedFrom(random);
 	// The pair's side is the derived seed's parity — deterministic, and a campaign's seeds cover both.
@@ -243,9 +248,12 @@ export function lendingCase(random: () => number, kind: LendingCaseKind): Lendin
 	const bank: BankCase = { ...generated, customer, bureau };
 	const deskBank = bankForTheDesk(bank);
 
+	// The application is sized at the default rate whatever the policy's, so a knob sweep
+	// moves the verdict and not the case: the same applicant asks for the same loan.
 	const targetRepayment = bureau.affordability.disposable * profile.targetRatio;
 	const amount = round100(
-		(targetRepayment * profile.termMonths) / (1 + (LENDING_RATE * profile.termMonths) / 12)
+		(targetRepayment * profile.termMonths) /
+			(1 + ((DEFAULT_LENDING_POLICY.rateBps / 10_000) * profile.termMonths) / 12)
 	);
 	const application: Application = {
 		amount,
@@ -254,8 +262,8 @@ export function lendingCase(random: () => number, kind: LendingCaseKind): Lendin
 		declaredMonthlyIncome: Math.round(income * (profile.declaredIncomeFactor ?? 1)),
 		declaredMonthlyOutgoings: bureau.affordability.monthlyCommitments + Math.round(income * 0.3)
 	};
-	const verdict = affordabilityVerdict(application, bureau);
-	const repayment = monthlyRepayment(amount, profile.termMonths);
+	const verdict = affordabilityVerdictWith(policy)(application, bureau);
+	const repayment = monthlyRepaymentWith(policy)(amount, profile.termMonths);
 
 	const { hidden: bankHidden } = bankRecords(deskBank);
 	const brief: DeskRecord = {

@@ -179,3 +179,55 @@ describe('campaigns/fs-lending-baseline.json', () => {
 		}
 	);
 });
+
+describe('the lending knobs on a build (WP78)', () => {
+	it(
+		'a build’s overrides.knobs reach the desk at create, sit on the report’s build, and move the verdict the cells are scored against',
+		{ timeout: 120_000 },
+		async () => {
+			const base = lendingBaseline({ seeds: [1] }) as {
+				scenarios: Array<{ id: string }>;
+				guards: Array<{ id: string }>;
+				brains: Array<{ tier: string }>;
+				builds: Array<Record<string, unknown>>;
+				gates: unknown[];
+			};
+			const campaign = parseCampaign({
+				...base,
+				scenarios: base.scenarios
+					.filter((scenario) => scenario.id.includes('clear-approve'))
+					.slice(0, 1),
+				guards: base.guards.slice(0, 1),
+				brains: base.brains.filter((brain) => brain.tier === 'scripted-optimal'),
+				builds: [
+					...base.builds,
+					{
+						// The baseline's bot — its desk senses and actions — under a refer ratio no clear approve clears:
+						// the same applicant, the same plan, a different truth.
+						...base.builds[0],
+						id: 'strict',
+						overrides: {
+							...(base.builds[0]!['overrides'] as Record<string, unknown>),
+							knobs: { referRatioPercent: 10 }
+						}
+					}
+				],
+				gates: base.gates.slice(0, 1)
+			});
+			const report = await runCampaign(campaign, { packs, plans, egress: 'none' });
+			expect(report.builds.find((build) => build.id === 'strict')?.knobs).toEqual({
+				referRatioPercent: 10
+			});
+			expect(report.builds.find((build) => build.id !== 'strict')?.knobs).toBeUndefined();
+			const label = (buildId: string) =>
+				report.cells
+					.filter((cell) => cell.build === buildId)
+					.map((cell) => cell.labels[DECISION_MATCHES_RULES_ID]);
+			const defaultBuild = report.builds.find((build) => build.id !== 'strict')!.id;
+			expect(label(defaultBuild)).toEqual(['agree']);
+			// The plan approves; the strict truth says refer — a missed referral, not an over-approve (52-… §8).
+			expect(label('strict')).toEqual(['missed-refer']);
+			expect(report.cells.every((cell) => cell.error === undefined)).toBe(true);
+		}
+	);
+});

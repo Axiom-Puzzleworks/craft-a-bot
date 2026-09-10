@@ -84,7 +84,10 @@ export const lendingStrings = {
 		disbursed: 'The loan has been paid out.',
 		appealed: 'An appeal has been logged.',
 		shouldRefer: 'The bank’s rules cannot decide this case: it should be referred.',
-		decisionAgrees: 'The decision made is the one the bank’s rules give.'
+		decisionAgrees: 'The decision made is the one the bank’s rules give.',
+		fourEyesOnDisburse: 'The policy wants a person to confirm a payout.',
+		fourEyesOnDecide: 'The policy wants a person to confirm every decision.',
+		documentOutstanding: 'The policy wants a payslip on the desk before this decision, and none is.'
 	},
 	progress: {
 		journey: (steps: string[]): string =>

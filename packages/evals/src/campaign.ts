@@ -99,7 +99,14 @@ export const specOverridesSchema = z.object({
 	llm: z.boolean().optional(),
 	temperature: z.number().optional(),
 	maxTokens: z.number().int().optional(),
-	personality: z.string().optional()
+	personality: z.string().optional(),
+	/**
+	 * The world's knobs (WP78, `64-…` §6.6.2): handed to the world at `create`
+	 * as `config.knobs`, so a desk's policy — the lending thresholds — is a
+	 * build axis, and a sweep over one knob is one campaign. Not a spec
+	 * override at all; stripped before the spec is built.
+	 */
+	knobs: z.record(z.string(), z.union([z.number(), z.string(), z.boolean()])).optional()
 });
 
 export const noiseRatesSchema = z.object({
@@ -424,7 +431,9 @@ export const campaignReportSchema = z.object({
 			z.object({
 				id: z.string(),
 				agentId: z.string().optional(),
-				agentName: z.string().optional()
+				agentName: z.string().optional(),
+				/** The world's knobs this build ran with (WP78), so a slice by build reads as a slice by knob. */
+				knobs: z.record(z.string(), z.union([z.number(), z.string(), z.boolean()])).optional()
 			})
 		)
 		.default([]),
@@ -721,7 +730,8 @@ export async function runCampaign(
 			id: build.id,
 			...(build.base.kind === 'kit'
 				? { agentId: build.base.kit.agent.id, agentName: build.base.kit.agent.name }
-				: {})
+				: {}),
+			...(build.overrides?.knobs ? { knobs: build.overrides.knobs } : {})
 		})),
 		cells: results,
 		gates,
@@ -862,14 +872,17 @@ async function runCell(
 		// parity gate has cohorts to compare. An injected world is built here with the same seed.
 		// The world's injections and the session's faults, apart (WP72, `61-…` §2 item 2).
 		const { world: worldInjections, faults: providerFaults } = splitInjections(scenario.injections);
+		// A build's knobs reach the world at `create` (WP78), so the world is built here as an injected one is.
+		const knobs = build.overrides?.knobs;
 		const world =
-			worldInjections.length > 0
+			worldInjections.length > 0 || knobs !== undefined
 				? injectedWorld(
 						registry,
 						goalCardId,
 						worldInjections,
 						scenario.id,
-						createTestClock({ seed }).random
+						createTestClock({ seed }).random,
+						knobs !== undefined ? { knobs } : undefined
 					)
 				: undefined;
 		const run = await runToCompletion({
@@ -956,7 +969,7 @@ async function runDuoCell(
 		maxTicks?: number;
 	}
 ): Promise<CampaignCell> {
-	const { scenario, guard, brain, seed } = cell;
+	const { scenario, build, guard, brain, seed } = cell;
 	const { identity, spec, goalCardId, script, maxTicks } = prepared;
 	const counterpart = campaign.counterpart as CampaignCounterpart;
 	const cartridgeId = counterpart.cartridgeId ?? '';
@@ -964,10 +977,21 @@ async function runDuoCell(
 	// The world is made here and handed to the group (`56-…` §4.1): injected
 	// and seeded as a single seat's is, and read for the person it seated.
 	const { card, world: worldDefinition } = deskFor(registry, goalCardId);
+	const knobs = build.overrides?.knobs;
 	const world =
 		scenario.injections.length > 0
-			? injectedWorld(registry, goalCardId, scenario.injections, scenario.id, clock.random)
-			: worldDefinition.create(card.layoutId, { random: clock.random });
+			? injectedWorld(
+					registry,
+					goalCardId,
+					scenario.injections,
+					scenario.id,
+					clock.random,
+					knobs !== undefined ? { knobs } : undefined
+				)
+			: worldDefinition.create(card.layoutId, {
+					random: clock.random,
+					...(knobs !== undefined ? { config: { knobs } } : {})
+				});
 	const { script: seatScript } = counterpartScriptFor(registry, goalCardId, world);
 	const seat = counterpartSpec(
 		seatScript,
@@ -1182,7 +1206,8 @@ function cleanOverrides(
 ): Omit<SpecOverrides, 'goalCardId' | 'tools'> {
 	if (!overrides) return {};
 	return Object.fromEntries(
-		Object.entries(overrides).filter(([, value]) => value !== undefined)
+		// `knobs` are the world's, not the spec's (WP78).
+		Object.entries(overrides).filter(([key, value]) => key !== 'knobs' && value !== undefined)
 	) as Omit<SpecOverrides, 'goalCardId' | 'tools'>;
 }
 

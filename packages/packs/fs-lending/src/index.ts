@@ -92,12 +92,19 @@ export {
 	type LendingState
 } from './world/extra.js';
 export {
+	DEFAULT_LENDING_POLICY,
+	LENDING_KNOB_IDS,
 	LENDING_RATE,
 	OUTCOMES,
 	REASON_CODES,
 	affordabilityVerdict,
+	affordabilityVerdictWith,
+	lendingPolicyFrom,
+	lendingPolicySchema,
 	isReasonCode,
 	monthlyRepayment,
+	monthlyRepaymentWith,
+	type LendingPolicy,
 	type Application,
 	type Evidence,
 	type Outcome,

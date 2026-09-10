@@ -77,6 +77,25 @@
 					},
 					"agentName": {
 						"type": "string"
+					},
+					"knobs": {
+						"type": "object",
+						"propertyNames": {
+							"type": "string"
+						},
+						"additionalProperties": {
+							"anyOf": [
+								{
+									"type": "number"
+								},
+								{
+									"type": "string"
+								},
+								{
+									"type": "boolean"
+								}
+							]
+						}
 					}
 				},
 				"required": [
