@@ -45,6 +45,7 @@ export const fsLendingPack: PackManifest = {
 export default fsLendingPack;
 
 export { lendingStrings } from './strings.js';
+export { lendingBook, type LendingBookOptions } from './book.js';
 export { lendingCardId, lendingGoalCards } from './decks/goal-cards.js';
 export {
 	COHORT_BLIND,

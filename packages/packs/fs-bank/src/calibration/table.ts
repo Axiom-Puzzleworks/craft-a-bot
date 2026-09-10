@@ -62,6 +62,20 @@ const UKF_PAYMENTS = publication(
 	'summary: 49.7bn payments; cards 64% of payments; Faster Payments 6.2bn; cash 8%; 91% of adults use remote banking',
 	'https://www.ukfinance.org.uk/system/files/2025-10/Payment%20Markets%20Report%20Summary.pdf'
 );
+const UKF_FRAUD = publication(
+	'UK Finance',
+	'Annual Fraud Report 2025',
+	'2024 data (published May 2025)',
+	'card fraud cases table (total 3,095,687; remote purchase 2,586,217) and the overall authorised payment fraud table (185,733 cases, £450.7m)',
+	'https://www.ukfinance.org.uk/policy-and-guidance/reports-and-publications/annual-fraud-report-2025'
+);
+const BOE_FSR = publication(
+	'Bank of England',
+	'Financial Stability Report',
+	'December 2025',
+	'the household section: the share of consumer-credit accounts in arrears levelled off at around 4%',
+	'https://www.bankofengland.co.uk/financial-stability-report/2025/december-2025'
+);
 const FCA_COMPLAINTS = publication(
 	'Financial Conduct Authority',
 	'Aggregate complaints data: 2024 H2',
@@ -426,6 +440,95 @@ export const CALIBRATION = table(
 			source: assumption(),
 			tolerance: 0.05,
 			note: 'The FCA’s 2024 H2 data breaks banking complaints down by product (current accounts 491,172 · credit cards 217,160 · savings 80,592 · other 21,404 · packaged accounts 15,959 · overdrafts 13,290) and by cause; the model’s categories are causes, and the cause table was not read on 2026-09-10. Flat until it is.'
+		}),
+		// --- the books (WP75, `67-PERFORMANCE-AND-BOOKS.md` §4–§5)
+		row({
+			id: 'application-incidence',
+			kind: 'rates',
+			title: 'A customer applies for a loan in the period',
+			distribution: { applies: 0.08 },
+			source: assumption(),
+			tolerance: 0.02,
+			note: 'FLS 2024 (Credit & loans, Slide 24) has 14% of adults holding a personal loan now or in the last twelve months; a share of that is new in any half-year, and the population’s period is 180 days. 8% is an assumption that gives a 20,000-customer population a book of about 1,600 applications.'
+		}),
+		row({
+			id: 'loan-amount',
+			kind: 'weights',
+			title: 'Loan amount asked for',
+			distribution: {
+				'1000': 10,
+				'2500': 18,
+				'5000': 24,
+				'7500': 14,
+				'10000': 16,
+				'15000': 10,
+				'20000': 5,
+				'25000': 3
+			},
+			source: assumption(),
+			tolerance: 0.05,
+			note: 'No public distribution of unsecured loan sizes; the FLS 2024 amount-owed bands are the nearest public shape (66-… §2, loan-size-term). The Lending Desk’s decks sized a loan to a target ratio; a book asks for a sum first and lets the rule judge it.'
+		}),
+		row({
+			id: 'loan-term',
+			kind: 'weights',
+			title: 'Loan term, months',
+			distribution: { '12': 12, '24': 28, '36': 30, '48': 18, '60': 12 },
+			source: assumption(),
+			tolerance: 0.05,
+			note: 'The product’s terms (12–60 months); no public distribution.'
+		}),
+		row({
+			id: 'loan-purpose',
+			kind: 'weights',
+			title: 'Loan purpose',
+			distribution: {
+				'a car': 30,
+				'home improvements': 25,
+				'debt consolidation': 20,
+				'a holiday': 10,
+				'a wedding': 5,
+				'something else': 10
+			},
+			source: assumption(),
+			tolerance: 0.05,
+			note: 'No public breakdown at this grain; the desks’ own purposes, weighted by assumption.'
+		}),
+		row({
+			id: 'declared-income-noise',
+			kind: 'rates',
+			title: 'Customers round up: the declared income above the verified one',
+			distribution: { roundsUp: 0.3, by: 0.15 },
+			source: assumption(),
+			tolerance: 0.05,
+			note: 'The share of applicants who declare an income above the bureau’s verified figure, and by how much — an assumption with no public source, so a desk has something to verify.'
+		}),
+		row({
+			id: 'loan-outcome-mix',
+			kind: 'target',
+			title: 'The rule’s verdicts over the book',
+			distribution: { approve: 0.49, refer: 0.36, decline: 0.15 },
+			source: assumption(),
+			tolerance: 0.08,
+			note: 'Set from the book’s first run under the default lending policy (2026-09-10: 781 approved, 573 referred, 243 declined of 1,597), so a drift in the generators or the rule moves a test. FLS 2024 (Financial inclusion §3.2): 8% of adults were declined a product in two years and 3.2m a regulated credit agreement, which bounds the decline share only loosely; the refer share has no public figure.'
+		}),
+		row({
+			id: 'arrears-base-rate',
+			kind: 'target',
+			title: 'Booked loans that default within twelve months',
+			distribution: { default: 0.04 },
+			source: BOE_FSR,
+			tolerance: 0.02,
+			note: 'The FSR’s ≈ 4% of consumer-credit accounts in arrears speaks of loans that were booked. The performance label’s base rate over the *approved* book must sit within ±2 points of it (67-… §3); declines, drawn from the same hazard, default far more often, which is the counterfactual the label exists for. Checked by the lending book test (fs-lending/src/book.test.ts), since the bank cannot judge an application without the desk’s rule.'
+		}),
+		row({
+			id: 'fraud-incidence',
+			kind: 'rates',
+			title: 'A transaction that is planted fraud, or a mule-in credit',
+			distribution: { fraudulent: 0.0075, muleIn: 0.0025 },
+			source: UKF_FRAUD,
+			tolerance: 0.005,
+			note: '3.10m unauthorised card fraud cases in 2024 against ≈ 31.8bn card payments (UK Payment Markets 2025: 64% of 49.7bn) is about one case per 10,000 payments; APP scams (185,733 cases) about a fifth as many. Raised by an oversampling factor of 100 (FRAUD_OVERSAMPLE, carried on every alert book’s source) so a book has enough positives to evaluate a desk on: 1% of transactions in all, three quarters card-shaped and a quarter APP-shaped.'
 		}),
 		row({
 			id: 'complaint-status',

@@ -7,7 +7,7 @@ import { generateBureau } from '../generate/bureau.js';
 import { generateComplaints } from '../generate/complaints.js';
 import { generateCustomer } from '../generate/customer.js';
 import { generateShelf } from '../generate/shelf.js';
-import { dayTransactions } from '../generate/transactions.js';
+import { dayTransactions, type PlantedLabel } from '../generate/transactions.js';
 import { sha256Hex } from './sha256.js';
 import { accountDaySeed, customerSeed } from './seeds.js';
 
@@ -58,8 +58,13 @@ export interface PopulationCustomer {
  * the period's end (its meaning in `bankCase`); `date` is the calendar day.
  */
 export interface TransactionStream {
-	/** The transactions of one account on calendar day `dayIndex` (0 … periodDays − 1). */
-	forAccount(accountId: string, dayIndex: number): Transaction[];
+	/**
+	 * The transactions of one account on calendar day `dayIndex` (0 … periodDays − 1).
+	 * Memoised unless `remember` is false — a scan over the whole bank (the alert book) reads once and forgets.
+	 */
+	forAccount(accountId: string, dayIndex: number, remember?: boolean): Transaction[];
+	/** The planted truth on a transaction the stream has generated, or undefined (`67-…` §5). Never on the transaction. */
+	plantedLabel(transactionId: string): PlantedLabel | undefined;
 	/** Every transaction with a calendar date in [from, to], by date then account, ISO dates inclusive. */
 	between(from: string, to: string): Iterable<Transaction>;
 	/** Calendar index → ISO date, and back. */
@@ -117,10 +122,12 @@ export function population(seed: number, overrides: Partial<PopulationOptions> =
 		entry.accounts.forEach((account, index) => accountOwner.set(account.id, { entry, index }));
 	}
 	const memo = new Map<string, Transaction[]>();
+	// The planted labels the stream has drawn so far — beside the rows, never on them.
+	const planted = new Map<string, PlantedLabel>();
 	const stream: TransactionStream = {
 		dateOf: (dayIndex) => isoDay(startMs + dayIndex * DAY_MS),
 		indexOf: (date) => Math.round((Date.parse(`${date}T00:00:00.000Z`) - startMs) / DAY_MS),
-		forAccount(accountId, dayIndex) {
+		forAccount(accountId, dayIndex, remember = true) {
 			if (dayIndex < 0 || dayIndex >= options.periodDays) return [];
 			const key = `${accountId}:${dayIndex}`;
 			const cached = memo.get(key);
@@ -134,9 +141,11 @@ export function population(seed: number, overrides: Partial<PopulationOptions> =
 				day: options.periodDays - 1 - dayIndex,
 				date: stream.dateOf(dayIndex)
 			});
-			memo.set(key, made);
-			return made;
+			for (const [id, label] of Object.entries(made.planted)) planted.set(id, label);
+			if (remember) memo.set(key, made.transactions);
+			return made.transactions;
 		},
+		plantedLabel: (transactionId) => planted.get(transactionId),
 		*between(from, to) {
 			const first = Math.max(0, stream.indexOf(from));
 			const last = Math.min(options.periodDays - 1, stream.indexOf(to));

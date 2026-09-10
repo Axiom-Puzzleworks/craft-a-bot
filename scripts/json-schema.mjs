@@ -86,6 +86,12 @@ export async function artefactSchemas() {
 			description:
 				'One evaluator’s verdict over one stored run — the record a Python evaluator writes for the Workshop to import (31-EVALUATORS.md §4.4).'
 		},
+		book: {
+			schema: core.bookSchema,
+			title: 'Craft A Bot book of work items',
+			description:
+				'A batch of work items drawn from a population without the clock — applications, alerts, complaints, advice requests — each with the truth a desk would compute for it, and the population digest and oversampling it was made with (67-PERFORMANCE-AND-BOOKS.md §6).'
+		},
 		calibration: {
 			schema: core.calibrationTableSchema,
 			title: 'Craft A Bot calibration table',

@@ -13,8 +13,14 @@ import { sha256Hex } from './sha256.js';
  * customer population is made in a stated time; a 1,000 sample passes the
  * synthetic sweep.
  */
-/** `population(1, { size: 2000 })` on 2026-09-10, the shipped table: a change to a row, a generator or the calendar moves it, and moves it deliberately. */
-const SHIPPED_DIGEST = '751e525c69d3daa81a9ec91980fab5a4b7546d4dbd7c5cd0cc5707561a14cc23';
+/**
+ * `population(1, { size: 2000 })` on the shipped table: a change to a row, a
+ * generator or the calendar moves it, and moves it deliberately. Moved once
+ * already, the same day: WP75 added the books' eight rows to the table the
+ * digest covers (751e525c… → 44fe315c…); the customers themselves did not
+ * change, as the size-invariance test shows.
+ */
+const SHIPPED_DIGEST = '44fe315c5a7a7c7c922490a2fe5b29fd256f82a7e75f55704c13ac11aeff33ed';
 
 describe('sha256Hex', () => {
 	it('matches the standard vectors and Web Crypto', async () => {

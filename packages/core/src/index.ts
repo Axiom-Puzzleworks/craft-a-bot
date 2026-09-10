@@ -589,6 +589,18 @@ export {
 } from './types/control-map.js';
 export { EVENT_TYPES } from './schemas/events.js';
 export {
+	bookSchema,
+	bookSourceSchema,
+	parseBook,
+	workItemKindSchema,
+	workItemSchema,
+	workItemTruthSchema,
+	type Book,
+	type BookSource,
+	type WorkItem,
+	type WorkItemKind
+} from './schemas/book.js';
+export {
 	calibrationRow,
 	calibrationRowKindSchema,
 	calibrationRowSchema,

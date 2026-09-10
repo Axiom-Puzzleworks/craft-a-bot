@@ -54,13 +54,10 @@ describe('the calibration seam', () => {
 		expect(CALIBRATION.rows.every((row) => row.review === 'pending')).toBe(true);
 		expect(CALIBRATION.rows.some((row) => row.source.kind === 'publication')).toBe(true);
 		expect(DECK_WEIGHTS.rows.every((row) => row.source.kind === 'assumption')).toBe(true);
-		// The two tables carry the same rows, so a generator reads either.
-		expect(DECK_WEIGHTS.rows.map((row) => row.id).sort()).toEqual(
-			CALIBRATION.rows
-				.filter((row) => row.kind !== 'target')
-				.map((row) => row.id)
-				.sort()
-		);
+		// Every row the deck weights carry is a row the cited table carries too, so a generator reads either;
+		// the cited table has more — the books' rows (WP75), which a designed case never draws.
+		const cited = new Set(CALIBRATION.rows.map((row) => row.id));
+		for (const row of DECK_WEIGHTS.rows) expect(cited.has(row.id), row.id).toBe(true);
 	});
 });
 
@@ -154,7 +151,16 @@ const flags: Record<string, Record<string, Flag>> = {
 const BY_CONSTRUCTION = new Set([
 	'vulnerability-drivers', // the per-draw rate; its marginals are the target rows
 	'vulnerability-disclosure', // per driver, checked below over the drivers themselves
-	'transaction-departure' // the departure flag is not on the transaction
+	'transaction-departure', // the departure flag is not on the transaction
+	// The books' rows (WP75): read off the loan book and the alert book in book/books.test.ts and fs-lending's book test.
+	'application-incidence',
+	'loan-amount',
+	'loan-term',
+	'loan-purpose',
+	'declared-income-noise',
+	'loan-outcome-mix',
+	'arrears-base-rate',
+	'fraud-incidence'
 ]);
 
 /** Rows read off the transaction sample rather than the customer sample. */

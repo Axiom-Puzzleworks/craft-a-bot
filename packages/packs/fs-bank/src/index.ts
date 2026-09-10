@@ -40,7 +40,13 @@ export { CALIBRATION, DECK_WEIGHTS, impliedMarginal, perDrawRate } from './calib
 export { rateOf, weightedRow, type Calibrated } from './generate/customer.js';
 export { generateCustomer } from './generate/customer.js';
 export { generateAccounts, monthlyIncomeOf } from './generate/accounts.js';
-export { dayTransactions, generateTransactions } from './generate/transactions.js';
+export {
+	dayTransactions,
+	generateTransactions,
+	type DayTransactions,
+	type PlantedLabel
+} from './generate/transactions.js';
+export * from './book/index.js';
 export {
 	POPULATION_DEFAULTS,
 	customerCase,
