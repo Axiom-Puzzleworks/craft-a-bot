@@ -1,6 +1,6 @@
 import type { ActionCall, WorldState } from './world.js';
 import type { JsonSchema } from './json-schema.js';
-import type { WorkItem } from '../schemas/book.js';
+import type { Book, WorkItem } from '../schemas/book.js';
 
 /**
  * **Workflows** (WP79, `69-WORKFLOWS.md` §3; `64-TARGET-DESIGN-V5.md` §6.2,
@@ -34,6 +34,12 @@ export interface StageSpec<In = unknown, Out = unknown> {
 	guards?: { policyCards?: string[] };
 	/** The stage commits something — disburse, freeze, file a SAR. */
 	irreversible?: boolean;
+	/**
+	 * What a scripted person answers at a `human` stage (WP80): the
+	 * recommendation on the desk — the bot's, or the rule's verdict — so a
+	 * campaign's person follows the case rather than the first option.
+	 */
+	suggest?: (input: In, state: WorldState, truth: unknown) => string | undefined;
 	/** The stage's output read off the world once an agent or a line has done its work; a rule returns its own. */
 	read?: (state: WorldState, truth: unknown) => Out | undefined;
 	/** Which stage follows, or `'end'` — from this stage's output, the state and, when it matters, the input it was given. */
@@ -79,4 +85,27 @@ export interface WorkflowSpec {
 	obligations: string[];
 	/** Named configurations — the reference configurations, each an autonomy level applied to the journey. */
 	configurations?: Record<string, WorkflowConfig>;
+	/**
+	 * The decision kind a stage's output is, for the decision-rights ceilings
+	 * (WP80, `64-…` §6.2.3, §6.4.1a): `in-policy-credit-approval` for an
+	 * approve, `adverse-credit-decision` for a decline; `undefined` when the
+	 * stage decided nothing.
+	 */
+	decisionKindOf?: (stageId: string, output: unknown) => string | undefined;
+	/**
+	 * The book this workflow runs over (WP80, `64-…` §6.6.3): the pack draws
+	 * it from the population at a seed and size, so a book campaign or a
+	 * Books tab needs only the numbers.
+	 */
+	book?: (request: BookRequest) => Book;
+}
+
+export interface BookRequest {
+	seed: number;
+	size: number;
+	periodDays?: number;
+	/** The pack's own filter shape, passed through. */
+	filter?: unknown;
+	/** The knobs the book's verdicts are judged under; the defaults without. */
+	knobs?: Record<string, number | string | boolean>;
 }

@@ -395,6 +395,119 @@
 	}
 
 	let runNote = $state('');
+	/**
+	 * **Books and sweeps** (WP80, `64-…` §6.6.3; `73-…` §6): a book through a
+	 * workflow's reference configurations, and one knob over every build —
+	 * both are campaigns with a `source`, put in the editor and queued as any
+	 * campaign is, so the file CI would run is exactly what ran here. The
+	 * book is drawn on this thread and carried inline, so the cell count is
+	 * known before the run and the Worker draws nothing.
+	 */
+	const workflows = createRegistry().listWorkflows();
+	let bookWorkflow = $state(workflows[0]?.id ?? '');
+	let bookSize = $state(200);
+	let bookSeed = $state(1);
+	let bookNote = $state('');
+	const bookConfigurationIds = $derived(
+		Object.keys(workflows.find((workflow) => workflow.id === bookWorkflow)?.configurations ?? {})
+	);
+	let bookPicked = $state<string[]>([]);
+	const bookConfigurations = $derived(
+		bookPicked.filter((id) => bookConfigurationIds.includes(id)).length > 0
+			? bookPicked.filter((id) => bookConfigurationIds.includes(id))
+			: bookConfigurationIds
+	);
+	function toggleConfiguration(id: string): void {
+		bookPicked = bookPicked.includes(id)
+			? bookPicked.filter((entry) => entry !== id)
+			: [...bookPicked, id];
+	}
+	function queueBook(): void {
+		const registry = createRegistry();
+		const workflow = registry.getWorkflow(bookWorkflow);
+		if (!workflow) return;
+		if (!workflow.book) {
+			bookNote = `${workflow.name} draws no book of its own.`;
+			return;
+		}
+		const world = registry.getWorld(workflow.worldId);
+		const size = Math.max(1, Math.floor(Number(bookSize) || 1));
+		const seed = Math.floor(Number(bookSeed) || 1);
+		const book = workflow.book({ seed, size });
+		const overrides = {
+			senses: (world?.senses ?? []).map((sense) => sense.id),
+			actions: (world?.actions ?? []).map((action) => action.id)
+		};
+		const configurations = bookConfigurations.length > 0 ? bookConfigurations : ['default'];
+		const campaign = {
+			schemaVersion: 1,
+			id: `book-${slugOf(workflow.id)}-${seed}-${size}`,
+			title: `${workflow.name} — the book at seed ${seed}, ${size} customers`,
+			scenarios: [],
+			source: { kind: 'book', workflowId: workflow.id, book },
+			builds: configurations.map((configuration) => ({
+				id: configuration,
+				base: { kind: 'starter-default' },
+				overrides: {
+					...overrides,
+					...(bookConfigurationIds.includes(configuration) ? { configuration } : {})
+				}
+			})),
+			guards: [{ id: 'none', fit: [] }],
+			brains: [{ id: 'scripted-optimal', tier: 'scripted-optimal' }],
+			seeds: [seed],
+			gates: [
+				{
+					id: 'a-measurement-not-a-judgment',
+					require: { kind: 'outcome-rate', outcome: 'SUCCESS', atLeast: 0 }
+				}
+			]
+		};
+		source = JSON.stringify(campaign, null, '\t');
+		bookNote = `${book.items.length} work items drawn; ${configurations.length} configuration${configurations.length === 1 ? '' : 's'}.`;
+		execute();
+	}
+	let sweepKnob = $state('');
+	let sweepValues = $state('');
+	let sweepNote = $state('');
+	const knobValue = (text: string): number | string | boolean => {
+		if (text === 'true') return true;
+		if (text === 'false') return false;
+		const number = Number(text);
+		return text.trim() !== '' && Number.isFinite(number) ? number : text;
+	};
+	function queueSweep(): void {
+		if (!parsed.ok) return;
+		const knob = sweepKnob.trim();
+		const values = sweepValues
+			.split(',')
+			.map((entry) => entry.trim())
+			.filter((entry) => entry !== '');
+		if (knob === '' || values.length === 0) {
+			sweepNote = 'A sweep wants a knob and its values.';
+			return;
+		}
+		const base = parsed.campaign;
+		const swept = {
+			...base,
+			id: `${base.id}-sweep-${slugOf(knob)}`,
+			title: `${base.title} — ${knob} swept over ${values.join(', ')}`,
+			builds: base.builds.flatMap((build) =>
+				values.map((value) => ({
+					...build,
+					id: `${build.id}@${knob}=${value}`,
+					overrides: {
+						...(build.overrides ?? {}),
+						knobs: { ...(build.overrides?.knobs ?? {}), [knob]: knobValue(value) }
+					}
+				}))
+			)
+		};
+		source = JSON.stringify(swept, null, '\t');
+		sweepNote = `${swept.builds.length} builds — ${base.builds.length} × ${values.length} values of ${knob}.`;
+		execute();
+	}
+
 	function execute(): void {
 		if (!parsed.ok || hasLive) return;
 		openSlice = undefined;
@@ -552,6 +665,79 @@
 					</li>
 				{/each}
 			</ol>
+		{/if}
+		{#if workflows.length > 0}
+			<!-- Books and sweeps (WP80): campaigns with a source, made here and queued as any campaign is. -->
+			<div class="books" data-testid="books">
+				<fieldset>
+					<legend>Book</legend>
+					<label>
+						Workflow
+						<select data-testid="book-workflow" bind:value={bookWorkflow}>
+							{#each workflows as workflow (workflow.id)}
+								<option value={workflow.id}>{workflow.name}</option>
+							{/each}
+						</select>
+					</label>
+					<label>
+						Customers
+						<input type="number" min="1" data-testid="book-size" bind:value={bookSize} />
+					</label>
+					<label>
+						Seed
+						<input type="number" data-testid="book-seed" bind:value={bookSeed} />
+					</label>
+					{#if bookConfigurationIds.length > 0}
+						<span class="configurations" data-testid="book-configurations">
+							{#each bookConfigurationIds as id (id)}
+								<label class="pick">
+									<input
+										type="checkbox"
+										data-testid="book-configuration-{id}"
+										checked={bookConfigurations.includes(id)}
+										onchange={() => toggleConfiguration(id)}
+									/>
+									{id}
+								</label>
+							{/each}
+						</span>
+					{/if}
+					<button type="button" data-testid="queue-book" onclick={queueBook}>
+						{running ? 'Queue the book' : 'Run the book'}
+					</button>
+					{#if bookNote}<span class="hint" data-testid="book-note">{bookNote}</span>{/if}
+				</fieldset>
+				<fieldset>
+					<legend>Sweep</legend>
+					<label>
+						Knob
+						<input
+							type="text"
+							data-testid="sweep-knob"
+							bind:value={sweepKnob}
+							placeholder="referRatioPercent"
+						/>
+					</label>
+					<label>
+						Values
+						<input
+							type="text"
+							data-testid="sweep-values"
+							bind:value={sweepValues}
+							placeholder="50, 60, 70"
+						/>
+					</label>
+					<button
+						type="button"
+						disabled={!parsed.ok}
+						data-testid="queue-sweep"
+						onclick={queueSweep}
+					>
+						{running ? 'Queue the sweep' : 'Run the sweep'}
+					</button>
+					{#if sweepNote}<span class="hint" data-testid="sweep-note">{sweepNote}</span>{/if}
+				</fieldset>
+			</div>
 		{/if}
 		<textarea
 			bind:value={source}
@@ -807,6 +993,56 @@
 			</section>
 		{/if}
 
+		{#if summary && summary.humanLoad.length > 0}
+			<!-- Human load by build (WP80, `64-…` §6.4.1a): the bottom-up figures, by autonomy level. -->
+			<section aria-label="Human load" data-testid="campaign-human-load">
+				<h2>Human load</h2>
+				<p class="hint">
+					Touches per case and the ceiling-breach rate by build — a configuration, an autonomy level
+					— over the book's journeys. A breach is a decision taken above its kind's ceiling:
+					counted, never prevented.
+				</p>
+				<table data-testid="campaign-human-load-table">
+					<thead>
+						<tr>
+							<th>Build</th>
+							<th>Level</th>
+							<th>Cases</th>
+							<th>Touches per case</th>
+							<th>Unattended</th>
+							<th>Decisions</th>
+							<th>Breaches</th>
+							<th>Breach rate</th>
+						</tr>
+					</thead>
+					<tbody>
+						{#each summary.humanLoad as row (row.build)}
+							<tr data-testid="human-load-{row.build}">
+								<td>{row.build}</td>
+								<td>{row.autonomy ?? '—'}</td>
+								<td>{row.cells}</td>
+								<td>
+									{row.touchesPerCase.toFixed(2)}
+									<small
+										>[{row.touchesInterval[0].toFixed(2)}, {row.touchesInterval[1].toFixed(
+											2
+										)}]</small
+									>
+								</td>
+								<td>{pct(row.unattendedRate)}</td>
+								<td>{row.decisions}</td>
+								<td>{row.breaches}</td>
+								<td>
+									{pct(row.ceilingBreachRate)}
+									<small>[{pct(row.breachInterval[0])}, {pct(row.breachInterval[1])}]</small>
+								</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</section>
+		{/if}
+
 		{#if summary && summary.cohorts.length > 0}
 			<section aria-label="Cohorts" data-testid="campaign-cohorts">
 				<h2>Cohorts</h2>
@@ -989,6 +1225,30 @@
 		border: var(--cab-border-part) solid var(--cab-engrave);
 		border-radius: var(--cab-radius-pill);
 		background: var(--cab-cream);
+	}
+	.books {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--cab-space-3);
+		margin: var(--cab-space-2) 0;
+		font-size: var(--cab-text-sm);
+	}
+	.books fieldset {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--cab-space-2);
+		border: var(--cab-border-part) solid var(--cab-engrave);
+		border-radius: var(--cab-radius-tile);
+		padding: var(--cab-space-2) var(--cab-space-3);
+	}
+	.books input[type='number'] {
+		width: 6rem;
+	}
+	.books .configurations {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--cab-space-2);
 	}
 	.queue {
 		margin: var(--cab-space-2) 0;

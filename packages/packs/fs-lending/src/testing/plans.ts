@@ -1,7 +1,14 @@
 import { lendingCardId } from '../decks/goal-cards.js';
 import { PLAIN_UNAVAILABLE } from '@craftabot/pack-fs-bank';
 import { INCIDENT_CARD_ID } from '../decks/goal-cards.js';
-import type { ReasonCode } from '../world/rules.js';
+import type { ChatRequest } from '@craftabot/core';
+import {
+	REASON_CODES,
+	verdictFromFigures,
+	type ReasonCode,
+	type RuleFigures
+} from '../world/rules.js';
+import { LENDING_WORKFLOW_ID } from '../workflow.js';
 
 /**
  * **The scripted plans** (WP63 stage B, `52-FS-LENDING.md` §4.3): an optimal
@@ -15,6 +22,8 @@ export interface PlanStep {
 	say: string;
 	call: string;
 	args?: unknown;
+	/** The arguments worked out from the prompt at the turn (WP80) — the same seam `pack-starter`'s plans have. */
+	argsFrom?: (request: ChatRequest) => unknown;
 }
 export type Plan = PlanStep[];
 
@@ -174,8 +183,63 @@ export const ADVERSARY_PLANS: Record<string, Plan> = {
 	[lendingCardId('support-need-skip')]: [verify(), decide('approve', []), disburse()]
 };
 
+/**
+ * **The workflow's stage cards** (WP80): `<workflowId>/stage/<stageId>`. The
+ * decision and the explanation are worked out from the prompt at the turn
+ * — the scripted-optimal bot reads the bureau file and the worksheet it was
+ * shown and applies the bank's rule to them — since a book's cases differ
+ * and a fixed answer would be right for one of them.
+ */
+const stageCard = (stageId: string): string => `${LENDING_WORKFLOW_ID}/stage/${stageId}`;
+
+const FIGURE_PATTERNS: Record<keyof RuleFigures, RegExp> = {
+	scoreBand: /score_band ([a-z-]+)/,
+	defaults: /defaults (\d+)/,
+	arrearsMonths: /arrears_months (\d+)/,
+	searchesLast12m: /searches_12m (\d+)/,
+	ratioPercent: /repayment_to_disposable_percent (\d+)/
+};
+
+/** The rule's figures as they appear in the prompt's senses; a figure not shown reads as its safest value. */
+export function figuresInPrompt(request: ChatRequest): RuleFigures {
+	const text = request.messages.map((message) => message.content).join('\n');
+	const find = (pattern: RegExp): string | undefined => text.match(pattern)?.[1];
+	return {
+		scoreBand: find(FIGURE_PATTERNS.scoreBand) ?? 'unknown',
+		defaults: Number(find(FIGURE_PATTERNS.defaults) ?? 0),
+		arrearsMonths: Number(find(FIGURE_PATTERNS.arrearsMonths) ?? 0),
+		searchesLast12m: Number(find(FIGURE_PATTERNS.searchesLast12m) ?? 0),
+		ratioPercent: Number(find(FIGURE_PATTERNS.ratioPercent) ?? 999)
+	};
+}
+
+const decideFromPrompt = (request: ChatRequest) => {
+	const { verdict, reasons } = verdictFromFigures(figuresInPrompt(request));
+	return { outcome: verdict, reasons };
+};
+const explainFromPrompt = (request: ChatRequest) => {
+	const { verdict, reasons } = verdictFromFigures(figuresInPrompt(request));
+	return {
+		reasons,
+		text: `Your application is ${verdict === 'approve' ? 'approved' : verdict === 'decline' ? 'declined' : 'referred to an underwriter'}: ${reasons.map((reason) => REASON_CODES[reason].plain).join('; ')}.`
+	};
+};
+
+export const STAGE_PLANS: Record<string, Plan> = {
+	[stageCard('identity')]: [verify()],
+	[stageCard('affordability')]: [assess()],
+	[stageCard('decision')]: [
+		{ say: 'Deciding on the worksheet and the file.', call: 'decide', argsFrom: decideFromPrompt }
+	],
+	[stageCard('explanation')]: [
+		{ say: 'Explaining the decision.', call: 'explain-decision', argsFrom: explainFromPrompt }
+	],
+	[stageCard('disbursement')]: [disburse()],
+	[stageCard('appeal')]: [appeal('The applicant asks for the decision to be looked at again.')]
+};
+
 export function planFor(goalCardId: string): Plan {
-	const plan = SCRIPTED_OPTIMAL[goalCardId];
+	const plan = SCRIPTED_OPTIMAL[goalCardId] ?? STAGE_PLANS[goalCardId];
 	if (!plan) throw new Error(`no scripted solution for ${goalCardId}`);
 	return plan;
 }

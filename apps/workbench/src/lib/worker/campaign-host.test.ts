@@ -55,17 +55,19 @@ describe('the campaign Worker host', () => {
 		expect(cancelled.done).toBeLessThan(64);
 	}, 60_000);
 
-	it('refuses what is not a campaign, and says the book and bank runners are not built yet', async () => {
+	it('refuses what is not a campaign, runs a book as the campaign it is, and says the bank runner is not built yet', async () => {
 		const replies: WorkerReply[] = [];
 		const host = createCampaignHost({ packs, plans: workshopPlans }, (reply) =>
 			replies.push(reply)
 		);
-		host.handle({ kind: 'start', job: 'b', work: 'book', book: {} });
 		host.handle({ kind: 'start', job: 'k', work: 'bank', bank: {} });
 		expect(replies).toEqual([
-			{ kind: 'failed', job: 'b', error: 'the book runner is not built yet (WP80)' },
 			{ kind: 'failed', job: 'k', error: 'the bank runner is not built yet (WP83)' }
 		]);
+		// A book with no campaign in it fails as a campaign fails: parsed, refused, said (WP80).
+		host.handle({ kind: 'start', job: 'b', work: 'book', book: {} });
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		expect(replies.at(-1)).toMatchObject({ kind: 'failed', job: 'b' });
 		await expect(runCampaignIn(workerOf(), { not: 'a campaign' }).result).rejects.toThrow();
 	});
 });

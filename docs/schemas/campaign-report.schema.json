@@ -96,6 +96,9 @@
 								}
 							]
 						}
+					},
+					"configuration": {
+						"type": "string"
 					}
 				},
 				"required": [
@@ -314,6 +317,122 @@
 						"type": "integer",
 						"minimum": 0,
 						"maximum": 9007199254740991
+					},
+					"item": {
+						"type": "object",
+						"properties": {
+							"id": {
+								"type": "string"
+							},
+							"kind": {
+								"type": "string"
+							},
+							"customerId": {
+								"type": "string"
+							}
+						},
+						"required": [
+							"id",
+							"kind",
+							"customerId"
+						]
+					},
+					"workflow": {
+						"type": "object",
+						"properties": {
+							"runId": {
+								"type": "string"
+							},
+							"configuration": {
+								"type": "string"
+							},
+							"autonomy": {
+								"type": "integer",
+								"minimum": 1,
+								"maximum": 5
+							},
+							"outcome": {
+								"type": "string",
+								"enum": [
+									"completed",
+									"stopped",
+									"abandoned"
+								]
+							},
+							"stages": {
+								"type": "array",
+								"items": {
+									"type": "object",
+									"properties": {
+										"stageId": {
+											"type": "string"
+										},
+										"executor": {
+											"type": "string",
+											"enum": [
+												"rule",
+												"agent",
+												"human",
+												"line"
+											]
+										},
+										"status": {
+											"type": "string",
+											"enum": [
+												"ok",
+												"blocked",
+												"escalated",
+												"error"
+											]
+										}
+									},
+									"required": [
+										"stageId",
+										"executor",
+										"status"
+									]
+								}
+							},
+							"touches": {
+								"type": "array",
+								"items": {
+									"type": "string"
+								}
+							},
+							"decisions": {
+								"type": "array",
+								"items": {
+									"type": "object",
+									"properties": {
+										"kind": {
+											"type": "string"
+										},
+										"level": {
+											"type": "integer",
+											"minimum": 1,
+											"maximum": 5
+										}
+									},
+									"required": [
+										"kind",
+										"level"
+									]
+								}
+							},
+							"breaches": {
+								"type": "integer",
+								"minimum": 0,
+								"maximum": 9007199254740991
+							}
+						},
+						"required": [
+							"runId",
+							"outcome",
+							"stages",
+							"touches",
+							"decisions",
+							"breaches"
+						]
 					},
 					"counterpart": {
 						"type": "object",
@@ -905,6 +1024,97 @@
 							"approvals",
 							"labels",
 							"verdicts"
+						]
+					}
+				},
+				"humanLoad": {
+					"default": [],
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"build": {
+								"type": "string"
+							},
+							"configuration": {
+								"type": "string"
+							},
+							"autonomy": {
+								"type": "integer",
+								"minimum": 1,
+								"maximum": 5
+							},
+							"cells": {
+								"type": "integer",
+								"minimum": 0,
+								"maximum": 9007199254740991
+							},
+							"touchesPerCase": {
+								"type": "number"
+							},
+							"touchesInterval": {
+								"type": "array",
+								"prefixItems": [
+									{
+										"type": "number"
+									},
+									{
+										"type": "number"
+									}
+								]
+							},
+							"touchesByKind": {
+								"type": "object",
+								"propertyNames": {
+									"type": "string"
+								},
+								"additionalProperties": {
+									"type": "number"
+								}
+							},
+							"unattendedRate": {
+								"type": "number"
+							},
+							"decisions": {
+								"type": "integer",
+								"minimum": 0,
+								"maximum": 9007199254740991
+							},
+							"breaches": {
+								"type": "integer",
+								"minimum": 0,
+								"maximum": 9007199254740991
+							},
+							"ceilingBreachRate": {
+								"type": "number"
+							},
+							"breachInterval": {
+								"type": "array",
+								"prefixItems": [
+									{
+										"type": "number"
+									},
+									{
+										"type": "number"
+									}
+								]
+							},
+							"underpowered": {
+								"type": "boolean"
+							}
+						},
+						"required": [
+							"build",
+							"cells",
+							"touchesPerCase",
+							"touchesInterval",
+							"touchesByKind",
+							"unattendedRate",
+							"decisions",
+							"breaches",
+							"ceilingBreachRate",
+							"breachInterval",
+							"underpowered"
 						]
 					}
 				}

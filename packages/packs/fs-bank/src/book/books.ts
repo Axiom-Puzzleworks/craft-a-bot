@@ -1,6 +1,13 @@
 import { calibrationRow, type Book, type BookSource, type WorkItem } from '@craftabot/core';
 import { seededRandom } from '@craftabot/desk';
-import type { Account, AccountBaseline, BureauFile, CohortBlock, Transaction } from '../model.js';
+import type {
+	Account,
+	AccountBaseline,
+	BureauFile,
+	CohortBlock,
+	Customer,
+	Transaction
+} from '../model.js';
 import { rateOf, weightedRow } from '../generate/customer.js';
 import type { Population, PopulationCustomer } from '../population/population.js';
 import { accountDaySeed } from '../population/seeds.js';
@@ -148,19 +155,54 @@ export function loanBook(pop: Population, judge: Judge, filter: BookFilter = {})
 			schemaVersion: 1,
 			kind: 'application',
 			source,
-			items: kept.map((row) => applicationItem(row))
+			items: kept.map((row) => applicationItem(row, pop.byId(row.customerId)))
 		}
 	};
 }
 
-/** A loan application as a work item: the application is the payload; the verdict, the label and the cohort are truth. */
-export function applicationItem(row: LoanApplication): WorkItem {
+/**
+ * The customer as the lines may read them (`52-…` §4.2's `bankForTheDesk`,
+ * lifted here for the book): no cohort proxies, no support-needs flag, the
+ * disclosed vulnerability only. What a desk is handed is never truth.
+ */
+export function customerForTheDesk(customer: Customer): Customer {
+	const copy: Customer = structuredClone(customer);
+	copy.cohort = {
+		ageBand: copy.cohort.ageBand,
+		incomeBand: copy.cohort.incomeBand,
+		protectedProxies: [],
+		supportNeeds: false,
+		literacyBand: 'medium'
+	};
+	copy.vulnerability = structuredClone(copy.disclosed);
+	return copy;
+}
+
+/**
+ * A loan application as a work item: the payload is the application and, since
+ * WP80, the bank's view of the applicant — the customer as the lines read them
+ * (cohort proxies and all: the desk's intake strips them, `bankForTheDesk`),
+ * the accounts and the bureau file — so a book runs through a workflow with
+ * no population in hand. The verdict, the label and the cohort are truth.
+ */
+export function applicationItem(row: LoanApplication, applicant?: PopulationCustomer): WorkItem {
 	return {
 		id: row.id,
 		kind: 'application',
 		customerId: row.customerId,
 		arrivedAt: isoDateTime(row.date, 9, 0),
-		payload: row.application,
+		payload: {
+			application: row.application,
+			...(applicant
+				? {
+						applicant: {
+							customer: customerForTheDesk(applicant.customer),
+							accounts: applicant.accounts,
+							bureau: applicant.bureau
+						}
+					}
+				: {})
+		},
 		truth: {
 			records: [
 				{

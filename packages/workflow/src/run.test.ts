@@ -543,3 +543,38 @@ describe('the helpers', () => {
 		});
 	});
 });
+
+describe('what WP80 added', () => {
+	it('a human stage answers with the stage’s suggestion when nobody is there, and the host sees it', async () => {
+		const suggested: StageSpec = {
+			...decide,
+			suggest: () => 'refer'
+		};
+		const { record } = await run(workflow([suggested]));
+		expect(record.stages[0]).toMatchObject({
+			status: 'escalated',
+			output: { value: { decision: 'refer' } }
+		});
+		const seen: Array<string | undefined> = [];
+		await run(workflow([suggested]), {
+			human: (_stage, _state, _executor, suggestion) => {
+				seen.push(suggestion);
+				return { decision: 'approve' };
+			}
+		});
+		expect(seen).toEqual(['refer']);
+	});
+
+	it('hands the world back when the journey is done', async () => {
+		let queue = 0;
+		let stages = 0;
+		await run(workflow([{ ...greet, next: () => 'end' }], { rules: RULES }), {
+			onFinished: (world, record) => {
+				queue = (world.snapshot() as DeskWorldState).queue.length;
+				stages = record.stages.length;
+			}
+		});
+		expect(stages).toBe(1);
+		expect(queue).toBe(1);
+	});
+});

@@ -23,6 +23,8 @@ export interface LendingState {
 	appeal?: string;
 	/** Documents requested and on file, by kind. */
 	documents: string[];
+	/** The grounds an appeal arrived with (WP80): a work item that carries one routes the journey through its appeal stage. */
+	appealGrounds?: string;
 }
 
 export type LendingExtra = BankExtra & { lending: LendingState };

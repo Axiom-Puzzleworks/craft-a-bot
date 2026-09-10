@@ -1,4 +1,5 @@
 import type { ConfusionLabelSemantics } from '@craftabot/core';
+import { touchesPerCase, unattendedRate, wilson } from '@craftabot/metrics';
 import { z } from 'zod';
 import type { CampaignCell } from './campaign.js';
 
@@ -105,12 +106,39 @@ export const caseRowSchema = z.object({
 });
 export type CaseRow = z.infer<typeof caseRowSchema>;
 
+/**
+ * **Human load by build** (WP80, `64-…` §6.4.1a; `68-METRICS.md` §2.3): over
+ * a book campaign's cells, per build — a configuration, an autonomy level —
+ * touches per case with its interval, the unattended rate, and the
+ * ceiling-breach rate over the decisions that had a ceiling. Measured from
+ * the workflow runs' stage records, the bottom-up figures the thought
+ * experiment's scenario model assumes. Empty for a campaign of scenarios.
+ */
+export const humanLoadRowSchema = z.object({
+	build: z.string(),
+	configuration: z.string().optional(),
+	autonomy: z.number().int().min(1).max(5).optional(),
+	cells: z.number().int().nonnegative(),
+	touchesPerCase: z.number(),
+	touchesInterval: z.tuple([z.number(), z.number()]),
+	touchesByKind: z.record(z.string(), z.number()),
+	unattendedRate: z.number(),
+	decisions: z.number().int().nonnegative(),
+	breaches: z.number().int().nonnegative(),
+	ceilingBreachRate: z.number(),
+	breachInterval: z.tuple([z.number(), z.number()]),
+	underpowered: z.boolean()
+});
+export type HumanLoadRow = z.infer<typeof humanLoadRowSchema>;
+
 export const campaignSummarySchema = z.object({
 	slices: z.array(campaignSliceSchema),
 	matrices: z.array(confusionMatrixSchema),
 	cohorts: z.array(cohortRowSchema),
 	obligations: z.array(obligationRowSchema),
-	cases: z.array(caseRowSchema)
+	cases: z.array(caseRowSchema),
+	/** Defaulted, so every report written before WP80 parses. */
+	humanLoad: z.array(humanLoadRowSchema).default([])
 });
 export type CampaignSummary = z.infer<typeof campaignSummarySchema>;
 
@@ -327,6 +355,39 @@ export function summariseCampaign(
 		};
 	});
 
+	// Human load (WP80): by build, over the cells a workflow ran.
+	const humanLoad: HumanLoadRow[] = [];
+	const journeys = cells.filter((cell) => cell.workflow !== undefined);
+	for (const [build, mine] of [...groupBy(journeys, (cell) => cell.build)].sort(([a], [b]) =>
+		a.localeCompare(b)
+	)) {
+		const touched = mine.map((cell) => ({
+			id: cell.workflow?.runId ?? '',
+			touches: (cell.workflow?.touches ?? []).map((kind) => ({ kind }))
+		}));
+		const touches = touchesPerCase(touched);
+		const unattended = unattendedRate(touched);
+		const decisions = mine.reduce((sum, cell) => sum + (cell.workflow?.decisions.length ?? 0), 0);
+		const breaches = mine.reduce((sum, cell) => sum + (cell.workflow?.breaches ?? 0), 0);
+		const breach = wilson(breaches, decisions, 0.95);
+		const first = mine[0]?.workflow;
+		humanLoad.push({
+			build,
+			...(first?.configuration !== undefined ? { configuration: first.configuration } : {}),
+			...(first?.autonomy !== undefined ? { autonomy: first.autonomy } : {}),
+			cells: mine.length,
+			touchesPerCase: touches.value,
+			touchesInterval: [touches.interval[0], touches.interval[1]],
+			touchesByKind: touches.detail ?? {},
+			unattendedRate: unattended.value,
+			decisions,
+			breaches,
+			ceilingBreachRate: decisions === 0 ? 0 : breaches / decisions,
+			breachInterval: [breach[0], breach[1]],
+			underpowered: touches.underpowered
+		});
+	}
+
 	const cases: CaseRow[] = cells.map((cell) => ({
 		scenario: cell.scenario,
 		guard: cell.guard,
@@ -343,7 +404,7 @@ export function summariseCampaign(
 		...(cell.error !== undefined ? { error: cell.error } : {})
 	}));
 
-	return { slices, matrices, cohorts, obligations, cases };
+	return { slices, matrices, cohorts, obligations, cases, humanLoad };
 }
 
 function rank(tag: string): number {

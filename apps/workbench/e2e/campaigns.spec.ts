@@ -160,3 +160,24 @@ test('a campaign keeps running in the Worker while the rail changes the route, a
 		timeout: 10_000
 	});
 });
+
+/**
+ * **A book through the workflow, in the Worker** (WP80, `64-…` §6.6.3; `73-…`
+ * §6): the Books panel draws a small book on this thread, puts a campaign
+ * with a `source` in the editor and queues it — the same runner, the same
+ * report — and the human-load pane shows a row per configuration.
+ */
+test('the Books panel runs a small book through every configuration and shows the human load', async ({
+	page
+}) => {
+	await page.goto('/workshop/campaigns');
+	await expect(page.getByTestId('books')).toBeVisible();
+	await page.getByTestId('book-size').fill('60');
+	await page.getByTestId('queue-book').click();
+	await expect(page.getByTestId('book-note')).toContainText('work items drawn');
+	await expect(page.getByTestId('campaign-verdict')).toBeVisible({ timeout: 120_000 });
+	await expect(page.getByTestId('campaign-verdict')).toContainText('PASSED');
+	await expect(page.getByTestId('campaign-human-load')).toBeVisible();
+	await expect(page.getByTestId('campaign-human-load-table').locator('tbody tr')).toHaveCount(5);
+	await expect(page.getByTestId('human-load-bot-everywhere')).toContainText('5');
+});

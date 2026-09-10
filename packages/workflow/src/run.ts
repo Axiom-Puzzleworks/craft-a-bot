@@ -53,7 +53,9 @@ export interface RunWorkflowOptions {
 	human?: (
 		stage: StageSpec,
 		state: WorldState,
-		executor: Extract<Executor, { kind: 'human' }>
+		executor: Extract<Executor, { kind: 'human' }>,
+		/** The stage's `suggest` — what a scripted person would answer — when the spec has one. */
+		suggested: string | undefined
 	) => Promise<HumanDecision> | HumanDecision;
 	/** How an agent stage's approval pauses are answered; absent, approved. */
 	approve?: (
@@ -79,6 +81,8 @@ export interface RunWorkflowOptions {
 	/** The bound on a cyclic journey. */
 	maxStages?: number;
 	onStage?: (record: StageRecord) => void;
+	/** The world as the journey left it — its truth for a campaign's scoring — once the record is made. */
+	onFinished?: (world: WorldInstance, run: WorkflowRun) => void;
 	/** Every agent run the workflow made, with its events, as it ends — the host writes the traces. */
 	onAgentRun?: (run: {
 		runId: string;
@@ -270,7 +274,7 @@ export async function runWorkflow(
 	}
 
 	const finishedAt = now();
-	return {
+	const record: WorkflowRun = {
 		schemaVersion: 1,
 		id: runId,
 		workflowId: spec.id,
@@ -287,6 +291,8 @@ export async function runWorkflow(
 		events,
 		digest: sha256Hex(canonicalJson(stages))
 	};
+	options.onFinished?.(world, record);
+	return record;
 
 	async function runStage(
 		stage: StageSpec,
@@ -372,12 +378,18 @@ export async function runWorkflow(
 		return record;
 	}
 
-	/** The output read and checked; `undefined` means the stage is an error with the finding given. */
+	/**
+	 * The output read and checked; `undefined` means the stage is an error with
+	 * the finding given. `read` applies to an agent's and a line's work on the
+	 * world; a rule and a person return their own (§3).
+	 */
 	function readOutput(
 		stage: StageSpec,
-		fromExecutor: unknown
+		fromExecutor: unknown,
+		useRead = true
 	): { output: unknown } | { finding: string } {
-		const output = stage.read ? stage.read(world.snapshot(), world.truth?.()) : fromExecutor;
+		const output =
+			useRead && stage.read ? stage.read(world.snapshot(), world.truth?.()) : fromExecutor;
 		if (output === undefined) return { finding: 'the stage ended without producing its output' };
 		const problems = validateAgainst(stage.output, output);
 		if (problems.length > 0) return { finding: `output rejected: ${problems.join('; ')}` };
@@ -529,7 +541,7 @@ export async function runWorkflow(
 		if (finding !== undefined) {
 			return finishStage(base, started, ordinal, ordinal, undefined, [], 'error', finding, 0);
 		}
-		const read = readOutput(stage, output);
+		const read = readOutput(stage, output, false);
 		return 'output' in read
 			? finishStage(base, started, ordinal, ordinal, read.output, [], 'ok', undefined, 0)
 			: finishStage(base, started, ordinal, ordinal, undefined, [], 'error', read.finding, 0);
@@ -564,9 +576,11 @@ export async function runWorkflow(
 		});
 		const proposed = { kind: 'action' as const, name: stage.id, arguments: stageInput };
 		emit('approval.requested', { proposed, reason: executor.prompt });
+		const state = world.snapshot();
+		const suggested = stage.suggest?.(stageInput, state, world.truth?.());
 		const answer: HumanDecision = options.human
-			? await options.human(stage, world.snapshot(), executor)
-			: { decision: executor.default ?? executor.options[0] ?? '' };
+			? await options.human(stage, state, executor, suggested)
+			: { decision: suggested ?? executor.default ?? executor.options[0] ?? '' };
 		const first = executor.options[0];
 		if (!executor.options.includes(answer.decision)) {
 			emit('approval.resolved', { approved: false, ...(answer.by ? { by: answer.by } : {}) });
@@ -593,7 +607,7 @@ export async function runWorkflow(
 			approved: answer.decision === first,
 			...(answer.by ? { by: answer.by } : {})
 		});
-		const read = readOutput(stage, { decision: answer.decision });
+		const read = readOutput(stage, { decision: answer.decision }, false);
 		const approval = {
 			requested: true as const,
 			...(answer.by ? { by: answer.by } : {}),

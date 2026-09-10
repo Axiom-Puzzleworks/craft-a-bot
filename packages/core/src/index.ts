@@ -590,6 +590,7 @@ export {
 export { EVENT_TYPES } from './schemas/events.js';
 export type {
 	AutonomyLevel as WorkflowAutonomyLevel,
+	BookRequest,
 	Executor,
 	RuleFn,
 	StageSpec,

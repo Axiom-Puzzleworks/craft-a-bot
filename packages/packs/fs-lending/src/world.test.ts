@@ -31,7 +31,7 @@ const truthOf = (world: ReturnType<typeof create>) =>
 	};
 
 describe('the Lending Desk (WP63 stage A)', () => {
-	it('is a desk with purpose lending, eight tiered actions, one irreversible, nine layouts', () => {
+	it('is a desk with purpose lending, eight tiered actions, one irreversible, ten layouts', () => {
 		expect(lendingDesk.view).toBe('desk');
 		expect(lendingDesk.spec.purpose).toBe('lending');
 		const tiers = Object.fromEntries(
@@ -47,7 +47,11 @@ describe('the Lending Desk (WP63 stage A)', () => {
 			disburse: 'irreversible',
 			'log-appeal': 'reversible'
 		});
-		expect(lendingDesk.layouts.map((layout) => layout.id)).toEqual([...LENDING_CASE_KINDS]);
+		// The nine kinds and, since WP80, the work-item layout a workflow's intake fills.
+		expect(lendingDesk.layouts.map((layout) => layout.id)).toEqual([
+			...LENDING_CASE_KINDS,
+			'work-item'
+		]);
 		for (const action of lendingDesk.actions)
 			expect(action.id.startsWith(`${LENDING_DESK_WORLD_ID}/`)).toBe(true);
 	});

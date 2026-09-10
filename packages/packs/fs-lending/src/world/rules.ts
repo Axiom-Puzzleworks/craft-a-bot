@@ -151,24 +151,54 @@ export function affordabilityVerdictWith(
 		const repayment = repaymentOf(application.amount, application.termMonths);
 		const disposable = Math.max(0, bureau.affordability.disposable);
 		const ratioPercent = disposable === 0 ? 999 : Math.floor((repayment / disposable) * 100);
-		const reasons: ReasonCode[] = [];
-		if (bureau.scoreBand === 'poor') reasons.push('score-poor');
-		if (bureau.defaults >= policy.declineOnDefaults) reasons.push('defaults');
-		if (ratioPercent > policy.declineRatioPercent) reasons.push('disposable-low');
-		if (reasons.length > 0) return { verdict: 'decline', ratioPercent, repayment, reasons };
-		if (bureau.defaults >= 1) reasons.push('defaults');
-		if (bureau.arrearsMonths > 0) reasons.push('arrears');
-		if (bureau.searchesLast12m >= policy.referOnSearches) reasons.push('searches');
-		if (ratioPercent > policy.referRatioPercent) reasons.push('commitments-high');
-		if (reasons.length > 0 || (policy.referOnFair && bureau.scoreBand === 'fair'))
-			return {
-				verdict: 'refer',
-				ratioPercent,
-				repayment,
-				reasons: [...reasons, 'rules-cannot-decide']
-			};
-		return { verdict: 'approve', ratioPercent, repayment, reasons: ['affordable'] };
+		return {
+			...verdictFromFigures(
+				{
+					scoreBand: bureau.scoreBand,
+					defaults: bureau.defaults,
+					arrearsMonths: bureau.arrearsMonths,
+					searchesLast12m: bureau.searchesLast12m,
+					ratioPercent
+				},
+				policy
+			),
+			ratioPercent,
+			repayment
+		};
 	};
+}
+
+/** The figures the rule reads — what the bureau file and the worksheet show, and nothing else. */
+export interface RuleFigures {
+	scoreBand: string;
+	defaults: number;
+	arrearsMonths: number;
+	searchesLast12m: number;
+	ratioPercent: number;
+}
+
+/**
+ * The rule over its figures (WP80): the same function the desk's truth,
+ * the rules-only workflow and the scripted-optimal bot apply — the bot
+ * reads the figures off its own prompt, so what it decides is what the
+ * rule decides from what it was shown.
+ */
+export function verdictFromFigures(
+	figures: RuleFigures,
+	policy: LendingPolicy = DEFAULT_LENDING_POLICY
+): { verdict: Outcome; reasons: ReasonCode[] } {
+	const reasons: ReasonCode[] = [];
+	if (figures.scoreBand === 'poor') reasons.push('score-poor');
+	if (figures.defaults >= policy.declineOnDefaults) reasons.push('defaults');
+	if (figures.ratioPercent > policy.declineRatioPercent) reasons.push('disposable-low');
+	if (reasons.length > 0) return { verdict: 'decline', reasons };
+	if (figures.defaults >= 1) reasons.push('defaults');
+	if (figures.arrearsMonths > 0) reasons.push('arrears');
+	if (figures.searchesLast12m >= policy.referOnSearches) reasons.push('searches');
+	if (figures.ratioPercent > policy.referRatioPercent) reasons.push('commitments-high');
+	if (reasons.length > 0 || (policy.referOnFair && figures.scoreBand === 'fair'))
+		return { verdict: 'refer', reasons: [...reasons, 'rules-cannot-decide'] };
+	return { verdict: 'approve', reasons: ['affordable'] };
 }
 
 export const affordabilityVerdict = affordabilityVerdictWith(DEFAULT_LENDING_POLICY);

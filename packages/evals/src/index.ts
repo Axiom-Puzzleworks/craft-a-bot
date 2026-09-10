@@ -28,7 +28,11 @@ export {
 export {
 	CAMPAIGN_REPORT_SCHEMA_VERSION,
 	CAMPAIGN_SCHEMA_VERSION,
+	bookItems,
+	bookScenario,
 	campaignCells,
+	campaignSourceSchema,
+	type CampaignSource,
 	campaignReportSchema,
 	campaignSchema,
 	describeRequirement,
@@ -159,6 +163,8 @@ export { chainPlans, noPlans, starterPlans, type PlanSource } from './plans.js';
 /** The campaign summary (WP61, `50-DOMAIN-METRICS.md` §4.5): the readers' numbers, folded once from the cells. */
 export {
 	campaignSummarySchema,
+	humanLoadRowSchema,
+	type HumanLoadRow,
 	confusionOf,
 	DERIVED_NAMES,
 	derivedOf,

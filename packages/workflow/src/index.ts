@@ -10,3 +10,4 @@ export {
 	type RunWorkflowOptions
 } from './run.js';
 export { validateAgainst } from './validate.js';
+export { touchedCaseOf, touchesOf, type Touch, type TouchedCase } from './human-load.js';

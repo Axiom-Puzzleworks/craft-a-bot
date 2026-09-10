@@ -45,6 +45,7 @@ const VISIT: WorkflowSpec = {
 			input: { type: 'object', required: ['visitor'] },
 			output: { type: 'object', required: ['signedIn'] },
 			executor: { kind: 'rule', rule: 'sign' },
+			// Read only when a bot does the stage; a rule returns its own output (`69-…` §3).
 			read: (state) => ({ signedIn: (state as DeskWorldState).queue[0]?.status === 'decided' }),
 			next: () => 'review'
 		},
@@ -59,7 +60,7 @@ const VISIT: WorkflowSpec = {
 	],
 	rules: {
 		sign: (input) => ({
-			output: {},
+			output: { signedIn: true },
 			call: { name: 'sign-in', arguments: { visitor: (input as { visitor: string }).visitor } }
 		})
 	},
@@ -202,7 +203,7 @@ describe('craftabot workflow run', () => {
 		expect(console.err.join('')).toContain('--decide wants <stageId>=<option> pairs');
 	});
 
-	it('reports no workflow when the installed packs ship none', async () => {
+	it('names the workflows the installed packs ship when the one asked for is not among them', async () => {
 		const root = await tempDir();
 		const console = io();
 		const code = await runCli(
@@ -219,6 +220,8 @@ describe('craftabot workflow run', () => {
 			console
 		);
 		expect(code).toBe(1);
-		expect(console.err.join('')).toContain('no installed pack ships a workflow');
+		expect(console.err.join('')).toContain(
+			"no workflow 'test/visit' — the installed packs ship fs-lending/lending"
+		);
 	});
 });

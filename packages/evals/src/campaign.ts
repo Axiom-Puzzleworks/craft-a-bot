@@ -1,4 +1,5 @@
 import type {
+	Book,
 	EgressMode,
 	EventBus,
 	Guardrail,
@@ -6,8 +7,14 @@ import type {
 	PackRegistry,
 	Principal,
 	StoredCampaignReport,
-	Unsubscribe
+	Unsubscribe,
+	WorkItem,
+	WorkflowConfig,
+	WorkflowSpec
 } from '@craftabot/core';
+import { bookSchema } from '@craftabot/core';
+import { compilePolicyCard } from '@craftabot/governance';
+import { runWorkflow, touchedCaseOf } from '@craftabot/workflow';
 import { createSessionGroup, injectionSchema, toSpecV2 } from '@craftabot/core';
 import { createGroupWatchbot, createEvaluatorCircuitBreaker } from '@craftabot/pack-monitor';
 import { counterpartScriptFor, counterpartSpec, deskFor } from './counterpart-seat.js';
@@ -106,7 +113,9 @@ export const specOverridesSchema = z.object({
 	 * build axis, and a sweep over one knob is one campaign. Not a spec
 	 * override at all; stripped before the spec is built.
 	 */
-	knobs: z.record(z.string(), z.union([z.number(), z.string(), z.boolean()])).optional()
+	knobs: z.record(z.string(), z.union([z.number(), z.string(), z.boolean()])).optional(),
+	/** The workflow's named configuration this build runs, in a book campaign (WP80, `73-…` §4): an autonomy level applied to the journey. Not a spec override either. */
+	configuration: z.string().min(1).optional()
 });
 
 export const noiseRatesSchema = z.object({
@@ -324,11 +333,43 @@ export const campaignBrainSchema = z.object({
 });
 export type CampaignBrain = z.infer<typeof campaignBrainSchema>;
 
-export const campaignSchema = z.object({
+/**
+ * **A book as the source of cells** (WP80, `64-…` §6.6.3; `73-…` §4): a
+ * campaign whose cells come from a book's work items run through a
+ * workflow, rather than from scenarios × seeds — one cell per item × build
+ * × guard × brain, the item's truth as the cell's. The book is inline
+ * (`book`, a `Book` the page drew) or drawn at run time by the workflow's
+ * own `book` from a population at `seed` and `size`. `configuration` is
+ * the workflow's named configuration every build runs unless the build
+ * names its own (`overrides.configuration`). The campaign's `seeds` seed
+ * the seats; the first is used.
+ */
+export const campaignSourceSchema = z.object({
+	kind: z.literal('book'),
+	workflowId: z.string().min(1),
+	configuration: z.string().min(1).optional(),
+	book: bookSchema.optional(),
+	population: z
+		.object({
+			seed: z.number().int(),
+			size: z.number().int().positive(),
+			periodDays: z.number().int().positive().optional()
+		})
+		.optional(),
+	filter: z.unknown().optional(),
+	/** Only the first `limit` items of the book, in its order. */
+	limit: z.number().int().positive().optional()
+});
+export type CampaignSource = z.infer<typeof campaignSourceSchema>;
+
+const campaignObjectSchema = z.object({
 	schemaVersion: z.literal(CAMPAIGN_SCHEMA_VERSION),
 	id: z.string().min(1),
 	title: z.string().min(1),
-	scenarios: z.array(campaignScenarioSchema).min(1),
+	/** Empty only when `source` names a book (WP80). */
+	scenarios: z.array(campaignScenarioSchema),
+	/** A book through a workflow as the cells (WP80); absent, the scenarios are. */
+	source: campaignSourceSchema.optional(),
 	builds: z.array(campaignBuildSchema).min(1),
 	guards: z.array(campaignGuardSchema).min(1),
 	brains: z.array(campaignBrainSchema).min(1),
@@ -353,7 +394,27 @@ export const campaignSchema = z.object({
 		})
 		.optional()
 });
-export type Campaign = z.infer<typeof campaignSchema>;
+export const campaignSchema = campaignObjectSchema.superRefine((campaign, context) => {
+	if (campaign.scenarios.length === 0 && campaign.source === undefined) {
+		context.addIssue({
+			code: 'custom',
+			path: ['scenarios'],
+			message: 'a campaign runs scenarios, or a book through a workflow (source)'
+		});
+	}
+	if (
+		campaign.source &&
+		campaign.source.book === undefined &&
+		campaign.source.population === undefined
+	) {
+		context.addIssue({
+			code: 'custom',
+			path: ['source'],
+			message: 'a book source carries the book inline, or a population to draw it from'
+		});
+	}
+});
+export type Campaign = z.infer<typeof campaignObjectSchema>;
 
 export function parseCampaign(value: unknown): Campaign {
 	return campaignSchema.parse(value);
@@ -382,6 +443,27 @@ export const campaignCellSchema = z.object({
 	cohort: z.record(z.string(), z.string()).optional(),
 	/** The cell's number in the campaign's own order (WP68, `57-…` §2 item 2): what a merge sorts by. Absent on a report written before, which was whole and in order. */
 	ordinal: z.number().int().nonnegative().optional(),
+	/** The work item this cell ran, in a book campaign (WP80). */
+	item: z.object({ id: z.string(), kind: z.string(), customerId: z.string() }).optional(),
+	/** The workflow run's account of itself (WP80, `73-…` §4): the stage statuses, the touches a person made, the decisions with the level they were taken at and how many sat above their ceiling. */
+	workflow: z
+		.object({
+			runId: z.string(),
+			configuration: z.string().optional(),
+			autonomy: z.number().int().min(1).max(5).optional(),
+			outcome: z.enum(['completed', 'stopped', 'abandoned']),
+			stages: z.array(
+				z.object({
+					stageId: z.string(),
+					executor: z.enum(['rule', 'agent', 'human', 'line']),
+					status: z.enum(['ok', 'blocked', 'escalated', 'error'])
+				})
+			),
+			touches: z.array(z.string()),
+			decisions: z.array(z.object({ kind: z.string(), level: z.number().int().min(1).max(5) })),
+			breaches: z.number().int().nonnegative()
+		})
+		.optional(),
 	/** The seat across the desk in this cell (WP64): the tier, and for a live seat who sat there. Defaulted so every stored report parses. */
 	counterpart: z
 		.object({
@@ -433,7 +515,9 @@ export const campaignReportSchema = z.object({
 				agentId: z.string().optional(),
 				agentName: z.string().optional(),
 				/** The world's knobs this build ran with (WP78), so a slice by build reads as a slice by knob. */
-				knobs: z.record(z.string(), z.union([z.number(), z.string(), z.boolean()])).optional()
+				knobs: z.record(z.string(), z.union([z.number(), z.string(), z.boolean()])).optional(),
+				/** The workflow configuration this build ran (WP80), so a slice by build reads as a slice by autonomy level. */
+				configuration: z.string().optional()
 			})
 		)
 		.default([]),
@@ -500,7 +584,7 @@ export function campaignEnvelope(report: CampaignReport): StoredCampaignReport {
 	};
 }
 
-/** One cell, before it runs: the point in the campaign's five axes. */
+/** One cell, before it runs: the point in the campaign's five axes — or, in a book campaign (WP80), the work item at the point in four. */
 export interface CampaignCellSpec {
 	scenario: CampaignScenario;
 	build: CampaignBuild;
@@ -508,11 +592,57 @@ export interface CampaignCellSpec {
 	brain: CampaignBrain;
 	seed: number;
 	ordinal: number;
+	item?: WorkItem;
 }
 
-/** Every cell a campaign will run, in the order it will run them — scenarios × builds × guards(applicable) × brains × seeds. */
-export function campaignCells(campaign: Campaign): CampaignCellSpec[] {
+/** The synthetic scenario a book campaign's cells sit in: the workflow's id, its obligations as the tags, no card of its own. */
+export function bookScenario(campaign: Campaign, workflow?: WorkflowSpec): CampaignScenario {
+	const workflowId = campaign.source?.workflowId ?? 'book';
+	return {
+		id: workflowId,
+		goalCardId: workflowId,
+		tags: [...(workflow?.obligations ?? [])],
+		injections: [],
+		fit: []
+	};
+}
+
+/** The items a book campaign runs: the inline book's, or the drawn one's, under `limit`. */
+export function bookItems(campaign: Campaign, book: Book | undefined): WorkItem[] {
+	const source = campaign.source;
+	if (!source) return [];
+	const items = (book ?? source.book)?.items ?? [];
+	return source.limit !== undefined ? items.slice(0, source.limit) : items;
+}
+
+/**
+ * Every cell a campaign will run, in the order it will run them —
+ * scenarios × builds × guards(applicable) × brains × seeds; in a book
+ * campaign, items × builds × guards × brains, the first seed seeding the
+ * seats (WP80). A book source with no book in hand (drawn at run time from
+ * a population) counts no cells until it is prepared.
+ */
+export function campaignCells(
+	campaign: Campaign,
+	book?: Book,
+	workflow?: WorkflowSpec
+): CampaignCellSpec[] {
 	const cells: CampaignCellSpec[] = [];
+	if (campaign.source) {
+		const scenario = bookScenario(campaign, workflow);
+		const seed = campaign.seeds[0] ?? 1;
+		for (const item of bookItems(campaign, book)) {
+			for (const build of campaign.builds) {
+				for (const guard of campaign.guards) {
+					if (guard.for !== undefined && !guard.for.includes(scenario.id)) continue;
+					for (const brain of campaign.brains) {
+						cells.push({ scenario, build, guard, brain, seed, ordinal: cells.length, item });
+					}
+				}
+			}
+		}
+		return cells;
+	}
 	for (const scenario of campaign.scenarios) {
 		for (const build of campaign.builds) {
 			for (const guard of campaign.guards) {
@@ -585,6 +715,8 @@ export interface PreparedCampaign {
 	cells: CampaignCellSpec[];
 	registry: PackRegistry;
 	noise: NoiseRates;
+	/** The book a book campaign runs (WP80): inline, or drawn here by the workflow from the population named. */
+	book?: Book;
 }
 
 /** The same stride the matrix uses (`runner.ts`), for the same reason: a cell's ids depend only on its position. */
@@ -632,7 +764,48 @@ export function prepareCampaign(
 ): PreparedCampaign {
 	const registry = registryForScenario(options.packs);
 	const campaign = resolveCampaign(unresolved, registry);
+	if (campaign.source) {
+		const workflow = workflowOf(registry, campaign.source);
+		const book = drawBook(campaign.source, workflow);
+		return {
+			campaign,
+			cells: campaignCells(campaign, book, workflow),
+			registry,
+			noise: noiseFor(campaign.noise),
+			book
+		};
+	}
 	return { campaign, cells: campaignCells(campaign), registry, noise: noiseFor(campaign.noise) };
+}
+
+function workflowOf(registry: PackRegistry, source: CampaignSource): WorkflowSpec {
+	const workflow = registry.getWorkflow(source.workflowId);
+	if (!workflow) {
+		const known = registry.listWorkflows().map((entry) => entry.id);
+		throw new Error(
+			`campaign source names workflow "${source.workflowId}", which no pack ships${known.length > 0 ? ` (installed: ${known.join(', ')})` : ''}`
+		);
+	}
+	return workflow;
+}
+
+/** The book in hand, or the one the workflow draws from the population named — the same bytes at the same seed and size wherever it is drawn. */
+function drawBook(source: CampaignSource, workflow: WorkflowSpec): Book {
+	if (source.book) return source.book;
+	const population = source.population;
+	if (!population)
+		throw new Error('a book source carries the book inline, or a population to draw it from');
+	if (!workflow.book) {
+		throw new Error(
+			`workflow "${workflow.id}" draws no book of its own; hand the campaign one inline`
+		);
+	}
+	return workflow.book({
+		seed: population.seed,
+		size: population.size,
+		...(population.periodDays !== undefined ? { periodDays: population.periodDays } : {}),
+		...(source.filter !== undefined ? { filter: source.filter } : {})
+	});
 }
 
 /**
@@ -731,7 +904,12 @@ export async function runCampaign(
 			...(build.base.kind === 'kit'
 				? { agentId: build.base.kit.agent.id, agentName: build.base.kit.agent.name }
 				: {}),
-			...(build.overrides?.knobs ? { knobs: build.overrides.knobs } : {})
+			...(build.overrides?.knobs ? { knobs: build.overrides.knobs } : {}),
+			...(build.overrides?.configuration !== undefined
+				? { configuration: build.overrides.configuration }
+				: campaign.source?.configuration !== undefined
+					? { configuration: campaign.source.configuration }
+					: {})
 		})),
 		cells: results,
 		gates,
@@ -852,6 +1030,19 @@ async function runCell(
 	const empty = () => Object.fromEntries(campaign.assertionCards.map((card) => [card.id, false]));
 
 	try {
+		// A work item through a workflow (WP80): the journey, not a session, is the cell.
+		if (cell.item && campaign.source) {
+			return await runBookCell(
+				cell,
+				cell.item,
+				campaign,
+				noise,
+				options,
+				registry,
+				tally,
+				identity
+			);
+		}
 		const spec = specFor(cell);
 		const goalCardId = goalCardOf(scenario);
 		const script = scriptFor(brain.tier, goalCardId, seed, noise, options.plans ?? starterPlans);
@@ -937,6 +1128,154 @@ async function runCell(
 			error: error instanceof Error ? error.message : String(error)
 		};
 	}
+}
+
+/**
+ * **A book cell** (WP80, `73-…` §4): one work item through the workflow the
+ * source names, under the build's configuration (its own, or the source's)
+ * with the build's knobs over the configuration's — the bot the build and
+ * the guard fit at every agent stage, its plan looked up by the stage
+ * card's id, the stage guards compiled from the policy cards they name,
+ * every human stage answered by the workflow's own suggestion (a campaign
+ * has no person). Scored over the workflow's events followed by every
+ * agent run's, with the desk's truth as the journey left it — so the
+ * evaluators, the assertions, the world's metrics and the cohort read as
+ * a single-seat cell's do. The cell's `runId` is the last agent run's,
+ * for the Run Lab; the workflow run's own id is on `cell.workflow`.
+ */
+async function runBookCell(
+	cell: CampaignCellSpec,
+	item: WorkItem,
+	campaign: Campaign,
+	noise: NoiseRates,
+	options: RunCampaignOptions,
+	registry: PackRegistry,
+	tally: SpendTally,
+	identity: Omit<
+		CampaignCell,
+		'metrics' | 'assertions' | 'evaluations' | 'labels' | 'caseMetrics' | 'counterpart'
+	>
+): Promise<CampaignCell> {
+	const { scenario, build, brain, seed } = cell;
+	const source = campaign.source as CampaignSource;
+	const workflow = workflowOf(registry, source);
+	const configurationId = build.overrides?.configuration ?? source.configuration;
+	const named =
+		configurationId === undefined ? undefined : workflow.configurations?.[configurationId];
+	if (configurationId !== undefined && !named) {
+		throw new Error(
+			`build "${build.id}" names configuration "${configurationId}", which workflow "${workflow.id}" does not have`
+		);
+	}
+	const knobs = { ...(named?.knobs ?? {}), ...(build.overrides?.knobs ?? {}) };
+	const config: WorkflowConfig = {
+		...(named ?? {}),
+		...(Object.keys(knobs).length > 0 ? { knobs } : {})
+	};
+	const spec = specFor(cell);
+	const seat = createTestClock({ seed, idOffset: cell.ordinal * ID_STRIDE });
+	const journey = createTestClock({ seed, idOffset: cell.ordinal * ID_STRIDE + ID_STRIDE / 2 });
+	const agentRuns: Array<{ runId: string; events: EngineEvent[]; spec: AgentSpecV2 }> = [];
+	let truth: unknown;
+	const packs = [starterPack, ...(options.packs ?? [])].filter(
+		(pack, index, all) => all.findIndex((other) => other.id === pack.id) === index
+	);
+	const run = await runWorkflow(workflow, item, {
+		packs,
+		spec,
+		config,
+		providerFor: (_stage, goalCardId) =>
+			brain.tier === 'live'
+				? providerForLive(brain, options)
+				: createMockProvider({
+						script: scriptFor(brain.tier, goalCardId, seed, noise, options.plans ?? starterPlans)
+					}),
+		guardrailsFor: (cardIds) =>
+			cardIds.flatMap((id): Guardrail[] => {
+				const card = registry.getPolicyCard(id);
+				if (!card) throw new Error(`stage guard names policy card "${id}", which no pack ships`);
+				return compilePolicyCard(card);
+			}),
+		now: journey.now,
+		newId: journey.newId,
+		random: journey.random,
+		session: {
+			now: seat.now,
+			newId: seat.newId,
+			random: seat.random,
+			tickDelayMs: 0,
+			...(options.egress !== undefined ? { egress: options.egress } : {}),
+			...(options.principal !== undefined ? { principal: options.principal } : {})
+		},
+		...(options.egress !== undefined ? { egress: options.egress } : {}),
+		...(options.principal !== undefined ? { principal: options.principal } : {}),
+		onAgentRun: (agentRun) => {
+			agentRuns.push({
+				runId: agentRun.runId,
+				events: agentRun.events,
+				spec: toSpecV2(agentRun.spec)
+			});
+		},
+		onFinished: (world) => {
+			truth = world.truth?.();
+		}
+	});
+
+	const events: EngineEvent[] = [
+		...agentRuns.flatMap((agentRun) => agentRun.events),
+		...run.events
+	];
+	const judged = await evaluateCell(campaign, events, options, scenario, tally, truth);
+	const worldDefinition = registry.getWorld(workflow.worldId);
+	const caseMetrics: Record<string, number> = {};
+	for (const metric of worldDefinition?.metrics ?? []) {
+		const value = metric.fold(events, truth);
+		if (value !== undefined && Number.isFinite(value)) caseMetrics[metric.id] = value;
+	}
+	const cohort = cohortOf(truth) ?? cohortOf(item.truth);
+	const touched = touchedCaseOf(run, workflow.decisionKindOf);
+	const ceilings = config.autonomy?.ceilings ?? {};
+	const breaches = (touched.decisions ?? []).filter((decision) => {
+		const ceiling = ceilings[decision.kind];
+		return ceiling !== undefined && decision.level > ceiling;
+	}).length;
+	const last = agentRuns.at(-1);
+	const outcome: RunOutcome =
+		run.outcome === 'completed'
+			? 'SUCCESS'
+			: run.stages.some((stage) => stage.status === 'blocked')
+				? 'STOPPED_BY_GUARDRAIL'
+				: 'ERROR';
+	const scored: CampaignCell = {
+		...identity,
+		...(last ? { runId: last.runId } : {}),
+		outcome,
+		metrics: scoreRun(events),
+		assertions: Object.fromEntries(
+			campaign.assertionCards.map((card) => [card.id, evaluateAssertion(card, events).pass])
+		),
+		evaluations: judged.verdicts,
+		labels: judged.labels,
+		caseMetrics,
+		...(cohort ? { cohort } : {}),
+		item: { id: item.id, kind: item.kind, customerId: item.customerId },
+		workflow: {
+			runId: run.id,
+			...(configurationId !== undefined ? { configuration: configurationId } : {}),
+			...(config.autonomy ? { autonomy: config.autonomy.level } : {}),
+			outcome: run.outcome,
+			stages: run.stages.map((stage) => ({
+				stageId: stage.stageId,
+				executor: stage.executor.kind,
+				status: stage.status
+			})),
+			touches: touched.touches.map((touch) => touch.kind),
+			decisions: touched.decisions ?? [],
+			breaches
+		}
+	};
+	if (last) options.onTrace?.(scored, { events: last.events, spec: last.spec });
+	return scored;
 }
 
 /**
@@ -1122,7 +1461,9 @@ async function evaluateCell(
 	events: readonly EngineEvent[],
 	options: RunCampaignOptions,
 	scenario: CampaignScenario,
-	tally: SpendTally
+	tally: SpendTally,
+	/** The truth handed over directly (WP80): a workflow with no agent stage leaves no `run.finished` to carry it. */
+	truthGiven?: unknown
 ): Promise<{
 	verdicts: Record<string, 'pass' | 'fail' | 'inconclusive'>;
 	labels: Record<string, string>;
@@ -1135,7 +1476,9 @@ async function evaluateCell(
 		if (!registry.listPacks().some((installed) => installed.id === pack.id))
 			registry.registerPack(pack);
 	}
-	const input = evaluationInputFor(events, undefined, scenario);
+	const read = evaluationInputFor(events, undefined, scenario);
+	const input =
+		truthGiven !== undefined && read.truth === undefined ? { ...read, truth: truthGiven } : read;
 	const verdicts: Record<string, 'pass' | 'fail' | 'inconclusive'> = {};
 	for (const named of campaign.evaluators) {
 		const evaluator = resolveEvaluator(registry, named.id);
@@ -1206,8 +1549,10 @@ function cleanOverrides(
 ): Omit<SpecOverrides, 'goalCardId' | 'tools'> {
 	if (!overrides) return {};
 	return Object.fromEntries(
-		// `knobs` are the world's, not the spec's (WP78).
-		Object.entries(overrides).filter(([key, value]) => key !== 'knobs' && value !== undefined)
+		// `knobs` are the world's and `configuration` the workflow's, not the spec's (WP78, WP80).
+		Object.entries(overrides).filter(
+			([key, value]) => key !== 'knobs' && key !== 'configuration' && value !== undefined
+		)
 	) as Omit<SpecOverrides, 'goalCardId' | 'tools'>;
 }
 

@@ -88,12 +88,24 @@ export function createCampaignHost(
 				chain = chain.then(() => runOne(message));
 				return;
 			}
-			// The book runner and the bank clock arrive with WP80 and WP83; until then the
-			// protocol says so rather than pretending (`65-…` WP77's "stubbed").
+			// A book is a campaign with a `source` (WP80): the same runner runs it.
+			if (message.work === 'book') {
+				chain = chain.then(() =>
+					runOne({
+						kind: 'start',
+						job: message.job,
+						work: 'campaign',
+						campaign: message.book,
+						fixed: message.fixed
+					})
+				);
+				return;
+			}
+			// The bank clock arrives with WP83; until then the protocol says so rather than pretending.
 			post({
 				kind: 'failed',
 				job: message.job,
-				error: `the ${message.work} runner is not built yet (${message.work === 'book' ? 'WP80' : 'WP83'})`
+				error: `the ${message.work} runner is not built yet (WP83)`
 			});
 		}
 	};

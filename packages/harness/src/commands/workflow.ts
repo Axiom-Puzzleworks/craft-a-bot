@@ -106,8 +106,9 @@ export async function workflowRun(options: WorkflowRunOptions): Promise<Workflow
 				if (!card) throw new Error(`stage guard names no installed policy card '${id}'`);
 				return compilePolicyCard(card);
 			}),
-		human: (stage, _state, executor) => ({
-			decision: options.decisions?.[stage.id] ?? executor.default ?? executor.options[0] ?? ''
+		human: (stage, _state, executor, suggested) => ({
+			decision:
+				options.decisions?.[stage.id] ?? suggested ?? executor.default ?? executor.options[0] ?? ''
 		}),
 		approve: () => options.approve ?? true,
 		now,

@@ -4,9 +4,15 @@ import {
 	type DeskState,
 	type DeskWorldSpec
 } from '@craftabot/desk';
+import type { WorkItem } from '@craftabot/core';
 import { z } from 'zod';
 import { lendingStrings } from '../strings.js';
-import { lendingCase, LENDING_CASE_KINDS, type LendingCaseKind } from './cases.js';
+import {
+	lendingCase,
+	lendingCaseFromItem,
+	LENDING_CASE_KINDS,
+	type LendingCaseKind
+} from './cases.js';
 import {
 	APPLICATION_ITEM,
 	PAYSLIP_RECORD,
@@ -53,12 +59,33 @@ export const knobsOf = (config: Record<string, unknown> | undefined): LendingPol
 	lendingPolicyFrom(config?.['knobs']);
 const policyOf = (state: LendingDeskState): LendingPolicy => knobsOf(state.config);
 
-export const lendingLayouts = LENDING_CASE_KINDS.map((kind) => ({
-	id: kind,
-	name: LAYOUT_NAMES[kind],
-	case: (random: () => number, config?: Record<string, unknown>) =>
-		lendingCase(random, kind, knobsOf(config))
-}));
+/**
+ * The work-item layout (WP80, `64-…` §6.2.3 `intake`): the case built from
+ * the `item` a workflow's intake hands over in the create-time config — a
+ * book's applicant on the desk. Without an item (the conformance sweep
+ * creates every layout bare) it is the borderline case, so the layout is
+ * always a case.
+ */
+export const WORK_ITEM_LAYOUT = 'work-item';
+
+export const lendingLayouts = [
+	...LENDING_CASE_KINDS.map((kind) => ({
+		id: kind,
+		name: LAYOUT_NAMES[kind],
+		case: (random: () => number, config?: Record<string, unknown>) =>
+			lendingCase(random, kind, knobsOf(config))
+	})),
+	{
+		id: WORK_ITEM_LAYOUT,
+		name: 'A work item from the book',
+		case: (random: () => number, config?: Record<string, unknown>) => {
+			const item = config?.['item'];
+			return item !== undefined && item !== null
+				? lendingCaseFromItem(random, item as WorkItem, knobsOf(config))
+				: lendingCase(random, 'borderline-refer', knobsOf(config));
+		}
+	}
+];
 
 const money = (value: number): string => `£${value.toLocaleString('en-GB')}`;
 const factsOf = (truth: unknown): Record<string, unknown> =>

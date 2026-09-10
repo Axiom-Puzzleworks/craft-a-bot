@@ -94,7 +94,26 @@ export function turn(text: string, name: string, args: unknown = {}): MockTurn {
  * calls; the persona narrates each one so the thought bubble has something to
  * show. This is what the end-to-end goal tests drive.
  */
-export function obedient(plan: Array<{ say: string; call: string; args?: unknown }>): MockScript {
+export function obedient(
+	plan: Array<{
+		say: string;
+		call: string;
+		args?: unknown;
+		argsFrom?: (request: ChatRequest) => unknown;
+	}>
+): MockScript {
+	// A step that reads the prompt (WP80) makes the script a function of the request; a fixed plan stays a list.
+	if (plan.some((stepPlan) => stepPlan.argsFrom !== undefined)) {
+		return (request, index) => {
+			const stepPlan = plan[index];
+			if (!stepPlan) return SHRUG;
+			return turn(
+				stepPlan.say,
+				stepPlan.call,
+				stepPlan.argsFrom ? stepPlan.argsFrom(request) : (stepPlan.args ?? {})
+			);
+		};
+	}
 	const turns = plan.map((stepPlan) => turn(stepPlan.say, stepPlan.call, stepPlan.args ?? {}));
 	return turns;
 }

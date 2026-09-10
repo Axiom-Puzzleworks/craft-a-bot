@@ -31,12 +31,20 @@ export interface StartCampaign {
 	fixed?: { now: string; reportId: string } | undefined;
 }
 
-/** The book runner (WP80) and the bank clock (WP83) — stubbed here so the protocol is whole. */
+/**
+ * A book run (WP80, `73-…` §4): a campaign whose `source` names a book and a
+ * workflow — the same runner, the same report — so the Books and Sweeps
+ * tabs queue one exactly as the Campaigns tab queues a campaign. The kind
+ * stays for a host that wants to say what it is sending; the Worker treats
+ * it as the campaign it is.
+ */
 export interface StartBook {
 	kind: 'start';
 	job: string;
 	work: 'book';
+	/** The campaign, with its `source`. */
 	book: unknown;
+	fixed?: { now: string; reportId: string } | undefined;
 }
 export interface StartBank {
 	kind: 'start';

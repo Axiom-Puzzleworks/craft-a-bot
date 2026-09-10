@@ -3,7 +3,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { defaultConfig, loadConfig, type HarnessConfig } from './config.js';
 import { principalFromEnv } from './principal.js';
 import { mergeReports } from './commands/merge.js';
-import { parseCampaign, type CampaignGuard } from '@craftabot/evals';
+import { parseCampaign, type CampaignGuard, type CampaignReport } from '@craftabot/evals';
 import { credentialsFromEnv, type CredentialSource } from './credentials.js';
 import { bundleRun } from './commands/bundle.js';
 import { evaluateRun, renderEvaluations } from './commands/evaluate.js';
@@ -29,6 +29,7 @@ import type { EvidenceKind } from '@craftabot/core';
 import { runKit, type BrainTier } from './commands/run.js';
 import { forkRun } from './commands/fork.js';
 import { workflowRun } from './commands/workflow.js';
+import { bookRun, sweepRun } from './commands/book.js';
 import { createRegistry } from './config.js';
 import { createFileStorage } from './storage/file-storage.js';
 
@@ -162,6 +163,25 @@ Usage:
       is the bot); --decide answers the human stages. Every agent run is
       written as run writes a run, and the workflow's own record with its
       stage records and digest as <out>/workflows/<id>/workflow-run.json.
+
+  craftabot book run --workflow <id> --population <seed> --size <n> [--config a,b,…]
+                 [--kit <bot.craftabot.json>] [--brain scripted-optimal|scripted-noisy|live]
+                 [--period-days <n>] [--limit <n>] [--jobs <n>] [--egress declared|none]
+                 [--markdown <scorecard.md>] [--out ./campaign-out]
+      A book through a workflow's configurations (WP80, 64-… §6.6.3): the
+      book the workflow draws from a population at the seed and size, one
+      build per configuration named (every named one by default), the
+      bot --kit's or the world's default senses and actions, one guard,
+      one brain — written as a campaign file beside the report and run as
+      campaign runs one, the pool under --jobs, every run kept. The one
+      gate always passes: a book run is a measurement; the gates a judgment
+      needs come in a campaign file with source: { kind: "book", … }.
+
+  craftabot sweep --file <campaign.json> --knob <name>=<v1>,<v2>,… [--jobs <n>]
+                 [--egress declared|none] [--markdown <scorecard.md>] [--out ./campaign-out]
+      Sugar over builds: every build of the file × every value of one knob,
+      one build per value named <build>@<knob>=<value>, the swept campaign
+      written beside the report and run as any campaign is.
 
   craftabot bundle --run <runId> | --group <groupRunId> [--out ./runs] [--file <path>]
       Write a stored run back out as a .craftabot-trace.json, or a group
@@ -433,6 +453,105 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 				io.stdout(`${JSON.stringify(report, null, '	')}
 `);
 				return report.outcome === 'completed' ? 0 : 1;
+			}
+			case 'book': {
+				// WP80 (`64-…` §6.6.3): a book through a workflow's configurations, as a campaign.
+				const verb = args.positional[0];
+				const workflowId = stringFlag(args, 'workflow');
+				const seed = numberFlag(args, 'population');
+				const size = numberFlag(args, 'size');
+				if (
+					verb !== 'run' ||
+					workflowId === undefined ||
+					seed === undefined ||
+					size === undefined
+				) {
+					throw new Error('book needs run --workflow <id> --population <seed> --size <n>');
+				}
+				const brainFlag = stringFlag(args, 'brain') ?? 'scripted-optimal';
+				if (!BRAINS.includes(brainFlag as BrainTier)) {
+					throw new Error(`--brain must be one of ${BRAINS.join(', ')}`);
+				}
+				const configurations = stringFlag(args, 'config')
+					?.split(',')
+					.map((entry) => entry.trim())
+					.filter((entry) => entry !== '');
+				const kitPath = stringFlag(args, 'kit');
+				const periodDays = numberFlag(args, 'period-days');
+				const limit = numberFlag(args, 'limit');
+				const jobs = numberFlag(args, 'jobs');
+				const egress = egressFlag(args);
+				const markdown = stringFlag(args, 'markdown');
+				const result = await bookRun({
+					workflowId,
+					seed,
+					size,
+					brain: brainFlag as BrainTier,
+					out: stringFlag(args, 'out') ?? './campaign-out',
+					config: await configFrom(args),
+					credentials: credentialsFor(io),
+					principal: principalFor(io, args),
+					...(configurations !== undefined ? { configurations } : {}),
+					...(kitPath !== undefined ? { kitPath } : {}),
+					...(periodDays !== undefined ? { periodDays } : {}),
+					...(limit !== undefined ? { limit } : {}),
+					...(jobs !== undefined ? { jobs } : {}),
+					...(egress !== undefined ? { egress } : {}),
+					...(markdown !== undefined ? { markdown } : {})
+				});
+				io.stdout(
+					[
+						`book ${result.report.campaignId} — ${result.cells} cells over ${result.report.builds.length} configuration(s)`,
+						`  campaign   ${result.campaignFile}`,
+						`  report     ${result.reportFile}`,
+						...result.written.slice(1).map((path) => `  wrote      ${path}`),
+						...humanLoadLines(result.report),
+						''
+					].join('\n')
+				);
+				return 0;
+			}
+			case 'sweep': {
+				// WP80 (`64-…` §6.6.3): one knob over every build of a campaign file.
+				const file = stringFlag(args, 'file');
+				const knobFlag = stringFlag(args, 'knob');
+				if (file === undefined || knobFlag === undefined) {
+					throw new Error('sweep needs --file <campaign.json> --knob <name>=<v1>,<v2>,…');
+				}
+				const eq = knobFlag.indexOf('=');
+				if (eq <= 0) throw new Error('--knob wants <name>=<v1>,<v2>,…');
+				const knob = knobFlag.slice(0, eq).trim();
+				const values = knobFlag
+					.slice(eq + 1)
+					.split(',')
+					.map((entry) => entry.trim())
+					.filter((entry) => entry !== '');
+				const jobs = numberFlag(args, 'jobs');
+				const egress = egressFlag(args);
+				const markdown = stringFlag(args, 'markdown');
+				const result = await sweepRun({
+					file,
+					knob,
+					values,
+					out: stringFlag(args, 'out') ?? './campaign-out',
+					config: await configFrom(args),
+					credentials: credentialsFor(io),
+					principal: principalFor(io, args),
+					...(jobs !== undefined ? { jobs } : {}),
+					...(egress !== undefined ? { egress } : {}),
+					...(markdown !== undefined ? { markdown } : {})
+				});
+				io.stdout(
+					[
+						`sweep ${result.report.campaignId} — ${result.cells} cells over ${result.report.builds.length} build(s)`,
+						`  campaign   ${result.campaignFile}`,
+						`  report     ${result.reportFile}`,
+						...result.written.slice(1).map((path) => `  wrote      ${path}`),
+						...humanLoadLines(result.report),
+						''
+					].join('\n')
+				);
+				return 0;
 			}
 			case 'bundle': {
 				const runId = stringFlag(args, 'run');
@@ -880,6 +999,15 @@ function egressFlag(args: ParsedArgs): EgressMode | undefined {
 function stringFlag(args: ParsedArgs, name: string): string | undefined {
 	const value = args.flags[name];
 	return typeof value === 'string' ? value : undefined;
+}
+
+/** The human-load rows a book or sweep report carries (WP80), one line each, for the terminal. */
+function humanLoadLines(report: CampaignReport): string[] {
+	const rows = report.summary?.humanLoad ?? [];
+	return rows.map(
+		(row) =>
+			`  ${row.build.padEnd(36)} level ${row.autonomy ?? '—'}  touches/case ${row.touchesPerCase.toFixed(2)}  unattended ${Math.round(row.unattendedRate * 100)}%  breaches ${row.breaches}/${row.decisions}`
+	);
 }
 
 /** `--decide sign=approve,review=refer` — the scripted answers for a workflow's human stages (WP79). */
