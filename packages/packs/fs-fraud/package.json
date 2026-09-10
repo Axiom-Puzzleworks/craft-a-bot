@@ -30,11 +30,12 @@
 	},
 	"devDependencies": {
 		"@craftabot/evals": "*",
+		"@craftabot/metrics": "*",
 		"@craftabot/pack-geap": "*",
 		"@craftabot/pack-guard-local": "*",
 		"@craftabot/pack-monitor": "*",
 		"@craftabot/pack-starter": "*",
-		"@craftabot/pack-workshop": "*",
-		"@craftabot/pack-testkit": "*"
+		"@craftabot/pack-testkit": "*",
+		"@craftabot/pack-workshop": "*"
 	}
 }

@@ -50,3 +50,6 @@ examples/python-reader/fixtures
 
 # The user manual and the UX findings are hand-written prose, kept as written
 docs/manual/
+
+# Generated from the validation suite by scripts/metrics-doc.mjs (WP76); npm run metrics:doc rewrites it
+docs/metrics.md
