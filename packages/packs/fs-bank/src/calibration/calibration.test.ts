@@ -3,6 +3,7 @@ import { checkCalibration } from '@craftabot/pack-testkit';
 import type { CalibrationRow } from '@craftabot/core';
 import { describe, expect, it } from 'vitest';
 import { bankCase } from '../generate/case.js';
+import { customerCase, population } from '../population/population.js';
 import { AGE_BANDS, INCOME_BANDS, type BankCase } from '../model.js';
 import { CALIBRATION } from './table.js';
 import { DECK_WEIGHTS } from './deck-weights.js';
@@ -194,15 +195,21 @@ const share = (counts: Map<string, number>, key: string, total: number) =>
 	total === 0 ? 0 : (counts.get(key) ?? 0) / total;
 
 describe('a population drawn from CALIBRATION', { timeout: 300_000 }, () => {
-	const cases: BankCase[] = [];
-	for (let seed = 1; seed <= SIZE; seed += 1) {
-		cases.push(
-			bankCase(seed, {
-				calibration: CALIBRATION,
-				transactionsPerAccount: seed <= WITH_TRANSACTIONS ? 24 : 0
-			})
-		);
-	}
+	// The population itself (stage B): twenty thousand customers, the first two thousand with their last thirty days.
+	const pop = population(1, { size: SIZE });
+	const cases: BankCase[] = pop.customers.map((entry, index) =>
+		index < WITH_TRANSACTIONS
+			? customerCase(pop, entry.customer.id)
+			: {
+					seed: entry.seed,
+					customer: entry.customer,
+					accounts: entry.accounts,
+					transactions: [],
+					complaints: entry.complaints,
+					bureau: entry.bureau,
+					shelf: []
+				}
+	);
 	const withTransactions = cases.slice(0, WITH_TRANSACTIONS);
 
 	const rowsChecked = new Set<string>();

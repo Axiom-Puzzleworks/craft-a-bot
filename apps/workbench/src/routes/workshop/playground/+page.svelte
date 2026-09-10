@@ -2,12 +2,19 @@
 	import { resolve } from '$app/paths';
 	import type { BoundaryMap } from '@craftabot/governance/reports';
 	import {
+		CALIBRATION,
 		bankCase,
 		bankRecords,
 		bankServiceLines,
+		marginalOf,
+		population,
 		type BankCase,
-		type BankRecords
+		type BankRecords,
+		type Population,
+		type PopulationCustomer
 	} from '@craftabot/pack-fs-bank';
+	import type { CalibrationRow } from '@craftabot/core';
+	import CaseTable from '$lib/components/control-room/CaseTable.svelte';
 	import Boundary from '$lib/components/control-room/Boundary.svelte';
 	import CaseFile from '$lib/components/control-room/CaseFile.svelte';
 	import Readout from '$lib/components/control-room/Readout.svelte';
@@ -55,6 +62,107 @@
 		})),
 		human: { approvals: 0 }
 	};
+
+	/**
+	 * **Where this bank's shape comes from, and the bank at scale** (WP74
+	 * stage C, `66-CALIBRATION.md` §4.4): the calibration table the
+	 * population draws from — every row with its publication, edition and
+	 * retrieval date, or its stated assumption, and whether a reviewer has
+	 * read it — and a population made here from a seed and a size, with its
+	 * digest and its marginals beside the rows' targets. Nothing is stored:
+	 * the population is regenerated from its seed every time.
+	 */
+	const sourceOf = (row: CalibrationRow): string =>
+		row.source.kind === 'publication'
+			? `${row.source.publisher} — ${row.source.title} (${row.source.edition}); ${row.source.table}`
+			: `stated assumption — ${row.note ?? ''}`;
+	const calibrationColumns = [
+		{ id: 'row', label: 'Row', kind: 'text' as const },
+		{ id: 'kind', label: 'Kind', kind: 'text' as const },
+		{ id: 'distribution', label: 'Distribution', kind: 'text' as const },
+		{ id: 'source', label: 'Source', kind: 'text' as const },
+		{ id: 'retrieved', label: 'Retrieved', kind: 'text' as const },
+		{ id: 'review', label: 'Reviewed', kind: 'status' as const }
+	];
+	const calibrationRows = CALIBRATION.rows.map((row) => ({
+		id: row.id,
+		cells: {
+			row: `${row.title} (${row.id})`,
+			kind: row.kind,
+			distribution: Object.entries(row.distribution)
+				.map(([category, weight]) => `${category} ${weight}`)
+				.join(' · '),
+			source: sourceOf(row),
+			retrieved: row.source.retrieved,
+			review: row.review === 'pending' ? ('inconclusive' as const) : ('pass' as const)
+		}
+	}));
+	const pendingRows = $derived(CALIBRATION.rows.filter((row) => row.review === 'pending').length);
+
+	let popSeed = $state(1);
+	let popSize = $state(2000);
+	// Raw: thousands of customers that never change once made.
+	let pop = $state.raw<Population | undefined>(undefined);
+	let popMs = $state(0);
+	function generatePopulation(): void {
+		const started = performance.now();
+		pop = population(popSeed, { size: Math.max(1, Math.floor(popSize)) });
+		popMs = Math.round(performance.now() - started);
+	}
+	const over65 = (entry: PopulationCustomer) =>
+		entry.customer.cohort.ageBand === '65-74' || entry.customer.cohort.ageBand === '75+';
+	/** The rows the bank page reads off a population, with how each is read. */
+	const MARGINALS: Array<{
+		rowId: string;
+		draw: (entry: PopulationCustomer) => string | undefined;
+	}> = [
+		{ rowId: 'age-band', draw: (entry) => entry.customer.cohort.ageBand },
+		{
+			rowId: 'employment-25-64',
+			draw: (entry) =>
+				over65(entry) || entry.customer.cohort.ageBand === '18-24'
+					? undefined
+					: entry.customer.employment
+		},
+		{ rowId: 'income-band', draw: (entry) => entry.customer.cohort.incomeBand },
+		{ rowId: 'literacy-band', draw: (entry) => entry.customer.cohort.literacyBand },
+		{ rowId: 'preferred-channel', draw: (entry) => entry.customer.consent.preferredChannel }
+	];
+	const marginalColumns = [
+		{ id: 'row', label: 'Row', kind: 'text' as const },
+		{ id: 'category', label: 'Category', kind: 'text' as const },
+		{ id: 'target', label: 'Target', kind: 'number' as const },
+		{ id: 'observed', label: 'Observed', kind: 'number' as const },
+		{ id: 'within', label: 'Within tolerance', kind: 'status' as const }
+	];
+	const marginalRows = $derived.by(() => {
+		if (!pop) return [];
+		const out: Array<{ id: string; cells: Record<string, string | number | 'pass' | 'fail'> }> = [];
+		for (const { rowId, draw } of MARGINALS) {
+			const row = CALIBRATION.rows.find((candidate) => candidate.id === rowId);
+			if (!row) continue;
+			const observed = marginalOf(pop, rowId, draw);
+			const total = Object.values(row.distribution).reduce((sum, w) => sum + w, 0);
+			const counted = pop.customers.filter((entry) => draw(entry) !== undefined).length;
+			for (const [category, weight] of Object.entries(row.distribution)) {
+				const target = weight / total;
+				// The row's tolerance plus the sampling margin at this size — a 2,000-customer population is allowed its noise.
+				const margin =
+					row.tolerance + 1.96 * Math.sqrt((target * (1 - target)) / Math.max(1, counted));
+				out.push({
+					id: `${rowId}:${category}`,
+					cells: {
+						row: rowId,
+						category,
+						target: Math.round(target * 1000) / 10,
+						observed: Math.round((observed[category] ?? 0) * 1000) / 10,
+						within: Math.abs((observed[category] ?? 0) - target) <= margin ? 'pass' : 'fail'
+					}
+				});
+			}
+		}
+		return out;
+	});
 
 	const hidden = $derived(records?.hidden ?? []);
 	const truthRecords = $derived(records?.truth.records ?? []);
@@ -120,6 +228,69 @@
 	</div>
 {/if}
 
+<section class="calibration" aria-label="Where this bank's shape comes from">
+	<Strip label="Where this bank's shape comes from" icon="cohort">
+		<p class="hint">
+			The distributions the population draws from, each set to a published UK aggregate and cited —
+			publisher, title, edition, table, the date it was read — or stated as an assumption that says
+			why. {pendingRows} of {CALIBRATION.rows.length} rows are awaiting a reviewer's reading against their
+			source. The desks' designed cases draw from the WP59 weights instead.
+		</p>
+		<CaseTable
+			columns={calibrationColumns}
+			rows={calibrationRows}
+			testId="playground-calibration"
+		/>
+	</Strip>
+</section>
+
+<section class="population" aria-label="The bank at scale">
+	<Strip label="The bank at scale" icon="cohort">
+		<label class="seed">
+			Seed
+			<input
+				type="number"
+				min="1"
+				step="1"
+				bind:value={popSeed}
+				data-testid="playground-population-seed"
+			/>
+		</label>
+		<label class="seed">
+			Customers
+			<input
+				type="number"
+				min="100"
+				max="50000"
+				step="100"
+				bind:value={popSize}
+				data-testid="playground-population-size"
+			/>
+		</label>
+		<button type="button" onclick={generatePopulation} data-testid="playground-population-generate"
+			>Generate the population</button
+		>
+		{#if pop}
+			<Readout
+				label="Digest"
+				value={pop.digest.slice(0, 12)}
+				testId="playground-population-digest"
+			/>
+			<Readout label="Customers" value={pop.customers.length} />
+			<Readout label="Made in" value={`${popMs} ms`} />
+		{/if}
+	</Strip>
+	{#if pop}
+		<p class="hint">
+			A population is never stored: this one is customer 0 to {pop.customers.length - 1} of the seed's
+			population at any size, regenerated from the seed in the time shown; its digest is over the options,
+			the table's rows and a canonical sample. The marginals below sit beside the rows' targets, within
+			the row's tolerance plus the sampling margin at this size.
+		</p>
+		<CaseTable columns={marginalColumns} rows={marginalRows} testId="playground-marginals" />
+	{/if}
+</section>
+
 <section class="lines" aria-label="The service lines">
 	<h2>The nine lines</h2>
 	<p>
@@ -146,6 +317,14 @@
 <style>
 	h1 {
 		margin: 0 0 var(--cab-space-2);
+	}
+	.calibration,
+	.population {
+		margin: var(--cab-space-4) 0;
+	}
+	.hint {
+		font-size: var(--cab-text-sm);
+		margin: var(--cab-space-2) 0;
 	}
 
 	.lede {

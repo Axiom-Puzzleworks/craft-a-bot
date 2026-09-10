@@ -40,7 +40,21 @@ export { CALIBRATION, DECK_WEIGHTS, impliedMarginal, perDrawRate } from './calib
 export { rateOf, weightedRow, type Calibrated } from './generate/customer.js';
 export { generateCustomer } from './generate/customer.js';
 export { generateAccounts, monthlyIncomeOf } from './generate/accounts.js';
-export { generateTransactions } from './generate/transactions.js';
+export { dayTransactions, generateTransactions } from './generate/transactions.js';
+export {
+	POPULATION_DEFAULTS,
+	customerCase,
+	marginalOf,
+	population,
+	populationDigest,
+	sampleOrdinals,
+	type Population,
+	type PopulationCustomer,
+	type PopulationOptions,
+	type TransactionStream
+} from './population/population.js';
+export { accountDaySeed, customerSeed } from './population/seeds.js';
+export { sha256Hex } from './population/sha256.js';
 export { generateComplaints } from './generate/complaints.js';
 export { generateBureau } from './generate/bureau.js';
 export { SHELF, generateShelf } from './generate/shelf.js';
