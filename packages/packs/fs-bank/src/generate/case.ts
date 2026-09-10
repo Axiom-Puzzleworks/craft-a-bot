@@ -1,3 +1,4 @@
+import type { CalibrationTable } from '@craftabot/core';
 import { seededRandom } from '@craftabot/desk';
 import type { BankCase } from '../model.js';
 import { generateAccounts } from './accounts.js';
@@ -10,6 +11,12 @@ import { generateTransactions } from './transactions.js';
 export interface BankCaseOptions {
 	transactionsPerAccount?: number;
 	days?: number;
+	/**
+	 * The table the generators draw from (WP74, `66-CALIBRATION.md` §4.2):
+	 * `DECK_WEIGHTS` unless told otherwise, so a desk's case is what it always
+	 * was; a population passes `CALIBRATION`.
+	 */
+	calibration?: CalibrationTable;
 }
 
 /**
@@ -21,15 +28,17 @@ export interface BankCaseOptions {
  */
 export function bankCase(seed: number, options: BankCaseOptions = {}): BankCase {
 	const random = seededRandom(seed);
-	const customer = generateCustomer(random);
-	const accounts = generateAccounts(random, customer);
+	const calibrated = options.calibration ? { calibration: options.calibration } : {};
+	const customer = generateCustomer(random, calibrated);
+	const accounts = generateAccounts(random, customer, calibrated);
 	const transactions = generateTransactions(random, accounts, {
 		...(options.transactionsPerAccount !== undefined
 			? { perAccount: options.transactionsPerAccount }
 			: {}),
-		...(options.days !== undefined ? { days: options.days } : {})
+		...(options.days !== undefined ? { days: options.days } : {}),
+		...calibrated
 	});
-	const complaints = generateComplaints(random, customer);
-	const bureau = generateBureau(random, customer, accounts);
+	const complaints = generateComplaints(random, customer, calibrated);
+	const bureau = generateBureau(random, customer, accounts, calibrated);
 	return { seed, customer, accounts, transactions, complaints, bureau, shelf: generateShelf() };
 }

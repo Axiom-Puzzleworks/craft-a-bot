@@ -45,7 +45,8 @@ import { fileURLToPath } from 'node:url';
 // Resolved from this script, not the working directory: it runs as a build
 // step inside `apps/workbench` as well as by hand from the repo root.
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
-const DEFAULT_LIMIT_BYTES = 1_500_000;
+// 1.5 MB from `01-…` §8, +50 kB on 2026-09-10 (WP74): the calibration table's cited rows and their notes ship in the bank pack (`66-CALIBRATION.md`), and are content the bank page renders.
+const DEFAULT_LIMIT_BYTES = 1_550_000;
 const DEFAULT_WORKER_LIMIT_BYTES = 800_000;
 
 function parseArgs(argv) {

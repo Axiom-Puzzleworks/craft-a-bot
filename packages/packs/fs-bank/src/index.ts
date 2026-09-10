@@ -2,6 +2,7 @@ import type { PackManifest } from '@craftabot/core';
 import { bankControlMap } from './controls/rows.js';
 import { bankServiceLines } from './lines/index.js';
 import { FALLBACK, toldPlainly } from './incident.js';
+import { CALIBRATION, DECK_WEIGHTS } from './calibration/index.js';
 
 /**
  * **`@craftabot/pack-fs-bank`** — the synthetic bank (WP59, `48-FS-BANK.md`;
@@ -26,13 +27,17 @@ const manifest: PackManifest = {
 	policyCards: [FALLBACK],
 	evaluators: [toldPlainly],
 	/** The UK retail rows (WP67, `53-…` §4.1), every evidence id resolved by `checkControlMap`. */
-	controlMaps: [bankControlMap]
+	controlMaps: [bankControlMap],
+	/** The cited table the population draws from and the design-time weights the decks were built on (WP74, `66-…` §4.1). */
+	calibrations: [CALIBRATION, DECK_WEIGHTS]
 };
 
 export default manifest;
 
 export * from './model.js';
 export { bankCase, type BankCaseOptions } from './generate/case.js';
+export { CALIBRATION, DECK_WEIGHTS, impliedMarginal, perDrawRate } from './calibration/index.js';
+export { rateOf, weightedRow, type Calibrated } from './generate/customer.js';
 export { generateCustomer } from './generate/customer.js';
 export { generateAccounts, monthlyIncomeOf } from './generate/accounts.js';
 export { generateTransactions } from './generate/transactions.js';

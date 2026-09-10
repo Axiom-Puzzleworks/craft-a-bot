@@ -139,7 +139,7 @@ Extension **`.craftabot-trace.json`**: `{ format: "craftabot-trace", formatVersi
 
 ## 6. Zod schema organisation
 
-- All schemas in `@craftabot/core` under `src/schemas/` (`agentSpec.ts`, `kitFile.ts`, `traceFile.ts`, `events.ts`, `packManifest.ts`); types derived via `z.infer` — **schemas are the single source of truth** for both runtime validation and TS types.
+- All schemas in `@craftabot/core` under `src/schemas/` (`agentSpec.ts`, `kitFile.ts`, `traceFile.ts`, `events.ts`, `packManifest.ts`); types derived via `z.infer` — **schemas are the single source of truth** for both runtime validation and TS types. > **Amended 2026-09-10 (WP74, `66-CALIBRATION.md` §4.1):** `schemas/calibration.ts` — the calibration table a pack ships on `PackManifest.calibrations` (rows with a cited or assumed source, a tolerance and a review status), generated to `docs/schemas/calibration.schema.json` as the ninth artefact and checked on build.
 - Each schema exports `parseX` (throwing) and `safeParseX` helpers; storage/import code uses only `safeParse` + structured error reporting.
 - Migration functions colocated: `migrateKitFile(unknown) → latest | MigrationError`, table-driven by `formatVersion`, unit-tested with a fixture file per historical version (fixtures start accumulating now, at v1).
 

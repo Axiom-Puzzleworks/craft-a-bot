@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { BrickKindDefinition } from '../types/brick.js';
 import type { ControlMap } from '../types/control-map.js';
+import type { CalibrationTable } from './calibration.js';
 import type { Guardrail, GuardrailHook } from '../types/guardrail.js';
 import type { Evaluator } from '../types/evaluator.js';
 import type { GuardrailService } from '../types/guardrail-service.js';
@@ -266,6 +267,13 @@ export interface PackManifest extends PackManifestMetadata {
 	 * `checkControlMap`. The assurance pack files a bot's evidence against them.
 	 */
 	controlMaps?: ControlMap[];
+	/**
+	 * Calibration tables (WP74, `66-CALIBRATION.md` §4.1; `64-…` §6.1.2): the
+	 * distributions a synthetic population's generators draw from, every row
+	 * citing its published source or stating its assumption — content a
+	 * reviewer reads, checked by `checkCalibration`, rendered on the bank page.
+	 */
+	calibrations?: CalibrationTable[];
 	artwork?: PackArtwork;
 	/**
 	 * LLM providers this pack makes available (`06-…` §8, WP26). Function-valued

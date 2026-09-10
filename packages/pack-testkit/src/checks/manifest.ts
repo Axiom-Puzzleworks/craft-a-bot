@@ -7,6 +7,7 @@ import {
 } from '@craftabot/core';
 import type { ConformanceIssue } from '../types.js';
 import { checkControlMap, type ControlMapCheckOptions } from './control-map.js';
+import { checkCalibration, type CalibrationCheckOptions } from './calibration.js';
 
 /**
  * "Manifest validates; ids qualified and collision-free" (`13-…` §7).
@@ -18,7 +19,11 @@ import { checkControlMap, type ControlMapCheckOptions } from './control-map.js';
  */
 export function checkManifest(
 	manifest: PackManifest,
-	options: { companionPacks?: PackManifest[]; controlMaps?: ControlMapCheckOptions } = {}
+	options: {
+		companionPacks?: PackManifest[];
+		controlMaps?: ControlMapCheckOptions;
+		calibrations?: CalibrationCheckOptions;
+	} = {}
 ): ConformanceIssue[] {
 	const issues: ConformanceIssue[] = [];
 
@@ -65,6 +70,9 @@ export function checkManifest(
 	for (const map of manifest.controlMaps ?? []) {
 		if (!map.id.startsWith(prefix)) unqualified.push(`controlMap "${map.id}"`);
 	}
+	for (const table of manifest.calibrations ?? []) {
+		if (!table.id.startsWith(prefix)) unqualified.push(`calibration "${table.id}"`);
+	}
 	if (unqualified.length > 0) {
 		issues.push({
 			check: 'manifest.ids-qualified',
@@ -89,6 +97,10 @@ export function checkManifest(
 			message: `requirements not met: ${unmet.join('; ')}`
 		});
 	}
+
+	// Every calibration row cites its source or says it is an assumption (WP74, `66-…` §4.1).
+	for (const table of manifest.calibrations ?? [])
+		issues.push(...checkCalibration(table, options.calibrations ?? {}));
 
 	try {
 		const registry = createPackRegistry();

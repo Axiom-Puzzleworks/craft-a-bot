@@ -22,6 +22,7 @@ export { checkWorld } from './checks/world.js';
 export { checkDesk } from './checks/desk.js';
 export { checkServiceLine } from './checks/service-line.js';
 export { checkControlMap, type ControlMapCheckOptions } from './checks/control-map.js';
+export { checkCalibration, type CalibrationCheckOptions } from './checks/calibration.js';
 export {
 	checkSynthetic,
 	ibanValid,

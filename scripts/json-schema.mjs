@@ -85,6 +85,12 @@ export async function artefactSchemas() {
 			title: 'Craft A Bot evaluation record (v1)',
 			description:
 				'One evaluator’s verdict over one stored run — the record a Python evaluator writes for the Workshop to import (31-EVALUATORS.md §4.4).'
+		},
+		calibration: {
+			schema: core.calibrationTableSchema,
+			title: 'Craft A Bot calibration table',
+			description:
+				'The distributions a synthetic population’s generators draw from, each row citing the published aggregate it was set to — publisher, title, edition, table, retrieval date — or stating its assumption, with the tolerance the calibration test allows and its review status (66-CALIBRATION.md §4.1).'
 		}
 	};
 }

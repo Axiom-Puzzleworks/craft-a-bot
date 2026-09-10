@@ -588,3 +588,16 @@ export {
 	type ControlRowStatus
 } from './types/control-map.js';
 export { EVENT_TYPES } from './schemas/events.js';
+export {
+	calibrationRow,
+	calibrationRowKindSchema,
+	calibrationRowSchema,
+	calibrationReviewSchema,
+	calibrationSourceSchema,
+	calibrationTableSchema,
+	type CalibrationReview,
+	type CalibrationRow,
+	type CalibrationRowKind,
+	type CalibrationSource,
+	type CalibrationTable
+} from './schemas/calibration.js';

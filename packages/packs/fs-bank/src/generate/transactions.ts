@@ -1,5 +1,6 @@
 import type { Account, Transaction, TransactionChannel } from '../model.js';
-import { hexId, pick, weighted } from './customer.js';
+import { calibrationRow } from '@craftabot/core';
+import { hexId, pick, rateOf, tableOf, weightedRow, type Calibrated } from './customer.js';
 import { MERCHANTS } from './vocab.js';
 
 const pad = (n: number): string => String(n).padStart(2, '0');
@@ -15,16 +16,21 @@ const pad = (n: number): string => String(n).padStart(2, '0');
 export function generateTransactions(
 	random: () => number,
 	accounts: readonly Account[],
-	options: { perAccount?: number; days?: number } = {}
+	options: { perAccount?: number; days?: number } & Calibrated = {}
 ): Transaction[] {
 	const perAccount = options.perAccount ?? 24;
 	const days = options.days ?? 30;
+	const table = tableOf(options);
+	const departureRate = rateOf(calibrationRow(table, 'transaction-departure'), 'departure');
+	const creditShare = rateOf(calibrationRow(table, 'transaction-credit-share'), 'credit');
+	const cardMix = calibrationRow(table, 'channel-mix-card');
+	const currentMix = calibrationRow(table, 'channel-mix-current');
 	const out: Transaction[] = [];
 	for (const account of accounts) {
 		if (account.kind === 'loan' || account.kind === 'mortgage') continue;
 		const byHour = new Map<string, number>();
 		for (let i = 0; i < perAccount; i += 1) {
-			const departure = random() < 0.12;
+			const departure = random() < departureRate;
 			const category = departure
 				? pick(random, Object.keys(MERCHANTS))
 				: pick(random, account.baseline.merchantCategories);
@@ -42,15 +48,8 @@ export function generateTransactions(
 					: category === 'utilities' || category === 'subscriptions'
 						? 'direct-debit'
 						: account.kind === 'credit-card'
-							? weighted(random, [
-									['card-present', 6],
-									['card-not-present', 4]
-								])
-							: weighted(random, [
-									['card-present', 5],
-									['card-not-present', 3],
-									['faster-payment', 2]
-								]);
+							? weightedRow<TransactionChannel>(random, cardMix)
+							: weightedRow<TransactionChannel>(random, currentMix);
 			const typical = account.baseline.typicalTransaction;
 			const amount = departure
 				? Math.round(typical * (3 + random() * 12))
@@ -71,7 +70,7 @@ export function generateTransactions(
 				day,
 				time: `${pad(hour)}:${pad(minute)}`,
 				amount,
-				direction: random() < 0.08 ? 'credit' : 'debit',
+				direction: random() < creditShare ? 'credit' : 'debit',
 				merchant,
 				merchantCategory: category,
 				channel,

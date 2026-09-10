@@ -6,7 +6,16 @@ import {
 	syntheticSortCode
 } from '@craftabot/desk';
 import type { Account, AccountBaseline, AccountKind, Customer } from '../model.js';
-import { hexId, INCOME_BAND_INDEX, pick, weighted } from './customer.js';
+import { calibrationRow } from '@craftabot/core';
+import {
+	hexId,
+	INCOME_BAND_INDEX,
+	pick,
+	rateOf,
+	tableOf,
+	weightedRow,
+	type Calibrated
+} from './customer.js';
 import { COUNTRIES, MERCHANT_CATEGORIES } from './vocab.js';
 
 /** Roughly a month's income at the band's midpoint. */
@@ -35,13 +44,20 @@ function baseline(random: () => number, customer: Customer, kind: AccountKind): 
 	};
 }
 
-export function generateAccounts(random: () => number, customer: Customer): Account[] {
+export function generateAccounts(
+	random: () => number,
+	customer: Customer,
+	options?: Calibrated
+): Account[] {
+	const table = tableOf(options);
+	const holding = calibrationRow(table, 'product-holding');
 	const income = monthlyIncomeOf(customer);
 	const kinds: AccountKind[] = ['current'];
-	if (random() < 0.7) kinds.push('savings');
-	if (random() < 0.5) kinds.push('credit-card');
-	if (random() < 0.25) kinds.push('loan');
-	if (customer.employment !== 'student' && random() < 0.3) kinds.push('mortgage');
+	if (random() < rateOf(calibrationRow(table, 'savings-holding'), 'savings')) kinds.push('savings');
+	if (random() < rateOf(holding, 'credit-card')) kinds.push('credit-card');
+	if (random() < rateOf(holding, 'loan')) kinds.push('loan');
+	if (customer.employment !== 'student' && random() < rateOf(holding, 'mortgage'))
+		kinds.push('mortgage');
 	const openedFrom = 2026 - customer.tenureYears;
 	return kinds.map((kind): Account => {
 		const sortCode = syntheticSortCode(random);
@@ -68,19 +84,10 @@ export function generateAccounts(random: () => number, customer: Customer): Acco
 				return {
 					...base,
 					balance: Math.round(income * random() * 12),
-					interestRateBps: weighted(random, [
-						[150, 2],
-						[300, 4],
-						[425, 3]
-					])
+					interestRateBps: Number(weightedRow(random, calibrationRow(table, 'savings-rate-bps')))
 				};
 			case 'credit-card': {
-				const limit = weighted(random, [
-					[1000, 3],
-					[2500, 4],
-					[5000, 2],
-					[10000, 1]
-				]);
+				const limit = Number(weightedRow(random, calibrationRow(table, 'credit-limit')));
 				return {
 					...base,
 					pan: syntheticPan(random),

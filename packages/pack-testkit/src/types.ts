@@ -225,6 +225,8 @@ export interface PackConformanceFixture {
 		knownTags?: readonly string[];
 		resolve?: boolean;
 	};
+	/** The enums a calibration row's categories must match, by row id (WP74). */
+	calibrations?: { enums?: Readonly<Record<string, readonly string[]>> };
 }
 
 export type { CartridgeDefinition };

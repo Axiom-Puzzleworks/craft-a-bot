@@ -191,7 +191,7 @@ Each is one sitting, in order; each ends with a dated note here.
 1. **`66-CALIBRATION.md` stage 0 — the sourcing note.** Every row, its publication, edition, table and simplification. No values yet. Reviewed by Andrew before step 2. _Written 2026-09-10 with the figures read from the retrieved publications; the sprint ran unattended, so every row carries `review: 'pending'` and the review happens after, not before (`66-…` §2, §6)._
 2. **WP76 stage A — `68-METRICS.md`.** The definitions and the planted-effect designs, on paper, with the hand cases worked. In parallel with step 1; touches no code.
 3. **WP77 — the Worker.** The runner module, the protocol, the Campaigns screen moved, the byte-identity test. One WP, whole. _Done 2026-09-10 — see §3's row._
-4. **WP74 stage A — the table.** Rows typed from the sourcing note with their citations; `checkCalibration`; the generators reading rows; every existing test green.
+4. **WP74 stage A — the table.** Rows typed from the sourcing note with their citations; `checkCalibration`; the generators reading rows; every existing test green. _Done 2026-09-10 — `66-…` §5's stage A note: thirty-three rows, two tables (the cited one and the WP59 deck weights, §6), the calibration test over 20,000 customers, `bankCase(seed)` byte-identical for seeds 1…200._
 5. **WP78 — the knobs.** `DEFAULT_LENDING_POLICY` and the identity tests.
 6. **WP76 stages B–C — the metrics package and the validation suite.** `docs/metrics.md` generated.
 7. **WP74 stages B–C — the population.** The digest, the calibration test, the bank page.
