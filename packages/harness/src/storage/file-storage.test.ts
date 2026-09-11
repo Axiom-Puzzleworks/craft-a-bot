@@ -1,8 +1,15 @@
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, describe, expect, it } from 'vitest';
-import { describeStorageContract, makeAgent, makeRun, uuid } from '@craftabot/core/testing';
+import {
+	describeStorageContract,
+	makeAgent,
+	makeExperimentResult,
+	makeRun,
+	makeStoredWorkflowRun,
+	uuid
+} from '@craftabot/core/testing';
 import { createFileStorage, runExists } from './file-storage.js';
 
 /**
@@ -105,5 +112,53 @@ describe('the file store specifically', () => {
 		]);
 		expect(await storage.listRuns()).toEqual([]);
 		expect(await storage.getEvents(groupId)).toHaveLength(1);
+	});
+});
+
+/** What only a directory can get wrong for the Day 5 rows (WP86, WP89): a bare run written by a command, a corrupt file, a stray one. */
+describe('the file store: workflow runs and experiment results on disk', () => {
+	it('reads a directory holding only the bare workflow-run.json as a run stored from the harness, and skips a corrupt one', async () => {
+		const root = await mkdtemp(join(tmpdir(), 'craftabot-file-storage-'));
+		roots.push(root);
+		const storage = await createFileStorage(root);
+		const bare = makeStoredWorkflowRun('wf-bare');
+		await mkdir(join(root, 'workflows', 'wf-bare'), { recursive: true });
+		await writeFile(
+			join(root, 'workflows', 'wf-bare', 'workflow-run.json'),
+			JSON.stringify(bare.run)
+		);
+		await mkdir(join(root, 'workflows', 'wf-corrupt'), { recursive: true });
+		await writeFile(join(root, 'workflows', 'wf-corrupt', 'stored-workflow-run.json'), '{not json');
+		await mkdir(join(root, 'workflows', 'wf-wrong'), { recursive: true });
+		await writeFile(
+			join(root, 'workflows', 'wf-wrong', 'stored-workflow-run.json'),
+			JSON.stringify({ nope: true })
+		);
+		await writeFile(
+			join(root, 'workflows', 'wf-wrong', 'workflow-run.json'),
+			JSON.stringify({ nope: true })
+		);
+		const read = await storage.getWorkflowRun('wf-bare');
+		expect(read?.run.id).toBe('wf-bare');
+		expect(read?.source).toEqual({ kind: 'harness' });
+		expect(await storage.getWorkflowRun('wf-corrupt')).toBeUndefined();
+		expect(await storage.getWorkflowRun('wf-wrong')).toBeUndefined();
+		expect((await storage.listWorkflowRuns()).map((row) => row.run.id)).toEqual(['wf-bare']);
+	});
+
+	it('skips a stray file and a corrupt result under experiments/, and lists nothing before the directory exists', async () => {
+		const root = await mkdtemp(join(tmpdir(), 'craftabot-file-storage-'));
+		roots.push(root);
+		const storage = await createFileStorage(root);
+		expect(await storage.listExperimentResults()).toEqual([]);
+		expect(await storage.getExperimentResult('nowhere@2026-01-01T00:00:00.000Z')).toBeUndefined();
+		await storage.putExperimentResult(makeExperimentResult());
+		await writeFile(join(root, 'experiments', 'notes.txt'), 'not a result');
+		await writeFile(join(root, 'experiments', 'broken.json'), '{not json');
+		await writeFile(join(root, 'experiments', 'wrong.json'), JSON.stringify({ nope: true }));
+		expect((await storage.listExperimentResults()).map((row) => row.experimentId)).toEqual([
+			'lending-stack'
+		]);
+		expect(await storage.getExperimentResult('broken')).toBeUndefined();
 	});
 });

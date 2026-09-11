@@ -10,6 +10,7 @@ import {
 	makeGroupRun,
 	makeRun,
 	makeRunSummary,
+	makeStoredWorkflowRun,
 	makeSpec,
 	uuid
 } from './storage-fixtures.js';
@@ -320,6 +321,36 @@ export function describeStorageContract(name: string, open: () => Promise<Storag
 				const fetched = await storage.getCampaignReport(report.id);
 				if (fetched) fetched.title = 'Tampered';
 				expect((await storage.getCampaignReport(report.id))?.title).toBe('Injection baseline');
+			});
+		});
+
+		/** WP86 — workflow runs, one per run id with the item it worked, newest first by the run's own start. */
+		describe('workflow runs', () => {
+			it('round-trips a stored run, lists newest first, and returns undefined for one that is not there', async () => {
+				const storage = await open();
+				const older = makeStoredWorkflowRun('wf-a', '2026-01-05T09:00:00.000Z');
+				const newer = makeStoredWorkflowRun('wf-b', '2026-01-06T09:00:00.000Z');
+				await storage.putWorkflowRun(older);
+				await storage.putWorkflowRun(newer);
+				expect(await storage.getWorkflowRun('wf-a')).toEqual(older);
+				expect((await storage.listWorkflowRuns()).map((row) => row.run.id)).toEqual([
+					'wf-b',
+					'wf-a'
+				]);
+				expect(await storage.getWorkflowRun('nowhere')).toBeUndefined();
+			});
+
+			it('refuses a malformed row, deletes one, and forgets them on clear()', async () => {
+				const storage = await open();
+				await expect(
+					storage.putWorkflowRun({ ...makeStoredWorkflowRun('wf-c'), schemaVersion: 2 } as never)
+				).rejects.toThrow();
+				await storage.putWorkflowRun(makeStoredWorkflowRun('wf-d'));
+				await storage.deleteWorkflowRun('wf-d');
+				expect(await storage.listWorkflowRuns()).toEqual([]);
+				await storage.putWorkflowRun(makeStoredWorkflowRun('wf-e'));
+				await storage.clear();
+				expect(await storage.listWorkflowRuns()).toEqual([]);
 			});
 		});
 

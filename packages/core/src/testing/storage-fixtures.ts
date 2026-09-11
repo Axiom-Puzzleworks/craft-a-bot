@@ -11,6 +11,7 @@ import type {
 } from '../schemas/records.js';
 import type { RunRecord } from '../schemas/trace-file.js';
 import { experimentResultDigest, type ExperimentResult } from '../schemas/experiment.js';
+import type { StoredWorkflowRun } from '../schemas/workflow-run.js';
 
 /** Shared fixtures for the storage tests. */
 
@@ -229,4 +230,32 @@ export function makeExperimentResult(
 	};
 	const withId = { ...body, id: `${body.experimentId}@${body.ranAt}` };
 	return { ...withId, digest: experimentResultDigest(withId) };
+}
+
+/** WP86 — a stored workflow run with its item absent, from an import, at a given start. */
+export function makeStoredWorkflowRun(
+	id: string,
+	startedAt = '2026-01-05T09:00:00.000Z',
+	overrides: Partial<StoredWorkflowRun> = {}
+): StoredWorkflowRun {
+	return {
+		run: {
+			schemaVersion: 1,
+			id,
+			workflowId: 'test/visit',
+			itemId: `item-${id}`,
+			config: {},
+			startedAt,
+			finishedAt: startedAt,
+			outcome: 'completed',
+			stages: [],
+			runIds: [],
+			events: [],
+			digest: 'd'
+		},
+		source: { kind: 'import' },
+		createdAt: '2026-09-11T09:00:00.000Z',
+		schemaVersion: 1,
+		...overrides
+	};
 }
