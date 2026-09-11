@@ -333,6 +333,7 @@ export const LENDING_STAGES: StageSpec[] = [
 	{
 		id: 'affordability',
 		name: names.affordability,
+		obligations: ['fca:conc:affordability', 'fca:conc:creditworthiness'],
 		input: BUREAU_OUTPUT,
 		output: WORKSHEET_OUTPUT,
 		executor: agent('affordability-assessed', lendingStrings.workflow.briefs.affordability),
@@ -342,6 +343,7 @@ export const LENDING_STAGES: StageSpec[] = [
 	{
 		id: 'decision',
 		name: names.decision,
+		obligations: ['equality-act:fairness'],
 		input: WORKSHEET_OUTPUT,
 		output: DECISION_OUTPUT,
 		executor: agent('decided', lendingStrings.workflow.briefs.decision),
@@ -364,6 +366,7 @@ export const LENDING_STAGES: StageSpec[] = [
 	{
 		id: 'explanation',
 		name: names.explanation,
+		obligations: ['fca:cd:understanding'],
 		input: RECORDED_OUTPUT,
 		output: EXPLANATION_OUTPUT,
 		executor: agent('explained', lendingStrings.workflow.briefs.explanation),

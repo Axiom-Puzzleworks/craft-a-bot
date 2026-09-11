@@ -28,6 +28,8 @@ const RAIL = [
 	'bench',
 	'telemetry',
 	'monitor',
+	'conduct',
+	'model-risk',
 	'incidents',
 	'safety-case',
 	'assurance',

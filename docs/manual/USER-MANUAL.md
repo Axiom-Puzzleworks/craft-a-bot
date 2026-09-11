@@ -205,8 +205,8 @@ The Workshop has one set of screens and four readers. A **lens** orders the rail
 |---|---|---|---|
 | **Engineer** | What did it do? | the Bench | the Workshop's own |
 | **Assurance** | Is it under control? | Assurance — the claims, the incidents, the drift, the register, the pack | *control intervention*, *case*, *control*, *evidence*, *experiment* |
-| **Conduct** | Were customers treated as the rules require? | Incidents, until the Conduct page lands | *breach caught*, *customer*, *obligation*, *outcome*, *treatment failure* |
-| **Model risk** | Is it fair, and is it moving? | Telemetry, until the Model-risk page lands | *guardrail event*, *sample*, *metric bound*, *label*, *distribution shift* |
+| **Conduct** | Were customers treated as the rules require? | Conduct — the four outcomes with the customers behind each, vulnerability recognised × acted on, the DISP, tipping-off and KYC lamps; a customer's row opens the journey at the governing stage | *breach caught*, *customer*, *obligation*, *outcome*, *treatment failure* |
+| **Model risk** | Is it fair, and is it moving? | Model risk — the fairness workbench (every metric with its interval and n, across any cohort attribute, over a window, stratified), the flip rate by fork, drift against a reference report, rule agreement over time, the synthetic hazard, the validation suite | *guardrail event*, *sample*, *metric bound*, *label*, *distribution shift* |
 
 Each lens's entry opens with a three-step **guided path** — what to read first, second, third, each a link — until you press *Got it*; it stays dismissed for that lens. **Compare two reports** on the Assurance page picks two stored campaign reports and opens them side by side in Compare, their gates aligned by id and the fairness rows beside.
 

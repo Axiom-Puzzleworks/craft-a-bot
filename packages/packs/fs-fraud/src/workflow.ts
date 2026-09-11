@@ -250,6 +250,7 @@ export const FRAUD_STAGES: StageSpec[] = [
 	{
 		id: 'contact',
 		name: names.contact,
+		obligations: ['poca:tipping-off'],
 		input: TRIAGE_OUTPUT,
 		output: CONTACT_OUTPUT,
 		executor: agent('customer-contacted', strings.briefs.contact),
@@ -259,6 +260,7 @@ export const FRAUD_STAGES: StageSpec[] = [
 	{
 		id: 'decision',
 		name: names.decision,
+		obligations: ['equality-act:fairness', 'mlr:kyc'],
 		input: CONTACT_OUTPUT,
 		output: DECISION_OUTPUT,
 		executor: agent('alert-decided', strings.briefs.decision),
@@ -281,6 +283,7 @@ export const FRAUD_STAGES: StageSpec[] = [
 	{
 		id: 'sar',
 		name: names.sar,
+		obligations: ['poca:sar'],
 		input: RESTRICTION_OUTPUT,
 		output: SAR_OUTPUT,
 		executor: { kind: 'human', prompt: strings.briefs.sar, options: [...SAR_OPTIONS] },

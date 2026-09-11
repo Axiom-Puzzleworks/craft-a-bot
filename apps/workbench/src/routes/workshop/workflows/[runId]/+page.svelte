@@ -70,7 +70,11 @@
 			}
 		}
 		storedRunIds = ids;
-		selected ??= stored?.run.stages[0]?.stageId;
+		// The Conduct lens opens the Pipeline at the governing stage (WP88, `79-…` §3): `?stage=` when the run has it.
+		const asked = page.url.searchParams.get('stage') ?? '';
+		selected ??=
+			stored?.run.stages.find((entry) => entry.stageId === asked)?.stageId ??
+			stored?.run.stages[0]?.stageId;
 		loaded = true;
 	}
 

@@ -42,6 +42,6 @@ Settings: `lens` (default `engineer`) and `firstRunDismissed: LensId[]`; `prefer
 
 ## 6. Divergences from `64-…` §6.7
 
-- The Conduct and Model-risk entries point at Incidents and Telemetry until WP88 lands their pages; the lenses, their groups and their words are complete now.
+- The Conduct and Model-risk entries point at Incidents and Telemetry until WP88 lands their pages; the lenses, their groups and their words are complete now. **Amended 2026-09-11, later (WP88, `79-…` §5):** resolved — the entries are `/workshop/conduct` and `/workshop/model-risk`, both destinations lead their lens's first group and sit after the Monitor on the engineer's rail.
 - The register renders as a `CaseTable` with no rows and the word *untested* rather than a stub fold: WP90 owns the fold and its schema, and an empty table that says why is honest where a fabricated row would not be.
 - **A finding on the way (Svelte 5):** a `$state` created lazily *inside* a `$derived` is not tracked by that derived — the rail's first read of `preferences.lens` built the preferences singleton inside its own derived and never re-drew. The shared preferences are now built at module load (`preferences.svelte.ts`), outside every reactive context, with a unit test (`preferences-lens.svelte.test.ts`) holding the lens reactive.

@@ -26,6 +26,8 @@
 			| 'bench'
 			| 'telemetry'
 			| 'monitor'
+			| 'conduct'
+			| 'model-risk'
 			| 'incidents'
 			| 'safety-case'
 			| 'assurance'
@@ -65,6 +67,8 @@
 		bench: '/workshop/bench',
 		telemetry: '/workshop/telemetry',
 		monitor: '/workshop/monitor',
+		conduct: '/workshop/conduct',
+		'model-risk': '/workshop/model-risk',
 		incidents: '/workshop/incidents',
 		'safety-case': '/workshop/safety-case',
 		assurance: '/workshop/assurance',
@@ -114,6 +118,8 @@
 									| '/workshop/bench'
 									| '/workshop/telemetry'
 									| '/workshop/monitor'
+									| '/workshop/conduct'
+									| '/workshop/model-risk'
 									| '/workshop/incidents'
 									| '/workshop/safety-case'
 									| '/workshop/assurance'

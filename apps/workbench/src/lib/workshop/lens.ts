@@ -30,6 +30,8 @@ export type RailId =
 	| 'bench'
 	| 'telemetry'
 	| 'monitor'
+	| 'conduct'
+	| 'model-risk'
 	| 'incidents'
 	| 'safety-case'
 	| 'assurance'
@@ -104,6 +106,8 @@ const EVERYTHING: RailId[] = [
 	'bench',
 	'telemetry',
 	'monitor',
+	'conduct',
+	'model-risk',
 	'incidents',
 	'safety-case',
 	'assurance',
@@ -119,9 +123,9 @@ const rest = (...taken: RailId[][]): RailId[] => {
 const ASSURANCE_FIRST: RailId[] = ['assurance', 'safety-case', 'incidents', 'export'];
 const ASSURANCE_EVIDENCE: RailId[] = ['campaigns', 'workflows', 'evidence'];
 const BANK: RailId[] = ['playground', 'monitor'];
-const CONDUCT_FIRST: RailId[] = ['incidents', 'playground', 'workflows', 'campaigns'];
+const CONDUCT_FIRST: RailId[] = ['conduct', 'incidents', 'playground', 'workflows', 'campaigns'];
 const CONDUCT_RULES: RailId[] = ['policies', 'evaluators', 'scenarios', 'guards'];
-const MODEL_RISK_FIRST: RailId[] = ['telemetry', 'campaigns', 'evals', 'evaluators'];
+const MODEL_RISK_FIRST: RailId[] = ['model-risk', 'telemetry', 'campaigns', 'evals', 'evaluators'];
 const MODEL_RISK_EVIDENCE: RailId[] = ['workflows', 'evidence', 'export'];
 
 export const LENSES: readonly Lens[] = [
@@ -181,8 +185,7 @@ export const LENSES: readonly Lens[] = [
 		id: 'conduct',
 		name: 'Conduct',
 		question: 'Were customers treated as the rules require?',
-		// WP88 re-points this at /workshop/conduct; the incidents log holds the conduct facts today.
-		entry: '/workshop/incidents',
+		entry: '/workshop/conduct',
 		rail: [
 			{ group: 'Conduct', routes: CONDUCT_FIRST },
 			{ group: 'The rules', routes: CONDUCT_RULES },
@@ -202,8 +205,8 @@ export const LENSES: readonly Lens[] = [
 		},
 		firstRun: [
 			{
-				text: 'Read the incidents: every run that went wrong, and why.',
-				href: '/workshop/incidents'
+				text: 'Read the four outcomes: each obligation’s pass rate and the customers it failed.',
+				href: '/workshop/conduct'
 			},
 			{
 				text: 'Open a desk in the Playground and read its cards — the rules the assistant is held to.',
@@ -219,8 +222,7 @@ export const LENSES: readonly Lens[] = [
 		id: 'model-risk',
 		name: 'Model risk',
 		question: 'Is it fair, and is it moving?',
-		// WP88 re-points this at /workshop/model-risk; the telemetry page holds the series and the drift flags today.
-		entry: '/workshop/telemetry',
+		entry: '/workshop/model-risk',
 		rail: [
 			{ group: 'Model risk', routes: MODEL_RISK_FIRST },
 			{ group: 'Evidence', routes: MODEL_RISK_EVIDENCE },
@@ -240,8 +242,8 @@ export const LENSES: readonly Lens[] = [
 		},
 		firstRun: [
 			{
-				text: 'Read the series and the drift flags: what moved, against what reference.',
-				href: '/workshop/telemetry'
+				text: 'Read the fairness workbench: every metric with its interval and n, across a cohort.',
+				href: '/workshop/model-risk'
 			},
 			{
 				text: 'Open a campaign report’s fairness pane: every metric with its interval and n.',
@@ -288,6 +290,8 @@ export const RAIL_LABELS: Record<RailId, string> = {
 	bench: 'Test bench',
 	telemetry: 'Telemetry',
 	monitor: 'Monitor',
+	conduct: 'Conduct',
+	'model-risk': 'Model risk',
 	incidents: 'Incidents',
 	'safety-case': 'Safety case',
 	assurance: 'Assurance',

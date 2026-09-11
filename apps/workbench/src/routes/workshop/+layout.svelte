@@ -51,6 +51,8 @@
 		if (path.startsWith('/workshop/playground')) return 'playground' as const;
 		if (path.startsWith('/workshop/compare')) return 'runs' as const;
 		if (path.startsWith('/workshop/monitor')) return 'monitor' as const;
+		if (path.startsWith('/workshop/conduct')) return 'conduct' as const;
+		if (path.startsWith('/workshop/model-risk')) return 'model-risk' as const;
 		if (path.startsWith('/workshop/telemetry')) return 'telemetry' as const;
 		if (path.startsWith('/workshop/incidents')) return 'incidents' as const;
 		if (path.startsWith('/workshop/safety-case')) return 'safety-case' as const;

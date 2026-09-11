@@ -35,6 +35,8 @@ export interface StageSpec<In = unknown, Out = unknown> {
 	guards?: { policyCards?: string[] };
 	/** The stage commits something — disburse, freeze, file a SAR. */
 	irreversible?: boolean;
+	/** The obligations this stage answers for (WP88, `79-…` §3) — the Conduct lens opens the Pipeline here for them. */
+	obligations?: string[];
 	/**
 	 * What a scripted person answers at a `human` stage (WP80): the
 	 * recommendation on the desk — the bot's, or the rule's verdict — so a

@@ -220,6 +220,7 @@ export const ADVICE_STAGES: StageSpec[] = [
 	{
 		id: 'suitability',
 		name: names.suitability,
+		obligations: ['fca:cobs-9:suitability', 'fca:cd:products-services'],
 		input: REQUEST_OUTPUT,
 		output: SUITABILITY_OUTPUT,
 		executor: agent('suitability-gathered', strings.briefs.suitability),
@@ -229,6 +230,7 @@ export const ADVICE_STAGES: StageSpec[] = [
 	{
 		id: 'recommendation',
 		name: names.recommendation,
+		obligations: ['fca:cd:support', 'fca:fg21-1:vulnerability', 'fca:cd:price-value'],
 		input: SUITABILITY_OUTPUT,
 		output: RECOMMENDATION_OUTPUT,
 		executor: agent('advised', strings.briefs.recommendation),
@@ -239,6 +241,7 @@ export const ADVICE_STAGES: StageSpec[] = [
 	{
 		id: 'warnings',
 		name: names.warnings,
+		obligations: ['fca:cobs-4:promotions', 'fca:cd:understanding'],
 		input: RECOMMENDATION_OUTPUT,
 		output: WARNINGS_OUTPUT,
 		executor: agent('warnings-given', strings.briefs.warnings),

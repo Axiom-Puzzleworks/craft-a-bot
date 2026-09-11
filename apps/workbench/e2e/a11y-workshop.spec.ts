@@ -86,6 +86,8 @@ test('every Workshop route has no accessibility violations', async ({ page }) =>
 		'/workshop/telemetry',
 		'/workshop/monitor',
 		'/workshop/workflows',
+		'/workshop/conduct',
+		'/workshop/model-risk',
 		'/workshop/incidents',
 		'/workshop/safety-case',
 		`/workshop/safety-case?agent=${agentId}`,
