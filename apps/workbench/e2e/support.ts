@@ -215,8 +215,11 @@ export async function settle(page: Page): Promise<void> {
 export async function pinScrollbars(page: Page): Promise<void> {
 	await page.addInitScript(() => {
 		const style = document.createElement('style');
+		// No viewport-height rule either: `min-height: 100vh` on the body and the Workshop's grid made
+		// the page's height depend on the viewport a full-page capture resizes, and the Playground's
+		// shot alternated between two heights on every capture.
 		style.textContent =
-			'html, body { scrollbar-width: none; overflow-x: hidden } ::-webkit-scrollbar { display: none }';
+			'html, body { scrollbar-width: none; overflow-x: hidden; min-height: auto !important } ::-webkit-scrollbar { display: none } .workshop { min-height: auto !important }';
 		document.addEventListener('DOMContentLoaded', () => document.head.append(style));
 	});
 }
