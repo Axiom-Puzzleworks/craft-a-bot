@@ -53,12 +53,19 @@ export function fisherExact(a: number, b: number, c: number, d: number): TestRes
 /** P(X ≤ k) under Binomial(m, ½), the coefficients built by multiplication so small cases are exact. */
 function binomialHalfCdf(k: number, m: number): number {
 	let total = 0;
-	let choose = 1;
-	const scale = Math.pow(0.5, m);
-	for (let x = 0; x <= k; x += 1) {
-		if (x > 0) choose = (choose * (m - x + 1)) / x;
-		total += choose * scale;
+	if (m <= 1000) {
+		// The exact product: 2 of 3 reads 1, not 0.99999….
+		let choose = 1;
+		const scale = Math.pow(0.5, m);
+		for (let x = 0; x <= k; x += 1) {
+			if (x > 0) choose = (choose * (m - x + 1)) / x;
+			total += choose * scale;
+		}
+		return Math.min(1, total);
 	}
+	// In log space (WP89): the product form overflows past a thousand pairs and read NaN.
+	const logHalf = -m * Math.LN2;
+	for (let x = 0; x <= k; x += 1) total += Math.exp(logChoose(m, x) + logHalf);
 	return Math.min(1, total);
 }
 

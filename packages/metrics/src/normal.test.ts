@@ -58,6 +58,12 @@ describe('the tests', () => {
 		expect(signTest(0, 0).p).toBe(1);
 	});
 
+	it('the sign test past a thousand pairs stays a number (WP89): 1700 of 3400 → 1; 1800 of 3400 → small', () => {
+		expect(signTest(1700, 3400).p).toBe(1);
+		const p = signTest(1800, 3400).p;
+		expect(Number.isFinite(p)).toBe(true);
+		expect(p).toBeLessThan(0.001);
+	});
 	it('Kolmogorov–Smirnov: identical samples D = 0, disjoint samples D = 1 with a small p', () => {
 		expect(ksTwoSample([1, 2, 3], [1, 2, 3]).statistic).toBe(0);
 		const apart = ksTwoSample(

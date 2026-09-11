@@ -30,6 +30,7 @@ import { runKit, type BrainTier } from './commands/run.js';
 import { forkRun } from './commands/fork.js';
 import { workflowRun } from './commands/workflow.js';
 import { bookRun, sweepRun } from './commands/book.js';
+import { experimentAnalyse, experimentRender, experimentRun } from './commands/experiment.js';
 import { bankRun } from './commands/bank.js';
 import { createRegistry } from './config.js';
 import { createFileStorage } from './storage/file-storage.js';
@@ -183,6 +184,16 @@ Usage:
       Sugar over builds: every build of the file × every value of one knob,
       one build per value named <build>@<knob>=<value>, the swept campaign
       written beside the report and run as any campaign is.
+
+  craftabot experiment run --file <experiment.json> [--jobs <n>] [--egress declared|none] [--out ./campaign-out]
+  craftabot experiment analyse --file <experiment.json> [--out ./campaign-out]
+  craftabot experiment render --result <experiment-result.json>
+      An experiment (WP89, 72-EXPERIMENTS.md): the design expanded to one
+      campaign per level combination, sharing seeds, each written beside its
+      report and run as campaign runs one; the reports folded into effects —
+      each treatment level against the baseline, a difference with its
+      interval and n — and a verdict over the intervals, never a p-value.
+      analyse re-folds the reports already in --out; render prints a result.
 
   craftabot bank run --day <YYYY-MM-DD> --desks <desks.json> [--population <seed>] [--size <n>]
                  [--acceleration <n>|inf] [--brain scripted-optimal|scripted-noisy]
@@ -564,6 +575,58 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 						`  report     ${result.reportFile}`,
 						...result.written.slice(1).map((path) => `  wrote      ${path}`),
 						...humanLoadLines(result.report),
+						''
+					].join('\n')
+				);
+				return 0;
+			}
+			case 'experiment': {
+				// WP89 (`72-EXPERIMENTS.md` §4): a design expanded to campaigns, run, folded into effects.
+				const verb = args.positional[0];
+				if (verb === 'render') {
+					const resultFile = stringFlag(args, 'result');
+					if (resultFile === undefined) throw new Error('experiment render needs --result <file>');
+					io.stdout(await experimentRender(resultFile));
+					return 0;
+				}
+				const file = stringFlag(args, 'file');
+				if ((verb !== 'run' && verb !== 'analyse') || file === undefined) {
+					throw new Error(
+						'experiment needs run --file <experiment.json> | analyse --file <experiment.json> | render --result <file>'
+					);
+				}
+				const out = stringFlag(args, 'out') ?? './campaign-out';
+				if (verb === 'analyse') {
+					const folded = await experimentAnalyse({ file, out });
+					io.stdout(
+						[
+							`experiment ${folded.result.experimentId} — ${folded.result.verdict} over ${folded.reportFiles.length} report(s)`,
+							`  result     ${folded.resultFile}`,
+							`  markdown   ${folded.markdownFile}`,
+							`  ${folded.result.note}`,
+							''
+						].join('\n')
+					);
+					return 0;
+				}
+				const jobs = numberFlag(args, 'jobs');
+				const egress = egressFlag(args);
+				const ran = await experimentRun({
+					file,
+					out,
+					config: await configFrom(args),
+					credentials: credentialsFor(io),
+					principal: principalFor(io, args),
+					...(jobs !== undefined ? { jobs } : {}),
+					...(egress !== undefined ? { egress } : {})
+				});
+				io.stdout(
+					[
+						`experiment ${ran.result.experimentId} — ${ran.result.verdict}: ${ran.campaignFiles.length} campaign(s), ${ran.cells} cells`,
+						...ran.campaignFiles.map((path) => `  campaign   ${path}`),
+						`  result     ${ran.resultFile}`,
+						`  markdown   ${ran.markdownFile}`,
+						`  ${ran.result.note}`,
 						''
 					].join('\n')
 				);

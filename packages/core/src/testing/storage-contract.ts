@@ -5,6 +5,7 @@ import {
 	makeCampaignReport,
 	makeContent,
 	makeEvaluation,
+	makeExperimentResult,
 	makeEvent,
 	makeGroupRun,
 	makeRun,
@@ -319,6 +320,50 @@ export function describeStorageContract(name: string, open: () => Promise<Storag
 				const fetched = await storage.getCampaignReport(report.id);
 				if (fetched) fetched.title = 'Tampered';
 				expect((await storage.getCampaignReport(report.id))?.title).toBe('Injection baseline');
+			});
+		});
+
+		/** WP89 — experiment results, one per `<experiment>@<ranAt>`, newest first. */
+		describe('experiment results', () => {
+			it('round-trips a result and lists newest first', async () => {
+				const storage = await open();
+				const older = makeExperimentResult({ ranAt: '2026-09-01T10:00:00.000Z' });
+				const newer = makeExperimentResult({ ranAt: '2026-09-03T10:00:00.000Z' });
+				await storage.putExperimentResult(older);
+				await storage.putExperimentResult(newer);
+				expect(await storage.getExperimentResult(older.id)).toEqual(older);
+				expect((await storage.listExperimentResults()).map((row) => row.id)).toEqual([
+					newer.id,
+					older.id
+				]);
+				expect(
+					await storage.getExperimentResult('nowhere@2026-09-01T10:00:00.000Z')
+				).toBeUndefined();
+			});
+
+			it('refuses a result that fails its schema, deletes one, and forgets them on clear()', async () => {
+				const storage = await open();
+				await expect(
+					storage.putExperimentResult({ ...makeExperimentResult(), digest: 'not-a-digest' })
+				).rejects.toThrow();
+				const result = makeExperimentResult();
+				await storage.putExperimentResult(result);
+				await storage.deleteExperimentResult(result.id);
+				expect(await storage.listExperimentResults()).toEqual([]);
+				await storage.putExperimentResult(result);
+				await storage.clear();
+				expect(await storage.listExperimentResults()).toEqual([]);
+			});
+
+			it('does not hand out live references to a result', async () => {
+				const storage = await open();
+				const result = makeExperimentResult();
+				await storage.putExperimentResult(result);
+				const fetched = await storage.getExperimentResult(result.id);
+				if (fetched) fetched.title = 'Tampered';
+				expect((await storage.getExperimentResult(result.id))?.title).toBe(
+					'The stack on the loan book'
+				);
 			});
 		});
 

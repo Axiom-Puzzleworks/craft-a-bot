@@ -104,6 +104,18 @@ export async function artefactSchemas() {
 			description:
 				'One journey over one work item: every stage’s record — executor, input and output digests, guard tally, the agent run it made — the workflow’s own events, and a digest over the records (69-WORKFLOWS.md §4).'
 		},
+		experiment: {
+			schema: evals.experimentSchema,
+			title: 'Craft A Bot experiment (v1)',
+			description:
+				'A pre-registered hypothesis, a campaign template, the factors over its axes with a baseline level each, the metrics with their good direction, the seeds — and the campaign ids the design expands to (72-EXPERIMENTS.md §3).'
+		},
+		'experiment-result': {
+			schema: core.experimentResultSchema,
+			title: 'Craft A Bot experiment result (v1)',
+			description:
+				'What an experiment measured: for each metric and factor, every treatment level against the baseline as a difference with its interval, n, test and cost; the verdict over the intervals; the note; a digest (72-EXPERIMENTS.md §3).'
+		},
 		calibration: {
 			schema: core.calibrationTableSchema,
 			title: 'Craft A Bot calibration table',

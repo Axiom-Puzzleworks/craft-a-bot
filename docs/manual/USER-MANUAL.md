@@ -204,11 +204,13 @@ The Workshop has one set of screens and four readers. A **lens** orders the rail
 | Lens | Question | Opens on | Its words |
 |---|---|---|---|
 | **Engineer** | What did it do? | the Bench | the Workshop's own |
-| **Assurance** | Is it under control? | Assurance — the claims, the incidents, the drift, the register, the pack | *control intervention*, *case*, *control*, *evidence*, *experiment* |
+| **Assurance** | Is it under control? | Assurance — the claims, the incidents, the drift, the register, the pack; then Experiments | *control intervention*, *case*, *control*, *evidence*, *trial* |
 | **Conduct** | Were customers treated as the rules require? | Conduct — the four outcomes with the customers behind each, vulnerability recognised × acted on, the DISP, tipping-off and KYC lamps; a customer's row opens the journey at the governing stage | *breach caught*, *customer*, *obligation*, *outcome*, *treatment failure* |
 | **Model risk** | Is it fair, and is it moving? | Model risk — the fairness workbench (every metric with its interval and n, across any cohort attribute, over a window, stratified), the flip rate by fork, drift against a reference report, rule agreement over time, the synthetic hazard, the validation suite | *guardrail event*, *sample*, *metric bound*, *label*, *distribution shift* |
 
 Each lens's entry opens with a three-step **guided path** — what to read first, second, third, each a link — until you press *Got it*; it stays dismissed for that lens. **Compare two reports** on the Assurance page picks two stored campaign reports and opens them side by side in Compare, their gates aligned by id and the fairness rows beside.
+
+**Experiments** (`/workshop/experiments`) is where a control's effect is measured rather than judged: pick a workflow, one factor (its configurations, a knob of the world, or the context rung), the baseline level and the metrics the pack answers; the design is shown as the file it is and every level is a campaign the runner queues; when the last report lands the result folds — one grid per metric with the difference each level makes against the baseline, its interval and *n*, per cohort too — and the verdict is a lamp over the intervals: *supported*, *not-supported* or *inconclusive*, with the smallest effect the run could have seen. Every run behind a number opens the Run Lab.
 
 ## 3. The vocabulary
 

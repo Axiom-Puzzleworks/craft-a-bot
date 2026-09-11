@@ -28,6 +28,7 @@
 			| 'monitor'
 			| 'conduct'
 			| 'model-risk'
+			| 'experiments'
 			| 'incidents'
 			| 'safety-case'
 			| 'assurance'
@@ -69,6 +70,7 @@
 		monitor: '/workshop/monitor',
 		conduct: '/workshop/conduct',
 		'model-risk': '/workshop/model-risk',
+		experiments: '/workshop/experiments',
 		incidents: '/workshop/incidents',
 		'safety-case': '/workshop/safety-case',
 		assurance: '/workshop/assurance',
@@ -120,6 +122,7 @@
 									| '/workshop/monitor'
 									| '/workshop/conduct'
 									| '/workshop/model-risk'
+									| '/workshop/experiments'
 									| '/workshop/incidents'
 									| '/workshop/safety-case'
 									| '/workshop/assurance'

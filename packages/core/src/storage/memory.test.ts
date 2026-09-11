@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createMemoryStorage } from './memory.js';
 import type { StoredWorkflowRun } from '../schemas/workflow-run.js';
+import { experimentResultDigest, type ExperimentResult } from '../schemas/experiment.js';
 import { describeStorageContract } from '../testing/storage-contract.js';
 
 describeStorageContract('memory', () => Promise.resolve(createMemoryStorage()));
@@ -72,5 +73,48 @@ describe('memory storage: workflow runs', () => {
 			createdAt: '2026-09-11T10:00:00.000Z'
 		});
 		expect((await storage.listWorkflowRuns()).map((row) => row.run.id)).toEqual(['y', 'x']);
+	});
+});
+
+describe('memory storage: experiment results', () => {
+	const result = (id: string, ranAt: string): ExperimentResult => {
+		const body = {
+			schemaVersion: 1 as const,
+			id: `${id}@${ranAt}`,
+			experimentId: id,
+			title: 'An experiment',
+			hypothesis: 'It helps.',
+			controls: [],
+			obligations: [],
+			ranAt,
+			campaignIds: [],
+			effects: [],
+			verdict: 'inconclusive' as const,
+			note: ''
+		};
+		return { ...body, digest: experimentResultDigest(body) };
+	};
+
+	it('puts, gets, lists newest first, deletes, and refuses a malformed row', async () => {
+		const storage = createMemoryStorage();
+		await storage.putExperimentResult(result('a', '2026-01-05T09:00:00.000Z'));
+		await storage.putExperimentResult(result('b', '2026-01-06T09:00:00.000Z'));
+		expect((await storage.listExperimentResults()).map((row) => row.experimentId)).toEqual([
+			'b',
+			'a'
+		]);
+		expect((await storage.getExperimentResult('a@2026-01-05T09:00:00.000Z'))?.title).toBe(
+			'An experiment'
+		);
+		await expect(
+			storage.putExperimentResult({
+				...result('c', '2026-01-07T09:00:00.000Z'),
+				digest: 'x'
+			} as never)
+		).rejects.toThrow('invalid experiment result');
+		await storage.deleteExperimentResult('a@2026-01-05T09:00:00.000Z');
+		expect((await storage.listExperimentResults()).map((row) => row.experimentId)).toEqual(['b']);
+		await storage.clear();
+		expect(await storage.listExperimentResults()).toEqual([]);
 	});
 });

@@ -43,7 +43,9 @@ export const EVIDENCE_TABLES: Record<EvidenceKind, string> = {
 	'assurance-pack': 'evidence_assurance_packs',
 	content: 'evidence_content',
 	'workflow-run': 'evidence_workflow_runs',
-	'bank-run': 'evidence_bank_runs'
+	'bank-run': 'evidence_bank_runs',
+	experiment: 'evidence_experiments',
+	'experiment-result': 'evidence_experiment_results'
 };
 const KINDS: EvidenceKind[] = [
 	'bundle',
@@ -51,7 +53,9 @@ const KINDS: EvidenceKind[] = [
 	'assurance-pack',
 	'content',
 	'workflow-run',
-	'bank-run'
+	'bank-run',
+	'experiment',
+	'experiment-result'
 ];
 
 const rowSchema = z.object({

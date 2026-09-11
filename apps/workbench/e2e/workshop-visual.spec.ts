@@ -78,6 +78,7 @@ test('the Workshop, screen by screen, over the fixture corpus', async ({ page })
 	await shot(page, '/workshop/monitor', 'ws-monitor', 'monitor-page');
 	await shot(page, '/workshop/conduct', 'ws-conduct', 'conduct-page');
 	await shot(page, '/workshop/model-risk', 'ws-model-risk', 'model-risk-page');
+	await shot(page, '/workshop/experiments', 'ws-experiments', 'experiments-page');
 	await shot(page, '/workshop/workflows', 'ws-workflows', 'workflows-page');
 	await shot(page, '/workshop/incidents', 'ws-incidents', 'incidents-page');
 	await shot(page, `/workshop/safety-case?agent=${agentId}`, 'ws-safety-case', 'safety-case-page');

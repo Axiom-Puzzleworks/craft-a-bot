@@ -13,14 +13,14 @@ import { describe, expect, it } from 'vitest';
  * between two operands and finds none.
  */
 const HERE = dirname(fileURLToPath(import.meta.url));
-const PAGES = ['conduct', 'model-risk'].map((route) =>
+const PAGES = ['conduct', 'model-risk', 'experiments'].map((route) =>
 	join(HERE, '..', '..', 'routes', 'workshop', route, '+page.svelte')
 );
 
 /** `a * b`, `a / b`, `a % b`, `a + b`, `a - b` — an operator with whitespace either side, an operand on each. */
 const ARITHMETIC = /[\w)\]]\s+[*/%+-]\s+[\w($]/;
 
-describe('the Conduct and Model-risk pages', () => {
+describe('the Conduct, Model-risk and Experiments pages', () => {
 	it.each(PAGES)('%s holds no arithmetic in its script', (path) => {
 		const source = readFileSync(path, 'utf8');
 		const script = source.slice(source.indexOf('<script'), source.indexOf('</script>'));

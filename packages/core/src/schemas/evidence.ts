@@ -5,6 +5,7 @@ import { storedCampaignReportSchema } from './records.js';
 import { traceBundleSchema } from './trace-bundle.js';
 import { workflowRunSchema } from './workflow-run.js';
 import { bankRunSchema } from './bank-run.js';
+import { experimentResultSchema } from './experiment.js';
 
 /**
  * **Evidence items** (`58-EVIDENCE-STORE.md` §4.1, WP70; `41-…` §6.11,
@@ -25,7 +26,10 @@ export const evidenceKindSchema = z.enum([
 	'content',
 	// WP84 (`75-THE-MONITOR.md` §6): the ingest seam's two artefacts — a workflow run and a day at the bank.
 	'workflow-run',
-	'bank-run'
+	'bank-run',
+	// WP89 (`72-EXPERIMENTS.md` §4): the design (opaque here — it lives beside the campaign schema) and its result.
+	'experiment',
+	'experiment-result'
 ]);
 export type EvidenceKind = z.infer<typeof evidenceKindSchema>;
 
@@ -54,7 +58,13 @@ export const evidenceItemSchema = z.discriminatedUnion('kind', [
 	}),
 	z.object({ ...itemBase, kind: z.literal('content'), payload: contentRecordSchema }),
 	z.object({ ...itemBase, kind: z.literal('workflow-run'), payload: workflowRunSchema }),
-	z.object({ ...itemBase, kind: z.literal('bank-run'), payload: bankRunSchema })
+	z.object({ ...itemBase, kind: z.literal('bank-run'), payload: bankRunSchema }),
+	z.object({
+		...itemBase,
+		kind: z.literal('experiment'),
+		payload: z.record(z.string(), z.unknown())
+	}),
+	z.object({ ...itemBase, kind: z.literal('experiment-result'), payload: experimentResultSchema })
 ]);
 export type EvidenceItem = z.infer<typeof evidenceItemSchema>;
 export type EvidencePayloadOf<K extends EvidenceKind> = Extract<

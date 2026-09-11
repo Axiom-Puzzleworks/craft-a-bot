@@ -53,6 +53,7 @@
 		if (path.startsWith('/workshop/monitor')) return 'monitor' as const;
 		if (path.startsWith('/workshop/conduct')) return 'conduct' as const;
 		if (path.startsWith('/workshop/model-risk')) return 'model-risk' as const;
+		if (path.startsWith('/workshop/experiments')) return 'experiments' as const;
 		if (path.startsWith('/workshop/telemetry')) return 'telemetry' as const;
 		if (path.startsWith('/workshop/incidents')) return 'incidents' as const;
 		if (path.startsWith('/workshop/safety-case')) return 'safety-case' as const;

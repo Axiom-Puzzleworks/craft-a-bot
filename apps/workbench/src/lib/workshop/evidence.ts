@@ -5,6 +5,7 @@ import {
 	verifyEvidenceItem,
 	type ContentRecord,
 	type EvidenceItem,
+	type ExperimentResult,
 	type GroupRunRecord,
 	type RunRecord,
 	type Storage,
@@ -53,6 +54,14 @@ export function itemForReport(
 	return evidenceItemFor('campaign-report', report.id, report, options);
 }
 
+/** WP89: an experiment's result, under its own id (`<experimentId>@<ranAt>`). */
+export function itemForExperimentResult(
+	result: ExperimentResult,
+	options: ItemOptions = {}
+): Promise<EvidenceItem> {
+	return evidenceItemFor('experiment-result', result.id, result, options);
+}
+
 export function itemForAssurance(
 	pack: Record<string, unknown>,
 	options: ItemOptions = {}
@@ -81,7 +90,10 @@ export type Imported =
 	| { kind: 'assurance-pack'; id: string }
 	// WP84 (`75-THE-MONITOR.md` §6): the Monitor's artefacts have no local store either — offered as a download, read by the Monitor's seam.
 	| { kind: 'workflow-run'; id: string }
-	| { kind: 'bank-run'; id: string };
+	| { kind: 'bank-run'; id: string }
+	// WP89 (`72-EXPERIMENTS.md` §4): a result lands in the experiment-results store; a design has no local store.
+	| { kind: 'experiment'; id: string }
+	| { kind: 'experiment-result'; id: string };
 
 /**
  * Store a verified item locally: a bundle as its runs (records, events,
@@ -128,5 +140,10 @@ export async function importPulled(
 			return { kind: 'workflow-run', id: item.id };
 		case 'bank-run':
 			return { kind: 'bank-run', id: item.id };
+		case 'experiment':
+			return { kind: 'experiment', id: item.id };
+		case 'experiment-result':
+			await storage.putExperimentResult(item.payload);
+			return { kind: 'experiment-result', id: item.id };
 	}
 }

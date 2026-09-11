@@ -151,6 +151,8 @@ V1 needs none. The first features that will genuinely require one: sharing kit f
 > **Amended 2026-09-11 (WP87).** The full build's budget moves +20 kB to 1.71 MB (`scripts/bundle-budget.mjs`), and the workshop, playground and full editions +20 kB each (`edition.ts`): the lens table, the rail's groups and switcher, the guided strip, the Assurance entry and Compare's report mode. The simulator edition is untouched.
 
 > **Amended 2026-09-11, later (WP88).** The full build's budget moves +40 kB to 1.75 MB (`scripts/bundle-budget.mjs`), and the playground and full editions +40 kB each (`edition.ts`): the Conduct and Model-risk pages, and the validation suite (`@craftabot/metrics/validation`) the Model-risk page runs on demand — the suite is the whole cost; the two folds are small.
+
+> **Amended 2026-09-11, later (WP89).** The full build's budget moves +40 kB to 1.79 MB (`scripts/bundle-budget.mjs`), and the playground and full editions +40 kB each (`edition.ts`): the Experiments page and the experiment schema, expansion and analysis it imports from `evals`. The Worker's chunk moves +20 kB to 870 kB for the same module, which `evals` now carries.
 >
 > **Amended 2026-09-11 (WP86).** The full build's budget moves +30 kB to 1.69 MB (`scripts/bundle-budget.mjs`), and the workshop, playground and full editions +30 kB each (`edition.ts`): the Workflows list, the Pipeline with its what-if drawer, and the Boundary's layout engine. The simulator edition is untouched.
 >

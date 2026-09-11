@@ -38,7 +38,7 @@ describe('docs/schemas', () => {
 		}
 	});
 
-	it('names twelve artefacts, each with an $id, a title and a draft-2020-12 marker', () => {
+	it('names fourteen artefacts, each with an $id, a title and a draft-2020-12 marker', () => {
 		expect(Object.keys(schemas).sort()).toEqual([
 			'bank-run',
 			'book',
@@ -51,6 +51,8 @@ describe('docs/schemas', () => {
 			'craftabot-trace',
 			'evaluation-record',
 			'evidence-item',
+			'experiment',
+			'experiment-result',
 			'workflow-run'
 		]);
 		for (const [name, schema] of Object.entries(schemas)) {

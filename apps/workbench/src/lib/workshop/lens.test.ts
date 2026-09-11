@@ -60,7 +60,7 @@ describe('the lenses', () => {
 		const assurance = lensById('assurance');
 		expect(speak(assurance, '{trips} over {cells}')).toBe('control interventions over cases');
 		expect(speak(lensById('engineer'), '{trips} over {cells}')).toBe('trips over cells');
-		expect(railLabel(assurance, 'campaigns')).toBe('Experiments');
+		expect(railLabel(assurance, 'campaigns')).toBe('Trials');
 		expect(railLabel(lensById('conduct'), 'incidents')).toBe('Treatment failures');
 	});
 });

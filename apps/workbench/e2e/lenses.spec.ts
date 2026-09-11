@@ -30,6 +30,7 @@ const RAIL = [
 	'monitor',
 	'conduct',
 	'model-risk',
+	'experiments',
 	'incidents',
 	'safety-case',
 	'assurance',
@@ -60,9 +61,9 @@ test('every rail destination renders under every lens, grouped for the reader', 
 			await expect(page.getByTestId(`rail-${id}`)).toHaveAttribute('aria-current', 'page');
 		}
 	}
-	// The lens's words on the rail: the board reads Experiments, the compliance reviewer Treatment failures.
+	// The lens's words on the rail: the board reads Trials, the compliance reviewer Treatment failures.
 	await page.getByTestId('lens-switcher').selectOption('assurance');
-	await expect(page.getByTestId('rail-campaigns')).toHaveText('Experiments');
+	await expect(page.getByTestId('rail-campaigns')).toHaveText('Trials');
 	await page.getByTestId('lens-switcher').selectOption('conduct');
 	await expect(page.getByTestId('rail-incidents')).toHaveText('Treatment failures');
 	await page.getByTestId('lens-switcher').selectOption('engineer');

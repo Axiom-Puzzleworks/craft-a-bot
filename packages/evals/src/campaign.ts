@@ -428,7 +428,7 @@ export const campaignSourceSchema = z.object({
 });
 export type CampaignSource = z.infer<typeof campaignSourceSchema>;
 
-const campaignObjectSchema = z.object({
+export const campaignObjectSchema = z.object({
 	schemaVersion: z.literal(CAMPAIGN_SCHEMA_VERSION),
 	id: z.string().min(1),
 	title: z.string().min(1),

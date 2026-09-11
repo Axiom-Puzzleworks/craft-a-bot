@@ -14,6 +14,11 @@ import {
 import type { RunRecord } from '../schemas/trace-file.js';
 import { safeParseStoredWorkflowRun, type StoredWorkflowRun } from '../schemas/workflow-run.js';
 import { byNewestWorkflowRun } from './storage.js';
+import {
+	byNewestExperimentResult,
+	safeParseExperimentResult,
+	type ExperimentResult
+} from '../schemas/experiment.js';
 import { safeParseContentRecord, type ContentRecord } from '../schemas/content.js';
 import {
 	DEFAULT_RUN_CAP,
@@ -53,6 +58,7 @@ export function createMemoryStorage(): MemoryStorage {
 	const evaluations = new Map<string, EvaluationRecord>();
 	const content = new Map<string, ContentRecord>();
 	const workflowRuns = new Map<string, StoredWorkflowRun>();
+	const experimentResults = new Map<string, ExperimentResult>();
 	const quarantine = emptyQuarantine();
 
 	return {
@@ -250,6 +256,24 @@ export function createMemoryStorage(): MemoryStorage {
 			return Promise.resolve();
 		},
 
+		putExperimentResult(result) {
+			const parsed = safeParseExperimentResult(result);
+			if (!parsed.success) {
+				return Promise.reject(
+					new Error(`Refusing to store an invalid experiment result: ${parsed.error.message}`)
+				);
+			}
+			experimentResults.set(result.id, structuredClone(result));
+			return Promise.resolve();
+		},
+		getExperimentResult: (id) => Promise.resolve(copy(experimentResults.get(id))),
+		listExperimentResults: () =>
+			Promise.resolve([...experimentResults.values()].sort(byNewestExperimentResult).map(copy)),
+		deleteExperimentResult(id) {
+			experimentResults.delete(id);
+			return Promise.resolve();
+		},
+
 		clear() {
 			agents.clear();
 			runs.clear();
@@ -260,6 +284,7 @@ export function createMemoryStorage(): MemoryStorage {
 			evaluations.clear();
 			content.clear();
 			workflowRuns.clear();
+			experimentResults.clear();
 			return Promise.resolve();
 		}
 	};

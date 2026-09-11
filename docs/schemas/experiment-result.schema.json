@@ -1,0 +1,369 @@
+{
+	"$id": "https://craftabot.dev/schemas/experiment-result.schema.json",
+	"title": "Craft A Bot experiment result (v1)",
+	"description": "What an experiment measured: for each metric and factor, every treatment level against the baseline as a difference with its interval, n, test and cost; the verdict over the intervals; the note; a digest (72-EXPERIMENTS.md §3).",
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"type": "object",
+	"properties": {
+		"schemaVersion": {
+			"type": "number",
+			"const": 1
+		},
+		"id": {
+			"type": "string",
+			"minLength": 1
+		},
+		"experimentId": {
+			"type": "string",
+			"minLength": 1
+		},
+		"title": {
+			"type": "string",
+			"minLength": 1
+		},
+		"hypothesis": {
+			"type": "string"
+		},
+		"controls": {
+			"type": "array",
+			"items": {
+				"type": "string"
+			}
+		},
+		"obligations": {
+			"type": "array",
+			"items": {
+				"type": "string"
+			}
+		},
+		"ranAt": {
+			"type": "string",
+			"format": "date-time",
+			"pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+		},
+		"populationDigest": {
+			"type": "string"
+		},
+		"campaignIds": {
+			"type": "array",
+			"items": {
+				"type": "string"
+			}
+		},
+		"effects": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"experimentId": {
+						"type": "string",
+						"minLength": 1
+					},
+					"metricId": {
+						"type": "string",
+						"minLength": 1
+					},
+					"controlIds": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"factor": {
+						"type": "object",
+						"properties": {
+							"axis": {
+								"type": "string",
+								"enum": [
+									"guard",
+									"context",
+									"executors",
+									"knob",
+									"brain"
+								]
+							},
+							"baseline": {
+								"type": "string"
+							},
+							"treatment": {
+								"type": "string"
+							}
+						},
+						"required": [
+							"axis",
+							"baseline",
+							"treatment"
+						]
+					},
+					"baseline": {
+						"type": "object",
+						"properties": {
+							"value": {
+								"type": "number"
+							},
+							"n": {
+								"type": "integer",
+								"minimum": 0,
+								"maximum": 9007199254740991
+							},
+							"interval": {
+								"type": "array",
+								"prefixItems": [
+									{
+										"type": "number"
+									},
+									{
+										"type": "number"
+									}
+								]
+							}
+						},
+						"required": [
+							"value",
+							"n",
+							"interval"
+						]
+					},
+					"treatment": {
+						"type": "object",
+						"properties": {
+							"value": {
+								"type": "number"
+							},
+							"n": {
+								"type": "integer",
+								"minimum": 0,
+								"maximum": 9007199254740991
+							},
+							"interval": {
+								"type": "array",
+								"prefixItems": [
+									{
+										"type": "number"
+									},
+									{
+										"type": "number"
+									}
+								]
+							}
+						},
+						"required": [
+							"value",
+							"n",
+							"interval"
+						]
+					},
+					"delta": {
+						"type": "number"
+					},
+					"interval": {
+						"type": "array",
+						"prefixItems": [
+							{
+								"type": "number"
+							},
+							{
+								"type": "number"
+							}
+						]
+					},
+					"p": {
+						"type": "number",
+						"minimum": 0,
+						"maximum": 1
+					},
+					"method": {
+						"type": "string",
+						"minLength": 1
+					},
+					"underpowered": {
+						"type": "boolean"
+					},
+					"slices": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"properties": {
+								"where": {
+									"type": "object",
+									"propertyNames": {
+										"type": "string"
+									},
+									"additionalProperties": {
+										"type": "string"
+									}
+								},
+								"delta": {
+									"type": "number"
+								},
+								"interval": {
+									"type": "array",
+									"prefixItems": [
+										{
+											"type": "number"
+										},
+										{
+											"type": "number"
+										}
+									]
+								},
+								"n": {
+									"type": "object",
+									"properties": {
+										"baseline": {
+											"type": "integer",
+											"minimum": 0,
+											"maximum": 9007199254740991
+										},
+										"treatment": {
+											"type": "integer",
+											"minimum": 0,
+											"maximum": 9007199254740991
+										}
+									},
+									"required": [
+										"baseline",
+										"treatment"
+									]
+								}
+							},
+							"required": [
+								"where",
+								"delta",
+								"interval",
+								"n"
+							]
+						}
+					},
+					"cost": {
+						"type": "object",
+						"properties": {
+							"tokensPerCase": {
+								"type": "object",
+								"properties": {
+									"baseline": {
+										"type": "number"
+									},
+									"treatment": {
+										"type": "number"
+									}
+								},
+								"required": [
+									"baseline",
+									"treatment"
+								]
+							},
+							"approvalsPerCase": {
+								"type": "object",
+								"properties": {
+									"baseline": {
+										"type": "number"
+									},
+									"treatment": {
+										"type": "number"
+									}
+								},
+								"required": [
+									"baseline",
+									"treatment"
+								]
+							},
+							"escalationRate": {
+								"type": "object",
+								"properties": {
+									"baseline": {
+										"type": "number"
+									},
+									"treatment": {
+										"type": "number"
+									}
+								},
+								"required": [
+									"baseline",
+									"treatment"
+								]
+							},
+							"wallMsPerCase": {
+								"type": "object",
+								"properties": {
+									"baseline": {
+										"type": "number"
+									},
+									"treatment": {
+										"type": "number"
+									}
+								},
+								"required": [
+									"baseline",
+									"treatment"
+								]
+							}
+						},
+						"required": [
+							"tokensPerCase",
+							"approvalsPerCase",
+							"escalationRate"
+						]
+					},
+					"runIds": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"reportIds": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					}
+				},
+				"required": [
+					"experimentId",
+					"metricId",
+					"controlIds",
+					"factor",
+					"baseline",
+					"treatment",
+					"delta",
+					"interval",
+					"method",
+					"underpowered",
+					"cost",
+					"runIds",
+					"reportIds"
+				]
+			}
+		},
+		"verdict": {
+			"type": "string",
+			"enum": [
+				"supported",
+				"not-supported",
+				"inconclusive"
+			]
+		},
+		"note": {
+			"type": "string"
+		},
+		"digest": {
+			"type": "string",
+			"pattern": "^[0-9a-f]{64}$"
+		}
+	},
+	"required": [
+		"schemaVersion",
+		"id",
+		"experimentId",
+		"title",
+		"hypothesis",
+		"controls",
+		"obligations",
+		"ranAt",
+		"campaignIds",
+		"effects",
+		"verdict",
+		"note",
+		"digest"
+	]
+}

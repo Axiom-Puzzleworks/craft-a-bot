@@ -616,6 +616,22 @@ export {
 } from './schemas/workflow-run.js';
 export { sha256Hex } from './schemas/sha256.js';
 export {
+	byNewestExperimentResult,
+	effectRecordSchema,
+	effectSideSchema,
+	experimentAxisSchema,
+	experimentResultDigest,
+	experimentResultSchema,
+	experimentVerdictSchema,
+	parseExperimentResult,
+	safeParseExperimentResult,
+	type EffectRecord,
+	type EffectSide,
+	type ExperimentAxis,
+	type ExperimentResult,
+	type ExperimentVerdict
+} from './schemas/experiment.js';
+export {
 	bankClockRecordSchema,
 	bankRunSchema,
 	deskAssignmentRecordSchema,

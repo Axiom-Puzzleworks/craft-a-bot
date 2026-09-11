@@ -32,6 +32,7 @@ export type RailId =
 	| 'monitor'
 	| 'conduct'
 	| 'model-risk'
+	| 'experiments'
 	| 'incidents'
 	| 'safety-case'
 	| 'assurance'
@@ -108,6 +109,7 @@ const EVERYTHING: RailId[] = [
 	'monitor',
 	'conduct',
 	'model-risk',
+	'experiments',
 	'incidents',
 	'safety-case',
 	'assurance',
@@ -120,12 +122,25 @@ const rest = (...taken: RailId[][]): RailId[] => {
 	return EVERYTHING.filter((id) => !seen.has(id));
 };
 
-const ASSURANCE_FIRST: RailId[] = ['assurance', 'safety-case', 'incidents', 'export'];
+const ASSURANCE_FIRST: RailId[] = [
+	'assurance',
+	'experiments',
+	'safety-case',
+	'incidents',
+	'export'
+];
 const ASSURANCE_EVIDENCE: RailId[] = ['campaigns', 'workflows', 'evidence'];
 const BANK: RailId[] = ['playground', 'monitor'];
 const CONDUCT_FIRST: RailId[] = ['conduct', 'incidents', 'playground', 'workflows', 'campaigns'];
 const CONDUCT_RULES: RailId[] = ['policies', 'evaluators', 'scenarios', 'guards'];
-const MODEL_RISK_FIRST: RailId[] = ['model-risk', 'telemetry', 'campaigns', 'evals', 'evaluators'];
+const MODEL_RISK_FIRST: RailId[] = [
+	'model-risk',
+	'experiments',
+	'telemetry',
+	'campaigns',
+	'evals',
+	'evaluators'
+];
 const MODEL_RISK_EVIDENCE: RailId[] = ['workflows', 'evidence', 'export'];
 
 export const LENSES: readonly Lens[] = [
@@ -164,8 +179,9 @@ export const LENSES: readonly Lens[] = [
 			gate: 'control',
 			gates: 'controls',
 			verdict: 'evidence',
-			campaign: 'experiment',
-			campaigns: 'experiments',
+			// `trial`, not `experiment`: Experiments is a destination of its own since WP89 (`72-…` §5).
+			campaign: 'trial',
+			campaigns: 'trials',
 			evaluator: 'check',
 			bot: 'system'
 		},
@@ -292,6 +308,7 @@ export const RAIL_LABELS: Record<RailId, string> = {
 	monitor: 'Monitor',
 	conduct: 'Conduct',
 	'model-risk': 'Model risk',
+	experiments: 'Experiments',
 	incidents: 'Incidents',
 	'safety-case': 'Safety case',
 	assurance: 'Assurance',

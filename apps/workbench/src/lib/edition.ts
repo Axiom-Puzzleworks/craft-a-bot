@@ -74,7 +74,7 @@ export const EDITIONS: Record<EditionId, Edition> = {
 		routes: { allow: EVERYTHING },
 		mode: EDITION_MODE.playground,
 		shelf: shelfFor(true),
-		budgetBytes: 1_755_000 // +15 kB 2026-09-07 (WP73): the wave 2 placeholders inlined as markup; +25 kB the same day (the UX pass); +50 kB 2026-09-10 (WP74): the calibration table's cited rows; +20 kB 2026-09-11 (WP80): the lending workflow, the Books and Sweeps panels, the human-load pane; +20 kB 2026-09-11 (WP81): the bank's ontology and the graph line; +10 kB 2026-09-11 (WP82): the report v3's panes; +40 kB 2026-09-11 (WP84): the Monitor page and the fold; +20 kB 2026-09-11 (WP85): the fraud and advice workflows; +30 kB 2026-09-11 (WP86): the Workflows list, the Pipeline and the Boundary's layout engine
+		budgetBytes: 1_795_000 // +15 kB 2026-09-07 (WP73): the wave 2 placeholders inlined as markup; +25 kB the same day (the UX pass); +50 kB 2026-09-10 (WP74): the calibration table's cited rows; +20 kB 2026-09-11 (WP80): the lending workflow, the Books and Sweeps panels, the human-load pane; +20 kB 2026-09-11 (WP81): the bank's ontology and the graph line; +10 kB 2026-09-11 (WP82): the report v3's panes; +40 kB 2026-09-11 (WP84): the Monitor page and the fold; +20 kB 2026-09-11 (WP85): the fraud and advice workflows; +30 kB 2026-09-11 (WP86): the Workflows list, the Pipeline and the Boundary's layout engine
 	},
 	full: {
 		id: 'full',
@@ -84,7 +84,7 @@ export const EDITIONS: Record<EditionId, Edition> = {
 		routes: { allow: EVERYTHING },
 		mode: EDITION_MODE.full,
 		shelf: shelfFor(true),
-		budgetBytes: 1_740_000 // +25 kB 2026-09-07 (the UX pass); +50 kB 2026-09-10 (WP74): the calibration table's cited rows; +20 kB 2026-09-11 (WP80): the lending workflow, the Books and Sweeps panels, the human-load pane; +20 kB 2026-09-11 (WP81): the bank's ontology and the graph line; +10 kB 2026-09-11 (WP82): the report v3's panes; +40 kB 2026-09-11 (WP84): the Monitor page and the fold; +20 kB 2026-09-11 (WP85): the fraud and advice workflows; +30 kB 2026-09-11 (WP86): the Workflows list, the Pipeline and the Boundary's layout engine
+		budgetBytes: 1_780_000 // +25 kB 2026-09-07 (the UX pass); +50 kB 2026-09-10 (WP74): the calibration table's cited rows; +20 kB 2026-09-11 (WP80): the lending workflow, the Books and Sweeps panels, the human-load pane; +20 kB 2026-09-11 (WP81): the bank's ontology and the graph line; +10 kB 2026-09-11 (WP82): the report v3's panes; +40 kB 2026-09-11 (WP84): the Monitor page and the fold; +20 kB 2026-09-11 (WP85): the fraud and advice workflows; +30 kB 2026-09-11 (WP86): the Workflows list, the Pipeline and the Boundary's layout engine
 	}
 };
 

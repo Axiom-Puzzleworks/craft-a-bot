@@ -10,6 +10,7 @@ import type {
 } from '../schemas/records.js';
 import type { RunRecord } from '../schemas/trace-file.js';
 import type { StoredWorkflowRun } from '../schemas/workflow-run.js';
+import type { ExperimentResult } from '../schemas/experiment.js';
 
 /**
  * The persistence seam (07-DATA-MODEL-PERSISTENCE.md §8). Everything the app
@@ -110,6 +111,12 @@ export interface Storage {
 	getWorkflowRun(id: string): Promise<StoredWorkflowRun | undefined>;
 	listWorkflowRuns(): Promise<StoredWorkflowRun[]>;
 	deleteWorkflowRun(id: string): Promise<void>;
+
+	/** Experiment results (WP89, `72-EXPERIMENTS.md` §4) — one per result id (`<experiment>@<ranAt>`); newest first. */
+	putExperimentResult(result: ExperimentResult): Promise<void>;
+	getExperimentResult(id: string): Promise<ExperimentResult | undefined>;
+	listExperimentResults(): Promise<ExperimentResult[]>;
+	deleteExperimentResult(id: string): Promise<void>;
 
 	/**
 	 * Trim unpinned runs oldest-first until at most `cap` remain, deleting their

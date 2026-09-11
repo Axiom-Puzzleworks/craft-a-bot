@@ -224,3 +224,27 @@ export {
 } from './campaign.js';
 /** The counterpart seat (WP64, `56-…` §4.1): a desk's script as a second member's spec, shared by the harness and a live-seat cell. */
 export { counterpartScriptFor, counterpartSpec, deskFor } from './counterpart-seat.js';
+/** Experiments (WP89, `72-EXPERIMENTS.md`): the design, its expansion to campaigns, the analysis into effects, the markdown. */
+export {
+	analyseExperiment,
+	campaignFor,
+	campaignIdFor,
+	effectSign,
+	expandExperiment,
+	experimentFactorSchema,
+	experimentMetricSchema,
+	experimentSchema,
+	experimentTemplateSchema,
+	knobValueOf,
+	levelCombinations,
+	minimumDetectableRateDifference,
+	parseExperiment,
+	renderExperimentMarkdown,
+	verdictOf,
+	type AnalyseOptions,
+	type Experiment,
+	type ExperimentFactor,
+	type ExperimentMetric,
+	type ExperimentTemplate,
+	type LevelCombination
+} from './experiment.js';
