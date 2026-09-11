@@ -1,15 +1,18 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import type {
 		AgentRecord,
 		EvaluationRecord,
+		ExperimentResult,
 		RunRecord,
 		RunSummary,
 		StoredCampaignReport
 	} from '@craftabot/core';
 	import { capabilitiesOf } from '@craftabot/core';
 	import {
+		controlEffectiveness,
 		driftIn,
 		incidentsFromSummaries,
 		safetyCaseFromSummaries,
@@ -105,12 +108,48 @@
 	);
 	const incidents = $derived(incidentsFromSummaries(botRuns, summaries));
 	const driftFlags = $derived(driftIn(telemetrySeries(botRuns, summaries, { evaluations })));
+	/**
+	 * **The Control Effectiveness Register** (WP90, `80-…` §3): every control
+	 * the maps list with its measured effect — folded from the stored
+	 * experiment results — or *untested*; a row opens the result behind it.
+	 */
+	let experimentResults = $state.raw<ExperimentResult[]>([]);
+	const register = $derived(controlEffectiveness(experimentResults, registry.listControlMaps()));
 	const registerColumns = [
 		{ id: 'control', label: 'Control', kind: 'text' as const },
+		{ id: 'obligation', label: 'Obligation', kind: 'text' as const },
 		{ id: 'changed', label: 'What it changed', kind: 'text' as const },
 		{ id: 'effect', label: 'By how much', kind: 'text' as const },
-		{ id: 'confidence', label: 'How sure', kind: 'text' as const }
+		{ id: 'confidence', label: 'How sure', kind: 'text' as const },
+		{ id: 'coverage', label: 'Coverage', kind: 'text' as const },
+		{ id: 'status', label: 'Status', kind: 'text' as const }
 	];
+	const signed = (value: number) => `${value >= 0 ? '+' : ''}${value.toFixed(3)}`;
+	const registerRows = $derived(
+		register.map((row) => ({
+			id: row.controlId,
+			cells: {
+				control: row.controlMapRow?.title ?? row.controlId,
+				obligation: row.controlMapRow?.obligation ?? row.obligations.join(', '),
+				changed: row.headline ? `${row.headline.metricId}: ${signed(row.headline.delta)}` : '—',
+				effect: row.headline
+					? `${signed(row.headline.interval[0])} – ${signed(row.headline.interval[1])}`
+					: '—',
+				confidence: row.headline
+					? `n = ${row.headline.n}${row.headline.underpowered ? ', underpowered' : ''}`
+					: '—',
+				coverage: `${row.coverage.experiments} experiment${row.coverage.experiments === 1 ? '' : 's'}${row.coverage.workflows.length > 0 ? ` · ${row.coverage.workflows.join(', ')}` : ''}`,
+				status: row.status
+			}
+		}))
+	);
+	function openRegisterRow(controlId: string): void {
+		const row = register.find((entry) => entry.controlId === controlId);
+		if (!row?.headline) return;
+		const target = `${resolve('/workshop/experiments')}?result=${encodeURIComponent(row.headline.resultId)}`;
+		// eslint-disable-next-line svelte/no-navigation-without-resolve -- resolve() builds the base path; the ?result= query cannot be attached through its typed surface.
+		void goto(target);
+	}
 	const compareHref = $derived(
 		compareA && compareB && compareA !== compareB
 			? `${resolve('/workshop/compare')}?reportA=${encodeURIComponent(compareA)}&reportB=${encodeURIComponent(compareB)}`
@@ -124,6 +163,7 @@
 		summaries = await ensureRunSummaries(storage, runs);
 		evaluations = await storage.listAllEvaluations();
 		storedReports = await storage.listCampaignReports();
+		experimentResults = await storage.listExperimentResults();
 		loaded = true;
 		// Nobody chose (UX-20): open on the bot most recently run, as Evaluators
 		// opens on the most recent run, rather than on an empty page.
@@ -315,12 +355,28 @@
 
 	<section aria-labelledby="register-h" data-testid="assurance-register">
 		<h2 id="register-h">Control Effectiveness Register</h2>
-		<p class="status" data-testid="assurance-register-untested">
-			<strong>Untested.</strong> No experiment has run: the register — which controls changed what, by
-			how much, and how sure — is folded from experiments and lands with WP90. Every control is untested
-			until then, and the pack says so.
-		</p>
-		<CaseTable columns={registerColumns} rows={[]} testId="assurance-register-table" />
+		{#if experimentResults.length === 0}
+			<p class="status" data-testid="assurance-register-untested">
+				<strong>Untested.</strong> No experiment has run here: the register — which controls changed what,
+				by how much, and how sure — is folded from stored experiment results, and every control is untested
+				until one lands. The pack says so.
+			</p>
+		{:else}
+			<p class="status" data-testid="assurance-register-note">
+				{register.filter((row) => row.status === 'evidenced').length} evidenced, {register.filter(
+					(row) => row.status === 'inconclusive'
+				).length} inconclusive, {register.filter((row) => row.status === 'untested').length} untested
+				over
+				{experimentResults.length} stored result{experimentResults.length === 1 ? '' : 's'}. A row
+				opens the experiment behind it.
+			</p>
+		{/if}
+		<CaseTable
+			columns={registerColumns}
+			rows={registerRows}
+			onRow={openRegisterRow}
+			testId="assurance-register-table"
+		/>
 	</section>
 
 	{#if storedReports.length >= 2}

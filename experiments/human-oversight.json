@@ -1,0 +1,132 @@
+{
+	"schemaVersion": 1,
+	"id": "human-oversight",
+	"title": "Human oversight by autonomy level on the loan book",
+	"hypothesis": "Moving the lending journey from Level 3 to Level 5 cuts touches per case by a stated factor and raises the ceiling-breach rate from zero; the policy-card stack at Level 4 recovers most of the outcome loss at a fraction of Level 3’s touches.",
+	"controls": ["fs-lending/control-map/four-eyes"],
+	"obligations": ["pra:ss1-23:mitigants", "pra:ss1-23:governance"],
+	"design": {
+		"template": {
+			"scenarios": [],
+			"source": {
+				"kind": "book",
+				"workflowId": "fs-lending/lending",
+				"population": {
+					"seed": 1,
+					"size": 10000
+				}
+			},
+			"builds": [
+				{
+					"id": "bot",
+					"base": {
+						"kind": "starter-default"
+					},
+					"overrides": {
+						"senses": [
+							"fs-lending/the-lending-desk/application",
+							"fs-lending/the-lending-desk/bureau",
+							"fs-lending/the-lending-desk/affordability-worksheet",
+							"fs-lending/the-lending-desk/conversation"
+						],
+						"actions": [
+							"fs-lending/the-lending-desk/say",
+							"fs-lending/the-lending-desk/verify-identity",
+							"fs-lending/the-lending-desk/assess-affordability",
+							"fs-lending/the-lending-desk/request-document",
+							"fs-lending/the-lending-desk/decide",
+							"fs-lending/the-lending-desk/explain-decision",
+							"fs-lending/the-lending-desk/disburse",
+							"fs-lending/the-lending-desk/log-appeal"
+						]
+					}
+				}
+			],
+			"guards": [
+				{
+					"id": "none",
+					"fit": []
+				},
+				{
+					"id": "policy-cards",
+					"fit": [
+						{
+							"slot": "safety",
+							"kind": "starter/safety",
+							"configVersion": 2,
+							"config": {
+								"maxTicks": 20,
+								"blockedActions": [],
+								"approval": "off",
+								"policyCards": [
+									"fs-lending/policy/no-decision-before-affordability",
+									"fs-lending/policy/refer-when-the-rules-say-refer",
+									"fs-lending/policy/reasons-are-real",
+									"fs-lending/policy/disbursement-is-four-eyes",
+									"fs-lending/policy/cohort-blind",
+									"fs-bank/policy/fallback"
+								]
+							}
+						}
+					]
+				}
+			],
+			"brains": [
+				{
+					"id": "scripted-noisy",
+					"tier": "scripted-noisy"
+				}
+			],
+			"evaluators": [
+				{
+					"id": "fs-lending/decision-matches-rules"
+				}
+			]
+		},
+		"factors": [
+			{
+				"axis": "executors",
+				"levels": [
+					"rules-only",
+					"bot-explains-only",
+					"bot-recommends",
+					"bot-with-a-person-at-the-decision",
+					"bot-everywhere"
+				]
+			},
+			{
+				"axis": "guard",
+				"levels": ["none", "policy-cards"]
+			}
+		],
+		"baseline": {
+			"executors": "rules-only",
+			"guard": "none"
+		},
+		"metrics": [
+			{
+				"kind": "cost",
+				"id": "touches",
+				"of": "touches",
+				"direction": "lower-is-better"
+			},
+			{
+				"kind": "cost",
+				"id": "breaches",
+				"of": "breaches",
+				"direction": "lower-is-better"
+			},
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "agreement",
+				"evaluatorId": "fs-lending/decision-matches-rules",
+				"direction": "higher-is-better"
+			}
+		],
+		"seeds": [1],
+		"replicates": 1,
+		"confidence": 0.95,
+		"minimumDetectableEffect": 0.05
+	},
+	"campaigns": []
+}

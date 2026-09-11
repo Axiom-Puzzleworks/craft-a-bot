@@ -104,6 +104,7 @@ describe('the Experiments page fold', () => {
 		expect(design.id).toBe('fs-lending-lending-executors-1-12');
 		expect(design.design.template.source?.book?.items.length).toBeGreaterThan(0);
 		expect(design.obligations).toEqual(lending.obligations);
+		expect(design.controls).toContain('fs-lending/control-map/affordability-first');
 		const { campaigns } = expandExperiment(design);
 		expect(campaigns.map((campaign) => campaign.id)).toEqual([
 			'fs-lending-lending-executors-1-12--executors=rules-only',

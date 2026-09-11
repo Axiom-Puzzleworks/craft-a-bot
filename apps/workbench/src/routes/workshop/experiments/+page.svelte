@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
 	import type { ExperimentResult, StoredCampaignReport } from '@craftabot/core';
 	import { analyseExperiment, expandExperiment, type Experiment } from '@craftabot/evals';
 	import Lamp from '$lib/components/control-room/Lamp.svelte';
@@ -121,6 +122,9 @@
 	async function loadResults(): Promise<void> {
 		const storage = await appStorage();
 		results = await storage.listExperimentResults();
+		// The register opens a result by id (WP90): `?result=`.
+		const asked = page.url.searchParams.get('result') ?? '';
+		if (asked && results.some((row) => row.id === asked)) selectedId = asked;
 		if (!selectedId) selectedId = results[0]?.id ?? '';
 		loaded = true;
 	}

@@ -16,9 +16,11 @@ import {
 	type PackRegistry,
 	type RunRecord,
 	type RunSummary,
-	type Storage
+	type Storage,
+	type ExperimentResult
 } from '@craftabot/core';
 import { campaignEvidenceFor, type CampaignEvidence } from './campaign-evidence.js';
+import { controlEffectiveness, type ControlEffectivenessRow } from './control-effectiveness.js';
 import { driftIn, telemetrySeries, type DriftFlag, type TelemetryBucket } from './drift.js';
 import { explanationsForTicks, type DecisionExplanation } from './decision-explanation.js';
 import { incidentsFromSummaries, type Incident } from './incidents.js';
@@ -235,6 +237,8 @@ export interface AssurancePack {
 		guardrails: string[];
 		killSwitch: string;
 		hostedScreening: SafetyCase['hostedScreening'];
+		/** The Control Effectiveness Register (WP90, `80-…` §3): every control the maps list with its measured effect, or `untested`. */
+		effects: ControlEffectivenessRow[];
 	};
 	/** Ongoing monitoring: the series, its flags, the incidents — each with its findings' decisions explained (WP66). */
 	monitoring: {
@@ -262,6 +266,8 @@ export interface AssurancePackInput {
 	campaignReports: readonly AssuranceCampaignReportLike[];
 	/** Every control map to file against — the registry's, by default. */
 	controlMaps?: readonly ControlMap[];
+	/** The experiment results the register folds (WP90); none means every control is untested. */
+	experimentResults?: readonly ExperimentResult[];
 	/** The traces of the runs the incident log names (WP66), so each finding's decision can be explained; absent, the section says so. */
 	incidentEvents?: ReadonlyMap<string, readonly EngineEvent[]>;
 	/** Injected so a pack is reproducible; the digest does not cover it. */
@@ -576,7 +582,8 @@ export async function assurancePackFor(input: AssurancePackInput): Promise<Assur
 			guardrails: [...safetyCase.guardrails],
 			killSwitch:
 				'run.finished with STOPPED_BY_USER — a person can stop any run, and the trace records it.',
-			hostedScreening: safetyCase.hostedScreening
+			hostedScreening: safetyCase.hostedScreening,
+			effects: controlEffectiveness(input.experimentResults ?? [], maps)
 		},
 		monitoring: {
 			series,
@@ -625,6 +632,7 @@ export async function assurancePackFromStorage(
 	if (!record) throw new Error(`no bot '${agentId}' in the store`);
 	const runs = (await storage.listRuns()).filter((run) => run.agentId === agentId);
 	const summaries = await ensureRunSummaries(storage, runs);
+	const experimentResults = await storage.listExperimentResults();
 	const evaluations = await storage.listAllEvaluations();
 	const parse =
 		options.parseReport ?? ((raw: unknown) => raw as AssuranceCampaignReportLike | undefined);
@@ -654,6 +662,7 @@ export async function assurancePackFromStorage(
 		evaluations,
 		campaignReports,
 		incidentEvents,
+		experimentResults,
 		...(options.now ? { now: options.now } : {})
 	});
 }

@@ -1,0 +1,120 @@
+{
+	"schemaVersion": 1,
+	"id": "advice-context",
+	"title": "The relational context on the advice-request register",
+	"hypothesis": "The relational context lowers unsuitable recommendations and raises data-minimisation findings against the case file alone.",
+	"controls": [
+		"fs-advice/control-map/suitability",
+		"fs-advice/control-map/minimisation-and-purpose"
+	],
+	"obligations": [
+		"fca:cobs-9:suitability",
+		"ukgdpr:data-minimisation"
+	],
+	"design": {
+		"template": {
+			"scenarios": [],
+			"source": {
+				"kind": "book",
+				"workflowId": "fs-advice/advice",
+				"population": {
+					"seed": 1,
+					"size": 3000
+				}
+			},
+			"builds": [
+				{
+					"id": "bot",
+					"base": {
+						"kind": "starter-default"
+					},
+					"overrides": {
+						"senses": [
+							"fs-advice/the-advice-desk/conversation",
+							"fs-advice/the-advice-desk/customer-record",
+							"fs-advice/the-advice-desk/product-shelf"
+						],
+						"actions": [
+							"fs-advice/the-advice-desk/say",
+							"fs-advice/the-advice-desk/ask-suitability-question",
+							"fs-advice/the-advice-desk/run-fact-find",
+							"fs-advice/the-advice-desk/check-suitability",
+							"fs-advice/the-advice-desk/record-customer-fact",
+							"fs-advice/the-advice-desk/recommend-product",
+							"fs-advice/the-advice-desk/refer-to-adviser",
+							"fs-advice/the-advice-desk/execute-investment"
+						]
+					}
+				}
+			],
+			"guards": [
+				{
+					"id": "none",
+					"fit": []
+				}
+			],
+			"brains": [
+				{
+					"id": "scripted-noisy",
+					"tier": "scripted-noisy"
+				}
+			],
+			"assertionCards": [],
+			"sinks": [],
+			"evaluators": [
+				{
+					"id": "fs-advice/recommendation-suitable"
+				},
+				{
+					"id": "fs-advice/data-minimised"
+				}
+			]
+		},
+		"factors": [
+			{
+				"axis": "context",
+				"levels": [
+					"case-file",
+					"relational"
+				]
+			},
+			{
+				"axis": "executors",
+				"levels": [
+					"bot-everywhere",
+					"bot-recommends"
+				]
+			}
+		],
+		"baseline": {
+			"context": "case-file",
+			"executors": "bot-everywhere"
+		},
+		"metrics": [
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "suitable",
+				"direction": "higher-is-better",
+				"evaluatorId": "fs-advice/recommendation-suitable"
+			},
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "minimised",
+				"direction": "higher-is-better",
+				"evaluatorId": "fs-advice/data-minimised"
+			}
+		],
+		"seeds": [
+			1
+		],
+		"replicates": 1,
+		"confidence": 0.95,
+		"minimumDetectableEffect": 0.05
+	},
+	"campaigns": [
+		"advice-context--context=case-file--executors=bot-everywhere",
+		"advice-context--context=case-file--executors=bot-recommends",
+		"advice-context--context=relational--executors=bot-everywhere",
+		"advice-context--context=relational--executors=bot-recommends"
+	]
+}

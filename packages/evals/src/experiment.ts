@@ -85,7 +85,7 @@ export const experimentMetricSchema = z.discriminatedUnion('kind', [
 	z.object({
 		kind: z.literal('cost'),
 		...metricBase,
-		of: z.enum(['tokens', 'approvals', 'escalations'])
+		of: z.enum(['tokens', 'approvals', 'escalations', 'touches', 'breaches'])
 	}),
 	z.object({
 		kind: z.literal('fairness'),
@@ -310,6 +310,9 @@ function valueOf(metric: ExperimentMetric, cell: CampaignCell): number | undefin
 		case 'cost':
 			if (metric.of === 'tokens') return cell.metrics.tokensIn + cell.metrics.tokensOut;
 			if (metric.of === 'approvals') return cell.metrics.approvalsRequested;
+			if (metric.of === 'touches') return cell.workflow?.touches.length;
+			if (metric.of === 'breaches')
+				return cell.workflow ? (cell.workflow.breaches > 0 ? 1 : 0) : undefined;
 			return escalationRateOf(cell);
 		default:
 			return undefined;
@@ -331,10 +334,24 @@ function costOf(baseline: readonly CampaignCell[], treatment: readonly CampaignC
 				return rate === undefined ? [] : [rate];
 			})
 		);
+	const touches = (cells: readonly CampaignCell[]) =>
+		cells.flatMap((cell) => (cell.workflow ? [cell.workflow.touches.length] : []));
+	const breaches = (cells: readonly CampaignCell[]) =>
+		cells.flatMap((cell) => (cell.workflow ? [cell.workflow.breaches > 0 ? 1 : 0] : []));
+	const withWorkflow = touches(baseline).length > 0 && touches(treatment).length > 0;
 	return {
 		tokensPerCase: { baseline: tokens(baseline), treatment: tokens(treatment) },
 		approvalsPerCase: { baseline: approvals(baseline), treatment: approvals(treatment) },
-		escalationRate: { baseline: escalations(baseline), treatment: escalations(treatment) }
+		escalationRate: { baseline: escalations(baseline), treatment: escalations(treatment) },
+		...(withWorkflow
+			? {
+					touchesPerCase: {
+						baseline: mean(touches(baseline)),
+						treatment: mean(touches(treatment))
+					},
+					breachRate: { baseline: mean(breaches(baseline)), treatment: mean(breaches(treatment)) }
+				}
+			: {})
 	};
 }
 
@@ -714,6 +731,7 @@ export function analyseExperiment(
 		...(options.populationDigest !== undefined
 			? { populationDigest: options.populationDigest }
 			: {}),
+		...(design.template.source ? { workflowIds: [design.template.source.workflowId] } : {}),
 		campaignIds: experiment.campaigns.length > 0 ? [...experiment.campaigns] : [...byId.keys()],
 		effects,
 		verdict,

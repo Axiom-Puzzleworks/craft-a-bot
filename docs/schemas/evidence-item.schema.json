@@ -9603,6 +9603,12 @@
 						"populationDigest": {
 							"type": "string"
 						},
+						"workflowIds": {
+							"type": "array",
+							"items": {
+								"type": "string"
+							}
+						},
 						"campaignIds": {
 							"type": "array",
 							"items": {
@@ -9843,6 +9849,36 @@
 												]
 											},
 											"wallMsPerCase": {
+												"type": "object",
+												"properties": {
+													"baseline": {
+														"type": "number"
+													},
+													"treatment": {
+														"type": "number"
+													}
+												},
+												"required": [
+													"baseline",
+													"treatment"
+												]
+											},
+											"touchesPerCase": {
+												"type": "object",
+												"properties": {
+													"baseline": {
+														"type": "number"
+													},
+													"treatment": {
+														"type": "number"
+													}
+												},
+												"required": [
+													"baseline",
+													"treatment"
+												]
+											},
+											"breachRate": {
 												"type": "object",
 												"properties": {
 													"baseline": {

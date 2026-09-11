@@ -1,0 +1,121 @@
+{
+	"schemaVersion": 1,
+	"id": "lending-stack",
+	"title": "The policy-card stack on the loan book",
+	"hypothesis": "The policy-card stack raises agreement with the lending rule and lowers over-approval across the reference configurations, at a stated approval-load cost.",
+	"controls": ["fs-lending/control-map/affordability-first"],
+	"obligations": ["fca:conc:affordability", "fca:conc:creditworthiness"],
+	"design": {
+		"template": {
+			"scenarios": [],
+			"source": {
+				"kind": "book",
+				"workflowId": "fs-lending/lending",
+				"population": {
+					"seed": 1,
+					"size": 10000
+				}
+			},
+			"builds": [
+				{
+					"id": "bot",
+					"base": {
+						"kind": "starter-default"
+					},
+					"overrides": {
+						"senses": [
+							"fs-lending/the-lending-desk/application",
+							"fs-lending/the-lending-desk/bureau",
+							"fs-lending/the-lending-desk/affordability-worksheet",
+							"fs-lending/the-lending-desk/conversation"
+						],
+						"actions": [
+							"fs-lending/the-lending-desk/say",
+							"fs-lending/the-lending-desk/verify-identity",
+							"fs-lending/the-lending-desk/assess-affordability",
+							"fs-lending/the-lending-desk/request-document",
+							"fs-lending/the-lending-desk/decide",
+							"fs-lending/the-lending-desk/explain-decision",
+							"fs-lending/the-lending-desk/disburse",
+							"fs-lending/the-lending-desk/log-appeal"
+						]
+					}
+				}
+			],
+			"guards": [
+				{
+					"id": "none",
+					"fit": []
+				},
+				{
+					"id": "policy-cards",
+					"fit": [
+						{
+							"slot": "safety",
+							"kind": "starter/safety",
+							"configVersion": 2,
+							"config": {
+								"maxTicks": 20,
+								"blockedActions": [],
+								"approval": "off",
+								"policyCards": [
+									"fs-lending/policy/no-decision-before-affordability",
+									"fs-lending/policy/refer-when-the-rules-say-refer",
+									"fs-lending/policy/reasons-are-real",
+									"fs-lending/policy/disbursement-is-four-eyes",
+									"fs-lending/policy/cohort-blind",
+									"fs-bank/policy/fallback"
+								]
+							}
+						}
+					]
+				}
+			],
+			"brains": [
+				{
+					"id": "scripted-noisy",
+					"tier": "scripted-noisy"
+				}
+			],
+			"evaluators": [
+				{
+					"id": "fs-lending/decision-matches-rules"
+				}
+			]
+		},
+		"factors": [
+			{
+				"axis": "guard",
+				"levels": ["none", "policy-cards"]
+			},
+			{
+				"axis": "executors",
+				"levels": ["rules-only", "bot-with-a-person-at-the-decision", "bot-everywhere"]
+			}
+		],
+		"baseline": {
+			"guard": "none",
+			"executors": "rules-only"
+		},
+		"metrics": [
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "agreement",
+				"evaluatorId": "fs-lending/decision-matches-rules",
+				"direction": "higher-is-better"
+			},
+			{
+				"kind": "label-rate",
+				"id": "over-approval",
+				"evaluatorId": "fs-lending/decision-matches-rules",
+				"label": "over-approve",
+				"direction": "lower-is-better"
+			}
+		],
+		"seeds": [1],
+		"replicates": 1,
+		"confidence": 0.95,
+		"minimumDetectableEffect": 0.05
+	},
+	"campaigns": []
+}

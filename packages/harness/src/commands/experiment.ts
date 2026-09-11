@@ -38,6 +38,8 @@ export interface ExperimentRunOptions {
 	newId?: () => string;
 	egress?: EgressMode;
 	principal?: Principal;
+	/** WP90: the population's size for a shape run, over the design's own. */
+	size?: number;
 }
 
 export interface ExperimentRunReport {
@@ -53,6 +55,27 @@ export interface ExperimentRunReport {
 const resultPath = (out: string, experimentId: string) =>
 	join(out, `${experimentId}.experiment-result.json`);
 const reportPath = (out: string, campaignId: string) => join(out, `${campaignId}.report.json`);
+
+/** The design with its book population at another size — a shape run; a design with the book inline cannot be resized and says so. */
+export function withPopulationSize(experiment: Experiment, size: number): Experiment {
+	const source = experiment.design.template.source;
+	if (!source)
+		throw new Error('--size wants a design over a book population; this one runs scenarios');
+	if (!source.population)
+		throw new Error(
+			'--size wants a design over a book population; this one carries its book inline'
+		);
+	return {
+		...experiment,
+		design: {
+			...experiment.design,
+			template: {
+				...experiment.design.template,
+				source: { ...source, population: { ...source.population, size } }
+			}
+		}
+	};
+}
 
 async function readExperiment(file: string): Promise<Experiment> {
 	return parseExperiment(JSON.parse(await readFile(file, 'utf8')));
@@ -71,7 +94,9 @@ async function writeResult(
 
 export async function experimentRun(options: ExperimentRunOptions): Promise<ExperimentRunReport> {
 	const designed = await readExperiment(options.file);
-	const { experiment, campaigns } = expandExperiment(designed);
+	const { experiment, campaigns } = expandExperiment(
+		options.size !== undefined ? withPopulationSize(designed, options.size) : designed
+	);
 	await mkdir(options.out, { recursive: true });
 	// The filled design beside the campaigns: the campaign ids are part of what ran.
 	await writeFile(

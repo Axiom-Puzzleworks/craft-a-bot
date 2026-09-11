@@ -78,6 +78,8 @@ ExperimentResult { schemaVersion: 1; id; experimentId; ranAt; populationDigest?;
 >
 > **Stage C, 2026-09-11.** `/workshop/experiments` and `lib/workshop/experiments.ts`; the rail; `experiments.spec.ts`; the docs. The null-design test holds the inconclusive share to 5% plus the Wilson margin at 200 seeds, as the validation suite states its bound (`68-…` §3.3) — a hard 95% over 200 draws fails one run in three by chance alone.
 
+> **Amended 2026-09-11 (WP90, `80-…` §2, §4).** `EffectRecord.cost` gains `touchesPerCase` and `breachRate` (the workflow's account per cell, when the cells carry one); the `cost` metric gains `touches` and `breaches`; `ExperimentResult.workflowIds` names the workflows the design ran, for the register's coverage. `craftabot experiment run --size <n>` runs a design at another population size (a shape run); a design with its book inline refuses it.
+
 ## 8. Divergences from `64-…` §6.8.1
 
 - The design carries a campaign *template* rather than a bare `source`: the guards, builds, brains and evaluators a factor's levels refer to must come from somewhere, and a campaign is the shape that already names them.

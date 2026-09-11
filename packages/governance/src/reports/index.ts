@@ -113,6 +113,11 @@ export {
 	type NotRecorded
 } from './assurance-pack.js';
 export {
+	controlEffectiveness,
+	type ControlEffectivenessHeadline,
+	type ControlEffectivenessRow
+} from './control-effectiveness.js';
+export {
 	ASSURANCE_TOKENS,
 	principalLine,
 	renderAssurancePackHtml,

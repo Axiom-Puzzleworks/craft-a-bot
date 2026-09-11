@@ -1487,7 +1487,9 @@
 										"enum": [
 											"tokens",
 											"approvals",
-											"escalations"
+											"escalations",
+											"touches",
+											"breaches"
 										]
 									}
 								},

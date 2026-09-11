@@ -185,7 +185,7 @@ Usage:
       one build per value named <build>@<knob>=<value>, the swept campaign
       written beside the report and run as any campaign is.
 
-  craftabot experiment run --file <experiment.json> [--jobs <n>] [--egress declared|none] [--out ./campaign-out]
+  craftabot experiment run --file <experiment.json> [--size <n>] [--jobs <n>] [--egress declared|none] [--out ./campaign-out]
   craftabot experiment analyse --file <experiment.json> [--out ./campaign-out]
   craftabot experiment render --result <experiment-result.json>
       An experiment (WP89, 72-EXPERIMENTS.md): the design expanded to one
@@ -611,6 +611,7 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 				}
 				const jobs = numberFlag(args, 'jobs');
 				const egress = egressFlag(args);
+				const size = numberFlag(args, 'size');
 				const ran = await experimentRun({
 					file,
 					out,
@@ -618,7 +619,8 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 					credentials: credentialsFor(io),
 					principal: principalFor(io, args),
 					...(jobs !== undefined ? { jobs } : {}),
-					...(egress !== undefined ? { egress } : {})
+					...(egress !== undefined ? { egress } : {}),
+					...(size !== undefined ? { size } : {})
 				});
 				io.stdout(
 					[

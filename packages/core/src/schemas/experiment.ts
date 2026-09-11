@@ -58,7 +58,10 @@ export const effectRecordSchema = z.object({
 		tokensPerCase: z.object({ baseline: z.number(), treatment: z.number() }),
 		approvalsPerCase: z.object({ baseline: z.number(), treatment: z.number() }),
 		escalationRate: z.object({ baseline: z.number(), treatment: z.number() }),
-		wallMsPerCase: z.object({ baseline: z.number(), treatment: z.number() }).optional()
+		wallMsPerCase: z.object({ baseline: z.number(), treatment: z.number() }).optional(),
+		/** WP90: the workflow's account per cell — touches a person made, and the share of cells with a ceiling breach. */
+		touchesPerCase: z.object({ baseline: z.number(), treatment: z.number() }).optional(),
+		breachRate: z.object({ baseline: z.number(), treatment: z.number() }).optional()
 	}),
 	runIds: z.array(z.string()),
 	reportIds: z.array(z.string())
@@ -79,6 +82,8 @@ const resultBody = {
 	obligations: z.array(z.string()),
 	ranAt: z.string().datetime(),
 	populationDigest: z.string().optional(),
+	/** The workflows the design ran (WP90): what the register's coverage counts. */
+	workflowIds: z.array(z.string()).optional(),
 	/** The campaign ids the design expanded to, in order — what `reportIds` refer to. */
 	campaignIds: z.array(z.string()),
 	effects: z.array(effectRecordSchema),

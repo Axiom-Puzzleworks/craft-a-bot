@@ -125,7 +125,13 @@ export function designFor(input: AuthorInput, registry: PackRegistry): Experimen
 		hypothesis:
 			input.hypothesis.trim() ||
 			`Changing ${input.axis}${input.knob ? ` (${input.knob})` : ''} from ${input.baseline} changes the pre-registered metrics.`,
-		controls: input.controls ?? [],
+		// The pack's own control rows, so the register can fold this result (WP90).
+		controls:
+			input.controls ??
+			registry
+				.listControlMaps()
+				.filter((map) => map.id.startsWith(`${workflow.id.split('/')[0] ?? ''}/`))
+				.flatMap((map) => map.rows.map((row) => `${map.id}/${row.ref}`)),
 		obligations: [...(workflow.obligations ?? [])],
 		design: {
 			template: {

@@ -1,0 +1,117 @@
+{
+	"schemaVersion": 1,
+	"id": "lending-fairness",
+	"title": "Fairness of the stack on the loan book",
+	"hypothesis": "The policy-card stack does not widen the demographic-parity gap or the equal-opportunity gap across age bands on the loan book.",
+	"controls": ["fs-lending/control-map/cohort-blind"],
+	"obligations": ["equality-act:fairness"],
+	"design": {
+		"template": {
+			"scenarios": [],
+			"source": {
+				"kind": "book",
+				"workflowId": "fs-lending/lending",
+				"population": {
+					"seed": 1,
+					"size": 10000
+				}
+			},
+			"builds": [
+				{
+					"id": "bot",
+					"base": {
+						"kind": "starter-default"
+					},
+					"overrides": {
+						"senses": [
+							"fs-lending/the-lending-desk/application",
+							"fs-lending/the-lending-desk/bureau",
+							"fs-lending/the-lending-desk/affordability-worksheet",
+							"fs-lending/the-lending-desk/conversation"
+						],
+						"actions": [
+							"fs-lending/the-lending-desk/say",
+							"fs-lending/the-lending-desk/verify-identity",
+							"fs-lending/the-lending-desk/assess-affordability",
+							"fs-lending/the-lending-desk/request-document",
+							"fs-lending/the-lending-desk/decide",
+							"fs-lending/the-lending-desk/explain-decision",
+							"fs-lending/the-lending-desk/disburse",
+							"fs-lending/the-lending-desk/log-appeal"
+						]
+					}
+				}
+			],
+			"guards": [
+				{
+					"id": "none",
+					"fit": []
+				},
+				{
+					"id": "policy-cards",
+					"fit": [
+						{
+							"slot": "safety",
+							"kind": "starter/safety",
+							"configVersion": 2,
+							"config": {
+								"maxTicks": 20,
+								"blockedActions": [],
+								"approval": "off",
+								"policyCards": [
+									"fs-lending/policy/no-decision-before-affordability",
+									"fs-lending/policy/refer-when-the-rules-say-refer",
+									"fs-lending/policy/reasons-are-real",
+									"fs-lending/policy/disbursement-is-four-eyes",
+									"fs-lending/policy/cohort-blind",
+									"fs-bank/policy/fallback"
+								]
+							}
+						}
+					]
+				}
+			],
+			"brains": [
+				{
+					"id": "scripted-noisy",
+					"tier": "scripted-noisy"
+				}
+			],
+			"evaluators": [
+				{
+					"id": "fs-lending/decision-matches-rules"
+				}
+			]
+		},
+		"factors": [
+			{
+				"axis": "guard",
+				"levels": ["none", "policy-cards"]
+			}
+		],
+		"baseline": {
+			"guard": "none"
+		},
+		"metrics": [
+			{
+				"kind": "fairness",
+				"id": "parity",
+				"metric": "demographic-parity",
+				"across": "ageBand",
+				"direction": "lower-is-better"
+			},
+			{
+				"kind": "fairness",
+				"id": "opportunity",
+				"metric": "equal-opportunity",
+				"across": "ageBand",
+				"direction": "lower-is-better"
+			}
+		],
+		"seeds": [1],
+		"replicates": 1,
+		"confidence": 0.95,
+		"minimumDetectableEffect": 0.05
+	},
+	"campaigns": []
+}

@@ -60,4 +60,15 @@ test('a design over the lending book runs as two campaigns and folds into a resu
 	await expect(page.getByTestId('experiment-result-picker')).toBeVisible();
 	await expect(page.getByTestId('experiment-result')).toBeVisible();
 	await expect(page.getByTestId('experiment-hypothesis-line')).toContainText('Level 5 changes');
+	// The register on the Assurance entry (WP90): the lending controls the design named carry the
+	// result's status, and a row opens the experiment behind it.
+	await page.goto('/workshop/assurance');
+	await expect(page.getByTestId('assurance-register-note')).toContainText('1 stored result');
+	const table = page.getByTestId('assurance-register-table');
+	await expect(table).toContainText('Affordability and creditworthiness');
+	const tested = table.locator('tbody tr', { hasText: /evidenced|inconclusive/ }).first();
+	await expect(tested).toBeVisible();
+	await tested.getByRole('button').click();
+	await expect(page).toHaveURL(/\/workshop\/experiments\?result=/);
+	await expect(page.getByTestId('experiment-result')).toBeVisible();
 });

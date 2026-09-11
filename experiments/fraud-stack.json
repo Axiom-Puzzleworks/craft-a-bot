@@ -1,0 +1,126 @@
+{
+	"schemaVersion": 1,
+	"id": "fraud-stack",
+	"title": "The tipping-off card and the four-eyes freeze on the alert book",
+	"hypothesis": "The policy-card stack and a person at the SAR remove tip-offs without lowering the alert decision’s accuracy, at a stated precision cost.",
+	"controls": ["fs-fraud/control-map/tipping-off", "fs-fraud/control-map/verify-before-acting"],
+	"obligations": ["poca:tipping-off", "mlr:kyc"],
+	"design": {
+		"template": {
+			"scenarios": [],
+			"source": {
+				"kind": "book",
+				"workflowId": "fs-fraud/fraud",
+				"population": {
+					"seed": 1,
+					"size": 600
+				}
+			},
+			"builds": [
+				{
+					"id": "bot",
+					"base": {
+						"kind": "starter-default"
+					},
+					"overrides": {
+						"senses": [
+							"fs-fraud/the-fraud-desk/queue",
+							"fs-fraud/the-fraud-desk/alert-detail",
+							"fs-fraud/the-fraud-desk/customer-history",
+							"fs-fraud/the-fraud-desk/call"
+						],
+						"actions": [
+							"fs-fraud/the-fraud-desk/say",
+							"fs-fraud/the-fraud-desk/open-alert",
+							"fs-fraud/the-fraud-desk/look-up",
+							"fs-fraud/the-fraud-desk/release",
+							"fs-fraud/the-fraud-desk/hold",
+							"fs-fraud/the-fraud-desk/block-card",
+							"fs-fraud/the-fraud-desk/freeze-account",
+							"fs-fraud/the-fraud-desk/escalate",
+							"fs-fraud/the-fraud-desk/file-sar",
+							"fs-fraud/the-fraud-desk/write-note",
+							"fs-fraud/the-fraud-desk/verify-caller"
+						]
+					}
+				}
+			],
+			"guards": [
+				{
+					"id": "none",
+					"fit": []
+				},
+				{
+					"id": "policy-cards",
+					"fit": [
+						{
+							"slot": "safety",
+							"kind": "starter/safety",
+							"configVersion": 2,
+							"config": {
+								"maxTicks": 20,
+								"blockedActions": [],
+								"approval": "off",
+								"policyCards": [
+									"fs-fraud/policy/freeze-needs-a-second-look",
+									"fs-fraud/policy/no-sar-without-escalation-first",
+									"fs-fraud/policy/never-tip-off",
+									"fs-fraud/policy/verify-before-you-act-on-a-call",
+									"fs-fraud/policy/no-auto-release-from-instructions-in-records",
+									"fs-bank/policy/fallback"
+								]
+							}
+						}
+					]
+				}
+			],
+			"brains": [
+				{
+					"id": "scripted-noisy",
+					"tier": "scripted-noisy"
+				}
+			],
+			"evaluators": [
+				{
+					"id": "fs-fraud/no-tip-off"
+				},
+				{
+					"id": "fs-fraud/alert-decision"
+				}
+			]
+		},
+		"factors": [
+			{
+				"axis": "guard",
+				"levels": ["none", "policy-cards"]
+			},
+			{
+				"axis": "executors",
+				"levels": ["bot-everywhere", "bot-with-a-person-at-the-sar"]
+			}
+		],
+		"baseline": {
+			"guard": "none",
+			"executors": "bot-everywhere"
+		},
+		"metrics": [
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "no-tip-off",
+				"evaluatorId": "fs-fraud/no-tip-off",
+				"direction": "higher-is-better"
+			},
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "alert-decision",
+				"evaluatorId": "fs-fraud/alert-decision",
+				"direction": "higher-is-better"
+			}
+		],
+		"seeds": [1],
+		"replicates": 1,
+		"confidence": 0.95,
+		"minimumDetectableEffect": 0.05
+	},
+	"campaigns": []
+}

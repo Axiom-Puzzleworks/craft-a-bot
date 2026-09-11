@@ -106,6 +106,8 @@ The pack is a pure fold; `generatedAt` is injected (`now`), the digest covers ev
 - **Stage B — the pack.** `assurancePackFor`, `assurancePackFromStorage`, the two renderers, the snapshot and digest tests, the no-campaign pack.
 - **Stage C — the hosts, the close-out.** `craftabot assurance`, `/workshop/assurance` with its screenshot, the Audit Centre download, the axe and contrast checks, the equality test, `docs/governance-mapping.md` pointed at the map, the close-out.
 
+> **Amended 2026-09-11 (WP90, `80-…` §3).** §5 (principle 5, risk mitigants) now carries the Control Effectiveness Register: `AssurancePack.mitigants.effects` — every control the maps list with its measured effect from the stored experiment results, or *untested* — rendered as a table in the markdown and the HTML, each row citing the effect's experiment and the runs it rests on. `AssurancePackInput.experimentResults?`; `assurancePackFromStorage` reads `storage.listExperimentResults()`. The two `pending` rows are unchanged; an `unreviewed` row and an `untested` one sit side by side, which is the case for reviewing both.
+
 ## 11. Acceptance criteria (WP67 as a whole)
 
 1. `checkControlMap` refuses a dangling evidence id, an unknown artefact, a pending row with evidence, a duplicate ref; every row in the bank's and the three desks' maps resolves.

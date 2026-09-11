@@ -1,0 +1,119 @@
+{
+	"schemaVersion": 1,
+	"id": "lending-knobs",
+	"title": "Loosening the refer ratio on the loan book",
+	"hypothesis": "Lowering referRatioPercent from 60 to 45 raises over-approval when the bot decides alone, and a person at the decision removes it at a stated escalation cost.",
+	"controls": [
+		"fs-lending/control-map/four-eyes"
+	],
+	"obligations": [
+		"fca:conc:affordability",
+		"pra:ss1-23:mitigants"
+	],
+	"design": {
+		"template": {
+			"scenarios": [],
+			"source": {
+				"kind": "book",
+				"workflowId": "fs-lending/lending",
+				"population": {
+					"seed": 1,
+					"size": 10000
+				}
+			},
+			"builds": [
+				{
+					"id": "bot",
+					"base": {
+						"kind": "starter-default"
+					},
+					"overrides": {
+						"senses": [
+							"fs-lending/the-lending-desk/application",
+							"fs-lending/the-lending-desk/bureau",
+							"fs-lending/the-lending-desk/affordability-worksheet",
+							"fs-lending/the-lending-desk/conversation"
+						],
+						"actions": [
+							"fs-lending/the-lending-desk/say",
+							"fs-lending/the-lending-desk/verify-identity",
+							"fs-lending/the-lending-desk/assess-affordability",
+							"fs-lending/the-lending-desk/request-document",
+							"fs-lending/the-lending-desk/decide",
+							"fs-lending/the-lending-desk/explain-decision",
+							"fs-lending/the-lending-desk/disburse",
+							"fs-lending/the-lending-desk/log-appeal"
+						]
+					}
+				}
+			],
+			"guards": [
+				{
+					"id": "none",
+					"fit": []
+				}
+			],
+			"brains": [
+				{
+					"id": "scripted-optimal",
+					"tier": "scripted-optimal"
+				}
+			],
+			"assertionCards": [],
+			"sinks": [],
+			"evaluators": [
+				{
+					"id": "fs-lending/decision-matches-rules"
+				}
+			]
+		},
+		"factors": [
+			{
+				"axis": "knob",
+				"levels": [
+					"60",
+					"45"
+				],
+				"knob": "referRatioPercent"
+			},
+			{
+				"axis": "executors",
+				"levels": [
+					"bot-everywhere",
+					"bot-with-a-person-at-the-decision"
+				]
+			}
+		],
+		"baseline": {
+			"knob": "60",
+			"executors": "bot-everywhere"
+		},
+		"metrics": [
+			{
+				"kind": "label-rate",
+				"id": "over-approval",
+				"direction": "lower-is-better",
+				"evaluatorId": "fs-lending/decision-matches-rules",
+				"label": "over-approve"
+			},
+			{
+				"kind": "cost",
+				"id": "escalations",
+				"direction": "lower-is-better",
+				"of": "escalations"
+			}
+		],
+		"seeds": [
+			1
+		],
+		"replicates": 1,
+		"confidence": 0.95,
+		"minimumDetectableEffect": 0.05
+	},
+	"campaigns": [
+		"lending-knobs--executors=bot-everywhere--knob=60",
+		"lending-knobs--executors=bot-with-a-person-at-the-decision--knob=60",
+		"lending-knobs--executors=bot-everywhere--knob=45",
+		"lending-knobs--executors=bot-with-a-person-at-the-decision--knob=45"
+	]
+}

@@ -6,6 +6,9 @@ import type {
 	NotRecorded
 } from './assurance-pack.js';
 
+/** A difference with its sign, three places (WP90's register). */
+const signed = (value: number): string => `${value >= 0 ? '+' : ''}${value.toFixed(3)}`;
+
 /**
  * **The two renderings** (WP67, `53-ASSURANCE-PACK.md` §4.2): markdown for a
  * person at a terminal, and one self-contained HTML file — the app's tokens
@@ -153,6 +156,21 @@ export function renderAssurancePackMarkdown(pack: AssurancePack): string {
 	out.push(
 		`- Hosted screening: ${pack.mitigants.hostedScreening ? `${pack.mitigants.hostedScreening.fired} fired over ${pack.mitigants.hostedScreening.decisions} decisions` : 'none fitted'}`
 	);
+	out.push('');
+	out.push('### Control Effectiveness Register');
+	out.push('');
+	out.push(
+		'Each control the maps list with its measured effect — the largest-n effect on its primary metric, the experiment and the runs it rests on — or *untested*. Evidence about this synthetic bank under these configurations, and nothing else.'
+	);
+	out.push('');
+	out.push('| Control | Obligation | What changed | By how much | How sure | Coverage | Status |');
+	out.push('|---|---|---|---|---|---|---|');
+	for (const row of pack.mitigants.effects) {
+		const h = row.headline;
+		out.push(
+			`| \`${row.controlId}\` | ${row.controlMapRow?.obligation ?? row.obligations.join(', ')} | ${h ? `${h.metricId}: ${signed(h.delta)} (experiment \`${h.experimentId}\`)` : '—'} | ${h ? `${signed(h.interval[0])} – ${signed(h.interval[1])}` : '—'} | ${h ? `n = ${h.n}${h.underpowered ? ', underpowered' : ''}` : '—'} | ${row.coverage.experiments} experiment(s)${row.coverage.workflows.length > 0 ? `, ${row.coverage.workflows.join(', ')}` : ''} | ${row.status}${h ? ` ${cite([...new Set(row.effects.flatMap((effect) => effect.runIds))].slice(0, 6))}` : ''} |`
+		);
+	}
 	out.push('');
 	out.push('## 6. Ongoing monitoring');
 	out.push('');
@@ -365,7 +383,29 @@ ${
 <li>Guardrails: ${listHtml(pack.mitigants.guardrails)}</li>
 <li>Kill switch: ${escape(pack.mitigants.killSwitch)}</li>
 <li>Hosted screening: ${pack.mitigants.hostedScreening ? `${pack.mitigants.hostedScreening.fired} fired over ${pack.mitigants.hostedScreening.decisions} decisions` : 'none fitted'}</li>
-</ul>`;
+</ul>
+<h3>Control Effectiveness Register</h3>
+<p class="note">Each control the maps list with its measured effect — the largest-n effect on its primary metric, the experiment and the runs it rests on — or <em>untested</em>.</p>
+${table(
+	'Control Effectiveness Register',
+	['Control', 'Obligation', 'What changed', 'By how much', 'How sure', 'Coverage', 'Status'],
+	pack.mitigants.effects.map((row) => {
+		const h = row.headline;
+		return [
+			`<code>${escape(row.controlId)}</code>`,
+			escape(row.controlMapRow?.obligation ?? row.obligations.join(', ')),
+			h
+				? `${escape(h.metricId)}: ${escape(signed(h.delta))} (experiment <code>${escape(h.experimentId)}</code>)`
+				: '—',
+			h ? escape(`${signed(h.interval[0])} – ${signed(h.interval[1])}`) : '—',
+			h ? escape(`n = ${h.n}${h.underpowered ? ', underpowered' : ''}`) : '—',
+			escape(
+				`${row.coverage.experiments} experiment(s)${row.coverage.workflows.length > 0 ? `, ${row.coverage.workflows.join(', ')}` : ''}`
+			),
+			`${escape(row.status)}${h ? ` ${citeHtml([...new Set(row.effects.flatMap((effect) => effect.runIds))].slice(0, 6))}` : ''}`
+		];
+	})
+)}`;
 
 	const monitoring = `${pack.monitoring.note ? `<p class="note">${escape(pack.monitoring.note)}</p>` : ''}<ul>
 <li>Series: ${pack.monitoring.series.length} days; drift flags: ${pack.monitoring.drift.length === 0 ? 'none' : pack.monitoring.drift.map((flag) => escape(`${flag.day} ${flag.kind}${flag.series ? ` ${flag.series}` : ''}`)).join('; ')}</li>

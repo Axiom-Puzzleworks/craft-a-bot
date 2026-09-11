@@ -177,6 +177,21 @@ jobs:
           --out campaign-out/fs-advice-book --junit campaign-out/fs-advice-book/junit.xml
           --sarif campaign-out/fs-advice-book/results.sarif --markdown campaign-out/fs-advice-book/scorecard.md
 
+      # The reference experiments (WP90, `80-…` §4): every design under experiments/ at a reduced
+      # population, each reduced result held to the committed full-size one's shape — the same
+      # metrics, factors and levels, a verdict from the same three — never its values.
+      - name: Run the reference experiments (reduced)
+        run: >
+          for f in experiments/*.json; do
+          id=$(basename "$f" .json);
+          npm run craftabot -- experiment run --file "$f" --size 200 --egress none --jobs 2
+          --out "campaign-out/experiments/$id" || exit 1;
+          mkdir -p "campaign-out/experiments-shape/$id";
+          cp "campaign-out/experiments/$id/$id.experiment-result.json" "campaign-out/experiments-shape/$id/";
+          done
+      - name: Hold the reduced results to the committed shape
+        run: node scripts/experiment-shape.mjs docs/evidence campaign-out/experiments-shape
+
       # A day at the bank (WP83, `71-THE-CLOCK.md` §5; three desks since WP85, `76-…` §5): the lending,
       # fraud and advice desks work a day's applications, alerts and requests over a 500-customer
       # population at Infinity; the BankRun and every run are uploaded with the rest.
