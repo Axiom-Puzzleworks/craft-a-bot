@@ -198,3 +198,19 @@ export async function settle(page: Page): Promise<void> {
 		last = height;
 	}
 }
+
+/**
+ * No scrollbars in a visual shot (WP91's close): a classic scrollbar takes
+ * ten to fifteen pixels, and whether the horizontal one appears depended on
+ * a race with the vertical one on the longest pages — the Playground's shot
+ * came out 11128 or 11138 pixels tall from one attempt to the next. Hidden
+ * on both axes before the first paint, every platform reads the same height.
+ */
+export async function pinScrollbars(page: Page): Promise<void> {
+	await page.addInitScript(() => {
+		const style = document.createElement('style');
+		style.textContent =
+			'html, body { scrollbar-width: none; overflow-x: hidden } ::-webkit-scrollbar { display: none }';
+		document.addEventListener('DOMContentLoaded', () => document.head.append(style));
+	});
+}

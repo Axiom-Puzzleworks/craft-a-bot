@@ -3,6 +3,7 @@ import {
 	awaitRunSaved,
 	buildDeskBotAndGo,
 	buildReadyBot,
+	pinScrollbars,
 	settle,
 	skipTutorial
 } from './support.js';
@@ -18,7 +19,10 @@ import {
  * flight, reduced motion on.
  */
 test.use({ reducedMotion: 'reduce', viewport: { width: 1280, height: 800 } });
-test.beforeEach(async ({ page }) => skipTutorial(page));
+test.beforeEach(async ({ page }) => {
+	await skipTutorial(page);
+	await pinScrollbars(page);
+});
 
 async function openTheWorkshopDoor(page: import('@playwright/test').Page) {
 	await page.goto('/settings');

@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { expect, test, type Page } from '@playwright/test';
 import { injectionBaseline } from '@craftabot/evals';
-import { buildReadyBot, settle, skipTutorial } from './support.js';
+import { buildReadyBot, pinScrollbars, settle, skipTutorial } from './support.js';
 
 /**
  * **Every Workshop route, shot** (`60-CONTROL-ROOM-V2.md` §4.2, WP71): the
@@ -16,7 +16,10 @@ import { buildReadyBot, settle, skipTutorial } from './support.js';
  * changes shape re-baselines with a dated note in `60-…`.
  */
 test.use({ reducedMotion: 'reduce', viewport: { width: 1280, height: 800 } });
-test.beforeEach(async ({ page }) => skipTutorial(page));
+test.beforeEach(async ({ page }) => {
+	await skipTutorial(page);
+	await pinScrollbars(page);
+});
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const golden = JSON.parse(
