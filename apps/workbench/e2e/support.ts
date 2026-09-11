@@ -195,7 +195,11 @@ export async function settle(page: Page): Promise<void> {
 	// resize) is then laid out by one deterministic step, never chased.
 	const width = page.viewportSize()?.width ?? 1280;
 	const height = await page.evaluate(() => document.documentElement.scrollHeight);
-	await page.setViewportSize({ width, height: Math.max(720, height) });
+	// Rounded up to the next fifty pixels: the Playground's page reads ten pixels taller or
+	// shorter from one capture to the next, and a viewport that absorbs the wobble keeps the image
+	// the same size either way.
+	const rounded = Math.ceil(Math.max(720, height) / 50) * 50;
+	await page.setViewportSize({ width, height: rounded });
 	await page.waitForTimeout(400);
 }
 
