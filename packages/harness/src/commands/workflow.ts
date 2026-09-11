@@ -1,13 +1,10 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import {
-	buildTraceFile,
 	localPackFrom,
 	workItemSchema,
-	type AgentRecord,
 	type AgentSpecV2,
 	type EgressMode,
-	type EngineEvent,
 	type Guardrail,
 	type Principal,
 	type StageRecord,
@@ -15,12 +12,11 @@ import {
 	type WorkflowSpec
 } from '@craftabot/core';
 import { compilePolicyCard } from '@craftabot/governance';
-import { summariseRun } from '@craftabot/governance/reports';
 import { runWorkflow } from '@craftabot/workflow';
+import { createAgentRunWriter } from '../agent-runs.js';
 import { createRegistry, packVersions, type HarnessConfig } from '../config.js';
 import type { CredentialSource } from '../credentials.js';
 import { mulberry32 } from '../random.js';
-import { runRecordFrom } from '../run-record.js';
 import { createFileStorage } from '../storage/file-storage.js';
 import { chooseBrain, loadSpecFrom, type BrainTier } from './run.js';
 
@@ -83,10 +79,14 @@ export async function workflowRun(options: WorkflowRunOptions): Promise<Workflow
 
 	const storage = await createFileStorage(options.out);
 	const now = options.now ?? (() => new Date().toISOString());
-	const versions = packVersions(options.config);
-	const secrets = options.credentials.secrets();
-	let agentPut = false;
-	let writing: Promise<void> = Promise.resolve();
+	// Every agent run written as `run` writes one (WP79; shared with the bank since WP83).
+	const writer = createAgentRunWriter({
+		storage,
+		out: options.out,
+		packVersions: packVersions(options.config),
+		secrets: options.credentials.secrets(),
+		now
+	});
 
 	const record = await runWorkflow(workflow, item, {
 		packs: [...options.config.packs, localPackFrom(options.config.content ?? [])],
@@ -127,12 +127,12 @@ export async function workflowRun(options: WorkflowRunOptions): Promise<Workflow
 		...(options.principal ? { principal: options.principal } : {}),
 		getCredential: (id) => options.credentials.get(id),
 		onAgentRun: (agentRun) => {
-			void writeAgentRun(agentRun.runId, agentRun.spec as AgentSpecV2, agentRun.events);
+			void writer.write(agentRun.runId, agentRun.spec, agentRun.events);
 		}
 	});
 
 	// Every agent run is on disk before the workflow's own record is.
-	await writing;
+	await writer.done();
 	const directory = join(options.out, 'workflows', record.id);
 	await mkdir(directory, { recursive: true });
 	const file = join(directory, 'workflow-run.json');
@@ -156,46 +156,6 @@ export async function workflowRun(options: WorkflowRunOptions): Promise<Workflow
 		directory,
 		file
 	};
-
-	function writeAgentRun(runId: string, agentSpec: AgentSpecV2, events: EngineEvent[]) {
-		writing = writing.then(async () => {
-			if (!agentPut) {
-				const agent: AgentRecord = {
-					id: agentSpec.id,
-					spec: agentSpec,
-					lastValidation: [],
-					createdAt: agentSpec.createdAt,
-					updatedAt: agentSpec.updatedAt,
-					schemaVersion: 2
-				};
-				await storage.putAgent(agent);
-				agentPut = true;
-			}
-			const finished = events.find((event) => event.type === 'run.finished');
-			const outcome = finished?.type === 'run.finished' ? finished.payload.outcome : undefined;
-			const startedAt = events[0]?.timestamp ?? now();
-			const finishedAt = events.at(-1)?.timestamp ?? now();
-			const run = runRecordFrom({
-				runId,
-				spec: agentSpec,
-				events,
-				packVersions: versions,
-				startedAt,
-				finishedAt,
-				...(outcome ? { outcome } : {})
-			});
-			await storage.putRun(run);
-			await storage.appendEvents(runId, events);
-			await storage.putRunSummary(summariseRun(runId, events));
-			const trace = await buildTraceFile(run, events, { secrets });
-			await writeFile(
-				join(options.out, 'runs', runId, `${runId}.craftabot-trace.json`),
-				`${JSON.stringify(trace, null, '\t')}\n`,
-				'utf8'
-			);
-		});
-		return writing;
-	}
 }
 
 function workflowById(workflows: WorkflowSpec[], id: string): WorkflowSpec {

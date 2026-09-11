@@ -538,6 +538,50 @@ export const CALIBRATION = table(
 			source: assumption(),
 			tolerance: 0.05,
 			note: 'No public figure; the WP59 weights stand.'
+		}),
+		// The clock (WP83, `71-THE-CLOCK.md` §3): the hour of the day an item arrives, and who asks for advice.
+		row({
+			id: 'arrival-rates',
+			kind: 'weights',
+			title: 'The hour of the day a work item arrives',
+			distribution: {
+				h0: 0,
+				h1: 0,
+				h2: 0,
+				h3: 0,
+				h4: 0,
+				h5: 0,
+				h6: 0,
+				h7: 0,
+				h8: 4,
+				h9: 9,
+				h10: 12,
+				h11: 12,
+				h12: 8,
+				h13: 9,
+				h14: 11,
+				h15: 11,
+				h16: 10,
+				h17: 7,
+				h18: 4,
+				h19: 2,
+				h20: 1,
+				h21: 0,
+				h22: 0,
+				h23: 0
+			},
+			source: assumption(),
+			tolerance: 0.03,
+			note: 'A stated assumption: no public source gives the hourly shape of a retail bank’s work, so this is a working day — nothing before eight or after nine in the evening, a lunchtime dip, the afternoon a little quieter than the late morning. The daily volumes come from the rows above (applications per adult, complaints, payments); this row only shapes the day. Read off the clock’s arrivals in its test.'
+		}),
+		row({
+			id: 'advice-request-incidence',
+			kind: 'rates',
+			title: 'A savings holder asks for advice in thirty days',
+			distribution: { requests: 0.05 },
+			source: assumption(),
+			tolerance: 0.02,
+			note: 'A stated assumption: among customers holding at least £1,000 in an open savings account (the threshold the register states), one in twenty asks for advice in a thirty-day window. FCA Financial Lives 2024 puts the share of adults who received regulated advice in the previous twelve months at about 8%; a monthly request rate among savings holders of 5% is of that order and is not derived from it. Read off the advice-request register in the clock’s test.'
 		})
 	]
 );

@@ -30,6 +30,7 @@ import { runKit, type BrainTier } from './commands/run.js';
 import { forkRun } from './commands/fork.js';
 import { workflowRun } from './commands/workflow.js';
 import { bookRun, sweepRun } from './commands/book.js';
+import { bankRun } from './commands/bank.js';
 import { createRegistry } from './config.js';
 import { createFileStorage } from './storage/file-storage.js';
 
@@ -182,6 +183,21 @@ Usage:
       Sugar over builds: every build of the file × every value of one knob,
       one build per value named <build>@<knob>=<value>, the swept campaign
       written beside the report and run as any campaign is.
+
+  craftabot bank run --day <YYYY-MM-DD> --desks <desks.json> [--population <seed>] [--size <n>]
+                 [--acceleration <n>|inf] [--brain scripted-optimal|scripted-noisy]
+                 [--stop-after <n>] [--egress declared|none] [--out ./runs]
+      A day at the bank (WP83, 71-THE-CLOCK.md): the population at the seed
+      and size, the day's books drawn (the loan book through the desk
+      workflow's own book, the alerts, the complaint and advice-request
+      registers), the clock over them at the acceleration, the desks from
+      the file — [{ id, workflowId, kinds, configuration?, knobs?,
+      concurrency, build?, kit? }] — working their kinds through the
+      workflow up to their concurrency. Every agent run is written as run
+      writes one, every workflow run under <out>/workflows/, and the
+      BankRun — the clock, the desks, the counts, the incidents, every
+      run's digest, and the wall time — as <out>/bank-runs/<id>/bank-run.json.
+      --from and --to run a window instead of a day.
 
   craftabot bundle --run <runId> | --group <groupRunId> [--out ./runs] [--file <path>]
       Write a stored run back out as a .craftabot-trace.json, or a group
@@ -548,6 +564,71 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 						`  report     ${result.reportFile}`,
 						...result.written.slice(1).map((path) => `  wrote      ${path}`),
 						...humanLoadLines(result.report),
+						''
+					].join('\n')
+				);
+				return 0;
+			}
+			case 'bank': {
+				// WP83 (`71-THE-CLOCK.md` §5): a day at the bank.
+				const verb = args.positional[0];
+				const desksPath = stringFlag(args, 'desks');
+				const day = stringFlag(args, 'day');
+				const from = stringFlag(args, 'from');
+				const to = stringFlag(args, 'to');
+				if (
+					verb !== 'run' ||
+					desksPath === undefined ||
+					(day === undefined && (from === undefined || to === undefined))
+				) {
+					throw new Error('bank needs run --day <date> (or --from and --to) --desks <desks.json>');
+				}
+				const brainFlag = stringFlag(args, 'brain') ?? 'scripted-optimal';
+				if (brainFlag !== 'scripted-optimal' && brainFlag !== 'scripted-noisy') {
+					throw new Error(
+						'--brain must be scripted-optimal or scripted-noisy — a live bank day is not a thing the harness runs'
+					);
+				}
+				const accelerationFlag = stringFlag(args, 'acceleration');
+				const acceleration =
+					accelerationFlag === undefined ||
+					accelerationFlag === 'inf' ||
+					accelerationFlag === 'Infinity'
+						? Infinity
+						: Number(accelerationFlag);
+				if (!(acceleration > 0)) throw new Error('--acceleration wants a positive number, or inf');
+				const stopAfter = numberFlag(args, 'stop-after');
+				const egress = egressFlag(args);
+				const result = await bankRun({
+					desksPath,
+					seed: numberFlag(args, 'population') ?? 1,
+					size: numberFlag(args, 'size') ?? 2_000,
+					acceleration,
+					brain: brainFlag,
+					out: stringFlag(args, 'out') ?? './runs',
+					config: await configFrom(args),
+					credentials: credentialsFor(io),
+					...(day !== undefined ? { day } : {}),
+					...(from !== undefined ? { from } : {}),
+					...(to !== undefined ? { to } : {}),
+					...(stopAfter !== undefined ? { stopAfter } : {}),
+					...(egress !== undefined ? { egress } : {})
+				});
+				const { bankRun: record } = result;
+				io.stdout(
+					[
+						`bank ${record.id} — ${record.counts.routed} of ${Object.values(record.counts.arrivals).reduce((a, b) => a + b, 0)} arrivals worked in ${result.wallMs} ms wall; ${record.counts.completed} completed, ${record.counts.stopped} stopped, ${record.counts.unrouted} unrouted`,
+						`  bank run   ${result.file}`,
+						...Object.entries(record.counts.byDesk).map(
+							([desk, tally]) =>
+								`  ${desk.padEnd(24)} worked ${tally.worked}  completed ${tally.completed}  stopped ${tally.stopped}`
+						),
+						...record.incidents
+							.slice(0, 5)
+							.map(
+								(incident) =>
+									`  incident   ${incident.itemId} at ${incident.stageId ?? '?'}: ${incident.finding ?? incident.status ?? ''}`
+							),
 						''
 					].join('\n')
 				);

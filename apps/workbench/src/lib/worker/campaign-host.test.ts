@@ -3,7 +3,7 @@ import { injectionBaseline, runCampaign } from '@craftabot/evals';
 import { packs } from '$edition-packs';
 import { workshopPlans } from '$lib/workshop/plans.js';
 import { createCampaignHost } from './campaign-host.js';
-import { CampaignCancelled, inProcessWorker, runCampaignIn } from './campaign-client.js';
+import { CampaignCancelled, inProcessWorker, runBankIn, runCampaignIn } from './campaign-client.js';
 import type { WorkerReply } from './protocol.js';
 
 /**
@@ -60,14 +60,57 @@ describe('the campaign Worker host', () => {
 		const host = createCampaignHost({ packs, plans: workshopPlans }, (reply) =>
 			replies.push(reply)
 		);
-		host.handle({ kind: 'start', job: 'k', work: 'bank', bank: {} });
-		expect(replies).toEqual([
-			{ kind: 'failed', job: 'k', error: 'the bank runner is not built yet (WP83)' }
-		]);
+		host.handle({
+			kind: 'start',
+			job: 'k',
+			work: 'bank',
+			bank: { population: { seed: 1, size: 10 }, from: '2026-01-05', to: '2026-01-05', desks: [] }
+		});
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		expect(replies.at(-1)).toMatchObject({ kind: 'failed', job: 'k' });
 		// A book with no campaign in it fails as a campaign fails: parsed, refused, said (WP80).
 		host.handle({ kind: 'start', job: 'b', work: 'book', book: {} });
 		await new Promise((resolve) => setTimeout(resolve, 0));
 		expect(replies.at(-1)).toMatchObject({ kind: 'failed', job: 'b' });
 		await expect(runCampaignIn(workerOf(), { not: 'a campaign' }).result).rejects.toThrow();
+	});
+});
+
+/**
+ * **A day at the bank through the Worker** (WP83, `71-THE-CLOCK.md` §5): the
+ * lending desk works the day's applications in the Worker; every agent
+ * run arrives as a trace and the day as `bank-done` with its runs; the
+ * `BankRun` is the same bytes as the scheduler makes on this thread.
+ */
+describe('the bank job', { timeout: 300_000 }, () => {
+	it('runs a day at the lending desk, posts the traces and the BankRun, and is byte-identical to a second day', async () => {
+		const job = {
+			population: { seed: 1, size: 1_500 },
+			from: '2026-06-10',
+			to: '2026-06-19',
+			desks: [
+				{
+					id: 'lending',
+					workflowId: 'fs-lending/lending',
+					kinds: ['application' as const],
+					configuration: 'bot-everywhere',
+					concurrency: 3
+				}
+			]
+		};
+		const traces: string[] = [];
+		const first = await runBankIn(workerOf(), job, {
+			onTrace: (cell) => traces.push(cell.scenario)
+		}).result;
+		expect(first.bank.counts.arrivals['application']).toBeGreaterThan(0);
+		expect(first.bank.counts.routed).toBe(first.runs.length);
+		expect(first.runs.length).toBeGreaterThan(0);
+		expect(traces.length).toBeGreaterThan(0);
+		expect(traces.every((desk) => desk === 'lending')).toBe(true);
+		const second = await runBankIn(workerOf(), job).result;
+		expect(second.bank.digest).toBe(first.bank.digest);
+		expect(JSON.stringify(second.bank)).toBe(
+			JSON.stringify({ ...first.bank, wallMs: second.bank.wallMs })
+		);
 	});
 });

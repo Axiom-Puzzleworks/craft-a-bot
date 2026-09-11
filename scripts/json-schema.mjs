@@ -92,6 +92,12 @@ export async function artefactSchemas() {
 			description:
 				'A batch of work items drawn from a population without the clock — applications, alerts, complaints, advice requests — each with the truth a desk would compute for it, and the population digest and oversampling it was made with (67-PERFORMANCE-AND-BOOKS.md §6).'
 		},
+		'bank-run': {
+			schema: core.bankRunSchema,
+			title: 'Craft A Bot bank run (v1)',
+			description:
+				'A day at the bank: the clock’s options, the desks’ assignments, the population digest, the counts, the incidents, every workflow run’s id and digest in arrival order, and a digest over those (71-THE-CLOCK.md §4).'
+		},
 		'workflow-run': {
 			schema: core.workflowRunSchema,
 			title: 'Craft A Bot workflow run (v1)',

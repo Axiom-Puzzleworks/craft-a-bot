@@ -20,7 +20,8 @@ import { sha256Hex } from './sha256.js';
  * digest covers (751e525c… → 44fe315c…); the customers themselves did not
  * change, as the size-invariance test shows.
  */
-const SHIPPED_DIGEST = '44fe315c5a7a7c7c922490a2fe5b29fd256f82a7e75f55704c13ac11aeff33ed';
+// Moved once more 2026-09-11 (WP83, `71-…` §3): the clock's two rows joined the table (44fe315c… → 7a875392…); the customers did not move.
+const SHIPPED_DIGEST = '7a875392c383350312fa5674a82d3c385238a9c70212b34cf8c58eb7942007af';
 
 describe('sha256Hex', () => {
 	it('matches the standard vectors and Web Crypto', async () => {

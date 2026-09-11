@@ -1,7 +1,7 @@
 import type { AgentSpecV2, EngineEvent } from '@craftabot/core';
 import type { CampaignCell, CampaignReport } from '@craftabot/evals';
 import type { CampaignHost } from './campaign-host.js';
-import type { WorkerLike, WorkerReply, WorkerRequest } from './protocol.js';
+import type { BankJob, JobBankDone, WorkerLike, WorkerReply, WorkerRequest } from './protocol.js';
 
 /**
  * **The main thread's side** (WP77): one campaign sent to a Worker, its
@@ -103,4 +103,39 @@ export function inProcessWorker(makeHost: (post: (reply: WorkerReply) => void) =
 		}
 	};
 	return worker;
+}
+
+/** A day at the bank in the Worker (WP83): progress as items are worked, every agent run as a trace, and the `BankRun` with the workflow runs at the end. */
+export function runBankIn(
+	worker: WorkerLike,
+	bank: BankJob,
+	options: RunInWorkerOptions = {}
+): { result: Promise<Omit<JobBankDone, 'kind' | 'job'>>; cancel(): void } {
+	const job = `job-${(nextJob += 1)}`;
+	const result = new Promise<Omit<JobBankDone, 'kind' | 'job'>>((resolve, reject) => {
+		const listener = ({ data }: { data: WorkerReply }) => {
+			if (data.job !== job) return;
+			switch (data.kind) {
+				case 'progress':
+					options.onProgress?.(data.done, data.total);
+					return;
+				case 'trace':
+					options.onTrace?.(data.cell, { events: data.events, spec: data.spec });
+					return;
+				case 'bank-done':
+					worker.removeEventListener('message', listener);
+					resolve({ bank: data.bank, runs: data.runs });
+					return;
+				case 'failed':
+					worker.removeEventListener('message', listener);
+					reject(new Error(data.error));
+					return;
+				default:
+					return;
+			}
+		};
+		worker.addEventListener('message', listener);
+		worker.postMessage({ kind: 'start', job, work: 'bank', bank });
+	});
+	return { result, cancel: () => worker.postMessage({ kind: 'cancel', job }) };
 }

@@ -1,4 +1,4 @@
-import type { AgentSpecV2, EngineEvent } from '@craftabot/core';
+import type { AgentSpecV2, BankRun, EngineEvent, WorkItem, WorkflowRun } from '@craftabot/core';
 import type { CampaignCell, CampaignReport } from '@craftabot/evals';
 
 /**
@@ -46,11 +46,34 @@ export interface StartBook {
 	book: unknown;
 	fixed?: { now: string; reportId: string } | undefined;
 }
+/**
+ * A day at the bank in the Worker (WP83, `71-THE-CLOCK.md` §5): the
+ * population at a seed and size, a window, the desks — the host draws the
+ * books from the edition's packs, runs the bank with the scripted brains,
+ * posts every agent run as a `trace` and finishes with `bank-done`.
+ */
+export interface BankJob {
+	population: { seed: number; size: number };
+	from: string;
+	to: string;
+	desks: Array<{
+		id: string;
+		workflowId: string;
+		kinds: WorkItem['kind'][];
+		configuration?: string;
+		knobs?: Record<string, number | string | boolean>;
+		concurrency: number;
+		build?: string;
+	}>;
+	/** Simulated seconds per wall second; absent means as fast as it can. */
+	acceleration?: number;
+	stopAfter?: number;
+}
 export interface StartBank {
 	kind: 'start';
 	job: string;
 	work: 'bank';
-	bank: unknown;
+	bank: BankJob;
 }
 
 export interface CancelJob {
@@ -95,7 +118,15 @@ export interface JobFailed {
 	error: string;
 }
 
-export type WorkerReply = JobProgress | JobTrace | JobDone | JobCancelled | JobFailed;
+/** A bank day finished: the `BankRun` and every workflow run it made. */
+export interface JobBankDone {
+	kind: 'bank-done';
+	job: string;
+	bank: BankRun;
+	runs: Array<{ desk: string; item: WorkItem; run: WorkflowRun }>;
+}
+
+export type WorkerReply = JobProgress | JobTrace | JobDone | JobBankDone | JobCancelled | JobFailed;
 
 /**
  * What both sides of the protocol need of a Worker: `postMessage` and a

@@ -118,6 +118,26 @@ export {
 } from './ontology.js';
 export { KNOWLEDGE_CARD_RECORD, bankContextRecords } from './context.js';
 export {
+	ADVICE_SAVINGS_THRESHOLD,
+	adviceRequestBook,
+	complaintBook,
+	type AdviceRequestItemPayload,
+	type ComplaintItemPayload,
+	type RegisterOptions
+} from './book/registers.js';
+export {
+	arrivals,
+	bankClock,
+	defaultArrivalRates,
+	hourProfileOf,
+	itemSeed,
+	type Arrival,
+	type ArrivalRates,
+	type ClockOptions,
+	type HourProfile,
+	type KindRate
+} from './clock.js';
+export {
 	BANK_CONTROL_ROWS,
 	bankControlMap,
 	type ControlEvidenceKind,

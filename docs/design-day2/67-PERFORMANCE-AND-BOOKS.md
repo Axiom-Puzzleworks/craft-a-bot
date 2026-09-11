@@ -1,3 +1,5 @@
+> **Amended 2026-09-11 (WP83, `71-THE-CLOCK.md` §3).** Two registers join the loan book and the alert book as `Book`s the clock schedules: `complaintBook(pop, { from, to })` — every complaint opened in the window (`Complaint.openedDay` is days ago at the period's end, so its calendar index is the last day less that), the register's own upheld rule in truth — and `adviceRequestBook(pop, { from, to })` — a calibrated share of savings holders above £1,000, one request each on a day from the customer's seed. A work item's payload carries the customer as the lines see them (`customerForTheDesk`).
+
 # 67 — The performance label, the loan book, the alert rule and the books (WP75)
 
 > **Status:** design of record for WP75 (`65-DAY5-ROADMAP.md` Phase R), opened 2026-09-10 on the `day5` branch after WP74 (the population). Stage A is this note — the hazard's form and coefficients, the cited range its base rate must sit in, the book contract, the alert rule; stage B is the code.

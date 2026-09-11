@@ -36,6 +36,7 @@
 		"@craftabot/evals": "*",
 		"@craftabot/evidence": "*",
 		"@craftabot/governance": "*",
+		"@craftabot/workflow": "*",
 		"@craftabot/pack-anthropic": "*",
 		"@craftabot/pack-azure-content-safety": "*",
 		"@craftabot/pack-pdp-opa": "*",

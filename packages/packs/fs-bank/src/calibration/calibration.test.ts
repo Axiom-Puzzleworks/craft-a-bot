@@ -160,7 +160,10 @@ const BY_CONSTRUCTION = new Set([
 	'declared-income-noise',
 	'loan-outcome-mix',
 	'arrears-base-rate',
-	'fraud-incidence'
+	'fraud-incidence',
+	// The clock's rows (WP83): read off the arrivals and the advice-request register in clock.test.ts.
+	'arrival-rates',
+	'advice-request-incidence'
 ]);
 
 /** Rows read off the transaction sample rather than the customer sample. */

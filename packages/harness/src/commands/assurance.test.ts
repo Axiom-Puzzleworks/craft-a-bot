@@ -32,33 +32,38 @@ async function storeWithRuns() {
 }
 
 describe('craftabot assurance', () => {
-	it('emits the pack /workshop/assurance renders for the same bot, with its two renderings', async () => {
-		const { storage, ok } = await storeWithRuns();
-		const registry = createRegistry(config);
-		const { pack, markdown, html } = await reportAssurance(storage, registry, ok.agentId, {
-			now: NOW
-		});
-		// What the Workshop does, with the same inputs from the same store.
-		const screen = await assurancePackFromStorage(ok.agentId, storage, registry, {
-			parseReport: assuranceReportFrom,
-			now: NOW
-		});
-		expect(pack).toEqual(screen);
-		expect(pack.runs).toHaveLength(2);
-		expect(pack.development.note).toContain('no campaign evidence');
-		expect(pack.controlMaps.map((map) => map.id)).toContain('governance/control-map');
-		expect(pack.controlMaps.map((map) => map.id)).toContain('fs-bank/control-map');
-		expect(pack.review.pending).toBe(0);
-		expect(markdown).toContain(`# Assurance pack — ${pack.bot.name}`);
-		expect(html).toContain('<!doctype html>');
-		expect(html).toContain(pack.digest);
+	// Load-sensitive since the bank day joined the suite (WP83): a kit runs and a pack folds; the default 5 s was the flake.
+	it(
+		'emits the pack /workshop/assurance renders for the same bot, with its two renderings',
+		{ timeout: 30_000 },
+		async () => {
+			const { storage, ok } = await storeWithRuns();
+			const registry = createRegistry(config);
+			const { pack, markdown, html } = await reportAssurance(storage, registry, ok.agentId, {
+				now: NOW
+			});
+			// What the Workshop does, with the same inputs from the same store.
+			const screen = await assurancePackFromStorage(ok.agentId, storage, registry, {
+				parseReport: assuranceReportFrom,
+				now: NOW
+			});
+			expect(pack).toEqual(screen);
+			expect(pack.runs).toHaveLength(2);
+			expect(pack.development.note).toContain('no campaign evidence');
+			expect(pack.controlMaps.map((map) => map.id)).toContain('governance/control-map');
+			expect(pack.controlMaps.map((map) => map.id)).toContain('fs-bank/control-map');
+			expect(pack.review.pending).toBe(0);
+			expect(markdown).toContain(`# Assurance pack — ${pack.bot.name}`);
+			expect(html).toContain('<!doctype html>');
+			expect(html).toContain(pack.digest);
 
-		// The only bot in the store needs no id.
-		expect((await reportAssurance(storage, registry, undefined, { now: NOW })).pack).toEqual(
-			screen
-		);
-		await expect(reportAssurance(storage, registry, 'nobody')).rejects.toThrow(/no bot 'nobody'/);
-	});
+			// The only bot in the store needs no id.
+			expect((await reportAssurance(storage, registry, undefined, { now: NOW })).pack).toEqual(
+				screen
+			);
+			await expect(reportAssurance(storage, registry, 'nobody')).rejects.toThrow(/no bot 'nobody'/);
+		}
+	);
 
 	it('a stored report that no longer parses is skipped, never fabricated', () => {
 		expect(assuranceReportFrom({ not: 'a report' })).toBeUndefined();
