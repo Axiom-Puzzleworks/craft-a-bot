@@ -190,12 +190,18 @@ export async function buildAndGo(page: Page, cardTestId = 'card-snack'): Promise
 export async function settle(page: Page): Promise<void> {
 	await page.evaluate(() => document.fonts.ready);
 	await page.waitForLoadState('networkidle');
+	// A full-page shot resizes the viewport to the page's height, and a layout that
+	// depends on the viewport's height then moves — the Playground's grew and shrank
+	// ten pixels on every capture. Size the viewport to the page first, and again
+	// until the two agree, so the capture changes nothing.
+	const width = page.viewportSize()?.width ?? 1280;
 	let last = -1;
-	for (let i = 0; i < 20; i += 1) {
-		await page.waitForTimeout(250);
+	for (let i = 0; i < 12; i += 1) {
 		const height = await page.evaluate(() => document.documentElement.scrollHeight);
 		if (height === last) return;
 		last = height;
+		await page.setViewportSize({ width, height: Math.max(720, height) });
+		await page.waitForTimeout(250);
 	}
 }
 
