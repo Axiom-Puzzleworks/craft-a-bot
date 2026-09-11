@@ -61,7 +61,9 @@ async function shot(page: Page, route: string, name: string, ready?: string): Pr
 	await page.goto(route);
 	await expect(page.getByTestId(ready ?? 'workshop')).toBeVisible();
 	await settle(page);
-	await expect(page).toHaveScreenshot(`${name}.png`, { fullPage: true });
+	// The viewport is the page after `settle`; a plain capture resizes nothing, where a full-page one
+	// re-laid the Playground ten pixels taller and shorter on alternate captures.
+	await expect(page).toHaveScreenshot(`${name}.png`);
 }
 
 test('the Workshop, screen by screen, over the fixture corpus', async ({ page }) => {
