@@ -104,3 +104,5 @@ The art (textures, the instrument icons — WP73); the Guards screen's prose res
 > **Amended 2026-09-11, later (WP85, `76-…` §5).** `ws-monitor` re-taken on win32: the Monitor's set-up lists three desks now that the fraud and advice workflows are registered. The Linux baseline still waits on the temp-CI cycle.
 
 > **Amended 2026-09-11, later (WP86, `77-PIPELINE-AND-BOUNDARY.md` §5–§6).** The Boundary's rewrite moves every shot that carries a map — the Spec Lab and the Run Lab (`visual.spec.ts`), the Playground's bank and desk pages, the Run Lab golden — and adds `/workshop/workflows` (`ws-workflows`, the empty list) to the Workshop pass and the axe pass; the Pipeline itself is the e2e's, seeded from the lending fixture, not a baseline's. The win32 baselines are re-taken; the Linux ones wait on the temp-CI cycle.
+
+> **Amended 2026-09-11, later (WP87, `78-LENSES.md` §3).** The rail carries a lens switcher at its head on every Workshop shot, and the Assurance pack shot carries the entry Strip and the register; the win32 baselines are re-taken under the engineer's lens (the default). The Linux ones wait on the temp-CI cycle.

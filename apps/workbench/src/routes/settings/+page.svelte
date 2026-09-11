@@ -8,6 +8,7 @@
 	import { createGeapCredentialBay } from '$lib/state/geap-credential.svelte.js';
 	import { leafletStore } from '$lib/leaflet/leaflet.svelte.js';
 	import { preferences } from '$lib/state/preferences.svelte.js';
+	import { LENSES, type LensId } from '$lib/workshop/lens.js';
 	import { createRegistry } from '$lib/packs.js';
 	import { OLLAMA_BASE_URL } from '@craftabot/pack-ollama';
 	import { evidenceStores } from '@craftabot/evidence';
@@ -221,6 +222,22 @@
 					checked={preferences.workshop}
 					onchange={(value) => preferences.setWorkshop(value)}
 				/>
+				{#if preferences.workshop}
+					<!-- The lens (WP87, `78-LENSES.md` §3): whose question the Workshop's rail is ordered for. -->
+					<label class="field lens-field">
+						<span>Workshop lens</span>
+						<select
+							value={preferences.lens}
+							onchange={(event) => preferences.setLens(event.currentTarget.value as LensId)}
+							data-testid="settings-lens"
+						>
+							{#each LENSES as lens (lens.id)}
+								<option value={lens.id}>{lens.name} — {lens.question}</option>
+							{/each}
+						</select>
+						<small>A lens orders the rail and speaks its reader's words; it hides nothing.</small>
+					</label>
+				{/if}
 			{:else if workshopSection}
 				<p class="door-link" data-testid="workshop-door-link">
 					The Workshop — the grown-up view of the same bots and runs — is in another box:

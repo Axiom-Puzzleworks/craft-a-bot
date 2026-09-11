@@ -53,3 +53,4 @@ docs/manual/
 
 # Generated from the validation suite by scripts/metrics-doc.mjs (WP76); npm run metrics:doc rewrites it
 docs/metrics.md
+packages/packs/fs-lending/src/fixtures/

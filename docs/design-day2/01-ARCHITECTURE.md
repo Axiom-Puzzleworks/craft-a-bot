@@ -148,6 +148,8 @@ V1 needs none. The first features that will genuinely require one: sharing kit f
 > **Amended 2026-09-05:** the JS budget is a budget **per build**, not one number over everything (`41-TARGET-DESIGN-V4.md` §2.1 G42, §6.14). `scripts/bundle-budget.mjs` takes a limit and reports per-route sizes (WP56); the `full` build keeps 1.5 MB, and each edition (`simulator`, `workshop`, `playground`) is measured against its own budget once WP69 builds them. A single budget would have made the Kit and the Playground compete for the same bytes.
 | Offline | App shell loads offline (static PWA-ready); running a bot obviously needs the network for the LLM |
 
+> **Amended 2026-09-11 (WP87).** The full build's budget moves +20 kB to 1.71 MB (`scripts/bundle-budget.mjs`), and the workshop, playground and full editions +20 kB each (`edition.ts`): the lens table, the rail's groups and switcher, the guided strip, the Assurance entry and Compare's report mode. The simulator edition is untouched.
+>
 > **Amended 2026-09-11 (WP86).** The full build's budget moves +30 kB to 1.69 MB (`scripts/bundle-budget.mjs`), and the workshop, playground and full editions +30 kB each (`edition.ts`): the Workflows list, the Pipeline with its what-if drawer, and the Boundary's layout engine. The simulator edition is untouched.
 >
 > **Amended 2026-09-11 (WP85).** The full build's budget moves +20 kB to 1.66 MB (`scripts/bundle-budget.mjs`), and the workshop, playground and full editions +20 kB each (`edition.ts`): the fraud and advice workflows — their stages, rules, strings and work-item layouts — ride in the two packs every Playground edition ships. The simulator edition is untouched.

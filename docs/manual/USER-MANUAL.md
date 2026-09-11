@@ -197,6 +197,19 @@ For local work you normally run the **`full`** build, which is every section at 
 
 ---
 
+## 2a. The lenses
+
+The Workshop has one set of screens and four readers. A **lens** orders the rail for one reader's question, opens on that reader's page, and speaks that reader's words; it hides nothing — every screen stays where its link goes. Choose one at the head of the rail or in Settings under *Show the Workshop*; the choice is remembered.
+
+| Lens | Question | Opens on | Its words |
+|---|---|---|---|
+| **Engineer** | What did it do? | the Bench | the Workshop's own |
+| **Assurance** | Is it under control? | Assurance — the claims, the incidents, the drift, the register, the pack | *control intervention*, *case*, *control*, *evidence*, *experiment* |
+| **Conduct** | Were customers treated as the rules require? | Incidents, until the Conduct page lands | *breach caught*, *customer*, *obligation*, *outcome*, *treatment failure* |
+| **Model risk** | Is it fair, and is it moving? | Telemetry, until the Model-risk page lands | *guardrail event*, *sample*, *metric bound*, *label*, *distribution shift* |
+
+Each lens's entry opens with a three-step **guided path** — what to read first, second, third, each a link — until you press *Got it*; it stays dismissed for that lens. **Compare two reports** on the Assurance page picks two stored campaign reports and opens them side by side in Compare, their gates aligned by id and the fairness rows beside.
+
 ## 3. The vocabulary
 
 ### 3.1 Two names for everything

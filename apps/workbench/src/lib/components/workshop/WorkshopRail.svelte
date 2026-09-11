@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { preferences } from '$lib/state/preferences.svelte.js';
+	import { LENSES, lensById, railLabel, type LensId, type RailId } from '$lib/workshop/lens.js';
 
 	/**
 	 * The Workshop's persistent left rail (`17-…` §2).
@@ -35,87 +37,110 @@
 			| 'sinks'
 			| 'evidence'
 			| 'campaigns'
-			| 'workflows';
+			| 'workflows'
+			| 'playground';
 	}
 
 	let { current }: Props = $props();
 
-	const DESTINATIONS = [
-		{ id: 'dashboard', label: 'Bench', href: '/workshop' },
-		{ id: 'runs', label: 'Runs', href: '/workshop/runs' },
-		{ id: 'spec', label: 'Spec lab', hint: 'per bot' },
-		{ id: 'evals', label: 'Evals', href: '/workshop/evals' },
-		// WP38 (`28-CAMPAIGNS.md` §4.9) — the guardrail regression suite as a file.
-		{ id: 'campaigns', label: 'Campaigns', href: '/workshop/campaigns' },
-		// WP86 (`77-PIPELINE-AND-BOUNDARY.md` §4) — every workflow run, and the Pipeline over one.
-		{ id: 'workflows', label: 'Workflows', href: '/workshop/workflows' },
-		// WP43 (`31-EVALUATORS.md` §4.3) — every evaluator, run over a stored run.
-		{ id: 'evaluators', label: 'Evaluators', href: '/workshop/evaluators' },
-		// WP44 (`32-SCENARIOS.md` §4.5) — every scenario a pack ships, and a corpus imported over a card.
-		{ id: 'scenarios', label: 'Scenarios', href: '/workshop/scenarios' },
-		// WP47 (`35-TELEMETRY.md` §4.5) — where a run's trace goes besides this browser.
-		{ id: 'sinks', label: 'Sinks', href: '/workshop/sinks' },
-		// WP70 (`58-EVIDENCE-STORE.md` §4.5) — the shared evidence store: artefacts pushed and pulled, never a key.
-		{ id: 'evidence', label: 'Evidence', href: '/workshop/evidence' },
-		// WP59 (`48-FS-BANK.md` §4.8) — the synthetic bank, read: a case from a seed and the nine lines.
-		{ id: 'playground', label: 'Playground', href: '/workshop/playground' },
-		{ id: 'policies', label: 'Policies', href: '/workshop/policies' },
-		{ id: 'bench', label: 'Test bench', href: '/workshop/bench' },
-		{ id: 'telemetry', label: 'Telemetry', href: '/workshop/telemetry' },
-		// WP84 (`75-THE-MONITOR.md` §5) — the bank's day, live, on the Control Room system.
-		{ id: 'monitor', label: 'Monitor', href: '/workshop/monitor' },
-		{ id: 'incidents', label: 'Incidents', href: '/workshop/incidents' },
-		{ id: 'safety-case', label: 'Safety case', href: '/workshop/safety-case' },
-		// WP67 (`53-ASSURANCE-PACK.md` §4.3): the evidence, filed.
-		{ id: 'assurance', label: 'Assurance', href: '/workshop/assurance' },
-		{ id: 'export', label: 'Audit', href: '/workshop/export' },
-		// WP42 (`30-SECOND-VENDORS.md` §5) — the Guard Rack, grown from WP35's
-		// Armour Studio, which now redirects here.
-		{ id: 'guards', label: 'Guards', href: '/workshop/guards' }
-	] as const;
+	/**
+	 * The rail under a lens (WP87, `78-LENSES.md` §3): the same destinations,
+	 * grouped and ordered for the reader's question, labelled in the lens's
+	 * words; a switcher at the top; the engineer's lens is the rail as it
+	 * was. A lens hides nothing — every group is drawn, the reader's first.
+	 */
+	const lens = $derived(lensById(preferences.lens));
+	const HREF: Partial<Record<RailId, string>> = {
+		dashboard: '/workshop',
+		runs: '/workshop/runs',
+		evals: '/workshop/evals',
+		campaigns: '/workshop/campaigns',
+		workflows: '/workshop/workflows',
+		evaluators: '/workshop/evaluators',
+		scenarios: '/workshop/scenarios',
+		sinks: '/workshop/sinks',
+		evidence: '/workshop/evidence',
+		playground: '/workshop/playground',
+		policies: '/workshop/policies',
+		bench: '/workshop/bench',
+		telemetry: '/workshop/telemetry',
+		monitor: '/workshop/monitor',
+		incidents: '/workshop/incidents',
+		'safety-case': '/workshop/safety-case',
+		assurance: '/workshop/assurance',
+		export: '/workshop/export',
+		guards: '/workshop/guards'
+	};
+	const groups = $derived(
+		lens.rail.map((group) => ({
+			group: group.group,
+			entries: group.routes.map((id) => ({ id, label: railLabel(lens, id), href: HREF[id] }))
+		}))
+	);
 </script>
 
 <nav class="rail" aria-label="Workshop">
 	<span class="mark">CRAFT A BOT<em>workshop</em></span>
-	<ul>
-		{#each DESTINATIONS as destination (destination.id)}
-			<li>
-				{#if 'href' in destination}
-					<a
-						href={resolve(
-							destination.href as
-								| '/workshop'
-								| '/workshop/runs'
-								| '/workshop/evals'
-								| '/workshop/policies'
-								| '/workshop/bench'
-								| '/workshop/telemetry'
-								| '/workshop/monitor'
-								| '/workshop/incidents'
-								| '/workshop/safety-case'
-								| '/workshop/assurance'
-								| '/workshop/export'
-								| '/workshop/armour'
-								| '/workshop/guards'
-								| '/workshop/evaluators'
-								| '/workshop/scenarios'
-								| '/workshop/sinks'
-								| '/workshop/campaigns'
-								| '/workshop/workflows'
-						)}
-						aria-current={current === destination.id ? 'page' : undefined}
-						data-testid="rail-{destination.id}">{destination.label}</a
-					>
-				{:else}
-					<!-- Not a link, and it says why: `17-…` §2's IA is eight screens and
-					     most of them are later work packages. -->
-					<span class="pending" data-testid="rail-{destination.id}"
-						>{destination.label}<em>{destination.hint}</em></span
-					>
-				{/if}
-			</li>
-		{/each}
-	</ul>
+	<label class="lens">
+		<span>Lens</span>
+		<select
+			value={lens.id}
+			onchange={(event) => preferences.setLens(event.currentTarget.value as LensId)}
+			data-testid="lens-switcher"
+			aria-label="Lens"
+		>
+			{#each LENSES as entry (entry.id)}
+				<option value={entry.id}>{entry.name} — {entry.question}</option>
+			{/each}
+		</select>
+	</label>
+	{#each groups as group (group.group)}
+		{#if lens.rail.length > 1}
+			<h2 class="group" data-testid="rail-group-{group.group.toLowerCase().replaceAll(' ', '-')}">
+				{group.group}
+			</h2>
+		{/if}
+		<ul>
+			{#each group.entries as destination (destination.id)}
+				<li>
+					{#if destination.href}
+						<a
+							href={resolve(
+								destination.href as
+									| '/workshop'
+									| '/workshop/runs'
+									| '/workshop/evals'
+									| '/workshop/policies'
+									| '/workshop/bench'
+									| '/workshop/telemetry'
+									| '/workshop/monitor'
+									| '/workshop/incidents'
+									| '/workshop/safety-case'
+									| '/workshop/assurance'
+									| '/workshop/export'
+									| '/workshop/armour'
+									| '/workshop/guards'
+									| '/workshop/evaluators'
+									| '/workshop/scenarios'
+									| '/workshop/sinks'
+									| '/workshop/campaigns'
+									| '/workshop/workflows'
+									| '/workshop/evidence'
+									| '/workshop/playground'
+							)}
+							aria-current={current === destination.id ? 'page' : undefined}
+							data-testid="rail-{destination.id}">{destination.label}</a
+						>
+					{:else}
+						<!-- Not a link, and it says why: the Spec Lab is always about a particular bot. -->
+						<span class="pending" data-testid="rail-{destination.id}"
+							>{destination.label}<em>per bot</em></span
+						>
+					{/if}
+				</li>
+			{/each}
+		</ul>
+	{/each}
 	<a class="back" href={resolve('/')}>← The Kit</a>
 </nav>
 
@@ -136,6 +161,27 @@
 		font-weight: 700;
 		letter-spacing: 0.1em;
 		color: var(--cab-cream);
+	}
+
+	.lens {
+		display: grid;
+		gap: 2px;
+		font-size: var(--cab-text-xs);
+		color: var(--cab-cream-muted);
+	}
+
+	.lens select {
+		max-width: 100%;
+		font-size: var(--cab-text-xs);
+	}
+
+	.group {
+		margin: var(--cab-space-2) 0 0;
+		font-size: var(--cab-text-xs);
+		font-weight: 700;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: var(--cab-cream-muted);
 	}
 
 	.mark em {

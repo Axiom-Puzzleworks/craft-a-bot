@@ -1,6 +1,7 @@
 import { describeEndpointProblem } from '@craftabot/pack-ollama';
 import { createSettingsStore, type BreakpointKind, type SettingsStore } from './settings.js';
 import type { WebStorageLike } from './keys.js';
+import type { LensId } from '$lib/workshop/lens.js';
 import { createSoundPlayer, type SoundCue, type SoundPlayer } from '../sound.js';
 
 /**
@@ -48,6 +49,11 @@ export interface Preferences {
 	/** The name on the trace (WP65) — blank when the person has not said. */
 	readonly displayName: string;
 	setDisplayName(value: string): void;
+	/** The Workshop's lens (WP87). */
+	readonly lens: LensId;
+	setLens(value: LensId): void;
+	readonly firstRunDismissed: readonly string[];
+	dismissFirstRun(lens: LensId): void;
 	setReducedMotion(value: boolean): void;
 	setTickSpeed(value: number): void;
 	setSound(value: boolean): void;
@@ -74,7 +80,9 @@ export function createPreferences(store?: SettingsStore, player?: SoundPlayer): 
 		runCap: initial.runCap,
 		breakpoints: initial.breakpoints,
 		ollamaEndpoint: initial.ollamaEndpoint,
-		displayName: initial.displayName
+		displayName: initial.displayName,
+		lens: initial.lens,
+		firstRunDismissed: initial.firstRunDismissed
 	});
 
 	return {
@@ -101,6 +109,21 @@ export function createPreferences(store?: SettingsStore, player?: SoundPlayer): 
 			settings.update({ sound: value });
 			// Play the click that turned it on, so the switch demonstrates itself.
 			if (value) sound.play('click');
+		},
+		get lens() {
+			return state.lens;
+		},
+		setLens(value) {
+			state.lens = value;
+			settings.update({ lens: value });
+		},
+		get firstRunDismissed() {
+			return state.firstRunDismissed;
+		},
+		dismissFirstRun(lens) {
+			if (state.firstRunDismissed.includes(lens)) return;
+			state.firstRunDismissed = [...state.firstRunDismissed, lens];
+			settings.update({ firstRunDismissed: state.firstRunDismissed });
 		},
 		get readAloud() {
 			return state.readAloud;
@@ -156,8 +179,17 @@ export function createPreferences(store?: SettingsStore, player?: SoundPlayer): 
 	};
 }
 
-/** The app's preferences. Tests build their own with `createPreferences`. */
-let shared: Preferences | undefined;
+/**
+ * The app's preferences. Tests build their own with `createPreferences`.
+ *
+ * Built once, here, at module load rather than on first read (WP87): a
+ * `$state` created lazily *inside* a `$derived` — the Workshop rail's first
+ * read of the lens — is not tracked by that derived, so the rail never
+ * re-drew when the lens changed. Module scope is outside every reactive
+ * context; on a server there is no storage and the defaults stand.
+ */
+let shared: Preferences | undefined =
+	typeof window === 'undefined' ? undefined : createPreferences();
 
 export const preferences: Preferences = {
 	get reducedMotion() {
@@ -191,6 +223,14 @@ export const preferences: Preferences = {
 		return (shared ??= createPreferences()).displayName;
 	},
 	setDisplayName: (value) => (shared ??= createPreferences()).setDisplayName(value),
+	get lens() {
+		return (shared ??= createPreferences()).lens;
+	},
+	setLens: (value) => (shared ??= createPreferences()).setLens(value),
+	get firstRunDismissed() {
+		return (shared ??= createPreferences()).firstRunDismissed;
+	},
+	dismissFirstRun: (lens) => (shared ??= createPreferences()).dismissFirstRun(lens),
 	setReducedMotion: (value) => (shared ??= createPreferences()).setReducedMotion(value),
 	setTickSpeed: (value) => (shared ??= createPreferences()).setTickSpeed(value),
 	setSound: (value) => (shared ??= createPreferences()).setSound(value),

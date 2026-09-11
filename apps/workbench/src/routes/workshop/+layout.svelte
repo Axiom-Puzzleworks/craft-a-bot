@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import WorkshopRail from '$lib/components/workshop/WorkshopRail.svelte';
+	import FirstRun from '$lib/components/workshop/FirstRun.svelte';
+	import { preferences } from '$lib/state/preferences.svelte.js';
+	import { lensById } from '$lib/workshop/lens.js';
 	import { installGroupEpisodeEntryPoint } from '$lib/state/group-episode-entry-point.js';
 	import { routePath } from '$lib/edition.js';
 	import { FINISH_PROPERTIES } from '$lib/assets/finishes.js';
@@ -31,6 +34,12 @@
 	// Workshop has any use for it.
 	installGroupEpisodeEntryPoint();
 
+	/** The guided path (WP87, GAP-2): the lens's three steps on its entry page, until dismissed. */
+	const lens = $derived(lensById(preferences.lens));
+	const showFirstRun = $derived(
+		routePath(page.url.pathname) === lens.entry && !preferences.firstRunDismissed.includes(lens.id)
+	);
+
 	const current = $derived.by(() => {
 		const path = routePath(page.url.pathname);
 		if (path.startsWith('/workshop/runs')) return 'runs' as const;
@@ -38,6 +47,9 @@
 		if (path.startsWith('/workshop/policies')) return 'policies' as const;
 		if (path.startsWith('/workshop/bench')) return 'bench' as const;
 		if (path.startsWith('/workshop/workflows')) return 'workflows' as const;
+		if (path.startsWith('/workshop/campaigns')) return 'campaigns' as const;
+		if (path.startsWith('/workshop/playground')) return 'playground' as const;
+		if (path.startsWith('/workshop/compare')) return 'runs' as const;
 		if (path.startsWith('/workshop/monitor')) return 'monitor' as const;
 		if (path.startsWith('/workshop/telemetry')) return 'telemetry' as const;
 		if (path.startsWith('/workshop/incidents')) return 'incidents' as const;
@@ -64,6 +76,9 @@
 >
 	<WorkshopRail {current} />
 	<div class="stage">
+		{#if showFirstRun}
+			<FirstRun {lens} onDismiss={() => preferences.dismissFirstRun(lens.id)} />
+		{/if}
 		{@render children()}
 	</div>
 </div>
