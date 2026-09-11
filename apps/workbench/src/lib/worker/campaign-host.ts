@@ -4,8 +4,11 @@ import {
 	type AnyAgentSpec,
 	type Book,
 	type EngineEvent,
+	type Executor,
+	type ExecutorRecord,
 	type Guardrail,
-	type PackManifest
+	type PackManifest,
+	type WorkflowConfig
 } from '@craftabot/core';
 import { createMockProvider } from '@craftabot/core/testing';
 import {
@@ -24,8 +27,15 @@ import {
 	defaultArrivalRates,
 	population
 } from '@craftabot/pack-fs-bank';
-import { memorySink, runBank, type DeskAssignment } from '@craftabot/workflow';
-import type { StartBank, StartCampaign, WorkerReply, WorkerRequest } from './protocol.js';
+import { memorySink, runBank, runWorkflow, type DeskAssignment } from '@craftabot/workflow';
+import type {
+	JobWhatIfDone,
+	StartBank,
+	StartCampaign,
+	StartWhatIf,
+	WorkerReply,
+	WorkerRequest
+} from './protocol.js';
 
 /**
  * **The Worker's side** (WP77, `64-…` §6.6.1): the runner behind the
@@ -85,6 +95,22 @@ export function createCampaignHost(
 				},
 				onTrace: (cell, trace) => {
 					post({ kind: 'trace', job: start.job, cell, events: trace.events, spec: trace.spec });
+				},
+				// A book cell's workflow run, with its item and its agent events (WP86): the main thread keeps the Pipeline's rows.
+				onWorkflowRun: (entry) => {
+					post({
+						kind: 'workflow-run',
+						job: start.job,
+						desk: entry.cell.build,
+						item: entry.item,
+						run: entry.run,
+						events: entry.agentRuns.flatMap((agentRun) => agentRun.events),
+						agentRuns: entry.agentRuns.map((agentRun) => ({
+							runId: agentRun.runId,
+							events: agentRun.events,
+							spec: agentRun.spec
+						}))
+					});
 				}
 			});
 			post({ kind: 'done', job: start.job, report });
@@ -100,6 +126,93 @@ export function createCampaignHost(
 			}
 		} finally {
 			cancelled.delete(start.job);
+		}
+	}
+
+	/**
+	 * A what-if (WP86, `77-…` §4): the stored run re-run from a stage — the
+	 * stages before it under the original's config and seeds (`fromStage`),
+	 * the changed configuration from there — with the scripted-optimal bot at
+	 * every agent stage, the packs' policy cards as guards, and a person's
+	 * answer at a human stage the stage's own suggestion. Every agent run is
+	 * posted as a trace; the run lands with its item and agent runs.
+	 */
+	async function runWhatIf(start: StartWhatIf): Promise<void> {
+		try {
+			const job = start.whatIf;
+			const registry = createPackRegistry();
+			for (const pack of deps.packs) registry.registerPack(pack);
+			const workflow = registry.getWorkflow(job.workflowId);
+			if (!workflow) throw new Error(`no workflow '${job.workflowId}' in this edition`);
+			const world = registry.getWorld(workflow.worldId);
+			const named = job.configuration ? workflow.configurations?.[job.configuration] : undefined;
+			if (job.configuration && !named)
+				throw new Error(`workflow '${job.workflowId}' has no configuration '${job.configuration}'`);
+			const executors = {
+				...(named?.executors ?? {}),
+				...Object.fromEntries(
+					Object.entries(job.executors ?? {}).map(([stageId, record]) => [
+						stageId,
+						executorFromRecord(record)
+					])
+				)
+			};
+			const config: WorkflowConfig = {
+				...(named ?? {}),
+				...(Object.keys(executors).length > 0 ? { executors } : {}),
+				...(named?.knobs || job.knobs
+					? { knobs: { ...(named?.knobs ?? {}), ...(job.knobs ?? {}) } }
+					: {}),
+				...(job.context ? { context: job.context } : {})
+			};
+			const spec = specFor({
+				scenario: { id: 'what-if', goalCardId: job.workflowId, tags: [], injections: [], fit: [] },
+				build: {
+					id: job.build ?? job.configuration ?? 'what-if',
+					base: { kind: 'starter-default' },
+					overrides: {
+						senses: (world?.senses ?? []).map((sense) => sense.id),
+						actions: (world?.actions ?? []).map((action) => action.id)
+					}
+				},
+				guard: { id: 'none', fit: [] }
+			});
+			const agentRuns: JobWhatIfDone['agentRuns'] = [];
+			const run = await runWorkflow(workflow, job.item, {
+				packs: deps.packs,
+				spec,
+				config,
+				fromStage: { stageId: job.stageId, from: job.from },
+				providerFor: (_stage, goalCardId) =>
+					createMockProvider({
+						script: scriptedOptimal(deps.plans.planFor(goalCardId)),
+						id: 'scripted-optimal'
+					}),
+				guardrailsFor: (cardIds) =>
+					cardIds.flatMap((id): Guardrail[] => {
+						const card = registry.getPolicyCard(id);
+						return card ? compilePolicyCard(card) : [];
+					}),
+				seed: 1,
+				onAgentRun: (agentRun) => {
+					const v2 = toSpecV2(agentRun.spec);
+					agentRuns.push({ runId: agentRun.runId, events: agentRun.events, spec: v2 });
+					post({
+						kind: 'trace',
+						job: start.job,
+						cell: bankCell('what-if', job.item.id),
+						events: agentRun.events,
+						spec: v2
+					});
+				}
+			});
+			post({ kind: 'what-if-done', job: start.job, run, item: job.item, agentRuns });
+		} catch (error) {
+			post({
+				kind: 'failed',
+				job: start.job,
+				error: error instanceof Error ? error.message : String(error)
+			});
 		}
 	}
 
@@ -286,6 +399,11 @@ export function createCampaignHost(
 				);
 				return;
 			}
+			// A what-if from a stage (WP86).
+			if (message.work === 'what-if') {
+				chain = chain.then(() => runWhatIf(message));
+				return;
+			}
 			// A day at the bank (WP83).
 			chain = chain.then(() => runBankDay(message));
 		}
@@ -327,4 +445,33 @@ function toV2(spec: AnyAgentSpec) {
 	return 'bricks' in spec && Array.isArray(spec.bricks)
 		? (spec as import('@craftabot/core').AgentSpecV2)
 		: toSpecV2(spec);
+}
+
+/** A plain executor record back into an executor — the what-if drawer sends only what crosses a Worker boundary; a `line` needs no arguments to be named. */
+function executorFromRecord(record: ExecutorRecord): Executor {
+	switch (record.kind) {
+		case 'rule':
+			return { kind: 'rule', rule: record.rule };
+		case 'agent':
+			return {
+				kind: 'agent',
+				until: record.until,
+				...(record.maxTicks !== undefined ? { maxTicks: record.maxTicks } : {}),
+				...(record.goalText !== undefined ? { goalText: record.goalText } : {})
+			};
+		case 'human':
+			return {
+				kind: 'human',
+				prompt: record.prompt,
+				options: [...record.options],
+				...(record.default !== undefined ? { default: record.default } : {})
+			};
+		case 'line':
+			return {
+				kind: 'line',
+				lineId: record.lineId,
+				operation: record.operation,
+				arguments: () => ({})
+			};
+	}
 }

@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { engineEventSchema } from './events.js';
 import { principalSchema } from './shared.js';
 import { contextSpecSchema } from './context.js';
+import { workItemSchema } from './book.js';
 
 /**
  * **A workflow run** (WP79, `69-WORKFLOWS.md` §4; `64-…` §6.2.2): the
@@ -107,4 +108,34 @@ export type WorkflowRun = z.infer<typeof workflowRunSchema>;
 
 export function parseWorkflowRun(value: unknown): WorkflowRun {
 	return workflowRunSchema.parse(value);
+}
+
+/**
+ * **A workflow run as a store keeps it** (WP86, `77-PIPELINE-AND-BOUNDARY.md`
+ * §3): the run with the item it worked — so the Pipeline's *What if* can
+ * re-run from a stage — where it came from, and the run it was forked from
+ * when it is a what-if. The harness writes the bare run beside its agent
+ * runs; a store wraps it.
+ */
+export const storedWorkflowRunSchema = z.object({
+	run: workflowRunSchema,
+	item: workItemSchema.optional(),
+	source: z
+		.object({
+			kind: z.enum(['campaign', 'bank', 'import', 'what-if', 'harness']),
+			id: z.string().optional(),
+			build: z.string().optional(),
+			desk: z.string().optional()
+		})
+		.optional(),
+	forkedFrom: z.object({ runId: z.string().min(1), stageId: z.string().min(1) }).optional(),
+	createdAt: z.string().datetime(),
+	schemaVersion: z.literal(1)
+});
+export type StoredWorkflowRun = z.infer<typeof storedWorkflowRunSchema>;
+
+export function safeParseStoredWorkflowRun(
+	value: unknown
+): ReturnType<typeof storedWorkflowRunSchema.safeParse> {
+	return storedWorkflowRunSchema.safeParse(value);
 }

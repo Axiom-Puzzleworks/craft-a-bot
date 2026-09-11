@@ -34,7 +34,8 @@
 			| 'scenarios'
 			| 'sinks'
 			| 'evidence'
-			| 'campaigns';
+			| 'campaigns'
+			| 'workflows';
 	}
 
 	let { current }: Props = $props();
@@ -46,6 +47,8 @@
 		{ id: 'evals', label: 'Evals', href: '/workshop/evals' },
 		// WP38 (`28-CAMPAIGNS.md` §4.9) — the guardrail regression suite as a file.
 		{ id: 'campaigns', label: 'Campaigns', href: '/workshop/campaigns' },
+		// WP86 (`77-PIPELINE-AND-BOUNDARY.md` §4) — every workflow run, and the Pipeline over one.
+		{ id: 'workflows', label: 'Workflows', href: '/workshop/workflows' },
 		// WP43 (`31-EVALUATORS.md` §4.3) — every evaluator, run over a stored run.
 		{ id: 'evaluators', label: 'Evaluators', href: '/workshop/evaluators' },
 		// WP44 (`32-SCENARIOS.md` §4.5) — every scenario a pack ships, and a corpus imported over a card.
@@ -98,6 +101,7 @@
 								| '/workshop/scenarios'
 								| '/workshop/sinks'
 								| '/workshop/campaigns'
+								| '/workshop/workflows'
 						)}
 						aria-current={current === destination.id ? 'page' : undefined}
 						data-testid="rail-{destination.id}">{destination.label}</a

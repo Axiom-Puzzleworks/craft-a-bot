@@ -5,7 +5,9 @@ import type {
 	BankJob,
 	JobArrival,
 	JobBankDone,
+	JobWhatIfDone,
 	JobWorkflowRun,
+	WhatIfJob,
 	WorkerLike,
 	WorkerReply,
 	WorkerRequest
@@ -29,6 +31,8 @@ export class CampaignCancelled extends Error {
 
 export interface RunInWorkerOptions {
 	onProgress?: (done: number, total: number) => void;
+	/** A book cell's workflow run as it lands (WP86), its item and agent events attached. */
+	onWorkflowRun?: (entry: Omit<JobWorkflowRun, 'kind' | 'job'>) => void;
 	onTrace?: (
 		cell: CampaignCell,
 		trace: { events: readonly EngineEvent[]; spec: AgentSpecV2 }
@@ -59,6 +63,15 @@ export function runCampaignIn(
 					return;
 				case 'trace':
 					options.onTrace?.(data.cell, { events: data.events, spec: data.spec });
+					return;
+				case 'workflow-run':
+					options.onWorkflowRun?.({
+						desk: data.desk,
+						item: data.item,
+						run: data.run,
+						events: data.events,
+						...(data.agentRuns ? { agentRuns: data.agentRuns } : {})
+					});
 					return;
 				case 'done':
 					worker.removeEventListener('message', listener);
@@ -117,8 +130,38 @@ export function inProcessWorker(makeHost: (post: (reply: WorkerReply) => void) =
 export interface RunBankInOptions extends RunInWorkerOptions {
 	/** Every arrival as the clock delivers it (WP84). */
 	onArrival?: (arrival: Omit<JobArrival, 'kind' | 'job'>) => void;
-	/** Every workflow run as it finishes, its agent events attached (WP84). */
-	onWorkflowRun?: (entry: Omit<JobWorkflowRun, 'kind' | 'job'>) => void;
+}
+
+/** A what-if in the Worker (WP86): the traces as they land, then the new run with its item and agent runs. */
+export function runWhatIfIn(
+	worker: WorkerLike,
+	whatIf: WhatIfJob,
+	options: RunInWorkerOptions = {}
+): { result: Promise<Omit<JobWhatIfDone, 'kind' | 'job'>>; cancel(): void } {
+	const job = `job-${(nextJob += 1)}`;
+	const result = new Promise<Omit<JobWhatIfDone, 'kind' | 'job'>>((resolve, reject) => {
+		const listener = ({ data }: { data: WorkerReply }) => {
+			if (data.job !== job) return;
+			switch (data.kind) {
+				case 'trace':
+					options.onTrace?.(data.cell, { events: data.events, spec: data.spec });
+					return;
+				case 'what-if-done':
+					worker.removeEventListener('message', listener);
+					resolve({ run: data.run, item: data.item, agentRuns: data.agentRuns });
+					return;
+				case 'failed':
+					worker.removeEventListener('message', listener);
+					reject(new Error(data.error));
+					return;
+				default:
+					return;
+			}
+		};
+		worker.addEventListener('message', listener);
+		worker.postMessage({ kind: 'start', job, work: 'what-if', whatIf });
+	});
+	return { result, cancel: () => worker.postMessage({ kind: 'cancel', job }) };
 }
 
 export function runBankIn(

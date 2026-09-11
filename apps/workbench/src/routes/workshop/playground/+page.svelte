@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { createRegistry } from '$lib/packs.js';
+	import { workflowRing } from '@craftabot/governance/reports';
 	import { resolve } from '$app/paths';
 	import type { BoundaryMap } from '@craftabot/governance/reports';
 	import {
@@ -60,7 +62,11 @@
 			hosts: [],
 			sends: []
 		})),
-		human: { approvals: 0 }
+		human: { approvals: 0 },
+		// The workflow rings (WP86, `77-…` §5): every journey the edition's desks run, in order around the outside.
+		workflows: createRegistry()
+			.listWorkflows()
+			.map((workflow) => workflowRing(workflow))
 	};
 
 	/**

@@ -1,6 +1,7 @@
 import type { AnyAgentSpec, EngineEvent, PackRegistry } from '@craftabot/core';
 import {
 	boundaryMapFor,
+	type BoundaryWorkflow,
 	type BoundaryMap,
 	type BoundaryOptions
 } from '@craftabot/governance/reports';
@@ -30,11 +31,14 @@ export function boundaryFor(
 	registry: PackRegistry,
 	events?: readonly EngineEvent[],
 	/** The other seats' names by agent id, for a group episode (WP55). */
-	names?: Readonly<Record<string, string>>
+	names?: Readonly<Record<string, string>>,
+	/** The workflow ring(s) (WP86, `77-…` §5): each workflow's stages, lit by a run when the map is over a Pipeline. */
+	workflows?: readonly BoundaryWorkflow[]
 ): BoundaryMap {
 	return boundaryMapFor(spec, registry, {
 		sinks: configuredSinksForBoundary(),
 		...(events ? { events } : {}),
-		...(names ? { names } : {})
+		...(names ? { names } : {}),
+		...(workflows ? { workflows } : {})
 	});
 }

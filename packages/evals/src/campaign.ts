@@ -9,6 +9,7 @@ import type {
 	StoredCampaignReport,
 	Unsubscribe,
 	WorkItem,
+	WorkflowRun,
 	WorkflowConfig,
 	WorkflowSpec
 } from '@craftabot/core';
@@ -780,6 +781,13 @@ export interface RunCampaignOptions {
 	now?: () => string;
 	newId?: () => string;
 	onCell?: (cell: CampaignCell, index: number, total: number) => void;
+	/** A book cell's workflow run with the item it worked and its agent runs (WP86, `77-…` §3) — a host that keeps the Pipeline's rows. */
+	onWorkflowRun?: (entry: {
+		cell: CampaignCell;
+		run: WorkflowRun;
+		item: WorkItem;
+		agentRuns: ReadonlyArray<{ runId: string; events: readonly EngineEvent[]; spec: AgentSpecV2 }>;
+	}) => void;
 	onTrace?: (
 		cell: CampaignCell,
 		trace: { events: readonly EngineEvent[]; spec: AgentSpecV2 }
@@ -1397,6 +1405,7 @@ async function runBookCell(
 		}
 	};
 	if (last) options.onTrace?.(scored, { events: last.events, spec: last.spec });
+	options.onWorkflowRun?.({ cell: scored, run, item, agentRuns });
 	return scored;
 }
 

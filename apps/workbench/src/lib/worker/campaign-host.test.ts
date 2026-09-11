@@ -1,9 +1,19 @@
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import type { WorkItem, WorkflowRun } from '@craftabot/core';
 import { describe, expect, it } from 'vitest';
 import { injectionBaseline, runCampaign } from '@craftabot/evals';
 import { packs } from '$edition-packs';
 import { workshopPlans } from '$lib/workshop/plans.js';
 import { createCampaignHost } from './campaign-host.js';
-import { CampaignCancelled, inProcessWorker, runBankIn, runCampaignIn } from './campaign-client.js';
+import {
+	CampaignCancelled,
+	inProcessWorker,
+	runBankIn,
+	runCampaignIn,
+	runWhatIfIn
+} from './campaign-client.js';
 import type { WorkerReply } from './protocol.js';
 
 /**
@@ -14,6 +24,8 @@ import type { WorkerReply } from './protocol.js';
  * are the only two things the runner draws from the wall.
  */
 const FIXED = { now: '2026-09-10T00:00:00.000Z', reportId: 'report-fixed' };
+
+const HERE = dirname(fileURLToPath(import.meta.url));
 
 const workerOf = () =>
 	inProcessWorker((post) => createCampaignHost({ packs, plans: workshopPlans }, post));
@@ -123,5 +135,64 @@ describe('the bank job', { timeout: 300_000 }, () => {
 		expect(JSON.stringify(second.bank)).toBe(
 			JSON.stringify({ ...first.bank, wallMs: second.bank.wallMs })
 		);
+	});
+});
+
+/**
+ * **A what-if through the Worker** (WP86, `77-PIPELINE-AND-BOUNDARY.md` §4):
+ * the committed lending run re-run from the decision with the rule deciding
+ * — the stages before the decision byte-equal to the original's (the
+ * origin's config and seeds), the decision a rule's from there, every agent
+ * run posted as a trace and returned with the run.
+ */
+describe('the what-if job', { timeout: 120_000 }, () => {
+	it('re-runs a stored run from a stage under a changed executor, reproducing the stages before it', async () => {
+		const stored = JSON.parse(
+			readFileSync(
+				join(
+					HERE,
+					'..',
+					'..',
+					'..',
+					'..',
+					'..',
+					'packages',
+					'packs',
+					'fs-lending',
+					'src',
+					'fixtures',
+					'lending-workflow-run.v1.json'
+				),
+				'utf8'
+			)
+		) as { run: WorkflowRun; item: WorkItem };
+		const traces: string[] = [];
+		const done = await runWhatIfIn(
+			workerOf(),
+			{
+				workflowId: stored.run.workflowId,
+				item: stored.item,
+				from: stored.run,
+				stageId: 'decision',
+				executors: { decision: { kind: 'rule', rule: 'decision-v1' } }
+			},
+			{ onTrace: (cell) => traces.push(cell.scenario) }
+		).result;
+		expect(done.run.outcome).toBe('completed');
+		const before = (run: WorkflowRun) =>
+			run.stages.slice(
+				0,
+				run.stages.findIndex((stage) => stage.stageId === 'decision')
+			);
+		expect(before(done.run).map((stage) => stage.output.digest)).toEqual(
+			before(stored.run).map((stage) => stage.output.digest)
+		);
+		expect(done.run.stages.find((stage) => stage.stageId === 'decision')?.executor).toEqual({
+			kind: 'rule',
+			rule: 'decision-v1'
+		});
+		expect(done.agentRuns.length).toBeGreaterThan(0);
+		expect(traces.every((scenario) => scenario === 'what-if')).toBe(true);
+		expect(done.item.id).toBe(stored.item.id);
 	});
 });

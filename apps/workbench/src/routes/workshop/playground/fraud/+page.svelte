@@ -24,6 +24,7 @@
 	import Strip from '$lib/components/control-room/Strip.svelte';
 	import { createRegistry } from '$lib/packs.js';
 	import { boundaryFor } from '$lib/workshop/boundary.js';
+	import { workflowRing } from '@craftabot/governance/reports';
 
 	/** The Campaigns screen opened on this desk's baseline (UX-5). */
 	const campaignHref = `${resolve('/workshop/campaigns')}?baseline=fs-fraud-baseline`;
@@ -75,7 +76,15 @@
 			]
 		};
 	})();
-	const map = boundaryFor(spec, registry);
+	// The desk's own journey on the ring (WP86, `77-…` §5).
+	const journey = registry.getWorkflow('fs-fraud/fraud');
+	const map = boundaryFor(
+		spec,
+		registry,
+		undefined,
+		undefined,
+		journey ? [workflowRing(journey)] : []
+	);
 
 	const deckColumns = [
 		{ id: 'deck', label: 'Deck', kind: 'text' as const },

@@ -1,4 +1,4 @@
-import type { Principal } from '@craftabot/core';
+import type { Principal, WorkflowConfig, WorkflowRun, WorkflowSpec } from '@craftabot/core';
 import {
 	capabilitiesOf,
 	hostMatches,
@@ -57,6 +57,26 @@ export interface BoundaryActivity {
 	outcome?: string;
 }
 
+/**
+ * The workflow layer (WP86, `77-PIPELINE-AND-BOUNDARY.md` §5; `64-…` §6.2.5):
+ * the stages in order around the outside of the ring, each with the actor
+ * that takes it, and — over a run — the status the run left it with.
+ */
+export interface BoundaryWorkflowStage {
+	id: string;
+	name: string;
+	executor: 'agent' | 'rule' | 'human' | 'line';
+	/** The stage's status on the run the map is over; absent on a static map or a stage the run never reached. */
+	status?: 'ok' | 'blocked' | 'escalated' | 'error';
+}
+
+/** One workflow's ring: its id, its name, its stages in order. */
+export interface BoundaryWorkflow {
+	id: string;
+	name: string;
+	stages: BoundaryWorkflowStage[];
+}
+
 /** The map, v1: the agent, the ring, what is inside it, what is outside it, the human, and (over a trace) the activity. */
 export interface BoundaryMap {
 	schemaVersion: 1;
@@ -81,6 +101,8 @@ export interface BoundaryMap {
 	/** The person on the ring: how often the run crossed to them, and who they were when `run.started` says (WP65). */
 	human: { approvals: number; principal?: Principal };
 	activity?: BoundaryActivity[];
+	/** The workflow ring(s) (WP86): every workflow the host asked for, its stages in order, lit by a run when one was given. */
+	workflows?: BoundaryWorkflow[];
 }
 
 /** What a host adds to the fold: the trace, the sinks it has configured, the evaluators it will run. */
@@ -97,6 +119,34 @@ export interface BoundaryOptions {
 	evaluators?: readonly string[];
 	/** The other seats' display names by agent id (WP55, `46-…` §4.6) — the trace carries none; the host's run records do. */
 	names?: Readonly<Record<string, string>>;
+	/**
+	 * The workflow ring(s) (WP86): each workflow's stages with the executor a
+	 * configuration gives them, and the run that lit them when the map is
+	 * over a Pipeline — `workflowRing` folds one from a spec and a run.
+	 */
+	workflows?: readonly BoundaryWorkflow[];
+}
+
+/** One workflow's ring from its spec, the configuration's executors over the spec's, and the run's stage statuses when there is a run. */
+export function workflowRing(
+	spec: Pick<WorkflowSpec, 'id' | 'name' | 'stages'>,
+	options: { executors?: WorkflowConfig['executors']; run?: Pick<WorkflowRun, 'stages'> } = {}
+): BoundaryWorkflow {
+	const statusOf = new Map(options.run?.stages.map((stage) => [stage.stageId, stage.status]) ?? []);
+	return {
+		id: spec.id,
+		name: spec.name,
+		stages: spec.stages.map((stage) => {
+			const executor = options.executors?.[stage.id] ?? stage.executor;
+			const status = statusOf.get(stage.id);
+			return {
+				id: stage.id,
+				name: stage.name,
+				executor: executor.kind,
+				...(status !== undefined ? { status } : {})
+			};
+		})
+	};
 }
 
 const SAFETY_APPROVAL_KIND = 'starter/safety';
@@ -353,7 +403,10 @@ export function boundaryMapFor(
 		},
 		outside,
 		human: { approvals, ...(principal ? { principal } : {}) },
-		...(options.events ? { activity } : {})
+		...(options.events ? { activity } : {}),
+		...(options.workflows && options.workflows.length > 0
+			? { workflows: options.workflows.map((workflow) => structuredClone(workflow)) }
+			: {})
 	};
 }
 

@@ -1,3 +1,5 @@
+import type { StoredWorkflowRun } from '@craftabot/core';
+import { lendingBookCampaign } from '@craftabot/pack-fs-lending';
 import { describe, expect, it } from 'vitest';
 import { injectionBaseline, type CampaignReport } from '@craftabot/evals';
 import { packs } from '$edition-packs';
@@ -75,4 +77,30 @@ describe('the campaign runner store', () => {
 		expect(typeof runner.enqueue({})).toBe('string');
 		expect(runner.queue).toEqual([]);
 	});
+});
+
+/** A book's workflow runs reach the store with their agent runs (WP86, `77-…` §3), one per cell, each with its item. */
+describe('the campaign runner and the Pipeline', () => {
+	it('persists every book cell’s workflow run with its item and agent runs', async () => {
+		const stored: StoredWorkflowRun[] = [];
+		const agentRunCounts: number[] = [];
+		const runner = createCampaignRunner({
+			spawn,
+			persist: async () => {},
+			persistWorkflowRun: async (record, agentRuns) => {
+				stored.push(record);
+				agentRunCounts.push(agentRuns.length);
+			}
+		});
+		runner.enqueue(lendingBookCampaign({ size: 60, configurations: ['bot-everywhere'] }));
+		await settled(runner);
+		expect(runner.queue.map((entry) => entry.status)).toEqual(['done']);
+		expect(stored.length).toBe(runner.report?.cells.length);
+		expect(stored.length).toBeGreaterThan(0);
+		for (const record of stored) {
+			expect(record.item?.id).toBe(record.run.itemId);
+			expect(record.source).toMatchObject({ kind: 'campaign', build: 'bot-everywhere' });
+		}
+		expect(agentRunCounts.every((count) => count > 0)).toBe(true);
+	}, 120_000);
 });

@@ -1,4 +1,12 @@
-import type { AgentSpecV2, BankRun, EngineEvent, WorkItem, WorkflowRun } from '@craftabot/core';
+import type {
+	AgentSpecV2,
+	BankRun,
+	ContextSpec,
+	EngineEvent,
+	ExecutorRecord,
+	WorkItem,
+	WorkflowRun
+} from '@craftabot/core';
 import type { CampaignCell, CampaignReport } from '@craftabot/evals';
 
 /**
@@ -81,7 +89,34 @@ export interface CancelJob {
 	job: string;
 }
 
-export type WorkerRequest = StartCampaign | StartBook | StartBank | CancelJob;
+/**
+ * A what-if (WP86, `77-PIPELINE-AND-BOUNDARY.md` §4): one stored workflow run
+ * re-run from a stage under a changed configuration — the stages before it
+ * under the original's config and seeds, the new config from there — the
+ * fork pattern lifted to stages. The Worker draws nothing: the item comes
+ * with the run.
+ */
+export interface WhatIfJob {
+	workflowId: string;
+	item: WorkItem;
+	/** The original run — its config and its seeds reproduce the stages before `stageId`. */
+	from: WorkflowRun;
+	stageId: string;
+	/** The configuration from the stage on: a named one, and/or executors, knobs and a context rung over it. */
+	configuration?: string | undefined;
+	executors?: Record<string, ExecutorRecord> | undefined;
+	knobs?: Record<string, number | string | boolean> | undefined;
+	context?: ContextSpec | undefined;
+	build?: string | undefined;
+}
+export interface StartWhatIf {
+	kind: 'start';
+	job: string;
+	work: 'what-if';
+	whatIf: WhatIfJob;
+}
+
+export type WorkerRequest = StartCampaign | StartBook | StartBank | StartWhatIf | CancelJob;
 
 export interface JobProgress {
 	kind: 'progress';
@@ -136,6 +171,17 @@ export interface JobWorkflowRun {
 	item: WorkItem;
 	run: WorkflowRun;
 	events: readonly EngineEvent[];
+	/** The agent runs by run id with the spec each ran under (WP86) — a book cell's; a bank day's carry the events alone. */
+	agentRuns?: Array<{ runId: string; events: readonly EngineEvent[]; spec: AgentSpecV2 }>;
+}
+
+/** A what-if finished (WP86): the new run, its item, and the agent runs it made. */
+export interface JobWhatIfDone {
+	kind: 'what-if-done';
+	job: string;
+	run: WorkflowRun;
+	item: WorkItem;
+	agentRuns: Array<{ runId: string; events: readonly EngineEvent[]; spec: AgentSpecV2 }>;
 }
 
 /** A bank day finished: the `BankRun` and every workflow run it made. */
@@ -153,6 +199,7 @@ export type WorkerReply =
 	| JobArrival
 	| JobWorkflowRun
 	| JobBankDone
+	| JobWhatIfDone
 	| JobCancelled
 	| JobFailed;
 

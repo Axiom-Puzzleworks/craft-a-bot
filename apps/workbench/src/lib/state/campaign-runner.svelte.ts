@@ -1,6 +1,7 @@
-import type { AgentSpecV2, EngineEvent } from '@craftabot/core';
+import type { AgentSpecV2, EngineEvent, StoredWorkflowRun } from '@craftabot/core';
 import { campaignCells, campaignSchema, type CampaignReport } from '@craftabot/evals';
 import { CampaignCancelled, runCampaignIn, type WorkerJob } from '$lib/worker/campaign-client.js';
+import { isoAt } from '$lib/workshop/pipeline.js';
 import type { WorkerLike } from '$lib/worker/protocol.js';
 
 /**
@@ -31,6 +32,11 @@ export interface CampaignRunnerDeps {
 	spawn: () => WorkerLike;
 	/** Where a finished report goes — the app's storage; a test's array. */
 	persist: (report: CampaignReport) => Promise<void>;
+	/** Where a book cell's workflow run goes with its agent runs (WP86) — the Pipeline's rows; absent, they are not kept. */
+	persistWorkflowRun?: (
+		stored: StoredWorkflowRun,
+		agentRuns: ReadonlyArray<{ runId: string; events: readonly EngineEvent[]; spec: AgentSpecV2 }>
+	) => Promise<void>;
 	now?: () => number;
 }
 
@@ -83,6 +89,7 @@ export function createCampaignRunner(deps: CampaignRunnerDeps) {
 		cellDoneAt = [startedAtMs];
 		progress = { done: 0, total: entry.cells };
 		const collected: Record<string, Trace> = {};
+		let stores: Promise<void> = Promise.resolve();
 		job = runCampaignIn(worker, entry.campaign, {
 			onProgress: (done, total) => {
 				progress = { done, total };
@@ -90,10 +97,27 @@ export function createCampaignRunner(deps: CampaignRunnerDeps) {
 			},
 			onTrace: (cell, trace) => {
 				if (cell.runId) collected[cell.runId] = trace;
+			},
+			onWorkflowRun: (landed) => {
+				if (!deps.persistWorkflowRun) return;
+				const agentRuns = landed.agentRuns ?? [];
+				stores = stores.then(() =>
+					deps.persistWorkflowRun!(
+						{
+							run: landed.run,
+							item: landed.item,
+							source: { kind: 'campaign', id: entry.id, build: landed.desk },
+							createdAt: isoAt(now()),
+							schemaVersion: 1
+						},
+						agentRuns
+					).catch(() => undefined)
+				);
 			}
 		});
 		try {
 			const finished = await job.result;
+			await stores;
 			await deps.persist(finished);
 			// Shown only once stored (WP56 stage A): a verdict on screen ahead of the
 			// report a safety case reads left the screen honest and the store empty.

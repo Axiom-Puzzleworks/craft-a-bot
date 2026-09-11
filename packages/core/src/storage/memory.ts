@@ -12,6 +12,8 @@ import {
 	type StoredEvent
 } from '../schemas/records.js';
 import type { RunRecord } from '../schemas/trace-file.js';
+import { safeParseStoredWorkflowRun, type StoredWorkflowRun } from '../schemas/workflow-run.js';
+import { byNewestWorkflowRun } from './storage.js';
 import { safeParseContentRecord, type ContentRecord } from '../schemas/content.js';
 import {
 	DEFAULT_RUN_CAP,
@@ -50,6 +52,7 @@ export function createMemoryStorage(): MemoryStorage {
 	const campaigns = new Map<string, StoredCampaignReport>();
 	const evaluations = new Map<string, EvaluationRecord>();
 	const content = new Map<string, ContentRecord>();
+	const workflowRuns = new Map<string, StoredWorkflowRun>();
 	const quarantine = emptyQuarantine();
 
 	return {
@@ -229,6 +232,24 @@ export function createMemoryStorage(): MemoryStorage {
 			return Promise.resolve(doomed);
 		},
 
+		putWorkflowRun(record) {
+			const parsed = safeParseStoredWorkflowRun(record);
+			if (!parsed.success) {
+				return Promise.reject(
+					new Error(`Refusing to store an invalid workflow run: ${parsed.error.message}`)
+				);
+			}
+			workflowRuns.set(record.run.id, structuredClone(record));
+			return Promise.resolve();
+		},
+		getWorkflowRun: (id) => Promise.resolve(copy(workflowRuns.get(id))),
+		listWorkflowRuns: () =>
+			Promise.resolve([...workflowRuns.values()].sort(byNewestWorkflowRun).map(copy)),
+		deleteWorkflowRun(id) {
+			workflowRuns.delete(id);
+			return Promise.resolve();
+		},
+
 		clear() {
 			agents.clear();
 			runs.clear();
@@ -238,6 +259,7 @@ export function createMemoryStorage(): MemoryStorage {
 			campaigns.clear();
 			evaluations.clear();
 			content.clear();
+			workflowRuns.clear();
 			return Promise.resolve();
 		}
 	};

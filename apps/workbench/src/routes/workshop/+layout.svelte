@@ -37,6 +37,7 @@
 		if (path.startsWith('/workshop/evals')) return 'evals' as const;
 		if (path.startsWith('/workshop/policies')) return 'policies' as const;
 		if (path.startsWith('/workshop/bench')) return 'bench' as const;
+		if (path.startsWith('/workshop/workflows')) return 'workflows' as const;
 		if (path.startsWith('/workshop/monitor')) return 'monitor' as const;
 		if (path.startsWith('/workshop/telemetry')) return 'telemetry' as const;
 		if (path.startsWith('/workshop/incidents')) return 'incidents' as const;

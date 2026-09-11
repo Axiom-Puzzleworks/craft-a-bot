@@ -1,5 +1,11 @@
 import { mkdir, readdir, readFile, rm, stat, writeFile, appendFile } from 'node:fs/promises';
-import { computeTraceDigest } from '@craftabot/core';
+import {
+	byNewestWorkflowRun,
+	computeTraceDigest,
+	safeParseStoredWorkflowRun,
+	workflowRunSchema,
+	type StoredWorkflowRun
+} from '@craftabot/core';
 import { dirname, join } from 'node:path';
 import {
 	DEFAULT_RUN_CAP,
@@ -89,6 +95,7 @@ const GROUP_RUNS = 'group-runs';
 const CAMPAIGNS = 'campaigns';
 const INDEX = 'index.jsonl';
 const CONTENT = 'content';
+const WORKFLOWS = 'workflows';
 
 /**
  * Every content record under a directory — `<segment>/<slug>.json`, the
@@ -141,6 +148,27 @@ export async function createFileStorage(root: string): Promise<FileStorage> {
 	const summaryPath = (id: string) => join(runDir(id), 'summary.json');
 	const evaluationsPath = (id: string) => join(runDir(id), 'evaluations.jsonl');
 	const groupRunPath = (id: string) => join(root, GROUP_RUNS, `${id}.json`);
+	// A workflow run (WP86): the envelope when the store wrote it, else the bare run a command wrote.
+	const readStoredWorkflowRun = async (
+		directory: string
+	): Promise<StoredWorkflowRun | undefined> => {
+		const envelope = await readJson(join(directory, 'stored-workflow-run.json'));
+		if (envelope !== undefined && envelope !== SYMBOL_CORRUPT) {
+			const parsed = safeParseStoredWorkflowRun(envelope);
+			if (parsed.success) return parsed.data;
+		}
+		const bare = await readJson(join(directory, 'workflow-run.json'));
+		if (bare === undefined || bare === SYMBOL_CORRUPT) return undefined;
+		const run = workflowRunSchema.safeParse(bare);
+		if (!run.success) return undefined;
+		return {
+			run: run.data,
+			source: { kind: 'harness' },
+			createdAt: run.data.finishedAt,
+			schemaVersion: 1
+		};
+	};
+
 	const campaignPath = (id: string) => join(root, CAMPAIGNS, `${id}.json`);
 	const indexPath = join(root, INDEX);
 
@@ -529,6 +557,39 @@ export async function createFileStorage(root: string): Promise<FileStorage> {
 		},
 		async deleteCampaignReport(id) {
 			await rm(campaignPath(id), { force: true });
+		},
+
+		// Workflow runs (WP86): `<root>/workflows/<id>/stored-workflow-run.json` — the envelope — beside the
+		// bare `workflow-run.json` the commands write; a directory with only the bare run reads as one stored from the harness.
+		async putWorkflowRun(record) {
+			const parsed = safeParseStoredWorkflowRun(record);
+			if (!parsed.success) {
+				throw new Error(`Refusing to store an invalid workflow run: ${parsed.error.message}`);
+			}
+			await mkdir(join(root, WORKFLOWS, record.run.id), { recursive: true });
+			await writeJson(join(root, WORKFLOWS, record.run.id, 'stored-workflow-run.json'), record);
+			await writeJson(join(root, WORKFLOWS, record.run.id, 'workflow-run.json'), record.run);
+		},
+		async getWorkflowRun(id) {
+			return readStoredWorkflowRun(join(root, WORKFLOWS, id));
+		},
+		async listWorkflowRuns() {
+			let names: string[];
+			try {
+				names = await readdir(join(root, WORKFLOWS));
+			} catch (error) {
+				if (isMissing(error)) return [];
+				throw error;
+			}
+			const rows: StoredWorkflowRun[] = [];
+			for (const name of names) {
+				const row = await readStoredWorkflowRun(join(root, WORKFLOWS, name));
+				if (row) rows.push(row);
+			}
+			return rows.sort(byNewestWorkflowRun);
+		},
+		async deleteWorkflowRun(id) {
+			await rm(join(root, WORKFLOWS, id), { recursive: true, force: true });
 		},
 
 		async putEvaluation(record) {

@@ -314,6 +314,7 @@ export {
 export {
 	DEFAULT_RUN_CAP,
 	byNewestCreated,
+	byNewestWorkflowRun,
 	byNewestFirst,
 	emptyQuarantine,
 	selectRunsToEvict,
@@ -602,6 +603,9 @@ export type {
 export {
 	executorRecordSchema,
 	parseWorkflowRun,
+	safeParseStoredWorkflowRun,
+	storedWorkflowRunSchema,
+	type StoredWorkflowRun,
 	stageRecordSchema,
 	stageValueSchema,
 	workflowConfigRecordSchema,

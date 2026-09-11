@@ -517,7 +517,7 @@ Everything in the Workshop is a *consumer* of the same stores and the same event
 
 A persistent left rail lists every screen:
 
-**Bench** · **Runs** · *Spec lab (per bot)* · **Evals** · **Campaigns** · **Evaluators** · **Scenarios** · **Sinks** · **Evidence** · **Playground** · **Policies** · **Test bench** · **Telemetry** · **Monitor** · **Incidents** · **Safety case** · **Assurance** · **Audit** · **Guards**
+**Bench** · **Runs** · *Spec lab (per bot)* · **Evals** · **Campaigns** · **Workflows** · **Evaluators** · **Scenarios** · **Sinks** · **Evidence** · **Playground** · **Policies** · **Test bench** · **Telemetry** · **Monitor** · **Incidents** · **Safety case** · **Assurance** · **Audit** · **Guards**
 
 **← The Kit** at the foot returns you to the toy.
 
@@ -780,6 +780,14 @@ The bank's day, live. Choose the window (dates inside the population's period), 
 Every number is the fold the campaign report uses, over the last *n* runs: arrivals by kind, decisions by outcome, the approval and referral rates with their bands, escalations, guardrail trips and approvals per decision, tokens per decision, incidents open, touches per case, the unattended rate, ceiling breaches; the tapes show the same by the simulated hour with a dashed hairline at the population's expected approval rate. **Fairness now** greys *underpowered* until the window holds forty runs; **Drift now** is the outcome mix against the population's expected verdicts; the queue per desk shows waiting, in progress and done with the oldest waiting item's age.
 
 **Play** folds each run as it lands. **Pause** freezes the numbers — the day goes on underneath. **Step** folds one more run. **Replay** empties the fold and refills it from the runs kept, drawing the same picture. Nothing here is stored: the Monitor watches; Campaigns keeps. *For simulation only* — every clock on the screen is the population's.
+
+### 22.5 Workflows and the Pipeline (`/workshop/workflows`)
+
+Every workflow run the store holds — a book campaign's cells (queued on Campaigns), a what-if, an import — one row each with the stages as a strip (● ok · ◐ escalated · ■ blocked · ✕ error), the touches a person made, where it came from and when it started on the simulated clock. **Import a workflow run** takes a `workflow-run.json` the harness wrote (without its item, so no what-if) or a stored run with its item.
+
+A row opens the **Pipeline**: the run's strip, then a rail of stage cards — the executor's roundel (the bot, a rule, a person, a line), the status lamp, the executor in a sentence, the duration, the guard tally, the approval and the finding when there are any. Select a stage for its **In** and **Out** panes on the case file, every field with the digest beside it; a bot stage links to the Run Lab at the stage's first tick when its run is in the store, and says plainly when it is not.
+
+**What if…** re-runs the journey from the selected stage under one change — a configuration, the executor at that stage, a knob, the context rung — the stages before it exactly as they were (the original's configuration and seeds), and opens the result beside the original: two rails synchronised on the selected stage, a third pane for the other run's output, and *forked from* on the strip. The Boundary beneath draws the journey as a ring around the bot's boundary, each stage as its actor, lit by the run.
 
 ## 23. The Assurance pack (`/workshop/assurance`)
 
