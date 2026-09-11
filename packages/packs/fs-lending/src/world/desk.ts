@@ -5,6 +5,7 @@ import {
 	type DeskWorldSpec
 } from '@craftabot/desk';
 import type { WorkItem } from '@craftabot/core';
+import { bankContextRecords } from '@craftabot/pack-fs-bank';
 import { z } from 'zod';
 import { lendingStrings } from '../strings.js';
 import {
@@ -117,6 +118,7 @@ export const lendingDeskSpec: DeskWorldSpec<LendingExtra> = {
 	name: lendingStrings.worldName,
 	desk: { title: lendingStrings.title, role: lendingStrings.role },
 	purpose: 'lending',
+	context: (level, generated, spec) => bankContextRecords(generated.extra, level, spec),
 	counterpartName: lendingStrings.counterpartName,
 	counterpartKnows: (_truth, state) => {
 		const { application } = state.extra.lending;

@@ -610,6 +610,21 @@ export {
 } from './schemas/workflow-run.js';
 export { sha256Hex } from './schemas/sha256.js';
 export {
+	CONTEXT_LEVELS,
+	DEFAULT_CONTEXT,
+	contextRank,
+	contextSpecFor,
+	type ContextDelivery,
+	type ContextLevel,
+	type ContextSpec
+} from './types/context.js';
+export {
+	contextDeliverySchema,
+	contextLevelSchema,
+	contextSpecSchema,
+	parseContextSpec
+} from './schemas/context.js';
+export {
 	bookSchema,
 	bookSourceSchema,
 	parseBook,

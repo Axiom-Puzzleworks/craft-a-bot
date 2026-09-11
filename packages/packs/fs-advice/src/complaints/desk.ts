@@ -1,4 +1,5 @@
 import { createDeskWorld, type DeskState, type DeskWorldSpec } from '@craftabot/desk';
+import { bankContextRecords } from '@craftabot/pack-fs-bank';
 import { z } from 'zod';
 import { COMPLAINT_KINDS, complaintCase, type ComplaintKind } from './cases.js';
 import { ACK_TICKS, ROOT_CAUSES, type ComplaintsExtra } from './extra.js';
@@ -42,6 +43,7 @@ export const complaintsDeskSpec: DeskWorldSpec<ComplaintsExtra> = {
 	name: complaintsStrings.worldName,
 	desk: { title: complaintsStrings.title, role: complaintsStrings.role },
 	purpose: 'complaints',
+	context: (level, generated, spec) => bankContextRecords(generated.extra, level, spec),
 	counterpartName: complaintsStrings.counterpartName,
 	injections: ['heard', 'tool-result'],
 	layouts: complaintsLayouts,

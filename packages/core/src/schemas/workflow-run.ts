@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { engineEventSchema } from './events.js';
 import { principalSchema } from './shared.js';
+import { contextSpecSchema } from './context.js';
 
 /**
  * **A workflow run** (WP79, `69-WORKFLOWS.md` §4; `64-…` §6.2.2): the
@@ -81,7 +82,7 @@ export const workflowConfigRecordSchema = z.object({
 				.optional()
 		})
 		.optional(),
-	context: z.unknown().optional()
+	context: contextSpecSchema.optional()
 });
 
 export const workflowRunSchema = z.object({

@@ -1,6 +1,7 @@
 import type { ActionCall, WorldState } from './world.js';
 import type { JsonSchema } from './json-schema.js';
 import type { Book, WorkItem } from '../schemas/book.js';
+import type { ContextSpec } from './context.js';
 
 /**
  * **Workflows** (WP79, `69-WORKFLOWS.md` §3; `64-TARGET-DESIGN-V5.md` §6.2,
@@ -61,8 +62,8 @@ export interface WorkflowConfig {
 	knobs?: Record<string, number | string | boolean>;
 	/** The thought experiment's level this configuration is, and the decision-rights ceilings it is measured against (WP80). */
 	autonomy?: { level: AutonomyLevel; ceilings?: Record<string, AutonomyLevel> };
-	/** WP81's `ContextSpec`; carried untyped until it lands. */
-	context?: unknown;
+	/** The rung of the context ladder the journey runs at (WP81, `70-…` §3); reaches the world at `create` as `config.context`. */
+	context?: ContextSpec;
 }
 
 export interface WorkflowSpec {

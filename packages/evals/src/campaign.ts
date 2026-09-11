@@ -12,7 +12,7 @@ import type {
 	WorkflowConfig,
 	WorkflowSpec
 } from '@craftabot/core';
-import { bookSchema } from '@craftabot/core';
+import { bookSchema, contextSpecSchema, type ContextSpec } from '@craftabot/core';
 import { compilePolicyCard } from '@craftabot/governance';
 import { runWorkflow, touchedCaseOf } from '@craftabot/workflow';
 import { createSessionGroup, injectionSchema, toSpecV2 } from '@craftabot/core';
@@ -166,6 +166,8 @@ export const gateWhereSchema = z.object({
 	build: z.string().optional(),
 	guard: z.string().optional(),
 	brain: z.string().optional(),
+	/** The context rung's id (WP81). */
+	context: z.string().optional(),
 	/** `<attribute>=<value>`, matched against the cell's cohort read from truth (WP61). */
 	cohort: z
 		.string()
@@ -370,6 +372,8 @@ const campaignObjectSchema = z.object({
 	scenarios: z.array(campaignScenarioSchema),
 	/** A book through a workflow as the cells (WP80); absent, the scenarios are. */
 	source: campaignSourceSchema.optional(),
+	/** The context ladder as an axis (WP81, `70-…` §6): every cell runs once per rung named; absent, the case file as today, and the cells carry no `context`. */
+	contexts: z.array(contextSpecSchema).min(1).optional(),
 	builds: z.array(campaignBuildSchema).min(1),
 	guards: z.array(campaignGuardSchema).min(1),
 	brains: z.array(campaignBrainSchema).min(1),
@@ -424,6 +428,8 @@ export const campaignCellSchema = z.object({
 	scenario: z.string(),
 	build: z.string(),
 	guard: z.string(),
+	/** The context rung this cell ran at (WP81); written only when the campaign named contexts. */
+	context: z.string().optional(),
 	brain: z.string(),
 	tier: evalTierSchema,
 	seed: z.number().int(),
@@ -593,6 +599,8 @@ export interface CampaignCellSpec {
 	seed: number;
 	ordinal: number;
 	item?: WorkItem;
+	/** The rung of the context ladder (WP81); absent when the campaign named none. */
+	context?: ContextSpec;
 }
 
 /** The synthetic scenario a book campaign's cells sit in: the workflow's id, its obligations as the tags, no card of its own. */
@@ -636,7 +644,18 @@ export function campaignCells(
 				for (const guard of campaign.guards) {
 					if (guard.for !== undefined && !guard.for.includes(scenario.id)) continue;
 					for (const brain of campaign.brains) {
-						cells.push({ scenario, build, guard, brain, seed, ordinal: cells.length, item });
+						for (const context of campaign.contexts ?? [undefined]) {
+							cells.push({
+								scenario,
+								build,
+								guard,
+								brain,
+								seed,
+								ordinal: cells.length,
+								item,
+								...(context ? { context: context as ContextSpec } : {})
+							});
+						}
 					}
 				}
 			}
@@ -648,8 +667,18 @@ export function campaignCells(
 			for (const guard of campaign.guards) {
 				if (guard.for !== undefined && !guard.for.includes(scenario.id)) continue;
 				for (const brain of campaign.brains) {
-					for (const seed of campaign.seeds) {
-						cells.push({ scenario, build, guard, brain, seed, ordinal: cells.length });
+					for (const context of campaign.contexts ?? [undefined]) {
+						for (const seed of campaign.seeds) {
+							cells.push({
+								scenario,
+								build,
+								guard,
+								brain,
+								seed,
+								ordinal: cells.length,
+								...(context ? { context: context as ContextSpec } : {})
+							});
+						}
 					}
 				}
 			}
@@ -1025,6 +1054,7 @@ async function runCell(
 		tier: brain.tier,
 		seed,
 		tags: scenario.tags,
+		...(cell.context ? { context: cell.context.id } : {}),
 		ordinal: cell.ordinal
 	};
 	const empty = () => Object.fromEntries(campaign.assertionCards.map((card) => [card.id, false]));
@@ -1065,15 +1095,17 @@ async function runCell(
 		const { world: worldInjections, faults: providerFaults } = splitInjections(scenario.injections);
 		// A build's knobs reach the world at `create` (WP78), so the world is built here as an injected one is.
 		const knobs = build.overrides?.knobs;
+		// The rung of the context ladder reaches the world beside the knobs (WP81).
+		const worldConfig = worldConfigFor(knobs, cell.context);
 		const world =
-			worldInjections.length > 0 || knobs !== undefined
+			worldInjections.length > 0 || worldConfig !== undefined
 				? injectedWorld(
 						registry,
 						goalCardId,
 						worldInjections,
 						scenario.id,
 						createTestClock({ seed }).random,
-						knobs !== undefined ? { knobs } : undefined
+						worldConfig
 					)
 				: undefined;
 		const run = await runToCompletion({
@@ -1170,7 +1202,8 @@ async function runBookCell(
 	const knobs = { ...(named?.knobs ?? {}), ...(build.overrides?.knobs ?? {}) };
 	const config: WorkflowConfig = {
 		...(named ?? {}),
-		...(Object.keys(knobs).length > 0 ? { knobs } : {})
+		...(Object.keys(knobs).length > 0 ? { knobs } : {}),
+		...(cell.context ? { context: cell.context } : {})
 	};
 	const spec = specFor(cell);
 	const seat = createTestClock({ seed, idOffset: cell.ordinal * ID_STRIDE });
@@ -1317,6 +1350,7 @@ async function runDuoCell(
 	// and seeded as a single seat's is, and read for the person it seated.
 	const { card, world: worldDefinition } = deskFor(registry, goalCardId);
 	const knobs = build.overrides?.knobs;
+	const duoConfig = worldConfigFor(knobs, cell.context);
 	const world =
 		scenario.injections.length > 0
 			? injectedWorld(
@@ -1325,11 +1359,11 @@ async function runDuoCell(
 					scenario.injections,
 					scenario.id,
 					clock.random,
-					knobs !== undefined ? { knobs } : undefined
+					duoConfig
 				)
 			: worldDefinition.create(card.layoutId, {
 					random: clock.random,
-					...(knobs !== undefined ? { config: { knobs } } : {})
+					...(duoConfig !== undefined ? { config: duoConfig } : {})
 				});
 	const { script: seatScript } = counterpartScriptFor(registry, goalCardId, world);
 	const seat = counterpartSpec(
@@ -1541,6 +1575,18 @@ function fit(spec: AgentSpecV2, bricks: readonly FittedBrick[]): AgentSpecV2 {
 	if (bricks.length === 0) return spec;
 	const kept = spec.bricks.filter((brick) => !bricks.some((fitted) => fitted.slot === brick.slot));
 	return { ...spec, bricks: [...kept, ...bricks] };
+}
+
+/** The world's create-time config for a cell (WP78, WP81): the build's knobs and the cell's context rung, or nothing. */
+function worldConfigFor(
+	knobs: Record<string, number | string | boolean> | undefined,
+	context: ContextSpec | undefined
+): Record<string, unknown> | undefined {
+	if (knobs === undefined && context === undefined) return undefined;
+	return {
+		...(knobs !== undefined ? { knobs } : {}),
+		...(context !== undefined ? { context } : {})
+	};
 }
 
 /** `exactOptionalPropertyTypes`: a parsed optional is `T | undefined`, which `SpecOverrides` does not admit — drop the undefineds. */
@@ -1777,6 +1823,7 @@ function matches(where: GateWhere | undefined, cell: CampaignCell): boolean {
 	if (where.build !== undefined && cell.build !== where.build) return false;
 	if (where.guard !== undefined && cell.guard !== where.guard) return false;
 	if (where.brain !== undefined && cell.brain !== where.brain) return false;
+	if (where.context !== undefined && cell.context !== where.context) return false;
 	if (where.tag !== undefined && !cell.tags.includes(where.tag)) return false;
 	if (where.cohort !== undefined) {
 		const at = where.cohort.indexOf('=');

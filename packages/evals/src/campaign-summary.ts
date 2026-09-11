@@ -57,6 +57,8 @@ export const campaignSliceSchema = z.object({
 	scenario: z.string(),
 	guard: z.string(),
 	brain: z.string(),
+	/** The context rung (WP81), when the campaign named contexts. */
+	context: z.string().optional(),
 	cells: z.number().int().nonnegative(),
 	errors: z.number().int().nonnegative(),
 	successRate: z.number(),
@@ -93,6 +95,7 @@ export const caseRowSchema = z.object({
 	scenario: z.string(),
 	guard: z.string(),
 	brain: z.string(),
+	context: z.string().optional(),
 	seed: z.number().int(),
 	runId: z.string().optional(),
 	outcome: z.string().optional(),
@@ -280,13 +283,16 @@ export function summariseCampaign(
 	options: SummaryOptions = {}
 ): CampaignSummary {
 	const cardIds = [...new Set(cells.flatMap((cell) => Object.keys(cell.assertions)))];
-	const sliceKey = (cell: CampaignCell) => `${cell.scenario} ${cell.guard} ${cell.brain}`;
+	// The slice is scenario × guard × brain — and the context rung when the campaign named one (WP81).
+	const sliceKey = (cell: CampaignCell) =>
+		`${cell.scenario} ${cell.guard} ${cell.brain} ${cell.context ?? ''}`;
 	const slices: CampaignSliceSummary[] = [...groupBy(cells, sliceKey)].map(([key, mine]) => {
-		const [scenario, guard, brain] = key.split(' ') as [string, string, string];
+		const [scenario, guard, brain, context] = key.split(' ') as [string, string, string, string];
 		return {
 			scenario,
 			guard,
 			brain,
+			...(context !== '' ? { context } : {}),
 			cells: mine.length,
 			errors: mine.filter((cell) => cell.error !== undefined).length,
 			successRate: rate(mine, (cell) => cell.outcome === 'SUCCESS'),
@@ -316,6 +322,7 @@ export function summariseCampaign(
 			matrices.push({
 				evaluatorId,
 				semantics,
+				// The matrix's slice keeps its three keys; a context rung's matrix is under the slice's cells.
 				slice: { scenario, guard, brain },
 				...confusionOf(mine, evaluatorId, semantics)
 			});
@@ -392,6 +399,7 @@ export function summariseCampaign(
 		scenario: cell.scenario,
 		guard: cell.guard,
 		brain: cell.brain,
+		...(cell.context !== undefined ? { context: cell.context } : {}),
 		seed: cell.seed,
 		...(cell.runId !== undefined ? { runId: cell.runId } : {}),
 		...(cell.outcome !== undefined ? { outcome: cell.outcome } : {}),

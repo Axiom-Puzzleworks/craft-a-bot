@@ -1,5 +1,9 @@
 import {
+	CONTEXT_LEVELS,
+	contextRank,
+	contextSpecFor,
 	isDeskWorldState,
+	type ContextSpec,
 	type DeskRecord,
 	type DeskWorldState,
 	type Injection,
@@ -112,6 +116,7 @@ export function checkDesk(
 			continue;
 		}
 		checkPurpose(world, instance, opening, purpose, layoutId, issues);
+		checkContextLadder(world, layoutId, fixture.contexts, issues);
 		checkReset(world, instance, layoutId, volatile, issues);
 		checkInjections(instance, fixture.acceptedInjections, issues);
 	}
@@ -368,6 +373,68 @@ function checkPurpose(
 					message: `sense "${sense.id}" reveals special-category record "${record.id}" on a desk that declares no purpose`
 				});
 			}
+		}
+	}
+}
+
+/**
+ * The context ladder (WP81, `70-…` §4): each rung's records are a superset
+ * of the rung below's (`desk.context-superset`), and no special-category
+ * record enters `records` at any rung that was not on the desk at
+ * `case-file` (`desk.context-classification`). A desk with no `context`
+ * hook adds nothing and passes; a desk that refuses a context at `create`
+ * is an issue.
+ */
+function checkContextLadder(
+	world: WorldDefinition,
+	layoutId: string,
+	contexts: ContextSpec[] | undefined,
+	issues: ConformanceIssue[]
+): void {
+	const rungs = [...(contexts ?? CONTEXT_LEVELS.map((level) => contextSpecFor(level)))].sort(
+		(a, b) => contextRank(a.level) - contextRank(b.level)
+	);
+	const idsAt = (
+		context: ContextSpec | undefined
+	): { ids: Set<string>; sensitive: string[] } | undefined => {
+		try {
+			const state = world
+				.create(layoutId, context ? { config: { context } } : {})
+				.snapshot() as DeskWorldState;
+			return {
+				ids: new Set(state.records.map((record) => record.id)),
+				sensitive: specialCategory(state.records).map((record) => record.id)
+			};
+		} catch (error) {
+			issues.push({
+				check: 'desk.context-superset',
+				message: `layout "${layoutId}" refused context ${context?.id ?? 'case-file'}: ${describeError(error)}`
+			});
+			return undefined;
+		}
+	};
+	const base = idsAt(undefined);
+	if (!base) return;
+	let below: { ids: Set<string>; id: string } = { ids: base.ids, id: 'case-file (none)' };
+	for (const context of rungs) {
+		const at = idsAt(context);
+		if (!at) continue;
+		if (contextRank(context.level) >= contextRank('case-file')) {
+			const missing = [...below.ids].filter((id) => !at.ids.has(id));
+			if (missing.length > 0) {
+				issues.push({
+					check: 'desk.context-superset',
+					message: `layout "${layoutId}" at context ${context.id} loses record(s) ${missing.map((id) => `"${id}"`).join(', ')} that ${below.id} had`
+				});
+			}
+			below = { ids: at.ids, id: context.id };
+		}
+		const leaked = at.sensitive.filter((id) => !base.sensitive.includes(id));
+		if (leaked.length > 0) {
+			issues.push({
+				check: 'desk.context-classification',
+				message: `layout "${layoutId}" at context ${context.id} puts special-category record(s) ${leaked.map((id) => `"${id}"`).join(', ')} on the desk that case-file did not`
+			});
 		}
 	}
 }

@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import {
 	canonicalJson,
+	contextSpecFor,
 	safeParseEngineEvent,
 	sha256Hex,
 	workflowRunSchema,
@@ -435,7 +436,7 @@ describe('configuration', () => {
 				executors: { sign: { kind: 'human', prompt: 'Sign?', options: ['yes'] } },
 				knobs: { limit: 3 },
 				autonomy: { level: 2, ceilings: { sign: 3 } },
-				context: { note: 'x' }
+				context: contextSpecFor('minimal')
 			}
 		});
 		expect(record.stages[1]?.executor).toEqual({
@@ -449,7 +450,7 @@ describe('configuration', () => {
 			executors: { sign: { kind: 'human', prompt: 'Sign?', options: ['yes'] } },
 			knobs: { limit: 3 },
 			autonomy: { level: 2, ceilings: { sign: 3 } },
-			context: { note: 'x' }
+			context: contextSpecFor('minimal')
 		});
 	});
 

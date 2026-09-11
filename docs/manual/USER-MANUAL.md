@@ -862,7 +862,7 @@ Below, two columns:
 | **Complaints** | Category, summary, status |
 | **The shelf** | About thirty products across savings, investment, credit and insurance, each with a risk band (1 cash-like to 7 speculative), an annual charge in basis points, eligibility, a target market, a factsheet and the warnings that must ride with it |
 
-### 26.3 The nine service lines
+### 26.3 The service lines (nine, and since WP81 a tenth: the graph)
 
 What a desk's **Connector** brick can reach. Each answers from the bank's own state, declares a risk tier on every operation, and is recorded on the trace exactly as any tool call is.
 
@@ -888,7 +888,7 @@ Every record the bank holds is marked `public`, `personal` or `special-category`
 
 This is the property that makes the Playground a test rig rather than a demo: what the bot *should* have done is known, not guessed.
 
-> **Figure 17** — The Playground: a generated case and the nine lines on a boundary map. *(Appendix D, `ws-playground.png`.)*
+> **Figure 17** — The Playground: a generated case and the lines on a boundary map (nine when the figure was taken; ten since WP81). *(Appendix D, `ws-playground.png`.)*
 
 ## 27. The Advice Desk
 

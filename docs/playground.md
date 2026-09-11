@@ -6,7 +6,7 @@
 
 Craft A Bot's second purpose is a proving ground for automated AI governance. The Playground is where that purpose meets a domain: UK retail financial services, chosen because its obligations are written down, its harms are concrete, and one customer is seen through several journeys — the person who asks for savings advice on Monday is the one whose card is declined on Friday and who complains the week after.
 
-**The bank** (`@craftabot/pack-fs-bank`) is the domain model: customers with accounts, histories, bureau files and complaints; a product shelf; nine service lines a bot reaches through the Connector brick; a library of the people who sit across a desk; the vocabulary of obligations every scenario, card and evaluator is tagged with; and the rows of a control map a compliance reader edits. It ships no runtime.
+**The bank** (`@craftabot/pack-fs-bank`) is the domain model: customers with accounts, histories, bureau files and complaints; a product shelf; ten service lines a bot reaches through the Connector brick (the tenth, `graph`, answers questions about the bank's ontology — WP81); a library of the people who sit across a desk; the vocabulary of obligations every scenario, card and evaluator is tagged with; and the rows of a control map a compliance reader edits. It ships no runtime.
 
 **The desks** are jobs done on the bank, each a pack of content and rules over the desk runtime:
 
@@ -16,7 +16,7 @@ Craft A Bot's second purpose is a proving ground for automated AI governance. Th
 
 ## Where to look
 
-- In the Workshop, **Playground** shows a case from a seed on the case file and the nine lines on a boundary map; its **Advice Desk** page shows the desk. An Advice Desk card sits on the Kit's rack once the Workshop door is open.
+- In the Workshop, **Playground** shows a case from a seed on the case file and the ten lines on a boundary map; its **Advice Desk** page shows the desk. An Advice Desk card sits on the Kit's rack once the Workshop door is open.
 - On the Kit's shelf, the **Retail Bank Playground** box.
 - `docs/design-day2/48-FS-BANK.md` is the bank's design of record; `41-TARGET-DESIGN-V4.md` §6.5 the whole Playground's.
 

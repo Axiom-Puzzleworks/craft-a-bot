@@ -64,7 +64,7 @@ export const EDITIONS: Record<EditionId, Edition> = {
 		routes: { allow: NOT_PLAYGROUND },
 		mode: EDITION_MODE.workshop,
 		shelf: shelfFor(false),
-		budgetBytes: 1_545_000 // +25 kB 2026-09-07 (the UX pass): the rack's grouping, the campaign picker, the cases tools; +50 kB 2026-09-10 (WP74): the calibration table's cited rows; +20 kB 2026-09-11 (WP80): the Books and Sweeps panels, the human-load pane, the campaign's book source
+		budgetBytes: 1_565_000 // +25 kB 2026-09-07 (the UX pass): the rack's grouping, the campaign picker, the cases tools; +50 kB 2026-09-10 (WP74): the calibration table's cited rows; +20 kB 2026-09-11 (WP80): the Books and Sweeps panels, the human-load pane, the campaign's book source; +20 kB 2026-09-11 (WP81): the bank's ontology and the graph line
 	},
 	playground: {
 		id: 'playground',
@@ -74,7 +74,7 @@ export const EDITIONS: Record<EditionId, Edition> = {
 		routes: { allow: EVERYTHING },
 		mode: EDITION_MODE.playground,
 		shelf: shelfFor(true),
-		budgetBytes: 1_575_000 // +15 kB 2026-09-07 (WP73): the wave 2 placeholders inlined as markup; +25 kB the same day (the UX pass); +50 kB 2026-09-10 (WP74): the calibration table's cited rows; +20 kB 2026-09-11 (WP80): the lending workflow, the Books and Sweeps panels, the human-load pane
+		budgetBytes: 1_595_000 // +15 kB 2026-09-07 (WP73): the wave 2 placeholders inlined as markup; +25 kB the same day (the UX pass); +50 kB 2026-09-10 (WP74): the calibration table's cited rows; +20 kB 2026-09-11 (WP80): the lending workflow, the Books and Sweeps panels, the human-load pane; +20 kB 2026-09-11 (WP81): the bank's ontology and the graph line
 	},
 	full: {
 		id: 'full',
@@ -84,7 +84,7 @@ export const EDITIONS: Record<EditionId, Edition> = {
 		routes: { allow: EVERYTHING },
 		mode: EDITION_MODE.full,
 		shelf: shelfFor(true),
-		budgetBytes: 1_560_000 // +25 kB 2026-09-07 (the UX pass); +50 kB 2026-09-10 (WP74): the calibration table's cited rows; +20 kB 2026-09-11 (WP80): the lending workflow, the Books and Sweeps panels, the human-load pane
+		budgetBytes: 1_580_000 // +25 kB 2026-09-07 (the UX pass); +50 kB 2026-09-10 (WP74): the calibration table's cited rows; +20 kB 2026-09-11 (WP80): the lending workflow, the Books and Sweeps panels, the human-load pane; +20 kB 2026-09-11 (WP81): the bank's ontology and the graph line
 	}
 };
 

@@ -6,6 +6,7 @@ import {
 	sha256Hex,
 	type ActionCall,
 	type AnyAgentSpec,
+	type ContextSpec,
 	type EgressMode,
 	type EngineEvent,
 	type EventType,
@@ -201,8 +202,8 @@ export async function runWorkflow(
 	const worldRandom = options.session?.random ?? random;
 	const config = options.config ?? {};
 	const origin = options.fromStage?.from;
-	// The world is created once, so its knobs are the origin's when re-running from a stage.
-	const createConfig = origin ? knobsOf(origin.config) : config;
+	// The world is created once, so its knobs and context are the origin's when re-running from a stage.
+	const createConfig = origin ? worldConfigOf(origin.config) : config;
 	const intake = spec.intake(item);
 
 	const registry = createPackRegistry();
@@ -214,7 +215,9 @@ export async function runWorkflow(
 	// The config is handed over only when there is one, so a plain case is built exactly as a session builds it.
 	const worldConfig = {
 		...(intake.config ?? {}),
-		...(createConfig.knobs ? { knobs: createConfig.knobs } : {})
+		...(createConfig.knobs ? { knobs: createConfig.knobs } : {}),
+		// The rung of the context ladder (WP81, `70-…` §3), beside the knobs.
+		...(createConfig.context ? { context: createConfig.context } : {})
 	};
 	const world = definition.create(intake.layoutId, {
 		random: worldRandom,
@@ -726,8 +729,12 @@ function executorFrom(record: ExecutorRecord | undefined): Executor | undefined 
 	}
 }
 
-function knobsOf(config: WorkflowRun['config']): WorkflowConfig {
-	return config.knobs ? { knobs: { ...config.knobs } } : {};
+function worldConfigOf(config: WorkflowRun['config']): WorkflowConfig {
+	return {
+		...(config.knobs ? { knobs: { ...config.knobs } } : {}),
+		// The record's context is the spec as data; `undefined` keys are what the parse leaves, never written.
+		...(config.context ? { context: config.context as ContextSpec } : {})
+	};
 }
 
 /** The pack a qualified content id belongs to — everything before its last slash. */

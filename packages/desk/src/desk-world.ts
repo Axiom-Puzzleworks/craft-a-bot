@@ -33,6 +33,7 @@ import {
 import { deskMetrics } from './metrics.js';
 import { DEFAULT_SEED, seedFrom, seededRandom } from './seeded.js';
 import { runtimeStrings } from './strings.js';
+import { parseContextSpec, type ContextLevel, type ContextSpec } from '@craftabot/core';
 
 /**
  * **`createDeskWorld`** (WP53 stage B, `43-DESK-WORLDS.md` §4.4): the
@@ -111,6 +112,8 @@ export type DeskState<Extra = Record<string, unknown>> = DeskWorldState & {
 	toolOverrides: Record<string, unknown>;
 	/** What `create` and `configure` were handed (WP78): a desk reads `config.knobs` for its policy. */
 	config?: Record<string, unknown>;
+	/** The records the context ladder handed over at `create` (WP81), so an evaluator can tell them from what a handler revealed. Present only when a context was configured. */
+	contextRecordIds?: string[];
 	/**
 	 * Where the person across the desk has got to (WP66, `54-…` §4.2): the
 	 * rules that have fired and whether they left — in the state so a fork
@@ -198,6 +201,14 @@ export interface DeskWorldSpec<Extra = Record<string, unknown>> {
 		string,
 		{ description: string; test(state: DeskState<Extra>, truth: DeskTruth | undefined): boolean }
 	>;
+	/**
+	 * What this desk adds at a rung of the context ladder beyond `case-file`
+	 * (WP81, `70-…` §4): the customer's related records at `relational`, the
+	 * knowledge card at `ontology`. Content the desk knows how to make; a
+	 * desk without it adds nothing and the ladder still holds. The runtime
+	 * drops any special-category record before it lands.
+	 */
+	context?(level: ContextLevel, generated: DeskCase<Extra>, spec: ContextSpec): DeskRecord[];
 	/** One line of progress per predicate, when the desk can say. */
 	progress?: Partial<Record<string, (state: DeskState<Extra>) => string | undefined>>;
 	/** Who `receiveInput` and a `heard` injection speak as when no script names them. Default "Customer". */
@@ -242,6 +253,20 @@ export interface DeskWorldInstance extends WorldInstance {
 export function seatedCounterpartOf(world: WorldInstance): CounterpartScript | undefined {
 	const seated = (world as DeskWorldInstance).seatedCounterpart;
 	return typeof seated === 'function' ? seated.call(world) : undefined;
+}
+
+/** A context-added record under a token budget (WP81): every string field cut to `tokens × 4` characters at a line boundary, with the note. */
+function budgeted(record: DeskRecord, tokens: number | undefined): DeskRecord {
+	if (tokens === undefined) return record;
+	const limit = tokens * 4;
+	for (const [key, value] of Object.entries(record.fields)) {
+		if (typeof value !== 'string' || value.length <= limit) continue;
+		const cut = value.slice(0, limit);
+		const atLine = cut.lastIndexOf('\n');
+		record.fields[key] =
+			`${atLine > 0 ? cut.slice(0, atLine) : cut}\n${runtimeStrings.observation.contextTruncated(tokens)}`;
+	}
+	return record;
 }
 
 const isBuiltInAction = <Extra>(
@@ -298,11 +323,57 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 			...(config ? { config: structuredClone(config) } : {}),
 			extra: structuredClone(generated.extra ?? ({} as Extra))
 		};
+		// The rung of the context ladder (WP81, `70-…` §4): composed here, so a reset and a restore rebuild with it.
+		const contextConfig = config?.['context'];
+		if (contextConfig !== undefined && contextConfig !== null) {
+			applyContext(state, generated, parseContextSpec(contextConfig));
+		}
 		return {
 			state,
 			truth: generated.truth ? structuredClone(generated.truth) : undefined,
 			counterpart: generated.counterpart ?? spec.counterpart
 		};
+	}
+
+	/** `minimal` keeps the work item; `relational` and `ontology` add what the desk's hook makes; `include`/`exclude`, the budget and the brief delivery apply at every rung. */
+	function applyContext(
+		state: DeskState<Extra>,
+		generated: DeskCase<Extra>,
+		context: ContextSpec
+	): void {
+		const excluded = new Set(context.exclude ?? []);
+		const present = new Set(state.records.map((record) => record.id));
+		const added: DeskRecord[] = [];
+		const admit = (record: DeskRecord): void => {
+			if (record.classification === 'special-category') return;
+			if (excluded.has(record.kind) || present.has(record.id)) return;
+			present.add(record.id);
+			added.push(budgeted(structuredClone(record), context.budgetTokens));
+		};
+		if (context.level === 'minimal') {
+			const keep = new Set(state.queue.flatMap((item) => item.recordIds ?? []));
+			if (keep.size > 0) state.records = state.records.filter((record) => keep.has(record.id));
+		}
+		// Each rung is a superset of the one below (`70-…` §2): the ontology rung carries the relational records and the card.
+		if (context.level === 'relational' || context.level === 'ontology') {
+			for (const record of spec.context?.('relational', generated, context) ?? []) admit(record);
+		}
+		if (context.level === 'ontology') {
+			for (const record of spec.context?.('ontology', generated, context) ?? []) admit(record);
+		}
+		if (context.include && context.include.length > 0) {
+			const wanted = new Set(context.include);
+			for (const record of state.hidden) if (wanted.has(record.kind)) admit(record);
+		}
+		state.records.push(...added);
+		state.contextRecordIds = added.map((record) => record.id);
+		if (context.delivery.includes('brief') && added.length > 0) {
+			const brief = state.records.find((record) => record.id === 'desk-brief');
+			if (brief && typeof brief.fields['text'] === 'string') {
+				brief.fields['text'] =
+					`${brief.fields['text']}\n\n${runtimeStrings.observation.context(added, context.delivery.includes('line'))}`;
+			}
+		}
 	}
 
 	const actionDefinitions: WorldActionDefinition[] = spec.actions.map((action) => {
@@ -546,6 +617,18 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 			return observeAs(channels, stateCursor);
 		}
 
+		/** What the context ladder handed over (WP81, `70-…` §4), in the observation whatever senses are on, when the rung asked for the sense delivery. */
+		function contextLines(used: string[], lines: string[]): void {
+			const ids = state.contextRecordIds;
+			if (!ids || ids.length === 0) return;
+			const context = state.config?.['context'] as ContextSpec | undefined;
+			if (!context || !context.delivery.includes('sense')) return;
+			const records = state.records.filter((record) => ids.includes(record.id));
+			if (records.length === 0) return;
+			used.push(qualify('context'));
+			lines.push(runtimeStrings.observation.context(records, context.delivery.includes('line')));
+		}
+
 		/** The agent's view: every sense the desk declares, the conversation since this seat's cursor. */
 		function observeAs(channels: readonly string[], cursor: Cursor): Observation {
 			releaseScheduledHeard();
@@ -569,6 +652,7 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 				used.push(sense.id);
 				lines.push(text);
 			}
+			contextLines(used, lines);
 			return finishObservation(used, lines);
 		}
 

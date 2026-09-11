@@ -25,7 +25,7 @@
 	 * bank, read. A seed makes a case — a customer with everything that
 	 * hangs off them — shown on `CaseFile` as a desk would show it: what is
 	 * on the desk, what a look-up would earn, and the truth nobody at a desk
-	 * sees, under the flap. The nine lines sit outside an empty boundary on
+	 * sees, under the flap. The ten lines sit outside an empty boundary on
 	 * a hand-built map (the map's reserved `service-line` kind, first used).
 	 * Nothing here runs: the desks (WP60–WP63) are where a bot works this
 	 * bank; this is where a reader looks at it.
@@ -173,7 +173,7 @@
 
 <h1>The Retail Bank Playground</h1>
 <p class="lede">
-	A synthetic high-street bank: customers, accounts, a product shelf and nine service lines, every
+	A synthetic high-street bank: customers, accounts, a product shelf and ten service lines, every
 	one generated from a seed and none of it real. Three desks work this bank — <a
 		href={resolve('/workshop/playground/advice')}
 		data-testid="playground-advice-link">the Advice Desk</a
@@ -292,7 +292,7 @@
 </section>
 
 <section class="lines" aria-label="The service lines">
-	<h2>The nine lines</h2>
+	<h2>The ten lines</h2>
 	<p>
 		What a desk's Connector brick can reach: each answers from the bank's own state, declares a tier
 		on every operation, and is recorded on the trace as any tool is.

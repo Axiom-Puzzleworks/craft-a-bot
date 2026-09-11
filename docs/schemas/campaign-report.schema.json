@@ -120,6 +120,9 @@
 					"guard": {
 						"type": "string"
 					},
+					"context": {
+						"type": "string"
+					},
 					"brain": {
 						"type": "string"
 					},
@@ -503,6 +506,9 @@
 							"brain": {
 								"type": "string"
 							},
+							"context": {
+								"type": "string"
+							},
 							"cohort": {
 								"type": "string",
 								"pattern": "^[^=]+=.+$"
@@ -610,6 +616,9 @@
 								"type": "string"
 							},
 							"brain": {
+								"type": "string"
+							},
+							"context": {
 								"type": "string"
 							},
 							"cells": {
@@ -956,6 +965,9 @@
 								"type": "string"
 							},
 							"brain": {
+								"type": "string"
+							},
+							"context": {
 								"type": "string"
 							},
 							"seed": {

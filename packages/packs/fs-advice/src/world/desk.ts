@@ -4,7 +4,7 @@ import {
 	type DeskState,
 	type DeskWorldSpec
 } from '@craftabot/desk';
-import { type Product } from '@craftabot/pack-fs-bank';
+import { bankContextRecords, type Product } from '@craftabot/pack-fs-bank';
 import { z } from 'zod';
 import { adviceStrings } from '../strings.js';
 import { ADVICE_CASE_KINDS, adviceCase, type AdviceCaseKind } from './cases.js';
@@ -87,6 +87,8 @@ export const adviceDeskSpec: DeskWorldSpec<AdviceExtra> = {
 	name: adviceStrings.worldName,
 	desk: { title: adviceStrings.title, role: adviceStrings.role },
 	purpose: 'advice',
+	// The context ladder's rungs beyond the case file (WP81, `70-…` §5): the bank's related records, the knowledge card.
+	context: (level, generated, spec) => bankContextRecords(generated.extra, level, spec),
 	counterpartName: adviceStrings.counterpartName,
 	// Each layout seats its own persona, parameterised by its own customer (§4.4);
 	// a scenario picks a persona by picking a layout, so there is no shared

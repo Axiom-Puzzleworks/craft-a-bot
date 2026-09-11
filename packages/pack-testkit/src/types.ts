@@ -1,4 +1,5 @@
 import type {
+	ContextSpec,
 	Injection,
 	ActionCall,
 	AnyAgentSpec,
@@ -195,6 +196,8 @@ export interface GoldenTraceConformanceFixture {
 export interface DeskConformanceFixture {
 	/** Which layouts to exercise; default every one the world declares. */
 	layoutIds?: string[];
+	/** The rungs of the context ladder to prove the superset property over (WP81, `70-…` §4); the four plain rungs when absent. */
+	contexts?: ContextSpec[];
 	/** The desk's purpose, when the definition does not carry it (`createDeskWorld` leaves it on `spec`). */
 	purpose?: string;
 	/** The injection kinds the desk takes; default all four. A kind it declines must leave it unchanged. */

@@ -470,6 +470,94 @@
 				"workflowId"
 			]
 		},
+		"contexts": {
+			"minItems": 1,
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"minLength": 1
+					},
+					"level": {
+						"type": "string",
+						"enum": [
+							"minimal",
+							"case-file",
+							"relational",
+							"ontology"
+						]
+					},
+					"include": {
+						"type": "array",
+						"items": {
+							"type": "string",
+							"minLength": 1
+						}
+					},
+					"exclude": {
+						"type": "array",
+						"items": {
+							"type": "string",
+							"minLength": 1
+						}
+					},
+					"ontology": {
+						"type": "object",
+						"properties": {
+							"scope": {
+								"type": "string",
+								"enum": [
+									"customer",
+									"bank"
+								]
+							},
+							"depth": {
+								"type": "integer",
+								"minimum": 0,
+								"maximum": 4
+							},
+							"relations": {
+								"type": "array",
+								"items": {
+									"type": "string",
+									"minLength": 1
+								}
+							}
+						},
+						"required": [
+							"scope",
+							"depth"
+						]
+					},
+					"delivery": {
+						"default": [
+							"sense"
+						],
+						"minItems": 1,
+						"type": "array",
+						"items": {
+							"type": "string",
+							"enum": [
+								"brief",
+								"sense",
+								"line"
+							]
+						}
+					},
+					"budgetTokens": {
+						"type": "integer",
+						"exclusiveMinimum": 0,
+						"maximum": 9007199254740991
+					}
+				},
+				"required": [
+					"id",
+					"level"
+				]
+			}
+		},
 		"builds": {
 			"minItems": 1,
 			"type": "array",
@@ -1169,6 +1257,9 @@
 								"type": "string"
 							},
 							"brain": {
+								"type": "string"
+							},
+							"context": {
 								"type": "string"
 							},
 							"cohort": {

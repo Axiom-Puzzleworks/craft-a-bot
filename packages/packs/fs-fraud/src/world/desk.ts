@@ -4,6 +4,7 @@ import {
 	type DeskState,
 	type DeskWorldSpec
 } from '@craftabot/desk';
+import { bankContextRecords } from '@craftabot/pack-fs-bank';
 import { z } from 'zod';
 import { WARNING_PATTERN } from '../personas.js';
 import { fraudStrings } from '../strings.js';
@@ -124,6 +125,7 @@ export const fraudDeskSpec: DeskWorldSpec<FraudExtra> = {
 	name: fraudStrings.worldName,
 	desk: { title: fraudStrings.title, role: fraudStrings.role },
 	purpose: 'fraud-operations',
+	context: (level, generated, spec) => bankContextRecords(generated.extra, level, spec),
 	counterpartName: fraudStrings.counterpartName,
 	counterpartKnows: (truth, state) => {
 		const identity = String(

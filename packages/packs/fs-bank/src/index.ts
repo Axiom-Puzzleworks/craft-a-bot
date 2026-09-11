@@ -75,8 +75,10 @@ export {
 	type BankPurpose
 } from './extra.js';
 export {
+	bankServiceLineIds,
 	bankServiceLines,
 	complaintsLine,
+	graphLine,
 	coreBankingLine,
 	creditBureauLine,
 	crmLine,
@@ -97,6 +99,24 @@ export {
 	type PersonaOptions
 } from './personas.js';
 export { CONSUMER_DUTY_OUTCOMES, OBLIGATION_TAGS, isObligationTag } from './obligations.js';
+export {
+	ONTOLOGY_CLASSES,
+	ONTOLOGY_RELATIONS,
+	bankOntology,
+	describeClass,
+	knowledgeCard,
+	neighbourhood,
+	neighbours,
+	pathBetween,
+	type CardOptions,
+	type Ontology,
+	type OntologyClass,
+	type OntologyEdge,
+	type OntologyInstance,
+	type OntologyRelation,
+	type OntologyScope
+} from './ontology.js';
+export { KNOWLEDGE_CARD_RECORD, bankContextRecords } from './context.js';
 export {
 	BANK_CONTROL_ROWS,
 	bankControlMap,
