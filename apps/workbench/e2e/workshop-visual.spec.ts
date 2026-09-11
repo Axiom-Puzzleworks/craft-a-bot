@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { expect, test, type Page } from '@playwright/test';
 import { injectionBaseline } from '@craftabot/evals';
-import { buildReadyBot, skipTutorial } from './support.js';
+import { buildReadyBot, settle, skipTutorial } from './support.js';
 
 /**
  * **Every Workshop route, shot** (`60-CONTROL-ROOM-V2.md` §4.2, WP71): the
@@ -57,7 +57,7 @@ async function seed(page: Page): Promise<string> {
 async function shot(page: Page, route: string, name: string, ready?: string): Promise<void> {
 	await page.goto(route);
 	await expect(page.getByTestId(ready ?? 'workshop')).toBeVisible();
-	await page.waitForTimeout(300);
+	await settle(page);
 	await expect(page).toHaveScreenshot(`${name}.png`, { fullPage: true });
 }
 

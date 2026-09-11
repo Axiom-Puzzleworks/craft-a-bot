@@ -181,3 +181,20 @@ export async function buildAndGo(page: Page, cardTestId = 'card-snack'): Promise
 	await page.getByRole('button', { name: /GO/ }).click();
 	await expect(page).toHaveURL(/\/play\//);
 }
+
+/**
+ * A long page settles late on a slow runner (WP91's re-baseline: three shots
+ * differed by ten pixels of height between attempt and retry): wait for the
+ * fonts, the network, and two consecutive readings of the same scroll height.
+ */
+export async function settle(page: Page): Promise<void> {
+	await page.evaluate(() => document.fonts.ready);
+	await page.waitForLoadState('networkidle');
+	let last = -1;
+	for (let i = 0; i < 20; i += 1) {
+		await page.waitForTimeout(250);
+		const height = await page.evaluate(() => document.documentElement.scrollHeight);
+		if (height === last) return;
+		last = height;
+	}
+}

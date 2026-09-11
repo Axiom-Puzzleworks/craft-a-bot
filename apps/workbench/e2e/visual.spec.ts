@@ -1,5 +1,11 @@
 import { expect, test } from '@playwright/test';
-import { awaitRunSaved, buildDeskBotAndGo, buildReadyBot, skipTutorial } from './support.js';
+import {
+	awaitRunSaved,
+	buildDeskBotAndGo,
+	buildReadyBot,
+	settle,
+	skipTutorial
+} from './support.js';
 
 /**
  * **The visual-regression set** (WP57 stage C, `44-…` §4.6): the first
@@ -77,5 +83,6 @@ test('the assurance pack', async ({ page }) => {
 	const agentId = await buildReadyBot(page, 'card-snack');
 	await page.goto(`/workshop/assurance?agent=${agentId}`);
 	await expect(page.getByTestId('assurance-control-table')).toBeVisible();
+	await settle(page);
 	await expect(page).toHaveScreenshot('workshop-assurance.png', { fullPage: true });
 });
