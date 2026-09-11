@@ -57,9 +57,7 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      # TEMP (reverted in the next commit): re-take the Linux baselines with the one-step viewport.
-      - run: npx playwright test --project visual --update-snapshots
-        working-directory: apps/workbench
+      - run: npm run e2e:visual
 
       - name: Upload the screenshots and the diffs
         if: always()
