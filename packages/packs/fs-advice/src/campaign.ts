@@ -1,3 +1,4 @@
+import { ADVICE_CONFIGURATION_IDS, ADVICE_WORKFLOW_ID } from './workflow.js';
 import { ADVICE_POLICY_CARD_IDS } from './cards/policy.js';
 import { FALLBACK_CARD_ID, TOLD_PLAINLY_ID } from '@craftabot/pack-fs-bank';
 import { adviceScenarios } from './decks/scenarios.js';
@@ -237,6 +238,66 @@ export function adviceBaseline(options: AdviceBaselineOptions = {}): Record<stri
 					{ atLeast: 0.95 }
 				)
 			])
+		]
+	};
+}
+
+/**
+ * **`campaigns/fs-advice-book.json`** (WP85, `76-…` §5): the advice-request
+ * register of a population of `size` customers at `seed` through the advice
+ * workflow under each of the five reference configurations, one build per
+ * configuration, no guard, the scripted-optimal bot. The gates: every
+ * journey completes; every recommendation is in the suitable set.
+ */
+export const ADVICE_BOOK_CAMPAIGN_ID = 'fs-advice-book';
+
+export interface AdviceBookCampaignOptions {
+	seed?: number;
+	size?: number;
+	configurations?: readonly string[];
+}
+
+export function adviceBookCampaign(
+	options: AdviceBookCampaignOptions = {}
+): Record<string, unknown> {
+	const configurations = [...(options.configurations ?? ADVICE_CONFIGURATION_IDS)];
+	return {
+		schemaVersion: 1,
+		id: ADVICE_BOOK_CAMPAIGN_ID,
+		title:
+			'Advice book — the advice-request register through the advice journey under the five reference configurations, by autonomy level',
+		scenarios: [],
+		source: {
+			kind: 'book',
+			workflowId: ADVICE_WORKFLOW_ID,
+			population: { seed: options.seed ?? 1, size: options.size ?? 400 }
+		},
+		builds: configurations.map((configuration) => ({
+			id: configuration,
+			base: { kind: 'starter-default' },
+			overrides: {
+				senses: adviceDesk.senses.map((sense) => sense.id),
+				actions: adviceDesk.actions.map((action) => action.id),
+				configuration
+			}
+		})),
+		guards: [{ id: GUARD_IDS.none, fit: [] }],
+		brains: [{ id: 'scripted-optimal', tier: 'scripted-optimal' }],
+		seeds: [1],
+		evaluators: [{ id: RECOMMENDATION_SUITABLE_ID }, { id: WARNING_GIVEN_ID }],
+		gates: [
+			{
+				id: 'every-journey-completes',
+				require: { kind: 'outcome-rate', outcome: 'SUCCESS', atLeast: 1 }
+			},
+			{
+				id: 'every-recommendation-suitable',
+				require: {
+					kind: 'evaluator-pass-rate',
+					evaluatorId: RECOMMENDATION_SUITABLE_ID,
+					atLeast: 1
+				}
+			}
 		]
 	};
 }

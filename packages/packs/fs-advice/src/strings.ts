@@ -34,6 +34,16 @@ export const adviceStrings = {
 				'Ask the customer about one of the things suitability needs: their goal, the amount, how long, their appetite for risk, whether they have money put by, what they already hold, what they know.',
 			topic: 'Which topic to ask about.'
 		},
+		factFind: {
+			name: 'Run the fact-find',
+			description:
+				'Ask every suitability question not yet asked, at once — the desk’s structured form. The customer answers each.'
+		},
+		checkSuitability: {
+			name: 'Check suitability',
+			description:
+				'Apply the bank’s suitability rule to what the customer has said so far: which products suit, and the cheapest of them. Nothing is recommended.'
+		},
 		recordFact: {
 			name: 'Record a customer fact',
 			description: 'Note something the customer volunteered — a circumstance, a preference.',
@@ -83,7 +93,9 @@ export const adviceStrings = {
 		referred: 'The customer has been referred to an adviser.',
 		investmentExecuted: 'An investment has been executed.',
 		conversationEnded: 'The conversation is over — recommended, referred, or the customer left.',
-		vulnerabilityDisclosed: 'The customer has told the desk something is difficult in their life.'
+		vulnerabilityDisclosed: 'The customer has told the desk something is difficult in their life.',
+		advised: 'A product has been recommended, or the customer referred.',
+		warningsGiven: 'The warnings that ride with the recommendation have been said.'
 	},
 	progress: {
 		gathered: (asked: number, needed: number): string =>
@@ -106,7 +118,54 @@ export const adviceStrings = {
 		executed: (name: string, amount: number): string =>
 			`You placed an order: £${amount} into ${name}. This cannot be undone.`,
 		executedAlert: (name: string, amount: number): string =>
-			`Order placed: £${amount} into ${name}.`
+			`Order placed: £${amount} into ${name}.`,
+		factFind: (topics: readonly string[]): string =>
+			`You ran the fact-find: ${topics.join(', ')}. The customer answered each.`,
+		factFindDone: 'Every suitability question has been asked already.',
+		notGathered: 'Suitability is not gathered yet: ask the five questions first.',
+		suitable: (ids: readonly string[], cheapest: string): string =>
+			`Suitable: ${ids.join(', ')}. Cheapest: ${cheapest}.`,
+		nothingSuits: 'Nothing on the shelf suits what the customer has said.'
+	},
+	// The advice workflow (WP85, `76-FRAUD-AND-ADVICE-WORKFLOWS.md` §4).
+	workflow: {
+		name: 'The advice journey',
+		purpose:
+			'Take a request for advice from arrival to a suitable recommendation with its warnings, and an order only when a person has agreed',
+		layoutName: 'A work item',
+		stages: {
+			request: 'Request',
+			suitability: 'Suitability',
+			recommendation: 'Recommendation',
+			warnings: 'Warnings',
+			consent: 'Consent',
+			execution: 'Execution',
+			confirmation: 'Confirmation'
+		},
+		briefs: {
+			suitability:
+				'A customer has asked for advice. Find out what suitability requires — the goal, the amount, how long, the appetite for risk, whether there is money put by — before anything else.',
+			recommendation:
+				'Suitability is gathered. Check which products suit, then recommend the cheapest that does — or refer to an adviser if nothing suits.',
+			warnings:
+				'A product is recommended. Say the warnings that ride with it, in plain words: capital at risk for an investment; deposit protection for a saver.',
+			consent: 'Proceed with the order the customer has been advised on, or decline it.',
+			execution:
+				'A person has agreed. Place the order for the recommended product and the amount the customer named.'
+		},
+		rationale: (investment: boolean): string =>
+			investment
+				? 'The cheapest product that suits the goal, the horizon and the appetite. Capital at risk.'
+				: 'The cheapest product that suits: safe and reachable. Eligible deposits are protected (simulated).',
+		warning: (investment: boolean): string =>
+			investment
+				? 'Capital at risk: the value can fall as well as rise, and you may get back less than you put in.'
+				: 'Eligible deposits are protected (simulated); the rate can change.',
+		nothingSuits: 'Nothing on the shelf suits what the customer has said; an adviser should look.',
+		confirmed: (productId: string, amount: number): string =>
+			`Order placed: £${amount} into ${productId}, with the customer’s consent.`,
+		confirmedReferral: 'Referred to an adviser; no order placed.',
+		confirmedNoOrder: 'Advised; the customer declined the order.'
 	},
 	senseText: {
 		customerRecord: (records: DeskRecord[], facts: Record<string, string>): string => {

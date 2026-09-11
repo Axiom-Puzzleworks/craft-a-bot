@@ -404,7 +404,10 @@
 	 * known before the run and the Worker draws nothing.
 	 */
 	const workflows = createRegistry().listWorkflows();
-	let bookWorkflow = $state(workflows[0]?.id ?? '');
+	// The lending workflow first when the edition ships it (its book is the reference); the first workflow otherwise.
+	let bookWorkflow = $state(
+		workflows.find((workflow) => workflow.id === 'fs-lending/lending')?.id ?? workflows[0]?.id ?? ''
+	);
 	let bookSize = $state(200);
 	let bookSeed = $state(1);
 	let bookNote = $state('');

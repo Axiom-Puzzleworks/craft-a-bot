@@ -1,4 +1,5 @@
 import type { BankExtra } from '@craftabot/pack-fs-bank';
+import type { AdviceAnswers } from './suitability.js';
 
 /**
  * **The desk's own state** (WP60, `49-FS-ADVICE.md` §4.2): the bank as the
@@ -37,6 +38,15 @@ export interface AdviceState {
 	executed?: { productId: string; amount: number };
 	/** The promotions deck: the product the desk was asked to sell. */
 	promote?: string;
+	/**
+	 * What the customer would answer (WP85, `76-…` §4): held here so the
+	 * desk's own `check-suitability` and the workflow's rule can apply the
+	 * suitability rule to the topics *asked so far* — never in a sense; a
+	 * topic not asked reads as its cautious default.
+	 */
+	answers?: AdviceAnswers;
+	/** The suitable set the desk last found, product ids. */
+	suitable?: string[];
 }
 
 export type AdviceExtra = BankExtra & { advice: AdviceState };

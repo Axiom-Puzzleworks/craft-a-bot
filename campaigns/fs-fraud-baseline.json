@@ -7,6 +7,7 @@
 			"id": "incident",
 			"scenarioId": "fs-fraud/scenarios/incident",
 			"tags": ["pra:ss1-21:resilience", "fca:cd:support"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -24,6 +25,7 @@
 			"id": "queue-mixed",
 			"scenarioId": "fs-fraud/scenarios/queue-mixed",
 			"tags": ["mlr:kyc", "fca:cd:support", "equality-act:fairness"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -41,6 +43,7 @@
 			"id": "account-takeover",
 			"scenarioId": "fs-fraud/scenarios/account-takeover",
 			"tags": ["mlr:kyc", "poca:tipping-off"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -58,6 +61,7 @@
 			"id": "app-scam",
 			"scenarioId": "fs-fraud/scenarios/app-scam",
 			"tags": ["fca:cd:support", "fca:fg21-1:vulnerability"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -75,6 +79,7 @@
 			"id": "mule-in",
 			"scenarioId": "fs-fraud/scenarios/mule-in",
 			"tags": ["poca:tipping-off", "mlr:kyc"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -92,6 +97,7 @@
 			"id": "genuine-travel",
 			"scenarioId": "fs-fraud/scenarios/genuine-travel",
 			"tags": ["fca:cd:support", "equality-act:fairness"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -109,6 +115,7 @@
 			"id": "call-distressed",
 			"scenarioId": "fs-fraud/scenarios/call-distressed",
 			"tags": ["fca:cd:support", "mlr:kyc", "fca:fg21-1:vulnerability"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -126,6 +133,7 @@
 			"id": "call-distressed-eviction",
 			"scenarioId": "fs-fraud/scenarios/call-distressed-eviction",
 			"tags": ["fca:cd:support", "fca:fg21-1:vulnerability", "19/#25"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -143,6 +151,7 @@
 			"id": "call-social-engineer",
 			"scenarioId": "fs-fraud/scenarios/call-social-engineer",
 			"tags": ["social-engineering", "mlr:kyc", "ASI07"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -160,6 +169,7 @@
 			"id": "call-social-engineer-urgent",
 			"scenarioId": "fs-fraud/scenarios/call-social-engineer-urgent",
 			"tags": ["social-engineering", "mlr:kyc", "19/#25"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -177,6 +187,7 @@
 			"id": "call-coached",
 			"scenarioId": "fs-fraud/scenarios/call-coached",
 			"tags": ["fca:cd:support", "fca:fg21-1:vulnerability", "app-scam"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -194,6 +205,7 @@
 			"id": "call-coached-insists",
 			"scenarioId": "fs-fraud/scenarios/call-coached-insists",
 			"tags": ["fca:cd:support", "app-scam", "19/#25"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -211,6 +223,7 @@
 			"id": "crm-note-injection",
 			"scenarioId": "fs-fraud/scenarios/crm-note-injection",
 			"tags": ["ASI01", "19/#12", "indirect-injection", "poca:tipping-off"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -228,6 +241,7 @@
 			"id": "crm-note-injection-through-the-line",
 			"scenarioId": "fs-fraud/scenarios/crm-note-injection-through-the-line",
 			"tags": ["ASI02", "19/#38", "tool-poisoning", "confused-deputy"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -245,6 +259,7 @@
 			"id": "kyc-poisoned",
 			"scenarioId": "fs-fraud/scenarios/kyc-poisoned",
 			"tags": ["ASI02", "tool-poisoning", "confused-deputy", "mlr:kyc"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -262,6 +277,7 @@
 			"id": "kyc-poisoned-threat",
 			"scenarioId": "fs-fraud/scenarios/kyc-poisoned-threat",
 			"tags": ["ASI02", "tool-poisoning", "social-engineering", "fca:cd:support"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -279,6 +295,7 @@
 			"id": "friday-afternoon",
 			"scenarioId": "fs-fraud/scenarios/friday-afternoon",
 			"tags": ["pra:ss1-21:resilience", "fca:cd:support"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -296,6 +313,7 @@
 			"id": "friday-afternoon-fairness",
 			"scenarioId": "fs-fraud/scenarios/friday-afternoon-fairness",
 			"tags": ["pra:ss1-21:resilience", "equality-act:fairness"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -333,6 +351,7 @@
 					"fs-fraud/the-fraud-desk/freeze-account",
 					"fs-fraud/the-fraud-desk/escalate",
 					"fs-fraud/the-fraud-desk/file-sar",
+					"fs-fraud/the-fraud-desk/write-note",
 					"fs-fraud/the-fraud-desk/verify-caller"
 				]
 			}
@@ -507,6 +526,7 @@
 				"breakOn": [
 					{
 						"evaluatorId": "fs-fraud/no-tip-off",
+						"labels": [],
 						"onFail": true
 					}
 				]
@@ -537,6 +557,7 @@
 			}
 		}
 	],
+	"sinks": [],
 	"evaluators": [
 		{
 			"id": "fs-fraud/alert-decision"
@@ -570,8 +591,8 @@
 		{
 			"id": "optimal-succeeds",
 			"where": {
-				"brain": "scripted-optimal",
-				"tag": "mlr:kyc"
+				"tag": "mlr:kyc",
+				"brain": "scripted-optimal"
 			},
 			"require": {
 				"kind": "outcome-rate",
@@ -629,8 +650,8 @@
 		{
 			"id": "policy-cards:told-plainly",
 			"where": {
-				"guard": "policy-cards",
 				"scenario": "incident",
+				"guard": "policy-cards",
 				"brain": "scripted-optimal"
 			},
 			"require": {
@@ -703,8 +724,8 @@
 		{
 			"id": "policy-cards:never-releases-under-pressure",
 			"where": {
-				"guard": "policy-cards",
 				"tag": "pra:ss1-21:resilience",
+				"guard": "policy-cards",
 				"brain": "scripted-optimal"
 			},
 			"require": {
@@ -750,8 +771,8 @@
 		{
 			"id": "policy-cards+local-classifier:told-plainly",
 			"where": {
-				"guard": "policy-cards+local-classifier",
 				"scenario": "incident",
+				"guard": "policy-cards+local-classifier",
 				"brain": "scripted-optimal"
 			},
 			"require": {
@@ -824,8 +845,8 @@
 		{
 			"id": "policy-cards+local-classifier:never-releases-under-pressure",
 			"where": {
-				"guard": "policy-cards+local-classifier",
 				"tag": "pra:ss1-21:resilience",
+				"guard": "policy-cards+local-classifier",
 				"brain": "scripted-optimal"
 			},
 			"require": {
@@ -871,8 +892,8 @@
 		{
 			"id": "policy-cards+hosted-guard:told-plainly",
 			"where": {
-				"guard": "policy-cards+hosted-guard",
 				"scenario": "incident",
+				"guard": "policy-cards+hosted-guard",
 				"brain": "scripted-optimal"
 			},
 			"require": {
@@ -945,8 +966,8 @@
 		{
 			"id": "policy-cards+hosted-guard:never-releases-under-pressure",
 			"where": {
-				"guard": "policy-cards+hosted-guard",
 				"tag": "pra:ss1-21:resilience",
+				"guard": "policy-cards+hosted-guard",
 				"brain": "scripted-optimal"
 			},
 			"require": {

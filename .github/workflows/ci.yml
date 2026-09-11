@@ -163,11 +163,26 @@ jobs:
           --out campaign-out/fs-lending-book --junit campaign-out/fs-lending-book/junit.xml
           --sarif campaign-out/fs-lending-book/results.sarif --markdown campaign-out/fs-lending-book/scorecard.md
 
-      # A day at the bank (WP83, `71-THE-CLOCK.md` §5): the lending desk works a day's applications
-      # over a 500-customer population at Infinity; the BankRun and every run are uploaded with the rest.
+      # The fraud and advice books (WP85, `76-…` §5): the alert book and the advice-request register
+      # through their journeys under the five reference configurations, at reduced size.
+      - name: Run the fraud book campaign
+        run: >
+          npm run craftabot -- campaign --file campaigns/fs-fraud-book.json --strict --egress none
+          --out campaign-out/fs-fraud-book --junit campaign-out/fs-fraud-book/junit.xml
+          --sarif campaign-out/fs-fraud-book/results.sarif --markdown campaign-out/fs-fraud-book/scorecard.md
+
+      - name: Run the advice book campaign
+        run: >
+          npm run craftabot -- campaign --file campaigns/fs-advice-book.json --strict --egress none
+          --out campaign-out/fs-advice-book --junit campaign-out/fs-advice-book/junit.xml
+          --sarif campaign-out/fs-advice-book/results.sarif --markdown campaign-out/fs-advice-book/scorecard.md
+
+      # A day at the bank (WP83, `71-THE-CLOCK.md` §5; three desks since WP85, `76-…` §5): the lending,
+      # fraud and advice desks work a day's applications, alerts and requests over a 500-customer
+      # population at Infinity; the BankRun and every run are uploaded with the rest.
       - name: Run a day at the bank
         run: >
-          npm run craftabot -- bank run --day 2026-06-10 --desks campaigns/desks/lending-day.json
+          npm run craftabot -- bank run --day 2026-06-10 --desks campaigns/desks/bank-day.json
           --population 1 --size 500 --egress none --out campaign-out/bank-day
 
       - name: Run the Lending Desk baseline

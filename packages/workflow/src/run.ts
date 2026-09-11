@@ -110,23 +110,36 @@ export function stageCardId(workflowId: string, stageId: string): string {
 }
 
 /** The synthetic pack carrying one goal card per agent stage (§5 item 1). */
-export function stagePack(spec: WorkflowSpec, layoutId: string): PackManifest {
+/**
+ * The cards the workflow's agent stages run under — one per stage whose
+ * *effective* executor is a bot (WP85, `76-…` §3): a stage a person takes
+ * by default and a bot takes in one configuration (the fraud SAR at Level
+ * 5) has its card when that configuration runs.
+ */
+export function stagePack(
+	spec: WorkflowSpec,
+	layoutId: string,
+	executors?: Record<string, Executor>
+): PackManifest {
+	const effective = (stage: StageSpec): Executor => executors?.[stage.id] ?? stage.executor;
 	return {
 		id: `workflow/${spec.id}`,
 		name: `${spec.name} (stages)`,
 		version: '1.0.0',
 		requiresCore: '>=1.0.0',
 		goalCards: spec.stages
-			.filter((stage) => stage.executor.kind === 'agent')
-			.map((stage) => ({
+			.map((stage) => ({ stage, executor: effective(stage) }))
+			.filter(
+				(entry): entry is { stage: StageSpec; executor: Extract<Executor, { kind: 'agent' }> } =>
+					entry.executor.kind === 'agent'
+			)
+			.map(({ stage, executor }) => ({
 				id: stageCardId(spec.id, stage.id),
 				title: stage.name,
-				goalText:
-					(stage.executor as Extract<Executor, { kind: 'agent' }>).goalText ??
-					`${spec.purpose} — ${stage.name}.`,
+				goalText: executor.goalText ?? `${spec.purpose} — ${stage.name}.`,
 				worldId: spec.worldId,
 				layoutId,
-				successCondition: (stage.executor as Extract<Executor, { kind: 'agent' }>).until,
+				successCondition: executor.until,
 				hints: [],
 				teachesConcepts: [],
 				par: 5
@@ -208,7 +221,7 @@ export async function runWorkflow(
 
 	const registry = createPackRegistry();
 	for (const pack of options.packs) registry.registerPack(pack);
-	registry.registerPack(stagePack(spec, intake.layoutId));
+	registry.registerPack(stagePack(spec, intake.layoutId, config.executors));
 	const definition = registry.getWorld(spec.worldId);
 	if (!definition)
 		throw new Error(`Workflow "${spec.id}" needs world "${spec.worldId}", which is not installed.`);

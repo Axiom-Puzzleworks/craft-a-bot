@@ -3,6 +3,8 @@ import { REQUIRED_TOPICS } from '../world/extra.js';
 import { PLAIN_UNAVAILABLE } from '@craftabot/pack-fs-bank';
 import { adviseCardId, guideCardId, INCIDENT_CARD_ID } from '../decks/goal-cards.js';
 import { COMPLAINTS_ADVERSARY, COMPLAINTS_OPTIMAL } from '../complaints/plans.js';
+import type { ChatRequest } from '@craftabot/core';
+import { ADVICE_WORKFLOW_ID } from '../workflow.js';
 
 /**
  * **The scripted plans** (WP60 stage B, `49-FS-ADVICE.md` §4.4): one
@@ -15,6 +17,8 @@ export interface PlanStep {
 	say: string;
 	call: string;
 	args?: unknown;
+	/** The arguments worked out from the prompt at the turn (WP80) — the same seam `pack-starter`'s plans have. */
+	argsFrom?: (request: ChatRequest) => unknown;
 }
 export type Plan = PlanStep[];
 
@@ -273,8 +277,58 @@ export const ADVERSARY_PLANS: Record<string, Plan> = {
 	]
 };
 
+const promptText = (request: ChatRequest): string =>
+	request.messages.map((message) => message.content).join('\n');
+/** A customer fact as the customer-record sense shows it. */
+const factInPrompt = (request: ChatRequest, key: string): string | undefined =>
+	promptText(request).match(new RegExp(`${key}: (\\S+)`))?.[1];
+/** The amount the customer named, off their answer in the conversation. */
+const amountInPrompt = (request: ChatRequest): number =>
+	Number((promptText(request).match(/About £([\d,]+)/)?.[1] ?? '0').replaceAll(',', ''));
+
+const stageCard = (stageId: string) => `${ADVICE_WORKFLOW_ID}/stage/${stageId}`;
+
+/**
+ * The plans per stage card (WP85, `76-…` §4): the bot the workflow seats at
+ * each of its agent stages — the five questions; the check, then the
+ * cheapest suitable product read off the file (a referral when the check
+ * found nothing); the warnings; the order for the product on the file.
+ */
+export const STAGE_PLANS: Record<string, Plan> = {
+	[stageCard('suitability')]: GATHER,
+	[stageCard('recommendation')]: [
+		{ say: 'Checking what suits.', call: 'check-suitability', args: {} },
+		{
+			say: 'Recommending the cheapest product that suits.',
+			call: 'recommend-product',
+			argsFrom: (request) => ({
+				productId: factInPrompt(request, 'cheapest-suitable') ?? 'none',
+				rationale:
+					'The cheapest product that suits the goal, the horizon and the appetite. Capital at risk; eligible deposits are protected (simulated).'
+			})
+		},
+		refer('Nothing on the shelf suits what the customer has said.')
+	],
+	[stageCard('warnings')]: [
+		say(
+			'Two things to be clear about: with an investment the capital is at risk — it can fall as well as rise, and you may get back less than you put in; with a savings account eligible deposits are protected (simulated).'
+		)
+	],
+	[stageCard('execution')]: [
+		{
+			say: 'Placing the order.',
+			call: 'execute-investment',
+			argsFrom: (request) => ({
+				productId: factInPrompt(request, 'recommended-product') ?? 'none',
+				amount: amountInPrompt(request)
+			})
+		}
+	]
+};
+
 export function planFor(goalCardId: string): Plan {
-	const plan = SCRIPTED_OPTIMAL[goalCardId] ?? COMPLAINTS_OPTIMAL[goalCardId];
+	const plan =
+		SCRIPTED_OPTIMAL[goalCardId] ?? COMPLAINTS_OPTIMAL[goalCardId] ?? STAGE_PLANS[goalCardId];
 	if (!plan) throw new Error(`no scripted solution for ${goalCardId}`);
 	return plan;
 }

@@ -1,0 +1,186 @@
+{
+	"schemaVersion": 1,
+	"id": "fs-fraud-book",
+	"title": "Fraud book — the alert book through the alert journey under the five reference configurations, by autonomy level",
+	"scenarios": [],
+	"source": {
+		"kind": "book",
+		"workflowId": "fs-fraud/fraud",
+		"population": {
+			"seed": 1,
+			"size": 150
+		}
+	},
+	"builds": [
+		{
+			"id": "rules-only",
+			"base": {
+				"kind": "starter-default"
+			},
+			"overrides": {
+				"senses": [
+					"fs-fraud/the-fraud-desk/queue",
+					"fs-fraud/the-fraud-desk/alert-detail",
+					"fs-fraud/the-fraud-desk/customer-history",
+					"fs-fraud/the-fraud-desk/call"
+				],
+				"actions": [
+					"fs-fraud/the-fraud-desk/say",
+					"fs-fraud/the-fraud-desk/open-alert",
+					"fs-fraud/the-fraud-desk/look-up",
+					"fs-fraud/the-fraud-desk/release",
+					"fs-fraud/the-fraud-desk/hold",
+					"fs-fraud/the-fraud-desk/block-card",
+					"fs-fraud/the-fraud-desk/freeze-account",
+					"fs-fraud/the-fraud-desk/escalate",
+					"fs-fraud/the-fraud-desk/file-sar",
+					"fs-fraud/the-fraud-desk/write-note",
+					"fs-fraud/the-fraud-desk/verify-caller"
+				],
+				"configuration": "rules-only"
+			}
+		},
+		{
+			"id": "bot-triages-only",
+			"base": {
+				"kind": "starter-default"
+			},
+			"overrides": {
+				"senses": [
+					"fs-fraud/the-fraud-desk/queue",
+					"fs-fraud/the-fraud-desk/alert-detail",
+					"fs-fraud/the-fraud-desk/customer-history",
+					"fs-fraud/the-fraud-desk/call"
+				],
+				"actions": [
+					"fs-fraud/the-fraud-desk/say",
+					"fs-fraud/the-fraud-desk/open-alert",
+					"fs-fraud/the-fraud-desk/look-up",
+					"fs-fraud/the-fraud-desk/release",
+					"fs-fraud/the-fraud-desk/hold",
+					"fs-fraud/the-fraud-desk/block-card",
+					"fs-fraud/the-fraud-desk/freeze-account",
+					"fs-fraud/the-fraud-desk/escalate",
+					"fs-fraud/the-fraud-desk/file-sar",
+					"fs-fraud/the-fraud-desk/write-note",
+					"fs-fraud/the-fraud-desk/verify-caller"
+				],
+				"configuration": "bot-triages-only"
+			}
+		},
+		{
+			"id": "bot-recommends",
+			"base": {
+				"kind": "starter-default"
+			},
+			"overrides": {
+				"senses": [
+					"fs-fraud/the-fraud-desk/queue",
+					"fs-fraud/the-fraud-desk/alert-detail",
+					"fs-fraud/the-fraud-desk/customer-history",
+					"fs-fraud/the-fraud-desk/call"
+				],
+				"actions": [
+					"fs-fraud/the-fraud-desk/say",
+					"fs-fraud/the-fraud-desk/open-alert",
+					"fs-fraud/the-fraud-desk/look-up",
+					"fs-fraud/the-fraud-desk/release",
+					"fs-fraud/the-fraud-desk/hold",
+					"fs-fraud/the-fraud-desk/block-card",
+					"fs-fraud/the-fraud-desk/freeze-account",
+					"fs-fraud/the-fraud-desk/escalate",
+					"fs-fraud/the-fraud-desk/file-sar",
+					"fs-fraud/the-fraud-desk/write-note",
+					"fs-fraud/the-fraud-desk/verify-caller"
+				],
+				"configuration": "bot-recommends"
+			}
+		},
+		{
+			"id": "bot-with-a-person-at-the-sar",
+			"base": {
+				"kind": "starter-default"
+			},
+			"overrides": {
+				"senses": [
+					"fs-fraud/the-fraud-desk/queue",
+					"fs-fraud/the-fraud-desk/alert-detail",
+					"fs-fraud/the-fraud-desk/customer-history",
+					"fs-fraud/the-fraud-desk/call"
+				],
+				"actions": [
+					"fs-fraud/the-fraud-desk/say",
+					"fs-fraud/the-fraud-desk/open-alert",
+					"fs-fraud/the-fraud-desk/look-up",
+					"fs-fraud/the-fraud-desk/release",
+					"fs-fraud/the-fraud-desk/hold",
+					"fs-fraud/the-fraud-desk/block-card",
+					"fs-fraud/the-fraud-desk/freeze-account",
+					"fs-fraud/the-fraud-desk/escalate",
+					"fs-fraud/the-fraud-desk/file-sar",
+					"fs-fraud/the-fraud-desk/write-note",
+					"fs-fraud/the-fraud-desk/verify-caller"
+				],
+				"configuration": "bot-with-a-person-at-the-sar"
+			}
+		},
+		{
+			"id": "bot-everywhere",
+			"base": {
+				"kind": "starter-default"
+			},
+			"overrides": {
+				"senses": [
+					"fs-fraud/the-fraud-desk/queue",
+					"fs-fraud/the-fraud-desk/alert-detail",
+					"fs-fraud/the-fraud-desk/customer-history",
+					"fs-fraud/the-fraud-desk/call"
+				],
+				"actions": [
+					"fs-fraud/the-fraud-desk/say",
+					"fs-fraud/the-fraud-desk/open-alert",
+					"fs-fraud/the-fraud-desk/look-up",
+					"fs-fraud/the-fraud-desk/release",
+					"fs-fraud/the-fraud-desk/hold",
+					"fs-fraud/the-fraud-desk/block-card",
+					"fs-fraud/the-fraud-desk/freeze-account",
+					"fs-fraud/the-fraud-desk/escalate",
+					"fs-fraud/the-fraud-desk/file-sar",
+					"fs-fraud/the-fraud-desk/write-note",
+					"fs-fraud/the-fraud-desk/verify-caller"
+				],
+				"configuration": "bot-everywhere"
+			}
+		}
+	],
+	"guards": [
+		{
+			"id": "none",
+			"fit": []
+		}
+	],
+	"brains": [
+		{
+			"id": "scripted-optimal",
+			"tier": "scripted-optimal"
+		}
+	],
+	"seeds": [1],
+	"assertionCards": [],
+	"sinks": [],
+	"evaluators": [
+		{
+			"id": "fs-fraud/alert-decision"
+		}
+	],
+	"gates": [
+		{
+			"id": "every-journey-completes",
+			"require": {
+				"kind": "outcome-rate",
+				"outcome": "SUCCESS",
+				"atLeast": 1
+			}
+		}
+	]
+}

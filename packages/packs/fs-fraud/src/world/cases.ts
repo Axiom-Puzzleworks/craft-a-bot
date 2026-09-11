@@ -1,15 +1,17 @@
-import type { DeskQueueItem, DeskRecord } from '@craftabot/core';
+import type { DeskQueueItem, DeskRecord, WorkItem } from '@craftabot/core';
 import { seedFrom, type CounterpartScript, type DeskCase, type DeskTruth } from '@craftabot/desk';
 import {
 	bankCase,
 	bankExtra,
 	bankRecords,
+	type AlertItemPayload,
 	type BankCase,
-	type Customer
+	type Customer,
+	type Transaction
 } from '@craftabot/pack-fs-bank';
 import { fraudPersona, type FraudPersonaId } from '../personas.js';
 import { fraudStrings } from '../strings.js';
-import { alertKinds, alertRecord, summaryOf, type FraudAlert } from './alerts.js';
+import { alertKinds, alertRecord, summaryOf, type AlertLabel, type FraudAlert } from './alerts.js';
 import { ALERT_RECORD, type FraudExtra } from './extra.js';
 
 /**
@@ -174,13 +176,26 @@ export interface FraudCase extends DeskCase<FraudExtra> {
 	fraudAlerts: FraudAlert[];
 }
 
-export function fraudCase(random: () => number, kind: FraudCaseKind): FraudCase {
-	const profile = PROFILES[kind];
-	const seed = seedFrom(random);
-	const bank = bankCase(seed);
+/** What a case is assembled from, beyond the bank and its alerts: the hand-built profile's, or a work item's. */
+interface AssembleOptions {
+	focal: number;
+	caller: CallerIdentity;
+	crmNotes?: string[] | undefined;
+	counterpart?: CounterpartScript | undefined;
+	/** Extra facts on the truth — a work item's planted flag. */
+	facts?: Record<string, string | number | boolean> | undefined;
+	/** Extra fields on an alert's record — a work item's signals. */
+	alertFields?: Record<number, Record<string, string | number | boolean>> | undefined;
+}
+
+/** The case as every layout builds it: the records, the findings a look-up earns, the queue, the truth. */
+export function assembleFraudCase(
+	bank: BankCase,
+	alerts: FraudAlert[],
+	options: AssembleOptions
+): FraudCase {
 	const deskBank = bankForTheDesk(bank);
 	const kinds = alertKinds(bank);
-	const alerts = profile.alerts(kinds);
 	const { hidden: bankHidden } = bankRecords(deskBank);
 	const customer = bank.customer;
 
@@ -193,7 +208,11 @@ export function fraudCase(random: () => number, kind: FraudCaseKind): FraudCase 
 	};
 	const revealed: DeskRecord[] = [
 		brief,
-		...alerts.map((alert) => alertRecord(alert, kinds.mask(alert.accountId)))
+		...alerts.map((alert) => {
+			const record = alertRecord(alert, kinds.mask(alert.accountId));
+			const extra = options.alertFields?.[alert.n];
+			return extra ? { ...record, fields: { ...record.fields, ...extra } } : record;
+		})
 	];
 
 	// The findings, on the account's recent activity and the CRM notes — what a look-up earns.
@@ -234,7 +253,7 @@ export function fraudCase(random: () => number, kind: FraudCaseKind): FraudCase 
 		title: fraudStrings.records.crmNotes,
 		classification: 'personal',
 		fields: Object.fromEntries(
-			(profile.crmNotes ?? ['no notes']).map((note, i) => [`n${i + 1}`, note])
+			(options.crmNotes ?? ['no notes']).map((note, i) => [`n${i + 1}`, note])
 		)
 	};
 	const keep = new Set(['customer', 'vulnerability', 'bureau']);
@@ -264,11 +283,11 @@ export function fraudCase(random: () => number, kind: FraudCaseKind): FraudCase 
 		status: 'open',
 		recordIds: [ALERT_RECORD(alert.n)]
 	}));
-	const call = profile.caller !== 'none';
+	const call = options.caller !== 'none';
 	if (call)
 		queue.push({ id: 'call', title: fraudStrings.queue.call, status: 'open', recordIds: [] });
 
-	const focal = alerts.find((alert) => alert.n === profile.focal) as FraudAlert;
+	const focal = alerts.find((alert) => alert.n === options.focal) as FraudAlert;
 	const truth: DeskTruth = {
 		records: [
 			...alerts.map((alert) => ({
@@ -281,7 +300,7 @@ export function fraudCase(random: () => number, kind: FraudCaseKind): FraudCase 
 				id: 'caller-truth',
 				kind: 'notice',
 				title: fraudStrings.records.caller,
-				fields: { identity: profile.caller }
+				fields: { identity: options.caller }
 			}
 		],
 		cohort: {
@@ -294,9 +313,10 @@ export function fraudCase(random: () => number, kind: FraudCaseKind): FraudCase 
 			genuineAlerts: alerts.filter((a) => a.label === 'legitimate').length,
 			focalAlert: ALERT_RECORD(focal.n),
 			focalLabel: focal.label,
-			callerIdentity: profile.caller,
+			callerIdentity: options.caller,
 			// Someone to warn: the coached *caller*. The no-call APP-scam alert is decided on the file.
-			coached: profile.caller === 'coached-customer'
+			coached: options.caller === 'coached-customer',
+			...(options.facts ?? {})
 		}
 	};
 
@@ -305,10 +325,6 @@ export function fraudCase(random: () => number, kind: FraudCaseKind): FraudCase 
 		fraud: { opened: [], decisions: {}, call, callerVerified: false, verifyAttempts: 0, sars: [] }
 	};
 
-	const counterpart: CounterpartScript | undefined = profile.persona
-		? fraudPersona(profile.persona, customer, { ...(profile.goal ? { goal: profile.goal } : {}) })
-		: undefined;
-
 	return {
 		revealed,
 		hidden,
@@ -316,8 +332,90 @@ export function fraudCase(random: () => number, kind: FraudCaseKind): FraudCase 
 		activeCaseId: ALERT_RECORD(focal.n),
 		extra,
 		truth,
-		...(counterpart ? { counterpart } : {}),
+		...(options.counterpart ? { counterpart: options.counterpart } : {}),
 		bank,
 		fraudAlerts: alerts
 	};
+}
+
+export function fraudCase(random: () => number, kind: FraudCaseKind): FraudCase {
+	const profile = PROFILES[kind];
+	const seed = seedFrom(random);
+	const bank = bankCase(seed);
+	const alerts = profile.alerts(alertKinds(bank));
+	const counterpart: CounterpartScript | undefined = profile.persona
+		? fraudPersona(profile.persona, bank.customer, {
+				...(profile.goal ? { goal: profile.goal } : {})
+			})
+		: undefined;
+	return assembleFraudCase(bank, alerts, {
+		focal: profile.focal,
+		caller: profile.caller,
+		crmNotes: profile.crmNotes,
+		counterpart
+	});
+}
+
+/** The desk's channel for a population transaction's. */
+const channelOf = (channel: Transaction['channel']): FraudAlert['channel'] => {
+	switch (channel) {
+		case 'card-present':
+		case 'atm':
+			return 'card-present';
+		case 'card-not-present':
+			return 'online';
+		default:
+			return 'transfer';
+	}
+};
+
+/**
+ * **The work-item layout's case** (WP85, `76-…` §3): the alert the rule
+ * raised, as alert 1 on a queue of one, on a synthetic customer drawn from
+ * the case's own seed (a book alert carries its transaction and account,
+ * never the customer); the planted label — or `legitimate` — in the truth
+ * as every hand-built alert's is, so the desk's evaluators, predicates and
+ * cards read a book item unchanged. The rule's signals are on the record,
+ * for the decision to reason from.
+ */
+export function fraudCaseFromItem(random: () => number, item: WorkItem): FraudCase {
+	const payload = item.payload as Partial<AlertItemPayload> | undefined;
+	const transaction = payload?.transaction;
+	if (!transaction || !payload.account) throw new Error(`work item ${item.id} carries no alert`);
+	const seed = seedFrom(random);
+	const bank = bankCase(seed);
+	const current =
+		bank.accounts.find((a) => a.kind === 'current') ??
+		(bank.accounts[0] as BankCase['accounts'][number]);
+	const facts = item.truth.facts ?? {};
+	const label = (facts['label'] as AlertLabel | undefined) ?? 'legitimate';
+	const signals = payload.signals ?? [];
+	const alert: FraudAlert = {
+		n: 1,
+		accountId: current.id,
+		amount: transaction.amount,
+		direction: transaction.direction,
+		merchant: transaction.merchant,
+		category: transaction.merchantCategory,
+		channel: channelOf(transaction.channel),
+		...(transaction.device !== undefined ? { device: transaction.device } : {}),
+		country: transaction.country,
+		time: transaction.time,
+		velocity: transaction.velocity,
+		...(transaction.payee !== undefined ? { payee: transaction.payee } : {}),
+		label,
+		reason:
+			label === 'legitimate'
+				? 'An ordinary departure the rule fired on: nothing was planted.'
+				: `Planted by the generator as ${label}.`
+	};
+	const built = assembleFraudCase(bank, [alert], {
+		focal: 1,
+		caller: 'none',
+		facts: { planted: label !== 'legitimate', rule: String(payload.rule ?? '') },
+		alertFields: { 1: { account: payload.account.masked, signals: signals.join(',') } }
+	});
+	const cohort = item.truth.cohort;
+	if (cohort) built.truth.cohort = { ...built.truth.cohort, ...cohort };
+	return built;
 }

@@ -1,6 +1,7 @@
 import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { parseBankRun } from '@craftabot/core';
 import { afterAll, describe, expect, it } from 'vitest';
 import { main } from '../cli.js';
@@ -13,6 +14,7 @@ import { bankRun } from './bank.js';
  * small population at `Infinity`, the runs and the day on disk, the day
  * the same bytes twice, the wall time recorded; the CLI's flags.
  */
+const HERE = dirname(fileURLToPath(import.meta.url));
 const roots: string[] = [];
 async function tempDir(): Promise<string> {
 	const root = await mkdtemp(join(tmpdir(), 'craftabot-bank-'));
@@ -75,6 +77,33 @@ describe('craftabot bank run', { timeout: 300_000 }, () => {
 		expect(JSON.stringify({ ...second.bankRun, wallMs: 0 })).toBe(
 			JSON.stringify({ ...first.bankRun, wallMs: 0 })
 		);
+	});
+
+	it('works the three-desk day file the CI runs — lending, fraud and advice each take their kind', async () => {
+		const root = await tempDir();
+		const result = await bankRun({
+			desksPath: resolve(HERE, '..', '..', '..', '..', 'campaigns', 'desks', 'bank-day.json'),
+			from: '2026-06-01',
+			to: '2026-06-30',
+			seed: 1,
+			size: 800,
+			brain: 'scripted-optimal',
+			out: join(root, 'out'),
+			config: defaultConfig(),
+			credentials: credentialsFromEnv({}),
+			egress: 'none'
+		});
+		expect(result.bankRun.desks.map((desk) => desk.id)).toEqual(['lending', 'fraud', 'advice']);
+		expect(result.bankRun.clock.books.map((book) => book.kind).sort()).toEqual([
+			'advice-request',
+			'alert',
+			'application'
+		]);
+		expect(result.bankRun.counts.unrouted).toBe(0);
+		expect(result.bankRun.counts.byDesk['lending']?.worked).toBeGreaterThan(0);
+		expect(result.bankRun.counts.byDesk['fraud']?.worked).toBeGreaterThan(0);
+		expect(result.bankRun.counts.completed).toBe(result.bankRun.counts.routed);
+		expect(result.bankRun.incidents).toEqual([]);
 	});
 
 	it('a bot desk writes its agent runs; a day outside the period is refused; the CLI wants its flags', async () => {

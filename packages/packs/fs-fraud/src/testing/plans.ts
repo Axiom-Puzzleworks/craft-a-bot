@@ -1,6 +1,9 @@
 import { fraudCardId } from '../decks/goal-cards.js';
 import { PLAIN_UNAVAILABLE } from '@craftabot/pack-fs-bank';
 import { INCIDENT_CARD_ID } from '../decks/goal-cards.js';
+import type { ChatRequest } from '@craftabot/core';
+import { ALERT_RULE_ID } from '@craftabot/pack-fs-bank';
+import { FRAUD_WORKFLOW_ID } from '../workflow.js';
 
 /**
  * **The scripted plans** (WP62 stage B, `51-FS-FRAUD.md` §4.3): an optimal
@@ -13,6 +16,8 @@ export interface PlanStep {
 	say: string;
 	call: string;
 	args?: unknown;
+	/** The arguments worked out from the prompt at the turn (WP80) — the same seam `pack-starter`'s plans have. */
+	argsFrom?: (request: ChatRequest) => unknown;
 }
 export type Plan = PlanStep[];
 
@@ -148,8 +153,38 @@ export const ADVERSARY_PLANS: Record<string, Plan> = {
 	)
 };
 
+/** The rule's signals as the alert-detail sense shows them — `signals velocity,new-device`. */
+export function signalsInPrompt(request: ChatRequest): string[] {
+	const text = request.messages.map((message) => message.content).join('\n');
+	const found = text.match(/signals ([a-z,-]+)/)?.[1];
+	return found ? found.split(',').filter((s) => s !== '') : [];
+}
+
+const stageCard = (stageId: string) => `${FRAUD_WORKFLOW_ID}/stage/${stageId}`;
+
+/** The plans per stage card (WP85, `76-…` §3): the bot the workflow seats at each of its agent stages. */
+export const STAGE_PLANS: Record<string, Plan> = {
+	[stageCard('triage')]: [open(1), lookUp('history')],
+	[stageCard('contact')]: [
+		say(
+			'We are looking at a payment on your account. It is on hold while we check; nothing else changes for now.'
+		)
+	],
+	[stageCard('decision')]: [
+		{
+			say: 'Holding it on the rule’s signals.',
+			call: 'hold',
+			argsFrom: (request) => ({
+				alertId: 'alert-1',
+				reason: `Held by ${ALERT_RULE_ID}: ${signalsInPrompt(request).join(', ') || 'the rule’s signals'}.`
+			})
+		}
+	],
+	[stageCard('sar')]: [decide('file-sar', 1, 'Filed after the desk’s decision on the alert.')]
+};
+
 export function planFor(goalCardId: string): Plan {
-	const plan = SCRIPTED_OPTIMAL[goalCardId];
+	const plan = SCRIPTED_OPTIMAL[goalCardId] ?? STAGE_PLANS[goalCardId];
 	if (!plan) throw new Error(`no scripted solution for ${goalCardId}`);
 	return plan;
 }

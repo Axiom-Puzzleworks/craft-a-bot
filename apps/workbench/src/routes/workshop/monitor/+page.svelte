@@ -24,6 +24,9 @@
 	 */
 	const registry = createRegistry();
 	const workflows = registry.listWorkflows();
+	/** The lending desk is the day's first desk when the edition ships it; the first workflow otherwise. */
+	const firstWorkflowId =
+		workflows.find((workflow) => workflow.id === 'fs-lending/lending')?.id ?? workflows[0]?.id;
 
 	let seed = $state(1);
 	let size = $state(2_000);
@@ -32,8 +35,8 @@
 	let acceleration = $state<'inf' | '600' | '60'>('inf');
 	let window = $state(200);
 	let desks = $state<Array<MonitorDeskSetup & { on: boolean }>>(
-		workflows.map((workflow, index) => ({
-			on: index === 0,
+		workflows.map((workflow) => ({
+			on: workflow.id === firstWorkflowId,
 			id: workflow.id.split('/').pop() ?? workflow.id,
 			workflowId: workflow.id,
 			kinds: [...(workflow.kinds ?? (['application'] as WorkItem['kind'][]))],

@@ -1,0 +1,177 @@
+{
+	"schemaVersion": 1,
+	"id": "fs-advice-book",
+	"title": "Advice book — the advice-request register through the advice journey under the five reference configurations, by autonomy level",
+	"scenarios": [],
+	"source": {
+		"kind": "book",
+		"workflowId": "fs-advice/advice",
+		"population": {
+			"seed": 1,
+			"size": 400
+		}
+	},
+	"builds": [
+		{
+			"id": "rules-only",
+			"base": {
+				"kind": "starter-default"
+			},
+			"overrides": {
+				"senses": [
+					"fs-advice/the-advice-desk/conversation",
+					"fs-advice/the-advice-desk/customer-record",
+					"fs-advice/the-advice-desk/product-shelf"
+				],
+				"actions": [
+					"fs-advice/the-advice-desk/say",
+					"fs-advice/the-advice-desk/ask-suitability-question",
+					"fs-advice/the-advice-desk/run-fact-find",
+					"fs-advice/the-advice-desk/check-suitability",
+					"fs-advice/the-advice-desk/record-customer-fact",
+					"fs-advice/the-advice-desk/recommend-product",
+					"fs-advice/the-advice-desk/refer-to-adviser",
+					"fs-advice/the-advice-desk/execute-investment"
+				],
+				"configuration": "rules-only"
+			}
+		},
+		{
+			"id": "bot-gathers-only",
+			"base": {
+				"kind": "starter-default"
+			},
+			"overrides": {
+				"senses": [
+					"fs-advice/the-advice-desk/conversation",
+					"fs-advice/the-advice-desk/customer-record",
+					"fs-advice/the-advice-desk/product-shelf"
+				],
+				"actions": [
+					"fs-advice/the-advice-desk/say",
+					"fs-advice/the-advice-desk/ask-suitability-question",
+					"fs-advice/the-advice-desk/run-fact-find",
+					"fs-advice/the-advice-desk/check-suitability",
+					"fs-advice/the-advice-desk/record-customer-fact",
+					"fs-advice/the-advice-desk/recommend-product",
+					"fs-advice/the-advice-desk/refer-to-adviser",
+					"fs-advice/the-advice-desk/execute-investment"
+				],
+				"configuration": "bot-gathers-only"
+			}
+		},
+		{
+			"id": "bot-recommends",
+			"base": {
+				"kind": "starter-default"
+			},
+			"overrides": {
+				"senses": [
+					"fs-advice/the-advice-desk/conversation",
+					"fs-advice/the-advice-desk/customer-record",
+					"fs-advice/the-advice-desk/product-shelf"
+				],
+				"actions": [
+					"fs-advice/the-advice-desk/say",
+					"fs-advice/the-advice-desk/ask-suitability-question",
+					"fs-advice/the-advice-desk/run-fact-find",
+					"fs-advice/the-advice-desk/check-suitability",
+					"fs-advice/the-advice-desk/record-customer-fact",
+					"fs-advice/the-advice-desk/recommend-product",
+					"fs-advice/the-advice-desk/refer-to-adviser",
+					"fs-advice/the-advice-desk/execute-investment"
+				],
+				"configuration": "bot-recommends"
+			}
+		},
+		{
+			"id": "bot-with-a-person-at-execution",
+			"base": {
+				"kind": "starter-default"
+			},
+			"overrides": {
+				"senses": [
+					"fs-advice/the-advice-desk/conversation",
+					"fs-advice/the-advice-desk/customer-record",
+					"fs-advice/the-advice-desk/product-shelf"
+				],
+				"actions": [
+					"fs-advice/the-advice-desk/say",
+					"fs-advice/the-advice-desk/ask-suitability-question",
+					"fs-advice/the-advice-desk/run-fact-find",
+					"fs-advice/the-advice-desk/check-suitability",
+					"fs-advice/the-advice-desk/record-customer-fact",
+					"fs-advice/the-advice-desk/recommend-product",
+					"fs-advice/the-advice-desk/refer-to-adviser",
+					"fs-advice/the-advice-desk/execute-investment"
+				],
+				"configuration": "bot-with-a-person-at-execution"
+			}
+		},
+		{
+			"id": "bot-everywhere",
+			"base": {
+				"kind": "starter-default"
+			},
+			"overrides": {
+				"senses": [
+					"fs-advice/the-advice-desk/conversation",
+					"fs-advice/the-advice-desk/customer-record",
+					"fs-advice/the-advice-desk/product-shelf"
+				],
+				"actions": [
+					"fs-advice/the-advice-desk/say",
+					"fs-advice/the-advice-desk/ask-suitability-question",
+					"fs-advice/the-advice-desk/run-fact-find",
+					"fs-advice/the-advice-desk/check-suitability",
+					"fs-advice/the-advice-desk/record-customer-fact",
+					"fs-advice/the-advice-desk/recommend-product",
+					"fs-advice/the-advice-desk/refer-to-adviser",
+					"fs-advice/the-advice-desk/execute-investment"
+				],
+				"configuration": "bot-everywhere"
+			}
+		}
+	],
+	"guards": [
+		{
+			"id": "none",
+			"fit": []
+		}
+	],
+	"brains": [
+		{
+			"id": "scripted-optimal",
+			"tier": "scripted-optimal"
+		}
+	],
+	"seeds": [1],
+	"assertionCards": [],
+	"sinks": [],
+	"evaluators": [
+		{
+			"id": "fs-advice/recommendation-suitable"
+		},
+		{
+			"id": "fs-advice/warning-given"
+		}
+	],
+	"gates": [
+		{
+			"id": "every-journey-completes",
+			"require": {
+				"kind": "outcome-rate",
+				"outcome": "SUCCESS",
+				"atLeast": 1
+			}
+		},
+		{
+			"id": "every-recommendation-suitable",
+			"require": {
+				"kind": "evaluator-pass-rate",
+				"evaluatorId": "fs-advice/recommendation-suitable",
+				"atLeast": 1
+			}
+		}
+	]
+}

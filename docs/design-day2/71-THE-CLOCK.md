@@ -80,3 +80,5 @@ export function runBank(clock: AsyncIterable<Arrival>, desks: DeskAssignment[], 
 - `BankRun.runs` carries each run's id and digest, not the runs themselves — they reach the sink; the `BankRun` is the index.
 
 > **Amended 2026-09-11 (WP84, `75-THE-MONITOR.md` §4).** Two additions to §4 as built: `RunBankOptions.onArrival?(arrival, desk)` — every arrival as the clock delivers it with the desk it was routed to (none for an unrouted kind or after `stopAfter`), so a Monitor can show a queue before the run lands; and the sink's `agentRun` promises are awaited before the run's `workflowRun` is handed over, so a sink that writes elsewhere (the evidence store) holds every agent run before the run that made them. The Worker's `bank` job posts `arrival` and `workflow-run` replies (the run with its agent events attached) before `bank-done`.
+
+> **Amended 2026-09-11 (WP85, `76-…` §5).** CI's bank day works three desks: `campaigns/desks/bank-day.json` names lending, fraud and advice at their Level 4 configurations, and the alert book and the advice-request register the clock schedules now reach a desk that works them. The harness's test works the same file over a month.
