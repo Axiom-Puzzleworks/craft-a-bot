@@ -1,7 +1,7 @@
 import type { ConfusionLabelSemantics } from '@craftabot/core';
 import { touchesPerCase, unattendedRate, wilson } from '@craftabot/metrics';
 import { z } from 'zod';
-import type { CampaignCell } from './campaign.js';
+import type { CampaignCell, GateVerdict, GateWhere } from './campaign.js';
 
 /**
  * **The campaign summary** (WP61, `50-DOMAIN-METRICS.md` §4.5): what the
@@ -134,6 +134,36 @@ export const humanLoadRowSchema = z.object({
 });
 export type HumanLoadRow = z.infer<typeof humanLoadRowSchema>;
 
+/** A fairness row (WP82, `64-…` §6.4.4): a `parity` gate's metric with its interval, *n* and power, over the cells its `where` selected. */
+export const fairnessRowSchema = z.object({
+	gateId: z.string(),
+	metric: z.string(),
+	across: z.string(),
+	stratify: z.string().optional(),
+	value: z.number(),
+	interval: z.tuple([z.number(), z.number()]),
+	n: z.number().int().nonnegative(),
+	underpowered: z.boolean(),
+	passed: z.boolean(),
+	inconclusive: z.boolean(),
+	slice: z.record(z.string(), z.string()).optional()
+});
+export type FairnessRow = z.infer<typeof fairnessRowSchema>;
+
+/** A drift row (WP82): a `drift` gate's distance against its reference, and whether it crossed the bound. */
+export const driftRowSchema = z.object({
+	gateId: z.string(),
+	feature: z.string().optional(),
+	metric: z.string(),
+	reference: z.string(),
+	value: z.number().optional(),
+	atMost: z.number().optional(),
+	flagged: z.boolean(),
+	reason: z.string().optional(),
+	slice: z.record(z.string(), z.string()).optional()
+});
+export type DriftRow = z.infer<typeof driftRowSchema>;
+
 export const campaignSummarySchema = z.object({
 	slices: z.array(campaignSliceSchema),
 	matrices: z.array(confusionMatrixSchema),
@@ -141,7 +171,10 @@ export const campaignSummarySchema = z.object({
 	obligations: z.array(obligationRowSchema),
 	cases: z.array(caseRowSchema),
 	/** Defaulted, so every report written before WP80 parses. */
-	humanLoad: z.array(humanLoadRowSchema).default([])
+	humanLoad: z.array(humanLoadRowSchema).default([]),
+	/** The metric verdicts' statistics (WP82); empty on a report upgraded from v2, which never computed them. */
+	fairness: z.array(fairnessRowSchema).default([]),
+	drift: z.array(driftRowSchema).default([])
 });
 export type CampaignSummary = z.infer<typeof campaignSummarySchema>;
 
@@ -156,6 +189,66 @@ const FIRST_TAGS = [
 export interface SummaryOptions {
 	/** What an evaluator's labels mean, by id — from the registry at run time, or the stored matrices on a re-read. */
 	semantics?: (evaluatorId: string) => ConfusionLabelSemantics | undefined;
+	/** The gates as evaluated (WP82): the fairness and drift rows are read off the metric verdicts. */
+	gates?: readonly GateVerdict[];
+}
+
+const sliceOf = (where: GateWhere | undefined): Record<string, string> | undefined => {
+	if (!where) return undefined;
+	const entries = Object.entries(where).filter(
+		(entry): entry is [string, string] => typeof entry[1] === 'string'
+	);
+	return entries.length > 0 ? Object.fromEntries(entries) : undefined;
+};
+
+/** The fairness rows off the `parity` verdicts that carried a metric (WP82). */
+export function fairnessRowsOf(gates: readonly GateVerdict[]): FairnessRow[] {
+	const rows: FairnessRow[] = [];
+	for (const gate of gates) {
+		if (gate.kind !== 'parity' || gate.interval === undefined || gate.observed === undefined)
+			continue;
+		const [metric, , across] = gate.required.split(' ');
+		const within = gate.required.match(/ within (\S+):/);
+		const slice = sliceOf(gate.where);
+		rows.push({
+			gateId: gate.id,
+			metric: metric ?? 'parity',
+			across: (across ?? '').replace(/:$/, ''),
+			...(within ? { stratify: within[1] as string } : {}),
+			value: gate.observed,
+			interval: gate.interval,
+			n: gate.n ?? 0,
+			underpowered: gate.underpowered === true,
+			passed: gate.passed,
+			inconclusive: gate.inconclusive === true,
+			...(slice ? { slice } : {})
+		});
+	}
+	return rows;
+}
+
+/** The drift rows off the `drift` verdicts (WP82). */
+export function driftRowsOf(gates: readonly GateVerdict[]): DriftRow[] {
+	const rows: DriftRow[] = [];
+	for (const gate of gates) {
+		if (gate.kind !== 'drift') continue;
+		const parts = gate.required.match(
+			/^(\S+)(?: over (\S+))? against the (\S+) reference: ≤ (\S+)$/
+		);
+		const slice = sliceOf(gate.where);
+		rows.push({
+			gateId: gate.id,
+			...(parts?.[2] ? { feature: parts[2] } : {}),
+			metric: parts?.[1] ?? gate.kind,
+			reference: parts?.[3] ?? 'fixed',
+			...(gate.observed !== undefined ? { value: gate.observed } : {}),
+			...(parts?.[4] !== undefined ? { atMost: Number(parts[4]) } : {}),
+			flagged: !gate.passed,
+			...(gate.reason !== undefined ? { reason: gate.reason } : {}),
+			...(slice ? { slice } : {})
+		});
+	}
+	return rows;
 }
 
 const rate = (cells: readonly CampaignCell[], match: (cell: CampaignCell) => boolean): number =>
@@ -412,7 +505,9 @@ export function summariseCampaign(
 		...(cell.error !== undefined ? { error: cell.error } : {})
 	}));
 
-	return { slices, matrices, cohorts, obligations, cases, humanLoad };
+	const fairness = fairnessRowsOf(options.gates ?? []);
+	const drift = driftRowsOf(options.gates ?? []);
+	return { slices, matrices, cohorts, obligations, cases, humanLoad, fairness, drift };
 }
 
 function rank(tag: string): number {

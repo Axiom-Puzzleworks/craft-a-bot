@@ -1511,6 +1511,36 @@
 										"type": "string",
 										"minLength": 1
 									},
+									"metric": {
+										"type": "string",
+										"enum": [
+											"demographic-parity",
+											"disparate-impact",
+											"equal-opportunity",
+											"equalised-odds",
+											"predictive-parity",
+											"conditional-parity",
+											"rule-agreement",
+											"discordance",
+											"counterfactual-flip"
+										]
+									},
+									"stratify": {
+										"type": "string",
+										"minLength": 1
+									},
+									"confidence": {
+										"type": "number",
+										"exclusiveMinimum": 0,
+										"exclusiveMaximum": 1
+									},
+									"power": {
+										"type": "string",
+										"enum": [
+											"required",
+											"reported"
+										]
+									},
 									"of": {
 										"oneOf": [
 											{
@@ -1670,8 +1700,94 @@
 								},
 								"required": [
 									"kind",
-									"across",
-									"of"
+									"across"
+								]
+							},
+							{
+								"type": "object",
+								"properties": {
+									"kind": {
+										"type": "string",
+										"const": "drift"
+									},
+									"feature": {
+										"type": "string",
+										"minLength": 1
+									},
+									"metric": {
+										"type": "string",
+										"enum": [
+											"psi",
+											"ks",
+											"outcome-mix",
+											"agreement",
+											"fairness"
+										]
+									},
+									"reference": {
+										"oneOf": [
+											{
+												"type": "object",
+												"properties": {
+													"kind": {
+														"type": "string",
+														"const": "fixed"
+													},
+													"reportId": {
+														"type": "string",
+														"minLength": 1
+													}
+												},
+												"required": [
+													"kind"
+												]
+											},
+											{
+												"type": "object",
+												"properties": {
+													"kind": {
+														"type": "string",
+														"const": "rolling"
+													},
+													"days": {
+														"type": "integer",
+														"exclusiveMinimum": 0,
+														"maximum": 9007199254740991
+													}
+												},
+												"required": [
+													"kind",
+													"days"
+												]
+											},
+											{
+												"type": "object",
+												"properties": {
+													"kind": {
+														"type": "string",
+														"const": "population"
+													},
+													"digest": {
+														"type": "string",
+														"minLength": 1
+													}
+												},
+												"required": [
+													"kind"
+												]
+											}
+										]
+									},
+									"atMost": {
+										"type": "number",
+										"minimum": 0
+									}
+								},
+								"required": [
+									"kind",
+									"metric",
+									"reference",
+									"atMost"
 								]
 							}
 						]

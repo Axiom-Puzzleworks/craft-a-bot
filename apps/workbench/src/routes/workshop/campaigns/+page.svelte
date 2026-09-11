@@ -856,6 +856,7 @@
 										value={gate.observed}
 										gate={meter.gate}
 										direction={meter.direction}
+										range={gate.interval}
 										label={gate.id}
 										testId="gate-meter-{gate.id}"
 									/>
@@ -990,6 +991,98 @@
 						</div>
 					{/each}
 				</div>
+			</section>
+		{/if}
+
+		{#if report.schemaVersion < 3}
+			<p class="hint" data-testid="campaign-upgraded">
+				This report was written at schema v{report.schemaVersion}; it computed no fairness metrics
+				and no drift, so those panes are empty. Run the campaign again for them.
+			</p>
+		{/if}
+
+		{#if summary && summary.fairness.length > 0}
+			<!-- The fairness metrics' verdicts (WP82, `64-…` §6.4.4): the value with its interval on a Meter, the power as a Lamp. -->
+			<section aria-label="Fairness" data-testid="campaign-fairness">
+				<h2>Fairness</h2>
+				<p class="hint">
+					Each parity gate's metric over the cells its <code>where</code> selected, with the interval
+					and the cases it rests on. An underpowered row says so rather than pretending.
+				</p>
+				<div class="fairness">
+					{#each summary.fairness as row (row.gateId)}
+						<div class="fairness-row" data-testid="fairness-{row.gateId}">
+							<Meter
+								value={row.value}
+								range={row.interval}
+								label={`${row.metric} across ${row.across}`}
+								min={row.metric === 'disparate-impact' ? 0 : -1}
+								max={1}
+								format={(v) => v.toFixed(3)}
+								testId="fairness-meter-{row.gateId}"
+							/>
+							<div class="fairness-facts">
+								<p class="mono">{row.gateId}</p>
+								<p>
+									{row.metric} across {row.across}{row.stratify ? ` within ${row.stratify}` : ''} · n
+									=
+									{row.n}
+								</p>
+								<p class="lamps">
+									<Lamp
+										status={row.inconclusive ? 'inconclusive' : row.passed ? 'pass' : 'fail'}
+										testId="fairness-lamp-{row.gateId}"
+									/>
+									<Lamp
+										status={row.underpowered ? 'inconclusive' : 'pass'}
+										label={row.underpowered ? 'underpowered' : 'powered'}
+										testId="fairness-power-{row.gateId}"
+									/>
+								</p>
+							</div>
+						</div>
+					{/each}
+				</div>
+			</section>
+		{/if}
+
+		{#if summary && summary.drift.length > 0}
+			<!-- The drift verdicts (WP82): a distance against a reference, and the bound. -->
+			<section aria-label="Drift" data-testid="campaign-drift">
+				<h2>Drift</h2>
+				<table data-testid="campaign-drift-table">
+					<thead>
+						<tr>
+							<th scope="col">Gate</th>
+							<th scope="col">Metric</th>
+							<th scope="col">Feature</th>
+							<th scope="col">Reference</th>
+							<th scope="col">Value</th>
+							<th scope="col">Bound</th>
+							<th scope="col">Verdict</th>
+						</tr>
+					</thead>
+					<tbody>
+						{#each summary.drift as row (row.gateId)}
+							<tr data-testid="drift-{row.gateId}">
+								<td class="mono">{row.gateId}</td>
+								<td>{row.metric}</td>
+								<td>{row.feature ?? '—'}</td>
+								<td>{row.reference}</td>
+								<td class="num">{row.value === undefined ? '—' : row.value.toFixed(3)}</td>
+								<td class="num">{row.atMost === undefined ? '—' : `≤ ${row.atMost}`}</td>
+								<td>
+									<Lamp
+										status={row.reason ? 'inconclusive' : row.flagged ? 'fail' : 'pass'}
+										label={row.reason ? 'inconclusive' : row.flagged ? 'drifted' : 'stable'}
+										testId="drift-lamp-{row.gateId}"
+									/>
+									{#if row.reason}<span class="hint">{row.reason}</span>{/if}
+								</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
 			</section>
 		{/if}
 
@@ -1225,6 +1318,24 @@
 		border: var(--cab-border-part) solid var(--cab-engrave);
 		border-radius: var(--cab-radius-pill);
 		background: var(--cab-cream);
+	}
+	.fairness {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--cab-space-4);
+	}
+	.fairness-row {
+		display: flex;
+		align-items: center;
+		gap: var(--cab-space-3);
+	}
+	.fairness-facts p {
+		margin: 0;
+		font-size: var(--cab-text-sm);
+	}
+	.lamps {
+		display: flex;
+		gap: var(--cab-space-3);
 	}
 	.books {
 		display: flex;

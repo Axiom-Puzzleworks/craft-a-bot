@@ -117,7 +117,7 @@ export function mergeCampaignReports(
 		gates,
 		passed: gates.every((gate) => gate.passed),
 		counterpart: campaign.counterpart ?? { tier: 'scripted' },
-		summary: summariseCampaign(cells, { semantics: options.semantics }),
+		summary: summariseCampaign(cells, { semantics: options.semantics, gates }),
 		budget: {
 			liveCells,
 			tokensIn: reports.reduce((total, report) => total + report.budget.tokensIn, 0),

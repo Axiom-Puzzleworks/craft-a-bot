@@ -128,3 +128,115 @@ describe('the lending book through the five configurations', { timeout: 300_000 
 		}
 	});
 });
+
+/**
+ * **The gates over a book** (WP82, `74-…` §3; `65-…` WP82's DoD): a `parity`
+ * gate with a metric and `power: 'required'` is inconclusive over twelve
+ * cells and a verdict over twelve hundred; a `drift` gate against the
+ * `population` reference passes the rules-only build and fails a planted
+ * shift — a build whose knobs approve everything.
+ */
+describe('the gates and report v3 over the book', { timeout: 600_000 }, () => {
+	const withGates = (size: number, limit?: number) =>
+		parseCampaign({
+			...lendingBookCampaign({ size, configurations: ['rules-only'] }),
+			source: {
+				kind: 'book',
+				workflowId: 'fs-lending/lending',
+				population: { seed: 1, size },
+				...(limit !== undefined ? { limit } : {})
+			},
+			builds: [
+				{
+					id: 'rules-only',
+					base: { kind: 'starter-default' },
+					overrides: { configuration: 'rules-only' }
+				},
+				{
+					id: 'approve-everything',
+					base: { kind: 'starter-default' },
+					overrides: {
+						configuration: 'rules-only',
+						knobs: {
+							referRatioPercent: 999,
+							declineRatioPercent: 999,
+							declineOnDefaults: 99,
+							referOnSearches: 99,
+							referOnFair: false
+						}
+					}
+				}
+			],
+			gates: [
+				{
+					id: 'parity:approval-across-age-bands',
+					where: { build: 'rules-only' },
+					require: {
+						kind: 'parity',
+						across: 'ageBand',
+						metric: 'demographic-parity',
+						maxDifference: 1,
+						power: 'required'
+					}
+				},
+				{
+					id: 'drift:rules-only-against-the-population',
+					where: { build: 'rules-only' },
+					require: {
+						kind: 'drift',
+						metric: 'outcome-mix',
+						reference: { kind: 'population' },
+						atMost: 0.05
+					}
+				},
+				{
+					id: 'drift:approve-everything-against-the-population',
+					where: { build: 'approve-everything' },
+					require: {
+						kind: 'drift',
+						metric: 'outcome-mix',
+						reference: { kind: 'population' },
+						atMost: 0.05
+					}
+				}
+			]
+		});
+
+	it('twelve cells are inconclusive under power required', async () => {
+		const twelve = await runCampaign(withGates(400, 6), { packs, plans, ...FIXED });
+		expect(twelve.schemaVersion).toBe(3);
+		expect(twelve.cells.filter((cell) => cell.build === 'rules-only')).toHaveLength(6);
+		const parity = twelve.gates.find((gate) => gate.id.startsWith('parity'));
+		expect(parity?.inconclusive).toBe(true);
+		expect(parity?.reason).toContain('underpowered');
+		expect(twelve.summary?.fairness[0]).toMatchObject({
+			metric: 'demographic-parity',
+			inconclusive: true
+		});
+	});
+
+	it('twelve hundred cells are a verdict with its interval; the population drift gate passes the rule and sees the planted shift', async () => {
+		const many = await runCampaign(withGates(16_000), { packs, plans, ...FIXED });
+		const rules = many.cells.filter((cell) => cell.build === 'rules-only');
+		expect(rules.length).toBeGreaterThan(1_100);
+		const parity = many.gates.find((gate) => gate.id.startsWith('parity'));
+		expect(parity?.inconclusive).toBeUndefined();
+		expect(parity?.underpowered).toBe(false);
+		expect(parity?.n).toBe(rules.filter((cell) => cell.decision).length);
+		expect(parity?.interval).toHaveLength(2);
+		expect(parity?.passed).toBe(true);
+		// The rule's decisions are the book's verdicts: no distance. Approving everything moves the mix.
+		const stable = many.gates.find((gate) => gate.id === 'drift:rules-only-against-the-population');
+		expect(stable?.passed).toBe(true);
+		expect(stable?.observed).toBe(0);
+		const shifted = many.gates.find(
+			(gate) => gate.id === 'drift:approve-everything-against-the-population'
+		);
+		expect(shifted?.passed).toBe(false);
+		expect(shifted?.observed).toBeGreaterThan(0.05);
+		expect(many.summary?.drift.map((row) => [row.gateId, row.flagged])).toEqual([
+			['drift:rules-only-against-the-population', false],
+			['drift:approve-everything-against-the-population', true]
+		]);
+	});
+});

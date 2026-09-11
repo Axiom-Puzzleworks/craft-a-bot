@@ -1,3 +1,5 @@
+> **Amended 2026-09-11 (WP82, `74-GATES-AND-REPORT-V3.md`).** The campaign side of §6.4.4 is built: a `parity` gate names a fairness metric and a `drift` gate a reference window, both over this package. `driftIn` keeps the signature WP76 left it with — the `psi:<feature>` series, the `agreement` series and the new flag kinds want a series of reports, which the Monitor (WP84) is the first host to have.
+
 # 68 — Metrics: fairness, drift, human load, intervals, and the validation suite (WP76)
 
 > **Status:** design of record for WP76 (`65-DAY5-ROADMAP.md` Phase R), opened 2026-09-10 on the `day5` branch. Stage A is this note — every metric, its definition, its interval method, its statistical test, the planted-effect design and the null design, with the hand cases worked so a reviewer can check the arithmetic before the code exists. Stages B and C are the package `@craftabot/metrics` and its validation suite, with `docs/metrics.md` generated from the suite's results.
