@@ -135,10 +135,9 @@
 			build: configuration !== '' ? configuration : `what-if:${selected}`
 		});
 		drawerOpen = false;
+		const target = `${resolve('/workshop/workflows/[runId]', { runId: result.run.id })}?against=${encodeURIComponent(stored.run.id)}`;
 		// eslint-disable-next-line svelte/no-navigation-without-resolve -- resolve() builds the base path here; its typed surface has no way to attach the ?against= query the rule can verify statically (the same exception workshop/export's safety-case link takes).
-		await goto(
-			`${resolve('/workshop/workflows/[runId]', { runId: result.run.id })}?against=${encodeURIComponent(stored.run.id)}`
-		);
+		await goto(target);
 	}
 	const knobValueParsed = (raw: string): number | string | boolean => {
 		const trimmed = raw.trim();
@@ -298,6 +297,7 @@
 			<p class="links">
 				{#if stage.executor.kind === 'agent'}
 					{#if stage.runId && storedRunIds.includes(stage.runId)}
+						<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- resolve() builds the base path; the ?tick=&stage= query cannot be attached through its typed surface. -->
 						<a href={runLabHref(stage)} data-testid="pipeline-run-lab"
 							>Open the bot's run in the Run Lab at this stage's first tick</a
 						>
