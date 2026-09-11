@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { SITE_FRAMING_PAGE } from '$lib/workshop/site.js';
 	import { resolve } from '$app/paths';
 	import BatteryCompartment from '$lib/components/settings/BatteryCompartment.svelte';
 	import GeapCredentialCompartment from '$lib/components/settings/GeapCredentialCompartment.svelte';
@@ -287,6 +288,12 @@
 				runs in this browser: your bots, your runs, and your API key never leave it.
 			</p>
 			<p class="hint">Built in public, under the Apache License 2.0.</p>
+			<p class="hint" data-testid="about-site">
+				One half of an investigation: the thought experiment asks whether a small team can govern an
+				AI bank; the simulator measures it.
+				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- an external page on the site, not a route of this app. -->
+				<a href={SITE_FRAMING_PAGE}>Read the two side by side.</a>
+			</p>
 		</div>
 	</Panel>
 </main>

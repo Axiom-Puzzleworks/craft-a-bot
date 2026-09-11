@@ -32,7 +32,9 @@ export const DECISION_RIGHTS_SOURCE = {
 	publisher: 'Axiom Puzzleworks (axiomverity.com)',
 	title: 'Can a Small Team Govern an AI Bank? — the decision-rights table',
 	edition: '/thought-experiment, src/lib/thought-experiment.ts as read',
-	retrieved: '2026-09-11'
+	retrieved: '2026-09-11',
+	/** The framing page that sets the thought experiment's claims beside the simulator's measurements (WP93, `82-…` §3). */
+	page: 'https://axiom-verity.com/thought-experiment/simulator'
 } as const;
 
 export const DECISION_RIGHTS: readonly DecisionRight[] = [

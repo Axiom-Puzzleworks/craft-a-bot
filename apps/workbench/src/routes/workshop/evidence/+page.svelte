@@ -1,4 +1,7 @@
 <script lang="ts">
+	import { base } from '$app/paths';
+	import { page } from '$app/state';
+	import { SITE_WORKSPACE_PAGE, servedFromSite } from '$lib/workshop/site.js';
 	import { resolve } from '$app/paths';
 	import type {
 		AgentRecord,
@@ -375,6 +378,16 @@
 		project and minting a workspace token is the team's own job: see
 		<code>docs/evidence-setup.md</code>.
 	</p>
+	{#if servedFromSite(page.url.hostname, base)}
+		<!-- The site's affordance (WP93, `82-…` §3): shown only under a section on the site's own host; a link, never a session. -->
+		<p class="hint" data-testid="evidence-site-offer">
+			<strong>Use my Axiom Verity workspace.</strong> Signed in on the site? Your account is an
+			evidence-store workspace: mint its token on
+			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- an external page on the site, not a route of this app. -->
+			<a href={SITE_WORKSPACE_PAGE}>your account page</a> and fit it below. Your keys still never leave
+			this browser; the store holds artefacts only.
+		</p>
+	{/if}
 
 	{#each evidenceStoresStore.available as store (store.id)}
 		{@const entry = configured(store.id)}
