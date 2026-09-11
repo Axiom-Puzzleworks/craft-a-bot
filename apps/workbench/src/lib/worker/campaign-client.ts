@@ -1,7 +1,15 @@
 import type { AgentSpecV2, EngineEvent } from '@craftabot/core';
 import type { CampaignCell, CampaignReport } from '@craftabot/evals';
 import type { CampaignHost } from './campaign-host.js';
-import type { BankJob, JobBankDone, WorkerLike, WorkerReply, WorkerRequest } from './protocol.js';
+import type {
+	BankJob,
+	JobArrival,
+	JobBankDone,
+	JobWorkflowRun,
+	WorkerLike,
+	WorkerReply,
+	WorkerRequest
+} from './protocol.js';
 
 /**
  * **The main thread's side** (WP77): one campaign sent to a Worker, its
@@ -106,10 +114,17 @@ export function inProcessWorker(makeHost: (post: (reply: WorkerReply) => void) =
 }
 
 /** A day at the bank in the Worker (WP83): progress as items are worked, every agent run as a trace, and the `BankRun` with the workflow runs at the end. */
+export interface RunBankInOptions extends RunInWorkerOptions {
+	/** Every arrival as the clock delivers it (WP84). */
+	onArrival?: (arrival: Omit<JobArrival, 'kind' | 'job'>) => void;
+	/** Every workflow run as it finishes, its agent events attached (WP84). */
+	onWorkflowRun?: (entry: Omit<JobWorkflowRun, 'kind' | 'job'>) => void;
+}
+
 export function runBankIn(
 	worker: WorkerLike,
 	bank: BankJob,
-	options: RunInWorkerOptions = {}
+	options: RunBankInOptions = {}
 ): { result: Promise<Omit<JobBankDone, 'kind' | 'job'>>; cancel(): void } {
 	const job = `job-${(nextJob += 1)}`;
 	const result = new Promise<Omit<JobBankDone, 'kind' | 'job'>>((resolve, reject) => {
@@ -121,6 +136,22 @@ export function runBankIn(
 					return;
 				case 'trace':
 					options.onTrace?.(data.cell, { events: data.events, spec: data.spec });
+					return;
+				case 'arrival':
+					options.onArrival?.({
+						...(data.desk !== undefined ? { desk: data.desk } : {}),
+						itemId: data.itemId,
+						itemKind: data.itemKind,
+						at: data.at
+					});
+					return;
+				case 'workflow-run':
+					options.onWorkflowRun?.({
+						desk: data.desk,
+						item: data.item,
+						run: data.run,
+						events: data.events
+					});
 					return;
 				case 'bank-done':
 					worker.removeEventListener('message', listener);

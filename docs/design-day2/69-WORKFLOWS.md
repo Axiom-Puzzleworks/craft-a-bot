@@ -151,3 +151,5 @@ Both optional in every reader; the OTel mapping (`35-…`) gives each a child sp
 - `fromStage` re-runs rather than restores (§1 item 7) — the same bytes by construction, no snapshot to carry.
 - A `line` executor carries an `arguments(input, state)` function beside `lineId` and `operation`, since an operation's arguments come from the case.
 - The JSON-schema validation at the boundary is a small structural checker in the package (`type`, `required`, `properties`, `enum`, `items`), not a full validator — enough for the stage records, and dependency-free.
+
+> **Amended 2026-09-11 (WP84, `75-THE-MONITOR.md` §5).** `WorkflowSpec.kinds?: WorkItemKind[]` — the work-item kinds the workflow takes, so a host assigning desks by workflow (the Monitor's set-up) knows what the clock may offer them; `LENDING_WORKFLOW` declares `['application']`, and a workflow without one is assumed to take applications. `71-…` §7's divergence (the desks route by an explicit `kinds` list) stands: the assignment still names its kinds, the workflow now says which it can take.

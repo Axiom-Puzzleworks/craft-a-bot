@@ -23,6 +23,7 @@
 			| 'policies'
 			| 'bench'
 			| 'telemetry'
+			| 'monitor'
 			| 'incidents'
 			| 'safety-case'
 			| 'assurance'
@@ -58,6 +59,8 @@
 		{ id: 'policies', label: 'Policies', href: '/workshop/policies' },
 		{ id: 'bench', label: 'Test bench', href: '/workshop/bench' },
 		{ id: 'telemetry', label: 'Telemetry', href: '/workshop/telemetry' },
+		// WP84 (`75-THE-MONITOR.md` §5) — the bank's day, live, on the Control Room system.
+		{ id: 'monitor', label: 'Monitor', href: '/workshop/monitor' },
 		{ id: 'incidents', label: 'Incidents', href: '/workshop/incidents' },
 		{ id: 'safety-case', label: 'Safety case', href: '/workshop/safety-case' },
 		// WP67 (`53-ASSURANCE-PACK.md` §4.3): the evidence, filed.
@@ -84,6 +87,7 @@
 								| '/workshop/policies'
 								| '/workshop/bench'
 								| '/workshop/telemetry'
+								| '/workshop/monitor'
 								| '/workshop/incidents'
 								| '/workshop/safety-case'
 								| '/workshop/assurance'

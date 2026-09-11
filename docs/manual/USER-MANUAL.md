@@ -517,7 +517,7 @@ Everything in the Workshop is a *consumer* of the same stores and the same event
 
 A persistent left rail lists every screen:
 
-**Bench** · **Runs** · *Spec lab (per bot)* · **Evals** · **Campaigns** · **Evaluators** · **Scenarios** · **Sinks** · **Evidence** · **Playground** · **Policies** · **Test bench** · **Telemetry** · **Incidents** · **Safety case** · **Assurance** · **Audit** · **Guards**
+**Bench** · **Runs** · *Spec lab (per bot)* · **Evals** · **Campaigns** · **Evaluators** · **Scenarios** · **Sinks** · **Evidence** · **Playground** · **Policies** · **Test bench** · **Telemetry** · **Monitor** · **Incidents** · **Safety case** · **Assurance** · **Audit** · **Guards**
 
 **← The Kit** at the foot returns you to the toy.
 
@@ -772,6 +772,14 @@ Every failing thing worth a second look, derived from the traces: guardrail trip
 The structured argument for one bot, in five parts: **Inability** (what this build simply cannot do), **Control** (what stands in the way of what it can), **Where it may call** (the declared egress), **Trustworthiness**, **Evaluation evidence** and **Campaign results**.
 
 *Inability* is the strongest claim available and is computed, not asserted: a bot with no Hands & Wheels brick cannot act on the world, so nothing it says can move anything.
+
+### 22.4 The Monitor (`/workshop/monitor`)
+
+The bank's day, live. Choose the window (dates inside the population's period), the population's seed and size, the acceleration (∞ runs as fast as it can; 600× and 60× pace the clock), the rolling window, and the desks — each desk a workflow with one of its named configurations and a number of lanes. **Run the day** starts it in the Worker; the tab stays live, and the rail works mid-run.
+
+Every number is the fold the campaign report uses, over the last *n* runs: arrivals by kind, decisions by outcome, the approval and referral rates with their bands, escalations, guardrail trips and approvals per decision, tokens per decision, incidents open, touches per case, the unattended rate, ceiling breaches; the tapes show the same by the simulated hour with a dashed hairline at the population's expected approval rate. **Fairness now** greys *underpowered* until the window holds forty runs; **Drift now** is the outcome mix against the population's expected verdicts; the queue per desk shows waiting, in progress and done with the oldest waiting item's age.
+
+**Play** folds each run as it lands. **Pause** freezes the numbers — the day goes on underneath. **Step** folds one more run. **Replay** empties the fold and refills it from the runs kept, drawing the same picture. Nothing here is stored: the Monitor watches; Campaigns keeps. *For simulation only* — every clock on the screen is the population's.
 
 ## 23. The Assurance pack (`/workshop/assurance`)
 

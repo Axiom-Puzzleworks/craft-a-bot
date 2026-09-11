@@ -539,6 +539,8 @@ export {
 	verifyBundleDigest,
 	type BuildTraceBundleOptions
 } from './persistence/bundle.js';
+/** A `RunRecord` folded from a run's own trace (WP84, moved from the harness). */
+export { runRecordFrom } from './persistence/run-record.js';
 
 /** Semver ranges, evaluated (WP52, `40-DEBTS.md` §4.2; `12-…` D13). */
 export {

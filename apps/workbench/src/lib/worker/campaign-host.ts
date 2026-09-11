@@ -3,6 +3,7 @@ import {
 	toSpecV2,
 	type AnyAgentSpec,
 	type Book,
+	type EngineEvent,
 	type Guardrail,
 	type PackManifest
 } from '@craftabot/core';
@@ -162,6 +163,7 @@ export function createCampaignHost(
 				);
 			}
 			const sink = memorySink();
+			const eventsByRun = new Map<string, readonly EngineEvent[]>();
 			const record = await runBank(
 				bankClock({
 					population: pop,
@@ -174,8 +176,20 @@ export function createCampaignHost(
 				desks,
 				{
 					...sink,
+					workflowRun: (entry) => {
+						sink.workflowRun(entry);
+						post({
+							kind: 'workflow-run',
+							job: start.job,
+							desk: entry.desk,
+							item: entry.item,
+							run: entry.run,
+							events: entry.run.runIds.flatMap((runId) => eventsByRun.get(runId) ?? [])
+						});
+					},
 					agentRun: (entry) => {
 						sink.agentRun(entry);
+						eventsByRun.set(entry.runId, entry.events);
 						post({
 							kind: 'trace',
 							job: start.job,
@@ -221,6 +235,15 @@ export function createCampaignHost(
 					newId: () =>
 						`bank-${job.population.seed}-${job.from}${job.to !== job.from ? `-${job.to}` : ''}`,
 					...(job.stopAfter !== undefined ? { stopAfter: job.stopAfter } : {}),
+					onArrival: (arrival, desk) =>
+						post({
+							kind: 'arrival',
+							job: start.job,
+							...(desk !== undefined ? { desk } : {}),
+							itemId: arrival.item.id,
+							itemKind: arrival.item.kind,
+							at: arrival.at
+						}),
 					onProgress: (progress) =>
 						post({
 							kind: 'progress',

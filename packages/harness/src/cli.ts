@@ -25,7 +25,7 @@ import {
 	type PushEvidenceOptions
 } from './commands/evidence.js';
 import { buildEvidenceStore, evidenceStoreById, parseEvidenceStoreConfig } from './evidence.js';
-import type { EvidenceKind } from '@craftabot/core';
+import { evidenceKindSchema, type EvidenceKind } from '@craftabot/core';
 import { runKit, type BrainTier } from './commands/run.js';
 import { forkRun } from './commands/fork.js';
 import { workflowRun } from './commands/workflow.js';
@@ -927,12 +927,9 @@ ${renderEvaluations(report)}`);
 					return 0;
 				}
 				const kind = stringFlag(args, 'kind');
-				if (
-					kind !== undefined &&
-					!['bundle', 'campaign-report', 'assurance-pack', 'content'].includes(kind)
-				) {
+				if (kind !== undefined && !evidenceKindSchema.options.includes(kind as EvidenceKind)) {
 					throw new Error(
-						`evidence pull --kind wants bundle|campaign-report|assurance-pack|content, got "${kind}"`
+						`evidence pull --kind wants one of ${evidenceKindSchema.options.join('|')}, got "${kind}"`
 					);
 				}
 				const limit = stringFlag(args, 'limit');

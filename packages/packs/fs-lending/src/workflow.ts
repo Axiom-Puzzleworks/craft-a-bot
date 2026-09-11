@@ -534,5 +534,6 @@ export const lendingWorkflow: WorkflowSpec = {
 	],
 	configurations: LENDING_CONFIGURATIONS,
 	decisionKindOf: lendingDecisionKind,
-	book: lendingBookFor
+	book: lendingBookFor,
+	kinds: ['application']
 };

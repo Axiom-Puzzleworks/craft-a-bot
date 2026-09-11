@@ -78,7 +78,10 @@ export type Imported =
 	| { kind: 'bundle'; runIds: string[]; groupId?: string }
 	| { kind: 'campaign-report'; id: string }
 	| { kind: 'content'; id: string }
-	| { kind: 'assurance-pack'; id: string };
+	| { kind: 'assurance-pack'; id: string }
+	// WP84 (`75-THE-MONITOR.md` §6): the Monitor's artefacts have no local store either — offered as a download, read by the Monitor's seam.
+	| { kind: 'workflow-run'; id: string }
+	| { kind: 'bank-run'; id: string };
 
 /**
  * Store a verified item locally: a bundle as its runs (records, events,
@@ -121,5 +124,9 @@ export async function importPulled(
 			return { kind: 'content', id: item.id };
 		case 'assurance-pack':
 			return { kind: 'assurance-pack', id: item.id };
+		case 'workflow-run':
+			return { kind: 'workflow-run', id: item.id };
+		case 'bank-run':
+			return { kind: 'bank-run', id: item.id };
 	}
 }

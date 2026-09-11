@@ -21,6 +21,7 @@
 		"@craftabot/desk": "*"
 	},
 	"devDependencies": {
+		"@craftabot/evidence": "*",
 		"zod": "^4.4.3"
 	}
 }

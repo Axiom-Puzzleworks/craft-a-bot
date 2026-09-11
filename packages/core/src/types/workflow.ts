@@ -1,6 +1,6 @@
 import type { ActionCall, WorldState } from './world.js';
 import type { JsonSchema } from './json-schema.js';
-import type { Book, WorkItem } from '../schemas/book.js';
+import type { Book, WorkItem, WorkItemKind } from '../schemas/book.js';
 import type { ContextSpec } from './context.js';
 
 /**
@@ -99,6 +99,13 @@ export interface WorkflowSpec {
 	 * Books tab needs only the numbers.
 	 */
 	book?: (request: BookRequest) => Book;
+	/**
+	 * The work-item kinds this workflow takes (WP84, `75-THE-MONITOR.md` §5):
+	 * what a desk running it is offered by the clock. A host that assigns
+	 * desks by workflow reads it; a workflow without one is assumed to take
+	 * applications, the loan book's kind.
+	 */
+	kinds?: WorkItemKind[];
 }
 
 export interface BookRequest {

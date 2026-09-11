@@ -118,6 +118,26 @@ export interface JobFailed {
 	error: string;
 }
 
+/** An arrival on the bank's clock (WP84, `75-THE-MONITOR.md` §4): the item's kind and time, and the desk it was routed to — none for an unrouted kind. */
+export interface JobArrival {
+	kind: 'arrival';
+	job: string;
+	desk?: string | undefined;
+	itemId: string;
+	itemKind: WorkItem['kind'];
+	at: string;
+}
+
+/** A workflow run finished on a desk (WP84): the run with the events of the agent runs it made, so the Monitor folds it as it lands. */
+export interface JobWorkflowRun {
+	kind: 'workflow-run';
+	job: string;
+	desk: string;
+	item: WorkItem;
+	run: WorkflowRun;
+	events: readonly EngineEvent[];
+}
+
 /** A bank day finished: the `BankRun` and every workflow run it made. */
 export interface JobBankDone {
 	kind: 'bank-done';
@@ -126,7 +146,15 @@ export interface JobBankDone {
 	runs: Array<{ desk: string; item: WorkItem; run: WorkflowRun }>;
 }
 
-export type WorkerReply = JobProgress | JobTrace | JobDone | JobBankDone | JobCancelled | JobFailed;
+export type WorkerReply =
+	| JobProgress
+	| JobTrace
+	| JobDone
+	| JobArrival
+	| JobWorkflowRun
+	| JobBankDone
+	| JobCancelled
+	| JobFailed;
 
 /**
  * What both sides of the protocol need of a Worker: `postMessage` and a

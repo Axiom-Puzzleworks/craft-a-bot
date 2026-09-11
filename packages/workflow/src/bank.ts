@@ -115,6 +115,8 @@ export interface RunBankOptions {
 	onProgress?: (progress: { arrived: number; worked: number; inFlight: number }) => void;
 	onIncident?: (incident: BankRun['incidents'][number]) => void;
 	onWorkflowRun?: (entry: { desk: string; item: WorkItem; run: WorkflowRun }) => void;
+	/** Every arrival as the clock delivers it, with the desk it was routed to — none for an unrouted kind or after `stopAfter` (WP84, `75-…` §4). */
+	onArrival?: (arrival: Arrival, desk: string | undefined) => void;
 }
 
 /** A counter clock for one item: ids and timestamps that depend only on the bank's seed and the item's ordinal. */
@@ -203,6 +205,7 @@ export async function runBank(
 				: {}),
 			...(desk.config?.context ? { context: desk.config.context as ContextSpec } : {})
 		};
+		const pending: Promise<void>[] = [];
 		const journey = itemClock(options.seed, arrival.ordinal, arrival.at, 1);
 		const seat = itemClock(options.seed, arrival.ordinal, arrival.at, 2);
 		const run = await runWorkflow(workflow, arrival.item, {
@@ -229,15 +232,21 @@ export async function runBank(
 				? { populationDigest: options.populationDigest }
 				: {}),
 			onAgentRun: (agentRun) => {
-				void sink.agentRun({
-					desk: desk.id,
-					itemId: arrival.item.id,
-					runId: agentRun.runId,
-					spec: agentRun.spec,
-					events: agentRun.events
-				});
+				// Awaited before the workflow run lands (WP84): a sink that writes elsewhere must hold every agent run first.
+				pending.push(
+					Promise.resolve(
+						sink.agentRun({
+							desk: desk.id,
+							itemId: arrival.item.id,
+							runId: agentRun.runId,
+							spec: agentRun.spec,
+							events: agentRun.events
+						})
+					)
+				);
 			}
 		});
+		await Promise.all(pending);
 		await sink.workflowRun({ desk: desk.id, item: arrival.item, run });
 		options.onWorkflowRun?.({ desk: desk.id, item: arrival.item, run });
 		const tally = counts.byDesk[desk.id] as { worked: number; completed: number; stopped: number };
@@ -308,8 +317,12 @@ export async function runBank(
 		counts.arrivals[arrival.item.kind] = (counts.arrivals[arrival.item.kind] ?? 0) + 1;
 		firstAt ??= arrival.at;
 		lastAt = arrival.at;
-		if (options.stopAfter !== undefined && taken >= options.stopAfter) continue;
+		if (options.stopAfter !== undefined && taken >= options.stopAfter) {
+			options.onArrival?.(arrival, undefined);
+			continue;
+		}
 		const desk = desks.find((candidate) => candidate.kinds.includes(arrival.item.kind));
+		options.onArrival?.(arrival, desk?.id);
 		if (!desk) {
 			counts.unrouted += 1;
 			continue;

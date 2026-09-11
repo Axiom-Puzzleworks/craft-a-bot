@@ -190,6 +190,29 @@ export {
 	type ObligationRow,
 	type SummaryOptions
 } from './campaign-summary.js';
+/** The Monitor's fold (WP84, `75-THE-MONITOR.md` §3): the report's numbers over a window and a clock. */
+export {
+	DEFAULT_MONITOR_METRICS,
+	DEFAULT_MONITOR_MINIMUM,
+	DEFAULT_MONITOR_WINDOW,
+	foldMonitor,
+	outcomeOfRun,
+	referenceFromItems,
+	truthOfRun,
+	verdictOfItem,
+	type MonitorArrival,
+	type MonitorBucket,
+	type MonitorDriftRow,
+	type MonitorFairnessRow,
+	type MonitorIncident,
+	type MonitorOptions,
+	type MonitorQueue,
+	type MonitorRate,
+	type MonitorReadouts,
+	type MonitorReference,
+	type MonitorRun,
+	type MonitorState
+} from './monitor.js';
 export {
 	CASE_METRIC_PATTERN,
 	cohortOf,

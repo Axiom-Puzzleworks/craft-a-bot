@@ -3,6 +3,8 @@ import { canonicalJson } from './cassette.js';
 import { contentRecordSchema } from './content.js';
 import { storedCampaignReportSchema } from './records.js';
 import { traceBundleSchema } from './trace-bundle.js';
+import { workflowRunSchema } from './workflow-run.js';
+import { bankRunSchema } from './bank-run.js';
 
 /**
  * **Evidence items** (`58-EVIDENCE-STORE.md` §4.1, WP70; `41-…` §6.11,
@@ -20,7 +22,10 @@ export const evidenceKindSchema = z.enum([
 	'bundle',
 	'campaign-report',
 	'assurance-pack',
-	'content'
+	'content',
+	// WP84 (`75-THE-MONITOR.md` §6): the ingest seam's two artefacts — a workflow run and a day at the bank.
+	'workflow-run',
+	'bank-run'
 ]);
 export type EvidenceKind = z.infer<typeof evidenceKindSchema>;
 
@@ -47,7 +52,9 @@ export const evidenceItemSchema = z.discriminatedUnion('kind', [
 		kind: z.literal('assurance-pack'),
 		payload: z.record(z.string(), z.unknown())
 	}),
-	z.object({ ...itemBase, kind: z.literal('content'), payload: contentRecordSchema })
+	z.object({ ...itemBase, kind: z.literal('content'), payload: contentRecordSchema }),
+	z.object({ ...itemBase, kind: z.literal('workflow-run'), payload: workflowRunSchema }),
+	z.object({ ...itemBase, kind: z.literal('bank-run'), payload: bankRunSchema })
 ]);
 export type EvidenceItem = z.infer<typeof evidenceItemSchema>;
 export type EvidencePayloadOf<K extends EvidenceKind> = Extract<

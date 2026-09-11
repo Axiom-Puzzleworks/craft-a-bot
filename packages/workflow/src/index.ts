@@ -20,3 +20,11 @@ export {
 	type MonitorSink,
 	type RunBankOptions
 } from './bank.js';
+export {
+	bankRunsFromEvidence,
+	evidenceMonitorSink,
+	monitorRunsFromEvidence,
+	type EvidenceMonitorQuery,
+	type EvidenceMonitorRun,
+	type EvidenceSinkOptions
+} from './evidence-sink.js';

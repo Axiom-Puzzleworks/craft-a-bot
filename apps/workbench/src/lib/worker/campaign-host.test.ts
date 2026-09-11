@@ -99,9 +99,20 @@ describe('the bank job', { timeout: 300_000 }, () => {
 			]
 		};
 		const traces: string[] = [];
+		const arrivals: string[] = [];
+		const landed: string[] = [];
 		const first = await runBankIn(workerOf(), job, {
-			onTrace: (cell) => traces.push(cell.scenario)
+			onTrace: (cell) => traces.push(cell.scenario),
+			onArrival: (arrival) => arrivals.push(`${arrival.desk ?? '-'}:${arrival.itemId}`),
+			onWorkflowRun: (entry) => landed.push(`${entry.desk}:${entry.item.id}:${entry.events.length}`)
 		}).result;
+		// WP84: every arrival named its desk, every workflow run landed before the day did, its agent events attached.
+		expect(arrivals).toHaveLength(first.bank.counts.arrivals['application'] ?? 0);
+		expect(arrivals.every((entry) => entry.startsWith('lending:'))).toBe(true);
+		expect(landed).toHaveLength(first.runs.length);
+		expect(landed.every((entry) => entry.startsWith('lending:') && !entry.endsWith(':0'))).toBe(
+			true
+		);
 		expect(first.bank.counts.arrivals['application']).toBeGreaterThan(0);
 		expect(first.bank.counts.routed).toBe(first.runs.length);
 		expect(first.runs.length).toBeGreaterThan(0);
