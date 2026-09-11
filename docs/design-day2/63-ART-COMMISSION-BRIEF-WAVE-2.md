@@ -71,6 +71,8 @@ The Retail Bank Playground's box on the Kit's shelf (`03-…` §3; `41-…` §6.
 
 ### 5.2 The instrument roundels — 11 files · `assets/instruments/`
 
+> **Amended 2026-09-11 (WP91, `81-THE-TAIL-DAY5.md` §3).** Five more roundels to the same contract, placeholders in the repo already: `icon-pipeline` (three stage cards joined), `icon-clock` (a dial and two hands), `icon-lens` (a ring and a handle), `icon-experiment` (a flask with a level line), `icon-register` (a ledger page, three rules, a tick). Sixteen roundels; nineteen files in the wave.
+
 The moulded roundel of `11-…` §I — a disc in a token colour, the glyph in cream, ≥ 2 px strokes at 24 px, authored here at **96 × 96** with a 6-px stroke — one per Control Room instrument or screen (`44-CONTROL-ROOM.md` §4.4 for what each instrument is).
 
 | File | Stands for | Glyph brief | Where it is meant to sit |

@@ -49,6 +49,14 @@ has a way to say so:
 - **nginx**: `location /simulator/ { try_files $uri /simulator/index.html; }` per section.
 - **GitHub Pages** has no rewrites: copy each folder's `index.html` to `404.html` inside it, which serves the app for any path under the folder.
 
+**One cache per section.** Each section registers its own service worker under
+its own base, and since WP91 (`81-THE-TAIL-DAY5.md` §1) names its cache
+`craftabot-shell-<edition>-<version>` and clears only its own older caches, so a
+visitor moving from `/workshop/` to `/playground/` on one origin never opens on a
+blank page holding the other build's shell. Nothing to configure: keep the
+sections under distinct paths, as above, and never serve two different builds at
+the same path on one origin without a new build version.
+
 Without the rule the section still opens at its root and every link inside the
 app works; only a pasted deep link fails. To see the site as a host serves it,
 `npm run serve:site` after `npm run build:editions` serves the whole `build/`

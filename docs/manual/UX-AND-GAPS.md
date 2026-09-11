@@ -239,13 +239,13 @@ Everything raised as a defect is closed. What follows is the work deferred on pu
 |---|---|---|---|
 | **UX-12 (Worker)** | A campaign runs on the main thread and holds the tab | The three small halves — **Cancel**, the progress counter, the honest estimate — landed and cover most of the pain. **Built 2026-09-10 as WP77** (`65-DAY5-ROADMAP.md` §3, on the `day5` branch): the run is in a Worker with a queue; the 930-cell Advice baseline takes 24 s with the tab live | Medium · M |
 | **UX-7** | The boundary map's labels collide where the ring is crowded | Needs `Boundary.svelte` rewritten, not nudged | Medium · M |
-| **CLOSE-2** | One service worker per origin; a second section can open blank (§3b) | Found at close; belongs inside the editions package | Medium · S |
+| **CLOSE-2** | One service worker per origin; a second section can open blank (§3b) | Found at close; belongs inside the editions package. **Resolved 2026-09-11 (WP91):** the cache is named per edition and a worker clears only its own; `e2e/editions/two-sections.spec.ts` | Medium · S |
 | **GAP-2** | No guided path through the Playground — a reader has to know where to start | Content and sequencing work, not a defect | Medium · M |
 | **GAP-6** | Two campaign reports cannot be compared | The data is in both reports; the screen is not built | Medium · M |
 | **GAP-3** | The cohort axis exists only inside a campaign report | Wants a home of its own in Telemetry | Low–Medium · M |
 | **GAP-1** | Accepting a control-map row is a content edit, not a click | A real decision about where review lives; the manual states it plainly (§41) | Low · L |
 | **GAP-5** | *Talk to this desk* as a first-class mode | Half of it arrived with UX-11: a desk can now be talked to at all | Low · M |
-| **CLOSE-1** | The tidy banner's singular/plural (§3b) | Found at close | Low · S |
+| **CLOSE-1** | The tidy banner's singular/plural (§3b) | Found at close. **Resolved 2026-09-11 (WP91):** *and it is an episode* for one | Low · S |
 
 **If only one thing is done next**, make it the Worker. The case is concrete rather than theoretical now: the Advice Desk baseline is 930 cells and about a minute and a half of a tab that will not answer, four such baselines ship, and the desks' cells are the heavy ones. Everything else on this list is an improvement; that one is the difference between a tool a reviewer runs and a tool a reviewer waits for.
 

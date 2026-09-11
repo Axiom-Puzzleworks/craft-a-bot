@@ -17,7 +17,7 @@
 	let { lens, onDismiss }: Props = $props();
 </script>
 
-<Strip label={`${lens.name}: ${lens.question}`} icon="deck" testId="first-run">
+<Strip label={`${lens.name}: ${lens.question}`} icon="lens" testId="first-run">
 	<ol class="steps">
 		{#each lens.firstRun as step, index (index)}
 			<li>

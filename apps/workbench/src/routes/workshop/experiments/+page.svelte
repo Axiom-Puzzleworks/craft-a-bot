@@ -331,7 +331,7 @@
 		<p class="status" data-testid="experiments-empty">No experiment has run here yet.</p>
 	{:else}
 		<section aria-labelledby="result-h" data-testid="experiment-result">
-			<Strip label={result.title} icon="meter" testId="experiment-strip">
+			<Strip label={result.title} icon="experiment" testId="experiment-strip">
 				<Lamp
 					status={verdictLamp(result.verdict)}
 					label={result.verdict}

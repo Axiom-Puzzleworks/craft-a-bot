@@ -17,6 +17,7 @@ Craft A Bot's second purpose is a proving ground for automated AI governance. Th
 ## Where to look
 
 - In the Workshop, **Playground** shows a case from a seed on the case file and the ten lines on a boundary map; its **Advice Desk** page shows the desk. An Advice Desk card sits on the Kit's rack once the Workshop door is open.
+- Since Day 5: **Workflows** and the Pipeline (`/workshop/workflows`) show a journey stage by stage; the **Monitor** (`/workshop/monitor`) runs a bank day live; **Conduct** and **Model risk** read a stored report as a compliance reviewer and a data scientist do; **Experiments** (`/workshop/experiments`) measure a control's effect, and the **Control Effectiveness Register** on the Assurance page folds every result by control. The manual's Part G is the tour.
 - On the Kit's shelf, the **Retail Bank Playground** box.
 - `docs/design-day2/48-FS-BANK.md` is the bank's design of record; `41-TARGET-DESIGN-V4.md` §6.5 the whole Playground's.
 

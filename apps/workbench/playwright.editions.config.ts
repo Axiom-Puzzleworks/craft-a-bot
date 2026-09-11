@@ -21,10 +21,18 @@ export default defineConfig({
 		timeout: 600_000
 	},
 	testDir: 'e2e/editions',
-	projects: editions.map((edition) => ({
-		name: edition,
-		testMatch: new RegExp(`${edition}\\.spec\\.ts$`),
-		use: { baseURL: `http://localhost:4173/${edition}/` }
-	})),
+	projects: [
+		...editions.map((edition) => ({
+			name: edition,
+			testMatch: new RegExp(`${edition}\\.spec\\.ts$`),
+			use: { baseURL: `http://localhost:4173/${edition}/` }
+		})),
+		// Two sections on one origin (WP91, CLOSE-2): the site as a whole, from its root.
+		{
+			name: 'site',
+			testMatch: /two-sections\.spec\.ts$/,
+			use: { baseURL: 'http://localhost:4173/' }
+		}
+	],
 	retries: process.env.CI ? 1 : 0
 });

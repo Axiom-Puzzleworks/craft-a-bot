@@ -24,7 +24,7 @@ python render.py   # headless Chromium -> A4 PDF, cover merged, metadata set
   `#f7f7f5` paper, Newsreader for every heading, Inter for body, IBM Plex Mono for labels
   and code, near-square corners. The three typefaces are embedded as base64 so the PDF
   sets identically to the website. The cover is typographic: letterhead rule, wordmark,
-  title, the ∴ proof-mark, the *FOR SIMULATION ONLY* strap.
+  title, the ∴ proof-mark, the _FOR SIMULATION ONLY_ strap.
 - `render.py` prints the cover full-bleed with no running head, prints the body with the
   running header and footer (real page numbers), merges the two and writes the metadata.
 

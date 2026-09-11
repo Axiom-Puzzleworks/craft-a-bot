@@ -138,6 +138,15 @@ Conventions used throughout:
 40. Troubleshooting
 41. Limits and known behaviours
 
+**Part G — The bank in motion**
+42. The population and the calibration table
+43. Workflows and the Pipeline
+44. Contexts and the ontology
+45. The clock and the Monitor
+46. The lenses, Conduct and Model risk
+47. Experiments and the Control Effectiveness Register
+48. The site
+
 **Appendices**
 A. Screen index
 B. File formats and schemas
@@ -1405,6 +1414,52 @@ Recorded rather than hidden.
 
 ---
 
+# Part G — The bank in motion
+
+Day 5 gave the Playground a clock, journeys, a population with a cited calibration, a place to measure a control rather than judge it, and a rail that speaks to four readers. This part is the tour; the design of record is `docs/design-day2/64-TARGET-DESIGN-V5.md` and the notes `66-…` to `80-…`.
+
+## 42. The population and the calibration table
+
+The bank no longer draws one case at a time. A **population** is every customer of a synthetic bank at a seed and a size — ten thousand, say — each with an age band, an income band, a bureau file, accounts and a transaction stream, generated lazily and digested once so the same seed always gives the same bank. Every distribution it draws from sits in a **calibration table** (`packages/packs/fs-bank/src/calibration.ts`, `docs/schemas/calibration.schema.json`): a row per distribution naming the published aggregate it was set to — publisher, title, edition, table, retrieval date — or stating its assumption, with the tolerance a test allows. A test draws twenty thousand customers and holds every row to its target. Every row is marked *pending review* until a reader has read its source; the Playground's bank page shows the table with that status on each row, and the assurance pack cites it.
+
+From the population the bank draws its **books**: the loan book (every application in a period, with the hazard label — whether the loan *would have performed* — computed from the synthetic bank's own model, never a real default rate), the alert book, the complaint register and the advice-request register. A book is a file (`book.schema.json`) a campaign can carry inline or draw from a population at run time.
+
+## 43. Workflows and the Pipeline
+
+A **workflow** is a journey as content: stages in order, each with an executor — a rule, the bot, a person, a service line — and the five **reference configurations** by autonomy level (Level 1 *rules-only* to Level 5 *bot-everywhere*, with *bot-recommends* as Level 3, the thought experiment's most-cited ceiling). Each desk ships one: the lending journey, the fraud journey (with the SAR under a person), the advice journey (with execution under a person). A **book campaign** runs a book through a workflow's configurations and reports per level: touches per case, the unattended rate, the ceiling-breach rate. Section 22.5 describes the Workflows list and the **Pipeline** — one run's stages with their In and Out panes, the Run Lab behind the bot's stage, and *What if…*, which re-runs the journey from a stage under one change and shows the two rails side by side.
+
+> **Figure 21** — The Pipeline: a stored lending run, its stages and the *In*/*Out* panes. *(Appendix D, `ws-workflows.png`.)*
+
+## 44. Contexts and the ontology
+
+What the bot is told about a customer is a dial, not a given. The **context ladder** has four rungs — *minimal*, *case-file*, *relational*, *ontology* — and a campaign can name them as an axis, so the same book runs once per rung and the report slices by it. The bank's **ontology** is the relational picture of a customer — accounts, products, the household, the history — delivered as a brief, a sense or a line, and the `graph` line is the tenth service line. Data minimisation is measurable because the rung is on every cell.
+
+## 45. The clock and the Monitor
+
+A **bank day** is the books scheduled onto a clock — arrivals by hour, per kind, at a calibrated volume — worked by three desks at once in a Web Worker, so the tab stays responsive while thousands of journeys run. The day leaves a **bank run** (`bank-run.schema.json`): the clock's options, the desks, the counts, the incidents, every workflow run's digest. The **Monitor** (section 22.4) watches a day live over a rolling window, with Play, Pause, Step and Replay; every readout is the campaign report's own fold, and the drift lamp compares the window with the population's reference.
+
+> **Figure 22** — The Monitor over a lending day. *(Appendix D, `ws-monitor.png`.)*
+
+## 46. The lenses, Conduct and Model risk
+
+Section 2a introduces the four lenses. Two of them open on pages of their own. **Conduct** (`/workshop/conduct`) reads a stored campaign report as a compliance reviewer would: the Consumer Duty's four outcomes first, each with the report's own obligation row and the customers behind it; vulnerability recognised × acted on; DISP, tipping-off and KYC as lamps; a customer's row opens the Pipeline at the stage that governs the obligation. **Model risk** (`/workshop/model-risk`) reads the same report as a data scientist would: the fairness workbench — every metric with its interval and *n*, across any cohort attribute, over a window, stratified — the counterfactual flip rate over the Pipeline's what-ifs, drift against a reference report with the detectors, rule agreement over time, the synthetic hazard's base rate, and the validation suite run on demand. Every number on both pages is a call into `@craftabot/metrics` (`docs/metrics.md` is the suite's shipped run); the pages hold no arithmetic, and a test checks it.
+
+> **Figure 23** — Conduct: the four outcomes over a lending book. *(Appendix D, `ws-conduct.png`.)*
+
+> **Figure 24** — Model risk: the fairness workbench. *(Appendix D, `ws-model-risk.png`.)*
+
+## 47. Experiments and the Control Effectiveness Register
+
+A campaign says pass or fail per gate. An **experiment** (`/workshop/experiments`, `experiment.schema.json`) says by how much: a pre-registered hypothesis, a campaign template, one or more factors over the template's own axes — a guard, a configuration, a knob, a context rung, a brain — with a baseline level each, and metrics with their good direction. Every level combination is a campaign sharing seeds; when the reports land the result folds each treatment level against the baseline as a difference with its interval and *n* (Newcombe for rates, Welch for means, the sign test over the pairs the shared seeds make), the cost on each side, and a verdict over the intervals — *supported*, *not-supported*, *inconclusive* — with the smallest effect the run could have seen. `craftabot experiment run | analyse | render` does the same from a file.
+
+Seven **reference experiments** ship under `experiments/` with their full-size results under `docs/evidence/` (and `docs/evidence/README.md` on what they are evidence *of*, and not). The **Control Effectiveness Register** on the Assurance page folds every stored result by control: for each control the maps list, what it changed, by how much, how sure, over which workflows — or *untested*, in the open — and a row opens the experiment behind it. The same table is §5 of the assurance pack.
+
+> **Figure 25** — An experiment's result: the verdict lamp and a grid per metric. *(Appendix D, `ws-experiments.png`.)*
+
+## 48. The site
+
+The three sections build from one tree (`npm run build:editions`) and publish as static folders under one origin (section 38). Since WP91 each section's service worker names its cache after the edition, so a visitor moving from `/workshop/` to `/playground/` on one origin never opens on a blank page; `docs/publishing.md` states the rule.
+
 # Appendices
 
 ## Appendix A — Screen index
@@ -1444,7 +1499,14 @@ Routes are given as they appear in the `full` build. In a published section, pre
 | `/workshop/telemetry` | Telemetry | By card, by cartridge, by day; trip mix; drift; autonomy |
 | `/workshop/incidents` | Incidents | Everything that went wrong, with its explanation |
 | `/workshop/safety-case` | Safety case | Inability, control, egress, trustworthiness, evidence |
+| `/workshop/monitor` | Monitor | A bank day live: the window, the readouts, the drift lamp |
+| `/workshop/workflows` | Workflows | Every stored workflow run; import one |
+| `/workshop/workflows/<runId>` | Pipeline | The stages, the In/Out panes, What if… |
+| `/workshop/conduct` | Conduct | The four outcomes, the customers, the lamps |
+| `/workshop/model-risk` | Model risk | The fairness and drift workbenches, the suite |
+| `/workshop/experiments` | Experiments | Author, run and read an experiment |
 | `/workshop/assurance` | Assurance pack | The filed evidence, and its three downloads |
+| `/workshop/assurance` (the register) | Control Effectiveness Register | Every control's measured effect, or *untested* |
 | `/workshop/evidence` | Evidence | The shared store: configure, push, pull |
 | `/workshop/export` | Audit centre | Bundles, traces, reports, sink sends, evidence pushes |
 | `/workshop/armour` | *(redirect)* | Superseded by the Guard Rack |
@@ -1474,6 +1536,12 @@ Every artefact that crosses a boundary is defined once and published as a JSON S
 | A recorded service line | `*.craftabot-cassette.json` | `craftabot-cassette.schema.json` |
 | An evaluation | — | `evaluation-record.schema.json` |
 | An item in the evidence store | — | `evidence-item.schema.json` |
+| A book of work items | `*.book.json` | `book.schema.json` |
+| A workflow run | `workflow-run.json` | `workflow-run.schema.json` |
+| A bank run | `*.bank-run.json` | `bank-run.schema.json` |
+| The calibration table | — | `calibration.schema.json` |
+| An experiment | `experiments/*.json` | `experiment.schema.json` |
+| An experiment's result | `*.experiment-result.json` | `experiment-result.schema.json` |
 
 Additionally: JUnit XML and SARIF from a campaign, OpenTelemetry GenAI spans from a sink or the Audit centre, and the assurance pack as self-contained HTML, markdown or JSON.
 
@@ -1517,6 +1585,11 @@ Sources are under `apps/workbench/e2e/__screenshots__/<platform>/`, where `<plat
 | 18 | `ws-playground-advice.png` | The Advice Desk |
 | 19 | `ws-playground-fraud.png` | The Fraud Desk |
 | 20 | `ws-playground-lending.png` | The Lending Desk |
+| 21 | `ws-workflows.png` | The Workflows list and the Pipeline |
+| 22 | `ws-monitor.png` | The Monitor |
+| 23 | `ws-conduct.png` | Conduct |
+| 24 | `ws-model-risk.png` | Model risk |
+| 25 | `ws-experiments.png` | Experiments |
 
 Also available and not yet placed: `workshop-run-lab-explain.png` (the explanation panel), `ws-runs.png` (the Run Browser), `ws-run-lab-golden.png`, `ws-incidents.png`, `ws-safety-case.png`, `ws-sinks.png`, `ws-test-bench.png`.
 

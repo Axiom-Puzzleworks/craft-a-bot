@@ -347,7 +347,7 @@
 		</div>
 	</section>
 
-	<Strip label="The clock" icon="tape" testId="monitor-strip">
+	<Strip label="The clock" icon="clock" testId="monitor-strip">
 		<Readout label="simulated time" value={clockLabel} testId="monitor-clock" />
 		<Readout
 			label="acceleration"

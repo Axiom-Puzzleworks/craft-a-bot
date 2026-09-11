@@ -1,6 +1,6 @@
 /**
  * **The Workshop instrument icon set** (WP73, `62-THE-TAIL.md` §4.1;
- * `63-ART-COMMISSION-BRIEF-WAVE-2.md` §5.2): eleven roundels in the family
+ * `63-ART-COMMISSION-BRIEF-WAVE-2.md` §5.2; sixteen since WP91): roundels in the family
  * `11-…` §I describes — a disc in a token colour, the glyph in cream — one
  * per Control Room instrument or screen. What ships today is the
  * **placeholder** for each: geometric, drawn to the delivery contract
@@ -23,6 +23,12 @@ import iconDeck from './instruments/icon-deck.svg?raw';
 import iconCassette from './instruments/icon-cassette.svg?raw';
 import iconCohort from './instruments/icon-cohort.svg?raw';
 import iconBoundary from './instruments/icon-boundary.svg?raw';
+// WP91 (`81-…` §3): the Day 5 screens' roundels — the Pipeline, the clock, a lens, an experiment, the register.
+import iconPipeline from './instruments/icon-pipeline.svg?raw';
+import iconClock from './instruments/icon-clock.svg?raw';
+import iconLens from './instruments/icon-lens.svg?raw';
+import iconExperiment from './instruments/icon-experiment.svg?raw';
+import iconRegister from './instruments/icon-register.svg?raw';
 
 export const INSTRUMENT_IDS = [
 	'meter',
@@ -35,7 +41,12 @@ export const INSTRUMENT_IDS = [
 	'deck',
 	'cassette',
 	'cohort',
-	'boundary'
+	'boundary',
+	'pipeline',
+	'clock',
+	'lens',
+	'experiment',
+	'register'
 ] as const;
 
 export type InstrumentId = (typeof INSTRUMENT_IDS)[number];
@@ -52,5 +63,10 @@ export const INSTRUMENT_ICONS: Record<InstrumentId, string> = {
 	deck: iconDeck,
 	cassette: iconCassette,
 	cohort: iconCohort,
-	boundary: iconBoundary
+	boundary: iconBoundary,
+	pipeline: iconPipeline,
+	clock: iconClock,
+	lens: iconLens,
+	experiment: iconExperiment,
+	register: iconRegister
 };

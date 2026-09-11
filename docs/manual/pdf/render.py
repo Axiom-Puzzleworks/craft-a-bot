@@ -1,3 +1,4 @@
+import os
 import asyncio, pathlib, io
 from playwright.async_api import async_playwright
 from pypdf import PdfWriter, PdfReader
@@ -8,7 +9,9 @@ FOOTER = (ROOT/'_footer.html').read_text(encoding='utf-8')
 
 async def main():
     async with async_playwright() as p:
-        b = await p.chromium.launch(executable_path='/opt/pw-browsers/chromium')
+        # The managed Chromium by default (python -m playwright install chromium); CRAFTABOT_CHROMIUM names another.
+        executable = os.environ.get('CRAFTABOT_CHROMIUM')
+        b = await p.chromium.launch(**({'executable_path': executable} if executable else {}))
         pg = await b.new_page()
 
         await pg.goto((ROOT/'cover.html').as_uri(), wait_until='networkidle')

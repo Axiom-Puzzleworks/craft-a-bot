@@ -175,7 +175,7 @@
 			No workflow run with id {runId} in the store.
 		</p>
 	{:else}
-		<Strip label={spec?.name ?? stored.run.workflowId} icon="chain" testId="pipeline-strip">
+		<Strip label={spec?.name ?? stored.run.workflowId} icon="pipeline" testId="pipeline-strip">
 			<Readout label="run" value={stored.run.id.slice(0, 8)} testId="pipeline-run" />
 			<Readout label="item" value={stored.run.itemId} testId="pipeline-item" />
 			<Readout label="stages" value={stored.run.stages.length} testId="pipeline-stages" />
