@@ -98,12 +98,13 @@ test('the Playground and its three desks', async ({ page }) => {
 	await page.goto('/workshop/playground');
 	await page.getByTestId('playground-generate').click();
 	await expect(page.getByTestId('playground-simulation-only')).toBeVisible();
-	await expect(page).toHaveScreenshot('ws-playground.png', { fullPage: true });
+	await settle(page);
+	await expect(page).toHaveScreenshot('ws-playground.png');
 	for (const desk of ['advice', 'fraud', 'lending'] as const) {
 		await page.goto(`/workshop/playground/${desk}`);
 		await page.getByTestId(`${desk}-generate`).click();
-		await page.waitForTimeout(300);
-		await expect(page).toHaveScreenshot(`ws-playground-${desk}.png`, { fullPage: true });
+		await settle(page);
+		await expect(page).toHaveScreenshot(`ws-playground-${desk}.png`);
 	}
 });
 
@@ -117,8 +118,8 @@ test('Campaigns with a stored report of one seed', async ({ page }) => {
 	await expect(page.getByTestId('campaign-verdict')).toBeVisible({ timeout: 60_000 });
 	await expect(page.getByTestId('gates')).toBeVisible();
 	// The report's own timestamp is the run's; the verdict strip is masked so the shot is the layout, not the clock.
+	await settle(page);
 	await expect(page).toHaveScreenshot('ws-campaigns.png', {
-		fullPage: true,
 		mask: [page.getByTestId('campaign-verdict')]
 	});
 });
