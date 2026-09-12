@@ -9,8 +9,9 @@
 		type StoredWorkflowRun,
 		type WorkflowSpec
 	} from '@craftabot/core';
-	import { workflowRing } from '@craftabot/governance/reports';
-	import Boundary from '$lib/components/control-room/Boundary.svelte';
+	import JourneyCanvas from '$lib/components/control-room/JourneyCanvas.svelte';
+	import JourneyList from '$lib/components/control-room/JourneyList.svelte';
+	import { journeyLayout } from '@craftabot/workflow';
 	import CaseFile from '$lib/components/control-room/CaseFile.svelte';
 	import Lamp from '$lib/components/control-room/Lamp.svelte';
 	import Readout from '$lib/components/control-room/Readout.svelte';
@@ -19,7 +20,6 @@
 	import { createRegistry } from '$lib/packs.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import { whatIf } from '$lib/state/what-if-app.svelte.js';
-	import { boundaryFor } from '$lib/workshop/boundary.js';
 	import {
 		EXECUTOR_ICON,
 		describeExecutor,
@@ -28,7 +28,6 @@
 		stageNameOf,
 		statusOfStage
 	} from '$lib/workshop/pipeline.js';
-	import { specFor } from '@craftabot/evals';
 
 	/**
 	 * **The Pipeline** (WP86, `77-PIPELINE-AND-BOUNDARY.md` §4; `64-…` §6.2.4):
@@ -38,7 +37,7 @@
 	 * stage opens the Run Lab at the stage's first tick. The **What if**
 	 * drawer re-runs from a stage under one change and opens the result
 	 * beside the original, the rails synchronised on the selected stage.
-	 * The Boundary map beneath draws the workflow's ring lit by this run.
+	 * The Journey Canvas beneath draws the journey lit by this run (WP100).
 	 */
 	const registry = createRegistry();
 	const specs = new Map<string, WorkflowSpec>(
@@ -83,33 +82,12 @@
 	const otherStage = $derived(against?.run.stages.find((entry) => entry.stageId === selected));
 	const stageName = (stageId: string) => stageNameOf(spec, stageId);
 
-	/** The Boundary map: the desk's bot as the campaign seats it, the run's ring over it. */
-	const map = $derived.by(() => {
+	/** The journey (WP100): the spec under the run's configuration, lit by the run's stages and verdicts. */
+	const journey = $derived.by(() => {
 		if (!stored || !spec) return undefined;
-		const world = registry.getWorld(spec.worldId);
-		// The desk's own card, so the map draws the desk and its lines around the bot the journey seats.
-		const card = registry.listGoalCards().find((entry) => entry.worldId === spec.worldId);
-		const botSpec = specFor({
-			scenario: {
-				id: 'pipeline',
-				goalCardId: card?.id ?? spec.id,
-				tags: [],
-				injections: [],
-				fit: []
-			},
-			build: {
-				id: stored.source?.build ?? 'pipeline',
-				base: { kind: 'starter-default' },
-				overrides: {
-					senses: (world?.senses ?? []).map((sense) => sense.id),
-					actions: (world?.actions ?? []).map((action) => action.id)
-				}
-			},
-			guard: { id: 'none', fit: [] }
-		});
-		return boundaryFor(botSpec, registry, undefined, undefined, [
-			workflowRing(spec, { run: stored.run })
-		]);
+		const configuration = stored.source?.build;
+		const config = configuration ? spec.configurations?.[configuration] : undefined;
+		return journeyLayout(spec, config, stored.run, { registry });
 	});
 
 	// ── What if ──────────────────────────────────────────────────────────
@@ -394,10 +372,27 @@
 			</section>
 		{/if}
 
-		{#if map}
-			<section aria-label="The boundary with the workflow ring">
-				<h2>The Boundary</h2>
-				<Boundary {map} testId="pipeline-boundary" />
+		{#if journey}
+			<!-- WP100 (`87-JOURNEY-CANVAS.md` §7): the journey lit by this run, in place of the Boundary's ring; selecting a node selects the rail's stage. -->
+			<section aria-label="The journey, lit by this run">
+				<h2>The journey</h2>
+				<JourneyCanvas
+					layout={journey}
+					run={stored.run}
+					{selected}
+					onSelect={(stageId) => (selected = stageId)}
+					testId="pipeline-journey"
+					describedBy="pipeline-journey-list"
+				/>
+				<div id="pipeline-journey-list">
+					<JourneyList
+						layout={journey}
+						run={stored.run}
+						{selected}
+						onSelect={(stageId) => (selected = stageId)}
+						testId="pipeline-journey-list"
+					/>
+				</div>
 			</section>
 		{/if}
 	{/if}

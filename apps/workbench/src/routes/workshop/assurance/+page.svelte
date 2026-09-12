@@ -31,6 +31,8 @@
 		type AssurancePack
 	} from '@craftabot/governance/reports';
 	import CaseTable from '$lib/components/control-room/CaseTable.svelte';
+	import JourneyCanvas from '$lib/components/control-room/JourneyCanvas.svelte';
+	import { journeyLayout, renderJourneySvg } from '@craftabot/workflow';
 	import Readout from '$lib/components/control-room/Readout.svelte';
 	import Strip from '$lib/components/control-room/Strip.svelte';
 	import { createRegistry } from '$lib/packs.js';
@@ -49,6 +51,17 @@
 	 * the head and the foot of every rendering, including this one.
 	 */
 	const registry = createRegistry();
+	/** WP100 (`87-JOURNEY-CANVAS.md` §7): every journey laid out once; the fold keeps the bot's world's. */
+	const journeys = registry.listWorkflows().map((workflow) => {
+		const layout = journeyLayout(workflow, undefined, undefined, { registry });
+		return {
+			workflowId: workflow.id,
+			worldId: workflow.worldId,
+			name: workflow.name,
+			layout,
+			svg: renderJourneySvg(layout)
+		};
+	});
 
 	let agents = $state<AgentRecord[]>([]);
 	let selectedId = $state('');
@@ -206,7 +219,7 @@
 			return;
 		}
 		missing = false;
-		pack = await assurancePackFromStorage(id, storage, registry, { parseReport });
+		pack = await assurancePackFromStorage(id, storage, registry, { parseReport, journeys });
 	}
 
 	function download(text: string, filename: string, type: string): void {
@@ -561,6 +574,25 @@
 
 		<section aria-labelledby="development-h">
 			<h2 id="development-h">3. Development, implementation and use — the campaigns</h2>
+			{#each pack.development.journeys ?? [] as journey (journey.workflowId)}
+				<h3>The {journey.name} journey</h3>
+				<JourneyCanvas
+					layout={journey.layout}
+					testId="assurance-journey-{journey.workflowId.replace('/', '-')}"
+				/>
+				<ul
+					class="points"
+					data-testid="assurance-journey-points-{journey.workflowId.replace('/', '-')}"
+				>
+					{#each journey.layout.points as point (point.id)}
+						<li>
+							<code>{point.id}</code> — {point.components.length === 0
+								? 'nothing fitted'
+								: point.components.join(', ')}
+						</li>
+					{/each}
+				</ul>
+			{/each}
 			{#if pack.development.note}
 				<p class="status" data-testid="assurance-no-campaigns">{pack.development.note}</p>
 			{:else}

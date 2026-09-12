@@ -6,6 +6,8 @@
 	import Readout from '$lib/components/control-room/Readout.svelte';
 	import Strip from '$lib/components/control-room/Strip.svelte';
 	import Tape, { type TapeSeries } from '$lib/components/control-room/Tape.svelte';
+	import JourneyCanvas from '$lib/components/control-room/JourneyCanvas.svelte';
+	import { journeyLayout } from '@craftabot/workflow';
 	import { createRegistry } from '$lib/packs.js';
 	import { monitor } from '$lib/state/monitor-app.svelte.js';
 	import type { MonitorDeskSetup } from '$lib/state/monitor.svelte.js';
@@ -77,6 +79,40 @@
 	}
 
 	const fold = $derived(monitor.state);
+	/**
+	 * WP100 (`87-JOURNEY-CANVAS.md` §7): one small unlit canvas per desk of the day,
+	 * the queue's waiting count on the intake node, and the heat — each edge's share
+	 * of the kept runs that took it, faded in.
+	 */
+	const journeys = $derived.by(() => {
+		const setups = monitor.setup?.desks ?? [];
+		return setups.flatMap((desk) => {
+			const workflow = workflows.find((entry) => entry.id === desk.workflowId);
+			if (!workflow) return [];
+			const config = desk.configuration ? workflow.configurations?.[desk.configuration] : undefined;
+			const layout = journeyLayout(workflow, config, undefined, { registry });
+			const runs = monitor.kept.filter((entry) => entry.desk === desk.id);
+			// A plain record, not a Map: the fold is derived once per change, never mutated in place.
+			const counts: Record<string, number> = {};
+			for (const entry of runs) {
+				const path = entry.run.stages.map((stage) => stage.stageId);
+				for (let index = 0; index < path.length; index += 1) {
+					const to = path[index + 1] ?? 'end';
+					const id = `${path[index]}->${to}`;
+					counts[id] = (counts[id] ?? 0) + 1;
+				}
+			}
+			const heat = Object.fromEntries(
+				layout.edges.map((edge) => [
+					edge.id,
+					runs.length === 0 ? 0 : (counts[edge.id] ?? 0) / runs.length
+				])
+			);
+			const waiting = fold?.queues.find((queue) => queue.desk === desk.id)?.waiting ?? 0;
+			const intake = layout.nodes[0]?.stageId;
+			return [{ desk: desk.id, layout, heat, badges: intake ? { [intake]: waiting } : {} }];
+		});
+	});
 	const readouts = $derived(fold?.readouts);
 	const buckets = $derived(fold?.buckets ?? []);
 	/** The tapes read the buckets that fall in the working hours seen, so a quiet night does not flatten the day. */
@@ -601,6 +637,30 @@
 			</table>
 		</section>
 
+		{#if journeys.length > 0}
+			<section aria-labelledby="journeys-h" data-testid="monitor-journeys">
+				<h2 id="journeys-h">The journeys</h2>
+				<p class="status">
+					Each desk's journey with the queue on its first stage and the edges the day is taking,
+					darker the more of the last {monitor.setup?.window ?? window} runs took them.
+				</p>
+				<div class="journeys">
+					{#each journeys as journey (journey.desk)}
+						<div class="journey-tile">
+							<h3>{journey.desk}</h3>
+							<JourneyCanvas
+								layout={journey.layout}
+								heat={journey.heat}
+								badges={journey.badges}
+								size="small"
+								testId="monitor-journey-{journey.desk}"
+							/>
+						</div>
+					{/each}
+				</div>
+			</section>
+		{/if}
+
 		<section aria-labelledby="queues-h">
 			<h2 id="queues-h">Queues</h2>
 			<table data-testid="monitor-queues">
@@ -670,6 +730,15 @@
 </main>
 
 <style>
+	.journeys {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+		gap: var(--cab-space-3);
+	}
+	.journey-tile h3 {
+		margin: 0 0 var(--cab-space-1);
+		font-size: var(--cab-text-sm);
+	}
 	main {
 		display: grid;
 		gap: var(--cab-space-4);

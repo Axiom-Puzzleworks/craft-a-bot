@@ -57,7 +57,9 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      - run: npm run e2e:visual
+      # TEMP (WP100): re-take every Linux Workshop baseline — the journeys pages and the Pipeline's canvas; reverted in the next commit.
+      - run: npx playwright test --project=visual --update-snapshots
+        working-directory: apps/workbench
 
       - name: Upload the screenshots and the diffs
         if: always()

@@ -32,6 +32,7 @@ import { workflowRun } from './commands/workflow.js';
 import { bookRun, sweepRun } from './commands/book.js';
 import { experimentAnalyse, experimentRender, experimentRun } from './commands/experiment.js';
 import { bankRun } from './commands/bank.js';
+import { journeyRender } from './commands/journey.js';
 import { createRegistry } from './config.js';
 import { createFileStorage } from './storage/file-storage.js';
 
@@ -115,6 +116,9 @@ Usage:
       the episode: the Watchbot's rules and the breakers on the desk's own
       evaluators — the Compliance Watchbot, on every desk's baseline.
 
+  craftabot journey render --workflow <id> [--config <name>] [--run <workflow-run.json>] [--svg <out.svg>] [--file <layout.json>]
+      One journey drawn (WP100): its layout as JSON, its SVG for the manual
+      and the site — unlit, under a configuration, or lit by a stored run.
   craftabot assurance [--agent <id>] [--out ./runs] [--file <pack.json>] [--markdown <pack.md>] [--html <pack.html>]
       The assurance pack for one bot (WP67): its inventory entry, safety
       stack, campaigns, evaluations, mitigants, drift and incidents filed
@@ -1012,6 +1016,34 @@ ${renderEvaluations(report)}`);
 				});
 				io.stdout(renderPulled(pulled));
 				return pulled.some((line) => !line.verified) ? 1 : 0;
+			}
+			case 'journey': {
+				// WP100 (`87-JOURNEY-CANVAS.md` §7): one journey's layout and SVG, unlit or lit by a stored run.
+				const verb = args.positional[0];
+				const workflowId = stringFlag(args, 'workflow');
+				if (verb !== 'render' || workflowId === undefined) {
+					throw new Error(
+						'journey needs render --workflow <id> [--config <name>] [--run <run.json>] [--svg <out.svg>] [--file <layout.json>]'
+					);
+				}
+				const registry = createRegistry(await configFrom(args));
+				const { layout, svg } = await journeyRender(registry, {
+					workflowId,
+					configuration: stringFlag(args, 'config'),
+					runPath: stringFlag(args, 'run')
+				});
+				const svgPath = stringFlag(args, 'svg');
+				const file = stringFlag(args, 'file');
+				if (svgPath !== undefined) {
+					await writeFile(svgPath, svg, 'utf8');
+					io.stdout(`wrote ${svgPath}\n`);
+				}
+				if (file !== undefined) {
+					await writeFile(file, `${JSON.stringify(layout, null, '\t')}\n`, 'utf8');
+					io.stdout(`wrote ${file}\n`);
+				}
+				if (svgPath === undefined && file === undefined) io.stdout(svg);
+				return 0;
 			}
 			case 'assurance': {
 				// WP67 (`53-ASSURANCE-PACK.md` §4.3): the pack for one bot, and its two renderings.

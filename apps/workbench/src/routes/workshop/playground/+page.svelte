@@ -196,7 +196,10 @@
 	<a href={resolve('/workshop/playground/complaints')} data-testid="playground-complaints-link"
 		>the Complaints Desk</a
 	>
-	works its complaints. This page shows the bank itself.
+	works its complaints. This page shows the bank itself;
+	<a href={resolve('/workshop/playground/journeys')} data-testid="playground-journeys-link"
+		>the journeys</a
+	> draws each desk's workflow as lanes before you run it.
 </p>
 <p class="simulation" data-testid="playground-simulation-only">FOR SIMULATION ONLY</p>
 

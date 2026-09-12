@@ -1,0 +1,350 @@
+{
+	"schemaVersion": 1,
+	"workflowId": "fs-lending/lending",
+	"name": "The lending journey",
+	"lanes": [
+		{
+			"id": "assistant",
+			"label": "the assistant"
+		},
+		{
+			"id": "colleague",
+			"label": "a colleague"
+		},
+		{
+			"id": "rules",
+			"label": "the rules"
+		},
+		{
+			"id": "systems",
+			"label": "the systems"
+		}
+	],
+	"nodes": [
+		{
+			"stageId": "intake",
+			"name": "Intake",
+			"lane": "rules",
+			"x": 0,
+			"y": 2,
+			"executor": "rule",
+			"irreversible": false,
+			"obligations": [],
+			"guards": []
+		},
+		{
+			"stageId": "identity",
+			"name": "Identity",
+			"lane": "assistant",
+			"x": 1,
+			"y": 0,
+			"executor": "agent",
+			"irreversible": false,
+			"obligations": [],
+			"guards": [
+				"loop:identity:pre-think",
+				"loop:identity:pre-act",
+				"loop:identity:post-act"
+			]
+		},
+		{
+			"stageId": "bureau",
+			"name": "Bureau file",
+			"lane": "systems",
+			"x": 2,
+			"y": 3,
+			"executor": "line",
+			"irreversible": false,
+			"obligations": [],
+			"guards": []
+		},
+		{
+			"stageId": "affordability",
+			"name": "Affordability",
+			"lane": "assistant",
+			"x": 3,
+			"y": 0,
+			"executor": "agent",
+			"irreversible": false,
+			"obligations": [
+				"fca:conc:affordability",
+				"fca:conc:creditworthiness"
+			],
+			"guards": [
+				"loop:affordability:pre-think",
+				"loop:affordability:pre-act",
+				"loop:affordability:post-act"
+			]
+		},
+		{
+			"stageId": "decision",
+			"name": "Decision",
+			"lane": "assistant",
+			"x": 4,
+			"y": 0,
+			"executor": "agent",
+			"irreversible": false,
+			"obligations": [
+				"equality-act:fairness"
+			],
+			"guards": [
+				"loop:decision:pre-think",
+				"loop:decision:pre-act",
+				"loop:decision:post-act"
+			]
+		},
+		{
+			"stageId": "record",
+			"name": "Decision recorded",
+			"lane": "rules",
+			"x": 5,
+			"y": 2,
+			"executor": "rule",
+			"irreversible": false,
+			"obligations": [],
+			"guards": []
+		},
+		{
+			"stageId": "explanation",
+			"name": "Explanation",
+			"lane": "assistant",
+			"x": 6,
+			"y": 0,
+			"executor": "agent",
+			"irreversible": false,
+			"obligations": [
+				"fca:cd:understanding"
+			],
+			"guards": [
+				"loop:explanation:pre-think",
+				"loop:explanation:pre-act",
+				"loop:explanation:post-act"
+			]
+		},
+		{
+			"stageId": "four-eyes",
+			"name": "Four eyes",
+			"lane": "colleague",
+			"x": 7,
+			"y": 1,
+			"executor": "human",
+			"irreversible": false,
+			"obligations": [],
+			"guards": []
+		},
+		{
+			"stageId": "disbursement",
+			"name": "Disbursement",
+			"lane": "assistant",
+			"x": 8,
+			"y": 0,
+			"executor": "agent",
+			"irreversible": true,
+			"obligations": [],
+			"guards": [
+				"loop:disbursement:pre-think",
+				"loop:disbursement:pre-act",
+				"loop:disbursement:post-act"
+			]
+		},
+		{
+			"stageId": "appeal",
+			"name": "Appeal",
+			"lane": "assistant",
+			"x": 9,
+			"y": 0,
+			"executor": "agent",
+			"irreversible": false,
+			"obligations": [],
+			"guards": [
+				"loop:appeal:pre-think",
+				"loop:appeal:pre-act",
+				"loop:appeal:post-act"
+			]
+		}
+	],
+	"edges": [
+		{
+			"id": "intake->identity",
+			"from": "intake",
+			"to": "identity",
+			"label": "",
+			"kind": "enumerated"
+		},
+		{
+			"id": "identity->bureau",
+			"from": "identity",
+			"to": "bureau",
+			"label": "",
+			"kind": "enumerated"
+		},
+		{
+			"id": "bureau->affordability",
+			"from": "bureau",
+			"to": "affordability",
+			"label": "",
+			"kind": "enumerated"
+		},
+		{
+			"id": "affordability->decision",
+			"from": "affordability",
+			"to": "decision",
+			"label": "",
+			"kind": "enumerated"
+		},
+		{
+			"id": "decision->record",
+			"from": "decision",
+			"to": "record",
+			"label": "approve / decline / refer",
+			"kind": "enumerated"
+		},
+		{
+			"id": "record->explanation",
+			"from": "record",
+			"to": "explanation",
+			"label": "approve / decline / refer",
+			"kind": "enumerated"
+		},
+		{
+			"id": "explanation->four-eyes",
+			"from": "explanation",
+			"to": "four-eyes",
+			"label": "depends on the case",
+			"kind": "case"
+		},
+		{
+			"id": "four-eyes->disbursement",
+			"from": "four-eyes",
+			"to": "disbursement",
+			"label": "depends on the case",
+			"kind": "case"
+		},
+		{
+			"id": "disbursement->appeal",
+			"from": "disbursement",
+			"to": "appeal",
+			"label": "depends on the case",
+			"kind": "case"
+		},
+		{
+			"id": "appeal->end",
+			"from": "appeal",
+			"to": {
+				"end": true
+			},
+			"label": "",
+			"kind": "enumerated"
+		}
+	],
+	"points": [
+		{
+			"id": "loop:identity:pre-think",
+			"kind": "pre-think",
+			"at": "identity",
+			"components": []
+		},
+		{
+			"id": "loop:identity:pre-act",
+			"kind": "pre-act",
+			"at": "identity",
+			"components": []
+		},
+		{
+			"id": "loop:identity:post-act",
+			"kind": "post-act",
+			"at": "identity",
+			"components": []
+		},
+		{
+			"id": "loop:affordability:pre-think",
+			"kind": "pre-think",
+			"at": "affordability",
+			"components": []
+		},
+		{
+			"id": "loop:affordability:pre-act",
+			"kind": "pre-act",
+			"at": "affordability",
+			"components": []
+		},
+		{
+			"id": "loop:affordability:post-act",
+			"kind": "post-act",
+			"at": "affordability",
+			"components": []
+		},
+		{
+			"id": "loop:decision:pre-think",
+			"kind": "pre-think",
+			"at": "decision",
+			"components": []
+		},
+		{
+			"id": "loop:decision:pre-act",
+			"kind": "pre-act",
+			"at": "decision",
+			"components": []
+		},
+		{
+			"id": "loop:decision:post-act",
+			"kind": "post-act",
+			"at": "decision",
+			"components": []
+		},
+		{
+			"id": "loop:explanation:pre-think",
+			"kind": "pre-think",
+			"at": "explanation",
+			"components": []
+		},
+		{
+			"id": "loop:explanation:pre-act",
+			"kind": "pre-act",
+			"at": "explanation",
+			"components": []
+		},
+		{
+			"id": "loop:explanation:post-act",
+			"kind": "post-act",
+			"at": "explanation",
+			"components": []
+		},
+		{
+			"id": "loop:disbursement:pre-think",
+			"kind": "pre-think",
+			"at": "disbursement",
+			"components": []
+		},
+		{
+			"id": "loop:disbursement:pre-act",
+			"kind": "pre-act",
+			"at": "disbursement",
+			"components": []
+		},
+		{
+			"id": "loop:disbursement:post-act",
+			"kind": "post-act",
+			"at": "disbursement",
+			"components": []
+		},
+		{
+			"id": "loop:appeal:pre-think",
+			"kind": "pre-think",
+			"at": "appeal",
+			"components": []
+		},
+		{
+			"id": "loop:appeal:pre-act",
+			"kind": "pre-act",
+			"at": "appeal",
+			"components": []
+		},
+		{
+			"id": "loop:appeal:post-act",
+			"kind": "post-act",
+			"at": "appeal",
+			"components": []
+		}
+	]
+}

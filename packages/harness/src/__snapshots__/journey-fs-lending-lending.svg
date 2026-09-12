@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1834 432" width="1834" height="432" role="img" aria-labelledby="journey-title" font-family="system-ui, sans-serif" font-size="11" fill="currentColor" stroke="currentColor">
+<title id="journey-title">The lending journey: Intake (the rules), Identity (the assistant), Bureau file (the systems), Affordability (the assistant), Decision (the assistant), Decision recorded (the rules), Explanation (the assistant), Four eyes (a colleague), Disbursement (the assistant), Appeal (the assistant). Edges: intake to identity; identity to bureau; bureau to affordability; affordability to decision; decision to record on approve / decline / refer; record to explanation on approve / decline / refer; explanation to four-eyes on depends on the case; four-eyes to disbursement on depends on the case; disbursement to appeal on depends on the case; appeal to end.</title>
+<style>.lane{fill:none;stroke-opacity:.35}.lane-label{stroke:none;font-weight:700}.edge{fill:none;stroke-width:1.5}.edge--case{stroke-dasharray:4 3}.edge--taken{stroke-width:3}.edge-label{stroke:none}.node{fill:none;stroke-width:1.5}.node--lit{stroke-width:3}.node--irreversible{stroke-dasharray:2 2}.node-label{stroke:none;text-anchor:middle}.point{fill:none;stroke-width:1.5}.end{stroke-width:3}</style>
+<rect class="lane lane--assistant" x="0" y="16" width="1834" height="100"/>
+<text class="lane-label" x="8" y="32">the assistant</text>
+<rect class="lane lane--colleague" x="0" y="116" width="1834" height="100"/>
+<text class="lane-label" x="8" y="132">a colleague</text>
+<rect class="lane lane--rules" x="0" y="216" width="1834" height="100"/>
+<text class="lane-label" x="8" y="232">the rules</text>
+<rect class="lane lane--systems" x="0" y="316" width="1834" height="100"/>
+<text class="lane-label" x="8" y="332">the systems</text>
+<path class="edge edge--enumerated" d="M225 266 H278 V66 H331" data-edge="intake-&gt;identity"/>
+<path class="edge edge--enumerated" d="M375 66 H428 V366 H481" data-edge="identity-&gt;bureau"/>
+<path class="edge edge--enumerated" d="M525 366 H578 V66 H631" data-edge="bureau-&gt;affordability"/>
+<path class="edge edge--enumerated" d="M675 66 H781" data-edge="affordability-&gt;decision"/>
+<path class="edge edge--enumerated" d="M825 66 H878 V266 H931" data-edge="decision-&gt;record"/>
+<text class="edge-label" x="884" y="162" text-anchor="start">approve / decline / refer</text>
+<path class="edge edge--enumerated" d="M975 266 H1028 V66 H1081" data-edge="record-&gt;explanation"/>
+<text class="edge-label" x="1034" y="162" text-anchor="start">approve / decline / refer</text>
+<path class="edge edge--case" d="M1125 66 H1178 V166 H1231" data-edge="explanation-&gt;four-eyes"/>
+<text class="edge-label" x="1184" y="112" text-anchor="start">depends on the case</text>
+<path class="edge edge--case" d="M1275 166 H1328 V66 H1381" data-edge="four-eyes-&gt;disbursement"/>
+<text class="edge-label" x="1334" y="112" text-anchor="start">depends on the case</text>
+<path class="edge edge--case" d="M1425 66 H1531" data-edge="disbursement-&gt;appeal"/>
+<text class="edge-label" x="1478" y="58" text-anchor="middle">depends on the case</text>
+<path class="edge edge--enumerated" d="M1575 66 H1699" data-edge="appeal-&gt;end"/>
+<line class="end" x1="1703" y1="24" x2="1703" y2="408"/>
+<circle class="node node--rule" cx="203" cy="266" r="22" data-stage="intake"/>
+<text class="node-label" x="203" y="302">Intake</text>
+<circle class="node node--agent" cx="353" cy="66" r="22" data-stage="identity"/>
+<text class="node-label" x="353" y="102">Identity</text>
+<circle class="node node--line" cx="503" cy="366" r="22" data-stage="bureau"/>
+<text class="node-label" x="503" y="402">Bureau file</text>
+<circle class="node node--agent" cx="653" cy="66" r="22" data-stage="affordability"/>
+<text class="node-label" x="653" y="102">Affordability</text>
+<circle class="node node--agent" cx="803" cy="66" r="22" data-stage="decision"/>
+<text class="node-label" x="803" y="102">Decision</text>
+<circle class="node node--rule" cx="953" cy="266" r="22" data-stage="record"/>
+<text class="node-label" x="953" y="302">Decision recorded</text>
+<circle class="node node--agent" cx="1103" cy="66" r="22" data-stage="explanation"/>
+<text class="node-label" x="1103" y="102">Explanation</text>
+<circle class="node node--human" cx="1253" cy="166" r="22" data-stage="four-eyes"/>
+<text class="node-label" x="1253" y="202">Four eyes</text>
+<circle class="node node--agent node--irreversible" cx="1403" cy="66" r="22" data-stage="disbursement"/>
+<text class="node-label" x="1403" y="102">Disbursement</text>
+<circle class="node node--agent" cx="1553" cy="66" r="22" data-stage="appeal"/>
+<text class="node-label" x="1553" y="102">Appeal</text>
+<circle class="point point--pre-think" cx="339" cy="34" r="5" data-point="loop:identity:pre-think"/>
+<circle class="point point--pre-act" cx="353" cy="34" r="5" data-point="loop:identity:pre-act"/>
+<circle class="point point--post-act" cx="367" cy="34" r="5" data-point="loop:identity:post-act"/>
+<circle class="point point--pre-think" cx="639" cy="34" r="5" data-point="loop:affordability:pre-think"/>
+<circle class="point point--pre-act" cx="653" cy="34" r="5" data-point="loop:affordability:pre-act"/>
+<circle class="point point--post-act" cx="667" cy="34" r="5" data-point="loop:affordability:post-act"/>
+<circle class="point point--pre-think" cx="789" cy="34" r="5" data-point="loop:decision:pre-think"/>
+<circle class="point point--pre-act" cx="803" cy="34" r="5" data-point="loop:decision:pre-act"/>
+<circle class="point point--post-act" cx="817" cy="34" r="5" data-point="loop:decision:post-act"/>
+<circle class="point point--pre-think" cx="1089" cy="34" r="5" data-point="loop:explanation:pre-think"/>
+<circle class="point point--pre-act" cx="1103" cy="34" r="5" data-point="loop:explanation:pre-act"/>
+<circle class="point point--post-act" cx="1117" cy="34" r="5" data-point="loop:explanation:post-act"/>
+<circle class="point point--pre-think" cx="1389" cy="34" r="5" data-point="loop:disbursement:pre-think"/>
+<circle class="point point--pre-act" cx="1403" cy="34" r="5" data-point="loop:disbursement:pre-act"/>
+<circle class="point point--post-act" cx="1417" cy="34" r="5" data-point="loop:disbursement:post-act"/>
+<circle class="point point--pre-think" cx="1539" cy="34" r="5" data-point="loop:appeal:pre-think"/>
+<circle class="point point--pre-act" cx="1553" cy="34" r="5" data-point="loop:appeal:pre-act"/>
+<circle class="point point--post-act" cx="1567" cy="34" r="5" data-point="loop:appeal:post-act"/>
+</svg>

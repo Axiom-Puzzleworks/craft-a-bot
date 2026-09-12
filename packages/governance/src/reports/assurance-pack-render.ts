@@ -135,6 +135,23 @@ export function renderAssurancePackMarkdown(pack: AssurancePack): string {
 	out.push('');
 	if (pack.development.note) out.push(pack.development.note);
 	for (const campaign of pack.development.campaigns) out.push(...campaignLines(campaign));
+	// WP100 (`87-…` §7): the journeys the bot's world runs, each with its points and their components.
+	for (const journey of pack.development.journeys ?? []) {
+		out.push('');
+		out.push(`### The ${journey.name} journey (\`${journey.workflowId}\`)`);
+		out.push('');
+		out.push(
+			`- Stages: ${journey.layout.nodes.map((node) => `${node.name} (${node.lane}${node.irreversible ? ', irreversible' : ''})`).join(' → ')}`
+		);
+		for (const edge of journey.layout.edges)
+			out.push(
+				`- Edge \`${edge.id}\`${edge.label === '' ? '' : `: ${edge.label}`}${edge.kind === 'enumerated' ? '' : ` (${edge.kind})`}`
+			);
+		for (const point of journey.layout.points)
+			out.push(
+				`- Point \`${point.id}\` (${point.kind} at ${point.at}): ${point.components.length === 0 ? 'no components' : point.components.map((id) => `\`${id}\``).join(', ')}`
+			);
+	}
 	out.push('');
 	out.push('## 4. Independent validation (principle 4)');
 	out.push('');
@@ -297,8 +314,27 @@ ${pack.inventory.world ? `<li>World: ${escape(pack.inventory.world.name)} (<code
 <li>Principal: ${pack.governance.principal.recorded ? principalsHtml(pack.governance.principal.principals) : notRec(pack.governance.principal)}</li>
 </ul>`;
 
+	const journeys = (pack.development.journeys ?? [])
+		.map(
+			(
+				journey
+			) => `<h3>The ${escape(journey.name)} journey (<code>${escape(journey.workflowId)}</code>)</h3>
+<figure class="journey">${journey.svg}</figure>
+${table(
+	'Guard points',
+	['Point', 'Kind', 'At', 'Components'],
+	journey.layout.points.map((point) => [
+		`<code>${escape(point.id)}</code>`,
+		escape(point.kind),
+		escape(point.at),
+		point.components.length === 0 ? 'none' : listHtml(point.components)
+	])
+)}`
+		)
+		.join('');
 	const development =
 		(pack.development.note ? `<p class="note">${escape(pack.development.note)}</p>` : '') +
+		journeys +
 		pack.development.campaigns
 			.map(
 				(campaign) => `<h3>${escape(campaign.title)}</h3>

@@ -40,6 +40,21 @@ const golden = JSON.parse(
 	)
 ) as Array<{ runId: string }>;
 const goldenRunId = golden[0]?.runId ?? '';
+const WORKFLOW_FIXTURE = join(
+	HERE,
+	'..',
+	'..',
+	'..',
+	'packages',
+	'packs',
+	'fs-lending',
+	'src',
+	'fixtures',
+	'lending-workflow-run.v1.json'
+);
+const workflowRunId = (
+	JSON.parse(readFileSync(WORKFLOW_FIXTURE, 'utf8')) as { run: { id: string } }
+).run.id;
 
 async function seed(page: Page): Promise<string> {
 	await page.goto('/settings');
@@ -54,6 +69,14 @@ async function seed(page: Page): Promise<string> {
 		buffer: Buffer.from(golden.map((event) => JSON.stringify(event)).join('\n') + '\n', 'utf8')
 	});
 	await expect(page.getByTestId('import-note')).toContainText('caught up');
+	// WP100: the golden lending workflow run, so the Pipeline's shot is over the fixture corpus.
+	await page.goto('/workshop/workflows');
+	await page.getByTestId('import-workflow-run').setInputFiles({
+		name: 'lending-workflow-run.v1.json',
+		mimeType: 'application/json',
+		buffer: readFileSync(WORKFLOW_FIXTURE)
+	});
+	await expect(page.getByTestId('workflow-import-note')).toContainText('with its item');
 	return agentId;
 }
 
@@ -85,6 +108,20 @@ test('the Workshop, screen by screen, over the fixture corpus', async ({ page })
 	await shot(page, '/workshop/model-risk', 'ws-model-risk', 'model-risk-page');
 	await shot(page, '/workshop/experiments', 'ws-experiments', 'experiments-page');
 	await shot(page, '/workshop/workflows', 'ws-workflows', 'workflows-page');
+	// WP100: the journeys drawn — the list, the lending journey unlit, the Pipeline lit by the golden workflow run.
+	await shot(page, '/workshop/playground/journeys', 'ws-journeys', 'journeys-page');
+	await shot(
+		page,
+		'/workshop/playground/journeys/fs-lending/lending',
+		'ws-journey-lending',
+		'journey-canvas'
+	);
+	await shot(
+		page,
+		`/workshop/workflows/${workflowRunId}`,
+		'ws-pipeline-golden',
+		'pipeline-journey'
+	);
 	await shot(page, '/workshop/incidents', 'ws-incidents', 'incidents-page');
 	await shot(page, `/workshop/safety-case?agent=${agentId}`, 'ws-safety-case', 'safety-case-page');
 	await shot(page, `/workshop/export?run=${goldenRunId}`, 'ws-audit-centre', 'export-page');

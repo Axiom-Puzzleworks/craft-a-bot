@@ -59,3 +59,5 @@ campaign-out/
 docs/evidence/
 # WP98: generated from the catalogue and checked byte-for-byte on build
 docs/catalogue.md
+# WP100: the journeys held byte for byte (harness/src/journey.test.ts)
+packages/harness/src/__snapshots__/journey-*.json

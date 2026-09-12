@@ -1609,7 +1609,7 @@ Every workflow run the store holds — a book campaign's cells, a what-if, an im
 
 ### 45.2 The Pipeline (`/workshop/workflows/<runId>`)
 
-A row opens the **Pipeline**: the run's strip, then a rail of stage cards — the executor's roundel (the bot, a rule, a person, a line), the status lamp, the executor in a sentence, the duration, the guard tally, and the approval or the finding when there is one. Select a stage for its **In** and **Out** panes on the case file, every field with its digest beside it. A bot stage links to **the Run Lab at this stage's first tick** when its run is in the store, and says plainly when it is not; a rule stage says *no bot ran*. The Boundary beneath draws the journey as a **ring** around the bot's boundary, each stage as its actor, lit by the run.
+A row opens the **Pipeline**: the run's strip, then a rail of stage cards — the executor's roundel (the bot, a rule, a person, a line), the status lamp, the executor in a sentence, the duration, the guard tally, and the approval or the finding when there is one. Select a stage for its **In** and **Out** panes on the case file, every field with its digest beside it. A bot stage links to **the Run Lab at this stage's first tick** when its run is in the store, and says plainly when it is not; a rule stage says *no bot ran*. Beneath the rail the **Journey Canvas** draws the journey as lanes — the assistant, a colleague, the rules, the systems — lit by the run: the path it took in the scope colour, the edge it took out of each stage, the boundary verdicts on their gates; the list beside it says the same in two tables. Select a node and the rail follows. (The ring the Boundary drew here until Day 6 is on the Spec Lab and the Run Lab still.)
 
 ### 45.3 What if…
 
@@ -1622,7 +1622,11 @@ A row opens the **Pipeline**: the run's strip, then a rail of stage cards — th
 
 This is the counterfactual of §13.4's *Fork*, lifted from a tick to a stage.
 
-### 45.4 The Boundary map, rewritten
+### 45.4 The journeys (`/workshop/playground/journeys`)
+
+Every journey the desks run, listed, and each drawn **unlit** with a configuration selector: pick *rules-only* and the assistant's lane empties; pick *bot-recommends* and the decision moves to a colleague's lane. Each stage shows its executor's roundel, the hazard mark when it is irreversible, its obligations as tags and its guard points as gates — the loop's three rings on an assistant's stage, a gate on a boundary that has a component or a policy card. Arrow keys walk the stages along their edges, `Home`/`End` jump, `Enter` selects, `g` moves to a stage's points and `Esc` returns; every node reads its row of the list aloud. An edge labelled *depends on the case* is one the journey decides from the case, not the outcome alone — a run shows which way it went. The Monitor draws a small copy per desk with the queue on the first stage and the edges the day is taking darkened, and the assurance pack's §3 carries the same figure with the points listed beneath.
+
+### 45.5 The Boundary map, rewritten
 
 The Boundary map (§13.3, §14) was rewritten for the ring. Outside nodes now sit evenly around the circle in kind order on a radius sized to the widest label, every label is collision-tested and leader-lined outward when it would overlap, and each workflow draws its stages as a ring outside the boundary — the bank's page draws every workflow's ring, each desk's page its own, the Pipeline the run's. The label collisions recorded in the Day 4 register (UX-7) are gone, and a test measures the label boxes in the browser on every page that draws the map.
 

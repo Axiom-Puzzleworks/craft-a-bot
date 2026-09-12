@@ -1,4 +1,4 @@
-import type { Principal } from '@craftabot/core';
+import type { Principal, JourneyLayout } from '@craftabot/core';
 import {
 	CRAFTABOT_CORE_VERSION,
 	brickKindsFor,
@@ -138,6 +138,15 @@ export interface AssuranceCampaignReportLike {
 		| undefined;
 }
 
+/** A journey the bot's world runs (WP100, `87-JOURNEY-CANVAS.md` §7): the layout and the SVG a host folded with `@craftabot/workflow`; the pack carries them, never draws them. */
+export interface AssuranceJourney {
+	workflowId: string;
+	worldId: string;
+	name: string;
+	layout: JourneyLayout;
+	svg: string;
+}
+
 /** One campaign's evidence for this bot: the gates that applied, the matrices, cohorts, obligations and parity caveats, and the runs behind them. */
 export interface AssuranceCampaign extends CampaignEvidence {
 	campaignId: string | undefined;
@@ -220,7 +229,7 @@ export interface AssurancePack {
 		principal: NotRecorded | { recorded: true; principals: AssurancePrincipal[] };
 	};
 	/** Principle 3 — development, implementation and use: the campaigns as test evidence. */
-	development: { campaigns: AssuranceCampaign[]; note?: string };
+	development: { campaigns: AssuranceCampaign[]; note?: string; journeys?: AssuranceJourney[] };
 	/** Principle 4 — independent validation. */
 	validation: {
 		/**
@@ -274,6 +283,8 @@ export interface AssurancePackInput {
 	experimentResults?: readonly ExperimentResult[];
 	/** The traces of the runs the incident log names (WP66), so each finding's decision can be explained; absent, the section says so. */
 	incidentEvents?: ReadonlyMap<string, readonly EngineEvent[]>;
+	/** The journeys the host laid out (WP100); the fold keeps those of the bot's world, in workflow-id order. */
+	journeys?: readonly AssuranceJourney[];
 	/** Injected so a pack is reproducible; the digest does not cover it. */
 	now?: () => string;
 }
@@ -330,6 +341,13 @@ function fittedPolicyCards(spec: AnyAgentSpec): Set<string> {
 /** The fold (`53-…` §4.2): pure over its inputs, every number with its run ids, later WPs' sections present as *not recorded*. */
 export async function assurancePackFor(input: AssurancePackInput): Promise<AssurancePack> {
 	const { agent, registry, runs, summaries, evaluations, campaignReports } = input;
+	const worldIdOfBot = registry.getGoalCard(
+		(agent.spec as { goalCardId: string }).goalCardId
+	)?.worldId;
+	const journeys = (input.journeys ?? [])
+		.filter((journey) => journey.worldId === worldIdOfBot)
+		.slice()
+		.sort((a, b) => a.workflowId.localeCompare(b.workflowId));
 	const spec = agent.spec;
 	const goalCardId = (spec as { goalCardId: string }).goalCardId;
 	const goalCard = registry.getGoalCard(goalCardId);
@@ -562,7 +580,8 @@ export async function assurancePackFor(input: AssurancePackInput): Promise<Assur
 				? {
 						note: 'No stored campaign report names a build of this bot: there is no campaign evidence yet.'
 					}
-				: {})
+				: {}),
+			...(journeys.length > 0 ? { journeys } : {})
 		},
 		validation: {
 			validatedBy:
@@ -630,6 +649,8 @@ export async function assurancePackFromStorage(
 	registry: PackRegistry,
 	options: {
 		parseReport?: (raw: unknown) => AssuranceCampaignReportLike | undefined;
+		/** The journeys the host laid out (WP100). */
+		journeys?: readonly AssuranceJourney[];
 		now?: () => string;
 	} = {}
 ): Promise<AssurancePack> {
@@ -668,6 +689,7 @@ export async function assurancePackFromStorage(
 		campaignReports,
 		incidentEvents,
 		experimentResults,
+		...(options.journeys ? { journeys: options.journeys } : {}),
 		...(options.now ? { now: options.now } : {})
 	});
 }

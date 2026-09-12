@@ -28,3 +28,17 @@ export {
 	type EvidenceMonitorRun,
 	type EvidenceSinkOptions
 } from './evidence-sink.js';
+export {
+	CASE_LABEL,
+	JOURNEY_METRICS,
+	TAKEN_LABEL,
+	edgesOf,
+	journeyGeometry,
+	journeyLayout,
+	journeySentence,
+	laneOf,
+	outcomesOf,
+	renderJourneySvg,
+	type JourneyGeometry,
+	type JourneyLayoutOptions
+} from './journey.js';

@@ -1,0 +1,244 @@
+{
+	"schemaVersion": 1,
+	"workflowId": "fs-fraud/fraud",
+	"name": "The alert journey",
+	"lanes": [
+		{
+			"id": "assistant",
+			"label": "the assistant"
+		},
+		{
+			"id": "colleague",
+			"label": "a colleague"
+		},
+		{
+			"id": "rules",
+			"label": "the rules"
+		}
+	],
+	"nodes": [
+		{
+			"stageId": "alert",
+			"name": "Alert",
+			"lane": "rules",
+			"x": 0,
+			"y": 2,
+			"executor": "rule",
+			"irreversible": false,
+			"obligations": [],
+			"guards": []
+		},
+		{
+			"stageId": "triage",
+			"name": "Triage",
+			"lane": "assistant",
+			"x": 1,
+			"y": 0,
+			"executor": "agent",
+			"irreversible": false,
+			"obligations": [],
+			"guards": [
+				"loop:triage:pre-think",
+				"loop:triage:pre-act",
+				"loop:triage:post-act"
+			]
+		},
+		{
+			"stageId": "contact",
+			"name": "Contact",
+			"lane": "assistant",
+			"x": 2,
+			"y": 0,
+			"executor": "agent",
+			"irreversible": false,
+			"obligations": [
+				"poca:tipping-off"
+			],
+			"guards": [
+				"loop:contact:pre-think",
+				"loop:contact:pre-act",
+				"loop:contact:post-act"
+			]
+		},
+		{
+			"stageId": "decision",
+			"name": "Decision",
+			"lane": "assistant",
+			"x": 3,
+			"y": 0,
+			"executor": "agent",
+			"irreversible": false,
+			"obligations": [
+				"equality-act:fairness",
+				"mlr:kyc"
+			],
+			"guards": [
+				"loop:decision:pre-think",
+				"loop:decision:pre-act",
+				"loop:decision:post-act"
+			]
+		},
+		{
+			"stageId": "restriction",
+			"name": "Restriction recorded",
+			"lane": "rules",
+			"x": 4,
+			"y": 2,
+			"executor": "rule",
+			"irreversible": false,
+			"obligations": [],
+			"guards": []
+		},
+		{
+			"stageId": "sar",
+			"name": "Suspicious-activity report",
+			"lane": "colleague",
+			"x": 5,
+			"y": 1,
+			"executor": "human",
+			"irreversible": true,
+			"obligations": [
+				"poca:sar"
+			],
+			"guards": []
+		},
+		{
+			"stageId": "filing",
+			"name": "Report filed",
+			"lane": "rules",
+			"x": 6,
+			"y": 2,
+			"executor": "rule",
+			"irreversible": false,
+			"obligations": [],
+			"guards": []
+		},
+		{
+			"stageId": "note",
+			"name": "Closing note",
+			"lane": "rules",
+			"x": 7,
+			"y": 2,
+			"executor": "rule",
+			"irreversible": false,
+			"obligations": [],
+			"guards": []
+		}
+	],
+	"edges": [
+		{
+			"id": "alert->triage",
+			"from": "alert",
+			"to": "triage",
+			"label": "",
+			"kind": "enumerated"
+		},
+		{
+			"id": "triage->contact",
+			"from": "triage",
+			"to": "contact",
+			"label": "",
+			"kind": "enumerated"
+		},
+		{
+			"id": "contact->decision",
+			"from": "contact",
+			"to": "decision",
+			"label": "",
+			"kind": "enumerated"
+		},
+		{
+			"id": "decision->restriction",
+			"from": "decision",
+			"to": "restriction",
+			"label": "release / hold / block-card / freeze / escalate",
+			"kind": "enumerated"
+		},
+		{
+			"id": "restriction->sar",
+			"from": "restriction",
+			"to": "sar",
+			"label": "depends on the case",
+			"kind": "case"
+		},
+		{
+			"id": "sar->filing",
+			"from": "sar",
+			"to": "filing",
+			"label": "skip / file",
+			"kind": "enumerated"
+		},
+		{
+			"id": "filing->note",
+			"from": "filing",
+			"to": "note",
+			"label": "",
+			"kind": "enumerated"
+		},
+		{
+			"id": "note->end",
+			"from": "note",
+			"to": {
+				"end": true
+			},
+			"label": "",
+			"kind": "enumerated"
+		}
+	],
+	"points": [
+		{
+			"id": "loop:triage:pre-think",
+			"kind": "pre-think",
+			"at": "triage",
+			"components": []
+		},
+		{
+			"id": "loop:triage:pre-act",
+			"kind": "pre-act",
+			"at": "triage",
+			"components": []
+		},
+		{
+			"id": "loop:triage:post-act",
+			"kind": "post-act",
+			"at": "triage",
+			"components": []
+		},
+		{
+			"id": "loop:contact:pre-think",
+			"kind": "pre-think",
+			"at": "contact",
+			"components": []
+		},
+		{
+			"id": "loop:contact:pre-act",
+			"kind": "pre-act",
+			"at": "contact",
+			"components": []
+		},
+		{
+			"id": "loop:contact:post-act",
+			"kind": "post-act",
+			"at": "contact",
+			"components": []
+		},
+		{
+			"id": "loop:decision:pre-think",
+			"kind": "pre-think",
+			"at": "decision",
+			"components": []
+		},
+		{
+			"id": "loop:decision:pre-act",
+			"kind": "pre-act",
+			"at": "decision",
+			"components": []
+		},
+		{
+			"id": "loop:decision:post-act",
+			"kind": "post-act",
+			"at": "decision",
+			"components": []
+		}
+	]
+}

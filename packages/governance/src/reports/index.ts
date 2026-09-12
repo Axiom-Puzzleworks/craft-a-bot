@@ -95,6 +95,7 @@ export {
 	ASSURANCE_PACK_VERSION,
 	ASSURANCE_POSTURE,
 	assurancePackDigest,
+	type AssuranceJourney,
 	assurancePackFor,
 	assurancePackFromStorage,
 	canonicalJson,

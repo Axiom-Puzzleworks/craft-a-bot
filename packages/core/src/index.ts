@@ -604,6 +604,17 @@ export type {
 	WorkflowConfig,
 	WorkflowSpec
 } from './types/workflow.js';
+export type {
+	JourneyEdge,
+	JourneyEdgeTarget,
+	JourneyLane,
+	JourneyLaneId,
+	JourneyLayout,
+	JourneyLit,
+	JourneyNode,
+	JourneyPoint,
+	JourneyVerdict
+} from './types/journey.js';
 export {
 	executorRecordSchema,
 	parseWorkflowRun,
