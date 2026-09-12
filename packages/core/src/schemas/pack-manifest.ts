@@ -2,6 +2,7 @@ import { type Stack } from './stack.js';
 import { z } from 'zod';
 import type { BrickKindDefinition } from '../types/brick.js';
 import type { ControlMap } from '../types/control-map.js';
+import type { DomainSpec } from './domain.js';
 import type { CalibrationTable } from './calibration.js';
 import type { WorkflowSpec } from '../types/workflow.js';
 import type { Guardrail, GuardrailHook } from '../types/guardrail.js';
@@ -274,6 +275,13 @@ export interface PackManifest extends PackManifestMetadata {
 	 * `checkControlMap`. The assurance pack files a bot's evidence against them.
 	 */
 	controlMaps?: ControlMap[];
+	/**
+	 * Domain specs (WP106 stage A, `83-…` §6.6.1): what a domain pack is, as data —
+	 * its packs, obligations, decision rights, calibration, ontology, the coverage
+	 * matrix, personas and glossary. The bank ships `uk-retail-banking`; the
+	 * journeys page draws the matrix from it; `checkDomainPack` (WP107) holds the checklist.
+	 */
+	domains?: DomainSpec[];
 	/**
 	 * Calibration tables (WP74, `66-CALIBRATION.md` §4.1; `64-…` §6.1.2): the
 	 * distributions a synthetic population's generators draw from, every row

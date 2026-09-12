@@ -12,7 +12,7 @@ const registry = createRegistry(defaultConfig());
 const workflows = registry.listWorkflows().sort((a, b) => a.id.localeCompare(b.id));
 
 describe('the shipped journeys', () => {
-	it('are the six desks’ and the complaints journey (WP102–WP105)', () => {
+	it('are the seven desks’ and the complaints journey (WP102–WP106)', () => {
 		expect(workflows.map((workflow) => workflow.id)).toEqual([
 			'fs-advice/advice',
 			'fs-advice/complaints',
@@ -20,7 +20,8 @@ describe('the shipped journeys', () => {
 			'fs-disputes/disputes',
 			'fs-fraud/fraud',
 			'fs-lending/lending',
-			'fs-onboarding/onboarding'
+			'fs-onboarding/onboarding',
+			'fs-servicing/servicing'
 		]);
 	});
 

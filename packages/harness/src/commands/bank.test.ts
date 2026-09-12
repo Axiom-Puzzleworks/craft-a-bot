@@ -79,14 +79,15 @@ describe('craftabot bank run', { timeout: 300_000 }, () => {
 		);
 	});
 
-	it('works the six-desk day file the CI runs — lending, fraud, advice, complaints, onboarding and disputes each take their kind', async () => {
+	it('works the seven-desk day file the CI runs — lending, fraud, advice, complaints, onboarding, disputes, collections and servicing each take their kind', async () => {
 		const root = await tempDir();
 		const result = await bankRun({
 			desksPath: resolve(HERE, '..', '..', '..', '..', 'campaigns', 'desks', 'bank-day.json'),
 			from: '2026-06-01',
 			to: '2026-06-30',
 			seed: 1,
-			size: 800,
+			// Seven desks and their handoffs over 400 customers: the CI day runs 500; 800 took the test past five minutes under load.
+			size: 400,
 			brain: 'scripted-optimal',
 			out: join(root, 'out'),
 			config: defaultConfig(),
@@ -99,15 +100,19 @@ describe('craftabot bank run', { timeout: 300_000 }, () => {
 			'advice',
 			'complaints',
 			'onboarding',
-			'disputes'
+			'disputes',
+			'collections',
+			'servicing'
 		]);
 		expect(result.bankRun.clock.books.map((book) => book.kind).sort()).toEqual([
 			'advice-request',
 			'alert',
 			'application',
+			'arrears',
 			'complaint',
 			'dispute',
-			'onboarding'
+			'onboarding',
+			'servicing-request'
 		]);
 		expect(result.bankRun.counts.unrouted).toBe(0);
 		expect(result.bankRun.counts.byDesk['lending']?.worked).toBeGreaterThan(0);

@@ -33,6 +33,8 @@ export interface PlanStep {
 	args?: unknown;
 	/** The arguments worked out from the prompt at the turn (WP80): a scripted bot that reads the case — the rule from the worksheet — rather than a fixed answer. */
 	argsFrom?: (request: ChatRequest) => unknown;
+	/** The call worked out from the prompt at the turn (WP106): a stage whose act depends on the request read — the servicing desk's act stage — names it here; `call` is the fallback. */
+	callFrom?: (request: ChatRequest) => string;
 }
 
 export type Plan = PlanStep[];

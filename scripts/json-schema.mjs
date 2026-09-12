@@ -122,6 +122,12 @@ export async function artefactSchemas() {
 			description:
 				'An edition of the Guardrail Catalogue: every technique the industry ships or the research proposes, taxonomised, mapped to the threat and framework vocabularies, cited with a year, and carrying the coverage status the product can honestly claim (86-CATALOGUE.md §3).'
 		},
+		domain: {
+			schema: core.domainSpecSchema,
+			title: 'Craft A Bot domain spec (v1)',
+			description:
+				'What a domain pack is, as data: its world and journey packs, the obligation vocabulary, the decision rights with a ceiling and a source each, the calibration table, the ontology, the coverage matrix, the personas and the glossary (83-TARGET-DESIGN-V6.md §6.6.1).'
+		},
 		stack: {
 			schema: core.stackSchema,
 			title: 'Craft A Bot stack (v1)',

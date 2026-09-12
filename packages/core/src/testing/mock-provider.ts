@@ -100,16 +100,18 @@ export function obedient(
 		call: string;
 		args?: unknown;
 		argsFrom?: (request: ChatRequest) => unknown;
+		/** The call chosen at the turn (WP106): a stage whose act depends on what the prompt shows names it here; `call` is the fallback. */
+		callFrom?: (request: ChatRequest) => string;
 	}>
 ): MockScript {
-	// A step that reads the prompt (WP80) makes the script a function of the request; a fixed plan stays a list.
-	if (plan.some((stepPlan) => stepPlan.argsFrom !== undefined)) {
+	// A step that reads the prompt (WP80; the call too since WP106) makes the script a function of the request; a fixed plan stays a list.
+	if (plan.some((stepPlan) => stepPlan.argsFrom !== undefined || stepPlan.callFrom !== undefined)) {
 		return (request, index) => {
 			const stepPlan = plan[index];
 			if (!stepPlan) return SHRUG;
 			return turn(
 				stepPlan.say,
-				stepPlan.call,
+				stepPlan.callFrom ? stepPlan.callFrom(request) : stepPlan.call,
 				stepPlan.argsFrom ? stepPlan.argsFrom(request) : (stepPlan.args ?? {})
 			);
 		};

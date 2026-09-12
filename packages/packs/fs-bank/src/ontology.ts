@@ -179,6 +179,12 @@ const DESK_OBLIGATIONS: Readonly<Record<BankPurpose, string[]>> = {
 		'fca:cd:support',
 		'fca:cd:understanding'
 	],
+	servicing: [
+		'fca:fg21-1:vulnerability',
+		'ukgdpr:purpose-limitation',
+		'ukgdpr:data-minimisation',
+		'fca:cd:support'
+	],
 	reception: ['ukgdpr:purpose-limitation'],
 	testing: []
 };

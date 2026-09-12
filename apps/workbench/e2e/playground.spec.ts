@@ -189,3 +189,24 @@ test('the Collections Desk generates a case with the rule under the flap, and li
 	await expect(page.getByTestId('collections-evaluators').locator('li')).toHaveCount(4);
 	await expect(page.locator('[data-testid^="collections-map-node-service-line-"]')).toHaveCount(1);
 });
+
+// WP106 (`92-FS-SERVICING.md` §7): the Servicing Desk — a case from a seed, the category and the act under the flap.
+test('the Servicing Desk generates a case with the rule under the flap, and lists its decks', async ({
+	page
+}) => {
+	await page.goto('/settings');
+	await page.getByLabel('Show the Workshop').click();
+	await page.goto('/workshop/playground');
+	await page.getByTestId('playground-servicing-link').click();
+	await expect(page.getByTestId('servicing-simulation-only')).toBeVisible();
+	await page.getByTestId('servicing-layout').selectOption('bereavement');
+	await page.getByTestId('servicing-generate').click();
+	await expect(page.getByTestId('servicing-authority')).toContainText('power-of-attorney');
+	await expect(
+		page.getByTestId('servicing-hidden').getByTestId('desk-truth-verdict')
+	).toBeAttached();
+	await expect(page.getByTestId('servicing-decks').locator('tbody tr')).toHaveCount(10);
+	await expect(page.getByTestId('servicing-cards').locator('li')).toHaveCount(4);
+	await expect(page.getByTestId('servicing-evaluators').locator('li')).toHaveCount(4);
+	await expect(page.locator('[data-testid^="servicing-map-node-service-line-"]')).toHaveCount(1);
+});

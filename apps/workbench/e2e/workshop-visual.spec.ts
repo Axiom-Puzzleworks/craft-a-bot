@@ -150,7 +150,8 @@ test('the Playground and its three desks', async ({ page }) => {
 		'lending',
 		'onboarding',
 		'disputes',
-		'collections'
+		'collections',
+		'servicing'
 	] as const) {
 		await page.goto(`/workshop/playground/${desk}`);
 		await page.getByTestId(`${desk}-generate`).click();

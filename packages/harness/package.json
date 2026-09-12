@@ -39,6 +39,7 @@
 		"@craftabot/pack-fs-onboarding": "*",
 		"@craftabot/pack-fs-disputes": "*",
 		"@craftabot/pack-fs-collections": "*",
+		"@craftabot/pack-fs-servicing": "*",
 		"@craftabot/pack-geap": "*",
 		"@craftabot/pack-gemini": "*",
 		"@craftabot/pack-guard-local": "*",

@@ -1,3 +1,4 @@
+import { ukRetailBankingDomain } from './domain.js';
 import type { PackManifest } from '@craftabot/core';
 import { bankControlMap } from './controls/rows.js';
 import { bankServiceLines } from './lines/index.js';
@@ -28,6 +29,8 @@ const manifest: PackManifest = {
 	evaluators: [toldPlainly],
 	/** The UK retail rows (WP67, `53-…` §4.1), every evidence id resolved by `checkControlMap`. */
 	controlMaps: [bankControlMap],
+	// WP106 stage A (`83-…` §6.6.1): the domain spec the journeys page and `checkDomainPack` read.
+	domains: [ukRetailBankingDomain],
 	/** The cited table the population draws from and the design-time weights the decks were built on (WP74, `66-…` §4.1). */
 	calibrations: [CALIBRATION, DECK_WEIGHTS]
 };
@@ -167,3 +170,4 @@ export {
 	type DeskSafety,
 	type DeskStacksOptions
 } from './stacks.js';
+export { UK_RETAIL_BANKING_DOMAIN_ID, ukRetailBankingDomain } from './domain.js';

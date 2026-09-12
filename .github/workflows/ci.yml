@@ -57,7 +57,7 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      # TEMP (WP100–WP105): re-take every Linux Workshop baseline — the journeys pages, the Pipeline’s canvas, the Studio, the new journeys, the Onboarding, Disputes and Collections desks; reverted in the next commit.
+      # TEMP (WP100–WP106): re-take every Linux Workshop baseline — the journeys pages with the matrix, the Pipeline’s canvas, the Studio, the new journeys, the four new desks; reverted in the next commit.
       - run: npx playwright test --project=visual --update-snapshots
         working-directory: apps/workbench
 
@@ -194,8 +194,8 @@ jobs:
       - name: Hold the reduced results to the committed shape
         run: node scripts/experiment-shape.mjs docs/evidence campaign-out/experiments-shape
 
-      # A day at the bank (WP83, `71-THE-CLOCK.md` §5; three desks since WP85, `76-…` §5; six since WP104):
-      # the lending, fraud, advice, complaints, onboarding and disputes desks work a day's applications, alerts and requests over a 500-customer
+      # A day at the bank (WP83, `71-THE-CLOCK.md` §5; three desks since WP85, `76-…` §5; seven desks since WP106, `92-…` §5):
+      # the lending, fraud, advice, complaints, onboarding, disputes, collections and servicing desks work a day's applications, alerts and requests over a 500-customer
       # population at Infinity; the BankRun and every run are uploaded with the rest.
       - name: Run a day at the bank
         run: >
@@ -250,6 +250,20 @@ jobs:
           npm run craftabot -- campaign --file campaigns/fs-collections-book.json --strict --egress none
           --out campaign-out/fs-collections-book --junit campaign-out/fs-collections-book/junit.xml
           --sarif campaign-out/fs-collections-book/results.sarif --markdown campaign-out/fs-collections-book/scorecard.md
+
+      # The Servicing Desk baseline (WP106, `92-FS-SERVICING.md` §6): the verification, the disclosure and
+      # the needs met as gates. Fails the build when Verify before act is removed.
+      - name: Run the Servicing Desk baseline
+        run: >
+          npm run craftabot -- campaign --file campaigns/fs-servicing-baseline.json --strict --egress none
+          --out campaign-out/fs-servicing --junit campaign-out/fs-servicing/junit.xml --sarif campaign-out/fs-servicing/results.sarif
+          --markdown campaign-out/fs-servicing/scorecard.md
+
+      - name: Run the servicing book campaign
+        run: >
+          npm run craftabot -- campaign --file campaigns/fs-servicing-book.json --strict --egress none
+          --out campaign-out/fs-servicing-book --junit campaign-out/fs-servicing-book/junit.xml
+          --sarif campaign-out/fs-servicing-book/results.sarif --markdown campaign-out/fs-servicing-book/scorecard.md
 
       # The Complaints Desk baseline (WP72, `61-LAST-DECKS.md` §4.2): the complaints-and-redress
       # deck, unguarded and with the redress card — 168 scripted cells. Fails the build when

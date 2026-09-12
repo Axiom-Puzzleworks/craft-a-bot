@@ -24,7 +24,8 @@ describe('the Scenario Library (WP44)', () => {
 				'fs-lending',
 				'fs-onboarding',
 				'fs-disputes',
-				'fs-collections'
+				'fs-collections',
+				'fs-servicing'
 			])
 		);
 

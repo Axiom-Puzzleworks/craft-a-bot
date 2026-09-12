@@ -2,6 +2,7 @@ import { stackSchema, type Stack } from './schemas/stack.js';
 import { describeComponentProblems, type GuardrailComponent } from './types/guardrail-component.js';
 import type { BrickKindDefinition, SlotId } from './types/brick.js';
 import type { ControlMap } from './types/control-map.js';
+import type { DomainSpec } from './schemas/domain.js';
 import type { WorkflowSpec } from './types/workflow.js';
 import { satisfiesRange } from './semver.js';
 import { CRAFTABOT_CORE_VERSION } from './version.js';
@@ -81,6 +82,8 @@ export interface PackRegistry {
 	getPolicyCard(id: string): PolicyCard | undefined;
 	/** A control map by id (WP67). */
 	getControlMap(id: string): ControlMap | undefined;
+	/** A domain spec by id (WP106). */
+	getDomain(id: string): DomainSpec | undefined;
 	/** A workflow (`69-WORKFLOWS.md` §3, WP79), by qualified id. */
 	getWorkflow(id: string): WorkflowSpec | undefined;
 	/** An LLM provider (`06-…` §8, WP26) — how to build the `LLMProvider` a cartridge's `providerId` names. */
@@ -92,6 +95,7 @@ export interface PackRegistry {
 	listWorlds(): WorldDefinition[];
 	listPolicyCards(): PolicyCard[];
 	listControlMaps(): ControlMap[];
+	listDomains(): DomainSpec[];
 	listWorkflows(): WorkflowSpec[];
 	listGuardrailServices(): GuardrailService[];
 	listGuardrailComponents(): GuardrailComponent[];
@@ -116,6 +120,7 @@ export function createPackRegistry(): PackRegistry {
 	const worlds = new Map<string, WorldDefinition>();
 	const policyCards = new Map<string, PolicyCard>();
 	const controlMaps = new Map<string, ControlMap>();
+	const domains = new Map<string, DomainSpec>();
 	const workflows = new Map<string, WorkflowSpec>();
 	const guardrailServices = new Map<string, GuardrailService>();
 	const guardrailComponents = new Map<string, GuardrailComponent>();
@@ -201,6 +206,8 @@ export function createPackRegistry(): PackRegistry {
 			insertUnique(policyCards, card.id, card, 'policy card');
 		for (const map of manifest.controlMaps ?? [])
 			insertUnique(controlMaps, map.id, map, 'control map');
+		for (const domain of manifest.domains ?? [])
+			insertUnique(domains, domain.id, domain, 'domain spec');
 		for (const workflow of manifest.workflows ?? [])
 			insertUnique(workflows, workflow.id, workflow, 'workflow');
 		for (const component of manifest.guardrailComponents ?? []) {
@@ -324,6 +331,7 @@ export function createPackRegistry(): PackRegistry {
 		getStack: (id) => stacks.get(id),
 		getEvaluator: (id) => evaluators.get(id),
 		getControlMap: (id) => controlMaps.get(id),
+		getDomain: (id) => domains.get(id),
 		getWorkflow: (id) => workflows.get(id),
 		getServiceLine: (id) => serviceLines.get(id),
 		getEvidenceStore: (id) => evidenceStores.get(id),
@@ -343,6 +351,7 @@ export function createPackRegistry(): PackRegistry {
 			[...guardrailComponents.values()].filter((component) => component.technique === technique),
 		listEvaluators: () => [...evaluators.values()],
 		listControlMaps: () => [...controlMaps.values()],
+		listDomains: () => [...domains.values()],
 		listWorkflows: () => [...workflows.values()],
 		listServiceLines: () => [...serviceLines.values()],
 		listEvidenceStores: () => [...evidenceStores.values()],

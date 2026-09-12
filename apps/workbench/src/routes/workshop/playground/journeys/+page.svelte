@@ -37,6 +37,31 @@
 		{ id: 'points', label: 'Guard points', kind: 'number' as const }
 	];
 	const rows = journeys.map((journey) => ({ id: journey.id, cells: { ...journey } }));
+
+	/**
+	 * **The coverage matrix** (WP106, `83-…` §6.6.1): from the domain spec the
+	 * bank ships — which journeys ship, which support, which are out and why.
+	 * The words are the spec's; the page draws them.
+	 */
+	const domains = registry.listDomains();
+	const coverage = domains.flatMap((domain) =>
+		domain.journeys.map((journey) => ({
+			id: `${domain.id}:${journey.workflowId}`,
+			cells: {
+				journey: journey.name,
+				status: journey.status,
+				workflow: journey.status === 'out' ? '—' : journey.workflowId,
+				why: journey.why ?? (journey.status === 'shipped' ? 'Ships with the bank.' : '')
+			}
+		}))
+	);
+	const coverageColumns = [
+		{ id: 'journey', label: 'Journey', kind: 'text' as const },
+		{ id: 'status', label: 'Status', kind: 'text' as const },
+		{ id: 'workflow', label: 'Workflow', kind: 'text' as const },
+		{ id: 'why', label: 'Why', kind: 'text' as const }
+	];
+	const outCount = coverage.filter((row) => row.cells.status === 'out').length;
 </script>
 
 <svelte:head><title>Journeys — Workshop</title></svelte:head>
@@ -68,6 +93,24 @@
 		{/each}
 	</ul>
 	<CaseTable {columns} {rows} testId="journeys-table" />
+	{#if domains.length > 0}
+		<section aria-label="Coverage" data-testid="journeys-coverage-section">
+			<h2>What the bank covers</h2>
+			<p class="lede">
+				The domain’s own account of its journeys: those that ship, those that support them, and
+				those that are out — with the reason. Drawn from the domain spec, never guessed.
+			</p>
+			<Strip label="Coverage" icon="journey" testId="journeys-coverage-strip">
+				<Readout
+					label="shipped"
+					value={coverage.filter((row) => row.cells.status === 'shipped').length}
+					testId="journeys-coverage-shipped"
+				/>
+				<Readout label="out" value={outCount} testId="journeys-coverage-out" />
+			</Strip>
+			<CaseTable columns={coverageColumns} rows={coverage} testId="journeys-coverage" />
+		</section>
+	{/if}
 </main>
 
 <style>

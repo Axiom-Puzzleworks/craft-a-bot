@@ -22,6 +22,7 @@ import fsLendingPack from '@craftabot/pack-fs-lending';
 import fsOnboardingPack from '@craftabot/pack-fs-onboarding';
 import fsDisputesPack from '@craftabot/pack-fs-disputes';
 import fsCollectionsPack from '@craftabot/pack-fs-collections';
+import fsServicingPack from '@craftabot/pack-fs-servicing';
 
 /**
  * **The `playground` edition's packs** (`59-EDITIONS.md` §4.1, WP69): the Workshop's box plus the synthetic bank
@@ -51,6 +52,7 @@ export const packs: PackManifest[] = [
 	fsOnboardingPack,
 	fsDisputesPack,
 	fsCollectionsPack,
+	fsServicingPack,
 	evidencePack,
 	GENERIC_CONTROL_MAP_MANIFEST as unknown as PackManifest,
 	demoPack

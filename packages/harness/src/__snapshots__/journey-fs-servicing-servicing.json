@@ -1,0 +1,323 @@
+{
+	"schemaVersion": 1,
+	"workflowId": "fs-servicing/servicing",
+	"name": "The servicing journey",
+	"lanes": [
+		{
+			"id": "assistant",
+			"label": "the assistant"
+		},
+		{
+			"id": "colleague",
+			"label": "a colleague"
+		},
+		{
+			"id": "rules",
+			"label": "the rules"
+		}
+	],
+	"nodes": [
+		{
+			"stageId": "request",
+			"name": "Request",
+			"lane": "rules",
+			"x": 0,
+			"y": 2,
+			"executor": "rule",
+			"irreversible": false,
+			"obligations": [],
+			"guards": []
+		},
+		{
+			"stageId": "identify",
+			"name": "Identify",
+			"lane": "assistant",
+			"x": 1,
+			"y": 0,
+			"executor": "agent",
+			"irreversible": false,
+			"obligations": [
+				"mlr:kyc",
+				"ukgdpr:purpose-limitation"
+			],
+			"guards": [
+				"loop:identify:pre-think",
+				"loop:identify:pre-act",
+				"loop:identify:post-act"
+			]
+		},
+		{
+			"stageId": "classify",
+			"name": "Classify",
+			"lane": "assistant",
+			"x": 2,
+			"y": 0,
+			"executor": "agent",
+			"irreversible": false,
+			"obligations": [
+				"fca:cd:support"
+			],
+			"guards": [
+				"loop:classify:pre-think",
+				"loop:classify:pre-act",
+				"loop:classify:post-act"
+			]
+		},
+		{
+			"stageId": "verify",
+			"name": "Verify",
+			"lane": "rules",
+			"x": 3,
+			"y": 2,
+			"executor": "rule",
+			"irreversible": false,
+			"obligations": [
+				"ukgdpr:purpose-limitation",
+				"mlr:kyc"
+			],
+			"guards": []
+		},
+		{
+			"stageId": "act",
+			"name": "Act",
+			"lane": "assistant",
+			"x": 4,
+			"y": 0,
+			"executor": "agent",
+			"irreversible": false,
+			"obligations": [
+				"ukgdpr:purpose-limitation",
+				"fca:cd:support"
+			],
+			"guards": [
+				"loop:act:pre-think",
+				"loop:act:pre-act",
+				"loop:act:post-act"
+			]
+		},
+		{
+			"stageId": "record",
+			"name": "Record",
+			"lane": "assistant",
+			"x": 5,
+			"y": 0,
+			"executor": "agent",
+			"irreversible": false,
+			"obligations": [
+				"fca:fg21-1:vulnerability",
+				"ukgdpr:data-minimisation"
+			],
+			"guards": [
+				"loop:record:pre-think",
+				"loop:record:pre-act",
+				"loop:record:post-act"
+			]
+		},
+		{
+			"stageId": "confirm",
+			"name": "Four eyes",
+			"lane": "colleague",
+			"x": 6,
+			"y": 1,
+			"executor": "human",
+			"irreversible": false,
+			"obligations": [
+				"pra:ss1-23:mitigants"
+			],
+			"guards": []
+		},
+		{
+			"stageId": "close",
+			"name": "Closure",
+			"lane": "assistant",
+			"x": 7,
+			"y": 0,
+			"executor": "agent",
+			"irreversible": true,
+			"obligations": [
+				"pra:ss1-23:mitigants",
+				"ukgdpr:purpose-limitation"
+			],
+			"guards": [
+				"loop:close:pre-think",
+				"loop:close:pre-act",
+				"loop:close:post-act"
+			]
+		}
+	],
+	"edges": [
+		{
+			"id": "request->identify",
+			"from": "request",
+			"to": "identify",
+			"label": "",
+			"kind": "enumerated"
+		},
+		{
+			"id": "identify->classify",
+			"from": "identify",
+			"to": "classify",
+			"label": "",
+			"kind": "enumerated"
+		},
+		{
+			"id": "classify->verify",
+			"from": "classify",
+			"to": "verify",
+			"label": "address / card / third-party / disclosure / bereavement",
+			"kind": "enumerated"
+		},
+		{
+			"id": "verify->act",
+			"from": "verify",
+			"to": "act",
+			"label": "address / card / third-party",
+			"kind": "enumerated"
+		},
+		{
+			"id": "verify->record",
+			"from": "verify",
+			"to": "record",
+			"label": "disclosure",
+			"kind": "enumerated"
+		},
+		{
+			"id": "verify->confirm",
+			"from": "verify",
+			"to": "confirm",
+			"label": "bereavement",
+			"kind": "enumerated"
+		},
+		{
+			"id": "act->record",
+			"from": "act",
+			"to": "record",
+			"label": "update-address / reissue-card / grant-third-party-access / close-account / none",
+			"kind": "enumerated"
+		},
+		{
+			"id": "record->close",
+			"from": "record",
+			"to": "close",
+			"label": "depends on the case",
+			"kind": "case"
+		},
+		{
+			"id": "confirm->record",
+			"from": "confirm",
+			"to": "record",
+			"label": "confirm",
+			"kind": "enumerated"
+		},
+		{
+			"id": "confirm->end",
+			"from": "confirm",
+			"to": {
+				"end": true
+			},
+			"label": "return",
+			"kind": "enumerated"
+		},
+		{
+			"id": "close->end",
+			"from": "close",
+			"to": {
+				"end": true
+			},
+			"label": "depends on the case",
+			"kind": "case"
+		}
+	],
+	"points": [
+		{
+			"id": "loop:identify:pre-think",
+			"kind": "pre-think",
+			"at": "identify",
+			"components": []
+		},
+		{
+			"id": "loop:identify:pre-act",
+			"kind": "pre-act",
+			"at": "identify",
+			"components": []
+		},
+		{
+			"id": "loop:identify:post-act",
+			"kind": "post-act",
+			"at": "identify",
+			"components": []
+		},
+		{
+			"id": "loop:classify:pre-think",
+			"kind": "pre-think",
+			"at": "classify",
+			"components": []
+		},
+		{
+			"id": "loop:classify:pre-act",
+			"kind": "pre-act",
+			"at": "classify",
+			"components": []
+		},
+		{
+			"id": "loop:classify:post-act",
+			"kind": "post-act",
+			"at": "classify",
+			"components": []
+		},
+		{
+			"id": "loop:act:pre-think",
+			"kind": "pre-think",
+			"at": "act",
+			"components": []
+		},
+		{
+			"id": "loop:act:pre-act",
+			"kind": "pre-act",
+			"at": "act",
+			"components": []
+		},
+		{
+			"id": "loop:act:post-act",
+			"kind": "post-act",
+			"at": "act",
+			"components": []
+		},
+		{
+			"id": "loop:record:pre-think",
+			"kind": "pre-think",
+			"at": "record",
+			"components": []
+		},
+		{
+			"id": "loop:record:pre-act",
+			"kind": "pre-act",
+			"at": "record",
+			"components": []
+		},
+		{
+			"id": "loop:record:post-act",
+			"kind": "post-act",
+			"at": "record",
+			"components": []
+		},
+		{
+			"id": "loop:close:pre-think",
+			"kind": "pre-think",
+			"at": "close",
+			"components": []
+		},
+		{
+			"id": "loop:close:pre-act",
+			"kind": "pre-act",
+			"at": "close",
+			"components": []
+		},
+		{
+			"id": "loop:close:post-act",
+			"kind": "post-act",
+			"at": "close",
+			"components": []
+		}
+	]
+}

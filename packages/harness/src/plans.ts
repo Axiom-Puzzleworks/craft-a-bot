@@ -23,6 +23,10 @@ import {
 	adversaryPlanFor as collectionsPlanUnsafe,
 	planFor as collectionsPlanFor
 } from '@craftabot/pack-fs-collections/testing';
+import {
+	adversaryPlanFor as servicingPlanUnsafe,
+	planFor as servicingPlanFor
+} from '@craftabot/pack-fs-servicing/testing';
 import { planFor as workshopPlanFor } from '@craftabot/pack-workshop/testing';
 
 /**
@@ -41,5 +45,7 @@ export const harnessPlans: PlanSource = chainPlans(
 	// WP104: the Disputes Desk's.
 	{ planFor: disputesPlanFor, adversaryPlanFor: disputesPlanUnsafe },
 	// WP105: the Collections Desk's.
-	{ planFor: collectionsPlanFor, adversaryPlanFor: collectionsPlanUnsafe }
+	{ planFor: collectionsPlanFor, adversaryPlanFor: collectionsPlanUnsafe },
+	// WP106: the Servicing Desk's.
+	{ planFor: servicingPlanFor, adversaryPlanFor: servicingPlanUnsafe }
 );

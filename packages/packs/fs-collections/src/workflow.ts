@@ -153,10 +153,15 @@ export function ruleVerdictOnTheDesk(
 const servicingHandoff = (state: WorldState): StageHandoff => {
 	const { bank, collections } = desk(state).extra;
 	const disclosure = collections.circumstances?.disclosure ?? 'none';
+	// The id is the source item's (the intake's `config.item`), not the account's: the clock refuses an item worked twice,
+	// and one customer's loan can reach the desk as a book row and as a servicing handoff both.
+	const sourceId =
+		(desk(state).config?.['item'] as { id?: string } | undefined)?.id ??
+		collections.arrears.accountId;
 	return {
 		handoff: SERVICING_WORKFLOW_ID,
 		item: {
-			id: `servicing-from-${collections.arrears.accountId}`,
+			id: `servicing-from-${sourceId}`,
 			kind: 'servicing-request',
 			customerId: bank.customer.id,
 			arrivedAt: '1970-01-01T00:00:00.000Z',

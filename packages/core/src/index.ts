@@ -593,6 +593,18 @@ export {
 	type ControlRowStatus
 } from './types/control-map.js';
 export { EVENT_TYPES } from './schemas/events.js';
+export {
+	domainDecisionRightSchema,
+	domainJourneySchema,
+	domainSourceRefSchema,
+	domainSpecSchema,
+	journeyCoverageStatusSchema,
+	type DomainDecisionRight,
+	type DomainJourney,
+	type DomainSourceRef,
+	type DomainSpec,
+	type JourneyCoverageStatus
+} from './schemas/domain.js';
 export type {
 	AutonomyLevel as WorkflowAutonomyLevel,
 	BookRequest,
