@@ -151,6 +151,7 @@ Conventions used throughout:
 49. The lenses, Conduct and Model risk
 50. Experiments and the Control Effectiveness Register
 51. The site
+52. Bringing a domain
 
 **Appendices**
 A. Screen index
@@ -1279,7 +1280,7 @@ npm run craftabot -- evidence pull --store evidence/supabase --store-config '…
 
 ### 36.8 `workflow`, `book`, `sweep`, `bank`, `experiment` — the bank in motion
 
-The Day 5 commands, each described with its screen: `workflow run` (§44.5) runs one journey over one work item; `book run` and `sweep` (§43.5) run a book through a workflow's configurations and multiply builds by a knob; `bank run` (§48.4) runs a simulated day with the desks from a file; `experiment run | analyse | render` (§50.5) expands a design to its campaigns and folds their reports into effects. `evidence pull --kind` now also takes `workflow-run`, `bank-run`, `experiment` and `experiment-result`.
+The Day 5 commands, each described with its screen: `workflow run` (§44.5) runs one journey over one work item; `book run` and `sweep` (§43.5) run a book through a workflow's configurations and multiply builds by a knob; `bank run` (§48.4) runs a simulated day with the desks from a file; `experiment run | analyse | render` (§50.5) expands a design to its campaigns and folds their reports into effects; `scaffold domain` (§52) types out a new domain's world pack and journey packs. `evidence pull --kind` now also takes `workflow-run`, `bank-run`, `experiment` and `experiment-result`.
 
 ### 36.9 The rest
 
@@ -1831,6 +1832,42 @@ What this repository ships for it:
 What is not yet built lives in the site's own repository: the service that serves and gates the folders, the account page that mints the token, and the framing page itself. Until then the three sections publish to any static host as §38 describes.
 
 ---
+
+## 52. Bringing a domain
+
+The bank is one domain. The same instruments — desks, journeys, books, campaigns, the assurance pack, the Monitor — run over any domain whose packs meet the same checklist, and the checklist is code: `checkDomainPack` in the conformance kit (`93-DOMAIN-PACK.md` §3). This section is what a domain author does, in order.
+
+### 52.1 What a domain pack is
+
+One **world pack** and one **journey pack** per journey. The world pack holds the root entity in the domain's own word (the bank's is a *customer*; a practice's a *patient*; a forwarder's a *shipment*), generators over a **calibration table** with a source on every row, **service lines** with a risk tier on every operation, an **obligation vocabulary** with a gloss per tag, a **control map**, **personas**, and the **domain spec** — which packs are the domain's, which decision kinds are whose at what autonomy level and by what source, which classes are special category, which journeys are shipped, supporting or out and why. Each journey pack holds a desk, a workflow with its configurations by autonomy level, decks and cards, evaluators, a book and a campaign. Everything is content (a pack never adds a mechanism) and everything is synthetic (nothing in a pack is a real person, account or document).
+
+### 52.2 Start from the scaffold
+
+```sh
+npm run craftabot -- scaffold domain \
+  --id veterinary-practice --sector "Veterinary services" --jurisdiction UK \
+  --world vet-practice --journeys vaccination,referral --root Patient \
+  --out packages/packs/scaffolded
+```
+
+The command writes the shape typed out (§36.8; `93-DOMAIN-PACK.md` §4): the world pack with a two-row calibration table, three lines, three tags, one control row, one persona and the spec; per journey a desk with three actions and two predicates, a four-stage journey with `rules-only` and a Level 4 configuration, two scenarios and a card, a policy card, an evaluator, a book, a campaign and a golden-run test. Every file is formatted. `examples/scaffold-domain` is exactly this output for a veterinary practice, and its tests are the ones you inherit.
+
+The output **passes the checklist as written** and **fails calibration review** — every calibration row is a stated assumption marked `review: 'pending'`. That is the point: a scaffold is a shape, and the first thing you do is replace a row's source with a publication, say what was simplified, and mark it reviewed once a reader has read it against the source.
+
+### 52.3 Then, in order
+
+1. **The words.** Rename the root entity and its fields to the domain's; fill the glossary in both registers (the domain's word and the Kit's).
+2. **The calibration table.** Cite each row; add the rows the generators need. `checkCalibration` holds every row to a source or a stated assumption; `checkCalibration({ requireReview: true })` holds each to a reader.
+3. **The lines.** Name the systems a journey reaches and tier every operation — *observe*, *reversible*, *irreversible*. A line answers from the world's state in `simulate`; a cassette or a live sandbox comes later, under declared egress.
+4. **The obligations and the rights.** Name the regulator's and the guidance's tags with a gloss each; put every decision kind a journey counts in the decision-rights table with a ceiling and a source. The check refuses a kind a configuration counts that the table lacks, or counts at another level.
+5. **The journeys.** Grow each scaffolded journey's stages, rules and truth; keep `rules-only` agreeing with the rule in truth (the golden run) and the adversary failing the card (the red run). Add a matched pair where a cohort could be treated differently.
+6. **The rows.** One control row per obligation you claim relevance to, citing the card and the evaluator that show it — `unreviewed` until a compliance reader has read it.
+7. **Register.** Move the packs under `packages/packs/`, add them to the harness's default packs and an edition's box, and the journeys page draws the coverage matrix, the assurance pack names the domain, and the bank day can seat the desks (`95-FS-ONBOARDING.md` §1 lists every seam a desk registers on).
+
+### 52.4 The checklist
+
+`checkDomainPack(spec, registry, { manifests, personas })` returns an empty list or the items unmet — each with a stable `check` name (`domain.packs-registered`, `domain.journey-ships`, `domain.journey-out-why`, `domain.journey-obligations`, `domain.decision-kinds`, `domain.control-rows`, `domain.calibration`, `domain.special-category`, `domain.service-line-tiers`, `domain.personas`, `domain.journey-evidence`). The bank's own test (`packages/harness/src/domain-pack.test.ts`) shows every item red by removing one thing; copy its shape for yours. Four things the check cannot see from a manifest are the pack's own tests: the golden run, the red run, at least one matched pair, and the synthetic sweep over every fixture.
+
 
 # Appendices
 

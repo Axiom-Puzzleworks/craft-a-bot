@@ -219,6 +219,14 @@ export interface AssurancePack {
 		packVersions: Record<string, string>;
 		world?: { id: string; name: string; purpose?: string };
 		goalCard?: { id: string; title: string };
+		/** The domain the bot's world belongs to (WP107, `83-…` §6.6.1): the spec a journey pack is held to, with its coverage counted. */
+		domain?: {
+			id: string;
+			name: string;
+			jurisdiction: string;
+			sector: string;
+			journeys: { shipped: number; supporting: number; out: number };
+		};
 	};
 	/** Principle 2 — governance: the safety stack, approvals, egress, the principal. */
 	governance: {
@@ -373,6 +381,28 @@ export async function assurancePackFor(input: AssurancePackInput): Promise<Assur
 	const packVersions = Object.fromEntries(
 		registry.listPacks().map((pack) => [pack.id, pack.version])
 	);
+	// The domain the world's pack belongs to (WP107): the first spec whose packs name it, with the matrix counted.
+	const worldPackId = world?.id.split('/')[0];
+	const domainSpec = worldPackId
+		? input.registry
+				.listDomains()
+				.find(
+					(spec) => spec.packs.world === worldPackId || spec.packs.journeys.includes(worldPackId)
+				)
+		: undefined;
+	const domain = domainSpec
+		? {
+				id: domainSpec.id,
+				name: domainSpec.name,
+				jurisdiction: domainSpec.jurisdiction,
+				sector: domainSpec.sector,
+				journeys: {
+					shipped: domainSpec.journeys.filter((entry) => entry.status === 'shipped').length,
+					supporting: domainSpec.journeys.filter((entry) => entry.status === 'supporting').length,
+					out: domainSpec.journeys.filter((entry) => entry.status === 'out').length
+				}
+			}
+		: undefined;
 	// The inventory entry's `requires` (WP52's ranges): the packs a fitted brick actually came from, at compatible later versions.
 	const brickKinds = brickKindsFor(spec, registry);
 	const packs: Record<string, string> = {};
@@ -563,7 +593,8 @@ export async function assurancePackFor(input: AssurancePackInput): Promise<Assur
 			...(world
 				? { world: { id: world.id, name: world.name, ...(purpose ? { purpose } : {}) } }
 				: {}),
-			...(goalCard ? { goalCard: { id: goalCard.id, title: goalCard.title } } : {})
+			...(goalCard ? { goalCard: { id: goalCard.id, title: goalCard.title } } : {}),
+			...(domain ? { domain } : {})
 		},
 		governance: {
 			guardrails: [...safetyCase.guardrails],

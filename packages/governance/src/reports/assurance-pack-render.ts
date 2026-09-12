@@ -117,6 +117,10 @@ export function renderAssurancePackMarkdown(pack: AssurancePack): string {
 		out.push(
 			`- World: ${pack.inventory.world.name} (\`${pack.inventory.world.id}\`)${pack.inventory.world.purpose ? `, purpose ${pack.inventory.world.purpose}` : ''}`
 		);
+	if (pack.inventory.domain)
+		out.push(
+			`- Domain: ${pack.inventory.domain.name} (\`${pack.inventory.domain.id}\`), ${pack.inventory.domain.sector}, ${pack.inventory.domain.jurisdiction} — journeys: ${pack.inventory.domain.journeys.shipped} shipped, ${pack.inventory.domain.journeys.supporting} supporting, ${pack.inventory.domain.journeys.out} out`
+		);
 	out.push('');
 	out.push('## 2. Governance (principle 2)');
 	out.push('');
@@ -305,6 +309,7 @@ th{background:var(--cab-cream)}code{font-size:.9em}
 		.map(([id, version]) => `<code>${escape(`${id}@${version}`)}</code>`)
 		.join(', ')}</li>
 ${pack.inventory.world ? `<li>World: ${escape(pack.inventory.world.name)} (<code>${escape(pack.inventory.world.id)}</code>)${pack.inventory.world.purpose ? `, purpose ${escape(pack.inventory.world.purpose)}` : ''}</li>` : ''}
+${pack.inventory.domain ? `<li>Domain: ${escape(pack.inventory.domain.name)} (<code>${escape(pack.inventory.domain.id)}</code>), ${escape(pack.inventory.domain.sector)}, ${escape(pack.inventory.domain.jurisdiction)} — journeys: ${pack.inventory.domain.journeys.shipped} shipped, ${pack.inventory.domain.journeys.supporting} supporting, ${pack.inventory.domain.journeys.out} out</li>` : ''}
 </ul>`;
 
 	const governance = `<ul>

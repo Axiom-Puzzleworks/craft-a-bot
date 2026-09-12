@@ -33,6 +33,7 @@ import { bookRun, sweepRun } from './commands/book.js';
 import { experimentAnalyse, experimentRender, experimentRun } from './commands/experiment.js';
 import { bankRun } from './commands/bank.js';
 import { journeyRender } from './commands/journey.js';
+import { scaffoldDomain } from './commands/scaffold.js';
 import { createRegistry } from './config.js';
 import { createFileStorage } from './storage/file-storage.js';
 
@@ -119,6 +120,16 @@ Usage:
   craftabot journey render --workflow <id> [--config <name>] [--run <workflow-run.json>] [--svg <out.svg>] [--file <layout.json>]
       One journey drawn (WP100): its layout as JSON, its SVG for the manual
       and the site — unlit, under a configuration, or lit by a stored run.
+  craftabot scaffold domain --id <id> --sector <sector> --jurisdiction <jurisdiction> --world <pack> --journeys <a,b> --out <dir> [--root <Entity>] [--name <name>] [--today YYYY-MM-DD] [--relative]
+      A domain pack's shape, typed out (WP107): one world pack (the model,
+      a calibration table of stated assumptions pending review, three
+      service lines with tiers, the obligations, a control map, a persona,
+      the DomainSpec) and one journey pack per name (a desk, a four-stage
+      workflow with rules-only and Level 4, two scenarios and a card, a
+      policy card, an evaluator, a book, a campaign, a golden-run test).
+      Green on checkDomainPack as written; red on calibration review until
+      a reader cites a row. --relative writes one workspace instead of a
+      package per pack (examples/scaffold-domain is that).
   craftabot assurance [--agent <id>] [--out ./runs] [--file <pack.json>] [--markdown <pack.md>] [--html <pack.html>]
       The assurance pack for one bot (WP67): its inventory entry, safety
       stack, campaigns, evaluations, mitigants, drift and incidents filed
@@ -1043,6 +1054,46 @@ ${renderEvaluations(report)}`);
 					io.stdout(`wrote ${file}\n`);
 				}
 				if (svgPath === undefined && file === undefined) io.stdout(svg);
+				return 0;
+			}
+			case 'scaffold': {
+				// WP107 (`93-DOMAIN-PACK.md` §4): a domain pack's shape, typed out — a world pack and a journey pack per journey named.
+				const verb = args.positional[0];
+				const id = stringFlag(args, 'id');
+				const sector = stringFlag(args, 'sector');
+				const jurisdiction = stringFlag(args, 'jurisdiction');
+				const world = stringFlag(args, 'world');
+				const out = stringFlag(args, 'out');
+				const journeys = (stringFlag(args, 'journeys') ?? stringFlag(args, 'journey') ?? '')
+					.split(',')
+					.map((name) => name.trim())
+					.filter(Boolean);
+				if (
+					verb !== 'domain' ||
+					id === undefined ||
+					sector === undefined ||
+					jurisdiction === undefined ||
+					world === undefined ||
+					out === undefined ||
+					journeys.length === 0
+				) {
+					throw new Error(
+						'scaffold needs domain --id <id> --sector <sector> --jurisdiction <jurisdiction> --world <pack> --journeys <a,b> --out <dir> [--root <Entity>] [--name <name>] [--today YYYY-MM-DD] [--relative]'
+					);
+				}
+				const written = await scaffoldDomain({
+					id,
+					sector,
+					jurisdiction,
+					world,
+					journeys,
+					out,
+					root: stringFlag(args, 'root'),
+					name: stringFlag(args, 'name'),
+					today: stringFlag(args, 'today'),
+					relative: args.flags['relative'] === true
+				});
+				for (const path of written) io.stdout(`wrote ${path}\n`);
 				return 0;
 			}
 			case 'assurance': {

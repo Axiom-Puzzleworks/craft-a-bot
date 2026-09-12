@@ -18,11 +18,6 @@ import { PERSONA_IDS } from './personas.js';
  * (WP107) holds the checklist against it. Every source is for Andrew's
  * reading, as the calibration rows are.
  */
-const PRA_SS1_23 = {
-	title: 'PRA SS1/23 — Model risk management principles for banks (2023)',
-	url: 'https://www.bankofengland.co.uk/prudential-regulation/publication/2023/may/model-risk-management-principles-for-banks-ss',
-	retrieved: '2026-09-12'
-};
 const FCA_CONC = {
 	title: 'FCA Handbook CONC — Consumer Credit sourcebook',
 	url: 'https://www.handbook.fca.org.uk/handbook/CONC/',
@@ -49,9 +44,19 @@ const PSR_APP = {
 	url: 'https://www.psr.org.uk/our-work/app-scams/',
 	retrieved: '2026-09-12'
 };
+const UK_GDPR_22 = {
+	title: 'UK GDPR Article 22 — Automated individual decision-making',
+	url: 'https://www.legislation.gov.uk/eur/2016/679/article/22',
+	retrieved: '2026-09-12'
+};
 const UK_GDPR = {
 	title: 'UK GDPR Article 5(1)(b)–(c) — purpose limitation and data minimisation',
 	url: 'https://www.legislation.gov.uk/eur/2016/679/article/5',
+	retrieved: '2026-09-12'
+};
+const FCA_COBS_9 = {
+	title: 'FCA Handbook COBS 9 — Suitability',
+	url: 'https://www.handbook.fca.org.uk/handbook/COBS/9/',
 	retrieved: '2026-09-12'
 };
 const DISP = {
@@ -113,9 +118,9 @@ export const ukRetailBankingDomain: DomainSpec = {
 		// The fraud desk (`51-…`, `76-…`).
 		{
 			kind: 'account-restriction',
-			ceiling: 4,
-			why: 'A freeze or a card block is reversible and the assistant’s under oversight.',
-			source: PRA_SS1_23
+			ceiling: 3,
+			why: 'A freeze or a card block is an adverse action on a customer’s account and a person’s below four eyes — the fraud desk’s Article 22 reading (`76-…`); the assistant recommends.',
+			source: UK_GDPR_22
 		},
 		{
 			kind: 'customer-contact-on-fraud',
@@ -128,16 +133,42 @@ export const ukRetailBankingDomain: DomainSpec = {
 			kind: 'regulated-advice',
 			ceiling: 3,
 			why: 'A personal recommendation is a person’s; the assistant prepares.',
-			source: {
-				title: 'FCA Handbook COBS 9 — Suitability',
-				url: 'https://www.handbook.fca.org.uk/handbook/COBS/9/',
-				retrieved: '2026-09-12'
-			}
+			source: FCA_COBS_9
+		},
+		{
+			kind: 'personal-recommendation',
+			ceiling: 3,
+			why: 'The advice journey’s recommendation stage counts this kind: a person’s below four eyes.',
+			source: FCA_COBS_9
+		},
+		{
+			kind: 'investment-execution',
+			ceiling: 4,
+			why: 'Executing a recommendation the customer accepted is the assistant’s under four eyes.',
+			source: FCA_COBS_9
 		},
 		{
 			kind: 'redress',
 			ceiling: 3,
 			why: 'Redress is offered on a person’s approval.',
+			source: DISP
+		},
+		{
+			kind: 'redress-within-limit',
+			ceiling: 4,
+			why: 'The complaints journey’s redress within the desk’s limit is the assistant’s under four eyes.',
+			source: DISP
+		},
+		{
+			kind: 'redress-above-limit',
+			ceiling: 3,
+			why: 'Redress above the limit is a person’s; the assistant recommends.',
+			source: DISP
+		},
+		{
+			kind: 'complaint-declined',
+			ceiling: 3,
+			why: 'Declining a complaint is a person’s; the assistant recommends.',
 			source: DISP
 		},
 		// The onboarding desk (`95-…`).

@@ -40,6 +40,8 @@ export const OBLIGATION_TAGS: Readonly<Record<string, string>> = {
 		'CONC 7: arrears and default handled with forbearance and due consideration of the customer’s circumstances.',
 	'pra:ss1-21:resilience':
 		'SS1/21: important services keep working, or fail safely, under disruption.',
+	'poca:sar':
+		'POCA: a suspicious-activity report filed where there is knowledge or suspicion; the draft is the machine’s, the filing a person’s.',
 	'poca:tipping-off':
 		'POCA: never tell a customer that a suspicious-activity report has been made about them.',
 	'mlr:kyc':

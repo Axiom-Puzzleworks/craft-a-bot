@@ -71,18 +71,23 @@ describe('docs/schemas', () => {
 		expect(validate(readJson(resolve(CORE_FIXTURES, 'trace-file.v2.invalid.json')))).toBe(false);
 	});
 
-	it('craftabot-bundle accepts a bundle built over the trace fixture', async () => {
-		const trace = parseTraceFile(readJson(resolve(CORE_FIXTURES, 'trace-file.v2.valid.json')));
-		const bundle = await buildTraceBundle({
-			runs: [{ run: trace.run, events: trace.events }],
-			exportedBy: 'json-schema.test',
-			exportedAt: '2026-09-05T12:00:00.000Z'
-		});
-		const validate = validator('craftabot-bundle');
-		expect(validate(JSON.parse(JSON.stringify(bundle))), JSON.stringify(validate.errors)).toBe(
-			true
-		);
-	});
+	// Building the bundle digests every event; CI's runners have taken it past five seconds under load (WP105's run).
+	it(
+		'craftabot-bundle accepts a bundle built over the trace fixture',
+		{ timeout: 60_000 },
+		async () => {
+			const trace = parseTraceFile(readJson(resolve(CORE_FIXTURES, 'trace-file.v2.valid.json')));
+			const bundle = await buildTraceBundle({
+				runs: [{ run: trace.run, events: trace.events }],
+				exportedBy: 'json-schema.test',
+				exportedAt: '2026-09-05T12:00:00.000Z'
+			});
+			const validate = validator('craftabot-bundle');
+			expect(validate(JSON.parse(JSON.stringify(bundle))), JSON.stringify(validate.errors)).toBe(
+				true
+			);
+		}
+	);
 
 	it('craftabot-scenarios accepts a pack file over the starter scenarios', () => {
 		const file = scenarioPackFrom('test/scenarios', 'Test scenarios', starterPack.scenarios ?? []);
