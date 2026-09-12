@@ -57,9 +57,7 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      # TEMP (WP97): re-take the Linux Spec Lab baseline; reverted in the next commit.
-      - run: npx playwright test --project visual --update-snapshots -g "Spec Lab"
-        working-directory: apps/workbench
+      - run: npm run e2e:visual
 
       - name: Upload the screenshots and the diffs
         if: always()
