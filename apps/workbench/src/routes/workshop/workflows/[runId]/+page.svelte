@@ -69,6 +69,11 @@
 			}
 		}
 		storedRunIds = ids;
+		follower = stored?.run.handoff
+			? (await storage.listWorkflowRuns()).find((entry) =>
+					entry.run.handoffs?.some((link) => link.runId === stored?.run.id)
+				)
+			: undefined;
 		// The Conduct lens opens the Pipeline at the governing stage (WP88, `79-…` §3): `?stage=` when the run has it.
 		const asked = page.url.searchParams.get('stage') ?? '';
 		selected ??=
@@ -78,6 +83,9 @@
 	}
 
 	const spec = $derived(stored ? specs.get(stored.run.workflowId) : undefined);
+	const stageNameOfWorkflow = (workflowId: string) => specs.get(workflowId)?.name ?? workflowId;
+	/** The run this one handed its item to (WP102), when the store holds it: the one whose chain ends with this run. */
+	let follower = $state<StoredWorkflowRun | undefined>(undefined);
 	const stage = $derived(stored?.run.stages.find((entry) => entry.stageId === selected));
 	const otherStage = $derived(against?.run.stages.find((entry) => entry.stageId === selected));
 	const stageName = (stageId: string) => stageNameOf(spec, stageId);
@@ -163,10 +171,40 @@
 				value={stored.run.startedAt.slice(0, 16).replace('T', ' ')}
 			/>
 			<Lamp
-				status={stored.run.outcome === 'completed' ? 'pass' : 'fail'}
+				status={stored.run.outcome === 'completed'
+					? 'pass'
+					: stored.run.outcome === 'handed-off'
+						? 'inconclusive'
+						: 'fail'}
 				label={stored.run.outcome}
 				testId="pipeline-outcome"
 			/>
+			<!-- WP102 (`83-…` §6.5.3): the handoff this run made, and the run it was handed off from — the Pipeline follows the chain both ways. -->
+			{#if stored.run.handoff}
+				{#if follower}
+					<a
+						href={resolve('/workshop/workflows/[runId]', { runId: follower.run.id })}
+						data-testid="pipeline-handoff-to"
+						>handed off to {stageNameOfWorkflow(stored.run.handoff.to)} — open its run</a
+					>
+				{:else}
+					<span class="meta" data-testid="pipeline-handoff-to"
+						>handed off to {stageNameOfWorkflow(stored.run.handoff.to)} (item {stored.run.handoff
+							.itemId}); its run is not in the store</span
+					>
+				{/if}
+			{/if}
+			{#if stored.run.handoffs?.length}
+				{@const from = stored.run.handoffs.at(-1)}
+				<a
+					href={resolve('/workshop/workflows/[runId]', { runId: from?.runId ?? '' })}
+					data-testid="pipeline-handoff-from"
+					>handed off from {stageNameOfWorkflow(from?.workflowId ?? '')} ({from?.runId.slice(
+						0,
+						8
+					)})</a
+				>
+			{/if}
 			{#if stored.forkedFrom}
 				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- resolve() builds the base path here; its typed surface has no way to attach the ?against= query the rule can verify statically. -->
 				<a

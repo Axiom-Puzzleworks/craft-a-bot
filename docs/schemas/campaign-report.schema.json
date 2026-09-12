@@ -390,7 +390,23 @@
 								"enum": [
 									"completed",
 									"stopped",
-									"abandoned"
+									"abandoned",
+									"handed-off"
+								]
+							},
+							"handoff": {
+								"type": "object",
+								"properties": {
+									"to": {
+										"type": "string"
+									},
+									"itemId": {
+										"type": "string"
+									}
+								},
+								"required": [
+									"to",
+									"itemId"
 								]
 							},
 							"stages": {

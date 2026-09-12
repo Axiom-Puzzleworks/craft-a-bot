@@ -223,3 +223,24 @@ describe('the fraud workflow over the alert book', { timeout: 300_000 }, () => {
 		expect(run.stages[0]).toMatchObject({ stageId: 'alert', status: 'error' });
 	});
 });
+
+describe('the handoff to complaints (WP102, `83-…` §6.5.3)', { timeout: 300_000 }, () => {
+	it('hands a disputed restriction to the complaints journey as a complaint item carrying the register’s truth', async () => {
+		// A person freezes the account of a caller the bot verified: the customer disputes it.
+		const run = await runItem(items[0]!, 'bot-recommends', 70, { decision: 'freeze', sar: 'skip' });
+		expect(run.outcome).toBe('handed-off');
+		expect(run.handoff?.to).toBe('fs-advice/complaints');
+		expect(run.handoff?.item.kind).toBe('complaint');
+		// The desk's own customer (the alert item carries an account, not a customer record): the case's, on the register's shape.
+		expect(run.handoff?.item.customerId).toMatch(/^cust-/);
+		expect(run.handoff?.item.id).toContain('alert-1');
+		expect(run.handoff?.item.truth.facts).toEqual({ category: 'fraud-handling', upheld: false });
+		expect(run.stages.at(-1)?.stageId).toBe('note');
+		expect(() => workflowRunSchema.parse(run)).not.toThrow();
+	});
+
+	it('does not hand off a hold', async () => {
+		const held = await runItem(items[0]!, 'bot-recommends', 71, { decision: 'hold', sar: 'skip' });
+		expect(held.outcome).toBe('completed');
+	});
+});

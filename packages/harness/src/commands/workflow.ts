@@ -11,7 +11,7 @@ import {
 	type WorkflowSpec
 } from '@craftabot/core';
 import { stageBoundaryGuardrails } from '@craftabot/governance';
-import { runWorkflow } from '@craftabot/workflow';
+import { followHandoff, runWorkflow } from '@craftabot/workflow';
 import { createAgentRunWriter } from '../agent-runs.js';
 import { createRegistry, packVersions, type HarnessConfig } from '../config.js';
 import type { CredentialSource } from '../credentials.js';
@@ -46,6 +46,8 @@ export interface WorkflowRunOptions {
 	newId?: () => string;
 	egress?: EgressMode;
 	principal?: Principal;
+	/** Follow a handoff (WP102, `83-…` §6.5.3): the target journey run with the item, and so on to the chain's end. */
+	follow?: boolean;
 }
 
 export interface WorkflowRunReport {
@@ -65,6 +67,14 @@ export interface WorkflowRunReport {
 	digest: string;
 	directory: string;
 	file: string;
+	/** The handoff this run made (WP102), and — with `--follow` — the runs that followed it, each written under `workflows/`. */
+	handoff?: { to: string; itemId: string };
+	followed?: Array<{
+		runId: string;
+		workflowId: string;
+		outcome: WorkflowRun['outcome'];
+		file: string;
+	}>;
 }
 
 export async function workflowRun(options: WorkflowRunOptions): Promise<WorkflowRunReport> {
@@ -87,7 +97,7 @@ export async function workflowRun(options: WorkflowRunOptions): Promise<Workflow
 		now
 	});
 
-	const record = await runWorkflow(workflow, item, {
+	const runOptions: Parameters<typeof runWorkflow>[2] = {
 		packs: [...options.config.packs, localPackFrom(options.config.content ?? [])],
 		spec: spec ?? placeholderSpec(),
 		...(config ? { config } : {}),
@@ -124,14 +134,42 @@ export async function workflowRun(options: WorkflowRunOptions): Promise<Workflow
 		onAgentRun: (agentRun) => {
 			void writer.write(agentRun.runId, agentRun.spec, agentRun.events);
 		}
-	});
+	};
+	const record = await runWorkflow(workflow, item, runOptions);
 
 	// Every agent run is on disk before the workflow's own record is.
 	await writer.done();
-	const directory = join(options.out, 'workflows', record.id);
-	await mkdir(directory, { recursive: true });
-	const file = join(directory, 'workflow-run.json');
-	await writeFile(file, `${JSON.stringify(record, null, '\t')}\n`, 'utf8');
+	const write = async (run: WorkflowRun) => {
+		const directory = join(options.out, 'workflows', run.id);
+		await mkdir(directory, { recursive: true });
+		const file = join(directory, 'workflow-run.json');
+		await writeFile(
+			file,
+			`${JSON.stringify(run, null, '	')}
+`,
+			'utf8'
+		);
+		return { directory, file };
+	};
+	const { directory, file } = await write(record);
+	// `--follow` (WP102, `83-…` §6.5.3): each handoff's target run under the same options, to the chain's end.
+	const followed: NonNullable<WorkflowRunReport['followed']> = [];
+	if (options.follow) {
+		let last = record;
+		for (let hops = 0; hops < 8; hops += 1) {
+			const next = await followHandoff(last, registry, runOptions);
+			if (!next) break;
+			await writer.done();
+			const written = await write(next);
+			followed.push({
+				runId: next.id,
+				workflowId: next.workflowId,
+				outcome: next.outcome,
+				file: written.file
+			});
+			last = next;
+		}
+	}
 
 	return {
 		runId: record.id,
@@ -149,7 +187,11 @@ export async function workflowRun(options: WorkflowRunOptions): Promise<Workflow
 		runIds: record.runIds,
 		digest: record.digest,
 		directory,
-		file
+		file,
+		...(record.handoff
+			? { handoff: { to: record.handoff.to, itemId: record.handoff.itemId } }
+			: {}),
+		...(followed.length > 0 ? { followed } : {})
 	};
 }
 

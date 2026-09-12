@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1534 332" width="1534" height="332" role="img" aria-labelledby="journey-title" font-family="system-ui, sans-serif" font-size="11" fill="currentColor" stroke="currentColor">
-<title id="journey-title">The alert journey: Alert (the rules), Triage (the assistant), Contact (the assistant), Decision (the assistant), Restriction recorded (the rules), Suspicious-activity report (a colleague), Report filed (the rules), Closing note (the rules). Edges: alert to triage; triage to contact; contact to decision; decision to restriction on release / hold / block-card / freeze / escalate; restriction to sar on depends on the case; sar to filing on skip / file; filing to note; note to end.</title>
+<title id="journey-title">The alert journey: Alert (the rules), Triage (the assistant), Contact (the assistant), Decision (the assistant), Restriction recorded (the rules), Suspicious-activity report (a colleague), Report filed (the rules), Closing note (the rules). Edges: alert to triage; triage to contact; contact to decision; decision to restriction on release / hold / block-card / freeze / escalate; restriction to sar on depends on the case; sar to filing on skip / file; filing to note; note to end on depends on the case.</title>
 <style>.lane{fill:none;stroke-opacity:.35}.lane-label{stroke:none;font-weight:700}.edge{fill:none;stroke-width:1.5}.edge--case{stroke-dasharray:4 3}.edge--taken{stroke-width:3}.edge-label{stroke:none}.node{fill:none;stroke-width:1.5}.node--lit{stroke-width:3}.node--irreversible{stroke-dasharray:2 2}.node-label{stroke:none;text-anchor:middle}.point{fill:none;stroke-width:1.5}.end{stroke-width:3}</style>
 <rect class="lane lane--assistant" x="0" y="16" width="1534" height="100"/>
 <text class="lane-label" x="8" y="32">the assistant</text>
@@ -17,7 +17,8 @@
 <path class="edge edge--enumerated" d="M975 166 H1028 V266 H1081" data-edge="sar-&gt;filing"/>
 <text class="edge-label" x="1034" y="212" text-anchor="start">skip / file</text>
 <path class="edge edge--enumerated" d="M1125 266 H1231" data-edge="filing-&gt;note"/>
-<path class="edge edge--enumerated" d="M1275 266 H1399" data-edge="note-&gt;end"/>
+<path class="edge edge--case" d="M1275 266 H1399" data-edge="note-&gt;end"/>
+<text class="edge-label" x="1339" y="258" text-anchor="middle">depends on the case</text>
 <line class="end" x1="1403" y1="24" x2="1403" y2="308"/>
 <circle class="node node--rule" cx="203" cy="266" r="22" data-stage="alert"/>
 <text class="node-label" x="203" y="302">Alert</text>

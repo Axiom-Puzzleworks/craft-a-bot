@@ -181,8 +181,8 @@
 			"to": {
 				"end": true
 			},
-			"label": "",
-			"kind": "enumerated"
+			"label": "depends on the case",
+			"kind": "case"
 		}
 	],
 	"points": [

@@ -51,8 +51,15 @@ export interface StageSpec<In = unknown, Out = unknown> {
 	/** The stage's output read off the world once an agent or a line has done its work; a rule returns its own. */
 	read?: (state: WorldState, truth: unknown) => Out | undefined;
 	/** Which stage follows, or `'end'` — from this stage's output, the state and, when it matters, the input it was given. */
-	next: (out: Out, state: WorldState, input: In) => string | 'end';
+	/** The next stage, `'end'`, or a handoff (WP102, `83-…` §6.5.3): another journey started with the item `next` builds — the item, never the desk state. */
+	next: (out: Out, state: WorldState, input: In) => StageNext;
 }
+
+export interface StageHandoff {
+	handoff: string;
+	item: WorkItem;
+}
+export type StageNext = string | 'end' | StageHandoff;
 
 /** The two boundary points a stage guard may decide at (`85-…` §3). */
 export type BoundaryPoint = 'stage-in' | 'stage-out';

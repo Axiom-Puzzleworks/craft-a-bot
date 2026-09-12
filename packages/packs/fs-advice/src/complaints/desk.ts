@@ -1,7 +1,13 @@
 import { createDeskWorld, type DeskState, type DeskWorldSpec } from '@craftabot/desk';
 import { bankContextRecords } from '@craftabot/pack-fs-bank';
 import { z } from 'zod';
-import { COMPLAINT_KINDS, complaintCase, type ComplaintKind } from './cases.js';
+import {
+	COMPLAINT_KINDS,
+	complaintCase,
+	complaintCaseFromItem,
+	type ComplaintKind
+} from './cases.js';
+import type { WorkItem } from '@craftabot/core';
 import { ACK_TICKS, ROOT_CAUSES, type ComplaintsExtra } from './extra.js';
 import { complaintsStrings } from './strings.js';
 
@@ -27,11 +33,26 @@ const LAYOUT_NAMES: Record<ComplaintKind, string> = {
 	escalating: 'A complainant who will go to the ombudsman'
 };
 
-export const complaintsLayouts = COMPLAINT_KINDS.map((kind) => ({
-	id: kind,
-	name: LAYOUT_NAMES[kind],
-	case: (random: () => number) => complaintCase(random, kind)
-}));
+/** The work-item layout (WP102): the case built from the register item the workflow's intake hands over as `config.item`; bare, the charges error. */
+export const WORK_ITEM_LAYOUT = 'work-item';
+
+export const complaintsLayouts = [
+	...COMPLAINT_KINDS.map((kind) => ({
+		id: kind,
+		name: LAYOUT_NAMES[kind],
+		case: (random: () => number) => complaintCase(random, kind)
+	})),
+	{
+		id: WORK_ITEM_LAYOUT,
+		name: complaintsStrings.workflow.layoutName,
+		case: (random: () => number, config?: Record<string, unknown>) => {
+			const item = config?.['item'];
+			return item && typeof item === 'object'
+				? complaintCaseFromItem(random, item as WorkItem)
+				: complaintCase(random, 'charges-error');
+		}
+	}
+];
 
 const closed = (state: ComplaintsDeskState): boolean =>
 	state.extra.complaints.redress !== undefined ||

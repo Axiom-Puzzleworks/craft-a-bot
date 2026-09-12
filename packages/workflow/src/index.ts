@@ -2,6 +2,7 @@ export {
 	VALUE_CAP,
 	configRecord,
 	executorRecord,
+	followHandoff,
 	runWorkflow,
 	stageCardId,
 	stagePack,

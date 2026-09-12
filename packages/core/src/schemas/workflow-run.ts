@@ -112,7 +112,22 @@ export const workflowRunSchema = z.object({
 	config: workflowConfigRecordSchema,
 	startedAt: z.string(),
 	finishedAt: z.string(),
-	outcome: z.enum(['completed', 'stopped', 'abandoned']),
+	/** `handed-off` (WP102): the journey ended by handing its item on to another; `handoff` says which. */
+	outcome: z.enum(['completed', 'stopped', 'abandoned', 'handed-off']),
+	/** The handoff this run ended with (WP102, `83-…` §6.5.3): the target journey and the item it was handed — the item, never the desk state. */
+	handoff: z
+		.object({ to: z.string().min(1), itemId: z.string().min(1), item: workItemSchema })
+		.optional(),
+	/** The chain of runs this one was handed off from, oldest first (WP102): the link a Pipeline follows back. */
+	handoffs: z
+		.array(
+			z.object({
+				runId: z.string().min(1),
+				workflowId: z.string().min(1),
+				itemId: z.string().min(1)
+			})
+		)
+		.optional(),
 	stages: z.array(stageRecordSchema),
 	/** Every agent run the workflow made. */
 	runIds: z.array(z.string()),

@@ -101,6 +101,9 @@ const FROZEN_STATE = new Proxy(
 ) as unknown as WorldState;
 
 function targetOf(value: unknown, stageIds: ReadonlySet<string>): JourneyEdgeTarget | undefined {
+	// A handoff object (WP102): `next` built an item, which needs the case — so it is enumerable only when it did not read the state.
+	if (value !== null && typeof value === 'object' && 'handoff' in value)
+		return { handoff: String((value as { handoff: unknown }).handoff) };
 	if (typeof value !== 'string') return undefined;
 	if (value === 'end') return { end: true };
 	if (value.startsWith(HANDOFF_PREFIX)) return { handoff: value.slice(HANDOFF_PREFIX.length) };
@@ -234,7 +237,7 @@ function journeyOrder(
 export function journeyLayout(
 	spec: WorkflowSpec,
 	config?: WorkflowConfig,
-	run?: Pick<WorkflowRun, 'stages' | 'events'>,
+	run?: Pick<WorkflowRun, 'stages' | 'events'> & { handoff?: WorkflowRun['handoff'] },
 	options: JourneyLayoutOptions = {}
 ): JourneyLayout {
 	const recordOf = new Map(run?.stages.map((record) => [record.stageId, record]) ?? []);
@@ -318,13 +321,18 @@ export function journeyLayout(
 }
 
 /** The lit run (§3.5): the path, the edges between its stages (added as `observed` where the enumeration had none), the boundary verdicts on their points. */
-function lightUp(layout: JourneyLayout, run: Pick<WorkflowRun, 'stages' | 'events'>): JourneyLit {
+function lightUp(
+	layout: JourneyLayout,
+	run: Pick<WorkflowRun, 'stages' | 'events'> & { handoff?: WorkflowRun['handoff'] }
+): JourneyLit {
 	const path = run.stages.map((record) => record.stageId);
 	const litEdges: string[] = [];
 	for (let index = 0; index < path.length; index += 1) {
 		const from = path[index] as string;
 		const next = path[index + 1];
-		const to: JourneyEdgeTarget = next === undefined ? { end: true } : next;
+		// The last stage's exit: the handoff the run made (WP102), else the end.
+		const exit: JourneyEdgeTarget = run.handoff ? { handoff: run.handoff.to } : { end: true };
+		const to: JourneyEdgeTarget = next === undefined ? exit : next;
 		const id = `${from}->${targetKey(to)}`;
 		let edge = layout.edges.find((entry) => entry.id === id);
 		if (!edge) {

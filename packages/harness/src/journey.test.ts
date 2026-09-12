@@ -12,9 +12,10 @@ const registry = createRegistry(defaultConfig());
 const workflows = registry.listWorkflows().sort((a, b) => a.id.localeCompare(b.id));
 
 describe('the shipped journeys', () => {
-	it('are the three desks’', () => {
+	it('are the three desks’ and the complaints journey (WP102)', () => {
 		expect(workflows.map((workflow) => workflow.id)).toEqual([
 			'fs-advice/advice',
+			'fs-advice/complaints',
 			'fs-fraud/fraud',
 			'fs-lending/lending'
 		]);
@@ -50,6 +51,14 @@ describe('the shipped journeys', () => {
 		expect(journeyLayout(lending).nodes.find((node) => node.stageId === 'decision')?.lane).toBe(
 			'assistant'
 		);
+	});
+
+	it('draws the fraud journey’s handoff to complaints as an exit (WP102)', () => {
+		const fraud = registry.getWorkflow('fs-fraud/fraud');
+		if (!fraud) throw new Error('no fraud journey');
+		const layout = journeyLayout(fraud, undefined, undefined, { registry });
+		// The note's `next` reads the desk, so the enumeration draws the case edge; a lit run adds the exit it took.
+		expect(layout.edges.find((edge) => edge.from === 'note')?.kind).toBe('case');
 	});
 
 	it('draws every configuration of every journey without a throw', () => {

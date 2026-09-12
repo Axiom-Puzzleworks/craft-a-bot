@@ -28,6 +28,7 @@ import {
 } from './complaints/campaign.js';
 
 import { adviceWorkflow } from './workflow.js';
+import { complaintsWorkflow } from './complaints/workflow.js';
 
 export const fsAdvicePack: PackManifest = {
 	id: FS_ADVICE_PACK_ID,
@@ -60,7 +61,7 @@ export const fsAdvicePack: PackManifest = {
 	evaluators: [...adviceEvaluators, ...complaintsEvaluators],
 	controlMaps: [adviceControlMap],
 	// The advice journey (WP85, `76-FRAUD-AND-ADVICE-WORKFLOWS.md` §4).
-	workflows: [adviceWorkflow]
+	workflows: [adviceWorkflow, complaintsWorkflow]
 };
 
 export default fsAdvicePack;

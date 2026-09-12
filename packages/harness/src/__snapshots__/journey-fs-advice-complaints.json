@@ -1,0 +1,258 @@
+{
+	"schemaVersion": 1,
+	"workflowId": "fs-advice/complaints",
+	"name": "The complaints journey",
+	"lanes": [
+		{
+			"id": "assistant",
+			"label": "the assistant"
+		},
+		{
+			"id": "colleague",
+			"label": "a colleague"
+		},
+		{
+			"id": "rules",
+			"label": "the rules"
+		}
+	],
+	"nodes": [
+		{
+			"stageId": "acknowledge",
+			"name": "Acknowledgement",
+			"lane": "assistant",
+			"x": 0,
+			"y": 0,
+			"executor": "agent",
+			"irreversible": false,
+			"obligations": [
+				"fca:disp:complaints"
+			],
+			"guards": [
+				"loop:acknowledge:pre-think",
+				"loop:acknowledge:pre-act",
+				"loop:acknowledge:post-act"
+			]
+		},
+		{
+			"stageId": "investigate",
+			"name": "Investigation",
+			"lane": "rules",
+			"x": 1,
+			"y": 2,
+			"executor": "rule",
+			"irreversible": false,
+			"obligations": [
+				"fca:disp:complaints"
+			],
+			"guards": []
+		},
+		{
+			"stageId": "root-cause",
+			"name": "Root cause",
+			"lane": "assistant",
+			"x": 2,
+			"y": 0,
+			"executor": "agent",
+			"irreversible": false,
+			"obligations": [
+				"fca:cd:understanding"
+			],
+			"guards": [
+				"loop:root-cause:pre-think",
+				"loop:root-cause:pre-act",
+				"loop:root-cause:post-act"
+			]
+		},
+		{
+			"stageId": "decision",
+			"name": "Decision",
+			"lane": "rules",
+			"x": 3,
+			"y": 2,
+			"executor": "rule",
+			"irreversible": false,
+			"obligations": [
+				"fca:disp:complaints",
+				"fca:cd:price-value"
+			],
+			"guards": []
+		},
+		{
+			"stageId": "approve",
+			"name": "Approval",
+			"lane": "colleague",
+			"x": 4,
+			"y": 1,
+			"executor": "human",
+			"irreversible": false,
+			"obligations": [
+				"fca:cd:price-value"
+			],
+			"guards": []
+		},
+		{
+			"stageId": "close",
+			"name": "Closed",
+			"lane": "rules",
+			"x": 5,
+			"y": 2,
+			"executor": "rule",
+			"irreversible": false,
+			"obligations": [
+				"fca:disp:complaints"
+			],
+			"guards": []
+		},
+		{
+			"stageId": "redress",
+			"name": "Redress",
+			"lane": "assistant",
+			"x": 6,
+			"y": 0,
+			"executor": "agent",
+			"irreversible": true,
+			"obligations": [
+				"fca:disp:complaints",
+				"fca:cd:price-value"
+			],
+			"guards": [
+				"loop:redress:pre-think",
+				"loop:redress:pre-act",
+				"loop:redress:post-act",
+				"boundary:redress:stage-in"
+			]
+		}
+	],
+	"edges": [
+		{
+			"id": "acknowledge->investigate",
+			"from": "acknowledge",
+			"to": "investigate",
+			"label": "",
+			"kind": "enumerated"
+		},
+		{
+			"id": "investigate->root-cause",
+			"from": "investigate",
+			"to": "root-cause",
+			"label": "",
+			"kind": "enumerated"
+		},
+		{
+			"id": "root-cause->decision",
+			"from": "root-cause",
+			"to": "decision",
+			"label": "",
+			"kind": "enumerated"
+		},
+		{
+			"id": "decision->approve",
+			"from": "decision",
+			"to": "approve",
+			"label": "uphold",
+			"kind": "enumerated"
+		},
+		{
+			"id": "decision->close",
+			"from": "decision",
+			"to": "close",
+			"label": "decline",
+			"kind": "enumerated"
+		},
+		{
+			"id": "approve->redress",
+			"from": "approve",
+			"to": "redress",
+			"label": "confirm",
+			"kind": "enumerated"
+		},
+		{
+			"id": "approve->close",
+			"from": "approve",
+			"to": "close",
+			"label": "return",
+			"kind": "enumerated"
+		},
+		{
+			"id": "close->end",
+			"from": "close",
+			"to": {
+				"end": true
+			},
+			"label": "",
+			"kind": "enumerated"
+		},
+		{
+			"id": "redress->close",
+			"from": "redress",
+			"to": "close",
+			"label": "",
+			"kind": "enumerated"
+		}
+	],
+	"points": [
+		{
+			"id": "loop:acknowledge:pre-think",
+			"kind": "pre-think",
+			"at": "acknowledge",
+			"components": []
+		},
+		{
+			"id": "loop:acknowledge:pre-act",
+			"kind": "pre-act",
+			"at": "acknowledge",
+			"components": []
+		},
+		{
+			"id": "loop:acknowledge:post-act",
+			"kind": "post-act",
+			"at": "acknowledge",
+			"components": []
+		},
+		{
+			"id": "loop:root-cause:pre-think",
+			"kind": "pre-think",
+			"at": "root-cause",
+			"components": []
+		},
+		{
+			"id": "loop:root-cause:pre-act",
+			"kind": "pre-act",
+			"at": "root-cause",
+			"components": []
+		},
+		{
+			"id": "loop:root-cause:post-act",
+			"kind": "post-act",
+			"at": "root-cause",
+			"components": []
+		},
+		{
+			"id": "loop:redress:pre-think",
+			"kind": "pre-think",
+			"at": "redress",
+			"components": []
+		},
+		{
+			"id": "loop:redress:pre-act",
+			"kind": "pre-act",
+			"at": "redress",
+			"components": []
+		},
+		{
+			"id": "loop:redress:post-act",
+			"kind": "post-act",
+			"at": "redress",
+			"components": []
+		},
+		{
+			"id": "boundary:redress:stage-in",
+			"kind": "stage-in",
+			"at": "redress",
+			"components": [
+				"fs-advice/policy/redress-needs-approval"
+			]
+		}
+	]
+}

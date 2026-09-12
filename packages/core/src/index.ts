@@ -599,6 +599,8 @@ export type {
 	Executor,
 	RuleFn,
 	StageSpec,
+	StageHandoff,
+	StageNext,
 	BoundaryPoint,
 	StageGuardComponent,
 	WorkflowConfig,

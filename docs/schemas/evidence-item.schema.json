@@ -6713,8 +6713,168 @@
 							"enum": [
 								"completed",
 								"stopped",
-								"abandoned"
+								"abandoned",
+								"handed-off"
 							]
+						},
+						"handoff": {
+							"type": "object",
+							"properties": {
+								"to": {
+									"type": "string",
+									"minLength": 1
+								},
+								"itemId": {
+									"type": "string",
+									"minLength": 1
+								},
+								"item": {
+									"type": "object",
+									"properties": {
+										"id": {
+											"type": "string",
+											"minLength": 1
+										},
+										"kind": {
+											"type": "string",
+											"enum": [
+												"application",
+												"alert",
+												"complaint",
+												"advice-request"
+											]
+										},
+										"customerId": {
+											"type": "string",
+											"minLength": 1
+										},
+										"arrivedAt": {
+											"type": "string",
+											"minLength": 1
+										},
+										"payload": {},
+										"truth": {
+											"type": "object",
+											"properties": {
+												"records": {
+													"type": "array",
+													"items": {
+														"type": "object",
+														"properties": {
+															"id": {
+																"type": "string"
+															},
+															"kind": {
+																"type": "string"
+															},
+															"title": {
+																"type": "string"
+															},
+															"classification": {
+																"type": "string"
+															},
+															"fields": {
+																"type": "object",
+																"propertyNames": {
+																	"type": "string"
+																},
+																"additionalProperties": {
+																	"anyOf": [
+																		{
+																			"type": "string"
+																		},
+																		{
+																			"type": "number"
+																		},
+																		{
+																			"type": "boolean"
+																		}
+																	]
+																}
+															}
+														},
+														"required": [
+															"id",
+															"kind",
+															"title",
+															"fields"
+														]
+													}
+												},
+												"facts": {
+													"type": "object",
+													"propertyNames": {
+														"type": "string"
+													},
+													"additionalProperties": {
+														"anyOf": [
+															{
+																"type": "string"
+															},
+															{
+																"type": "number"
+															},
+															{
+																"type": "boolean"
+															}
+														]
+													}
+												},
+												"cohort": {
+													"type": "object",
+													"propertyNames": {
+														"type": "string"
+													},
+													"additionalProperties": {
+														"type": "string"
+													}
+												}
+											},
+											"required": [
+												"records"
+											]
+										}
+									},
+									"required": [
+										"id",
+										"kind",
+										"customerId",
+										"arrivedAt",
+										"payload",
+										"truth"
+									]
+								}
+							},
+							"required": [
+								"to",
+								"itemId",
+								"item"
+							]
+						},
+						"handoffs": {
+							"type": "array",
+							"items": {
+								"type": "object",
+								"properties": {
+									"runId": {
+										"type": "string",
+										"minLength": 1
+									},
+									"workflowId": {
+										"type": "string",
+										"minLength": 1
+									},
+									"itemId": {
+										"type": "string",
+										"minLength": 1
+									}
+								},
+								"required": [
+									"runId",
+									"workflowId",
+									"itemId"
+								]
+							}
 						},
 						"stages": {
 							"type": "array",
@@ -9891,6 +10051,11 @@
 									"minimum": 0,
 									"maximum": 9007199254740991
 								},
+								"handedOff": {
+									"type": "integer",
+									"minimum": 0,
+									"maximum": 9007199254740991
+								},
 								"byDesk": {
 									"type": "object",
 									"propertyNames": {
@@ -9910,6 +10075,11 @@
 												"maximum": 9007199254740991
 											},
 											"stopped": {
+												"type": "integer",
+												"minimum": 0,
+												"maximum": 9007199254740991
+											},
+											"handedOff": {
 												"type": "integer",
 												"minimum": 0,
 												"maximum": 9007199254740991
@@ -9999,7 +10169,8 @@
 										"enum": [
 											"completed",
 											"stopped",
-											"abandoned"
+											"abandoned",
+											"handed-off"
 										]
 									}
 								},

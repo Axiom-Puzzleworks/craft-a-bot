@@ -79,7 +79,7 @@ describe('craftabot bank run', { timeout: 300_000 }, () => {
 		);
 	});
 
-	it('works the three-desk day file the CI runs — lending, fraud and advice each take their kind', async () => {
+	it('works the four-desk day file the CI runs — lending, fraud, advice and complaints each take their kind', async () => {
 		const root = await tempDir();
 		const result = await bankRun({
 			desksPath: resolve(HERE, '..', '..', '..', '..', 'campaigns', 'desks', 'bank-day.json'),
@@ -93,16 +93,25 @@ describe('craftabot bank run', { timeout: 300_000 }, () => {
 			credentials: credentialsFromEnv({}),
 			egress: 'none'
 		});
-		expect(result.bankRun.desks.map((desk) => desk.id)).toEqual(['lending', 'fraud', 'advice']);
+		expect(result.bankRun.desks.map((desk) => desk.id)).toEqual([
+			'lending',
+			'fraud',
+			'advice',
+			'complaints'
+		]);
 		expect(result.bankRun.clock.books.map((book) => book.kind).sort()).toEqual([
 			'advice-request',
 			'alert',
-			'application'
+			'application',
+			'complaint'
 		]);
 		expect(result.bankRun.counts.unrouted).toBe(0);
 		expect(result.bankRun.counts.byDesk['lending']?.worked).toBeGreaterThan(0);
 		expect(result.bankRun.counts.byDesk['fraud']?.worked).toBeGreaterThan(0);
-		expect(result.bankRun.counts.completed).toBe(result.bankRun.counts.routed);
+		// A handed-off run (WP102) is routed work that ended by handing on; its follower is routed work of its own.
+		expect(result.bankRun.counts.completed + (result.bankRun.counts.handedOff ?? 0)).toBe(
+			result.bankRun.counts.routed
+		);
 		expect(result.bankRun.incidents).toEqual([]);
 	});
 

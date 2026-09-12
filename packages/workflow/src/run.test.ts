@@ -27,7 +27,14 @@ import {
 } from '@craftabot/core/testing';
 import { describe, expect, it } from 'vitest';
 import { TEST_DESK_ID, testDesk } from '@craftabot/desk/testing';
-import { VALUE_CAP, configRecord, runWorkflow, stagePack, stageValue } from './run.js';
+import {
+	VALUE_CAP,
+	configRecord,
+	followHandoff,
+	runWorkflow,
+	stagePack,
+	stageValue
+} from './run.js';
 
 /**
  * WP79 stage B (`69-WORKFLOWS.md` §7): the runtime over the desk golden
@@ -779,5 +786,94 @@ describe('stage-boundary guards (WP95)', () => {
 		const spec = workflow([greet, signByRule], { rules: RULES });
 		const { record } = await run(spec);
 		expect(record.stages.every((stage) => stage.guards.verdicts === undefined)).toBe(true);
+	});
+});
+
+describe('a handoff (WP102, `83-…` §6.5.3)', () => {
+	const handsOff: StageSpec = {
+		id: 'refer',
+		name: 'Refer the visitor',
+		input: ANY,
+		output: ANY,
+		executor: { kind: 'rule', rule: 'refer-v1' },
+		next: (_out, _state, input) => ({
+			handoff: 'test/follow-up',
+			item: {
+				...ITEM,
+				id: 'item-1-follow-up',
+				kind: 'alert',
+				payload: { referred: input }
+			}
+		})
+	};
+	const followUp: WorkflowSpec = workflow(
+		[
+			{
+				id: 'log',
+				name: 'Log the referral',
+				input: ANY,
+				output: ANY,
+				executor: { kind: 'rule', rule: 'log-v1' },
+				next: () => 'end'
+			}
+		],
+		{
+			id: 'test/follow-up',
+			name: 'The follow-up',
+			rules: { 'log-v1': (input) => ({ output: { logged: input } }) }
+		}
+	);
+	const registry = {
+		getWorkflow: (id: string) => (id === followUp.id ? followUp : undefined)
+	};
+
+	it('ends the run as handed-off with the item, and the follower carries the chain', async () => {
+		const spec = workflow([handsOff], {
+			rules: { 'refer-v1': (input) => ({ output: { referred: input } }) }
+		});
+		const { record } = await run(spec);
+		expect(record.outcome).toBe('handed-off');
+		expect(record.handoff).toMatchObject({ to: 'test/follow-up', itemId: 'item-1-follow-up' });
+		expect(record.handoff?.item.kind).toBe('alert');
+		expect(record.handoffs).toBeUndefined();
+		expect(record.stages.map((stage) => stage.stageId)).toEqual(['refer']);
+
+		const follower = await followHandoff(record, registry, {
+			packs: [testPack()],
+			spec: SPEC,
+			providerFor: () => createMockProvider({ script: obedient(PLAN) })
+		});
+		expect(follower?.workflowId).toBe('test/follow-up');
+		expect(follower?.itemId).toBe('item-1-follow-up');
+		expect(follower?.outcome).toBe('completed');
+		expect(follower?.handoffs).toEqual([
+			{ runId: record.id, workflowId: 'test/visit', itemId: 'item-1' }
+		]);
+		// Nothing to follow from a run that did not hand off.
+		expect(
+			await followHandoff(follower!, registry, {
+				packs: [testPack()],
+				spec: SPEC,
+				providerFor: () => createMockProvider({ script: obedient(PLAN) })
+			})
+		).toBeUndefined();
+	});
+
+	it('refuses a handoff to a journey that is not installed', async () => {
+		const spec = workflow([handsOff], {
+			rules: { 'refer-v1': (input) => ({ output: { referred: input } }) }
+		});
+		const { record } = await run(spec);
+		await expect(
+			followHandoff(
+				record,
+				{ getWorkflow: () => undefined },
+				{
+					packs: [testPack()],
+					spec: SPEC,
+					providerFor: () => createMockProvider({ script: obedient(PLAN) })
+				}
+			)
+		).rejects.toThrow(/not installed/);
 	});
 });

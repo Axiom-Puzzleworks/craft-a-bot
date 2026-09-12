@@ -89,6 +89,8 @@ export interface RunWorkflowOptions {
 	session?: SessionOptions;
 	/** Re-run from a stage: the stages before it under the origin's config and seeds, the new config from there (§5 item 4). */
 	fromStage?: { stageId: string; from: WorkflowRun };
+	/** The run this one was handed off from (WP102): its chain is carried forward on `handoffs`. */
+	handedOffFrom?: WorkflowRun;
 	/** The bound on a cyclic journey. */
 	maxStages?: number;
 	onStage?: (record: StageRecord) => void;
@@ -273,6 +275,7 @@ export async function runWorkflow(
 	let current: string | 'end' = spec.first;
 	let input: unknown = intake.input;
 	let outcome: WorkflowRun['outcome'] = 'completed';
+	let handoff: WorkflowRun['handoff'];
 	const maxStages = options.maxStages ?? 64;
 
 	while (current !== 'end') {
@@ -302,9 +305,26 @@ export async function runWorkflow(
 			break;
 		}
 		const output = record.output.value;
-		current = stage.next(output, world.snapshot(), input);
+		const next = stage.next(output, world.snapshot(), input);
+		// A handoff (WP102, `83-…` §6.5.3): the journey ends here; the host starts the target with the item.
+		if (typeof next === 'object') {
+			handoff = { to: next.handoff, itemId: next.item.id, item: next.item };
+			outcome = 'handed-off';
+			break;
+		}
+		current = next;
 		input = output;
 	}
+	const handoffs = options.handedOffFrom
+		? [
+				...(options.handedOffFrom.handoffs ?? []),
+				{
+					runId: options.handedOffFrom.id,
+					workflowId: options.handedOffFrom.workflowId,
+					itemId: options.handedOffFrom.itemId
+				}
+			]
+		: undefined;
 
 	const finishedAt = now();
 	const record: WorkflowRun = {
@@ -319,6 +339,8 @@ export async function runWorkflow(
 		startedAt,
 		finishedAt,
 		outcome,
+		...(handoff ? { handoff } : {}),
+		...(handoffs ? { handoffs } : {}),
 		stages,
 		runIds,
 		events,
@@ -980,3 +1002,22 @@ function packOf(_registry: PackRegistry, id: string): string {
 
 export type { WorkflowRun, WorkflowSpec, WorkflowConfig, StageRecord } from '@craftabot/core';
 export type { WorldInstance };
+
+/**
+ * **Following a handoff** (WP102, `83-…` §6.5.3): the target journey run
+ * with the item the finished run handed over, under the same host options
+ * (packs, bot, brains, clocks) and its chain carried forward. Returns the
+ * run, or nothing when there was no handoff; a host loops on it to follow a
+ * chain to its end.
+ */
+export async function followHandoff(
+	run: WorkflowRun,
+	registry: Pick<PackRegistry, 'getWorkflow'>,
+	options: Omit<RunWorkflowOptions, 'fromStage' | 'handedOffFrom'>
+): Promise<WorkflowRun | undefined> {
+	if (!run.handoff) return undefined;
+	const target = registry.getWorkflow(run.handoff.to);
+	if (!target)
+		throw new Error(`run ${run.id} hands off to "${run.handoff.to}", which is not installed`);
+	return runWorkflow(target, run.handoff.item, { ...options, handedOffFrom: run });
+}

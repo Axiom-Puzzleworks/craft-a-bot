@@ -215,3 +215,64 @@ describe('runBank', () => {
 		);
 	});
 });
+
+describe('a handoff on the clock (WP102, `83-…` §6.5.3)', () => {
+	/** A journey whose one stage hands the visitor on as an alert for the second desk. */
+	const REFER: WorkflowSpec = {
+		...VISIT,
+		id: 'test/refer',
+		name: 'A referral',
+		stages: [
+			{
+				id: 'refer',
+				name: 'Refer',
+				input: { type: 'object' },
+				output: { type: 'object' },
+				executor: { kind: 'rule', rule: 'refer-v1' },
+				next: (_out, _state, input) => ({
+					handoff: 'test/visit',
+					item: { ...item(9, 'alert'), payload: { referred: input } }
+				})
+			}
+		],
+		first: 'refer',
+		rules: { 'refer-v1': (input) => ({ output: { referred: input } }) },
+		configurations: { bot: {} }
+	};
+
+	it('routes the handed-off item to the desk that takes its kind, and the day drains it before ending', async () => {
+		const desks = [
+			desk(1, { id: 'front', workflowId: 'test/refer', kinds: ['application'] }),
+			desk(1, { id: 'alerts', workflowId: 'test/visit', kinds: ['alert'] })
+		];
+		const arrivals: Array<{ desk: string | undefined; kind: string }> = [];
+		const { record } = await day(desks, [item(1)], {
+			workflows: [VISIT, REFER],
+			onArrival: (arrival: Arrival, to: string | undefined) =>
+				arrivals.push({ desk: to, kind: arrival.item.kind })
+		});
+		expect(record.counts.handedOff).toBe(1);
+		expect(record.counts.byDesk['front']?.handedOff).toBe(1);
+		expect(record.counts.arrivals).toEqual({ application: 1, alert: 1 });
+		expect(record.counts.routed).toBe(2);
+		expect(arrivals).toEqual([
+			{ desk: 'front', kind: 'application' },
+			{ desk: 'alerts', kind: 'alert' }
+		]);
+		expect(record.runs.map((run) => [run.desk, run.outcome])).toEqual([
+			['front', 'handed-off'],
+			['alerts', 'completed']
+		]);
+		const follower = record.runs[1];
+		expect(follower?.itemId).toBe('item-9');
+		expect(follower?.ordinal).toBeGreaterThan(1_000_000);
+	});
+
+	it('counts a handed-off item nobody takes as unrouted work left on the clock', async () => {
+		const { record } = await day([desk(1, { workflowId: 'test/refer' })], [item(1)], {
+			workflows: [VISIT, REFER]
+		});
+		expect(record.counts.handedOff).toBe(1);
+		expect(record.runs).toHaveLength(1);
+	});
+});

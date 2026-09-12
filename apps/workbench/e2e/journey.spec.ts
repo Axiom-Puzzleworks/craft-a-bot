@@ -37,7 +37,8 @@ test('the journeys page lists the three, and the lending journey draws with its 
 }) => {
 	await openTheWorkshopDoor(page);
 	await page.goto('/workshop/playground/journeys');
-	await expect(page.getByTestId('journeys-count-value')).toHaveText('3');
+	// The three desks' journeys and the complaints journey (WP102).
+	await expect(page.getByTestId('journeys-count-value')).toHaveText('4');
 	await page.getByTestId('journeys-open-fs-lending-lending').click();
 	await expect(page).toHaveURL(/\/workshop\/playground\/journeys\/fs-lending\/lending$/);
 	await expect(page.getByTestId('journey-stages-value')).toHaveText('10');

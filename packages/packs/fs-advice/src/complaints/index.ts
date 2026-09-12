@@ -40,3 +40,20 @@ export {
 	rootCauseNamed
 } from './evaluators.js';
 export { complaintsStrings } from './strings.js';
+export {
+	COMPLAINTS_CEILINGS,
+	COMPLAINTS_CONFIGURATIONS,
+	COMPLAINTS_STAGES,
+	COMPLAINTS_WORKFLOW_ID,
+	DEFAULT_REDRESS_LIMIT,
+	UPHELD_CATEGORIES,
+	complaintsBookFor,
+	complaintsDecisionKind,
+	complaintsWorkflow,
+	fairRedressOf,
+	rootCauseOf,
+	upheldByTheRegister,
+	type ComplaintsConfigurationId
+} from './workflow.js';
+export { WORK_ITEM_LAYOUT as COMPLAINTS_WORK_ITEM_LAYOUT } from './desk.js';
+export { complaintCaseFromItem, kindForCategory } from './cases.js';

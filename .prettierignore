@@ -54,6 +54,8 @@ docs/manual/
 # Generated from the validation suite by scripts/metrics-doc.mjs (WP76); npm run metrics:doc rewrites it
 docs/metrics.md
 packages/packs/fs-lending/src/fixtures/
+# WP102: the complaints golden run, written by vitest -u
+packages/packs/fs-advice/src/fixtures/
 campaign-out/
 # The reference experiments' committed results (WP90): written by the harness, held byte-equal to their digests
 docs/evidence/

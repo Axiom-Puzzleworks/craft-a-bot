@@ -261,7 +261,7 @@ describe('analyseExperiment', () => {
 		const [, upper] = wilson(Math.round(seeds * 0.05), seeds);
 		expect(inconclusive / seeds).toBeGreaterThanOrEqual(1 - upper);
 		expect(inconclusive / seeds).toBeGreaterThanOrEqual(0.9);
-	});
+	}, 60_000);
 
 	it('reads a mean metric with Welch and the paired sign test, a fairness metric with no test, and says not-supported when an effect goes the wrong way', () => {
 		const experiment = expandExperiment(

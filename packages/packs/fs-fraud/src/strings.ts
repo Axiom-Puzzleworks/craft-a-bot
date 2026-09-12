@@ -156,6 +156,9 @@ export const fraudStrings = {
 		heldByTheRule: (rule: string, signals: string[]): string =>
 			`Held by ${rule}: ${signals.length > 0 ? signals.join(', ') : 'the rule’s signals'}.`,
 		chosenByThePerson: 'Chosen by the analyst on the file.',
+		/** The complaint a disputed restriction becomes (WP102): the customer's words on the register. */
+		disputedRestriction: (verb: string): string =>
+			`${verb} on a payment I made myself, after I had verified who I was. I want it lifted and an explanation.`,
 		sarReason: 'Filed after the desk’s decision on the alert.',
 		note: (verb: string, reason: string, sar: boolean): string =>
 			`Alert 1: ${verb} — ${reason} A suspicious-activity report was ${sar ? 'filed' : 'not filed'}.`

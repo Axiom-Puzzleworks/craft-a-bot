@@ -573,7 +573,9 @@ export const campaignCellSchema = z.object({
 			runId: z.string(),
 			configuration: z.string().optional(),
 			autonomy: z.number().int().min(1).max(5).optional(),
-			outcome: z.enum(['completed', 'stopped', 'abandoned']),
+			outcome: z.enum(['completed', 'stopped', 'abandoned', 'handed-off']),
+			/** The handoff the run ended with (WP102): the target journey and the item; the cell's own run is the source's. */
+			handoff: z.object({ to: z.string(), itemId: z.string() }).optional(),
 			stages: z.array(
 				z.object({
 					stageId: z.string(),
@@ -1427,8 +1429,9 @@ async function runBookCell(
 		return ceiling !== undefined && decision.level > ceiling;
 	}).length;
 	const last = agentRuns.at(-1);
+	// A handed-off run did its part of the journey (WP102): a success of this cell; the target is another cell's or the clock's.
 	const outcome: RunOutcome =
-		run.outcome === 'completed'
+		run.outcome === 'completed' || run.outcome === 'handed-off'
 			? 'SUCCESS'
 			: run.stages.some((stage) => stage.status === 'blocked')
 				? 'STOPPED_BY_GUARDRAIL'
@@ -1449,6 +1452,7 @@ async function runBookCell(
 		item: { id: item.id, kind: item.kind, customerId: item.customerId },
 		workflow: {
 			runId: run.id,
+			...(run.handoff ? { handoff: { to: run.handoff.to, itemId: run.handoff.itemId } } : {}),
 			...(configurationId !== undefined ? { configuration: configurationId } : {}),
 			...(config.autonomy ? { autonomy: config.autonomy.level } : {}),
 			outcome: run.outcome,

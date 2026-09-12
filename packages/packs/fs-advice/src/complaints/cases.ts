@@ -1,4 +1,4 @@
-import type { DeskRecord } from '@craftabot/core';
+import type { DeskRecord, WorkItem } from '@craftabot/core';
 import {
 	seedFrom,
 	type CounterpartRule,
@@ -266,5 +266,72 @@ export function complaintCase(random: () => number, kind: ComplaintKind): Compla
 		counterpart: complainant(customer, profile, profile.summary),
 		bank,
 		complaintId
+	};
+}
+
+/** The desk's kind for a register category (WP102): what the register upholds is a charges error; advice and service as themselves; the rest unfounded. */
+export function kindForCategory(category: string, upheld: boolean): ComplaintKind {
+	if (category === 'advice') return 'advice-mis-sold';
+	if (category === 'service') return 'service-delay';
+	if (upheld) return 'charges-error';
+	return 'unfounded';
+}
+
+/**
+ * The work-item layout's case (WP102, `94-…` §3): the register's complaint
+ * as the desk sees it — the item's customer, category and summary on the
+ * complaint record, the desk's own profile for the kind beneath (the fair
+ * range, the deadlines, the root cause in truth). The item, never a desk
+ * state: a handoff carries the same shape a form would.
+ */
+export function complaintCaseFromItem(random: () => number, item: WorkItem): ComplaintCase {
+	const payload = item.payload as
+		| {
+				complaint?: { id?: string; category?: string; summary?: string };
+				customer?: BankCase['customer'];
+		  }
+		| undefined;
+	if (!payload?.complaint) throw new Error(`work item ${item.id} carries no complaint`);
+	const category = String(payload.complaint.category ?? 'service');
+	const upheld = item.truth.facts?.['upheld'] === true;
+	const built = complaintCase(random, kindForCategory(category, upheld));
+	const complaintId = String(payload.complaint.id ?? item.id);
+	const summary = String(payload.complaint.summary ?? '');
+	const customer = payload.customer ? structuredClone(payload.customer) : built.bank.customer;
+	const revealed = built.revealed.map((record) =>
+		record.id === built.complaintId
+			? {
+					...record,
+					id: complaintId,
+					title: complaintsStrings.records.complaint.title(complaintId),
+					fields: { ...record.fields, customer: customer.name.full, category, summary }
+				}
+			: record.id === 'customer-summary'
+				? { ...record, title: customer.name.full }
+				: record
+	);
+	const extra: ComplaintsExtra = {
+		...built.extra,
+		bank: { ...built.bank, customer },
+		complaints: { complaintId, category },
+		ledger: {
+			...built.extra.ledger,
+			complaints: [{ id: complaintId, category, summary, status: 'open' as const }]
+		}
+	};
+	return {
+		...built,
+		revealed,
+		queue: built.queue.map((entry) => ({
+			...entry,
+			id: complaintId,
+			title: complaintsStrings.queue.handle(complaintId),
+			recordIds: [complaintId, 'transaction-concerned', 'customer-summary']
+		})),
+		activeCaseId: complaintId,
+		extra,
+		bank: { ...built.bank, customer },
+		complaintId,
+		counterpart: { ...built.counterpart, name: customer.name.full }
 	};
 }

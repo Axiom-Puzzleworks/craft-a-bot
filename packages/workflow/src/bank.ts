@@ -161,12 +161,15 @@ export async function runBank(
 		completed: 0,
 		stopped: 0,
 		byDesk: Object.fromEntries(
-			desks.map((desk) => [desk.id, { worked: 0, completed: 0, stopped: 0 }])
+			desks.map((desk) => [desk.id, { worked: 0, completed: 0, stopped: 0, handedOff: 0 }])
 		)
 	};
 	const incidents: BankRun['incidents'] = [];
 	const runs: BankRun['runs'] = [];
 	const queues = new Map<string, Arrival[]>(desks.map((desk) => [desk.id, []]));
+	// WP102 (`83-…` §6.5.3): the items runs hand off, waiting to be routed by kind like any arrival; their ordinals continue the clock's.
+	const handoffs: Arrival[] = [];
+	let handoffOrdinal = 0;
 	const inFlight = new Map<string, number>(desks.map((desk) => [desk.id, 0]));
 	const workedIds = new Set<string>();
 	let arrived = 0;
@@ -251,9 +254,31 @@ export async function runBank(
 		await Promise.all(pending);
 		await sink.workflowRun({ desk: desk.id, item: arrival.item, run });
 		options.onWorkflowRun?.({ desk: desk.id, item: arrival.item, run });
-		const tally = counts.byDesk[desk.id] as { worked: number; completed: number; stopped: number };
+		const tally = counts.byDesk[desk.id] as {
+			worked: number;
+			completed: number;
+			stopped: number;
+			handedOff?: number;
+		};
 		tally.worked += 1;
-		if (run.outcome === 'completed') {
+		if (run.outcome === 'handed-off' && run.handoff) {
+			counts.handedOff = (counts.handedOff ?? 0) + 1;
+			tally.handedOff = (tally.handedOff ?? 0) + 1;
+			handoffOrdinal += 1;
+			const arrival: Arrival = {
+				ordinal: 1_000_000 + handoffOrdinal,
+				at: run.finishedAt,
+				item: run.handoff.item
+			};
+			if (desks.some((candidate) => candidate.kinds.includes(arrival.item.kind))) {
+				handoffs.push(arrival);
+			} else {
+				// No desk of the day takes the kind: counted as unrouted, as the clock's own arrivals are.
+				counts.arrivals[arrival.item.kind] = (counts.arrivals[arrival.item.kind] ?? 0) + 1;
+				counts.unrouted += 1;
+				options.onArrival?.(arrival, undefined);
+			}
+		} else if (run.outcome === 'completed') {
 			counts.completed += 1;
 			tally.completed += 1;
 		} else {
@@ -285,20 +310,41 @@ export async function runBank(
 		progress();
 	}
 
+	/** Whether every lane is idle and nothing waits anywhere — the day's true end once the clock is done. */
+	const drained = () =>
+		handoffs.length === 0 &&
+		[...queues.values()].every((queue) => queue.length === 0) &&
+		[...inFlight.values()].every((count) => count === 0);
+
 	async function lane(desk: DeskAssignment): Promise<void> {
 		const queue = queues.get(desk.id) as Arrival[];
 		for (;;) {
-			const next = queue.shift();
+			// This desk's own queue first, then a handed-off item of a kind it takes (WP102).
+			let next = queue.shift();
+			if (!next) {
+				const index = handoffs.findIndex((arrival) => desk.kinds.includes(arrival.item.kind));
+				if (index !== -1) {
+					next = handoffs[index];
+					handoffs.splice(index, 1);
+					if (next) {
+						counts.arrivals[next.item.kind] = (counts.arrivals[next.item.kind] ?? 0) + 1;
+						counts.routed += 1;
+						options.onArrival?.(next, desk.id);
+					}
+				}
+			}
 			if (next) {
 				inFlight.set(desk.id, (inFlight.get(desk.id) ?? 0) + 1);
 				try {
 					await workOne(desk, next);
 				} finally {
 					inFlight.set(desk.id, (inFlight.get(desk.id) ?? 1) - 1);
+					// A handoff may have landed for another lane, and a lane may be waiting on the day's last run (WP102).
+					wakeAll();
 				}
 				continue;
 			}
-			if (clockDone) return;
+			if (clockDone && drained()) return;
 			await new Promise<void>((resolve) => {
 				const previous = wake;
 				wake = () => {

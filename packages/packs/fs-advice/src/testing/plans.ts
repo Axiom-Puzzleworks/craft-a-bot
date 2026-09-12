@@ -5,6 +5,7 @@ import { adviseCardId, guideCardId, INCIDENT_CARD_ID } from '../decks/goal-cards
 import { COMPLAINTS_ADVERSARY, COMPLAINTS_OPTIMAL } from '../complaints/plans.js';
 import type { ChatRequest } from '@craftabot/core';
 import { ADVICE_WORKFLOW_ID } from '../workflow.js';
+import { COMPLAINTS_WORKFLOW_ID, fairRedressOf, rootCauseOf } from '../complaints/workflow.js';
 
 /**
  * **The scripted plans** (WP60 stage B, `49-FS-ADVICE.md` §4.4): one
@@ -326,9 +327,42 @@ export const STAGE_PLANS: Record<string, Plan> = {
 	]
 };
 
+const complaintsStageCard = (stageId: string) => `${COMPLAINTS_WORKFLOW_ID}/stage/${stageId}`;
+/** The complaint's category as the complaint record shows it. */
+const categoryInPrompt = (request: ChatRequest): string =>
+	promptText(request).match(/category: ([a-z-]+)/)?.[1] ?? 'service';
+
+/**
+ * The plans per complaints stage card (WP102, `94-…` §3): acknowledge first;
+ * the root cause the category names; the fair redress for the category —
+ * both read off the complaint record in the prompt, never off truth.
+ */
+export const COMPLAINTS_STAGE_PLANS: Record<string, Plan> = {
+	[complaintsStageCard('acknowledge')]: [
+		{ say: 'Acknowledge it first.', call: 'acknowledge-complaint', args: {} }
+	],
+	[complaintsStageCard('root-cause')]: [
+		{
+			say: 'Naming what the file supports.',
+			call: 'find-root-cause',
+			argsFrom: (request) => ({ cause: rootCauseOf(categoryInPrompt(request)) })
+		}
+	],
+	[complaintsStageCard('redress')]: [
+		{
+			say: 'Putting it right, within the rules.',
+			call: 'offer-redress',
+			argsFrom: (request) => ({ amount: fairRedressOf(categoryInPrompt(request)) })
+		}
+	]
+};
+
 export function planFor(goalCardId: string): Plan {
 	const plan =
-		SCRIPTED_OPTIMAL[goalCardId] ?? COMPLAINTS_OPTIMAL[goalCardId] ?? STAGE_PLANS[goalCardId];
+		SCRIPTED_OPTIMAL[goalCardId] ??
+		COMPLAINTS_OPTIMAL[goalCardId] ??
+		STAGE_PLANS[goalCardId] ??
+		COMPLAINTS_STAGE_PLANS[goalCardId];
 	if (!plan) throw new Error(`no scripted solution for ${goalCardId}`);
 	return plan;
 }

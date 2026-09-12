@@ -57,7 +57,7 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      # TEMP (WP100–WP101): re-take every Linux Workshop baseline — the journeys pages, the Pipeline's canvas, the Studio; reverted in the next commit.
+      # TEMP (WP100–WP102): re-take every Linux Workshop baseline — the journeys pages, the Pipeline's canvas, the Studio, the fourth journey; reverted in the next commit.
       - run: npx playwright test --project=visual --update-snapshots
         working-directory: apps/workbench
 
