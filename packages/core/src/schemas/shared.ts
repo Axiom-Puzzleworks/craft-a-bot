@@ -129,8 +129,28 @@ export type GuardrailHook = z.infer<typeof guardrailHookSchema>;
  * failing open, and a policy that fails open is worse than no policy, because
  * the trace shows a check that appeared to happen.
  */
+/** A finding a component records on an allow (WP94): the category the shell's readings use, the vendor's label, its confidence. */
+export const verdictFindingSchema = z.object({
+	category: z.string(),
+	label: z.string().optional(),
+	confidence: z.enum(['low', 'medium', 'high']).optional()
+});
+export type VerdictFinding = z.infer<typeof verdictFindingSchema>;
+
 export const guardrailVerdictSchema = z.union([
-	z.object({ allow: z.literal(true), note: z.string().optional() }),
+	z.object({
+		allow: z.literal(true),
+		note: z.string().optional(),
+		/**
+		 * The two component verdicts that allow and say something (WP94,
+		 * `85-…` §4): `redact` — the text is rewritten (`redactedText`) before it
+		 * goes out (WP96 applies it); `annotate` — a finding recorded, nothing
+		 * changed. Absent on every verdict a rule wrote before.
+		 */
+		verdictKind: z.enum(['redact', 'annotate']).optional(),
+		finding: verdictFindingSchema.optional(),
+		redactedText: z.string().optional()
+	}),
 	z.object({
 		allow: z.literal(false),
 		reason: z.string(),

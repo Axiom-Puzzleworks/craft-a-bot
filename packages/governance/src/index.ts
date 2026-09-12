@@ -104,3 +104,5 @@ export {
 export const CRAFTABOT_GOVERNANCE_VERSION = '1.0.0-rc.1';
 /** The PDP input document (`33-POLICY-V2-PDP.md` §4.3, WP45). */
 export { PDP_INPUT_VERSION, pdpInputSchema, pdpRequestFor, type PdpInput } from './pdp.js';
+/** Guardrail components (WP94, `85-COMPONENTS.md`): the adapters the packs register, and the compiler over a list of fits. */
+export * from './components/index.js';

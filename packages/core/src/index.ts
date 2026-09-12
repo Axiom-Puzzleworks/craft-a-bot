@@ -262,6 +262,8 @@ export {
 	externalOutcomeKindSchema,
 	guardrailHookSchema,
 	guardrailVerdictSchema,
+	verdictFindingSchema,
+	type VerdictFinding,
 	observationSchema,
 	principalSchema,
 	proposedStepSchema,
@@ -615,6 +617,20 @@ export {
 	type WorkflowRun
 } from './schemas/workflow-run.js';
 export { sha256Hex } from './schemas/sha256.js';
+export {
+	COMPONENT_VERDICT_KINDS,
+	POINT_KINDS,
+	describeComponentProblems,
+	pointHook,
+	stampComponent,
+	type ComponentCost,
+	type ComponentDeps,
+	type ComponentVerdictKind,
+	type Connection,
+	type GuardPoint,
+	type GuardrailComponent,
+	type PointKind
+} from './types/guardrail-component.js';
 export {
 	byNewestExperimentResult,
 	effectRecordSchema,

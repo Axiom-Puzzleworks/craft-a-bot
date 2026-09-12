@@ -91,4 +91,13 @@ export interface Guardrail {
 	 * without parsing `id` strings for a convention.
 	 */
 	policyCardId?: string;
+	/**
+	 * The component this guardrail was compiled from and the point it was
+	 * compiled for (WP94, `85-COMPONENTS.md` §4) — set by a component's
+	 * `compile` and nothing else; copied onto `guardrail.checked`/`tripped`
+	 * by the engine, as `policyCardId` is. Absent for every guardrail a lane
+	 * builds directly, so every trace written before keeps its bytes.
+	 */
+	componentId?: string;
+	point?: { kind: string; at?: string };
 }

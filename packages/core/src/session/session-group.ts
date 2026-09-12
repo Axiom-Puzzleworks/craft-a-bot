@@ -273,11 +273,17 @@ export function createSessionGroup(deps: CreateSessionGroupDeps): SessionGroup {
 			context,
 			(guardrail, verdict) => {
 				const policyCardId = guardrail.policyCardId;
+				// The component and the point (WP94), written only when a component compiled the guardrail.
+				const stamps = {
+					...(guardrail.componentId ? { componentId: guardrail.componentId } : {}),
+					...(guardrail.point ? { point: guardrail.point as { kind: never; at?: string } } : {})
+				};
 				emitGroupEvent('guardrail.checked', {
 					guardrailId: guardrail.id,
 					hook: 'pre-think',
 					verdict,
-					...(policyCardId ? { policyCardId } : {})
+					...(policyCardId ? { policyCardId } : {}),
+					...stamps
 				});
 				if ('allow' in verdict && !verdict.allow) {
 					emitGroupEvent('guardrail.tripped', {
@@ -286,7 +292,8 @@ export function createSessionGroup(deps: CreateSessionGroupDeps): SessionGroup {
 						reason: verdict.reason,
 						disposition: verdict.disposition,
 						...(verdict.cause ? { cause: verdict.cause } : {}),
-						...(policyCardId ? { policyCardId } : {})
+						...(policyCardId ? { policyCardId } : {}),
+						...stamps
 					});
 				}
 			}

@@ -302,6 +302,14 @@ const brickStateEvent = eventSchema(
  * behind it, and every trace written before WP22 still parses with it absent.
  */
 const policyCardIdField = z.string().optional();
+/** Which component and which point a verdict came from (WP94, `85-…` §4) — written only for a guardrail a component compiled. */
+const componentIdField = z.string().optional();
+const pointField = z
+	.object({
+		kind: z.enum(['pre-think', 'pre-act', 'post-act', 'stage-in', 'stage-out', 'group', 'egress']),
+		at: z.string().optional()
+	})
+	.optional();
 
 /**
  * A hosted guardrail's own network call (`25-…` §4.7, WP35 stage B), emitted
@@ -323,7 +331,9 @@ const guardrailCheckedEvent = eventSchema(
 		guardrailId: z.string(),
 		hook: guardrailHookSchema,
 		verdict: guardrailVerdictSchema,
-		policyCardId: policyCardIdField
+		policyCardId: policyCardIdField,
+		componentId: componentIdField,
+		point: pointField
 	})
 );
 const guardrailTrippedEvent = eventSchema(
@@ -335,7 +345,9 @@ const guardrailTrippedEvent = eventSchema(
 		disposition: z.enum(['block-action', 'stop-run']).optional(),
 		/** Copied from the verdict: `could-not-check` when a hosted guard failed closed rather than caught something. */
 		cause: z.enum(['could-not-check']).optional(),
-		policyCardId: policyCardIdField
+		policyCardId: policyCardIdField,
+		componentId: componentIdField,
+		point: pointField
 	})
 );
 const approvalRequestedEvent = eventSchema(

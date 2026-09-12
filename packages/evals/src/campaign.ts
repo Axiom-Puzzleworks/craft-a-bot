@@ -13,8 +13,18 @@ import type {
 	WorkflowConfig,
 	WorkflowSpec
 } from '@craftabot/core';
-import { bookSchema, contextSpecSchema, type ContextSpec } from '@craftabot/core';
-import { compilePolicyCard } from '@craftabot/governance';
+import { POINT_KINDS, bookSchema, contextSpecSchema, type ContextSpec } from '@craftabot/core';
+import {
+	NO_REPETITION_COMPONENT_ID,
+	POLICY_CARD_COMPONENT_ID,
+	STEP_BUDGET_COMPONENT_ID,
+	builtinFitsFor,
+	compileComponents,
+	componentDepsFor,
+	compilePolicyCard,
+	egressModeOf,
+	type ComponentFit
+} from '@craftabot/governance';
 import { runWorkflow, touchedCaseOf } from '@craftabot/workflow';
 import {
 	FAIRNESS_METRIC_IDS,
@@ -368,9 +378,25 @@ export const campaignGuardGroupSchema = z.object({
 });
 export type CampaignGuardGroup = z.infer<typeof campaignGuardGroupSchema>;
 
+/** One component at a point with its config (WP94, `85-COMPONENTS.md` §6): a guard's `components` row. */
+export const componentFitSchema = z.object({
+	id: z.string().min(1),
+	config: z.unknown().optional(),
+	point: z
+		.object({ kind: z.enum(POINT_KINDS as [string, ...string[]]), at: z.string().optional() })
+		.optional()
+});
+
 export const campaignGuardSchema = z.object({
 	id: z.string().min(1),
 	fit: z.array(fittedBrickSchema).default([]),
+	/**
+	 * The guard as components (WP94, `85-…` §6): compiled by the runner and
+	 * handed to every cell's session beside the bricks' chain. A guard that
+	 * names components may not also fit `starter/safety` or `workshop/guard`
+	 * — those are what the components replace — and is refused if it does.
+	 */
+	components: z.array(componentFitSchema).optional(),
 	for: z.array(z.string()).optional(),
 	group: campaignGuardGroupSchema.optional()
 });
@@ -1201,6 +1227,9 @@ async function runCell(
 						worldConfig
 					)
 				: undefined;
+		// The guard's components, compiled once per cell (WP94), and the egress mode they name.
+		const chain = componentChainFor(cell.guard, registry, options);
+		const egress = egressForGuard(cell.guard) ?? options.egress;
 		const run = await runToCompletion({
 			script,
 			spec,
@@ -1211,7 +1240,8 @@ async function runCell(
 			seed,
 			...(maxTicks !== undefined ? { maxTicks } : {}),
 			...(brain.tier === 'live' ? { provider: providerForLive(brain, options) } : {}),
-			...(options.egress !== undefined ? { egress: options.egress } : {}),
+			...(chain.length > 0 ? { guardrails: chain } : {}),
+			...(egress !== undefined ? { egress } : {}),
 			...(options.principal !== undefined ? { principal: options.principal } : {}),
 			...(options.packs !== undefined ? { packs: options.packs } : {})
 		});
@@ -1308,10 +1338,12 @@ async function runBookCell(
 	const packs = [starterPack, ...(options.packs ?? [])].filter(
 		(pack, index, all) => all.findIndex((other) => other.id === pack.id) === index
 	);
+	const chain = componentChainFor(cell.guard, registry, options);
 	const run = await runWorkflow(workflow, item, {
 		packs,
 		spec,
 		config,
+		...(chain.length > 0 ? { guardrails: chain } : {}),
 		providerFor: (_stage, goalCardId) =>
 			brain.tier === 'live'
 				? providerForLive(brain, options)
@@ -1476,9 +1508,15 @@ async function runDuoCell(
 		brain.tier === 'live' ? providerForLive(brain, options) : createMockProvider({ script });
 	const seatProvider = providerForLive({ id: 'counterpart', tier: 'live', cartridgeId }, options);
 	const stack = groupStackFor(guard, registry);
+	const chain = componentChainFor(guard, registry, options);
 	const group = createSessionGroup({
 		members: [
-			{ spec, provider: agentProvider, role: 'agent' },
+			{
+				spec,
+				provider: agentProvider,
+				role: 'agent',
+				...(chain.length > 0 ? { guardrails: chain } : {})
+			},
 			{ spec: toSpecV2(seat), provider: seatProvider, role: 'counterpart' }
 		],
 		registry,
@@ -1668,7 +1706,132 @@ export function specFor(cell: Pick<CampaignCellSpec, 'scenario' | 'build' | 'gua
 		if ('kind' in migrated) throw new Error(migrated.message);
 		spec = migrated;
 	}
+	if (guard.components) {
+		const clash = guard.fit.find((brick) => COMPONENT_REPLACED_KINDS.includes(brick.kind));
+		if (clash) {
+			throw new Error(
+				`guard '${guard.id}' names components and also fits '${clash.kind}'; the components replace it`
+			);
+		}
+	}
 	return fit(fit(spec, scenario.fit), guard.fit);
+}
+
+/** The Guard Brick's service block, JSON text, as a value — `{}` when empty or unparseable, as the brick reads it (`29-…` §4.6). */
+function serviceConfigOf(text: unknown): unknown {
+	if (typeof text !== 'string' || text.trim() === '') return {};
+	try {
+		return JSON.parse(text) as unknown;
+	} catch {
+		return {};
+	}
+}
+
+/** The brick kinds a guard's `components` stand in for (WP94, `85-…` §6). */
+const COMPONENT_REPLACED_KINDS: readonly string[] = ['starter/safety', 'workshop/guard'];
+
+/**
+ * A guard's components compiled to the chain the cell's session runs
+ * (WP94, `85-…` §6): the registry's lookups, the runner's fetch and vault
+ * when it has them, and the guard's own screening — a campaign file that
+ * says `offline` runs offline, as a fitted Guard Brick does. Nothing when
+ * the guard names no components. Throws on a component no pack ships.
+ */
+export function componentChainFor(
+	guard: CampaignGuard,
+	registry: PackRegistry,
+	options: Pick<RunCampaignOptions, 'fetch' | 'credentials'> = {}
+): Guardrail[] {
+	if (!guard.components || guard.components.length === 0) return [];
+	const deps = componentDepsFor(registry, {
+		...(options.fetch ? { fetch: options.fetch } : {}),
+		...(options.credentials ? { getCredential: options.credentials } : {})
+	});
+	const fits = guard.components.map((entry) => {
+		const entryFit: ComponentFit = { id: entry.id };
+		if (entry.config !== undefined) entryFit.config = entry.config;
+		if (entry.point) entryFit.point = entry.point as NonNullable<ComponentFit['point']>;
+		return entryFit;
+	});
+	return compileComponents(fits, registry, deps);
+}
+
+/** The session's egress mode a guard's components name (`governance/egress-*`), or undefined — the runner's own then applies. */
+export function egressForGuard(guard: CampaignGuard): EgressMode | undefined {
+	for (const entry of guard.components ?? []) {
+		const mode = egressModeOf(entry.id);
+		if (mode) return mode;
+	}
+	return undefined;
+}
+
+/**
+ * A guard's `starter/safety` and `workshop/guard` fits as component fits
+ * (WP94, `85-…` §6): the Safety brick's rules in the brick's own order then
+ * its cards, the Guard Brick's floor then its service, each brick's config
+ * first parsed by the brick kind's own schema so the defaults it would have
+ * run with are the components' too. What the identity test translates a
+ * campaign through, and what a Studio shows for a fitted stack.
+ */
+export function componentFitsFor(guard: CampaignGuard, registry: PackRegistry): ComponentFit[] {
+	const fits: ComponentFit[] = [];
+	for (const brick of guard.fit) {
+		if (!COMPONENT_REPLACED_KINDS.includes(brick.kind)) continue;
+		const kind = registry.getBrickKind(brick.kind);
+		const parsed = kind?.configSchema.safeParse(brick.config);
+		const config = (parsed?.success ? parsed.data : brick.config) as Record<string, unknown>;
+		if (brick.kind === 'starter/safety') {
+			fits.push(
+				...builtinFitsFor({
+					maxTicks: config.maxTicks as number,
+					...(typeof config.maxTokens === 'number' ? { maxTokens: config.maxTokens } : {}),
+					...(Array.isArray(config.blockedActions)
+						? { blockedActions: config.blockedActions as string[] }
+						: {}),
+					...(typeof config.approval === 'string'
+						? { approval: config.approval as 'off' | 'everything' | 'risky' }
+						: {}),
+					...(typeof config.repeatLimit === 'number' ? { repeatLimit: config.repeatLimit } : {})
+				})
+			);
+			// A card is fitted once per hook its rules use, in the order the rules first name them (`85-…` §4).
+			for (const cardId of (config.policyCards as string[] | undefined) ?? []) {
+				const card = registry.getPolicyCard(cardId);
+				const hooks = [...new Set((card?.rules ?? []).map((rule) => rule.hook))];
+				for (const hook of hooks) {
+					fits.push({ id: POLICY_CARD_COMPONENT_ID, config: { cardId }, point: { kind: hook } });
+				}
+			}
+		} else {
+			fits.push({
+				id: STEP_BUDGET_COMPONENT_ID,
+				config: { maxTicks: config.maxTicks },
+				point: { kind: 'pre-think' }
+			});
+			if (typeof config.repeatLimit === 'number') {
+				fits.push({
+					id: NO_REPETITION_COMPONENT_ID,
+					config: { repeatLimit: config.repeatLimit },
+					point: { kind: 'pre-act' }
+				});
+			}
+			const serviceId = config.serviceId as string;
+			const serviceConfig = serviceConfigOf(config.serviceConfig);
+			// The service once per hook it screens, in its own order (`85-…` §4) — unless its own
+			// schema refuses the config, in which case the Guard Brick runs its floor alone (`29-…` §4.6)
+			// and so, to be the same chain, does the translation (`85-…` §9).
+			const service = registry.getGuardrailService(serviceId);
+			if (!service || !service.configSchema.safeParse(serviceConfig).success) continue;
+			for (const hook of service.hooks) {
+				fits.push({
+					id: serviceId,
+					config: { serviceConfig, screening: config.screening, idPrefix: 'workshop/guard' },
+					point: { kind: hook }
+				});
+			}
+		}
+	}
+	return fits;
 }
 
 function fit(spec: AgentSpecV2, bricks: readonly FittedBrick[]): AgentSpecV2 {

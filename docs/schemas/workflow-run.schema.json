@@ -1964,6 +1964,38 @@
 													},
 													"note": {
 														"type": "string"
+													},
+													"verdictKind": {
+														"type": "string",
+														"enum": [
+															"redact",
+															"annotate"
+														]
+													},
+													"finding": {
+														"type": "object",
+														"properties": {
+															"category": {
+																"type": "string"
+															},
+															"label": {
+																"type": "string"
+															},
+															"confidence": {
+																"type": "string",
+																"enum": [
+																	"low",
+																	"medium",
+																	"high"
+																]
+															}
+														},
+														"required": [
+															"category"
+														]
+													},
+													"redactedText": {
+														"type": "string"
 													}
 												},
 												"required": [
@@ -2020,6 +2052,32 @@
 									},
 									"policyCardId": {
 										"type": "string"
+									},
+									"componentId": {
+										"type": "string"
+									},
+									"point": {
+										"type": "object",
+										"properties": {
+											"kind": {
+												"type": "string",
+												"enum": [
+													"pre-think",
+													"pre-act",
+													"post-act",
+													"stage-in",
+													"stage-out",
+													"group",
+													"egress"
+												]
+											},
+											"at": {
+												"type": "string"
+											}
+										},
+										"required": [
+											"kind"
+										]
 									}
 								},
 								"required": [
@@ -2107,6 +2165,32 @@
 									},
 									"policyCardId": {
 										"type": "string"
+									},
+									"componentId": {
+										"type": "string"
+									},
+									"point": {
+										"type": "object",
+										"properties": {
+											"kind": {
+												"type": "string",
+												"enum": [
+													"pre-think",
+													"pre-act",
+													"post-act",
+													"stage-in",
+													"stage-out",
+													"group",
+													"egress"
+												]
+											},
+											"at": {
+												"type": "string"
+											}
+										},
+										"required": [
+											"kind"
+										]
 									}
 								},
 								"required": [

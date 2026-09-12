@@ -1,4 +1,5 @@
 import type { PackManifest } from '@craftabot/core';
+import { guardServiceComponent } from '@craftabot/governance';
 import { opaService } from './service.js';
 
 /**
@@ -15,7 +16,15 @@ const pdpOpaPack: PackManifest = {
 	name: 'Policy Engine (OPA)',
 	version: CRAFTABOT_PACK_PDP_OPA_VERSION,
 	requiresCore: '>=0.0.1',
-	guardrailServices: [opaService]
+	guardrailServices: [opaService],
+	/** WP94: the policy decision point as a component — a policy engine, self-hosted. */
+	guardrailComponents: [
+		guardServiceComponent(opaService, {
+			wraps: 'open-policy-agent',
+			technique: 'policy-as-code',
+			kind: 'policy-engine'
+		}) as never
+	]
 };
 
 export default pdpOpaPack;

@@ -50,6 +50,8 @@ export interface RunWorkflowOptions {
 	providerFor: (stage: StageSpec, goalCardId: string) => LLMProvider;
 	/** The stage's guards, compiled by the host (`governance` is not a dependency here). */
 	guardrailsFor?: (policyCardIds: string[]) => Guardrail[];
+	/** Guardrails every `agent` stage's session runs beside the bricks' (WP94): a stack compiled from components, appended after the stage's own cards. */
+	guardrails?: Guardrail[];
 	/** The person at a `human` stage; absent, the executor's `default`, else its first option, `by` absent. */
 	human?: (
 		stage: StageSpec,
@@ -421,7 +423,10 @@ export async function runWorkflow(
 	): Promise<StageRecord> {
 		const goalCardId = stageCardId(spec.id, stage.id);
 		const cards = stage.guards?.policyCards ?? [];
-		const guardrails = cards.length > 0 ? options.guardrailsFor?.(cards) : undefined;
+		const stageGuardrails = cards.length > 0 ? (options.guardrailsFor?.(cards) ?? []) : [];
+		const shared = options.guardrails ?? [];
+		const guardrails =
+			stageGuardrails.length + shared.length > 0 ? [...stageGuardrails, ...shared] : undefined;
 		const sessionOptions: SessionOptions = {
 			...(options.session ?? {}),
 			...(options.principal && !options.session?.principal ? { principal: options.principal } : {}),

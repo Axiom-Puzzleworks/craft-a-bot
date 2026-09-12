@@ -1,3 +1,4 @@
+import { describeComponentProblems, type GuardrailComponent } from './types/guardrail-component.js';
 import type { BrickKindDefinition, SlotId } from './types/brick.js';
 import type { ControlMap } from './types/control-map.js';
 import type { WorkflowSpec } from './types/workflow.js';
@@ -58,6 +59,7 @@ export interface PackRegistry {
 	getWorld(id: string): WorldDefinition | undefined;
 	/** A hosted guardrail service (`29-GUARD-SHELL.md` §4.3, WP39), by qualified id. */
 	getGuardrailService(id: string): GuardrailService | undefined;
+	getGuardrailComponent(id: string): GuardrailComponent | undefined;
 	/** An evaluator (`31-EVALUATORS.md` §4.1, WP43), by qualified id. */
 	getEvaluator(id: string): Evaluator | undefined;
 	/** A service line (`47-SERVICE-LINES.md` §4.1, WP58), by qualified id. */
@@ -89,6 +91,8 @@ export interface PackRegistry {
 	listControlMaps(): ControlMap[];
 	listWorkflows(): WorkflowSpec[];
 	listGuardrailServices(): GuardrailService[];
+	listGuardrailComponents(): GuardrailComponent[];
+	listGuardrailComponentsByTechnique(technique: string): GuardrailComponent[];
 	listEvaluators(): Evaluator[];
 	listServiceLines(): ServiceLine[];
 	listEvidenceStores(): EvidenceStore[];
@@ -110,6 +114,7 @@ export function createPackRegistry(): PackRegistry {
 	const controlMaps = new Map<string, ControlMap>();
 	const workflows = new Map<string, WorkflowSpec>();
 	const guardrailServices = new Map<string, GuardrailService>();
+	const guardrailComponents = new Map<string, GuardrailComponent>();
 	const evaluators = new Map<string, Evaluator>();
 	const serviceLines = new Map<string, ServiceLine>();
 	const evidenceStores = new Map<string, EvidenceStore>();
@@ -193,6 +198,15 @@ export function createPackRegistry(): PackRegistry {
 			insertUnique(controlMaps, map.id, map, 'control map');
 		for (const workflow of manifest.workflows ?? [])
 			insertUnique(workflows, workflow.id, workflow, 'workflow');
+		for (const component of manifest.guardrailComponents ?? []) {
+			const problems = describeComponentProblems(component);
+			if (problems.length > 0) {
+				throw new Error(
+					`Pack "${manifest.id}" ships a guardrail component "${component.id}" that ${problems.join(', ')}.`
+				);
+			}
+			insertUnique(guardrailComponents, component.id, component, 'guardrail component');
+		}
 		for (const service of manifest.guardrailServices ?? []) {
 			const problems = describeGuardrailServiceProblems(service);
 			if (problems.length > 0) {
@@ -291,6 +305,7 @@ export function createPackRegistry(): PackRegistry {
 		getAction,
 		getPolicyCard: (id) => policyCards.get(id),
 		getGuardrailService: (id) => guardrailServices.get(id),
+		getGuardrailComponent: (id) => guardrailComponents.get(id),
 		getEvaluator: (id) => evaluators.get(id),
 		getControlMap: (id) => controlMaps.get(id),
 		getWorkflow: (id) => workflows.get(id),
@@ -306,6 +321,9 @@ export function createPackRegistry(): PackRegistry {
 		listWorlds: () => [...worlds.values()],
 		listPolicyCards: () => [...policyCards.values()],
 		listGuardrailServices: () => [...guardrailServices.values()],
+		listGuardrailComponents: () => [...guardrailComponents.values()],
+		listGuardrailComponentsByTechnique: (technique) =>
+			[...guardrailComponents.values()].filter((component) => component.technique === technique),
 		listEvaluators: () => [...evaluators.values()],
 		listControlMaps: () => [...controlMaps.values()],
 		listWorkflows: () => [...workflows.values()],

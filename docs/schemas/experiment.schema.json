@@ -1040,6 +1040,45 @@
 											]
 										}
 									},
+									"components": {
+										"type": "array",
+										"items": {
+											"type": "object",
+											"properties": {
+												"id": {
+													"type": "string",
+													"minLength": 1
+												},
+												"config": {},
+												"point": {
+													"type": "object",
+													"properties": {
+														"kind": {
+															"type": "string",
+															"enum": [
+																"pre-think",
+																"pre-act",
+																"post-act",
+																"stage-in",
+																"stage-out",
+																"group",
+																"egress"
+															]
+														},
+														"at": {
+															"type": "string"
+														}
+													},
+													"required": [
+														"kind"
+													]
+												}
+											},
+											"required": [
+												"id"
+											]
+										}
+									},
 									"for": {
 										"type": "array",
 										"items": {

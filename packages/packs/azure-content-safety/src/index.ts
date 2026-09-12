@@ -1,4 +1,5 @@
 import type { PackManifest } from '@craftabot/core';
+import { guardServiceComponent } from '@craftabot/governance';
 import { contentSafetyService } from './service.js';
 
 /**
@@ -15,7 +16,15 @@ const azureContentSafetyPack: PackManifest = {
 	name: 'Azure Content Safety',
 	version: CRAFTABOT_PACK_AZURE_CONTENT_SAFETY_VERSION,
 	requiresCore: '>=0.0.1',
-	guardrailServices: [contentSafetyService]
+	guardrailServices: [contentSafetyService],
+	/** WP94: the service as a component. */
+	guardrailComponents: [
+		guardServiceComponent(contentSafetyService, {
+			wraps: 'azure/content-safety',
+			technique: 'hazard-classifier',
+			perCall: 'per text record, Azure AI Content Safety pricing'
+		}) as never
+	]
 };
 
 export default azureContentSafetyPack;

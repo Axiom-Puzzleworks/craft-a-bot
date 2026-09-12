@@ -460,6 +460,11 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			guardrailContext(hook, proposed),
 			(guardrail, verdict, external) => {
 				const policyCardId = guardrail.policyCardId;
+				// The component and the point (WP94), written only when a component compiled the guardrail.
+				const stamps = {
+					...(guardrail.componentId ? { componentId: guardrail.componentId } : {}),
+					...(guardrail.point ? { point: guardrail.point as { kind: never; at?: string } } : {})
+				};
 				if (passed && 'allow' in verdict && verdict.allow) passed.push(guardrail.id);
 				// A hosted guardrail's own call, immediately before the verdict it
 				// produced (`25-…` §4.7) — never emitted by the guardrail itself.
@@ -470,7 +475,8 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 					guardrailId: guardrail.id,
 					hook,
 					verdict,
-					...(policyCardId ? { policyCardId } : {})
+					...(policyCardId ? { policyCardId } : {}),
+					...stamps
 				});
 				if ('allow' in verdict && !verdict.allow) {
 					emit('guardrail.tripped', {
@@ -479,7 +485,8 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 						reason: verdict.reason,
 						disposition: verdict.disposition,
 						...(verdict.cause ? { cause: verdict.cause } : {}),
-						...(policyCardId ? { policyCardId } : {})
+						...(policyCardId ? { policyCardId } : {}),
+						...stamps
 					});
 				}
 			}

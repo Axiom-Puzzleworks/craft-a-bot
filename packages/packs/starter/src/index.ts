@@ -1,4 +1,5 @@
 import type { PackManifest } from '@craftabot/core';
+import { builtinComponents, egressComponents, policyCardComponent } from '@craftabot/governance';
 import { starterAssertionCards } from './assertion-cards.js';
 import { starterScenarios } from './scenarios.js';
 import { starterBrickKinds } from './brick-kinds.js';
@@ -26,6 +27,8 @@ export const starterPack: PackManifest = {
 	tools: starterTools,
 	serviceLines: starterServiceLines,
 	policyCards: starterPolicyCards,
+	/** Guardrail components (WP94, `85-COMPONENTS.md` §5): the Safety brick's rules, the policy card and the egress rules as components. */
+	guardrailComponents: [...builtinComponents, policyCardComponent as never, ...egressComponents],
 	/** Assertion cards (WP43, `31-EVALUATORS.md` §4.2) — the Test Bench reads them from the registry. */
 	assertionCards: starterAssertionCards,
 	/** Scenarios (WP44, `32-SCENARIOS.md` §4.3) — the four governance cards, with what a test needs. */

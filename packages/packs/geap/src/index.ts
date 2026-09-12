@@ -1,4 +1,5 @@
 import type { PackManifest } from '@craftabot/core';
+import { guardServiceComponent } from '@craftabot/governance';
 import { armorBrickKind } from './armor/brick-kind.js';
 import { modelArmorService } from './armor/service.js';
 import { evalEvaluators } from './eval/evaluator.js';
@@ -102,6 +103,15 @@ const geapPack: PackManifest = {
 	requiresCore: '>=0.0.1',
 	brickKinds: [armorBrickKind],
 	guardrailServices: [modelArmorService],
+	/** WP94: the service as a component — Model Armor's filter v3 is the surface the adapter targets (`83-…` §6.2.4). */
+	guardrailComponents: [
+		guardServiceComponent(modelArmorService, {
+			wraps: 'google/model-armor',
+			technique: 'input-classifier',
+			version: 'v3',
+			perCall: 'per screened request, Model Armor pricing'
+		}) as never
+	],
 	evaluators: [...evalEvaluators]
 };
 

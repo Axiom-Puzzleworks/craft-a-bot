@@ -16,6 +16,7 @@ export { describeEvidenceStoreConformance } from './describe-evidence-store.js';
 export { describeSinkConformance } from './describe-sink.js';
 export { checkGuardrail } from './checks/guardrail.js';
 export { checkGuardrailService, hostMatches } from './checks/guardrail-service.js';
+export { checkComponent } from './checks/component.js';
 export { checkManifest } from './checks/manifest.js';
 export { checkTool } from './checks/tool.js';
 export { checkWorld } from './checks/world.js';
@@ -42,6 +43,8 @@ export type {
 	SinkConformanceFixture,
 	EvidenceStoreConformanceFixture,
 	GuardrailServiceConformanceFixture,
+	ComponentConformanceFixture,
+	ComponentVerdictProbe,
 	PackConformanceFixture,
 	ToolConformanceFixture,
 	WorldConformanceFixture,

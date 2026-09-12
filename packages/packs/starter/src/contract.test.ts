@@ -132,6 +132,92 @@ const fixture: PackConformanceFixture = {
 			{ guardrail: createApprovalModeGuardrail('everything'), context: guardrailContext('pre-act') }
 		]
 	},
+	/** WP94 (`85-…` §7): the eight components the pack ships, each with a config, its points and the verdicts a bare context can produce. */
+	guardrailComponents: {
+		'governance/step-budget': {
+			config: { maxTicks: 30 },
+			verdicts: [
+				{ verdict: 'allow', context: guardrailContext('pre-think') },
+				{
+					verdict: 'stop-run',
+					context: guardrailContext('pre-think', {
+						usage: { ticks: 31, inputTokens: 0, outputTokens: 0 }
+					})
+				}
+			]
+		},
+		'governance/token-budget': {
+			config: { maxTokens: 100 },
+			verdicts: [
+				{ verdict: 'allow', context: guardrailContext('pre-think') },
+				{
+					verdict: 'stop-run',
+					context: guardrailContext('pre-think', {
+						usage: { ticks: 1, inputTokens: 90, outputTokens: 20 }
+					})
+				}
+			]
+		},
+		'governance/action-blocklist': {
+			config: { blockedActions: ['move'] },
+			verdicts: [
+				{
+					verdict: 'allow',
+					context: guardrailContext('pre-act', {
+						proposed: { kind: 'action', name: 'say', arguments: {} }
+					})
+				},
+				{
+					verdict: 'block-action',
+					context: guardrailContext('pre-act', {
+						proposed: { kind: 'action', name: 'move', arguments: {} }
+					})
+				}
+			]
+		},
+		'governance/no-repetition': {
+			config: { repeatLimit: 3 },
+			verdicts: [
+				{
+					verdict: 'allow',
+					context: guardrailContext('pre-act', {
+						proposed: { kind: 'action', name: 'move', arguments: {} }
+					})
+				}
+			]
+		},
+		'governance/approval-mode': {
+			config: { mode: 'everything' },
+			verdicts: [
+				{
+					verdict: 'pause',
+					context: guardrailContext('pre-act', {
+						proposed: { kind: 'action', name: 'move', arguments: {} }
+					})
+				}
+			]
+		},
+		'governance/policy-card': {
+			config: { cardId: 'starter/policy/no-loose-ends' },
+			points: [{ kind: 'pre-act' }],
+			verdicts: [
+				{
+					verdict: 'allow',
+					context: guardrailContext('pre-act', {
+						proposed: { kind: 'action', name: 'say', arguments: {} }
+					})
+				},
+				{
+					verdict: 'block-action',
+					context: guardrailContext('pre-act', {
+						proposed: { kind: 'action', name: 'put_down', arguments: { container: 'floor' } }
+					})
+				}
+			]
+		},
+		'governance/egress-declared': { config: {} },
+		'governance/egress-none': { config: {} }
+	},
 	// The two lines (WP58): the Weather Line simulates; Open-Meteo is live-only until its cassette is recorded (`47-…` §4.4).
 	serviceLines: {
 		'starter/weather': { plantedSecret: 'planted-line-secret-1a2b' },

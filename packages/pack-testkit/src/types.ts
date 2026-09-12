@@ -1,4 +1,7 @@
 import type {
+	ComponentDeps,
+	ComponentVerdictKind,
+	GuardPoint,
 	ContextSpec,
 	Injection,
 	ActionCall,
@@ -120,6 +123,28 @@ export interface GuardrailServiceConformanceFixture {
 	plantedSecret: string;
 }
 
+/** One verdict a component's fixture can produce: the context that produces it, at a point. */
+export interface ComponentVerdictProbe {
+	verdict: ComponentVerdictKind;
+	context: GuardrailContext;
+	/** The fixture's first point when absent. */
+	point?: GuardPoint;
+}
+
+/**
+ * A guardrail component's fixture (WP94, `85-COMPONENTS.md` §7): a config its
+ * schema accepts, the points to compile at (every declared point when absent),
+ * the verdicts it can be made to give, and the deps `compile` may ask for —
+ * the driver fills `deps` from the registry it built when a fixture omits them.
+ * Keyed by component id in `PackConformanceFixture.guardrailComponents`.
+ */
+export interface ComponentConformanceFixture {
+	config: unknown;
+	points?: GuardPoint[];
+	verdicts?: ComponentVerdictProbe[];
+	deps?: ComponentDeps;
+}
+
 /**
  * An evaluator's fixture (`31-EVALUATORS.md` §4.4, WP43): inputs it is run
  * over, its config, and a secret that must never reach a result. Keyed by
@@ -217,6 +242,8 @@ export interface PackConformanceFixture {
 	guardrails?: GuardrailConformanceFixture;
 	/** One per service the manifest ships, keyed by service id (`29-…` §4.7). */
 	guardrailServices?: Record<string, GuardrailServiceConformanceFixture>;
+	/** One per guardrail component the manifest ships, keyed by component id (WP94, `85-…` §7). */
+	guardrailComponents?: Record<string, ComponentConformanceFixture>;
 	/** One per evaluator the manifest ships, keyed by evaluator id (`31-…` §4.4). */
 	evaluators?: Record<string, EvaluatorConformanceFixture>;
 	goldenTrace?: GoldenTraceConformanceFixture;
