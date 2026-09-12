@@ -16,7 +16,7 @@ python render.py   # headless Chromium -> A4 PDF, cover merged, metadata set
 
 **What each step does**
 
-- `prep.py` turns each `> **Figure n** — … *(Appendix D, `x.png`.)*` placeholder in the
+- `prep.py` first trims every baseline to its content into `figures-print/` — the visual pass captures a fixed, very tall page — then turns each `> **Figure n** — … *(Appendix D, `x.png`.)*` placeholder in the
   manual into the real screenshot from `apps/workbench/e2e/__screenshots__/win32/`, then
   rewrites Appendix D's table from what it actually placed. The manual stays readable as
   plain markdown; nothing is edited by hand.
@@ -24,7 +24,7 @@ python render.py   # headless Chromium -> A4 PDF, cover merged, metadata set
   `#f7f7f5` paper, Newsreader for every heading, Inter for body, IBM Plex Mono for labels
   and code, near-square corners. The three typefaces are embedded as base64 so the PDF
   sets identically to the website. The cover is typographic: letterhead rule, wordmark,
-  title, the ∴ proof-mark, the _FOR SIMULATION ONLY_ strap.
+  title, the ∴ proof-mark, the *FOR SIMULATION ONLY* strap.
 - `render.py` prints the cover full-bleed with no running head, prints the body with the
   running header and footer (real page numbers), merges the two and writes the metadata.
 
