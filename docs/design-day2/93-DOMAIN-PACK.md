@@ -82,3 +82,5 @@ The `special-category` item also sharpened its test: shrinking the category to t
 ## 8. Stage notes
 
 > **Stage A–C — 2026-09-12.** This note; `checkDomainPack` and `requireReview` in the kit; the assurance inventory's domain line; the bank held to the checklist and brought into step (§6); `craftabot scaffold domain` with its formatted, byte-held example under `examples/scaffold-domain` and the example's own tests; the manual's §36.8 and §52; the harness README. Budgets untouched: nothing here enters a bundle.
+
+> **WP108 — 2026-09-13.** The blueprint and the three notes (`docs/blueprints/`): §3's table as prose with a bank file per row, the four run-level items named as the pack's tests, and three domains applied without code — each with a `DomainSpec` fixture that validates and fails the check for want of its packs (`harness/src/blueprints.test.ts`). The scaffold's tree (§4) is what each note's checklist is reviewed against.

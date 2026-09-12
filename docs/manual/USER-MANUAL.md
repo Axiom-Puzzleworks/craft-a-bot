@@ -1835,7 +1835,7 @@ What is not yet built lives in the site's own repository: the service that serve
 
 ## 52. Bringing a domain
 
-The bank is one domain. The same instruments — desks, journeys, books, campaigns, the assurance pack, the Monitor — run over any domain whose packs meet the same checklist, and the checklist is code: `checkDomainPack` in the conformance kit (`93-DOMAIN-PACK.md` §3). This section is what a domain author does, in order.
+The bank is one domain. The same instruments — desks, journeys, books, campaigns, the assurance pack, the Monitor — run over any domain whose packs meet the same checklist, and the checklist is code: `checkDomainPack` in the conformance kit (`93-DOMAIN-PACK.md` §3). This section is what a domain author does, in order; `docs/blueprints/DOMAIN-PACK.md` is the checklist as prose with the bank's file beside every item, and its three notes (healthcare, logistics, manufacturing) show the checklist applied to an industry before a line is typed.
 
 ### 52.1 What a domain pack is
 
