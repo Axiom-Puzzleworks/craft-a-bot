@@ -154,6 +154,8 @@ V1 needs none. The first features that will genuinely require one: sharing kit f
 
 > **Amended 2026-09-11, later (WP89).** The full build's budget moves +40 kB to 1.79 MB (`scripts/bundle-budget.mjs`), and the playground and full editions +40 kB each (`edition.ts`): the Experiments page and the experiment schema, expansion and analysis it imports from `evals`. The Worker's chunk moves +20 kB to 870 kB for the same module, which `evals` now carries.
 
+> **Amended 2026-09-12, later still (WP104, `90-FS-DISPUTES.md`).** Every budget moves +60 kB — the full build to `2.06 MB`, simulator `2.00 MB`, workshop `2.02 MB`, playground `2.07 MB`, full `2.06 MB` — and the Worker's chunk +50 kB to `1.04 MB`: the fifth desk pack (its rule and knobs, desk, decks, cards, evaluators, journey with two handoffs, campaigns), the desk's page. The full build had gone 54 kB over and the Worker 42 kB.
+
 > **Amended 2026-09-12, later still (WP103, `95-FS-ONBOARDING.md`).** Every budget moves +60 kB — the full build to `2.00 MB`, simulator `1.94 MB`, workshop `1.96 MB`, playground `2.01 MB`, full `2.00 MB` — and the Worker's chunk +30 kB to `990 kB`: the fourth desk pack (its rule, desk, decks, cards, evaluators, journey and campaigns), the bank's screening list, the desk's page. The full build had gone 52 kB over and the Worker 19 kB.
 
 > **Amended 2026-09-12, later still (WP102, `94-HANDOFFS-AND-COMPLAINTS.md`).** Every budget moves +10 kB — the full build to `1.94 MB`, simulator `1.88 MB`, workshop `1.90 MB`, playground `1.95 MB`, full `1.94 MB` — and the Worker's chunk +10 kB to `960 kB`: the complaints journey as content in `fs-advice`, the handoff on the run record and the Pipeline. The full build had gone 5 kB over.

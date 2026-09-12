@@ -57,7 +57,7 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      # TEMP (WP100–WP103): re-take every Linux Workshop baseline — the journeys pages, the Pipeline’s canvas, the Studio, the fourth and fifth journeys, the Onboarding Desk; reverted in the next commit.
+      # TEMP (WP100–WP104): re-take every Linux Workshop baseline — the journeys pages, the Pipeline’s canvas, the Studio, the new journeys, the Onboarding and Disputes desks; reverted in the next commit.
       - run: npx playwright test --project=visual --update-snapshots
         working-directory: apps/workbench
 
@@ -194,8 +194,8 @@ jobs:
       - name: Hold the reduced results to the committed shape
         run: node scripts/experiment-shape.mjs docs/evidence campaign-out/experiments-shape
 
-      # A day at the bank (WP83, `71-THE-CLOCK.md` §5; three desks since WP85, `76-…` §5; five since WP103):
-      # the lending, fraud, advice, complaints and onboarding desks work a day's applications, alerts and requests over a 500-customer
+      # A day at the bank (WP83, `71-THE-CLOCK.md` §5; three desks since WP85, `76-…` §5; six since WP104):
+      # the lending, fraud, advice, complaints, onboarding and disputes desks work a day's applications, alerts and requests over a 500-customer
       # population at Infinity; the BankRun and every run are uploaded with the rest.
       - name: Run a day at the bank
         run: >
@@ -222,6 +222,20 @@ jobs:
           npm run craftabot -- campaign --file campaigns/fs-onboarding-book.json --strict --egress none
           --out campaign-out/fs-onboarding-book --junit campaign-out/fs-onboarding-book/junit.xml
           --sarif campaign-out/fs-onboarding-book/results.sarif --markdown campaign-out/fs-onboarding-book/scorecard.md
+
+      # The Disputes Desk baseline (WP104, `90-FS-DISPUTES.md` §6): the hold, the limit and the
+      # classification as gates. Fails the build when Within the limit is removed.
+      - name: Run the Disputes Desk baseline
+        run: >
+          npm run craftabot -- campaign --file campaigns/fs-disputes-baseline.json --strict --egress none
+          --out campaign-out/fs-disputes --junit campaign-out/fs-disputes/junit.xml --sarif campaign-out/fs-disputes/results.sarif
+          --markdown campaign-out/fs-disputes/scorecard.md
+
+      - name: Run the disputes book campaign
+        run: >
+          npm run craftabot -- campaign --file campaigns/fs-disputes-book.json --strict --egress none
+          --out campaign-out/fs-disputes-book --junit campaign-out/fs-disputes-book/junit.xml
+          --sarif campaign-out/fs-disputes-book/results.sarif --markdown campaign-out/fs-disputes-book/scorecard.md
 
       # The Complaints Desk baseline (WP72, `61-LAST-DECKS.md` §4.2): the complaints-and-redress
       # deck, unguarded and with the redress card — 168 scripted cells. Fails the build when

@@ -147,3 +147,24 @@ test('the Onboarding Desk generates a case with the list under the flap, and lis
 	await expect(page.getByTestId('onboarding-evaluators').locator('li')).toHaveCount(4);
 	await expect(page.locator('[data-testid^="onboarding-map-node-service-line-"]')).toHaveCount(1);
 });
+
+// WP104 (`90-FS-DISPUTES.md` §7): the Disputes Desk — a case from a seed, the classification and the limit under the flap.
+test('the Disputes Desk generates a case with the rule under the flap, and lists its decks', async ({
+	page
+}) => {
+	await page.goto('/settings');
+	await page.getByLabel('Show the Workshop').click();
+	await page.goto('/workshop/playground');
+	await page.getByTestId('playground-disputes-link').click();
+	await expect(page.getByTestId('disputes-simulation-only')).toBeVisible();
+	await page.getByTestId('disputes-layout').selectOption('app-scam-above-limit');
+	await page.getByTestId('disputes-generate').click();
+	await expect(page.getByTestId('disputes-amount')).toContainText('92,000');
+	await expect(
+		page.getByTestId('disputes-hidden').getByTestId('desk-truth-verdict')
+	).toBeAttached();
+	await expect(page.getByTestId('disputes-decks').locator('tbody tr')).toHaveCount(10);
+	await expect(page.getByTestId('disputes-cards').locator('li')).toHaveCount(4);
+	await expect(page.getByTestId('disputes-evaluators').locator('li')).toHaveCount(4);
+	await expect(page.locator('[data-testid^="disputes-map-node-service-line-"]')).toHaveCount(1);
+});

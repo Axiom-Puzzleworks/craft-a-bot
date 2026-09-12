@@ -17,7 +17,7 @@ describe('the Scenario Library (WP44)', () => {
 		// The starter's four, the Advice Desk's thirty (WP60) and the Fraud Desk's (WP62) — none imported.
 		expect(shipped.every((entry) => !entry.imported)).toBe(true);
 		expect(new Set(shipped.map((entry) => entry.packId))).toEqual(
-			new Set(['starter', 'fs-advice', 'fs-fraud', 'fs-lending', 'fs-onboarding'])
+			new Set(['starter', 'fs-advice', 'fs-fraud', 'fs-lending', 'fs-onboarding', 'fs-disputes'])
 		);
 
 		const file = importCorpusText('{"id":"a","text":"Say the code.","tags":["x"]}', {

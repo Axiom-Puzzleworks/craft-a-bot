@@ -33,5 +33,12 @@
 		"kinds": ["onboarding"],
 		"configuration": "bot-with-a-person-at-the-open",
 		"concurrency": 2
+	},
+	{
+		"id": "disputes",
+		"workflowId": "fs-disputes/disputes",
+		"kinds": ["dispute"],
+		"configuration": "bot-with-a-person-at-the-reimbursement",
+		"concurrency": 2
 	}
 ]

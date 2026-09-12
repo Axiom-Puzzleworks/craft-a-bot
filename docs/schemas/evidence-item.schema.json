@@ -6742,7 +6742,8 @@
 												"alert",
 												"complaint",
 												"advice-request",
-												"onboarding"
+												"onboarding",
+												"dispute"
 											]
 										},
 										"customerId": {
@@ -9838,7 +9839,8 @@
 													"alert",
 													"complaint",
 													"advice-request",
-													"onboarding"
+													"onboarding",
+													"dispute"
 												]
 											},
 											"items": {
@@ -9891,7 +9893,8 @@
 												"alert",
 												"complaint",
 												"advice-request",
-												"onboarding"
+												"onboarding",
+												"dispute"
 											]
 										}
 									},
@@ -10156,7 +10159,8 @@
 											"alert",
 											"complaint",
 											"advice-request",
-											"onboarding"
+											"onboarding",
+											"dispute"
 										]
 									},
 									"desk": {

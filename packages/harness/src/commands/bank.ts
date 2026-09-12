@@ -43,7 +43,9 @@ export const deskFileSchema = z.array(
 		id: z.string().min(1),
 		workflowId: z.string().min(1),
 		kinds: z
-			.array(z.enum(['application', 'alert', 'complaint', 'advice-request', 'onboarding']))
+			.array(
+				z.enum(['application', 'alert', 'complaint', 'advice-request', 'onboarding', 'dispute'])
+			)
 			.min(1),
 		configuration: z.string().min(1).optional(),
 		knobs: z.record(z.string(), z.union([z.number(), z.string(), z.boolean()])).optional(),

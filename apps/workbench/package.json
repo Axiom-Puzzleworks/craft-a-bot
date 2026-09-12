@@ -47,6 +47,7 @@
 		"@craftabot/pack-fs-fraud": "*",
 		"@craftabot/pack-fs-lending": "*",
 		"@craftabot/pack-fs-onboarding": "*",
+		"@craftabot/pack-fs-disputes": "*",
 		"@craftabot/pack-geap": "*",
 		"@craftabot/pack-gemini": "*",
 		"@craftabot/pack-guard-local": "*",

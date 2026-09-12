@@ -44,7 +44,14 @@ const WORKSHOP_PACK_IDS = [
 	'evidence',
 	'governance'
 ];
-const PLAYGROUND_PACK_IDS = ['fs-bank', 'fs-advice', 'fs-fraud', 'fs-lending', 'fs-onboarding'];
+const PLAYGROUND_PACK_IDS = [
+	'fs-bank',
+	'fs-advice',
+	'fs-fraud',
+	'fs-lending',
+	'fs-onboarding',
+	'fs-disputes'
+];
 
 /** Which packs each box holds, by id — the manifests themselves come through `$edition-packs` (`editions/<id>.ts`). */
 export const EDITION_PACK_IDS: Record<EditionId, readonly string[]> = {

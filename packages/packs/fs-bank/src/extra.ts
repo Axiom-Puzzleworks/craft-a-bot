@@ -9,7 +9,14 @@ import type { BankCase } from './model.js';
  * to write into `ledger`, so a snapshot shows them and a replay agrees.
  */
 export type BankPurpose =
-	'advice' | 'fraud-operations' | 'lending' | 'complaints' | 'onboarding' | 'reception' | 'testing';
+	| 'advice'
+	| 'fraud-operations'
+	| 'lending'
+	| 'complaints'
+	| 'onboarding'
+	| 'disputes'
+	| 'reception'
+	| 'testing';
 
 export const BANK_PURPOSES: readonly BankPurpose[] = [
 	'advice',
@@ -18,6 +25,8 @@ export const BANK_PURPOSES: readonly BankPurpose[] = [
 	'complaints',
 	// WP103 (`95-FS-ONBOARDING.md`): the account-opening desk.
 	'onboarding',
+	// WP104 (`90-FS-DISPUTES.md`): the payments-disputes desk.
+	'disputes',
 	'reception',
 	'testing'
 ];
@@ -36,6 +45,8 @@ export interface BankLedger {
 	loans: Array<{ accountId: string; amount: number; termMonths: number; monthlyRepayment: number }>;
 	/** An appeal against a lending decision, logged (WP63). */
 	appeals: Array<{ decision: string; grounds: string }>;
+	/** A dispute reimbursed (WP104, `90-FS-DISPUTES.md` §3) — the Disputes Desk's irreversible write. */
+	reimbursements: Array<{ accountId: string; amount: number; disputeId: string }>;
 	notes: string[];
 	verified: boolean;
 	contact: Record<string, string>;
@@ -53,6 +64,7 @@ export const emptyLedger = (): BankLedger => ({
 	redress: [],
 	loans: [],
 	appeals: [],
+	reimbursements: [],
 	notes: [],
 	verified: false,
 	contact: {}

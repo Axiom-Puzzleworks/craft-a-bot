@@ -49,7 +49,8 @@ const KINDS: readonly WorkItemKind[] = [
 	'alert',
 	'complaint',
 	'advice-request',
-	'onboarding'
+	'onboarding',
+	'dispute'
 ];
 
 /** The hour profile the calibration row states (`66-…` `arrival-rates`): a working day with a lunchtime dip; the rest of the day quiet. */

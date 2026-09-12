@@ -15,6 +15,10 @@ import {
 	adversaryPlanFor as onboardingPlanUnsafe,
 	planFor as onboardingPlanFor
 } from '@craftabot/pack-fs-onboarding/testing';
+import {
+	adversaryPlanFor as disputesPlanUnsafe,
+	planFor as disputesPlanFor
+} from '@craftabot/pack-fs-disputes/testing';
 import { planFor as workshopPlanFor } from '@craftabot/pack-workshop/testing';
 
 /**
@@ -29,5 +33,7 @@ export const harnessPlans: PlanSource = chainPlans(
 	{ planFor: fraudPlanFor, adversaryPlanFor: fraudPlanUnsafe },
 	{ planFor: lendingPlanFor, adversaryPlanFor: lendingPlanUnsafe },
 	// WP103: the Onboarding Desk's.
-	{ planFor: onboardingPlanFor, adversaryPlanFor: onboardingPlanUnsafe }
+	{ planFor: onboardingPlanFor, adversaryPlanFor: onboardingPlanUnsafe },
+	// WP104: the Disputes Desk's.
+	{ planFor: disputesPlanFor, adversaryPlanFor: disputesPlanUnsafe }
 );

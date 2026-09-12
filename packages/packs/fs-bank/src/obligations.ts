@@ -33,6 +33,11 @@ export const OBLIGATION_TAGS: Readonly<Record<string, string>> = {
 		'SS1/23 principle 3: development, implementation and use are tested and evidenced.',
 	'pra:ss1-23:validation': 'SS1/23 principle 4: independent validation before and during use.',
 	'pra:ss1-23:mitigants': 'SS1/23 principle 5: risk mitigants where a model is uncertain or weak.',
+	// WP104 (`90-FS-DISPUTES.md`) and WP105 (`91-FS-COLLECTIONS.md`), named by `83-…` §6.5.2.
+	'psr:app-reimbursement':
+		'PSR APP fraud reimbursement requirement: an authorised push-payment scam is reimbursed up to the limit, less the excess; the PSRs 2017 reg. 76 on an unauthorised payment.',
+	'fca:conc-7:arrears':
+		'CONC 7: arrears and default handled with forbearance and due consideration of the customer’s circumstances.',
 	'pra:ss1-21:resilience':
 		'SS1/21: important services keep working, or fail safely, under disruption.',
 	'poca:tipping-off':

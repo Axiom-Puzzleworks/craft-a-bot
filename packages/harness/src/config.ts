@@ -18,6 +18,7 @@ import fsBankPack from '@craftabot/pack-fs-bank';
 import fsFraudPack from '@craftabot/pack-fs-fraud';
 import fsLendingPack from '@craftabot/pack-fs-lending';
 import fsOnboardingPack from '@craftabot/pack-fs-onboarding';
+import fsDisputesPack from '@craftabot/pack-fs-disputes';
 import { GENERIC_CONTROL_MAP_MANIFEST } from '@craftabot/governance/reports';
 import geapPack from '@craftabot/pack-geap';
 import guardLocalPack from '@craftabot/pack-guard-local';
@@ -75,6 +76,8 @@ export function defaultPacks(): PackManifest[] {
 		fsLendingPack,
 		// WP103: the fourth desk.
 		fsOnboardingPack,
+		// WP104: the fifth desk.
+		fsDisputesPack,
 		evidencePack,
 		// WP67 (`53-…` §4.1): the generic control map under governance's synthetic manifest.
 		GENERIC_CONTROL_MAP_MANIFEST as unknown as PackManifest

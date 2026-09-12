@@ -180,7 +180,7 @@
 <h1>The Retail Bank Playground</h1>
 <p class="lede">
 	A synthetic high-street bank: customers, accounts, a product shelf and ten service lines, every
-	one generated from a seed and none of it real. Four desks work this bank — <a
+	one generated from a seed and none of it real. Five desks work this bank — <a
 		href={resolve('/workshop/playground/advice')}
 		data-testid="playground-advice-link">the Advice Desk</a
 	>
@@ -195,6 +195,10 @@
 	and
 	<a href={resolve('/workshop/playground/onboarding')} data-testid="playground-onboarding-link"
 		>the Onboarding Desk</a
+	>
+	and
+	<a href={resolve('/workshop/playground/disputes')} data-testid="playground-disputes-link"
+		>the Disputes Desk</a
 	>
 	— and
 	<a href={resolve('/workshop/playground/complaints')} data-testid="playground-complaints-link"
