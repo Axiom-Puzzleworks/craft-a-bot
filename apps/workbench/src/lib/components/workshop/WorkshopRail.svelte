@@ -32,6 +32,7 @@
 			| 'incidents'
 			| 'safety-case'
 			| 'assurance'
+			| 'catalogue'
 			| 'export'
 			| 'armour'
 			| 'guards'
@@ -74,6 +75,7 @@
 		incidents: '/workshop/incidents',
 		'safety-case': '/workshop/safety-case',
 		assurance: '/workshop/assurance',
+		catalogue: '/workshop/catalogue',
 		export: '/workshop/export',
 		guards: '/workshop/guards'
 	};
@@ -126,6 +128,7 @@
 									| '/workshop/incidents'
 									| '/workshop/safety-case'
 									| '/workshop/assurance'
+									| '/workshop/catalogue'
 									| '/workshop/export'
 									| '/workshop/armour'
 									| '/workshop/guards'

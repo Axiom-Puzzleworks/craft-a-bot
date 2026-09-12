@@ -116,6 +116,12 @@ export async function artefactSchemas() {
 			description:
 				'What an experiment measured: for each metric and factor, every treatment level against the baseline as a difference with its interval, n, test and cost; the verdict over the intervals; the note; a digest (72-EXPERIMENTS.md §3).'
 		},
+		'guardrail-catalogue': {
+			schema: core.guardrailCatalogueSchema,
+			title: 'Craft A Bot guardrail catalogue (v1)',
+			description:
+				'An edition of the Guardrail Catalogue: every technique the industry ships or the research proposes, taxonomised, mapped to the threat and framework vocabularies, cited with a year, and carrying the coverage status the product can honestly claim (86-CATALOGUE.md §3).'
+		},
 		stack: {
 			schema: core.stackSchema,
 			title: 'Craft A Bot stack (v1)',

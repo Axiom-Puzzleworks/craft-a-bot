@@ -21,6 +21,8 @@ import {
 } from '@craftabot/core';
 import { campaignEvidenceFor, type CampaignEvidence } from './campaign-evidence.js';
 import { controlEffectiveness, type ControlEffectivenessRow } from './control-effectiveness.js';
+import { coverageSummary, type CoverageSummary } from './coverage.js';
+import { GUARDRAIL_CATALOGUE } from '../catalogue/entries.js';
 import { driftIn, telemetrySeries, type DriftFlag, type TelemetryBucket } from './drift.js';
 import { explanationsForTicks, type DecisionExplanation } from './decision-explanation.js';
 import { incidentsFromSummaries, type Incident } from './incidents.js';
@@ -239,6 +241,8 @@ export interface AssurancePack {
 		hostedScreening: SafetyCase['hostedScreening'];
 		/** The Control Effectiveness Register (WP90, `80-…` §3): every control the maps list with its measured effect, or `untested`. */
 		effects: ControlEffectivenessRow[];
+		/** The Guardrail Catalogue's coverage (WP98, `86-…` §5): the counts, and the entries the product does *not* claim, by name. */
+		coverage: CoverageSummary;
 	};
 	/** Ongoing monitoring: the series, its flags, the incidents — each with its findings' decisions explained (WP66). */
 	monitoring: {
@@ -583,7 +587,8 @@ export async function assurancePackFor(input: AssurancePackInput): Promise<Assur
 			killSwitch:
 				'run.finished with STOPPED_BY_USER — a person can stop any run, and the trace records it.',
 			hostedScreening: safetyCase.hostedScreening,
-			effects: controlEffectiveness(input.experimentResults ?? [], maps)
+			effects: controlEffectiveness(input.experimentResults ?? [], maps),
+			coverage: coverageSummary(GUARDRAIL_CATALOGUE)
 		},
 		monitoring: {
 			series,

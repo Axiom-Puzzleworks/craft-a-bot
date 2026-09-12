@@ -57,3 +57,5 @@ packages/packs/fs-lending/src/fixtures/
 campaign-out/
 # The reference experiments' committed results (WP90): written by the harness, held byte-equal to their digests
 docs/evidence/
+# WP98: generated from the catalogue and checked byte-for-byte on build
+docs/catalogue.md

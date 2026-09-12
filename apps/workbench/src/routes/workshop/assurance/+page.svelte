@@ -16,8 +16,10 @@
 		driftIn,
 		incidentsFromSummaries,
 		safetyCaseFromSummaries,
-		telemetrySeries
+		telemetrySeries,
+		coverageSummary
 	} from '@craftabot/governance/reports';
+	import { GUARDRAIL_CATALOGUE } from '@craftabot/governance';
 	import Lamp from '$lib/components/control-room/Lamp.svelte';
 	import { ensureRunSummaries } from '$lib/state/run-summaries.js';
 	import {
@@ -115,6 +117,8 @@
 	 */
 	let experimentResults = $state.raw<ExperimentResult[]>([]);
 	const register = $derived(controlEffectiveness(experimentResults, registry.listControlMaps()));
+	// WP98 (`86-…` §7): the catalogue's coverage beneath the register — the counts, and what is not claimed.
+	const coverage = coverageSummary(GUARDRAIL_CATALOGUE);
 	const registerColumns = [
 		{ id: 'control', label: 'Control', kind: 'text' as const },
 		{ id: 'obligation', label: 'Obligation', kind: 'text' as const },
@@ -377,6 +381,24 @@
 			onRow={openRegisterRow}
 			testId="assurance-register-table"
 		/>
+	</section>
+
+	<section aria-labelledby="coverage-h" data-testid="assurance-coverage">
+		<h2 id="coverage-h">Coverage</h2>
+		<p class="status" data-testid="assurance-coverage-note">
+			The Guardrail Catalogue, edition {coverage.edition}: {coverage.byStatus.shipped} shipped, {coverage
+				.byStatus.connectable} connectable, {coverage.byStatus.bespoke} bespoke, {coverage.byStatus
+				.blueprint} blueprint, {coverage.byStatus['not-applicable']} not applicable — {coverage.pending}
+			of
+			{coverage.entries} pending review.
+			<a href={resolve('/workshop/catalogue')} data-testid="assurance-open-catalogue"
+				>Open the catalogue</a
+			>.
+		</p>
+		<ul class="not-claimed" data-testid="assurance-not-claimed">
+			<li><strong>Blueprint only:</strong> {coverage.blueprint.join('; ')}.</li>
+			<li><strong>Not applicable to a simulator:</strong> {coverage.notApplicable.join('; ')}.</li>
+		</ul>
 	</section>
 
 	{#if storedReports.length >= 2}

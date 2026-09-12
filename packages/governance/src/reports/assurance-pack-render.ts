@@ -172,6 +172,15 @@ export function renderAssurancePackMarkdown(pack: AssurancePack): string {
 		);
 	}
 	out.push('');
+	out.push('### Coverage');
+	out.push('');
+	out.push(
+		`The Guardrail Catalogue, edition ${pack.mitigants.coverage.edition} (${pack.mitigants.coverage.entries} entries; ${pack.mitigants.coverage.reviewed} reviewed, ${pack.mitigants.coverage.pending} pending review): ${pack.mitigants.coverage.byStatus.shipped} shipped, ${pack.mitigants.coverage.byStatus.connectable} connectable, ${pack.mitigants.coverage.byStatus.bespoke} bespoke, ${pack.mitigants.coverage.byStatus.blueprint} blueprint, ${pack.mitigants.coverage.byStatus['not-applicable']} not applicable. What this product does **not** claim:`
+	);
+	out.push('');
+	out.push(`- Blueprint only: ${list(pack.mitigants.coverage.blueprint)}`);
+	out.push(`- Not applicable to a simulator: ${list(pack.mitigants.coverage.notApplicable)}`);
+	out.push('');
 	out.push('## 6. Ongoing monitoring');
 	out.push('');
 	if (pack.monitoring.note) out.push(pack.monitoring.note);
@@ -405,7 +414,13 @@ ${table(
 			`${escape(row.status)}${h ? ` ${citeHtml([...new Set(row.effects.flatMap((effect) => effect.runIds))].slice(0, 6))}` : ''}`
 		];
 	})
-)}`;
+)}
+<h3>Coverage</h3>
+<p class="note">The Guardrail Catalogue, edition ${escape(pack.mitigants.coverage.edition)} (${pack.mitigants.coverage.entries} entries; ${pack.mitigants.coverage.reviewed} reviewed, ${pack.mitigants.coverage.pending} pending review): ${pack.mitigants.coverage.byStatus.shipped} shipped, ${pack.mitigants.coverage.byStatus.connectable} connectable, ${pack.mitigants.coverage.byStatus.bespoke} bespoke, ${pack.mitigants.coverage.byStatus.blueprint} blueprint, ${pack.mitigants.coverage.byStatus['not-applicable']} not applicable. What this product does <strong>not</strong> claim:</p>
+<ul>
+<li>Blueprint only: ${listHtml(pack.mitigants.coverage.blueprint)}</li>
+<li>Not applicable to a simulator: ${listHtml(pack.mitigants.coverage.notApplicable)}</li>
+</ul>`;
 
 	const monitoring = `${pack.monitoring.note ? `<p class="note">${escape(pack.monitoring.note)}</p>` : ''}<ul>
 <li>Series: ${pack.monitoring.series.length} days; drift flags: ${pack.monitoring.drift.length === 0 ? 'none' : pack.monitoring.drift.map((flag) => escape(`${flag.day} ${flag.kind}${flag.series ? ` ${flag.series}` : ''}`)).join('; ')}</li>

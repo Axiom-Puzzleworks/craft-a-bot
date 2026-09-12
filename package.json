@@ -15,9 +15,10 @@
 	],
 	"scripts": {
 		"dev": "turbo run dev",
-		"build": "turbo run build && node scripts/json-schema.mjs --check && node scripts/metrics-doc.mjs --check",
+		"build": "turbo run build && node scripts/json-schema.mjs --check && node scripts/metrics-doc.mjs --check && node scripts/catalogue-doc.mjs --check",
 		"schemas": "node scripts/json-schema.mjs",
 		"metrics:doc": "node scripts/metrics-doc.mjs",
+		"catalogue:doc": "node scripts/catalogue-doc.mjs",
 		"test": "turbo run test",
 		"check": "turbo run check",
 		"lint": "prettier --check . && eslint . && turbo run check",

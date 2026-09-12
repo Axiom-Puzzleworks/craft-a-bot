@@ -36,6 +36,7 @@ export type RailId =
 	| 'incidents'
 	| 'safety-case'
 	| 'assurance'
+	| 'catalogue'
 	| 'export'
 	| 'guards';
 
@@ -113,6 +114,7 @@ const EVERYTHING: RailId[] = [
 	'incidents',
 	'safety-case',
 	'assurance',
+	'catalogue',
 	'export',
 	'guards'
 ];
@@ -124,6 +126,8 @@ const rest = (...taken: RailId[][]): RailId[] => {
 
 const ASSURANCE_FIRST: RailId[] = [
 	'assurance',
+	// WP98 (`86-…` §7): the catalogue beside the register — what the product has, and what it does not claim.
+	'catalogue',
 	'experiments',
 	'safety-case',
 	'incidents',
@@ -312,6 +316,8 @@ export const RAIL_LABELS: Record<RailId, string> = {
 	incidents: 'Incidents',
 	'safety-case': 'Safety case',
 	assurance: 'Assurance',
+
+	catalogue: 'Catalogue',
 	export: 'Audit',
 	guards: 'Guards'
 };

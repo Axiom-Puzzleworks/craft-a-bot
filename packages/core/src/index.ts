@@ -706,3 +706,27 @@ export {
 	type CalibrationSource,
 	type CalibrationTable
 } from './schemas/calibration.js';
+
+/** The Guardrail Catalogue's entry and edition (WP98, `86-CATALOGUE.md` §3): the schema, the closed vocabularies, the coverage statuses. */
+export {
+	ASI_THREATS,
+	CATALOGUE_CATEGORIES,
+	CATALOGUE_MATURITIES,
+	COVERAGE_STATUSES,
+	FRAMEWORK_ID_PATTERN,
+	FRAMEWORK_PREFIXES,
+	LLM_THREATS,
+	THREAT_ID_PATTERN,
+	catalogueCategorySchema,
+	catalogueCoverageSchema,
+	catalogueEntrySchema,
+	catalogueMaturitySchema,
+	catalogueSourceSchema,
+	coverageStatusSchema,
+	guardrailCatalogueSchema,
+	type CatalogueCategory,
+	type CatalogueEntry,
+	type CatalogueSource,
+	type CoverageStatus,
+	type GuardrailCatalogue
+} from './schemas/catalogue.js';
