@@ -230,6 +230,74 @@ export default defineConfig(
 		}
 	},
 	{
+		// `@craftabot/workflow` may depend on `@craftabot/core` and `@craftabot/desk` only (`69-WORKFLOWS.md` §5).
+		files: ['packages/workflow/**/*.{ts,js}'],
+		ignores: ['packages/workflow/**/*.test.ts'],
+		rules: {
+			'no-restricted-imports': [
+				'error',
+				{
+					patterns: [
+						{
+							group: [
+								'@craftabot/pack-*',
+								'@craftabot/governance',
+								'@craftabot/telemetry',
+								'@craftabot/evals',
+								'@craftabot/metrics',
+								'@craftabot/evidence',
+								'@craftabot/workbench',
+								'$lib/*',
+								'$app/*'
+							],
+							message:
+								'@craftabot/workflow may depend only on @craftabot/core and @craftabot/desk — see docs/design-day2/69-WORKFLOWS.md §5.'
+						},
+						{
+							group: ['svelte', 'svelte/*', '@sveltejs/*'],
+							message:
+								'Engine/pack code must not import Svelte or SvelteKit — see docs/design/01-ARCHITECTURE.md §1.3.'
+						}
+					]
+				}
+			]
+		}
+	},
+	{
+		// `@craftabot/metrics` may depend only on `@craftabot/core` (`68-METRICS.md` §5): one definition, read everywhere, imported by everyone.
+		files: ['packages/metrics/**/*.{ts,js}'],
+		ignores: ['packages/metrics/**/*.test.ts'],
+		rules: {
+			'no-restricted-imports': [
+				'error',
+				{
+					patterns: [
+						{
+							group: [
+								'@craftabot/pack-*',
+								'@craftabot/governance',
+								'@craftabot/telemetry',
+								'@craftabot/evals',
+								'@craftabot/desk',
+								'@craftabot/evidence',
+								'@craftabot/workbench',
+								'$lib/*',
+								'$app/*'
+							],
+							message:
+								'@craftabot/metrics may depend only on @craftabot/core — see docs/design-day2/68-METRICS.md §5.'
+						},
+						{
+							group: ['svelte', 'svelte/*', '@sveltejs/*'],
+							message:
+								'Engine/pack code must not import Svelte or SvelteKit — see docs/design/01-ARCHITECTURE.md §1.3.'
+						}
+					]
+				}
+			]
+		}
+	},
+	{
 		/**
 		 * Pack-testkit dependency direction (`13-…` §7).
 		 *

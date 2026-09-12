@@ -1,3 +1,4 @@
+import { FRAUD_CONFIGURATION_IDS, FRAUD_WORKFLOW_ID } from './workflow.js';
 import { FRAUD_POLICY_CARD_IDS } from './cards/policy.js';
 import { FALLBACK_CARD_ID, TOLD_PLAINLY_ID } from '@craftabot/pack-fs-bank';
 import { fraudScenarios } from './decks/scenarios.js';
@@ -279,6 +280,57 @@ export function fraudBaseline(options: FraudBaselineOptions = {}): Record<string
 					maxDifference: 0.1,
 					matched: false
 				}
+			}
+		]
+	};
+}
+
+/**
+ * **`campaigns/fs-fraud-book.json`** (WP85, `76-…` §5): the alert book of a
+ * population of `size` customers at `seed` through the fraud workflow under
+ * each of the five reference configurations, one build per configuration,
+ * no guard, the scripted-optimal bot. The gate: every journey completes.
+ * The report's human-load rows say what each level costs in touches and
+ * ceiling breaches over the same alerts.
+ */
+export const FRAUD_BOOK_CAMPAIGN_ID = 'fs-fraud-book';
+
+export interface FraudBookCampaignOptions {
+	seed?: number;
+	size?: number;
+	configurations?: readonly string[];
+}
+
+export function fraudBookCampaign(options: FraudBookCampaignOptions = {}): Record<string, unknown> {
+	const configurations = [...(options.configurations ?? FRAUD_CONFIGURATION_IDS)];
+	return {
+		schemaVersion: 1,
+		id: FRAUD_BOOK_CAMPAIGN_ID,
+		title:
+			'Fraud book — the alert book through the alert journey under the five reference configurations, by autonomy level',
+		scenarios: [],
+		source: {
+			kind: 'book',
+			workflowId: FRAUD_WORKFLOW_ID,
+			population: { seed: options.seed ?? 1, size: options.size ?? 150 }
+		},
+		builds: configurations.map((configuration) => ({
+			id: configuration,
+			base: { kind: 'starter-default' },
+			overrides: {
+				senses: fraudDesk.senses.map((sense) => sense.id),
+				actions: fraudDesk.actions.map((action) => action.id),
+				configuration
+			}
+		})),
+		guards: [{ id: FRAUD_GUARD_IDS.none, fit: [] }],
+		brains: [{ id: 'scripted-optimal', tier: 'scripted-optimal' }],
+		seeds: [1],
+		evaluators: [{ id: ALERT_DECISION_ID }],
+		gates: [
+			{
+				id: 'every-journey-completes',
+				require: { kind: 'outcome-rate', outcome: 'SUCCESS', atLeast: 1 }
 			}
 		]
 	};

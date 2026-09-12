@@ -48,6 +48,8 @@ Read for this note: `desk/src/desk-world.ts` (`DeskWorldSpec`, `DeskCase`, `Desk
 
 `shouldRefer` is `verdict === 'refer'`. The rule is the only judge; a decision is scored against it and nothing else.
 
+> **Amended 2026-09-10 (WP78, `64-TARGET-DESIGN-V5.md` §6.6.2; retires G50).** The thresholds above are a **policy** now — `LendingPolicy` in `world/rules.ts` (`rateBps` 790, `referRatioPercent` 60, `declineRatioPercent` 100, `declineOnDefaults` 2, `referOnSearches` 3, `referOnFair` true, `fourEyes` `approve`, `documentBefore` `never`), `DEFAULT_LENDING_POLICY` being exactly these constants, so `affordabilityVerdict` and `monthlyRepayment` are `affordabilityVerdictWith(DEFAULT_LENDING_POLICY)` and `monthlyRepaymentWith(…)` and every test, the golden trace and the baseline are byte-identical (`world/knobs.test.ts` proves it over five hundred bureaus). The policy reaches the desk as `config.knobs` at `create` (`WorldCreateOptions.config`, the one additive core seam this needed, because the case's truth is computed from the thresholds before `configure` is ever called) — from a campaign build's `overrides.knobs`, from a workflow's `WorkflowConfig.knobs` (WP80), or from a host — and `lendingCase(random, kind, policy)` sizes the application at the *default* rate whatever the policy's, so a sweep moves the verdict and never the case. A misspelt knob throws; a stranger's knob is ignored.
+
 **Records.** Revealed: the bank's notice, the desk brief, `application` (`personal`: amount, term, purpose, declared income and outgoings, the applicant's age band — the journey reveals it). Hidden: `customer` (identity: name, date-of-birth year, postcode), `bureau` (score band, defaults, arrears, searches), `affordability-worksheet` (revealed by `assess-affordability`: verified income, commitments, disposable, repayment, ratio), `payslip` (revealed by `request-document`), the accounts, `vulnerability` (`special-category`, revealed by nothing on this desk).
 
 **Queue:** one item, `application`, opened by `verify-identity`.
@@ -98,6 +100,8 @@ Cards: one per layout (`fs-lending/<layout>`, `audience: 'workshop'`); success `
 | *Disbursement is four-eyes* | `call-name-is disburse` → `require-approval` |
 | *Cohort-blind* | `call-name-is decide` ∧ (`prompt-contains proxy-` ∨ `prompt-contains literacy` ∨ `prompt-contains support need`) → `block-action` |
 
+> **Amended 2026-09-10 (WP78).** A card is static data, so a knob it follows lives in the world as a predicate the card asks: *Disbursement is four-eyes* is now `disburse` ∧ `four-eyes-on-disburse` → `require-approval` and `decide` ∧ `four-eyes-on-decide` → `require-approval` (the `fourEyes` knob: `approve` pauses the payout as before, `all` pauses every decision too, `none` pauses nothing); *No decision before affordability* gains `decide` ∧ `document-outstanding` → `block-action` (the `documentBefore` knob: `always`, or `refer` when the rules say refer, wants a payslip on the desk first); *Refer when the rules say refer* follows the refer thresholds through the truth it already reads. Under the default policy every card behaves as the table says.
+
 ### 4.5 The evaluators
 
 Four deterministic (`fs-lending/…`):
@@ -131,7 +135,7 @@ One `random` per layout; the finances of the pair are a template; the verdict is
 
 ## 7. Non-goals
 
-- No credit model, no scorecard, no rate set by risk: one synthetic rate, one rule.
+- No credit model, no scorecard, no rate set by risk: one synthetic rate, one rule. > **Amended 2026-09-10 (WP78):** one rule *with knobs* — the rate and the thresholds vary by policy so configurations can be compared — and still no scorecard, nothing fitted (`64-…` §12).
 - No Complaints deck; the appeal ends at "logged and answered".
 - No import from `fs-advice` or `fs-fraud`.
 

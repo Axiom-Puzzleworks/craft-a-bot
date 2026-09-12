@@ -1,6 +1,7 @@
 import type { ConfusionLabelSemantics } from '@craftabot/core';
+import { touchesPerCase, unattendedRate, wilson } from '@craftabot/metrics';
 import { z } from 'zod';
-import type { CampaignCell } from './campaign.js';
+import type { CampaignCell, GateVerdict, GateWhere } from './campaign.js';
 
 /**
  * **The campaign summary** (WP61, `50-DOMAIN-METRICS.md` §4.5): what the
@@ -56,6 +57,8 @@ export const campaignSliceSchema = z.object({
 	scenario: z.string(),
 	guard: z.string(),
 	brain: z.string(),
+	/** The context rung (WP81), when the campaign named contexts. */
+	context: z.string().optional(),
 	cells: z.number().int().nonnegative(),
 	errors: z.number().int().nonnegative(),
 	successRate: z.number(),
@@ -92,6 +95,7 @@ export const caseRowSchema = z.object({
 	scenario: z.string(),
 	guard: z.string(),
 	brain: z.string(),
+	context: z.string().optional(),
 	seed: z.number().int(),
 	runId: z.string().optional(),
 	outcome: z.string().optional(),
@@ -105,12 +109,72 @@ export const caseRowSchema = z.object({
 });
 export type CaseRow = z.infer<typeof caseRowSchema>;
 
+/**
+ * **Human load by build** (WP80, `64-…` §6.4.1a; `68-METRICS.md` §2.3): over
+ * a book campaign's cells, per build — a configuration, an autonomy level —
+ * touches per case with its interval, the unattended rate, and the
+ * ceiling-breach rate over the decisions that had a ceiling. Measured from
+ * the workflow runs' stage records, the bottom-up figures the thought
+ * experiment's scenario model assumes. Empty for a campaign of scenarios.
+ */
+export const humanLoadRowSchema = z.object({
+	build: z.string(),
+	configuration: z.string().optional(),
+	autonomy: z.number().int().min(1).max(5).optional(),
+	cells: z.number().int().nonnegative(),
+	touchesPerCase: z.number(),
+	touchesInterval: z.tuple([z.number(), z.number()]),
+	touchesByKind: z.record(z.string(), z.number()),
+	unattendedRate: z.number(),
+	decisions: z.number().int().nonnegative(),
+	breaches: z.number().int().nonnegative(),
+	ceilingBreachRate: z.number(),
+	breachInterval: z.tuple([z.number(), z.number()]),
+	underpowered: z.boolean()
+});
+export type HumanLoadRow = z.infer<typeof humanLoadRowSchema>;
+
+/** A fairness row (WP82, `64-…` §6.4.4): a `parity` gate's metric with its interval, *n* and power, over the cells its `where` selected. */
+export const fairnessRowSchema = z.object({
+	gateId: z.string(),
+	metric: z.string(),
+	across: z.string(),
+	stratify: z.string().optional(),
+	value: z.number(),
+	interval: z.tuple([z.number(), z.number()]),
+	n: z.number().int().nonnegative(),
+	underpowered: z.boolean(),
+	passed: z.boolean(),
+	inconclusive: z.boolean(),
+	slice: z.record(z.string(), z.string()).optional()
+});
+export type FairnessRow = z.infer<typeof fairnessRowSchema>;
+
+/** A drift row (WP82): a `drift` gate's distance against its reference, and whether it crossed the bound. */
+export const driftRowSchema = z.object({
+	gateId: z.string(),
+	feature: z.string().optional(),
+	metric: z.string(),
+	reference: z.string(),
+	value: z.number().optional(),
+	atMost: z.number().optional(),
+	flagged: z.boolean(),
+	reason: z.string().optional(),
+	slice: z.record(z.string(), z.string()).optional()
+});
+export type DriftRow = z.infer<typeof driftRowSchema>;
+
 export const campaignSummarySchema = z.object({
 	slices: z.array(campaignSliceSchema),
 	matrices: z.array(confusionMatrixSchema),
 	cohorts: z.array(cohortRowSchema),
 	obligations: z.array(obligationRowSchema),
-	cases: z.array(caseRowSchema)
+	cases: z.array(caseRowSchema),
+	/** Defaulted, so every report written before WP80 parses. */
+	humanLoad: z.array(humanLoadRowSchema).default([]),
+	/** The metric verdicts' statistics (WP82); empty on a report upgraded from v2, which never computed them. */
+	fairness: z.array(fairnessRowSchema).default([]),
+	drift: z.array(driftRowSchema).default([])
 });
 export type CampaignSummary = z.infer<typeof campaignSummarySchema>;
 
@@ -125,6 +189,66 @@ const FIRST_TAGS = [
 export interface SummaryOptions {
 	/** What an evaluator's labels mean, by id — from the registry at run time, or the stored matrices on a re-read. */
 	semantics?: (evaluatorId: string) => ConfusionLabelSemantics | undefined;
+	/** The gates as evaluated (WP82): the fairness and drift rows are read off the metric verdicts. */
+	gates?: readonly GateVerdict[];
+}
+
+const sliceOf = (where: GateWhere | undefined): Record<string, string> | undefined => {
+	if (!where) return undefined;
+	const entries = Object.entries(where).filter(
+		(entry): entry is [string, string] => typeof entry[1] === 'string'
+	);
+	return entries.length > 0 ? Object.fromEntries(entries) : undefined;
+};
+
+/** The fairness rows off the `parity` verdicts that carried a metric (WP82). */
+export function fairnessRowsOf(gates: readonly GateVerdict[]): FairnessRow[] {
+	const rows: FairnessRow[] = [];
+	for (const gate of gates) {
+		if (gate.kind !== 'parity' || gate.interval === undefined || gate.observed === undefined)
+			continue;
+		const [metric, , across] = gate.required.split(' ');
+		const within = gate.required.match(/ within (\S+):/);
+		const slice = sliceOf(gate.where);
+		rows.push({
+			gateId: gate.id,
+			metric: metric ?? 'parity',
+			across: (across ?? '').replace(/:$/, ''),
+			...(within ? { stratify: within[1] as string } : {}),
+			value: gate.observed,
+			interval: gate.interval,
+			n: gate.n ?? 0,
+			underpowered: gate.underpowered === true,
+			passed: gate.passed,
+			inconclusive: gate.inconclusive === true,
+			...(slice ? { slice } : {})
+		});
+	}
+	return rows;
+}
+
+/** The drift rows off the `drift` verdicts (WP82). */
+export function driftRowsOf(gates: readonly GateVerdict[]): DriftRow[] {
+	const rows: DriftRow[] = [];
+	for (const gate of gates) {
+		if (gate.kind !== 'drift') continue;
+		const parts = gate.required.match(
+			/^(\S+)(?: over (\S+))? against the (\S+) reference: ≤ (\S+)$/
+		);
+		const slice = sliceOf(gate.where);
+		rows.push({
+			gateId: gate.id,
+			...(parts?.[2] ? { feature: parts[2] } : {}),
+			metric: parts?.[1] ?? gate.kind,
+			reference: parts?.[3] ?? 'fixed',
+			...(gate.observed !== undefined ? { value: gate.observed } : {}),
+			...(parts?.[4] !== undefined ? { atMost: Number(parts[4]) } : {}),
+			flagged: !gate.passed,
+			...(gate.reason !== undefined ? { reason: gate.reason } : {}),
+			...(slice ? { slice } : {})
+		});
+	}
+	return rows;
 }
 
 const rate = (cells: readonly CampaignCell[], match: (cell: CampaignCell) => boolean): number =>
@@ -252,13 +376,16 @@ export function summariseCampaign(
 	options: SummaryOptions = {}
 ): CampaignSummary {
 	const cardIds = [...new Set(cells.flatMap((cell) => Object.keys(cell.assertions)))];
-	const sliceKey = (cell: CampaignCell) => `${cell.scenario} ${cell.guard} ${cell.brain}`;
+	// The slice is scenario × guard × brain — and the context rung when the campaign named one (WP81).
+	const sliceKey = (cell: CampaignCell) =>
+		`${cell.scenario} ${cell.guard} ${cell.brain} ${cell.context ?? ''}`;
 	const slices: CampaignSliceSummary[] = [...groupBy(cells, sliceKey)].map(([key, mine]) => {
-		const [scenario, guard, brain] = key.split(' ') as [string, string, string];
+		const [scenario, guard, brain, context] = key.split(' ') as [string, string, string, string];
 		return {
 			scenario,
 			guard,
 			brain,
+			...(context !== '' ? { context } : {}),
 			cells: mine.length,
 			errors: mine.filter((cell) => cell.error !== undefined).length,
 			successRate: rate(mine, (cell) => cell.outcome === 'SUCCESS'),
@@ -288,6 +415,7 @@ export function summariseCampaign(
 			matrices.push({
 				evaluatorId,
 				semantics,
+				// The matrix's slice keeps its three keys; a context rung's matrix is under the slice's cells.
 				slice: { scenario, guard, brain },
 				...confusionOf(mine, evaluatorId, semantics)
 			});
@@ -327,10 +455,44 @@ export function summariseCampaign(
 		};
 	});
 
+	// Human load (WP80): by build, over the cells a workflow ran.
+	const humanLoad: HumanLoadRow[] = [];
+	const journeys = cells.filter((cell) => cell.workflow !== undefined);
+	for (const [build, mine] of [...groupBy(journeys, (cell) => cell.build)].sort(([a], [b]) =>
+		a.localeCompare(b)
+	)) {
+		const touched = mine.map((cell) => ({
+			id: cell.workflow?.runId ?? '',
+			touches: (cell.workflow?.touches ?? []).map((kind) => ({ kind }))
+		}));
+		const touches = touchesPerCase(touched);
+		const unattended = unattendedRate(touched);
+		const decisions = mine.reduce((sum, cell) => sum + (cell.workflow?.decisions.length ?? 0), 0);
+		const breaches = mine.reduce((sum, cell) => sum + (cell.workflow?.breaches ?? 0), 0);
+		const breach = wilson(breaches, decisions, 0.95);
+		const first = mine[0]?.workflow;
+		humanLoad.push({
+			build,
+			...(first?.configuration !== undefined ? { configuration: first.configuration } : {}),
+			...(first?.autonomy !== undefined ? { autonomy: first.autonomy } : {}),
+			cells: mine.length,
+			touchesPerCase: touches.value,
+			touchesInterval: [touches.interval[0], touches.interval[1]],
+			touchesByKind: touches.detail ?? {},
+			unattendedRate: unattended.value,
+			decisions,
+			breaches,
+			ceilingBreachRate: decisions === 0 ? 0 : breaches / decisions,
+			breachInterval: [breach[0], breach[1]],
+			underpowered: touches.underpowered
+		});
+	}
+
 	const cases: CaseRow[] = cells.map((cell) => ({
 		scenario: cell.scenario,
 		guard: cell.guard,
 		brain: cell.brain,
+		...(cell.context !== undefined ? { context: cell.context } : {}),
 		seed: cell.seed,
 		...(cell.runId !== undefined ? { runId: cell.runId } : {}),
 		...(cell.outcome !== undefined ? { outcome: cell.outcome } : {}),
@@ -343,7 +505,9 @@ export function summariseCampaign(
 		...(cell.error !== undefined ? { error: cell.error } : {})
 	}));
 
-	return { slices, matrices, cohorts, obligations, cases };
+	const fairness = fairnessRowsOf(options.gates ?? []);
+	const drift = driftRowsOf(options.gates ?? []);
+	return { slices, matrices, cohorts, obligations, cases, humanLoad, fairness, drift };
 }
 
 function rank(tag: string): number {

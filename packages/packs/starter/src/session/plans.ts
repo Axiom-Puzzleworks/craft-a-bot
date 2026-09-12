@@ -1,3 +1,4 @@
+import type { ChatRequest } from '@craftabot/core';
 import { LEAK_PHRASE } from '../world/predicates.js';
 
 /**
@@ -30,6 +31,8 @@ export interface PlanStep {
 	/** The action or tool to call. */
 	call: string;
 	args?: unknown;
+	/** The arguments worked out from the prompt at the turn (WP80): a scripted bot that reads the case — the rule from the worksheet — rather than a fixed answer. */
+	argsFrom?: (request: ChatRequest) => unknown;
 }
 
 export type Plan = PlanStep[];

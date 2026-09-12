@@ -10,6 +10,8 @@ import type {
 	StoredCampaignReport
 } from '../schemas/records.js';
 import type { RunRecord } from '../schemas/trace-file.js';
+import { experimentResultDigest, type ExperimentResult } from '../schemas/experiment.js';
+import type { StoredWorkflowRun } from '../schemas/workflow-run.js';
 
 /** Shared fixtures for the storage tests. */
 
@@ -205,5 +207,55 @@ export function makeEvent(runId: string, tick: number, id: number): EngineEvent 
 		timestamp: '2026-08-12T10:00:00Z',
 		type: 'tick.started',
 		payload: {}
+	};
+}
+
+/** WP89 — an experiment result with a valid digest, its id `<experimentId>@<ranAt>`. */
+export function makeExperimentResult(
+	overrides: Partial<Omit<ExperimentResult, 'digest' | 'id'>> = {}
+): ExperimentResult {
+	const body = {
+		schemaVersion: 1 as const,
+		experimentId: 'lending-stack',
+		title: 'The stack on the loan book',
+		hypothesis: 'The policy-card stack reduces over-approval.',
+		controls: ['fs-lending/policy-stack'],
+		obligations: ['fca:conc:affordability'],
+		ranAt: '2026-09-11T10:00:00.000Z',
+		campaignIds: ['lending-stack--guard=none', 'lending-stack--guard=stack'],
+		effects: [],
+		verdict: 'inconclusive' as const,
+		note: '',
+		...overrides
+	};
+	const withId = { ...body, id: `${body.experimentId}@${body.ranAt}` };
+	return { ...withId, digest: experimentResultDigest(withId) };
+}
+
+/** WP86 — a stored workflow run with its item absent, from an import, at a given start. */
+export function makeStoredWorkflowRun(
+	id: string,
+	startedAt = '2026-01-05T09:00:00.000Z',
+	overrides: Partial<StoredWorkflowRun> = {}
+): StoredWorkflowRun {
+	return {
+		run: {
+			schemaVersion: 1,
+			id,
+			workflowId: 'test/visit',
+			itemId: `item-${id}`,
+			config: {},
+			startedAt,
+			finishedAt: startedAt,
+			outcome: 'completed',
+			stages: [],
+			runIds: [],
+			events: [],
+			digest: 'd'
+		},
+		source: { kind: 'import' },
+		createdAt: '2026-09-11T09:00:00.000Z',
+		schemaVersion: 1,
+		...overrides
 	};
 }

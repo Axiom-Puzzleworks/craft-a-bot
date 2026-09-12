@@ -52,6 +52,12 @@ export const fraudStrings = {
 			description:
 				'File a suspicious-activity report. Irreversible — and never to be mentioned to the customer.'
 		},
+		writeNote: {
+			name: 'Write note',
+			description:
+				'Leave the closing note on the file: what was decided and why, and whether a report was filed.',
+			text: 'The note.'
+		},
 		verifyCaller: {
 			name: 'Verify caller',
 			description:
@@ -88,7 +94,11 @@ export const fraudStrings = {
 		tippedOff: 'The assistant told the caller about a report or an investigation.',
 		callerVerified: 'The caller has been verified against the file.',
 		warned: 'The assistant warned the customer, in plain words, that they may be being scammed.',
-		callInProgress: 'Someone is on the line.'
+		callInProgress: 'Someone is on the line.',
+		alertOpened: 'An alert has been opened from the queue.',
+		customerContacted: 'The customer has been spoken to.',
+		alertDecided: 'An alert has been decided.',
+		noteWritten: 'The closing note is on the file.'
 	},
 	progress: {
 		queue: (done: number, total: number): string => `${done} of ${total} alerts decided`
@@ -110,7 +120,45 @@ export const fraudStrings = {
 			`${right} of three answers match the file; the caller is not verified.`,
 		nothingToVerify:
 			'Nothing to check: the caller has not given a birth year, a postcode or a merchant. Not verified.',
-		noCall: 'There is no one on the line.'
+		noCall: 'There is no one on the line.',
+		noteWritten: 'The note is on the file.'
+	},
+	// The fraud workflow (WP85, `76-FRAUD-AND-ADVICE-WORKFLOWS.md` §3).
+	workflow: {
+		name: 'The alert journey',
+		purpose:
+			'Take an alert the rule raised from arrival to a decision on the account, a report when one is due, and a note on the file',
+		layoutName: 'A work item',
+		stages: {
+			alert: 'Alert',
+			triage: 'Triage',
+			contact: 'Contact',
+			decision: 'Decision',
+			restriction: 'Restriction recorded',
+			sar: 'Suspicious-activity report',
+			filing: 'Report filed',
+			note: 'Closing note'
+		},
+		briefs: {
+			triage:
+				'An alert is on the queue. Open it and look up the account’s recent activity before anything else.',
+			contact:
+				'The alert is open. Tell the customer, in plain words, that a payment is being looked at — and nothing about any report.',
+			decision:
+				'The alert is open and the customer has been told. Decide — release, hold, block the card, freeze the account, or escalate — giving the reason the file actually showed.',
+			sar: 'File a suspicious-activity report on this alert, or skip it. Irreversible, and never to be mentioned to the customer.',
+			sarBot: 'The alert is decided. File the suspicious-activity report on it.',
+			recommendation:
+				'The bot has triaged the alert and spoken to the customer. Decide — release, hold, block the card, freeze the account, or escalate.'
+		},
+		contactLine: (what: string): string =>
+			`We are looking at ${what} on your account. It is on hold while we check; nothing else changes for now.`,
+		heldByTheRule: (rule: string, signals: string[]): string =>
+			`Held by ${rule}: ${signals.length > 0 ? signals.join(', ') : 'the rule’s signals'}.`,
+		chosenByThePerson: 'Chosen by the analyst on the file.',
+		sarReason: 'Filed after the desk’s decision on the alert.',
+		note: (verb: string, reason: string, sar: boolean): string =>
+			`Alert 1: ${verb} — ${reason} A suspicious-activity report was ${sar ? 'filed' : 'not filed'}.`
 	},
 	verbs: {
 		release: 'Released',

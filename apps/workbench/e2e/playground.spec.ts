@@ -28,9 +28,9 @@ test('the Playground generates a case from a seed and shows the nine lines', asy
 	const first = await page.getByTestId('playground-customer-value').textContent();
 	await page.getByTestId('playground-generate').click();
 	await expect(page.getByTestId('playground-customer-value')).toHaveText(first ?? '');
-	// Nine lines on the map and in the list.
-	await expect(page.locator('[data-testid^="playground-line-"]')).toHaveCount(9);
-	await expect(page.locator('[data-testid^="playground-map-node-service-line-"]')).toHaveCount(9);
+	// Ten lines on the map and in the list (the graph line joined with WP81).
+	await expect(page.locator('[data-testid^="playground-line-"]')).toHaveCount(10);
+	await expect(page.locator('[data-testid^="playground-map-node-service-line-"]')).toHaveCount(10);
 });
 
 test('the Advice Desk page generates a case with its suitable set under the flap, and lists the decks, cards and evaluators on a map', async ({

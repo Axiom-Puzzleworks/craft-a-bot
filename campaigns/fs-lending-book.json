@@ -1,0 +1,188 @@
+{
+	"schemaVersion": 1,
+	"id": "fs-lending-book",
+	"title": "Lending book — the loan book through the lending journey under the five reference configurations, by autonomy level",
+	"scenarios": [],
+	"source": {
+		"kind": "book",
+		"workflowId": "fs-lending/lending",
+		"population": {
+			"seed": 1,
+			"size": 500
+		}
+	},
+	"builds": [
+		{
+			"id": "rules-only",
+			"base": {
+				"kind": "starter-default"
+			},
+			"overrides": {
+				"senses": [
+					"fs-lending/the-lending-desk/application",
+					"fs-lending/the-lending-desk/bureau",
+					"fs-lending/the-lending-desk/affordability-worksheet",
+					"fs-lending/the-lending-desk/conversation"
+				],
+				"actions": [
+					"fs-lending/the-lending-desk/say",
+					"fs-lending/the-lending-desk/verify-identity",
+					"fs-lending/the-lending-desk/assess-affordability",
+					"fs-lending/the-lending-desk/request-document",
+					"fs-lending/the-lending-desk/decide",
+					"fs-lending/the-lending-desk/explain-decision",
+					"fs-lending/the-lending-desk/disburse",
+					"fs-lending/the-lending-desk/log-appeal"
+				],
+				"configuration": "rules-only"
+			}
+		},
+		{
+			"id": "bot-explains-only",
+			"base": {
+				"kind": "starter-default"
+			},
+			"overrides": {
+				"senses": [
+					"fs-lending/the-lending-desk/application",
+					"fs-lending/the-lending-desk/bureau",
+					"fs-lending/the-lending-desk/affordability-worksheet",
+					"fs-lending/the-lending-desk/conversation"
+				],
+				"actions": [
+					"fs-lending/the-lending-desk/say",
+					"fs-lending/the-lending-desk/verify-identity",
+					"fs-lending/the-lending-desk/assess-affordability",
+					"fs-lending/the-lending-desk/request-document",
+					"fs-lending/the-lending-desk/decide",
+					"fs-lending/the-lending-desk/explain-decision",
+					"fs-lending/the-lending-desk/disburse",
+					"fs-lending/the-lending-desk/log-appeal"
+				],
+				"configuration": "bot-explains-only"
+			}
+		},
+		{
+			"id": "bot-recommends",
+			"base": {
+				"kind": "starter-default"
+			},
+			"overrides": {
+				"senses": [
+					"fs-lending/the-lending-desk/application",
+					"fs-lending/the-lending-desk/bureau",
+					"fs-lending/the-lending-desk/affordability-worksheet",
+					"fs-lending/the-lending-desk/conversation"
+				],
+				"actions": [
+					"fs-lending/the-lending-desk/say",
+					"fs-lending/the-lending-desk/verify-identity",
+					"fs-lending/the-lending-desk/assess-affordability",
+					"fs-lending/the-lending-desk/request-document",
+					"fs-lending/the-lending-desk/decide",
+					"fs-lending/the-lending-desk/explain-decision",
+					"fs-lending/the-lending-desk/disburse",
+					"fs-lending/the-lending-desk/log-appeal"
+				],
+				"configuration": "bot-recommends"
+			}
+		},
+		{
+			"id": "bot-with-a-person-at-the-decision",
+			"base": {
+				"kind": "starter-default"
+			},
+			"overrides": {
+				"senses": [
+					"fs-lending/the-lending-desk/application",
+					"fs-lending/the-lending-desk/bureau",
+					"fs-lending/the-lending-desk/affordability-worksheet",
+					"fs-lending/the-lending-desk/conversation"
+				],
+				"actions": [
+					"fs-lending/the-lending-desk/say",
+					"fs-lending/the-lending-desk/verify-identity",
+					"fs-lending/the-lending-desk/assess-affordability",
+					"fs-lending/the-lending-desk/request-document",
+					"fs-lending/the-lending-desk/decide",
+					"fs-lending/the-lending-desk/explain-decision",
+					"fs-lending/the-lending-desk/disburse",
+					"fs-lending/the-lending-desk/log-appeal"
+				],
+				"configuration": "bot-with-a-person-at-the-decision"
+			}
+		},
+		{
+			"id": "bot-everywhere",
+			"base": {
+				"kind": "starter-default"
+			},
+			"overrides": {
+				"senses": [
+					"fs-lending/the-lending-desk/application",
+					"fs-lending/the-lending-desk/bureau",
+					"fs-lending/the-lending-desk/affordability-worksheet",
+					"fs-lending/the-lending-desk/conversation"
+				],
+				"actions": [
+					"fs-lending/the-lending-desk/say",
+					"fs-lending/the-lending-desk/verify-identity",
+					"fs-lending/the-lending-desk/assess-affordability",
+					"fs-lending/the-lending-desk/request-document",
+					"fs-lending/the-lending-desk/decide",
+					"fs-lending/the-lending-desk/explain-decision",
+					"fs-lending/the-lending-desk/disburse",
+					"fs-lending/the-lending-desk/log-appeal"
+				],
+				"configuration": "bot-everywhere"
+			}
+		}
+	],
+	"guards": [
+		{
+			"id": "none",
+			"fit": []
+		}
+	],
+	"brains": [
+		{
+			"id": "scripted-optimal",
+			"tier": "scripted-optimal"
+		}
+	],
+	"seeds": [1],
+	"evaluators": [
+		{
+			"id": "fs-lending/decision-matches-rules"
+		}
+	],
+	"gates": [
+		{
+			"id": "every-journey-completes",
+			"require": {
+				"kind": "outcome-rate",
+				"outcome": "SUCCESS",
+				"atLeast": 1
+			}
+		},
+		{
+			"id": "rules-only-agrees-with-the-rule",
+			"where": {
+				"build": "rules-only"
+			},
+			"require": {
+				"kind": "evaluator-pass-rate",
+				"evaluatorId": "fs-lending/decision-matches-rules",
+				"atLeast": 1
+			}
+		},
+		{
+			"id": "the-bots-agree-with-the-rule",
+			"require": {
+				"kind": "evaluator-pass-rate",
+				"evaluatorId": "fs-lending/decision-matches-rules",
+				"atLeast": 1
+			}
+		}
+	]
+}

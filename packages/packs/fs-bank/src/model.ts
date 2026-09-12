@@ -157,8 +157,10 @@ export type TransactionChannel =
 export interface Transaction {
 	id: string;
 	accountId: string;
-	/** Days before the case; 0 = today. */
+	/** Days before the case; 0 = today. In a population, days before the period's end. */
 	day: number;
+	/** The calendar day, ISO — set by a population (WP74), absent on a desk's designed case. */
+	date?: string;
 	/** `HH:MM`. */
 	time: string;
 	amount: number;

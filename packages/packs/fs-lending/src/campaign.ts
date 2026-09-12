@@ -9,6 +9,7 @@ import {
 	lendingDeterministicEvaluators
 } from './evaluators/index.js';
 import { lendingDesk } from './world/desk.js';
+import { LENDING_CONFIGURATION_IDS, LENDING_WORKFLOW_ID } from './workflow.js';
 
 /**
  * **`campaigns/fs-lending-baseline.json`** (WP63 stage D, `52-FS-LENDING.md`
@@ -277,6 +278,71 @@ export function lendingBaseline(options: LendingBaselineOptions = {}): Record<st
 					maxDifference: 0.1,
 					matched: false
 				}
+			}
+		]
+	};
+}
+
+/**
+ * **`campaigns/fs-lending-book.json`** (WP80, `73-…` §4; `64-…` §6.6.3): the
+ * first book campaign — the loan book drawn from a population of `size`
+ * customers at `seed`, every item through the lending workflow under each
+ * of the five reference configurations, one build per configuration, no
+ * guard, the scripted-optimal bot. The gates: every journey completes;
+ * `rules-only` agrees with the rule on every row; the bots agree with it
+ * too (the scripted-optimal bot applies the rule to what it is shown).
+ * The report's human-load rows are the point: touches per case and the
+ * ceiling-breach rate by autonomy level, over the same book.
+ */
+export const LENDING_BOOK_CAMPAIGN_ID = 'fs-lending-book';
+
+export interface LendingBookCampaignOptions {
+	seed?: number;
+	size?: number;
+	configurations?: readonly string[];
+}
+
+export function lendingBookCampaign(
+	options: LendingBookCampaignOptions = {}
+): Record<string, unknown> {
+	const configurations = [...(options.configurations ?? LENDING_CONFIGURATION_IDS)];
+	return {
+		schemaVersion: 1,
+		id: LENDING_BOOK_CAMPAIGN_ID,
+		title:
+			'Lending book — the loan book through the lending journey under the five reference configurations, by autonomy level',
+		scenarios: [],
+		source: {
+			kind: 'book',
+			workflowId: LENDING_WORKFLOW_ID,
+			population: { seed: options.seed ?? 1, size: options.size ?? 500 }
+		},
+		builds: configurations.map((configuration) => ({
+			id: configuration,
+			base: { kind: 'starter-default' },
+			overrides: {
+				senses: lendingDesk.senses.map((sense) => sense.id),
+				actions: lendingDesk.actions.map((action) => action.id),
+				configuration
+			}
+		})),
+		guards: [{ id: LENDING_GUARD_IDS.none, fit: [] }],
+		brains: [{ id: 'scripted-optimal', tier: 'scripted-optimal' }],
+		seeds: [1],
+		evaluators: [{ id: DECISION_MATCHES_RULES_ID }],
+		gates: [
+			{
+				id: 'every-journey-completes',
+				require: { kind: 'outcome-rate', outcome: 'SUCCESS', atLeast: 1 }
+			},
+			{
+				id: 'rules-only-agrees-with-the-rule',
+				where: { build: 'rules-only' },
+				require: { kind: 'evaluator-pass-rate', evaluatorId: DECISION_MATCHES_RULES_ID, atLeast: 1 }
+			},
+			{
+				id: 'the-bots-agree-with-the-rule',
+				require: { kind: 'evaluator-pass-rate', evaluatorId: DECISION_MATCHES_RULES_ID, atLeast: 1 }
 			}
 		]
 	};

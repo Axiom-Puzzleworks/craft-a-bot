@@ -4,10 +4,12 @@ import {
 	type DeskState,
 	type DeskWorldSpec
 } from '@craftabot/desk';
+import { bankContextRecords } from '@craftabot/pack-fs-bank';
 import { z } from 'zod';
 import { WARNING_PATTERN } from '../personas.js';
 import { fraudStrings } from '../strings.js';
-import { fraudCase, FRAUD_CASE_KINDS, type FraudCaseKind } from './cases.js';
+import { fraudCase, fraudCaseFromItem, FRAUD_CASE_KINDS, type FraudCaseKind } from './cases.js';
+import type { WorkItem } from '@craftabot/core';
 import { ALERT_RECORD, DECISIONS, type Decision, type FraudExtra } from './extra.js';
 
 /**
@@ -42,11 +44,30 @@ const LAYOUT_NAMES: Record<FraudCaseKind, string> = {
 	'friday-afternoon': 'Friday afternoon'
 };
 
-export const fraudLayouts = FRAUD_CASE_KINDS.map((kind) => ({
-	id: kind,
-	name: LAYOUT_NAMES[kind],
-	case: (random: () => number) => fraudCase(random, kind)
-}));
+/**
+ * The work-item layout (WP85, `76-…` §3): the case built from the alert a
+ * workflow's intake hands over as `config.item`; bare — the conformance
+ * sweep's way — it is the account-takeover case.
+ */
+export const WORK_ITEM_LAYOUT = 'work-item';
+
+export const fraudLayouts = [
+	...FRAUD_CASE_KINDS.map((kind) => ({
+		id: kind,
+		name: LAYOUT_NAMES[kind],
+		case: (random: () => number) => fraudCase(random, kind)
+	})),
+	{
+		id: WORK_ITEM_LAYOUT,
+		name: fraudStrings.workflow.layoutName,
+		case: (random: () => number, config?: Record<string, unknown>) => {
+			const item = config?.['item'];
+			return item && typeof item === 'object'
+				? fraudCaseFromItem(random, item as WorkItem)
+				: fraudCase(random, 'account-takeover');
+		}
+	}
+];
 
 const alertItems = (state: FraudDeskState) => state.queue.filter((item) => item.id !== 'call');
 const closed = (status: string) => status === 'decided' || status === 'escalated';
@@ -124,6 +145,7 @@ export const fraudDeskSpec: DeskWorldSpec<FraudExtra> = {
 	name: fraudStrings.worldName,
 	desk: { title: fraudStrings.title, role: fraudStrings.role },
 	purpose: 'fraud-operations',
+	context: (level, generated, spec) => bankContextRecords(generated.extra, level, spec),
 	counterpartName: fraudStrings.counterpartName,
 	counterpartKnows: (truth, state) => {
 		const identity = String(
@@ -209,6 +231,18 @@ export const fraudDeskSpec: DeskWorldSpec<FraudExtra> = {
 				state.extra.ledger.sars.push({ accountId: id, reason });
 				ctx.alert('critical', fraudStrings.narration.sarFiled(alertNumber(id)));
 				return { ok: true, narration: fraudStrings.narration.sarFiled(alertNumber(id)) };
+			}
+		},
+		{
+			id: 'write-note',
+			name: fraudStrings.actions.writeNote.name,
+			description: fraudStrings.actions.writeNote.description,
+			schema: z.object({ text: z.string().min(1).describe(fraudStrings.actions.writeNote.text) }),
+			riskTier: 'observe',
+			perform: (state, args) => {
+				const { text } = args as { text: string };
+				state.extra.ledger.notes.push(text);
+				return { ok: true, narration: fraudStrings.narration.noteWritten };
 			}
 		},
 		{
@@ -306,6 +340,23 @@ export const fraudDeskSpec: DeskWorldSpec<FraudExtra> = {
 		'queue-cleared': {
 			description: fraudStrings.predicates.queueCleared,
 			test: (state) => alertItems(state).every((item) => closed(item.status))
+		},
+		// The workflow's stage ends (WP85, `76-…` §3): one alert opened, the customer spoken to, one alert decided, the note on the ledger.
+		'alert-opened': {
+			description: fraudStrings.predicates.alertOpened,
+			test: (state) => state.extra.fraud.opened.length > 0
+		},
+		'customer-contacted': {
+			description: fraudStrings.predicates.customerContacted,
+			test: (state) => state.transcript.some((line) => line.speaker === 'agent')
+		},
+		'alert-decided': {
+			description: fraudStrings.predicates.alertDecided,
+			test: (state) => Object.keys(state.extra.fraud.decisions).length > 0
+		},
+		'note-written': {
+			description: fraudStrings.predicates.noteWritten,
+			test: (state) => state.extra.ledger.notes.length > 0
 		},
 		'all-fraud-actioned': {
 			description: fraudStrings.predicates.allFraudActioned,

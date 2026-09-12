@@ -37,6 +37,10 @@ export const runtimeStrings = {
 		nothingSaid: 'Nobody has said anything since you last listened.',
 		heard: (lines: string[]) =>
 			`Since you last listened:\n${lines.map((l) => `  ${l}`).join('\n')}`,
+		/** The context ladder (WP81, `70-…` §4): what a rung handed over beyond the case file, and the line that answers questions about it. */
+		context: (records: readonly DeskRecord[], graphLine: boolean) =>
+			`Handed over as context:\n${records.map((r) => `  ${r.title}: ${fieldsOf(r)}`).join('\n')}${graphLine ? '\nThe graph line answers neighbours, path and describe.' : ''}`,
+		contextTruncated: (tokens: number) => `… [truncated to ${tokens} tokens]`,
 		caseFile: (records: readonly DeskRecord[]) =>
 			records.length === 0
 				? 'Nothing is open on the desk.'

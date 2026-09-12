@@ -1,0 +1,23 @@
+[
+	{
+		"id": "lending",
+		"workflowId": "fs-lending/lending",
+		"kinds": ["application"],
+		"configuration": "bot-with-a-person-at-the-decision",
+		"concurrency": 4
+	},
+	{
+		"id": "fraud",
+		"workflowId": "fs-fraud/fraud",
+		"kinds": ["alert"],
+		"configuration": "bot-with-a-person-at-the-sar",
+		"concurrency": 4
+	},
+	{
+		"id": "advice",
+		"workflowId": "fs-advice/advice",
+		"kinds": ["advice-request"],
+		"configuration": "bot-with-a-person-at-execution",
+		"concurrency": 2
+	}
+]

@@ -314,6 +314,7 @@ export {
 export {
 	DEFAULT_RUN_CAP,
 	byNewestCreated,
+	byNewestWorkflowRun,
 	byNewestFirst,
 	emptyQuarantine,
 	selectRunsToEvict,
@@ -539,6 +540,8 @@ export {
 	verifyBundleDigest,
 	type BuildTraceBundleOptions
 } from './persistence/bundle.js';
+/** A `RunRecord` folded from a run's own trace (WP84, moved from the harness). */
+export { runRecordFrom } from './persistence/run-record.js';
 
 /** Semver ranges, evaluated (WP52, `40-DEBTS.md` §4.2; `12-…` D13). */
 export {
@@ -588,3 +591,90 @@ export {
 	type ControlRowStatus
 } from './types/control-map.js';
 export { EVENT_TYPES } from './schemas/events.js';
+export type {
+	AutonomyLevel as WorkflowAutonomyLevel,
+	BookRequest,
+	Executor,
+	RuleFn,
+	StageSpec,
+	WorkflowConfig,
+	WorkflowSpec
+} from './types/workflow.js';
+export {
+	executorRecordSchema,
+	parseWorkflowRun,
+	safeParseStoredWorkflowRun,
+	storedWorkflowRunSchema,
+	type StoredWorkflowRun,
+	stageRecordSchema,
+	stageValueSchema,
+	workflowConfigRecordSchema,
+	workflowRunSchema,
+	type ExecutorRecord,
+	type StageRecord,
+	type WorkflowRun
+} from './schemas/workflow-run.js';
+export { sha256Hex } from './schemas/sha256.js';
+export {
+	byNewestExperimentResult,
+	effectRecordSchema,
+	effectSideSchema,
+	experimentAxisSchema,
+	experimentResultDigest,
+	experimentResultSchema,
+	experimentVerdictSchema,
+	parseExperimentResult,
+	safeParseExperimentResult,
+	type EffectRecord,
+	type EffectSide,
+	type ExperimentAxis,
+	type ExperimentResult,
+	type ExperimentVerdict
+} from './schemas/experiment.js';
+export {
+	bankClockRecordSchema,
+	bankRunSchema,
+	deskAssignmentRecordSchema,
+	parseBankRun,
+	type BankRun
+} from './schemas/bank-run.js';
+export {
+	CONTEXT_LEVELS,
+	DEFAULT_CONTEXT,
+	contextRank,
+	contextSpecFor,
+	type ContextDelivery,
+	type ContextLevel,
+	type ContextSpec
+} from './types/context.js';
+export {
+	contextDeliverySchema,
+	contextLevelSchema,
+	contextSpecSchema,
+	parseContextSpec
+} from './schemas/context.js';
+export {
+	bookSchema,
+	bookSourceSchema,
+	parseBook,
+	workItemKindSchema,
+	workItemSchema,
+	workItemTruthSchema,
+	type Book,
+	type BookSource,
+	type WorkItem,
+	type WorkItemKind
+} from './schemas/book.js';
+export {
+	calibrationRow,
+	calibrationRowKindSchema,
+	calibrationRowSchema,
+	calibrationReviewSchema,
+	calibrationSourceSchema,
+	calibrationTableSchema,
+	type CalibrationReview,
+	type CalibrationRow,
+	type CalibrationRowKind,
+	type CalibrationSource,
+	type CalibrationTable
+} from './schemas/calibration.js';

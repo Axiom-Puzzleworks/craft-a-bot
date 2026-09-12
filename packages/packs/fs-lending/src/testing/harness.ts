@@ -7,7 +7,8 @@ import {
 	type Guardrail,
 	type LLMProvider,
 	type PackRegistry,
-	type SessionOptions
+	type SessionOptions,
+	type WorldInstance
 } from '@craftabot/core';
 import { createMockProvider, createTestClock, type MockScript } from '@craftabot/core/testing';
 import fsBankPack from '@craftabot/pack-fs-bank';
@@ -108,6 +109,8 @@ export interface RunOptions {
 	seed?: number;
 	/** A registry of the test's own — a planted brick kind beside the desk's packs. */
 	registry?: PackRegistry;
+	/** A world made by the test — with the knobs it wants (WP78) — instead of the one the goal card names. */
+	world?: WorldInstance;
 }
 
 /** Drives a session in step mode until it finishes, and hands back the trace. */
@@ -118,6 +121,7 @@ export async function runToCompletion(options: RunOptions): Promise<RunResult> {
 	const session = createSession({
 		spec,
 		registry: options.registry ?? buildRegistry(),
+		...(options.world ? { world: options.world } : {}),
 		provider,
 		guardrails: options.guardrails ?? [],
 		options: {

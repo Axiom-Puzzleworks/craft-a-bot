@@ -100,7 +100,7 @@ export function scriptedNoisy(plan: Plan, { seed, rates }: NoisyOptions): MockSc
 	let planIndex = 0;
 	let hasCelebrated = false;
 
-	return () => {
+	return (request) => {
 		/*
 		 * Never on the last step, or "premature" would be indistinguishable from
 		 * finishing — and only once, because the world refuses a second celebrate
@@ -124,7 +124,8 @@ export function scriptedNoisy(plan: Plan, { seed, rates }: NoisyOptions): MockSc
 		if (!step) return { text: 'I am not sure what to do next.', toolCall: null };
 		planIndex += 1;
 
-		const args = random() < noise.misname ? misnamed(step.args) : (step.args ?? {});
+		const stepArgs = step.argsFrom ? step.argsFrom(request) : (step.args ?? {});
+		const args = random() < noise.misname ? misnamed(stepArgs) : stepArgs;
 		return turn(step.say, step.call, args);
 	};
 }

@@ -217,7 +217,7 @@
 		<p class="tidy" data-testid="abandoned-note">
 			{abandonedCount === 1 ? 'One run was' : `${abandonedCount} runs were`} left part-way and never
 			finished{abandonedGroups.length > 0
-				? ` (${abandonedGroups.length === 1 ? 'one of them an episode' : `${abandonedGroups.length} of them episodes`})`
+				? ` (${abandonedCount === 1 ? 'and it is an episode' : abandonedGroups.length === 1 ? 'one of them an episode' : `${abandonedGroups.length} of them episodes`})`
 				: ''} — they still read IN_PROGRESS and count in every total.
 			<button type="button" data-testid="tidy-abandoned" onclick={tidyAbandoned}>
 				Mark {abandonedCount === 1 ? 'it' : 'them'} abandoned

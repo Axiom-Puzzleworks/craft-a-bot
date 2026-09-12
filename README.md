@@ -33,11 +33,11 @@ Everything runs in your browser. Your bots, your runs and your API keys never le
 
 One codebase, three faces, one build each (`npm run build:editions`, `docs/publishing.md`):
 
-| Section        | Who it is for                     | What it holds                                                                                                                                                               |
-| -------------- | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Simulator**  | A learner, a child, a classroom   | The Kit: the shelf, the bench, the Playroom, the leaflet, the six chapters and the side quests. No key needed — the Demo Brain runs scripted plans through the real engine. |
-| **Workshop**   | A practitioner, a safety engineer | The Control Room: runs, the Spec Lab and Run Lab, guards, evaluators, scenarios, campaigns, telemetry and drift, the safety case, the assurance pack, evidence sync.        |
-| **Playground** | A conduct reviewer, a bank's team | The synthetic bank and its four desks, each with a campaign to run, a case to open, a decision to explain and fork, and a pack to file.                                     |
+| Section        | Who it is for                     | What it holds                                                                                                                                                                                                                                                     |
+| -------------- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Simulator**  | A learner, a child, a classroom   | The Kit: the shelf, the bench, the Playroom, the leaflet, the six chapters and the side quests. No key needed — the Demo Brain runs scripted plans through the real engine.                                                                                       |
+| **Workshop**   | A practitioner, a safety engineer | The Control Room: runs, the Spec Lab and Run Lab, guards, evaluators, scenarios, campaigns, telemetry and drift, conduct and model risk, experiments and the Control Effectiveness Register, the four lenses, the safety case, the assurance pack, evidence sync. |
+| **Playground** | A conduct reviewer, a bank's team | The synthetic bank and its four desks, each with a campaign to run, a case to open, a decision to explain and fork, and a pack to file.                                                                                                                           |
 
 The **headless harness** (`npm run craftabot -- …`) runs, records, bundles, evaluates and reports the same things from a terminal or CI, and a **Python reader** (`examples/python-reader`) validates and re-digests a bundle with nothing from this repo.
 
@@ -194,6 +194,8 @@ packages/governance       guardrails, hosted guard shell, reports, the assurance
 packages/evals            evaluators, scenarios, campaigns and their reports
 packages/harness          the headless host (`craftabot …`)
 packages/desk             desk worlds, truth, the synthetic primitives
+packages/workflow         journeys as stages with executors over a desk (`runWorkflow`); depends on core and desk only
+packages/metrics          fairness, drift, human-load metrics with their validation suite; depends on core only
 packages/telemetry        trace sinks (OTLP, file)
 packages/evidence         the shared evidence store (memory, Supabase)
 packages/packs/*          content: the Playroom, the Workshop, providers, guard services, the bank and its desks

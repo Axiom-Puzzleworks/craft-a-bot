@@ -30,11 +30,13 @@
 		/** Axis labels for the first and last x, when the buckets have names. */
 		xLabels?: { first: string; last: string } | undefined;
 		range?: { min: number; max: number } | undefined;
+		/** A reference value drawn as a dashed hairline across the tape (WP84, `75-…` §5): the baseline's rate, the population's expectation. */
+		reference?: { y: number; label: string } | undefined;
 		compact?: boolean;
 		testId?: string | undefined;
 	}
 
-	let { series, flags = [], xLabels, range, compact = false, testId }: Props = $props();
+	let { series, flags = [], xLabels, range, reference, compact = false, testId }: Props = $props();
 
 	const WIDTH = 300;
 	const HEIGHT = $derived(compact ? 32 : 90);
@@ -64,10 +66,23 @@
 		})
 	);
 
+	/** The hairline's y, placed by the same grammar as the points: a one-point series at the reference. */
+	const hairline = $derived.by(() => {
+		if (!reference) return undefined;
+		const every = series.flatMap((entry) => entry.points);
+		const span = range ?? {
+			min: Math.min(reference.y, ...every.map((point) => point.y)),
+			max: Math.max(reference.y, ...every.map((point) => point.y))
+		};
+		const coords = plot([{ x: 0, y: reference.y }], box, span).split(' ')[0];
+		const y = Number(coords?.split(',')[1]);
+		return Number.isFinite(y) ? y : undefined;
+	});
+
 	const description = $derived(
 		`${series.map((entry) => `${entry.label}: ${entry.points.length} points`).join('; ')}${
 			flags.length > 0 ? `; ${flags.length} flagged` : ''
-		}`
+		}${reference ? `; reference ${reference.label}` : ''}`
 	);
 </script>
 
@@ -81,6 +96,16 @@
 				>{STATUS.fail.glyph}</text
 			>
 		{/each}
+		{#if hairline !== undefined}
+			<line
+				x1={PAD}
+				y1={hairline}
+				x2={WIDTH - PAD}
+				y2={hairline}
+				class="reference"
+				data-reference={reference?.label}
+			/>
+		{/if}
 		{#if !compact}
 			<line x1={PAD} y1={HEIGHT - PAD} x2={WIDTH - PAD} y2={HEIGHT - PAD} class="axis" />
 		{/if}
@@ -98,6 +123,9 @@
 				{/each}
 				{#if flags.length > 0}
 					<span class="flag-key">{STATUS.fail.glyph} flagged</span>
+				{/if}
+				{#if reference}
+					<span class="reference-key">- - {reference.label}</span>
 				{/if}
 			</span>
 		</figcaption>
@@ -140,6 +168,17 @@
 	.axis {
 		stroke: var(--cab-ink);
 		stroke-width: 1;
+	}
+
+	.reference {
+		stroke: var(--cab-ink-muted);
+		stroke-width: 1;
+		stroke-dasharray: 4 3;
+	}
+
+	.reference-key {
+		color: var(--cab-ink-muted);
+		font-family: var(--cab-font-mono);
 	}
 
 	.flag {

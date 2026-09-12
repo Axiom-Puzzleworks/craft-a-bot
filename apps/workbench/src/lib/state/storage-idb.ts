@@ -14,7 +14,13 @@ import {
 	type ContentRecord,
 	type EvaluationRecord,
 	type StoredCampaignReport,
-	type StoredEvent
+	type StoredEvent,
+	byNewestExperimentResult,
+	byNewestWorkflowRun,
+	safeParseExperimentResult,
+	type ExperimentResult,
+	safeParseStoredWorkflowRun,
+	type StoredWorkflowRun
 } from '@craftabot/core';
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import {
@@ -37,7 +43,7 @@ import {
  */
 
 export const DATABASE_NAME = 'craftabot';
-export const DATABASE_VERSION = 6;
+export const DATABASE_VERSION = 8;
 
 interface CraftABotDB extends DBSchema {
 	agents: { key: string; value: AgentRecord };
@@ -48,6 +54,8 @@ interface CraftABotDB extends DBSchema {
 	campaigns: { key: string; value: StoredCampaignReport };
 	evaluations: { key: string; value: EvaluationRecord; indexes: { runId: string } };
 	content: { key: string; value: ContentRecord; indexes: { kind: string } };
+	workflowRuns: { key: string; value: StoredWorkflowRun };
+	experimentResults: { key: string; value: ExperimentResult };
 }
 
 export interface IdbStorage extends Storage {
@@ -98,6 +106,14 @@ function upgrade(db: IDBPDatabase<CraftABotDB>, oldVersion: number): void {
 	if (oldVersion < 6) {
 		const content = db.createObjectStore('content', { keyPath: 'id' });
 		content.createIndex('kind', 'kind');
+	}
+	// Workflow runs (WP86, `77-PIPELINE-AND-BOUNDARY.md` §3) — the run with its item, keyed by the run's id.
+	if (oldVersion < 7) {
+		db.createObjectStore('workflowRuns', { keyPath: 'run.id' });
+	}
+	// Experiment results (WP89, `72-EXPERIMENTS.md` §4) — one per result id.
+	if (oldVersion < 8) {
+		db.createObjectStore('experimentResults', { keyPath: 'id' });
 	}
 }
 
@@ -269,6 +285,40 @@ export async function createIdbStorage(name = DATABASE_NAME): Promise<IdbStorage
 			return doomed;
 		},
 
+		async putWorkflowRun(record) {
+			const parsed = safeParseStoredWorkflowRun(record);
+			if (!parsed.success) {
+				throw new Error(`Refusing to store an invalid workflow run: ${parsed.error.message}`);
+			}
+			await db.put('workflowRuns', record);
+		},
+		async getWorkflowRun(id) {
+			return db.get('workflowRuns', id);
+		},
+		async listWorkflowRuns() {
+			return (await db.getAll('workflowRuns')).sort(byNewestWorkflowRun);
+		},
+		async deleteWorkflowRun(id) {
+			await db.delete('workflowRuns', id);
+		},
+
+		async putExperimentResult(result) {
+			const parsed = safeParseExperimentResult(result);
+			if (!parsed.success) {
+				throw new Error(`Refusing to store an invalid experiment result: ${parsed.error.message}`);
+			}
+			await db.put('experimentResults', result);
+		},
+		async getExperimentResult(id) {
+			return db.get('experimentResults', id);
+		},
+		async listExperimentResults() {
+			return (await db.getAll('experimentResults')).sort(byNewestExperimentResult);
+		},
+		async deleteExperimentResult(id) {
+			await db.delete('experimentResults', id);
+		},
+
 		async clear() {
 			await db.clear('agents');
 			await db.clear('runs');
@@ -278,6 +328,8 @@ export async function createIdbStorage(name = DATABASE_NAME): Promise<IdbStorage
 			await db.clear('campaigns');
 			await db.clear('evaluations');
 			await db.clear('content');
+			await db.clear('workflowRuns');
+			await db.clear('experimentResults');
 		}
 	};
 }

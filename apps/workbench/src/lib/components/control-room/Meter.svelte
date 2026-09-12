@@ -20,6 +20,8 @@
 		max?: number;
 		/** How the number is shown; defaults to two decimals. */
 		format?: (value: number) => string;
+		/** An interval around the value (WP82): drawn as a band on the dial in the graph token, clipped to the dial. */
+		range?: [number, number] | undefined;
 		testId?: string | undefined;
 	}
 
@@ -31,6 +33,7 @@
 		min = 0,
 		max = 1,
 		format = (v) => v.toFixed(2),
+		range,
 		testId
 	}: Props = $props();
 
@@ -56,14 +59,29 @@
 					y2: CY - (R + 11) * Math.sin((gateAngle * Math.PI) / 180)
 				}
 	);
+	const band = $derived(
+		range === undefined
+			? undefined
+			: {
+					from: needleAngle(Math.max(min, Math.min(max, range[0])), min, max),
+					to: needleAngle(Math.max(min, Math.min(max, range[1])), min, max)
+				}
+	);
 	const description = $derived(
-		`${label}: ${format(value)}${gate === undefined ? '' : `, gate ${format(gate)}, ${passes ? 'passing' : 'failing'}`}`
+		`${label}: ${format(value)}${range === undefined ? '' : ` [${format(range[0])}, ${format(range[1])}]`}${gate === undefined ? '' : `, gate ${format(gate)}, ${passes ? 'passing' : 'failing'}`}`
 	);
 </script>
 
 <figure class="meter" data-testid={testId} data-passes={passes}>
 	<svg viewBox="0 0 120 72" role="img" aria-label={description}>
 		<path d={arcPath(CX, CY, R, 180, 0)} class="dial" />
+		{#if band !== undefined}
+			<path
+				d={arcPath(CX, CY, R - 9, band.from, band.to)}
+				class="range"
+				data-testid="meter-range"
+			/>
+		{/if}
 		{#if gateAngle !== undefined}
 			<path
 				d={direction === 'up'
@@ -129,6 +147,13 @@
 		stroke-width: 6;
 	}
 
+	.range {
+		fill: none;
+		stroke: var(--cab-graph);
+		stroke-width: 5;
+		stroke-linecap: butt;
+		opacity: 0.85;
+	}
 	.band--pass {
 		stroke: var(--cab-pass);
 	}

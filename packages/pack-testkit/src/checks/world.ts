@@ -135,7 +135,10 @@ function checkScripts(
 
 	for (const [scriptName, script] of Object.entries(scripts)) {
 		const run = () => {
-			const instance = world.create(script.layoutId);
+			const instance = world.create(
+				script.layoutId,
+				script.config ? { config: script.config } : undefined
+			);
 			const seenTrue = new Set<string>();
 			for (const call of script.calls) {
 				const result = instance.perform(call);
@@ -176,7 +179,10 @@ function checkPredicateReachability(
 ): void {
 	const observed = new Set<string>();
 	for (const script of Object.values(scripts)) {
-		const instance = world.create(script.layoutId);
+		const instance = world.create(
+			script.layoutId,
+			script.config ? { config: script.config } : undefined
+		);
 		for (const call of script.calls) {
 			instance.perform(call);
 			for (const predicateId of Object.keys(world.predicates)) {

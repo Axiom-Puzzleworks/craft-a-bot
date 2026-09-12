@@ -52,6 +52,9 @@ const LANES: Record<EventType, TraceLane> = {
 	// is not yet shown anywhere a lane colour would matter (that's stage F).
 	'group.started': 'run',
 	'group.finished': 'run',
+	// The stage boundary (WP79, `69-…` §6): a workflow's stage on an agent run's trace, in the run lane.
+	'stage.started': 'run',
+	'stage.completed': 'run',
 	error: 'error'
 };
 
@@ -81,6 +84,8 @@ const LABELS: Record<EventType, string> = {
 	'provider.retried': 'Waited, then asked again',
 	'group.started': 'Group started',
 	'group.finished': 'Group finished',
+	'stage.started': 'Stage started',
+	'stage.completed': 'Stage completed',
 	error: 'Something went wrong'
 };
 

@@ -1,7 +1,25 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
-	import type { AgentRecord } from '@craftabot/core';
+	import type {
+		AgentRecord,
+		EvaluationRecord,
+		ExperimentResult,
+		RunRecord,
+		RunSummary,
+		StoredCampaignReport
+	} from '@craftabot/core';
+	import { capabilitiesOf } from '@craftabot/core';
+	import {
+		controlEffectiveness,
+		driftIn,
+		incidentsFromSummaries,
+		safetyCaseFromSummaries,
+		telemetrySeries
+	} from '@craftabot/governance/reports';
+	import Lamp from '$lib/components/control-room/Lamp.svelte';
+	import { ensureRunSummaries } from '$lib/state/run-summaries.js';
 	import {
 		assurancePackFromStorage,
 		principalLine,
@@ -48,8 +66,104 @@
 		void loadPack(selectedId);
 	});
 
+	/**
+	 * **The Assurance entry** (WP87, `78-LENSES.md` §4; `64-…` §6.7): the
+	 * board's landing over the same stored facts — the safety case's claims
+	 * as lamps, incidents this period, drift flags, the register (untested
+	 * until WP90 folds one), and two stored reports into Compare.
+	 */
+	let runs = $state<RunRecord[]>([]);
+	let summaries = $state<Map<string, RunSummary>>(new Map());
+	let evaluations = $state<EvaluationRecord[]>([]);
+	let storedReports = $state<StoredCampaignReport[]>([]);
+	let compareA = $state('');
+	let compareB = $state('');
+	const botRuns = $derived(runs.filter((run) => run.agentId === selectedId));
+	const safety = $derived.by(() => {
+		const agent = agents.find((entry) => entry.id === selectedId);
+		if (!agent) return undefined;
+		const world = registry.getWorld(registry.getGoalCard(agent.spec.goalCardId)?.worldId ?? '');
+		return safetyCaseFromSummaries(
+			{ id: agent.id, name: agent.spec.name, goalCardId: agent.spec.goalCardId },
+			capabilitiesOf(agent.spec, registry),
+			world,
+			registry.listTools(),
+			botRuns,
+			summaries,
+			evaluations,
+			storedReports
+				.map((row) => reportFrom(row))
+				.filter((report): report is NonNullable<typeof report> => report !== undefined)
+		);
+	});
+	const claims = $derived(
+		safety
+			? [
+					{ id: 'inability', label: 'inability stated', ok: safety.inability.length > 0 },
+					{ id: 'reach', label: 'reach named', ok: safety.reach.length > 0 },
+					{ id: 'guardrails', label: 'guardrails installed', ok: safety.guardrails.length > 0 },
+					{ id: 'finished', label: 'runs finished', ok: safety.trustworthiness.finishedRuns > 0 }
+				]
+			: []
+	);
+	const incidents = $derived(incidentsFromSummaries(botRuns, summaries));
+	const driftFlags = $derived(driftIn(telemetrySeries(botRuns, summaries, { evaluations })));
+	/**
+	 * **The Control Effectiveness Register** (WP90, `80-…` §3): every control
+	 * the maps list with its measured effect — folded from the stored
+	 * experiment results — or *untested*; a row opens the result behind it.
+	 */
+	let experimentResults = $state.raw<ExperimentResult[]>([]);
+	const register = $derived(controlEffectiveness(experimentResults, registry.listControlMaps()));
+	const registerColumns = [
+		{ id: 'control', label: 'Control', kind: 'text' as const },
+		{ id: 'obligation', label: 'Obligation', kind: 'text' as const },
+		{ id: 'changed', label: 'What it changed', kind: 'text' as const },
+		{ id: 'effect', label: 'By how much', kind: 'text' as const },
+		{ id: 'confidence', label: 'How sure', kind: 'text' as const },
+		{ id: 'coverage', label: 'Coverage', kind: 'text' as const },
+		{ id: 'status', label: 'Status', kind: 'text' as const }
+	];
+	const signed = (value: number) => `${value >= 0 ? '+' : ''}${value.toFixed(3)}`;
+	const registerRows = $derived(
+		register.map((row) => ({
+			id: row.controlId,
+			cells: {
+				control: row.controlMapRow?.title ?? row.controlId,
+				obligation: row.controlMapRow?.obligation ?? row.obligations.join(', '),
+				changed: row.headline ? `${row.headline.metricId}: ${signed(row.headline.delta)}` : '—',
+				effect: row.headline
+					? `${signed(row.headline.interval[0])} – ${signed(row.headline.interval[1])}`
+					: '—',
+				confidence: row.headline
+					? `n = ${row.headline.n}${row.headline.underpowered ? ', underpowered' : ''}`
+					: '—',
+				coverage: `${row.coverage.experiments} experiment${row.coverage.experiments === 1 ? '' : 's'}${row.coverage.workflows.length > 0 ? ` · ${row.coverage.workflows.join(', ')}` : ''}`,
+				status: row.status
+			}
+		}))
+	);
+	function openRegisterRow(controlId: string): void {
+		const row = register.find((entry) => entry.controlId === controlId);
+		if (!row?.headline) return;
+		const target = `${resolve('/workshop/experiments')}?result=${encodeURIComponent(row.headline.resultId)}`;
+		// eslint-disable-next-line svelte/no-navigation-without-resolve -- resolve() builds the base path; the ?result= query cannot be attached through its typed surface.
+		void goto(target);
+	}
+	const compareHref = $derived(
+		compareA && compareB && compareA !== compareB
+			? `${resolve('/workshop/compare')}?reportA=${encodeURIComponent(compareA)}&reportB=${encodeURIComponent(compareB)}`
+			: undefined
+	);
+
 	async function loadAgents(): Promise<void> {
-		agents = await (await appStorage()).listAgents();
+		const storage = await appStorage();
+		agents = await storage.listAgents();
+		runs = await storage.listRuns();
+		summaries = await ensureRunSummaries(storage, runs);
+		evaluations = await storage.listAllEvaluations();
+		storedReports = await storage.listCampaignReports();
+		experimentResults = await storage.listExperimentResults();
 		loaded = true;
 		// Nobody chose (UX-20): open on the bot most recently run, as Evaluators
 		// opens on the most recent run, rather than on an empty page.
@@ -218,6 +332,85 @@
 		</label>
 	</header>
 
+	<!-- The Assurance entry (WP87): is it under control? — over the selected bot. -->
+	<Strip label="Is it under control?" icon="lamp" testId="assurance-entry">
+		{#each claims as claim (claim.id)}
+			<Lamp
+				status={claim.ok ? 'pass' : 'inconclusive'}
+				label={claim.label}
+				testId="assurance-claim-{claim.id}"
+			/>
+		{/each}
+		<Readout label="incidents" value={incidents.length} testId="assurance-entry-incidents" />
+		<Readout label="drift flags" value={driftFlags.length} testId="assurance-entry-drift" />
+		<Readout label="runs" value={botRuns.length} testId="assurance-entry-runs" />
+		{#snippet actions()}
+			{#if pack}
+				<button type="button" onclick={downloadHtml} data-testid="assurance-entry-download"
+					>Download the pack</button
+				>
+			{/if}
+		{/snippet}
+	</Strip>
+
+	<section aria-labelledby="register-h" data-testid="assurance-register">
+		<h2 id="register-h">Control Effectiveness Register</h2>
+		{#if experimentResults.length === 0}
+			<p class="status" data-testid="assurance-register-untested">
+				<strong>Untested.</strong> No experiment has run here: the register — which controls changed what,
+				by how much, and how sure — is folded from stored experiment results, and every control is untested
+				until one lands. The pack says so.
+			</p>
+		{:else}
+			<p class="status" data-testid="assurance-register-note">
+				{register.filter((row) => row.status === 'evidenced').length} evidenced, {register.filter(
+					(row) => row.status === 'inconclusive'
+				).length} inconclusive, {register.filter((row) => row.status === 'untested').length} untested
+				over
+				{experimentResults.length} stored result{experimentResults.length === 1 ? '' : 's'}. A row
+				opens the experiment behind it.
+			</p>
+		{/if}
+		<CaseTable
+			columns={registerColumns}
+			rows={registerRows}
+			onRow={openRegisterRow}
+			testId="assurance-register-table"
+		/>
+	</section>
+
+	{#if storedReports.length >= 2}
+		<section class="compare" aria-labelledby="compare-h" data-testid="assurance-compare">
+			<h2 id="compare-h">Compare two reports</h2>
+			<label class="picker">
+				A
+				<select bind:value={compareA} data-testid="assurance-compare-a">
+					<option value="">Choose a report…</option>
+					{#each storedReports as row (row.id)}
+						<option value={row.id}
+							>{row.title} — {row.createdAt.slice(0, 16).replace('T', ' ')}</option
+						>
+					{/each}
+				</select>
+			</label>
+			<label class="picker">
+				B
+				<select bind:value={compareB} data-testid="assurance-compare-b">
+					<option value="">Choose a report…</option>
+					{#each storedReports as row (row.id)}
+						<option value={row.id}
+							>{row.title} — {row.createdAt.slice(0, 16).replace('T', ' ')}</option
+						>
+					{/each}
+				</select>
+			</label>
+			{#if compareHref}
+				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- resolve() builds the base path; the ?reportA=&reportB= query cannot be attached through its typed surface. -->
+				<a href={compareHref} data-testid="assurance-compare-open">Open side by side →</a>
+			{/if}
+		</section>
+	{/if}
+
 	{#if needsName}
 		<!-- The principal's name, asked for where it is worth something (UX-3). -->
 		<form
@@ -277,7 +470,7 @@
 				<Readout
 					label="Incidents"
 					value={pack.monitoring.incidents.length}
-					testId="assurance-incidents"
+					testId="assurance-entry-incidents"
 				/>
 			</Strip>
 			<p class="meta mono" data-testid="assurance-digest">digest {pack.digest}</p>
@@ -425,6 +618,13 @@
 </main>
 
 <style>
+	.compare {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: end;
+		gap: var(--cab-space-3);
+	}
+
 	main {
 		padding: var(--cab-space-4);
 	}

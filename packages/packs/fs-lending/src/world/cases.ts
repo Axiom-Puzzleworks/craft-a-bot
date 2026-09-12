@@ -1,10 +1,11 @@
-import type { DeskQueueItem, DeskRecord } from '@craftabot/core';
+import type { DeskQueueItem, DeskRecord, WorkItem } from '@craftabot/core';
 import { seedFrom, type CounterpartScript, type DeskCase, type DeskTruth } from '@craftabot/desk';
 import {
 	bankCase,
 	bankExtra,
 	bankRecords,
 	monthlyIncomeOf,
+	type Account,
 	type BankCase,
 	type BureauFile,
 	type Customer
@@ -20,9 +21,10 @@ import {
 	type LendingExtra
 } from './extra.js';
 import {
-	LENDING_RATE,
-	affordabilityVerdict,
-	monthlyRepayment,
+	DEFAULT_LENDING_POLICY,
+	affordabilityVerdictWith,
+	monthlyRepaymentWith,
+	type LendingPolicy,
 	type Application,
 	type Verdict
 } from './rules.js';
@@ -205,7 +207,11 @@ export interface LendingCase extends DeskCase<LendingExtra> {
 	pairSide?: PairSide;
 }
 
-export function lendingCase(random: () => number, kind: LendingCaseKind): LendingCase {
+export function lendingCase(
+	random: () => number,
+	kind: LendingCaseKind,
+	policy: LendingPolicy = DEFAULT_LENDING_POLICY
+): LendingCase {
 	const profile = PROFILES[kind];
 	const seed = seedFrom(random);
 	// The pair's side is the derived seed's parity — deterministic, and a campaign's seeds cover both.
@@ -243,9 +249,12 @@ export function lendingCase(random: () => number, kind: LendingCaseKind): Lendin
 	const bank: BankCase = { ...generated, customer, bureau };
 	const deskBank = bankForTheDesk(bank);
 
+	// The application is sized at the default rate whatever the policy's, so a knob sweep
+	// moves the verdict and not the case: the same applicant asks for the same loan.
 	const targetRepayment = bureau.affordability.disposable * profile.targetRatio;
 	const amount = round100(
-		(targetRepayment * profile.termMonths) / (1 + (LENDING_RATE * profile.termMonths) / 12)
+		(targetRepayment * profile.termMonths) /
+			(1 + ((DEFAULT_LENDING_POLICY.rateBps / 10_000) * profile.termMonths) / 12)
 	);
 	const application: Application = {
 		amount,
@@ -254,8 +263,48 @@ export function lendingCase(random: () => number, kind: LendingCaseKind): Lendin
 		declaredMonthlyIncome: Math.round(income * (profile.declaredIncomeFactor ?? 1)),
 		declaredMonthlyOutgoings: bureau.affordability.monthlyCommitments + Math.round(income * 0.3)
 	};
-	const verdict = affordabilityVerdict(application, bureau);
-	const repayment = monthlyRepayment(amount, profile.termMonths);
+	const counterpart: CounterpartScript | undefined = profile.persona
+		? lendingPersona(profile.persona, customer, {
+				...(profile.goal ? { goal: profile.goal } : {})
+			})
+		: undefined;
+	return assembleLendingCase(bank, deskBank, application, policy, {
+		...(pairSide ? { pairSide } : {}),
+		...(profile.prior ? { prior: profile.prior } : {}),
+		...(counterpart ? { counterpart } : {})
+	});
+}
+
+/** What a kind's profile or a work item settles beyond the bank and the application. */
+export interface AssembleOptions {
+	pairSide?: PairSide;
+	/** A decision already on the file when the case opens. */
+	prior?: Decision;
+	counterpart?: CounterpartScript;
+	/** The grounds an appeal arrived with (WP80). */
+	appealGrounds?: string;
+}
+
+/**
+ * The case from its parts (WP80): the bank as generated and as the desk may
+ * see it, the application, the policy in force — the records, the queue,
+ * the truth and the desk's state, exactly as `lendingCase` has built them
+ * since WP63. `lendingCaseFromItem` builds a book's item the same way.
+ */
+export function assembleLendingCase(
+	bank: BankCase,
+	deskBank: BankCase,
+	application: Application,
+	policy: LendingPolicy,
+	options: AssembleOptions = {}
+): LendingCase {
+	const { customer, bureau } = bank;
+	const income = bureau.affordability.monthlyIncome;
+	const amount = application.amount;
+	const pairSide = options.pairSide;
+	const prior = options.prior;
+	const verdict = affordabilityVerdictWith(policy)(application, bureau);
+	const repayment = monthlyRepaymentWith(policy)(amount, application.termMonths);
 
 	const { hidden: bankHidden } = bankRecords(deskBank);
 	const brief: DeskRecord = {
@@ -274,8 +323,8 @@ export function lendingCase(random: () => number, kind: LendingCaseKind): Lendin
 			applicant: customer.name.full,
 			age_band: customer.cohort.ageBand,
 			amount,
-			term_months: profile.termMonths,
-			purpose: profile.purpose,
+			term_months: application.termMonths,
+			purpose: application.purpose,
 			declared_monthly_income: application.declaredMonthlyIncome,
 			declared_monthly_outgoings: application.declaredMonthlyOutgoings,
 			requested_repayment: repayment
@@ -291,7 +340,7 @@ export function lendingCase(random: () => number, kind: LendingCaseKind): Lendin
 			monthly_commitments: bureau.affordability.monthlyCommitments,
 			disposable_income: bureau.affordability.disposable,
 			amount,
-			term_months: profile.termMonths,
+			term_months: application.termMonths,
 			monthly_repayment: repayment,
 			repayment_to_disposable_percent: verdict.ratioPercent
 		}
@@ -340,15 +389,11 @@ export function lendingCase(random: () => number, kind: LendingCaseKind): Lendin
 	const queue: DeskQueueItem[] = [
 		{
 			id: APPLICATION_ITEM,
-			title: lendingStrings.queue.application(money(amount), profile.termMonths),
-			status: profile.prior
-				? profile.prior.outcome === 'refer'
-					? 'escalated'
-					: 'decided'
-				: 'open',
-			...(profile.prior
+			title: lendingStrings.queue.application(money(amount), application.termMonths),
+			status: prior ? (prior.outcome === 'refer' ? 'escalated' : 'decided') : 'open',
+			...(prior
 				? {
-						decision: `${lendingStrings.verbs[profile.prior.outcome]} — ${profile.prior.reasons.join(', ')}`
+						decision: `${lendingStrings.verbs[prior.outcome]} — ${prior.reasons.join(', ')}`
 					}
 				: {}),
 			recordIds: ['application']
@@ -389,7 +434,7 @@ export function lendingCase(random: () => number, kind: LendingCaseKind): Lendin
 			shouldRefer: verdict.verdict === 'refer',
 			...(pairSide ? { pairSide } : {}),
 			// A decision already on the file when the case opens: `appeal-handled` applies.
-			...(profile.prior ? { appealCase: true } : {})
+			...(prior ? { appealCase: true } : {})
 		}
 	};
 
@@ -399,18 +444,15 @@ export function lendingCase(random: () => number, kind: LendingCaseKind): Lendin
 			application,
 			verified: false,
 			assessed: false,
-			...(profile.prior ? { decision: structuredClone(profile.prior) } : {}),
+			...(prior ? { decision: structuredClone(prior) } : {}),
+			...(options.appealGrounds !== undefined ? { appealGrounds: options.appealGrounds } : {}),
 			explained: [],
 			disbursed: false,
 			documents: []
 		}
 	};
 
-	const counterpart: CounterpartScript | undefined = profile.persona
-		? lendingPersona(profile.persona, customer, {
-				...(profile.goal ? { goal: profile.goal } : {})
-			})
-		: undefined;
+	const counterpart = options.counterpart;
 
 	return {
 		revealed: [brief, applicationRecord],
@@ -425,4 +467,50 @@ export function lendingCase(random: () => number, kind: LendingCaseKind): Lendin
 		verdict,
 		...(pairSide ? { pairSide } : {})
 	};
+}
+
+/** A work item's payload as the book writes it (`applicationItem`, WP80): the application and the bank's view of the applicant. */
+export interface ApplicationItemPayload {
+	application: Application;
+	applicant?: { customer: Customer; accounts: Account[]; bureau: BureauFile };
+	/** An appeal arriving with the item, when one does. */
+	appeal?: { grounds: string };
+}
+
+/**
+ * **A case from a work item** (WP80, `64-…` §6.2.3 `intake`): the book's
+ * applicant on the desk — their customer record as the lines see it, their
+ * accounts and bureau file from the payload, the application as asked —
+ * with the truth recomputed under the policy in force, so a knob sweep
+ * moves the verdict and never the case. An item with no applicant block
+ * (a hand-written one) draws a synthetic applicant from the seed instead.
+ */
+export function lendingCaseFromItem(
+	random: () => number,
+	item: WorkItem,
+	policy: LendingPolicy = DEFAULT_LENDING_POLICY
+): LendingCase {
+	const payload = item.payload as Partial<ApplicationItemPayload> | undefined;
+	const application = payload?.application;
+	if (!application) throw new Error(`work item ${item.id} carries no application`);
+	const seed = seedFrom(random);
+	const generated = bankCase(seed);
+	const applicant = payload.applicant;
+	const bank: BankCase = applicant
+		? {
+				...generated,
+				customer: structuredClone(applicant.customer),
+				accounts: structuredClone(applicant.accounts),
+				bureau: structuredClone(applicant.bureau),
+				// A book item carries no statement: the last transactions are the generated applicant's, re-keyed to the first current account.
+				transactions: generated.transactions.map((t) => ({
+					...t,
+					accountId:
+						applicant.accounts.find((account) => account.kind === 'current')?.id ?? t.accountId
+				}))
+			}
+		: generated;
+	return assembleLendingCase(bank, bankForTheDesk(bank), structuredClone(application), policy, {
+		...(payload.appeal ? { appealGrounds: payload.appeal.grounds } : {})
+	});
 }

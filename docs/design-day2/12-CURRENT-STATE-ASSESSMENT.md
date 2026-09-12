@@ -6,6 +6,8 @@
 
 ---
 
+> **Amended 2026-09-10:** the Day 5 foundations assessment — what empirical evidence at scale needs that a playable case did not, and decisions D5–D9 — is `64-TARGET-DESIGN-V5.md` §2.1, as Day 4's was `41-…` §2.1. This document remains the Day 2 baseline.
+
 ## 1. Where the project stands
 
 WP0–WP10 delivered in one day. The monorepo matches `01-ARCHITECTURE.md`: `@craftabot/core` (headless engine, 19-event Zod catalogue, deterministic and injectable throughout), `@craftabot/governance` (four guardrails + spec compiler), `@craftabot/pack-starter` (Playroom world, 7 actions, 4 senses, 6 goal cards, 5 tools), `@craftabot/pack-openai` (GPT-5 family cartridges, SSE streaming, error taxonomy, key scrubbing), and `apps/workbench` (SvelteKit SPA: Shelf, Bench, Playroom, Settings, six-chapter tutorial, Flight Recorder). Release-ready **except art** (`11-VISUAL-ASSET-MANIFEST.md`: 0 of 156 assets produced) and the held `v1.0.0` tag.

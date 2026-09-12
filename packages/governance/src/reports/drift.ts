@@ -1,4 +1,5 @@
 import { isRunFinished } from '@craftabot/core';
+import { totalVariationDistance } from '@craftabot/metrics';
 import type { EvaluationRecord, RunRecord, RunSummary } from '@craftabot/core';
 
 /**
@@ -321,17 +322,14 @@ function sharesOf(trips: Record<string, number>): Map<string, number> {
 	return shares;
 }
 
-/** Total-variation distance between two trip mixes: ½ Σ |p − q| over the union of ids; 0 when neither has a trip. */
+/**
+ * Total-variation distance between two trip mixes: ½ Σ |p − q| over the
+ * union of ids; 0 when neither has a trip, 1 when exactly one has none.
+ * The arithmetic lives in `@craftabot/metrics` since WP76 (tenet 20: one
+ * definition, read everywhere); this name stays for its callers.
+ */
 export function mixDistance(a: Record<string, number>, b: Record<string, number>): number {
-	const p = sharesOf(a);
-	const q = sharesOf(b);
-	if (p.size === 0 && q.size === 0) return 0;
-	// Trips against none is as far apart as two mixes get: nothing to share out on one side.
-	if (p.size === 0 || q.size === 0) return 1;
-	const ids = new Set([...p.keys(), ...q.keys()]);
-	let sum = 0;
-	for (const id of ids) sum += Math.abs((p.get(id) ?? 0) - (q.get(id) ?? 0));
-	return sum / 2;
+	return totalVariationDistance(a, b);
 }
 
 const pct = (share: number) => `${Math.round(share * 100)}%`;

@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { expect, test, type Page } from '@playwright/test';
 import { injectionBaseline } from '@craftabot/evals';
-import { buildReadyBot, skipTutorial } from './support.js';
+import { buildReadyBot, pinScrollbars, settle, skipTutorial } from './support.js';
 
 /**
  * **Every Workshop route, shot** (`60-CONTROL-ROOM-V2.md` §4.2, WP71): the
@@ -16,7 +16,10 @@ import { buildReadyBot, skipTutorial } from './support.js';
  * changes shape re-baselines with a dated note in `60-…`.
  */
 test.use({ reducedMotion: 'reduce', viewport: { width: 1280, height: 800 } });
-test.beforeEach(async ({ page }) => skipTutorial(page));
+test.beforeEach(async ({ page }) => {
+	await skipTutorial(page);
+	await pinScrollbars(page);
+});
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const golden = JSON.parse(
@@ -57,8 +60,10 @@ async function seed(page: Page): Promise<string> {
 async function shot(page: Page, route: string, name: string, ready?: string): Promise<void> {
 	await page.goto(route);
 	await expect(page.getByTestId(ready ?? 'workshop')).toBeVisible();
-	await page.waitForTimeout(300);
-	await expect(page).toHaveScreenshot(`${name}.png`, { fullPage: true });
+	await settle(page);
+	// The viewport is the page after `settle`; a plain capture resizes nothing, where a full-page one
+	// re-laid the Playground ten pixels taller and shorter on alternate captures.
+	await expect(page).toHaveScreenshot(`${name}.png`);
 }
 
 test('the Workshop, screen by screen, over the fixture corpus', async ({ page }) => {
@@ -75,6 +80,11 @@ test('the Workshop, screen by screen, over the fixture corpus', async ({ page })
 	await shot(page, '/workshop/policies', 'ws-policies');
 	await shot(page, '/workshop/bench', 'ws-test-bench', 'bench-page');
 	await shot(page, '/workshop/telemetry', 'ws-telemetry', 'telemetry-page');
+	await shot(page, '/workshop/monitor', 'ws-monitor', 'monitor-page');
+	await shot(page, '/workshop/conduct', 'ws-conduct', 'conduct-page');
+	await shot(page, '/workshop/model-risk', 'ws-model-risk', 'model-risk-page');
+	await shot(page, '/workshop/experiments', 'ws-experiments', 'experiments-page');
+	await shot(page, '/workshop/workflows', 'ws-workflows', 'workflows-page');
 	await shot(page, '/workshop/incidents', 'ws-incidents', 'incidents-page');
 	await shot(page, `/workshop/safety-case?agent=${agentId}`, 'ws-safety-case', 'safety-case-page');
 	await shot(page, `/workshop/export?run=${goldenRunId}`, 'ws-audit-centre', 'export-page');
@@ -88,12 +98,13 @@ test('the Playground and its three desks', async ({ page }) => {
 	await page.goto('/workshop/playground');
 	await page.getByTestId('playground-generate').click();
 	await expect(page.getByTestId('playground-simulation-only')).toBeVisible();
-	await expect(page).toHaveScreenshot('ws-playground.png', { fullPage: true });
+	await settle(page);
+	await expect(page).toHaveScreenshot('ws-playground.png');
 	for (const desk of ['advice', 'fraud', 'lending'] as const) {
 		await page.goto(`/workshop/playground/${desk}`);
 		await page.getByTestId(`${desk}-generate`).click();
-		await page.waitForTimeout(300);
-		await expect(page).toHaveScreenshot(`ws-playground-${desk}.png`, { fullPage: true });
+		await settle(page);
+		await expect(page).toHaveScreenshot(`ws-playground-${desk}.png`);
 	}
 });
 
@@ -107,8 +118,8 @@ test('Campaigns with a stored report of one seed', async ({ page }) => {
 	await expect(page.getByTestId('campaign-verdict')).toBeVisible({ timeout: 60_000 });
 	await expect(page.getByTestId('gates')).toBeVisible();
 	// The report's own timestamp is the run's; the verdict strip is masked so the shot is the layout, not the clock.
+	await settle(page);
 	await expect(page).toHaveScreenshot('ws-campaigns.png', {
-		fullPage: true,
 		mask: [page.getByTestId('campaign-verdict')]
 	});
 });

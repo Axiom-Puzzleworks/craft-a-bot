@@ -120,7 +120,7 @@ export interface WorldDefinition {
 	actions: WorldActionDefinition[]; // schema per action (JSON-schema params)
 	senses: WorldSenseDefinition[]; // what each sense channel yields
 	predicates: Record<WorldPredicateId, string>; // success conditions (evaluated internally)
-	create(layoutId: string): WorldInstance;
+	create(layoutId: string): WorldInstance; // since WP53: create(layoutId, { random? }); since WP78 (2026-09-10): { random?, config? } — config read at create, before the case is generated
 }
 
 export interface WorldInstance {
@@ -248,6 +248,13 @@ All events share `{ id, runId, tick, timestamp, type, payload }`, strictly typed
 >
 > - **`group.started`** `{ groupRunId, memberRunIds, memberAgentIds, goalCardId, scheduler: 'round-robin', budgets: { groupMaxTokens?, maxRounds? } }` — a `SessionGroup`'s one-time opening fact: who is in it, what each member's own `runId` is (so the group's line in the merged stream can be joined to every member's own trace), and under what scheduling and budget rules. Always the first event on a group's merged stream.
 > - **`group.finished`** `{ outcome, reason?, rounds, usage }` — how the group ended: `outcome` is derived from every member's own outcome (`SUCCESS` only if all members reached it; a stop or error on any member propagates), `usage` is the group's running token total (summed from each member's own `think.completed` events, the same mechanism the group-token-budget guardrail reads), `rounds` counts scheduler rounds, not per-member ticks. Always the last event on a group's merged stream — every member's own `run.finished` still lands on that member's own trace first.
+>
+> **Amended 2026-09-10 (WP79, `69-WORKFLOWS.md` §6).** Two events for the stage boundary, both optional in every reader — a trace without them is a desk run, as today:
+>
+> - **`stage.started`** `{ workflowRunId, stageId, executor, input: { digest, value? } }` — a workflow's stage began. On the agent run's own trace at tick 0, before `run.started`, when a bot does the stage; on the workflow's own events (`WorkflowRun.events`, `07-…` §5) for a `rule`, `human` or `line` stage. `executor` is the kind; `input` is the stage's input as a SHA-256 over its canonical JSON, with the value kept when under 16 kB.
+> - **`stage.completed`** `{ workflowRunId, stageId, output: { digest, value? }, status, guards: { checked, tripped } }` — the stage ended, at the run's last tick: `status` is `ok`, `blocked`, `escalated` or `error`; `guards` counts the run's `guardrail.checked`/`guardrail.external` and `guardrail.tripped` events. Always the last event on an agent run's trace, after `run.finished`.
+>
+> The two are stamped by the workflow's own clock and id source wherever they are written, so a session's events keep the ids they would have alone (the desk golden trace is held byte for byte around them). A trace's digest covers them; the OTel mapping (`35-…`) gives each `stage.completed` a child span `stage <id>` with `craft_a_bot.workflow.run_id`, `craft_a_bot.stage.id`, `craft_a_bot.stage.status` and the guard counts.
 >
 > A group's merged stream is the union of these two events with every member session's own unmodified event stream (each still opening `run.started` and closing `run.finished`, per §4.7 of `23-…`); nothing about a member's own trace changes when it runs inside a group instead of solo.
 

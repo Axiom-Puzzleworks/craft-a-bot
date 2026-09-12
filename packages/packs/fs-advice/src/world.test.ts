@@ -45,10 +45,12 @@ describe('the Advice Desk (WP60 stage A)', () => {
 		expect(
 			adviceDesk.actions.find((a) => a.id === qualifyAdviceId('recommend-product'))?.riskTier
 		).toBe('reversible');
+		// The kinds, the two guidance layouts and, since WP85, the work-item layout a workflow's intake fills.
 		expect(adviceDesk.layouts.map((layout) => layout.id)).toEqual([
 			...ADVICE_CASE_KINDS,
 			'guide-inheritance',
-			'guide-rainy-day'
+			'guide-rainy-day',
+			'work-item'
 		]);
 	});
 

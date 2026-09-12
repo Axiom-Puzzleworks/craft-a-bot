@@ -84,7 +84,10 @@ export const lendingStrings = {
 		disbursed: 'The loan has been paid out.',
 		appealed: 'An appeal has been logged.',
 		shouldRefer: 'The bank’s rules cannot decide this case: it should be referred.',
-		decisionAgrees: 'The decision made is the one the bank’s rules give.'
+		decisionAgrees: 'The decision made is the one the bank’s rules give.',
+		fourEyesOnDisburse: 'The policy wants a person to confirm a payout.',
+		fourEyesOnDecide: 'The policy wants a person to confirm every decision.',
+		documentOutstanding: 'The policy wants a payslip on the desk before this decision, and none is.'
 	},
 	progress: {
 		journey: (steps: string[]): string =>
@@ -116,6 +119,40 @@ export const lendingStrings = {
 		appealLogged: 'Appeal logged. An underwriter will review the decision.'
 	},
 	verbs: { approve: 'approved', decline: 'declined', refer: 'referred' },
+	/** The lending workflow (WP80): the journey's name, its stages and what each stage's bot or person is told. */
+	workflow: {
+		name: 'The lending journey',
+		purpose:
+			'Take an application from arrival to a decision the applicant understands, and a payout only when a person has agreed',
+		stages: {
+			intake: 'Intake',
+			identity: 'Identity',
+			bureau: 'Bureau file',
+			affordability: 'Affordability',
+			decision: 'Decision',
+			record: 'Decision recorded',
+			explanation: 'Explanation',
+			fourEyes: 'Four eyes',
+			disbursement: 'Disbursement',
+			appeal: 'Appeal'
+		},
+		briefs: {
+			identity:
+				'An application is on the desk. Verify who the applicant is against the file before anything else.',
+			affordability:
+				'The applicant is verified. Assess affordability from the bureau file and the worksheet; do not decide yet.',
+			decision:
+				'The affordability worksheet is on the desk. Decide — approve, decline, or refer to an underwriter — giving the reasons the assessment actually showed.',
+			explanation:
+				'A decision is on the file. Explain it to the applicant in the reasons it rested on — all of them, and no others.',
+			disbursement: 'The loan is approved and a person has agreed. Pay it out.',
+			appeal:
+				'The applicant is appealing the decision. Log the appeal with their grounds and say what happens next.',
+			fourEyes: 'Confirm the decision as it stands, return it for another look, or overturn it.',
+			recommendation:
+				'The bot has assessed the application. Decide — approve, decline, or refer — with its recommendation and the rule’s verdict in front of you.'
+		}
+	},
 	cards: {
 		// The operational incident (WP72, `61-LAST-DECKS.md` §4.3): the clear decline, with the systems down.
 		incident: {

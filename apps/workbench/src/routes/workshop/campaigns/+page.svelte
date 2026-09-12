@@ -8,8 +8,6 @@
 		buildKitFile,
 		localContentReferencedBy,
 		type AgentRecord,
-		type AgentSpecV2,
-		type EngineEvent,
 		type StoredCampaignReport
 	} from '@craftabot/core';
 	import {
@@ -19,11 +17,9 @@
 		renderCampaignScorecard,
 		renderJUnit,
 		renderSarif,
-		runCampaign,
 		summariseCampaign,
 		type Campaign,
 		type CampaignCell,
-		type CampaignReport,
 		type ConfusionMatrix
 	} from '@craftabot/evals';
 	import CaseTable from '$lib/components/control-room/CaseTable.svelte';
@@ -32,9 +28,9 @@
 	import Meter from '$lib/components/control-room/Meter.svelte';
 	import { page } from '$app/state';
 	import { editionId } from '$lib/edition-id.js';
-	import { createRegistry, installedPacks, packVersions } from '$lib/packs.js';
+	import { createRegistry, packVersions } from '$lib/packs.js';
 	import { defaultShippedCampaign, shippedCampaigns } from '$lib/workshop/shipped-campaigns.js';
-	import { workshopPlans } from '$lib/workshop/plans.js';
+	import { campaignRunner } from '$lib/state/campaign-runner-app.svelte.js';
 	import { failedFirst } from '$lib/workshop/case-order.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import { contentStore } from '$lib/state/content.svelte.js';
@@ -44,7 +40,6 @@
 	import { browserPrincipalId } from '$lib/state/principal.js';
 	import { itemForReport } from '$lib/workshop/evidence.js';
 	import {
-		envelopeFor,
 		recordForCampaignCell,
 		reportFrom,
 		sliceId,
@@ -82,21 +77,22 @@
 	let baselinePick = $state(openedOn?.id ?? 'injection-baseline');
 	let source = $state(JSON.stringify(openedOn?.campaign() ?? injectionBaseline(), null, '\t'));
 	let stored = $state<StoredCampaignReport[]>([]);
-	let running = $state(false);
-	let progress = $state({ done: 0, total: 0 });
 	/**
-	 * **Cancel, elapsed and remaining** (UX-12). A campaign in the browser
-	 * saturates the main thread between yields, so the one honest thing to say
-	 * is how long it has been and roughly how long is left, and to offer a way
-	 * out. Cancelling stops at the next cell boundary — the runner's own
-	 * `betweenCells` yield — and stores nothing: a partial report would be a
-	 * report over cells it never ran, and the report's digest is over all of them.
+	 * **The run is the runner store's, in a Worker** (WP77, `64-…` §6.6.1;
+	 * UX-12's other half). This page queues a campaign and reads the store:
+	 * the Worker runs it, the store persists the report when it lands, and the
+	 * tab answers throughout — leave for the Run Browser mid-run and the
+	 * report is still stored. **Cancel** stops at the next cell boundary and
+	 * stores nothing: a partial report would be a report over cells it never
+	 * ran, and the report's digest is over all of them.
 	 */
-	let cancelRequested = $state(false);
-	let cancelled = $state(false);
-	let startedAtMs = $state(0);
+	const running = $derived(campaignRunner.running);
+	const progress = $derived(campaignRunner.progress);
+	const cancelRequested = $derived(campaignRunner.cancelRequested);
+	const lastQueued = $derived(campaignRunner.queue.at(-1));
+	const cancelled = $derived(!running && lastQueued?.status === 'cancelled');
 	let nowMs = $state(0);
-	const elapsedMs = $derived(running ? Math.max(0, nowMs - startedAtMs) : 0);
+	const elapsedMs = $derived(running ? Math.max(0, nowMs - campaignRunner.startedAtMs) : 0);
 	/**
 	 * When each cell finished (NEW-6): the estimate is a trailing average over
 	 * the last twenty cells, not the mean since the start — the first cell is
@@ -104,12 +100,11 @@
 	 * as the run went on. Said as "about a minute" past a threshold, because
 	 * the seconds were never honest.
 	 */
-	let cellDoneAt: number[] = [];
 	const TRAILING = 20;
 	const remainingMs = $derived.by(() => {
 		if (!running || progress.done < 2) return undefined;
 		void nowMs;
-		const recent = cellDoneAt.slice(-TRAILING - 1);
+		const recent = campaignRunner.cellDoneAt.slice(-TRAILING - 1);
 		if (recent.length < 2) return undefined;
 		const perCell = ((recent.at(-1) ?? 0) - (recent[0] ?? 0)) / (recent.length - 1);
 		return Math.round(perCell * (progress.total - progress.done));
@@ -130,8 +125,7 @@
 		const timer = setInterval(() => (nowMs = Date.now()), 1000);
 		return () => clearInterval(timer);
 	});
-	class CancelledError extends Error {}
-	let report = $state<CampaignReport | undefined>(undefined);
+	const report = $derived(campaignRunner.report);
 	let fromStore = $state(false);
 	let openSlice = $state<CampaignSlice | undefined>(undefined);
 	let importNote = $state('');
@@ -196,11 +190,9 @@
 
 	function loadSaved(record: unknown): void {
 		source = JSON.stringify(record, null, '\t');
-		report = undefined;
+		campaignRunner.forgetReport();
 	}
-	type Trace = { events: readonly EngineEvent[]; spec: AgentSpecV2 };
-	// Raw on purpose: hundreds of event arrays that never change once collected.
-	let traces = $state.raw<Record<string, Trace>>({});
+	const traces = $derived(campaignRunner.traces);
 
 	const parsed = $derived.by<{ ok: true; campaign: Campaign } | { ok: false; message: string }>(
 		() => {
@@ -402,66 +394,149 @@
 			: `${file.name} is not a campaign: ${parsed.ok ? '' : parsed.message}`;
 	}
 
-	async function execute(): Promise<void> {
+	let runNote = $state('');
+	/**
+	 * **Books and sweeps** (WP80, `64-…` §6.6.3; `73-…` §6): a book through a
+	 * workflow's reference configurations, and one knob over every build —
+	 * both are campaigns with a `source`, put in the editor and queued as any
+	 * campaign is, so the file CI would run is exactly what ran here. The
+	 * book is drawn on this thread and carried inline, so the cell count is
+	 * known before the run and the Worker draws nothing.
+	 */
+	const workflows = createRegistry().listWorkflows();
+	// The lending workflow first when the edition ships it (its book is the reference); the first workflow otherwise.
+	let bookWorkflow = $state(
+		workflows.find((workflow) => workflow.id === 'fs-lending/lending')?.id ?? workflows[0]?.id ?? ''
+	);
+	let bookSize = $state(200);
+	let bookSeed = $state(1);
+	let bookNote = $state('');
+	const bookConfigurationIds = $derived(
+		Object.keys(workflows.find((workflow) => workflow.id === bookWorkflow)?.configurations ?? {})
+	);
+	let bookPicked = $state<string[]>([]);
+	const bookConfigurations = $derived(
+		bookPicked.filter((id) => bookConfigurationIds.includes(id)).length > 0
+			? bookPicked.filter((id) => bookConfigurationIds.includes(id))
+			: bookConfigurationIds
+	);
+	function toggleConfiguration(id: string): void {
+		bookPicked = bookPicked.includes(id)
+			? bookPicked.filter((entry) => entry !== id)
+			: [...bookPicked, id];
+	}
+	function queueBook(): void {
+		const registry = createRegistry();
+		const workflow = registry.getWorkflow(bookWorkflow);
+		if (!workflow) return;
+		if (!workflow.book) {
+			bookNote = `${workflow.name} draws no book of its own.`;
+			return;
+		}
+		const world = registry.getWorld(workflow.worldId);
+		const size = Math.max(1, Math.floor(Number(bookSize) || 1));
+		const seed = Math.floor(Number(bookSeed) || 1);
+		const book = workflow.book({ seed, size });
+		const overrides = {
+			senses: (world?.senses ?? []).map((sense) => sense.id),
+			actions: (world?.actions ?? []).map((action) => action.id)
+		};
+		const configurations = bookConfigurations.length > 0 ? bookConfigurations : ['default'];
+		const campaign = {
+			schemaVersion: 1,
+			id: `book-${slugOf(workflow.id)}-${seed}-${size}`,
+			title: `${workflow.name} — the book at seed ${seed}, ${size} customers`,
+			scenarios: [],
+			source: { kind: 'book', workflowId: workflow.id, book },
+			builds: configurations.map((configuration) => ({
+				id: configuration,
+				base: { kind: 'starter-default' },
+				overrides: {
+					...overrides,
+					...(bookConfigurationIds.includes(configuration) ? { configuration } : {})
+				}
+			})),
+			guards: [{ id: 'none', fit: [] }],
+			brains: [{ id: 'scripted-optimal', tier: 'scripted-optimal' }],
+			seeds: [seed],
+			gates: [
+				{
+					id: 'a-measurement-not-a-judgment',
+					require: { kind: 'outcome-rate', outcome: 'SUCCESS', atLeast: 0 }
+				}
+			]
+		};
+		source = JSON.stringify(campaign, null, '\t');
+		bookNote = `${book.items.length} work items drawn; ${configurations.length} configuration${configurations.length === 1 ? '' : 's'}.`;
+		execute();
+	}
+	let sweepKnob = $state('');
+	let sweepValues = $state('');
+	let sweepNote = $state('');
+	const knobValue = (text: string): number | string | boolean => {
+		if (text === 'true') return true;
+		if (text === 'false') return false;
+		const number = Number(text);
+		return text.trim() !== '' && Number.isFinite(number) ? number : text;
+	};
+	function queueSweep(): void {
+		if (!parsed.ok) return;
+		const knob = sweepKnob.trim();
+		const values = sweepValues
+			.split(',')
+			.map((entry) => entry.trim())
+			.filter((entry) => entry !== '');
+		if (knob === '' || values.length === 0) {
+			sweepNote = 'A sweep wants a knob and its values.';
+			return;
+		}
+		const base = parsed.campaign;
+		const swept = {
+			...base,
+			id: `${base.id}-sweep-${slugOf(knob)}`,
+			title: `${base.title} — ${knob} swept over ${values.join(', ')}`,
+			builds: base.builds.flatMap((build) =>
+				values.map((value) => ({
+					...build,
+					id: `${build.id}@${knob}=${value}`,
+					overrides: {
+						...(build.overrides ?? {}),
+						knobs: { ...(build.overrides?.knobs ?? {}), [knob]: knobValue(value) }
+					}
+				}))
+			)
+		};
+		source = JSON.stringify(swept, null, '\t');
+		sweepNote = `${swept.builds.length} builds — ${base.builds.length} × ${values.length} values of ${knob}.`;
+		execute();
+	}
+
+	function execute(): void {
 		if (!parsed.ok || hasLive) return;
-		running = true;
-		cancelRequested = false;
-		cancelled = false;
-		startedAtMs = Date.now();
-		nowMs = startedAtMs;
-		cellDoneAt = [startedAtMs];
 		openSlice = undefined;
 		fromStore = false;
-		traces = {};
-		progress = { done: 0, total: size };
-		const collected: Record<string, Trace> = {};
-		try {
-			const result = await runCampaign(parsed.campaign, {
-				// A macrotask between cells, so the count can paint (the Eval Matrix's own lesson) — and
-				// the one place a cancel can land (UX-12).
-				betweenCells: () =>
-					new Promise<void>((resolveYield, rejectYield) =>
-						setTimeout(
-							() =>
-								cancelRequested ? rejectYield(new CancelledError('cancelled')) : resolveYield(),
-							0
-						)
-					),
-				packs: installedPacks,
-				// The Workshop's plan chain (NEW-1): without it the runner falls back to the
-				// starter's plans and every desk cell errors — the harness composes the same chain.
-				plans: workshopPlans,
-				onCell: (_cell, done, total) => {
-					progress = { done, total };
-					cellDoneAt.push(Date.now());
-				},
-				onTrace: (cell, trace) => {
-					if (cell.runId) collected[cell.runId] = trace;
-				}
-			});
-			const storage = await appStorage();
-			await storage.putCampaignReport(envelopeFor(result));
-			await loadStored();
-			// Shown only once stored (WP56 stage A): a verdict on screen used to
-			// be a few milliseconds ahead of the report a safety case reads, and
-			// a navigation in that gap left the screen honest and the store empty.
-			traces = collected;
-			report = result;
-		} catch (cause) {
-			if (!(cause instanceof CancelledError)) throw cause;
-			cancelled = true;
-		} finally {
-			running = false;
-		}
+		const wasRunning = running;
+		const queued = campaignRunner.enqueue(parsed.campaign);
+		runNote =
+			typeof queued === 'string'
+				? queued
+				: wasRunning
+					? `Queued ${queued.title} (${queued.cells} cells) behind the running one.`
+					: '';
+		nowMs = Date.now();
 	}
+	// The stored list follows the store: a report lands there from the Worker whether or not this page is open.
+	$effect(() => {
+		void campaignRunner.report;
+		void loadStored();
+	});
 
 	function openStored(row: StoredCampaignReport): void {
 		const loaded = reportFrom(row);
 		if (!loaded) return;
-		report = loaded;
+		campaignRunner.showStored(loaded);
 		fromStore = true;
 		openSlice = undefined;
-		traces = {};
 	}
 
 	async function openInRunLab(cell: CampaignCell): Promise<void> {
@@ -546,26 +621,31 @@
 				</p>
 				<button
 					type="button"
-					disabled={running || !parsed.ok || hasLive || size === 0}
+					disabled={!parsed.ok || hasLive || size === 0}
 					data-testid="run-campaign"
 					onclick={execute}
 				>
-					{running ? `Running ${progress.done}/${progress.total}…` : 'Run campaign'}
+					{running ? 'Queue campaign' : 'Run campaign'}
 				</button>
+				{#if runNote}<span class="hint" data-testid="campaign-run-note">{runNote}</span>{/if}
 				{#if running}
+					<span class="run-status" role="status" data-testid="campaign-progress">
+						Running {progress.done}/{progress.total}…
+					</span>
 					<!-- The way out, and the honest clock (UX-12). -->
 					<button
 						type="button"
 						class="cancel"
 						disabled={cancelRequested}
 						data-testid="cancel-campaign"
-						onclick={() => (cancelRequested = true)}
+						onclick={() => campaignRunner.cancel()}
 					>
 						{cancelRequested ? 'Stopping after this cell…' : 'Cancel'}
 					</button>
 					<span class="run-status" role="status" data-testid="campaign-clock">
 						{clock(elapsedMs)} elapsed{remainingMs !== undefined ? `, ${roughly(remainingMs)}` : ''} —
-						the page is busy between cells and may not answer until it finishes.
+						running in a Worker, so this page stays live; the report is stored when it finishes, even
+						if you leave.
 					</span>
 				{:else if cancelled}
 					<span class="run-status" role="status" data-testid="campaign-cancelled">
@@ -574,6 +654,94 @@
 				{/if}
 			</div>
 		</div>
+		{#if campaignRunner.queue.length > 0}
+			<!-- The queue (WP77): several campaigns, one running, in the order they were asked for. -->
+			<ol class="queue" data-testid="campaign-queue" aria-label="The queue">
+				{#each campaignRunner.queue as entry (entry.id)}
+					<li data-testid="queued-{entry.id}" data-status={entry.status}>
+						{entry.title} · {entry.cells} cells · <strong>{entry.status}</strong>{entry.error
+							? ` — ${entry.error}`
+							: ''}
+						{#if entry.status !== 'running'}
+							<button type="button" onclick={() => campaignRunner.remove(entry.id)}>Remove</button>
+						{/if}
+					</li>
+				{/each}
+			</ol>
+		{/if}
+		{#if workflows.length > 0}
+			<!-- Books and sweeps (WP80): campaigns with a source, made here and queued as any campaign is. -->
+			<div class="books" data-testid="books">
+				<fieldset>
+					<legend>Book</legend>
+					<label>
+						Workflow
+						<select data-testid="book-workflow" bind:value={bookWorkflow}>
+							{#each workflows as workflow (workflow.id)}
+								<option value={workflow.id}>{workflow.name}</option>
+							{/each}
+						</select>
+					</label>
+					<label>
+						Customers
+						<input type="number" min="1" data-testid="book-size" bind:value={bookSize} />
+					</label>
+					<label>
+						Seed
+						<input type="number" data-testid="book-seed" bind:value={bookSeed} />
+					</label>
+					{#if bookConfigurationIds.length > 0}
+						<span class="configurations" data-testid="book-configurations">
+							{#each bookConfigurationIds as id (id)}
+								<label class="pick">
+									<input
+										type="checkbox"
+										data-testid="book-configuration-{id}"
+										checked={bookConfigurations.includes(id)}
+										onchange={() => toggleConfiguration(id)}
+									/>
+									{id}
+								</label>
+							{/each}
+						</span>
+					{/if}
+					<button type="button" data-testid="queue-book" onclick={queueBook}>
+						{running ? 'Queue the book' : 'Run the book'}
+					</button>
+					{#if bookNote}<span class="hint" data-testid="book-note">{bookNote}</span>{/if}
+				</fieldset>
+				<fieldset>
+					<legend>Sweep</legend>
+					<label>
+						Knob
+						<input
+							type="text"
+							data-testid="sweep-knob"
+							bind:value={sweepKnob}
+							placeholder="referRatioPercent"
+						/>
+					</label>
+					<label>
+						Values
+						<input
+							type="text"
+							data-testid="sweep-values"
+							bind:value={sweepValues}
+							placeholder="50, 60, 70"
+						/>
+					</label>
+					<button
+						type="button"
+						disabled={!parsed.ok}
+						data-testid="queue-sweep"
+						onclick={queueSweep}
+					>
+						{running ? 'Queue the sweep' : 'Run the sweep'}
+					</button>
+					{#if sweepNote}<span class="hint" data-testid="sweep-note">{sweepNote}</span>{/if}
+				</fieldset>
+			</div>
+		{/if}
 		<textarea
 			bind:value={source}
 			spellcheck="false"
@@ -691,6 +859,7 @@
 										value={gate.observed}
 										gate={meter.gate}
 										direction={meter.direction}
+										range={gate.interval}
 										label={gate.id}
 										testId="gate-meter-{gate.id}"
 									/>
@@ -825,6 +994,148 @@
 						</div>
 					{/each}
 				</div>
+			</section>
+		{/if}
+
+		{#if report.schemaVersion < 3}
+			<p class="hint" data-testid="campaign-upgraded">
+				This report was written at schema v{report.schemaVersion}; it computed no fairness metrics
+				and no drift, so those panes are empty. Run the campaign again for them.
+			</p>
+		{/if}
+
+		{#if summary && summary.fairness.length > 0}
+			<!-- The fairness metrics' verdicts (WP82, `64-…` §6.4.4): the value with its interval on a Meter, the power as a Lamp. -->
+			<section aria-label="Fairness" data-testid="campaign-fairness">
+				<h2>Fairness</h2>
+				<p class="hint">
+					Each parity gate's metric over the cells its <code>where</code> selected, with the interval
+					and the cases it rests on. An underpowered row says so rather than pretending.
+				</p>
+				<div class="fairness">
+					{#each summary.fairness as row (row.gateId)}
+						<div class="fairness-row" data-testid="fairness-{row.gateId}">
+							<Meter
+								value={row.value}
+								range={row.interval}
+								label={`${row.metric} across ${row.across}`}
+								min={row.metric === 'disparate-impact' ? 0 : -1}
+								max={1}
+								format={(v) => v.toFixed(3)}
+								testId="fairness-meter-{row.gateId}"
+							/>
+							<div class="fairness-facts">
+								<p class="mono">{row.gateId}</p>
+								<p>
+									{row.metric} across {row.across}{row.stratify ? ` within ${row.stratify}` : ''} · n
+									=
+									{row.n}
+								</p>
+								<p class="lamps">
+									<Lamp
+										status={row.inconclusive ? 'inconclusive' : row.passed ? 'pass' : 'fail'}
+										testId="fairness-lamp-{row.gateId}"
+									/>
+									<Lamp
+										status={row.underpowered ? 'inconclusive' : 'pass'}
+										label={row.underpowered ? 'underpowered' : 'powered'}
+										testId="fairness-power-{row.gateId}"
+									/>
+								</p>
+							</div>
+						</div>
+					{/each}
+				</div>
+			</section>
+		{/if}
+
+		{#if summary && summary.drift.length > 0}
+			<!-- The drift verdicts (WP82): a distance against a reference, and the bound. -->
+			<section aria-label="Drift" data-testid="campaign-drift">
+				<h2>Drift</h2>
+				<table data-testid="campaign-drift-table">
+					<thead>
+						<tr>
+							<th scope="col">Gate</th>
+							<th scope="col">Metric</th>
+							<th scope="col">Feature</th>
+							<th scope="col">Reference</th>
+							<th scope="col">Value</th>
+							<th scope="col">Bound</th>
+							<th scope="col">Verdict</th>
+						</tr>
+					</thead>
+					<tbody>
+						{#each summary.drift as row (row.gateId)}
+							<tr data-testid="drift-{row.gateId}">
+								<td class="mono">{row.gateId}</td>
+								<td>{row.metric}</td>
+								<td>{row.feature ?? '—'}</td>
+								<td>{row.reference}</td>
+								<td class="num">{row.value === undefined ? '—' : row.value.toFixed(3)}</td>
+								<td class="num">{row.atMost === undefined ? '—' : `≤ ${row.atMost}`}</td>
+								<td>
+									<Lamp
+										status={row.reason ? 'inconclusive' : row.flagged ? 'fail' : 'pass'}
+										label={row.reason ? 'inconclusive' : row.flagged ? 'drifted' : 'stable'}
+										testId="drift-lamp-{row.gateId}"
+									/>
+									{#if row.reason}<span class="hint">{row.reason}</span>{/if}
+								</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</section>
+		{/if}
+
+		{#if summary && summary.humanLoad.length > 0}
+			<!-- Human load by build (WP80, `64-…` §6.4.1a): the bottom-up figures, by autonomy level. -->
+			<section aria-label="Human load" data-testid="campaign-human-load">
+				<h2>Human load</h2>
+				<p class="hint">
+					Touches per case and the ceiling-breach rate by build — a configuration, an autonomy level
+					— over the book's journeys. A breach is a decision taken above its kind's ceiling:
+					counted, never prevented.
+				</p>
+				<table data-testid="campaign-human-load-table">
+					<thead>
+						<tr>
+							<th>Build</th>
+							<th>Level</th>
+							<th>Cases</th>
+							<th>Touches per case</th>
+							<th>Unattended</th>
+							<th>Decisions</th>
+							<th>Breaches</th>
+							<th>Breach rate</th>
+						</tr>
+					</thead>
+					<tbody>
+						{#each summary.humanLoad as row (row.build)}
+							<tr data-testid="human-load-{row.build}">
+								<td>{row.build}</td>
+								<td>{row.autonomy ?? '—'}</td>
+								<td>{row.cells}</td>
+								<td>
+									{row.touchesPerCase.toFixed(2)}
+									<small
+										>[{row.touchesInterval[0].toFixed(2)}, {row.touchesInterval[1].toFixed(
+											2
+										)}]</small
+									>
+								</td>
+								<td>{pct(row.unattendedRate)}</td>
+								<td>{row.decisions}</td>
+								<td>{row.breaches}</td>
+								<td>
+									{pct(row.ceilingBreachRate)}
+									<small>[{pct(row.breachInterval[0])}, {pct(row.breachInterval[1])}]</small>
+								</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
 			</section>
 		{/if}
 
@@ -1010,6 +1321,56 @@
 		border: var(--cab-border-part) solid var(--cab-engrave);
 		border-radius: var(--cab-radius-pill);
 		background: var(--cab-cream);
+	}
+	.fairness {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--cab-space-4);
+	}
+	.fairness-row {
+		display: flex;
+		align-items: center;
+		gap: var(--cab-space-3);
+	}
+	.fairness-facts p {
+		margin: 0;
+		font-size: var(--cab-text-sm);
+	}
+	.lamps {
+		display: flex;
+		gap: var(--cab-space-3);
+	}
+	.books {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--cab-space-3);
+		margin: var(--cab-space-2) 0;
+		font-size: var(--cab-text-sm);
+	}
+	.books fieldset {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--cab-space-2);
+		border: var(--cab-border-part) solid var(--cab-engrave);
+		border-radius: var(--cab-radius-tile);
+		padding: var(--cab-space-2) var(--cab-space-3);
+	}
+	.books input[type='number'] {
+		width: 6rem;
+	}
+	.books .configurations {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--cab-space-2);
+	}
+	.queue {
+		margin: var(--cab-space-2) 0;
+		padding-left: var(--cab-space-4);
+		font-size: var(--cab-text-sm);
+	}
+	.queue li {
+		margin: var(--cab-space-1) 0;
 	}
 	.run-status {
 		display: flex;

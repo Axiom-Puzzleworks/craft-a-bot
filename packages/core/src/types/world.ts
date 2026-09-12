@@ -73,6 +73,16 @@ export type WorldViewKind = 'grid' | 'desk';
  */
 export interface WorldCreateOptions {
 	random?: () => number;
+	/**
+	 * Configuration the world reads *at* `create` (WP78, `64-…` §6.6.2; the
+	 * `configure` door of `43-…` §4.4 arrives after the case is generated,
+	 * which is too late for anything the case itself depends on — a lending
+	 * policy's thresholds, the truth computed from them). A campaign build's
+	 * `overrides.knobs` arrives here as `{ knobs }`; the desk runtime seeds
+	 * `state.config` with it and hands it to the layout's case generator.
+	 * `configure` still merges over it later.
+	 */
+	config?: Record<string, unknown>;
 }
 
 /**

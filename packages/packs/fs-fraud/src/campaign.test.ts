@@ -7,6 +7,7 @@ import geapPack from '@craftabot/pack-geap';
 import monitorPack from '@craftabot/pack-monitor';
 import guardLocalPack from '@craftabot/pack-guard-local';
 import workshopPack from '@craftabot/pack-workshop';
+import { confusionRates } from '@craftabot/metrics';
 import { describe, expect, it } from 'vitest';
 import { FRAUD_GUARD_IDS, fraudBaseline } from './campaign.js';
 import fsFraudPack, {
@@ -75,6 +76,12 @@ describe('campaigns/fs-fraud-baseline.json', () => {
 			expect(whole?.precision).toBeCloseTo(folded.tp / (folded.tp + folded.fp));
 			expect(whole?.recall).toBeCloseTo(folded.tp / (folded.tp + folded.fn));
 			expect(whole?.falsePositiveRate).toBeCloseTo(folded.fp / (folded.fp + folded.tn));
+			// One definition, read everywhere (WP76, `68-METRICS.md` §1 item 2): the package's rates are the report's.
+			const rates = confusionRates(folded);
+			expect(rates.precision.value).toBeCloseTo(whole?.precision ?? -1, 10);
+			expect(rates.recall.value).toBeCloseTo(whole?.recall ?? -1, 10);
+			expect(rates.falsePositiveRate.value).toBeCloseTo(whole?.falsePositiveRate ?? -1, 10);
+			expect(rates.f1.value).toBeCloseTo(whole?.f1 ?? -1, 10);
 			const parity = report.gates.find((gate) => gate.kind === 'parity');
 			expect(parity).toMatchObject({ passed: true, matched: false });
 			expect(Object.keys(parity?.values ?? {}).length).toBeGreaterThanOrEqual(1);

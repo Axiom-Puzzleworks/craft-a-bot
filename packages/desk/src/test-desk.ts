@@ -4,8 +4,8 @@ import { createDeskWorld, type DeskWorldSpec } from './desk-world.js';
 /**
  * The two-record desk the runtime's own tests and golden trace run on
  * (`43-…` §4.5). Deliberately not the Workshop pack's Front Desk: the oracle
- * must not move when a pack's content does. Test scaffolding, excluded from
- * the build.
+ * must not move when a pack's content does. Test scaffolding, shipped under
+ * `@craftabot/desk/testing` since WP79 so other packages' tests can run on it.
  */
 export const TEST_DESK_ID = 'test/desk';
 

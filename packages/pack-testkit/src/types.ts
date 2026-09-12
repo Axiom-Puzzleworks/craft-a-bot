@@ -1,4 +1,5 @@
 import type {
+	ContextSpec,
 	Injection,
 	ActionCall,
 	AnyAgentSpec,
@@ -55,6 +56,8 @@ export interface ConformanceIssue {
 export interface WorldScriptFixture {
 	layoutId: string;
 	calls: ActionCall[];
+	/** The world's create-time config (WP78) — `{ knobs }` — so a predicate a knob turns on is reachable by a script. */
+	config?: Record<string, unknown>;
 }
 
 /** A call the world must refuse cleanly — never thrown, never silently allowed. */
@@ -193,6 +196,8 @@ export interface GoldenTraceConformanceFixture {
 export interface DeskConformanceFixture {
 	/** Which layouts to exercise; default every one the world declares. */
 	layoutIds?: string[];
+	/** The rungs of the context ladder to prove the superset property over (WP81, `70-…` §4); the four plain rungs when absent. */
+	contexts?: ContextSpec[];
 	/** The desk's purpose, when the definition does not carry it (`createDeskWorld` leaves it on `spec`). */
 	purpose?: string;
 	/** The injection kinds the desk takes; default all four. A kind it declines must leave it unchanged. */
@@ -225,6 +230,8 @@ export interface PackConformanceFixture {
 		knownTags?: readonly string[];
 		resolve?: boolean;
 	};
+	/** The enums a calibration row's categories must match, by row id (WP74). */
+	calibrations?: { enums?: Readonly<Record<string, readonly string[]>> };
 }
 
 export type { CartridgeDefinition };

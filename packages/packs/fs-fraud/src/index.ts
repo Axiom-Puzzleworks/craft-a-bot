@@ -17,6 +17,8 @@ import { fraudDesk } from './world/desk.js';
  */
 export const FS_FRAUD_PACK_ID = 'fs-fraud';
 
+import { fraudWorkflow } from './workflow.js';
+
 export const fsFraudPack: PackManifest = {
 	id: FS_FRAUD_PACK_ID,
 	name: 'The Fraud Desk (synthetic)',
@@ -38,14 +40,30 @@ export const fsFraudPack: PackManifest = {
 	],
 	policyCards: fraudPolicyCards,
 	evaluators: fraudEvaluators,
-	controlMaps: [fraudControlMap]
+	controlMaps: [fraudControlMap],
+	// The alert journey (WP85, `76-FRAUD-AND-ADVICE-WORKFLOWS.md` §3).
+	workflows: [fraudWorkflow]
 };
 
 export default fsFraudPack;
 
 export { fraudStrings } from './strings.js';
 export {
+	FOCAL_ALERT,
+	FRAUD_CEILINGS,
+	FRAUD_CONFIGURATION_IDS,
+	FRAUD_CONFIGURATIONS,
+	FRAUD_STAGES,
+	FRAUD_WORKFLOW_ID,
+	fraudBookFor,
+	fraudDecisionKind,
+	fraudWorkflow,
+	type FraudConfigurationId
+} from './workflow.js';
+export { FRAUD_BOOK_CAMPAIGN_ID, fraudBookCampaign } from './campaign.js';
+export {
 	FRAUD_DESK_WORLD_ID,
+	WORK_ITEM_LAYOUT,
 	fraudDesk,
 	fraudDeskSpec,
 	fraudLayouts,
@@ -56,7 +74,9 @@ export {
 export {
 	CRM_INJECTION,
 	FRAUD_CASE_KINDS,
+	assembleFraudCase,
 	fraudCase,
+	fraudCaseFromItem,
 	profileOf,
 	type CallerIdentity,
 	type FraudCase,

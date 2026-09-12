@@ -1,6 +1,7 @@
 import type { ServiceLine } from '@craftabot/core';
 import { coreBankingLine, paymentsLine } from './banking.js';
 import { crmLine } from './crm.js';
+import { bankServiceLineIds, graphLine } from './graph.js';
 import {
 	complaintsLine,
 	creditBureauLine,
@@ -26,10 +27,14 @@ export const bankServiceLines: ServiceLine[] = [
 	orderDeskLine,
 	creditBureauLine,
 	sarFilingLine,
-	complaintsLine
+	complaintsLine,
+	// The tenth (WP81, `70-…` §5): the ontology as a line.
+	graphLine
 ];
 
 export {
+	bankServiceLineIds,
+	graphLine,
 	complaintsLine,
 	coreBankingLine,
 	creditBureauLine,

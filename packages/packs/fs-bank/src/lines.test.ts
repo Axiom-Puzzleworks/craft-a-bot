@@ -27,8 +27,8 @@ const stateFor = (seed: number, purpose: (typeof BANK_PURPOSES)[number]) => ({
 	extra: bankExtra(purpose, bankCase(seed))
 });
 
-describe('the nine lines', () => {
-	it('are nine, each with tiers on every operation, and answer "no bank" on a desk without one', () => {
+describe('the ten lines', () => {
+	it('are ten, each with tiers on every operation, and answer "no bank" on a desk without one', () => {
 		expect(bankServiceLines.map((line) => line.id)).toEqual([
 			'fs-bank/crm',
 			'fs-bank/core-banking',
@@ -38,7 +38,9 @@ describe('the nine lines', () => {
 			'fs-bank/order-desk',
 			'fs-bank/credit-bureau',
 			'fs-bank/sar-filing',
-			'fs-bank/complaints'
+			'fs-bank/complaints',
+			// The tenth (WP81): the ontology as a line.
+			'fs-bank/graph'
 		]);
 		for (const line of bankServiceLines) {
 			for (const op of line.operations) expect(op.riskTier, `${line.id}/${op.id}`).toBeDefined();

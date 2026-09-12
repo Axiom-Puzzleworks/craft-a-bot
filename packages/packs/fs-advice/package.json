@@ -30,6 +30,7 @@
 	},
 	"devDependencies": {
 		"@craftabot/evals": "*",
+		"@craftabot/workflow": "*",
 		"@craftabot/pack-geap": "*",
 		"@craftabot/pack-guard-local": "*",
 		"@craftabot/pack-monitor": "*",

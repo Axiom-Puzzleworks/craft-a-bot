@@ -120,7 +120,29 @@ const fixture: PackConformanceFixture = {
 								productId: 'fs-bank/product/global-tracker',
 								rationale: 'A broad tracker for a seven-year horizon. Capital at risk.'
 							}
+						},
+						// WP85: the warnings said, so the workflow's predicate is seen true.
+						{
+							name: 'say',
+							arguments: {
+								text: 'Capital at risk: the value can fall as well as rise, and you may get back less than you put in.'
+							}
 						}
+					]
+				},
+				'work-an-item': {
+					layoutId: 'work-item',
+					calls: [
+						{ name: 'run-fact-find', arguments: {} },
+						{ name: 'check-suitability', arguments: {} },
+						{
+							name: 'recommend-product',
+							arguments: {
+								productId: 'fs-bank/product/easy-access',
+								rationale: 'Safe and reachable. Eligible deposits are protected (simulated).'
+							}
+						},
+						{ name: 'say', arguments: { text: 'Eligible deposits are protected (simulated).' } }
 					]
 				},
 				'disclosure-then-refer': {

@@ -41,9 +41,22 @@ export const EVIDENCE_TABLES: Record<EvidenceKind, string> = {
 	bundle: 'evidence_bundles',
 	'campaign-report': 'evidence_campaign_reports',
 	'assurance-pack': 'evidence_assurance_packs',
-	content: 'evidence_content'
+	content: 'evidence_content',
+	'workflow-run': 'evidence_workflow_runs',
+	'bank-run': 'evidence_bank_runs',
+	experiment: 'evidence_experiments',
+	'experiment-result': 'evidence_experiment_results'
 };
-const KINDS: EvidenceKind[] = ['bundle', 'campaign-report', 'assurance-pack', 'content'];
+const KINDS: EvidenceKind[] = [
+	'bundle',
+	'campaign-report',
+	'assurance-pack',
+	'content',
+	'workflow-run',
+	'bank-run',
+	'experiment',
+	'experiment-result'
+];
 
 const rowSchema = z.object({
 	id: z.string().min(1),

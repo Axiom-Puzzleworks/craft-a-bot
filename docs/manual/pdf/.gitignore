@@ -1,0 +1,11 @@
+node_modules
+fonts/
+figures/
+axiom-mark.svg
+USER-MANUAL.md
+MANUAL-FOR-PDF.md
+cover.html
+body.html
+_header.html
+_footer.html
+Craft-A-Bot-User-Manual.pdf

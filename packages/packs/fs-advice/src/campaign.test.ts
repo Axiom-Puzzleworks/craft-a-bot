@@ -60,7 +60,8 @@ describe('campaigns/fs-advice-baseline.json', () => {
 		expect(report.cells).toHaveLength(31 * 5 * 2 * 3);
 		expect(report.cells.every((cell) => cell.error === undefined)).toBe(true);
 		// WP61: every cell carries the case's cohort from truth, the desk's metrics and the labels.
-		expect(report.schemaVersion).toBe(2);
+		// The report is v3 since WP82 (`74-…`).
+		expect(report.schemaVersion).toBe(3);
 		expect(report.cells.every((cell) => cell.cohort?.['ageBand'] !== undefined)).toBe(true);
 		expect(report.cells.every((cell) => cell.caseMetrics['ticksPerCase'] !== undefined)).toBe(true);
 		const labelled = report.cells.filter(

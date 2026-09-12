@@ -22,6 +22,7 @@
 	"dependencies": {
 		"@craftabot/core": "*",
 		"@craftabot/desk": "*",
+		"@craftabot/workflow": "*",
 		"@craftabot/evals": "*",
 		"@craftabot/evidence": "*",
 		"@craftabot/governance": "*",

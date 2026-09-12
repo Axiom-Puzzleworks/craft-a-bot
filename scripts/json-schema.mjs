@@ -85,6 +85,42 @@ export async function artefactSchemas() {
 			title: 'Craft A Bot evaluation record (v1)',
 			description:
 				'One evaluator’s verdict over one stored run — the record a Python evaluator writes for the Workshop to import (31-EVALUATORS.md §4.4).'
+		},
+		book: {
+			schema: core.bookSchema,
+			title: 'Craft A Bot book of work items',
+			description:
+				'A batch of work items drawn from a population without the clock — applications, alerts, complaints, advice requests — each with the truth a desk would compute for it, and the population digest and oversampling it was made with (67-PERFORMANCE-AND-BOOKS.md §6).'
+		},
+		'bank-run': {
+			schema: core.bankRunSchema,
+			title: 'Craft A Bot bank run (v1)',
+			description:
+				'A day at the bank: the clock’s options, the desks’ assignments, the population digest, the counts, the incidents, every workflow run’s id and digest in arrival order, and a digest over those (71-THE-CLOCK.md §4).'
+		},
+		'workflow-run': {
+			schema: core.workflowRunSchema,
+			title: 'Craft A Bot workflow run (v1)',
+			description:
+				'One journey over one work item: every stage’s record — executor, input and output digests, guard tally, the agent run it made — the workflow’s own events, and a digest over the records (69-WORKFLOWS.md §4).'
+		},
+		experiment: {
+			schema: evals.experimentSchema,
+			title: 'Craft A Bot experiment (v1)',
+			description:
+				'A pre-registered hypothesis, a campaign template, the factors over its axes with a baseline level each, the metrics with their good direction, the seeds — and the campaign ids the design expands to (72-EXPERIMENTS.md §3).'
+		},
+		'experiment-result': {
+			schema: core.experimentResultSchema,
+			title: 'Craft A Bot experiment result (v1)',
+			description:
+				'What an experiment measured: for each metric and factor, every treatment level against the baseline as a difference with its interval, n, test and cost; the verdict over the intervals; the note; a digest (72-EXPERIMENTS.md §3).'
+		},
+		calibration: {
+			schema: core.calibrationTableSchema,
+			title: 'Craft A Bot calibration table',
+			description:
+				'The distributions a synthetic population’s generators draw from, each row citing the published aggregate it was set to — publisher, title, edition, table, retrieval date — or stating its assumption, with the tolerance the calibration test allows and its review status (66-CALIBRATION.md §4.1).'
 		}
 	};
 }

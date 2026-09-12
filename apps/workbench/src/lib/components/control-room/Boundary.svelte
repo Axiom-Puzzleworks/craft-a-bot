@@ -1,16 +1,24 @@
 <script lang="ts">
-	import type { BoundaryMap, BoundaryOutside } from '@craftabot/governance/reports';
+	import type {
+		BoundaryMap,
+		BoundaryOutside,
+		BoundaryWorkflowStage
+	} from '@craftabot/governance/reports';
 	import { litEdgesAt } from '@craftabot/governance/reports';
+	import { layoutBoundary, type PlacedLabel } from '$lib/control-room/boundary-layout.js';
 
 	/**
-	 * **Boundary** (WP57 stage C, `44-CONTROL-ROOM.md` §4.5): the map, drawn
-	 * as concentric regions on graph paper. The chassis at the centre with
-	 * its bricks in the colour law; the ring made of the safety stack, the
-	 * egress gate and the approval gate; the world and each counterpart
-	 * inside; providers, guard services, evaluators, sinks and lines
-	 * outside, each edge labelled with its hosts and what it sends, a
-	 * credential drawn as a key. With `tick` given, the edges whose activity
-	 * is at that tick are lit — the scrubber's own question.
+	 * **Boundary** (WP57 stage C, `44-CONTROL-ROOM.md` §4.5; rewritten WP86,
+	 * `77-PIPELINE-AND-BOUNDARY.md` §5): the map, drawn as concentric regions
+	 * on graph paper. The chassis at the centre with its bricks in the colour
+	 * law; the ring made of the safety stack, the egress gate and the approval
+	 * gate; the world and each counterpart inside; the workflow's stages on a
+	 * second ring outside the first, each drawn as its actor — a cog for a
+	 * rule, a person at the ring, a line's socket, the bot's own mark — and
+	 * lit by the run; providers, guard services, evaluators, sinks and lines
+	 * outside, each edge labelled with its hosts and what it sends. Every
+	 * label is placed by `layoutBoundary` — a radial layout with collision
+	 * resolution — and leader-lined outward when it had to move (UX-7).
 	 *
 	 * One of the three components allowed an `<svg>`. Every node and edge
 	 * carries a test id and a text label; the whole is an image with a
@@ -24,78 +32,14 @@
 
 	let { map, tick, testId = 'boundary' }: Props = $props();
 
-	const W = 760;
-	const H = 520;
-	const CX = W / 2;
-	const CY = 260;
-	const RING = 128;
-	const INSIDE = 104;
-	const OUTER = 226;
-
-	/** Where each kind lives around the ring, in degrees (0 = right, 90 = up). */
-	const ANGLE: Record<BoundaryOutside['kind'], number> = {
-		provider: 90,
-		'guard-service': 20,
-		pdp: -10,
-		evaluator: -50,
-		sink: -90,
-		'evidence-store': -130,
-		'service-line': 180
-	};
-
-	const polar = (deg: number, r: number) => ({
-		x: CX + r * Math.cos((deg * Math.PI) / 180),
-		y: CY - r * Math.sin((deg * Math.PI) / 180)
-	});
-
 	const lit = $derived(tick === undefined ? new Set<string>() : litEdgesAt(map, tick));
-	const edgeFor = (entry: BoundaryOutside): string =>
-		entry.kind === 'provider' ? 'provider' : `${entry.kind}:${entry.id}`;
-
-	/** Outside nodes fanned around their kind's angle, siblings 22° apart. */
-	const nodes = $derived.by(() => {
-		const byKind: Array<[BoundaryOutside['kind'], BoundaryOutside[]]> = [];
-		for (const entry of map.outside) {
-			const found = byKind.find(([kind]) => kind === entry.kind);
-			if (found) found[1].push(entry);
-			else byKind.push([entry.kind, [entry]]);
-		}
-		const placed: Array<{
-			entry: BoundaryOutside;
-			edge: string;
-			at: { x: number; y: number };
-			ring: { x: number; y: number };
-			lit: boolean;
-			flagged: boolean;
-		}> = [];
-		for (const [kind, list] of byKind) {
-			const base = ANGLE[kind];
-			list.forEach((entry, index) => {
-				const deg = base + (index - (list.length - 1) / 2) * 22;
-				const edge = edgeFor(entry);
-				placed.push({
-					entry,
-					edge,
-					at: polar(deg, OUTER),
-					ring: polar(deg, RING),
-					lit: lit.has(edge),
-					flagged: (map.activity ?? []).some(
-						(a) => a.edge === edge && a.verdict === 'outside-egress'
-					)
-				});
-			});
-		}
-		return placed;
-	});
-
-	const human = polar(225, RING);
-	const worldAt = { x: CX, y: CY + 62 };
-	const counterpartsAt = $derived(
-		map.inside.counterparts.map((c, index) => ({
-			...c,
-			at: { x: CX + 70 + index * 10, y: CY + 30 + index * 26 }
-		}))
-	);
+	const layout = $derived(layoutBoundary(map, lit));
+	const W = $derived(layout.width);
+	const H = $derived(layout.height);
+	const CX = $derived(layout.centre.x);
+	const CY = $derived(layout.centre.y);
+	const RING = $derived(layout.ring);
+	const INSIDE = $derived(layout.inside);
 
 	const SLOT_TOKEN: Record<string, string> = {
 		brain: 'var(--cab-brick-slot-brain)',
@@ -106,6 +50,13 @@
 		mobility: 'var(--cab-brick-slot-mobility)',
 		reflexes: 'var(--cab-brick-slot-reflexes)',
 		safety: 'var(--cab-brick-slot-safety)'
+	};
+
+	const ACTOR_GLYPH: Record<BoundaryWorkflowStage['executor'], string> = {
+		agent: '◉',
+		rule: '⚙',
+		human: '🙋',
+		line: '⌁'
 	};
 
 	const sentence = $derived.by(() => {
@@ -121,6 +72,11 @@
 			`Outside: ${map.outside.length === 0 ? 'nothing' : map.outside.map((o) => `${o.kind} ${o.name}`).join(', ')}.`,
 			`${map.human.approvals} approval${map.human.approvals === 1 ? '' : 's'} crossed to a person.`
 		];
+		for (const workflow of map.workflows ?? []) {
+			parts.push(
+				`The ${workflow.name} ring: ${workflow.stages.map((stage) => `${stage.name} (${stage.executor}${stage.status ? `, ${stage.status}` : ''})`).join(', ')}.`
+			);
+		}
 		if (tick !== undefined)
 			parts.push(`At turn ${tick}, lit: ${[...lit].join(', ') || 'nothing'}.`);
 		return parts.join(' ');
@@ -128,12 +84,14 @@
 
 	const hostsLabel = (entry: BoundaryOutside): string =>
 		entry.hosts.length === 0 ? 'local' : entry.hosts.join(', ');
+	const leader = (label: PlacedLabel) =>
+		label.moved ? { x1: label.anchor.x, y1: label.anchor.y, x2: label.x, y2: label.y } : undefined;
 </script>
 
 <figure class="boundary" data-testid={testId} data-tick={tick}>
 	<svg viewBox="0 0 {W} {H}" role="img" aria-label={sentence}>
 		<!-- edges first, under everything -->
-		{#each nodes as node (node.edge)}
+		{#each layout.outside as node (node.edge)}
 			<line
 				x1={node.at.x}
 				y1={node.at.y}
@@ -150,45 +108,59 @@
 		<!-- the ring: the boundary -->
 		<circle cx={CX} cy={CY} r={RING} class="ring" />
 		<circle cx={CX} cy={CY} r={INSIDE} class="inside" />
-		<text x={CX} y={CY - RING - 8} text-anchor="middle" class="lbl">
-			safety stack · {map.boundary.safetyStack.map((b) => b.name).join(' · ') || 'none'}
-		</text>
-		{#each [polar(-30, RING)] as gate (gate.x)}
-			<rect
-				x={gate.x - 6}
-				y={gate.y - 6}
-				width="12"
-				height="12"
-				class="gate"
-				class:gate--closed={map.boundary.egress.mode === 'none'}
-				data-testid="{testId}-egress"
+		{#each layout.rings as ring (ring.workflowId)}
+			<circle
+				cx={CX}
+				cy={CY}
+				r={ring.radius}
+				class="workflow-ring"
+				data-testid="{testId}-ring-{ring.workflowId}"
 			/>
-			<text x={gate.x + 12} y={gate.y + 4} class="lbl"
-				>egress {map.boundary.egress.mode ?? 'declared by the build'} · {map.boundary.egress.hosts
-					.length} host{map.boundary.egress.hosts.length === 1 ? '' : 's'}</text
-			>
 		{/each}
+
+		<!-- leader lines for every label that had to move -->
+		{#each layout.labels as label (label.id)}
+			{@const line = leader(label)}
+			{#if line}
+				<line
+					x1={line.x1}
+					y1={line.y1}
+					x2={line.x2}
+					y2={line.y2}
+					class="leader"
+					data-leader={label.id}
+				/>
+			{/if}
+		{/each}
+
+		<!-- the egress gate -->
+		<rect
+			x={layout.gate.x - 6}
+			y={layout.gate.y - 6}
+			width="12"
+			height="12"
+			class="gate"
+			class:gate--closed={map.boundary.egress.mode === 'none'}
+			data-testid="{testId}-egress"
+		/>
 
 		<!-- the human on the ring -->
 		<circle
-			cx={human.x}
-			cy={human.y}
+			cx={layout.human.x}
+			cy={layout.human.y}
 			r="14"
 			class="node"
 			class:node--lit={lit.has('human')}
 			data-testid="{testId}-edge-human"
 			data-lit={lit.has('human')}
 		/>
-		<text x={human.x} y={human.y + 5} text-anchor="middle" class="glyph">🙋</text>
-		<text x={human.x} y={human.y + 30} text-anchor="middle" class="lbl"
-			>approval {map.boundary.approval.mode} · {map.human.approvals}</text
-		>
+		<text x={layout.human.x} y={layout.human.y + 5} text-anchor="middle" class="glyph">🙋</text>
 
 		<!-- inside: the world and the counterparts -->
 		{#if map.inside.world}
 			<rect
-				x={worldAt.x - 52}
-				y={worldAt.y - 14}
+				x={layout.world.x - 52}
+				y={layout.world.y - 14}
 				width="104"
 				height="28"
 				rx="4"
@@ -197,11 +169,8 @@
 				data-testid="{testId}-edge-world"
 				data-lit={lit.has('world')}
 			/>
-			<text x={worldAt.x} y={worldAt.y + 4} text-anchor="middle" class="lbl"
-				>{map.inside.world.view === 'desk' ? 'desk' : 'room'} · {map.inside.world.name}</text
-			>
 		{/if}
-		{#each counterpartsAt as counterpart (counterpart.agentId)}
+		{#each layout.counterparts as counterpart (counterpart.agentId)}
 			<rect
 				x={counterpart.at.x - 40}
 				y={counterpart.at.y - 12}
@@ -213,12 +182,6 @@
 				data-testid="{testId}-edge-counterpart:{counterpart.agentId}"
 				data-lit={lit.has(`counterpart:${counterpart.agentId}`)}
 			/>
-			<text
-				x={counterpart.at.x}
-				y={counterpart.at.y + 4}
-				text-anchor="middle"
-				class="lbl lbl--counterpart">◀ {counterpart.name}</text
-			>
 		{/each}
 
 		<!-- the chassis -->
@@ -237,34 +200,82 @@
 				<title>{brick.name}</title>
 			</rect>
 		{/each}
-		<text x={CX} y={CY + 26} text-anchor="middle" class="lbl">{map.agent.name}</text>
+
+		<!-- the workflow ring(s): each stage as its actor, lit by the run -->
+		{#each layout.stages as stage (stage.id)}
+			<g
+				data-testid="{testId}-stage-{stage.workflowId}-{stage.stageId}"
+				data-executor={stage.executor}
+				data-status={stage.status}
+				transform="translate({stage.at.x} {stage.at.y})"
+			>
+				<circle
+					r="9"
+					class="stage stage--{stage.executor}"
+					class:stage--lit={stage.status !== undefined}
+					class:stage--failed={stage.status === 'blocked' || stage.status === 'error'}
+					class:stage--escalated={stage.status === 'escalated'}
+				/>
+				<text y="4" text-anchor="middle" class="actor">{ACTOR_GLYPH[stage.executor]}</text>
+			</g>
+		{/each}
 
 		<!-- outside nodes -->
-		{#each nodes as node (node.edge)}
+		{#each layout.outside as node (node.edge)}
 			<g
 				data-testid="{testId}-node-{node.entry.kind}-{node.entry.id}"
 				transform="translate({node.at.x} {node.at.y})"
 			>
 				<rect
-					x="-78"
-					y="-20"
-					width="156"
-					height="40"
+					x={-node.width / 2}
+					y={-node.height / 2}
+					width={node.width}
+					height={node.height}
 					rx="5"
 					class="node"
 					class:node--lit={node.lit}
 					class:node--flagged={node.flagged}
 				/>
-				<text y="-4" text-anchor="middle" class="lbl">{node.entry.kind} · {node.entry.name}</text>
-				<text y="12" text-anchor="middle" class="host"
-					>{hostsLabel(node.entry)}{node.entry.credential ? ' 🔑' : ''}</text
-				>
+				<!-- The node's own lines, inside its group so a reader (and a test) finds them with the node. -->
+				{#each layout.labels.filter((label) => label.id === `node:${node.edge}` || label.id === `host:${node.edge}`) as label (label.id)}
+					<text
+						x={label.x - node.at.x}
+						y={label.y - node.at.y}
+						text-anchor={label.align}
+						class="lbl lbl--{label.kind}"
+						data-label={label.id}
+					>
+						{#each label.lines as line, index (index)}
+							<tspan x={label.x - node.at.x} dy={index === 0 ? 0 : 12}>{line}</tspan>
+						{/each}
+					</text>
+				{/each}
 			</g>
+		{/each}
+
+		<!-- every other label, placed by the layout -->
+		{#each layout.labels.filter((label) => label.kind !== 'node' && label.kind !== 'host') as label (label.id)}
+			<text
+				x={label.x}
+				y={label.y}
+				text-anchor={label.align}
+				class="lbl lbl--{label.kind}"
+				data-label={label.id}
+				data-moved={label.moved}
+			>
+				{#if label.lines.length > 1}
+					{#each label.lines as line, index (index)}
+						<tspan x={label.x} dy={index === 0 ? 0 : 12}>{line}</tspan>
+					{/each}
+				{:else}
+					{label.lines[0]}
+				{/if}
+			</text>
 		{/each}
 	</svg>
 	<figcaption>
 		<ol class="edges" aria-label="Every edge">
-			{#each nodes as node (node.edge)}
+			{#each layout.outside as node (node.edge)}
 				<li data-testid="{testId}-list-{node.edge}" data-lit={node.lit}>
 					<b>{node.entry.kind}</b>
 					{node.entry.name} — {hostsLabel(node.entry)}
@@ -285,6 +296,17 @@
 				) || 'no hosts'}
 			</li>
 			<li><b>rules</b> — {map.boundary.guardrailIds.join(', ') || 'none'}</li>
+			{#each map.workflows ?? [] as workflow (workflow.id)}
+				<li data-testid="{testId}-list-workflow-{workflow.id}">
+					<b>workflow</b>
+					{workflow.name} — {workflow.stages
+						.map(
+							(stage) =>
+								`${stage.name} (${stage.executor}${stage.status ? `, ${stage.status}` : ''})`
+						)
+						.join(' → ')}
+				</li>
+			{/each}
 		</ol>
 	</figcaption>
 </figure>
@@ -326,14 +348,26 @@
 		fill: var(--cab-counterpart);
 	}
 
-	.host {
+	.lbl--host {
 		font-family: var(--cab-font-mono);
 		font-size: 9.5px;
+		font-weight: 400;
+		letter-spacing: 0;
+		text-transform: none;
 		fill: var(--cab-ink-muted);
+	}
+
+	.lbl--stage {
+		font-size: 9px;
 	}
 
 	.glyph {
 		font-size: 14px;
+	}
+
+	.actor {
+		font-size: 10px;
+		fill: var(--cab-ink);
 	}
 
 	.edge {
@@ -355,6 +389,12 @@
 		stroke-width: 3;
 	}
 
+	.leader {
+		stroke: var(--cab-ink-muted);
+		stroke-width: 1;
+		stroke-dasharray: 2 2;
+	}
+
 	.ring {
 		fill: var(--cab-metal);
 		stroke: var(--cab-ink);
@@ -366,6 +406,13 @@
 		stroke: var(--cab-ink);
 		stroke-width: 1.5;
 		stroke-dasharray: 3 3;
+	}
+
+	.workflow-ring {
+		fill: none;
+		stroke: var(--cab-ink-muted);
+		stroke-width: 1;
+		stroke-dasharray: 6 4;
 	}
 
 	.gate {
@@ -395,6 +442,27 @@
 	.node--flagged {
 		stroke: var(--cab-fail);
 		stroke-width: 3;
+	}
+
+	.stage {
+		fill: var(--cab-cream);
+		stroke: var(--cab-ink-muted);
+		stroke-width: 1.5;
+	}
+
+	.stage--lit {
+		stroke: var(--cab-scope);
+		stroke-width: 2.5;
+		fill: var(--cab-metal);
+	}
+
+	.stage--escalated {
+		stroke: var(--cab-inconclusive, var(--cab-ink));
+	}
+
+	.stage--failed {
+		stroke: var(--cab-fail);
+		stroke-width: 2.5;
 	}
 
 	.chassis {

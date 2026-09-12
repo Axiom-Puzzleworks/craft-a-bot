@@ -1,4 +1,5 @@
 import type {
+	Book,
 	EgressMode,
 	EventBus,
 	Guardrail,
@@ -6,8 +7,27 @@ import type {
 	PackRegistry,
 	Principal,
 	StoredCampaignReport,
-	Unsubscribe
+	Unsubscribe,
+	WorkItem,
+	WorkflowRun,
+	WorkflowConfig,
+	WorkflowSpec
 } from '@craftabot/core';
+import { bookSchema, contextSpecSchema, type ContextSpec } from '@craftabot/core';
+import { compilePolicyCard } from '@craftabot/governance';
+import { runWorkflow, touchedCaseOf } from '@craftabot/workflow';
+import {
+	FAIRNESS_METRIC_IDS,
+	agreementDrift,
+	fairnessDrift,
+	fairnessMetric,
+	ksDrift,
+	outcomeMixDistance,
+	psiCategorical,
+	psiNumeric,
+	type DecidedCase,
+	type FairnessMetricId
+} from '@craftabot/metrics';
 import { createSessionGroup, injectionSchema, toSpecV2 } from '@craftabot/core';
 import { createGroupWatchbot, createEvaluatorCircuitBreaker } from '@craftabot/pack-monitor';
 import { counterpartScriptFor, counterpartSpec, deskFor } from './counterpart-seat.js';
@@ -73,7 +93,8 @@ import { evalTierSchema, runMetricsSchema, type EvalTier } from './report.js';
 
 export const CAMPAIGN_SCHEMA_VERSION = 1;
 /** v2 (WP61, `50-DOMAIN-METRICS.md` §4.5): labels, case metrics and the cohort on a cell, the summary on the report. v1 reads as before. */
-export const CAMPAIGN_REPORT_SCHEMA_VERSION = 2;
+/** 3 since WP82 (`74-…`): the summary's `fairness` and `drift` panes; a v1 or v2 report keeps its version and reads with the panes empty. */
+export const CAMPAIGN_REPORT_SCHEMA_VERSION = 3;
 
 const memoryOverrideSchema = z.object({
 	windowSize: z.union([z.literal(3), z.literal(10), z.literal(30)]),
@@ -99,7 +120,16 @@ export const specOverridesSchema = z.object({
 	llm: z.boolean().optional(),
 	temperature: z.number().optional(),
 	maxTokens: z.number().int().optional(),
-	personality: z.string().optional()
+	personality: z.string().optional(),
+	/**
+	 * The world's knobs (WP78, `64-…` §6.6.2): handed to the world at `create`
+	 * as `config.knobs`, so a desk's policy — the lending thresholds — is a
+	 * build axis, and a sweep over one knob is one campaign. Not a spec
+	 * override at all; stripped before the spec is built.
+	 */
+	knobs: z.record(z.string(), z.union([z.number(), z.string(), z.boolean()])).optional(),
+	/** The workflow's named configuration this build runs, in a book campaign (WP80, `73-…` §4): an autonomy level applied to the journey. Not a spec override either. */
+	configuration: z.string().min(1).optional()
 });
 
 export const noiseRatesSchema = z.object({
@@ -150,6 +180,8 @@ export const gateWhereSchema = z.object({
 	build: z.string().optional(),
 	guard: z.string().optional(),
 	brain: z.string().optional(),
+	/** The context rung's id (WP81). */
+	context: z.string().optional(),
 	/** `<attribute>=<value>`, matched against the cell's cohort read from truth (WP61). */
 	cohort: z
 		.string()
@@ -159,6 +191,19 @@ export const gateWhereSchema = z.object({
 export type GateWhere = z.infer<typeof gateWhereSchema>;
 
 export const derivedNameSchema = z.enum(DERIVED_NAMES);
+
+/** The nine fairness metrics a `parity` gate may name (`68-METRICS.md` §2.1). */
+export const fairnessMetricNameSchema = z.enum(
+	FAIRNESS_METRIC_IDS as [FairnessMetricId, ...FairnessMetricId[]]
+);
+
+/** Where a drift gate's reference comes from (`64-…` §6.4.2). */
+export const referenceWindowSchema = z.discriminatedUnion('kind', [
+	z.object({ kind: z.literal('fixed'), reportId: z.string().min(1).optional() }),
+	z.object({ kind: z.literal('rolling'), days: z.number().int().positive() }),
+	z.object({ kind: z.literal('population'), digest: z.string().min(1).optional() })
+]);
+export type ReferenceWindow = z.infer<typeof referenceWindowSchema>;
 
 export const gateRequireSchema = z.discriminatedUnion('kind', [
 	z.object({ kind: z.literal('outcome-rate'), outcome: runOutcomeSchema, ...rateBounds }),
@@ -194,40 +239,77 @@ export const gateRequireSchema = z.discriminatedUnion('kind', [
 		kind: z.literal('parity'),
 		/** The cohort attribute to compare across. */
 		across: z.string().min(1),
-		of: z.discriminatedUnion('kind', [
-			z.object({ kind: z.literal('outcome-rate'), outcome: runOutcomeSchema }),
-			z.object({ kind: z.literal('evaluator-pass-rate'), evaluatorId: z.string().min(1) }),
-			z.object({
-				kind: z.literal('label-rate'),
-				evaluatorId: z.string().min(1),
-				label: z.string().min(1)
-			}),
-			z.object({
-				kind: z.literal('derived-metric'),
-				evaluatorId: z.string().min(1),
-				derived: derivedNameSchema
-			}),
-			z.object({
-				kind: z.literal('metric'),
-				name: metricNameSchema,
-				aggregate: z.enum(['mean', 'median', 'max']).default('mean')
-			})
-		]),
+		/**
+		 * A fairness metric from `@craftabot/metrics` (WP82, `64-…` §6.4.4) over
+		 * the cells' decisions and verdicts, with its interval and *n*; absent,
+		 * the spread of `of`'s rate across the cohorts, as since WP61.
+		 */
+		metric: fairnessMetricNameSchema.optional(),
+		/** A cohort attribute to stratify the metric by (`conditional-parity` and the like). */
+		stratify: z.string().min(1).optional(),
+		/** The interval's confidence; 0.95 by default. */
+		confidence: z.number().gt(0).lt(1).optional(),
+		/** `required`: an underpowered metric is inconclusive rather than a verdict; `reported` (the default) says so and judges anyway. */
+		power: z.enum(['required', 'reported']).optional(),
+		of: z
+			.discriminatedUnion('kind', [
+				z.object({ kind: z.literal('outcome-rate'), outcome: runOutcomeSchema }),
+				z.object({ kind: z.literal('evaluator-pass-rate'), evaluatorId: z.string().min(1) }),
+				z.object({
+					kind: z.literal('label-rate'),
+					evaluatorId: z.string().min(1),
+					label: z.string().min(1)
+				}),
+				z.object({
+					kind: z.literal('derived-metric'),
+					evaluatorId: z.string().min(1),
+					derived: derivedNameSchema
+				}),
+				z.object({
+					kind: z.literal('metric'),
+					name: metricNameSchema,
+					aggregate: z.enum(['mean', 'median', 'max']).default('mean')
+				})
+			])
+			.optional(),
 		/** Fails when the largest value minus the smallest exceeds this. */
 		maxDifference: z.number().min(0).optional(),
 		/** Fails when the smallest over the largest is below this — `0.8` is the four-fifths rule. */
 		minRatio: z.number().min(0).max(1).optional(),
 		/** The campaign's own claim that its cohorts are matched pairs; the verdict repeats it. Default false. */
 		matched: z.boolean().default(false)
+	}),
+	/**
+	 * A drift gate (WP82, `64-…` §6.4.2, §6.4.4): the selected cells against a
+	 * reference — the baseline report (`fixed`), the population the book was
+	 * drawn from (`population`), or a rolling window a series would supply
+	 * (`rolling`, which a campaign cannot answer and says so). `feature` is
+	 * a cohort attribute or a case metric for `psi`/`ks`, a fairness metric's
+	 * id for `fairness`, and unused for `outcome-mix` and `agreement`.
+	 */
+	z.object({
+		kind: z.literal('drift'),
+		feature: z.string().min(1).optional(),
+		metric: z.enum(['psi', 'ks', 'outcome-mix', 'agreement', 'fairness']),
+		reference: referenceWindowSchema,
+		atMost: z.number().min(0)
 	})
 ]);
 export type GateRequire = z.infer<typeof gateRequireSchema>;
 
-export const gateSchema = z.object({
-	id: z.string().min(1),
-	where: gateWhereSchema.optional(),
-	require: gateRequireSchema
-});
+export const gateSchema = z
+	.object({
+		id: z.string().min(1),
+		where: gateWhereSchema.optional(),
+		require: gateRequireSchema
+	})
+	.refine(
+		(gate) =>
+			gate.require.kind !== 'parity' ||
+			gate.require.of !== undefined ||
+			gate.require.metric !== undefined,
+		{ message: 'a parity gate names a metric, or what to compare (of)' }
+	);
 export type Gate = z.infer<typeof gateSchema>;
 
 export const campaignScenarioSchema = z
@@ -317,11 +399,45 @@ export const campaignBrainSchema = z.object({
 });
 export type CampaignBrain = z.infer<typeof campaignBrainSchema>;
 
-export const campaignSchema = z.object({
+/**
+ * **A book as the source of cells** (WP80, `64-…` §6.6.3; `73-…` §4): a
+ * campaign whose cells come from a book's work items run through a
+ * workflow, rather than from scenarios × seeds — one cell per item × build
+ * × guard × brain, the item's truth as the cell's. The book is inline
+ * (`book`, a `Book` the page drew) or drawn at run time by the workflow's
+ * own `book` from a population at `seed` and `size`. `configuration` is
+ * the workflow's named configuration every build runs unless the build
+ * names its own (`overrides.configuration`). The campaign's `seeds` seed
+ * the seats; the first is used.
+ */
+export const campaignSourceSchema = z.object({
+	kind: z.literal('book'),
+	workflowId: z.string().min(1),
+	configuration: z.string().min(1).optional(),
+	book: bookSchema.optional(),
+	population: z
+		.object({
+			seed: z.number().int(),
+			size: z.number().int().positive(),
+			periodDays: z.number().int().positive().optional()
+		})
+		.optional(),
+	filter: z.unknown().optional(),
+	/** Only the first `limit` items of the book, in its order. */
+	limit: z.number().int().positive().optional()
+});
+export type CampaignSource = z.infer<typeof campaignSourceSchema>;
+
+export const campaignObjectSchema = z.object({
 	schemaVersion: z.literal(CAMPAIGN_SCHEMA_VERSION),
 	id: z.string().min(1),
 	title: z.string().min(1),
-	scenarios: z.array(campaignScenarioSchema).min(1),
+	/** Empty only when `source` names a book (WP80). */
+	scenarios: z.array(campaignScenarioSchema),
+	/** A book through a workflow as the cells (WP80); absent, the scenarios are. */
+	source: campaignSourceSchema.optional(),
+	/** The context ladder as an axis (WP81, `70-…` §6): every cell runs once per rung named; absent, the case file as today, and the cells carry no `context`. */
+	contexts: z.array(contextSpecSchema).min(1).optional(),
 	builds: z.array(campaignBuildSchema).min(1),
 	guards: z.array(campaignGuardSchema).min(1),
 	brains: z.array(campaignBrainSchema).min(1),
@@ -346,7 +462,27 @@ export const campaignSchema = z.object({
 		})
 		.optional()
 });
-export type Campaign = z.infer<typeof campaignSchema>;
+export const campaignSchema = campaignObjectSchema.superRefine((campaign, context) => {
+	if (campaign.scenarios.length === 0 && campaign.source === undefined) {
+		context.addIssue({
+			code: 'custom',
+			path: ['scenarios'],
+			message: 'a campaign runs scenarios, or a book through a workflow (source)'
+		});
+	}
+	if (
+		campaign.source &&
+		campaign.source.book === undefined &&
+		campaign.source.population === undefined
+	) {
+		context.addIssue({
+			code: 'custom',
+			path: ['source'],
+			message: 'a book source carries the book inline, or a population to draw it from'
+		});
+	}
+});
+export type Campaign = z.infer<typeof campaignObjectSchema>;
 
 export function parseCampaign(value: unknown): Campaign {
 	return campaignSchema.parse(value);
@@ -356,6 +492,8 @@ export const campaignCellSchema = z.object({
 	scenario: z.string(),
 	build: z.string(),
 	guard: z.string(),
+	/** The context rung this cell ran at (WP81); written only when the campaign named contexts. */
+	context: z.string().optional(),
 	brain: z.string(),
 	tier: evalTierSchema,
 	seed: z.number().int(),
@@ -375,6 +513,39 @@ export const campaignCellSchema = z.object({
 	cohort: z.record(z.string(), z.string()).optional(),
 	/** The cell's number in the campaign's own order (WP68, `57-…` §2 item 2): what a merge sorts by. Absent on a report written before, which was whole and in order. */
 	ordinal: z.number().int().nonnegative().optional(),
+	/** The work item this cell ran, in a book campaign (WP80). */
+	item: z.object({ id: z.string(), kind: z.string(), customerId: z.string() }).optional(),
+	/**
+	 * The decision the run took and the verdict truth held (WP82): the last
+	 * `decide` performed with an `outcome`, and `truth.facts.verdict` — what
+	 * the fairness metrics fold. Absent on a desk that decides nothing.
+	 */
+	decision: z
+		.object({
+			outcome: z.enum(['approve', 'decline', 'refer']),
+			verdict: z.enum(['approve', 'decline', 'refer']).optional(),
+			repaid: z.boolean().optional()
+		})
+		.optional(),
+	/** The workflow run's account of itself (WP80, `73-…` §4): the stage statuses, the touches a person made, the decisions with the level they were taken at and how many sat above their ceiling. */
+	workflow: z
+		.object({
+			runId: z.string(),
+			configuration: z.string().optional(),
+			autonomy: z.number().int().min(1).max(5).optional(),
+			outcome: z.enum(['completed', 'stopped', 'abandoned']),
+			stages: z.array(
+				z.object({
+					stageId: z.string(),
+					executor: z.enum(['rule', 'agent', 'human', 'line']),
+					status: z.enum(['ok', 'blocked', 'escalated', 'error'])
+				})
+			),
+			touches: z.array(z.string()),
+			decisions: z.array(z.object({ kind: z.string(), level: z.number().int().min(1).max(5) })),
+			breaches: z.number().int().nonnegative()
+		})
+		.optional(),
 	/** The seat across the desk in this cell (WP64): the tier, and for a live seat who sat there. Defaulted so every stored report parses. */
 	counterpart: z
 		.object({
@@ -400,13 +571,21 @@ export const gateVerdictSchema = z.object({
 	inconclusive: z.literal(true).optional(),
 	/** A `parity` verdict (WP61): the campaign's claim that the cohorts were matched, and the number in each value. */
 	matched: z.boolean().optional(),
-	values: z.record(z.string(), z.number()).optional()
+	values: z.record(z.string(), z.number()).optional(),
+	/** The statistics behind a metric verdict (WP82): the interval, the cases it rests on, a test's p, the method, and whether it is underpowered. */
+	interval: z.tuple([z.number(), z.number()]).optional(),
+	n: z.number().int().nonnegative().optional(),
+	p: z.number().optional(),
+	method: z.string().optional(),
+	underpowered: z.boolean().optional(),
+	/** Why a verdict is inconclusive, when it is. */
+	reason: z.string().optional()
 });
 export type GateVerdict = z.infer<typeof gateVerdictSchema>;
 
 export const campaignReportSchema = z.object({
-	/** 2 since WP61; a v1 report parses and is upgraded on read (`parseCampaignReport`). */
-	schemaVersion: z.union([z.literal(1), z.literal(2)]),
+	/** 3 since WP82 (2 since WP61); a v1 or v2 report parses, keeps its version (a `no-regression` gate against it says so) and reads with the v3 panes empty (`parseCampaignReport`). */
+	schemaVersion: z.union([z.literal(1), z.literal(2), z.literal(3)]),
 	id: z.string(),
 	campaignId: z.string(),
 	campaignTitle: z.string(),
@@ -424,7 +603,11 @@ export const campaignReportSchema = z.object({
 			z.object({
 				id: z.string(),
 				agentId: z.string().optional(),
-				agentName: z.string().optional()
+				agentName: z.string().optional(),
+				/** The world's knobs this build ran with (WP78), so a slice by build reads as a slice by knob. */
+				knobs: z.record(z.string(), z.union([z.number(), z.string(), z.boolean()])).optional(),
+				/** The workflow configuration this build ran (WP80), so a slice by build reads as a slice by autonomy level. */
+				configuration: z.string().optional()
 			})
 		)
 		.default([]),
@@ -457,6 +640,7 @@ export type CampaignReport = z.infer<typeof campaignReportSchema>;
  */
 export function parseCampaignReport(value: unknown): CampaignReport {
 	const parsed = campaignReportSchema.parse(value);
+	// An earlier report keeps its version (WP61's rule: another schema is another instrument) and reads with the v3 panes empty — the schema defaults them — since it never computed them (WP82).
 	if (parsed.summary) return parsed;
 	return { ...parsed, summary: summariseCampaign(parsed.cells) };
 }
@@ -491,7 +675,7 @@ export function campaignEnvelope(report: CampaignReport): StoredCampaignReport {
 	};
 }
 
-/** One cell, before it runs: the point in the campaign's five axes. */
+/** One cell, before it runs: the point in the campaign's five axes — or, in a book campaign (WP80), the work item at the point in four. */
 export interface CampaignCellSpec {
 	scenario: CampaignScenario;
 	build: CampaignBuild;
@@ -499,18 +683,87 @@ export interface CampaignCellSpec {
 	brain: CampaignBrain;
 	seed: number;
 	ordinal: number;
+	item?: WorkItem;
+	/** The rung of the context ladder (WP81); absent when the campaign named none. */
+	context?: ContextSpec;
 }
 
-/** Every cell a campaign will run, in the order it will run them — scenarios × builds × guards(applicable) × brains × seeds. */
-export function campaignCells(campaign: Campaign): CampaignCellSpec[] {
+/** The synthetic scenario a book campaign's cells sit in: the workflow's id, its obligations as the tags, no card of its own. */
+export function bookScenario(campaign: Campaign, workflow?: WorkflowSpec): CampaignScenario {
+	const workflowId = campaign.source?.workflowId ?? 'book';
+	return {
+		id: workflowId,
+		goalCardId: workflowId,
+		tags: [...(workflow?.obligations ?? [])],
+		injections: [],
+		fit: []
+	};
+}
+
+/** The items a book campaign runs: the inline book's, or the drawn one's, under `limit`. */
+export function bookItems(campaign: Campaign, book: Book | undefined): WorkItem[] {
+	const source = campaign.source;
+	if (!source) return [];
+	const items = (book ?? source.book)?.items ?? [];
+	return source.limit !== undefined ? items.slice(0, source.limit) : items;
+}
+
+/**
+ * Every cell a campaign will run, in the order it will run them —
+ * scenarios × builds × guards(applicable) × brains × seeds; in a book
+ * campaign, items × builds × guards × brains, the first seed seeding the
+ * seats (WP80). A book source with no book in hand (drawn at run time from
+ * a population) counts no cells until it is prepared.
+ */
+export function campaignCells(
+	campaign: Campaign,
+	book?: Book,
+	workflow?: WorkflowSpec
+): CampaignCellSpec[] {
 	const cells: CampaignCellSpec[] = [];
+	if (campaign.source) {
+		const scenario = bookScenario(campaign, workflow);
+		const seed = campaign.seeds[0] ?? 1;
+		for (const item of bookItems(campaign, book)) {
+			for (const build of campaign.builds) {
+				for (const guard of campaign.guards) {
+					if (guard.for !== undefined && !guard.for.includes(scenario.id)) continue;
+					for (const brain of campaign.brains) {
+						for (const context of campaign.contexts ?? [undefined]) {
+							cells.push({
+								scenario,
+								build,
+								guard,
+								brain,
+								seed,
+								ordinal: cells.length,
+								item,
+								...(context ? { context: context as ContextSpec } : {})
+							});
+						}
+					}
+				}
+			}
+		}
+		return cells;
+	}
 	for (const scenario of campaign.scenarios) {
 		for (const build of campaign.builds) {
 			for (const guard of campaign.guards) {
 				if (guard.for !== undefined && !guard.for.includes(scenario.id)) continue;
 				for (const brain of campaign.brains) {
-					for (const seed of campaign.seeds) {
-						cells.push({ scenario, build, guard, brain, seed, ordinal: cells.length });
+					for (const context of campaign.contexts ?? [undefined]) {
+						for (const seed of campaign.seeds) {
+							cells.push({
+								scenario,
+								build,
+								guard,
+								brain,
+								seed,
+								ordinal: cells.length,
+								...(context ? { context: context as ContextSpec } : {})
+							});
+						}
 					}
 				}
 			}
@@ -528,6 +781,13 @@ export interface RunCampaignOptions {
 	now?: () => string;
 	newId?: () => string;
 	onCell?: (cell: CampaignCell, index: number, total: number) => void;
+	/** A book cell's workflow run with the item it worked and its agent runs (WP86, `77-…` §3) — a host that keeps the Pipeline's rows. */
+	onWorkflowRun?: (entry: {
+		cell: CampaignCell;
+		run: WorkflowRun;
+		item: WorkItem;
+		agentRuns: ReadonlyArray<{ runId: string; events: readonly EngineEvent[]; spec: AgentSpecV2 }>;
+	}) => void;
 	onTrace?: (
 		cell: CampaignCell,
 		trace: { events: readonly EngineEvent[]; spec: AgentSpecV2 }
@@ -576,6 +836,8 @@ export interface PreparedCampaign {
 	cells: CampaignCellSpec[];
 	registry: PackRegistry;
 	noise: NoiseRates;
+	/** The book a book campaign runs (WP80): inline, or drawn here by the workflow from the population named. */
+	book?: Book;
 }
 
 /** The same stride the matrix uses (`runner.ts`), for the same reason: a cell's ids depend only on its position. */
@@ -623,7 +885,48 @@ export function prepareCampaign(
 ): PreparedCampaign {
 	const registry = registryForScenario(options.packs);
 	const campaign = resolveCampaign(unresolved, registry);
+	if (campaign.source) {
+		const workflow = workflowOf(registry, campaign.source);
+		const book = drawBook(campaign.source, workflow);
+		return {
+			campaign,
+			cells: campaignCells(campaign, book, workflow),
+			registry,
+			noise: noiseFor(campaign.noise),
+			book
+		};
+	}
 	return { campaign, cells: campaignCells(campaign), registry, noise: noiseFor(campaign.noise) };
+}
+
+function workflowOf(registry: PackRegistry, source: CampaignSource): WorkflowSpec {
+	const workflow = registry.getWorkflow(source.workflowId);
+	if (!workflow) {
+		const known = registry.listWorkflows().map((entry) => entry.id);
+		throw new Error(
+			`campaign source names workflow "${source.workflowId}", which no pack ships${known.length > 0 ? ` (installed: ${known.join(', ')})` : ''}`
+		);
+	}
+	return workflow;
+}
+
+/** The book in hand, or the one the workflow draws from the population named — the same bytes at the same seed and size wherever it is drawn. */
+function drawBook(source: CampaignSource, workflow: WorkflowSpec): Book {
+	if (source.book) return source.book;
+	const population = source.population;
+	if (!population)
+		throw new Error('a book source carries the book inline, or a population to draw it from');
+	if (!workflow.book) {
+		throw new Error(
+			`workflow "${workflow.id}" draws no book of its own; hand the campaign one inline`
+		);
+	}
+	return workflow.book({
+		seed: population.seed,
+		size: population.size,
+		...(population.periodDays !== undefined ? { periodDays: population.periodDays } : {}),
+		...(source.filter !== undefined ? { filter: source.filter } : {})
+	});
 }
 
 /**
@@ -706,7 +1009,8 @@ export async function runCampaign(
 	const gates = campaign.gates.map((gate) =>
 		evaluateGate(gate, results, options.baseline, {
 			semantics,
-			counterpart: campaign.counterpart ?? { tier: 'scripted' }
+			counterpart: campaign.counterpart ?? { tier: 'scripted' },
+			...(prepared.book ? { book: prepared.book } : {})
 		})
 	);
 	return {
@@ -721,14 +1025,20 @@ export async function runCampaign(
 			id: build.id,
 			...(build.base.kind === 'kit'
 				? { agentId: build.base.kit.agent.id, agentName: build.base.kit.agent.name }
-				: {})
+				: {}),
+			...(build.overrides?.knobs ? { knobs: build.overrides.knobs } : {}),
+			...(build.overrides?.configuration !== undefined
+				? { configuration: build.overrides.configuration }
+				: campaign.source?.configuration !== undefined
+					? { configuration: campaign.source.configuration }
+					: {})
 		})),
 		cells: results,
 		gates,
 		passed: gates.every((gate) => gate.passed),
 		counterpart: campaign.counterpart ?? { tier: 'scripted' },
 		...(options.shard ? { shard: { ...options.shard } } : {}),
-		summary: summariseCampaign(results, { semantics }),
+		summary: summariseCampaign(results, { semantics, gates }),
 		budget: {
 			// A live seat is a live cell whatever the agent's brain (WP64).
 			liveCells: results.filter((cell) => cell.tier === 'live' || cell.counterpart?.tier === 'live')
@@ -837,11 +1147,25 @@ async function runCell(
 		tier: brain.tier,
 		seed,
 		tags: scenario.tags,
+		...(cell.context ? { context: cell.context.id } : {}),
 		ordinal: cell.ordinal
 	};
 	const empty = () => Object.fromEntries(campaign.assertionCards.map((card) => [card.id, false]));
 
 	try {
+		// A work item through a workflow (WP80): the journey, not a session, is the cell.
+		if (cell.item && campaign.source) {
+			return await runBookCell(
+				cell,
+				cell.item,
+				campaign,
+				noise,
+				options,
+				registry,
+				tally,
+				identity
+			);
+		}
 		const spec = specFor(cell);
 		const goalCardId = goalCardOf(scenario);
 		const script = scriptFor(brain.tier, goalCardId, seed, noise, options.plans ?? starterPlans);
@@ -862,14 +1186,19 @@ async function runCell(
 		// parity gate has cohorts to compare. An injected world is built here with the same seed.
 		// The world's injections and the session's faults, apart (WP72, `61-…` §2 item 2).
 		const { world: worldInjections, faults: providerFaults } = splitInjections(scenario.injections);
+		// A build's knobs reach the world at `create` (WP78), so the world is built here as an injected one is.
+		const knobs = build.overrides?.knobs;
+		// The rung of the context ladder reaches the world beside the knobs (WP81).
+		const worldConfig = worldConfigFor(knobs, cell.context);
 		const world =
-			worldInjections.length > 0
+			worldInjections.length > 0 || worldConfig !== undefined
 				? injectedWorld(
 						registry,
 						goalCardId,
 						worldInjections,
 						scenario.id,
-						createTestClock({ seed }).random
+						createTestClock({ seed }).random,
+						worldConfig
 					)
 				: undefined;
 		const run = await runToCompletion({
@@ -898,10 +1227,12 @@ async function runCell(
 			if (value !== undefined && Number.isFinite(value)) caseMetrics[metric.id] = value;
 		}
 		const cohort = cohortOf(truth);
+		const decision = decisionOf(run.events, truth);
 		const scored: CampaignCell = {
 			...identity,
 			...(started ? { runId: started.runId } : {}),
 			...(run.outcome !== undefined ? { outcome: run.outcome as RunOutcome } : {}),
+			...(decision ? { decision } : {}),
 			metrics: scoreRun(run.events),
 			assertions: Object.fromEntries(
 				campaign.assertionCards.map((card) => [card.id, evaluateAssertion(card, run.events).pass])
@@ -924,6 +1255,158 @@ async function runCell(
 			error: error instanceof Error ? error.message : String(error)
 		};
 	}
+}
+
+/**
+ * **A book cell** (WP80, `73-…` §4): one work item through the workflow the
+ * source names, under the build's configuration (its own, or the source's)
+ * with the build's knobs over the configuration's — the bot the build and
+ * the guard fit at every agent stage, its plan looked up by the stage
+ * card's id, the stage guards compiled from the policy cards they name,
+ * every human stage answered by the workflow's own suggestion (a campaign
+ * has no person). Scored over the workflow's events followed by every
+ * agent run's, with the desk's truth as the journey left it — so the
+ * evaluators, the assertions, the world's metrics and the cohort read as
+ * a single-seat cell's do. The cell's `runId` is the last agent run's,
+ * for the Run Lab; the workflow run's own id is on `cell.workflow`.
+ */
+async function runBookCell(
+	cell: CampaignCellSpec,
+	item: WorkItem,
+	campaign: Campaign,
+	noise: NoiseRates,
+	options: RunCampaignOptions,
+	registry: PackRegistry,
+	tally: SpendTally,
+	identity: Omit<
+		CampaignCell,
+		'metrics' | 'assertions' | 'evaluations' | 'labels' | 'caseMetrics' | 'counterpart'
+	>
+): Promise<CampaignCell> {
+	const { scenario, build, brain, seed } = cell;
+	const source = campaign.source as CampaignSource;
+	const workflow = workflowOf(registry, source);
+	const configurationId = build.overrides?.configuration ?? source.configuration;
+	const named =
+		configurationId === undefined ? undefined : workflow.configurations?.[configurationId];
+	if (configurationId !== undefined && !named) {
+		throw new Error(
+			`build "${build.id}" names configuration "${configurationId}", which workflow "${workflow.id}" does not have`
+		);
+	}
+	const knobs = { ...(named?.knobs ?? {}), ...(build.overrides?.knobs ?? {}) };
+	const config: WorkflowConfig = {
+		...(named ?? {}),
+		...(Object.keys(knobs).length > 0 ? { knobs } : {}),
+		...(cell.context ? { context: cell.context } : {})
+	};
+	const spec = specFor(cell);
+	const seat = createTestClock({ seed, idOffset: cell.ordinal * ID_STRIDE });
+	const journey = createTestClock({ seed, idOffset: cell.ordinal * ID_STRIDE + ID_STRIDE / 2 });
+	const agentRuns: Array<{ runId: string; events: EngineEvent[]; spec: AgentSpecV2 }> = [];
+	let truth: unknown;
+	const packs = [starterPack, ...(options.packs ?? [])].filter(
+		(pack, index, all) => all.findIndex((other) => other.id === pack.id) === index
+	);
+	const run = await runWorkflow(workflow, item, {
+		packs,
+		spec,
+		config,
+		providerFor: (_stage, goalCardId) =>
+			brain.tier === 'live'
+				? providerForLive(brain, options)
+				: createMockProvider({
+						script: scriptFor(brain.tier, goalCardId, seed, noise, options.plans ?? starterPlans)
+					}),
+		guardrailsFor: (cardIds) =>
+			cardIds.flatMap((id): Guardrail[] => {
+				const card = registry.getPolicyCard(id);
+				if (!card) throw new Error(`stage guard names policy card "${id}", which no pack ships`);
+				return compilePolicyCard(card);
+			}),
+		now: journey.now,
+		newId: journey.newId,
+		random: journey.random,
+		session: {
+			now: seat.now,
+			newId: seat.newId,
+			random: seat.random,
+			tickDelayMs: 0,
+			...(options.egress !== undefined ? { egress: options.egress } : {}),
+			...(options.principal !== undefined ? { principal: options.principal } : {})
+		},
+		...(options.egress !== undefined ? { egress: options.egress } : {}),
+		...(options.principal !== undefined ? { principal: options.principal } : {}),
+		onAgentRun: (agentRun) => {
+			agentRuns.push({
+				runId: agentRun.runId,
+				events: agentRun.events,
+				spec: toSpecV2(agentRun.spec)
+			});
+		},
+		onFinished: (world) => {
+			truth = world.truth?.();
+		}
+	});
+
+	const events: EngineEvent[] = [
+		...agentRuns.flatMap((agentRun) => agentRun.events),
+		...run.events
+	];
+	const judged = await evaluateCell(campaign, events, options, scenario, tally, truth);
+	const worldDefinition = registry.getWorld(workflow.worldId);
+	const caseMetrics: Record<string, number> = {};
+	for (const metric of worldDefinition?.metrics ?? []) {
+		const value = metric.fold(events, truth);
+		if (value !== undefined && Number.isFinite(value)) caseMetrics[metric.id] = value;
+	}
+	const cohort = cohortOf(truth) ?? cohortOf(item.truth);
+	const decision = decisionOf(events, truth ?? item.truth);
+	const touched = touchedCaseOf(run, workflow.decisionKindOf);
+	const ceilings = config.autonomy?.ceilings ?? {};
+	const breaches = (touched.decisions ?? []).filter((decision) => {
+		const ceiling = ceilings[decision.kind];
+		return ceiling !== undefined && decision.level > ceiling;
+	}).length;
+	const last = agentRuns.at(-1);
+	const outcome: RunOutcome =
+		run.outcome === 'completed'
+			? 'SUCCESS'
+			: run.stages.some((stage) => stage.status === 'blocked')
+				? 'STOPPED_BY_GUARDRAIL'
+				: 'ERROR';
+	const scored: CampaignCell = {
+		...identity,
+		...(last ? { runId: last.runId } : {}),
+		outcome,
+		metrics: scoreRun(events),
+		assertions: Object.fromEntries(
+			campaign.assertionCards.map((card) => [card.id, evaluateAssertion(card, events).pass])
+		),
+		evaluations: judged.verdicts,
+		labels: judged.labels,
+		caseMetrics,
+		...(cohort ? { cohort } : {}),
+		...(decision ? { decision } : {}),
+		item: { id: item.id, kind: item.kind, customerId: item.customerId },
+		workflow: {
+			runId: run.id,
+			...(configurationId !== undefined ? { configuration: configurationId } : {}),
+			...(config.autonomy ? { autonomy: config.autonomy.level } : {}),
+			outcome: run.outcome,
+			stages: run.stages.map((stage) => ({
+				stageId: stage.stageId,
+				executor: stage.executor.kind,
+				status: stage.status
+			})),
+			touches: touched.touches.map((touch) => touch.kind),
+			decisions: touched.decisions ?? [],
+			breaches
+		}
+	};
+	if (last) options.onTrace?.(scored, { events: last.events, spec: last.spec });
+	options.onWorkflowRun?.({ cell: scored, run, item, agentRuns });
+	return scored;
 }
 
 /**
@@ -956,7 +1439,7 @@ async function runDuoCell(
 		maxTicks?: number;
 	}
 ): Promise<CampaignCell> {
-	const { scenario, guard, brain, seed } = cell;
+	const { scenario, build, guard, brain, seed } = cell;
 	const { identity, spec, goalCardId, script, maxTicks } = prepared;
 	const counterpart = campaign.counterpart as CampaignCounterpart;
 	const cartridgeId = counterpart.cartridgeId ?? '';
@@ -964,10 +1447,22 @@ async function runDuoCell(
 	// The world is made here and handed to the group (`56-…` §4.1): injected
 	// and seeded as a single seat's is, and read for the person it seated.
 	const { card, world: worldDefinition } = deskFor(registry, goalCardId);
+	const knobs = build.overrides?.knobs;
+	const duoConfig = worldConfigFor(knobs, cell.context);
 	const world =
 		scenario.injections.length > 0
-			? injectedWorld(registry, goalCardId, scenario.injections, scenario.id, clock.random)
-			: worldDefinition.create(card.layoutId, { random: clock.random });
+			? injectedWorld(
+					registry,
+					goalCardId,
+					scenario.injections,
+					scenario.id,
+					clock.random,
+					duoConfig
+				)
+			: worldDefinition.create(card.layoutId, {
+					random: clock.random,
+					...(duoConfig !== undefined ? { config: duoConfig } : {})
+				});
 	const { script: seatScript } = counterpartScriptFor(registry, goalCardId, world);
 	const seat = counterpartSpec(
 		seatScript,
@@ -1031,10 +1526,12 @@ async function runDuoCell(
 		if (value !== undefined && Number.isFinite(value)) caseMetrics[metric.id] = value;
 	}
 	const cohort = cohortOf(truth);
+	const duoDecision = decisionOf(events, truth);
 	const scored: CampaignCell = {
 		...identity,
 		...(agentRunId !== undefined ? { runId: agentRunId } : {}),
 		outcome: agentOutcome,
+		...(duoDecision ? { decision: duoDecision } : {}),
 		metrics: scoreRun(events),
 		assertions: Object.fromEntries(
 			campaign.assertionCards.map((card) => [card.id, evaluateAssertion(card, events).pass])
@@ -1098,7 +1595,9 @@ async function evaluateCell(
 	events: readonly EngineEvent[],
 	options: RunCampaignOptions,
 	scenario: CampaignScenario,
-	tally: SpendTally
+	tally: SpendTally,
+	/** The truth handed over directly (WP80): a workflow with no agent stage leaves no `run.finished` to carry it. */
+	truthGiven?: unknown
 ): Promise<{
 	verdicts: Record<string, 'pass' | 'fail' | 'inconclusive'>;
 	labels: Record<string, string>;
@@ -1111,7 +1610,9 @@ async function evaluateCell(
 		if (!registry.listPacks().some((installed) => installed.id === pack.id))
 			registry.registerPack(pack);
 	}
-	const input = evaluationInputFor(events, undefined, scenario);
+	const read = evaluationInputFor(events, undefined, scenario);
+	const input =
+		truthGiven !== undefined && read.truth === undefined ? { ...read, truth: truthGiven } : read;
 	const verdicts: Record<string, 'pass' | 'fail' | 'inconclusive'> = {};
 	for (const named of campaign.evaluators) {
 		const evaluator = resolveEvaluator(registry, named.id);
@@ -1176,13 +1677,28 @@ function fit(spec: AgentSpecV2, bricks: readonly FittedBrick[]): AgentSpecV2 {
 	return { ...spec, bricks: [...kept, ...bricks] };
 }
 
+/** The world's create-time config for a cell (WP78, WP81): the build's knobs and the cell's context rung, or nothing. */
+function worldConfigFor(
+	knobs: Record<string, number | string | boolean> | undefined,
+	context: ContextSpec | undefined
+): Record<string, unknown> | undefined {
+	if (knobs === undefined && context === undefined) return undefined;
+	return {
+		...(knobs !== undefined ? { knobs } : {}),
+		...(context !== undefined ? { context } : {})
+	};
+}
+
 /** `exactOptionalPropertyTypes`: a parsed optional is `T | undefined`, which `SpecOverrides` does not admit — drop the undefineds. */
 function cleanOverrides(
 	overrides: CampaignBuild['overrides']
 ): Omit<SpecOverrides, 'goalCardId' | 'tools'> {
 	if (!overrides) return {};
 	return Object.fromEntries(
-		Object.entries(overrides).filter(([, value]) => value !== undefined)
+		// `knobs` are the world's and `configuration` the workflow's, not the spec's (WP78, WP80).
+		Object.entries(overrides).filter(
+			([key, value]) => key !== 'knobs' && key !== 'configuration' && value !== undefined
+		)
 	) as Omit<SpecOverrides, 'goalCardId' | 'tools'>;
 }
 
@@ -1235,6 +1751,8 @@ export interface GateOptions {
 	semantics?: (evaluatorId: string) => ConfusionLabelSemantics | undefined;
 	/** Which instrument the report being gated is (WP64); a `no-regression` gate refuses a baseline of the other. */
 	counterpart?: CampaignCounterpart;
+	/** The book a book campaign ran (WP82): a `drift` gate's `population` reference is its items' truth. */
+	book?: Book;
 }
 
 export function evaluateGate(
@@ -1363,7 +1881,10 @@ export function evaluateGate(
 			observed = value;
 			break;
 		}
+		case 'drift':
+			return driftVerdict(base, selected, require, baseline, options);
 		case 'parity': {
+			if (require.metric !== undefined) return fairnessVerdict(base, selected, require);
 			const values = parityValues(selected, require, options);
 			const required = describeRequirement(require);
 			if (Object.keys(values).length < 2) {
@@ -1383,7 +1904,8 @@ export function evaluateGate(
 				observed: require.maxDifference !== undefined ? difference : ratio,
 				passed: held,
 				matched: require.matched,
-				values
+				values,
+				n: selected.filter((cell) => cell.cohort?.[require.across] !== undefined).length
 			};
 		}
 	}
@@ -1391,6 +1913,314 @@ export function evaluateGate(
 		(require.atLeast === undefined || observed >= require.atLeast - 1e-9) &&
 		(require.atMost === undefined || observed <= require.atMost + 1e-9);
 	return { ...base, required: describeRequirement(require), observed, passed };
+}
+
+type Outcome = 'approve' | 'decline' | 'refer';
+const OUTCOMES = new Set<string>(['approve', 'decline', 'refer']);
+const isOutcome = (value: string | undefined): value is Outcome =>
+	value !== undefined && OUTCOMES.has(value);
+const isCase = (value: DecidedCase | undefined): value is DecidedCase => value !== undefined;
+
+type VerdictBase = Pick<GateVerdict, 'id' | 'kind' | 'where' | 'cells'>;
+
+/** A cell as the fairness metrics read it (WP82): the cohort's value as the group, its decision and verdict, a stratum when asked. */
+function decidedCases(
+	cells: readonly CampaignCell[],
+	across: string,
+	stratify?: string
+): DecidedCase[] {
+	const cases: DecidedCase[] = [];
+	for (const cell of cells) {
+		const group = cell.cohort?.[across];
+		if (group === undefined || !cell.decision) continue;
+		cases.push({
+			group,
+			decision: cell.decision.outcome,
+			verdict: cell.decision.verdict,
+			repaid: cell.decision.repaid,
+			stratum: stratify !== undefined ? cell.cohort?.[stratify] : undefined
+		});
+	}
+	return cases;
+}
+
+/** A `parity` gate with a metric (WP82): the fairness metric over the cells' decisions, judged on its value with its interval and *n*. */
+function fairnessVerdict(
+	base: VerdictBase,
+	selected: readonly CampaignCell[],
+	require: Extract<GateRequire, { kind: 'parity' }>
+): GateVerdict {
+	const required = describeRequirement(require);
+	const metric = require.metric as FairnessMetricId;
+	if (metric === 'counterfactual-flip') {
+		return {
+			...base,
+			required,
+			passed: true,
+			inconclusive: true,
+			matched: require.matched,
+			reason:
+				'counterfactual-flip needs a flipped run per case — the Run Lab’s fork, not a campaign gate'
+		};
+	}
+	const cases = decidedCases(selected, require.across, require.stratify);
+	if (cases.length === 0 || new Set(cases.map((c) => c.group)).size < 2) {
+		return {
+			...base,
+			required,
+			passed: true,
+			inconclusive: true,
+			matched: require.matched,
+			n: cases.length,
+			reason: 'fewer than two cohorts with a decision'
+		};
+	}
+	const result = fairnessMetric(metric, cases, {
+		...(require.confidence !== undefined ? { confidence: require.confidence } : {}),
+		...(require.stratify !== undefined ? { stratify: 'stratum' } : {})
+	});
+	const ratio = metric === 'disparate-impact';
+	const held =
+		(require.maxDifference === undefined ||
+			ratio ||
+			result.value <= require.maxDifference + 1e-9) &&
+		(require.minRatio === undefined || !ratio || result.value >= require.minRatio - 1e-9);
+	const statistics = {
+		observed: result.value,
+		interval: result.interval,
+		n: cases.length,
+		...(result.p !== undefined ? { p: result.p } : {}),
+		method: result.method,
+		underpowered: result.underpowered,
+		matched: require.matched,
+		values: result.rates
+	};
+	if (require.power === 'required' && result.underpowered) {
+		return {
+			...base,
+			required,
+			...statistics,
+			passed: true,
+			inconclusive: true,
+			reason: `underpowered: ${cases.length} decided cases`
+		};
+	}
+	return { ...base, required, ...statistics, passed: held };
+}
+
+/** A `drift` gate (WP82): the selected cells against the reference the window names. */
+function driftVerdict(
+	base: VerdictBase,
+	selected: readonly CampaignCell[],
+	require: Extract<GateRequire, { kind: 'drift' }>,
+	baseline: CampaignReport | undefined,
+	options: GateOptions
+): GateVerdict {
+	const required = describeRequirement(require);
+	const inconclusive = (reason: string): GateVerdict => ({
+		...base,
+		required,
+		passed: true,
+		inconclusive: true,
+		reason
+	});
+	const window = require.reference;
+	if (window.kind === 'rolling') {
+		return inconclusive(
+			'a rolling window needs a series of reports — the Monitor reads one; a campaign is one point'
+		);
+	}
+	// The reference: the baseline report's cells, or the book's items as truth.
+	let referenceCells: CampaignCell[] | undefined;
+	let referenceItems: Book['items'] | undefined;
+	if (window.kind === 'fixed') {
+		if (!baseline) return inconclusive('no baseline report to compare with');
+		if (window.reportId !== undefined && baseline.id !== window.reportId) {
+			return inconclusive(`the baseline report is ${baseline.id}, not ${window.reportId}`);
+		}
+		referenceCells = selectCells(base.where, baseline.cells);
+	} else {
+		if (!options.book)
+			return inconclusive(
+				'no book to read the population from — a population reference wants a book campaign'
+			);
+		if (window.digest !== undefined && options.book.source.populationDigest !== window.digest) {
+			return inconclusive(
+				`the book’s population is ${options.book.source.populationDigest}, not ${window.digest}`
+			);
+		}
+		referenceItems = options.book.items;
+	}
+	const verdictOf = (item: Book['items'][number]): string | undefined => {
+		const label = item.truth.facts?.['verdict'];
+		return typeof label === 'string' ? label.replace(/^should-/, '') : undefined;
+	};
+	const cohortOfItem = (item: Book['items'][number], attribute: string): string | undefined =>
+		item.truth.cohort?.[attribute];
+	let value: number;
+	let method: string;
+	let n: number;
+	let p: number | undefined;
+	switch (require.metric) {
+		case 'psi': {
+			const feature = require.feature;
+			if (feature === undefined) return inconclusive('psi wants a feature');
+			const current = selected
+				.map((cell) => cell.cohort?.[feature])
+				.filter((v): v is string => v !== undefined);
+			const numericCurrent = selected
+				.map((cell) => cell.caseMetrics[feature])
+				.filter((v): v is number => v !== undefined);
+			if (referenceItems) {
+				const reference = referenceItems
+					.map((item) => cohortOfItem(item, feature))
+					.filter((v): v is string => v !== undefined);
+				if (reference.length === 0 || current.length === 0)
+					return inconclusive(`no cohort attribute "${feature}" on both sides`);
+				const result = psiCategorical(reference, current);
+				value = result.value;
+				method = result.method;
+				n = current.length;
+			} else if (numericCurrent.length > 0) {
+				const reference = (referenceCells ?? [])
+					.map((cell) => cell.caseMetrics[feature])
+					.filter((v): v is number => v !== undefined);
+				if (reference.length === 0)
+					return inconclusive(`no case metric "${feature}" in the baseline`);
+				const result = psiNumeric(reference, numericCurrent);
+				value = result.value;
+				method = result.method;
+				n = numericCurrent.length;
+			} else {
+				const reference = (referenceCells ?? [])
+					.map((cell) => cell.cohort?.[feature])
+					.filter((v): v is string => v !== undefined);
+				if (reference.length === 0 || current.length === 0)
+					return inconclusive(`no cohort attribute "${feature}" on both sides`);
+				const result = psiCategorical(reference, current);
+				value = result.value;
+				method = result.method;
+				n = current.length;
+			}
+			break;
+		}
+		case 'ks': {
+			const feature = require.feature;
+			if (feature === undefined) return inconclusive('ks wants a feature');
+			if (referenceItems)
+				return inconclusive(
+					'ks compares a case metric with the baseline’s; the population carries none'
+				);
+			const current = selected
+				.map((cell) => cell.caseMetrics[feature])
+				.filter((v): v is number => v !== undefined);
+			const reference = (referenceCells ?? [])
+				.map((cell) => cell.caseMetrics[feature])
+				.filter((v): v is number => v !== undefined);
+			if (current.length === 0 || reference.length === 0)
+				return inconclusive(`no case metric "${feature}" on both sides`);
+			const result = ksDrift(reference, current);
+			value = result.value;
+			method = result.method;
+			n = current.length;
+			p = result.p;
+			break;
+		}
+		case 'outcome-mix': {
+			const current = selected.map((cell) => cell.decision?.outcome).filter(isOutcome);
+			const reference: string[] = referenceItems
+				? referenceItems.map(verdictOf).filter(isOutcome)
+				: (referenceCells ?? []).map((cell) => cell.decision?.outcome).filter(isOutcome);
+			if (current.length === 0 || reference.length === 0)
+				return inconclusive('no decisions on both sides');
+			const result = outcomeMixDistance(reference, current);
+			value = result.value;
+			method = result.method;
+			n = current.length;
+			break;
+		}
+		case 'agreement': {
+			const toCase = (cell: CampaignCell): DecidedCase | undefined =>
+				cell.decision
+					? { group: 'all', decision: cell.decision.outcome, verdict: cell.decision.verdict }
+					: undefined;
+			const current = selected.map(toCase).filter(isCase);
+			const reference: DecidedCase[] = referenceItems
+				? referenceItems
+						.map(verdictOf)
+						.filter(isOutcome)
+						.map((v) => ({ group: 'all', decision: v, verdict: v }))
+				: (referenceCells ?? []).map(toCase).filter(isCase);
+			if (current.length === 0 || reference.length === 0)
+				return inconclusive('no decisions with a verdict on both sides');
+			const result = agreementDrift(reference, current);
+			value = Math.abs(result.value);
+			method = result.method;
+			n = result.n.current;
+			break;
+		}
+		case 'fairness': {
+			const metric = require.feature as FairnessMetricId | undefined;
+			if (
+				metric === undefined ||
+				!FAIRNESS_METRIC_IDS.includes(metric) ||
+				metric === 'counterfactual-flip'
+			) {
+				return inconclusive(
+					'fairness wants a fairness metric as its feature, and an across in the gate’s where is not enough — name the metric'
+				);
+			}
+			if (referenceItems)
+				return inconclusive('fairness drift compares two reports; the population is one');
+			const across = 'ageBand';
+			const current = decidedCases(selected, across);
+			const reference = decidedCases(referenceCells ?? [], across);
+			if (current.length === 0 || reference.length === 0)
+				return inconclusive('no decided cases with a cohort on both sides');
+			const result = fairnessDrift(metric, reference, current);
+			value = Math.abs(result.value);
+			method = result.method;
+			n = result.n.current;
+			break;
+		}
+	}
+	return {
+		...base,
+		required,
+		observed: value,
+		passed: value <= require.atMost + 1e-9,
+		n,
+		method,
+		...(p !== undefined ? { p } : {})
+	};
+}
+
+/** The decision a run took and the verdict truth held (WP82): the last `decide` with an outcome, and `truth.facts.verdict`. */
+export function decisionOf(
+	events: readonly EngineEvent[],
+	truth: unknown
+): CampaignCell['decision'] | undefined {
+	const outcomes = new Set(['approve', 'decline', 'refer']);
+	let outcome: string | undefined;
+	for (const event of events) {
+		if (event.type !== 'action.performed' || !event.payload.result.ok) continue;
+		if (!event.payload.name.endsWith('decide')) continue;
+		const candidate = (event.payload.arguments as { outcome?: unknown } | undefined)?.outcome;
+		if (typeof candidate === 'string' && outcomes.has(candidate)) outcome = candidate;
+	}
+	const facts = (truth as { facts?: Record<string, unknown> } | undefined)?.facts;
+	const verdictLabel = facts?.['verdict'];
+	const verdict =
+		typeof verdictLabel === 'string' ? verdictLabel.replace(/^should-/, '') : undefined;
+	if (outcome === undefined) return undefined;
+	const defaulted = facts?.['defaultedWithin12m'];
+	return {
+		outcome: outcome as 'approve' | 'decline' | 'refer',
+		...(verdict !== undefined && outcomes.has(verdict)
+			? { verdict: verdict as 'approve' | 'decline' | 'refer' }
+			: {}),
+		...(typeof defaulted === 'boolean' ? { repaid: !defaulted } : {})
+	};
 }
 
 /** The cells a gate's `where` names — exported so a renderer can list a failed gate's runs. */
@@ -1407,6 +2237,7 @@ function matches(where: GateWhere | undefined, cell: CampaignCell): boolean {
 	if (where.build !== undefined && cell.build !== where.build) return false;
 	if (where.guard !== undefined && cell.guard !== where.guard) return false;
 	if (where.brain !== undefined && cell.brain !== where.brain) return false;
+	if (where.context !== undefined && cell.context !== where.context) return false;
 	if (where.tag !== undefined && !cell.tags.includes(where.tag)) return false;
 	if (where.cohort !== undefined) {
 		const at = where.cohort.indexOf('=');
@@ -1465,8 +2296,9 @@ function parityValues(
 		else groups.set(value, [cell]);
 	}
 	const values: Record<string, number> = {};
+	const of = require.of;
+	if (!of) return {};
 	for (const [value, mine] of groups) {
-		const of = require.of;
 		let number: number | undefined;
 		switch (of.kind) {
 			case 'outcome-rate':
@@ -1576,8 +2408,17 @@ export function describeRequirement(require: GateRequire): string {
 			return `${require.evaluatorId} ${require.derived} ${bounds(require.atLeast, require.atMost)}`;
 		case 'label-rate':
 			return `${require.evaluatorId} label "${require.label}" rate ${bounds(require.atLeast, require.atMost)}`;
+		case 'drift':
+			return `${require.metric}${require.feature ? ` over ${require.feature}` : ''} against the ${require.reference.kind} reference: ≤ ${require.atMost}`;
 		case 'parity': {
 			const of = require.of;
+			if (require.metric !== undefined || !of) {
+				const bound = [
+					...(require.maxDifference !== undefined ? [`≤ ${require.maxDifference}`] : []),
+					...(require.minRatio !== undefined ? [`ratio ≥ ${require.minRatio}`] : [])
+				].join(' and ');
+				return `${require.metric ?? 'parity'} across ${require.across}${require.stratify ? ` within ${require.stratify}` : ''}: ${bound || '(no bound)'}${require.power === 'required' ? ' (power required)' : ''}${require.matched ? '' : ' (unmatched cohorts)'}`;
+			}
 			const measure =
 				of.kind === 'outcome-rate'
 					? `${of.outcome} rate`

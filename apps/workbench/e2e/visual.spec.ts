@@ -1,5 +1,12 @@
 import { expect, test } from '@playwright/test';
-import { awaitRunSaved, buildDeskBotAndGo, buildReadyBot, skipTutorial } from './support.js';
+import {
+	awaitRunSaved,
+	buildDeskBotAndGo,
+	buildReadyBot,
+	pinScrollbars,
+	settle,
+	skipTutorial
+} from './support.js';
 
 /**
  * **The visual-regression set** (WP57 stage C, `44-…` §4.6): the first
@@ -12,7 +19,10 @@ import { awaitRunSaved, buildDeskBotAndGo, buildReadyBot, skipTutorial } from '.
  * flight, reduced motion on.
  */
 test.use({ reducedMotion: 'reduce', viewport: { width: 1280, height: 800 } });
-test.beforeEach(async ({ page }) => skipTutorial(page));
+test.beforeEach(async ({ page }) => {
+	await skipTutorial(page);
+	await pinScrollbars(page);
+});
 
 async function openTheWorkshopDoor(page: import('@playwright/test').Page) {
 	await page.goto('/settings');
@@ -77,5 +87,6 @@ test('the assurance pack', async ({ page }) => {
 	const agentId = await buildReadyBot(page, 'card-snack');
 	await page.goto(`/workshop/assurance?agent=${agentId}`);
 	await expect(page.getByTestId('assurance-control-table')).toBeVisible();
+	await settle(page);
 	await expect(page).toHaveScreenshot('workshop-assurance.png', { fullPage: true });
 });

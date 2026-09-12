@@ -1,0 +1,9 @@
+[
+	{
+		"id": "lending",
+		"workflowId": "fs-lending/lending",
+		"kinds": ["application"],
+		"configuration": "bot-with-a-person-at-the-decision",
+		"concurrency": 4
+	}
+]

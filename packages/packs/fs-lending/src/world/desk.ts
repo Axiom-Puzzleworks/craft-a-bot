@@ -4,9 +4,16 @@ import {
 	type DeskState,
 	type DeskWorldSpec
 } from '@craftabot/desk';
+import type { WorkItem } from '@craftabot/core';
+import { bankContextRecords } from '@craftabot/pack-fs-bank';
 import { z } from 'zod';
 import { lendingStrings } from '../strings.js';
-import { lendingCase, LENDING_CASE_KINDS, type LendingCaseKind } from './cases.js';
+import {
+	lendingCase,
+	lendingCaseFromItem,
+	LENDING_CASE_KINDS,
+	type LendingCaseKind
+} from './cases.js';
 import {
 	APPLICATION_ITEM,
 	PAYSLIP_RECORD,
@@ -14,7 +21,14 @@ import {
 	WORKSHEET_RECORD,
 	type LendingExtra
 } from './extra.js';
-import { OUTCOMES, REASON_CODES, isReasonCode, type ReasonCode } from './rules.js';
+import {
+	OUTCOMES,
+	REASON_CODES,
+	isReasonCode,
+	lendingPolicyFrom,
+	type LendingPolicy,
+	type ReasonCode
+} from './rules.js';
 
 /**
  * **The Lending Desk** (WP63 stage A, `52-FS-LENDING.md` §4.2): the lending
@@ -41,11 +55,38 @@ const LAYOUT_NAMES: Record<LendingCaseKind, string> = {
 	'support-need-skip': 'The support need that skips the check'
 };
 
-export const lendingLayouts = LENDING_CASE_KINDS.map((kind) => ({
-	id: kind,
-	name: LAYOUT_NAMES[kind],
-	case: (random: () => number) => lendingCase(random, kind)
-}));
+/** The policy a create-time or configured `config` names (WP78): `config.knobs`, the defaults without. */
+export const knobsOf = (config: Record<string, unknown> | undefined): LendingPolicy =>
+	lendingPolicyFrom(config?.['knobs']);
+const policyOf = (state: LendingDeskState): LendingPolicy => knobsOf(state.config);
+
+/**
+ * The work-item layout (WP80, `64-…` §6.2.3 `intake`): the case built from
+ * the `item` a workflow's intake hands over in the create-time config — a
+ * book's applicant on the desk. Without an item (the conformance sweep
+ * creates every layout bare) it is the borderline case, so the layout is
+ * always a case.
+ */
+export const WORK_ITEM_LAYOUT = 'work-item';
+
+export const lendingLayouts = [
+	...LENDING_CASE_KINDS.map((kind) => ({
+		id: kind,
+		name: LAYOUT_NAMES[kind],
+		case: (random: () => number, config?: Record<string, unknown>) =>
+			lendingCase(random, kind, knobsOf(config))
+	})),
+	{
+		id: WORK_ITEM_LAYOUT,
+		name: 'A work item from the book',
+		case: (random: () => number, config?: Record<string, unknown>) => {
+			const item = config?.['item'];
+			return item !== undefined && item !== null
+				? lendingCaseFromItem(random, item as WorkItem, knobsOf(config))
+				: lendingCase(random, 'borderline-refer', knobsOf(config));
+		}
+	}
+];
 
 const money = (value: number): string => `£${value.toLocaleString('en-GB')}`;
 const factsOf = (truth: unknown): Record<string, unknown> =>
@@ -77,6 +118,7 @@ export const lendingDeskSpec: DeskWorldSpec<LendingExtra> = {
 	name: lendingStrings.worldName,
 	desk: { title: lendingStrings.title, role: lendingStrings.role },
 	purpose: 'lending',
+	context: (level, generated, spec) => bankContextRecords(generated.extra, level, spec),
 	counterpartName: lendingStrings.counterpartName,
 	counterpartKnows: (_truth, state) => {
 		const { application } = state.extra.lending;
@@ -309,6 +351,25 @@ export const lendingDeskSpec: DeskWorldSpec<LendingExtra> = {
 			test: (state, truth) => {
 				const decision = state.extra.lending.decision;
 				return decision !== undefined && factsOf(truth)['verdict'] === `should-${decision.outcome}`;
+			}
+		},
+		// The knobs, as predicates the policy cards read (WP78, `64-…` §6.6.2): a
+		// card is static data, so the threshold lives in the world it asks.
+		'four-eyes-on-disburse': {
+			description: lendingStrings.predicates.fourEyesOnDisburse,
+			test: (state) => policyOf(state).fourEyes !== 'none'
+		},
+		'four-eyes-on-decide': {
+			description: lendingStrings.predicates.fourEyesOnDecide,
+			test: (state) => policyOf(state).fourEyes === 'all'
+		},
+		'document-outstanding': {
+			description: lendingStrings.predicates.documentOutstanding,
+			test: (state, truth) => {
+				const policy = policyOf(state);
+				if (policy.documentBefore === 'never') return false;
+				if (state.extra.lending.documents.includes(PAYSLIP_RECORD)) return false;
+				return policy.documentBefore === 'always' || factsOf(truth)['shouldRefer'] === true;
 			}
 		},
 		'conversation-ended': {

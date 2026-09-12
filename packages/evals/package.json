@@ -21,8 +21,10 @@
 		"@craftabot/core": "*",
 		"@craftabot/desk": "*",
 		"@craftabot/governance": "*",
+		"@craftabot/metrics": "*",
 		"@craftabot/pack-monitor": "*",
 		"@craftabot/pack-starter": "*",
+		"@craftabot/workflow": "*",
 		"zod": "^4.4.3"
 	},
 	"devDependencies": {

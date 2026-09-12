@@ -181,3 +181,43 @@ export async function buildAndGo(page: Page, cardTestId = 'card-snack'): Promise
 	await page.getByRole('button', { name: /GO/ }).click();
 	await expect(page).toHaveURL(/\/play\//);
 }
+
+/**
+ * A long page settles late on a slow runner (WP91's re-baseline: three shots
+ * differed by ten pixels of height between attempt and retry): wait for the
+ * fonts, the network, and two consecutive readings of the same scroll height.
+ */
+export async function settle(page: Page): Promise<void> {
+	await page.evaluate(() => document.fonts.ready);
+	await page.waitForLoadState('networkidle');
+	// Measure once at the default viewport, resize once, capture the viewport: a page whose
+	// height depends on the viewport's (the Playground's moved ten pixels each way on every
+	// resize) is then laid out by one deterministic step, never chased.
+	const width = page.viewportSize()?.width ?? 1280;
+	const height = await page.evaluate(() => document.documentElement.scrollHeight);
+	// Rounded up to the next fifty pixels: the Playground's page reads ten pixels taller or
+	// shorter from one capture to the next, and a viewport that absorbs the wobble keeps the image
+	// the same size either way.
+	const rounded = Math.ceil(Math.max(720, height) / 50) * 50;
+	await page.setViewportSize({ width, height: rounded });
+	await page.waitForTimeout(400);
+}
+
+/**
+ * No scrollbars in a visual shot (WP91's close): a classic scrollbar takes
+ * ten to fifteen pixels, and whether the horizontal one appears depended on
+ * a race with the vertical one on the longest pages — the Playground's shot
+ * came out 11128 or 11138 pixels tall from one attempt to the next. Hidden
+ * on both axes before the first paint, every platform reads the same height.
+ */
+export async function pinScrollbars(page: Page): Promise<void> {
+	await page.addInitScript(() => {
+		const style = document.createElement('style');
+		// No viewport-height rule either: `min-height: 100vh` on the body and the Workshop's grid made
+		// the page's height depend on the viewport a full-page capture resizes, and the Playground's
+		// shot alternated between two heights on every capture.
+		style.textContent =
+			'html, body { scrollbar-width: none; overflow-x: hidden; min-height: auto !important } ::-webkit-scrollbar { display: none } .workshop { min-height: auto !important }';
+		document.addEventListener('DOMContentLoaded', () => document.head.append(style));
+	});
+}

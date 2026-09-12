@@ -16,7 +16,7 @@ python render.py   # headless Chromium -> A4 PDF, cover merged, metadata set
 
 **What each step does**
 
-- `prep.py` turns each `> **Figure n** — … *(Appendix D, `x.png`.)*` placeholder in the
+- `prep.py` first trims every baseline to its content into `figures-print/` — the visual pass captures a fixed, very tall page — then turns each `> **Figure n** — … *(Appendix D, `x.png`.)*` placeholder in the
   manual into the real screenshot from `apps/workbench/e2e/__screenshots__/win32/`, then
   rewrites Appendix D's table from what it actually placed. The manual stays readable as
   plain markdown; nothing is edited by hand.

@@ -28,7 +28,15 @@ export {
 export {
 	CAMPAIGN_REPORT_SCHEMA_VERSION,
 	CAMPAIGN_SCHEMA_VERSION,
+	bookItems,
+	bookScenario,
 	campaignCells,
+	campaignSourceSchema,
+	decisionOf,
+	fairnessMetricNameSchema,
+	referenceWindowSchema,
+	type ReferenceWindow,
+	type CampaignSource,
 	campaignReportSchema,
 	campaignSchema,
 	describeRequirement,
@@ -159,6 +167,14 @@ export { chainPlans, noPlans, starterPlans, type PlanSource } from './plans.js';
 /** The campaign summary (WP61, `50-DOMAIN-METRICS.md` §4.5): the readers' numbers, folded once from the cells. */
 export {
 	campaignSummarySchema,
+	humanLoadRowSchema,
+	fairnessRowSchema,
+	driftRowSchema,
+	fairnessRowsOf,
+	driftRowsOf,
+	type FairnessRow,
+	type DriftRow,
+	type HumanLoadRow,
 	confusionOf,
 	DERIVED_NAMES,
 	derivedOf,
@@ -174,6 +190,29 @@ export {
 	type ObligationRow,
 	type SummaryOptions
 } from './campaign-summary.js';
+/** The Monitor's fold (WP84, `75-THE-MONITOR.md` §3): the report's numbers over a window and a clock. */
+export {
+	DEFAULT_MONITOR_METRICS,
+	DEFAULT_MONITOR_MINIMUM,
+	DEFAULT_MONITOR_WINDOW,
+	foldMonitor,
+	outcomeOfRun,
+	referenceFromItems,
+	truthOfRun,
+	verdictOfItem,
+	type MonitorArrival,
+	type MonitorBucket,
+	type MonitorDriftRow,
+	type MonitorFairnessRow,
+	type MonitorIncident,
+	type MonitorOptions,
+	type MonitorQueue,
+	type MonitorRate,
+	type MonitorReadouts,
+	type MonitorReference,
+	type MonitorRun,
+	type MonitorState
+} from './monitor.js';
 export {
 	CASE_METRIC_PATTERN,
 	cohortOf,
@@ -185,3 +224,27 @@ export {
 } from './campaign.js';
 /** The counterpart seat (WP64, `56-…` §4.1): a desk's script as a second member's spec, shared by the harness and a live-seat cell. */
 export { counterpartScriptFor, counterpartSpec, deskFor } from './counterpart-seat.js';
+/** Experiments (WP89, `72-EXPERIMENTS.md`): the design, its expansion to campaigns, the analysis into effects, the markdown. */
+export {
+	analyseExperiment,
+	campaignFor,
+	campaignIdFor,
+	effectSign,
+	expandExperiment,
+	experimentFactorSchema,
+	experimentMetricSchema,
+	experimentSchema,
+	experimentTemplateSchema,
+	knobValueOf,
+	levelCombinations,
+	minimumDetectableRateDifference,
+	parseExperiment,
+	renderExperimentMarkdown,
+	verdictOf,
+	type AnalyseOptions,
+	type Experiment,
+	type ExperimentFactor,
+	type ExperimentMetric,
+	type ExperimentTemplate,
+	type LevelCombination
+} from './experiment.js';

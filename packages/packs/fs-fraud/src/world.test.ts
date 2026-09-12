@@ -25,7 +25,7 @@ const truthOf = (world: ReturnType<typeof create>) =>
 	};
 
 describe('the Fraud Desk (WP62 stage A)', () => {
-	it('is a desk with purpose fraud-operations, ten tiered actions, two irreversible, eleven layouts', () => {
+	it('is a desk with purpose fraud-operations, eleven tiered actions, two irreversible, twelve layouts', () => {
 		expect(fraudDesk.view).toBe('desk');
 		expect(fraudDesk.spec.purpose).toBe('fraud-operations');
 		const tiers = Object.fromEntries(
@@ -41,9 +41,14 @@ describe('the Fraud Desk (WP62 stage A)', () => {
 			'freeze-account': 'irreversible',
 			escalate: 'reversible',
 			'file-sar': 'irreversible',
+			'write-note': 'observe',
 			'verify-caller': 'observe'
 		});
-		expect(fraudDesk.layouts.map((layout) => layout.id)).toEqual([...FRAUD_CASE_KINDS]);
+		// The eleven kinds and, since WP85, the work-item layout a workflow's intake fills.
+		expect(fraudDesk.layouts.map((layout) => layout.id)).toEqual([
+			...FRAUD_CASE_KINDS,
+			'work-item'
+		]);
 		for (const action of fraudDesk.actions)
 			expect(action.id.startsWith(`${FRAUD_DESK_WORLD_ID}/`)).toBe(true);
 	});

@@ -1,13 +1,16 @@
 import type { Account, BureauFile, Customer } from '../model.js';
 import { monthlyIncomeOf } from './accounts.js';
-import { weighted } from './customer.js';
+import { calibrationRow } from '@craftabot/core';
+import { rateOf, tableOf, weightedRow, type Calibrated } from './customer.js';
 
 /** From the customer's own history: commitments from their credit, a score band from how they carry it. */
 export function generateBureau(
 	random: () => number,
 	customer: Customer,
-	accounts: readonly Account[]
+	accounts: readonly Account[],
+	options?: Calibrated
 ): BureauFile {
+	const table = tableOf(options);
 	const income = monthlyIncomeOf(customer);
 	const credit = accounts.filter((account) => account.balance < 0);
 	const commitments = credit.reduce((sum, account) => {
@@ -20,12 +23,8 @@ export function generateBureau(
 	const overIndebted = customer.vulnerability.resilience.includes('over-indebted');
 	const defaults =
 		overIndebted || strain > 0.6
-			? weighted(random, [
-					[0, 2],
-					[1, 3],
-					[2, 1]
-				])
-			: random() < 0.05
+			? Number(weightedRow(random, calibrationRow(table, 'bureau-strained-defaults')))
+			: random() < rateOf(calibrationRow(table, 'bureau-stray-default'), 'default')
 				? 1
 				: 0;
 	const arrearsMonths = defaults > 0 ? Math.floor(random() * 4) : 0;

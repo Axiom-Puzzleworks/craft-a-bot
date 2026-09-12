@@ -31,7 +31,8 @@ export function describeConformance(fixture: PackConformanceFixture): void {
 		it('manifest validates, ids are qualified, and registers without collision', () => {
 			const issues = checkManifest(manifest, {
 				companionPacks,
-				...(fixture.controlMaps ? { controlMaps: fixture.controlMaps } : {})
+				...(fixture.controlMaps ? { controlMaps: fixture.controlMaps } : {}),
+				...(fixture.calibrations ? { calibrations: fixture.calibrations } : {})
 			});
 			expect(issues, format(issues)).toEqual([]);
 		});

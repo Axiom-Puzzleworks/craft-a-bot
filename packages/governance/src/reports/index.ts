@@ -80,12 +80,15 @@ export {
 } from './control-map.js';
 export {
 	boundaryMapFor,
+	workflowRing,
 	litEdgesAt,
 	type BoundaryActivity,
 	type BoundaryMap,
 	type BoundaryOptions,
 	type BoundaryOutside,
-	type BoundaryOutsideKind
+	type BoundaryOutsideKind,
+	type BoundaryWorkflow,
+	type BoundaryWorkflowStage
 } from './boundary.js';
 export {
 	ASSURANCE_PACK_FORMAT,
@@ -109,6 +112,11 @@ export {
 	type EvidencePresence,
 	type NotRecorded
 } from './assurance-pack.js';
+export {
+	controlEffectiveness,
+	type ControlEffectivenessHeadline,
+	type ControlEffectivenessRow
+} from './control-effectiveness.js';
 export {
 	ASSURANCE_TOKENS,
 	principalLine,

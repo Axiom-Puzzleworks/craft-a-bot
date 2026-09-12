@@ -43,3 +43,4 @@ vite.config.ts.timestamp-*
 # stays tracked: it's shared dev-server config any session's preview tooling
 # can use, not personal.
 .claude/settings.local.json
+campaign-out/

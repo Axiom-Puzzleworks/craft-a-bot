@@ -25,6 +25,8 @@ export {
 	makeAgent,
 	makeAgentV1,
 	makeCampaignReport,
+	makeExperimentResult,
+	makeStoredWorkflowRun,
 	makeContent,
 	makeEvaluation,
 	makeEvent,

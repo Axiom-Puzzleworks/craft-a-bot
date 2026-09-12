@@ -13,6 +13,7 @@ import {
 	type RunRecord,
 	type RunSummary
 } from '@craftabot/core';
+import { makeExperimentResult } from '@craftabot/core/testing';
 import { describe, expect, it } from 'vitest';
 import {
 	ASSURANCE_POSTURE,
@@ -555,5 +556,56 @@ describe('the renderings', () => {
 		])
 			expect(html).toContain(heading);
 		expect(html).toContain('No stored runs.');
+	});
+
+	it('§5 carries the Control Effectiveness Register: every map row untested without results, and an effect cited by its experiment and run ids with one (WP90)', async () => {
+		const empty = await emptyPack();
+		expect(empty.mitigants.effects.length).toBeGreaterThan(0);
+		expect(empty.mitigants.effects.every((row) => row.status === 'untested')).toBe(true);
+		const result = makeExperimentResult({
+			effects: [
+				{
+					experimentId: 'lending-stack',
+					metricId: 'agreement',
+					controlIds: ['starter/safety'],
+					factor: { axis: 'guard', baseline: 'none', treatment: 'policy-cards' },
+					baseline: { value: 0.8, n: 100, interval: [0.7, 0.9] },
+					treatment: { value: 0.9, n: 100, interval: [0.8, 1] },
+					delta: 0.1,
+					interval: [0.02, 0.18],
+					method: 'difference of rates',
+					underpowered: false,
+					cost: {
+						tokensPerCase: { baseline: 10, treatment: 12 },
+						approvalsPerCase: { baseline: 0, treatment: 1 },
+						escalationRate: { baseline: 0, treatment: 0 }
+					},
+					runIds: [RUN_A],
+					reportIds: ['a', 'b']
+				}
+			]
+		});
+		const pack = await assurancePackFor({
+			agent: { id: AGENT_ID, name: 'Bolt', spec },
+			registry: registryWith(),
+			runs,
+			summaries,
+			evaluations,
+			campaignReports: [report],
+			experimentResults: [result],
+			now: NOW
+		});
+		const row = pack.mitigants.effects.find((entry) => entry.controlId === 'starter/safety');
+		expect(row?.status).toBe('evidenced');
+		expect(row?.headline?.experimentId).toBe('lending-stack');
+		const md = renderAssurancePackMarkdown(pack);
+		expect(md).toContain('### Control Effectiveness Register');
+		expect(md).toContain('| `starter/safety` |');
+		expect(md).toContain('experiment `lending-stack`');
+		expect(md).toContain(`evidenced (runs: ${RUN_A})`);
+		const html = renderAssurancePackHtml(pack);
+		expect(html).toContain('<caption>Control Effectiveness Register</caption>');
+		expect(html).toContain('experiment <code>lending-stack</code>');
+		expect(html).toContain(`href="#run-${RUN_A}"`);
 	});
 });

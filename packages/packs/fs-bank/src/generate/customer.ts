@@ -20,6 +20,8 @@ import {
 	type VulnerabilityDrivers
 } from '../model.js';
 import { EMPLOYERS } from './vocab.js';
+import { calibrationRow, type CalibrationRow, type CalibrationTable } from '@craftabot/core';
+import { DECK_WEIGHTS } from '../calibration/deck-weights.js';
 
 /** Weighted pick: `weights` sum to anything; the draw is one `random()`. */
 export function weighted<T>(random: () => number, entries: ReadonlyArray<readonly [T, number]>): T {
@@ -35,6 +37,30 @@ export function weighted<T>(random: () => number, entries: ReadonlyArray<readonl
 export const pick = <T>(random: () => number, from: readonly T[]): T =>
 	from[Math.floor(random() * from.length)] as T;
 
+/**
+ * **A draw from a calibration row** (WP74, `66-CALIBRATION.md` §4.2): the
+ * same arithmetic as `weighted` over the row's entries in the row's declared
+ * order, so a row whose weights equal the inline table it replaced draws
+ * byte-identically. `rateOf` reads a `rates` row's probability by category.
+ */
+export function weightedRow<T extends string = string>(
+	random: () => number,
+	row: CalibrationRow
+): T {
+	return weighted(random, Object.entries(row.distribution) as Array<[T, number]>);
+}
+
+export function rateOf(row: CalibrationRow, category: string): number {
+	const rate = row.distribution[category];
+	if (rate === undefined) throw new Error(`calibration row "${row.id}" has no rate "${category}"`);
+	return rate;
+}
+
+/** The table a generator draws from: the deck weights unless a population hands in the cited table. */
+export type Calibrated = { calibration?: CalibrationTable | undefined };
+export const tableOf = (options: Calibrated | undefined): CalibrationTable =>
+	options?.calibration ?? DECK_WEIGHTS;
+
 /** `cust-` and eight hex digits from the stream. */
 export function hexId(random: () => number, prefix: string, length = 8): string {
 	let out = '';
@@ -42,67 +68,42 @@ export function hexId(random: () => number, prefix: string, length = 8): string 
 	return `${prefix}-${out}`;
 }
 
-const AGE_WEIGHTS: ReadonlyArray<readonly [AgeBand, number]> = [
-	['18-24', 8],
-	['25-34', 18],
-	['35-44', 20],
-	['45-54', 18],
-	['55-64', 16],
-	['65-74', 12],
-	['75+', 8]
-];
-
-function incomeFor(random: () => number, employment: Employment): IncomeBand {
+function incomeFor(
+	random: () => number,
+	employment: Employment,
+	table: CalibrationTable
+): IncomeBand {
 	if (employment === 'student' || employment === 'unemployed' || employment === 'carer') {
-		return weighted(random, [
-			['under-15k', 6],
-			['15-25k', 3],
-			['25-40k', 1]
-		]);
+		return weightedRow<IncomeBand>(random, calibrationRow(table, 'income-not-earning'));
 	}
 	if (employment === 'retired') {
-		return weighted(random, [
-			['under-15k', 3],
-			['15-25k', 5],
-			['25-40k', 3],
-			['40-60k', 1]
-		]);
+		return weightedRow<IncomeBand>(random, calibrationRow(table, 'income-retired'));
 	}
-	return weighted(random, [
-		['15-25k', 4],
-		['25-40k', 8],
-		['40-60k', 6],
-		['60-100k', 3],
-		['over-100k', 1]
-	]);
+	return weightedRow<IncomeBand>(random, calibrationRow(table, 'income-working'));
 }
 
-function employmentFor(random: () => number, ageBand: AgeBand): Employment {
+function employmentFor(
+	random: () => number,
+	ageBand: AgeBand,
+	table: CalibrationTable
+): Employment {
 	if (ageBand === '75+' || ageBand === '65-74') {
-		return weighted(random, [
-			['retired', 8],
-			['employed', 1],
-			['self-employed', 1]
-		]);
+		return weightedRow<Employment>(random, calibrationRow(table, 'employment-65-plus'));
 	}
 	if (ageBand === '18-24') {
-		return weighted(random, [
-			['student', 4],
-			['employed', 5],
-			['unemployed', 1]
-		]);
+		return weightedRow<Employment>(random, calibrationRow(table, 'employment-18-24'));
 	}
-	return weighted(random, [
-		['employed', 12],
-		['self-employed', 3],
-		['carer', 1],
-		['unemployed', 1]
-	]);
+	return weightedRow<Employment>(random, calibrationRow(table, 'employment-25-64'));
 }
 
-/** A driver per grouping at a low rate, so most customers carry none in most groupings. */
-function driversFor(random: () => number, rate: number): VulnerabilityDrivers {
-	const draw = (pool: readonly string[]): string[] => {
+/**
+ * A driver per grouping at the row's per-draw rate, so most customers carry
+ * none in most groupings: a first draw at `p`, a second at `p / 4`, both
+ * independent, so the share with any is `1 − (1 − p)(1 − p / 4)` — the
+ * arithmetic the cited table's row inverts (`calibration/rows.ts`).
+ */
+function driversFor(random: () => number, rates: CalibrationRow): VulnerabilityDrivers {
+	const draw = (pool: readonly string[], rate: number): string[] => {
 		const out: string[] = [];
 		if (random() < rate) out.push(pick(random, pool));
 		if (random() < rate / 4) {
@@ -112,10 +113,10 @@ function driversFor(random: () => number, rate: number): VulnerabilityDrivers {
 		return out;
 	};
 	return {
-		health: draw(VULNERABILITY_DRIVERS.health),
-		lifeEvents: draw(VULNERABILITY_DRIVERS.lifeEvents),
-		resilience: draw(VULNERABILITY_DRIVERS.resilience),
-		capability: draw(VULNERABILITY_DRIVERS.capability)
+		health: draw(VULNERABILITY_DRIVERS.health, rateOf(rates, 'health')),
+		lifeEvents: draw(VULNERABILITY_DRIVERS.lifeEvents, rateOf(rates, 'lifeEvents')),
+		resilience: draw(VULNERABILITY_DRIVERS.resilience, rateOf(rates, 'resilience')),
+		capability: draw(VULNERABILITY_DRIVERS.capability, rateOf(rates, 'capability'))
 	};
 }
 
@@ -134,44 +135,42 @@ function disclosedFrom(
 	};
 }
 
-export function generateCustomer(random: () => number): Customer {
+export function generateCustomer(random: () => number, options?: Calibrated): Customer {
+	const table = tableOf(options);
 	const id = hexId(random, 'cust');
 	const name = syntheticName(random);
-	const ageBand = weighted(random, AGE_WEIGHTS);
-	const employment = employmentFor(random, ageBand);
-	const incomeBand = incomeFor(random, employment);
-	const literacyBand: LiteracyBand = weighted(random, [
-		['low', 2],
-		['medium', 5],
-		['high', 3]
-	]);
-	const digitalConfidence: DigitalConfidence =
-		ageBand === '75+' || ageBand === '65-74'
-			? weighted(random, [
-					['low', 4],
-					['medium', 4],
-					['high', 2]
-				])
-			: weighted(random, [
-					['low', 1],
-					['medium', 4],
-					['high', 5]
-				]);
-	const vulnerability = driversFor(random, 0.18);
+	const ageBand = weightedRow<AgeBand>(random, calibrationRow(table, 'age-band'));
+	const employment = employmentFor(random, ageBand, table);
+	const incomeBand = incomeFor(random, employment, table);
+	const literacyBand = weightedRow<LiteracyBand>(random, calibrationRow(table, 'literacy-band'));
+	const digitalConfidence = weightedRow<DigitalConfidence>(
+		random,
+		calibrationRow(
+			table,
+			ageBand === '75+' || ageBand === '65-74'
+				? 'digital-confidence-65-plus'
+				: 'digital-confidence-under-65'
+		)
+	);
+	const vulnerability = driversFor(random, calibrationRow(table, 'vulnerability-drivers'));
 	if (literacyBand === 'low' && !vulnerability.capability.includes('low-literacy')) {
 		vulnerability.capability.push('low-literacy');
 	}
 	if (digitalConfidence === 'low' && !vulnerability.capability.includes('low-digital-confidence')) {
 		vulnerability.capability.push('low-digital-confidence');
 	}
-	const proxies = PROTECTED_PROXIES.filter(() => random() < 0.3);
+	const proxyRate = rateOf(calibrationRow(table, 'protected-proxy-rate'), 'proxy');
+	const proxies = PROTECTED_PROXIES.filter(() => random() < proxyRate);
 	const cohort: CohortBlock = {
 		ageBand,
 		incomeBand,
 		protectedProxies: proxies.length > 0 ? [...proxies] : [pick(random, PROTECTED_PROXIES)],
-		supportNeeds: vulnerability.health.length > 0 && random() < 0.6,
+		supportNeeds:
+			vulnerability.health.length > 0 &&
+			random() < rateOf(calibrationRow(table, 'support-needs'), 'supportNeeds'),
 		literacyBand
 	};
+	const consent = calibrationRow(table, 'consent');
 	const ageLow = ageBand === '75+' ? 75 : Number(ageBand.split('-')[0]);
 	const ageHigh = ageBand === '75+' ? 92 : Number(ageBand.split('-')[1]);
 	const age = ageLow + Math.floor(random() * (ageHigh - ageLow + 1));
@@ -184,26 +183,23 @@ export function generateCustomer(random: () => number): Customer {
 		phone: syntheticPhone(random),
 		employment,
 		...(employment === 'employed' ? { employer: pick(random, EMPLOYERS) } : {}),
-		dependants: weighted(random, [
-			[0, 6],
-			[1, 3],
-			[2, 3],
-			[3, 1]
-		]),
+		dependants: Number(weightedRow(random, calibrationRow(table, 'dependants'))),
 		tenureYears: Math.min(Math.floor(random() * 30), Math.max(0, age - 18)),
 		digitalConfidence,
 		cohort,
 		vulnerability,
-		disclosed: disclosedFrom(random, vulnerability, 0.5),
+		disclosed: disclosedFrom(
+			random,
+			vulnerability,
+			rateOf(calibrationRow(table, 'vulnerability-disclosure'), 'disclosed')
+		),
 		consent: {
-			marketing: random() < 0.4,
-			dataSharing: random() < 0.3,
-			preferredChannel: weighted(random, [
-				['app', 5],
-				['phone', 3],
-				['branch', 1],
-				['post', 1]
-			])
+			marketing: random() < rateOf(consent, 'marketing'),
+			dataSharing: random() < rateOf(consent, 'dataSharing'),
+			preferredChannel: weightedRow<'app' | 'phone' | 'branch' | 'post'>(
+				random,
+				calibrationRow(table, 'preferred-channel')
+			)
 		},
 		niNumber: syntheticNiNumber(random)
 	};

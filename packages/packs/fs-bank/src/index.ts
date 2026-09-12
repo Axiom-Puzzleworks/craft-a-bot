@@ -2,6 +2,7 @@ import type { PackManifest } from '@craftabot/core';
 import { bankControlMap } from './controls/rows.js';
 import { bankServiceLines } from './lines/index.js';
 import { FALLBACK, toldPlainly } from './incident.js';
+import { CALIBRATION, DECK_WEIGHTS } from './calibration/index.js';
 
 /**
  * **`@craftabot/pack-fs-bank`** — the synthetic bank (WP59, `48-FS-BANK.md`;
@@ -26,16 +27,40 @@ const manifest: PackManifest = {
 	policyCards: [FALLBACK],
 	evaluators: [toldPlainly],
 	/** The UK retail rows (WP67, `53-…` §4.1), every evidence id resolved by `checkControlMap`. */
-	controlMaps: [bankControlMap]
+	controlMaps: [bankControlMap],
+	/** The cited table the population draws from and the design-time weights the decks were built on (WP74, `66-…` §4.1). */
+	calibrations: [CALIBRATION, DECK_WEIGHTS]
 };
 
 export default manifest;
 
 export * from './model.js';
 export { bankCase, type BankCaseOptions } from './generate/case.js';
+export { CALIBRATION, DECK_WEIGHTS, impliedMarginal, perDrawRate } from './calibration/index.js';
+export { rateOf, weightedRow, type Calibrated } from './generate/customer.js';
 export { generateCustomer } from './generate/customer.js';
 export { generateAccounts, monthlyIncomeOf } from './generate/accounts.js';
-export { generateTransactions } from './generate/transactions.js';
+export {
+	dayTransactions,
+	generateTransactions,
+	type DayTransactions,
+	type PlantedLabel
+} from './generate/transactions.js';
+export * from './book/index.js';
+export {
+	POPULATION_DEFAULTS,
+	customerCase,
+	marginalOf,
+	population,
+	populationDigest,
+	sampleOrdinals,
+	type Population,
+	type PopulationCustomer,
+	type PopulationOptions,
+	type TransactionStream
+} from './population/population.js';
+export { accountDaySeed, customerSeed } from './population/seeds.js';
+export { sha256Hex } from './population/sha256.js';
 export { generateComplaints } from './generate/complaints.js';
 export { generateBureau } from './generate/bureau.js';
 export { SHELF, generateShelf } from './generate/shelf.js';
@@ -50,8 +75,10 @@ export {
 	type BankPurpose
 } from './extra.js';
 export {
+	bankServiceLineIds,
 	bankServiceLines,
 	complaintsLine,
+	graphLine,
 	coreBankingLine,
 	creditBureauLine,
 	crmLine,
@@ -72,6 +99,44 @@ export {
 	type PersonaOptions
 } from './personas.js';
 export { CONSUMER_DUTY_OUTCOMES, OBLIGATION_TAGS, isObligationTag } from './obligations.js';
+export {
+	ONTOLOGY_CLASSES,
+	ONTOLOGY_RELATIONS,
+	bankOntology,
+	describeClass,
+	knowledgeCard,
+	neighbourhood,
+	neighbours,
+	pathBetween,
+	type CardOptions,
+	type Ontology,
+	type OntologyClass,
+	type OntologyEdge,
+	type OntologyInstance,
+	type OntologyRelation,
+	type OntologyScope
+} from './ontology.js';
+export { KNOWLEDGE_CARD_RECORD, bankContextRecords } from './context.js';
+export {
+	ADVICE_SAVINGS_THRESHOLD,
+	adviceRequestBook,
+	complaintBook,
+	type AdviceRequestItemPayload,
+	type ComplaintItemPayload,
+	type RegisterOptions
+} from './book/registers.js';
+export {
+	arrivals,
+	bankClock,
+	defaultArrivalRates,
+	hourProfileOf,
+	itemSeed,
+	type Arrival,
+	type ArrivalRates,
+	type ClockOptions,
+	type HourProfile,
+	type KindRate
+} from './clock.js';
 export {
 	BANK_CONTROL_ROWS,
 	bankControlMap,

@@ -255,7 +255,13 @@
 			: [];
 		stored = (await storage.getEvents(id)).map((row) => row.event);
 		evaluations = await storage.listEvaluations(id);
-		tick = events.at(-1)?.tick ?? 0;
+		// The Pipeline opens a stage's run at the stage's first tick (WP86, `77-…` §4); otherwise the last turn.
+		const asked = page.url.searchParams.get('tick');
+		const askedTick = asked === null || asked === '' ? undefined : Number(asked);
+		tick =
+			askedTick !== undefined && Number.isFinite(askedTick)
+				? Math.max(0, Math.min(askedTick, events.at(-1)?.tick ?? 0))
+				: (events.at(-1)?.tick ?? 0);
 		loaded = true;
 		// A live run has no digest to verify yet; it is checked when it finishes (the effect below).
 		if (live && live.view.outcome === undefined) return;

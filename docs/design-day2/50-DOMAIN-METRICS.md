@@ -130,7 +130,7 @@ Every fold is pure over the cells and their labels; the fixtures are hand-built 
 ## 7. Non-goals
 
 - No new evaluator, desk or deck; the Fraud Desk's `alert-decision` is WP62's.
-- No statistical test on parity — a bound on a spread or a ratio, as §6.6 says.
+- No statistical test on parity — a bound on a spread or a ratio, as §6.6 says. > **Amended 2026-09-10 (WP76, `68-METRICS.md`):** the interval and the test are computed now — `@craftabot/metrics` gives every fairness metric its *n*, its interval and its `p` — and the gate still bounds (`64-…` §12); WP82 carries them onto the `parity` gate and the report.
 - No change to JUnit's or SARIF's shape.
 - No cohort read from anywhere but truth.
 

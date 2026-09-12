@@ -1,0 +1,54 @@
+# The site's release artefact (WP92, docs/design-day2/82-SERVED-AND-GATED.md §2;
+# 64-TARGET-DESIGN-V5.md §6.9.2): the three sections built against their budgets
+# and attached to a GitHub release as one archive, so the site's deployment
+# takes a versioned folder set — never a working tree — and docs/publishing.md
+# §6 can name the version it serves. A tag `v*` makes one; the button
+# (workflow_dispatch) makes one for a preview without a tag.
+name: release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  site:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx turbo run build --filter=@craftabot/workbench^...
+      - run: npm run build:editions
+      - name: Archive the three sections with the publishing note
+        run: |
+          set -eu
+          version="${GITHUB_REF_NAME}"
+          stage="craftabot-site-${version}"
+          mkdir -p "$stage"
+          cp -r apps/workbench/build/simulator apps/workbench/build/workshop apps/workbench/build/playground "$stage/"
+          cp docs/publishing.md "$stage/PUBLISHING.md"
+          printf '%s\n' "craftabot-site ${version}" "built from ${GITHUB_SHA}" > "$stage/VERSION"
+          zip -qr "${stage}.zip" "$stage"
+          sha256sum "${stage}.zip" > "${stage}.zip.sha256"
+      - name: Upload the archive as a workflow artefact
+        uses: actions/upload-artifact@v4
+        with:
+          name: craftabot-site
+          path: |
+            craftabot-site-*.zip
+            craftabot-site-*.zip.sha256
+          if-no-files-found: error
+      - name: Attach the archive to the release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            craftabot-site-*.zip
+            craftabot-site-*.zip.sha256

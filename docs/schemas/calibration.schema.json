@@ -1,0 +1,166 @@
+{
+	"$id": "https://craftabot.dev/schemas/calibration.schema.json",
+	"title": "Craft A Bot calibration table",
+	"description": "The distributions a synthetic population’s generators draw from, each row citing the published aggregate it was set to — publisher, title, edition, table, retrieval date — or stating its assumption, with the tolerance the calibration test allows and its review status (66-CALIBRATION.md §4.1).",
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"type": "object",
+	"properties": {
+		"id": {
+			"type": "string",
+			"minLength": 1
+		},
+		"title": {
+			"type": "string",
+			"minLength": 1
+		},
+		"description": {
+			"type": "string",
+			"minLength": 1
+		},
+		"rows": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"minLength": 1
+					},
+					"kind": {
+						"type": "string",
+						"enum": [
+							"weights",
+							"rates",
+							"target"
+						]
+					},
+					"title": {
+						"type": "string",
+						"minLength": 1
+					},
+					"distribution": {
+						"type": "object",
+						"propertyNames": {
+							"type": "string",
+							"minLength": 1
+						},
+						"additionalProperties": {
+							"type": "number",
+							"minimum": 0
+						}
+					},
+					"source": {
+						"oneOf": [
+							{
+								"type": "object",
+								"properties": {
+									"kind": {
+										"type": "string",
+										"const": "publication"
+									},
+									"publisher": {
+										"type": "string",
+										"minLength": 1
+									},
+									"title": {
+										"type": "string",
+										"minLength": 1
+									},
+									"edition": {
+										"type": "string",
+										"minLength": 1
+									},
+									"table": {
+										"type": "string",
+										"minLength": 1
+									},
+									"url": {
+										"type": "string",
+										"format": "uri"
+									},
+									"retrieved": {
+										"type": "string",
+										"pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+									}
+								},
+								"required": [
+									"kind",
+									"publisher",
+									"title",
+									"edition",
+									"table",
+									"retrieved"
+								]
+							},
+							{
+								"type": "object",
+								"properties": {
+									"kind": {
+										"type": "string",
+										"const": "assumption"
+									},
+									"retrieved": {
+										"type": "string",
+										"pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+									}
+								},
+								"required": [
+									"kind",
+									"retrieved"
+								]
+							}
+						]
+					},
+					"note": {
+						"type": "string"
+					},
+					"tolerance": {
+						"type": "number",
+						"exclusiveMinimum": 0,
+						"exclusiveMaximum": 1
+					},
+					"review": {
+						"anyOf": [
+							{
+								"type": "string",
+								"const": "pending"
+							},
+							{
+								"type": "object",
+								"properties": {
+									"by": {
+										"type": "string",
+										"minLength": 1
+									},
+									"on": {
+										"type": "string",
+										"pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+									}
+								},
+								"required": [
+									"by",
+									"on"
+								]
+							}
+						]
+					}
+				},
+				"required": [
+					"id",
+					"kind",
+					"title",
+					"distribution",
+					"source",
+					"tolerance",
+					"review"
+				]
+			}
+		}
+	},
+	"required": [
+		"id",
+		"title",
+		"description",
+		"rows"
+	]
+}

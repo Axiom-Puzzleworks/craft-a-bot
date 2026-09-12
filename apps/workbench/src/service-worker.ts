@@ -15,6 +15,12 @@ import { base, build, files, prerendered, version } from '$service-worker';
  * Cache-first for the shell is safe because every built asset is content-hashed
  * and the cache name carries the build `version`: a new deploy writes a new
  * cache and the activate step deletes the old ones.
+ *
+ * **One cache per edition** (WP91, CLOSE-2; `64-…` §6.9). The name carries the
+ * edition too, and the activate step deletes only *this edition's* older
+ * caches: three sections served from one origin each keep their own shell,
+ * and the second to register never empties the first's — which is how a
+ * section once opened on a blank page, holding a chunk the other build owned.
  */
 
 // The service worker global, typed without pulling in the full WebWorker lib.
@@ -41,7 +47,10 @@ if (import.meta.env.DEV) {
 		.then((keys) => Promise.all(keys.map((key) => caches.delete(key))));
 }
 
-const CACHE = `craftabot-shell-${version}`;
+// The edition from the base the worker is registered under (`/workshop` → `workshop`; no base → `full`): the build-time env does not reach the worker's own bundle.
+const editionId = base.replace(/^\//, '') || 'full';
+const CACHE_PREFIX = `craftabot-shell-${editionId}-`;
+const CACHE = `${CACHE_PREFIX}${version}`;
 
 /*
  * `build` and `files` are the hashed assets and the static directory — they do
@@ -73,7 +82,7 @@ worker.addEventListener('activate', (event) => {
 	event.waitUntil(
 		(async () => {
 			for (const key of await caches.keys()) {
-				if (key !== CACHE) await caches.delete(key);
+				if (key !== CACHE && key.startsWith(CACHE_PREFIX)) await caches.delete(key);
 			}
 			await worker.clients.claim();
 		})()

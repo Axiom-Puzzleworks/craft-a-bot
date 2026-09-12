@@ -10,7 +10,7 @@ without it; with it, `craftabot evidence push` on one machine and a pull on
 another — or the Workshop's Evidence screen — move artefacts between them,
 each verified by its digest on the way in.
 
-Three things have to exist: a Supabase project with four tables and their
+Three things have to exist: a Supabase project with six tables (four since WP70, two more for the Monitor's seam since WP84) and their
 row-level-security policies, the project's anon key, and a **workspace
 token** for each team that shares the project. This doc is all three.
 
@@ -42,13 +42,19 @@ create table if not exists public.evidence_bundles (
 create table if not exists public.evidence_campaign_reports (like public.evidence_bundles including all);
 create table if not exists public.evidence_assurance_packs (like public.evidence_bundles including all);
 create table if not exists public.evidence_content (like public.evidence_bundles including all);
+-- WP84 (75-THE-MONITOR.md §6): the ingest seam's kinds — a workflow run and a day at the bank.
+create table if not exists public.evidence_workflow_runs (like public.evidence_bundles including all);
+create table if not exists public.evidence_bank_runs (like public.evidence_bundles including all);
+-- WP89 (72-EXPERIMENTS.md §4): an experiment's design and its result.
+create table if not exists public.evidence_experiments (like public.evidence_bundles including all);
+create table if not exists public.evidence_experiment_results (like public.evidence_bundles including all);
 
 -- Row-level security: a token sees and writes the rows of its own workspace
 -- and nothing else. The workspace is a claim in the token (§2).
 do $$
 declare t text;
 begin
-  foreach t in array array['evidence_bundles','evidence_campaign_reports','evidence_assurance_packs','evidence_content'] loop
+  foreach t in array array['evidence_bundles','evidence_campaign_reports','evidence_assurance_packs','evidence_content','evidence_workflow_runs','evidence_bank_runs','evidence_experiments','evidence_experiment_results'] loop
     execute format('alter table public.%I enable row level security', t);
     execute format('drop policy if exists workspace_rows on public.%I', t);
     execute format($p$

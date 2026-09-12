@@ -7,6 +7,7 @@
 			"id": "incident",
 			"scenarioId": "fs-advice/scenarios/incident",
 			"tags": ["pra:ss1-21:resilience", "fca:cd:support"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -24,6 +25,7 @@
 			"id": "inheritance",
 			"scenarioId": "fs-advice/scenarios/inheritance",
 			"tags": ["fca:cobs-9:suitability", "fca:cd:products-services", "fca:cd:understanding"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -41,6 +43,7 @@
 			"id": "inheritance-impatient",
 			"scenarioId": "fs-advice/scenarios/inheritance-impatient",
 			"tags": ["fca:cobs-9:suitability", "fca:cd:support", "19/#25"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -58,6 +61,7 @@
 			"id": "rainy-day",
 			"scenarioId": "fs-advice/scenarios/rainy-day",
 			"tags": ["fca:cobs-9:suitability", "fca:cd:products-services"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -75,6 +79,7 @@
 			"id": "first-home",
 			"scenarioId": "fs-advice/scenarios/first-home",
 			"tags": ["fca:cobs-9:suitability", "fca:cd:products-services"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -92,6 +97,7 @@
 			"id": "first-home-wants-a-fund",
 			"scenarioId": "fs-advice/scenarios/first-home-wants-a-fund",
 			"tags": ["fca:cobs-9:suitability", "fca:cd:understanding"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -109,6 +115,7 @@
 			"id": "nothing-suits",
 			"scenarioId": "fs-advice/scenarios/nothing-suits",
 			"tags": ["fca:cobs-9:suitability", "fca:cd:products-services"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -126,6 +133,7 @@
 			"id": "pushy",
 			"scenarioId": "fs-advice/scenarios/pushy",
 			"tags": ["fca:cobs-9:suitability", "fca:cd:support", "19/#25"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -143,6 +151,7 @@
 			"id": "guarantee-seeker",
 			"scenarioId": "fs-advice/scenarios/guarantee-seeker",
 			"tags": ["fca:cobs-4:promotions", "fca:cd:understanding"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -160,6 +169,7 @@
 			"id": "guide-inheritance",
 			"scenarioId": "fs-advice/scenarios/guide-inheritance",
 			"tags": ["fca:cobs-9:suitability", "advice-boundary"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -177,6 +187,7 @@
 			"id": "guide-rainy-day",
 			"scenarioId": "fs-advice/scenarios/guide-rainy-day",
 			"tags": ["fca:cobs-9:suitability", "advice-boundary"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -194,6 +205,7 @@
 			"id": "bereavement",
 			"scenarioId": "fs-advice/scenarios/bereavement",
 			"tags": ["fca:fg21-1:vulnerability", "fca:cd:support"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -211,6 +223,7 @@
 			"id": "bereavement-pressed",
 			"scenarioId": "fs-advice/scenarios/bereavement-pressed",
 			"tags": ["fca:fg21-1:vulnerability", "fca:cd:support", "fca:cobs-9:suitability"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -228,6 +241,7 @@
 			"id": "low-literacy",
 			"scenarioId": "fs-advice/scenarios/low-literacy",
 			"tags": ["fca:fg21-1:vulnerability", "fca:cd:understanding", "fca:cd:support"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -245,6 +259,7 @@
 			"id": "support-need",
 			"scenarioId": "fs-advice/scenarios/support-need",
 			"tags": ["fca:fg21-1:vulnerability", "fca:cd:support"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -262,6 +277,7 @@
 			"id": "support-need-cannot-read-the-screen",
 			"scenarioId": "fs-advice/scenarios/support-need-cannot-read-the-screen",
 			"tags": ["fca:fg21-1:vulnerability", "fca:cd:support", "fca:cd:understanding"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -279,6 +295,7 @@
 			"id": "sell-the-fund",
 			"scenarioId": "fs-advice/scenarios/sell-the-fund",
 			"tags": ["fca:cobs-4:promotions", "fca:cobs-9:suitability", "fca:cd:products-services"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -296,6 +313,7 @@
 			"id": "sell-the-fund-customer-has-heard",
 			"scenarioId": "fs-advice/scenarios/sell-the-fund-customer-has-heard",
 			"tags": ["fca:cobs-4:promotions", "fca:cd:understanding"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -313,6 +331,7 @@
 			"id": "cheaper-alternative",
 			"scenarioId": "fs-advice/scenarios/cheaper-alternative",
 			"tags": ["fca:cd:price-value", "fca:cobs-9:suitability"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -330,6 +349,7 @@
 			"id": "cheaper-alternative-asks-about-charges",
 			"scenarioId": "fs-advice/scenarios/cheaper-alternative-asks-about-charges",
 			"tags": ["fca:cd:price-value", "fca:cd:understanding"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -347,6 +367,7 @@
 			"id": "guarantee-say-the-word",
 			"scenarioId": "fs-advice/scenarios/guarantee-say-the-word",
 			"tags": ["fca:cobs-4:promotions", "fca:cd:understanding", "19/#25"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -364,6 +385,7 @@
 			"id": "address-change",
 			"scenarioId": "fs-advice/scenarios/address-change",
 			"tags": ["mlr:kyc", "social-engineering", "ASI07"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -381,6 +403,7 @@
 			"id": "address-change-threatens",
 			"scenarioId": "fs-advice/scenarios/address-change-threatens",
 			"tags": ["mlr:kyc", "social-engineering", "fca:cd:support"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -398,6 +421,7 @@
 			"id": "injecting",
 			"scenarioId": "fs-advice/scenarios/injecting",
 			"tags": ["ASI01", "19/#12", "prompt-injection", "fca:cobs-9:suitability"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -415,6 +439,7 @@
 			"id": "injecting-admin-override",
 			"scenarioId": "fs-advice/scenarios/injecting-admin-override",
 			"tags": ["ASI01", "prompt-injection"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -432,6 +457,7 @@
 			"id": "injecting-tool-result",
 			"scenarioId": "fs-advice/scenarios/injecting-tool-result",
 			"tags": ["ASI02", "19/#38", "tool-poisoning", "confused-deputy"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -449,6 +475,7 @@
 			"id": "poisoned-factsheet",
 			"scenarioId": "fs-advice/scenarios/poisoned-factsheet",
 			"tags": ["ASI02", "19/#38", "tool-poisoning", "fca:cobs-4:promotions"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -466,6 +493,7 @@
 			"id": "poisoned-factsheet-asked-for",
 			"scenarioId": "fs-advice/scenarios/poisoned-factsheet-asked-for",
 			"tags": ["ASI02", "tool-poisoning", "fca:cd:understanding"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -483,6 +511,7 @@
 			"id": "inheritance-exfiltration",
 			"scenarioId": "fs-advice/scenarios/inheritance-exfiltration",
 			"tags": ["ukgdpr:data-minimisation", "exfiltration", "19/#11"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -500,6 +529,7 @@
 			"id": "pushy-execute-now",
 			"scenarioId": "fs-advice/scenarios/pushy-execute-now",
 			"tags": ["fca:cobs-9:suitability", "19/#25", "irreversible-action"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -517,6 +547,7 @@
 			"id": "inheritance-special-category",
 			"scenarioId": "fs-advice/scenarios/inheritance-special-category",
 			"tags": ["ukgdpr:purpose-limitation", "ukgdpr:data-minimisation"],
+			"injections": [],
 			"fit": [
 				{
 					"slot": "equipment",
@@ -546,6 +577,8 @@
 				"actions": [
 					"fs-advice/the-advice-desk/say",
 					"fs-advice/the-advice-desk/ask-suitability-question",
+					"fs-advice/the-advice-desk/run-fact-find",
+					"fs-advice/the-advice-desk/check-suitability",
 					"fs-advice/the-advice-desk/record-customer-fact",
 					"fs-advice/the-advice-desk/recommend-product",
 					"fs-advice/the-advice-desk/refer-to-adviser",
@@ -731,6 +764,7 @@
 				"breakOn": [
 					{
 						"evaluatorId": "fs-advice/suitability-complete",
+						"labels": [],
 						"onFail": true
 					}
 				]
@@ -749,6 +783,7 @@
 	],
 	"seeds": [1, 2, 3],
 	"assertionCards": [],
+	"sinks": [],
 	"evaluators": [
 		{
 			"id": "fs-advice/suitability-complete"
@@ -880,8 +915,8 @@
 		{
 			"id": "policy-cards:told-plainly",
 			"where": {
-				"guard": "policy-cards",
 				"scenario": "incident",
+				"guard": "policy-cards",
 				"brain": "scripted-optimal"
 			},
 			"require": {
@@ -994,8 +1029,8 @@
 		{
 			"id": "policy-cards+local-classifier:told-plainly",
 			"where": {
-				"guard": "policy-cards+local-classifier",
 				"scenario": "incident",
+				"guard": "policy-cards+local-classifier",
 				"brain": "scripted-optimal"
 			},
 			"require": {
@@ -1108,8 +1143,8 @@
 		{
 			"id": "policy-cards+hosted-guard:told-plainly",
 			"where": {
-				"guard": "policy-cards+hosted-guard",
 				"scenario": "incident",
+				"guard": "policy-cards+hosted-guard",
 				"brain": "scripted-optimal"
 			},
 			"require": {

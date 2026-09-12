@@ -1,4 +1,4 @@
-import type { DeskRecord } from '@craftabot/core';
+import type { DeskRecord, WorkItem } from '@craftabot/core';
 import { seedFrom, type CounterpartScript, type DeskCase, type DeskTruth } from '@craftabot/desk';
 import {
 	bankCase,
@@ -6,6 +6,7 @@ import {
 	bankRecords,
 	driverList,
 	hasAnyDriver,
+	type AdviceRequestItemPayload,
 	type BankCase,
 	type Customer,
 	type PersonaId
@@ -362,15 +363,26 @@ export interface AdviceCase extends DeskCase<AdviceExtra> {
 	answers: AdviceAnswers;
 }
 
-/** The layout's generator: one `random` → the bank case → the desk's case. */
-export function adviceCase(random: () => number, options: AdviceCaseOptions): AdviceCase {
-	const profile = PROFILES[options.kind];
-	const seed = seedFrom(random);
-	const bank = bankCase(seed);
-	const actual = customerFor(bank, profile);
+/** What a case is assembled from beyond the bank, the customer and the answers: the hand-built profile's, or a work item's. */
+interface AssembleOptions {
+	adviceAllowed: boolean;
+	discloses: boolean;
+	persona: PersonaId;
+	goal?: string | undefined;
+	payload?: string | undefined;
+	promote?: string | undefined;
+	poisoned?: string | undefined;
+}
+
+/** The case as every layout builds it: the summary and the brief revealed, the answers and the file hidden, the suitable set in truth. */
+export function assembleAdviceCase(
+	bank: BankCase,
+	actual: Customer,
+	answers: AdviceAnswers,
+	options: AssembleOptions
+): AdviceCase {
 	const deskBank = bankForTheDesk(bank, actual);
 	const { hidden: bankHidden } = bankRecords(deskBank);
-	const answers = profile.answers;
 	const suitable = suitableProducts(bank.shelf, actual, answers, {
 		adviceAllowed: options.adviceAllowed
 	});
@@ -378,7 +390,7 @@ export function adviceCase(random: () => number, options: AdviceCaseOptions): Ad
 	// implies: the cheapest suitable investment when any suits, else the cheapest saver.
 	const investments = suitable.filter((product) => product.category === 'investment');
 	const cheapest = cheapestOf(investments.length > 0 ? investments : suitable);
-	const discloses = DISCLOSING_KINDS.has(options.kind);
+	const discloses = options.discloses;
 
 	const brief: DeskRecord = {
 		id: 'desk-brief',
@@ -463,14 +475,15 @@ export function adviceCase(random: () => number, options: AdviceCaseOptions): Ad
 
 	const extra: AdviceExtra = {
 		...bankExtra('advice', deskBank),
-		...(profile.poisoned
-			? { poisonedFactsheet: { productId: profile.poisoned, payload: POISONED_PAYLOAD } }
+		...(options.poisoned
+			? { poisonedFactsheet: { productId: options.poisoned, payload: POISONED_PAYLOAD } }
 			: {}),
 		advice: {
 			adviceAllowed: options.adviceAllowed,
 			asked: [],
 			facts: {},
-			...(profile.promote ? { promote: profile.promote } : {})
+			answers: structuredClone(answers),
+			...(options.promote ? { promote: options.promote } : {})
 		}
 	};
 
@@ -488,11 +501,60 @@ export function adviceCase(random: () => number, options: AdviceCaseOptions): Ad
 		activeCaseId: 'advise',
 		extra,
 		truth,
-		counterpart: advicePersona(profile.persona, actual, {
-			...(profile.goal ? { goal: profile.goal } : {}),
-			...(profile.payload ? { payload: profile.payload } : {})
+		counterpart: advicePersona(options.persona, actual, {
+			...(options.goal ? { goal: options.goal } : {}),
+			...(options.payload ? { payload: options.payload } : {})
 		}),
 		bank,
 		answers
 	};
+}
+
+/** The layout's generator: one `random` → the bank case → the desk's case. */
+export function adviceCase(random: () => number, options: AdviceCaseOptions): AdviceCase {
+	const profile = PROFILES[options.kind];
+	const seed = seedFrom(random);
+	const bank = bankCase(seed);
+	const actual = customerFor(bank, profile);
+	return assembleAdviceCase(bank, actual, profile.answers, {
+		adviceAllowed: options.adviceAllowed,
+		discloses: DISCLOSING_KINDS.has(options.kind),
+		persona: profile.persona,
+		goal: profile.goal,
+		payload: profile.payload,
+		promote: profile.promote,
+		poisoned: profile.poisoned
+	});
+}
+
+/** The kind a request's topic implies — the profile whose answers the customer gives. */
+export function kindForTopic(topic: string): AdviceCaseKind {
+	if (/home/i.test(topic)) return 'first-home';
+	if (/rainy/i.test(topic)) return 'rainy-day';
+	return 'inheritance';
+}
+
+/**
+ * **The work-item layout's case** (WP85, `76-…` §4): the request's own
+ * customer on the desk with the balance they hold, the answers from the
+ * topic's profile — earned by asking, as ever — and the suitable set
+ * recomputed for that customer and that amount in truth.
+ */
+export function adviceCaseFromItem(random: () => number, item: WorkItem): AdviceCase {
+	const payload = item.payload as Partial<AdviceRequestItemPayload> | undefined;
+	if (!payload?.customer || typeof payload.savingsBalance !== 'number')
+		throw new Error(`work item ${item.id} carries no advice request`);
+	const kind = kindForTopic(String(payload.topic ?? ''));
+	const profile = PROFILES[kind];
+	const seed = seedFrom(random);
+	const generated = bankCase(seed);
+	const bank: BankCase = { ...generated, customer: structuredClone(payload.customer) };
+	const actual = customerFor(bank, profile);
+	const answers: AdviceAnswers = { ...profile.answers, amount: payload.savingsBalance };
+	return assembleAdviceCase(bank, actual, answers, {
+		adviceAllowed: true,
+		discloses: false,
+		persona: profile.persona,
+		goal: profile.goal
+	});
 }

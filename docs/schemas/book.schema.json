@@ -1,0 +1,176 @@
+{
+	"$id": "https://craftabot.dev/schemas/book.schema.json",
+	"title": "Craft A Bot book of work items",
+	"description": "A batch of work items drawn from a population without the clock — applications, alerts, complaints, advice requests — each with the truth a desk would compute for it, and the population digest and oversampling it was made with (67-PERFORMANCE-AND-BOOKS.md §6).",
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"type": "object",
+	"properties": {
+		"schemaVersion": {
+			"type": "number",
+			"const": 1
+		},
+		"kind": {
+			"type": "string",
+			"enum": [
+				"application",
+				"alert",
+				"complaint",
+				"advice-request"
+			]
+		},
+		"items": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"minLength": 1
+					},
+					"kind": {
+						"type": "string",
+						"enum": [
+							"application",
+							"alert",
+							"complaint",
+							"advice-request"
+						]
+					},
+					"customerId": {
+						"type": "string",
+						"minLength": 1
+					},
+					"arrivedAt": {
+						"type": "string",
+						"minLength": 1
+					},
+					"payload": {},
+					"truth": {
+						"type": "object",
+						"properties": {
+							"records": {
+								"type": "array",
+								"items": {
+									"type": "object",
+									"properties": {
+										"id": {
+											"type": "string"
+										},
+										"kind": {
+											"type": "string"
+										},
+										"title": {
+											"type": "string"
+										},
+										"classification": {
+											"type": "string"
+										},
+										"fields": {
+											"type": "object",
+											"propertyNames": {
+												"type": "string"
+											},
+											"additionalProperties": {
+												"anyOf": [
+													{
+														"type": "string"
+													},
+													{
+														"type": "number"
+													},
+													{
+														"type": "boolean"
+													}
+												]
+											}
+										}
+									},
+									"required": [
+										"id",
+										"kind",
+										"title",
+										"fields"
+									]
+								}
+							},
+							"facts": {
+								"type": "object",
+								"propertyNames": {
+									"type": "string"
+								},
+								"additionalProperties": {
+									"anyOf": [
+										{
+											"type": "string"
+										},
+										{
+											"type": "number"
+										},
+										{
+											"type": "boolean"
+										}
+									]
+								}
+							},
+							"cohort": {
+								"type": "object",
+								"propertyNames": {
+									"type": "string"
+								},
+								"additionalProperties": {
+									"type": "string"
+								}
+							}
+						},
+						"required": [
+							"records"
+						]
+					}
+				},
+				"required": [
+					"id",
+					"kind",
+					"customerId",
+					"arrivedAt",
+					"payload",
+					"truth"
+				]
+			}
+		},
+		"source": {
+			"type": "object",
+			"properties": {
+				"populationDigest": {
+					"type": "string",
+					"minLength": 1
+				},
+				"seed": {
+					"type": "integer",
+					"minimum": -9007199254740991,
+					"maximum": 9007199254740991
+				},
+				"size": {
+					"type": "integer",
+					"exclusiveMinimum": 0,
+					"maximum": 9007199254740991
+				},
+				"filter": {},
+				"oversample": {
+					"type": "number",
+					"exclusiveMinimum": 0
+				}
+			},
+			"required": [
+				"populationDigest",
+				"seed",
+				"size"
+			]
+		}
+	},
+	"required": [
+		"schemaVersion",
+		"kind",
+		"items",
+		"source"
+	]
+}

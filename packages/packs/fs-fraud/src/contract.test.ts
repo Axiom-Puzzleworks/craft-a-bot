@@ -60,7 +60,19 @@ const fixture: PackConformanceFixture = {
 						{ name: 'escalate', arguments: { alertId: 'alert-3', reason: 'Mule pattern.' } },
 						{ name: 'release', arguments: { alertId: 'alert-4', reason: 'Usual shop.' } },
 						{ name: 'block-card', arguments: { alertId: 'alert-5', reason: 'Unknown device.' } },
-						{ name: 'file-sar', arguments: { alertId: 'alert-3', reason: 'Mule pattern.' } }
+						{ name: 'file-sar', arguments: { alertId: 'alert-3', reason: 'Mule pattern.' } },
+						// WP85: the closing note, and the work-item stages' predicates seen true.
+						{ name: 'write-note', arguments: { text: 'Queue worked; one report filed.' } }
+					]
+				},
+				'work-an-item': {
+					layoutId: 'work-item',
+					calls: [
+						{ name: 'open-alert', arguments: { alertId: 'alert-1' } },
+						{ name: 'look-up', arguments: { record: 'history' } },
+						{ name: 'say', arguments: { text: 'We are looking at a payment on your account.' } },
+						{ name: 'hold', arguments: { alertId: 'alert-1', reason: 'The rule’s signals.' } },
+						{ name: 'write-note', arguments: { text: 'Alert 1 held; no report.' } }
 					]
 				},
 				'freeze-the-genuine': {

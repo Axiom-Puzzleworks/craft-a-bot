@@ -23,6 +23,8 @@ export const FS_ADVICE_PACK_ID = 'fs-advice';
 import { ADVICE_BASELINE_ID, adviceBaseline } from './campaign.js';
 import { COMPLAINTS_BASELINE_ID, complaintsBaseline } from './complaints/campaign.js';
 
+import { adviceWorkflow } from './workflow.js';
+
 export const fsAdvicePack: PackManifest = {
 	id: FS_ADVICE_PACK_ID,
 	name: 'The Advice Desk (synthetic)',
@@ -50,15 +52,32 @@ export const fsAdvicePack: PackManifest = {
 	],
 	policyCards: [...advicePolicyCards, REDRESS_NEEDS_APPROVAL],
 	evaluators: [...adviceEvaluators, ...complaintsEvaluators],
-	controlMaps: [adviceControlMap]
+	controlMaps: [adviceControlMap],
+	// The advice journey (WP85, `76-FRAUD-AND-ADVICE-WORKFLOWS.md` §4).
+	workflows: [adviceWorkflow]
 };
 
 export default fsAdvicePack;
 
 export { adviceStrings } from './strings.js';
 export {
+	ADVICE_CEILINGS,
+	ADVICE_CONFIGURATION_IDS,
+	ADVICE_CONFIGURATIONS,
+	ADVICE_STAGES,
+	ADVICE_WORKFLOW_ID,
+	WARNINGS_PATTERN,
+	adviceBookFor,
+	adviceDecisionKind,
+	adviceWorkflow,
+	type AdviceConfigurationId
+} from './workflow.js';
+export { ADVICE_BOOK_CAMPAIGN_ID, adviceBookCampaign } from './campaign.js';
+export {
 	ADVICE_DESK_WORLD_ID,
+	WORK_ITEM_LAYOUT,
 	adviceDesk,
+	suitabilityOnTheDesk,
 	adviceDeskSpec,
 	adviceLayouts,
 	GUIDANCE_KINDS,
@@ -69,6 +88,9 @@ export {
 export {
 	ADVICE_CASE_KINDS,
 	adviceCase,
+	adviceCaseFromItem,
+	assembleAdviceCase,
+	kindForTopic,
 	answerRecords,
 	DISCLOSING_KINDS,
 	INJECTION_PAYLOAD,

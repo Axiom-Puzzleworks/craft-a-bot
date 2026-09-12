@@ -399,6 +399,36 @@ const groupFinishedEvent = eventSchema(
 	})
 );
 
+/**
+ * **The stage boundary** (WP79, `69-WORKFLOWS.md` §6; `64-…` §8): a
+ * workflow's stage began and ended — on the agent run's trace when a bot
+ * did the stage, on the workflow's own events otherwise. Optional in every
+ * reader; a trace without them is a desk run, as today.
+ */
+const stageValueSchema = z.object({ digest: z.string(), value: z.unknown().optional() });
+const stageStartedEvent = eventSchema(
+	'stage.started',
+	z.object({
+		workflowRunId: z.string(),
+		stageId: z.string(),
+		executor: z.string(),
+		input: stageValueSchema
+	})
+);
+const stageCompletedEvent = eventSchema(
+	'stage.completed',
+	z.object({
+		workflowRunId: z.string(),
+		stageId: z.string(),
+		output: stageValueSchema,
+		status: z.enum(['ok', 'blocked', 'escalated', 'error']),
+		guards: z.object({
+			checked: z.number().int().nonnegative(),
+			tripped: z.number().int().nonnegative()
+		})
+	})
+);
+
 export const engineEventSchema = z.discriminatedUnion('type', [
 	runStartedEvent,
 	runFinishedEvent,
@@ -424,7 +454,9 @@ export const engineEventSchema = z.discriminatedUnion('type', [
 	providerRetriedEvent,
 	errorEvent,
 	groupStartedEvent,
-	groupFinishedEvent
+	groupFinishedEvent,
+	stageStartedEvent,
+	stageCompletedEvent
 ]);
 
 export type EngineEvent = z.infer<typeof engineEventSchema>;

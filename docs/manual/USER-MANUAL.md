@@ -50,9 +50,9 @@
 | | |
 |---|---|
 | **Document** | Craft A Bot — User Manual |
-| **Version** | 1.2 (draft for review) |
-| **Date** | 7 September 2026 (third edition, after the second fix pass) |
-| **Applies to** | `main` at `4acafc1` — V1.0 plus Day 2, Day 3 and Day 4 (WP0–WP73), and both UX fix passes |
+| **Version** | 1.3 (draft for review) |
+| **Date** | 11 September 2026 (fourth edition, after Day 5) |
+| **Applies to** | The `day5` branch at its close — V1.0 plus Days 2–4 (WP0–WP73), both UX fix passes, and Day 5 (WP74–WP91, with WP92–WP93's craft-a-bot half); awaiting review and merge to `main` |
 | **Publisher** | Axiom Verity |
 | **Audience** | Learners, AI-safety practitioners, conduct and model-risk reviewers, engineers |
 | **Status** | Draft — for internal review before external release |
@@ -72,7 +72,9 @@ This is one manual for one product with three faces. You do not need all of it.
 | **An AI-safety or red-team practitioner** | Part C — The Workshop | §11–§14, §16–§19 (scenarios, evaluators, campaigns), then Part E for the CLI. |
 | **A conduct, compliance or model-risk reviewer** | Part D — The Playground | §26–§34, then §23 (the assurance pack) and §33 (the control map). You can skip Parts B and E. |
 | **An engineer integrating or extending it** | Part E — The harness | §35–§37, then Part F, then Appendix B (file formats). |
-| **Publishing or operating it** | Part F — Operations | §38–§41. |
+| **Publishing or operating it** | Part F — Operations | §38–§41, then §51. |
+| **A board member or CRO asking whether it is under control** | Part G — §49, the Assurance lens | §50.3 (the register), §23, §22. You can skip Parts B, C and E. |
+| **A data scientist asking whether it is fair, and moving** | Part G — §47, §49.3 | §42, §43, §50. |
 
 Conventions used throughout:
 
@@ -138,6 +140,18 @@ Conventions used throughout:
 40. Troubleshooting
 41. Limits and known behaviours
 
+**Part G — The bank in motion**
+42. The population and the calibration table
+43. Books, knobs and batch runs
+44. Workflows
+45. The Pipeline
+46. Contexts and the ontology
+47. The metrics
+48. The clock and the Monitor
+49. The lenses, Conduct and Model risk
+50. Experiments and the Control Effectiveness Register
+51. The site
+
 **Appendices**
 A. Screen index
 B. File formats and schemas
@@ -197,6 +211,10 @@ For local work you normally run the **`full`** build, which is every section at 
 
 ---
 
+## 2a. The lenses
+
+The Workshop has one set of screens and four readers — an engineer, a board member, a conduct reviewer, a data scientist. A **lens** orders the rail for one reader's question, opens on that reader's page, and speaks that reader's words; it hides nothing and recomputes nothing. Choose one at the head of the rail or in **Settings → Workshop lens**; the choice is remembered. Part C describes the screens in the engineer's order; §49 describes the lenses and the two pages built for the other readers.
+
 ## 3. The vocabulary
 
 ### 3.1 Two names for everything
@@ -214,6 +232,11 @@ The product carries a toy name and a real name for every concept, always togethe
 | Goal card | The task | Slotted into the bot; becomes part of the system prompt |
 | Playroom | The simulated grid world | The room with the rug, the teddy and the toy chest |
 | Desk | A simulated business world | The Advice Desk, the Fraud Desk — a transcript, a case file and a queue instead of a room |
+| The bank at scale | A population | Every customer of the synthetic bank at a seed and a size, regenerated on demand and never stored (§42) |
+| A book | A batch of work items | Applications, alerts, complaints or advice requests drawn from a population, each with its truth (§42.4) |
+| A journey | A workflow | Stages in order, each with an executor — a rule, the bot, a person, a line (§44) |
+| A lens | A reader's arrangement of the Workshop | Which screens, in which order, in which words (§49) |
+| A trial | An experiment | A pre-registered comparison whose result is an effect size with an interval, not a pass or fail (§50) |
 | GO lever | Start the run | Begins the sense → think → act loop |
 | Flight Recorder | The trace | The complete record of a run, event by event |
 | Safety brick | A guardrail | Step budgets, blocklists, approval mode, policy cards |
@@ -299,6 +322,7 @@ npm run preview      # serves exactly those built files, usually http://localhos
 | `npm run demo` | Build the keyless demo, ready for a static host |
 | `npm run budget` | Bundle size against the budget, with per-route sizes |
 | `npm run schemas` | Regenerate the published JSON Schemas in `docs/schemas/` |
+| `npm run metrics:doc` | Regenerate `docs/metrics.md` from the metrics package's validation suite; checked on every build (§47) |
 | `npm run craftabot -- …` | The headless harness (Part E) |
 | `npm run evals` | The scripted evaluation matrix, through the harness |
 | `npm run smoke:openai` | One real call to OpenAI. Needs a key; never runs in CI |
@@ -517,7 +541,7 @@ Everything in the Workshop is a *consumer* of the same stores and the same event
 
 A persistent left rail lists every screen:
 
-**Bench** · **Runs** · *Spec lab (per bot)* · **Evals** · **Campaigns** · **Evaluators** · **Scenarios** · **Sinks** · **Evidence** · **Playground** · **Policies** · **Test bench** · **Telemetry** · **Incidents** · **Safety case** · **Assurance** · **Audit** · **Guards**
+**Bench** · **Runs** · *Spec lab (per bot)* · **Evals** · **Campaigns** · **Workflows** · **Evaluators** · **Scenarios** · **Sinks** · **Evidence** · **Playground** · **Policies** · **Test bench** · **Telemetry** · **Monitor** · **Incidents** · **Safety case** · **Assurance** · **Audit** · **Guards**
 
 **← The Kit** at the foot returns you to the toy.
 
@@ -687,9 +711,13 @@ Only scripted, offline cells run in the browser. A cell that calls a real model,
 
 ### 19.2 Running one
 
-Press **Run campaign**. The button becomes a progress counter — *Running 176/640…* — beside **Cancel** and a line reading *"4s elapsed, about a minute left — the page is busy between cells and may not answer until it finishes."* Take that literally: the run holds the tab until it ends or you cancel. The estimate is a trailing average over the last twenty cells and is deliberately rounded — *under a minute*, *about a minute*, *about three minutes* — because the first cell is the slowest and a mean taken from the start read about twice long.
+Press **Run campaign**. A progress counter — *Running 176/640…* — appears beside **Cancel** and a line reading *"4s elapsed, about a minute left — running in a Worker, so this page stays live; the report is stored when it finishes, even if you leave."* Take that literally too: the run belongs to a background Worker, not the page, so you can open the Run Browser mid-run and come back to the stored report. Press **Run campaign** again while one runs and the next is **queued** behind it; the queue lists each with its status. The estimate is a trailing average over the last twenty cells and is deliberately rounded — *under a minute*, *about a minute*, *about three minutes* — because the first cell is the slowest and a mean taken from the start read about twice long.
 
 All five shipped baselines run here, offline, including the four Playground ones: the injection baseline is 640 cells and finishes in well under a minute on a laptop; the Advice Desk baseline is 930 cells and takes about twenty seconds longer. What still needs the harness is a cell that calls something real — a live brain, a live counterpart, a hosted evaluator or a hosted guard with no offline stand-in (§36.2, §40.3).
+
+### 19.2a Books and sweeps
+
+Beside the editor, the **Book** and **Sweep** panels queue a campaign over a book of work items — a whole loan book through a workflow's configurations — or multiply the editor's builds by a knob's values. Both are described with the bank in motion, §43.3.
 
 ### 19.3 Reading the report
 
@@ -708,7 +736,7 @@ All five shipped baselines run here, offline, including the four Playground ones
 
 **CASES** is one row per run — scenario, guard, brain, seed, outcome, turns, cost, approvals, and a column per cohort and per evaluator label. **Find** narrows by any text on the row (scenario, guard, brain, seed, outcome, cohort, label), and the table grows a hundred rows at a time. It is labelled *Failures first* and sorts that way: anything that errored or ended in something other than `SUCCESS` comes before the rest, stably, so the interesting cases are at the top of the first page.
 
-For a Playground campaign the report also carries the **confusion matrix**, the **cohort slices** and the **obligation table** (§32, §33).
+For a Playground campaign the report also carries the **confusion matrix**, the **cohort slices** and the **obligation table** (§32, §33). A report over a book, or with a gate that names a metric, carries three more panes — **Fairness**, **Drift** and **Human load** — described in §43.4.
 
 **STORED REPORTS** keeps every report this browser has run, with its verdict, so you can reopen one later.
 
@@ -773,7 +801,13 @@ The structured argument for one bot, in five parts: **Inability** (what this bui
 
 *Inability* is the strongest claim available and is computed, not asserted: a bot with no Hands & Wheels brick cannot act on the world, so nothing it says can move anything.
 
+### 22.4 The Monitor, Workflows and the Pipeline
+
+Three Workshop screens arrived with the bank in motion and are described there: the **Monitor** (`/workshop/monitor`, §48.2) watches a simulated bank day live; **Workflows** (`/workshop/workflows`, §45.1) lists every stored journey; the **Pipeline** (`/workshop/workflows/<runId>`, §45.2) shows one journey's stages with their inputs and outputs and re-runs it from any stage under one change.
+
 ## 23. The Assurance pack (`/workshop/assurance`)
+
+Since Day 5 this page is also the **Assurance lens**'s entry: it opens on the **Control Effectiveness Register** (§50.3) — every control on the maps with its measured effect, or *untested* — and carries **Compare two reports** (§49.4). The pack's §5, *Risk mitigants*, renders the same register. The rest of the page is as below.
 
 The assurance pack is the filed evidence for one bot, in the shape a model-risk or conduct reviewer reads. Choose a bot, and the page assembles:
 
@@ -799,6 +833,8 @@ The screen opens on the bot you ran most recently. If no name is set, a bar at t
 > **Figure 14** — The assurance pack. *(Appendix D, `workshop-assurance.png`.)*
 
 ## 24. The Evidence store (`/workshop/evidence`)
+
+The store now takes four more kinds beside bundles, reports, packs and content: a **workflow run**, a **bank run**, an **experiment** and an **experiment result** (§45, §48, §50), and the Monitor can read workflow and bank runs back from it (§48.3). Served from axiom-verity.com the screen offers a member's own workspace (§51); anywhere else the fields below are the whole story.
 
 Optional, and off unless you set it up. The evidence store is a **sync target for artefacts only** — bundles, campaign reports, assurance packs and authored content. Never a key. Never the source of truth. Never required.
 
@@ -862,7 +898,7 @@ Below, two columns:
 | **Complaints** | Category, summary, status |
 | **The shelf** | About thirty products across savings, investment, credit and insurance, each with a risk band (1 cash-like to 7 speculative), an annual charge in basis points, eligibility, a target market, a factsheet and the warnings that must ride with it |
 
-### 26.3 The nine service lines
+### 26.3 The service lines (nine, and since WP81 a tenth: the graph)
 
 What a desk's **Connector** brick can reach. Each answers from the bank's own state, declares a risk tier on every operation, and is recorded on the trace exactly as any tool call is.
 
@@ -880,6 +916,10 @@ What a desk's **Connector** brick can reach. Each answers from the bank's own st
 
 **Bold** operations cannot be taken back. A mutation comes back as *data* for the desk's own action to write, so the trace attributes the change to the bot's decision rather than to the line.
 
+### 26.3a The bank at scale
+
+Beneath the case, two strips added on Day 5: **Where this bank's shape comes from** — the calibration table with a source and a review lamp on every row — and **The bank at scale** — a seed, a size, and **Generate the population**. Both are described in §42.
+
 ### 26.4 Classification, purpose and truth
 
 Every record the bank holds is marked `public`, `personal` or `special-category` — UK GDPR's vocabulary. Every desk declares a **purpose**: `advice`, `fraud-operations`, `lending` or `complaints`. A line answers a special-category record only for a purpose that allows it.
@@ -888,7 +928,7 @@ Every record the bank holds is marked `public`, `personal` or `special-category`
 
 This is the property that makes the Playground a test rig rather than a demo: what the bot *should* have done is known, not guessed.
 
-> **Figure 17** — The Playground: a generated case and the nine lines on a boundary map. *(Appendix D, `ws-playground.png`.)*
+> **Figure 17** — The Playground: a generated case and the lines on a boundary map (nine when the figure was taken; ten since WP81). *(Appendix D, `ws-playground.png`.)*
 
 ## 27. The Advice Desk
 
@@ -982,6 +1022,8 @@ The bank's lending assistant: verify the applicant, assess affordability, decide
 
 > **The verdict is a rule, not a scorecard.** The bank's affordability verdict is a deterministic rule over a synthetic bureau file. There is no credit model here, and none is implied.
 
+Since Day 5 the rule's thresholds are **knobs** — a lending policy a campaign, a workflow configuration or a what-if can set, with defaults that reproduce everything below (§43.1) — and the desk ships the **lending journey** as a workflow of ten stages with five reference configurations by autonomy level (§44).
+
 ### 29.1 The decks
 
 **lending-journey** — the clear approve (and hurried); the clear decline; the borderline the rules say to refer; the applicant in a hurry.
@@ -1051,6 +1093,8 @@ Two cautions the product states for you:
 
 - **Matched versus unmatched.** The fairness deck's *matched pair* is the same finances on two cohorts one seed apart, so a difference is attributable. Over an unmatched corpus the report marks the slice `matched: false`, and the assurance pack quotes that caveat. Read an unmatched parity number as a prompt to investigate, never as a finding.
 - **A parity gate is a test result, not a fairness assessment.** It says whether this build, on this synthetic corpus, decided alike. It says nothing about a real population.
+
+Since Day 5 a `parity` gate can name its **metric** — demographic parity, disparate impact, equal opportunity, equalised odds, predictive parity, conditional parity, rule agreement, discordance, the counterfactual flip rate — a stratifier, a confidence, and whether an underpowered reading should be *inconclusive* rather than a verdict. Every reading then carries its interval and *n*. The metrics and their validation are §47; the gate's options §47.4.
 
 ## 33. Obligations and the control map
 
@@ -1231,7 +1275,11 @@ npm run craftabot -- evidence pull --store evidence/supabase --store-config '…
 
 `push` sends one artefact and prints the receipt. `pull` verifies every item's digest, refuses one that fails (exit 1) and writes the rest as the files the Workshop imports. Under `--egress none` the command is refused before any call.
 
-### 36.8 The rest
+### 36.8 `workflow`, `book`, `sweep`, `bank`, `experiment` — the bank in motion
+
+The Day 5 commands, each described with its screen: `workflow run` (§44.5) runs one journey over one work item; `book run` and `sweep` (§43.5) run a book through a workflow's configurations and multiply builds by a knob; `bank run` (§48.4) runs a simulated day with the desks from a file; `experiment run | analyse | render` (§50.5) expands a design to its campaigns and folds their reports into effects. `evidence pull --kind` now also takes `workflow-run`, `bank-run`, `experiment` and `experiment-result`.
+
+### 36.9 The rest
 
 `packs` (what is installed, and which credential variables are set — never a value) · `scenarios` (list and import a corpus) · `content` (the authored content store) · `export` (send a stored run to a sink).
 
@@ -1268,7 +1316,17 @@ npm run craftabot -- campaign --file my-campaign.json --shard 1/4 --out ./out-1
 npm run craftabot -- merge --file my-campaign.json ./out-*/**.campaign-report.json
 ```
 
-### 37.4 Read a bundle from another language
+### 37.4 Measure a control, not judge it
+
+```sh
+# the policy-card stack against rules-only and the bot with a person at the decision, over 5,000 applications
+npm run craftabot -- experiment run --file experiments/lending-stack.json --size 5000 --jobs 8 --egress none --out ./campaign-out
+npm run craftabot -- experiment render --result ./campaign-out/lending-stack.experiment-result.json
+```
+
+The markdown says, per metric and per level against the baseline, the difference with its interval and *n*, the cost on each side, and the verdict. Push the result to the evidence store and it appears on the register (§50.3) of every Workshop that pulls it.
+
+### 37.5 Read a bundle from another language
 
 Every artefact that crosses a boundary has a published JSON Schema in `docs/schemas/`. `examples/python-reader/` reads a bundle, validates it against those schemas and recomputes the digests, using nothing from this repository. `npm run example:python` runs it, and skips itself where Python is absent.
 
@@ -1296,6 +1354,10 @@ Each folder goes at the path with its name:
 **One rewrite rule per folder.** Each section is a single-page app, so a deep link such as `/workshop/workshop/runs` must serve `/workshop/index.html`. `docs/publishing.md` gives the exact rules for Netlify, Cloudflare Pages, S3/CloudFront, nginx and Apache.
 
 Each edition is measured against its own bundle budget at build time, and the command fails if a folder is over.
+
+**A release artefact.** Tagging `v*` builds the three editions in CI and attaches `craftabot-site-<version>.zip` — the three folders, `PUBLISHING.md`, `VERSION` and a SHA-256 — to the GitHub release; `docs/publishing.md` §6 is the recipe for serving it behind a login on axiom-verity.com (§51).
+
+**One cache per section.** Each edition's service worker names its cache after the edition, so two or three sections on one origin never serve each other's shell.
 
 **Access control.** Nothing in the application authenticates anyone. If a section should be restricted, put the restriction in front of its folder at the host — basic auth, an identity-aware proxy, or your CDN's access rules. The application never sees a user, and no build flag changes that.
 
@@ -1366,11 +1428,389 @@ Recorded rather than hidden.
 - **Control-map review is a content edit.** Rows ship `unreviewed`; accepting one is a change to the pack, not a click in the application.
 - **The browser forks without overrides.** Forking with a different build is the harness's `fork --kit`.
 - **No cost model.** The product counts tokens and does not price them, and the dashboard says so rather than inventing a number.
-- **A campaign holds the tab while it runs.** There is a **Cancel** and an estimate, but no Worker: 930 cells is about a minute and a half in which the page will not answer.
-- **The boundary map's labels collide** where the ring is crowded — the bank's nine service lines overlap each other and the egress badge. The picture is right; the typesetting is not.
-- **One origin, one service worker.** If two sections (§38) are published on the same origin at different bases, the section installed second inherits the first's cached shell and can open on a blank page until the browser's site data is cleared. Publish each section on its own origin or subdomain, or give each its own service-worker scope, before putting two in front of readers.
+- **Every calibration row is awaiting review.** The table cites a source on every row, and every row shipped `review: pending` because the sprint could not wait for a reader to check each against its publication. The bank page counts them; reviewing one is a content edit (§42.2).
+- **The performance label and the alert rule are stated functions, not fitted models.** The Model-risk page and the reports say *synthetic hazard*; the fraud baseline is the detector alone. Nothing in the product fits anything (§42.4).
+- **The Monitor's drift reads one feature** — the outcome mix against the population's expected verdicts. PSI per input feature is the Model-risk page's, against a reference report (§48.2, §49.3).
+- **Matched pairs read *no pairs* on the Model-risk page** until a book cell carries a pair id; the fairness deck's pairs are scenario cells, not book cells (§49.3).
+- **`drift-day` is not an experiment.** It is the Monitor's planted-shift test, and `docs/evidence/drift-day/` records it as such rather than as a campaign-shaped result (§50.4).
+- **The site's half is not built.** The release artefact, the per-edition cache, the workspace offer and the citations are this repository's; the service that gates the folders, the account page that mints a token and the framing page live in the site's repository and are not yet there (§51).
+- **A book run's gate always passes.** A book run is a measurement; put the gates a judgement needs in a campaign file with a `source` (§43.2).
 - **The live checkpoints for Azure Content Safety and the Gen AI evaluation service are pending** a key and a token; both are one command (`npm run smoke:azure`, `npm run smoke:geap`).
 - **Provider errors show friendly copy with the raw payload one click away**, but there is no automatic retry.
+
+---
+
+# Part G — The bank in motion
+
+Day 5 turned the Playground from a set of cases into a bank that runs. This part is the reference for what it added: a **population** with a cited calibration table and the **books** drawn from it; **workflows** — journeys as stages with executors — and the **Pipeline** that shows every stage's input and output; the **context ladder** and the bank's **ontology**; a **metrics** package whose fairness, drift and human-load numbers carry intervals and are validated against planted effects; the **clock** and the **Monitor**; the four **lenses**, with the Conduct and Model-risk pages; **experiments** and the **Control Effectiveness Register**; and the road to the site. The design of record is `docs/design-day2/64-TARGET-DESIGN-V5.md`; each section names its note (`66-…` to `82-…`).
+
+Two rules run through all of it. Every number carries its *n* and its interval, or it is not shown. And nothing real, still: the population is shaped like the published UK aggregates it cites and contains no record from anywhere.
+
+## 42. The population and the calibration table
+
+### 42.1 What a population is
+
+`bankCase(seed)` draws one customer with everything that hangs off them. A **population** draws the whole bank: `population(seed, { size })` — every customer from 0 to *size* − 1, each with accounts, a bureau file, a transaction stream and the rest, generated from one seed. Customer *k* is the same customer whatever the size, so a population of 2,000 is the first 2,000 of the population of 20,000, which is what lets the harness shard a book and CI run a reduced one. Transactions are a lazy stream — generated per account per day when asked for, never materialised whole — and the population itself is never stored: it is regenerated from its seed in well under a second (20,000 customers in about 430 ms on a laptop) and identified by a **digest** over its options, the table's rows and a canonical sample.
+
+### 42.2 The calibration table
+
+Every distribution the population draws from is a row in the **calibration table** (`docs/design-day2/66-CALIBRATION.md`; `docs/schemas/calibration.schema.json`). A row names the distribution, the weights, and its **source** — publisher, title, edition, the table within it, and the date it was read — or states itself as an *assumption* and says why. The sources are the ONS population and labour-market estimates, HMRC personal incomes, the FCA's *Financial Lives* (vulnerability, digital confidence, product holding, financial inclusion), UK Finance's *Payment Markets* and *Annual Fraud Report*, the FCA's aggregate complaints data, the Bank of England's *Money and Credit* and *Financial Stability Report*, and the Lloyds *Consumer Digital Index*. A test draws 20,000 customers and holds every row's marginal to its target within the row's tolerance plus the sampling margin.
+
+Every row carries a **review** status. The sprint that built the table cited every row but could not wait for a reader to check each against its source, so every row shipped `pending`; the bank page shows the count still awaiting review, and the assurance pack cites the table with that status. Reviewing a row is a content edit, like accepting a control-map row.
+
+Two tables, not one. The population draws from the calibration table. The desks' **designed cases** — the decks of Part D — keep the Day 4 weights (`DECK_WEIGHTS`), because a designed case is meant to be the case it was written to be, not a draw from the population.
+
+### 42.3 On the bank page
+
+`/workshop/playground` gained two strips beneath the case:
+
+- **Where this bank's shape comes from** — the calibration table, one row per distribution, with its target, its source and its review lamp, and the line *N of M rows are awaiting a reviewer's reading against their source.*
+- **The bank at scale** — a **Seed** and a **Customers** field and **Generate the population**. The page regenerates the population from the seed, prints its digest and the time it took, and lists each row's marginal beside its target, within tolerance or not.
+
+The lines panel now shows **ten** service lines: the nine of §26.3 and the `graph` line (§46).
+
+### 42.4 Books
+
+A **book** is a batch of work items drawn from a population without a clock — what a batch run consumes (§43) and what the clock emits one at a time (§48). Four are drawn:
+
+| Book | What it holds | Truth on every item |
+|---|---|---|
+| The **loan book** | Every application in the period, sized from the loan-size row, declared income and outgoings from the bureau's affordability with a stated declaration noise | The rule's verdict; the cohort; the **performance label** |
+| The **alert book** | Every alert the **alert rule** raised over the transaction stream — velocity, a new device, a foreign country, a night-time card-not-present burst | The planted label (`fraudulent`, `mule-in`, or nothing) |
+| The **complaint register** | Complaints by category and incidence | The category |
+| The **advice-request register** | Requests from a calibrated share of customers holding savings above a threshold | The suitable set |
+
+Two things in that table are new kinds of truth and are labelled as such wherever they appear. The **performance label** — `defaultedWithin12m` — is drawn for every application, declined ones included, from a stated hazard over the affordability ratio and the bureau file (`67-PERFORMANCE-AND-BOOKS.md` gives the coefficients). It exists so the outcome-conditioned fairness metrics (§47.1) have a positive class that is not the rule itself. It is a function, not a fact: on the shipped table the approved book's default rate is 4.0% against a cited UK range of 2–6%; it is never fitted, never on the desk, and the Model-risk page calls it *the synthetic hazard*. The **alert rule** is a stated detector, not a model: on the shipped table its precision is 0.084 and its recall 0.699 over the last thirty days, and those two numbers are a calibration test. The fraud workflow's `rules-only` configuration is that detector alone — the baseline every fraud stack is compared against.
+
+A book is a file (`book.schema.json`) a campaign can carry inline, or a recipe — a population's seed and size and a filter — a campaign draws at run time. It is byte-stable per population and filter.
+
+## 43. Books, knobs and batch runs
+
+### 43.1 The lending knobs
+
+The Lending Desk's rule (§29) is no longer a set of constants. A **lending policy** is a record of knobs, read by the desk, the truth, the book's verdicts and the five policy cards alike, so one setting changes all of them together:
+
+| Knob | Default | What it moves |
+|---|---|---|
+| `rateBps` | 790 | The synthetic flat rate |
+| `referRatioPercent` | 60 | Refer when repayment over disposable income sits above this |
+| `declineRatioPercent` | 100 | Decline above this |
+| `declineOnDefaults` | 2 | Decline at this many bureau defaults; one fewer refers |
+| `referOnSearches` | 3 | Refer at this many searches in twelve months |
+| `referOnFair` | true | Refer a `fair` score band |
+| `fourEyes` | `approve` | Which decisions a person confirms: the payout after an approve, every decision (`all`), or none |
+
+The defaults reproduce every Day 4 test, the golden trace and the baseline campaign byte for byte. A campaign sets them on a build (`builds[].overrides.knobs`), a workflow configuration sets them (§44.3), and the report's slice by build carries them, so a sweep is one campaign and one table.
+
+### 43.2 A book campaign
+
+A campaign can take its cells from a book instead of from scenarios × seeds: `source: { kind: "book", workflowId, population: { seed, size } | book, configuration?, limit? }`. One cell per work item × build × guard × brain (× context, §46), the item's truth as the cell's, the report the same report — with the cohort table now over thousands of ordinary cases rather than a few dozen designed ones, which is where the intervals stop being decoration. `campaigns/fs-lending-book.json` is the one CI runs, over a 500-customer population; the fraud and advice books have their own.
+
+### 43.3 On the Campaigns screen — Books and Sweeps
+
+Beside the editor, two panels queue campaigns onto the Worker (§19.2):
+
+- **Book** — pick a **Workflow**, the population's **Customers** and **Seed**, and tick the **configurations** to run (§44.3; every named one when none is ticked). The screen writes the campaign — one build per configuration, one guard, one brain, one always-passing gate — shows it in the editor, and queues it. A book run is a measurement; the gates a judgement needs come in a campaign file.
+- **Sweep** — pick a **Knob** and type its **Values**, comma-separated. Every build in the editor is multiplied by every value, one build per value named `<build>@<knob>=<value>`, and the result is one report whose slice by build is the sweep.
+
+Every workflow run a book cell makes is stored as its own record and listed on Workflows (§45), with its agent runs behind it.
+
+### 43.4 The report's new panes
+
+A report over a book carries three panes the Day 4 report did not (`74-GATES-AND-REPORT-V3.md`):
+
+- **Fairness** — one row per `parity` gate that named a metric (§47.4): the metric, the attribute, the stratifier, the value on a `Meter` with its interval as a range band, *n*, and a lamp that says **underpowered** rather than pretending.
+- **Drift** — one row per `drift` gate: the metric, the feature, the reference, the value, the bound, the verdict.
+- **Human load** — touches per case, the unattended rate, decisions, breaches and the breach rate **by build**, each build labelled with its autonomy level (§44.4). A breach is a decision taken above its kind's ceiling: counted, never prevented.
+
+The report's schema is now version 3. Every earlier report loads unchanged and reads with those panes empty and a line saying why.
+
+### 43.5 From the harness
+
+```sh
+npm run craftabot -- book run --workflow fs-lending/lending --population 1 --size 2000 \
+  --config rules-only,bot-everywhere --jobs 4 --egress none --out ./campaign-out
+
+npm run craftabot -- sweep --file campaigns/fs-lending-book.json --knob referRatioPercent=50,60,70
+```
+
+`book run` writes the campaign it built beside the report, so what ran is a file CI could run, then takes `campaign`'s own road — the pool under `--jobs`, every run kept, the human-load rows printed. `--period-days` and `--limit` bound the book; `--kit` seats a bot of yours in the agent stages (the world's default senses and actions without one); `--brain` is `scripted-optimal` by default. `sweep` is sugar over builds.
+
+## 44. Workflows
+
+### 44.1 A journey as stages
+
+A **workflow** (`@craftabot/workflow`; `69-WORKFLOWS.md`) is a journey written as content: **stages** in order, each with a typed input and output, an **executor**, and an edge to the next. Four kinds of executor:
+
+| Executor | What runs the stage | How it appears on the trace |
+|---|---|---|
+| `rule` | A pure function the pack registers by id; its output is applied through the desk's own action | The same `action.performed` a bot would have made |
+| `agent` | The desk bot, on a goal card synthesised for the stage, until the stage's predicate holds (`identity-verified`, `decided`…) | An agent run of its own, with `stage.started` and `stage.completed` on its timeline |
+| `human` | A person: an approval-shaped pause with the stage's options and a suggestion | `approval.requested` and `approval.resolved`, with who answered |
+| `line` | A service line called directly | A `tool.executed` |
+
+The desk is unchanged. A workflow is a schedule over what a desk already does: the world instance is carried from stage to stage, an agent stage runs a session over it and returns, and a stage's input and output are validated against the stage's schemas both ways — a bot that ends its stage without producing the output is an `error` stage with a finding, never a silent pass. A run leaves a **workflow run** (`workflow-run.schema.json`): every stage's executor, input and output digests (the values too, when small), guard tally, approval, duration and status, the ids of every agent run it made, and a digest over the stage records.
+
+Two events joined the catalogue: `stage.started` and `stage.completed`. A trace without them is a desk run, as before.
+
+### 44.2 The three workflows
+
+**The lending journey** (`fs-lending/lending`; `73-LENDING-WORKFLOW-AND-BOOKS.md`) — ten stages:
+
+| Stage | Default executor | Output |
+|---|---|---|
+| `intake` | rule | The application on the desk; a malformed item is refused with a finding |
+| `identity` | agent until `identity-verified` | `{ verified }` |
+| `bureau` | line — `fs-bank/credit-bureau` | The bureau file |
+| `affordability` | agent until `affordability-assessed` | The worksheet's five figures |
+| `decision` | agent until `decided` — or a person choosing approve / decline / refer, the rule's verdict suggested | `{ outcome, reasons }` |
+| `record` | rule | Performs a person's decision on the desk; the one place a decision is counted against the ceilings |
+| `explanation` | agent until `explained` | `{ reasons, text }` |
+| `four-eyes` | human — confirm / return / overturn | Entered on an approve, or on every decision when `fourEyes` is `all`; skipped under `none` |
+| `disbursement` | agent until `disbursed` — **irreversible** | Only after a confirmed approve |
+| `appeal` | agent until `appealed` | Only when the item arrived with an appeal |
+
+**The fraud journey** (`fs-fraud/fraud`; `76-FRAUD-AND-ADVICE-WORKFLOWS.md`) — eight stages: `alert` → `triage` → `contact` → `decision` → `restriction` → `SAR` → `filing` → `note`. Under `rules-only` the detector alone holds every alert and a person is asked about the SAR; the SAR is a person's below Level 5 and is irreversible.
+
+**The advice journey** (`fs-advice/advice`) — seven stages: `request` → `suitability` → `recommendation` → `warnings` → `consent` → `execution` → `confirmation`. Under `rules-only` the fact-find form and the suitability rule recommend, and a person consents; consent gates the order.
+
+### 44.3 The reference configurations and the autonomy levels
+
+Each workflow ships named **configurations** — which executor takes each stage, and which knobs — labelled with the **autonomy level** of the site's thought experiment (*Can a Small Team Govern an AI Bank?*): 1 *Human as Operator*, 2 *Collaborator*, 3 *Consultant* (the AI recommends, the human decides), 4 *Approver* (the AI initiates, the human authorises before execution), 5 *Observer* (the AI acts within parameters, monitored afterwards). The simulator and the thought experiment use one vocabulary on purpose.
+
+| Lending | Level | Fraud | Advice |
+|---|---|---|---|
+| `rules-only` — every bot stage a rule; four-eyes a person. **The control.** | — | `rules-only` — the detector alone | `rules-only` — the form and the rule |
+| `bot-explains-only` — rules decide; the bot explains; `fourEyes: all` | 2 | `bot-triages-only` | `bot-gathers-only` |
+| `bot-recommends` — the bot verifies, assesses and explains; the decision a person's, the rule's verdict suggested | 3 | `bot-recommends` | `bot-recommends` |
+| `bot-with-a-person-at-the-decision` — the bot everywhere; `fourEyes: all` | 4 | `bot-with-a-person-at-the-sar` | `bot-with-a-person-at-execution` |
+| `bot-everywhere` — the bot everywhere; `fourEyes: none` | 5 | `bot-everywhere` | `bot-everywhere` |
+
+### 44.4 Decision rights and ceilings
+
+The thought experiment's decision-rights table gives each kind of decision a **ceiling** — the highest autonomy level it may run at. The four rows that map to a desk ship as content (`fs-lending/src/decision-rights.ts`, the page cited as the source, retrieved 11 September 2026): in-policy credit approval **4**, an adverse credit decision **3**, the vulnerable-customer support pathway **3**, SAR filing **2**; the fraud and advice workflows carry their own (`account-restriction` 3, `personal-recommendation` 3, `investment-execution` 4). A decision taken at a level above its kind's ceiling is a **breach**. Breaches are *counted, never prevented*: the point of running `bot-everywhere` is to see what a Level 5 decline costs, and the breach rate is what says so. At Level 3 the rate is zero by construction; at Level 5 every decline is one.
+
+### 44.5 From the harness
+
+```sh
+npm run craftabot -- workflow run --workflow fs-lending/lending --item ./item.json \
+  --config bot-recommends --decide decision=approve --seed 7 --egress none --out ./runs
+```
+
+One workflow over one work item (a `WorkItem` as `book.schema.json` has it). `--config` picks a named configuration; `--kit` seats your bot in the agent stages; `--decide <stageId>=<option>,…` answers the human stages (the executor's suggestion otherwise); `--deny` refuses every approval inside an agent stage. Every agent run is written as `run` writes one; the workflow's own record is `<out>/workflows/<runId>/workflow-run.json`. Exit 0 when the journey completed, 1 when a stage stopped it.
+
+## 45. The Pipeline
+
+### 45.1 Workflows (`/workshop/workflows`)
+
+Every workflow run the store holds — a book campaign's cells, a what-if, an import — one row each, with the stages as a strip (● ok · ◐ escalated · ■ blocked · ✕ error), the touches a person made, where it came from, and when it started on the simulated clock. **Import a workflow run** takes the `workflow-run.json` the harness wrote (without its item, so no what-if) or a stored run with its item.
+
+### 45.2 The Pipeline (`/workshop/workflows/<runId>`)
+
+A row opens the **Pipeline**: the run's strip, then a rail of stage cards — the executor's roundel (the bot, a rule, a person, a line), the status lamp, the executor in a sentence, the duration, the guard tally, and the approval or the finding when there is one. Select a stage for its **In** and **Out** panes on the case file, every field with its digest beside it. A bot stage links to **the Run Lab at this stage's first tick** when its run is in the store, and says plainly when it is not; a rule stage says *no bot ran*. The Boundary beneath draws the journey as a **ring** around the bot's boundary, each stage as its actor, lit by the run.
+
+### 45.3 What if…
+
+**What if…** re-runs the journey from the selected stage under one change and opens the result beside the original: two rails synchronised on the selected stage, a third pane for the other run's output, and *forked from* on the strip. The stages before the selected one run again exactly as they were — the original's configuration and seeds — so the difference is the change and nothing else. The change is one of:
+
+- another **configuration** (§44.3);
+- another **executor at this stage** — a rule instead of the bot, a person instead of a rule;
+- a **knob** and its value (§43.1);
+- another **context rung** (§46).
+
+This is the counterfactual of §13.4's *Fork*, lifted from a tick to a stage.
+
+### 45.4 The Boundary map, rewritten
+
+The Boundary map (§13.3, §14) was rewritten for the ring. Outside nodes now sit evenly around the circle in kind order on a radius sized to the widest label, every label is collision-tested and leader-lined outward when it would overlap, and each workflow draws its stages as a ring outside the boundary — the bank's page draws every workflow's ring, each desk's page its own, the Pipeline the run's. The label collisions recorded in the Day 4 register (UX-7) are gone, and a test measures the label boxes in the browser on every page that draws the map.
+
+## 46. Contexts and the ontology
+
+### 46.1 The context ladder
+
+What the bot is told about a customer is a variable, not a given (`70-CONTEXT-AND-ONTOLOGY.md`). A **context** names a rung on a ladder and how it is delivered:
+
+| Rung | What the bot has at the first turn |
+|---|---|
+| `minimal` | The work item alone — the records the queue names — with the desk brief dropped |
+| `case-file` | Today's revealed set: the desk brief and the record the journey reveals |
+| `relational` | The case file plus the customer's related records rendered flat: accounts, recent transactions, complaints, the bureau summary, products held |
+| `ontology` | The relational set plus a **knowledge card**: the customer's neighbourhood in the bank's ontology to a stated depth, typed |
+
+Each rung is a superset of the one below — a bot never loses a record by being given more — and **classification is unchanged at every rung**: a `special-category` record never enters by context, whatever the purpose. A context is delivered as the desk **brief**, as a line in the observation (`sense`), or through the `graph` **line**; it can carry a token **budget**, truncated deterministically with a note, so a rung is comparable across cases.
+
+### 46.2 The ontology and the graph line
+
+The bank's **ontology** is its entities and relationships as a typed graph, generated from a case or a population and never stored: twelve classes — customer, account, transaction, product, application, decision, complaint, alert, and the governance entities: obligation, control, service line, desk — and relations that carry the **purposes** they may serve. A `knowledgeCard` renders a customer's neighbourhood deterministically; the **`graph` line**, the tenth service line, answers `neighbours`, `pathBetween` and `describeClass` at tier *observe*, recorded on the trace like any tool, and refuses a traversal the purpose does not allow with the same finding the other lines raise. Because the obligations and controls are in the graph, a bot at the `ontology` rung can be asked to cite the obligation its action serves.
+
+### 46.3 In a campaign
+
+`contexts: [ … ]` on a campaign multiplies its cells by rung; the slices, the case table, the cohort table and `where.context` on a gate all carry it. A campaign with no `contexts` is byte-identical to before. The `data-minimised` evaluator scores a record handed by context as a read, so the rung is measurable: on the Advice Desk's plain savings case a `relational` build fails it and a `minimal` build passes. The Pipeline's what-if and the Experiments page both offer the rung as a factor.
+
+## 47. The metrics
+
+`@craftabot/metrics` (`68-METRICS.md`) is one package, one definition per metric, read by every gate, report, page and register. Every function returns its value **with** its *n*, its interval, its method and an **underpowered** flag (any group under thirty, or the interval spanning the bound). Every metric has three tests — a hand case a reader can recompute, a planted effect it recovered, a null it did not flag over 200 seeds — and `docs/metrics.md`, generated by `npm run metrics:doc` and checked on every build, is the suite's shipped run.
+
+### 47.1 Fairness
+
+| Metric | Definition | Needs |
+|---|---|---|
+| `demographic-parity` | max − min over groups of P(approve \| group) | decisions |
+| `disparate-impact` | min / max of the same; the four-fifths rule (≥ 0.8) is a convention, stated as one | decisions |
+| `equal-opportunity` | max − min of P(approve \| would have repaid, group) | the performance label |
+| `equalised-odds` | the larger of the equal-opportunity gap and the false-positive-rate gap | the performance label |
+| `predictive-parity` | max − min of P(repaid \| approved, group) | the performance label |
+| `conditional-parity` | demographic parity within strata of a legitimate factor — score band, income band — pooled by stratum share | a stratifier |
+| `rule-agreement` | max − min of P(decision = verdict \| group): the *bot's* fairness apart from the *policy's* | the verdict |
+| `discordance` | the share of matched pairs decided differently, with the sign test on the direction | pairs |
+| `counterfactual-flip` | the share of forks whose decision changed when the cohort was flipped and nothing else | forks |
+
+Rates carry Wilson intervals, differences Newcombe's hybrid score, ratios the log-ratio interval, discordance and flips Clopper–Pearson. A *p* is reported where a test exists (two-proportion z, Fisher's exact under the floor, the sign test) and **nothing passes or fails on it**: a gate bounds, as it always has, and is inconclusive with the reason when asked to be.
+
+### 47.2 Drift
+
+`psi` per feature (bins fixed from the reference; stable below 0.10, watch to 0.25, act above — a convention), `ks` with its asymptotic *p*, `outcome-mix` (total-variation distance over the decision or label shares), `agreement` (P(decision = verdict) now minus in the reference), `fairness` (any §47.1 metric now minus in the reference), and `page-hinkley` for the slow ramp a window comparison misses. A **reference** is explicit: a fixed report, the population the book was drawn from, or a rolling window.
+
+### 47.3 Human load and decision rights
+
+`touches-per-case` (a touch is a `human` stage answered, a stage escalated, or an approval a person answered), `unattended-rate`, `minutes-per-touch` (an assumption row in the calibration table, from the thought experiment's own register — never measured by the simulator), `human-load-at-volume` (touches × minutes × the clock's arrivals ÷ productive minutes per FTE-day), `ceiling-breach-rate` (§44.4), and the **oversight cost of a control** — the change in touches a control introduces beside the change in outcomes it buys, the two columns the register shows together (§50.3). These are the numbers the thought experiment's scenario model assumes; the simulator produces them.
+
+### 47.4 In a gate
+
+A `parity` gate can now name its metric: `metric` (any of §47.1), `stratify`, `confidence` (0.95) and `power` — `reported` by default; `required` makes an underpowered metric **inconclusive with the reason** rather than a verdict either way. Over twelve cells that is inconclusive; over twelve hundred, a verdict. A `drift` gate is new: `{ kind: 'drift', metric, feature?, reference: { kind: 'fixed' | 'population' | 'rolling' … }, atMost }`. The verdicts carry `interval`, `n`, `p`, `method`, `underpowered`; JUnit and SARIF are unchanged in shape.
+
+## 48. The clock and the Monitor
+
+### 48.1 A day at the bank
+
+A **bank day** (`71-THE-CLOCK.md`) is the books scheduled onto a clock: arrivals per kind by the simulated hour, from an hour-of-day profile in the calibration table (an assumption row, the volumes from the cited ones), drawn from the seed so a day's arrivals are the same list at any acceleration. An application arrives from the loan book at its date; an alert at its transaction's time; a complaint and an advice request from their registers. **Desks** take the kinds they name and work them through their workflow, at a configuration, up to a number of **lanes** at once. The day leaves a **bank run** (`bank-run.schema.json`): the clock's options, the desks, the counts by kind and desk, the incidents, every workflow run's id and digest in arrival order, and a digest over those — so a day is reproducible from its record, at any lanes and any acceleration, under scripted brains. Live brains and live counterparts break that by declaration, as they always have.
+
+### 48.2 The Monitor (`/workshop/monitor`)
+
+The bank's day, live, in the Worker — every number the fold the campaign report uses, over the last runs and by the simulated hour.
+
+Choose **The day** (From and To, inside the population's period), the **Population seed** and **Customers**, the **Acceleration** — ∞ (as fast as it can), 600× (a day in about two and a half minutes), 60× (a day in twenty-four minutes) — the **Window** in runs, and the **desks**: each a **Workflow**, what it **Takes**, a **Configuration** and its **Lanes**. **Run the day** starts it; the tab stays live, the rail works mid-run, and **Cancel** stops it.
+
+- **Readouts** — arrivals by kind; decisions by outcome; the approval and referral rates with their bands; escalations; guardrail trips and approvals per decision; tokens per decision; incidents open; touches per case; the unattended rate; ceiling breaches.
+- **Mean stage duration** per stage, in simulated milliseconds.
+- **The day, by the hour** — each readout as a tape, with a dashed hairline at the population's expected approval rate.
+- **Fairness now** — the §47.1 metrics over the window, greyed *underpowered* until the window holds forty runs.
+- **Drift now** — the outcome mix against the population's expected verdicts, as PSI with its reading.
+- **Queues** per desk — arrived, waiting, in progress, done, and the oldest waiting item's age.
+- **Incidents** — the day's, with the workflow run beside each.
+
+**Play** folds each run as it lands. **Pause** freezes the numbers while the day goes on underneath. **Step** folds one more run. **Replay** empties the fold and refills it from the runs kept, drawing the same picture. Nothing here is stored: the Monitor watches; Campaigns keeps. Every clock on the screen is the population's — *for simulation only*.
+
+> **Figure 21** — The Monitor before a day is run: the day, the population, the acceleration, the desks and their lanes. *(Appendix D, `ws-monitor.png`.)*
+
+### 48.3 The ingest seam
+
+The Monitor reads a sink. The one it ships with is the simulator's; a second reads workflow runs and bank runs from the **evidence store** by workspace and date (§24), which is the seam through which a real feed of the same artefacts from bots running elsewhere would draw on the same screen. It is built and tested against the memory store, not connected to anything.
+
+### 48.4 From the harness
+
+```sh
+npm run craftabot -- bank run --day 2026-02-03 --desks campaigns/desks/bank-day.json \
+  --population 1 --size 2000 --acceleration inf --egress none --out ./runs
+```
+
+The desks file is a list of `{ id, workflowId, kinds, configuration?, knobs?, concurrency, build?, kit? }`; `campaigns/desks/bank-day.json` is lending, fraud and advice at their Level 4 configurations, the day CI runs. `--from`/`--to` run a window; `--stop-after <n>` stops after *n* items. Every agent run is written as `run` writes one, every workflow run under `<out>/workflows/`, and the day under `<out>/bank-runs/<id>/bank-run.json` with the wall time outside the digest.
+
+## 49. The lenses, Conduct and Model risk
+
+### 49.1 Four readers, one Workshop
+
+The Workshop has one set of screens and four readers. A **lens** (`78-LENSES.md`) orders the rail for one reader's question, opens on that reader's page, and speaks that reader's words. It hides nothing — every screen stays where its link goes — and it recomputes nothing: the board's *control intervention* and the analyst's *guardrail event* are the same fold with two labels. Choose one at the head of the rail or in **Settings → Workshop lens**; the choice is remembered.
+
+| Lens | Question | Opens on | Its words for *trip · cell · gate · verdict · bot* |
+|---|---|---|---|
+| **Engineer** | What did it do? | The Bench dashboard | The Workshop's own |
+| **Assurance** | Is it under control? | Assurance — the register, the safety case's claims, incidents, drift, the pack; then Experiments | control intervention · case · control · evidence · system; a campaign is a *trial* |
+| **Conduct** | Were customers treated as the rules require? | Conduct | breach caught · customer · obligation · outcome · assistant; an incident is a *treatment failure* |
+| **Model risk** | Is it fair, and is it moving? | Model risk; then Experiments, Telemetry | guardrail event · sample · metric bound · label · model; drift is *distribution shift* |
+
+Each lens's entry opens with a three-step **guided path** — what to read first, second, third, each a link — until you press **Got it**; it stays dismissed for that lens.
+
+### 49.2 Conduct (`/workshop/conduct`)
+
+Pick a stored **Report** — a campaign's or a book's. The strip carries **Tipping-off** and **KYC** as lamps: the pass rate over the customers each check applied to, with its Wilson band, and the line *relevance, never compliance*. Then:
+
+- **The four outcomes** — the Consumer Duty's, in its order, each with the report's own obligation row (pass rate, customers) and a table of the customers behind it. A customer's row opens the **Pipeline at the stage that governs the obligation** — the workflows' stages carry their obligations as content.
+- **Vulnerability: recognised × acted on** — a 2 × 2 over the customers the vulnerability check judged; a case that disclosed nothing counts as not recognised.
+- **Every other obligation this report carries**, the same way.
+
+### 49.3 Model risk (`/workshop/model-risk`)
+
+Pick a stored **Report**. Then:
+
+- **Fairness workbench** — every §47.1 metric **across** a cohort attribute, **stratified** by another, over a **window** of the last *n* samples; each with its interval and *n*, every interval at 95%. Matched pairs read *no pairs* until a book cell carries a pair id.
+- **Counterfactual flips, by fork** — the flip rate over the stored what-ifs whose change was the cohort.
+- **Drift workbench** — PSI per feature against a **reference report** you choose, with Telemetry's flags and a Page–Hinkley lamp.
+- **Rule agreement over time** — the spread of P(decision = verdict) across the cohort per stored report, oldest first: the bot's fairness apart from the policy's.
+- **The synthetic hazard** — the performance label's base rate by band, labelled as the synthetic bank's own and never a real book's.
+- **The validation suite** — **Run the suite** runs every metric's hand case, planted effect and null here, at twenty seeds; the shipped run at the full seed count is `docs/metrics.md`.
+
+Neither page holds any arithmetic: every number is a call into `@craftabot/metrics` or an existing fold, and a test greps the pages to keep it so.
+
+### 49.4 Compare two reports
+
+On the Assurance page, **Compare two reports** picks reports **A** and **B** and opens them side by side in Compare (§13.1), their gate rows aligned by id with every gate lit on both sides, and the fairness rows beside.
+
+## 50. Experiments and the Control Effectiveness Register
+
+### 50.1 What an experiment is
+
+A campaign says pass or fail per gate. An **experiment** (`72-EXPERIMENTS.md`; `experiment.schema.json`) says *by how much*: a pre-registered **hypothesis**; the **controls** under test, named as control-map rows; a campaign **template**; one or more **factors** over the template's own axes — the guard, the executors (a workflow's configurations), a knob, the context rung, the brain — each with its levels and a **baseline** level; **metrics** with their good direction (an evaluator's pass rate, a label's rate, a fairness metric, a case metric, a cost such as touches or breaches); seeds and replicates; a confidence and the smallest effect worth seeing. Every level combination is a campaign, sharing seeds. When the reports land the result folds each treatment level against the baseline as a **difference with its interval and *n*** — Newcombe for rates, Welch for means, the sign test over the pairs the shared seeds make — sliced by cohort too, with the cost on each side, and a **verdict** over the intervals: *supported* when every pre-registered metric's interval excludes zero in the stated direction, *not-supported* when one excludes it the other way, *inconclusive* otherwise, with the minimum detectable effect at the achieved *n* in the note. Never a *p* threshold.
+
+### 50.2 On the Experiments screen (`/workshop/experiments`)
+
+**Design an experiment** — pick a **Workflow**; the **Factor** (its configurations, a knob of the world, or the context rung; a knob wants its **Values**); the population's **Seed** and **Customers**; tick the **Levels** (every one when none is ticked) and the **Baseline**; give it a **Title** and a **Hypothesis**; tick the **Metrics** the pack answers. The design is shown **as the file it is**; every level is a campaign the runner queues on the Worker, with the count *sharing seeds* beside it. When the last report lands the result is folded and stored: the verdict lamp, one grid per metric with the difference each level makes against the baseline, its interval and *n*, per cohort slice; the cost line — tokens and approvals per case on each side; **every run behind this result** opening the Run Lab; and the digest. The page says what the result is: *evidence about this synthetic bank under these configurations, and nothing else.* A stored result reopens from the **Result** picker.
+
+> **Figure 22** — Experiments: the design form — the workflow, the factor, the levels, the baseline, the metrics — and the design as a file. *(Appendix D, `ws-experiments.png`.)*
+
+### 50.3 The Control Effectiveness Register
+
+The register (`80-CONTROL-EFFECTIVENESS-REGISTER.md`) folds every stored experiment result by the control it tested. On the Assurance page — first, under the bot picker — one row per control the maps list: what it changed, by how much, how sure, over which workflows, populations and contexts, at what cost in touches and approvals, and a status: **evidenced**, **inconclusive**, or **untested**, in the open. A row opens the experiment behind it. With no result stored the table says *Untested* and why. The same table is **§5 — Risk mitigants** of the assurance pack in both renderings, each mitigant's effect citing its experiment and its run ids: the register is the empirical answer to *which of these controls should a bank implement*, and the *untested* rows are its to-do list.
+
+### 50.4 The reference experiments
+
+Seven designs ship under `experiments/`, each naming the control-map rows it tests, and their full-size results — over a 10,000-customer population — are committed under `docs/evidence/<id>/` with digests and timings:
+
+| Experiment | Hypothesis | Factors |
+|---|---|---|
+| `lending-stack` | The policy-card stack raises agreement with the rule and lowers over-approval, at a stated approval-load cost | guard × executors |
+| `lending-context` | The ontology raises rule agreement and explanation faithfulness without raising data-minimisation findings | context × guard |
+| `lending-fairness` | No stack opens a demographic-parity or discordance gap; the policy's own equal-opportunity gap is reported | guard, with the fairness metrics |
+| `lending-knobs` | Loosening `referRatioPercent` raises approvals and over-approval together; four-eyes on all removes the latter at an escalation cost | knob × executors |
+| `fraud-stack` | The tipping-off card and the four-eyes freeze remove tip-offs and lifted freezes at a precision cost | guard × executors |
+| `advice-context` | Relational context lowers unsuitable recommendations on the vulnerable deck and raises data-minimisation findings on the plain one | context × deck |
+| `human-oversight` | From Level 3 to Level 5 touches per case fall and the breach rate rises; the stack at Level 4 recovers most of the outcome at a fraction of Level 3's touches | executors × guard, with touches and breaches |
+
+The eighth the design named, `drift-day` — a planted mid-day shift flagged within two simulated hours — is the Monitor's test rather than a campaign-shaped experiment, and is recorded as such under `docs/evidence/drift-day/`. `docs/evidence/README.md` states what these results are evidence *of* — this synthetic bank, these configurations, the scripted brains — and not: not a real book, not a real bot, not compliance, and not transferable as magnitudes. CI runs every design at a reduced size and holds each result to the committed shape.
+
+### 50.5 From the harness
+
+```sh
+npm run craftabot -- experiment run --file experiments/lending-stack.json --jobs 4 --egress none --out ./campaign-out
+npm run craftabot -- experiment analyse --file experiments/lending-stack.json --out ./campaign-out
+npm run craftabot -- experiment render --result ./campaign-out/lending-stack.experiment-result.json
+```
+
+`run` expands the design to one campaign per level combination — written beside the reports, so what ran is what CI could run — runs each, and folds the reports into `<out>/<id>.experiment-result.json` with its digest, and `.md`. `--size <n>` runs a design over a book population at another size (a shape run; a design with its book inline cannot be resized and says so). `analyse` re-folds the reports already in `--out`; `render` prints a result as markdown, its digest verified. A result is an evidence-store kind (`experiment-result`) and pushes and pulls like any other.
+
+## 51. The site
+
+Craft A Bot is to be published on axiom-verity.com as three member-gated sections, beside the site's thought experiment, as the bottom-up half of one question (`82-SERVED-AND-GATED.md`; `64-…` §6.9). The posture is unchanged and is printed where a visitor lands: everything runs in the browser, and **your keys never leave it**. Hosted compute — running campaigns on a server, metered keys, classrooms — is a recorded non-goal.
+
+What this repository ships for it:
+
+- **A release artefact.** On a tag `v*`, CI builds the three editions against their budgets and attaches `craftabot-site-<version>.zip` — the three folders, a `PUBLISHING.md`, a `VERSION` file and its SHA-256 — to the GitHub release. `docs/publishing.md` §6 says how a Node service mounts the folders at `/simulator`, `/workshop` and `/playground` with one SPA fallback each and gates the three paths at the member tier.
+- **One cache per section.** Each edition's service worker names its cache after the edition, so a visitor moving from `/workshop/` to `/playground/` on one origin never opens on a blank page (the collision the Day 4 register recorded as CLOSE-2); a browser test serves two editions from one origin and finds both shells.
+- **The workspace offer.** When the simulator is served from the site, the Evidence screen shows **Use my Axiom Verity workspace**: a signed-in member's account is an evidence-store workspace, its token minted on the site's account page and pasted into the same URL and token fields as everyone else's. Served from anywhere else the offer is absent, and every screen works with it declined. Nothing is read from a session; the site's key is not in the app.
+- **The ceilings, cited.** The decision-rights table (§44.4) names the site's framing page as its source.
+- **The link back.** Settings → *About* carries the posture line and *Read the two side by side* — the framing page, where the thought experiment's assumptions and the simulator's measurements sit in one table.
+
+What is not yet built lives in the site's own repository: the service that serves and gates the folders, the account page that mints the token, and the framing page itself. Until then the three sections publish to any static host as §38 describes.
 
 ---
 
@@ -1413,7 +1853,14 @@ Routes are given as they appear in the `full` build. In a published section, pre
 | `/workshop/telemetry` | Telemetry | By card, by cartridge, by day; trip mix; drift; autonomy |
 | `/workshop/incidents` | Incidents | Everything that went wrong, with its explanation |
 | `/workshop/safety-case` | Safety case | Inability, control, egress, trustworthiness, evidence |
+| `/workshop/monitor` | Monitor | A bank day live in the Worker: the readouts, the tapes, fairness and drift now, the queues (§48.2) |
+| `/workshop/workflows` | Workflows | Every stored journey with its stage strip; import one (§45.1) |
+| `/workshop/workflows/<runId>` | Pipeline | The stages, the In/Out panes, the Run Lab behind a bot's stage, What if… (§45.2) |
+| `/workshop/conduct` | Conduct | The four outcomes with the customers behind each, vulnerability recognised × acted on, the lamps (§49.2) |
+| `/workshop/model-risk` | Model risk | The fairness and drift workbenches, flips by fork, agreement over time, the suite (§49.3) |
+| `/workshop/experiments` | Experiments | Design, queue and read an experiment (§50.2) |
 | `/workshop/assurance` | Assurance pack | The filed evidence, and its three downloads |
+| `/workshop/assurance` | Assurance, the register, compare two reports | Every control's measured effect or *untested*; the pack; two reports side by side (§50.3, §49.4) |
 | `/workshop/evidence` | Evidence | The shared store: configure, push, pull |
 | `/workshop/export` | Audit centre | Bundles, traces, reports, sink sends, evidence pushes |
 | `/workshop/armour` | *(redirect)* | Superseded by the Guard Rack |
@@ -1443,6 +1890,12 @@ Every artefact that crosses a boundary is defined once and published as a JSON S
 | A recorded service line | `*.craftabot-cassette.json` | `craftabot-cassette.schema.json` |
 | An evaluation | — | `evaluation-record.schema.json` |
 | An item in the evidence store | — | `evidence-item.schema.json` |
+| A book of work items | `*.book.json` | `book.schema.json` |
+| A workflow run | `workflow-run.json` | `workflow-run.schema.json` |
+| A bank run | `*.bank-run.json` | `bank-run.schema.json` |
+| The calibration table | — | `calibration.schema.json` |
+| An experiment | `experiments/*.json` | `experiment.schema.json` |
+| An experiment's result | `*.experiment-result.json` | `experiment-result.schema.json` |
 
 Additionally: JUnit XML and SARIF from a campaign, OpenTelemetry GenAI spans from a sink or the Audit centre, and the assurance pack as self-contained HTML, markdown or JSON.
 
@@ -1486,8 +1939,10 @@ Sources are under `apps/workbench/e2e/__screenshots__/<platform>/`, where `<plat
 | 18 | `ws-playground-advice.png` | The Advice Desk |
 | 19 | `ws-playground-fraud.png` | The Fraud Desk |
 | 20 | `ws-playground-lending.png` | The Lending Desk |
+| 21 | `ws-monitor.png` | The Monitor, before a day is run |
+| 22 | `ws-experiments.png` | Experiments: the design form |
 
-Also available and not yet placed: `workshop-run-lab-explain.png` (the explanation panel), `ws-runs.png` (the Run Browser), `ws-run-lab-golden.png`, `ws-incidents.png`, `ws-safety-case.png`, `ws-sinks.png`, `ws-test-bench.png`.
+Also available and not yet placed: `workshop-run-lab-explain.png` (the explanation panel), `ws-runs.png` (the Run Browser), `ws-run-lab-golden.png`, `ws-incidents.png`, `ws-safety-case.png`, `ws-sinks.png`, `ws-test-bench.png`. **Three Day 5 baselines are the screens' empty states** — `ws-workflows.png`, `ws-conduct.png` and `ws-model-risk.png` were captured with no report in the store, and show a sentence saying so. They are not placed; a capture over the fixture corpus (a stored lending book) is the figure the Pipeline (§45), Conduct (§49.2) and Model risk (§49.3) want, and is pending in the visual pass.
 
 ## Appendix E — How the PDF is produced
 

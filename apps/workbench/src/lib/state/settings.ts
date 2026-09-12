@@ -90,6 +90,10 @@ export const settingsSchema = z.object({
 	 */
 	tutorialSkipped: z.boolean().default(false),
 	badges: z.array(z.string()).default([]),
+	/** The Workshop's lens (WP87, `78-LENSES.md` §3): whose question the rail is ordered for. */
+	lens: z.enum(['engineer', 'assurance', 'conduct', 'model-risk']).default('engineer'),
+	/** The lenses whose guided path this reader has dismissed (GAP-2). */
+	firstRunDismissed: z.array(z.string()).default([]),
 	schemaVersion: z.literal(1).default(1)
 });
 export type Settings = z.infer<typeof settingsSchema>;

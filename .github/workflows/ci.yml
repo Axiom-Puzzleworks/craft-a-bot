@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, day5]
   pull_request:
 
 jobs:
@@ -154,6 +154,52 @@ jobs:
 
       # The Lending Desk baseline (WP63, `52-FS-LENDING.md` §4.6): the first matched parity gate.
       # Fails the build when No decision before affordability is removed.
+      # The lending book (WP80, `73-…` §4): the loan book of a 500-customer population through the
+      # lending journey under the five reference configurations; rules-only agrees with the rule on
+      # every row, the bots too; the human-load rows by autonomy level are in the scorecard.
+      - name: Run the lending book campaign
+        run: >
+          npm run craftabot -- campaign --file campaigns/fs-lending-book.json --strict --egress none
+          --out campaign-out/fs-lending-book --junit campaign-out/fs-lending-book/junit.xml
+          --sarif campaign-out/fs-lending-book/results.sarif --markdown campaign-out/fs-lending-book/scorecard.md
+
+      # The fraud and advice books (WP85, `76-…` §5): the alert book and the advice-request register
+      # through their journeys under the five reference configurations, at reduced size.
+      - name: Run the fraud book campaign
+        run: >
+          npm run craftabot -- campaign --file campaigns/fs-fraud-book.json --strict --egress none
+          --out campaign-out/fs-fraud-book --junit campaign-out/fs-fraud-book/junit.xml
+          --sarif campaign-out/fs-fraud-book/results.sarif --markdown campaign-out/fs-fraud-book/scorecard.md
+
+      - name: Run the advice book campaign
+        run: >
+          npm run craftabot -- campaign --file campaigns/fs-advice-book.json --strict --egress none
+          --out campaign-out/fs-advice-book --junit campaign-out/fs-advice-book/junit.xml
+          --sarif campaign-out/fs-advice-book/results.sarif --markdown campaign-out/fs-advice-book/scorecard.md
+
+      # The reference experiments (WP90, `80-…` §4): every design under experiments/ at a reduced
+      # population, each reduced result held to the committed full-size one's shape — the same
+      # metrics, factors and levels, a verdict from the same three — never its values.
+      - name: Run the reference experiments (reduced)
+        run: >
+          for f in experiments/*.json; do
+          id=$(basename "$f" .json);
+          npm run craftabot -- experiment run --file "$f" --size 200 --egress none --jobs 2
+          --out "campaign-out/experiments/$id" || exit 1;
+          mkdir -p "campaign-out/experiments-shape/$id";
+          cp "campaign-out/experiments/$id/$id.experiment-result.json" "campaign-out/experiments-shape/$id/";
+          done
+      - name: Hold the reduced results to the committed shape
+        run: node scripts/experiment-shape.mjs docs/evidence campaign-out/experiments-shape
+
+      # A day at the bank (WP83, `71-THE-CLOCK.md` §5; three desks since WP85, `76-…` §5): the lending,
+      # fraud and advice desks work a day's applications, alerts and requests over a 500-customer
+      # population at Infinity; the BankRun and every run are uploaded with the rest.
+      - name: Run a day at the bank
+        run: >
+          npm run craftabot -- bank run --day 2026-06-10 --desks campaigns/desks/bank-day.json
+          --population 1 --size 500 --egress none --out campaign-out/bank-day
+
       - name: Run the Lending Desk baseline
         run: >
           npm run craftabot -- campaign --file campaigns/fs-lending-baseline.json --strict --egress none

@@ -47,7 +47,9 @@ export function injectedWorld(
 	injections: readonly Injection[],
 	scenarioId: string,
 	/** The case's random (WP63, `52-…` §2 item 4) — a campaign cell's seed; the world's default when absent. */
-	random?: () => number
+	random?: () => number,
+	/** The world's create-time config (WP78) — a build's `{ knobs }`. */
+	config?: Record<string, unknown>
 ): WorldInstance {
 	const card = registry.getGoalCard(goalCardId);
 	if (!card)
@@ -57,7 +59,10 @@ export function injectedWorld(
 	const definition = registry.getWorld(card.worldId);
 	if (!definition)
 		throw new Error(`goal card "${card.id}" names world "${card.worldId}", which no pack ships`);
-	const world = definition.create(card.layoutId, random ? { random } : undefined);
+	const world = definition.create(card.layoutId, {
+		...(random ? { random } : {}),
+		...(config ? { config } : {})
+	});
 	// Only world content reaches the world (WP72, `61-…` §2 item 2): a `provider-fault` is the session's.
 	const worldInjections = injections.filter(isWorldInjection);
 	if (worldInjections.length > 0) {

@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { createMemoryStorage, type ContentRecord, type EvidenceItem } from '@craftabot/core';
-import { makeEvent, makeRun } from '@craftabot/core/testing';
+import { makeEvent, makeExperimentResult, makeRun } from '@craftabot/core/testing';
 import {
 	importPulled,
 	itemForContent,
+	itemForExperimentResult,
 	itemForReport,
 	itemForRun,
 	verifyPulled
@@ -88,5 +89,18 @@ describe('evidence items in the Workshop', () => {
 			saveContent: async (record) => void saved.push(record)
 		});
 		expect(saved.map((record) => record.id)).toEqual(['local/campaigns/mine']);
+	});
+
+	it('imports an experiment result into the experiment-results store (WP89)', async () => {
+		const storage = createMemoryStorage();
+		const result = makeExperimentResult();
+		const item = await itemForExperimentResult(result);
+		expect(item.kind).toBe('experiment-result');
+		expect(await verifyPulled(item)).toBe(true);
+		expect(await importPulled(storage, item, { saveContent: async () => undefined })).toEqual({
+			kind: 'experiment-result',
+			id: result.id
+		});
+		expect((await storage.getExperimentResult(result.id))?.verdict).toBe('inconclusive');
 	});
 });
