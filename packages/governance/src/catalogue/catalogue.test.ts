@@ -34,7 +34,7 @@ describe('the first edition', () => {
 			(issue) =>
 				!(
 					issue.check === 'catalogue.component' &&
-					/guard-local|geap|azure|pdp-opa|monitor/.test(issue.message)
+					/guard-local|geap|azure|pdp-opa|monitor|lakera|bedrock/.test(issue.message)
 				)
 		);
 		expect(issues).toEqual([]);

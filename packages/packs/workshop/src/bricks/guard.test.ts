@@ -287,6 +287,33 @@ describe('config and validation', () => {
 			(p) => p.code
 		);
 
+	it('warns when a harness-only connection is plugged in from a browser, and not when it is unplugged (WP99)', () => {
+		const browserCtx = (capable: boolean | undefined): BrickValidationContext => ({
+			...ctx(['bedrock-guardrails/apply-guardrail']),
+			guardrailServiceBrowserCapable: () => capable
+		});
+		const codes = (input: GuardConfigInput, capable: boolean | undefined) =>
+			(
+				guardBrickKind.validateConfig?.(guardConfigSchema.parse(input), browserCtx(capable)) ?? []
+			).map((p) => p.code);
+		const plugged = {
+			serviceId: 'bedrock-guardrails/apply-guardrail',
+			screening: { ...guardConfigDefaults.screening, offline: false }
+		};
+		expect(codes(plugged, false)).toEqual(['guard-service-harness-only']);
+		expect(
+			codes(
+				{
+					serviceId: 'bedrock-guardrails/apply-guardrail',
+					screening: guardConfigDefaults.screening
+				},
+				false
+			)
+		).toEqual([]);
+		expect(codes(plugged, true)).toEqual([]);
+		expect(codes(plugged, undefined)).toEqual([]);
+	});
+
 	it('defaults to unplugged with no guard chosen, and the defaults parse', () => {
 		expect(guardConfigSchema.parse(guardConfigDefaults)).toEqual(guardConfigDefaults);
 		expect(guardConfigDefaults.screening.offline).toBe(true);
@@ -308,7 +335,12 @@ describe('config and validation', () => {
 		const service = geapPack.guardrailServices![0]!;
 		expect(parseServiceConfig(service, JSON.stringify(ARMOUR))).toEqual({
 			ok: true,
-			config: { ...ARMOUR, injectionMinConfidence: 'MEDIUM_AND_ABOVE' }
+			config: {
+				filterVersion: 'v3',
+				multimodal: false,
+				...ARMOUR,
+				injectionMinConfidence: 'MEDIUM_AND_ABOVE'
+			}
 		});
 		expect(parseServiceConfig(service, '{}').ok).toBe(false);
 		expect(parseServiceConfig(service, 'not json').ok).toBe(false);

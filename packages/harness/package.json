@@ -28,6 +28,8 @@
 		"@craftabot/governance": "*",
 		"@craftabot/pack-anthropic": "*",
 		"@craftabot/pack-azure-content-safety": "*",
+		"@craftabot/pack-bedrock-guardrails": "*",
+		"@craftabot/pack-lakera-guard": "*",
 		"@craftabot/pack-pdp-opa": "*",
 		"@craftabot/pack-evaluators": "*",
 		"@craftabot/pack-fs-advice": "*",

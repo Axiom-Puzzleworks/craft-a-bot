@@ -22,6 +22,9 @@ const azureContentSafetyPack: PackManifest = {
 		guardServiceComponent(contentSafetyService, {
 			wraps: 'azure/content-safety',
 			technique: 'hazard-classifier',
+			// The live checkpoint is pending a key (`30-…` §8, `62-…` §4.3): the browser half decides this.
+			browserCapable: 'checkpoint-pending',
+			version: '2024-09-01',
 			perCall: 'per text record, Azure AI Content Safety pricing'
 		}) as never
 	]

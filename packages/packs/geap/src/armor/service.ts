@@ -52,8 +52,15 @@ export const armorServiceConfigSchema = z.object({
 		.enum(['LOW_AND_ABOVE', 'MEDIUM_AND_ABOVE', 'HIGH'])
 		.default('MEDIUM_AND_ABOVE'),
 	/** Which canned envelope the offline stand-in answers with (WP96); `clean` when absent. */
-	offlineFixture: z.enum(FIXTURE_NAMES).optional()
+	offlineFixture: z.enum(FIXTURE_NAMES).optional(),
+	/** The vendor's filter version the adapter targets (WP99, `83-…` §6.2.4): `v3`, stable from September 2026. */
+	filterVersion: z.enum(['v3']).default('v3'),
+	/** Whether screens may carry images beside text; the shell sends text only, so this is recorded, not used. */
+	multimodal: z.boolean().default(false)
 });
+
+/** Streaming sanitisation is Model Armor's per-chunk mode; a one-call-per-tick loop has no stream to sanitise. Recorded so the claim is not implied. */
+export const STREAMING_SANITISATION = 'not-applicable' as const;
 export type ArmorServiceConfig = z.infer<typeof armorServiceConfigSchema>;
 
 function methodFor(hook: GuardrailHook): 'sanitizeUserPrompt' | 'sanitizeModelResponse' {
@@ -186,7 +193,10 @@ export function serviceConfigFor(config: ArmorConfig): ArmorServiceConfig {
 		projectId: config.projectId,
 		location: config.location,
 		templateId: config.templateId,
-		injectionMinConfidence: config.injectionMinConfidence
+		injectionMinConfidence: config.injectionMinConfidence,
+		// The brick's config predates the two (WP99): the adapter's targets, not the brick's dials.
+		filterVersion: 'v3',
+		multimodal: false
 	};
 }
 

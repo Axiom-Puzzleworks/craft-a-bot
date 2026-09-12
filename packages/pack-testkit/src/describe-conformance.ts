@@ -9,6 +9,7 @@ import { checkServiceLine } from './checks/service-line.js';
 import { checkGuardrailService } from './checks/guardrail-service.js';
 import { checkComponent } from './checks/component.js';
 import { checkStack } from './checks/stack.js';
+import { checkConnection } from './checks/connection.js';
 import { checkManifest } from './checks/manifest.js';
 import { checkTool } from './checks/tool.js';
 import { checkWorld } from './checks/world.js';
@@ -99,6 +100,9 @@ export function describeConformance(fixture: PackConformanceFixture): void {
 				const registry = createPackRegistry();
 				for (const pack of companionPacks) registry.registerPack(pack);
 				registry.registerPack(manifest);
+				// WP99: a connection's declaration, checked beside the component's.
+				const connectionIssues = checkConnection(component);
+				expect(connectionIssues, format(connectionIssues)).toEqual([]);
 				const issues = await checkComponent(component, componentFixture, {
 					getPolicyCard: registry.getPolicyCard,
 					getGuardrailService: registry.getGuardrailService,

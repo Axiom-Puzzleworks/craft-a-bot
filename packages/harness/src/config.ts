@@ -9,6 +9,8 @@ import {
 } from '@craftabot/core';
 import anthropicPack from '@craftabot/pack-anthropic';
 import azureContentSafetyPack from '@craftabot/pack-azure-content-safety';
+import bedrockGuardrailsPack from '@craftabot/pack-bedrock-guardrails';
+import lakeraGuardPack from '@craftabot/pack-lakera-guard';
 import evaluatorsPack from '@craftabot/pack-evaluators';
 import { evidencePack } from '@craftabot/evidence';
 import fsAdvicePack from '@craftabot/pack-fs-advice';
@@ -61,6 +63,9 @@ export function defaultPacks(): PackManifest[] {
 		geapPack,
 		guardLocalPack,
 		azureContentSafetyPack,
+		// WP99 (`30-…`'s dated note): the two harness-only connections — SigV4 and a bearer token the browser must not hold.
+		bedrockGuardrailsPack,
+		lakeraGuardPack,
 		pdpOpaPack,
 		evaluatorsPack,
 		fsBankPack,

@@ -53,6 +53,8 @@ export interface GuardrailComponent {
 >
 > Divergence from `84-…`'s row: **Azure AI Content Safety has no PII category and no redaction** — PII detection and redaction in Azure is the Language service's, not Content Safety's — so the Azure pack is not a `redact` component; the row's "Azure PII category" is recorded as not applicable to the service this pack wraps. The manual's §9 shows the redacted row as text (the trace row and the transcript chip), not as a new figure.
 
+> **Amended 2026-09-12 (WP99).** Every shipped service's connection is declared in full (`30-…`'s dated note): `wraps`, `standIn`, `browserCapable` — `true`, `false` or `'checkpoint-pending'` — `checkpoint` where one was taken, `version`. Two harness-only connections joined (`aws/bedrock-guardrails`, `lakera/guard`); `checkConnection` and `browserRefusal` in the testkit; the Guard Rack shows each connection's lamp and refuses a harness-only one with the reason.
+
 ## 5. The five adapters
 
 | Adapter | Component ids | Config | `compile` | Points | Verdicts | Cost |

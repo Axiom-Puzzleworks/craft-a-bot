@@ -46,3 +46,4 @@ export {
 	stackLoopFits,
 	stacksForStage
 } from './stacks.js';
+export { browserRefusal } from './connection.js';

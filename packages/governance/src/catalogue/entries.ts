@@ -424,9 +424,11 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 			componentIds: [
 				'guard-local/prompt-guard',
 				'geap/model-armor',
-				'azure-content-safety/content-safety'
+				'azure-content-safety/content-safety',
+				'lakera-guard/guard',
+				'bedrock-guardrails/apply-guardrail'
 			],
-			note: 'Three services through the shell, each with an offline stand-in; Lakera and Bedrock are WP99’s connections.',
+			note: 'Five services through the shell, each with an offline stand-in; Lakera and Bedrock are harness-only connections (WP99) with their live checkpoints pending.',
 			since: 'WP42'
 		},
 		bankingRelevance: 'core'

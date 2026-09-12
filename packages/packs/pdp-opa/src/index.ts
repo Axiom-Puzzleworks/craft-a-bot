@@ -22,7 +22,12 @@ const pdpOpaPack: PackManifest = {
 		guardServiceComponent(opaService, {
 			wraps: 'open-policy-agent',
 			technique: 'policy-as-code',
-			kind: 'policy-engine'
+			kind: 'policy-engine',
+			// The live OPA checkpoint (WP45, `33-…`): a real decision from a local OPA.
+			checkpoint: {
+				takenOn: '2026-09-02',
+				note: 'A real allow and deny from a local OPA (33-POLICY-V2-PDP.md).'
+			}
 		}) as never
 	]
 };

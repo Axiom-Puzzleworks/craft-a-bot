@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Lamp from '$lib/components/control-room/Lamp.svelte';
+	import { browserRefusal } from '@craftabot/governance';
 	import { agentOptionLabel } from '$lib/workshop/agent-labels.js';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
@@ -20,6 +22,9 @@
 
 	const registry = createRegistry();
 	const services = registry.listGuardrailServices();
+	// WP99: the connection a service's component declares, and why a browser edition refuses to fit it.
+	const connectionOf = (serviceId: string) => registry.getGuardrailComponent(serviceId)?.connection;
+	const refusalOf = (serviceId: string) => browserRefusal(connectionOf(serviceId));
 	const vault = createBrowserKeyVault();
 
 	let agents = $state<AgentRecord[]>([]);
@@ -198,6 +203,32 @@
 							? 'no — the harness runs it live'
 							: 'not yet checked'}
 				</dd>
+				<!-- WP99 (`83-…` §6.2.4): the component's connection — what it wraps, its version, its stand-in, its checkpoint. -->
+				<dt>Connection</dt>
+				<dd data-testid="guard-connection-{service.id}">
+					{#if connectionOf(service.id)}
+						{@const connection = connectionOf(service.id)!}
+						<Lamp
+							status={connection.browserCapable === true
+								? 'pass'
+								: connection.browserCapable === false
+									? 'fail'
+									: 'inconclusive'}
+							label={connection.browserCapable === true
+								? 'browser-capable'
+								: connection.browserCapable === false
+									? 'harness-only'
+									: 'checkpoint pending'}
+						/>
+						wraps <span class="mono">{connection.wraps}</span>{connection.version
+							? ` (${connection.version})`
+							: ''}; stand-in: {connection.standIn}{connection.checkpoint
+							? `; checkpoint ${connection.checkpoint.takenOn}`
+							: '; no checkpoint yet'}
+					{:else}
+						no component declares one
+					{/if}
+				</dd>
 			</dl>
 			<label class="field">
 				<span>Settings (JSON)</span>
@@ -226,6 +257,7 @@
 						Test the guard
 					</button>
 				{/if}
+				<!-- Fitting is always unplugged (the stand-in), so a harness-only connection may still be fitted; plugging it in live is what the Guard brick refuses (WP99). -->
 				<button
 					type="button"
 					disabled={busy !== undefined || selectedAgent === ''}
@@ -234,6 +266,11 @@
 				>
 					Fit into bot
 				</button>
+				{#if refusalOf(service.id)}
+					<p class="result" data-testid="guard-refused-{service.id}">
+						Live from a browser: {refusalOf(service.id)}
+					</p>
+				{/if}
 			</div>
 			{#if results[service.id]}
 				<p class="result" data-testid="guard-result-{service.id}">{results[service.id]}</p>

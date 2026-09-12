@@ -489,10 +489,11 @@
 					value={pack.development.campaigns.length}
 					testId="assurance-campaigns"
 				/>
+				<!-- Its own id: the entry strip above already carries `assurance-entry-incidents`, and two of one id is a strict-mode violation the lenses e2e trips over. -->
 				<Readout
 					label="Incidents"
 					value={pack.monitoring.incidents.length}
-					testId="assurance-entry-incidents"
+					testId="assurance-pack-incidents"
 				/>
 			</Strip>
 			<p class="meta mono" data-testid="assurance-digest">digest {pack.digest}</p>

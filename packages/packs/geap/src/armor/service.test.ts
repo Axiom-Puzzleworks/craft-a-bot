@@ -169,7 +169,12 @@ describe('the config split', () => {
 			timeoutMs: 3000,
 			offline: true
 		});
-		expect(serviceConfigFor(config)).toEqual({ ...CONFIG, injectionMinConfidence: 'HIGH' });
+		expect(serviceConfigFor(config)).toEqual({
+			...CONFIG,
+			filterVersion: 'v3',
+			multimodal: false,
+			injectionMinConfidence: 'HIGH'
+		});
 	});
 });
 

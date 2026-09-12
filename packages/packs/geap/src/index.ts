@@ -39,7 +39,8 @@ export {
 	modelArmorService,
 	screeningFor,
 	serviceConfigFor,
-	toScreenResult
+	toScreenResult,
+	STREAMING_SANITISATION
 } from './armor/service.js';
 export type { ArmorServiceConfig } from './armor/service.js';
 
@@ -109,6 +110,11 @@ const geapPack: PackManifest = {
 			wraps: 'google/model-armor',
 			technique: 'input-classifier',
 			version: 'v3',
+			// The live Google Cloud checkpoint (WP35, `25-…` stage E): a real verdict, and the CORS go on direct browser calls.
+			checkpoint: {
+				takenOn: '2026-09-01',
+				note: 'A real Model Armor verdict from the browser; CORS answered (25-ARMOUR-BRICK.md stage E).'
+			},
 			perCall: 'per screened request, Model Armor pricing'
 		}) as never
 	],

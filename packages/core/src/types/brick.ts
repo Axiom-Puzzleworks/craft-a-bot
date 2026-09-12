@@ -387,6 +387,8 @@ export interface BrickValidationContext {
 	hasCredential(id: string): boolean;
 	/** Whether a hosted guardrail service id (`29-…` §4.3, WP39) is one an installed pack registered. */
 	hasGuardrailService(id: string): boolean;
+	/** The service's own `browserCapable` (WP99), so a browser host can warn before fitting a harness-only connection; optional for hosts that predate it. */
+	guardrailServiceBrowserCapable?(id: string): boolean | undefined;
 	/** The service line an id names (`47-…` §4.1, WP58), so a Connector can check its scopes against the line's operations. Optional for hosts that predate it. */
 	getServiceLine?(id: string): ServiceLine | undefined;
 	/** Whether an evaluator or assertion card id (WP43) is one an installed pack registered. Optional as above. */
