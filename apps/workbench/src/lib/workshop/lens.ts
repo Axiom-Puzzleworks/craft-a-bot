@@ -38,7 +38,7 @@ export type RailId =
 	| 'assurance'
 	| 'catalogue'
 	| 'export'
-	| 'guards';
+	| 'studio';
 
 export interface RailGroup {
 	group: string;
@@ -88,7 +88,10 @@ export const VOCABULARY_TERMS = [
 	'incident',
 	'drift',
 	'workflow',
-	'bot'
+	'bot',
+	// WP101 (`88-STUDIO.md` §7): a guardrail component, a control to the assurance reader.
+	'component',
+	'components'
 ] as const;
 export type VocabularyTerm = (typeof VOCABULARY_TERMS)[number];
 
@@ -116,7 +119,7 @@ const EVERYTHING: RailId[] = [
 	'assurance',
 	'catalogue',
 	'export',
-	'guards'
+	'studio'
 ];
 
 const rest = (...taken: RailId[][]): RailId[] => {
@@ -136,7 +139,7 @@ const ASSURANCE_FIRST: RailId[] = [
 const ASSURANCE_EVIDENCE: RailId[] = ['campaigns', 'workflows', 'evidence'];
 const BANK: RailId[] = ['playground', 'monitor'];
 const CONDUCT_FIRST: RailId[] = ['conduct', 'incidents', 'playground', 'workflows', 'campaigns'];
-const CONDUCT_RULES: RailId[] = ['policies', 'evaluators', 'scenarios', 'guards'];
+const CONDUCT_RULES: RailId[] = ['policies', 'evaluators', 'scenarios', 'studio'];
 const MODEL_RISK_FIRST: RailId[] = [
 	'model-risk',
 	'experiments',
@@ -187,7 +190,10 @@ export const LENSES: readonly Lens[] = [
 			campaign: 'trial',
 			campaigns: 'trials',
 			evaluator: 'check',
-			bot: 'system'
+			bot: 'system',
+			// WP101: a guardrail component is a control to the assurance reader.
+			component: 'control',
+			components: 'controls'
 		},
 		firstRun: [
 			{
@@ -319,7 +325,8 @@ export const RAIL_LABELS: Record<RailId, string> = {
 
 	catalogue: 'Catalogue',
 	export: 'Audit',
-	guards: 'Guards'
+	// WP101 (`88-STUDIO.md` §7): the Studio, with the Guard Rack as its Connections tab.
+	studio: 'Studio'
 };
 
 /** The rail label a lens shows for a destination: `campaigns` reads *Experiments* to the board, *Campaigns* to the engineer. */

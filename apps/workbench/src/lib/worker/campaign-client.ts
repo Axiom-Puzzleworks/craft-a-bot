@@ -213,3 +213,33 @@ export function runBankIn(
 	});
 	return { result, cancel: () => worker.postMessage({ kind: 'cancel', job }) };
 }
+
+/** The Studio's stack test (WP101): the one-cell campaign posted as `stack-test`, its traces read back per guard. */
+export function runStackTestIn(
+	worker: WorkerLike,
+	campaign: unknown,
+	options: RunInWorkerOptions = {}
+): WorkerJob {
+	const job = `job-${(nextJob += 1)}`;
+	const result = new Promise<CampaignReport>((resolve, reject) => {
+		const listener = ({ data }: { data: WorkerReply }) => {
+			if (data.job !== job) return;
+			if (data.kind === 'trace')
+				options.onTrace?.(data.cell, { events: data.events, spec: data.spec });
+			else if (data.kind === 'progress') options.onProgress?.(data.done, data.total);
+			else if (data.kind === 'done') {
+				worker.removeEventListener('message', listener);
+				resolve(data.report);
+			} else if (data.kind === 'failed') {
+				worker.removeEventListener('message', listener);
+				reject(new Error(data.error));
+			} else if (data.kind === 'cancelled') {
+				worker.removeEventListener('message', listener);
+				reject(new CampaignCancelled(data.done, data.total));
+			}
+		};
+		worker.addEventListener('message', listener);
+		worker.postMessage({ kind: 'start', job, work: 'stack-test', campaign });
+	});
+	return { result, cancel: () => worker.postMessage({ kind: 'cancel', job }) };
+}

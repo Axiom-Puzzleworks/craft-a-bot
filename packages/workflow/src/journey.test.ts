@@ -1,4 +1,4 @@
-import type { Stack, StageSpec, WorkflowRun, WorkflowSpec } from '@craftabot/core';
+import type { Executor, Stack, StageSpec, WorkflowRun, WorkflowSpec } from '@craftabot/core';
 import { describe, expect, it } from 'vitest';
 import {
 	CASE_LABEL,
@@ -88,7 +88,7 @@ const stack: Stack = {
 	],
 	group: { watchFor: [], breakOn: [{ evaluatorId: 'eval/x' }] },
 	provenance: { author: { kind: 'user', id: 'test' }, createdAt: '2026-09-12T00:00:00.000Z' }
-} as Stack;
+} as unknown as Stack;
 const registry = { getStack: (id: string) => (id === stack.id ? stack : undefined) };
 
 describe('the enumeration', () => {
@@ -102,12 +102,12 @@ describe('the enumeration', () => {
 	});
 
 	it('reads a person’s options, the first enum property, a lone value, or nothing', () => {
-		const human = { kind: 'human', prompt: 'p', options: ['a', 'b'] } as const;
+		const human: Executor = { kind: 'human', prompt: 'p', options: ['a', 'b'] };
 		expect(outcomesOf({ output: OUT_PLAIN }, human)).toEqual([
 			{ label: 'a', value: { decision: 'a' } },
 			{ label: 'b', value: { decision: 'b' } }
 		]);
-		const rule = { kind: 'rule', rule: 'r' } as const;
+		const rule: Executor = { kind: 'rule', rule: 'r' };
 		expect(outcomesOf({ output: OUT_ENUM }, rule).map((o) => o.label)).toEqual([
 			'approve',
 			'decline',
@@ -277,7 +277,7 @@ describe('journeyLayout', () => {
 						memberAgentIds: [],
 						memberRoles: { a: 'agent', b: 'counterpart' }
 					}
-				} as WorkflowRun['events'][number]
+				} as unknown as WorkflowRun['events'][number]
 			]
 		});
 		expect(layout.lanes[0]?.id).toBe('counterpart');

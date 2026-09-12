@@ -132,3 +132,4 @@ export {
 	renderAssurancePackHtml,
 	renderAssurancePackMarkdown
 } from './assurance-pack-render.js';
+export { verdictFlow, verdictFlowSignature, type VerdictFlowRow } from './verdict-flow.js';

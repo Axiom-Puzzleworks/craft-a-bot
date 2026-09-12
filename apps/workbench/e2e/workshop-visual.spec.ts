@@ -125,7 +125,13 @@ test('the Workshop, screen by screen, over the fixture corpus', async ({ page })
 	await shot(page, '/workshop/incidents', 'ws-incidents', 'incidents-page');
 	await shot(page, `/workshop/safety-case?agent=${agentId}`, 'ws-safety-case', 'safety-case-page');
 	await shot(page, `/workshop/export?run=${goldenRunId}`, 'ws-audit-centre', 'export-page');
-	await shot(page, '/workshop/guards', 'ws-guards', 'guard-rack');
+	await shot(page, '/workshop/studio?tab=connections', 'ws-guards', 'guard-rack');
+	await shot(
+		page,
+		'/workshop/studio?stack=fs-lending%2Fstack%2Fpolicy-cards',
+		'ws-studio',
+		'studio-stack'
+	);
 	await shot(page, '/workshop/catalogue', 'ws-catalogue', 'catalogue-table');
 	await shot(page, '/workshop/evals', 'ws-eval-matrix', 'matrix-size');
 });

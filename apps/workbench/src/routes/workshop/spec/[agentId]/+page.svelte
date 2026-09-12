@@ -68,7 +68,7 @@
 	 */
 	// WP97 (`89-…` §5): the stacks are content — the desk's pack's and any local one — read off the registry.
 	const stackPlan = $derived(record ? stacksFor(record.spec as AgentSpecV2, registry) : undefined);
-	let stackPick = $state<string>('');
+	let stackPick = $state<string>(page.url.searchParams.get('stack') ?? '');
 	$effect(() => {
 		if (stackPlan?.ok && !stackPlan.stacks.some((stack) => stack.id === stackPick)) {
 			stackPick =
@@ -377,6 +377,14 @@
 					>
 						Fit this stack
 					</button>
+					<!-- WP101 (`88-STUDIO.md` §6): the stack opens in the Studio to be read, tested and changed. -->
+					<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- resolve() builds the base path; the stack id is a query the typed surface cannot carry. -->
+					<a
+						href="{resolve('/workshop/studio')}?stack={encodeURIComponent(
+							stackPick
+						)}&agent={encodeURIComponent(agentId)}"
+						data-testid="open-in-studio">Open in the Studio</a
+					>
 				</div>
 			</div>
 

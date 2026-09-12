@@ -61,7 +61,8 @@
 		if (path.startsWith('/workshop/catalogue')) return 'catalogue' as const;
 		if (path.startsWith('/workshop/export')) return 'export' as const;
 		if (path.startsWith('/workshop/armour')) return 'armour' as const;
-		if (path.startsWith('/workshop/guards')) return 'guards' as const;
+		if (path.startsWith('/workshop/guards')) return 'studio' as const;
+		if (path.startsWith('/workshop/studio')) return 'studio' as const;
 		if (path.startsWith('/workshop/evaluators')) return 'evaluators' as const;
 		if (path.startsWith('/workshop/scenarios')) return 'scenarios' as const;
 		if (path.startsWith('/workshop/sinks')) return 'sinks' as const;

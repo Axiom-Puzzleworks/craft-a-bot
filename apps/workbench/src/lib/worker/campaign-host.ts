@@ -390,6 +390,13 @@ export function createCampaignHost(
 				);
 				return;
 			}
+			// The Studio's stack test (WP101, `88-STUDIO.md` §5): the one-cell campaign, run as one.
+			if (message.work === 'stack-test') {
+				chain = chain.then(() =>
+					runOne({ kind: 'start', job: message.job, work: 'campaign', campaign: message.campaign })
+				);
+				return;
+			}
 			// A what-if from a stage (WP86).
 			if (message.work === 'what-if') {
 				chain = chain.then(() => runWhatIf(message));

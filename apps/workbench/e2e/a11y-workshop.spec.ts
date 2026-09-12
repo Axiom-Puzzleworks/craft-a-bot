@@ -98,7 +98,9 @@ test('every Workshop route has no accessibility violations', async ({ page }) =>
 		'/workshop/catalogue',
 		`/workshop/export?run=${goldenRunId}`,
 		`/workshop/compare?a=${goldenRunId}&b=${goldenRunId}`,
-		'/workshop/guards'
+		'/workshop/guards',
+		'/workshop/studio',
+		'/workshop/studio?tab=connections'
 	];
 	const failures: string[] = [];
 	for (const route of routes) {

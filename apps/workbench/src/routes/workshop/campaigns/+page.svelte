@@ -1,4 +1,15 @@
 <script lang="ts">
+	/** WP101 (`88-STUDIO.md` §6): the Studio's *Use in… a campaign* — a `guards[]` entry naming the stack, appended to the campaign the editor opens on. */
+	function withStackGuard<T extends { guards?: unknown[] }>(
+		campaign: T,
+		stackId: string | null
+	): T {
+		if (!stackId) return campaign;
+		return {
+			...campaign,
+			guards: [...(campaign.guards ?? []), { id: stackId, fit: [], stack: stackId }]
+		};
+	}
 	import { agentOptionLabel } from '$lib/workshop/agent-labels.js';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
@@ -75,7 +86,16 @@
 			(editionId === 'playground' ? 'fs-advice-baseline' : undefined)
 	);
 	let baselinePick = $state(openedOn?.id ?? 'injection-baseline');
-	let source = $state(JSON.stringify(openedOn?.campaign() ?? injectionBaseline(), null, '\t'));
+	let source = $state(
+		JSON.stringify(
+			withStackGuard(
+				openedOn?.campaign() ?? injectionBaseline(),
+				page.url.searchParams.get('stack')
+			),
+			null,
+			'\t'
+		)
+	);
 	let stored = $state<StoredCampaignReport[]>([]);
 	/**
 	 * **The run is the runner store's, in a Worker** (WP77, `64-…` §6.6.1;

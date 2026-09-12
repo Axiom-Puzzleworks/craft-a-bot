@@ -75,6 +75,8 @@ The Retail Bank Playground's box on the Kit's shelf (`03-…` §3; `41-…` §6.
 
 > **Amended 2026-09-12 (WP100, `87-JOURNEY-CANVAS.md` §5).** Two more to the same contract, placeholders in the repo: `icon-journey` (two lanes, three stage roundels, the edges between them) and `icon-point` (a gate on a line, a tick inside). Eighteen roundels; twenty-one files in the wave.
 
+> **Amended 2026-09-12 (WP101, `88-STUDIO.md`).** One more: `icon-stack` (three bars stacked). Nineteen roundels; twenty-two files in the wave.
+
 The moulded roundel of `11-…` §I — a disc in a token colour, the glyph in cream, ≥ 2 px strokes at 24 px, authored here at **96 × 96** with a 6-px stroke — one per Control Room instrument or screen (`44-CONTROL-ROOM.md` §4.4 for what each instrument is).
 
 | File | Stands for | Glyph brief | Where it is meant to sit |

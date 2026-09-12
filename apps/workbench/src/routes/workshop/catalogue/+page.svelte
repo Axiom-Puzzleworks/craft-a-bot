@@ -141,8 +141,7 @@
 		{#if open.components.length > 0}
 			<p>
 				Components: <span class="mono">{open.components.join(', ')}</span> —
-				<a href={resolve('/workshop/guards')} data-testid="catalogue-open-guards">the Guard Rack</a
-				>.
+				<a href={resolve('/workshop/studio')} data-testid="catalogue-open-guards">the Studio</a>.
 			</p>
 		{/if}
 		{#if open.stacks.length > 0}

@@ -85,7 +85,9 @@
 					baseline: baselineLevel,
 					metrics,
 					seed: Number(seed) || 1,
-					size: Number(size) || 1
+					size: Number(size) || 1,
+					// WP101: the Studio's *Use in… an experiment*.
+					...(guardStack ? { guard: guardStack } : {})
 				},
 				registry
 			);
@@ -94,6 +96,7 @@
 			return undefined;
 		}
 	});
+	const guardStack = page.url.searchParams.get('guard') ?? '';
 	const designText = $derived(design ? JSON.stringify(design, null, '\t') : '');
 	const expanded = $derived(design ? expandExperiment(design) : undefined);
 

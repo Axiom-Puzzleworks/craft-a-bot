@@ -35,7 +35,7 @@
 			| 'catalogue'
 			| 'export'
 			| 'armour'
-			| 'guards'
+			| 'studio'
 			| 'evaluators'
 			| 'scenarios'
 			| 'sinks'
@@ -77,7 +77,7 @@
 		assurance: '/workshop/assurance',
 		catalogue: '/workshop/catalogue',
 		export: '/workshop/export',
-		guards: '/workshop/guards'
+		studio: '/workshop/studio'
 	};
 	const groups = $derived(
 		lens.rail.map((group) => ({
@@ -131,7 +131,7 @@
 									| '/workshop/catalogue'
 									| '/workshop/export'
 									| '/workshop/armour'
-									| '/workshop/guards'
+									| '/workshop/studio'
 									| '/workshop/evaluators'
 									| '/workshop/scenarios'
 									| '/workshop/sinks'
