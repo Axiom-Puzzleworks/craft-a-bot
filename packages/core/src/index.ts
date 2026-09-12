@@ -599,6 +599,8 @@ export type {
 	Executor,
 	RuleFn,
 	StageSpec,
+	BoundaryPoint,
+	StageGuardComponent,
 	WorkflowConfig,
 	WorkflowSpec
 } from './types/workflow.js';
@@ -609,6 +611,8 @@ export {
 	storedWorkflowRunSchema,
 	type StoredWorkflowRun,
 	stageRecordSchema,
+	boundaryVerdictSchema,
+	type BoundaryVerdict,
 	stageValueSchema,
 	workflowConfigRecordSchema,
 	workflowRunSchema,

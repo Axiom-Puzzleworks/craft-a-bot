@@ -21,8 +21,8 @@ import {
 	builtinFitsFor,
 	compileComponents,
 	componentDepsFor,
-	compilePolicyCard,
 	egressModeOf,
+	stageBoundaryGuardrails,
 	type ComponentFit
 } from '@craftabot/governance';
 import { runWorkflow, touchedCaseOf } from '@craftabot/workflow';
@@ -1350,12 +1350,14 @@ async function runBookCell(
 				: createMockProvider({
 						script: scriptFor(brain.tier, goalCardId, seed, noise, options.plans ?? starterPlans)
 					}),
-		guardrailsFor: (cardIds) =>
-			cardIds.flatMap((id): Guardrail[] => {
-				const card = registry.getPolicyCard(id);
-				if (!card) throw new Error(`stage guard names policy card "${id}", which no pack ships`);
-				return compilePolicyCard(card);
-			}),
+		// Each stage's boundary chain (WP95): its cards and components, compiled against the same registry and deps as the cell's guard.
+		boundaryGuardrailsFor: stageBoundaryGuardrails(
+			registry,
+			componentDepsFor(registry, {
+				...(options.fetch ? { fetch: options.fetch } : {}),
+				...(options.credentials ? { getCredential: options.credentials } : {})
+			})
+		),
 		now: journey.now,
 		newId: journey.newId,
 		random: journey.random,

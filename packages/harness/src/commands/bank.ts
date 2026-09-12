@@ -6,12 +6,11 @@ import {
 	type BankRun,
 	type Book,
 	type EgressMode,
-	type Guardrail,
 	type WorkItemKind
 } from '@craftabot/core';
 import { createMockProvider } from '@craftabot/core/testing';
 import { scriptedNoisy, scriptedOptimal, specFor } from '@craftabot/evals';
-import { compilePolicyCard } from '@craftabot/governance';
+import { stageBoundaryGuardrails } from '@craftabot/governance';
 import {
 	adviceRequestBook,
 	alertBook,
@@ -195,12 +194,8 @@ export async function bankRun(options: BankRunOptions): Promise<BankRunReport> {
 				id: options.brain
 			});
 		},
-		guardrailsFor: (cardIds) =>
-			cardIds.flatMap((id): Guardrail[] => {
-				const card = registry.getPolicyCard(id);
-				if (!card) throw new Error(`stage guard names policy card "${id}", which no pack ships`);
-				return compilePolicyCard(card);
-			}),
+		// Each stage's boundary chain (WP95): its cards and components against the host's registry.
+		boundaryGuardrailsFor: stageBoundaryGuardrails(registry),
 		seed: options.seed,
 		clock: {
 			from,

@@ -5,13 +5,12 @@ import {
 	workItemSchema,
 	type AgentSpecV2,
 	type EgressMode,
-	type Guardrail,
 	type Principal,
 	type StageRecord,
 	type WorkflowRun,
 	type WorkflowSpec
 } from '@craftabot/core';
-import { compilePolicyCard } from '@craftabot/governance';
+import { stageBoundaryGuardrails } from '@craftabot/governance';
 import { runWorkflow } from '@craftabot/workflow';
 import { createAgentRunWriter } from '../agent-runs.js';
 import { createRegistry, packVersions, type HarnessConfig } from '../config.js';
@@ -100,12 +99,8 @@ export async function workflowRun(options: WorkflowRunOptions): Promise<Workflow
 			}
 			return chooseBrain({ ...spec, goalCardId }, registry, options).provider;
 		},
-		guardrailsFor: (cardIds) =>
-			cardIds.flatMap((id): Guardrail[] => {
-				const card = registry.getPolicyCard(id);
-				if (!card) throw new Error(`stage guard names no installed policy card '${id}'`);
-				return compilePolicyCard(card);
-			}),
+		// Each stage's boundary chain (WP95): its cards and components against the host's registry.
+		boundaryGuardrailsFor: stageBoundaryGuardrails(registry),
 		human: (stage, _state, executor, suggested) => ({
 			decision:
 				options.decisions?.[stage.id] ?? suggested ?? executor.default ?? executor.options[0] ?? ''

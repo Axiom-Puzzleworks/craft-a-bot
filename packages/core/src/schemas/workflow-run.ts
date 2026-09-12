@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { engineEventSchema } from './events.js';
-import { principalSchema } from './shared.js';
+import { principalSchema, boundaryVerdictSchema } from './shared.js';
 import { contextSpecSchema } from './context.js';
 import { workItemSchema } from './book.js';
 
@@ -36,6 +36,8 @@ export const stageValueSchema = z.object({
 	value: z.unknown().optional()
 });
 
+export { boundaryVerdictSchema, type BoundaryVerdict } from './shared.js';
+
 export const stageRecordSchema = z.object({
 	stageId: z.string().min(1),
 	executor: executorRecordSchema,
@@ -52,7 +54,9 @@ export const stageRecordSchema = z.object({
 				disposition: z.string(),
 				cause: z.string().optional()
 			})
-		)
+		),
+		/** The boundary chain's verdicts, in order (WP95); absent when the stage had no boundary guards. */
+		verdicts: z.array(boundaryVerdictSchema).optional()
 	}),
 	/** The agent run, when the executor was a bot. */
 	runId: z.string().optional(),

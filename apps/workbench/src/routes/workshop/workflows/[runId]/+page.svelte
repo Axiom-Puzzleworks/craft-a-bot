@@ -282,6 +282,18 @@
 							{/each}
 						</ul>
 					{/if}
+					{#if stage.guards.verdicts && stage.guards.verdicts.length > 0}
+						<!-- The boundary chain's verdicts (WP95): point, guardrail, what it said. -->
+						<ul class="trips" data-testid="pipeline-verdicts">
+							{#each stage.guards.verdicts as verdict, index (index)}
+								<li>
+									{verdict.point} · {verdict.guardrailId} — {verdict.verdict}{verdict.reason
+										? ` (${verdict.reason})`
+										: ''}
+								</li>
+							{/each}
+						</ul>
+					{/if}
 				</div>
 				{#if otherStage}
 					<div class="pane" data-testid="pipeline-out-against">

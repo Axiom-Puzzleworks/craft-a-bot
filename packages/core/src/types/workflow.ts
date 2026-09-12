@@ -31,8 +31,13 @@ export interface StageSpec<In = unknown, Out = unknown> {
 	output: JsonSchema;
 	/** The default; a `WorkflowConfig.executors[id]` overrides it. */
 	executor: Executor;
-	/** What runs at this stage's boundary in addition to the bot's own. */
-	guards?: { policyCards?: string[] };
+	/**
+	 * What runs at this stage's boundaries (WP95, `69-…` §10; `83-…` §6.2.3, D11):
+	 * `components` at `stage-in` (over the validated input) or `stage-out` (over
+	 * the validated output), whatever the executor; `policyCards` is sugar for
+	 * `policy-card` components at `stage-in`. Compiled by the host.
+	 */
+	guards?: { policyCards?: string[]; components?: StageGuardComponent[] };
 	/** The stage commits something — disburse, freeze, file a SAR. */
 	irreversible?: boolean;
 	/** The obligations this stage answers for (WP88, `79-…` §3) — the Conduct lens opens the Pipeline here for them. */
@@ -47,6 +52,16 @@ export interface StageSpec<In = unknown, Out = unknown> {
 	read?: (state: WorldState, truth: unknown) => Out | undefined;
 	/** Which stage follows, or `'end'` — from this stage's output, the state and, when it matters, the input it was given. */
 	next: (out: Out, state: WorldState, input: In) => string | 'end';
+}
+
+/** The two boundary points a stage guard may decide at (`85-…` §3). */
+export type BoundaryPoint = 'stage-in' | 'stage-out';
+
+/** One component fitted at a stage boundary: the component by id, its config, the point. */
+export interface StageGuardComponent {
+	id: string;
+	config?: unknown;
+	point: BoundaryPoint;
 }
 
 export type RuleFn<In = unknown, Out = unknown> = (

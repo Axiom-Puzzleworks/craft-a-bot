@@ -17,7 +17,8 @@ export const policyCardComponent: GuardrailComponent<z.infer<typeof policyCardCo
 	description:
 		'A rule written as data — what may be proposed, said or read — compiled to a guardrail on the hooks it names.',
 	technique: 'policy-as-code',
-	points: ['pre-think', 'pre-act', 'post-act'],
+	// The three loop hooks, and the two stage boundaries (WP95): at a boundary every rule on the card runs once over the stage's value.
+	points: ['pre-think', 'pre-act', 'post-act', 'stage-in', 'stage-out'],
 	verdicts: ['allow', 'block-action', 'stop-run'],
 	cost: { class: 'free', latency: 'none' },
 	configSchema: policyCardComponentSchema,

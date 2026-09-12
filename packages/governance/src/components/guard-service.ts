@@ -82,7 +82,8 @@ export function guardServiceComponent(
 		name: service.name,
 		description: service.description,
 		technique: options.technique ?? 'input-classifier',
-		points: [...service.hooks],
+		// The service's hooks, and the two stage boundaries (WP95): at a boundary the whole shell screens the stage's value.
+		points: [...service.hooks, 'stage-in', 'stage-out'],
 		verdicts,
 		cost: costFor(kind, options.perCall),
 		connection: connectionFor(service, options),

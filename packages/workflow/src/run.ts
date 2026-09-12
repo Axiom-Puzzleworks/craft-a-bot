@@ -6,6 +6,9 @@ import {
 	sha256Hex,
 	type ActionCall,
 	type AnyAgentSpec,
+	type BoundaryPoint,
+	type BoundaryVerdict,
+	type GuardrailContext,
 	type ContextSpec,
 	type EgressMode,
 	type EngineEvent,
@@ -48,8 +51,13 @@ export interface RunWorkflowOptions {
 	/** The bot every `agent` stage seats, its `goalCardId` replaced by the stage's card. */
 	spec: AnyAgentSpec;
 	providerFor: (stage: StageSpec, goalCardId: string) => LLMProvider;
-	/** The stage's guards, compiled by the host (`governance` is not a dependency here). */
-	guardrailsFor?: (policyCardIds: string[]) => Guardrail[];
+	/**
+	 * A stage's boundary chain, compiled by the host (`governance` is not a
+	 * dependency here) for `stage-in` or `stage-out` (WP95, `69-…` §10):
+	 * `stage.guards.components` at that point, and `policyCards` as
+	 * `policy-card` components at `stage-in`. Absent, no boundary is guarded.
+	 */
+	boundaryGuardrailsFor?: (stage: StageSpec, point: BoundaryPoint) => Guardrail[];
 	/** Guardrails every `agent` stage's session runs beside the bricks' (WP94): a stack compiled from components, appended after the stage's own cards. */
 	guardrails?: Guardrail[];
 	/** The person at a `human` stage; absent, the executor's `default`, else its first option, `by` absent. */
@@ -286,6 +294,11 @@ export async function runWorkflow(
 			outcome = 'stopped';
 			break;
 		}
+		// A stage-out `stop-run` ends the journey after the stage's record is complete (§10).
+		if (record.guards.verdicts?.some((verdict) => verdict.verdict === 'stop-run')) {
+			outcome = 'stopped';
+			break;
+		}
 		const output = record.output.value;
 		current = stage.next(output, world.snapshot(), input);
 		input = output;
@@ -319,12 +332,16 @@ export async function runWorkflow(
 	): Promise<StageRecord> {
 		const started = now();
 		const inputProblems = validateAgainst(stage.input, stageInput);
-		const base = {
-			stageId: stage.id,
-			executor: executorRecord(executor),
-			input: stageValue(stageInput)
-		};
+		const noBoundary: BoundaryFold = { checked: 0, verdicts: [] };
 		if (inputProblems.length > 0) {
+			const base: Base = {
+				stageId: stage.id,
+				executor: executorRecord(executor),
+				input: stageValue(stageInput),
+				stage,
+				rawInput: stageInput,
+				inbound: noBoundary
+			};
 			emit('stage.started', {
 				workflowRunId: runId,
 				stageId: stage.id,
@@ -343,22 +360,170 @@ export async function runWorkflow(
 				0
 			);
 		}
+		// The stage-in chain over the validated input (§10): written on the workflow's events before the stage starts.
+		const inbound = await boundary(stage, 'stage-in', stageInput, undefined, events, emit);
+		const base: Base = {
+			stageId: stage.id,
+			executor: executorRecord(executor),
+			input: stageValue(stageInput),
+			stage,
+			rawInput: stageInput,
+			inbound: inbound.fold
+		};
+		if (inbound.kind !== 'continue') {
+			emit('stage.started', {
+				workflowRunId: runId,
+				stageId: stage.id,
+				executor: executor.kind,
+				input: base.input
+			});
+			return finishStage(
+				base,
+				started,
+				ordinal,
+				ordinal,
+				undefined,
+				[],
+				'blocked',
+				inbound.finding,
+				0
+			);
+		}
+		const effectiveInput = inbound.value;
 		switch (executor.kind) {
 			case 'agent':
-				return agentStage(stage, executor, stageInput, base, started);
+				return agentStage(stage, executor, effectiveInput, base, started);
 			case 'rule':
-				return ruleStage(stage, executor, stageInput, base, started);
+				return ruleStage(stage, executor, effectiveInput, base, started);
 			case 'human':
-				return humanStage(stage, executor, stageInput, base, started);
+				return humanStage(stage, executor, effectiveInput, base, started);
 			case 'line':
-				return lineStage(stage, executor, stageInput, base, started);
+				return lineStage(stage, executor, effectiveInput, base, started);
 		}
 	}
 
-	type Base = Pick<StageRecord, 'stageId' | 'executor' | 'input'>;
+	type Base = Pick<StageRecord, 'stageId' | 'executor' | 'input'> & {
+		stage: StageSpec;
+		rawInput: unknown;
+		inbound: BoundaryFold;
+	};
 	type Tripped = StageRecord['guards']['tripped'];
+	type Write = <T extends EventType>(type: T, payload: PayloadFor<T>) => void;
+	type BoundaryFold = { checked: number; verdicts: BoundaryVerdict[] };
+	type BoundaryResult =
+		| { kind: 'continue'; value: unknown; fold: BoundaryFold }
+		| { kind: 'blocked' | 'stopped'; finding: string; fold: BoundaryFold };
 
-	function finishStage(
+	/**
+	 * **The boundary chain** (WP95, `69-…` §10; `83-…` §6.2.3, D11): the host's
+	 * compiled guardrails for the point, each checked once over the stage's
+	 * value framed as a proposed action named for the stage, first non-allow
+	 * wins. `block-action` and `stop-run` halt with the reason as the finding;
+	 * `pause` asks the host as a `human` stage would and a decline halts;
+	 * `redact` rewrites the value the next reader sees; `annotate` and a plain
+	 * allow are recorded. Every check is a `guardrail.checked` on the events
+	 * given, with the point and the stage on it; a `hooks` list is not
+	 * consulted here — the point is the hook at a boundary.
+	 */
+	async function boundary(
+		stage: StageSpec,
+		point: BoundaryPoint,
+		stageInput: unknown,
+		output: unknown,
+		history: readonly EngineEvent[],
+		write: Write
+	): Promise<BoundaryResult> {
+		const chain = options.boundaryGuardrailsFor?.(stage, point) ?? [];
+		const fold: BoundaryFold = { checked: 0, verdicts: [] };
+		let value = point === 'stage-in' ? stageInput : output;
+		if (chain.length === 0) return { kind: 'continue', value, fold };
+		const hook = point === 'stage-in' ? 'pre-act' : 'post-act';
+		for (const guardrail of chain) {
+			const proposed = { kind: 'action' as const, name: stage.id, arguments: value };
+			const context: GuardrailContext = {
+				hook,
+				tick: ordinal,
+				spec: options.spec,
+				usage: { ticks: ordinal, inputTokens: 0, outputTokens: 0 },
+				proposed,
+				worldState: world.snapshot(),
+				history,
+				stage: {
+					id: stage.id,
+					point,
+					input: stageInput,
+					...(point === 'stage-out' ? { output: value } : {})
+				}
+			};
+			const checked = guardrail.checkWithRecord
+				? await guardrail.checkWithRecord(context)
+				: { verdict: await guardrail.check(context) };
+			const verdict = checked.verdict;
+			const stamps = {
+				...(guardrail.policyCardId ? { policyCardId: guardrail.policyCardId } : {}),
+				...(guardrail.componentId ? { componentId: guardrail.componentId } : {}),
+				point: { kind: point, at: stage.id }
+			};
+			if (checked.external) {
+				write('guardrail.external', { guardrailId: guardrail.id, hook, ...checked.external });
+			}
+			write('guardrail.checked', { guardrailId: guardrail.id, hook, verdict, ...stamps });
+			fold.checked += 1;
+			const kind: BoundaryVerdict['verdict'] =
+				'pause' in verdict
+					? 'pause'
+					: verdict.allow
+						? (verdict.verdictKind ?? 'allow')
+						: verdict.disposition;
+			const entry: BoundaryVerdict = {
+				guardrailId: guardrail.id,
+				point,
+				verdict: kind,
+				...(guardrail.componentId ? { componentId: guardrail.componentId } : {}),
+				...(guardrail.policyCardId ? { policyCardId: guardrail.policyCardId } : {}),
+				...('reason' in verdict
+					? { reason: verdict.reason }
+					: verdict.note !== undefined
+						? { reason: verdict.note }
+						: {})
+			};
+			if ('pause' in verdict) {
+				write('approval.requested', { proposed, reason: verdict.reason });
+				const approved = options.approve ? options.approve(stage, proposed) : true;
+				write('approval.resolved', {
+					approved,
+					...(options.principal ? { by: options.principal } : {})
+				});
+				fold.verdicts.push({ ...entry, approved });
+				if (!approved) {
+					return { kind: 'blocked', finding: `declined at ${point}: ${verdict.reason}`, fold };
+				}
+				continue;
+			}
+			fold.verdicts.push(entry);
+			if (!verdict.allow) {
+				write('guardrail.tripped', {
+					guardrailId: guardrail.id,
+					hook,
+					reason: verdict.reason,
+					disposition: verdict.disposition,
+					...(verdict.cause !== undefined ? { cause: verdict.cause } : {}),
+					...stamps
+				});
+				return {
+					kind: verdict.disposition === 'stop-run' ? 'stopped' : 'blocked',
+					finding: verdict.reason,
+					fold
+				};
+			}
+			if (verdict.verdictKind === 'redact' && verdict.redactedText !== undefined) {
+				value = redactInto(value, verdict.redactedText);
+			}
+		}
+		return { kind: 'continue', value, fold };
+	}
+
+	async function finishStage(
 		base: Base,
 		started: string,
 		startedTick: number,
@@ -369,30 +534,63 @@ export async function runWorkflow(
 		finding: string | undefined,
 		checked: number,
 		extra: Partial<Pick<StageRecord, 'runId' | 'approval'>> = {},
-		bus?: (type: 'stage.completed', payload: PayloadFor<'stage.completed'>) => void
-	): StageRecord {
+		bus?: Write,
+		/** The trace a stage-out guard reads — an agent stage's own run; else the workflow's events. */
+		history?: readonly EngineEvent[]
+	): Promise<StageRecord> {
+		const { stage, rawInput, inbound, ...recordBase } = base;
+		const write: Write = bus ?? ((type, payload) => emit(type, payload));
+		const fold: BoundaryFold = { checked: inbound.checked, verdicts: [...inbound.verdicts] };
+		let value = output;
+		let finalStatus = status;
+		let finalFinding = finding;
+		// The stage-out chain over the validated output (§10), before the next stage reads it.
+		if ((status === 'ok' || status === 'escalated') && output !== undefined) {
+			const outbound = await boundary(
+				stage,
+				'stage-out',
+				rawInput,
+				output,
+				history ?? events,
+				write
+			);
+			fold.checked += outbound.fold.checked;
+			fold.verdicts.push(...outbound.fold.verdicts);
+			if (outbound.kind === 'continue') value = outbound.value;
+			else {
+				finalStatus = 'blocked';
+				finalFinding = outbound.finding;
+			}
+		}
 		const ended = now();
-		const out = stageValue(output === undefined ? null : output);
+		const out = stageValue(value === undefined ? null : value);
+		const guards: StageRecord['guards'] = {
+			checked: checked + fold.checked,
+			tripped,
+			...(fold.verdicts.length > 0 ? { verdicts: fold.verdicts } : {})
+		};
 		const record: StageRecord = {
-			...base,
+			...recordBase,
 			startedTick,
 			endedTick,
 			durationMs: Math.max(0, Date.parse(ended) - Date.parse(started)),
 			output: out,
-			guards: { checked, tripped },
+			guards,
 			...extra,
-			status,
-			...(finding !== undefined ? { finding } : {})
+			status: finalStatus,
+			...(finalFinding !== undefined ? { finding: finalFinding } : {})
 		};
-		const payload = {
+		write('stage.completed', {
 			workflowRunId: runId,
 			stageId: base.stageId,
 			output: out,
-			status,
-			guards: { checked, tripped: tripped.length }
-		};
-		if (bus) bus('stage.completed', payload);
-		else emit('stage.completed', payload);
+			status: finalStatus,
+			guards: {
+				checked: guards.checked,
+				tripped: tripped.length,
+				...(fold.verdicts.length > 0 ? { verdicts: fold.verdicts } : {})
+			}
+		});
 		return record;
 	}
 
@@ -422,11 +620,9 @@ export async function runWorkflow(
 		started: string
 	): Promise<StageRecord> {
 		const goalCardId = stageCardId(spec.id, stage.id);
-		const cards = stage.guards?.policyCards ?? [];
-		const stageGuardrails = cards.length > 0 ? (options.guardrailsFor?.(cards) ?? []) : [];
+		// The stage's own guards run at its boundaries (§10); the loop carries the host's shared chain alone.
 		const shared = options.guardrails ?? [];
-		const guardrails =
-			stageGuardrails.length + shared.length > 0 ? [...stageGuardrails, ...shared] : undefined;
+		const guardrails = shared.length > 0 ? shared : undefined;
 		const sessionOptions: SessionOptions = {
 			...(options.session ?? {}),
 			...(options.principal && !options.session?.principal ? { principal: options.principal } : {}),
@@ -504,7 +700,7 @@ export async function runWorkflow(
 					: read && 'finding' in read
 						? read.finding
 						: `the run ended ${result}`;
-		const record = finishStage(
+		const record = await finishStage(
 			base,
 			started,
 			0,
@@ -515,7 +711,8 @@ export async function runWorkflow(
 			finding,
 			checked,
 			{ runId: session.runId },
-			(type, payload) => onBus(type, payload, lastTick)
+			(type, payload) => onBus(type, payload, lastTick),
+			trace
 		);
 		options.onAgentRun?.({
 			runId: session.runId,
@@ -526,13 +723,13 @@ export async function runWorkflow(
 		return record;
 	}
 
-	function ruleStage(
+	async function ruleStage(
 		stage: StageSpec,
 		executor: Extract<Executor, { kind: 'rule' }>,
 		stageInput: unknown,
 		base: Base,
 		started: string
-	): StageRecord {
+	): Promise<StageRecord> {
 		emit('stage.started', {
 			workflowRunId: runId,
 			stageId: stage.id,
@@ -720,6 +917,24 @@ export async function runWorkflow(
 			? finishStage(base, started, ordinal, ordinal, read.output, [], 'ok', undefined, 0)
 			: finishStage(base, started, ordinal, ordinal, undefined, [], 'error', read.finding, 0);
 	}
+}
+
+/**
+ * A `redact` verdict applied to a stage value (WP95; WP96 widens it to the
+ * transcript): a string is replaced whole; an object with a string `text`
+ * has that replaced; anything else is left as it was, the verdict on the
+ * record saying what the guard would have written.
+ */
+function redactInto(value: unknown, redactedText: string): unknown {
+	if (typeof value === 'string') return redactedText;
+	if (
+		value &&
+		typeof value === 'object' &&
+		typeof (value as { text?: unknown }).text === 'string'
+	) {
+		return { ...(value as Record<string, unknown>), text: redactedText };
+	}
+	return value;
 }
 
 /** An executor read back off a record — the same shape, `undefined` keys dropped. */

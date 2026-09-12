@@ -270,3 +270,20 @@ export const attestationSchema = z.object({
 	guardrailsPassed: z.array(z.string())
 });
 export type Attestation = z.infer<typeof attestationSchema>;
+
+/**
+ * One verdict at a stage boundary (WP95, `69-…` §10): which guardrail, at
+ * which point, what it said — and the component or card it came from.
+ */
+export const boundaryVerdictSchema = z.object({
+	guardrailId: z.string().min(1),
+	point: z.enum(['stage-in', 'stage-out']),
+	verdict: z.enum(['allow', 'block-action', 'stop-run', 'pause', 'redact', 'annotate']),
+	componentId: z.string().optional(),
+	policyCardId: z.string().optional(),
+	/** The guardrail's own words — a denial's reason, an allow's note. */
+	reason: z.string().optional(),
+	/** A pause's answer: approved or declined by the host. */
+	approved: z.boolean().optional()
+});
+export type BoundaryVerdict = z.infer<typeof boundaryVerdictSchema>;

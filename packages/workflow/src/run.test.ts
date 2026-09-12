@@ -7,7 +7,11 @@ import {
 	sha256Hex,
 	workflowRunSchema,
 	type AgentSpec,
+	type BoundaryPoint,
 	type DeskWorldState,
+	type Guardrail,
+	type GuardrailContext,
+	type GuardrailVerdict,
 	type EngineEvent,
 	type PackManifest,
 	type ServiceLine,
@@ -577,5 +581,203 @@ describe('what WP80 added', () => {
 		});
 		expect(stages).toBe(1);
 		expect(queue).toBe(1);
+	});
+});
+
+/**
+ * **Stage-boundary guards** (WP95, `69-…` §10; `83-…` §6.2.3, D11): the
+ * host's compiled chain runs at `stage-in` over the input and at `stage-out`
+ * over the output, whatever the executor — a rule and a person are guarded
+ * too. First non-allow wins; a block or a stop halts with the reason as the
+ * finding; a pause asks the host; a redact rewrites; an annotate records.
+ */
+const boundaryGuard = (
+	id: string,
+	verdict: GuardrailVerdict | ((ctx: GuardrailContext) => GuardrailVerdict)
+): Guardrail => ({
+	id,
+	name: id,
+	description: id,
+	hooks: ['pre-act'],
+	check: (ctx) => (typeof verdict === 'function' ? verdict(ctx) : verdict)
+});
+const block = (id: string, reason = 'not here'): Guardrail =>
+	boundaryGuard(id, { allow: false, reason, disposition: 'block-action' });
+const chains =
+	(chain: Record<string, Partial<Record<BoundaryPoint, Guardrail[]>>>) =>
+	(stage: StageSpec, point: BoundaryPoint): Guardrail[] =>
+		chain[stage.id]?.[point] ?? [];
+
+describe('stage-boundary guards (WP95)', () => {
+	it('a guarded rule stage trips at stage-in: blocked with the finding, nothing performed, the verdict on the record and the event', async () => {
+		const spec = workflow([greet, signByRule], { rules: RULES });
+		const { record } = await run(spec, {
+			boundaryGuardrailsFor: chains({ sign: { 'stage-in': [block('no-sign')] } })
+		});
+		expect(record.outcome).toBe('stopped');
+		expect(record.stages.map((stage) => stage.status)).toEqual(['ok', 'blocked']);
+		const sign = record.stages[1]!;
+		expect(sign.finding).toBe('not here');
+		expect(sign.guards).toEqual({
+			checked: 1,
+			tripped: [],
+			verdicts: [
+				{ guardrailId: 'no-sign', point: 'stage-in', verdict: 'block-action', reason: 'not here' }
+			]
+		});
+		expect(
+			record.events.some(
+				(event) => event.type === 'action.performed' && event.payload.name === 'sign-in'
+			)
+		).toBe(false);
+		const checked = record.events.find((event) => event.type === 'guardrail.checked');
+		expect(checked?.payload).toMatchObject({
+			guardrailId: 'no-sign',
+			hook: 'pre-act',
+			point: { kind: 'stage-in', at: 'sign' }
+		});
+		expect(record.events.some((event) => event.type === 'guardrail.tripped')).toBe(true);
+		const completed = record.events.filter((event) => event.type === 'stage.completed').at(-1);
+		expect(completed?.payload).toMatchObject({
+			status: 'blocked',
+			guards: { checked: 1, tripped: 0, verdicts: [{ verdict: 'block-action' }] }
+		});
+		expect(workflowRunSchema.safeParse(JSON.parse(JSON.stringify(record))).success).toBe(true);
+	});
+
+	it('a guarded human stage trips at stage-out, after the person has answered', async () => {
+		const { record } = await run(workflow([decide]), {
+			human: () => ({ decision: 'refer' }),
+			boundaryGuardrailsFor: chains({
+				decide: {
+					'stage-out': [boundaryGuard('fine', { allow: true, note: 'seen' }), block('no-refer')]
+				}
+			})
+		});
+		const stage = record.stages[0]!;
+		expect(stage.status).toBe('blocked');
+		expect(stage.approval?.decision).toBe('refer');
+		expect(stage.guards.verdicts?.map((verdict) => [verdict.verdict, verdict.reason])).toEqual([
+			['allow', 'seen'],
+			['block-action', 'not here']
+		]);
+		expect(stage.guards.checked).toBe(2);
+	});
+
+	it('a pause at a boundary asks the host: a decline halts, an approval goes on', async () => {
+		const pausing = chains({
+			sign: { 'stage-in': [boundaryGuard('ask', { pause: true, reason: 'a person first' })] }
+		});
+		const spec = workflow([greet, signByRule], { rules: RULES });
+		const declined = await run(spec, { boundaryGuardrailsFor: pausing, approve: () => false });
+		expect(declined.record.stages[1]?.status).toBe('blocked');
+		expect(declined.record.stages[1]?.finding).toBe('declined at stage-in: a person first');
+		expect(declined.record.stages[1]?.guards.verdicts).toEqual([
+			{
+				guardrailId: 'ask',
+				point: 'stage-in',
+				verdict: 'pause',
+				reason: 'a person first',
+				approved: false
+			}
+		]);
+		expect(declined.record.events.map((event) => event.type)).toContain('approval.requested');
+		const approved = await run(spec, { boundaryGuardrailsFor: pausing, approve: () => true });
+		expect(approved.record.stages.map((stage) => stage.status)).toEqual(['ok', 'ok']);
+		expect(approved.record.stages[1]?.guards.verdicts?.[0]?.approved).toBe(true);
+	});
+
+	it('a stop-run at stage-out ends the journey once the stage is recorded', async () => {
+		const spec = workflow([greet, signByRule], { rules: RULES });
+		const { record } = await run(spec, {
+			boundaryGuardrailsFor: chains({
+				greet: {
+					'stage-out': [
+						boundaryGuard('halt', { allow: false, reason: 'enough', disposition: 'stop-run' })
+					]
+				}
+			})
+		});
+		expect(record.outcome).toBe('stopped');
+		expect(record.stages).toHaveLength(1);
+		expect(record.stages[0]?.status).toBe('blocked');
+		expect(record.stages[0]?.guards.verdicts?.[0]?.verdict).toBe('stop-run');
+	});
+
+	it('redact rewrites the output the next stage reads; annotate is recorded and changes nothing', async () => {
+		const note: StageSpec = {
+			id: 'note',
+			name: 'Note',
+			input: ANY,
+			output: { type: 'object', required: ['text'] },
+			executor: { kind: 'rule', rule: 'note' },
+			next: () => 'echo'
+		};
+		const echo: StageSpec = {
+			id: 'echo',
+			name: 'Echo',
+			input: ANY,
+			output: ANY,
+			executor: { kind: 'rule', rule: 'echo' },
+			next: () => 'end'
+		};
+		const spec = workflow([note, echo], {
+			rules: {
+				note: () => ({ output: { text: 'the card is 4111 1111 1111 1111' } }),
+				echo: (input) => ({ output: { saw: input } })
+			}
+		});
+		const { record } = await run(spec, {
+			boundaryGuardrailsFor: chains({
+				note: {
+					'stage-out': [
+						boundaryGuard('seen', {
+							allow: true,
+							verdictKind: 'annotate',
+							finding: { category: 'pii', label: 'pan' }
+						}),
+						boundaryGuard('scrub', {
+							allow: true,
+							verdictKind: 'redact',
+							redactedText: 'the card is [redacted]'
+						})
+					]
+				}
+			})
+		});
+		expect(record.stages.map((stage) => stage.status)).toEqual(['ok', 'ok']);
+		expect(record.stages[0]?.output.value).toEqual({ text: 'the card is [redacted]' });
+		expect(record.stages[1]?.output.value).toEqual({ saw: { text: 'the card is [redacted]' } });
+		expect(record.stages[0]?.guards.verdicts?.map((verdict) => verdict.verdict)).toEqual([
+			'annotate',
+			'redact'
+		]);
+	});
+
+	it('a stage-out guard on an agent stage reads the run’s own trace and the stage on the context', async () => {
+		let seen: GuardrailContext | undefined;
+		const { record } = await run(workflow([signInStage]), {
+			boundaryGuardrailsFor: chains({
+				[signInStage.id]: {
+					'stage-out': [
+						boundaryGuard('peek', (ctx) => {
+							seen = ctx;
+							return { allow: true };
+						})
+					]
+				}
+			})
+		});
+		expect(record.stages[0]?.status).toBe('ok');
+		expect(seen?.stage).toMatchObject({ id: signInStage.id, point: 'stage-out' });
+		expect(seen?.stage?.output).toEqual(record.stages[0]?.output.value);
+		expect(seen?.history.some((event) => event.type === 'run.finished')).toBe(true);
+		expect(seen?.proposed).toMatchObject({ kind: 'action', name: signInStage.id });
+	});
+
+	it('with no boundary guards a record carries no verdicts', async () => {
+		const spec = workflow([greet, signByRule], { rules: RULES });
+		const { record } = await run(spec);
+		expect(record.stages.every((stage) => stage.guards.verdicts === undefined)).toBe(true);
 	});
 });

@@ -29,6 +29,8 @@ export interface GuardPoint { kind: PointKind; at?: string }   // stageId for st
 
 The three loop hooks are the points the session runs today; `group` is the two-seat chokepoint; `stage-in`/`stage-out` are WP95's boundary chain; `egress` is the session's fetch guard. `pointHook(point)` maps a loop point to its `GuardrailHook`; a component compiled for a boundary point returns guardrails whose `hooks` the workflow runtime reads at the boundary (WP95).
 
+> **Amended 2026-09-12 (WP95).** The `policy-card` and `guard-service` adapters declare `stage-in` and `stage-out` beside their loop hooks (the built-ins do not — a budget has no meaning at a boundary); at a boundary their `compile` returns the whole card or the whole shell, since the boundary runner consults no `hooks` (`69-…` §10). `stageBoundaryGuardrails(registry, deps?)` in `governance/components/stage-guards.ts` is what a host hands `RunWorkflowOptions.boundaryGuardrailsFor`.
+
 ## 4. The component contract
 
 ```ts

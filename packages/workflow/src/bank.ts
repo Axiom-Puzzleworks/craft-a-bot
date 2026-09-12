@@ -5,7 +5,6 @@ import {
 	type BankRun,
 	type ContextSpec,
 	type EngineEvent,
-	type Guardrail,
 	type LLMProvider,
 	type PackManifest,
 	type StageSpec,
@@ -18,7 +17,7 @@ import {
 	type Executor
 } from '@craftabot/core';
 import { seededRandom } from '@craftabot/desk';
-import { runWorkflow, type HumanDecision } from './run.js';
+import { runWorkflow, type HumanDecision, type RunWorkflowOptions } from './run.js';
 
 /**
  * **The scheduler** (WP83, `71-THE-CLOCK.md` §4; `64-…` §6.5.2; tenet 24):
@@ -96,7 +95,8 @@ export interface RunBankOptions {
 	workflows: WorkflowSpec[];
 	specFor: (desk: DeskAssignment) => AnyAgentSpec;
 	providerFor: (desk: DeskAssignment, stage: StageSpec, goalCardId: string) => LLMProvider;
-	guardrailsFor?: (policyCardIds: string[]) => Guardrail[];
+	/** Each stage's boundary chain (WP95), compiled by the host. */
+	boundaryGuardrailsFor?: RunWorkflowOptions['boundaryGuardrailsFor'];
 	human?: (
 		desk: DeskAssignment,
 		stage: StageSpec,
@@ -213,7 +213,9 @@ export async function runBank(
 			spec: options.specFor(desk),
 			config,
 			providerFor: (stage, goalCardId) => options.providerFor(desk, stage, goalCardId),
-			...(options.guardrailsFor ? { guardrailsFor: options.guardrailsFor } : {}),
+			...(options.boundaryGuardrailsFor
+				? { boundaryGuardrailsFor: options.boundaryGuardrailsFor }
+				: {}),
 			...(options.human
 				? {
 						human: (

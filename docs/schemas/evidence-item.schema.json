@@ -2983,6 +2983,53 @@
 																			"type": "integer",
 																			"minimum": 0,
 																			"maximum": 9007199254740991
+																		},
+																		"verdicts": {
+																			"type": "array",
+																			"items": {
+																				"type": "object",
+																				"properties": {
+																					"guardrailId": {
+																						"type": "string",
+																						"minLength": 1
+																					},
+																					"point": {
+																						"type": "string",
+																						"enum": [
+																							"stage-in",
+																							"stage-out"
+																						]
+																					},
+																					"verdict": {
+																						"type": "string",
+																						"enum": [
+																							"allow",
+																							"block-action",
+																							"stop-run",
+																							"pause",
+																							"redact",
+																							"annotate"
+																						]
+																					},
+																					"componentId": {
+																						"type": "string"
+																					},
+																					"policyCardId": {
+																						"type": "string"
+																					},
+																					"reason": {
+																						"type": "string"
+																					},
+																					"approved": {
+																						"type": "boolean"
+																					}
+																				},
+																				"required": [
+																					"guardrailId",
+																					"point",
+																					"verdict"
+																				]
+																			}
 																		}
 																	},
 																	"required": [
@@ -5752,6 +5799,53 @@
 																		"type": "integer",
 																		"minimum": 0,
 																		"maximum": 9007199254740991
+																	},
+																	"verdicts": {
+																		"type": "array",
+																		"items": {
+																			"type": "object",
+																			"properties": {
+																				"guardrailId": {
+																					"type": "string",
+																					"minLength": 1
+																				},
+																				"point": {
+																					"type": "string",
+																					"enum": [
+																						"stage-in",
+																						"stage-out"
+																					]
+																				},
+																				"verdict": {
+																					"type": "string",
+																					"enum": [
+																						"allow",
+																						"block-action",
+																						"stop-run",
+																						"pause",
+																						"redact",
+																						"annotate"
+																					]
+																				},
+																				"componentId": {
+																					"type": "string"
+																				},
+																				"policyCardId": {
+																					"type": "string"
+																				},
+																				"reason": {
+																					"type": "string"
+																				},
+																				"approved": {
+																					"type": "boolean"
+																				}
+																			},
+																			"required": [
+																				"guardrailId",
+																				"point",
+																				"verdict"
+																			]
+																		}
 																	}
 																},
 																"required": [
@@ -6706,6 +6800,53 @@
 													"required": [
 														"guardrailId",
 														"disposition"
+													]
+												}
+											},
+											"verdicts": {
+												"type": "array",
+												"items": {
+													"type": "object",
+													"properties": {
+														"guardrailId": {
+															"type": "string",
+															"minLength": 1
+														},
+														"point": {
+															"type": "string",
+															"enum": [
+																"stage-in",
+																"stage-out"
+															]
+														},
+														"verdict": {
+															"type": "string",
+															"enum": [
+																"allow",
+																"block-action",
+																"stop-run",
+																"pause",
+																"redact",
+																"annotate"
+															]
+														},
+														"componentId": {
+															"type": "string"
+														},
+														"policyCardId": {
+															"type": "string"
+														},
+														"reason": {
+															"type": "string"
+														},
+														"approved": {
+															"type": "boolean"
+														}
+													},
+													"required": [
+														"guardrailId",
+														"point",
+														"verdict"
 													]
 												}
 											}
@@ -9213,6 +9354,53 @@
 																"type": "integer",
 																"minimum": 0,
 																"maximum": 9007199254740991
+															},
+															"verdicts": {
+																"type": "array",
+																"items": {
+																	"type": "object",
+																	"properties": {
+																		"guardrailId": {
+																			"type": "string",
+																			"minLength": 1
+																		},
+																		"point": {
+																			"type": "string",
+																			"enum": [
+																				"stage-in",
+																				"stage-out"
+																			]
+																		},
+																		"verdict": {
+																			"type": "string",
+																			"enum": [
+																				"allow",
+																				"block-action",
+																				"stop-run",
+																				"pause",
+																				"redact",
+																				"annotate"
+																			]
+																		},
+																		"componentId": {
+																			"type": "string"
+																		},
+																		"policyCardId": {
+																			"type": "string"
+																		},
+																		"reason": {
+																			"type": "string"
+																		},
+																		"approved": {
+																			"type": "boolean"
+																		}
+																	},
+																	"required": [
+																		"guardrailId",
+																		"point",
+																		"verdict"
+																	]
+																}
 															}
 														},
 														"required": [

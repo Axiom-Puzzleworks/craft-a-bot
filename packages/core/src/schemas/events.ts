@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { SLOT_IDS } from '../types/brick.js';
 
 /**
@@ -26,7 +27,8 @@ import {
 	principalSchema,
 	proposedStepSchema,
 	runOutcomeSchema,
-	usageSchema
+	usageSchema,
+	boundaryVerdictSchema
 } from './shared.js';
 
 /** Shared envelope (02-AGENT-MODEL.md §7) around one event type's payload. */
@@ -436,7 +438,9 @@ const stageCompletedEvent = eventSchema(
 		status: z.enum(['ok', 'blocked', 'escalated', 'error']),
 		guards: z.object({
 			checked: z.number().int().nonnegative(),
-			tripped: z.number().int().nonnegative()
+			tripped: z.number().int().nonnegative(),
+			/** The boundary chain's verdicts (WP95, `69-…` §10); absent when the stage had none. */
+			verdicts: z.array(boundaryVerdictSchema).optional()
 		})
 	})
 );

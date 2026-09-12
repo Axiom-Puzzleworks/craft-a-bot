@@ -6,7 +6,6 @@ import {
 	type EngineEvent,
 	type Executor,
 	type ExecutorRecord,
-	type Guardrail,
 	type PackManifest,
 	type WorkflowConfig
 } from '@craftabot/core';
@@ -18,7 +17,7 @@ import {
 	specFor,
 	type PlanSource
 } from '@craftabot/evals';
-import { compilePolicyCard } from '@craftabot/governance';
+import { stageBoundaryGuardrails } from '@craftabot/governance';
 import {
 	adviceRequestBook,
 	alertBook,
@@ -188,11 +187,7 @@ export function createCampaignHost(
 						script: scriptedOptimal(deps.plans.planFor(goalCardId)),
 						id: 'scripted-optimal'
 					}),
-				guardrailsFor: (cardIds) =>
-					cardIds.flatMap((id): Guardrail[] => {
-						const card = registry.getPolicyCard(id);
-						return card ? compilePolicyCard(card) : [];
-					}),
+				boundaryGuardrailsFor: stageBoundaryGuardrails(registry),
 				seed: 1,
 				onAgentRun: (agentRun) => {
 					const v2 = toSpecV2(agentRun.spec);
@@ -321,11 +316,7 @@ export function createCampaignHost(
 							script: scriptedOptimal(deps.plans.planFor(goalCardId)),
 							id: 'scripted-optimal'
 						}),
-					guardrailsFor: (cardIds) =>
-						cardIds.flatMap((id): Guardrail[] => {
-							const card = registry.getPolicyCard(id);
-							return card ? compilePolicyCard(card) : [];
-						}),
+					boundaryGuardrailsFor: stageBoundaryGuardrails(registry),
 					seed: job.population.seed,
 					clock: {
 						from: job.from,

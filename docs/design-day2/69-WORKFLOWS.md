@@ -38,7 +38,7 @@ export interface StageSpec<In = unknown, Out = unknown> {
 	id: string; name: string;
 	input: JsonSchema; output: JsonSchema;
 	executor: Executor;
-	guards?: { policyCards?: string[] };
+	guards?: { policyCards?: string[]; components?: StageGuardComponent[] };   // WP95, §10
 	irreversible?: boolean;
 	/** The stage's output read off the world once the executor is done (agent and line stages); a rule returns its own. */
 	read?: (state: WorldState, truth: unknown) => Out | undefined;
@@ -74,7 +74,7 @@ export interface WorkflowConfig {
 export interface StageRecord {
 	stageId: string; executor: Executor (as data); startedTick: number; endedTick: number; durationMs: number;
 	input: { digest: string; value?: unknown }; output: { digest: string; value?: unknown };
-	guards: { checked: number; tripped: Array<{ guardrailId: string; disposition: string; cause?: string }> };
+	guards: { checked: number; tripped: Array<{ guardrailId: string; disposition: string; cause?: string }>; verdicts?: BoundaryVerdict[] };   // `verdicts` WP95, §10
 	runId?: string; approval?: { requested: true; by?: Principal; decision: string };
 	status: 'ok' | 'blocked' | 'escalated' | 'error'; finding?: string;
 }
@@ -119,6 +119,8 @@ runWorkflow(spec, item, {
 | `stage.started` | `{ workflowRunId, stageId, executor, input: { digest, value? } }` | on the agent run's trace at tick 0 when a bot does the stage; on the workflow's own events otherwise |
 | `stage.completed` | `{ workflowRunId, stageId, output: { digest, value? }, status, guards }` | the same, at the run's last tick |
 
+> **Amended 2026-09-12 (WP95, §10).** `stage.completed.guards` gains `verdicts?: BoundaryVerdict[]` — the boundary chain's verdicts in order, absent when the stage had no boundary guards. A boundary check is a `guardrail.checked` (and, on a denial, a `guardrail.tripped`) with `point: { kind: 'stage-in' | 'stage-out', at: stageId }` on it: at `stage-in`, on the workflow's own events before the stage starts; at `stage-out`, where the stage's `stage.completed` is written — the agent run's trace for a bot, the workflow's events otherwise.
+
 Both optional in every reader; the OTel mapping (`35-…`) gives each a child span `stage <id>` with `craft_a_bot.stage.*` attributes; a trace's digest covers them.
 
 ## 7. Tests (stage B's DoD, `65-…` WP79)
@@ -157,3 +159,17 @@ Both optional in every reader; the OTel mapping (`35-…`) gives each a child sp
 > **Amended 2026-09-11 (WP84, `75-THE-MONITOR.md` §5).** `WorkflowSpec.kinds?: WorkItemKind[]` — the work-item kinds the workflow takes, so a host assigning desks by workflow (the Monitor's set-up) knows what the clock may offer them; `LENDING_WORKFLOW` declares `['application']`, and a workflow without one is assumed to take applications. `71-…` §7's divergence (the desks route by an explicit `kinds` list) stands: the assignment still names its kinds, the workflow now says which it can take.
 
 > **Amended 2026-09-11 (WP85, `76-…` §3).** One runtime change: `stagePack(spec, layoutId, executors?)` synthesises a card for every stage whose *effective* executor — the configuration's over the spec's — is a bot, so a stage a person takes by default and a bot takes in one configuration (the fraud SAR at Level 5) has its card when that configuration runs. `runWorkflow` passes its config's executors.
+
+## 10. Stage-boundary guards (WP95, `83-…` §6.2.3, D11)
+
+> **Amended 2026-09-12 (WP95, built).**
+
+**The contract.** `StageSpec.guards` widens to `{ policyCards?: string[]; components?: Array<{ id, config?, point: 'stage-in' | 'stage-out' }> }`. A component at a boundary is any `GuardrailComponent` (`85-…`) that declares the point — the `policy-card` and `guard-service` adapters now declare both boundaries beside their loop hooks, the `evaluator-breaker` declares `stage-out`. `policyCards` is sugar for `policy-card` components at `stage-in`, kept so the three shipped workflows read as they did. **A card no longer runs inside the bot's loop at a stage** — before WP95 the runtime handed `guardrailsFor(policyCards)` to the agent stage's session; now every stage guard runs at a boundary, whatever the executor, which is the point of D11 (a `rule` stage and a `human` stage are guarded too). No shipped workflow had a card fitted, so nothing shipped changed.
+
+**The runtime.** `RunWorkflowOptions.boundaryGuardrailsFor(stage, point)` replaces `guardrailsFor`; the host compiles it — `stageBoundaryGuardrails(registry, deps?)` in `@craftabot/governance` is the one implementation every host uses (`evals`' book cells, `craftabot workflow run` and `bank run`, the Worker), the cards first then the components, each stamped `point: { kind, at: stageId }`; `governance` stays out of `@craftabot/workflow`'s dependencies. `RunWorkflowOptions.guardrails` (WP94) is the loop's shared chain and is untouched. At `stage-in` the chain runs over the validated input before the executor; at `stage-out` over the validated output before the record is finished and before `next` reads it. Each guardrail is checked once with a `GuardrailContext` whose `stage` is `{ id, point, input, output? }` (the one `core` addition, additive), whose `proposed` frames the stage as an action named for it with the value as its arguments — so a policy card's rules read the stage as they would a call — whose `hook` is `pre-act` at `stage-in` and `post-act` at `stage-out`, and whose `history` is the bot's own run at a `stage-out` on an agent stage (so an evaluator breaker judges the run that just ended) and the workflow's events otherwise. A guardrail's `hooks` are not consulted at a boundary: the point is the hook there, and the component was compiled for it.
+
+**The verdicts**, first non-allow wins: `block-action` → the stage is `blocked` with the reason as its finding and the journey stops; `stop-run` → the same, the verdict saying which; `pause` → `approval.requested` / `approval.resolved` on the events, answered by `options.approve` (approved when the host has none), a decline halting with `declined at <point>: <reason>`; `redact` → the value the next reader sees is rewritten (a string whole, an object's string `text`, anything else left as it was — WP96 widens this to the transcript) and the stage goes on; `annotate` and a plain allow → recorded. Every verdict is on `StageRecord.guards.verdicts` and `stage.completed.guards.verdicts` as `{ guardrailId, point, verdict, componentId?, policyCardId?, reason?, approved? }` (`boundaryVerdictSchema` in `core`, beside `stageRecordSchema`), and `guards.checked` counts the boundary's checks with the loop's. A stage with no boundary guards has no `verdicts` key, so every record written before parses and reads as it did.
+
+**The tests.** `packages/workflow/src/run.test.ts` — a guarded rule stage trips at `stage-in` (nothing performed), a guarded human stage trips at `stage-out` after the person answered, a pause declined and approved, a `stop-run` ending the journey once the stage is recorded, redact and annotate over a rule's output read by the next stage, the agent stage's `stage-out` context carrying its own trace and the stage, and a record with no guards carrying no verdicts. `packages/governance/src/components/stage-guards.test.ts` — the sugar equals the component form, cards before components at their own point, a component that cannot decide at a boundary refused. `packages/packs/fs-lending/src/workflow.test.ts` — the evaluator breaker at the `decision` stage's `stage-out` over `fs-lending/decision-matches-rules` fails a planted over-approve (`blocked`, the journey stopped, the verdict naming the component) and lets the rule's own decision through. The three workflows' existing golden and configuration tests are unchanged and green.
+
+**The Pipeline** (`77-…`) lists a stage's boundary verdicts under its trips — point, guardrail, verdict, reason.
