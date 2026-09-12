@@ -37,6 +37,16 @@ export const stageValueSchema = z.object({
 });
 
 export { boundaryVerdictSchema, type BoundaryVerdict } from './shared.js';
+export {
+	guardPointSchema,
+	stackFitSchema,
+	stackGroupSchema,
+	stackSchema,
+	type GuardPointRecord,
+	type Stack,
+	type StackFit,
+	type StackGroup
+} from './stack.js';
 
 export const stageRecordSchema = z.object({
 	stageId: z.string().min(1),
@@ -76,6 +86,9 @@ export type StageRecord = z.infer<typeof stageRecordSchema>;
 export const workflowConfigRecordSchema = z.object({
 	executors: z.record(z.string(), executorRecordSchema).optional(),
 	knobs: z.record(z.string(), z.union([z.number(), z.string(), z.boolean()])).optional(),
+	/** The journey's stack and the per-stage stacks (WP97), by id. */
+	stack: z.string().min(1).optional(),
+	stageStacks: z.record(z.string(), z.string().min(1)).optional(),
 	autonomy: z
 		.object({
 			level: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5)]),

@@ -1,0 +1,182 @@
+{
+	"$id": "https://craftabot.dev/schemas/stack.schema.json",
+	"title": "Craft A Bot stack (v1)",
+	"description": "A named list of guardrail component fits with the points they decide at, an optional chokepoint half, the obligations and controls it claims to serve, and who wrote it (89-STACKS.md §3).",
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"type": "object",
+	"properties": {
+		"schemaVersion": {
+			"type": "number",
+			"const": 1
+		},
+		"id": {
+			"type": "string",
+			"minLength": 1
+		},
+		"name": {
+			"type": "string",
+			"minLength": 1
+		},
+		"description": {
+			"type": "string",
+			"minLength": 1
+		},
+		"fit": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"componentId": {
+						"type": "string",
+						"minLength": 1
+					},
+					"config": {},
+					"point": {
+						"type": "object",
+						"properties": {
+							"kind": {
+								"type": "string",
+								"enum": [
+									"pre-think",
+									"pre-act",
+									"post-act",
+									"stage-in",
+									"stage-out",
+									"group",
+									"egress"
+								]
+							},
+							"at": {
+								"type": "string",
+								"minLength": 1
+							}
+						},
+						"required": [
+							"kind"
+						]
+					}
+				},
+				"required": [
+					"componentId",
+					"point"
+				]
+			}
+		},
+		"group": {
+			"type": "object",
+			"properties": {
+				"watchFor": {
+					"default": [],
+					"type": "array",
+					"items": {
+						"type": "string",
+						"minLength": 1
+					}
+				},
+				"refusalLimit": {
+					"type": "integer",
+					"exclusiveMinimum": 0,
+					"maximum": 9007199254740991
+				},
+				"breakOn": {
+					"default": [],
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"evaluatorId": {
+								"type": "string",
+								"minLength": 1
+							},
+							"labels": {
+								"type": "array",
+								"items": {
+									"type": "string",
+									"minLength": 1
+								}
+							},
+							"onFail": {
+								"type": "boolean"
+							}
+						},
+						"required": [
+							"evaluatorId"
+						]
+					}
+				}
+			}
+		},
+		"obligations": {
+			"type": "array",
+			"items": {
+				"type": "string",
+				"minLength": 1
+			}
+		},
+		"controls": {
+			"type": "array",
+			"items": {
+				"type": "string",
+				"minLength": 1
+			}
+		},
+		"provenance": {
+			"type": "object",
+			"properties": {
+				"author": {
+					"$ref": "#/$defs/__schema0"
+				},
+				"createdAt": {
+					"type": "string",
+					"format": "date-time",
+					"pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+				},
+				"derivedFrom": {
+					"type": "string",
+					"minLength": 1
+				}
+			},
+			"required": [
+				"author",
+				"createdAt"
+			]
+		}
+	},
+	"required": [
+		"schemaVersion",
+		"id",
+		"name",
+		"description",
+		"fit",
+		"provenance"
+	],
+	"$defs": {
+		"__schema0": {
+			"type": "object",
+			"properties": {
+				"kind": {
+					"type": "string",
+					"enum": [
+						"person",
+						"service",
+						"agent"
+					]
+				},
+				"id": {
+					"type": "string",
+					"minLength": 1
+				},
+				"name": {
+					"type": "string"
+				},
+				"onBehalfOf": {
+					"$ref": "#/$defs/__schema0"
+				}
+			},
+			"required": [
+				"kind",
+				"id"
+			]
+		}
+	}
+}

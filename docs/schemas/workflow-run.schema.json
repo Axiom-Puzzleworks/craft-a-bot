@@ -142,6 +142,20 @@
 						]
 					}
 				},
+				"stack": {
+					"type": "string",
+					"minLength": 1
+				},
+				"stageStacks": {
+					"type": "object",
+					"propertyNames": {
+						"type": "string"
+					},
+					"additionalProperties": {
+						"type": "string",
+						"minLength": 1
+					}
+				},
 				"autonomy": {
 					"type": "object",
 					"properties": {

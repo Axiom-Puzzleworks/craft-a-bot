@@ -1,3 +1,4 @@
+import { stackSchema, type Stack } from './schemas/stack.js';
 import { describeComponentProblems, type GuardrailComponent } from './types/guardrail-component.js';
 import type { BrickKindDefinition, SlotId } from './types/brick.js';
 import type { ControlMap } from './types/control-map.js';
@@ -60,6 +61,8 @@ export interface PackRegistry {
 	/** A hosted guardrail service (`29-GUARD-SHELL.md` §4.3, WP39), by qualified id. */
 	getGuardrailService(id: string): GuardrailService | undefined;
 	getGuardrailComponent(id: string): GuardrailComponent | undefined;
+	/** A stack by id (WP97, `89-STACKS.md`). */
+	getStack(id: string): Stack | undefined;
 	/** An evaluator (`31-EVALUATORS.md` §4.1, WP43), by qualified id. */
 	getEvaluator(id: string): Evaluator | undefined;
 	/** A service line (`47-SERVICE-LINES.md` §4.1, WP58), by qualified id. */
@@ -92,6 +95,7 @@ export interface PackRegistry {
 	listWorkflows(): WorkflowSpec[];
 	listGuardrailServices(): GuardrailService[];
 	listGuardrailComponents(): GuardrailComponent[];
+	listStacks(): Stack[];
 	listGuardrailComponentsByTechnique(technique: string): GuardrailComponent[];
 	listEvaluators(): Evaluator[];
 	listServiceLines(): ServiceLine[];
@@ -115,6 +119,7 @@ export function createPackRegistry(): PackRegistry {
 	const workflows = new Map<string, WorkflowSpec>();
 	const guardrailServices = new Map<string, GuardrailService>();
 	const guardrailComponents = new Map<string, GuardrailComponent>();
+	const stacks = new Map<string, Stack>();
 	const evaluators = new Map<string, Evaluator>();
 	const serviceLines = new Map<string, ServiceLine>();
 	const evidenceStores = new Map<string, EvidenceStore>();
@@ -206,6 +211,16 @@ export function createPackRegistry(): PackRegistry {
 				);
 			}
 			insertUnique(guardrailComponents, component.id, component, 'guardrail component');
+		}
+		// A stack's shape is the schema's (WP97): a malformed one is refused at registration, not at the first fit.
+		for (const stack of manifest.stacks ?? []) {
+			const parsed = stackSchema.safeParse(stack);
+			if (!parsed.success) {
+				throw new Error(
+					`Pack "${manifest.id}" ships a stack "${String((stack as { id?: unknown }).id)}" that does not parse: ${parsed.error.message}`
+				);
+			}
+			insertUnique(stacks, stack.id, stack, 'stack');
 		}
 		for (const service of manifest.guardrailServices ?? []) {
 			const problems = describeGuardrailServiceProblems(service);
@@ -306,6 +321,7 @@ export function createPackRegistry(): PackRegistry {
 		getPolicyCard: (id) => policyCards.get(id),
 		getGuardrailService: (id) => guardrailServices.get(id),
 		getGuardrailComponent: (id) => guardrailComponents.get(id),
+		getStack: (id) => stacks.get(id),
 		getEvaluator: (id) => evaluators.get(id),
 		getControlMap: (id) => controlMaps.get(id),
 		getWorkflow: (id) => workflows.get(id),
@@ -322,6 +338,7 @@ export function createPackRegistry(): PackRegistry {
 		listPolicyCards: () => [...policyCards.values()],
 		listGuardrailServices: () => [...guardrailServices.values()],
 		listGuardrailComponents: () => [...guardrailComponents.values()],
+		listStacks: () => [...stacks.values()],
 		listGuardrailComponentsByTechnique: (technique) =>
 			[...guardrailComponents.values()].filter((component) => component.technique === technique),
 		listEvaluators: () => [...evaluators.values()],

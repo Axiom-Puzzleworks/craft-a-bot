@@ -126,7 +126,7 @@ Usage:
 
   craftabot evidence push --store <storeId> [--store-config <json>] [--egress declared|none] [--out ./runs]
                           --run <runId> | --group <groupRunId> | --campaign-report <id>
-                          | --assurance [--agent <id>] | --content-file <record.json>
+                          | --assurance [--agent <id>] | --content-file <record.json> | --stack-file <stack.json>
   craftabot evidence pull --store <storeId> [--store-config <json>] [--egress declared|none]
                           [--kind bundle|campaign-report|assurance-pack|content] [--id <id>]
                           [--since <iso>] [--limit <n>] [--dir ./evidence]
@@ -1121,12 +1121,14 @@ function pushTarget(args: ParsedArgs): PushEvidenceOptions['what'] {
 	if (reportId !== undefined) return { kind: 'campaign-report', reportId };
 	const file = stringFlag(args, 'content-file');
 	if (file !== undefined) return { kind: 'content', file };
+	const stackFile = stringFlag(args, 'stack-file');
+	if (stackFile !== undefined) return { kind: 'stack', file: stackFile };
 	if (args.flags['assurance'] !== undefined) {
 		const agentId = stringFlag(args, 'agent');
 		return { kind: 'assurance-pack', ...(agentId !== undefined ? { agentId } : {}) };
 	}
 	throw new Error(
-		'evidence push needs one of --run, --group, --campaign-report, --assurance or --content-file'
+		'evidence push needs one of --run, --group, --campaign-report, --assurance, --content-file or --stack-file'
 	);
 }
 

@@ -63,6 +63,9 @@ export interface WorkflowConfig {
 	knobs?: Record<string, number | string | boolean>;
 	autonomy?: { level: 1 | 2 | 3 | 4 | 5; ceilings?: Record<string, 1 | 2 | 3 | 4 | 5> };
 	context?: unknown;                                                 // WP81's ContextSpec
+	/** WP97 (`89-…` §4): a stack for the journey, and one per stage. */
+	stack?: string;
+	stageStacks?: Record<string, string>;
 }
 ```
 
@@ -173,3 +176,5 @@ Both optional in every reader; the OTel mapping (`35-…`) gives each a child sp
 **The tests.** `packages/workflow/src/run.test.ts` — a guarded rule stage trips at `stage-in` (nothing performed), a guarded human stage trips at `stage-out` after the person answered, a pause declined and approved, a `stop-run` ending the journey once the stage is recorded, redact and annotate over a rule's output read by the next stage, the agent stage's `stage-out` context carrying its own trace and the stage, and a record with no guards carrying no verdicts. `packages/governance/src/components/stage-guards.test.ts` — the sugar equals the component form, cards before components at their own point, a component that cannot decide at a boundary refused. `packages/packs/fs-lending/src/workflow.test.ts` — the evaluator breaker at the `decision` stage's `stage-out` over `fs-lending/decision-matches-rules` fails a planted over-approve (`blocked`, the journey stopped, the verdict naming the component) and lets the rule's own decision through. The three workflows' existing golden and configuration tests are unchanged and green.
 
 **The Pipeline** (`77-…`) lists a stage's boundary verdicts under its trips — point, guardrail, verdict, reason.
+
+> **Amended 2026-09-12 (WP97, `89-STACKS.md` §4).** `WorkflowConfig.stack?` and `stageStacks?` (on the run's `config` record too): a book cell puts the journey's stack's loop fits on every agent stage's session after the guard's chain, and hands `stageBoundaryGuardrails` the stacks that apply at each stage (`stacksForStage`) — the journey's at every stage, a stage's at that stage — after the stage's own `guards`. A per-stage stack's loop fits are not run on that stage's session yet (`89-…` §8).

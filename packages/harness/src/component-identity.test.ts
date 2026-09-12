@@ -90,18 +90,47 @@ function asComponents(campaign: Campaign): Campaign {
 	};
 }
 
+/**
+ * The same campaign with every desk guard named as its shipped stack (WP97,
+ * `89-STACKS.md` §7): the Safety and Guard bricks dropped, `stack` set to
+ * `{packId}/stack/{guardId}`, the other bricks (a judge, the Watchbot) kept.
+ * A guard with no such stack is left as it is.
+ */
+function asStacks(campaign: Campaign, packId: string): Campaign {
+	return {
+		...campaign,
+		guards: campaign.guards.map((guard) => {
+			const stackId = `${packId}/stack/${guard.id}`;
+			if (!registry.getStack(stackId)) return guard;
+			return {
+				...guard,
+				fit: guard.fit.filter(
+					(brick) => brick.kind !== 'starter/safety' && brick.kind !== 'workshop/guard'
+				),
+				stack: stackId
+			};
+		})
+	};
+}
+
 function fileCampaign(name: string): Campaign {
 	const raw = JSON.parse(readFileSync(resolve(ROOT, 'campaigns', name), 'utf8')) as unknown;
 	const campaign = campaignSchema.parse(raw);
 	return { ...campaign, seeds: [campaign.seeds[0] ?? 1] };
 }
 
-async function expectIdentical(campaign: Campaign): Promise<void> {
+async function expectIdentical(campaign: Campaign, stacksOf?: string): Promise<void> {
 	const bricks = await sequences(campaign);
-	const components = await sequences(asComponents(campaign));
+	const components = await sequences(
+		stacksOf !== undefined ? asStacks(campaign, stacksOf) : asComponents(campaign)
+	);
 	// No cell errored on either path — an errored cell has no trace, and two empty traces prove nothing.
-	expect(bricks.report.cells.filter((cell) => cell.error !== undefined)).toEqual([]);
-	expect(components.report.cells.filter((cell) => cell.error !== undefined)).toEqual([]);
+	expect(
+		bricks.report.cells.filter((cell) => cell.error !== undefined).map((cell) => cell.error)
+	).toEqual([]);
+	expect(
+		components.report.cells.filter((cell) => cell.error !== undefined).map((cell) => cell.error)
+	).toEqual([]);
 	expect(bricks.byOrdinal.size).toBe(bricks.report.cells.length);
 	expect(bricks.stamped).toBe(0);
 	expect(components.report.cells).toHaveLength(bricks.report.cells.length);
@@ -140,6 +169,25 @@ describe('bricks and components give the same guardrail.checked sequence (WP94, 
 			`${name} at one seed`,
 			async () => {
 				await expectIdentical(fileCampaign(name));
+			},
+			TIMEOUT
+		);
+	}
+
+	// WP97 (`89-…` §7): the same three, with each guard named as the desk pack's shipped stack.
+	for (const [name, packId] of [
+		['fs-advice-baseline.json', 'fs-advice'],
+		['fs-fraud-baseline.json', 'fs-fraud'],
+		['fs-lending-baseline.json', 'fs-lending']
+	] as const) {
+		it(
+			`${name} at one seed, the guards as stacks`,
+			async () => {
+				const campaign = fileCampaign(name);
+				expect(
+					campaign.guards.filter((guard) => registry.getStack(`${packId}/stack/${guard.id}`))
+				).toHaveLength(4);
+				await expectIdentical(campaign, packId);
 			},
 			TIMEOUT
 		);

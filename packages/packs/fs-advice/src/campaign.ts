@@ -1,6 +1,9 @@
+import type { Stack } from '@craftabot/core';
+import { advicePolicyCards } from './cards/policy.js';
+import { adviceControlMap } from './controls/rows.js';
 import { ADVICE_CONFIGURATION_IDS, ADVICE_WORKFLOW_ID } from './workflow.js';
 import { ADVICE_POLICY_CARD_IDS } from './cards/policy.js';
-import { FALLBACK_CARD_ID, TOLD_PLAINLY_ID } from '@craftabot/pack-fs-bank';
+import { FALLBACK, FALLBACK_CARD_ID, TOLD_PLAINLY_ID, deskStacks } from '@craftabot/pack-fs-bank';
 import { adviceScenarios } from './decks/scenarios.js';
 import {
 	DATA_MINIMISED_ID,
@@ -96,6 +99,25 @@ export interface AdviceBaselineOptions {
 	policyCards?: readonly string[];
 	seeds?: readonly number[];
 }
+
+/**
+ * The baseline's four guards as stacks (WP97, `89-STACKS.md` §3), from the
+ * same cards and Safety config the bricks above are built from.
+ */
+export const adviceStacks: Stack[] = deskStacks({
+	packId: 'fs-advice',
+	deskName: 'Advice Desk',
+	safety: { maxTicks: 20, blockedActions: [], approval: 'off' },
+	cards: [...advicePolicyCards, FALLBACK],
+	localClassifier: 'guard-local/llama-guard',
+	hostedGuard: 'geap/model-armor',
+	watchbot: {
+		watchFor: ['monitor/going-in-circles', 'monitor/refusal-storm'],
+		breakOn: [{ evaluatorId: SUITABILITY_COMPLETE_ID, onFail: true }]
+	},
+	// The register's control ids (`80-…`): `{mapId}/{ref}`, so a stack's effect shows on the control's row.
+	controls: adviceControlMap.rows.map((row) => `${adviceControlMap.id}/${row.ref}`)
+});
 
 export function adviceBaseline(options: AdviceBaselineOptions = {}): Record<string, unknown> {
 	// The Fallback card (WP72, `61-…` §4.3) rides every card stack; it fires only on a degraded model.

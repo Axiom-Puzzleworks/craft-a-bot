@@ -23,6 +23,11 @@ import {
 	componentDepsFor,
 	egressModeOf,
 	stageBoundaryGuardrails,
+	compileStackLoop,
+	stackEgressFits,
+	stackGroupOf,
+	stackLoopFits,
+	stacksForStage,
 	type ComponentFit
 } from '@craftabot/governance';
 import { runWorkflow, touchedCaseOf } from '@craftabot/workflow';
@@ -397,6 +402,15 @@ export const campaignGuardSchema = z.object({
 	 * — those are what the components replace — and is refused if it does.
 	 */
 	components: z.array(componentFitSchema).optional(),
+	/**
+	 * The guard as a registered stack (WP97, `89-STACKS.md` §4): resolved by
+	 * the runner into `components` (the stack's loop and egress fits, after
+	 * any the guard names itself) and `group` (the stack's chokepoint half,
+	 * unless the guard names its own). The guard's `fit` stays — the bricks
+	 * a stack does not replace, a Monitor Judge say. Refused if no pack
+	 * ships the stack.
+	 */
+	stack: z.string().min(1).optional(),
 	for: z.array(z.string()).optional(),
 	group: campaignGuardGroupSchema.optional()
 });
@@ -877,6 +891,8 @@ const ID_STRIDE = 100_000;
 export function resolveCampaign(campaign: Campaign, registry: PackRegistry): Campaign {
 	return {
 		...campaign,
+		// A guard that names a stack (WP97) is resolved once, here, into its component form.
+		guards: campaign.guards.map((guard) => resolveGuardStack(guard, registry)),
 		scenarios: campaign.scenarios.map((scenario) => {
 			if (scenario.scenarioId === undefined) return scenario;
 			const definition = registry.getScenario(scenario.scenarioId);
@@ -1338,7 +1354,19 @@ async function runBookCell(
 	const packs = [starterPack, ...(options.packs ?? [])].filter(
 		(pack, index, all) => all.findIndex((other) => other.id === pack.id) === index
 	);
-	const chain = componentChainFor(cell.guard, registry, options);
+	// The guard's chain, then the journey's stack's loop fits (WP97, `89-…` §4); the per-stage stacks ride the boundary compiler below.
+	const deps = componentDepsFor(registry, {
+		...(options.fetch ? { fetch: options.fetch } : {}),
+		...(options.credentials ? { getCredential: options.credentials } : {})
+	});
+	const journeyStack = config.stack !== undefined ? registry.getStack(config.stack) : undefined;
+	if (config.stack !== undefined && !journeyStack) {
+		throw new Error(`configuration names stack '${config.stack}', which no pack ships`);
+	}
+	const chain = [
+		...componentChainFor(cell.guard, registry, options),
+		...(journeyStack ? compileStackLoop(journeyStack, registry, deps) : [])
+	];
 	const run = await runWorkflow(workflow, item, {
 		packs,
 		spec,
@@ -1351,12 +1379,8 @@ async function runBookCell(
 						script: scriptFor(brain.tier, goalCardId, seed, noise, options.plans ?? starterPlans)
 					}),
 		// Each stage's boundary chain (WP95): its cards and components, compiled against the same registry and deps as the cell's guard.
-		boundaryGuardrailsFor: stageBoundaryGuardrails(
-			registry,
-			componentDepsFor(registry, {
-				...(options.fetch ? { fetch: options.fetch } : {}),
-				...(options.credentials ? { getCredential: options.credentials } : {})
-			})
+		boundaryGuardrailsFor: stageBoundaryGuardrails(registry, deps, (stage) =>
+			stacksForStage(registry, config, stage)
 		),
 		now: journey.now,
 		newId: journey.newId,
@@ -1727,6 +1751,31 @@ function serviceConfigOf(text: unknown): unknown {
 	} catch {
 		return {};
 	}
+}
+
+/**
+ * A guard's stack resolved into components and a group (WP97, `89-…` §4):
+ * the stack's loop and egress fits after the guard's own components, the
+ * stack's chokepoint half unless the guard names its own. Throws on a
+ * stack no pack ships.
+ */
+export function resolveGuardStack(guard: CampaignGuard, registry: PackRegistry): CampaignGuard {
+	if (guard.stack === undefined) return guard;
+	const stack = registry.getStack(guard.stack);
+	if (!stack)
+		throw new Error(`guard '${guard.id}' names stack '${guard.stack}', which no pack ships`);
+	const fits = [...stackLoopFits(stack), ...stackEgressFits(stack)].map((fit) => ({
+		id: fit.id,
+		...(fit.config !== undefined ? { config: fit.config } : {}),
+		...(fit.point ? { point: fit.point } : {})
+	}));
+	const fromStack = stackGroupOf(stack);
+	const group = guard.group ?? (fromStack ? campaignGuardGroupSchema.parse(fromStack) : undefined);
+	return {
+		...guard,
+		components: [...(guard.components ?? []), ...fits],
+		...(group ? { group } : {})
+	};
 }
 
 /** The brick kinds a guard's `components` stand in for (WP94, `85-…` §6). */

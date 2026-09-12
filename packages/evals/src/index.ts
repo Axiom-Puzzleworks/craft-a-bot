@@ -51,6 +51,7 @@ export {
 	campaignGuardGroupSchema,
 	groupStackFor,
 	componentChainFor,
+	resolveGuardStack,
 	componentFitSchema,
 	componentFitsFor,
 	egressForGuard,

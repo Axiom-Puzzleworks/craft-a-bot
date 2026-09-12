@@ -38,3 +38,11 @@ export {
 } from './egress.js';
 export { compileComponents, componentDepsFor, type ComponentFit } from './compile.js';
 export { stageBoundaryGuardrails } from './stage-guards.js';
+export {
+	compileStackLoop,
+	stackBoundaryFits,
+	stackEgressFits,
+	stackGroupOf,
+	stackLoopFits,
+	stacksForStage
+} from './stacks.js';

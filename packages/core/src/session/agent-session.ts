@@ -185,6 +185,11 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			getAction: (id) => registry.getAction(id),
 			/* istanbul ignore next -- a forwarding lambda; the Connector brick in pack-starter is its caller */
 			getServiceLine: (id) => registry.getServiceLine(id),
+			// A stack and its components (WP97), for the Safety brick's `stack` config.
+			/* istanbul ignore next -- a forwarding lambda; the Safety brick in pack-starter is its caller */
+			getStack: (id) => registry.getStack(id),
+			/* istanbul ignore next -- a forwarding lambda; the Safety brick in pack-starter is its caller */
+			getGuardrailComponent: (id) => registry.getGuardrailComponent(id),
 			fetch: fetchImpl,
 			getCredential
 		}

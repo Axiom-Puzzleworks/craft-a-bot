@@ -1,6 +1,9 @@
+import type { Stack } from '@craftabot/core';
+import { fraudPolicyCards } from './cards/policy.js';
+import { fraudControlMap } from './controls/rows.js';
 import { FRAUD_CONFIGURATION_IDS, FRAUD_WORKFLOW_ID } from './workflow.js';
 import { FRAUD_POLICY_CARD_IDS } from './cards/policy.js';
-import { FALLBACK_CARD_ID, TOLD_PLAINLY_ID } from '@craftabot/pack-fs-bank';
+import { FALLBACK, FALLBACK_CARD_ID, TOLD_PLAINLY_ID, deskStacks } from '@craftabot/pack-fs-bank';
 import { fraudScenarios } from './decks/scenarios.js';
 import {
 	ALERT_DECISION_ID,
@@ -101,6 +104,25 @@ export interface FraudBaselineOptions {
 	policyCards?: readonly string[];
 	seeds?: readonly number[];
 }
+
+/**
+ * The baseline's four guards as stacks (WP97, `89-STACKS.md` §3), from the
+ * same cards and Safety config the bricks above are built from.
+ */
+export const fraudStacks: Stack[] = deskStacks({
+	packId: 'fs-fraud',
+	deskName: 'Fraud Desk',
+	safety: { maxTicks: 20, blockedActions: [], approval: 'off' },
+	cards: [...fraudPolicyCards, FALLBACK],
+	localClassifier: 'guard-local/llama-guard',
+	hostedGuard: 'geap/model-armor',
+	watchbot: {
+		watchFor: ['monitor/going-in-circles', 'monitor/refusal-storm'],
+		breakOn: [{ evaluatorId: NO_TIP_OFF_ID, onFail: true }]
+	},
+	// The register's control ids (`80-…`): `{mapId}/{ref}`, so a stack's effect shows on the control's row.
+	controls: fraudControlMap.rows.map((row) => `${fraudControlMap.id}/${row.ref}`)
+});
 
 export function fraudBaseline(options: FraudBaselineOptions = {}): Record<string, unknown> {
 	// The Fallback card (WP72, `61-…` §4.3) rides every card stack; it fires only on a degraded model.

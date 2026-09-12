@@ -116,6 +116,12 @@ export async function artefactSchemas() {
 			description:
 				'What an experiment measured: for each metric and factor, every treatment level against the baseline as a difference with its interval, n, test and cost; the verdict over the intervals; the note; a digest (72-EXPERIMENTS.md §3).'
 		},
+		stack: {
+			schema: core.stackSchema,
+			title: 'Craft A Bot stack (v1)',
+			description:
+				'A named list of guardrail component fits with the points they decide at, an optional chokepoint half, the obligations and controls it claims to serve, and who wrote it (89-STACKS.md §3).'
+		},
 		calibration: {
 			schema: core.calibrationTableSchema,
 			title: 'Craft A Bot calibration table',

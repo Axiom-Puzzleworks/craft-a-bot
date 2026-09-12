@@ -256,6 +256,7 @@ function ownProblems(
 		hasSenseChannel: (id) => registry.getSenseChannel(id) !== undefined,
 		hasCartridge: (id) => registry.getCartridge(id) !== undefined,
 		hasPolicyCard: (id) => registry.getPolicyCard(id) !== undefined,
+		hasStack: (id) => registry.getStack(id) !== undefined,
 		hasGuardrailService: (id) => registry.getGuardrailService(id) !== undefined,
 		getServiceLine: (id) => registry.getServiceLine(id),
 		hasEvaluator: (id) =>

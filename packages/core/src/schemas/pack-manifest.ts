@@ -1,3 +1,4 @@
+import { type Stack } from './stack.js';
 import { z } from 'zod';
 import type { BrickKindDefinition } from '../types/brick.js';
 import type { ControlMap } from '../types/control-map.js';
@@ -227,6 +228,8 @@ export interface PackManifest extends PackManifestMetadata {
 	guardrailServices?: GuardrailService[];
 	/** Guardrail components (WP94, `85-COMPONENTS.md` §5): the lanes' adapters, registered by the packs that own the lanes. */
 	guardrailComponents?: GuardrailComponent[];
+	/** Stacks as content (WP97, `89-STACKS.md`): named component lists a guard, a configuration or an experiment fits by id. */
+	stacks?: Stack[];
 	/** Evaluators (`31-EVALUATORS.md` §4.1, WP43): what judges a finished trace. Function-valued like `providers`. */
 	evaluators?: Evaluator[];
 	/**

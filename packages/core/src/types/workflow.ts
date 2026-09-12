@@ -81,6 +81,10 @@ export interface WorkflowConfig {
 	autonomy?: { level: AutonomyLevel; ceilings?: Record<string, AutonomyLevel> };
 	/** The rung of the context ladder the journey runs at (WP81, `70-…` §3); reaches the world at `create` as `config.context`. */
 	context?: ContextSpec;
+	/** A stack for the whole journey (WP97, `89-STACKS.md`): its loop fits on every agent stage's session, its boundary fits at every stage. */
+	stack?: string;
+	/** A stack per stage, by stage id: its boundary fits at that stage, its loop fits on that stage's session. */
+	stageStacks?: Record<string, string>;
 }
 
 export interface WorkflowSpec {

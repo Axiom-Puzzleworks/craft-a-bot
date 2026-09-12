@@ -12,6 +12,7 @@ import {
 } from '@craftabot/core';
 import {
 	compilePolicyCard,
+	compileStackLoop,
 	createActionBlocklistGuardrail,
 	createApprovalModeGuardrail,
 	createNoRepetitionGuardrail,
@@ -759,7 +760,10 @@ export const starterBrickKinds: BrickKindDefinition[] = [
 		 * that quietly does nothing is exactly the sort of thing a builder should
 		 * be told about.
 		 */
-		validateConfig: (config: { blockedActions: string[]; policyCards?: string[] }, ctx) => [
+		validateConfig: (
+			config: { blockedActions: string[]; policyCards?: string[]; stack?: string },
+			ctx
+		) => [
 			...config.blockedActions
 				.filter((actionId) => !ctx.hasAction(actionId))
 				.map((actionId) => ({
@@ -775,7 +779,18 @@ export const starterBrickKinds: BrickKindDefinition[] = [
 					severity: 'warning' as const,
 					message: `The Safety Brick names policy card "${cardId}", which this workbench does not have.`,
 					details: { policyCardId: cardId }
-				}))
+				})),
+			// WP97: a stack the workbench does not have is a warning here and nothing at run time.
+			...(config.stack !== undefined && ctx.hasStack && !ctx.hasStack(config.stack)
+				? [
+						{
+							code: 'unknown-stack' as const,
+							severity: 'warning' as const,
+							message: `The Safety Brick names stack "${config.stack}", which this workbench does not have.`,
+							details: { stackId: config.stack }
+						}
+					]
+				: [])
 		],
 		/*
 		 * The brick's dials, become running rules (WP14 slice 3d).
@@ -819,10 +834,27 @@ export const starterBrickKinds: BrickKindDefinition[] = [
 				approval: 'off' | 'everything' | 'risky';
 				repeatLimit?: number;
 				policyCards?: string[];
+				stack?: string;
 			},
 			ctx
 		) => ({
 			contributeGuardrails: () => {
+				// A brick with a stack *is* the stack (WP97, `89-…` §5): its loop components, in order, as one brick in the socket; the dials are inert.
+				const stack = config.stack !== undefined ? ctx.getStack?.(config.stack) : undefined;
+				if (stack && ctx.getGuardrailComponent) {
+					const getGuardrailComponent = ctx.getGuardrailComponent;
+					const lookups = {
+						getPolicyCard: (id: string) => ctx.getPolicyCard(id),
+						getGuardrailService: (id: string) => ctx.getGuardrailService(id),
+						getEvaluator: (id: string) => ctx.getEvaluator?.(id),
+						getAction: (id: string) => ctx.getAction(id)
+					};
+					return compileStackLoop(
+						stack,
+						{ getGuardrailComponent, ...lookups },
+						{ ...lookups, fetch: ctx.fetch, getCredential: ctx.getCredential }
+					);
+				}
 				const guardrails = [createStepBudgetGuardrail(config.maxTicks)];
 				if (config.maxTokens !== undefined) {
 					guardrails.push(createTokenBudgetGuardrail(config.maxTokens));

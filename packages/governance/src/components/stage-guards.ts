@@ -7,6 +7,8 @@ import type {
 } from '@craftabot/core';
 import { compileComponents, componentDepsFor, type ComponentFit } from './compile.js';
 import { POLICY_CARD_COMPONENT_ID } from './policy-card.js';
+import { stackBoundaryFits } from './stacks.js';
+import type { Stack } from '@craftabot/core';
 
 /**
  * **A stage's boundary chain** (WP95, `69-WORKFLOWS.md` §10; `83-…` §6.2.3):
@@ -22,7 +24,9 @@ export function stageBoundaryGuardrails(
 		PackRegistry,
 		'getGuardrailComponent' | 'getPolicyCard' | 'getGuardrailService' | 'getEvaluator' | 'getAction'
 	>,
-	deps: ComponentDeps = componentDepsFor(registry)
+	deps: ComponentDeps = componentDepsFor(registry),
+	/** The stacks that apply at a stage (WP97): their boundary fits run after the stage's own. */
+	stacksFor?: (stage: StageSpec) => readonly Stack[]
 ): (stage: StageSpec, point: BoundaryPoint) => Guardrail[] {
 	return (stage, point) => {
 		const fits: ComponentFit[] = [];
@@ -40,6 +44,9 @@ export function stageBoundaryGuardrails(
 			const fit: ComponentFit = { id: component.id, point: { kind: point, at: stage.id } };
 			if (component.config !== undefined) fit.config = component.config;
 			fits.push(fit);
+		}
+		for (const stack of stacksFor?.(stage) ?? []) {
+			fits.push(...stackBoundaryFits(stack, stage.id).filter((fit) => fit.point?.kind === point));
 		}
 		return compileComponents(fits, registry, deps);
 	};

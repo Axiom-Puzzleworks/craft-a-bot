@@ -244,6 +244,8 @@ export interface PackConformanceFixture {
 	guardrailServices?: Record<string, GuardrailServiceConformanceFixture>;
 	/** One per guardrail component the manifest ships, keyed by component id (WP94, `85-…` §7). */
 	guardrailComponents?: Record<string, ComponentConformanceFixture>;
+	/** How the manifest's stacks are checked (WP97, `89-…` §7): `resolve: false` when the components they name ship in packs the fixture's companions do not include. */
+	stacks?: { resolve?: boolean; browser?: boolean };
 	/** One per evaluator the manifest ships, keyed by evaluator id (`31-…` §4.4). */
 	evaluators?: Record<string, EvaluatorConformanceFixture>;
 	goldenTrace?: GoldenTraceConformanceFixture;

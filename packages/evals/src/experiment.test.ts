@@ -161,9 +161,13 @@ describe('expandExperiment', () => {
 			knobs: { referRatioPercent: 55 }
 		});
 		expect(last.contexts?.[0]?.level).toBe('ontology');
-		expect(() =>
-			expandExperiment(design({ factors: [{ axis: 'guard', levels: ['none', 'missing'] }] }))
-		).toThrow("no guard 'missing'");
+		// A guard level no template guard has is a stack by that id (WP97, `89-…` §4): expanded, and refused by the runner if no pack ships it.
+		const stacked = expandExperiment(
+			design({ factors: [{ axis: 'guard', levels: ['none', 'missing'] }] })
+		);
+		expect(stacked.campaigns.at(-1)?.guards).toEqual([
+			{ id: 'missing', fit: [], stack: 'missing' }
+		]);
 		expect(() =>
 			expandExperiment(
 				design({

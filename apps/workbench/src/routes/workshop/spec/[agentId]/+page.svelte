@@ -22,13 +22,7 @@
 		autonomyOf,
 		type AutonomyLevel
 	} from '$lib/workshop/autonomy.js';
-	import {
-		STACK_PRESETS,
-		applyStack,
-		complianceWatchbotFor,
-		stackOf,
-		type StackPresetId
-	} from '$lib/workshop/stacks.js';
+	import { applyStack, stackOf, stacksFor } from '$lib/workshop/stacks.js';
 
 	/**
 	 * **The Spec Lab** (`17-…` §4.2): the whole `AgentSpec`, at full fidelity,
@@ -72,11 +66,18 @@
 	 * socket the way the dial is written into the Safety Brick; the readback
 	 * is the bricks' own shape, never the pick.
 	 */
-	let stackPick = $state<StackPresetId>('compliance-watchbot');
-	const stackPlan = $derived(
-		record ? complianceWatchbotFor(record.spec as AgentSpecV2, registry) : undefined
-	);
+	// WP97 (`89-…` §5): the stacks are content — the desk's pack's and any local one — read off the registry.
+	const stackPlan = $derived(record ? stacksFor(record.spec as AgentSpecV2, registry) : undefined);
+	let stackPick = $state<string>('');
+	$effect(() => {
+		if (stackPlan?.ok && !stackPlan.stacks.some((stack) => stack.id === stackPick)) {
+			stackPick =
+				stackPlan.stacks.find((stack) => stack.group)?.id ?? stackPlan.stacks[0]?.id ?? '';
+		}
+	});
 	const fittedStack = $derived(record ? stackOf(record.spec as AgentSpecV2) : undefined);
+	const stackName = (id: string | undefined) =>
+		id === undefined ? undefined : (registry.getStack(id)?.name ?? id);
 	async function applyStackPreset(): Promise<void> {
 		if (!record) return;
 		const next = applyStack($state.snapshot(record.spec) as AgentSpecV2, stackPick, registry);
@@ -344,26 +345,27 @@
 			<div class="autonomy" data-testid="stack-presets">
 				{#if fittedStack}
 					<p class="hint" data-testid="stack-readback">
-						This is the <strong>{STACK_PRESETS[fittedStack].name}</strong> stack.
+						This is the <strong>{stackName(fittedStack)}</strong> stack
+						<span class="mono">({fittedStack})</span>.
 					</p>
 				{/if}
 				{#if stackPlan && !stackPlan.ok}
 					<p class="hint" data-testid="stack-unavailable">{stackPlan.reason}</p>
 				{:else if stackPlan}
+					{@const picked = stackPlan.stacks.find((stack) => stack.id === stackPick)}
 					<p class="hint" data-testid="stack-plan">
-						{STACK_PRESETS[stackPick].blurb} On this desk: {stackPlan.policyCards.length} cards, judges
-						for
-						<span class="mono"
-							>{stackPlan.evaluatorIds.slice(0, SLOT_CAPACITY.safety - 2).join(', ')}</span
-						>.
+						{picked?.description ?? ''} <span class="mono">{picked?.id ?? ''}</span>: {picked?.fit
+							.length ?? 0} components{picked?.group
+							? `, and at the chokepoint the Watchbot with judges for ${stackPlan.evaluatorIds.slice(0, SLOT_CAPACITY.safety - 2).join(', ')}`
+							: ''}.
 					</p>
 				{/if}
 				<div class="stack-add">
 					<label class="field">
 						<span>Stack</span>
 						<select bind:value={stackPick} data-testid="stack-preset-select">
-							{#each Object.entries(STACK_PRESETS) as [id, preset] (id)}
-								<option value={id}>{preset.name}</option>
+							{#each stackPlan?.ok ? stackPlan.stacks : [] as stack (stack.id)}
+								<option value={stack.id}>{stack.name}</option>
 							{/each}
 						</select>
 					</label>

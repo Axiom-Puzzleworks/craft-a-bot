@@ -1,3 +1,5 @@
+import type { Stack } from '../schemas/stack.js';
+import type { GuardrailComponent } from './guardrail-component.js';
 import type { ZodType } from 'zod';
 import type { BuildProblem } from '../schemas/build-problem.js';
 import type { PolicyCard } from '../schemas/policy-card.js';
@@ -345,6 +347,10 @@ export interface BrickRuntimeContext {
 	 */
 	getEvaluator?(id: string): Evaluator | undefined;
 	getAssertionCard?(id: string): AssertionCard | undefined;
+	/** A stack by id (WP97, `89-STACKS.md`) — what the Safety brick's `stack` config compiles; optional for a host that predates it. */
+	getStack?(id: string): Stack | undefined;
+	/** A guardrail component by id (WP94), for a brick that compiles a stack. */
+	getGuardrailComponent?(id: string): GuardrailComponent | undefined;
 	/**
 	 * A registered service line (`47-SERVICE-LINES.md` §4.1, WP58), by
 	 * qualified id — what the Connector brick resolves to offer a line's
@@ -369,6 +375,8 @@ export interface BrickValidationContext {
 	hasCartridge(id: string): boolean;
 	/** Whether a policy card id (`14-…` §4.6, WP22) is one an installed pack registered. */
 	hasPolicyCard(id: string): boolean;
+	/** Whether a stack is installed (WP97); optional for a host that predates it. */
+	hasStack?(id: string): boolean;
 	/**
 	 * Whether the host's vault holds a secret under this credential id
 	 * (`25-…` §4.6, WP35 stage C) — the build-time counterpart to

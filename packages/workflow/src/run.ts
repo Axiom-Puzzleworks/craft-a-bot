@@ -202,6 +202,8 @@ export function configRecord(config: WorkflowConfig): WorkflowRun['config'] {
 		};
 	}
 	if (config.context !== undefined) record.context = config.context;
+	if (config.stack !== undefined) record.stack = config.stack;
+	if (config.stageStacks !== undefined) record.stageStacks = { ...config.stageStacks };
 	return record;
 }
 

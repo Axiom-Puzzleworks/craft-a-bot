@@ -8,7 +8,8 @@ import {
 	LENDING_BASELINE_ID,
 	LENDING_BOOK_CAMPAIGN_ID,
 	lendingBaseline,
-	lendingBookCampaign
+	lendingBookCampaign,
+	lendingStacks
 } from './campaign.js';
 import { lendingDesk } from './world/desk.js';
 import { lendingWorkflow } from './workflow.js';
@@ -54,7 +55,9 @@ export const fsLendingPack: PackManifest = {
 	evaluators: lendingEvaluators,
 	controlMaps: [lendingControlMap],
 	// The lending journey as a workflow with its five reference configurations (WP80, `73-…`).
-	workflows: [lendingWorkflow]
+	workflows: [lendingWorkflow],
+	/** WP97 (`89-STACKS.md`): the baseline's guards as stacks. */
+	stacks: lendingStacks
 };
 
 export default fsLendingPack;

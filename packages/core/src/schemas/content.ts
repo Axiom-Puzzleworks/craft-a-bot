@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { stackSchema, type Stack } from './stack.js';
 import { assertionCardSchema, type AssertionCard } from './assertion-card.js';
 import type { PackManifest } from './pack-manifest.js';
 import { policyCardSchema, type PolicyCard } from './policy-card.js';
@@ -16,7 +17,13 @@ import { scenarioDefinitionSchema, type ScenarioDefinition } from './scenario.js
 export const LOCAL_PACK_ID = 'local';
 export const CONTENT_SCHEMA_VERSION = 1;
 
-export const contentKindSchema = z.enum(['policy-card', 'assertion-card', 'scenario', 'campaign']);
+export const contentKindSchema = z.enum([
+	'policy-card',
+	'assertion-card',
+	'scenario',
+	'campaign',
+	'stack'
+]);
 export type ContentKind = z.infer<typeof contentKindSchema>;
 
 /** The id segment each kind lives under — `local/policy/<slug>`, matching the shipped packs' own conventions. */
@@ -24,7 +31,9 @@ export const CONTENT_SEGMENT: Record<ContentKind, string> = {
 	'policy-card': 'policy',
 	'assertion-card': 'testbench',
 	scenario: 'scenarios',
-	campaign: 'campaigns'
+	campaign: 'campaigns',
+	// WP97 (`89-STACKS.md`): a user's stack, beside the pack-shipped ones.
+	stack: 'stacks'
 };
 
 export function isLocalId(id: string): boolean {
@@ -45,7 +54,7 @@ export function localContentId(kind: ContentKind, slug: string): string {
 
 const localIdSchema = z
 	.string()
-	.regex(/^local\/(policy|testbench|scenarios|campaigns)\/[a-z0-9][a-z0-9-]*$/, {
+	.regex(/^local\/(policy|testbench|scenarios|campaigns|stacks)\/[a-z0-9][a-z0-9-]*$/, {
 		message: 'a local content id is local/<segment>/<slug>'
 	});
 
@@ -140,6 +149,7 @@ export function localPackFrom(records: readonly ContentRecord[]): PackManifest {
 	const policyCards: PolicyCard[] = [];
 	const assertionCards: AssertionCard[] = [];
 	const scenarios: ScenarioDefinition[] = [];
+	const stacks: Stack[] = [];
 	for (const entry of records) {
 		switch (entry.kind) {
 			case 'policy-card':
@@ -150,6 +160,9 @@ export function localPackFrom(records: readonly ContentRecord[]): PackManifest {
 				break;
 			case 'scenario':
 				scenarios.push(scenarioDefinitionSchema.parse(entry.record));
+				break;
+			case 'stack':
+				stacks.push(stackSchema.parse(entry.record));
 				break;
 			case 'campaign':
 				break;
@@ -162,6 +175,7 @@ export function localPackFrom(records: readonly ContentRecord[]): PackManifest {
 		requiresCore: '>=0.0.1',
 		...(policyCards.length > 0 ? { policyCards } : {}),
 		...(assertionCards.length > 0 ? { assertionCards } : {}),
-		...(scenarios.length > 0 ? { scenarios } : {})
+		...(scenarios.length > 0 ? { scenarios } : {}),
+		...(stacks.length > 0 ? { stacks } : {})
 	};
 }

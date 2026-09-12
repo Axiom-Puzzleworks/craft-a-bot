@@ -45,7 +45,8 @@ export const EVIDENCE_TABLES: Record<EvidenceKind, string> = {
 	'workflow-run': 'evidence_workflow_runs',
 	'bank-run': 'evidence_bank_runs',
 	experiment: 'evidence_experiments',
-	'experiment-result': 'evidence_experiment_results'
+	'experiment-result': 'evidence_experiment_results',
+	stack: 'evidence_stacks'
 };
 const KINDS: EvidenceKind[] = [
 	'bundle',
@@ -55,7 +56,8 @@ const KINDS: EvidenceKind[] = [
 	'workflow-run',
 	'bank-run',
 	'experiment',
-	'experiment-result'
+	'experiment-result',
+	'stack'
 ];
 
 const rowSchema = z.object({

@@ -17,6 +17,7 @@ export { describeSinkConformance } from './describe-sink.js';
 export { checkGuardrail } from './checks/guardrail.js';
 export { checkGuardrailService, hostMatches } from './checks/guardrail-service.js';
 export { checkComponent } from './checks/component.js';
+export { checkStack, type StackCheckOptions } from './checks/stack.js';
 export { checkManifest } from './checks/manifest.js';
 export { checkTool } from './checks/tool.js';
 export { checkWorld } from './checks/world.js';

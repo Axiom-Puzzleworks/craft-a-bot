@@ -151,3 +151,11 @@ export {
 	TOLD_PLAINLY_ID,
 	toldPlainly
 } from './incident.js';
+/** WP97 (`89-STACKS.md` §3): a desk's guards as stacks, from the values its baseline's bricks are built from. */
+export {
+	deskStacks,
+	DESK_SCREENING,
+	CLASSIFIER_HOOKS,
+	type DeskSafety,
+	type DeskStacksOptions
+} from './stacks.js';
