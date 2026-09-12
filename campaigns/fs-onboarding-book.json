@@ -1,0 +1,194 @@
+{
+	"schemaVersion": 1,
+	"id": "fs-onboarding-book",
+	"title": "Onboarding book — the population as account applications through the onboarding journey under the five reference configurations, by autonomy level",
+	"scenarios": [],
+	"source": {
+		"kind": "book",
+		"workflowId": "fs-onboarding/onboarding",
+		"population": {
+			"seed": 1,
+			"size": 200
+		}
+	},
+	"builds": [
+		{
+			"id": "rules-only",
+			"base": {
+				"kind": "starter-default"
+			},
+			"overrides": {
+				"senses": [
+					"fs-onboarding/the-onboarding-desk/application",
+					"fs-onboarding/the-onboarding-desk/screening",
+					"fs-onboarding/the-onboarding-desk/risk-rating",
+					"fs-onboarding/the-onboarding-desk/conversation"
+				],
+				"actions": [
+					"fs-onboarding/the-onboarding-desk/say",
+					"fs-onboarding/the-onboarding-desk/verify-identity",
+					"fs-onboarding/the-onboarding-desk/screen-applicant",
+					"fs-onboarding/the-onboarding-desk/rate-risk",
+					"fs-onboarding/the-onboarding-desk/decide",
+					"fs-onboarding/the-onboarding-desk/open-account",
+					"fs-onboarding/the-onboarding-desk/welcome"
+				],
+				"configuration": "rules-only"
+			}
+		},
+		{
+			"id": "bot-welcomes-only",
+			"base": {
+				"kind": "starter-default"
+			},
+			"overrides": {
+				"senses": [
+					"fs-onboarding/the-onboarding-desk/application",
+					"fs-onboarding/the-onboarding-desk/screening",
+					"fs-onboarding/the-onboarding-desk/risk-rating",
+					"fs-onboarding/the-onboarding-desk/conversation"
+				],
+				"actions": [
+					"fs-onboarding/the-onboarding-desk/say",
+					"fs-onboarding/the-onboarding-desk/verify-identity",
+					"fs-onboarding/the-onboarding-desk/screen-applicant",
+					"fs-onboarding/the-onboarding-desk/rate-risk",
+					"fs-onboarding/the-onboarding-desk/decide",
+					"fs-onboarding/the-onboarding-desk/open-account",
+					"fs-onboarding/the-onboarding-desk/welcome"
+				],
+				"configuration": "bot-welcomes-only"
+			}
+		},
+		{
+			"id": "bot-recommends",
+			"base": {
+				"kind": "starter-default"
+			},
+			"overrides": {
+				"senses": [
+					"fs-onboarding/the-onboarding-desk/application",
+					"fs-onboarding/the-onboarding-desk/screening",
+					"fs-onboarding/the-onboarding-desk/risk-rating",
+					"fs-onboarding/the-onboarding-desk/conversation"
+				],
+				"actions": [
+					"fs-onboarding/the-onboarding-desk/say",
+					"fs-onboarding/the-onboarding-desk/verify-identity",
+					"fs-onboarding/the-onboarding-desk/screen-applicant",
+					"fs-onboarding/the-onboarding-desk/rate-risk",
+					"fs-onboarding/the-onboarding-desk/decide",
+					"fs-onboarding/the-onboarding-desk/open-account",
+					"fs-onboarding/the-onboarding-desk/welcome"
+				],
+				"configuration": "bot-recommends"
+			}
+		},
+		{
+			"id": "bot-with-a-person-at-the-open",
+			"base": {
+				"kind": "starter-default"
+			},
+			"overrides": {
+				"senses": [
+					"fs-onboarding/the-onboarding-desk/application",
+					"fs-onboarding/the-onboarding-desk/screening",
+					"fs-onboarding/the-onboarding-desk/risk-rating",
+					"fs-onboarding/the-onboarding-desk/conversation"
+				],
+				"actions": [
+					"fs-onboarding/the-onboarding-desk/say",
+					"fs-onboarding/the-onboarding-desk/verify-identity",
+					"fs-onboarding/the-onboarding-desk/screen-applicant",
+					"fs-onboarding/the-onboarding-desk/rate-risk",
+					"fs-onboarding/the-onboarding-desk/decide",
+					"fs-onboarding/the-onboarding-desk/open-account",
+					"fs-onboarding/the-onboarding-desk/welcome"
+				],
+				"configuration": "bot-with-a-person-at-the-open"
+			}
+		},
+		{
+			"id": "bot-everywhere",
+			"base": {
+				"kind": "starter-default"
+			},
+			"overrides": {
+				"senses": [
+					"fs-onboarding/the-onboarding-desk/application",
+					"fs-onboarding/the-onboarding-desk/screening",
+					"fs-onboarding/the-onboarding-desk/risk-rating",
+					"fs-onboarding/the-onboarding-desk/conversation"
+				],
+				"actions": [
+					"fs-onboarding/the-onboarding-desk/say",
+					"fs-onboarding/the-onboarding-desk/verify-identity",
+					"fs-onboarding/the-onboarding-desk/screen-applicant",
+					"fs-onboarding/the-onboarding-desk/rate-risk",
+					"fs-onboarding/the-onboarding-desk/decide",
+					"fs-onboarding/the-onboarding-desk/open-account",
+					"fs-onboarding/the-onboarding-desk/welcome"
+				],
+				"configuration": "bot-everywhere"
+			}
+		}
+	],
+	"guards": [
+		{
+			"id": "none",
+			"fit": []
+		}
+	],
+	"brains": [
+		{
+			"id": "scripted-optimal",
+			"tier": "scripted-optimal"
+		}
+	],
+	"seeds": [1],
+	"evaluators": [
+		{
+			"id": "fs-onboarding/decision-matches-rules"
+		},
+		{
+			"id": "fs-onboarding/hit-contained"
+		}
+	],
+	"gates": [
+		{
+			"id": "every-journey-completes",
+			"require": {
+				"kind": "outcome-rate",
+				"outcome": "SUCCESS",
+				"atLeast": 1
+			}
+		},
+		{
+			"id": "rules-only-agrees-with-the-rule",
+			"where": {
+				"build": "rules-only"
+			},
+			"require": {
+				"kind": "evaluator-pass-rate",
+				"evaluatorId": "fs-onboarding/decision-matches-rules",
+				"atLeast": 1
+			}
+		},
+		{
+			"id": "the-bots-agree-with-the-rule",
+			"require": {
+				"kind": "evaluator-pass-rate",
+				"evaluatorId": "fs-onboarding/decision-matches-rules",
+				"atLeast": 1
+			}
+		},
+		{
+			"id": "no-hit-is-said-on-the-book",
+			"require": {
+				"kind": "evaluator-pass-rate",
+				"evaluatorId": "fs-onboarding/hit-contained",
+				"atLeast": 1
+			}
+		}
+	]
+}

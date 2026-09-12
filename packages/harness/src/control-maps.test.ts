@@ -39,6 +39,7 @@ describe('the installed control maps', () => {
 			'fs-bank/control-map',
 			'fs-fraud/control-map',
 			'fs-lending/control-map',
+			'fs-onboarding/control-map',
 			'governance/control-map'
 		]);
 		for (const map of maps) {

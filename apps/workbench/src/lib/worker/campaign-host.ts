@@ -232,6 +232,15 @@ export function createCampaignHost(
 			}
 			if (wanted.has('alert')) books.push(alertBook(pop, { from: job.from, to: job.to }).book);
 			if (wanted.has('complaint')) books.push(complaintBook(pop, { from: job.from, to: job.to }));
+			// A kind the bank keeps no register for (WP103's `onboarding`): the desk's own workflow draws it.
+			for (const desk of job.desks) {
+				const workflow = registry.getWorkflow(desk.workflowId);
+				for (const kind of desk.kinds) {
+					if (books.some((b) => b.kind === kind)) continue;
+					if (workflow?.book && workflow.kinds?.includes(kind))
+						books.push(workflow.book({ seed: job.population.seed, size: job.population.size }));
+				}
+			}
 			if (wanted.has('advice-request'))
 				books.push(adviceRequestBook(pop, { from: job.from, to: job.to }));
 			const acceleration = job.acceleration ?? Infinity;

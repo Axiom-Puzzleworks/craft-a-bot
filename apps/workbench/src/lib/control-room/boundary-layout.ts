@@ -153,7 +153,15 @@ export function layoutBoundary(map: BoundaryMap, lit: ReadonlySet<string>): Boun
 	const widest = Math.max(0, ...map.outside.map(widthOf));
 	const chordRadius =
 		map.outside.length >= 2 ? widest / (2 * Math.sin(Math.PI / map.outside.length)) + 12 : 0;
-	const OUTER = Math.max(lastRing + 70, 226, (totalWidth * 1.15) / (2 * Math.PI), chordRadius);
+	// Past every ring, and further the more rings there are: the inner rings' labels are pushed outward
+	// past the outer rings' stages, and the bank's map (five rings since WP103) needs the room.
+	const ringRoom = 70 + 26 * Math.max(0, rings.length - 1);
+	const OUTER = Math.max(
+		lastRing + ringRoom,
+		226,
+		(totalWidth * 1.15) / (2 * Math.PI),
+		chordRadius
+	);
 	const centre: Point = { x: Math.max(380, OUTER + 154), y: Math.max(260, OUTER + 34) };
 	const width = centre.x * 2;
 	const height = centre.y * 2;
@@ -212,6 +220,8 @@ export function layoutBoundary(map: BoundaryMap, lit: ReadonlySet<string>): Boun
 
 	// ── Labels, with collision resolution ─────────────────────────────────
 	const labels: PlacedLabel[] = [];
+	// A label may be pushed 16 px a step; more rings, more steps, so a label can clear every ring.
+	const maxSteps = 8 + rings.length * 2;
 	const boxes: Array<PlacedLabel['box']> = [
 		// The chassis and the ring itself are obstacles too.
 		{ x: centre.x - 34, y: centre.y - 76, width: 68, height: 86 },
@@ -238,14 +248,14 @@ export function layoutBoundary(map: BoundaryMap, lit: ReadonlySet<string>): Boun
 		const height = lines.length * LABEL_LINE_HEIGHT;
 		let at = start;
 		let moved = false;
-		for (let step = 0; step <= 8; step += 1) {
+		for (let step = 0; step <= maxSteps; step += 1) {
 			const middle = options.middle ?? Math.abs(Math.cos((deg * Math.PI) / 180)) < 0.5;
 			const anchored = middle ? 'middle' : Math.cos((deg * Math.PI) / 180) < 0 ? 'end' : 'start';
 			const x =
 				anchored === 'middle' ? at.x - widest / 2 : anchored === 'end' ? at.x - widest : at.x;
 			const box = { x, y: at.y - 9, width: widest, height };
 			const clash = boxes.some((other) => overlaps(box, other));
-			if (!clash || options.fixed || step === 8) {
+			if (!clash || options.fixed || step === maxSteps) {
 				const label: PlacedLabel = {
 					id,
 					kind,

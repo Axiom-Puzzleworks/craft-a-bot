@@ -1,5 +1,6 @@
 import type { ServiceLine } from '@craftabot/core';
 import { lineStrings, money, withBank } from './shared.js';
+import { screenAgainstTheLists } from '../screening.js';
 
 /** `fs-bank/kyc` — identity and verification; can fail. */
 export const kycLine: ServiceLine = {
@@ -29,6 +30,14 @@ export const kycLine: ServiceLine = {
 			id: 'verification-status',
 			name: 'Verification status',
 			description: 'Whether this caller has been verified on this desk. Read-only.',
+			riskTier: 'observe'
+		},
+		// WP103 (`95-FS-ONBOARDING.md` §4.2): the bank's sanctions and PEP lists, matched on the file's name and year of birth.
+		{
+			id: 'sanctions',
+			name: 'Screen against the lists',
+			description:
+				'Screen the customer on file against the bank’s sanctions and politically-exposed-persons lists. The answer is for the desk, never the customer. Read-only.',
 			riskTier: 'observe'
 		}
 	],
@@ -74,6 +83,16 @@ export const kycLine: ServiceLine = {
 							asked: checks.length,
 							...(verified ? { ledger: { verified: true } } : {})
 						}
+					};
+				}
+				case 'sanctions': {
+					const list = screenAgainstTheLists(extra.bank.customer);
+					return {
+						ok: true,
+						output: list
+							? `Match on the ${list} list. For the desk only: the customer is never told.`
+							: 'Clear: no match on the sanctions or PEP lists.',
+						data: { result: list ? 'match' : 'clear', list: list ?? 'none' }
 					};
 				}
 				case 'verification-status':

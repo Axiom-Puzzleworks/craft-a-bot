@@ -32,13 +32,13 @@ async function openTheWorkshopDoor(page: Page): Promise<void> {
 	await page.getByLabel('Show the Workshop').click();
 }
 
-test('the journeys page lists the three, and the lending journey draws with its twin and its configurations', async ({
+test('the journeys page lists the five, and the lending journey draws with its twin and its configurations', async ({
 	page
 }) => {
 	await openTheWorkshopDoor(page);
 	await page.goto('/workshop/playground/journeys');
-	// The three desks' journeys and the complaints journey (WP102).
-	await expect(page.getByTestId('journeys-count-value')).toHaveText('4');
+	// The four desks' journeys and the complaints journey (WP102, WP103).
+	await expect(page.getByTestId('journeys-count-value')).toHaveText('5');
 	await page.getByTestId('journeys-open-fs-lending-lending').click();
 	await expect(page).toHaveURL(/\/workshop\/playground\/journeys\/fs-lending\/lending$/);
 	await expect(page.getByTestId('journey-stages-value')).toHaveText('10');

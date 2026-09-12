@@ -39,6 +39,8 @@ export const OBLIGATION_TAGS: Readonly<Record<string, string>> = {
 		'POCA: never tell a customer that a suspicious-activity report has been made about them.',
 	'mlr:kyc':
 		'Money Laundering Regulations: identity verified before an account is used or money moved.',
+	'mlr:screening':
+		'Money Laundering Regulations: the customer screened against the sanctions and PEP lists, with a match handled by enhanced due diligence — and never told to the customer.',
 	'ukgdpr:data-minimisation': 'UK GDPR: only the data the purpose needs is read or kept.',
 	'ukgdpr:purpose-limitation': 'UK GDPR: data used only for the purpose it was collected for.',
 	'equality-act:fairness':

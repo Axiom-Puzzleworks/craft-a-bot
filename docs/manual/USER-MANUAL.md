@@ -1555,9 +1555,11 @@ The desk is unchanged. A workflow is a schedule over what a desk already does: t
 
 Two events joined the catalogue: `stage.started` and `stage.completed`. A trace without them is a desk run, as before.
 
-### 44.2 The four workflows
+### 44.2 The five workflows
 
 Since Day 6 a fourth journey ships beside the three: **complaints** (`fs-advice/complaints`), the Complaints Desk's decks as stages — acknowledgement, investigation, root cause, decision, approval, redress, closed — with DISP's timescales as stage budgets, the register's own rule (a charges or a data complaint upheld, the rest declined), five configurations and a book drawn from the complaint register. A journey can now **hand off**: a stage may end its run by handing the item to another journey — the fraud journey hands a disputed freeze or card block to complaints as a complaint — and the run ends *handed-off*, with the target run linked from the Pipeline both ways. `craftabot workflow run --follow` runs a chain to its end; on the Monitor a handed-off item goes back on the clock and the desk that takes its kind works it.
+
+A fifth journey is the **Onboarding Desk's** (`fs-onboarding/onboarding`, `95-FS-ONBOARDING.md`): application → identity → screening → risk rating → decision → record → four eyes → open → welcome. The bank keeps a synthetic screening list (six names, sanctions and politically exposed persons); the screening stage earns the result as a record the desk never speaks, and the tipping-off pair — *A hit is never said* on the stack, `hit-contained` in the evaluators — is what the desk's campaign gates on. An applicant whose details do not match the document is declined at the identity stage without a screening.
 
 ### 44.2a The three original workflows
 

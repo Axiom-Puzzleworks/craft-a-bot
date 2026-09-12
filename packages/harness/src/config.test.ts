@@ -34,6 +34,7 @@ describe('the default pack list', () => {
 			'fs-advice',
 			'fs-fraud',
 			'fs-lending',
+			'fs-onboarding',
 			'evidence',
 			'governance'
 		]);
@@ -53,7 +54,7 @@ describe('the default pack list', () => {
 	it('reports pack versions in the workbench’s own shape', () => {
 		const versions = packVersions(defaultConfig());
 		expect(versions['starter']).toMatch(/^\d+\.\d+\.\d+$/);
-		expect(Object.keys(versions)).toHaveLength(21);
+		expect(Object.keys(versions)).toHaveLength(22);
 	});
 });
 

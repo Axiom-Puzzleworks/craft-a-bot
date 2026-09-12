@@ -44,7 +44,13 @@ export interface Arrival {
 	item: WorkItem;
 }
 
-const KINDS: readonly WorkItemKind[] = ['application', 'alert', 'complaint', 'advice-request'];
+const KINDS: readonly WorkItemKind[] = [
+	'application',
+	'alert',
+	'complaint',
+	'advice-request',
+	'onboarding'
+];
 
 /** The hour profile the calibration row states (`66-…` `arrival-rates`): a working day with a lunchtime dip; the rest of the day quiet. */
 export function hourProfileOf(population: Population): HourProfile {

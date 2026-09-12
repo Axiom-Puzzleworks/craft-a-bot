@@ -44,5 +44,4 @@
 <circle class="point point--pre-think" cx="1089" cy="34" r="5" data-point="loop:redress:pre-think"/>
 <circle class="point point--pre-act" cx="1103" cy="34" r="5" data-point="loop:redress:pre-act"/>
 <circle class="point point--post-act" cx="1117" cy="34" r="5" data-point="loop:redress:post-act"/>
-<rect class="point point--stage-in" x="1064" y="61" width="10" height="10" data-point="boundary:redress:stage-in"/>
 </svg>

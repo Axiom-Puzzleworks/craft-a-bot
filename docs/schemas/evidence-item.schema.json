@@ -6741,7 +6741,8 @@
 												"application",
 												"alert",
 												"complaint",
-												"advice-request"
+												"advice-request",
+												"onboarding"
 											]
 										},
 										"customerId": {
@@ -9836,7 +9837,8 @@
 													"application",
 													"alert",
 													"complaint",
-													"advice-request"
+													"advice-request",
+													"onboarding"
 												]
 											},
 											"items": {
@@ -9888,7 +9890,8 @@
 												"application",
 												"alert",
 												"complaint",
-												"advice-request"
+												"advice-request",
+												"onboarding"
 											]
 										}
 									},
@@ -10152,7 +10155,8 @@
 											"application",
 											"alert",
 											"complaint",
-											"advice-request"
+											"advice-request",
+											"onboarding"
 										]
 									},
 									"desk": {

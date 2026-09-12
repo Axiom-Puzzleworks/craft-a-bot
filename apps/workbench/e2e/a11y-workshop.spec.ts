@@ -81,6 +81,7 @@ test('every Workshop route has no accessibility violations', async ({ page }) =>
 		'/workshop/playground/fraud',
 		'/workshop/playground/lending',
 		'/workshop/playground/complaints',
+		'/workshop/playground/onboarding',
 		'/workshop/playground/journeys',
 		'/workshop/playground/journeys/fs-lending/lending',
 		'/workshop/policies',

@@ -65,6 +65,14 @@ export { generateComplaints } from './generate/complaints.js';
 export { generateBureau } from './generate/bureau.js';
 export { SHELF, generateShelf } from './generate/shelf.js';
 export { bankRecords, driverList, hasAnyDriver, type BankRecords } from './records.js';
+export { customerForTheDesk } from './book/books.js';
+// WP103 (`95-FS-ONBOARDING.md` §4.2): the synthetic screening lists the `kyc` line and the Onboarding Desk read.
+export {
+	SCREENING_LIST,
+	screenAgainstTheLists,
+	type ScreeningEntry,
+	type ScreeningList
+} from './screening.js';
 export {
 	BANK_PURPOSES,
 	bankExtra,

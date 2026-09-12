@@ -9,13 +9,15 @@ import type { BankCase } from './model.js';
  * to write into `ledger`, so a snapshot shows them and a replay agrees.
  */
 export type BankPurpose =
-	'advice' | 'fraud-operations' | 'lending' | 'complaints' | 'reception' | 'testing';
+	'advice' | 'fraud-operations' | 'lending' | 'complaints' | 'onboarding' | 'reception' | 'testing';
 
 export const BANK_PURPOSES: readonly BankPurpose[] = [
 	'advice',
 	'fraud-operations',
 	'lending',
 	'complaints',
+	// WP103 (`95-FS-ONBOARDING.md`): the account-opening desk.
+	'onboarding',
 	'reception',
 	'testing'
 ];

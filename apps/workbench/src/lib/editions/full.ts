@@ -19,6 +19,7 @@ import fsAdvicePack from '@craftabot/pack-fs-advice';
 import fsBankPack from '@craftabot/pack-fs-bank';
 import fsFraudPack from '@craftabot/pack-fs-fraud';
 import fsLendingPack from '@craftabot/pack-fs-lending';
+import fsOnboardingPack from '@craftabot/pack-fs-onboarding';
 
 /**
  * **The `full` edition's packs** (`59-EDITIONS.md` §4.1, WP69): every pack, in the order `packs.ts` always
@@ -45,6 +46,7 @@ export const packs: PackManifest[] = [
 	fsAdvicePack,
 	fsFraudPack,
 	fsLendingPack,
+	fsOnboardingPack,
 	evidencePack,
 	GENERIC_CONTROL_MAP_MANIFEST as unknown as PackManifest,
 	demoPack

@@ -221,7 +221,7 @@ describe('craftabot workflow run', () => {
 		);
 		expect(code).toBe(1);
 		expect(console.err.join('')).toContain(
-			"no workflow 'test/visit' — the installed packs ship fs-advice/advice, fs-advice/complaints, fs-fraud/fraud, fs-lending/lending"
+			"no workflow 'test/visit' — the installed packs ship fs-advice/advice, fs-advice/complaints, fs-fraud/fraud, fs-lending/lending, fs-onboarding/onboarding"
 		);
 	});
 });

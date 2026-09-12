@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1684 332" width="1684" height="332" role="img" aria-labelledby="journey-title" font-family="system-ui, sans-serif" font-size="11" fill="currentColor" stroke="currentColor">
+<title id="journey-title">The onboarding journey: Application (the rules), Identity (the assistant), Screening (the assistant), Decision (the assistant), Risk rating (the rules), Decision recorded (the rules), Four eyes (a colleague), Account open (the assistant), Welcome (the assistant). Edges: application to identity; identity to screening on true; identity to decision on false; screening to risk-rating on clear / match; decision to record on approve / decline / refer; risk-rating to decision on low / medium / high; record to confirm on depends on the case; confirm to open on confirm; confirm to end on return; open to welcome; welcome to end.</title>
+<style>.lane{fill:none;stroke-opacity:.35}.lane-label{stroke:none;font-weight:700}.edge{fill:none;stroke-width:1.5}.edge--case{stroke-dasharray:4 3}.edge--taken{stroke-width:3}.edge-label{stroke:none}.node{fill:none;stroke-width:1.5}.node--lit{stroke-width:3}.node--irreversible{stroke-dasharray:2 2}.node-label{stroke:none;text-anchor:middle}.point{fill:none;stroke-width:1.5}.end{stroke-width:3}</style>
+<rect class="lane lane--assistant" x="0" y="16" width="1684" height="100"/>
+<text class="lane-label" x="8" y="32">the assistant</text>
+<rect class="lane lane--colleague" x="0" y="116" width="1684" height="100"/>
+<text class="lane-label" x="8" y="132">a colleague</text>
+<rect class="lane lane--rules" x="0" y="216" width="1684" height="100"/>
+<text class="lane-label" x="8" y="232">the rules</text>
+<path class="edge edge--enumerated" d="M225 266 H278 V66 H331" data-edge="application-&gt;identity"/>
+<path class="edge edge--enumerated" d="M375 66 H481" data-edge="identity-&gt;screening"/>
+<text class="edge-label" x="428" y="58" text-anchor="middle">true</text>
+<path class="edge edge--enumerated" d="M375 66 H428 V28 H653 V44" data-edge="identity-&gt;decision"/>
+<text class="edge-label" x="434" y="24" text-anchor="start">false</text>
+<path class="edge edge--enumerated" d="M525 66 H578 V228 H803 V244" data-edge="screening-&gt;risk-rating"/>
+<text class="edge-label" x="584" y="224" text-anchor="start">clear / match</text>
+<path class="edge edge--enumerated" d="M675 66 H728 V228 H953 V244" data-edge="decision-&gt;record"/>
+<text class="edge-label" x="734" y="224" text-anchor="start">approve / decline / refer</text>
+<path class="edge edge--enumerated" d="M803 288 V304 H653 V88" data-edge="risk-rating-&gt;decision"/>
+<text class="edge-label" x="728" y="316" text-anchor="middle">low / medium / high</text>
+<path class="edge edge--case" d="M975 266 H1028 V166 H1081" data-edge="record-&gt;confirm"/>
+<text class="edge-label" x="1034" y="212" text-anchor="start">depends on the case</text>
+<path class="edge edge--enumerated" d="M1125 166 H1178 V66 H1231" data-edge="confirm-&gt;open"/>
+<text class="edge-label" x="1184" y="112" text-anchor="start">confirm</text>
+<path class="edge edge--enumerated" d="M1125 166 H1178 V128 H1549" data-edge="confirm-&gt;end"/>
+<text class="edge-label" x="1184" y="124" text-anchor="start">return</text>
+<path class="edge edge--enumerated" d="M1275 66 H1381" data-edge="open-&gt;welcome"/>
+<path class="edge edge--enumerated" d="M1425 66 H1549" data-edge="welcome-&gt;end"/>
+<line class="end" x1="1553" y1="24" x2="1553" y2="308"/>
+<circle class="node node--rule" cx="203" cy="266" r="22" data-stage="application"/>
+<text class="node-label" x="203" y="302">Application</text>
+<circle class="node node--agent" cx="353" cy="66" r="22" data-stage="identity"/>
+<text class="node-label" x="353" y="102">Identity</text>
+<circle class="node node--agent" cx="503" cy="66" r="22" data-stage="screening"/>
+<text class="node-label" x="503" y="102">Screening</text>
+<circle class="node node--agent" cx="653" cy="66" r="22" data-stage="decision"/>
+<text class="node-label" x="653" y="102">Decision</text>
+<circle class="node node--rule" cx="803" cy="266" r="22" data-stage="risk-rating"/>
+<text class="node-label" x="803" y="302">Risk rating</text>
+<circle class="node node--rule" cx="953" cy="266" r="22" data-stage="record"/>
+<text class="node-label" x="953" y="302">Decision recorded</text>
+<circle class="node node--human" cx="1103" cy="166" r="22" data-stage="confirm"/>
+<text class="node-label" x="1103" y="202">Four eyes</text>
+<circle class="node node--agent node--irreversible" cx="1253" cy="66" r="22" data-stage="open"/>
+<text class="node-label" x="1253" y="102">Account open</text>
+<circle class="node node--agent" cx="1403" cy="66" r="22" data-stage="welcome"/>
+<text class="node-label" x="1403" y="102">Welcome</text>
+<circle class="point point--pre-think" cx="339" cy="34" r="5" data-point="loop:identity:pre-think"/>
+<circle class="point point--pre-act" cx="353" cy="34" r="5" data-point="loop:identity:pre-act"/>
+<circle class="point point--post-act" cx="367" cy="34" r="5" data-point="loop:identity:post-act"/>
+<circle class="point point--pre-think" cx="489" cy="34" r="5" data-point="loop:screening:pre-think"/>
+<circle class="point point--pre-act" cx="503" cy="34" r="5" data-point="loop:screening:pre-act"/>
+<circle class="point point--post-act" cx="517" cy="34" r="5" data-point="loop:screening:post-act"/>
+<circle class="point point--pre-think" cx="639" cy="34" r="5" data-point="loop:decision:pre-think"/>
+<circle class="point point--pre-act" cx="653" cy="34" r="5" data-point="loop:decision:pre-act"/>
+<circle class="point point--post-act" cx="667" cy="34" r="5" data-point="loop:decision:post-act"/>
+<circle class="point point--pre-think" cx="1239" cy="34" r="5" data-point="loop:open:pre-think"/>
+<circle class="point point--pre-act" cx="1253" cy="34" r="5" data-point="loop:open:pre-act"/>
+<circle class="point point--post-act" cx="1267" cy="34" r="5" data-point="loop:open:post-act"/>
+<circle class="point point--pre-think" cx="1389" cy="34" r="5" data-point="loop:welcome:pre-think"/>
+<circle class="point point--pre-act" cx="1403" cy="34" r="5" data-point="loop:welcome:pre-act"/>
+<circle class="point point--post-act" cx="1417" cy="34" r="5" data-point="loop:welcome:post-act"/>
+</svg>

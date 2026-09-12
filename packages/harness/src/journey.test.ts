@@ -3,7 +3,7 @@ import { journeyLayout, renderJourneySvg } from '@craftabot/workflow';
 import { createRegistry, defaultConfig } from './config.js';
 
 /**
- * WP100 (`87-JOURNEY-CANVAS.md` §8 items 1 and 7): the three shipped
+ * WP100 (`87-JOURNEY-CANVAS.md` §8 items 1 and 7): the shipped
  * journeys' layouts and SVGs held byte for byte, and the lending decision
  * fanning out to every outcome it admits — under the default configuration,
  * where the bot decides, and under `bot-recommends`, where a person does.
@@ -12,12 +12,13 @@ const registry = createRegistry(defaultConfig());
 const workflows = registry.listWorkflows().sort((a, b) => a.id.localeCompare(b.id));
 
 describe('the shipped journeys', () => {
-	it('are the three desks’ and the complaints journey (WP102)', () => {
+	it('are the four desks’ and the complaints journey (WP102, WP103)', () => {
 		expect(workflows.map((workflow) => workflow.id)).toEqual([
 			'fs-advice/advice',
 			'fs-advice/complaints',
 			'fs-fraud/fraud',
-			'fs-lending/lending'
+			'fs-lending/lending',
+			'fs-onboarding/onboarding'
 		]);
 	});
 

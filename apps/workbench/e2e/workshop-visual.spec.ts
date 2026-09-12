@@ -144,7 +144,7 @@ test('the Playground and its three desks', async ({ page }) => {
 	await expect(page.getByTestId('playground-simulation-only')).toBeVisible();
 	await settle(page);
 	await expect(page).toHaveScreenshot('ws-playground.png');
-	for (const desk of ['advice', 'fraud', 'lending'] as const) {
+	for (const desk of ['advice', 'fraud', 'lending', 'onboarding'] as const) {
 		await page.goto(`/workshop/playground/${desk}`);
 		await page.getByTestId(`${desk}-generate`).click();
 		await settle(page);
