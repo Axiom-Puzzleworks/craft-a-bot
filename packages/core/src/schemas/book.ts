@@ -17,7 +17,10 @@ export const workItemKindSchema = z.enum([
 	// WP103 (`95-FS-ONBOARDING.md`): an account application.
 	'onboarding',
 	// WP104: a disputed payment.
-	'dispute'
+	'dispute',
+	// WP105: a loan in arrears; a servicing request (the collections journey's handoff, worked by WP106's desk).
+	'arrears',
+	'servicing-request'
 ]);
 export type WorkItemKind = z.infer<typeof workItemKindSchema>;
 

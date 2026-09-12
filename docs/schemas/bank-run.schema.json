@@ -83,7 +83,9 @@
 									"complaint",
 									"advice-request",
 									"onboarding",
-									"dispute"
+									"dispute",
+									"arrears",
+									"servicing-request"
 								]
 							},
 							"items": {
@@ -137,7 +139,9 @@
 								"complaint",
 								"advice-request",
 								"onboarding",
-								"dispute"
+								"dispute",
+								"arrears",
+								"servicing-request"
 							]
 						}
 					},
@@ -403,7 +407,9 @@
 							"complaint",
 							"advice-request",
 							"onboarding",
-							"dispute"
+							"dispute",
+							"arrears",
+							"servicing-request"
 						]
 					},
 					"desk": {

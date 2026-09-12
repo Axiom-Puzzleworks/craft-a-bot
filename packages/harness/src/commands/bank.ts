@@ -44,7 +44,16 @@ export const deskFileSchema = z.array(
 		workflowId: z.string().min(1),
 		kinds: z
 			.array(
-				z.enum(['application', 'alert', 'complaint', 'advice-request', 'onboarding', 'dispute'])
+				z.enum([
+					'application',
+					'alert',
+					'complaint',
+					'advice-request',
+					'onboarding',
+					'dispute',
+					'arrears',
+					'servicing-request'
+				])
 			)
 			.min(1),
 		configuration: z.string().min(1).optional(),

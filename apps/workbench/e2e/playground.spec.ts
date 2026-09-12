@@ -168,3 +168,24 @@ test('the Disputes Desk generates a case with the rule under the flap, and lists
 	await expect(page.getByTestId('disputes-evaluators').locator('li')).toHaveCount(4);
 	await expect(page.locator('[data-testid^="disputes-map-node-service-line-"]')).toHaveCount(1);
 });
+
+// WP105 (`91-FS-COLLECTIONS.md` §7): the Collections Desk — a case from a seed, the plan and the disclosure under the flap.
+test('the Collections Desk generates a case with the rule under the flap, and lists its decks', async ({
+	page
+}) => {
+	await page.goto('/settings');
+	await page.getByLabel('Show the Workshop').click();
+	await page.goto('/workshop/playground');
+	await page.getByTestId('playground-collections-link').click();
+	await expect(page.getByTestId('collections-simulation-only')).toBeVisible();
+	await page.getByTestId('collections-layout').selectOption('job-loss');
+	await page.getByTestId('collections-generate').click();
+	await expect(page.getByTestId('collections-missed')).toContainText('2');
+	await expect(
+		page.getByTestId('collections-hidden').getByTestId('desk-truth-verdict')
+	).toBeAttached();
+	await expect(page.getByTestId('collections-decks').locator('tbody tr')).toHaveCount(10);
+	await expect(page.getByTestId('collections-cards').locator('li')).toHaveCount(4);
+	await expect(page.getByTestId('collections-evaluators').locator('li')).toHaveCount(4);
+	await expect(page.locator('[data-testid^="collections-map-node-service-line-"]')).toHaveCount(1);
+});

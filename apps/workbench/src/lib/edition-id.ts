@@ -50,7 +50,8 @@ const PLAYGROUND_PACK_IDS = [
 	'fs-fraud',
 	'fs-lending',
 	'fs-onboarding',
-	'fs-disputes'
+	'fs-disputes',
+	'fs-collections'
 ];
 
 /** Which packs each box holds, by id — the manifests themselves come through `$edition-packs` (`editions/<id>.ts`). */

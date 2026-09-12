@@ -140,11 +140,18 @@ test('the Boundary’s labels never overlap — the bank’s page and each desk�
 	await openTheWorkshopDoor(page);
 	await page.goto('/workshop/playground');
 	await expectNoLabelCollisions(page, 'playground-map');
-	// Six rings since WP104: the five desks' journeys and the complaints journey.
+	// Seven rings since WP105: the six desks' journeys and the complaints journey.
 	await expect(
 		page.getByTestId('playground-map').locator('[data-testid^="playground-map-ring-"]')
-	).toHaveCount(6);
-	for (const desk of ['lending', 'fraud', 'advice', 'onboarding', 'disputes'] as const) {
+	).toHaveCount(7);
+	for (const desk of [
+		'lending',
+		'fraud',
+		'advice',
+		'onboarding',
+		'disputes',
+		'collections'
+	] as const) {
 		await page.goto(`/workshop/playground/${desk}`);
 		await expectNoLabelCollisions(page, `${desk}-map`);
 		await expect(

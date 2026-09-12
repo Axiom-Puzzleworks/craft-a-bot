@@ -15,6 +15,7 @@ export type BankPurpose =
 	| 'complaints'
 	| 'onboarding'
 	| 'disputes'
+	| 'collections'
 	| 'reception'
 	| 'testing';
 
@@ -27,6 +28,8 @@ export const BANK_PURPOSES: readonly BankPurpose[] = [
 	'onboarding',
 	// WP104 (`90-FS-DISPUTES.md`): the payments-disputes desk.
 	'disputes',
+	// WP105 (`91-FS-COLLECTIONS.md`): the collections and arrears desk.
+	'collections',
 	'reception',
 	'testing'
 ];
@@ -47,6 +50,9 @@ export interface BankLedger {
 	appeals: Array<{ decision: string; grounds: string }>;
 	/** A dispute reimbursed (WP104, `90-FS-DISPUTES.md` §3) — the Disputes Desk's irreversible write. */
 	reimbursements: Array<{ accountId: string; amount: number; disputeId: string }>;
+	/** A payment plan agreed (WP105, `91-FS-COLLECTIONS.md` §3) — the Collections Desk's irreversible write — and a default notice issued. */
+	plans: Array<{ accountId: string; plan: string; monthly: number }>;
+	notices: Array<{ accountId: string }>;
 	notes: string[];
 	verified: boolean;
 	contact: Record<string, string>;
@@ -65,6 +71,8 @@ export const emptyLedger = (): BankLedger => ({
 	loans: [],
 	appeals: [],
 	reimbursements: [],
+	plans: [],
+	notices: [],
 	notes: [],
 	verified: false,
 	contact: {}

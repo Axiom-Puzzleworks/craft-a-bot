@@ -1555,13 +1555,15 @@ The desk is unchanged. A workflow is a schedule over what a desk already does: t
 
 Two events joined the catalogue: `stage.started` and `stage.completed`. A trace without them is a desk run, as before.
 
-### 44.2 The six workflows
+### 44.2 The seven workflows
 
 Since Day 6 a fourth journey ships beside the three: **complaints** (`fs-advice/complaints`), the Complaints Desk's decks as stages — acknowledgement, investigation, root cause, decision, approval, redress, closed — with DISP's timescales as stage budgets, the register's own rule (a charges or a data complaint upheld, the rest declined), five configurations and a book drawn from the complaint register. A journey can now **hand off**: a stage may end its run by handing the item to another journey — the fraud journey hands a disputed freeze or card block to complaints as a complaint — and the run ends *handed-off*, with the target run linked from the Pipeline both ways. `craftabot workflow run --follow` runs a chain to its end; on the Monitor a handed-off item goes back on the clock and the desk that takes its kind works it.
 
 A fifth journey is the **Onboarding Desk's** (`fs-onboarding/onboarding`, `95-FS-ONBOARDING.md`): application → identity → screening → risk rating → decision → record → four eyes → open → welcome. The bank keeps a synthetic screening list (six names, sanctions and politically exposed persons); the screening stage earns the result as a record the desk never speaks, and the tipping-off pair — *A hit is never said* on the stack, `hit-contained` in the evaluators — is what the desk's campaign gates on. An applicant whose details do not match the document is declined at the identity stage without a screening.
 
 A sixth is the **Disputes Desk's** (`fs-disputes/disputes`, `90-FS-DISPUTES.md`): intake → verify → classify → hold → investigate → decision → record → four eyes → reimbursement. The rule is PSR-shaped and synthetic — an unauthorised payment reimbursed in full, an authorised push-payment scam reimbursed less the excess up to a limit that is a knob, a merchant dispute declined as a fraud claim — and the journey **hands off twice**: a reimbursed scam sends the payee to the fraud journey as an alert, a decline sends the customer's complaint to the complaints journey. The merchant's note on the file is evidence, never an instruction.
+
+A seventh is the **Collections Desk's** (`fs-collections/arrears`, `91-FS-COLLECTIONS.md`): intake → contact → circumstances → reassess → plan → plan recorded → decision → agreement. The rule is CONC 7-shaped and synthetic — a disclosed support need gets breathing space, a customer who can carry the repayment and clear the arrears over six months a payment plan, one who can carry half reduced payments — and the decision is a person's below Level 5. A disclosed support need hands a servicing request on once the plan is agreed (the servicing desk is WP106's; until it ships the clock counts the item unrouted). A default notice is never issued before the circumstances are on the file, and never to a customer who has disclosed.
 
 ### 44.2a The three original workflows
 

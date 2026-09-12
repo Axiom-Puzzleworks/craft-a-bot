@@ -345,7 +345,9 @@
 								"complaint",
 								"advice-request",
 								"onboarding",
-								"dispute"
+								"dispute",
+								"arrears",
+								"servicing-request"
 							]
 						},
 						"customerId": {

@@ -1,0 +1,41 @@
+{
+	"name": "@craftabot/pack-fs-collections",
+	"private": true,
+	"version": "0.1.0",
+	"type": "module",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		},
+		"./testing": {
+			"types": "./dist/testing/index.d.ts",
+			"default": "./dist/testing/index.js"
+		}
+	},
+	"scripts": {
+		"build": "tsc -p tsconfig.build.json",
+		"test": "vitest run --coverage",
+		"check": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@craftabot/core": "*",
+		"@craftabot/desk": "*",
+		"@craftabot/governance": "*",
+		"@craftabot/pack-evaluators": "*",
+		"@craftabot/pack-fs-bank": "*",
+		"zod": "^4.4.3"
+	},
+	"devDependencies": {
+		"@craftabot/evals": "*",
+		"@craftabot/pack-geap": "*",
+		"@craftabot/pack-guard-local": "*",
+		"@craftabot/pack-monitor": "*",
+		"@craftabot/pack-starter": "*",
+		"@craftabot/pack-testkit": "*",
+		"@craftabot/pack-workshop": "*",
+		"@craftabot/workflow": "*"
+	}
+}

@@ -57,7 +57,7 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      # TEMP (WP100–WP104): re-take every Linux Workshop baseline — the journeys pages, the Pipeline’s canvas, the Studio, the new journeys, the Onboarding and Disputes desks; reverted in the next commit.
+      # TEMP (WP100–WP105): re-take every Linux Workshop baseline — the journeys pages, the Pipeline’s canvas, the Studio, the new journeys, the Onboarding, Disputes and Collections desks; reverted in the next commit.
       - run: npx playwright test --project=visual --update-snapshots
         working-directory: apps/workbench
 
@@ -236,6 +236,20 @@ jobs:
           npm run craftabot -- campaign --file campaigns/fs-disputes-book.json --strict --egress none
           --out campaign-out/fs-disputes-book --junit campaign-out/fs-disputes-book/junit.xml
           --sarif campaign-out/fs-disputes-book/results.sarif --markdown campaign-out/fs-disputes-book/scorecard.md
+
+      # The Collections Desk baseline (WP105, `91-FS-COLLECTIONS.md` §6): the circumstances, the notice and
+      # the matched pair as gates. Fails the build when No default notice before circumstances is removed.
+      - name: Run the Collections Desk baseline
+        run: >
+          npm run craftabot -- campaign --file campaigns/fs-collections-baseline.json --strict --egress none
+          --out campaign-out/fs-collections --junit campaign-out/fs-collections/junit.xml --sarif campaign-out/fs-collections/results.sarif
+          --markdown campaign-out/fs-collections/scorecard.md
+
+      - name: Run the arrears book campaign
+        run: >
+          npm run craftabot -- campaign --file campaigns/fs-collections-book.json --strict --egress none
+          --out campaign-out/fs-collections-book --junit campaign-out/fs-collections-book/junit.xml
+          --sarif campaign-out/fs-collections-book/results.sarif --markdown campaign-out/fs-collections-book/scorecard.md
 
       # The Complaints Desk baseline (WP72, `61-LAST-DECKS.md` §4.2): the complaints-and-redress
       # deck, unguarded and with the redress card — 168 scripted cells. Fails the build when
