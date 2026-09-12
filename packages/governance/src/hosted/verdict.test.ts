@@ -253,3 +253,77 @@ describe('alwaysStop', () => {
 		});
 	});
 });
+
+describe('redact and annotate (WP96)', () => {
+	it('a reading with redactedText turns an allow into a redact, the sensitive-data finding on it', () => {
+		const sdp = finding({
+			category: 'sensitive-data',
+			vendorLabel: 'sensitiveData',
+			matched: true,
+			confidence: 'high'
+		});
+		const verdict = verdictForReading(
+			ok({ findings: [finding(), sdp], redactedText: 'the card is [REDACTED]' }),
+			'pre-act',
+			screening({ screenDecision: 'note' }),
+			[],
+			S
+		);
+		expect(verdict).toMatchObject({
+			allow: true,
+			verdictKind: 'redact',
+			redactedText: 'the card is [REDACTED]',
+			finding: { category: 'sensitive-data', label: 'sensitiveData', confidence: 'high' }
+		});
+		// Nothing fired, still a redact: the text is what changes, not the disposition.
+		expect(
+			verdictForReading(ok({ redactedText: 'clean' }), 'pre-act', screening(), [], S)
+		).toMatchObject({
+			allow: true,
+			verdictKind: 'redact',
+			redactedText: 'clean',
+			note: S.allClear
+		});
+	});
+
+	it('a finding with no confidence annotates without one', () => {
+		expect(
+			verdictForReading(
+				ok({ findings: [finding({ matched: true })] }),
+				'pre-act',
+				screening({ screenDecision: 'note' }),
+				[],
+				S
+			)
+		).toMatchObject({
+			allow: true,
+			verdictKind: 'annotate',
+			finding: { category: 'injection', label: 'injection' }
+		});
+	});
+
+	it('a note is an annotate with the finding; a block or a stop is unchanged by redactedText', () => {
+		expect(
+			verdictForReading(
+				ok({ findings: [matchedInjection] }),
+				'pre-act',
+				screening({ screenDecision: 'note' }),
+				[],
+				S
+			)
+		).toMatchObject({
+			allow: true,
+			verdictKind: 'annotate',
+			finding: { category: 'injection', label: 'injection', confidence: 'high' }
+		});
+		expect(
+			verdictForReading(
+				ok({ findings: [matchedInjection], redactedText: 'x' }),
+				'pre-act',
+				screening({ screenDecision: 'block' }),
+				[],
+				S
+			)
+		).toMatchObject({ allow: false, disposition: 'block-action' });
+	});
+});

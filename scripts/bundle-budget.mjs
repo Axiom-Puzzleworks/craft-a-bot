@@ -46,9 +46,9 @@ import { fileURLToPath } from 'node:url';
 // step inside `apps/workbench` as well as by hand from the repo root.
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
 // 1.5 MB from `01-…` §8, +50 kB on 2026-09-10 (WP74): the calibration table's cited rows and their notes ship in the bank pack (`66-CALIBRATION.md`), and are content the bank page renders.
-const DEFAULT_LIMIT_BYTES = 1_800_000;
+const DEFAULT_LIMIT_BYTES = 1_830_000; // +30 kB 2026-09-12 (Phase X, WP94–WP96): the component contract, the boundary chain, the redaction (01 §8)
 // +50 kB 2026-09-11 (WP82): the runner's fairness and drift metrics and the workflow runtime ride in the Worker's chunk.
-const DEFAULT_WORKER_LIMIT_BYTES = 870_000;
+const DEFAULT_WORKER_LIMIT_BYTES = 890_000; // +20 kB 2026-09-12 (Phase X): the adapters and the boundary compiler ride into the Worker with governance and evals
 
 function parseArgs(argv) {
 	const options = {

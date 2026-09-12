@@ -183,6 +183,30 @@ describe('the Desk’s three panes', () => {
 		expect(screen.getByRole('log')).not.toBeNull();
 	});
 
+	it('Transcript marks an agent line a guard redacted, and no other (WP96)', () => {
+		render(Transcript, {
+			lines: [
+				{ seq: 1, tick: 1, speaker: 'agent', speakerName: 'You', text: 'the card is [redacted]' },
+				{ seq: 2, tick: 1, speaker: 'counterpart', speakerName: '', text: 'Thanks.' },
+				{ seq: 3, tick: 2, speaker: 'agent', speakerName: 'You', text: 'Anything else?' }
+			],
+			marks: new Map([
+				[
+					1,
+					{
+						guardrailId: 'workshop/guard:decision',
+						finding: { category: 'sensitive-data', label: 'pan' }
+					}
+				]
+			])
+		});
+		expect(screen.getByTestId('desk-line-1-redacted').textContent).toContain(
+			'redacted by workshop/guard:decision · pan'
+		);
+		expect(screen.queryByTestId('desk-line-2-redacted')).toBeNull();
+		expect(screen.queryByTestId('desk-line-3-redacted')).toBeNull();
+	});
+
 	it('CaseFile keeps desk-record ids, badges classification, and shows truth only when given', () => {
 		const { unmount } = render(CaseFile, {
 			records: [

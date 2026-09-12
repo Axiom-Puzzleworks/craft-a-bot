@@ -1,4 +1,11 @@
-import type { GuardrailHook, GuardrailVerdict, ScreenFinding, ScreenResult } from '@craftabot/core';
+import type {
+	GuardrailHook,
+	GuardrailVerdict,
+	ScreenFinding,
+	ScreenReading,
+	ScreenResult,
+	VerdictFinding
+} from '@craftabot/core';
 import type { Disposition, HostedScreenConfig } from './config.js';
 import type { HostedStrings, MatchedFinding } from './strings.js';
 
@@ -61,6 +68,37 @@ function matched(finding: ScreenFinding): MatchedFinding {
 	};
 }
 
+/** A finding in the verdict's vocabulary (`verdictFindingSchema`): the category, the vendor's label, the confidence. */
+function findingOf(finding: ScreenFinding): VerdictFinding {
+	return {
+		category: finding.category,
+		label: finding.vendorLabel,
+		...(finding.confidence !== undefined ? { confidence: finding.confidence } : {})
+	};
+}
+
+/**
+ * A reading that carries `redactedText` turns an allow into a `redact`
+ * (WP96, `85-…` §4): the session applies the text to the outgoing `say`,
+ * the workflow to a stage's output. The finding is the sensitive-data one
+ * when the reading has it, else whatever the allow already carried.
+ */
+function withRedaction(
+	allow: Extract<GuardrailVerdict, { allow: true }>,
+	reading: ScreenReading
+): GuardrailVerdict {
+	if (reading.redactedText === undefined) return allow;
+	const sensitive = reading.findings.find(
+		(finding) => finding.category === 'sensitive-data' && finding.matched
+	);
+	return {
+		...allow,
+		verdictKind: 'redact',
+		redactedText: reading.redactedText,
+		...(sensitive ? { finding: findingOf(sensitive) } : {})
+	};
+}
+
 /** The verdict a reading earns under the screening dials, clamped to what the hook allows. */
 export function verdictForReading(
 	result: ScreenResult,
@@ -93,7 +131,7 @@ export function verdictForReading(
 
 	if (fired.length === 0) {
 		return reading.outcome === 'ok'
-			? { allow: true, note: strings.allClear }
+			? withRedaction({ allow: true, note: strings.allClear }, reading)
 			: verdictForUnreachable(strings.didNotFinish, screening);
 	}
 
@@ -104,7 +142,13 @@ export function verdictForReading(
 	);
 	const reason = strings.match(fired.map((entry) => matched(entry.finding)));
 
-	if (strictest === 'note') return { allow: true, note: reason };
+	// A note is an `annotate` (WP96, `85-…` §4): allowed, the finding on the event; with a redaction, a `redact`.
+	if (strictest === 'note') {
+		return withRedaction(
+			{ allow: true, verdictKind: 'annotate', note: reason, finding: findingOf(fired[0]!.finding) },
+			reading
+		);
+	}
 	if (strictest === 'block') return { allow: false, reason, disposition: 'block-action' };
 	if (strictest === 'ask') return { pause: true, reason };
 	return { allow: false, reason, disposition: 'stop-run' };

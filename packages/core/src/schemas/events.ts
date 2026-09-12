@@ -28,7 +28,8 @@ import {
 	proposedStepSchema,
 	runOutcomeSchema,
 	usageSchema,
-	boundaryVerdictSchema
+	boundaryVerdictSchema,
+	verdictFindingSchema
 } from './shared.js';
 
 /** Shared envelope (02-AGENT-MODEL.md §7) around one event type's payload. */
@@ -259,7 +260,15 @@ const actionPerformedEvent = eventSchema(
 		arguments: z.unknown(),
 		result: actionResultSchema,
 		/** Who was behind it and what let it through (WP65, `55-…` §4.1); present when the session has a principal. */
-		attestation: attestationSchema.optional()
+		attestation: attestationSchema.optional(),
+		/**
+		 * The call's text was rewritten by a `redact` verdict before it ran
+		 * (WP96, `85-…` §4): which guardrail, and its finding. `arguments` is
+		 * what was said; the bot's own words are on the `decision` event.
+		 */
+		redacted: z
+			.object({ guardrailId: z.string(), finding: verdictFindingSchema.optional() })
+			.optional()
 	})
 );
 const memoryUpdatedEvent = eventSchema(

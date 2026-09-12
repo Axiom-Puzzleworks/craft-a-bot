@@ -9,6 +9,13 @@ import type {
 import type { HostedScreenConfig, HostedStrings, TextSelector } from '@craftabot/governance';
 import { z } from 'zod';
 import { createModelArmorClient, createOfflineArmorClient, describeEndpoint } from './client.js';
+import { fixtures } from '../fixtures/index.js';
+
+/** The stand-in's envelopes, by name (`fixtures/`). */
+const FIXTURE_NAMES = Object.keys(fixtures) as [
+	keyof typeof fixtures,
+	...(keyof typeof fixtures)[]
+];
 import type { ArmorClient, ArmorClientResult } from './client.js';
 import type { ArmorConfig } from './config.js';
 import { toScreenReading } from './reading.js';
@@ -43,7 +50,9 @@ export const armorServiceConfigSchema = z.object({
 	templateId: z.string().min(1),
 	injectionMinConfidence: z
 		.enum(['LOW_AND_ABOVE', 'MEDIUM_AND_ABOVE', 'HIGH'])
-		.default('MEDIUM_AND_ABOVE')
+		.default('MEDIUM_AND_ABOVE'),
+	/** Which canned envelope the offline stand-in answers with (WP96); `clean` when absent. */
+	offlineFixture: z.enum(FIXTURE_NAMES).optional()
 });
 export type ArmorServiceConfig = z.infer<typeof armorServiceConfigSchema>;
 
@@ -122,8 +131,10 @@ export const modelArmorService: GuardrailService = {
 			parsed
 		);
 	},
-	createOffline: (config) =>
-		armorServiceClient(createOfflineArmorClient(), armorServiceConfigSchema.parse(config))
+	createOffline: (config) => {
+		const parsed = armorServiceConfigSchema.parse(config);
+		return armorServiceClient(createOfflineArmorClient(parsed.offlineFixture ?? 'clean'), parsed);
+	}
 };
 
 /**

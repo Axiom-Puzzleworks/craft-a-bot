@@ -1561,6 +1561,39 @@
 											"principal",
 											"guardrailsPassed"
 										]
+									},
+									"redacted": {
+										"type": "object",
+										"properties": {
+											"guardrailId": {
+												"type": "string"
+											},
+											"finding": {
+												"type": "object",
+												"properties": {
+													"category": {
+														"type": "string"
+													},
+													"label": {
+														"type": "string"
+													},
+													"confidence": {
+														"type": "string",
+														"enum": [
+															"low",
+															"medium",
+															"high"
+														]
+													}
+												},
+												"required": [
+													"category"
+												]
+											}
+										},
+										"required": [
+											"guardrailId"
+										]
 									}
 								},
 								"required": [

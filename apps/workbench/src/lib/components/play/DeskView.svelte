@@ -1,5 +1,7 @@
 <script lang="ts">
-	import type { DeskRecord, DeskWorldState, RunOutcome } from '@craftabot/core';
+	import type { DeskRecord, DeskWorldState, EngineEvent, RunOutcome } from '@craftabot/core';
+	import type { TranscriptMark } from '$lib/components/control-room/Transcript.svelte';
+	import { SvelteMap } from 'svelte/reactivity';
 	import CaseFile from '$lib/components/control-room/CaseFile.svelte';
 	import Queue from '$lib/components/control-room/Queue.svelte';
 	import Transcript from '$lib/components/control-room/Transcript.svelte';
@@ -27,9 +29,23 @@
 		 * by shape, since a world's truth is `unknown` to the engine.
 		 */
 		truth?: unknown;
+		/** The run's events (WP96): a `say` a guard redacted is marked on its line. */
+		events?: readonly EngineEvent[];
 	}
 
-	let { world, outcome, truth }: Props = $props();
+	let { world, outcome, truth, events = [] }: Props = $props();
+	// The redactions by tick (WP96): one action per tick, so the tick names the line.
+	const marks = $derived.by(() => {
+		const map = new SvelteMap<number, TranscriptMark>();
+		for (const event of events) {
+			if (event.type !== 'action.performed' || !event.payload.redacted) continue;
+			map.set(event.tick, {
+				guardrailId: event.payload.redacted.guardrailId,
+				...(event.payload.redacted.finding ? { finding: event.payload.redacted.finding } : {})
+			});
+		}
+		return map;
+	});
 
 	type DeskTruthShape = {
 		records: DeskRecord[];
@@ -79,7 +95,7 @@
 	{/if}
 
 	<div class="panes">
-		<Transcript lines={world.transcript} />
+		<Transcript lines={world.transcript} {marks} />
 		<CaseFile records={world.records} truth={deskTruth?.records} facts={deskTruth?.facts} />
 		<Queue items={world.queue} />
 	</div>

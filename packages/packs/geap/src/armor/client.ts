@@ -1,4 +1,4 @@
-import fixtureClean from '../fixtures/clean.json' with { type: 'json' };
+import { fixtures, type FixtureName } from '../fixtures/index.js';
 import {
 	armorErrorFromNetworkFailure,
 	armorErrorFromStatus,
@@ -163,9 +163,11 @@ export function createModelArmorClient(options: ModelArmorClientOptions): ArmorC
 }
 
 /** No network call, ever — every screen reads as clean. `25-…` §4.5/§6: reproduces the golden trace with `offline: true`. */
-export function createOfflineArmorClient(): ArmorClient {
-	const clean = async (): Promise<ArmorClientResult> => ({
-		reading: readSanitizationResult(fixtureClean)
+export function createOfflineArmorClient(fixture: FixtureName = 'clean'): ArmorClient {
+	// The stand-in serves one canned envelope for every call (WP96): `clean` unless
+	// the config names another — `sdp-deidentified` is how a redaction is rehearsed offline.
+	const canned = async (): Promise<ArmorClientResult> => ({
+		reading: readSanitizationResult(fixtures[fixture])
 	});
-	return { sanitizeUserPrompt: clean, sanitizeModelResponse: clean };
+	return { sanitizeUserPrompt: canned, sanitizeModelResponse: canned };
 }

@@ -492,6 +492,8 @@ Click any row to see exactly what happened, including the full prompt that was s
 
 This is the product's first hard rule made visible: anything the interface shows about the engine's behaviour arrives as a typed event on the bus. There is no hidden machinery.
 
+**A redacted line.** When a guard that can rewrite text — Model Armor's Sensitive Data Protection, through a Guard brick or a component — reads a card number in what the bot is about to say, the bot's turn still runs, but with the guard's text. The recorder shows it as three rows: the bot's `decision` with its own words (`say("the card is 4111 1111 1111 1111")`), the `guardrail.checked` row with the verdict `redact` and the finding (`sensitive-data · sensitiveData`), and the `action.performed` row with what was actually said — `say("the card is [REDACTED]")` — and a `redacted by workshop/guard:decision` note. On a desk, the transcript line carries the same note as a chip beside it. The digest covers the rewritten line, because that is the event that was written; the original is on the decision row, where an audit can read it. An `annotate` verdict is the same shape with nothing rewritten: a finding on the `guardrail.checked` row, the turn unchanged.
+
 ## 10. The leaflet, Robot Friends and the Scrapbook
 
 ### 10.1 The instruction leaflet

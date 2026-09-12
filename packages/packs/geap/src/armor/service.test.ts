@@ -207,3 +207,17 @@ describe('the selectors', () => {
 		expect(armorSelectors['post-act'](ctx)).toBeUndefined();
 	});
 });
+
+describe('the offline stand-in and a redaction (WP96)', () => {
+	it('serves the fixture the config names, so a redaction can be rehearsed offline', async () => {
+		const client = modelArmorService.createOffline({
+			...CONFIG,
+			offlineFixture: 'sdp-deidentified'
+		});
+		const result = await client.screen(request({ hook: 'pre-act', context: 'seen' }));
+		expect('reading' in result && result.reading.redactedText).toBeDefined();
+		expect(
+			armorServiceConfigSchema.safeParse({ ...CONFIG, offlineFixture: 'no-such-fixture' }).success
+		).toBe(false);
+	});
+});
