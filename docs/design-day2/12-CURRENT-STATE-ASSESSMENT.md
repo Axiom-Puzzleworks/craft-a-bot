@@ -1,3 +1,5 @@
+> **Amended 2026-09-12:** the Day 6 foundations assessment — what exists, what is missing and decisions D10–D13 — is `83-TARGET-DESIGN-V6.md` §2.1; the load-bearing facts it was judged on are `83-…` §2.
+
 # 12 — Current-State Assessment (Day 2 baseline)
 
 > What V1.0 actually is at the end of Day 1: what works, what is fragile, why the bot underperforms in live play, and the defect register that Day 2 workstreams must burn down.

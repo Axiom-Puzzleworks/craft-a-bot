@@ -1,5 +1,7 @@
 # 64 — Target Design V5: The Bank in Motion — workflows, evidence and the three lenses
 
+> **Amended 2026-09-12:** the Day 5 sprint this design set out is built and merged (PR #48); `83-TARGET-DESIGN-V6.md` is now the target design and extends this one without replacing it — every contract here stands.
+>
 > **Status: proposed, 2026-09-09.** The Day 5 target, written against `main` at `4acafc1` (WP0–WP73 done, both UX fix passes merged, the UX register closed). It extends `41-TARGET-DESIGN-V4.md` — the Retail Financial Services Playground — and does not replace it: every contract in `41-…` §6 stands, and every section below names the one it grows. The implementation plan is `65-DAY5-ROADMAP.md` (Phases R–W, WP74–WP93), which cites this document section by section.
 >
 > **Revised 2026-09-09, later the same day**, after a conversation about where this goes: the simulator is to be published on axiom-verity.com as a member-gated section and presented beside the site's thought experiment — *Can a Small Team Govern an AI Bank?* — as the bottom-up half of one question. §6.9, tenet 26, the human-load metrics in §6.4, the `human-oversight` experiment and the autonomy-level labels on the reference configurations are that revision; nothing earlier in the document was removed.
