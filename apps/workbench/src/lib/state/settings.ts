@@ -94,6 +94,8 @@ export const settingsSchema = z.object({
 	lens: z.enum(['engineer', 'assurance', 'conduct', 'model-risk']).default('engineer'),
 	/** The lenses whose guided path this reader has dismissed (GAP-2). */
 	firstRunDismissed: z.array(z.string()).default([]),
+	/** Density per lens (WP109, `96-…` §2.3): absent, the lens's own default — dense for the analyst, comfortable for the board. */
+	density: z.record(z.string(), z.enum(['comfortable', 'dense'])).default({}),
 	schemaVersion: z.literal(1).default(1)
 });
 export type Settings = z.infer<typeof settingsSchema>;

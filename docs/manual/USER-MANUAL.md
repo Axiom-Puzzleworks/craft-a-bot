@@ -152,6 +152,7 @@ Conventions used throughout:
 50. Experiments and the Control Effectiveness Register
 51. The site
 52. Bringing a domain
+53. The palette, saved views and density
 
 **Appendices**
 A. Screen index
@@ -1867,6 +1868,27 @@ The output **passes the checklist as written** and **fails calibration review** 
 ### 52.4 The checklist
 
 `checkDomainPack(spec, registry, { manifests, personas })` returns an empty list or the items unmet — each with a stable `check` name (`domain.packs-registered`, `domain.journey-ships`, `domain.journey-out-why`, `domain.journey-obligations`, `domain.decision-kinds`, `domain.control-rows`, `domain.calibration`, `domain.special-category`, `domain.service-line-tiers`, `domain.personas`, `domain.journey-evidence`). The bank's own test (`packages/harness/src/domain-pack.test.ts`) shows every item red by removing one thing; copy its shape for yours. Four things the check cannot see from a manifest are the pack's own tests: the golden run, the red run, at least one matched pair, and the synthetic sweep over every fixture.
+
+
+## 53. The palette, saved views and density
+
+Three things the Workshop gained for the reader who lives in it (`96-CONTROL-ROOM-V3.md`; `83-…` §6.7.1). None changes what a screen shows; each changes how fast you reach it.
+
+### 53.1 The palette
+
+`Ctrl+K` (`⌘K` on a Mac), or *Go to…* on the rail, opens the palette on any Workshop route. Type a screen's name — in your lens's words, so the assurance reader types *Trials* where the engineer types *Campaigns* — an artefact's id or title (a run's bot and card, a campaign report's title, a workflow run's journey, an experiment's title, a stack, a saved view), or an action the screen you are on exposes (*Run campaign* on the Campaigns screen, *Fork from this tick* and *Explain this decision* in the Run Lab, *What if…* on the Pipeline). `↑` and `↓` move, `Enter` goes, `Escape` closes and puts focus back where it was. The match is fuzzy: the first characters of a run's id find it.
+
+### 53.2 Saved views
+
+A view is a URL. Set a screen up — the Run Browser's filter, the Campaigns screen's open report and stack, Compare's pair, the Pipeline's stage — and press *Save this view* on the rail; name it, and it sits under *Views* on the rail for the lens you saved it in. Opening one is a navigation; the filter comes back from the URL. The `×` beside a view removes it. Views live in the content store beside your cards and scenarios (§22) and never leave this machine unless you export them.
+
+### 53.3 Density
+
+*Comfortable* or *dense*, on the rail: dense tightens every table and the rail, comfortable gives them air. The setting is remembered per lens, and each lens starts with its own default — dense for the engineer and the model-risk reader, comfortable for the assurance and conduct readers. Density changes spacing and type size and nothing else: no number, row or column moves.
+
+### 53.4 Linked from
+
+The Run Lab, the Pipeline and an open campaign report each list what links to them — a run's campaign cell, workflow stage, forks and experiment; a workflow run's handoffs and forks; a report's experiment and the workflow runs it sourced — with every id a link.
 
 
 # Appendices

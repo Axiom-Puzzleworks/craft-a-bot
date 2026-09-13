@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import Lamp from '$lib/components/control-room/Lamp.svelte';
+	import LinkedFrom from '$lib/components/workshop/LinkedFrom.svelte';
+	import { registerActions } from '$lib/workshop/actions.svelte.js';
+	import { referrersOf, type Referrer } from '$lib/workshop/referrers.js';
 	import { statusOfOutcome } from '$lib/control-room/outcome.js';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
@@ -57,6 +60,44 @@
 	const runId = $derived(page.params.runId ?? '');
 
 	let run = $state<RunRecord | undefined>(undefined);
+	/** WP109 (`96-…` §2.4): what links to this run — its campaign cell, its workflow stage, its forks, its experiment. */
+	let linkedFrom = $state<Referrer[]>([]);
+	$effect(() => {
+		const id = run?.id;
+		if (!id) {
+			linkedFrom = [];
+			return;
+		}
+		void (async () => {
+			const storage = await appStorage();
+			const [runs, reports, workflowRuns, experiments] = await Promise.all([
+				storage.listRuns(),
+				storage.listCampaignReports(),
+				storage.listWorkflowRuns(),
+				storage.listExperimentResults()
+			]);
+			linkedFrom = referrersOf({ kind: 'run', id }, { runs, reports, workflowRuns, experiments });
+		})();
+	});
+	/** WP109 (`96-…` §2.1): the screen's actions, on the palette while it is open. */
+	$effect(() =>
+		registerActions([
+			{
+				id: 'run-lab/fork',
+				title: 'Fork from this tick',
+				screen: 'Run Lab',
+				run: () => void forkFromTick(),
+				disabled: !run
+			},
+			{
+				id: 'run-lab/explain',
+				title: showExplain ? 'Hide the explanation' : 'Explain this decision',
+				screen: 'Run Lab',
+				run: () => (showExplain = !showExplain),
+				disabled: !run
+			}
+		])
+	);
 	/**
 	 * Set instead of `run` when `runId` names a group episode, not a solo run
 	 * (WP29, `23-MULTI-AGENT-DESIGN.md` §5.2, §10 stage F) — "opening the group
@@ -494,6 +535,9 @@
 			</dl>
 		{/if}
 	</header>
+	{#if run}
+		<LinkedFrom links={linkedFrom} testId="run-linked-from" />
+	{/if}
 
 	<!-- A desk takes the row (UX-8): three panes in a third of the page were unreadable; the timeline and inspector sit beneath. -->
 	<div class="regions" class:regions--desk={isDeskWorldState(shown.world)}>

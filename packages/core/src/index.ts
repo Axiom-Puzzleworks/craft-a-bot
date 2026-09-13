@@ -755,3 +755,4 @@ export {
 	type CoverageStatus,
 	type GuardrailCatalogue
 } from './schemas/catalogue.js';
+export { savedViewSchema, type SavedView } from './schemas/view.js';

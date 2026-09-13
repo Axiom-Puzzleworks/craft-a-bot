@@ -2,6 +2,9 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
+	import LinkedFrom from '$lib/components/workshop/LinkedFrom.svelte';
+	import { registerActions } from '$lib/workshop/actions.svelte.js';
+	import { referrersOf, type Referrer } from '$lib/workshop/referrers.js';
 	import {
 		contextSpecFor,
 		type ContextSpec,
@@ -58,6 +61,20 @@
 		void load(runId, againstId);
 	});
 
+	let linkedFrom = $state<Referrer[]>([]);
+	/** WP109 (`96-…` §2.1): the screen's action on the palette. */
+	$effect(() =>
+		registerActions([
+			{
+				id: 'pipeline/what-if',
+				title: drawerOpen ? 'Close the what-if' : 'What if…',
+				screen: 'Pipeline',
+				run: () => (drawerOpen = !drawerOpen),
+				disabled: !stored?.item || !spec
+			}
+		])
+	);
+
 	async function load(id: string, other: string): Promise<void> {
 		const storage = await appStorage();
 		stored = await storage.getWorkflowRun(id);
@@ -69,11 +86,12 @@
 			}
 		}
 		storedRunIds = ids;
+		const all = await storage.listWorkflowRuns();
 		follower = stored?.run.handoff
-			? (await storage.listWorkflowRuns()).find((entry) =>
-					entry.run.handoffs?.some((link) => link.runId === stored?.run.id)
-				)
+			? all.find((entry) => entry.run.handoffs?.some((link) => link.runId === stored?.run.id))
 			: undefined;
+		// WP109 (`96-…` §2.4): what links to this run — the runs handed off from it and forked from it.
+		linkedFrom = stored ? referrersOf({ kind: 'workflow-run', id }, { workflowRuns: all }) : [];
 		// The Conduct lens opens the Pipeline at the governing stage (WP88, `79-…` §3): `?stage=` when the run has it.
 		const asked = page.url.searchParams.get('stage') ?? '';
 		selected ??=
@@ -153,6 +171,9 @@
 		<h1>Pipeline</h1>
 		<a href={resolve('/workshop/workflows')} data-testid="pipeline-back">← Workflows</a>
 	</header>
+	{#if stored}
+		<LinkedFrom links={linkedFrom} testId="pipeline-linked-from" />
+	{/if}
 
 	{#if !loaded}
 		<p class="status">Reading the store…</p>

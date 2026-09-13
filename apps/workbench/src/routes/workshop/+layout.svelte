@@ -2,6 +2,8 @@
 	import { page } from '$app/state';
 	import WorkshopRail from '$lib/components/workshop/WorkshopRail.svelte';
 	import FirstRun from '$lib/components/workshop/FirstRun.svelte';
+	import CommandPalette from '$lib/components/workshop/CommandPalette.svelte';
+	import { paletteState } from '$lib/workshop/palette-state.svelte.js';
 	import { preferences } from '$lib/state/preferences.svelte.js';
 	import { lensById } from '$lib/workshop/lens.js';
 	import { installGroupEpisodeEntryPoint } from '$lib/state/group-episode-entry-point.js';
@@ -40,6 +42,14 @@
 		routePath(page.url.pathname) === lens.entry && !preferences.firstRunDismissed.includes(lens.id)
 	);
 
+	/** WP109 (`96-CONTROL-ROOM-V3.md` §2.1): `Ctrl+K` / `⌘K` opens the palette from any Workshop route. */
+	function onKeydown(event: KeyboardEvent): void {
+		if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === 'k') {
+			event.preventDefault();
+			paletteState.toggle();
+		}
+	}
+
 	const current = $derived.by(() => {
 		const path = routePath(page.url.pathname);
 		if (path.startsWith('/workshop/runs')) return 'runs' as const;
@@ -71,15 +81,19 @@
 	});
 </script>
 
+<svelte:window onkeydown={onKeydown} />
+
 <!-- The two finishes (WP73, `62-…` §4.2): set once here; every instrument reads them with its own rule as the fallback. -->
 <div
 	class="workshop"
 	data-mode="workshop"
+	data-density={preferences.density}
 	data-testid="workshop"
 	style:--cab-finish-metal={FINISH_PROPERTIES['--cab-finish-metal']}
 	style:--cab-finish-graph={FINISH_PROPERTIES['--cab-finish-graph']}
 >
 	<WorkshopRail {current} />
+	<CommandPalette />
 	<div class="stage">
 		{#if showFirstRun}
 			<FirstRun {lens} onDismiss={() => preferences.dismissFirstRun(lens.id)} />
@@ -101,6 +115,29 @@
 	.stage {
 		min-width: 0;
 		padding: var(--cab-space-4);
+	}
+
+	/*
+	 * Density (WP109, `96-CONTROL-ROOM-V3.md` §2.3): `dense` tightens every
+	 * table's cell and every rail row and nothing else — no column, no row,
+	 * no number, no order. A fold is not a layout; the e2e holds every route's
+	 * text equal under both.
+	 */
+	.workshop[data-density='dense'] :global(table th),
+	.workshop[data-density='dense'] :global(table td) {
+		padding-top: 1px;
+		padding-bottom: 1px;
+		font-size: var(--cab-text-xs);
+	}
+
+	.workshop[data-density='dense'] :global(nav.rail ul a),
+	.workshop[data-density='dense'] :global(nav.rail ul .pending) {
+		padding-top: 2px;
+		padding-bottom: 2px;
+	}
+
+	.workshop[data-density='dense'] .stage {
+		padding: var(--cab-space-3);
 	}
 
 	@media (max-width: 700px) {

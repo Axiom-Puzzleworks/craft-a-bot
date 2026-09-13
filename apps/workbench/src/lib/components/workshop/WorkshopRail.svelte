@@ -1,7 +1,19 @@
 <script lang="ts">
-	import { resolve } from '$app/paths';
 	import { preferences } from '$lib/state/preferences.svelte.js';
-	import { LENSES, lensById, railLabel, type LensId, type RailId } from '$lib/workshop/lens.js';
+	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
+	import { contentStore } from '$lib/state/content.svelte.js';
+	import { paletteState } from '$lib/workshop/palette-state.svelte.js';
+	import { viewFromUrl, viewHref, viewsFor } from '$lib/workshop/views.js';
+	import { routePath } from '$lib/edition.js';
+	import {
+		LENSES,
+		RAIL_HREF,
+		lensById,
+		railLabel,
+		type Density,
+		type LensId
+	} from '$lib/workshop/lens.js';
 
 	/**
 	 * The Workshop's persistent left rail (`17-…` §2).
@@ -54,37 +66,33 @@
 	 * was. A lens hides nothing — every group is drawn, the reader's first.
 	 */
 	const lens = $derived(lensById(preferences.lens));
-	const HREF: Partial<Record<RailId, string>> = {
-		dashboard: '/workshop',
-		runs: '/workshop/runs',
-		evals: '/workshop/evals',
-		campaigns: '/workshop/campaigns',
-		workflows: '/workshop/workflows',
-		evaluators: '/workshop/evaluators',
-		scenarios: '/workshop/scenarios',
-		sinks: '/workshop/sinks',
-		evidence: '/workshop/evidence',
-		playground: '/workshop/playground',
-		policies: '/workshop/policies',
-		bench: '/workshop/bench',
-		telemetry: '/workshop/telemetry',
-		monitor: '/workshop/monitor',
-		conduct: '/workshop/conduct',
-		'model-risk': '/workshop/model-risk',
-		experiments: '/workshop/experiments',
-		incidents: '/workshop/incidents',
-		'safety-case': '/workshop/safety-case',
-		assurance: '/workshop/assurance',
-		catalogue: '/workshop/catalogue',
-		export: '/workshop/export',
-		studio: '/workshop/studio'
-	};
 	const groups = $derived(
 		lens.rail.map((group) => ({
 			group: group.group,
-			entries: group.routes.map((id) => ({ id, label: railLabel(lens, id), href: HREF[id] }))
+			entries: group.routes.map((id) => ({ id, label: railLabel(lens, id), href: RAIL_HREF[id] }))
 		}))
 	);
+
+	/** WP109 (`96-CONTROL-ROOM-V3.md` §2.2): the lens's saved views, and the form that saves the current URL as one. */
+	const views = $derived(viewsFor(contentStore.records, lens.id));
+	let savingView = $state(false);
+	let viewTitle = $state('');
+	async function saveView(): Promise<void> {
+		const title = viewTitle.trim();
+		if (!title) return;
+		// The browser's URL, not `page.url`: a screen's `replaceState` (the Run Browser's filter) lands in the former first.
+		await contentStore.save(viewFromUrl(lens.id, new URL(location.href), title, routePath));
+		viewTitle = '';
+		savingView = false;
+	}
+	const isCurrentView = (href: string): boolean =>
+		`${routePath(page.url.pathname)}${page.url.search}` === href ||
+		(typeof location !== 'undefined' &&
+			`${routePath(location.pathname)}${location.search}` === href);
+	const setDensity = (value: Density) => preferences.setDensity(value);
+	/** `resolve` puts the base on the route and drops a search; the view's search goes back on. */
+	const hrefOf = (view: { route: string; search: string }): string =>
+		`${resolve(view.route as '/workshop')}${view.search}`;
 </script>
 
 <nav class="rail" aria-label="Workshop">
@@ -153,6 +161,95 @@
 			{/each}
 		</ul>
 	{/each}
+	<section class="views" aria-label="Saved views" data-testid="rail-views">
+		<h2 class="group">Views</h2>
+		{#if views.length === 0}
+			<p class="none" data-testid="rail-views-none">None saved for this lens.</p>
+		{:else}
+			<ul>
+				{#each views as view (view.id)}
+					<li class="view">
+						<!-- eslint-disable svelte/no-navigation-without-resolve -- resolve() builds the base path in hrefOf; its typed surface has no way to attach the view's query the rule can verify statically (the Pipeline's exception). -->
+						<a
+							href={hrefOf(view)}
+							aria-current={isCurrentView(viewHref(view)) ? 'page' : undefined}
+							data-testid="rail-view-{view.id.slice('local/views/'.length)}">{view.title}</a
+						>
+						<!-- eslint-enable svelte/no-navigation-without-resolve -->
+						<button
+							type="button"
+							class="remove"
+							aria-label="Remove the view {view.title}"
+							data-testid="rail-view-remove-{view.id.slice('local/views/'.length)}"
+							onclick={() => void contentStore.remove(view.id)}>×</button
+						>
+					</li>
+				{/each}
+			</ul>
+		{/if}
+		{#if savingView}
+			<form
+				class="save"
+				onsubmit={(event) => {
+					event.preventDefault();
+					void saveView();
+				}}
+			>
+				<label>
+					<span class="visually-hidden">The view's name</span>
+					<input
+						type="text"
+						bind:value={viewTitle}
+						placeholder="Name this view"
+						data-testid="rail-view-title"
+						required
+					/>
+				</label>
+				<button type="submit" data-testid="rail-view-save-confirm">Save</button>
+				<button type="button" onclick={() => (savingView = false)}>Cancel</button>
+			</form>
+		{:else}
+			<button
+				type="button"
+				class="save-view"
+				data-testid="rail-view-save"
+				onclick={() => (savingView = true)}>Save this view</button
+			>
+		{/if}
+	</section>
+	<div class="tools">
+		<button
+			type="button"
+			class="goto"
+			data-testid="rail-palette"
+			onclick={() => paletteState.open()}
+		>
+			Go to… <kbd>Ctrl K</kbd>
+		</button>
+		<fieldset class="density" data-testid="rail-density">
+			<legend>Density</legend>
+			<label
+				><input
+					type="radio"
+					name="density"
+					value="comfortable"
+					checked={preferences.density === 'comfortable'}
+					onchange={() => setDensity('comfortable')}
+					data-testid="density-comfortable"
+				/>Comfortable</label
+			>
+			<label
+				><input
+					type="radio"
+					name="density"
+					value="dense"
+					checked={preferences.density === 'dense'}
+					onchange={() => setDensity('dense')}
+					data-testid="density-dense"
+				/>Dense</label
+			>
+		</fieldset>
+	</div>
 	<a class="back" href={resolve('/')}>← The Kit</a>
 </nav>
 
@@ -260,5 +357,108 @@
 	.back {
 		margin-top: auto;
 		font-size: var(--cab-text-xs);
+	}
+
+	/* WP109: the views, the palette's door and the density switch. */
+	.views {
+		display: grid;
+		gap: 2px;
+	}
+
+	.views .none {
+		margin: 0;
+		font-size: var(--cab-text-xs);
+		color: var(--cab-cream-muted);
+	}
+
+	.view {
+		display: flex;
+		align-items: baseline;
+		gap: 2px;
+	}
+
+	.view a {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.remove,
+	.save-view,
+	.goto,
+	.save button {
+		font: inherit;
+		font-size: var(--cab-text-xs);
+		padding: 2px var(--cab-space-2);
+		color: var(--cab-cream);
+		background: transparent;
+		border: 1px solid var(--cab-cream-muted);
+		border-radius: var(--cab-radius-part);
+		cursor: pointer;
+	}
+
+	.remove {
+		border: 0;
+		padding: 2px 4px;
+	}
+
+	.save {
+		display: grid;
+		gap: 2px;
+	}
+
+	.save input {
+		width: 100%;
+		font: inherit;
+		font-size: var(--cab-text-xs);
+	}
+
+	.tools {
+		display: grid;
+		gap: var(--cab-space-2);
+	}
+
+	.goto {
+		display: flex;
+		justify-content: space-between;
+		gap: var(--cab-space-2);
+		text-align: left;
+	}
+
+	.goto kbd {
+		font-size: var(--cab-text-xs);
+		color: var(--cab-cream-muted);
+	}
+
+	.density {
+		display: grid;
+		gap: 2px;
+		margin: 0;
+		padding: var(--cab-space-1) var(--cab-space-2);
+		border: 1px solid var(--cab-cream-muted);
+		border-radius: var(--cab-radius-part);
+		font-size: var(--cab-text-xs);
+		color: var(--cab-cream);
+	}
+
+	.density legend {
+		padding: 0 2px;
+		color: var(--cab-cream-muted);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+	}
+
+	.density label {
+		display: flex;
+		gap: var(--cab-space-1);
+		align-items: center;
+	}
+
+	.visually-hidden {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip: rect(0 0 0 0);
+		white-space: nowrap;
 	}
 </style>

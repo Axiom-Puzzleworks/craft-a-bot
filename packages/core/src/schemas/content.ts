@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { stackSchema, type Stack } from './stack.js';
+import { savedViewSchema } from './view.js';
 import { assertionCardSchema, type AssertionCard } from './assertion-card.js';
 import type { PackManifest } from './pack-manifest.js';
 import { policyCardSchema, type PolicyCard } from './policy-card.js';
@@ -22,7 +23,9 @@ export const contentKindSchema = z.enum([
 	'assertion-card',
 	'scenario',
 	'campaign',
-	'stack'
+	'stack',
+	// WP109 (`96-CONTROL-ROOM-V3.md` §2.2): a saved view — a Workshop URL with a title, under a lens.
+	'view'
 ]);
 export type ContentKind = z.infer<typeof contentKindSchema>;
 
@@ -33,7 +36,8 @@ export const CONTENT_SEGMENT: Record<ContentKind, string> = {
 	scenario: 'scenarios',
 	campaign: 'campaigns',
 	// WP97 (`89-STACKS.md`): a user's stack, beside the pack-shipped ones.
-	stack: 'stacks'
+	stack: 'stacks',
+	view: 'views'
 };
 
 export function isLocalId(id: string): boolean {
@@ -54,7 +58,7 @@ export function localContentId(kind: ContentKind, slug: string): string {
 
 const localIdSchema = z
 	.string()
-	.regex(/^local\/(policy|testbench|scenarios|campaigns|stacks)\/[a-z0-9][a-z0-9-]*$/, {
+	.regex(/^local\/(policy|testbench|scenarios|campaigns|stacks|views)\/[a-z0-9][a-z0-9-]*$/, {
 		message: 'a local content id is local/<segment>/<slug>'
 	});
 
@@ -104,6 +108,8 @@ function innerSchemaFor(kind: ContentKind): z.ZodType | undefined {
 			return assertionCardSchema;
 		case 'scenario':
 			return scenarioDefinitionSchema;
+		case 'view':
+			return savedViewSchema;
 		case 'campaign':
 			return undefined;
 	}
@@ -163,6 +169,9 @@ export function localPackFrom(records: readonly ContentRecord[]): PackManifest {
 				break;
 			case 'stack':
 				stacks.push(stackSchema.parse(entry.record));
+				break;
+			case 'view':
+				// A view is the Workshop's, never a pack's.
 				break;
 			case 'campaign':
 				break;

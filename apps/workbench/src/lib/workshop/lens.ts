@@ -340,3 +340,39 @@ export function railLabel(lens: Lens, id: RailId): string {
 	}
 	return RAIL_LABELS[id];
 }
+
+/** Where each rail destination lives (WP109 moved it here from the rail so the palette lists the same routes). The Spec Lab has none: it is always about a particular bot. */
+export const RAIL_HREF: Partial<Record<RailId, string>> = {
+	dashboard: '/workshop',
+	runs: '/workshop/runs',
+	evals: '/workshop/evals',
+	campaigns: '/workshop/campaigns',
+	workflows: '/workshop/workflows',
+	evaluators: '/workshop/evaluators',
+	scenarios: '/workshop/scenarios',
+	sinks: '/workshop/sinks',
+	evidence: '/workshop/evidence',
+	playground: '/workshop/playground',
+	policies: '/workshop/policies',
+	bench: '/workshop/bench',
+	telemetry: '/workshop/telemetry',
+	monitor: '/workshop/monitor',
+	conduct: '/workshop/conduct',
+	'model-risk': '/workshop/model-risk',
+	experiments: '/workshop/experiments',
+	incidents: '/workshop/incidents',
+	'safety-case': '/workshop/safety-case',
+	assurance: '/workshop/assurance',
+	catalogue: '/workshop/catalogue',
+	export: '/workshop/export',
+	studio: '/workshop/studio'
+};
+
+/** Density (WP109, `96-CONTROL-ROOM-V3.md` §2.3): `dense` is the analyst's default, `comfortable` the board's. */
+export type Density = 'comfortable' | 'dense';
+export const DEFAULT_DENSITY: Record<LensId, Density> = {
+	engineer: 'dense',
+	'model-risk': 'dense',
+	assurance: 'comfortable',
+	conduct: 'comfortable'
+};
