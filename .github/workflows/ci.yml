@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, day6]
+    branches: [main, day5]
   pull_request:
 
 jobs:
@@ -57,9 +57,7 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      # TEMP (reverted in the next commit): re-take the Linux baselines with `settle` measuring at the base viewport.
-      - run: npx playwright test --project visual --update-snapshots
-        working-directory: apps/workbench
+      - run: npm run e2e:visual
 
       - name: Upload the screenshots and the diffs
         if: always()
@@ -194,8 +192,8 @@ jobs:
       - name: Hold the reduced results to the committed shape
         run: node scripts/experiment-shape.mjs docs/evidence campaign-out/experiments-shape
 
-      # A day at the bank (WP83, `71-THE-CLOCK.md` §5; three desks since WP85, `76-…` §5; seven desks since WP106, `92-…` §5):
-      # the lending, fraud, advice, complaints, onboarding, disputes, collections and servicing desks work a day's applications, alerts and requests over a 500-customer
+      # A day at the bank (WP83, `71-THE-CLOCK.md` §5; three desks since WP85, `76-…` §5): the lending,
+      # fraud and advice desks work a day's applications, alerts and requests over a 500-customer
       # population at Infinity; the BankRun and every run are uploaded with the rest.
       - name: Run a day at the bank
         run: >
@@ -207,63 +205,6 @@ jobs:
           npm run craftabot -- campaign --file campaigns/fs-lending-baseline.json --strict --egress none
           --out campaign-out/fs-lending --junit campaign-out/fs-lending/junit.xml --sarif campaign-out/fs-lending/results.sarif
           --markdown campaign-out/fs-lending/scorecard.md
-
-      # The Onboarding Desk baseline (WP103, `95-FS-ONBOARDING.md` §4.6): the tipping-off pair as
-      # gates — the match named unguarded by the adversary, contained under the cards on every brain.
-      # Fails the build when A hit is never said is removed.
-      - name: Run the Onboarding Desk baseline
-        run: >
-          npm run craftabot -- campaign --file campaigns/fs-onboarding-baseline.json --strict --egress none
-          --out campaign-out/fs-onboarding --junit campaign-out/fs-onboarding/junit.xml --sarif campaign-out/fs-onboarding/results.sarif
-          --markdown campaign-out/fs-onboarding/scorecard.md
-
-      - name: Run the onboarding book campaign
-        run: >
-          npm run craftabot -- campaign --file campaigns/fs-onboarding-book.json --strict --egress none
-          --out campaign-out/fs-onboarding-book --junit campaign-out/fs-onboarding-book/junit.xml
-          --sarif campaign-out/fs-onboarding-book/results.sarif --markdown campaign-out/fs-onboarding-book/scorecard.md
-
-      # The Disputes Desk baseline (WP104, `90-FS-DISPUTES.md` §6): the hold, the limit and the
-      # classification as gates. Fails the build when Within the limit is removed.
-      - name: Run the Disputes Desk baseline
-        run: >
-          npm run craftabot -- campaign --file campaigns/fs-disputes-baseline.json --strict --egress none
-          --out campaign-out/fs-disputes --junit campaign-out/fs-disputes/junit.xml --sarif campaign-out/fs-disputes/results.sarif
-          --markdown campaign-out/fs-disputes/scorecard.md
-
-      - name: Run the disputes book campaign
-        run: >
-          npm run craftabot -- campaign --file campaigns/fs-disputes-book.json --strict --egress none
-          --out campaign-out/fs-disputes-book --junit campaign-out/fs-disputes-book/junit.xml
-          --sarif campaign-out/fs-disputes-book/results.sarif --markdown campaign-out/fs-disputes-book/scorecard.md
-
-      # The Collections Desk baseline (WP105, `91-FS-COLLECTIONS.md` §6): the circumstances, the notice and
-      # the matched pair as gates. Fails the build when No default notice before circumstances is removed.
-      - name: Run the Collections Desk baseline
-        run: >
-          npm run craftabot -- campaign --file campaigns/fs-collections-baseline.json --strict --egress none
-          --out campaign-out/fs-collections --junit campaign-out/fs-collections/junit.xml --sarif campaign-out/fs-collections/results.sarif
-          --markdown campaign-out/fs-collections/scorecard.md
-
-      - name: Run the arrears book campaign
-        run: >
-          npm run craftabot -- campaign --file campaigns/fs-collections-book.json --strict --egress none
-          --out campaign-out/fs-collections-book --junit campaign-out/fs-collections-book/junit.xml
-          --sarif campaign-out/fs-collections-book/results.sarif --markdown campaign-out/fs-collections-book/scorecard.md
-
-      # The Servicing Desk baseline (WP106, `92-FS-SERVICING.md` §6): the verification, the disclosure and
-      # the needs met as gates. Fails the build when Verify before act is removed.
-      - name: Run the Servicing Desk baseline
-        run: >
-          npm run craftabot -- campaign --file campaigns/fs-servicing-baseline.json --strict --egress none
-          --out campaign-out/fs-servicing --junit campaign-out/fs-servicing/junit.xml --sarif campaign-out/fs-servicing/results.sarif
-          --markdown campaign-out/fs-servicing/scorecard.md
-
-      - name: Run the servicing book campaign
-        run: >
-          npm run craftabot -- campaign --file campaigns/fs-servicing-book.json --strict --egress none
-          --out campaign-out/fs-servicing-book --junit campaign-out/fs-servicing-book/junit.xml
-          --sarif campaign-out/fs-servicing-book/results.sarif --markdown campaign-out/fs-servicing-book/scorecard.md
 
       # The Complaints Desk baseline (WP72, `61-LAST-DECKS.md` §4.2): the complaints-and-redress
       # deck, unguarded and with the redress card — 168 scripted cells. Fails the build when
