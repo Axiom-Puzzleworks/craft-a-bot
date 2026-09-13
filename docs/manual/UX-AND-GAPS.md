@@ -693,3 +693,18 @@ Worth recording, because a list of complaints is a misleading picture of this bu
 - **The campaign report.** Gates, cells, cases and four export formats, from a file that CI runs unchanged. That is the product's proof and it works.
 - **The assurance pack.** Eight sections, 52 mapped rows, a digest, and a self-contained HTML file a reviewer can open with nothing installed. With UX-3 fixed it is ready to send.
 - **The simulation notice**, on every desk view and every filed artefact. Keep it.
+
+---
+
+## 8. The third pass — 2026-09-13 (WP110, `97-ACCESS.md`)
+
+The register was reopened at the close of Day 6 for the two gaps the roadmap named and for the access work, and closed by the re-test recorded here.
+
+| # | Was | Now | How it was verified |
+|---|---|---|---|
+| **GAP-1** | A control-map row could never stop being `unreviewed` from inside the product; accepting one was a content edit | **Resolved:** a *review* on the Assurance screen writes a `control-review` record beside the pack's row — *reviewed* or *disputed*, a note, the reader's name — and the assurance pack files it beside the row. The pack's own status is never edited; review is content (`97-…` decision 4) | `assurance-pack.test.ts` (the review filed and rendered), `e2e/assurance.spec.ts` (a row reviewed on the screen) |
+| **GAP-5** | *Talk to this desk* was half-arrived: a desk could be talked to, but not through a stack on a bench | **Resolved:** the Studio's bench asks who sits across the desk — the scripted persona or a live cartridge — and carries it on the campaign it runs as WP64's `counterpart` | `studio.test.ts` (the campaign carries it), `e2e/studio.spec.ts` |
+| **UX-7** | The Boundary's labels collided where the ring was crowded | Resolved in WP86 and held by `boundary.spec.ts`; re-confirmed on the bank's seven-ring map | `e2e/pipeline.spec.ts`'s overlap test |
+| Access | The canvases could be seen and not read; the rail took every `Tab` before the content | **Resolved:** list twins for every drawing, keyboard models, the skip link, one landmark and heading per route, focus returned by every drawer; the reader's walk, the zoom and reduced-motion snapshots and axe in one CI job | `e2e/access.spec.ts`, `e2e/access-visual.spec.ts`, `e2e/a11y-workshop.spec.ts` |
+
+**What the re-test saw.** Every Workshop route opens with the skip link as its first stop and reaches the content; the Journey Canvas, the Boundary and the Studio's points read their twins' rows at every stop; the Pipeline's what-if drawer gives the button its focus back; the Monitor's tiles are described by their queue rows. The two gaps close as designed. Nothing new was raised. The register is closed again; GAP-3 (cohorts outside a campaign) stays deferred as recorded in §4.

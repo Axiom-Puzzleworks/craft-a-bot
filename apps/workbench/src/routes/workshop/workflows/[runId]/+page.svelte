@@ -3,6 +3,7 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import LinkedFrom from '$lib/components/workshop/LinkedFrom.svelte';
+	import { captureOpener, returnFocus } from '$lib/a11y/return-focus.js';
 	import { registerActions } from '$lib/workshop/actions.svelte.js';
 	import { referrersOf, type Referrer } from '$lib/workshop/referrers.js';
 	import {
@@ -62,6 +63,36 @@
 	});
 
 	let linkedFrom = $state<Referrer[]>([]);
+	/** WP110 (`97-ACCESS.md` §1): the rail's keyboard model — `↑`/`↓` between the stage cards, `Home`/`End`; the list twin is the Journey List beside the Canvas. */
+	function onRailKey(
+		event: KeyboardEvent,
+		testId: string,
+		stages: readonly { stageId: string }[],
+		stageId: string
+	): void {
+		const index = stages.findIndex((record) => record.stageId === stageId);
+		let next: number;
+		switch (event.key) {
+			case 'ArrowDown':
+			case 'ArrowRight':
+				next = (index + 1) % stages.length;
+				break;
+			case 'ArrowUp':
+			case 'ArrowLeft':
+				next = (index - 1 + stages.length) % stages.length;
+				break;
+			case 'Home':
+				next = 0;
+				break;
+			case 'End':
+				next = stages.length - 1;
+				break;
+			default:
+				return;
+		}
+		event.preventDefault();
+		document.getElementById(`${testId}-stage-${stages[next]?.stageId ?? ''}`)?.focus();
+	}
 	/** WP109 (`96-…` §2.1): the screen's action on the palette. */
 	$effect(() =>
 		registerActions([
@@ -118,6 +149,12 @@
 
 	// ── What if ──────────────────────────────────────────────────────────
 	let drawerOpen = $state(false);
+	/** WP110 (`97-ACCESS.md` §1): the drawer's opener, given focus back when it closes. */
+	let drawerOpener: HTMLElement | undefined;
+	$effect(() => {
+		if (drawerOpen) drawerOpener = captureOpener();
+		else returnFocus(drawerOpener);
+	});
 	let choice = $state('default');
 	let knobKey = $state('');
 	let knobValue = $state('');
@@ -262,7 +299,9 @@
 								class="card"
 								class:card--selected={record.stageId === selected}
 								onclick={() => (selected = record.stageId)}
+								onkeydown={(event) => onRailKey(event, testId, entry.run.stages, record.stageId)}
 								aria-pressed={record.stageId === selected}
+								id="{testId}-stage-{record.stageId}"
 								data-testid="{testId}-stage-{record.stageId}"
 								data-status={record.status}
 							>

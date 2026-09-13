@@ -111,112 +111,114 @@
 
 <svelte:head><title>The Servicing Desk — Workshop</title></svelte:head>
 
-<p class="crumb"><a href={resolve('/workshop/playground')}>← The Playground</a></p>
-<h1>The Servicing Desk</h1>
-<p class="lede">
-	The bank’s servicing assistant: identify the caller against the file before anything else,
-	classify the request — an address, a card, access for a third party, a disclosure, a bereavement —
-	act on it only once the caller is verified and only as the request calls for, record any support
-	need as the caller said it before the act, and close an account only when a person has agreed. A
-	bereavement’s estate goes to the advice desk; a disclosed need on a customer in arrears goes to
-	the collections desk with the need on the item. Five cards, ten scenarios, four policy cards, four
-	evaluators, one campaign — none of it real.
-</p>
-<p class="simulation" data-testid="servicing-simulation-only">FOR SIMULATION ONLY</p>
+<main>
+	<p class="crumb"><a href={resolve('/workshop/playground')}>← The Playground</a></p>
+	<h1>The Servicing Desk</h1>
+	<p class="lede">
+		The bank’s servicing assistant: identify the caller against the file before anything else,
+		classify the request — an address, a card, access for a third party, a disclosure, a bereavement
+		— act on it only once the caller is verified and only as the request calls for, record any
+		support need as the caller said it before the act, and close an account only when a person has
+		agreed. A bereavement’s estate goes to the advice desk; a disclosed need on a customer in
+		arrears goes to the collections desk with the need on the item. Five cards, ten scenarios, four
+		policy cards, four evaluators, one campaign — none of it real.
+	</p>
+	<p class="simulation" data-testid="servicing-simulation-only">FOR SIMULATION ONLY</p>
 
-<section aria-label="Generate a case">
-	<Strip label="A case" icon="desk">
-		<label class="pick">
-			Layout
-			<select bind:value={layoutId} data-testid="servicing-layout">
-				{#each servicingDesk.layouts as layout (layout.id)}
-					<option value={layout.id}>{layout.name}</option>
-				{/each}
-			</select>
-		</label>
-		<label class="pick">
-			Seed
-			<input type="number" min="1" step="1" bind:value={seed} data-testid="servicing-seed" />
-		</label>
-		<button type="button" onclick={generate} data-testid="servicing-generate">Generate</button>
-		{#if snapshot && request}
-			<Readout label="Applicant" value={snapshot.desk.role} testId="servicing-role" />
-			<Readout label="On file" value={hidden.length} testId="servicing-hidden-count" />
-			<Readout label="Authority" value={request.authority} testId="servicing-authority" />
-			<Readout label="Given as" value={request.given.name} testId="servicing-given" />
-		{/if}
-	</Strip>
-</section>
+	<section aria-label="Generate a case">
+		<Strip label="A case" icon="desk">
+			<label class="pick">
+				Layout
+				<select bind:value={layoutId} data-testid="servicing-layout">
+					{#each servicingDesk.layouts as layout (layout.id)}
+						<option value={layout.id}>{layout.name}</option>
+					{/each}
+				</select>
+			</label>
+			<label class="pick">
+				Seed
+				<input type="number" min="1" step="1" bind:value={seed} data-testid="servicing-seed" />
+			</label>
+			<button type="button" onclick={generate} data-testid="servicing-generate">Generate</button>
+			{#if snapshot && request}
+				<Readout label="Applicant" value={snapshot.desk.role} testId="servicing-role" />
+				<Readout label="On file" value={hidden.length} testId="servicing-hidden-count" />
+				<Readout label="Authority" value={request.authority} testId="servicing-authority" />
+				<Readout label="Given as" value={request.given.name} testId="servicing-given" />
+			{/if}
+		</Strip>
+	</section>
 
-{#if snapshot}
+	{#if snapshot}
+		<div class="panes">
+			<section aria-label="On the desk">
+				<h2>On the desk</h2>
+				<CaseFile {records} testId="servicing-revealed" />
+			</section>
+			<section aria-label="On file">
+				<h2>On file — what the check would earn</h2>
+				<CaseFile
+					records={hidden}
+					truth={truth?.records}
+					facts={truth?.facts}
+					testId="servicing-hidden"
+				/>
+			</section>
+		</div>
+	{/if}
+
+	<section aria-label="The decks">
+		<h2>
+			The {DECK_WORDS[SERVICING_DECKS.length] ?? SERVICING_DECKS.length} decks — {servicingScenarios.length}
+			scenarios
+		</h2>
+		<CaseTable columns={deckColumns} rows={deckRows} testId="servicing-decks" />
+		<p>
+			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- resolve() builds the base path (campaignHref above); its typed surface has no way to attach the ?baseline= query the rule can verify statically (the same exception the lending page takes). -->
+			<a class="run-campaign" href={campaignHref} data-testid="servicing-run-campaign"
+				>Run this desk’s campaign →</a
+			>
+		</p>
+	</section>
+
 	<div class="panes">
-		<section aria-label="On the desk">
-			<h2>On the desk</h2>
-			<CaseFile {records} testId="servicing-revealed" />
+		<section aria-label="The policy cards">
+			<h2>The four policy cards</h2>
+			<ul class="list" data-testid="servicing-cards">
+				{#each servicingPolicyCards as card (card.id)}
+					<li data-testid="servicing-card-{card.id.replace('fs-servicing/policy/', '')}">
+						<strong>{card.title}</strong> — {card.description}
+					</li>
+				{/each}
+			</ul>
 		</section>
-		<section aria-label="On file">
-			<h2>On file — what the check would earn</h2>
-			<CaseFile
-				records={hidden}
-				truth={truth?.records}
-				facts={truth?.facts}
-				testId="servicing-hidden"
-			/>
+		<section aria-label="The evaluators">
+			<h2>The evaluators</h2>
+			<ul class="list" data-testid="servicing-evaluators">
+				{#each servicingEvaluators as evaluator (evaluator.id)}
+					<li data-testid="servicing-evaluator-{evaluator.id.replace('fs-servicing/', '')}">
+						<strong>{evaluator.name}</strong>
+						<span class="kind" data-kind={evaluator.kind}>{evaluator.kind}</span>
+						{#if evaluator.reads?.includes('truth')}<span class="kind">reads truth</span>{/if}
+						— {evaluator.description}
+					</li>
+				{/each}
+			</ul>
 		</section>
 	</div>
-{/if}
 
-<section aria-label="The decks">
-	<h2>
-		The {DECK_WORDS[SERVICING_DECKS.length] ?? SERVICING_DECKS.length} decks — {servicingScenarios.length}
-		scenarios
-	</h2>
-	<CaseTable columns={deckColumns} rows={deckRows} testId="servicing-decks" />
-	<p>
-		<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- resolve() builds the base path (campaignHref above); its typed surface has no way to attach the ?baseline= query the rule can verify statically (the same exception the lending page takes). -->
-		<a class="run-campaign" href={campaignHref} data-testid="servicing-run-campaign"
-			>Run this desk’s campaign →</a
-		>
-	</p>
-</section>
-
-<div class="panes">
-	<section aria-label="The policy cards">
-		<h2>The four policy cards</h2>
-		<ul class="list" data-testid="servicing-cards">
-			{#each servicingPolicyCards as card (card.id)}
-				<li data-testid="servicing-card-{card.id.replace('fs-servicing/policy/', '')}">
-					<strong>{card.title}</strong> — {card.description}
-				</li>
-			{/each}
-		</ul>
+	<section aria-label="The boundary">
+		<h2>The campaign’s build, on the map</h2>
+		<p>
+			The desk bot at the centre with the four cards on its Safety Brick, the desk inside the
+			boundary, and the bank’s CRM line outside. The build <code
+				>campaigns/fs-servicing-baseline.json</code
+			>
+			runs under three guards, with the verification, the disclosure and the needs met as its gates.
+		</p>
+		<Boundary {map} testId="servicing-map" />
 	</section>
-	<section aria-label="The evaluators">
-		<h2>The evaluators</h2>
-		<ul class="list" data-testid="servicing-evaluators">
-			{#each servicingEvaluators as evaluator (evaluator.id)}
-				<li data-testid="servicing-evaluator-{evaluator.id.replace('fs-servicing/', '')}">
-					<strong>{evaluator.name}</strong>
-					<span class="kind" data-kind={evaluator.kind}>{evaluator.kind}</span>
-					{#if evaluator.reads?.includes('truth')}<span class="kind">reads truth</span>{/if}
-					— {evaluator.description}
-				</li>
-			{/each}
-		</ul>
-	</section>
-</div>
-
-<section aria-label="The boundary">
-	<h2>The campaign’s build, on the map</h2>
-	<p>
-		The desk bot at the centre with the four cards on its Safety Brick, the desk inside the
-		boundary, and the bank’s CRM line outside. The build <code
-			>campaigns/fs-servicing-baseline.json</code
-		>
-		runs under three guards, with the verification, the disclosure and the needs met as its gates.
-	</p>
-	<Boundary {map} testId="servicing-map" />
-</section>
+</main>
 
 <style>
 	.crumb {

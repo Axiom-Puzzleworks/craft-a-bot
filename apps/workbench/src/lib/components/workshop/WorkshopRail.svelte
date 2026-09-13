@@ -4,6 +4,7 @@
 	import { page } from '$app/state';
 	import { contentStore } from '$lib/state/content.svelte.js';
 	import { paletteState } from '$lib/workshop/palette-state.svelte.js';
+	import { captureOpener, returnFocus } from '$lib/a11y/return-focus.js';
 	import { viewFromUrl, viewHref, viewsFor } from '$lib/workshop/views.js';
 	import { routePath } from '$lib/edition.js';
 	import {
@@ -77,6 +78,12 @@
 	const views = $derived(viewsFor(contentStore.records, lens.id));
 	let savingView = $state(false);
 	let viewTitle = $state('');
+	/** WP110: the form is a small drawer; when it closes, focus returns to the button that opened it. */
+	let saveOpener: HTMLElement | undefined;
+	$effect(() => {
+		if (savingView) saveOpener = captureOpener();
+		else returnFocus(saveOpener);
+	});
 	async function saveView(): Promise<void> {
 		const title = viewTitle.trim();
 		if (!title) return;
@@ -111,55 +118,58 @@
 		</select>
 	</label>
 	{#each groups as group (group.group)}
-		{#if lens.rail.length > 1}
-			<h2 class="group" data-testid="rail-group-{group.group.toLowerCase().replaceAll(' ', '-')}">
-				{group.group}
-			</h2>
-		{/if}
-		<ul>
-			{#each group.entries as destination (destination.id)}
-				<li>
-					{#if destination.href}
-						<a
-							href={resolve(
-								destination.href as
-									| '/workshop'
-									| '/workshop/runs'
-									| '/workshop/evals'
-									| '/workshop/policies'
-									| '/workshop/bench'
-									| '/workshop/telemetry'
-									| '/workshop/monitor'
-									| '/workshop/conduct'
-									| '/workshop/model-risk'
-									| '/workshop/experiments'
-									| '/workshop/incidents'
-									| '/workshop/safety-case'
-									| '/workshop/assurance'
-									| '/workshop/catalogue'
-									| '/workshop/export'
-									| '/workshop/armour'
-									| '/workshop/studio'
-									| '/workshop/evaluators'
-									| '/workshop/scenarios'
-									| '/workshop/sinks'
-									| '/workshop/campaigns'
-									| '/workshop/workflows'
-									| '/workshop/evidence'
-									| '/workshop/playground'
-							)}
-							aria-current={current === destination.id ? 'page' : undefined}
-							data-testid="rail-{destination.id}">{destination.label}</a
-						>
-					{:else}
-						<!-- Not a link, and it says why: the Spec Lab is always about a particular bot. -->
-						<span class="pending" data-testid="rail-{destination.id}"
-							>{destination.label}<em>per bot</em></span
-						>
-					{/if}
-				</li>
-			{/each}
-		</ul>
+		<!-- WP110: each group a labelled section of the nav landmark. -->
+		<section class="rail-group" aria-label={group.group}>
+			{#if lens.rail.length > 1}
+				<h2 class="group" data-testid="rail-group-{group.group.toLowerCase().replaceAll(' ', '-')}">
+					{group.group}
+				</h2>
+			{/if}
+			<ul>
+				{#each group.entries as destination (destination.id)}
+					<li>
+						{#if destination.href}
+							<a
+								href={resolve(
+									destination.href as
+										| '/workshop'
+										| '/workshop/runs'
+										| '/workshop/evals'
+										| '/workshop/policies'
+										| '/workshop/bench'
+										| '/workshop/telemetry'
+										| '/workshop/monitor'
+										| '/workshop/conduct'
+										| '/workshop/model-risk'
+										| '/workshop/experiments'
+										| '/workshop/incidents'
+										| '/workshop/safety-case'
+										| '/workshop/assurance'
+										| '/workshop/catalogue'
+										| '/workshop/export'
+										| '/workshop/armour'
+										| '/workshop/studio'
+										| '/workshop/evaluators'
+										| '/workshop/scenarios'
+										| '/workshop/sinks'
+										| '/workshop/campaigns'
+										| '/workshop/workflows'
+										| '/workshop/evidence'
+										| '/workshop/playground'
+								)}
+								aria-current={current === destination.id ? 'page' : undefined}
+								data-testid="rail-{destination.id}">{destination.label}</a
+							>
+						{:else}
+							<!-- Not a link, and it says why: the Spec Lab is always about a particular bot. -->
+							<span class="pending" data-testid="rail-{destination.id}"
+								>{destination.label}<em>per bot</em></span
+							>
+						{/if}
+					</li>
+				{/each}
+			</ul>
+		</section>
 	{/each}
 	<section class="views" aria-label="Saved views" data-testid="rail-views">
 		<h2 class="group">Views</h2>
@@ -357,6 +367,11 @@
 	.back {
 		margin-top: auto;
 		font-size: var(--cab-text-xs);
+	}
+
+	.rail-group {
+		display: grid;
+		gap: 2px;
 	}
 
 	/* WP109: the views, the palette's door and the density switch. */

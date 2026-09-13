@@ -649,7 +649,7 @@
 															"properties": {
 																"id": {
 																	"type": "string",
-																	"pattern": "^local\\/(policy|testbench|scenarios|campaigns|stacks|views)\\/[a-z0-9][a-z0-9-]*$"
+																	"pattern": "^local\\/(policy|testbench|scenarios|campaigns|stacks|views|reviews)\\/[a-z0-9][a-z0-9-]*$"
 																},
 																"kind": {
 																	"type": "string",
@@ -659,7 +659,8 @@
 																		"scenario",
 																		"campaign",
 																		"stack",
-																		"view"
+																		"view",
+																		"control-review"
 																	]
 																},
 																"title": {

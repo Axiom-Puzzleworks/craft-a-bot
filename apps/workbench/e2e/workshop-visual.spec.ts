@@ -55,6 +55,17 @@ const WORKFLOW_FIXTURE = join(
 const workflowRunId = (
 	JSON.parse(readFileSync(WORKFLOW_FIXTURE, 'utf8')) as { run: { id: string } }
 ).run.id;
+// WP110 (`97-ACCESS.md` §1): a reference experiment result, so the Experiments shot is over the corpus and not an empty form.
+const EXPERIMENT_FIXTURE = join(
+	HERE,
+	'..',
+	'..',
+	'..',
+	'docs',
+	'evidence',
+	'lending-stack',
+	'lending-stack.experiment-result.json'
+);
 
 async function seed(page: Page): Promise<string> {
 	await page.goto('/settings');
@@ -77,6 +88,13 @@ async function seed(page: Page): Promise<string> {
 		buffer: readFileSync(WORKFLOW_FIXTURE)
 	});
 	await expect(page.getByTestId('workflow-import-note')).toContainText('with its item');
+	await page.goto('/workshop/experiments');
+	await page.getByTestId('import-experiment-result').setInputFiles({
+		name: 'lending-stack.experiment-result.json',
+		mimeType: 'application/json',
+		buffer: readFileSync(EXPERIMENT_FIXTURE)
+	});
+	await expect(page.getByTestId('experiment-import-note')).toContainText('Imported');
 	return agentId;
 }
 

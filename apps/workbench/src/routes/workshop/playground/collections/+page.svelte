@@ -111,116 +111,118 @@
 
 <svelte:head><title>The Collections Desk — Workshop</title></svelte:head>
 
-<p class="crumb"><a href={resolve('/workshop/playground')}>← The Playground</a></p>
-<h1>The Collections Desk</h1>
-<p class="lede">
-	The bank’s collections handler: verify the customer, review the account, hear and record their
-	circumstances — with any disclosure of a job loss, a bereavement or a health condition, as they
-	say it — reassess what they can afford, and offer the plan the rule gives: a payment plan, reduced
-	payments, or breathing space. The rule is CONC 7-shaped and synthetic; a disclosed support need
-	stops a default notice and needs no proving; the plan is agreed under four eyes, and a disclosure
-	is handed on to the servicing desk. Five cards, ten scenarios, four policy cards, four evaluators,
-	one campaign with the matched pair’s parity gate — none of it real.
-</p>
-<p class="simulation" data-testid="collections-simulation-only">FOR SIMULATION ONLY</p>
+<main>
+	<p class="crumb"><a href={resolve('/workshop/playground')}>← The Playground</a></p>
+	<h1>The Collections Desk</h1>
+	<p class="lede">
+		The bank’s collections handler: verify the customer, review the account, hear and record their
+		circumstances — with any disclosure of a job loss, a bereavement or a health condition, as they
+		say it — reassess what they can afford, and offer the plan the rule gives: a payment plan,
+		reduced payments, or breathing space. The rule is CONC 7-shaped and synthetic; a disclosed
+		support need stops a default notice and needs no proving; the plan is agreed under four eyes,
+		and a disclosure is handed on to the servicing desk. Five cards, ten scenarios, four policy
+		cards, four evaluators, one campaign with the matched pair’s parity gate — none of it real.
+	</p>
+	<p class="simulation" data-testid="collections-simulation-only">FOR SIMULATION ONLY</p>
 
-<section aria-label="Generate a case">
-	<Strip label="A case" icon="desk">
-		<label class="pick">
-			Layout
-			<select bind:value={layoutId} data-testid="collections-layout">
-				{#each collectionsDesk.layouts as layout (layout.id)}
-					<option value={layout.id}>{layout.name}</option>
-				{/each}
-			</select>
-		</label>
-		<label class="pick">
-			Seed
-			<input type="number" min="1" step="1" bind:value={seed} data-testid="collections-seed" />
-		</label>
-		<button type="button" onclick={generate} data-testid="collections-generate">Generate</button>
-		{#if snapshot && arrears}
-			<Readout label="Applicant" value={snapshot.desk.role} testId="collections-role" />
-			<Readout label="On file" value={hidden.length} testId="collections-hidden-count" />
-			<Readout label="Missed" value={arrears.missedPayments} testId="collections-missed" />
-			<Readout
-				label="Arrears"
-				value={`£${arrears.arrears.toLocaleString('en-GB')}`}
-				testId="collections-arrears"
-			/>
-		{/if}
-	</Strip>
-</section>
+	<section aria-label="Generate a case">
+		<Strip label="A case" icon="desk">
+			<label class="pick">
+				Layout
+				<select bind:value={layoutId} data-testid="collections-layout">
+					{#each collectionsDesk.layouts as layout (layout.id)}
+						<option value={layout.id}>{layout.name}</option>
+					{/each}
+				</select>
+			</label>
+			<label class="pick">
+				Seed
+				<input type="number" min="1" step="1" bind:value={seed} data-testid="collections-seed" />
+			</label>
+			<button type="button" onclick={generate} data-testid="collections-generate">Generate</button>
+			{#if snapshot && arrears}
+				<Readout label="Applicant" value={snapshot.desk.role} testId="collections-role" />
+				<Readout label="On file" value={hidden.length} testId="collections-hidden-count" />
+				<Readout label="Missed" value={arrears.missedPayments} testId="collections-missed" />
+				<Readout
+					label="Arrears"
+					value={`£${arrears.arrears.toLocaleString('en-GB')}`}
+					testId="collections-arrears"
+				/>
+			{/if}
+		</Strip>
+	</section>
 
-{#if snapshot}
+	{#if snapshot}
+		<div class="panes">
+			<section aria-label="On the desk">
+				<h2>On the desk</h2>
+				<CaseFile {records} testId="collections-revealed" />
+			</section>
+			<section aria-label="On file">
+				<h2>On file — what the journey would earn</h2>
+				<CaseFile
+					records={hidden}
+					truth={truth?.records}
+					facts={truth?.facts}
+					testId="collections-hidden"
+				/>
+			</section>
+		</div>
+	{/if}
+
+	<section aria-label="The decks">
+		<h2>
+			The {DECK_WORDS[COLLECTIONS_DECKS.length] ?? COLLECTIONS_DECKS.length} decks — {collectionsScenarios.length}
+			scenarios
+		</h2>
+		<CaseTable columns={deckColumns} rows={deckRows} testId="collections-decks" />
+		<p>
+			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- resolve() builds the base path (campaignHref above); its typed surface has no way to attach the ?baseline= query the rule can verify statically (the same exception the lending page takes). -->
+			<a class="run-campaign" href={campaignHref} data-testid="collections-run-campaign"
+				>Run this desk’s campaign →</a
+			>
+		</p>
+	</section>
+
 	<div class="panes">
-		<section aria-label="On the desk">
-			<h2>On the desk</h2>
-			<CaseFile {records} testId="collections-revealed" />
+		<section aria-label="The policy cards">
+			<h2>The four policy cards</h2>
+			<ul class="list" data-testid="collections-cards">
+				{#each collectionsPolicyCards as card (card.id)}
+					<li data-testid="collections-card-{card.id.replace('fs-collections/policy/', '')}">
+						<strong>{card.title}</strong> — {card.description}
+					</li>
+				{/each}
+			</ul>
 		</section>
-		<section aria-label="On file">
-			<h2>On file — what the journey would earn</h2>
-			<CaseFile
-				records={hidden}
-				truth={truth?.records}
-				facts={truth?.facts}
-				testId="collections-hidden"
-			/>
+		<section aria-label="The evaluators">
+			<h2>The evaluators</h2>
+			<ul class="list" data-testid="collections-evaluators">
+				{#each collectionsEvaluators as evaluator (evaluator.id)}
+					<li data-testid="collections-evaluator-{evaluator.id.replace('fs-collections/', '')}">
+						<strong>{evaluator.name}</strong>
+						<span class="kind" data-kind={evaluator.kind}>{evaluator.kind}</span>
+						{#if evaluator.reads?.includes('truth')}<span class="kind">reads truth</span>{/if}
+						— {evaluator.description}
+					</li>
+				{/each}
+			</ul>
 		</section>
 	</div>
-{/if}
 
-<section aria-label="The decks">
-	<h2>
-		The {DECK_WORDS[COLLECTIONS_DECKS.length] ?? COLLECTIONS_DECKS.length} decks — {collectionsScenarios.length}
-		scenarios
-	</h2>
-	<CaseTable columns={deckColumns} rows={deckRows} testId="collections-decks" />
-	<p>
-		<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- resolve() builds the base path (campaignHref above); its typed surface has no way to attach the ?baseline= query the rule can verify statically (the same exception the lending page takes). -->
-		<a class="run-campaign" href={campaignHref} data-testid="collections-run-campaign"
-			>Run this desk’s campaign →</a
-		>
-	</p>
-</section>
-
-<div class="panes">
-	<section aria-label="The policy cards">
-		<h2>The four policy cards</h2>
-		<ul class="list" data-testid="collections-cards">
-			{#each collectionsPolicyCards as card (card.id)}
-				<li data-testid="collections-card-{card.id.replace('fs-collections/policy/', '')}">
-					<strong>{card.title}</strong> — {card.description}
-				</li>
-			{/each}
-		</ul>
+	<section aria-label="The boundary">
+		<h2>The campaign’s build, on the map</h2>
+		<p>
+			The desk bot at the centre with the four cards on its Safety Brick, the desk inside the
+			boundary, and the bank’s bureau line outside. The build <code
+				>campaigns/fs-collections-baseline.json</code
+			>
+			runs under three guards, with the circumstances, the notice and the matched pair as its gates.
+		</p>
+		<Boundary {map} testId="collections-map" />
 	</section>
-	<section aria-label="The evaluators">
-		<h2>The evaluators</h2>
-		<ul class="list" data-testid="collections-evaluators">
-			{#each collectionsEvaluators as evaluator (evaluator.id)}
-				<li data-testid="collections-evaluator-{evaluator.id.replace('fs-collections/', '')}">
-					<strong>{evaluator.name}</strong>
-					<span class="kind" data-kind={evaluator.kind}>{evaluator.kind}</span>
-					{#if evaluator.reads?.includes('truth')}<span class="kind">reads truth</span>{/if}
-					— {evaluator.description}
-				</li>
-			{/each}
-		</ul>
-	</section>
-</div>
-
-<section aria-label="The boundary">
-	<h2>The campaign’s build, on the map</h2>
-	<p>
-		The desk bot at the centre with the four cards on its Safety Brick, the desk inside the
-		boundary, and the bank’s bureau line outside. The build <code
-			>campaigns/fs-collections-baseline.json</code
-		>
-		runs under three guards, with the circumstances, the notice and the matched pair as its gates.
-	</p>
-	<Boundary {map} testId="collections-map" />
-</section>
+</main>
 
 <style>
 	.crumb {

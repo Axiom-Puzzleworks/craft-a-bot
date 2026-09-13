@@ -12,6 +12,7 @@ import {
 	isLocalId,
 	localContentId,
 	localPackFrom,
+	parseContentRecord,
 	safeParseContentRecord,
 	slugOf
 } from './content.js';
@@ -248,5 +249,36 @@ describe('kit files carry local content — the edges (WP46)', () => {
 			'local/policy/no-shouting-ffffff',
 			7
 		]);
+	});
+});
+
+describe('the sixth kind: a control-row review (WP110, GAP-1)', () => {
+	it('validates under local/reviews/, and never enters the local pack', () => {
+		const record = parseContentRecord({
+			id: 'local/reviews/fs-bank-control-map--fca-cd-support',
+			kind: 'control-review',
+			title: 'fs-bank/control-map fca:cd:support: reviewed',
+			record: {
+				id: 'local/reviews/fs-bank-control-map--fca-cd-support',
+				mapId: 'fs-bank/control-map',
+				ref: 'fca:cd:support',
+				status: 'reviewed',
+				by: 'Sam',
+				note: '',
+				reviewedAt: '2026-09-13T10:00:00.000Z',
+				schemaVersion: 1
+			},
+			savedAt: '2026-09-13T10:00:00.000Z',
+			schemaVersion: 1
+		});
+		expect(record.kind).toBe('control-review');
+		const pack = localPackFrom([record]);
+		expect(pack.controlMaps ?? []).toHaveLength(0);
+		expect(() =>
+			parseContentRecord({
+				...record,
+				record: { ...(record.record as object), status: 'accepted' }
+			})
+		).toThrow();
 	});
 });

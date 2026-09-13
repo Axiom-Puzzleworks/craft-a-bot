@@ -17,7 +17,10 @@ import {
 	type RunRecord,
 	type RunSummary,
 	type Storage,
-	type ExperimentResult
+	type ExperimentResult,
+	controlReviewSchema,
+	type ControlReview,
+	type ControlReviewStatus
 } from '@craftabot/core';
 import { campaignEvidenceFor, type CampaignEvidence } from './campaign-evidence.js';
 import { controlEffectiveness, type ControlEffectivenessRow } from './control-effectiveness.js';
@@ -176,6 +179,9 @@ export interface AssuranceEvidence extends ControlEvidence {
 /** A control row as the pack files it, its evidence annotated. */
 export interface AssuranceControlRow extends Omit<ControlMapRow, 'evidence'> {
 	evidence: AssuranceEvidence[];
+	/** WP110 (GAP-1): a reader's review of this row, saved beside it — never an edit to the pack's own `status`. */
+	review?:
+		{ status: ControlReviewStatus; by: string; note: string; reviewedAt: string } | undefined;
 }
 
 /** A registered control map as the pack files it. */
@@ -293,6 +299,8 @@ export interface AssurancePackInput {
 	incidentEvents?: ReadonlyMap<string, readonly EngineEvent[]>;
 	/** The journeys the host laid out (WP100); the fold keeps those of the bot's world, in workflow-id order. */
 	journeys?: readonly AssuranceJourney[];
+	/** WP110 (GAP-1): the readers' reviews of control rows, filed beside the rows they are about. */
+	controlReviews?: readonly ControlReview[];
 	/** Injected so a pack is reproducible; the digest does not cover it. */
 	now?: () => string;
 }
@@ -536,17 +544,33 @@ export async function assurancePackFor(input: AssurancePackInput): Promise<Assur
 				return 'unresolved';
 		}
 	};
+	const reviewOf = new Map(
+		(input.controlReviews ?? []).map((review) => [`${review.mapId}/${review.ref}`, review])
+	);
 	const controlMaps: AssuranceControlMap[] = maps.map((map) => ({
 		id: map.id,
 		title: map.title,
 		description: map.description,
-		rows: map.rows.map((row) => ({
-			...row,
-			evidence:
-				row.status === 'pending'
-					? []
-					: row.evidence.map((item) => ({ ...item, presence: presenceOf(item) }))
-		}))
+		rows: map.rows.map((row) => {
+			const review = reviewOf.get(`${map.id}/${row.ref}`);
+			return {
+				...row,
+				evidence:
+					row.status === 'pending'
+						? []
+						: row.evidence.map((item) => ({ ...item, presence: presenceOf(item) })),
+				...(review
+					? {
+							review: {
+								status: review.status,
+								by: review.by,
+								note: review.note,
+								reviewedAt: review.reviewedAt
+							}
+						}
+					: {})
+			};
+		})
 	}));
 	const allRows = maps.flatMap((map) => map.rows.map((row) => ({ map, row })));
 	const review = {
@@ -687,6 +711,13 @@ export async function assurancePackFromStorage(
 ): Promise<AssurancePack> {
 	const record: AgentRecord | undefined = await storage.getAgent(agentId);
 	if (!record) throw new Error(`no bot '${agentId}' in the store`);
+	// WP110 (GAP-1): the readers' reviews, from the content store.
+	const controlReviews: ControlReview[] = (await storage.listContent('control-review')).flatMap(
+		(entry) => {
+			const parsed = controlReviewSchema.safeParse(entry.record);
+			return parsed.success ? [parsed.data] : [];
+		}
+	);
 	const runs = (await storage.listRuns()).filter((run) => run.agentId === agentId);
 	const summaries = await ensureRunSummaries(storage, runs);
 	const experimentResults = await storage.listExperimentResults();
@@ -721,6 +752,7 @@ export async function assurancePackFromStorage(
 		incidentEvents,
 		experimentResults,
 		...(options.journeys ? { journeys: options.journeys } : {}),
+		controlReviews,
 		...(options.now ? { now: options.now } : {})
 	});
 }

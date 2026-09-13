@@ -160,6 +160,15 @@ export interface StackTestInput {
 	seed: number;
 	/** Each stack becomes a guard of the one campaign; the flows are read back per guard. */
 	stacks: readonly Stack[];
+	/**
+	 * WP110 (`97-ACCESS.md` §1, decision 5; GAP-5): who sits across the desk —
+	 * the desk's scripted persona (the default) or a live cartridge. *Talk to
+	 * this desk* is a scenario run through the stack with a live counterpart;
+	 * the campaign carries it as WP64's `counterpart`, and a scenario whose
+	 * world seats nobody runs as it always did.
+	 */
+	counterpart?: 'scripted' | 'live' | undefined;
+	cartridgeId?: string | undefined;
 }
 
 /**
@@ -188,6 +197,16 @@ export function stackTestCampaign(input: StackTestInput): unknown {
 		})),
 		brains: [{ id: input.brain, tier: input.brain }],
 		seeds: [input.seed],
+		...(input.counterpart
+			? {
+					counterpart: {
+						tier: input.counterpart,
+						...(input.counterpart === 'live' && input.cartridgeId
+							? { cartridgeId: input.cartridgeId }
+							: {})
+					}
+				}
+			: {}),
 		// The schema wants a gate; the bench is not a trial, so its one gate asks nothing (an outcome rate of at least none).
 		gates: [
 			{

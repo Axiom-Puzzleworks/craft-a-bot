@@ -10,4 +10,7 @@
 	});
 </script>
 
-<p>Opening the Studio's connections…</p>
+<main>
+	<h1>The Guard Rack has moved</h1>
+	<p>Opening the Studio's connections…</p>
+</main>

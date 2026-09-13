@@ -756,3 +756,10 @@ export {
 	type GuardrailCatalogue
 } from './schemas/catalogue.js';
 export { savedViewSchema, type SavedView } from './schemas/view.js';
+export {
+	controlReviewSchema,
+	controlReviewSlug,
+	controlReviewStatusSchema,
+	type ControlReview,
+	type ControlReviewStatus
+} from './schemas/control-review.js';

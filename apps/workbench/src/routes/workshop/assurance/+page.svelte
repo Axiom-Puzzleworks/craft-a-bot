@@ -1,4 +1,13 @@
 <script lang="ts">
+	import {
+		CONTENT_SCHEMA_VERSION,
+		controlReviewSlug,
+		controlReviewSchema,
+		localContentId,
+		type ControlReview,
+		type ControlReviewStatus
+	} from '@craftabot/core';
+	import { contentStore } from '$lib/state/content.svelte.js';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
@@ -259,8 +268,30 @@
 		{ id: 'ref', label: 'Ref', kind: 'text' as const },
 		{ id: 'obligation', label: 'Obligation', kind: 'text' as const },
 		{ id: 'evidence', label: 'Evidence (presence)', kind: 'text' as const },
-		{ id: 'status', label: 'Status', kind: 'text' as const }
+		{ id: 'status', label: 'Status', kind: 'text' as const },
+		{ id: 'review', label: 'Review', kind: 'text' as const }
 	];
+	/**
+	 * WP110 (`97-ACCESS.md` §1, decision 4; GAP-1): a reader's review of a row is
+	 * content — saved beside the pack's row under the reader's name, never an
+	 * edit to the pack. The table shows it; the pack files it; the form below
+	 * writes it.
+	 */
+	const reviews = $derived(
+		new Map(
+			contentStore
+				.of('control-review')
+				.flatMap((entry) => {
+					const parsed = controlReviewSchema.safeParse(entry.record);
+					return parsed.success ? [parsed.data] : [];
+				})
+				.map((review) => [`${review.mapId}/${review.ref}`, review])
+		)
+	);
+	const reviewWord = (review: ControlReview | undefined): string =>
+		review
+			? `${review.status} by ${review.by} (${review.reviewedAt.slice(0, 10)})${review.note ? ` — ${review.note}` : ''}`
+			: '—';
 	const controlRows = $derived(
 		(pack?.controlMaps ?? []).flatMap((map) =>
 			map.rows.map((row) => ({
@@ -274,11 +305,46 @@
 						row.status === 'pending'
 							? `pending — ${row.note ?? ''}`
 							: row.evidence.map((item) => `${item.id} (${item.presence})`).join('; '),
-					status: row.status ?? 'reviewed'
+					status: row.status ?? 'reviewed',
+					review: reviewWord(reviews.get(`${map.id}/${row.ref}`))
 				}
 			}))
 		)
 	);
+	let reviewTarget = $state('');
+	let reviewStatus = $state<ControlReviewStatus>('reviewed');
+	let reviewNote = $state('');
+	let reviewSaved = $state('');
+	async function saveReview(): Promise<void> {
+		const [mapId, ref] = [
+			reviewTarget.slice(0, reviewTarget.lastIndexOf('/')),
+			reviewTarget.slice(reviewTarget.lastIndexOf('/') + 1)
+		];
+		if (!mapId || !ref) return;
+		const id = localContentId('control-review', controlReviewSlug(mapId, ref));
+		const review: ControlReview = {
+			id,
+			mapId,
+			ref,
+			status: reviewStatus,
+			by: preferences.displayName.trim() || 'the reader',
+			note: reviewNote.trim(),
+			reviewedAt: new Date().toISOString(),
+			schemaVersion: 1
+		};
+		await contentStore.save({
+			id,
+			kind: 'control-review',
+			title: `${mapId} ${ref}: ${reviewStatus}`,
+			record: review,
+			savedAt: review.reviewedAt,
+			schemaVersion: CONTENT_SCHEMA_VERSION
+		});
+		reviewSaved = `${ref} ${reviewStatus}.`;
+		reviewNote = '';
+		// The pack files the review beside the row: rebuild it.
+		if (selectedId) await loadPack(selectedId);
+	}
 	const evaluationColumns = [
 		{ id: 'evaluator', label: 'Evaluator', kind: 'text' as const },
 		{ id: 'pass', label: 'Pass', kind: 'text' as const },
@@ -666,6 +732,39 @@
 		<section aria-labelledby="map-h">
 			<h2 id="map-h">8. The control map</h2>
 			<CaseTable columns={rowColumns} rows={controlRows} testId="assurance-control-table" />
+			<form
+				class="review"
+				aria-label="Review a row"
+				data-testid="assurance-review"
+				onsubmit={(event) => {
+					event.preventDefault();
+					void saveReview();
+				}}
+			>
+				<label class="field">
+					<span>Row</span>
+					<select bind:value={reviewTarget} data-testid="assurance-review-row" required>
+						<option value="">choose a row…</option>
+						{#each controlRows as row (row.id)}
+							<option value={row.id}>{row.cells.map} · {row.cells.ref}</option>
+						{/each}
+					</select>
+				</label>
+				<label class="field">
+					<span>Verdict</span>
+					<select bind:value={reviewStatus} data-testid="assurance-review-status">
+						<option value="reviewed">reviewed — the row is relevant as claimed</option>
+						<option value="disputed">disputed — the row's claim is questioned</option>
+					</select>
+				</label>
+				<label class="field">
+					<span>Note</span>
+					<input type="text" bind:value={reviewNote} data-testid="assurance-review-note" />
+				</label>
+				<button type="submit" data-testid="assurance-review-save">Record the review</button>
+				{#if reviewSaved}<span class="hint" data-testid="assurance-review-saved">{reviewSaved}</span
+					>{/if}
+			</form>
 		</section>
 
 		<p class="posture">{pack.posture}</p>

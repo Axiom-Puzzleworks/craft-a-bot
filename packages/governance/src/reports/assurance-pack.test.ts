@@ -26,8 +26,8 @@ import {
 } from './assurance-pack.js';
 import {
 	ASSURANCE_TOKENS,
-	renderAssurancePackHtml,
 	principalLine,
+	renderAssurancePackHtml,
 	renderAssurancePackMarkdown
 } from './assurance-pack-render.js';
 import { GENERIC_CONTROL_MAP_MANIFEST } from './control-map.js';
@@ -607,5 +607,53 @@ describe('the renderings', () => {
 		expect(html).toContain('<caption>Control Effectiveness Register</caption>');
 		expect(html).toContain('experiment <code>lending-stack</code>');
 		expect(html).toContain(`href="#run-${RUN_A}"`);
+	});
+});
+
+describe('control-row reviews (WP110, GAP-1)', () => {
+	it('files a reader’s review beside the row it is about, and both renderers print it', async () => {
+		const first = map;
+		const row = first.rows[0]!;
+		const pack = await assurancePackFor({
+			agent: { id: AGENT_ID, name: 'Bolt', spec },
+			registry: registryWith(),
+			runs: [],
+			summaries: new Map(),
+			evaluations: [],
+			campaignReports: [],
+			controlMaps: [map],
+			controlReviews: [
+				{
+					id: `local/reviews/${first.id}--${row.ref}`,
+					mapId: first.id,
+					ref: row.ref,
+					status: 'disputed',
+					by: 'Sam',
+					note: 'The evaluator shows presence, not relevance.',
+					reviewedAt: '2026-09-13T10:00:00.000Z',
+					schemaVersion: 1
+				}
+			],
+			now: NOW
+		});
+		const filed = pack.controlMaps
+			.find((map) => map.id === first.id)
+			?.rows.find((r) => r.ref === row.ref);
+		expect(filed?.review).toEqual({
+			status: 'disputed',
+			by: 'Sam',
+			note: 'The evaluator shows presence, not relevance.',
+			reviewedAt: '2026-09-13T10:00:00.000Z'
+		});
+		// The pack's own status is untouched: a review is beside the row, never an edit to it.
+		expect(filed?.status).toBe(row.status);
+		const others = pack.controlMaps.flatMap((map) => map.rows).filter((r) => r.review);
+		expect(others).toHaveLength(1);
+		expect(renderAssurancePackMarkdown(pack)).toContain(
+			'disputed by Sam (2026-09-13) — The evaluator shows presence, not relevance.'
+		);
+		expect(renderAssurancePackHtml(pack)).toContain(
+			'<span class="disputed">disputed</span> by Sam (2026-09-13)'
+		);
 	});
 });

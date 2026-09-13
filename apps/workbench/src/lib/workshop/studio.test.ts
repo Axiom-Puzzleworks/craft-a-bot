@@ -206,3 +206,34 @@ describe('the design’s stack, built fit by fit (`83-…` §14 item 2, the Stud
 		]);
 	});
 });
+
+describe('the bench’s counterpart (WP110, GAP-5)', () => {
+	it('puts a live counterpart on the campaign it builds, and none when scripted is not asked for', () => {
+		const stack = emptyStack({ id: 'p', name: 'Sam' } as never, '2026-09-13T00:00:00.000Z');
+		const live = stackTestCampaign({
+			scenarioId: 'fs-advice/scenarios/a-first-visit',
+			brain: 'scripted-optimal',
+			seed: 1,
+			stacks: [stack],
+			counterpart: 'live',
+			cartridgeId: 'ollama/llama'
+		}) as { counterpart?: unknown };
+		expect(live.counterpart).toEqual({ tier: 'live', cartridgeId: 'ollama/llama' });
+		const scripted = stackTestCampaign({
+			scenarioId: 'fs-advice/scenarios/a-first-visit',
+			brain: 'scripted-optimal',
+			seed: 1,
+			stacks: [stack],
+			counterpart: 'scripted'
+		}) as { counterpart?: unknown };
+		expect(scripted.counterpart).toEqual({ tier: 'scripted' });
+		expect(parseCampaign(live).counterpart?.tier).toBe('live');
+		const plain = stackTestCampaign({
+			scenarioId: 's',
+			brain: 'scripted-noisy',
+			seed: 2,
+			stacks: [stack]
+		}) as { counterpart?: unknown };
+		expect(plain.counterpart).toBeUndefined();
+	});
+});

@@ -197,187 +197,191 @@
 
 <svelte:head><title>Playground — Workshop</title></svelte:head>
 
-<h1>The Retail Bank Playground</h1>
-<p class="lede">
-	A synthetic high-street bank: customers, accounts, a product shelf and ten service lines, every
-	one generated from a seed and none of it real. Seven desks work this bank — <a
-		href={resolve('/workshop/playground/advice')}
-		data-testid="playground-advice-link">the Advice Desk</a
-	>
-	and
-	<a href={resolve('/workshop/playground/fraud')} data-testid="playground-fraud-link"
-		>the Fraud Desk</a
-	>
-	and
-	<a href={resolve('/workshop/playground/lending')} data-testid="playground-lending-link"
-		>the Lending Desk</a
-	>
-	and
-	<a href={resolve('/workshop/playground/onboarding')} data-testid="playground-onboarding-link"
-		>the Onboarding Desk</a
-	>
-	and
-	<a href={resolve('/workshop/playground/disputes')} data-testid="playground-disputes-link"
-		>the Disputes Desk</a
-	>
-	and
-	<a href={resolve('/workshop/playground/collections')} data-testid="playground-collections-link"
-		>the Collections Desk</a
-	>
-	and
-	<a href={resolve('/workshop/playground/servicing')} data-testid="playground-servicing-link"
-		>the Servicing Desk</a
-	>
-	— and
-	<a href={resolve('/workshop/playground/complaints')} data-testid="playground-complaints-link"
-		>the Complaints Desk</a
-	>
-	works its complaints. This page shows the bank itself;
-	<a href={resolve('/workshop/playground/journeys')} data-testid="playground-journeys-link"
-		>the journeys</a
-	> draws each desk's workflow as lanes before you run it.
-</p>
-<p class="simulation" data-testid="playground-simulation-only">FOR SIMULATION ONLY</p>
+<main>
+	<h1>The Retail Bank Playground</h1>
+	<p class="lede">
+		A synthetic high-street bank: customers, accounts, a product shelf and ten service lines, every
+		one generated from a seed and none of it real. Seven desks work this bank — <a
+			href={resolve('/workshop/playground/advice')}
+			data-testid="playground-advice-link">the Advice Desk</a
+		>
+		and
+		<a href={resolve('/workshop/playground/fraud')} data-testid="playground-fraud-link"
+			>the Fraud Desk</a
+		>
+		and
+		<a href={resolve('/workshop/playground/lending')} data-testid="playground-lending-link"
+			>the Lending Desk</a
+		>
+		and
+		<a href={resolve('/workshop/playground/onboarding')} data-testid="playground-onboarding-link"
+			>the Onboarding Desk</a
+		>
+		and
+		<a href={resolve('/workshop/playground/disputes')} data-testid="playground-disputes-link"
+			>the Disputes Desk</a
+		>
+		and
+		<a href={resolve('/workshop/playground/collections')} data-testid="playground-collections-link"
+			>the Collections Desk</a
+		>
+		and
+		<a href={resolve('/workshop/playground/servicing')} data-testid="playground-servicing-link"
+			>the Servicing Desk</a
+		>
+		— and
+		<a href={resolve('/workshop/playground/complaints')} data-testid="playground-complaints-link"
+			>the Complaints Desk</a
+		>
+		works its complaints. This page shows the bank itself;
+		<a href={resolve('/workshop/playground/journeys')} data-testid="playground-journeys-link"
+			>the journeys</a
+		> draws each desk's workflow as lanes before you run it.
+	</p>
+	<p class="simulation" data-testid="playground-simulation-only">FOR SIMULATION ONLY</p>
 
-<section class="covers" aria-label="The journeys">
-	<Strip label="The journeys" icon="journey" testId="playground-covers-strip">
-		<ul class="covers-list" data-testid="playground-covers">
-			{#each covers as cover (cover.id)}
-				<li>
-					<a
-						href={resolve('/workshop/playground/journeys/[...workflowId]', {
-							workflowId: cover.id
-						})}
-						data-testid="playground-cover-{cover.id.replace('/', '-')}"
-					>
-						<JourneyCover subject={cover} width={132} />
-						<span>{cover.name}</span>
-					</a>
+	<section class="covers" aria-label="The journeys">
+		<Strip label="The journeys" icon="journey" testId="playground-covers-strip">
+			<ul class="covers-list" data-testid="playground-covers">
+				{#each covers as cover (cover.id)}
+					<li>
+						<a
+							href={resolve('/workshop/playground/journeys/[...workflowId]', {
+								workflowId: cover.id
+							})}
+							data-testid="playground-cover-{cover.id.replace('/', '-')}"
+						>
+							<JourneyCover subject={cover} width={132} />
+							<span>{cover.name}</span>
+						</a>
+					</li>
+				{/each}
+			</ul>
+		</Strip>
+	</section>
+
+	<section class="generate" aria-label="Generate a case">
+		<Strip label="A case" icon="desk">
+			<label class="seed">
+				Seed
+				<input type="number" min="1" step="1" bind:value={seed} data-testid="playground-seed" />
+			</label>
+			<button type="button" onclick={generate} data-testid="playground-generate">Generate</button>
+			{#if bank}
+				<Readout label="Customer" value={bank.customer.name.full} testId="playground-customer" />
+				<Readout label="Accounts" value={bank.accounts.length} testId="playground-accounts" />
+				<Readout label="Transactions" value={bank.transactions.length} />
+				<Readout label="Complaints" value={bank.complaints.length} />
+			{/if}
+		</Strip>
+	</section>
+
+	{#if records}
+		<div class="panes">
+			<section aria-label="On the desk">
+				<h2>On the desk</h2>
+				<CaseFile records={records.revealed} testId="playground-revealed" />
+			</section>
+			<section aria-label="On file">
+				<h2>On file — what a look-up would earn</h2>
+				<CaseFile
+					records={hidden}
+					truth={truthRecords}
+					facts={truthFacts}
+					testId="playground-hidden"
+				/>
+			</section>
+		</div>
+	{/if}
+
+	<section class="calibration" aria-label="Where this bank's shape comes from">
+		<Strip label="Where this bank's shape comes from" icon="cohort">
+			<p class="hint">
+				The distributions the population draws from, each set to a published UK aggregate and cited
+				— publisher, title, edition, table, the date it was read — or stated as an assumption that
+				says why. {pendingRows} of {CALIBRATION.rows.length} rows are awaiting a reviewer's reading against
+				their source. The desks' designed cases draw from the WP59 weights instead.
+			</p>
+			<CaseTable
+				columns={calibrationColumns}
+				rows={calibrationRows}
+				testId="playground-calibration"
+			/>
+		</Strip>
+	</section>
+
+	<section class="population" aria-label="The bank at scale">
+		<Strip label="The bank at scale" icon="cohort">
+			<label class="seed">
+				Seed
+				<input
+					type="number"
+					min="1"
+					step="1"
+					bind:value={popSeed}
+					data-testid="playground-population-seed"
+				/>
+			</label>
+			<label class="seed">
+				Customers
+				<input
+					type="number"
+					min="100"
+					max="50000"
+					step="100"
+					bind:value={popSize}
+					data-testid="playground-population-size"
+				/>
+			</label>
+			<button
+				type="button"
+				onclick={generatePopulation}
+				data-testid="playground-population-generate">Generate the population</button
+			>
+			{#if pop}
+				<Readout
+					label="Digest"
+					value={pop.digest.slice(0, 12)}
+					testId="playground-population-digest"
+				/>
+				<Readout label="Customers" value={pop.customers.length} />
+				<Readout label="Made in" value={`${popMs} ms`} />
+			{/if}
+		</Strip>
+		{#if pop}
+			<p class="hint">
+				A population is never stored: this one is customer 0 to {pop.customers.length - 1} of the seed's
+				population at any size, regenerated from the seed in the time shown; its digest is over the options,
+				the table's rows and a canonical sample. The marginals below sit beside the rows' targets, within
+				the row's tolerance plus the sampling margin at this size.
+			</p>
+			<CaseTable columns={marginalColumns} rows={marginalRows} testId="playground-marginals" />
+		{/if}
+	</section>
+
+	<section class="lines" aria-label="The service lines">
+		<h2>The ten lines</h2>
+		<p>
+			What a desk's Connector brick can reach: each answers from the bank's own state, declares a
+			tier on every operation, and is recorded on the trace as any tool is.
+		</p>
+		<div data-testid="playground-boundary">
+			<Boundary {map} testId="playground-map" />
+		</div>
+		<ul class="line-list">
+			{#each bankServiceLines as line (line.id)}
+				<li data-testid="playground-line-{line.id.replace('/', '-')}">
+					<strong>{line.name}</strong> <code>{line.id}</code> — {line.description}
+					<span class="ops">
+						{#each line.operations as op (op.id)}
+							<span class="op" data-tier={op.riskTier}>{op.name}</span>
+						{/each}
+					</span>
 				</li>
 			{/each}
 		</ul>
-	</Strip>
-</section>
-
-<section class="generate" aria-label="Generate a case">
-	<Strip label="A case" icon="desk">
-		<label class="seed">
-			Seed
-			<input type="number" min="1" step="1" bind:value={seed} data-testid="playground-seed" />
-		</label>
-		<button type="button" onclick={generate} data-testid="playground-generate">Generate</button>
-		{#if bank}
-			<Readout label="Customer" value={bank.customer.name.full} testId="playground-customer" />
-			<Readout label="Accounts" value={bank.accounts.length} testId="playground-accounts" />
-			<Readout label="Transactions" value={bank.transactions.length} />
-			<Readout label="Complaints" value={bank.complaints.length} />
-		{/if}
-	</Strip>
-</section>
-
-{#if records}
-	<div class="panes">
-		<section aria-label="On the desk">
-			<h2>On the desk</h2>
-			<CaseFile records={records.revealed} testId="playground-revealed" />
-		</section>
-		<section aria-label="On file">
-			<h2>On file — what a look-up would earn</h2>
-			<CaseFile
-				records={hidden}
-				truth={truthRecords}
-				facts={truthFacts}
-				testId="playground-hidden"
-			/>
-		</section>
-	</div>
-{/if}
-
-<section class="calibration" aria-label="Where this bank's shape comes from">
-	<Strip label="Where this bank's shape comes from" icon="cohort">
-		<p class="hint">
-			The distributions the population draws from, each set to a published UK aggregate and cited —
-			publisher, title, edition, table, the date it was read — or stated as an assumption that says
-			why. {pendingRows} of {CALIBRATION.rows.length} rows are awaiting a reviewer's reading against their
-			source. The desks' designed cases draw from the WP59 weights instead.
-		</p>
-		<CaseTable
-			columns={calibrationColumns}
-			rows={calibrationRows}
-			testId="playground-calibration"
-		/>
-	</Strip>
-</section>
-
-<section class="population" aria-label="The bank at scale">
-	<Strip label="The bank at scale" icon="cohort">
-		<label class="seed">
-			Seed
-			<input
-				type="number"
-				min="1"
-				step="1"
-				bind:value={popSeed}
-				data-testid="playground-population-seed"
-			/>
-		</label>
-		<label class="seed">
-			Customers
-			<input
-				type="number"
-				min="100"
-				max="50000"
-				step="100"
-				bind:value={popSize}
-				data-testid="playground-population-size"
-			/>
-		</label>
-		<button type="button" onclick={generatePopulation} data-testid="playground-population-generate"
-			>Generate the population</button
-		>
-		{#if pop}
-			<Readout
-				label="Digest"
-				value={pop.digest.slice(0, 12)}
-				testId="playground-population-digest"
-			/>
-			<Readout label="Customers" value={pop.customers.length} />
-			<Readout label="Made in" value={`${popMs} ms`} />
-		{/if}
-	</Strip>
-	{#if pop}
-		<p class="hint">
-			A population is never stored: this one is customer 0 to {pop.customers.length - 1} of the seed's
-			population at any size, regenerated from the seed in the time shown; its digest is over the options,
-			the table's rows and a canonical sample. The marginals below sit beside the rows' targets, within
-			the row's tolerance plus the sampling margin at this size.
-		</p>
-		<CaseTable columns={marginalColumns} rows={marginalRows} testId="playground-marginals" />
-	{/if}
-</section>
-
-<section class="lines" aria-label="The service lines">
-	<h2>The ten lines</h2>
-	<p>
-		What a desk's Connector brick can reach: each answers from the bank's own state, declares a tier
-		on every operation, and is recorded on the trace as any tool is.
-	</p>
-	<div data-testid="playground-boundary">
-		<Boundary {map} testId="playground-map" />
-	</div>
-	<ul class="line-list">
-		{#each bankServiceLines as line (line.id)}
-			<li data-testid="playground-line-{line.id.replace('/', '-')}">
-				<strong>{line.name}</strong> <code>{line.id}</code> — {line.description}
-				<span class="ops">
-					{#each line.operations as op (op.id)}
-						<span class="op" data-tier={op.riskTier}>{op.name}</span>
-					{/each}
-				</span>
-			</li>
-		{/each}
-	</ul>
-</section>
+	</section>
+</main>
 
 <style>
 	.covers-list {

@@ -111,120 +111,124 @@
 
 <svelte:head><title>The Advice Desk — Workshop</title></svelte:head>
 
-<p class="crumb"><a href={resolve('/workshop/playground')}>← The Playground</a></p>
-<h1>The Advice Desk</h1>
-<p class="lede">
-	The bank’s savings-and-investment assistant: gather what suitability needs, stay on the right side
-	of the advice line the card sets, describe products with their warnings, recognise a customer who
-	is vulnerable, recommend or refer. Seventeen cards, thirty-one scenarios, seven policy cards,
-	thirteen evaluators, one campaign — none of it real.
-</p>
-<p class="simulation" data-testid="advice-simulation-only">FOR SIMULATION ONLY</p>
+<main>
+	<p class="crumb"><a href={resolve('/workshop/playground')}>← The Playground</a></p>
+	<h1>The Advice Desk</h1>
+	<p class="lede">
+		The bank’s savings-and-investment assistant: gather what suitability needs, stay on the right
+		side of the advice line the card sets, describe products with their warnings, recognise a
+		customer who is vulnerable, recommend or refer. Seventeen cards, thirty-one scenarios, seven
+		policy cards, thirteen evaluators, one campaign — none of it real.
+	</p>
+	<p class="simulation" data-testid="advice-simulation-only">FOR SIMULATION ONLY</p>
 
-<section aria-label="Generate a case">
-	<Strip label="A case" icon="desk">
-		<label class="pick">
-			Layout
-			<select bind:value={layoutId} data-testid="advice-layout">
-				{#each adviceDesk.layouts as layout (layout.id)}
-					<option value={layout.id}>{layout.name}</option>
-				{/each}
-			</select>
-		</label>
-		<label class="pick">
-			Seed
-			<input type="number" min="1" step="1" bind:value={seed} data-testid="advice-seed" />
-		</label>
-		<button type="button" onclick={generate} data-testid="advice-generate">Generate</button>
-		{#if snapshot}
-			<Readout label="Customer" value={snapshot.desk.role} testId="advice-role" />
-			<Readout label="On file" value={hidden.length} testId="advice-hidden-count" />
-			<Readout
-				label="Suitable"
-				value={String(
-					truth?.records.find((r: { id: string }) => r.id === 'suitable-set')?.fields[
-						'product_ids'
-					] ?? ''
-				)
-					.split(' ')
-					.filter(Boolean).length}
-				testId="advice-suitable-count"
-			/>
-		{/if}
-	</Strip>
-</section>
+	<section aria-label="Generate a case">
+		<Strip label="A case" icon="desk">
+			<label class="pick">
+				Layout
+				<select bind:value={layoutId} data-testid="advice-layout">
+					{#each adviceDesk.layouts as layout (layout.id)}
+						<option value={layout.id}>{layout.name}</option>
+					{/each}
+				</select>
+			</label>
+			<label class="pick">
+				Seed
+				<input type="number" min="1" step="1" bind:value={seed} data-testid="advice-seed" />
+			</label>
+			<button type="button" onclick={generate} data-testid="advice-generate">Generate</button>
+			{#if snapshot}
+				<Readout label="Customer" value={snapshot.desk.role} testId="advice-role" />
+				<Readout label="On file" value={hidden.length} testId="advice-hidden-count" />
+				<Readout
+					label="Suitable"
+					value={String(
+						truth?.records.find((r: { id: string }) => r.id === 'suitable-set')?.fields[
+							'product_ids'
+						] ?? ''
+					)
+						.split(' ')
+						.filter(Boolean).length}
+					testId="advice-suitable-count"
+				/>
+			{/if}
+		</Strip>
+	</section>
 
-{#if snapshot}
+	{#if snapshot}
+		<div class="panes">
+			<section aria-label="On the desk">
+				<h2>On the desk</h2>
+				<CaseFile {records} testId="advice-revealed" />
+			</section>
+			<section aria-label="On file">
+				<h2>On file — what a look-up would earn</h2>
+				<CaseFile
+					records={hidden}
+					truth={truth?.records}
+					facts={truth?.facts}
+					testId="advice-hidden"
+				/>
+			</section>
+		</div>
+	{/if}
+
+	<section aria-label="The decks">
+		<!-- The count comes from the data (UX-22): the incident deck arrived after the heading was written. -->
+		<h2>
+			The {DECK_WORDS[ADVICE_DECKS.length] ?? ADVICE_DECKS.length} decks — {adviceScenarios.length} scenarios
+		</h2>
+		<CaseTable columns={deckColumns} rows={deckRows} testId="advice-decks" />
+		<p>
+			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- resolve() builds the base path (campaignHref above); its typed surface has no way to attach the ?baseline= query the rule can verify statically (the same exception workshop/runs' compareHref takes). -->
+			<a class="run-campaign" href={campaignHref} data-testid="advice-run-campaign"
+				>Run this desk’s campaign →</a
+			>
+		</p>
+	</section>
+
 	<div class="panes">
-		<section aria-label="On the desk">
-			<h2>On the desk</h2>
-			<CaseFile {records} testId="advice-revealed" />
+		<section aria-label="The policy cards">
+			<h2>The seven policy cards</h2>
+			<ul class="list" data-testid="advice-cards">
+				{#each advicePolicyCards as card (card.id)}
+					<li data-testid="advice-card-{card.id.replace('fs-advice/policy/', '')}">
+						<strong>{card.title}</strong> — {card.description}
+					</li>
+				{/each}
+			</ul>
 		</section>
-		<section aria-label="On file">
-			<h2>On file — what a look-up would earn</h2>
-			<CaseFile
-				records={hidden}
-				truth={truth?.records}
-				facts={truth?.facts}
-				testId="advice-hidden"
-			/>
+		<section aria-label="The evaluators">
+			<h2>The evaluators</h2>
+			<ul class="list" data-testid="advice-evaluators">
+				{#each adviceEvaluators as evaluator (evaluator.id)}
+					<li
+						data-testid="advice-evaluator-{evaluator.id
+							.replace('fs-advice/', '')
+							.replace('/', '-')}"
+					>
+						<strong>{evaluator.name}</strong>
+						<span class="kind" data-kind={evaluator.kind}>{evaluator.kind}</span>
+						{#if evaluator.reads?.includes('truth')}<span class="kind">reads truth</span>{/if}
+						— {evaluator.description}
+					</li>
+				{/each}
+			</ul>
 		</section>
 	</div>
-{/if}
 
-<section aria-label="The decks">
-	<!-- The count comes from the data (UX-22): the incident deck arrived after the heading was written. -->
-	<h2>
-		The {DECK_WORDS[ADVICE_DECKS.length] ?? ADVICE_DECKS.length} decks — {adviceScenarios.length} scenarios
-	</h2>
-	<CaseTable columns={deckColumns} rows={deckRows} testId="advice-decks" />
-	<p>
-		<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- resolve() builds the base path (campaignHref above); its typed surface has no way to attach the ?baseline= query the rule can verify statically (the same exception workshop/runs' compareHref takes). -->
-		<a class="run-campaign" href={campaignHref} data-testid="advice-run-campaign"
-			>Run this desk’s campaign →</a
-		>
-	</p>
-</section>
-
-<div class="panes">
-	<section aria-label="The policy cards">
-		<h2>The seven policy cards</h2>
-		<ul class="list" data-testid="advice-cards">
-			{#each advicePolicyCards as card (card.id)}
-				<li data-testid="advice-card-{card.id.replace('fs-advice/policy/', '')}">
-					<strong>{card.title}</strong> — {card.description}
-				</li>
-			{/each}
-		</ul>
+	<section aria-label="The boundary">
+		<h2>The campaign’s build, on the map</h2>
+		<p>
+			The desk bot at the centre with the seven cards on its Safety Brick, the desk inside the
+			boundary, and the bank’s CRM line outside — the build <code
+				>campaigns/fs-advice-baseline.json</code
+			>
+			runs under four guards.
+		</p>
+		<Boundary {map} testId="advice-map" />
 	</section>
-	<section aria-label="The evaluators">
-		<h2>The evaluators</h2>
-		<ul class="list" data-testid="advice-evaluators">
-			{#each adviceEvaluators as evaluator (evaluator.id)}
-				<li
-					data-testid="advice-evaluator-{evaluator.id.replace('fs-advice/', '').replace('/', '-')}"
-				>
-					<strong>{evaluator.name}</strong>
-					<span class="kind" data-kind={evaluator.kind}>{evaluator.kind}</span>
-					{#if evaluator.reads?.includes('truth')}<span class="kind">reads truth</span>{/if}
-					— {evaluator.description}
-				</li>
-			{/each}
-		</ul>
-	</section>
-</div>
-
-<section aria-label="The boundary">
-	<h2>The campaign’s build, on the map</h2>
-	<p>
-		The desk bot at the centre with the seven cards on its Safety Brick, the desk inside the
-		boundary, and the bank’s CRM line outside — the build <code
-			>campaigns/fs-advice-baseline.json</code
-		>
-		runs under four guards.
-	</p>
-	<Boundary {map} testId="advice-map" />
-</section>
+</main>
 
 <style>
 	.crumb {

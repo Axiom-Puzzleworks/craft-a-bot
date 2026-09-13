@@ -51,9 +51,10 @@ export function boundaryTwin(layout: BoundaryLayout, map: BoundaryMap): Boundary
 			edge: node.edge
 		});
 	}
-	for (const brick of map.boundary.safetyStack) {
+	// Keyed by position: a stack may fit the same kind twice (two Monitor Judges with different rubrics).
+	for (const [index, brick] of map.boundary.safetyStack.entries()) {
 		rows.push({
-			id: `ring:safety:${brick.kindId}`,
+			id: `ring:safety:${index}:${brick.kindId}`,
 			kind: 'ring',
 			label: 'safety',
 			detail: brick.name,

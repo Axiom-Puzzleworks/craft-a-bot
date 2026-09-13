@@ -1,7 +1,11 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import type { ExperimentResult, StoredCampaignReport } from '@craftabot/core';
+	import {
+		parseExperimentResult,
+		type ExperimentResult,
+		type StoredCampaignReport
+	} from '@craftabot/core';
 	import { analyseExperiment, expandExperiment, type Experiment } from '@craftabot/evals';
 	import Lamp from '$lib/components/control-room/Lamp.svelte';
 	import Matrix from '$lib/components/control-room/Matrix.svelte';
@@ -161,6 +165,26 @@
 		}
 		void analyse(watched.experiment);
 	});
+	/** WP110 (`97-ACCESS.md` §1): a stored result imported from a file — a reference result under `docs/evidence/`, or one the harness wrote — so the screen (and its figure) is over the corpus. */
+	let importNote = $state('');
+	async function importResult(event: Event): Promise<void> {
+		const input = event.currentTarget as HTMLInputElement;
+		const file = input.files?.[0];
+		if (!file) return;
+		try {
+			const result = parseExperimentResult(JSON.parse(await file.text()));
+			const storage = await appStorage();
+			await storage.putExperimentResult(result);
+			await loadResults();
+			selectedId = result.id;
+			importNote = `Imported ${result.title} — ${result.verdict}.`;
+		} catch (error) {
+			importNote = `Not an experiment result: ${error instanceof Error ? error.message : String(error)}`;
+		} finally {
+			input.value = '';
+		}
+	}
+
 	async function analyse(experiment: Experiment): Promise<void> {
 		if (analysing) return;
 		analysing = true;
@@ -189,6 +213,16 @@
 <main data-testid="experiments-page">
 	<header class="top">
 		<h1>Experiments</h1>
+		<label class="field import">
+			<span>Import a result…</span>
+			<input
+				type="file"
+				accept=".json,application/json"
+				data-testid="import-experiment-result"
+				onchange={importResult}
+			/>
+		</label>
+		{#if importNote}<p class="hint" data-testid="experiment-import-note">{importNote}</p>{/if}
 		{#if results.length > 0}
 			<label class="picker">
 				Result

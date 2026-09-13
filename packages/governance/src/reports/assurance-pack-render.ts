@@ -240,11 +240,11 @@ export function renderAssurancePackMarkdown(pack: AssurancePack): string {
 		out.push('');
 		out.push(map.description);
 		out.push('');
-		out.push('| Framework | Ref | Obligation | Evidence | Status |');
-		out.push('|---|---|---|---|---|');
+		out.push('| Framework | Ref | Obligation | Evidence | Status | Review |');
+		out.push('|---|---|---|---|---|---|');
 		for (const row of map.rows)
 			out.push(
-				`| ${row.framework} | \`${row.ref}\` | ${row.obligation} | ${row.status === 'pending' ? `pending — ${row.note ?? ''}` : row.evidence.map((item) => `${item.kind} \`${item.id}\` (${item.presence})`).join('; ')} | ${row.status ?? 'reviewed'} |`
+				`| ${row.framework} | \`${row.ref}\` | ${row.obligation} | ${row.status === 'pending' ? `pending — ${row.note ?? ''}` : row.evidence.map((item) => `${item.kind} \`${item.id}\` (${item.presence})`).join('; ')} | ${row.status ?? 'reviewed'} | ${row.review ? `${row.review.status} by ${row.review.by} (${row.review.reviewedAt.slice(0, 10)})${row.review.note ? ` — ${row.review.note}` : ''}` : '—'} |`
 			);
 		out.push('');
 	}
@@ -485,7 +485,7 @@ ${outcome.evaluations.length === 0 ? '<p class="note">Evaluator evidence: none o
 			) => `<h3>${escape(map.title)} <code>${escape(map.id)}</code></h3><p class="meta">${escape(map.description)}</p>
 ${table(
 	map.title,
-	['Framework', 'Ref', 'Obligation', 'Evidence', 'Status'],
+	['Framework', 'Ref', 'Obligation', 'Evidence', 'Status', 'Review'],
 	map.rows.map((row) => [
 		escape(row.framework),
 		`<code>${escape(row.ref)}</code>`,
@@ -498,7 +498,10 @@ ${table(
 							`${escape(item.kind)} <code>${escape(item.id)}</code> <span class="${item.presence}">${item.presence}</span>`
 					)
 					.join('; '),
-		escape(row.status ?? 'reviewed')
+		escape(row.status ?? 'reviewed'),
+		row.review
+			? `<span class="${row.review.status}">${escape(row.review.status)}</span> by ${escape(row.review.by)} (${escape(row.review.reviewedAt.slice(0, 10))})${row.review.note ? ` — ${escape(row.review.note)}` : ''}`
+			: '—'
 	])
 )}`
 		)

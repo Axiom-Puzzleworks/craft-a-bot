@@ -659,7 +659,8 @@
 				</p>
 				<div class="journeys">
 					{#each journeys as journey (journey.desk)}
-						<div class="journey-tile">
+						<!-- WP110 (`97-ACCESS.md` §1): the tile's badge is the queue's waiting count; the Queues table beneath is its twin, and the tile says so. -->
+						<div class="journey-tile" aria-describedby="queue-{journey.desk}">
 							<h3>{journey.desk}</h3>
 							<JourneyCanvas
 								layout={journey.layout}
@@ -686,7 +687,7 @@
 				>
 				<tbody>
 					{#each fold?.queues ?? [] as queue (queue.desk)}
-						<tr data-testid="queue-{queue.desk}">
+						<tr id="queue-{queue.desk}" data-testid="queue-{queue.desk}">
 							<td>{queue.desk}</td>
 							<td>{queue.arrived}</td>
 							<td>{queue.waiting}</td>

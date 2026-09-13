@@ -92,9 +92,11 @@
 	style:--cab-finish-metal={FINISH_PROPERTIES['--cab-finish-metal']}
 	style:--cab-finish-graph={FINISH_PROPERTIES['--cab-finish-graph']}
 >
+	<!-- WP110 (`97-ACCESS.md` §1): the first focus stop on every route skips the rail. -->
+	<a class="skip" href="#workshop-stage" data-testid="skip-link">Skip to the content</a>
 	<WorkshopRail {current} />
 	<CommandPalette />
-	<div class="stage">
+	<div class="stage" id="workshop-stage" tabindex="-1" data-testid="workshop-stage">
 		{#if showFirstRun}
 			<FirstRun {lens} onDismiss={() => preferences.dismissFirstRun(lens.id)} />
 		{/if}
@@ -115,6 +117,26 @@
 	.stage {
 		min-width: 0;
 		padding: var(--cab-space-4);
+		outline: none;
+	}
+
+	/* The skip link: off-screen until focused, then the first thing on the page. */
+	.skip {
+		position: absolute;
+		top: var(--cab-space-2);
+		left: var(--cab-space-2);
+		z-index: 50;
+		padding: var(--cab-space-1) var(--cab-space-3);
+		background: var(--cab-ink);
+		color: var(--cab-cream);
+		border-radius: var(--cab-radius-part);
+		transform: translateY(-200%);
+	}
+
+	.skip:focus-visible {
+		transform: none;
+		outline: var(--cab-focus-ring);
+		outline-offset: var(--cab-focus-gap);
 	}
 
 	/*

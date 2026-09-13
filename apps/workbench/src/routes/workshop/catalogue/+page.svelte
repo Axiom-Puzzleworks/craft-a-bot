@@ -82,91 +82,93 @@
 	<title>Guardrail Catalogue — Craft A Bot Workshop</title>
 </svelte:head>
 
-<h1><Roundel icon="catalogue" size={28} /> Guardrail Catalogue</h1>
-<p class="lede" data-testid="catalogue-lede">
-	Edition {summary.edition}: {summary.entries} techniques the industry ships or the research proposes,
-	and what this product can honestly say about each. {summary.pending} of {summary.entries}
-	entries are pending review — read against their sources by a person before the status is trusted.
-</p>
+<main>
+	<h1><Roundel icon="catalogue" size={28} /> Guardrail Catalogue</h1>
+	<p class="lede" data-testid="catalogue-lede">
+		Edition {summary.edition}: {summary.entries} techniques the industry ships or the research proposes,
+		and what this product can honestly say about each. {summary.pending} of {summary.entries}
+		entries are pending review — read against their sources by a person before the status is trusted.
+	</p>
 
-<div class="readouts" data-testid="catalogue-readouts">
-	<Readout label="Shipped" value={String(summary.byStatus.shipped)} />
-	<Readout label="Connectable" value={String(summary.byStatus.connectable)} />
-	<Readout label="Bespoke" value={String(summary.byStatus.bespoke)} />
-	<Readout label="Blueprint" value={String(summary.byStatus.blueprint)} />
-	<Readout label="Not applicable" value={String(summary.byStatus['not-applicable'])} />
-</div>
+	<div class="readouts" data-testid="catalogue-readouts">
+		<Readout label="Shipped" value={String(summary.byStatus.shipped)} />
+		<Readout label="Connectable" value={String(summary.byStatus.connectable)} />
+		<Readout label="Bespoke" value={String(summary.byStatus.bespoke)} />
+		<Readout label="Blueprint" value={String(summary.byStatus.blueprint)} />
+		<Readout label="Not applicable" value={String(summary.byStatus['not-applicable'])} />
+	</div>
 
-<div class="filters" data-testid="catalogue-filters">
-	<label class="field">
-		<span>Threat</span>
-		<select bind:value={threat} data-testid="catalogue-filter-threat">
-			<option value="">Any</option>
-			{#each ASI_THREATS as id (id)}
-				<option value={id}>{id}</option>
-			{/each}
-		</select>
-	</label>
-	<label class="field">
-		<span>Maturity</span>
-		<select bind:value={maturity} data-testid="catalogue-filter-maturity">
-			<option value="">Any</option>
-			{#each CATALOGUE_MATURITIES as id (id)}
-				<option value={id}>{id}</option>
-			{/each}
-		</select>
-	</label>
-	<label class="field">
-		<span>Coverage</span>
-		<select bind:value={status} data-testid="catalogue-filter-status">
-			<option value="">Any</option>
-			{#each COVERAGE_STATUSES as id (id)}
-				<option value={id}>{id}</option>
-			{/each}
-		</select>
-	</label>
-	<span class="count" data-testid="catalogue-count">{shown.length} of {rows.length}</span>
-</div>
+	<div class="filters" data-testid="catalogue-filters">
+		<label class="field">
+			<span>Threat</span>
+			<select bind:value={threat} data-testid="catalogue-filter-threat">
+				<option value="">Any</option>
+				{#each ASI_THREATS as id (id)}
+					<option value={id}>{id}</option>
+				{/each}
+			</select>
+		</label>
+		<label class="field">
+			<span>Maturity</span>
+			<select bind:value={maturity} data-testid="catalogue-filter-maturity">
+				<option value="">Any</option>
+				{#each CATALOGUE_MATURITIES as id (id)}
+					<option value={id}>{id}</option>
+				{/each}
+			</select>
+		</label>
+		<label class="field">
+			<span>Coverage</span>
+			<select bind:value={status} data-testid="catalogue-filter-status">
+				<option value="">Any</option>
+				{#each COVERAGE_STATUSES as id (id)}
+					<option value={id}>{id}</option>
+				{/each}
+			</select>
+		</label>
+		<span class="count" data-testid="catalogue-count">{shown.length} of {rows.length}</span>
+	</div>
 
-<CaseTable {columns} rows={tableRows} onRow={(id) => (openId = id)} testId="catalogue-table" />
+	<CaseTable {columns} rows={tableRows} onRow={(id) => (openId = id)} testId="catalogue-table" />
 
-{#if open}
-	<section class="entry" aria-labelledby="entry-h" data-testid="catalogue-entry">
-		<h2 id="entry-h">{open.entry.name} <code>{open.entry.id}</code></h2>
-		<p>{open.entry.summary}</p>
-		<p>
-			<strong>{open.status}</strong> — {open.entry.coverage.note}{open.entry.coverage.since
-				? ` (${open.entry.coverage.since})`
-				: ''}
-		</p>
-		{#if open.components.length > 0}
+	{#if open}
+		<section class="entry" aria-labelledby="entry-h" data-testid="catalogue-entry">
+			<h2 id="entry-h">{open.entry.name} <code>{open.entry.id}</code></h2>
+			<p>{open.entry.summary}</p>
 			<p>
-				Components: <span class="mono">{open.components.join(', ')}</span> —
-				<a href={resolve('/workshop/studio')} data-testid="catalogue-open-guards">the Studio</a>.
+				<strong>{open.status}</strong> — {open.entry.coverage.note}{open.entry.coverage.since
+					? ` (${open.entry.coverage.since})`
+					: ''}
 			</p>
-		{/if}
-		{#if open.stacks.length > 0}
-			<p>Stacks: <span class="mono">{open.stacks.join(', ')}</span></p>
-		{/if}
-		<p>Frameworks: {open.entry.frameworks.join(', ')}</p>
-		<h3>Sources</h3>
-		<ul>
-			{#each open.entry.sources as source (source.title)}
-				<li>
-					{source.publisher}, <em>{source.title}</em> ({source.year}, {source.kind}){#if source.url}
-						—
-						<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- an external source -->
-						<a href={source.url} rel="noopener noreferrer">{source.url}</a>{/if}
-				</li>
-			{/each}
-		</ul>
-	</section>
-{/if}
+			{#if open.components.length > 0}
+				<p>
+					Components: <span class="mono">{open.components.join(', ')}</span> —
+					<a href={resolve('/workshop/studio')} data-testid="catalogue-open-guards">the Studio</a>.
+				</p>
+			{/if}
+			{#if open.stacks.length > 0}
+				<p>Stacks: <span class="mono">{open.stacks.join(', ')}</span></p>
+			{/if}
+			<p>Frameworks: {open.entry.frameworks.join(', ')}</p>
+			<h3>Sources</h3>
+			<ul>
+				{#each open.entry.sources as source (source.title)}
+					<li>
+						{source.publisher}, <em>{source.title}</em> ({source.year}, {source.kind}){#if source.url}
+							—
+							<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- an external source -->
+							<a href={source.url} rel="noopener noreferrer">{source.url}</a>{/if}
+					</li>
+				{/each}
+			</ul>
+		</section>
+	{/if}
 
-<p class="foot" data-testid="catalogue-not-claimed">
-	<strong>Not claimed.</strong> Blueprint only: {summary.blueprint.join('; ')}. Not applicable to a
-	simulator: {summary.notApplicable.join('; ')}.
-</p>
+	<p class="foot" data-testid="catalogue-not-claimed">
+		<strong>Not claimed.</strong> Blueprint only: {summary.blueprint.join('; ')}. Not applicable to
+		a simulator: {summary.notApplicable.join('; ')}.
+	</p>
+</main>
 
 <style>
 	.lede {

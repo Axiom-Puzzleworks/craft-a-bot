@@ -16,6 +16,7 @@
 	import { journeyLayout } from '@craftabot/workflow';
 	import Connections from '$lib/components/workshop/Connections.svelte';
 	import JourneyCanvas from '$lib/components/control-room/JourneyCanvas.svelte';
+	import JourneyList from '$lib/components/control-room/JourneyList.svelte';
 	import Lamp from '$lib/components/control-room/Lamp.svelte';
 	import Readout from '$lib/components/control-room/Readout.svelte';
 	import Strip from '$lib/components/control-room/Strip.svelte';
@@ -178,6 +179,8 @@
 	let scenarioId = $state(scenarios[0]?.id ?? '');
 	let brain = $state<'scripted-optimal' | 'scripted-noisy'>('scripted-optimal');
 	let seed = $state(1);
+	/** WP110 (GAP-5): who sits across the desk on the bench — scripted, or a live cartridge (a key in the battery). */
+	let counterpart = $state<'scripted' | 'live'>('scripted');
 	let running = $state(false);
 	let flows = $state<Record<string, VerdictFlowRow[]>>({});
 	let benchNote = $state('');
@@ -193,11 +196,15 @@
 		benchNote = '';
 		try {
 			const worker = spawnCampaignWorker();
-			const job = runStackTestIn(worker, stackTestCampaign({ scenarioId, brain, seed, stacks }), {
-				onTrace: (cell, trace) => {
-					flows = { ...flows, [cell.guard]: verdictFlow(trace.events) };
+			const job = runStackTestIn(
+				worker,
+				stackTestCampaign({ scenarioId, brain, seed, stacks, counterpart }),
+				{
+					onTrace: (cell, trace) => {
+						flows = { ...flows, [cell.guard]: verdictFlow(trace.events) };
+					}
 				}
-			});
+			);
 			await job.result;
 			benchNote = `${Object.keys(flows).length} flow${Object.keys(flows).length === 1 ? '' : 's'} over ${scenarioId} at seed ${seed}.`;
 		} catch (error) {
@@ -402,6 +409,8 @@
 				</p>
 				{#if layout}
 					<JourneyCanvas {layout} {onPoint} testId="studio-journey" />
+					<!-- WP110 (`97-ACCESS.md` §1; tenet 29): the drawing's list twin, always beside it. -->
+					<JourneyList {layout} testId="studio-journey-list" />
 				{:else}
 					<ul class="loop" data-testid="studio-loop">
 						{#each loopPoints as point (point.kind)}
@@ -491,6 +500,15 @@
 						bind:value={seed}
 						data-testid="studio-seed"
 					/></label
+				>
+				<label class="field"
+					><span>Counterpart</span><select
+						bind:value={counterpart}
+						data-testid="studio-counterpart"
+					>
+						<option value="scripted">the desk's scripted persona</option>
+						<option value="live">live — a cartridge in the battery (Talk to this desk)</option>
+					</select></label
 				>
 				<button
 					type="button"

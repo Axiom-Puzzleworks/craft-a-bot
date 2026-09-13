@@ -89,7 +89,7 @@ describe('the Boundary’s twin', () => {
 
 	it('has the ring — every safety brick, the person, the gate, the rules — and the inside', () => {
 		expect(rows.filter((row) => row.kind === 'ring').map((row) => row.id)).toEqual([
-			'ring:safety:workshop/guard',
+			'ring:safety:0:workshop/guard',
 			'ring:human',
 			'ring:egress',
 			'ring:rules'

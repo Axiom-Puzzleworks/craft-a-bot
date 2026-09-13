@@ -1,11 +1,13 @@
 <script lang="ts">
-	import type {
-		BoundaryMap,
-		BoundaryOutside,
-		BoundaryWorkflowStage
-	} from '@craftabot/governance/reports';
+	import type { BoundaryMap, BoundaryWorkflowStage } from '@craftabot/governance/reports';
 	import { litEdgesAt } from '@craftabot/governance/reports';
 	import { layoutBoundary, type PlacedLabel } from '$lib/control-room/boundary-layout.js';
+	import {
+		boundaryTwin,
+		twinStops,
+		type BoundaryTwinRow
+	} from '$lib/control-room/boundary-twin.js';
+	import BoundaryList from './BoundaryList.svelte';
 
 	/**
 	 * **Boundary** (WP57 stage C, `44-CONTROL-ROOM.md` §4.5; rewritten WP86,
@@ -28,12 +30,62 @@
 		map: BoundaryMap;
 		tick?: number | undefined;
 		testId?: string;
+		/** WP110: a stop chosen with Enter — an outside node or a workflow stage. */
+		onSelect?: ((row: BoundaryTwinRow) => void) | undefined;
 	}
 
-	let { map, tick, testId = 'boundary' }: Props = $props();
+	let { map, tick, testId = 'boundary', onSelect }: Props = $props();
 
 	const lit = $derived(tick === undefined ? new Set<string>() : litEdgesAt(map, tick));
 	const layout = $derived(layoutBoundary(map, lit));
+
+	/**
+	 * WP110 (`97-ACCESS.md` §1; tenet 29): the list twin folded from the same
+	 * layout, rendered beneath; every outside node and every stage a focus stop
+	 * announced from its row — `←`/`→` around the ring and along the journey,
+	 * `Home`/`End`, `Enter` selects, `Escape` leaves.
+	 */
+	const twin = $derived(boundaryTwin(layout, map));
+	const stops = $derived(twinStops(twin));
+	let focusedRow = $state<string | undefined>(undefined);
+	const tabStop = $derived(focusedRow ?? stops[0]?.id);
+	const rowKey = (row: BoundaryTwinRow): string => row.edge ?? row.id;
+	const stopOf = (row: BoundaryTwinRow): string => `${testId}-stop-${rowKey(row)}`;
+	function focusStop(row: BoundaryTwinRow | undefined): void {
+		if (!row) return;
+		focusedRow = row.id;
+		document.getElementById(stopOf(row))?.focus();
+	}
+	function onStopKey(event: KeyboardEvent, row: BoundaryTwinRow): void {
+		const index = stops.findIndex((stop) => stop.id === row.id);
+		switch (event.key) {
+			case 'ArrowRight':
+			case 'ArrowDown':
+				focusStop(stops[(index + 1) % stops.length]);
+				break;
+			case 'ArrowLeft':
+			case 'ArrowUp':
+				focusStop(stops[(index - 1 + stops.length) % stops.length]);
+				break;
+			case 'Home':
+				focusStop(stops[0]);
+				break;
+			case 'End':
+				focusStop(stops.at(-1));
+				break;
+			case 'Enter':
+			case ' ':
+				onSelect?.(row);
+				break;
+			case 'Escape':
+				(event.currentTarget as SVGElement | null)?.blur();
+				focusedRow = undefined;
+				break;
+			default:
+				return;
+		}
+		event.preventDefault();
+	}
 	const W = $derived(layout.width);
 	const H = $derived(layout.height);
 	const CX = $derived(layout.centre.x);
@@ -82,14 +134,13 @@
 		return parts.join(' ');
 	});
 
-	const hostsLabel = (entry: BoundaryOutside): string =>
-		entry.hosts.length === 0 ? 'local' : entry.hosts.join(', ');
 	const leader = (label: PlacedLabel) =>
 		label.moved ? { x1: label.anchor.x, y1: label.anchor.y, x2: label.x, y2: label.y } : undefined;
 </script>
 
 <figure class="boundary" data-testid={testId} data-tick={tick}>
-	<svg viewBox="0 0 {W} {H}" role="img" aria-label={sentence}>
+	<!-- A group, not an image (WP110): the drawing carries focus stops, and an image's children are presentational. -->
+	<svg viewBox="0 0 {W} {H}" role="group" aria-label={sentence}>
 		<!-- edges first, under everything -->
 		{#each layout.outside as node (node.edge)}
 			<line
@@ -203,11 +254,19 @@
 
 		<!-- the workflow ring(s): each stage as its actor, lit by the run -->
 		{#each layout.stages as stage (stage.id)}
+			{@const row = twin.find((entry) => entry.id === `stage:${stage.workflowId}:${stage.stageId}`)}
 			<g
+				id={row ? stopOf(row) : undefined}
+				role="button"
+				tabindex={row && row.id === tabStop ? 0 : -1}
+				aria-labelledby={row ? `${testId}-list-${rowKey(row)}` : undefined}
 				data-testid="{testId}-stage-{stage.workflowId}-{stage.stageId}"
 				data-executor={stage.executor}
 				data-status={stage.status}
 				transform="translate({stage.at.x} {stage.at.y})"
+				onkeydown={(event) => row && onStopKey(event, row)}
+				onfocus={() => (focusedRow = row?.id)}
+				onclick={() => row && onSelect?.(row)}
 			>
 				<circle
 					r="9"
@@ -222,9 +281,17 @@
 
 		<!-- outside nodes -->
 		{#each layout.outside as node (node.edge)}
+			{@const row = twin.find((entry) => entry.id === `outside:${node.edge}`)}
 			<g
+				id={row ? stopOf(row) : undefined}
+				role="button"
+				tabindex={row && row.id === tabStop ? 0 : -1}
+				aria-labelledby={row ? `${testId}-list-${rowKey(row)}` : undefined}
 				data-testid="{testId}-node-{node.entry.kind}-{node.entry.id}"
 				transform="translate({node.at.x} {node.at.y})"
+				onkeydown={(event) => row && onStopKey(event, row)}
+				onfocus={() => (focusedRow = row?.id)}
+				onclick={() => row && onSelect?.(row)}
 			>
 				<rect
 					x={-node.width / 2}
@@ -274,40 +341,7 @@
 		{/each}
 	</svg>
 	<figcaption>
-		<ol class="edges" aria-label="Every edge">
-			{#each layout.outside as node (node.edge)}
-				<li data-testid="{testId}-list-{node.edge}" data-lit={node.lit}>
-					<b>{node.entry.kind}</b>
-					{node.entry.name} — {hostsLabel(node.entry)}
-					{#if node.entry.sends.length > 0}· sends {node.entry.sends.join(', ')}{/if}
-					{#if node.entry.credential}· credential {node.entry.credential}{/if}
-					{#if node.flagged}· <span class="flag">reached a host the run never declared</span>{/if}
-					{#if node.lit}· <span class="lit-word">lit</span>{/if}
-				</li>
-			{/each}
-			<li>
-				<b>human</b> — approval {map.boundary.approval.mode}{map.boundary.approval.autonomy
-					? ` (${map.boundary.approval.autonomy})`
-					: ''} · {map.human.approvals} crossed
-			</li>
-			<li>
-				<b>egress</b> — {map.boundary.egress.mode ?? 'not yet named'} · {map.boundary.egress.hosts.join(
-					', '
-				) || 'no hosts'}
-			</li>
-			<li><b>rules</b> — {map.boundary.guardrailIds.join(', ') || 'none'}</li>
-			{#each map.workflows ?? [] as workflow (workflow.id)}
-				<li data-testid="{testId}-list-workflow-{workflow.id}">
-					<b>workflow</b>
-					{workflow.name} — {workflow.stages
-						.map(
-							(stage) =>
-								`${stage.name} (${stage.executor}${stage.status ? `, ${stage.status}` : ''})`
-						)
-						.join(' → ')}
-				</li>
-			{/each}
-		</ol>
+		<BoundaryList rows={twin} testId="{testId}-list" current={focusedRow} />
 	</figcaption>
 </figure>
 
@@ -326,6 +360,18 @@
 		border: var(--cab-border-part) solid var(--cab-ink);
 		border-radius: var(--cab-radius-part);
 		color: var(--cab-ink);
+	}
+
+	svg g[role='button'] {
+		cursor: pointer;
+		outline: none;
+	}
+
+	svg g[role='button']:focus-visible > circle,
+	svg g[role='button']:focus-visible > rect {
+		stroke: var(--cab-ink);
+		stroke-width: 3;
+		filter: drop-shadow(0 0 0 2px var(--cab-cream));
 	}
 
 	svg {

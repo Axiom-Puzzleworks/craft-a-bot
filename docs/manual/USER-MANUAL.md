@@ -153,6 +153,10 @@ Conventions used throughout:
 51. The site
 52. Bringing a domain
 53. The palette, saved views and density
+54. The Guardrail Studio
+55. The Guardrail Catalogue
+56. The journeys, the Canvas and the handoffs
+57. Access: twins, keyboards and the reader's walk
 
 **Appendices**
 A. Screen index
@@ -1786,7 +1790,7 @@ A campaign says pass or fail per gate. An **experiment** (`72-EXPERIMENTS.md`; `
 
 **Design an experiment** — pick a **Workflow**; the **Factor** (its configurations, a knob of the world, or the context rung; a knob wants its **Values**); the population's **Seed** and **Customers**; tick the **Levels** (every one when none is ticked) and the **Baseline**; give it a **Title** and a **Hypothesis**; tick the **Metrics** the pack answers. The design is shown **as the file it is**; every level is a campaign the runner queues on the Worker, with the count *sharing seeds* beside it. When the last report lands the result is folded and stored: the verdict lamp, one grid per metric with the difference each level makes against the baseline, its interval and *n*, per cohort slice; the cost line — tokens and approvals per case on each side; **every run behind this result** opening the Run Lab; and the digest. The page says what the result is: *evidence about this synthetic bank under these configurations, and nothing else.* A stored result reopens from the **Result** picker.
 
-> **Figure 22** — Experiments: the design form — the workflow, the factor, the levels, the baseline, the metrics — and the design as a file. *(Appendix D, `ws-experiments.png`.)*
+> **Figure 22** — Experiments over a stored result — the policy-card stack on the loan book — with the design form beneath. *(Appendix D, `ws-experiments.png`.)*
 
 ### 50.3 The Control Effectiveness Register
 
@@ -1833,6 +1837,46 @@ What this repository ships for it:
 What is not yet built lives in the site's own repository: the service that serves and gates the folders, the account page that mints the token, and the framing page itself. Until then the three sections publish to any static host as §38 describes.
 
 ---
+
+# Part H — The Guardrail Studio, the Journey Canvas and the domain blueprint
+
+Day 6 gave the Workshop three things it lacked: a place to build a guardrail stack by hand and watch it decide (**the Studio**), a catalogue of every guardrail technique with an honest coverage status (**the Catalogue**), and a drawing of each journey the bank runs with the four journeys it lacked (**the Journey Canvas**, and onboarding, disputes, collections and servicing beside lending, fraud, advice and complaints). It also wrote down what a domain *is* so that the next one can be brought without reading the bank's code (§52), and gave the Control Room its power tools (§53) and its access — every drawing has a list twin, a keyboard model and a place a screen reader can follow it (§57).
+
+## 54. The Guardrail Studio
+
+`/workshop/studio` (`88-STUDIO.md`). Three columns: the **catalogue** of guardrail components on the left — every shipped service, policy card and built-in as one kind of thing, filtered by technique, each with a lamp for its connection; the **journey and its points** in the centre — the Journey Canvas of a chosen workflow with every guard point drawn, or *the loop alone* for a Playroom bot; the **test bench** on the right.
+
+A stack is built by fitting a component to a point: click the component, then the point; drag the card onto the point; or, from a stage on the canvas, press `g` and `Enter`. The one function does all three, and a fit the component cannot decide at is refused with the reason. *Save* writes the stack to your content store under your name; *Use in…* hands it to a campaign, an experiment or a bot's Safety brick as the same stack.
+
+The **test bench** runs a scenario through the stack and lights every point with the verdict it gave — the **verdict flow**, which is the trace's own `guardrail.checked` events in order and nothing more. Pin a second stack and the two flows sit side by side with the difference named. Since Day 6's close, the bench also asks **who sits across the desk**: the desk's scripted persona, or a live cartridge from your battery — *Talk to this desk* is a scenario run through the stack with a live counterpart.
+
+> **Figure 23** — The Guardrail Studio: the catalogue, the journey with its points, the stack under construction and the test bench. *(Appendix D, `ws-studio.png`.)*
+
+## 55. The Guardrail Catalogue
+
+`/workshop/catalogue` (`86-CATALOGUE.md`). Every guardrail technique the field names, as an entry with a source, a taxonomy and a **coverage status** the code verifies: *shipped* (a component exists and its identity test runs), *connectable* (a declared connection to a vendor, with a stand-in), *bespoke* (designed, not built), *blueprint* (described only), *not applicable* (the simulator has no such surface, and says why). The counts on the page are folded from the entries; `docs/catalogue.md` is generated from the same fold and checked on every build, so the document and the screen cannot disagree. Every entry is marked *pending review* until a reader has read it against its sources — the page counts those too.
+
+> **Figure 24** — The Guardrail Catalogue with its coverage counts and the filter by technique. *(Appendix D, `ws-catalogue.png`.)*
+
+## 56. The journeys, the Canvas and the handoffs
+
+`/workshop/playground/journeys` (`87-JOURNEY-CANVAS.md`, `94-HANDOFFS-AND-COMPLAINTS.md`, the four desk notes). Every workflow the bank ships, drawn: lanes for the rule, the assistant, the person and the systems; a node per stage on its lane; edges for every outcome a decision can take, including *depends on the case*; a guard point at every boundary a stack can fit. Open a journey for its drawing at full size with its **list twin** beneath — the same stages and edges as a table, always rendered, which is what a screen reader reads and what the keyboard walks: arrows along the edges, `Enter` to select, `g` to the node's first point, `Escape` back.
+
+A stored workflow run lights the drawing on the Pipeline (§45): the stages it took, the verdicts at each point, the branch it followed. Where a journey **hands off** — a dispute found to be a scam becomes an alert on the fraud desk; a declined dispute becomes a complaint; a bereavement becomes an advice request; a disclosed need in arrears reaches the collections desk and comes back — the Pipeline links the two runs and the Journey Canvas draws the handoff as an edge off the page.
+
+The journeys page also carries **the coverage matrix**: which of the domain's journeys ship, which support, which are out and why, from the domain spec (§52) — the bank says *out* for mortgages, pensions, insurance and business banking with the reason for each. Each journey has a **cover** (a small card drawn from its own shape) on this page and on the Playground's *The journeys* strip.
+
+> **Figure 25** — The journeys page: every journey with its cover, the table of stages, lanes and guard points, and the coverage matrix. *(Appendix D, `ws-journeys.png`.)*
+
+> **Figure 26** — The lending journey drawn: lanes, stages, the outcomes a decision can take, the guard points, and the list twin beneath. *(Appendix D, `ws-journey-lending.png`.)*
+
+> **Figure 27** — The Pipeline lit by a stored run of the lending journey: the stages it took, the verdicts at each point. *(Appendix D, `ws-pipeline-golden.png`.)*
+
+## 57. Access: twins, keyboards and the reader's walk
+
+Every drawing in the Control Room has a **list twin** rendered beside or beneath it — the Journey Canvas's table of stages and edges, the Boundary's *Every edge* list, the Pipeline's stage cards beside the Journey List, the Monitor's tiles above their queue table — the same facts as a list, never hidden behind a toggle, and tested equal to the drawing. Every drawing has a **keyboard model**: `Tab` to it, arrows around the ring or along the edges, `Home`/`End`, `Enter` to select, `Escape` to leave; each focus stop is announced from its twin's row, so a screen reader hears the row's sentence in the drawing's place. Every Workshop route begins with a **skip link** to the content, has one heading and one main landmark, and every drawer gives focus back to what opened it. The build holds all of this in one job: axe over every route, the reader's walk over the three canvases, the pages at 320 px and at 200 % zoom, and the lit Pipeline under reduced motion and without it, the same picture.
+
+**Reviewing a control row.** On the Assurance screen (§29) every control-map row can be **reviewed** — *reviewed* or *disputed*, with a note, under your name from Settings. A review is content in your store beside the pack's row, never an edit to the pack: the table shows it, the assurance pack files it beside the row it is about, and the pack's own claim of relevance stands as the pack made it.
 
 ## 52. Bringing a domain
 
