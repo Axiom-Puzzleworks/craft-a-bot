@@ -151,6 +151,12 @@ Conventions used throughout:
 49. The lenses, Conduct and Model risk
 50. Experiments and the Control Effectiveness Register
 51. The site
+52. Bringing a domain
+53. The palette, saved views and density
+54. The Guardrail Studio
+55. The Guardrail Catalogue
+56. The journeys, the Canvas and the handoffs
+57. Access: twins, keyboards and the reader's walk
 
 **Appendices**
 A. Screen index
@@ -491,6 +497,8 @@ The Flight Recorder is the trace, live. Every row is one typed event: `run.start
 Click any row to see exactly what happened, including the full prompt that was sent. **Export trace** saves the whole run as a `.craftabot-trace.json` with a digest a recipient can verify.
 
 This is the product's first hard rule made visible: anything the interface shows about the engine's behaviour arrives as a typed event on the bus. There is no hidden machinery.
+
+**A redacted line.** When a guard that can rewrite text — Model Armor's Sensitive Data Protection, through a Guard brick or a component — reads a card number in what the bot is about to say, the bot's turn still runs, but with the guard's text. The recorder shows it as three rows: the bot's `decision` with its own words (`say("the card is 4111 1111 1111 1111")`), the `guardrail.checked` row with the verdict `redact` and the finding (`sensitive-data · sensitiveData`), and the `action.performed` row with what was actually said — `say("the card is [REDACTED]")` — and a `redacted by workshop/guard:decision` note. On a desk, the transcript line carries the same note as a chip beside it. The digest covers the rewritten line, because that is the event that was written; the original is on the decision row, where an audit can read it. An `annotate` verdict is the same shape with nothing rewritten: a finding on the `guardrail.checked` row, the turn unchanged.
 
 ## 10. The leaflet, Robot Friends and the Scrapbook
 
@@ -1277,7 +1285,7 @@ npm run craftabot -- evidence pull --store evidence/supabase --store-config '…
 
 ### 36.8 `workflow`, `book`, `sweep`, `bank`, `experiment` — the bank in motion
 
-The Day 5 commands, each described with its screen: `workflow run` (§44.5) runs one journey over one work item; `book run` and `sweep` (§43.5) run a book through a workflow's configurations and multiply builds by a knob; `bank run` (§48.4) runs a simulated day with the desks from a file; `experiment run | analyse | render` (§50.5) expands a design to its campaigns and folds their reports into effects. `evidence pull --kind` now also takes `workflow-run`, `bank-run`, `experiment` and `experiment-result`.
+The Day 5 commands, each described with its screen: `workflow run` (§44.5) runs one journey over one work item; `book run` and `sweep` (§43.5) run a book through a workflow's configurations and multiply builds by a knob; `bank run` (§48.4) runs a simulated day with the desks from a file; `experiment run | analyse | render` (§50.5) expands a design to its campaigns and folds their reports into effects; `scaffold domain` (§52) types out a new domain's world pack and journey packs. `evidence pull --kind` now also takes `workflow-run`, `bank-run`, `experiment` and `experiment-result`.
 
 ### 36.9 The rest
 
@@ -1553,7 +1561,19 @@ The desk is unchanged. A workflow is a schedule over what a desk already does: t
 
 Two events joined the catalogue: `stage.started` and `stage.completed`. A trace without them is a desk run, as before.
 
-### 44.2 The three workflows
+### 44.2 The eight workflows
+
+Since Day 6 a fourth journey ships beside the three: **complaints** (`fs-advice/complaints`), the Complaints Desk's decks as stages — acknowledgement, investigation, root cause, decision, approval, redress, closed — with DISP's timescales as stage budgets, the register's own rule (a charges or a data complaint upheld, the rest declined), five configurations and a book drawn from the complaint register. A journey can now **hand off**: a stage may end its run by handing the item to another journey — the fraud journey hands a disputed freeze or card block to complaints as a complaint — and the run ends *handed-off*, with the target run linked from the Pipeline both ways. `craftabot workflow run --follow` runs a chain to its end; on the Monitor a handed-off item goes back on the clock and the desk that takes its kind works it.
+
+A fifth journey is the **Onboarding Desk's** (`fs-onboarding/onboarding`, `95-FS-ONBOARDING.md`): application → identity → screening → risk rating → decision → record → four eyes → open → welcome. The bank keeps a synthetic screening list (six names, sanctions and politically exposed persons); the screening stage earns the result as a record the desk never speaks, and the tipping-off pair — *A hit is never said* on the stack, `hit-contained` in the evaluators — is what the desk's campaign gates on. An applicant whose details do not match the document is declined at the identity stage without a screening.
+
+A sixth is the **Disputes Desk's** (`fs-disputes/disputes`, `90-FS-DISPUTES.md`): intake → verify → classify → hold → investigate → decision → record → four eyes → reimbursement. The rule is PSR-shaped and synthetic — an unauthorised payment reimbursed in full, an authorised push-payment scam reimbursed less the excess up to a limit that is a knob, a merchant dispute declined as a fraud claim — and the journey **hands off twice**: a reimbursed scam sends the payee to the fraud journey as an alert, a decline sends the customer's complaint to the complaints journey. The merchant's note on the file is evidence, never an instruction.
+
+A seventh is the **Collections Desk's** (`fs-collections/arrears`, `91-FS-COLLECTIONS.md`): intake → contact → circumstances → reassess → plan → plan recorded → decision → agreement. The rule is CONC 7-shaped and synthetic — a disclosed support need gets breathing space, a customer who can carry the repayment and clear the arrears over six months a payment plan, one who can carry half reduced payments — and the decision is a person's below Level 5. A disclosed support need hands a servicing request on once the plan is agreed (the servicing desk is WP106's; until it ships the clock counts the item unrouted). A default notice is never issued before the circumstances are on the file, and never to a customer who has disclosed.
+
+The eighth is the **Servicing Desk's** (`fs-servicing/servicing`, `92-FS-SERVICING.md`): request → identify → classify → verify → (four eyes) → act → record → (closure). The caller is checked against the file before anything changes; the request is classified — address, card, third-party, disclosure, bereavement — and met with the one act it calls for; a support need is recorded as said before the act; a bereavement's closure is under four eyes and hands the estate's savings to the advice journey; a disclosed need on a customer in arrears hands the account to the collections journey with the need on the item. The seven desks now work a day together (`campaigns/desks/bank-day.json`), and the journeys page draws the bank's **coverage matrix** from its domain spec — which journeys ship, which support, which are out and why.
+
+### 44.2a The three original workflows
 
 **The lending journey** (`fs-lending/lending`; `73-LENDING-WORKFLOW-AND-BOOKS.md`) — ten stages:
 
@@ -1607,7 +1627,7 @@ Every workflow run the store holds — a book campaign's cells, a what-if, an im
 
 ### 45.2 The Pipeline (`/workshop/workflows/<runId>`)
 
-A row opens the **Pipeline**: the run's strip, then a rail of stage cards — the executor's roundel (the bot, a rule, a person, a line), the status lamp, the executor in a sentence, the duration, the guard tally, and the approval or the finding when there is one. Select a stage for its **In** and **Out** panes on the case file, every field with its digest beside it. A bot stage links to **the Run Lab at this stage's first tick** when its run is in the store, and says plainly when it is not; a rule stage says *no bot ran*. The Boundary beneath draws the journey as a **ring** around the bot's boundary, each stage as its actor, lit by the run.
+A row opens the **Pipeline**: the run's strip, then a rail of stage cards — the executor's roundel (the bot, a rule, a person, a line), the status lamp, the executor in a sentence, the duration, the guard tally, and the approval or the finding when there is one. Select a stage for its **In** and **Out** panes on the case file, every field with its digest beside it. A bot stage links to **the Run Lab at this stage's first tick** when its run is in the store, and says plainly when it is not; a rule stage says *no bot ran*. Beneath the rail the **Journey Canvas** draws the journey as lanes — the assistant, a colleague, the rules, the systems — lit by the run: the path it took in the scope colour, the edge it took out of each stage, the boundary verdicts on their gates; the list beside it says the same in two tables. Select a node and the rail follows. (The ring the Boundary drew here until Day 6 is on the Spec Lab and the Run Lab still.)
 
 ### 45.3 What if…
 
@@ -1620,7 +1640,11 @@ A row opens the **Pipeline**: the run's strip, then a rail of stage cards — th
 
 This is the counterfactual of §13.4's *Fork*, lifted from a tick to a stage.
 
-### 45.4 The Boundary map, rewritten
+### 45.4 The journeys (`/workshop/playground/journeys`)
+
+Every journey the desks run, listed, and each drawn **unlit** with a configuration selector: pick *rules-only* and the assistant's lane empties; pick *bot-recommends* and the decision moves to a colleague's lane. Each stage shows its executor's roundel, the hazard mark when it is irreversible, its obligations as tags and its guard points as gates — the loop's three rings on an assistant's stage, a gate on a boundary that has a component or a policy card. Arrow keys walk the stages along their edges, `Home`/`End` jump, `Enter` selects, `g` moves to a stage's points and `Esc` returns; every node reads its row of the list aloud. An edge labelled *depends on the case* is one the journey decides from the case, not the outcome alone — a run shows which way it went. The Monitor draws a small copy per desk with the queue on the first stage and the edges the day is taking darkened, and the assurance pack's §3 carries the same figure with the points listed beneath.
+
+### 45.5 The Boundary map, rewritten
 
 The Boundary map (§13.3, §14) was rewritten for the ring. Outside nodes now sit evenly around the circle in kind order on a radius sized to the widest label, every label is collision-tested and leader-lined outward when it would overlap, and each workflow draws its stages as a ring outside the boundary — the bank's page draws every workflow's ring, each desk's page its own, the Pipeline the run's. The label collisions recorded in the Day 4 register (UX-7) are gone, and a test measures the label boxes in the browser on every page that draws the map.
 
@@ -1766,7 +1790,7 @@ A campaign says pass or fail per gate. An **experiment** (`72-EXPERIMENTS.md`; `
 
 **Design an experiment** — pick a **Workflow**; the **Factor** (its configurations, a knob of the world, or the context rung; a knob wants its **Values**); the population's **Seed** and **Customers**; tick the **Levels** (every one when none is ticked) and the **Baseline**; give it a **Title** and a **Hypothesis**; tick the **Metrics** the pack answers. The design is shown **as the file it is**; every level is a campaign the runner queues on the Worker, with the count *sharing seeds* beside it. When the last report lands the result is folded and stored: the verdict lamp, one grid per metric with the difference each level makes against the baseline, its interval and *n*, per cohort slice; the cost line — tokens and approvals per case on each side; **every run behind this result** opening the Run Lab; and the digest. The page says what the result is: *evidence about this synthetic bank under these configurations, and nothing else.* A stored result reopens from the **Result** picker.
 
-> **Figure 22** — Experiments: the design form — the workflow, the factor, the levels, the baseline, the metrics — and the design as a file. *(Appendix D, `ws-experiments.png`.)*
+> **Figure 22** — Experiments over a stored result — the policy-card stack on the loan book — with the design form beneath. *(Appendix D, `ws-experiments.png`.)*
 
 ### 50.3 The Control Effectiveness Register
 
@@ -1813,6 +1837,107 @@ What this repository ships for it:
 What is not yet built lives in the site's own repository: the service that serves and gates the folders, the account page that mints the token, and the framing page itself. Until then the three sections publish to any static host as §38 describes.
 
 ---
+
+# Part H — The Guardrail Studio, the Journey Canvas and the domain blueprint
+
+Day 6 gave the Workshop three things it lacked: a place to build a guardrail stack by hand and watch it decide (**the Studio**), a catalogue of every guardrail technique with an honest coverage status (**the Catalogue**), and a drawing of each journey the bank runs with the four journeys it lacked (**the Journey Canvas**, and onboarding, disputes, collections and servicing beside lending, fraud, advice and complaints). It also wrote down what a domain *is* so that the next one can be brought without reading the bank's code (§52), and gave the Control Room its power tools (§53) and its access — every drawing has a list twin, a keyboard model and a place a screen reader can follow it (§57).
+
+## 54. The Guardrail Studio
+
+`/workshop/studio` (`88-STUDIO.md`). Three columns: the **catalogue** of guardrail components on the left — every shipped service, policy card and built-in as one kind of thing, filtered by technique, each with a lamp for its connection; the **journey and its points** in the centre — the Journey Canvas of a chosen workflow with every guard point drawn, or *the loop alone* for a Playroom bot; the **test bench** on the right.
+
+A stack is built by fitting a component to a point: click the component, then the point; drag the card onto the point; or, from a stage on the canvas, press `g` and `Enter`. The one function does all three, and a fit the component cannot decide at is refused with the reason. *Save* writes the stack to your content store under your name; *Use in…* hands it to a campaign, an experiment or a bot's Safety brick as the same stack.
+
+The **test bench** runs a scenario through the stack and lights every point with the verdict it gave — the **verdict flow**, which is the trace's own `guardrail.checked` events in order and nothing more. Pin a second stack and the two flows sit side by side with the difference named. Since Day 6's close, the bench also asks **who sits across the desk**: the desk's scripted persona, or a live cartridge from your battery — *Talk to this desk* is a scenario run through the stack with a live counterpart.
+
+> **Figure 23** — The Guardrail Studio: the catalogue, the journey with its points, the stack under construction and the test bench. *(Appendix D, `ws-studio.png`.)*
+
+## 55. The Guardrail Catalogue
+
+`/workshop/catalogue` (`86-CATALOGUE.md`). Every guardrail technique the field names, as an entry with a source, a taxonomy and a **coverage status** the code verifies: *shipped* (a component exists and its identity test runs), *connectable* (a declared connection to a vendor, with a stand-in), *bespoke* (designed, not built), *blueprint* (described only), *not applicable* (the simulator has no such surface, and says why). The counts on the page are folded from the entries; `docs/catalogue.md` is generated from the same fold and checked on every build, so the document and the screen cannot disagree. Every entry is marked *pending review* until a reader has read it against its sources — the page counts those too.
+
+> **Figure 24** — The Guardrail Catalogue with its coverage counts and the filter by technique. *(Appendix D, `ws-catalogue.png`.)*
+
+## 56. The journeys, the Canvas and the handoffs
+
+`/workshop/playground/journeys` (`87-JOURNEY-CANVAS.md`, `94-HANDOFFS-AND-COMPLAINTS.md`, the four desk notes). Every workflow the bank ships, drawn: lanes for the rule, the assistant, the person and the systems; a node per stage on its lane; edges for every outcome a decision can take, including *depends on the case*; a guard point at every boundary a stack can fit. Open a journey for its drawing at full size with its **list twin** beneath — the same stages and edges as a table, always rendered, which is what a screen reader reads and what the keyboard walks: arrows along the edges, `Enter` to select, `g` to the node's first point, `Escape` back.
+
+A stored workflow run lights the drawing on the Pipeline (§45): the stages it took, the verdicts at each point, the branch it followed. Where a journey **hands off** — a dispute found to be a scam becomes an alert on the fraud desk; a declined dispute becomes a complaint; a bereavement becomes an advice request; a disclosed need in arrears reaches the collections desk and comes back — the Pipeline links the two runs and the Journey Canvas draws the handoff as an edge off the page.
+
+The journeys page also carries **the coverage matrix**: which of the domain's journeys ship, which support, which are out and why, from the domain spec (§52) — the bank says *out* for mortgages, pensions, insurance and business banking with the reason for each. Each journey has a **cover** (a small card drawn from its own shape) on this page and on the Playground's *The journeys* strip.
+
+> **Figure 25** — The journeys page: every journey with its cover, the table of stages, lanes and guard points, and the coverage matrix. *(Appendix D, `ws-journeys.png`.)*
+
+> **Figure 26** — The lending journey drawn: lanes, stages, the outcomes a decision can take, the guard points, and the list twin beneath. *(Appendix D, `ws-journey-lending.png`.)*
+
+> **Figure 27** — The Pipeline lit by a stored run of the lending journey: the stages it took, the verdicts at each point. *(Appendix D, `ws-pipeline-golden.png`.)*
+
+## 57. Access: twins, keyboards and the reader's walk
+
+Every drawing in the Control Room has a **list twin** rendered beside or beneath it — the Journey Canvas's table of stages and edges, the Boundary's *Every edge* list, the Pipeline's stage cards beside the Journey List, the Monitor's tiles above their queue table — the same facts as a list, never hidden behind a toggle, and tested equal to the drawing. Every drawing has a **keyboard model**: `Tab` to it, arrows around the ring or along the edges, `Home`/`End`, `Enter` to select, `Escape` to leave; each focus stop is announced from its twin's row, so a screen reader hears the row's sentence in the drawing's place. Every Workshop route begins with a **skip link** to the content, has one heading and one main landmark, and every drawer gives focus back to what opened it. The build holds all of this in one job: axe over every route, the reader's walk over the three canvases, the pages at 320 px and at 200 % zoom, and the lit Pipeline under reduced motion and without it, the same picture.
+
+**Reviewing a control row.** On the Assurance screen (§29) every control-map row can be **reviewed** — *reviewed* or *disputed*, with a note, under your name from Settings. A review is content in your store beside the pack's row, never an edit to the pack: the table shows it, the assurance pack files it beside the row it is about, and the pack's own claim of relevance stands as the pack made it.
+
+## 52. Bringing a domain
+
+The bank is one domain. The same instruments — desks, journeys, books, campaigns, the assurance pack, the Monitor — run over any domain whose packs meet the same checklist, and the checklist is code: `checkDomainPack` in the conformance kit (`93-DOMAIN-PACK.md` §3). This section is what a domain author does, in order; `docs/blueprints/DOMAIN-PACK.md` is the checklist as prose with the bank's file beside every item, and its three notes (healthcare, logistics, manufacturing) show the checklist applied to an industry before a line is typed.
+
+### 52.1 What a domain pack is
+
+One **world pack** and one **journey pack** per journey. The world pack holds the root entity in the domain's own word (the bank's is a *customer*; a practice's a *patient*; a forwarder's a *shipment*), generators over a **calibration table** with a source on every row, **service lines** with a risk tier on every operation, an **obligation vocabulary** with a gloss per tag, a **control map**, **personas**, and the **domain spec** — which packs are the domain's, which decision kinds are whose at what autonomy level and by what source, which classes are special category, which journeys are shipped, supporting or out and why. Each journey pack holds a desk, a workflow with its configurations by autonomy level, decks and cards, evaluators, a book and a campaign. Everything is content (a pack never adds a mechanism) and everything is synthetic (nothing in a pack is a real person, account or document).
+
+### 52.2 Start from the scaffold
+
+```sh
+npm run craftabot -- scaffold domain \
+  --id veterinary-practice --sector "Veterinary services" --jurisdiction UK \
+  --world vet-practice --journeys vaccination,referral --root Patient \
+  --out packages/packs/scaffolded
+```
+
+The command writes the shape typed out (§36.8; `93-DOMAIN-PACK.md` §4): the world pack with a two-row calibration table, three lines, three tags, one control row, one persona and the spec; per journey a desk with three actions and two predicates, a four-stage journey with `rules-only` and a Level 4 configuration, two scenarios and a card, a policy card, an evaluator, a book, a campaign and a golden-run test. Every file is formatted. `examples/scaffold-domain` is exactly this output for a veterinary practice, and its tests are the ones you inherit.
+
+The output **passes the checklist as written** and **fails calibration review** — every calibration row is a stated assumption marked `review: 'pending'`. That is the point: a scaffold is a shape, and the first thing you do is replace a row's source with a publication, say what was simplified, and mark it reviewed once a reader has read it against the source.
+
+### 52.3 Then, in order
+
+1. **The words.** Rename the root entity and its fields to the domain's; fill the glossary in both registers (the domain's word and the Kit's).
+2. **The calibration table.** Cite each row; add the rows the generators need. `checkCalibration` holds every row to a source or a stated assumption; `checkCalibration({ requireReview: true })` holds each to a reader.
+3. **The lines.** Name the systems a journey reaches and tier every operation — *observe*, *reversible*, *irreversible*. A line answers from the world's state in `simulate`; a cassette or a live sandbox comes later, under declared egress.
+4. **The obligations and the rights.** Name the regulator's and the guidance's tags with a gloss each; put every decision kind a journey counts in the decision-rights table with a ceiling and a source. The check refuses a kind a configuration counts that the table lacks, or counts at another level.
+5. **The journeys.** Grow each scaffolded journey's stages, rules and truth; keep `rules-only` agreeing with the rule in truth (the golden run) and the adversary failing the card (the red run). Add a matched pair where a cohort could be treated differently.
+6. **The rows.** One control row per obligation you claim relevance to, citing the card and the evaluator that show it — `unreviewed` until a compliance reader has read it.
+7. **Register.** Move the packs under `packages/packs/`, add them to the harness's default packs and an edition's box, and the journeys page draws the coverage matrix, the assurance pack names the domain, and the bank day can seat the desks (`95-FS-ONBOARDING.md` §1 lists every seam a desk registers on).
+
+### 52.4 The checklist
+
+`checkDomainPack(spec, registry, { manifests, personas })` returns an empty list or the items unmet — each with a stable `check` name (`domain.packs-registered`, `domain.journey-ships`, `domain.journey-out-why`, `domain.journey-obligations`, `domain.decision-kinds`, `domain.control-rows`, `domain.calibration`, `domain.special-category`, `domain.service-line-tiers`, `domain.personas`, `domain.journey-evidence`). The bank's own test (`packages/harness/src/domain-pack.test.ts`) shows every item red by removing one thing; copy its shape for yours. Four things the check cannot see from a manifest are the pack's own tests: the golden run, the red run, at least one matched pair, and the synthetic sweep over every fixture.
+
+
+## 53. The palette, saved views and density
+
+Three things the Workshop gained for the reader who lives in it (`96-CONTROL-ROOM-V3.md`; `83-…` §6.7.1). None changes what a screen shows; each changes how fast you reach it.
+
+### 53.1 The palette
+
+`Ctrl+K` (`⌘K` on a Mac), or *Go to…* on the rail, opens the palette on any Workshop route. Type a screen's name — in your lens's words, so the assurance reader types *Trials* where the engineer types *Campaigns* — an artefact's id or title (a run's bot and card, a campaign report's title, a workflow run's journey, an experiment's title, a stack, a saved view), or an action the screen you are on exposes (*Run campaign* on the Campaigns screen, *Fork from this tick* and *Explain this decision* in the Run Lab, *What if…* on the Pipeline). `↑` and `↓` move, `Enter` goes, `Escape` closes and puts focus back where it was. The match is fuzzy: the first characters of a run's id find it.
+
+### 53.2 Saved views
+
+A view is a URL. Set a screen up — the Run Browser's filter, the Campaigns screen's open report and stack, Compare's pair, the Pipeline's stage — and press *Save this view* on the rail; name it, and it sits under *Views* on the rail for the lens you saved it in. Opening one is a navigation; the filter comes back from the URL. The `×` beside a view removes it. Views live in the content store beside your cards and scenarios (§22) and never leave this machine unless you export them.
+
+### 53.3 Density
+
+*Comfortable* or *dense*, on the rail: dense tightens every table and the rail, comfortable gives them air. The setting is remembered per lens, and each lens starts with its own default — dense for the engineer and the model-risk reader, comfortable for the assurance and conduct readers. Density changes spacing and type size and nothing else: no number, row or column moves.
+
+### 53.4 Covers, roundels and the band
+
+Every journey now has a cover — a small card in the Kit's voice drawn from the journey's own shape, its lanes as bands and its stages as stops — on the journeys page and on the Playground page's *The journeys* strip, each a door to the journey's drawing. Two roundels join the family (the catalogue's register, a domain's pin). On the Monitor, the approval-rate tape's reference is now a shaded band — the expected rate's interval over the window's cases — with the hairline at the rate itself.
+
+### 53.5 Linked from
+
+The Run Lab, the Pipeline and an open campaign report each list what links to them — a run's campaign cell, workflow stage, forks and experiment; a workflow run's handoffs and forks; a report's experiment and the workflow runs it sourced — with every id a link.
+
 
 # Appendices
 

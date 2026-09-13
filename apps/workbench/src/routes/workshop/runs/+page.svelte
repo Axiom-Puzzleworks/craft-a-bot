@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { liveRun } from '$lib/state/live-run.svelte.js';
 	import { resolve } from '$app/paths';
+	import { afterNavigate, replaceState } from '$app/navigation';
+	import { page } from '$app/state';
 	import {
 		parseTraceFile,
 		verifyTraceDigest,
@@ -16,7 +18,9 @@
 		filterRuns,
 		groupRows,
 		type RunFilter,
-		displayOutcome
+		displayOutcome,
+		filterFromSearch,
+		searchFromFilter
 	} from '$lib/workshop/run-filter.js';
 
 	/**
@@ -34,7 +38,22 @@
 	/** WP29 (`23-…` §5.2, §10 stage F): loaded alongside `runs`, never filtered on its own. */
 	let groupRuns = $state<GroupRunRecord[]>([]);
 	let loaded = $state(false);
-	let filter = $state<RunFilter>({});
+	/** The filter lives in the URL (WP109, `96-…` §2.2): read from it, written back as it changes, so a saved view of this screen round-trips. */
+	let filter = $state<RunFilter>(filterFromSearch(page.url.searchParams));
+	afterNavigate(() => {
+		// A navigation to this route with another search (a saved view opened while here): take it.
+		const fromUrl = filterFromSearch(page.url.searchParams);
+		if (searchFromFilter(fromUrl) !== searchFromFilter(filter)) filter = fromUrl;
+	});
+	/** Every change to the filter is written to the URL — from the handlers, so the router is always up by then. */
+	function updateFilter(next: RunFilter): void {
+		filter = next;
+		const wanted = searchFromFilter(next);
+		if (wanted === page.url.search) return;
+		const url = new URL(page.url);
+		url.search = wanted;
+		replaceState(url, {});
+	}
 	let importNote = $state<{ ok: boolean; text: string } | undefined>(undefined);
 	/**
 	 * Compare (`17-…` §4.3) takes exactly two — "side by side" reads as a pair,
@@ -147,7 +166,8 @@
 				await storage.deleteEvents(imported.run.id);
 				await storage.putRun(imported.run);
 				await storage.appendEvents(imported.run.id, imported.events);
-				if (!imported.inProgress) await persistRunSummary(storage, imported.run.id, imported.events);
+				if (!imported.inProgress)
+					await persistRunSummary(storage, imported.run.id, imported.events);
 				await load();
 				importNote = imported.inProgress
 					? {
@@ -186,7 +206,7 @@
 		const ms = durationMs(record);
 		return ms === undefined ? '—' : `${(ms / 1000).toFixed(1)}s`;
 	};
-	const clear = () => (filter = {});
+	const clear = () => updateFilter({});
 	/** `''` is the "any" option; the filter wants the key absent, not empty. */
 	const pick = (value: string) => (value === '' ? undefined : value);
 </script>
@@ -215,8 +235,8 @@
 
 	{#if abandonedCount > 0}
 		<p class="tidy" data-testid="abandoned-note">
-			{abandonedCount === 1 ? 'One run was' : `${abandonedCount} runs were`} left part-way and never
-			finished{abandonedGroups.length > 0
+			{abandonedCount === 1 ? 'One run was' : `${abandonedCount} runs were`} left part-way and never finished{abandonedGroups.length >
+			0
 				? ` (${abandonedCount === 1 ? 'and it is an episode' : abandonedGroups.length === 1 ? 'one of them an episode' : `${abandonedGroups.length} of them episodes`})`
 				: ''} — they still read IN_PROGRESS and count in every total.
 			<button type="button" data-testid="tidy-abandoned" onclick={tidyAbandoned}>
@@ -233,7 +253,7 @@
 				placeholder="bot, card, model, run id"
 				data-testid="filter-text"
 				value={filter.text ?? ''}
-				oninput={(e) => (filter = { ...filter, text: e.currentTarget.value })}
+				oninput={(e) => updateFilter({ ...filter, text: e.currentTarget.value })}
 			/>
 		</label>
 
@@ -241,7 +261,7 @@
 			Bot
 			<select
 				data-testid="filter-bot"
-				onchange={(e) => (filter = { ...filter, agentId: pick(e.currentTarget.value) })}
+				onchange={(e) => updateFilter({ ...filter, agentId: pick(e.currentTarget.value) })}
 			>
 				<option value="">Any</option>
 				{#each facets.bots as bot (bot.id)}<option value={bot.id}>{bot.label}</option>{/each}
@@ -252,7 +272,7 @@
 			Card
 			<select
 				data-testid="filter-card"
-				onchange={(e) => (filter = { ...filter, goalCardId: pick(e.currentTarget.value) })}
+				onchange={(e) => updateFilter({ ...filter, goalCardId: pick(e.currentTarget.value) })}
 			>
 				<option value="">Any</option>
 				{#each facets.cards as card (card)}<option value={card}>{card}</option>{/each}
@@ -263,7 +283,7 @@
 			Outcome
 			<select
 				data-testid="filter-outcome"
-				onchange={(e) => (filter = { ...filter, outcome: pick(e.currentTarget.value) })}
+				onchange={(e) => updateFilter({ ...filter, outcome: pick(e.currentTarget.value) })}
 			>
 				<option value="">Any</option>
 				{#each facets.outcomes as outcome (outcome)}<option value={outcome}>{outcome}</option
@@ -276,7 +296,7 @@
 				type="checkbox"
 				data-testid="filter-pinned"
 				checked={filter.pinnedOnly === true}
-				onchange={(e) => (filter = { ...filter, pinnedOnly: e.currentTarget.checked })}
+				onchange={(e) => updateFilter({ ...filter, pinnedOnly: e.currentTarget.checked })}
 			/>
 			Pinned only
 		</label>
@@ -445,7 +465,11 @@
 								<a href={resolve('/workshop/runs/[runId]', { runId: run.id })}>{run.agentName}</a>
 							</td>
 							<td class="mono">{run.goalCardId}</td>
-							<td><span class="outcome" data-outcome={displayOutcome(run)}>{displayOutcome(run)}</span></td>
+							<td
+								><span class="outcome" data-outcome={displayOutcome(run)}
+									>{displayOutcome(run)}</span
+								></td
+							>
 							<td class="num">{run.ticks}<span class="of">/{run.budgets.maxTicks}</span></td>
 							<td class="num">{seconds(run)}</td>
 							<td class="mono">{run.wireModel}</td>

@@ -133,17 +133,26 @@ async function expectNoLabelCollisions(page: Page, testId: string): Promise<void
 	expect(collisions, `${testId}: overlapping labels`).toEqual([]);
 }
 
-test('the Boundary’s labels never overlap — the bank’s page, each desk’s, and the Pipeline’s', async ({
+test('the Boundary’s labels never overlap — the bank’s page and each desk’s; the Pipeline draws the journey lit', async ({
 	page
 }) => {
 	test.setTimeout(120_000);
 	await openTheWorkshopDoor(page);
 	await page.goto('/workshop/playground');
 	await expectNoLabelCollisions(page, 'playground-map');
+	// Eight rings since WP106: the seven desks' journeys and the complaints journey.
 	await expect(
 		page.getByTestId('playground-map').locator('[data-testid^="playground-map-ring-"]')
-	).toHaveCount(3);
-	for (const desk of ['lending', 'fraud', 'advice'] as const) {
+	).toHaveCount(8);
+	for (const desk of [
+		'lending',
+		'fraud',
+		'advice',
+		'onboarding',
+		'disputes',
+		'collections',
+		'servicing'
+	] as const) {
 		await page.goto(`/workshop/playground/${desk}`);
 		await expectNoLabelCollisions(page, `${desk}-map`);
 		await expect(
@@ -152,11 +161,6 @@ test('the Boundary’s labels never overlap — the bank’s page, each desk’s
 	}
 	const runId = await importTheFixture(page);
 	await page.goto(`/workshop/workflows/${runId}`);
-	await expectNoLabelCollisions(page, 'pipeline-boundary');
-	// The run lit its stages: every stage the journey reached carries a status.
-	await expect(
-		page
-			.getByTestId('pipeline-boundary')
-			.locator('[data-testid^="pipeline-boundary-stage-"][data-status]')
-	).toHaveCount(8);
+	// WP100: the Pipeline draws the journey lit by the run in place of the ring — every stage the run reached is lit.
+	await expect(page.getByTestId('pipeline-journey').locator('.node--lit')).toHaveCount(8);
 });

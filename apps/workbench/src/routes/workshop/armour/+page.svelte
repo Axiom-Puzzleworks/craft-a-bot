@@ -13,4 +13,7 @@
 	});
 </script>
 
-<p data-testid="armour-redirect">The Armour Studio is now the Guard Rack — taking you there.</p>
+<main>
+	<h1>The Armour Studio has moved</h1>
+	<p data-testid="armour-redirect">The Armour Studio is now the Guard Rack — taking you there.</p>
+</main>

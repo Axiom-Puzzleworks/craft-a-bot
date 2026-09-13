@@ -1,3 +1,12 @@
+<script lang="ts" module>
+	/** A `redact` verdict's mark on a line (WP96): who rewrote it, and the finding. */
+	import type { VerdictFinding } from '@craftabot/core';
+	export interface TranscriptMark {
+		guardrailId: string;
+		finding?: VerdictFinding;
+	}
+</script>
+
 <script lang="ts">
 	import type { DeskTranscriptLine } from '@craftabot/core';
 	import { lane, type LaneId } from '$lib/control-room/dataviz.js';
@@ -16,9 +25,14 @@
 		/** Who speaks when a line names nobody. */
 		fallbackNames?: Partial<Record<DeskTranscriptLine['speaker'], string>>;
 		testId?: string;
+		/** Redactions by tick (WP96): an agent line at a marked tick was rewritten by a guard before it was said. */
+		marks?: ReadonlyMap<number, TranscriptMark>;
 	}
 
-	let { lines, fallbackNames = {}, testId = 'desk-transcript' }: Props = $props();
+	let { lines, fallbackNames = {}, testId = 'desk-transcript', marks }: Props = $props();
+	const markFor = (line: DeskTranscriptLine): TranscriptMark | undefined =>
+		line.speaker === 'agent' ? marks?.get(line.tick) : undefined;
+	const guardLane = lane('guardrail');
 
 	const LANE_FOR: Record<DeskTranscriptLine['speaker'], LaneId> = {
 		agent: 'action',
@@ -54,6 +68,18 @@
 							{/if}
 						</span>
 						<span class="text">{line.text}</span>
+						{#if markFor(line)}
+							{@const mark = markFor(line)!}
+							<!-- A redacted line (WP96): the guard that rewrote it and its finding, in the guardrail lane's colour. -->
+							<span
+								class="redacted"
+								style="--mark: {guardLane.token}"
+								data-testid="desk-line-{line.seq}-redacted"
+								>redacted by {mark.guardrailId}{mark.finding
+									? ` · ${mark.finding.label ?? mark.finding.category}`
+									: ''}</span
+							>
+						{/if}
 						{#if line.pressure !== undefined || (line.tags && line.tags.length > 0)}
 							<span class="push" data-testid="desk-line-{line.seq}-push">
 								{#if line.pressure !== undefined}
@@ -154,6 +180,14 @@
 		border: 1px solid var(--cab-counterpart);
 		border-radius: var(--cab-radius-pill);
 		color: var(--cab-counterpart);
+	}
+
+	.redacted {
+		margin-left: var(--cab-space-2);
+		padding: 0 var(--cab-space-1);
+		border: 1px solid var(--mark);
+		border-radius: var(--cab-radius-pill);
+		color: var(--mark);
 	}
 
 	.channel {

@@ -213,7 +213,7 @@ If you want to understand the design rather than the code, start with `docs/desi
 
 ## Status and known gaps
 
-Four planning days are shipped — the Kit, the Workshop, the safety proving ground and the Playground; `docs/design-day2/42-DAY4-ROADMAP.md` records the last of them, with every work package closed. What is outstanding is recorded rather than hidden:
+Five planning days are shipped — the Kit, the Workshop, the safety proving ground, the Playground and the bank in motion; `docs/design-day2/65-DAY5-ROADMAP.md` records the last of them, with every work package closed in this repository. The sixth — guardrail components and the Studio, the Journey Canvas, the rest of retail banking, the domain blueprint — is `docs/design-day2/84-DAY6-ROADMAP.md`, in progress on the `day6` branch. What is outstanding is recorded rather than hidden:
 
 - **Artwork.** The kit is drawn with placeholders; the two commission briefs (`20-…`, `63-…`) say exactly what to deliver and the contract tests accept it by name.
 - **Two live checkpoints** need a credential this repository does not hold: Azure AI Content Safety (`npm run smoke:azure`) and the Gen AI evaluation service (`npm run smoke:geap`). Each is one command and a paste into its dated note.

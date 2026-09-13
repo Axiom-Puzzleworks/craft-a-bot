@@ -1,4 +1,4 @@
-import type { Principal } from '@craftabot/core';
+import type { Principal, JourneyLayout } from '@craftabot/core';
 import {
 	CRAFTABOT_CORE_VERSION,
 	brickKindsFor,
@@ -17,10 +17,15 @@ import {
 	type RunRecord,
 	type RunSummary,
 	type Storage,
-	type ExperimentResult
+	type ExperimentResult,
+	controlReviewSchema,
+	type ControlReview,
+	type ControlReviewStatus
 } from '@craftabot/core';
 import { campaignEvidenceFor, type CampaignEvidence } from './campaign-evidence.js';
 import { controlEffectiveness, type ControlEffectivenessRow } from './control-effectiveness.js';
+import { coverageSummary, type CoverageSummary } from './coverage.js';
+import { GUARDRAIL_CATALOGUE } from '../catalogue/entries.js';
 import { driftIn, telemetrySeries, type DriftFlag, type TelemetryBucket } from './drift.js';
 import { explanationsForTicks, type DecisionExplanation } from './decision-explanation.js';
 import { incidentsFromSummaries, type Incident } from './incidents.js';
@@ -136,6 +141,15 @@ export interface AssuranceCampaignReportLike {
 		| undefined;
 }
 
+/** A journey the bot's world runs (WP100, `87-JOURNEY-CANVAS.md` §7): the layout and the SVG a host folded with `@craftabot/workflow`; the pack carries them, never draws them. */
+export interface AssuranceJourney {
+	workflowId: string;
+	worldId: string;
+	name: string;
+	layout: JourneyLayout;
+	svg: string;
+}
+
 /** One campaign's evidence for this bot: the gates that applied, the matrices, cohorts, obligations and parity caveats, and the runs behind them. */
 export interface AssuranceCampaign extends CampaignEvidence {
 	campaignId: string | undefined;
@@ -165,6 +179,9 @@ export interface AssuranceEvidence extends ControlEvidence {
 /** A control row as the pack files it, its evidence annotated. */
 export interface AssuranceControlRow extends Omit<ControlMapRow, 'evidence'> {
 	evidence: AssuranceEvidence[];
+	/** WP110 (GAP-1): a reader's review of this row, saved beside it — never an edit to the pack's own `status`. */
+	review?:
+		{ status: ControlReviewStatus; by: string; note: string; reviewedAt: string } | undefined;
 }
 
 /** A registered control map as the pack files it. */
@@ -208,6 +225,14 @@ export interface AssurancePack {
 		packVersions: Record<string, string>;
 		world?: { id: string; name: string; purpose?: string };
 		goalCard?: { id: string; title: string };
+		/** The domain the bot's world belongs to (WP107, `83-…` §6.6.1): the spec a journey pack is held to, with its coverage counted. */
+		domain?: {
+			id: string;
+			name: string;
+			jurisdiction: string;
+			sector: string;
+			journeys: { shipped: number; supporting: number; out: number };
+		};
 	};
 	/** Principle 2 — governance: the safety stack, approvals, egress, the principal. */
 	governance: {
@@ -218,7 +243,7 @@ export interface AssurancePack {
 		principal: NotRecorded | { recorded: true; principals: AssurancePrincipal[] };
 	};
 	/** Principle 3 — development, implementation and use: the campaigns as test evidence. */
-	development: { campaigns: AssuranceCampaign[]; note?: string };
+	development: { campaigns: AssuranceCampaign[]; note?: string; journeys?: AssuranceJourney[] };
 	/** Principle 4 — independent validation. */
 	validation: {
 		/**
@@ -239,6 +264,8 @@ export interface AssurancePack {
 		hostedScreening: SafetyCase['hostedScreening'];
 		/** The Control Effectiveness Register (WP90, `80-…` §3): every control the maps list with its measured effect, or `untested`. */
 		effects: ControlEffectivenessRow[];
+		/** The Guardrail Catalogue's coverage (WP98, `86-…` §5): the counts, and the entries the product does *not* claim, by name. */
+		coverage: CoverageSummary;
 	};
 	/** Ongoing monitoring: the series, its flags, the incidents — each with its findings' decisions explained (WP66). */
 	monitoring: {
@@ -270,6 +297,10 @@ export interface AssurancePackInput {
 	experimentResults?: readonly ExperimentResult[];
 	/** The traces of the runs the incident log names (WP66), so each finding's decision can be explained; absent, the section says so. */
 	incidentEvents?: ReadonlyMap<string, readonly EngineEvent[]>;
+	/** The journeys the host laid out (WP100); the fold keeps those of the bot's world, in workflow-id order. */
+	journeys?: readonly AssuranceJourney[];
+	/** WP110 (GAP-1): the readers' reviews of control rows, filed beside the rows they are about. */
+	controlReviews?: readonly ControlReview[];
 	/** Injected so a pack is reproducible; the digest does not cover it. */
 	now?: () => string;
 }
@@ -326,6 +357,13 @@ function fittedPolicyCards(spec: AnyAgentSpec): Set<string> {
 /** The fold (`53-…` §4.2): pure over its inputs, every number with its run ids, later WPs' sections present as *not recorded*. */
 export async function assurancePackFor(input: AssurancePackInput): Promise<AssurancePack> {
 	const { agent, registry, runs, summaries, evaluations, campaignReports } = input;
+	const worldIdOfBot = registry.getGoalCard(
+		(agent.spec as { goalCardId: string }).goalCardId
+	)?.worldId;
+	const journeys = (input.journeys ?? [])
+		.filter((journey) => journey.worldId === worldIdOfBot)
+		.slice()
+		.sort((a, b) => a.workflowId.localeCompare(b.workflowId));
 	const spec = agent.spec;
 	const goalCardId = (spec as { goalCardId: string }).goalCardId;
 	const goalCard = registry.getGoalCard(goalCardId);
@@ -351,6 +389,28 @@ export async function assurancePackFor(input: AssurancePackInput): Promise<Assur
 	const packVersions = Object.fromEntries(
 		registry.listPacks().map((pack) => [pack.id, pack.version])
 	);
+	// The domain the world's pack belongs to (WP107): the first spec whose packs name it, with the matrix counted.
+	const worldPackId = world?.id.split('/')[0];
+	const domainSpec = worldPackId
+		? input.registry
+				.listDomains()
+				.find(
+					(spec) => spec.packs.world === worldPackId || spec.packs.journeys.includes(worldPackId)
+				)
+		: undefined;
+	const domain = domainSpec
+		? {
+				id: domainSpec.id,
+				name: domainSpec.name,
+				jurisdiction: domainSpec.jurisdiction,
+				sector: domainSpec.sector,
+				journeys: {
+					shipped: domainSpec.journeys.filter((entry) => entry.status === 'shipped').length,
+					supporting: domainSpec.journeys.filter((entry) => entry.status === 'supporting').length,
+					out: domainSpec.journeys.filter((entry) => entry.status === 'out').length
+				}
+			}
+		: undefined;
 	// The inventory entry's `requires` (WP52's ranges): the packs a fitted brick actually came from, at compatible later versions.
 	const brickKinds = brickKindsFor(spec, registry);
 	const packs: Record<string, string> = {};
@@ -484,17 +544,33 @@ export async function assurancePackFor(input: AssurancePackInput): Promise<Assur
 				return 'unresolved';
 		}
 	};
+	const reviewOf = new Map(
+		(input.controlReviews ?? []).map((review) => [`${review.mapId}/${review.ref}`, review])
+	);
 	const controlMaps: AssuranceControlMap[] = maps.map((map) => ({
 		id: map.id,
 		title: map.title,
 		description: map.description,
-		rows: map.rows.map((row) => ({
-			...row,
-			evidence:
-				row.status === 'pending'
-					? []
-					: row.evidence.map((item) => ({ ...item, presence: presenceOf(item) }))
-		}))
+		rows: map.rows.map((row) => {
+			const review = reviewOf.get(`${map.id}/${row.ref}`);
+			return {
+				...row,
+				evidence:
+					row.status === 'pending'
+						? []
+						: row.evidence.map((item) => ({ ...item, presence: presenceOf(item) })),
+				...(review
+					? {
+							review: {
+								status: review.status,
+								by: review.by,
+								note: review.note,
+								reviewedAt: review.reviewedAt
+							}
+						}
+					: {})
+			};
+		})
 	}));
 	const allRows = maps.flatMap((map) => map.rows.map((row) => ({ map, row })));
 	const review = {
@@ -541,7 +617,8 @@ export async function assurancePackFor(input: AssurancePackInput): Promise<Assur
 			...(world
 				? { world: { id: world.id, name: world.name, ...(purpose ? { purpose } : {}) } }
 				: {}),
-			...(goalCard ? { goalCard: { id: goalCard.id, title: goalCard.title } } : {})
+			...(goalCard ? { goalCard: { id: goalCard.id, title: goalCard.title } } : {}),
+			...(domain ? { domain } : {})
 		},
 		governance: {
 			guardrails: [...safetyCase.guardrails],
@@ -558,7 +635,8 @@ export async function assurancePackFor(input: AssurancePackInput): Promise<Assur
 				? {
 						note: 'No stored campaign report names a build of this bot: there is no campaign evidence yet.'
 					}
-				: {})
+				: {}),
+			...(journeys.length > 0 ? { journeys } : {})
 		},
 		validation: {
 			validatedBy:
@@ -583,7 +661,8 @@ export async function assurancePackFor(input: AssurancePackInput): Promise<Assur
 			killSwitch:
 				'run.finished with STOPPED_BY_USER — a person can stop any run, and the trace records it.',
 			hostedScreening: safetyCase.hostedScreening,
-			effects: controlEffectiveness(input.experimentResults ?? [], maps)
+			effects: controlEffectiveness(input.experimentResults ?? [], maps),
+			coverage: coverageSummary(GUARDRAIL_CATALOGUE)
 		},
 		monitoring: {
 			series,
@@ -625,11 +704,20 @@ export async function assurancePackFromStorage(
 	registry: PackRegistry,
 	options: {
 		parseReport?: (raw: unknown) => AssuranceCampaignReportLike | undefined;
+		/** The journeys the host laid out (WP100). */
+		journeys?: readonly AssuranceJourney[];
 		now?: () => string;
 	} = {}
 ): Promise<AssurancePack> {
 	const record: AgentRecord | undefined = await storage.getAgent(agentId);
 	if (!record) throw new Error(`no bot '${agentId}' in the store`);
+	// WP110 (GAP-1): the readers' reviews, from the content store.
+	const controlReviews: ControlReview[] = (await storage.listContent('control-review')).flatMap(
+		(entry) => {
+			const parsed = controlReviewSchema.safeParse(entry.record);
+			return parsed.success ? [parsed.data] : [];
+		}
+	);
 	const runs = (await storage.listRuns()).filter((run) => run.agentId === agentId);
 	const summaries = await ensureRunSummaries(storage, runs);
 	const experimentResults = await storage.listExperimentResults();
@@ -663,6 +751,8 @@ export async function assurancePackFromStorage(
 		campaignReports,
 		incidentEvents,
 		experimentResults,
+		...(options.journeys ? { journeys: options.journeys } : {}),
+		controlReviews,
 		...(options.now ? { now: options.now } : {})
 	});
 }

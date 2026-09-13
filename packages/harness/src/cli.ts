@@ -32,6 +32,8 @@ import { workflowRun } from './commands/workflow.js';
 import { bookRun, sweepRun } from './commands/book.js';
 import { experimentAnalyse, experimentRender, experimentRun } from './commands/experiment.js';
 import { bankRun } from './commands/bank.js';
+import { journeyRender } from './commands/journey.js';
+import { scaffoldDomain } from './commands/scaffold.js';
 import { createRegistry } from './config.js';
 import { createFileStorage } from './storage/file-storage.js';
 
@@ -115,6 +117,19 @@ Usage:
       the episode: the Watchbot's rules and the breakers on the desk's own
       evaluators — the Compliance Watchbot, on every desk's baseline.
 
+  craftabot journey render --workflow <id> [--config <name>] [--run <workflow-run.json>] [--svg <out.svg>] [--file <layout.json>]
+      One journey drawn (WP100): its layout as JSON, its SVG for the manual
+      and the site — unlit, under a configuration, or lit by a stored run.
+  craftabot scaffold domain --id <id> --sector <sector> --jurisdiction <jurisdiction> --world <pack> --journeys <a,b> --out <dir> [--root <Entity>] [--name <name>] [--today YYYY-MM-DD] [--relative]
+      A domain pack's shape, typed out (WP107): one world pack (the model,
+      a calibration table of stated assumptions pending review, three
+      service lines with tiers, the obligations, a control map, a persona,
+      the DomainSpec) and one journey pack per name (a desk, a four-stage
+      workflow with rules-only and Level 4, two scenarios and a card, a
+      policy card, an evaluator, a book, a campaign, a golden-run test).
+      Green on checkDomainPack as written; red on calibration review until
+      a reader cites a row. --relative writes one workspace instead of a
+      package per pack (examples/scaffold-domain is that).
   craftabot assurance [--agent <id>] [--out ./runs] [--file <pack.json>] [--markdown <pack.md>] [--html <pack.html>]
       The assurance pack for one bot (WP67): its inventory entry, safety
       stack, campaigns, evaluations, mitigants, drift and incidents filed
@@ -126,7 +141,7 @@ Usage:
 
   craftabot evidence push --store <storeId> [--store-config <json>] [--egress declared|none] [--out ./runs]
                           --run <runId> | --group <groupRunId> | --campaign-report <id>
-                          | --assurance [--agent <id>] | --content-file <record.json>
+                          | --assurance [--agent <id>] | --content-file <record.json> | --stack-file <stack.json>
   craftabot evidence pull --store <storeId> [--store-config <json>] [--egress declared|none]
                           [--kind bundle|campaign-report|assurance-pack|content] [--id <id>]
                           [--since <iso>] [--limit <n>] [--dir ./evidence]
@@ -1013,6 +1028,74 @@ ${renderEvaluations(report)}`);
 				io.stdout(renderPulled(pulled));
 				return pulled.some((line) => !line.verified) ? 1 : 0;
 			}
+			case 'journey': {
+				// WP100 (`87-JOURNEY-CANVAS.md` §7): one journey's layout and SVG, unlit or lit by a stored run.
+				const verb = args.positional[0];
+				const workflowId = stringFlag(args, 'workflow');
+				if (verb !== 'render' || workflowId === undefined) {
+					throw new Error(
+						'journey needs render --workflow <id> [--config <name>] [--run <run.json>] [--svg <out.svg>] [--file <layout.json>]'
+					);
+				}
+				const registry = createRegistry(await configFrom(args));
+				const { layout, svg } = await journeyRender(registry, {
+					workflowId,
+					configuration: stringFlag(args, 'config'),
+					runPath: stringFlag(args, 'run')
+				});
+				const svgPath = stringFlag(args, 'svg');
+				const file = stringFlag(args, 'file');
+				if (svgPath !== undefined) {
+					await writeFile(svgPath, svg, 'utf8');
+					io.stdout(`wrote ${svgPath}\n`);
+				}
+				if (file !== undefined) {
+					await writeFile(file, `${JSON.stringify(layout, null, '\t')}\n`, 'utf8');
+					io.stdout(`wrote ${file}\n`);
+				}
+				if (svgPath === undefined && file === undefined) io.stdout(svg);
+				return 0;
+			}
+			case 'scaffold': {
+				// WP107 (`93-DOMAIN-PACK.md` §4): a domain pack's shape, typed out — a world pack and a journey pack per journey named.
+				const verb = args.positional[0];
+				const id = stringFlag(args, 'id');
+				const sector = stringFlag(args, 'sector');
+				const jurisdiction = stringFlag(args, 'jurisdiction');
+				const world = stringFlag(args, 'world');
+				const out = stringFlag(args, 'out');
+				const journeys = (stringFlag(args, 'journeys') ?? stringFlag(args, 'journey') ?? '')
+					.split(',')
+					.map((name) => name.trim())
+					.filter(Boolean);
+				if (
+					verb !== 'domain' ||
+					id === undefined ||
+					sector === undefined ||
+					jurisdiction === undefined ||
+					world === undefined ||
+					out === undefined ||
+					journeys.length === 0
+				) {
+					throw new Error(
+						'scaffold needs domain --id <id> --sector <sector> --jurisdiction <jurisdiction> --world <pack> --journeys <a,b> --out <dir> [--root <Entity>] [--name <name>] [--today YYYY-MM-DD] [--relative]'
+					);
+				}
+				const written = await scaffoldDomain({
+					id,
+					sector,
+					jurisdiction,
+					world,
+					journeys,
+					out,
+					root: stringFlag(args, 'root'),
+					name: stringFlag(args, 'name'),
+					today: stringFlag(args, 'today'),
+					relative: args.flags['relative'] === true
+				});
+				for (const path of written) io.stdout(`wrote ${path}\n`);
+				return 0;
+			}
 			case 'assurance': {
 				// WP67 (`53-ASSURANCE-PACK.md` §4.3): the pack for one bot, and its two renderings.
 				const storage = await createFileStorage(stringFlag(args, 'out') ?? './runs');
@@ -1121,12 +1204,14 @@ function pushTarget(args: ParsedArgs): PushEvidenceOptions['what'] {
 	if (reportId !== undefined) return { kind: 'campaign-report', reportId };
 	const file = stringFlag(args, 'content-file');
 	if (file !== undefined) return { kind: 'content', file };
+	const stackFile = stringFlag(args, 'stack-file');
+	if (stackFile !== undefined) return { kind: 'stack', file: stackFile };
 	if (args.flags['assurance'] !== undefined) {
 		const agentId = stringFlag(args, 'agent');
 		return { kind: 'assurance-pack', ...(agentId !== undefined ? { agentId } : {}) };
 	}
 	throw new Error(
-		'evidence push needs one of --run, --group, --campaign-report, --assurance or --content-file'
+		'evidence push needs one of --run, --group, --campaign-report, --assurance, --content-file or --stack-file'
 	);
 }
 

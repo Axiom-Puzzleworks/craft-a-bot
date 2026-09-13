@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { stackSchema } from './stack.js';
 import { canonicalJson } from './cassette.js';
 import { contentRecordSchema } from './content.js';
 import { storedCampaignReportSchema } from './records.js';
@@ -29,7 +30,9 @@ export const evidenceKindSchema = z.enum([
 	'bank-run',
 	// WP89 (`72-EXPERIMENTS.md` §4): the design (opaque here — it lives beside the campaign schema) and its result.
 	'experiment',
-	'experiment-result'
+	'experiment-result',
+	// WP97 (`89-STACKS.md`): a stack, pushed and pulled with its digest.
+	'stack'
 ]);
 export type EvidenceKind = z.infer<typeof evidenceKindSchema>;
 
@@ -64,7 +67,9 @@ export const evidenceItemSchema = z.discriminatedUnion('kind', [
 		kind: z.literal('experiment'),
 		payload: z.record(z.string(), z.unknown())
 	}),
-	z.object({ ...itemBase, kind: z.literal('experiment-result'), payload: experimentResultSchema })
+	z.object({ ...itemBase, kind: z.literal('experiment-result'), payload: experimentResultSchema }),
+	// WP97 (`89-STACKS.md` §6): a stack, its digest over the canonical JSON like every item.
+	z.object({ ...itemBase, kind: z.literal('stack'), payload: stackSchema })
 ]);
 export type EvidenceItem = z.infer<typeof evidenceItemSchema>;
 export type EvidencePayloadOf<K extends EvidenceKind> = Extract<

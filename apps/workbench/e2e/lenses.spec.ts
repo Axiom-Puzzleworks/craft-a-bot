@@ -35,7 +35,7 @@ const RAIL = [
 	'safety-case',
 	'assurance',
 	'export',
-	'guards'
+	'studio'
 ] as const;
 
 async function openTheWorkshopDoor(page: Page): Promise<void> {

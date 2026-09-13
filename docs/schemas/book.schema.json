@@ -15,7 +15,11 @@
 				"application",
 				"alert",
 				"complaint",
-				"advice-request"
+				"advice-request",
+				"onboarding",
+				"dispute",
+				"arrears",
+				"servicing-request"
 			]
 		},
 		"items": {
@@ -33,7 +37,11 @@
 							"application",
 							"alert",
 							"complaint",
-							"advice-request"
+							"advice-request",
+							"onboarding",
+							"dispute",
+							"arrears",
+							"servicing-request"
 						]
 					},
 					"customerId": {

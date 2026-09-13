@@ -20,10 +20,15 @@ import { complaintsEvaluators } from './complaints/evaluators.js';
  */
 export const FS_ADVICE_PACK_ID = 'fs-advice';
 
-import { ADVICE_BASELINE_ID, adviceBaseline } from './campaign.js';
-import { COMPLAINTS_BASELINE_ID, complaintsBaseline } from './complaints/campaign.js';
+import { ADVICE_BASELINE_ID, adviceBaseline, adviceStacks } from './campaign.js';
+import {
+	COMPLAINTS_BASELINE_ID,
+	complaintsBaseline,
+	complaintsStacks
+} from './complaints/campaign.js';
 
 import { adviceWorkflow } from './workflow.js';
+import { complaintsWorkflow } from './complaints/workflow.js';
 
 export const fsAdvicePack: PackManifest = {
 	id: FS_ADVICE_PACK_ID,
@@ -51,10 +56,12 @@ export const fsAdvicePack: PackManifest = {
 		}
 	],
 	policyCards: [...advicePolicyCards, REDRESS_NEEDS_APPROVAL],
+	/** WP97 (`89-STACKS.md`): the two desks' guards as stacks. */
+	stacks: [...adviceStacks, ...complaintsStacks],
 	evaluators: [...adviceEvaluators, ...complaintsEvaluators],
 	controlMaps: [adviceControlMap],
 	// The advice journey (WP85, `76-FRAUD-AND-ADVICE-WORKFLOWS.md` §4).
-	workflows: [adviceWorkflow]
+	workflows: [adviceWorkflow, complaintsWorkflow]
 };
 
 export default fsAdvicePack;

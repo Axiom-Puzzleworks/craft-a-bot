@@ -55,74 +55,78 @@
 
 <svelte:head><title>The Complaints Desk — Workshop</title></svelte:head>
 
-<p class="crumb"><a href={resolve('/workshop/playground')}>← The Playground</a></p>
-<h1>The Complaints Desk</h1>
-<p class="lede">
-	The bank’s complaints handler: acknowledge promptly, find what the file supports, answer with the
-	reason, redress within the rules — once, and never on a complaint the file does not support. Five
-	cards, seven scenarios, one policy card, three evaluators, one campaign — none of it real.
-</p>
-<p class="simulation" data-testid="complaints-simulation-only">FOR SIMULATION ONLY</p>
-
-<section aria-label="Generate a case">
-	<Strip label="A case" icon="desk">
-		<label class="pick">
-			Layout
-			<select bind:value={layoutId} data-testid="complaints-layout">
-				{#each complaintsDesk.layouts as layout (layout.id)}
-					<option value={layout.id}>{layout.name}</option>
-				{/each}
-			</select>
-		</label>
-		<label class="pick">
-			Seed
-			<input type="number" min="1" step="1" bind:value={seed} data-testid="complaints-seed" />
-		</label>
-		<button type="button" onclick={generate} data-testid="complaints-generate">Generate</button>
-		{#if snapshot && facts}
-			<Readout
-				label="Acknowledge by"
-				value={`turn ${unmark(String(facts['ack_by_tick']))}`}
-				testId="complaints-ack-by"
-			/>
-			<Readout
-				label="Fair redress"
-				value={`£${unmark(String(facts['redress_min']))}–£${unmark(String(facts['redress_max']))}`}
-				testId="complaints-bounds"
-			/>
-		{/if}
-	</Strip>
-	{#if snapshot}
-		<div class="file" data-testid="complaints-case">
-			<CaseFile {records} truth={truth?.records} {facts} testId="complaints-case-file" />
-		</div>
-	{/if}
-</section>
-
-<section aria-label="The deck">
-	<h2>The complaints-and-redress deck</h2>
-	<p>
-		<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- resolve() builds the base path (campaignHref above); its typed surface has no way to attach the ?baseline= query the rule can verify statically (the same exception workshop/runs' compareHref takes). -->
-		<a class="run-campaign" href={campaignHref} data-testid="complaints-run-campaign"
-			>Run this desk’s campaign →</a
-		>
+<main>
+	<p class="crumb"><a href={resolve('/workshop/playground')}>← The Playground</a></p>
+	<h1>The Complaints Desk</h1>
+	<p class="lede">
+		The bank’s complaints handler: acknowledge promptly, find what the file supports, answer with
+		the reason, redress within the rules — once, and never on a complaint the file does not support.
+		Five cards, seven scenarios, one policy card, three evaluators, one campaign — none of it real.
 	</p>
-	<CaseTable columns={deckColumns} rows={deckRows} testId="complaints-deck" />
-</section>
+	<p class="simulation" data-testid="complaints-simulation-only">FOR SIMULATION ONLY</p>
 
-<section aria-label="The card and the evaluators">
-	<h2>The card, and what judges a run</h2>
-	<ul class="list" data-testid="complaints-cards">
-		<li><strong>{REDRESS_NEEDS_APPROVAL.title}</strong> — {REDRESS_NEEDS_APPROVAL.description}</li>
-	</ul>
-	<ul class="list" data-testid="complaints-evaluators">
-		{#each complaintsEvaluators as evaluator (evaluator.id)}
+	<section aria-label="Generate a case">
+		<Strip label="A case" icon="desk">
+			<label class="pick">
+				Layout
+				<select bind:value={layoutId} data-testid="complaints-layout">
+					{#each complaintsDesk.layouts as layout (layout.id)}
+						<option value={layout.id}>{layout.name}</option>
+					{/each}
+				</select>
+			</label>
+			<label class="pick">
+				Seed
+				<input type="number" min="1" step="1" bind:value={seed} data-testid="complaints-seed" />
+			</label>
+			<button type="button" onclick={generate} data-testid="complaints-generate">Generate</button>
+			{#if snapshot && facts}
+				<Readout
+					label="Acknowledge by"
+					value={`turn ${unmark(String(facts['ack_by_tick']))}`}
+					testId="complaints-ack-by"
+				/>
+				<Readout
+					label="Fair redress"
+					value={`£${unmark(String(facts['redress_min']))}–£${unmark(String(facts['redress_max']))}`}
+					testId="complaints-bounds"
+				/>
+			{/if}
+		</Strip>
+		{#if snapshot}
+			<div class="file" data-testid="complaints-case">
+				<CaseFile {records} truth={truth?.records} {facts} testId="complaints-case-file" />
+			</div>
+		{/if}
+	</section>
+
+	<section aria-label="The deck">
+		<h2>The complaints-and-redress deck</h2>
+		<p>
+			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- resolve() builds the base path (campaignHref above); its typed surface has no way to attach the ?baseline= query the rule can verify statically (the same exception workshop/runs' compareHref takes). -->
+			<a class="run-campaign" href={campaignHref} data-testid="complaints-run-campaign"
+				>Run this desk’s campaign →</a
+			>
+		</p>
+		<CaseTable columns={deckColumns} rows={deckRows} testId="complaints-deck" />
+	</section>
+
+	<section aria-label="The card and the evaluators">
+		<h2>The card, and what judges a run</h2>
+		<ul class="list" data-testid="complaints-cards">
 			<li>
-				<strong>{evaluator.name}</strong> <span class="mono">{evaluator.id}</span> — {evaluator.description}
+				<strong>{REDRESS_NEEDS_APPROVAL.title}</strong> — {REDRESS_NEEDS_APPROVAL.description}
 			</li>
-		{/each}
-	</ul>
-</section>
+		</ul>
+		<ul class="list" data-testid="complaints-evaluators">
+			{#each complaintsEvaluators as evaluator (evaluator.id)}
+				<li>
+					<strong>{evaluator.name}</strong> <span class="mono">{evaluator.id}</span> — {evaluator.description}
+				</li>
+			{/each}
+		</ul>
+	</section>
+</main>
 
 <style>
 	h1 {

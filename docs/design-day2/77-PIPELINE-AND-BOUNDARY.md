@@ -49,3 +49,5 @@
 - The what-if opens beside the original on the Pipeline itself (`?against=`), not in Compare: Compare is two agent runs with one scrubber, and a workflow run has stages, not ticks. The rails synchronise on the stage; Compare stays for the bot's runs.
 - The outside nodes are placed evenly around the circle in kind order rather than fanned at a kind's angle: a fan of ten service lines wrapped the circle and collided with the provider; the kinds keep their order instead of their bearing.
 - The workflow rings live outside the boundary ring, not on it: a person at a `human` stage is drawn at the ring as the design says, but the stage marks themselves sit on their own circle so the safety stack's label keeps its place.
+
+> **Amended 2026-09-12 (WP95, `69-…` §10).** The Pipeline's stage pane lists the stage's boundary verdicts (`StageRecord.guards.verdicts`) under its trips — `point · guardrailId — verdict (reason)`, `data-testid="pipeline-verdicts"` — so a `rule` or `human` stage a guard blocked reads as such.

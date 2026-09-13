@@ -116,6 +116,24 @@ export async function artefactSchemas() {
 			description:
 				'What an experiment measured: for each metric and factor, every treatment level against the baseline as a difference with its interval, n, test and cost; the verdict over the intervals; the note; a digest (72-EXPERIMENTS.md §3).'
 		},
+		'guardrail-catalogue': {
+			schema: core.guardrailCatalogueSchema,
+			title: 'Craft A Bot guardrail catalogue (v1)',
+			description:
+				'An edition of the Guardrail Catalogue: every technique the industry ships or the research proposes, taxonomised, mapped to the threat and framework vocabularies, cited with a year, and carrying the coverage status the product can honestly claim (86-CATALOGUE.md §3).'
+		},
+		domain: {
+			schema: core.domainSpecSchema,
+			title: 'Craft A Bot domain spec (v1)',
+			description:
+				'What a domain pack is, as data: its world and journey packs, the obligation vocabulary, the decision rights with a ceiling and a source each, the calibration table, the ontology, the coverage matrix, the personas and the glossary (83-TARGET-DESIGN-V6.md §6.6.1).'
+		},
+		stack: {
+			schema: core.stackSchema,
+			title: 'Craft A Bot stack (v1)',
+			description:
+				'A named list of guardrail component fits with the points they decide at, an optional chokepoint half, the obligations and controls it claims to serve, and who wrote it (89-STACKS.md §3).'
+		},
 		calibration: {
 			schema: core.calibrationTableSchema,
 			title: 'Craft A Bot calibration table',

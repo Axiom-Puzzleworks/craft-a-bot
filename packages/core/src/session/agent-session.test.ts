@@ -2789,3 +2789,124 @@ describe('provider faults', () => {
 		).toEqual([1, 2]);
 	});
 });
+
+/**
+ * **A `redact` allow on the chain** (WP96, `85-…` §4): the outgoing action's
+ * `text` is rewritten before it runs, `action.performed` says which guard
+ * did it and carries the rewritten arguments, the bot's own words stay on
+ * the `decision` event, and an `annotate` changes nothing at all.
+ */
+describe('redact and annotate verdicts (WP96)', () => {
+	const redactor: Guardrail = {
+		id: 'scrub',
+		name: 'Scrub',
+		description: 'Rewrites the card number.',
+		hooks: ['pre-act'],
+		check: (ctx) => {
+			const text = (ctx.proposed?.arguments as { text?: unknown } | undefined)?.text;
+			return Promise.resolve(
+				typeof text === 'string' && text.includes('4111')
+					? {
+							allow: true,
+							verdictKind: 'redact' as const,
+							redactedText: text.replace(/4111[ \d]*/, '[card redacted]'),
+							finding: { category: 'sensitive-data', label: 'pan' }
+						}
+					: { allow: true }
+			);
+		}
+	};
+	const annotator: Guardrail = {
+		id: 'note',
+		name: 'Note',
+		description: 'Notes everything.',
+		hooks: ['pre-think', 'pre-act', 'post-act'],
+		check: () =>
+			Promise.resolve({
+				allow: true,
+				verdictKind: 'annotate' as const,
+				finding: { category: 'note' }
+			})
+	};
+
+	it('rewrites the text an action carries, and the event says who redacted it', async () => {
+		const { session, log } = makeSession({
+			script: [turn('Say it.', 'ping', { text: 'the card is 4111 1111 1111 1111' })],
+			guardrails: [annotator, redactor]
+		});
+		await session.step();
+		const performed = log.find((event) => event.type === 'action.performed');
+		expect(performed?.type === 'action.performed' && performed.payload.arguments).toEqual({
+			text: 'the card is [card redacted]'
+		});
+		expect(performed?.type === 'action.performed' && performed.payload.redacted).toEqual({
+			guardrailId: 'scrub',
+			finding: { category: 'sensitive-data', label: 'pan' }
+		});
+		// The bot's own words are still on the decision, and the redact is a checked row like any allow.
+		const decision = log.find((event) => event.type === 'decision');
+		expect(JSON.stringify(decision?.payload)).toContain('4111 1111');
+		const checked = log.filter((event) => event.type === 'guardrail.checked');
+		expect(
+			checked.some(
+				(event) =>
+					event.type === 'guardrail.checked' &&
+					event.payload.guardrailId === 'scrub' &&
+					'allow' in event.payload.verdict &&
+					event.payload.verdict.allow &&
+					event.payload.verdict.verdictKind === 'redact'
+			)
+		).toBe(true);
+		expect(log.some((event) => event.type === 'guardrail.tripped')).toBe(false);
+	});
+
+	it('a redaction collected before a pause still applies once a person approves', async () => {
+		const asker: Guardrail = {
+			id: 'ask',
+			name: 'Ask',
+			description: 'Asks about everything.',
+			hooks: ['pre-act'],
+			check: () => Promise.resolve({ pause: true, reason: 'a person first' })
+		};
+		const { session, log } = makeSession({
+			script: [turn('Say it.', 'ping', { text: 'the card is 4111 1111 1111 1111' })],
+			guardrails: [redactor, asker]
+		});
+		session.events.on('approval.requested', () => session.resolveApproval(true));
+		await session.step();
+		const performed = log.find((event) => event.type === 'action.performed');
+		expect(performed?.type === 'action.performed' && performed.payload.arguments).toEqual({
+			text: 'the card is [card redacted]'
+		});
+		expect(performed?.type === 'action.performed' && performed.payload.redacted?.guardrailId).toBe(
+			'scrub'
+		);
+	});
+
+	it('leaves a call with no text alone, and an annotate changes nothing', async () => {
+		const alwaysRedact: Guardrail = {
+			id: 'always',
+			name: 'Always',
+			description: 'Redacts whatever it is shown.',
+			hooks: ['pre-act'],
+			check: () =>
+				Promise.resolve({ allow: true, verdictKind: 'redact' as const, redactedText: 'nothing' })
+		};
+		const { session, log } = makeSession({
+			script: [turn('Ping.', 'ping')],
+			guardrails: [annotator, alwaysRedact]
+		});
+		await session.step();
+		const performed = log.find((event) => event.type === 'action.performed');
+		expect(performed?.type === 'action.performed' && performed.payload.redacted).toBeUndefined();
+		expect(performed?.type === 'action.performed' && performed.payload.arguments).toEqual({});
+		const annotations = log.filter(
+			(event) =>
+				event.type === 'guardrail.checked' &&
+				'allow' in event.payload.verdict &&
+				event.payload.verdict.allow &&
+				event.payload.verdict.verdictKind === 'annotate'
+		);
+		expect(annotations.length).toBeGreaterThan(0);
+	});
+});

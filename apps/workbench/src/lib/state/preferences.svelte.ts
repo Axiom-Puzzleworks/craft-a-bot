@@ -1,7 +1,7 @@
 import { describeEndpointProblem } from '@craftabot/pack-ollama';
 import { createSettingsStore, type BreakpointKind, type SettingsStore } from './settings.js';
 import type { WebStorageLike } from './keys.js';
-import type { LensId } from '$lib/workshop/lens.js';
+import { DEFAULT_DENSITY, type Density, type LensId } from '$lib/workshop/lens.js';
 import { createSoundPlayer, type SoundCue, type SoundPlayer } from '../sound.js';
 
 /**
@@ -54,6 +54,9 @@ export interface Preferences {
 	setLens(value: LensId): void;
 	readonly firstRunDismissed: readonly string[];
 	dismissFirstRun(lens: LensId): void;
+	/** The current lens's density (WP109): what was set for it, else its default. */
+	readonly density: Density;
+	setDensity(value: Density): void;
 	setReducedMotion(value: boolean): void;
 	setTickSpeed(value: number): void;
 	setSound(value: boolean): void;
@@ -82,7 +85,8 @@ export function createPreferences(store?: SettingsStore, player?: SoundPlayer): 
 		ollamaEndpoint: initial.ollamaEndpoint,
 		displayName: initial.displayName,
 		lens: initial.lens,
-		firstRunDismissed: initial.firstRunDismissed
+		firstRunDismissed: initial.firstRunDismissed,
+		density: initial.density
 	});
 
 	return {
@@ -119,6 +123,13 @@ export function createPreferences(store?: SettingsStore, player?: SoundPlayer): 
 		},
 		get firstRunDismissed() {
 			return state.firstRunDismissed;
+		},
+		get density() {
+			return state.density[state.lens] ?? DEFAULT_DENSITY[state.lens];
+		},
+		setDensity(value) {
+			state.density = { ...state.density, [state.lens]: value };
+			settings.update({ density: state.density });
 		},
 		dismissFirstRun(lens) {
 			if (state.firstRunDismissed.includes(lens)) return;
@@ -231,6 +242,10 @@ export const preferences: Preferences = {
 		return (shared ??= createPreferences()).firstRunDismissed;
 	},
 	dismissFirstRun: (lens) => (shared ??= createPreferences()).dismissFirstRun(lens),
+	get density() {
+		return (shared ??= createPreferences()).density;
+	},
+	setDensity: (value) => (shared ??= createPreferences()).setDensity(value),
 	setReducedMotion: (value) => (shared ??= createPreferences()).setReducedMotion(value),
 	setTickSpeed: (value) => (shared ??= createPreferences()).setTickSpeed(value),
 	setSound: (value) => (shared ??= createPreferences()).setSound(value),

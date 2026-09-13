@@ -6,7 +6,6 @@ import {
 	type EngineEvent,
 	type Executor,
 	type ExecutorRecord,
-	type Guardrail,
 	type PackManifest,
 	type WorkflowConfig
 } from '@craftabot/core';
@@ -18,7 +17,7 @@ import {
 	specFor,
 	type PlanSource
 } from '@craftabot/evals';
-import { compilePolicyCard } from '@craftabot/governance';
+import { stageBoundaryGuardrails } from '@craftabot/governance';
 import {
 	adviceRequestBook,
 	alertBook,
@@ -188,11 +187,7 @@ export function createCampaignHost(
 						script: scriptedOptimal(deps.plans.planFor(goalCardId)),
 						id: 'scripted-optimal'
 					}),
-				guardrailsFor: (cardIds) =>
-					cardIds.flatMap((id): Guardrail[] => {
-						const card = registry.getPolicyCard(id);
-						return card ? compilePolicyCard(card) : [];
-					}),
+				boundaryGuardrailsFor: stageBoundaryGuardrails(registry),
 				seed: 1,
 				onAgentRun: (agentRun) => {
 					const v2 = toSpecV2(agentRun.spec);
@@ -237,6 +232,15 @@ export function createCampaignHost(
 			}
 			if (wanted.has('alert')) books.push(alertBook(pop, { from: job.from, to: job.to }).book);
 			if (wanted.has('complaint')) books.push(complaintBook(pop, { from: job.from, to: job.to }));
+			// A kind the bank keeps no register for (WP103's `onboarding`): the desk's own workflow draws it.
+			for (const desk of job.desks) {
+				const workflow = registry.getWorkflow(desk.workflowId);
+				for (const kind of desk.kinds) {
+					if (books.some((b) => b.kind === kind)) continue;
+					if (workflow?.book && workflow.kinds?.includes(kind))
+						books.push(workflow.book({ seed: job.population.seed, size: job.population.size }));
+				}
+			}
 			if (wanted.has('advice-request'))
 				books.push(adviceRequestBook(pop, { from: job.from, to: job.to }));
 			const acceleration = job.acceleration ?? Infinity;
@@ -321,11 +325,7 @@ export function createCampaignHost(
 							script: scriptedOptimal(deps.plans.planFor(goalCardId)),
 							id: 'scripted-optimal'
 						}),
-					guardrailsFor: (cardIds) =>
-						cardIds.flatMap((id): Guardrail[] => {
-							const card = registry.getPolicyCard(id);
-							return card ? compilePolicyCard(card) : [];
-						}),
+					boundaryGuardrailsFor: stageBoundaryGuardrails(registry),
 					seed: job.population.seed,
 					clock: {
 						from: job.from,
@@ -396,6 +396,13 @@ export function createCampaignHost(
 						campaign: message.book,
 						fixed: message.fixed
 					})
+				);
+				return;
+			}
+			// The Studio's stack test (WP101, `88-STUDIO.md` §5): the one-cell campaign, run as one.
+			if (message.work === 'stack-test') {
+				chain = chain.then(() =>
+					runOne({ kind: 'start', job: message.job, work: 'campaign', campaign: message.campaign })
 				);
 				return;
 			}

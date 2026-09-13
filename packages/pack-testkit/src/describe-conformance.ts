@@ -7,6 +7,9 @@ import { checkGuardrail } from './checks/guardrail.js';
 import { checkEvaluator } from './checks/evaluator.js';
 import { checkServiceLine } from './checks/service-line.js';
 import { checkGuardrailService } from './checks/guardrail-service.js';
+import { checkComponent } from './checks/component.js';
+import { checkStack } from './checks/stack.js';
+import { checkConnection } from './checks/connection.js';
 import { checkManifest } from './checks/manifest.js';
 import { checkTool } from './checks/tool.js';
 import { checkWorld } from './checks/world.js';
@@ -83,6 +86,41 @@ export function describeConformance(fixture: PackConformanceFixture): void {
 					throw new Error(`no fixture supplied for guardrail service "${service.id}"`);
 				}
 				const issues = await checkGuardrailService(service, serviceFixture);
+				expect(issues, format(issues)).toEqual([]);
+			});
+		}
+
+		// WP94 (`85-…` §7): every component the manifest ships, honest or refused; the deps from a registry with the pack and its companions.
+		for (const component of manifest.guardrailComponents ?? []) {
+			it(`guardrail component "${component.id}" is well-formed, parses its config, compiles at every point and gives the verdicts it declares`, async () => {
+				const componentFixture = fixture.guardrailComponents?.[component.id];
+				if (componentFixture === undefined) {
+					throw new Error(`no fixture supplied for guardrail component "${component.id}"`);
+				}
+				const registry = createPackRegistry();
+				for (const pack of companionPacks) registry.registerPack(pack);
+				registry.registerPack(manifest);
+				// WP99: a connection's declaration, checked beside the component's.
+				const connectionIssues = checkConnection(component);
+				expect(connectionIssues, format(connectionIssues)).toEqual([]);
+				const issues = await checkComponent(component, componentFixture, {
+					getPolicyCard: registry.getPolicyCard,
+					getGuardrailService: registry.getGuardrailService,
+					getEvaluator: registry.getEvaluator,
+					getAction: registry.getAction,
+					screening: { offline: true }
+				});
+				expect(issues, format(issues)).toEqual([]);
+			});
+		}
+
+		// WP97 (`89-…` §7): every stack the manifest ships, against a registry with the pack and its companions.
+		for (const stack of manifest.stacks ?? []) {
+			it(`stack "${stack.id}" is well-formed, fits its components where they decide, and needs no more than the socket has`, () => {
+				const registry = createPackRegistry();
+				for (const pack of companionPacks) registry.registerPack(pack);
+				registry.registerPack(manifest);
+				const issues = checkStack(stack, registry, fixture.stacks ?? {});
 				expect(issues, format(issues)).toEqual([]);
 			});
 		}

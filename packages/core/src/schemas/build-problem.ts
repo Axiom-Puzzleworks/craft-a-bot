@@ -38,6 +38,10 @@ export const buildProblemCodeSchema = z.enum([
 	'slot-already-filled',
 	/** A policy card id (`14-…` §4.6, WP22) no installed pack registered. */
 	'unknown-policy-card',
+	// WP97: the Safety brick names a stack the workbench does not have.
+	'unknown-stack',
+	/** WP99: the Guard brick names a service whose connection cannot run from a browser. */
+	'guard-service-harness-only',
 	/** An If/Then rule's `then` names a tool or action nothing has installed. */
 	'unknown-if-then-target',
 	/** A Librarian brick's `books` names a book its own catalogue does not carry. */

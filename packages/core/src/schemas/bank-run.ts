@@ -58,12 +58,15 @@ export const bankRunSchema = z.object({
 		unrouted: z.number().int().nonnegative(),
 		completed: z.number().int().nonnegative(),
 		stopped: z.number().int().nonnegative(),
+		/** Runs that ended by handing their item to another desk (WP102); absent on a day recorded before. */
+		handedOff: z.number().int().nonnegative().optional(),
 		byDesk: z.record(
 			z.string(),
 			z.object({
 				worked: z.number().int().nonnegative(),
 				completed: z.number().int().nonnegative(),
-				stopped: z.number().int().nonnegative()
+				stopped: z.number().int().nonnegative(),
+				handedOff: z.number().int().nonnegative().optional()
 			})
 		)
 	}),
@@ -86,7 +89,7 @@ export const bankRunSchema = z.object({
 			desk: z.string(),
 			runId: z.string(),
 			digest: z.string(),
-			outcome: z.enum(['completed', 'stopped', 'abandoned'])
+			outcome: z.enum(['completed', 'stopped', 'abandoned', 'handed-off'])
 		})
 	),
 	/** The clock's, never the wall's. */

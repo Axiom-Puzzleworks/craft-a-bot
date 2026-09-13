@@ -109,112 +109,116 @@
 
 <svelte:head><title>The Fraud Desk — Workshop</title></svelte:head>
 
-<p class="crumb"><a href={resolve('/workshop/playground')}>← The Playground</a></p>
-<h1>The Fraud Desk</h1>
-<p class="lede">
-	The bank’s fraud-operations assistant: work a queue of alerts, look up what the file says, decide
-	— release, hold, block, freeze or escalate — and handle the call from the customer or the
-	“customer” without ever tipping them off. Twelve cards, eighteen scenarios, five policy cards, ten
-	evaluators, one campaign — none of it real.
-</p>
-<p class="simulation" data-testid="fraud-simulation-only">FOR SIMULATION ONLY</p>
+<main>
+	<p class="crumb"><a href={resolve('/workshop/playground')}>← The Playground</a></p>
+	<h1>The Fraud Desk</h1>
+	<p class="lede">
+		The bank’s fraud-operations assistant: work a queue of alerts, look up what the file says,
+		decide — release, hold, block, freeze or escalate — and handle the call from the customer or the
+		“customer” without ever tipping them off. Twelve cards, eighteen scenarios, five policy cards,
+		ten evaluators, one campaign — none of it real.
+	</p>
+	<p class="simulation" data-testid="fraud-simulation-only">FOR SIMULATION ONLY</p>
 
-<section aria-label="Generate a case">
-	<Strip label="A case" icon="desk">
-		<label class="pick">
-			Layout
-			<select bind:value={layoutId} data-testid="fraud-layout">
-				{#each fraudDesk.layouts as layout (layout.id)}
-					<option value={layout.id}>{layout.name}</option>
-				{/each}
-			</select>
-		</label>
-		<label class="pick">
-			Seed
-			<input type="number" min="1" step="1" bind:value={seed} data-testid="fraud-seed" />
-		</label>
-		<button type="button" onclick={generate} data-testid="fraud-generate">Generate</button>
-		{#if snapshot}
-			<Readout label="Customer" value={snapshot.desk.role} testId="fraud-role" />
-			<Readout label="On file" value={hidden.length} testId="fraud-hidden-count" />
-			<Readout
-				label="Alerts"
-				value={records.filter((record) => record.kind === 'alert').length}
-				testId="fraud-alert-count"
-			/>
-		{/if}
-	</Strip>
-</section>
+	<section aria-label="Generate a case">
+		<Strip label="A case" icon="desk">
+			<label class="pick">
+				Layout
+				<select bind:value={layoutId} data-testid="fraud-layout">
+					{#each fraudDesk.layouts as layout (layout.id)}
+						<option value={layout.id}>{layout.name}</option>
+					{/each}
+				</select>
+			</label>
+			<label class="pick">
+				Seed
+				<input type="number" min="1" step="1" bind:value={seed} data-testid="fraud-seed" />
+			</label>
+			<button type="button" onclick={generate} data-testid="fraud-generate">Generate</button>
+			{#if snapshot}
+				<Readout label="Customer" value={snapshot.desk.role} testId="fraud-role" />
+				<Readout label="On file" value={hidden.length} testId="fraud-hidden-count" />
+				<Readout
+					label="Alerts"
+					value={records.filter((record) => record.kind === 'alert').length}
+					testId="fraud-alert-count"
+				/>
+			{/if}
+		</Strip>
+	</section>
 
-{#if snapshot}
+	{#if snapshot}
+		<div class="panes">
+			<section aria-label="On the desk">
+				<h2>On the desk</h2>
+				<CaseFile {records} testId="fraud-revealed" />
+			</section>
+			<section aria-label="On file">
+				<h2>On file — what a look-up would earn</h2>
+				<CaseFile
+					records={hidden}
+					truth={truth?.records}
+					facts={truth?.facts}
+					testId="fraud-hidden"
+				/>
+			</section>
+		</div>
+	{/if}
+
+	<section aria-label="The decks">
+		<!-- The count comes from the data (UX-22): the incident deck arrived after the heading was written. -->
+		<h2>
+			The {DECK_WORDS[FRAUD_DECKS.length] ?? FRAUD_DECKS.length} decks — {fraudScenarios.length} scenarios
+		</h2>
+		<CaseTable columns={deckColumns} rows={deckRows} testId="fraud-decks" />
+		<p>
+			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- resolve() builds the base path (campaignHref above); its typed surface has no way to attach the ?baseline= query the rule can verify statically (the same exception workshop/runs' compareHref takes). -->
+			<a class="run-campaign" href={campaignHref} data-testid="fraud-run-campaign"
+				>Run this desk’s campaign →</a
+			>
+		</p>
+	</section>
+
 	<div class="panes">
-		<section aria-label="On the desk">
-			<h2>On the desk</h2>
-			<CaseFile {records} testId="fraud-revealed" />
+		<section aria-label="The policy cards">
+			<h2>The five policy cards</h2>
+			<ul class="list" data-testid="fraud-cards">
+				{#each fraudPolicyCards as card (card.id)}
+					<li data-testid="fraud-card-{card.id.replace('fs-fraud/policy/', '')}">
+						<strong>{card.title}</strong> — {card.description}
+					</li>
+				{/each}
+			</ul>
 		</section>
-		<section aria-label="On file">
-			<h2>On file — what a look-up would earn</h2>
-			<CaseFile
-				records={hidden}
-				truth={truth?.records}
-				facts={truth?.facts}
-				testId="fraud-hidden"
-			/>
+		<section aria-label="The evaluators">
+			<h2>The evaluators</h2>
+			<ul class="list" data-testid="fraud-evaluators">
+				{#each fraudEvaluators as evaluator (evaluator.id)}
+					<li
+						data-testid="fraud-evaluator-{evaluator.id.replace('fs-fraud/', '').replace('/', '-')}"
+					>
+						<strong>{evaluator.name}</strong>
+						<span class="kind" data-kind={evaluator.kind}>{evaluator.kind}</span>
+						{#if evaluator.reads?.includes('truth')}<span class="kind">reads truth</span>{/if}
+						— {evaluator.description}
+					</li>
+				{/each}
+			</ul>
 		</section>
 	</div>
-{/if}
 
-<section aria-label="The decks">
-	<!-- The count comes from the data (UX-22): the incident deck arrived after the heading was written. -->
-	<h2>
-		The {DECK_WORDS[FRAUD_DECKS.length] ?? FRAUD_DECKS.length} decks — {fraudScenarios.length} scenarios
-	</h2>
-	<CaseTable columns={deckColumns} rows={deckRows} testId="fraud-decks" />
-	<p>
-		<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- resolve() builds the base path (campaignHref above); its typed surface has no way to attach the ?baseline= query the rule can verify statically (the same exception workshop/runs' compareHref takes). -->
-		<a class="run-campaign" href={campaignHref} data-testid="fraud-run-campaign"
-			>Run this desk’s campaign →</a
-		>
-	</p>
-</section>
-
-<div class="panes">
-	<section aria-label="The policy cards">
-		<h2>The five policy cards</h2>
-		<ul class="list" data-testid="fraud-cards">
-			{#each fraudPolicyCards as card (card.id)}
-				<li data-testid="fraud-card-{card.id.replace('fs-fraud/policy/', '')}">
-					<strong>{card.title}</strong> — {card.description}
-				</li>
-			{/each}
-		</ul>
+	<section aria-label="The boundary">
+		<h2>The campaign’s build, on the map</h2>
+		<p>
+			The desk bot at the centre with the five cards on its Safety Brick, the desk inside the
+			boundary, and the bank’s KYC line outside — the build <code
+				>campaigns/fs-fraud-baseline.json</code
+			>
+			runs under four guards.
+		</p>
+		<Boundary {map} testId="fraud-map" />
 	</section>
-	<section aria-label="The evaluators">
-		<h2>The evaluators</h2>
-		<ul class="list" data-testid="fraud-evaluators">
-			{#each fraudEvaluators as evaluator (evaluator.id)}
-				<li data-testid="fraud-evaluator-{evaluator.id.replace('fs-fraud/', '').replace('/', '-')}">
-					<strong>{evaluator.name}</strong>
-					<span class="kind" data-kind={evaluator.kind}>{evaluator.kind}</span>
-					{#if evaluator.reads?.includes('truth')}<span class="kind">reads truth</span>{/if}
-					— {evaluator.description}
-				</li>
-			{/each}
-		</ul>
-	</section>
-</div>
-
-<section aria-label="The boundary">
-	<h2>The campaign’s build, on the map</h2>
-	<p>
-		The desk bot at the centre with the five cards on its Safety Brick, the desk inside the
-		boundary, and the bank’s KYC line outside — the build <code
-			>campaigns/fs-fraud-baseline.json</code
-		>
-		runs under four guards.
-	</p>
-	<Boundary {map} testId="fraud-map" />
-</section>
+</main>
 
 <style>
 	.crumb {

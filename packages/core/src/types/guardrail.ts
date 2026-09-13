@@ -49,6 +49,15 @@ export interface GuardrailContext {
 	 * exists before SENSE. A guardrail that reads them must still cope with
 	 * their absence, the history walk being the fallback that always works.
 	 */
+	/**
+	 * The stage boundary this check is at (WP95, `69-…` §10), when a workflow
+	 * runs the guardrail at `stage-in` or `stage-out` rather than the loop:
+	 * the stage, the point, the validated input and — at `stage-out` — the
+	 * output. `proposed` frames the stage as an action named for it, with the
+	 * value as its arguments, so a policy card's rules read it as they would
+	 * a call. Absent on every loop check.
+	 */
+	stage?: { id: string; point: 'stage-in' | 'stage-out'; input: unknown; output?: unknown };
 	/** The current observation — present at every hook once SENSE has run this tick. */
 	observation?: Observation;
 	/** The composed prompt — present from `pre-think` on a brain-driven tick. */
@@ -91,4 +100,13 @@ export interface Guardrail {
 	 * without parsing `id` strings for a convention.
 	 */
 	policyCardId?: string;
+	/**
+	 * The component this guardrail was compiled from and the point it was
+	 * compiled for (WP94, `85-COMPONENTS.md` §4) — set by a component's
+	 * `compile` and nothing else; copied onto `guardrail.checked`/`tripped`
+	 * by the engine, as `policyCardId` is. Absent for every guardrail a lane
+	 * builds directly, so every trace written before keeps its bytes.
+	 */
+	componentId?: string;
+	point?: { kind: string; at?: string };
 }

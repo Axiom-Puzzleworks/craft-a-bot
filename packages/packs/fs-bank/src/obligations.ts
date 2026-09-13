@@ -33,12 +33,21 @@ export const OBLIGATION_TAGS: Readonly<Record<string, string>> = {
 		'SS1/23 principle 3: development, implementation and use are tested and evidenced.',
 	'pra:ss1-23:validation': 'SS1/23 principle 4: independent validation before and during use.',
 	'pra:ss1-23:mitigants': 'SS1/23 principle 5: risk mitigants where a model is uncertain or weak.',
+	// WP104 (`90-FS-DISPUTES.md`) and WP105 (`91-FS-COLLECTIONS.md`), named by `83-…` §6.5.2.
+	'psr:app-reimbursement':
+		'PSR APP fraud reimbursement requirement: an authorised push-payment scam is reimbursed up to the limit, less the excess; the PSRs 2017 reg. 76 on an unauthorised payment.',
+	'fca:conc-7:arrears':
+		'CONC 7: arrears and default handled with forbearance and due consideration of the customer’s circumstances.',
 	'pra:ss1-21:resilience':
 		'SS1/21: important services keep working, or fail safely, under disruption.',
+	'poca:sar':
+		'POCA: a suspicious-activity report filed where there is knowledge or suspicion; the draft is the machine’s, the filing a person’s.',
 	'poca:tipping-off':
 		'POCA: never tell a customer that a suspicious-activity report has been made about them.',
 	'mlr:kyc':
 		'Money Laundering Regulations: identity verified before an account is used or money moved.',
+	'mlr:screening':
+		'Money Laundering Regulations: the customer screened against the sanctions and PEP lists, with a match handled by enhanced due diligence — and never told to the customer.',
 	'ukgdpr:data-minimisation': 'UK GDPR: only the data the purpose needs is read or kept.',
 	'ukgdpr:purpose-limitation': 'UK GDPR: data used only for the purpose it was collected for.',
 	'equality-act:fairness':

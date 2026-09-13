@@ -79,30 +79,48 @@ describe('craftabot bank run', { timeout: 300_000 }, () => {
 		);
 	});
 
-	it('works the three-desk day file the CI runs — lending, fraud and advice each take their kind', async () => {
+	it('works the seven-desk day file the CI runs — lending, fraud, advice, complaints, onboarding, disputes, collections and servicing each take their kind', async () => {
 		const root = await tempDir();
 		const result = await bankRun({
 			desksPath: resolve(HERE, '..', '..', '..', '..', 'campaigns', 'desks', 'bank-day.json'),
 			from: '2026-06-01',
 			to: '2026-06-30',
 			seed: 1,
-			size: 800,
+			// Seven desks and their handoffs over 400 customers: the CI day runs 500; 800 took the test past five minutes under load.
+			size: 400,
 			brain: 'scripted-optimal',
 			out: join(root, 'out'),
 			config: defaultConfig(),
 			credentials: credentialsFromEnv({}),
 			egress: 'none'
 		});
-		expect(result.bankRun.desks.map((desk) => desk.id)).toEqual(['lending', 'fraud', 'advice']);
+		expect(result.bankRun.desks.map((desk) => desk.id)).toEqual([
+			'lending',
+			'fraud',
+			'advice',
+			'complaints',
+			'onboarding',
+			'disputes',
+			'collections',
+			'servicing'
+		]);
 		expect(result.bankRun.clock.books.map((book) => book.kind).sort()).toEqual([
 			'advice-request',
 			'alert',
-			'application'
+			'application',
+			'arrears',
+			'complaint',
+			'dispute',
+			'onboarding',
+			'servicing-request'
 		]);
 		expect(result.bankRun.counts.unrouted).toBe(0);
 		expect(result.bankRun.counts.byDesk['lending']?.worked).toBeGreaterThan(0);
 		expect(result.bankRun.counts.byDesk['fraud']?.worked).toBeGreaterThan(0);
-		expect(result.bankRun.counts.completed).toBe(result.bankRun.counts.routed);
+		// A handed-off run (WP102) is routed work that ended by handing on; its follower is routed work of its own.
+		expect(result.bankRun.counts.completed + (result.bankRun.counts.handedOff ?? 0)).toBe(
+			result.bankRun.counts.routed
+		);
 		expect(result.bankRun.incidents).toEqual([]);
 	});
 

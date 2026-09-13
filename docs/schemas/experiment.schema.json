@@ -300,7 +300,11 @@
 												"application",
 												"alert",
 												"complaint",
-												"advice-request"
+												"advice-request",
+												"onboarding",
+												"dispute",
+												"arrears",
+												"servicing-request"
 											]
 										},
 										"items": {
@@ -318,7 +322,11 @@
 															"application",
 															"alert",
 															"complaint",
-															"advice-request"
+															"advice-request",
+															"onboarding",
+															"dispute",
+															"arrears",
+															"servicing-request"
 														]
 													},
 													"customerId": {
@@ -666,7 +674,7 @@
 																			"properties": {
 																				"id": {
 																					"type": "string",
-																					"pattern": "^local\\/(policy|testbench|scenarios|campaigns)\\/[a-z0-9][a-z0-9-]*$"
+																					"pattern": "^local\\/(policy|testbench|scenarios|campaigns|stacks|views|reviews)\\/[a-z0-9][a-z0-9-]*$"
 																				},
 																				"kind": {
 																					"type": "string",
@@ -674,7 +682,10 @@
 																						"policy-card",
 																						"assertion-card",
 																						"scenario",
-																						"campaign"
+																						"campaign",
+																						"stack",
+																						"view",
+																						"control-review"
 																					]
 																				},
 																				"title": {
@@ -1039,6 +1050,49 @@
 												"config"
 											]
 										}
+									},
+									"components": {
+										"type": "array",
+										"items": {
+											"type": "object",
+											"properties": {
+												"id": {
+													"type": "string",
+													"minLength": 1
+												},
+												"config": {},
+												"point": {
+													"type": "object",
+													"properties": {
+														"kind": {
+															"type": "string",
+															"enum": [
+																"pre-think",
+																"pre-act",
+																"post-act",
+																"stage-in",
+																"stage-out",
+																"group",
+																"egress"
+															]
+														},
+														"at": {
+															"type": "string"
+														}
+													},
+													"required": [
+														"kind"
+													]
+												}
+											},
+											"required": [
+												"id"
+											]
+										}
+									},
+									"stack": {
+										"type": "string",
+										"minLength": 1
 									},
 									"for": {
 										"type": "array",

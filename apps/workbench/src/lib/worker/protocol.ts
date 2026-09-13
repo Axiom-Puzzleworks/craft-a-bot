@@ -116,7 +116,20 @@ export interface StartWhatIf {
 	whatIf: WhatIfJob;
 }
 
-export type WorkerRequest = StartCampaign | StartBook | StartBank | StartWhatIf | CancelJob;
+/**
+ * A stack test (WP101, `88-STUDIO.md` §5): the Studio's one-cell campaign — a
+ * scenario through one or two stacks as guards — run as the campaign it is;
+ * the kind stays so the host can say what it sent, as `book` does.
+ */
+export interface StartStackTest {
+	kind: 'start';
+	job: string;
+	work: 'stack-test';
+	campaign: unknown;
+}
+
+export type WorkerRequest =
+	StartCampaign | StartBook | StartBank | StartWhatIf | StartStackTest | CancelJob;
 
 export interface JobProgress {
 	kind: 'progress';

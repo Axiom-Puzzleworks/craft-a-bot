@@ -185,6 +185,11 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			getAction: (id) => registry.getAction(id),
 			/* istanbul ignore next -- a forwarding lambda; the Connector brick in pack-starter is its caller */
 			getServiceLine: (id) => registry.getServiceLine(id),
+			// A stack and its components (WP97), for the Safety brick's `stack` config.
+			/* istanbul ignore next -- a forwarding lambda; the Safety brick in pack-starter is its caller */
+			getStack: (id) => registry.getStack(id),
+			/* istanbul ignore next -- a forwarding lambda; the Safety brick in pack-starter is its caller */
+			getGuardrailComponent: (id) => registry.getGuardrailComponent(id),
 			fetch: fetchImpl,
 			getCredential
 		}
@@ -460,6 +465,11 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			guardrailContext(hook, proposed),
 			(guardrail, verdict, external) => {
 				const policyCardId = guardrail.policyCardId;
+				// The component and the point (WP94), written only when a component compiled the guardrail.
+				const stamps = {
+					...(guardrail.componentId ? { componentId: guardrail.componentId } : {}),
+					...(guardrail.point ? { point: guardrail.point as { kind: never; at?: string } } : {})
+				};
 				if (passed && 'allow' in verdict && verdict.allow) passed.push(guardrail.id);
 				// A hosted guardrail's own call, immediately before the verdict it
 				// produced (`25-…` §4.7) — never emitted by the guardrail itself.
@@ -470,7 +480,8 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 					guardrailId: guardrail.id,
 					hook,
 					verdict,
-					...(policyCardId ? { policyCardId } : {})
+					...(policyCardId ? { policyCardId } : {}),
+					...stamps
 				});
 				if ('allow' in verdict && !verdict.allow) {
 					emit('guardrail.tripped', {
@@ -479,7 +490,8 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 						reason: verdict.reason,
 						disposition: verdict.disposition,
 						...(verdict.cause ? { cause: verdict.cause } : {}),
-						...(policyCardId ? { policyCardId } : {})
+						...(policyCardId ? { policyCardId } : {}),
+						...stamps
 					});
 				}
 			}
@@ -663,10 +675,48 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		run.feedback.push(narration);
 	}
 
+	/**
+	 * A `redact` allow applied to the outgoing call (WP96, `85-…` §4): an
+	 * action whose arguments carry a string `text` — `say`, on every desk —
+	 * runs with the guard's `redactedText` instead, and `action.performed`
+	 * says so. Any other call runs as decided; the verdict is still on its
+	 * `guardrail.checked`, so nothing is lost, only not applied.
+	 */
+	function redactedCall(
+		decision: Extract<Decision, { kind: 'call' }>,
+		outcome: ChainOutcome
+	): {
+		call: Extract<Decision, { kind: 'call' }>;
+		redacted?: NonNullable<ChainOutcome['redaction']>;
+	} {
+		const redaction = outcome.redaction;
+		if (!redaction || decision.call.kind !== 'action') return { call: decision };
+		const args = decision.call.arguments;
+		if (
+			!args ||
+			typeof args !== 'object' ||
+			typeof (args as { text?: unknown }).text !== 'string'
+		) {
+			return { call: decision };
+		}
+		return {
+			call: {
+				...decision,
+				call: {
+					...decision.call,
+					arguments: { ...(args as Record<string, unknown>), text: redaction.redactedText }
+				}
+			},
+			redacted: redaction
+		};
+	}
+
 	async function performCall(
 		decision: Extract<Decision, { kind: 'call' }>,
 		/** Who and what let this through (WP65) — present when the session has a principal. */
-		attestation?: Attestation
+		attestation?: Attestation,
+		/** The redaction the call's text carries (WP96) — on the event, beside the rewritten arguments. */
+		redacted?: NonNullable<ChainOutcome['redaction']>
 	): Promise<{
 		summary: string;
 		result: string;
@@ -738,7 +788,15 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			name: call.name,
 			arguments: call.arguments,
 			result: actionResult,
-			...(attestation ? { attestation } : {})
+			...(attestation ? { attestation } : {}),
+			...(redacted
+				? {
+						redacted: {
+							guardrailId: redacted.guardrailId,
+							...(redacted.finding ? { finding: redacted.finding } : {})
+						}
+					}
+				: {})
 		});
 		if (actionResult.ok) {
 			emit('world.changed', { state: world.snapshot() });
@@ -875,7 +933,8 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 				const { approved, by } = await approval;
 				emit('approval.resolved', { approved, ...(by ? { by } : {}) });
 				if (approved) {
-					acted = await performCall(decision, attestationFor(by));
+					const { call, redacted } = redactedCall(decision, preAct);
+					acted = await performCall(call, attestationFor(by), redacted);
 				} else {
 					const message = `You tried to ${decision.call.name}, but a person said no: ${preAct.verdict.reason}`;
 					run.feedback.push(message);
@@ -887,7 +946,8 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 				refused = message;
 				if (preAct.verdict.disposition === 'stop-run') return finish('STOPPED_BY_GUARDRAIL');
 			} else {
-				acted = await performCall(decision, attestationFor());
+				const { call, redacted } = redactedCall(decision, preAct);
+				acted = await performCall(call, attestationFor(), redacted);
 			}
 		} else if (decision.kind === 'malformed') {
 			// The bot mumbled twice — a wasted tick (03-UI-UX-DESIGN.md §9).

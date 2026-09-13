@@ -1,5 +1,8 @@
+import { stackSchema, type Stack } from './schemas/stack.js';
+import { describeComponentProblems, type GuardrailComponent } from './types/guardrail-component.js';
 import type { BrickKindDefinition, SlotId } from './types/brick.js';
 import type { ControlMap } from './types/control-map.js';
+import type { DomainSpec } from './schemas/domain.js';
 import type { WorkflowSpec } from './types/workflow.js';
 import { satisfiesRange } from './semver.js';
 import { CRAFTABOT_CORE_VERSION } from './version.js';
@@ -58,6 +61,9 @@ export interface PackRegistry {
 	getWorld(id: string): WorldDefinition | undefined;
 	/** A hosted guardrail service (`29-GUARD-SHELL.md` §4.3, WP39), by qualified id. */
 	getGuardrailService(id: string): GuardrailService | undefined;
+	getGuardrailComponent(id: string): GuardrailComponent | undefined;
+	/** A stack by id (WP97, `89-STACKS.md`). */
+	getStack(id: string): Stack | undefined;
 	/** An evaluator (`31-EVALUATORS.md` §4.1, WP43), by qualified id. */
 	getEvaluator(id: string): Evaluator | undefined;
 	/** A service line (`47-SERVICE-LINES.md` §4.1, WP58), by qualified id. */
@@ -76,6 +82,8 @@ export interface PackRegistry {
 	getPolicyCard(id: string): PolicyCard | undefined;
 	/** A control map by id (WP67). */
 	getControlMap(id: string): ControlMap | undefined;
+	/** A domain spec by id (WP106). */
+	getDomain(id: string): DomainSpec | undefined;
 	/** A workflow (`69-WORKFLOWS.md` §3, WP79), by qualified id. */
 	getWorkflow(id: string): WorkflowSpec | undefined;
 	/** An LLM provider (`06-…` §8, WP26) — how to build the `LLMProvider` a cartridge's `providerId` names. */
@@ -87,8 +95,12 @@ export interface PackRegistry {
 	listWorlds(): WorldDefinition[];
 	listPolicyCards(): PolicyCard[];
 	listControlMaps(): ControlMap[];
+	listDomains(): DomainSpec[];
 	listWorkflows(): WorkflowSpec[];
 	listGuardrailServices(): GuardrailService[];
+	listGuardrailComponents(): GuardrailComponent[];
+	listStacks(): Stack[];
+	listGuardrailComponentsByTechnique(technique: string): GuardrailComponent[];
 	listEvaluators(): Evaluator[];
 	listServiceLines(): ServiceLine[];
 	listEvidenceStores(): EvidenceStore[];
@@ -108,8 +120,11 @@ export function createPackRegistry(): PackRegistry {
 	const worlds = new Map<string, WorldDefinition>();
 	const policyCards = new Map<string, PolicyCard>();
 	const controlMaps = new Map<string, ControlMap>();
+	const domains = new Map<string, DomainSpec>();
 	const workflows = new Map<string, WorkflowSpec>();
 	const guardrailServices = new Map<string, GuardrailService>();
+	const guardrailComponents = new Map<string, GuardrailComponent>();
+	const stacks = new Map<string, Stack>();
 	const evaluators = new Map<string, Evaluator>();
 	const serviceLines = new Map<string, ServiceLine>();
 	const evidenceStores = new Map<string, EvidenceStore>();
@@ -191,8 +206,29 @@ export function createPackRegistry(): PackRegistry {
 			insertUnique(policyCards, card.id, card, 'policy card');
 		for (const map of manifest.controlMaps ?? [])
 			insertUnique(controlMaps, map.id, map, 'control map');
+		for (const domain of manifest.domains ?? [])
+			insertUnique(domains, domain.id, domain, 'domain spec');
 		for (const workflow of manifest.workflows ?? [])
 			insertUnique(workflows, workflow.id, workflow, 'workflow');
+		for (const component of manifest.guardrailComponents ?? []) {
+			const problems = describeComponentProblems(component);
+			if (problems.length > 0) {
+				throw new Error(
+					`Pack "${manifest.id}" ships a guardrail component "${component.id}" that ${problems.join(', ')}.`
+				);
+			}
+			insertUnique(guardrailComponents, component.id, component, 'guardrail component');
+		}
+		// A stack's shape is the schema's (WP97): a malformed one is refused at registration, not at the first fit.
+		for (const stack of manifest.stacks ?? []) {
+			const parsed = stackSchema.safeParse(stack);
+			if (!parsed.success) {
+				throw new Error(
+					`Pack "${manifest.id}" ships a stack "${String((stack as { id?: unknown }).id)}" that does not parse: ${parsed.error.message}`
+				);
+			}
+			insertUnique(stacks, stack.id, stack, 'stack');
+		}
 		for (const service of manifest.guardrailServices ?? []) {
 			const problems = describeGuardrailServiceProblems(service);
 			if (problems.length > 0) {
@@ -291,8 +327,11 @@ export function createPackRegistry(): PackRegistry {
 		getAction,
 		getPolicyCard: (id) => policyCards.get(id),
 		getGuardrailService: (id) => guardrailServices.get(id),
+		getGuardrailComponent: (id) => guardrailComponents.get(id),
+		getStack: (id) => stacks.get(id),
 		getEvaluator: (id) => evaluators.get(id),
 		getControlMap: (id) => controlMaps.get(id),
+		getDomain: (id) => domains.get(id),
 		getWorkflow: (id) => workflows.get(id),
 		getServiceLine: (id) => serviceLines.get(id),
 		getEvidenceStore: (id) => evidenceStores.get(id),
@@ -306,8 +345,13 @@ export function createPackRegistry(): PackRegistry {
 		listWorlds: () => [...worlds.values()],
 		listPolicyCards: () => [...policyCards.values()],
 		listGuardrailServices: () => [...guardrailServices.values()],
+		listGuardrailComponents: () => [...guardrailComponents.values()],
+		listStacks: () => [...stacks.values()],
+		listGuardrailComponentsByTechnique: (technique) =>
+			[...guardrailComponents.values()].filter((component) => component.technique === technique),
 		listEvaluators: () => [...evaluators.values()],
 		listControlMaps: () => [...controlMaps.values()],
+		listDomains: () => [...domains.values()],
 		listWorkflows: () => [...workflows.values()],
 		listServiceLines: () => [...serviceLines.values()],
 		listEvidenceStores: () => [...evidenceStores.values()],

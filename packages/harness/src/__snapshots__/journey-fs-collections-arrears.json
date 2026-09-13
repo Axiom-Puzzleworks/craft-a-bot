@@ -1,0 +1,286 @@
+{
+	"schemaVersion": 1,
+	"workflowId": "fs-collections/arrears",
+	"name": "The arrears journey",
+	"lanes": [
+		{
+			"id": "assistant",
+			"label": "the assistant"
+		},
+		{
+			"id": "colleague",
+			"label": "a colleague"
+		},
+		{
+			"id": "rules",
+			"label": "the rules"
+		}
+	],
+	"nodes": [
+		{
+			"stageId": "intake",
+			"name": "Intake",
+			"lane": "rules",
+			"x": 0,
+			"y": 2,
+			"executor": "rule",
+			"irreversible": false,
+			"obligations": [],
+			"guards": []
+		},
+		{
+			"stageId": "contact",
+			"name": "Contact",
+			"lane": "assistant",
+			"x": 1,
+			"y": 0,
+			"executor": "agent",
+			"irreversible": false,
+			"obligations": [
+				"fca:conc-7:arrears",
+				"fca:cd:support"
+			],
+			"guards": [
+				"loop:contact:pre-think",
+				"loop:contact:pre-act",
+				"loop:contact:post-act"
+			]
+		},
+		{
+			"stageId": "circumstances",
+			"name": "Circumstances",
+			"lane": "assistant",
+			"x": 2,
+			"y": 0,
+			"executor": "agent",
+			"irreversible": false,
+			"obligations": [
+				"fca:conc-7:arrears",
+				"fca:fg21-1:vulnerability"
+			],
+			"guards": [
+				"loop:circumstances:pre-think",
+				"loop:circumstances:pre-act",
+				"loop:circumstances:post-act"
+			]
+		},
+		{
+			"stageId": "reassess",
+			"name": "Reassess",
+			"lane": "rules",
+			"x": 3,
+			"y": 2,
+			"executor": "rule",
+			"irreversible": false,
+			"obligations": [
+				"fca:conc-7:arrears"
+			],
+			"guards": []
+		},
+		{
+			"stageId": "plan",
+			"name": "Plan",
+			"lane": "assistant",
+			"x": 4,
+			"y": 0,
+			"executor": "agent",
+			"irreversible": false,
+			"obligations": [
+				"fca:conc-7:arrears",
+				"fca:fg21-1:vulnerability",
+				"fca:cd:understanding"
+			],
+			"guards": [
+				"loop:plan:pre-think",
+				"loop:plan:pre-act",
+				"loop:plan:post-act"
+			]
+		},
+		{
+			"stageId": "record",
+			"name": "Plan recorded",
+			"lane": "rules",
+			"x": 5,
+			"y": 2,
+			"executor": "rule",
+			"irreversible": false,
+			"obligations": [],
+			"guards": []
+		},
+		{
+			"stageId": "decision",
+			"name": "Decision",
+			"lane": "colleague",
+			"x": 6,
+			"y": 1,
+			"executor": "human",
+			"irreversible": false,
+			"obligations": [
+				"pra:ss1-23:mitigants",
+				"fca:conc-7:arrears"
+			],
+			"guards": []
+		},
+		{
+			"stageId": "agree",
+			"name": "Agreement",
+			"lane": "assistant",
+			"x": 7,
+			"y": 0,
+			"executor": "agent",
+			"irreversible": true,
+			"obligations": [
+				"fca:conc-7:arrears",
+				"fca:cd:understanding"
+			],
+			"guards": [
+				"loop:agree:pre-think",
+				"loop:agree:pre-act",
+				"loop:agree:post-act"
+			]
+		}
+	],
+	"edges": [
+		{
+			"id": "intake->contact",
+			"from": "intake",
+			"to": "contact",
+			"label": "",
+			"kind": "enumerated"
+		},
+		{
+			"id": "contact->circumstances",
+			"from": "contact",
+			"to": "circumstances",
+			"label": "",
+			"kind": "enumerated"
+		},
+		{
+			"id": "circumstances->reassess",
+			"from": "circumstances",
+			"to": "reassess",
+			"label": "job-loss / bereavement / health / none",
+			"kind": "enumerated"
+		},
+		{
+			"id": "reassess->plan",
+			"from": "reassess",
+			"to": "plan",
+			"label": "",
+			"kind": "enumerated"
+		},
+		{
+			"id": "plan->record",
+			"from": "plan",
+			"to": "record",
+			"label": "payment-plan / reduced-payments / breathing-space",
+			"kind": "enumerated"
+		},
+		{
+			"id": "record->decision",
+			"from": "record",
+			"to": "decision",
+			"label": "payment-plan / reduced-payments / breathing-space",
+			"kind": "enumerated"
+		},
+		{
+			"id": "decision->agree",
+			"from": "decision",
+			"to": "agree",
+			"label": "confirm",
+			"kind": "enumerated"
+		},
+		{
+			"id": "decision->end",
+			"from": "decision",
+			"to": {
+				"end": true
+			},
+			"label": "return",
+			"kind": "enumerated"
+		},
+		{
+			"id": "agree->end",
+			"from": "agree",
+			"to": {
+				"end": true
+			},
+			"label": "depends on the case",
+			"kind": "case"
+		}
+	],
+	"points": [
+		{
+			"id": "loop:contact:pre-think",
+			"kind": "pre-think",
+			"at": "contact",
+			"components": []
+		},
+		{
+			"id": "loop:contact:pre-act",
+			"kind": "pre-act",
+			"at": "contact",
+			"components": []
+		},
+		{
+			"id": "loop:contact:post-act",
+			"kind": "post-act",
+			"at": "contact",
+			"components": []
+		},
+		{
+			"id": "loop:circumstances:pre-think",
+			"kind": "pre-think",
+			"at": "circumstances",
+			"components": []
+		},
+		{
+			"id": "loop:circumstances:pre-act",
+			"kind": "pre-act",
+			"at": "circumstances",
+			"components": []
+		},
+		{
+			"id": "loop:circumstances:post-act",
+			"kind": "post-act",
+			"at": "circumstances",
+			"components": []
+		},
+		{
+			"id": "loop:plan:pre-think",
+			"kind": "pre-think",
+			"at": "plan",
+			"components": []
+		},
+		{
+			"id": "loop:plan:pre-act",
+			"kind": "pre-act",
+			"at": "plan",
+			"components": []
+		},
+		{
+			"id": "loop:plan:post-act",
+			"kind": "post-act",
+			"at": "plan",
+			"components": []
+		},
+		{
+			"id": "loop:agree:pre-think",
+			"kind": "pre-think",
+			"at": "agree",
+			"components": []
+		},
+		{
+			"id": "loop:agree:pre-act",
+			"kind": "pre-act",
+			"at": "agree",
+			"components": []
+		},
+		{
+			"id": "loop:agree:post-act",
+			"kind": "post-act",
+			"at": "agree",
+			"components": []
+		}
+	]
+}

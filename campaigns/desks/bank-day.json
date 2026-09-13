@@ -19,5 +19,40 @@
 		"kinds": ["advice-request"],
 		"configuration": "bot-with-a-person-at-execution",
 		"concurrency": 2
+	},
+	{
+		"id": "complaints",
+		"workflowId": "fs-advice/complaints",
+		"kinds": ["complaint"],
+		"configuration": "bot-with-a-person-at-approval",
+		"concurrency": 2
+	},
+	{
+		"id": "onboarding",
+		"workflowId": "fs-onboarding/onboarding",
+		"kinds": ["onboarding"],
+		"configuration": "bot-with-a-person-at-the-open",
+		"concurrency": 2
+	},
+	{
+		"id": "disputes",
+		"workflowId": "fs-disputes/disputes",
+		"kinds": ["dispute"],
+		"configuration": "bot-with-a-person-at-the-reimbursement",
+		"concurrency": 2
+	},
+	{
+		"id": "collections",
+		"workflowId": "fs-collections/arrears",
+		"kinds": ["arrears"],
+		"configuration": "bot-with-a-person-at-the-decision",
+		"concurrency": 2
+	},
+	{
+		"id": "servicing",
+		"workflowId": "fs-servicing/servicing",
+		"kinds": ["servicing-request"],
+		"configuration": "bot-with-a-person-at-the-closure",
+		"concurrency": 2
 	}
 ]

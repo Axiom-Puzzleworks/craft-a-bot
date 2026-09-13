@@ -6,12 +6,11 @@ import {
 	type BankRun,
 	type Book,
 	type EgressMode,
-	type Guardrail,
 	type WorkItemKind
 } from '@craftabot/core';
 import { createMockProvider } from '@craftabot/core/testing';
 import { scriptedNoisy, scriptedOptimal, specFor } from '@craftabot/evals';
-import { compilePolicyCard } from '@craftabot/governance';
+import { stageBoundaryGuardrails } from '@craftabot/governance';
 import {
 	adviceRequestBook,
 	alertBook,
@@ -43,7 +42,20 @@ export const deskFileSchema = z.array(
 	z.object({
 		id: z.string().min(1),
 		workflowId: z.string().min(1),
-		kinds: z.array(z.enum(['application', 'alert', 'complaint', 'advice-request'])).min(1),
+		kinds: z
+			.array(
+				z.enum([
+					'application',
+					'alert',
+					'complaint',
+					'advice-request',
+					'onboarding',
+					'dispute',
+					'arrears',
+					'servicing-request'
+				])
+			)
+			.min(1),
 		configuration: z.string().min(1).optional(),
 		knobs: z.record(z.string(), z.union([z.number(), z.string(), z.boolean()])).optional(),
 		concurrency: z.number().int().positive().default(1),
@@ -120,6 +132,15 @@ export async function bankRun(options: BankRunOptions): Promise<BankRunReport> {
 	if (wanted.has('alert')) books.push(alertBook(pop, { from, to }).book);
 	if (wanted.has('complaint')) books.push(complaintBook(pop, { from, to }));
 	if (wanted.has('advice-request')) books.push(adviceRequestBook(pop, { from, to }));
+	// A kind the bank keeps no register for (WP103's `onboarding`): the desk's own workflow draws it.
+	for (const desk of desksFile) {
+		const workflow = registry.getWorkflow(desk.workflowId);
+		for (const kind of desk.kinds) {
+			if (books.some((book) => book.kind === kind)) continue;
+			if (workflow?.book && workflow.kinds?.includes(kind))
+				books.push(workflow.book({ seed: options.seed, size: options.size }));
+		}
+	}
 
 	const acceleration = options.acceleration ?? Infinity;
 	const clock = bankClock({ population: pop, from, to, books, acceleration, seed: options.seed });
@@ -195,12 +216,8 @@ export async function bankRun(options: BankRunOptions): Promise<BankRunReport> {
 				id: options.brain
 			});
 		},
-		guardrailsFor: (cardIds) =>
-			cardIds.flatMap((id): Guardrail[] => {
-				const card = registry.getPolicyCard(id);
-				if (!card) throw new Error(`stage guard names policy card "${id}", which no pack ships`);
-				return compilePolicyCard(card);
-			}),
+		// Each stage's boundary chain (WP95): its cards and components against the host's registry.
+		boundaryGuardrailsFor: stageBoundaryGuardrails(registry),
 		seed: options.seed,
 		clock: {
 			from,

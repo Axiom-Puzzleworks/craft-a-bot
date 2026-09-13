@@ -1,0 +1,142 @@
+{
+	"schemaVersion": 1,
+	"id": "freight-forwarder/uk-freight-forwarding",
+	"name": "UK freight forwarder (synthetic, a blueprint)",
+	"jurisdiction": "UK",
+	"sector": "Logistics",
+	"packs": {
+		"world": "freight-forwarder",
+		"journeys": ["booking", "customs", "exceptions", "dg-acceptance"]
+	},
+	"obligations": {
+		"hmrc:cds-declaration": "A customs declaration is true, complete and lodged by an authorised person.",
+		"hmrc:tariff-classification": "The commodity code is the declarant's responsibility.",
+		"iata:dgr": "Dangerous goods by air: classification, packing, marking, the shipper's declaration, acceptance by a trained person.",
+		"adr:road-dg": "Dangerous goods by road under ADR: the same duties on the road leg.",
+		"ofsi:sanctions-screening": "Every party screened; a match frozen and reported, never told to the party.",
+		"cbp:aeo-records": "Records kept for the authorised economic operator's audit.",
+		"equality-act:fairness": "Reused from the bank: outcomes compared by cohort — here the consignor's size."
+	},
+	"decisionRights": [
+		{
+			"kind": "sanctions-match-handling",
+			"ceiling": 2,
+			"why": "A match is a person's decision; the assistant freezes and records.",
+			"source": {
+				"title": "OFSI — Financial sanctions guidance",
+				"url": "https://www.gov.uk/government/publications/financial-sanctions-faqs",
+				"retrieved": "2026-09-13"
+			}
+		},
+		{
+			"kind": "customs-lodgement",
+			"ceiling": 3,
+			"why": "Lodging a declaration is an authorised person's below four eyes; the assistant drafts.",
+			"source": {
+				"title": "HMRC — Customs Declaration Service guidance",
+				"url": "https://www.gov.uk/government/collections/customs-declaration-service",
+				"retrieved": "2026-09-13"
+			}
+		},
+		{
+			"kind": "tariff-classification",
+			"ceiling": 3,
+			"why": "The code is the declarant's; the assistant applies the table and recommends.",
+			"source": {
+				"title": "HMRC — Finding commodity codes for imports into or exports out of the UK",
+				"url": "https://www.gov.uk/guidance/finding-commodity-codes-for-imports-or-exports",
+				"retrieved": "2026-09-13"
+			}
+		},
+		{
+			"kind": "dg-acceptance",
+			"ceiling": 2,
+			"why": "Acceptance for carriage is a trained acceptance-check person's; the assistant checks and recommends, never accepts.",
+			"source": {
+				"title": "IATA Dangerous Goods Regulations (current edition)",
+				"url": "https://www.iata.org/en/publications/dgr/",
+				"retrieved": "2026-09-13"
+			}
+		},
+		{
+			"kind": "carrier-booking",
+			"ceiling": 4,
+			"why": "A booking before cut-off is reversible and the assistant's under oversight.",
+			"source": {
+				"title": "A stated assumption of the blueprint; cite the forwarder's booking policy",
+				"retrieved": "2026-09-13"
+			}
+		},
+		{
+			"kind": "damage-claim-above-limit",
+			"ceiling": 3,
+			"why": "A claim above the limit is a person's; the assistant recommends.",
+			"source": {
+				"title": "A stated assumption of the blueprint; cite the forwarder's claims policy",
+				"retrieved": "2026-09-13"
+			}
+		},
+		{
+			"kind": "delay-notice",
+			"ceiling": 4,
+			"why": "A delay notice is the assistant's under four eyes.",
+			"source": {
+				"title": "A stated assumption of the blueprint; cite the forwarder's service terms",
+				"retrieved": "2026-09-13"
+			}
+		}
+	],
+	"calibration": "freight-forwarder/calibration",
+	"ontology": {
+		"classes": [
+			"Shipment",
+			"Party",
+			"Carrier",
+			"Declaration",
+			"Exception",
+			"DangerousGoods",
+			"SanctionsMatch"
+		],
+		"specialCategory": ["SanctionsMatch", "DangerousGoods"]
+	},
+	"journeys": [
+		{ "workflowId": "booking/booking", "name": "Booking and quotation", "status": "shipped" },
+		{ "workflowId": "customs/declaration", "name": "Customs declaration", "status": "shipped" },
+		{ "workflowId": "exceptions/exceptions", "name": "Exception handling", "status": "shipped" },
+		{
+			"workflowId": "dg-acceptance/acceptance",
+			"name": "Dangerous-goods acceptance",
+			"status": "shipped"
+		},
+		{
+			"workflowId": "freight-forwarder/rate-management",
+			"name": "Rate management",
+			"status": "supporting",
+			"why": "A layout the quotation journey reads; no workflow."
+		},
+		{
+			"workflowId": "insurance-claims",
+			"name": "Insurance claims",
+			"status": "out",
+			"why": "The claim is the insurer's journey, not the forwarder's."
+		},
+		{
+			"workflowId": "warehouse-operations",
+			"name": "Warehouse operations",
+			"status": "out",
+			"why": "The physical handling has no desk; the domain models the office, not the floor."
+		}
+	],
+	"personas": [
+		"next-flight",
+		"says-it-is-damaged",
+		"carrier-agent-wants-paperwork",
+		"broker-just-lodge-it"
+	],
+	"glossary": {
+		"shipment": "The root entity (the Kit says “visitor”): one consignment under a house bill.",
+		"declaration": "A customs declaration with its status: pre-lodged, accepted, held, cleared.",
+		"exception": "An event off the plan — a delay, a damage, a hold — and the case the exceptions journey works.",
+		"acceptance": "The trained person's decision that dangerous goods may travel."
+	}
+}

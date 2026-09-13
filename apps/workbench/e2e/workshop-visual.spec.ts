@@ -40,6 +40,32 @@ const golden = JSON.parse(
 	)
 ) as Array<{ runId: string }>;
 const goldenRunId = golden[0]?.runId ?? '';
+const WORKFLOW_FIXTURE = join(
+	HERE,
+	'..',
+	'..',
+	'..',
+	'packages',
+	'packs',
+	'fs-lending',
+	'src',
+	'fixtures',
+	'lending-workflow-run.v1.json'
+);
+const workflowRunId = (
+	JSON.parse(readFileSync(WORKFLOW_FIXTURE, 'utf8')) as { run: { id: string } }
+).run.id;
+// WP110 (`97-ACCESS.md` §1): a reference experiment result, so the Experiments shot is over the corpus and not an empty form.
+const EXPERIMENT_FIXTURE = join(
+	HERE,
+	'..',
+	'..',
+	'..',
+	'docs',
+	'evidence',
+	'lending-stack',
+	'lending-stack.experiment-result.json'
+);
 
 async function seed(page: Page): Promise<string> {
 	await page.goto('/settings');
@@ -54,6 +80,21 @@ async function seed(page: Page): Promise<string> {
 		buffer: Buffer.from(golden.map((event) => JSON.stringify(event)).join('\n') + '\n', 'utf8')
 	});
 	await expect(page.getByTestId('import-note')).toContainText('caught up');
+	// WP100: the golden lending workflow run, so the Pipeline's shot is over the fixture corpus.
+	await page.goto('/workshop/workflows');
+	await page.getByTestId('import-workflow-run').setInputFiles({
+		name: 'lending-workflow-run.v1.json',
+		mimeType: 'application/json',
+		buffer: readFileSync(WORKFLOW_FIXTURE)
+	});
+	await expect(page.getByTestId('workflow-import-note')).toContainText('with its item');
+	await page.goto('/workshop/experiments');
+	await page.getByTestId('import-experiment-result').setInputFiles({
+		name: 'lending-stack.experiment-result.json',
+		mimeType: 'application/json',
+		buffer: readFileSync(EXPERIMENT_FIXTURE)
+	});
+	await expect(page.getByTestId('experiment-import-note')).toContainText('Imported');
 	return agentId;
 }
 
@@ -85,10 +126,31 @@ test('the Workshop, screen by screen, over the fixture corpus', async ({ page })
 	await shot(page, '/workshop/model-risk', 'ws-model-risk', 'model-risk-page');
 	await shot(page, '/workshop/experiments', 'ws-experiments', 'experiments-page');
 	await shot(page, '/workshop/workflows', 'ws-workflows', 'workflows-page');
+	// WP100: the journeys drawn — the list, the lending journey unlit, the Pipeline lit by the golden workflow run.
+	await shot(page, '/workshop/playground/journeys', 'ws-journeys', 'journeys-page');
+	await shot(
+		page,
+		'/workshop/playground/journeys/fs-lending/lending',
+		'ws-journey-lending',
+		'journey-canvas'
+	);
+	await shot(
+		page,
+		`/workshop/workflows/${workflowRunId}`,
+		'ws-pipeline-golden',
+		'pipeline-journey'
+	);
 	await shot(page, '/workshop/incidents', 'ws-incidents', 'incidents-page');
 	await shot(page, `/workshop/safety-case?agent=${agentId}`, 'ws-safety-case', 'safety-case-page');
 	await shot(page, `/workshop/export?run=${goldenRunId}`, 'ws-audit-centre', 'export-page');
-	await shot(page, '/workshop/guards', 'ws-guards', 'guard-rack');
+	await shot(page, '/workshop/studio?tab=connections', 'ws-guards', 'guard-rack');
+	await shot(
+		page,
+		'/workshop/studio?stack=fs-lending%2Fstack%2Fpolicy-cards',
+		'ws-studio',
+		'studio-stack'
+	);
+	await shot(page, '/workshop/catalogue', 'ws-catalogue', 'catalogue-table');
 	await shot(page, '/workshop/evals', 'ws-eval-matrix', 'matrix-size');
 });
 
@@ -100,7 +162,15 @@ test('the Playground and its three desks', async ({ page }) => {
 	await expect(page.getByTestId('playground-simulation-only')).toBeVisible();
 	await settle(page);
 	await expect(page).toHaveScreenshot('ws-playground.png');
-	for (const desk of ['advice', 'fraud', 'lending'] as const) {
+	for (const desk of [
+		'advice',
+		'fraud',
+		'lending',
+		'onboarding',
+		'disputes',
+		'collections',
+		'servicing'
+	] as const) {
 		await page.goto(`/workshop/playground/${desk}`);
 		await page.getByTestId(`${desk}-generate`).click();
 		await settle(page);

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { SLOT_IDS } from '../types/brick.js';
 
 /**
@@ -26,7 +27,9 @@ import {
 	principalSchema,
 	proposedStepSchema,
 	runOutcomeSchema,
-	usageSchema
+	usageSchema,
+	boundaryVerdictSchema,
+	verdictFindingSchema
 } from './shared.js';
 
 /** Shared envelope (02-AGENT-MODEL.md §7) around one event type's payload. */
@@ -257,7 +260,15 @@ const actionPerformedEvent = eventSchema(
 		arguments: z.unknown(),
 		result: actionResultSchema,
 		/** Who was behind it and what let it through (WP65, `55-…` §4.1); present when the session has a principal. */
-		attestation: attestationSchema.optional()
+		attestation: attestationSchema.optional(),
+		/**
+		 * The call's text was rewritten by a `redact` verdict before it ran
+		 * (WP96, `85-…` §4): which guardrail, and its finding. `arguments` is
+		 * what was said; the bot's own words are on the `decision` event.
+		 */
+		redacted: z
+			.object({ guardrailId: z.string(), finding: verdictFindingSchema.optional() })
+			.optional()
 	})
 );
 const memoryUpdatedEvent = eventSchema(
@@ -302,6 +313,14 @@ const brickStateEvent = eventSchema(
  * behind it, and every trace written before WP22 still parses with it absent.
  */
 const policyCardIdField = z.string().optional();
+/** Which component and which point a verdict came from (WP94, `85-…` §4) — written only for a guardrail a component compiled. */
+const componentIdField = z.string().optional();
+const pointField = z
+	.object({
+		kind: z.enum(['pre-think', 'pre-act', 'post-act', 'stage-in', 'stage-out', 'group', 'egress']),
+		at: z.string().optional()
+	})
+	.optional();
 
 /**
  * A hosted guardrail's own network call (`25-…` §4.7, WP35 stage B), emitted
@@ -323,7 +342,9 @@ const guardrailCheckedEvent = eventSchema(
 		guardrailId: z.string(),
 		hook: guardrailHookSchema,
 		verdict: guardrailVerdictSchema,
-		policyCardId: policyCardIdField
+		policyCardId: policyCardIdField,
+		componentId: componentIdField,
+		point: pointField
 	})
 );
 const guardrailTrippedEvent = eventSchema(
@@ -335,7 +356,9 @@ const guardrailTrippedEvent = eventSchema(
 		disposition: z.enum(['block-action', 'stop-run']).optional(),
 		/** Copied from the verdict: `could-not-check` when a hosted guard failed closed rather than caught something. */
 		cause: z.enum(['could-not-check']).optional(),
-		policyCardId: policyCardIdField
+		policyCardId: policyCardIdField,
+		componentId: componentIdField,
+		point: pointField
 	})
 );
 const approvalRequestedEvent = eventSchema(
@@ -424,7 +447,9 @@ const stageCompletedEvent = eventSchema(
 		status: z.enum(['ok', 'blocked', 'escalated', 'error']),
 		guards: z.object({
 			checked: z.number().int().nonnegative(),
-			tripped: z.number().int().nonnegative()
+			tripped: z.number().int().nonnegative(),
+			/** The boundary chain's verdicts (WP95, `69-…` §10); absent when the stage had none. */
+			verdicts: z.array(boundaryVerdictSchema).optional()
 		})
 	})
 );

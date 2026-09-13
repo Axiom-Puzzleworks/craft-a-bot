@@ -1,0 +1,199 @@
+{
+	"schemaVersion": 1,
+	"id": "fs-servicing-book",
+	"title": "Servicing book — the population’s service requests through the servicing journey under the five reference configurations, by autonomy level",
+	"scenarios": [],
+	"source": {
+		"kind": "book",
+		"workflowId": "fs-servicing/servicing",
+		"population": {
+			"seed": 1,
+			"size": 240
+		}
+	},
+	"builds": [
+		{
+			"id": "rules-only",
+			"base": {
+				"kind": "starter-default"
+			},
+			"overrides": {
+				"senses": [
+					"fs-servicing/the-servicing-desk/request",
+					"fs-servicing/the-servicing-desk/classification",
+					"fs-servicing/the-servicing-desk/file",
+					"fs-servicing/the-servicing-desk/conversation"
+				],
+				"actions": [
+					"fs-servicing/the-servicing-desk/say",
+					"fs-servicing/the-servicing-desk/identify-caller",
+					"fs-servicing/the-servicing-desk/classify",
+					"fs-servicing/the-servicing-desk/update-address",
+					"fs-servicing/the-servicing-desk/reissue-card",
+					"fs-servicing/the-servicing-desk/grant-third-party-access",
+					"fs-servicing/the-servicing-desk/record-support-need",
+					"fs-servicing/the-servicing-desk/close-account"
+				],
+				"configuration": "rules-only"
+			}
+		},
+		{
+			"id": "bot-identifies-only",
+			"base": {
+				"kind": "starter-default"
+			},
+			"overrides": {
+				"senses": [
+					"fs-servicing/the-servicing-desk/request",
+					"fs-servicing/the-servicing-desk/classification",
+					"fs-servicing/the-servicing-desk/file",
+					"fs-servicing/the-servicing-desk/conversation"
+				],
+				"actions": [
+					"fs-servicing/the-servicing-desk/say",
+					"fs-servicing/the-servicing-desk/identify-caller",
+					"fs-servicing/the-servicing-desk/classify",
+					"fs-servicing/the-servicing-desk/update-address",
+					"fs-servicing/the-servicing-desk/reissue-card",
+					"fs-servicing/the-servicing-desk/grant-third-party-access",
+					"fs-servicing/the-servicing-desk/record-support-need",
+					"fs-servicing/the-servicing-desk/close-account"
+				],
+				"configuration": "bot-identifies-only"
+			}
+		},
+		{
+			"id": "bot-recommends",
+			"base": {
+				"kind": "starter-default"
+			},
+			"overrides": {
+				"senses": [
+					"fs-servicing/the-servicing-desk/request",
+					"fs-servicing/the-servicing-desk/classification",
+					"fs-servicing/the-servicing-desk/file",
+					"fs-servicing/the-servicing-desk/conversation"
+				],
+				"actions": [
+					"fs-servicing/the-servicing-desk/say",
+					"fs-servicing/the-servicing-desk/identify-caller",
+					"fs-servicing/the-servicing-desk/classify",
+					"fs-servicing/the-servicing-desk/update-address",
+					"fs-servicing/the-servicing-desk/reissue-card",
+					"fs-servicing/the-servicing-desk/grant-third-party-access",
+					"fs-servicing/the-servicing-desk/record-support-need",
+					"fs-servicing/the-servicing-desk/close-account"
+				],
+				"configuration": "bot-recommends"
+			}
+		},
+		{
+			"id": "bot-with-a-person-at-the-closure",
+			"base": {
+				"kind": "starter-default"
+			},
+			"overrides": {
+				"senses": [
+					"fs-servicing/the-servicing-desk/request",
+					"fs-servicing/the-servicing-desk/classification",
+					"fs-servicing/the-servicing-desk/file",
+					"fs-servicing/the-servicing-desk/conversation"
+				],
+				"actions": [
+					"fs-servicing/the-servicing-desk/say",
+					"fs-servicing/the-servicing-desk/identify-caller",
+					"fs-servicing/the-servicing-desk/classify",
+					"fs-servicing/the-servicing-desk/update-address",
+					"fs-servicing/the-servicing-desk/reissue-card",
+					"fs-servicing/the-servicing-desk/grant-third-party-access",
+					"fs-servicing/the-servicing-desk/record-support-need",
+					"fs-servicing/the-servicing-desk/close-account"
+				],
+				"configuration": "bot-with-a-person-at-the-closure"
+			}
+		},
+		{
+			"id": "bot-everywhere",
+			"base": {
+				"kind": "starter-default"
+			},
+			"overrides": {
+				"senses": [
+					"fs-servicing/the-servicing-desk/request",
+					"fs-servicing/the-servicing-desk/classification",
+					"fs-servicing/the-servicing-desk/file",
+					"fs-servicing/the-servicing-desk/conversation"
+				],
+				"actions": [
+					"fs-servicing/the-servicing-desk/say",
+					"fs-servicing/the-servicing-desk/identify-caller",
+					"fs-servicing/the-servicing-desk/classify",
+					"fs-servicing/the-servicing-desk/update-address",
+					"fs-servicing/the-servicing-desk/reissue-card",
+					"fs-servicing/the-servicing-desk/grant-third-party-access",
+					"fs-servicing/the-servicing-desk/record-support-need",
+					"fs-servicing/the-servicing-desk/close-account"
+				],
+				"configuration": "bot-everywhere"
+			}
+		}
+	],
+	"guards": [
+		{
+			"id": "none",
+			"fit": []
+		}
+	],
+	"brains": [
+		{
+			"id": "scripted-optimal",
+			"tier": "scripted-optimal"
+		}
+	],
+	"seeds": [1],
+	"evaluators": [
+		{
+			"id": "fs-servicing/needs-met"
+		},
+		{
+			"id": "fs-servicing/disclosure-recorded"
+		}
+	],
+	"gates": [
+		{
+			"id": "every-journey-completes",
+			"require": {
+				"kind": "outcome-rate",
+				"outcome": "SUCCESS",
+				"atLeast": 1
+			}
+		},
+		{
+			"id": "rules-only-meets-every-need",
+			"where": {
+				"build": "rules-only"
+			},
+			"require": {
+				"kind": "evaluator-pass-rate",
+				"evaluatorId": "fs-servicing/needs-met",
+				"atLeast": 1
+			}
+		},
+		{
+			"id": "the-bots-meet-every-need",
+			"require": {
+				"kind": "evaluator-pass-rate",
+				"evaluatorId": "fs-servicing/needs-met",
+				"atLeast": 1
+			}
+		},
+		{
+			"id": "every-disclosure-recorded",
+			"require": {
+				"kind": "evaluator-pass-rate",
+				"evaluatorId": "fs-servicing/disclosure-recorded",
+				"atLeast": 1
+			}
+		}
+	]
+}

@@ -166,3 +166,41 @@ export function groupRows(
 
 	return rows;
 }
+
+/**
+ * The filter as a URL (WP109, `96-CONTROL-ROOM-V3.md` §2.2, decision 2): a
+ * saved view is a URL, so the Run Browser's filter lives in one —
+ * `?text=&bot=&card=&outcome=&provider=&pinned=1`. Absent keys are absent
+ * filters; the two functions round-trip.
+ */
+export function filterFromSearch(params: URLSearchParams): RunFilter {
+	const pick = (key: string): string | undefined => {
+		const value = params.get(key);
+		return value === null || value === '' ? undefined : value;
+	};
+	const filter: RunFilter = {};
+	const text = pick('text');
+	if (text !== undefined) filter.text = text;
+	const agentId = pick('bot');
+	if (agentId !== undefined) filter.agentId = agentId;
+	const goalCardId = pick('card');
+	if (goalCardId !== undefined) filter.goalCardId = goalCardId;
+	const outcome = pick('outcome');
+	if (outcome !== undefined) filter.outcome = outcome;
+	const providerId = pick('provider');
+	if (providerId !== undefined) filter.providerId = providerId;
+	if (params.get('pinned') === '1') filter.pinnedOnly = true;
+	return filter;
+}
+
+export function searchFromFilter(filter: RunFilter): string {
+	const params = new URLSearchParams();
+	if (filter.text) params.set('text', filter.text);
+	if (filter.agentId) params.set('bot', filter.agentId);
+	if (filter.goalCardId) params.set('card', filter.goalCardId);
+	if (filter.outcome) params.set('outcome', filter.outcome);
+	if (filter.providerId) params.set('provider', filter.providerId);
+	if (filter.pinnedOnly) params.set('pinned', '1');
+	const text = params.toString();
+	return text === '' ? '' : `?${text}`;
+}

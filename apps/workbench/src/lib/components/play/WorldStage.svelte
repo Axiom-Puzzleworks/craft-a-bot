@@ -50,7 +50,7 @@
 		<WorldView world={undefined} {saying} {expression} {outcome} {events} />
 	{/if}
 {:else if isDeskWorldState(world)}
-	<DeskView {world} {outcome} {truth} />
+	<DeskView {world} {outcome} {truth} {events} />
 {:else if isGridWorldState(world)}
 	<WorldView {world} {saying} {expression} {outcome} {events} />
 {:else}

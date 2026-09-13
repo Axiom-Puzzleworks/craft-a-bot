@@ -37,8 +37,12 @@ describe('the installed control maps', () => {
 		expect(maps.map((map) => map.id).sort()).toEqual([
 			'fs-advice/control-map',
 			'fs-bank/control-map',
+			'fs-collections/control-map',
+			'fs-disputes/control-map',
 			'fs-fraud/control-map',
 			'fs-lending/control-map',
+			'fs-onboarding/control-map',
+			'fs-servicing/control-map',
 			'governance/control-map'
 		]);
 		for (const map of maps) {

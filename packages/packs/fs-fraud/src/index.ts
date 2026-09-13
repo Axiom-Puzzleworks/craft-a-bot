@@ -4,7 +4,7 @@ import { fraudPolicyCards } from './cards/policy.js';
 import { fraudGoalCards } from './decks/goal-cards.js';
 import { fraudEvaluators } from './evaluators/index.js';
 import { fraudScenarios } from './decks/scenarios.js';
-import { FRAUD_BASELINE_ID, fraudBaseline } from './campaign.js';
+import { FRAUD_BASELINE_ID, fraudBaseline, fraudStacks } from './campaign.js';
 import { fraudDesk } from './world/desk.js';
 
 /**
@@ -39,6 +39,8 @@ export const fsFraudPack: PackManifest = {
 		}
 	],
 	policyCards: fraudPolicyCards,
+	/** WP97 (`89-STACKS.md`): the baseline's guards as stacks. */
+	stacks: fraudStacks,
 	evaluators: fraudEvaluators,
 	controlMaps: [fraudControlMap],
 	// The alert journey (WP85, `76-FRAUD-AND-ADVICE-WORKFLOWS.md` §3).

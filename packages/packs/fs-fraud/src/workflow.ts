@@ -1,4 +1,5 @@
 import type {
+	StageHandoff,
 	ActionCall,
 	Book,
 	BookRequest,
@@ -228,6 +229,50 @@ const names = strings.stages;
 const afterTheDecision = (state: WorldState): string =>
 	decisionOnTheDesk(state) === 'release' ? 'note' : 'sar';
 
+/** A freeze or a card block: the customer disputes a restriction on their account (WP102) — a hold, a release, an escalation they do not. */
+const disputedRestriction = (state: WorldState): boolean => {
+	const decided = decisionOnTheDesk(state);
+	return decided === 'freeze' || decided === 'block-card';
+};
+
+/** The complaint the disputed restriction becomes: the bank's own register shape, `fraud-handling` category, the customer from the case. */
+const complaintHandoff = (state: WorldState): StageHandoff => {
+	const bank = desk(state).extra.bank;
+	const decided = decisionOnTheDesk(state) ?? 'hold';
+	const summary = strings.disputedRestriction(fraudStrings.verbs[decided]);
+	return {
+		handoff: 'fs-advice/complaints',
+		item: {
+			id: `complaint-from-${bank.customer.id}-${FOCAL_ALERT}`,
+			kind: 'complaint',
+			customerId: bank.customer.id,
+			arrivedAt: '1970-01-01T00:00:00.000Z',
+			payload: {
+				complaint: {
+					id: `cmp-${FOCAL_ALERT}`,
+					customerId: bank.customer.id,
+					openedDay: 0,
+					category: 'fraud-handling',
+					summary,
+					status: 'open'
+				},
+				customer: bank.customer
+			},
+			truth: {
+				records: [
+					{
+						id: `complaint-truth-${FOCAL_ALERT}`,
+						kind: 'complaint-outcome',
+						title: 'What the register says',
+						fields: { category: 'fraud-handling', upheld: false }
+					}
+				],
+				facts: { category: 'fraud-handling', upheld: false }
+			}
+		}
+	};
+};
+
 export const FRAUD_STAGES: StageSpec[] = [
 	{
 		id: 'alert',
@@ -309,7 +354,8 @@ export const FRAUD_STAGES: StageSpec[] = [
 		input: { type: 'object' },
 		output: NOTE_OUTPUT,
 		executor: rule('note-v1'),
-		next: () => 'end'
+		// WP102 (`83-…` §6.5.3): a restriction the verified customer disputes goes to complaints as a complaint — the item, never the desk.
+		next: (_out, state) => (disputedRestriction(state) ? complaintHandoff(state) : 'end')
 	}
 ];
 

@@ -16,6 +16,9 @@ export { describeEvidenceStoreConformance } from './describe-evidence-store.js';
 export { describeSinkConformance } from './describe-sink.js';
 export { checkGuardrail } from './checks/guardrail.js';
 export { checkGuardrailService, hostMatches } from './checks/guardrail-service.js';
+export { checkComponent } from './checks/component.js';
+export { checkStack, type StackCheckOptions } from './checks/stack.js';
+export { browserRefusal, checkConnection } from './checks/connection.js';
 export { checkManifest } from './checks/manifest.js';
 export { checkTool } from './checks/tool.js';
 export { checkWorld } from './checks/world.js';
@@ -23,6 +26,7 @@ export { checkDesk } from './checks/desk.js';
 export { checkServiceLine } from './checks/service-line.js';
 export { checkControlMap, type ControlMapCheckOptions } from './checks/control-map.js';
 export { checkCalibration, type CalibrationCheckOptions } from './checks/calibration.js';
+export { checkDomainPack, type DomainPackCheckOptions } from './checks/domain.js';
 export {
 	checkSynthetic,
 	ibanValid,
@@ -42,6 +46,8 @@ export type {
 	SinkConformanceFixture,
 	EvidenceStoreConformanceFixture,
 	GuardrailServiceConformanceFixture,
+	ComponentConformanceFixture,
+	ComponentVerdictProbe,
 	PackConformanceFixture,
 	ToolConformanceFixture,
 	WorldConformanceFixture,

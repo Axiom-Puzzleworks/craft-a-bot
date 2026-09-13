@@ -1,3 +1,4 @@
+import { ukRetailBankingDomain } from './domain.js';
 import type { PackManifest } from '@craftabot/core';
 import { bankControlMap } from './controls/rows.js';
 import { bankServiceLines } from './lines/index.js';
@@ -28,6 +29,8 @@ const manifest: PackManifest = {
 	evaluators: [toldPlainly],
 	/** The UK retail rows (WP67, `53-…` §4.1), every evidence id resolved by `checkControlMap`. */
 	controlMaps: [bankControlMap],
+	// WP106 stage A (`83-…` §6.6.1): the domain spec the journeys page and `checkDomainPack` read.
+	domains: [ukRetailBankingDomain],
 	/** The cited table the population draws from and the design-time weights the decks were built on (WP74, `66-…` §4.1). */
 	calibrations: [CALIBRATION, DECK_WEIGHTS]
 };
@@ -65,6 +68,14 @@ export { generateComplaints } from './generate/complaints.js';
 export { generateBureau } from './generate/bureau.js';
 export { SHELF, generateShelf } from './generate/shelf.js';
 export { bankRecords, driverList, hasAnyDriver, type BankRecords } from './records.js';
+export { customerForTheDesk } from './book/books.js';
+// WP103 (`95-FS-ONBOARDING.md` §4.2): the synthetic screening lists the `kyc` line and the Onboarding Desk read.
+export {
+	SCREENING_LIST,
+	screenAgainstTheLists,
+	type ScreeningEntry,
+	type ScreeningList
+} from './screening.js';
 export {
 	BANK_PURPOSES,
 	bankExtra,
@@ -151,3 +162,12 @@ export {
 	TOLD_PLAINLY_ID,
 	toldPlainly
 } from './incident.js';
+/** WP97 (`89-STACKS.md` §3): a desk's guards as stacks, from the values its baseline's bricks are built from. */
+export {
+	deskStacks,
+	DESK_SCREENING,
+	CLASSIFIER_HOOKS,
+	type DeskSafety,
+	type DeskStacksOptions
+} from './stacks.js';
+export { UK_RETAIL_BANKING_DOMAIN_ID, ukRetailBankingDomain } from './domain.js';

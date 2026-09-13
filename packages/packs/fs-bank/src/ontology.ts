@@ -171,6 +171,20 @@ const DESK_OBLIGATIONS: Readonly<Record<BankPurpose, string[]>> = {
 		'mlr:kyc'
 	],
 	complaints: ['fca:disp:complaints', 'fca:cd:support', 'fca:cd:understanding'],
+	onboarding: ['mlr:kyc', 'mlr:screening', 'poca:tipping-off', 'ukgdpr:data-minimisation'],
+	disputes: ['psr:app-reimbursement', 'fca:cd:support', 'fca:cd:understanding', 'mlr:kyc'],
+	collections: [
+		'fca:conc-7:arrears',
+		'fca:fg21-1:vulnerability',
+		'fca:cd:support',
+		'fca:cd:understanding'
+	],
+	servicing: [
+		'fca:fg21-1:vulnerability',
+		'ukgdpr:purpose-limitation',
+		'ukgdpr:data-minimisation',
+		'fca:cd:support'
+	],
 	reception: ['ukgdpr:purpose-limitation'],
 	testing: []
 };

@@ -1,0 +1,214 @@
+{
+	"$id": "https://craftabot.dev/schemas/guardrail-catalogue.schema.json",
+	"title": "Craft A Bot guardrail catalogue (v1)",
+	"description": "An edition of the Guardrail Catalogue: every technique the industry ships or the research proposes, taxonomised, mapped to the threat and framework vocabularies, cited with a year, and carrying the coverage status the product can honestly claim (86-CATALOGUE.md §3).",
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"type": "object",
+	"properties": {
+		"schemaVersion": {
+			"type": "number",
+			"const": 1
+		},
+		"edition": {
+			"type": "string",
+			"minLength": 1
+		},
+		"entries": {
+			"minItems": 1,
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"pattern": "^[a-z0-9][a-z0-9-]*$"
+					},
+					"name": {
+						"type": "string",
+						"minLength": 1
+					},
+					"summary": {
+						"type": "string",
+						"minLength": 1
+					},
+					"category": {
+						"type": "string",
+						"enum": [
+							"runtime-protection",
+							"secure-by-design",
+							"identity-and-access",
+							"component-hardening",
+							"evaluation-and-assurance",
+							"human-oversight"
+						]
+					},
+					"subcategory": {
+						"type": "string",
+						"minLength": 1
+					},
+					"points": {
+						"type": "array",
+						"items": {
+							"type": "string",
+							"enum": [
+								"pre-think",
+								"pre-act",
+								"post-act",
+								"stage-in",
+								"stage-out",
+								"group",
+								"egress"
+							]
+						}
+					},
+					"maturity": {
+						"type": "string",
+						"enum": [
+							"widely-adopted",
+							"emerging",
+							"research"
+						]
+					},
+					"threats": {
+						"type": "array",
+						"items": {
+							"type": "string",
+							"pattern": "^(ASI(0[1-9]|10)|LLM(0[1-9]|10)|AML\\.T[0-9]{4}(\\.[0-9]{3})?)$"
+						}
+					},
+					"frameworks": {
+						"type": "array",
+						"items": {
+							"type": "string",
+							"pattern": "^(nist-ai-rmf|nist-ai-600-1|iso-42001|iso-23894|eu-ai-act|pra-ss1-23|fca|owasp|cisa|mitre-atlas)(:[a-z0-9][a-z0-9.\\-]*)?$"
+						}
+					},
+					"obligations": {
+						"type": "array",
+						"items": {
+							"type": "string",
+							"minLength": 1
+						}
+					},
+					"sources": {
+						"minItems": 1,
+						"type": "array",
+						"items": {
+							"type": "object",
+							"properties": {
+								"title": {
+									"type": "string",
+									"minLength": 1
+								},
+								"publisher": {
+									"type": "string",
+									"minLength": 1
+								},
+								"year": {
+									"type": "integer",
+									"minimum": 1950,
+									"maximum": 2100
+								},
+								"url": {
+									"type": "string",
+									"format": "uri"
+								},
+								"kind": {
+									"type": "string",
+									"enum": [
+										"standard",
+										"vendor",
+										"paper",
+										"guidance"
+									]
+								}
+							},
+							"required": [
+								"title",
+								"publisher",
+								"year",
+								"kind"
+							]
+						}
+					},
+					"coverage": {
+						"type": "object",
+						"properties": {
+							"status": {
+								"type": "string",
+								"enum": [
+									"shipped",
+									"connectable",
+									"bespoke",
+									"blueprint",
+									"not-applicable"
+								]
+							},
+							"componentIds": {
+								"type": "array",
+								"items": {
+									"type": "string",
+									"minLength": 1
+								}
+							},
+							"implementedBy": {
+								"type": "array",
+								"items": {
+									"type": "string",
+									"minLength": 1
+								}
+							},
+							"note": {
+								"type": "string",
+								"minLength": 1
+							},
+							"since": {
+								"type": "string",
+								"minLength": 1
+							}
+						},
+						"required": [
+							"status",
+							"note"
+						]
+					},
+					"bankingRelevance": {
+						"type": "string",
+						"enum": [
+							"core",
+							"supporting",
+							"none"
+						]
+					},
+					"review": {
+						"type": "string",
+						"enum": [
+							"pending",
+							"reviewed"
+						]
+					}
+				},
+				"required": [
+					"id",
+					"name",
+					"summary",
+					"category",
+					"subcategory",
+					"points",
+					"maturity",
+					"threats",
+					"frameworks",
+					"sources",
+					"coverage",
+					"bankingRelevance",
+					"review"
+				]
+			}
+		}
+	},
+	"required": [
+		"schemaVersion",
+		"edition",
+		"entries"
+	]
+}

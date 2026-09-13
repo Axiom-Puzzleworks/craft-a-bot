@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { rateWithBand } from '@craftabot/metrics';
 	import type { WorkItem } from '@craftabot/core';
 	import { referenceFromItems } from '@craftabot/evals';
 	import Lamp from '$lib/components/control-room/Lamp.svelte';
@@ -6,6 +7,8 @@
 	import Readout from '$lib/components/control-room/Readout.svelte';
 	import Strip from '$lib/components/control-room/Strip.svelte';
 	import Tape, { type TapeSeries } from '$lib/components/control-room/Tape.svelte';
+	import JourneyCanvas from '$lib/components/control-room/JourneyCanvas.svelte';
+	import { journeyLayout } from '@craftabot/workflow';
 	import { createRegistry } from '$lib/packs.js';
 	import { monitor } from '$lib/state/monitor-app.svelte.js';
 	import type { MonitorDeskSetup } from '$lib/state/monitor.svelte.js';
@@ -77,6 +80,40 @@
 	}
 
 	const fold = $derived(monitor.state);
+	/**
+	 * WP100 (`87-JOURNEY-CANVAS.md` §7): one small unlit canvas per desk of the day,
+	 * the queue's waiting count on the intake node, and the heat — each edge's share
+	 * of the kept runs that took it, faded in.
+	 */
+	const journeys = $derived.by(() => {
+		const setups = monitor.setup?.desks ?? [];
+		return setups.flatMap((desk) => {
+			const workflow = workflows.find((entry) => entry.id === desk.workflowId);
+			if (!workflow) return [];
+			const config = desk.configuration ? workflow.configurations?.[desk.configuration] : undefined;
+			const layout = journeyLayout(workflow, config, undefined, { registry });
+			const runs = monitor.kept.filter((entry) => entry.desk === desk.id);
+			// A plain record, not a Map: the fold is derived once per change, never mutated in place.
+			const counts: Record<string, number> = {};
+			for (const entry of runs) {
+				const path = entry.run.stages.map((stage) => stage.stageId);
+				for (let index = 0; index < path.length; index += 1) {
+					const to = path[index + 1] ?? 'end';
+					const id = `${path[index]}->${to}`;
+					counts[id] = (counts[id] ?? 0) + 1;
+				}
+			}
+			const heat = Object.fromEntries(
+				layout.edges.map((edge) => [
+					edge.id,
+					runs.length === 0 ? 0 : (counts[edge.id] ?? 0) / runs.length
+				])
+			);
+			const waiting = fold?.queues.find((queue) => queue.desk === desk.id)?.waiting ?? 0;
+			const intake = layout.nodes[0]?.stageId;
+			return [{ desk: desk.id, layout, heat, badges: intake ? { [intake]: waiting } : {} }];
+		});
+	});
 	const readouts = $derived(fold?.readouts);
 	const buckets = $derived(fold?.buckets ?? []);
 	/** The tapes read the buckets that fall in the working hours seen, so a quiet night does not flatten the day. */
@@ -194,11 +231,23 @@
 			? referenceApproval(monitor.kept.map((entry) => entry.item))
 			: undefined
 	);
-	function referenceApproval(items: WorkItem[]): { y: number; label: string } | undefined {
-		const expected = referenceFromItems(items).approvalRate;
-		return expected === undefined
-			? undefined
-			: { y: expected, label: `expected approval ${pct(expected)}` };
+	/** The expected approval rate from the items' truth, with its Wilson interval as the tape's band (WP109, `96-…` §4). */
+	function referenceApproval(
+		items: WorkItem[]
+	): { y: number; label: string; band: { low: number; high: number } } | undefined {
+		const truth = referenceFromItems(items);
+		const expected = truth.approvalRate;
+		if (expected === undefined) return undefined;
+		const verdicts = truth.verdicts ?? [];
+		const rate = rateWithBand(
+			verdicts.filter((verdict) => verdict === 'approve').length,
+			verdicts.length
+		);
+		return {
+			y: expected,
+			label: `expected approval ${pct(expected)} (${band(rate.interval)})`,
+			band: { low: rate.interval[0], high: rate.interval[1] }
+		};
 	}
 
 	const pct = (rate: number | undefined) =>
@@ -601,6 +650,31 @@
 			</table>
 		</section>
 
+		{#if journeys.length > 0}
+			<section aria-labelledby="journeys-h" data-testid="monitor-journeys">
+				<h2 id="journeys-h">The journeys</h2>
+				<p class="status">
+					Each desk's journey with the queue on its first stage and the edges the day is taking,
+					darker the more of the last {monitor.setup?.window ?? window} runs took them.
+				</p>
+				<div class="journeys">
+					{#each journeys as journey (journey.desk)}
+						<!-- WP110 (`97-ACCESS.md` §1): the tile's badge is the queue's waiting count; the Queues table beneath is its twin, and the tile says so. -->
+						<div class="journey-tile" aria-describedby="queue-{journey.desk}">
+							<h3>{journey.desk}</h3>
+							<JourneyCanvas
+								layout={journey.layout}
+								heat={journey.heat}
+								badges={journey.badges}
+								size="small"
+								testId="monitor-journey-{journey.desk}"
+							/>
+						</div>
+					{/each}
+				</div>
+			</section>
+		{/if}
+
 		<section aria-labelledby="queues-h">
 			<h2 id="queues-h">Queues</h2>
 			<table data-testid="monitor-queues">
@@ -613,7 +687,7 @@
 				>
 				<tbody>
 					{#each fold?.queues ?? [] as queue (queue.desk)}
-						<tr data-testid="queue-{queue.desk}">
+						<tr id="queue-{queue.desk}" data-testid="queue-{queue.desk}">
 							<td>{queue.desk}</td>
 							<td>{queue.arrived}</td>
 							<td>{queue.waiting}</td>
@@ -670,6 +744,15 @@
 </main>
 
 <style>
+	.journeys {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+		gap: var(--cab-space-3);
+	}
+	.journey-tile h3 {
+		margin: 0 0 var(--cab-space-1);
+		font-size: var(--cab-text-sm);
+	}
 	main {
 		display: grid;
 		gap: var(--cab-space-4);

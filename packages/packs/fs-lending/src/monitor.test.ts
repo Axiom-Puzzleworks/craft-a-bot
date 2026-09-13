@@ -1,4 +1,4 @@
-import { localPackFrom, type AnyAgentSpec, type Guardrail } from '@craftabot/core';
+import { createPackRegistry, localPackFrom, type AnyAgentSpec } from '@craftabot/core';
 import { createMockProvider } from '@craftabot/core/testing';
 import {
 	cohortOf,
@@ -11,7 +11,7 @@ import {
 	specFor,
 	type MonitorRun
 } from '@craftabot/evals';
-import { compilePolicyCard } from '@craftabot/governance';
+import { stageBoundaryGuardrails } from '@craftabot/governance';
 import {
 	fairnessMetric,
 	touchesPerCase,
@@ -63,12 +63,9 @@ describe('the Monitor over the lending desk', { timeout: 300_000 }, () => {
 		const book = lendingWorkflow.book!({ seed: SEED, size: SIZE });
 		const from = pop.transactions.dateOf(0);
 		const to = pop.transactions.dateOf(pop.options.periodDays - 1);
-		const registry = {
-			getPolicyCard: (id: string) =>
-				[...(fsBankPack.policyCards ?? []), ...(fsLendingPack.policyCards ?? [])].find(
-					(card) => card.id === id
-				)
-		};
+		// A real registry (WP95): the boundary compiler resolves components and cards through it.
+		const registry = createPackRegistry();
+		for (const pack of [starterPack, ...packs]) registry.registerPack(pack);
 		const desk = {
 			id: 'lending',
 			workflowId: LENDING_WORKFLOW_ID,
@@ -103,11 +100,7 @@ describe('the Monitor over the lending desk', { timeout: 300_000 }, () => {
 						script: scriptedOptimal(planFor(goalCardId)),
 						id: 'scripted-optimal'
 					}),
-				guardrailsFor: (ids) =>
-					ids.flatMap((id): Guardrail[] => {
-						const card = registry.getPolicyCard(id);
-						return card ? compilePolicyCard(card) : [];
-					}),
+				boundaryGuardrailsFor: stageBoundaryGuardrails(registry),
 				seed: SEED,
 				clock: {
 					from,

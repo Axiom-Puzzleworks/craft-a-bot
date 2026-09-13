@@ -55,9 +55,13 @@ const call = (name: string, args: unknown) => ({
 const DEPS = { fetch: globalThis.fetch, getCredential: () => undefined };
 
 describe('the complaints desk', () => {
-	it('is a desk with purpose complaints, five layouts, one irreversible action, and the truth off the snapshot', () => {
+	it('is a desk with purpose complaints, six layouts, one irreversible action, and the truth off the snapshot', () => {
 		expect(complaintsDesk.spec.purpose).toBe('complaints');
-		expect(complaintsDesk.layouts.map((layout) => layout.id)).toEqual([...COMPLAINT_KINDS]);
+		// The five kinds, and the work-item layout the complaints journey's intake builds from (WP102).
+		expect(complaintsDesk.layouts.map((layout) => layout.id)).toEqual([
+			...COMPLAINT_KINDS,
+			'work-item'
+		]);
 		const irreversible = complaintsDesk.actions.filter(
 			(action) => action.riskTier === 'irreversible'
 		);

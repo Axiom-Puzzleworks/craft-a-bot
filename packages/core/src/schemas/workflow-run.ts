@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { engineEventSchema } from './events.js';
-import { principalSchema } from './shared.js';
+import { principalSchema, boundaryVerdictSchema } from './shared.js';
 import { contextSpecSchema } from './context.js';
 import { workItemSchema } from './book.js';
 
@@ -36,6 +36,18 @@ export const stageValueSchema = z.object({
 	value: z.unknown().optional()
 });
 
+export { boundaryVerdictSchema, type BoundaryVerdict } from './shared.js';
+export {
+	guardPointSchema,
+	stackFitSchema,
+	stackGroupSchema,
+	stackSchema,
+	type GuardPointRecord,
+	type Stack,
+	type StackFit,
+	type StackGroup
+} from './stack.js';
+
 export const stageRecordSchema = z.object({
 	stageId: z.string().min(1),
 	executor: executorRecordSchema,
@@ -52,7 +64,9 @@ export const stageRecordSchema = z.object({
 				disposition: z.string(),
 				cause: z.string().optional()
 			})
-		)
+		),
+		/** The boundary chain's verdicts, in order (WP95); absent when the stage had no boundary guards. */
+		verdicts: z.array(boundaryVerdictSchema).optional()
 	}),
 	/** The agent run, when the executor was a bot. */
 	runId: z.string().optional(),
@@ -72,6 +86,9 @@ export type StageRecord = z.infer<typeof stageRecordSchema>;
 export const workflowConfigRecordSchema = z.object({
 	executors: z.record(z.string(), executorRecordSchema).optional(),
 	knobs: z.record(z.string(), z.union([z.number(), z.string(), z.boolean()])).optional(),
+	/** The journey's stack and the per-stage stacks (WP97), by id. */
+	stack: z.string().min(1).optional(),
+	stageStacks: z.record(z.string(), z.string().min(1)).optional(),
 	autonomy: z
 		.object({
 			level: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5)]),
@@ -95,7 +112,22 @@ export const workflowRunSchema = z.object({
 	config: workflowConfigRecordSchema,
 	startedAt: z.string(),
 	finishedAt: z.string(),
-	outcome: z.enum(['completed', 'stopped', 'abandoned']),
+	/** `handed-off` (WP102): the journey ended by handing its item on to another; `handoff` says which. */
+	outcome: z.enum(['completed', 'stopped', 'abandoned', 'handed-off']),
+	/** The handoff this run ended with (WP102, `83-…` §6.5.3): the target journey and the item it was handed — the item, never the desk state. */
+	handoff: z
+		.object({ to: z.string().min(1), itemId: z.string().min(1), item: workItemSchema })
+		.optional(),
+	/** The chain of runs this one was handed off from, oldest first (WP102): the link a Pipeline follows back. */
+	handoffs: z
+		.array(
+			z.object({
+				runId: z.string().min(1),
+				workflowId: z.string().min(1),
+				itemId: z.string().min(1)
+			})
+		)
+		.optional(),
 	stages: z.array(stageRecordSchema),
 	/** Every agent run the workflow made. */
 	runIds: z.array(z.string()),

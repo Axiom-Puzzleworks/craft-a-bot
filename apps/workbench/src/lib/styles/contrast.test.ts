@@ -206,6 +206,36 @@ const CONTROL_ROOM_NON_TEXT_PAIRS: [string, string, string][] = [
 	['fail', 'graph', 'a fail lamp’s disc']
 ];
 
+/**
+ * WP110 (`97-ACCESS.md` §3): the Journey Canvas draws a node's disc in its
+ * lane's token on graph paper and on a card, with an ink stroke and its
+ * lane's glyph beside it — the disc is a state indicator, so 3:1 applies.
+ * Day 6 added no token of its own; these are the lane tokens on the two
+ * grounds the Canvas is drawn on.
+ */
+const CANVAS_LANE_PAIRS: [string, string, string][] = [
+	['sky', 'graph', 'the sense lane’s disc on the Canvas'],
+	['blue', 'graph', 'the think lane’s disc on the Canvas'],
+	['purple', 'graph', 'the tool lane’s disc on the Canvas'],
+	['red', 'graph', 'the guardrail lane’s disc on the Canvas'],
+	['green', 'graph', 'the action lane’s disc on the Canvas'],
+	['rose', 'graph', 'the counterpart-side lane’s disc on the Canvas'],
+	['indigo', 'graph', 'the planner lane’s disc on the Canvas'],
+	['counterpart', 'graph', 'the counterpart lane’s disc on the Canvas'],
+	['sky', 'paper', 'the sense lane’s disc on a card'],
+	['blue', 'paper', 'the think lane’s disc on a card'],
+	['purple', 'paper', 'the tool lane’s disc on a card'],
+	['red', 'paper', 'the guardrail lane’s disc on a card'],
+	['green', 'paper', 'the action lane’s disc on a card'],
+	['indigo', 'paper', 'the planner lane’s disc on a card']
+];
+
+describe('non-text contrast for the Canvas’s lane discs (3:1) — WP110', () => {
+	it.each(CANVAS_LANE_PAIRS)('%s against %s — %s', (foreground, background) => {
+		expect(ratio(token(foreground), token(background))).toBeGreaterThanOrEqual(3);
+	});
+});
+
 describe('AA contrast for the Control Room’s tokens (4.5:1)', () => {
 	it.each(CONTROL_ROOM_TEXT_PAIRS)('%s on %s — %s', (foreground, background) => {
 		expect(ratio(token(foreground), token(background))).toBeGreaterThanOrEqual(4.5);

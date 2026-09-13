@@ -9,7 +9,11 @@ import {
 	type GroupRunRecord,
 	type RunRecord,
 	type Storage,
-	type StoredCampaignReport
+	type StoredCampaignReport,
+	stackSchema,
+	localContentId,
+	slugOf,
+	type Stack
 } from '@craftabot/core';
 import { bundleForGroup, bundleForRun } from './bundles.js';
 
@@ -76,6 +80,11 @@ export function itemForContent(
 	return evidenceItemFor('content', record.id, record, options);
 }
 
+/** WP97 (`89-…` §6): a stack under its own id, with its digest. */
+export function itemForStack(stack: Stack, options: ItemOptions = {}): Promise<EvidenceItem> {
+	return evidenceItemFor('stack', stack.id, stack, options);
+}
+
 /** Both checks a pulled item must pass before it is stored (`58-…` §2 item 2). */
 export async function verifyPulled(item: EvidenceItem): Promise<boolean> {
 	if (!(await verifyEvidenceItem(item))) return false;
@@ -93,7 +102,9 @@ export type Imported =
 	| { kind: 'bank-run'; id: string }
 	// WP89 (`72-EXPERIMENTS.md` §4): a result lands in the experiment-results store; a design has no local store.
 	| { kind: 'experiment'; id: string }
-	| { kind: 'experiment-result'; id: string };
+	| { kind: 'experiment-result'; id: string }
+	// WP97 (`89-STACKS.md` §6): a stack lands in the content store as a local record.
+	| { kind: 'stack'; id: string };
 
 /**
  * Store a verified item locally: a bundle as its runs (records, events,
@@ -145,5 +156,18 @@ export async function importPulled(
 		case 'experiment-result':
 			await storage.putExperimentResult(item.payload);
 			return { kind: 'experiment-result', id: item.id };
+		case 'stack': {
+			// A pulled stack lands in the content store as a local record (WP97), so the Spec Lab can fit it.
+			const stack = stackSchema.parse(item.payload);
+			await deps.saveContent({
+				id: localContentId('stack', slugOf(stack.name)),
+				kind: 'stack',
+				title: stack.name,
+				record: stack,
+				savedAt: new Date().toISOString(),
+				schemaVersion: 1
+			});
+			return { kind: 'stack', id: item.id };
+		}
 	}
 }

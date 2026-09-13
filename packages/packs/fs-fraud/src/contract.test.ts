@@ -39,6 +39,8 @@ const inputs = await evaluatorInputs();
 const fixture: PackConformanceFixture = {
 	manifest: fsFraudPack,
 	companionPacks: [starterPack, fsBankPack],
+	// WP97: the stacks name the guard packs' components, which are not companions here; `harness/src/stacks.test.ts` resolves them.
+	stacks: { resolve: false },
 	evaluators: Object.fromEntries(
 		fraudEvaluators.map((evaluator) => [
 			evaluator.id,

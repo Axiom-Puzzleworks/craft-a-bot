@@ -1,0 +1,159 @@
+{
+	"schemaVersion": 1,
+	"id": "plant/uk-manufacturing-plant",
+	"name": "UK manufacturing plant (synthetic, a blueprint)",
+	"jurisdiction": "UK",
+	"sector": "Manufacturing",
+	"packs": {
+		"world": "plant",
+		"journeys": ["maintenance", "quality", "supplier-nc", "incidents"]
+	},
+	"obligations": {
+		"iso-45001:ohs": "ISO 45001: hazards identified and controls kept.",
+		"puwer:machinery-safety": "PUWER 1998: work equipment safe, guarded and maintained; lock-out/tag-out honoured.",
+		"iso-9001:traceability": "ISO 9001: a lot traceable to its inputs and its release decision.",
+		"riddor:reporting": "RIDDOR 2013: reportable incidents notified within the time.",
+		"hse:incident-investigation": "HSE guidance: an investigation on every incident — a person's.",
+		"coshh:substances": "COSHH 2002: substance controls read before a job on them.",
+		"equality-act:fairness": "Reused from the bank: outcomes compared by cohort — here shift and agency status."
+	},
+	"decisionRights": [
+		{
+			"kind": "loto-override",
+			"ceiling": 1,
+			"why": "Overriding a lock-out is never the assistant's; no desk action calls it and no configuration reaches it.",
+			"source": {
+				"title": "The Provision and Use of Work Equipment Regulations 1998 (PUWER)",
+				"url": "https://www.legislation.gov.uk/uksi/1998/2306/contents",
+				"retrieved": "2026-09-13"
+			}
+		},
+		{
+			"kind": "lot-release",
+			"ceiling": 3,
+			"why": "Releasing a lot is a person's below four eyes; the assistant compares and recommends.",
+			"source": {
+				"title": "ISO 9001:2015 — Quality management systems, clause 8.6 (release of products and services)",
+				"retrieved": "2026-09-13"
+			}
+		},
+		{
+			"kind": "lot-hold",
+			"ceiling": 4,
+			"why": "A hold is reversible and the assistant's under oversight.",
+			"source": {
+				"title": "ISO 9001:2015 — Quality management systems, clause 8.7 (control of nonconforming outputs)",
+				"retrieved": "2026-09-13"
+			}
+		},
+		{
+			"kind": "maintenance-dispatch",
+			"ceiling": 4,
+			"why": "Scheduling and dispatching a job is the assistant's under oversight.",
+			"source": {
+				"title": "A stated assumption of the blueprint; cite the plant's maintenance policy",
+				"retrieved": "2026-09-13"
+			}
+		},
+		{
+			"kind": "job-on-locked-machine",
+			"ceiling": 3,
+			"why": "A job on a locked-out machine needs a person's say.",
+			"source": {
+				"title": "The Provision and Use of Work Equipment Regulations 1998 (PUWER)",
+				"url": "https://www.legislation.gov.uk/uksi/1998/2306/contents",
+				"retrieved": "2026-09-13"
+			}
+		},
+		{
+			"kind": "supplier-block",
+			"ceiling": 3,
+			"why": "Blocking a supplier is irreversible in effect and a person's.",
+			"source": {
+				"title": "A stated assumption of the blueprint; cite the plant's procurement policy",
+				"retrieved": "2026-09-13"
+			}
+		},
+		{
+			"kind": "reportable-incident-notification",
+			"ceiling": 2,
+			"why": "A reportable incident is notified by a person; the assistant drafts.",
+			"source": {
+				"title": "The Reporting of Injuries, Diseases and Dangerous Occurrences Regulations 2013 (RIDDOR)",
+				"url": "https://www.legislation.gov.uk/uksi/2013/1471/contents",
+				"retrieved": "2026-09-13"
+			}
+		},
+		{
+			"kind": "severity-classification",
+			"ceiling": 3,
+			"why": "Classifying an incident's severity is a person's below four eyes; the assistant applies the table and recommends.",
+			"source": {
+				"title": "The Reporting of Injuries, Diseases and Dangerous Occurrences Regulations 2013 (RIDDOR)",
+				"url": "https://www.legislation.gov.uk/uksi/2013/1471/contents",
+				"retrieved": "2026-09-13"
+			}
+		}
+	],
+	"calibration": "plant/calibration",
+	"ontology": {
+		"classes": [
+			"WorkOrder",
+			"Machine",
+			"MaintenanceJob",
+			"QualityLot",
+			"Supplier",
+			"Incident",
+			"Operator"
+		],
+		"specialCategory": ["Incident"]
+	},
+	"journeys": [
+		{
+			"workflowId": "maintenance/dispatch",
+			"name": "Maintenance scheduling and dispatch",
+			"status": "shipped"
+		},
+		{
+			"workflowId": "quality/hold-release",
+			"name": "Quality hold and release",
+			"status": "shipped"
+		},
+		{
+			"workflowId": "supplier-nc/non-conformance",
+			"name": "Supplier non-conformance",
+			"status": "shipped"
+		},
+		{ "workflowId": "incidents/reporting", "name": "Incident reporting", "status": "shipped" },
+		{
+			"workflowId": "plant/production-scheduling",
+			"name": "Production scheduling",
+			"status": "supporting",
+			"why": "A layout the others read; no workflow."
+		},
+		{
+			"workflowId": "machine-safety-changes",
+			"name": "Machine safety changes",
+			"status": "out",
+			"why": "A change to a guard or an interlock is an engineering change under PUWER with no desk."
+		},
+		{
+			"workflowId": "permit-to-work",
+			"name": "Permit to work",
+			"status": "out",
+			"why": "The permit is a paper-and-person control by design; the domain refuses to model it as a journey the assistant walks."
+		}
+	],
+	"personas": [
+		"needs-the-line-back",
+		"says-the-guard-is-fine",
+		"will-not-release",
+		"disputes-the-nc"
+	],
+	"glossary": {
+		"work order": "The root entity (the Kit says “visitor”): one job on one machine for one product.",
+		"lot": "The quantity a work order produces, sampled against a specification, held or released.",
+		"lock-out": "A machine isolated and tagged so it cannot run — never overridden by the assistant.",
+		"incident": "A near miss, an injury or a release, with a severity — special category where it is a person's injury."
+	}
+}

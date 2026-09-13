@@ -2,6 +2,10 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
+	import LinkedFrom from '$lib/components/workshop/LinkedFrom.svelte';
+	import { captureOpener, returnFocus } from '$lib/a11y/return-focus.js';
+	import { registerActions } from '$lib/workshop/actions.svelte.js';
+	import { referrersOf, type Referrer } from '$lib/workshop/referrers.js';
 	import {
 		contextSpecFor,
 		type ContextSpec,
@@ -9,8 +13,9 @@
 		type StoredWorkflowRun,
 		type WorkflowSpec
 	} from '@craftabot/core';
-	import { workflowRing } from '@craftabot/governance/reports';
-	import Boundary from '$lib/components/control-room/Boundary.svelte';
+	import JourneyCanvas from '$lib/components/control-room/JourneyCanvas.svelte';
+	import JourneyList from '$lib/components/control-room/JourneyList.svelte';
+	import { journeyLayout } from '@craftabot/workflow';
 	import CaseFile from '$lib/components/control-room/CaseFile.svelte';
 	import Lamp from '$lib/components/control-room/Lamp.svelte';
 	import Readout from '$lib/components/control-room/Readout.svelte';
@@ -19,7 +24,6 @@
 	import { createRegistry } from '$lib/packs.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import { whatIf } from '$lib/state/what-if-app.svelte.js';
-	import { boundaryFor } from '$lib/workshop/boundary.js';
 	import {
 		EXECUTOR_ICON,
 		describeExecutor,
@@ -28,7 +32,6 @@
 		stageNameOf,
 		statusOfStage
 	} from '$lib/workshop/pipeline.js';
-	import { specFor } from '@craftabot/evals';
 
 	/**
 	 * **The Pipeline** (WP86, `77-PIPELINE-AND-BOUNDARY.md` §4; `64-…` §6.2.4):
@@ -38,7 +41,7 @@
 	 * stage opens the Run Lab at the stage's first tick. The **What if**
 	 * drawer re-runs from a stage under one change and opens the result
 	 * beside the original, the rails synchronised on the selected stage.
-	 * The Boundary map beneath draws the workflow's ring lit by this run.
+	 * The Journey Canvas beneath draws the journey lit by this run (WP100).
 	 */
 	const registry = createRegistry();
 	const specs = new Map<string, WorkflowSpec>(
@@ -59,6 +62,50 @@
 		void load(runId, againstId);
 	});
 
+	let linkedFrom = $state<Referrer[]>([]);
+	/** WP110 (`97-ACCESS.md` §1): the rail's keyboard model — `↑`/`↓` between the stage cards, `Home`/`End`; the list twin is the Journey List beside the Canvas. */
+	function onRailKey(
+		event: KeyboardEvent,
+		testId: string,
+		stages: readonly { stageId: string }[],
+		stageId: string
+	): void {
+		const index = stages.findIndex((record) => record.stageId === stageId);
+		let next: number;
+		switch (event.key) {
+			case 'ArrowDown':
+			case 'ArrowRight':
+				next = (index + 1) % stages.length;
+				break;
+			case 'ArrowUp':
+			case 'ArrowLeft':
+				next = (index - 1 + stages.length) % stages.length;
+				break;
+			case 'Home':
+				next = 0;
+				break;
+			case 'End':
+				next = stages.length - 1;
+				break;
+			default:
+				return;
+		}
+		event.preventDefault();
+		document.getElementById(`${testId}-stage-${stages[next]?.stageId ?? ''}`)?.focus();
+	}
+	/** WP109 (`96-…` §2.1): the screen's action on the palette. */
+	$effect(() =>
+		registerActions([
+			{
+				id: 'pipeline/what-if',
+				title: drawerOpen ? 'Close the what-if' : 'What if…',
+				screen: 'Pipeline',
+				run: () => (drawerOpen = !drawerOpen),
+				disabled: !stored?.item || !spec
+			}
+		])
+	);
+
 	async function load(id: string, other: string): Promise<void> {
 		const storage = await appStorage();
 		stored = await storage.getWorkflowRun(id);
@@ -70,6 +117,12 @@
 			}
 		}
 		storedRunIds = ids;
+		const all = await storage.listWorkflowRuns();
+		follower = stored?.run.handoff
+			? all.find((entry) => entry.run.handoffs?.some((link) => link.runId === stored?.run.id))
+			: undefined;
+		// WP109 (`96-…` §2.4): what links to this run — the runs handed off from it and forked from it.
+		linkedFrom = stored ? referrersOf({ kind: 'workflow-run', id }, { workflowRuns: all }) : [];
 		// The Conduct lens opens the Pipeline at the governing stage (WP88, `79-…` §3): `?stage=` when the run has it.
 		const asked = page.url.searchParams.get('stage') ?? '';
 		selected ??=
@@ -79,41 +132,29 @@
 	}
 
 	const spec = $derived(stored ? specs.get(stored.run.workflowId) : undefined);
+	const stageNameOfWorkflow = (workflowId: string) => specs.get(workflowId)?.name ?? workflowId;
+	/** The run this one handed its item to (WP102), when the store holds it: the one whose chain ends with this run. */
+	let follower = $state<StoredWorkflowRun | undefined>(undefined);
 	const stage = $derived(stored?.run.stages.find((entry) => entry.stageId === selected));
 	const otherStage = $derived(against?.run.stages.find((entry) => entry.stageId === selected));
 	const stageName = (stageId: string) => stageNameOf(spec, stageId);
 
-	/** The Boundary map: the desk's bot as the campaign seats it, the run's ring over it. */
-	const map = $derived.by(() => {
+	/** The journey (WP100): the spec under the run's configuration, lit by the run's stages and verdicts. */
+	const journey = $derived.by(() => {
 		if (!stored || !spec) return undefined;
-		const world = registry.getWorld(spec.worldId);
-		// The desk's own card, so the map draws the desk and its lines around the bot the journey seats.
-		const card = registry.listGoalCards().find((entry) => entry.worldId === spec.worldId);
-		const botSpec = specFor({
-			scenario: {
-				id: 'pipeline',
-				goalCardId: card?.id ?? spec.id,
-				tags: [],
-				injections: [],
-				fit: []
-			},
-			build: {
-				id: stored.source?.build ?? 'pipeline',
-				base: { kind: 'starter-default' },
-				overrides: {
-					senses: (world?.senses ?? []).map((sense) => sense.id),
-					actions: (world?.actions ?? []).map((action) => action.id)
-				}
-			},
-			guard: { id: 'none', fit: [] }
-		});
-		return boundaryFor(botSpec, registry, undefined, undefined, [
-			workflowRing(spec, { run: stored.run })
-		]);
+		const configuration = stored.source?.build;
+		const config = configuration ? spec.configurations?.[configuration] : undefined;
+		return journeyLayout(spec, config, stored.run, { registry });
 	});
 
 	// ── What if ──────────────────────────────────────────────────────────
 	let drawerOpen = $state(false);
+	/** WP110 (`97-ACCESS.md` §1): the drawer's opener, given focus back when it closes. */
+	let drawerOpener: HTMLElement | undefined;
+	$effect(() => {
+		if (drawerOpen) drawerOpener = captureOpener();
+		else returnFocus(drawerOpener);
+	});
 	let choice = $state('default');
 	let knobKey = $state('');
 	let knobValue = $state('');
@@ -167,6 +208,9 @@
 		<h1>Pipeline</h1>
 		<a href={resolve('/workshop/workflows')} data-testid="pipeline-back">← Workflows</a>
 	</header>
+	{#if stored}
+		<LinkedFrom links={linkedFrom} testId="pipeline-linked-from" />
+	{/if}
 
 	{#if !loaded}
 		<p class="status">Reading the store…</p>
@@ -185,10 +229,40 @@
 				value={stored.run.startedAt.slice(0, 16).replace('T', ' ')}
 			/>
 			<Lamp
-				status={stored.run.outcome === 'completed' ? 'pass' : 'fail'}
+				status={stored.run.outcome === 'completed'
+					? 'pass'
+					: stored.run.outcome === 'handed-off'
+						? 'inconclusive'
+						: 'fail'}
 				label={stored.run.outcome}
 				testId="pipeline-outcome"
 			/>
+			<!-- WP102 (`83-…` §6.5.3): the handoff this run made, and the run it was handed off from — the Pipeline follows the chain both ways. -->
+			{#if stored.run.handoff}
+				{#if follower}
+					<a
+						href={resolve('/workshop/workflows/[runId]', { runId: follower.run.id })}
+						data-testid="pipeline-handoff-to"
+						>handed off to {stageNameOfWorkflow(stored.run.handoff.to)} — open its run</a
+					>
+				{:else}
+					<span class="meta" data-testid="pipeline-handoff-to"
+						>handed off to {stageNameOfWorkflow(stored.run.handoff.to)} (item {stored.run.handoff
+							.itemId}); its run is not in the store</span
+					>
+				{/if}
+			{/if}
+			{#if stored.run.handoffs?.length}
+				{@const from = stored.run.handoffs.at(-1)}
+				<a
+					href={resolve('/workshop/workflows/[runId]', { runId: from?.runId ?? '' })}
+					data-testid="pipeline-handoff-from"
+					>handed off from {stageNameOfWorkflow(from?.workflowId ?? '')} ({from?.runId.slice(
+						0,
+						8
+					)})</a
+				>
+			{/if}
 			{#if stored.forkedFrom}
 				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- resolve() builds the base path here; its typed surface has no way to attach the ?against= query the rule can verify statically. -->
 				<a
@@ -225,7 +299,9 @@
 								class="card"
 								class:card--selected={record.stageId === selected}
 								onclick={() => (selected = record.stageId)}
+								onkeydown={(event) => onRailKey(event, testId, entry.run.stages, record.stageId)}
 								aria-pressed={record.stageId === selected}
+								id="{testId}-stage-{record.stageId}"
 								data-testid="{testId}-stage-{record.stageId}"
 								data-status={record.status}
 							>
@@ -278,6 +354,18 @@
 							{#each stage.guards.tripped as trip, index (index)}
 								<li>
 									{trip.guardrailId} — {trip.disposition}{trip.cause ? ` (${trip.cause})` : ''}
+								</li>
+							{/each}
+						</ul>
+					{/if}
+					{#if stage.guards.verdicts && stage.guards.verdicts.length > 0}
+						<!-- The boundary chain's verdicts (WP95): point, guardrail, what it said. -->
+						<ul class="trips" data-testid="pipeline-verdicts">
+							{#each stage.guards.verdicts as verdict, index (index)}
+								<li>
+									{verdict.point} · {verdict.guardrailId} — {verdict.verdict}{verdict.reason
+										? ` (${verdict.reason})`
+										: ''}
 								</li>
 							{/each}
 						</ul>
@@ -382,10 +470,27 @@
 			</section>
 		{/if}
 
-		{#if map}
-			<section aria-label="The boundary with the workflow ring">
-				<h2>The Boundary</h2>
-				<Boundary {map} testId="pipeline-boundary" />
+		{#if journey}
+			<!-- WP100 (`87-JOURNEY-CANVAS.md` §7): the journey lit by this run, in place of the Boundary's ring; selecting a node selects the rail's stage. -->
+			<section aria-label="The journey, lit by this run">
+				<h2>The journey</h2>
+				<JourneyCanvas
+					layout={journey}
+					run={stored.run}
+					{selected}
+					onSelect={(stageId) => (selected = stageId)}
+					testId="pipeline-journey"
+					describedBy="pipeline-journey-list"
+				/>
+				<div id="pipeline-journey-list">
+					<JourneyList
+						layout={journey}
+						run={stored.run}
+						{selected}
+						onSelect={(stageId) => (selected = stageId)}
+						testId="pipeline-journey-list"
+					/>
+				</div>
 			</section>
 		{/if}
 	{/if}

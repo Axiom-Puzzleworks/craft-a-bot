@@ -117,6 +117,10 @@ export function renderAssurancePackMarkdown(pack: AssurancePack): string {
 		out.push(
 			`- World: ${pack.inventory.world.name} (\`${pack.inventory.world.id}\`)${pack.inventory.world.purpose ? `, purpose ${pack.inventory.world.purpose}` : ''}`
 		);
+	if (pack.inventory.domain)
+		out.push(
+			`- Domain: ${pack.inventory.domain.name} (\`${pack.inventory.domain.id}\`), ${pack.inventory.domain.sector}, ${pack.inventory.domain.jurisdiction} — journeys: ${pack.inventory.domain.journeys.shipped} shipped, ${pack.inventory.domain.journeys.supporting} supporting, ${pack.inventory.domain.journeys.out} out`
+		);
 	out.push('');
 	out.push('## 2. Governance (principle 2)');
 	out.push('');
@@ -135,6 +139,23 @@ export function renderAssurancePackMarkdown(pack: AssurancePack): string {
 	out.push('');
 	if (pack.development.note) out.push(pack.development.note);
 	for (const campaign of pack.development.campaigns) out.push(...campaignLines(campaign));
+	// WP100 (`87-…` §7): the journeys the bot's world runs, each with its points and their components.
+	for (const journey of pack.development.journeys ?? []) {
+		out.push('');
+		out.push(`### The ${journey.name} journey (\`${journey.workflowId}\`)`);
+		out.push('');
+		out.push(
+			`- Stages: ${journey.layout.nodes.map((node) => `${node.name} (${node.lane}${node.irreversible ? ', irreversible' : ''})`).join(' → ')}`
+		);
+		for (const edge of journey.layout.edges)
+			out.push(
+				`- Edge \`${edge.id}\`${edge.label === '' ? '' : `: ${edge.label}`}${edge.kind === 'enumerated' ? '' : ` (${edge.kind})`}`
+			);
+		for (const point of journey.layout.points)
+			out.push(
+				`- Point \`${point.id}\` (${point.kind} at ${point.at}): ${point.components.length === 0 ? 'no components' : point.components.map((id) => `\`${id}\``).join(', ')}`
+			);
+	}
 	out.push('');
 	out.push('## 4. Independent validation (principle 4)');
 	out.push('');
@@ -171,6 +192,15 @@ export function renderAssurancePackMarkdown(pack: AssurancePack): string {
 			`| \`${row.controlId}\` | ${row.controlMapRow?.obligation ?? row.obligations.join(', ')} | ${h ? `${h.metricId}: ${signed(h.delta)} (experiment \`${h.experimentId}\`)` : '—'} | ${h ? `${signed(h.interval[0])} – ${signed(h.interval[1])}` : '—'} | ${h ? `n = ${h.n}${h.underpowered ? ', underpowered' : ''}` : '—'} | ${row.coverage.experiments} experiment(s)${row.coverage.workflows.length > 0 ? `, ${row.coverage.workflows.join(', ')}` : ''} | ${row.status}${h ? ` ${cite([...new Set(row.effects.flatMap((effect) => effect.runIds))].slice(0, 6))}` : ''} |`
 		);
 	}
+	out.push('');
+	out.push('### Coverage');
+	out.push('');
+	out.push(
+		`The Guardrail Catalogue, edition ${pack.mitigants.coverage.edition} (${pack.mitigants.coverage.entries} entries; ${pack.mitigants.coverage.reviewed} reviewed, ${pack.mitigants.coverage.pending} pending review): ${pack.mitigants.coverage.byStatus.shipped} shipped, ${pack.mitigants.coverage.byStatus.connectable} connectable, ${pack.mitigants.coverage.byStatus.bespoke} bespoke, ${pack.mitigants.coverage.byStatus.blueprint} blueprint, ${pack.mitigants.coverage.byStatus['not-applicable']} not applicable. What this product does **not** claim:`
+	);
+	out.push('');
+	out.push(`- Blueprint only: ${list(pack.mitigants.coverage.blueprint)}`);
+	out.push(`- Not applicable to a simulator: ${list(pack.mitigants.coverage.notApplicable)}`);
 	out.push('');
 	out.push('## 6. Ongoing monitoring');
 	out.push('');
@@ -210,11 +240,11 @@ export function renderAssurancePackMarkdown(pack: AssurancePack): string {
 		out.push('');
 		out.push(map.description);
 		out.push('');
-		out.push('| Framework | Ref | Obligation | Evidence | Status |');
-		out.push('|---|---|---|---|---|');
+		out.push('| Framework | Ref | Obligation | Evidence | Status | Review |');
+		out.push('|---|---|---|---|---|---|');
 		for (const row of map.rows)
 			out.push(
-				`| ${row.framework} | \`${row.ref}\` | ${row.obligation} | ${row.status === 'pending' ? `pending — ${row.note ?? ''}` : row.evidence.map((item) => `${item.kind} \`${item.id}\` (${item.presence})`).join('; ')} | ${row.status ?? 'reviewed'} |`
+				`| ${row.framework} | \`${row.ref}\` | ${row.obligation} | ${row.status === 'pending' ? `pending — ${row.note ?? ''}` : row.evidence.map((item) => `${item.kind} \`${item.id}\` (${item.presence})`).join('; ')} | ${row.status ?? 'reviewed'} | ${row.review ? `${row.review.status} by ${row.review.by} (${row.review.reviewedAt.slice(0, 10)})${row.review.note ? ` — ${row.review.note}` : ''}` : '—'} |`
 			);
 		out.push('');
 	}
@@ -279,6 +309,7 @@ th{background:var(--cab-cream)}code{font-size:.9em}
 		.map(([id, version]) => `<code>${escape(`${id}@${version}`)}</code>`)
 		.join(', ')}</li>
 ${pack.inventory.world ? `<li>World: ${escape(pack.inventory.world.name)} (<code>${escape(pack.inventory.world.id)}</code>)${pack.inventory.world.purpose ? `, purpose ${escape(pack.inventory.world.purpose)}` : ''}</li>` : ''}
+${pack.inventory.domain ? `<li>Domain: ${escape(pack.inventory.domain.name)} (<code>${escape(pack.inventory.domain.id)}</code>), ${escape(pack.inventory.domain.sector)}, ${escape(pack.inventory.domain.jurisdiction)} — journeys: ${pack.inventory.domain.journeys.shipped} shipped, ${pack.inventory.domain.journeys.supporting} supporting, ${pack.inventory.domain.journeys.out} out</li>` : ''}
 </ul>`;
 
 	const governance = `<ul>
@@ -288,8 +319,27 @@ ${pack.inventory.world ? `<li>World: ${escape(pack.inventory.world.name)} (<code
 <li>Principal: ${pack.governance.principal.recorded ? principalsHtml(pack.governance.principal.principals) : notRec(pack.governance.principal)}</li>
 </ul>`;
 
+	const journeys = (pack.development.journeys ?? [])
+		.map(
+			(
+				journey
+			) => `<h3>The ${escape(journey.name)} journey (<code>${escape(journey.workflowId)}</code>)</h3>
+<figure class="journey">${journey.svg}</figure>
+${table(
+	'Guard points',
+	['Point', 'Kind', 'At', 'Components'],
+	journey.layout.points.map((point) => [
+		`<code>${escape(point.id)}</code>`,
+		escape(point.kind),
+		escape(point.at),
+		point.components.length === 0 ? 'none' : listHtml(point.components)
+	])
+)}`
+		)
+		.join('');
 	const development =
 		(pack.development.note ? `<p class="note">${escape(pack.development.note)}</p>` : '') +
+		journeys +
 		pack.development.campaigns
 			.map(
 				(campaign) => `<h3>${escape(campaign.title)}</h3>
@@ -405,7 +455,13 @@ ${table(
 			`${escape(row.status)}${h ? ` ${citeHtml([...new Set(row.effects.flatMap((effect) => effect.runIds))].slice(0, 6))}` : ''}`
 		];
 	})
-)}`;
+)}
+<h3>Coverage</h3>
+<p class="note">The Guardrail Catalogue, edition ${escape(pack.mitigants.coverage.edition)} (${pack.mitigants.coverage.entries} entries; ${pack.mitigants.coverage.reviewed} reviewed, ${pack.mitigants.coverage.pending} pending review): ${pack.mitigants.coverage.byStatus.shipped} shipped, ${pack.mitigants.coverage.byStatus.connectable} connectable, ${pack.mitigants.coverage.byStatus.bespoke} bespoke, ${pack.mitigants.coverage.byStatus.blueprint} blueprint, ${pack.mitigants.coverage.byStatus['not-applicable']} not applicable. What this product does <strong>not</strong> claim:</p>
+<ul>
+<li>Blueprint only: ${listHtml(pack.mitigants.coverage.blueprint)}</li>
+<li>Not applicable to a simulator: ${listHtml(pack.mitigants.coverage.notApplicable)}</li>
+</ul>`;
 
 	const monitoring = `${pack.monitoring.note ? `<p class="note">${escape(pack.monitoring.note)}</p>` : ''}<ul>
 <li>Series: ${pack.monitoring.series.length} days; drift flags: ${pack.monitoring.drift.length === 0 ? 'none' : pack.monitoring.drift.map((flag) => escape(`${flag.day} ${flag.kind}${flag.series ? ` ${flag.series}` : ''}`)).join('; ')}</li>
@@ -429,7 +485,7 @@ ${outcome.evaluations.length === 0 ? '<p class="note">Evaluator evidence: none o
 			) => `<h3>${escape(map.title)} <code>${escape(map.id)}</code></h3><p class="meta">${escape(map.description)}</p>
 ${table(
 	map.title,
-	['Framework', 'Ref', 'Obligation', 'Evidence', 'Status'],
+	['Framework', 'Ref', 'Obligation', 'Evidence', 'Status', 'Review'],
 	map.rows.map((row) => [
 		escape(row.framework),
 		`<code>${escape(row.ref)}</code>`,
@@ -442,7 +498,10 @@ ${table(
 							`${escape(item.kind)} <code>${escape(item.id)}</code> <span class="${item.presence}">${item.presence}</span>`
 					)
 					.join('; '),
-		escape(row.status ?? 'reviewed')
+		escape(row.status ?? 'reviewed'),
+		row.review
+			? `<span class="${row.review.status}">${escape(row.review.status)}</span> by ${escape(row.review.by)} (${escape(row.review.reviewedAt.slice(0, 10))})${row.review.note ? ` — ${escape(row.review.note)}` : ''}`
+			: '—'
 	])
 )}`
 		)

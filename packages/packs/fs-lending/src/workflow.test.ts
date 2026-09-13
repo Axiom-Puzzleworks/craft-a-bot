@@ -10,7 +10,10 @@ import { createMockProvider, createTestClock, obedient } from '@craftabot/core/t
 import { population } from '@craftabot/pack-fs-bank';
 import fsBankPack from '@craftabot/pack-fs-bank';
 import starterPack from '@craftabot/pack-starter';
-import { runWorkflow, touchedCaseOf } from '@craftabot/workflow';
+import { runWorkflow, stageCardId, touchedCaseOf } from '@craftabot/workflow';
+import { stageBoundaryGuardrails } from '@craftabot/governance';
+import monitorPack from '@craftabot/pack-monitor';
+import { createPackRegistry, type WorkflowSpec } from '@craftabot/core';
 import { describe, expect, it } from 'vitest';
 import { LENDING_CEILINGS } from './decision-rights.js';
 import fsLendingPack from './index.js';
@@ -258,5 +261,90 @@ describe('the reference configurations', () => {
 		expect(drawn.kind).toBe('application');
 		expect(drawn.source).toMatchObject({ seed: 1, size: 100 });
 		expect(drawn.items.length).toBeGreaterThan(0);
+	});
+});
+
+/**
+ * **A stage-out breaker on the decision stage** (WP95, `84-…` WP95's DoD):
+ * the evaluator breaker fitted at the lending `decision` stage's boundary,
+ * over the bot's own run, fails a planted over-approve — the bot approving a
+ * case the rule declines — and the stage reads `blocked` with the verdict on
+ * its record; the same guard lets the rule-matching decision through.
+ */
+describe('a stage-out breaker on the decision stage (WP95)', { timeout: 120_000 }, () => {
+	const guarded: WorkflowSpec = {
+		...lendingWorkflow,
+		stages: lendingWorkflow.stages.map((stage) =>
+			stage.id === 'decision'
+				? {
+						...stage,
+						guards: {
+							components: [
+								{
+									id: 'monitor/evaluator-breaker',
+									config: { evaluatorId: 'fs-lending/decision-matches-rules', onFail: true },
+									point: 'stage-out' as const
+								}
+							]
+						}
+					}
+				: stage
+		)
+	};
+	const packs = [...PACKS, monitorPack];
+	const registry = createPackRegistry();
+	for (const pack of packs) registry.registerPack(pack);
+	const decisionCard = stageCardId(lendingWorkflow.id, 'decision');
+
+	async function runGuarded(item: WorkItem, overApprove: boolean, ordinal: number) {
+		const clock = createTestClock({ idOffset: 9000 + ordinal * 1000 });
+		const seat = createTestClock({ idOffset: 9500 + ordinal * 1000 });
+		return runWorkflow(guarded, item, {
+			packs,
+			spec: SPEC,
+			providerFor: (_stage, goalCardId) =>
+				createMockProvider({
+					script: obedient(
+						overApprove && goalCardId === decisionCard
+							? [
+									{
+										say: 'Approving regardless.',
+										call: 'decide',
+										args: { outcome: 'approve', reasons: ['affordable'] }
+									}
+								]
+							: planFor(goalCardId)
+					)
+				}),
+			boundaryGuardrailsFor: stageBoundaryGuardrails(registry),
+			now: clock.now,
+			newId: clock.newId,
+			random: clock.random,
+			session: { now: seat.now, newId: seat.newId, random: seat.random }
+		});
+	}
+
+	it('fails a planted over-approve: the stage reads blocked, the journey stops, the verdict names the component', async () => {
+		const item = items.find((entry) => entry.truth.facts?.['verdict'] === 'should-decline');
+		expect(item).toBeDefined();
+		const run = await runGuarded(item!, true, 0);
+		const decision = run.stages.find((stage) => stage.stageId === 'decision');
+		expect(decision?.status).toBe('blocked');
+		expect(decision?.guards.verdicts).toMatchObject([
+			{ componentId: 'monitor/evaluator-breaker', point: 'stage-out', verdict: 'stop-run' }
+		]);
+		expect(run.outcome).toBe('stopped');
+		expect(run.stages.some((stage) => stage.stageId === 'record')).toBe(false);
+	});
+
+	it('lets the decision the rule gives through, the allow on the record', async () => {
+		const item = items.find((entry) => entry.truth.facts?.['verdict'] === 'should-decline');
+		const run = await runGuarded(item!, false, 1);
+		const decision = run.stages.find((stage) => stage.stageId === 'decision');
+		expect(decision?.status).toBe('ok');
+		expect(decision?.guards.verdicts).toMatchObject([
+			{ componentId: 'monitor/evaluator-breaker', point: 'stage-out', verdict: 'allow' }
+		]);
+		expect(run.outcome).toBe('completed');
 	});
 });

@@ -351,7 +351,8 @@ export function foldMonitor(runs: readonly MonitorRun[], options: MonitorOptions
 	// Incidents: every stopped or blocked run, and every agent-run finding, with the workflow run beside it.
 	const incidents: MonitorIncident[] = [];
 	for (const entry of ordered) {
-		if (entry.run.outcome !== 'completed') {
+		// A handed-off run (WP102) finished its part; the target's run is its own entry.
+		if (entry.run.outcome !== 'completed' && entry.run.outcome !== 'handed-off') {
 			const failed = entry.run.stages.find(
 				(stage) => stage.status === 'error' || stage.status === 'blocked'
 			);

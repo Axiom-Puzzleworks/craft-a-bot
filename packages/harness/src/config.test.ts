@@ -25,12 +25,19 @@ describe('the default pack list', () => {
 			'geap',
 			'guard-local',
 			'azure-content-safety',
+			// WP99: the two harness-only connections.
+			'bedrock-guardrails',
+			'lakera-guard',
 			'pdp-opa',
 			'evals',
 			'fs-bank',
 			'fs-advice',
 			'fs-fraud',
 			'fs-lending',
+			'fs-onboarding',
+			'fs-disputes',
+			'fs-collections',
+			'fs-servicing',
 			'evidence',
 			'governance'
 		]);
@@ -50,7 +57,7 @@ describe('the default pack list', () => {
 	it('reports pack versions in the workbench’s own shape', () => {
 		const versions = packVersions(defaultConfig());
 		expect(versions['starter']).toMatch(/^\d+\.\d+\.\d+$/);
-		expect(Object.keys(versions)).toHaveLength(19);
+		expect(Object.keys(versions)).toHaveLength(25);
 	});
 });
 

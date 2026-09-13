@@ -1,4 +1,6 @@
-import { COMPLAINTS_POLICY_CARD_IDS } from '../cards/policy.js';
+import type { Stack } from '@craftabot/core';
+import { deskStacks } from '@craftabot/pack-fs-bank';
+import { COMPLAINTS_POLICY_CARD_IDS, REDRESS_NEEDS_APPROVAL } from '../cards/policy.js';
 import { complaintsDesk } from './desk.js';
 import { complaintsEvaluators } from './evaluators.js';
 import {
@@ -33,6 +35,14 @@ export interface ComplaintsBaselineOptions {
 	seeds?: readonly number[];
 	policyCards?: readonly string[];
 }
+
+/** The complaints baseline's guard as a stack (WP97, `89-STACKS.md` §3): the redress card on the Safety brick. */
+export const complaintsStacks: Stack[] = deskStacks({
+	packId: 'fs-advice',
+	deskName: 'Complaints Desk',
+	safety: { maxTicks: 12, blockedActions: [], approval: 'off' },
+	cards: [REDRESS_NEEDS_APPROVAL]
+}).map((stack) => ({ ...stack, id: stack.id.replace('/stack/', '/stack/complaints-') }));
 
 export function complaintsBaseline(
 	options: ComplaintsBaselineOptions = {}

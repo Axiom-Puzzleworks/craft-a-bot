@@ -81,6 +81,12 @@ test('every Workshop route has no accessibility violations', async ({ page }) =>
 		'/workshop/playground/fraud',
 		'/workshop/playground/lending',
 		'/workshop/playground/complaints',
+		'/workshop/playground/onboarding',
+		'/workshop/playground/disputes',
+		'/workshop/playground/collections',
+		'/workshop/playground/servicing',
+		'/workshop/playground/journeys',
+		'/workshop/playground/journeys/fs-lending/lending',
 		'/workshop/policies',
 		'/workshop/bench',
 		'/workshop/telemetry',
@@ -93,9 +99,12 @@ test('every Workshop route has no accessibility violations', async ({ page }) =>
 		'/workshop/safety-case',
 		`/workshop/safety-case?agent=${agentId}`,
 		`/workshop/assurance?agent=${agentId}`,
+		'/workshop/catalogue',
 		`/workshop/export?run=${goldenRunId}`,
 		`/workshop/compare?a=${goldenRunId}&b=${goldenRunId}`,
-		'/workshop/guards'
+		'/workshop/guards',
+		'/workshop/studio',
+		'/workshop/studio?tab=connections'
 	];
 	const failures: string[] = [];
 	for (const route of routes) {

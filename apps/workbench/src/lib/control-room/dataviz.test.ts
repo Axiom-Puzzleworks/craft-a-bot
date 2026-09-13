@@ -137,3 +137,16 @@ describe('geometry', () => {
 		expect(arcPath(60, 60, 50, 180, 0)).toBe('M 10.0 60.0 A 50 50 0 0 1 110.0 60.0');
 	});
 });
+
+describe('the pass/fail pair (WP109, `96-CONTROL-ROOM-V3.md` §4)', () => {
+	it('gives every status a glyph and a token no other status has — the colour-vision-safe pair', () => {
+		const states = Object.values(STATUS);
+		expect(states.length).toBeGreaterThanOrEqual(4);
+		expect(new Set(states.map((mark) => mark.glyph)).size).toBe(states.length);
+		expect(new Set(states.map((mark) => mark.token)).size).toBe(states.length);
+		for (const mark of states) {
+			expect(mark.glyph.trim().length).toBeGreaterThan(0);
+			expect(mark.label.trim().length).toBeGreaterThan(0);
+		}
+	});
+});

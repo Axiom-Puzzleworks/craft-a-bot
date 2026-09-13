@@ -115,5 +115,38 @@ export const complaintsStrings = {
 				'A customer will take a late payment to the ombudsman if not acknowledged promptly. Acknowledge within the timescale, then handle it.',
 			hints: ['Promptly means promptly.']
 		}
+	},
+	// The complaints journey (WP102, `94-…` §3).
+	workflow: {
+		name: 'The complaints journey',
+		purpose:
+			'Acknowledge a complaint promptly, find what went wrong from the file, decide it on the register’s rule, put it right within the rules or decline with the reason, and close it within the timescale.',
+		layoutName: 'A complaint from the register',
+		stages: {
+			acknowledge: 'Acknowledgement',
+			investigate: 'Investigation',
+			rootCause: 'Root cause',
+			decision: 'Decision',
+			approve: 'Approval',
+			redress: 'Redress',
+			close: 'Closed'
+		},
+		briefs: {
+			acknowledge:
+				'A complaint has arrived. Acknowledge it to the customer promptly — before anything else.',
+			rootCause: 'Look at the complaint file and name the root cause the file supports.',
+			decision: 'Uphold or decline the complaint on the investigation’s finding.',
+			approve: 'A redress is proposed. Confirm it goes out, or return it.',
+			redress:
+				'The complaint is upheld and approved. Offer redress within the fair range for the cause.'
+		},
+		reasons: {
+			upheld: 'The register upholds a complaint of this category: the bank was at fault.',
+			declined: 'The file does not support the complaint: no error on the bank’s side.'
+		},
+		resolutions: {
+			redressed: (amount: number): string => `Upheld; redress of £${amount} offered.`,
+			declined: 'Declined with the reason; the customer may take it to the ombudsman.'
+		}
 	}
 } as const;

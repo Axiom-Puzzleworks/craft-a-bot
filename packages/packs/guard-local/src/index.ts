@@ -1,4 +1,5 @@
 import type { PackManifest } from '@craftabot/core';
+import { guardServiceComponent } from '@craftabot/governance';
 import { llamaGuardService } from './llama-guard.js';
 import { promptGuardService } from './prompt-guard.js';
 
@@ -17,7 +18,20 @@ const guardLocalPack: PackManifest = {
 	name: 'Local Guards',
 	version: CRAFTABOT_PACK_GUARD_LOCAL_VERSION,
 	requiresCore: '>=0.0.1',
-	guardrailServices: [llamaGuardService, promptGuardService]
+	guardrailServices: [llamaGuardService, promptGuardService],
+	/** WP94: the two classifiers as components, local over Ollama. */
+	guardrailComponents: [
+		guardServiceComponent(llamaGuardService, {
+			wraps: 'meta/llama-guard-4',
+			technique: 'hazard-classifier',
+			kind: 'local'
+		}) as never,
+		guardServiceComponent(promptGuardService, {
+			wraps: 'meta/prompt-guard-2',
+			technique: 'input-classifier',
+			kind: 'local'
+		}) as never
+	]
 };
 
 export default guardLocalPack;

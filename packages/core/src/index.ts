@@ -262,6 +262,8 @@ export {
 	externalOutcomeKindSchema,
 	guardrailHookSchema,
 	guardrailVerdictSchema,
+	verdictFindingSchema,
+	type VerdictFinding,
 	observationSchema,
 	principalSchema,
 	proposedStepSchema,
@@ -591,15 +593,42 @@ export {
 	type ControlRowStatus
 } from './types/control-map.js';
 export { EVENT_TYPES } from './schemas/events.js';
+export {
+	domainDecisionRightSchema,
+	domainJourneySchema,
+	domainSourceRefSchema,
+	domainSpecSchema,
+	journeyCoverageStatusSchema,
+	type DomainDecisionRight,
+	type DomainJourney,
+	type DomainSourceRef,
+	type DomainSpec,
+	type JourneyCoverageStatus
+} from './schemas/domain.js';
 export type {
 	AutonomyLevel as WorkflowAutonomyLevel,
 	BookRequest,
 	Executor,
 	RuleFn,
 	StageSpec,
+	StageHandoff,
+	StageNext,
+	BoundaryPoint,
+	StageGuardComponent,
 	WorkflowConfig,
 	WorkflowSpec
 } from './types/workflow.js';
+export type {
+	JourneyEdge,
+	JourneyEdgeTarget,
+	JourneyLane,
+	JourneyLaneId,
+	JourneyLayout,
+	JourneyLit,
+	JourneyNode,
+	JourneyPoint,
+	JourneyVerdict
+} from './types/journey.js';
 export {
 	executorRecordSchema,
 	parseWorkflowRun,
@@ -607,6 +636,16 @@ export {
 	storedWorkflowRunSchema,
 	type StoredWorkflowRun,
 	stageRecordSchema,
+	boundaryVerdictSchema,
+	type BoundaryVerdict,
+	guardPointSchema,
+	stackFitSchema,
+	stackGroupSchema,
+	stackSchema,
+	type GuardPointRecord,
+	type Stack,
+	type StackFit,
+	type StackGroup,
 	stageValueSchema,
 	workflowConfigRecordSchema,
 	workflowRunSchema,
@@ -615,6 +654,20 @@ export {
 	type WorkflowRun
 } from './schemas/workflow-run.js';
 export { sha256Hex } from './schemas/sha256.js';
+export {
+	COMPONENT_VERDICT_KINDS,
+	POINT_KINDS,
+	describeComponentProblems,
+	pointHook,
+	stampComponent,
+	type ComponentCost,
+	type ComponentDeps,
+	type ComponentVerdictKind,
+	type Connection,
+	type GuardPoint,
+	type GuardrailComponent,
+	type PointKind
+} from './types/guardrail-component.js';
 export {
 	byNewestExperimentResult,
 	effectRecordSchema,
@@ -678,3 +731,35 @@ export {
 	type CalibrationSource,
 	type CalibrationTable
 } from './schemas/calibration.js';
+
+/** The Guardrail Catalogue's entry and edition (WP98, `86-CATALOGUE.md` §3): the schema, the closed vocabularies, the coverage statuses. */
+export {
+	ASI_THREATS,
+	CATALOGUE_CATEGORIES,
+	CATALOGUE_MATURITIES,
+	COVERAGE_STATUSES,
+	FRAMEWORK_ID_PATTERN,
+	FRAMEWORK_PREFIXES,
+	LLM_THREATS,
+	THREAT_ID_PATTERN,
+	catalogueCategorySchema,
+	catalogueCoverageSchema,
+	catalogueEntrySchema,
+	catalogueMaturitySchema,
+	catalogueSourceSchema,
+	coverageStatusSchema,
+	guardrailCatalogueSchema,
+	type CatalogueCategory,
+	type CatalogueEntry,
+	type CatalogueSource,
+	type CoverageStatus,
+	type GuardrailCatalogue
+} from './schemas/catalogue.js';
+export { savedViewSchema, type SavedView } from './schemas/view.js';
+export {
+	controlReviewSchema,
+	controlReviewSlug,
+	controlReviewStatusSchema,
+	type ControlReview,
+	type ControlReviewStatus
+} from './schemas/control-review.js';

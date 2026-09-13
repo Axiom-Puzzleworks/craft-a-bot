@@ -1,3 +1,4 @@
+import type { Stack } from '@craftabot/core';
 import { z } from 'zod';
 import {
 	CONTEXT_LEVELS,
@@ -195,8 +196,8 @@ export function campaignFor(experiment: Experiment, combination: LevelCombinatio
 		switch (factor.axis) {
 			case 'guard': {
 				const picked = guards.filter((guard) => guard.id === level);
-				if (picked.length === 0) throw new Error(`no guard '${level}' in the template`);
-				guards = picked;
+				// A level naming no template guard is a stack by that id (WP97, `89-…` §4); the runner refuses an unknown one.
+				guards = picked.length > 0 ? picked : [{ id: level, fit: [], stack: level }];
 				break;
 			}
 			case 'brain': {
@@ -620,6 +621,8 @@ export function minimumDetectableRateDifference(
 export interface AnalyseOptions {
 	ranAt: string;
 	populationDigest?: string | undefined;
+	/** The stacks the guard factor's levels may name (WP97): a stack's `controls` join the effect's, so the register shows its effect on the control's row. */
+	stacks?: readonly Stack[];
 }
 
 /** The reports folded into effects: for each metric and each factor, every treatment level against the baseline with the other axes at baseline. */
@@ -688,7 +691,9 @@ export function analyseExperiment(
 				effects.push({
 					experimentId: experiment.id,
 					metricId: metric.id,
-					controlIds: [...experiment.controls],
+					controlIds: [
+						...new Set([...experiment.controls, ...stackControlsFor(experiment, options.stacks)])
+					],
 					factor: { axis: factor.axis, baseline: baselineLevel, treatment: level },
 					baseline: difference.baseline,
 					treatment: difference.treatment,
@@ -778,4 +783,15 @@ export function renderExperimentMarkdown(result: ExperimentResult): string {
 	}
 	lines.push(`Digest \`${result.digest}\`.`, '');
 	return lines.join('\n');
+}
+
+/** The controls the guard factor's stack levels claim (WP97, `89-…` §6), joined to the experiment's own. */
+function stackControlsFor(experiment: Experiment, stacks: readonly Stack[] | undefined): string[] {
+	if (!stacks || stacks.length === 0) return [];
+	const levels = experiment.design.factors
+		.filter((factor) => factor.axis === 'guard')
+		.flatMap((factor) => factor.levels);
+	return stacks
+		.filter((stack) => levels.includes(stack.id))
+		.flatMap((stack) => stack.controls ?? []);
 }

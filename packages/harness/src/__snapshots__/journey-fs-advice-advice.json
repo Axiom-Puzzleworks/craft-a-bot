@@ -1,0 +1,258 @@
+{
+	"schemaVersion": 1,
+	"workflowId": "fs-advice/advice",
+	"name": "The advice journey",
+	"lanes": [
+		{
+			"id": "assistant",
+			"label": "the assistant"
+		},
+		{
+			"id": "colleague",
+			"label": "a colleague"
+		},
+		{
+			"id": "rules",
+			"label": "the rules"
+		}
+	],
+	"nodes": [
+		{
+			"stageId": "request",
+			"name": "Request",
+			"lane": "rules",
+			"x": 0,
+			"y": 2,
+			"executor": "rule",
+			"irreversible": false,
+			"obligations": [],
+			"guards": []
+		},
+		{
+			"stageId": "suitability",
+			"name": "Suitability",
+			"lane": "assistant",
+			"x": 1,
+			"y": 0,
+			"executor": "agent",
+			"irreversible": false,
+			"obligations": [
+				"fca:cobs-9:suitability",
+				"fca:cd:products-services"
+			],
+			"guards": [
+				"loop:suitability:pre-think",
+				"loop:suitability:pre-act",
+				"loop:suitability:post-act"
+			]
+		},
+		{
+			"stageId": "recommendation",
+			"name": "Recommendation",
+			"lane": "assistant",
+			"x": 2,
+			"y": 0,
+			"executor": "agent",
+			"irreversible": false,
+			"obligations": [
+				"fca:cd:support",
+				"fca:fg21-1:vulnerability",
+				"fca:cd:price-value"
+			],
+			"guards": [
+				"loop:recommendation:pre-think",
+				"loop:recommendation:pre-act",
+				"loop:recommendation:post-act"
+			]
+		},
+		{
+			"stageId": "warnings",
+			"name": "Warnings",
+			"lane": "assistant",
+			"x": 3,
+			"y": 0,
+			"executor": "agent",
+			"irreversible": false,
+			"obligations": [
+				"fca:cobs-4:promotions",
+				"fca:cd:understanding"
+			],
+			"guards": [
+				"loop:warnings:pre-think",
+				"loop:warnings:pre-act",
+				"loop:warnings:post-act"
+			]
+		},
+		{
+			"stageId": "consent",
+			"name": "Consent",
+			"lane": "colleague",
+			"x": 4,
+			"y": 1,
+			"executor": "human",
+			"irreversible": false,
+			"obligations": [],
+			"guards": []
+		},
+		{
+			"stageId": "execution",
+			"name": "Execution",
+			"lane": "assistant",
+			"x": 5,
+			"y": 0,
+			"executor": "agent",
+			"irreversible": true,
+			"obligations": [],
+			"guards": [
+				"loop:execution:pre-think",
+				"loop:execution:pre-act",
+				"loop:execution:post-act"
+			]
+		},
+		{
+			"stageId": "confirmation",
+			"name": "Confirmation",
+			"lane": "rules",
+			"x": 6,
+			"y": 2,
+			"executor": "rule",
+			"irreversible": false,
+			"obligations": [],
+			"guards": []
+		}
+	],
+	"edges": [
+		{
+			"id": "request->suitability",
+			"from": "request",
+			"to": "suitability",
+			"label": "",
+			"kind": "enumerated"
+		},
+		{
+			"id": "suitability->recommendation",
+			"from": "suitability",
+			"to": "recommendation",
+			"label": "",
+			"kind": "enumerated"
+		},
+		{
+			"id": "recommendation->warnings",
+			"from": "recommendation",
+			"to": "warnings",
+			"label": "depends on the case",
+			"kind": "case"
+		},
+		{
+			"id": "warnings->consent",
+			"from": "warnings",
+			"to": "consent",
+			"label": "",
+			"kind": "enumerated"
+		},
+		{
+			"id": "consent->execution",
+			"from": "consent",
+			"to": "execution",
+			"label": "proceed",
+			"kind": "enumerated"
+		},
+		{
+			"id": "consent->confirmation",
+			"from": "consent",
+			"to": "confirmation",
+			"label": "decline",
+			"kind": "enumerated"
+		},
+		{
+			"id": "execution->confirmation",
+			"from": "execution",
+			"to": "confirmation",
+			"label": "",
+			"kind": "enumerated"
+		},
+		{
+			"id": "confirmation->end",
+			"from": "confirmation",
+			"to": {
+				"end": true
+			},
+			"label": "",
+			"kind": "enumerated"
+		}
+	],
+	"points": [
+		{
+			"id": "loop:suitability:pre-think",
+			"kind": "pre-think",
+			"at": "suitability",
+			"components": []
+		},
+		{
+			"id": "loop:suitability:pre-act",
+			"kind": "pre-act",
+			"at": "suitability",
+			"components": []
+		},
+		{
+			"id": "loop:suitability:post-act",
+			"kind": "post-act",
+			"at": "suitability",
+			"components": []
+		},
+		{
+			"id": "loop:recommendation:pre-think",
+			"kind": "pre-think",
+			"at": "recommendation",
+			"components": []
+		},
+		{
+			"id": "loop:recommendation:pre-act",
+			"kind": "pre-act",
+			"at": "recommendation",
+			"components": []
+		},
+		{
+			"id": "loop:recommendation:post-act",
+			"kind": "post-act",
+			"at": "recommendation",
+			"components": []
+		},
+		{
+			"id": "loop:warnings:pre-think",
+			"kind": "pre-think",
+			"at": "warnings",
+			"components": []
+		},
+		{
+			"id": "loop:warnings:pre-act",
+			"kind": "pre-act",
+			"at": "warnings",
+			"components": []
+		},
+		{
+			"id": "loop:warnings:post-act",
+			"kind": "post-act",
+			"at": "warnings",
+			"components": []
+		},
+		{
+			"id": "loop:execution:pre-think",
+			"kind": "pre-think",
+			"at": "execution",
+			"components": []
+		},
+		{
+			"id": "loop:execution:pre-act",
+			"kind": "pre-act",
+			"at": "execution",
+			"components": []
+		},
+		{
+			"id": "loop:execution:post-act",
+			"kind": "post-act",
+			"at": "execution",
+			"components": []
+		}
+	]
+}

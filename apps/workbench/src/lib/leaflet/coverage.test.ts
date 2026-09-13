@@ -61,7 +61,9 @@ const WORKSHOP_ONLY: Record<string, string> = {
 	'memory.strategy':
 		'Realism mode (E7): `transcript` sends the model a real function-calling conversation instead of the prose history. A Workshop control — the comparison it exists for is one a professional makes, and the kit bench renders the Scrapbook panel by hand without it.',
 	'safety.autonomy':
-		'The Levels-of-Autonomy preset dial (`19-…` §8.1, WP24) — a Workshop shortcut that writes concrete values into `approval` (and suggested budgets) when picked. The engine never reads it, and the kit bench renders the Safety panel by hand without it, teaching `approval` directly instead.'
+		'The Levels-of-Autonomy preset dial (`19-…` §8.1, WP24) — a Workshop shortcut that writes concrete values into `approval` (and suggested budgets) when picked. The engine never reads it, and the kit bench renders the Safety panel by hand without it, teaching `approval` directly instead.',
+	'safety.stack':
+		'A named stack (WP97, `89-STACKS.md` §5): the Spec Lab writes a registered stack’s id onto the Safety Brick, and the brick then *is* that stack. Content a professional picks from the desk’s pack; the kit bench renders the Safety panel by hand without it.'
 };
 
 describe('the leaflet covers the kit', () => {

@@ -1,6 +1,8 @@
 # 19 — AI Safety & Governance: State-of-the-Art Reference (Workstream 7)
 
 > The reference catalogue of current (August 2026) AI governance, safety, monitoring, assurance and telemetry practice for LLM-based agents — the menu from which Craft A Bot's roadmap selectively adopts controls, for both the teaching aid and the professional Workshop.
+> **Amended 2026-09-12 (WP98, `86-CATALOGUE.md`).** The catalogue this reference is the menu for is now content: `docs/catalogue.md`, generated from `@craftabot/governance`'s first edition, with a coverage status per technique the code verifies. This file stays the sourcing reference; the catalogue cites it by section.
+>
 > Prerequisite reading: `08-GOVERNANCE-GUARDRAILS.md` (what V1 ships), `14-BRICK-REFERENCE-DESIGNS.md` §4.6/§5 (where controls become bricks and cards), `18-DAY2-ROADMAP.md` §6 (adoption order).
 
 **How to use this document.** Sections 1–8 catalogue the landscape: for every framework/control — what it is, who publishes or uses it, maturity (**standard** / **widely adopted** / **emerging** / **research**), and a source URL. Section 9 distils it into ~38 candidate controls tagged for the Kids teaching aid, the Pro Workshop, or Both; `18-DAY2-ROADMAP.md` §6 sequences the chosen ones into phases. Treat maturity honestly in product copy: we *prototype the mechanisms these frameworks ask for* — we never claim compliance (`08-…` §6 discipline unchanged).

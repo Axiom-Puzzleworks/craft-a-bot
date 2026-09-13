@@ -16,6 +16,13 @@ import type { ConformanceIssue } from '../types.js';
 export interface CalibrationCheckOptions {
 	/** Row id → the exact category set that row must carry (a model's enum). */
 	enums?: Readonly<Record<string, readonly string[]>>;
+	/**
+	 * Refuse a row still `review: 'pending'` (WP107, `93-DOMAIN-PACK.md` §3): a
+	 * scaffold's stated assumptions and the bank's own cited rows are both
+	 * pending until a reader has read them; a domain that claims its
+	 * calibration reviewed asks for this and fails until it is.
+	 */
+	requireReview?: boolean;
 }
 
 export function checkCalibration(
@@ -42,6 +49,12 @@ export function checkCalibration(
 			issues.push({ check: 'calibration.id-unique', message: `${where}: duplicate id` });
 		ids.add(row.id);
 
+		if (options.requireReview && row.review === 'pending') {
+			issues.push({
+				check: 'calibration.review-pending',
+				message: `${where}: awaiting review — a reader has not read it against its source`
+			});
+		}
 		if (row.source.kind === 'assumption' && !row.note?.trim()) {
 			issues.push({
 				check: 'calibration.assumption-says-why',

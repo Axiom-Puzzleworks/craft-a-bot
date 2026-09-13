@@ -1,0 +1,22 @@
+{
+	"name": "@craftabot/example-scaffold-veterinary-practice",
+	"private": true,
+	"version": "0.1.0",
+	"type": "module",
+	"description": "A domain pack as `craftabot scaffold domain` writes it — one world pack and its journey packs, held byte for byte by the harness (WP107).",
+	"scripts": {
+		"build": "tsc --noEmit",
+		"test": "vitest run",
+		"check": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@craftabot/core": "*",
+		"@craftabot/desk": "*",
+		"@craftabot/evals": "*",
+		"@craftabot/pack-starter": "*",
+		"@craftabot/pack-testkit": "*",
+		"@craftabot/workflow": "*",
+		"zod": "^4.4.3"
+	},
+	"devDependencies": {}
+}

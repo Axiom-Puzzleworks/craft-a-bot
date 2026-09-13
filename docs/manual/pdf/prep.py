@@ -31,8 +31,8 @@ def repl(m):
     return f'![Figure {n} — {cap}](figures-print/{png})'
 
 src = PAT.sub(repl, src)
-assert len(found) == 22, len(found)
-assert sorted(n for n, _, _ in found) == list(range(1, 23))
+assert len(found) == 27, len(found)
+assert sorted(n for n, _, _ in found) == list(range(1, 28))
 
 rows = '\n'.join(f'| {n} | `{png}` | {cap} |' for n, png, cap in sorted(found))
 start = src.index('## Appendix D — Figures')
@@ -47,7 +47,7 @@ They are reproduced at 1×, which is legible at the width used here. Recapture a
 |---|---|---|
 {rows}
 
-Captured and not placed: `workshop-run-lab-explain.png` (the explanation panel), `ws-runs.png` (the Run Browser), `ws-run-lab-golden.png`, `ws-incidents.png`, `ws-safety-case.png`, `ws-sinks.png`, `ws-test-bench.png`.
+Captured and not placed: `workshop-run-lab-explain.png` (the explanation panel), `ws-runs.png` (the Run Browser), `ws-run-lab-golden.png`, `ws-incidents.png`, `ws-safety-case.png`, `ws-sinks.png`, `ws-test-bench.png`, and the access set (`access-320-*.png`, `access-640-*.png`, `access-pipeline-lit.png` — the canvases at 320 px and at 200 % zoom, and the lit Pipeline under reduced motion; WP110).
 
 """ + src[end:]
 

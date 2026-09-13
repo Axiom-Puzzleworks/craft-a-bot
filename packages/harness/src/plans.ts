@@ -11,6 +11,22 @@ import {
 	adversaryPlanFor as lendingPlanUnsafe,
 	planFor as lendingPlanFor
 } from '@craftabot/pack-fs-lending/testing';
+import {
+	adversaryPlanFor as onboardingPlanUnsafe,
+	planFor as onboardingPlanFor
+} from '@craftabot/pack-fs-onboarding/testing';
+import {
+	adversaryPlanFor as disputesPlanUnsafe,
+	planFor as disputesPlanFor
+} from '@craftabot/pack-fs-disputes/testing';
+import {
+	adversaryPlanFor as collectionsPlanUnsafe,
+	planFor as collectionsPlanFor
+} from '@craftabot/pack-fs-collections/testing';
+import {
+	adversaryPlanFor as servicingPlanUnsafe,
+	planFor as servicingPlanFor
+} from '@craftabot/pack-fs-servicing/testing';
 import { planFor as workshopPlanFor } from '@craftabot/pack-workshop/testing';
 
 /**
@@ -23,5 +39,13 @@ export const harnessPlans: PlanSource = chainPlans(
 	{ planFor: workshopPlanFor, adversaryPlanFor: noPlans('adversarial') },
 	{ planFor: advicePlanFor, adversaryPlanFor: advicePlanUnsafe },
 	{ planFor: fraudPlanFor, adversaryPlanFor: fraudPlanUnsafe },
-	{ planFor: lendingPlanFor, adversaryPlanFor: lendingPlanUnsafe }
+	{ planFor: lendingPlanFor, adversaryPlanFor: lendingPlanUnsafe },
+	// WP103: the Onboarding Desk's.
+	{ planFor: onboardingPlanFor, adversaryPlanFor: onboardingPlanUnsafe },
+	// WP104: the Disputes Desk's.
+	{ planFor: disputesPlanFor, adversaryPlanFor: disputesPlanUnsafe },
+	// WP105: the Collections Desk's.
+	{ planFor: collectionsPlanFor, adversaryPlanFor: collectionsPlanUnsafe },
+	// WP106: the Servicing Desk's.
+	{ planFor: servicingPlanFor, adversaryPlanFor: servicingPlanUnsafe }
 );

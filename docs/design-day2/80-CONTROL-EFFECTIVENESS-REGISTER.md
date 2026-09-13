@@ -9,6 +9,8 @@
 ## 1. Where the code is
 
 1. **Experiments** (`72-…`): `ExperimentResult` in `core` — effects with `controlIds`, intervals, *n*, cost and run ids; the results on every store and in the evidence store.
+
+   > **Amended 2026-09-12 (WP97, `89-STACKS.md` §6).** A stack's `controls` join an effect's `controlIds` when the experiment's `guard` factor names the stack (`AnalyseOptions.stacks`), so its effect shows on the control's row with no change to the fold. The shipped desk stacks claim every row of their desk's map.
 2. **Control maps** (`53-…`): `ControlMap` rows per pack (`fs-lending/control-map` and the rest), each `mapId/ref` a control with its obligation tags and evidence items.
 3. **The assurance pack** (`53-…` §4): `mitigants` is SS1/23's principle 5; the Assurance entry (`78-…` §4) renders an empty register that says *untested*.
 4. **The harness** (`72-…` §4): `craftabot experiment run`; CI's campaign steps (`ci.yml`).

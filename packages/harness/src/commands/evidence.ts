@@ -12,7 +12,8 @@ import {
 	type EvidenceQuery,
 	type EvidenceReceipt,
 	type EvidenceStoreInstance,
-	type PackRegistry
+	type PackRegistry,
+	stackSchema
 } from '@craftabot/core';
 import type { FileStorage } from '../storage/file-storage.js';
 import { bundleGroup } from './bundle.js';
@@ -41,7 +42,8 @@ export interface PushEvidenceOptions {
 		| { kind: 'group'; groupRunId: string }
 		| { kind: 'campaign-report'; reportId: string }
 		| { kind: 'assurance-pack'; agentId?: string }
-		| { kind: 'content'; file: string };
+		| { kind: 'content'; file: string }
+		| { kind: 'stack'; file: string };
 	principal?: string;
 	now?: () => number;
 }
@@ -90,6 +92,11 @@ export async function itemToPush(
 		case 'content': {
 			const record = parseContentRecord(JSON.parse(await readFile(what.file, 'utf8')));
 			return evidenceItemFor('content', record.id, record, itemOptions);
+		}
+		case 'stack': {
+			// WP97 (`89-…` §6): a stack file, parsed by its schema, under its own id.
+			const stack = stackSchema.parse(JSON.parse(await readFile(what.file, 'utf8')));
+			return evidenceItemFor('stack', stack.id, stack, itemOptions);
 		}
 	}
 }

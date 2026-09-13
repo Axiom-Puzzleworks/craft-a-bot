@@ -1,5 +1,7 @@
-import { LENDING_POLICY_CARD_IDS } from './cards/policy.js';
-import { FALLBACK_CARD_ID, TOLD_PLAINLY_ID } from '@craftabot/pack-fs-bank';
+import type { Stack } from '@craftabot/core';
+import { lendingControlMap } from './controls/rows.js';
+import { LENDING_POLICY_CARD_IDS, lendingPolicyCards } from './cards/policy.js';
+import { FALLBACK, FALLBACK_CARD_ID, TOLD_PLAINLY_ID, deskStacks } from '@craftabot/pack-fs-bank';
 import { lendingScenarios } from './decks/scenarios.js';
 import {
 	APPEAL_HANDLED_ID,
@@ -294,6 +296,27 @@ export function lendingBaseline(options: LendingBaselineOptions = {}): Record<st
  * The report's human-load rows are the point: touches per case and the
  * ceiling-breach rate by autonomy level, over the same book.
  */
+/**
+ * The baseline's four guards as stacks (WP97, `89-STACKS.md` §3), from the
+ * same cards and Safety config the bricks above are built from — what a
+ * campaign guard names as `{ stack: 'fs-lending/stack/policy-cards' }`.
+ */
+export const lendingStacks: Stack[] = deskStacks({
+	packId: 'fs-lending',
+	deskName: 'Lending Desk',
+	safety: { maxTicks: 20, blockedActions: [], approval: 'off' },
+	cards: [...lendingPolicyCards, FALLBACK],
+	localClassifier: 'guard-local/llama-guard',
+	hostedGuard: 'geap/model-armor',
+	watchbot: {
+		watchFor: ['monitor/going-in-circles', 'monitor/refusal-storm'],
+		breakOn: [{ evaluatorId: IDENTITY_BEFORE_DECISION_ID, onFail: true }]
+	},
+	obligations: ['equality-act:fairness', 'consumer-duty:understanding'],
+	// The register's control ids (`80-…`): `{mapId}/{ref}`, so a stack's effect shows on the control's row.
+	controls: lendingControlMap.rows.map((row) => `${lendingControlMap.id}/${row.ref}`)
+});
+
 export const LENDING_BOOK_CAMPAIGN_ID = 'fs-lending-book';
 
 export interface LendingBookCampaignOptions {

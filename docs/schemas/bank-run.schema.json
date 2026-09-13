@@ -81,7 +81,11 @@
 									"application",
 									"alert",
 									"complaint",
-									"advice-request"
+									"advice-request",
+									"onboarding",
+									"dispute",
+									"arrears",
+									"servicing-request"
 								]
 							},
 							"items": {
@@ -133,7 +137,11 @@
 								"application",
 								"alert",
 								"complaint",
-								"advice-request"
+								"advice-request",
+								"onboarding",
+								"dispute",
+								"arrears",
+								"servicing-request"
 							]
 						}
 					},
@@ -296,6 +304,11 @@
 					"minimum": 0,
 					"maximum": 9007199254740991
 				},
+				"handedOff": {
+					"type": "integer",
+					"minimum": 0,
+					"maximum": 9007199254740991
+				},
 				"byDesk": {
 					"type": "object",
 					"propertyNames": {
@@ -315,6 +328,11 @@
 								"maximum": 9007199254740991
 							},
 							"stopped": {
+								"type": "integer",
+								"minimum": 0,
+								"maximum": 9007199254740991
+							},
+							"handedOff": {
 								"type": "integer",
 								"minimum": 0,
 								"maximum": 9007199254740991
@@ -387,7 +405,11 @@
 							"application",
 							"alert",
 							"complaint",
-							"advice-request"
+							"advice-request",
+							"onboarding",
+							"dispute",
+							"arrears",
+							"servicing-request"
 						]
 					},
 					"desk": {
@@ -404,7 +426,8 @@
 						"enum": [
 							"completed",
 							"stopped",
-							"abandoned"
+							"abandoned",
+							"handed-off"
 						]
 					}
 				},

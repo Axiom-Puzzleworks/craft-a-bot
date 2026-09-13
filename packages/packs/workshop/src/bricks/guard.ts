@@ -160,6 +160,18 @@ function validateGuardConfig(
 		});
 		return problems;
 	}
+	// A harness-only connection (WP99, `30-…`): fitted here it would run its floor and never its service, so say so.
+	if (
+		ctx.guardrailServiceBrowserCapable?.(config.serviceId) === false &&
+		!config.screening.offline
+	) {
+		problems.push({
+			code: 'guard-service-harness-only',
+			severity: 'warning',
+			message: `"${config.serviceId}" cannot run from a browser — its credential must not be held here. Unplug it, or run this bot from the harness.`,
+			details: { serviceId: config.serviceId }
+		});
+	}
 	// The service's own schema is what judges its block; the validation
 	// context cannot hand the service over, so the block is checked for being
 	// JSON here and against the schema at build time (`createRuntime`).

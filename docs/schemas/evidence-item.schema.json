@@ -1610,6 +1610,39 @@
 																		"principal",
 																		"guardrailsPassed"
 																	]
+																},
+																"redacted": {
+																	"type": "object",
+																	"properties": {
+																		"guardrailId": {
+																			"type": "string"
+																		},
+																		"finding": {
+																			"type": "object",
+																			"properties": {
+																				"category": {
+																					"type": "string"
+																				},
+																				"label": {
+																					"type": "string"
+																				},
+																				"confidence": {
+																					"type": "string",
+																					"enum": [
+																						"low",
+																						"medium",
+																						"high"
+																					]
+																				}
+																			},
+																			"required": [
+																				"category"
+																			]
+																		}
+																	},
+																	"required": [
+																		"guardrailId"
+																	]
 																}
 															},
 															"required": [
@@ -1971,6 +2004,38 @@
 																				},
 																				"note": {
 																					"type": "string"
+																				},
+																				"verdictKind": {
+																					"type": "string",
+																					"enum": [
+																						"redact",
+																						"annotate"
+																					]
+																				},
+																				"finding": {
+																					"type": "object",
+																					"properties": {
+																						"category": {
+																							"type": "string"
+																						},
+																						"label": {
+																							"type": "string"
+																						},
+																						"confidence": {
+																							"type": "string",
+																							"enum": [
+																								"low",
+																								"medium",
+																								"high"
+																							]
+																						}
+																					},
+																					"required": [
+																						"category"
+																					]
+																				},
+																				"redactedText": {
+																					"type": "string"
 																				}
 																			},
 																			"required": [
@@ -2027,6 +2092,32 @@
 																},
 																"policyCardId": {
 																	"type": "string"
+																},
+																"componentId": {
+																	"type": "string"
+																},
+																"point": {
+																	"type": "object",
+																	"properties": {
+																		"kind": {
+																			"type": "string",
+																			"enum": [
+																				"pre-think",
+																				"pre-act",
+																				"post-act",
+																				"stage-in",
+																				"stage-out",
+																				"group",
+																				"egress"
+																			]
+																		},
+																		"at": {
+																			"type": "string"
+																		}
+																	},
+																	"required": [
+																		"kind"
+																	]
 																}
 															},
 															"required": [
@@ -2114,6 +2205,32 @@
 																},
 																"policyCardId": {
 																	"type": "string"
+																},
+																"componentId": {
+																	"type": "string"
+																},
+																"point": {
+																	"type": "object",
+																	"properties": {
+																		"kind": {
+																			"type": "string",
+																			"enum": [
+																				"pre-think",
+																				"pre-act",
+																				"post-act",
+																				"stage-in",
+																				"stage-out",
+																				"group",
+																				"egress"
+																			]
+																		},
+																		"at": {
+																			"type": "string"
+																		}
+																	},
+																	"required": [
+																		"kind"
+																	]
 																}
 															},
 															"required": [
@@ -2899,6 +3016,53 @@
 																			"type": "integer",
 																			"minimum": 0,
 																			"maximum": 9007199254740991
+																		},
+																		"verdicts": {
+																			"type": "array",
+																			"items": {
+																				"type": "object",
+																				"properties": {
+																					"guardrailId": {
+																						"type": "string",
+																						"minLength": 1
+																					},
+																					"point": {
+																						"type": "string",
+																						"enum": [
+																							"stage-in",
+																							"stage-out"
+																						]
+																					},
+																					"verdict": {
+																						"type": "string",
+																						"enum": [
+																							"allow",
+																							"block-action",
+																							"stop-run",
+																							"pause",
+																							"redact",
+																							"annotate"
+																						]
+																					},
+																					"componentId": {
+																						"type": "string"
+																					},
+																					"policyCardId": {
+																						"type": "string"
+																					},
+																					"reason": {
+																						"type": "string"
+																					},
+																					"approved": {
+																						"type": "boolean"
+																					}
+																				},
+																				"required": [
+																					"guardrailId",
+																					"point",
+																					"verdict"
+																				]
+																			}
 																		}
 																	},
 																	"required": [
@@ -4295,6 +4459,39 @@
 																	"principal",
 																	"guardrailsPassed"
 																]
+															},
+															"redacted": {
+																"type": "object",
+																"properties": {
+																	"guardrailId": {
+																		"type": "string"
+																	},
+																	"finding": {
+																		"type": "object",
+																		"properties": {
+																			"category": {
+																				"type": "string"
+																			},
+																			"label": {
+																				"type": "string"
+																			},
+																			"confidence": {
+																				"type": "string",
+																				"enum": [
+																					"low",
+																					"medium",
+																					"high"
+																				]
+																			}
+																		},
+																		"required": [
+																			"category"
+																		]
+																	}
+																},
+																"required": [
+																	"guardrailId"
+																]
 															}
 														},
 														"required": [
@@ -4656,6 +4853,38 @@
 																			},
 																			"note": {
 																				"type": "string"
+																			},
+																			"verdictKind": {
+																				"type": "string",
+																				"enum": [
+																					"redact",
+																					"annotate"
+																				]
+																			},
+																			"finding": {
+																				"type": "object",
+																				"properties": {
+																					"category": {
+																						"type": "string"
+																					},
+																					"label": {
+																						"type": "string"
+																					},
+																					"confidence": {
+																						"type": "string",
+																						"enum": [
+																							"low",
+																							"medium",
+																							"high"
+																						]
+																					}
+																				},
+																				"required": [
+																					"category"
+																				]
+																			},
+																			"redactedText": {
+																				"type": "string"
 																			}
 																		},
 																		"required": [
@@ -4712,6 +4941,32 @@
 															},
 															"policyCardId": {
 																"type": "string"
+															},
+															"componentId": {
+																"type": "string"
+															},
+															"point": {
+																"type": "object",
+																"properties": {
+																	"kind": {
+																		"type": "string",
+																		"enum": [
+																			"pre-think",
+																			"pre-act",
+																			"post-act",
+																			"stage-in",
+																			"stage-out",
+																			"group",
+																			"egress"
+																		]
+																	},
+																	"at": {
+																		"type": "string"
+																	}
+																},
+																"required": [
+																	"kind"
+																]
 															}
 														},
 														"required": [
@@ -4799,6 +5054,32 @@
 															},
 															"policyCardId": {
 																"type": "string"
+															},
+															"componentId": {
+																"type": "string"
+															},
+															"point": {
+																"type": "object",
+																"properties": {
+																	"kind": {
+																		"type": "string",
+																		"enum": [
+																			"pre-think",
+																			"pre-act",
+																			"post-act",
+																			"stage-in",
+																			"stage-out",
+																			"group",
+																			"egress"
+																		]
+																	},
+																	"at": {
+																		"type": "string"
+																	}
+																},
+																"required": [
+																	"kind"
+																]
 															}
 														},
 														"required": [
@@ -5584,6 +5865,53 @@
 																		"type": "integer",
 																		"minimum": 0,
 																		"maximum": 9007199254740991
+																	},
+																	"verdicts": {
+																		"type": "array",
+																		"items": {
+																			"type": "object",
+																			"properties": {
+																				"guardrailId": {
+																					"type": "string",
+																					"minLength": 1
+																				},
+																				"point": {
+																					"type": "string",
+																					"enum": [
+																						"stage-in",
+																						"stage-out"
+																					]
+																				},
+																				"verdict": {
+																					"type": "string",
+																					"enum": [
+																						"allow",
+																						"block-action",
+																						"stop-run",
+																						"pause",
+																						"redact",
+																						"annotate"
+																					]
+																				},
+																				"componentId": {
+																					"type": "string"
+																				},
+																				"policyCardId": {
+																					"type": "string"
+																				},
+																				"reason": {
+																					"type": "string"
+																				},
+																				"approved": {
+																					"type": "boolean"
+																				}
+																			},
+																			"required": [
+																				"guardrailId",
+																				"point",
+																				"verdict"
+																			]
+																		}
 																	}
 																},
 																"required": [
@@ -6003,7 +6331,7 @@
 					"properties": {
 						"id": {
 							"type": "string",
-							"pattern": "^local\\/(policy|testbench|scenarios|campaigns)\\/[a-z0-9][a-z0-9-]*$"
+							"pattern": "^local\\/(policy|testbench|scenarios|campaigns|stacks|views|reviews)\\/[a-z0-9][a-z0-9-]*$"
 						},
 						"kind": {
 							"type": "string",
@@ -6011,7 +6339,10 @@
 								"policy-card",
 								"assertion-card",
 								"scenario",
-								"campaign"
+								"campaign",
+								"stack",
+								"view",
+								"control-review"
 							]
 						},
 						"title": {
@@ -6211,6 +6542,20 @@
 										]
 									}
 								},
+								"stack": {
+									"type": "string",
+									"minLength": 1
+								},
+								"stageStacks": {
+									"type": "object",
+									"propertyNames": {
+										"type": "string"
+									},
+									"additionalProperties": {
+										"type": "string",
+										"minLength": 1
+									}
+								},
 								"autonomy": {
 									"type": "object",
 									"properties": {
@@ -6370,8 +6715,172 @@
 							"enum": [
 								"completed",
 								"stopped",
-								"abandoned"
+								"abandoned",
+								"handed-off"
 							]
+						},
+						"handoff": {
+							"type": "object",
+							"properties": {
+								"to": {
+									"type": "string",
+									"minLength": 1
+								},
+								"itemId": {
+									"type": "string",
+									"minLength": 1
+								},
+								"item": {
+									"type": "object",
+									"properties": {
+										"id": {
+											"type": "string",
+											"minLength": 1
+										},
+										"kind": {
+											"type": "string",
+											"enum": [
+												"application",
+												"alert",
+												"complaint",
+												"advice-request",
+												"onboarding",
+												"dispute",
+												"arrears",
+												"servicing-request"
+											]
+										},
+										"customerId": {
+											"type": "string",
+											"minLength": 1
+										},
+										"arrivedAt": {
+											"type": "string",
+											"minLength": 1
+										},
+										"payload": {},
+										"truth": {
+											"type": "object",
+											"properties": {
+												"records": {
+													"type": "array",
+													"items": {
+														"type": "object",
+														"properties": {
+															"id": {
+																"type": "string"
+															},
+															"kind": {
+																"type": "string"
+															},
+															"title": {
+																"type": "string"
+															},
+															"classification": {
+																"type": "string"
+															},
+															"fields": {
+																"type": "object",
+																"propertyNames": {
+																	"type": "string"
+																},
+																"additionalProperties": {
+																	"anyOf": [
+																		{
+																			"type": "string"
+																		},
+																		{
+																			"type": "number"
+																		},
+																		{
+																			"type": "boolean"
+																		}
+																	]
+																}
+															}
+														},
+														"required": [
+															"id",
+															"kind",
+															"title",
+															"fields"
+														]
+													}
+												},
+												"facts": {
+													"type": "object",
+													"propertyNames": {
+														"type": "string"
+													},
+													"additionalProperties": {
+														"anyOf": [
+															{
+																"type": "string"
+															},
+															{
+																"type": "number"
+															},
+															{
+																"type": "boolean"
+															}
+														]
+													}
+												},
+												"cohort": {
+													"type": "object",
+													"propertyNames": {
+														"type": "string"
+													},
+													"additionalProperties": {
+														"type": "string"
+													}
+												}
+											},
+											"required": [
+												"records"
+											]
+										}
+									},
+									"required": [
+										"id",
+										"kind",
+										"customerId",
+										"arrivedAt",
+										"payload",
+										"truth"
+									]
+								}
+							},
+							"required": [
+								"to",
+								"itemId",
+								"item"
+							]
+						},
+						"handoffs": {
+							"type": "array",
+							"items": {
+								"type": "object",
+								"properties": {
+									"runId": {
+										"type": "string",
+										"minLength": 1
+									},
+									"workflowId": {
+										"type": "string",
+										"minLength": 1
+									},
+									"itemId": {
+										"type": "string",
+										"minLength": 1
+									}
+								},
+								"required": [
+									"runId",
+									"workflowId",
+									"itemId"
+								]
+							}
 						},
 						"stages": {
 							"type": "array",
@@ -6538,6 +7047,53 @@
 													"required": [
 														"guardrailId",
 														"disposition"
+													]
+												}
+											},
+											"verdicts": {
+												"type": "array",
+												"items": {
+													"type": "object",
+													"properties": {
+														"guardrailId": {
+															"type": "string",
+															"minLength": 1
+														},
+														"point": {
+															"type": "string",
+															"enum": [
+																"stage-in",
+																"stage-out"
+															]
+														},
+														"verdict": {
+															"type": "string",
+															"enum": [
+																"allow",
+																"block-action",
+																"stop-run",
+																"pause",
+																"redact",
+																"annotate"
+															]
+														},
+														"componentId": {
+															"type": "string"
+														},
+														"policyCardId": {
+															"type": "string"
+														},
+														"reason": {
+															"type": "string"
+														},
+														"approved": {
+															"type": "boolean"
+														}
+													},
+													"required": [
+														"guardrailId",
+														"point",
+														"verdict"
 													]
 												}
 											}
@@ -7672,6 +8228,39 @@
 															"principal",
 															"guardrailsPassed"
 														]
+													},
+													"redacted": {
+														"type": "object",
+														"properties": {
+															"guardrailId": {
+																"type": "string"
+															},
+															"finding": {
+																"type": "object",
+																"properties": {
+																	"category": {
+																		"type": "string"
+																	},
+																	"label": {
+																		"type": "string"
+																	},
+																	"confidence": {
+																		"type": "string",
+																		"enum": [
+																			"low",
+																			"medium",
+																			"high"
+																		]
+																	}
+																},
+																"required": [
+																	"category"
+																]
+															}
+														},
+														"required": [
+															"guardrailId"
+														]
 													}
 												},
 												"required": [
@@ -8033,6 +8622,38 @@
 																	},
 																	"note": {
 																		"type": "string"
+																	},
+																	"verdictKind": {
+																		"type": "string",
+																		"enum": [
+																			"redact",
+																			"annotate"
+																		]
+																	},
+																	"finding": {
+																		"type": "object",
+																		"properties": {
+																			"category": {
+																				"type": "string"
+																			},
+																			"label": {
+																				"type": "string"
+																			},
+																			"confidence": {
+																				"type": "string",
+																				"enum": [
+																					"low",
+																					"medium",
+																					"high"
+																				]
+																			}
+																		},
+																		"required": [
+																			"category"
+																		]
+																	},
+																	"redactedText": {
+																		"type": "string"
 																	}
 																},
 																"required": [
@@ -8089,6 +8710,32 @@
 													},
 													"policyCardId": {
 														"type": "string"
+													},
+													"componentId": {
+														"type": "string"
+													},
+													"point": {
+														"type": "object",
+														"properties": {
+															"kind": {
+																"type": "string",
+																"enum": [
+																	"pre-think",
+																	"pre-act",
+																	"post-act",
+																	"stage-in",
+																	"stage-out",
+																	"group",
+																	"egress"
+																]
+															},
+															"at": {
+																"type": "string"
+															}
+														},
+														"required": [
+															"kind"
+														]
 													}
 												},
 												"required": [
@@ -8176,6 +8823,32 @@
 													},
 													"policyCardId": {
 														"type": "string"
+													},
+													"componentId": {
+														"type": "string"
+													},
+													"point": {
+														"type": "object",
+														"properties": {
+															"kind": {
+																"type": "string",
+																"enum": [
+																	"pre-think",
+																	"pre-act",
+																	"post-act",
+																	"stage-in",
+																	"stage-out",
+																	"group",
+																	"egress"
+																]
+															},
+															"at": {
+																"type": "string"
+															}
+														},
+														"required": [
+															"kind"
+														]
 													}
 												},
 												"required": [
@@ -8961,6 +9634,53 @@
 																"type": "integer",
 																"minimum": 0,
 																"maximum": 9007199254740991
+															},
+															"verdicts": {
+																"type": "array",
+																"items": {
+																	"type": "object",
+																	"properties": {
+																		"guardrailId": {
+																			"type": "string",
+																			"minLength": 1
+																		},
+																		"point": {
+																			"type": "string",
+																			"enum": [
+																				"stage-in",
+																				"stage-out"
+																			]
+																		},
+																		"verdict": {
+																			"type": "string",
+																			"enum": [
+																				"allow",
+																				"block-action",
+																				"stop-run",
+																				"pause",
+																				"redact",
+																				"annotate"
+																			]
+																		},
+																		"componentId": {
+																			"type": "string"
+																		},
+																		"policyCardId": {
+																			"type": "string"
+																		},
+																		"reason": {
+																			"type": "string"
+																		},
+																		"approved": {
+																			"type": "boolean"
+																		}
+																	},
+																	"required": [
+																		"guardrailId",
+																		"point",
+																		"verdict"
+																	]
+																}
 															}
 														},
 														"required": [
@@ -9122,7 +9842,11 @@
 													"application",
 													"alert",
 													"complaint",
-													"advice-request"
+													"advice-request",
+													"onboarding",
+													"dispute",
+													"arrears",
+													"servicing-request"
 												]
 											},
 											"items": {
@@ -9174,7 +9898,11 @@
 												"application",
 												"alert",
 												"complaint",
-												"advice-request"
+												"advice-request",
+												"onboarding",
+												"dispute",
+												"arrears",
+												"servicing-request"
 											]
 										}
 									},
@@ -9337,6 +10065,11 @@
 									"minimum": 0,
 									"maximum": 9007199254740991
 								},
+								"handedOff": {
+									"type": "integer",
+									"minimum": 0,
+									"maximum": 9007199254740991
+								},
 								"byDesk": {
 									"type": "object",
 									"propertyNames": {
@@ -9356,6 +10089,11 @@
 												"maximum": 9007199254740991
 											},
 											"stopped": {
+												"type": "integer",
+												"minimum": 0,
+												"maximum": 9007199254740991
+											},
+											"handedOff": {
 												"type": "integer",
 												"minimum": 0,
 												"maximum": 9007199254740991
@@ -9428,7 +10166,11 @@
 											"application",
 											"alert",
 											"complaint",
-											"advice-request"
+											"advice-request",
+											"onboarding",
+											"dispute",
+											"arrears",
+											"servicing-request"
 										]
 									},
 									"desk": {
@@ -9445,7 +10187,8 @@
 										"enum": [
 											"completed",
 											"stopped",
-											"abandoned"
+											"abandoned",
+											"handed-off"
 										]
 									}
 								},
@@ -9960,6 +10703,188 @@
 						"verdict",
 						"note",
 						"digest"
+					]
+				}
+			},
+			"required": [
+				"id",
+				"digest",
+				"pushedAt",
+				"kind",
+				"payload"
+			]
+		},
+		{
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "string",
+					"minLength": 1
+				},
+				"digest": {
+					"type": "string",
+					"pattern": "^[0-9a-f]{64}$"
+				},
+				"pushedAt": {
+					"type": "string",
+					"format": "date-time",
+					"pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+				},
+				"pushedBy": {
+					"type": "string",
+					"minLength": 1
+				},
+				"kind": {
+					"type": "string",
+					"const": "stack"
+				},
+				"payload": {
+					"type": "object",
+					"properties": {
+						"schemaVersion": {
+							"type": "number",
+							"const": 1
+						},
+						"id": {
+							"type": "string",
+							"minLength": 1
+						},
+						"name": {
+							"type": "string",
+							"minLength": 1
+						},
+						"description": {
+							"type": "string",
+							"minLength": 1
+						},
+						"fit": {
+							"type": "array",
+							"items": {
+								"type": "object",
+								"properties": {
+									"componentId": {
+										"type": "string",
+										"minLength": 1
+									},
+									"config": {},
+									"point": {
+										"type": "object",
+										"properties": {
+											"kind": {
+												"type": "string",
+												"enum": [
+													"pre-think",
+													"pre-act",
+													"post-act",
+													"stage-in",
+													"stage-out",
+													"group",
+													"egress"
+												]
+											},
+											"at": {
+												"type": "string",
+												"minLength": 1
+											}
+										},
+										"required": [
+											"kind"
+										]
+									}
+								},
+								"required": [
+									"componentId",
+									"point"
+								]
+							}
+						},
+						"group": {
+							"type": "object",
+							"properties": {
+								"watchFor": {
+									"default": [],
+									"type": "array",
+									"items": {
+										"type": "string",
+										"minLength": 1
+									}
+								},
+								"refusalLimit": {
+									"type": "integer",
+									"exclusiveMinimum": 0,
+									"maximum": 9007199254740991
+								},
+								"breakOn": {
+									"default": [],
+									"type": "array",
+									"items": {
+										"type": "object",
+										"properties": {
+											"evaluatorId": {
+												"type": "string",
+												"minLength": 1
+											},
+											"labels": {
+												"type": "array",
+												"items": {
+													"type": "string",
+													"minLength": 1
+												}
+											},
+											"onFail": {
+												"type": "boolean"
+											}
+										},
+										"required": [
+											"evaluatorId"
+										]
+									}
+								}
+							}
+						},
+						"obligations": {
+							"type": "array",
+							"items": {
+								"type": "string",
+								"minLength": 1
+							}
+						},
+						"controls": {
+							"type": "array",
+							"items": {
+								"type": "string",
+								"minLength": 1
+							}
+						},
+						"provenance": {
+							"type": "object",
+							"properties": {
+								"author": {
+									"$ref": "#/$defs/__schema0"
+								},
+								"createdAt": {
+									"type": "string",
+									"format": "date-time",
+									"pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+								},
+								"derivedFrom": {
+									"type": "string",
+									"minLength": 1
+								}
+							},
+							"required": [
+								"author",
+								"createdAt"
+							]
+						}
+					},
+					"required": [
+						"schemaVersion",
+						"id",
+						"name",
+						"description",
+						"fit",
+						"provenance"
 					]
 				}
 			},

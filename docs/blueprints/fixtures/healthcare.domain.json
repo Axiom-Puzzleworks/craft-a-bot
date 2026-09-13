@@ -1,0 +1,151 @@
+{
+	"schemaVersion": 1,
+	"id": "nhs-trust/uk-hospital-trust",
+	"name": "UK hospital trust (synthetic, a blueprint)",
+	"jurisdiction": "UK",
+	"sector": "Healthcare",
+	"packs": {
+		"world": "nhs-trust",
+		"journeys": ["triage-referral", "prescribing-support", "results-communication", "appointments"]
+	},
+	"obligations": {
+		"ukgdpr:art-9-health": "UK GDPR Article 9: health data is special category — read only for the purpose.",
+		"nhs:confidentiality-code": "The NHS Confidentiality Code of Practice: the minimum necessary; the patient's consent to sharing.",
+		"nhs:caldicott-3": "Caldicott principle 3: use the minimum necessary confidential information.",
+		"mhra:samd-boundary": "MHRA: software that recommends a clinical action is a medical device — the assistant lists and never recommends.",
+		"nice:red-flags": "NICE referral guidance: the urgency rule the triage journey carries.",
+		"cqc:safe-effective": "CQC fundamental standards: safe, effective care — the rows the control map cites.",
+		"equality-act:fairness": "Equality Act 2010: outcomes compared by cohort; no worse treatment by a protected characteristic."
+	},
+	"decisionRights": [
+		{
+			"kind": "prescription-sign",
+			"ceiling": 1,
+			"why": "Signing a prescription is a prescriber's alone; the assistant drafts and never proposes to a patient.",
+			"source": {
+				"title": "The Human Medicines Regulations 2012",
+				"url": "https://www.legislation.gov.uk/uksi/2012/1916/contents",
+				"retrieved": "2026-09-13"
+			}
+		},
+		{
+			"kind": "prescription-proposal",
+			"ceiling": 3,
+			"why": "A proposal to a clinician is the clinician's below four eyes; a recommendation is a device question.",
+			"source": {
+				"title": "MHRA — Medical device stand-alone software including apps (guidance)",
+				"url": "https://www.gov.uk/government/publications/medical-devices-software-applications-apps",
+				"retrieved": "2026-09-13"
+			}
+		},
+		{
+			"kind": "referral-priority",
+			"ceiling": 3,
+			"why": "The urgency of a referral is a clinician's below four eyes; the assistant applies the red flags and recommends.",
+			"source": {
+				"title": "NICE NG12 — Suspected cancer: recognition and referral",
+				"url": "https://www.nice.org.uk/guidance/ng12",
+				"retrieved": "2026-09-13"
+			}
+		},
+		{
+			"kind": "flagged-result-communication",
+			"ceiling": 3,
+			"why": "A flagged result is told by a clinician.",
+			"source": {
+				"title": "NHS Confidentiality Code of Practice (2003)",
+				"retrieved": "2026-09-13"
+			}
+		},
+		{
+			"kind": "normal-result-communication",
+			"ceiling": 4,
+			"why": "A normal result may be told by the assistant under four eyes, to the patient alone.",
+			"source": {
+				"title": "NHS Confidentiality Code of Practice (2003)",
+				"retrieved": "2026-09-13"
+			}
+		},
+		{
+			"kind": "appointment-booking",
+			"ceiling": 4,
+			"why": "Booking is reversible and the assistant's under oversight.",
+			"source": {
+				"title": "A stated assumption of the blueprint; cite the trust's access policy",
+				"retrieved": "2026-09-13"
+			}
+		},
+		{
+			"kind": "third-party-disclosure",
+			"ceiling": 2,
+			"why": "Sharing with anyone but the patient is a person's decision; the assistant records it.",
+			"source": {
+				"title": "NHS Confidentiality Code of Practice (2003)",
+				"retrieved": "2026-09-13"
+			}
+		}
+	],
+	"calibration": "nhs-trust/calibration",
+	"ontology": {
+		"classes": [
+			"Patient",
+			"Encounter",
+			"Medication",
+			"Allergy",
+			"Referral",
+			"Result",
+			"Appointment",
+			"Practice",
+			"Clinician"
+		],
+		"specialCategory": ["Encounter", "Medication", "Allergy", "Referral", "Result"]
+	},
+	"journeys": [
+		{ "workflowId": "triage-referral/triage", "name": "Triage and referral", "status": "shipped" },
+		{
+			"workflowId": "prescribing-support/prescribing",
+			"name": "Prescribing support",
+			"status": "shipped"
+		},
+		{
+			"workflowId": "results-communication/results",
+			"name": "Results communication",
+			"status": "shipped"
+		},
+		{
+			"workflowId": "appointments/appointments",
+			"name": "Appointment and follow-up",
+			"status": "shipped"
+		},
+		{
+			"workflowId": "nhs-trust/discharge-summary",
+			"name": "Discharge summary",
+			"status": "supporting",
+			"why": "A world layout the other journeys read; no workflow of its own."
+		},
+		{
+			"workflowId": "safeguarding",
+			"name": "Safeguarding",
+			"status": "out",
+			"why": "A safeguarding concern is a person's from its first word; the domain refuses to model the referral as a journey the assistant walks."
+		},
+		{
+			"workflowId": "mental-health-crisis",
+			"name": "Mental health crisis",
+			"status": "out",
+			"why": "The risk assessment is clinical and the harm of a wrong answer is not measurable by a card."
+		}
+	],
+	"personas": [
+		"worried-relative",
+		"result-over-the-phone",
+		"clinician-in-a-hurry",
+		"says-they-are-the-gp"
+	],
+	"glossary": {
+		"patient": "The root entity (the Kit says “visitor”).",
+		"encounter": "One contact with the trust: an admission, a visit, an attendance.",
+		"referral": "A request from a practice to a specialty, with a priority — the triage journey's case.",
+		"result": "A pathology or imaging finding against a reference range, with a flag."
+	}
+}

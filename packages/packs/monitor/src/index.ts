@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { BrickKindDefinition, PackManifest } from '@craftabot/core';
 import { MONITOR_RULE_IDS, MONITOR_RULE_LABELS, isMonitorRule, rulesFor } from './rules.js';
+import { evaluatorBreakerComponent } from './components.js';
 export {
 	GROUP_CIRCUIT_BREAKER_ID,
 	createComplianceWatchbot,
@@ -122,7 +123,9 @@ const pack: PackManifest = {
 	name: 'Safety Patrol',
 	version: '0.0.1',
 	requiresCore: '>=0.0.1',
-	brickKinds: [watchbot as BrickKindDefinition]
+	brickKinds: [watchbot as BrickKindDefinition],
+	/** WP94: the evaluator breaker as a component (`85-…` §5). */
+	guardrailComponents: [evaluatorBreakerComponent as never]
 };
 
 export default pack;
@@ -137,3 +140,8 @@ export {
 	createRefusalStormRule,
 	type MonitorRuleId
 } from './rules.js';
+export {
+	EVALUATOR_BREAKER_COMPONENT_ID,
+	evaluatorBreakerComponent,
+	evaluatorBreakerSchema
+} from './components.js';

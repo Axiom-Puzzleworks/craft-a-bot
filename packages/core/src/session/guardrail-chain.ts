@@ -1,3 +1,4 @@
+import type { VerdictFinding } from '../schemas/shared.js';
 import type {
 	ExternalCallRecord,
 	Guardrail,
@@ -20,6 +21,13 @@ export type ChainOutcome = {
 	verdict: GuardrailVerdict;
 	/** The guardrail that produced a non-allow verdict, if any. */
 	guardrail?: Guardrail;
+	/**
+	 * The first `redact` allow on the chain (WP96, `85-…` §4): the text the
+	 * outgoing call should carry instead, and who said so. Later redactors
+	 * see the original and are recorded on their own `guardrail.checked`;
+	 * the first wins, as the first non-allow does.
+	 */
+	redaction?: { guardrailId: string; redactedText: string; finding?: VerdictFinding };
 };
 
 const ALLOW: GuardrailVerdict = { allow: true };
@@ -42,6 +50,7 @@ export async function runGuardrailChain(
 		external?: ExternalCallRecord
 	) => void
 ): Promise<ChainOutcome> {
+	let redaction: ChainOutcome['redaction'];
 	for (const guardrail of guardrails) {
 		if (!guardrail.hooks.includes(hook)) continue;
 
@@ -53,8 +62,21 @@ export async function runGuardrailChain(
 		onChecked(guardrail, verdict, external);
 
 		if (!isAllowed(verdict)) {
-			return { verdict, guardrail };
+			return { verdict, guardrail, ...(redaction ? { redaction } : {}) };
+		}
+		if (
+			redaction === undefined &&
+			'allow' in verdict &&
+			verdict.allow &&
+			verdict.verdictKind === 'redact' &&
+			verdict.redactedText !== undefined
+		) {
+			redaction = {
+				guardrailId: guardrail.id,
+				redactedText: verdict.redactedText,
+				...(verdict.finding ? { finding: verdict.finding } : {})
+			};
 		}
 	}
-	return { verdict: ALLOW };
+	return { verdict: ALLOW, ...(redaction ? { redaction } : {}) };
 }

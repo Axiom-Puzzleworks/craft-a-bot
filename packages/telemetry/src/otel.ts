@@ -227,6 +227,18 @@ export function otelTraceFor(run: RunRecord, events: readonly EngineEvent[]): Ot
 					stringAttr('gen_ai.evaluation.name', event.payload.guardrailId),
 					stringAttr('gen_ai.evaluation.result.label', 'blocked'),
 					stringAttr('gen_ai.evaluation.explanation', event.payload.reason),
+					// The component and the point (WP94), when a component compiled the guardrail.
+					...(event.payload.componentId !== undefined
+						? [stringAttr('craft_a_bot.guardrail.component', event.payload.componentId)]
+						: []),
+					...(event.payload.point !== undefined
+						? [
+								stringAttr(
+									'craft_a_bot.guardrail.point',
+									`${event.payload.point.kind}${event.payload.point.at ? `@${event.payload.point.at}` : ''}`
+								)
+							]
+						: []),
 					intAttr('craft_a_bot.tick', event.tick)
 				]
 			});

@@ -1,5 +1,6 @@
 import type { PackRegistry, Storage } from '@craftabot/core';
 import { parseCampaignReport } from '@craftabot/evals';
+import { journeyLayout, renderJourneySvg } from '@craftabot/workflow';
 import {
 	assurancePackFromStorage,
 	renderAssurancePackHtml,
@@ -57,8 +58,20 @@ export async function reportAssurance(
 	options: { now?: () => string } = {}
 ): Promise<AssuranceRenderings> {
 	const id = await resolveAgentId(storage, agentId);
+	// WP100 (`87-JOURNEY-CANVAS.md` §7): the journeys, laid out here — the pack carries them, never draws them.
+	const journeys = registry.listWorkflows().map((workflow) => {
+		const layout = journeyLayout(workflow, undefined, undefined, { registry });
+		return {
+			workflowId: workflow.id,
+			worldId: workflow.worldId,
+			name: workflow.name,
+			layout,
+			svg: renderJourneySvg(layout)
+		};
+	});
 	const pack = await assurancePackFromStorage(id, storage, registry, {
 		parseReport: assuranceReportFrom,
+		journeys,
 		...(options.now ? { now: options.now } : {})
 	});
 	return {

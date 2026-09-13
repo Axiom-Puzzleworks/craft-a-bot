@@ -102,7 +102,9 @@ export const safetyBrickSchemaV2 = z.object({
 	 * only `approval`; this field is never consulted at runtime, which is why
 	 * it stays optional and carries no fallback.
 	 */
-	autonomy: z.enum(['operator', 'collaborator', 'approver', 'observer']).optional()
+	autonomy: z.enum(['operator', 'collaborator', 'approver', 'observer']).optional(),
+	/** A stack by id (WP97, `89-STACKS.md`): its loop components run after the brick's own rules, as one brick in the socket. */
+	stack: z.string().min(1).optional()
 });
 export type SafetyBrickConfigV2 = z.infer<typeof safetyBrickSchemaV2>;
 

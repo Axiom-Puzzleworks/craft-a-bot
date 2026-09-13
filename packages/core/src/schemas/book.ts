@@ -9,7 +9,19 @@ import { z } from 'zod';
  * evidence store carry it as a file (`docs/schemas/book.schema.json`);
  * the generators that make one are `fs-bank`'s.
  */
-export const workItemKindSchema = z.enum(['application', 'alert', 'complaint', 'advice-request']);
+export const workItemKindSchema = z.enum([
+	'application',
+	'alert',
+	'complaint',
+	'advice-request',
+	// WP103 (`95-FS-ONBOARDING.md`): an account application.
+	'onboarding',
+	// WP104: a disputed payment.
+	'dispute',
+	// WP105: a loan in arrears; a servicing request (the collections journey's handoff, worked by WP106's desk).
+	'arrears',
+	'servicing-request'
+]);
 export type WorkItemKind = z.infer<typeof workItemKindSchema>;
 
 /** The truth a desk holds beside its state (`45-…` §4.2), as data. */

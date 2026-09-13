@@ -2,7 +2,7 @@
  * **The Workshop instrument icon set** (WP73, `62-THE-TAIL.md` §4.1;
  * `63-ART-COMMISSION-BRIEF-WAVE-2.md` §5.2; sixteen since WP91): roundels in the family
  * `11-…` §I describes — a disc in a token colour, the glyph in cream — one
- * per Control Room instrument or screen. What ships today is the
+ * per Control Room instrument or screen (twenty-one since WP109). What ships today is the
  * **placeholder** for each: geometric, drawn to the delivery contract
  * (96 × 96, `#disc` tintable through `--part-tint`, `#glyph` carrying the
  * mark, palette colours only), so the commissioned file replaces it by name
@@ -29,6 +29,14 @@ import iconClock from './instruments/icon-clock.svg?raw';
 import iconLens from './instruments/icon-lens.svg?raw';
 import iconExperiment from './instruments/icon-experiment.svg?raw';
 import iconRegister from './instruments/icon-register.svg?raw';
+// WP100 (`87-JOURNEY-CANVAS.md` §5): the Journey Canvas's node and a guard point.
+import iconJourney from './instruments/icon-journey.svg?raw';
+import iconPoint from './instruments/icon-point.svg?raw';
+// WP101 (`88-STUDIO.md`): the Studio's stack.
+import iconStack from './instruments/icon-stack.svg?raw';
+// WP109 (`96-CONTROL-ROOM-V3.md` §4): the catalogue and a domain — the five of `83-…` §6.7.2 complete.
+import iconCatalogue from './instruments/icon-catalogue.svg?raw';
+import iconDomain from './instruments/icon-domain.svg?raw';
 
 export const INSTRUMENT_IDS = [
 	'meter',
@@ -46,7 +54,12 @@ export const INSTRUMENT_IDS = [
 	'clock',
 	'lens',
 	'experiment',
-	'register'
+	'register',
+	'journey',
+	'point',
+	'stack',
+	'catalogue',
+	'domain'
 ] as const;
 
 export type InstrumentId = (typeof INSTRUMENT_IDS)[number];
@@ -68,5 +81,10 @@ export const INSTRUMENT_ICONS: Record<InstrumentId, string> = {
 	clock: iconClock,
 	lens: iconLens,
 	experiment: iconExperiment,
-	register: iconRegister
+	register: iconRegister,
+	journey: iconJourney,
+	point: iconPoint,
+	stack: iconStack,
+	catalogue: iconCatalogue,
+	domain: iconDomain
 };

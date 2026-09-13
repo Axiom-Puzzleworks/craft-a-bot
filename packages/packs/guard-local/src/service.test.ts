@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { ScreenRequest } from '@craftabot/core';
+import type { GuardrailContext, ScreenRequest } from '@craftabot/core';
 import { describeConformance } from '@craftabot/pack-testkit';
 import { fixtures } from './fixtures/index.js';
 import pack from './index.js';
@@ -169,8 +169,36 @@ describe('the services', () => {
 	});
 });
 
+/** A bare context for a component's verdict probe (WP94, `85-…` §7): the shell reads `spec.id` and the hook, nothing else. */
+const componentContext = (hook: 'pre-think' | 'pre-act' | 'post-act'): GuardrailContext => ({
+	hook,
+	tick: 1,
+	spec: { id: 'probe', name: 'probe', goalCardId: '', schemaVersion: 1 } as never,
+	usage: { ticks: 1, inputTokens: 0, outputTokens: 0 },
+	worldState: {},
+	history: []
+});
+
 describeConformance({
 	manifest: pack,
+	/** WP94 (`85-…` §7): the service as a component — well-formed, parses its config, compiles at every hook, answers offline. */
+	guardrailComponents: Object.fromEntries(
+		[llamaGuardService.id, promptGuardService.id].map((id) => [
+			id,
+			{
+				config: {
+					serviceConfig: {},
+					screening: {
+						offline: true,
+						screenObservation: 'note',
+						screenDecision: 'note',
+						screenResult: 'note'
+					}
+				},
+				verdicts: [{ verdict: 'allow', context: componentContext('pre-think') }]
+			}
+		])
+	),
 	guardrailServices: Object.fromEntries(
 		[llamaGuardService, promptGuardService].map((service) => [
 			service.id,

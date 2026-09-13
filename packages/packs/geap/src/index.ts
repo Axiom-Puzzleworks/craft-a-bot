@@ -1,4 +1,5 @@
 import type { PackManifest } from '@craftabot/core';
+import { guardServiceComponent } from '@craftabot/governance';
 import { armorBrickKind } from './armor/brick-kind.js';
 import { modelArmorService } from './armor/service.js';
 import { evalEvaluators } from './eval/evaluator.js';
@@ -38,7 +39,8 @@ export {
 	modelArmorService,
 	screeningFor,
 	serviceConfigFor,
-	toScreenResult
+	toScreenResult,
+	STREAMING_SANITISATION
 } from './armor/service.js';
 export type { ArmorServiceConfig } from './armor/service.js';
 
@@ -102,6 +104,20 @@ const geapPack: PackManifest = {
 	requiresCore: '>=0.0.1',
 	brickKinds: [armorBrickKind],
 	guardrailServices: [modelArmorService],
+	/** WP94: the service as a component — Model Armor's filter v3 is the surface the adapter targets (`83-…` §6.2.4). */
+	guardrailComponents: [
+		guardServiceComponent(modelArmorService, {
+			wraps: 'google/model-armor',
+			technique: 'input-classifier',
+			version: 'v3',
+			// The live Google Cloud checkpoint (WP35, `25-…` stage E): a real verdict, and the CORS go on direct browser calls.
+			checkpoint: {
+				takenOn: '2026-09-01',
+				note: 'A real Model Armor verdict from the browser; CORS answered (25-ARMOUR-BRICK.md stage E).'
+			},
+			perCall: 'per screened request, Model Armor pricing'
+		}) as never
+	],
 	evaluators: [...evalEvaluators]
 };
 

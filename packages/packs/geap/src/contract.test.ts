@@ -1,4 +1,4 @@
-import type { AgentSpecV2, EngineEvent, PackManifest } from '@craftabot/core';
+import type { AgentSpecV2, EngineEvent, GuardrailContext, PackManifest } from '@craftabot/core';
 import { makeRun, obedient } from '@craftabot/core/testing';
 import trace from './fixtures/trace.geap-armour-offline.v1.json' with { type: 'json' };
 import starterPack from '@craftabot/pack-starter';
@@ -44,6 +44,16 @@ const SAY_HELLO_PLAN = [
 		args: { text: 'Hello Teddy, I am your new robot!' }
 	}
 ];
+
+/** A bare context for a component's verdict probe (WP94, `85-…` §7): the shell reads `spec.id` and the hook, nothing else. */
+const componentContext = (hook: 'pre-think' | 'pre-act' | 'post-act'): GuardrailContext => ({
+	hook,
+	tick: 1,
+	spec: { id: 'probe', name: 'probe', goalCardId: '', schemaVersion: 1 } as never,
+	usage: { ticks: 1, inputTokens: 0, outputTokens: 0 },
+	worldState: {},
+	history: []
+});
 
 const spec: AgentSpecV2 = {
 	id: '77777777-7777-4777-8777-777777777777',
@@ -100,6 +110,28 @@ const fixture: PackConformanceFixture = {
 		spec,
 		script: obedient(SAY_HELLO_PLAN)
 	},
+	/** WP94 (`85-…` §7): the service as a component — well-formed, parses its config, compiles at every hook, answers offline. */
+	guardrailComponents: Object.fromEntries(
+		['geap/model-armor'].map((id) => [
+			id,
+			{
+				config: {
+					serviceConfig: {
+						projectId: 'proj-1',
+						location: 'europe-west2',
+						templateId: 'cab-armour'
+					},
+					screening: {
+						offline: true,
+						screenObservation: 'note',
+						screenDecision: 'note',
+						screenResult: 'note'
+					}
+				},
+				verdicts: [{ verdict: 'allow', context: componentContext('pre-think') }]
+			}
+		])
+	),
 	/** WP39 stage E (`29-…` §4.7): the service through the generic conformance check. */
 	guardrailServices: {
 		'geap/model-armor': {

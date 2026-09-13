@@ -95,6 +95,7 @@ export {
 	ASSURANCE_PACK_VERSION,
 	ASSURANCE_POSTURE,
 	assurancePackDigest,
+	type AssuranceJourney,
 	assurancePackFor,
 	assurancePackFromStorage,
 	canonicalJson,
@@ -117,9 +118,18 @@ export {
 	type ControlEffectivenessHeadline,
 	type ControlEffectivenessRow
 } from './control-effectiveness.js';
+/** The coverage fold and the catalogue page (WP98, `86-…` §5, §7). */
+export {
+	coverageReport,
+	coverageSummary,
+	renderCatalogueMarkdown,
+	type CoverageRow,
+	type CoverageSummary
+} from './coverage.js';
 export {
 	ASSURANCE_TOKENS,
 	principalLine,
 	renderAssurancePackHtml,
 	renderAssurancePackMarkdown
 } from './assurance-pack-render.js';
+export { verdictFlow, verdictFlowSignature, type VerdictFlowRow } from './verdict-flow.js';

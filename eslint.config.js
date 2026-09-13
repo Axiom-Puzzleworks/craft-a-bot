@@ -40,7 +40,7 @@ export default defineConfig(
 		 * chart is drawn outside `dataviz.ts`'s grammar. In practice — no
 		 * `<svg>` or `<canvas>` under `components/control-room` or
 		 * `routes/workshop` except inside the three instruments that draw with
-		 * one (`Meter`, `Tape`, `Boundary`). `Matrix` is a table. The rule is
+		 * one (`Meter`, `Tape`, `Boundary`, `JourneyCanvas` since WP100). `Matrix` is a table. The rule is
 		 * the floor; review keeps the `div`-width charts honest until WP71.
 		 */
 		files: [
@@ -50,7 +50,9 @@ export default defineConfig(
 		ignores: [
 			'apps/workbench/src/lib/components/control-room/Meter.svelte',
 			'apps/workbench/src/lib/components/control-room/Tape.svelte',
-			'apps/workbench/src/lib/components/control-room/Boundary.svelte'
+			'apps/workbench/src/lib/components/control-room/Boundary.svelte',
+			// WP100 (`87-JOURNEY-CANVAS.md` §5): the Journey Canvas draws over `journeyGeometry`, the workflow package's own grammar.
+			'apps/workbench/src/lib/components/control-room/JourneyCanvas.svelte'
 		],
 		rules: {
 			'no-restricted-syntax': [

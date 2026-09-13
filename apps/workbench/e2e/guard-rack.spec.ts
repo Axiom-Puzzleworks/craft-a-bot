@@ -19,7 +19,9 @@ test('lists every service, tests one on a fixture, fits it into a bot, and the b
 	await page.goto('/settings');
 	await page.getByLabel('Show the Workshop').click();
 
+	// WP101: the Guard Rack is the Studio's Connections tab; the old address forwards.
 	await page.goto('/workshop/guards');
+	await expect(page).toHaveURL(/\/workshop\/studio\?tab=connections$/);
 	await expect(page.getByTestId('guard-rack')).toBeVisible();
 	for (const id of [
 		'geap/model-armor',

@@ -106,6 +106,8 @@ export interface AuthorInput {
 	seed: number;
 	size: number;
 	controls?: string[] | undefined;
+	/** A stack the design runs under at every level (WP101, `88-STUDIO.md` §6); the unguarded bot otherwise. */
+	guard?: string | undefined;
 }
 
 /** The design as a file: the book drawn here and carried inline (the Worker draws nothing), the world's senses and actions on one build. */
@@ -147,7 +149,9 @@ export function designFor(input: AuthorInput, registry: PackRegistry): Experimen
 						}
 					}
 				],
-				guards: [{ id: 'none', fit: [] }],
+				guards: [
+					input.guard ? { id: input.guard, fit: [], stack: input.guard } : { id: 'none', fit: [] }
+				],
 				brains: [{ id: 'scripted-optimal', tier: 'scripted-optimal' }]
 			},
 			factors: [

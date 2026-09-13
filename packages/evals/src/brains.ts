@@ -126,7 +126,8 @@ export function scriptedNoisy(plan: Plan, { seed, rates }: NoisyOptions): MockSc
 
 		const stepArgs = step.argsFrom ? step.argsFrom(request) : (step.args ?? {});
 		const args = random() < noise.misname ? misnamed(stepArgs) : stepArgs;
-		return turn(step.say, step.call, args);
+		// The call too may be the prompt's (WP106): a stage whose act depends on the request read at the turn.
+		return turn(step.say, step.callFrom ? step.callFrom(request) : step.call, args);
 	};
 }
 

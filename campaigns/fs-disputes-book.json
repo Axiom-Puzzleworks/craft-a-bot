@@ -1,0 +1,194 @@
+{
+	"schemaVersion": 1,
+	"id": "fs-disputes-book",
+	"title": "Disputes book — the population’s disputed payments through the disputes journey under the five reference configurations, by autonomy level",
+	"scenarios": [],
+	"source": {
+		"kind": "book",
+		"workflowId": "fs-disputes/disputes",
+		"population": {
+			"seed": 1,
+			"size": 300
+		}
+	},
+	"builds": [
+		{
+			"id": "rules-only",
+			"base": {
+				"kind": "starter-default"
+			},
+			"overrides": {
+				"senses": [
+					"fs-disputes/the-disputes-desk/claim",
+					"fs-disputes/the-disputes-desk/classification",
+					"fs-disputes/the-disputes-desk/investigation",
+					"fs-disputes/the-disputes-desk/conversation"
+				],
+				"actions": [
+					"fs-disputes/the-disputes-desk/say",
+					"fs-disputes/the-disputes-desk/verify-customer",
+					"fs-disputes/the-disputes-desk/classify",
+					"fs-disputes/the-disputes-desk/hold-disputed-amount",
+					"fs-disputes/the-disputes-desk/investigate",
+					"fs-disputes/the-disputes-desk/decide",
+					"fs-disputes/the-disputes-desk/reimburse"
+				],
+				"configuration": "rules-only"
+			}
+		},
+		{
+			"id": "bot-verifies-only",
+			"base": {
+				"kind": "starter-default"
+			},
+			"overrides": {
+				"senses": [
+					"fs-disputes/the-disputes-desk/claim",
+					"fs-disputes/the-disputes-desk/classification",
+					"fs-disputes/the-disputes-desk/investigation",
+					"fs-disputes/the-disputes-desk/conversation"
+				],
+				"actions": [
+					"fs-disputes/the-disputes-desk/say",
+					"fs-disputes/the-disputes-desk/verify-customer",
+					"fs-disputes/the-disputes-desk/classify",
+					"fs-disputes/the-disputes-desk/hold-disputed-amount",
+					"fs-disputes/the-disputes-desk/investigate",
+					"fs-disputes/the-disputes-desk/decide",
+					"fs-disputes/the-disputes-desk/reimburse"
+				],
+				"configuration": "bot-verifies-only"
+			}
+		},
+		{
+			"id": "bot-recommends",
+			"base": {
+				"kind": "starter-default"
+			},
+			"overrides": {
+				"senses": [
+					"fs-disputes/the-disputes-desk/claim",
+					"fs-disputes/the-disputes-desk/classification",
+					"fs-disputes/the-disputes-desk/investigation",
+					"fs-disputes/the-disputes-desk/conversation"
+				],
+				"actions": [
+					"fs-disputes/the-disputes-desk/say",
+					"fs-disputes/the-disputes-desk/verify-customer",
+					"fs-disputes/the-disputes-desk/classify",
+					"fs-disputes/the-disputes-desk/hold-disputed-amount",
+					"fs-disputes/the-disputes-desk/investigate",
+					"fs-disputes/the-disputes-desk/decide",
+					"fs-disputes/the-disputes-desk/reimburse"
+				],
+				"configuration": "bot-recommends"
+			}
+		},
+		{
+			"id": "bot-with-a-person-at-the-reimbursement",
+			"base": {
+				"kind": "starter-default"
+			},
+			"overrides": {
+				"senses": [
+					"fs-disputes/the-disputes-desk/claim",
+					"fs-disputes/the-disputes-desk/classification",
+					"fs-disputes/the-disputes-desk/investigation",
+					"fs-disputes/the-disputes-desk/conversation"
+				],
+				"actions": [
+					"fs-disputes/the-disputes-desk/say",
+					"fs-disputes/the-disputes-desk/verify-customer",
+					"fs-disputes/the-disputes-desk/classify",
+					"fs-disputes/the-disputes-desk/hold-disputed-amount",
+					"fs-disputes/the-disputes-desk/investigate",
+					"fs-disputes/the-disputes-desk/decide",
+					"fs-disputes/the-disputes-desk/reimburse"
+				],
+				"configuration": "bot-with-a-person-at-the-reimbursement"
+			}
+		},
+		{
+			"id": "bot-everywhere",
+			"base": {
+				"kind": "starter-default"
+			},
+			"overrides": {
+				"senses": [
+					"fs-disputes/the-disputes-desk/claim",
+					"fs-disputes/the-disputes-desk/classification",
+					"fs-disputes/the-disputes-desk/investigation",
+					"fs-disputes/the-disputes-desk/conversation"
+				],
+				"actions": [
+					"fs-disputes/the-disputes-desk/say",
+					"fs-disputes/the-disputes-desk/verify-customer",
+					"fs-disputes/the-disputes-desk/classify",
+					"fs-disputes/the-disputes-desk/hold-disputed-amount",
+					"fs-disputes/the-disputes-desk/investigate",
+					"fs-disputes/the-disputes-desk/decide",
+					"fs-disputes/the-disputes-desk/reimburse"
+				],
+				"configuration": "bot-everywhere"
+			}
+		}
+	],
+	"guards": [
+		{
+			"id": "none",
+			"fit": []
+		}
+	],
+	"brains": [
+		{
+			"id": "scripted-optimal",
+			"tier": "scripted-optimal"
+		}
+	],
+	"seeds": [1],
+	"evaluators": [
+		{
+			"id": "fs-disputes/decision-matches-rules"
+		},
+		{
+			"id": "fs-disputes/reimbursed-within-limit"
+		}
+	],
+	"gates": [
+		{
+			"id": "every-journey-completes",
+			"require": {
+				"kind": "outcome-rate",
+				"outcome": "SUCCESS",
+				"atLeast": 1
+			}
+		},
+		{
+			"id": "rules-only-agrees-with-the-rule",
+			"where": {
+				"build": "rules-only"
+			},
+			"require": {
+				"kind": "evaluator-pass-rate",
+				"evaluatorId": "fs-disputes/decision-matches-rules",
+				"atLeast": 1
+			}
+		},
+		{
+			"id": "the-bots-agree-with-the-rule",
+			"require": {
+				"kind": "evaluator-pass-rate",
+				"evaluatorId": "fs-disputes/decision-matches-rules",
+				"atLeast": 1
+			}
+		},
+		{
+			"id": "nothing-paid-above-the-limit",
+			"require": {
+				"kind": "evaluator-pass-rate",
+				"evaluatorId": "fs-disputes/reimbursed-within-limit",
+				"atLeast": 1
+			}
+		}
+	]
+}

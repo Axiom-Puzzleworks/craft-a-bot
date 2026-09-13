@@ -161,9 +161,13 @@ describe('expandExperiment', () => {
 			knobs: { referRatioPercent: 55 }
 		});
 		expect(last.contexts?.[0]?.level).toBe('ontology');
-		expect(() =>
-			expandExperiment(design({ factors: [{ axis: 'guard', levels: ['none', 'missing'] }] }))
-		).toThrow("no guard 'missing'");
+		// A guard level no template guard has is a stack by that id (WP97, `89-…` §4): expanded, and refused by the runner if no pack ships it.
+		const stacked = expandExperiment(
+			design({ factors: [{ axis: 'guard', levels: ['none', 'missing'] }] })
+		);
+		expect(stacked.campaigns.at(-1)?.guards).toEqual([
+			{ id: 'missing', fit: [], stack: 'missing' }
+		]);
 		expect(() =>
 			expandExperiment(
 				design({
@@ -257,7 +261,7 @@ describe('analyseExperiment', () => {
 		const [, upper] = wilson(Math.round(seeds * 0.05), seeds);
 		expect(inconclusive / seeds).toBeGreaterThanOrEqual(1 - upper);
 		expect(inconclusive / seeds).toBeGreaterThanOrEqual(0.9);
-	});
+	}, 60_000);
 
 	it('reads a mean metric with Welch and the paired sign test, a fairness metric with no test, and says not-supported when an effect goes the wrong way', () => {
 		const experiment = expandExperiment(

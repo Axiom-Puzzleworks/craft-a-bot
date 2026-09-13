@@ -126,3 +126,87 @@ test('the Complaints Desk generates a case with its bounds, and lists its deck',
 	await expect(page.getByTestId('complaints-deck').locator('tbody tr')).toHaveCount(7);
 	await expect(page.getByTestId('complaints-evaluators').locator('li')).toHaveCount(3);
 });
+
+// WP103 (`95-FS-ONBOARDING.md` §4.7): the Onboarding Desk beside the three — a case from a seed, the screening and the rating under the flap.
+test('the Onboarding Desk generates a case with the list under the flap, and lists its decks', async ({
+	page
+}) => {
+	await page.goto('/settings');
+	await page.getByLabel('Show the Workshop').click();
+	await page.goto('/workshop/playground');
+	await page.getByTestId('playground-onboarding-link').click();
+	await expect(page.getByTestId('onboarding-simulation-only')).toBeVisible();
+	await page.getByTestId('onboarding-layout').selectOption('screening-hit');
+	await page.getByTestId('onboarding-generate').click();
+	await expect(page.getByTestId('onboarding-product')).toContainText('current');
+	await expect(
+		page.getByTestId('onboarding-hidden').getByTestId('desk-truth-verdict')
+	).toBeAttached();
+	await expect(page.getByTestId('onboarding-decks').locator('tbody tr')).toHaveCount(10);
+	await expect(page.getByTestId('onboarding-cards').locator('li')).toHaveCount(3);
+	await expect(page.getByTestId('onboarding-evaluators').locator('li')).toHaveCount(4);
+	await expect(page.locator('[data-testid^="onboarding-map-node-service-line-"]')).toHaveCount(1);
+});
+
+// WP104 (`90-FS-DISPUTES.md` §7): the Disputes Desk — a case from a seed, the classification and the limit under the flap.
+test('the Disputes Desk generates a case with the rule under the flap, and lists its decks', async ({
+	page
+}) => {
+	await page.goto('/settings');
+	await page.getByLabel('Show the Workshop').click();
+	await page.goto('/workshop/playground');
+	await page.getByTestId('playground-disputes-link').click();
+	await expect(page.getByTestId('disputes-simulation-only')).toBeVisible();
+	await page.getByTestId('disputes-layout').selectOption('app-scam-above-limit');
+	await page.getByTestId('disputes-generate').click();
+	await expect(page.getByTestId('disputes-amount')).toContainText('92,000');
+	await expect(
+		page.getByTestId('disputes-hidden').getByTestId('desk-truth-verdict')
+	).toBeAttached();
+	await expect(page.getByTestId('disputes-decks').locator('tbody tr')).toHaveCount(10);
+	await expect(page.getByTestId('disputes-cards').locator('li')).toHaveCount(4);
+	await expect(page.getByTestId('disputes-evaluators').locator('li')).toHaveCount(4);
+	await expect(page.locator('[data-testid^="disputes-map-node-service-line-"]')).toHaveCount(1);
+});
+
+// WP105 (`91-FS-COLLECTIONS.md` §7): the Collections Desk — a case from a seed, the plan and the disclosure under the flap.
+test('the Collections Desk generates a case with the rule under the flap, and lists its decks', async ({
+	page
+}) => {
+	await page.goto('/settings');
+	await page.getByLabel('Show the Workshop').click();
+	await page.goto('/workshop/playground');
+	await page.getByTestId('playground-collections-link').click();
+	await expect(page.getByTestId('collections-simulation-only')).toBeVisible();
+	await page.getByTestId('collections-layout').selectOption('job-loss');
+	await page.getByTestId('collections-generate').click();
+	await expect(page.getByTestId('collections-missed')).toContainText('2');
+	await expect(
+		page.getByTestId('collections-hidden').getByTestId('desk-truth-verdict')
+	).toBeAttached();
+	await expect(page.getByTestId('collections-decks').locator('tbody tr')).toHaveCount(10);
+	await expect(page.getByTestId('collections-cards').locator('li')).toHaveCount(4);
+	await expect(page.getByTestId('collections-evaluators').locator('li')).toHaveCount(4);
+	await expect(page.locator('[data-testid^="collections-map-node-service-line-"]')).toHaveCount(1);
+});
+
+// WP106 (`92-FS-SERVICING.md` §7): the Servicing Desk — a case from a seed, the category and the act under the flap.
+test('the Servicing Desk generates a case with the rule under the flap, and lists its decks', async ({
+	page
+}) => {
+	await page.goto('/settings');
+	await page.getByLabel('Show the Workshop').click();
+	await page.goto('/workshop/playground');
+	await page.getByTestId('playground-servicing-link').click();
+	await expect(page.getByTestId('servicing-simulation-only')).toBeVisible();
+	await page.getByTestId('servicing-layout').selectOption('bereavement');
+	await page.getByTestId('servicing-generate').click();
+	await expect(page.getByTestId('servicing-authority')).toContainText('power-of-attorney');
+	await expect(
+		page.getByTestId('servicing-hidden').getByTestId('desk-truth-verdict')
+	).toBeAttached();
+	await expect(page.getByTestId('servicing-decks').locator('tbody tr')).toHaveCount(10);
+	await expect(page.getByTestId('servicing-cards').locator('li')).toHaveCount(4);
+	await expect(page.getByTestId('servicing-evaluators').locator('li')).toHaveCount(4);
+	await expect(page.locator('[data-testid^="servicing-map-node-service-line-"]')).toHaveCount(1);
+});

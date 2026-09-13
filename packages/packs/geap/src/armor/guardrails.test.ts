@@ -146,9 +146,12 @@ describe('verdictFor — a fired filter at pre-act, every screenDecision dial', 
 			'pre-act',
 			config({ screenDecision: 'note' })
 		);
+		// A note is an `annotate` since WP96: allowed, the finding on the verdict.
 		expect(verdict).toEqual({
 			allow: true,
-			note: expect.stringContaining('sneaky instruction') as unknown as string
+			verdictKind: 'annotate',
+			note: expect.stringContaining('sneaky instruction') as unknown as string,
+			finding: { category: 'injection', label: 'injection', confidence: 'high' }
 		});
 	});
 

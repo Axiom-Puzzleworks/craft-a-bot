@@ -1,4 +1,13 @@
 <script lang="ts">
+	import {
+		CONTENT_SCHEMA_VERSION,
+		controlReviewSlug,
+		controlReviewSchema,
+		localContentId,
+		type ControlReview,
+		type ControlReviewStatus
+	} from '@craftabot/core';
+	import { contentStore } from '$lib/state/content.svelte.js';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
@@ -16,8 +25,10 @@
 		driftIn,
 		incidentsFromSummaries,
 		safetyCaseFromSummaries,
-		telemetrySeries
+		telemetrySeries,
+		coverageSummary
 	} from '@craftabot/governance/reports';
+	import { GUARDRAIL_CATALOGUE } from '@craftabot/governance';
 	import Lamp from '$lib/components/control-room/Lamp.svelte';
 	import { ensureRunSummaries } from '$lib/state/run-summaries.js';
 	import {
@@ -29,6 +40,8 @@
 		type AssurancePack
 	} from '@craftabot/governance/reports';
 	import CaseTable from '$lib/components/control-room/CaseTable.svelte';
+	import JourneyCanvas from '$lib/components/control-room/JourneyCanvas.svelte';
+	import { journeyLayout, renderJourneySvg } from '@craftabot/workflow';
 	import Readout from '$lib/components/control-room/Readout.svelte';
 	import Strip from '$lib/components/control-room/Strip.svelte';
 	import { createRegistry } from '$lib/packs.js';
@@ -47,6 +60,17 @@
 	 * the head and the foot of every rendering, including this one.
 	 */
 	const registry = createRegistry();
+	/** WP100 (`87-JOURNEY-CANVAS.md` §7): every journey laid out once; the fold keeps the bot's world's. */
+	const journeys = registry.listWorkflows().map((workflow) => {
+		const layout = journeyLayout(workflow, undefined, undefined, { registry });
+		return {
+			workflowId: workflow.id,
+			worldId: workflow.worldId,
+			name: workflow.name,
+			layout,
+			svg: renderJourneySvg(layout)
+		};
+	});
 
 	let agents = $state<AgentRecord[]>([]);
 	let selectedId = $state('');
@@ -115,6 +139,8 @@
 	 */
 	let experimentResults = $state.raw<ExperimentResult[]>([]);
 	const register = $derived(controlEffectiveness(experimentResults, registry.listControlMaps()));
+	// WP98 (`86-…` §7): the catalogue's coverage beneath the register — the counts, and what is not claimed.
+	const coverage = coverageSummary(GUARDRAIL_CATALOGUE);
 	const registerColumns = [
 		{ id: 'control', label: 'Control', kind: 'text' as const },
 		{ id: 'obligation', label: 'Obligation', kind: 'text' as const },
@@ -202,7 +228,7 @@
 			return;
 		}
 		missing = false;
-		pack = await assurancePackFromStorage(id, storage, registry, { parseReport });
+		pack = await assurancePackFromStorage(id, storage, registry, { parseReport, journeys });
 	}
 
 	function download(text: string, filename: string, type: string): void {
@@ -242,8 +268,30 @@
 		{ id: 'ref', label: 'Ref', kind: 'text' as const },
 		{ id: 'obligation', label: 'Obligation', kind: 'text' as const },
 		{ id: 'evidence', label: 'Evidence (presence)', kind: 'text' as const },
-		{ id: 'status', label: 'Status', kind: 'text' as const }
+		{ id: 'status', label: 'Status', kind: 'text' as const },
+		{ id: 'review', label: 'Review', kind: 'text' as const }
 	];
+	/**
+	 * WP110 (`97-ACCESS.md` §1, decision 4; GAP-1): a reader's review of a row is
+	 * content — saved beside the pack's row under the reader's name, never an
+	 * edit to the pack. The table shows it; the pack files it; the form below
+	 * writes it.
+	 */
+	const reviews = $derived(
+		new Map(
+			contentStore
+				.of('control-review')
+				.flatMap((entry) => {
+					const parsed = controlReviewSchema.safeParse(entry.record);
+					return parsed.success ? [parsed.data] : [];
+				})
+				.map((review) => [`${review.mapId}/${review.ref}`, review])
+		)
+	);
+	const reviewWord = (review: ControlReview | undefined): string =>
+		review
+			? `${review.status} by ${review.by} (${review.reviewedAt.slice(0, 10)})${review.note ? ` — ${review.note}` : ''}`
+			: '—';
 	const controlRows = $derived(
 		(pack?.controlMaps ?? []).flatMap((map) =>
 			map.rows.map((row) => ({
@@ -257,11 +305,46 @@
 						row.status === 'pending'
 							? `pending — ${row.note ?? ''}`
 							: row.evidence.map((item) => `${item.id} (${item.presence})`).join('; '),
-					status: row.status ?? 'reviewed'
+					status: row.status ?? 'reviewed',
+					review: reviewWord(reviews.get(`${map.id}/${row.ref}`))
 				}
 			}))
 		)
 	);
+	let reviewTarget = $state('');
+	let reviewStatus = $state<ControlReviewStatus>('reviewed');
+	let reviewNote = $state('');
+	let reviewSaved = $state('');
+	async function saveReview(): Promise<void> {
+		const [mapId, ref] = [
+			reviewTarget.slice(0, reviewTarget.lastIndexOf('/')),
+			reviewTarget.slice(reviewTarget.lastIndexOf('/') + 1)
+		];
+		if (!mapId || !ref) return;
+		const id = localContentId('control-review', controlReviewSlug(mapId, ref));
+		const review: ControlReview = {
+			id,
+			mapId,
+			ref,
+			status: reviewStatus,
+			by: preferences.displayName.trim() || 'the reader',
+			note: reviewNote.trim(),
+			reviewedAt: new Date().toISOString(),
+			schemaVersion: 1
+		};
+		await contentStore.save({
+			id,
+			kind: 'control-review',
+			title: `${mapId} ${ref}: ${reviewStatus}`,
+			record: review,
+			savedAt: review.reviewedAt,
+			schemaVersion: CONTENT_SCHEMA_VERSION
+		});
+		reviewSaved = `${ref} ${reviewStatus}.`;
+		reviewNote = '';
+		// The pack files the review beside the row: rebuild it.
+		if (selectedId) await loadPack(selectedId);
+	}
 	const evaluationColumns = [
 		{ id: 'evaluator', label: 'Evaluator', kind: 'text' as const },
 		{ id: 'pass', label: 'Pass', kind: 'text' as const },
@@ -379,6 +462,24 @@
 		/>
 	</section>
 
+	<section aria-labelledby="coverage-h" data-testid="assurance-coverage">
+		<h2 id="coverage-h">Coverage</h2>
+		<p class="status" data-testid="assurance-coverage-note">
+			The Guardrail Catalogue, edition {coverage.edition}: {coverage.byStatus.shipped} shipped, {coverage
+				.byStatus.connectable} connectable, {coverage.byStatus.bespoke} bespoke, {coverage.byStatus
+				.blueprint} blueprint, {coverage.byStatus['not-applicable']} not applicable — {coverage.pending}
+			of
+			{coverage.entries} pending review.
+			<a href={resolve('/workshop/catalogue')} data-testid="assurance-open-catalogue"
+				>Open the catalogue</a
+			>.
+		</p>
+		<ul class="not-claimed" data-testid="assurance-not-claimed">
+			<li><strong>Blueprint only:</strong> {coverage.blueprint.join('; ')}.</li>
+			<li><strong>Not applicable to a simulator:</strong> {coverage.notApplicable.join('; ')}.</li>
+		</ul>
+	</section>
+
 	{#if storedReports.length >= 2}
 		<section class="compare" aria-labelledby="compare-h" data-testid="assurance-compare">
 			<h2 id="compare-h">Compare two reports</h2>
@@ -467,10 +568,11 @@
 					value={pack.development.campaigns.length}
 					testId="assurance-campaigns"
 				/>
+				<!-- Its own id: the entry strip above already carries `assurance-entry-incidents`, and two of one id is a strict-mode violation the lenses e2e trips over. -->
 				<Readout
 					label="Incidents"
 					value={pack.monitoring.incidents.length}
-					testId="assurance-entry-incidents"
+					testId="assurance-pack-incidents"
 				/>
 			</Strip>
 			<p class="meta mono" data-testid="assurance-digest">digest {pack.digest}</p>
@@ -538,6 +640,25 @@
 
 		<section aria-labelledby="development-h">
 			<h2 id="development-h">3. Development, implementation and use — the campaigns</h2>
+			{#each pack.development.journeys ?? [] as journey (journey.workflowId)}
+				<h3>The {journey.name} journey</h3>
+				<JourneyCanvas
+					layout={journey.layout}
+					testId="assurance-journey-{journey.workflowId.replace('/', '-')}"
+				/>
+				<ul
+					class="points"
+					data-testid="assurance-journey-points-{journey.workflowId.replace('/', '-')}"
+				>
+					{#each journey.layout.points as point (point.id)}
+						<li>
+							<code>{point.id}</code> — {point.components.length === 0
+								? 'nothing fitted'
+								: point.components.join(', ')}
+						</li>
+					{/each}
+				</ul>
+			{/each}
 			{#if pack.development.note}
 				<p class="status" data-testid="assurance-no-campaigns">{pack.development.note}</p>
 			{:else}
@@ -611,6 +732,39 @@
 		<section aria-labelledby="map-h">
 			<h2 id="map-h">8. The control map</h2>
 			<CaseTable columns={rowColumns} rows={controlRows} testId="assurance-control-table" />
+			<form
+				class="review"
+				aria-label="Review a row"
+				data-testid="assurance-review"
+				onsubmit={(event) => {
+					event.preventDefault();
+					void saveReview();
+				}}
+			>
+				<label class="field">
+					<span>Row</span>
+					<select bind:value={reviewTarget} data-testid="assurance-review-row" required>
+						<option value="">choose a row…</option>
+						{#each controlRows as row (row.id)}
+							<option value={row.id}>{row.cells.map} · {row.cells.ref}</option>
+						{/each}
+					</select>
+				</label>
+				<label class="field">
+					<span>Verdict</span>
+					<select bind:value={reviewStatus} data-testid="assurance-review-status">
+						<option value="reviewed">reviewed — the row is relevant as claimed</option>
+						<option value="disputed">disputed — the row's claim is questioned</option>
+					</select>
+				</label>
+				<label class="field">
+					<span>Note</span>
+					<input type="text" bind:value={reviewNote} data-testid="assurance-review-note" />
+				</label>
+				<button type="submit" data-testid="assurance-review-save">Record the review</button>
+				{#if reviewSaved}<span class="hint" data-testid="assurance-review-saved">{reviewSaved}</span
+					>{/if}
+			</form>
 		</section>
 
 		<p class="posture">{pack.posture}</p>

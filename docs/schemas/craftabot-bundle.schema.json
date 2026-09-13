@@ -1584,6 +1584,39 @@
 														"principal",
 														"guardrailsPassed"
 													]
+												},
+												"redacted": {
+													"type": "object",
+													"properties": {
+														"guardrailId": {
+															"type": "string"
+														},
+														"finding": {
+															"type": "object",
+															"properties": {
+																"category": {
+																	"type": "string"
+																},
+																"label": {
+																	"type": "string"
+																},
+																"confidence": {
+																	"type": "string",
+																	"enum": [
+																		"low",
+																		"medium",
+																		"high"
+																	]
+																}
+															},
+															"required": [
+																"category"
+															]
+														}
+													},
+													"required": [
+														"guardrailId"
+													]
 												}
 											},
 											"required": [
@@ -1945,6 +1978,38 @@
 																},
 																"note": {
 																	"type": "string"
+																},
+																"verdictKind": {
+																	"type": "string",
+																	"enum": [
+																		"redact",
+																		"annotate"
+																	]
+																},
+																"finding": {
+																	"type": "object",
+																	"properties": {
+																		"category": {
+																			"type": "string"
+																		},
+																		"label": {
+																			"type": "string"
+																		},
+																		"confidence": {
+																			"type": "string",
+																			"enum": [
+																				"low",
+																				"medium",
+																				"high"
+																			]
+																		}
+																	},
+																	"required": [
+																		"category"
+																	]
+																},
+																"redactedText": {
+																	"type": "string"
 																}
 															},
 															"required": [
@@ -2001,6 +2066,32 @@
 												},
 												"policyCardId": {
 													"type": "string"
+												},
+												"componentId": {
+													"type": "string"
+												},
+												"point": {
+													"type": "object",
+													"properties": {
+														"kind": {
+															"type": "string",
+															"enum": [
+																"pre-think",
+																"pre-act",
+																"post-act",
+																"stage-in",
+																"stage-out",
+																"group",
+																"egress"
+															]
+														},
+														"at": {
+															"type": "string"
+														}
+													},
+													"required": [
+														"kind"
+													]
 												}
 											},
 											"required": [
@@ -2088,6 +2179,32 @@
 												},
 												"policyCardId": {
 													"type": "string"
+												},
+												"componentId": {
+													"type": "string"
+												},
+												"point": {
+													"type": "object",
+													"properties": {
+														"kind": {
+															"type": "string",
+															"enum": [
+																"pre-think",
+																"pre-act",
+																"post-act",
+																"stage-in",
+																"stage-out",
+																"group",
+																"egress"
+															]
+														},
+														"at": {
+															"type": "string"
+														}
+													},
+													"required": [
+														"kind"
+													]
 												}
 											},
 											"required": [
@@ -2873,6 +2990,53 @@
 															"type": "integer",
 															"minimum": 0,
 															"maximum": 9007199254740991
+														},
+														"verdicts": {
+															"type": "array",
+															"items": {
+																"type": "object",
+																"properties": {
+																	"guardrailId": {
+																		"type": "string",
+																		"minLength": 1
+																	},
+																	"point": {
+																		"type": "string",
+																		"enum": [
+																			"stage-in",
+																			"stage-out"
+																		]
+																	},
+																	"verdict": {
+																		"type": "string",
+																		"enum": [
+																			"allow",
+																			"block-action",
+																			"stop-run",
+																			"pause",
+																			"redact",
+																			"annotate"
+																		]
+																	},
+																	"componentId": {
+																		"type": "string"
+																	},
+																	"policyCardId": {
+																		"type": "string"
+																	},
+																	"reason": {
+																		"type": "string"
+																	},
+																	"approved": {
+																		"type": "boolean"
+																	}
+																},
+																"required": [
+																	"guardrailId",
+																	"point",
+																	"verdict"
+																]
+															}
 														}
 													},
 													"required": [
@@ -4269,6 +4433,39 @@
 													"principal",
 													"guardrailsPassed"
 												]
+											},
+											"redacted": {
+												"type": "object",
+												"properties": {
+													"guardrailId": {
+														"type": "string"
+													},
+													"finding": {
+														"type": "object",
+														"properties": {
+															"category": {
+																"type": "string"
+															},
+															"label": {
+																"type": "string"
+															},
+															"confidence": {
+																"type": "string",
+																"enum": [
+																	"low",
+																	"medium",
+																	"high"
+																]
+															}
+														},
+														"required": [
+															"category"
+														]
+													}
+												},
+												"required": [
+													"guardrailId"
+												]
 											}
 										},
 										"required": [
@@ -4630,6 +4827,38 @@
 															},
 															"note": {
 																"type": "string"
+															},
+															"verdictKind": {
+																"type": "string",
+																"enum": [
+																	"redact",
+																	"annotate"
+																]
+															},
+															"finding": {
+																"type": "object",
+																"properties": {
+																	"category": {
+																		"type": "string"
+																	},
+																	"label": {
+																		"type": "string"
+																	},
+																	"confidence": {
+																		"type": "string",
+																		"enum": [
+																			"low",
+																			"medium",
+																			"high"
+																		]
+																	}
+																},
+																"required": [
+																	"category"
+																]
+															},
+															"redactedText": {
+																"type": "string"
 															}
 														},
 														"required": [
@@ -4686,6 +4915,32 @@
 											},
 											"policyCardId": {
 												"type": "string"
+											},
+											"componentId": {
+												"type": "string"
+											},
+											"point": {
+												"type": "object",
+												"properties": {
+													"kind": {
+														"type": "string",
+														"enum": [
+															"pre-think",
+															"pre-act",
+															"post-act",
+															"stage-in",
+															"stage-out",
+															"group",
+															"egress"
+														]
+													},
+													"at": {
+														"type": "string"
+													}
+												},
+												"required": [
+													"kind"
+												]
 											}
 										},
 										"required": [
@@ -4773,6 +5028,32 @@
 											},
 											"policyCardId": {
 												"type": "string"
+											},
+											"componentId": {
+												"type": "string"
+											},
+											"point": {
+												"type": "object",
+												"properties": {
+													"kind": {
+														"type": "string",
+														"enum": [
+															"pre-think",
+															"pre-act",
+															"post-act",
+															"stage-in",
+															"stage-out",
+															"group",
+															"egress"
+														]
+													},
+													"at": {
+														"type": "string"
+													}
+												},
+												"required": [
+													"kind"
+												]
 											}
 										},
 										"required": [
@@ -5558,6 +5839,53 @@
 														"type": "integer",
 														"minimum": 0,
 														"maximum": 9007199254740991
+													},
+													"verdicts": {
+														"type": "array",
+														"items": {
+															"type": "object",
+															"properties": {
+																"guardrailId": {
+																	"type": "string",
+																	"minLength": 1
+																},
+																"point": {
+																	"type": "string",
+																	"enum": [
+																		"stage-in",
+																		"stage-out"
+																	]
+																},
+																"verdict": {
+																	"type": "string",
+																	"enum": [
+																		"allow",
+																		"block-action",
+																		"stop-run",
+																		"pause",
+																		"redact",
+																		"annotate"
+																	]
+																},
+																"componentId": {
+																	"type": "string"
+																},
+																"policyCardId": {
+																	"type": "string"
+																},
+																"reason": {
+																	"type": "string"
+																},
+																"approved": {
+																	"type": "boolean"
+																}
+															},
+															"required": [
+																"guardrailId",
+																"point",
+																"verdict"
+															]
+														}
 													}
 												},
 												"required": [

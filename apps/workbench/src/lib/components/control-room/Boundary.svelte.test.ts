@@ -88,7 +88,7 @@ describe('Boundary', () => {
 
 	it('says the whole map in a sentence and lists every edge for a reader', () => {
 		render(Boundary, { map });
-		const label = screen.getByRole('img').getAttribute('aria-label') ?? '';
+		const label = screen.getByRole('group').getAttribute('aria-label') ?? '';
 		expect(label).toContain('Analyst bot at the centre');
 		expect(label).toContain('1 safety brick');
 		expect(label).toContain('set to declared with 2 hosts');
@@ -108,7 +108,7 @@ describe('Boundary', () => {
 			screen.getByTestId('boundary-edge-guard-service:geap/model-armor').getAttribute('data-lit')
 		).toBe('true');
 		expect(screen.getByTestId('boundary-edge-human').getAttribute('data-lit')).toBe('false');
-		expect(screen.getByRole('img').getAttribute('aria-label')).toContain(
+		expect(screen.getByRole('group').getAttribute('aria-label')).toContain(
 			'At turn 1, lit: provider, guard-service:geap/model-armor'
 		);
 		unmount();

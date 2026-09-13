@@ -36,8 +36,9 @@ export type RailId =
 	| 'incidents'
 	| 'safety-case'
 	| 'assurance'
+	| 'catalogue'
 	| 'export'
-	| 'guards';
+	| 'studio';
 
 export interface RailGroup {
 	group: string;
@@ -87,7 +88,10 @@ export const VOCABULARY_TERMS = [
 	'incident',
 	'drift',
 	'workflow',
-	'bot'
+	'bot',
+	// WP101 (`88-STUDIO.md` §7): a guardrail component, a control to the assurance reader.
+	'component',
+	'components'
 ] as const;
 export type VocabularyTerm = (typeof VOCABULARY_TERMS)[number];
 
@@ -113,8 +117,9 @@ const EVERYTHING: RailId[] = [
 	'incidents',
 	'safety-case',
 	'assurance',
+	'catalogue',
 	'export',
-	'guards'
+	'studio'
 ];
 
 const rest = (...taken: RailId[][]): RailId[] => {
@@ -124,6 +129,8 @@ const rest = (...taken: RailId[][]): RailId[] => {
 
 const ASSURANCE_FIRST: RailId[] = [
 	'assurance',
+	// WP98 (`86-…` §7): the catalogue beside the register — what the product has, and what it does not claim.
+	'catalogue',
 	'experiments',
 	'safety-case',
 	'incidents',
@@ -132,7 +139,7 @@ const ASSURANCE_FIRST: RailId[] = [
 const ASSURANCE_EVIDENCE: RailId[] = ['campaigns', 'workflows', 'evidence'];
 const BANK: RailId[] = ['playground', 'monitor'];
 const CONDUCT_FIRST: RailId[] = ['conduct', 'incidents', 'playground', 'workflows', 'campaigns'];
-const CONDUCT_RULES: RailId[] = ['policies', 'evaluators', 'scenarios', 'guards'];
+const CONDUCT_RULES: RailId[] = ['policies', 'evaluators', 'scenarios', 'studio'];
 const MODEL_RISK_FIRST: RailId[] = [
 	'model-risk',
 	'experiments',
@@ -183,7 +190,10 @@ export const LENSES: readonly Lens[] = [
 			campaign: 'trial',
 			campaigns: 'trials',
 			evaluator: 'check',
-			bot: 'system'
+			bot: 'system',
+			// WP101: a guardrail component is a control to the assurance reader.
+			component: 'control',
+			components: 'controls'
 		},
 		firstRun: [
 			{
@@ -312,8 +322,11 @@ export const RAIL_LABELS: Record<RailId, string> = {
 	incidents: 'Incidents',
 	'safety-case': 'Safety case',
 	assurance: 'Assurance',
+
+	catalogue: 'Catalogue',
 	export: 'Audit',
-	guards: 'Guards'
+	// WP101 (`88-STUDIO.md` §7): the Studio, with the Guard Rack as its Connections tab.
+	studio: 'Studio'
 };
 
 /** The rail label a lens shows for a destination: `campaigns` reads *Experiments* to the board, *Campaigns* to the engineer. */
@@ -327,3 +340,39 @@ export function railLabel(lens: Lens, id: RailId): string {
 	}
 	return RAIL_LABELS[id];
 }
+
+/** Where each rail destination lives (WP109 moved it here from the rail so the palette lists the same routes). The Spec Lab has none: it is always about a particular bot. */
+export const RAIL_HREF: Partial<Record<RailId, string>> = {
+	dashboard: '/workshop',
+	runs: '/workshop/runs',
+	evals: '/workshop/evals',
+	campaigns: '/workshop/campaigns',
+	workflows: '/workshop/workflows',
+	evaluators: '/workshop/evaluators',
+	scenarios: '/workshop/scenarios',
+	sinks: '/workshop/sinks',
+	evidence: '/workshop/evidence',
+	playground: '/workshop/playground',
+	policies: '/workshop/policies',
+	bench: '/workshop/bench',
+	telemetry: '/workshop/telemetry',
+	monitor: '/workshop/monitor',
+	conduct: '/workshop/conduct',
+	'model-risk': '/workshop/model-risk',
+	experiments: '/workshop/experiments',
+	incidents: '/workshop/incidents',
+	'safety-case': '/workshop/safety-case',
+	assurance: '/workshop/assurance',
+	catalogue: '/workshop/catalogue',
+	export: '/workshop/export',
+	studio: '/workshop/studio'
+};
+
+/** Density (WP109, `96-CONTROL-ROOM-V3.md` §2.3): `dense` is the analyst's default, `comfortable` the board's. */
+export type Density = 'comfortable' | 'dense';
+export const DEFAULT_DENSITY: Record<LensId, Density> = {
+	engineer: 'dense',
+	'model-risk': 'dense',
+	assurance: 'comfortable',
+	conduct: 'comfortable'
+};

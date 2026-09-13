@@ -1,0 +1,333 @@
+{
+	"schemaVersion": 1,
+	"workflowId": "fs-onboarding/onboarding",
+	"name": "The onboarding journey",
+	"lanes": [
+		{
+			"id": "assistant",
+			"label": "the assistant"
+		},
+		{
+			"id": "colleague",
+			"label": "a colleague"
+		},
+		{
+			"id": "rules",
+			"label": "the rules"
+		}
+	],
+	"nodes": [
+		{
+			"stageId": "application",
+			"name": "Application",
+			"lane": "rules",
+			"x": 0,
+			"y": 2,
+			"executor": "rule",
+			"irreversible": false,
+			"obligations": [],
+			"guards": []
+		},
+		{
+			"stageId": "identity",
+			"name": "Identity",
+			"lane": "assistant",
+			"x": 1,
+			"y": 0,
+			"executor": "agent",
+			"irreversible": false,
+			"obligations": [
+				"mlr:kyc"
+			],
+			"guards": [
+				"loop:identity:pre-think",
+				"loop:identity:pre-act",
+				"loop:identity:post-act"
+			]
+		},
+		{
+			"stageId": "screening",
+			"name": "Screening",
+			"lane": "assistant",
+			"x": 2,
+			"y": 0,
+			"executor": "agent",
+			"irreversible": false,
+			"obligations": [
+				"mlr:screening",
+				"poca:tipping-off"
+			],
+			"guards": [
+				"loop:screening:pre-think",
+				"loop:screening:pre-act",
+				"loop:screening:post-act"
+			]
+		},
+		{
+			"stageId": "decision",
+			"name": "Decision",
+			"lane": "assistant",
+			"x": 3,
+			"y": 0,
+			"executor": "agent",
+			"irreversible": false,
+			"obligations": [
+				"mlr:screening",
+				"poca:tipping-off"
+			],
+			"guards": [
+				"loop:decision:pre-think",
+				"loop:decision:pre-act",
+				"loop:decision:post-act"
+			]
+		},
+		{
+			"stageId": "risk-rating",
+			"name": "Risk rating",
+			"lane": "rules",
+			"x": 4,
+			"y": 2,
+			"executor": "rule",
+			"irreversible": false,
+			"obligations": [
+				"mlr:kyc"
+			],
+			"guards": []
+		},
+		{
+			"stageId": "record",
+			"name": "Decision recorded",
+			"lane": "rules",
+			"x": 5,
+			"y": 2,
+			"executor": "rule",
+			"irreversible": false,
+			"obligations": [],
+			"guards": []
+		},
+		{
+			"stageId": "confirm",
+			"name": "Four eyes",
+			"lane": "colleague",
+			"x": 6,
+			"y": 1,
+			"executor": "human",
+			"irreversible": false,
+			"obligations": [
+				"pra:ss1-23:mitigants"
+			],
+			"guards": []
+		},
+		{
+			"stageId": "open",
+			"name": "Account open",
+			"lane": "assistant",
+			"x": 7,
+			"y": 0,
+			"executor": "agent",
+			"irreversible": true,
+			"obligations": [
+				"mlr:kyc",
+				"pra:ss1-23:mitigants"
+			],
+			"guards": [
+				"loop:open:pre-think",
+				"loop:open:pre-act",
+				"loop:open:post-act"
+			]
+		},
+		{
+			"stageId": "welcome",
+			"name": "Welcome",
+			"lane": "assistant",
+			"x": 8,
+			"y": 0,
+			"executor": "agent",
+			"irreversible": false,
+			"obligations": [
+				"fca:cd:understanding",
+				"poca:tipping-off"
+			],
+			"guards": [
+				"loop:welcome:pre-think",
+				"loop:welcome:pre-act",
+				"loop:welcome:post-act"
+			]
+		}
+	],
+	"edges": [
+		{
+			"id": "application->identity",
+			"from": "application",
+			"to": "identity",
+			"label": "",
+			"kind": "enumerated"
+		},
+		{
+			"id": "identity->screening",
+			"from": "identity",
+			"to": "screening",
+			"label": "true",
+			"kind": "enumerated"
+		},
+		{
+			"id": "identity->decision",
+			"from": "identity",
+			"to": "decision",
+			"label": "false",
+			"kind": "enumerated"
+		},
+		{
+			"id": "screening->risk-rating",
+			"from": "screening",
+			"to": "risk-rating",
+			"label": "clear / match",
+			"kind": "enumerated"
+		},
+		{
+			"id": "decision->record",
+			"from": "decision",
+			"to": "record",
+			"label": "approve / decline / refer",
+			"kind": "enumerated"
+		},
+		{
+			"id": "risk-rating->decision",
+			"from": "risk-rating",
+			"to": "decision",
+			"label": "low / medium / high",
+			"kind": "enumerated"
+		},
+		{
+			"id": "record->confirm",
+			"from": "record",
+			"to": "confirm",
+			"label": "depends on the case",
+			"kind": "case"
+		},
+		{
+			"id": "confirm->open",
+			"from": "confirm",
+			"to": "open",
+			"label": "confirm",
+			"kind": "enumerated"
+		},
+		{
+			"id": "confirm->end",
+			"from": "confirm",
+			"to": {
+				"end": true
+			},
+			"label": "return",
+			"kind": "enumerated"
+		},
+		{
+			"id": "open->welcome",
+			"from": "open",
+			"to": "welcome",
+			"label": "",
+			"kind": "enumerated"
+		},
+		{
+			"id": "welcome->end",
+			"from": "welcome",
+			"to": {
+				"end": true
+			},
+			"label": "",
+			"kind": "enumerated"
+		}
+	],
+	"points": [
+		{
+			"id": "loop:identity:pre-think",
+			"kind": "pre-think",
+			"at": "identity",
+			"components": []
+		},
+		{
+			"id": "loop:identity:pre-act",
+			"kind": "pre-act",
+			"at": "identity",
+			"components": []
+		},
+		{
+			"id": "loop:identity:post-act",
+			"kind": "post-act",
+			"at": "identity",
+			"components": []
+		},
+		{
+			"id": "loop:screening:pre-think",
+			"kind": "pre-think",
+			"at": "screening",
+			"components": []
+		},
+		{
+			"id": "loop:screening:pre-act",
+			"kind": "pre-act",
+			"at": "screening",
+			"components": []
+		},
+		{
+			"id": "loop:screening:post-act",
+			"kind": "post-act",
+			"at": "screening",
+			"components": []
+		},
+		{
+			"id": "loop:decision:pre-think",
+			"kind": "pre-think",
+			"at": "decision",
+			"components": []
+		},
+		{
+			"id": "loop:decision:pre-act",
+			"kind": "pre-act",
+			"at": "decision",
+			"components": []
+		},
+		{
+			"id": "loop:decision:post-act",
+			"kind": "post-act",
+			"at": "decision",
+			"components": []
+		},
+		{
+			"id": "loop:open:pre-think",
+			"kind": "pre-think",
+			"at": "open",
+			"components": []
+		},
+		{
+			"id": "loop:open:pre-act",
+			"kind": "pre-act",
+			"at": "open",
+			"components": []
+		},
+		{
+			"id": "loop:open:post-act",
+			"kind": "post-act",
+			"at": "open",
+			"components": []
+		},
+		{
+			"id": "loop:welcome:pre-think",
+			"kind": "pre-think",
+			"at": "welcome",
+			"components": []
+		},
+		{
+			"id": "loop:welcome:pre-act",
+			"kind": "pre-act",
+			"at": "welcome",
+			"components": []
+		},
+		{
+			"id": "loop:welcome:post-act",
+			"kind": "post-act",
+			"at": "welcome",
+			"components": []
+		}
+	]
+}

@@ -48,13 +48,15 @@ create table if not exists public.evidence_bank_runs (like public.evidence_bundl
 -- WP89 (72-EXPERIMENTS.md §4): an experiment's design and its result.
 create table if not exists public.evidence_experiments (like public.evidence_bundles including all);
 create table if not exists public.evidence_experiment_results (like public.evidence_bundles including all);
+-- WP97 (89-STACKS.md §6): a stack, with its digest.
+create table if not exists public.evidence_stacks (like public.evidence_bundles including all);
 
 -- Row-level security: a token sees and writes the rows of its own workspace
 -- and nothing else. The workspace is a claim in the token (§2).
 do $$
 declare t text;
 begin
-  foreach t in array array['evidence_bundles','evidence_campaign_reports','evidence_assurance_packs','evidence_content','evidence_workflow_runs','evidence_bank_runs','evidence_experiments','evidence_experiment_results'] loop
+  foreach t in array array['evidence_bundles','evidence_campaign_reports','evidence_assurance_packs','evidence_content','evidence_workflow_runs','evidence_bank_runs','evidence_experiments','evidence_experiment_results','evidence_stacks'] loop
     execute format('alter table public.%I enable row level security', t);
     execute format('drop policy if exists workspace_rows on public.%I', t);
     execute format($p$

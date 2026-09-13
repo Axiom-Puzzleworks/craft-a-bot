@@ -9,12 +9,18 @@ import {
 } from '@craftabot/core';
 import anthropicPack from '@craftabot/pack-anthropic';
 import azureContentSafetyPack from '@craftabot/pack-azure-content-safety';
+import bedrockGuardrailsPack from '@craftabot/pack-bedrock-guardrails';
+import lakeraGuardPack from '@craftabot/pack-lakera-guard';
 import evaluatorsPack from '@craftabot/pack-evaluators';
 import { evidencePack } from '@craftabot/evidence';
 import fsAdvicePack from '@craftabot/pack-fs-advice';
 import fsBankPack from '@craftabot/pack-fs-bank';
 import fsFraudPack from '@craftabot/pack-fs-fraud';
 import fsLendingPack from '@craftabot/pack-fs-lending';
+import fsOnboardingPack from '@craftabot/pack-fs-onboarding';
+import fsDisputesPack from '@craftabot/pack-fs-disputes';
+import fsCollectionsPack from '@craftabot/pack-fs-collections';
+import fsServicingPack from '@craftabot/pack-fs-servicing';
 import { GENERIC_CONTROL_MAP_MANIFEST } from '@craftabot/governance/reports';
 import geapPack from '@craftabot/pack-geap';
 import guardLocalPack from '@craftabot/pack-guard-local';
@@ -61,12 +67,23 @@ export function defaultPacks(): PackManifest[] {
 		geapPack,
 		guardLocalPack,
 		azureContentSafetyPack,
+		// WP99 (`30-…`'s dated note): the two harness-only connections — SigV4 and a bearer token the browser must not hold.
+		bedrockGuardrailsPack,
+		lakeraGuardPack,
 		pdpOpaPack,
 		evaluatorsPack,
 		fsBankPack,
 		fsAdvicePack,
 		fsFraudPack,
 		fsLendingPack,
+		// WP103: the fourth desk.
+		fsOnboardingPack,
+		// WP104: the fifth desk.
+		fsDisputesPack,
+		// WP105: the sixth desk.
+		fsCollectionsPack,
+		// WP106: the seventh desk.
+		fsServicingPack,
 		evidencePack,
 		// WP67 (`53-…` §4.1): the generic control map under governance's synthetic manifest.
 		GENERIC_CONTROL_MAP_MANIFEST as unknown as PackManifest

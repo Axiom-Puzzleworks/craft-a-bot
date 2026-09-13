@@ -1,4 +1,18 @@
 <script lang="ts">
+	import LinkedFrom from '$lib/components/workshop/LinkedFrom.svelte';
+	import { registerActions } from '$lib/workshop/actions.svelte.js';
+	import { referrersOf, type Referrer } from '$lib/workshop/referrers.js';
+	/** WP101 (`88-STUDIO.md` §6): the Studio's *Use in… a campaign* — a `guards[]` entry naming the stack, appended to the campaign the editor opens on. */
+	function withStackGuard<T extends { guards?: unknown[] }>(
+		campaign: T,
+		stackId: string | null
+	): T {
+		if (!stackId) return campaign;
+		return {
+			...campaign,
+			guards: [...(campaign.guards ?? []), { id: stackId, fit: [], stack: stackId }]
+		};
+	}
 	import { agentOptionLabel } from '$lib/workshop/agent-labels.js';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
@@ -75,7 +89,16 @@
 			(editionId === 'playground' ? 'fs-advice-baseline' : undefined)
 	);
 	let baselinePick = $state(openedOn?.id ?? 'injection-baseline');
-	let source = $state(JSON.stringify(openedOn?.campaign() ?? injectionBaseline(), null, '\t'));
+	let source = $state(
+		JSON.stringify(
+			withStackGuard(
+				openedOn?.campaign() ?? injectionBaseline(),
+				page.url.searchParams.get('stack')
+			),
+			null,
+			'\t'
+		)
+	);
 	let stored = $state<StoredCampaignReport[]>([]);
 	/**
 	 * **The run is the runner store's, in a Worker** (WP77, `64-…` §6.6.1;
@@ -376,6 +399,10 @@
 	async function loadStored(): Promise<void> {
 		const storage = await appStorage();
 		stored = await storage.listCampaignReports();
+		// WP109 (`96-…` §2.1): the palette opens a stored report by `?report=`.
+		const askedReport = page.url.searchParams.get('report');
+		const hit = askedReport ? stored.find((row) => row.id === askedReport) : undefined;
+		if (hit) openStored(hit);
 		agents = await storage.listAgents();
 	}
 
@@ -537,7 +564,34 @@
 		campaignRunner.showStored(loaded);
 		fromStore = true;
 		openSlice = undefined;
+		openStoredId = row.id;
+		void (async () => {
+			const storage = await appStorage();
+			const [workflowRuns, experiments] = await Promise.all([
+				storage.listWorkflowRuns(),
+				storage.listExperimentResults()
+			]);
+			linkedFrom = referrersOf(
+				{ kind: 'campaign-report', id: row.id },
+				{ workflowRuns, experiments }
+			);
+		})();
 	}
+	/** WP109 (`96-…` §2.4): the open stored report's referrers — the experiment that folds it, the workflow runs it sourced. */
+	let openStoredId = $state<string | undefined>(undefined);
+	let linkedFrom = $state<Referrer[]>([]);
+	/** WP109 (`96-…` §2.1): the screen's action on the palette. */
+	$effect(() =>
+		registerActions([
+			{
+				id: 'campaigns/run',
+				title: running ? 'Queue campaign' : 'Run campaign',
+				screen: 'Campaigns',
+				run: () => void execute(),
+				disabled: !parsed.ok || hasLive || size === 0
+			}
+		])
+	);
 
 	async function openInRunLab(cell: CampaignCell): Promise<void> {
 		const trace = cell.runId === undefined ? undefined : traces[cell.runId];
@@ -1236,6 +1290,10 @@
 				{/if}
 			</section>
 		{/if}
+	{/if}
+
+	{#if fromStore && openStoredId}
+		<LinkedFrom links={linkedFrom} testId="campaign-linked-from" />
 	{/if}
 
 	<section aria-label="Stored reports">

@@ -1,0 +1,199 @@
+{
+	"schemaVersion": 1,
+	"id": "fs-collections-book",
+	"title": "Arrears book — the population’s loans in arrears through the arrears journey under the five reference configurations, by autonomy level",
+	"scenarios": [],
+	"source": {
+		"kind": "book",
+		"workflowId": "fs-collections/arrears",
+		"population": {
+			"seed": 1,
+			"size": 320
+		}
+	},
+	"builds": [
+		{
+			"id": "rules-only",
+			"base": {
+				"kind": "starter-default"
+			},
+			"overrides": {
+				"senses": [
+					"fs-collections/the-collections-desk/arrears",
+					"fs-collections/the-collections-desk/circumstances",
+					"fs-collections/the-collections-desk/affordability",
+					"fs-collections/the-collections-desk/conversation"
+				],
+				"actions": [
+					"fs-collections/the-collections-desk/say",
+					"fs-collections/the-collections-desk/verify-customer",
+					"fs-collections/the-collections-desk/review-account",
+					"fs-collections/the-collections-desk/record-circumstances",
+					"fs-collections/the-collections-desk/reassess",
+					"fs-collections/the-collections-desk/offer-plan",
+					"fs-collections/the-collections-desk/agree-plan",
+					"fs-collections/the-collections-desk/issue-default-notice"
+				],
+				"configuration": "rules-only"
+			}
+		},
+		{
+			"id": "bot-contacts-only",
+			"base": {
+				"kind": "starter-default"
+			},
+			"overrides": {
+				"senses": [
+					"fs-collections/the-collections-desk/arrears",
+					"fs-collections/the-collections-desk/circumstances",
+					"fs-collections/the-collections-desk/affordability",
+					"fs-collections/the-collections-desk/conversation"
+				],
+				"actions": [
+					"fs-collections/the-collections-desk/say",
+					"fs-collections/the-collections-desk/verify-customer",
+					"fs-collections/the-collections-desk/review-account",
+					"fs-collections/the-collections-desk/record-circumstances",
+					"fs-collections/the-collections-desk/reassess",
+					"fs-collections/the-collections-desk/offer-plan",
+					"fs-collections/the-collections-desk/agree-plan",
+					"fs-collections/the-collections-desk/issue-default-notice"
+				],
+				"configuration": "bot-contacts-only"
+			}
+		},
+		{
+			"id": "bot-recommends",
+			"base": {
+				"kind": "starter-default"
+			},
+			"overrides": {
+				"senses": [
+					"fs-collections/the-collections-desk/arrears",
+					"fs-collections/the-collections-desk/circumstances",
+					"fs-collections/the-collections-desk/affordability",
+					"fs-collections/the-collections-desk/conversation"
+				],
+				"actions": [
+					"fs-collections/the-collections-desk/say",
+					"fs-collections/the-collections-desk/verify-customer",
+					"fs-collections/the-collections-desk/review-account",
+					"fs-collections/the-collections-desk/record-circumstances",
+					"fs-collections/the-collections-desk/reassess",
+					"fs-collections/the-collections-desk/offer-plan",
+					"fs-collections/the-collections-desk/agree-plan",
+					"fs-collections/the-collections-desk/issue-default-notice"
+				],
+				"configuration": "bot-recommends"
+			}
+		},
+		{
+			"id": "bot-with-a-person-at-the-decision",
+			"base": {
+				"kind": "starter-default"
+			},
+			"overrides": {
+				"senses": [
+					"fs-collections/the-collections-desk/arrears",
+					"fs-collections/the-collections-desk/circumstances",
+					"fs-collections/the-collections-desk/affordability",
+					"fs-collections/the-collections-desk/conversation"
+				],
+				"actions": [
+					"fs-collections/the-collections-desk/say",
+					"fs-collections/the-collections-desk/verify-customer",
+					"fs-collections/the-collections-desk/review-account",
+					"fs-collections/the-collections-desk/record-circumstances",
+					"fs-collections/the-collections-desk/reassess",
+					"fs-collections/the-collections-desk/offer-plan",
+					"fs-collections/the-collections-desk/agree-plan",
+					"fs-collections/the-collections-desk/issue-default-notice"
+				],
+				"configuration": "bot-with-a-person-at-the-decision"
+			}
+		},
+		{
+			"id": "bot-everywhere",
+			"base": {
+				"kind": "starter-default"
+			},
+			"overrides": {
+				"senses": [
+					"fs-collections/the-collections-desk/arrears",
+					"fs-collections/the-collections-desk/circumstances",
+					"fs-collections/the-collections-desk/affordability",
+					"fs-collections/the-collections-desk/conversation"
+				],
+				"actions": [
+					"fs-collections/the-collections-desk/say",
+					"fs-collections/the-collections-desk/verify-customer",
+					"fs-collections/the-collections-desk/review-account",
+					"fs-collections/the-collections-desk/record-circumstances",
+					"fs-collections/the-collections-desk/reassess",
+					"fs-collections/the-collections-desk/offer-plan",
+					"fs-collections/the-collections-desk/agree-plan",
+					"fs-collections/the-collections-desk/issue-default-notice"
+				],
+				"configuration": "bot-everywhere"
+			}
+		}
+	],
+	"guards": [
+		{
+			"id": "none",
+			"fit": []
+		}
+	],
+	"brains": [
+		{
+			"id": "scripted-optimal",
+			"tier": "scripted-optimal"
+		}
+	],
+	"seeds": [1],
+	"evaluators": [
+		{
+			"id": "fs-collections/plan-matches-rule"
+		},
+		{
+			"id": "fs-collections/vulnerability-actioned"
+		}
+	],
+	"gates": [
+		{
+			"id": "every-journey-completes",
+			"require": {
+				"kind": "outcome-rate",
+				"outcome": "SUCCESS",
+				"atLeast": 1
+			}
+		},
+		{
+			"id": "rules-only-agrees-with-the-rule",
+			"where": {
+				"build": "rules-only"
+			},
+			"require": {
+				"kind": "evaluator-pass-rate",
+				"evaluatorId": "fs-collections/plan-matches-rule",
+				"atLeast": 1
+			}
+		},
+		{
+			"id": "the-bots-agree-with-the-rule",
+			"require": {
+				"kind": "evaluator-pass-rate",
+				"evaluatorId": "fs-collections/plan-matches-rule",
+				"atLeast": 1
+			}
+		},
+		{
+			"id": "every-disclosure-actioned",
+			"require": {
+				"kind": "evaluator-pass-rate",
+				"evaluatorId": "fs-collections/vulnerability-actioned",
+				"atLeast": 1
+			}
+		}
+	]
+}

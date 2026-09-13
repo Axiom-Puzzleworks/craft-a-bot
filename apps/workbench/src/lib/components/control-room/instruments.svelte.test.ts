@@ -183,6 +183,30 @@ describe('the Desk’s three panes', () => {
 		expect(screen.getByRole('log')).not.toBeNull();
 	});
 
+	it('Transcript marks an agent line a guard redacted, and no other (WP96)', () => {
+		render(Transcript, {
+			lines: [
+				{ seq: 1, tick: 1, speaker: 'agent', speakerName: 'You', text: 'the card is [redacted]' },
+				{ seq: 2, tick: 1, speaker: 'counterpart', speakerName: '', text: 'Thanks.' },
+				{ seq: 3, tick: 2, speaker: 'agent', speakerName: 'You', text: 'Anything else?' }
+			],
+			marks: new Map([
+				[
+					1,
+					{
+						guardrailId: 'workshop/guard:decision',
+						finding: { category: 'sensitive-data', label: 'pan' }
+					}
+				]
+			])
+		});
+		expect(screen.getByTestId('desk-line-1-redacted').textContent).toContain(
+			'redacted by workshop/guard:decision · pan'
+		);
+		expect(screen.queryByTestId('desk-line-2-redacted')).toBeNull();
+		expect(screen.queryByTestId('desk-line-3-redacted')).toBeNull();
+	});
+
 	it('CaseFile keeps desk-record ids, badges classification, and shows truth only when given', () => {
 		const { unmount } = render(CaseFile, {
 			records: [
@@ -233,5 +257,49 @@ describe('Strip with an icon (WP73)', () => {
 		unmount();
 		render(Strip, { props: { label: 'Plain', children: (() => {}) as never } });
 		expect(screen.queryByTestId(/roundel-/)).toBeNull();
+	});
+});
+
+describe('Tape (WP109): the reference band', () => {
+	it('draws the interval as a region behind the hairline, inside the plot, and says so', () => {
+		const { container } = render(Tape, {
+			series: [
+				{
+					id: 'rate',
+					label: 'approval rate',
+					lane: 'guardrail',
+					points: [
+						{ x: 0, y: 0.4 },
+						{ x: 1, y: 0.6 },
+						{ x: 2, y: 0.5 }
+					]
+				}
+			],
+			reference: { y: 0.5, label: 'over the window', band: { low: 0.45, high: 0.55 } },
+			testId: 'tape-band'
+		});
+		const band = container.querySelector('rect.band');
+		const hairline = container.querySelector('line.reference');
+		expect(band).not.toBeNull();
+		expect(hairline).not.toBeNull();
+		const y = Number(band?.getAttribute('y'));
+		const height = Number(band?.getAttribute('height'));
+		const line = Number(hairline?.getAttribute('y1'));
+		expect(height).toBeGreaterThan(0);
+		expect(line).toBeGreaterThanOrEqual(y);
+		expect(line).toBeLessThanOrEqual(y + height);
+		expect(container.querySelector('svg')?.getAttribute('aria-label')).toContain(
+			'band 0.45 to 0.55'
+		);
+	});
+
+	it('draws no band without one', () => {
+		const { container } = render(Tape, {
+			series: [{ id: 'a', label: 'a', lane: 'action', points: [{ x: 0, y: 1 }] }],
+			reference: { y: 1, label: 'ref' },
+			testId: 'tape-plain'
+		});
+		expect(container.querySelector('rect.band')).toBeNull();
+		expect(container.querySelector('line.reference')).not.toBeNull();
 	});
 });

@@ -256,7 +256,10 @@ function ownProblems(
 		hasSenseChannel: (id) => registry.getSenseChannel(id) !== undefined,
 		hasCartridge: (id) => registry.getCartridge(id) !== undefined,
 		hasPolicyCard: (id) => registry.getPolicyCard(id) !== undefined,
+		hasStack: (id) => registry.getStack(id) !== undefined,
 		hasGuardrailService: (id) => registry.getGuardrailService(id) !== undefined,
+		/* istanbul ignore next -- a forwarding lambda; the Guard brick in pack-workshop is its caller */
+		guardrailServiceBrowserCapable: (id) => registry.getGuardrailService(id)?.browserCapable,
 		getServiceLine: (id) => registry.getServiceLine(id),
 		hasEvaluator: (id) =>
 			registry.getEvaluator(id) !== undefined || registry.getAssertionCard(id) !== undefined,

@@ -24,8 +24,8 @@ test('the Spec Lab draws a build’s boundary from the registry and the spec alo
 	await expect(map).toBeVisible();
 	await expect(map.getByTestId('boundary-node-provider-demo')).toBeVisible();
 	await expect(map.getByTestId('boundary-edge-world')).toHaveCount(1);
-	await expect(map.getByRole('img')).toHaveAttribute('aria-label', /room The Playroom/);
-	await expect(map.getByRole('img')).toHaveAttribute('aria-label', /not yet named/);
+	await expect(map.getByRole('group')).toHaveAttribute('aria-label', /room The Playroom/);
+	await expect(map.getByRole('group')).toHaveAttribute('aria-label', /not yet named/);
 });
 
 test('the Run Lab lights the Model Armor edge on the tick its guardrail.external fired', async ({
@@ -82,5 +82,5 @@ test('the Run Lab lights the Model Armor edge on the tick its guardrail.external
 
 	await scrubber.fill('0');
 	await expect(armour).toHaveAttribute('data-lit', 'false');
-	await expect(map.getByRole('img')).toHaveAttribute('aria-label', /set to declared/);
+	await expect(map.getByRole('group')).toHaveAttribute('aria-label', /set to declared/);
 });

@@ -364,3 +364,41 @@ describeSinkConformance(otlpHttpSink, {
 	input: { run: makeRun(), events: [thought(1), trip(1)] },
 	plantedSecret: 'planted-secret-that-nothing-should-carry'
 });
+
+describe('the component stamp on a trip (WP94, `85-…` §8)', () => {
+	it('carries the component and the point as span attributes, and nothing when the event has none', () => {
+		const solo = run();
+		const stamped = at(
+			1,
+			'guardrail.tripped',
+			{
+				guardrailId: 'workshop/guard:decision',
+				hook: 'pre-act',
+				reason: 'no',
+				disposition: 'block-action',
+				componentId: 'geap/model-armor',
+				point: { kind: 'pre-act' }
+			},
+			solo.id
+		);
+		const trace = otelTraceFor(solo, [thought(1, solo.id), stamped]);
+		const spans = trace.resourceSpans[0].scopeSpans[0].spans;
+		// The trip is an evaluation event on the chat span; its attributes carry the stamp.
+		const attributes = spans.flatMap((span) => [
+			...span.attributes,
+			...(span.events ?? []).flatMap((event) => event.attributes ?? [])
+		]);
+		const keys = attributes.map((attribute) => attribute.key);
+		expect(keys).toContain('craft_a_bot.guardrail.component');
+		expect(attributes).toContainEqual({
+			key: 'craft_a_bot.guardrail.point',
+			value: { stringValue: 'pre-act' }
+		});
+		const bare = otelTraceFor(solo, [thought(1, solo.id), trip(1, solo.id)]);
+		const bareKeys = bare.resourceSpans[0].scopeSpans[0].spans.flatMap((span) => [
+			...span.attributes.map((attribute) => attribute.key),
+			...(span.events ?? []).flatMap((event) => (event.attributes ?? []).map((a) => a.key))
+		]);
+		expect(bareKeys).not.toContain('craft_a_bot.guardrail.component');
+	});
+});

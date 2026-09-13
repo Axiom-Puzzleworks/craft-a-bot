@@ -1,0 +1,325 @@
+{
+	"schemaVersion": 1,
+	"workflowId": "fs-disputes/disputes",
+	"name": "The disputes journey",
+	"lanes": [
+		{
+			"id": "assistant",
+			"label": "the assistant"
+		},
+		{
+			"id": "colleague",
+			"label": "a colleague"
+		},
+		{
+			"id": "rules",
+			"label": "the rules"
+		}
+	],
+	"nodes": [
+		{
+			"stageId": "intake",
+			"name": "Intake",
+			"lane": "rules",
+			"x": 0,
+			"y": 2,
+			"executor": "rule",
+			"irreversible": false,
+			"obligations": [],
+			"guards": []
+		},
+		{
+			"stageId": "verify",
+			"name": "Verify",
+			"lane": "assistant",
+			"x": 1,
+			"y": 0,
+			"executor": "agent",
+			"irreversible": false,
+			"obligations": [
+				"mlr:kyc"
+			],
+			"guards": [
+				"loop:verify:pre-think",
+				"loop:verify:pre-act",
+				"loop:verify:post-act"
+			]
+		},
+		{
+			"stageId": "classify",
+			"name": "Classify",
+			"lane": "assistant",
+			"x": 2,
+			"y": 0,
+			"executor": "agent",
+			"irreversible": false,
+			"obligations": [
+				"psr:app-reimbursement"
+			],
+			"guards": [
+				"loop:classify:pre-think",
+				"loop:classify:pre-act",
+				"loop:classify:post-act"
+			]
+		},
+		{
+			"stageId": "hold",
+			"name": "Hold",
+			"lane": "rules",
+			"x": 3,
+			"y": 2,
+			"executor": "rule",
+			"irreversible": false,
+			"obligations": [
+				"psr:app-reimbursement",
+				"fca:cd:support"
+			],
+			"guards": []
+		},
+		{
+			"stageId": "investigate",
+			"name": "Investigate",
+			"lane": "assistant",
+			"x": 4,
+			"y": 0,
+			"executor": "agent",
+			"irreversible": false,
+			"obligations": [
+				"psr:app-reimbursement"
+			],
+			"guards": [
+				"loop:investigate:pre-think",
+				"loop:investigate:pre-act",
+				"loop:investigate:post-act"
+			]
+		},
+		{
+			"stageId": "decision",
+			"name": "Decision",
+			"lane": "assistant",
+			"x": 5,
+			"y": 0,
+			"executor": "agent",
+			"irreversible": false,
+			"obligations": [
+				"psr:app-reimbursement",
+				"fca:cd:understanding"
+			],
+			"guards": [
+				"loop:decision:pre-think",
+				"loop:decision:pre-act",
+				"loop:decision:post-act"
+			]
+		},
+		{
+			"stageId": "record",
+			"name": "Decision recorded",
+			"lane": "rules",
+			"x": 6,
+			"y": 2,
+			"executor": "rule",
+			"irreversible": false,
+			"obligations": [],
+			"guards": []
+		},
+		{
+			"stageId": "confirm",
+			"name": "Four eyes",
+			"lane": "colleague",
+			"x": 7,
+			"y": 1,
+			"executor": "human",
+			"irreversible": false,
+			"obligations": [
+				"pra:ss1-23:mitigants"
+			],
+			"guards": []
+		},
+		{
+			"stageId": "reimburse",
+			"name": "Reimbursement",
+			"lane": "assistant",
+			"x": 8,
+			"y": 0,
+			"executor": "agent",
+			"irreversible": true,
+			"obligations": [
+				"psr:app-reimbursement",
+				"pra:ss1-23:mitigants"
+			],
+			"guards": [
+				"loop:reimburse:pre-think",
+				"loop:reimburse:pre-act",
+				"loop:reimburse:post-act"
+			]
+		}
+	],
+	"edges": [
+		{
+			"id": "intake->verify",
+			"from": "intake",
+			"to": "verify",
+			"label": "",
+			"kind": "enumerated"
+		},
+		{
+			"id": "verify->classify",
+			"from": "verify",
+			"to": "classify",
+			"label": "",
+			"kind": "enumerated"
+		},
+		{
+			"id": "classify->hold",
+			"from": "classify",
+			"to": "hold",
+			"label": "unauthorised / authorised-scam / merchant",
+			"kind": "enumerated"
+		},
+		{
+			"id": "hold->investigate",
+			"from": "hold",
+			"to": "investigate",
+			"label": "",
+			"kind": "enumerated"
+		},
+		{
+			"id": "investigate->decision",
+			"from": "investigate",
+			"to": "decision",
+			"label": "",
+			"kind": "enumerated"
+		},
+		{
+			"id": "decision->record",
+			"from": "decision",
+			"to": "record",
+			"label": "reimburse / decline / refer",
+			"kind": "enumerated"
+		},
+		{
+			"id": "record->confirm",
+			"from": "record",
+			"to": "confirm",
+			"label": "depends on the case",
+			"kind": "case"
+		},
+		{
+			"id": "confirm->reimburse",
+			"from": "confirm",
+			"to": "reimburse",
+			"label": "confirm",
+			"kind": "enumerated"
+		},
+		{
+			"id": "confirm->end",
+			"from": "confirm",
+			"to": {
+				"end": true
+			},
+			"label": "return",
+			"kind": "enumerated"
+		},
+		{
+			"id": "reimburse->end",
+			"from": "reimburse",
+			"to": {
+				"end": true
+			},
+			"label": "depends on the case",
+			"kind": "case"
+		}
+	],
+	"points": [
+		{
+			"id": "loop:verify:pre-think",
+			"kind": "pre-think",
+			"at": "verify",
+			"components": []
+		},
+		{
+			"id": "loop:verify:pre-act",
+			"kind": "pre-act",
+			"at": "verify",
+			"components": []
+		},
+		{
+			"id": "loop:verify:post-act",
+			"kind": "post-act",
+			"at": "verify",
+			"components": []
+		},
+		{
+			"id": "loop:classify:pre-think",
+			"kind": "pre-think",
+			"at": "classify",
+			"components": []
+		},
+		{
+			"id": "loop:classify:pre-act",
+			"kind": "pre-act",
+			"at": "classify",
+			"components": []
+		},
+		{
+			"id": "loop:classify:post-act",
+			"kind": "post-act",
+			"at": "classify",
+			"components": []
+		},
+		{
+			"id": "loop:investigate:pre-think",
+			"kind": "pre-think",
+			"at": "investigate",
+			"components": []
+		},
+		{
+			"id": "loop:investigate:pre-act",
+			"kind": "pre-act",
+			"at": "investigate",
+			"components": []
+		},
+		{
+			"id": "loop:investigate:post-act",
+			"kind": "post-act",
+			"at": "investigate",
+			"components": []
+		},
+		{
+			"id": "loop:decision:pre-think",
+			"kind": "pre-think",
+			"at": "decision",
+			"components": []
+		},
+		{
+			"id": "loop:decision:pre-act",
+			"kind": "pre-act",
+			"at": "decision",
+			"components": []
+		},
+		{
+			"id": "loop:decision:post-act",
+			"kind": "post-act",
+			"at": "decision",
+			"components": []
+		},
+		{
+			"id": "loop:reimburse:pre-think",
+			"kind": "pre-think",
+			"at": "reimburse",
+			"components": []
+		},
+		{
+			"id": "loop:reimburse:pre-act",
+			"kind": "pre-act",
+			"at": "reimburse",
+			"components": []
+		},
+		{
+			"id": "loop:reimburse:post-act",
+			"kind": "post-act",
+			"at": "reimburse",
+			"components": []
+		}
+	]
+}
