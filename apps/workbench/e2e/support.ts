@@ -194,6 +194,10 @@ export async function settle(page: Page): Promise<void> {
 	// height depends on the viewport's (the Playground's moved ten pixels each way on every
 	// resize) is then laid out by one deterministic step, never chased.
 	const width = page.viewportSize()?.width ?? 1280;
+	// Back to the base size before measuring: the spec reuses one page across routes, and with the
+	// previous shot's tall viewport still applied a short page measured that height, not its own
+	// (most Workshop routes came out at 7150 px, the desk Playground pages at 11150 px).
+	await page.setViewportSize({ width, height: 720 });
 	const height = await page.evaluate(() => document.documentElement.scrollHeight);
 	// Rounded up to the next fifty pixels: the Playground's page reads ten pixels taller or
 	// shorter from one capture to the next, and a viewport that absorbs the wobble keeps the image
