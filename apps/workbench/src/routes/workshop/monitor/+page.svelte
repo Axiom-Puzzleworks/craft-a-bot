@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { rateWithBand } from '@craftabot/metrics';
 	import type { WorkItem } from '@craftabot/core';
 	import { referenceFromItems } from '@craftabot/evals';
 	import Lamp from '$lib/components/control-room/Lamp.svelte';
@@ -230,11 +231,23 @@
 			? referenceApproval(monitor.kept.map((entry) => entry.item))
 			: undefined
 	);
-	function referenceApproval(items: WorkItem[]): { y: number; label: string } | undefined {
-		const expected = referenceFromItems(items).approvalRate;
-		return expected === undefined
-			? undefined
-			: { y: expected, label: `expected approval ${pct(expected)}` };
+	/** The expected approval rate from the items' truth, with its Wilson interval as the tape's band (WP109, `96-…` §4). */
+	function referenceApproval(
+		items: WorkItem[]
+	): { y: number; label: string; band: { low: number; high: number } } | undefined {
+		const truth = referenceFromItems(items);
+		const expected = truth.approvalRate;
+		if (expected === undefined) return undefined;
+		const verdicts = truth.verdicts ?? [];
+		const rate = rateWithBand(
+			verdicts.filter((verdict) => verdict === 'approve').length,
+			verdicts.length
+		);
+		return {
+			y: expected,
+			label: `expected approval ${pct(expected)} (${band(rate.interval)})`,
+			band: { low: rate.interval[0], high: rate.interval[1] }
+		};
 	}
 
 	const pct = (rate: number | undefined) =>

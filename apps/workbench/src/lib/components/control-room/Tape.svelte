@@ -31,7 +31,14 @@
 		xLabels?: { first: string; last: string } | undefined;
 		range?: { min: number; max: number } | undefined;
 		/** A reference value drawn as a dashed hairline across the tape (WP84, `75-…` §5): the baseline's rate, the population's expectation. */
-		reference?: { y: number; label: string } | undefined;
+		reference?:
+			| {
+					y: number;
+					label: string;
+					/** WP109 (`96-…` §4): the reference's interval, drawn as a shaded region behind the hairline rather than a hairline alone. */
+					band?: { low: number; high: number } | undefined;
+			  }
+			| undefined;
 		compact?: boolean;
 		testId?: string | undefined;
 	}
@@ -66,23 +73,46 @@
 		})
 	);
 
-	/** The hairline's y, placed by the same grammar as the points: a one-point series at the reference. */
-	const hairline = $derived.by(() => {
+	/** The span the reference and its band are placed in: the range given, else the points' and the reference's own. */
+	const referenceSpan = $derived.by(() => {
 		if (!reference) return undefined;
 		const every = series.flatMap((entry) => entry.points);
-		const span = range ?? {
-			min: Math.min(reference.y, ...every.map((point) => point.y)),
-			max: Math.max(reference.y, ...every.map((point) => point.y))
-		};
-		const coords = plot([{ x: 0, y: reference.y }], box, span).split(' ')[0];
+		const lows = [
+			reference.y,
+			reference.band?.low ?? reference.y,
+			...every.map((point) => point.y)
+		];
+		const highs = [
+			reference.y,
+			reference.band?.high ?? reference.y,
+			...every.map((point) => point.y)
+		];
+		return range ?? { min: Math.min(...lows), max: Math.max(...highs) };
+	});
+	/** A value's y, placed by the same grammar as the points: a one-point series at the value. */
+	const yOf = (value: number): number | undefined => {
+		if (!referenceSpan) return undefined;
+		const coords = plot([{ x: 0, y: value }], box, referenceSpan).split(' ')[0];
 		const y = Number(coords?.split(',')[1]);
 		return Number.isFinite(y) ? y : undefined;
+	};
+	/** The hairline's y. */
+	const hairline = $derived(reference ? yOf(reference.y) : undefined);
+	/** The band as a region (WP109): from the interval's high to its low, in the plot's y. */
+	const band = $derived.by(() => {
+		if (!reference?.band) return undefined;
+		const top = yOf(reference.band.high);
+		const bottom = yOf(reference.band.low);
+		if (top === undefined || bottom === undefined) return undefined;
+		return { y: Math.min(top, bottom), height: Math.max(1, Math.abs(bottom - top)) };
 	});
 
 	const description = $derived(
 		`${series.map((entry) => `${entry.label}: ${entry.points.length} points`).join('; ')}${
 			flags.length > 0 ? `; ${flags.length} flagged` : ''
-		}${reference ? `; reference ${reference.label}` : ''}`
+		}${reference ? `; reference ${reference.label}` : ''}${
+			reference?.band ? ` (band ${reference.band.low} to ${reference.band.high})` : ''
+		}`
 	);
 </script>
 
@@ -96,6 +126,16 @@
 				>{STATUS.fail.glyph}</text
 			>
 		{/each}
+		{#if band !== undefined}
+			<rect
+				x={PAD}
+				y={band.y}
+				width={WIDTH - 2 * PAD}
+				height={band.height}
+				class="band"
+				data-band={reference?.label}
+			/>
+		{/if}
 		{#if hairline !== undefined}
 			<line
 				x1={PAD}
@@ -168,6 +208,11 @@
 	.axis {
 		stroke: var(--cab-ink);
 		stroke-width: 1;
+	}
+
+	.band {
+		fill: var(--cab-ink);
+		fill-opacity: 0.1;
 	}
 
 	.reference {

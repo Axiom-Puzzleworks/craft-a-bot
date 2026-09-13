@@ -21,6 +21,8 @@
 	import CaseFile from '$lib/components/control-room/CaseFile.svelte';
 	import Readout from '$lib/components/control-room/Readout.svelte';
 	import Strip from '$lib/components/control-room/Strip.svelte';
+	import JourneyCover from '$lib/components/control-room/JourneyCover.svelte';
+	import { journeyLayout } from '@craftabot/workflow';
 
 	/**
 	 * **The Playground** (WP59 stage C, `48-FS-BANK.md` §4.8): the synthetic
@@ -41,6 +43,24 @@
 		bank = next;
 		records = bankRecords(next);
 	}
+
+	/** WP109 (`96-…` §4): every shipped journey's cover on the box's strip, each a door to its drawing. */
+	const covers = (() => {
+		const registry = createRegistry();
+		return registry
+			.listWorkflows()
+			.slice()
+			.sort((a, b) => a.id.localeCompare(b.id))
+			.map((workflow) => {
+				const layout = journeyLayout(workflow, undefined, undefined, { registry });
+				return {
+					id: workflow.id,
+					name: workflow.name,
+					lanes: layout.lanes.map((lane) => lane.label),
+					stages: layout.nodes.length
+				};
+			});
+	})();
 
 	const map: BoundaryMap = {
 		schemaVersion: 1,
@@ -219,6 +239,26 @@
 </p>
 <p class="simulation" data-testid="playground-simulation-only">FOR SIMULATION ONLY</p>
 
+<section class="covers" aria-label="The journeys">
+	<Strip label="The journeys" icon="journey" testId="playground-covers-strip">
+		<ul class="covers-list" data-testid="playground-covers">
+			{#each covers as cover (cover.id)}
+				<li>
+					<a
+						href={resolve('/workshop/playground/journeys/[...workflowId]', {
+							workflowId: cover.id
+						})}
+						data-testid="playground-cover-{cover.id.replace('/', '-')}"
+					>
+						<JourneyCover subject={cover} width={132} />
+						<span>{cover.name}</span>
+					</a>
+				</li>
+			{/each}
+		</ul>
+	</Strip>
+</section>
+
 <section class="generate" aria-label="Generate a case">
 	<Strip label="A case" icon="desk">
 		<label class="seed">
@@ -340,6 +380,29 @@
 </section>
 
 <style>
+	.covers-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--cab-space-3);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.covers-list a {
+		display: grid;
+		gap: var(--cab-space-1);
+		justify-items: start;
+		font-size: var(--cab-text-xs);
+		text-decoration: none;
+		color: inherit;
+	}
+
+	.covers-list a:hover span,
+	.covers-list a:focus-visible span {
+		text-decoration: underline;
+	}
+
 	h1 {
 		margin: 0 0 var(--cab-space-2);
 	}

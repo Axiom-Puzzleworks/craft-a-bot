@@ -1886,7 +1886,11 @@ A view is a URL. Set a screen up — the Run Browser's filter, the Campaigns scr
 
 *Comfortable* or *dense*, on the rail: dense tightens every table and the rail, comfortable gives them air. The setting is remembered per lens, and each lens starts with its own default — dense for the engineer and the model-risk reader, comfortable for the assurance and conduct readers. Density changes spacing and type size and nothing else: no number, row or column moves.
 
-### 53.4 Linked from
+### 53.4 Covers, roundels and the band
+
+Every journey now has a cover — a small card in the Kit's voice drawn from the journey's own shape, its lanes as bands and its stages as stops — on the journeys page and on the Playground page's *The journeys* strip, each a door to the journey's drawing. Two roundels join the family (the catalogue's register, a domain's pin). On the Monitor, the approval-rate tape's reference is now a shaded band — the expected rate's interval over the window's cases — with the hairline at the rate itself.
+
+### 53.5 Linked from
 
 The Run Lab, the Pipeline and an open campaign report each list what links to them — a run's campaign cell, workflow stage, forks and experiment; a workflow run's handoffs and forks; a report's experiment and the workflow runs it sourced — with every id a link.
 

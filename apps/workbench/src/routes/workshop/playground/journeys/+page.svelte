@@ -4,6 +4,7 @@
 	import CaseTable from '$lib/components/control-room/CaseTable.svelte';
 	import Strip from '$lib/components/control-room/Strip.svelte';
 	import Readout from '$lib/components/control-room/Readout.svelte';
+	import JourneyCover from '$lib/components/control-room/JourneyCover.svelte';
 	import { createRegistry } from '$lib/packs.js';
 
 	/**
@@ -24,6 +25,7 @@
 				world: registry.getWorld(workflow.worldId)?.name ?? workflow.worldId,
 				stages: layout.nodes.length,
 				lanes: layout.lanes.map((lane) => lane.label).join(', '),
+				laneLabels: layout.lanes.map((lane) => lane.label),
 				configurations: Object.keys(workflow.configurations ?? {}).length,
 				points: layout.points.length
 			};
@@ -36,7 +38,11 @@
 		{ id: 'configurations', label: 'Configurations', kind: 'number' as const },
 		{ id: 'points', label: 'Guard points', kind: 'number' as const }
 	];
-	const rows = journeys.map((journey) => ({ id: journey.id, cells: { ...journey } }));
+	const rows = journeys.map((journey) => {
+		const { laneLabels: _lanes, ...cells } = journey;
+		void _lanes;
+		return { id: journey.id, cells };
+	});
 
 	/**
 	 * **The coverage matrix** (WP106, `83-…` §6.6.1): from the domain spec the
@@ -81,14 +87,26 @@
 	</Strip>
 	<ul class="links" data-testid="journeys-links">
 		{#each journeys as journey (journey.id)}
-			<li>
-				<a
-					href={resolve('/workshop/playground/journeys/[...workflowId]', {
-						workflowId: journey.id
-					})}
-					data-testid="journeys-open-{journey.id.replace('/', '-')}">{journey.name}</a
-				>
-				— {journey.world}, {journey.stages} stages
+			<li class="card">
+				<!-- WP109 (`96-…` §4): the journey's cover, on the swap-in seam; the name beside it carries the meaning. -->
+				<JourneyCover
+					subject={{
+						id: journey.id,
+						name: journey.name,
+						lanes: journey.laneLabels,
+						stages: journey.stages
+					}}
+					width={120}
+				/>
+				<span class="card-text">
+					<a
+						href={resolve('/workshop/playground/journeys/[...workflowId]', {
+							workflowId: journey.id
+						})}
+						data-testid="journeys-open-{journey.id.replace('/', '-')}">{journey.name}</a
+					>
+					— {journey.world}, {journey.stages} stages
+				</span>
 			</li>
 		{/each}
 	</ul>
@@ -100,7 +118,7 @@
 				The domain’s own account of its journeys: those that ship, those that support them, and
 				those that are out — with the reason. Drawn from the domain spec, never guessed.
 			</p>
-			<Strip label="Coverage" icon="journey" testId="journeys-coverage-strip">
+			<Strip label="Coverage" icon="domain" testId="journeys-coverage-strip">
 				<Readout
 					label="shipped"
 					value={coverage.filter((row) => row.cells.status === 'shipped').length}
@@ -114,6 +132,16 @@
 </main>
 
 <style>
+	.card {
+		display: flex;
+		align-items: center;
+		gap: var(--cab-space-3);
+	}
+
+	.card-text {
+		min-width: 0;
+	}
+
 	main {
 		display: grid;
 		gap: var(--cab-space-3);

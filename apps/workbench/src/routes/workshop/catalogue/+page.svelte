@@ -6,6 +6,7 @@
 	import { coverageReport, coverageSummary } from '@craftabot/governance/reports';
 	import CaseTable from '$lib/components/control-room/CaseTable.svelte';
 	import Readout from '$lib/components/control-room/Readout.svelte';
+	import Roundel from '$lib/components/control-room/Roundel.svelte';
 	import { createRegistry } from '$lib/packs.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 
@@ -81,7 +82,7 @@
 	<title>Guardrail Catalogue — Craft A Bot Workshop</title>
 </svelte:head>
 
-<h1>Guardrail Catalogue</h1>
+<h1><Roundel icon="catalogue" size={28} /> Guardrail Catalogue</h1>
 <p class="lede" data-testid="catalogue-lede">
 	Edition {summary.edition}: {summary.entries} techniques the industry ships or the research proposes,
 	and what this product can honestly say about each. {summary.pending} of {summary.entries}

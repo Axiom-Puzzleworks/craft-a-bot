@@ -45,8 +45,8 @@ const elementFor = (svg: string, id: string) =>
 	new RegExp(`<(\\w+)[^>]*id="${id}"[^>]*?(/?)>`).exec(svg);
 
 describe('wave 2 art (placeholders until the commission lands)', () => {
-	it('delivers nineteen icons (eleven of wave 2, five of WP91, two of WP100, one of WP101), two finishes and one box — twenty-two files', () => {
-		expect(Object.keys(WAVE_2)).toHaveLength(22);
+	it('delivers twenty-one icons (eleven of wave 2, five of WP91, two of WP100, one of WP101, two of WP109), two finishes and one box — twenty-four files', () => {
+		expect(Object.keys(WAVE_2)).toHaveLength(24);
 		expect(INSTRUMENT_IDS).toEqual([
 			'meter',
 			'lamp',
@@ -66,7 +66,9 @@ describe('wave 2 art (placeholders until the commission lands)', () => {
 			'register',
 			'journey',
 			'point',
-			'stack'
+			'stack',
+			'catalogue',
+			'domain'
 		]);
 	});
 
