@@ -1,0 +1,34 @@
+{
+	"name": "@craftabot/pack-typesafe",
+	"private": true,
+	"version": "0.1.0",
+	"type": "module",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"scripts": {
+		"build": "tsc -p tsconfig.build.json",
+		"test": "vitest run --coverage",
+		"check": "tsc --noEmit",
+		"smoke": "npm run build && node --env-file-if-exists=../../../.env scripts/smoke.ts",
+		"calls": "npm run build && node scripts/calls.ts",
+		"record": "npm run build && node --env-file-if-exists=../../../.env scripts/record.ts",
+		"analyse": "npm run build && node scripts/analyse.ts"
+	},
+	"dependencies": {
+		"@craftabot/core": "*",
+		"@craftabot/pack-fs-bank": "*",
+		"@craftabot/pack-fs-servicing": "*"
+	},
+	"devDependencies": {
+		"@craftabot/harness": "*",
+		"@craftabot/pack-starter": "*",
+		"@craftabot/pack-testkit": "*",
+		"@craftabot/workflow": "*"
+	}
+}

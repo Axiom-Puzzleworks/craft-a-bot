@@ -11,6 +11,7 @@ import { servicingPersona, type ServicingPersonaId } from '../personas.js';
 import { servicingStrings } from '../strings.js';
 import { REQUEST_ITEM, type ServiceRequest, type ServicingExtra } from './extra.js';
 import {
+	CATEGORIES,
 	actFor,
 	classificationOf,
 	verdictFromFigures,
@@ -156,6 +157,13 @@ export function servicingCase(random: () => number, kind: ServicingCaseKind): Se
 
 export interface AssembleOptions {
 	discloses: SupportNeed;
+	/**
+	 * The category as labelled, when the item carries one (`98-JEV.md` §8): the
+	 * truth is then the label, not the rule's reading of the words — so a
+	 * classifier, the rule included, can be scored against something it did
+	 * not write. Omitted, the rule decides, as it always has.
+	 */
+	category?: Category;
 	inArrears: boolean;
 	fromCollections: boolean;
 	counterpart?: CounterpartScript;
@@ -176,7 +184,7 @@ export function assembleServicingCase(
 	const callerIsCustomer =
 		request.given.birthYear === customer.dateOfBirthYear &&
 		request.given.name.trim().toLowerCase() === customer.name.full.trim().toLowerCase();
-	const category = classificationOf(request.subject);
+	const category = options.category ?? classificationOf(request.subject);
 	const verdict = verdictFromFigures({
 		category,
 		callerIsCustomer,
@@ -285,6 +293,8 @@ export interface ServicingItemPayload {
 	customer?: Customer;
 	inArrears?: boolean;
 	discloses?: SupportNeed;
+	/** A labelled item's category — the truth when present (see `AssembleOptions.category`). */
+	label?: { category?: Category };
 }
 
 /**
@@ -317,10 +327,12 @@ export function servicingCaseFromItem(random: () => number, item: WorkItem): Ser
 		(fromCollections && raw.disclosure && raw.disclosure !== 'none'
 			? (raw.disclosure as SupportNeed)
 			: 'none');
+	const labelled = payload?.label?.category;
 	return assembleServicingCase(bank, bankForTheDesk(bank), request, {
 		discloses,
 		inArrears: payload?.inArrears ?? fromCollections,
-		fromCollections
+		fromCollections,
+		...(labelled !== undefined && CATEGORIES.includes(labelled) ? { category: labelled } : {})
 	});
 }
 
