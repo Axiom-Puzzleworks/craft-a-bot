@@ -5,13 +5,13 @@
  * cassette. Entries already on file are kept byte for byte, so recording v2
  * never re-asks, or overwrites, what v1 was answered.
  *
- *     npm run record -w @craftabot/pack-typesafe -- v2
+ *     npm run record -w @craftabot/pack-typesafe -- v3 q2
  *
  * It needs `CRAFTABOT_CREDENTIAL_TYPESAFE` (in `.env`). Never run in CI.
  */
 import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
-import { corpusVersion, writeCalls } from './calls.ts';
+import { corpusVersion, questionsVersion, writeCalls } from './calls.ts';
 
 const CASSETTE = 'src/cassettes/typesafe-jev.craftabot-cassette.json';
 
@@ -21,8 +21,9 @@ interface Cassette {
 }
 
 const version = corpusVersion(process.argv[2]);
-const calls = writeCalls(version);
-const out = `experiment/recording-${version}`;
+const questions = questionsVersion(process.argv[3]);
+const calls = writeCalls(version, questions);
+const out = `experiment/recording-${version}-q${questions}`;
 execFileSync(
 	process.execPath,
 	[

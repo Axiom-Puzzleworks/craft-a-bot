@@ -21,7 +21,11 @@ import {
 } from '@craftabot/pack-fs-servicing';
 import { JEV_LINE_ID, JEV_OPERATION } from '../jev/line.js';
 import type { JevChoiceAnswer, JevResponse } from '../jev/types.js';
-import { servicingJevRequest, type ServicingQuestionId } from './questions.js';
+import {
+	servicingJevRequest,
+	type QuestionsVersion,
+	type ServicingQuestionId
+} from './questions.js';
 
 /**
  * **The servicing journey with a pluggable reader** (`98-JEV.md` §8): the
@@ -49,6 +53,8 @@ import { servicingJevRequest, type ServicingQuestionId } from './questions.js';
 export const SERVICING_JEV_WORKFLOW_ID = 'typesafe/servicing-jev';
 /** The same journey over the harder v2 corpus (`corpus-v2.ts`): one workflow per corpus, so an experiment names its data by the workflow it runs. */
 export const SERVICING_JEV_V2_WORKFLOW_ID = 'typesafe/servicing-jev-v2';
+/** Over the held-out v3 corpus (`corpus-v3.ts`). */
+export const SERVICING_JEV_V3_WORKFLOW_ID = 'typesafe/servicing-jev-v3';
 
 /** The thresholds the gates are built at — TypeSafe's own examples' bands (`98-…` §2), fixed before any run. */
 export const GATE_THRESHOLDS = [0.6, 0.8, 0.9] as const;
@@ -84,12 +90,15 @@ function asAnswer(question: ServicingQuestionId, choice: string, options: readon
 	return response;
 }
 
-/** Jev over the line: the caller's words, the frozen question — the same arguments the recording made. */
-export const jevReader = (question: ServicingQuestionId): Executor => ({
+/** Jev over the line: the caller's words, the frozen questions of a version — the same arguments the recording made. */
+export const jevReader = (
+	question: ServicingQuestionId,
+	version: QuestionsVersion = 1
+): Executor => ({
 	kind: 'line',
 	lineId: JEV_LINE_ID,
 	operation: JEV_OPERATION,
-	arguments: (_input, state) => servicingJevRequest(question, subjectOf(state))
+	arguments: (_input, state) => servicingJevRequest(question, subjectOf(state), version)
 });
 
 const READER_OUTPUT: JsonSchema = {
@@ -108,10 +117,21 @@ function answerIn(input: unknown, question: ServicingQuestionId): JevChoiceAnswe
 	return answer?.type === 'choice' ? answer : undefined;
 }
 
+/** P(the caller steers the label) at or above which a gate hands the call to a person (`98-…` §11): the even split, fixed in advance. */
+export const STEER_THRESHOLD = 0.5;
+
+function steerIn(input: unknown): number | undefined {
+	const answer = (input as Partial<JevResponse> | undefined)?.answers?.['steer'];
+	return answer?.type === 'noul' ? answer.noul : undefined;
+}
+
 /**
  * The gate: act on the reader's answer when its confidence clears the
  * threshold, else route to a person. An answer outside the desk's own
- * options, or none at all, always goes to a person.
+ * options, or none at all, always goes to a person. A gate, but not
+ * `gate-off`, also sends to a person a call whose reader says the caller
+ * steered the label (the v2 questions' `steer`). v1's answers carry no
+ * steer, so they gate exactly as before.
  */
 function gate(question: ServicingQuestionId, threshold: number): RuleFn {
 	const options: readonly string[] = question === 'category' ? CATEGORIES : SUPPORT_NEEDS;
@@ -119,11 +139,25 @@ function gate(question: ServicingQuestionId, threshold: number): RuleFn {
 		const answer = answerIn(input, question);
 		const picked = answer && options.includes(answer.choice) ? answer.choice : undefined;
 		const confidence = answer?.confidence ?? 0;
-		if (picked === undefined || confidence < threshold) {
-			return { output: { route: 'person', ...(picked ? { [question]: picked } : {}), confidence } };
+		const steer = steerIn(input);
+		const steered = threshold > 0 && steer !== undefined && steer >= STEER_THRESHOLD;
+		if (picked === undefined || confidence < threshold || steered) {
+			return {
+				output: {
+					route: 'person',
+					...(picked ? { [question]: picked } : {}),
+					confidence,
+					...(steer !== undefined ? { steer } : {})
+				}
+			};
 		}
 		return {
-			output: { route: 'auto', [question]: picked, confidence },
+			output: {
+				route: 'auto',
+				[question]: picked,
+				confidence,
+				...(steer !== undefined ? { steer } : {})
+			},
 			call:
 				question === 'category'
 					? call('classify', { category: picked })
@@ -138,7 +172,8 @@ const GATE_OUTPUT = (question: ServicingQuestionId): JsonSchema => ({
 	properties: {
 		route: { enum: ['auto', 'person'] },
 		[question]: { enum: [...(question === 'category' ? CATEGORIES : SUPPORT_NEEDS)] },
-		confidence: { type: 'number' }
+		confidence: { type: 'number' },
+		steer: { type: 'number' }
 	}
 });
 
@@ -264,12 +299,16 @@ export const SERVICING_JEV_STAGES: StageSpec[] = [
 
 // ── The configurations ─────────────────────────────────────────────────
 
-/** The one thing each configuration varies: who reads, and where the gate sits. */
-function configuration(reader: 'regex' | 'jev', threshold: number | 'off'): WorkflowConfig {
+/** The one thing each configuration varies: who reads (and with which questions), and where the gate sits. */
+function configuration(
+	reader: 'regex' | 'jev' | 'jev-q2',
+	threshold: number | 'off'
+): WorkflowConfig {
+	const version: QuestionsVersion = reader === 'jev-q2' ? 2 : 1;
 	return {
 		executors: {
-			classify: reader === 'jev' ? jevReader('category') : rule('regex-category'),
-			record: reader === 'jev' ? jevReader('need') : rule('regex-need'),
+			classify: reader === 'regex' ? rule('regex-category') : jevReader('category', version),
+			record: reader === 'regex' ? rule('regex-need') : jevReader('need', version),
 			'classify-gate': rule(gateRuleId('category', threshold)),
 			'record-gate': rule(gateRuleId('need', threshold))
 		}
@@ -285,6 +324,15 @@ export const SERVICING_JEV_CONFIGURATIONS: Record<string, WorkflowConfig> = {
 		GATE_THRESHOLDS.map((threshold) => [
 			`jev-gate-${threshold.toFixed(2)}`,
 			configuration('jev', threshold)
+		])
+	),
+	/** Jev with the v2 questions (the guide's rules in the criteria, and the steer), acting on every answer. */
+	'jev-q2': configuration('jev-q2', 'off'),
+	/** The v2 questions gated: below the threshold, or a steer, goes to a person. */
+	...Object.fromEntries(
+		GATE_THRESHOLDS.map((threshold) => [
+			`jev-q2-gate-${threshold.toFixed(2)}`,
+			configuration('jev-q2', threshold)
 		])
 	)
 };

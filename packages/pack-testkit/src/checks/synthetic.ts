@@ -9,6 +9,8 @@ import type { ConformanceIssue } from '../types.js';
  * - `synthetic.pan` — 13–19 digits (single spaces or dashes allowed between
  *   groups) with a known issuer prefix whose Luhn check passes. The prefix
  *   is what keeps event ids, timestamps and token counts out of the net.
+ *   A run inside a digest (a hex token of 32+ characters with a letter) is
+ *   not a card: SHA-256 carries Luhn-passing runs by chance.
  * - `synthetic.iban` — a country code, two check digits and the country's
  *   BBAN length, whose mod-97 check passes.
  * - `synthetic.sort-code` — a value under a key naming a sort code, outside
@@ -99,9 +101,31 @@ function knownIssuer(digits: string): boolean {
 
 const PAN = /(?<![\d])(?:\d[ -]?){12,18}\d(?![\d])/g;
 
+const HEX = /[0-9a-fA-F]/;
+/** The shortest hexadecimal token read as a digest: an MD5's 32 characters (SHA-256 is 64). */
+const DIGEST_MIN = 32;
+
+/**
+ * Whether an unseparated digit run sits inside a digest: a hexadecimal
+ * token of at least 32 characters with a letter in it. A SHA-256 carries
+ * digit runs that pass Luhn by chance, and a card number is never printed
+ * inside one (`45-…` §4.6, amended 2026-09-28).
+ */
+function insideDigest(line: string, start: number, end: number, run: string): boolean {
+	if (/[ -]/.test(run)) return false;
+	let from = start;
+	let to = end;
+	while (from > 0 && HEX.test(line[from - 1]!)) from -= 1;
+	while (to < line.length && HEX.test(line[to]!)) to += 1;
+	const token = line.slice(from, to);
+	return token.length >= DIGEST_MIN && /[a-fA-F]/.test(token);
+}
+
 function pans(line: string): string[] {
 	const hits: string[] = [];
 	for (const match of line.matchAll(PAN)) {
+		const start = match.index ?? 0;
+		if (insideDigest(line, start, start + match[0].length, match[0])) continue;
 		const digits = match[0].replace(/[ -]/g, '');
 		if (digits.length < 13 || digits.length > 19) continue;
 		if (!knownIssuer(digits)) continue;

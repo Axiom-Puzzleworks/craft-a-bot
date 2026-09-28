@@ -59,6 +59,8 @@ export interface CorpusRow {
 	contested?: string;
 	/** v2: the blind second labeller's need, where it differs from this row's — scored as an alternative, never as the truth. */
 	secondNeed?: SupportNeed;
+	/** v3: the blind second labeller's category, where it differs. */
+	secondCategory?: Category;
 }
 
 const row = (
