@@ -20,6 +20,7 @@ describe('the default pack list', () => {
 			'anthropic',
 			'gemini',
 			'ollama',
+			'dgx-spark',
 			'monitor',
 			'workshop',
 			'geap',
@@ -51,13 +52,13 @@ describe('the default pack list', () => {
 				.listProviderFactories()
 				.map((p) => p.id)
 				.sort()
-		).toEqual(['anthropic', 'gemini', 'ollama', 'openai']);
+		).toEqual(['anthropic', 'dgx-spark', 'gemini', 'ollama', 'openai']);
 	});
 
 	it('reports pack versions in the workbench’s own shape', () => {
 		const versions = packVersions(defaultConfig());
 		expect(versions['starter']).toMatch(/^\d+\.\d+\.\d+$/);
-		expect(Object.keys(versions)).toHaveLength(25);
+		expect(Object.keys(versions)).toHaveLength(26);
 	});
 });
 

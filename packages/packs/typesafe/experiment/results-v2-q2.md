@@ -54,7 +54,7 @@ _regex_
 | third-party  | 14         | 1       | 1    | 2           | 2           |
 | bereavement  | 10         | 0       | 1    | 0           | 8           |
 
-_jev_
+_Jev_
 
 | label \ pick | disclosure | address | card | third-party | bereavement |
 | ------------ | ---------- | ------- | ---- | ----------- | ----------- |
@@ -172,7 +172,7 @@ _regex_
 | bereavement  | 11   | 0        | 11          | 1      |
 | health       | 14   | 0        | 0           | 4      |
 
-_jev_
+_Jev_
 
 | label \ pick | none | job-loss | bereavement | health |
 | ------------ | ---- | -------- | ----------- | ------ |
@@ -238,7 +238,7 @@ _jev_
 |       | recall              | precision          | tp / fn / fp / tn |
 | ----- | ------------------- | ------------------ | ----------------- |
 | regex | 44% (24/54; 32–58)  | 62% (24/39; 46–75) | 24 / 30 / 15 / 46 |
-| jev   | 98% (53/54; 90–100) | 95% (53/56; 85–98) | 53 / 1 / 3 / 58   |
+| Jev   | 98% (53/54; 90–100) | 95% (53/56; 85–98) | 53 / 1 / 3 / 58   |
 
 ## The steer (P ≥ 0.5 against the `steer` tag)
 

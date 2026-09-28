@@ -125,3 +125,27 @@ export function servicingJevRequest(
 				: { need: NEED_QUESTION_V2 }
 	};
 }
+
+/**
+ * **The same questions, put to a local LLM on the DGX Sparks** (`99-DGX-SPARK.md`
+ * §6, `@craftabot/pack-dgx-spark`'s classifier line). The request is Jev's
+ * with one field changed: `model` names the Spark model directory rather
+ * than a Jev version. Every question, instruction and criterion is
+ * identical, so the two readers are compared on exactly the same words.
+ */
+export const SPARK_CLASSIFIER_LINE = 'dgx-spark/classifier';
+export const SPARK_MODEL = 'Qwen3.5-122B-A10B-NVFP4';
+
+export function servicingSparkRequest(
+	question: ServicingQuestionId,
+	utterance: string,
+	version: QuestionsVersion = 1
+): JevRequest {
+	return { ...servicingJevRequest(question, utterance, version), model: SPARK_MODEL };
+}
+
+/** Who reads the caller's words in a recorded run: Jev, or the Spark classifier. */
+export type ServicingReader = 'jev' | 'spark';
+
+export const readerRequest = (reader: ServicingReader) =>
+	reader === 'spark' ? servicingSparkRequest : servicingJevRequest;

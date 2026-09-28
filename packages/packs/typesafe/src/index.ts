@@ -67,7 +67,12 @@ export {
 	CATEGORY_QUESTION_V2,
 	NEED_QUESTION_V2,
 	STEER_QUESTION,
+	SPARK_CLASSIFIER_LINE,
+	SPARK_MODEL,
+	readerRequest,
 	servicingJevRequest,
+	servicingSparkRequest,
+	type ServicingReader,
 	type QuestionsVersion
 } from './servicing/questions.js';
 export { corpusBook } from './servicing/book.js';
@@ -88,5 +93,6 @@ export {
 	STEER_THRESHOLD,
 	gateRuleId,
 	jevReader,
+	sparkReader,
 	servicingJevWorkflow
 } from './servicing/workflow.js';

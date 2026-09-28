@@ -1,5 +1,6 @@
 {
 	"recordedAt": "2026-09-28",
+	"reader": "jev",
 	"model": "jev-1.13.0",
 	"corpus": "v1",
 	"questions": "q2",
@@ -15,7 +16,7 @@
 				"rate": 0.5368421052631579,
 				"ci": [0.43709691191526545, 0.6337235725173518]
 			},
-			"jev": {
+			"reader": {
 				"k": 94,
 				"n": 95,
 				"rate": 0.9894736842105263,
@@ -28,14 +29,14 @@
 					"rate": 0.5368421052631579,
 					"ci": [0.43709691191526545, 0.6337235725173518]
 				},
-				"jev": {
+				"reader": {
 					"k": 94,
 					"n": 95,
 					"rate": 0.9894736842105263,
 					"ci": [0.9427612979894159, 0.9981394237582134]
 				}
 			},
-			"jevEitherLabeller": {
+			"readerEitherLabeller": {
 				"k": 94,
 				"n": 95,
 				"rate": 0.9894736842105263,
@@ -50,7 +51,7 @@
 						"rate": 1,
 						"ci": [0.8513451233948545, 1]
 					},
-					"jev": {
+					"reader": {
 						"k": 22,
 						"n": 22,
 						"rate": 1,
@@ -65,7 +66,7 @@
 						"rate": 0.3111111111111111,
 						"ci": [0.195286991890479, 0.4566480569515979]
 					},
-					"jev": {
+					"reader": {
 						"k": 45,
 						"n": 45,
 						"rate": 1,
@@ -80,7 +81,7 @@
 						"rate": 0.3125,
 						"ci": [0.14164643765150897, 0.5559564434725178]
 					},
-					"jev": {
+					"reader": {
 						"k": 15,
 						"n": 16,
 						"rate": 0.9375,
@@ -95,7 +96,7 @@
 						"rate": 0.8333333333333334,
 						"ci": [0.5519691353881888, 0.9530348582430792]
 					},
-					"jev": {
+					"reader": {
 						"k": 12,
 						"n": 12,
 						"rate": 1,
@@ -141,7 +142,7 @@
 						"disclosure": 19
 					}
 				},
-				"jev": {
+				"reader": {
 					"bereavement": {
 						"bereavement": 15,
 						"address": 0,
@@ -406,7 +407,7 @@
 					"text": "I've relocated to the other side of the city and want my statements going to the right place.",
 					"label": "address",
 					"regex": "disclosure",
-					"jev": "address",
+					"reader": "address",
 					"confidence": 0.99
 				},
 				{
@@ -417,7 +418,7 @@
 					"text": "We've just bought our first home, so letters should go there from now on.",
 					"label": "address",
 					"regex": "disclosure",
-					"jev": "address",
+					"reader": "address",
 					"confidence": 0.99
 				},
 				{
@@ -428,7 +429,7 @@
 					"text": "I don't live at the old place any more; can you point the account to where I'm living now?",
 					"label": "address",
 					"regex": "disclosure",
-					"jev": "address",
+					"reader": "address",
 					"confidence": 1
 				},
 				{
@@ -439,7 +440,7 @@
 					"text": "I'm emigrating at the end of the month and the bank needs to know where I'll be living.",
 					"label": "address",
 					"regex": "disclosure",
-					"jev": "address",
+					"reader": "address",
 					"confidence": 0.9
 				},
 				{
@@ -450,7 +451,7 @@
 					"text": "Change of residence: I'm now living with my sister in the next town.",
 					"label": "address",
 					"regex": "disclosure",
-					"jev": "address",
+					"reader": "address",
 					"confidence": 0.89
 				},
 				{
@@ -461,7 +462,7 @@
 					"text": "Could you update where you send my correspondence? I've been somewhere new since the spring.",
 					"label": "address",
 					"regex": "disclosure",
-					"jev": "address",
+					"reader": "address",
 					"confidence": 1
 				},
 				{
@@ -472,7 +473,7 @@
 					"text": "Just letting you know my home's changed; I'm in the village now, not the town.",
 					"label": "address",
 					"regex": "disclosure",
-					"jev": "address",
+					"reader": "address",
 					"confidence": 0.84
 				},
 				{
@@ -483,7 +484,7 @@
 					"text": "Where do I tell you that I live somewhere different now?",
 					"label": "address",
 					"regex": "disclosure",
-					"jev": "address",
+					"reader": "address",
 					"confidence": 1
 				},
 				{
@@ -494,7 +495,7 @@
 					"text": "I've moved onto a new estate and need my details updated.",
 					"label": "address",
 					"regex": "bereavement",
-					"jev": "address",
+					"reader": "address",
 					"confidence": 1
 				},
 				{
@@ -505,7 +506,7 @@
 					"text": "I can't access my post at the old house since I moved, so please update it.",
 					"label": "address",
 					"regex": "third-party",
-					"jev": "address",
+					"reader": "address",
 					"confidence": 0.98
 				},
 				{
@@ -516,7 +517,7 @@
 					"text": "My phone died so I couldn't ring sooner — I've moved and need my address updated.",
 					"label": "address",
 					"regex": "bereavement",
-					"jev": "address",
+					"reader": "address",
 					"confidence": 1
 				},
 				{
@@ -527,7 +528,7 @@
 					"text": "My card statements keep going to my old address; I moved out in the summer.",
 					"label": "address",
 					"regex": "card",
-					"jev": "address",
+					"reader": "address",
 					"confidence": 0.94
 				},
 				{
@@ -538,7 +539,7 @@
 					"text": "The previous owner of my new house passed away, and I have moved in — please update my address.",
 					"label": "address",
 					"regex": "bereavement",
-					"jev": "address",
+					"reader": "address",
 					"confidence": 1
 				},
 				{
@@ -549,7 +550,7 @@
 					"text": "Our family has just settled into a bigger place across town — please update our details.",
 					"label": "address",
 					"regex": "disclosure",
-					"jev": "address",
+					"reader": "address",
 					"confidence": 1
 				},
 				{
@@ -560,7 +561,7 @@
 					"text": "Someone pinched my wallet on the train and I need to stop the plastic and get it replaced.",
 					"label": "card",
 					"regex": "disclosure",
-					"jev": "card",
+					"reader": "card",
 					"confidence": 1
 				},
 				{
@@ -571,7 +572,7 @@
 					"text": "The cash machine swallowed it this morning and wouldn't give it back — I need a replacement to pay for things.",
 					"label": "card",
 					"regex": "disclosure",
-					"jev": "card",
+					"reader": "card",
 					"confidence": 1
 				},
 				{
@@ -582,7 +583,7 @@
 					"text": "My debit's snapped clean in half, can you send another?",
 					"label": "card",
 					"regex": "disclosure",
-					"jev": "card",
+					"reader": "card",
 					"confidence": 1
 				},
 				{
@@ -593,7 +594,7 @@
 					"text": "I've mislaid my contactless and need a new one sent out.",
 					"label": "card",
 					"regex": "disclosure",
-					"jev": "card",
+					"reader": "card",
 					"confidence": 1
 				},
 				{
@@ -604,7 +605,7 @@
 					"text": "The magnetic strip's worn out and shops keep declining me. I need a fresh one.",
 					"label": "card",
 					"regex": "disclosure",
-					"jev": "card",
+					"reader": "card",
 					"confidence": 1
 				},
 				{
@@ -615,7 +616,7 @@
 					"text": "Somebody has been using my debit at petrol stations; I still have it but I want it stopped and replaced.",
 					"label": "card",
 					"regex": "disclosure",
-					"jev": "card",
+					"reader": "card",
 					"confidence": 1
 				},
 				{
@@ -626,7 +627,7 @@
 					"text": "My purse was nicked at the market with my bank stuff in it and I need to stop the one for this account.",
 					"label": "card",
 					"regex": "disclosure",
-					"jev": "card",
+					"reader": "card",
 					"confidence": 1
 				},
 				{
@@ -637,7 +638,7 @@
 					"text": "My card died — it just won't tap any more. Can you send a new one?",
 					"label": "card",
 					"regex": "bereavement",
-					"jev": "card",
+					"reader": "card",
 					"confidence": 1
 				},
 				{
@@ -648,7 +649,7 @@
 					"text": "I can't access my money because my card's been cancelled — I need a new one.",
 					"label": "card",
 					"regex": "third-party",
-					"jev": "card",
+					"reader": "card",
 					"confidence": 1
 				},
 				{
@@ -659,7 +660,7 @@
 					"text": "Could my husband be allowed to deal with the bank for me when I am away?",
 					"label": "third-party",
 					"regex": "disclosure",
-					"jev": "third-party",
+					"reader": "third-party",
 					"confidence": 1
 				},
 				{
@@ -670,7 +671,7 @@
 					"text": "I want to give my brother authority to talk to you about my account.",
 					"label": "third-party",
 					"regex": "disclosure",
-					"jev": "third-party",
+					"reader": "third-party",
 					"confidence": 1
 				},
 				{
@@ -681,7 +682,7 @@
 					"text": "I'd like my accountant to be able to see my statements.",
 					"label": "third-party",
 					"regex": "disclosure",
-					"jev": "third-party",
+					"reader": "third-party",
 					"confidence": 0.99
 				},
 				{
@@ -692,7 +693,7 @@
 					"text": "Please set my daughter up as someone who can act for me on the account.",
 					"label": "third-party",
 					"regex": "disclosure",
-					"jev": "third-party",
+					"reader": "third-party",
 					"confidence": 1
 				},
 				{
@@ -703,7 +704,7 @@
 					"text": "Can you register my son as a trusted person who can phone you for me?",
 					"label": "third-party",
 					"regex": "disclosure",
-					"jev": "third-party",
+					"reader": "third-party",
 					"confidence": 1
 				},
 				{
@@ -714,7 +715,7 @@
 					"text": "I want my daughter to be able to do my banking — the card and everything.",
 					"label": "third-party",
 					"regex": "card",
-					"jev": "third-party",
+					"reader": "third-party",
 					"confidence": 0.99
 				},
 				{
@@ -725,7 +726,7 @@
 					"text": "My late husband's brother wants to help me with my account; can he be added?",
 					"label": "third-party",
 					"regex": "bereavement",
-					"jev": "third-party",
+					"reader": "third-party",
 					"confidence": 0.99
 				},
 				{
@@ -736,7 +737,7 @@
 					"text": "I have moved my mother in with me and now look after her money — please add me to her account.",
 					"label": "third-party",
 					"regex": "address",
-					"jev": "third-party",
+					"reader": "third-party",
 					"confidence": 1
 				},
 				{
@@ -747,7 +748,7 @@
 					"text": "I'm going in for chemotherapy and want my sister to be able to run things for me while I'm poorly.",
 					"label": "third-party",
 					"regex": "disclosure",
-					"jev": "third-party",
+					"reader": "third-party",
 					"confidence": 0.99
 				},
 				{
@@ -758,7 +759,7 @@
 					"text": "My eyesight's going and I'd like my niece to be able to sort out my banking for me.",
 					"label": "third-party",
 					"regex": "disclosure",
-					"jev": "third-party",
+					"reader": "third-party",
 					"confidence": 1
 				},
 				{
@@ -769,7 +770,7 @@
 					"text": "My neighbour helps me with paperwork; can she speak to you about my account?",
 					"label": "third-party",
 					"regex": "disclosure",
-					"jev": "third-party",
+					"reader": "third-party",
 					"confidence": 1
 				},
 				{
@@ -780,7 +781,7 @@
 					"text": "We lost Dad in March and I need to sort out what happens to his savings.",
 					"label": "bereavement",
 					"regex": "disclosure",
-					"jev": "bereavement",
+					"reader": "bereavement",
 					"confidence": 1
 				},
 				{
@@ -791,7 +792,7 @@
 					"text": "My wife is no longer with us and I don't know what to do about her account.",
 					"label": "bereavement",
 					"regex": "disclosure",
-					"jev": "bereavement",
+					"reader": "bereavement",
 					"confidence": 0.99
 				},
 				{
@@ -802,7 +803,7 @@
 					"text": "I'm dealing with my grandmother's affairs now that she's gone.",
 					"label": "bereavement",
 					"regex": "disclosure",
-					"jev": "bereavement",
+					"reader": "bereavement",
 					"confidence": 0.83
 				},
 				{
@@ -813,7 +814,7 @@
 					"text": "My brother was killed in an accident and I'm handling his accounts.",
 					"label": "bereavement",
 					"regex": "disclosure",
-					"jev": "bereavement",
+					"reader": "bereavement",
 					"confidence": 0.92
 				},
 				{
@@ -824,7 +825,7 @@
 					"text": "Following the death of my partner, I need to close her account.",
 					"label": "bereavement",
 					"regex": "disclosure",
-					"jev": "bereavement",
+					"reader": "bereavement",
 					"confidence": 1
 				},
 				{
@@ -835,7 +836,7 @@
 					"text": "Mum's funeral was last week; the solicitor told me to ring you about her current account.",
 					"label": "bereavement",
 					"regex": "disclosure",
-					"jev": "bereavement",
+					"reader": "bereavement",
 					"confidence": 0.99
 				},
 				{
@@ -846,7 +847,7 @@
 					"text": "I'm the administrator for my uncle's affairs after he passed.",
 					"label": "bereavement",
 					"regex": "disclosure",
-					"jev": "bereavement",
+					"reader": "bereavement",
 					"confidence": 0.64
 				},
 				{
@@ -857,7 +858,7 @@
 					"text": "I'm newly widowed and our joint account needs sorting out.",
 					"label": "bereavement",
 					"regex": "disclosure",
-					"jev": "bereavement",
+					"reader": "bereavement",
 					"confidence": 0.98
 				},
 				{
@@ -868,7 +869,7 @@
 					"text": "Dad lost his fight with cancer on Sunday. What do I need to do about his bank account?",
 					"label": "bereavement",
 					"regex": "disclosure",
-					"jev": "bereavement",
+					"reader": "bereavement",
 					"confidence": 1
 				},
 				{
@@ -879,7 +880,7 @@
 					"text": "My husband died recently and I'm finding it hard to cope with the bills.",
 					"label": "disclosure",
 					"regex": "bereavement",
-					"jev": "bereavement",
+					"reader": "bereavement",
 					"confidence": 0.56
 				}
 			]
@@ -892,7 +893,7 @@
 				"rate": 0.6210526315789474,
 				"ci": [0.5205939193971394, 0.7121019580243173]
 			},
-			"jev": {
+			"reader": {
 				"k": 95,
 				"n": 95,
 				"rate": 1,
@@ -905,14 +906,14 @@
 					"rate": 0.6210526315789474,
 					"ci": [0.5205939193971394, 0.7121019580243173]
 				},
-				"jev": {
+				"reader": {
 					"k": 95,
 					"n": 95,
 					"rate": 1,
 					"ci": [0.961135145871234, 1]
 				}
 			},
-			"jevEitherLabeller": {
+			"readerEitherLabeller": {
 				"k": 95,
 				"n": 95,
 				"rate": 1,
@@ -927,7 +928,7 @@
 						"rate": 0.9545454545454546,
 						"ci": [0.7820195397089796, 0.991930572468161]
 					},
-					"jev": {
+					"reader": {
 						"k": 22,
 						"n": 22,
 						"rate": 1,
@@ -942,7 +943,7 @@
 						"rate": 0.5333333333333333,
 						"ci": [0.3907745463458004, 0.670648680329127]
 					},
-					"jev": {
+					"reader": {
 						"k": 45,
 						"n": 45,
 						"rate": 1,
@@ -957,7 +958,7 @@
 						"rate": 0.5625,
 						"ci": [0.3317855624393811, 0.7690134771859434]
 					},
-					"jev": {
+					"reader": {
 						"k": 16,
 						"n": 16,
 						"rate": 1,
@@ -972,7 +973,7 @@
 						"rate": 0.4166666666666667,
 						"ci": [0.1932603124346072, 0.6804886891575758]
 					},
-					"jev": {
+					"reader": {
 						"k": 12,
 						"n": 12,
 						"rate": 1,
@@ -1007,7 +1008,7 @@
 						"health": 4
 					}
 				},
-				"jev": {
+				"reader": {
 					"none": {
 						"none": 49,
 						"job-loss": 0,
@@ -1260,7 +1261,7 @@
 					"text": "My phone died so I couldn't ring sooner — I've moved and need my address updated.",
 					"label": "none",
 					"regex": "bereavement",
-					"jev": "none",
+					"reader": "none",
 					"confidence": 1
 				},
 				{
@@ -1270,7 +1271,7 @@
 					"text": "The previous owner of my new house passed away, and I have moved in — please update my address.",
 					"label": "none",
 					"regex": "bereavement",
-					"jev": "none",
+					"reader": "none",
 					"confidence": 0.92
 				},
 				{
@@ -1280,7 +1281,7 @@
 					"text": "My old job was at the hospital; I have moved house for a new one and need my address changed.",
 					"label": "none",
 					"regex": "health",
-					"jev": "none",
+					"reader": "none",
 					"confidence": 0.95
 				},
 				{
@@ -1290,7 +1291,7 @@
 					"text": "I've had to move into sheltered housing after my stroke, so please change my address.",
 					"label": "health",
 					"regex": "none",
-					"jev": "health",
+					"reader": "health",
 					"confidence": 1
 				},
 				{
@@ -1300,7 +1301,7 @@
 					"text": "After being let go from the factory I couldn't afford the rent, so I'm somewhere cheaper now. New address please.",
 					"label": "job-loss",
 					"regex": "none",
-					"jev": "job-loss",
+					"reader": "job-loss",
 					"confidence": 1
 				},
 				{
@@ -1310,7 +1311,7 @@
 					"text": "Since Mum passed I've moved into her house, so my address needs changing.",
 					"label": "bereavement",
 					"regex": "none",
-					"jev": "bereavement",
+					"reader": "bereavement",
 					"confidence": 1
 				},
 				{
@@ -1320,7 +1321,7 @@
 					"text": "My card died — it just won't tap any more. Can you send a new one?",
 					"label": "none",
 					"regex": "bereavement",
-					"jev": "none",
+					"reader": "none",
 					"confidence": 1
 				},
 				{
@@ -1330,7 +1331,7 @@
 					"text": "With my dementia I keep losing things, and now my card has gone. Please send a new one.",
 					"label": "health",
 					"regex": "none",
-					"jev": "health",
+					"reader": "health",
 					"confidence": 1
 				},
 				{
@@ -1340,7 +1341,7 @@
 					"text": "My hands shake too much since the Parkinson's to use the chip and pin — can I get a card I can tap?",
 					"label": "health",
 					"regex": "none",
-					"jev": "health",
+					"reader": "health",
 					"confidence": 1
 				},
 				{
@@ -1350,7 +1351,7 @@
 					"text": "My late husband's brother wants to help me with my account; can he be added?",
 					"label": "bereavement",
 					"regex": "none",
-					"jev": "bereavement",
+					"reader": "bereavement",
 					"confidence": 1
 				},
 				{
@@ -1360,7 +1361,7 @@
 					"text": "I'm going in for chemotherapy and want my sister to be able to run things for me while I'm poorly.",
 					"label": "health",
 					"regex": "none",
-					"jev": "health",
+					"reader": "health",
 					"confidence": 0.98
 				},
 				{
@@ -1370,7 +1371,7 @@
 					"text": "My eyesight's going and I'd like my niece to be able to sort out my banking for me.",
 					"label": "health",
 					"regex": "none",
-					"jev": "health",
+					"reader": "health",
 					"confidence": 0.99
 				},
 				{
@@ -1380,7 +1381,7 @@
 					"text": "I'm calling about my late husband's account.",
 					"label": "bereavement",
 					"regex": "none",
-					"jev": "bereavement",
+					"reader": "bereavement",
 					"confidence": 1
 				},
 				{
@@ -1390,7 +1391,7 @@
 					"text": "We lost Dad in March and I need to sort out what happens to his savings.",
 					"label": "bereavement",
 					"regex": "none",
-					"jev": "bereavement",
+					"reader": "bereavement",
 					"confidence": 1
 				},
 				{
@@ -1400,7 +1401,7 @@
 					"text": "My wife is no longer with us and I don't know what to do about her account.",
 					"label": "bereavement",
 					"regex": "none",
-					"jev": "bereavement",
+					"reader": "bereavement",
 					"confidence": 1
 				},
 				{
@@ -1410,7 +1411,7 @@
 					"text": "I'm dealing with my grandmother's affairs now that she's gone.",
 					"label": "bereavement",
 					"regex": "none",
-					"jev": "bereavement",
+					"reader": "bereavement",
 					"confidence": 1
 				},
 				{
@@ -1420,7 +1421,7 @@
 					"text": "My brother was killed in an accident and I'm handling his accounts.",
 					"label": "bereavement",
 					"regex": "none",
-					"jev": "bereavement",
+					"reader": "bereavement",
 					"confidence": 1
 				},
 				{
@@ -1430,7 +1431,7 @@
 					"text": "Following the death of my partner, I need to close her account.",
 					"label": "bereavement",
 					"regex": "none",
-					"jev": "bereavement",
+					"reader": "bereavement",
 					"confidence": 1
 				},
 				{
@@ -1440,7 +1441,7 @@
 					"text": "I'm the administrator for my uncle's affairs after he passed.",
 					"label": "bereavement",
 					"regex": "none",
-					"jev": "bereavement",
+					"reader": "bereavement",
 					"confidence": 1
 				},
 				{
@@ -1450,7 +1451,7 @@
 					"text": "I'm newly widowed and our joint account needs sorting out.",
 					"label": "bereavement",
 					"regex": "none",
-					"jev": "bereavement",
+					"reader": "bereavement",
 					"confidence": 1
 				},
 				{
@@ -1460,7 +1461,7 @@
 					"text": "Dad lost his fight with cancer on Sunday. What do I need to do about his bank account?",
 					"label": "bereavement",
 					"regex": "none",
-					"jev": "bereavement",
+					"reader": "bereavement",
 					"confidence": 1
 				},
 				{
@@ -1470,7 +1471,7 @@
 					"text": "My contract wasn't renewed and money is going to be tight for a while.",
 					"label": "job-loss",
 					"regex": "none",
-					"jev": "job-loss",
+					"reader": "job-loss",
 					"confidence": 0.99
 				},
 				{
@@ -1480,7 +1481,7 @@
 					"text": "The shop I worked at closed down, so I've no wages coming in.",
 					"label": "job-loss",
 					"regex": "none",
-					"jev": "job-loss",
+					"reader": "job-loss",
 					"confidence": 1
 				},
 				{
@@ -1490,7 +1491,7 @@
 					"text": "I've been let go and I'm worried about my payments.",
 					"label": "job-loss",
 					"regex": "none",
-					"jev": "job-loss",
+					"reader": "job-loss",
 					"confidence": 1
 				},
 				{
@@ -1500,7 +1501,7 @@
 					"text": "I've lost my income since my business went under.",
 					"label": "job-loss",
 					"regex": "none",
-					"jev": "job-loss",
+					"reader": "job-loss",
 					"confidence": 1
 				},
 				{
@@ -1510,7 +1511,7 @@
 					"text": "Work's dried up completely since the site closed and I'm falling behind.",
 					"label": "job-loss",
 					"regex": "none",
-					"jev": "job-loss",
+					"reader": "job-loss",
 					"confidence": 0.95
 				},
 				{
@@ -1520,7 +1521,7 @@
 					"text": "I'm going through treatment for cancer and some days I can't manage phone calls.",
 					"label": "health",
 					"regex": "none",
-					"jev": "health",
+					"reader": "health",
 					"confidence": 1
 				},
 				{
@@ -1530,7 +1531,7 @@
 					"text": "I've got really bad anxiety and phone calls are hard, please write to me instead.",
 					"label": "health",
 					"regex": "none",
-					"jev": "health",
+					"reader": "health",
 					"confidence": 1
 				},
 				{
@@ -1540,7 +1541,7 @@
 					"text": "I'm registered blind, so letters in normal print are no good to me.",
 					"label": "health",
 					"regex": "none",
-					"jev": "health",
+					"reader": "health",
 					"confidence": 1
 				},
 				{
@@ -1550,7 +1551,7 @@
 					"text": "Just so you're aware, I'm recovering from a breakdown and might need things explained slowly.",
 					"label": "health",
 					"regex": "none",
-					"jev": "health",
+					"reader": "health",
 					"confidence": 0.96
 				},
 				{
@@ -1560,7 +1561,7 @@
 					"text": "I had a stroke over the summer and my memory is not what it was.",
 					"label": "health",
 					"regex": "none",
-					"jev": "health",
+					"reader": "health",
 					"confidence": 1
 				},
 				{
@@ -1570,7 +1571,7 @@
 					"text": "I'm pregnant and I've been signed off sick with complications.",
 					"label": "health",
 					"regex": "none",
-					"jev": "health",
+					"reader": "health",
 					"confidence": 1
 				},
 				{
@@ -1580,7 +1581,7 @@
 					"text": "I'm ill with worry about my overdraft and wanted to talk to someone.",
 					"label": "none",
 					"regex": "health",
-					"jev": "none",
+					"reader": "none",
 					"confidence": 0.39
 				},
 				{
@@ -1590,7 +1591,7 @@
 					"text": "My health is fine, I just wanted to tell you I might be a few days late with a payment.",
 					"label": "none",
 					"regex": "health",
-					"jev": "none",
+					"reader": "none",
 					"confidence": 1
 				},
 				{
@@ -1600,7 +1601,7 @@
 					"text": "We lost our baby last month and I just need you to know things might slip for a while.",
 					"label": "bereavement",
 					"regex": "none",
-					"jev": "bereavement",
+					"reader": "bereavement",
 					"confidence": 0.86
 				},
 				{
@@ -1610,7 +1611,7 @@
 					"text": "I was sacked on Friday, so I thought you should know money will be tight.",
 					"label": "job-loss",
 					"regex": "none",
-					"jev": "job-loss",
+					"reader": "job-loss",
 					"confidence": 1
 				}
 			]
@@ -1635,7 +1636,7 @@
 				"ci": [0.5184826582032107, 0.8684923978853596]
 			}
 		},
-		"jev": {
+		"reader": {
 			"tp": 46,
 			"fn": 0,
 			"fp": 0,

@@ -57,7 +57,7 @@ _regex_
 | disclosure   | 0       | 2    | 3           | 15         | 0           |
 | third-party  | 1       | 0    | 3           | 11         | 3           |
 
-_jev_
+_Jev_
 
 | label \ pick | address | card | bereavement | disclosure | third-party |
 | ------------ | ------- | ---- | ----------- | ---------- | ----------- |
@@ -163,7 +163,7 @@ _regex_
 | bereavement  | 6    | 0      | 13          | 0        |
 | job-loss     | 8    | 0      | 0           | 3        |
 
-_jev_
+_Jev_
 
 | label \ pick | none | health | bereavement | job-loss |
 | ------------ | ---- | ------ | ----------- | -------- |
@@ -223,7 +223,7 @@ _jev_
 |       | recall               | precision          | tp / fn / fp / tn |
 | ----- | -------------------- | ------------------ | ----------------- |
 | regex | 43% (18/42; 29–58)   | 56% (18/32; 39–72) | 18 / 24 / 14 / 40 |
-| jev   | 100% (42/42; 92–100) | 75% (42/56; 62–84) | 42 / 0 / 14 / 40  |
+| Jev   | 100% (42/42; 92–100) | 75% (42/56; 62–84) | 42 / 0 / 14 / 40  |
 
 ## Latency and cost
 

@@ -12,6 +12,7 @@ import fsServicingPack, {
 	needIn,
 	servicingDesk
 } from '@craftabot/pack-fs-servicing';
+import dgxSparkPack, { sparkClassifierLine } from '@craftabot/pack-dgx-spark';
 import starterPack from '@craftabot/pack-starter';
 import { runWorkflow } from '@craftabot/workflow';
 import { describe, expect, it } from 'vitest';
@@ -35,7 +36,7 @@ import {
  * configurations run from it without a network, and a gate hands its unsure
  * rows to a person and to nobody else.
  */
-const PACKS = [starterPack, fsBankPack, fsServicingPack, typesafePack];
+const PACKS = [starterPack, fsBankPack, fsServicingPack, typesafePack, dgxSparkPack];
 const SPEC: AgentSpec = {
 	id: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
 	name: 'Deskbot',
@@ -169,6 +170,32 @@ describe.skipIf(recorded === 0).each(CORPORA)(
 				expect(read.steer, `${item.id} has no steer`).toBeTypeOf('number');
 				expect(read.route).toBe(
 					read.confidence >= 0.8 && read.steer! < STEER_THRESHOLD ? 'auto' : 'person'
+				);
+			}
+		}, 240_000);
+	}
+);
+
+const sparkRecorded = sparkClassifierLine.cassette?.entries.length ?? 0;
+
+describe.skipIf(sparkRecorded === 0).each(CORPORA)(
+	'the journey under the DGX Spark from its cassette, corpus %s',
+	(_version, corpus) => {
+		it('runs every row with no network on the same questions, and gates it the same way', async () => {
+			let ordinal = 0;
+			for (const item of corpusBook({ seed: 1, size: 120 }, corpus).items) {
+				const open = await runItem(item, 'spark', ordinal++);
+				expect(FINISHED, `${item.id} spark`).toContain(open.outcome);
+				const read = open.stages.find((stage) => stage.stageId === 'classify')!;
+				expect((read.output.value as { model: string }).model).toBe('Qwen3.5-122B-A10B-NVFP4');
+
+				const q2 = await runItem(item, 'spark-q2-gate-0.80', ordinal++);
+				expect(FINISHED, `${item.id} spark q2`).toContain(q2.outcome);
+				const gate = q2.stages.find((stage) => stage.stageId === 'classify-gate')!;
+				const value = gate.output.value as { route: string; confidence: number; steer?: number };
+				expect(value.steer).toBeTypeOf('number');
+				expect(value.route).toBe(
+					value.confidence >= 0.8 && value.steer! < STEER_THRESHOLD ? 'auto' : 'person'
 				);
 			}
 		}, 240_000);

@@ -22,7 +22,9 @@ import {
 import { JEV_LINE_ID, JEV_OPERATION } from '../jev/line.js';
 import type { JevChoiceAnswer, JevResponse } from '../jev/types.js';
 import {
+	SPARK_CLASSIFIER_LINE,
 	servicingJevRequest,
+	servicingSparkRequest,
 	type QuestionsVersion,
 	type ServicingQuestionId
 } from './questions.js';
@@ -99,6 +101,22 @@ export const jevReader = (
 	lineId: JEV_LINE_ID,
 	operation: JEV_OPERATION,
 	arguments: (_input, state) => servicingJevRequest(question, subjectOf(state), version)
+});
+
+/**
+ * The Spark over its classifier line (`@craftabot/pack-dgx-spark`): the same
+ * questions and the same answer shape as Jev, from a local LLM. The line is
+ * content from another pack, named here by id alone, so it must be installed
+ * (the harness's default packs carry it) for these configurations to run.
+ */
+export const sparkReader = (
+	question: ServicingQuestionId,
+	version: QuestionsVersion = 1
+): Executor => ({
+	kind: 'line',
+	lineId: SPARK_CLASSIFIER_LINE,
+	operation: 'system-one',
+	arguments: (_input, state) => servicingSparkRequest(question, subjectOf(state), version)
 });
 
 const READER_OUTPUT: JsonSchema = {
@@ -300,15 +318,19 @@ export const SERVICING_JEV_STAGES: StageSpec[] = [
 // ── The configurations ─────────────────────────────────────────────────
 
 /** The one thing each configuration varies: who reads (and with which questions), and where the gate sits. */
-function configuration(
-	reader: 'regex' | 'jev' | 'jev-q2',
-	threshold: number | 'off'
-): WorkflowConfig {
-	const version: QuestionsVersion = reader === 'jev-q2' ? 2 : 1;
+type ReaderId = 'regex' | 'jev' | 'jev-q2' | 'spark' | 'spark-q2';
+
+function reads(reader: ReaderId, question: ServicingQuestionId): Executor {
+	if (reader === 'regex') return rule(question === 'category' ? 'regex-category' : 'regex-need');
+	const version: QuestionsVersion = reader.endsWith('-q2') ? 2 : 1;
+	return reader.startsWith('spark') ? sparkReader(question, version) : jevReader(question, version);
+}
+
+function configuration(reader: ReaderId, threshold: number | 'off'): WorkflowConfig {
 	return {
 		executors: {
-			classify: reader === 'regex' ? rule('regex-category') : jevReader('category', version),
-			record: reader === 'regex' ? rule('regex-need') : jevReader('need', version),
+			classify: reads(reader, 'category'),
+			record: reads(reader, 'need'),
 			'classify-gate': rule(gateRuleId('category', threshold)),
 			'record-gate': rule(gateRuleId('need', threshold))
 		}
@@ -333,6 +355,16 @@ export const SERVICING_JEV_CONFIGURATIONS: Record<string, WorkflowConfig> = {
 		GATE_THRESHOLDS.map((threshold) => [
 			`jev-q2-gate-${threshold.toFixed(2)}`,
 			configuration('jev-q2', threshold)
+		])
+	),
+	/** The local LLM on the DGX Sparks (`99-DGX-SPARK.md` §6), on the same questions, gated or not. */
+	...Object.fromEntries(
+		(['spark', 'spark-q2'] as const).flatMap((reader) => [
+			[reader, configuration(reader, 'off')],
+			...GATE_THRESHOLDS.map((threshold) => [
+				`${reader}-gate-${threshold.toFixed(2)}`,
+				configuration(reader, threshold)
+			])
 		])
 	)
 };
