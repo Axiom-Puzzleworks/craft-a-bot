@@ -32,7 +32,22 @@ import type { Category, SupportNeed } from '@craftabot/pack-fs-servicing';
  * The tag is the author's prediction of difficulty, set before any run; the
  * results say whether it held.
  */
-export type Difficulty = 'plain' | 'paraphrase' | 'trap' | 'mixed';
+export type Difficulty =
+	| 'plain'
+	| 'paraphrase'
+	| 'trap'
+	| 'mixed'
+	// v2 (`corpus-v2.ts`):
+	| 'long'
+	| 'negation'
+	| 'hypothetical'
+	| 'informal'
+	| 'sarcasm'
+	| 'euphemism'
+	| 'transcript'
+	| 'steer'
+	| 'double'
+	| 'distant';
 
 export interface CorpusRow {
 	id: string;
@@ -40,6 +55,10 @@ export interface CorpusRow {
 	category: Category;
 	need: SupportNeed;
 	tag: Difficulty;
+	/** v2: why the label is a judgment call a careful person could make the other way — reported apart. */
+	contested?: string;
+	/** v2: the blind second labeller's need, where it differs from this row's — scored as an alternative, never as the truth. */
+	secondNeed?: SupportNeed;
 }
 
 const row = (

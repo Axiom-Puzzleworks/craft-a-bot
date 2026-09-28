@@ -1,10 +1,13 @@
 /**
- * **The corpus analysis** (`98-JEV.md` §9): Jev's recorded answers against
- * the labels, beside the bank's regex. It reads the cassette and the corpus
- * and makes no call. It writes `experiment/results.json` and
- * `experiment/results.md`.
+ * **The corpus analysis** (`98-JEV.md` §9, §10): Jev's recorded answers
+ * against the labels, beside the bank's regex. It reads the cassette and the
+ * corpus and makes no call.
  *
- * Every figure is a count over the 95 rows, with a Wilson 95% interval on
+ *     node scripts/analyse.ts [v1|v2]
+ *
+ * v1 writes `experiment/results.{json,md}`; v2 writes `experiment/results-v2.{json,md}`.
+ *
+ * Every figure is a count over the corpus's rows, with a Wilson 95% interval on
  * each rate, because the corpus is small and the intervals are wide. The
  * slices are:
  * - by question;
@@ -22,6 +25,7 @@ import { classificationOf, needIn } from '@craftabot/pack-fs-servicing';
 import {
 	GATE_THRESHOLDS,
 	SERVICING_CORPUS,
+	SERVICING_CORPUS_V2,
 	servicingJevRequest,
 	type CorpusRow,
 	type JevChoiceAnswer,
@@ -31,6 +35,11 @@ import {
 type Question = 'category' | 'need';
 const QUESTIONS: Question[] = ['category', 'need'];
 const PRICE_PER_MTOK = 0.042;
+const VERSION = process.argv[2] ?? 'v1';
+const CORPUS: readonly CorpusRow[] =
+	VERSION === 'v2' ? SERVICING_CORPUS_V2 : VERSION === 'v1' ? SERVICING_CORPUS : [];
+if (CORPUS.length === 0) throw new Error(`no corpus '${VERSION}' — try v1 or v2`);
+const OUT = VERSION === 'v1' ? 'experiment/results' : `experiment/results-${VERSION}`;
 
 interface Entry {
 	argsDigest: string;
@@ -55,7 +64,7 @@ interface Reading {
 }
 
 const readings: Reading[] = [];
-for (const row of SERVICING_CORPUS) {
+for (const row of CORPUS) {
 	for (const question of QUESTIONS) {
 		const entry = byDigest.get(await argsDigest(servicingJevRequest(question, row.text)));
 		const answer = entry?.result.data?.answers[question] as JevChoiceAnswer | undefined;
@@ -115,7 +124,16 @@ function quantile(values: number[], q: number): number {
 
 // ── Folds ──────────────────────────────────────────────────────────────
 
-const TAGS = ['plain', 'paraphrase', 'trap', 'mixed'] as const;
+const TAGS = [...new Set(CORPUS.map((row) => row.tag))];
+const CONTESTED = CORPUS.filter((row) => row.contested).length;
+
+/** Right by the primary label, or by the blind second labeller's where they differ. */
+const eitherLabeller = (rows: Reading[]) =>
+	rate(
+		rows.filter((r) => r.jev === r.label || (r.question === 'need' && r.jev === r.row.secondNeed))
+			.length,
+		rows.length
+	);
 
 const byQuestion = Object.fromEntries(
 	QUESTIONS.map((question) => {
@@ -185,6 +203,8 @@ const byQuestion = Object.fromEntries(
 			.map((r) => ({
 				id: r.row.id,
 				tag: r.row.tag,
+				contested: r.row.contested !== undefined,
+				secondNeed: r.question === 'need' ? r.row.secondNeed : undefined,
 				text: r.row.text,
 				label: r.label,
 				regex: r.regex,
@@ -197,6 +217,17 @@ const byQuestion = Object.fromEntries(
 				n: rows.length,
 				regex: accuracy(rows, 'regex'),
 				jev: accuracy(rows, 'jev'),
+				uncontested: {
+					regex: accuracy(
+						rows.filter((r) => !r.row.contested),
+						'regex'
+					),
+					jev: accuracy(
+						rows.filter((r) => !r.row.contested),
+						'jev'
+					)
+				},
+				jevEitherLabeller: eitherLabeller(rows),
 				byTag: Object.fromEntries(
 					TAGS.map((tag) => {
 						const inTag = rows.filter((r) => r.row.tag === tag);
@@ -230,9 +261,11 @@ const tokens = readings.map((r) => r.inputTokens);
 const totalTokens = tokens.reduce((s, t) => s + t, 0);
 
 const results = {
-	recordedAt: cassette.recordedAt,
+	recordedAt: cassette.recordedAt.slice(0, 10),
 	model: 'jev-1.13.0',
-	rows: SERVICING_CORPUS.length,
+	corpus: VERSION,
+	rows: CORPUS.length,
+	contested: CONTESTED,
 	calls: readings.length,
 	byQuestion,
 	detection: { regex: detection('regex'), jev: detection('jev') },
@@ -244,17 +277,17 @@ const results = {
 	inputTokens: { mean: totalTokens / tokens.length, total: totalTokens },
 	costUsd: {
 		total: (totalTokens / 1e6) * PRICE_PER_MTOK,
-		perCase: ((totalTokens / 1e6) * PRICE_PER_MTOK) / SERVICING_CORPUS.length
+		perCase: ((totalTokens / 1e6) * PRICE_PER_MTOK) / CORPUS.length
 	}
 };
-writeFileSync('experiment/results.json', `${JSON.stringify(results, null, '\t')}\n`);
+writeFileSync(`${OUT}.json`, `${JSON.stringify(results, null, '\t')}\n`);
 
 // ── Markdown ───────────────────────────────────────────────────────────
 
 const lines: string[] = [];
-lines.push(`# Jev on the servicing corpus — results`, '');
+lines.push(`# Jev on the servicing corpus ${VERSION} — results`, '');
 lines.push(
-	`Recorded ${cassette.recordedAt} against \`jev-1.13.0\`; ${SERVICING_CORPUS.length} rows, ${readings.length} calls. Rates are counts with a Wilson 95% interval.`,
+	`Recorded ${cassette.recordedAt.slice(0, 10)} against \`jev-1.13.0\`; ${CORPUS.length} rows (${CONTESTED} contested), ${readings.length} calls. Rates are counts with a Wilson 95% interval.`,
 	''
 );
 for (const question of QUESTIONS) {
@@ -265,6 +298,10 @@ for (const question of QUESTIONS) {
 	);
 	lines.push('| | regex | Jev |', '|---|---|---|');
 	lines.push(`| all rows | ${pct(q.regex)} | ${pct(q.jev)} |`);
+	if (CONTESTED > 0) {
+		lines.push(`| uncontested rows | ${pct(q.uncontested.regex)} | ${pct(q.uncontested.jev)} |`);
+		lines.push(`| Jev, right by either labeller | | ${pct(q.jevEitherLabeller)} |`);
+	}
 	for (const tag of TAGS)
 		lines.push(`| ${tag} | ${pct(q.byTag[tag]!.regex)} | ${pct(q.byTag[tag]!.jev)} |`);
 	lines.push(
@@ -312,7 +349,7 @@ for (const question of QUESTIONS) {
 	);
 	for (const e of q.errors)
 		lines.push(
-			`| ${e.id} | ${e.tag} | ${e.label} | ${e.regex === e.label ? '✓' : e.regex} | ${e.jev === e.label ? '✓' : e.jev} (${e.confidence.toFixed(2)}) | ${e.text} |`
+			`| ${e.id}${e.contested ? ' ⚑' : ''} | ${e.tag} | ${e.label}${e.secondNeed ? ` (2nd: ${e.secondNeed})` : ''} | ${e.regex === e.label ? '✓' : e.regex} | ${e.jev === e.label ? '✓' : e.jev} (${e.confidence.toFixed(2)}) | ${e.text} |`
 		);
 	lines.push('');
 }
@@ -331,5 +368,10 @@ lines.push(
 	`Per call as recorded (one question each): p50 ${results.latencyMs.p50} ms, p95 ${results.latencyMs.p95} ms, max ${results.latencyMs.max} ms. Mean ${results.inputTokens.mean.toFixed(0)} input tokens; the whole corpus (${readings.length} calls) cost $${results.costUsd.total.toFixed(5)} — $${results.costUsd.perCase.toFixed(6)} a case.`,
 	''
 );
-writeFileSync('experiment/results.md', `${lines.join('\n')}\n`);
+if (CONTESTED > 0)
+	lines.push(
+		'⚑ contested: the label is a judgment call (`corpus-v2.ts`); 2nd: the blind second labeller’s need where it differs.',
+		''
+	);
+writeFileSync(`${OUT}.md`, `${lines.join('\n')}\n`);
 console.log(lines.join('\n'));

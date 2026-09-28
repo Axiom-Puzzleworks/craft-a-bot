@@ -1,2 +1,4 @@
 experiment/out/
-experiment/calls.json
+experiment/out-v2/
+experiment/calls*.json
+experiment/recording-*/

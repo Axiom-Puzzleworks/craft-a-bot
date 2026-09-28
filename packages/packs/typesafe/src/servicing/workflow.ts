@@ -47,6 +47,8 @@ import { servicingJevRequest, type ServicingQuestionId } from './questions.js';
  * (`craftabot.config.mjs`), not a change to the design.
  */
 export const SERVICING_JEV_WORKFLOW_ID = 'typesafe/servicing-jev';
+/** The same journey over the harder v2 corpus (`corpus-v2.ts`): one workflow per corpus, so an experiment names its data by the workflow it runs. */
+export const SERVICING_JEV_V2_WORKFLOW_ID = 'typesafe/servicing-jev-v2';
 
 /** The thresholds the gates are built at — TypeSafe's own examples' bands (`98-…` §2), fixed before any run. */
 export const GATE_THRESHOLDS = [0.6, 0.8, 0.9] as const;
@@ -297,10 +299,13 @@ function decisionKind(stageId: string, output: unknown): string | undefined {
 	return servicingDecisionKind(stageId, output);
 }
 
-export const servicingJevWorkflow = (book: WorkflowSpec['book']): WorkflowSpec => ({
+export const servicingJevWorkflow = (
+	book: WorkflowSpec['book'],
+	options: { id?: string; corpus?: string } = {}
+): WorkflowSpec => ({
 	...servicingWorkflow,
-	id: SERVICING_JEV_WORKFLOW_ID,
-	name: 'Servicing, with a pluggable reader (Jev experiment)',
+	id: options.id ?? SERVICING_JEV_WORKFLOW_ID,
+	name: `Servicing, with a pluggable reader (Jev experiment${options.corpus ? `, ${options.corpus}` : ''})`,
 	purpose:
 		'The servicing journey with its two readings of the caller’s words — the request and the support need — made pluggable: the bank’s regex or Jev, with a confidence gate to a person.',
 	stages: SERVICING_JEV_STAGES,

@@ -17,7 +17,7 @@
 		"check": "tsc --noEmit",
 		"smoke": "npm run build && node --env-file-if-exists=../../../.env scripts/smoke.ts",
 		"calls": "npm run build && node scripts/calls.ts",
-		"record": "npm run calls && node --env-file-if-exists=../../../.env ../../harness/dist/main.js record --config craftabot.config.mjs --line typesafe/jev --script experiment/calls.json --out src/cassettes",
+		"record": "npm run build && node --env-file-if-exists=../../../.env scripts/record.ts",
 		"analyse": "npm run build && node scripts/analyse.ts"
 	},
 	"dependencies": {

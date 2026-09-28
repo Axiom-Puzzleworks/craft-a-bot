@@ -1,8 +1,9 @@
 import type { PackManifest } from '@craftabot/core';
 import { jevLine } from './jev/line.js';
 import { corpusBook } from './servicing/book.js';
+import { SERVICING_CORPUS_V2 } from './servicing/corpus-v2.js';
 import { servicingJevEvaluators } from './servicing/evaluators.js';
-import { servicingJevWorkflow } from './servicing/workflow.js';
+import { SERVICING_JEV_V2_WORKFLOW_ID, servicingJevWorkflow } from './servicing/workflow.js';
 
 /**
  * **TypeSafe (Jev), as an optional experiment pack** (`98-JEV.md`). It holds:
@@ -24,7 +25,13 @@ export const typesafePack: PackManifest = {
 	requiresCore: '>=1.0.0',
 	requiresPacks: { 'fs-bank': '^1.0.0', 'fs-servicing': '^1.0.0' },
 	serviceLines: [jevLine],
-	workflows: [servicingJevWorkflow(corpusBook)],
+	workflows: [
+		servicingJevWorkflow(corpusBook),
+		servicingJevWorkflow((request) => corpusBook(request, SERVICING_CORPUS_V2), {
+			id: SERVICING_JEV_V2_WORKFLOW_ID,
+			corpus: 'v2'
+		})
+	],
 	evaluators: servicingJevEvaluators
 };
 
@@ -41,6 +48,7 @@ export {
 } from './jev/line.js';
 export type * from './jev/types.js';
 export { SERVICING_CORPUS, type CorpusRow, type Difficulty } from './servicing/corpus.js';
+export { SERVICING_CORPUS_V2 } from './servicing/corpus-v2.js';
 export {
 	CATEGORY_QUESTION,
 	JEV_MODEL,
@@ -60,6 +68,7 @@ export {
 	GATE_THRESHOLDS,
 	SERVICING_JEV_CONFIGURATIONS,
 	SERVICING_JEV_STAGES,
+	SERVICING_JEV_V2_WORKFLOW_ID,
 	SERVICING_JEV_WORKFLOW_ID,
 	gateRuleId,
 	jevReader,

@@ -18,7 +18,8 @@ import { describe, expect, it } from 'vitest';
 import typesafePack from '../index.js';
 import { jevLine } from '../jev/line.js';
 import { corpusBook } from './book.js';
-import { SERVICING_CORPUS } from './corpus.js';
+import { SERVICING_CORPUS, type CorpusRow } from './corpus.js';
+import { SERVICING_CORPUS_V2 } from './corpus-v2.js';
 import {
 	SERVICING_JEV_CONFIGURATIONS,
 	SERVICING_JEV_WORKFLOW_ID,
@@ -55,6 +56,10 @@ const SPEC: AgentSpec = {
 
 const book = corpusBook({ seed: 1, size: 120 });
 const workflow = servicingJevWorkflow(corpusBook);
+const CORPORA: [string, readonly CorpusRow[]][] = [
+	['v1', SERVICING_CORPUS],
+	['v2', SERVICING_CORPUS_V2]
+];
 
 async function runItem(
 	item: WorkItem,
@@ -105,10 +110,21 @@ describe('the corpus book', () => {
 	});
 });
 
-describe('the journey under the regex', () => {
+describe('the v2 corpus', () => {
+	it('keeps its ids unique and apart from v1, with a reason on every contested row', () => {
+		const ids = [...SERVICING_CORPUS, ...SERVICING_CORPUS_V2].map((row) => row.id);
+		expect(new Set(ids).size).toBe(ids.length);
+		for (const row of SERVICING_CORPUS_V2) {
+			if (row.secondNeed !== undefined) expect(row.contested, row.id).toBeTruthy();
+			expect(row.text, row.id).not.toMatch(/\d/);
+		}
+	});
+});
+
+describe.each(CORPORA)('the journey under the regex, corpus %s', (_version, corpus) => {
 	it('runs every row to completion and classifies as the regex reads it', async () => {
 		let ordinal = 0;
-		for (const item of book.items) {
+		for (const item of corpusBook({ seed: 1, size: 120 }, corpus).items) {
 			const run = await runItem(item, 'regex', ordinal++);
 			// A bereavement read — right or wrong — closes the account and hands the estate to advice.
 			expect(FINISHED, `${item.id}: ${JSON.stringify(run.stages.at(-1))}`).toContain(
@@ -125,17 +141,20 @@ describe('the journey under the regex', () => {
 
 const recorded = jevLine.cassette?.entries.length ?? 0;
 
-describe.skipIf(recorded === 0)('the journey under Jev, from the cassette', () => {
-	it('runs every row with no network, and the gate sends only unsure rows to a person', async () => {
-		let ordinal = 0;
-		for (const item of book.items) {
-			const open = await runItem(item, 'jev', ordinal++);
-			expect(FINISHED, `${item.id}`).toContain(open.outcome);
-			const gated = await runItem(item, 'jev-gate-0.90', ordinal++);
-			expect(FINISHED).toContain(gated.outcome);
-			const gate = gated.stages.find((stage) => stage.stageId === 'classify-gate')!;
-			const { route, confidence } = gate.output.value as { route: string; confidence: number };
-			expect(route).toBe(confidence >= 0.9 ? 'auto' : 'person');
-		}
-	}, 120_000);
-});
+describe.skipIf(recorded === 0).each(CORPORA)(
+	'the journey under Jev from the cassette, corpus %s',
+	(_version, corpus) => {
+		it('runs every row with no network, and the gate sends only unsure rows to a person', async () => {
+			let ordinal = 0;
+			for (const item of corpusBook({ seed: 1, size: 120 }, corpus).items) {
+				const open = await runItem(item, 'jev', ordinal++);
+				expect(FINISHED, `${item.id}`).toContain(open.outcome);
+				const gated = await runItem(item, 'jev-gate-0.90', ordinal++);
+				expect(FINISHED).toContain(gated.outcome);
+				const gate = gated.stages.find((stage) => stage.stageId === 'classify-gate')!;
+				const { route, confidence } = gate.output.value as { route: string; confidence: number };
+				expect(route).toBe(confidence >= 0.9 ? 'auto' : 'person');
+			}
+		}, 120_000);
+	}
+);

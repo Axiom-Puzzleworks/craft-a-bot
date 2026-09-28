@@ -1,6 +1,6 @@
-# Jev on the servicing corpus — results
+# Jev on the servicing corpus v1 — results
 
-Recorded 2026-09-28T08:09:32.516Z against `jev-1.13.0`; 95 rows, 190 calls. Rates are counts with a Wilson 95% interval.
+Recorded 2026-09-28 against `jev-1.13.0`; 95 rows (0 contested), 190 calls. Rates are counts with a Wilson 95% interval.
 
 ## The request (classify)
 
