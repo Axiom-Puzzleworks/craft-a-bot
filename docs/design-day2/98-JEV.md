@@ -310,7 +310,14 @@ The same three corpora and both question sets were put to a local LLM: Qwen3.5-1
 - **Request:** it is slightly worse, and less well calibrated. Its errors are confident: bereavement calls read as disclosures, which a confidence gate cannot catch.
 - **The questions:** both readers gain the same amount from the rule-bearing questions, so the question wording mattered more than the model.
 
-The full treatment is in the lab record's §14 (`packages/packs/typesafe/experiment/README.md`).
+**The Sparks' 35B chat model** (Qwen3.6-35B-A3B), run the same way:
+- **request:** equals Jev on four of six runs and beats the 122B on all six;
+- **need:** usually 1–3 points behind;
+- **speed:** about 165 ms a question, faster than Jev.
+
+**Tokens:** Jev counts 1,103 tokens a case and costs $0.037–0.046 per thousand cases at list price. The Sparks count 516 a case by Qwen's tokenizer, on own hardware. The tokenizers differ, so the counts compare only as an order of magnitude.
+
+The full treatment is in the lab record's §14–§15 (`packages/packs/typesafe/experiment/README.md`).
 
 ## Sources
 

@@ -1867,12 +1867,66 @@
 		"p95": 290,
 		"max": 588
 	},
-	"inputTokens": {
-		"mean": 443.6770833333333,
-		"total": 85186
+	"tokens": {
+		"tokenizer": "TypeSafe (Jev)",
+		"calls": 192,
+		"input": {
+			"total": 85186,
+			"perCall": 443.6770833333333,
+			"perCase": 887.3541666666666
+		},
+		"output": {
+			"total": 10230,
+			"perCall": 53.28125,
+			"perCase": 106.5625
+		},
+		"all": {
+			"total": 95416,
+			"perCase": 993.9166666666666
+		},
+		"byQuestion": {
+			"category": {
+				"calls": 96,
+				"input": {
+					"total": 45041,
+					"perCall": 469.1770833333333,
+					"perCase": 469.1770833333333
+				},
+				"output": {
+					"total": 5558,
+					"perCall": 57.895833333333336,
+					"perCase": 57.895833333333336
+				},
+				"all": {
+					"total": 50599,
+					"perCase": 527.0729166666666
+				}
+			},
+			"need": {
+				"calls": 96,
+				"input": {
+					"total": 40145,
+					"perCall": 418.1770833333333,
+					"perCase": 418.1770833333333
+				},
+				"output": {
+					"total": 4672,
+					"perCall": 48.666666666666664,
+					"perCase": 48.666666666666664
+				},
+				"all": {
+					"total": 44817,
+					"perCase": 466.84375
+				}
+			}
+		}
 	},
 	"costUsd": {
+		"basis": "list price, docs.typesafe.ai/models (2026-09-28)",
+		"inputPerMtokUsd": 0.042,
+		"outputPerMtokUsd": 0,
 		"total": 0.003577812,
-		"perCase": 0.000037268875
+		"perCase": 0.000037268875,
+		"perThousandCases": 0.037268875
 	}
 }

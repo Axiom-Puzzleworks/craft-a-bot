@@ -5,7 +5,7 @@
  * the need. Both are built by the same `servicingJevRequest` the workflow's
  * line stages use, so the cassette replays each one by digest.
  *
- *     node scripts/calls.ts [v1|v2|v3] [q1|q2] [jev|spark]    → experiment/calls-<v>-<q>[-spark].json
+ *     node scripts/calls.ts [v1|v2|v3] [q1|q2] [jev|spark|spark35]    → experiment/calls-<v>-<q>[-spark].json
  *
  * `spark` builds the same requests for the DGX Spark classifier line (`99-DGX-SPARK.md` §6).
  */
@@ -42,8 +42,8 @@ export function questionsVersion(arg: string | undefined): QuestionsVersion {
 
 export function servicingReader(arg: string | undefined): ServicingReader {
 	const reader = arg ?? 'jev';
-	if (reader === 'jev' || reader === 'spark') return reader;
-	throw new Error(`no reader '${reader}' — try jev or spark`);
+	if (reader === 'jev' || reader === 'spark' || reader === 'spark35') return reader;
+	throw new Error(`no reader '${reader}' — try jev, spark or spark35`);
 }
 
 export function writeCalls(

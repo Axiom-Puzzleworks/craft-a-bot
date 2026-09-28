@@ -1,27 +1,27 @@
-# Spark on the servicing corpus v3, questions q2 — results
+# Spark 122B on the servicing corpus v3, questions q2 — results
 
 Recorded 2026-09-28 against `Qwen3.5-122B-A10B-NVFP4`; 96 rows (11 contested), 192 calls. Rates are counts with a Wilson 95% interval.
 
 ## The request (classify)
 
-|                                 | regex              | Spark                |
-| ------------------------------- | ------------------ | -------------------- |
-| all rows                        | 64% (61/96; 54–72) | 96% (92/96; 90–98)   |
-| uncontested rows                | 64% (54/85; 53–73) | 96% (82/85; 90–99)   |
-| Spark, right by either labeller |                    | 97% (93/96; 91–99)   |
-| plain                           | 71% (5/7; 36–92)   | 100% (7/7; 65–100)   |
-| paraphrase                      | 40% (2/5; 12–77)   | 80% (4/5; 38–96)     |
-| steer                           | 81% (13/16; 57–93) | 88% (14/16; 64–97)   |
-| hypothetical                    | 71% (5/7; 36–92)   | 86% (6/7; 49–97)     |
-| distant                         | 44% (4/9; 19–73)   | 100% (9/9; 70–100)   |
-| transcript                      | 67% (6/9; 35–88)   | 100% (9/9; 70–100)   |
-| negation                        | 50% (3/6; 19–81)   | 100% (6/6; 61–100)   |
-| informal                        | 70% (7/10; 40–89)  | 100% (10/10; 72–100) |
-| long                            | 40% (2/5; 12–77)   | 100% (5/5; 57–100)   |
-| sarcasm                         | 100% (5/5; 57–100) | 100% (5/5; 57–100)   |
-| euphemism                       | 50% (4/8; 22–78)   | 100% (8/8; 68–100)   |
-| double                          | 83% (5/6; 44–97)   | 100% (6/6; 61–100)   |
-| mixed                           | 0% (0/3; 0–56)     | 100% (3/3; 44–100)   |
+|                                      | regex              | Spark 122B           |
+| ------------------------------------ | ------------------ | -------------------- |
+| all rows                             | 64% (61/96; 54–72) | 96% (92/96; 90–98)   |
+| uncontested rows                     | 64% (54/85; 53–73) | 96% (82/85; 90–99)   |
+| Spark 122B, right by either labeller |                    | 97% (93/96; 91–99)   |
+| plain                                | 71% (5/7; 36–92)   | 100% (7/7; 65–100)   |
+| paraphrase                           | 40% (2/5; 12–77)   | 80% (4/5; 38–96)     |
+| steer                                | 81% (13/16; 57–93) | 88% (14/16; 64–97)   |
+| hypothetical                         | 71% (5/7; 36–92)   | 86% (6/7; 49–97)     |
+| distant                              | 44% (4/9; 19–73)   | 100% (9/9; 70–100)   |
+| transcript                           | 67% (6/9; 35–88)   | 100% (9/9; 70–100)   |
+| negation                             | 50% (3/6; 19–81)   | 100% (6/6; 61–100)   |
+| informal                             | 70% (7/10; 40–89)  | 100% (10/10; 72–100) |
+| long                                 | 40% (2/5; 12–77)   | 100% (5/5; 57–100)   |
+| sarcasm                              | 100% (5/5; 57–100) | 100% (5/5; 57–100)   |
+| euphemism                            | 50% (4/8; 22–78)   | 100% (8/8; 68–100)   |
+| double                               | 83% (5/6; 44–97)   | 100% (6/6; 61–100)   |
+| mixed                                | 0% (0/3; 0–56)     | 100% (3/3; 44–100)   |
 
 **Calibration:** ECE 0.037, Brier 0.055.
 
@@ -58,7 +58,7 @@ _regex_
 | bereavement  | 0       | 0    | 0           | 9           | 6          |
 | disclosure   | 0       | 2    | 0           | 3           | 15         |
 
-_Spark_
+_Spark 122B_
 
 | label \ pick | address | card | third-party | bereavement | disclosure |
 | ------------ | ------- | ---- | ----------- | ----------- | ---------- |
@@ -70,7 +70,7 @@ _Spark_
 
 **Rows either reader got wrong:**
 
-| row     | tag          | label                         | regex       | Spark (conf.)                 | text                                                                                                                                                                                                               |
+| row     | tag          | label                         | regex       | Spark 122B (conf.)            | text                                                                                                                                                                                                               |
 | ------- | ------------ | ----------------------------- | ----------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | v3a02   | paraphrase   | address                       | ✓           | disclosure (0.42; steer 0.00) | The flat's been sold and I'm renting across the river now, so the old address is no good.                                                                                                                          |
 | v3a08   | negation     | address                       | third-party | ✓ (1.00; steer 0.00)          | Nothing's wrong with my card and nobody else needs access — it's just my address that's out of date.                                                                                                               |
@@ -113,24 +113,24 @@ _Spark_
 
 ## The support need (record)
 
-|                                 | regex              | Spark                |
-| ------------------------------- | ------------------ | -------------------- |
-| all rows                        | 60% (58/96; 50–70) | 94% (90/96; 87–97)   |
-| uncontested rows                | 64% (54/85; 53–73) | 96% (82/85; 90–99)   |
-| Spark, right by either labeller |                    | 94% (90/96; 87–97)   |
-| plain                           | 86% (6/7; 49–97)   | 100% (7/7; 65–100)   |
-| paraphrase                      | 60% (3/5; 23–88)   | 100% (5/5; 57–100)   |
-| steer                           | 81% (13/16; 57–93) | 88% (14/16; 64–97)   |
-| hypothetical                    | 43% (3/7; 16–75)   | 86% (6/7; 49–97)     |
-| distant                         | 22% (2/9; 6–55)    | 67% (6/9; 35–88)     |
-| transcript                      | 44% (4/9; 19–73)   | 100% (9/9; 70–100)   |
-| negation                        | 50% (3/6; 19–81)   | 100% (6/6; 61–100)   |
-| informal                        | 70% (7/10; 40–89)  | 100% (10/10; 72–100) |
-| long                            | 40% (2/5; 12–77)   | 100% (5/5; 57–100)   |
-| sarcasm                         | 80% (4/5; 38–96)   | 100% (5/5; 57–100)   |
-| euphemism                       | 38% (3/8; 14–69)   | 100% (8/8; 68–100)   |
-| double                          | 83% (5/6; 44–97)   | 100% (6/6; 61–100)   |
-| mixed                           | 100% (3/3; 44–100) | 100% (3/3; 44–100)   |
+|                                      | regex              | Spark 122B           |
+| ------------------------------------ | ------------------ | -------------------- |
+| all rows                             | 60% (58/96; 50–70) | 94% (90/96; 87–97)   |
+| uncontested rows                     | 64% (54/85; 53–73) | 96% (82/85; 90–99)   |
+| Spark 122B, right by either labeller |                    | 94% (90/96; 87–97)   |
+| plain                                | 86% (6/7; 49–97)   | 100% (7/7; 65–100)   |
+| paraphrase                           | 60% (3/5; 23–88)   | 100% (5/5; 57–100)   |
+| steer                                | 81% (13/16; 57–93) | 88% (14/16; 64–97)   |
+| hypothetical                         | 43% (3/7; 16–75)   | 86% (6/7; 49–97)     |
+| distant                              | 22% (2/9; 6–55)    | 67% (6/9; 35–88)     |
+| transcript                           | 44% (4/9; 19–73)   | 100% (9/9; 70–100)   |
+| negation                             | 50% (3/6; 19–81)   | 100% (6/6; 61–100)   |
+| informal                             | 70% (7/10; 40–89)  | 100% (10/10; 72–100) |
+| long                                 | 40% (2/5; 12–77)   | 100% (5/5; 57–100)   |
+| sarcasm                              | 80% (4/5; 38–96)   | 100% (5/5; 57–100)   |
+| euphemism                            | 38% (3/8; 14–69)   | 100% (8/8; 68–100)   |
+| double                               | 83% (5/6; 44–97)   | 100% (6/6; 61–100)   |
+| mixed                                | 100% (3/3; 44–100) | 100% (3/3; 44–100)   |
 
 **Calibration:** ECE 0.049, Brier 0.108.
 
@@ -164,7 +164,7 @@ _regex_
 | health       | 0        | 0           | 2      | 10   |
 | none         | 3        | 8           | 3      | 40   |
 
-_Spark_
+_Spark 122B_
 
 | label \ pick | job-loss | bereavement | health | none |
 | ------------ | -------- | ----------- | ------ | ---- |
@@ -175,7 +175,7 @@ _Spark_
 
 **Rows either reader got wrong:**
 
-| row     | tag          | label       | regex       | Spark (conf.)      | text                                                                                                                                                                                                               |
+| row     | tag          | label       | regex       | Spark 122B (conf.) | text                                                                                                                                                                                                               |
 | ------- | ------------ | ----------- | ----------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | v3a05 ⚑ | hypothetical | none        | health      | ✓ (0.49)           | If the hospital results come back bad I'll have to sell up, but for now I've just moved to a smaller place — please update my address.                                                                             |
 | v3a06   | distant      | none        | ✓           | job-loss (1.00)    | My cousin's husband lost his job, so they've taken over our old house and we've moved out to the coast. New address please.                                                                                        |
@@ -220,10 +220,10 @@ _Spark_
 
 ## Vulnerability detection (any need recorded vs any need disclosed)
 
-|       | recall               | precision          | tp / fn / fp / tn |
-| ----- | -------------------- | ------------------ | ----------------- |
-| regex | 43% (18/42; 29–58)   | 56% (18/32; 39–72) | 18 / 24 / 14 / 40 |
-| Spark | 100% (42/42; 92–100) | 88% (42/48; 75–94) | 42 / 0 / 6 / 48   |
+|            | recall               | precision          | tp / fn / fp / tn |
+| ---------- | -------------------- | ------------------ | ----------------- |
+| regex      | 43% (18/42; 29–58)   | 56% (18/32; 39–72) | 18 / 24 / 14 / 40 |
+| Spark 122B | 100% (42/42; 92–100) | 88% (42/48; 75–94) | 42 / 0 / 6 / 48   |
 
 ## The steer (P ≥ 0.5 against the `steer` tag)
 
@@ -235,8 +235,20 @@ _Spark_
 | ----- | ---------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | v3d09 | transcript | 0.97     | Caller: I just want to put something on record. / Agent: Go ahead. / Caller: I've got severe dyslexia and I can't manage long letters. Could you bear that in mind? |
 
-## Latency and cost
+## Latency
 
-Per call as recorded (one question each): p50 1097 ms, p95 2114 ms, max 2618 ms. Mean 329 input tokens; the whole corpus (192 calls) cost $0.00265 — $0.000028 a case.
+Per call as recorded: p50 1097 ms, p95 2114 ms, max 2618 ms.
+
+## Tokens and cost
+
+Counted by Qwen (vLLM, the Spark)'s own tokenizer — not the same unit as another reader's. A case is one corpus row: two calls, the request and the need.
+
+|         | calls | input tokens | output tokens | input per call | output per call | tokens per case |
+| ------- | ----- | ------------ | ------------- | -------------- | --------------- | --------------- |
+| request | 96    | 39800        | 450           | 414.6          | 4.7             | 419.3           |
+| need    | 96    | 23356        | 250           | 243.3          | 2.6             | 245.9           |
+| **all** | 192   | 63156        | 700           | 328.9          | 3.6             | 665.2           |
+
+No per-token price: the Spark is the builder’s own hardware. Set SPARK_INPUT_USD_PER_MTOK / SPARK_OUTPUT_USD_PER_MTOK to cost the same tokens at a stated what-if rate.
 
 ⚑ contested: the label is a judgment call (see the corpus file); 2nd: the blind second labeller’s label where it differs.

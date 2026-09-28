@@ -201,3 +201,32 @@ describe.skipIf(sparkRecorded === 0).each(CORPORA)(
 		}, 240_000);
 	}
 );
+
+const spark35Recorded =
+	sparkClassifierLine.cassette?.entries.filter(
+		(entry) => (entry.args as { model?: string }).model === 'Qwen3.6-35B-A3B-NVFP4'
+	).length ?? 0;
+
+describe.skipIf(spark35Recorded === 0).each(CORPORA)(
+	'the journey under the Spark’s 35B chat model from its cassette, corpus %s',
+	(_version, corpus) => {
+		it('runs every row with no network on the same questions, and gates it the same way', async () => {
+			let ordinal = 0;
+			for (const item of corpusBook({ seed: 1, size: 120 }, corpus).items) {
+				const open = await runItem(item, 'spark35', ordinal++);
+				expect(FINISHED, `${item.id} spark35`).toContain(open.outcome);
+				const read = open.stages.find((stage) => stage.stageId === 'classify')!;
+				expect((read.output.value as { model: string }).model).toBe('Qwen3.6-35B-A3B-NVFP4');
+
+				const q2 = await runItem(item, 'spark35-q2-gate-0.80', ordinal++);
+				expect(FINISHED, `${item.id} spark35 q2`).toContain(q2.outcome);
+				const gate = q2.stages.find((stage) => stage.stageId === 'classify-gate')!;
+				const value = gate.output.value as { route: string; confidence: number; steer?: number };
+				expect(value.steer).toBeTypeOf('number');
+				expect(value.route).toBe(
+					value.confidence >= 0.8 && value.steer! < STEER_THRESHOLD ? 'auto' : 'person'
+				);
+			}
+		}, 240_000);
+	}
+);

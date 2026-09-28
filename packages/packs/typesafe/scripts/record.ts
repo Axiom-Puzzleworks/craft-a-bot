@@ -5,7 +5,7 @@
  * cassette. Entries already on file are kept byte for byte, so recording v2
  * never re-asks, or overwrites, what v1 was answered.
  *
- *     npm run record -w @craftabot/pack-typesafe -- v3 q2 [jev|spark]
+ *     npm run record -w @craftabot/pack-typesafe -- v3 q2 [jev|spark|spark35]
  *
  * It needs `CRAFTABOT_CREDENTIAL_TYPESAFE` (in `.env`). Never run in CI.
  */
@@ -17,6 +17,10 @@ import { corpusVersion, questionsVersion, servicingReader, writeCalls } from './
 const READERS = {
 	jev: { line: 'typesafe/jev', cassette: 'src/cassettes/typesafe-jev.craftabot-cassette.json' },
 	spark: {
+		line: 'dgx-spark/classifier',
+		cassette: '../dgx-spark/src/cassettes/dgx-spark-classifier.craftabot-cassette.json'
+	},
+	spark35: {
 		line: 'dgx-spark/classifier',
 		cassette: '../dgx-spark/src/cassettes/dgx-spark-classifier.craftabot-cassette.json'
 	}
@@ -66,6 +70,17 @@ const merged = {
 	entries: [...shipped.entries, ...added]
 };
 writeFileSync(CASSETTE, `${JSON.stringify(merged, null, '\t')}\n`);
+// A session replays the cassette from the pack's build, not its source: rebuild the pack now,
+// so no experiment runs against a stale copy that misses every new entry.
+execFileSync(
+	process.execPath,
+	[
+		'../../../node_modules/typescript/bin/tsc',
+		'-p',
+		reader === 'jev' ? 'tsconfig.build.json' : '../dgx-spark/tsconfig.build.json'
+	],
+	{ stdio: 'inherit' }
+);
 console.log(
 	`merged ${added.length} new entries into ${CASSETTE} (${fresh.entries.length - added.length} already on file; ${merged.entries.length} in all)`
 );

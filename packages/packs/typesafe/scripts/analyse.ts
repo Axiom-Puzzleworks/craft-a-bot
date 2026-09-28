@@ -37,7 +37,7 @@ import {
 	SERVICING_CORPUS_V3,
 	STEER_THRESHOLD,
 	readerRequest,
-	SPARK_MODEL,
+	SPARK_READER_MODELS,
 	type ServicingReader,
 	type CorpusRow,
 	type JevChoiceAnswer,
@@ -46,7 +46,14 @@ import {
 
 type Question = 'category' | 'need';
 const QUESTIONS: Question[] = ['category', 'need'];
-const PRICE_PER_MTOK = 0.042;
+/**
+ * Jev's list price (docs.typesafe.ai/models, read 2026-09-28): $0.042 per
+ * million input tokens, output free. The Spark has no per-token price; it is
+ * the builder's own hardware. A rate can be stated for a what-if with
+ * SPARK_INPUT_USD_PER_MTOK and SPARK_OUTPUT_USD_PER_MTOK, and is then
+ * reported as that, never as a bill.
+ */
+const JEV_PRICE = { inputPerMtokUsd: 0.042, outputPerMtokUsd: 0 };
 const VERSION = process.argv[2] ?? 'v1';
 const QV = process.argv[3] ?? 'q1';
 const CORPORA: Record<string, readonly CorpusRow[]> = {
@@ -59,15 +66,16 @@ if (CORPUS.length === 0) throw new Error(`no corpus '${VERSION}' — try v1, v2 
 if (QV !== 'q1' && QV !== 'q2') throw new Error(`no questions '${QV}' — try q1 or q2`);
 const QUESTIONS_VERSION = QV === 'q2' ? 2 : 1;
 const LEGACY: Record<string, string> = { 'v1-q1': 'results', 'v2-q1': 'results-v2' };
-const READER: ServicingReader = process.argv[4] === 'spark' ? 'spark' : 'jev';
-if (process.argv[4] !== undefined && process.argv[4] !== READER)
-	throw new Error(`no reader '${process.argv[4]}' — try jev or spark`);
-const READER_LABEL = READER === 'spark' ? 'Spark' : 'Jev';
-const READER_MODEL = READER === 'spark' ? SPARK_MODEL : 'jev-1.13.0';
+const READER_ARG = process.argv[4] ?? 'jev';
+if (READER_ARG !== 'jev' && READER_ARG !== 'spark' && READER_ARG !== 'spark35')
+	throw new Error(`no reader '${READER_ARG}' — try jev, spark or spark35`);
+const READER: ServicingReader = READER_ARG;
+const READER_LABEL = { jev: 'Jev', spark: 'Spark 122B', spark35: 'Spark 35B' }[READER];
+const READER_MODEL = READER === 'jev' ? 'jev-1.13.0' : SPARK_READER_MODELS[READER];
 const CASSETTE_FILE =
-	READER === 'spark'
-		? '../dgx-spark/src/cassettes/dgx-spark-classifier.craftabot-cassette.json'
-		: 'src/cassettes/typesafe-jev.craftabot-cassette.json';
+	READER === 'jev'
+		? 'src/cassettes/typesafe-jev.craftabot-cassette.json'
+		: '../dgx-spark/src/cassettes/dgx-spark-classifier.craftabot-cassette.json';
 const request = readerRequest(READER);
 const OUT = `experiment/${READER === 'jev' ? (LEGACY[`${VERSION}-${QV}`] ?? `results-${VERSION}-${QV}`) : `results-${VERSION}-${QV}-${READER}`}`;
 
@@ -93,6 +101,7 @@ interface Reading {
 	probabilities: Record<string, number>;
 	latencyMs: number;
 	inputTokens: number;
+	outputTokens: number;
 	/** q2's P(the caller steers the label), on the request's call only. */
 	steer?: number;
 }
@@ -114,6 +123,7 @@ for (const row of CORPUS) {
 			probabilities: answer.probabilities,
 			latencyMs: entry.latencyMs,
 			inputTokens: entry.result.data!.usage.input_tokens,
+			outputTokens: entry.result.data!.usage.output_tokens,
 			...(entry.result.data!.answers['steer']?.type === 'noul'
 				? { steer: entry.result.data!.answers['steer'].noul }
 				: {})
@@ -306,8 +316,65 @@ function detection(who: 'regex' | 'reader') {
 }
 
 const latency = readings.map((r) => r.latencyMs);
-const tokens = readings.map((r) => r.inputTokens);
-const totalTokens = tokens.reduce((s, t) => s + t, 0);
+
+// ── Tokens and cost ────────────────────────────────────────────────────
+
+const total = (rows: Reading[], key: 'inputTokens' | 'outputTokens') =>
+	rows.reduce((sum, r) => sum + r[key], 0);
+function tokenBlock(rows: Reading[]) {
+	const input = total(rows, 'inputTokens');
+	const output = total(rows, 'outputTokens');
+	return {
+		calls: rows.length,
+		input: { total: input, perCall: input / rows.length, perCase: input / CORPUS.length },
+		output: { total: output, perCall: output / rows.length, perCase: output / CORPUS.length },
+		all: { total: input + output, perCase: (input + output) / CORPUS.length }
+	};
+}
+const statedRate = (name: string) => {
+	const raw = process.env[name];
+	return raw !== undefined && raw.trim() !== '' && Number.isFinite(Number(raw))
+		? Number(raw)
+		: undefined;
+};
+const PRICE =
+	READER === 'jev'
+		? { ...JEV_PRICE, basis: 'list price, docs.typesafe.ai/models (2026-09-28)' }
+		: statedRate('SPARK_INPUT_USD_PER_MTOK') !== undefined ||
+			  statedRate('SPARK_OUTPUT_USD_PER_MTOK') !== undefined
+			? {
+					inputPerMtokUsd: statedRate('SPARK_INPUT_USD_PER_MTOK') ?? 0,
+					outputPerMtokUsd: statedRate('SPARK_OUTPUT_USD_PER_MTOK') ?? 0,
+					basis: 'a stated what-if rate, not a bill (own hardware)'
+				}
+			: undefined;
+const tokens = {
+	/** Each system's own tokenizer: Jev's and Qwen's counts are not the same unit. */
+	tokenizer: READER === 'jev' ? 'TypeSafe (Jev)' : 'Qwen (vLLM, the Spark)',
+	...tokenBlock(readings),
+	byQuestion: Object.fromEntries(
+		QUESTIONS.map((question) => [
+			question,
+			tokenBlock(readings.filter((r) => r.question === question))
+		])
+	)
+};
+const costOf = (input: number, output: number) =>
+	PRICE
+		? (input / 1e6) * PRICE.inputPerMtokUsd + (output / 1e6) * PRICE.outputPerMtokUsd
+		: undefined;
+const costTotal = costOf(tokens.input.total, tokens.output.total);
+const cost =
+	costTotal === undefined || !PRICE
+		? undefined
+		: {
+				basis: PRICE.basis,
+				inputPerMtokUsd: PRICE.inputPerMtokUsd,
+				outputPerMtokUsd: PRICE.outputPerMtokUsd,
+				total: costTotal,
+				perCase: costTotal / CORPUS.length,
+				perThousandCases: (costTotal / CORPUS.length) * 1000
+			};
 
 // The steer (q2): P(steer) at or above the threshold, against the `steer` tag.
 function steerDetection() {
@@ -356,11 +423,8 @@ const results = {
 		p95: quantile(latency, 0.95),
 		max: Math.max(...latency)
 	},
-	inputTokens: { mean: totalTokens / tokens.length, total: totalTokens },
-	costUsd: {
-		total: (totalTokens / 1e6) * PRICE_PER_MTOK,
-		perCase: ((totalTokens / 1e6) * PRICE_PER_MTOK) / CORPUS.length
-	}
+	tokens,
+	costUsd: cost ?? null
 };
 writeFileSync(`${OUT}.json`, `${JSON.stringify(results, null, '\t')}\n`);
 
@@ -390,6 +454,7 @@ const CSV_HEADER = [
 	'steer_tag',
 	'latency_ms',
 	'input_tokens',
+	'output_tokens',
 	'text'
 ];
 const csv = [
@@ -415,6 +480,7 @@ const csv = [
 			r.row.tag === 'steer' ? 1 : 0,
 			r.latencyMs,
 			r.inputTokens,
+			r.outputTokens,
 			r.row.text
 		]
 			.map(csvCell)
@@ -523,9 +589,29 @@ if (steer) {
 }
 lines.push(
 	'',
-	`## Latency and cost`,
+	`## Latency`,
 	'',
-	`Per call as recorded (one question each): p50 ${results.latencyMs.p50} ms, p95 ${results.latencyMs.p95} ms, max ${results.latencyMs.max} ms. Mean ${results.inputTokens.mean.toFixed(0)} input tokens; the whole corpus (${readings.length} calls) cost $${results.costUsd.total.toFixed(5)} — $${results.costUsd.perCase.toFixed(6)} a case.`,
+	`Per call as recorded: p50 ${results.latencyMs.p50} ms, p95 ${results.latencyMs.p95} ms, max ${results.latencyMs.max} ms.`,
+	'',
+	`## Tokens and cost`,
+	'',
+	`Counted by ${tokens.tokenizer}'s own tokenizer — not the same unit as another reader's. A case is one corpus row: two calls, the request and the need.`,
+	'',
+	'| | calls | input tokens | output tokens | input per call | output per call | tokens per case |',
+	'|---|---|---|---|---|---|---|'
+);
+const tokenRow = (name: string, block: ReturnType<typeof tokenBlock>) =>
+	lines.push(
+		`| ${name} | ${block.calls} | ${block.input.total} | ${block.output.total} | ${block.input.perCall.toFixed(1)} | ${block.output.perCall.toFixed(1)} | ${block.all.perCase.toFixed(1)} |`
+	);
+tokenRow('request', tokens.byQuestion['category']!);
+tokenRow('need', tokens.byQuestion['need']!);
+tokenRow('**all**', tokens);
+lines.push(
+	'',
+	cost
+		? `Cost at ${cost.basis} ($${cost.inputPerMtokUsd} per million input tokens, $${cost.outputPerMtokUsd} per million output): $${cost.total.toFixed(5)} for the corpus, $${cost.perCase.toFixed(6)} a case, $${cost.perThousandCases.toFixed(4)} per thousand cases.`
+		: 'No per-token price: the Spark is the builder’s own hardware. Set SPARK_INPUT_USD_PER_MTOK / SPARK_OUTPUT_USD_PER_MTOK to cost the same tokens at a stated what-if rate.',
 	''
 );
 if (CONTESTED > 0)

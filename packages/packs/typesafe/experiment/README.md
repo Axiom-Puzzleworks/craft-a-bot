@@ -1,13 +1,14 @@
-# The servicing classifier experiment (Jev, and a local LLM on the DGX Sparks) — the full record
+# The servicing classifier experiment (Jev, and two local LLMs on the DGX Sparks) — the full record
 
-This is the lab record for the experiment in `docs/design-day2/98-JEV.md` §8–§12 and `99-DGX-SPARK.md`. §14 covers the second reader, a local LLM on the builder's DGX Sparks. It is written so that a report can be built from it without going back to the conversation that produced it. Every number here can be regenerated from the files in this folder (§11). `SUMMARY.md` holds the master tables and is generated from the per-run results.
+This is the lab record for the experiment in `docs/design-day2/98-JEV.md` §8–§12 and `99-DGX-SPARK.md`. §14 and §15 cover the second and third readers, two local LLMs on the builder's DGX Sparks, and §15.3 compares token usage. It is written so that a report can be built from it without going back to the conversation that produced it. Every number here can be regenerated from the files in this folder (§11). `SUMMARY.md` holds the master tables and is generated from the per-run results.
 
 - **Dates:** everything ran on 2026-09-28 (UTC), branch `jev-servicing`.
 - **Models:**
   - `jev-1.13.0`, TypeSafe AI's "System One" classifier;
-  - from §14, `Qwen3.5-122B-A10B-NVFP4` on the builder's own DGX Spark (`spark-619c`, vLLM 0.27.1), answering the same questions through the same contract.
+  - from §14, `Qwen3.5-122B-A10B-NVFP4` on the builder's own DGX Spark (`spark-619c`, vLLM 0.27.1), answering the same questions through the same contract;
+  - from §15, `Qwen3.6-35B-A3B-NVFP4` in the Sparks' `chat` mode on `spark-ef08`.
 - **Baseline:** the bank's regex rules in `@craftabot/pack-fs-servicing`.
-- **Scale:** 1,224 live calls to Jev, which cost $0.025, and 1,224 classifications on the Spark (1,530 completions), on own hardware.
+- **Scale:** 1,224 live calls to Jev ($0.025), plus 1,224 classifications (1,530 completions) on each of the two Spark models, on own hardware. That is 3,672 answers, every one with its token counts.
 
 ---
 
@@ -448,16 +449,17 @@ npm run test -w @craftabot/pack-typesafe
 
 ## 12. The tests
 
-`src/servicing/workflow.test.ts` has 12 tests. All are offline and deterministic, and all pass:
+`src/servicing/workflow.test.ts` has 15 tests. All are offline and deterministic, and all pass:
 
-| test                                                            | what it holds                                                                                                                                                                                                  |
-| --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| the corpus book                                                 | one work item per v1 row, with the label as truth (c13 is `card` in truth while the regex reads `bereavement`)                                                                                                 |
-| registration                                                    | the pack registers beside the bank; the servicing workflow is untouched; the Jev line resolves                                                                                                                 |
-| the v2 and v3 corpora                                           | ids unique across all three corpora; every row the labellers split on is marked contested; no digits in any text                                                                                               |
-| the journey under the regex, v1 / v2 / v3                       | every row completes, or is handed off after a bereavement close; the category and need committed are exactly the regex's                                                                                       |
-| the journey under Jev from the cassette, v1 / v2 / v3           | every row completes with no network under `jev`, `jev-gate-0.90` and `jev-q2-gate-0.80`. The gate sends a row to a person exactly when its confidence is under the threshold, or, under q2, its P(steer) ≥ 0.5 |
-| the journey under the DGX Spark from its cassette, v1 / v2 / v3 | every row completes with no network under `spark` and `spark-q2-gate-0.80`. The reader reports the Spark model; the gate routes by confidence and steer exactly as for Jev                                     |
+| test                                                              | what it holds                                                                                                                                                                                                  |
+| ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| the corpus book                                                   | one work item per v1 row, with the label as truth (c13 is `card` in truth while the regex reads `bereavement`)                                                                                                 |
+| registration                                                      | the pack registers beside the bank; the servicing workflow is untouched; the Jev line resolves                                                                                                                 |
+| the v2 and v3 corpora                                             | ids unique across all three corpora; every row the labellers split on is marked contested; no digits in any text                                                                                               |
+| the journey under the regex, v1 / v2 / v3                         | every row completes, or is handed off after a bereavement close; the category and need committed are exactly the regex's                                                                                       |
+| the journey under Jev from the cassette, v1 / v2 / v3             | every row completes with no network under `jev`, `jev-gate-0.90` and `jev-q2-gate-0.80`. The gate sends a row to a person exactly when its confidence is under the threshold, or, under q2, its P(steer) ≥ 0.5 |
+| the journey under the DGX Spark from its cassette, v1 / v2 / v3   | every row completes with no network under `spark` and `spark-q2-gate-0.80`. The reader reports the Spark model; the gate routes by confidence and steer exactly as for Jev                                     |
+| the journey under the Spark's 35B from its cassette, v1 / v2 / v3 | the same, under `spark35` and `spark35-q2-gate-0.80`, the reader reporting the 35B model                                                                                                                       |
 
 Also run and passing:
 
@@ -480,9 +482,11 @@ Also run and passing:
 | `results-v1-q2.{md,json,csv}`                                                | v1 × q2 (regression check)                                                                              |
 | `results-v2-q2.{md,json,csv}`                                                | v2 × q2 (seen)                                                                                          |
 | `results-<v>-<q>-spark.{md,json,csv}`                                        | the same six runs, read by the DGX Spark (§14)                                                          |
+| `results-<v>-<q>-spark35.{md,json,csv}`                                      | the same six runs, read by the Sparks' 35B chat model (§15)                                             |
 | `servicing-jev{,-v2,-v3}.json`                                               | the three harness experiment designs                                                                    |
 | `servicing-jev{,-v2,-v3}.experiment-result.{md,json}`                        | their results (the harness's own renderings, with digests)                                              |
 | `servicing-spark{,-v2,-v3}.json`, `.experiment-result.*`                     | the Spark's three harness experiments and results (§14)                                                 |
+| `servicing-spark35{,-v2,-v3}.json`, `.experiment-result.*`                   | the 35B's three harness experiments and results (§15)                                                   |
 | `v2-second-labels.json`, `v3-second-labels.json`                             | the blind second labellers' full outputs                                                                |
 | `../src/cassettes/typesafe-jev.craftabot-cassette.json`                      | all 1,224 recorded calls: arguments, digest, Jev's full answer and usage, latency                       |
 | `../../dgx-spark/src/cassettes/dgx-spark-classifier.craftabot-cassette.json` | all 1,224 Spark classifications: arguments, digest, answer, the unit, per-question diagnostics, latency |
@@ -492,18 +496,19 @@ Also run and passing:
 
 **The CSV columns** (one line per row × question):
 
-| column                          | meaning                                                          |
-| ------------------------------- | ---------------------------------------------------------------- |
-| `corpus`, `questions`, `reader` | e.g. `v3`, `q2`, `jev` or `spark`                                |
-| `row`, `question`               | the corpus row id; `category` (the request) or `need`            |
-| `tag`, `contested`              | the difficulty tag; `yes` / `no`                                 |
-| `label`, `second_label`         | the label; the blind second labeller's, where it differs         |
-| `regex`, `regex_right`          | the regex's reading; 1 if it matches the label                   |
-| `pick`, `pick_right`            | the reader's choice; 1 if it matches the label                   |
-| `confidence`, `top_probability` | the reader's confidence; the probability of its choice           |
-| `steer`, `steer_tag`            | P(steer) (q2 request calls only); 1 if the row is tagged `steer` |
-| `latency_ms`, `input_tokens`    | as recorded                                                      |
-| `text`                          | the utterance (quoted; transcripts contain newlines)             |
+| column                          | meaning                                                                                                                |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `corpus`, `questions`, `reader` | e.g. `v3`, `q2`, `jev` or `spark`                                                                                      |
+| `row`, `question`               | the corpus row id; `category` (the request) or `need`                                                                  |
+| `tag`, `contested`              | the difficulty tag; `yes` / `no`                                                                                       |
+| `label`, `second_label`         | the label; the blind second labeller's, where it differs                                                               |
+| `regex`, `regex_right`          | the regex's reading; 1 if it matches the label                                                                         |
+| `pick`, `pick_right`            | the reader's choice; 1 if it matches the label                                                                         |
+| `confidence`, `top_probability` | the reader's confidence; the probability of its choice                                                                 |
+| `steer`, `steer_tag`            | P(steer) (q2 request calls only); 1 if the row is tagged `steer`                                                       |
+| `latency_ms`                    | as recorded                                                                                                            |
+| `input_tokens`, `output_tokens` | the call's tokens, as the reader reported them (its own tokenizer); a Spark q2 request call is two completions, summed |
+| `text`                          | the utterance (quoted; transcripts contain newlines)                                                                   |
 
 ---
 
@@ -639,3 +644,96 @@ Both gain the same amount from better questions. The Spark was the better steer 
 - **Log-probabilities under speculative decoding.** MTP was on, and the log-probabilities were not cross-checked with it off.
 - **The prompt is ours.** The Spark saw the questions through a fixed system prompt and a JSON user message written for this experiment. Jev's prompt handling is its own. A different prompt could move the Spark either way. It was written once and not tuned.
 - **Everything in §10 applies:** one author, synthetic data, n ≈ 100 per corpus.
+
+---
+
+## 15. The third reader: the Sparks' 35B chat model, and token usage
+
+**Why.** §14 used the Sparks' strongest model. The obvious second question is whether the much smaller, faster model in the Sparks' `chat` mode, Qwen3.6-35B-A3B (about 3B parameters active per token), does as well.
+
+**The system.**
+
+- **Model:** `Qwen3.6-35B-A3B-NVFP4`, served as `qwen3.6` by vLLM 0.27.1 on `spark-ef08`. The unit was switched to `chat` mode for the run (loaded 10:09–10:16 UTC) and switched back to `puzzle` afterwards.
+- **Everything else is §14's:** the same classifier line, prompt, constraint, log-probability folding, confidence formula, questions and corpora. Only `model` changes (`SPARK_35B_MODEL`, readers `spark35`, `spark35-q2`, `spark35-gate-*`, `spark35-q2-gate-*`).
+- The transport routed every call to unit 2 by model directory, with no configuration.
+
+**Recording.** 2026-09-28, 10:16–10:21 UTC. 1,224 classifications and 1,530 completions, with 0 refused and 0 failures. Every question's first-token mass fell on the options (covered 1.0, ambiguous 0). The whole recording took **5 minutes, against 20 for the 122B**.
+
+### 15.1 Results, three readers
+
+| corpus        | questions | request: Jev / 122B / 35B | need: Jev / 122B / 35B  |
+| ------------- | --------- | ------------------------- | ----------------------- |
+| v1            | q1        | **99%** / 94% / 95%       | 98% / **99%** / 97%     |
+| v2            | q1        | **97%** / 96% / **97%**   | **93%** / **93%** / 90% |
+| v3 (held out) | q1        | **97%** / 95% / **97%**   | 85% / **86%** / 84%     |
+| v3 (held out) | q2        | **98%** / 96% / **98%**   | **94%** / **94%** / 93% |
+| v1            | q2        | **99%** / 95% / 97%       | **100%** / 98% / 99%    |
+| v2            | q2        | **98%** / 97% / **98%**   | **97%** / 94% / 94%     |
+
+- **The request:** the 35B **equals Jev on four of the six runs**, and beats the 122B on all six.
+- **The need:** it is usually 1–3 points behind the other two. It edges the 122B on v1 q2 and ties it on v2 q2.
+- **Significance:** no paired difference between any two readers is significant; every p ≥ 0.125 (`SUMMARY.md` §2).
+- **The question wording works here too:** on held-out v3 the need goes from **84% to 93% (9 fixed, 1 broken, p = 0.02)**. That is the same lift as Jev's (85% to 94%) and the 122B's (86% to 94%). The effect holds for all three models.
+
+**Its errors.**
+
+- **The request:** the same bereavement-as-disclosure misreads as the 122B (b02 "My father died and I'm the executor…", b13, v3b14), but at **lower confidence (0.80–0.89 against the 122B's 0.91–0.96)**. A gate catches more of them: at 0.80 the 35B's v1 request ends at 98% end to end, against the 122B's 95% and Jev's 100%.
+- **The need, v3 under q2:** a feared or distant case read as a need (v3a06 "my cousin's husband lost his job", v3t14 steered to "bereavement"), and one miss the other two didn't make: v3d20, a redundancy under a steer, read as `none` at 0.57.
+
+|            | request Brier (v1 q1 / v3 q2) | need Brier (v1 q1 / v3 q2) | steer recall (v3 / v2) | steer precision (v3 / v2) |
+| ---------- | ----------------------------- | -------------------------- | ---------------------- | ------------------------- |
+| Jev        | 0.014 / 0.031                 | 0.022 / 0.095              | 15/16 · 10/11          | 94% · 91%                 |
+| Spark 122B | 0.108 / 0.055                 | 0.010 / 0.108              | 16/16 · 11/11          | 94% · 92%                 |
+| Spark 35B  | 0.073 / 0.040                 | 0.043 / 0.102              | 16/16 · 11/11          | 94% · **79%**             |
+
+- **Calibration on the request:** the 35B is better calibrated than the 122B, and still behind Jev.
+- **Calibration on the need:** it is weakest of the three under q1 (v3 Brier 0.304), and on a par under q2.
+- **Steers:** it catches every one, with three false alarms on v2 against one for the others.
+
+**Through the journey.** `needs-met`, gated at 0.80:
+
+| corpus | regex | Jev        | 122B       | 35B   | 35B gated | 35B q2 gated |
+| ------ | ----- | ---------- | ---------- | ----- | --------- | ------------ |
+| v1     | 53.7% | 98.9%      | 93.7%      | 94.7% | 97.9%     | —            |
+| v2     | 55.7% | 97.4%      | 95.7%      | 97.4% | 97.4%     | —            |
+| v3     | 63.5% | 97.9% (q2) | 95.8% (q2) | 96.9% | —         | **100%**     |
+
+**A correction made during the run.** The 35B's harness experiments first reported `needs-met` at about 21%. The journey replays the Spark cassette from the pack's build, and the build had not been updated after the 35B recording, so every 35B call was a cassette miss and each journey stopped at its first Jev-style stage. The Spark pack was rebuilt and the experiments rerun. The figures above are from the rerun. `scripts/record.ts` now rebuilds the pack whose cassette it merged into, so a recording cannot leave a stale build behind. The corpus analysis reads the cassette file itself and was never affected.
+
+### 15.2 Speed
+
+|                                | p50                         | p95                     |
+| ------------------------------ | --------------------------- | ----------------------- |
+| Jev (one question per call)    | 235–248 ms                  | 281–300 ms              |
+| Spark 122B, q1 / q2 request    | 815–828 ms / 1.07–1.10 s    | 1.5–1.6 s / 1.1–2.1 s   |
+| **Spark 35B, q1 / q2 request** | **163–166 ms / 313–316 ms** | 345–349 ms / 516–586 ms |
+
+The 35B is **the fastest reader**. One question at a time, it answers in about two-thirds of Jev's time, and about a fifth of the 122B's.
+
+### 15.3 Token usage and cost
+
+Every call's input and output tokens are recorded in both cassettes, on all 3,672 calls. They are reported per call and per question in each `results*.md` (§ "Tokens and cost"), per row in each CSV (`input_tokens`, `output_tokens`), and per run in `SUMMARY.md` §10.
+
+| reader     | cases | input tokens | output tokens | tokens per case | cost                                                                     |
+| ---------- | ----- | ------------ | ------------- | --------------- | ------------------------------------------------------------------------ |
+| Jev        | 612   | 604,642      | 70,678        | 1,103           | **$0.0254** at list price ($0.042 per million input tokens; output free) |
+| Spark 122B | 612   | 312,116      | 3,837         | 516             | own hardware                                                             |
+| Spark 35B  | 612   | 312,116      | 3,832         | 516             | own hardware                                                             |
+
+Per 1,000 cases, Jev costs $0.037 under q1 and $0.046 under q2. The Sparks cost nothing per token, since the hardware and power are the cost.
+
+**Reading the token counts.**
+
+- **Tokenizers differ.** Each reader counts with its own tokenizer, so Jev's and Qwen's counts are **not the same unit**. Compare within a reader, and across readers only as an order of magnitude.
+- **Jev's side.** Jev reports roughly twice the input tokens for the same questions. The count is its own, including whatever framing its service adds to the state and questions. It also reports about 50–75 **output** tokens a call even though it returns only typed answers. Output is free at list price, so this doesn't affect cost.
+- **The Spark's side.** The Spark reports only the tokens of the constrained answer, 2–3 a question.
+- **The two Spark models.** They share a tokenizer family and received identical prompts, so their input counts are identical. Their output differs only where an answer's key tokenizes differently.
+- **q2's cost.** q2's longer questions and the extra steer question cost more for every reader: +25% tokens for Jev, and +75% for the Spark, whose steer is a second completion.
+
+A what-if price for the Spark's tokens can be applied without touching the data. Set `SPARK_INPUT_USD_PER_MTOK` and `SPARK_OUTPUT_USD_PER_MTOK` when running `analyse.ts`; the result is labelled as a stated rate, not a bill.
+
+### 15.4 Reading it
+
+On these corpora, the Sparks' 35B chat model **matches Jev on the request and trails it by 1–3 points on the need**, none of it significant. It is **faster than Jev per question** and better calibrated than the 122B.
+
+For this classifier on this hardware, the smaller model is the better choice than the larger one: as accurate or more on the request, less confidently wrong, and five times faster. Jev keeps the edge in calibration, the property that decides how safely a confidence gate can automate.

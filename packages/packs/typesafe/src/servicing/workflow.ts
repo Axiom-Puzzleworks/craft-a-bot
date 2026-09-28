@@ -22,7 +22,9 @@ import {
 import { JEV_LINE_ID, JEV_OPERATION } from '../jev/line.js';
 import type { JevChoiceAnswer, JevResponse } from '../jev/types.js';
 import {
+	SPARK_35B_MODEL,
 	SPARK_CLASSIFIER_LINE,
+	SPARK_MODEL,
 	servicingJevRequest,
 	servicingSparkRequest,
 	type QuestionsVersion,
@@ -111,12 +113,13 @@ export const jevReader = (
  */
 export const sparkReader = (
 	question: ServicingQuestionId,
-	version: QuestionsVersion = 1
+	version: QuestionsVersion = 1,
+	model: string = SPARK_MODEL
 ): Executor => ({
 	kind: 'line',
 	lineId: SPARK_CLASSIFIER_LINE,
 	operation: 'system-one',
-	arguments: (_input, state) => servicingSparkRequest(question, subjectOf(state), version)
+	arguments: (_input, state) => servicingSparkRequest(question, subjectOf(state), version, model)
 });
 
 const READER_OUTPUT: JsonSchema = {
@@ -318,11 +321,12 @@ export const SERVICING_JEV_STAGES: StageSpec[] = [
 // ── The configurations ─────────────────────────────────────────────────
 
 /** The one thing each configuration varies: who reads (and with which questions), and where the gate sits. */
-type ReaderId = 'regex' | 'jev' | 'jev-q2' | 'spark' | 'spark-q2';
+type ReaderId = 'regex' | 'jev' | 'jev-q2' | 'spark' | 'spark-q2' | 'spark35' | 'spark35-q2';
 
 function reads(reader: ReaderId, question: ServicingQuestionId): Executor {
 	if (reader === 'regex') return rule(question === 'category' ? 'regex-category' : 'regex-need');
 	const version: QuestionsVersion = reader.endsWith('-q2') ? 2 : 1;
+	if (reader.startsWith('spark35')) return sparkReader(question, version, SPARK_35B_MODEL);
 	return reader.startsWith('spark') ? sparkReader(question, version) : jevReader(question, version);
 }
 
@@ -359,7 +363,7 @@ export const SERVICING_JEV_CONFIGURATIONS: Record<string, WorkflowConfig> = {
 	),
 	/** The local LLM on the DGX Sparks (`99-DGX-SPARK.md` §6), on the same questions, gated or not. */
 	...Object.fromEntries(
-		(['spark', 'spark-q2'] as const).flatMap((reader) => [
+		(['spark', 'spark-q2', 'spark35', 'spark35-q2'] as const).flatMap((reader) => [
 			[reader, configuration(reader, 'off')],
 			...GATE_THRESHOLDS.map((threshold) => [
 				`${reader}-gate-${threshold.toFixed(2)}`,

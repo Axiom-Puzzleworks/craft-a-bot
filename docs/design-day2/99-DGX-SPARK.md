@@ -103,6 +103,16 @@ The chosen option is the argmax.
 - **Steers:** it caught every one, 16/16 and 11/11.
 - **Speed:** about 0.8 s a question against Jev's 0.24 s, one at a time.
 
+**The 35B chat model (Qwen3.6-35B-A3B, `chat` mode, 1,224 more classifications on `spark-ef08`):**
+
+- **Request:** it **equals Jev on four of the six runs and beats the 122B on all six**. Its bereavement misreads are less confident (0.80–0.89), so a gate catches more of them.
+- **Need:** usually 1–3 points behind.
+- **Calibration:** on the request, better than the 122B and behind Jev.
+- **Speed:** about 165 ms a question, **faster than Jev** and a fifth of the 122B. The whole recording took 5 minutes.
+- **Tokens:** identical to the 122B (the same prompts and tokenizer family): 516 a case, against Jev's 1,103 counted by Jev's own tokenizer.
+
+For this classifier, the smaller model is the better choice. The lab record's §15 has the detail.
+
 `98-JEV.md` §12 and `packages/packs/typesafe/experiment/README.md` §14 hold the design and results. In short:
 - The same three corpora and both question sets (q1, q2) were put to the Spark (Qwen3.5-122B-A10B, `puzzle` mode, `spark-619c`) through this line.
 - The servicing journey gains the configurations `spark`, `spark-gate-*`, `spark-q2` and `spark-q2-gate-*`.
@@ -132,5 +142,5 @@ The chosen option is the argmax.
   - or an https reverse proxy on the Sparks (e.g. Tailscale serve);
   - or both.
 - **Load across both units.** The transport prefers the first unit that serves the model and fails over. It does not spread load. `craftabot record` calls one at a time, so a spread would not have sped the recording. A batch runner with 8 streams per unit (`PUZZLE-LLM-INTEGRATION.md` §2b) is the model for a future `concurrency` option.
-- **Other modes' models under the classifier.** The experiment used the 122B because both units were in `puzzle` mode. `chat` mode's Qwen3.6-35B (five times faster) is the obvious second run: set `SPARK_MODEL` in `questions.ts`, switch a unit, and record.
+- **Other modes' models under the classifier.** The 122B (`puzzle`) and the 35B (`chat`) are done. The coder and Nemotron modes are not. A reader for another model is one entry in `SPARK_READER_MODELS` (`questions.ts`), a switch, and a recording.
 - **Speculative decoding.** `puzzle` mode runs MTP speculative decoding. The recorded log-probabilities are what vLLM returned under it at temperature 0. They were not cross-checked against a run without MTP.

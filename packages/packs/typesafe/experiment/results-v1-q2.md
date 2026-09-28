@@ -210,6 +210,18 @@ _Jev_
 | ------ | --------- | ----------------- |
 | —      | —         | 0 / 0 / 0 / 95    |
 
-## Latency and cost
+## Latency
 
-Per call as recorded (one question each): p50 235 ms, p95 289 ms, max 411 ms. Mean 541 input tokens; the whole corpus (190 calls) cost $0.00431 — $0.000045 a case.
+Per call as recorded: p50 235 ms, p95 289 ms, max 411 ms.
+
+## Tokens and cost
+
+Counted by TypeSafe (Jev)'s own tokenizer — not the same unit as another reader's. A case is one corpus row: two calls, the request and the need.
+
+|         | calls | input tokens | output tokens | input per call | output per call | tokens per case |
+| ------- | ----- | ------------ | ------------- | -------------- | --------------- | --------------- |
+| request | 95    | 56402        | 7211          | 593.7          | 75.9            | 669.6           |
+| need    | 95    | 46332        | 4610          | 487.7          | 48.5            | 536.2           |
+| **all** | 190   | 102734       | 11821         | 540.7          | 62.2            | 1205.8          |
+
+Cost at list price, docs.typesafe.ai/models (2026-09-28) ($0.042 per million input tokens, $0 per million output): $0.00431 for the corpus, $0.000045 a case, $0.0454 per thousand cases.

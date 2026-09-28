@@ -69,6 +69,8 @@ export {
 	STEER_QUESTION,
 	SPARK_CLASSIFIER_LINE,
 	SPARK_MODEL,
+	SPARK_35B_MODEL,
+	SPARK_READER_MODELS,
 	readerRequest,
 	servicingJevRequest,
 	servicingSparkRequest,

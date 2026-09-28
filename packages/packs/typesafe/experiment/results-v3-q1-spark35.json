@@ -1,0 +1,1945 @@
+{
+	"recordedAt": "2026-09-28",
+	"reader": "spark35",
+	"model": "Qwen3.6-35B-A3B-NVFP4",
+	"corpus": "v3",
+	"questions": "q1",
+	"rows": 96,
+	"contested": 11,
+	"calls": 192,
+	"byQuestion": {
+		"category": {
+			"n": 96,
+			"regex": {
+				"k": 61,
+				"n": 96,
+				"rate": 0.6354166666666666,
+				"ci": [0.5356522616752782, 0.7247605997885355]
+			},
+			"reader": {
+				"k": 93,
+				"n": 96,
+				"rate": 0.96875,
+				"ci": [0.9121132061243772, 0.9893159297119013]
+			},
+			"uncontested": {
+				"regex": {
+					"k": 54,
+					"n": 85,
+					"rate": 0.6352941176470588,
+					"ci": [0.5291813293687847, 0.7297068101284635]
+				},
+				"reader": {
+					"k": 83,
+					"n": 85,
+					"rate": 0.9764705882352941,
+					"ci": [0.9182130024405835, 0.9935234888323341]
+				}
+			},
+			"readerEitherLabeller": {
+				"k": 93,
+				"n": 96,
+				"rate": 0.96875,
+				"ci": [0.9121132061243772, 0.9893159297119013]
+			},
+			"byTag": {
+				"plain": {
+					"n": 7,
+					"regex": {
+						"k": 5,
+						"n": 7,
+						"rate": 0.7142857142857143,
+						"ci": [0.3589344495310541, 0.9177810767507166]
+					},
+					"reader": {
+						"k": 7,
+						"n": 7,
+						"rate": 1,
+						"ci": [0.6456695613241317, 1]
+					}
+				},
+				"paraphrase": {
+					"n": 5,
+					"regex": {
+						"k": 2,
+						"n": 5,
+						"rate": 0.4,
+						"ci": [0.11762077314099711, 0.7692757205908813]
+					},
+					"reader": {
+						"k": 5,
+						"n": 5,
+						"rate": 1,
+						"ci": [0.5655175313406071, 1]
+					}
+				},
+				"steer": {
+					"n": 16,
+					"regex": {
+						"k": 13,
+						"n": 16,
+						"rate": 0.8125,
+						"ci": [0.5699111883245088, 0.9340840098021131]
+					},
+					"reader": {
+						"k": 14,
+						"n": 16,
+						"rate": 0.875,
+						"ci": [0.6397717251782153, 0.9650225125737311]
+					}
+				},
+				"hypothetical": {
+					"n": 7,
+					"regex": {
+						"k": 5,
+						"n": 7,
+						"rate": 0.7142857142857143,
+						"ci": [0.3589344495310541, 0.9177810767507166]
+					},
+					"reader": {
+						"k": 7,
+						"n": 7,
+						"rate": 1,
+						"ci": [0.6456695613241317, 1]
+					}
+				},
+				"distant": {
+					"n": 9,
+					"regex": {
+						"k": 4,
+						"n": 9,
+						"rate": 0.4444444444444444,
+						"ci": [0.18877851977054566, 0.7333487081991259]
+					},
+					"reader": {
+						"k": 9,
+						"n": 9,
+						"rate": 1,
+						"ci": [0.700854948272956, 1]
+					}
+				},
+				"transcript": {
+					"n": 9,
+					"regex": {
+						"k": 6,
+						"n": 9,
+						"rate": 0.6666666666666666,
+						"ci": [0.35420213352505864, 0.8794161825659264]
+					},
+					"reader": {
+						"k": 9,
+						"n": 9,
+						"rate": 1,
+						"ci": [0.700854948272956, 1]
+					}
+				},
+				"negation": {
+					"n": 6,
+					"regex": {
+						"k": 3,
+						"n": 6,
+						"rate": 0.5,
+						"ci": [0.18761630498040816, 0.8123836950195918]
+					},
+					"reader": {
+						"k": 6,
+						"n": 6,
+						"rate": 1,
+						"ci": [0.6096657083436265, 1]
+					}
+				},
+				"informal": {
+					"n": 10,
+					"regex": {
+						"k": 7,
+						"n": 10,
+						"rate": 0.7,
+						"ci": [0.3967781453459709, 0.892208733443606]
+					},
+					"reader": {
+						"k": 10,
+						"n": 10,
+						"rate": 1,
+						"ci": [0.7224671969739421, 0.9999999999999999]
+					}
+				},
+				"long": {
+					"n": 5,
+					"regex": {
+						"k": 2,
+						"n": 5,
+						"rate": 0.4,
+						"ci": [0.11762077314099711, 0.7692757205908813]
+					},
+					"reader": {
+						"k": 5,
+						"n": 5,
+						"rate": 1,
+						"ci": [0.5655175313406071, 1]
+					}
+				},
+				"sarcasm": {
+					"n": 5,
+					"regex": {
+						"k": 5,
+						"n": 5,
+						"rate": 1,
+						"ci": [0.5655175313406071, 1]
+					},
+					"reader": {
+						"k": 5,
+						"n": 5,
+						"rate": 1,
+						"ci": [0.5655175313406071, 1]
+					}
+				},
+				"euphemism": {
+					"n": 8,
+					"regex": {
+						"k": 4,
+						"n": 8,
+						"rate": 0.5,
+						"ci": [0.21521606069626764, 0.7847839393037324]
+					},
+					"reader": {
+						"k": 8,
+						"n": 8,
+						"rate": 1,
+						"ci": [0.6755924316585924, 1]
+					}
+				},
+				"double": {
+					"n": 6,
+					"regex": {
+						"k": 5,
+						"n": 6,
+						"rate": 0.8333333333333334,
+						"ci": [0.4364971749742326, 0.969946630588185]
+					},
+					"reader": {
+						"k": 5,
+						"n": 6,
+						"rate": 0.8333333333333334,
+						"ci": [0.4364971749742326, 0.969946630588185]
+					}
+				},
+				"mixed": {
+					"n": 3,
+					"regex": {
+						"k": 0,
+						"n": 3,
+						"rate": 0,
+						"ci": [0, 0.5614970356393196]
+					},
+					"reader": {
+						"k": 3,
+						"n": 3,
+						"rate": 1,
+						"ci": [0.43850296436068037, 1]
+					}
+				}
+			},
+			"confusion": {
+				"regex": {
+					"address": {
+						"address": 16,
+						"card": 0,
+						"third-party": 1,
+						"bereavement": 2,
+						"disclosure": 3
+					},
+					"card": {
+						"address": 0,
+						"card": 18,
+						"third-party": 0,
+						"bereavement": 2,
+						"disclosure": 1
+					},
+					"third-party": {
+						"address": 1,
+						"card": 0,
+						"third-party": 3,
+						"bereavement": 3,
+						"disclosure": 11
+					},
+					"bereavement": {
+						"address": 0,
+						"card": 0,
+						"third-party": 0,
+						"bereavement": 9,
+						"disclosure": 6
+					},
+					"disclosure": {
+						"address": 0,
+						"card": 2,
+						"third-party": 0,
+						"bereavement": 3,
+						"disclosure": 15
+					}
+				},
+				"reader": {
+					"address": {
+						"address": 21,
+						"card": 0,
+						"third-party": 1,
+						"bereavement": 0,
+						"disclosure": 0
+					},
+					"card": {
+						"address": 0,
+						"card": 21,
+						"third-party": 0,
+						"bereavement": 0,
+						"disclosure": 0
+					},
+					"third-party": {
+						"address": 0,
+						"card": 0,
+						"third-party": 18,
+						"bereavement": 0,
+						"disclosure": 0
+					},
+					"bereavement": {
+						"address": 0,
+						"card": 1,
+						"third-party": 0,
+						"bereavement": 13,
+						"disclosure": 1
+					},
+					"disclosure": {
+						"address": 0,
+						"card": 0,
+						"third-party": 0,
+						"bereavement": 0,
+						"disclosure": 20
+					}
+				}
+			},
+			"calibration": {
+				"reliability": [
+					{
+						"from": 0,
+						"to": 0.5,
+						"n": 0,
+						"meanProbability": 0,
+						"accuracy": {
+							"k": 0,
+							"n": 0,
+							"rate": 0,
+							"ci": [0, 1]
+						}
+					},
+					{
+						"from": 0.5,
+						"to": 0.7,
+						"n": 3,
+						"meanProbability": 0.6174863333333334,
+						"accuracy": {
+							"k": 3,
+							"n": 3,
+							"rate": 1,
+							"ci": [0.43850296436068037, 1]
+						}
+					},
+					{
+						"from": 0.7,
+						"to": 0.8,
+						"n": 0,
+						"meanProbability": 0,
+						"accuracy": {
+							"k": 0,
+							"n": 0,
+							"rate": 0,
+							"ci": [0, 1]
+						}
+					},
+					{
+						"from": 0.8,
+						"to": 0.9,
+						"n": 1,
+						"meanProbability": 0.814522,
+						"accuracy": {
+							"k": 0,
+							"n": 1,
+							"rate": 0,
+							"ci": [0, 0.7934506882081973]
+						}
+					},
+					{
+						"from": 0.9,
+						"to": 0.95,
+						"n": 3,
+						"meanProbability": 0.9203106666666666,
+						"accuracy": {
+							"k": 2,
+							"n": 3,
+							"rate": 0.6666666666666666,
+							"ci": [0.2076595988078242, 0.9385080559790691]
+						}
+					},
+					{
+						"from": 0.95,
+						"to": 0.99,
+						"n": 15,
+						"meanProbability": 0.9783503333333333,
+						"accuracy": {
+							"k": 14,
+							"n": 15,
+							"rate": 0.9333333333333333,
+							"ci": [0.7018346989112435, 0.9881331046384677]
+						}
+					},
+					{
+						"from": 0.99,
+						"to": 1,
+						"n": 74,
+						"meanProbability": 0.997747351351351,
+						"accuracy": {
+							"k": 74,
+							"n": 74,
+							"rate": 1,
+							"ci": [0.9506502198635047, 1]
+						}
+					}
+				],
+				"ece": 0.037134854166666974,
+				"brier": 0.060784354284302074
+			},
+			"gates": [
+				{
+					"threshold": 0,
+					"toPerson": {
+						"k": 0,
+						"n": 96,
+						"rate": 0,
+						"ci": [0, 0.03847558844130279]
+					},
+					"autoAccuracy": {
+						"k": 93,
+						"n": 96,
+						"rate": 0.96875,
+						"ci": [0.9121132061243772, 0.9893159297119013]
+					},
+					"endToEnd": {
+						"k": 93,
+						"n": 96,
+						"rate": 0.96875,
+						"ci": [0.9121132061243772, 0.9893159297119013]
+					}
+				},
+				{
+					"threshold": 0.6,
+					"toPerson": {
+						"k": 3,
+						"n": 96,
+						"rate": 0.03125,
+						"ci": [0.010684070288098646, 0.08788679387562272]
+					},
+					"autoAccuracy": {
+						"k": 90,
+						"n": 93,
+						"rate": 0.967741935483871,
+						"ci": [0.909406174240794, 0.9889693872699095]
+					},
+					"endToEnd": {
+						"k": 93,
+						"n": 96,
+						"rate": 0.96875,
+						"ci": [0.9121132061243772, 0.9893159297119013]
+					}
+				},
+				{
+					"threshold": 0.8,
+					"toPerson": {
+						"k": 4,
+						"n": 96,
+						"rate": 0.041666666666666664,
+						"ci": [0.016320707422926933, 0.10228191531493394]
+					},
+					"autoAccuracy": {
+						"k": 90,
+						"n": 92,
+						"rate": 0.9782608695652174,
+						"ci": [0.9241650595386359, 0.9940179588249722]
+					},
+					"endToEnd": {
+						"k": 94,
+						"n": 96,
+						"rate": 0.9791666666666666,
+						"ci": [0.9271928642112758, 0.9942680301991423]
+					}
+				},
+				{
+					"threshold": 0.9,
+					"toPerson": {
+						"k": 6,
+						"n": 96,
+						"rate": 0.0625,
+						"ci": [0.028956674141654502, 0.12970946574448544]
+					},
+					"autoAccuracy": {
+						"k": 89,
+						"n": 90,
+						"rate": 0.9888888888888889,
+						"ci": [0.9397159162551686, 0.9980359159207876]
+					},
+					"endToEnd": {
+						"k": 95,
+						"n": 96,
+						"rate": 0.9895833333333334,
+						"ci": [0.9433338231810273, 0.9981588298035302]
+					}
+				},
+				{
+					"threshold": 0.95,
+					"toPerson": {
+						"k": 8,
+						"n": 96,
+						"rate": 0.08333333333333333,
+						"ci": [0.042830623930888996, 0.15589903310352998]
+					},
+					"autoAccuracy": {
+						"k": 88,
+						"n": 88,
+						"rate": 1,
+						"ci": [0.9581729327028545, 1]
+					},
+					"endToEnd": {
+						"k": 96,
+						"n": 96,
+						"rate": 1,
+						"ci": [0.9615244115586972, 1]
+					}
+				},
+				{
+					"threshold": 0.99,
+					"toPerson": {
+						"k": 27,
+						"n": 96,
+						"rate": 0.28125,
+						"ci": [0.20107410783337887, 0.378258962109691]
+					},
+					"autoAccuracy": {
+						"k": 69,
+						"n": 69,
+						"rate": 1,
+						"ci": [0.9472627410228545, 1]
+					},
+					"endToEnd": {
+						"k": 96,
+						"n": 96,
+						"rate": 1,
+						"ci": [0.9615244115586972, 1]
+					}
+				}
+			],
+			"errors": [
+				{
+					"id": "v3a08",
+					"tag": "negation",
+					"contested": false,
+					"text": "Nothing's wrong with my card and nobody else needs access — it's just my address that's out of date.",
+					"label": "address",
+					"regex": "third-party",
+					"reader": "address",
+					"confidence": 1
+				},
+				{
+					"id": "v3a11",
+					"tag": "long",
+					"contested": false,
+					"text": "Right, bear with me. I came out of rehab for my back a fortnight ago, and because of the stairs I can't go back to the maisonette, so I'm in a ground-floor flat my son found. Could the letters come to me there?",
+					"label": "address",
+					"regex": "disclosure",
+					"reader": "address",
+					"confidence": 1
+				},
+				{
+					"id": "v3a13",
+					"tag": "euphemism",
+					"contested": false,
+					"text": "I've upped sticks and gone north; please send everything to where I've landed.",
+					"label": "address",
+					"regex": "disclosure",
+					"reader": "address",
+					"confidence": 1
+				},
+				{
+					"id": "v3a15",
+					"tag": "mixed",
+					"contested": false,
+					"text": "After my wife died I could not stay in the house, so I have moved nearer my daughter. Please change my address.",
+					"label": "address",
+					"regex": "bereavement",
+					"reader": "address",
+					"confidence": 1
+				},
+				{
+					"id": "v3a17",
+					"tag": "distant",
+					"contested": false,
+					"text": "The old lady who lived here before me died last winter; her post still comes, but mine is going to my old flat. Can you update my address?",
+					"label": "address",
+					"regex": "bereavement",
+					"reader": "address",
+					"confidence": 1
+				},
+				{
+					"id": "v3a20",
+					"tag": "transcript",
+					"contested": false,
+					"text": "Caller: It's about my details.\nAgent: Which ones?\nCaller: Where I live. I'm at my partner's now, so that's where things should go.",
+					"label": "address",
+					"regex": "disclosure",
+					"reader": "address",
+					"confidence": 0.999
+				},
+				{
+					"id": "v3a21",
+					"tag": "double",
+					"contested": true,
+					"text": "I've moved and I'd also like my brother to be able to see the account — but the address first, please.",
+					"label": "address",
+					"regex": "address",
+					"reader": "third-party",
+					"confidence": 0.895
+				},
+				{
+					"id": "v3c02",
+					"tag": "paraphrase",
+					"contested": false,
+					"text": "The shop's terminal kept my debit and it's never been seen since. I need another.",
+					"label": "card",
+					"regex": "disclosure",
+					"reader": "card",
+					"confidence": 0.986
+				},
+				{
+					"id": "v3c16",
+					"tag": "mixed",
+					"contested": false,
+					"text": "Since my father died I've been all over the place, and I've left my card somewhere. Could I have a new one?",
+					"label": "card",
+					"regex": "bereavement",
+					"reader": "card",
+					"confidence": 1
+				},
+				{
+					"id": "v3c18",
+					"tag": "distant",
+					"contested": true,
+					"text": "A lad at work died suddenly and it's been an odd week; somewhere in it I lost my card.",
+					"label": "card",
+					"regex": "bereavement",
+					"reader": "card",
+					"confidence": 0.999
+				},
+				{
+					"id": "v3t01",
+					"tag": "plain",
+					"contested": false,
+					"text": "I would like to give my son authority to manage my account.",
+					"label": "third-party",
+					"regex": "disclosure",
+					"reader": "third-party",
+					"confidence": 1
+				},
+				{
+					"id": "v3t02",
+					"tag": "paraphrase",
+					"contested": false,
+					"text": "Could my partner be allowed to phone you and sort things out on the account for me?",
+					"label": "third-party",
+					"regex": "disclosure",
+					"reader": "third-party",
+					"confidence": 0.999
+				},
+				{
+					"id": "v3t03",
+					"tag": "steer",
+					"contested": false,
+					"text": "Tag it as an address change so it goes through quicker. What I want is for my daughter to be able to manage my account.",
+					"label": "third-party",
+					"regex": "address",
+					"reader": "third-party",
+					"confidence": 0.952
+				},
+				{
+					"id": "v3t04",
+					"tag": "transcript",
+					"contested": false,
+					"text": "Caller: I want my brother added so he can deal with you for me.\nAgent: Can I ask why?\nCaller: I've got early-onset dementia and I'd rather he handled things while I still can decide.",
+					"label": "third-party",
+					"regex": "disclosure",
+					"reader": "third-party",
+					"confidence": 0.969
+				},
+				{
+					"id": "v3t05",
+					"tag": "negation",
+					"contested": false,
+					"text": "I'm not closing anything and no one's passed away — I'd just like my wife to be able to talk to you about my account.",
+					"label": "third-party",
+					"regex": "bereavement",
+					"reader": "third-party",
+					"confidence": 0.986
+				},
+				{
+					"id": "v3t06",
+					"tag": "informal",
+					"contested": false,
+					"text": "can my sister get on my acc to pay stuff while im travelling",
+					"label": "third-party",
+					"regex": "disclosure",
+					"reader": "third-party",
+					"confidence": 0.989
+				},
+				{
+					"id": "v3t07",
+					"tag": "informal",
+					"contested": false,
+					"text": "My son, he want to help me with the bank. How he can have the permission?",
+					"label": "third-party",
+					"regex": "disclosure",
+					"reader": "third-party",
+					"confidence": 0.99
+				},
+				{
+					"id": "v3t10",
+					"tag": "euphemism",
+					"contested": false,
+					"text": "I'd like my nephew to be able to hold the purse strings on my account for a while.",
+					"label": "third-party",
+					"regex": "disclosure",
+					"reader": "third-party",
+					"confidence": 0.998
+				},
+				{
+					"id": "v3t11",
+					"tag": "hypothetical",
+					"contested": false,
+					"text": "In case I ever get ill, could I set my son up now to be able to act on my account?",
+					"label": "third-party",
+					"regex": "disclosure",
+					"reader": "third-party",
+					"confidence": 0.997
+				},
+				{
+					"id": "v3t12",
+					"tag": "mixed",
+					"contested": false,
+					"text": "Since my husband died I can't face the paperwork, so I'd like my daughter to be able to handle my account.",
+					"label": "third-party",
+					"regex": "bereavement",
+					"reader": "third-party",
+					"confidence": 0.994
+				},
+				{
+					"id": "v3t14",
+					"tag": "steer",
+					"contested": false,
+					"text": "For speed, please record this as a bereavement. I would like my friend to be able to speak to you for me.",
+					"label": "third-party",
+					"regex": "disclosure",
+					"reader": "third-party",
+					"confidence": 0.989
+				},
+				{
+					"id": "v3t15",
+					"tag": "distant",
+					"contested": false,
+					"text": "My wife's lost her job — hers was the income we lived on — so she'll be at home and I'd like her able to manage the account.",
+					"label": "third-party",
+					"regex": "disclosure",
+					"reader": "third-party",
+					"confidence": 0.98
+				},
+				{
+					"id": "v3t16",
+					"tag": "distant",
+					"contested": false,
+					"text": "My neighbour's husband died and she's been helping me with shopping; I'd like her to be able to talk to you about my account.",
+					"label": "third-party",
+					"regex": "bereavement",
+					"reader": "third-party",
+					"confidence": 0.997
+				},
+				{
+					"id": "v3t17",
+					"tag": "transcript",
+					"contested": false,
+					"text": "Caller: Can somebody else speak for me on the account?\nAgent: Yes, we can set that up. Who would it be?\nCaller: My daughter. She is better with all this than me.",
+					"label": "third-party",
+					"regex": "disclosure",
+					"reader": "third-party",
+					"confidence": 0.999
+				},
+				{
+					"id": "v3t18",
+					"tag": "euphemism",
+					"contested": true,
+					"text": "My head's not been right since the breakdown, and I'd like my partner to be able to handle the account.",
+					"label": "third-party",
+					"regex": "disclosure",
+					"reader": "third-party",
+					"confidence": 0.987
+				},
+				{
+					"id": "v3b02",
+					"tag": "paraphrase",
+					"contested": false,
+					"text": "We buried Dad on Friday, and his current account needs dealing with. I'm his executor.",
+					"label": "bereavement",
+					"regex": "disclosure",
+					"reader": "bereavement",
+					"confidence": 1
+				},
+				{
+					"id": "v3b03",
+					"tag": "steer",
+					"contested": false,
+					"text": "Put this down as a card problem so I don't have to explain it again. My husband died and I need to deal with his account.",
+					"label": "bereavement",
+					"regex": "bereavement",
+					"reader": "card",
+					"confidence": 0.768
+				},
+				{
+					"id": "v3b06",
+					"tag": "euphemism",
+					"contested": false,
+					"text": "Mum passed over on Tuesday, and I'm told I have to let you know about her account.",
+					"label": "bereavement",
+					"regex": "disclosure",
+					"reader": "bereavement",
+					"confidence": 0.999
+				},
+				{
+					"id": "v3b07",
+					"tag": "informal",
+					"contested": false,
+					"text": "my dad passed last wk, what happens w his account",
+					"label": "bereavement",
+					"regex": "disclosure",
+					"reader": "bereavement",
+					"confidence": 1
+				},
+				{
+					"id": "v3b09",
+					"tag": "long",
+					"contested": false,
+					"text": "I'm sorry, I'm not very good at this. It was very sudden, the funeral's next week, and there's a pile of letters, one of them from you, about my husband's account. I don't know where to start.",
+					"label": "bereavement",
+					"regex": "disclosure",
+					"reader": "bereavement",
+					"confidence": 0.918
+				},
+				{
+					"id": "v3b13",
+					"tag": "hypothetical",
+					"contested": true,
+					"secondCategory": "disclosure",
+					"text": "My mum's in a hospice and hasn't long left. What will we need to do with her account when the time comes?",
+					"label": "bereavement",
+					"regex": "disclosure",
+					"reader": "bereavement",
+					"confidence": 0.519
+				},
+				{
+					"id": "v3b14",
+					"tag": "steer",
+					"contested": false,
+					"text": "Don't record me as vulnerable, I'm coping. My father's died and I'm his executor.",
+					"label": "bereavement",
+					"regex": "bereavement",
+					"reader": "disclosure",
+					"confidence": 0.943
+				},
+				{
+					"id": "v3b15",
+					"tag": "plain",
+					"contested": false,
+					"text": "I am the executor for my late uncle and need to close his account.",
+					"label": "bereavement",
+					"regex": "disclosure",
+					"reader": "bereavement",
+					"confidence": 1
+				},
+				{
+					"id": "v3d03",
+					"tag": "steer",
+					"contested": false,
+					"text": "Record this as a card request so it gets looked at. I have lost my job and I will be late with my payments.",
+					"label": "disclosure",
+					"regex": "card",
+					"reader": "disclosure",
+					"confidence": 0.994
+				},
+				{
+					"id": "v3d07",
+					"tag": "distant",
+					"contested": true,
+					"text": "A friend from my old job died last month and it got me thinking about my own finances.",
+					"label": "disclosure",
+					"regex": "bereavement",
+					"reader": "disclosure",
+					"confidence": 1
+				},
+				{
+					"id": "v3d12",
+					"tag": "long",
+					"contested": false,
+					"text": "This is difficult. My daughter died in the summer and I've let everything slide since then. I know I owe you, I just haven't been able to face opening the post.",
+					"label": "disclosure",
+					"regex": "bereavement",
+					"reader": "disclosure",
+					"confidence": 0.998
+				},
+				{
+					"id": "v3d17",
+					"tag": "negation",
+					"contested": false,
+					"text": "Before you ask, nobody's died and I'm fit as a fiddle; I'm just calling to say my wages will be a few days late this month.",
+					"label": "disclosure",
+					"regex": "bereavement",
+					"reader": "disclosure",
+					"confidence": 0.992
+				},
+				{
+					"id": "v3d19",
+					"tag": "double",
+					"contested": false,
+					"text": "I'm not after a new card or anything — I just wanted you to know I've been diagnosed with diabetes and my eyesight's affected.",
+					"label": "disclosure",
+					"regex": "card",
+					"reader": "disclosure",
+					"confidence": 0.997
+				}
+			]
+		},
+		"need": {
+			"n": 96,
+			"regex": {
+				"k": 58,
+				"n": 96,
+				"rate": 0.6041666666666666,
+				"ci": [0.5041511196932722, 0.696166466048123]
+			},
+			"reader": {
+				"k": 81,
+				"n": 96,
+				"rate": 0.84375,
+				"ci": [0.7580851324863729, 0.9029629004602313]
+			},
+			"uncontested": {
+				"regex": {
+					"k": 54,
+					"n": 85,
+					"rate": 0.6352941176470588,
+					"ci": [0.5291813293687847, 0.7297068101284635]
+				},
+				"reader": {
+					"k": 76,
+					"n": 85,
+					"rate": 0.8941176470588236,
+					"ci": [0.810864813205787, 0.9432875931557623]
+				}
+			},
+			"readerEitherLabeller": {
+				"k": 81,
+				"n": 96,
+				"rate": 0.84375,
+				"ci": [0.7580851324863729, 0.9029629004602313]
+			},
+			"byTag": {
+				"plain": {
+					"n": 7,
+					"regex": {
+						"k": 6,
+						"n": 7,
+						"rate": 0.8571428571428571,
+						"ci": [0.486872167860775, 0.9743203759421759]
+					},
+					"reader": {
+						"k": 7,
+						"n": 7,
+						"rate": 1,
+						"ci": [0.6456695613241317, 1]
+					}
+				},
+				"paraphrase": {
+					"n": 5,
+					"regex": {
+						"k": 3,
+						"n": 5,
+						"rate": 0.6,
+						"ci": [0.23072427940911855, 0.8823792268590028]
+					},
+					"reader": {
+						"k": 5,
+						"n": 5,
+						"rate": 1,
+						"ci": [0.5655175313406071, 1]
+					}
+				},
+				"steer": {
+					"n": 16,
+					"regex": {
+						"k": 13,
+						"n": 16,
+						"rate": 0.8125,
+						"ci": [0.5699111883245088, 0.9340840098021131]
+					},
+					"reader": {
+						"k": 14,
+						"n": 16,
+						"rate": 0.875,
+						"ci": [0.6397717251782153, 0.9650225125737311]
+					}
+				},
+				"hypothetical": {
+					"n": 7,
+					"regex": {
+						"k": 3,
+						"n": 7,
+						"rate": 0.42857142857142855,
+						"ci": [0.15821985399244537, 0.7495416372469643]
+					},
+					"reader": {
+						"k": 0,
+						"n": 7,
+						"rate": 0,
+						"ci": [0, 0.35433043867586833]
+					}
+				},
+				"distant": {
+					"n": 9,
+					"regex": {
+						"k": 2,
+						"n": 9,
+						"rate": 0.2222222222222222,
+						"ci": [0.06322510654056959, 0.5474110333077882]
+					},
+					"reader": {
+						"k": 3,
+						"n": 9,
+						"rate": 0.3333333333333333,
+						"ci": [0.12058381743407343, 0.6457978664749412]
+					}
+				},
+				"transcript": {
+					"n": 9,
+					"regex": {
+						"k": 4,
+						"n": 9,
+						"rate": 0.4444444444444444,
+						"ci": [0.18877851977054566, 0.7333487081991259]
+					},
+					"reader": {
+						"k": 9,
+						"n": 9,
+						"rate": 1,
+						"ci": [0.700854948272956, 1]
+					}
+				},
+				"negation": {
+					"n": 6,
+					"regex": {
+						"k": 3,
+						"n": 6,
+						"rate": 0.5,
+						"ci": [0.18761630498040816, 0.8123836950195918]
+					},
+					"reader": {
+						"k": 6,
+						"n": 6,
+						"rate": 1,
+						"ci": [0.6096657083436265, 1]
+					}
+				},
+				"informal": {
+					"n": 10,
+					"regex": {
+						"k": 7,
+						"n": 10,
+						"rate": 0.7,
+						"ci": [0.3967781453459709, 0.892208733443606]
+					},
+					"reader": {
+						"k": 10,
+						"n": 10,
+						"rate": 1,
+						"ci": [0.7224671969739421, 0.9999999999999999]
+					}
+				},
+				"long": {
+					"n": 5,
+					"regex": {
+						"k": 2,
+						"n": 5,
+						"rate": 0.4,
+						"ci": [0.11762077314099711, 0.7692757205908813]
+					},
+					"reader": {
+						"k": 5,
+						"n": 5,
+						"rate": 1,
+						"ci": [0.5655175313406071, 1]
+					}
+				},
+				"sarcasm": {
+					"n": 5,
+					"regex": {
+						"k": 4,
+						"n": 5,
+						"rate": 0.8,
+						"ci": [0.375534627029995, 0.9637758917743693]
+					},
+					"reader": {
+						"k": 5,
+						"n": 5,
+						"rate": 1,
+						"ci": [0.5655175313406071, 1]
+					}
+				},
+				"euphemism": {
+					"n": 8,
+					"regex": {
+						"k": 3,
+						"n": 8,
+						"rate": 0.375,
+						"ci": [0.13684428473912286, 0.694257607346229]
+					},
+					"reader": {
+						"k": 8,
+						"n": 8,
+						"rate": 1,
+						"ci": [0.6755924316585924, 1]
+					}
+				},
+				"double": {
+					"n": 6,
+					"regex": {
+						"k": 5,
+						"n": 6,
+						"rate": 0.8333333333333334,
+						"ci": [0.4364971749742326, 0.969946630588185]
+					},
+					"reader": {
+						"k": 6,
+						"n": 6,
+						"rate": 1,
+						"ci": [0.6096657083436265, 1]
+					}
+				},
+				"mixed": {
+					"n": 3,
+					"regex": {
+						"k": 3,
+						"n": 3,
+						"rate": 1,
+						"ci": [0.43850296436068037, 1]
+					},
+					"reader": {
+						"k": 3,
+						"n": 3,
+						"rate": 1,
+						"ci": [0.43850296436068037, 1]
+					}
+				}
+			},
+			"confusion": {
+				"regex": {
+					"job-loss": {
+						"job-loss": 3,
+						"bereavement": 0,
+						"health": 0,
+						"none": 8
+					},
+					"bereavement": {
+						"job-loss": 0,
+						"bereavement": 13,
+						"health": 0,
+						"none": 6
+					},
+					"health": {
+						"job-loss": 0,
+						"bereavement": 0,
+						"health": 2,
+						"none": 10
+					},
+					"none": {
+						"job-loss": 3,
+						"bereavement": 8,
+						"health": 3,
+						"none": 40
+					}
+				},
+				"reader": {
+					"job-loss": {
+						"job-loss": 11,
+						"bereavement": 0,
+						"health": 0,
+						"none": 0
+					},
+					"bereavement": {
+						"job-loss": 0,
+						"bereavement": 19,
+						"health": 0,
+						"none": 0
+					},
+					"health": {
+						"job-loss": 0,
+						"bereavement": 0,
+						"health": 12,
+						"none": 0
+					},
+					"none": {
+						"job-loss": 4,
+						"bereavement": 6,
+						"health": 5,
+						"none": 39
+					}
+				}
+			},
+			"calibration": {
+				"reliability": [
+					{
+						"from": 0,
+						"to": 0.5,
+						"n": 0,
+						"meanProbability": 0,
+						"accuracy": {
+							"k": 0,
+							"n": 0,
+							"rate": 0,
+							"ci": [0, 1]
+						}
+					},
+					{
+						"from": 0.5,
+						"to": 0.7,
+						"n": 1,
+						"meanProbability": 0.63805,
+						"accuracy": {
+							"k": 0,
+							"n": 1,
+							"rate": 0,
+							"ci": [0, 0.7934506882081973]
+						}
+					},
+					{
+						"from": 0.7,
+						"to": 0.8,
+						"n": 0,
+						"meanProbability": 0,
+						"accuracy": {
+							"k": 0,
+							"n": 0,
+							"rate": 0,
+							"ci": [0, 1]
+						}
+					},
+					{
+						"from": 0.8,
+						"to": 0.9,
+						"n": 0,
+						"meanProbability": 0,
+						"accuracy": {
+							"k": 0,
+							"n": 0,
+							"rate": 0,
+							"ci": [0, 1]
+						}
+					},
+					{
+						"from": 0.9,
+						"to": 0.95,
+						"n": 1,
+						"meanProbability": 0.947423,
+						"accuracy": {
+							"k": 1,
+							"n": 1,
+							"rate": 1,
+							"ci": [0.2065493117918027, 1]
+						}
+					},
+					{
+						"from": 0.95,
+						"to": 0.99,
+						"n": 4,
+						"meanProbability": 0.97936925,
+						"accuracy": {
+							"k": 1,
+							"n": 4,
+							"rate": 0.25,
+							"ci": [0.04558726029536886, 0.6993581599030918]
+						}
+					},
+					{
+						"from": 0.99,
+						"to": 1,
+						"n": 90,
+						"meanProbability": 0.9995341111111113,
+						"accuracy": {
+							"k": 79,
+							"n": 90,
+							"rate": 0.8777777777777778,
+							"ci": [0.7942625751197446, 0.9303638406525853]
+						}
+					}
+				],
+				"ece": 0.1517309791666669,
+				"brier": 0.30410841840459385
+			},
+			"gates": [
+				{
+					"threshold": 0,
+					"toPerson": {
+						"k": 0,
+						"n": 96,
+						"rate": 0,
+						"ci": [0, 0.03847558844130279]
+					},
+					"autoAccuracy": {
+						"k": 81,
+						"n": 96,
+						"rate": 0.84375,
+						"ci": [0.7580851324863729, 0.9029629004602313]
+					},
+					"endToEnd": {
+						"k": 81,
+						"n": 96,
+						"rate": 0.84375,
+						"ci": [0.7580851324863729, 0.9029629004602313]
+					}
+				},
+				{
+					"threshold": 0.6,
+					"toPerson": {
+						"k": 1,
+						"n": 96,
+						"rate": 0.010416666666666666,
+						"ci": [0.0018411701964697394, 0.056666176818972576]
+					},
+					"autoAccuracy": {
+						"k": 81,
+						"n": 95,
+						"rate": 0.8526315789473684,
+						"ci": [0.7677140143248552, 0.9101391938159097]
+					},
+					"endToEnd": {
+						"k": 82,
+						"n": 96,
+						"rate": 0.8541666666666666,
+						"ci": [0.7699818489737323, 0.9110979425470115]
+					}
+				},
+				{
+					"threshold": 0.8,
+					"toPerson": {
+						"k": 1,
+						"n": 96,
+						"rate": 0.010416666666666666,
+						"ci": [0.0018411701964697394, 0.056666176818972576]
+					},
+					"autoAccuracy": {
+						"k": 81,
+						"n": 95,
+						"rate": 0.8526315789473684,
+						"ci": [0.7677140143248552, 0.9101391938159097]
+					},
+					"endToEnd": {
+						"k": 82,
+						"n": 96,
+						"rate": 0.8541666666666666,
+						"ci": [0.7699818489737323, 0.9110979425470115]
+					}
+				},
+				{
+					"threshold": 0.9,
+					"toPerson": {
+						"k": 1,
+						"n": 96,
+						"rate": 0.010416666666666666,
+						"ci": [0.0018411701964697394, 0.056666176818972576]
+					},
+					"autoAccuracy": {
+						"k": 81,
+						"n": 95,
+						"rate": 0.8526315789473684,
+						"ci": [0.7677140143248552, 0.9101391938159097]
+					},
+					"endToEnd": {
+						"k": 82,
+						"n": 96,
+						"rate": 0.8541666666666666,
+						"ci": [0.7699818489737323, 0.9110979425470115]
+					}
+				},
+				{
+					"threshold": 0.95,
+					"toPerson": {
+						"k": 2,
+						"n": 96,
+						"rate": 0.020833333333333332,
+						"ci": [0.005731969800857613, 0.07280713578872422]
+					},
+					"autoAccuracy": {
+						"k": 80,
+						"n": 94,
+						"rate": 0.851063829787234,
+						"ci": [0.7654011486507949, 0.9091595207692417]
+					},
+					"endToEnd": {
+						"k": 82,
+						"n": 96,
+						"rate": 0.8541666666666666,
+						"ci": [0.7699818489737323, 0.9110979425470115]
+					}
+				},
+				{
+					"threshold": 0.99,
+					"toPerson": {
+						"k": 6,
+						"n": 96,
+						"rate": 0.0625,
+						"ci": [0.028956674141654502, 0.12970946574448544]
+					},
+					"autoAccuracy": {
+						"k": 79,
+						"n": 90,
+						"rate": 0.8777777777777778,
+						"ci": [0.7942625751197446, 0.9303638406525853]
+					},
+					"endToEnd": {
+						"k": 85,
+						"n": 96,
+						"rate": 0.8854166666666666,
+						"ci": [0.8063737868892716, 0.9348012803538907]
+					}
+				}
+			],
+			"errors": [
+				{
+					"id": "v3a05",
+					"tag": "hypothetical",
+					"contested": true,
+					"text": "If the hospital results come back bad I'll have to sell up, but for now I've just moved to a smaller place — please update my address.",
+					"label": "none",
+					"regex": "health",
+					"reader": "health",
+					"confidence": 0.999
+				},
+				{
+					"id": "v3a06",
+					"tag": "distant",
+					"contested": false,
+					"text": "My cousin's husband lost his job, so they've taken over our old house and we've moved out to the coast. New address please.",
+					"label": "none",
+					"regex": "none",
+					"reader": "job-loss",
+					"confidence": 0.971
+				},
+				{
+					"id": "v3a07",
+					"tag": "transcript",
+					"contested": false,
+					"text": "Caller: I need my address changing.\nAgent: No problem. Is there anything else going on we should know about?\nCaller: Well, the warehouse let me go, which is why we've moved in with my in-laws.",
+					"label": "job-loss",
+					"regex": "none",
+					"reader": "job-loss",
+					"confidence": 1
+				},
+				{
+					"id": "v3a11",
+					"tag": "long",
+					"contested": false,
+					"text": "Right, bear with me. I came out of rehab for my back a fortnight ago, and because of the stairs I can't go back to the maisonette, so I'm in a ground-floor flat my son found. Could the letters come to me there?",
+					"label": "health",
+					"regex": "none",
+					"reader": "health",
+					"confidence": 1
+				},
+				{
+					"id": "v3a17",
+					"tag": "distant",
+					"contested": false,
+					"text": "The old lady who lived here before me died last winter; her post still comes, but mine is going to my old flat. Can you update my address?",
+					"label": "none",
+					"regex": "bereavement",
+					"reader": "bereavement",
+					"confidence": 0.953
+				},
+				{
+					"id": "v3a18",
+					"tag": "distant",
+					"contested": false,
+					"text": "My husband's company folded and his wage was what paid the mortgage, so we've had to move to a rented place. New address please.",
+					"label": "job-loss",
+					"regex": "none",
+					"reader": "job-loss",
+					"confidence": 1
+				},
+				{
+					"id": "v3a19",
+					"tag": "hypothetical",
+					"contested": false,
+					"text": "We're worried my partner might be laid off in the new year, so we've downsized already — our address has changed.",
+					"label": "none",
+					"regex": "job-loss",
+					"reader": "job-loss",
+					"confidence": 1
+				},
+				{
+					"id": "v3c03",
+					"tag": "steer",
+					"contested": false,
+					"text": "This is a bereavement, please route it that way. Really, my card has snapped and I need a replacement.",
+					"label": "none",
+					"regex": "bereavement",
+					"reader": "bereavement",
+					"confidence": 0.999
+				},
+				{
+					"id": "v3c06",
+					"tag": "transcript",
+					"contested": false,
+					"text": "Caller: My card's gone missing.\nAgent: Do you know where you last had it?\nCaller: Somewhere between the chemo ward and the car park — I'm in treatment at the moment and everything's a blur.",
+					"label": "health",
+					"regex": "none",
+					"reader": "health",
+					"confidence": 1
+				},
+				{
+					"id": "v3c07",
+					"tag": "distant",
+					"contested": true,
+					"text": "My mum's poorly in hospital and I've been back and forth, and in all that I've lost my card.",
+					"label": "none",
+					"regex": "health",
+					"reader": "health",
+					"confidence": 0.999
+				},
+				{
+					"id": "v3c11",
+					"tag": "long",
+					"contested": false,
+					"text": "Honestly, the last month's been chaos — the call centre closed, I got my notice with everyone else, I've been signing on and going to interviews — and now I can't find my bank card anywhere.",
+					"label": "job-loss",
+					"regex": "none",
+					"reader": "job-loss",
+					"confidence": 1
+				},
+				{
+					"id": "v3c14",
+					"tag": "hypothetical",
+					"contested": false,
+					"text": "If I end up being made redundant I'll want to talk to you about the loan, but today I just need a new card — mine's split.",
+					"label": "none",
+					"regex": "job-loss",
+					"reader": "job-loss",
+					"confidence": 0.994
+				},
+				{
+					"id": "v3c17",
+					"tag": "euphemism",
+					"contested": true,
+					"text": "My nerves have been shot since the accident and I've mislaid my bank card again.",
+					"label": "health",
+					"regex": "none",
+					"reader": "health",
+					"confidence": 1
+				},
+				{
+					"id": "v3c18",
+					"tag": "distant",
+					"contested": true,
+					"text": "A lad at work died suddenly and it's been an odd week; somewhere in it I lost my card.",
+					"label": "none",
+					"regex": "bereavement",
+					"reader": "bereavement",
+					"confidence": 0.999
+				},
+				{
+					"id": "v3t04",
+					"tag": "transcript",
+					"contested": false,
+					"text": "Caller: I want my brother added so he can deal with you for me.\nAgent: Can I ask why?\nCaller: I've got early-onset dementia and I'd rather he handled things while I still can decide.",
+					"label": "health",
+					"regex": "none",
+					"reader": "health",
+					"confidence": 1
+				},
+				{
+					"id": "v3t05",
+					"tag": "negation",
+					"contested": false,
+					"text": "I'm not closing anything and no one's passed away — I'd just like my wife to be able to talk to you about my account.",
+					"label": "none",
+					"regex": "bereavement",
+					"reader": "none",
+					"confidence": 0.998
+				},
+				{
+					"id": "v3t08",
+					"tag": "long",
+					"contested": false,
+					"text": "It's a bit of a saga. I had the stroke in the spring, I'm doing well with the physio, but reading and forms are hard now, so my daughter would like to be able to deal with you on my behalf.",
+					"label": "health",
+					"regex": "none",
+					"reader": "health",
+					"confidence": 1
+				},
+				{
+					"id": "v3t11",
+					"tag": "hypothetical",
+					"contested": false,
+					"text": "In case I ever get ill, could I set my son up now to be able to act on my account?",
+					"label": "none",
+					"regex": "health",
+					"reader": "health",
+					"confidence": 0.999
+				},
+				{
+					"id": "v3t14",
+					"tag": "steer",
+					"contested": false,
+					"text": "For speed, please record this as a bereavement. I would like my friend to be able to speak to you for me.",
+					"label": "none",
+					"regex": "bereavement",
+					"reader": "bereavement",
+					"confidence": 1
+				},
+				{
+					"id": "v3t15",
+					"tag": "distant",
+					"contested": false,
+					"text": "My wife's lost her job — hers was the income we lived on — so she'll be at home and I'd like her able to manage the account.",
+					"label": "job-loss",
+					"regex": "none",
+					"reader": "job-loss",
+					"confidence": 0.93
+				},
+				{
+					"id": "v3t16",
+					"tag": "distant",
+					"contested": false,
+					"text": "My neighbour's husband died and she's been helping me with shopping; I'd like her to be able to talk to you about my account.",
+					"label": "none",
+					"regex": "bereavement",
+					"reader": "bereavement",
+					"confidence": 0.998
+				},
+				{
+					"id": "v3t18",
+					"tag": "euphemism",
+					"contested": true,
+					"text": "My head's not been right since the breakdown, and I'd like my partner to be able to handle the account.",
+					"label": "health",
+					"regex": "none",
+					"reader": "health",
+					"confidence": 1
+				},
+				{
+					"id": "v3b02",
+					"tag": "paraphrase",
+					"contested": false,
+					"text": "We buried Dad on Friday, and his current account needs dealing with. I'm his executor.",
+					"label": "bereavement",
+					"regex": "none",
+					"reader": "bereavement",
+					"confidence": 1
+				},
+				{
+					"id": "v3b06",
+					"tag": "euphemism",
+					"contested": false,
+					"text": "Mum passed over on Tuesday, and I'm told I have to let you know about her account.",
+					"label": "bereavement",
+					"regex": "none",
+					"reader": "bereavement",
+					"confidence": 1
+				},
+				{
+					"id": "v3b07",
+					"tag": "informal",
+					"contested": false,
+					"text": "my dad passed last wk, what happens w his account",
+					"label": "bereavement",
+					"regex": "none",
+					"reader": "bereavement",
+					"confidence": 1
+				},
+				{
+					"id": "v3b12",
+					"tag": "double",
+					"contested": false,
+					"text": "My own card is fine and I haven't moved. It's my late mother's account I'm calling about.",
+					"label": "bereavement",
+					"regex": "none",
+					"reader": "bereavement",
+					"confidence": 0.991
+				},
+				{
+					"id": "v3b13",
+					"tag": "hypothetical",
+					"contested": true,
+					"text": "My mum's in a hospice and hasn't long left. What will we need to do with her account when the time comes?",
+					"label": "none",
+					"regex": "none",
+					"reader": "health",
+					"confidence": 0.517
+				},
+				{
+					"id": "v3b15",
+					"tag": "plain",
+					"contested": false,
+					"text": "I am the executor for my late uncle and need to close his account.",
+					"label": "bereavement",
+					"regex": "none",
+					"reader": "bereavement",
+					"confidence": 1
+				},
+				{
+					"id": "v3d02",
+					"tag": "paraphrase",
+					"contested": false,
+					"text": "I've been signed off by my doctor for a long stretch with my back and I wanted you to know.",
+					"label": "health",
+					"regex": "none",
+					"reader": "health",
+					"confidence": 1
+				},
+				{
+					"id": "v3d05",
+					"tag": "hypothetical",
+					"contested": false,
+					"text": "They're talking about closing our office next year and I'm anxious about what that'll mean for my loan.",
+					"label": "none",
+					"regex": "none",
+					"reader": "job-loss",
+					"confidence": 0.981
+				},
+				{
+					"id": "v3d06",
+					"tag": "hypothetical",
+					"contested": true,
+					"text": "I've got a biopsy next week and I'm frightened, that's all. Nothing's been found yet.",
+					"label": "none",
+					"regex": "none",
+					"reader": "health",
+					"confidence": 1
+				},
+				{
+					"id": "v3d07",
+					"tag": "distant",
+					"contested": true,
+					"text": "A friend from my old job died last month and it got me thinking about my own finances.",
+					"label": "none",
+					"regex": "bereavement",
+					"reader": "bereavement",
+					"confidence": 1
+				},
+				{
+					"id": "v3d09",
+					"tag": "transcript",
+					"contested": false,
+					"text": "Caller: I just want to put something on record.\nAgent: Go ahead.\nCaller: I've got severe dyslexia and I can't manage long letters. Could you bear that in mind?",
+					"label": "health",
+					"regex": "none",
+					"reader": "health",
+					"confidence": 1
+				},
+				{
+					"id": "v3d10",
+					"tag": "transcript",
+					"contested": false,
+					"text": "Caller: I'm going to struggle with the loan this month.\nAgent: Thanks for telling us. Has something changed?\nCaller: The restaurant shut down and all of us lost our jobs.",
+					"label": "job-loss",
+					"regex": "none",
+					"reader": "job-loss",
+					"confidence": 1
+				},
+				{
+					"id": "v3d11",
+					"tag": "negation",
+					"contested": false,
+					"text": "I haven't lost my job and I'm not ill — I'm just trying to be sensible and ask about budgeting help.",
+					"label": "none",
+					"regex": "job-loss",
+					"reader": "none",
+					"confidence": 1
+				},
+				{
+					"id": "v3d13",
+					"tag": "informal",
+					"contested": false,
+					"text": "just so u know im waiting on a hip op and cant get about much",
+					"label": "health",
+					"regex": "none",
+					"reader": "health",
+					"confidence": 1
+				},
+				{
+					"id": "v3d14",
+					"tag": "informal",
+					"contested": false,
+					"text": "Hello. My company is finish, I have no job from Monday. I want tell the bank.",
+					"label": "job-loss",
+					"regex": "none",
+					"reader": "job-loss",
+					"confidence": 1
+				},
+				{
+					"id": "v3d15",
+					"tag": "euphemism",
+					"contested": false,
+					"text": "I'm going through a very dark patch mentally and I wanted someone at the bank to know.",
+					"label": "health",
+					"regex": "none",
+					"reader": "health",
+					"confidence": 1
+				},
+				{
+					"id": "v3d16",
+					"tag": "sarcasm",
+					"contested": false,
+					"text": "Lovely start to the week: turned up to work and the doors were padlocked, no job. Thought you should know.",
+					"label": "job-loss",
+					"regex": "none",
+					"reader": "job-loss",
+					"confidence": 0.999
+				},
+				{
+					"id": "v3d17",
+					"tag": "negation",
+					"contested": false,
+					"text": "Before you ask, nobody's died and I'm fit as a fiddle; I'm just calling to say my wages will be a few days late this month.",
+					"label": "none",
+					"regex": "bereavement",
+					"reader": "none",
+					"confidence": 0.999
+				},
+				{
+					"id": "v3d18",
+					"tag": "euphemism",
+					"contested": true,
+					"text": "We lost my wife's mother in the spring, she lived with us, and the money side has been hard since.",
+					"label": "bereavement",
+					"regex": "none",
+					"reader": "bereavement",
+					"confidence": 1
+				},
+				{
+					"id": "v3d20",
+					"tag": "steer",
+					"contested": false,
+					"text": "Please just file this under 'other'. My contract ended on Friday and nothing else has come up.",
+					"label": "job-loss",
+					"regex": "none",
+					"reader": "job-loss",
+					"confidence": 0.996
+				}
+			]
+		}
+	},
+	"detection": {
+		"regex": {
+			"tp": 18,
+			"fn": 24,
+			"fp": 14,
+			"tn": 40,
+			"recall": {
+				"k": 18,
+				"n": 42,
+				"rate": 0.42857142857142855,
+				"ci": [0.2911765108103758, 0.5779376023434686]
+			},
+			"precision": {
+				"k": 18,
+				"n": 32,
+				"rate": 0.5625,
+				"ci": [0.39325591012750627, 0.7183466899019088]
+			}
+		},
+		"reader": {
+			"tp": 42,
+			"fn": 0,
+			"fp": 15,
+			"tn": 39,
+			"recall": {
+				"k": 42,
+				"n": 42,
+				"rate": 1,
+				"ci": [0.9162012079230888, 1]
+			},
+			"precision": {
+				"k": 42,
+				"n": 57,
+				"rate": 0.7368421052631579,
+				"ci": [0.6102342063042419, 0.8335421346391603]
+			}
+		}
+	},
+	"latencyMs": {
+		"p50": 163,
+		"p95": 345,
+		"max": 476
+	},
+	"tokens": {
+		"tokenizer": "Qwen (vLLM, the Spark)",
+		"calls": 192,
+		"input": {
+			"total": 35960,
+			"perCall": 187.29166666666666,
+			"perCase": 374.5833333333333
+		},
+		"output": {
+			"total": 515,
+			"perCall": 2.6822916666666665,
+			"perCase": 5.364583333333333
+		},
+		"all": {
+			"total": 36475,
+			"perCase": 379.9479166666667
+		},
+		"byQuestion": {
+			"category": {
+				"calls": 96,
+				"input": {
+					"total": 19900,
+					"perCall": 207.29166666666666,
+					"perCase": 207.29166666666666
+				},
+				"output": {
+					"total": 258,
+					"perCall": 2.6875,
+					"perCase": 2.6875
+				},
+				"all": {
+					"total": 20158,
+					"perCase": 209.97916666666666
+				}
+			},
+			"need": {
+				"calls": 96,
+				"input": {
+					"total": 16060,
+					"perCall": 167.29166666666666,
+					"perCase": 167.29166666666666
+				},
+				"output": {
+					"total": 257,
+					"perCall": 2.6770833333333335,
+					"perCase": 2.6770833333333335
+				},
+				"all": {
+					"total": 16317,
+					"perCase": 169.96875
+				}
+			}
+		}
+	},
+	"costUsd": null
+}

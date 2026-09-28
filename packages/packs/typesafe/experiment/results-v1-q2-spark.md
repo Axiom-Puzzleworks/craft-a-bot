@@ -1,10 +1,10 @@
-# Spark on the servicing corpus v1, questions q2 — results
+# Spark 122B on the servicing corpus v1, questions q2 — results
 
 Recorded 2026-09-28 against `Qwen3.5-122B-A10B-NVFP4`; 95 rows (0 contested), 190 calls. Rates are counts with a Wilson 95% interval.
 
 ## The request (classify)
 
-|            | regex                | Spark                |
+|            | regex                | Spark 122B           |
 | ---------- | -------------------- | -------------------- |
 | all rows   | 54% (51/95; 44–63)   | 95% (90/95; 88–98)   |
 | plain      | 100% (22/22; 85–100) | 91% (20/22; 72–97)   |
@@ -47,7 +47,7 @@ _regex_
 | bereavement  | 0       | 0    | 0           | 6           | 9          |
 | disclosure   | 0       | 0    | 0           | 1           | 19         |
 
-_Spark_
+_Spark 122B_
 
 | label \ pick | address | card | third-party | bereavement | disclosure |
 | ------------ | ------- | ---- | ----------- | ----------- | ---------- |
@@ -59,7 +59,7 @@ _Spark_
 
 **Rows either reader got wrong:**
 
-| row | tag        | label       | regex       | Spark (conf.)                 | text                                                                                                           |
+| row | tag        | label       | regex       | Spark 122B (conf.)            | text                                                                                                           |
 | --- | ---------- | ----------- | ----------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------- |
 | a05 | paraphrase | address     | disclosure  | ✓ (1.00; steer 0.00)          | I've relocated to the other side of the city and want my statements going to the right place.                  |
 | a06 | paraphrase | address     | disclosure  | ✓ (0.99; steer 0.01)          | We've just bought our first home, so letters should go there from now on.                                      |
@@ -110,7 +110,7 @@ _Spark_
 
 ## The support need (record)
 
-|            | regex              | Spark                |
+|            | regex              | Spark 122B           |
 | ---------- | ------------------ | -------------------- |
 | all rows   | 62% (59/95; 52–71) | 98% (93/95; 93–99)   |
 | plain      | 95% (21/22; 78–99) | 100% (22/22; 85–100) |
@@ -149,7 +149,7 @@ _regex_
 | health       | 0        | 0           | 4      | 11   |
 | none         | 0        | 3           | 3      | 43   |
 
-_Spark_
+_Spark 122B_
 
 | label \ pick | job-loss | bereavement | health | none |
 | ------------ | -------- | ----------- | ------ | ---- |
@@ -160,7 +160,7 @@ _Spark_
 
 **Rows either reader got wrong:**
 
-| row | tag        | label       | regex       | Spark (conf.)      | text                                                                                                              |
+| row | tag        | label       | regex       | Spark 122B (conf.) | text                                                                                                              |
 | --- | ---------- | ----------- | ----------- | ------------------ | ----------------------------------------------------------------------------------------------------------------- |
 | a15 | trap       | none        | bereavement | ✓ (1.00)           | My phone died so I couldn't ring sooner — I've moved and need my address updated.                                 |
 | a17 | trap       | none        | bereavement | bereavement (0.54) | The previous owner of my new house passed away, and I have moved in — please update my address.                   |
@@ -202,10 +202,10 @@ _Spark_
 
 ## Vulnerability detection (any need recorded vs any need disclosed)
 
-|       | recall              | precision           | tp / fn / fp / tn |
-| ----- | ------------------- | ------------------- | ----------------- |
-| regex | 35% (16/46; 23–49)  | 73% (16/22; 52–87)  | 16 / 30 / 6 / 43  |
-| Spark | 98% (45/46; 89–100) | 98% (45/46; 89–100) | 45 / 1 / 1 / 48   |
+|            | recall              | precision           | tp / fn / fp / tn |
+| ---------- | ------------------- | ------------------- | ----------------- |
+| regex      | 35% (16/46; 23–49)  | 73% (16/22; 52–87)  | 16 / 30 / 6 / 43  |
+| Spark 122B | 98% (45/46; 89–100) | 98% (45/46; 89–100) | 45 / 1 / 1 / 48   |
 
 ## The steer (P ≥ 0.5 against the `steer` tag)
 
@@ -213,6 +213,18 @@ _Spark_
 | ------ | --------- | ----------------- |
 | —      | —         | 0 / 0 / 0 / 95    |
 
-## Latency and cost
+## Latency
 
-Per call as recorded (one question each): p50 1070 ms, p95 1103 ms, max 1214 ms. Mean 316 input tokens; the whole corpus (190 calls) cost $0.00252 — $0.000027 a case.
+Per call as recorded: p50 1070 ms, p95 1103 ms, max 1214 ms.
+
+## Tokens and cost
+
+Counted by Qwen (vLLM, the Spark)'s own tokenizer — not the same unit as another reader's. A case is one corpus row: two calls, the request and the need.
+
+|         | calls | input tokens | output tokens | input per call | output per call | tokens per case |
+| ------- | ----- | ------------ | ------------- | -------------- | --------------- | --------------- |
+| request | 95    | 37748        | 443           | 397.3          | 4.7             | 402.0           |
+| need    | 95    | 22294        | 242           | 234.7          | 2.5             | 237.2           |
+| **all** | 190   | 60042        | 685           | 316.0          | 3.6             | 639.2           |
+
+No per-token price: the Spark is the builder’s own hardware. Set SPARK_INPUT_USD_PER_MTOK / SPARK_OUTPUT_USD_PER_MTOK to cost the same tokens at a stated what-if rate.

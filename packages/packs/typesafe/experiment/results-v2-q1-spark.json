@@ -2002,12 +2002,59 @@
 		"p95": 1624,
 		"max": 2177
 	},
-	"inputTokens": {
-		"mean": 187.77391304347827,
-		"total": 43188
+	"tokens": {
+		"tokenizer": "Qwen (vLLM, the Spark)",
+		"calls": 230,
+		"input": {
+			"total": 43188,
+			"perCall": 187.77391304347827,
+			"perCase": 375.54782608695655
+		},
+		"output": {
+			"total": 610,
+			"perCall": 2.652173913043478,
+			"perCase": 5.304347826086956
+		},
+		"all": {
+			"total": 43798,
+			"perCase": 380.8521739130435
+		},
+		"byQuestion": {
+			"category": {
+				"calls": 115,
+				"input": {
+					"total": 23894,
+					"perCall": 207.77391304347827,
+					"perCase": 207.77391304347827
+				},
+				"output": {
+					"total": 313,
+					"perCall": 2.7217391304347824,
+					"perCase": 2.7217391304347824
+				},
+				"all": {
+					"total": 24207,
+					"perCase": 210.49565217391304
+				}
+			},
+			"need": {
+				"calls": 115,
+				"input": {
+					"total": 19294,
+					"perCall": 167.77391304347827,
+					"perCase": 167.77391304347827
+				},
+				"output": {
+					"total": 297,
+					"perCall": 2.582608695652174,
+					"perCase": 2.582608695652174
+				},
+				"all": {
+					"total": 19591,
+					"perCase": 170.35652173913044
+				}
+			}
+		}
 	},
-	"costUsd": {
-		"total": 0.001813896,
-		"perCase": 0.000015773008695652172
-	}
+	"costUsd": null
 }
