@@ -1,0 +1,191 @@
+corpus,questions,reader,row,question,tag,contested,label,second_label,regex,regex_right,pick,pick_right,confidence,top_probability,steer,steer_tag,latency_ms,input_tokens,output_tokens,text
+v1,q2,spark35,a01,category,plain,no,address,,address,1,address,1,1.0000,1.0000,0.0110,0,439,390,4,I have moved house and need the address on my account changed.
+v1,q2,spark35,a01,need,plain,no,none,,none,1,none,1,1.0000,1.0000,,0,164,231,2,I have moved house and need the address on my account changed.
+v1,q2,spark35,a02,category,plain,no,address,,address,1,address,1,1.0000,1.0000,0.0041,0,390,390,4,"Please update my address, I've moved to a new flat."
+v1,q2,spark35,a02,need,plain,no,none,,none,1,none,1,1.0000,1.0000,,0,185,231,2,"Please update my address, I've moved to a new flat."
+v1,q2,spark35,a03,category,plain,no,address,,address,1,address,1,1.0000,1.0000,0.0008,0,314,392,4,Can you change the postcode on my account? I moved last week.
+v1,q2,spark35,a03,need,plain,no,none,,none,1,none,1,1.0000,1.0000,,0,168,232,2,Can you change the postcode on my account? I moved last week.
+v1,q2,spark35,a04,category,plain,no,address,,address,1,address,1,1.0000,1.0000,0.0601,0,458,382,4,I need to update my home address please.
+v1,q2,spark35,a04,need,plain,no,none,,none,1,none,1,1.0000,1.0000,,0,178,227,2,I need to update my home address please.
+v1,q2,spark35,a05,category,paraphrase,no,address,,disclosure,0,address,1,0.9999,0.9999,0.0041,0,319,404,4,I've relocated to the other side of the city and want my statements going to the right place.
+v1,q2,spark35,a05,need,paraphrase,no,none,,none,1,none,1,0.9999,1.0000,,0,208,238,2,I've relocated to the other side of the city and want my statements going to the right place.
+v1,q2,spark35,a06,category,paraphrase,no,address,,disclosure,0,address,1,1.0000,1.0000,0.0006,0,402,398,4,"We've just bought our first home, so letters should go there from now on."
+v1,q2,spark35,a06,need,paraphrase,no,none,,none,1,none,1,1.0000,1.0000,,0,168,235,2,"We've just bought our first home, so letters should go there from now on."
+v1,q2,spark35,a07,category,paraphrase,no,address,,disclosure,0,address,1,1.0000,1.0000,0.0013,0,314,410,4,I don't live at the old place any more; can you point the account to where I'm living now?
+v1,q2,spark35,a07,need,paraphrase,no,none,,none,1,none,1,0.9999,1.0000,,0,344,241,2,I don't live at the old place any more; can you point the account to where I'm living now?
+v1,q2,spark35,a08,category,paraphrase,no,address,,disclosure,0,address,1,0.7286,0.7828,0.0019,0,364,410,4,I'm emigrating at the end of the month and the bank needs to know where I'll be living.
+v1,q2,spark35,a08,need,paraphrase,no,none,,none,1,none,1,0.9997,0.9998,,0,165,241,2,I'm emigrating at the end of the month and the bank needs to know where I'll be living.
+v1,q2,spark35,a09,category,paraphrase,no,address,,disclosure,0,disclosure,0,0.7774,0.8219,0.0260,0,364,396,5,Change of residence: I'm now living with my sister in the next town.
+v1,q2,spark35,a09,need,paraphrase,no,none,,none,1,none,1,0.9999,0.9999,,0,221,234,2,Change of residence: I'm now living with my sister in the next town.
+v1,q2,spark35,a10,category,paraphrase,no,address,,disclosure,0,address,1,0.9999,0.9999,0.0004,0,369,400,4,Could you update where you send my correspondence? I've been somewhere new since the spring.
+v1,q2,spark35,a10,need,paraphrase,no,none,,none,1,none,1,0.9999,0.9999,,0,168,236,2,Could you update where you send my correspondence? I've been somewhere new since the spring.
+v1,q2,spark35,a11,category,paraphrase,no,address,,disclosure,0,address,1,0.3810,0.5048,0.0017,0,512,404,4,"Just letting you know my home's changed; I'm in the village now, not the town."
+v1,q2,spark35,a11,need,paraphrase,no,none,,none,1,none,1,1.0000,1.0000,,0,165,238,2,"Just letting you know my home's changed; I'm in the village now, not the town."
+v1,q2,spark35,a12,category,paraphrase,no,address,,disclosure,0,disclosure,0,0.5959,0.6767,0.0421,0,343,388,5,Where do I tell you that I live somewhere different now?
+v1,q2,spark35,a12,need,paraphrase,no,none,,none,1,none,1,0.9999,1.0000,,0,174,230,2,Where do I tell you that I live somewhere different now?
+v1,q2,spark35,a13,category,trap,no,address,,bereavement,0,address,1,0.9832,0.9865,0.0022,0,642,390,4,I've moved onto a new estate and need my details updated.
+v1,q2,spark35,a13,need,trap,no,none,,none,1,none,1,0.9997,0.9998,,0,163,231,2,I've moved onto a new estate and need my details updated.
+v1,q2,spark35,a14,category,trap,no,address,,third-party,0,address,1,0.9959,0.9967,0.0046,0,316,402,4,"I can't access my post at the old house since I moved, so please update it."
+v1,q2,spark35,a14,need,trap,no,none,,none,1,none,1,0.9993,0.9995,,0,161,237,2,"I can't access my post at the old house since I moved, so please update it."
+v1,q2,spark35,a15,category,trap,no,address,,bereavement,0,address,1,1.0000,1.0000,0.0025,0,314,402,4,My phone died so I couldn't ring sooner — I've moved and need my address updated.
+v1,q2,spark35,a15,need,trap,no,none,,bereavement,0,none,1,0.9999,0.9999,,0,164,237,2,My phone died so I couldn't ring sooner — I've moved and need my address updated.
+v1,q2,spark35,a16,category,trap,no,address,,card,0,address,1,1.0000,1.0000,0.0002,0,500,398,4,My card statements keep going to my old address; I moved out in the summer.
+v1,q2,spark35,a16,need,trap,no,none,,none,1,none,1,1.0000,1.0000,,0,162,235,2,My card statements keep going to my old address; I moved out in the summer.
+v1,q2,spark35,a17,category,trap,no,address,,bereavement,0,address,1,0.9576,0.9660,0.0159,0,331,406,4,"The previous owner of my new house passed away, and I have moved in — please update my address."
+v1,q2,spark35,a17,need,trap,no,none,,bereavement,0,none,1,0.7454,0.8090,,0,163,239,2,"The previous owner of my new house passed away, and I have moved in — please update my address."
+v1,q2,spark35,a18,category,trap,no,address,,address,1,address,1,0.9999,0.9999,0.0012,0,457,408,4,My old job was at the hospital; I have moved house for a new one and need my address changed.
+v1,q2,spark35,a18,need,trap,no,none,,health,0,none,1,0.9824,0.9868,,0,163,240,2,My old job was at the hospital; I have moved house for a new one and need my address changed.
+v1,q2,spark35,a19,category,mixed,no,address,,address,1,address,1,1.0000,1.0000,0.0110,0,322,402,4,"I've had to move into sheltered housing after my stroke, so please change my address."
+v1,q2,spark35,a19,need,mixed,no,health,,none,0,health,1,0.9995,0.9996,,0,165,237,2,"I've had to move into sheltered housing after my stroke, so please change my address."
+v1,q2,spark35,a20,category,mixed,no,address,,address,1,address,1,1.0000,1.0000,0.0059,0,462,404,4,I lost my job so I have moved back in with my parents — can you change my address?
+v1,q2,spark35,a20,need,mixed,no,job-loss,,job-loss,1,job-loss,1,1.0000,1.0000,,0,164,238,3,I lost my job so I have moved back in with my parents — can you change my address?
+v1,q2,spark35,a21,category,mixed,no,address,,address,1,address,1,1.0000,1.0000,0.0067,0,340,414,4,"After being let go from the factory I couldn't afford the rent, so I'm somewhere cheaper now. New address please."
+v1,q2,spark35,a21,need,mixed,no,job-loss,,none,0,job-loss,1,0.9999,1.0000,,0,165,243,3,"After being let go from the factory I couldn't afford the rent, so I'm somewhere cheaper now. New address please."
+v1,q2,spark35,a22,category,mixed,no,address,,address,1,address,1,0.9851,0.9880,0.0009,0,448,396,4,"Since Mum passed I've moved into her house, so my address needs changing."
+v1,q2,spark35,a22,need,mixed,no,bereavement,,none,0,bereavement,1,0.9639,0.9729,,0,167,234,4,"Since Mum passed I've moved into her house, so my address needs changing."
+v1,q2,spark35,a23,category,mixed,no,address,,address,1,address,1,0.9999,0.9999,0.0046,0,343,400,4,"I'm moving nearer the hospital for my dialysis, so I need my address updated."
+v1,q2,spark35,a23,need,mixed,no,health,,health,1,health,1,0.9986,0.9989,,0,167,236,2,"I'm moving nearer the hospital for my dialysis, so I need my address updated."
+v1,q2,spark35,a24,category,paraphrase,no,address,,disclosure,0,address,1,0.9991,0.9993,0.0331,0,513,398,4,Our family has just settled into a bigger place across town — please update our details.
+v1,q2,spark35,a24,need,paraphrase,no,none,,none,1,none,1,0.9999,0.9999,,0,165,235,2,Our family has just settled into a bigger place across town — please update our details.
+v1,q2,spark35,c01,category,plain,no,card,,card,1,card,1,0.9995,0.9996,0.0007,0,318,388,4,My card has been lost and I need a new one.
+v1,q2,spark35,c01,need,plain,no,none,,none,1,none,1,0.9999,0.9999,,0,167,230,2,My card has been lost and I need a new one.
+v1,q2,spark35,c02,category,plain,no,card,,card,1,card,1,0.9879,0.9903,0.0009,0,382,378,4,My debit card was stolen yesterday.
+v1,q2,spark35,c02,need,plain,no,none,,none,1,none,1,1.0000,1.0000,,0,284,225,2,My debit card was stolen yesterday.
+v1,q2,spark35,c03,category,plain,no,card,,card,1,card,1,0.9992,0.9994,0.0007,0,362,394,4,"The chip on my card has stopped working, can I get a replacement?"
+v1,q2,spark35,c03,need,plain,no,none,,none,1,none,1,0.9999,0.9999,,0,167,233,2,"The chip on my card has stopped working, can I get a replacement?"
+v1,q2,spark35,c04,category,plain,no,card,,card,1,card,1,0.9996,0.9997,0.0025,0,515,378,4,Please send me a replacement card.
+v1,q2,spark35,c04,need,plain,no,none,,none,1,none,1,0.9999,0.9999,,0,169,225,2,Please send me a replacement card.
+v1,q2,spark35,c05,category,plain,no,card,,card,1,card,1,0.9954,0.9964,0.0015,0,313,386,4,I was mugged and they took my bank card.
+v1,q2,spark35,c05,need,plain,no,none,,none,1,none,1,0.9991,0.9994,,0,244,229,2,I was mugged and they took my bank card.
+v1,q2,spark35,c06,category,paraphrase,no,card,,disclosure,0,card,1,0.9825,0.9860,0.0076,0,379,404,4,Someone pinched my wallet on the train and I need to stop the plastic and get it replaced.
+v1,q2,spark35,c06,need,paraphrase,no,none,,none,1,none,1,0.9999,1.0000,,0,194,238,2,Someone pinched my wallet on the train and I need to stop the plastic and get it replaced.
+v1,q2,spark35,c07,category,paraphrase,no,card,,disclosure,0,card,1,0.9878,0.9902,0.0002,0,318,410,4,The cash machine swallowed it this morning and wouldn't give it back — I need a replacement to pay for things.
+v1,q2,spark35,c07,need,paraphrase,no,none,,none,1,none,1,0.9992,0.9994,,0,164,241,2,The cash machine swallowed it this morning and wouldn't give it back — I need a replacement to pay for things.
+v1,q2,spark35,c08,category,paraphrase,no,card,,disclosure,0,card,1,0.9934,0.9948,0.0010,0,512,390,4,"My debit's snapped clean in half, can you send another?"
+v1,q2,spark35,c08,need,paraphrase,no,none,,none,1,none,1,0.9996,0.9997,,0,208,231,2,"My debit's snapped clean in half, can you send another?"
+v1,q2,spark35,c09,category,paraphrase,no,card,,disclosure,0,card,1,0.9985,0.9988,0.0006,0,469,396,4,I've mislaid my contactless and need a new one sent out.
+v1,q2,spark35,c09,need,paraphrase,no,none,,none,1,none,1,0.9997,0.9998,,0,316,234,2,I've mislaid my contactless and need a new one sent out.
+v1,q2,spark35,c10,category,paraphrase,no,card,,disclosure,0,card,1,0.9892,0.9914,0.0006,0,316,400,4,The magnetic strip's worn out and shops keep declining me. I need a fresh one.
+v1,q2,spark35,c10,need,paraphrase,no,none,,none,1,none,1,0.9999,0.9999,,0,169,236,2,The magnetic strip's worn out and shops keep declining me. I need a fresh one.
+v1,q2,spark35,c11,category,paraphrase,no,card,,disclosure,0,card,1,0.9879,0.9903,0.0002,0,525,410,4,Somebody has been using my debit at petrol stations; I still have it but I want it stopped and replaced.
+v1,q2,spark35,c11,need,paraphrase,no,none,,none,1,none,1,0.9997,0.9998,,0,165,241,2,Somebody has been using my debit at petrol stations; I still have it but I want it stopped and replaced.
+v1,q2,spark35,c12,category,paraphrase,no,card,,disclosure,0,card,1,0.9975,0.9980,0.0012,0,333,414,4,My purse was nicked at the market with my bank stuff in it and I need to stop the one for this account.
+v1,q2,spark35,c12,need,paraphrase,no,none,,none,1,none,1,0.9999,0.9999,,0,163,243,2,My purse was nicked at the market with my bank stuff in it and I need to stop the one for this account.
+v1,q2,spark35,c13,category,trap,no,card,,bereavement,0,card,1,0.9976,0.9981,0.0041,0,448,402,4,My card died — it just won't tap any more. Can you send a new one?
+v1,q2,spark35,c13,need,trap,no,none,,bereavement,0,none,1,0.9995,0.9997,,0,162,237,2,My card died — it just won't tap any more. Can you send a new one?
+v1,q2,spark35,c14,category,trap,no,card,,third-party,0,card,1,0.9991,0.9993,0.0004,0,344,402,4,I can't access my money because my card's been cancelled — I need a new one.
+v1,q2,spark35,c14,need,trap,no,none,,none,1,none,1,0.9999,0.9999,,0,170,237,2,I can't access my money because my card's been cancelled — I need a new one.
+v1,q2,spark35,c15,category,trap,no,card,,card,1,card,1,0.9979,0.9983,0.0006,0,437,406,4,"The replacement went to the address I moved from, so it has never arrived — please send another card."
+v1,q2,spark35,c15,need,trap,no,none,,none,1,none,1,1.0000,1.0000,,0,169,239,2,"The replacement went to the address I moved from, so it has never arrived — please send another card."
+v1,q2,spark35,c16,category,mixed,no,card,,card,1,card,1,0.9981,0.9985,0.0012,0,334,402,4,I'm in hospital and my card's gone missing from the ward — can you replace it?
+v1,q2,spark35,c16,need,mixed,no,health,,health,1,health,1,0.6267,0.7200,,0,165,237,2,I'm in hospital and my card's gone missing from the ward — can you replace it?
+v1,q2,spark35,c17,category,mixed,no,card,,card,1,card,1,0.9997,0.9998,0.0013,0,506,406,4,"With my dementia I keep losing things, and now my card has gone. Please send a new one."
+v1,q2,spark35,c17,need,mixed,no,health,,none,0,health,1,0.9998,0.9998,,0,162,239,2,"With my dementia I keep losing things, and now my card has gone. Please send a new one."
+v1,q2,spark35,c18,category,mixed,no,card,,card,1,card,1,0.9990,0.9992,0.0004,0,348,398,4,I've been made redundant and in all the upheaval my card has gone missing.
+v1,q2,spark35,c18,need,mixed,no,job-loss,,job-loss,1,job-loss,1,1.0000,1.0000,,0,161,235,3,I've been made redundant and in all the upheaval my card has gone missing.
+v1,q2,spark35,c19,category,mixed,no,card,,card,1,card,1,0.8670,0.8936,0.0004,0,445,414,4,My hands shake too much since the Parkinson's to use the chip and pin — can I get a card I can tap?
+v1,q2,spark35,c19,need,mixed,no,health,,none,0,health,1,0.9996,0.9997,,0,170,243,2,My hands shake too much since the Parkinson's to use the chip and pin — can I get a card I can tap?
+v1,q2,spark35,c20,category,paraphrase,no,card,,card,1,card,1,0.9985,0.9988,0.0009,0,329,396,4,The dog chewed my bank card to bits. How do I get another?
+v1,q2,spark35,c20,need,paraphrase,no,none,,none,1,none,1,0.9998,0.9998,,0,181,234,2,The dog chewed my bank card to bits. How do I get another?
+v1,q2,spark35,t01,category,plain,no,third-party,,third-party,1,third-party,1,0.9981,0.9985,0.0004,0,433,394,5,I would like my daughter to have access to the account on my behalf.
+v1,q2,spark35,t01,need,plain,no,none,,none,1,none,1,1.0000,1.0000,,0,164,233,2,I would like my daughter to have access to the account on my behalf.
+v1,q2,spark35,t02,category,plain,no,third-party,,third-party,1,third-party,1,0.9403,0.9523,0.0006,0,394,398,5,I have power of attorney for my father and need to be added to his account.
+v1,q2,spark35,t02,need,plain,no,none,,none,1,none,1,0.9999,0.9999,,0,431,235,2,I have power of attorney for my father and need to be added to his account.
+v1,q2,spark35,t03,category,plain,no,third-party,,third-party,1,third-party,1,0.9995,0.9996,0.0002,0,430,384,5,Can my son manage the account on my behalf?
+v1,q2,spark35,t03,need,plain,no,none,,none,1,none,1,0.9999,0.9999,,0,165,228,2,Can my son manage the account on my behalf?
+v1,q2,spark35,t04,category,plain,no,third-party,,third-party,1,third-party,1,0.9998,0.9999,0.0004,0,374,388,5,I'd like to add a third party to my account.
+v1,q2,spark35,t04,need,plain,no,none,,none,1,none,1,0.9999,0.9999,,0,165,230,2,I'd like to add a third party to my account.
+v1,q2,spark35,t05,category,paraphrase,no,third-party,,disclosure,0,third-party,1,0.9996,0.9997,0.0015,0,382,398,5,Could my husband be allowed to deal with the bank for me when I am away?
+v1,q2,spark35,t05,need,paraphrase,no,none,,none,1,none,1,0.9998,0.9999,,0,213,235,2,Could my husband be allowed to deal with the bank for me when I am away?
+v1,q2,spark35,t06,category,paraphrase,no,third-party,,disclosure,0,third-party,1,0.9993,0.9994,0.0019,0,420,394,5,I want to give my brother authority to talk to you about my account.
+v1,q2,spark35,t06,need,paraphrase,no,none,,none,1,none,1,1.0000,1.0000,,0,158,233,2,I want to give my brother authority to talk to you about my account.
+v1,q2,spark35,t07,category,paraphrase,no,third-party,,disclosure,0,third-party,1,0.9950,0.9960,0.0067,0,313,390,5,I'd like my accountant to be able to see my statements.
+v1,q2,spark35,t07,need,paraphrase,no,none,,none,1,none,1,1.0000,1.0000,,0,160,231,2,I'd like my accountant to be able to see my statements.
+v1,q2,spark35,t08,category,paraphrase,no,third-party,,disclosure,0,third-party,1,0.9995,0.9996,0.0009,0,550,396,5,Please set my daughter up as someone who can act for me on the account.
+v1,q2,spark35,t08,need,paraphrase,no,none,,none,1,none,1,0.9999,1.0000,,0,449,234,2,Please set my daughter up as someone who can act for me on the account.
+v1,q2,spark35,t09,category,paraphrase,no,third-party,,disclosure,0,third-party,1,0.9919,0.9935,0.0124,0,309,396,5,Can you register my son as a trusted person who can phone you for me?
+v1,q2,spark35,t09,need,paraphrase,no,none,,none,1,none,1,0.9989,0.9992,,0,158,234,2,Can you register my son as a trusted person who can phone you for me?
+v1,q2,spark35,t10,category,trap,no,third-party,,card,0,third-party,1,0.9909,0.9927,0.0022,0,481,398,5,I want my daughter to be able to do my banking — the card and everything.
+v1,q2,spark35,t10,need,trap,no,none,,none,1,none,1,1.0000,1.0000,,0,229,235,2,I want my daughter to be able to do my banking — the card and everything.
+v1,q2,spark35,t11,category,trap,no,third-party,,bereavement,0,third-party,1,0.9941,0.9953,0.0002,0,400,400,5,My late husband's brother wants to help me with my account; can he be added?
+v1,q2,spark35,t11,need,trap,no,bereavement,,none,0,bereavement,1,0.4861,0.6146,,0,169,236,4,My late husband's brother wants to help me with my account; can he be added?
+v1,q2,spark35,t12,category,trap,no,third-party,,address,0,third-party,1,0.9512,0.9609,0.0022,0,319,408,5,I have moved my mother in with me and now look after her money — please add me to her account.
+v1,q2,spark35,t12,need,trap,no,none,,none,1,none,1,0.9945,0.9959,,0,171,240,2,I have moved my mother in with me and now look after her money — please add me to her account.
+v1,q2,spark35,t13,category,mixed,no,third-party,,third-party,1,third-party,1,0.9997,0.9997,0.0005,0,552,402,5,Since my diagnosis I would like my wife to be able to handle the account on my behalf.
+v1,q2,spark35,t13,need,mixed,no,health,,health,1,health,1,0.9993,0.9994,,0,165,237,2,Since my diagnosis I would like my wife to be able to handle the account on my behalf.
+v1,q2,spark35,t14,category,mixed,no,third-party,,disclosure,0,third-party,1,0.9952,0.9962,0.0001,0,348,410,5,I'm going in for chemotherapy and want my sister to be able to run things for me while I'm poorly.
+v1,q2,spark35,t14,need,mixed,no,health,,none,0,health,1,0.9984,0.9988,,0,241,241,2,I'm going in for chemotherapy and want my sister to be able to run things for me while I'm poorly.
+v1,q2,spark35,t15,category,mixed,no,third-party,,disclosure,0,third-party,1,0.9901,0.9921,0.0032,0,339,408,5,My eyesight's going and I'd like my niece to be able to sort out my banking for me.
+v1,q2,spark35,t15,need,mixed,no,health,,none,0,health,1,0.9962,0.9972,,0,166,240,2,My eyesight's going and I'd like my niece to be able to sort out my banking for me.
+v1,q2,spark35,t16,category,paraphrase,no,third-party,,disclosure,0,third-party,1,0.9829,0.9863,0.0006,0,366,396,5,My neighbour helps me with paperwork; can she speak to you about my account?
+v1,q2,spark35,t16,need,paraphrase,no,none,,none,1,none,1,0.9998,0.9998,,0,176,234,2,My neighbour helps me with paperwork; can she speak to you about my account?
+v1,q2,spark35,b01,category,plain,no,bereavement,,bereavement,1,bereavement,1,0.9999,1.0000,0.0076,0,415,392,6,My mother passed away last month; I am calling about her account.
+v1,q2,spark35,b01,need,plain,no,bereavement,,bereavement,1,bereavement,1,0.9996,0.9997,,0,199,232,4,My mother passed away last month; I am calling about her account.
+v1,q2,spark35,b02,category,plain,no,bereavement,,bereavement,1,bereavement,1,0.8272,0.8618,0.0006,0,448,388,6,My father died and I'm the executor of his estate.
+v1,q2,spark35,b02,need,plain,no,bereavement,,bereavement,1,bereavement,1,0.9943,0.9957,,0,244,230,4,My father died and I'm the executor of his estate.
+v1,q2,spark35,b03,category,plain,no,bereavement,,bereavement,1,bereavement,1,0.9999,0.9999,0.0009,0,362,384,6,I'm calling about my late husband's account.
+v1,q2,spark35,b03,need,plain,no,bereavement,,none,0,bereavement,1,0.9935,0.9951,,0,167,228,4,I'm calling about my late husband's account.
+v1,q2,spark35,b04,category,plain,no,bereavement,,bereavement,1,bereavement,1,0.9999,0.9999,0.0036,0,316,388,6,The account holder is deceased and I am handling probate.
+v1,q2,spark35,b04,need,plain,no,bereavement,,bereavement,1,bereavement,1,0.9333,0.9500,,0,168,230,4,The account holder is deceased and I am handling probate.
+v1,q2,spark35,b05,category,paraphrase,no,bereavement,,disclosure,0,bereavement,1,1.0000,1.0000,0.0004,0,320,398,6,We lost Dad in March and I need to sort out what happens to his savings.
+v1,q2,spark35,b05,need,paraphrase,no,bereavement,,none,0,bereavement,1,0.9973,0.9980,,0,169,235,4,We lost Dad in March and I need to sort out what happens to his savings.
+v1,q2,spark35,b06,category,paraphrase,no,bereavement,,disclosure,0,bereavement,1,0.9999,1.0000,0.0005,0,316,402,6,My wife is no longer with us and I don't know what to do about her account.
+v1,q2,spark35,b06,need,paraphrase,no,bereavement,,none,0,bereavement,1,0.9985,0.9989,,0,166,237,4,My wife is no longer with us and I don't know what to do about her account.
+v1,q2,spark35,b07,category,paraphrase,no,bereavement,,disclosure,0,bereavement,1,1.0000,1.0000,0.0008,0,770,392,6,I'm dealing with my grandmother's affairs now that she's gone.
+v1,q2,spark35,b07,need,paraphrase,no,bereavement,,none,0,bereavement,1,0.9955,0.9966,,0,466,232,4,I'm dealing with my grandmother's affairs now that she's gone.
+v1,q2,spark35,b08,category,paraphrase,no,bereavement,,disclosure,0,bereavement,1,0.9999,0.9999,0.0009,0,442,392,6,My brother was killed in an accident and I'm handling his accounts.
+v1,q2,spark35,b08,need,paraphrase,no,bereavement,,none,0,bereavement,1,0.9990,0.9993,,0,240,232,4,My brother was killed in an accident and I'm handling his accounts.
+v1,q2,spark35,b09,category,paraphrase,no,bereavement,,disclosure,0,bereavement,1,1.0000,1.0000,0.0022,0,426,392,6,"Following the death of my partner, I need to close her account."
+v1,q2,spark35,b09,need,paraphrase,no,bereavement,,none,0,bereavement,1,0.9981,0.9986,,0,765,232,4,"Following the death of my partner, I need to close her account."
+v1,q2,spark35,b10,category,paraphrase,no,bereavement,,disclosure,0,bereavement,1,0.9989,0.9991,0.0052,0,435,406,6,Mum's funeral was last week; the solicitor told me to ring you about her current account.
+v1,q2,spark35,b10,need,paraphrase,no,bereavement,,bereavement,1,bereavement,1,0.9748,0.9811,,0,550,239,4,Mum's funeral was last week; the solicitor told me to ring you about her current account.
+v1,q2,spark35,b11,category,paraphrase,no,bereavement,,disclosure,0,bereavement,1,0.9971,0.9976,0.0008,0,729,390,6,I'm the administrator for my uncle's affairs after he passed.
+v1,q2,spark35,b11,need,paraphrase,no,bereavement,,none,0,bereavement,1,0.9746,0.9809,,0,601,231,4,I'm the administrator for my uncle's affairs after he passed.
+v1,q2,spark35,b12,category,paraphrase,no,bereavement,,disclosure,0,bereavement,1,0.9999,0.9999,0.0006,0,485,390,6,I'm newly widowed and our joint account needs sorting out.
+v1,q2,spark35,b12,need,paraphrase,no,bereavement,,none,0,bereavement,1,0.9949,0.9962,,0,163,231,4,I'm newly widowed and our joint account needs sorting out.
+v1,q2,spark35,b13,category,plain,no,bereavement,,bereavement,1,bereavement,1,0.9211,0.9369,0.0373,0,1690,402,6,I need to let you know my aunt has sadly died and I am her next of kin.
+v1,q2,spark35,b13,need,plain,no,bereavement,,bereavement,1,bereavement,1,0.9999,1.0000,,0,275,237,4,I need to let you know my aunt has sadly died and I am her next of kin.
+v1,q2,spark35,b14,category,paraphrase,no,bereavement,,disclosure,0,bereavement,1,0.9999,1.0000,0.0012,0,694,406,6,Dad lost his fight with cancer on Sunday. What do I need to do about his bank account?
+v1,q2,spark35,b14,need,paraphrase,no,bereavement,,none,0,bereavement,1,0.9919,0.9939,,0,222,239,4,Dad lost his fight with cancer on Sunday. What do I need to do about his bank account?
+v1,q2,spark35,b15,category,trap,no,bereavement,,bereavement,1,bereavement,1,0.9998,0.9998,0.0052,0,1007,396,6,"My mother died, and her card is still active — please close her account."
+v1,q2,spark35,b15,need,trap,no,bereavement,,bereavement,1,bereavement,1,0.9994,0.9996,,0,264,234,4,"My mother died, and her card is still active — please close her account."
+v1,q2,spark35,d01,category,plain,no,disclosure,,disclosure,1,disclosure,1,0.9979,0.9983,0.0017,0,396,406,5,I wanted to let you know that I lost my job last month and I am behind on the loan.
+v1,q2,spark35,d01,need,plain,no,job-loss,,job-loss,1,job-loss,1,1.0000,1.0000,,0,163,239,3,I wanted to let you know that I lost my job last month and I am behind on the loan.
+v1,q2,spark35,d02,category,plain,no,disclosure,,disclosure,1,disclosure,1,0.9977,0.9981,0.0052,0,315,386,5,I've been made redundant and wanted you to know.
+v1,q2,spark35,d02,need,plain,no,job-loss,,job-loss,1,job-loss,1,1.0000,1.0000,,0,162,229,3,I've been made redundant and wanted you to know.
+v1,q2,spark35,d03,category,plain,no,disclosure,,disclosure,1,disclosure,1,0.9962,0.9969,0.0022,0,374,376,5,I was laid off yesterday.
+v1,q2,spark35,d03,need,plain,no,job-loss,,job-loss,1,job-loss,1,1.0000,1.0000,,0,234,224,3,I was laid off yesterday.
+v1,q2,spark35,d04,category,paraphrase,no,disclosure,,disclosure,1,disclosure,1,0.9991,0.9992,0.0008,0,501,396,5,My contract wasn't renewed and money is going to be tight for a while.
+v1,q2,spark35,d04,need,paraphrase,no,job-loss,,none,0,job-loss,1,1.0000,1.0000,,0,165,234,3,My contract wasn't renewed and money is going to be tight for a while.
+v1,q2,spark35,d05,category,paraphrase,no,disclosure,,disclosure,1,disclosure,1,0.9988,0.9990,0.0003,0,326,396,5,"The shop I worked at closed down, so I've no wages coming in."
+v1,q2,spark35,d05,need,paraphrase,no,job-loss,,none,0,job-loss,1,1.0000,1.0000,,0,173,234,3,"The shop I worked at closed down, so I've no wages coming in."
+v1,q2,spark35,d06,category,paraphrase,no,disclosure,,disclosure,1,disclosure,1,0.9941,0.9953,0.0005,0,452,390,5,I've been let go and I'm worried about my payments.
+v1,q2,spark35,d06,need,paraphrase,no,job-loss,,none,0,job-loss,1,1.0000,1.0000,,0,164,231,3,I've been let go and I'm worried about my payments.
+v1,q2,spark35,d07,category,paraphrase,no,disclosure,,disclosure,1,disclosure,1,0.9979,0.9983,0.0007,0,364,386,5,I've lost my income since my business went under.
+v1,q2,spark35,d07,need,paraphrase,no,job-loss,,none,0,job-loss,1,1.0000,1.0000,,0,163,229,3,I've lost my income since my business went under.
+v1,q2,spark35,d08,category,paraphrase,no,disclosure,,disclosure,1,disclosure,1,0.9995,0.9996,0.0006,0,358,394,5,Work's dried up completely since the site closed and I'm falling behind.
+v1,q2,spark35,d08,need,paraphrase,no,job-loss,,none,0,job-loss,1,0.9995,0.9996,,0,166,233,3,Work's dried up completely since the site closed and I'm falling behind.
+v1,q2,spark35,d09,category,plain,no,disclosure,,disclosure,1,disclosure,1,0.9909,0.9927,0.0025,0,347,398,5,I've been diagnosed with a heart condition and may struggle to get to the branch.
+v1,q2,spark35,d09,need,plain,no,health,,health,1,health,1,0.9998,0.9998,,0,170,235,2,I've been diagnosed with a heart condition and may struggle to get to the branch.
+v1,q2,spark35,d10,category,paraphrase,no,disclosure,,disclosure,1,disclosure,1,0.9980,0.9984,0.0005,0,586,398,5,I'm going through treatment for cancer and some days I can't manage phone calls.
+v1,q2,spark35,d10,need,paraphrase,no,health,,none,0,health,1,0.9997,0.9998,,0,258,235,2,I'm going through treatment for cancer and some days I can't manage phone calls.
+v1,q2,spark35,d11,category,paraphrase,no,disclosure,,disclosure,1,disclosure,1,0.9843,0.9875,0.0676,0,437,400,5,"I've got really bad anxiety and phone calls are hard, please write to me instead."
+v1,q2,spark35,d11,need,paraphrase,no,health,,none,0,health,1,0.9999,0.9999,,0,166,236,2,"I've got really bad anxiety and phone calls are hard, please write to me instead."
+v1,q2,spark35,d12,category,paraphrase,no,disclosure,,disclosure,1,disclosure,1,0.9965,0.9972,0.0086,0,377,396,5,"I'm registered blind, so letters in normal print are no good to me."
+v1,q2,spark35,d12,need,paraphrase,no,health,,none,0,health,1,0.9999,0.9999,,0,223,234,2,"I'm registered blind, so letters in normal print are no good to me."
+v1,q2,spark35,d13,category,paraphrase,no,disclosure,,disclosure,1,disclosure,1,0.9978,0.9983,0.0010,0,532,402,5,"Just so you're aware, I'm recovering from a breakdown and might need things explained slowly."
+v1,q2,spark35,d13,need,paraphrase,no,health,,none,0,health,1,0.9999,0.9999,,0,211,237,2,"Just so you're aware, I'm recovering from a breakdown and might need things explained slowly."
+v1,q2,spark35,d14,category,paraphrase,no,disclosure,,disclosure,1,disclosure,1,0.9974,0.9979,0.0004,0,468,396,5,I had a stroke over the summer and my memory is not what it was.
+v1,q2,spark35,d14,need,paraphrase,no,health,,none,0,health,1,1.0000,1.0000,,0,219,234,2,I had a stroke over the summer and my memory is not what it was.
+v1,q2,spark35,d15,category,paraphrase,no,disclosure,,disclosure,1,disclosure,1,0.9972,0.9978,0.0002,0,313,390,5,I'm pregnant and I've been signed off sick with complications.
+v1,q2,spark35,d15,need,paraphrase,no,health,,none,0,health,1,0.9948,0.9961,,0,199,231,2,I'm pregnant and I've been signed off sick with complications.
+v1,q2,spark35,d16,category,trap,no,disclosure,,bereavement,0,bereavement,0,0.4523,0.5619,0.0004,0,504,396,6,My husband died recently and I'm finding it hard to cope with the bills.
+v1,q2,spark35,d16,need,trap,no,bereavement,,bereavement,1,bereavement,1,0.9849,0.9887,,0,168,234,4,My husband died recently and I'm finding it hard to cope with the bills.
+v1,q2,spark35,d17,category,trap,no,disclosure,,disclosure,1,disclosure,1,0.9746,0.9797,0.0019,0,352,396,5,I'm ill with worry about my overdraft and wanted to talk to someone.
+v1,q2,spark35,d17,need,trap,no,none,,health,0,health,0,0.8937,0.9202,,0,205,234,2,I'm ill with worry about my overdraft and wanted to talk to someone.
+v1,q2,spark35,d18,category,trap,no,disclosure,,disclosure,1,disclosure,1,0.9975,0.9980,0.0374,0,552,408,5,"My health is fine, I just wanted to tell you I might be a few days late with a payment."
+v1,q2,spark35,d18,need,trap,no,none,,health,0,none,1,0.9359,0.9519,,0,367,240,2,"My health is fine, I just wanted to tell you I might be a few days late with a payment."
+v1,q2,spark35,d19,category,paraphrase,no,disclosure,,disclosure,1,disclosure,1,0.9979,0.9983,0.0032,0,909,404,5,We lost our baby last month and I just need you to know things might slip for a while.
+v1,q2,spark35,d19,need,paraphrase,no,bereavement,,none,0,bereavement,1,0.9946,0.9960,,0,171,238,4,We lost our baby last month and I just need you to know things might slip for a while.
+v1,q2,spark35,d20,category,paraphrase,no,disclosure,,disclosure,1,disclosure,1,0.9987,0.9989,0.0006,0,319,398,5,"I was sacked on Friday, so I thought you should know money will be tight."
+v1,q2,spark35,d20,need,paraphrase,no,job-loss,,none,0,job-loss,1,1.0000,1.0000,,0,164,235,3,"I was sacked on Friday, so I thought you should know money will be tight."

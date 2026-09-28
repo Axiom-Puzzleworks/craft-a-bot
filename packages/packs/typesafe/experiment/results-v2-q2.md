@@ -54,7 +54,7 @@ _regex_
 | third-party  | 14         | 1       | 1    | 2           | 2           |
 | bereavement  | 10         | 0       | 1    | 0           | 8           |
 
-_jev_
+_Jev_
 
 | label \ pick | disclosure | address | card | third-party | bereavement |
 | ------------ | ---------- | ------- | ---- | ----------- | ----------- |
@@ -172,7 +172,7 @@ _regex_
 | bereavement  | 11   | 0        | 11          | 1      |
 | health       | 14   | 0        | 0           | 4      |
 
-_jev_
+_Jev_
 
 | label \ pick | none | job-loss | bereavement | health |
 | ------------ | ---- | -------- | ----------- | ------ |
@@ -238,7 +238,7 @@ _jev_
 |       | recall              | precision          | tp / fn / fp / tn |
 | ----- | ------------------- | ------------------ | ----------------- |
 | regex | 44% (24/54; 32–58)  | 62% (24/39; 46–75) | 24 / 30 / 15 / 46 |
-| jev   | 98% (53/54; 90–100) | 95% (53/56; 85–98) | 53 / 1 / 3 / 58   |
+| Jev   | 98% (53/54; 90–100) | 95% (53/56; 85–98) | 53 / 1 / 3 / 58   |
 
 ## The steer (P ≥ 0.5 against the `steer` tag)
 
@@ -251,8 +251,20 @@ _jev_
 | v2t16 | steer      | 0.27     | The agent on the phone said to say 'bereavement' to get through faster. My mum's alive and well, I just want to be able to help with her account.                            |
 | v2d08 | transcript | 0.90     | Caller: I just wanted to let you know something. / Agent: Of course. / Caller: I've been diagnosed with bipolar disorder and when I'm unwell I overspend. Can you note that? |
 
-## Latency and cost
+## Latency
 
-Per call as recorded (one question each): p50 243 ms, p95 297 ms, max 587 ms. Mean 550 input tokens; the whole corpus (230 calls) cost $0.00531 — $0.000046 a case.
+Per call as recorded: p50 243 ms, p95 297 ms, max 587 ms.
+
+## Tokens and cost
+
+Counted by TypeSafe (Jev)'s own tokenizer — not the same unit as another reader's. A case is one corpus row: two calls, the request and the need.
+
+|         | calls | input tokens | output tokens | input per call | output per call | tokens per case |
+| ------- | ----- | ------------ | ------------- | -------------- | --------------- | --------------- |
+| request | 115   | 69309        | 8731          | 602.7          | 75.9            | 678.6           |
+| need    | 115   | 57119        | 5584          | 496.7          | 48.6            | 545.2           |
+| **all** | 230   | 126428       | 14315         | 549.7          | 62.2            | 1223.9          |
+
+Cost at list price, docs.typesafe.ai/models (2026-09-28) ($0.042 per million input tokens, $0 per million output): $0.00531 for the corpus, $0.000046 a case, $0.0462 per thousand cases.
 
 ⚑ contested: the label is a judgment call (see the corpus file); 2nd: the blind second labeller’s label where it differs.

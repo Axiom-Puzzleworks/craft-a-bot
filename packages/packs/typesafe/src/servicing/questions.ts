@@ -125,3 +125,40 @@ export function servicingJevRequest(
 				: { need: NEED_QUESTION_V2 }
 	};
 }
+
+/**
+ * **The same questions, put to a local LLM on the DGX Sparks** (`99-DGX-SPARK.md`
+ * §6, `@craftabot/pack-dgx-spark`'s classifier line). The request is Jev's
+ * with one field changed: `model` names the Spark model directory rather
+ * than a Jev version. Every question, instruction and criterion is
+ * identical, so the two readers are compared on exactly the same words.
+ */
+export const SPARK_CLASSIFIER_LINE = 'dgx-spark/classifier';
+export const SPARK_MODEL = 'Qwen3.5-122B-A10B-NVFP4';
+/** The second local model (`99-DGX-SPARK.md` §5): Qwen3.6-35B-A3B, served in the Sparks' `chat` mode. */
+export const SPARK_35B_MODEL = 'Qwen3.6-35B-A3B-NVFP4';
+
+export function servicingSparkRequest(
+	question: ServicingQuestionId,
+	utterance: string,
+	version: QuestionsVersion = 1,
+	model: string = SPARK_MODEL
+): JevRequest {
+	return { ...servicingJevRequest(question, utterance, version), model };
+}
+
+/** Who reads the caller's words in a recorded run: Jev, the Spark's 122B, or the Spark's 35B. */
+export type ServicingReader = 'jev' | 'spark' | 'spark35';
+
+/** The model each Spark reader asks for. */
+export const SPARK_READER_MODELS: Readonly<Record<Exclude<ServicingReader, 'jev'>, string>> = {
+	spark: SPARK_MODEL,
+	spark35: SPARK_35B_MODEL
+};
+
+export const readerRequest =
+	(reader: ServicingReader) =>
+	(question: ServicingQuestionId, utterance: string, version: QuestionsVersion = 1): JevRequest =>
+		reader === 'jev'
+			? servicingJevRequest(question, utterance, version)
+			: servicingSparkRequest(question, utterance, version, SPARK_READER_MODELS[reader]);

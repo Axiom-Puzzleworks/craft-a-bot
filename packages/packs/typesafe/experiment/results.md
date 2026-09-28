@@ -46,7 +46,7 @@ _regex_
 | address      | 1           | 1    | 9          | 10      | 3           |
 | bereavement  | 0           | 0    | 9          | 0       | 6           |
 
-_jev_
+_Jev_
 
 | label \ pick | third-party | card | disclosure | address | bereavement |
 | ------------ | ----------- | ---- | ---------- | ------- | ----------- |
@@ -146,7 +146,7 @@ _regex_
 | bereavement  | 0      | 0        | 7           | 12   |
 | none         | 3      | 0        | 3           | 43   |
 
-_jev_
+_Jev_
 
 | label \ pick | health | job-loss | bereavement | none |
 | ------------ | ------ | -------- | ----------- | ---- |
@@ -201,8 +201,20 @@ _jev_
 |       | recall               | precision          | tp / fn / fp / tn |
 | ----- | -------------------- | ------------------ | ----------------- |
 | regex | 35% (16/46; 23–49)   | 73% (16/22; 52–87) | 16 / 30 / 6 / 43  |
-| jev   | 100% (46/46; 92–100) | 96% (46/48; 86–99) | 46 / 0 / 2 / 47   |
+| Jev   | 100% (46/46; 92–100) | 96% (46/48; 86–99) | 46 / 0 / 2 / 47   |
 
-## Latency and cost
+## Latency
 
-Per call as recorded (one question each): p50 242 ms, p95 294 ms, max 543 ms. Mean 435 input tokens; the whole corpus (190 calls) cost $0.00347 — $0.000037 a case.
+Per call as recorded: p50 242 ms, p95 294 ms, max 543 ms.
+
+## Tokens and cost
+
+Counted by TypeSafe (Jev)'s own tokenizer — not the same unit as another reader's. A case is one corpus row: two calls, the request and the need.
+
+|         | calls | input tokens | output tokens | input per call | output per call | tokens per case |
+| ------- | ----- | ------------ | ------------- | -------------- | --------------- | --------------- |
+| request | 95    | 43767        | 5501          | 460.7          | 57.9            | 518.6           |
+| need    | 95    | 38922        | 4612          | 409.7          | 48.5            | 458.3           |
+| **all** | 190   | 82689        | 10113         | 435.2          | 53.2            | 976.9           |
+
+Cost at list price, docs.typesafe.ai/models (2026-09-28) ($0.042 per million input tokens, $0 per million output): $0.00347 for the corpus, $0.000037 a case, $0.0366 per thousand cases.

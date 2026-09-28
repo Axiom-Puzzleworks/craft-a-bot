@@ -292,6 +292,33 @@ q2 was frozen (08:38Z) **before** a new corpus, **v3**, was written: 96 new call
 - **What remains of the need's errors on v3 under q2:** two steered rows, one distant relation's job loss (a cousin's husband), and three contested rows where the guide itself is a judgment call.
 - **Cost.** q2's longer questions add about 100 input tokens a call (about +25%) and no measurable latency. All 1,224 calls cost $0.025.
 
+## 12. Jev against a local LLM on the DGX Sparks (2026-09-28, later)
+
+The same three corpora and both question sets were put to a local LLM: Qwen3.5-122B-A10B on the builder's DGX Spark. It went through `@craftabot/pack-dgx-spark`'s classifier line (`99-DGX-SPARK.md`), which answers Jev's exact contract. The line constrains the output to the option keys and folds the first token's log-probabilities onto them, and the confidence uses Jev's own formula. The journey gains `spark*` readers beside `jev*`, and `analyse.ts … spark` and `summary.ts` put the two side by side.
+
+| | Jev | Spark |
+|---|---|---|
+| request, across the six runs | 97–99% | 94–97% (behind in every run; no pair significant, p ≥ 0.125) |
+| need, across the six runs | 85–100% | 86–99% (a tie: two runs each way, two level) |
+| held-out v3 need, q1 → q2 | 85% → 94% | 86% → 94% |
+| request Brier (v1 / v3 q2) | 0.014 / 0.031 | 0.108 / 0.055 |
+| steer recall (v3 / v2) | 15/16 · 10/11 | 16/16 · 11/11 |
+| per call | ~0.24 s, $0.00004 a case | ~0.8 s (q2 request ~1.1 s), own hardware |
+
+**Reading it.**
+- **Need:** a strong general LLM, asked the same way, is as good as Jev at reading the support need.
+- **Request:** it is slightly worse, and less well calibrated. Its errors are confident: bereavement calls read as disclosures, which a confidence gate cannot catch.
+- **The questions:** both readers gain the same amount from the rule-bearing questions, so the question wording mattered more than the model.
+
+**The Sparks' 35B chat model** (Qwen3.6-35B-A3B), run the same way:
+- **request:** equals Jev on four of six runs and beats the 122B on all six;
+- **need:** usually 1–3 points behind;
+- **speed:** about 165 ms a question, faster than Jev.
+
+**Tokens:** Jev counts 1,103 tokens a case and costs $0.037–0.046 per thousand cases at list price. The Sparks count 516 a case by Qwen's tokenizer, on own hardware. The tokenizers differ, so the counts compare only as an order of magnitude.
+
+The full treatment is in the lab record's §14–§15 (`packages/packs/typesafe/experiment/README.md`).
+
 ## Sources
 
 TypeSafe docs: [introduction](https://docs.typesafe.ai/introduction), [API reference](https://docs.typesafe.ai/api), [models](https://docs.typesafe.ai/models), [primitives](https://docs.typesafe.ai/primitives), [confidence](https://docs.typesafe.ai/confidence), [jev-1.13 jaggedness](https://docs.typesafe.ai/model-jaggedness/jev-1.13), [state](https://docs.typesafe.ai/concepts/state), [guardrails cookbook](https://docs.typesafe.ai/cookbooks/llm_guardrails), [confidence routing](https://docs.typesafe.ai/patterns/confidence-routing), [JS SDK](https://docs.typesafe.ai/sdk/javascript), [use-case map](https://docs.typesafe.ai/concepts/use-case-map), [full index](https://docs.typesafe.ai/llms.txt); [launch post](https://typesafe.ai/blog/introducing-system-one-models-and-jev).

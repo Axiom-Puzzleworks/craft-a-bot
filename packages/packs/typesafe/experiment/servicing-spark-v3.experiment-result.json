@@ -1,0 +1,4415 @@
+{
+	"schemaVersion": 1,
+	"id": "servicing-spark-v3@2026-09-28T09:44:41.987Z",
+	"experimentId": "servicing-spark-v3",
+	"title": "v3 (held out): the DGX Spark’s local LLM against Jev, under both question sets",
+	"hypothesis": "A local 122B LLM on the DGX Sparks, asked the same questions through the same contract, reads the caller’s request and need about as well as Jev, and its log-probability confidence routes its errors to a person as well as Jev’s calibrated confidence does.",
+	"controls": [],
+	"obligations": ["fca:fg21-1:vulnerability", "fca:cd:support"],
+	"ranAt": "2026-09-28T09:44:41.987Z",
+	"workflowIds": ["typesafe/servicing-jev-v3"],
+	"campaignIds": [
+		"servicing-spark-v3--executors=regex",
+		"servicing-spark-v3--executors=jev-q2",
+		"servicing-spark-v3--executors=spark",
+		"servicing-spark-v3--executors=spark-q2",
+		"servicing-spark-v3--executors=spark-q2-gate-0-80"
+	],
+	"effects": [
+		{
+			"experimentId": "servicing-spark-v3",
+			"metricId": "request-read-right",
+			"controlIds": [],
+			"factor": {
+				"axis": "executors",
+				"baseline": "regex",
+				"treatment": "jev-q2"
+			},
+			"baseline": {
+				"value": 0.6354166666666666,
+				"n": 96,
+				"interval": [0.5356522623920257, 0.7247605992136981]
+			},
+			"treatment": {
+				"value": 0.9791666666666666,
+				"n": 96,
+				"interval": [0.9271928647597204, 0.9942680301528407]
+			},
+			"delta": 0.34375,
+			"interval": [0.24038842896109314, 0.44465087977523066],
+			"p": 1.0244548320770264e-8,
+			"method": "difference of rates, Newcombe interval at 95%; sign test over 37 discordant of 96 pairs",
+			"underpowered": true,
+			"slices": [
+				{
+					"where": {
+						"ageBand": "18-24"
+					},
+					"delta": 0.1428571428571429,
+					"interval": [-0.23034605692490878, 0.5131278295671373],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"ageBand": "25-34"
+					},
+					"delta": 0.07692307692307698,
+					"interval": [-0.2021406445400606, 0.35276392583149924],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "35-44"
+					},
+					"delta": 0.4285714285714285,
+					"interval": [0.16547369340914958, 0.6324817753884122],
+					"n": {
+						"baseline": 21,
+						"treatment": 21
+					}
+				},
+				{
+					"where": {
+						"ageBand": "45-54"
+					},
+					"delta": 0.46153846153846156,
+					"interval": [0.13798390327048077, 0.7085620430143273],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "55-64"
+					},
+					"delta": 0.2222222222222222,
+					"interval": [0.0021909444147064916, 0.45214584335610897],
+					"n": {
+						"baseline": 18,
+						"treatment": 18
+					}
+				},
+				{
+					"where": {
+						"ageBand": "65-74"
+					},
+					"delta": 0.36363636363636365,
+					"interval": [0.029082202794411538, 0.646198825685093],
+					"n": {
+						"baseline": 11,
+						"treatment": 11
+					}
+				},
+				{
+					"where": {
+						"ageBand": "75+"
+					},
+					"delta": 0.6153846153846154,
+					"interval": [0.2693954717842149, 0.8229029221369814],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "15-25k"
+					},
+					"delta": 0.31999999999999995,
+					"interval": [0.09869767773517757, 0.5175741655879382],
+					"n": {
+						"baseline": 25,
+						"treatment": 25
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "25-40k"
+					},
+					"delta": 0.5,
+					"interval": [0.18347757955343819, 0.7320079756226374],
+					"n": {
+						"baseline": 14,
+						"treatment": 14
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "40-60k"
+					},
+					"delta": 0.1428571428571428,
+					"interval": [-0.2796481751042585, 0.5170296842679074],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "60-100k"
+					},
+					"delta": 0.5,
+					"interval": [-0.10205127792519664, 0.8499610109917736],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "under-15k"
+					},
+					"delta": 0.32608695652173914,
+					"interval": [0.18562501355669161, 0.4703226759250929],
+					"n": {
+						"baseline": 46,
+						"treatment": 46
+					}
+				}
+			],
+			"cost": {
+				"tokensPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"approvalsPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.15625
+				},
+				"escalationRate": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"touchesPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.15625
+				},
+				"breachRate": {
+					"baseline": 0,
+					"treatment": 0
+				}
+			},
+			"runIds": [],
+			"reportIds": ["f10dcdb3-86f9-4b8c-8b90-682c6a3d2e73", "fcdebf8d-ef9c-4166-ab74-cbdc24895769"]
+		},
+		{
+			"experimentId": "servicing-spark-v3",
+			"metricId": "need-read-right",
+			"controlIds": [],
+			"factor": {
+				"axis": "executors",
+				"baseline": "regex",
+				"treatment": "jev-q2"
+			},
+			"baseline": {
+				"value": 0.6041666666666666,
+				"n": 96,
+				"interval": [0.5041511204027269, 0.6961664654478299]
+			},
+			"treatment": {
+				"value": 0.9375,
+				"n": 96,
+				"interval": [0.8702905348660761, 0.9710433257062625]
+			},
+			"delta": 0.33333333333333337,
+			"interval": [0.21939881187753113, 0.4388239215102446],
+			"p": 1.941225491464138e-8,
+			"method": "difference of rates, Newcombe interval at 95%; sign test over 36 discordant of 96 pairs",
+			"underpowered": false,
+			"slices": [
+				{
+					"where": {
+						"ageBand": "18-24"
+					},
+					"delta": 0.2857142857142857,
+					"interval": [-0.12289361893874429, 0.6410655484026206],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"ageBand": "25-34"
+					},
+					"delta": 0.46153846153846156,
+					"interval": [0.10563466820297612, 0.6995634455154169],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "35-44"
+					},
+					"delta": 0.38095238095238093,
+					"interval": [0.12428817968773537, 0.5906056998134152],
+					"n": {
+						"baseline": 21,
+						"treatment": 21
+					}
+				},
+				{
+					"where": {
+						"ageBand": "45-54"
+					},
+					"delta": 0.3076923076923077,
+					"interval": [0.016578961441500895, 0.5763065683942981],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "55-64"
+					},
+					"delta": 0.2222222222222222,
+					"interval": [-0.05368640084808857, 0.46498643978175125],
+					"n": {
+						"baseline": 18,
+						"treatment": 18
+					}
+				},
+				{
+					"where": {
+						"ageBand": "65-74"
+					},
+					"delta": 0.36363636363636365,
+					"interval": [-0.011245352519153873, 0.6393067614215961],
+					"n": {
+						"baseline": 11,
+						"treatment": 11
+					}
+				},
+				{
+					"where": {
+						"ageBand": "75+"
+					},
+					"delta": 0.3076923076923077,
+					"interval": [-0.022020761418992785, 0.5754175928459149],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "15-25k"
+					},
+					"delta": 0.48000000000000004,
+					"interval": [0.22577671692618273, 0.6627197023048067],
+					"n": {
+						"baseline": 25,
+						"treatment": 25
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "25-40k"
+					},
+					"delta": 0.2142857142857143,
+					"interval": [-0.0417629114373278, 0.47589230608238386],
+					"n": {
+						"baseline": 14,
+						"treatment": 14
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "40-60k"
+					},
+					"delta": 0.42857142857142855,
+					"interval": [-0.06145128036270109, 0.7232246894014298],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "60-100k"
+					},
+					"delta": 0.75,
+					"interval": [0.0852325324573816, 0.9544127392428685],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "under-15k"
+					},
+					"delta": 0.23913043478260876,
+					"interval": [0.08116932953773212, 0.38907414639715826],
+					"n": {
+						"baseline": 46,
+						"treatment": 46
+					}
+				}
+			],
+			"cost": {
+				"tokensPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"approvalsPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.15625
+				},
+				"escalationRate": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"touchesPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.15625
+				},
+				"breachRate": {
+					"baseline": 0,
+					"treatment": 0
+				}
+			},
+			"runIds": [],
+			"reportIds": ["f10dcdb3-86f9-4b8c-8b90-682c6a3d2e73", "fcdebf8d-ef9c-4166-ab74-cbdc24895769"]
+		},
+		{
+			"experimentId": "servicing-spark-v3",
+			"metricId": "need-detected",
+			"controlIds": [],
+			"factor": {
+				"axis": "executors",
+				"baseline": "regex",
+				"treatment": "jev-q2"
+			},
+			"baseline": {
+				"value": 0.6041666666666666,
+				"n": 96,
+				"interval": [0.5041511204027269, 0.6961664654478299]
+			},
+			"treatment": {
+				"value": 0.9375,
+				"n": 96,
+				"interval": [0.8702905348660761, 0.9710433257062625]
+			},
+			"delta": 0.33333333333333337,
+			"interval": [0.21939881187753113, 0.4388239215102446],
+			"p": 1.941225491464138e-8,
+			"method": "difference of rates, Newcombe interval at 95%; sign test over 36 discordant of 96 pairs",
+			"underpowered": false,
+			"slices": [
+				{
+					"where": {
+						"ageBand": "18-24"
+					},
+					"delta": 0.2857142857142857,
+					"interval": [-0.12289361893874429, 0.6410655484026206],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"ageBand": "25-34"
+					},
+					"delta": 0.46153846153846156,
+					"interval": [0.10563466820297612, 0.6995634455154169],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "35-44"
+					},
+					"delta": 0.38095238095238093,
+					"interval": [0.12428817968773537, 0.5906056998134152],
+					"n": {
+						"baseline": 21,
+						"treatment": 21
+					}
+				},
+				{
+					"where": {
+						"ageBand": "45-54"
+					},
+					"delta": 0.3076923076923077,
+					"interval": [0.016578961441500895, 0.5763065683942981],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "55-64"
+					},
+					"delta": 0.2222222222222222,
+					"interval": [-0.05368640084808857, 0.46498643978175125],
+					"n": {
+						"baseline": 18,
+						"treatment": 18
+					}
+				},
+				{
+					"where": {
+						"ageBand": "65-74"
+					},
+					"delta": 0.36363636363636365,
+					"interval": [-0.011245352519153873, 0.6393067614215961],
+					"n": {
+						"baseline": 11,
+						"treatment": 11
+					}
+				},
+				{
+					"where": {
+						"ageBand": "75+"
+					},
+					"delta": 0.3076923076923077,
+					"interval": [-0.022020761418992785, 0.5754175928459149],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "15-25k"
+					},
+					"delta": 0.48000000000000004,
+					"interval": [0.22577671692618273, 0.6627197023048067],
+					"n": {
+						"baseline": 25,
+						"treatment": 25
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "25-40k"
+					},
+					"delta": 0.2142857142857143,
+					"interval": [-0.0417629114373278, 0.47589230608238386],
+					"n": {
+						"baseline": 14,
+						"treatment": 14
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "40-60k"
+					},
+					"delta": 0.42857142857142855,
+					"interval": [-0.06145128036270109, 0.7232246894014298],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "60-100k"
+					},
+					"delta": 0.75,
+					"interval": [0.0852325324573816, 0.9544127392428685],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "under-15k"
+					},
+					"delta": 0.23913043478260876,
+					"interval": [0.08116932953773212, 0.38907414639715826],
+					"n": {
+						"baseline": 46,
+						"treatment": 46
+					}
+				}
+			],
+			"cost": {
+				"tokensPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"approvalsPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.15625
+				},
+				"escalationRate": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"touchesPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.15625
+				},
+				"breachRate": {
+					"baseline": 0,
+					"treatment": 0
+				}
+			},
+			"runIds": [],
+			"reportIds": ["f10dcdb3-86f9-4b8c-8b90-682c6a3d2e73", "fcdebf8d-ef9c-4166-ab74-cbdc24895769"]
+		},
+		{
+			"experimentId": "servicing-spark-v3",
+			"metricId": "disclosure-recorded",
+			"controlIds": [],
+			"factor": {
+				"axis": "executors",
+				"baseline": "regex",
+				"treatment": "jev-q2"
+			},
+			"baseline": {
+				"value": 0.7291666666666666,
+				"n": 96,
+				"interval": [0.63273652684571, 0.807962162025515]
+			},
+			"treatment": {
+				"value": 0.8541666666666666,
+				"n": 96,
+				"interval": [0.76998184965767, 0.9110979422342229]
+			},
+			"delta": 0.125,
+			"interval": [0.009692526245327307, 0.23698188247943625],
+			"p": 0.01181793212890625,
+			"method": "difference of rates, Newcombe interval at 95%; sign test over 20 discordant of 96 pairs",
+			"underpowered": false,
+			"slices": [
+				{
+					"where": {
+						"ageBand": "18-24"
+					},
+					"delta": 0,
+					"interval": [-0.3543304354355772, 0.3543304354355772],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"ageBand": "25-34"
+					},
+					"delta": 0.23076923076923073,
+					"interval": [-0.10857746764366921, 0.5134540177703342],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "35-44"
+					},
+					"delta": 0.04761904761904756,
+					"interval": [-0.18554231537604662, 0.27687946881664627],
+					"n": {
+						"baseline": 21,
+						"treatment": 21
+					}
+				},
+				{
+					"where": {
+						"ageBand": "45-54"
+					},
+					"delta": 0.15384615384615385,
+					"interval": [-0.16990037576118888, 0.4443342282724687],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "55-64"
+					},
+					"delta": 0.2222222222222222,
+					"interval": [-0.031061914832060056, 0.4576453272739043],
+					"n": {
+						"baseline": 18,
+						"treatment": 18
+					}
+				},
+				{
+					"where": {
+						"ageBand": "65-74"
+					},
+					"delta": 0.09090909090909094,
+					"interval": [-0.27066103106689965, 0.4234146608535862],
+					"n": {
+						"baseline": 11,
+						"treatment": 11
+					}
+				},
+				{
+					"where": {
+						"ageBand": "75+"
+					},
+					"delta": 0.07692307692307698,
+					"interval": [-0.24956083890648623, 0.3840824116975198],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "15-25k"
+					},
+					"delta": 0.16000000000000003,
+					"interval": [-0.09553140086008183, 0.38963246173156707],
+					"n": {
+						"baseline": 25,
+						"treatment": 25
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "25-40k"
+					},
+					"delta": 0.2142857142857143,
+					"interval": [-0.0417629114373278, 0.47589230608238386],
+					"n": {
+						"baseline": 14,
+						"treatment": 14
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "40-60k"
+					},
+					"delta": -0.1428571428571429,
+					"interval": [-0.5228995564157164, 0.3036453690734739],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "60-100k"
+					},
+					"delta": 0.5,
+					"interval": [-0.13548840094221692, 0.7890832681590998],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "under-15k"
+					},
+					"delta": 0.08695652173913038,
+					"interval": [-0.05594745246625221, 0.23028581840498066],
+					"n": {
+						"baseline": 46,
+						"treatment": 46
+					}
+				}
+			],
+			"cost": {
+				"tokensPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"approvalsPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.15625
+				},
+				"escalationRate": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"touchesPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.15625
+				},
+				"breachRate": {
+					"baseline": 0,
+					"treatment": 0
+				}
+			},
+			"runIds": [],
+			"reportIds": ["f10dcdb3-86f9-4b8c-8b90-682c6a3d2e73", "fcdebf8d-ef9c-4166-ab74-cbdc24895769"]
+		},
+		{
+			"experimentId": "servicing-spark-v3",
+			"metricId": "needs-met",
+			"controlIds": [],
+			"factor": {
+				"axis": "executors",
+				"baseline": "regex",
+				"treatment": "jev-q2"
+			},
+			"baseline": {
+				"value": 0.6354166666666666,
+				"n": 96,
+				"interval": [0.5356522623920257, 0.7247605992136981]
+			},
+			"treatment": {
+				"value": 0.9791666666666666,
+				"n": 96,
+				"interval": [0.9271928647597204, 0.9942680301528407]
+			},
+			"delta": 0.34375,
+			"interval": [0.24038842896109314, 0.44465087977523066],
+			"p": 1.0244548320770264e-8,
+			"method": "difference of rates, Newcombe interval at 95%; sign test over 37 discordant of 96 pairs",
+			"underpowered": true,
+			"slices": [
+				{
+					"where": {
+						"ageBand": "18-24"
+					},
+					"delta": 0.1428571428571429,
+					"interval": [-0.23034605692490878, 0.5131278295671373],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"ageBand": "25-34"
+					},
+					"delta": 0.07692307692307698,
+					"interval": [-0.2021406445400606, 0.35276392583149924],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "35-44"
+					},
+					"delta": 0.4285714285714285,
+					"interval": [0.16547369340914958, 0.6324817753884122],
+					"n": {
+						"baseline": 21,
+						"treatment": 21
+					}
+				},
+				{
+					"where": {
+						"ageBand": "45-54"
+					},
+					"delta": 0.46153846153846156,
+					"interval": [0.13798390327048077, 0.7085620430143273],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "55-64"
+					},
+					"delta": 0.2222222222222222,
+					"interval": [0.0021909444147064916, 0.45214584335610897],
+					"n": {
+						"baseline": 18,
+						"treatment": 18
+					}
+				},
+				{
+					"where": {
+						"ageBand": "65-74"
+					},
+					"delta": 0.36363636363636365,
+					"interval": [0.029082202794411538, 0.646198825685093],
+					"n": {
+						"baseline": 11,
+						"treatment": 11
+					}
+				},
+				{
+					"where": {
+						"ageBand": "75+"
+					},
+					"delta": 0.6153846153846154,
+					"interval": [0.2693954717842149, 0.8229029221369814],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "15-25k"
+					},
+					"delta": 0.31999999999999995,
+					"interval": [0.09869767773517757, 0.5175741655879382],
+					"n": {
+						"baseline": 25,
+						"treatment": 25
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "25-40k"
+					},
+					"delta": 0.5,
+					"interval": [0.18347757955343819, 0.7320079756226374],
+					"n": {
+						"baseline": 14,
+						"treatment": 14
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "40-60k"
+					},
+					"delta": 0.1428571428571428,
+					"interval": [-0.2796481751042585, 0.5170296842679074],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "60-100k"
+					},
+					"delta": 0.5,
+					"interval": [-0.10205127792519664, 0.8499610109917736],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "under-15k"
+					},
+					"delta": 0.32608695652173914,
+					"interval": [0.18562501355669161, 0.4703226759250929],
+					"n": {
+						"baseline": 46,
+						"treatment": 46
+					}
+				}
+			],
+			"cost": {
+				"tokensPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"approvalsPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.15625
+				},
+				"escalationRate": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"touchesPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.15625
+				},
+				"breachRate": {
+					"baseline": 0,
+					"treatment": 0
+				}
+			},
+			"runIds": [],
+			"reportIds": ["f10dcdb3-86f9-4b8c-8b90-682c6a3d2e73", "fcdebf8d-ef9c-4166-ab74-cbdc24895769"]
+		},
+		{
+			"experimentId": "servicing-spark-v3",
+			"metricId": "touches",
+			"controlIds": [],
+			"factor": {
+				"axis": "executors",
+				"baseline": "regex",
+				"treatment": "jev-q2"
+			},
+			"baseline": {
+				"value": 0.19791666666666666,
+				"n": 96,
+				"interval": [0.11779735328638653, 0.2780359800469468]
+			},
+			"treatment": {
+				"value": 0.15625,
+				"n": 96,
+				"interval": [0.08323649542285803, 0.22926350457714195]
+			},
+			"delta": -0.04166666666666666,
+			"interval": [-0.15076530761655094, 0.06743197428321762],
+			"p": 0.480682373046875,
+			"method": "difference of means, Welch interval at 95%; sign test over 18 non-tied of 96 pairs",
+			"underpowered": false,
+			"slices": [
+				{
+					"where": {
+						"ageBand": "18-24"
+					},
+					"delta": -0.14285714285714285,
+					"interval": [-0.739419474169259, 0.4537051884549734],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"ageBand": "25-34"
+					},
+					"delta": 0.15384615384615385,
+					"interval": [-0.146083022446317, 0.4537753301386247],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "35-44"
+					},
+					"delta": -0.19047619047619047,
+					"interval": [-0.473097864933739, 0.09214548398135808],
+					"n": {
+						"baseline": 21,
+						"treatment": 21
+					}
+				},
+				{
+					"where": {
+						"ageBand": "45-54"
+					},
+					"delta": 0.07692307692307693,
+					"interval": [-0.2539796245649995, 0.40782577841115336],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "55-64"
+					},
+					"delta": 0.05555555555555555,
+					"interval": [-0.061656420990263736, 0.17276753210137485],
+					"n": {
+						"baseline": 18,
+						"treatment": 18
+					}
+				},
+				{
+					"where": {
+						"ageBand": "65-74"
+					},
+					"delta": -0.09090909090909091,
+					"interval": [-0.29346716836014575, 0.11164898654196392],
+					"n": {
+						"baseline": 11,
+						"treatment": 11
+					}
+				},
+				{
+					"where": {
+						"ageBand": "75+"
+					},
+					"delta": -0.15384615384615385,
+					"interval": [-0.5039599863545559, 0.1962676786622481],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "15-25k"
+					},
+					"delta": 0,
+					"interval": [-0.23216810371130808, 0.23216810371130808],
+					"n": {
+						"baseline": 25,
+						"treatment": 25
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "25-40k"
+					},
+					"delta": 0.07142857142857142,
+					"interval": [-0.2363856407971067, 0.37924278365424957],
+					"n": {
+						"baseline": 14,
+						"treatment": 14
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "40-60k"
+					},
+					"delta": -0.42857142857142855,
+					"interval": [-0.9744070099609725, 0.11726415281811547],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "60-100k"
+					},
+					"delta": 0.25,
+					"interval": [-0.6890720408668785, 1.1890720408668785],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "under-15k"
+					},
+					"delta": -0.06521739130434784,
+					"interval": [-0.20052352109456956, 0.07008873848587388],
+					"n": {
+						"baseline": 46,
+						"treatment": 46
+					}
+				}
+			],
+			"cost": {
+				"tokensPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"approvalsPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.15625
+				},
+				"escalationRate": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"touchesPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.15625
+				},
+				"breachRate": {
+					"baseline": 0,
+					"treatment": 0
+				}
+			},
+			"runIds": [],
+			"reportIds": ["f10dcdb3-86f9-4b8c-8b90-682c6a3d2e73", "fcdebf8d-ef9c-4166-ab74-cbdc24895769"]
+		},
+		{
+			"experimentId": "servicing-spark-v3",
+			"metricId": "request-read-right",
+			"controlIds": [],
+			"factor": {
+				"axis": "executors",
+				"baseline": "regex",
+				"treatment": "spark"
+			},
+			"baseline": {
+				"value": 0.6354166666666666,
+				"n": 96,
+				"interval": [0.5356522623920257, 0.7247605992136981]
+			},
+			"treatment": {
+				"value": 0.9479166666666666,
+				"n": 96,
+				"interval": [0.8838152196171108, 0.9775503995402833]
+			},
+			"delta": 0.3125,
+			"interval": [0.20253939888844047, 0.4165725443347037],
+			"p": 6.938353180885315e-8,
+			"method": "difference of rates, Newcombe interval at 95%; sign test over 34 discordant of 96 pairs",
+			"underpowered": false,
+			"slices": [
+				{
+					"where": {
+						"ageBand": "18-24"
+					},
+					"delta": 0.1428571428571429,
+					"interval": [-0.23034605692490878, 0.5131278295671373],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"ageBand": "25-34"
+					},
+					"delta": 0.07692307692307698,
+					"interval": [-0.2021406445400606, 0.35276392583149924],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "35-44"
+					},
+					"delta": 0.4285714285714285,
+					"interval": [0.16547369340914958, 0.6324817753884122],
+					"n": {
+						"baseline": 21,
+						"treatment": 21
+					}
+				},
+				{
+					"where": {
+						"ageBand": "45-54"
+					},
+					"delta": 0.46153846153846156,
+					"interval": [0.13798390327048077, 0.7085620430143273],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "55-64"
+					},
+					"delta": 0.16666666666666663,
+					"interval": [-0.07476927292851479, 0.4010841729759279],
+					"n": {
+						"baseline": 18,
+						"treatment": 18
+					}
+				},
+				{
+					"where": {
+						"ageBand": "65-74"
+					},
+					"delta": 0.36363636363636365,
+					"interval": [0.029082202794411538, 0.646198825685093],
+					"n": {
+						"baseline": 11,
+						"treatment": 11
+					}
+				},
+				{
+					"where": {
+						"ageBand": "75+"
+					},
+					"delta": 0.4615384615384615,
+					"interval": [0.08767575604780353, 0.6966842630506307],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "15-25k"
+					},
+					"delta": 0.31999999999999995,
+					"interval": [0.09869767773517757, 0.5175741655879382],
+					"n": {
+						"baseline": 25,
+						"treatment": 25
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "25-40k"
+					},
+					"delta": 0.4285714285714286,
+					"interval": [0.09241315414042867, 0.6678915844510007],
+					"n": {
+						"baseline": 14,
+						"treatment": 14
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "40-60k"
+					},
+					"delta": 0.1428571428571428,
+					"interval": [-0.2796481751042585, 0.5170296842679074],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "60-100k"
+					},
+					"delta": 0.25,
+					"interval": [-0.31955725180216266, 0.6552866604998951],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "under-15k"
+					},
+					"delta": 0.30434782608695654,
+					"interval": [0.15541054278746547, 0.44968894385887537],
+					"n": {
+						"baseline": 46,
+						"treatment": 46
+					}
+				}
+			],
+			"cost": {
+				"tokensPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"approvalsPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.11458333333333333
+				},
+				"escalationRate": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"touchesPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.11458333333333333
+				},
+				"breachRate": {
+					"baseline": 0,
+					"treatment": 0
+				}
+			},
+			"runIds": [],
+			"reportIds": ["f10dcdb3-86f9-4b8c-8b90-682c6a3d2e73", "10d835ee-3a4a-44fb-87a3-bda0db0eecb2"]
+		},
+		{
+			"experimentId": "servicing-spark-v3",
+			"metricId": "need-read-right",
+			"controlIds": [],
+			"factor": {
+				"axis": "executors",
+				"baseline": "regex",
+				"treatment": "spark"
+			},
+			"baseline": {
+				"value": 0.6041666666666666,
+				"n": 96,
+				"interval": [0.5041511204027269, 0.6961664654478299]
+			},
+			"treatment": {
+				"value": 0.8645833333333334,
+				"n": 96,
+				"interval": [0.7819886149014309, 0.919122935575518]
+			},
+			"delta": 0.26041666666666674,
+			"interval": [0.13678070713781534, 0.37433627738936004],
+			"p": 0.000004649162292480469,
+			"method": "difference of rates, Newcombe interval at 95%; sign test over 31 discordant of 96 pairs",
+			"underpowered": false,
+			"slices": [
+				{
+					"where": {
+						"ageBand": "18-24"
+					},
+					"delta": 0,
+					"interval": [-0.40949344581222297, 0.40949344581222297],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"ageBand": "25-34"
+					},
+					"delta": 0.3846153846153846,
+					"interval": [0.019768863607536213, 0.6393500573407693],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "35-44"
+					},
+					"delta": 0.2857142857142857,
+					"interval": [0.011447126083580839, 0.5117198528915121],
+					"n": {
+						"baseline": 21,
+						"treatment": 21
+					}
+				},
+				{
+					"where": {
+						"ageBand": "45-54"
+					},
+					"delta": 0.3076923076923077,
+					"interval": [0.016578961441500895, 0.5763065683942981],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "55-64"
+					},
+					"delta": 0.2222222222222222,
+					"interval": [-0.05368640084808857, 0.46498643978175125],
+					"n": {
+						"baseline": 18,
+						"treatment": 18
+					}
+				},
+				{
+					"where": {
+						"ageBand": "65-74"
+					},
+					"delta": 0.36363636363636365,
+					"interval": [-0.011245352519153873, 0.6393067614215961],
+					"n": {
+						"baseline": 11,
+						"treatment": 11
+					}
+				},
+				{
+					"where": {
+						"ageBand": "75+"
+					},
+					"delta": 0.15384615384615385,
+					"interval": [-0.18811307411288647, 0.45363645448483236],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "15-25k"
+					},
+					"delta": 0.36000000000000004,
+					"interval": [0.0908459203839192, 0.5660501515288366],
+					"n": {
+						"baseline": 25,
+						"treatment": 25
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "25-40k"
+					},
+					"delta": 0.1428571428571429,
+					"interval": [-0.13710149972732155, 0.4109698899043091],
+					"n": {
+						"baseline": 14,
+						"treatment": 14
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "40-60k"
+					},
+					"delta": 0.28571428571428575,
+					"interval": [-0.19313474449110785, 0.6240932678262521],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "60-100k"
+					},
+					"delta": 0.75,
+					"interval": [0.0852325324573816, 0.9544127392428685],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "under-15k"
+					},
+					"delta": 0.19565217391304346,
+					"interval": [0.029218601968017677, 0.3519139320093785],
+					"n": {
+						"baseline": 46,
+						"treatment": 46
+					}
+				}
+			],
+			"cost": {
+				"tokensPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"approvalsPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.11458333333333333
+				},
+				"escalationRate": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"touchesPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.11458333333333333
+				},
+				"breachRate": {
+					"baseline": 0,
+					"treatment": 0
+				}
+			},
+			"runIds": [],
+			"reportIds": ["f10dcdb3-86f9-4b8c-8b90-682c6a3d2e73", "10d835ee-3a4a-44fb-87a3-bda0db0eecb2"]
+		},
+		{
+			"experimentId": "servicing-spark-v3",
+			"metricId": "need-detected",
+			"controlIds": [],
+			"factor": {
+				"axis": "executors",
+				"baseline": "regex",
+				"treatment": "spark"
+			},
+			"baseline": {
+				"value": 0.6041666666666666,
+				"n": 96,
+				"interval": [0.5041511204027269, 0.6961664654478299]
+			},
+			"treatment": {
+				"value": 0.8645833333333334,
+				"n": 96,
+				"interval": [0.7819886149014309, 0.919122935575518]
+			},
+			"delta": 0.26041666666666674,
+			"interval": [0.13678070713781534, 0.37433627738936004],
+			"p": 0.000004649162292480469,
+			"method": "difference of rates, Newcombe interval at 95%; sign test over 31 discordant of 96 pairs",
+			"underpowered": false,
+			"slices": [
+				{
+					"where": {
+						"ageBand": "18-24"
+					},
+					"delta": 0,
+					"interval": [-0.40949344581222297, 0.40949344581222297],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"ageBand": "25-34"
+					},
+					"delta": 0.3846153846153846,
+					"interval": [0.019768863607536213, 0.6393500573407693],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "35-44"
+					},
+					"delta": 0.2857142857142857,
+					"interval": [0.011447126083580839, 0.5117198528915121],
+					"n": {
+						"baseline": 21,
+						"treatment": 21
+					}
+				},
+				{
+					"where": {
+						"ageBand": "45-54"
+					},
+					"delta": 0.3076923076923077,
+					"interval": [0.016578961441500895, 0.5763065683942981],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "55-64"
+					},
+					"delta": 0.2222222222222222,
+					"interval": [-0.05368640084808857, 0.46498643978175125],
+					"n": {
+						"baseline": 18,
+						"treatment": 18
+					}
+				},
+				{
+					"where": {
+						"ageBand": "65-74"
+					},
+					"delta": 0.36363636363636365,
+					"interval": [-0.011245352519153873, 0.6393067614215961],
+					"n": {
+						"baseline": 11,
+						"treatment": 11
+					}
+				},
+				{
+					"where": {
+						"ageBand": "75+"
+					},
+					"delta": 0.15384615384615385,
+					"interval": [-0.18811307411288647, 0.45363645448483236],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "15-25k"
+					},
+					"delta": 0.36000000000000004,
+					"interval": [0.0908459203839192, 0.5660501515288366],
+					"n": {
+						"baseline": 25,
+						"treatment": 25
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "25-40k"
+					},
+					"delta": 0.1428571428571429,
+					"interval": [-0.13710149972732155, 0.4109698899043091],
+					"n": {
+						"baseline": 14,
+						"treatment": 14
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "40-60k"
+					},
+					"delta": 0.28571428571428575,
+					"interval": [-0.19313474449110785, 0.6240932678262521],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "60-100k"
+					},
+					"delta": 0.75,
+					"interval": [0.0852325324573816, 0.9544127392428685],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "under-15k"
+					},
+					"delta": 0.19565217391304346,
+					"interval": [0.029218601968017677, 0.3519139320093785],
+					"n": {
+						"baseline": 46,
+						"treatment": 46
+					}
+				}
+			],
+			"cost": {
+				"tokensPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"approvalsPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.11458333333333333
+				},
+				"escalationRate": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"touchesPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.11458333333333333
+				},
+				"breachRate": {
+					"baseline": 0,
+					"treatment": 0
+				}
+			},
+			"runIds": [],
+			"reportIds": ["f10dcdb3-86f9-4b8c-8b90-682c6a3d2e73", "10d835ee-3a4a-44fb-87a3-bda0db0eecb2"]
+		},
+		{
+			"experimentId": "servicing-spark-v3",
+			"metricId": "disclosure-recorded",
+			"controlIds": [],
+			"factor": {
+				"axis": "executors",
+				"baseline": "regex",
+				"treatment": "spark"
+			},
+			"baseline": {
+				"value": 0.7291666666666666,
+				"n": 96,
+				"interval": [0.63273652684571, 0.807962162025515]
+			},
+			"treatment": {
+				"value": 0.8645833333333334,
+				"n": 96,
+				"interval": [0.7819886149014309, 0.919122935575518]
+			},
+			"delta": 0.13541666666666674,
+			"interval": [0.021264936054767827, 0.2462017743239009],
+			"p": 0.004425048828125,
+			"method": "difference of rates, Newcombe interval at 95%; sign test over 19 discordant of 96 pairs",
+			"underpowered": false,
+			"slices": [
+				{
+					"where": {
+						"ageBand": "18-24"
+					},
+					"delta": 0,
+					"interval": [-0.3543304354355772, 0.3543304354355772],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"ageBand": "25-34"
+					},
+					"delta": 0.23076923076923073,
+					"interval": [-0.10857746764366921, 0.5134540177703342],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "35-44"
+					},
+					"delta": 0.09523809523809523,
+					"interval": [-0.12959306582921198, 0.3157487280981264],
+					"n": {
+						"baseline": 21,
+						"treatment": 21
+					}
+				},
+				{
+					"where": {
+						"ageBand": "45-54"
+					},
+					"delta": 0.15384615384615385,
+					"interval": [-0.16990037576118888, 0.4443342282724687],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "55-64"
+					},
+					"delta": 0.2222222222222222,
+					"interval": [-0.031061914832060056, 0.4576453272739043],
+					"n": {
+						"baseline": 18,
+						"treatment": 18
+					}
+				},
+				{
+					"where": {
+						"ageBand": "65-74"
+					},
+					"delta": 0.09090909090909094,
+					"interval": [-0.27066103106689965, 0.4234146608535862],
+					"n": {
+						"baseline": 11,
+						"treatment": 11
+					}
+				},
+				{
+					"where": {
+						"ageBand": "75+"
+					},
+					"delta": 0.07692307692307698,
+					"interval": [-0.24956083890648623, 0.3840824116975198],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "15-25k"
+					},
+					"delta": 0.16000000000000003,
+					"interval": [-0.09553140086008183, 0.38963246173156707],
+					"n": {
+						"baseline": 25,
+						"treatment": 25
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "25-40k"
+					},
+					"delta": 0.2142857142857143,
+					"interval": [-0.0417629114373278, 0.47589230608238386],
+					"n": {
+						"baseline": 14,
+						"treatment": 14
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "40-60k"
+					},
+					"delta": 0,
+					"interval": [-0.40949344581222297, 0.40949344581222297],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "60-100k"
+					},
+					"delta": 0.5,
+					"interval": [-0.13548840094221692, 0.7890832681590998],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "under-15k"
+					},
+					"delta": 0.08695652173913038,
+					"interval": [-0.05594745246625221, 0.23028581840498066],
+					"n": {
+						"baseline": 46,
+						"treatment": 46
+					}
+				}
+			],
+			"cost": {
+				"tokensPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"approvalsPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.11458333333333333
+				},
+				"escalationRate": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"touchesPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.11458333333333333
+				},
+				"breachRate": {
+					"baseline": 0,
+					"treatment": 0
+				}
+			},
+			"runIds": [],
+			"reportIds": ["f10dcdb3-86f9-4b8c-8b90-682c6a3d2e73", "10d835ee-3a4a-44fb-87a3-bda0db0eecb2"]
+		},
+		{
+			"experimentId": "servicing-spark-v3",
+			"metricId": "needs-met",
+			"controlIds": [],
+			"factor": {
+				"axis": "executors",
+				"baseline": "regex",
+				"treatment": "spark"
+			},
+			"baseline": {
+				"value": 0.6354166666666666,
+				"n": 96,
+				"interval": [0.5356522623920257, 0.7247605992136981]
+			},
+			"treatment": {
+				"value": 0.9479166666666666,
+				"n": 96,
+				"interval": [0.8838152196171108, 0.9775503995402833]
+			},
+			"delta": 0.3125,
+			"interval": [0.20253939888844047, 0.4165725443347037],
+			"p": 6.938353180885315e-8,
+			"method": "difference of rates, Newcombe interval at 95%; sign test over 34 discordant of 96 pairs",
+			"underpowered": false,
+			"slices": [
+				{
+					"where": {
+						"ageBand": "18-24"
+					},
+					"delta": 0.1428571428571429,
+					"interval": [-0.23034605692490878, 0.5131278295671373],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"ageBand": "25-34"
+					},
+					"delta": 0.07692307692307698,
+					"interval": [-0.2021406445400606, 0.35276392583149924],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "35-44"
+					},
+					"delta": 0.4285714285714285,
+					"interval": [0.16547369340914958, 0.6324817753884122],
+					"n": {
+						"baseline": 21,
+						"treatment": 21
+					}
+				},
+				{
+					"where": {
+						"ageBand": "45-54"
+					},
+					"delta": 0.46153846153846156,
+					"interval": [0.13798390327048077, 0.7085620430143273],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "55-64"
+					},
+					"delta": 0.16666666666666663,
+					"interval": [-0.07476927292851479, 0.4010841729759279],
+					"n": {
+						"baseline": 18,
+						"treatment": 18
+					}
+				},
+				{
+					"where": {
+						"ageBand": "65-74"
+					},
+					"delta": 0.36363636363636365,
+					"interval": [0.029082202794411538, 0.646198825685093],
+					"n": {
+						"baseline": 11,
+						"treatment": 11
+					}
+				},
+				{
+					"where": {
+						"ageBand": "75+"
+					},
+					"delta": 0.4615384615384615,
+					"interval": [0.08767575604780353, 0.6966842630506307],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "15-25k"
+					},
+					"delta": 0.31999999999999995,
+					"interval": [0.09869767773517757, 0.5175741655879382],
+					"n": {
+						"baseline": 25,
+						"treatment": 25
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "25-40k"
+					},
+					"delta": 0.4285714285714286,
+					"interval": [0.09241315414042867, 0.6678915844510007],
+					"n": {
+						"baseline": 14,
+						"treatment": 14
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "40-60k"
+					},
+					"delta": 0.1428571428571428,
+					"interval": [-0.2796481751042585, 0.5170296842679074],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "60-100k"
+					},
+					"delta": 0.25,
+					"interval": [-0.31955725180216266, 0.6552866604998951],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "under-15k"
+					},
+					"delta": 0.30434782608695654,
+					"interval": [0.15541054278746547, 0.44968894385887537],
+					"n": {
+						"baseline": 46,
+						"treatment": 46
+					}
+				}
+			],
+			"cost": {
+				"tokensPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"approvalsPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.11458333333333333
+				},
+				"escalationRate": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"touchesPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.11458333333333333
+				},
+				"breachRate": {
+					"baseline": 0,
+					"treatment": 0
+				}
+			},
+			"runIds": [],
+			"reportIds": ["f10dcdb3-86f9-4b8c-8b90-682c6a3d2e73", "10d835ee-3a4a-44fb-87a3-bda0db0eecb2"]
+		},
+		{
+			"experimentId": "servicing-spark-v3",
+			"metricId": "touches",
+			"controlIds": [],
+			"factor": {
+				"axis": "executors",
+				"baseline": "regex",
+				"treatment": "spark"
+			},
+			"baseline": {
+				"value": 0.19791666666666666,
+				"n": 96,
+				"interval": [0.11779735328638653, 0.2780359800469468]
+			},
+			"treatment": {
+				"value": 0.11458333333333333,
+				"n": 96,
+				"interval": [0.05053307862770434, 0.17863358803896232]
+			},
+			"delta": -0.08333333333333333,
+			"interval": [-0.18659752371823676, 0.019930857051570106],
+			"p": 0.076812744140625,
+			"method": "difference of means, Welch interval at 95%; sign test over 16 non-tied of 96 pairs",
+			"underpowered": false,
+			"slices": [
+				{
+					"where": {
+						"ageBand": "18-24"
+					},
+					"delta": -0.14285714285714285,
+					"interval": [-0.739419474169259, 0.4537051884549734],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"ageBand": "25-34"
+					},
+					"delta": 0,
+					"interval": [-0.22452256439842097, 0.22452256439842097],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "35-44"
+					},
+					"delta": -0.19047619047619047,
+					"interval": [-0.473097864933739, 0.09214548398135808],
+					"n": {
+						"baseline": 21,
+						"treatment": 21
+					}
+				},
+				{
+					"where": {
+						"ageBand": "45-54"
+					},
+					"delta": 0.07692307692307693,
+					"interval": [-0.2539796245649995, 0.40782577841115336],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "55-64"
+					},
+					"delta": 0,
+					"interval": [0, 0],
+					"n": {
+						"baseline": 18,
+						"treatment": 18
+					}
+				},
+				{
+					"where": {
+						"ageBand": "65-74"
+					},
+					"delta": -0.09090909090909091,
+					"interval": [-0.29346716836014575, 0.11164898654196392],
+					"n": {
+						"baseline": 11,
+						"treatment": 11
+					}
+				},
+				{
+					"where": {
+						"ageBand": "75+"
+					},
+					"delta": -0.23076923076923078,
+					"interval": [-0.5525460598385228, 0.09100759830006117],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "15-25k"
+					},
+					"delta": -0.08000000000000002,
+					"interval": [-0.2917446817171686, 0.13174468171716858],
+					"n": {
+						"baseline": 25,
+						"treatment": 25
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "25-40k"
+					},
+					"delta": 0,
+					"interval": [-0.2821269720882756, 0.2821269720882756],
+					"n": {
+						"baseline": 14,
+						"treatment": 14
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "40-60k"
+					},
+					"delta": -0.42857142857142855,
+					"interval": [-0.9744070099609725, 0.11726415281811547],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "60-100k"
+					},
+					"delta": 0,
+					"interval": [-0.8651139814525824, 0.8651139814525824],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "under-15k"
+					},
+					"delta": -0.06521739130434784,
+					"interval": [-0.20052352109456956, 0.07008873848587388],
+					"n": {
+						"baseline": 46,
+						"treatment": 46
+					}
+				}
+			],
+			"cost": {
+				"tokensPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"approvalsPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.11458333333333333
+				},
+				"escalationRate": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"touchesPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.11458333333333333
+				},
+				"breachRate": {
+					"baseline": 0,
+					"treatment": 0
+				}
+			},
+			"runIds": [],
+			"reportIds": ["f10dcdb3-86f9-4b8c-8b90-682c6a3d2e73", "10d835ee-3a4a-44fb-87a3-bda0db0eecb2"]
+		},
+		{
+			"experimentId": "servicing-spark-v3",
+			"metricId": "request-read-right",
+			"controlIds": [],
+			"factor": {
+				"axis": "executors",
+				"baseline": "regex",
+				"treatment": "spark-q2"
+			},
+			"baseline": {
+				"value": 0.6354166666666666,
+				"n": 96,
+				"interval": [0.5356522623920257, 0.7247605992136981]
+			},
+			"treatment": {
+				"value": 0.9583333333333334,
+				"n": 96,
+				"interval": [0.8977180852671517, 0.9836792924752983]
+			},
+			"delta": 0.32291666666666674,
+			"interval": [0.21495117874995678, 0.425850402657838],
+			"p": 1.233129296451807e-7,
+			"method": "difference of rates, Newcombe interval at 95%; sign test over 37 discordant of 96 pairs",
+			"underpowered": true,
+			"slices": [
+				{
+					"where": {
+						"ageBand": "18-24"
+					},
+					"delta": 0.1428571428571429,
+					"interval": [-0.23034605692490878, 0.5131278295671373],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"ageBand": "25-34"
+					},
+					"delta": 0.07692307692307698,
+					"interval": [-0.2021406445400606, 0.35276392583149924],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "35-44"
+					},
+					"delta": 0.4285714285714285,
+					"interval": [0.16547369340914958, 0.6324817753884122],
+					"n": {
+						"baseline": 21,
+						"treatment": 21
+					}
+				},
+				{
+					"where": {
+						"ageBand": "45-54"
+					},
+					"delta": 0.46153846153846156,
+					"interval": [0.13798390327048077, 0.7085620430143273],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "55-64"
+					},
+					"delta": 0.2222222222222222,
+					"interval": [0.0021909444147064916, 0.45214584335610897],
+					"n": {
+						"baseline": 18,
+						"treatment": 18
+					}
+				},
+				{
+					"where": {
+						"ageBand": "65-74"
+					},
+					"delta": 0.36363636363636365,
+					"interval": [0.029082202794411538, 0.646198825685093],
+					"n": {
+						"baseline": 11,
+						"treatment": 11
+					}
+				},
+				{
+					"where": {
+						"ageBand": "75+"
+					},
+					"delta": 0.4615384615384615,
+					"interval": [0.08767575604780353, 0.6966842630506307],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "15-25k"
+					},
+					"delta": 0.31999999999999995,
+					"interval": [0.09869767773517757, 0.5175741655879382],
+					"n": {
+						"baseline": 25,
+						"treatment": 25
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "25-40k"
+					},
+					"delta": 0.5,
+					"interval": [0.18347757955343819, 0.7320079756226374],
+					"n": {
+						"baseline": 14,
+						"treatment": 14
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "40-60k"
+					},
+					"delta": 0.1428571428571428,
+					"interval": [-0.2796481751042585, 0.5170296842679074],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "60-100k"
+					},
+					"delta": 0.25,
+					"interval": [-0.31955725180216266, 0.6552866604998951],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "under-15k"
+					},
+					"delta": 0.30434782608695654,
+					"interval": [0.15541054278746547, 0.44968894385887537],
+					"n": {
+						"baseline": 46,
+						"treatment": 46
+					}
+				}
+			],
+			"cost": {
+				"tokensPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"approvalsPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.125
+				},
+				"escalationRate": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"touchesPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.125
+				},
+				"breachRate": {
+					"baseline": 0,
+					"treatment": 0
+				}
+			},
+			"runIds": [],
+			"reportIds": ["f10dcdb3-86f9-4b8c-8b90-682c6a3d2e73", "f480d054-78c3-4f29-aefd-ae53ec2211fb"]
+		},
+		{
+			"experimentId": "servicing-spark-v3",
+			"metricId": "need-read-right",
+			"controlIds": [],
+			"factor": {
+				"axis": "executors",
+				"baseline": "regex",
+				"treatment": "spark-q2"
+			},
+			"baseline": {
+				"value": 0.6041666666666666,
+				"n": 96,
+				"interval": [0.5041511204027269, 0.6961664654478299]
+			},
+			"treatment": {
+				"value": 0.9375,
+				"n": 96,
+				"interval": [0.8702905348660761, 0.9710433257062625]
+			},
+			"delta": 0.33333333333333337,
+			"interval": [0.21939881187753113, 0.4388239215102446],
+			"p": 1.941225491464138e-8,
+			"method": "difference of rates, Newcombe interval at 95%; sign test over 36 discordant of 96 pairs",
+			"underpowered": false,
+			"slices": [
+				{
+					"where": {
+						"ageBand": "18-24"
+					},
+					"delta": 0.2857142857142857,
+					"interval": [-0.12289361893874429, 0.6410655484026206],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"ageBand": "25-34"
+					},
+					"delta": 0.46153846153846156,
+					"interval": [0.10563466820297612, 0.6995634455154169],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "35-44"
+					},
+					"delta": 0.38095238095238093,
+					"interval": [0.12428817968773537, 0.5906056998134152],
+					"n": {
+						"baseline": 21,
+						"treatment": 21
+					}
+				},
+				{
+					"where": {
+						"ageBand": "45-54"
+					},
+					"delta": 0.3076923076923077,
+					"interval": [0.016578961441500895, 0.5763065683942981],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "55-64"
+					},
+					"delta": 0.2777777777777778,
+					"interval": [0.01339765752526334, 0.5114581117571251],
+					"n": {
+						"baseline": 18,
+						"treatment": 18
+					}
+				},
+				{
+					"where": {
+						"ageBand": "65-74"
+					},
+					"delta": 0.36363636363636365,
+					"interval": [-0.011245352519153873, 0.6393067614215961],
+					"n": {
+						"baseline": 11,
+						"treatment": 11
+					}
+				},
+				{
+					"where": {
+						"ageBand": "75+"
+					},
+					"delta": 0.23076923076923073,
+					"interval": [-0.10857746764366921, 0.5134540177703342],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "15-25k"
+					},
+					"delta": 0.48000000000000004,
+					"interval": [0.22577671692618273, 0.6627197023048067],
+					"n": {
+						"baseline": 25,
+						"treatment": 25
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "25-40k"
+					},
+					"delta": 0.2142857142857143,
+					"interval": [-0.0417629114373278, 0.47589230608238386],
+					"n": {
+						"baseline": 14,
+						"treatment": 14
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "40-60k"
+					},
+					"delta": 0.5714285714285714,
+					"interval": [0.09333660191808313, 0.8417801448772135],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "60-100k"
+					},
+					"delta": 0.75,
+					"interval": [0.0852325324573816, 0.9544127392428685],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "under-15k"
+					},
+					"delta": 0.21739130434782605,
+					"interval": [0.05485865481622143, 0.3704308613187954],
+					"n": {
+						"baseline": 46,
+						"treatment": 46
+					}
+				}
+			],
+			"cost": {
+				"tokensPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"approvalsPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.125
+				},
+				"escalationRate": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"touchesPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.125
+				},
+				"breachRate": {
+					"baseline": 0,
+					"treatment": 0
+				}
+			},
+			"runIds": [],
+			"reportIds": ["f10dcdb3-86f9-4b8c-8b90-682c6a3d2e73", "f480d054-78c3-4f29-aefd-ae53ec2211fb"]
+		},
+		{
+			"experimentId": "servicing-spark-v3",
+			"metricId": "need-detected",
+			"controlIds": [],
+			"factor": {
+				"axis": "executors",
+				"baseline": "regex",
+				"treatment": "spark-q2"
+			},
+			"baseline": {
+				"value": 0.6041666666666666,
+				"n": 96,
+				"interval": [0.5041511204027269, 0.6961664654478299]
+			},
+			"treatment": {
+				"value": 0.9375,
+				"n": 96,
+				"interval": [0.8702905348660761, 0.9710433257062625]
+			},
+			"delta": 0.33333333333333337,
+			"interval": [0.21939881187753113, 0.4388239215102446],
+			"p": 1.941225491464138e-8,
+			"method": "difference of rates, Newcombe interval at 95%; sign test over 36 discordant of 96 pairs",
+			"underpowered": false,
+			"slices": [
+				{
+					"where": {
+						"ageBand": "18-24"
+					},
+					"delta": 0.2857142857142857,
+					"interval": [-0.12289361893874429, 0.6410655484026206],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"ageBand": "25-34"
+					},
+					"delta": 0.46153846153846156,
+					"interval": [0.10563466820297612, 0.6995634455154169],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "35-44"
+					},
+					"delta": 0.38095238095238093,
+					"interval": [0.12428817968773537, 0.5906056998134152],
+					"n": {
+						"baseline": 21,
+						"treatment": 21
+					}
+				},
+				{
+					"where": {
+						"ageBand": "45-54"
+					},
+					"delta": 0.3076923076923077,
+					"interval": [0.016578961441500895, 0.5763065683942981],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "55-64"
+					},
+					"delta": 0.2777777777777778,
+					"interval": [0.01339765752526334, 0.5114581117571251],
+					"n": {
+						"baseline": 18,
+						"treatment": 18
+					}
+				},
+				{
+					"where": {
+						"ageBand": "65-74"
+					},
+					"delta": 0.36363636363636365,
+					"interval": [-0.011245352519153873, 0.6393067614215961],
+					"n": {
+						"baseline": 11,
+						"treatment": 11
+					}
+				},
+				{
+					"where": {
+						"ageBand": "75+"
+					},
+					"delta": 0.23076923076923073,
+					"interval": [-0.10857746764366921, 0.5134540177703342],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "15-25k"
+					},
+					"delta": 0.48000000000000004,
+					"interval": [0.22577671692618273, 0.6627197023048067],
+					"n": {
+						"baseline": 25,
+						"treatment": 25
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "25-40k"
+					},
+					"delta": 0.2142857142857143,
+					"interval": [-0.0417629114373278, 0.47589230608238386],
+					"n": {
+						"baseline": 14,
+						"treatment": 14
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "40-60k"
+					},
+					"delta": 0.5714285714285714,
+					"interval": [0.09333660191808313, 0.8417801448772135],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "60-100k"
+					},
+					"delta": 0.75,
+					"interval": [0.0852325324573816, 0.9544127392428685],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "under-15k"
+					},
+					"delta": 0.21739130434782605,
+					"interval": [0.05485865481622143, 0.3704308613187954],
+					"n": {
+						"baseline": 46,
+						"treatment": 46
+					}
+				}
+			],
+			"cost": {
+				"tokensPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"approvalsPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.125
+				},
+				"escalationRate": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"touchesPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.125
+				},
+				"breachRate": {
+					"baseline": 0,
+					"treatment": 0
+				}
+			},
+			"runIds": [],
+			"reportIds": ["f10dcdb3-86f9-4b8c-8b90-682c6a3d2e73", "f480d054-78c3-4f29-aefd-ae53ec2211fb"]
+		},
+		{
+			"experimentId": "servicing-spark-v3",
+			"metricId": "disclosure-recorded",
+			"controlIds": [],
+			"factor": {
+				"axis": "executors",
+				"baseline": "regex",
+				"treatment": "spark-q2"
+			},
+			"baseline": {
+				"value": 0.7291666666666666,
+				"n": 96,
+				"interval": [0.63273652684571, 0.807962162025515]
+			},
+			"treatment": {
+				"value": 0.8645833333333334,
+				"n": 96,
+				"interval": [0.7819886149014309, 0.919122935575518]
+			},
+			"delta": 0.13541666666666674,
+			"interval": [0.021264936054767827, 0.2462017743239009],
+			"p": 0.004425048828125,
+			"method": "difference of rates, Newcombe interval at 95%; sign test over 19 discordant of 96 pairs",
+			"underpowered": false,
+			"slices": [
+				{
+					"where": {
+						"ageBand": "18-24"
+					},
+					"delta": 0,
+					"interval": [-0.3543304354355772, 0.3543304354355772],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"ageBand": "25-34"
+					},
+					"delta": 0.23076923076923073,
+					"interval": [-0.10857746764366921, 0.5134540177703342],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "35-44"
+					},
+					"delta": 0.09523809523809523,
+					"interval": [-0.12959306582921198, 0.3157487280981264],
+					"n": {
+						"baseline": 21,
+						"treatment": 21
+					}
+				},
+				{
+					"where": {
+						"ageBand": "45-54"
+					},
+					"delta": 0.15384615384615385,
+					"interval": [-0.16990037576118888, 0.4443342282724687],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "55-64"
+					},
+					"delta": 0.2222222222222222,
+					"interval": [-0.031061914832060056, 0.4576453272739043],
+					"n": {
+						"baseline": 18,
+						"treatment": 18
+					}
+				},
+				{
+					"where": {
+						"ageBand": "65-74"
+					},
+					"delta": 0.09090909090909094,
+					"interval": [-0.27066103106689965, 0.4234146608535862],
+					"n": {
+						"baseline": 11,
+						"treatment": 11
+					}
+				},
+				{
+					"where": {
+						"ageBand": "75+"
+					},
+					"delta": 0.07692307692307698,
+					"interval": [-0.24956083890648623, 0.3840824116975198],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "15-25k"
+					},
+					"delta": 0.16000000000000003,
+					"interval": [-0.09553140086008183, 0.38963246173156707],
+					"n": {
+						"baseline": 25,
+						"treatment": 25
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "25-40k"
+					},
+					"delta": 0.2142857142857143,
+					"interval": [-0.0417629114373278, 0.47589230608238386],
+					"n": {
+						"baseline": 14,
+						"treatment": 14
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "40-60k"
+					},
+					"delta": 0,
+					"interval": [-0.40949344581222297, 0.40949344581222297],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "60-100k"
+					},
+					"delta": 0.5,
+					"interval": [-0.13548840094221692, 0.7890832681590998],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "under-15k"
+					},
+					"delta": 0.08695652173913038,
+					"interval": [-0.05594745246625221, 0.23028581840498066],
+					"n": {
+						"baseline": 46,
+						"treatment": 46
+					}
+				}
+			],
+			"cost": {
+				"tokensPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"approvalsPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.125
+				},
+				"escalationRate": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"touchesPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.125
+				},
+				"breachRate": {
+					"baseline": 0,
+					"treatment": 0
+				}
+			},
+			"runIds": [],
+			"reportIds": ["f10dcdb3-86f9-4b8c-8b90-682c6a3d2e73", "f480d054-78c3-4f29-aefd-ae53ec2211fb"]
+		},
+		{
+			"experimentId": "servicing-spark-v3",
+			"metricId": "needs-met",
+			"controlIds": [],
+			"factor": {
+				"axis": "executors",
+				"baseline": "regex",
+				"treatment": "spark-q2"
+			},
+			"baseline": {
+				"value": 0.6354166666666666,
+				"n": 96,
+				"interval": [0.5356522623920257, 0.7247605992136981]
+			},
+			"treatment": {
+				"value": 0.9583333333333334,
+				"n": 96,
+				"interval": [0.8977180852671517, 0.9836792924752983]
+			},
+			"delta": 0.32291666666666674,
+			"interval": [0.21495117874995678, 0.425850402657838],
+			"p": 1.233129296451807e-7,
+			"method": "difference of rates, Newcombe interval at 95%; sign test over 37 discordant of 96 pairs",
+			"underpowered": true,
+			"slices": [
+				{
+					"where": {
+						"ageBand": "18-24"
+					},
+					"delta": 0.1428571428571429,
+					"interval": [-0.23034605692490878, 0.5131278295671373],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"ageBand": "25-34"
+					},
+					"delta": 0.07692307692307698,
+					"interval": [-0.2021406445400606, 0.35276392583149924],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "35-44"
+					},
+					"delta": 0.4285714285714285,
+					"interval": [0.16547369340914958, 0.6324817753884122],
+					"n": {
+						"baseline": 21,
+						"treatment": 21
+					}
+				},
+				{
+					"where": {
+						"ageBand": "45-54"
+					},
+					"delta": 0.46153846153846156,
+					"interval": [0.13798390327048077, 0.7085620430143273],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "55-64"
+					},
+					"delta": 0.2222222222222222,
+					"interval": [0.0021909444147064916, 0.45214584335610897],
+					"n": {
+						"baseline": 18,
+						"treatment": 18
+					}
+				},
+				{
+					"where": {
+						"ageBand": "65-74"
+					},
+					"delta": 0.36363636363636365,
+					"interval": [0.029082202794411538, 0.646198825685093],
+					"n": {
+						"baseline": 11,
+						"treatment": 11
+					}
+				},
+				{
+					"where": {
+						"ageBand": "75+"
+					},
+					"delta": 0.4615384615384615,
+					"interval": [0.08767575604780353, 0.6966842630506307],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "15-25k"
+					},
+					"delta": 0.31999999999999995,
+					"interval": [0.09869767773517757, 0.5175741655879382],
+					"n": {
+						"baseline": 25,
+						"treatment": 25
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "25-40k"
+					},
+					"delta": 0.5,
+					"interval": [0.18347757955343819, 0.7320079756226374],
+					"n": {
+						"baseline": 14,
+						"treatment": 14
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "40-60k"
+					},
+					"delta": 0.1428571428571428,
+					"interval": [-0.2796481751042585, 0.5170296842679074],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "60-100k"
+					},
+					"delta": 0.25,
+					"interval": [-0.31955725180216266, 0.6552866604998951],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "under-15k"
+					},
+					"delta": 0.30434782608695654,
+					"interval": [0.15541054278746547, 0.44968894385887537],
+					"n": {
+						"baseline": 46,
+						"treatment": 46
+					}
+				}
+			],
+			"cost": {
+				"tokensPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"approvalsPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.125
+				},
+				"escalationRate": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"touchesPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.125
+				},
+				"breachRate": {
+					"baseline": 0,
+					"treatment": 0
+				}
+			},
+			"runIds": [],
+			"reportIds": ["f10dcdb3-86f9-4b8c-8b90-682c6a3d2e73", "f480d054-78c3-4f29-aefd-ae53ec2211fb"]
+		},
+		{
+			"experimentId": "servicing-spark-v3",
+			"metricId": "touches",
+			"controlIds": [],
+			"factor": {
+				"axis": "executors",
+				"baseline": "regex",
+				"treatment": "spark-q2"
+			},
+			"baseline": {
+				"value": 0.19791666666666666,
+				"n": 96,
+				"interval": [0.11779735328638653, 0.2780359800469468]
+			},
+			"treatment": {
+				"value": 0.125,
+				"n": 96,
+				"interval": [0.058496374519809824, 0.19150362548019018]
+			},
+			"delta": -0.07291666666666666,
+			"interval": [-0.17773106519004234, 0.03189773185670902],
+			"p": 0.143463134765625,
+			"method": "difference of means, Welch interval at 95%; sign test over 17 non-tied of 96 pairs",
+			"underpowered": false,
+			"slices": [
+				{
+					"where": {
+						"ageBand": "18-24"
+					},
+					"delta": -0.14285714285714285,
+					"interval": [-0.739419474169259, 0.4537051884549734],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"ageBand": "25-34"
+					},
+					"delta": 0,
+					"interval": [-0.22452256439842097, 0.22452256439842097],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "35-44"
+					},
+					"delta": -0.19047619047619047,
+					"interval": [-0.473097864933739, 0.09214548398135808],
+					"n": {
+						"baseline": 21,
+						"treatment": 21
+					}
+				},
+				{
+					"where": {
+						"ageBand": "45-54"
+					},
+					"delta": 0.07692307692307693,
+					"interval": [-0.2539796245649995, 0.40782577841115336],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "55-64"
+					},
+					"delta": 0.05555555555555555,
+					"interval": [-0.061656420990263736, 0.17276753210137485],
+					"n": {
+						"baseline": 18,
+						"treatment": 18
+					}
+				},
+				{
+					"where": {
+						"ageBand": "65-74"
+					},
+					"delta": -0.09090909090909091,
+					"interval": [-0.29346716836014575, 0.11164898654196392],
+					"n": {
+						"baseline": 11,
+						"treatment": 11
+					}
+				},
+				{
+					"where": {
+						"ageBand": "75+"
+					},
+					"delta": -0.23076923076923078,
+					"interval": [-0.5525460598385228, 0.09100759830006117],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "15-25k"
+					},
+					"delta": -0.08000000000000002,
+					"interval": [-0.2917446817171686, 0.13174468171716858],
+					"n": {
+						"baseline": 25,
+						"treatment": 25
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "25-40k"
+					},
+					"delta": 0.07142857142857142,
+					"interval": [-0.2363856407971067, 0.37924278365424957],
+					"n": {
+						"baseline": 14,
+						"treatment": 14
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "40-60k"
+					},
+					"delta": -0.42857142857142855,
+					"interval": [-0.9744070099609725, 0.11726415281811547],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "60-100k"
+					},
+					"delta": 0,
+					"interval": [-0.8651139814525824, 0.8651139814525824],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "under-15k"
+					},
+					"delta": -0.06521739130434784,
+					"interval": [-0.20052352109456956, 0.07008873848587388],
+					"n": {
+						"baseline": 46,
+						"treatment": 46
+					}
+				}
+			],
+			"cost": {
+				"tokensPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"approvalsPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.125
+				},
+				"escalationRate": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"touchesPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.125
+				},
+				"breachRate": {
+					"baseline": 0,
+					"treatment": 0
+				}
+			},
+			"runIds": [],
+			"reportIds": ["f10dcdb3-86f9-4b8c-8b90-682c6a3d2e73", "f480d054-78c3-4f29-aefd-ae53ec2211fb"]
+		},
+		{
+			"experimentId": "servicing-spark-v3",
+			"metricId": "request-read-right",
+			"controlIds": [],
+			"factor": {
+				"axis": "executors",
+				"baseline": "regex",
+				"treatment": "spark-q2-gate-0.80"
+			},
+			"baseline": {
+				"value": 0.6354166666666666,
+				"n": 96,
+				"interval": [0.5356522623920257, 0.7247605992136981]
+			},
+			"treatment": {
+				"value": 0.9895833333333334,
+				"n": 96,
+				"interval": [0.9433338237123536, 0.9981588297852635]
+			},
+			"delta": 0.35416666666666674,
+			"interval": [0.25356171935715516, 0.454298956661808],
+			"p": 1.1641532182693481e-10,
+			"method": "difference of rates, Newcombe interval at 95%; sign test over 34 discordant of 96 pairs",
+			"underpowered": true,
+			"slices": [
+				{
+					"where": {
+						"ageBand": "18-24"
+					},
+					"delta": 0.1428571428571429,
+					"interval": [-0.23034605692490878, 0.5131278295671373],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"ageBand": "25-34"
+					},
+					"delta": 0.15384615384615385,
+					"interval": [-0.09964388412445785, 0.42234631043152093],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "35-44"
+					},
+					"delta": 0.47619047619047616,
+					"interval": [0.2290752220293669, 0.6763046543104974],
+					"n": {
+						"baseline": 21,
+						"treatment": 21
+					}
+				},
+				{
+					"where": {
+						"ageBand": "45-54"
+					},
+					"delta": 0.46153846153846156,
+					"interval": [0.13798390327048077, 0.7085620430143273],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "55-64"
+					},
+					"delta": 0.2222222222222222,
+					"interval": [0.0021909444147064916, 0.45214584335610897],
+					"n": {
+						"baseline": 18,
+						"treatment": 18
+					}
+				},
+				{
+					"where": {
+						"ageBand": "65-74"
+					},
+					"delta": 0.36363636363636365,
+					"interval": [0.029082202794411538, 0.646198825685093],
+					"n": {
+						"baseline": 11,
+						"treatment": 11
+					}
+				},
+				{
+					"where": {
+						"ageBand": "75+"
+					},
+					"delta": 0.5384615384615385,
+					"interval": [0.1733206769082853, 0.7553939875730566],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "15-25k"
+					},
+					"delta": 0.31999999999999995,
+					"interval": [0.09869767773517757, 0.5175741655879382],
+					"n": {
+						"baseline": 25,
+						"treatment": 25
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "25-40k"
+					},
+					"delta": 0.5,
+					"interval": [0.18347757955343819, 0.7320079756226374],
+					"n": {
+						"baseline": 14,
+						"treatment": 14
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "40-60k"
+					},
+					"delta": 0.2857142857142857,
+					"interval": [-0.12289361893874429, 0.6410655484026206],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "60-100k"
+					},
+					"delta": 0.5,
+					"interval": [-0.10205127792519664, 0.8499610109917736],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "under-15k"
+					},
+					"delta": 0.32608695652173914,
+					"interval": [0.18562501355669161, 0.4703226759250929],
+					"n": {
+						"baseline": 46,
+						"treatment": 46
+					}
+				}
+			],
+			"cost": {
+				"tokensPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"approvalsPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.3958333333333333
+				},
+				"escalationRate": {
+					"baseline": 0,
+					"treatment": 0.01951081326081326
+				},
+				"touchesPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.59375
+				},
+				"breachRate": {
+					"baseline": 0,
+					"treatment": 0
+				}
+			},
+			"runIds": [],
+			"reportIds": ["f10dcdb3-86f9-4b8c-8b90-682c6a3d2e73", "ad5b5ad6-43b0-4d6c-83a6-2e1cf956e5ea"]
+		},
+		{
+			"experimentId": "servicing-spark-v3",
+			"metricId": "need-read-right",
+			"controlIds": [],
+			"factor": {
+				"axis": "executors",
+				"baseline": "regex",
+				"treatment": "spark-q2-gate-0.80"
+			},
+			"baseline": {
+				"value": 0.6041666666666666,
+				"n": 96,
+				"interval": [0.5041511204027269, 0.6961664654478299]
+			},
+			"treatment": {
+				"value": 0.9479166666666666,
+				"n": 96,
+				"interval": [0.8838152196171108, 0.9775503995402833]
+			},
+			"delta": 0.34375,
+			"interval": [0.23162079555431808, 0.448063314675065],
+			"p": 2.0954757928848267e-9,
+			"method": "difference of rates, Newcombe interval at 95%; sign test over 35 discordant of 96 pairs",
+			"underpowered": false,
+			"slices": [
+				{
+					"where": {
+						"ageBand": "18-24"
+					},
+					"delta": 0.2857142857142857,
+					"interval": [-0.12289361893874429, 0.6410655484026206],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"ageBand": "25-34"
+					},
+					"delta": 0.46153846153846156,
+					"interval": [0.10563466820297612, 0.6995634455154169],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "35-44"
+					},
+					"delta": 0.38095238095238093,
+					"interval": [0.12428817968773537, 0.5906056998134152],
+					"n": {
+						"baseline": 21,
+						"treatment": 21
+					}
+				},
+				{
+					"where": {
+						"ageBand": "45-54"
+					},
+					"delta": 0.3076923076923077,
+					"interval": [0.016578961441500895, 0.5763065683942981],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "55-64"
+					},
+					"delta": 0.33333333333333337,
+					"interval": [0.08834496979307446, 0.5625053272151467],
+					"n": {
+						"baseline": 18,
+						"treatment": 18
+					}
+				},
+				{
+					"where": {
+						"ageBand": "65-74"
+					},
+					"delta": 0.36363636363636365,
+					"interval": [-0.011245352519153873, 0.6393067614215961],
+					"n": {
+						"baseline": 11,
+						"treatment": 11
+					}
+				},
+				{
+					"where": {
+						"ageBand": "75+"
+					},
+					"delta": 0.23076923076923073,
+					"interval": [-0.10857746764366921, 0.5134540177703342],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "15-25k"
+					},
+					"delta": 0.48000000000000004,
+					"interval": [0.22577671692618273, 0.6627197023048067],
+					"n": {
+						"baseline": 25,
+						"treatment": 25
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "25-40k"
+					},
+					"delta": 0.2142857142857143,
+					"interval": [-0.0417629114373278, 0.47589230608238386],
+					"n": {
+						"baseline": 14,
+						"treatment": 14
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "40-60k"
+					},
+					"delta": 0.5714285714285714,
+					"interval": [0.09333660191808313, 0.8417801448772135],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "60-100k"
+					},
+					"delta": 0.75,
+					"interval": [0.0852325324573816, 0.9544127392428685],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "under-15k"
+					},
+					"delta": 0.23913043478260876,
+					"interval": [0.08116932953773212, 0.38907414639715826],
+					"n": {
+						"baseline": 46,
+						"treatment": 46
+					}
+				}
+			],
+			"cost": {
+				"tokensPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"approvalsPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.3958333333333333
+				},
+				"escalationRate": {
+					"baseline": 0,
+					"treatment": 0.01951081326081326
+				},
+				"touchesPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.59375
+				},
+				"breachRate": {
+					"baseline": 0,
+					"treatment": 0
+				}
+			},
+			"runIds": [],
+			"reportIds": ["f10dcdb3-86f9-4b8c-8b90-682c6a3d2e73", "ad5b5ad6-43b0-4d6c-83a6-2e1cf956e5ea"]
+		},
+		{
+			"experimentId": "servicing-spark-v3",
+			"metricId": "need-detected",
+			"controlIds": [],
+			"factor": {
+				"axis": "executors",
+				"baseline": "regex",
+				"treatment": "spark-q2-gate-0.80"
+			},
+			"baseline": {
+				"value": 0.6041666666666666,
+				"n": 96,
+				"interval": [0.5041511204027269, 0.6961664654478299]
+			},
+			"treatment": {
+				"value": 0.9479166666666666,
+				"n": 96,
+				"interval": [0.8838152196171108, 0.9775503995402833]
+			},
+			"delta": 0.34375,
+			"interval": [0.23162079555431808, 0.448063314675065],
+			"p": 2.0954757928848267e-9,
+			"method": "difference of rates, Newcombe interval at 95%; sign test over 35 discordant of 96 pairs",
+			"underpowered": false,
+			"slices": [
+				{
+					"where": {
+						"ageBand": "18-24"
+					},
+					"delta": 0.2857142857142857,
+					"interval": [-0.12289361893874429, 0.6410655484026206],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"ageBand": "25-34"
+					},
+					"delta": 0.46153846153846156,
+					"interval": [0.10563466820297612, 0.6995634455154169],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "35-44"
+					},
+					"delta": 0.38095238095238093,
+					"interval": [0.12428817968773537, 0.5906056998134152],
+					"n": {
+						"baseline": 21,
+						"treatment": 21
+					}
+				},
+				{
+					"where": {
+						"ageBand": "45-54"
+					},
+					"delta": 0.3076923076923077,
+					"interval": [0.016578961441500895, 0.5763065683942981],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "55-64"
+					},
+					"delta": 0.33333333333333337,
+					"interval": [0.08834496979307446, 0.5625053272151467],
+					"n": {
+						"baseline": 18,
+						"treatment": 18
+					}
+				},
+				{
+					"where": {
+						"ageBand": "65-74"
+					},
+					"delta": 0.36363636363636365,
+					"interval": [-0.011245352519153873, 0.6393067614215961],
+					"n": {
+						"baseline": 11,
+						"treatment": 11
+					}
+				},
+				{
+					"where": {
+						"ageBand": "75+"
+					},
+					"delta": 0.23076923076923073,
+					"interval": [-0.10857746764366921, 0.5134540177703342],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "15-25k"
+					},
+					"delta": 0.48000000000000004,
+					"interval": [0.22577671692618273, 0.6627197023048067],
+					"n": {
+						"baseline": 25,
+						"treatment": 25
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "25-40k"
+					},
+					"delta": 0.2142857142857143,
+					"interval": [-0.0417629114373278, 0.47589230608238386],
+					"n": {
+						"baseline": 14,
+						"treatment": 14
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "40-60k"
+					},
+					"delta": 0.5714285714285714,
+					"interval": [0.09333660191808313, 0.8417801448772135],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "60-100k"
+					},
+					"delta": 0.75,
+					"interval": [0.0852325324573816, 0.9544127392428685],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "under-15k"
+					},
+					"delta": 0.23913043478260876,
+					"interval": [0.08116932953773212, 0.38907414639715826],
+					"n": {
+						"baseline": 46,
+						"treatment": 46
+					}
+				}
+			],
+			"cost": {
+				"tokensPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"approvalsPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.3958333333333333
+				},
+				"escalationRate": {
+					"baseline": 0,
+					"treatment": 0.01951081326081326
+				},
+				"touchesPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.59375
+				},
+				"breachRate": {
+					"baseline": 0,
+					"treatment": 0
+				}
+			},
+			"runIds": [],
+			"reportIds": ["f10dcdb3-86f9-4b8c-8b90-682c6a3d2e73", "ad5b5ad6-43b0-4d6c-83a6-2e1cf956e5ea"]
+		},
+		{
+			"experimentId": "servicing-spark-v3",
+			"metricId": "disclosure-recorded",
+			"controlIds": [],
+			"factor": {
+				"axis": "executors",
+				"baseline": "regex",
+				"treatment": "spark-q2-gate-0.80"
+			},
+			"baseline": {
+				"value": 0.7291666666666666,
+				"n": 96,
+				"interval": [0.63273652684571, 0.807962162025515]
+			},
+			"treatment": {
+				"value": 0.8645833333333334,
+				"n": 96,
+				"interval": [0.7819886149014309, 0.919122935575518]
+			},
+			"delta": 0.13541666666666674,
+			"interval": [0.021264936054767827, 0.2462017743239009],
+			"p": 0.004425048828125,
+			"method": "difference of rates, Newcombe interval at 95%; sign test over 19 discordant of 96 pairs",
+			"underpowered": false,
+			"slices": [
+				{
+					"where": {
+						"ageBand": "18-24"
+					},
+					"delta": 0,
+					"interval": [-0.3543304354355772, 0.3543304354355772],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"ageBand": "25-34"
+					},
+					"delta": 0.23076923076923073,
+					"interval": [-0.10857746764366921, 0.5134540177703342],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "35-44"
+					},
+					"delta": 0.09523809523809523,
+					"interval": [-0.12959306582921198, 0.3157487280981264],
+					"n": {
+						"baseline": 21,
+						"treatment": 21
+					}
+				},
+				{
+					"where": {
+						"ageBand": "45-54"
+					},
+					"delta": 0.15384615384615385,
+					"interval": [-0.16990037576118888, 0.4443342282724687],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "55-64"
+					},
+					"delta": 0.2222222222222222,
+					"interval": [-0.031061914832060056, 0.4576453272739043],
+					"n": {
+						"baseline": 18,
+						"treatment": 18
+					}
+				},
+				{
+					"where": {
+						"ageBand": "65-74"
+					},
+					"delta": 0.09090909090909094,
+					"interval": [-0.27066103106689965, 0.4234146608535862],
+					"n": {
+						"baseline": 11,
+						"treatment": 11
+					}
+				},
+				{
+					"where": {
+						"ageBand": "75+"
+					},
+					"delta": 0.07692307692307698,
+					"interval": [-0.24956083890648623, 0.3840824116975198],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "15-25k"
+					},
+					"delta": 0.16000000000000003,
+					"interval": [-0.09553140086008183, 0.38963246173156707],
+					"n": {
+						"baseline": 25,
+						"treatment": 25
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "25-40k"
+					},
+					"delta": 0.2142857142857143,
+					"interval": [-0.0417629114373278, 0.47589230608238386],
+					"n": {
+						"baseline": 14,
+						"treatment": 14
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "40-60k"
+					},
+					"delta": 0,
+					"interval": [-0.40949344581222297, 0.40949344581222297],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "60-100k"
+					},
+					"delta": 0.5,
+					"interval": [-0.13548840094221692, 0.7890832681590998],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "under-15k"
+					},
+					"delta": 0.08695652173913038,
+					"interval": [-0.05594745246625221, 0.23028581840498066],
+					"n": {
+						"baseline": 46,
+						"treatment": 46
+					}
+				}
+			],
+			"cost": {
+				"tokensPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"approvalsPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.3958333333333333
+				},
+				"escalationRate": {
+					"baseline": 0,
+					"treatment": 0.01951081326081326
+				},
+				"touchesPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.59375
+				},
+				"breachRate": {
+					"baseline": 0,
+					"treatment": 0
+				}
+			},
+			"runIds": [],
+			"reportIds": ["f10dcdb3-86f9-4b8c-8b90-682c6a3d2e73", "ad5b5ad6-43b0-4d6c-83a6-2e1cf956e5ea"]
+		},
+		{
+			"experimentId": "servicing-spark-v3",
+			"metricId": "needs-met",
+			"controlIds": [],
+			"factor": {
+				"axis": "executors",
+				"baseline": "regex",
+				"treatment": "spark-q2-gate-0.80"
+			},
+			"baseline": {
+				"value": 0.6354166666666666,
+				"n": 96,
+				"interval": [0.5356522623920257, 0.7247605992136981]
+			},
+			"treatment": {
+				"value": 0.9895833333333334,
+				"n": 96,
+				"interval": [0.9433338237123536, 0.9981588297852635]
+			},
+			"delta": 0.35416666666666674,
+			"interval": [0.25356171935715516, 0.454298956661808],
+			"p": 1.1641532182693481e-10,
+			"method": "difference of rates, Newcombe interval at 95%; sign test over 34 discordant of 96 pairs",
+			"underpowered": true,
+			"slices": [
+				{
+					"where": {
+						"ageBand": "18-24"
+					},
+					"delta": 0.1428571428571429,
+					"interval": [-0.23034605692490878, 0.5131278295671373],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"ageBand": "25-34"
+					},
+					"delta": 0.15384615384615385,
+					"interval": [-0.09964388412445785, 0.42234631043152093],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "35-44"
+					},
+					"delta": 0.47619047619047616,
+					"interval": [0.2290752220293669, 0.6763046543104974],
+					"n": {
+						"baseline": 21,
+						"treatment": 21
+					}
+				},
+				{
+					"where": {
+						"ageBand": "45-54"
+					},
+					"delta": 0.46153846153846156,
+					"interval": [0.13798390327048077, 0.7085620430143273],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "55-64"
+					},
+					"delta": 0.2222222222222222,
+					"interval": [0.0021909444147064916, 0.45214584335610897],
+					"n": {
+						"baseline": 18,
+						"treatment": 18
+					}
+				},
+				{
+					"where": {
+						"ageBand": "65-74"
+					},
+					"delta": 0.36363636363636365,
+					"interval": [0.029082202794411538, 0.646198825685093],
+					"n": {
+						"baseline": 11,
+						"treatment": 11
+					}
+				},
+				{
+					"where": {
+						"ageBand": "75+"
+					},
+					"delta": 0.5384615384615385,
+					"interval": [0.1733206769082853, 0.7553939875730566],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "15-25k"
+					},
+					"delta": 0.31999999999999995,
+					"interval": [0.09869767773517757, 0.5175741655879382],
+					"n": {
+						"baseline": 25,
+						"treatment": 25
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "25-40k"
+					},
+					"delta": 0.5,
+					"interval": [0.18347757955343819, 0.7320079756226374],
+					"n": {
+						"baseline": 14,
+						"treatment": 14
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "40-60k"
+					},
+					"delta": 0.2857142857142857,
+					"interval": [-0.12289361893874429, 0.6410655484026206],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "60-100k"
+					},
+					"delta": 0.5,
+					"interval": [-0.10205127792519664, 0.8499610109917736],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "under-15k"
+					},
+					"delta": 0.32608695652173914,
+					"interval": [0.18562501355669161, 0.4703226759250929],
+					"n": {
+						"baseline": 46,
+						"treatment": 46
+					}
+				}
+			],
+			"cost": {
+				"tokensPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"approvalsPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.3958333333333333
+				},
+				"escalationRate": {
+					"baseline": 0,
+					"treatment": 0.01951081326081326
+				},
+				"touchesPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.59375
+				},
+				"breachRate": {
+					"baseline": 0,
+					"treatment": 0
+				}
+			},
+			"runIds": [],
+			"reportIds": ["f10dcdb3-86f9-4b8c-8b90-682c6a3d2e73", "ad5b5ad6-43b0-4d6c-83a6-2e1cf956e5ea"]
+		},
+		{
+			"experimentId": "servicing-spark-v3",
+			"metricId": "touches",
+			"controlIds": [],
+			"factor": {
+				"axis": "executors",
+				"baseline": "regex",
+				"treatment": "spark-q2-gate-0.80"
+			},
+			"baseline": {
+				"value": 0.19791666666666666,
+				"n": 96,
+				"interval": [0.11779735328638653, 0.2780359800469468]
+			},
+			"treatment": {
+				"value": 0.59375,
+				"n": 96,
+				"interval": [0.3956626823863399, 0.7918373176136602]
+			},
+			"delta": 0.39583333333333337,
+			"interval": [0.1800724658948027, 0.611594200771864],
+			"p": 0.00393317302223295,
+			"method": "difference of means, Welch interval at 95%; sign test over 36 non-tied of 96 pairs",
+			"underpowered": false,
+			"slices": [
+				{
+					"where": {
+						"ageBand": "18-24"
+					},
+					"delta": 0.14285714285714285,
+					"interval": [-0.6524170917781758, 0.9381313774924613],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"ageBand": "25-34"
+					},
+					"delta": 0.6153846153846154,
+					"interval": [-0.02122670079939104, 1.2519959315686218],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "35-44"
+					},
+					"delta": 0.047619047619047616,
+					"interval": [-0.3745825286901797, 0.46982062392827495],
+					"n": {
+						"baseline": 21,
+						"treatment": 21
+					}
+				},
+				{
+					"where": {
+						"ageBand": "45-54"
+					},
+					"delta": 0.8461538461538461,
+					"interval": [0.1695812432266003, 1.522726449081092],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"ageBand": "55-64"
+					},
+					"delta": 0.3888888888888889,
+					"interval": [-0.06684790263761758, 0.8446256804153953],
+					"n": {
+						"baseline": 18,
+						"treatment": 18
+					}
+				},
+				{
+					"where": {
+						"ageBand": "65-74"
+					},
+					"delta": 0.2727272727272727,
+					"interval": [-0.20537406213247988, 0.7508286075870253],
+					"n": {
+						"baseline": 11,
+						"treatment": 11
+					}
+				},
+				{
+					"where": {
+						"ageBand": "75+"
+					},
+					"delta": 0.5384615384615384,
+					"interval": [-0.3743771725605477, 1.4513002494836247],
+					"n": {
+						"baseline": 13,
+						"treatment": 13
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "15-25k"
+					},
+					"delta": 0.44,
+					"interval": [-0.07261927294567755, 0.9526192729456775],
+					"n": {
+						"baseline": 25,
+						"treatment": 25
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "25-40k"
+					},
+					"delta": 0.5,
+					"interval": [-0.10618380331956434, 1.1061838033195643],
+					"n": {
+						"baseline": 14,
+						"treatment": 14
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "40-60k"
+					},
+					"delta": 0.2857142857142857,
+					"interval": [-0.8653939189905778, 1.4368224904191491],
+					"n": {
+						"baseline": 7,
+						"treatment": 7
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "60-100k"
+					},
+					"delta": 0.75,
+					"interval": [-1.391063863227544, 2.891063863227544],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "under-15k"
+					},
+					"delta": 0.32608695652173914,
+					"interval": [0.06466274415771317, 0.587511168885765],
+					"n": {
+						"baseline": 46,
+						"treatment": 46
+					}
+				}
+			],
+			"cost": {
+				"tokensPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"approvalsPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.3958333333333333
+				},
+				"escalationRate": {
+					"baseline": 0,
+					"treatment": 0.01951081326081326
+				},
+				"touchesPerCase": {
+					"baseline": 0.19791666666666666,
+					"treatment": 0.59375
+				},
+				"breachRate": {
+					"baseline": 0,
+					"treatment": 0
+				}
+			},
+			"runIds": [],
+			"reportIds": ["f10dcdb3-86f9-4b8c-8b90-682c6a3d2e73", "ad5b5ad6-43b0-4d6c-83a6-2e1cf956e5ea"]
+		}
+	],
+	"verdict": "not-supported",
+	"note": "minimum detectable difference of rates at the achieved n (96 on the smaller side, 80% power): 16.1 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)",
+	"digest": "b84196b4e7359691a8668fe8a949b4cbe8bb2fca796511cd1a6b5c76a214d74b"
+}

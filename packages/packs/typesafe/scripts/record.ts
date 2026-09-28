@@ -5,25 +5,40 @@
  * cassette. Entries already on file are kept byte for byte, so recording v2
  * never re-asks, or overwrites, what v1 was answered.
  *
- *     npm run record -w @craftabot/pack-typesafe -- v3 q2
+ *     npm run record -w @craftabot/pack-typesafe -- v3 q2 [jev|spark|spark35]
  *
  * It needs `CRAFTABOT_CREDENTIAL_TYPESAFE` (in `.env`). Never run in CI.
  */
 import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
-import { corpusVersion, questionsVersion, writeCalls } from './calls.ts';
+import { corpusVersion, questionsVersion, servicingReader, writeCalls } from './calls.ts';
 
-const CASSETTE = 'src/cassettes/typesafe-jev.craftabot-cassette.json';
+/** Each reader's line, and the cassette its pack ships: Jev's here, the Spark's in `@craftabot/pack-dgx-spark`. */
+const READERS = {
+	jev: { line: 'typesafe/jev', cassette: 'src/cassettes/typesafe-jev.craftabot-cassette.json' },
+	spark: {
+		line: 'dgx-spark/classifier',
+		cassette: '../dgx-spark/src/cassettes/dgx-spark-classifier.craftabot-cassette.json'
+	},
+	spark35: {
+		line: 'dgx-spark/classifier',
+		cassette: '../dgx-spark/src/cassettes/dgx-spark-classifier.craftabot-cassette.json'
+	}
+} as const;
 
 interface Cassette {
 	recordedAt: string;
+	recordedBy: string;
+	egress: unknown[];
 	entries: { argsDigest: string }[];
 }
 
 const version = corpusVersion(process.argv[2]);
 const questions = questionsVersion(process.argv[3]);
-const calls = writeCalls(version, questions);
-const out = `experiment/recording-${version}-q${questions}`;
+const reader = servicingReader(process.argv[4]);
+const { line, cassette: CASSETTE } = READERS[reader];
+const calls = writeCalls(version, questions, reader);
+const out = `experiment/recording-${version}-q${questions}-${reader}`;
 execFileSync(
 	process.execPath,
 	[
@@ -32,7 +47,7 @@ execFileSync(
 		'--config',
 		'craftabot.config.mjs',
 		'--line',
-		'typesafe/jev',
+		line,
 		'--script',
 		calls,
 		'--out',
@@ -43,16 +58,29 @@ execFileSync(
 
 const shipped = JSON.parse(readFileSync(CASSETTE, 'utf8')) as Cassette;
 const fresh = JSON.parse(
-	readFileSync(`${out}/typesafe-jev.craftabot-cassette.json`, 'utf8')
+	readFileSync(`${out}/${line.replaceAll('/', '-')}.craftabot-cassette.json`, 'utf8')
 ) as Cassette;
 const known = new Set(shipped.entries.map((entry) => entry.argsDigest));
 const added = fresh.entries.filter((entry) => !known.has(entry.argsDigest));
 const merged = {
 	...shipped,
 	recordedAt: fresh.recordedAt,
+	recordedBy: fresh.recordedBy,
+	egress: fresh.egress,
 	entries: [...shipped.entries, ...added]
 };
 writeFileSync(CASSETTE, `${JSON.stringify(merged, null, '\t')}\n`);
+// A session replays the cassette from the pack's build, not its source: rebuild the pack now,
+// so no experiment runs against a stale copy that misses every new entry.
+execFileSync(
+	process.execPath,
+	[
+		'../../../node_modules/typescript/bin/tsc',
+		'-p',
+		reader === 'jev' ? 'tsconfig.build.json' : '../dgx-spark/tsconfig.build.json'
+	],
+	{ stdio: 'inherit' }
+);
 console.log(
 	`merged ${added.length} new entries into ${CASSETTE} (${fresh.entries.length - added.length} already on file; ${merged.entries.length} in all)`
 );

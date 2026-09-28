@@ -28,6 +28,7 @@
 	},
 	"devDependencies": {
 		"@craftabot/harness": "*",
+		"@craftabot/pack-dgx-spark": "*",
 		"@craftabot/pack-starter": "*",
 		"@craftabot/pack-testkit": "*",
 		"@craftabot/workflow": "*"

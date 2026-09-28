@@ -1,0 +1,128 @@
+{
+	"schemaVersion": 1,
+	"id": "servicing-spark",
+	"title": "v1: the DGX Spark’s local LLM against Jev and the regex, same questions",
+	"hypothesis": "A local 122B LLM on the DGX Sparks, asked the same questions through the same contract, reads the caller’s request and need about as well as Jev, and its log-probability confidence routes its errors to a person as well as Jev’s calibrated confidence does.",
+	"controls": [],
+	"obligations": ["fca:fg21-1:vulnerability", "fca:cd:support"],
+	"design": {
+		"template": {
+			"scenarios": [],
+			"source": {
+				"kind": "book",
+				"workflowId": "typesafe/servicing-jev",
+				"population": {
+					"seed": 1,
+					"size": 120
+				}
+			},
+			"builds": [
+				{
+					"id": "desk",
+					"base": {
+						"kind": "starter-default"
+					},
+					"overrides": {
+						"senses": [
+							"fs-servicing/the-servicing-desk/request",
+							"fs-servicing/the-servicing-desk/classification",
+							"fs-servicing/the-servicing-desk/file",
+							"fs-servicing/the-servicing-desk/conversation"
+						],
+						"actions": [
+							"fs-servicing/the-servicing-desk/say",
+							"fs-servicing/the-servicing-desk/identify-caller",
+							"fs-servicing/the-servicing-desk/classify",
+							"fs-servicing/the-servicing-desk/update-address",
+							"fs-servicing/the-servicing-desk/reissue-card",
+							"fs-servicing/the-servicing-desk/grant-third-party-access",
+							"fs-servicing/the-servicing-desk/record-support-need",
+							"fs-servicing/the-servicing-desk/close-account"
+						]
+					}
+				}
+			],
+			"guards": [
+				{
+					"id": "none",
+					"fit": []
+				}
+			],
+			"brains": [
+				{
+					"id": "scripted-optimal",
+					"tier": "scripted-optimal"
+				}
+			],
+			"evaluators": [
+				{
+					"id": "fs-servicing/classified-correctly"
+				},
+				{
+					"id": "typesafe/need-matches-label"
+				},
+				{
+					"id": "typesafe/need-detected"
+				},
+				{
+					"id": "fs-servicing/disclosure-recorded"
+				},
+				{
+					"id": "fs-servicing/needs-met"
+				}
+			]
+		},
+		"factors": [
+			{
+				"axis": "executors",
+				"levels": ["regex", "jev", "spark", "spark-gate-0.80"]
+			}
+		],
+		"baseline": {
+			"executors": "regex"
+		},
+		"metrics": [
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "request-read-right",
+				"evaluatorId": "fs-servicing/classified-correctly",
+				"direction": "higher-is-better"
+			},
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "need-read-right",
+				"evaluatorId": "typesafe/need-matches-label",
+				"direction": "higher-is-better"
+			},
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "need-detected",
+				"evaluatorId": "typesafe/need-detected",
+				"direction": "higher-is-better"
+			},
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "disclosure-recorded",
+				"evaluatorId": "fs-servicing/disclosure-recorded",
+				"direction": "higher-is-better"
+			},
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "needs-met",
+				"evaluatorId": "fs-servicing/needs-met",
+				"direction": "higher-is-better"
+			},
+			{
+				"kind": "cost",
+				"id": "touches",
+				"of": "touches",
+				"direction": "lower-is-better"
+			}
+		],
+		"seeds": [1],
+		"replicates": 1,
+		"confidence": 0.95,
+		"minimumDetectableEffect": 0.05
+	},
+	"campaigns": []
+}

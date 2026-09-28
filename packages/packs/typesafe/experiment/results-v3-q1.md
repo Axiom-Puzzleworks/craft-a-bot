@@ -57,7 +57,7 @@ _regex_
 | disclosure   | 0       | 2    | 3           | 15         | 0           |
 | third-party  | 1       | 0    | 3           | 11         | 3           |
 
-_jev_
+_Jev_
 
 | label \ pick | address | card | bereavement | disclosure | third-party |
 | ------------ | ------- | ---- | ----------- | ---------- | ----------- |
@@ -163,7 +163,7 @@ _regex_
 | bereavement  | 6    | 0      | 13          | 0        |
 | job-loss     | 8    | 0      | 0           | 3        |
 
-_jev_
+_Jev_
 
 | label \ pick | none | health | bereavement | job-loss |
 | ------------ | ---- | ------ | ----------- | -------- |
@@ -223,10 +223,22 @@ _jev_
 |       | recall               | precision          | tp / fn / fp / tn |
 | ----- | -------------------- | ------------------ | ----------------- |
 | regex | 43% (18/42; 29–58)   | 56% (18/32; 39–72) | 18 / 24 / 14 / 40 |
-| jev   | 100% (42/42; 92–100) | 75% (42/56; 62–84) | 42 / 0 / 14 / 40  |
+| Jev   | 100% (42/42; 92–100) | 75% (42/56; 62–84) | 42 / 0 / 14 / 40  |
 
-## Latency and cost
+## Latency
 
-Per call as recorded (one question each): p50 239 ms, p95 290 ms, max 588 ms. Mean 444 input tokens; the whole corpus (192 calls) cost $0.00358 — $0.000037 a case.
+Per call as recorded: p50 239 ms, p95 290 ms, max 588 ms.
+
+## Tokens and cost
+
+Counted by TypeSafe (Jev)'s own tokenizer — not the same unit as another reader's. A case is one corpus row: two calls, the request and the need.
+
+|         | calls | input tokens | output tokens | input per call | output per call | tokens per case |
+| ------- | ----- | ------------ | ------------- | -------------- | --------------- | --------------- |
+| request | 96    | 45041        | 5558          | 469.2          | 57.9            | 527.1           |
+| need    | 96    | 40145        | 4672          | 418.2          | 48.7            | 466.8           |
+| **all** | 192   | 85186        | 10230         | 443.7          | 53.3            | 993.9           |
+
+Cost at list price, docs.typesafe.ai/models (2026-09-28) ($0.042 per million input tokens, $0 per million output): $0.00358 for the corpus, $0.000037 a case, $0.0373 per thousand cases.
 
 ⚑ contested: the label is a judgment call (see the corpus file); 2nd: the blind second labeller’s label where it differs.
