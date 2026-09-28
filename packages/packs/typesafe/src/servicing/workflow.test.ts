@@ -20,9 +20,11 @@ import { jevLine } from '../jev/line.js';
 import { corpusBook } from './book.js';
 import { SERVICING_CORPUS, type CorpusRow } from './corpus.js';
 import { SERVICING_CORPUS_V2 } from './corpus-v2.js';
+import { SERVICING_CORPUS_V3 } from './corpus-v3.js';
 import {
 	SERVICING_JEV_CONFIGURATIONS,
 	SERVICING_JEV_WORKFLOW_ID,
+	STEER_THRESHOLD,
 	servicingJevWorkflow
 } from './workflow.js';
 
@@ -58,7 +60,8 @@ const book = corpusBook({ seed: 1, size: 120 });
 const workflow = servicingJevWorkflow(corpusBook);
 const CORPORA: [string, readonly CorpusRow[]][] = [
 	['v1', SERVICING_CORPUS],
-	['v2', SERVICING_CORPUS_V2]
+	['v2', SERVICING_CORPUS_V2],
+	['v3', SERVICING_CORPUS_V3]
 ];
 
 async function runItem(
@@ -110,12 +113,15 @@ describe('the corpus book', () => {
 	});
 });
 
-describe('the v2 corpus', () => {
-	it('keeps its ids unique and apart from v1, with a reason on every contested row', () => {
-		const ids = [...SERVICING_CORPUS, ...SERVICING_CORPUS_V2].map((row) => row.id);
+describe('the v2 and v3 corpora', () => {
+	it('keep their ids unique and apart, with a reason on every row the labellers split on', () => {
+		const ids = [...SERVICING_CORPUS, ...SERVICING_CORPUS_V2, ...SERVICING_CORPUS_V3].map(
+			(row) => row.id
+		);
 		expect(new Set(ids).size).toBe(ids.length);
-		for (const row of SERVICING_CORPUS_V2) {
-			if (row.secondNeed !== undefined) expect(row.contested, row.id).toBeTruthy();
+		for (const row of [...SERVICING_CORPUS_V2, ...SERVICING_CORPUS_V3]) {
+			if (row.secondNeed !== undefined || row.secondCategory !== undefined)
+				expect(row.contested, row.id).toBeTruthy();
 			expect(row.text, row.id).not.toMatch(/\d/);
 		}
 	});
@@ -144,7 +150,7 @@ const recorded = jevLine.cassette?.entries.length ?? 0;
 describe.skipIf(recorded === 0).each(CORPORA)(
 	'the journey under Jev from the cassette, corpus %s',
 	(_version, corpus) => {
-		it('runs every row with no network, and the gate sends only unsure rows to a person', async () => {
+		it('runs every row with no network under both question sets, and the gate sends only unsure or steered rows to a person', async () => {
 			let ordinal = 0;
 			for (const item of corpusBook({ seed: 1, size: 120 }, corpus).items) {
 				const open = await runItem(item, 'jev', ordinal++);
@@ -154,7 +160,17 @@ describe.skipIf(recorded === 0).each(CORPORA)(
 				const gate = gated.stages.find((stage) => stage.stageId === 'classify-gate')!;
 				const { route, confidence } = gate.output.value as { route: string; confidence: number };
 				expect(route).toBe(confidence >= 0.9 ? 'auto' : 'person');
+
+				// The v2 questions: the steer rides with the request, and a gate sends a steered call to a person.
+				const q2 = await runItem(item, 'jev-q2-gate-0.80', ordinal++);
+				expect(FINISHED, `${item.id} q2`).toContain(q2.outcome);
+				const q2gate = q2.stages.find((stage) => stage.stageId === 'classify-gate')!;
+				const read = q2gate.output.value as { route: string; confidence: number; steer?: number };
+				expect(read.steer, `${item.id} has no steer`).toBeTypeOf('number');
+				expect(read.route).toBe(
+					read.confidence >= 0.8 && read.steer! < STEER_THRESHOLD ? 'auto' : 'person'
+				);
 			}
-		}, 120_000);
+		}, 240_000);
 	}
 );

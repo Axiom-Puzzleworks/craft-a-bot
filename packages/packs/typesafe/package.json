@@ -18,7 +18,8 @@
 		"smoke": "npm run build && node --env-file-if-exists=../../../.env scripts/smoke.ts",
 		"calls": "npm run build && node scripts/calls.ts",
 		"record": "npm run build && node --env-file-if-exists=../../../.env scripts/record.ts",
-		"analyse": "npm run build && node scripts/analyse.ts"
+		"analyse": "npm run build && node scripts/analyse.ts",
+		"summary": "npm run build && node scripts/summary.ts"
 	},
 	"dependencies": {
 		"@craftabot/core": "*",

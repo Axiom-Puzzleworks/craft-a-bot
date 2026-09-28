@@ -36,6 +36,20 @@ describe('synthetic.pan', () => {
 		// A run too long to be a card.
 		expect(sweep('4' + '0'.repeat(25))).toEqual([]);
 	});
+
+	it('ignores a Luhn-valid run inside a digest, and still refuses one beside short hex', () => {
+		const visa = withLuhn('4' + '00000000000000');
+		// A SHA-256-shaped token: 64 hex characters with the run inside it.
+		const digest = `ab${visa}${'c0'.repeat(32).slice(0, 62 - visa.length)}`;
+		expect(digest).toHaveLength(64);
+		expect(sweep(`"argsDigest": "${digest}"`)).toEqual([]);
+		// Hex with no letter is only digits: no exemption.
+		expect(sweep(`"id": "${visa}${'0'.repeat(20)}"`)).toEqual([]);
+		// Too short a token to be a digest: still a card number.
+		expect(sweep(`"ref": "ab${visa}cd"`)).toEqual(['synthetic.pan']);
+		// Separated groups never count as a digest.
+		expect(sweep(`"card": "${visa.replace(/(.{4})(?=.)/g, '$1 ')}"`)).toEqual(['synthetic.pan']);
+	});
 });
 
 describe('synthetic.iban', () => {

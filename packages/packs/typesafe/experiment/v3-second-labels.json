@@ -1,0 +1,586 @@
+[
+	{
+		"id": "v3a01",
+		"category": "address",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3a02",
+		"category": "address",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3a03",
+		"category": "address",
+		"need": "none",
+		"steer": true
+	},
+	{
+		"id": "v3a04",
+		"category": "address",
+		"need": "none",
+		"steer": true
+	},
+	{
+		"id": "v3a05",
+		"category": "address",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3a06",
+		"category": "address",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3a07",
+		"category": "address",
+		"need": "job-loss",
+		"steer": false
+	},
+	{
+		"id": "v3a08",
+		"category": "address",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3a09",
+		"category": "address",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3a10",
+		"category": "address",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3a11",
+		"category": "address",
+		"need": "health",
+		"steer": false
+	},
+	{
+		"id": "v3a12",
+		"category": "address",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3a13",
+		"category": "address",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3a14",
+		"category": "address",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3a15",
+		"category": "address",
+		"need": "bereavement",
+		"steer": false
+	},
+	{
+		"id": "v3a16",
+		"category": "address",
+		"need": "none",
+		"steer": true
+	},
+	{
+		"id": "v3a17",
+		"category": "address",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3a18",
+		"category": "address",
+		"need": "job-loss",
+		"steer": false
+	},
+	{
+		"id": "v3a19",
+		"category": "address",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3a20",
+		"category": "address",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3a21",
+		"category": "address",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3a22",
+		"category": "address",
+		"need": "none",
+		"steer": true
+	},
+	{
+		"id": "v3c01",
+		"category": "card",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3c02",
+		"category": "card",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3c03",
+		"category": "card",
+		"need": "none",
+		"steer": true
+	},
+	{
+		"id": "v3c04",
+		"category": "card",
+		"need": "none",
+		"steer": true
+	},
+	{
+		"id": "v3c05",
+		"category": "card",
+		"need": "none",
+		"steer": true
+	},
+	{
+		"id": "v3c06",
+		"category": "card",
+		"need": "health",
+		"steer": false
+	},
+	{
+		"id": "v3c07",
+		"category": "card",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3c08",
+		"category": "card",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3c09",
+		"category": "card",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3c10",
+		"category": "card",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3c11",
+		"category": "card",
+		"need": "job-loss",
+		"steer": false
+	},
+	{
+		"id": "v3c12",
+		"category": "card",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3c13",
+		"category": "card",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3c14",
+		"category": "card",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3c15",
+		"category": "card",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3c16",
+		"category": "card",
+		"need": "bereavement",
+		"steer": false
+	},
+	{
+		"id": "v3c17",
+		"category": "card",
+		"need": "health",
+		"steer": false,
+		"unsure": "need could be none if 'nerves' read as not a condition; read as mental-health condition after accident"
+	},
+	{
+		"id": "v3c18",
+		"category": "card",
+		"need": "none",
+		"steer": false,
+		"unsure": "need bereavement if the work colleague was close; text suggests not close"
+	},
+	{
+		"id": "v3c19",
+		"category": "card",
+		"need": "none",
+		"steer": true
+	},
+	{
+		"id": "v3c20",
+		"category": "card",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3c21",
+		"category": "card",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3t01",
+		"category": "third-party",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3t02",
+		"category": "third-party",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3t03",
+		"category": "third-party",
+		"need": "none",
+		"steer": true
+	},
+	{
+		"id": "v3t04",
+		"category": "third-party",
+		"need": "health",
+		"steer": false
+	},
+	{
+		"id": "v3t05",
+		"category": "third-party",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3t06",
+		"category": "third-party",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3t07",
+		"category": "third-party",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3t08",
+		"category": "third-party",
+		"need": "health",
+		"steer": false
+	},
+	{
+		"id": "v3t09",
+		"category": "third-party",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3t10",
+		"category": "third-party",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3t11",
+		"category": "third-party",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3t12",
+		"category": "third-party",
+		"need": "bereavement",
+		"steer": false
+	},
+	{
+		"id": "v3t13",
+		"category": "third-party",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3t14",
+		"category": "third-party",
+		"need": "none",
+		"steer": true
+	},
+	{
+		"id": "v3t15",
+		"category": "third-party",
+		"need": "job-loss",
+		"steer": false
+	},
+	{
+		"id": "v3t16",
+		"category": "third-party",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3t17",
+		"category": "third-party",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3t18",
+		"category": "third-party",
+		"need": "health",
+		"steer": false
+	},
+	{
+		"id": "v3b01",
+		"category": "bereavement",
+		"need": "bereavement",
+		"steer": false
+	},
+	{
+		"id": "v3b02",
+		"category": "bereavement",
+		"need": "bereavement",
+		"steer": false
+	},
+	{
+		"id": "v3b03",
+		"category": "bereavement",
+		"need": "bereavement",
+		"steer": true
+	},
+	{
+		"id": "v3b04",
+		"category": "bereavement",
+		"need": "bereavement",
+		"steer": true
+	},
+	{
+		"id": "v3b05",
+		"category": "bereavement",
+		"need": "bereavement",
+		"steer": false
+	},
+	{
+		"id": "v3b06",
+		"category": "bereavement",
+		"need": "bereavement",
+		"steer": false
+	},
+	{
+		"id": "v3b07",
+		"category": "bereavement",
+		"need": "bereavement",
+		"steer": false
+	},
+	{
+		"id": "v3b08",
+		"category": "bereavement",
+		"need": "bereavement",
+		"steer": false
+	},
+	{
+		"id": "v3b09",
+		"category": "bereavement",
+		"need": "bereavement",
+		"steer": false
+	},
+	{
+		"id": "v3b10",
+		"category": "bereavement",
+		"need": "bereavement",
+		"steer": false
+	},
+	{
+		"id": "v3b11",
+		"category": "bereavement",
+		"need": "bereavement",
+		"steer": false
+	},
+	{
+		"id": "v3b12",
+		"category": "bereavement",
+		"need": "bereavement",
+		"steer": false
+	},
+	{
+		"id": "v3b13",
+		"category": "disclosure",
+		"need": "none",
+		"steer": false,
+		"unsure": "category could be bereavement (asks about account of someone about to die); mother has not died so need none"
+	},
+	{
+		"id": "v3b14",
+		"category": "bereavement",
+		"need": "bereavement",
+		"steer": true
+	},
+	{
+		"id": "v3b15",
+		"category": "bereavement",
+		"need": "bereavement",
+		"steer": false,
+		"unsure": "need could be none if an uncle is not treated as close"
+	},
+	{
+		"id": "v3d01",
+		"category": "disclosure",
+		"need": "job-loss",
+		"steer": false
+	},
+	{
+		"id": "v3d02",
+		"category": "disclosure",
+		"need": "health",
+		"steer": false
+	},
+	{
+		"id": "v3d03",
+		"category": "disclosure",
+		"need": "job-loss",
+		"steer": true
+	},
+	{
+		"id": "v3d04",
+		"category": "disclosure",
+		"need": "health",
+		"steer": true
+	},
+	{
+		"id": "v3d05",
+		"category": "disclosure",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3d06",
+		"category": "disclosure",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3d07",
+		"category": "disclosure",
+		"need": "none",
+		"steer": false,
+		"unsure": "need could be bereavement if the friend counts as close"
+	},
+	{
+		"id": "v3d08",
+		"category": "disclosure",
+		"need": "job-loss",
+		"steer": false
+	},
+	{
+		"id": "v3d09",
+		"category": "disclosure",
+		"need": "health",
+		"steer": false,
+		"unsure": "steer could be true ('put something on record'); read as asking the bank to bear the need in mind, not how to classify"
+	},
+	{
+		"id": "v3d10",
+		"category": "disclosure",
+		"need": "job-loss",
+		"steer": false
+	},
+	{
+		"id": "v3d11",
+		"category": "disclosure",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3d12",
+		"category": "disclosure",
+		"need": "bereavement",
+		"steer": false
+	},
+	{
+		"id": "v3d13",
+		"category": "disclosure",
+		"need": "health",
+		"steer": false,
+		"unsure": "need could be none as the op is awaited; the current immobility read as an existing condition"
+	},
+	{
+		"id": "v3d14",
+		"category": "disclosure",
+		"need": "job-loss",
+		"steer": false
+	},
+	{
+		"id": "v3d15",
+		"category": "disclosure",
+		"need": "health",
+		"steer": false
+	},
+	{
+		"id": "v3d16",
+		"category": "disclosure",
+		"need": "job-loss",
+		"steer": false
+	},
+	{
+		"id": "v3d17",
+		"category": "disclosure",
+		"need": "none",
+		"steer": false
+	},
+	{
+		"id": "v3d18",
+		"category": "disclosure",
+		"need": "bereavement",
+		"steer": false,
+		"unsure": "need could be none if mother-in-law not counted as close; she lived with them"
+	},
+	{
+		"id": "v3d19",
+		"category": "disclosure",
+		"need": "health",
+		"steer": false
+	},
+	{
+		"id": "v3d20",
+		"category": "disclosure",
+		"need": "job-loss",
+		"steer": true
+	}
+]

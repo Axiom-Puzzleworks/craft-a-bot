@@ -1,11 +1,15 @@
 /**
- * **The corpus analysis** (`98-JEV.md` §9, §10): Jev's recorded answers
+ * **The corpus analysis** (`98-JEV.md` §9–§11): Jev's recorded answers
  * against the labels, beside the bank's regex. It reads the cassette and the
  * corpus and makes no call.
  *
- *     node scripts/analyse.ts [v1|v2]
+ *     node scripts/analyse.ts [v1|v2|v3] [q1|q2]
  *
- * v1 writes `experiment/results.{json,md}`; v2 writes `experiment/results-v2.{json,md}`.
+ * It writes `experiment/results-<corpus>-<questions>.{json,md,csv}`. The CSV
+ * has one line per row and question, for charts. The two first runs keep
+ * their original names: v1 q1 is `results.*` and v2 q1 is `results-v2.*`.
+ * Under q2 it adds the steer: P(steer) against the `steer` tag, and the gate
+ * sends a steered request to a person as the workflow's gate does.
  *
  * Every figure is a count over the corpus's rows, with a Wilson 95% interval on
  * each rate, because the corpus is small and the intervals are wide. The
@@ -26,6 +30,8 @@ import {
 	GATE_THRESHOLDS,
 	SERVICING_CORPUS,
 	SERVICING_CORPUS_V2,
+	SERVICING_CORPUS_V3,
+	STEER_THRESHOLD,
 	servicingJevRequest,
 	type CorpusRow,
 	type JevChoiceAnswer,
@@ -36,10 +42,18 @@ type Question = 'category' | 'need';
 const QUESTIONS: Question[] = ['category', 'need'];
 const PRICE_PER_MTOK = 0.042;
 const VERSION = process.argv[2] ?? 'v1';
-const CORPUS: readonly CorpusRow[] =
-	VERSION === 'v2' ? SERVICING_CORPUS_V2 : VERSION === 'v1' ? SERVICING_CORPUS : [];
-if (CORPUS.length === 0) throw new Error(`no corpus '${VERSION}' — try v1 or v2`);
-const OUT = VERSION === 'v1' ? 'experiment/results' : `experiment/results-${VERSION}`;
+const QV = process.argv[3] ?? 'q1';
+const CORPORA: Record<string, readonly CorpusRow[]> = {
+	v1: SERVICING_CORPUS,
+	v2: SERVICING_CORPUS_V2,
+	v3: SERVICING_CORPUS_V3
+};
+const CORPUS = CORPORA[VERSION] ?? [];
+if (CORPUS.length === 0) throw new Error(`no corpus '${VERSION}' — try v1, v2 or v3`);
+if (QV !== 'q1' && QV !== 'q2') throw new Error(`no questions '${QV}' — try q1 or q2`);
+const QUESTIONS_VERSION = QV === 'q2' ? 2 : 1;
+const LEGACY: Record<string, string> = { 'v1-q1': 'results', 'v2-q1': 'results-v2' };
+const OUT = `experiment/${LEGACY[`${VERSION}-${QV}`] ?? `results-${VERSION}-${QV}`}`;
 
 interface Entry {
 	argsDigest: string;
@@ -61,12 +75,16 @@ interface Reading {
 	probabilities: Record<string, number>;
 	latencyMs: number;
 	inputTokens: number;
+	/** q2's P(the caller steers the label), on the request's call only. */
+	steer?: number;
 }
 
 const readings: Reading[] = [];
 for (const row of CORPUS) {
 	for (const question of QUESTIONS) {
-		const entry = byDigest.get(await argsDigest(servicingJevRequest(question, row.text)));
+		const entry = byDigest.get(
+			await argsDigest(servicingJevRequest(question, row.text, QUESTIONS_VERSION))
+		);
 		const answer = entry?.result.data?.answers[question] as JevChoiceAnswer | undefined;
 		if (!entry || !answer)
 			throw new Error(`no recorded answer for ${row.id}/${question} — re-record`);
@@ -79,7 +97,10 @@ for (const row of CORPUS) {
 			confidence: answer.confidence,
 			probabilities: answer.probabilities,
 			latencyMs: entry.latencyMs,
-			inputTokens: entry.result.data!.usage.input_tokens
+			inputTokens: entry.result.data!.usage.input_tokens,
+			...(entry.result.data!.answers['steer']?.type === 'noul'
+				? { steer: entry.result.data!.answers['steer'].noul }
+				: {})
 		});
 	}
 }
@@ -130,8 +151,12 @@ const CONTESTED = CORPUS.filter((row) => row.contested).length;
 /** Right by the primary label, or by the blind second labeller's where they differ. */
 const eitherLabeller = (rows: Reading[]) =>
 	rate(
-		rows.filter((r) => r.jev === r.label || (r.question === 'need' && r.jev === r.row.secondNeed))
-			.length,
+		rows.filter(
+			(r) =>
+				r.jev === r.label ||
+				(r.question === 'need' && r.jev === r.row.secondNeed) ||
+				(r.question === 'category' && r.jev === r.row.secondCategory)
+		).length,
 		rows.length
 	);
 
@@ -185,8 +210,10 @@ const byQuestion = Object.fromEntries(
 					),
 				0
 			) / rows.length;
+		// A gate (not the open desk) also sends a steered call to a person, as the workflow's gate does.
+		const steered = (r: Reading) => r.steer !== undefined && r.steer >= STEER_THRESHOLD;
 		const gates = [0, ...GATE_THRESHOLDS, 0.95, 0.99].map((threshold) => {
-			const auto = rows.filter((r) => r.confidence >= threshold);
+			const auto = rows.filter((r) => r.confidence >= threshold && !(threshold > 0 && steered(r)));
 			return {
 				threshold,
 				toPerson: rate(rows.length - auto.length, rows.length),
@@ -205,6 +232,8 @@ const byQuestion = Object.fromEntries(
 				tag: r.row.tag,
 				contested: r.row.contested !== undefined,
 				secondNeed: r.question === 'need' ? r.row.secondNeed : undefined,
+				secondCategory: r.question === 'category' ? r.row.secondCategory : undefined,
+				steer: r.steer,
 				text: r.row.text,
 				label: r.label,
 				regex: r.regex,
@@ -260,15 +289,47 @@ const latency = readings.map((r) => r.latencyMs);
 const tokens = readings.map((r) => r.inputTokens);
 const totalTokens = tokens.reduce((s, t) => s + t, 0);
 
+// The steer (q2): P(steer) at or above the threshold, against the `steer` tag.
+function steerDetection() {
+	const rows = readings.filter((r) => r.question === 'category' && r.steer !== undefined);
+	if (rows.length === 0) return undefined;
+	const flagged = (r: Reading) => r.steer! >= STEER_THRESHOLD;
+	const isSteer = (r: Reading) => r.row.tag === 'steer';
+	const tp = rows.filter((r) => isSteer(r) && flagged(r)).length;
+	const fn = rows.filter((r) => isSteer(r) && !flagged(r)).length;
+	const fp = rows.filter((r) => !isSteer(r) && flagged(r)).length;
+	const tn = rows.filter((r) => !isSteer(r) && !flagged(r)).length;
+	return {
+		threshold: STEER_THRESHOLD,
+		tp,
+		fn,
+		fp,
+		tn,
+		recall: rate(tp, tp + fn),
+		precision: rate(tp, tp + fp),
+		missedOrFalse: rows
+			.filter((r) => isSteer(r) !== flagged(r))
+			.map((r) => ({
+				id: r.row.id,
+				tag: r.row.tag,
+				steer: Number(r.steer!.toFixed(3)),
+				text: r.row.text
+			}))
+	};
+}
+const steer = steerDetection();
+
 const results = {
 	recordedAt: cassette.recordedAt.slice(0, 10),
 	model: 'jev-1.13.0',
 	corpus: VERSION,
+	questions: QV,
 	rows: CORPUS.length,
 	contested: CONTESTED,
 	calls: readings.length,
 	byQuestion,
 	detection: { regex: detection('regex'), jev: detection('jev') },
+	...(steer ? { steer } : {}),
 	latencyMs: {
 		p50: quantile(latency, 0.5),
 		p95: quantile(latency, 0.95),
@@ -282,10 +343,70 @@ const results = {
 };
 writeFileSync(`${OUT}.json`, `${JSON.stringify(results, null, '\t')}\n`);
 
+// ── CSV: one line per row and question, for charts in a report ─────────
+
+const csvCell = (value: unknown) => {
+	const text = value === undefined ? '' : String(value);
+	return /[",\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
+};
+const CSV_HEADER = [
+	'corpus',
+	'questions',
+	'row',
+	'question',
+	'tag',
+	'contested',
+	'label',
+	'second_label',
+	'regex',
+	'regex_right',
+	'jev',
+	'jev_right',
+	'confidence',
+	'top_probability',
+	'steer',
+	'steer_tag',
+	'latency_ms',
+	'input_tokens',
+	'text'
+];
+const csv = [
+	CSV_HEADER.join(','),
+	...readings.map((r) =>
+		[
+			VERSION,
+			QV,
+			r.row.id,
+			r.question,
+			r.row.tag,
+			r.row.contested ? 'yes' : 'no',
+			r.label,
+			r.question === 'need' ? r.row.secondNeed : r.row.secondCategory,
+			r.regex,
+			r.regex === r.label ? 1 : 0,
+			r.jev,
+			r.jev === r.label ? 1 : 0,
+			r.confidence.toFixed(4),
+			(r.probabilities[r.jev] ?? 0).toFixed(4),
+			r.steer?.toFixed(4),
+			r.row.tag === 'steer' ? 1 : 0,
+			r.latencyMs,
+			r.inputTokens,
+			r.row.text
+		]
+			.map(csvCell)
+			.join(',')
+	)
+];
+writeFileSync(`${OUT}.csv`, `${csv.join('\n')}\n`);
+
 // ── Markdown ───────────────────────────────────────────────────────────
 
+/** A transcript's turns on one line, so a table row stays one row. */
+const oneLine = (text: string) => text.replaceAll('\n', ' / ');
+
 const lines: string[] = [];
-lines.push(`# Jev on the servicing corpus ${VERSION} — results`, '');
+lines.push(`# Jev on the servicing corpus ${VERSION}, questions ${QV} — results`, '');
 lines.push(
 	`Recorded ${cassette.recordedAt.slice(0, 10)} against \`jev-1.13.0\`; ${CORPUS.length} rows (${CONTESTED} contested), ${readings.length} calls. Rates are counts with a Wilson 95% interval.`,
 	''
@@ -349,7 +470,7 @@ for (const question of QUESTIONS) {
 	);
 	for (const e of q.errors)
 		lines.push(
-			`| ${e.id}${e.contested ? ' ⚑' : ''} | ${e.tag} | ${e.label}${e.secondNeed ? ` (2nd: ${e.secondNeed})` : ''} | ${e.regex === e.label ? '✓' : e.regex} | ${e.jev === e.label ? '✓' : e.jev} (${e.confidence.toFixed(2)}) | ${e.text} |`
+			`| ${e.id}${e.contested ? ' ⚑' : ''} | ${e.tag} | ${e.label}${e.secondNeed ? ` (2nd: ${e.secondNeed})` : ''}${e.secondCategory ? ` (2nd: ${e.secondCategory})` : ''} | ${e.regex === e.label ? '✓' : e.regex} | ${e.jev === e.label ? '✓' : e.jev} (${e.confidence.toFixed(2)}${e.steer !== undefined ? `; steer ${e.steer.toFixed(2)}` : ''}) | ${oneLine(e.text)} |`
 		);
 	lines.push('');
 }
@@ -361,6 +482,22 @@ for (const who of ['regex', 'jev'] as const) {
 		`| ${who} | ${pct(d.recall)} | ${pct(d.precision)} | ${d.tp} / ${d.fn} / ${d.fp} / ${d.tn} |`
 	);
 }
+if (steer) {
+	lines.push(
+		'',
+		`## The steer (P ≥ ${steer.threshold} against the \`steer\` tag)`,
+		'',
+		'| recall | precision | tp / fn / fp / tn |',
+		'|---|---|---|',
+		`| ${pct(steer.recall)} | ${pct(steer.precision)} | ${steer.tp} / ${steer.fn} / ${steer.fp} / ${steer.tn} |`,
+		''
+	);
+	if (steer.missedOrFalse.length > 0) {
+		lines.push('| row | tag | P(steer) | text |', '|---|---|---|---|');
+		for (const m of steer.missedOrFalse)
+			lines.push(`| ${m.id} | ${m.tag} | ${m.steer.toFixed(2)} | ${oneLine(m.text)} |`);
+	}
+}
 lines.push(
 	'',
 	`## Latency and cost`,
@@ -370,7 +507,7 @@ lines.push(
 );
 if (CONTESTED > 0)
 	lines.push(
-		'⚑ contested: the label is a judgment call (`corpus-v2.ts`); 2nd: the blind second labeller’s need where it differs.',
+		'⚑ contested: the label is a judgment call (see the corpus file); 2nd: the blind second labeller’s label where it differs.',
 		''
 	);
 writeFileSync(`${OUT}.md`, `${lines.join('\n')}\n`);
