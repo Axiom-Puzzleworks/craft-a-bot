@@ -3,6 +3,13 @@
 > **Status (2026-09-28):** research note, outside any work package. Written from TypeSafe's public documentation (`docs.typesafe.ai`, read 2026-09-28, pages for `jev-1.13`) plus two probes of the live API without a key. Nothing here was verified with an authenticated call — the numbers quoted are TypeSafe's, not ours. §7 proposes a one-day project.
 >
 > **Amended 2026-09-28, later:** the project was built on the `jev-servicing` branch, as an optional pack (§8), with a live recording taken. §9 has the results. With a key, the latency and price figures in §1 are now partly ours: 205–543 ms per call over 190 calls. The unauthenticated 403 in §3 stands.
+>
+> **Amended 2026-09-28, later still:**
+> - §10 has a harder v2 corpus.
+> - §11 has the rules written into the questions, tested on a held-out v3.
+> - §12 compares Jev against two local LLMs on the builder's DGX Sparks, with token usage.
+>
+> **The full lab record** is `packages/packs/typesafe/experiment/README.md`, with its findings on one page in §0, where to find everything at the top, and every table in `experiment/SUMMARY.md`.
 
 ## 1. What Jev is
 
