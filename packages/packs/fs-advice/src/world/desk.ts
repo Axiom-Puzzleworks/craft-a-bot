@@ -150,6 +150,13 @@ const ended = (state: AdviceDeskState): boolean =>
 const TOPIC_SCHEMA = z.enum(TOPICS);
 
 export const adviceDeskSpec: DeskWorldSpec<AdviceExtra> = {
+	// WP111 (`102-HONEST-BANK.md` §5): COBS 9A's suitability rule over the answers and the shelf is what the case requires, so these leaves are derived from the rule —
+	// an evaluator scoring against them measures compliance with it (`derivedFrom`), not a reading of the case.
+	derivedTruth: {
+		'suitable-set.product_ids': 'recommendation-v1',
+		'suitable-set.cheapest': 'recommendation-v1',
+		suitableCount: 'recommendation-v1'
+	},
 	id: ADVICE_DESK_WORLD_ID,
 	name: adviceStrings.worldName,
 	desk: { title: adviceStrings.title, role: adviceStrings.role },

@@ -9,9 +9,11 @@ import { createMonitor } from './monitor.svelte.js';
  * the store's tests never import the `?worker` module, which jsdom cannot
  * construct.
  */
-const registry = createRegistry();
+// Built on first use, not at import (WP112): the desks' workflows arrive with `loadDesks`, which a route's load awaits after its modules are imported.
+let registry: ReturnType<typeof createRegistry> | undefined;
 
 export const monitor = createMonitor({
 	spawn: spawnCampaignWorker,
-	decisionKindOf: (workflowId) => registry.getWorkflow(workflowId)?.decisionKindOf
+	decisionKindOf: (workflowId) =>
+		(registry ??= createRegistry()).getWorkflow(workflowId)?.decisionKindOf
 });

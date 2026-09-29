@@ -13,6 +13,7 @@ import {
 import type {
 	ConformanceIssue,
 	DeskConformanceFixture,
+	TruthIndependenceFixture,
 	WorldIllegalCallFixture,
 	WorldScriptFixture
 } from '../types.js';
@@ -46,6 +47,13 @@ import { checkWorld } from './world.js';
  *   fixture script. A desk with no `truth` passes trivially.
  * - `desk.truth-not-in-snapshot` (WP54): the snapshot never carries such a
  *   value either — truth lives beside the state, never in it.
+ * - `desk.truth-independent` (WP111, `102-HONEST-BANK.md` §2): for each
+ *   rule the fixture names beside a truth fact it also computes, the rule
+ *   disagrees with truth on at least one of the fixture's rows — or the desk
+ *   declares the fact derived from that rule (`spec.derivedTruth`). A fact
+ *   the rule computes and truth merely repeats is the rule scored against
+ *   itself. `desk.truth-derived`: every declared fact is one the desk's
+ *   truth carries.
  * - `desk.counterpart-script` (WP55, `46-COUNTERPARTS.md` §4.2): every
  *   counterpart script the definition carries has a non-empty `fallback`,
  *   rule ids unique within it, a trigger kind from the five, pressures in
@@ -123,6 +131,7 @@ export function checkDesk(
 
 	checkPurity(world, layoutIds, scripts, issues);
 	checkTruth(world, layoutIds, scripts, issues);
+	checkTruthIndependence(world, fixture.truthIndependence ?? [], issues);
 	checkScripts(world, issues);
 
 	return issues;
@@ -325,6 +334,91 @@ function checkTruth(
 				}
 			}
 		}
+	}
+}
+
+/** The facts a desk declares derived from a rule (WP111): on `createDeskWorld`'s spec, or on a hand-written definition. */
+function derivedTruthOf(world: WorldDefinition): Record<string, string> {
+	const candidate = world as { spec?: { derivedTruth?: unknown }; derivedTruth?: unknown };
+	const value = candidate.spec?.derivedTruth ?? candidate.derivedTruth;
+	return value !== null && typeof value === 'object' ? (value as Record<string, string>) : {};
+}
+
+/** A truth leaf by name: a fact (`verdict`), or a record's field (`suitable-set.cheapest`). */
+function truthLeaves(instance: WorldInstance): Map<string, unknown> {
+	const truth = instance.truth?.() as
+		{ facts?: Record<string, unknown>; records?: DeskRecord[] } | undefined;
+	const out = new Map<string, unknown>(Object.entries(truth?.facts ?? {}));
+	for (const record of truth?.records ?? [])
+		for (const [field, value] of Object.entries(record.fields ?? {}))
+			out.set(`${record.id}.${field}`, value);
+	return out;
+}
+
+function checkTruthIndependence(
+	world: WorldDefinition,
+	entries: readonly TruthIndependenceFixture[],
+	issues: ConformanceIssue[]
+): void {
+	const derived = derivedTruthOf(world);
+	const declared = Object.keys(derived);
+	if (declared.length > 0) {
+		const carried = new Set<string>();
+		for (const layout of world.layouts) {
+			try {
+				for (const leaf of truthLeaves(world.create(layout.id)).keys()) carried.add(leaf);
+			} catch {
+				// A layout that cannot open is `desk.layout-loads`' finding.
+			}
+		}
+		for (const fact of declared.filter((name) => !carried.has(name)))
+			issues.push({
+				check: 'desk.truth-derived',
+				message: `the desk declares truth leaf "${fact}" derived from "${derived[fact]}", but no layout's truth carries it`
+			});
+	}
+	for (const entry of entries) {
+		const owner = derived[entry.leaf];
+		if (owner !== undefined) {
+			if (owner !== entry.ruleId)
+				issues.push({
+					check: 'desk.truth-derived',
+					message: `truth fact "${entry.leaf}" is declared derived from "${owner}", but the fixture names rule "${entry.ruleId}"`
+				});
+			continue;
+		}
+		if (entry.rows.length === 0) {
+			issues.push({
+				check: 'desk.truth-independent',
+				message: `rule "${entry.ruleId}" computes truth fact "${entry.leaf}" and the fixture gives no rows to show they ever differ — give labelled rows, or declare the fact derived`
+			});
+			continue;
+		}
+		let disagreements = 0;
+		let missing = 0;
+		for (const row of entry.rows) {
+			const instance = world.create(row.layoutId, {
+				random: seededRandom(row.seed ?? 1),
+				...(row.config ? { config: row.config } : {})
+			});
+			const snapshot = instance.snapshot();
+			const truth = truthLeaves(instance).get(entry.leaf);
+			if (truth === undefined || !isDeskWorldState(snapshot)) {
+				missing += 1;
+				continue;
+			}
+			if (entry.rule(snapshot) !== truth) disagreements += 1;
+		}
+		if (missing > 0)
+			issues.push({
+				check: 'desk.truth-independent',
+				message: `${missing} of ${entry.rows.length} rows carry no truth fact "${entry.leaf}"`
+			});
+		else if (disagreements === 0)
+			issues.push({
+				check: 'desk.truth-independent',
+				message: `rule "${entry.ruleId}" agrees with truth fact "${entry.leaf}" on all ${entry.rows.length} rows: the fact is the rule's own answer, and scoring against it measures agreement with the rule — label the rows, or declare the fact derived`
+			});
 	}
 }
 

@@ -70,6 +70,31 @@ const VISIT: WorkflowSpec = {
 	}
 };
 
+/** A journey that hands every visitor on to `test/visit` (WP112's `--follow`). */
+const REFER: WorkflowSpec = {
+	id: 'test/refer',
+	name: 'A referral',
+	worldId: TEST_DESK_ID,
+	purpose: 'Refer a visitor to the front desk',
+	intake: (item) => ({ layoutId: 'one-visitor', input: item.payload }),
+	first: 'refer',
+	stages: [
+		{
+			id: 'refer',
+			name: 'Refer',
+			input: { type: 'object', required: ['visitor'] },
+			output: { type: 'object' },
+			executor: { kind: 'rule', rule: 'refer' },
+			next: (_out, _state, input) => ({
+				handoff: VISIT.id,
+				item: { ...ITEM, id: `${ITEM.id}-referred`, payload: input }
+			})
+		}
+	],
+	rules: { refer: () => ({ output: {} }) },
+	obligations: []
+};
+
 const PACK: PackManifest = {
 	id: 'test',
 	name: 'Test desk pack',
@@ -77,7 +102,7 @@ const PACK: PackManifest = {
 	requiresCore: '>=1.0.0',
 	worlds: [testDesk],
 	brickKinds: v1BrickKinds(),
-	workflows: [VISIT]
+	workflows: [VISIT, REFER]
 };
 
 const ITEM: WorkItem = {
@@ -190,6 +215,25 @@ describe('workflowRun', () => {
 });
 
 describe('craftabot workflow run', () => {
+	it('follows a handoff to its target and reports the chain (WP112)', async () => {
+		const root = await tempDir();
+		const base = {
+			workflowId: 'test/refer',
+			itemPath: await itemFile(root),
+			brain: 'scripted-optimal' as const,
+			seed: 1,
+			config: { packs: [PACK] },
+			credentials: credentialsFromEnv({}),
+			now: () => '2026-09-10T10:00:00.000Z'
+		};
+		const alone = await workflowRun({ ...base, out: join(root, 'a') });
+		expect(alone.outcome).toBe('handed-off');
+		expect(alone.followed ?? []).toEqual([]);
+		const followed = await workflowRun({ ...base, out: join(root, 'b'), follow: true });
+		expect(followed.outcome).toBe('handed-off');
+		expect(followed.followed).toMatchObject([{ workflowId: 'test/visit', outcome: 'completed' }]);
+	});
+
 	it('wants its verb and flags', async () => {
 		const console = io();
 		expect(await runCli(['workflow'], console)).toBe(1);

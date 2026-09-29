@@ -61,3 +61,5 @@ The fraud journey's `note` stage hands off when the decision on the desk was a `
 ## 7. Stage notes
 
 > **2026-09-12.** Built in one pass: the contract and the run record, the runtime and `followHandoff`, the clock's handoff queue, the cell's record, `--follow`, the Journey Canvas's exit, the Pipeline's links; `fs-advice/complaints` with its work-item layout, rules, five configurations, ceilings, book, stage plans and golden run; the fraud journey's handoff; the complaints desk on the CI bank day; the tests named in §1.
+
+> **Amended 2026-09-29 (WP112; `90-…` §7's one-spec-per-run seam):** `RunWorkflowOptions.specFor(worldId)` is asked as a run starts and used in place of `spec` when it answers; `followHandoff` passes it on. `specOnWorld` (`@craftabot/workflow`) re-points a bot's Sense and Actions bricks at a world by the bench's D20 rule. `craftabot workflow run --follow` is wired in the CLI (it was an option with no flag) and, with `--kit`, seats the kit re-pointed on each desk it lands on; the exit status is the chain's last run's. The clock already seated each desk's own spec (`RunBankOptions.specFor(desk)`) and is unchanged.

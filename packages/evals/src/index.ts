@@ -27,6 +27,7 @@ export {
 /** Campaigns (WP38, `28-CAMPAIGNS.md`): scenarios × builds × guards × brains × seeds, with gates. */
 export {
 	CAMPAIGN_REPORT_SCHEMA_VERSION,
+	CAMPAIGN_REPORT_PANES_SINCE,
 	CAMPAIGN_SCHEMA_VERSION,
 	bookItems,
 	bookScenario,
@@ -221,6 +222,8 @@ export {
 export {
 	CASE_METRIC_PATTERN,
 	cohortOf,
+	pairIdOf,
+	sameReportInstrument,
 	DERIVED_METRIC_PATTERN,
 	runMetricNameSchema,
 	semanticsFromReport,

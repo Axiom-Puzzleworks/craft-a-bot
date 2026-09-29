@@ -3,7 +3,7 @@ import type { PackManifest } from '@craftabot/core';
 import { bankControlMap } from './controls/rows.js';
 import { bankServiceLines } from './lines/index.js';
 import { FALLBACK, toldPlainly } from './incident.js';
-import { CALIBRATION, DECK_WEIGHTS } from './calibration/index.js';
+import { BOOK_INCIDENCES, CALIBRATION, DECK_WEIGHTS } from './calibration/index.js';
 
 /**
  * **`@craftabot/pack-fs-bank`** — the synthetic bank (WP59, `48-FS-BANK.md`;
@@ -32,14 +32,21 @@ const manifest: PackManifest = {
 	// WP106 stage A (`83-…` §6.6.1): the domain spec the journeys page and `checkDomainPack` read.
 	domains: [ukRetailBankingDomain],
 	/** The cited table the population draws from and the design-time weights the decks were built on (WP74, `66-…` §4.1). */
-	calibrations: [CALIBRATION, DECK_WEIGHTS]
+	calibrations: [CALIBRATION, DECK_WEIGHTS, BOOK_INCIDENCES]
 };
 
 export default manifest;
 
 export * from './model.js';
 export { bankCase, type BankCaseOptions } from './generate/case.js';
-export { CALIBRATION, DECK_WEIGHTS, impliedMarginal, perDrawRate } from './calibration/index.js';
+export {
+	BOOK_INCIDENCES,
+	CALIBRATION,
+	DECK_WEIGHTS,
+	everyNth,
+	impliedMarginal,
+	perDrawRate
+} from './calibration/index.js';
 export { rateOf, weightedRow, type Calibrated } from './generate/customer.js';
 export { generateCustomer } from './generate/customer.js';
 export { generateAccounts, monthlyIncomeOf } from './generate/accounts.js';
@@ -164,6 +171,7 @@ export {
 } from './incident.js';
 /** WP97 (`89-STACKS.md` §3): a desk's guards as stacks, from the values its baseline's bricks are built from. */
 export {
+	HOSTED_GUARD_STAND_IN,
 	deskStacks,
 	DESK_SCREENING,
 	CLASSIFIER_HOOKS,

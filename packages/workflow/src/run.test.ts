@@ -859,6 +859,25 @@ describe('a handoff (WP102, `83-…` §6.5.3)', () => {
 		).toBeUndefined();
 	});
 
+	it('asks specFor for the bot on the follower’s world, and uses it (WP112)', async () => {
+		const spec = workflow([handsOff], {
+			rules: { 'refer-v1': (input) => ({ output: { referred: input } }) }
+		});
+		const asked: string[] = [];
+		const { record } = await run(spec);
+		const follower = await followHandoff(record, registry, {
+			packs: [testPack()],
+			spec: SPEC,
+			specFor: (worldId) => {
+				asked.push(worldId);
+				return { ...SPEC, id: 'the-follow-up-bot' };
+			},
+			providerFor: () => createMockProvider({ script: obedient(PLAN) })
+		});
+		expect(asked).toEqual([followUp.worldId]);
+		expect(follower?.outcome).toBe('completed');
+	});
+
 	it('refuses a handoff to a journey that is not installed', async () => {
 		const spec = workflow([handsOff], {
 			rules: { 'refer-v1': (input) => ({ output: { referred: input } }) }

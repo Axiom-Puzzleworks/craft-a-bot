@@ -82,7 +82,15 @@ export interface ChatRequest {
 
 /** Normalised wire-failure vocabulary the UI renders in kit language (06-LLM-PROVIDERS.md §7). */
 export type ProviderErrorKind =
-	'bad-key' | 'rate-limited' | 'quota' | 'filtered' | 'network' | 'provider-down' | 'malformed';
+	| 'bad-key'
+	| 'rate-limited'
+	| 'quota'
+	| 'filtered'
+	| 'network'
+	| 'provider-down'
+	| 'malformed'
+	/** A recorded provider asked a prompt its cassette has not seen (WP114): nothing was sent. */
+	| 'cassette-miss';
 
 export interface ProviderError {
 	kind: ProviderErrorKind;

@@ -573,6 +573,23 @@ export {
 	type CassetteEntry,
 	type CassetteFile
 } from './schemas/cassette.js';
+/** Provider cassettes (WP114, `103-FALLIBLE-ACTORS.md` §3). */
+export {
+	parseProviderCassette,
+	promptDigest,
+	providerCassetteEntrySchema,
+	providerCassetteFileSchema,
+	type ProviderCassetteEntry,
+	type ProviderCassetteFile
+} from './schemas/provider-cassette.js';
+export {
+	PROVIDER_CASSETTE_MISS,
+	ProviderCassetteMiss,
+	createCassetteProvider,
+	mergeProviderEntries,
+	recordingProvider,
+	type ProviderRecording
+} from './provider-cassette.js';
 export {
 	CASSETTE_MISS,
 	bareLineId,

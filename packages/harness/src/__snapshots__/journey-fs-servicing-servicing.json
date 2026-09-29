@@ -78,28 +78,10 @@
 			"guards": []
 		},
 		{
-			"stageId": "act",
-			"name": "Act",
-			"lane": "assistant",
-			"x": 4,
-			"y": 0,
-			"executor": "agent",
-			"irreversible": false,
-			"obligations": [
-				"ukgdpr:purpose-limitation",
-				"fca:cd:support"
-			],
-			"guards": [
-				"loop:act:pre-think",
-				"loop:act:pre-act",
-				"loop:act:post-act"
-			]
-		},
-		{
 			"stageId": "record",
 			"name": "Record",
 			"lane": "assistant",
-			"x": 5,
+			"x": 4,
 			"y": 0,
 			"executor": "agent",
 			"irreversible": false,
@@ -117,7 +99,7 @@
 			"stageId": "confirm",
 			"name": "Four eyes",
 			"lane": "colleague",
-			"x": 6,
+			"x": 5,
 			"y": 1,
 			"executor": "human",
 			"irreversible": false,
@@ -125,6 +107,24 @@
 				"pra:ss1-23:mitigants"
 			],
 			"guards": []
+		},
+		{
+			"stageId": "act",
+			"name": "Act",
+			"lane": "assistant",
+			"x": 6,
+			"y": 0,
+			"executor": "agent",
+			"irreversible": false,
+			"obligations": [
+				"ukgdpr:purpose-limitation",
+				"fca:cd:support"
+			],
+			"guards": [
+				"loop:act:pre-think",
+				"loop:act:pre-act",
+				"loop:act:post-act"
+			]
 		},
 		{
 			"stageId": "close",
@@ -168,17 +168,10 @@
 			"kind": "enumerated"
 		},
 		{
-			"id": "verify->act",
-			"from": "verify",
-			"to": "act",
-			"label": "address / card / third-party",
-			"kind": "enumerated"
-		},
-		{
 			"id": "verify->record",
 			"from": "verify",
 			"to": "record",
-			"label": "disclosure",
+			"label": "address / card / third-party / disclosure",
 			"kind": "enumerated"
 		},
 		{
@@ -189,16 +182,34 @@
 			"kind": "enumerated"
 		},
 		{
-			"id": "act->record",
-			"from": "act",
-			"to": "record",
-			"label": "update-address / reissue-card / grant-third-party-access / close-account / none",
-			"kind": "enumerated"
+			"id": "record->act",
+			"from": "record",
+			"to": "act",
+			"label": "depends on the case",
+			"kind": "case"
 		},
 		{
 			"id": "record->close",
 			"from": "record",
 			"to": "close",
+			"label": "depends on the case",
+			"kind": "case"
+		},
+		{
+			"id": "record->end",
+			"from": "record",
+			"to": {
+				"end": true
+			},
+			"label": "depends on the case",
+			"kind": "case"
+		},
+		{
+			"id": "record->handoff:fs-collections/arrears",
+			"from": "record",
+			"to": {
+				"handoff": "fs-collections/arrears"
+			},
 			"label": "depends on the case",
 			"kind": "case"
 		},
@@ -219,10 +230,37 @@
 			"kind": "enumerated"
 		},
 		{
+			"id": "act->end",
+			"from": "act",
+			"to": {
+				"end": true
+			},
+			"label": "depends on the case",
+			"kind": "case"
+		},
+		{
+			"id": "act->handoff:fs-collections/arrears",
+			"from": "act",
+			"to": {
+				"handoff": "fs-collections/arrears"
+			},
+			"label": "depends on the case",
+			"kind": "case"
+		},
+		{
 			"id": "close->end",
 			"from": "close",
 			"to": {
 				"end": true
+			},
+			"label": "depends on the case",
+			"kind": "case"
+		},
+		{
+			"id": "close->handoff:fs-advice/advice",
+			"from": "close",
+			"to": {
+				"handoff": "fs-advice/advice"
 			},
 			"label": "depends on the case",
 			"kind": "case"
@@ -266,24 +304,6 @@
 			"components": []
 		},
 		{
-			"id": "loop:act:pre-think",
-			"kind": "pre-think",
-			"at": "act",
-			"components": []
-		},
-		{
-			"id": "loop:act:pre-act",
-			"kind": "pre-act",
-			"at": "act",
-			"components": []
-		},
-		{
-			"id": "loop:act:post-act",
-			"kind": "post-act",
-			"at": "act",
-			"components": []
-		},
-		{
 			"id": "loop:record:pre-think",
 			"kind": "pre-think",
 			"at": "record",
@@ -299,6 +319,24 @@
 			"id": "loop:record:post-act",
 			"kind": "post-act",
 			"at": "record",
+			"components": []
+		},
+		{
+			"id": "loop:act:pre-think",
+			"kind": "pre-think",
+			"at": "act",
+			"components": []
+		},
+		{
+			"id": "loop:act:pre-act",
+			"kind": "pre-act",
+			"at": "act",
+			"components": []
+		},
+		{
+			"id": "loop:act:post-act",
+			"kind": "post-act",
+			"at": "act",
 			"components": []
 		},
 		{

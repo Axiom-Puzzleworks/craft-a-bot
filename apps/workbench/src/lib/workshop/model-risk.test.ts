@@ -108,6 +108,41 @@ describe('the Model-risk fold', () => {
 		expect(decidedCasesOf(cells, 'ageBand', 'incomeBand')[0]?.stratum).toBe('low');
 	});
 
+	it('reads matched pairs from report v4’s pairId, zipping the two sides in order (WP112)', () => {
+		const paired = (group: string, outcome: 'approve' | 'decline') => ({
+			...cell(group, outcome, 'approve'),
+			pairId: 'matched-pair|b|cards|scripted-optimal'
+		});
+		// Four pairs: the first three agree, the fourth declines side b.
+		const pairCells = [
+			paired('a', 'approve'),
+			paired('b', 'approve'),
+			paired('a', 'approve'),
+			paired('b', 'approve'),
+			paired('a', 'approve'),
+			paired('b', 'approve'),
+			paired('a', 'approve'),
+			paired('b', 'decline'),
+			// A lone side with no partner is left out.
+			paired('a', 'approve')
+		] as CampaignCell[];
+		const cases = decidedCasesOf(pairCells, 'ageBand');
+		expect(cases.map((entry) => entry.pairId)).toEqual([
+			'matched-pair|b|cards|scripted-optimal#0',
+			'matched-pair|b|cards|scripted-optimal#0',
+			'matched-pair|b|cards|scripted-optimal#1',
+			'matched-pair|b|cards|scripted-optimal#1',
+			'matched-pair|b|cards|scripted-optimal#2',
+			'matched-pair|b|cards|scripted-optimal#2',
+			'matched-pair|b|cards|scripted-optimal#3',
+			'matched-pair|b|cards|scripted-optimal#3',
+			undefined
+		]);
+		const bench = fairnessWorkbench({ ...report, cells: pairCells }, { across: 'ageBand' });
+		expect(bench.matched.reason).toBeUndefined();
+		expect(bench.matched.result?.n).toEqual({ pairs: 4, discordant: 1 });
+	});
+
 	it('counts the counterfactual flips over twenty forks as a hand count does', () => {
 		const originals = Array.from({ length: 20 }, (_, i) =>
 			storedRun(`o${i}`, i % 2 === 0 ? 'approve' : 'decline')

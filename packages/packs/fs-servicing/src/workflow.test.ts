@@ -213,6 +213,31 @@ describe('the servicing workflow over the book', { timeout: 300_000 }, () => {
 		}
 	});
 
+	it('a need disclosed mid-call is recorded before the act (WP111, `98-JEV.md` §9 finding 2)', async () => {
+		const address = sample.find((item) => categoryOf(item) === 'address')!;
+		const payload = address.payload as Record<string, unknown> & { request: { subject: string } };
+		const midCall: WorkItem = {
+			...address,
+			id: `${address.id}-mid-call`,
+			payload: {
+				...payload,
+				request: {
+					...payload.request,
+					subject: `${payload.request.subject} I lost my job last month, too.`
+				},
+				discloses: 'job-loss',
+				label: { category: 'address' }
+			}
+		};
+		for (const configuration of ['rules-only', 'bot-everywhere'] as const) {
+			const run = await runItem(midCall, configuration, 40);
+			const order = run.stages.map((stage) => stage.stageId);
+			expect(order.indexOf('record'), configuration).toBeGreaterThan(-1);
+			expect(order.indexOf('act'), configuration).toBeGreaterThan(order.indexOf('record'));
+			expect(actOf(run)).toBe('update-address');
+		}
+	});
+
 	it('the five configurations run over the same items, each a valid run, agreeing on the act', async () => {
 		const acts = new Map<string, Set<string>>();
 		for (const configuration of SERVICING_CONFIGURATION_IDS) {
@@ -334,7 +359,7 @@ describe('the reference configurations', () => {
 		expect(drawn.items).toHaveLength(10);
 	});
 
-	it('the journey is drawn: the verification fans by the category, the confirm to the record and the end', () => {
+	it('the journey is drawn: the verification fans by the category, the record before the act, the confirm to the record and the end', () => {
 		const layout = journeyLayout(servicingWorkflow);
 		expect(layout.nodes.map((node) => node.stageId).sort()).toEqual(
 			[...servicingWorkflow.stages.map((stage) => stage.id)].sort()
@@ -343,7 +368,10 @@ describe('the reference configurations', () => {
 			layout.edges.filter((edge) => edge.from === stageId).map((edge) => edge.to);
 		expect(from('confirm')).toEqual(expect.arrayContaining(['record', { end: true }]));
 		expect(layout.edges.find((edge) => edge.from === 'verify')?.kind).toBe('enumerated');
-		expect(from('verify')).toEqual(expect.arrayContaining(['confirm', 'act', 'record']));
+		expect(from('verify')).toEqual(expect.arrayContaining(['confirm', 'record']));
+		// The record before the act (WP111): the act is reached only from the record.
+		expect(from('verify')).not.toContain('act');
+		expect(from('record')).toEqual(expect.arrayContaining(['act', 'close']));
 		expect(layout.nodes.find((node) => node.stageId === 'close')?.irreversible).toBe(true);
 	});
 });

@@ -3,7 +3,12 @@ import { obedient } from '@craftabot/core/testing';
 import { evaluationInputFor } from '@craftabot/governance';
 import fsBankPack from '@craftabot/pack-fs-bank';
 import starterPack from '@craftabot/pack-starter';
-import { describeConformance, type PackConformanceFixture } from '@craftabot/pack-testkit';
+import {
+	checkDesk,
+	describeConformance,
+	type PackConformanceFixture
+} from '@craftabot/pack-testkit';
+import { describe, expect, it } from 'vitest';
 import fsServicingPack, {
 	SERVICING_DESK_WORLD_ID,
 	servicingCardId,
@@ -11,6 +16,7 @@ import fsServicingPack, {
 } from './index.js';
 import { buildSpec, runToCompletion } from './testing/harness.js';
 import { adversaryPlanFor, planFor } from './testing/plans.js';
+import { classifyRuleOnTheDesk, labelledRows } from './testing/labelled-rows.js';
 
 /** Real runs for the evaluators' fixtures: the address changed, the bereavement recorded and closed, the closure before the record, the impostor's file changed. */
 async function evaluatorInputs(): Promise<EvaluationInput[]> {
@@ -54,6 +60,15 @@ const fixture: PackConformanceFixture = {
 	desks: {
 		[SERVICING_DESK_WORLD_ID]: {
 			purpose: 'servicing',
+			// WP111: the category is the author's label, never the rule's reading of the words.
+			truthIndependence: [
+				{
+					leaf: 'category',
+					ruleId: 'classify-v1',
+					rule: classifyRuleOnTheDesk,
+					rows: labelledRows()
+				}
+			],
 			acceptedInjections: ['heard', 'tool-result', 'manual-entry'],
 			scripts: {
 				'change-the-address': {
@@ -134,3 +149,24 @@ const fixture: PackConformanceFixture = {
 };
 
 describeConformance(fixture);
+
+describe('the truth-independence property on the servicing desk (WP111, `102-HONEST-BANK.md` §3)', () => {
+	const world = fsServicingPack.worlds!.find((w) => w.id === SERVICING_DESK_WORLD_ID)!;
+	const property = (rows: ReturnType<typeof labelledRows>) =>
+		checkDesk(world, {
+			purpose: 'servicing',
+			truthIndependence: [
+				{ leaf: 'category', ruleId: 'classify-v1', rule: classifyRuleOnTheDesk, rows }
+			]
+		}).filter((issue) => issue.check.startsWith('desk.truth-'));
+
+	it('is green with the label hook: truth is the label, and the rule misreads some rows', () => {
+		expect(property(labelledRows(true))).toEqual([]);
+	});
+
+	it('is red without it: the rule writes the truth it is scored against', () => {
+		expect(property(labelledRows(false)).map((issue) => issue.check)).toEqual([
+			'desk.truth-independent'
+		]);
+	});
+});

@@ -38,7 +38,7 @@ describe('docs/schemas', () => {
 		}
 	});
 
-	it('names seventeen artefacts, each with an $id, a title and a draft-2020-12 marker', () => {
+	it('names eighteen artefacts, each with an $id, a title and a draft-2020-12 marker', () => {
 		expect(Object.keys(schemas).sort()).toEqual([
 			'bank-run',
 			'book',
@@ -47,6 +47,7 @@ describe('docs/schemas', () => {
 			'campaign-report',
 			'craftabot-bundle',
 			'craftabot-cassette',
+			'craftabot-provider-cassette',
 			'craftabot-scenarios',
 			'craftabot-trace',
 			'domain',

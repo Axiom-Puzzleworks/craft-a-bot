@@ -98,3 +98,5 @@ The rules are pure functions over the desk's snapshot — `figuresOnTheDesk` rea
 - `harness/src/commands/book.test.ts`: `book run` and `sweep` end to end; the CLI's flags.
 - `e2e/campaigns.spec.ts`: the Books panel runs a 60-customer book in the Worker and the human-load pane shows five rows.
 - The desk's own suites unchanged: the golden traces, `knobs.test.ts`, the baseline campaign.
+
+> **Amended 2026-09-29 (WP111, `102-HONEST-BANK.md` §6):** `touchesOf` counts a `human` stage once whatever the answer; `escalated:` is counted only for a stage of another kind (`98-…` §9 finding 3).

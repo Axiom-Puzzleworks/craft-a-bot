@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
 	EDITIONS,
 	allowsRoute,
+	desksLoaded,
+	loadDesks,
 	edition,
 	editionWithPacks,
 	routePath,
@@ -68,5 +70,38 @@ describe('editions', () => {
 		expect(row('full')).toMatchObject({ status: 'unlocked' });
 		expect(EDITIONS.simulator.mode).toBe('kit');
 		expect(EDITIONS.workshop.mode).toBe('workshop');
+	});
+});
+
+describe('the desks on demand (WP112)', () => {
+	it('fills the desks in at their places: the loaded list is the static list, in its order', async () => {
+		const { packs: staticPacks } = await import('$edition-packs');
+		const { slots } = await import('$edition-main');
+		const { isDeskLoader } = await import('./editions/slots.js');
+		await loadDesks();
+		expect(desksLoaded()).toBe(true);
+		expect(edition.packs.map((pack) => pack.id)).toEqual(staticPacks.map((pack) => pack.id));
+		// The same array throughout, so `installedPacks` saw them arrive.
+		expect(installedPacks).toBe(edition.packs);
+		// In the full box every desk is a loader, and nothing else is.
+		expect(slots.filter(isDeskLoader).map((slot) => slot.id)).toEqual([
+			'fs-advice',
+			'fs-fraud',
+			'fs-lending',
+			'fs-onboarding',
+			'fs-disputes',
+			'fs-collections',
+			'fs-servicing'
+		]);
+		// Asked again, it is the same promise and nothing moves.
+		await loadDesks();
+		expect(edition.packs.map((pack) => pack.id)).toEqual(staticPacks.map((pack) => pack.id));
+	});
+
+	it('the root layout starts the desks on the Kit’s first page and waits for them everywhere else', async () => {
+		const { load } = await import('../routes/+layout.js');
+		await expect(load({ url: new URL('http://localhost/') })).resolves.toEqual({});
+		await expect(load({ url: new URL('http://localhost/workshop') })).resolves.toEqual({});
+		expect(desksLoaded()).toBe(true);
 	});
 });

@@ -50,6 +50,14 @@ export interface RunWorkflowOptions {
 	packs: PackManifest[];
 	/** The bot every `agent` stage seats, its `goalCardId` replaced by the stage's card. */
 	spec: AnyAgentSpec;
+	/**
+	 * The bot for a journey on this world (WP112, `90-…` §7's one-spec-per-run
+	 * seam): asked with the workflow's `worldId` as the run starts, and used in
+	 * place of `spec` when it answers. `followHandoff` passes it on, so a
+	 * handoff onto another desk seats a bot that hears and acts on that desk —
+	 * `specOnWorld` re-points a bot's Sense and Actions bricks for it.
+	 */
+	specFor?: (worldId: string) => AnyAgentSpec | undefined;
 	providerFor: (stage: StageSpec, goalCardId: string) => LLMProvider;
 	/**
 	 * A stage's boundary chain, compiled by the host (`governance` is not a
@@ -221,8 +229,13 @@ function defaultNewId(): () => string {
 export async function runWorkflow(
 	spec: WorkflowSpec,
 	item: WorkItem,
-	options: RunWorkflowOptions
+	given: RunWorkflowOptions
 ): Promise<WorkflowRun> {
+	// The bot for this journey's world, when the host names one per world (WP112).
+	const options: RunWorkflowOptions = {
+		...given,
+		spec: given.specFor?.(spec.worldId) ?? given.spec
+	};
 	const now = options.now ?? (() => new Date().toISOString());
 	const newId = options.newId ?? defaultNewId();
 	const random = options.random ?? seededRandom(options.seed ?? 1);

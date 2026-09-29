@@ -18,6 +18,10 @@
 				{
 					"type": "number",
 					"const": 3
+				},
+				{
+					"type": "number",
+					"const": 4
 				}
 			]
 		},
@@ -320,6 +324,9 @@
 							"type": "string"
 						}
 					},
+					"pairId": {
+						"type": "string"
+					},
 					"ordinal": {
 						"type": "integer",
 						"minimum": 0,
@@ -375,6 +382,9 @@
 						"type": "object",
 						"properties": {
 							"runId": {
+								"type": "string"
+							},
+							"workflowId": {
 								"type": "string"
 							},
 							"configuration": {

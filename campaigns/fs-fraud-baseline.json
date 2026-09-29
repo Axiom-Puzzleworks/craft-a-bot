@@ -455,7 +455,7 @@
 					"configVersion": 1,
 					"config": {
 						"serviceId": "geap/model-armor",
-						"serviceConfig": "{}",
+						"serviceConfig": "{\"projectId\":\"craftabot-stand-in\",\"location\":\"europe-west2\",\"templateId\":\"craftabot-stand-in\"}",
 						"screening": {
 							"screenObservation": "note",
 							"screenDecision": "note",

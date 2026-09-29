@@ -12,7 +12,7 @@ import {
 	type ImportProblem
 } from '@craftabot/core';
 import { createRegistry, installedBrickKinds, packVersions } from '$lib/packs.js';
-import { edition, editionWithPacks } from '$lib/edition.js';
+import { edition, editionWithPacks, loadDesks } from '$lib/edition.js';
 import { contentStore } from './content.svelte.js';
 import { appStorage } from './app-storage.svelte.js';
 import { createBrowserKeyVault } from './keys.js';
@@ -204,6 +204,8 @@ export function createAgentsStore(deps: AgentsStoreDeps = {}): AgentsStore {
 		},
 
 		async exportKit(id) {
+			// Every desk in place first (WP112): the file's `requires` names the whole box.
+			await loadDesks();
 			const record = await (await storage()).getAgent(id);
 			if (!record) return undefined;
 			const kit = buildKitFile(record.spec, {
@@ -233,6 +235,8 @@ export function createAgentsStore(deps: AgentsStoreDeps = {}): AgentsStore {
 		},
 
 		async importKit(json) {
+			// Every desk in place first (WP112): a desk bot's packs are this box's, not missing.
+			await loadDesks();
 			let parsed: unknown;
 			try {
 				parsed = JSON.parse(json);

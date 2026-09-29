@@ -45,7 +45,12 @@ export default defineConfig({
 			}),
 			...(edition ? { paths: { base: `/${edition}` } } : {}),
 			// The edition's packs: one module per box, so a bundle carries only its own (`59-…` §4.1).
-			alias: { '$edition-packs': `src/lib/editions/${edition ?? 'full'}.ts` }
+			// `$edition-packs` is the static list (the Worker, the tests); `$edition-main` the main
+			// thread's, each desk its own chunk loaded on demand (WP112).
+			alias: {
+				'$edition-packs': `src/lib/editions/${edition ?? 'full'}.ts`,
+				'$edition-main': `src/lib/editions/${edition ?? 'full'}.main.ts`
+			}
 		})
 	],
 	test: {

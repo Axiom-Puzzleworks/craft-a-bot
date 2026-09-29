@@ -141,12 +141,19 @@ export function edgesOf(
 		byTarget.set(key, entry);
 	}
 	if (!enumerable) {
+		// The stages the spec says the case may lead to (WP111); else the one declared next.
+		const named = (stage.mayGoTo ?? []).map((id) => targetOf(id, stageIds)!);
 		const index = spec.stages.findIndex((entry) => entry.id === stage.id);
 		const following = spec.stages[index + 1];
-		const to: JourneyEdgeTarget = following ? following.id : { end: true };
-		return [
-			{ id: `${stage.id}->${targetKey(to)}`, from: stage.id, to, label: CASE_LABEL, kind: 'case' }
-		];
+		const targets: JourneyEdgeTarget[] =
+			named.length > 0 ? named : [following ? following.id : { end: true }];
+		return targets.map((to) => ({
+			id: `${stage.id}->${targetKey(to)}`,
+			from: stage.id,
+			to,
+			label: CASE_LABEL,
+			kind: 'case' as const
+		}));
 	}
 	return [...byTarget.values()].map((entry) => ({
 		id: `${stage.id}->${targetKey(entry.to)}`,

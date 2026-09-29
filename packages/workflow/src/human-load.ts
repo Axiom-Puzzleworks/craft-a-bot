@@ -7,9 +7,10 @@ import type { StageRecord, WorkflowRun, WorkflowSpec } from '@craftabot/core';
  * with the autonomy level it was taken at. Structural, so this package
  * needs nothing of `metrics` and `metrics` nothing of this.
  *
- * A touch is a `human` stage answered (`human:<stageId>`), a stage that
- * escalated (`escalated:<stageId>`), a stage a person returned or overturned
- * being one of those. An agent stage's approval pauses are the session's
+ * A touch is a `human` stage answered (`human:<stageId>`, once, whatever
+ * the answer — WP111), a stage of any other kind that escalated
+ * (`escalated:<stageId>`), a stage a person returned or overturned being one
+ * of those. An agent stage's approval pauses are the session's
  * own and answered by the host — a campaign's scripted resolver — so they
  * are not a person's touch here; a stage record's `approval.by` names a
  * person when one answered, and that is a touch (`approved-by:<stageId>`).
@@ -47,7 +48,11 @@ export function touchesOf(stage: StageRecord): string[] {
 	const kinds: string[] = [];
 	if (stage.executor.kind === 'human' && stage.status !== 'error')
 		kinds.push(`human:${stage.stageId}`);
-	if (stage.status === 'escalated') kinds.push(`escalated:${stage.stageId}`);
+	// A person's answer is one touch whatever it was (WP111, `98-JEV.md` §9 finding 3): a
+	// `human` stage answered with other than its first option is `escalated` by the
+	// runtime, and counting that too counted one review twice.
+	if (stage.status === 'escalated' && stage.executor.kind !== 'human')
+		kinds.push(`escalated:${stage.stageId}`);
 	if (stage.approval?.by !== undefined && stage.executor.kind !== 'human')
 		kinds.push(`approved-by:${stage.stageId}`);
 	return kinds;

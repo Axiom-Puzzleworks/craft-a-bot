@@ -2,6 +2,7 @@ import type { Book, WorkItem } from '@craftabot/core';
 import {
 	SCREENING_LIST,
 	customerForTheDesk,
+	everyNth,
 	population,
 	type Customer,
 	type Population
@@ -13,7 +14,7 @@ import { onboardingVerdict } from './world/rules.js';
  * **The onboarding book** (WP103, `95-FS-ONBOARDING.md` §5): the
  * population's applicants as account applications — every twelfth
  * customer in ordinal order applies once across the window (a synthetic
- * incidence, stated here and not calibrated), each with the rule's verdict
+ * incidence, stated as a row of `fs-bank`'s `BOOK_INCIDENCES` since WP112), each with the rule's verdict
  * in truth. Every fifth applicant takes an identity from the bank's lists,
  * so a book of any size carries screening matches; every eighth gives a
  * year of birth that does not match the document. The bank cannot import
@@ -24,9 +25,10 @@ export interface OnboardingBookOptions {
 	to?: string;
 }
 
-const APPLIES_EVERY = 12;
-const HIT_EVERY = 5;
-const MISMATCH_EVERY = 8;
+// The incidences are rows (WP112): `fs-bank`'s `BOOK_INCIDENCES`, `onboarding-incidence`.
+const APPLIES_EVERY = everyNth('onboarding-incidence', 'applies');
+const HIT_EVERY = everyNth('onboarding-incidence', 'hit');
+const MISMATCH_EVERY = everyNth('onboarding-incidence', 'mismatch');
 
 function listedAs(applicant: number): (Customer['name'] & { birthYear: number }) | undefined {
 	if (applicant % HIT_EVERY !== 0) return undefined;

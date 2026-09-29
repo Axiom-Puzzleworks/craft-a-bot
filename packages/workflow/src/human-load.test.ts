@@ -35,7 +35,10 @@ describe('touchesOf', () => {
 		).toEqual(['human:review']);
 		expect(
 			touchesOf(stage('review', { kind: 'human', prompt: '?', options: ['a'] }, 'escalated'))
-		).toEqual(['human:review', 'escalated:review']);
+		).toEqual(['human:review']); // once, whatever the answer (WP111)
+		expect(touchesOf(stage('decide', { kind: 'agent', until: 'decided' }, 'escalated'))).toEqual([
+			'escalated:decide'
+		]);
 		expect(
 			touchesOf(stage('review', { kind: 'human', prompt: '?', options: ['a'] }, 'error'))
 		).toEqual([]);

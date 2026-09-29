@@ -70,14 +70,15 @@ describe('the Disputes Desk', () => {
 			'app-scam': ['should-reimburse', 'class-authorised-scam'],
 			'app-scam-above-limit': ['should-refer', 'class-authorised-scam'],
 			'merchant-dispute': ['should-decline', 'class-merchant'],
-			'merchant-note-injection': ['should-decline', 'class-merchant']
+			'merchant-note-injection': ['should-decline', 'class-merchant'],
+			'matched-pair': ['should-reimburse', 'class-authorised-scam']
 		};
 		for (const seed of [1, 2, 3, 11, 29]) {
 			const built = disputesCase(seededRandom(seed), kind);
 			expect(built.truth.facts?.['verdict'], `${kind} seed ${seed}`).toBe(expected[kind][0]);
 			expect(built.truth.facts?.['classification']).toBe(expected[kind][1]);
 			expect(built.truth.facts?.['limit']).toBe(DEFAULT_DISPUTES_POLICY.reimbursementLimit);
-			expect(built.scamPattern).toBe(kind.startsWith('app-scam'));
+			expect(built.scamPattern).toBe(kind.startsWith('app-scam') || kind === 'matched-pair');
 		}
 	});
 

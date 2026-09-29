@@ -1,3 +1,5 @@
+> **Amended 2026-09-29:** the Day 7 foundations assessment — the finding that every reference experiment reads 100% vs 100%, and decisions D14–D21 — is `100-TARGET-DESIGN-V7.md` §2.1; the load-bearing facts it was judged on are `100-…` §2.
+
 > **Amended 2026-09-12:** the Day 6 foundations assessment — what exists, what is missing and decisions D10–D13 — is `83-TARGET-DESIGN-V6.md` §2.1; the load-bearing facts it was judged on are `83-…` §2.
 
 # 12 — Current-State Assessment (Day 2 baseline)

@@ -87,6 +87,7 @@ export { DISPUTES_CONTROL_ROWS, disputesControlMap } from './controls/rows.js';
 export {
 	DISPUTES_DECKS,
 	E as DISPUTES_EVALUATOR_IDS,
+	MATCHED_PAIR_SCENARIO,
 	disputesScenarios,
 	scenariosInDisputesDeck,
 	type DisputesDeck,
@@ -112,7 +113,8 @@ export {
 	profileOf,
 	type DisputeItemPayload,
 	type DisputesCase,
-	type DisputesCaseKind
+	type DisputesCaseKind,
+	type PairSide
 } from './world/cases.js';
 export {
 	CLAIM_ITEM,

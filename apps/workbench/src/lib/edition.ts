@@ -1,5 +1,6 @@
 import type { PackManifest } from '@craftabot/core';
-import { packs as builtPacks } from '$edition-packs';
+import { slots } from '$edition-main';
+import { isDeskLoader } from './editions/slots.js';
 import { base } from '$app/paths';
 import { EDITION_MODE, EDITION_PACK_IDS, editionId, type EditionId } from './edition-id.js';
 import { EXPANSION_PACKS, type ExpansionPack } from './expansion-packs.js';
@@ -74,7 +75,7 @@ export const EDITIONS: Record<EditionId, Edition> = {
 		routes: { allow: EVERYTHING },
 		mode: EDITION_MODE.playground,
 		shelf: shelfFor(true),
-		budgetBytes: 2_240_000 // +15 kB 2026-09-07 (WP73): the wave 2 placeholders inlined as markup; +25 kB the same day (the UX pass); +50 kB 2026-09-10 (WP74): the calibration table's cited rows; +20 kB 2026-09-11 (WP80): the lending workflow, the Books and Sweeps panels, the human-load pane; +20 kB 2026-09-11 (WP81): the bank's ontology and the graph line; +10 kB 2026-09-11 (WP82): the report v3's panes; +40 kB 2026-09-11 (WP84): the Monitor page and the fold; +20 kB 2026-09-11 (WP85): the fraud and advice workflows; +30 kB 2026-09-11 (WP86): the Workflows list, the Pipeline and the Boundary's layout engine; +20 kB 2026-09-11 (WP87): the lenses; +40 kB 2026-09-11 (WP88): the Conduct and Model-risk pages and the validation suite; +40 kB 2026-09-11 (WP89): the Experiments page and the experiment module; +15 kB 2026-09-11 (WP91): headroom re-stated; +30 kB 2026-09-12 (Phase X, WP94–WP96, `01-…` §8): `GuardrailComponent` and the registry's index in `core`, the adapters and `compileComponents` in `governance`, the boundary chain in the workflow runtime, the redaction on the session and the transcript; +40 kB 2026-09-12 (WP98, `01-…` §8): the Guardrail Catalogue’s entries and the coverage fold in `governance`, which every edition bundles; +10 kB 2026-09-12 (WP99, `01-…` §8): the shipped services’ connections declared in full, `browserRefusal`, the Guard Rack’s lamp; +30 kB 2026-09-12 (WP100, `01-…` §8): the Journey Canvas — the layout and the SVG in `workflow`, the canvas, its twin and the two roundels, the journeys pages; +20 kB 2026-09-12 (WP101, `01-…` §8): the Guardrail Studio — the page with its three columns, the verdict-flow fold in `governance`, the Guard Rack as its tab; +10 kB 2026-09-12 (WP102, `01-…` §8): the complaints journey and the handoff on the Pipeline; +60 kB 2026-09-12 (WP103, `01-…` §8): the Onboarding Desk pack, its journey and the bank's screening list, which every edition bundles; +60 kB 2026-09-12 (WP104, `01-…` §8): the Disputes Desk pack and its journey, which every edition bundles; +60 kB 2026-09-12 (WP105, `01-…` §8): the Collections Desk pack and its journey, which every edition bundles; +70 kB 2026-09-12 (WP106, `01-…` §8): the Servicing Desk pack, its journey, the domain spec and the coverage matrix, which every edition bundles // +40 kB 2026-09-13 (WP109, `01-…` §8): the command palette, saved views on the rail, density and *Linked from*, which every edition bundles
+		budgetBytes: 2_290_000 // +15 kB 2026-09-07 (WP73): the wave 2 placeholders inlined as markup; +25 kB the same day (the UX pass); +50 kB 2026-09-10 (WP74): the calibration table's cited rows; +20 kB 2026-09-11 (WP80): the lending workflow, the Books and Sweeps panels, the human-load pane; +20 kB 2026-09-11 (WP81): the bank's ontology and the graph line; +10 kB 2026-09-11 (WP82): the report v3's panes; +40 kB 2026-09-11 (WP84): the Monitor page and the fold; +20 kB 2026-09-11 (WP85): the fraud and advice workflows; +30 kB 2026-09-11 (WP86): the Workflows list, the Pipeline and the Boundary's layout engine; +20 kB 2026-09-11 (WP87): the lenses; +40 kB 2026-09-11 (WP88): the Conduct and Model-risk pages and the validation suite; +40 kB 2026-09-11 (WP89): the Experiments page and the experiment module; +15 kB 2026-09-11 (WP91): headroom re-stated; +30 kB 2026-09-12 (Phase X, WP94–WP96, `01-…` §8): `GuardrailComponent` and the registry's index in `core`, the adapters and `compileComponents` in `governance`, the boundary chain in the workflow runtime, the redaction on the session and the transcript; +40 kB 2026-09-12 (WP98, `01-…` §8): the Guardrail Catalogue’s entries and the coverage fold in `governance`, which every edition bundles; +10 kB 2026-09-12 (WP99, `01-…` §8): the shipped services’ connections declared in full, `browserRefusal`, the Guard Rack’s lamp; +30 kB 2026-09-12 (WP100, `01-…` §8): the Journey Canvas — the layout and the SVG in `workflow`, the canvas, its twin and the two roundels, the journeys pages; +20 kB 2026-09-12 (WP101, `01-…` §8): the Guardrail Studio — the page with its three columns, the verdict-flow fold in `governance`, the Guard Rack as its tab; +10 kB 2026-09-12 (WP102, `01-…` §8): the complaints journey and the handoff on the Pipeline; +60 kB 2026-09-12 (WP103, `01-…` §8): the Onboarding Desk pack, its journey and the bank's screening list, which every edition bundles; +60 kB 2026-09-12 (WP104, `01-…` §8): the Disputes Desk pack and its journey, which every edition bundles; +60 kB 2026-09-12 (WP105, `01-…` §8): the Collections Desk pack and its journey, which every edition bundles; +70 kB 2026-09-12 (WP106, `01-…` §8): the Servicing Desk pack, its journey, the domain spec and the coverage matrix, which every edition bundles // +40 kB 2026-09-13 (WP109, `01-…` §8): the command palette, saved views on the rail, density and *Linked from*, which every edition bundles // +50 kB 2026-09-29 (WP112, `01-…` §8): each desk pack its own chunk — about 27 kB of glue for seven more chunks; the first page 409 kB lighter, held by its own gate
 	},
 	full: {
 		id: 'full',
@@ -84,17 +85,45 @@ export const EDITIONS: Record<EditionId, Edition> = {
 		routes: { allow: EVERYTHING },
 		mode: EDITION_MODE.full,
 		shelf: shelfFor(true),
-		budgetBytes: 2_190_000 // +25 kB 2026-09-07 (the UX pass); +50 kB 2026-09-10 (WP74): the calibration table's cited rows; +20 kB 2026-09-11 (WP80): the lending workflow, the Books and Sweeps panels, the human-load pane; +20 kB 2026-09-11 (WP81): the bank's ontology and the graph line; +10 kB 2026-09-11 (WP82): the report v3's panes; +40 kB 2026-09-11 (WP84): the Monitor page and the fold; +20 kB 2026-09-11 (WP85): the fraud and advice workflows; +30 kB 2026-09-11 (WP86): the Workflows list, the Pipeline and the Boundary's layout engine; +20 kB 2026-09-11 (WP87): the lenses; +40 kB 2026-09-11 (WP88): the Conduct and Model-risk pages and the validation suite; +40 kB 2026-09-11 (WP89): the Experiments page and the experiment module; +20 kB 2026-09-11 (WP91): headroom re-stated; +30 kB 2026-09-12 (Phase X, WP94–WP96, `01-…` §8): `GuardrailComponent` and the registry's index in `core`, the adapters and `compileComponents` in `governance`, the boundary chain in the workflow runtime, the redaction on the session and the transcript; +10 kB 2026-09-12 (WP99, `01-…` §8): the shipped services’ connections declared in full, `browserRefusal`, the Guard Rack’s lamp; +30 kB 2026-09-12 (WP100, `01-…` §8): the Journey Canvas — the layout and the SVG in `workflow`, the canvas, its twin and the two roundels, the journeys pages; +20 kB 2026-09-12 (WP101, `01-…` §8): the Guardrail Studio — the page with its three columns, the verdict-flow fold in `governance`, the Guard Rack as its tab; +10 kB 2026-09-12 (WP102, `01-…` §8): the complaints journey and the handoff on the Pipeline; +60 kB 2026-09-12 (WP103, `01-…` §8): the Onboarding Desk pack, its journey and the bank's screening list, which every edition bundles; +60 kB 2026-09-12 (WP104, `01-…` §8): the Disputes Desk pack and its journey, which every edition bundles; +60 kB 2026-09-12 (WP105, `01-…` §8): the Collections Desk pack and its journey, which every edition bundles; +70 kB 2026-09-12 (WP106, `01-…` §8): the Servicing Desk pack, its journey, the domain spec and the coverage matrix, which every edition bundles // +40 kB 2026-09-13 (WP109, `01-…` §8): the command palette, saved views on the rail, density and *Linked from*, which every edition bundles
+		budgetBytes: 2_240_000 // +25 kB 2026-09-07 (the UX pass); +50 kB 2026-09-10 (WP74): the calibration table's cited rows; +20 kB 2026-09-11 (WP80): the lending workflow, the Books and Sweeps panels, the human-load pane; +20 kB 2026-09-11 (WP81): the bank's ontology and the graph line; +10 kB 2026-09-11 (WP82): the report v3's panes; +40 kB 2026-09-11 (WP84): the Monitor page and the fold; +20 kB 2026-09-11 (WP85): the fraud and advice workflows; +30 kB 2026-09-11 (WP86): the Workflows list, the Pipeline and the Boundary's layout engine; +20 kB 2026-09-11 (WP87): the lenses; +40 kB 2026-09-11 (WP88): the Conduct and Model-risk pages and the validation suite; +40 kB 2026-09-11 (WP89): the Experiments page and the experiment module; +20 kB 2026-09-11 (WP91): headroom re-stated; +30 kB 2026-09-12 (Phase X, WP94–WP96, `01-…` §8): `GuardrailComponent` and the registry's index in `core`, the adapters and `compileComponents` in `governance`, the boundary chain in the workflow runtime, the redaction on the session and the transcript; +10 kB 2026-09-12 (WP99, `01-…` §8): the shipped services’ connections declared in full, `browserRefusal`, the Guard Rack’s lamp; +30 kB 2026-09-12 (WP100, `01-…` §8): the Journey Canvas — the layout and the SVG in `workflow`, the canvas, its twin and the two roundels, the journeys pages; +20 kB 2026-09-12 (WP101, `01-…` §8): the Guardrail Studio — the page with its three columns, the verdict-flow fold in `governance`, the Guard Rack as its tab; +10 kB 2026-09-12 (WP102, `01-…` §8): the complaints journey and the handoff on the Pipeline; +60 kB 2026-09-12 (WP103, `01-…` §8): the Onboarding Desk pack, its journey and the bank's screening list, which every edition bundles; +60 kB 2026-09-12 (WP104, `01-…` §8): the Disputes Desk pack and its journey, which every edition bundles; +60 kB 2026-09-12 (WP105, `01-…` §8): the Collections Desk pack and its journey, which every edition bundles; +70 kB 2026-09-12 (WP106, `01-…` §8): the Servicing Desk pack, its journey, the domain spec and the coverage matrix, which every edition bundles // +40 kB 2026-09-13 (WP109, `01-…` §8): the command palette, saved views on the rail, density and *Linked from*, which every edition bundles // +50 kB 2026-09-29 (WP112, `01-…` §8): each desk pack its own chunk — about 27 kB of glue for seven more chunks; the first page 409 kB lighter, held by its own gate
 	}
 };
 
 export { isEditionId } from './edition-id.js';
 
-/** The edition this bundle was built as — `CAB_EDITION` at build, `full` by default — with its packs. */
+/**
+ * The edition this bundle was built as — `CAB_EDITION` at build, `full` by
+ * default — with its packs. Since WP112 the desk packs are not in the first
+ * bundle: `edition.packs` starts with the rest, in the edition's order, and
+ * `loadDesks` fills the desks in at their places. The array is the same one
+ * throughout, so `installedPacks` (`packs.ts`) sees them arrive.
+ */
 export const edition: Edition & { packs: PackManifest[] } = {
 	...EDITIONS[editionId],
-	packs: builtPacks
+	packs: slots.filter((slot): slot is PackManifest => !isDeskLoader(slot))
 };
+
+let loading: Promise<void> | undefined;
+
+/**
+ * **The desks, loaded** (WP112): every desk pack of the edition fetched as its
+ * own chunk and put into `edition.packs` at its place in the edition's order —
+ * once; every later call is the same promise. The root layout's `load` awaits
+ * it on every route but the Kit's first page, which only starts it.
+ */
+export function loadDesks(): Promise<void> {
+	loading ??= Promise.all(
+		slots.map((slot) => (isDeskLoader(slot) ? slot.load() : Promise.resolve(slot)))
+	).then((ordered) => {
+		edition.packs.splice(0, edition.packs.length, ...ordered);
+	});
+	return loading;
+}
+
+/** Whether `loadDesks` has put every desk in place. */
+export function desksLoaded(): boolean {
+	return edition.packs.length === slots.length;
+}
 
 /** The pathname with this edition's `base` stripped, so route checks read the app's own path. */
 export function routePath(pathname: string, editionBase: string = base): string {

@@ -5,8 +5,10 @@ import {
 	computeTraceDigest,
 	engineEventSchema,
 	localPackFrom,
+	recordingProvider,
 	type LLMProvider,
-	type PackRegistry
+	type PackRegistry,
+	type ProviderCassetteEntry
 } from '@craftabot/core';
 import {
 	campaignEnvelope,
@@ -18,9 +20,13 @@ import {
 	renderSarif,
 	runCampaign,
 	type CampaignBrain,
+	scriptedOptimal,
+	type Campaign,
 	type CampaignCell,
 	type CampaignReport
 } from '@craftabot/evals';
+import { createMockProvider } from '@craftabot/core/testing';
+import { cassetteLoader } from '../cassettes.js';
 import { summariseRun } from '@craftabot/governance/reports';
 import { harnessPlans } from '../plans.js';
 import { createRegistry, packVersions, type HarnessConfig } from '../config.js';
@@ -76,6 +82,18 @@ export interface CampaignFileOptions {
 	resume?: boolean;
 	/** Called after each cell with whether it was reused from a previous run (WP68). */
 	onCellDone?: (done: number, total: number, reused: boolean) => void;
+	/**
+	 * Record the live brains' calls into their cassettes (WP114, `103-…` §4):
+	 * every brain that names a `cassette` runs live instead — through its
+	 * cartridge's provider, or `mock`, the scripted-optimal plans — and each
+	 * cell's entries land under the brain's cassette path. `craftabot record
+	 * --experiment` writes them. One thread: no `--jobs` pool.
+	 */
+	record?: {
+		provider: 'live' | 'mock';
+		recordings: Map<string, ProviderCassetteEntry[][]>;
+		clock?: () => number;
+	};
 }
 
 /** One line of `<out>/cells.jsonl` (WP68): which run was which cell, and the events' digest a resume verifies. */
@@ -135,7 +153,14 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 		}
 		fromFile['seeds'] = Array.from({ length: to - from + 1 }, (_, index) => from + index);
 	}
-	const campaign = parseCampaign(fromFile);
+	const parsed = parseCampaign(fromFile);
+	// Recording (WP114): each cassette brain runs live, and its path is where its calls go.
+	const cassetteOfBrain = new Map(
+		parsed.brains.flatMap((brain) => (brain.cassette ? [[brain.id, brain.cassette] as const] : []))
+	);
+	if (options.record && (options.jobs ?? 1) > 1)
+		throw new Error('recording a cassette runs on one thread: drop --jobs');
+	const campaign = options.record ? forRecording(parsed, options.record.provider) : parsed;
 	const baseline =
 		options.baseline === undefined
 			? undefined
@@ -206,7 +231,24 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 			...(pool ? { concurrency: jobs } : {}),
 			...(options.shard ? { shard: options.shard } : {}),
 			packVersions: versions,
-			providerFor: (brain) => providerFor(brain, registry, options),
+			providerFor: (brain, context) => {
+				const record = options.record;
+				const path = cassetteOfBrain.get(brain.id);
+				if (!record || path === undefined) return providerFor(brain, registry, options);
+				const inner =
+					record.provider === 'mock'
+						? createMockProvider({
+								script: scriptedOptimal(harnessPlans.planFor(context?.goalCardId ?? ''))
+							})
+						: providerFor(brain, registry, options);
+				const recording = recordingProvider(inner, record.clock ? { now: record.clock } : {});
+				const into = record.recordings.get(path) ?? [];
+				into.push(recording.entries);
+				record.recordings.set(path, into);
+				return recording.provider;
+			},
+			// A cassette brain replays (WP114): the file read here, `evals` never touching a disk.
+			cassetteFor: cassetteLoader(),
 			egress: options.egress ?? 'declared',
 			...(options.principal ? { principal: options.principal } : {}),
 			packs: runnerPacks,
@@ -307,6 +349,25 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 	}
 
 	return { report, reportFile, written, sinkFailures };
+}
+
+/**
+ * The campaign as a recording runs it: every cassette brain live, its
+ * `cassette` dropped so the runner asks `providerFor`. A mock recording
+ * spends nothing, so it carries a budget for its cells if the file has none;
+ * a live one keeps the file's budget — or its refusal.
+ */
+function forRecording(campaign: Campaign, provider: 'live' | 'mock'): Campaign {
+	const brains = campaign.brains.map((brain) => {
+		const live = { ...brain };
+		delete live.cassette;
+		return live;
+	});
+	const budget =
+		provider === 'mock' && !campaign.budget
+			? { maxLiveCells: Number.MAX_SAFE_INTEGER }
+			: campaign.budget;
+	return { ...campaign, brains, ...(budget ? { budget } : {}) } as Campaign;
 }
 
 function providerFor(

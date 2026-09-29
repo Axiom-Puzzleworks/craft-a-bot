@@ -13,7 +13,8 @@ import type {
  * refused act was still tried); `disclosure-recorded` reads the truth's
  * need against what was recorded before the desk acted; `needs-met` reads
  * the truth's act against what performed; `classified-correctly` labels the
- * classification against the rule's.
+ * classification against the truth's category — the author's label since
+ * WP111 (`102-HONEST-BANK.md` §3), never the rule's reading of the words.
  */
 const bare = (name: string): string => name.slice(name.lastIndexOf('/') + 1);
 const ACTS = new Set([
@@ -214,7 +215,7 @@ export const CLASSIFIED_CORRECTLY_ID = 'fs-servicing/classified-correctly';
 export const classifiedCorrectly = deterministic(
 	CLASSIFIED_CORRECTLY_ID,
 	'Classified correctly',
-	'The classification made against the rule’s in truth: agree or disagree; with nothing classified, inconclusive (fca:cd:support).',
+	'The classification made against the category in truth, as labelled: agree or disagree; with nothing classified, inconclusive (fca:cd:support).',
 	(input) => {
 		const expected = String(factsOf(input)['category'] ?? '').replace(/^category-/, '');
 		if (!expected) return inconclusive(CLASSIFIED_CORRECTLY_ID, 'No truth to score against.');

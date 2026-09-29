@@ -53,6 +53,13 @@ export interface StageSpec<In = unknown, Out = unknown> {
 	/** Which stage follows, or `'end'` — from this stage's output, the state and, when it matters, the input it was given. */
 	/** The next stage, `'end'`, or a handoff (WP102, `83-…` §6.5.3): another journey started with the item `next` builds — the item, never the desk state. */
 	next: (out: Out, state: WorldState, input: In) => StageNext;
+	/**
+	 * For the drawing only (WP111, `102-HONEST-BANK.md` §4): the stages a
+	 * `next` that reads the case may name. The Journey Canvas draws one
+	 * *depends on the case* edge to each instead of one to the stage declared
+	 * after this one. The runtime never reads it.
+	 */
+	mayGoTo?: string[];
 }
 
 export interface StageHandoff {

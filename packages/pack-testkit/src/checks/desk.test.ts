@@ -5,6 +5,7 @@ import type {
 	WorldInstance
 } from '@craftabot/core';
 import { describe, expect, it } from 'vitest';
+import type { TruthIndependenceFixture } from '../types.js';
 import { checkDesk } from './desk.js';
 
 /**
@@ -267,6 +268,74 @@ describe('checkDesk: the truth property (WP54, `45-…` §4.3)', () => {
 	it('rejects a desk that carries its truth in the snapshot', () => {
 		const issues = checkDesk(desk({ snapshotsTruth: true, purpose: 'p' }));
 		expect(issues.map((i) => i.check)).toContain('desk.truth-not-in-snapshot');
+	});
+});
+
+describe('checkDesk: truth independence (WP111, `102-HONEST-BANK.md` §2)', () => {
+	/** The rule under test: reads the desk and names a verdict. */
+	const ruleOf = (state: { records: unknown[] }): string =>
+		state.records.length > 0 ? 'genuine-visitor' : 'impostor-visitor';
+	/** A desk whose truth *is* the rule's answer — the shape the property exists to find. */
+	const echoing = (): WorldDefinition => {
+		const world = desk({ truth: true, purpose: 'p' });
+		return {
+			...world,
+			create: (layoutId, options) => {
+				const instance = world.create(layoutId, options);
+				return {
+					...instance,
+					truth: () => ({
+						records: [],
+						facts: { verdict: ruleOf(instance.snapshot() as unknown as State) }
+					})
+				};
+			}
+		};
+	};
+	const rows = Array.from({ length: 12 }, (_, i) => ({ layoutId: 'a', seed: i + 1 }));
+	const entry = (overrides: Partial<TruthIndependenceFixture> = {}): TruthIndependenceFixture => ({
+		leaf: 'verdict',
+		ruleId: 'verdict-v1',
+		rule: (state) => ruleOf(state),
+		rows,
+		...overrides
+	});
+	const checks = (world: WorldDefinition, fixture: TruthIndependenceFixture[]) =>
+		checkDesk(world, { truthIndependence: fixture }).filter((i) =>
+			i.check.startsWith('desk.truth-')
+		);
+
+	it('passes a desk whose truth the rule gets wrong on some row', () => {
+		expect(checks(desk({ truth: true, purpose: 'p' }), [entry()])).toEqual([]);
+	});
+
+	it('is red on a desk whose truth is the rule’s own answer', () => {
+		const issues = checks(echoing(), [entry()]);
+		expect(issues.map((i) => i.check)).toEqual(['desk.truth-independent']);
+		expect(issues[0]?.message).toContain('agrees with truth fact "verdict" on all 12 rows');
+	});
+
+	it('admits the same desk once it declares the fact derived from the rule', () => {
+		const declared = { ...echoing(), spec: { derivedTruth: { verdict: 'verdict-v1' } } };
+		expect(checks(declared, [entry()])).toEqual([]);
+	});
+
+	it('names a declaration for another rule, a declared fact truth never carries, and a rule with no rows', () => {
+		const declared = {
+			...echoing(),
+			spec: { derivedTruth: { verdict: 'other-v1', ghost: 'g-v1' } }
+		};
+		const messages = checks(declared, [
+			entry(),
+			entry({ leaf: 'band', ruleId: 'band-v1', rows: [] })
+		]).map((i) => `${i.check}: ${i.message}`);
+		expect(messages).toEqual([
+			expect.stringContaining('desk.truth-derived: the desk declares truth leaf "ghost"'),
+			expect.stringContaining(
+				'desk.truth-derived: truth fact "verdict" is declared derived from "other-v1"'
+			),
+			expect.stringContaining('desk.truth-independent: rule "band-v1" computes truth fact "band"')
+		]);
 	});
 });
 

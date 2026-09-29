@@ -1,6 +1,10 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/svelte';
 import { afterEach } from 'vitest';
+import { loadDesks } from '$lib/edition.js';
+
+// The desks load on demand in the app (WP112); a test sees the whole box, as the app does past its first page.
+await loadDesks();
 
 /**
  * Testing Library only auto-registers its cleanup when Vitest runs with
