@@ -2,6 +2,7 @@ import type { ActionCall, WorldState } from './world.js';
 import type { JsonSchema } from './json-schema.js';
 import type { Book, WorkItem, WorkItemKind } from '../schemas/book.js';
 import type { ContextSpec } from './context.js';
+import type { CalibrationRef } from './error-model.js';
 
 /**
  * **Workflows** (WP79, `69-WORKFLOWS.md` §3; `64-TARGET-DESIGN-V5.md` §6.2,
@@ -99,6 +100,28 @@ export interface WorkflowConfig {
 	stack?: string;
 	/** A stack per stage, by stage id: its boundary fits at that stage, its loop fits on that stage's session. */
 	stageStacks?: Record<string, string>;
+	/**
+	 * The person at every `human` stage, as a model (WP115, `103-FALLIBLE-ACTORS.md`
+	 * §6; `100-…` §6.2, D15): a pack's `reviewerModels` id. Absent, the stage is
+	 * answered as it always was — the oracle — and nothing new is written.
+	 */
+	reviewer?: string;
+}
+
+/**
+ * **A reviewer model** (WP115, `103-…` §6): how a person at a `human` stage
+ * errs, every parameter a calibration row — cited or stated, `review: 'pending'`.
+ */
+export interface ReviewerModel {
+	id: string;
+	name: string;
+	description: string;
+	/** P(the answer is right) when nothing wrong is put in front of them: a `rates` row. */
+	accuracy: CalibrationRef;
+	/** P(they take a wrong recommendation the case puts in front of them): a `rates` row. */
+	automationBias: CalibrationRef;
+	/** Seconds a case takes: a `weights` row whose keys are seconds. */
+	secondsPerCase: CalibrationRef;
 }
 
 export interface WorkflowSpec {

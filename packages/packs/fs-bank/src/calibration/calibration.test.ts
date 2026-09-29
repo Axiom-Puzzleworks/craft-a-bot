@@ -8,6 +8,8 @@ import { AGE_BANDS, INCOME_BANDS, type BankCase } from '../model.js';
 import { CALIBRATION } from './table.js';
 import { DECK_WEIGHTS } from './deck-weights.js';
 import { BOOK_INCIDENCES, everyNth } from './book-incidences.js';
+import { ERROR_RATES } from './error-rates.js';
+import { CASE_HANDLER_REVIEWER_ID, REVIEWER_RATES, bankReviewerModels } from './reviewer.js';
 import legacy from './legacy-digests.json' with { type: 'json' };
 
 /**
@@ -327,5 +329,26 @@ describe('the Phase AA books’ incidences (WP112)', () => {
 	it('sit outside the population’s table, so no population digest moves', () => {
 		const cited = new Set(CALIBRATION.rows.map((row) => row.id));
 		for (const row of BOOK_INCIDENCES.rows) expect(cited.has(row.id), row.id).toBe(false);
+	});
+});
+
+describe('the fallible actors’ rows (WP115)', () => {
+	it('pass checkCalibration as assumptions, every row awaiting review, apart from the population', () => {
+		const cited = new Set(CALIBRATION.rows.map((row) => row.id));
+		for (const table of [ERROR_RATES, REVIEWER_RATES]) {
+			expect(checkCalibration(table)).toEqual([]);
+			expect(table.rows.every((row) => row.review === 'pending')).toBe(true);
+			expect(table.rows.every((row) => row.source.kind === 'assumption')).toBe(true);
+			for (const row of table.rows) expect(cited.has(row.id), row.id).toBe(false);
+		}
+	});
+
+	it('the case handler reads its three rows from the reviewer table', () => {
+		const [model] = bankReviewerModels;
+		expect(model?.id).toBe(CASE_HANDLER_REVIEWER_ID);
+		for (const ref of [model!.accuracy, model!.automationBias, model!.secondsPerCase]) {
+			expect(ref.table).toBe(REVIEWER_RATES.id);
+			expect(REVIEWER_RATES.rows.some((row) => row.id === ref.row)).toBe(true);
+		}
 	});
 });

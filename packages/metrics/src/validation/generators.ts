@@ -162,3 +162,32 @@ export function touchedCases(
 		};
 	});
 }
+
+/**
+ * Cases with one review each (WP115): seconds drawn from 60/120/240/480 at
+ * weights 20/45/25/10 (mean 174), right with probability `accuracy`, and —
+ * with probability `wrongShare` — a wrong recommendation put in front of the
+ * person, caught with probability `catches` (then the review's correctness is
+ * the catch).
+ */
+export function reviewedCases(
+	seed: number,
+	n: number,
+	options: { accuracy: number; wrongShare: number; catches: number }
+): TouchedCase[] {
+	const random = mulberry32(seed);
+	const seconds = (): number => {
+		const draw = random() * 100;
+		return draw < 20 ? 60 : draw < 65 ? 120 : draw < 90 ? 240 : 480;
+	};
+	return Array.from({ length: n }, (_, i) => {
+		const wrongPut = random() < options.wrongShare;
+		const caught = wrongPut ? random() < options.catches : undefined;
+		const correct = caught ?? random() < options.accuracy;
+		return {
+			id: `r${i}`,
+			touches: [{ kind: 'human:review' }],
+			reviews: [{ seconds: seconds(), correct, ...(caught !== undefined ? { caught } : {}) }]
+		};
+	});
+}

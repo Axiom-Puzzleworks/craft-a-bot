@@ -74,15 +74,19 @@ export {
 	type PsiResult
 } from './drift.js';
 export {
+	catchRate,
 	ceilingBreachRate,
 	humanLoadAtVolume,
 	minutesPerCase,
 	oversightCost,
+	reviewAccuracy,
+	reviewSecondsPerCase,
 	touchesPerCase,
 	unattendedRate,
 	type AutonomyLevel,
 	type LoadOptions,
 	type LoadResult,
+	type Review,
 	type Touch,
 	type TouchedCase
 } from './human-load.js';

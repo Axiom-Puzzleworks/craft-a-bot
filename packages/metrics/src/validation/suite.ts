@@ -19,7 +19,14 @@ import {
 	ruleAgreement,
 	type DecidedCase
 } from '../fairness.js';
-import { ceilingBreachRate, touchesPerCase, unattendedRate } from '../human-load.js';
+import {
+	catchRate,
+	ceilingBreachRate,
+	reviewAccuracy,
+	reviewSecondsPerCase,
+	touchesPerCase,
+	unattendedRate
+} from '../human-load.js';
 import { wilson } from '../intervals.js';
 import {
 	decidedCases,
@@ -29,6 +36,7 @@ import {
 	flips,
 	matchedPairs,
 	series,
+	reviewedCases,
 	touchedCases
 } from './generators.js';
 
@@ -675,6 +683,67 @@ export function validationReport(options: { seeds?: number; n?: number } = {}): 
 			0.02,
 			(seed) => excludesZero(ceilingBreachRate(touchedCases(seed, n, 1.5), ceilings).interval),
 			'the 95% interval excludes 0 with no breach planted'
+		)
+	);
+
+	// --- human load v2 (WP115, `103-FALLIBLE-ACTORS.md` §6): cost, quality, the catch rate
+	const handReviewed = [
+		{ id: 'a', touches: [], reviews: [{ seconds: 60, correct: true }] },
+		{
+			id: 'b',
+			touches: [],
+			reviews: [
+				{ seconds: 120, correct: false, caught: false },
+				{ seconds: 240, correct: true, caught: true }
+			]
+		},
+		{ id: 'c', touches: [] },
+		{ id: 'd', touches: [], reviews: [{ seconds: 60, correct: true }] }
+	];
+	const reviewed = (seed: number) =>
+		reviewedCases(seed, n, { accuracy: 0.9, wrongShare: 0.5, catches: 0.7 });
+	const misses = (interval: [number, number], truth: number) =>
+		interval[0] > truth || interval[1] < truth;
+	rows.push(
+		loadRow(
+			'review-seconds-per-case',
+			'the seconds a reviewer model spent per case, summed over its reviews',
+			't interval on the mean',
+			120,
+			reviewSecondsPerCase(handReviewed).value,
+			174,
+			reviewSecondsPerCase(reviewed(4)),
+			8,
+			(seed) => misses(reviewSecondsPerCase(reviewed(seed)).interval, 174),
+			'the 95% interval misses the true mean'
+		)
+	);
+	rows.push(
+		loadRow(
+			'review-accuracy',
+			'the share of reviews answered right',
+			'Wilson',
+			0.75,
+			reviewAccuracy(handReviewed).value,
+			0.8,
+			reviewAccuracy(reviewed(5)),
+			0.03,
+			(seed) => misses(reviewAccuracy(reviewed(seed)).interval, 0.8),
+			'the 95% interval misses the true share'
+		)
+	);
+	rows.push(
+		loadRow(
+			'catch-rate',
+			'of the reviews with a wrong recommendation in front of the person, the share reversed',
+			'Wilson',
+			0.5,
+			catchRate(handReviewed).value,
+			0.7,
+			catchRate(reviewed(6)),
+			0.04,
+			(seed) => misses(catchRate(reviewed(seed)).interval, 0.7),
+			'the 95% interval misses the true rate'
 		)
 	);
 

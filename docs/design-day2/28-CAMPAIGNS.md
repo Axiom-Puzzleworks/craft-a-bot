@@ -302,3 +302,5 @@ Sizing: B is the largest (the runner and gates are new machinery); C is medium; 
 > **Amended 2026-09-29 (WP113, `89-…` §8's dated note):** the three desk baselines that fit a hosted guard (advice, fraud, lending) fit it through its offline stand-in with a config the service accepts; every baseline's gates passed unchanged on the new inputs. A shipped campaign whose Guard brick carries a config its service refuses is now a failing test (`harness/src/hosted-guards.test.ts`).
 
 > **Amended 2026-09-29 (WP114, `103-…` §4):** a `live` brain may name a `cassette` (a path the host resolves through `cassetteFor`); its cells replay the provider's recorded answers with no key and no network, and do not count against `budget.maxLiveCells`. `providerFor` receives the cell's goal card as a second argument.
+
+> **Amended 2026-09-29 (WP115, `103-…` §5–§6):** a `fallible` brain names an `errorModel` (and only a fallible brain does); a book campaign's build may name `overrides.reviewer`, and its cells carry `cell.workflow.reviews`.

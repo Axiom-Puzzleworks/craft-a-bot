@@ -987,6 +987,10 @@
 											"configuration": {
 												"type": "string",
 												"minLength": 1
+											},
+											"reviewer": {
+												"type": "string",
+												"minLength": 1
 											}
 										}
 									}

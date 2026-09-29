@@ -29,6 +29,7 @@ import {
 	runOutcomeSchema,
 	usageSchema,
 	boundaryVerdictSchema,
+	reviewerAnswerSchema,
 	verdictFindingSchema
 } from './shared.js';
 
@@ -467,7 +468,9 @@ const stageCompletedEvent = eventSchema(
 			tripped: z.number().int().nonnegative(),
 			/** The boundary chain's verdicts (WP95, `69-…` §10); absent when the stage had none. */
 			verdicts: z.array(boundaryVerdictSchema).optional()
-		})
+		}),
+		/** The reviewer model's answer at a `human` stage (WP115); absent unless the configuration names one. */
+		by: reviewerAnswerSchema.optional()
 	})
 );
 

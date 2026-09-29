@@ -575,6 +575,8 @@ export {
 } from './schemas/cassette.js';
 /** Error models and the fallible tier (WP115, `103-FALLIBLE-ACTORS.md` §5). */
 export type { CalibrationRef, DecisionFaultSpec, ErrorModel } from './types/error-model.js';
+export type { ReviewerModel } from './types/workflow.js';
+export { reviewerAnswerSchema, type ReviewerAnswer } from './schemas/shared.js';
 /** Provider cassettes (WP114, `103-FALLIBLE-ACTORS.md` §3). */
 export {
 	parseProviderCassette,

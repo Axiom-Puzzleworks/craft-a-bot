@@ -302,3 +302,23 @@ export const boundaryVerdictSchema = z.object({
 	approved: z.boolean().optional()
 });
 export type BoundaryVerdict = z.infer<typeof boundaryVerdictSchema>;
+
+/**
+ * **Who answered a `human` stage, as a model** (WP115, `103-FALLIBLE-ACTORS.md`
+ * §6; `100-…` §6.2, D15): written on the stage record and `stage.completed`
+ * only when the configuration names a reviewer model. `shouldHave` is the
+ * stage's own recommendation of the right answer (`suggest`); `recommended` is
+ * what the case put in front of the person, when its input carried one among
+ * the options; `followed` whether they took it; `correct` whether they were
+ * right; `seconds` the time the case took them, drawn from the model's row.
+ */
+export const reviewerAnswerSchema = z.object({
+	model: z.string(),
+	answer: z.string(),
+	shouldHave: z.string(),
+	recommended: z.string().optional(),
+	followed: z.boolean(),
+	correct: z.boolean(),
+	seconds: z.number().nonnegative()
+});
+export type ReviewerAnswer = z.infer<typeof reviewerAnswerSchema>;

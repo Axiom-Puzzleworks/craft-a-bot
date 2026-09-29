@@ -484,6 +484,36 @@
 								"type": "integer",
 								"minimum": 0,
 								"maximum": 9007199254740991
+							},
+							"reviews": {
+								"type": "array",
+								"items": {
+									"type": "object",
+									"properties": {
+										"stageId": {
+											"type": "string"
+										},
+										"seconds": {
+											"type": "number",
+											"minimum": 0
+										},
+										"correct": {
+											"type": "boolean"
+										},
+										"followed": {
+											"type": "boolean"
+										},
+										"caught": {
+											"type": "boolean"
+										}
+									},
+									"required": [
+										"stageId",
+										"seconds",
+										"correct",
+										"followed"
+									]
+								}
 							}
 						},
 						"required": [

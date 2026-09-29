@@ -34,3 +34,6 @@
 | `touches-per-case` | mean touches per case | t interval on the mean | none | 1.1667 / 1.1667 ✅ | 1.5 / 1.462 / ±0.1 (interval contains it) ✅ | the 95% interval misses the true mean · 0.015 / 0.0896 ✅ |
 | `unattended-rate` | the share of cases with no touch | Wilson | none | 0.3333 / 0.3333 ✅ | 0.2231 / 0.2305 / ±0.03 (interval contains it) ✅ | the 95% interval misses the true rate · 0.045 / 0.0896 ✅ |
 | `ceiling-breach-rate` | the share of decisions taken above their kind’s ceiling | Wilson | none | 0.3333 / 0.3333 ✅ | 0.1 / 0.1055 / ±0.02 (interval contains it) ✅ | the 95% interval excludes 0 with no breach planted · 0 / 0.0896 ✅ |
+| `review-seconds-per-case` | the seconds a reviewer model spent per case, summed over its reviews | t interval on the mean | none | 120 / 120 ✅ | 174 / 170.7 / ±8 (interval contains it) ✅ | the 95% interval misses the true mean · 0.055 / 0.0896 ✅ |
+| `review-accuracy` | the share of reviews answered right | Wilson | none | 0.75 / 0.75 ✅ | 0.8 / 0.7865 / ±0.03 (interval contains it) ✅ | the 95% interval misses the true share · 0.025 / 0.0896 ✅ |
+| `catch-rate` | of the reviews with a wrong recommendation in front of the person, the share reversed | Wilson | none | 0.5 / 0.5 ✅ | 0.7 / 0.6894 / ±0.04 (interval contains it) ✅ | the 95% interval misses the true rate · 0.03 / 0.0896 ✅ |

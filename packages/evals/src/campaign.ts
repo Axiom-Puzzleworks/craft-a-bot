@@ -159,7 +159,9 @@ export const specOverridesSchema = z.object({
 	 */
 	knobs: z.record(z.string(), z.union([z.number(), z.string(), z.boolean()])).optional(),
 	/** The workflow's named configuration this build runs, in a book campaign (WP80, `73-…` §4): an autonomy level applied to the journey. Not a spec override either. */
-	configuration: z.string().min(1).optional()
+	configuration: z.string().min(1).optional(),
+	/** The reviewer model at the journey's human stages (WP115, `103-…` §6), by id: the person as a model, in a book campaign. Not a spec override. */
+	reviewer: z.string().min(1).optional()
 });
 
 export const noiseRatesSchema = z.object({
@@ -627,7 +629,19 @@ export const campaignCellSchema = z.object({
 			),
 			touches: z.array(z.string()),
 			decisions: z.array(z.object({ kind: z.string(), level: z.number().int().min(1).max(5) })),
-			breaches: z.number().int().nonnegative()
+			breaches: z.number().int().nonnegative(),
+			/** The reviewer model's answers at the journey's human stages (WP115, `103-…` §6); absent without one. */
+			reviews: z
+				.array(
+					z.object({
+						stageId: z.string(),
+						seconds: z.number().nonnegative(),
+						correct: z.boolean(),
+						followed: z.boolean(),
+						caught: z.boolean().optional()
+					})
+				)
+				.optional()
 		})
 		.optional(),
 	/** The seat across the desk in this cell (WP64): the tier, and for a live seat who sat there. Defaulted so every stored report parses. */
@@ -1403,7 +1417,8 @@ async function runBookCell(
 	const config: WorkflowConfig = {
 		...(named ?? {}),
 		...(Object.keys(knobs).length > 0 ? { knobs } : {}),
-		...(cell.context ? { context: cell.context } : {})
+		...(cell.context ? { context: cell.context } : {}),
+		...(build.overrides?.reviewer !== undefined ? { reviewer: build.overrides.reviewer } : {})
 	};
 	const spec = specFor(cell);
 	const seat = createTestClock({ seed, idOffset: cell.ordinal * ID_STRIDE });
@@ -1530,7 +1545,8 @@ async function runBookCell(
 			})),
 			touches: touched.touches.map((touch) => touch.kind),
 			decisions: touched.decisions ?? [],
-			breaches
+			breaches,
+			...(touched.reviews ? { reviews: touched.reviews } : {})
 		}
 	};
 	if (last) options.onTrace?.(scored, { events: last.events, spec: last.spec });
@@ -2005,9 +2021,10 @@ function cleanOverrides(
 ): Omit<SpecOverrides, 'goalCardId' | 'tools'> {
 	if (!overrides) return {};
 	return Object.fromEntries(
-		// `knobs` are the world's and `configuration` the workflow's, not the spec's (WP78, WP80).
+		// `knobs` are the world's, `configuration` and `reviewer` the workflow's, not the spec's (WP78, WP80, WP115).
 		Object.entries(overrides).filter(
-			([key, value]) => key !== 'knobs' && key !== 'configuration' && value !== undefined
+			([key, value]) =>
+				key !== 'knobs' && key !== 'configuration' && key !== 'reviewer' && value !== undefined
 		)
 	) as Omit<SpecOverrides, 'goalCardId' | 'tools'>;
 }

@@ -289,6 +289,8 @@ Rules: events are **append-only facts**; payloads are JSON-serialisable; the tra
 
 > **Amended 2026-09-29 (WP115, `103-FALLIBLE-ACTORS.md` §5).** One new event and one optional field. **`decision.fault`** — `{ action, field, chose, shouldHave, planted: true, errorModel? }` — written by the session right after the brain's `decision` whenever the response carried a planted fault: the fallible tier changed `field` of the call (`'action'` when it swapped the action itself) from `shouldHave` to `chose`, under the named error model. Only a scripted brain plants one; a live model never writes it, so an error on the trace without it is the actor's own. **`ChatResponse.fault?`** (`schemas/shared.ts`) carries it from the provider to the session, and so appears on `think.completed` too. Every trace without a fallible brain is unchanged.
 
+> **Amended 2026-09-29, later (WP115, `103-FALLIBLE-ACTORS.md` §6).** **`stage.completed.by?`** — the reviewer model's answer at a `human` stage, `{ model, answer, shouldHave, recommended?, followed, correct, seconds }` (`reviewerAnswerSchema`, `schemas/shared.ts`), written only when the workflow's configuration names a `reviewer`; the stage record carries the same. Every run without a reviewer, the golden runs among them, is unchanged.
+
 ## 8. Prompting (V1 canonical prompt)
 
 The composed prompt is assembled from labelled sections, in this order, and shown verbatim in the trace (`prompt.composed`):

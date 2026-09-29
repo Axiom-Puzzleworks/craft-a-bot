@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { engineEventSchema } from './events.js';
-import { principalSchema, boundaryVerdictSchema } from './shared.js';
+import { principalSchema, boundaryVerdictSchema, reviewerAnswerSchema } from './shared.js';
 import { contextSpecSchema } from './context.js';
 import { workItemSchema } from './book.js';
 
@@ -79,7 +79,9 @@ export const stageRecordSchema = z.object({
 		.optional(),
 	status: z.enum(['ok', 'blocked', 'escalated', 'error']),
 	/** Why a stage is `error` or `blocked`, in a sentence. */
-	finding: z.string().optional()
+	finding: z.string().optional(),
+	/** The reviewer model's answer at a `human` stage (WP115, `103-…` §6); absent unless the configuration names one. */
+	by: reviewerAnswerSchema.optional()
 });
 export type StageRecord = z.infer<typeof stageRecordSchema>;
 
@@ -100,7 +102,9 @@ export const workflowConfigRecordSchema = z.object({
 				.optional()
 		})
 		.optional(),
-	context: contextSpecSchema.optional()
+	context: contextSpecSchema.optional(),
+	/** The reviewer model at every `human` stage (WP115), by id; absent, the oracle. */
+	reviewer: z.string().min(1).optional()
 });
 
 export const workflowRunSchema = z.object({

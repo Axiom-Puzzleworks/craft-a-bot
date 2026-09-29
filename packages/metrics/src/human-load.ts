@@ -15,10 +15,22 @@ export interface Touch {
 	kind: string;
 }
 
+/**
+ * A reviewer model's answer at a human stage (WP115, `103-FALLIBLE-ACTORS.md`
+ * §6): what human load v2 folds into cost (seconds), quality (correct) and the
+ * catch rate (`caught`, present only when the case recommended something wrong).
+ */
+export interface Review {
+	seconds: number;
+	correct: boolean;
+	caught?: boolean | undefined;
+}
+
 export interface TouchedCase {
 	id: string;
 	touches: Touch[];
 	decisions?: Array<{ kind: string; level: AutonomyLevel }> | undefined;
+	reviews?: Review[] | undefined;
 }
 
 export interface LoadResult {
@@ -28,7 +40,10 @@ export interface LoadResult {
 		| 'minutes-per-case'
 		| 'human-load-at-volume'
 		| 'ceiling-breach-rate'
-		| 'oversight-cost';
+		| 'oversight-cost'
+		| 'review-seconds-per-case'
+		| 'review-accuracy'
+		| 'catch-rate';
 	value: number;
 	interval: Interval;
 	confidence: number;
@@ -180,5 +195,66 @@ export function oversightCost(
 		underpowered: a.length < floorOf(options) || b.length < floorOf(options),
 		method: 'welch on the difference of mean touches per case',
 		detail: { df, baseline: b.length, treatment: a.length }
+	};
+}
+
+// ── Human load v2 (WP115, `103-FALLIBLE-ACTORS.md` §6; `100-…` §6.2) ──────
+
+/**
+ * **Cost:** the seconds a reviewer model spent per case — summed over the
+ * case's reviews, 0 for a case nobody reviewed — as a mean with its t
+ * interval. What a level's human load costs in time, read off the model.
+ */
+export function reviewSecondsPerCase(
+	cases: readonly TouchedCase[],
+	options: LoadOptions = {}
+): LoadResult {
+	const perCase = cases.map((c) => (c.reviews ?? []).reduce((sum, r) => sum + r.seconds, 0));
+	const mean = perCase.length === 0 ? 0 : perCase.reduce((s, v) => s + v, 0) / perCase.length;
+	return {
+		metric: 'review-seconds-per-case',
+		value: mean,
+		interval: meanInterval(perCase, conf(options)),
+		confidence: conf(options),
+		n: cases.length,
+		underpowered: cases.length < floorOf(options),
+		method: 't interval on the mean'
+	};
+}
+
+/** **Quality:** the share of reviews answered right, with its Wilson interval. */
+export function reviewAccuracy(
+	cases: readonly TouchedCase[],
+	options: LoadOptions = {}
+): LoadResult {
+	const reviews = cases.flatMap((c) => c.reviews ?? []);
+	const k = reviews.filter((r) => r.correct).length;
+	return {
+		metric: 'review-accuracy',
+		value: reviews.length === 0 ? 0 : k / reviews.length,
+		interval: wilson(k, reviews.length, conf(options)),
+		confidence: conf(options),
+		n: reviews.length,
+		underpowered: reviews.length < floorOf(options),
+		method: 'Wilson'
+	};
+}
+
+/**
+ * **The catch rate:** of the reviews where the case put a wrong
+ * recommendation in front of the person — a bot's planted or live fault — the
+ * share they reversed. What Level 3's person is for, as a number.
+ */
+export function catchRate(cases: readonly TouchedCase[], options: LoadOptions = {}): LoadResult {
+	const wrongPut = cases.flatMap((c) => c.reviews ?? []).filter((r) => r.caught !== undefined);
+	const k = wrongPut.filter((r) => r.caught === true).length;
+	return {
+		metric: 'catch-rate',
+		value: wrongPut.length === 0 ? 0 : k / wrongPut.length,
+		interval: wilson(k, wrongPut.length, conf(options)),
+		confidence: conf(options),
+		n: wrongPut.length,
+		underpowered: wrongPut.length < floorOf(options),
+		method: 'Wilson'
 	};
 }

@@ -41,6 +41,36 @@ const PACK: PackManifest = {
 			costHint: 'low',
 			defaults: { temperature: 0, maxTokens: 64 }
 		}
+	],
+	// WP115: a reviewer model for the human stage — always right, ninety seconds a case.
+	calibrations: [
+		{
+			id: 'test/reviewer',
+			title: 'Reviewer',
+			description: 'A test reviewer.',
+			rows: [
+				{ id: 'acc', kind: 'rates', distribution: { correct: 1 } },
+				{ id: 'bias', kind: 'rates', distribution: { follows: 0 } },
+				{ id: 'secs', kind: 'weights', distribution: { '90': 1 } }
+			].map((row) => ({
+				...(row as { id: string; kind: 'rates' | 'weights'; distribution: Record<string, number> }),
+				title: row.id,
+				source: { kind: 'assumption' as const, retrieved: '2026-09-29' },
+				note: 'A test row.',
+				tolerance: 0.01,
+				review: 'pending' as const
+			}))
+		}
+	],
+	reviewerModels: [
+		{
+			id: 'test/oracle',
+			name: 'Oracle',
+			description: 'Always right.',
+			accuracy: { table: 'test/reviewer', row: 'acc', key: 'correct' },
+			automationBias: { table: 'test/reviewer', row: 'bias', key: 'follows' },
+			secondsPerCase: { table: 'test/reviewer', row: 'secs', key: 'seconds' }
+		}
 	]
 };
 
@@ -94,6 +124,7 @@ const VISIT: WorkflowSpec = {
 	obligations: [],
 	configurations: {
 		bot: {},
+		reviewed: { reviewer: 'test/oracle' },
 		refuse: { executors: { 'sign-in': { kind: 'rule', rule: 'missing' } } }
 	}
 };
@@ -201,6 +232,30 @@ describe('foldMonitor', () => {
 		const windowed = foldMonitor(runs, { ...options, window: 4, minimum: 4 });
 		expect(windowed.readouts.runs).toBe(4);
 		expect(windowed.windowFull).toBe(true);
+		// No reviewer model named: no review load, and the readouts as they always were.
+		expect(state.readouts.reviewLoad).toBeUndefined();
+	});
+
+	it('reads the reviewer model’s load against the people behind it (WP115)', async () => {
+		const items = Array.from({ length: 12 }, (_, n) => item(n));
+		const { runs } = await day(items, 'reviewed');
+		const state = foldMonitor(runs, {
+			from: '2026-01-05',
+			to: '2026-01-05',
+			reviewers: { people: 1, secondsPerDay: 3_600 }
+		});
+		expect(state.readouts.reviewLoad).toMatchObject({
+			secondsPerCase: { value: 90, n: 12 },
+			accuracy: { value: 1, n: 12 },
+			catchRate: { value: 0, n: 0 },
+			demandSeconds: 12 * 90,
+			capacitySeconds: 3_600,
+			utilisation: (12 * 90) / 3_600
+		});
+		// Without the people, the demand alone.
+		const alone = foldMonitor(runs, { from: '2026-01-05', to: '2026-01-05' });
+		expect(alone.readouts.reviewLoad?.demandSeconds).toBe(12 * 90);
+		expect(alone.readouts.reviewLoad?.capacitySeconds).toBeUndefined();
 	});
 
 	it('lists a stopped run as an incident beside its workflow run, and leaves an unrouted arrival in no queue', async () => {

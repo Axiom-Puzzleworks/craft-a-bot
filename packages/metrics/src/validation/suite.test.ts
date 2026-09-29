@@ -18,6 +18,7 @@ describe('the validation suite', () => {
 		expect(report.rows.map((row) => row.metric).sort()).toEqual(
 			[
 				'agreement',
+				'catch-rate',
 				'ceiling-breach-rate',
 				'conditional-parity',
 				'counterfactual-flip',
@@ -32,6 +33,8 @@ describe('the validation suite', () => {
 				'page-hinkley',
 				'predictive-parity',
 				'psi',
+				'review-accuracy',
+				'review-seconds-per-case',
 				'rule-agreement',
 				'touches-per-case',
 				'unattended-rate'

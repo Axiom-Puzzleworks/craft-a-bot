@@ -37,6 +37,15 @@ export const ERROR_RATES: CalibrationTable = table(
 			source: assumption(),
 			tolerance: 0.02,
 			note: 'A stated assumption: one alert decision in ten is wrong, spread evenly over the other four actions. Fraud operations report alert false-positive rates, which are a property of the rule that raised the alert, not of the handler; no public figure gives the handler’s own error rate. This stands in for the live tier until a model is recorded on the fraud-stack design.'
+		}),
+		row({
+			id: 'advice-recommendation-error',
+			kind: 'rates',
+			title: 'The recommended product is not the one the plan chose',
+			distribution: { wrong: 0.1 },
+			source: assumption(),
+			tolerance: 0.02,
+			note: 'A stated assumption (WP116): one recommendation in ten names another product from the shelf, drawn evenly — most of which do not suit the customer. The FCA’s thematic reviews of advice find unsuitable advice at rates that vary by market and year; none transfers to an assistant recommending from a thirty-product shelf. This stands in for the live tier until a model is recorded on the advice-context design.'
 		})
 	]
 );

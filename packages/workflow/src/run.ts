@@ -33,6 +33,7 @@ import {
 } from '@craftabot/core';
 import { seededRandom } from '@craftabot/desk';
 import { validateAgainst } from './validate.js';
+import { recommendationIn, resolveReviewer, reviewerAnswer, reviewerRandom } from './reviewer.js';
 
 /**
  * **The workflow runtime** (WP79, `69-WORKFLOWS.md` §5; `64-…` §6.2, tenet
@@ -214,6 +215,7 @@ export function configRecord(config: WorkflowConfig): WorkflowRun['config'] {
 	if (config.context !== undefined) record.context = config.context;
 	if (config.stack !== undefined) record.stack = config.stack;
 	if (config.stageStacks !== undefined) record.stageStacks = { ...config.stageStacks };
+	if (config.reviewer !== undefined) record.reviewer = config.reviewer;
 	return record;
 }
 
@@ -249,6 +251,9 @@ export async function runWorkflow(
 	const registry = createPackRegistry();
 	for (const pack of options.packs) registry.registerPack(pack);
 	registry.registerPack(stagePack(spec, intake.layoutId, config.executors));
+	// The person at every human stage, as a model (WP115), resolved once; absent, the oracle as ever.
+	const reviewer =
+		config.reviewer !== undefined ? resolveReviewer(registry, config.reviewer) : undefined;
 	const definition = registry.getWorld(spec.worldId);
 	if (!definition)
 		throw new Error(`Workflow "${spec.id}" needs world "${spec.worldId}", which is not installed.`);
@@ -570,7 +575,7 @@ export async function runWorkflow(
 		status: StageRecord['status'],
 		finding: string | undefined,
 		checked: number,
-		extra: Partial<Pick<StageRecord, 'runId' | 'approval'>> = {},
+		extra: Partial<Pick<StageRecord, 'runId' | 'approval' | 'by'>> = {},
 		bus?: Write,
 		/** The trace a stage-out guard reads — an agent stage's own run; else the workflow's events. */
 		history?: readonly EngineEvent[]
@@ -626,7 +631,8 @@ export async function runWorkflow(
 				checked: guards.checked,
 				tripped: tripped.length,
 				...(fold.verdicts.length > 0 ? { verdicts: fold.verdicts } : {})
-			}
+			},
+			...(extra.by ? { by: extra.by } : {})
 		});
 		return record;
 	}
@@ -833,9 +839,21 @@ export async function runWorkflow(
 		emit('approval.requested', { proposed, reason: executor.prompt });
 		const state = world.snapshot();
 		const suggested = stage.suggest?.(stageInput, state, world.truth?.());
-		const answer: HumanDecision = options.human
-			? await options.human(stage, state, executor, suggested)
-			: { decision: suggested ?? executor.default ?? executor.options[0] ?? '' };
+		// The person as a model (WP115, `103-…` §6), when the configuration names one: it answers, whatever the host would have.
+		const by = reviewer
+			? reviewerAnswer(
+					reviewer,
+					executor.options,
+					suggested ?? executor.default ?? executor.options[0] ?? '',
+					recommendationIn(stageInput, executor.options),
+					reviewerRandom(options.seed ?? 1, item.id, stage.id, ordinal)
+				)
+			: undefined;
+		const answer: HumanDecision = by
+			? { decision: by.answer }
+			: options.human
+				? await options.human(stage, state, executor, suggested)
+				: { decision: suggested ?? executor.default ?? executor.options[0] ?? '' };
 		const first = executor.options[0];
 		if (!executor.options.includes(answer.decision)) {
 			emit('approval.resolved', { approved: false, ...(answer.by ? { by: answer.by } : {}) });
@@ -870,7 +888,8 @@ export async function runWorkflow(
 		};
 		if ('finding' in read) {
 			return finishStage(base, started, ordinal, ordinal, undefined, [], 'error', read.finding, 0, {
-				approval
+				approval,
+				...(by ? { by } : {})
 			});
 		}
 		return finishStage(
@@ -883,7 +902,7 @@ export async function runWorkflow(
 			answer.decision === first ? 'ok' : 'escalated',
 			undefined,
 			0,
-			{ approval }
+			{ approval, ...(by ? { by } : {}) }
 		);
 	}
 

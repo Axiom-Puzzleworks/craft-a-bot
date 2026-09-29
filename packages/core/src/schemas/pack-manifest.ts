@@ -4,7 +4,7 @@ import type { BrickKindDefinition } from '../types/brick.js';
 import type { ControlMap } from '../types/control-map.js';
 import type { DomainSpec } from './domain.js';
 import type { CalibrationTable } from './calibration.js';
-import type { WorkflowSpec } from '../types/workflow.js';
+import type { ReviewerModel, WorkflowSpec } from '../types/workflow.js';
 import type { Guardrail, GuardrailHook } from '../types/guardrail.js';
 import type { Evaluator } from '../types/evaluator.js';
 import type { GuardrailComponent } from '../types/guardrail-component.js';
@@ -296,6 +296,8 @@ export interface PackManifest extends PackManifestMetadata {
 	 * campaign brain names (`{ tier: 'fallible', errorModel }`).
 	 */
 	errorModels?: ErrorModel[];
+	/** Reviewer models (WP115, `103-…` §6): the person at a `human` stage, as calibration rows. */
+	reviewerModels?: ReviewerModel[];
 	/**
 	 * Workflows (WP79, `69-WORKFLOWS.md` §3): a journey as stages with typed
 	 * input and output and an executor each — content over a world the pack

@@ -44,3 +44,10 @@ export {
 	type JourneyLayoutOptions
 } from './journey.js';
 export { specOnWorld } from './spec-on-world.js';
+export {
+	recommendationIn,
+	resolveReviewer,
+	reviewerAnswer,
+	reviewerRandom,
+	type ResolvedReviewer
+} from './reviewer.js';
