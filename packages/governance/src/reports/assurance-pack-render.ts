@@ -189,7 +189,7 @@ export function renderAssurancePackMarkdown(pack: AssurancePack): string {
 	for (const row of pack.mitigants.effects) {
 		const h = row.headline;
 		out.push(
-			`| \`${row.controlId}\` | ${row.controlMapRow?.obligation ?? row.obligations.join(', ')} | ${h ? `${h.metricId}: ${signed(h.delta)} (experiment \`${h.experimentId}\`)` : '—'} | ${h ? `${signed(h.interval[0])} – ${signed(h.interval[1])}` : '—'} | ${h ? `n = ${h.n}${h.underpowered ? ', underpowered' : ''}` : '—'} | ${row.coverage.experiments} experiment(s)${row.coverage.workflows.length > 0 ? `, ${row.coverage.workflows.join(', ')}` : ''} | ${row.status}${h ? ` ${cite([...new Set(row.effects.flatMap((effect) => effect.runIds))].slice(0, 6))}` : ''} |`
+			`| \`${row.controlId}\` | ${row.controlMapRow?.obligation ?? row.obligations.join(', ')} | ${h ? `${h.metricId}: ${signed(h.delta)} (experiment \`${h.experimentId}\`${h.tier ? `, ${h.tier} tier` : ''})` : '—'} | ${h ? `${signed(h.interval[0])} – ${signed(h.interval[1])}` : '—'} | ${h ? `n = ${h.n}${h.underpowered ? ', underpowered' : ''}` : '—'} | ${row.coverage.experiments} experiment(s)${row.coverage.workflows.length > 0 ? `, ${row.coverage.workflows.join(', ')}` : ''} | ${row.status}${h ? ` ${cite([...new Set(row.effects.flatMap((effect) => effect.runIds))].slice(0, 6))}` : ''} |`
 		);
 	}
 	out.push('');
@@ -445,7 +445,7 @@ ${table(
 			`<code>${escape(row.controlId)}</code>`,
 			escape(row.controlMapRow?.obligation ?? row.obligations.join(', ')),
 			h
-				? `${escape(h.metricId)}: ${escape(signed(h.delta))} (experiment <code>${escape(h.experimentId)}</code>)`
+				? `${escape(h.metricId)}: ${escape(signed(h.delta))} (experiment <code>${escape(h.experimentId)}</code>${h.tier ? `, ${escape(h.tier)} tier` : ''})`
 				: '—',
 			h ? escape(`${signed(h.interval[0])} – ${signed(h.interval[1])}`) : '—',
 			h ? escape(`n = ${h.n}${h.underpowered ? ', underpowered' : ''}`) : '—',

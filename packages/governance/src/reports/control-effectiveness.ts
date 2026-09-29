@@ -17,6 +17,10 @@ export interface ControlEffectivenessHeadline {
 	experimentId: string;
 	resultId: string;
 	underpowered: boolean;
+	/** The brain tier it was measured under (WP116, `103-FALLIBLE-ACTORS.md` §6); absent on a result written before. */
+	tier?: string;
+	/** Both sides at a bound: says nothing about the control (WP116). Quoted only when every effect is. */
+	untestable?: true;
 }
 
 /** One control on the register: its map row, every effect that named it, the headline, the cost, the coverage and the status. */
@@ -38,7 +42,8 @@ export interface ControlEffectivenessRow {
 	/** The treatment side's cost, averaged over the effects. */
 	cost: { tokensPerCase?: number; approvalsPerCase?: number; touchesPerCase?: number };
 	coverage: { experiments: number; populations: string[]; contexts: string[]; workflows: string[] };
-	status: 'evidenced' | 'inconclusive' | 'untested';
+	/** `untestable` since WP116: every effect sat at a bound, so no actor erred for the control to catch (tenet 33). */
+	status: 'evidenced' | 'inconclusive' | 'untestable' | 'untested';
 }
 
 const excludesZero = (interval: [number, number]): boolean => interval[0] > 0 || interval[1] < 0;
@@ -100,7 +105,10 @@ function rowFor(
 ): ControlEffectivenessRow {
 	const effects = entries.map(({ effect }) => effect);
 	const primaryMetric = effects[0]?.metricId;
-	const onPrimary = entries.filter(({ effect }) => effect.metricId === primaryMetric);
+	// A testable effect is quoted before an untestable one (WP116): an effect at a bound says nothing about the control.
+	const primary = entries.filter(({ effect }) => effect.metricId === primaryMetric);
+	const testablePrimary = primary.filter(({ effect }) => effect.untestable !== true);
+	const onPrimary = testablePrimary.length > 0 ? testablePrimary : primary;
 	const largest = onPrimary.reduce<(typeof entries)[number] | undefined>((best, entry) => {
 		const n = entry.effect.baseline.n + entry.effect.treatment.n;
 		const bestN = best ? best.effect.baseline.n + best.effect.treatment.n : -1;
@@ -114,7 +122,9 @@ function rowFor(
 				n: largest.effect.baseline.n + largest.effect.treatment.n,
 				experimentId: largest.result.experimentId,
 				resultId: largest.result.id,
-				underpowered: largest.effect.underpowered
+				underpowered: largest.effect.underpowered,
+				...(largest.effect.tier !== undefined ? { tier: largest.effect.tier } : {}),
+				...(largest.effect.untestable ? { untestable: true as const } : {})
 			}
 		: undefined;
 	const tokens = mean(effects.map((effect) => effect.cost.tokensPerCase.treatment));
@@ -127,9 +137,11 @@ function rowFor(
 	const status: ControlEffectivenessRow['status'] =
 		effects.length === 0
 			? 'untested'
-			: headline && excludesZero(headline.interval)
-				? 'evidenced'
-				: 'inconclusive';
+			: effects.every((effect) => effect.untestable === true)
+				? 'untestable'
+				: headline && excludesZero(headline.interval)
+					? 'evidenced'
+					: 'inconclusive';
 	return {
 		controlId,
 		...(base.controlMapRow ? { controlMapRow: base.controlMapRow } : {}),

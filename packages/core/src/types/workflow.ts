@@ -49,6 +49,14 @@ export interface StageSpec<In = unknown, Out = unknown> {
 	 * campaign's person follows the case rather than the first option.
 	 */
 	suggest?: (input: In, state: WorldState, truth: unknown) => string | undefined;
+	/**
+	 * What the case puts in front of the person at a `human` stage (WP116,
+	 * `103-FALLIBLE-ACTORS.md` §6): the answer the work so far invites — a
+	 * four-eyes check invites `confirm`. A reviewer model takes it, when it is
+	 * wrong, at its automation-bias rate. Absent, the first of the stage's
+	 * options found among the input's own fields.
+	 */
+	recommended?: (input: In, state: WorldState) => string | undefined;
 	/** The stage's output read off the world once an agent or a line has done its work; a rule returns its own. */
 	read?: (state: WorldState, truth: unknown) => Out | undefined;
 	/** Which stage follows, or `'end'` — from this stage's output, the state and, when it matters, the input it was given. */

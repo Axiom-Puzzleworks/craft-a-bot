@@ -845,7 +845,7 @@ export async function runWorkflow(
 					reviewer,
 					executor.options,
 					suggested ?? executor.default ?? executor.options[0] ?? '',
-					recommendationIn(stageInput, executor.options),
+					stage.recommended?.(stageInput, state) ?? recommendationIn(stageInput, executor.options),
 					reviewerRandom(options.seed ?? 1, item.id, stage.id, ordinal)
 				)
 			: undefined;

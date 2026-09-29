@@ -18,6 +18,8 @@ import { complaintsEvaluators } from './complaints/evaluators.js';
  * policy cards on v2 leaves, evaluators over the trace and the truth, a
  * campaign. No runtime, no brick kind, no tool, no schema.
  */
+import { adviceErrorModels } from './errors/error-models.js';
+
 export const FS_ADVICE_PACK_ID = 'fs-advice';
 
 import { ADVICE_BASELINE_ID, adviceBaseline, adviceStacks } from './campaign.js';
@@ -59,6 +61,8 @@ export const fsAdvicePack: PackManifest = {
 	/** WP97 (`89-STACKS.md`): the two desks' guards as stacks. */
 	stacks: [...adviceStacks, ...complaintsStacks],
 	evaluators: [...adviceEvaluators, ...complaintsEvaluators],
+	// WP116: the fallible tier's error model for the recommendation.
+	errorModels: adviceErrorModels,
 	controlMaps: [adviceControlMap],
 	// The advice journey (WP85, `76-FRAUD-AND-ADVICE-WORKFLOWS.md` §4).
 	workflows: [adviceWorkflow, complaintsWorkflow]
@@ -165,3 +169,4 @@ export {
 export * from './complaints/index.js';
 export { COMPLAINTS_POLICY_CARD_IDS, REDRESS_NEEDS_APPROVAL } from './cards/policy.js';
 export { COMPLAINTS_BASELINE_ID, complaintsBaseline } from './complaints/campaign.js';
+export { ADVICE_RECOMMENDATION_ERROR_MODEL_ID, adviceErrorModels } from './errors/error-models.js';

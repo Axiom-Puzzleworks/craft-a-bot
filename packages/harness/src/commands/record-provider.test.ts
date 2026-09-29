@@ -37,7 +37,16 @@ describe('record --experiment (WP114)', { timeout: 600_000 }, () => {
 		const cassettePath = join(root, 'lending-stack.provider-cassette.json');
 		const design = JSON.parse(
 			await readFile(join(ROOT, 'experiments', 'lending-stack.json'), 'utf8')
-		) as { design: { template: { brains: unknown[] } } };
+		) as {
+			design: {
+				template: { brains: unknown[] };
+				factors: Array<{ axis: string }>;
+				baseline: Record<string, string>;
+			};
+		};
+		// One brain, recorded: the design's brain factor (WP116) goes with the brains it named.
+		design.design.factors = design.design.factors.filter((factor) => factor.axis !== 'brain');
+		delete design.design.baseline['brain'];
 		design.design.template.brains = [{ id: 'live', tier: 'live', cassette: cassettePath }];
 		const file = join(root, 'design.json');
 		await writeFile(file, JSON.stringify(design), 'utf8');
@@ -89,7 +98,16 @@ describe('record --experiment (WP114)', { timeout: 600_000 }, () => {
 		roots.push(root);
 		const design = JSON.parse(
 			await readFile(join(ROOT, 'experiments', 'lending-stack.json'), 'utf8')
-		) as { design: { template: { brains: unknown[] } } };
+		) as {
+			design: {
+				template: { brains: unknown[] };
+				factors: Array<{ axis: string }>;
+				baseline: Record<string, string>;
+			};
+		};
+		// One brain, recorded: the design's brain factor (WP116) goes with the brains it named.
+		design.design.factors = design.design.factors.filter((factor) => factor.axis !== 'brain');
+		delete design.design.baseline['brain'];
 		const file = join(root, 'design.json');
 		await writeFile(file, JSON.stringify(design), 'utf8');
 		const base = {

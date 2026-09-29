@@ -8,6 +8,7 @@ import {
 	effectSign,
 	expandExperiment,
 	experimentSchema,
+	isUntestable,
 	levelCombinations,
 	minimumDetectableRateDifference,
 	parseExperiment,
@@ -349,5 +350,74 @@ describe('analyseExperiment', () => {
 		expect(small.note).toContain('parity: no reading');
 		expect(minimumDetectableRateDifference(0.3, 0, 0.95)).toBe(1);
 		expect(minimumDetectableRateDifference(0.3, 4000, 0.95)).toBeCloseTo(0.0287, 3);
+	});
+});
+
+describe('the tier and the untestable verdict (WP116, `103-FALLIBLE-ACTORS.md` §6)', () => {
+	const rate = { kind: 'outcome-rate' as const };
+	const at = (value: number, width = 0.05) => ({
+		value,
+		n: 100,
+		interval: [Math.max(0, value - width), Math.min(1, value + width)] as [number, number]
+	});
+
+	it('a rate at the same bound on both sides is untestable; anything that can move is not', () => {
+		expect(isUntestable(rate, at(1), at(1))).toBe(true);
+		expect(isUntestable(rate, at(0), at(0))).toBe(true);
+		expect(isUntestable(rate, at(0.9), at(0.9))).toBe(false);
+		expect(isUntestable(rate, at(1), at(0.95))).toBe(false);
+		const flat = { value: 2, n: 50, interval: [2, 2] as [number, number] };
+		expect(isUntestable({ kind: 'cost' }, flat, flat)).toBe(true);
+		expect(isUntestable({ kind: 'cost' }, flat, { ...flat, interval: [1.5, 2.5] })).toBe(false);
+	});
+
+	it('untestable effects leave the verdict; all of them make it untestable', () => {
+		const metrics = [{ id: 'm', direction: 'higher-is-better' as const }];
+		const ceiling = {
+			metricId: 'm',
+			interval: [-0.02, 0.02] as [number, number],
+			untestable: true as const
+		};
+		const moved = { metricId: 'm', interval: [0.03, 0.12] as [number, number] };
+		expect(verdictOf([ceiling, ceiling], metrics)).toBe('untestable');
+		expect(verdictOf([ceiling, moved], metrics)).toBe('supported');
+	});
+
+	it('measures the control under each brain level, names the tier, and never compares brains', () => {
+		const experiment = design({
+			factors: [
+				{ axis: 'guard', levels: ['none', 'stack'] },
+				{ axis: 'brain', levels: ['scripted-optimal', 'fallible'] }
+			],
+			baseline: { guard: 'none', brain: 'scripted-optimal' }
+		});
+		experiment.design.template.brains = [
+			{ id: 'scripted-optimal', tier: 'scripted-optimal' },
+			{ id: 'fallible', tier: 'fallible', errorModel: 'fs-lending/error/decision' }
+		];
+		const id = (guard: string, brain: string) => campaignIdFor(experiment.id, { guard, brain });
+		const all = (guard: string, value: string) =>
+			Array.from({ length: 100 }, (_, i) =>
+				cell({
+					guard,
+					item: { id: `item-${i}`, kind: 'loan-application', customerId: `c-${i}` },
+					outcome: value as CampaignCell['outcome']
+				})
+			);
+		const reports = [
+			report(id('none', 'scripted-optimal'), all('none', 'SUCCESS')),
+			report(id('stack', 'scripted-optimal'), all('stack', 'SUCCESS')),
+			report(id('none', 'fallible'), side(1, 100, 0.3, 'none')),
+			report(id('stack', 'fallible'), side(2, 100, 0.02, 'stack'))
+		];
+		const result = analyseExperiment(experiment, reports, { ranAt: '2026-09-29T00:00:00.000Z' });
+		expect(
+			result.effects.map((effect) => [effect.factor.axis, effect.tier, effect.untestable ?? false])
+		).toEqual([
+			['guard', 'scripted-optimal', true],
+			['guard', 'fallible', false]
+		]);
+		expect(result.effects[1]?.interval[1]).toBeLessThan(0);
+		expect(result.verdict).toBe('supported');
 	});
 });

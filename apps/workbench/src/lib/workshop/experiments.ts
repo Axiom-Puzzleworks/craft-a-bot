@@ -185,6 +185,7 @@ export function reportsFor(
 }
 
 export const verdictLamp = (verdict: ExperimentVerdict): Status =>
+	// `untestable` (WP116) reads as inconclusive: nothing was shown either way.
 	verdict === 'supported' ? 'pass' : verdict === 'not-supported' ? 'fail' : 'inconclusive';
 
 const isRate = (effect: Pick<EffectRecord, 'method'>): boolean =>

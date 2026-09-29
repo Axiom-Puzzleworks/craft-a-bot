@@ -157,7 +157,10 @@
 			cells: {
 				control: row.controlMapRow?.title ?? row.controlId,
 				obligation: row.controlMapRow?.obligation ?? row.obligations.join(', '),
-				changed: row.headline ? `${row.headline.metricId}: ${signed(row.headline.delta)}` : '—',
+				// The tier beside the effect (WP116, `103-…` §6): which actor the control was measured against.
+				changed: row.headline
+					? `${row.headline.metricId}: ${signed(row.headline.delta)}${row.headline.tier ? ` (${row.headline.tier})` : ''}`
+					: '—',
 				effect: row.headline
 					? `${signed(row.headline.interval[0])} – ${signed(row.headline.interval[1])}`
 					: '—',
@@ -448,8 +451,8 @@
 			<p class="status" data-testid="assurance-register-note">
 				{register.filter((row) => row.status === 'evidenced').length} evidenced, {register.filter(
 					(row) => row.status === 'inconclusive'
-				).length} inconclusive, {register.filter((row) => row.status === 'untested').length} untested
-				over
+				).length} inconclusive, {register.filter((row) => row.status === 'untestable').length} untestable,
+				{register.filter((row) => row.status === 'untested').length} untested over
 				{experimentResults.length} stored result{experimentResults.length === 1 ? '' : 's'}. A row
 				opens the experiment behind it.
 			</p>

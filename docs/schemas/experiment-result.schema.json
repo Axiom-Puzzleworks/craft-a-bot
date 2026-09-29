@@ -162,6 +162,13 @@
 					"delta": {
 						"type": "number"
 					},
+					"tier": {
+						"type": "string"
+					},
+					"untestable": {
+						"type": "boolean",
+						"const": true
+					},
 					"interval": {
 						"type": "array",
 						"prefixItems": [
@@ -376,7 +383,8 @@
 			"enum": [
 				"supported",
 				"not-supported",
-				"inconclusive"
+				"inconclusive",
+				"untestable"
 			]
 		},
 		"note": {

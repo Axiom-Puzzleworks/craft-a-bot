@@ -175,3 +175,30 @@ describe('controlEffectiveness', () => {
 		expect(rows[2]?.obligations).toEqual(['fca:conc:affordability']);
 	});
 });
+
+describe('the register over fallible tiers (WP116, `103-FALLIBLE-ACTORS.md` §6)', () => {
+	const control = 'fs-lending/control-map/affordability-first';
+	const atCeiling = effect({
+		controlIds: [control],
+		tier: 'scripted-noisy',
+		untestable: true,
+		baseline: { value: 1, n: 800, interval: [0.99, 1] },
+		treatment: { value: 1, n: 800, interval: [0.99, 1] },
+		delta: 0,
+		interval: [-0.005, 0.005]
+	});
+	const underFallible = effect({ controlIds: [control], tier: 'fallible' });
+
+	it('a control whose every effect sat at a bound is untestable, not inconclusive', () => {
+		const [row] = controlEffectiveness([result('lending-stack', [atCeiling])], maps);
+		expect(row?.status).toBe('untestable');
+		expect(row?.headline).toMatchObject({ tier: 'scripted-noisy', untestable: true });
+	});
+
+	it('quotes the testable effect with its tier ahead of a larger-n effect at a bound', () => {
+		const [row] = controlEffectiveness([result('lending-stack', [atCeiling, underFallible])], maps);
+		expect(row?.status).toBe('evidenced');
+		expect(row?.headline).toMatchObject({ tier: 'fallible', delta: 0.1 });
+		expect(row?.headline?.untestable).toBeUndefined();
+	});
+});

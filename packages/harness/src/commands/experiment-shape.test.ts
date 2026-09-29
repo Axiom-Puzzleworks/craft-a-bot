@@ -40,7 +40,7 @@ describe('experiment-shape', () => {
 			'experiment id: x vs y',
 			'effect missing from the reduced run: agreement|guard|none|stack',
 			'effect the committed run lacks: tokens|guard|none|stack',
-			'verdict not one of the three: maybe',
+			'verdict not one of the four: maybe',
 			'no cells on a side of tokens (stack)',
 			'the reduced result carries no digest'
 		]);

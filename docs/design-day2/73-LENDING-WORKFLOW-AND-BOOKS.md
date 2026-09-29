@@ -100,3 +100,5 @@ The rules are pure functions over the desk's snapshot — `figuresOnTheDesk` rea
 - The desk's own suites unchanged: the golden traces, `knobs.test.ts`, the baseline campaign.
 
 > **Amended 2026-09-29 (WP111, `102-HONEST-BANK.md` §6):** `touchesOf` counts a `human` stage once whatever the answer; `escalated:` is counted only for a stage of another kind (`98-…` §9 finding 3).
+
+> **Amended 2026-09-29 (WP116, `103-FALLIBLE-ACTORS.md` §6):** the four-eyes stage's `suggest` answers `overturn` when the desk's decision disagrees with the rule's verdict and `confirm` otherwise (it was `confirm` always, so a perfect person rubber-stamped a wrong decision), and its `recommended` is `confirm` — what the check puts in front of the person, which a reviewer model takes at its automation-bias rate when it is wrong. Every run whose decision agrees with the rule, the golden run among them, is unchanged. An `overturn` stops the disbursement; the decision on the record, which the agreement metrics read, is still the bot's.

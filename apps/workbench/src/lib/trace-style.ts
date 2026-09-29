@@ -23,6 +23,8 @@ const LANES: Record<EventType, TraceLane> = {
 	'think.token': 'think',
 	'think.completed': 'think',
 	decision: 'think',
+	// A fault the fallible tier planted (WP115): beside the decision it corrupts.
+	'decision.fault': 'think',
 	'tool.executed': 'tool',
 	'action.performed': 'action',
 	'world.changed': 'action',
@@ -70,6 +72,7 @@ const LABELS: Record<EventType, string> = {
 	'think.token': 'Thinking…',
 	'think.completed': 'Finished thinking',
 	decision: 'Decided',
+	'decision.fault': 'A planted error',
 	'tool.executed': 'Used a tool',
 	'action.performed': 'Did something',
 	'world.changed': 'The world changed',

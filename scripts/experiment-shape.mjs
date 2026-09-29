@@ -14,7 +14,8 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
-const VERDICTS = new Set(['supported', 'not-supported', 'inconclusive']);
+// `untestable` since WP116 (`103-FALLIBLE-ACTORS.md` §6): every effect sat at a bound.
+const VERDICTS = new Set(['supported', 'not-supported', 'inconclusive', 'untestable']);
 
 export function shapeOf(result) {
 	return {
@@ -22,7 +23,8 @@ export function shapeOf(result) {
 		effects: result.effects
 			.map(
 				(effect) =>
-					`${effect.metricId}|${effect.factor.axis}|${effect.factor.baseline}|${effect.factor.treatment}`
+					// The tier since WP116: a design with a brain factor measures each factor under each brain.
+					`${effect.metricId}|${effect.factor.axis}|${effect.factor.baseline}|${effect.factor.treatment}${effect.tier ? `|${effect.tier}` : ''}`
 			)
 			.sort()
 	};
@@ -40,7 +42,7 @@ export function compareShape(committed, reduced) {
 	for (const key of missing) problems.push(`effect missing from the reduced run: ${key}`);
 	for (const key of extra) problems.push(`effect the committed run lacks: ${key}`);
 	if (!VERDICTS.has(reduced.verdict))
-		problems.push(`verdict not one of the three: ${reduced.verdict}`);
+		problems.push(`verdict not one of the four: ${reduced.verdict}`);
 	for (const effect of reduced.effects) {
 		if (effect.baseline.n === 0 || effect.treatment.n === 0)
 			problems.push(`no cells on a side of ${effect.metricId} (${effect.factor.treatment})`);
