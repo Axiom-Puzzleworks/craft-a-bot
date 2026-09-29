@@ -43,3 +43,4 @@ export {
 	type JourneyGeometry,
 	type JourneyLayoutOptions
 } from './journey.js';
+export { specOnWorld } from './spec-on-world.js';

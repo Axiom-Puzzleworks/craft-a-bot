@@ -11,7 +11,7 @@ import {
 	type WorkflowSpec
 } from '@craftabot/core';
 import { stageBoundaryGuardrails } from '@craftabot/governance';
-import { followHandoff, runWorkflow } from '@craftabot/workflow';
+import { followHandoff, runWorkflow, specOnWorld } from '@craftabot/workflow';
 import { createAgentRunWriter } from '../agent-runs.js';
 import { createRegistry, packVersions, type HarnessConfig } from '../config.js';
 import type { CredentialSource } from '../credentials.js';
@@ -100,6 +100,17 @@ export async function workflowRun(options: WorkflowRunOptions): Promise<Workflow
 	const runOptions: Parameters<typeof runWorkflow>[2] = {
 		packs: [...options.config.packs, localPackFrom(options.config.content ?? [])],
 		spec: spec ?? placeholderSpec(),
+		// A followed handoff onto another desk seats the kit's bot re-pointed at that desk (WP112,
+		// `90-…` §7); the first journey's world keeps the kit exactly as loaded.
+		...(spec
+			? {
+					specFor: (worldId: string) => {
+						if (worldId === workflow.worldId) return undefined;
+						const world = registry.getWorld(worldId);
+						return world ? specOnWorld(spec, world) : undefined;
+					}
+				}
+			: {}),
 		...(config ? { config } : {}),
 		providerFor: (_stage, goalCardId) => {
 			if (!spec) {

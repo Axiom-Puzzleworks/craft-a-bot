@@ -170,7 +170,7 @@ Usage:
 
   craftabot workflow run --workflow <id> --item <item.json> [--config <name>]
                  [--kit <bot.craftabot.json>] [--brain scripted-optimal|scripted-noisy|live]
-                 [--seed <n>] [--decide <stageId>=<option>,…] [--deny]
+                 [--seed <n>] [--decide <stageId>=<option>,…] [--deny] [--follow]
                  [--egress declared|none] [--out ./runs]
       One workflow a pack ships (WP79, 69-WORKFLOWS.md) over one work item:
       every stage in turn — a rule, the bot on the stage's card, a person,
@@ -180,6 +180,9 @@ Usage:
       is the bot); --decide answers the human stages. Every agent run is
       written as run writes a run, and the workflow's own record with its
       stage records and digest as <out>/workflows/<id>/workflow-run.json.
+      --follow runs each handoff's target journey with the item, to the
+      chain's end (WP102), the --kit bot re-pointed at each desk it lands on
+      (WP112); the exit status is the last run's.
 
   craftabot book run --workflow <id> --population <seed> --size <n> [--config a,b,…]
                  [--kit <bot.craftabot.json>] [--brain scripted-optimal|scripted-noisy|live]
@@ -490,11 +493,14 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 					...(configName !== undefined ? { configName } : {}),
 					...(kitPath !== undefined ? { kitPath } : {}),
 					...(egress !== undefined ? { egress } : {}),
-					...(decisions !== undefined ? { decisions } : {})
+					...(decisions !== undefined ? { decisions } : {}),
+					...(args.flags['follow'] === true ? { follow: true } : {})
 				});
 				io.stdout(`${JSON.stringify(report, null, '	')}
 `);
-				return report.outcome === 'completed' ? 0 : 1;
+				// With --follow (WP112), the chain's last run is the answer: a handoff followed to a completed run completed.
+				const final = report.followed?.at(-1)?.outcome ?? report.outcome;
+				return final === 'completed' ? 0 : 1;
 			}
 			case 'book': {
 				// WP80 (`64-…` §6.6.3): a book through a workflow's configurations, as a campaign.
