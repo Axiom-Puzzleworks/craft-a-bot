@@ -1,6 +1,7 @@
 import type { Book, WorkItem } from '@craftabot/core';
 import {
 	customerForTheDesk,
+	everyNth,
 	population,
 	type Customer,
 	type Population
@@ -12,7 +13,7 @@ import { DEFAULT_DISPUTES_POLICY, disputeVerdict, type DisputesPolicy } from './
 /**
  * **The disputes book** (WP104, `90-FS-DISPUTES.md` §5): the population's
  * disputed payments — every tenth customer disputes one payment across the
- * window (a synthetic incidence, stated here and not calibrated), each
+ * window (a synthetic incidence, stated as a row of `fs-bank`'s `BOOK_INCIDENCES` since WP112), each
  * with the rule's verdict in truth under the policy. The disputes cycle
  * through the three classifications; every fifteenth dispute is a scam
  * above the default limit, so a book of any size carries referrals and a
@@ -25,8 +26,10 @@ export interface DisputesBookOptions {
 	policy?: DisputesPolicy;
 }
 
-const DISPUTES_EVERY = 10;
-const ABOVE_LIMIT_EVERY = 15;
+// The incidences are rows (WP112): `fs-bank`'s `BOOK_INCIDENCES`, `disputes-incidence`. The
+// classifications cycle in thirds, so one scam in n is every 3n-th dispute.
+const DISPUTES_EVERY = everyNth('disputes-incidence', 'disputes');
+const ABOVE_LIMIT_EVERY = 3 * everyNth('disputes-incidence', 'aboveLimit');
 
 const MERCHANTS = [
 	'Novaretti Electronics (online)',

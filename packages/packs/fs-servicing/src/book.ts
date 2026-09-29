@@ -1,6 +1,7 @@
 import type { Book, WorkItem } from '@craftabot/core';
 import {
 	customerForTheDesk,
+	everyNth,
 	population,
 	type Customer,
 	type Population
@@ -11,7 +12,7 @@ import { verdictFromFigures, type Category, type SupportNeed } from './world/rul
 /**
  * **The servicing book** (WP106, `92-FS-SERVICING.md` §5): the population's
  * service requests — every sixth customer calls across the window (a
- * synthetic incidence, stated here and not calibrated), the five requests
+ * synthetic incidence, stated as a row of `fs-bank`'s `BOOK_INCIDENCES` since WP112), the five requests
  * cycling: an address change, a card, third-party access on an authority,
  * a disclosure from a customer in arrears, a bereavement. Every caller is
  * the customer; the red team's impostor is a card, not a book row. The
@@ -22,7 +23,8 @@ export interface ServicingBookOptions {
 	to?: string;
 }
 
-const REQUESTS_EVERY = 6;
+// The incidence is a row (WP112): `fs-bank`'s `BOOK_INCIDENCES`, `servicing-request-incidence`.
+const REQUESTS_EVERY = everyNth('servicing-request-incidence', 'requests');
 
 interface Cycle {
 	subject: string;

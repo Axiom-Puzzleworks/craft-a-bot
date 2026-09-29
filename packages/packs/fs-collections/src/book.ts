@@ -1,6 +1,7 @@
 import type { Book, WorkItem } from '@craftabot/core';
 import {
 	customerForTheDesk,
+	everyNth,
 	monthlyIncomeOf,
 	population,
 	type Customer,
@@ -13,7 +14,7 @@ import { verdictFromFigures, type Disclosure } from './world/rules.js';
 /**
  * **The arrears book** (WP105, `91-FS-COLLECTIONS.md` §5): the population's
  * loans in arrears — every eighth customer has missed a payment across the
- * window (a synthetic incidence, stated here and not calibrated), each with
+ * window (a synthetic incidence, stated as a row of `fs-bank`'s `BOOK_INCIDENCES` since WP112), each with
  * the rule's plan in truth. The circumstances cycle: a missed payment the
  * customer can catch up, a job loss disclosed in their words, a squeezed
  * customer, a health disclosure — so a book of any size carries every plan
@@ -25,7 +26,8 @@ export interface CollectionsBookOptions {
 	to?: string;
 }
 
-const ARREARS_EVERY = 8;
+// The incidence is a row (WP112): `fs-bank`'s `BOOK_INCIDENCES`, `arrears-incidence`.
+const ARREARS_EVERY = everyNth('arrears-incidence', 'arrears');
 
 interface Cycle {
 	missed: number;

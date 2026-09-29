@@ -7,6 +7,7 @@ import { customerCase, population } from '../population/population.js';
 import { AGE_BANDS, INCOME_BANDS, type BankCase } from '../model.js';
 import { CALIBRATION } from './table.js';
 import { DECK_WEIGHTS } from './deck-weights.js';
+import { BOOK_INCIDENCES, everyNth } from './book-incidences.js';
 import legacy from './legacy-digests.json' with { type: 'json' };
 
 /**
@@ -302,5 +303,29 @@ describe('a population drawn from CALIBRATION', { timeout: 300_000 }, () => {
 			.map((r) => r.id)
 			.filter((id) => !rowsChecked.has(id) && !BY_CONSTRUCTION.has(id));
 		expect(unread).toEqual([]);
+	});
+});
+
+describe('the Phase AA books’ incidences (WP112)', () => {
+	it('pass checkCalibration as assumptions, every row awaiting review', () => {
+		expect(checkCalibration(BOOK_INCIDENCES)).toEqual([]);
+		expect(BOOK_INCIDENCES.rows.every((row) => row.review === 'pending')).toBe(true);
+		expect(BOOK_INCIDENCES.rows.every((row) => row.source.kind === 'assumption')).toBe(true);
+	});
+
+	it('read back as the “every n-th” the books were built with, so every book is byte-identical', () => {
+		expect(everyNth('onboarding-incidence', 'applies')).toBe(12);
+		expect(everyNth('onboarding-incidence', 'hit')).toBe(5);
+		expect(everyNth('onboarding-incidence', 'mismatch')).toBe(8);
+		expect(everyNth('disputes-incidence', 'disputes')).toBe(10);
+		expect(everyNth('disputes-incidence', 'aboveLimit')).toBe(5);
+		expect(everyNth('arrears-incidence', 'arrears')).toBe(8);
+		expect(everyNth('servicing-request-incidence', 'requests')).toBe(6);
+		expect(() => everyNth('arrears-incidence', 'nothing')).toThrow(/no rate/);
+	});
+
+	it('sit outside the population’s table, so no population digest moves', () => {
+		const cited = new Set(CALIBRATION.rows.map((row) => row.id));
+		for (const row of BOOK_INCIDENCES.rows) expect(cited.has(row.id), row.id).toBe(false);
 	});
 });
