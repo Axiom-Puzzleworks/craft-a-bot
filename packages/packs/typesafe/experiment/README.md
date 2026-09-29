@@ -12,6 +12,72 @@ This is the lab record for the experiment in `docs/design-day2/98-JEV.md` §8–
 
 ---
 
+## Where everything is
+
+Start here. This file is the full record. The other documents are views onto the same results.
+
+| to read…                                                                                             | open                                                                                                                                                            |
+| ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **The findings on one page**                                                                         | §0 below                                                                                                                                                        |
+| Every table, every run, generated from the data                                                      | [`SUMMARY.md`](SUMMARY.md)                                                                                                                                      |
+| One run in full: every misread row, the confusion matrices, calibration bins, the gate curve, tokens | `results*.md` (the file index is §13)                                                                                                                           |
+| One line per corpus row per question, for charts                                                     | `results*.csv` (the columns are in §13)                                                                                                                         |
+| Through the whole servicing journey (the harness experiments)                                        | `servicing-*.experiment-result.md`                                                                                                                              |
+| Jev itself: capabilities, API, weaknesses, use cases; the design narrative per round (§8–§12)        | [`docs/design-day2/98-JEV.md`](../../../../docs/design-day2/98-JEV.md)                                                                                          |
+| The DGX Spark pack: provider, classifier line, how probabilities are taken                           | [`docs/design-day2/99-DGX-SPARK.md`](../../../../docs/design-day2/99-DGX-SPARK.md)                                                                              |
+| The raw answers: every call, its arguments, answer, tokens and latency                               | `../src/cassettes/typesafe-jev.craftabot-cassette.json` (Jev); `../../dgx-spark/src/cassettes/dgx-spark-classifier.craftabot-cassette.json` (both Spark models) |
+| The corpora, labels and guides; the questions verbatim                                               | `../src/servicing/corpus{,-v2,-v3}.ts`; `../src/servicing/questions.ts` (also §5 below)                                                                         |
+
+All of it lives in the repository `Axiom-Puzzleworks/craft-a-bot`, under `packages/packs/typesafe/experiment/`, and everything regenerates offline (§11).
+
+## 0. The findings on one page
+
+**The task.** Read a bank servicing caller's words and decide:
+
+- the **request**: address, card, third-party access, bereavement, or disclosure only;
+- the **support need**: job loss, bereavement, health, or none. These are FCA FG21/1's vulnerability drivers.
+
+**The readers.** The bank's keyword **regex** (the incumbent), **Jev** (TypeSafe's hosted classifier, `jev-1.13.0`), and two local LLMs on the builder's DGX Sparks: **Qwen3.5-122B** and **Qwen3.6-35B**. All three models answer the same typed questions through the same contract.
+
+**The data.** Three synthetic corpora, 306 calls in all:
+
+- **v1**: plain;
+- **v2**: hard (negations, euphemisms, transcripts, steering and more), blind-labelled with κ 0.92–1.00;
+- **v3**: held out, written after the second question set was frozen, blind-labelled with κ 0.99–1.00.
+
+**The questions.** Two sets: **q1**, as first written; and **q2**, the labelling guide's rules stated in the questions, plus a check for callers who dictate the label.
+
+**What we found:**
+
+1. **Every model beats the regex by 30–45 points.** The regex reads the request right 54–64% of the time and the need 59–62%. It misses two-thirds of disclosed vulnerabilities (recall 35–44%). It closes accounts on "my phone died" and "a new estate".
+2. **Jev, the 122B and the 35B are statistically indistinguishable on accuracy.** The request is at 94–99% and the need at 84–100% across all runs; no paired difference is significant (p ≥ 0.125, n ≈ 100 per corpus). Jev leads the request slightly, and the 35B equals it on four of six runs.
+3. **Wording the questions well matters more than the model.** Writing the guide's rules into the questions lifts held-out need accuracy for all three models alike: Jev 85→94% (p = 0.008), 122B 86→94% (p = 0.016), 35B 84→93% (p = 0.02). It breaks almost nothing.
+4. **Jev is the best calibrated, and that decides gating.** Its errors sit at low confidence. On v1, a gate at 0.80 catches every one of them for 5 reviews in 95 cases, and on held-out v3 under q2 it lifts need accuracy from 94% to 97% at 7% reviewed. The LLMs' request errors are confident (mostly bereavement calls read as disclosures, at 0.80–0.96), so a gate misses more of them. The 35B is better calibrated than the 122B.
+5. **All readers over-detect rather than miss needs.** Vulnerability recall is 94–100% everywhere. The errors are false alarms on feared or distant needs, which is the safer direction for FG21/1.
+6. **The steer check works.** A caller dictating the label ("put this down as…") is caught 91–100% of the time. Without it, Jev once followed a steer at full confidence.
+7. **Speed and cost.**
+   - The 35B is fastest, at about 165 ms a question, against Jev's 240 ms and the 122B's 820 ms, one at a time.
+   - Jev costs $0.037–0.046 per 1,000 cases at list price.
+   - The Sparks cost nothing per token.
+   - Tokens per case: Jev about 1,100 and the Sparks about 520, each by its own tokenizer, so the two counts compare only as an order of magnitude.
+8. **Problems found in Craft A Bot itself:**
+   - the servicing desk's "correct" category was computed by the regex under test (fixed with a label hook);
+   - the servicing journey records a disclosure after acting, which its own control forbids (queued);
+   - `touches` double-counts reviews;
+   - the synthetic sweep misread digests and long floats as card numbers. The digests are exempted in the sweep; the floats are rounded at source.
+
+**How far to trust it** (§10, §14.8):
+
+- one author wrote the corpora;
+- the data is synthetic, short and English;
+- about 100 rows per corpus;
+- one day, one model version each;
+- the review step is modelled as a person who is always right.
+
+A real-call sample labelled by someone else is the missing test.
+
+---
+
 ## 1. Questions the experiment asks
 
 | #   | Research question                                                                                                                                                                                    | Answered by                                            |
@@ -20,6 +86,8 @@ This is the lab record for the experiment in `docs/design-day2/98-JEV.md` §8–
 | RQ2 | Is Jev's **confidence calibrated**, so that a confidence gate can hand its errors to a person at a small human cost?                                                                                 | reliability, ECE and Brier; the gate (§8.3, §8.4)      |
 | RQ3 | Where does Jev **fail**?                                                                                                                                                                             | the v2 corpus, written to be hard (§8.1, §8.5)         |
 | RQ4 | Does putting the labelling guide's rules into the **questions** (q2) fix those failures on data the questions were not written from? And does a **steer check** catch callers who dictate the label? | v3 (held out) under q1 against q2, paired (§8.5, §8.6) |
+| RQ5 | Does a strong **local LLM** on the builder's own hardware, asked the same questions through the same contract, do as well as Jev? Which of the two local models?                                     | the DGX Spark readers, 122B and 35B (§14, §15)         |
+| RQ6 | What does each reader **cost** in tokens, money and time?                                                                                                                                            | §8.8, §15.2–§15.3; `SUMMARY.md` §9–§10                 |
 
 ---
 
@@ -224,7 +292,11 @@ The **state** is always `{ "utterance": <the caller's words> }`. For transcripts
 | 08:38:43     | q2 written from the v2 guide's rules and frozen.                                                                                                                                                                                                          |
 | 08:38–08:42  | v3 corpus written as new calls: no text shared with v1 or v2 (checked); blind-labelled (κ 0.99 / 1.00 / 1.00).                                                                                                                                            |
 | 08:42:03     | v3 frozen. **v3 × q1** (192 calls, 209–588 ms), **v3 × q2** (192, 203–377 ms), **v1 × q2** (190, 200–411 ms) and **v2 × q2** (230, 210–587 ms) recorded. 0 refused. Merged into the one cassette, with earlier entries kept byte for byte.                |
-| after        | All analyses and harness experiments run offline from the cassette (`--egress none`). No further live calls.                                                                                                                                              |
+| 09:22–09:42  | **Spark 122B**: all six batches (v1/v2/v3 × q1/q2) on spark-619c, `puzzle` mode. 1,224 classifications, 1,530 completions, 0 refused, 0 failures, 527–3,169 ms.                                                                                           |
+| 10:09–10:16  | spark-ef08 switched to `chat` mode (Qwen3.6-35B). spark-619c stayed on the 122B.                                                                                                                                                                          |
+| 10:16–10:21  | **Spark 35B**: all six batches on spark-ef08. 1,224 classifications, 0 refused, 0 failures, 147–3,013 ms.                                                                                                                                                 |
+| 10:22–10:35  | spark-ef08 switched back to `puzzle`, leaving both units as found.                                                                                                                                                                                        |
+| after        | All analyses and harness experiments run offline from the cassettes (`--egress none`). No further live calls.                                                                                                                                             |
 
 **How recording works.** Every live call went through `craftabot record`, the only path that runs a service line's live client. It runs under an egress guard that allows `api.typesafe.ai` and nothing else. The key is read from `CRAFTABOT_CREDENTIAL_TYPESAFE` and is redacted from, and verified absent from, every file written.
 
@@ -640,7 +712,7 @@ Both gain the same amount from better questions. The Spark was the better steer 
 
 ### 14.8 Threats specific to the comparison
 
-- **One local model.** Qwen3.5-122B in `puzzle` mode, the mode both units were in. The faster Qwen3.6-35B (`chat` mode) is untested.
+- **One local model in this section.** Qwen3.5-122B in `puzzle` mode, the mode both units were in. The faster Qwen3.6-35B (`chat` mode) is §15.
 - **Log-probabilities under speculative decoding.** MTP was on, and the log-probabilities were not cross-checked with it off.
 - **The prompt is ours.** The Spark saw the questions through a fixed system prompt and a JSON user message written for this experiment. Jev's prompt handling is its own. A different prompt could move the Spark either way. It was written once and not tuned.
 - **Everything in §10 applies:** one author, synthetic data, n ≈ 100 per corpus.
