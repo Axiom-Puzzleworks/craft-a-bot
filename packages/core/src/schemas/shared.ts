@@ -71,7 +71,22 @@ export const chatResponseSchema = z.object({
 	usage: usageSchema,
 	/** The exact wire response, kept for the trace. */
 	raw: z.unknown(),
-	finishReason: z.enum(['stop', 'tool_call', 'length', 'filtered', 'other'])
+	finishReason: z.enum(['stop', 'tool_call', 'length', 'filtered', 'other']),
+	/**
+	 * A fault the fallible tier planted in this response's call (WP115,
+	 * `103-FALLIBLE-ACTORS.md` §5): the field it changed, what it chose and
+	 * what the plan had. Only a scripted brain writes it; the session writes
+	 * `decision.fault` beside the `decision` from it, so a planted error is
+	 * never read as a live one.
+	 */
+	fault: z
+		.object({
+			field: z.string(),
+			chose: z.unknown(),
+			shouldHave: z.unknown(),
+			errorModel: z.string().optional()
+		})
+		.optional()
 });
 export type ChatResponse = z.infer<typeof chatResponseSchema>;
 

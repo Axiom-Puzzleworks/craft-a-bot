@@ -46,6 +46,20 @@ function withBrain(brain: Record<string, unknown>, budget = false): Campaign {
 	});
 }
 
+/**
+ * The trace without its one wall-clock reading: `tool.executed.durationMs` is
+ * timed by the session with the real clock (`agent-session.ts`), so it can read
+ * 0 on one run and 1 on the next whatever the brain did. Everything else is
+ * compared byte for byte (`103-…` §7).
+ */
+function wallClockFree(events: readonly EngineEvent[]): EngineEvent[] {
+	return events.map((event) =>
+		event.type === 'tool.executed'
+			? ({ ...event, payload: { ...event.payload, durationMs: 0 } } as EngineEvent)
+			: event
+	);
+}
+
 async function digests(campaign: Campaign, options: Parameters<typeof runCampaign>[1]) {
 	const byOrdinal = new Map<number, string>();
 	const pending: Promise<void>[] = [];
@@ -56,7 +70,7 @@ async function digests(campaign: Campaign, options: Parameters<typeof runCampaig
 		newId: ids(),
 		onTrace: (cell, { events }) => {
 			pending.push(
-				computeTraceDigest(events as EngineEvent[]).then((digest) => {
+				computeTraceDigest(wallClockFree(events as EngineEvent[])).then((digest) => {
 					byOrdinal.set(cell.ordinal ?? -1, digest);
 				})
 			);

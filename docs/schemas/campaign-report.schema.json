@@ -141,6 +141,7 @@
 							"scripted-noisy",
 							"scripted-adversary",
 							"scripted-counterpart",
+							"fallible",
 							"live"
 						]
 					},

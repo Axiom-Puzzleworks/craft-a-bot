@@ -23,6 +23,8 @@ import { lendingWorkflow } from './workflow.js';
  * evaluators, a campaign. No runtime, no brick kind, no tool, no schema,
  * and no import from any other desk.
  */
+import { lendingErrorModels } from './errors/error-models.js';
+
 export const FS_LENDING_PACK_ID = 'fs-lending';
 
 export const fsLendingPack: PackManifest = {
@@ -53,6 +55,8 @@ export const fsLendingPack: PackManifest = {
 	],
 	policyCards: lendingPolicyCards,
 	evaluators: lendingEvaluators,
+	// WP115: the fallible tier's error model for the decision.
+	errorModels: lendingErrorModels,
 	controlMaps: [lendingControlMap],
 	// The lending journey as a workflow with its five reference configurations (WP80, `73-…`).
 	workflows: [lendingWorkflow],
@@ -175,3 +179,4 @@ export {
 	type LendingBaselineOptions,
 	type LendingBookCampaignOptions
 } from './campaign.js';
+export { LENDING_DECISION_ERROR_MODEL_ID, lendingErrorModels } from './errors/error-models.js';

@@ -1,4 +1,5 @@
-import type { MockScript } from '@craftabot/core/testing';
+import type { ChatRequest, DecisionFaultSpec } from '@craftabot/core';
+import type { MockScript, MockTurn } from '@craftabot/core/testing';
 import { obedient, turn } from '@craftabot/core/testing';
 import type { Plan } from '@craftabot/pack-starter/testing';
 
@@ -26,7 +27,11 @@ import type { Plan } from '@craftabot/pack-starter/testing';
  */
 
 export type ScriptedTier =
-	'scripted-optimal' | 'scripted-noisy' | 'scripted-adversary' | 'scripted-counterpart';
+	| 'scripted-optimal'
+	| 'scripted-noisy'
+	| 'scripted-adversary'
+	| 'scripted-counterpart'
+	| 'fallible';
 
 /**
  * The counterpart seat's brain (WP55, `46-COUNTERPARTS.md` §4.5): drives a
@@ -129,6 +134,94 @@ export function scriptedNoisy(plan: Plan, { seed, rates }: NoisyOptions): MockSc
 		// The call too may be the prompt's (WP106): a stage whose act depends on the request read at the turn.
 		return turn(step.say, step.callFrom ? step.callFrom(request) : step.call, args);
 	};
+}
+
+/** An error model's fault with its rate resolved from the calibration table (`resolveErrorModel`). */
+export interface ResolvedFault {
+	spec: DecisionFaultSpec;
+	/** P(the decision is wrong), from the row. */
+	rate: number;
+}
+
+export interface FallibleOptions {
+	/** The cell's seed, mixed with the card: the same seed plants the same faults. */
+	seed: number;
+	errorModelId: string;
+	faults: readonly ResolvedFault[];
+}
+
+const SHRUG_TURN: MockTurn = { text: 'I am not sure what to do next.', toolCall: null };
+const bareOf = (name: string): string => name.slice(name.lastIndexOf('/') + 1);
+
+/**
+ * **The fallible tier** (WP115, `103-FALLIBLE-ACTORS.md` §5; `100-…` §6.1,
+ * D14): the plan played exactly, but at each decision an error model names
+ * — a `decide { outcome }` on the lending desk, the fraud desk's `release` /
+ * `hold` / `freeze-account` — the decision is wrong with the row's
+ * probability, uniformly over the other options or toward one. One seeded
+ * draw per matched decision (and a second only when it errs), so the same
+ * seed plants the same faults; every fault rides out on the turn as `fault`,
+ * which the session writes as `decision.fault` beside the decision. A rate of
+ * 0 is `scripted-optimal`, turn for turn.
+ */
+export function scriptedFallible(plan: Plan, options: FallibleOptions): MockScript {
+	const base = obedient(plan);
+	const random = mulberry32(options.seed);
+	const next = (request: ChatRequest, index: number): MockTurn =>
+		typeof base === 'function' ? base(request, index) : (base[index] ?? SHRUG_TURN);
+	return (request, index) => {
+		const planned = next(request, index);
+		const call = planned.toolCall;
+		if (!call) return planned;
+		const bare = bareOf(call.name);
+		for (const { spec, rate } of options.faults) {
+			if (spec.field !== undefined) {
+				if (bare !== spec.action) continue;
+				const args = (call.arguments ?? {}) as Record<string, unknown>;
+				const current = args[spec.field];
+				if (typeof current !== 'string' || !spec.options.includes(current)) continue;
+				if (random() >= rate) return planned;
+				const wrong = wrongOption(spec, current, random);
+				if (wrong === undefined) return planned;
+				return {
+					...planned,
+					toolCall: { name: call.name, arguments: { ...args, [spec.field]: wrong } },
+					fault: {
+						field: spec.field,
+						chose: wrong,
+						shouldHave: current,
+						errorModel: options.errorModelId
+					}
+				};
+			}
+			if (!spec.options.includes(bare)) continue;
+			if (random() >= rate) return planned;
+			const wrong = wrongOption(spec, bare, random);
+			if (wrong === undefined) return planned;
+			const prefix = call.name.slice(0, call.name.length - bare.length);
+			return {
+				...planned,
+				toolCall: { name: `${prefix}${wrong}`, arguments: call.arguments },
+				fault: { field: 'action', chose: wrong, shouldHave: bare, errorModel: options.errorModelId }
+			};
+		}
+		return planned;
+	};
+}
+
+/** Another option than `current`: the one the direction points at, or one drawn uniformly from the rest. */
+function wrongOption(
+	spec: DecisionFaultSpec,
+	current: string,
+	random: () => number
+): string | undefined {
+	if (spec.direction !== 'uniform') {
+		const toward = spec.direction.toward;
+		return toward !== current && spec.options.includes(toward) ? toward : undefined;
+	}
+	const others = spec.options.filter((option) => option !== current);
+	if (others.length === 0) return undefined;
+	return others[Math.floor(random() * others.length)];
 }
 
 const DIRECTIONS = ['north', 'east', 'south', 'west'] as const;

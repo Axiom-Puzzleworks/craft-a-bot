@@ -900,6 +900,19 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 				call: decision.kind === 'call' ? { ...decision.call } : null,
 				source: 'brain'
 			});
+			// A fault the fallible tier planted (WP115): said beside the decision it corrupts.
+			if (response.fault && decision.kind === 'call') {
+				emit('decision.fault', {
+					action: decision.call.name,
+					field: response.fault.field,
+					chose: response.fault.chose,
+					shouldHave: response.fault.shouldHave,
+					planted: true,
+					...(response.fault.errorModel !== undefined
+						? { errorModel: response.fault.errorModel }
+						: {})
+				});
+			}
 		}
 
 		// 6. GUARD (pre-act) + 7. ACT

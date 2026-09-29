@@ -13,6 +13,8 @@ export interface MockTurn {
 	toolCall?: { name: string; arguments: unknown } | null;
 	finishReason?: ChatResponse['finishReason'];
 	usage?: { inputTokens: number; outputTokens: number };
+	/** A fault the fallible tier planted in `toolCall` (WP115): carried to the response, and so to `decision.fault`. */
+	fault?: ChatResponse['fault'];
 }
 
 /** A script is either a fixed list of turns or a function of the request. */
@@ -62,7 +64,8 @@ export function createMockProvider(options: MockProviderOptions): LLMProvider {
 				toolCall,
 				usage: turn.usage ?? estimateUsage(request, turn),
 				raw: { mock: true, turnIndex: turnIndex - 1, turn },
-				finishReason: turn.finishReason ?? (toolCall ? 'tool_call' : 'stop')
+				finishReason: turn.finishReason ?? (toolCall ? 'tool_call' : 'stop'),
+				...(turn.fault ? { fault: turn.fault } : {})
 			};
 		}
 	};

@@ -1169,6 +1169,7 @@
 											"scripted-noisy",
 											"scripted-adversary",
 											"scripted-counterpart",
+											"fallible",
 											"live"
 										]
 									},
@@ -1176,6 +1177,10 @@
 										"type": "string"
 									},
 									"cassette": {
+										"type": "string",
+										"minLength": 1
+									},
+									"errorModel": {
 										"type": "string",
 										"minLength": 1
 									}

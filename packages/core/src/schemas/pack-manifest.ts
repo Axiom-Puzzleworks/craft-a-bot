@@ -14,6 +14,7 @@ import type { ScenarioDefinition } from './scenario.js';
 import type { ToolDefinition } from '../types/tool.js';
 import type { ProviderFactory } from '../types/provider.js';
 import type { ServiceLine } from '../types/service-line.js';
+import type { ErrorModel } from '../types/error-model.js';
 import type { EvidenceStore } from '../types/evidence-store.js';
 import type { WorldDefinition } from '../types/world.js';
 import type { PolicyCard } from './policy-card.js';
@@ -289,6 +290,12 @@ export interface PackManifest extends PackManifestMetadata {
 	 * reviewer reads, checked by `checkCalibration`, rendered on the bank page.
 	 */
 	calibrations?: CalibrationTable[];
+	/**
+	 * Error models (WP115, `103-FALLIBLE-ACTORS.md` §5): how the fallible tier
+	 * errs at a desk's decisions, each rate a calibration row. Content a
+	 * campaign brain names (`{ tier: 'fallible', errorModel }`).
+	 */
+	errorModels?: ErrorModel[];
 	/**
 	 * Workflows (WP79, `69-WORKFLOWS.md` §3): a journey as stages with typed
 	 * input and output and an executor each — content over a world the pack

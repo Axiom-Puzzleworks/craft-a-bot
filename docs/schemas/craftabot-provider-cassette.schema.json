@@ -142,6 +142,24 @@
 									"filtered",
 									"other"
 								]
+							},
+							"fault": {
+								"type": "object",
+								"properties": {
+									"field": {
+										"type": "string"
+									},
+									"chose": {},
+									"shouldHave": {},
+									"errorModel": {
+										"type": "string"
+									}
+								},
+								"required": [
+									"field",
+									"chose",
+									"shouldHave"
+								]
 							}
 						},
 						"required": [

@@ -236,6 +236,23 @@ const decisionEvent = eventSchema(
 		source: z.enum(['brain', 'reflex']).optional()
 	})
 );
+/**
+ * A planted fault (WP115, `103-FALLIBLE-ACTORS.md` §5): the fallible tier
+ * changed this tick's call — `field` of `action` is `chose` where the plan
+ * had `shouldHave`. Written right after the `decision` it corrupts, and only
+ * then, so every error a campaign's actor made on purpose says so.
+ */
+const decisionFaultEvent = eventSchema(
+	'decision.fault',
+	z.object({
+		action: z.string(),
+		field: z.string(),
+		chose: z.unknown(),
+		shouldHave: z.unknown(),
+		planted: z.literal(true),
+		errorModel: z.string().optional()
+	})
+);
 const toolExecutedEvent = eventSchema(
 	'tool.executed',
 	z.object({
@@ -465,6 +482,7 @@ export const engineEventSchema = z.discriminatedUnion('type', [
 	thinkTokenEvent,
 	thinkCompletedEvent,
 	decisionEvent,
+	decisionFaultEvent,
 	toolExecutedEvent,
 	actionPerformedEvent,
 	memoryUpdatedEvent,

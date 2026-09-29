@@ -15,6 +15,8 @@ import { fraudDesk } from './world/desk.js';
  * a campaign. No runtime, no brick kind, no tool, no schema, and no import
  * from any other desk.
  */
+import { fraudErrorModels } from './errors/error-models.js';
+
 export const FS_FRAUD_PACK_ID = 'fs-fraud';
 
 import { fraudWorkflow } from './workflow.js';
@@ -42,6 +44,8 @@ export const fsFraudPack: PackManifest = {
 	/** WP97 (`89-STACKS.md`): the baseline's guards as stacks. */
 	stacks: fraudStacks,
 	evaluators: fraudEvaluators,
+	// WP115: the fallible tier's error model for the alert decision.
+	errorModels: fraudErrorModels,
 	controlMaps: [fraudControlMap],
 	// The alert journey (WP85, `76-FRAUD-AND-ADVICE-WORKFLOWS.md` §3).
 	workflows: [fraudWorkflow]
@@ -134,3 +138,4 @@ export {
 	fraudBaseline,
 	type FraudBaselineOptions
 } from './campaign.js';
+export { FRAUD_DECISION_ERROR_MODEL_ID, fraudErrorModels } from './errors/error-models.js';

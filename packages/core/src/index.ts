@@ -573,6 +573,8 @@ export {
 	type CassetteEntry,
 	type CassetteFile
 } from './schemas/cassette.js';
+/** Error models and the fallible tier (WP115, `103-FALLIBLE-ACTORS.md` §5). */
+export type { CalibrationRef, DecisionFaultSpec, ErrorModel } from './types/error-model.js';
 /** Provider cassettes (WP114, `103-FALLIBLE-ACTORS.md` §3). */
 export {
 	parseProviderCassette,

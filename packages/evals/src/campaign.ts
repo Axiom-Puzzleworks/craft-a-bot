@@ -16,8 +16,10 @@ import type {
 import {
 	POINT_KINDS,
 	bookSchema,
+	calibrationRow,
 	contextSpecSchema,
 	createCassetteProvider,
+	sha256Hex,
 	type ContextSpec,
 	type ProviderCassetteFile
 } from '@craftabot/core';
@@ -85,8 +87,11 @@ import {
 	DEFAULT_NOISE,
 	scriptedAdversary,
 	scriptedNoisy,
+	scriptedFallible,
 	scriptedOptimal,
-	type NoiseRates
+	type FallibleOptions,
+	type NoiseRates,
+	type ResolvedFault
 } from './brains.js';
 import { scoreRun } from './metrics.js';
 import {
@@ -453,11 +458,17 @@ export const campaignBrainSchema = z
 		 * with no network and no key, answering every prompt as the recording did; a
 		 * prompt it has not seen is a `cassette-miss`. Not counted against the budget.
 		 */
-		cassette: z.string().min(1).optional()
+		cassette: z.string().min(1).optional(),
+		/** The error model a fallible brain errs by (WP115, `103-…` §5): a pack's `errorModels` id. */
+		errorModel: z.string().min(1).optional()
 	})
 	.refine((brain) => brain.cassette === undefined || brain.tier === 'live', {
 		message: 'only a live brain replays a cassette',
 		path: ['cassette']
+	})
+	.refine((brain) => (brain.tier === 'fallible') === (brain.errorModel !== undefined), {
+		message: 'a fallible brain names an errorModel, and only a fallible brain does',
+		path: ['errorModel']
 	});
 export type CampaignBrain = z.infer<typeof campaignBrainSchema>;
 
@@ -1249,7 +1260,14 @@ async function runCell(
 		}
 		const spec = specFor(cell);
 		const goalCardId = goalCardOf(scenario);
-		const script = scriptFor(brain.tier, goalCardId, seed, noise, options.plans ?? starterPlans);
+		const script = scriptFor(
+			brain.tier,
+			goalCardId,
+			seed,
+			noise,
+			options.plans ?? starterPlans,
+			fallibleFor(brain, registry, seed, cell.ordinal, goalCardId)
+		);
 		const maxTicks = scenario.maxTicks;
 		// A live seat: the cell is a two-seat episode (WP64, `56-…` §4.1), scored on the agent's own events.
 		if (campaign.counterpart?.tier === 'live') {
@@ -1417,7 +1435,14 @@ async function runBookCell(
 			brain.tier === 'live'
 				? providerForLive(brain, options, goalCardId)
 				: createMockProvider({
-						script: scriptFor(brain.tier, goalCardId, seed, noise, options.plans ?? starterPlans)
+						script: scriptFor(
+							brain.tier,
+							goalCardId,
+							seed,
+							noise,
+							options.plans ?? starterPlans,
+							fallibleFor(brain, registry, seed, cell.ordinal, goalCardId)
+						)
 					}),
 		// Each stage's boundary chain (WP95): its cards and components, compiled against the same registry and deps as the cell's guard.
 		boundaryGuardrailsFor: stageBoundaryGuardrails(registry, deps, (stage) =>
@@ -1992,9 +2017,13 @@ function scriptFor(
 	goalCardId: string,
 	seed: number,
 	noise: NoiseRates,
-	plans: PlanSource
+	plans: PlanSource,
+	fallible?: FallibleOptions
 ) {
 	switch (tier) {
+		case 'fallible':
+			if (!fallible) throw new Error('a fallible brain names no errorModel');
+			return scriptedFallible(plans.planFor(goalCardId), fallible);
 		case 'scripted-adversary':
 			return scriptedAdversary(plans.adversaryPlanFor(goalCardId));
 		case 'scripted-counterpart':
@@ -2019,6 +2048,48 @@ function planIfAny(goalCardId: string, plans: PlanSource): Plan {
 	} catch {
 		return [];
 	}
+}
+
+/**
+ * An error model's faults with their rates read from the registry's calibration
+ * tables (WP115, `103-…` §5): a rate outside [0, 1], or a table, row or key the
+ * registry does not hold, is refused before any cell runs on it.
+ */
+export function resolveErrorModel(
+	registry: Pick<PackRegistry, 'getErrorModel' | 'getCalibrationTable'>,
+	id: string
+): ResolvedFault[] {
+	const model = registry.getErrorModel(id);
+	if (!model) throw new Error(`no error model '${id}' is installed`);
+	return model.faults.map((spec) => {
+		const table = registry.getCalibrationTable(spec.rate.table);
+		if (!table)
+			throw new Error(
+				`error model '${id}': no calibration table '${spec.rate.table}' is installed`
+			);
+		const rate = calibrationRow(table, spec.rate.row).distribution[spec.rate.key];
+		if (rate === undefined || !(rate >= 0 && rate <= 1))
+			throw new Error(
+				`error model '${id}': ${spec.rate.table}/${spec.rate.row} has no rate '${spec.rate.key}' in [0, 1]`
+			);
+		return { spec, rate };
+	});
+}
+
+/** The fallible tier's options for one cell and card: the model's faults, and a seed mixed from the cell's seed, ordinal and the card. */
+function fallibleFor(
+	brain: CampaignBrain,
+	registry: Pick<PackRegistry, 'getErrorModel' | 'getCalibrationTable'>,
+	seed: number,
+	ordinal: number,
+	goalCardId: string
+): FallibleOptions | undefined {
+	if (brain.tier !== 'fallible' || brain.errorModel === undefined) return undefined;
+	return {
+		seed: Number.parseInt(sha256Hex(`${seed}|${ordinal}|${goalCardId}`).slice(0, 8), 16),
+		errorModelId: brain.errorModel,
+		faults: resolveErrorModel(registry, brain.errorModel)
+	};
 }
 
 function providerForLive(
