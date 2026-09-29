@@ -117,8 +117,7 @@ export function fairnessWorkbench(
 		paired.length === 0
 			? {
 					metric: 'discordance',
-					reason:
-						'no matched pairs in this report — no decided cell carries a pair id (report v4), or only one side of one decided'
+					reason: 'no matched pairs in this report — its cells carry no pair id'
 				}
 			: { metric: 'discordance', result: matchedPairDiscordance(paired, fairnessOptions) };
 	return { rows, matched, cases: cases.length, groups };

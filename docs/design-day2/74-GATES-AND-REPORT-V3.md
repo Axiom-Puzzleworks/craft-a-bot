@@ -34,3 +34,5 @@
 - The `fairness` drift metric names its metric as the gate's `feature` and compares across `ageBand`; a campaign-level `across` for drift is a WP89 question.
 - `driftIn` (`governance/reports/drift.ts`) keeps WP76's signature: the `psi:<feature>` series and the new flag kinds want a series of reports, which the Monitor (WP84) is the first to have; noted in `68-…`.
 - The Campaigns screen's visual baseline did not move: the fixture report carries no metric verdict, so the new panes do not appear in the screenshot.
+
+> **Amended 2026-09-29 (WP112): report v4.** Two identifiers on a cell: `workflow.workflowId` on a book cell (the Conduct page no longer infers it from the stage ids) and `pairId` when the case's truth names a `pairSide` — the scenario, build, guard, brain and context, shared by both sides across the seeds (`pairIdOf`). A v3 report reads as v4 with them absent and keeps its version; v3 and v4 are one instrument (`sameReportInstrument`), so a `no-regression` gate against a v3 baseline compares. The scorecard's *computed no fairness/drift* notice now keys on v3 (`CAMPAIGN_REPORT_PANES_SINCE`). `docs/schemas/campaign-report.schema.json` regenerated.

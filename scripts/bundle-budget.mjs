@@ -46,15 +46,24 @@ import { fileURLToPath } from 'node:url';
 // step inside `apps/workbench` as well as by hand from the repo root.
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
 // 1.5 MB from `01-…` §8, +50 kB on 2026-09-10 (WP74): the calibration table's cited rows and their notes ship in the bank pack (`66-CALIBRATION.md`), and are content the bank page renders.
-const DEFAULT_LIMIT_BYTES = 2_230_000; // +40 kB 2026-09-13 (WP109): the palette, saved views, density, Linked from (01 §8) // +70 kB 2026-09-12 (WP106): the Servicing Desk pack, its journey, the domain spec and the matrix (01 §8) // +60 kB 2026-09-12 (WP105): the Collections Desk pack and its journey (01 §8) // +60 kB 2026-09-12 (WP104): the Disputes Desk pack and its journey (01 §8) // +60 kB 2026-09-12 (WP103): the Onboarding Desk pack, its journey and the bank's screening list (01 §8) // +10 kB 2026-09-12 (WP102): the complaints journey, the handoff (01 §8) // +20 kB 2026-09-12 (WP101): the Studio and the verdict-flow fold (01 §8) // +30 kB 2026-09-12 (WP100): the Journey Canvas, its layout in workflow, the twin, the journeys pages (01 §8) // +10 kB 2026-09-12 (WP99): the connections declared in full and the Guard Rack’s lamp (01 §8) // +40 kB 2026-09-12 (WP98): the Guardrail Catalogue’s forty-five cited entries ride in governance (01 §8) // +30 kB 2026-09-12 (Phase X, WP94–WP96): the component contract, the boundary chain, the redaction (01 §8)
+const DEFAULT_LIMIT_BYTES = 2_280_000; // +50 kB 2026-09-29 (WP112): each desk pack its own chunk — about 27 kB of glue for seven more chunks and headroom; the Kit's first page 409 kB lighter, held by its own gate (01 §8) // +40 kB 2026-09-13 (WP109): the palette, saved views, density, Linked from (01 §8) // +70 kB 2026-09-12 (WP106): the Servicing Desk pack, its journey, the domain spec and the matrix (01 §8) // +60 kB 2026-09-12 (WP105): the Collections Desk pack and its journey (01 §8) // +60 kB 2026-09-12 (WP104): the Disputes Desk pack and its journey (01 §8) // +60 kB 2026-09-12 (WP103): the Onboarding Desk pack, its journey and the bank's screening list (01 §8) // +10 kB 2026-09-12 (WP102): the complaints journey, the handoff (01 §8) // +20 kB 2026-09-12 (WP101): the Studio and the verdict-flow fold (01 §8) // +30 kB 2026-09-12 (WP100): the Journey Canvas, its layout in workflow, the twin, the journeys pages (01 §8) // +10 kB 2026-09-12 (WP99): the connections declared in full and the Guard Rack’s lamp (01 §8) // +40 kB 2026-09-12 (WP98): the Guardrail Catalogue’s forty-five cited entries ride in governance (01 §8) // +30 kB 2026-09-12 (Phase X, WP94–WP96): the component contract, the boundary chain, the redaction (01 §8)
 // +50 kB 2026-09-11 (WP82): the runner's fairness and drift metrics and the workflow runtime ride in the Worker's chunk.
 const DEFAULT_WORKER_LIMIT_BYTES = 1_160_000; // +10 kB 2026-09-13 (WP109): the fifth content kind in core (01 §8) // +60 kB 2026-09-12 (WP106): the seventh desk pack rides into the Worker // +50 kB 2026-09-12 (WP105): the sixth desk pack rides into the Worker // +50 kB 2026-09-12 (WP104): the fifth desk pack rides into the Worker // +30 kB 2026-09-12 (WP103): the fourth desk pack rides into the Worker // +10 kB 2026-09-12 (WP102): the complaints journey rides into the Worker with fs-advice // +10 kB 2026-09-12 (WP101): the verdict-flow fold rides into the Worker with governance // +10 kB 2026-09-12 (WP100): the journey layout rides into the Worker with workflow // +10 kB 2026-09-12 (WP99): the connections and browserRefusal in governance // +30 kB 2026-09-12 (WP98): the catalogue rides into the Worker with governance // +20 kB 2026-09-12 (Phase X): the adapters and the boundary compiler ride into the Worker with governance and evals
+
+/**
+ * The Kit's first page (WP112, `01-…` §8): the JS `/` fetches on a first
+ * visit, static imports only. The sum above counts every chunk, so it cannot
+ * see a desk moved out of the first bundle into its own chunk; this can. 812 kB
+ * when the desks left the first bundle (from 1221 kB), with headroom.
+ */
+const DEFAULT_FIRST_PAGE_LIMIT_BYTES = 870_000;
 
 function parseArgs(argv) {
 	const options = {
 		app: join(REPO, 'apps', 'workbench'),
 		limit: DEFAULT_LIMIT_BYTES,
 		workerLimit: DEFAULT_WORKER_LIMIT_BYTES,
+		firstPageLimit: DEFAULT_FIRST_PAGE_LIMIT_BYTES,
 		out: 'build'
 	};
 	for (let i = 0; i < argv.length; i++) {
@@ -73,6 +82,14 @@ function parseArgs(argv) {
 				);
 			}
 			options.workerLimit = value;
+		} else if (arg === '--first-page-limit') {
+			const value = Number(argv[++i]);
+			if (!Number.isFinite(value) || value <= 0) {
+				throw new Error(
+					`bundle-budget: --first-page-limit wants a positive number of bytes, got ${argv[i]}`
+				);
+			}
+			options.firstPageLimit = value;
 		} else if (arg === '--app') {
 			options.app = join(REPO, argv[++i] ?? '');
 		} else if (arg === '--out') {
@@ -220,6 +237,12 @@ if (files.length > 0) {
 	}
 
 	const routes = routeSizes(options.app, BUILD);
+	const firstPage = routes?.find((route) => route.id === '/');
+	if (firstPage) {
+		console.log(
+			`  first page  ${kb(firstPage.raw)} of ${kb(options.firstPageLimit)} for / on a first visit`
+		);
+	}
 	if (routes) {
 		routes.sort((a, b) => b.raw - a.raw);
 		console.log(`  per route (JS on first visit, static imports only):`);
@@ -240,6 +263,11 @@ if (files.length > 0) {
 
 	if (raw > LIMIT_BYTES) {
 		console.error(`bundle-budget: OVER BUDGET by ${kb(raw - LIMIT_BYTES)} (01 §8)`);
+		process.exitCode = 1;
+	} else if (firstPage && firstPage.raw > options.firstPageLimit) {
+		console.error(
+			`bundle-budget: THE KIT'S FIRST PAGE OVER BUDGET by ${kb(firstPage.raw - options.firstPageLimit)} (WP112, 01 §8)`
+		);
 		process.exitCode = 1;
 	} else if (workerRaw > WORKER_LIMIT_BYTES) {
 		console.error(
