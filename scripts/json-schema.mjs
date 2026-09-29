@@ -56,6 +56,12 @@ export async function artefactSchemas() {
 			description:
 				'One service line’s recording of a real sandbox: each call’s operation, arguments and their digest, the result and the latency, redacted at write (47-SERVICE-LINES.md §4.2).'
 		},
+		'craftabot-provider-cassette': {
+			schema: core.providerCassetteFileSchema,
+			title: 'Craft A Bot provider cassette (craftabot-cassette v1, kind provider)',
+			description:
+				'A provider cassette (WP114, 103-FALLIBLE-ACTORS.md): one entry per provider call a recording made, keyed by the SHA-256 of the composed prompt and its occurrence, with the response as the provider returned it, the model id pinned, and the latency. A live brain naming it replays with no key and no network.'
+		},
 		'craftabot-scenarios': {
 			schema: core.scenarioPackFileSchema,
 			title: 'Craft A Bot scenario pack (craftabot-scenarios v1)',

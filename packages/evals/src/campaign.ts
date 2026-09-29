@@ -13,7 +13,14 @@ import type {
 	WorkflowConfig,
 	WorkflowSpec
 } from '@craftabot/core';
-import { POINT_KINDS, bookSchema, contextSpecSchema, type ContextSpec } from '@craftabot/core';
+import {
+	POINT_KINDS,
+	bookSchema,
+	contextSpecSchema,
+	createCassetteProvider,
+	type ContextSpec,
+	type ProviderCassetteFile
+} from '@craftabot/core';
 import {
 	NO_REPETITION_COMPONENT_ID,
 	POLICY_CARD_COMPONENT_ID,
@@ -435,11 +442,23 @@ export const campaignCounterpartSchema = z.object({
 export type CampaignCounterpart = z.infer<typeof campaignCounterpartSchema>;
 export type CampaignGuard = z.infer<typeof campaignGuardSchema>;
 
-export const campaignBrainSchema = z.object({
-	id: z.string().min(1),
-	tier: evalTierSchema,
-	cartridgeId: z.string().optional()
-});
+export const campaignBrainSchema = z
+	.object({
+		id: z.string().min(1),
+		tier: evalTierSchema,
+		cartridgeId: z.string().optional(),
+		/**
+		 * A live brain replayed from a provider cassette (WP114, `103-FALLIBLE-ACTORS.md`
+		 * §3): the file's path, as the host resolves it (`cassetteFor`). The cells run
+		 * with no network and no key, answering every prompt as the recording did; a
+		 * prompt it has not seen is a `cassette-miss`. Not counted against the budget.
+		 */
+		cassette: z.string().min(1).optional()
+	})
+	.refine((brain) => brain.cassette === undefined || brain.tier === 'live', {
+		message: 'only a live brain replays a cassette',
+		path: ['cassette']
+	});
 export type CampaignBrain = z.infer<typeof campaignBrainSchema>;
 
 /**
@@ -828,7 +847,10 @@ export function campaignCells(
 
 export interface RunCampaignOptions {
 	/** Where a `live` cell's provider comes from; a live cell with none is recorded as an error, never faked. */
-	providerFor?: (brain: CampaignBrain) => LLMProvider;
+	/** A live brain's provider — asked per cell, and per agent stage in a book cell, with the card it plays when there is one (WP114: a recorder needs it). */
+	providerFor?: (brain: CampaignBrain, context?: { goalCardId?: string }) => LLMProvider;
+	/** A brain's provider cassette by the path it names (WP114): the host reads the file; `evals` never touches a disk. */
+	cassetteFor?: (path: string) => ProviderCassetteFile;
 	/** The previous report, for `no-regression` gates; without one they are inconclusive. */
 	baseline?: CampaignReport;
 	packVersions?: Record<string, string>;
@@ -1172,7 +1194,10 @@ function guardBudget(campaign: Campaign, cells: CampaignCellSpec[]): void {
 			`campaign '${campaign.id}' seats a live counterpart and names no cartridgeId for it`
 		);
 	}
-	const live = cells.filter((cell) => cell.brain.tier === 'live' || liveSeat).length;
+	// A cassette brain spends nothing (WP114): it replays, so it is not a live cell.
+	const live = cells.filter(
+		(cell) => (cell.brain.tier === 'live' && cell.brain.cassette === undefined) || liveSeat
+	).length;
 	if (live === 0) return;
 	if (!campaign.budget) {
 		throw new Error(
@@ -1269,7 +1294,7 @@ async function runCell(
 			idOffset: cell.ordinal * ID_STRIDE,
 			seed,
 			...(maxTicks !== undefined ? { maxTicks } : {}),
-			...(brain.tier === 'live' ? { provider: providerForLive(brain, options) } : {}),
+			...(brain.tier === 'live' ? { provider: providerForLive(brain, options, goalCardId) } : {}),
 			...(chain.length > 0 ? { guardrails: chain } : {}),
 			...(egress !== undefined ? { egress } : {}),
 			...(options.principal !== undefined ? { principal: options.principal } : {}),
@@ -1390,7 +1415,7 @@ async function runBookCell(
 		...(chain.length > 0 ? { guardrails: chain } : {}),
 		providerFor: (_stage, goalCardId) =>
 			brain.tier === 'live'
-				? providerForLive(brain, options)
+				? providerForLive(brain, options, goalCardId)
 				: createMockProvider({
 						script: scriptFor(brain.tier, goalCardId, seed, noise, options.plans ?? starterPlans)
 					}),
@@ -1552,7 +1577,9 @@ async function runDuoCell(
 		clock.now()
 	);
 	const agentProvider =
-		brain.tier === 'live' ? providerForLive(brain, options) : createMockProvider({ script });
+		brain.tier === 'live'
+			? providerForLive(brain, options, goalCardId)
+			: createMockProvider({ script });
 	const seatProvider = providerForLive({ id: 'counterpart', tier: 'live', cartridgeId }, options);
 	const stack = groupStackFor(guard, registry);
 	const chain = componentChainFor(guard, registry, options);
@@ -1994,8 +2021,21 @@ function planIfAny(goalCardId: string, plans: PlanSource): Plan {
 	}
 }
 
-function providerForLive(brain: CampaignBrain, options: RunCampaignOptions): LLMProvider {
-	const provider = options.providerFor?.(brain);
+function providerForLive(
+	brain: CampaignBrain,
+	options: RunCampaignOptions,
+	goalCardId?: string
+): LLMProvider {
+	// A cassette brain replays (WP114): a fresh provider per call, so each cell (each stage) counts its prompts from zero, as its recording did.
+	if (brain.cassette !== undefined) {
+		if (!options.cassetteFor) {
+			throw new Error(
+				`the "${brain.id}" brain replays ${brain.cassette} and no cassetteFor was supplied`
+			);
+		}
+		return createCassetteProvider(options.cassetteFor(brain.cassette));
+	}
+	const provider = options.providerFor?.(brain, goalCardId !== undefined ? { goalCardId } : {});
 	if (!provider) {
 		throw new Error(`the "${brain.id}" brain is live and no providerFor was supplied`);
 	}

@@ -44,3 +44,6 @@ vite.config.ts.timestamp-*
 # can use, not personal.
 .claude/settings.local.json
 campaign-out/
+
+# TypeScript incremental build info (a `tsc -b` run inside a package writes one)
+*.tsbuildinfo

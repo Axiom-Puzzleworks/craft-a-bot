@@ -1,3 +1,4 @@
+import { cassetteLoader } from '../cassettes.js';
 import { parentPort } from 'node:worker_threads';
 import { readFile } from 'node:fs/promises';
 import { localPackFrom, type LLMProvider, type PackRegistry } from '@craftabot/core';
@@ -94,6 +95,8 @@ export async function prepareInWorker(
 		packs: runnerPacks,
 		plans: harnessPlans,
 		providerFor: (brain) => providerFor(brain, registry),
+		// A cassette brain replays in a worker as on the main thread (WP114).
+		cassetteFor: cassetteLoader(),
 		egress: init.egress ?? 'declared',
 		...(init.principal ? { principal: init.principal } : {}),
 		credentials: (id) => credentials.get(id)

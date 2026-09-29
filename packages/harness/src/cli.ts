@@ -14,6 +14,7 @@ import { importCorpusFile } from './commands/scenarios.js';
 import { DEFAULT_CONTENT_DIR, addContent, listContent, renderContent } from './commands/content.js';
 import { exportRun } from './commands/export.js';
 import { recordCassette } from './commands/record.js';
+import { recordExperiment } from './commands/record-provider.js';
 import { readContentDir } from './storage/file-storage.js';
 import { describePacks, renderPacks } from './commands/packs.js';
 import { reportIncidents, reportSafetyCase, reportTelemetry } from './commands/report.js';
@@ -241,6 +242,17 @@ Usage:
       written redacted against every CRAFTABOT_CREDENTIAL_* the process
       holds — a fixture a pack ships under src/cassettes/ and a session
       replays with no network. --egress none refuses every call.
+
+  craftabot record --experiment <design.json> --provider <id|mock> [--size <n>]
+                 [--out ./recording] [--egress declared|none]
+      Record a design's live brains to provider cassettes (WP114,
+      103-FALLIBLE-ACTORS.md): every brain naming "cassette" runs live through
+      its cartridge's provider (which must be --provider), under the file's
+      budget and the provider's declared egress, and each cassette path gets
+      the calls' answers keyed by the prompt's digest, redacted against every
+      credential the process holds. A campaign or experiment naming the brain
+      then replays it with no key and no network. --provider mock records the
+      scripted-optimal plans instead — a stand-in, and says so in the file.
 
   craftabot export --run <runId> --sink <sinkId> [--sink-config <json>] [--out ./runs]
       Send a stored run to a sink in one go: telemetry/otlp-http (an OTLP
@@ -898,6 +910,35 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 				return 0;
 			}
 			case 'record': {
+				// WP114 (`103-FALLIBLE-ACTORS.md` §4): a design's live brains into their provider cassettes.
+				const experimentFile = stringFlag(args, 'experiment');
+				if (experimentFile !== undefined) {
+					const provider = stringFlag(args, 'provider');
+					if (provider === undefined)
+						throw new Error('record --experiment needs --provider <id|mock>');
+					const egress = egressFlag(args);
+					const size = numberFlag(args, 'size');
+					const recorded = await recordExperiment({
+						file: experimentFile,
+						provider,
+						out: stringFlag(args, 'out') ?? './recording',
+						config: await configFrom(args),
+						credentials: credentialsFromEnv(io.env),
+						...(size !== undefined ? { size } : {}),
+						...(egress !== undefined ? { egress } : {})
+					});
+					io.stdout(
+						[
+							`recorded ${recorded.experimentId} — ${recorded.campaigns} campaign(s), ${recorded.cells} cells`,
+							...recorded.cassettes.map(
+								(cassette) =>
+									`  cassette   ${cassette.path}  ${cassette.entries} entries${cassette.conflicts > 0 ? ` (${cassette.conflicts} later answers differed; the first kept)` : ''}`
+							),
+							''
+						].join('\n')
+					);
+					return 0;
+				}
 				const lineId = stringFlag(args, 'line');
 				const scriptPath = stringFlag(args, 'script');
 				if (lineId === undefined || scriptPath === undefined) {

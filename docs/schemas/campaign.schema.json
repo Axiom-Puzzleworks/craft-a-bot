@@ -1149,6 +1149,10 @@
 					},
 					"cartridgeId": {
 						"type": "string"
+					},
+					"cassette": {
+						"type": "string",
+						"minLength": 1
 					}
 				},
 				"required": [

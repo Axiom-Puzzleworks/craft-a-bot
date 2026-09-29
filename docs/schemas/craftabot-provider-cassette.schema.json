@@ -1,0 +1,179 @@
+{
+	"$id": "https://craftabot.dev/schemas/craftabot-provider-cassette.schema.json",
+	"title": "Craft A Bot provider cassette (craftabot-cassette v1, kind provider)",
+	"description": "A provider cassette (WP114, 103-FALLIBLE-ACTORS.md): one entry per provider call a recording made, keyed by the SHA-256 of the composed prompt and its occurrence, with the response as the provider returned it, the model id pinned, and the latency. A live brain naming it replays with no key and no network.",
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"type": "object",
+	"properties": {
+		"format": {
+			"type": "string",
+			"const": "craftabot-cassette"
+		},
+		"formatVersion": {
+			"type": "number",
+			"const": 1
+		},
+		"kind": {
+			"type": "string",
+			"const": "provider"
+		},
+		"providerId": {
+			"type": "string",
+			"minLength": 1
+		},
+		"recordedAt": {
+			"type": "string",
+			"format": "date-time",
+			"pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+		},
+		"recordedBy": {
+			"type": "string",
+			"minLength": 1
+		},
+		"note": {
+			"type": "string"
+		},
+		"egress": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"host": {
+						"type": "string",
+						"minLength": 1
+					},
+					"purpose": {
+						"type": "string",
+						"minLength": 1
+					},
+					"sends": {
+						"minItems": 1,
+						"type": "array",
+						"items": {
+							"type": "string",
+							"enum": [
+								"prompt",
+								"observation",
+								"decision",
+								"result",
+								"trace",
+								"credential-header"
+							]
+						}
+					}
+				},
+				"required": [
+					"host",
+					"purpose",
+					"sends"
+				]
+			}
+		},
+		"entries": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"promptDigest": {
+						"type": "string",
+						"pattern": "^[0-9a-f]{64}$"
+					},
+					"occurrence": {
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 9007199254740991
+					},
+					"model": {
+						"type": "string",
+						"minLength": 1
+					},
+					"response": {
+						"type": "object",
+						"properties": {
+							"text": {
+								"type": "string"
+							},
+							"toolCall": {
+								"anyOf": [
+									{
+										"type": "object",
+										"properties": {
+											"name": {
+												"type": "string"
+											},
+											"arguments": {}
+										},
+										"required": [
+											"name",
+											"arguments"
+										]
+									},
+									{
+										"type": "null"
+									}
+								]
+							},
+							"usage": {
+								"type": "object",
+								"properties": {
+									"inputTokens": {
+										"type": "integer",
+										"minimum": 0,
+										"maximum": 9007199254740991
+									},
+									"outputTokens": {
+										"type": "integer",
+										"minimum": 0,
+										"maximum": 9007199254740991
+									}
+								},
+								"required": [
+									"inputTokens",
+									"outputTokens"
+								]
+							},
+							"raw": {},
+							"finishReason": {
+								"type": "string",
+								"enum": [
+									"stop",
+									"tool_call",
+									"length",
+									"filtered",
+									"other"
+								]
+							}
+						},
+						"required": [
+							"text",
+							"usage",
+							"raw",
+							"finishReason"
+						]
+					},
+					"latencyMs": {
+						"type": "number",
+						"minimum": 0
+					}
+				},
+				"required": [
+					"promptDigest",
+					"occurrence",
+					"model",
+					"response",
+					"latencyMs"
+				]
+			}
+		}
+	},
+	"required": [
+		"format",
+		"formatVersion",
+		"kind",
+		"providerId",
+		"recordedAt",
+		"recordedBy",
+		"egress",
+		"entries"
+	]
+}
