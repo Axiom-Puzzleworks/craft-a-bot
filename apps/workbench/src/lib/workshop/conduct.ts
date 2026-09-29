@@ -192,11 +192,12 @@ export function vulnerabilityCellOf(
 }
 export const slugOf = (tag: string): string => tag.replace(/[^a-z0-9]+/gi, '-').toLowerCase();
 
-/** The workflow a book cell ran, found by its stage ids — the report carries the run's stages, not the workflow's id. */
+/** The workflow a book cell ran: the report's own `workflowId` since v4 (WP112); for an earlier report, found by its stage ids. */
 export function workflowIdOfCell(
 	cell: CampaignCell,
 	workflows: ReadonlyMap<string, Pick<WorkflowSpec, 'stages'>>
 ): string | undefined {
+	if (cell.workflow?.workflowId !== undefined) return cell.workflow.workflowId;
 	const ran = cell.workflow?.stages.map((stage) => stage.stageId);
 	if (!ran || ran.length === 0) return undefined;
 	for (const [id, workflow] of workflows) {

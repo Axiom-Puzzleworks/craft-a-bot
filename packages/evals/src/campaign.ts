@@ -109,7 +109,10 @@ import { evalTierSchema, runMetricsSchema, type EvalTier } from './report.js';
 export const CAMPAIGN_SCHEMA_VERSION = 1;
 /** v2 (WP61, `50-DOMAIN-METRICS.md` §4.5): labels, case metrics and the cohort on a cell, the summary on the report. v1 reads as before. */
 /** 3 since WP82 (`74-…`): the summary's `fairness` and `drift` panes; a v1 or v2 report keeps its version and reads with the panes empty. */
-export const CAMPAIGN_REPORT_SCHEMA_VERSION = 3;
+/** 4 since WP112 (`101-…`): `cell.workflow.workflowId` and `cell.pairId`, identifiers only — a v3 report reads as v4 with them absent, and is the same instrument. */
+export const CAMPAIGN_REPORT_SCHEMA_VERSION = 4;
+/** The version that first computed the fairness and drift panes (WP82): an earlier report never did. */
+export const CAMPAIGN_REPORT_PANES_SINCE = 3;
 
 const memoryOverrideSchema = z.object({
 	windowSize: z.union([z.literal(3), z.literal(10), z.literal(30)]),
@@ -551,6 +554,13 @@ export const campaignCellSchema = z.object({
 	caseMetrics: z.record(z.string(), z.number()).default({}),
 	/** From `run.finished.truth.cohort`, when the world has one (WP61): attribute → value. */
 	cohort: z.record(z.string(), z.string()).optional(),
+	/**
+	 * The matched pair this cell is one side of (WP112, report v4): present when
+	 * the case's truth names a `pairSide`, and the same for every cell of that
+	 * scenario, build, guard, brain and context — the sides differ by seed. What
+	 * the Model-risk page's matched discordance pairs by.
+	 */
+	pairId: z.string().optional(),
 	/** The cell's number in the campaign's own order (WP68, `57-…` §2 item 2): what a merge sorts by. Absent on a report written before, which was whole and in order. */
 	ordinal: z.number().int().nonnegative().optional(),
 	/** The work item this cell ran, in a book campaign (WP80). */
@@ -571,6 +581,8 @@ export const campaignCellSchema = z.object({
 	workflow: z
 		.object({
 			runId: z.string(),
+			/** The journey the run was of (WP112, report v4): no longer inferred from the stage ids. */
+			workflowId: z.string().optional(),
 			configuration: z.string().optional(),
 			autonomy: z.number().int().min(1).max(5).optional(),
 			outcome: z.enum(['completed', 'stopped', 'abandoned', 'handed-off']),
@@ -626,8 +638,8 @@ export const gateVerdictSchema = z.object({
 export type GateVerdict = z.infer<typeof gateVerdictSchema>;
 
 export const campaignReportSchema = z.object({
-	/** 3 since WP82 (2 since WP61); a v1 or v2 report parses, keeps its version (a `no-regression` gate against it says so) and reads with the v3 panes empty (`parseCampaignReport`). */
-	schemaVersion: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+	/** 4 since WP112 (3 since WP82, 2 since WP61); a v1 or v2 report parses, keeps its version (a `no-regression` gate against it says so) and reads with the v3 panes empty (`parseCampaignReport`); a v3 report reads as v4 with the two identifiers absent. */
+	schemaVersion: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]),
 	id: z.string(),
 	campaignId: z.string(),
 	campaignTitle: z.string(),
@@ -1275,6 +1287,7 @@ async function runCell(
 			if (value !== undefined && Number.isFinite(value)) caseMetrics[metric.id] = value;
 		}
 		const cohort = cohortOf(truth);
+		const pairId = pairIdOf(identity, truth);
 		const decision = decisionOf(run.events, truth);
 		const scored: CampaignCell = {
 			...identity,
@@ -1288,7 +1301,8 @@ async function runCell(
 			evaluations: judged.verdicts,
 			labels: judged.labels,
 			caseMetrics,
-			...(cohort ? { cohort } : {})
+			...(cohort ? { cohort } : {}),
+			...(pairId ? { pairId } : {})
 		};
 		options.onTrace?.(scored, { events: run.events, spec });
 		return scored;
@@ -1421,6 +1435,7 @@ async function runBookCell(
 		if (value !== undefined && Number.isFinite(value)) caseMetrics[metric.id] = value;
 	}
 	const cohort = cohortOf(truth) ?? cohortOf(item.truth);
+	const pairId = pairIdOf(identity, truth ?? item.truth);
 	const decision = decisionOf(events, truth ?? item.truth);
 	const touched = touchedCaseOf(run, workflow.decisionKindOf);
 	const ceilings = config.autonomy?.ceilings ?? {};
@@ -1448,10 +1463,12 @@ async function runBookCell(
 		labels: judged.labels,
 		caseMetrics,
 		...(cohort ? { cohort } : {}),
+		...(pairId ? { pairId } : {}),
 		...(decision ? { decision } : {}),
 		item: { id: item.id, kind: item.kind, customerId: item.customerId },
 		workflow: {
 			runId: run.id,
+			workflowId: workflow.id,
 			...(run.handoff ? { handoff: { to: run.handoff.to, itemId: run.handoff.itemId } } : {}),
 			...(configurationId !== undefined ? { configuration: configurationId } : {}),
 			...(config.autonomy ? { autonomy: config.autonomy.level } : {}),
@@ -1594,6 +1611,7 @@ async function runDuoCell(
 		if (value !== undefined && Number.isFinite(value)) caseMetrics[metric.id] = value;
 	}
 	const cohort = cohortOf(truth);
+	const pairId = pairIdOf(identity, truth);
 	const duoDecision = decisionOf(events, truth);
 	const scored: CampaignCell = {
 		...identity,
@@ -1608,6 +1626,7 @@ async function runDuoCell(
 		labels: judged.labels,
 		caseMetrics,
 		...(cohort ? { cohort } : {}),
+		...(pairId ? { pairId } : {}),
 		counterpart: {
 			tier: 'live',
 			name: seatScript.name,
@@ -1712,6 +1731,27 @@ async function evaluateCell(
 		}
 	}
 	return { verdicts, labels };
+}
+
+/** Two report versions are one instrument when they are equal, or both 3 and later (v4 adds identifiers only, WP112). */
+export function sameReportInstrument(a: number, b: number): boolean {
+	return a === b || (a >= 3 && b >= 3);
+}
+
+/**
+ * The matched pair a cell is one side of (WP112): when the case's truth names
+ * a `pairSide` fact, the cell's scenario, build, guard, brain and context — the
+ * sides are the seeds that drew each side. Nothing otherwise.
+ */
+export function pairIdOf(
+	identity: Pick<CampaignCell, 'scenario' | 'build' | 'guard' | 'brain' | 'context'>,
+	truth: unknown
+): string | undefined {
+	const side = (truth as { facts?: Record<string, unknown> } | undefined)?.facts?.['pairSide'];
+	if (typeof side !== 'string' || side === '') return undefined;
+	return [identity.scenario, identity.build, identity.guard, identity.brain, identity.context]
+		.filter((part): part is string => part !== undefined)
+		.join('|');
 }
 
 /** The cohort a truth block carries (WP61, `50-…` §4.3): a flat record of strings under `cohort`, or nothing. */
@@ -1997,8 +2037,9 @@ export function evaluateGate(
 				inconclusive: true
 			};
 		}
-		// The `compareToBaseline` precedent: a report from another schema is not the same instrument.
-		if (baseline.schemaVersion !== CAMPAIGN_REPORT_SCHEMA_VERSION) {
+		// The `compareToBaseline` precedent: a report from another schema is not the same instrument —
+		// save v3 against v4, which differ only in two identifiers (WP112).
+		if (!sameReportInstrument(baseline.schemaVersion, CAMPAIGN_REPORT_SCHEMA_VERSION)) {
 			return {
 				...base,
 				required: `no slice falls by more than ${pct(require.tolerance)} — baseline is schema v${baseline.schemaVersion}, this report is v${CAMPAIGN_REPORT_SCHEMA_VERSION}`,

@@ -50,7 +50,8 @@ const LAYOUT_NAMES: Record<DisputesCaseKind, string> = {
 	'app-scam': 'The push-payment scam',
 	'app-scam-above-limit': 'The scam above the limit',
 	'merchant-dispute': 'The merchant dispute',
-	'merchant-note-injection': 'The merchant’s note'
+	'merchant-note-injection': 'The merchant’s note',
+	'matched-pair': 'The matched pair'
 };
 
 /** The work-item layout: the case built from the `item` a workflow's intake hands over; bare, the unauthorised payment. */

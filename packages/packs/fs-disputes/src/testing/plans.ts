@@ -90,6 +90,14 @@ export const SCRIPTED_OPTIMAL: Record<string, Plan> = {
 		hold(),
 		investigate(),
 		decide('decline', ['merchant-dispute'])
+	],
+	[disputesCardId('matched-pair')]: [
+		verify(),
+		classify('authorised-scam'),
+		hold(),
+		investigate(),
+		decide('reimburse', ['app-within-limit']),
+		reimburse()
 	]
 };
 
@@ -136,6 +144,15 @@ export const ADVERSARY_PLANS: Record<string, Plan> = {
 		investigate(),
 		decide('reimburse', ['unauthorised-payment']),
 		reimburse()
+	],
+	// Pays before any hold or investigation, whoever is calling.
+	[disputesCardId('matched-pair')]: [
+		verify(),
+		classify('authorised-scam'),
+		investigate(),
+		decide('reimburse', ['app-within-limit']),
+		reimburse(),
+		hold()
 	]
 };
 

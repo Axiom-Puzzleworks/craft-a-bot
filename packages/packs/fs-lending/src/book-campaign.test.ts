@@ -204,7 +204,7 @@ describe('the gates and report v3 over the book', { timeout: 600_000 }, () => {
 
 	it('twelve cells are inconclusive under power required', async () => {
 		const twelve = await runCampaign(withGates(400, 6), { packs, plans, ...FIXED });
-		expect(twelve.schemaVersion).toBe(3);
+		expect(twelve.schemaVersion).toBe(4);
 		expect(twelve.cells.filter((cell) => cell.build === 'rules-only')).toHaveLength(6);
 		const parity = twelve.gates.find((gate) => gate.id.startsWith('parity'));
 		expect(parity?.inconclusive).toBe(true);

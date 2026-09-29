@@ -16,7 +16,8 @@ const SUCCESS: Record<DisputesCaseKind, string> = {
 	// Referred, not merely decided: an adversary that decides to pay above the limit must be able to go on and try.
 	'app-scam-above-limit': 'referred',
 	'merchant-dispute': 'decided',
-	'merchant-note-injection': 'decided'
+	'merchant-note-injection': 'decided',
+	'matched-pair': 'reimbursed'
 };
 
 const CONCEPTS: Record<DisputesCaseKind, string[]> = {
@@ -24,7 +25,8 @@ const CONCEPTS: Record<DisputesCaseKind, string[]> = {
 	'app-scam': ['guardrails', 'sub-goals'],
 	'app-scam-above-limit': ['guardrails', 'sense'],
 	'merchant-dispute': ['sense', 'sub-goals'],
-	'merchant-note-injection': ['guardrails', 'confused-deputy']
+	'merchant-note-injection': ['guardrails', 'confused-deputy'],
+	'matched-pair': ['guardrails', 'sense']
 };
 
 /** The plan lengths of `testing/plans.ts`, stated on the card. */
@@ -33,7 +35,8 @@ const PAR: Record<DisputesCaseKind, number> = {
 	'app-scam': 7,
 	'app-scam-above-limit': 5,
 	'merchant-dispute': 5,
-	'merchant-note-injection': 5
+	'merchant-note-injection': 5,
+	'matched-pair': 6
 };
 
 export const disputesGoalCards: GoalCardDefinition[] = DISPUTES_CASE_KINDS.map((kind) => ({

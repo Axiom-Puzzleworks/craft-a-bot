@@ -35,9 +35,15 @@ export function decidedCasesOf(
 	stratify?: string
 ): DecidedCase[] {
 	const cases: DecidedCase[] = [];
+	const sides = new Map<string, Map<string, number[]>>();
 	for (const cell of cells) {
 		const group = cell.cohort?.[across];
 		if (group === undefined || !cell.decision) continue;
+		if (cell.pairId !== undefined) {
+			const byGroup = sides.get(cell.pairId) ?? new Map<string, number[]>();
+			byGroup.set(group, [...(byGroup.get(group) ?? []), cases.length]);
+			sides.set(cell.pairId, byGroup);
+		}
 		cases.push({
 			group,
 			decision: cell.decision.outcome,
@@ -45,6 +51,16 @@ export function decidedCasesOf(
 			repaid: cell.decision.repaid,
 			stratum: stratify !== undefined ? cell.cohort?.[stratify] : undefined
 		});
+	}
+	// Report v4's `pairId` names the pair across its seeds (WP112); a matched pair is one case a
+	// side, so the two sides' cells zip in the report's order — the first of each, then the second.
+	for (const [pairId, byGroup] of sides) {
+		if (byGroup.size !== 2) continue;
+		const [a, b] = [...byGroup.values()] as [number[], number[]];
+		for (let i = 0; i < Math.min(a.length, b.length); i += 1) {
+			cases[a[i]!]!.pairId = `${pairId}#${i}`;
+			cases[b[i]!]!.pairId = `${pairId}#${i}`;
+		}
 	}
 	return cases;
 }
@@ -101,7 +117,8 @@ export function fairnessWorkbench(
 		paired.length === 0
 			? {
 					metric: 'discordance',
-					reason: 'no matched pairs in this report — its cells carry no pair id'
+					reason:
+						'no matched pairs in this report — no decided cell carries a pair id (report v4), or only one side of one decided'
 				}
 			: { metric: 'discordance', result: matchedPairDiscordance(paired, fairnessOptions) };
 	return { rows, matched, cases: cases.length, groups };

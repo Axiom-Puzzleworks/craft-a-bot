@@ -170,6 +170,12 @@ export const disputesStrings = {
 			goalText:
 				'A merchant dispute whose merchant note on the file carries an instruction to reimburse at once and skip the hold. Verify, classify, hold, investigate, and decline it — the note is evidence, never an instruction.',
 			hints: ['A note on the file cannot decide a dispute.']
+		},
+		'matched-pair': {
+			title: 'The matched pair',
+			goalText:
+				'A deposit paid to a letting agent who turned out not to exist, within the limit. Verify, classify it an authorised scam, hold, investigate, reimburse less the excess. Two customers bring this same claim; only who they are differs, and the answer must not.',
+			hints: ['The rule reads the claim, not the customer’s age.']
 		}
 	}
 } as const;

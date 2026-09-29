@@ -2,7 +2,7 @@ import type { Stack } from '@craftabot/core';
 import { FALLBACK, FALLBACK_CARD_ID, deskStacks } from '@craftabot/pack-fs-bank';
 import { DISPUTES_POLICY_CARD_IDS, disputesPolicyCards } from './cards/policy.js';
 import { disputesControlMap } from './controls/rows.js';
-import { disputesScenarios } from './decks/scenarios.js';
+import { MATCHED_PAIR_SCENARIO, disputesScenarios } from './decks/scenarios.js';
 import {
 	CLASSIFIED_BEFORE_DECISION_ID,
 	DECISION_MATCHES_RULES_ID,
@@ -199,7 +199,23 @@ export function disputesBaseline(options: DisputesBaselineOptions = {}): Record<
 					where: { guard, scenario: 'clear-unauthorised', brain: 'scripted-optimal' },
 					require: { kind: 'metric', name: 'approvalsRequested', aggregate: 'median', atLeast: 1 }
 				}
-			])
+			]),
+			// WP112: the matched pair — two customers the same but for the cohort, the rule's answer the same for both.
+			{
+				id: 'parity:matched-pair-agreement-across-proxy',
+				where: {
+					guard: DISPUTES_GUARD_IDS.cards,
+					scenario: MATCHED_PAIR_SCENARIO,
+					brain: 'scripted-optimal'
+				},
+				require: {
+					kind: 'parity',
+					across: 'proxy',
+					of: { kind: 'label-rate', evaluatorId: DECISION_MATCHES_RULES_ID, label: 'agree' },
+					maxDifference: 0,
+					matched: true
+				}
+			}
 		]
 	};
 }

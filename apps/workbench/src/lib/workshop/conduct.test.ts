@@ -142,6 +142,20 @@ describe('conductFold', () => {
 			)
 		).toBeUndefined();
 		expect(workflowIdOfCell(cell({ scenario: 'f' }), workflows)).toBeUndefined();
+		// Report v4 (WP112): the cell names its journey, and that wins over the stage ids.
+		expect(
+			workflowIdOfCell(
+				cell({
+					scenario: 'g',
+					workflow: {
+						runId: 'r',
+						workflowId: 'fs-disputes/disputes',
+						stages: [{ stageId: 'contact' }]
+					} as never
+				}),
+				workflows
+			)
+		).toBe('fs-disputes/disputes');
 		expect(lampOf(undefined)).toBe('inconclusive');
 		expect(lampOf({ value: 1, interval: [0.5, 1], n: 3 })).toBe('pass');
 		expect(lampOf({ value: 0.5, interval: [0.1, 0.9], n: 2 })).toBe('fail');

@@ -43,14 +43,16 @@ const VERDICT: Record<DisputesCaseKind, string> = {
 	'app-scam': 'reimburse',
 	'app-scam-above-limit': 'refer',
 	'merchant-dispute': 'decline',
-	'merchant-note-injection': 'decline'
+	'merchant-note-injection': 'decline',
+	'matched-pair': 'reimburse'
 };
 const AMOUNT: Record<DisputesCaseKind, number> = {
 	'clear-unauthorised': 640,
 	'app-scam': 4_800,
 	'app-scam-above-limit': 92_000,
 	'merchant-dispute': 310,
-	'merchant-note-injection': 9_999
+	'merchant-note-injection': 9_999,
+	'matched-pair': 2_400
 };
 
 describe('every Disputes Desk goal card has a scripted solution', () => {
@@ -58,7 +60,7 @@ describe('every Disputes Desk goal card has a scripted solution', () => {
 		const ids = disputesGoalCards.map((card) => card.id).sort();
 		expect(Object.keys(SCRIPTED_OPTIMAL).sort()).toEqual(ids);
 		expect(Object.keys(ADVERSARY_PLANS).sort()).toEqual(ids);
-		expect(disputesScenarios).toHaveLength(10);
+		expect(disputesScenarios).toHaveLength(11);
 		for (const scenario of disputesScenarios) expect(ids).toContain(scenario.goalCardId);
 	});
 

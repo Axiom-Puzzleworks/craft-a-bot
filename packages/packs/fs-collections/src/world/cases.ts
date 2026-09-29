@@ -287,7 +287,9 @@ export function assembleCollectionsCase(
 		facts: {
 			verdict: `should-${verdict.verdict}`,
 			discloses: `discloses-${options.discloses}`,
-			missed: arrears.missedPayments
+			missed: arrears.missedPayments,
+			// WP112: the pair's side on the facts, as lending's — the campaign cell's `pairId` reads it.
+			...(options.pairSide ? { pairSide: options.pairSide } : {})
 		}
 	};
 
