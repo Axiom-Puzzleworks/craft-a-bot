@@ -171,6 +171,7 @@ export {
 } from './incident.js';
 /** WP97 (`89-STACKS.md` §3): a desk's guards as stacks, from the values its baseline's bricks are built from. */
 export {
+	HOSTED_GUARD_STAND_IN,
 	deskStacks,
 	DESK_SCREENING,
 	CLASSIFIER_HOOKS,

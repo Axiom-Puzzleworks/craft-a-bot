@@ -3,7 +3,13 @@ import { advicePolicyCards } from './cards/policy.js';
 import { adviceControlMap } from './controls/rows.js';
 import { ADVICE_CONFIGURATION_IDS, ADVICE_WORKFLOW_ID } from './workflow.js';
 import { ADVICE_POLICY_CARD_IDS } from './cards/policy.js';
-import { FALLBACK, FALLBACK_CARD_ID, TOLD_PLAINLY_ID, deskStacks } from '@craftabot/pack-fs-bank';
+import {
+	FALLBACK,
+	FALLBACK_CARD_ID,
+	HOSTED_GUARD_STAND_IN,
+	TOLD_PLAINLY_ID,
+	deskStacks
+} from '@craftabot/pack-fs-bank';
 import { adviceScenarios } from './decks/scenarios.js';
 import {
 	DATA_MINIMISED_ID,
@@ -35,13 +41,13 @@ const safety = (policyCards: string[]) => ({
 	config: { maxTicks: 20, blockedActions: [], approval: 'off', policyCards }
 });
 
-const guardBrick = (serviceId: string) => ({
+const guardBrick = (serviceId: string, serviceConfig: unknown = {}) => ({
 	slot: 'safety',
 	kind: 'workshop/guard',
 	configVersion: 1,
 	config: {
 		serviceId,
-		serviceConfig: '{}',
+		serviceConfig: JSON.stringify(serviceConfig),
 		screening: {
 			screenObservation: 'note',
 			screenDecision: 'note',
@@ -111,6 +117,7 @@ export const adviceStacks: Stack[] = deskStacks({
 	cards: [...advicePolicyCards, FALLBACK],
 	localClassifier: 'guard-local/llama-guard',
 	hostedGuard: 'geap/model-armor',
+	hostedGuardConfig: HOSTED_GUARD_STAND_IN,
 	watchbot: {
 		watchFor: ['monitor/going-in-circles', 'monitor/refusal-storm'],
 		breakOn: [{ evaluatorId: SUITABILITY_COMPLETE_ID, onFail: true }]
@@ -159,7 +166,10 @@ export function adviceBaseline(options: AdviceBaselineOptions = {}): Record<stri
 				id: GUARD_IDS.cardsAndClassifier,
 				fit: [safety(cards), guardBrick('guard-local/llama-guard')]
 			},
-			{ id: GUARD_IDS.cardsAndHosted, fit: [safety(cards), guardBrick('geap/model-armor')] },
+			{
+				id: GUARD_IDS.cardsAndHosted,
+				fit: [safety(cards), guardBrick('geap/model-armor', HOSTED_GUARD_STAND_IN)]
+			},
 			{
 				id: GUARD_IDS.complianceWatchbot,
 				fit: [

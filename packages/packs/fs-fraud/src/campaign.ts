@@ -3,7 +3,13 @@ import { fraudPolicyCards } from './cards/policy.js';
 import { fraudControlMap } from './controls/rows.js';
 import { FRAUD_CONFIGURATION_IDS, FRAUD_WORKFLOW_ID } from './workflow.js';
 import { FRAUD_POLICY_CARD_IDS } from './cards/policy.js';
-import { FALLBACK, FALLBACK_CARD_ID, TOLD_PLAINLY_ID, deskStacks } from '@craftabot/pack-fs-bank';
+import {
+	FALLBACK,
+	FALLBACK_CARD_ID,
+	HOSTED_GUARD_STAND_IN,
+	TOLD_PLAINLY_ID,
+	deskStacks
+} from '@craftabot/pack-fs-bank';
 import { fraudScenarios } from './decks/scenarios.js';
 import {
 	ALERT_DECISION_ID,
@@ -34,13 +40,13 @@ const safety = (policyCards: string[]) => ({
 	config: { maxTicks: 20, blockedActions: [], approval: 'off', policyCards }
 });
 
-const guardBrick = (serviceId: string) => ({
+const guardBrick = (serviceId: string, serviceConfig: unknown = {}) => ({
 	slot: 'safety',
 	kind: 'workshop/guard',
 	configVersion: 1,
 	config: {
 		serviceId,
-		serviceConfig: '{}',
+		serviceConfig: JSON.stringify(serviceConfig),
 		screening: {
 			screenObservation: 'note',
 			screenDecision: 'note',
@@ -116,6 +122,7 @@ export const fraudStacks: Stack[] = deskStacks({
 	cards: [...fraudPolicyCards, FALLBACK],
 	localClassifier: 'guard-local/llama-guard',
 	hostedGuard: 'geap/model-armor',
+	hostedGuardConfig: HOSTED_GUARD_STAND_IN,
 	watchbot: {
 		watchFor: ['monitor/going-in-circles', 'monitor/refusal-storm'],
 		breakOn: [{ evaluatorId: NO_TIP_OFF_ID, onFail: true }]
@@ -166,7 +173,7 @@ export function fraudBaseline(options: FraudBaselineOptions = {}): Record<string
 			},
 			{
 				id: FRAUD_GUARD_IDS.cardsAndHosted,
-				fit: [safety(cards), guardBrick('geap/model-armor')]
+				fit: [safety(cards), guardBrick('geap/model-armor', HOSTED_GUARD_STAND_IN)]
 			},
 			{
 				id: FRAUD_GUARD_IDS.complianceWatchbot,

@@ -1,7 +1,13 @@
 import type { Stack } from '@craftabot/core';
 import { lendingControlMap } from './controls/rows.js';
 import { LENDING_POLICY_CARD_IDS, lendingPolicyCards } from './cards/policy.js';
-import { FALLBACK, FALLBACK_CARD_ID, TOLD_PLAINLY_ID, deskStacks } from '@craftabot/pack-fs-bank';
+import {
+	FALLBACK,
+	FALLBACK_CARD_ID,
+	HOSTED_GUARD_STAND_IN,
+	TOLD_PLAINLY_ID,
+	deskStacks
+} from '@craftabot/pack-fs-bank';
 import { lendingScenarios } from './decks/scenarios.js';
 import {
 	APPEAL_HANDLED_ID,
@@ -32,13 +38,13 @@ const safety = (policyCards: string[]) => ({
 	config: { maxTicks: 20, blockedActions: [], approval: 'off', policyCards }
 });
 
-const guardBrick = (serviceId: string) => ({
+const guardBrick = (serviceId: string, serviceConfig: unknown = {}) => ({
 	slot: 'safety',
 	kind: 'workshop/guard',
 	configVersion: 1,
 	config: {
 		serviceId,
-		serviceConfig: '{}',
+		serviceConfig: JSON.stringify(serviceConfig),
 		screening: {
 			screenObservation: 'note',
 			screenDecision: 'note',
@@ -154,7 +160,7 @@ export function lendingBaseline(options: LendingBaselineOptions = {}): Record<st
 			},
 			{
 				id: LENDING_GUARD_IDS.cardsAndHosted,
-				fit: [safety(cards), guardBrick('geap/model-armor')]
+				fit: [safety(cards), guardBrick('geap/model-armor', HOSTED_GUARD_STAND_IN)]
 			},
 			{
 				id: LENDING_GUARD_IDS.complianceWatchbot,
@@ -308,6 +314,7 @@ export const lendingStacks: Stack[] = deskStacks({
 	cards: [...lendingPolicyCards, FALLBACK],
 	localClassifier: 'guard-local/llama-guard',
 	hostedGuard: 'geap/model-armor',
+	hostedGuardConfig: HOSTED_GUARD_STAND_IN,
 	watchbot: {
 		watchFor: ['monitor/going-in-circles', 'monitor/refusal-storm'],
 		breakOn: [{ evaluatorId: IDENTITY_BEFORE_DECISION_ID, onFail: true }]

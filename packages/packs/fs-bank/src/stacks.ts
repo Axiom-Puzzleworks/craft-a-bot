@@ -88,6 +88,21 @@ function cardFits(cards: readonly PolicyCard[]): StackFit[] {
 	);
 }
 
+/**
+ * **The hosted guard's stand-in config** (WP113, `101-…`; `89-…` §8, tenet 37):
+ * what the desk baselines fit `geap/model-armor` with, so the Guard brick
+ * builds the service's offline stand-in and screens every hook — a baseline
+ * that fits a guard runs it. The ids are synthetic and name no real project;
+ * the brick runs `screening.offline`, so nothing is dialled and no key is read.
+ * Until WP113 the baselines fitted `'{}'`, which the service refuses, and the
+ * brick ran its step budget alone.
+ */
+export const HOSTED_GUARD_STAND_IN = {
+	projectId: 'craftabot-stand-in',
+	location: 'europe-west2',
+	templateId: 'craftabot-stand-in'
+} as const;
+
 /** The Guard brick's floor (its step budget) then the service once per hook, as the baseline's brick runs; unplugged, the floor alone. */
 function serviceFits(
 	serviceId: string,
@@ -123,10 +138,9 @@ export interface DeskStacksOptions {
 	localClassifier?: string;
 	/**
 	 * The hosted guard the `+hosted-guard` guard fits; absent, no such stack.
-	 * With no `hostedGuardConfig` the service is *unplugged* — the desk
-	 * baselines fit it with `serviceConfig: '{}'`, which the service refuses,
-	 * so the Guard brick runs its floor alone (`29-…` §4.6) — and the stack
-	 * says so: the floor, and no service fit (`89-…` §8).
+	 * With no `hostedGuardConfig` the service is *unplugged* and the stack says
+	 * so: the floor, and no service fit (`89-…` §8). Since WP113 the desk
+	 * baselines pass `HOSTED_GUARD_STAND_IN`, and the stack screens every hook.
 	 */
 	hostedGuard?: string;
 	/** The service's own config when the stack should really screen (offline through the stand-in). */
