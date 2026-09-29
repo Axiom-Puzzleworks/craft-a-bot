@@ -89,8 +89,25 @@ The "ages" are part of the joke and the charm. The **real audience for V1 is adu
 | **Cassette** | A recorded request/response set | Lets a real sandbox API be called once, under declared egress, and replayed forever. |
 | **Assurance pack** | The filed evidence | Safety case + campaign results + drift + incidents + inventory entry + the control map, rendered. |
 | **Control Room** | The Workshop's visual system v2 | The instrument-panel skin, grown from a token layer into a design system. |
+| **Fallible tier** | A scripted brain that errs | Errs at a cited rate and direction, drawn from the seed, with every fault on the trace. |
+| **Live tier at scale** | A real provider over a book | Recorded once to a provider cassette and replayed in CI. |
+| **Provider cassette** | A cassette of provider calls | Keyed by the prompt's digest rather than a line call. |
+| **Reviewer model** | The person at a `human` stage, as a model | Accuracy, automation bias, seconds per case, fatigue — each a calibration row. |
+| **Reader** | A typed judgment | Answers typed questions with typed answers and a confidence: a rule, a hosted classifier, a chat model constrained to the options, a person. |
+| **Typed question** | A question with a shape | A *choice* over options, a *noul* (yes/no) or a *score* on ordered levels, with instructions and criteria. |
+| **Confidence gate** | Act if sure, else hand on | Acts on a reader's answer at or above a threshold and hands the rest to another executor. |
+| **Steer** | A caller dictating the label | Caught by its own noul, not by confidence. |
+| **Corpus** | Labelled rows as content | Rows, labels, tags, a guide, a question set, a freeze digest, annotators, and the readers that have seen it. |
+| **Held out** | Written after the questions froze | Scoring it measures the questions rather than the tuning. |
+| **Truth independence** | Truth the rule did not write | No truth leaf is computed by a rule the desk runs. |
+| **Benchmark** | Every guard on one corpus | A campaign that runs every connectable guard or reader over one corpus and reports each side by side. |
+| **The Gate** | A guardrail proxy | `@craftabot/gate`: an OpenAI-compatible proxy running a stack over an agent's traffic. |
+| **Shadow mode** | Watch, don't touch | The Gate annotating verdicts on the trace without changing a request or response. |
+| **Reading** | A person's recorded review | Of a catalogue entry, calibration row, control row, decision right or blueprint item. |
 
 > **Amended 2026-09-05:** the eleven rows from **Playground** down are `41-TARGET-DESIGN-V4.md` §1.3's additions — toy names in the Kit and on box art, real names in code, as ever.
+
+> **Amended 2026-09-29:** the fifteen rows from **Fallible tier** down are `100-TARGET-DESIGN-V7.md` §1.3's additions (`101-…` §8 item 1). `64-…` §1.3 and `83-…` §1.3 hold Day 5's and Day 6's words in place.
 
 ## 7. Document map
 

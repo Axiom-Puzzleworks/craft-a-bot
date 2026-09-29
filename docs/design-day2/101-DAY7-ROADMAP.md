@@ -185,7 +185,11 @@ Everything in `84-…` §5 stands. Added:
 ## 8. Session-sized next steps (the immediate to-do)
 
 0. **The review of this plan.** §1's five decisions and §2's ordering are for Andrew; in particular WP113's default (the stand-in config), WP120's decision to take the DGX pack out of the harness's default list, and whether Phase AD or AE runs first. Nothing below starts until this is read.
-1. **The docs pass.** `CLAUDE.md`'s table and chain, `README.md`'s index (`98-`, `99-`, `100-`, `101-`), `12-…`'s pointer to `100-…` §2.1, the glossary rows in `00-…` §6. Committed on a `day7` branch, one commit per stage or WP, CI on every push, no PR to `main` until the sprint is reviewed, as Day 5 and Day 6 ran.
+
+   > **Amended 2026-09-29:** Andrew asked for the build to start on a `day7` branch, which takes §1's five decisions and §2's ordering as read, with the defaults this document states: WP113 fits the offline stand-in config (`serviceConfig: '{}'` → the stand-in) as the default; WP120 takes `@craftabot/pack-dgx-spark` out of the harness's default list; Phase AC first, then AD, then AE, interleaved only where §4 allows. Any of the three can still be reversed at its WP's stage A.
+1. ✅ **The docs pass.** `CLAUDE.md`'s table and chain, `README.md`'s index (`98-`, `99-`, `100-`, `101-`), `12-…`'s pointer to `100-…` §2.1, the glossary rows in `00-…` §6. Committed on a `day7` branch, one commit per stage or WP, CI on every push, no PR to `main` until the sprint is reviewed, as Day 5 and Day 6 ran.
+
+   > **Done 2026-09-29:** on `day7` — `00-…` §6's fifteen rows from `100-…` §1.3, `12-…`'s pointer to `100-…` §2.1, `ci.yml`'s push trigger naming `day7` for the sprint (in place of `day6`), `CLAUDE.md`'s chain. The table and the index rows were written with the plan.
 2. **`102-HONEST-BANK.md` and WP111 stage A** — the truth-independence property's exact rule and the audit method, reviewed before code.
 3. **WP111 stages B–C, WP112, WP113.** Phase AC exit review.
 4. **`103-FALLIBLE-ACTORS.md`, WP114, WP115, WP116.** Phase AD exit review — the register's first effects, read before anything else in Day 7 is judged.
