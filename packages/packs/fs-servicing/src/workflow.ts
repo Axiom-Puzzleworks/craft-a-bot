@@ -304,13 +304,12 @@ export const SERVICING_STAGES: StageSpec[] = [
 		input: CLASSIFY_OUTPUT,
 		output: VERIFY_OUTPUT,
 		executor: rule('verify-v1'),
-		// An unverified caller's request ends here; a bereavement's closure goes to four eyes; a disclosure has nothing to act on; the rest to the act.
+		// An unverified caller's request ends here; a bereavement's closure goes to four eyes; the rest to the record, which comes before any act (WP111).
 		next: (out) => {
 			const { verified, category } = out as { verified?: boolean; category?: Category };
 			if (verified === false) return 'end';
 			if (category === 'bereavement') return 'confirm';
-			if (category === 'disclosure') return 'record';
-			return 'act';
+			return 'record';
 		}
 	},
 	{
@@ -339,7 +338,8 @@ export const SERVICING_STAGES: StageSpec[] = [
 			const { acted, category } = desk(state).extra.servicing;
 			return acted ? { act: acted } : category === 'disclosure' ? { act: 'none' } : undefined;
 		},
-		next: () => 'record'
+		next: (_out, state) => afterTheRecord(state),
+		mayGoTo: ['end', 'handoff:fs-collections/arrears']
 	},
 	{
 		id: 'record',
@@ -352,12 +352,17 @@ export const SERVICING_STAGES: StageSpec[] = [
 			const { recorded } = desk(state).extra.servicing;
 			return recorded ? { need: recorded.need } : undefined;
 		},
-		// A bereavement closes after the record; the estate then goes to advice. A disclosure in arrears goes to collections.
+		// The record comes before the act (WP111, `98-JEV.md` §9 finding 2): a need disclosed mid-call is on the file before anything is done.
+		// A bereavement closes after the record; the estate then goes to advice. A request with an act goes to it; a disclosure has none.
+		// A disclosure in arrears goes to collections, after the act when there is one.
 		next: (_out, state) => {
 			const { servicing } = desk(state).extra;
-			if (servicing.category === 'bereavement' && !servicing.closed) return 'close';
+			if (servicing.category === 'bereavement')
+				return servicing.closed ? afterTheRecord(state) : 'close';
+			if (servicing.category !== 'disclosure' && !servicing.acted) return 'act';
 			return afterTheRecord(state);
-		}
+		},
+		mayGoTo: ['act', 'close', 'end', 'handoff:fs-collections/arrears']
 	},
 	{
 		id: 'close',
@@ -368,7 +373,8 @@ export const SERVICING_STAGES: StageSpec[] = [
 		executor: agent('closed', servicingStrings.workflow.briefs.act),
 		irreversible: true,
 		read: (state) => (desk(state).extra.servicing.closed ? { act: 'close-account' } : undefined),
-		next: (_out, state) => afterTheRecord(state)
+		next: (_out, state) => afterTheRecord(state),
+		mayGoTo: ['end', 'handoff:fs-advice/advice']
 	}
 ];
 

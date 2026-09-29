@@ -85,3 +85,5 @@ Five configurations: `rules-only`, `bot-verifies-only` (2), `bot-recommends` (3)
 ## 8. Stage notes
 
 > **2026-09-12.** Built in one pass: the bank's purpose, ledger write and tags; the pack — rule and knobs, cases, desk, personas, decks, cards, evaluators, rows, ceilings, book, workflow with two handoffs and five configurations, two campaigns, stacks through `deskStacks`; the tests above; the harness, the Worker, the editions, the plan chains, the bank day, CI; the desk's page and the e2e routes; the sixth journey's snapshots; the manual's §44.2. The three rows are for Andrew's reading, marked `unreviewed`.
+
+> **Amended 2026-09-29 (WP111, `102-HONEST-BANK.md` §5):** the verdict leaves (`decision-v1`) and the classification (`classify-v1`, over the claim's figures rather than words) are derived by design and declared on the desk's spec; `decision-matches-rules` carries `derivedFrom: 'decision-v1'`. The amount, the limit and the scam pattern are independent.

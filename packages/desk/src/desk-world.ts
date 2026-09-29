@@ -231,6 +231,15 @@ export interface DeskWorldSpec<Extra = Record<string, unknown>> {
 	counterpartKnows?: (truth: DeskTruth | undefined, state: DeskState<Extra>) => string | undefined;
 	/** Which injection kinds this desk takes. Default: all five. A kind not listed is a no-op. */
 	injections?: Injection['kind'][];
+	/**
+	 * The truth facts a rule the desk runs also computes, by design (WP111,
+	 * `102-HONEST-BANK.md` §2): fact name → the rule's id. A regulation's rule
+	 * applied to a case's figures *is* what the case requires, so the leaf is
+	 * derived, not observed — an evaluator scoring against it measures
+	 * compliance with the rule and declares `derivedFrom`. A leaf a rule
+	 * computes and nobody declares is `checkDesk`'s `desk.truth-independent`.
+	 */
+	derivedTruth?: Record<string, string>;
 }
 
 export interface DeskWorldDefinition<Extra = Record<string, unknown>> extends WorldDefinition {

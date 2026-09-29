@@ -105,6 +105,17 @@ const reasonsSchema = z
 	);
 
 export const onboardingDeskSpec: DeskWorldSpec<OnboardingExtra> = {
+	// WP111 (`102-HONEST-BANK.md` §5): the lists, the rating and the rule over them are what the case requires (`95-…` §3), so these leaves are derived from the rule —
+	// an evaluator scoring against them measures compliance with it (`derivedFrom`), not a reading of the case.
+	derivedTruth: {
+		verdict: 'decision-v1',
+		'verdict.label': 'decision-v1',
+		'verdict.reasons': 'decision-v1',
+		hit: 'screening-v1',
+		'the-lists.list': 'screening-v1',
+		rating: 'risk-rating-v1',
+		'the-lists.rating': 'risk-rating-v1'
+	},
 	id: ONBOARDING_DESK_WORLD_ID,
 	name: onboardingStrings.worldName,
 	desk: { title: onboardingStrings.title, role: onboardingStrings.role },

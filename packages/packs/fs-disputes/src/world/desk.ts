@@ -109,6 +109,15 @@ const reasonsSchema = z
 	);
 
 export const disputesDeskSpec: DeskWorldSpec<DisputesExtra> = {
+	// WP111 (`102-HONEST-BANK.md` §5): the classification over the claim's figures and the PSR-shaped rule are what the case requires (`90-…` §3), so these leaves are derived from the rule —
+	// an evaluator scoring against them measures compliance with it (`derivedFrom`), not a reading of the case.
+	derivedTruth: {
+		verdict: 'decision-v1',
+		'verdict.label': 'decision-v1',
+		'verdict.reasons': 'decision-v1',
+		classification: 'classify-v1',
+		'verdict.classification': 'classify-v1'
+	},
 	id: DISPUTES_DESK_WORLD_ID,
 	name: disputesStrings.worldName,
 	desk: { title: disputesStrings.title, role: disputesStrings.role },

@@ -114,6 +114,15 @@ const reasonsSchema = z
 	);
 
 export const lendingDeskSpec: DeskWorldSpec<LendingExtra> = {
+	// WP111 (`102-HONEST-BANK.md` §5): the affordability rule over the figures is what the case requires (`52-…` §3), so these leaves are derived from the rule —
+	// an evaluator scoring against them measures compliance with it (`derivedFrom`), not a reading of the case.
+	derivedTruth: {
+		verdict: 'decision-v1',
+		shouldRefer: 'decision-v1',
+		'verdict.label': 'decision-v1',
+		'verdict.reasons': 'decision-v1',
+		'verdict.ratio': 'affordability-v1'
+	},
 	id: LENDING_DESK_WORLD_ID,
 	name: lendingStrings.worldName,
 	desk: { title: lendingStrings.title, role: lendingStrings.role },

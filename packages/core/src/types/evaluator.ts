@@ -108,6 +108,14 @@ export interface Evaluator {
 	reads?: EvaluatorReads[];
 	/** What this evaluator's `label` values mean, when they are the cells of a matrix (WP61). */
 	labelSemantics?: LabelSemantics;
+	/**
+	 * The rule whose answer this evaluator scores against (WP111,
+	 * `102-HONEST-BANK.md` §2): its truth leaf is derived from that rule
+	 * (`DeskWorldSpec.derivedTruth`), so a pass means *the rule was followed*,
+	 * never *the case was read right*. Absent, the evaluator scores against
+	 * truth the rule did not write.
+	 */
+	derivedFrom?: string;
 	evaluate(input: EvaluationInput, deps: EvaluatorDeps): Promise<EvaluationResult>;
 	/** The canned stand-in every non-deterministic evaluator must provide. */
 	createOffline?(): Pick<Evaluator, 'evaluate'>;

@@ -95,13 +95,15 @@ const deterministic = (
 	name: string,
 	description: string,
 	evaluate: (input: EvaluationInput) => EvaluationResult,
-	reads?: Evaluator['reads']
+	reads?: Evaluator['reads'],
+	derivedFrom?: string
 ): Evaluator => ({
 	id,
 	name,
 	description,
 	kind: 'deterministic',
 	...(reads ? { reads } : {}),
+	...(derivedFrom ? { derivedFrom } : {}),
 	evaluate: (input) => Promise.resolve(evaluate(input))
 });
 
@@ -178,7 +180,8 @@ export const recommendationSuitable = deterministic(
 			{ label: suitable ? 'suitable' : 'unsuitable' }
 		);
 	},
-	['truth']
+	['truth'],
+	'recommendation-v1'
 );
 
 export const WARNING_GIVEN_ID = 'fs-advice/warning-given';

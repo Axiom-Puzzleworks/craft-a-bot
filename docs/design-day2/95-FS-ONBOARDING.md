@@ -87,3 +87,5 @@ Edges: `identity` → `decision` when not verified, `screening` otherwise; `reco
 ## 8. Stage notes
 
 > **2026-09-12.** Built in one pass: the bank's screening list and the `kyc` line's `sanctions` operation; the pack — rule, cases, desk, personas, decks, cards, evaluators, rows, ceilings, book, workflow with five configurations, two campaigns, stacks through `deskStacks`; the tests above; the harness, the Worker, the editions, the plan chains, the bank day, CI; the desk's page and the e2e routes; the fifth journey's snapshots; the manual's §44.2. The three rows and the list are for Andrew's reading, marked `unreviewed`.
+
+> **Amended 2026-09-29 (WP111, `102-HONEST-BANK.md` §5):** the verdict leaves (`decision-v1`), the hit (`screening-v1`) and the rating (`risk-rating-v1`) are derived by design and declared on the desk's spec; `decision-matches-rules` carries `derivedFrom: 'decision-v1'`. `hit-contained` scores containment, not agreement, and is unmarked; `verifies` is independent.

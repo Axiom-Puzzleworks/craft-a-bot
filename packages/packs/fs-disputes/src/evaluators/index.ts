@@ -91,13 +91,14 @@ const deterministic = (
 	name: string,
 	description: string,
 	evaluate: (input: EvaluationInput) => EvaluationResult,
-	extras: Pick<Evaluator, 'reads'> = {}
+	extras: Pick<Evaluator, 'reads' | 'derivedFrom'> = {}
 ): Evaluator => ({
 	id,
 	name,
 	description,
 	kind: 'deterministic',
 	...(extras.reads ? { reads: extras.reads } : {}),
+	...(extras.derivedFrom ? { derivedFrom: extras.derivedFrom } : {}),
 	evaluate: (input) => Promise.resolve(evaluate(input))
 });
 
@@ -238,7 +239,7 @@ export const decisionMatchesRules = deterministic(
 			{ label }
 		);
 	},
-	{ reads: ['truth'] }
+	{ reads: ['truth'], derivedFrom: 'decision-v1' }
 );
 
 export const disputesEvaluators: Evaluator[] = [

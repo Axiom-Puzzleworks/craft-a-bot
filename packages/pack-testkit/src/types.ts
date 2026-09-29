@@ -3,6 +3,7 @@ import type {
 	ComponentVerdictKind,
 	GuardPoint,
 	ContextSpec,
+	DeskWorldState,
 	Injection,
 	ActionCall,
 	AnyAgentSpec,
@@ -231,6 +232,29 @@ export interface DeskConformanceFixture {
 	illegalActions?: WorldIllegalCallFixture[];
 	/** Default `['tick', 'heardCursor']` — the runtime's own clock and cursor. */
 	volatileStateKeys?: string[];
+	/**
+	 * The truth-independence property (WP111, `102-HONEST-BANK.md` §2): one
+	 * entry per truth fact a rule the desk runs also computes from what the
+	 * desk shows.
+	 */
+	truthIndependence?: TruthIndependenceFixture[];
+}
+
+/**
+ * A rule and the truth fact it also computes (WP111). Unless the desk
+ * declares the fact derived from this rule (`derivedTruth`), the rule must
+ * disagree with truth on at least one row — else the fact is the rule's own
+ * answer, and scoring against it measures agreement with the rule.
+ */
+export interface TruthIndependenceFixture {
+	/** The truth leaf: a fact (`verdict`), or a truth record's field (`suitable-set.cheapest`). */
+	leaf: string;
+	/** The rule's id, as the workflow names it (`classify-v1`). */
+	ruleId: string;
+	/** The rule over the desk as it opens, answering in the fact's own form. */
+	rule(state: DeskWorldState): string | number | boolean | undefined;
+	/** The rows to compare on — a layout with its create-time config (a labelled work item, say) and a seed. Until a corpus kind exists (WP119) the fixture carries them. */
+	rows: Array<{ layoutId: string; config?: Record<string, unknown>; seed?: number }>;
 }
 
 export interface PackConformanceFixture {

@@ -38,6 +38,7 @@ export { describeConformance } from './describe-conformance.js';
 export type {
 	ConformanceIssue,
 	DeskConformanceFixture,
+	TruthIndependenceFixture,
 	ServiceLineConformanceFixture,
 	GoldenTraceConformanceFixture,
 	GuardrailConformanceEntry,

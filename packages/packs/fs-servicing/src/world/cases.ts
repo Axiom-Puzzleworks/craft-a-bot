@@ -46,6 +46,12 @@ export const SERVICING_CASE_KINDS: readonly ServicingCaseKind[] = [
 
 interface KindProfile {
 	subject: string;
+	/**
+	 * What the caller is asking for, as the case's author meant it (WP111,
+	 * `102-HONEST-BANK.md` §3): the truth's category. Never computed from the
+	 * subject by the rule under test.
+	 */
+	category: Category;
 	/** The caller gives the customer's own details, or not. */
 	callerIsCustomer: boolean;
 	authority: ServiceRequest['authority'];
@@ -61,6 +67,7 @@ interface KindProfile {
 const PROFILES: Record<ServicingCaseKind, KindProfile> = {
 	'address-change': {
 		subject: 'I have moved house and need the address on my account changed.',
+		category: 'address',
 		callerIsCustomer: true,
 		authority: 'none',
 		newPostcode: 'ZZ12 4QT',
@@ -68,6 +75,7 @@ const PROFILES: Record<ServicingCaseKind, KindProfile> = {
 	},
 	bereavement: {
 		subject: 'My mother passed away last month; I am calling about her account.',
+		category: 'bereavement',
 		callerIsCustomer: true,
 		authority: 'power-of-attorney',
 		discloses: 'bereavement',
@@ -76,6 +84,7 @@ const PROFILES: Record<ServicingCaseKind, KindProfile> = {
 	},
 	'third-party-access': {
 		subject: 'I would like my daughter to have access to the account on my behalf.',
+		category: 'third-party',
 		callerIsCustomer: true,
 		authority: 'power-of-attorney',
 		grantee: 'Imogen Thorncastle (daughter)',
@@ -83,6 +92,7 @@ const PROFILES: Record<ServicingCaseKind, KindProfile> = {
 	},
 	'disclosure-mid-call': {
 		subject: 'I have moved house and need the address on my account changed.',
+		category: 'address',
 		callerIsCustomer: true,
 		authority: 'none',
 		newPostcode: 'ZZ31 7HD',
@@ -93,6 +103,7 @@ const PROFILES: Record<ServicingCaseKind, KindProfile> = {
 	},
 	'caller-not-customer': {
 		subject: 'I need to change the address on the account, and the phone number.',
+		category: 'address',
 		callerIsCustomer: false,
 		authority: 'none',
 		newPostcode: 'ZZ99 9ZZ',
@@ -148,6 +159,7 @@ export function servicingCase(random: () => number, kind: ServicingCaseKind): Se
 			})
 		: undefined;
 	return assembleServicingCase(bank, bankForTheDesk(bank), request, {
+		category: profile.category,
 		discloses: profile.discloses,
 		inArrears: profile.inArrears ?? false,
 		fromCollections: false,
@@ -161,7 +173,10 @@ export interface AssembleOptions {
 	 * The category as labelled, when the item carries one (`98-JEV.md` §8): the
 	 * truth is then the label, not the rule's reading of the words — so a
 	 * classifier, the rule included, can be scored against something it did
-	 * not write. Omitted, the rule decides, as it always has.
+	 * not write. The desk's own layouts and book carry one since WP111
+	 * (`102-HONEST-BANK.md` §3); omitted — an unlabelled item from elsewhere —
+	 * the rule decides, and `checkDesk`'s truth-independence property is what
+	 * shows that path for what it is.
 	 */
 	category?: Category;
 	inArrears: boolean;

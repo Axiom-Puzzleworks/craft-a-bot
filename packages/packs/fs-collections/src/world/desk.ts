@@ -119,6 +119,13 @@ const reasonsSchema = z
 	);
 
 export const collectionsDeskSpec: DeskWorldSpec<CollectionsExtra> = {
+	// WP111 (`102-HONEST-BANK.md` §5): CONC 7's rule over disposable income is what the case requires (`91-…` §3), so these leaves are derived from the rule —
+	// an evaluator scoring against them measures compliance with it (`derivedFrom`), not a reading of the case.
+	derivedTruth: {
+		verdict: 'plan-v1',
+		'verdict.label': 'plan-v1',
+		'verdict.reasons': 'plan-v1'
+	},
 	id: COLLECTIONS_DESK_WORLD_ID,
 	name: collectionsStrings.worldName,
 	desk: { title: collectionsStrings.title, role: collectionsStrings.role },

@@ -6,7 +6,7 @@ import {
 	type Population
 } from '@craftabot/pack-fs-bank';
 import type { ServiceRequest } from './world/extra.js';
-import { classificationOf, verdictFromFigures, type SupportNeed } from './world/rules.js';
+import { verdictFromFigures, type Category, type SupportNeed } from './world/rules.js';
 
 /**
  * **The servicing book** (WP106, `92-FS-SERVICING.md` §5): the population's
@@ -26,6 +26,8 @@ const REQUESTS_EVERY = 6;
 
 interface Cycle {
 	subject: string;
+	/** The category the request's author meant (WP111): the item's label and its truth. */
+	category: Category;
 	authority: ServiceRequest['authority'];
 	newPostcode?: string;
 	grantee?: string;
@@ -36,6 +38,7 @@ interface Cycle {
 const CYCLE: readonly Cycle[] = [
 	{
 		subject: 'I have moved house and need the address on my account changed.',
+		category: 'address',
 		authority: 'none',
 		newPostcode: 'ZZ12 4QT',
 		discloses: 'none',
@@ -43,12 +46,14 @@ const CYCLE: readonly Cycle[] = [
 	},
 	{
 		subject: 'My card has been lost and I need a new one.',
+		category: 'card',
 		authority: 'none',
 		discloses: 'none',
 		inArrears: false
 	},
 	{
 		subject: 'I would like my son to have access to the account on my behalf.',
+		category: 'third-party',
 		authority: 'power-of-attorney',
 		grantee: 'Casimir Thorncastle (son)',
 		discloses: 'none',
@@ -56,12 +61,14 @@ const CYCLE: readonly Cycle[] = [
 	},
 	{
 		subject: 'I wanted to let you know that I lost my job last month and I am behind on the loan.',
+		category: 'disclosure',
 		authority: 'none',
 		discloses: 'job-loss',
 		inArrears: true
 	},
 	{
 		subject: 'My father passed away last month; I am calling about his account.',
+		category: 'bereavement',
 		authority: 'power-of-attorney',
 		discloses: 'bereavement',
 		inArrears: false
@@ -97,7 +104,7 @@ export function servicingBook(pop: Population, options: ServicingBookOptions = {
 			...(made.newPostcode ? { newPostcode: made.newPostcode } : {}),
 			...(made.grantee ? { grantee: made.grantee } : {})
 		};
-		const category = classificationOf(request.subject);
+		const category = made.category;
 		const verdict = verdictFromFigures({
 			category,
 			callerIsCustomer: true,
@@ -109,7 +116,13 @@ export function servicingBook(pop: Population, options: ServicingBookOptions = {
 			kind: 'servicing-request',
 			customerId: customer.id,
 			arrivedAt: `${pop.transactions.dateOf(dayIndex)}T${String(9 + (ordinal % 8)).padStart(2, '0')}:00:00.000Z`,
-			payload: { request, customer, inArrears: made.inArrears, discloses: made.discloses },
+			payload: {
+				request,
+				customer,
+				inArrears: made.inArrears,
+				discloses: made.discloses,
+				label: { category }
+			},
 			truth: {
 				records: [
 					{
