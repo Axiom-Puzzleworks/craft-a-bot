@@ -252,7 +252,7 @@ describe('craftabot readings export (WP129)', () => {
 				'--blueprints',
 				BLUEPRINTS
 			],
-			{ stdout: (text) => lines.push(text), stderr: () => {} }
+			{ stdout: (text) => void lines.push(text), stderr: () => {}, env: {} }
 		);
 		expect(code).toBe(0);
 		expect(lines.join('')).toMatch(/readings: 2 of \d+ read/);
@@ -264,8 +264,9 @@ describe('craftabot readings export (WP129)', () => {
 		const json = await main(
 			['readings', 'export', '--content', contentDir, '--blueprints', BLUEPRINTS],
 			{
-				stdout: (text) => lines.push(text),
-				stderr: () => {}
+				stdout: (text) => void lines.push(text),
+				stderr: () => {},
+				env: {}
 			}
 		);
 		expect(json).toBe(0);

@@ -4,6 +4,16 @@ on:
   push:
     branches: [main, day7]
   pull_request:
+  # The Linux baselines (WP131's follow-up): run by hand with update_snapshots on,
+  # the visual job rewrites every Linux screenshot that differs and uploads them in
+  # its artefact, to be reviewed and committed. The committed baselines are CI's own
+  # rendering; a container's fonts differ (`101-…` §8, WP130).
+  workflow_dispatch:
+    inputs:
+      update_snapshots:
+        description: 'Rewrite the Linux visual baselines and upload them'
+        type: boolean
+        default: false
 
 jobs:
   build:
@@ -60,7 +70,7 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      - run: npm run e2e:visual
+      - run: npm run e2e:visual ${{ inputs.update_snapshots && '-- --update-snapshots' || '' }}
 
       - name: Upload the screenshots and the diffs
         if: always()
