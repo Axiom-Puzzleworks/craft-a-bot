@@ -131,6 +131,10 @@
 					"context": {
 						"type": "string"
 					},
+					"regression": {
+						"type": "boolean",
+						"const": true
+					},
 					"brain": {
 						"type": "string"
 					},

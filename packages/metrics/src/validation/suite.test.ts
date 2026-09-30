@@ -20,6 +20,7 @@ describe('the validation suite', () => {
 				'agreement',
 				'brier',
 				'catch-rate',
+				'cohens-kappa',
 				'ceiling-breach-rate',
 				'conditional-parity',
 				'counterfactual-flip',

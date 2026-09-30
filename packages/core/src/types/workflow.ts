@@ -4,6 +4,7 @@ import type { Book, WorkItem, WorkItemKind } from '../schemas/book.js';
 import type { ContextSpec } from './context.js';
 import type { CalibrationRef } from './error-model.js';
 import type { TypedAnswer, TypedQuestion } from '../schemas/reader.js';
+import type { Corpus } from '../schemas/corpus.js';
 
 /**
  * **Workflows** (WP79, `69-WORKFLOWS.md` §3; `64-TARGET-DESIGN-V5.md` §6.2,
@@ -37,6 +38,12 @@ export type Executor =
 export interface ReaderExecutor {
 	kind: 'reader';
 	readerId: string;
+	/**
+	 * The question set's id (WP119, `105-CORPORA.md` §5): what a corpus's
+	 * `seenBy` records, and what the held-out rule matches. A reader scored on a
+	 * corpus must name one.
+	 */
+	questionSet?: string;
 	/** What the reader is shown — the caller's words, a claim's figures. Never truth. */
 	subject: (input: unknown, state: WorldState) => unknown;
 	questions: (input: unknown, state: WorldState) => Record<string, TypedQuestion>;
@@ -219,6 +226,8 @@ export interface BookRequest {
 	periodDays?: number;
 	/** The pack's own filter shape, passed through. */
 	filter?: unknown;
+	/** The corpus a book is drawn from (WP119, `105-…` §7): one item per row, the row's labels as the truth. */
+	corpus?: Corpus;
 	/** The knobs the book's verdicts are judged under; the defaults without. */
 	knobs?: Record<string, number | string | boolean>;
 }

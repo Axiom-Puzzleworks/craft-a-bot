@@ -236,7 +236,11 @@
 		works its complaints. This page shows the bank itself;
 		<a href={resolve('/workshop/playground/journeys')} data-testid="playground-journeys-link"
 			>the journeys</a
-		> draws each desk's workflow as lanes before you run it.
+		>
+		draws each desk's workflow as lanes before you run it, and
+		<a href={resolve('/workshop/playground/corpora')} data-testid="playground-corpora-link"
+			>the corpora</a
+		> hold the labelled rows its readers are scored on.
 	</p>
 	<p class="simulation" data-testid="playground-simulation-only">FOR SIMULATION ONLY</p>
 

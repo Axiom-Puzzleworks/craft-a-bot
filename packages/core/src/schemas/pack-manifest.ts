@@ -16,6 +16,7 @@ import type { ProviderFactory } from '../types/provider.js';
 import type { ServiceLine } from '../types/service-line.js';
 import type { ErrorModel } from '../types/error-model.js';
 import type { Reader } from '../types/reader.js';
+import type { Corpus } from './corpus.js';
 import type { EvidenceStore } from '../types/evidence-store.js';
 import type { WorldDefinition } from '../types/world.js';
 import type { PolicyCard } from './policy-card.js';
@@ -304,6 +305,12 @@ export interface PackManifest extends PackManifestMetadata {
 	 * desk's rule, a hosted classifier, a chat model. A `reader` executor names one.
 	 */
 	readers?: Reader[];
+	/**
+	 * Corpora (WP119, `105-CORPORA.md` §3): labelled rows as content, frozen, with
+	 * their annotators and the readers that have seen them. A campaign's book
+	 * source names one; `checkCorpus` holds it.
+	 */
+	corpora?: Corpus[];
 	/**
 	 * Workflows (WP79, `69-WORKFLOWS.md` §3): a journey as stages with typed
 	 * input and output and an executor each — content over a world the pack

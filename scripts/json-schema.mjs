@@ -62,6 +62,12 @@ export async function artefactSchemas() {
 			description:
 				'A provider cassette (WP114, 103-FALLIBLE-ACTORS.md): one entry per provider call a recording made, keyed by the SHA-256 of the composed prompt and its occurrence, with the response as the provider returned it, the model id pinned, and the latency. A live brain naming it replays with no key and no network.'
 		},
+		corpus: {
+			schema: core.corpusSchema,
+			title: 'Craft A Bot corpus (labelled rows as content)',
+			description:
+				'Labelled rows a reader is scored on: each row’s state, tags and labels from closed sets with their guides, the question set it was written against, the annotators with their agreement, whether it was held out, the readers that have seen it, and a digest over the labels and rows frozen before any of that (105-CORPORA.md §3).'
+		},
 		reader: {
 			schema: core.readerExchangeSchema,
 			title: 'Craft A Bot reader exchange (typed questions and a response)',

@@ -578,6 +578,23 @@ export type { CalibrationRef, DecisionFaultSpec, ErrorModel } from './types/erro
 export type { ReviewerModel } from './types/workflow.js';
 export { reviewerAnswerSchema, type ReviewerAnswer } from './schemas/shared.js';
 export type { Reader, ReaderContext } from './types/reader.js';
+export {
+	annotatorSchema,
+	corpusDigest,
+	corpusLabelSchema,
+	corpusRowSchema,
+	corpusSchema,
+	heldOutRefusal,
+	parseCorpus,
+	secondLabelsSchema,
+	seenByFor,
+	seenBySchema,
+	type Annotator,
+	type Corpus,
+	type CorpusRow,
+	type SecondLabels,
+	type SeenBy
+} from './schemas/corpus.js';
 export type { ReaderExecutor, ReaderGate } from './types/workflow.js';
 export {
 	answerProblem,

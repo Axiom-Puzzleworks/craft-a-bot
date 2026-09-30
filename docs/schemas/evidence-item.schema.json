@@ -7027,7 +7027,7 @@
 					"properties": {
 						"id": {
 							"type": "string",
-							"pattern": "^local\\/(policy|testbench|scenarios|campaigns|stacks|views|reviews)\\/[a-z0-9][a-z0-9-]*$"
+							"pattern": "^local\\/(policy|testbench|scenarios|campaigns|stacks|views|reviews|corpora)\\/[a-z0-9][a-z0-9-]*$"
 						},
 						"kind": {
 							"type": "string",
@@ -7038,7 +7038,8 @@
 								"campaign",
 								"stack",
 								"view",
-								"control-review"
+								"control-review",
+								"corpus"
 							]
 						},
 						"title": {
@@ -7224,6 +7225,9 @@
 														"const": "reader"
 													},
 													"readerId": {
+														"type": "string"
+													},
+													"questionSet": {
 														"type": "string"
 													},
 													"gate": {
@@ -7766,6 +7770,9 @@
 														"const": "reader"
 													},
 													"readerId": {
+														"type": "string"
+													},
+													"questionSet": {
 														"type": "string"
 													},
 													"gate": {
@@ -12295,6 +12302,244 @@
 						"description",
 						"fit",
 						"provenance"
+					]
+				}
+			},
+			"required": [
+				"id",
+				"digest",
+				"pushedAt",
+				"kind",
+				"payload"
+			]
+		},
+		{
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "string",
+					"minLength": 1
+				},
+				"digest": {
+					"type": "string",
+					"pattern": "^[0-9a-f]{64}$"
+				},
+				"pushedAt": {
+					"type": "string",
+					"format": "date-time",
+					"pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+				},
+				"pushedBy": {
+					"type": "string",
+					"minLength": 1
+				},
+				"kind": {
+					"type": "string",
+					"const": "corpus"
+				},
+				"payload": {
+					"type": "object",
+					"properties": {
+						"id": {
+							"type": "string",
+							"minLength": 1
+						},
+						"name": {
+							"type": "string",
+							"minLength": 1
+						},
+						"version": {
+							"type": "string",
+							"minLength": 1
+						},
+						"stateKind": {
+							"type": "string",
+							"minLength": 1
+						},
+						"guide": {
+							"type": "string",
+							"minLength": 1
+						},
+						"labels": {
+							"type": "object",
+							"propertyNames": {
+								"type": "string"
+							},
+							"additionalProperties": {
+								"type": "object",
+								"properties": {
+									"options": {
+										"minItems": 2,
+										"type": "array",
+										"items": {
+											"type": "string",
+											"minLength": 1
+										}
+									},
+									"guide": {
+										"type": "string",
+										"minLength": 1
+									}
+								},
+								"required": [
+									"options",
+									"guide"
+								]
+							}
+						},
+						"rows": {
+							"type": "array",
+							"items": {
+								"type": "object",
+								"properties": {
+									"id": {
+										"type": "string",
+										"minLength": 1
+									},
+									"state": {},
+									"tags": {
+										"type": "array",
+										"items": {
+											"type": "string"
+										}
+									},
+									"labels": {
+										"type": "object",
+										"propertyNames": {
+											"type": "string"
+										},
+										"additionalProperties": {
+											"type": "string"
+										}
+									},
+									"contested": {
+										"type": "object",
+										"properties": {
+											"reason": {
+												"type": "string",
+												"minLength": 1
+											},
+											"alternatives": {
+												"type": "object",
+												"propertyNames": {
+													"type": "string"
+												},
+												"additionalProperties": {
+													"type": "string"
+												}
+											}
+										},
+										"required": [
+											"reason",
+											"alternatives"
+										]
+									}
+								},
+								"required": [
+									"id",
+									"state",
+									"tags",
+									"labels"
+								]
+							}
+						},
+						"questions": {
+							"type": "object",
+							"properties": {
+								"id": {
+									"type": "string",
+									"minLength": 1
+								},
+								"digest": {
+									"type": "string",
+									"minLength": 1
+								}
+							},
+							"required": [
+								"id",
+								"digest"
+							]
+						},
+						"annotators": {
+							"type": "array",
+							"items": {
+								"type": "object",
+								"properties": {
+									"id": {
+										"type": "string",
+										"minLength": 1
+									},
+									"blind": {
+										"type": "boolean"
+									},
+									"primary": {
+										"type": "boolean",
+										"const": true
+									},
+									"kappa": {
+										"type": "object",
+										"propertyNames": {
+											"type": "string"
+										},
+										"additionalProperties": {
+											"type": "number"
+										}
+									},
+									"note": {
+										"type": "string"
+									}
+								},
+								"required": [
+									"id",
+									"blind"
+								]
+							}
+						},
+						"heldOut": {
+							"type": "boolean"
+						},
+						"seenBy": {
+							"type": "array",
+							"items": {
+								"type": "object",
+								"properties": {
+									"readerId": {
+										"type": "string",
+										"minLength": 1
+									},
+									"questions": {
+										"type": "string",
+										"minLength": 1
+									},
+									"on": {
+										"type": "string",
+										"minLength": 1
+									}
+								},
+								"required": [
+									"readerId",
+									"questions",
+									"on"
+								]
+							}
+						},
+						"digest": {
+							"type": "string",
+							"pattern": "^[0-9a-f]{64}$"
+						}
+					},
+					"required": [
+						"id",
+						"name",
+						"version",
+						"stateKind",
+						"guide",
+						"labels",
+						"rows",
+						"annotators",
+						"heldOut",
+						"seenBy",
+						"digest"
 					]
 				}
 			},

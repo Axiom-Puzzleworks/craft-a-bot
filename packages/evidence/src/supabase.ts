@@ -46,7 +46,9 @@ export const EVIDENCE_TABLES: Record<EvidenceKind, string> = {
 	'bank-run': 'evidence_bank_runs',
 	experiment: 'evidence_experiments',
 	'experiment-result': 'evidence_experiment_results',
-	stack: 'evidence_stacks'
+	stack: 'evidence_stacks',
+	// WP119 (`105-CORPORA.md`): a corpus, frozen.
+	corpus: 'evidence_corpora'
 };
 const KINDS: EvidenceKind[] = [
 	'bundle',
@@ -57,7 +59,8 @@ const KINDS: EvidenceKind[] = [
 	'bank-run',
 	'experiment',
 	'experiment-result',
-	'stack'
+	'stack',
+	'corpus'
 ];
 
 const rowSchema = z.object({

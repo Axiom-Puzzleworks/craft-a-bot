@@ -220,3 +220,24 @@ export function calibratedAnswers(
 		};
 	});
 }
+
+/**
+ * **Two labellers' labels** (WP119): the first uniform over two options; the
+ * second copies the first with probability `alpha` and otherwise labels on
+ * its own, uniformly — so Cohen's κ between them is `alpha` in expectation.
+ */
+export function labelPairs(
+	seed: number,
+	n: number,
+	alpha: number
+): { first: string[]; second: string[] } {
+	const random = mulberry32(seed);
+	const first: string[] = [];
+	const second: string[] = [];
+	for (let i = 0; i < n; i += 1) {
+		const a = random() < 0.5 ? 'x' : 'y';
+		first.push(a);
+		second.push(random() < alpha ? a : random() < 0.5 ? 'x' : 'y');
+	}
+	return { first, second };
+}

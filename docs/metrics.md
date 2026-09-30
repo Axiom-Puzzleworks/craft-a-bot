@@ -46,3 +46,9 @@
 | `brier` | mean over answers of Σ over options of (p − [the label])² | t interval on the mean | none | 0.57 / 0.57 ✅ | 0.3333 / 0.3415 / ±0.02 (interval contains it) ✅ | the 95% interval misses the true score · 0.055 / 0.0896 ✅ |
 | `reliability` | per bin of stated probability, the share right (read here at the top bin, 0.9–1) | Wilson | none | 0.5 / 0.5 ✅ | 0.85 / 0.8376 / ±0.05 (interval contains it) ✅ | the top bin’s interval misses its mean stated probability, on a calibrated reader · 0.025 / 0.0896 ✅ |
 | `gate-curve` | at a threshold, the accuracy of the answers the gate lets through (read here at 0.6) | Wilson | none | 0.5 / 0.5 ✅ | 0.9 / 0.8863 / ±0.02 (interval contains it) ✅ | the 95% interval misses the true accuracy · 0.055 / 0.0896 ✅ |
+
+## Agreement
+
+| Metric | Definition | Interval | Test | Hand case (expected / got) | Planted (planted / recovered / tolerance) | Null (alarm · rate / bound) |
+| --- | --- | --- | --- | --- | --- | --- |
+| `cohens-kappa` | (p_o − p_e) / (1 − p_e): agreement beyond what the two labellers’ frequencies give by chance | large-sample normal | none | 0.5 / 0.5 ✅ | 0.8 / 0.787 / ±0.03 (interval contains it) ✅ | the 95% interval excludes 0 between two independent labellers · 0.04 / 0.0896 ✅ |

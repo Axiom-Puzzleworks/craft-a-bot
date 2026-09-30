@@ -114,3 +114,4 @@ export {
 	type Rate,
 	type ReliabilityBin
 } from './calibration.js';
+export { cohensKappa, type KappaResult } from './agreement.js';

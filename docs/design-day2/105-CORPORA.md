@@ -121,3 +121,25 @@ v3 is `heldOut` against q2.
 **The result the branch committed is not today's.** Re-running `servicing-jev` today gives the committed effects on the request, the need and the needs met, but not on `disclosure-recorded` or the gated `touches`. WP111 changed the servicing desk: the need is recorded before the act, and a review is counted once. So "byte for byte to the branch's experiment result" is read as the result that today's code produced before the move, which is what the pins hold. The committed results are regenerated under `docs/evidence/servicing-readers/` (§8).
 
 **The eighth reference experiment.** `experiments/servicing-readers.json` is the held-out design: v3, q1 against q2, regex against Jev with and without the gate. Its full-size result goes under `docs/evidence/servicing-readers/`, and CI's reduced run and shape check cover it through the typesafe pack's `--config`. The lab record (`packages/packs/typesafe/experiment/README.md` and its analysis files) stays beside the scripts that write it. The evidence folder's README points at it.
+
+## 8. Stage notes
+
+> **WP119 stage B done 2026-09-30.**
+> - **In `core`:**
+>   - the corpus schema, `corpusDigest`, `seenByFor`, `heldOutRefusal` and `secondLabelsSchema`, generated as `corpus.schema.json`;
+>   - `PackManifest.corpora` and the registry's `getCorpus`/`listCorpora`;
+>   - the `corpus` content and evidence kinds;
+>   - `Book.source.corpus`, `BookRequest.corpus` and `ReaderExecutor.questionSet`.
+> - **`cohensKappa`:** in `metrics`, with its hand case, planted case and null under a fifth family, *agreement*.
+> - **`checkCorpus` and `corpusFindings`:** in `pack-testkit`, with a red corpus per refusal.
+> - **`evals`:** `source.corpus` and `source.regression`, the held-out rule in `prepareCampaign`, the book held to the corpus it claims, and `CampaignCell.regression`.
+> - **`craftabot corpus freeze | label | agreement`:** the label walk is tested on two rows with one text and two sets of labels, which print alike.
+> - **The Workbench:**
+>   - `/workshop/playground/corpora` with its fold (`lib/workshop/corpora.ts`), linked from the Playground page;
+>   - a pulled corpus imported as local content.
+> - **Supabase:** the `evidence_corpora` table.
+>
+> **Diverged:**
+> - The page is `/workshop/playground/corpora`, under the Playground's rail entry, not a rail entry of its own at `/workshop/corpora`. A new rail entry would redraw the rail on every Workshop screenshot.
+> - `freeze` parses the corpus but does not run `checkCorpus`: the CLI does not load a test kit. The pack's own test holds the rest.
+> - The single-annotator finding is its own function, `corpusFindings`, because the kit's issues carry no severity.

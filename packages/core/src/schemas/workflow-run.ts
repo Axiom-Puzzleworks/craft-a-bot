@@ -33,6 +33,7 @@ export const executorRecordSchema = z.discriminatedUnion('kind', [
 	z.object({
 		kind: z.literal('reader'),
 		readerId: z.string(),
+		questionSet: z.string().optional(),
 		gate: z
 			.object({
 				threshold: z.number().min(0).max(1),

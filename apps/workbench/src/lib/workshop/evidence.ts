@@ -10,6 +10,7 @@ import {
 	type RunRecord,
 	type Storage,
 	type StoredCampaignReport,
+	corpusSchema,
 	stackSchema,
 	localContentId,
 	slugOf,
@@ -104,7 +105,9 @@ export type Imported =
 	| { kind: 'experiment'; id: string }
 	| { kind: 'experiment-result'; id: string }
 	// WP97 (`89-STACKS.md` §6): a stack lands in the content store as a local record.
-	| { kind: 'stack'; id: string };
+	| { kind: 'stack'; id: string }
+	// WP119 (`105-CORPORA.md`): a corpus lands in the content store as a local record.
+	| { kind: 'corpus'; id: string };
 
 /**
  * Store a verified item locally: a bundle as its runs (records, events,
@@ -168,6 +171,20 @@ export async function importPulled(
 				schemaVersion: 1
 			});
 			return { kind: 'stack', id: item.id };
+		}
+		case 'corpus': {
+			// A pulled corpus lands in the content store as a local record (WP119), under its own local id.
+			const corpus = corpusSchema.parse(item.payload);
+			const id = localContentId('corpus', slugOf(corpus.name));
+			await deps.saveContent({
+				id,
+				kind: 'corpus',
+				title: corpus.name,
+				record: { ...corpus, id },
+				savedAt: new Date().toISOString(),
+				schemaVersion: 1
+			});
+			return { kind: 'corpus', id: item.id };
 		}
 	}
 }

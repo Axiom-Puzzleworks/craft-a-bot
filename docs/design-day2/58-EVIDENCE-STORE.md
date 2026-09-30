@@ -136,3 +136,9 @@ No sharing of bots (kit files travel as files); no comments, presence, gallery o
 > **Amended 2026-09-11, later (WP89, `72-EXPERIMENTS.md` §4).** Two more kinds — `experiment` (the design, an opaque record here: it lives beside the campaign schema in `evals`) and `experiment-result` (payload `experimentResultSchema`, whose own digest the reader verifies besides the item's) — with their tables `evidence_experiments` and `evidence_experiment_results` in `docs/evidence-setup.md` §1 (the eight-table migration; a project provisioned with six keeps working for the six). The register (WP90) folds results pulled from the store as it folds the local ones.
 >
 > **Amended 2026-09-12 (WP97, `89-STACKS.md` §6).** A ninth kind, `stack` (payload `stackSchema`), table `evidence_stacks` in `docs/evidence-setup.md` §1; `craftabot evidence push --stack-file <stack.json>`; the Workshop lands a pulled stack in the content store as `local/stacks/<slug>`.
+
+> **Amended 2026-09-30 (WP119, `105-CORPORA.md` §3):**
+> - **The kind:** a tenth evidence kind, `corpus`, whose payload is `corpusSchema`.
+> - **The table:** Supabase's is `evidence_corpora`, with the same shape and row-level security as the rest (`docs/evidence-setup.md`). A project migrated before this date needs the one `create table` line and the loop's list re-run.
+> - **The Workbench:** it imports a pulled corpus into the content store as a local record under `local/corpora/`.
+> - **Not yet taken:** the live checkpoint for the new table.

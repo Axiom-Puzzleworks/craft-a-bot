@@ -306,3 +306,7 @@ Sizing: B is the largest (the runner and gates are new machinery); C is medium; 
 > **Amended 2026-09-29 (WP115, `103-…` §5–§6):** a `fallible` brain names an `errorModel` (and only a fallible brain does); a book campaign's build may name `overrides.reviewer`, and its cells carry `cell.workflow.reviews`.
 
 > **Amended 2026-09-30 (WP118, `104-READERS.md` §9):** a book cell carries `workflow.readings`: each `reader` stage's choice answers, with the label from the stage's `answerKey` over the case's truth, read after the run by the scorer. The summary gains `calibration`, defaulted to `[]`: one row per build, brain, stage, question and reader, with the accuracy, ECE, Brier, the reliability table and the gate curve. The scorecard renders it as *Calibration*, and the Campaigns screen as a pane. The report stays v4.
+
+> **Amended 2026-09-30 (WP119, `105-CORPORA.md` §5, §7):**
+> - **`source.corpus`:** a book source may name a corpus. The held-out rule then runs in `prepareCampaign` before any cell does. A reader executor fitted by any build's configuration is refused if it names no `questionSet`, or if it names one the corpus's `seenBy` has already scored it on.
+> - **`source.regression: true`:** admits such a run. Every cell then carries `regression: true`.

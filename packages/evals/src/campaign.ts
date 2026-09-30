@@ -19,8 +19,10 @@ import {
 	calibrationRow,
 	contextSpecSchema,
 	createCassetteProvider,
+	heldOutRefusal,
 	sha256Hex,
 	type ContextSpec,
+	type Corpus,
 	type ProviderCassetteFile
 } from '@craftabot/core';
 import {
@@ -499,7 +501,15 @@ export const campaignSourceSchema = z.object({
 		.optional(),
 	filter: z.unknown().optional(),
 	/** Only the first `limit` items of the book, in its order. */
-	limit: z.number().int().positive().optional()
+	limit: z.number().int().positive().optional(),
+	/**
+	 * The corpus the book is drawn from (WP119, `105-CORPORA.md` §7): the
+	 * workflow's `book` is handed it and makes one item per row. The held-out
+	 * rule (§5) runs over every reader the builds fit before any cell does.
+	 */
+	corpus: z.string().min(1).optional(),
+	/** Scoring readers the corpus has already seen, on purpose (§5): every cell says so. */
+	regression: z.literal(true).optional()
 });
 export type CampaignSource = z.infer<typeof campaignSourceSchema>;
 
@@ -569,6 +579,8 @@ export const campaignCellSchema = z.object({
 	guard: z.string(),
 	/** The context rung this cell ran at (WP81); written only when the campaign named contexts. */
 	context: z.string().optional(),
+	/** Scored on a corpus that has seen its readers, on purpose (WP119, `105-CORPORA.md` §5). */
+	regression: z.literal(true).optional(),
 	brain: z.string(),
 	tier: evalTierSchema,
 	seed: z.number().int(),
@@ -1011,7 +1023,8 @@ export function prepareCampaign(
 	const campaign = resolveCampaign(unresolved, registry);
 	if (campaign.source) {
 		const workflow = workflowOf(registry, campaign.source);
-		const book = drawBook(campaign.source, workflow);
+		const corpus = corpusOf(registry, campaign, workflow);
+		const book = drawBook(campaign.source, workflow, corpus);
 		return {
 			campaign,
 			cells: campaignCells(campaign, book, workflow),
@@ -1035,7 +1048,41 @@ function workflowOf(registry: PackRegistry, source: CampaignSource): WorkflowSpe
 }
 
 /** The book in hand, or the one the workflow draws from the population named — the same bytes at the same seed and size wherever it is drawn. */
-function drawBook(source: CampaignSource, workflow: WorkflowSpec): Book {
+/**
+ * **The corpus a book source names, held to the held-out rule** (WP119,
+ * `105-CORPORA.md` §5): resolved from the registry; every reader executor the
+ * builds' configurations (or the source's, or the stages' own) fit is
+ * refused if it names no question set, or one the corpus has already scored
+ * it on — unless the source is a regression. Refused before any cell runs.
+ */
+function corpusOf(
+	registry: PackRegistry,
+	campaign: Campaign,
+	workflow: WorkflowSpec
+): Corpus | undefined {
+	const source = campaign.source;
+	if (!source?.corpus) return undefined;
+	const corpus = registry.getCorpus(source.corpus);
+	if (!corpus)
+		throw new Error(`campaign source names corpus "${source.corpus}", which no pack ships`);
+	const configurations = new Set(
+		campaign.builds.map((build) => build.overrides?.configuration ?? source.configuration)
+	);
+	for (const configurationId of configurations) {
+		const executors = configurationId
+			? (workflow.configurations?.[configurationId]?.executors ?? {})
+			: {};
+		for (const stage of workflow.stages) {
+			const executor = executors[stage.id] ?? stage.executor;
+			if (executor.kind !== 'reader') continue;
+			const refusal = heldOutRefusal(corpus, executor, source.regression === true);
+			if (refusal) throw new Error(`campaign "${campaign.id}": ${refusal}`);
+		}
+	}
+	return corpus;
+}
+
+function drawBook(source: CampaignSource, workflow: WorkflowSpec, corpus?: Corpus): Book {
 	if (source.book) return source.book;
 	const population = source.population;
 	if (!population)
@@ -1045,12 +1092,22 @@ function drawBook(source: CampaignSource, workflow: WorkflowSpec): Book {
 			`workflow "${workflow.id}" draws no book of its own; hand the campaign one inline`
 		);
 	}
-	return workflow.book({
+	const book = workflow.book({
 		seed: population.seed,
 		size: population.size,
 		...(population.periodDays !== undefined ? { periodDays: population.periodDays } : {}),
-		...(source.filter !== undefined ? { filter: source.filter } : {})
+		...(source.filter !== undefined ? { filter: source.filter } : {}),
+		...(corpus ? { corpus } : {})
 	});
+	// A book said to be from a corpus is from that corpus, frozen at its digest (§7).
+	if (
+		corpus &&
+		(book.source.corpus?.id !== corpus.id || book.source.corpus.digest !== corpus.digest)
+	)
+		throw new Error(
+			`workflow "${workflow.id}" drew a book that is not corpus "${corpus.id}" at digest ${corpus.digest}`
+		);
+	return book;
 }
 
 /**
@@ -1275,6 +1332,7 @@ async function runCell(
 		seed,
 		tags: scenario.tags,
 		...(cell.context ? { context: cell.context.id } : {}),
+		...(campaign.source?.regression ? { regression: true as const } : {}),
 		ordinal: cell.ordinal
 	};
 	const empty = () => Object.fromEntries(campaign.assertionCards.map((card) => [card.id, false]));

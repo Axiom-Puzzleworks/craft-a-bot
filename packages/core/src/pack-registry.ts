@@ -6,6 +6,7 @@ import type { DomainSpec } from './schemas/domain.js';
 import type { CalibrationTable } from './schemas/calibration.js';
 import type { ErrorModel } from './types/error-model.js';
 import type { Reader } from './types/reader.js';
+import type { Corpus } from './schemas/corpus.js';
 import type { ReviewerModel } from './types/workflow.js';
 import type { WorkflowSpec } from './types/workflow.js';
 import { satisfiesRange } from './semver.js';
@@ -109,6 +110,9 @@ export interface PackRegistry {
 	/** A reader by id (WP117, `104-READERS.md` §3.3). */
 	getReader(id: string): Reader | undefined;
 	listReaders(): Reader[];
+	/** A corpus by id (WP119, `105-CORPORA.md` §3). */
+	getCorpus(id: string): Corpus | undefined;
+	listCorpora(): Corpus[];
 	listWorkflows(): WorkflowSpec[];
 	listGuardrailServices(): GuardrailService[];
 	listGuardrailComponents(): GuardrailComponent[];
@@ -138,6 +142,7 @@ export function createPackRegistry(): PackRegistry {
 	const calibrationTables = new Map<string, CalibrationTable>();
 	const reviewerModels = new Map<string, ReviewerModel>();
 	const readers = new Map<string, Reader>();
+	const corpora = new Map<string, Corpus>();
 	const workflows = new Map<string, WorkflowSpec>();
 	const guardrailServices = new Map<string, GuardrailService>();
 	const guardrailComponents = new Map<string, GuardrailComponent>();
@@ -232,6 +237,7 @@ export function createPackRegistry(): PackRegistry {
 		for (const model of manifest.reviewerModels ?? [])
 			insertUnique(reviewerModels, model.id, model, 'reviewer model');
 		for (const reader of manifest.readers ?? []) insertUnique(readers, reader.id, reader, 'reader');
+		for (const corpus of manifest.corpora ?? []) insertUnique(corpora, corpus.id, corpus, 'corpus');
 		for (const workflow of manifest.workflows ?? [])
 			insertUnique(workflows, workflow.id, workflow, 'workflow');
 		for (const component of manifest.guardrailComponents ?? []) {
@@ -381,6 +387,8 @@ export function createPackRegistry(): PackRegistry {
 		getReviewerModel: (id) => reviewerModels.get(id),
 		getReader: (id) => readers.get(id),
 		listReaders: () => [...readers.values()],
+		getCorpus: (id) => corpora.get(id),
+		listCorpora: () => [...corpora.values()],
 		listWorkflows: () => [...workflows.values()],
 		listServiceLines: () => [...serviceLines.values()],
 		listEvidenceStores: () => [...evidenceStores.values()],

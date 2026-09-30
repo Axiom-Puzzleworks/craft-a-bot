@@ -56,7 +56,9 @@ export const bookSourceSchema = z.object({
 	size: z.number().int().positive(),
 	filter: z.unknown().optional(),
 	/** The factor by which an incidence was raised so a book has enough positives (`66-…` §2, `fraud-incidence`). */
-	oversample: z.number().positive().optional()
+	oversample: z.number().positive().optional(),
+	/** The corpus the book was drawn from, and the digest it was frozen at (WP119, `105-CORPORA.md` §7): one item per row. */
+	corpus: z.object({ id: z.string().min(1), digest: z.string().min(1) }).optional()
 });
 export type BookSource = z.infer<typeof bookSourceSchema>;
 

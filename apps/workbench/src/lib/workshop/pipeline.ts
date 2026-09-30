@@ -239,6 +239,7 @@ export function executorChoices(
 				return {
 					kind: 'reader',
 					readerId: executor.readerId,
+					...(executor.questionSet !== undefined ? { questionSet: executor.questionSet } : {}),
 					...(executor.gate
 						? {
 								gate: {

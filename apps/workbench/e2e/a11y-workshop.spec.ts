@@ -100,6 +100,7 @@ test('every Workshop route has no accessibility violations', async ({ page }) =>
 		`/workshop/safety-case?agent=${agentId}`,
 		`/workshop/assurance?agent=${agentId}`,
 		'/workshop/catalogue',
+		'/workshop/playground/corpora',
 		`/workshop/export?run=${goldenRunId}`,
 		`/workshop/compare?a=${goldenRunId}&b=${goldenRunId}`,
 		'/workshop/guards',

@@ -130,6 +130,9 @@
 									"readerId": {
 										"type": "string"
 									},
+									"questionSet": {
+										"type": "string"
+									},
 									"gate": {
 										"type": "object",
 										"properties": {
@@ -670,6 +673,9 @@
 										"const": "reader"
 									},
 									"readerId": {
+										"type": "string"
+									},
+									"questionSet": {
 										"type": "string"
 									},
 									"gate": {

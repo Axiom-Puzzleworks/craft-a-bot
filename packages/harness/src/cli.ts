@@ -35,6 +35,12 @@ import { experimentAnalyse, experimentRender, experimentRun } from './commands/e
 import { bankRun } from './commands/bank.js';
 import { journeyRender } from './commands/journey.js';
 import { scaffoldDomain } from './commands/scaffold.js';
+import {
+	agreementForFiles,
+	freezeCorpus,
+	labelCorpusFile,
+	renderAgreement
+} from './commands/corpus.js';
 import { createRegistry } from './config.js';
 import { createFileStorage } from './storage/file-storage.js';
 
@@ -121,6 +127,13 @@ Usage:
   craftabot journey render --workflow <id> [--config <name>] [--run <workflow-run.json>] [--svg <out.svg>] [--file <layout.json>]
       One journey drawn (WP100): its layout as JSON, its SVG for the manual
       and the site — unlit, under a configuration, or lit by a stored run.
+  craftabot corpus freeze <corpus.json>
+      Write a corpus's digest over its labels and rows (WP119).
+  craftabot corpus label <corpus.json> --as <annotator> --out <labels.json>
+      Walk the rows for a blind second annotator: the guide, the options and each row's
+      state, never a label; answers by number or name, ? for a note.
+  craftabot corpus agreement <corpus.json> <labels.json>
+      Cohen's κ per label against the primary; records the annotator on the corpus.
   craftabot scaffold domain --id <id> --sector <sector> --jurisdiction <jurisdiction> --world <pack> --journeys <a,b> --out <dir> [--root <Entity>] [--name <name>] [--today YYYY-MM-DD] [--relative]
       A domain pack's shape, typed out (WP107): one world pack (the model,
       a calibration table of stated assumptions pending review, three
@@ -1102,6 +1115,41 @@ ${renderEvaluations(report)}`);
 				}
 				if (svgPath === undefined && file === undefined) io.stdout(svg);
 				return 0;
+			}
+			case 'corpus': {
+				// WP119 (`105-CORPORA.md` §6): the labelling tools.
+				const [verb, file, labels] = args.positional;
+				if (verb === 'freeze' && file) {
+					const { digest } = await freezeCorpus(file);
+					io.stdout(`${file}: frozen at ${digest}\n`);
+					return 0;
+				}
+				if (verb === 'agreement' && file && labels) {
+					io.stdout(renderAgreement(await agreementForFiles(file, labels)));
+					return 0;
+				}
+				const as = stringFlag(args, 'as');
+				const out = stringFlag(args, 'out');
+				if (verb === 'label' && file && as && out) {
+					const { createInterface } = await import('node:readline/promises');
+					const rl = createInterface({ input: process.stdin, output: process.stdout });
+					try {
+						const written = await labelCorpusFile({
+							file,
+							out,
+							as,
+							ask: (prompt) => rl.question(prompt),
+							write: (text) => io.stdout(text)
+						});
+						io.stdout(`wrote ${out}: ${written.labels.length} rows labelled by ${as}\n`);
+					} finally {
+						rl.close();
+					}
+					return 0;
+				}
+				throw new Error(
+					'corpus needs freeze <corpus.json> | label <corpus.json> --as <annotator> --out <labels.json> | agreement <corpus.json> <labels.json>'
+				);
 			}
 			case 'scaffold': {
 				// WP107 (`93-DOMAIN-PACK.md` §4): a domain pack's shape, typed out — a world pack and a journey pack per journey named.
