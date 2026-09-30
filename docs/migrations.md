@@ -2,6 +2,18 @@
 
 The compatibility policy is `docs/design-day2/14-BRICK-REFERENCE-DESIGNS.md` §7: additive changes never bump a format version; a breaking change bumps it with a migration and a fixture, and a breaking change to `@craftabot/core`'s interfaces takes its major version (`01-ARCHITECTURE.md` §5). This file is where each of those is written down for someone upgrading.
 
+## `describeStorageContract` → `@craftabot/core/testing/contract` (2026-09-30)
+
+**Moved: the `Storage` conformance suite.** `describeStorageContract` is no longer exported from `@craftabot/core/testing`. Import it from **`@craftabot/core/testing/contract`**:
+
+```ts
+import { describeStorageContract } from '@craftabot/core/testing/contract';
+```
+
+**Why.** The suite imports `vitest`. The `testing` barrel is also imported by runtime code: the Workbench's Demo Brain and the Worker's mock provider. So the test runner was bundled into the app and the Worker, about 58 KiB each.
+
+**What is unchanged.** The mock provider, the test clock and the storage fixtures stay in `@craftabot/core/testing`, and the suite is unchanged.
+
 ## `control-review` → `review` (2026-09-30, WP129)
 
 **Deprecated: the `control-review` content kind.** It is kept for one release as an alias (`108-READINGS.md` §7). A reading is now a `review` (`core/schemas/review.ts`) over one of eight subject kinds. A control row is `{ kind: 'control-row', id: '<mapId>#<ref>' }`.

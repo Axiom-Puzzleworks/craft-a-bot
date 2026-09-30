@@ -753,6 +753,6 @@ The register was reopened at the close of Day 6 for the two gaps the roadmap nam
 - **W-3.** The Studio's canvas has no stage-boundary points.
 - **W-4.** A stack can't be an experiment's factor on the page, though the harness's guard level can be.
 - **W-5.** The catalogue's effect column names the desk's shipped stack.
-- **W-6.** vitest's runtime is bundled into the Worker and one chunk, through test helpers re-exported from runtime entry points. It is flagged as a task of its own.
+- **W-6.** vitest's runtime is bundled into the Worker and one chunk, through test helpers re-exported from runtime entry points. **Resolved 2026-09-30:** `describeStorageContract` moved to `@craftabot/core/testing/contract`, and every build and the Worker are 58 KiB lighter (`01-…` §8).
 
 None of these makes the product say something untrue. W-1 and W-3 are the drawing promising less than the doc says.

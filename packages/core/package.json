@@ -18,6 +18,10 @@
 		"./testing": {
 			"types": "./dist/testing/index.d.ts",
 			"default": "./dist/testing/index.js"
+		},
+		"./testing/contract": {
+			"types": "./dist/testing/contract.d.ts",
+			"default": "./dist/testing/contract.js"
 		}
 	},
 	"scripts": {

@@ -16,11 +16,11 @@ export {
 export { createTestClock, type TestClock } from './test-clock.js';
 export { v1BrickKinds } from './brick-kinds.js';
 /**
- * The `Storage` conformance suite and its fixtures (WP36 stage A). One suite,
- * run against every implementation — the in-memory store here, the browser's
- * IndexedDB store, a headless host's file store — so no two can drift.
+ * The `Storage` fixtures (WP36 stage A). The conformance suite they serve,
+ * `describeStorageContract`, is `@craftabot/core/testing/contract`: it imports
+ * `vitest`, and this barrel is imported by the app's runtime (the Demo Brain,
+ * the Worker's mock provider), which must never carry a test runner.
  */
-export { describeStorageContract } from './storage-contract.js';
 export {
 	makeAgent,
 	makeAgentV1,
