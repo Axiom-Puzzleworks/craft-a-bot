@@ -3,7 +3,7 @@ import type { PackRegistry } from '../pack-registry.js';
 import { toSpecV2, type AnyAgentSpec } from '../schemas/agent-spec-v2.js';
 import type { GoalCardDefinition } from '../schemas/pack-manifest.js';
 import type { ChatMessage } from '../types/provider.js';
-import { summariseWindow, type TickMemory } from './memory.js';
+import { UNTRUSTED_RULE, resultAsRead, summariseWindow, type TickMemory } from './memory.js';
 
 /**
  * Prompt composition (02-AGENT-MODEL.md §8). Three messages, in this order, so
@@ -87,7 +87,9 @@ export function composeSystemMessage(input: PromptInput): string {
 		...input.brickSections,
 		`Your goal: ${goalOf(input)}`,
 		`Parts you have been built with: ${input.fittedBricks.join(', ')}.`,
-		`How to reply:\n${RESPONSE_RULES.map((rule) => `- ${rule}`).join('\n')}`
+		`How to reply:\n${RESPONSE_RULES.map((rule) => `- ${rule}`).join('\n')}`,
+		// Only when the window holds a marked result (WP124), so every earlier prompt is unchanged.
+		input.memoryWindow.some((entry) => entry.provenance === 'untrusted') ? UNTRUSTED_RULE : ''
 	];
 	return sections.filter((section) => section !== '').join('\n\n');
 }
@@ -194,7 +196,10 @@ function composeTranscript(input: PromptInput): ChatMessage[] {
 			// A refusal *is* the result. A guardrail or a person stopping a call is
 			// the tool-denial pattern every real agent platform uses, and rendering
 			// it as one teaches the mechanism rather than hiding it.
-			content: entry.result ?? entry.refused ?? UNANSWERED
+			content:
+				(entry.result !== undefined ? resultAsRead(entry) : undefined) ??
+				entry.refused ??
+				UNANSWERED
 		});
 	}
 

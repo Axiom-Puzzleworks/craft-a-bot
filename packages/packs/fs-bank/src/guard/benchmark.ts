@@ -24,7 +24,12 @@ export const BANK_ADVERSARIAL_BENCHMARK = {
 	subjects: {
 		services: 'all',
 		readers: 'all',
-		components: []
+		components: [
+			'governance/untrusted-content',
+			'fs-bank/guard/quarantined-reader',
+			'governance/taint',
+			'governance/red-team-seat'
+		]
 	},
 	serviceConfigs: {
 		'geap/model-armor': {

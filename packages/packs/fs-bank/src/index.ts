@@ -1,5 +1,5 @@
 import { ukRetailBankingDomain } from './domain.js';
-import { ATTACK_WORDS_READER } from './guard/attack-words.js';
+import { ATTACK_WORDS_READER, QUARANTINED_READER_COMPONENT } from './guard/attack-words.js';
 import type { PackManifest } from '@craftabot/core';
 import { bankControlMap } from './controls/rows.js';
 import { bankServiceLines } from './lines/index.js';
@@ -44,7 +44,9 @@ const manifest: PackManifest = {
 	// WP115: the person at a review stage, as a model over REVIEWER_RATES.
 	reviewerModels: bankReviewerModels,
 	// WP122 (`106-BENCHMARK.md` §3): the guard question set's keyword baseline, frozen before any adversarial row.
-	readers: [ATTACK_WORDS_READER]
+	readers: [ATTACK_WORDS_READER],
+	// WP124 (`106-BENCHMARK.md` §8.3): the quarantined reader over the guard question set.
+	guardrailComponents: [QUARANTINED_READER_COMPONENT as never]
 };
 
 export default manifest;
@@ -200,6 +202,8 @@ export {
 	ATTACK_QUESTION,
 	ATTACK_WORDS_READER,
 	ATTACK_WORDS_READER_ID,
+	QUARANTINED_READER_COMPONENT,
+	QUARANTINED_READER_COMPONENT_ID,
 	GUARD_QUESTIONS,
 	GUARD_QUESTION_SET_DIGEST,
 	GUARD_QUESTION_SET_ID,

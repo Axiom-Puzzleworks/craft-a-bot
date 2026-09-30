@@ -35,6 +35,8 @@ export type LeafKind =
 	| 'argument-matches'
 	| 'observation-contains'
 	| 'prompt-contains'
+	| 'content-is-untrusted'
+	| 'taint-reaches'
 	| 'world-predicate'
 	| 'history-count'
 	| 'hook-is';
@@ -116,6 +118,12 @@ export function conditionToExpr(row: ConditionRow): PredicateExpr {
 		base = { kind: 'observation-contains', value: row.argValue };
 	} else if (row.kind === 'prompt-contains') {
 		base = { kind: 'prompt-contains', value: row.argValue };
+	} else if (row.kind === 'content-is-untrusted') {
+		// WP124 (`106-BENCHMARK.md` §8.1): the run has read something marked untrusted.
+		base = { kind: 'content-is-untrusted' };
+	} else if (row.kind === 'taint-reaches') {
+		// WP124 (§8.2): the call's argument — one by path, or every one — carries untrusted text.
+		base = { kind: 'taint-reaches', ...(row.path.trim() !== '' ? { path: row.path } : {}) };
 	} else if (row.kind === 'world-predicate') {
 		base = { kind: 'world-predicate', predicateId: row.predicateId };
 	} else if (row.kind === 'history-count') {

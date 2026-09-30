@@ -166,7 +166,20 @@ export const guardrailVerdictSchema = z.union([
 		 */
 		verdictKind: z.enum(['redact', 'annotate']).optional(),
 		finding: verdictFindingSchema.optional(),
-		redactedText: z.string().optional()
+		redactedText: z.string().optional(),
+		/**
+		 * At `post-act` (WP124, `106-BENCHMARK.md` §8.1): what came back is
+		 * marked untrusted — its source, and, for a quarantined reader, the
+		 * words the acting seat reads instead. The session applies the first
+		 * mark on the chain; absent on every verdict written before.
+		 */
+		mark: z
+			.object({
+				provenance: z.literal('untrusted'),
+				source: z.string().min(1),
+				replacement: z.string().optional()
+			})
+			.optional()
 	}),
 	z.object({
 		allow: z.literal(false),

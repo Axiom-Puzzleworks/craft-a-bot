@@ -1,3 +1,4 @@
+import { stringLeaves, taintReaching } from './taint.js';
 import type {
 	EngineEvent,
 	Guardrail,
@@ -36,6 +37,8 @@ export interface PredicateEvalContext {
 	/** The composed prompt (WP63, `52-…` §2 item 1) — what `prompt-contains` reads; absent before `pre-think` and on a reflex tick. */
 	messages?: GuardrailContext['messages'];
 	world?: GuardrailContext['world'];
+	/** What `post-act` marked untrusted (WP124, `106-…` §8.2) — what the two taint leaves read. */
+	untrusted?: GuardrailContext['untrusted'];
 }
 
 /** The evaluation context a full guardrail context yields — every field a leaf can read. */
@@ -48,7 +51,8 @@ export function predicateContextFor(ctx: GuardrailContext): PredicateEvalContext
 		history: ctx.history,
 		...(ctx.observation !== undefined ? { observation: ctx.observation } : {}),
 		...(ctx.messages !== undefined ? { messages: ctx.messages } : {}),
-		...(ctx.world !== undefined ? { world: ctx.world } : {})
+		...(ctx.world !== undefined ? { world: ctx.world } : {}),
+		...(ctx.untrusted !== undefined ? { untrusted: ctx.untrusted } : {})
 	};
 }
 
@@ -118,6 +122,16 @@ export function evaluatePredicate(expr: PredicateExpr, ctx: PredicateEvalContext
 			return ctx.observation?.text.includes(expr.value) ?? false;
 		case 'prompt-contains':
 			return ctx.messages?.some((message) => message.content.includes(expr.value)) ?? false;
+		case 'content-is-untrusted':
+			return (ctx.untrusted?.length ?? 0) > 0;
+		case 'taint-reaches': {
+			if (!ctx.proposed || !ctx.untrusted || ctx.untrusted.length === 0) return false;
+			const value =
+				expr.path !== undefined
+					? getPath(ctx.proposed.arguments, expr.path)
+					: ctx.proposed.arguments;
+			return taintReaching(stringLeaves(value), ctx.untrusted, expr.minWords).length > 0;
+		}
 		case 'world-predicate':
 			return ctx.world?.test(expr.predicateId) === true;
 		case 'history-count': {

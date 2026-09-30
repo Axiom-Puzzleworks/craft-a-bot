@@ -1203,8 +1203,13 @@
 					"type": "string",
 					"enum": [
 						"scripted",
-						"live"
+						"live",
+						"adversarial"
 					]
+				},
+				"corpusId": {
+					"type": "string",
+					"minLength": 1
 				},
 				"cartridgeId": {
 					"type": "string",
@@ -2103,6 +2108,39 @@
 					"required": [
 						"kind",
 						"value"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"kind": {
+							"type": "string",
+							"const": "content-is-untrusted"
+						}
+					},
+					"required": [
+						"kind"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"kind": {
+							"type": "string",
+							"const": "taint-reaches"
+						},
+						"path": {
+							"type": "string",
+							"minLength": 1
+						},
+						"minWords": {
+							"type": "integer",
+							"minimum": 2,
+							"maximum": 20
+						}
+					},
+					"required": [
+						"kind"
 					]
 				},
 				{

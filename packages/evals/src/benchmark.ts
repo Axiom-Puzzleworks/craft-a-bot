@@ -8,6 +8,7 @@ import {
 	type BenchmarkReport,
 	type BenchmarkSubjectResult,
 	type Corpus,
+	type GuardrailContext,
 	type GuardrailHook,
 	type GuardrailService,
 	type GuardrailServiceClient,
@@ -83,7 +84,12 @@ export interface BenchmarkClient {
 export interface BenchmarkDeps {
 	registry: Pick<
 		PackRegistry,
-		'listGuardrailServices' | 'getGuardrailService' | 'listReaders' | 'getReader' | 'getCorpus'
+		| 'listGuardrailServices'
+		| 'getGuardrailService'
+		| 'listReaders'
+		| 'getReader'
+		| 'getCorpus'
+		| 'getGuardrailComponent'
 	>;
 	/** The guard question set the corpora are held out from: its id, and the noul a reader answers. */
 	question: { setId: string; questionId: string; noul: TypedQuestion };
@@ -114,6 +120,8 @@ interface Screened {
 	applicable: boolean;
 	reason?: string;
 	flags: boolean[];
+	/** The rows the subject can see (WP124): a `post-act` component sees no caller row. Absent, every row. */
+	inScope?: boolean[];
 	errors: number;
 	latencies: number[];
 	priced?: number;
@@ -186,18 +194,7 @@ export async function runBenchmark(
 	}
 
 	for (const id of benchmark.subjects.components) {
-		screened.push({
-			id,
-			kind: 'component',
-			name: id,
-			componentId: id,
-			mode: 'local',
-			applicable: false,
-			reason: 'the bespoke components are WP124’s; this benchmark names one before it is built',
-			flags: [],
-			errors: 0,
-			latencies: []
-		});
+		screened.push(await screenComponent(deps, id, rows));
 	}
 
 	const measuring = screened.filter((subject) => subject.applicable && subject.mode !== 'stand-in');
@@ -325,6 +322,80 @@ async function screenReader(
 	};
 }
 
+/** The surfaces a `post-act` component is shown: what comes back into the loop, never the caller's own words. */
+const POST_ACT_SURFACES = new Set(['document', 'tool-result', 'counterpart']);
+
+/**
+ * A component as a subject (WP124, `106-…` §8.5): compiled at `post-act` and
+ * shown each row that point sees — a document, a service's answer, another
+ * seat's note — as what a call answered. It flags a row it refuses or marks.
+ * A component with no `post-act` point decides on proposed calls or is a
+ * source, not a screen, and reads *not applicable*.
+ */
+async function screenComponent(deps: BenchmarkDeps, id: string, rows: Row[]): Promise<Screened> {
+	const component = deps.registry.getGuardrailComponent(id);
+	const base = {
+		id,
+		kind: 'component' as const,
+		name: component?.name ?? id,
+		componentId: id,
+		mode: 'local' as const,
+		flags: [] as boolean[],
+		errors: 0,
+		latencies: [] as number[]
+	};
+	if (!component) return { ...base, applicable: false, reason: 'no such component is registered' };
+	if (!component.points.includes('post-act'))
+		return {
+			...base,
+			applicable: false,
+			reason: component.points.includes('group')
+				? 'it attacks — a seat that speaks the corpus — it does not screen'
+				: `it decides at ${component.points.join(', ')} on a proposed call; the corpus is text`
+		};
+	const refuse = () => undefined;
+	const guardrails = component.compile(
+		component.configSchema.parse({}),
+		{
+			getPolicyCard: refuse,
+			getGuardrailService: refuse,
+			getEvaluator: refuse,
+			getAction: refuse
+		},
+		{ kind: 'post-act' }
+	);
+	const inScope = rows.map((row) => POST_ACT_SURFACES.has(row.surface));
+	const flags: boolean[] = [];
+	let errors = 0;
+	for (const [index, row] of rows.entries()) {
+		if (!inScope[index]) {
+			flags.push(false);
+			continue;
+		}
+		const ctx = {
+			hook: 'post-act',
+			tick: index + 1,
+			spec: {},
+			usage: { ticks: 0, inputTokens: 0, outputTokens: 0 },
+			worldState: {},
+			history: [],
+			result: { name: `benchmark/${row.surface}`, text: row.text, ok: true }
+		} as unknown as GuardrailContext;
+		try {
+			let flagged = false;
+			for (const guardrail of guardrails) {
+				const verdict = await guardrail.check(ctx);
+				if (!('allow' in verdict) || !verdict.allow || verdict.mark) flagged = true;
+			}
+			flags.push(flagged);
+		} catch {
+			errors += 1;
+			flags.push(false);
+		}
+	}
+	return { ...base, applicable: true, flags, inScope, errors };
+}
+
 function foldSubject(
 	subject: Screened,
 	rows: Row[],
@@ -334,7 +405,9 @@ function foldSubject(
 	const slice = (keys: readonly string[], pick: (row: Row) => string) =>
 		Object.fromEntries(
 			keys.map((key) => {
-				const indices = rows.flatMap((row, index) => (pick(row) === key ? [index] : []));
+				const indices = rows.flatMap((row, index) =>
+					pick(row) === key && seen(index) ? [index] : []
+				);
 				return [
 					key,
 					{
@@ -348,7 +421,9 @@ function foldSubject(
 	let fp = 0;
 	let fn = 0;
 	let tn = 0;
+	const seen = (index: number) => subject.inScope?.[index] ?? true;
 	rows.forEach((row, index) => {
+		if (!seen(index)) return;
 		const attack = row.attack !== 'none';
 		const flagged = subject.flags[index] === true;
 		if (attack && flagged) tp += 1;
@@ -361,6 +436,7 @@ function foldSubject(
 	const caughtAlone = counts
 		? rows.flatMap((row, index) =>
 				row.attack !== 'none' &&
+				seen(index) &&
 				subject.flags[index] &&
 				others.every((other) => !other.flags[index])
 					? [row.key]
@@ -371,8 +447,9 @@ function foldSubject(
 		counts && others.length > 0
 			? rows.flatMap((row, index) =>
 					row.attack !== 'none' &&
+					seen(index) &&
 					!subject.flags[index] &&
-					others.every((other) => other.flags[index])
+					others.every((other) => (other.inScope?.[index] ?? true) && other.flags[index])
 						? [row.key]
 						: []
 				)
@@ -387,7 +464,7 @@ function foldSubject(
 		mode: subject.mode,
 		applicable: subject.applicable,
 		...(subject.reason ? { reason: subject.reason } : {}),
-		n: subject.applicable ? rows.length : 0,
+		n: subject.applicable ? rows.filter((_row, index) => seen(index)).length : 0,
 		flagged: tp + fp,
 		errors: subject.errors,
 		confusion: { tp, fp, fn, tn },
@@ -397,7 +474,9 @@ function foldSubject(
 		byAttack: slice(ATTACK_KINDS, (row) => row.attack),
 		byTarget: slice(ATTACK_TARGETS, (row) => row.target),
 		bySurface: slice(
-			ATTACK_SURFACES.filter((surface) => rows.some((row) => row.surface === surface)),
+			ATTACK_SURFACES.filter((surface) =>
+				rows.some((row, index) => row.surface === surface && seen(index))
+			),
 			(row) => row.surface
 		),
 		latency:

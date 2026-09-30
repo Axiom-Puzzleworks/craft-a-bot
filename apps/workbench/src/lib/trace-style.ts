@@ -41,6 +41,8 @@ const LANES: Record<EventType, TraceLane> = {
 	'guardrail.external': 'guardrail',
 	'guardrail.checked': 'guardrail',
 	'guardrail.tripped': 'guardrail',
+	// What came back marked untrusted (WP124): a governance act, in the guardrail lane.
+	'content.marked': 'guardrail',
 	'approval.requested': 'guardrail',
 	'approval.resolved': 'guardrail',
 	// Something said to the bot is something it perceives, so it belongs in the
@@ -83,6 +85,7 @@ const LABELS: Record<EventType, string> = {
 	'guardrail.external': 'Guard asked',
 	'guardrail.checked': 'Safety check',
 	'guardrail.tripped': 'Safety rule stopped it',
+	'content.marked': 'Marked untrusted',
 	'approval.requested': 'Asked permission',
 	'approval.resolved': 'Permission answered',
 	'input.delivered': 'Somebody said something',

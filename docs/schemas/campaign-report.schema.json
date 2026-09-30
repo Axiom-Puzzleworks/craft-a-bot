@@ -747,8 +747,13 @@
 					"type": "string",
 					"enum": [
 						"scripted",
-						"live"
+						"live",
+						"adversarial"
 					]
+				},
+				"corpusId": {
+					"type": "string",
+					"minLength": 1
 				},
 				"cartridgeId": {
 					"type": "string",

@@ -1,5 +1,10 @@
 import type { PackManifest } from '@craftabot/core';
-import { builtinComponents, egressComponents, policyCardComponent } from '@craftabot/governance';
+import {
+	builtinComponents,
+	egressComponents,
+	injectionComponents,
+	policyCardComponent
+} from '@craftabot/governance';
 import { starterAssertionCards } from './assertion-cards.js';
 import { starterScenarios } from './scenarios.js';
 import { starterBrickKinds } from './brick-kinds.js';
@@ -28,7 +33,13 @@ export const starterPack: PackManifest = {
 	serviceLines: starterServiceLines,
 	policyCards: starterPolicyCards,
 	/** Guardrail components (WP94, `85-COMPONENTS.md` §5): the Safety brick's rules, the policy card and the egress rules as components. */
-	guardrailComponents: [...builtinComponents, policyCardComponent as never, ...egressComponents],
+	guardrailComponents: [
+		...builtinComponents,
+		policyCardComponent as never,
+		...egressComponents,
+		// WP124 (`106-BENCHMARK.md` §8): untrusted-content marking, taint, the red-team seat.
+		...(injectionComponents as unknown as never[])
+	],
 	/** Assertion cards (WP43, `31-EVALUATORS.md` §4.2) — the Test Bench reads them from the registry. */
 	assertionCards: starterAssertionCards,
 	/** Scenarios (WP44, `32-SCENARIOS.md` §4.3) — the four governance cards, with what a test needs. */

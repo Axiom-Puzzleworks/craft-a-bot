@@ -262,7 +262,9 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		declaredReason: undefined as string | undefined,
 		/** Things the agent should be told next turn: world refusals, guardrail denials. */
 		feedback: (fork ? [...fork.feedback] : []) as string[],
-		inFlight: undefined as AbortController | undefined
+		inFlight: undefined as AbortController | undefined,
+		/** What `post-act` marked untrusted so far (WP124, `106-…` §8.2): what taint reads. Not refolded by a fork. */
+		untrusted: [] as Array<{ tick: number; source: string; text: string }>
 	};
 
 	function emit<T extends EventType>(type: T, payload: PayloadFor<T>): void {
@@ -420,7 +422,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 	 * `tick.started`, filled as SENSE, COMPOSE and THINK happen. Spread into
 	 * every context of the tick so a hook sees exactly what exists by then.
 	 */
-	let inHand: Pick<GuardrailContext, 'observation' | 'messages' | 'response'> = {};
+	let inHand: Pick<GuardrailContext, 'observation' | 'messages' | 'response' | 'result'> = {};
 
 	function guardrailContext(
 		hook: GuardrailHook,
@@ -449,7 +451,9 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			 * live and grows underneath.
 			 */
 			history,
-			...(proposed ? { proposed } : {})
+			...(proposed ? { proposed } : {}),
+			// Present once anything is marked (WP124), so every earlier context is unchanged.
+			...(run.untrusted.length > 0 ? { untrusted: run.untrusted } : {})
 		};
 	}
 
@@ -1031,7 +1035,28 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		 * registration, because by this point the action has already happened
 		 * and a rule claiming to block it would be lying to the trace.
 		 */
+		// What the call answered, in hand for the outcome monitors (WP124, `106-…` §8.1).
+		if (acted && decision.kind === 'call') {
+			inHand = {
+				...inHand,
+				result: { name: decision.call.name, text: acted.result, ok: acted.ok }
+			};
+		}
 		const postAct = await runGuards('post-act');
+		// A mark (WP124, §8.1): the result is untrusted from here on — wrapped in the prompt,
+		// read by taint, and, from a quarantined reader, replaced by its answers. The record is
+		// the one `remember` holds, so the window sees it.
+		if (postAct.mark && acted && record.result !== undefined) {
+			run.untrusted.push({ tick: run.tick, source: postAct.mark.source, text: record.result });
+			record.provenance = 'untrusted';
+			record.source = postAct.mark.source;
+			if (postAct.mark.replacement !== undefined) record.result = postAct.mark.replacement;
+			emit('content.marked', {
+				source: postAct.mark.source,
+				guardrailId: postAct.mark.guardrailId,
+				quarantined: postAct.mark.replacement !== undefined
+			});
+		}
 		if (!isAllowed(postAct.verdict)) {
 			rejectMeaninglessPostAct(postAct);
 			emit('tick.completed', { outcome: 'STOPPED_BY_GUARDRAIL' });

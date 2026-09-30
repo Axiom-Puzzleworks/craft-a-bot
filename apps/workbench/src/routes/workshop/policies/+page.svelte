@@ -68,6 +68,9 @@
 		{ id: 'argument-matches', label: 'an argument matches the pattern…' },
 		{ id: 'observation-contains', label: 'the bot can see…' },
 		{ id: 'prompt-contains', label: 'the prompt carries…' },
+		// The WP124 leaves (`106-BENCHMARK.md` §8): over what was marked untrusted.
+		{ id: 'content-is-untrusted', label: 'the bot has read untrusted content' },
+		{ id: 'taint-reaches', label: 'untrusted text reaches the call' },
 		{ id: 'world-predicate', label: 'the world says…' },
 		{ id: 'history-count', label: 'the trace already has…' },
 		{ id: 'hook-is', label: 'the hook is…' }
@@ -279,6 +282,12 @@
 									<input type="text" placeholder="e.g. chest" bind:value={condition.argValue} />
 								{:else if condition.kind === 'prompt-contains'}
 									<input type="text" placeholder="e.g. proxy-" bind:value={condition.argValue} />
+								{:else if condition.kind === 'taint-reaches'}
+									<input
+										type="text"
+										placeholder="argument path (optional), e.g. text"
+										bind:value={condition.path}
+									/>
 								{:else if condition.kind === 'world-predicate'}
 									<input
 										type="text"

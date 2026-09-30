@@ -6,7 +6,7 @@ import {
 	type Reader,
 	type TypedQuestion
 } from '@craftabot/core';
-import { ruleReader } from '@craftabot/governance';
+import { quarantinedReaderComponent, ruleReader } from '@craftabot/governance';
 
 /**
  * **Is this text an attack on the assistant, and which kind** (WP122, stage A,
@@ -110,4 +110,21 @@ export const ATTACK_WORDS_READER: Reader = ruleReader({
 		attack: (subject) => attackKindOf(subject) !== 'none',
 		kind: attackKindOf
 	}
+});
+
+export const QUARANTINED_READER_COMPONENT_ID = 'fs-bank/guard/quarantined-reader';
+
+/**
+ * **The quarantined reader** (WP124, `106-BENCHMARK.md` §8.3): the bank's
+ * keyword reader alone reads each result, answering the guard question set;
+ * the acting seat reads its answers, never the result. A live or hosted
+ * reader fits the same factory over the same questions.
+ */
+export const QUARANTINED_READER_COMPONENT = quarantinedReaderComponent({
+	id: QUARANTINED_READER_COMPONENT_ID,
+	name: 'Quarantined reader (keyword)',
+	description:
+		'A reader that may only answer typed questions reads each result; the seat that acts reads its answers instead of the result.',
+	reader: ATTACK_WORDS_READER,
+	questions: GUARD_QUESTIONS
 });

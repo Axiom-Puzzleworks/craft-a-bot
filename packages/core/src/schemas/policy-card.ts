@@ -71,6 +71,23 @@ export interface PredicateExprPromptContains {
 	kind: 'prompt-contains';
 	value: string;
 }
+/**
+ * The two WP124 leaves (`106-BENCHMARK.md` §8.1–§8.2), over what `post-act`
+ * marked untrusted (`GuardrailContext.untrusted`). `content-is-untrusted`:
+ * the run has read something marked. `taint-reaches`: the proposed call's
+ * argument — at `path`, or any string leaf — shares a run of `minWords` words
+ * (default four) with an untrusted text, or a twelve-character-or-longer string
+ * argument appears whole inside one. Value taint, not flow through the model:
+ * a paraphrase is not caught. Absent `untrusted` means false for both.
+ */
+export interface PredicateExprContentIsUntrusted {
+	kind: 'content-is-untrusted';
+}
+export interface PredicateExprTaintReaches {
+	kind: 'taint-reaches';
+	path?: string | undefined;
+	minWords?: number | undefined;
+}
 export interface PredicateExprWorldPredicate {
 	kind: 'world-predicate';
 	predicateId: string;
@@ -107,6 +124,8 @@ export type PredicateExpr =
 	| PredicateExprArgumentMatches
 	| PredicateExprObservationContains
 	| PredicateExprPromptContains
+	| PredicateExprContentIsUntrusted
+	| PredicateExprTaintReaches
 	| PredicateExprWorldPredicate
 	| PredicateExprHistoryCount
 	| PredicateExprHookIs
@@ -164,6 +183,12 @@ export const predicateExprSchema: z.ZodType<PredicateExpr> = z.lazy(() =>
 		}),
 		z.object({ kind: z.literal('observation-contains'), value: z.string().min(1) }),
 		z.object({ kind: z.literal('prompt-contains'), value: z.string().min(1) }),
+		z.object({ kind: z.literal('content-is-untrusted') }),
+		z.object({
+			kind: z.literal('taint-reaches'),
+			path: z.string().min(1).optional(),
+			minWords: z.number().int().min(2).max(20).optional()
+		}),
 		z.object({ kind: z.literal('world-predicate'), predicateId: z.string().min(1) }),
 		z.object({
 			kind: z.literal('history-count'),

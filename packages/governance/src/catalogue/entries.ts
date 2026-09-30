@@ -507,9 +507,14 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		frameworks: ['owasp:asi01', 'nist-ai-600-1'],
 		sources: [SPOTLIGHTING, INSTRUCTION_HIERARCHY, CAMEL],
 		coverage: {
-			status: 'bespoke',
-			implementedBy: ['desk brief: records apart from instructions (43-DESK-WORLDS.md)'],
-			note: 'The desk brief separates the records from the instructions; tool results and line answers are not yet marked — Day 6 names an untrusted-content component at post-act.'
+			status: 'shipped',
+			componentIds: ['governance/untrusted-content', 'fs-bank/guard/quarantined-reader'],
+			implementedBy: [
+				'desk brief: records apart from instructions (43-DESK-WORLDS.md)',
+				'the content-is-untrusted card leaf (106-BENCHMARK.md §8.1)'
+			],
+			note: 'Every tool and line answer the component names is marked untrusted at post-act and wrapped between markers in the prompt as data, never instructions; the content-is-untrusted leaf lets a card act on it.',
+			since: 'WP124'
 		},
 		bankingRelevance: 'core'
 	}),
@@ -526,11 +531,17 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		frameworks: ['owasp:asi02', 'owasp:asi04'],
 		sources: [OWASP_AGENTIC, MCP_SECURITY, MITRE_ATLAS],
 		coverage: {
-			status: 'bespoke',
+			status: 'shipped',
+			componentIds: [
+				'governance/untrusted-content',
+				'governance/taint',
+				'fs-bank/guard/quarantined-reader'
+			],
 			implementedBy: [
 				'the poisoned factsheet, the CRM note and the doctored payslip decks (19-… #38)'
 			],
-			note: 'Shipped as scenarios the decks run under pressure; a tool-description integrity check on the registry is a blueprint.'
+			note: 'Marking, taint and the quarantined reader answer a poisoned tool result — a planted SYSTEM line in a bureau answer is marked, and the call copying it blocked; a tool-description integrity check on the registry is still a blueprint.',
+			since: 'WP124'
 		},
 		bankingRelevance: 'core'
 	}),
@@ -894,11 +905,14 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		obligations: ['ukgdpr:data-minimisation'],
 		sources: [FIDES, CAMEL, LETHAL_TRIFECTA],
 		coverage: {
-			status: 'bespoke',
+			status: 'shipped',
+			componentIds: ['governance/taint'],
 			implementedBy: [
-				'classification on every record and purpose-gating on every line (48-FS-BANK.md, tenet 13)'
+				'classification on every record and purpose-gating on every line (48-FS-BANK.md, tenet 13)',
+				'the taint-reaches card leaf (106-BENCHMARK.md §8.2)'
 			],
-			note: 'Every record is classified and every line purpose-gated; no taint through the bot’s reasoning yet — Day 6 names a taint component and a taint-reaches card leaf.'
+			note: 'Value taint: a call whose argument shares four words, or a long value whole, with what was marked untrusted is blocked or sent to a person; a paraphrase through the model’s reasoning is not followed.',
+			since: 'WP124'
 		},
 		bankingRelevance: 'core'
 	}),
@@ -1000,9 +1014,11 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		frameworks: ['owasp:asi07'],
 		sources: [LETHAL_TRIFECTA, CAMEL, AIRGAP],
 		coverage: {
-			status: 'bespoke',
+			status: 'shipped',
+			componentIds: ['fs-bank/guard/quarantined-reader'],
 			implementedBy: ['the two-seat episode (46-, 56-…)'],
-			note: 'The Watchbot is a second seat with its own brain; a quarantined reader seat is a blueprint configuration of the episode.'
+			note: 'The quarantined reader alone reads untrusted content, asked with nothing to act with, and the acting seat reads its typed answers instead; the Watchbot is a second seat with its own brain.',
+			since: 'WP124'
 		},
 		bankingRelevance: 'supporting'
 	}),
@@ -1162,8 +1178,12 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		sources: [PETRI, SHADE_ARENA],
 		coverage: {
 			status: 'shipped',
-			implementedBy: ['the adversary tier and the scripted adversary (28-…)'],
-			note: 'No live adversary seat; a red-team persona on the live counterpart is a bespoke configuration.',
+			componentIds: ['governance/red-team-seat'],
+			implementedBy: [
+				'the adversary tier and the scripted adversary (28-…)',
+				'the adversarial counterpart tier over the adversarial corpora (106-BENCHMARK.md §8.4)'
+			],
+			note: 'The scripted adversary, and since WP124 the red-team seat: a counterpart speaking only attack rows of a desk’s adversarial corpus; a live red-team persona remains a configuration.',
 			since: 'WP38'
 		},
 		bankingRelevance: 'core'

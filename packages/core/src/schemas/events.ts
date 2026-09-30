@@ -366,6 +366,19 @@ const guardrailCheckedEvent = eventSchema(
 		point: pointField
 	})
 );
+/**
+ * What came back was marked untrusted (WP124, `106-BENCHMARK.md` §8.1): the
+ * tick, where it came from, who marked it, and whether a quarantined reader
+ * replaced it with its answers — so the acting seat never read the text.
+ */
+const contentMarkedEvent = eventSchema(
+	'content.marked',
+	z.object({
+		source: z.string().min(1),
+		guardrailId: z.string().min(1),
+		quarantined: z.boolean()
+	})
+);
 const guardrailTrippedEvent = eventSchema(
 	'guardrail.tripped',
 	z.object({
@@ -510,6 +523,7 @@ export const engineEventSchema = z.discriminatedUnion('type', [
 	guardrailExternalEvent,
 	guardrailCheckedEvent,
 	guardrailTrippedEvent,
+	contentMarkedEvent,
 	approvalRequestedEvent,
 	approvalResolvedEvent,
 	worldChangedEvent,

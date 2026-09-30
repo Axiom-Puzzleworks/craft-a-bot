@@ -56,6 +56,7 @@ import {
 } from '@craftabot/metrics';
 import { createSessionGroup, injectionSchema, toSpecV2 } from '@craftabot/core';
 import { createGroupWatchbot, createEvaluatorCircuitBreaker } from '@craftabot/pack-monitor';
+import { adversarialScript, type CounterpartScript } from '@craftabot/desk';
 import { counterpartScriptFor, counterpartSpec, deskFor } from './counterpart-seat.js';
 import starterPack from '@craftabot/pack-starter';
 import { z } from 'zod';
@@ -442,7 +443,14 @@ export const campaignGuardSchema = z.object({
  * asked to compare them.
  */
 export const campaignCounterpartSchema = z.object({
-	tier: z.enum(['scripted', 'live']),
+	/**
+	 * `adversarial` (WP124, `106-BENCHMARK.md` §8.4): the red-team seat — a
+	 * script whose every line is an attack row of `corpusId`, drawn by the
+	 * cell's seed, seated in place of the desk's own visitor.
+	 */
+	tier: z.enum(['scripted', 'live', 'adversarial']),
+	/** With `adversarial`, the adversarial corpus the seat speaks from. */
+	corpusId: z.string().min(1).optional(),
 	/** With `live`, the seat's cartridge; the seat takes any installed one. */
 	cartridgeId: z.string().min(1).optional(),
 	/** With `live`, the round cap of each episode (default 30). */
@@ -1381,7 +1389,11 @@ async function runCell(
 		// A build's knobs reach the world at `create` (WP78), so the world is built here as an injected one is.
 		const knobs = build.overrides?.knobs;
 		// The rung of the context ladder reaches the world beside the knobs (WP81).
-		const worldConfig = worldConfigFor(knobs, cell.context);
+		const worldConfig = worldConfigFor(
+			knobs,
+			cell.context,
+			redTeamScriptFor(campaign, registry, seed)
+		);
 		const world =
 			worldInjections.length > 0 || worldConfig !== undefined
 				? injectedWorld(
@@ -2087,13 +2099,31 @@ function fit(spec: AgentSpecV2, bricks: readonly FittedBrick[]): AgentSpecV2 {
 /** The world's create-time config for a cell (WP78, WP81): the build's knobs and the cell's context rung, or nothing. */
 function worldConfigFor(
 	knobs: Record<string, number | string | boolean> | undefined,
-	context: ContextSpec | undefined
+	context: ContextSpec | undefined,
+	counterpart?: CounterpartScript
 ): Record<string, unknown> | undefined {
-	if (knobs === undefined && context === undefined) return undefined;
+	if (knobs === undefined && context === undefined && counterpart === undefined) return undefined;
 	return {
 		...(knobs !== undefined ? { knobs } : {}),
-		...(context !== undefined ? { context } : {})
+		...(context !== undefined ? { context } : {}),
+		...(counterpart !== undefined ? { counterpart } : {})
 	};
+}
+
+/** The red-team seat's script for a cell (WP124): the named corpus's attack rows, drawn by the cell's seed. */
+function redTeamScriptFor(
+	campaign: Campaign,
+	registry: PackRegistry,
+	seed: number
+): CounterpartScript | undefined {
+	if (campaign.counterpart?.tier !== 'adversarial') return undefined;
+	const corpusId = campaign.counterpart.corpusId;
+	const corpus = corpusId ? registry.getCorpus(corpusId) : undefined;
+	if (!corpus)
+		throw new Error(
+			`campaign '${campaign.id}' seats a red-team counterpart and names ${corpusId ? `'${corpusId}', which is not registered` : 'no corpusId'}`
+		);
+	return adversarialScript(corpus, seed);
 }
 
 /** `exactOptionalPropertyTypes`: a parsed optional is `T | undefined`, which `SpecOverrides` does not admit — drop the undefineds. */

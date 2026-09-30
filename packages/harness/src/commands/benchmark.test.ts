@@ -95,8 +95,23 @@ describe('craftabot benchmark run (WP123)', () => {
 			['guard-local/prompt-guard', 'stand-in', true],
 			['lakera-guard/guard', 'stand-in', true],
 			['pdp-opa/opa', 'stand-in', false],
-			['fs-bank/reader/attack-words', 'local', true]
+			['fs-bank/reader/attack-words', 'local', true],
+			// The bespoke four (WP124): marking and the quarantine measured over what comes back; taint and the seat not applicable.
+			['governance/untrusted-content', 'local', true],
+			['fs-bank/guard/quarantined-reader', 'local', true],
+			['governance/taint', 'local', false],
+			['governance/red-team-seat', 'local', false]
 		]);
+		// The marking components mark everything they are shown: every row on the surfaces that come back.
+		for (const id of ['governance/untrusted-content', 'fs-bank/guard/quarantined-reader']) {
+			const marked = report.subjects.find((subject) => subject.id === id)!;
+			expect(marked.n, id).toBe(marked.flagged);
+			expect(Object.keys(marked.bySurface).sort(), id).toEqual([
+				'counterpart',
+				'document',
+				'tool-result'
+			]);
+		}
 		// Every shipped stand-in answers clean: it flags nothing, so it measures nothing.
 		for (const subject of report.subjects.filter((each) => each.mode === 'stand-in'))
 			expect(subject.flagged, subject.id).toBe(0);
@@ -107,7 +122,7 @@ describe('craftabot benchmark run (WP123)', () => {
 		expect(first.markdown.startsWith('# The bank, attacked')).toBe(true);
 		expect(first.markdown).toContain('**Synthetic rows.**');
 		expect(report.digest).toMatchInlineSnapshot(
-			`"7a45fe25a1c242d614e80b15d1e5aa8515294e39bd2bc4db017a1c9160128e45"`
+			`"c866f377e5905b9ddace18e2f14e093bbf426ae1e3fb42b1e2968c76dd9a2b62"`
 		);
 	});
 
@@ -122,29 +137,29 @@ describe('craftabot benchmark run (WP123)', () => {
 		const readers = report.subjects.filter((subject) => subject.kind === 'reader');
 		expect(readers.map((subject) => [subject.id, subject.confusion, subject.caughtAlone.length]))
 			.toMatchInlineSnapshot(`
-			[
-			  [
-			    "fs-bank/reader/attack-words",
-			    {
-			      "fn": 682,
-			      "fp": 55,
-			      "tn": 433,
-			      "tp": 238,
-			    },
-			    233,
-			  ],
-			  [
-			    "readers-llm/reader/mock",
-			    {
-			      "fn": 898,
-			      "fp": 16,
-			      "tn": 472,
-			      "tp": 22,
-			    },
-			    17,
-			  ],
-			]
-		`);
+				[
+				  [
+				    "fs-bank/reader/attack-words",
+				    {
+				      "fn": 682,
+				      "fp": 55,
+				      "tn": 433,
+				      "tp": 238,
+				    },
+				    115,
+				  ],
+				  [
+				    "readers-llm/reader/mock",
+				    {
+				      "fn": 898,
+				      "fp": 16,
+				      "tn": 472,
+				      "tp": 22,
+				    },
+				    8,
+				  ],
+				]
+			`);
 	});
 
 	it('records a service live into a cassette, with no key in it, and replays it to the same confusion', async () => {
@@ -220,7 +235,7 @@ describe('craftabot benchmark run (WP123)', () => {
 		expect(reports.map((row) => row.id)).toEqual([report.id]);
 		expect(latestMeasurement(reports, 'geap/model-armor')).toBeUndefined();
 		expect(latestMeasurement(reports, 'fs-bank/reader/attack-words')?.subject.recall.value).toBe(
-			report.subjects.at(-1)!.recall.value
+			report.subjects.find((subject) => subject.id === 'fs-bank/reader/attack-words')!.recall.value
 		);
 	});
 

@@ -350,3 +350,17 @@ The instruction-leaflet tutorial builds concepts in this order — each step is 
 > **Amended 2026-09-07 (UX-1, `docs/manual/UX-AND-GAPS.md`).** No new event. **`guardrail.tripped.cause?`** — `'could-not-check'` when the trip is a hosted guard failing closed (its token rejected, its service unreachable or unfinished) rather than a rule firing on content; copied by the engine from the same optional field on the denying `GuardrailVerdict`, which `@craftabot/governance`'s shell sets on its fail-closed branch and nothing else sets. Absent on every trip written before the field, and on every rule catch since. `safetyTally` and `RunSummary` count these apart (`failedClosed`), so a battery outage is never a *save*; the Kit's end card, chip and story strip read the field rather than the reason's wording.
 >
 > **Amended 2026-09-06 (WP72, `61-LAST-DECKS.md` §4.1).** No new event. A scenario's `provider-fault` injection is delivered by the session to the provider call — never to the world — and is written to the trace as the two events a real transient writes: `error { kind: 'timeout' | 'refused' | 'malformed-response', message }` then `provider.retried { kind, afterMs: 0, attempt }`, one pair per faulted call from the fault's tick (the first think is tick 1) until its `count` is spent; the call then proceeds and the run goes on. A reader tells an injected fault from a real one by the message (*— injected*) and by the scenario that carried it.
+
+> **Amended 2026-09-30 (WP124, `106-BENCHMARK.md` §8.1).** One new event and three additive fields.
+>
+> **The new event.** **`content.marked`** — `{ source, guardrailId, quarantined }` — is written at `post-act`, after the chain, when a verdict marked the call's result untrusted:
+> - `source` names where the result came from (`tool:<name>`);
+> - `guardrailId` names who marked it;
+> - `quarantined` says whether a quarantined reader's answers replaced the result.
+>
+> **The fields:**
+> - the verdict's allow branch gains **`mark?: { provenance: 'untrusted', source, replacement? }`**;
+> - `GuardrailContext` gains **`result?`** (at `post-act`: the call's name, its result text, `ok`) and **`untrusted?`** (what was marked so far this run, present once anything was);
+> - the tick's memory record gains `provenance?` and `source?`.
+>
+> **What stays unchanged.** Nothing marks unless a component says so, so every golden trace is byte-identical.

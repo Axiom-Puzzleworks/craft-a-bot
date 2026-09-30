@@ -28,6 +28,8 @@ export type ChainOutcome = {
 	 * the first wins, as the first non-allow does.
 	 */
 	redaction?: { guardrailId: string; redactedText: string; finding?: VerdictFinding };
+	/** The first `mark` allow on the chain (WP124, `106-…` §8.1): who marked what came back, and any replacement. */
+	mark?: { guardrailId: string; source: string; replacement?: string };
 };
 
 const ALLOW: GuardrailVerdict = { allow: true };
@@ -51,6 +53,7 @@ export async function runGuardrailChain(
 	) => void
 ): Promise<ChainOutcome> {
 	let redaction: ChainOutcome['redaction'];
+	let mark: ChainOutcome['mark'];
 	for (const guardrail of guardrails) {
 		if (!guardrail.hooks.includes(hook)) continue;
 
@@ -62,7 +65,19 @@ export async function runGuardrailChain(
 		onChecked(guardrail, verdict, external);
 
 		if (!isAllowed(verdict)) {
-			return { verdict, guardrail, ...(redaction ? { redaction } : {}) };
+			return {
+				verdict,
+				guardrail,
+				...(redaction ? { redaction } : {}),
+				...(mark ? { mark } : {})
+			};
+		}
+		if (mark === undefined && 'allow' in verdict && verdict.allow && verdict.mark) {
+			mark = {
+				guardrailId: guardrail.id,
+				source: verdict.mark.source,
+				...(verdict.mark.replacement !== undefined ? { replacement: verdict.mark.replacement } : {})
+			};
 		}
 		if (
 			redaction === undefined &&
@@ -78,5 +93,5 @@ export async function runGuardrailChain(
 			};
 		}
 	}
-	return { verdict: ALLOW, ...(redaction ? { redaction } : {}) };
+	return { verdict: ALLOW, ...(redaction ? { redaction } : {}), ...(mark ? { mark } : {}) };
 }
