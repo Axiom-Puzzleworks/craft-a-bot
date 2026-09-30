@@ -1,0 +1,123 @@
+# 105 — Corpora: labelled rows as content, the held-out rule, the corpus book (WP119)
+
+> **Status:** Phase AE's second design of record, opened 2026-09-30 (`101-DAY7-ROADMAP.md` Phase AE; `100-TARGET-DESIGN-V7.md` §6.4, decision D17, tenet 36; G76 part, G90 part). Stage A of WP119: the schema, the six refusals, the exact semantics of the held-out rule, and the annotator record. Stages B and C are recorded in §8 as they land. Awaiting Andrew's review; the build continues.
+
+## 1. Where the code is (WP119)
+
+- **`packages/core/src/schemas/corpus.ts`**:
+  - the schemas: `corpusSchema`, `corpusRowSchema`, `annotatorSchema`, `secondLabelsSchema`;
+  - the functions: `corpusDigest`, `seenByFor`, `heldOutRefusal`;
+  - `docs/schemas/corpus.schema.json`.
+- **Core registration**:
+  - `PackManifest.corpora`, and the registry's `getCorpus`/`listCorpora`;
+  - the `corpus` content kind and the `corpus` evidence kind;
+  - `BookRequest.corpus`, `Book.source.corpus`, and `ReaderExecutor.questionSet`.
+- **`packages/metrics/src/agreement.ts`**: `cohensKappa`.
+- **`packages/pack-testkit/src/checks/corpus.ts`**: `checkCorpus`.
+- **`packages/evals`**:
+  - the book source's `corpus` and `regression`;
+  - the held-out rule in `prepareCampaign`;
+  - `CampaignCell.regression`.
+- **`packages/harness/src/commands/corpus.ts`**: `craftabot corpus freeze | label | agreement`.
+- **`apps/workbench/src/routes/workshop/corpora/`**: the list and the corpus page, whose tables are their own twin.
+- **`packages/packs/fs-servicing/corpora/`**: the three servicing corpora as JSON, with their second-label files.
+- **The typesafe pack's arrays**: now read from these corpora.
+
+## 2. Principles
+
+1. **A corpus is content, frozen, labelled by someone other than its author, and never scored on data it has seen** (tenet 36).
+2. **The freeze is a digest, not a promise.** A corpus's digest is SHA-256 over the canonical JSON of its label sets and rows. A corpus whose rows no longer hash to it is refused.
+3. **The held-out rule is a refusal in the runner, not a convention** (`100-…` §10). A campaign that scores a reader on a corpus that reader has already been scored on, with the same questions, does not run unless it says it is a regression.
+4. **The labelling tool never shows a label.** A second annotator sees the guide, the options and the row's state, and nothing that depends on the primary's labels.
+5. **Nothing real** (hard rule 9). Every row passes `checkSynthetic`. The guide says in words that the rows are synthetic English written by the product's authors, and that a real-call sample labelled by someone else is the missing test.
+
+## 3. The schema (`core/schemas/corpus.ts`)
+
+```ts
+interface Corpus {
+  id: string;                        // qualified: 'fs-servicing/corpus/requests-v1'
+  name: string; version: string;
+  stateKind: string;                 // what a row's state is: 'caller-words'
+  guide: string;                     // the labelling guide, the authorship and the missing test
+  labels: Record<string, { options: string[]; guide: string }>;
+  rows: CorpusRow[];
+  questions?: { id: string; digest: string };        // the set the corpus was written against
+  annotators: Annotator[];                            // the primary first
+  heldOut: boolean;                                   // written after `questions` was frozen
+  seenBy: { readerId: string; questions: string; on: string }[];
+  digest: string;
+}
+interface CorpusRow {
+  id: string; state: Json; tags: string[];
+  labels: Record<string, string>;
+  contested?: { reason: string; alternatives: Record<string, string> };
+}
+interface Annotator { id: string; blind: boolean; primary?: true; kappa?: Record<string, number>; note?: string }
+```
+
+**Diverged from `100-…` §6.4:**
+- The corpus carries a top-level `guide`: the authorship statement and the missing test, which belong to the corpus as a whole. Each label's `guide` stays with the label.
+- `Annotator.primary` marks the author's labels.
+- **The digest's scope.** The digest covers `labels` and `rows` only. The annotators, `seenBy` and `digest` are its history and are not frozen: `seenBy` is appended, and an annotator's κ is added after blind labelling, both without a re-freeze.
+- **`questions.id` is what `seenBy.questions` names.** `questions.digest` pins that set's text.
+
+**A second-label file** (`secondLabelsSchema`) is what `corpus label` writes. It holds:
+- `{ corpusId, corpusDigest, annotator, blind: true, labels: [{ id, labels, note? }] }`;
+- `note`: the annotator's own words where they were unsure.
+
+## 4. `checkCorpus`: six refusals and a finding
+
+| Check | Refuses |
+|---|---|
+| `corpus.well-formed` | the schema; a duplicate row id; a label set with fewer than two options; a contested row's alternative outside its label's set |
+| `corpus.digest` | a digest that is not the rows' and labels' |
+| `corpus.synthetic` | a row whose state `checkSynthetic` flags |
+| `corpus.labels` | a row missing a label, or with a value outside its set |
+| `corpus.held-out` | a held-out corpus that names no question set, or whose `seenBy` names that set from before the corpus was frozen — see §5 for what "before" means |
+| `corpus.annotators` | no primary; a κ on a label the corpus does not have, or outside [−1, 1]; a κ on a non-blind annotator |
+| *`corpus.single-annotator`* | **a finding, not a refusal:** no blind annotator. The pack's page shows it, and `checkCorpus` returns it with `severity: 'warning'`. |
+
+## 5. The held-out rule, exactly
+
+A **reader executor names its question set**: `ReaderExecutor.questionSet?: string`, an id like `typesafe/questions/servicing-q1`. `corpus.seenBy` records `(readerId, questions, on)`, where `questions` is that id.
+
+**The rule, in `prepareCampaign`.** A book campaign whose source names a corpus (`source.corpus`) checks, for every build, the reader executors its configuration fits at any stage. A reader executor is **refused** when either of these holds:
+- **(a)** it names no `questionSet`: a reader scored on a corpus must say which questions it asked;
+- **(b)** `corpus.seenBy` contains its `(readerId, questionSet)`, unless the source is marked `regression: true`.
+
+A refused campaign throws before any cell runs, and names the reader, the question set and the corpus. A regression campaign runs, and every cell carries `regression: true`, so a report and an experiment show which numbers were measured on seen data.
+
+**What a held-out corpus adds.** `heldOut: true` means the rows were written after `questions` was frozen, and the check refuses a held-out corpus that names no question set. The rule in the runner is the same for every corpus. A held-out corpus is simply one whose `seenBy` was empty when its first recording was made. `seenBy` is never rewritten: the harness appends to it when a recording is made (`corpus seen`, WP120's recorder), and the branch's history is written in by hand, once, at migration (§7).
+
+**Not built:** reading `seenBy` from a campaign's own report after the fact. The rule acts before a run, never after.
+
+## 6. The labelling tools (`craftabot corpus …`)
+
+- **`freeze <corpus.json>`**: writes `digest` over `labels` and `rows`, and prints it. It refuses a corpus that fails `checkCorpus`, except on the digest.
+- **`label <corpus.json> --as <annotator> [--out <file>]`**: walks the rows on the terminal in the corpus's order.
+  - For each row it shows the corpus guide once, each label's guide and options, then the row's id, tags and state, and asks for one option per label. Input is by number or by name, with `?` for a note.
+  - It writes a second-label file. It never prints a row's labels, its `contested`, or anything computed from them.
+  - The test runs it over a corpus in which two rows share a state but differ in their labels, and asserts the two rows' printed blocks are identical.
+- **`agreement <corpus.json> <labels.json>`**: computes Cohen's κ per label between the primary and the file (`cohensKappa`, `@craftabot/metrics`), and prints the disagreements by row. It records the annotator on the corpus with `blind` and `kappa`, replacing an earlier record of the same annotator. It refuses a file whose `corpusDigest` is not the corpus's.
+
+## 7. The corpus book, and the servicing corpora
+
+**The book.**
+- `BookRequest.corpus?: Corpus`: when a campaign's book source names a corpus, `evals` resolves it from the registry and hands it to the workflow's `book`. The pack turns each row into a work item with the row's labels as its truth.
+- `Book.source.corpus?: { id, digest }` records which corpus, frozen at which digest, the book came from.
+- `evals` refuses a book whose `source.corpus.digest` is not the registered corpus's.
+
+**The servicing corpora** move into `fs-servicing` as `corpora/requests-v1.corpus.json` (95 rows), `requests-v2.corpus.json` (115) and `requests-v3.corpus.json` (96). Each has:
+- the guide in words;
+- each row's state (the caller's words), its difficulty tag, and its category and need, plus a steer label on v3 from its `steer` tag;
+- `contested` with the second labeller's alternatives;
+- the annotators and their κ, computed by `corpus agreement` from the branch's second-label files;
+- `seenBy` as the lab record (`98-…` §9–§12) says who read which corpus with which questions.
+
+v3 is `heldOut` against q2.
+
+`@craftabot/pack-typesafe`'s `SERVICING_CORPUS{,_V2,_V3}` become views of these corpora in their old shape. A test holds the views to the branch's freeze hashes (`46379f9f…`, `c4ee02de…`, `3c90c8a3…`), so the move lost nothing. Its `corpusBook` becomes the corpus book. `experiment-identity.test.ts`, written before the move, pins each Jev experiment's result digest under a fixed clock, and holds them through it.
+
+**The result the branch committed is not today's.** Re-running `servicing-jev` today gives the committed effects on the request, the need and the needs met, but not on `disclosure-recorded` or the gated `touches`. WP111 changed the servicing desk: the need is recorded before the act, and a review is counted once. So "byte for byte to the branch's experiment result" is read as the result that today's code produced before the move, which is what the pins hold. The committed results are regenerated under `docs/evidence/servicing-readers/` (§8).
+
+**The eighth reference experiment.** `experiments/servicing-readers.json` is the held-out design: v3, q1 against q2, regex against Jev with and without the gate. Its full-size result goes under `docs/evidence/servicing-readers/`, and CI's reduced run and shape check cover it through the typesafe pack's `--config`. The lab record (`packages/packs/typesafe/experiment/README.md` and its analysis files) stays beside the scripts that write it. The evidence folder's README points at it.
