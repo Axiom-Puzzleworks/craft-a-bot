@@ -1,4 +1,4 @@
-# 104 — Readers: typed questions, the `reader` executor, the rule readers, calibration (WP117, WP118)
+# 104 — Readers: typed questions, the `reader` executor, the rule readers, calibration, the hosted and LLM readers (WP117, WP118, WP120)
 
 > **Status:** Phase AE's first design of record, opened 2026-09-30 (`101-DAY7-ROADMAP.md` Phase AE; `100-TARGET-DESIGN-V7.md` §6.3, decision D16, tenet 35; G74 part, G81). Stage A of WP117: the contract, the confidence formula, the executor and its gate, the event, and the rule adapter's exact wrap. WP117's stages B and C and WP118 are recorded in §8 as they land. Awaiting Andrew's review; the build continues.
 
@@ -203,6 +203,82 @@ The branch binned by its own edges (`0, 0.5, 0.7, 0.8, 0.9, 0.95, 0.99`). The pr
 > - The answer key is a new optional `StageSpec` field. `100-…` never said where a reader's label comes from.
 >
 > **Budgets.** The main bundle is +20 kB (2,300,000) and the Worker +10 kB (1,190,000) for the calibration fold and the pane (`scripts/bundle-budget.mjs`). The build found them 7 kB and 2 kB over.
+
+## 10. The hosted and LLM readers, and the packs on the contract (WP120)
+
+### 10.1 What the runtime hands a reader
+
+`ReaderContext` grows two fields the runtime fills. A rule reader uses neither.
+
+- **`callLine(lineId, operation, args)`** calls a registered service line through the same synthesised tool a `line` stage calls, returning its `ToolResult`. A line in cassette mode therefore replays exactly as the old line stages did: the same arguments give the same digest and the same recorded answer. A live line goes through the session's egress-guarded `fetch`, and a miss is `cassette-miss`, never a call.
+- **`provider`** is the `LLMProvider` an `llm` reader asks. It comes from `RunWorkflowOptions.readerProvider?(reader)`, if the host gives one. Otherwise the reader must carry its own.
+
+### 10.2 The provider seams (core)
+
+- **`ChatRequest.choice?: string[]`:** asks the provider to constrain its answer to exactly one of these strings (OpenAI's `response_format`, vLLM's `structured_outputs.choice`).
+- **`ChatRequest.topLogprobs?: number`:** asks for the first token's top log-probabilities.
+- **`ChatResponse.logprobs?: { token, logprob }[]`:** the first token's, when returned.
+- **`LLMProvider.supports?: { choice?: boolean; logprobs?: boolean }`:** a provider that does not say is asked for neither.
+- **The mock provider** declares both when its options say so, and a `MockTurn` carries its `logprobs`.
+- **What stays the same:** OpenAI and the other shipped providers declare nothing yet, so an `llm` reader over them reads by argmax. Their constrained and log-probability paths are written with the live checkpoints (WP125), where a key can hold them to the provider's real behaviour.
+
+### 10.3 The adapters (`governance/readers/`)
+
+**`hostedReader({ id, lineId, operation, request, egress, … })`** asks a service line whose operation answers the contract in Jev's wire shape. `request(subject, questions)` builds the line's arguments. The answer comes back as a `ReaderResponse` with `method: 'hosted'` and the line's `model`:
+- a choice and a noul pass through;
+- a score's record of probabilities, keyed by level index, becomes the contract's array.
+
+**`llmReader({ id, model, provider?, systemPrompt?, … })`** asks one completion per question at temperature 0. The user message is `{ state, question, options }`, where the options are:
+- a choice's criteria;
+- `yes`/`no` for a noul;
+- the level indices for a score.
+
+What the answer carries depends on what the provider supports:
+
+| Provider supports | Asked | The answer |
+|---|---|---|
+| `choice` and `logprobs` | constrained, top 20 | the first token's mass folded onto the options it begins (split evenly when it begins several), normalised: `method: 'logprobs'` |
+| `choice` only | constrained | all the mass on what it said, `confidence: null`: `method: 'constrained'` |
+| neither | free text | the option its text names (exactly, else the one key it contains), one-hot, `confidence: null`: `method: 'argmax'`; text naming no option or several is an error |
+
+- A noul is P(`yes`).
+- A score is the level with the most mass.
+- The response's `method` is the weakest any of its answers used.
+- The fold is `foldFirstToken(options, top)`, exported for the DGX pack's classifier, which now uses it instead of its own copy.
+
+**The reader as a guard** (`governance/components/reader.ts`): `readerComponent` fits one noul at a declared point.
+- **The subject:** the prompt at `pre-think`, the proposed call at `pre-act`, the stage's value at `stage-in`/`stage-out`.
+- **The verdict:** `block-action` (or `annotate`) when P ≥ the config's threshold, `allow` otherwise.
+- It carries its reader's egress and connection, and `checkComponent` holds it.
+
+### 10.4 The packs
+
+**`@craftabot/pack-typesafe`, collapsed onto the contract.** Each judgment is now two stages:
+- **The reader stage** (`classify`, `record`): a `reader` executor with its question set named. Its `gate.else` is a person answering from truth, as the branch's reviewer did. A q2 configuration names the `steer` noul on the gate.
+- **The commit** (`classify-commit`, `record-commit`): it performs the person's decision. When the reader acted, it passes the reader's answer through.
+
+Before, each judgment was four stages: read, gate, review, commit. The readers are content:
+- `typesafe/reader/jev` over the Jev line;
+- `typesafe/reader/spark-122b` and `typesafe/reader/spark-35b` over the DGX classifier line, with the model directory in the request, as recorded;
+- the regex configurations read with `fs-servicing`'s own rule readers.
+
+Every recorded call replays: the reader builds exactly the arguments the line stages built.
+
+**The identity.** The effects each experiment measures (the request and the need read right, the need detected, the disclosure recorded, the needs met, the touches) must be the ones WP119 pinned, value for value. The result digests move, because the stages are named differently, and the pins are re-taken.
+
+A person's review counts once:
+- `touchesOf` counts a gated reader stage whose `else` is a person as one `human:` touch;
+- it no longer counts that stage as `escalated` when the person differs from the first option.
+
+**`@craftabot/pack-readers-llm`** (new, optional):
+- `llmReader` bound to a cartridge's provider through the host's `readerProvider`;
+- one shipped reader, **`readers-llm/reader/mock`**, over a deterministic mock model that picks the option whose key or first criterion word appears in the state. It is a stand-in so the path runs in CI with no key and no network, and its name and description say it is not a model.
+
+The typesafe journey's **`llm-mock`** configuration reads with it.
+
+**`@craftabot/pack-dgx-spark` leaves the harness's default list** (G90). It is opt-in by `packages/packs/dgx-spark/craftabot.config.mjs`, and the typesafe pack's config installs it with Jev. Its classifier line keeps its transport and its recorded cassette, and folds log-probabilities through `foldFirstToken` (`99-…` amended).
+
+**Neither optional pack is in any edition.** The Workbench imports neither, and a test over the built editions checks their ids are absent.
 
 ## 8. Stage notes
 
