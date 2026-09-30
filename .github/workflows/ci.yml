@@ -70,7 +70,8 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      - run: npm run e2e:visual ${{ inputs.update_snapshots && '-- --update-snapshots' || '' }}
+      # Straight at the workspace, so --update-snapshots reaches Playwright rather than npm.
+      - run: npm run e2e:visual --workspace=apps/workbench ${{ inputs.update_snapshots && '-- --update-snapshots' || '' }}
 
       - name: Upload the screenshots and the diffs
         if: always()
