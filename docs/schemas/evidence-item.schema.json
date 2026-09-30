@@ -7301,7 +7301,8 @@
 								"stack",
 								"view",
 								"control-review",
-								"corpus"
+								"corpus",
+								"review"
 							]
 						},
 						"title": {
@@ -12943,6 +12944,121 @@
 				"kind",
 				"payload"
 			]
+		},
+		{
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "string",
+					"minLength": 1
+				},
+				"digest": {
+					"type": "string",
+					"pattern": "^[0-9a-f]{64}$"
+				},
+				"pushedAt": {
+					"type": "string",
+					"format": "date-time",
+					"pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+				},
+				"pushedBy": {
+					"type": "string",
+					"minLength": 1
+				},
+				"kind": {
+					"type": "string",
+					"const": "review"
+				},
+				"payload": {
+					"type": "object",
+					"properties": {
+						"id": {
+							"type": "string",
+							"minLength": 1
+						},
+						"subject": {
+							"type": "object",
+							"properties": {
+								"kind": {
+									"type": "string",
+									"enum": [
+										"catalogue-entry",
+										"calibration-row",
+										"control-row",
+										"decision-right",
+										"blueprint-item",
+										"screening-list",
+										"error-model",
+										"reviewer-model"
+									]
+								},
+								"id": {
+									"type": "string",
+									"minLength": 1
+								}
+							},
+							"required": [
+								"kind",
+								"id"
+							]
+						},
+						"verdict": {
+							"type": "string",
+							"enum": [
+								"accepted",
+								"amended",
+								"rejected"
+							]
+						},
+						"note": {
+							"type": "string"
+						},
+						"by": {
+							"$ref": "#/$defs/__schema0"
+						},
+						"on": {
+							"type": "string",
+							"format": "date-time",
+							"pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+						},
+						"amendment": {
+							"type": "object",
+							"properties": {
+								"field": {
+									"type": "string",
+									"minLength": 1
+								},
+								"value": {
+									"$ref": "#/$defs/__schema1"
+								}
+							},
+							"required": [
+								"field",
+								"value"
+							]
+						},
+						"schemaVersion": {
+							"type": "number",
+							"const": 1
+						}
+					},
+					"required": [
+						"id",
+						"subject",
+						"verdict",
+						"by",
+						"on",
+						"schemaVersion"
+					]
+				}
+			},
+			"required": [
+				"id",
+				"digest",
+				"pushedAt",
+				"kind",
+				"payload"
+			]
 		}
 	],
 	"$defs": {
@@ -12971,6 +13087,37 @@
 			"required": [
 				"kind",
 				"id"
+			]
+		},
+		"__schema1": {
+			"anyOf": [
+				{
+					"type": "string"
+				},
+				{
+					"type": "number"
+				},
+				{
+					"type": "boolean"
+				},
+				{
+					"type": "null"
+				},
+				{
+					"type": "array",
+					"items": {
+						"$ref": "#/$defs/__schema1"
+					}
+				},
+				{
+					"type": "object",
+					"propertyNames": {
+						"type": "string"
+					},
+					"additionalProperties": {
+						"$ref": "#/$defs/__schema1"
+					}
+				}
 			]
 		}
 	}

@@ -157,6 +157,8 @@ test('the Workshop, screen by screen, over the fixture corpus', async ({ page })
 	await expect(page.getByTestId('benchmark-table')).toBeVisible();
 	await settle(page);
 	await expect(page).toHaveScreenshot('ws-benchmarks.png');
+	// WP129 (`108-READINGS.md` §6): the reading desk over one short kind (the whole queue is eighteen thousand pixels).
+	await shot(page, '/workshop/readings?kind=error-model', 'ws-readings', 'readings-strip');
 	await shot(page, '/workshop/evals', 'ws-eval-matrix', 'matrix-size');
 });
 

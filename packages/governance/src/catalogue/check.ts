@@ -1,5 +1,8 @@
 import {
 	guardrailCatalogueSchema,
+	isReviewed,
+	latestReviews,
+	type Review,
 	type CatalogueEntry,
 	type GuardrailCatalogue,
 	type PackRegistry
@@ -7,7 +10,7 @@ import {
 
 /** One problem `checkCatalogue` found with an entry: the check and the message. */
 export interface CatalogueIssue {
-	/** `catalogue.parses` · `catalogue.cited` · `catalogue.component` · `catalogue.status` · `catalogue.unique` */
+	/** `catalogue.parses` · `catalogue.cited` · `catalogue.component` · `catalogue.status` · `catalogue.unique` · `catalogue.review-pending` */
 	check: string;
 	entryId?: string;
 	message: string;
@@ -21,10 +24,21 @@ export interface CatalogueIssue {
  * mechanism; a `not-applicable` entry says why; ids are unique. A `shipped`
  * entry's status is *verified* here, never typed: it is the registry that
  * says the component exists.
+ *
+ * With `requireReview` (WP129, `108-READINGS.md` §5), an entry still
+ * `review: 'pending'` is refused unless a `review` of `catalogue-entry`
+ * `<id>` in `reviews` accepts or amends it.
  */
+export interface CatalogueCheckOptions {
+	requireReview?: boolean;
+	reviews?: readonly Review[];
+}
+
+/** Every entry's refusals over the edition, and — with `requireReview` — every entry no reading has accepted. */
 export function checkCatalogue(
 	catalogue: GuardrailCatalogue,
-	registry: Pick<PackRegistry, 'getGuardrailComponent'>
+	registry: Pick<PackRegistry, 'getGuardrailComponent'>,
+	options: CatalogueCheckOptions = {}
 ): CatalogueIssue[] {
 	const issues: CatalogueIssue[] = [];
 	const parsed = guardrailCatalogueSchema.safeParse(catalogue);
@@ -33,12 +47,23 @@ export function checkCatalogue(
 		return issues;
 	}
 	const seen = new Set<string>();
+	const reviews = latestReviews(options.reviews ?? []);
 	for (const entry of catalogue.entries) {
 		if (seen.has(entry.id)) {
 			issues.push({ check: 'catalogue.unique', entryId: entry.id, message: 'listed twice' });
 		}
 		seen.add(entry.id);
 		issues.push(...checkEntry(entry, registry));
+		if (
+			options.requireReview &&
+			entry.review === 'pending' &&
+			!isReviewed(reviews, { kind: 'catalogue-entry', id: entry.id })
+		)
+			issues.push({
+				check: 'catalogue.review-pending',
+				entryId: entry.id,
+				message: 'awaiting review — a reader has not read it against its sources'
+			});
 	}
 	return issues;
 }

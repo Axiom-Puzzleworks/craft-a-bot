@@ -74,6 +74,12 @@ export async function artefactSchemas() {
 			description:
 				'Labelled rows a reader is scored on: each row’s state, tags and labels from closed sets with their guides, the question set it was written against, the annotators with their agreement, whether it was held out, the readers that have seen it, and a digest over the labels and rows frozen before any of that (105-CORPORA.md §3).'
 		},
+		review: {
+			schema: core.reviewSchema,
+			title: 'Craft A Bot review (a reading of one pending subject)',
+			description:
+				'A reader’s verdict on one thing a pack ships pending — a catalogue entry, a calibration row, a control row, a decision right, a blueprint item, a screening list, an error model or a reviewer model: accepted, amended (with the field and the value a maintainer then edits in) or rejected (with why), under the reader’s principal and the date (108-READINGS.md §2). A record beside the content, never an edit to it.'
+		},
 		reader: {
 			schema: core.readerExchangeSchema,
 			title: 'Craft A Bot reader exchange (typed questions and a response)',

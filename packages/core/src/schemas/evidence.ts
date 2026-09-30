@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { stackSchema } from './stack.js';
+import { reviewSchema } from './review.js';
 import { corpusSchema } from './corpus.js';
 import { canonicalJson } from './cassette.js';
 import { contentRecordSchema } from './content.js';
@@ -35,7 +36,9 @@ export const evidenceKindSchema = z.enum([
 	// WP97 (`89-STACKS.md`): a stack, pushed and pulled with its digest.
 	'stack',
 	// WP119 (`105-CORPORA.md` §3): a corpus, frozen, with its annotators and seenBy.
-	'corpus'
+	'corpus',
+	// WP129 (`108-READINGS.md` §6): a reader's review of one pending subject.
+	'review'
 ]);
 export type EvidenceKind = z.infer<typeof evidenceKindSchema>;
 
@@ -73,7 +76,8 @@ export const evidenceItemSchema = z.discriminatedUnion('kind', [
 	z.object({ ...itemBase, kind: z.literal('experiment-result'), payload: experimentResultSchema }),
 	// WP97 (`89-STACKS.md` §6): a stack, its digest over the canonical JSON like every item.
 	z.object({ ...itemBase, kind: z.literal('stack'), payload: stackSchema }),
-	z.object({ ...itemBase, kind: z.literal('corpus'), payload: corpusSchema })
+	z.object({ ...itemBase, kind: z.literal('corpus'), payload: corpusSchema }),
+	z.object({ ...itemBase, kind: z.literal('review'), payload: reviewSchema })
 ]);
 export type EvidenceItem = z.infer<typeof evidenceItemSchema>;
 export type EvidencePayloadOf<K extends EvidenceKind> = Extract<

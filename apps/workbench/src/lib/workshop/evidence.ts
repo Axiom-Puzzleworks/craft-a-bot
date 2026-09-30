@@ -11,9 +11,11 @@ import {
 	type Storage,
 	type StoredCampaignReport,
 	corpusSchema,
+	reviewSchema,
 	stackSchema,
 	localContentId,
 	slugOf,
+	type Review,
 	type Stack
 } from '@craftabot/core';
 import { bundleForGroup, bundleForRun } from './bundles.js';
@@ -86,6 +88,11 @@ export function itemForStack(stack: Stack, options: ItemOptions = {}): Promise<E
 	return evidenceItemFor('stack', stack.id, stack, options);
 }
 
+/** WP129 (`108-READINGS.md` §6): a reading under its own id, with its digest. */
+export function itemForReview(review: Review, options: ItemOptions = {}): Promise<EvidenceItem> {
+	return evidenceItemFor('review', review.id, review, options);
+}
+
 /** Both checks a pulled item must pass before it is stored (`58-…` §2 item 2). */
 export async function verifyPulled(item: EvidenceItem): Promise<boolean> {
 	if (!(await verifyEvidenceItem(item))) return false;
@@ -107,7 +114,9 @@ export type Imported =
 	// WP97 (`89-STACKS.md` §6): a stack lands in the content store as a local record.
 	| { kind: 'stack'; id: string }
 	// WP119 (`105-CORPORA.md`): a corpus lands in the content store as a local record.
-	| { kind: 'corpus'; id: string };
+	| { kind: 'corpus'; id: string }
+	// WP129 (`108-READINGS.md` §6): a reading lands in the content store under its own id, replacing the one it names.
+	| { kind: 'review'; id: string };
 
 /**
  * Store a verified item locally: a bundle as its runs (records, events,
@@ -185,6 +194,18 @@ export async function importPulled(
 				schemaVersion: 1
 			});
 			return { kind: 'corpus', id: item.id };
+		}
+		case 'review': {
+			const review = reviewSchema.parse(item.payload);
+			await deps.saveContent({
+				id: review.id,
+				kind: 'review',
+				title: `${review.subject.id}: ${review.verdict}`,
+				record: review,
+				savedAt: review.on,
+				schemaVersion: 1
+			});
+			return { kind: 'review', id: item.id };
 		}
 	}
 }

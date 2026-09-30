@@ -36,6 +36,7 @@ export {
 	isLocalId,
 	localContentId,
 	localPackFrom,
+	reviewsFromContent,
 	parseContentRecord,
 	safeParseContentRecord,
 	slugOf,
@@ -857,3 +858,19 @@ export {
 	type ControlReview,
 	type ControlReviewStatus
 } from './schemas/control-review.js';
+export {
+	REVIEW_SUBJECT_KINDS,
+	isReviewed,
+	latestReviews,
+	reviewFromControlReview,
+	reviewSchema,
+	reviewSlug,
+	reviewSubjectKey,
+	reviewSubjectKindSchema,
+	reviewSubjectSchema,
+	reviewVerdictSchema,
+	type Review,
+	type ReviewSubject,
+	type ReviewSubjectKind,
+	type ReviewVerdict
+} from './schemas/review.js';

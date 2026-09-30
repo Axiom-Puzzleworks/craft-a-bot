@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { stackSchema, type Stack } from './stack.js';
 import { savedViewSchema } from './view.js';
 import { controlReviewSchema } from './control-review.js';
+import { reviewFromControlReview, reviewSchema, type Review } from './review.js';
 import { assertionCardSchema, type AssertionCard } from './assertion-card.js';
 import type { PackManifest } from './pack-manifest.js';
 import { policyCardSchema, type PolicyCard } from './policy-card.js';
@@ -31,7 +32,9 @@ export const contentKindSchema = z.enum([
 	// WP110 (`97-ACCESS.md` §1, GAP-1): a reader's review of a control-map row, beside the pack's row.
 	'control-review',
 	// WP119 (`105-CORPORA.md` §3): a corpus the reader wrote or imported, beside the packs'.
-	'corpus'
+	'corpus',
+	// WP129 (`108-READINGS.md` §2): a reading of any of the eight subject kinds; `control-review` is its alias.
+	'review'
 ]);
 export type ContentKind = z.infer<typeof contentKindSchema>;
 
@@ -45,7 +48,8 @@ export const CONTENT_SEGMENT: Record<ContentKind, string> = {
 	stack: 'stacks',
 	view: 'views',
 	'control-review': 'reviews',
-	corpus: 'corpora'
+	corpus: 'corpora',
+	review: 'reviews'
 };
 
 export function isLocalId(id: string): boolean {
@@ -123,6 +127,8 @@ function innerSchemaFor(kind: ContentKind): z.ZodType | undefined {
 			return savedViewSchema;
 		case 'control-review':
 			return controlReviewSchema;
+		case 'review':
+			return reviewSchema;
 		case 'corpus':
 			return corpusSchema;
 		case 'campaign':
@@ -191,6 +197,7 @@ export function localPackFrom(records: readonly ContentRecord[]): PackManifest {
 				break;
 			case 'view':
 			case 'control-review':
+			case 'review':
 				// A view and a review are the reader's, never a pack's.
 				break;
 			case 'campaign':
@@ -208,4 +215,23 @@ export function localPackFrom(records: readonly ContentRecord[]): PackManifest {
 		...(stacks.length > 0 ? { stacks } : {}),
 		...(corpora.length > 0 ? { corpora } : {})
 	};
+}
+
+/**
+ * **Every reading in the store** (WP129, `108-READINGS.md` §7): the `review`
+ * records and the WP110 `control-review` records read as reviews, the alias
+ * kept for one release. Records that do not parse are skipped.
+ */
+export function reviewsFromContent(records: readonly ContentRecord[]): Review[] {
+	return records.flatMap((entry): Review[] => {
+		if (entry.kind === 'review') {
+			const parsed = reviewSchema.safeParse(entry.record);
+			return parsed.success ? [parsed.data] : [];
+		}
+		if (entry.kind === 'control-review') {
+			const parsed = controlReviewSchema.safeParse(entry.record);
+			return parsed.success ? [reviewFromControlReview(parsed.data)] : [];
+		}
+		return [];
+	});
 }

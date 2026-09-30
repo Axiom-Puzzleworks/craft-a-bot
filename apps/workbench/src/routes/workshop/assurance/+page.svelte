@@ -1,12 +1,12 @@
 <script lang="ts">
 	import {
-		CONTENT_SCHEMA_VERSION,
-		controlReviewSlug,
-		controlReviewSchema,
-		localContentId,
-		type ControlReview,
-		type ControlReviewStatus
+		latestReviews,
+		reviewsFromContent,
+		type ControlReviewStatus,
+		type Review
 	} from '@craftabot/core';
+	import { browserPrincipal } from '$lib/state/principal.js';
+	import { reviewFor, reviewRecord } from '$lib/workshop/readings.js';
 	import { contentStore } from '$lib/state/content.svelte.js';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
@@ -281,19 +281,21 @@
 	 * writes it.
 	 */
 	const reviews = $derived(
+		// WP129 (`108-READINGS.md` §7): every reading of a control row — `review` and the
+		// `control-review` alias — the latest per row, keyed as the table keys its rows.
 		new Map(
-			contentStore
-				.of('control-review')
-				.flatMap((entry) => {
-					const parsed = controlReviewSchema.safeParse(entry.record);
-					return parsed.success ? [parsed.data] : [];
-				})
-				.map((review) => [`${review.mapId}/${review.ref}`, review])
+			[
+				...latestReviews(
+					reviewsFromContent([...contentStore.of('review'), ...contentStore.of('control-review')])
+				).values()
+			]
+				.filter((review) => review.subject.kind === 'control-row')
+				.map((review) => [review.subject.id.replace(/#([^#]*)$/, '/$1'), review])
 		)
 	);
-	const reviewWord = (review: ControlReview | undefined): string =>
+	const reviewWord = (review: Review | undefined): string =>
 		review
-			? `${review.status} by ${review.by} (${review.reviewedAt.slice(0, 10)})${review.note ? ` — ${review.note}` : ''}`
+			? `${review.verdict === 'rejected' ? 'disputed' : 'reviewed'} by ${review.by.name ?? review.by.id} (${review.on.slice(0, 10)})${review.note ? ` — ${review.note}` : ''}`
 			: '—';
 	const controlRows = $derived(
 		(pack?.controlMaps ?? []).flatMap((map) =>
@@ -324,25 +326,16 @@
 			reviewTarget.slice(reviewTarget.lastIndexOf('/') + 1)
 		];
 		if (!mapId || !ref) return;
-		const id = localContentId('control-review', controlReviewSlug(mapId, ref));
-		const review: ControlReview = {
-			id,
-			mapId,
-			ref,
-			status: reviewStatus,
-			by: preferences.displayName.trim() || 'the reader',
-			note: reviewNote.trim(),
-			reviewedAt: new Date().toISOString(),
-			schemaVersion: 1
-		};
-		await contentStore.save({
-			id,
-			kind: 'control-review',
-			title: `${mapId} ${ref}: ${reviewStatus}`,
-			record: review,
-			savedAt: review.reviewedAt,
-			schemaVersion: CONTENT_SCHEMA_VERSION
-		});
+		// WP129: a `review` of the control row; the WP110 words map onto its verdicts.
+		const note = reviewNote.trim();
+		const review = reviewFor(
+			{ kind: 'control-row', id: `${mapId}#${ref}` },
+			reviewStatus === 'reviewed' ? 'accepted' : 'rejected',
+			browserPrincipal(preferences.displayName),
+			new Date().toISOString(),
+			{ note: note === '' && reviewStatus === 'disputed' ? 'disputed' : note }
+		);
+		await contentStore.save(reviewRecord(review));
 		reviewSaved = `${ref} ${reviewStatus}.`;
 		reviewNote = '';
 		// The pack files the review beside the row: rebuild it.

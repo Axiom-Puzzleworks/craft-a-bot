@@ -1,6 +1,6 @@
 # 108 — Readings: one record for every reading, and a desk to read at
 
-> **Status (2026-09-30):** WP129 (`101-DAY7-ROADMAP.md` Phase AI; `100-TARGET-DESIGN-V7.md` §6.8, decision D21; retires G85). Stage A is this note. Stage B is `core/schemas/review.ts`, the kind on the stores and the evidence store, the four checks reading it, `/workshop/readings` and `craftabot readings export`.
+> **Status (2026-09-30):** WP129 (`101-DAY7-ROADMAP.md` Phase AI; `100-TARGET-DESIGN-V7.md` §6.8, decision D21; retires G85). **Done 2026-09-30** (§9). Stage A is this note. Stage B is `core/schemas/review.ts`, the kind on the stores and the evidence store, the four checks reading it, `/workshop/readings` and `craftabot readings export`.
 
 ## 1. What it is
 
@@ -33,7 +33,7 @@ interface Review {
 }
 ```
 
-**One review per subject.** The id is derived from the subject, so a second reading replaces the first. It is the eighth content kind (`review`), under the segment `reviews` that `control-review` already uses. Like a view, it never enters the `local` pack.
+**One review per subject.** The id is derived from the subject, so a second reading replaces the first. It is a content kind of its own (`review`), under the segment `reviews` that `control-review` already uses. Like a view, it never enters the `local` pack.
 
 **Reviewed means one thing.** A subject is *reviewed* when a review names it with `accepted` or `amended` (`isReviewed` in `core`).
 - A `rejected` review keeps the subject pending. The reader has said the row is wrong, and the check stays red until a maintainer changes the content.
@@ -48,7 +48,7 @@ interface Review {
 | `control-row` | `<map id>#<ref>` (`fs-bank/control-map#products-services`) | carries `status` (`unreviewed` or `pending`) | the framework, the obligation, the evidence named, the note | `registry.listControlMaps()` |
 | `decision-right` | `<domain id>#<decision kind>` (`fs-bank/uk-retail-banking#adverse-credit-decision`) | always: the spec has no review field | the ceiling, the why, the source | `registry.listDomains()` |
 | `blueprint-item` | `<note>#<item>` (`healthcare#4`; the unnumbered last box is `#tests`) | has `- [ ]` in its checklist | the box's line | `docs/blueprints/{HEALTHCARE,LOGISTICS,MANUFACTURING}.md`, parsed by `blueprintItems` |
-| `screening-list` | `<pack>/screening#<list>` (`fs-bank/screening#sanctions`) | always | the list's entries: name, year of birth, note | `SCREENING_LIST` (`@craftabot/pack-fs-bank`), passed by the host |
+| `screening-list` | `<pack>/screening#<list>` (`fs-bank/screening#sanctions`) | always | the list's entries: name, year of birth, note | `SCREENING_READINGS` (`@craftabot/pack-fs-bank`, one entry per list over `SCREENING_LIST`), passed by the host |
 | `error-model` | the model's id (`fs-lending/error/decision`) | always | the faults: the decision, the options, the direction, the rate's row | `PackManifest.errorModels` |
 | `reviewer-model` | the model's id | always | accuracy, automation bias, seconds per case, each as the row it reads | `PackManifest.reviewerModels` |
 
@@ -105,3 +105,41 @@ If both kinds name one row, the later one wins. The Assurance screen's row form 
 - **The screen.** `/workshop/readings` is in the visual set, the axe pass and a keyboard walk (accept a row and see the readout move).
 
 ## 9. Stage notes
+
+**Stage A (2026-09-30).** This note.
+
+**Stage B (2026-09-30).** Built as §2–§7 describe.
+- **`core`.** `schemas/review.ts` provides `reviewSchema`, `isReviewed`, `latestReviews` and `reviewFromControlReview`. `reviewsFromContent` is in `schemas/content.ts`. The `review` kind is on the content enum, and on the evidence enum with table `evidence_reviews` (`docs/evidence-setup.md`). `docs/schemas/review.schema.json` is generated. Every store takes the kind as it takes any content: the three stores are generic over the kind.
+- **The checks.** `checkCalibration`, `checkControlMap` and `checkDomainPack` (`pack-testkit`) and `checkCatalogue` (`governance`) take `requireReview` and `reviews` as §5 has them. Under `requireReview`, `checkDomainPack` renames the calibration's and control rows' pending issues to `domain.review-pending`.
+- **The fold.** `readingSubjects`, `readingSourcesFrom`, `readingQueue`, `readingProgress`, `blueprintItems`, `readingsExport` and `renderReadingsMarkdown` are in `governance/reports/readings.ts`.
+- **The hosts.** The harness has `craftabot readings export`. The Workbench has `/workshop/readings`, on the rail after the Catalogue in every lens, with `lib/workshop/readings.ts`, `blueprint-notes.ts` and `itemForReview`.
+
+**What the queue holds on the bank today:** 260 subjects, none read.
+
+| Kind | Subjects |
+|---|---|
+| Catalogue entries | 45 |
+| Calibration rows | 84 |
+| Control rows | 64 |
+| Decision rights | 25 |
+| Blueprint items | 36 |
+| Screening lists | 2 |
+| Error models | 3 |
+| Reviewer models | 1 |
+
+**The DoD, held by these tests:**
+- `harness/src/readings.test.ts`: the open count per kind equals the count straight from the sources, and the four checks raise exactly that set; one review turns one check green for that subject only, for each of the four checks, and a rejection does not; the CLI export.
+- `core/src/schemas/review.test.ts`: the alias.
+- `governance/src/reports/assurance-pack.test.ts`: the alias through the store.
+- `e2e/readings.spec.ts`: the keyboard walk.
+- `/workshop/readings` is in `a11y-workshop.spec.ts`, `access.spec.ts` and the visual set (`ws-readings`).
+
+**Divergences and decisions:**
+- **The Assurance screen's row form writes `review`.** A dispute with no note is filed with the note *disputed*, since a rejection says why.
+- **The screening lists** reach the fold as `SCREENING_READINGS`, a constant of `fs-bank`'s shaped like the fold's input, rather than a manifest field (§3).
+- **The blueprint notes are read as `?raw` text** in a chunk of their own that only the readings page loads. That page's first visit is 880 kB rather than 911 kB.
+- **The budget.** The totals are +50 kB in every edition (`scripts/bundle-budget.mjs`, `edition.ts`): the page, the fold, the kind, and the notes' 31 kB.
+- **The visual shot** is the error models' queue. The whole queue is some 18,500 px tall.
+- **The rail's new link** made every screen shorter than the rail 50 px taller, so twelve win32 baselines were re-taken for it and nothing else. Their Linux baselines, and `ws-readings`', are WP130's.
+- **Focus.** An Amend or Reject form takes focus as it opens, so a keyboard reader types straight into it.
+- **Not done: pull.** Nothing pulls readings back from the evidence store into the queue except the Evidence screen's pull, which imports a `review` item into the content store like any other.

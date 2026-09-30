@@ -83,4 +83,6 @@ Stage notes are appended below.
 
 > **Amended 2026-09-13, later (WP110, `97-ACCESS.md` §1; GAP-1).** A sixth kind, `control-review` (`local/reviews/<map>--<ref>`): a reader's review of one control-map row — `reviewed` or `disputed`, by whom, a note, when — beside the pack's row and never an edit to it (`schemas/control-review.ts`, `ControlReview`). `localPackFrom` skips it like a view; the assurance pack reads it from the store and files it beside the row.
 
+> **Amended 2026-09-30 (WP129, `108-READINGS.md` §2, §7).** A further kind, `review` (`local/reviews/<kind>--<subject>`): a reading of any of eight subject kinds, accepted, amended (with the field and the value) or rejected (with why), under the reader's principal (`schemas/review.ts`). `control-review` is kept for one release as its alias; `reviewsFromContent` reads both. `localPackFrom` skips it like a view.
+
 > **Amended 2026-09-30 (WP119, `105-CORPORA.md` §3):** a ninth content kind, `corpus`, under `local/corpora/`. It is validated against `corpusSchema` and registered by the local pack as `PackManifest.corpora`, so a corpus a reader writes or pulls is scored like a shipped one. IndexedDB stays at v8.

@@ -99,7 +99,7 @@ Sizes as before: **S** a session or two; **M** several; **L** a week. Every WP h
 
 | WP | What | Definition of done | Size | Retires |
 |---|---|---|---|---|
-| **WP129** | **`review` and `/workshop/readings`** (`100-…` §6.8, D21). Stage A: the note (`108-READINGS.md`) — the subject kinds, the verdicts, the amendment's path into content, what each check reads. Stage B: `core/schemas/review.ts` replacing `control-review` with the alias and migration note; the kind on all three stores and the evidence store; `checkCalibration({ requireReview })`, `checkCatalogue`, `checkControlMap`, `checkDomainPack` reading it; `/workshop/readings` with the queue, the sources, the progress readouts, the URL filter and the push; `craftabot readings export`. | A `review` for a row turns its check green for that row only; the queue's count equals the pending set across the eight kinds; `control-review` records read as `review`; the screen on the visual, axe and keyboard passes. | M | G85 |
+| **WP129** ✅ | **Done 2026-09-30 — `108-READINGS.md` §9.** **`review` and `/workshop/readings`** (`100-…` §6.8, D21). Stage A: the note (`108-READINGS.md`) — the subject kinds, the verdicts, the amendment's path into content, what each check reads. Stage B: `core/schemas/review.ts` replacing `control-review` with the alias and migration note; the kind on all three stores and the evidence store; `checkCalibration({ requireReview })`, `checkCatalogue`, `checkControlMap`, `checkDomainPack` reading it; `/workshop/readings` with the queue, the sources, the progress readouts, the URL filter and the push; `craftabot readings export`. | A `review` for a row turns its check green for that row only; the queue's count equals the pending set across the eight kinds; `control-review` records read as `review`; the screen on the visual, axe and keyboard passes. | M | G85 |
 | **WP130** | **The stale lines, the index, the release, the walk** (`100-…` §6.8). `USER-MANUAL.md` §41, `UX-AND-GAPS.md` §0/§4 and the three "awaiting review" notes corrected; `98-` and `99-` in `README.md`'s index; the first `v*` tag cut and `release.yml` exercised with its archive attached; the practitioner walk of `84-…` §9 performed and recorded; the Linux baselines for every new screen. | `git tag` non-empty and the release's zip verifies; no line in the manual or the register contradicts `84-…` §8; the walk's record names each stop with what was seen. | S | G87-part, G88 |
 | **WP131** | **The tail: Part I, the roundels, the Kit's card** (`100-…` §6.8). The manual's Part I (readers, corpora, the register regenerated, the benchmark, the Gate, the readings) and the rebuilt PDF; five roundels on the wave-2 seam; the Kit's *Sure or unsure* card on the Front Desk with the confidence chip and the child's threshold; the Phase AI exit review. | The PDF rebuilt with Part I's figures; `wave2.test.ts` green over 27 files; the card wins and loses on the Front Desk under the mock provider with a keyboard-only e2e; `100-…` §14 items 9–12 met. | S–M | G89 |
 
@@ -414,6 +414,16 @@ Everything in `84-…` §5 stands. Added:
    > **Phase AH is closed. Next: Phase AI — `108-READINGS.md`, WP129, WP130, WP131.**
 8. **WP126, `107-THE-GATE.md`, WP127, WP128.** Phase AH exit review.
 9. **`108-READINGS.md`, WP129, WP130, WP131.** Phase AI exit review and the §9 check.
+   > **WP129 done 2026-09-30** (`108-READINGS.md` §9):
+   > - **The record.** `review` in `core`, over eight subject kinds, with `control-review` read as its alias.
+   > - **The checks.** The four take `requireReview` and `reviews`.
+   > - **The fold** is in `governance/reports`.
+   > - **The hosts.** `/workshop/readings` has the queue, the sources, a readout per kind, the filter in the URL and push. `craftabot readings export` writes JSON or the maintainer's markdown.
+   > - **The queue on the bank today:** 260 subjects, none read.
+   >
+   > The DoD's four clauses are held by `harness/src/readings.test.ts`, `core`'s and `governance`'s alias tests, and the screen's visual, axe and keyboard passes. The budget is +50 kB. Twelve win32 baselines were re-taken for the rail's new link; their Linux baselines are WP130's.
+   >
+   > **Next: WP130.**
 
 ## 9. What "done" looks like for this roadmap
 

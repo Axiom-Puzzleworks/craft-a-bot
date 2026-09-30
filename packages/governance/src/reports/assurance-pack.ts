@@ -19,7 +19,8 @@ import {
 	type Storage,
 	type BenchmarkReport,
 	type ExperimentResult,
-	controlReviewSchema,
+	latestReviews,
+	reviewsFromContent,
 	type ControlReview,
 	type ControlReviewStatus
 } from '@craftabot/core';
@@ -743,11 +744,30 @@ export async function assurancePackFromStorage(
 ): Promise<AssurancePack> {
 	const record: AgentRecord | undefined = await storage.getAgent(agentId);
 	if (!record) throw new Error(`no bot '${agentId}' in the store`);
-	// WP110 (GAP-1): the readers' reviews, from the content store.
-	const controlReviews: ControlReview[] = (await storage.listContent('control-review')).flatMap(
-		(entry) => {
-			const parsed = controlReviewSchema.safeParse(entry.record);
-			return parsed.success ? [parsed.data] : [];
+	// WP110 (GAP-1): the readers' reviews, from the content store — since WP129 every
+	// `review` of a control row and the `control-review` alias (`108-READINGS.md` §7),
+	// the latest per row, in the shape this section has always filed.
+	const contentReviews = reviewsFromContent([
+		...(await storage.listContent('review')),
+		...(await storage.listContent('control-review'))
+	]);
+	const controlReviews: ControlReview[] = [...latestReviews(contentReviews).values()].flatMap(
+		(review): ControlReview[] => {
+			if (review.subject.kind !== 'control-row') return [];
+			const at = review.subject.id.lastIndexOf('#');
+			if (at < 0) return [];
+			return [
+				{
+					id: review.id,
+					mapId: review.subject.id.slice(0, at),
+					ref: review.subject.id.slice(at + 1),
+					status: review.verdict === 'rejected' ? 'disputed' : 'reviewed',
+					by: review.by.name ?? review.by.id,
+					note: review.note ?? '',
+					reviewedAt: review.on,
+					schemaVersion: 1
+				}
+			];
 		}
 	);
 	const runs = (await storage.listRuns()).filter((run) => run.agentId === agentId);

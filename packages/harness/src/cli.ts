@@ -36,6 +36,12 @@ import { bankRun } from './commands/bank.js';
 import { journeyRender } from './commands/journey.js';
 import { scaffoldDomain } from './commands/scaffold.js';
 import { benchmarkRun, renderBenchmarkSummary } from './commands/benchmark.js';
+import {
+	readBlueprintNotes,
+	readingsFor,
+	renderReadingsSummary,
+	writeReadings
+} from './commands/readings.js';
 import { gateAnswer, gateServe } from './commands/gate.js';
 import {
 	agreementForFiles,
@@ -141,6 +147,11 @@ Usage:
       the adversarial corpora (WP123): each service from its cassette, else its
       stand-in (unmeasured); --record calls each live with its credential from
       CRAFTABOT_CREDENTIAL_<ID> and writes its cassette.
+  craftabot readings export [--format json|markdown] [--out <file>] [--store <dir>] [--blueprints <dir>]
+      The reading desk's queue (WP129): every catalogue entry, calibration row, control
+      row, decision right, blueprint item, screening list, error and reviewer model still
+      pending, with the review each has had (from --content and --store). Markdown is
+      the maintainer's work list: the amendments to edit in, the rejections, the unread.
   craftabot corpus freeze <corpus.json>
       Write a corpus's digest over its labels and rows (WP119).
   craftabot corpus label <corpus.json> --as <annotator> --out <labels.json>
@@ -1203,6 +1214,33 @@ ${renderEvaluations(report)}`);
 `);
 				// The server holds the process open; Ctrl+C closes it and flushes the sink.
 				process.once('SIGINT', () => void served.close());
+				return 0;
+			}
+			case 'readings': {
+				// WP129 (`108-READINGS.md` §4): the queue and its readings, for the maintainer.
+				const verb = args.positional[0];
+				const format = stringFlag(args, 'format') ?? 'json';
+				if (verb !== 'export' || (format !== 'json' && format !== 'markdown'))
+					throw new Error(
+						'readings needs export [--format json|markdown] [--out <file>] [--store <dir>] [--blueprints <dir>]'
+					);
+				const config = await configFrom(args);
+				const store = stringFlag(args, 'store');
+				const out = stringFlag(args, 'out');
+				const file = await readingsFor({
+					packs: config.packs,
+					...(config.content ? { content: config.content } : {}),
+					...(store ? { storage: await createFileStorage(store) } : {}),
+					blueprints: await readBlueprintNotes(stringFlag(args, 'blueprints') ?? 'docs/blueprints'),
+					generatedAt: new Date().toISOString()
+				});
+				const text = await writeReadings(file, format, out);
+				io.stdout(
+					out
+						? `${renderReadingsSummary(file)}  wrote      ${out}
+`
+						: text
+				);
 				return 0;
 			}
 			case 'benchmark': {

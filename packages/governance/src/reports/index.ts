@@ -137,3 +137,23 @@ export {
 	renderAssurancePackMarkdown
 } from './assurance-pack-render.js';
 export { verdictFlow, verdictFlowSignature, type VerdictFlowRow } from './verdict-flow.js';
+export {
+	READING_KIND_LABELS,
+	blueprintItems,
+	readingProgress,
+	readingQueue,
+	readingSourcesFrom,
+	readingSubjects,
+	readingsExport,
+	renderReadingsMarkdown,
+	type BlueprintItem,
+	type ReadingBlueprintNote,
+	type ReadingItem,
+	type ReadingProgress,
+	type ReadingScreeningList,
+	type ReadingSourceLine,
+	type ReadingSources,
+	type ReadingState,
+	type ReadingSubject,
+	type ReadingsExport
+} from './readings.js';

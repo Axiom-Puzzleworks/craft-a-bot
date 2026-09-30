@@ -2,6 +2,19 @@
 
 The compatibility policy is `docs/design-day2/14-BRICK-REFERENCE-DESIGNS.md` §7: additive changes never bump a format version; a breaking change bumps it with a migration and a fixture, and a breaking change to `@craftabot/core`'s interfaces takes its major version (`01-ARCHITECTURE.md` §5). This file is where each of those is written down for someone upgrading.
 
+## `control-review` → `review` (2026-09-30, WP129)
+
+**Deprecated: the `control-review` content kind.** It is kept for one release as an alias (`108-READINGS.md` §7). A reading is now a `review` (`core/schemas/review.ts`) over one of eight subject kinds. A control row is `{ kind: 'control-row', id: '<mapId>#<ref>' }`.
+
+**Nothing to do to keep working.** `reviewsFromContent` reads both kinds:
+
+- `reviewed` reads as `accepted`, and `disputed` as `rejected`;
+- `by` reads as a person principal, and `reviewedAt` as `on`.
+
+The assurance pack, the checks and `/workshop/readings` read through it. Where both kinds name one row, the later reading wins.
+
+**Nothing writes `control-review` any more.** The Assurance screen's row form writes `review`. To move a store over, read each record with `reviewsFromContent` and save it as a `review` under `localContentId('review', reviewSlug(subject))`. The next release drops the kind.
+
 ## `@craftabot/core` 0.0.1 → 1.0.0 (2026-09-05, WP56)
 
 **Removed: `PackManifest.guardrails`.** The lane was deprecated at WP39 (`29-GUARD-SHELL.md` §4.3) because nothing ever read it but the registry's own insert, and `PackRegistry.getGuardrail` went with it. `createPackRegistry().registerPack` now refuses a manifest that still carries the key, by name, so an old pack fails at registration rather than registering with its rules silently dropped.
