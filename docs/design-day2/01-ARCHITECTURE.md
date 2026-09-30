@@ -154,6 +154,22 @@ V1 needs none. The first features that will genuinely require one: sharing kit f
 
 > **Amended 2026-09-11, later (WP89).** The full build's budget moves +40 kB to 1.79 MB (`scripts/bundle-budget.mjs`), and the playground and full editions +40 kB each (`edition.ts`): the Experiments page and the experiment schema, expansion and analysis it imports from `evals`. The Worker's chunk moves +20 kB to 870 kB for the same module, which `evals` now carries.
 
+> **Amended 2026-09-30, later (vitest out of the bundle; the walk's W-6, `UX-AND-GAPS.md` §9).** `describeStorageContract` moves to its own entry point, `@craftabot/core/testing/contract` (`docs/migrations.md`). The `testing` barrel's runtime importers (the Demo Brain, the Worker's mock provider) no longer pull in vitest:
+> - every build and the Worker are 58 KiB lighter;
+> - no chunk contains vitest.
+>
+> The budgets come down to the measured size plus 20 kB:
+>
+> | Build | Budget (bytes) |
+> |---|---|
+> | full | 2,970,000 |
+> | simulator | 2,818,000 |
+> | workshop | 2,839,000 |
+> | playground | 2,970,000 |
+> | Worker | 1,774,000 |
+>
+> The Kit's first page is unchanged, at 854 KiB of 880,000 B.
+
 > **Amended 2026-09-30 (WP131, `109-THE-TAIL-DAY7.md` §5): the budgets as they stand after Day 7.** In bytes, as `scripts/bundle-budget.mjs` and `edition.ts` hold them, with the measured size of each build on the day (`npm run build:editions`, the full build):
 >
 > | Build | Budget | Measured | Worker | Kit's first page |

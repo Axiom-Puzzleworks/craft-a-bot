@@ -3,13 +3,13 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, describe, expect, it } from 'vitest';
 import {
-	describeStorageContract,
 	makeAgent,
 	makeExperimentResult,
 	makeRun,
 	makeStoredWorkflowRun,
 	uuid
 } from '@craftabot/core/testing';
+import { describeStorageContract } from '@craftabot/core/testing/contract';
 import { createFileStorage, runExists } from './file-storage.js';
 
 /**
