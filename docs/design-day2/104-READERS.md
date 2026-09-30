@@ -342,3 +342,35 @@ The typesafe journey's **`llm-mock`** configuration reads with it.
 > - WP117: the reader contract, in `core`, `workflow` and `governance`, and the desks' rule readers.
 >
 > WP115 and WP116 ran the Workbench's type check and tests but not its build, so how the 16 kB splits between the three was not measured. That leaves 3 kB of headroom. The next WP to add to the Worker will need a reading of the budget, not just another increase. For Andrew's reading.
+
+> **WP120 stage B done 2026-09-30.**
+> - **The provider seams** in `core`: `ChatRequest.choice`/`topLogprobs`, `ChatResponse.logprobs` and `LLMProvider.supports`. The mock honours them, and `promptDigest` covers the two request fields only when present.
+> - **`ReaderContext`** gains `callLine` and `provider`.
+> - **In `governance`:** `hostedReader`, `llmReader` with `foldFirstToken`, and `readerComponent`.
+> - **The runtime:** `callLine` (shared with the line stage) and `readerProvider`. `touchesOf` counts a gated review once.
+> - **`checkReader`** takes the host's context. It passes a rule, a hosted and an LLM reader, and `checkComponent` passes the reader guard (`pack-testkit/src/checks/reader-kinds.test.ts`).
+>
+> **WP120 stage C done 2026-09-30. WP120 is done.**
+> - **`@craftabot/pack-readers-llm`** ships the keyword stand-in `readers-llm/reader/mock` and `llmReaderForCartridge`.
+> - **`@craftabot/pack-typesafe`** is on the contract. Each judgment is a reader stage (the regex, Jev, the Spark 122B or 35B, or the stand-in, with the gate's person as `else` and the steer noul on a q2 gate) and a commit. Its readers are content (`TYPESAFE_READERS`) and its executors name their question sets. `llm-mock` and `llm-mock-gate-0.80` join the configurations.
+> - **`@craftabot/pack-dgx-spark`** is out of the harness's defaults (G90). It is opt-in by its own `craftabot.config.mjs`, which the typesafe config includes. Its classifier folds through `foldFirstToken`.
+> - **The build:** it fails if any of the three optional packs' manifests is in a bundle (`scripts/bundle-budget.mjs`), so every edition is checked.
+>
+> **The identity through the collapse.** The three Jev experiments were run before and after, with the same corpus book and the same cassettes. Every effect is the same: values, n, intervals and p, 18 + 18 + 24. The result digests moved with the stage ids and were re-pinned (`experiment-identity.test.ts`).
+>
+> **Diverged:**
+> - **The runtime keeps a reader's stated confidence** (rounded to six places) instead of recomputing it from the rounded probabilities. Jev computes its confidence before rounding its probabilities to two places, and recomputing moved one v1 row from 0.90 to 0.8875, across the 0.90 gate. `checkReader` holds a stated confidence to the formula within the probabilities' own precision (n/(n−1) × half their last decimal step). §3.2's "recomputed" no longer holds.
+> - **The eighth reference experiment now meets the held-out rule.** Its readers name their question sets, and corpus v3 has seen Jev under q1 and q2, so the run is refused unless `experiments/servicing-readers.json` says `regression: true`, which it now does: it replays recorded answers. Its effects are unchanged, 24 of 24.
+>
+> **DoD:**
+> - The servicing journey runs `regex`, `jev`, `llm-mock` and `jev-gate-0.80` through one executor ✓.
+> - The gate sends exactly the rows under the threshold to `else` ✓ (workflow and typesafe tests).
+> - The steer routes independently of confidence ✓.
+> - The `llm` reader runs over the mock provider constrained and unconstrained ✓.
+> - `checkReader` and `checkComponent` are green on all three kinds ✓.
+> - The optional packs are absent from every edition's bundle ✓ (the build's check).
+>
+> **Not built:**
+> - OpenAI's and the other shipped providers' constrained and log-probability paths wait on the live checkpoints (WP125).
+> - The hosted reader as a guard has no `callLine` at a loop point: only rule and LLM readers guard until the benchmark (WP122) needs it.
+> - The calibration pane's screenshot still has no shipped reader configuration in the Workbench (WP118's shortfall stands).

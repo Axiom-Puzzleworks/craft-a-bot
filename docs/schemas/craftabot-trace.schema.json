@@ -1290,6 +1290,24 @@
 													"other"
 												]
 											},
+											"logprobs": {
+												"type": "array",
+												"items": {
+													"type": "object",
+													"properties": {
+														"token": {
+															"type": "string"
+														},
+														"logprob": {
+															"type": "number"
+														}
+													},
+													"required": [
+														"token",
+														"logprob"
+													]
+												}
+											},
 											"fault": {
 												"type": "object",
 												"properties": {

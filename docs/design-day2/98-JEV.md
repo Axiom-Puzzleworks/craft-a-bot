@@ -333,3 +333,9 @@ TypeSafe docs: [introduction](https://docs.typesafe.ai/introduction), [API refer
 > **Amended 2026-09-29 (WP111, `102-HONEST-BANK.md` §3–§6):** §9's three findings are fixed on `day7`. The servicing journey runs record before act, so `disclosure-recorded` reads 100% under Jev (was 86.3%); the book's and the layouts' categories are labels, and `checkDesk`'s truth-independence property holds the desk to it; `touches` counts a review once (5 at 0.80, 10 at 0.90). The recorded results under `experiment/out*` are unchanged until WP119 moves the lab record to `docs/evidence/`.
 
 > **Amended 2026-09-30 (WP119, `105-CORPORA.md` §7):** the three corpora moved from the typesafe pack's TypeScript arrays into `fs-servicing` as content (`requests-v1/-v2/-v3`), with their guides, second labels, κ and `seenBy`. The pack's arrays are now views, held to the freeze hashes in §9–§11. The held-out design is the eighth reference experiment, `servicing-readers` (`docs/evidence/servicing-readers/`). The results committed on the branch predate WP111's change to the servicing desk: `disclosure-recorded` and the gated `touches` differ today, and every reading of the request and the need is unchanged.
+
+> **Amended 2026-09-30 (WP120, `104-READERS.md` §10.4):** the servicing journey is on the reader contract.
+> - **The stages:** each judgment is a `reader` stage (Jev is `typesafe/reader/jev`, a hosted reader over the same line) with its gate and the person as `else`, then a commit. It was read, gate, review and commit.
+> - **The configurations:** they keep their names, and `llm-mock` reads with the LLM contract's stand-in.
+> - **The effects:** every experiment effect is unchanged.
+> - **Confidence:** the runtime keeps Jev's stated confidence rather than recomputing it from its two-place probabilities.

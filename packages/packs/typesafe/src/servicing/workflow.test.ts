@@ -17,6 +17,7 @@ import fsServicingPack, {
 	needIn,
 	servicingDesk
 } from '@craftabot/pack-fs-servicing';
+import readersLlmPack from '@craftabot/pack-readers-llm';
 import dgxSparkPack, { sparkClassifierLine } from '@craftabot/pack-dgx-spark';
 import starterPack from '@craftabot/pack-starter';
 import { runWorkflow } from '@craftabot/workflow';
@@ -41,7 +42,14 @@ import {
  * configurations run from it without a network, and a gate hands its unsure
  * rows to a person and to nobody else.
  */
-const PACKS = [starterPack, fsBankPack, fsServicingPack, typesafePack, dgxSparkPack];
+const PACKS = [
+	starterPack,
+	fsBankPack,
+	fsServicingPack,
+	typesafePack,
+	dgxSparkPack,
+	readersLlmPack
+];
 const SPEC: AgentSpec = {
 	id: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
 	name: 'Deskbot',
@@ -99,9 +107,8 @@ const FINISHED = ['completed', 'handed-off'];
 
 const recordedCategory = (run: WorkflowRun) =>
 	(
-		run.stages.find(
-			(stage) => stage.stageId === 'classify-gate' || stage.stageId === 'classify-commit'
-		)?.output.value as { category?: string } | undefined
+		run.stages.find((stage) => stage.stageId === 'classify-commit')?.output.value as
+			{ category?: string } | undefined
 	)?.category;
 
 describe('the corpus book', () => {
@@ -150,8 +157,9 @@ describe.each(CORPORA)('the journey under the regex, corpus %s', (_version) => {
 			);
 			const text = (item.payload as { request: { subject: string } }).request.subject;
 			expect(recordedCategory(run)).toBe(classificationOf(text));
-			expect(run.stages.some((stage) => stage.stageId.endsWith('-review'))).toBe(false);
-			const record = run.stages.find((stage) => stage.stageId === 'record-gate');
+			// The regex is a rule reader: confidence 1, never gated, never a person (WP120).
+			expect(run.stages.filter((stage) => stage.reader?.gated)).toEqual([]);
+			const record = run.stages.find((stage) => stage.stageId === 'record-commit');
 			expect((record?.output.value as { need?: string }).need).toBe(needIn(text));
 		}
 	}, 60_000);
@@ -169,18 +177,21 @@ describe.skipIf(recorded === 0).each(CORPORA)(
 				expect(FINISHED, `${item.id}`).toContain(open.outcome);
 				const gated = await runItem(item, 'jev-gate-0.90', ordinal++);
 				expect(FINISHED).toContain(gated.outcome);
-				const gate = gated.stages.find((stage) => stage.stageId === 'classify-gate')!;
-				const { route, confidence } = gate.output.value as { route: string; confidence: number };
-				expect(route).toBe(confidence >= 0.9 ? 'auto' : 'person');
+				const read = gated.stages.find((stage) => stage.stageId === 'classify')!.reader!;
+				expect(read).toMatchObject({ readerId: 'typesafe/reader/jev', method: 'hosted' });
+				expect(read.gated).toBe(!(read.confidence !== null && read.confidence >= 0.9));
 
 				// The v2 questions: the steer rides with the request, and a gate sends a steered call to a person.
 				const q2 = await runItem(item, 'jev-q2-gate-0.80', ordinal++);
 				expect(FINISHED, `${item.id} q2`).toContain(q2.outcome);
-				const q2gate = q2.stages.find((stage) => stage.stageId === 'classify-gate')!;
-				const read = q2gate.output.value as { route: string; confidence: number; steer?: number };
-				expect(read.steer, `${item.id} has no steer`).toBeTypeOf('number');
-				expect(read.route).toBe(
-					read.confidence >= 0.8 && read.steer! < STEER_THRESHOLD ? 'auto' : 'person'
+				const q2read = q2.stages.find((stage) => stage.stageId === 'classify')!.reader!;
+				expect(q2read.steer, `${item.id} has no steer`).toBeTypeOf('number');
+				expect(q2read.gated).toBe(
+					!(
+						q2read.confidence !== null &&
+						q2read.confidence >= 0.8 &&
+						q2read.steer! < STEER_THRESHOLD
+					)
 				);
 			}
 		}, 240_000);
@@ -198,15 +209,14 @@ describe.skipIf(sparkRecorded === 0).each(CORPORA)(
 				const open = await runItem(item, 'spark', ordinal++);
 				expect(FINISHED, `${item.id} spark`).toContain(open.outcome);
 				const read = open.stages.find((stage) => stage.stageId === 'classify')!;
-				expect((read.output.value as { model: string }).model).toBe('Qwen3.5-122B-A10B-NVFP4');
+				expect(read.reader?.model).toBe('Qwen3.5-122B-A10B-NVFP4');
 
 				const q2 = await runItem(item, 'spark-q2-gate-0.80', ordinal++);
 				expect(FINISHED, `${item.id} spark q2`).toContain(q2.outcome);
-				const gate = q2.stages.find((stage) => stage.stageId === 'classify-gate')!;
-				const value = gate.output.value as { route: string; confidence: number; steer?: number };
+				const value = q2.stages.find((stage) => stage.stageId === 'classify')!.reader!;
 				expect(value.steer).toBeTypeOf('number');
-				expect(value.route).toBe(
-					value.confidence >= 0.8 && value.steer! < STEER_THRESHOLD ? 'auto' : 'person'
+				expect(value.gated).toBe(
+					!(value.confidence !== null && value.confidence >= 0.8 && value.steer! < STEER_THRESHOLD)
 				);
 			}
 		}, 240_000);
@@ -227,17 +237,55 @@ describe.skipIf(spark35Recorded === 0).each(CORPORA)(
 				const open = await runItem(item, 'spark35', ordinal++);
 				expect(FINISHED, `${item.id} spark35`).toContain(open.outcome);
 				const read = open.stages.find((stage) => stage.stageId === 'classify')!;
-				expect((read.output.value as { model: string }).model).toBe('Qwen3.6-35B-A3B-NVFP4');
+				expect(read.reader?.model).toBe('Qwen3.6-35B-A3B-NVFP4');
 
 				const q2 = await runItem(item, 'spark35-q2-gate-0.80', ordinal++);
 				expect(FINISHED, `${item.id} spark35 q2`).toContain(q2.outcome);
-				const gate = q2.stages.find((stage) => stage.stageId === 'classify-gate')!;
-				const value = gate.output.value as { route: string; confidence: number; steer?: number };
+				const value = q2.stages.find((stage) => stage.stageId === 'classify')!.reader!;
 				expect(value.steer).toBeTypeOf('number');
-				expect(value.route).toBe(
-					value.confidence >= 0.8 && value.steer! < STEER_THRESHOLD ? 'auto' : 'person'
+				expect(value.gated).toBe(
+					!(value.confidence !== null && value.confidence >= 0.8 && value.steer! < STEER_THRESHOLD)
 				);
 			}
 		}, 240_000);
 	}
 );
+
+describe('one executor, four readers (WP120)', () => {
+	it('reads with the regex, Jev, the LLM contract’s stand-in and Jev gated, each through the reader executor', async () => {
+		const item = book.items[0]!;
+		const configurations = ['regex', 'jev', 'llm-mock', 'jev-gate-0.80'];
+		const readers: string[] = [];
+		for (const [ordinal, configuration] of configurations.entries()) {
+			const run = await runItem(item, configuration, ordinal);
+			expect(FINISHED, configuration).toContain(run.outcome);
+			for (const stageId of ['classify', 'record']) {
+				const stage = run.stages.find((entry) => entry.stageId === stageId)!;
+				expect(stage.executor.kind, `${configuration} ${stageId}`).toBe('reader');
+				readers.push(`${configuration}:${stage.reader!.readerId}:${stage.reader!.method}`);
+			}
+		}
+		expect(readers).toEqual([
+			'regex:fs-servicing/reader/category:rule',
+			'regex:fs-servicing/reader/support-need:rule',
+			'jev:typesafe/reader/jev:hosted',
+			'jev:typesafe/reader/jev:hosted',
+			'llm-mock:readers-llm/reader/mock:logprobs',
+			'llm-mock:readers-llm/reader/mock:logprobs',
+			'jev-gate-0.80:typesafe/reader/jev:hosted',
+			'jev-gate-0.80:typesafe/reader/jev:hosted'
+		]);
+	});
+
+	it('the stand-in’s gate sends to a person exactly the rows it read under the threshold', async () => {
+		let ordinal = 0;
+		for (const item of book.items.slice(0, 30)) {
+			const run = await runItem(item, 'llm-mock-gate-0.80', ordinal++);
+			for (const stage of run.stages.filter((entry) => entry.reader)) {
+				const { confidence, gated } = stage.reader!;
+				expect(gated).toBe(confidence === null || confidence < 0.8);
+				expect(stage.approval !== undefined).toBe(gated);
+			}
+		}
+	});
+});

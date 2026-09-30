@@ -4,7 +4,7 @@
 
 **Verdict: not-supported.** minimum detectable difference of rates at the achieved n (96 on the smaller side, 80% power): 15.3 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)
 
-Ran 2026-09-30T07:27:23.323Z; controls —; obligations fca:fg21-1:vulnerability, fca:cd:support; campaigns servicing-readers--executors=regex, servicing-readers--executors=jev, servicing-readers--executors=jev-q2, servicing-readers--executors=jev-q2-gate-0-80, servicing-readers--executors=jev-q2-gate-0-90. Evidence about this synthetic bank under these configurations, and nothing else.
+Ran 2026-09-30T08:33:03.106Z; controls —; obligations fca:fg21-1:vulnerability, fca:cd:support; campaigns servicing-readers--executors=regex, servicing-readers--executors=jev, servicing-readers--executors=jev-q2, servicing-readers--executors=jev-q2-gate-0-80, servicing-readers--executors=jev-q2-gate-0-90. Evidence about this synthetic bank under these configurations, and nothing else.
 
 ## request-read-right
 
@@ -72,4 +72,4 @@ Method: difference of rates, Newcombe interval at 95%; sign test over 36 discord
 
 Method: difference of means, Welch interval at 95%; sign test over 18 non-tied of 96 pairs.
 
-Digest `dc8cd01c72779c0f2fe87a04fff53884a36996350fa2d12ae69c29ed6de32193`.
+Digest `c96b084f4923d744eaf141349e9da55ad985f8bb9ee1233574273abd991a74a0`.

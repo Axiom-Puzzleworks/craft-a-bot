@@ -1339,6 +1339,24 @@
 																				"other"
 																			]
 																		},
+																		"logprobs": {
+																			"type": "array",
+																			"items": {
+																				"type": "object",
+																				"properties": {
+																					"token": {
+																						"type": "string"
+																					},
+																					"logprob": {
+																						"type": "number"
+																					}
+																				},
+																				"required": [
+																					"token",
+																					"logprob"
+																				]
+																			}
+																		},
 																		"fault": {
 																			"type": "object",
 																			"properties": {
@@ -4535,6 +4553,24 @@
 																			"filtered",
 																			"other"
 																		]
+																	},
+																	"logprobs": {
+																		"type": "array",
+																		"items": {
+																			"type": "object",
+																			"properties": {
+																				"token": {
+																					"type": "string"
+																				},
+																				"logprob": {
+																					"type": "number"
+																				}
+																			},
+																			"required": [
+																				"token",
+																				"logprob"
+																			]
+																		}
 																	},
 																	"fault": {
 																		"type": "object",
@@ -9017,6 +9053,24 @@
 																	"filtered",
 																	"other"
 																]
+															},
+															"logprobs": {
+																"type": "array",
+																"items": {
+																	"type": "object",
+																	"properties": {
+																		"token": {
+																			"type": "string"
+																		},
+																		"logprob": {
+																			"type": "number"
+																		}
+																	},
+																	"required": [
+																		"token",
+																		"logprob"
+																	]
+																}
 															},
 															"fault": {
 																"type": "object",

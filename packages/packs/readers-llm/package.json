@@ -1,5 +1,5 @@
 {
-	"name": "@craftabot/pack-dgx-spark",
+	"name": "@craftabot/pack-readers-llm",
 	"private": true,
 	"version": "0.1.0",
 	"type": "module",
@@ -14,13 +14,11 @@
 	"scripts": {
 		"build": "tsc -p tsconfig.build.json",
 		"test": "vitest run --coverage",
-		"check": "tsc --noEmit",
-		"smoke": "npm run build && node scripts/smoke.ts"
+		"check": "tsc --noEmit"
 	},
 	"dependencies": {
 		"@craftabot/core": "*",
-		"@craftabot/governance": "*",
-		"@craftabot/pack-ollama": "*"
+		"@craftabot/governance": "*"
 	},
 	"devDependencies": {
 		"@craftabot/pack-testkit": "*"

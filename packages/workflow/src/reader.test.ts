@@ -518,7 +518,7 @@ describe('the gate and the answers, as functions', () => {
 		});
 	});
 
-	it('rounds to six places and recomputes the confidence from the rounded distribution', () => {
+	it('rounds to six places, keeping the confidence the reader stated', () => {
 		const checked = checkedAnswers(
 			{ colour: COLOUR },
 			{
@@ -540,7 +540,7 @@ describe('the gate and the answers, as functions', () => {
 					type: 'choice',
 					choice: 'red',
 					probabilities: { red: 0.812346, green: 0.187654 },
-					confidence: 0.624692
+					confidence: 0.5
 				}
 			}
 		});

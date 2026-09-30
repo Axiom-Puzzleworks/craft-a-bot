@@ -10,6 +10,7 @@ import { servicingJevEvaluators } from './servicing/evaluators.js';
 import {
 	SERVICING_JEV_V2_WORKFLOW_ID,
 	SERVICING_JEV_V3_WORKFLOW_ID,
+	TYPESAFE_READERS,
 	servicingJevWorkflow
 } from './servicing/workflow.js';
 
@@ -44,7 +45,9 @@ export const typesafePack: PackManifest = {
 			corpus: 'v3, held out'
 		})
 	],
-	evaluators: servicingJevEvaluators
+	evaluators: servicingJevEvaluators,
+	// WP120 (`104-READERS.md` §10.4): Jev and the two Sparks as hosted readers over their lines.
+	readers: TYPESAFE_READERS
 };
 
 export default typesafePack;
@@ -101,8 +104,11 @@ export {
 	SERVICING_JEV_V3_WORKFLOW_ID,
 	SERVICING_JEV_WORKFLOW_ID,
 	STEER_THRESHOLD,
-	gateRuleId,
-	jevReader,
-	sparkReader,
+	JEV_READER_ID,
+	QUESTION_SETS,
+	SPARK_122B_READER_ID,
+	SPARK_35B_READER_ID,
+	TYPESAFE_READERS,
+	readerExecutor,
 	servicingJevWorkflow
 } from './servicing/workflow.js';

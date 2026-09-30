@@ -131,8 +131,13 @@ export function readerConfidence(probabilities: readonly number[]): number {
 }
 
 /**
- * An answer rounded to six places, its confidence recomputed from the rounded
- * distribution — unless the reader said `null`, which stays `null`.
+ * An answer rounded to six places — its probabilities, and the confidence the
+ * reader stated (`null` stays `null`). The confidence is kept, not recomputed
+ * (WP120, `104-READERS.md` §3.2's note): a hosted reader computes it over its
+ * own distribution before rounding the probabilities it sends, so the formula
+ * over what it sent can land on the other side of a threshold (Jev: 0.90
+ * stated, 0.8875 from its two-place probabilities). `checkReader` holds the
+ * stated confidence to the formula within the probabilities' own precision.
  */
 export function roundAnswer(answer: TypedAnswer): TypedAnswer {
 	switch (answer.type) {
@@ -146,8 +151,7 @@ export function roundAnswer(answer: TypedAnswer): TypedAnswer {
 				type: 'choice',
 				choice: answer.choice,
 				probabilities,
-				confidence:
-					answer.confidence === null ? null : readerConfidence(Object.values(probabilities))
+				confidence: answer.confidence === null ? null : roundProbability(answer.confidence)
 			};
 		}
 		case 'score': {
@@ -156,7 +160,7 @@ export function roundAnswer(answer: TypedAnswer): TypedAnswer {
 				type: 'score',
 				score: answer.score,
 				probabilities,
-				confidence: answer.confidence === null ? null : readerConfidence(probabilities)
+				confidence: answer.confidence === null ? null : roundProbability(answer.confidence)
 			};
 		}
 	}

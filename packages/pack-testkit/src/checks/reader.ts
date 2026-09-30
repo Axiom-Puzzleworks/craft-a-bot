@@ -24,7 +24,7 @@ export interface ReaderFixture {
  *
  * - `reader.declares` — a qualified id, a type list, a rule with no egress, a hosted reader with some.
  * - `reader.answers` — every question answered, in the question's type, one the reader declares, inside the criteria, a distribution that sums to 1.
- * - `reader.confidence` — a stated confidence is the one formula over the answer's own distribution.
+ * - `reader.confidence` — a stated confidence is the one formula over the answer's own distribution, within the probabilities' own rounding.
  * - `reader.rounding` — every probability and confidence to six places at most.
  * - `reader.rule` — a rule answers by `rule` at confidence 1 on every choice and score, so no gate ever stops it.
  * - `reader.expected` — the fixture's expected answers.
@@ -134,8 +134,12 @@ function checkNumbers(answer: TypedAnswer, issue: (check: string, message: strin
 	if (numbers.some((n) => roundProbability(n) !== n))
 		issue('reader.rounding', 'a number is recorded past six places');
 	if (answer.type === 'noul' || answer.confidence === null) return;
+	// The formula over the probabilities as sent, within their own rounding: n/(n−1) × half the last decimal step (WP120).
 	const expected = readerConfidence(probabilities);
-	if (Math.abs(expected - answer.confidence) > 1e-6)
+	const places = Math.max(0, ...probabilities.map(decimalsOf));
+	const tolerance =
+		(probabilities.length / Math.max(1, probabilities.length - 1)) * 0.5 * 10 ** -places + 1e-6;
+	if (Math.abs(expected - answer.confidence) > tolerance)
 		issue(
 			'reader.confidence',
 			`confidence ${answer.confidence}, where the formula gives ${expected}`
@@ -159,4 +163,11 @@ function summary(answer: TypedAnswer): string {
 		: answer.type === 'noul'
 			? String(answer.noul)
 			: String(answer.score);
+}
+
+/** How many decimal places a number is written to. */
+function decimalsOf(value: number): number {
+	const text = String(value);
+	const dot = text.indexOf('.');
+	return dot === -1 ? 0 : text.length - dot - 1;
 }

@@ -1,6 +1,6 @@
 {
 	"schemaVersion": 1,
-	"id": "servicing-readers@2026-09-30T07:27:23.323Z",
+	"id": "servicing-readers@2026-09-30T08:33:03.106Z",
 	"experimentId": "servicing-readers",
 	"title": "The servicing readers on the held-out corpus: the bank’s regex against Jev as first asked (q1), Jev with the guide’s rules in its questions (q2), and q2 behind a confidence gate",
 	"hypothesis": "On calls no question was fitted to, stating the labelling guide’s rules in the questions (q2) reduces Jev’s false needs without losing any disclosed one, and the steer check sends callers who dictate the label to a person.",
@@ -9,7 +9,7 @@
 		"fca:fg21-1:vulnerability",
 		"fca:cd:support"
 	],
-	"ranAt": "2026-09-30T07:27:23.323Z",
+	"ranAt": "2026-09-30T08:33:03.106Z",
 	"workflowIds": [
 		"typesafe/servicing-jev-v3"
 	],
@@ -249,8 +249,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"04e29d8c-433b-4835-9075-a0810a3b5623",
-				"356a1540-e703-4c2f-944d-224ce0b01015"
+				"26b07da1-9329-4cbc-8b4c-d29e74d39bfc",
+				"1f4db0ba-ed98-4b54-8253-c03b10950e4e"
 			]
 		},
 		{
@@ -481,8 +481,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"04e29d8c-433b-4835-9075-a0810a3b5623",
-				"356a1540-e703-4c2f-944d-224ce0b01015"
+				"26b07da1-9329-4cbc-8b4c-d29e74d39bfc",
+				"1f4db0ba-ed98-4b54-8253-c03b10950e4e"
 			]
 		},
 		{
@@ -713,8 +713,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"04e29d8c-433b-4835-9075-a0810a3b5623",
-				"356a1540-e703-4c2f-944d-224ce0b01015"
+				"26b07da1-9329-4cbc-8b4c-d29e74d39bfc",
+				"1f4db0ba-ed98-4b54-8253-c03b10950e4e"
 			]
 		},
 		{
@@ -945,8 +945,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"04e29d8c-433b-4835-9075-a0810a3b5623",
-				"356a1540-e703-4c2f-944d-224ce0b01015"
+				"26b07da1-9329-4cbc-8b4c-d29e74d39bfc",
+				"1f4db0ba-ed98-4b54-8253-c03b10950e4e"
 			]
 		},
 		{
@@ -1177,8 +1177,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"04e29d8c-433b-4835-9075-a0810a3b5623",
-				"356a1540-e703-4c2f-944d-224ce0b01015"
+				"26b07da1-9329-4cbc-8b4c-d29e74d39bfc",
+				"1f4db0ba-ed98-4b54-8253-c03b10950e4e"
 			]
 		},
 		{
@@ -1409,8 +1409,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"04e29d8c-433b-4835-9075-a0810a3b5623",
-				"356a1540-e703-4c2f-944d-224ce0b01015"
+				"26b07da1-9329-4cbc-8b4c-d29e74d39bfc",
+				"1f4db0ba-ed98-4b54-8253-c03b10950e4e"
 			]
 		},
 		{
@@ -1641,8 +1641,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"04e29d8c-433b-4835-9075-a0810a3b5623",
-				"6ac7b20a-fcf9-4591-8f15-5e4ccce36db3"
+				"26b07da1-9329-4cbc-8b4c-d29e74d39bfc",
+				"abc28dac-c861-4329-a3e7-aa1f744d572c"
 			]
 		},
 		{
@@ -1873,8 +1873,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"04e29d8c-433b-4835-9075-a0810a3b5623",
-				"6ac7b20a-fcf9-4591-8f15-5e4ccce36db3"
+				"26b07da1-9329-4cbc-8b4c-d29e74d39bfc",
+				"abc28dac-c861-4329-a3e7-aa1f744d572c"
 			]
 		},
 		{
@@ -2105,8 +2105,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"04e29d8c-433b-4835-9075-a0810a3b5623",
-				"6ac7b20a-fcf9-4591-8f15-5e4ccce36db3"
+				"26b07da1-9329-4cbc-8b4c-d29e74d39bfc",
+				"abc28dac-c861-4329-a3e7-aa1f744d572c"
 			]
 		},
 		{
@@ -2337,8 +2337,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"04e29d8c-433b-4835-9075-a0810a3b5623",
-				"6ac7b20a-fcf9-4591-8f15-5e4ccce36db3"
+				"26b07da1-9329-4cbc-8b4c-d29e74d39bfc",
+				"abc28dac-c861-4329-a3e7-aa1f744d572c"
 			]
 		},
 		{
@@ -2569,8 +2569,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"04e29d8c-433b-4835-9075-a0810a3b5623",
-				"6ac7b20a-fcf9-4591-8f15-5e4ccce36db3"
+				"26b07da1-9329-4cbc-8b4c-d29e74d39bfc",
+				"abc28dac-c861-4329-a3e7-aa1f744d572c"
 			]
 		},
 		{
@@ -2801,8 +2801,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"04e29d8c-433b-4835-9075-a0810a3b5623",
-				"6ac7b20a-fcf9-4591-8f15-5e4ccce36db3"
+				"26b07da1-9329-4cbc-8b4c-d29e74d39bfc",
+				"abc28dac-c861-4329-a3e7-aa1f744d572c"
 			]
 		},
 		{
@@ -3020,7 +3020,7 @@
 				},
 				"escalationRate": {
 					"baseline": 0,
-					"treatment": 0.022653619528619526
+					"treatment": 0.02936921296296296
 				},
 				"touchesPerCase": {
 					"baseline": 0.19791666666666666,
@@ -3033,8 +3033,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"04e29d8c-433b-4835-9075-a0810a3b5623",
-				"93229e8e-50d8-436b-a823-5119dbae333b"
+				"26b07da1-9329-4cbc-8b4c-d29e74d39bfc",
+				"7f8b02db-e86b-4275-84d1-5f2f31ec61b8"
 			]
 		},
 		{
@@ -3252,7 +3252,7 @@
 				},
 				"escalationRate": {
 					"baseline": 0,
-					"treatment": 0.022653619528619526
+					"treatment": 0.02936921296296296
 				},
 				"touchesPerCase": {
 					"baseline": 0.19791666666666666,
@@ -3265,8 +3265,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"04e29d8c-433b-4835-9075-a0810a3b5623",
-				"93229e8e-50d8-436b-a823-5119dbae333b"
+				"26b07da1-9329-4cbc-8b4c-d29e74d39bfc",
+				"7f8b02db-e86b-4275-84d1-5f2f31ec61b8"
 			]
 		},
 		{
@@ -3484,7 +3484,7 @@
 				},
 				"escalationRate": {
 					"baseline": 0,
-					"treatment": 0.022653619528619526
+					"treatment": 0.02936921296296296
 				},
 				"touchesPerCase": {
 					"baseline": 0.19791666666666666,
@@ -3497,8 +3497,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"04e29d8c-433b-4835-9075-a0810a3b5623",
-				"93229e8e-50d8-436b-a823-5119dbae333b"
+				"26b07da1-9329-4cbc-8b4c-d29e74d39bfc",
+				"7f8b02db-e86b-4275-84d1-5f2f31ec61b8"
 			]
 		},
 		{
@@ -3716,7 +3716,7 @@
 				},
 				"escalationRate": {
 					"baseline": 0,
-					"treatment": 0.022653619528619526
+					"treatment": 0.02936921296296296
 				},
 				"touchesPerCase": {
 					"baseline": 0.19791666666666666,
@@ -3729,8 +3729,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"04e29d8c-433b-4835-9075-a0810a3b5623",
-				"93229e8e-50d8-436b-a823-5119dbae333b"
+				"26b07da1-9329-4cbc-8b4c-d29e74d39bfc",
+				"7f8b02db-e86b-4275-84d1-5f2f31ec61b8"
 			]
 		},
 		{
@@ -3948,7 +3948,7 @@
 				},
 				"escalationRate": {
 					"baseline": 0,
-					"treatment": 0.022653619528619526
+					"treatment": 0.02936921296296296
 				},
 				"touchesPerCase": {
 					"baseline": 0.19791666666666666,
@@ -3961,8 +3961,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"04e29d8c-433b-4835-9075-a0810a3b5623",
-				"93229e8e-50d8-436b-a823-5119dbae333b"
+				"26b07da1-9329-4cbc-8b4c-d29e74d39bfc",
+				"7f8b02db-e86b-4275-84d1-5f2f31ec61b8"
 			]
 		},
 		{
@@ -4180,7 +4180,7 @@
 				},
 				"escalationRate": {
 					"baseline": 0,
-					"treatment": 0.022653619528619526
+					"treatment": 0.02936921296296296
 				},
 				"touchesPerCase": {
 					"baseline": 0.19791666666666666,
@@ -4193,8 +4193,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"04e29d8c-433b-4835-9075-a0810a3b5623",
-				"93229e8e-50d8-436b-a823-5119dbae333b"
+				"26b07da1-9329-4cbc-8b4c-d29e74d39bfc",
+				"7f8b02db-e86b-4275-84d1-5f2f31ec61b8"
 			]
 		},
 		{
@@ -4412,7 +4412,7 @@
 				},
 				"escalationRate": {
 					"baseline": 0,
-					"treatment": 0.02577861952861953
+					"treatment": 0.03327546296296296
 				},
 				"touchesPerCase": {
 					"baseline": 0.19791666666666666,
@@ -4425,8 +4425,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"04e29d8c-433b-4835-9075-a0810a3b5623",
-				"b9695b9d-cd39-444b-8b70-e0922ff4c4c6"
+				"26b07da1-9329-4cbc-8b4c-d29e74d39bfc",
+				"85262a59-2d3b-4e71-94b5-f92a2e977ccf"
 			]
 		},
 		{
@@ -4644,7 +4644,7 @@
 				},
 				"escalationRate": {
 					"baseline": 0,
-					"treatment": 0.02577861952861953
+					"treatment": 0.03327546296296296
 				},
 				"touchesPerCase": {
 					"baseline": 0.19791666666666666,
@@ -4657,8 +4657,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"04e29d8c-433b-4835-9075-a0810a3b5623",
-				"b9695b9d-cd39-444b-8b70-e0922ff4c4c6"
+				"26b07da1-9329-4cbc-8b4c-d29e74d39bfc",
+				"85262a59-2d3b-4e71-94b5-f92a2e977ccf"
 			]
 		},
 		{
@@ -4876,7 +4876,7 @@
 				},
 				"escalationRate": {
 					"baseline": 0,
-					"treatment": 0.02577861952861953
+					"treatment": 0.03327546296296296
 				},
 				"touchesPerCase": {
 					"baseline": 0.19791666666666666,
@@ -4889,8 +4889,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"04e29d8c-433b-4835-9075-a0810a3b5623",
-				"b9695b9d-cd39-444b-8b70-e0922ff4c4c6"
+				"26b07da1-9329-4cbc-8b4c-d29e74d39bfc",
+				"85262a59-2d3b-4e71-94b5-f92a2e977ccf"
 			]
 		},
 		{
@@ -5108,7 +5108,7 @@
 				},
 				"escalationRate": {
 					"baseline": 0,
-					"treatment": 0.02577861952861953
+					"treatment": 0.03327546296296296
 				},
 				"touchesPerCase": {
 					"baseline": 0.19791666666666666,
@@ -5121,8 +5121,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"04e29d8c-433b-4835-9075-a0810a3b5623",
-				"b9695b9d-cd39-444b-8b70-e0922ff4c4c6"
+				"26b07da1-9329-4cbc-8b4c-d29e74d39bfc",
+				"85262a59-2d3b-4e71-94b5-f92a2e977ccf"
 			]
 		},
 		{
@@ -5340,7 +5340,7 @@
 				},
 				"escalationRate": {
 					"baseline": 0,
-					"treatment": 0.02577861952861953
+					"treatment": 0.03327546296296296
 				},
 				"touchesPerCase": {
 					"baseline": 0.19791666666666666,
@@ -5353,8 +5353,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"04e29d8c-433b-4835-9075-a0810a3b5623",
-				"b9695b9d-cd39-444b-8b70-e0922ff4c4c6"
+				"26b07da1-9329-4cbc-8b4c-d29e74d39bfc",
+				"85262a59-2d3b-4e71-94b5-f92a2e977ccf"
 			]
 		},
 		{
@@ -5572,7 +5572,7 @@
 				},
 				"escalationRate": {
 					"baseline": 0,
-					"treatment": 0.02577861952861953
+					"treatment": 0.03327546296296296
 				},
 				"touchesPerCase": {
 					"baseline": 0.19791666666666666,
@@ -5585,12 +5585,12 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"04e29d8c-433b-4835-9075-a0810a3b5623",
-				"b9695b9d-cd39-444b-8b70-e0922ff4c4c6"
+				"26b07da1-9329-4cbc-8b4c-d29e74d39bfc",
+				"85262a59-2d3b-4e71-94b5-f92a2e977ccf"
 			]
 		}
 	],
 	"verdict": "not-supported",
 	"note": "minimum detectable difference of rates at the achieved n (96 on the smaller side, 80% power): 15.3 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)",
-	"digest": "dc8cd01c72779c0f2fe87a04fff53884a36996350fa2d12ae69c29ed6de32193"
+	"digest": "c96b084f4923d744eaf141349e9da55ad985f8bb9ee1233574273abd991a74a0"
 }

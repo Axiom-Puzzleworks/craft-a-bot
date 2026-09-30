@@ -148,8 +148,8 @@ describe('llmReader over the mock provider', () => {
 		expect(response.method).toBe('logprobs');
 		const answer = response.answers['colour'];
 		expect(answer).toMatchObject({ type: 'choice', choice: 'red' });
-		expect(answer?.type === 'choice' && answer.probabilities['red']).toBeCloseTo(2 / 3, 10);
-		expect(answer?.type === 'choice' && answer.confidence).toBeCloseTo(0.5, 10);
+		expect(answer?.type === 'choice' && answer.probabilities['red']).toBe(0.666667);
+		expect(answer?.type === 'choice' && answer.confidence).toBe(0.5);
 		expect(response.answers['urgent']).toMatchObject({ type: 'noul' });
 		expect((response.answers['urgent'] as { noul: number }).noul).toBeCloseTo(0.1, 10);
 	});

@@ -18,7 +18,8 @@
 					"seed": 1,
 					"size": 120
 				},
-				"corpus": "fs-servicing/corpus/requests-v3"
+				"corpus": "fs-servicing/corpus/requests-v3",
+				"regression": true
 			},
 			"builds": [
 				{

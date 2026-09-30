@@ -37,7 +37,7 @@ describe('the confidence formula', () => {
 });
 
 describe('answers', () => {
-	it('rounds a choice and a score and recomputes their confidence; a null stays null', () => {
+	it('rounds a choice and a score, keeping the confidence the reader stated; a null stays null', () => {
 		expect(
 			roundAnswer({
 				type: 'choice',
@@ -49,7 +49,7 @@ describe('answers', () => {
 			type: 'choice',
 			choice: 'a',
 			probabilities: { a: 0.6, b: 0.3, c: 0.1 },
-			confidence: 0.4
+			confidence: 0.2
 		});
 		expect(
 			roundAnswer({
@@ -65,7 +65,7 @@ describe('answers', () => {
 			type: 'score',
 			score: 1,
 			probabilities: [0.25, 0.75],
-			confidence: 0.5
+			confidence: 0
 		});
 		expect(roundAnswer({ type: 'noul', noul: 0.33333333 })).toEqual({
 			type: 'noul',

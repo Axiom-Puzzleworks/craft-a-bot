@@ -1,12 +1,13 @@
-import type {
-	ChatResponse,
-	EgressDeclaration,
-	LLMProvider,
-	Reader,
-	ReaderMethod,
-	ReaderResponse,
-	TypedAnswer,
-	TypedQuestion
+import {
+	roundAnswer,
+	type ChatResponse,
+	type EgressDeclaration,
+	type LLMProvider,
+	type Reader,
+	type ReaderMethod,
+	type ReaderResponse,
+	type TypedAnswer,
+	type TypedQuestion
 } from '@craftabot/core';
 
 /** An LLM reader's definition: who it is, the model it asks for, and — if it carries its own — the provider. */
@@ -149,7 +150,8 @@ export function llmReader(options: LlmReaderOptions): Reader {
 				);
 				const { probabilities, used } = distribution(id, keys, response, constrain, logprobs);
 				if (STRENGTH[used] < STRENGTH[method]) method = used;
-				answers[id] = answerFor(question, keys, probabilities, used);
+				// Six places, as the contract records every probability (`104-…` §3.2).
+				answers[id] = roundAnswer(answerFor(question, keys, probabilities, used));
 			}
 			return { model: options.model, method: method as ReaderMethod, answers };
 		}

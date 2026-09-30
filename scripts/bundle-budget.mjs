@@ -261,7 +261,22 @@ if (files.length > 0) {
 		);
 	}
 
-	if (raw > LIMIT_BYTES) {
+	// The optional packs are in no edition (WP120, `104-READERS.md` §10.4; G90): each manifest's own name is the marker.
+	const OPTIONAL_PACKS = [
+		['@craftabot/pack-typesafe', 'TypeSafe Jev (experiment)'],
+		['@craftabot/pack-readers-llm', 'LLM readers (optional)'],
+		['@craftabot/pack-dgx-spark', 'DGX Spark (your own hardware)']
+	];
+	const shipped = [...files, ...workers].map((file) => readFileSync(file, 'utf8'));
+	const leaked = OPTIONAL_PACKS.filter(([, marker]) =>
+		shipped.some((text) => text.includes(marker))
+	);
+	for (const [name] of leaked)
+		console.error(`bundle-budget: ${name} is in the bundle — it is optional, in no edition`);
+
+	if (leaked.length > 0) {
+		process.exitCode = 1;
+	} else if (raw > LIMIT_BYTES) {
 		console.error(`bundle-budget: OVER BUDGET by ${kb(raw - LIMIT_BYTES)} (01 §8)`);
 		process.exitCode = 1;
 	} else if (firstPage && firstPage.raw > options.firstPageLimit) {
