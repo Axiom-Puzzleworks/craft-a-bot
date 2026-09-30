@@ -1,3 +1,4 @@
+import { COACHING_READER } from './words-reader.js';
 import type { PackManifest } from '@craftabot/core';
 import { fraudControlMap } from './controls/rows.js';
 import { fraudPolicyCards } from './cards/policy.js';
@@ -48,7 +49,9 @@ export const fsFraudPack: PackManifest = {
 	errorModels: fraudErrorModels,
 	controlMaps: [fraudControlMap],
 	// The alert journey (WP85, `76-FRAUD-AND-ADVICE-WORKFLOWS.md` §3).
-	workflows: [fraudWorkflow]
+	workflows: [fraudWorkflow],
+	// WP121 (`105-CORPORA.md` §9): the keyword rule over the words, the baseline on the desk's corpus.
+	readers: [COACHING_READER]
 };
 
 export default fsFraudPack;
@@ -139,3 +142,10 @@ export {
 	type FraudBaselineOptions
 } from './campaign.js';
 export { FRAUD_DECISION_ERROR_MODEL_ID, fraudErrorModels } from './errors/error-models.js';
+export {
+	COACHING_QUESTION,
+	COACHING_QUESTION_SET_DIGEST,
+	COACHING_QUESTION_SET_ID,
+	COACHING_READER,
+	COACHING_READER_ID
+} from './words-reader.js';

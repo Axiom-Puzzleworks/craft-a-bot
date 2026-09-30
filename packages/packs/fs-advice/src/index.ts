@@ -1,3 +1,5 @@
+import { COMPLAINT_WORDS_READER } from './complaints/words-reader.js';
+import { GOAL_READER } from './words-reader.js';
 import type { PackManifest } from '@craftabot/core';
 import { adviceControlMap } from './controls/rows.js';
 import { advicePolicyCards } from './cards/policy.js';
@@ -68,7 +70,7 @@ export const fsAdvicePack: PackManifest = {
 	// The advice journey (WP85, `76-FRAUD-AND-ADVICE-WORKFLOWS.md` §4).
 	workflows: [adviceWorkflow, complaintsWorkflow],
 	// WP117 (`104-READERS.md` §7): the complaints root cause as a rule reader.
-	readers: COMPLAINTS_READERS
+	readers: [...COMPLAINTS_READERS, COMPLAINT_WORDS_READER, GOAL_READER]
 };
 
 export default fsAdvicePack;
@@ -173,3 +175,17 @@ export * from './complaints/index.js';
 export { COMPLAINTS_POLICY_CARD_IDS, REDRESS_NEEDS_APPROVAL } from './cards/policy.js';
 export { COMPLAINTS_BASELINE_ID, complaintsBaseline } from './complaints/campaign.js';
 export { ADVICE_RECOMMENDATION_ERROR_MODEL_ID, adviceErrorModels } from './errors/error-models.js';
+export {
+	COMPLAINT_WORDS_QUESTION,
+	COMPLAINT_WORDS_QUESTION_SET_DIGEST,
+	COMPLAINT_WORDS_QUESTION_SET_ID,
+	COMPLAINT_WORDS_READER,
+	COMPLAINT_WORDS_READER_ID
+} from './complaints/words-reader.js';
+export {
+	GOAL_QUESTION,
+	GOAL_QUESTION_SET_DIGEST,
+	GOAL_QUESTION_SET_ID,
+	GOAL_READER,
+	GOAL_READER_ID
+} from './words-reader.js';

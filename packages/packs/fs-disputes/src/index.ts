@@ -1,3 +1,4 @@
+import { DISPUTE_WORDS_READER } from './words-reader.js';
 import { DISPUTES_READERS } from './readers.js';
 import type { PackManifest } from '@craftabot/core';
 import { disputesPolicyCards } from './cards/policy.js';
@@ -56,7 +57,7 @@ export const fsDisputesPack: PackManifest = {
 	controlMaps: [disputesControlMap],
 	workflows: [disputesWorkflow],
 	stacks: disputesStacks,
-	readers: DISPUTES_READERS
+	readers: [...DISPUTES_READERS, DISPUTE_WORDS_READER]
 };
 
 export default fsDisputesPack;
@@ -162,3 +163,10 @@ export {
 	DISPUTES_RULE_READERS,
 	classificationReaderExecutor
 } from './readers.js';
+export {
+	DISPUTE_WORDS_QUESTION,
+	DISPUTE_WORDS_QUESTION_SET_DIGEST,
+	DISPUTE_WORDS_QUESTION_SET_ID,
+	DISPUTE_WORDS_READER,
+	DISPUTE_WORDS_READER_ID
+} from './words-reader.js';

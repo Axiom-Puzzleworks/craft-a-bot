@@ -1,4 +1,4 @@
-# 105 — Corpora: labelled rows as content, the held-out rule, the corpus book (WP119)
+# 105 — Corpora: labelled rows as content, the held-out rule, the corpus book, a corpus per desk (WP119, WP121)
 
 > **Status:** Phase AE's second design of record, opened 2026-09-30 (`101-DAY7-ROADMAP.md` Phase AE; `100-TARGET-DESIGN-V7.md` §6.4, decision D17, tenet 36; G76 part, G90 part). Stage A of WP119: the schema, the six refusals, the exact semantics of the held-out rule, and the annotator record. Stages B and C are recorded in §8 as they land. Awaiting Andrew's review; the build continues.
 
@@ -121,6 +121,47 @@ v3 is `heldOut` against q2.
 **The result the branch committed is not today's.** Re-running `servicing-jev` today gives the committed effects on the request, the need and the needs met, but not on `disclosure-recorded` or the gated `touches`. WP111 changed the servicing desk: the need is recorded before the act, and a review is counted once. So "byte for byte to the branch's experiment result" is read as the result that today's code produced before the move, which is what the pins hold. The committed results are regenerated under `docs/evidence/servicing-readers/` (§8).
 
 **The eighth reference experiment.** `experiments/servicing-readers.json` is the held-out design: v3, q1 against q2, regex against Jev with and without the gate. Its full-size result goes under `docs/evidence/servicing-readers/`, and CI's reduced run and shape check cover it through the typesafe pack's `--config`. The lab record (`packages/packs/typesafe/experiment/README.md` and its analysis files) stays beside the scripts that write it. The evidence folder's README points at it.
+
+## 9. A corpus per desk (WP121)
+
+### 9.1 The six questions, frozen first
+
+Each desk has one judgment over words: a typed question, a keyword rule reader answering it at confidence 1, and a question set id with its digest. All six were committed before any corpus row was written, so every corpus here is **held out** from its question set (§5).
+
+| Desk | The words | Question set | Label | Options | Rule reader |
+|---|---|---|---|---|---|
+| Disputes | the customer's account of a disputed payment | `fs-disputes/questions/claim-q1` | `classification` | unauthorised · authorised-scam · merchant | `fs-disputes/reader/claim-words` |
+| Fraud | the customer on a call about a held payment | `fs-fraud/questions/coaching-q1` | `coached` | yes · no | `fs-fraud/reader/coaching-words` |
+| Complaints | a customer's complaint | `fs-advice/questions/complaint-q1` | `cause` | charges · advice · service · no-error | `fs-advice/reader/complaint-words` |
+| Onboarding | an applicant on what the account is for | `fs-onboarding/questions/purpose-q1` | `purpose` | everyday · salary · savings · business · third-party-funds | `fs-onboarding/reader/purpose-words` |
+| Lending | an applicant on what the loan is for | `fs-lending/questions/loan-purpose-q1` | `purpose` | car · home-improvement · debt-consolidation · holiday · other | `fs-lending/reader/loan-purpose-words` |
+| Advice | a customer on what they want their money to do | `fs-advice/questions/goal-q1` | `goal` | grow · income · keep-safe · purchase (the desk's own `Goal`) | `fs-advice/reader/goal-words` |
+
+Each rule reader is what a bank writes first, a keyword list: the first pattern the words match, else a default. It is the baseline the other readers are read against, and the corpus says how good it is.
+
+**Why the words, and not the existing rules.**
+- The disputes desk's classification rule reads the claim's recorded figures (§7 of `104-…`), and the complaints desk's root-cause rule reads the logged category. Neither reads a customer's words, which is where a reader earns its place.
+- The words readers sit beside those rules, which are unchanged.
+- The fraud, onboarding, lending and advice desks had no rule over words at all (`104-…` §7). These are their first.
+
+### 9.2 Authoring and the blind second label
+
+- **The author.** Each corpus is written by an authoring pass: a subagent briefed with the guide, the options, the keyword rule and the difficulty tags. It writes about a hundred rows, with a spread over the options and a share of *traps* (the rule's words used in a sense it does not mean) and paraphrases that avoid them. It marks a row `contested` where a careful labeller could go the other way.
+- **The second annotator.** Each corpus is then labelled blind by a second subagent. It sees the guide, the options and the rows' words, and nothing else: no labels, no tags, no rule, no repository. The v1 servicing corpus gets its missing second labeller the same way, so no corpus carries the single-annotator finding. κ is computed by `corpus agreement` and recorded on the corpus. Each disagreement is read. A disagreement on a row not marked contested is reported, never relabelled to agree.
+- **The rules every row obeys.** English, synthetic, no digits, and no real person, place, company or product. The sweep holds them. Each guide says who wrote the rows, that they are synthetic, and that a sample of real words labelled by someone other than the product's authors is the missing test.
+
+### 9.3 Scoring
+
+`scoreReader(reader, corpus, question, label)` (`evals`) asks a reader each row's words and reports:
+- its accuracy against the primary label, with a Wilson interval;
+- its accuracy against either labeller;
+- the per-option confusion.
+
+The desk's rule reader and the keyword stand-in (`readers-llm/reader/mock`, §10 of `104-…`) are scored on each corpus. The numbers go into the desk's own note, and each desk's corpus test holds them.
+
+**Diverged from `101-…` WP121.**
+- **No journey configurations.** The roadmap asked for "a `regex` vs `llm:mock` configuration" on each desk's classify-shaped stage. Four of the six desks have no stage that reads words. On the two that do, a new configuration would change the journeys page and the Monitor's default, as WP118 found. So the comparison is made on the corpus with `scoreReader`, not through the journeys. The servicing journey's comparison stays WP120's.
+- **Held out whole.** Each corpus is held out from its question set as a whole, with no seen part. The question sets were written from the guide, not from any row, and none has been tuned. A seen split needs a second question set, which the first live recording (WP125) will bring.
 
 ## 8. Stage notes
 

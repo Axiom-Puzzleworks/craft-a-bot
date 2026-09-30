@@ -1,3 +1,4 @@
+import { PURPOSE_READER } from './words-reader.js';
 import type { PackManifest } from '@craftabot/core';
 import { onboardingPolicyCards } from './cards/policy.js';
 import { onboardingControlMap } from './controls/rows.js';
@@ -55,7 +56,9 @@ export const fsOnboardingPack: PackManifest = {
 	evaluators: onboardingEvaluators,
 	controlMaps: [onboardingControlMap],
 	workflows: [onboardingWorkflow],
-	stacks: onboardingStacks
+	stacks: onboardingStacks,
+	// WP121 (`105-CORPORA.md` §9): the keyword rule over the words, the baseline on the desk's corpus.
+	readers: [PURPOSE_READER]
 };
 
 export default fsOnboardingPack;
@@ -153,3 +156,10 @@ export {
 	onboardingPersona,
 	type OnboardingPersonaId
 } from './personas.js';
+export {
+	PURPOSE_QUESTION,
+	PURPOSE_QUESTION_SET_DIGEST,
+	PURPOSE_QUESTION_SET_ID,
+	PURPOSE_READER,
+	PURPOSE_READER_ID
+} from './words-reader.js';

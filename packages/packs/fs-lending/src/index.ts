@@ -1,3 +1,4 @@
+import { LOAN_PURPOSE_READER } from './words-reader.js';
 import type { PackManifest } from '@craftabot/core';
 import { lendingControlMap } from './controls/rows.js';
 import { lendingPolicyCards } from './cards/policy.js';
@@ -61,7 +62,9 @@ export const fsLendingPack: PackManifest = {
 	// The lending journey as a workflow with its five reference configurations (WP80, `73-…`).
 	workflows: [lendingWorkflow],
 	/** WP97 (`89-STACKS.md`): the baseline's guards as stacks. */
-	stacks: lendingStacks
+	stacks: lendingStacks,
+	// WP121 (`105-CORPORA.md` §9): the keyword rule over the words, the baseline on the desk's corpus.
+	readers: [LOAN_PURPOSE_READER]
 };
 
 export default fsLendingPack;
@@ -180,3 +183,10 @@ export {
 	type LendingBookCampaignOptions
 } from './campaign.js';
 export { LENDING_DECISION_ERROR_MODEL_ID, lendingErrorModels } from './errors/error-models.js';
+export {
+	LOAN_PURPOSE_QUESTION,
+	LOAN_PURPOSE_QUESTION_SET_DIGEST,
+	LOAN_PURPOSE_QUESTION_SET_ID,
+	LOAN_PURPOSE_READER,
+	LOAN_PURPOSE_READER_ID
+} from './words-reader.js';
