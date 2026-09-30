@@ -20,6 +20,16 @@
 
 ## 0. The closing verdict
 
+> **Amended 2026-09-30 (WP130).** This verdict is of 7 September and is kept in its tense. The seven items it deferred as work packages are now settled:
+> - **UX-12's Worker:** WP77.
+> - **UX-7:** WP86.
+> - **GAP-2 and GAP-6:** WP87.
+> - **GAP-1:** WP110, and since WP129 the reading desk (`/workshop/readings`) over every pending kind.
+> - **GAP-5:** WP110.
+> - **GAP-3** (cohorts outside a campaign) stays deferred.
+>
+> The two items raised at close, CLOSE-1 and CLOSE-2, were resolved in WP91. §4 carries each row's close, and §8 the third pass.
+
 **Written 2026-09-07 against `main` at `4acafc1`**, driving the production build at `localhost:4173` in Chrome at 1568 × 744, with an OpenAI key fitted, a Supabase workspace token fitted, a stale Cloud Armour token, and no Azure key.
 
 | | Count |
@@ -238,16 +248,16 @@ Everything raised as a defect is closed. What follows is the work deferred on pu
 | # | What | Why it was deferred | Severity · Effort |
 |---|---|---|---|
 | **UX-12 (Worker)** | A campaign runs on the main thread and holds the tab | The three small halves — **Cancel**, the progress counter, the honest estimate — landed and cover most of the pain. **Built 2026-09-10 as WP77** (`65-DAY5-ROADMAP.md` §3, on the `day5` branch): the run is in a Worker with a queue; the 930-cell Advice baseline takes 24 s with the tab live | Medium · M |
-| **UX-7** | The boundary map's labels collide where the ring is crowded | Needs `Boundary.svelte` rewritten, not nudged | Medium · M |
+| **UX-7** | The boundary map's labels collide where the ring is crowded | Needs `Boundary.svelte` rewritten, not nudged. **Resolved 2026-09-11 (WP86):** the Boundary rewritten with a label engine that never collides; held by `e2e/pipeline.spec.ts`'s overlap test (§8) | Medium · M |
 | **CLOSE-2** | One service worker per origin; a second section can open blank (§3b) | Found at close; belongs inside the editions package. **Resolved 2026-09-11 (WP91):** the cache is named per edition and a worker clears only its own; `e2e/editions/two-sections.spec.ts` | Medium · S |
-| **GAP-2** | No guided path through the Playground — a reader has to know where to start | Content and sequencing work, not a defect | Medium · M |
-| **GAP-6** | Two campaign reports cannot be compared | The data is in both reports; the screen is not built | Medium · M |
-| **GAP-3** | The cohort axis exists only inside a campaign report | Wants a home of its own in Telemetry | Low–Medium · M |
-| **GAP-1** | Accepting a control-map row is a content edit, not a click | A real decision about where review lives; the manual states it plainly (§41) | Low · L |
-| **GAP-5** | *Talk to this desk* as a first-class mode | Half of it arrived with UX-11: a desk can now be talked to at all | Low · M |
+| **GAP-2** | No guided path through the Playground — a reader has to know where to start | Content and sequencing work, not a defect. **Resolved 2026-09-11 (WP87):** each lens's three-step guided path on its entry page | Medium · M |
+| **GAP-6** | Two campaign reports cannot be compared | The data is in both reports; the screen is not built. **Resolved 2026-09-11 (WP87):** Compare takes two reports | Medium · M |
+| **GAP-3** | The cohort axis exists only inside a campaign report | Wants a home of its own in Telemetry. **Still deferred** (2026-09-30): `101-…` §7 carries it | Low–Medium · M |
+| **GAP-1** | Accepting a control-map row is a content edit, not a click | A real decision about where review lives; the manual states it plainly (§41). **Resolved 2026-09-13 (WP110):** a review is content beside the row (§8). **Widened 2026-09-30 (WP129):** the `review` record covers eight kinds, and `/workshop/readings` queues them | Low · L |
+| **GAP-5** | *Talk to this desk* as a first-class mode | Half of it arrived with UX-11: a desk can now be talked to at all. **Resolved 2026-09-13 (WP110):** the Studio's bench seats a scripted or live counterpart (§8) | Low · M |
 | **CLOSE-1** | The tidy banner's singular/plural (§3b) | Found at close. **Resolved 2026-09-11 (WP91):** *and it is an episode* for one | Low · S |
 
-**If only one thing is done next**, make it the Worker. The case is concrete rather than theoretical now: the Advice Desk baseline is 930 cells and about a minute and a half of a tab that will not answer, four such baselines ship, and the desks' cells are the heavy ones. Everything else on this list is an improvement; that one is the difference between a tool a reviewer runs and a tool a reviewer waits for.
+*(Written 7 September; the Worker was built as WP77.)* **If only one thing is done next**, make it the Worker. The case is concrete rather than theoretical now: the Advice Desk baseline is 930 cells and about a minute and a half of a tab that will not answer, four such baselines ship, and the desks' cells are the heavy ones. Everything else on this list is an improvement; that one is the difference between a tool a reviewer runs and a tool a reviewer waits for.
 
 **Two things deliberately not on this list.** The two starter cards that cannot be finished inside the thirty-turn budget, and the absence of a cost model, are recorded in the manual (§41) as behaviours rather than defects. Neither should be quietly "fixed": the first is a content decision, and the second is the product refusing to invent a number, which is the better half of its character.
 
@@ -708,3 +718,41 @@ The register was reopened at the close of Day 6 for the two gaps the roadmap nam
 | Access | The canvases could be seen and not read; the rail took every `Tab` before the content | **Resolved:** list twins for every drawing, keyboard models, the skip link, one landmark and heading per route, focus returned by every drawer; the reader's walk, the zoom and reduced-motion snapshots and axe in one CI job | `e2e/access.spec.ts`, `e2e/access-visual.spec.ts`, `e2e/a11y-workshop.spec.ts` |
 
 **What the re-test saw.** Every Workshop route opens with the skip link as its first stop and reaches the content; the Journey Canvas, the Boundary and the Studio's points read their twins' rows at every stop; the Pipeline's what-if drawer gives the button its focus back; the Monitor's tiles are described by their queue rows. The two gaps close as designed. Nothing new was raised. The register is closed again; GAP-3 (cohorts outside a campaign) stays deferred as recorded in §4.
+
+---
+
+## 9. The fourth pass — the walk of `84-…` §9 (2026-09-30, WP130)
+
+`84-DAY6-ROADMAP.md` §9 names one test of its own: a governance professional's walk from the journeys page to a green `checkDomainPack`. It had never been walked. This is that walk, stop by stop.
+
+**How it was walked.** On the production build of the full edition at `day7` (WP129 committed; this WP's fixes built in as they were made), in the desktop app's browser pane, on a fresh origin with an empty store. The pane was not on screen, so the page's own controls were driven by scripted events (`click`, `change`, `input`, `Enter`, `g`) rather than a pointer. The keyboard and pointer paths are the e2e suite's, and they ran green beside this walk. The walker was Claude, not a governance professional. §9's own reader, reading what the product says to *them*, is still Andrew's.
+
+| # | Stop (§9's words) | What was seen | Verdict |
+|---|---|---|---|
+| 1 | The journeys page: *seven drawn journeys, the three that are out named* | **Eight** journeys drawn: advice, complaints, arrears, disputes, alert, lending, onboarding, servicing. Each has its lanes, stage count, configurations (five each) and guard points. *What the bank covers*: 8 shipped, 1 supporting (the Front Desk's reception), **4** out, each with its reason: mortgages, pensions, insurance, business banking. | Met, with Day 6's counts overtaken: complaints became a journey (WP102), and business banking was named out |
+| 2 | *Disputes*: the customer, the assistant, the colleague, the rules and the systems as lanes; the decision fanning out; the hold gate on the systems lane; the handoffs to fraud and complaints as exits | **Three** lanes: the assistant, a colleague, the rules. There is no customer lane and no systems lane, and *Hold* is on the rules lane. The decision fans out *reimburse / decline / refer*; *Reimbursement* is marked irreversible; four eyes is on the colleague's lane. The list twin gives every stage, edge and obligation. The handoffs to fraud and complaints are in the description only: the edge list ends at `end` and has **no exit edge** for either. | Partly met — **finding W-1** (handoffs not drawn as exits) and **W-2** (lanes as §9 describes them are not the journey's) |
+| 3 | The Studio at the decision's boundary: Model Armor with a stand-in, a bespoke card beneath, a breaker after | The disputes journey's canvas offers **loop points only** on its bot stages; no stage-in or stage-out point is drawn at *Decision* (or anywhere), though `88-…` §3 says the canvas draws every point. Model Armor fitted at *Decision*'s `pre-think`, the card `within-the-limit` at `pre-act`. The breaker was refused at `post-act` with the page's words: *"Evaluator breaker does not decide at post-act; it decides at group, stage-out."* Model Armor reads *needs a battery*: its stand-in runs in the harness, not the browser. | Partly met — **W-3** (no boundary points on the Studio's canvas) |
+| 4 | Run the APP-scam deck through the stack; watch the verdicts light in order | With Model Armor fitted and no battery, the bench said **"0 flows"** and nothing else. Every cell had failed, and the page did not say so. **Fixed here:** the note now adds *Not run — …* with the cell's own error (`e2e/studio.spec.ts`). With the card alone, one flow: seven `pre-act` checks, all *allow*, in tick order. | Met after the fix |
+| 5 | Pin the *none* stack beside it; see the difference | An empty stack pinned, the card's stack run beside it: *"2 flows over fs-disputes/scenarios/app-scam-above-limit"* and *"first difference at row 1: …within-the-limit#rule-0@pre-act:allow against nothing"*. The optimal bot never tries a payment over the limit, so the card allows every call. | Met |
+| 6 | Save the stack | *Saved as local/stacks/within-the-limit.* | Met |
+| 7 | Put it in an experiment against `rules-only` over five thousand disputes | *Use in… an experiment* opens the designer with the stack as the template's guard. Two findings. First, **the stack is not a factor there**: the page's factors are configurations, a knob or the context rung, so the design reads *bot-everywhere against rules-only, both under the stack*. Second, **every campaign failed** with *"guard names stack 'local/stacks/within-the-limit', which no pack ships"*: the Worker ran on the edition's packs alone, and the page said only *did not finish*. **Fixed here:** the runner sends the page's `local` pack with each campaign (`campaign-host.test.ts`), and the note carries the failure. Re-run: **5,000 customers drew 500 disputes**. | Met after the fixes, with **W-4** (the stack as a factor) open |
+| 8 | Read the effect with its interval on the register | *Success* +0.0 pts (−0.8 to +0.8), n 500 / 500, sign test over 0 discordant pairs, *underpowered*. Tokens +1,462 per case; approvals per case 0.60 → 0.00. The register's three disputes rows read *inconclusive*: +0.000 (−0.008 to +0.008), n = 1000 over two experiments. The scripted-optimal tier cannot err, so there is nothing for a control to change: `100-…` §2 fact 5, seen again. | Met; the number is honest and says nothing, which is the point |
+| 9 | Beside the catalogue's row that says the technique is *shipped*; taint tracking *bespoke* | The catalogue: 37 shipped, 2 bespoke, 3 blueprint, 3 not applicable; 45 of 45 pending review. *Runtime enforcement rules* is shipped, with the effect *+0.000 (fs-disputes/stack/policy-cards)*: the register names the desk's shipped stack, not the saved one. **Taint tracking is now *shipped*** (WP124), *unmeasured*. | Met, with Day 7 overtaking §9's *bespoke*; **W-5** (the effect's attribution) |
+| 10 | Open `docs/blueprints/HEALTHCARE.md`; run `craftabot scaffold domain`; watch `checkDomainPack` go green | The note reads as a trust's shape: a patient root, five lines, the journeys and where the assistant stops. `scaffold domain --id nhs-trust --world nhs-trust --journeys triage-referral,prescribing-support --root Patient --relative` wrote 35 files. Their own tests: `passes checkDomainPack with placeholder content` ✓, `fails calibration review` ✓ (as designed), and each journey's book, golden run and campaign ✓. 8 of 8 in all. | Met |
+| — | *Every drawing with a list beside it, every list reachable by keyboard, every page passing the same gates* | Held by `e2e/access.spec.ts` and `e2e/a11y-workshop.spec.ts`, green on this build over every Workshop route, `/workshop/readings` included. | Met |
+
+**Fixed during the walk:**
+- The Studio's bench says why a stack did not run.
+- The Worker resolves a saved local stack.
+- The Experiments page says why a campaign failed.
+- `scripts/serve-site.mjs` takes an absolute `--root`. It is needed to serve an unpacked release archive, and was found on the release's dry run.
+
+**Open, for a later plan:**
+- **W-1.** Handoffs aren't drawn as exits on the Journey Canvas.
+- **W-2.** The customer and systems lanes aren't in the disputes journey's layout.
+- **W-3.** The Studio's canvas has no stage-boundary points.
+- **W-4.** A stack can't be an experiment's factor on the page, though the harness's guard level can be.
+- **W-5.** The catalogue's effect column names the desk's shipped stack.
+- **W-6.** vitest's runtime is bundled into the Worker and one chunk, through test helpers re-exported from runtime entry points. It is flagged as a task of its own.
+
+None of these makes the product say something untrue. W-1 and W-3 are the drawing promising less than the doc says.

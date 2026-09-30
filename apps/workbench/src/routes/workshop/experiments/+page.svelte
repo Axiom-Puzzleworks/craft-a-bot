@@ -159,7 +159,11 @@
 		if (entries.length < watched.queued.length) return;
 		if (entries.some((entry) => entry.status === 'queued' || entry.status === 'running')) return;
 		if (entries.some((entry) => entry.status !== 'done')) {
-			note = 'a campaign of the design did not finish; the result waits for a full run.';
+			// WP130 (the walk): say why, from the runner's own record of the failure.
+			const why = [
+				...new Set(entries.flatMap((entry) => (entry.error ? [entry.error] : [entry.status])))
+			].join('; ');
+			note = `a campaign of the design did not finish (${why}); the result waits for a full run.`;
 			pending = undefined;
 			return;
 		}

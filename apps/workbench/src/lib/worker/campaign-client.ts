@@ -1,4 +1,4 @@
-import type { AgentSpecV2, EngineEvent } from '@craftabot/core';
+import type { AgentSpecV2, EngineEvent, PackManifest } from '@craftabot/core';
 import type { CampaignCell, CampaignReport } from '@craftabot/evals';
 import type { CampaignHost } from './campaign-host.js';
 import type {
@@ -39,6 +39,8 @@ export interface RunInWorkerOptions {
 	) => void;
 	/** The fixed clock and id a test passes to prove byte identity; never set by the app. */
 	fixed?: { now: string; reportId: string } | undefined;
+	/** The page's `local` pack (WP130), so a saved stack a guard names resolves in the Worker. */
+	local?: PackManifest | undefined;
 }
 
 export interface WorkerJob {
@@ -93,7 +95,8 @@ export function runCampaignIn(
 			job,
 			work: 'campaign',
 			campaign,
-			...(options.fixed ? { fixed: options.fixed } : {})
+			...(options.fixed ? { fixed: options.fixed } : {}),
+			...(options.local ? { local: options.local } : {})
 		});
 	});
 	return { result, cancel: () => worker.postMessage({ kind: 'cancel', job }) };

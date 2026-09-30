@@ -73,7 +73,8 @@ export function createCampaignHost(
 		try {
 			const campaign = parseCampaign(start.campaign);
 			const report = await runCampaign(campaign, {
-				packs: deps.packs,
+				// The page's `local` pack after the edition's (WP130): a saved stack a guard names resolves.
+				packs: start.local ? [...deps.packs, start.local] : deps.packs,
 				plans: deps.plans,
 				...(start.fixed
 					? { now: () => start.fixed?.now ?? '', newId: () => start.fixed?.reportId ?? '' }

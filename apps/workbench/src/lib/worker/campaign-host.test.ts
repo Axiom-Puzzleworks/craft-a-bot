@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { WorkItem, WorkflowRun } from '@craftabot/core';
+import { localPackFrom, type WorkItem, type WorkflowRun } from '@craftabot/core';
 import { describe, expect, it } from 'vitest';
 import { injectionBaseline, runCampaign } from '@craftabot/evals';
 import { packs } from '$edition-packs';
@@ -86,6 +86,50 @@ describe('the campaign Worker host', () => {
 		expect(replies.at(-1)).toMatchObject({ kind: 'failed', job: 'b' });
 		await expect(runCampaignIn(workerOf(), { not: 'a campaign' }).result).rejects.toThrow();
 	});
+	it('resolves a saved local stack a guard names when the page sends its local pack (WP130)', async () => {
+		const stack = {
+			schemaVersion: 1,
+			id: 'local/stacks/budgeted',
+			name: 'Budgeted',
+			description: 'A step budget, saved on the page.',
+			fit: [
+				{
+					componentId: 'governance/step-budget',
+					config: { maxTicks: 40 },
+					point: { kind: 'pre-think' }
+				}
+			],
+			provenance: {
+				author: { kind: 'person', id: 'reader' },
+				createdAt: '2026-09-30T00:00:00.000Z'
+			}
+		};
+		const local = localPackFrom([
+			{
+				id: stack.id,
+				kind: 'stack',
+				title: stack.name,
+				record: stack,
+				savedAt: '2026-09-30T00:00:00.000Z',
+				schemaVersion: 1
+			}
+		]);
+		const campaign = {
+			...injectionBaseline([1]),
+			guards: [{ id: 'budgeted', fit: [], stack: 'local/stacks/budgeted' }]
+		};
+		const errored = (report: { cells: Array<{ error?: string | undefined }> }) =>
+			report.cells.filter((cell) => cell.error !== undefined).length;
+		// Without the page's local pack, the Worker cannot find the stack.
+		const bare = await runCampaignIn(workerOf(), campaign).result.catch((error: unknown) => error);
+		expect(bare instanceof Error || errored(bare as { cells: Array<{ error?: string | undefined }> }) > 0).toBe(
+			true
+		);
+		// With it, every cell runs under the stack.
+		const withLocal = await runCampaignIn(workerOf(), campaign, { local }).result;
+		expect(withLocal.cells.length).toBeGreaterThan(0);
+		expect(errored(withLocal)).toBe(0);
+	}, 60_000);
 });
 
 /**

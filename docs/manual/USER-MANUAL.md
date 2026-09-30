@@ -52,7 +52,7 @@
 | **Document** | Craft A Bot — User Manual |
 | **Version** | 1.4 (draft for review) |
 | **Date** | 13 September 2026 (fifth edition, after Day 6) |
-| **Applies to** | The `day6` branch at its close — V1.0 plus Days 2–5 (WP0–WP93's craft-a-bot half) and Day 6 (WP94–WP110); awaiting review and merge to `main` |
+| **Applies to** | V1.0 plus Days 2–5 (WP0–WP93's craft-a-bot half) and Day 6 (WP94–WP110), merged to `main` as PR #50; Day 7 on the `day7` branch through WP129 (Part I). Amended 2026-09-30 (WP130) |
 | **Publisher** | Axiom Verity |
 | **Audience** | Learners, AI-safety practitioners, conduct and model-risk reviewers, engineers |
 | **Status** | Draft — for internal review before external release |
@@ -1147,7 +1147,7 @@ Rows ship at three levels — the bank's UK retail rows, each desk's own rows, a
 
 Evidence is named by identifier and marked `present` (this is on the trace) or `available` (this control exists and can be run). A row whose evidence does not resolve to something real is refused by the build.
 
-**Every row ships `unreviewed`.** That is deliberate: a row is a claim that a control is *relevant* to an obligation, and only a compliance reader can accept that claim. The status changes when a reviewer accepts the row in the pack's content — which today is an edit to the pack, not a click in the app (§41).
+**Every row ships `unreviewed`.** That is deliberate: a row is a claim that a control is *relevant* to an obligation, and only a compliance reader can accept that claim. A reader records their verdict on the Assurance screen or at the reading desk (`/workshop/readings`), as a `review` beside the row. *Accepted* or *amended* counts the row as read wherever the checks ask. The pack's own `status` changes only when a maintainer edits the content, so the review is the record of who read it (§41).
 
 ## 34. Worked example: proving a control end to end
 
@@ -1456,26 +1456,26 @@ Recorded rather than hidden.
 
 - **Artwork.** The interface is drawn with CSS placeholders where illustrated artwork is still in production. Every swap-in seam is built and tested against a placeholder.
 - **Two starter cards need more turns than the budget allows.** *Tidy the blocks* and *The locked chest* cannot currently be completed inside the 30-turn engine budget.
-- **Control-map review is a content edit.** Rows ship `unreviewed`; accepting one is a change to the pack, not a click in the application.
+- **Readings are records, not edits.** Control rows, calibration rows, catalogue entries, decision rights, blueprint items, the screening lists and the error and reviewer models all ship pending. A reading at `/workshop/readings` is a `review` beside the row: *accepted*, *amended* (with the value a maintainer should put in) or *rejected* (with why). The checks count accepted and amended rows as read. The pack's own field changes only when a maintainer edits it in; `craftabot readings export --format markdown` is their work list. None had been read when this edition was written: 260 wait on the bank.
 - **The browser forks without overrides.** Forking with a different build is the harness's `fork --kit`.
 - **No cost model.** The product counts tokens and does not price them, and the dashboard says so rather than inventing a number.
-- **Every calibration row is awaiting review.** The table cites a source on every row, and every row shipped `review: pending` because the sprint could not wait for a reader to check each against its publication. The bank page counts them; reviewing one is a content edit (§42.2).
+- **Every calibration row is awaiting review.** The table cites a source on every row, and every row shipped `review: pending` because the sprint could not wait for a reader to check each against its publication. The bank page counts them; they are read at `/workshop/readings` (§42.2).
 - **The performance label and the alert rule are stated functions, not fitted models.** The Model-risk page and the reports say *synthetic hazard*; the fraud baseline is the detector alone. Nothing in the product fits anything (§42.4).
 - **The Monitor's drift reads one feature** — the outcome mix against the population's expected verdicts. PSI per input feature is the Model-risk page's, against a reference report (§48.2, §49.3).
-- **Matched pairs read *no pairs* on the Model-risk page** until a book cell carries a pair id; the fairness deck's pairs are scenario cells, not book cells (§49.3).
+- **Matched pairs read *no pairs* on the Model-risk page for a book campaign.** Since Day 7 a scenario cell carries its pair id (report v4); a book cell carries none, so only scenario decks show pairs (§49.3).
 - **`drift-day` is not an experiment.** It is the Monitor's planted-shift test, and `docs/evidence/drift-day/` records it as such rather than as a campaign-shaped result (§50.4).
 - **The site's half is not built.** The release artefact, the per-edition cache, the workspace offer and the citations are this repository's; the service that gates the folders, the account page that mints a token and the framing page live in the site's repository and are not yet there (§51).
 - **A book run's gate always passes.** A book run is a measurement; put the gates a judgement needs in a campaign file with a `source` (§43.2).
-- **The Catalogue's forty-five entries are awaiting review**, as the calibration rows are: every entry cites its sources and shipped `review: pending`; the page counts them (§54).
-- **The `+hosted-guard` baselines run the Guard brick's floor alone.** The desk baselines fit Model Armor with an empty service config the service refuses, so since Day 3 the Guard brick in those campaigns has run its step budget and nothing else. The stacks now say so honestly (`hostedGuardConfig` absent → the floor); giving the baselines a stand-in config changes their CI gates and is left for review (§52.2).
+- **The Catalogue's forty-five entries are awaiting review**, as the calibration rows are: every entry cites its sources and shipped `review: pending`; the page counts them, and each is read at `/workshop/readings` (§54).
+- **The `+hosted-guard` baselines run Model Armor's stand-in, not the service.** Until Day 7 they fitted it with a config the service refused, so the Guard brick ran its floor alone; since WP113 the advice, fraud and lending baselines run the stand-in, and a test refuses a shipped campaign whose guard config its service refuses (§52.2). The stand-in measures nothing; a live measurement needs a key.
 - **The Studio's test bench runs loop fits only.** A stage-boundary fit is exercised by running the journey and read on the Pipeline; a per-stage stack's *loop* fits do not run on that stage's session, and a configuration's `egress` fit is not read — the journey's egress is the host's option (§53.2).
 - **The counterpart's lane is drawn empty on a lit canvas**: the customer's turns are on the member runs' traces, which the workflow run names but does not carry (§55.1).
-- **The four new journeys' book incidences are stated, not calibrated** — how often an application, a dispute, an arrears case or a servicing request arises is an assumption in each pack's note, awaiting a calibration row (§55.2); the disputes desk ships no matched pair.
-- **A followed handoff needs the host to seat the bot on the target desk**: the bank day does; `workflow run --follow` with `--kit` does not, and runs the target's rules (§55.3).
-- **The twelve new control rows and the domain spec's decision rights are `unreviewed`**, and the three blueprint notes' checkboxes are unticked by design — the reading is a reader's (§56).
+- **The four Day 6 journeys' book incidences are assumptions.** Since Day 7 they are calibration rows (`BOOK_INCIDENCES`), stated rather than cited and pending a reading (§55.2). The disputes desk has had a matched pair and its parity gate since WP112.
+- **A followed handoff seats the bot on the target desk** in the bank day and, since WP112, in `workflow run --follow` with `--kit` (`specFor`) (§55.3).
+- **The twelve new control rows and the domain spec's decision rights are `unreviewed`**, and the three blueprint notes' checkboxes are unticked by design. All of them are on the reading desk (§56).
 - **"200 % zoom" is tested as a 640 px viewport**, which is the same layout question and not quite the same thing (§58).
 - **Three visual baselines are still empty states** — Workflows, Conduct and Model risk — and are not figures; the Monitor's figure is its setup screen by design (Appendix D).
-- **The live checkpoints for Azure Content Safety and the Gen AI evaluation service are pending** a key and a token; both are one command (`npm run smoke:azure`, `npm run smoke:geap`).
+- **The live checkpoints are pending** keys and a token: Azure Content Safety, the Gen AI evaluation service and Model Armor, Bedrock Guardrails and Lakera Guard. Each is one command (`npm run smoke:azure`, `smoke:geap`, `smoke:bedrock`, `smoke:lakera`). Every service the benchmark lists reads *unmeasured* until one runs.
 - **Provider errors show friendly copy with the raw payload one click away**, but there is no automatic retry.
 
 ---
@@ -1496,7 +1496,7 @@ Two rules run through all of it. Every number carries its *n* and its interval, 
 
 Every distribution the population draws from is a row in the **calibration table** (`docs/design-day2/66-CALIBRATION.md`; `docs/schemas/calibration.schema.json`). A row names the distribution, the weights, and its **source** — publisher, title, edition, the table within it, and the date it was read — or states itself as an *assumption* and says why. The sources are the ONS population and labour-market estimates, HMRC personal incomes, the FCA's *Financial Lives* (vulnerability, digital confidence, product holding, financial inclusion), UK Finance's *Payment Markets* and *Annual Fraud Report*, the FCA's aggregate complaints data, the Bank of England's *Money and Credit* and *Financial Stability Report*, and the Lloyds *Consumer Digital Index*. A test draws 20,000 customers and holds every row's marginal to its target within the row's tolerance plus the sampling margin.
 
-Every row carries a **review** status. The sprint that built the table cited every row but could not wait for a reader to check each against its source, so every row shipped `pending`; the bank page shows the count still awaiting review, and the assurance pack cites the table with that status. Reviewing a row is a content edit, like accepting a control-map row.
+Every row carries a **review** status. The sprint that built the table cited every row but could not wait for a reader to check each against its source, so every row shipped `pending`; the bank page shows the count still awaiting review, and the assurance pack cites the table with that status. A row is read at `/workshop/readings`, where the reading is a record beside it; the row's own `review` becomes `{ by, on }` when a maintainer edits it in.
 
 Two tables, not one. The population draws from the calibration table. The desks' **designed cases** — the decks of Part D — keep the Day 4 weights (`DECK_WEIGHTS`), because a designed case is meant to be the case it was written to be, not a draw from the population.
 

@@ -1,4 +1,4 @@
-import type { AgentSpecV2, EngineEvent, StoredWorkflowRun } from '@craftabot/core';
+import type { AgentSpecV2, EngineEvent, PackManifest, StoredWorkflowRun } from '@craftabot/core';
 import { campaignCells, campaignSchema, type CampaignReport } from '@craftabot/evals';
 import { CampaignCancelled, runCampaignIn, type WorkerJob } from '$lib/worker/campaign-client.js';
 import { isoAt } from '$lib/workshop/pipeline.js';
@@ -38,6 +38,8 @@ export interface CampaignRunnerDeps {
 		agentRuns: ReadonlyArray<{ runId: string; events: readonly EngineEvent[]; spec: AgentSpecV2 }>
 	) => Promise<void>;
 	now?: () => number;
+	/** The page's authored content as the `local` pack (WP130), sent with every campaign so a saved stack resolves in the Worker. */
+	local?: () => PackManifest | undefined;
 }
 
 let nextQueued = 0;
@@ -90,7 +92,10 @@ export function createCampaignRunner(deps: CampaignRunnerDeps) {
 		progress = { done: 0, total: entry.cells };
 		const collected: Record<string, Trace> = {};
 		let stores: Promise<void> = Promise.resolve();
+		const local = deps.local?.();
 		job = runCampaignIn(worker, entry.campaign, {
+			// Plain data for the Worker: a `$state` proxy cannot be structured-cloned.
+			...(local ? { local: JSON.parse(JSON.stringify(local)) as PackManifest } : {}),
 			onProgress: (done, total) => {
 				progress = { done, total };
 				cellDoneAt = [...cellDoneAt, now()];

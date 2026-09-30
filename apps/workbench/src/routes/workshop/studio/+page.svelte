@@ -207,8 +207,18 @@
 					}
 				}
 			);
-			await job.result;
+			const report = await job.result;
 			benchNote = `${Object.keys(flows).length} flow${Object.keys(flows).length === 1 ? '' : 's'} over ${scenarioId} at seed ${seed}.`;
+			// WP130 (the walk): a stack whose cell could not run — a hosted component with no battery —
+			// left no trace and read only "0 flows"; the cell's own error now says why.
+			const failures = [
+				...new Set(
+					(report.cells as Array<{ guard?: string; error?: string }>).flatMap((cell) =>
+						cell.error ? [`${cell.guard ?? 'a stack'}: ${cell.error}`] : []
+					)
+				)
+			];
+			if (failures.length > 0) benchNote = `${benchNote} Not run — ${failures.join('; ')}`;
 		} catch (error) {
 			benchNote = error instanceof Error ? error.message : String(error);
 		} finally {

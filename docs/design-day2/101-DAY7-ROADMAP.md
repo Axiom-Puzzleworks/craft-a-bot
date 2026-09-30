@@ -100,7 +100,7 @@ Sizes as before: **S** a session or two; **M** several; **L** a week. Every WP h
 | WP | What | Definition of done | Size | Retires |
 |---|---|---|---|---|
 | **WP129** ✅ | **Done 2026-09-30 — `108-READINGS.md` §9.** **`review` and `/workshop/readings`** (`100-…` §6.8, D21). Stage A: the note (`108-READINGS.md`) — the subject kinds, the verdicts, the amendment's path into content, what each check reads. Stage B: `core/schemas/review.ts` replacing `control-review` with the alias and migration note; the kind on all three stores and the evidence store; `checkCalibration({ requireReview })`, `checkCatalogue`, `checkControlMap`, `checkDomainPack` reading it; `/workshop/readings` with the queue, the sources, the progress readouts, the URL filter and the push; `craftabot readings export`. | A `review` for a row turns its check green for that row only; the queue's count equals the pending set across the eight kinds; `control-review` records read as `review`; the screen on the visual, axe and keyboard passes. | M | G85 |
-| **WP130** | **The stale lines, the index, the release, the walk** (`100-…` §6.8). `USER-MANUAL.md` §41, `UX-AND-GAPS.md` §0/§4 and the three "awaiting review" notes corrected; `98-` and `99-` in `README.md`'s index; the first `v*` tag cut and `release.yml` exercised with its archive attached; the practitioner walk of `84-…` §9 performed and recorded; the Linux baselines for every new screen. | `git tag` non-empty and the release's zip verifies; no line in the manual or the register contradicts `84-…` §8; the walk's record names each stop with what was seen. | S | G87-part, G88 |
+| **WP130** ◐ | **Done 2026-09-30 but for the tag and the Linux baselines, both waiting on a push — §8 item 9's WP130 note.** **The stale lines, the index, the release, the walk** (`100-…` §6.8). `USER-MANUAL.md` §41, `UX-AND-GAPS.md` §0/§4 and the three "awaiting review" notes corrected; `98-` and `99-` in `README.md`'s index; the first `v*` tag cut and `release.yml` exercised with its archive attached; the practitioner walk of `84-…` §9 performed and recorded; the Linux baselines for every new screen. | `git tag` non-empty and the release's zip verifies; no line in the manual or the register contradicts `84-…` §8; the walk's record names each stop with what was seen. | S | G87-part, G88 |
 | **WP131** | **The tail: Part I, the roundels, the Kit's card** (`100-…` §6.8). The manual's Part I (readers, corpora, the register regenerated, the benchmark, the Gate, the readings) and the rebuilt PDF; five roundels on the wave-2 seam; the Kit's *Sure or unsure* card on the Front Desk with the confidence chip and the child's threshold; the Phase AI exit review. | The PDF rebuilt with Part I's figures; `wave2.test.ts` green over 27 files; the card wins and loses on the Front Desk under the mock provider with a keyboard-only e2e; `100-…` §14 items 9–12 met. | S–M | G89 |
 
 **Exit:** `100-…` §14 items 9–12; a Phase AI exit review in §8.
@@ -165,7 +165,7 @@ Everything in `84-…` §5 stands. Added:
 | The bespoke components (`84-…` §7): untrusted-content, taint, quarantined reader, red-team seat | WP124; `no-progress`, `memory-provenance`, `privilege-scopes`, `content-digest`, the policy-conditioned classifier stay in §7 |
 | The four live checkpoints and the GEAP client id | WP125 |
 | Governance 1.0.0 (`38-…`) | WP126 |
-| GAP-3's Telemetry cohort axis and Run Browser filter (`UX-AND-GAPS.md` §8) | WP129's Workshop pass, if small; else §7 |
+| GAP-3's Telemetry cohort axis and Run Browser filter (`UX-AND-GAPS.md` §8) | WP129's Workshop pass, if small; else §7. **§7, 2026-09-30:** not small |
 | The catalogue, calibration, control-row, decision-right, blueprint and screening-list readings | WP129 (the desk); the readings themselves are Andrew's, throughout |
 | The stale manual and register lines; the "awaiting review" notes; the empty `git tag` | WP130 |
 | The practitioner walk of `84-…` §9, never recorded | WP130 |
@@ -181,6 +181,7 @@ Everything in `84-…` §5 stands. Added:
 - The Kit beyond one card: a Day 8 question for purpose 1, once the bank's evidence is read.
 - Mortgages, pensions, insurance, business banking; healthcare, logistics, manufacturing (`83-…` §6.5.1, §6.6.3 stand).
 - The pooled conditional-parity interval (`68-…`), the JSON-import lint rule (D19's class), touch e2e (T5's residue).
+- GAP-3's Telemetry cohort axis and Run Browser filter (`UX-AND-GAPS.md` §4, §8). **Amended 2026-09-30 (WP130):** WP129 did not take it. It is not small: the cohort lives on campaign cells, not on runs, so a Telemetry axis needs the run summary to carry it. It stays here.
 
 ## 8. Session-sized next steps (the immediate to-do)
 
@@ -424,6 +425,23 @@ Everything in `84-…` §5 stands. Added:
    > The DoD's four clauses are held by `harness/src/readings.test.ts`, `core`'s and `governance`'s alias tests, and the screen's visual, axe and keyboard passes. The budget is +50 kB. Twelve win32 baselines were re-taken for the rail's new link; their Linux baselines are WP130's.
    >
    > **Next: WP130.**
+   >
+   > **WP130, 2026-09-30:**
+   > - **The stale lines.** `USER-MANUAL.md` §41: nine lines corrected to Day 7, readings as records, and the pending checkpoints listed. Also its header, its control-map paragraph and §42.2.
+   > - **The UX register.** `UX-AND-GAPS.md` §0 and §4 are dated with each deferred item's close. GAP-3 moves to §7, since it is not small: runs carry no cohort.
+   > - **The three "awaiting review" notes.** `CLAUDE.md`'s rows for `100-…` and `101-…`, and `README.md`'s row for `86-…`. `100-…`'s status is amended too.
+   > - **The index.** `98-` and `99-` were already listed; `104-`–`108-` are added.
+   > - **The walk** of `84-…` §9 is recorded in `UX-AND-GAPS.md` §9, stop by stop: eight met (two after fixes made on the way), two partly met; W-1 to W-6 open.
+   > - **The fixes made on the way:**
+   >   - the Studio's bench says why a stack did not run;
+   >   - the Worker resolves a saved local stack, whose campaigns had all been failing from *Use in… an experiment*;
+   >   - the Experiments page says why a campaign failed;
+   >   - `serve-site.mjs` takes an absolute `--root`.
+   > - **The release, dry run.** `build:editions` is within its four budgets. The archive is built as `release.yml` builds it: `craftabot-site-<v>.zip`, 4.5 MB, with `PUBLISHING.md` and `VERSION`. `sha256sum -c` passes, and the three editions' smoke specs pass 6 of 6 served from the unpacked archive, key-leak check included.
+   >
+   > **Not done, both waiting on a push:**
+   > - **The tag.** `git tag` is still empty. The first `v*` tag runs `release.yml` on GitHub and publishes a release, so it waits on Andrew's word, and on `day7` reaching `origin`.
+   > - **The Linux baselines.** An attempt in `mcr.microsoft.com/playwright:v1.62.1-noble` rendered with a different sans, without the bold weight CI's `ubuntu-latest` has, and rewrote every Linux shot, the Kit's included. It was discarded. The baselines for the new screens, and for the twelve Windows shots the rail's *Readings* link moved, come from CI's `visual` artefact on the first push, as for WP122–WP128.
 
 ## 9. What "done" looks like for this roadmap
 
