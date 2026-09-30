@@ -31,6 +31,7 @@ import {
 
 import { adviceWorkflow } from './workflow.js';
 import { complaintsWorkflow } from './complaints/workflow.js';
+import { COMPLAINTS_READERS } from './complaints/readers.js';
 
 export const fsAdvicePack: PackManifest = {
 	id: FS_ADVICE_PACK_ID,
@@ -65,7 +66,9 @@ export const fsAdvicePack: PackManifest = {
 	errorModels: adviceErrorModels,
 	controlMaps: [adviceControlMap],
 	// The advice journey (WP85, `76-FRAUD-AND-ADVICE-WORKFLOWS.md` §4).
-	workflows: [adviceWorkflow, complaintsWorkflow]
+	workflows: [adviceWorkflow, complaintsWorkflow],
+	// WP117 (`104-READERS.md` §7): the complaints root cause as a rule reader.
+	readers: COMPLAINTS_READERS
 };
 
 export default fsAdvicePack;

@@ -147,7 +147,7 @@ The shipped configurations keep their `rule` executors, so every desk golden run
 - the executor records and `stage.started.executor` of the stages the reader took.
 - every id and time. The extra event takes an id and a timestamp from the host's counter and clock, which shifts every one after it, the agent runs' included.
 
-Everything else is held: every stage's input and output digests, every act, every approval, every item's outcome, every agent run's trace, the ledger and the handoffs. A second assertion shows the projection hides no more than that: the two runs differ, and they differ only in those fields.
+Everything else is held: every stage's input and output digests, every act, every approval, every item's outcome, every event each agent run's session wrote (the workflow's own `stage.*` events on an agent trace keep their place and payload; their workflow-stamped id and time are the shifted ones above), the ledger and the handoffs. A second assertion shows the projection hides no more than that: the two runs differ, and they differ only in those fields.
 
 ## 7. Stage C: which rules, and which not
 
@@ -189,3 +189,38 @@ The classify-shaped rules `100-…` §6.3 names, as found:
 > - The projection also drops ids and times, which the one extra event shifts (§6).
 > - The campaign cell's stage summary (`evals`) admits `reader` as an executor.
 > - The hosted and LLM readers get no `ReaderContext` from the runtime yet: a rule needs none, and WP120 passes the session's egress-guarded `fetch` when it builds them.
+
+> **WP117 stage C done 2026-09-30. WP117 is done.** Four rule readers are on their desks' manifests, each shown only what its rule reads:
+> - `fs-servicing/reader/category` (`classificationOf` over the caller's words) and `fs-servicing/reader/support-need` (`needIn`), in `fs-servicing/src/readers.ts`;
+> - `fs-disputes/reader/classification` (`classificationOf` over the claim's channel, maker and payee, never its amount), in `fs-disputes/src/readers.ts`;
+> - `fs-advice/reader/root-cause` (`rootCauseOf` over the logged category), in `fs-advice/src/complaints/readers.ts`.
+>
+> Each desk also exports its reader executors and a `*_RULE_READERS` overlay, keyed by the stage each replaces.
+>
+> **The identity** holds in each desk's `readers.test.ts`. Every item of the desk's book was run under each shipped configuration that takes the stage by rule, and again with the rule reader fitted plain and gated at threshold 1:
+> - servicing: 40 items × `rules-only`, `bot-identifies-only`;
+> - disputes: the whole book × `rules-only`, `bot-verifies-only`;
+> - complaints: the whole book × `rules-only`, `bot-acknowledges-only`.
+>
+> In every comparison, `withoutReaders` projects the two runs equal, byte for byte. The agent traces are equal, bar the workflow's own stamps on its `stage.*` events. Every reader stage reads confidence 1 and never gates, even at threshold 1, and the unprojected runs differ.
+>
+> `checkReader` passes each reader over the book's own subjects, with the rule's answer expected.
+>
+> **The DoD, item by item:**
+> - **Identity:** met as §6 states it. The golden runs and campaign baselines are byte-identical because nothing they run has changed, and the reader runs are identical under the projection. Full byte identity with a reader fitted is not claimed, since the record says a reader answered.
+> - **Never gates:** met.
+> - **`checkReader` fixtures per question type:** met, in `pack-testkit`'s own test.
+> - **The Pipeline's stage card:** met (`describeReader`).
+> - **`reader.schema.json`:** generated.
+>
+> **Not built:**
+> - The fraud desk has no rule reader, because it has no classify-shaped rule (§7).
+> - No shipped configuration names a reader. The configurations' records, and so every stored run and report, stay as they were. A configuration that reads by `regex`, `jev` or `llm` is WP120's servicing journey.
+
+
+> **The Worker's budget +20 kB (2026-09-30).** The full build found the Worker 16 kB over its budget of 1,160,000 bytes, and the budget is now 1,180,000 (`scripts/bundle-budget.mjs`). Three WPs added to the Worker bundle:
+> - WP115: the fallible tier and the reviewer model, in `evals` and `workflow`;
+> - WP116: the analysis's tiers;
+> - WP117: the reader contract, in `core`, `workflow` and `governance`, and the desks' rule readers.
+>
+> WP115 and WP116 ran the Workbench's type check and tests but not its build, so how the 16 kB splits between the three was not measured. That leaves 3 kB of headroom. The next WP to add to the Worker will need a reading of the budget, not just another increase. For Andrew's reading.

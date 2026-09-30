@@ -57,3 +57,10 @@ export {
 } from './workflow.js';
 export { WORK_ITEM_LAYOUT as COMPLAINTS_WORK_ITEM_LAYOUT } from './desk.js';
 export { complaintCaseFromItem, kindForCategory } from './cases.js';
+export {
+	COMPLAINTS_READERS,
+	COMPLAINTS_RULE_READERS,
+	ROOT_CAUSE_QUESTION,
+	ROOT_CAUSE_READER_ID,
+	rootCauseReaderExecutor
+} from './readers.js';

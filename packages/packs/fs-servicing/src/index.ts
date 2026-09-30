@@ -1,3 +1,4 @@
+import { SERVICING_READERS } from './readers.js';
 import type { PackManifest } from '@craftabot/core';
 import { servicingPolicyCards } from './cards/policy.js';
 import { servicingControlMap } from './controls/rows.js';
@@ -56,12 +57,23 @@ export const fsServicingPack: PackManifest = {
 	evaluators: servicingEvaluators,
 	controlMaps: [servicingControlMap],
 	workflows: [servicingWorkflow],
-	stacks: servicingStacks
+	stacks: servicingStacks,
+	readers: SERVICING_READERS
 };
 
 export default fsServicingPack;
 
 export { servicingStrings } from './strings.js';
+export {
+	CATEGORY_QUESTION,
+	CATEGORY_READER_ID,
+	SERVICING_READERS,
+	SERVICING_RULE_READERS,
+	SUPPORT_NEED_QUESTION,
+	SUPPORT_NEED_READER_ID,
+	categoryReaderExecutor,
+	supportNeedReaderExecutor
+} from './readers.js';
 export { requestFor, servicingBook, servicingBookFor, type ServicingBookOptions } from './book.js';
 export {
 	SERVICING_CONFIGURATION_IDS,

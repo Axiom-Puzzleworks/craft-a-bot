@@ -1,3 +1,4 @@
+import { DISPUTES_READERS } from './readers.js';
 import type { PackManifest } from '@craftabot/core';
 import { disputesPolicyCards } from './cards/policy.js';
 import { disputesControlMap } from './controls/rows.js';
@@ -54,7 +55,8 @@ export const fsDisputesPack: PackManifest = {
 	evaluators: disputesEvaluators,
 	controlMaps: [disputesControlMap],
 	workflows: [disputesWorkflow],
-	stacks: disputesStacks
+	stacks: disputesStacks,
+	readers: DISPUTES_READERS
 };
 
 export default fsDisputesPack;
@@ -153,3 +155,10 @@ export {
 	disputesStacks
 } from './campaign.js';
 export { disputesPersona, pressuredVictim, type DisputesPersonaId } from './personas.js';
+export {
+	CLASSIFICATION_QUESTION,
+	CLASSIFICATION_READER_ID,
+	DISPUTES_READERS,
+	DISPUTES_RULE_READERS,
+	classificationReaderExecutor
+} from './readers.js';
