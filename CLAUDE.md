@@ -147,7 +147,12 @@ A planted `SYSTEM:` bureau line is marked, tainted and blocked. **Next: WP125 wh
 - the assurance pack naming the Gate;
 - `docs/gate.md` and the manual's Part I.
 
-**Next: the Phase AH exit review.**
+**Next: the Phase AH exit review.** **Amended 2026-09-30, later still:** the Phase AH exit review is recorded (`101-…` §8), with `100-…` §14 item 8 read clause by clause:
+- the Gate's identity test over six stacks: met (wired into CI, which has not run, since `day7` is unpushed);
+- the gated example: met;
+- governance 1.0.0 and the tarball check: met.
+
+**Phase AH is closed. Next: Phase AI — `108-READINGS.md`, WP129, WP130, WP131.**
 
 Once there's a WP to build (from a new plan, or a defect worth fixing): read the docs it names, **propose a task breakdown before writing code**, then build. One WP per branch (`wp{n}-{slug}`) and PR. Use your judgement inside a WP — the docs fix the destination and the contracts, not every step. Where a doc is silent, decide and note it. Where implementation must diverge from a doc, change the doc in the same PR with a dated note (`> **Amended 2026-08-13:** …`); don't leave the two disagreeing.
 

@@ -388,6 +388,30 @@ Everything in `84-…` §5 stands. Added:
    > - `docs/gate.md` and the manual's Part I.
    >
    > **Next: the Phase AH exit review.**
+
+   > **Phase AH exit review, 2026-09-30.** `100-…` §14 item 8, clause by clause, each run again for this review.
+   >
+   > | Clause | Verdict | Evidence |
+   > |---|---|---|
+   > | The Gate's identity test is green over six stacks on every push | **Met, and wired, but not yet run in CI** | `harness/src/gate-identity.test.ts`: 6/6, the five presets and the Studio-built fixture. The session's and the Gate's `guardrail.checked` sequences are equal, and each case's coverage is pinned (pause, stop-run, annotate with marks, all three hooks). It runs in CI's `npm run test`, but `day7` has not been pushed, so no CI run has taken it yet. |
+   > | `examples/gated-agent` is governed by a stack it never saw | **Met** | `examples/gated-agent/src/agent.test.ts`: 2/2. The agent, the model and both entry points import nothing from Craft A Bot. Through the Gate, `stack.json` gives the four outcomes, and the day's bundle verifies. |
+   > | `@craftabot/governance` is 1.0.0 and the tarball check passes | **Met** | The version is `1.0.0`. `check-governance-pack` passes (158 files; `dist`, `README.md` and `package.json` only). `check:governance-install` installs the three tarballs into the example, with eight reader and component exports importable. Both run in CI after the build. |
+   >
+   > **Beside the item:**
+   > - the Gate binds loopback by default, which is §14 item 12's third clause, already held by `gate.test.ts` and `commands/gate.test.ts`;
+   > - the Gate's day opens verified in the Audit Centre;
+   > - the assurance pack names the Gate's mode and stack (WP128).
+   >
+   > **For Andrew's reading:**
+   > - **Two divergences from `100-…` §6.7,** both recorded in `107-…`:
+   >   - `post-act` reads the tool message in the next request, not the assistant's text;
+   >   - a call through the Gate is framed as an *action*.
+   > - **Publishing.** `core` and `metrics` gained `files` lists, since they had packed empty; publishing is still a decision, not a WP.
+   > - **The Gate is a reference implementation:** unauthenticated, in memory, one upstream.
+   > - **The manual's PDF** is not rebuilt for Part I.
+   > - **The harness suite's load-only timeouts** reached 19 under full parallel load at WP127. It passed whole at WP128.
+   >
+   > **Phase AH is closed. Next: Phase AI — `108-READINGS.md`, WP129, WP130, WP131.**
 8. **WP126, `107-THE-GATE.md`, WP127, WP128.** Phase AH exit review.
 9. **`108-READINGS.md`, WP129, WP130, WP131.** Phase AI exit review and the §9 check.
 
