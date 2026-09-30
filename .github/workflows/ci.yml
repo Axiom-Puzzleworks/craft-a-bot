@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, day7]
+    branches: [main]
   pull_request:
   # The Linux baselines (WP131's follow-up): run by hand with update_snapshots on,
   # the visual job rewrites every Linux screenshot that differs and uploads them in
