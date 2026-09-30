@@ -1,5 +1,6 @@
 <script lang="ts">
 	import LinkedFrom from '$lib/components/workshop/LinkedFrom.svelte';
+	import CalibrationPane from '$lib/components/workshop/CalibrationPane.svelte';
 	import { registerActions } from '$lib/workshop/actions.svelte.js';
 	import { referrersOf, type Referrer } from '$lib/workshop/referrers.js';
 	/** WP101 (`88-STUDIO.md` §6): the Studio's *Use in… a campaign* — a `guards[]` entry naming the stack, appended to the campaign the editor opens on. */
@@ -1191,6 +1192,11 @@
 					</tbody>
 				</table>
 			</section>
+		{/if}
+
+		{#if summary && (summary.calibration ?? []).length > 0}
+			<!-- The calibration pane (WP118, `104-READERS.md` §9): a reader stage's answers against its answer key. -->
+			<CalibrationPane rows={summary.calibration} />
 		{/if}
 
 		{#if summary && summary.cohorts.length > 0}

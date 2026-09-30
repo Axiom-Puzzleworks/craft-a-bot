@@ -37,3 +37,12 @@
 | `review-seconds-per-case` | the seconds a reviewer model spent per case, summed over its reviews | t interval on the mean | none | 120 / 120 ✅ | 174 / 170.7 / ±8 (interval contains it) ✅ | the 95% interval misses the true mean · 0.055 / 0.0896 ✅ |
 | `review-accuracy` | the share of reviews answered right | Wilson | none | 0.75 / 0.75 ✅ | 0.8 / 0.7865 / ±0.03 (interval contains it) ✅ | the 95% interval misses the true share · 0.025 / 0.0896 ✅ |
 | `catch-rate` | of the reviews with a wrong recommendation in front of the person, the share reversed | Wilson | none | 0.5 / 0.5 ✅ | 0.7 / 0.6894 / ±0.04 (interval contains it) ✅ | the 95% interval misses the true rate · 0.03 / 0.0896 ✅ |
+
+## Calibration
+
+| Metric | Definition | Interval | Test | Hand case (expected / got) | Planted (planted / recovered / tolerance) | Null (alarm · rate / bound) |
+| --- | --- | --- | --- | --- | --- | --- |
+| `ece` | Σ over ten bins of (n_b / n)·|mean stated probability − accuracy| | percentile bootstrap (500, seeded) | Wilson per bin, Bonferroni over the bins | 0.4 / 0.4 ✅ | 0.1 / 0.1012 / ±0.02 (interval contains it) ✅ | a bin’s accuracy interval misses its mean stated probability, on a calibrated reader · 0.055 / 0.0896 ✅ |
+| `brier` | mean over answers of Σ over options of (p − [the label])² | t interval on the mean | none | 0.57 / 0.57 ✅ | 0.3333 / 0.3415 / ±0.02 (interval contains it) ✅ | the 95% interval misses the true score · 0.055 / 0.0896 ✅ |
+| `reliability` | per bin of stated probability, the share right (read here at the top bin, 0.9–1) | Wilson | none | 0.5 / 0.5 ✅ | 0.85 / 0.8376 / ±0.05 (interval contains it) ✅ | the top bin’s interval misses its mean stated probability, on a calibrated reader · 0.025 / 0.0896 ✅ |
+| `gate-curve` | at a threshold, the accuracy of the answers the gate lets through (read here at 0.6) | Wilson | none | 0.5 / 0.5 ✅ | 0.9 / 0.8863 / ±0.02 (interval contains it) ✅ | the 95% interval misses the true accuracy · 0.055 / 0.0896 ✅ |

@@ -486,6 +486,67 @@
 								"minimum": 0,
 								"maximum": 9007199254740991
 							},
+							"readings": {
+								"type": "array",
+								"items": {
+									"type": "object",
+									"properties": {
+										"stageId": {
+											"type": "string"
+										},
+										"questionId": {
+											"type": "string"
+										},
+										"readerId": {
+											"type": "string"
+										},
+										"model": {
+											"type": "string"
+										},
+										"choice": {
+											"type": "string"
+										},
+										"label": {
+											"type": "string"
+										},
+										"probabilities": {
+											"type": "object",
+											"propertyNames": {
+												"type": "string"
+											},
+											"additionalProperties": {
+												"type": "number"
+											}
+										},
+										"confidence": {
+											"anyOf": [
+												{
+													"type": "number"
+												},
+												{
+													"type": "null"
+												}
+											]
+										},
+										"steer": {
+											"type": "number"
+										},
+										"gated": {
+											"type": "boolean"
+										}
+									},
+									"required": [
+										"stageId",
+										"questionId",
+										"readerId",
+										"model",
+										"choice",
+										"probabilities",
+										"confidence",
+										"gated"
+									]
+								}
+							},
 							"reviews": {
 								"type": "array",
 								"items": {
@@ -1361,6 +1422,292 @@
 							"metric",
 							"reference",
 							"flagged"
+						]
+					}
+				},
+				"calibration": {
+					"default": [],
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"build": {
+								"type": "string"
+							},
+							"brain": {
+								"type": "string"
+							},
+							"configuration": {
+								"type": "string"
+							},
+							"stageId": {
+								"type": "string"
+							},
+							"questionId": {
+								"type": "string"
+							},
+							"readerId": {
+								"type": "string"
+							},
+							"model": {
+								"type": "string"
+							},
+							"n": {
+								"type": "integer",
+								"minimum": 0,
+								"maximum": 9007199254740991
+							},
+							"unlabelled": {
+								"type": "integer",
+								"minimum": 0,
+								"maximum": 9007199254740991
+							},
+							"accuracy": {
+								"type": "object",
+								"properties": {
+									"k": {
+										"type": "integer",
+										"minimum": 0,
+										"maximum": 9007199254740991
+									},
+									"n": {
+										"type": "integer",
+										"minimum": 0,
+										"maximum": 9007199254740991
+									},
+									"value": {
+										"type": "number"
+									},
+									"interval": {
+										"type": "array",
+										"prefixItems": [
+											{
+												"type": "number"
+											},
+											{
+												"type": "number"
+											}
+										]
+									}
+								},
+								"required": [
+									"k",
+									"n",
+									"value",
+									"interval"
+								]
+							},
+							"ece": {
+								"type": "object",
+								"properties": {
+									"value": {
+										"type": "number"
+									},
+									"interval": {
+										"type": "array",
+										"prefixItems": [
+											{
+												"type": "number"
+											},
+											{
+												"type": "number"
+											}
+										]
+									}
+								},
+								"required": [
+									"value",
+									"interval"
+								]
+							},
+							"brier": {
+								"type": "object",
+								"properties": {
+									"value": {
+										"type": "number"
+									},
+									"interval": {
+										"type": "array",
+										"prefixItems": [
+											{
+												"type": "number"
+											},
+											{
+												"type": "number"
+											}
+										]
+									}
+								},
+								"required": [
+									"value",
+									"interval"
+								]
+							},
+							"reliability": {
+								"type": "array",
+								"items": {
+									"type": "object",
+									"properties": {
+										"from": {
+											"type": "number"
+										},
+										"to": {
+											"type": "number"
+										},
+										"n": {
+											"type": "integer",
+											"minimum": 0,
+											"maximum": 9007199254740991
+										},
+										"meanProbability": {
+											"type": "number"
+										},
+										"accuracy": {
+											"type": "object",
+											"properties": {
+												"k": {
+													"type": "integer",
+													"minimum": 0,
+													"maximum": 9007199254740991
+												},
+												"n": {
+													"type": "integer",
+													"minimum": 0,
+													"maximum": 9007199254740991
+												},
+												"value": {
+													"type": "number"
+												},
+												"interval": {
+													"type": "array",
+													"prefixItems": [
+														{
+															"type": "number"
+														},
+														{
+															"type": "number"
+														}
+													]
+												}
+											},
+											"required": [
+												"k",
+												"n",
+												"value",
+												"interval"
+											]
+										}
+									},
+									"required": [
+										"from",
+										"to",
+										"n",
+										"meanProbability",
+										"accuracy"
+									]
+								}
+							},
+							"gates": {
+								"type": "array",
+								"items": {
+									"type": "object",
+									"properties": {
+										"threshold": {
+											"type": "number"
+										},
+										"reviewed": {
+											"type": "object",
+											"properties": {
+												"k": {
+													"type": "integer",
+													"minimum": 0,
+													"maximum": 9007199254740991
+												},
+												"n": {
+													"type": "integer",
+													"minimum": 0,
+													"maximum": 9007199254740991
+												},
+												"value": {
+													"type": "number"
+												},
+												"interval": {
+													"type": "array",
+													"prefixItems": [
+														{
+															"type": "number"
+														},
+														{
+															"type": "number"
+														}
+													]
+												}
+											},
+											"required": [
+												"k",
+												"n",
+												"value",
+												"interval"
+											]
+										},
+										"residualAccuracy": {
+											"type": "object",
+											"properties": {
+												"k": {
+													"type": "integer",
+													"minimum": 0,
+													"maximum": 9007199254740991
+												},
+												"n": {
+													"type": "integer",
+													"minimum": 0,
+													"maximum": 9007199254740991
+												},
+												"value": {
+													"type": "number"
+												},
+												"interval": {
+													"type": "array",
+													"prefixItems": [
+														{
+															"type": "number"
+														},
+														{
+															"type": "number"
+														}
+													]
+												}
+											},
+											"required": [
+												"k",
+												"n",
+												"value",
+												"interval"
+											]
+										}
+									},
+									"required": [
+										"threshold",
+										"reviewed",
+										"residualAccuracy"
+									]
+								}
+							}
+						},
+						"required": [
+							"build",
+							"brain",
+							"stageId",
+							"questionId",
+							"readerId",
+							"model",
+							"n",
+							"unlabelled",
+							"accuracy",
+							"ece",
+							"brier",
+							"reliability",
+							"gates"
 						]
 					}
 				}

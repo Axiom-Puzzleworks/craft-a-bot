@@ -97,3 +97,20 @@ export {
 	type ConfusionRate,
 	type ConfusionRates
 } from './confusion.js';
+export {
+	GATE_THRESHOLDS,
+	TEN_BINS,
+	brierScore,
+	calibrationTest,
+	expectedCalibrationError,
+	gateCurve,
+	reliability,
+	statedProbability,
+	type CalibratedAnswer,
+	type CalibrationOptions,
+	type CalibrationResult,
+	type EceOptions,
+	type GatePoint,
+	type Rate,
+	type ReliabilityBin
+} from './calibration.js';

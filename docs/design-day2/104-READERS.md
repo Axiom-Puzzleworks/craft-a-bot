@@ -1,4 +1,4 @@
-# 104 — Readers: typed questions, the `reader` executor, the rule readers (WP117, WP118)
+# 104 — Readers: typed questions, the `reader` executor, the rule readers, calibration (WP117, WP118)
 
 > **Status:** Phase AE's first design of record, opened 2026-09-30 (`101-DAY7-ROADMAP.md` Phase AE; `100-TARGET-DESIGN-V7.md` §6.3, decision D16, tenet 35; G74 part, G81). Stage A of WP117: the contract, the confidence formula, the executor and its gate, the event, and the rule adapter's exact wrap. WP117's stages B and C and WP118 are recorded in §8 as they land. Awaiting Andrew's review; the build continues.
 
@@ -161,6 +161,48 @@ The classify-shaped rules `100-…` §6.3 names, as found:
 | Complaints | `root-cause` | `rootCauseOf(category)` | `fs-advice/reader/root-cause` | `cause`, choice over the root causes |
 
 **The fraud desk's coaching markers are not a rule.** Whether a caller is being coached is a truth fact (`facts.coached`) read only by an evaluator, and no stage of the fraud journey classifies the call. There is nothing to wrap. A reader that tries to answer *is this caller coached?* from the call's words is a reader with no rule baseline, and it belongs to WP121's fraud corpus. The remaining desks (lending, onboarding, collections) decide by rules over figures (affordability, screening, disposable income), not by reading words, and `100-…` does not name them.
+
+## 9. Calibration and the report's pane (WP118)
+
+**The metrics** (`metrics/src/calibration.ts`). A reading is `CalibratedAnswer`: the choice, the label, the distribution, the gate's confidence and the steer if one was asked. There are four figures, each a pure function:
+- `reliability(answers, { edges })`: the answers binned by the probability the reader put on its own choice. Each bin has its mean stated probability and its accuracy with a Wilson interval. The bins default to ten of equal width (`TEN_BINS`), and the last bin includes its top edge.
+- `expectedCalibrationError`: Σ (n_b/n)·|p̄_b − acc_b|, with a seeded percentile bootstrap interval (500 resamples). ECE is biased upward in a finite sample, so whether a reader is miscalibrated is a separate question, answered by `calibrationTest`: a Wilson interval per bin, Bonferroni-corrected over the non-empty bins.
+- `brierScore`: multi-class, Σ over options of (p − [label])², averaged over the answers, with a t interval.
+- `gateCurve(answers, thresholds)`: at each threshold, the share reviewed and the accuracy of the rest, read exactly as the gate reads (§4.2). The defaults are `0, 0.6, 0.8, 0.9, 0.95, 0.99`.
+
+Each has a hand case, a planted case and a null in the validation suite, under the fourth family, *calibration*. The generator is `calibratedAnswers`: a two-option reader whose confidence is uniform and whose accuracy is its stated probability less a planted gap.
+
+**The branch's figures, recomputed.** `packages/packs/typesafe/src/calibration-recompute.test.ts` reads Jev's v1 answers from the shipped cassette and scores them against the v1 corpus with these functions, making no call:
+- ECE 0.0225 (request) and 0.0142 (need), and Brier 0.0137 and 0.0218, equal to `experiment/results.json` to twelve places. Published to three places, these are 0.023 / 0.014 and 0.014 / 0.022.
+- The gate's counts at every threshold the branch read, also equal.
+
+The branch binned by its own edges (`0, 0.5, 0.7, 0.8, 0.9, 0.95, 0.99`). The product's ten equal bins give the same ECE on this corpus: Jev's stated probabilities fall in the same bins either way.
+
+**The answer key.** `StageSpec.answerKey?(truth)` gives the right answer to each question the stage's reader asks. It is read by the scorer (`evals`) after the run, from the case's truth, never by the runtime. No reader and no run record sees it, so truth stays where tenet 13 keeps it. Four stages have one:
+- servicing's `classify` and `record`, from `facts.category` and `facts.discloses`;
+- disputes' `classify`, from `facts.classification`;
+- complaints' `root-cause`, from the truth record `finding.root_cause`.
+
+**The report.**
+- **The cell:** a book cell carries `workflow.readings`, one per choice answer at a reader stage, with its label when the stage has a key (`readingsOf`).
+- **The summary:** gains `calibration`. It has one row per build, brain, stage, question and reader, with the accuracy, ECE, Brier, the reliability table and the gate curve, every figure a call into `@craftabot/metrics`. The field is defaulted, so every stored report parses, and a campaign with no reader stage has an empty pane.
+- **The report version:** stays v4, since the change is additive.
+- **Markdown:** the scorecard renders a *Calibration* section.
+- **The Workbench:** the Campaigns screen mounts `CalibrationPane` beneath *Human load*.
+
+> **WP118 done 2026-09-30.**
+>
+> **DoD:**
+> - The branch's published figures are recomputed from its cassette to the same values ✓.
+> - The validation suite is green, with the four calibration rows in `docs/metrics.md` ✓.
+> - The pane is on the report and in the Workshop's campaign view ✓, rendered by a component test.
+> - **Not met: the pane on the visual pass.** The visual pass runs a campaign in the Workbench, and no configuration the Workbench ships names a reader. The shipped configurations stay as they were (§8), and adding one would move the Monitor's default and the journeys page. The shot lands with WP120's reader configurations on the servicing journey.
+>
+> **Diverged:**
+> - `100-…` put the calibration pane on "report v4" as if v4 were new. It was already v4 (WP112), and the pane is an additive, defaulted field.
+> - The answer key is a new optional `StageSpec` field. `100-…` never said where a reader's label comes from.
+>
+> **Budgets.** The main bundle is +20 kB (2,300,000) and the Worker +10 kB (1,190,000) for the calibration fold and the pane (`scripts/bundle-budget.mjs`). The build found them 7 kB and 2 kB over.
 
 ## 8. Stage notes
 

@@ -88,6 +88,14 @@ export interface StageSpec<In = unknown, Out = unknown> {
 	 * options found among the input's own fields.
 	 */
 	recommended?: (input: In, state: WorldState) => string | undefined;
+	/**
+	 * **The answer key** (WP118, `104-READERS.md` §9): the right answer to each
+	 * question a `reader` executor at this stage asks, read from the item's
+	 * truth — what a campaign scores the reader's answers against for its
+	 * calibration pane. Read by the scorer (`evals`) after the run, never by
+	 * the runtime, so no reader and no run record ever sees it.
+	 */
+	answerKey?: (truth: unknown) => Record<string, string> | undefined;
 	/** The stage's output read off the world once an agent or a line has done its work; a rule returns its own. */
 	read?: (state: WorldState, truth: unknown) => Out | undefined;
 	/** Which stage follows, or `'end'` — from this stage's output, the state and, when it matters, the input it was given. */

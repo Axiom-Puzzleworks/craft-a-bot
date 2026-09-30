@@ -1,5 +1,6 @@
 import type { DecidedCase, Decision, FlipCase } from '../fairness.js';
 import type { TouchedCase } from '../human-load.js';
+import type { CalibratedAnswer } from '../calibration.js';
 import { gaussian, mulberry32 } from '../random.js';
 
 /**
@@ -188,6 +189,34 @@ export function reviewedCases(
 			id: `r${i}`,
 			touches: [{ kind: 'human:review' }],
 			reviews: [{ seconds: seconds(), correct, ...(caught !== undefined ? { caught } : {}) }]
+		};
+	});
+}
+
+/**
+ * **A reader's answers** (WP118): two options, `a` chosen every time. The
+ * gate's confidence is uniform on [0, 1], so the probability on the choice is
+ * p = (1 + c)/2, and the choice is right with probability p − `gap`. A gap of
+ * 0 is a calibrated reader. `steered` of the answers carry a steer of 0.9.
+ */
+export function calibratedAnswers(
+	seed: number,
+	n: number,
+	options: { gap?: number; steered?: number } = {}
+): CalibratedAnswer[] {
+	const random = mulberry32(seed);
+	const gap = options.gap ?? 0;
+	return Array.from({ length: n }, () => {
+		const confidence = random();
+		const p = (1 + confidence) / 2;
+		const right = random() < p - gap;
+		const steered = options.steered !== undefined && random() < options.steered;
+		return {
+			choice: 'a',
+			label: right ? 'a' : 'b',
+			probabilities: { a: p, b: 1 - p },
+			confidence,
+			...(steered ? { steer: 0.9 } : {})
 		};
 	});
 }

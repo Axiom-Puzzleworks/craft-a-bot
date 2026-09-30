@@ -630,6 +630,27 @@ export const campaignCellSchema = z.object({
 			touches: z.array(z.string()),
 			decisions: z.array(z.object({ kind: z.string(), level: z.number().int().min(1).max(5) })),
 			breaches: z.number().int().nonnegative(),
+			/**
+			 * What each `reader` stage answered (WP118, `104-READERS.md` §9): one row
+			 * per choice question, with the answer key's label when the stage has
+			 * one — what the summary's calibration pane folds. Absent without a reader.
+			 */
+			readings: z
+				.array(
+					z.object({
+						stageId: z.string(),
+						questionId: z.string(),
+						readerId: z.string(),
+						model: z.string(),
+						choice: z.string(),
+						label: z.string().optional(),
+						probabilities: z.record(z.string(), z.number()),
+						confidence: z.number().nullable(),
+						steer: z.number().optional(),
+						gated: z.boolean()
+					})
+				)
+				.optional(),
 			/** The reviewer model's answers at the journey's human stages (WP115, `103-…` §6); absent without one. */
 			reviews: z
 				.array(
@@ -1508,6 +1529,7 @@ async function runBookCell(
 		const ceiling = ceilings[decision.kind];
 		return ceiling !== undefined && decision.level > ceiling;
 	}).length;
+	const readings = readingsOf(run, workflow, truth ?? item.truth);
 	const last = agentRuns.at(-1);
 	// A handed-off run did its part of the journey (WP102): a success of this cell; the target is another cell's or the clock's.
 	const outcome: RunOutcome =
@@ -1546,7 +1568,8 @@ async function runBookCell(
 			touches: touched.touches.map((touch) => touch.kind),
 			decisions: touched.decisions ?? [],
 			breaches,
-			...(touched.reviews ? { reviews: touched.reviews } : {})
+			...(touched.reviews ? { reviews: touched.reviews } : {}),
+			...(readings.length > 0 ? { readings } : {})
 		}
 	};
 	if (last) options.onTrace?.(scored, { events: last.events, spec: last.spec });
@@ -2835,4 +2858,36 @@ function bounds(atLeast: number | undefined, atMost: number | undefined, asRate 
 
 export function pct(value: number): string {
 	return `${Math.round(value * 100)}%`;
+}
+
+type Reading = NonNullable<NonNullable<CampaignCell['workflow']>['readings']>[number];
+
+/**
+ * **A run's readings** (WP118, `104-READERS.md` §9): each `reader` stage's
+ * choice answers, with the stage's answer key read from the case's truth —
+ * here, after the run, where the scorer reads truth and no reader does.
+ */
+export function readingsOf(run: WorkflowRun, workflow: WorkflowSpec, truth: unknown): Reading[] {
+	const readings: Reading[] = [];
+	for (const stage of run.stages) {
+		if (!stage.reader) continue;
+		const key = workflow.stages.find((spec) => spec.id === stage.stageId)?.answerKey?.(truth);
+		for (const [questionId, answer] of Object.entries(stage.reader.answers)) {
+			if (answer.type !== 'choice') continue;
+			const label = key?.[questionId];
+			readings.push({
+				stageId: stage.stageId,
+				questionId,
+				readerId: stage.reader.readerId,
+				model: stage.reader.model,
+				choice: answer.choice,
+				...(label !== undefined ? { label } : {}),
+				probabilities: answer.probabilities,
+				confidence: answer.confidence,
+				...(stage.reader.steer !== undefined ? { steer: stage.reader.steer } : {}),
+				gated: stage.reader.gated
+			});
+		}
+	}
+	return readings;
 }

@@ -60,6 +60,7 @@ export {
 	componentFitsFor,
 	egressForGuard,
 	prepareCampaign,
+	readingsOf,
 	runCampaign,
 	runCampaignCell,
 	shardCells,
@@ -177,6 +178,9 @@ export { chainPlans, noPlans, starterPlans, type PlanSource } from './plans.js';
 export {
 	campaignSummarySchema,
 	humanLoadRowSchema,
+	calibrationOf,
+	calibrationRowSchema,
+	type CalibrationRow,
 	fairnessRowSchema,
 	driftRowSchema,
 	fairnessRowsOf,

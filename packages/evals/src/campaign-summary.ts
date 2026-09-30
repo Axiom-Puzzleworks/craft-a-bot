@@ -1,5 +1,14 @@
 import type { ConfusionLabelSemantics } from '@craftabot/core';
-import { touchesPerCase, unattendedRate, wilson } from '@craftabot/metrics';
+import {
+	brierScore,
+	expectedCalibrationError,
+	gateCurve,
+	reliability,
+	touchesPerCase,
+	unattendedRate,
+	wilson,
+	type CalibratedAnswer
+} from '@craftabot/metrics';
 import { z } from 'zod';
 import type { CampaignCell, GateVerdict, GateWhere } from './campaign.js';
 
@@ -164,6 +173,54 @@ export const driftRowSchema = z.object({
 });
 export type DriftRow = z.infer<typeof driftRowSchema>;
 
+/**
+ * **The calibration pane** (WP118, `104-READERS.md` §9; `100-…` §6.3, G81):
+ * per build, brain, `reader` stage, question and reader, over the readings
+ * with a label — the accuracy, the expected calibration error over ten bins,
+ * the Brier score, the reliability table and the gate curve, every one a call
+ * into `@craftabot/metrics`. A rule reader states 1 on every answer, so its
+ * ECE is its error rate: the baseline the other readers are read against.
+ */
+const interval = z.tuple([z.number(), z.number()]);
+const rateRow = z.object({
+	k: z.number().int().nonnegative(),
+	n: z.number().int().nonnegative(),
+	value: z.number(),
+	interval
+});
+export const calibrationRowSchema = z.object({
+	build: z.string(),
+	brain: z.string(),
+	configuration: z.string().optional(),
+	stageId: z.string(),
+	questionId: z.string(),
+	readerId: z.string(),
+	model: z.string(),
+	/** Readings with a label; the rest are counted and left out. */
+	n: z.number().int().nonnegative(),
+	unlabelled: z.number().int().nonnegative(),
+	accuracy: rateRow,
+	ece: z.object({ value: z.number(), interval }),
+	brier: z.object({ value: z.number(), interval }),
+	reliability: z.array(
+		z.object({
+			from: z.number(),
+			to: z.number(),
+			n: z.number().int().nonnegative(),
+			meanProbability: z.number(),
+			accuracy: rateRow
+		})
+	),
+	gates: z.array(
+		z.object({
+			threshold: z.number(),
+			reviewed: rateRow,
+			residualAccuracy: rateRow
+		})
+	)
+});
+export type CalibrationRow = z.infer<typeof calibrationRowSchema>;
+
 export const campaignSummarySchema = z.object({
 	slices: z.array(campaignSliceSchema),
 	matrices: z.array(confusionMatrixSchema),
@@ -174,7 +231,9 @@ export const campaignSummarySchema = z.object({
 	humanLoad: z.array(humanLoadRowSchema).default([]),
 	/** The metric verdicts' statistics (WP82); empty on a report upgraded from v2, which never computed them. */
 	fairness: z.array(fairnessRowSchema).default([]),
-	drift: z.array(driftRowSchema).default([])
+	drift: z.array(driftRowSchema).default([]),
+	/** The calibration pane (WP118); empty on a campaign with no `reader` stage, and on every report before it. */
+	calibration: z.array(calibrationRowSchema).default([])
 });
 export type CampaignSummary = z.infer<typeof campaignSummarySchema>;
 
@@ -507,10 +566,115 @@ export function summariseCampaign(
 
 	const fairness = fairnessRowsOf(options.gates ?? []);
 	const drift = driftRowsOf(options.gates ?? []);
-	return { slices, matrices, cohorts, obligations, cases, humanLoad, fairness, drift };
+	return {
+		slices,
+		matrices,
+		cohorts,
+		obligations,
+		cases,
+		humanLoad,
+		fairness,
+		drift,
+		calibration: calibrationOf(cells)
+	};
 }
 
 function rank(tag: string): number {
 	const index = FIRST_TAGS.indexOf(tag);
 	return index === -1 ? FIRST_TAGS.length : index;
+}
+
+/** The calibration pane's rows (WP118), in a stable order: build, brain, stage, question, reader. */
+export function calibrationOf(cells: readonly CampaignCell[]): CalibrationRow[] {
+	type Entry = {
+		cell: CampaignCell;
+		reading: NonNullable<NonNullable<CampaignCell['workflow']>['readings']>[number];
+	};
+	const groups = new Map<string, Entry[]>();
+	for (const cell of cells) {
+		for (const reading of cell.workflow?.readings ?? []) {
+			const key = [
+				cell.build,
+				cell.brain,
+				reading.stageId,
+				reading.questionId,
+				reading.readerId
+			].join(' ');
+			const entries = groups.get(key) ?? [];
+			entries.push({ cell, reading });
+			groups.set(key, entries);
+		}
+	}
+	const round = (value: number) => Number(value.toFixed(6));
+	const roundRate = (rate: {
+		k: number;
+		n: number;
+		value: number;
+		interval: [number, number];
+	}) => ({
+		k: rate.k,
+		n: rate.n,
+		value: round(rate.value),
+		interval: [round(rate.interval[0]), round(rate.interval[1])] as [number, number]
+	});
+	return [...groups.entries()]
+		.sort(([a], [b]) => a.localeCompare(b))
+		.map(([, entries]) => {
+			const first = entries[0]!;
+			const answers: CalibratedAnswer[] = entries.flatMap(({ reading }) =>
+				reading.label === undefined
+					? []
+					: [
+							{
+								choice: reading.choice,
+								label: reading.label,
+								probabilities: reading.probabilities,
+								confidence: reading.confidence,
+								...(reading.steer !== undefined ? { steer: reading.steer } : {})
+							}
+						]
+			);
+			const right = answers.filter((answer) => answer.choice === answer.label).length;
+			const ece = expectedCalibrationError(answers);
+			const brier = brierScore(answers);
+			return {
+				build: first.cell.build,
+				brain: first.cell.brain,
+				...(first.cell.workflow?.configuration !== undefined
+					? { configuration: first.cell.workflow.configuration }
+					: {}),
+				stageId: first.reading.stageId,
+				questionId: first.reading.questionId,
+				readerId: first.reading.readerId,
+				model: first.reading.model,
+				n: answers.length,
+				unlabelled: entries.length - answers.length,
+				accuracy: roundRate({
+					k: right,
+					n: answers.length,
+					value: answers.length === 0 ? 0 : right / answers.length,
+					interval: wilson(right, answers.length)
+				}),
+				ece: {
+					value: round(ece.value),
+					interval: [round(ece.interval[0]), round(ece.interval[1])]
+				},
+				brier: {
+					value: round(brier.value),
+					interval: [round(brier.interval[0]), round(brier.interval[1])]
+				},
+				reliability: reliability(answers).map((bin) => ({
+					from: round(bin.from),
+					to: round(bin.to),
+					n: bin.n,
+					meanProbability: round(bin.meanProbability),
+					accuracy: roundRate(bin.accuracy)
+				})),
+				gates: gateCurve(answers).map((point) => ({
+					threshold: point.threshold,
+					reviewed: roundRate(point.reviewed),
+					residualAccuracy: roundRate(point.residualAccuracy)
+				}))
+			};
+		});
 }
