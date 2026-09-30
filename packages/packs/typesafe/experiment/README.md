@@ -809,3 +809,9 @@ A what-if price for the Spark's tokens can be applied without touching the data.
 On these corpora, the Sparks' 35B chat model **matches Jev on the request and trails it by 1–3 points on the need**, none of it significant. It is **faster than Jev per question** and better calibrated than the 122B.
 
 For this classifier on this hardware, the smaller model is the better choice than the larger one: as accurate or more on the request, less confidently wrong, and five times faster. Jev keeps the edge in calibration, the property that decides how safely a confidence gate can automate.
+
+> **Amended 2026-09-30 (WP119, `docs/design-day2/105-CORPORA.md` §7):**
+>
+> - **The corpora have moved.** The three corpora are content in `fs-servicing` (`src/corpora/`), with their guides, second labels, κ and the readers that have seen them. This pack's arrays are views of them, held to the freeze hashes in §4.4.
+> - **The eighth reference experiment.** The held-out design is now `servicing-readers`, with its result in `docs/evidence/servicing-readers/`.
+> - **This file's results are stale in two places.** They predate WP111's change to the servicing desk: the need is now recorded before the act, and a review is counted once. So `disclosure-recorded` and the gated `touches` differ from what the code gives today. The readings of the request and the need do not.

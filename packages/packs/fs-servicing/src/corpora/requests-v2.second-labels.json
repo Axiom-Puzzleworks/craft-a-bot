@@ -1,0 +1,825 @@
+{
+	"corpusId": "fs-servicing/corpus/requests-v2",
+	"corpusDigest": "1fc9602e3fd7bd256e06e8a7c194951b3e6852b4d02f68302572bd2dca6c743a",
+	"annotator": "second-labeller",
+	"blind": true,
+	"labels": [
+		{
+			"id": "v2a01",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2a02",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2a03",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2a04",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2a05",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2a06",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2a07",
+			"labels": {
+				"category": "address",
+				"need": "bereavement"
+			},
+			"note": "grandad died years ago; alt need none"
+		},
+		{
+			"id": "v2a08",
+			"labels": {
+				"category": "address",
+				"need": "job-loss"
+			}
+		},
+		{
+			"id": "v2a09",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2a10",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2a11",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2a12",
+			"labels": {
+				"category": "address",
+				"need": "health"
+			}
+		},
+		{
+			"id": "v2a13",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2a14",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2a15",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2a16",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2a17",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2a18",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2a19",
+			"labels": {
+				"category": "address",
+				"need": "health"
+			},
+			"note": "can't manage alone implies health/frailty; alt need none"
+		},
+		{
+			"id": "v2a20",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2a21",
+			"labels": {
+				"category": "address",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "v2a22",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2a23",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2a24",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2a25",
+			"labels": {
+				"category": "address",
+				"need": "health"
+			}
+		},
+		{
+			"id": "v2a26",
+			"labels": {
+				"category": "address",
+				"need": "job-loss"
+			}
+		},
+		{
+			"id": "v2c01",
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2c02",
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2c03",
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2c04",
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2c05",
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2c06",
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2c07",
+			"labels": {
+				"category": "card",
+				"need": "health"
+			}
+		},
+		{
+			"id": "v2c08",
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2c09",
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2c10",
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2c11",
+			"labels": {
+				"category": "card",
+				"need": "health"
+			}
+		},
+		{
+			"id": "v2c12",
+			"labels": {
+				"category": "card",
+				"need": "job-loss"
+			}
+		},
+		{
+			"id": "v2c13",
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2c14",
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2c15",
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2c16",
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2c17",
+			"labels": {
+				"category": "card",
+				"need": "health"
+			}
+		},
+		{
+			"id": "v2c18",
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2c19",
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2c20",
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2c21",
+			"labels": {
+				"category": "card",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "v2c22",
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2c23",
+			"labels": {
+				"category": "card",
+				"need": "health"
+			},
+			"note": "failing memory may be ordinary forgetfulness; alt need none"
+		},
+		{
+			"id": "v2c24",
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2c25",
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2t01",
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2t02",
+			"labels": {
+				"category": "third-party",
+				"need": "health"
+			}
+		},
+		{
+			"id": "v2t03",
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2t04",
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2t05",
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			},
+			"note": "having a carer implies a health need; alt need health"
+		},
+		{
+			"id": "v2t06",
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2t07",
+			"labels": {
+				"category": "third-party",
+				"need": "health"
+			}
+		},
+		{
+			"id": "v2t08",
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2t09",
+			"labels": {
+				"category": "third-party",
+				"need": "job-loss"
+			},
+			"note": "redundant but now employed abroad; alt need none"
+		},
+		{
+			"id": "v2t10",
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2t11",
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2t12",
+			"labels": {
+				"category": "third-party",
+				"need": "health"
+			},
+			"note": "operation is upcoming; alt need none"
+		},
+		{
+			"id": "v2t13",
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2t14",
+			"labels": {
+				"category": "third-party",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "v2t15",
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2t16",
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2t17",
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2t18",
+			"labels": {
+				"category": "third-party",
+				"need": "job-loss"
+			}
+		},
+		{
+			"id": "v2t19",
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2t20",
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2b01",
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "v2b02",
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "v2b03",
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "v2b04",
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "v2b05",
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "v2b06",
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "v2b07",
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "v2b08",
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "v2b09",
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "v2b10",
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			},
+			"note": "aunt may not be close; alt need none"
+		},
+		{
+			"id": "v2b11",
+			"labels": {
+				"category": "bereavement",
+				"need": "health"
+			},
+			"note": "father not yet dead; alt category disclosure"
+		},
+		{
+			"id": "v2b12",
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			},
+			"note": "also job-loss disclosed; alt need job-loss"
+		},
+		{
+			"id": "v2b13",
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "v2b14",
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "v2b15",
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "v2b16",
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "v2b17",
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "v2b18",
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "v2b19",
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "v2d01",
+			"labels": {
+				"category": "disclosure",
+				"need": "job-loss"
+			}
+		},
+		{
+			"id": "v2d02",
+			"labels": {
+				"category": "disclosure",
+				"need": "job-loss"
+			}
+		},
+		{
+			"id": "v2d03",
+			"labels": {
+				"category": "disclosure",
+				"need": "health"
+			}
+		},
+		{
+			"id": "v2d04",
+			"labels": {
+				"category": "disclosure",
+				"need": "health"
+			}
+		},
+		{
+			"id": "v2d05",
+			"labels": {
+				"category": "disclosure",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2d06",
+			"labels": {
+				"category": "disclosure",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2d07",
+			"labels": {
+				"category": "disclosure",
+				"need": "job-loss"
+			}
+		},
+		{
+			"id": "v2d08",
+			"labels": {
+				"category": "disclosure",
+				"need": "health"
+			}
+		},
+		{
+			"id": "v2d09",
+			"labels": {
+				"category": "disclosure",
+				"need": "health"
+			}
+		},
+		{
+			"id": "v2d10",
+			"labels": {
+				"category": "disclosure",
+				"need": "none"
+			},
+			"note": "old school friend could be a close friend; alt need bereavement"
+		},
+		{
+			"id": "v2d11",
+			"labels": {
+				"category": "disclosure",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "v2d12",
+			"labels": {
+				"category": "disclosure",
+				"need": "health"
+			}
+		},
+		{
+			"id": "v2d13",
+			"labels": {
+				"category": "disclosure",
+				"need": "job-loss"
+			}
+		},
+		{
+			"id": "v2d14",
+			"labels": {
+				"category": "disclosure",
+				"need": "job-loss"
+			}
+		},
+		{
+			"id": "v2d15",
+			"labels": {
+				"category": "disclosure",
+				"need": "none"
+			},
+			"note": "undergoing tests with no diagnosis; alt need health"
+		},
+		{
+			"id": "v2d16",
+			"labels": {
+				"category": "disclosure",
+				"need": "job-loss"
+			}
+		},
+		{
+			"id": "v2d17",
+			"labels": {
+				"category": "disclosure",
+				"need": "none"
+			},
+			"note": "hours halved is lost income from work; alt need job-loss"
+		},
+		{
+			"id": "v2d18",
+			"labels": {
+				"category": "disclosure",
+				"need": "health"
+			}
+		},
+		{
+			"id": "v2d19",
+			"labels": {
+				"category": "disclosure",
+				"need": "job-loss"
+			}
+		},
+		{
+			"id": "v2d20",
+			"labels": {
+				"category": "disclosure",
+				"need": "job-loss"
+			}
+		},
+		{
+			"id": "v2d21",
+			"labels": {
+				"category": "disclosure",
+				"need": "none"
+			}
+		},
+		{
+			"id": "v2d22",
+			"labels": {
+				"category": "disclosure",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "v2d23",
+			"labels": {
+				"category": "disclosure",
+				"need": "health"
+			}
+		},
+		{
+			"id": "v2d24",
+			"labels": {
+				"category": "disclosure",
+				"need": "health"
+			}
+		},
+		{
+			"id": "v2d25",
+			"labels": {
+				"category": "disclosure",
+				"need": "none"
+			}
+		}
+	]
+}

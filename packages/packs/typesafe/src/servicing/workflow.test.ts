@@ -2,13 +2,18 @@ import {
 	createPackRegistry,
 	workflowRunSchema,
 	type AgentSpec,
+	type Corpus,
 	type WorkItem,
 	type WorkflowRun
 } from '@craftabot/core';
 import { createTestClock } from '@craftabot/core/testing';
 import fsBankPack from '@craftabot/pack-fs-bank';
 import fsServicingPack, {
+	REQUESTS_V1_CORPUS_ID,
+	REQUESTS_V2_CORPUS_ID,
+	REQUESTS_V3_CORPUS_ID,
 	classificationOf,
+	servicingCorpus,
 	needIn,
 	servicingDesk
 } from '@craftabot/pack-fs-servicing';
@@ -59,6 +64,12 @@ const SPEC: AgentSpec = {
 
 const book = corpusBook({ seed: 1, size: 120 });
 const workflow = servicingJevWorkflow(corpusBook);
+/** The corpora as content (WP119): what the book draws from, by the version the tables name. */
+const CONTENT: Record<string, Corpus> = {
+	v1: servicingCorpus(REQUESTS_V1_CORPUS_ID),
+	v2: servicingCorpus(REQUESTS_V2_CORPUS_ID),
+	v3: servicingCorpus(REQUESTS_V3_CORPUS_ID)
+};
 const CORPORA: [string, readonly CorpusRow[]][] = [
 	['v1', SERVICING_CORPUS],
 	['v2', SERVICING_CORPUS_V2],
@@ -128,10 +139,10 @@ describe('the v2 and v3 corpora', () => {
 	});
 });
 
-describe.each(CORPORA)('the journey under the regex, corpus %s', (_version, corpus) => {
+describe.each(CORPORA)('the journey under the regex, corpus %s', (_version) => {
 	it('runs every row to completion and classifies as the regex reads it', async () => {
 		let ordinal = 0;
-		for (const item of corpusBook({ seed: 1, size: 120 }, corpus).items) {
+		for (const item of corpusBook({ seed: 1, size: 120 }, CONTENT[_version]!).items) {
 			const run = await runItem(item, 'regex', ordinal++);
 			// A bereavement read — right or wrong — closes the account and hands the estate to advice.
 			expect(FINISHED, `${item.id}: ${JSON.stringify(run.stages.at(-1))}`).toContain(
@@ -150,10 +161,10 @@ const recorded = jevLine.cassette?.entries.length ?? 0;
 
 describe.skipIf(recorded === 0).each(CORPORA)(
 	'the journey under Jev from the cassette, corpus %s',
-	(_version, corpus) => {
+	(_version) => {
 		it('runs every row with no network under both question sets, and the gate sends only unsure or steered rows to a person', async () => {
 			let ordinal = 0;
-			for (const item of corpusBook({ seed: 1, size: 120 }, corpus).items) {
+			for (const item of corpusBook({ seed: 1, size: 120 }, CONTENT[_version]!).items) {
 				const open = await runItem(item, 'jev', ordinal++);
 				expect(FINISHED, `${item.id}`).toContain(open.outcome);
 				const gated = await runItem(item, 'jev-gate-0.90', ordinal++);
@@ -180,10 +191,10 @@ const sparkRecorded = sparkClassifierLine.cassette?.entries.length ?? 0;
 
 describe.skipIf(sparkRecorded === 0).each(CORPORA)(
 	'the journey under the DGX Spark from its cassette, corpus %s',
-	(_version, corpus) => {
+	(_version) => {
 		it('runs every row with no network on the same questions, and gates it the same way', async () => {
 			let ordinal = 0;
-			for (const item of corpusBook({ seed: 1, size: 120 }, corpus).items) {
+			for (const item of corpusBook({ seed: 1, size: 120 }, CONTENT[_version]!).items) {
 				const open = await runItem(item, 'spark', ordinal++);
 				expect(FINISHED, `${item.id} spark`).toContain(open.outcome);
 				const read = open.stages.find((stage) => stage.stageId === 'classify')!;
@@ -209,10 +220,10 @@ const spark35Recorded =
 
 describe.skipIf(spark35Recorded === 0).each(CORPORA)(
 	'the journey under the Spark’s 35B chat model from its cassette, corpus %s',
-	(_version, corpus) => {
+	(_version) => {
 		it('runs every row with no network on the same questions, and gates it the same way', async () => {
 			let ordinal = 0;
-			for (const item of corpusBook({ seed: 1, size: 120 }, corpus).items) {
+			for (const item of corpusBook({ seed: 1, size: 120 }, CONTENT[_version]!).items) {
 				const open = await runItem(item, 'spark35', ordinal++);
 				expect(FINISHED, `${item.id} spark35`).toContain(open.outcome);
 				const read = open.stages.find((stage) => stage.stageId === 'classify')!;

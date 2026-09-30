@@ -11,5 +11,6 @@ Full-size runs on 2026-09-29 (`craftabot experiment run --egress none --jobs 4`)
 | `fraud-stack` | inconclusive | 8 | 6 | 0 | 2912 | 321 |
 | `advice-context` | not-supported | 8 | 4 | 2 | 92 | 28 |
 | `human-oversight` | not-supported | 30 | 12 | 16 | 783 | 211 |
+| `servicing-readers` (2026-09-30, WP119) | not-supported | 24 | 0 | 22 | 96 | 3 |
 
-A different machine gives the same effects and digests and a different wall time. CI runs the same designs at `--size 200`.
+`servicing-readers` replays Jev's recorded answers and runs one item per corpus row, so it is quick, and it needs `--config packages/packs/typesafe/craftabot.config.mjs`. A different machine gives the same effects and digests and a different wall time. CI runs the same designs at `--size 200`.

@@ -177,14 +177,15 @@ jobs:
           --out campaign-out/fs-advice-book --junit campaign-out/fs-advice-book/junit.xml
           --sarif campaign-out/fs-advice-book/results.sarif --markdown campaign-out/fs-advice-book/scorecard.md
 
-      # The reference experiments (WP90, `80-…` §4): every design under experiments/ at a reduced
+      # The reference experiments (WP90, `80-…` §4; the eighth, servicing-readers, since WP119 — hence the
+      # typesafe pack's --config, which adds that pack to the defaults and changes nothing the seven run): every design under experiments/ at a reduced
       # population, each reduced result held to the committed full-size one's shape — the same
       # metrics, factors and levels, a verdict from the same three — never its values.
       - name: Run the reference experiments (reduced)
         run: >
           for f in experiments/*.json; do
           id=$(basename "$f" .json);
-          npm run craftabot -- experiment run --file "$f" --size 200 --egress none --jobs 2
+          npm run craftabot -- experiment run --config packages/packs/typesafe/craftabot.config.mjs --file "$f" --size 200 --egress none --jobs 2
           --out "campaign-out/experiments/$id" || exit 1;
           mkdir -p "campaign-out/experiments-shape/$id";
           cp "campaign-out/experiments/$id/$id.experiment-result.json" "campaign-out/experiments-shape/$id/";

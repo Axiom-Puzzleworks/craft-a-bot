@@ -23,6 +23,10 @@ Every design now runs each factor under two tiers — its scripted one and the f
 - **Three designs record no effect that excludes zero, and why is the finding.** The fallible tier changes a decision's outcome and keeps the plan's reasons. No policy card on the lending or fraud desks checks an outcome against the rule, the context rung does not change a planted error, and the errors fall evenly across cohorts — so `lending-context`, `lending-fairness` and `fraud-stack` measure controls that cannot act on this kind of error. A card that checks the decision against the worksheet, or an error model that errs by cohort, would give them one; neither is built.
 - **`lending-stack`'s baseline moved from `rules-only` to `bot-everywhere`**: under `rules-only` no bot decides, so the stack was being measured where it had nothing to act on.
 
+## The eighth: the servicing readers (WP119)
+
+`servicing-readers/` is the Jev experiment's held-out design, run on the `fs-servicing/corpus/requests-v3` corpus through the whole servicing journey. It compares the bank's regex with Jev under the two question sets and behind two gates. Unlike the seven, it measures a *reader* against labels a second annotator agreed with, not a control on the bank's book, and it needs the optional typesafe pack (`--config`). Its README says what it shows and where the lab record is.
+
 ## Reproducing one
 
 ```bash

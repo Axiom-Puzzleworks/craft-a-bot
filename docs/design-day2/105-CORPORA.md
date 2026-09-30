@@ -143,3 +143,40 @@ v3 is `heldOut` against q2.
 > - The page is `/workshop/playground/corpora`, under the Playground's rail entry, not a rail entry of its own at `/workshop/corpora`. A new rail entry would redraw the rail on every Workshop screenshot.
 > - `freeze` parses the corpus but does not run `checkCorpus`: the CLI does not load a test kit. The pack's own test holds the rest.
 > - The single-annotator finding is its own function, `corpusFindings`, because the kit's issues carry no severity.
+
+> **WP119 stage C done 2026-09-30. WP119 is done.**
+>
+> **The corpora.** The three servicing corpora are content in `fs-servicing` (`src/corpora/requests-v{1,2,3}.corpus.json`, on the manifest as `SERVICING_CORPORA`):
+> - they are written from the branch's arrays by a one-off migration, with the guides in words;
+> - v3's steer is a label, drawn from its `steer` tag;
+> - `contested` carries the second labeller's alternatives;
+> - `seenBy` records Jev, the Spark 122B and the Spark 35B under q1 and q2, as the lab record says.
+>
+> The second-label files ship beside them in the `corpus label` format. `corpus agreement` over them gives the recorded κ: v2 1.00 / 0.92, v3 0.99 / 1.00 / 1.00 (`harness/src/corpora.test.ts`). Every disagreement falls on a row the author had marked contested. v1 carries the single-annotator finding, and v3 is held out from q2.
+>
+> **Nothing lost.** The typesafe pack's `SERVICING_CORPUS{,_V2,_V3}` are now views (`legacyRows`). They hash to the branch's freeze hashes (`corpus-migration.test.ts`). `corpusBook` takes a `Corpus` and stamps `Book.source.corpus`. The three Jev experiments run to the result digests pinned before the move (`experiment-identity.test.ts`), byte for byte.
+>
+> **The eighth reference experiment.**
+> - `experiments/servicing-readers.json` is v3's design, naming its corpus. Its full-size result is under `docs/evidence/servicing-readers/`, with a README.
+> - CI's reduced loop passes the typesafe pack's `--config` for all eight, and the reduced run holds the shape.
+> - The loop found two harness bugs, both fixed:
+>   - `experiment run --jobs` never handed its workers `--config` (`ExperimentRunOptions.configPath`);
+>   - a pool whose workers could not start rejected without ending them, so the process waited for ever (`cell-pool.test.ts`).
+>
+> **The harness's own test of the designs** (`reference-experiments.test.ts`) now loads the typesafe pack's config, as CI's loop does. The eighth design names no control, since it measures readers, not a control. `turbo.json` makes the harness's tests wait for the typesafe pack's build, which is not otherwise a dependency of the harness.
+>
+> **The sweep.** `checkSynthetic` now walks `corpora` directories too (it matched only `corpus`), and asserts the servicing corpora are among its files.
+>
+> **Budgets.** The main bundle is +70 kB (2,370,000) and the Worker +70 kB (1,260,000): the 306 rows ship in fs-servicing's desk chunk and ride into the Worker. For Andrew's reading.
+>
+> **DoD:**
+> - `checkCorpus`'s six refusals ✓.
+> - The held-out rule refuses a re-score and admits a regression ✓ (`evals/src/corpus-source.test.ts`).
+> - `corpus label` never shows a label ✓.
+> - A corpus book runs the servicing journey to the experiment result byte for byte ✓. This holds against the result today's code gave before the move, not the branch's committed file, which WP111 already moved (§7).
+> - The eighth experiment holds its shape ✓.
+>
+> **Not done:**
+> - The lab record stays in the typesafe pack beside its scripts, and the evidence folder's README points at it.
+> - No reader executor names a `questionSet` yet: the servicing journey's readers are still `line` executors until WP120, so the held-out rule has nothing to refuse on the shipped designs.
+> - The Supabase table's live checkpoint is not taken.

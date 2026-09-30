@@ -1,15 +1,18 @@
-import type { Book, BookRequest, WorkItem } from '@craftabot/core';
+import type { Book, BookRequest, Corpus, WorkItem } from '@craftabot/core';
 import { customerForTheDesk, population } from '@craftabot/pack-fs-bank';
 import {
+	REQUESTS_V1_CORPUS_ID,
+	servicingCorpus,
 	verdictFromFigures,
 	type ServiceRequest,
 	type ServicingItemPayload
 } from '@craftabot/pack-fs-servicing';
-import { SERVICING_CORPUS, type CorpusRow } from './corpus.js';
+import { legacyRows, type CorpusRow } from './corpus.js';
 
 /**
- * **The corpus as a book** (`98-JEV.md` §8): one servicing request per corpus
- * row, each from a population customer who is who they say they are, with
+ * **The corpus as a book** (`98-JEV.md` §8; WP119, `105-CORPORA.md` §7): one
+ * servicing request per row of a `fs-servicing` corpus, the book saying which
+ * corpus at which digest, each from a population customer who is who they say they are, with
  * the row's words as the request and the **row's labels as the truth**
  * (`ServicingItemPayload.label`). So the regex is scored against the label
  * and not against itself.
@@ -37,10 +40,11 @@ function requestFor(row: CorpusRow, given: ServiceRequest['given']): ServiceRequ
 
 export function corpusBook(
 	request: BookRequest,
-	corpus: readonly CorpusRow[] = SERVICING_CORPUS
+	corpus: Corpus = servicingCorpus(REQUESTS_V1_CORPUS_ID)
 ): Book {
 	const pop = population(request.seed, { size: request.size });
-	const items: WorkItem[] = corpus.map((row, index) => {
+	const rows: readonly CorpusRow[] = legacyRows(corpus);
+	const items: WorkItem[] = rows.map((row, index) => {
 		const entry = pop.customers[index % pop.customers.length]!;
 		const customer = customerForTheDesk(entry.customer);
 		const given = { name: customer.name.full, birthYear: customer.dateOfBirthYear };
@@ -87,6 +91,12 @@ export function corpusBook(
 		schemaVersion: 1,
 		kind: SERVICING_JEV_KIND,
 		items,
-		source: { populationDigest: pop.digest, seed: pop.seed, size: pop.options.size }
+		// WP119 (`105-CORPORA.md` §7): the corpus the book was drawn from, at the digest it was frozen at.
+		source: {
+			populationDigest: pop.digest,
+			seed: pop.seed,
+			size: pop.options.size,
+			corpus: { id: corpus.id, digest: corpus.digest }
+		}
 	};
 }

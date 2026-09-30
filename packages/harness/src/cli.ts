@@ -662,6 +662,8 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 					file,
 					out,
 					config: await configFrom(args),
+					// The pool's workers load the same packs (WP119: the eighth reference experiment needs the typesafe pack).
+					...(typeof args.flags['config'] === 'string' ? { configPath: args.flags['config'] } : {}),
 					credentials: credentialsFor(io),
 					principal: principalFor(io, args),
 					...(jobs !== undefined ? { jobs } : {}),

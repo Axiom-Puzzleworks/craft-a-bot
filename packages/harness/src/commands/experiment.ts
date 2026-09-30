@@ -33,6 +33,8 @@ export interface ExperimentRunOptions {
 	out: string;
 	jobs?: number;
 	config: HarnessConfig;
+	/** The `--config` path, for the `--jobs` pool's workers to load the same packs (WP119: the typesafe pack's experiments). */
+	configPath?: string;
 	credentials: CredentialSource;
 	now?: () => string;
 	newId?: () => string;
@@ -116,6 +118,7 @@ export async function experimentRun(options: ExperimentRunOptions): Promise<Expe
 			file: campaignFile,
 			out: options.out,
 			config: options.config,
+			...(options.configPath !== undefined ? { configPath: options.configPath } : {}),
 			credentials: options.credentials,
 			...(options.jobs !== undefined ? { jobs: options.jobs } : {}),
 			...(options.now ? { now: options.now } : {}),

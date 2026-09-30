@@ -1,4 +1,5 @@
 import { SERVICING_READERS } from './readers.js';
+import { SERVICING_CORPORA } from './corpora/index.js';
 import type { PackManifest } from '@craftabot/core';
 import { servicingPolicyCards } from './cards/policy.js';
 import { servicingControlMap } from './controls/rows.js';
@@ -58,7 +59,9 @@ export const fsServicingPack: PackManifest = {
 	controlMaps: [servicingControlMap],
 	workflows: [servicingWorkflow],
 	stacks: servicingStacks,
-	readers: SERVICING_READERS
+	readers: SERVICING_READERS,
+	// WP119 (`105-CORPORA.md` §7): the three labelled corpora of callers' words.
+	corpora: SERVICING_CORPORA
 };
 
 export default fsServicingPack;
@@ -159,3 +162,10 @@ export {
 	servicingPersona,
 	type ServicingPersonaId
 } from './personas.js';
+export {
+	REQUESTS_V1_CORPUS_ID,
+	REQUESTS_V2_CORPUS_ID,
+	REQUESTS_V3_CORPUS_ID,
+	SERVICING_CORPORA,
+	servicingCorpus
+} from './corpora/index.js';

@@ -79,7 +79,7 @@ const bookFrom = (corpus: Corpus | undefined, claim = corpus): Book => ({
 		customerId: `customer-${i}`,
 		arrivedAt: '2026-01-05T09:00:00.000Z',
 		payload: { state: row.state },
-		truth: { records: [], facts: { colour: row.labels['colour'] } }
+		truth: { records: [], facts: { colour: String(row.labels['colour']) } }
 	})),
 	source: {
 		populationDigest: 'test',

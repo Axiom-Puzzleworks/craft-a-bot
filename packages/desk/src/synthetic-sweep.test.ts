@@ -28,7 +28,15 @@ const SKIP_DIRS = new Set([
 	'build',
 	'.venv'
 ]);
-const FIXTURE_DIRS = new Set(['fixtures', 'baselines', 'cassettes', 'scenarios', 'corpus']);
+// `corpora` since WP119 (`105-CORPORA.md`): a pack's corpora as content.
+const FIXTURE_DIRS = new Set([
+	'fixtures',
+	'baselines',
+	'cassettes',
+	'scenarios',
+	'corpus',
+	'corpora'
+]);
 const EXTENSIONS = new Set(['.json', '.jsonl', '.md', '.ts']);
 
 function walk(dir: string, underFixtures: boolean, out: string[]): void {
@@ -63,6 +71,11 @@ describe('the synthetic sweep (hard rule 9)', () => {
 		expect(files.length).toBeGreaterThan(40);
 		expect(files.some((file) => file.path === 'campaigns/injection-baseline.json')).toBe(true);
 		expect(files.some((file) => file.path.startsWith('packages/core/src/fixtures/'))).toBe(true);
+		expect(
+			files.some(
+				(file) => file.path === 'packages/packs/fs-servicing/src/corpora/requests-v3.corpus.json'
+			)
+		).toBe(true);
 	});
 
 	it('every fixture, cassette, scenario, baseline, corpus and campaign file in the repo is synthetic', () => {
