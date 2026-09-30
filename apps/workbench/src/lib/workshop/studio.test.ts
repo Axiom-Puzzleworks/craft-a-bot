@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { GuardrailComponent, Stack } from '@craftabot/core';
+import { stackSchema, type GuardrailComponent, type Stack } from '@craftabot/core';
 import { parseCampaign } from '@craftabot/evals';
 import { compileStackLoop, stackBoundaryFits } from '@craftabot/governance';
 import { createRegistry } from '$lib/packs.js';
@@ -13,7 +13,9 @@ import {
 	renamed,
 	stackRecord,
 	stackTestCampaign,
-	unfit
+	unfit,
+	gateCommand,
+	gateStackFile
 } from './studio.js';
 
 /**
@@ -235,5 +237,36 @@ describe('the bench’s counterpart (WP110, GAP-5)', () => {
 			stacks: [stack]
 		}) as { counterpart?: unknown };
 		expect(plain.counterpart).toBeUndefined();
+	});
+});
+
+describe('Use in… the Gate (WP127)', () => {
+	it('writes the saved record the Gate reads, and the command that serves it in shadow', () => {
+		const stack = {
+			schemaVersion: 1 as const,
+			id: 'local/stack/my-guard',
+			name: 'My guard',
+			description: 'A test.',
+			fit: [
+				{
+					componentId: 'governance/step-budget',
+					config: { maxTicks: 5 },
+					point: { kind: 'pre-think' as const }
+				}
+			],
+			provenance: {
+				author: { kind: 'person' as const, id: 'me' },
+				createdAt: '2026-09-30T00:00:00.000Z'
+			}
+		};
+		const file = gateStackFile(stack, '2026-09-30T10:00:00.000Z');
+		expect(file.fileName).toBe('local-stack-my-guard.stack.json');
+		// The Gate's loader reads a saved record's `record` as the stack (`packages/gate/src/stack-file.ts`).
+		const saved = JSON.parse(file.text) as { kind: string; record: unknown };
+		expect(saved.kind).toBe('stack');
+		expect(stackSchema.parse(saved.record)).toEqual(stack);
+		expect(gateCommand(file.fileName)).toBe(
+			'CRAFTABOT_GATE_UPSTREAM_KEY=… npm run craftabot -- gate serve --stack local-stack-my-guard.stack.json --upstream https://api.openai.com/v1 --mode shadow'
+		);
 	});
 });

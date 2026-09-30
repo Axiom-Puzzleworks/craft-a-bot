@@ -101,3 +101,47 @@ The Gate is an HTTP server in front of one upstream model. It speaks the OpenAI 
 - a Workbench screen for the Gate beyond the Studio's *Use in…*, which writes the stack file and the command line.
 
 ## 8. Stage notes
+
+> **WP127 stage B done 2026-09-30.**
+> - **`packages/gate`** (Node only; `core` and `governance`, no pack):
+>   - the wire mapping (`wire.ts`);
+>   - the five presets and their card as `GATE_CONTENT`;
+>   - the stack-file loader, which takes a stack or one the Studio saved;
+>   - `createGate`: the three chains, shadow and enforce, the approval round-trip, the events on an `EventBus` a sink attaches to, the trace file with its digest, and the egress guard with one host;
+>   - `serveGate`, which binds loopback unless `allowRemote` is set.
+> - **The harness:** `craftabot gate serve | approve | deny`.
+> - **Tests:**
+>   - each verdict's wire effect in `enforce` and its absence in `shadow`, for `block-action`, `stop-run`, `pause`, `redact` and `annotate`;
+>   - the approval approved and denied;
+>   - the key only in the upstream's `Authorization`;
+>   - egress refusing every host but the upstream's;
+>   - the bind;
+>   - marking and taint over tool messages;
+>   - a preset served in front of a real upstream port, with the file sink's output swept for the key.
+>
+> **Diverged:** a call through the Gate is framed as an *action*, not a tool (§2's amended row). Approval mode and the action blocklist only act on actions, and a call behind the Gate reaches the world.
+
+> **WP127 stage C done 2026-09-30. WP127 is done.**
+>
+> **The identity test** (`harness/src/gate-identity.test.ts`, on every push). The Playroom's tidy-the-blocks run goes through a session over the mock provider, then through the Gate on a port in front of an upstream on another port that answers each turn as the mock did. The `guardrail.checked` sequences are equal for the five presets and the Studio-built fixture (`packages/gate/fixtures/studio-stack.json`). Each case's coverage is pinned, so no case can go quietly trivial:
+>
+> | Stack | Checks | Verdicts | Hooks |
+> |---|---|---|---|
+> | budgets | 7 | allow, stop-run | pre-think |
+> | policy card | 15 | allow, stop-run | pre-think, pre-act |
+> | approval | 10 | pause | pre-act |
+> | injection defences | 20 | allow, annotate | pre-act, post-act |
+> | quarantined reader | 20 | allow, annotate | pre-act, post-act |
+> | the Studio's | 30 | allow, annotate | all three |
+>
+> **The Studio.** *Use in… the Gate* downloads the stack file the Gate reads, and shows the line that serves it in `shadow` (`gateStackFile`, `gateCommand`; `e2e/studio.spec.ts`).
+>
+> **DoD:** met.
+> - The identity test is green on every push.
+> - Each verdict's wire effect shows in `enforce` and is absent in `shadow`.
+> - `pause` round-trips.
+> - The key-leak sweep covers the Gate's trace, headers and sink.
+> - The egress guard refuses any host but the upstream.
+> - A non-loopback bind needs the flag.
+>
+> **Found on the way:** another project's `vite preview` held port 4173 on this machine. The e2e runs used a local, uncommitted config on 4273.

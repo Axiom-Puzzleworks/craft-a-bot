@@ -76,3 +76,19 @@ test('the Guard Rack is the Connections tab, and the old address forwards', asyn
 	await page.getByTestId('studio-tab-studio').click();
 	await expect(page.getByTestId('studio-catalogue')).toBeVisible();
 });
+
+// WP127 (`107-THE-GATE.md` §1): Use in… the Gate downloads the stack file the Gate reads and names the command.
+test('Use in… the Gate downloads the stack file and shows the command that serves it', async ({
+	page
+}) => {
+	await page.goto('/workshop/studio?stack=fs-lending%2Fstack%2Fpolicy-cards');
+	await expect(page.getByTestId('studio-page')).toBeVisible();
+	const download = page.waitForEvent('download');
+	await page.getByTestId('studio-use-gate').click();
+	const file = await download;
+	expect(file.suggestedFilename()).toMatch(/\.stack\.json$/);
+	await expect(page.getByTestId('studio-gate-command')).toContainText(
+		'npm run craftabot -- gate serve --stack'
+	);
+	await expect(page.getByTestId('studio-gate-command')).toContainText('--mode shadow');
+});

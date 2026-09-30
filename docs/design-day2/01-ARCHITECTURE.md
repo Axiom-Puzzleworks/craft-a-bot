@@ -191,3 +191,5 @@ V1 needs none. The first features that will genuinely require one: sharing kit f
 > **Amended 2026-09-10 (WP79).** The simulator edition's budget moves +10 kB to 1.48 MB (`edition.ts`): `core` carries the workflow types, the run record schema and the two events every edition ships, and CI's Linux build landed 3 kB over on the day.
 >
 > **Amended 2026-09-06 (WP69, `59-EDITIONS.md` §4.2).** The budget is per build (WP56) and now per edition: `full` keeps its limit; `simulator`, `workshop` and `playground` carry their own in `edition.ts`, each checked by `npm run build:editions` and CI's `editions` job.
+
+> **Amended 2026-09-30 (WP127, `107-THE-GATE.md`).** A new Node-only package, **`@craftabot/gate`**. It depends on `core` and `governance` and on no pack, and nothing in `apps/workbench` imports it. The harness runs it as `craftabot gate`.
