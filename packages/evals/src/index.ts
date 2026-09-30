@@ -264,3 +264,4 @@ export {
 	type ExperimentTemplate,
 	type LevelCombination
 } from './experiment.js';
+export { scoreReader, type ReaderScore, type ScoreReaderOptions } from './corpus-score.js';

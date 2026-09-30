@@ -104,9 +104,17 @@
 											"travel",
 											"online-marketplace"
 										],
-										"devices": ["app on the usual phone", "web on the usual laptop"],
-										"countries": ["United Kingdom"],
-										"payees": ["Vera Nightingale", "Elio Eastwood"]
+										"devices": [
+											"app on the usual phone",
+											"web on the usual laptop"
+										],
+										"countries": [
+											"United Kingdom"
+										],
+										"payees": [
+											"Vera Nightingale",
+											"Elio Eastwood"
+										]
 									},
 									"iban": "GB00 CABX 9996 2702 2808 79"
 								},
@@ -122,10 +130,22 @@
 									"baseline": {
 										"typicalMonthlySpend": 100,
 										"typicalTransaction": 5,
-										"merchantCategories": ["groceries", "fuel", "utilities", "online-marketplace"],
-										"devices": ["app on the usual phone", "web on the usual laptop"],
-										"countries": ["United Kingdom"],
-										"payees": ["Elio Fenwick"]
+										"merchantCategories": [
+											"groceries",
+											"fuel",
+											"utilities",
+											"online-marketplace"
+										],
+										"devices": [
+											"app on the usual phone",
+											"web on the usual laptop"
+										],
+										"countries": [
+											"United Kingdom"
+										],
+										"payees": [
+											"Elio Fenwick"
+										]
 									},
 									"interestRateBps": 150
 								},
@@ -148,9 +168,16 @@
 											"travel",
 											"online-marketplace"
 										],
-										"devices": ["app on the usual phone"],
-										"countries": ["United Kingdom"],
-										"payees": ["Sol Stonebridge", "Fenna Nightingale"]
+										"devices": [
+											"app on the usual phone"
+										],
+										"countries": [
+											"United Kingdom"
+										],
+										"payees": [
+											"Sol Stonebridge",
+											"Fenna Nightingale"
+										]
 									},
 									"pan": "4282 0760 3394 1271",
 									"creditLimit": 1000,
@@ -317,7 +344,9 @@
 					"digest": "9763b975f4499a18cc9bdf8fbf23d6e7c799fdd36ba7d0729828cff1195c67f0",
 					"value": {
 						"outcome": "decline",
-						"reasons": ["disposable-low"]
+						"reasons": [
+							"disposable-low"
+						]
 					}
 				},
 				"guards": {
@@ -337,7 +366,9 @@
 					"digest": "9763b975f4499a18cc9bdf8fbf23d6e7c799fdd36ba7d0729828cff1195c67f0",
 					"value": {
 						"outcome": "decline",
-						"reasons": ["disposable-low"]
+						"reasons": [
+							"disposable-low"
+						]
 					}
 				},
 				"startedTick": 6,
@@ -347,7 +378,9 @@
 					"digest": "9763b975f4499a18cc9bdf8fbf23d6e7c799fdd36ba7d0729828cff1195c67f0",
 					"value": {
 						"outcome": "decline",
-						"reasons": ["disposable-low"]
+						"reasons": [
+							"disposable-low"
+						]
 					}
 				},
 				"guards": {
@@ -367,7 +400,9 @@
 					"digest": "9763b975f4499a18cc9bdf8fbf23d6e7c799fdd36ba7d0729828cff1195c67f0",
 					"value": {
 						"outcome": "decline",
-						"reasons": ["disposable-low"]
+						"reasons": [
+							"disposable-low"
+						]
 					}
 				},
 				"startedTick": 0,
@@ -376,7 +411,9 @@
 				"output": {
 					"digest": "516efcf618461e5ea27f05a15d81d8add030d44142114b86d10c14a096f68499",
 					"value": {
-						"reasons": ["disposable-low"],
+						"reasons": [
+							"disposable-low"
+						],
 						"text": "Your application is declined: the repayment would take more than the disposable income."
 					}
 				},
@@ -392,12 +429,18 @@
 				"executor": {
 					"kind": "human",
 					"prompt": "Confirm the decision as it stands, return it for another look, or overturn it.",
-					"options": ["confirm", "return", "overturn"]
+					"options": [
+						"confirm",
+						"return",
+						"overturn"
+					]
 				},
 				"input": {
 					"digest": "516efcf618461e5ea27f05a15d81d8add030d44142114b86d10c14a096f68499",
 					"value": {
-						"reasons": ["disposable-low"],
+						"reasons": [
+							"disposable-low"
+						],
 						"text": "Your application is declined: the repayment would take more than the disposable income."
 					}
 				},
@@ -515,9 +558,17 @@
 												"travel",
 												"online-marketplace"
 											],
-											"devices": ["app on the usual phone", "web on the usual laptop"],
-											"countries": ["United Kingdom"],
-											"payees": ["Vera Nightingale", "Elio Eastwood"]
+											"devices": [
+												"app on the usual phone",
+												"web on the usual laptop"
+											],
+											"countries": [
+												"United Kingdom"
+											],
+											"payees": [
+												"Vera Nightingale",
+												"Elio Eastwood"
+											]
 										},
 										"iban": "GB00 CABX 9996 2702 2808 79"
 									},
@@ -539,9 +590,16 @@
 												"utilities",
 												"online-marketplace"
 											],
-											"devices": ["app on the usual phone", "web on the usual laptop"],
-											"countries": ["United Kingdom"],
-											"payees": ["Elio Fenwick"]
+											"devices": [
+												"app on the usual phone",
+												"web on the usual laptop"
+											],
+											"countries": [
+												"United Kingdom"
+											],
+											"payees": [
+												"Elio Fenwick"
+											]
 										},
 										"interestRateBps": 150
 									},
@@ -564,9 +622,16 @@
 												"travel",
 												"online-marketplace"
 											],
-											"devices": ["app on the usual phone"],
-											"countries": ["United Kingdom"],
-											"payees": ["Sol Stonebridge", "Fenna Nightingale"]
+											"devices": [
+												"app on the usual phone"
+											],
+											"countries": [
+												"United Kingdom"
+											],
+											"payees": [
+												"Sol Stonebridge",
+												"Fenna Nightingale"
+											]
 										},
 										"pan": "4282 0760 3394 1271",
 										"creditLimit": 1000,
@@ -699,7 +764,9 @@
 						"digest": "9763b975f4499a18cc9bdf8fbf23d6e7c799fdd36ba7d0729828cff1195c67f0",
 						"value": {
 							"outcome": "decline",
-							"reasons": ["disposable-low"]
+							"reasons": [
+								"disposable-low"
+							]
 						}
 					}
 				}
@@ -718,7 +785,9 @@
 						"digest": "9763b975f4499a18cc9bdf8fbf23d6e7c799fdd36ba7d0729828cff1195c67f0",
 						"value": {
 							"outcome": "decline",
-							"reasons": ["disposable-low"]
+							"reasons": [
+								"disposable-low"
+							]
 						}
 					},
 					"status": "ok",
@@ -742,7 +811,9 @@
 					"input": {
 						"digest": "516efcf618461e5ea27f05a15d81d8add030d44142114b86d10c14a096f68499",
 						"value": {
-							"reasons": ["disposable-low"],
+							"reasons": [
+								"disposable-low"
+							],
 							"text": "Your application is declined: the repayment would take more than the disposable income."
 						}
 					}
@@ -760,7 +831,9 @@
 						"kind": "action",
 						"name": "four-eyes",
 						"arguments": {
-							"reasons": ["disposable-low"],
+							"reasons": [
+								"disposable-low"
+							],
 							"text": "Your application is declined: the repayment would take more than the disposable income."
 						}
 					},
@@ -883,9 +956,17 @@
 								"travel",
 								"online-marketplace"
 							],
-							"devices": ["app on the usual phone", "web on the usual laptop"],
-							"countries": ["United Kingdom"],
-							"payees": ["Vera Nightingale", "Elio Eastwood"]
+							"devices": [
+								"app on the usual phone",
+								"web on the usual laptop"
+							],
+							"countries": [
+								"United Kingdom"
+							],
+							"payees": [
+								"Vera Nightingale",
+								"Elio Eastwood"
+							]
 						},
 						"iban": "GB00 CABX 9996 2702 2808 79"
 					},
@@ -901,10 +982,22 @@
 						"baseline": {
 							"typicalMonthlySpend": 100,
 							"typicalTransaction": 5,
-							"merchantCategories": ["groceries", "fuel", "utilities", "online-marketplace"],
-							"devices": ["app on the usual phone", "web on the usual laptop"],
-							"countries": ["United Kingdom"],
-							"payees": ["Elio Fenwick"]
+							"merchantCategories": [
+								"groceries",
+								"fuel",
+								"utilities",
+								"online-marketplace"
+							],
+							"devices": [
+								"app on the usual phone",
+								"web on the usual laptop"
+							],
+							"countries": [
+								"United Kingdom"
+							],
+							"payees": [
+								"Elio Fenwick"
+							]
 						},
 						"interestRateBps": 150
 					},
@@ -927,9 +1020,16 @@
 								"travel",
 								"online-marketplace"
 							],
-							"devices": ["app on the usual phone"],
-							"countries": ["United Kingdom"],
-							"payees": ["Sol Stonebridge", "Fenna Nightingale"]
+							"devices": [
+								"app on the usual phone"
+							],
+							"countries": [
+								"United Kingdom"
+							],
+							"payees": [
+								"Sol Stonebridge",
+								"Fenna Nightingale"
+							]
 						},
 						"pan": "4282 0760 3394 1271",
 						"creditLimit": 1000,

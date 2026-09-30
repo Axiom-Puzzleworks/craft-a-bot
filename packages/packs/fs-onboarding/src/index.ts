@@ -1,3 +1,4 @@
+import { PURPOSE_CORPUS } from './corpora/index.js';
 import { PURPOSE_READER } from './words-reader.js';
 import type { PackManifest } from '@craftabot/core';
 import { onboardingPolicyCards } from './cards/policy.js';
@@ -58,7 +59,9 @@ export const fsOnboardingPack: PackManifest = {
 	workflows: [onboardingWorkflow],
 	stacks: onboardingStacks,
 	// WP121 (`105-CORPORA.md` §9): the keyword rule over the words, the baseline on the desk's corpus.
-	readers: [PURPOSE_READER]
+	readers: [PURPOSE_READER],
+	// WP121 (`105-CORPORA.md` §9): the desk's labelled corpus, blind-labelled and held out.
+	corpora: [PURPOSE_CORPUS]
 };
 
 export default fsOnboardingPack;
@@ -163,3 +166,4 @@ export {
 	PURPOSE_READER,
 	PURPOSE_READER_ID
 } from './words-reader.js';
+export { PURPOSE_CORPUS, PURPOSE_CORPUS_ID } from './corpora/index.js';

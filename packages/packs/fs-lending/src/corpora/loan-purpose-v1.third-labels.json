@@ -1,0 +1,611 @@
+{
+	"corpusId": "fs-lending/corpus/loan-purpose-v1",
+	"corpusDigest": "dbd8de207d4a9e554171b6b72e2a97a44092c2c5c80d30ebcb0e8d5a0dea7aae",
+	"annotator": "third-labeller",
+	"blind": true,
+	"labels": [
+		{
+			"id": "l001",
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l002",
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l003",
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l004",
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l005",
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l006",
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l007",
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l008",
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l009",
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l010",
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l011",
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l012",
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l013",
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l014",
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l015",
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l016",
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l017",
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l018",
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l019",
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l020",
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l021",
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l022",
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l023",
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l024",
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l025",
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l026",
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l027",
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l028",
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l029",
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l030",
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l031",
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l032",
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l033",
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l034",
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l035",
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l036",
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l037",
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l038",
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l039",
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l040",
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l041",
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l042",
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l043",
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l044",
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l045",
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l046",
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l047",
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l048",
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l049",
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l050",
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l051",
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l052",
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l053",
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l054",
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l055",
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l056",
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l057",
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l058",
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l059",
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l060",
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l061",
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l062",
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l063",
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l064",
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l065",
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l066",
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l067",
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l068",
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l069",
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l070",
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l071",
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l072",
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l073",
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l074",
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l075",
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l076",
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l077",
+			"labels": {
+				"purpose": "holiday"
+			},
+			"note": "vague journey statement, could be other"
+		},
+		{
+			"id": "l078",
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l079",
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l080",
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l081",
+			"labels": {
+				"purpose": "other"
+			}
+		},
+		{
+			"id": "l082",
+			"labels": {
+				"purpose": "other"
+			}
+		},
+		{
+			"id": "l083",
+			"labels": {
+				"purpose": "other"
+			}
+		},
+		{
+			"id": "l084",
+			"labels": {
+				"purpose": "other"
+			}
+		},
+		{
+			"id": "l085",
+			"labels": {
+				"purpose": "other"
+			}
+		},
+		{
+			"id": "l086",
+			"labels": {
+				"purpose": "other"
+			}
+		},
+		{
+			"id": "l087",
+			"labels": {
+				"purpose": "other"
+			}
+		},
+		{
+			"id": "l088",
+			"labels": {
+				"purpose": "other"
+			}
+		},
+		{
+			"id": "l089",
+			"labels": {
+				"purpose": "home-improvement"
+			},
+			"note": "could be other for hobby/equipment, but describes home renovation"
+		},
+		{
+			"id": "l090",
+			"labels": {
+				"purpose": "other"
+			}
+		},
+		{
+			"id": "l091",
+			"labels": {
+				"purpose": "other"
+			}
+		},
+		{
+			"id": "l092",
+			"labels": {
+				"purpose": "other"
+			}
+		},
+		{
+			"id": "l093",
+			"labels": {
+				"purpose": "other"
+			}
+		},
+		{
+			"id": "l094",
+			"labels": {
+				"purpose": "other"
+			}
+		},
+		{
+			"id": "l095",
+			"labels": {
+				"purpose": "other"
+			}
+		},
+		{
+			"id": "l096",
+			"labels": {
+				"purpose": "other"
+			},
+			"note": "could be holiday for honeymoon portion, but wedding is mentioned as primary"
+		},
+		{
+			"id": "l097",
+			"labels": {
+				"purpose": "other"
+			}
+		},
+		{
+			"id": "l098",
+			"labels": {
+				"purpose": "other"
+			}
+		},
+		{
+			"id": "l099",
+			"labels": {
+				"purpose": "other"
+			}
+		},
+		{
+			"id": "l100",
+			"labels": {
+				"purpose": "other"
+			}
+		}
+	]
+}

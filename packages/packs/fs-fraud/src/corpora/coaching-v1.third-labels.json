@@ -1,0 +1,610 @@
+{
+	"corpusId": "fs-fraud/corpus/coaching-v1",
+	"corpusDigest": "df19622db1561ce3ac8a6ca7a009c65219d1d2bd2ca07bb24c1299b7551e9254",
+	"annotator": "third-labeller",
+	"blind": true,
+	"labels": [
+		{
+			"id": "f001",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f002",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f003",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f004",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f005",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f006",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f007",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f008",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f009",
+			"labels": {
+				"coached": "yes"
+			},
+			"note": "possibly legitimate bank security"
+		},
+		{
+			"id": "f010",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f011",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f012",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f013",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f014",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f015",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f016",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f017",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f018",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f019",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f020",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f021",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f022",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f023",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f024",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f025",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f026",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f027",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f028",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f029",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f030",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f031",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f032",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f033",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f034",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f035",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f036",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f037",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f038",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f039",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f040",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f041",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f042",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f043",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f044",
+			"labels": {
+				"coached": "yes"
+			},
+			"note": "possibly scammer impersonating regulator"
+		},
+		{
+			"id": "f045",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f046",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f047",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f048",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f049",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f050",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f051",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f052",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f053",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f054",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f055",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f056",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f057",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f058",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f059",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f060",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f061",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f062",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f063",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f064",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f065",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f066",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f067",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f068",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f069",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f070",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f071",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f072",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f073",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f074",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f075",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f076",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f077",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f078",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f079",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f080",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f081",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f082",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f083",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f084",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f085",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f086",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f087",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f088",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f089",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f090",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f091",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f092",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f093",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f094",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f095",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f096",
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f097",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f098",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f099",
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f100",
+			"labels": {
+				"coached": "no"
+			}
+		}
+	]
+}

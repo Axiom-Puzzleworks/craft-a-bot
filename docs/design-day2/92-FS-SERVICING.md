@@ -92,3 +92,10 @@ Five configurations: `rules-only`, `bot-identifies-only` (2), `bot-recommends` (
 > **2026-09-12.** Built in one pass: `DomainSpec` in core and the bank's spec; `callFrom` on the testing seam; the bank's purpose, ledger writes; the pack — rules, cases, desk, three personas, decks, cards, evaluators, rows, ceilings, book, workflow with two handoffs and five configurations, two campaigns, stacks through `deskStacks`; the tests above; the harness, the Worker, the editions, the plan chains, the seven-desk bank day, CI; the journeys page's matrix, the desk's page and the e2e routes; the eighth journey's snapshots; the manual's §44.2. The three rows and the spec's sources are for Andrew's reading, marked `unreviewed`.
 
 > **Amended 2026-09-29 (WP111, `102-HONEST-BANK.md` §3–§4):** the truth's category is the author's label — each case profile and each request of the book's cycle carries it, and a book item writes it to `payload.label` — never `classificationOf` over the words; an unlabelled item still falls back to the rule, and `checkDesk`'s truth-independence property shows that path for what it is. The journey runs **verify → record → act**, so a need disclosed alongside a request is on the file before anything is done (`98-…` §9 finding 1); `record`, `act` and `close` name their possible next stages in `mayGoTo` for the drawing. `classified-correctly` now scores against the label.
+
+> **Amended 2026-09-30 (WP121, `105-CORPORA.md` §9):** the desk's rule readers on its three corpora.
+> - **The request:** `fs-servicing/reader/category` reads 51/95 (53.7%, v1), 64/115 (55.7%, v2) and 61/96 (63.5%, v3).
+> - **The support need:** `fs-servicing/reader/support-need` reads 59/95 (62.1%), 68/115 (59.1%) and 58/96 (60.4%).
+> - **Agreement with the branch:** these are the branch's published figures (`98-…` §9–§11).
+> - **The v1 corpus:** it has its blind second and third labellers now (κ 1.00/1.00 and 1.00/0.97), so no servicing corpus carries the single-annotator finding.
+> - **Where it is held:** `harness/src/desk-corpora.test.ts`.

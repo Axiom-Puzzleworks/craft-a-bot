@@ -188,3 +188,9 @@ One `random` per layout; the finances of the pair are a template; the verdict is
 > **Amended 2026-09-06 (WP72, `61-LAST-DECKS.md` §4.3).** An *operational-incident* deck: `fs-lending/incident-decline` on the clear-decline layout, a scenario with `provider-fault { atTick: 2 }`, the plain sentence after the verification and then the file as ever; the Fallback card on every card stack of the baseline, a `told-plainly` gate per stack.
 
 > **Amended 2026-09-29 (WP111, `102-HONEST-BANK.md` §5):** the verdict leaves are derived from `decision-v1` (the ratio from `affordability-v1`) and declared so on the desk's spec; `decision-matches-rules` carries `derivedFrom: 'decision-v1'`. The independent outcome is the book's performance label, which nothing but the fairness fold reads yet — what WP115–WP116 score a fallible lender against.
+
+> **Amended 2026-09-30 (WP121, `105-CORPORA.md` §9):** the desk's corpus.
+> - **The corpus:** `fs-lending/corpus/loan-purpose-v1`, a hundred rows of an applicant on what the loan is for. It is written after its question set was frozen, so it is held out from it, and blind-labelled twice (κ 1.00 and 0.99 for the same model and for another).
+> - **The regex baseline:** the keyword rule `fs-lending/reader/loan-purpose-words` (`purpose`), the desk's first rule over words reads **43/100 (43.0%, 33.7–52.8%)** of it right. The LLM contract's keyword stand-in reads 30/100.
+> - **What that measures:** The corpus was written to test the rule — a third of it paraphrase and trap — so this is the rule's accuracy on words chosen to break it, not on the desk's traffic.
+> - **Where it is held:** `harness/src/desk-corpora.test.ts`.

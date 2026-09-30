@@ -1,3 +1,4 @@
+import { COACHING_CORPUS } from './corpora/index.js';
 import { COACHING_READER } from './words-reader.js';
 import type { PackManifest } from '@craftabot/core';
 import { fraudControlMap } from './controls/rows.js';
@@ -51,7 +52,9 @@ export const fsFraudPack: PackManifest = {
 	// The alert journey (WP85, `76-FRAUD-AND-ADVICE-WORKFLOWS.md` §3).
 	workflows: [fraudWorkflow],
 	// WP121 (`105-CORPORA.md` §9): the keyword rule over the words, the baseline on the desk's corpus.
-	readers: [COACHING_READER]
+	readers: [COACHING_READER],
+	// WP121 (`105-CORPORA.md` §9): the desk's labelled corpus, blind-labelled and held out.
+	corpora: [COACHING_CORPUS]
 };
 
 export default fsFraudPack;
@@ -149,3 +152,4 @@ export {
 	COACHING_READER,
 	COACHING_READER_ID
 } from './words-reader.js';
+export { COACHING_CORPUS, COACHING_CORPUS_ID } from './corpora/index.js';

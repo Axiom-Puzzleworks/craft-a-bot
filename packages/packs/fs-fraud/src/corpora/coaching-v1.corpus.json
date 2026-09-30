@@ -1,0 +1,875 @@
+{
+	"id": "fs-fraud/corpus/coaching-v1",
+	"name": "Held-payment calls, in the customer’s words",
+	"version": "1",
+	"stateKind": "customer-words",
+	"guide": "What customers say when the fraud team calls about a payment the bank has held, each labelled with whether someone else is directing them. Written after the question set was frozen, so held out from it. Synthetic English written for the product by its authors (an authoring pass given the guide, the options and the desk’s keyword rule, so it could write rows that test the rule): no person, number, company or place in it is real, and no row has a digit. It stands in for what customers say; it is not what they say. A sample of real words, labelled by someone other than the product’s authors, is the missing test, and no figure measured on these rows replaces it.",
+	"labels": {
+		"coached": {
+			"options": ["yes", "no"],
+			"guide": "yes — Someone is directing the customer: telling them what to say to the bank, to keep it secret, to move money to a 'safe' place, or to hurry. no — The customer is acting on their own account, whatever the payment is."
+		}
+	},
+	"rows": [
+		{
+			"id": "f001",
+			"state": "The man from your security team said I had to move everything today, so please just release it.",
+			"tags": ["plain"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f002",
+			"state": "She told me not to discuss it with anyone at the branch, not even you, so I'd rather not say what it's for.",
+			"tags": ["plain"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f003",
+			"state": "I'm moving my savings to a safe account because my current one has been compromised. It's all been arranged.",
+			"tags": ["plain"],
+			"labels": {
+				"coached": "yes"
+			},
+			"contested": {
+				"reason": "No one is named as directing the customer; the safe account is the only sign of a third party.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "f004",
+			"state": "He asked me to keep this quiet until the investigation is over, so I can't really go into it.",
+			"tags": ["plain"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f005",
+			"state": "The officer on the phone thinks staff at the branch might be in on it, and the police said I should just say it's a gift.",
+			"tags": ["plain"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f006",
+			"state": "I've got to stay on the line with them while I talk to you, so I'll be quick. It's fine, please let it through.",
+			"tags": ["plain"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f007",
+			"state": "Look, the caller warned me you'd ring and try to stop it, and told me to say it was for a holiday.",
+			"tags": ["plain"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f008",
+			"state": "It's going to the safe account they set up for me. They said the money isn't protected where it is.",
+			"tags": ["plain"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f009",
+			"state": "Someone from your security team rang this morning and walked me through the transfer step by step.",
+			"tags": ["plain"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f010",
+			"state": "They want me to keep it secret because the fraud is an inside job, apparently.",
+			"tags": ["plain"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f011",
+			"state": "The lady told me not to answer any questions about it. She said you'd understand.",
+			"tags": ["plain"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f012",
+			"state": "Don't tell anyone, she said, so honestly I shouldn't even be talking to you about it.",
+			"tags": ["plain"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f013",
+			"state": "The police told me to take the cash out and hand it to their courier as evidence.",
+			"tags": ["plain"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f014",
+			"state": "He promised your own people would confirm it, and that I must stay on the line till it's done.",
+			"tags": ["plain"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f015",
+			"state": "They told me to say it's for my son's wedding if anyone asked. It isn't really, it's to protect my money.",
+			"tags": ["plain"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f016",
+			"state": "Yes, that was me. I'm paying the deposit on a new car and the dealer gave me the details in person.",
+			"tags": ["plain"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f017",
+			"state": "It's for my kitchen fitter. He's finished the job and I'm settling the final invoice.",
+			"tags": ["plain"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f018",
+			"state": "I'm sending money to my sister abroad, as I do most months. I don't know why it's been stopped this time.",
+			"tags": ["plain"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f019",
+			"state": "That's my rent. The landlord changed accounts last month and sent me a letter about it.",
+			"tags": ["plain"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f020",
+			"state": "I bought a second-hand caravan off a couple I met at the site. I've seen it and it's parked on my drive.",
+			"tags": ["plain"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f021",
+			"state": "I'm moving some savings into my own account at another bank to get a better rate.",
+			"tags": ["plain"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f022",
+			"state": "Honestly I'm a bit fed up. It's my money and it's a perfectly ordinary payment to my solicitor for the house.",
+			"tags": ["plain"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f023",
+			"state": "Sorry, which payment? Oh, the big one. That's the tuition fees for my granddaughter's course.",
+			"tags": ["plain"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f024",
+			"state": "It's for a horse. I've ridden her twice and had the vet out, so I'm happy.",
+			"tags": ["plain"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f025",
+			"state": "I'm paying back a friend who lent me money when my boiler went last winter.",
+			"tags": ["plain"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f026",
+			"state": "That's a donation to the village hall roof appeal. I'm on the committee.",
+			"tags": ["plain"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f027",
+			"state": "I'm buying some gold coins from a dealer I've used for years. I went into the shop to arrange it.",
+			"tags": ["plain"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f028",
+			"state": "It's the balance for our wedding venue. My fiancée and I signed the contract together last spring.",
+			"tags": ["plain"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f029",
+			"state": "I don't fully understand why you've held it. It's just my council tax for the year paid in one go.",
+			"tags": ["plain"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f030",
+			"state": "It's for my nephew's first flat. I'm helping with the deposit and I've spoken to his solicitor myself.",
+			"tags": ["plain"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f031",
+			"state": "He's still on the other phone, he says just to say it's for building work.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f032",
+			"state": "The gentleman from the fraud department is waiting for me to ring him back once you've released it. He warned me you'd try to talk me out of it.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f033",
+			"state": "I'm supposed to say it's a present for my grandson. That's what they want me to tell you.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f034",
+			"state": "He's in my ear right now saying you're not really the bank. Can you prove who you are? He says I should hang up.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f035",
+			"state": "They've opened a protected holding account in my name so the criminals can't get at it. I just need to get the money over there tonight.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f036",
+			"state": "The officer says it's part of a sting operation and nobody at the branch can know, so I'd really rather not explain.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f037",
+			"state": "I've got someone helping me on the computer, he's got my screen up now. He says to say yes to everything.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f038",
+			"state": "I was advised to tell you it's for home improvements. It's actually going to a secure wallet they've given me.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f039",
+			"state": "He said if I mention him the whole case collapses and I'll lose everything. So it's just a normal payment, alright?",
+			"tags": ["paraphrase"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f040",
+			"state": "The investment man says the window closes at five, so I really need this to go through in the next hour or I lose the lot.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"coached": "yes"
+			},
+			"contested": {
+				"reason": "Pressure from a seller's deadline may be ordinary sales pressure rather than someone directing what to tell the bank.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "f041",
+			"state": "My partner overseas needs it for customs before they'll release his parcel, and he made me promise I wouldn't let anyone talk me out of it.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"coached": "yes"
+			},
+			"contested": {
+				"reason": "The partner's instruction is about resolve rather than what to say, so it could be read as the customer's own choice.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "f042",
+			"state": "They explained the new account is only temporary while they rebuild my old one. I'm to move it all across and not touch anything else.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f043",
+			"state": "He's typing out what I should say to you. Hang on. 'It's for a car.' Yes, it's for a car.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f044",
+			"state": "The lady from the regulator warned me this call might be the fraudsters pretending to be you, so I'm not to give you any details.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f045",
+			"state": "Just let it go through, please. The detective's waiting and he said every minute counts.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f046",
+			"state": "I've been asked to use the words 'family emergency' if anyone queries it. Is that enough?",
+			"tags": ["paraphrase"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f047",
+			"state": "They're on speaker next to me. They want me to say I know the person I'm paying, so yes, I know them.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f048",
+			"state": "The man who fixed my laptop says the refund went in by mistake and I have to send back the difference before his boss finds out.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f049",
+			"state": "My so-called account manager has made it very clear I shouldn't discuss my portfolio with outsiders, and that includes you.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f050",
+			"state": "I'm meant to act normal and not mention the investigation. He said that's important.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f051",
+			"state": "They're sending a car to collect the cash at four, so I need it out of the branch by then. They said not to make a fuss.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f052",
+			"state": "Someone rang saying they were from head office and walked me through the whole thing. They're going to ring back to check it's gone.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f053",
+			"state": "My new friend online says banks always block crypto, so I should call it a gift to my niece.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f054",
+			"state": "The fraud officer's instructions were very clear: move it tonight and don't let the branch know why.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f055",
+			"state": "He wants me to read you the reference he gave me and say it's a personal transfer. He's listening in.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f056",
+			"state": "My daughter told me to ring you back about it, she worries I'll get scammed. It's for the conservatory.",
+			"tags": ["trap"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f057",
+			"state": "The builder said the bank might ask, and he was right. It's the final stage payment for the extension, which I've seen finished.",
+			"tags": ["trap"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f058",
+			"state": "I saw the posters in the branch about the safe account scam, so I wanted to check first, but this is just my gas bill.",
+			"tags": ["trap"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f059",
+			"state": "My son told me not to pay anything I hadn't checked, so I checked. It's the invoice from the roofer who did next door.",
+			"tags": ["trap"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f060",
+			"state": "Please don't tell my wife, it's her birthday present. A ring from the jeweller in town.",
+			"tags": ["trap"],
+			"labels": {
+				"coached": "no"
+			},
+			"contested": {
+				"reason": "Secrecy is a coaching sign, though here the customer is keeping a surprise of his own.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "f061",
+			"state": "I'll stay on the line if you need me to, I've got time. It's the payment for my new boiler.",
+			"tags": ["trap"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f062",
+			"state": "Your security team sent me a leaflet about card safety last week and I read it cover to cover. This payment's fine though, it's the dentist.",
+			"tags": ["trap"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f063",
+			"state": "The police told me to get my bike's frame number registered after the last one was nicked, and now I'm buying a new one from the shop.",
+			"tags": ["trap"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f064",
+			"state": "My accountant told me to move the tax money into a separate saver so I don't spend it. It's my own account.",
+			"tags": ["trap"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f065",
+			"state": "We want to keep it quiet from the kids until Christmas. It's a holiday booking with the travel agent we always use.",
+			"tags": ["trap"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f066",
+			"state": "Last year a scammer said the bank would refund me and I fell for it, so now I check everything myself. This one's my car insurance.",
+			"tags": ["trap"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f067",
+			"state": "The lady at the counter told me to expect a call like this for a payment that size. It's for my new windows.",
+			"tags": ["trap"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f068",
+			"state": "At the community talk the police said to always question a call like yours, so forgive me for asking who you are. The payment's for my caravan pitch fees.",
+			"tags": ["trap"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f069",
+			"state": "The solicitor told me to send the completion money today, it's in the contract and I've met her twice at her office.",
+			"tags": ["trap"],
+			"labels": {
+				"coached": "no"
+			},
+			"contested": {
+				"reason": "A third party is setting the timing, though a genuine solicitor's deadline is not coaching.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "f070",
+			"state": "My brother told me to shop around for a better rate, so I've opened a fixed saver elsewhere and this is me funding it.",
+			"tags": ["trap"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f071",
+			"state": "It's going to the joint account I share with my mum. She calls it our safe account, because it's the one we never touch.",
+			"tags": ["trap"],
+			"labels": {
+				"coached": "no"
+			},
+			"contested": {
+				"reason": "Moving money to a 'safe account' looks like the scam, though here the customer chose it herself.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "f072",
+			"state": "Don't tell me you've blocked the florist again! It's for my mother's funeral flowers.",
+			"tags": ["trap"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f073",
+			"state": "The garage said the bank sometimes holds big card payments, so I was expecting you. It's for the new clutch.",
+			"tags": ["trap"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f074",
+			"state": "My grandson told me to always say no to anyone asking for my PIN, and I will, but this is just the plumber.",
+			"tags": ["trap"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f075",
+			"state": "The vet told me not to wait on the operation, so I'm paying the surgery now. The dog's with them already.",
+			"tags": ["trap"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f076",
+			"state": "Nobody told me to do this, I promise. I've been saving for this motorbike for two years.",
+			"tags": ["negation"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f077",
+			"state": "No one's asked me to keep anything quiet. It's for my daughter's school trip.",
+			"tags": ["negation"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f078",
+			"state": "It's not a safe account or anything like that, it's just my own savings with the building society.",
+			"tags": ["negation"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f079",
+			"state": "I'm not being pressured, there's no one here, and I'm not in a hurry. It's for a sofa.",
+			"tags": ["negation"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f080",
+			"state": "No, there's nobody with me. Well, not in the room. He's on the other line, but he's not telling me what to say, honestly.",
+			"tags": ["negation"],
+			"labels": {
+				"coached": "yes"
+			},
+			"contested": {
+				"reason": "The customer denies being directed, and the only sign is someone listening on another line.",
+				"alternatives": {
+					"coached": "no"
+				}
+			}
+		},
+		{
+			"id": "f081",
+			"state": "I'm not allowed to say who it's for. It isn't a scam, they've already promised me it isn't, and they said I mustn't let you stop it.",
+			"tags": ["negation"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f082",
+			"state": "So it started on Monday when a man rang saying my card had been cloned, and he knew my address and the last few things I'd bought, so I believed him. He's been ringing every day since, and today he explained the only way to protect my savings is to move them where the people inside the bank can't see them. He warned me I'd get a call like this and that whoever rings will try to delay me. So I need you to let it go now.",
+			"tags": ["long"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f083",
+			"state": "I met someone through a hobby group online and over a few months she's shown me how she trades. I've made a lot on paper, and now there's a fee to withdraw it. She's been very patient, explaining what to put in the payment reference and saying you'd only get confused if I mentioned the trading side. I just want to get my profits out.",
+			"tags": ["long"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f084",
+			"state": "I got a message from a number I didn't know saying it was my grandson and he'd lost his phone. He's stuck abroad and needs money for a lawyer, and he begged me not to ring his mum because she'd be furious. He's sent me the details of a friend's account to pay into. I know it sounds odd, but he was so upset, and he says it has to be done before the court opens in the morning.",
+			"tags": ["long"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f085",
+			"state": "Right, I'll explain. My husband passed away in the spring and I've been sorting his affairs with the probate solicitor, who I've been to see several times. We've sold his workshop and this payment is his brother's share, as the will says. I understand why a big payment like this looks odd from my account, and I'm glad you're checking, but it's all above board.",
+			"tags": ["long"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f086",
+			"state": "This is the third time this week you've stopped a payment and I'm getting quite cross. I run a small bakery and I pay my flour supplier every Friday, same account, same sort of amount, give or take. I've been with you for twenty years. Please can you put a note on the account so this stops happening?",
+			"tags": ["long"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f087",
+			"state": "yeah that's me mate, just paying the lad for the tickets, all good",
+			"tags": ["informal"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f088",
+			"state": "ugh seriously? it's for my festival stuff, let it through pls",
+			"tags": ["informal"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f089",
+			"state": "ha no it's fine, it's me paying my mate back for the curry night, well, most of it",
+			"tags": ["informal"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f090",
+			"state": "look he's messaging me right now saying just say it's a loan, so yeah, it's a loan",
+			"tags": ["informal"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f091",
+			"state": "honestly just hurry up, the guy says if it's not over in ten mins i lose my place in the scheme",
+			"tags": ["informal"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f092",
+			"state": "I've got a bit of help with it from a gentleman who's looking after my affairs for the time being. He'd prefer we kept the details between ourselves.",
+			"tags": ["euphemism"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f093",
+			"state": "It's an arrangement with a friend. He's guiding me through it and knows what's best, so I just do as he says.",
+			"tags": ["euphemism"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f094",
+			"state": "It's a sort of family arrangement. My brother and I split the cost of mum's care home and this is my half.",
+			"tags": ["euphemism"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f095",
+			"state": "Let's just say it's a little treat for myself. A watch I've wanted for ages, from the jeweller's on the high street.",
+			"tags": ["euphemism"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f096",
+			"state": "Agent: Is anyone asking you to make this payment? Customer: No. Well, the man from the investigation, but that's different. Agent: Is he with you now? Customer: He's on the landline. He's saying go ahead.",
+			"tags": ["transcript"],
+			"labels": {
+				"coached": "yes"
+			}
+		},
+		{
+			"id": "f097",
+			"state": "Agent: Can you tell me what the payment's for? Customer: New tyres for the van. Agent: And did you arrange it yourself? Customer: Yes, I went into the garage this morning.",
+			"tags": ["transcript"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f098",
+			"state": "Agent: Has anyone told you to lie to us? Customer: No! Why would they? It's my electricity bill.",
+			"tags": ["transcript"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f099",
+			"state": "Customer: Is this about the builders? Agent: It's the payment of eight thousand pounds. Customer: Yes, that's them. I had three quotes and they've started on the roof.",
+			"tags": ["transcript"],
+			"labels": {
+				"coached": "no"
+			}
+		},
+		{
+			"id": "f100",
+			"state": "Agent: Did anyone contact you out of the blue about this? Customer: No, I found the course myself and enrolled through the college's own website. Agent: Thank you, I'll release it.",
+			"tags": ["transcript"],
+			"labels": {
+				"coached": "no"
+			}
+		}
+	],
+	"questions": {
+		"id": "fs-fraud/questions/coaching-q1",
+		"digest": "dda9bf9211f03731df98e184e1bf61cc7edac03cb93b3a26f402a789214983d6"
+	},
+	"annotators": [
+		{
+			"id": "author",
+			"blind": false,
+			"primary": true
+		},
+		{
+			"id": "second-labeller",
+			"blind": true,
+			"kappa": {
+				"coached": 1
+			},
+			"note": "The same model as the author, labelling blind from the guide and the words alone."
+		},
+		{
+			"id": "third-labeller",
+			"blind": true,
+			"kappa": {
+				"coached": 0.98
+			},
+			"note": "Another, smaller model, labelling blind from the guide and the words alone; its disagreements are the contested alternatives."
+		}
+	],
+	"heldOut": true,
+	"seenBy": [],
+	"digest": "df19622db1561ce3ac8a6ca7a009c65219d1d2bd2ca07bb24c1299b7551e9254"
+}

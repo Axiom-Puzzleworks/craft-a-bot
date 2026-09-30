@@ -1,3 +1,4 @@
+import { DISPUTES_CORPUS } from './corpora/index.js';
 import { DISPUTE_WORDS_READER } from './words-reader.js';
 import { DISPUTES_READERS } from './readers.js';
 import type { PackManifest } from '@craftabot/core';
@@ -57,7 +58,9 @@ export const fsDisputesPack: PackManifest = {
 	controlMaps: [disputesControlMap],
 	workflows: [disputesWorkflow],
 	stacks: disputesStacks,
-	readers: [...DISPUTES_READERS, DISPUTE_WORDS_READER]
+	readers: [...DISPUTES_READERS, DISPUTE_WORDS_READER],
+	// WP121 (`105-CORPORA.md` §9): the desk's labelled corpus, blind-labelled and held out.
+	corpora: [DISPUTES_CORPUS]
 };
 
 export default fsDisputesPack;
@@ -170,3 +173,4 @@ export {
 	DISPUTE_WORDS_READER,
 	DISPUTE_WORDS_READER_ID
 } from './words-reader.js';
+export { DISPUTES_CORPUS, DISPUTES_CORPUS_ID } from './corpora/index.js';

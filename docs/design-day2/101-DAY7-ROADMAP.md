@@ -64,7 +64,7 @@ Sizes as before: **S** a session or two; **M** several; **L** a week. Every WP h
 | **WP118** ✅ | **Done 2026-09-30, one DoD item short (the pane's visual shot waits on WP120's reader configurations) — `104-READERS.md` §9.** **Calibration in `@craftabot/metrics`; report v4's calibration pane** (`100-…` §6.3). `calibration.ts`: ECE, Brier, the reliability table, the gate curve, each with a hand case, a planted case and a null; the pane per reader stage on the report and in the Workshop's campaign view; `docs/metrics.md`. | The branch's published figures (ECE 0.023, Brier 0.014 on v1) recomputed from its cassette to the same values; the validation suite green; the pane on the visual pass. | S–M | G81 |
 | **WP119** ✅ | **Done 2026-09-30 — `105-CORPORA.md` §8.** **`Corpus` as content, `checkCorpus`, the labelling tools, the corpus book** (`100-…` §6.4, D17). Stage A: the note (`105-CORPORA.md`) — the schema, the six refusals, the held-out rule's exact semantics, the annotator record. Stage B: `core/schemas/corpus.ts`, the content and evidence kinds, `PackManifest.corpora`, `checkCorpus`, `Book.source.corpus`, `craftabot corpus freeze \| label \| agreement`, `/workshop/corpora` with its twin. Stage C: the three servicing corpora migrated from the branch with their guides, second labels and κ; the branch's lab record moved to `docs/evidence/servicing-readers/` as the eighth reference experiment. | `checkCorpus`'s six refusals; the held-out rule refuses a re-score and admits a `regression` cell; `corpus label` never shows a label; a corpus book runs the servicing journey to the branch's experiment result byte for byte; the eighth experiment holds its shape in CI. | M | G76-part, G90-part |
 | **WP120** ✅ | **Done 2026-09-30 — `104-READERS.md` §10 and §8's WP120 notes.** **The hosted and LLM readers; the experiment packs on the contract** (`100-…` §6.3). `governance/readers/hosted.ts` over a `ServiceLine`; `governance/readers/llm.ts` over any provider (constrained where it can, log-probabilities where it returns them, argmax otherwise, the method on the answer); `pack-readers-llm`; `@craftabot/pack-typesafe`'s line as a hosted reader and its journey collapsed onto the `reader` executor with `gate`; the `steer` noul on the gate; `@craftabot/pack-dgx-spark` out of the harness's default list and opt-in by `--config`, its classifier delegating to the `llm` reader (`99-…` amended to say so); the reader component adapter (`components/reader.ts`). | The servicing journey runs `regex` / `jev` / `llm:mock` / `jev-gate-0.80` through one executor; the gate sends exactly the rows under the threshold to `else`; the steer routes independently of confidence; the `llm` reader over the mock provider both constrained and unconstrained; `checkReader` and `checkComponent` green on all three; the optional pack absent from every edition's bundle. | M | G74, G90 |
-| **WP121** | **A corpus per desk** (`100-…` §6.4). Six corpora — disputes, fraud, complaints, onboarding, lending, advice — each about 100 rows, authored, tagged, frozen, blind-labelled by a second annotator with κ recorded, and split seen/held-out where a question set exists; each desk's classify-shaped stage gets its rule reader scored on its corpus and a `regex` vs `llm:mock` configuration; the guide of every corpus stating the authorship and the missing real-call test. | Seven corpora pass `checkCorpus` and the sweep; every rule reader has a scored accuracy on its corpus in the desk's doc (the regex baseline the readers are measured against); no corpus carries the `single-annotator` finding. | M | G76 |
+| **WP121** ✅ | **Done 2026-09-30 — `105-CORPORA.md` §9 and §8's WP121 note.** **A corpus per desk** (`100-…` §6.4). Six corpora — disputes, fraud, complaints, onboarding, lending, advice — each about 100 rows, authored, tagged, frozen, blind-labelled by a second annotator with κ recorded, and split seen/held-out where a question set exists; each desk's classify-shaped stage gets its rule reader scored on its corpus and a `regex` vs `llm:mock` configuration; the guide of every corpus stating the authorship and the missing real-call test. | Seven corpora pass `checkCorpus` and the sweep; every rule reader has a scored accuracy on its corpus in the desk's doc (the regex baseline the readers are measured against); no corpus carries the `single-annotator` finding. | M | G76 |
 
 **Exit:** `100-…` §14 items 3 and 4; a Phase AE exit review in §8.
 
@@ -277,6 +277,36 @@ Everything in `84-…` §5 stands. Added:
    > - The eighth experiment is now a declared regression under the held-out rule.
    >
    > **Next: WP121 (a corpus per desk).**
+
+   > **WP121 done 2026-09-30** (`105-CORPORA.md` §8):
+   > - **Six desk corpora:** a hundred rows each, held out from question sets frozen first, and blind-labelled twice (the same model, and another) on shuffled rows with opaque ids.
+   > - **Six keyword rule readers,** scored with `scoreReader` at 40–45% on corpora built to test them.
+   > - **Servicing v1** has its second and third labellers, so no corpus is its author's alone.
+   >
+   > **DoD:** met. The comparison is made on the corpora, not as journey configurations (§9.3).
+   >
+   > **Finding:** κ ≥ 0.98 everywhere says the rows are clear to models, not that people agree. The real-words sample stays the missing test.
+
+   > **Phase AE exit review, 2026-09-30.**
+   >
+   > **`100-…` §14 item 3 — met, as `104-…` §6 reads "byte-identical":**
+   > - Every desk golden run and campaign baseline is untouched. The desks' classify-shaped rules run as rule readers identical under `withoutReaders` over each desk's book (WP117).
+   > - A hosted reader (Jev) and an `llm` reader (the keyword stand-in) run the servicing journey through the `reader` executor with a gate (WP120).
+   > - The calibration pane shows ECE, Brier, the reliability table and the gate curve on the report and the Campaigns screen (WP118). Its screenshot waits on a reader configuration in the Workbench.
+   >
+   > **Item 4 — met:**
+   > - Seven corpora ship with a guide, a digest, blind annotators with κ, and a held-out part: v3 and the six new corpora are held out whole (WP119, WP121).
+   > - `checkCorpus` refuses; the held-out rule refuses a re-score and admits a regression, which the eighth reference experiment now declares.
+   > - A corpus book runs the servicing journey end to end, to the pinned results.
+   >
+   > **For Andrew's reading:**
+   > - the budgets (+130/+130 kB for the corpora, the largest of the sprint);
+   > - model-written and model-labelled corpora, and what their κ can and cannot say;
+   > - a reader's stated confidence kept, not recomputed (WP120);
+   > - the eighth experiment as a declared regression;
+   > - the WP118 screenshot still owed.
+   >
+   > **Phase AE is closed. Next: Phase AG — `106-BENCHMARK.md`, WP122.**
 6. **`105-CORPORA.md`, WP119, WP120, WP121.** Phase AE exit review.
 7. **`106-BENCHMARK.md`, WP122, WP123, WP124; WP125 when keys exist.** Phase AG exit review.
 8. **WP126, `107-THE-GATE.md`, WP127, WP128.** Phase AH exit review.

@@ -1,0 +1,873 @@
+{
+	"id": "fs-disputes/corpus/claims-v1",
+	"name": "Disputed payments, in the customer’s words",
+	"version": "1",
+	"stateKind": "customer-words",
+	"guide": "What customers say when they dispute a payment, each account labelled with the kind of dispute it is. Written after the question set was frozen, so held out from it. Synthetic English written for the product by its authors (an authoring pass given the guide, the options and the desk’s keyword rule, so it could write rows that test the rule): no person, number, company or place in it is real, and no row has a digit. It stands in for what customers say; it is not what they say. A sample of real words, labelled by someone other than the product’s authors, is the missing test, and no figure measured on these rows replaces it.",
+	"labels": {
+		"classification": {
+			"options": ["unauthorised", "authorised-scam", "merchant"],
+			"guide": "unauthorised — The customer did not make or agree to the payment: someone else used their card or account. authorised-scam — The customer made the payment themselves, because someone deceived them into it. merchant — The customer made the payment knowingly and disputes it with the seller: goods not arrived, faulty, not as described, or a refund not given."
+		}
+	},
+	"rows": [
+		{
+			"id": "d001",
+			"state": "The shop told me my card details were stolen in a data leak, and now there's a payment on my account I didn't authorise.",
+			"tags": ["plain"],
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d002",
+			"state": "Let's just say my card seems to have gone on a shopping trip without me.",
+			"tags": ["euphemism"],
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d003",
+			"state": "What turned up in the box was a much cheaper model than the one on the listing.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d004",
+			"state": "I've checked with my husband and it's not me or him. Somebody has spent about ninety pounds on my card.",
+			"tags": ["plain"],
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d005",
+			"state": "There's a purchase on here I know nothing about. Nobody else has my card and I haven't shopped online in weeks.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d006",
+			"state": "Customer: I sent money to what I thought was my landlord.\nAgent: Did you check the new details with them?\nCustomer: Only by replying to the email, which it turns out wasn't from them at all.",
+			"tags": ["transcript"],
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d007",
+			"state": "I didn't recognise it as a con until afterwards. The caller knew my address and date of birth, so I paid what he asked.",
+			"tags": ["trap"],
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d008",
+			"state": "The courier says someone else used the same address label and my parcel went to them instead. The shop won't resend it or refund me.",
+			"tags": ["trap"],
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d009",
+			"state": "My teenage son took my card from my bag and bought game credits without asking me.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"classification": "unauthorised"
+			},
+			"contested": {
+				"reason": "A family member with easy access to the card may be treated as the holder's own carelessness rather than unauthorised use.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "d010",
+			"state": "This isn't a scam where I was talked into anything. I simply never saw this payment until it showed up on my statement, and I haven't bought from that company.",
+			"tags": ["negation"],
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d011",
+			"state": "Let's say the laptop is enjoying a very long holiday somewhere between the warehouse and my front door.",
+			"tags": ["euphemism"],
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d012",
+			"state": "I never paid much attention to those warnings about investment offers, and now I've sent my pension lump sum to a firm that doesn't exist.",
+			"tags": ["trap"],
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d013",
+			"state": "My bike was stolen, so I bought a new one online, and the one they delivered has a cracked frame.",
+			"tags": ["trap"],
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d014",
+			"state": "The man said my card had been stolen and I needed to move my money quickly, so I transferred it to the account he gave me.",
+			"tags": ["trap"],
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d015",
+			"state": "Someone used my card details to buy electronics. It was not me, I was at work the whole day.",
+			"tags": ["plain"],
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d016",
+			"state": "I've been led up the garden path by someone I thought was a friend online, and my savings went down it with me.",
+			"tags": ["euphemism"],
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d017",
+			"state": "Customer: There's a payment to a travel company on my card.\nAgent: Did you book anything with them?\nCustomer: No, and I've had the card with me all along.",
+			"tags": ["transcript"],
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d018",
+			"state": "I bought concert tickets from someone on a social media group and paid by bank transfer. The tickets never came and the seller's profile has been deleted.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"classification": "authorised-scam"
+			},
+			"contested": {
+				"reason": "A private seller who fails to deliver could be a merchant dispute; only the vanished profile suggests deliberate deception.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "d019",
+			"state": "I was scammed by someone selling a puppy online. I paid the deposit and they vanished.",
+			"tags": ["plain"],
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d020",
+			"state": "I didn't recognise the company name on my statement at first, but it's the garden centre I ordered plants from, and they never arrived.",
+			"tags": ["trap"],
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d021",
+			"state": "The phone came with a fake charger that melted, and the shop says the warranty doesn't cover accessories.",
+			"tags": ["trap"],
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d022",
+			"state": "I ordered a sofa from a furniture seller eight weeks ago and it has never arrived. They've stopped replying to emails.",
+			"tags": ["plain"],
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d023",
+			"state": "I was taken in, I'm afraid. A very charming gentleman had me send him money for a business that never existed.",
+			"tags": ["euphemism"],
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d024",
+			"state": "It looks as though my account has been lending itself out to strangers, because there are purchases here nobody in the family owns up to.",
+			"tags": ["euphemism"],
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d025",
+			"state": "Three weeks of chasing and I'm still waiting for the table I bought from a furniture seller.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d026",
+			"state": "The cleaning company charged me for a full day when they only stayed an hour.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d027",
+			"state": "A builder took a deposit for a new kitchen and then never turned up to start the work.",
+			"tags": ["plain"],
+			"labels": {
+				"classification": "merchant"
+			},
+			"contested": {
+				"reason": "A trader who takes a deposit and disappears may be a deliberate rogue trader rather than a contract gone wrong.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "d028",
+			"state": "I've been conned. A woman I met on a dating site asked for money for a flight and I sent it.",
+			"tags": ["plain"],
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d029",
+			"state": "A lovely man I'd been talking to online for months asked for help with a medical bill abroad. My friends now say he was never real.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d030",
+			"state": "I cancelled my hotel booking well within the free cancellation period but they charged me anyway.",
+			"tags": ["plain"],
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d031",
+			"state": "Man on phone say he is from bank, my money in danger, I must send to new account. I send. Now he not answer.",
+			"tags": ["informal"],
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d032",
+			"state": "The handbag was fake leather, not real leather as the listing said, and the seller won't take it back.",
+			"tags": ["trap"],
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d033",
+			"state": "He said it was not me who was in trouble but my account, and I had to send the balance to a holding account before midnight.",
+			"tags": ["trap"],
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d034",
+			"state": "So, a bit of background: we've been renovating the house since spring and ordered all the tiles from one supplier to keep it simple. The first lot was fine. The second delivery, which I paid for in full up front, turned out to be a different batch in a totally different shade, and they're now saying colour variation is normal and won't take them back.",
+			"tags": ["long"],
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d035",
+			"state": "I didn't authorise the direct debit that came out this morning for a gym I've never joined.",
+			"tags": ["plain"],
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d036",
+			"state": "The investment website turned out to be fake. I transferred about five thousand pounds over two months.",
+			"tags": ["plain"],
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d037",
+			"state": "I feel so silly telling you this. It started with an advert on social media with a well-known presenter's face on it, which I now realise wasn't really him, and a very friendly account manager who rang me every few days. Over the summer I kept topping up because the balance on their site looked like it was growing. When I asked to withdraw, they wanted a release fee first.",
+			"tags": ["long"],
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d038",
+			"state": "A fraudster pretending to be my builder emailed new bank details and I paid the invoice to them.",
+			"tags": ["plain"],
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d039",
+			"state": "Please, card is being use by other person, I am in my country for holiday and card is with me in hotel all the time.",
+			"tags": ["informal"],
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d040",
+			"state": "I never made it to the concert because it was cancelled, and the ticket seller still hasn't refunded me.",
+			"tags": ["trap"],
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d041",
+			"state": "The fraudster, whoever it was, never spoke to me. They just lifted my card number off a website and went shopping.",
+			"tags": ["trap"],
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d042",
+			"state": "It wasn't a scam, I just never got the parcel, and the shop keeps saying it's with the courier.",
+			"tags": ["negation"],
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d043",
+			"state": "Sorry, bear with me, I've had a hectic week with the move and the kids starting school, and I only sat down to go through the statement last night. Anyway, there's a payment for about sixty pounds at a sports shop in a town I've never even visited, and I definitely wasn't there.",
+			"tags": ["long"],
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d044",
+			"state": "A caller said he was a police officer investigating my branch and asked me to withdraw cash and hand it to a courier. I did it twice.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d045",
+			"state": "The costume was meant to be a superhero outfit, but it was such a poor impersonation of the real thing that my son cried. The shop says no returns on costumes.",
+			"tags": ["trap"],
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d046",
+			"state": "I was pressured into buying gift vouchers and reading the codes over the phone to a man claiming to be from my internet provider.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d047",
+			"state": "got a msg saying my parcel was stuck n i had to pay a fee, paid it, then they rang pretending to be u lot and got me to send more",
+			"tags": ["informal"],
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d048",
+			"state": "I'm not saying anyone conned me, the company is real enough, but the sofa they sent is the wrong colour and they want me to pay to return it.",
+			"tags": ["negation"],
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d049",
+			"state": "My wallet was stolen on the bus yesterday and now there are three payments at a petrol station I've never been to.",
+			"tags": ["plain"],
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d050",
+			"state": "Somebody on the phone convinced me my account was under attack, and I moved my money where they said it would be protected.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d051",
+			"state": "A message from what I thought was my daughter asked me to cover a bill urgently. I sent the money, then she rang me from her usual phone and knew nothing about it.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d052",
+			"state": "My card never left my drawer but it's been used in a shop two hundred miles away.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d053",
+			"state": "I stayed in a holiday flat that was nothing like the photos, damp and no hot water, and the host told me to pay an extra cleaning fee on top before I left.",
+			"tags": ["trap"],
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d054",
+			"state": "Who spent forty pounds at a pub on my account? I was in hospital that evening.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d055",
+			"state": "My details must have been copied somewhere, because there's a subscription on my card I have no memory of signing up for.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"classification": "unauthorised"
+			},
+			"contested": {
+				"reason": "A forgotten free trial that rolled into a subscription would make this a dispute with the merchant rather than misuse of the card.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "d056",
+			"state": "I paid a deposit on a flat I saw advertised. When I turned up to collect the keys, the real owner had never heard of the person I'd been dealing with.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d057",
+			"state": "This isn't a case of a stolen card. I sent the money myself, to a man who said he was from my energy company, and I believed him.",
+			"tags": ["negation"],
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d058",
+			"state": "The washing machine I bought stopped working after a week and the shop refuses to repair or replace it.",
+			"tags": ["plain"],
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d059",
+			"state": "I paid a courier for next-day delivery and the parcel took two weeks.",
+			"tags": ["plain"],
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d060",
+			"state": "My flight was cancelled by the airline and the money for the ticket hasn't come back to me.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d061",
+			"state": "Nobody took my card and yes, I made the payment myself. My problem is the tablet I bought has a dead screen and the seller won't help.",
+			"tags": ["negation"],
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d062",
+			"state": "There are charges on my statement I didn't make, all small amounts at a takeaway.",
+			"tags": ["plain"],
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d063",
+			"state": "Nobody took my card. I paid a website for a laptop at half the usual price, and the website has vanished along with the money.",
+			"tags": ["negation"],
+			"labels": {
+				"classification": "authorised-scam"
+			},
+			"contested": {
+				"reason": "A retailer that went under without delivering would make this a merchant dispute rather than a deception.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "d064",
+			"state": "Hello, I buy a heater from online shop, it arrive broken, they do not answer me, I want money back please.",
+			"tags": ["informal"],
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d065",
+			"state": "The dress I ordered looked nothing like the photos and was a completely different size.",
+			"tags": ["plain"],
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d066",
+			"state": "I was charged twice for the same meal at a restaurant and the manager says it's the bank's problem.",
+			"tags": ["plain"],
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d067",
+			"state": "I sent money to a crypto trader who promised to double it. Now his profile has gone and he won't answer.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"classification": "authorised-scam"
+			},
+			"contested": {
+				"reason": "It could be read as a bad investment with a real trader who went quiet rather than a deliberate deception.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "d068",
+			"state": "I never made this payment of about three hundred pounds to a gaming site.",
+			"tags": ["plain"],
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d069",
+			"state": "I didn't make the delivery window, but the seller never sent it anyway. The tracking never showed it leaving the warehouse.",
+			"tags": ["trap"],
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d070",
+			"state": "Someone impersonating the tax office rang and said I'd be arrested unless I paid a fine straight away, so I paid it.",
+			"tags": ["plain"],
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d071",
+			"state": "I didn't make the connection at the time, but the man who sold me the car had copied someone else's listing. I paid him and there's no car.",
+			"tags": ["trap"],
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d072",
+			"state": "A payment went out to a clothing retailer overnight while I was asleep, and nobody in this house bought anything.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d073",
+			"state": "The instructions told me to pay the balance on delivery, which I did, but the wardrobe arrived with a door missing.",
+			"tags": ["trap"],
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d074",
+			"state": "My son texted from a new number saying he'd lost his phone and needed rent money. It turned out to be a fraudster and I'd already sent it.",
+			"tags": ["plain"],
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d075",
+			"state": "The email looked exactly like it came from my solicitor, so I paid the completion money to the account in it. The solicitor says they never sent it.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d076",
+			"state": "The online shop sent me a broken lamp and won't answer my requests for a refund.",
+			"tags": ["plain"],
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d077",
+			"state": "My elderly mother's account has had money taken from it by a carer who had her card. She never agreed to any of it.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"classification": "unauthorised"
+			},
+			"contested": {
+				"reason": "A carer entrusted with the card might be regarded as having some authority to use it.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "d078",
+			"state": "A man rang saying he was from the bank's fraud team and told me to move my savings to a safe account. I did it and now the money's gone.",
+			"tags": ["plain"],
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d079",
+			"state": "Nobody told me to pay anything and nobody conned me. My card was copied at a cash machine, I think, and used all over town.",
+			"tags": ["negation"],
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d080",
+			"state": "The shoes had what I'd politely call a short life: the soles parted company with the uppers on the second wear.",
+			"tags": ["euphemism"],
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d081",
+			"state": "Someone else used my account to send money to a person I don't know.",
+			"tags": ["plain"],
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d082",
+			"state": "There's a payment on my card to an online shop that I didn't make. I've still got the card in my purse.",
+			"tags": ["plain"],
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d083",
+			"state": "It was a scam. The caller told me to transfer everything to a new account because mine was compromised.",
+			"tags": ["plain"],
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d084",
+			"state": "A transfer left my account to a stranger and I certainly didn't send it.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d085",
+			"state": "I sent the jacket back with tracking and they're still acting as if they never got it, so I'm out of pocket.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d086",
+			"state": "hi theres money gone off my card to some website i dont even know, wasnt me pls help",
+			"tags": ["informal"],
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d087",
+			"state": "Customer: The payment was me, I did press send.\nAgent: What made you send it?\nCustomer: A man said he was from your security department and my account was being emptied.",
+			"tags": ["transcript"],
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d088",
+			"state": "I returned a pair of boots over a month ago and the refund still hasn't come through.",
+			"tags": ["plain"],
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d089",
+			"state": "I was tricked into paying for a holiday rental that doesn't exist.",
+			"tags": ["plain"],
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d090",
+			"state": "They said someone used my identity to take out a loan and I had to send money to cancel it. I did, and it was all lies.",
+			"tags": ["trap"],
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d091",
+			"state": "I lost my purse on Saturday and by Sunday there were cash withdrawals I had nothing to do with.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d092",
+			"state": "The only thing I bought that week was a fake Christmas tree from a garden centre, and that's not what I'm querying. It's the two payments to a betting site after it, which I had nothing to do with.",
+			"tags": ["trap"],
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d093",
+			"state": "Customer: I need to report a payment.\nAgent: Was it made by you?\nCustomer: Not by me, no, nor by anyone I've ever given the card to.",
+			"tags": ["transcript"],
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d094",
+			"state": "My neighbour said there's been a scam going round the flats, but mine's different: my card's been charged at a cinema and I haven't left the house in days.",
+			"tags": ["trap"],
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d095",
+			"state": "ordered trainers like a month ago still nothing, seller just leaves me on read, want my money back",
+			"tags": ["informal"],
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d096",
+			"state": "I didn't recognise this transaction from last night. It says a hotel booking abroad and I've never been out of the country this year.",
+			"tags": ["plain"],
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d097",
+			"state": "My phone was stolen and whoever has it has been buying things through my banking.",
+			"tags": ["plain"],
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d098",
+			"state": "Customer: I'd like to dispute a payment to a garden furniture company.\nAgent: Did you place the order yourself?\nCustomer: Yes, but the set arrived with two chairs missing and they won't send the rest.",
+			"tags": ["transcript"],
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d099",
+			"state": "These withdrawals were made without my permission. I want them reversed and the card cancelled.",
+			"tags": ["plain"],
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d100",
+			"state": "I got one of those fake delivery texts last month and deleted it without clicking. Now there's a charge from a phone shop that has nothing to do with me.",
+			"tags": ["trap"],
+			"labels": {
+				"classification": "unauthorised"
+			}
+		}
+	],
+	"questions": {
+		"id": "fs-disputes/questions/claim-q1",
+		"digest": "23d0bfc98ac01a3ee6c22166c04236f13124b53c3f38aa0692310d294360923f"
+	},
+	"annotators": [
+		{
+			"id": "author",
+			"blind": false,
+			"primary": true
+		},
+		{
+			"id": "second-labeller",
+			"blind": true,
+			"kappa": {
+				"classification": 1
+			},
+			"note": "The same model as the author, labelling blind from the guide and the words alone."
+		},
+		{
+			"id": "third-labeller",
+			"blind": true,
+			"kappa": {
+				"classification": 1
+			},
+			"note": "Another, smaller model, labelling blind from the guide and the words alone; its disagreements are the contested alternatives."
+		}
+	],
+	"heldOut": true,
+	"seenBy": [],
+	"digest": "e44aadc3b3770d1824d8c93abc120b380e28ceb47916aacd0c278bd415ffcc71"
+}

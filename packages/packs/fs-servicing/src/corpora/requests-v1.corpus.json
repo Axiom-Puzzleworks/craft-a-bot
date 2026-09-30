@@ -880,6 +880,24 @@
 			"id": "author",
 			"blind": false,
 			"primary": true
+		},
+		{
+			"id": "second-labeller",
+			"blind": true,
+			"kappa": {
+				"category": 1,
+				"need": 1
+			},
+			"note": "The same model as the corpus’s authoring pass (WP121), labelling blind from the guide and the words alone, on shuffled rows with opaque ids."
+		},
+		{
+			"id": "third-labeller",
+			"blind": true,
+			"kappa": {
+				"category": 1,
+				"need": 0.9681
+			},
+			"note": "Another, smaller model (WP121), labelling blind from the guide and the words alone, on shuffled rows with opaque ids."
 		}
 	],
 	"heldOut": false,

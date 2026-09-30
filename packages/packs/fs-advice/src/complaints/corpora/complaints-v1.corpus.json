@@ -1,0 +1,883 @@
+{
+	"id": "fs-advice/corpus/complaints-v1",
+	"name": "Complaints, in the customer’s words",
+	"version": "1",
+	"stateKind": "customer-words",
+	"guide": "Customers’ complaints in their own words, each labelled with what the bank did wrong, if anything. Written after the question set was frozen, so held out from it. Synthetic English written for the product by its authors (an authoring pass given the guide, the options and the desk’s keyword rule, so it could write rows that test the rule): no person, number, company or place in it is real, and no row has a digit. It stands in for what customers say; it is not what they say. A sample of real words, labelled by someone other than the product’s authors, is the missing test, and no figure measured on these rows replaces it.",
+	"labels": {
+		"cause": {
+			"options": ["charges", "advice", "service", "no-error"],
+			"guide": "charges — The bank charged the customer wrongly: a fee, interest or a charge it should not have taken, or mishandled their data. advice — The advice the customer was given did not suit them. service — The bank's service fell short: delays, lost paperwork, being passed around, rudeness. no-error — The bank made no error: the customer is unhappy with something the bank was entitled to do."
+		}
+	},
+	"rows": [
+		{
+			"id": "k001",
+			"state": "Your overdraft team suggested I take out a larger personal loan to clear what I owed, even though it pushed my repayments beyond what I could manage.",
+			"tags": ["trap"],
+			"labels": {
+				"cause": "advice"
+			},
+			"contested": {
+				"reason": "A suggested loan could be read as a lending decision rather than advice.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "k002",
+			"state": "Interest was applied at the standard rate when my agreement clearly says the promotional rate runs until the end of the year.",
+			"tags": ["plain"],
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k003",
+			"state": "You closed the branch in my town and now I have to travel to the next one.",
+			"tags": ["plain"],
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k004",
+			"state": "Your app kept logging me out, and when I went into the branch for help the staff member was dismissive and told me to figure it out myself.",
+			"tags": ["mixed"],
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k005",
+			"state": "No one asked about my circumstances before putting me into a product that ties up my savings for a decade.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k006",
+			"state": "Your specialist sold me a whole-of-life policy when all I needed was cover until my mortgage was paid off.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k007",
+			"state": "You lost the documents I sent by recorded delivery and now I have to send them all over again.",
+			"tags": ["plain"],
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k008",
+			"state": "You blocked my card while I was abroad and I had to call you to prove it was me. It was embarrassing at the till.",
+			"tags": ["plain"],
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k009",
+			"state": "I was moved out of my old workplace retirement scheme on your say-so and gave up a guaranteed income for life.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k010",
+			"state": "You took money out of my account for a so-called arrangement cost that I never agreed to.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k011",
+			"state": "A letter meant for me, listing every account I hold with you, was posted to my neighbour. That is my private information in someone else's hands.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"cause": "charges"
+			},
+			"contested": {
+				"reason": "Misdirected post could be read as a service failure rather than mishandling of personal data.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "k012",
+			"state": "The pension advice I received ignored my ill health, which I clearly mentioned, and the plan assumes I'll work another twenty years.",
+			"tags": ["plain"],
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k013",
+			"state": "I was gently guided towards an arrangement that, with hindsight, suited your targets rather better than it suited my circumstances.",
+			"tags": ["euphemism"],
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k014",
+			"state": "When my husband died I came to you for help with what to do with the life cover money. Your planner suggested I put almost all of it into a fund that can only be cashed in after ten years, with heavy penalties before then. I explained that I had two teenagers, no other income and a leaking roof. Within months I was borrowing from my sister to get by. I don't understand how that was ever the right thing for my family.",
+			"tags": ["long"],
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k015",
+			"state": "The investment you recommended locks my money away for five years, but I told you I needed it for a house deposit next spring.",
+			"tags": ["plain"],
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k016",
+			"state": "The call centre kept me on hold for ages, which was annoying, but the main thing is that you charged me for an unarranged overdraft when I had an arranged one in place.",
+			"tags": ["mixed"],
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k017",
+			"state": "You deducted a penalty for a missed payment that I made on time. The receipt is attached.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k018",
+			"state": "The investment side of things was fine. The problem is that your team sent my account-closure form to the wrong department and it sat there for a month.",
+			"tags": ["trap"],
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k019",
+			"state": "You charged me a monthly account fee even though the account was meant to be free for students. Please refund it.",
+			"tags": ["plain"],
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k020",
+			"state": "Your adviser recommended a high-risk fund when I told him I couldn't afford to lose any of my savings.",
+			"tags": ["plain"],
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k021",
+			"state": "A late payment fee was added even though my direct debit left on time, and your own records show it.",
+			"tags": ["plain"],
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k022",
+			"state": "been ringing ur lot all week, just music music music then it cuts off. sort it out",
+			"tags": ["informal"],
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k023",
+			"state": "After waiting weeks for an appointment, I was finally told to move all my savings into a single property fund, which is completely wrong for someone who needs access to cash.",
+			"tags": ["trap"],
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k024",
+			"state": "You wouldn't open a business account for me without a business plan, and the form was long and dull. I think the whole thing is over the top.",
+			"tags": ["mixed"],
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k025",
+			"state": "Your app asked me to confirm a large payment to a new payee and held the transfer until I did. It's my money and I should be able to move it.",
+			"tags": ["plain"],
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k026",
+			"state": "I closed the packaged account in the spring but you have kept taking the monthly cost for it ever since.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k027",
+			"state": "The person at the branch talked me into putting my rainy-day money into shares, even though I said I'd need it at short notice.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k028",
+			"state": "Let's just say your team's idea of 'promptly' and mine differ by about two months.",
+			"tags": ["euphemism"],
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k029",
+			"state": "I'm a student with no income, and your staff member signed me up for a premium credit card with a big limit as the 'best fit' for me.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"cause": "advice"
+			},
+			"contested": {
+				"reason": "This could be read as irresponsible lending rather than unsuitable advice.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "k030",
+			"state": "You charged me the arranged overdraft rate exactly as my agreement says, but I still think it is far too high.",
+			"tags": ["trap"],
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k031",
+			"state": "The queue in the branch on Saturday went out of the door and only one counter was open.",
+			"tags": ["plain"],
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k032",
+			"state": "Your staff member rolled her eyes at me and walked off mid-sentence.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k033",
+			"state": "Your security questions are a nuisance and it took me three tries to get into my online banking.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"cause": "no-error"
+			},
+			"contested": {
+				"reason": "The blind third labeller (another model) read it as service; the author’s label stands.",
+				"alternatives": {
+					"cause": "service"
+				}
+			}
+		},
+		{
+			"id": "k034",
+			"state": "Your adviser was rude, frankly, but I could live with that. What I can't live with is that the plan he picked has lost a third of its value when I'd told him I was a cautious saver.",
+			"tags": ["mixed"],
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k035",
+			"state": "It took you a month to update my address after I moved, even though I asked three times.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k036",
+			"state": "I'm not saying I was charged wrongly and I'm not saying anyone was slow. I'm saying the bond I was put into was never right for a man with my health.",
+			"tags": ["negation"],
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k037",
+			"state": "We applied for a joint mortgage in the summer. We gave you everything you asked for, and the decision came back within the week, which I'll grant you. But it was a no, because my partner's income is self-employed and hasn't been going long enough for your criteria. We pay more than the monthly amount in rent already. I understand you have rules, I just think they don't fit how people work now.",
+			"tags": ["long"],
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k038",
+			"state": "The appointment ran late and I felt rushed, but the bigger issue is that I was steered into a stocks and shares product when I had said I wanted no risk at all.",
+			"tags": ["mixed"],
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k039",
+			"state": "Your branch lost my form, again. More importantly, because of that you took a missed-payment penalty for a month I had already paid.",
+			"tags": ["mixed"],
+			"labels": {
+				"cause": "charges"
+			},
+			"contested": {
+				"reason": "The penalty flows from lost paperwork, so a reader could put the root cause down to service.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "k040",
+			"state": "honestly who takes a quid off you for checking your own balance?? thats what the machine outside ur branch did and the terms say its free",
+			"tags": ["informal"],
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k041",
+			"state": "I paid off my loan early and you still added interest for the following three months.",
+			"tags": ["plain"],
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k042",
+			"state": "The paperwork for my power of attorney has gone missing in your office for the second time.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k043",
+			"state": "I was passed between four departments on the phone and nobody could help me close my late father's account.",
+			"tags": ["plain"],
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k044",
+			"state": "I sat on hold for over an hour trying to report my card stolen.",
+			"tags": ["plain"],
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k045",
+			"state": "I was advised to transfer my workplace pension into a personal plan and lost valuable guarantees as a result.",
+			"tags": ["plain"],
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k046",
+			"state": "You wouldn't let me invest in your new bond because I'm under the minimum age. I turn eighteen next month.",
+			"tags": ["trap"],
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k047",
+			"state": "Your adviser was lovely and very helpful. Afterwards, though, a 'consultation cost' came off my account that no one had ever mentioned.",
+			"tags": ["trap"],
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k048",
+			"state": "Your adviser put my mother, who is in her eighties, into a long-term bond she is unlikely ever to see the end of.",
+			"tags": ["plain"],
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k049",
+			"state": "The queue at the branch was long, fine. But the woman at the desk then told me to put my redundancy money into a bond I can't touch for seven years, while I'm out of work.",
+			"tags": ["trap"],
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k050",
+			"state": "I had to wait for the adviser, but the real problem is that you took the yearly card payment twice.",
+			"tags": ["trap"],
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k051",
+			"state": "Three separate people told me they would ring me back. Not one of them did.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k052",
+			"state": "so u froze my card cos i bought trainers at like midnight from a site i never used before. ok it WAS me but come on",
+			"tags": ["informal"],
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k053",
+			"state": "I seem to have contributed rather generously to your coffers for the privilege of an account that was supposed to cost me nothing.",
+			"tags": ["euphemism"],
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k054",
+			"state": "No one was rude, and I don't blame any one person. But in a whole month not a single member of staff has picked up the case I opened about my late wife's estate.",
+			"tags": ["negation"],
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k055",
+			"state": "You advised me to roll my debts into a loan secured on my home when the debts were small and unsecured.",
+			"tags": ["plain"],
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k056",
+			"state": "I'm not claiming you broke any rules by freezing my account while you checked that odd login from overseas. I just found three days without my card very hard.",
+			"tags": ["negation"],
+			"labels": {
+				"cause": "no-error"
+			},
+			"contested": {
+				"reason": "Three days may be longer than a fraud check strictly needs, so a reader could call it a service shortfall.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "k057",
+			"state": "I'm not disputing the overdraft interest at all. I just want someone to answer the secure messages I've been sending for five weeks.",
+			"tags": ["trap"],
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k058",
+			"state": "It's not that the fund went down, markets go down. It's that nobody should have put a cautious pensioner like me into it in the first place.",
+			"tags": ["negation"],
+			"labels": {
+				"cause": "advice"
+			},
+			"contested": {
+				"reason": "The customer concedes falls are normal, so a reader could treat this as regret rather than unsuitable advice.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "k059",
+			"state": "I don't like the monthly fee on my premium account. I know I agreed to it when I signed up, but it feels steep.",
+			"tags": ["trap"],
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k060",
+			"state": "I am writing about my current account. Over the summer I noticed small amounts leaving every month with a reference I did not recognise. When I finally got through, I was told it was a card protection add-on. I never asked for it, I never signed anything, and nobody told me it had been switched on. I want every penny returned and the add-on removed.",
+			"tags": ["long"],
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k061",
+			"state": "You told me that switching to an interest-only mortgage was the sensible move, but I retire before the term ends and have no way to repay the capital.",
+			"tags": ["trap"],
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k062",
+			"state": "The payment for my card's yearly cost came out twice. I want the second one back.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k063",
+			"state": "This isn't about the advice I got, which was fine. It's that you took the set-up cost for my account twice.",
+			"tags": ["negation"],
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k064",
+			"state": "When I tried to pay a large sum to a builder, you stopped it and asked me questions. He turned out to be a scammer, but I still felt treated like a child.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k065",
+			"state": "I don't think it's fair that my savings rate went down when the base rate fell.",
+			"tags": ["plain"],
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k066",
+			"state": "I was told I couldn't have the account because I don't meet your residency requirements. That seems unfair to me.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k067",
+			"state": "I was promised a call back within two days. That was three weeks ago and nobody has rung.",
+			"tags": ["plain"],
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k068",
+			"state": "My mother went into a care home in the autumn and I hold her power of attorney. I have visited the branch three times with the originals, been told each time that the forms would be sent off, and each time heard nothing. When I phoned, the team said they had no record of me. Meanwhile her bills are piling up and I cannot pay them from her account. I'm exhausted and I'd like someone to take ownership of this.",
+			"tags": ["long"],
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k069",
+			"state": "I didn't like the new monthly fee, but I knew about it. What's really wrong is that it took you seven weeks and five phone calls to close the account when I asked.",
+			"tags": ["mixed"],
+			"labels": {
+				"cause": "service"
+			},
+			"contested": {
+				"reason": "The fee is named first, but the customer says it was agreed; a reader might still weigh it as the grievance.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "k070",
+			"state": "The interest you paid on my savings was lower than elsewhere, and on top of that you wouldn't match the other bank's rate when I asked.",
+			"tags": ["mixed"],
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k071",
+			"state": "There is an overdraft charge on my statement but I never went overdrawn. My balance was in credit all month.",
+			"tags": ["plain"],
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k072",
+			"state": "My mortgage balance went up by an amount I couldn't explain, and when I checked it was because you used a rate that isn't the one in my offer.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k073",
+			"state": "Every time I ring I get a different person and I have to explain everything from the start.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k074",
+			"state": "You refused to raise my credit limit even though I asked politely.",
+			"tags": ["plain"],
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k075",
+			"state": "I wanted to discuss my pension options and your adviser didn't turn up to the appointment, twice. No apology, no rebooking.",
+			"tags": ["trap"],
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k076",
+			"state": "I don't mind the queue at the branch. What I mind is the penalty you took for a payment that arrived on time.",
+			"tags": ["trap"],
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k077",
+			"state": "I don't mind the fee for the meeting. What I mind is that the fund I was told to buy was far too risky for someone of my age.",
+			"tags": ["trap"],
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k078",
+			"state": "ur guy at the branch basically told me to chuck my whole house deposit into some high risk scheme, im twenty two and skint now, how was that ever right for me",
+			"tags": ["informal"],
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k079",
+			"state": "The rate on my mortgage went up when my fixed deal ended, just as your letters said it would, and I'm struggling.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k080",
+			"state": "I suppose your lending criteria and my circumstances simply didn't see eye to eye, which I find rather disappointing after all these years.",
+			"tags": ["euphemism"],
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k081",
+			"state": "I rang about a charge on my account. The charge turned out to be correct, fair enough, but I was cut off three times and the promised call back never came.",
+			"tags": ["trap"],
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k082",
+			"state": "You turned down my loan application. I've banked with you for years and I think I deserve better.",
+			"tags": ["plain"],
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k083",
+			"state": "My transfer to my solicitor was delayed by a week and I nearly lost the house purchase.",
+			"tags": ["plain"],
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k084",
+			"state": "I had to wait twenty minutes while you checked a payment was really from me. It was a scam and you stopped it, but I missed my train.",
+			"tags": ["trap"],
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k085",
+			"state": "You took the annual card fee twice in the same week.",
+			"tags": ["plain"],
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k086",
+			"state": "I told your planner I was cautious and close to retiring, and I came away owning a fund full of emerging-market stocks.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k087",
+			"state": "You kept posting my statements, with every account detail on them, to my old address after I told you I had moved. A stranger has now read my finances.",
+			"tags": ["plain"],
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k088",
+			"state": "You asked for proof of where my money came from before accepting a big deposit. I found that intrusive.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k089",
+			"state": "My pension payment went into my account as normal, but you then took a processing deduction from it that my terms say doesn't exist.",
+			"tags": ["trap"],
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k090",
+			"state": "Your letter recommended I check my details online, and when I did I found you had been passing my contact details to a marketing partner I never agreed to.",
+			"tags": ["trap"],
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k091",
+			"state": "Your adviser told me the fund could go down as well as up, and it did. I'm not happy about losing money.",
+			"tags": ["trap"],
+			"labels": {
+				"cause": "no-error"
+			},
+			"contested": {
+				"reason": "Some would read a loss after advice as unsuitable advice, though the risk was disclosed and nothing suggests it was wrong for them.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "k092",
+			"state": "I was charged a foreign transaction fee on a card you sold me on the basis that it had none abroad.",
+			"tags": ["plain"],
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k093",
+			"state": "You won't let me take my fixed-term savings out early. I know the terms said so, but I need the money now.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k094",
+			"state": "My mortgage application was declined because of a missed payment on my record from a few years back, which I think is harsh.",
+			"tags": ["plain"],
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k095",
+			"state": "I've been waiting six weeks for a decision on my mortgage application and nobody will tell me what is happening.",
+			"tags": ["plain"],
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k096",
+			"state": "Your helpline recommended I ring back after five, and when I did the line just rang out.",
+			"tags": ["trap"],
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k097",
+			"state": "Nobody was rude and there were no delays. I just think refusing my loan was the wrong call.",
+			"tags": ["negation"],
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k098",
+			"state": "The man at the counter was rude to me and spoke to me as if I were stupid.",
+			"tags": ["plain"],
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k099",
+			"state": "I was recommended an equity release plan without anyone checking whether I had thought about other options.",
+			"tags": ["plain"],
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k100",
+			"state": "I sent my forms in over two months ago and still haven't heard a thing back.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"cause": "service"
+			}
+		}
+	],
+	"questions": {
+		"id": "fs-advice/questions/complaint-q1",
+		"digest": "100883c9f7f6b556acaccd26d7327cb8fb01a3d9e18fe62438285c72660761f5"
+	},
+	"annotators": [
+		{
+			"id": "author",
+			"blind": false,
+			"primary": true
+		},
+		{
+			"id": "second-labeller",
+			"blind": true,
+			"kappa": {
+				"cause": 1
+			},
+			"note": "The same model as the author, labelling blind from the guide and the words alone."
+		},
+		{
+			"id": "third-labeller",
+			"blind": true,
+			"kappa": {
+				"cause": 0.9867
+			},
+			"note": "Another, smaller model, labelling blind from the guide and the words alone; its disagreements are the contested alternatives."
+		}
+	],
+	"heldOut": true,
+	"seenBy": [],
+	"digest": "a15315feaa7e71f4f19473fa7cddccc4e43de8383b787297525614a73c9475d1"
+}

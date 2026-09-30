@@ -1,0 +1,879 @@
+{
+	"id": "fs-lending/corpus/loan-purpose-v1",
+	"name": "What a loan is for, in the applicant’s words",
+	"version": "1",
+	"stateKind": "applicant-words",
+	"guide": "What applicants say when asked what a loan is for, each labelled with its main purpose. Written after the question set was frozen, so held out from it. Synthetic English written for the product by its authors (an authoring pass given the guide, the options and the desk’s keyword rule, so it could write rows that test the rule): no person, number, company or place in it is real, and no row has a digit. It stands in for what customers say; it is not what they say. A sample of real words, labelled by someone other than the product’s authors, is the missing test, and no figure measured on these rows replaces it.",
+	"labels": {
+		"purpose": {
+			"options": ["car", "home-improvement", "debt-consolidation", "holiday", "other"],
+			"guide": "car — Buying or repairing a car, van or other vehicle. home-improvement — Work on their home: a kitchen, a bathroom, a roof, an extension, the garden. debt-consolidation — Paying off other borrowing so they owe in one place. holiday — A holiday or travel. other — Anything else."
+		}
+	},
+	"rows": [
+		{
+			"id": "l001",
+			"state": "I need a car to get to my new job, the bus doesn't run early enough in the morning.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l002",
+			"state": "It's to buy a second-hand van for my decorating work.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l003",
+			"state": "My car failed its annual test and needs a new clutch and brakes before I can drive it again.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l004",
+			"state": "Buying a small used car for my son now he's passed his driving test.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l005",
+			"state": "A motorbike, so I can stop paying for parking in town every day.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l006",
+			"state": "Replacing our family car. The old one has done nearly two hundred thousand miles and it's costing more to keep going than it's worth.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l007",
+			"state": "The gearbox on my hatchback has gone and the garage wants about two thousand pounds to fix it.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l008",
+			"state": "We need something with seven seats now the twins have arrived, so we're trading in the estate for a people carrier.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l009",
+			"state": "I'm after a reliable runaround to get me to the hospital for my early shifts.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l010",
+			"state": "A pickup truck for the farm. The old one's rusted through underneath.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l011",
+			"state": "A little electric hatchback so I can charge it at home and stop spending a fortune on petrol.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l012",
+			"state": "The dealer lets me buy the car at the end of the lease, and I'd rather pay off the final balloon payment with a loan than hand it back.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "car"
+			},
+			"contested": {
+				"reason": "Settling the balloon on a finance agreement could be read as refinancing existing borrowing rather than buying a car.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "l013",
+			"state": "A convertible with a folding roof. I've wanted one since I was a teenager and I've finally found the right one.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l014",
+			"state": "I travel between client sites all week and my old hatchback has finally died, so I need a replacement.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l015",
+			"state": "Once I've got a decent runabout I can take the kids on the odd trip at weekends, but it's really for getting to work.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l016",
+			"state": "I've got no debts and no credit cards, I just need a bit extra to buy a tidy used estate outright.",
+			"tags": ["negation"],
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l017",
+			"state": "Mostly it's for a used car, but I'll put whatever's left towards a weekend away.",
+			"tags": ["mixed"],
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l018",
+			"state": "I work nights at a care home on the edge of the county and there's no bus after ten. For the last year I've been getting lifts from a colleague, but she's moving away next month. I've found a tidy little hatchback with a full service history from a local dealer. The loan would cover that plus the first year's insurance.",
+			"tags": ["long"],
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l019",
+			"state": "need wheels tbh, mine's knackered and the mechanic reckons it's not worth fixing",
+			"tags": ["informal"],
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l020",
+			"state": "It's to get me back on the road. My old banger finally gave up the ghost last week.",
+			"tags": ["euphemism"],
+			"labels": {
+				"purpose": "car"
+			}
+		},
+		{
+			"id": "l021",
+			"state": "We're replacing our kitchen, the units are falling apart and the worktops are chipped.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l022",
+			"state": "A new bathroom. The shower leaks through to the ceiling below.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l023",
+			"state": "To build a single-storey extension at the back of the house so we have room for a proper dining area.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l024",
+			"state": "The roof needs retiling before the winter sets in.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l025",
+			"state": "Renovating the downstairs of our cottage: new floors, plastering and rewiring.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l026",
+			"state": "Landscaping the garden. A patio, new fencing and some raised beds for vegetables.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l027",
+			"state": "The boiler is on its last legs and we need a new one, along with a few radiators that have stopped working.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l028",
+			"state": "We want to convert the loft into a bedroom for our eldest.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l029",
+			"state": "New double glazing throughout. The old windows let every draught in.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l030",
+			"state": "Having the whole house rewired and replastered; it hasn't been touched since it was built.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l031",
+			"state": "Damp-proofing the cellar and putting in a proper floor so we can actually use the space.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l032",
+			"state": "It's for a new boiler, and I'd aim to pay off the loan well before the term is up.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l033",
+			"state": "Resurfacing the drive so we can finally get the car off the road and onto it.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l034",
+			"state": "We'd rather skip a holiday this year and put the money into new windows and a front door.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l035",
+			"state": "I travel a lot for work, so I want the builders in while I'm away: new floors and a full rewire.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l036",
+			"state": "Partly a new bathroom and partly a sofa for the lounge, but the bathroom is most of the cost.",
+			"tags": ["mixed"],
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l037",
+			"state": "It's not for a holiday or anything like that. The back wall has cracked and the surveyor says it needs underpinning.",
+			"tags": ["negation"],
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l038",
+			"state": "We bought the house last spring knowing it needed work. The windows are rotten, the heating barely works and there's no insulation in the loft. We've had three quotes and the middle one covers the lot. We'd like to get it all done before the cold weather comes in.",
+			"tags": ["long"],
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l039",
+			"state": "gotta sort the leaky conservatory before it floods again, half the panels are shot",
+			"tags": ["informal"],
+			"labels": {
+				"purpose": "home-improvement"
+			}
+		},
+		{
+			"id": "l040",
+			"state": "Giving the old place a bit of a facelift. It's looking tired inside and out.",
+			"tags": ["euphemism"],
+			"labels": {
+				"purpose": "home-improvement"
+			},
+			"contested": {
+				"reason": "A facelift could mean redecorating or new furnishings rather than works on the home.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "l041",
+			"state": "I want to consolidate my borrowing into one monthly payment.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l042",
+			"state": "To pay off three credit cards that are costing me a fortune in interest.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l043",
+			"state": "Clearing my debts so everything's in one place with one lender.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l044",
+			"state": "I've got an overdraft and two store cards and I'd like to pay off the lot.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l045",
+			"state": "Consolidating a couple of old loans at a lower rate.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l046",
+			"state": "Paying off my credit cards and my catalogue account so I can start saving again.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l047",
+			"state": "I'd like to clear what I owe on my overdraft and store cards and just have one repayment each month.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l048",
+			"state": "Settle the balances I'm carrying across several cards so I'm only dealing with a single lender.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l049",
+			"state": "I'm juggling a few repayments every month and I want to roll them together at a better rate.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l050",
+			"state": "To clear a payday loan and the arrears on my phone contract.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l051",
+			"state": "Bringing everything I owe under one roof so I can keep track of it.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l052",
+			"state": "The balance on my car finance is higher than I'd like, and I'd rather roll it in with my overdraft at a lower rate.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l053",
+			"state": "Last year's holiday went on my cards and I want to clear that and the rest at a lower rate.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l054",
+			"state": "I borrowed for a kitchen a couple of years ago and I've built up an overdraft since; I want to put both together with one lender.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l055",
+			"state": "Mainly to pay off my credit cards, with a little left over for a new mattress.",
+			"tags": ["mixed"],
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l056",
+			"state": "It isn't for anything new. I just want to bring the loans I already have together at a lower rate.",
+			"tags": ["negation"],
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l057",
+			"state": "Over the last few years I've let things slide. There's a card with a high rate, an overdraft I'm always at the limit of, and a loan from when I was out of work. Every month I pay three lots of interest and never seem to get anywhere. I'd like to clear the lot and have a single payment I can plan around.",
+			"tags": ["long"],
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l058",
+			"state": "honestly just want all my cards sorted into one payment, sick of paying three lots of interest",
+			"tags": ["informal"],
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l059",
+			"state": "To get my finances straightened out and make a fresh start.",
+			"tags": ["euphemism"],
+			"labels": {
+				"purpose": "debt-consolidation"
+			},
+			"contested": {
+				"reason": "It never says it is clearing borrowing; getting finances straight could cover almost any purpose.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "l060",
+			"state": "To settle my overdraft and a personal loan from another lender, so there's just the one payment going out.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "debt-consolidation"
+			}
+		},
+		{
+			"id": "l061",
+			"state": "A family holiday abroad. We haven't had one in five years.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l062",
+			"state": "It's for our honeymoon trip in the spring.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l063",
+			"state": "Travel costs to see my sister, who lives overseas now.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "holiday"
+			},
+			"contested": {
+				"reason": "Visiting a relative could be read as a family matter rather than a holiday.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "l064",
+			"state": "A cruise holiday for our anniversary.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l065",
+			"state": "A skiing trip with friends in the new year.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l066",
+			"state": "A year of travel before I start university, working my way round as I go.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l067",
+			"state": "Two weeks in the sun for the whole family, flights and hotel.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l068",
+			"state": "A fortnight away somewhere warm. We've not been abroad since the children were small.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l069",
+			"state": "Backpacking around the islands for a month after I finish my degree.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l070",
+			"state": "A safari for my fiftieth birthday, something I've always dreamed of doing.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l071",
+			"state": "Our honeymoon: ten days somewhere with a beach and absolutely nothing to do.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l072",
+			"state": "We'll take the car over on the ferry and tour the mountains for a fortnight.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l073",
+			"state": "Hiring a camper van for a month to tour the hills and lakes.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l074",
+			"state": "A cottage by the sea with a lovely garden for the week. We just need a break.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l075",
+			"state": "I promised Mum years ago I'd take her somewhere sunny, and I want to finally pay off that promise.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l076",
+			"state": "A week away in the sun. The neighbour's lad will give the garden a tidy while we're gone, but the loan is for the break itself.",
+			"tags": ["mixed"],
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l077",
+			"state": "Not a car, not the house. It's a journey I've been putting off for years.",
+			"tags": ["negation"],
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l078",
+			"state": "My parents are both in their eighties and they've always wanted to see where my grandfather served. I'd like to take them while they're still able to make the journey. It means flights, a couple of nights in hotels and a driver for the days we're there. It will probably be the last big journey we do together.",
+			"tags": ["long"],
+			"labels": {
+				"purpose": "holiday"
+			},
+			"contested": {
+				"reason": "A journey made for family reasons could be read as a family event rather than a holiday.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "l079",
+			"state": "need a proper getaway mate, sun sea and a sunbed for a week",
+			"tags": ["informal"],
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l080",
+			"state": "Just a bit of time away to recharge the batteries somewhere warm.",
+			"tags": ["euphemism"],
+			"labels": {
+				"purpose": "holiday"
+			}
+		},
+		{
+			"id": "l081",
+			"state": "To pay for our wedding reception.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "other"
+			}
+		},
+		{
+			"id": "l082",
+			"state": "A professional course so I can retrain as an electrician.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "other"
+			}
+		},
+		{
+			"id": "l083",
+			"state": "Covering the cost of my father's funeral.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "other"
+			}
+		},
+		{
+			"id": "l084",
+			"state": "New furniture for the flat: a sofa, a bed and a dining table.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "other"
+			}
+		},
+		{
+			"id": "l085",
+			"state": "A decent computer for my design work.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "other"
+			}
+		},
+		{
+			"id": "l086",
+			"state": "Moving costs. The removal firm, a deposit and the first month's rent all fall at once.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "other"
+			}
+		},
+		{
+			"id": "l087",
+			"state": "We're getting married in the summer and the venue wants its balance up front.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "other"
+			}
+		},
+		{
+			"id": "l088",
+			"state": "Driving lessons and my test fees.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "other"
+			},
+			"contested": {
+				"reason": "Learning to drive is vehicle-related, though no vehicle is being bought or repaired.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "l089",
+			"state": "Kitting out the spare room as a small photography studio: lights, backdrops and a proper camera.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "other"
+			},
+			"contested": {
+				"reason": "Fitting out a room could be read as work on the home rather than hobby equipment.",
+				"alternatives": {
+					"purpose": "home-improvement"
+				}
+			}
+		},
+		{
+			"id": "l090",
+			"state": "A piano for my daughter. She's been learning for three years and has outgrown her keyboard.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "other"
+			}
+		},
+		{
+			"id": "l091",
+			"state": "Vet bills. Our dog needs an operation on his hip.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "other"
+			}
+		},
+		{
+			"id": "l092",
+			"state": "A marquee in the garden for our son's wedding reception.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "other"
+			}
+		},
+		{
+			"id": "l093",
+			"state": "A course at a motor mechanics college so I can change careers.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "other"
+			}
+		},
+		{
+			"id": "l094",
+			"state": "A training course in travel and tourism management, so I can move into the industry.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "other"
+			}
+		},
+		{
+			"id": "l095",
+			"state": "I'd like to pay off the funeral director in full rather than go on his payment plan.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "other"
+			},
+			"contested": {
+				"reason": "Settling an outstanding bill could be read as clearing a debt rather than paying for a funeral.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "l096",
+			"state": "Mostly the wedding, though a bit will go on the honeymoon afterwards.",
+			"tags": ["mixed"],
+			"labels": {
+				"purpose": "other"
+			}
+		},
+		{
+			"id": "l097",
+			"state": "It's not to consolidate anything, I've no other borrowing. It's for a hearing aid for my mother.",
+			"tags": ["negation"],
+			"labels": {
+				"purpose": "other"
+			}
+		},
+		{
+			"id": "l098",
+			"state": "I've been accepted onto a part-time degree in nursing. The fees are paid in instalments, but I need a laptop, textbooks and a uniform before I start. I'll also lose some shifts while I'm on placement. This would tide me over for the first year.",
+			"tags": ["long"],
+			"labels": {
+				"purpose": "other"
+			}
+		},
+		{
+			"id": "l099",
+			"state": "new gaming rig and a decent chair tbh, mine's ancient",
+			"tags": ["informal"],
+			"labels": {
+				"purpose": "other"
+			}
+		},
+		{
+			"id": "l100",
+			"state": "To give my mum the send-off she deserves.",
+			"tags": ["euphemism"],
+			"labels": {
+				"purpose": "other"
+			}
+		}
+	],
+	"questions": {
+		"id": "fs-lending/questions/loan-purpose-q1",
+		"digest": "4e36e7a7b3c2a0a08e191fa438b5682424ed004b48061feaee89fee5a9f2fd6a"
+	},
+	"annotators": [
+		{
+			"id": "author",
+			"blind": false,
+			"primary": true
+		},
+		{
+			"id": "second-labeller",
+			"blind": true,
+			"kappa": {
+				"purpose": 1
+			},
+			"note": "The same model as the author, labelling blind from the guide and the words alone."
+		},
+		{
+			"id": "third-labeller",
+			"blind": true,
+			"kappa": {
+				"purpose": 0.9875
+			},
+			"note": "Another, smaller model, labelling blind from the guide and the words alone; its disagreements are the contested alternatives."
+		}
+	],
+	"heldOut": true,
+	"seenBy": [],
+	"digest": "dbd8de207d4a9e554171b6b72e2a97a44092c2c5c80d30ebcb0e8d5a0dea7aae"
+}

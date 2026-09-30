@@ -221,3 +221,43 @@ The desk's rule reader and the keyword stand-in (`readers-llm/reader/mock`, §10
 > - The lab record stays in the typesafe pack beside its scripts, and the evidence folder's README points at it.
 > - No reader executor names a `questionSet` yet: the servicing journey's readers are still `line` executors until WP120, so the held-out rule has nothing to refuse on the shipped designs.
 > - The Supabase table's live checkpoint is not taken.
+
+> **WP121 done 2026-09-30.**
+>
+> **What was built:**
+> - **Six corpora** of a hundred rows each: disputes, fraud, complaints, onboarding, lending and advice. Each is on its desk's manifest, held out from a question set committed before any row was written (stage A, `15cd932`), and passes `checkCorpus`.
+> - **Six keyword rule readers**, one per desk (§9.1).
+> - **`scoreReader`** in `evals`.
+> - **The test:** `harness/src/desk-corpora.test.ts` holds the seven desks' corpora, their agreement and every score.
+>
+> **How they were labelled.**
+> - **The author:** an authoring subagent wrote each corpus from its guide, its options and the keyword rule, planting traps and paraphrases.
+> - **Two blind annotators:** a subagent of the same model, and one of another, smaller model. Each read one file holding the guide, the options and the rows' words, **shuffled and under opaque ids**.
+> - **The first pass was thrown away.** A labeller's report showed that servicing v1's ids (`a…`, `b…`) encode the category, and two new corpora were written in label order. All fourteen labellings were redone on the shuffled inputs, and no transcript touched any other file.
+> - **κ:** the same model agrees at 1.00 on every corpus; the other model at 0.98–1.00. Three disagreements in six hundred rows became contested alternatives, and the one on a row the author had not marked contested (`k033`) is flagged as such. The servicing v1 corpus got the same two annotators (κ 1.00/1.00 and 1.00/0.97), so **no corpus carries the single-annotator finding**.
+>
+> **The finding, for Andrew's reading.** Agreement this close to 1 says the rows are unambiguous *to models*: they were written by a model to be read by one. It is not evidence that people would agree, or that the guide survives real words. Every guide says a real sample labelled by people is the missing test, and κ here cannot stand in for it.
+>
+> **The scores** (the regex baseline each desk's note quotes):
+>
+> | Desk | Rule reader | Keyword stand-in |
+> |---|---|---|
+> | Disputes | 42% | 33% |
+> | Fraud | 43% | 50% |
+> | Complaints | 44% | 26% |
+> | Onboarding | 40% | 27% |
+> | Lending | 43% | 30% |
+> | Advice | 45% | 42% |
+>
+> Servicing v1–v3 reproduce the branch's 54–64%. The corpora were written to test the rules, so these are accuracies on words chosen to break them, not on any desk's traffic.
+>
+> **DoD:**
+> - Seven corpora pass `checkCorpus` and the synthetic sweep ✓.
+> - Every rule reader has a scored accuracy on its corpus in the desk's note ✓.
+> - No corpus carries the single-annotator finding ✓.
+>
+> **Diverged (§9.3):**
+> - **No journey configurations.** `regex` vs `llm:mock` is compared on the corpus with `scoreReader`, not as journey configurations: four desks have no reading stage, and the other two would move the journeys page and the Monitor.
+> - **Held out whole,** with no seen part.
+>
+> **Budgets:** the main bundle and the Worker each +130 kB (2,500,000 and 1,390,000) for the 600 rows. For Andrew's reading: they are the largest single additions this sprint.

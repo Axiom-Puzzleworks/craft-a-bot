@@ -34,11 +34,14 @@ describe('the servicing corpora (WP119)', () => {
 		expect(() => servicingCorpus('fs-servicing/corpus/none')).toThrow(/ships no corpus/);
 	});
 
-	it('say who labelled them: v1 its author alone, v2 and v3 blind with the branch’s κ', () => {
-		expect(corpusFindings(servicingCorpus(REQUESTS_V1_CORPUS_ID)).map((f) => f.check)).toEqual([
-			'corpus.single-annotator'
+	it('say who labelled them: every corpus blind-labelled twice, with the agreement recorded', () => {
+		// v1's second and third labellers since WP121 (`105-CORPORA.md` §9.2): no corpus is its author's alone.
+		for (const corpus of SERVICING_CORPORA) expect(corpusFindings(corpus), corpus.id).toEqual([]);
+		expect(servicingCorpus(REQUESTS_V1_CORPUS_ID).annotators.map((a) => [a.id, a.kappa])).toEqual([
+			['author', undefined],
+			['second-labeller', { category: 1, need: 1 }],
+			['third-labeller', { category: 1, need: 0.9681 }]
 		]);
-		expect(corpusFindings(servicingCorpus(REQUESTS_V2_CORPUS_ID))).toEqual([]);
 		expect(servicingCorpus(REQUESTS_V2_CORPUS_ID).annotators.at(-1)).toEqual({
 			id: 'second-labeller',
 			blind: true,

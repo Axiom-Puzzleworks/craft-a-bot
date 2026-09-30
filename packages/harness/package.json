@@ -53,6 +53,8 @@
 		"@craftabot/workflow": "*"
 	},
 	"devDependencies": {
+		"@craftabot/pack-readers-llm": "*",
+		"@craftabot/pack-testkit": "*",
 		"@types/node": "^24.10.1"
 	}
 }

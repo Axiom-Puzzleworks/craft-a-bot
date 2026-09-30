@@ -89,3 +89,9 @@ Edges: `identity` → `decision` when not verified, `screening` otherwise; `reco
 > **2026-09-12.** Built in one pass: the bank's screening list and the `kyc` line's `sanctions` operation; the pack — rule, cases, desk, personas, decks, cards, evaluators, rows, ceilings, book, workflow with five configurations, two campaigns, stacks through `deskStacks`; the tests above; the harness, the Worker, the editions, the plan chains, the bank day, CI; the desk's page and the e2e routes; the fifth journey's snapshots; the manual's §44.2. The three rows and the list are for Andrew's reading, marked `unreviewed`.
 
 > **Amended 2026-09-29 (WP111, `102-HONEST-BANK.md` §5):** the verdict leaves (`decision-v1`), the hit (`screening-v1`) and the rating (`risk-rating-v1`) are derived by design and declared on the desk's spec; `decision-matches-rules` carries `derivedFrom: 'decision-v1'`. `hit-contained` scores containment, not agreement, and is unmarked; `verifies` is independent.
+
+> **Amended 2026-09-30 (WP121, `105-CORPORA.md` §9):** the desk's corpus.
+> - **The corpus:** `fs-onboarding/corpus/purpose-v1`, a hundred rows of an applicant on what the account is for. It is written after its question set was frozen, so it is held out from it, and blind-labelled twice (κ 1.00 and 1.00 for the same model and for another).
+> - **The regex baseline:** the keyword rule `fs-onboarding/reader/purpose-words` (`purpose`), the desk's first rule over words reads **40/100 (40.0%, 30.9–49.8%)** of it right. The LLM contract's keyword stand-in reads 27/100.
+> - **What that measures:** The corpus was written to test the rule — a third of it paraphrase and trap — so this is the rule's accuracy on words chosen to break it, not on the desk's traffic.
+> - **Where it is held:** `harness/src/desk-corpora.test.ts`.

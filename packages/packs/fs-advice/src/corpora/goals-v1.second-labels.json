@@ -1,0 +1,613 @@
+{
+	"corpusId": "fs-advice/corpus/goals-v1",
+	"corpusDigest": "cf7646266a318cec6777bea5184c120b11f46aa3cbf1855e111902ebb90a0b68",
+	"annotator": "second-labeller",
+	"blind": true,
+	"labels": [
+		{
+			"id": "a001",
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a002",
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a003",
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a004",
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a005",
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a006",
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a007",
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a008",
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a009",
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a010",
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a011",
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a012",
+			"labels": {
+				"goal": "purchase"
+			},
+			"note": "alternative keep-safe: asks for it kept safe until the house deposit"
+		},
+		{
+			"id": "a013",
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a014",
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a015",
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a016",
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a017",
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a018",
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a019",
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a020",
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a021",
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a022",
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a023",
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a024",
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a025",
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a026",
+			"labels": {
+				"goal": "income"
+			},
+			"note": "alternative keep-safe: asks capital kept safe too"
+		},
+		{
+			"id": "a027",
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a028",
+			"labels": {
+				"goal": "purchase"
+			},
+			"note": "alternative keep-safe: wants it secure, but for the wedding"
+		},
+		{
+			"id": "a029",
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a030",
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a031",
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a032",
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a033",
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a034",
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a035",
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a036",
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a037",
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a038",
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a039",
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a040",
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a041",
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a042",
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a043",
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a044",
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a045",
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a046",
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a047",
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a048",
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a049",
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a050",
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a051",
+			"labels": {
+				"goal": "keep-safe"
+			},
+			"note": "alternative purchase: may pay for a car one day, but no plan"
+		},
+		{
+			"id": "a052",
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a053",
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a054",
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a055",
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a056",
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a057",
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a058",
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a059",
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a060",
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a061",
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a062",
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a063",
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a064",
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a065",
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a066",
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a067",
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a068",
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a069",
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a070",
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a071",
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a072",
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a073",
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a074",
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a075",
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a076",
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a077",
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a078",
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a079",
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a080",
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a081",
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a082",
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a083",
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a084",
+			"labels": {
+				"goal": "purchase"
+			},
+			"note": "alternative grow: half would be happy to grow"
+		},
+		{
+			"id": "a085",
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a086",
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a087",
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a088",
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a089",
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a090",
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a091",
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a092",
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a093",
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a094",
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a095",
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a096",
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a097",
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a098",
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a099",
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a100",
+			"labels": {
+				"goal": "purchase"
+			}
+		}
+	]
+}

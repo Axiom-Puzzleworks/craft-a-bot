@@ -1,0 +1,613 @@
+{
+	"corpusId": "fs-disputes/corpus/claims-v1",
+	"corpusDigest": "e44aadc3b3770d1824d8c93abc120b380e28ceb47916aacd0c278bd415ffcc71",
+	"annotator": "second-labeller",
+	"blind": true,
+	"labels": [
+		{
+			"id": "d001",
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d002",
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d003",
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d004",
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d005",
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d006",
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d007",
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d008",
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d009",
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d010",
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d011",
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d012",
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d013",
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d014",
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d015",
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d016",
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d017",
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d018",
+			"labels": {
+				"classification": "authorised-scam"
+			},
+			"note": "could be merchant (non-delivery)"
+		},
+		{
+			"id": "d019",
+			"labels": {
+				"classification": "authorised-scam"
+			},
+			"note": "could be merchant (non-delivery of puppy)"
+		},
+		{
+			"id": "d020",
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d021",
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d022",
+			"labels": {
+				"classification": "merchant"
+			},
+			"note": "could be authorised-scam if the seller was never genuine"
+		},
+		{
+			"id": "d023",
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d024",
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d025",
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d026",
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d027",
+			"labels": {
+				"classification": "merchant"
+			},
+			"note": "could be authorised-scam (rogue trader)"
+		},
+		{
+			"id": "d028",
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d029",
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d030",
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d031",
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d032",
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d033",
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d034",
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d035",
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d036",
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d037",
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d038",
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d039",
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d040",
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d041",
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d042",
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d043",
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d044",
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d045",
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d046",
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d047",
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d048",
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d049",
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d050",
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d051",
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d052",
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d053",
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d054",
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d055",
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d056",
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d057",
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d058",
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d059",
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d060",
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d061",
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d062",
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d063",
+			"labels": {
+				"classification": "authorised-scam"
+			},
+			"note": "could be merchant (non-delivery)"
+		},
+		{
+			"id": "d064",
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d065",
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d066",
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d067",
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d068",
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d069",
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d070",
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d071",
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d072",
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d073",
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d074",
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d075",
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d076",
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d077",
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d078",
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d079",
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d080",
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d081",
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d082",
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d083",
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d084",
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d085",
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d086",
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d087",
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d088",
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d089",
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d090",
+			"labels": {
+				"classification": "authorised-scam"
+			}
+		},
+		{
+			"id": "d091",
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d092",
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d093",
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d094",
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d095",
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d096",
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d097",
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d098",
+			"labels": {
+				"classification": "merchant"
+			}
+		},
+		{
+			"id": "d099",
+			"labels": {
+				"classification": "unauthorised"
+			}
+		},
+		{
+			"id": "d100",
+			"labels": {
+				"classification": "unauthorised"
+			}
+		}
+	]
+}

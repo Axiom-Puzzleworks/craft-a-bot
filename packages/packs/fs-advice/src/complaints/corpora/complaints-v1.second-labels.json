@@ -1,0 +1,610 @@
+{
+	"corpusId": "fs-advice/corpus/complaints-v1",
+	"corpusDigest": "a15315feaa7e71f4f19473fa7cddccc4e43de8383b787297525614a73c9475d1",
+	"annotator": "second-labeller",
+	"blind": true,
+	"labels": [
+		{
+			"id": "k001",
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k002",
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k003",
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k004",
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k005",
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k006",
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k007",
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k008",
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k009",
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k010",
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k011",
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k012",
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k013",
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k014",
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k015",
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k016",
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k017",
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k018",
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k019",
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k020",
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k021",
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k022",
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k023",
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k024",
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k025",
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k026",
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k027",
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k028",
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k029",
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k030",
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k031",
+			"labels": {
+				"cause": "service"
+			},
+			"note": "alt: no-error (a Saturday queue may be within the bank’s rights)"
+		},
+		{
+			"id": "k032",
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k033",
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k034",
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k035",
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k036",
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k037",
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k038",
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k039",
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k040",
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k041",
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k042",
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k043",
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k044",
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k045",
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k046",
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k047",
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k048",
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k049",
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k050",
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k051",
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k052",
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k053",
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k054",
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k055",
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k056",
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k057",
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k058",
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k059",
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k060",
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k061",
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k062",
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k063",
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k064",
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k065",
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k066",
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k067",
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k068",
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k069",
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k070",
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k071",
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k072",
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k073",
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k074",
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k075",
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k076",
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k077",
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k078",
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k079",
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k080",
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k081",
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k082",
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k083",
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k084",
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k085",
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k086",
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k087",
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k088",
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k089",
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k090",
+			"labels": {
+				"cause": "charges"
+			}
+		},
+		{
+			"id": "k091",
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k092",
+			"labels": {
+				"cause": "charges"
+			},
+			"note": "alt: advice (card mis-sold as fee-free abroad)"
+		},
+		{
+			"id": "k093",
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k094",
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k095",
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k096",
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k097",
+			"labels": {
+				"cause": "no-error"
+			}
+		},
+		{
+			"id": "k098",
+			"labels": {
+				"cause": "service"
+			}
+		},
+		{
+			"id": "k099",
+			"labels": {
+				"cause": "advice"
+			}
+		},
+		{
+			"id": "k100",
+			"labels": {
+				"cause": "service"
+			}
+		}
+	]
+}
