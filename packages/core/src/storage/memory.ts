@@ -21,6 +21,11 @@ import {
 } from '../schemas/experiment.js';
 import { safeParseContentRecord, type ContentRecord } from '../schemas/content.js';
 import {
+	byNewestBenchmarkReport,
+	safeParseBenchmarkReport,
+	type BenchmarkReport
+} from '../schemas/benchmark.js';
+import {
 	DEFAULT_RUN_CAP,
 	byNewestCreated,
 	byNewestFirst,
@@ -59,6 +64,7 @@ export function createMemoryStorage(): MemoryStorage {
 	const content = new Map<string, ContentRecord>();
 	const workflowRuns = new Map<string, StoredWorkflowRun>();
 	const experimentResults = new Map<string, ExperimentResult>();
+	const benchmarkReports = new Map<string, BenchmarkReport>();
 	const quarantine = emptyQuarantine();
 
 	return {
@@ -274,6 +280,24 @@ export function createMemoryStorage(): MemoryStorage {
 			return Promise.resolve();
 		},
 
+		putBenchmarkReport(report) {
+			const parsed = safeParseBenchmarkReport(report);
+			if (!parsed.success) {
+				return Promise.reject(
+					new Error(`Refusing to store an invalid benchmark report: ${parsed.error.message}`)
+				);
+			}
+			benchmarkReports.set(report.id, structuredClone(report));
+			return Promise.resolve();
+		},
+		getBenchmarkReport: (id) => Promise.resolve(copy(benchmarkReports.get(id))),
+		listBenchmarkReports: () =>
+			Promise.resolve([...benchmarkReports.values()].sort(byNewestBenchmarkReport).map(copy)),
+		deleteBenchmarkReport(id) {
+			benchmarkReports.delete(id);
+			return Promise.resolve();
+		},
+
 		clear() {
 			agents.clear();
 			runs.clear();
@@ -285,6 +309,7 @@ export function createMemoryStorage(): MemoryStorage {
 			content.clear();
 			workflowRuns.clear();
 			experimentResults.clear();
+			benchmarkReports.clear();
 			return Promise.resolve();
 		}
 	};

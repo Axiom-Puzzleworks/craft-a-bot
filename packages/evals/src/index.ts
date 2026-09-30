@@ -265,3 +265,22 @@ export {
 	type LevelCombination
 } from './experiment.js';
 export { scoreReader, type ReaderScore, type ScoreReaderOptions } from './corpus-score.js';
+export {
+	SURFACE_HOOK,
+	benchmarkSchema,
+	parseBenchmark,
+	renderBenchmarkMarkdown,
+	runBenchmark,
+	type Benchmark,
+	type BenchmarkClient,
+	type BenchmarkDeps,
+	type BenchmarkInput
+} from './benchmark.js';
+export {
+	BENCHMARK_CASSETTE_KIND,
+	benchmarkCassetteSchema,
+	benchmarkRequestKey,
+	cassetteFetch,
+	recordingFetch,
+	type BenchmarkCassette
+} from './benchmark-cassette.js';

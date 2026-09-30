@@ -120,9 +120,11 @@ export {
 } from './control-effectiveness.js';
 /** The coverage fold and the catalogue page (WP98, `86-…` §5, §7). */
 export {
+	coverageMeasurements,
 	coverageReport,
 	coverageSummary,
 	renderCatalogueMarkdown,
+	type CoverageMeasurement,
 	type CoverageRow,
 	type CoverageSummary
 } from './coverage.js';

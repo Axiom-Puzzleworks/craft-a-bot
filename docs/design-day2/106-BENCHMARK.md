@@ -206,3 +206,52 @@ WP123 may amend the shape here. The corpora are what it cannot change.
 > - **`full`'s unread `budgetBytes`** is brought into step with the budget script's default.
 >
 > These are the largest additions of the sprint. The alternative is to keep the adversarial corpora out of the Workbench, loaded by the harness and fetched by `/workshop/benchmarks` on demand. That is WP123's call, when the page decides where it reads them.
+
+> **WP123 done 2026-09-30.**
+>
+> **What was built.**
+> - **The report in `core`:** `benchmarkReportSchema` (`schemas/benchmark.ts`, generated as `benchmark-report.schema.json`), digested over everything but its id and time, and `latestMeasurement`. It is kept on every store (`put`/`get`/`list`/`deleteBenchmarkReport`; IndexedDB v9, the file store's `benchmarks/`) and is in the storage contract.
+> - **The benchmark in `evals`:**
+>   - `benchmarkSchema` (`kind: 'benchmark'`), `runBenchmark` and `renderBenchmarkMarkdown`, which opens with *Synthetic rows*;
+>   - the fetch-level cassette (`benchmark-cassette.ts`): keyed by method, URL and body, never a header, with the latency recorded.
+> - **The harness:**
+>   - `craftabot benchmark run <file> [--cassettes] [--record] [--out] [--store]`: a service answers from its cassette, else its stand-in; `--record` calls it live with its credential and writes the cassette;
+>   - the reference `benchmarks/bank-adversarial.json`, which is `fs-bank`'s `BANK_ADVERSARIAL_BENCHMARK`, and a CI step that runs it.
+> - **The Workbench:**
+>   - `/workshop/benchmarks`: *Synthetic rows* first, a table of subjects, recall by attack kind as a Matrix with its twin in sentences, running over the stand-ins in the browser, and importing a harness report;
+>   - the Guard Rack's *Benchmark* row per service, which reads the latest measurement or *unmeasured*;
+>   - the catalogue's *Benchmark* column, from `coverageReport`'s new `measured`;
+>   - the assurance pack's *Coverage*, which names what a benchmark measured and says every other guard is unmeasured. It is present only when the pack is given reports, so no existing pack's digest moved.
+>
+> **What it measures today.**
+> - **The stand-ins measure nothing.** Every shipped offline client answers clean whatever it is shown, so every service reads *stand-in — unmeasured*, and its zero is never quoted as recall. `latestMeasurement` skips stand-ins, so the Rack and the catalogue read *unmeasured* for all six services.
+> - **`pdp-opa/opa` is not applicable:** it screens `pre-act` (actions), and the corpus is text at `pre-think` and `post-act`.
+> - **Two readers are measured.** Over the 1,408 rows:
+>   - the keyword baseline `fs-bank/reader/attack-words` has precision 81%, recall 26% and false alarms 11%, and catches 233 attacks no other subject does (confusion 238/55/682/433);
+>   - the LLM contract's keyword stand-in `readers-llm/reader/mock`, registered by the harness test, catches 22.
+> - **The real numbers are WP125's:** one `--record` per service with its key.
+>
+> **Tests.**
+> - **Determinism.** The reference benchmark over the stand-ins is deterministic to its digest, `7a45fe25…`.
+> - **Record and replay.** Azure's real client records through a deterministic stand-in of its HTTP API, and replays with no key and no network to the same confusion, slices, rates and latency. The planted key is absent from the cassette.
+> - **The Rack.** It reads *unmeasured* for a stand-in and the numbers for a cassette (the Workbench fold's test and `e2e/benchmarks.spec.ts`).
+> - **Coverage.** `measured` takes the latest cassette measurement and never a stand-in.
+>
+> **Diverged:**
+> - **A file of its own.** The benchmark is a file with `kind: 'benchmark'` beside the campaign and the experiment, not a third campaign kind: it runs no agent, no scenario and no gate.
+> - **No bespoke subjects.** The bespoke components are named in `subjects.components` and read *not applicable* until WP124 builds them.
+> - **Tokens.** Tokens are null for every subject: a reader's response carries no usage, and a guard service reports none.
+> - **No rail entry.** The page is reached from each Rack row and by its URL: a rail entry would redraw every Workshop screenshot, as in WP119. The command palette lists stored artefacts, not routes.
+> - **No price cited.** List prices are a field of the benchmark file, and none is cited yet. A price enters with its source.
+>
+> **Found on the way:**
+> - **A WP116 display bug.** The Experiments screen could not draw WP116's regenerated result: a treatment appears once per brain tier, and the effects list and the Matrix were keyed by the treatment alone (`each_key_duplicate`). They are keyed and worded by tier now, and a test reads the committed result.
+> - **Stale screenshots.** The win32 screenshots `ws-experiments` and `ws-playground` had been stale since WP116 and WP117–WP122 (the Playground's Boundary drawing). They were re-taken with `ws-guards`, `ws-catalogue` and the new `ws-benchmarks`. Their Linux baselines come from CI's `visual` artefact (WP130).
+>
+> **Budgets:** +30 kB on the full edition and on each site edition, for the page, the runner and the fold.
+>
+> **DoD:** met.
+> - The benchmark over the stand-ins is deterministic and its shape held in CI.
+> - A subject's cassette replays to the same confusion matrix.
+> - The Rack reads *unmeasured* for a service with no benchmark.
+> - The page says *synthetic rows* first.

@@ -205,3 +205,4 @@ export {
 	GUARD_QUESTION_SET_ID,
 	attackKindOf
 } from './guard/attack-words.js';
+export { BANK_ADVERSARIAL_BENCHMARK } from './guard/benchmark.js';

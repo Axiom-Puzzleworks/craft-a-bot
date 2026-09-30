@@ -398,12 +398,12 @@
 						testId="experiment-matrix-{metricId.replace(/[^a-z0-9]+/gi, '-')}"
 					/>
 					<ul class="effects">
-						{#each result.effects.filter((effect) => effect.metricId === metricId) as effect (effect.factor.treatment)}
+						{#each result.effects.filter((effect) => effect.metricId === metricId) as effect (`${effect.factor.treatment}@${effect.tier ?? ''}`)}
 							<li>
-								<strong>{effect.factor.treatment}</strong> vs {effect.factor.baseline}: {deltaText(
-									effect,
-									effect.delta
-								)}
+								<!-- WP123: keyed and worded by tier too — since WP116 a treatment appears once per brain tier. -->
+								<strong>{effect.factor.treatment}</strong>{effect.tier
+									? ` (${effect.tier} tier)`
+									: ''} vs {effect.factor.baseline}: {deltaText(effect, effect.delta)}
 								({bandText(effect, effect.interval)}; n {effect.baseline.n} / {effect.treatment.n};
 								{#if effect.p !== undefined}p {effect.p.toFixed(3)};
 								{/if}{effect.method}{effect.underpowered ? '; underpowered' : ''}). Cost: tokens {effect.cost.tokensPerCase.baseline.toFixed(

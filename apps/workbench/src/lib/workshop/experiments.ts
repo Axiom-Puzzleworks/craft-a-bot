@@ -218,9 +218,12 @@ const sliceKey = (where: Record<string, string>): string =>
 /** One metric's effects as a Matrix: a row per treatment level, a column for all cases and one per cohort slice, the delta with its band in the cell, its fill the delta's share of the largest. */
 export function effectMatrix(result: ExperimentResult, metricId: string): EffectMatrix {
 	const effects = result.effects.filter((effect) => effect.metricId === metricId);
+	// A row per treatment and brain tier: since WP116 a treatment appears once per tier (WP123 found the duplicate key).
+	const rowId = (effect: EffectRecord) =>
+		`${effect.factor.axis}:${effect.factor.treatment}${effect.tier ? `@${effect.tier}` : ''}`;
 	const rows = effects.map((effect) => ({
-		id: `${effect.factor.axis}:${effect.factor.treatment}`,
-		label: `${effect.factor.treatment} vs ${effect.factor.baseline}`
+		id: rowId(effect),
+		label: `${effect.factor.treatment} vs ${effect.factor.baseline}${effect.tier ? ` (${effect.tier})` : ''}`
 	}));
 	const sliceKeys = [
 		...new Set(
@@ -242,10 +245,8 @@ export function effectMatrix(result: ExperimentResult, metricId: string): Effect
 	return {
 		rows,
 		cols,
-		cell: (rowId, colId) => {
-			const effect = effects.find(
-				(entry) => `${entry.factor.axis}:${entry.factor.treatment}` === rowId
-			);
+		cell: (rowIdAsked, colId) => {
+			const effect = effects.find((entry) => rowId(entry) === rowIdAsked);
 			if (!effect) return undefined;
 			if (colId === 'all') {
 				return {

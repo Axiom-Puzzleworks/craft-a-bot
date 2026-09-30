@@ -41,8 +41,8 @@ describe('the IndexedDB store specifically', () => {
 		expect(storage.kind).toBe('indexeddb');
 	});
 
-	it('ships at schema version 8, with the migration switch already in place', () => {
-		expect(DATABASE_VERSION).toBe(8);
+	it('ships at schema version 9 (WP123: benchmark reports), with the migration switch already in place', () => {
+		expect(DATABASE_VERSION).toBe(9);
 	});
 
 	it('survives being closed and reopened — the whole point of persisting', async () => {

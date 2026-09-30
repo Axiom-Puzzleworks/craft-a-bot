@@ -38,9 +38,10 @@ describe('docs/schemas', () => {
 		}
 	});
 
-	it('names twenty artefacts, each with an $id, a title and a draft-2020-12 marker', () => {
+	it('names twenty-one artefacts (the benchmark report since WP123), each with an $id, a title and a draft-2020-12 marker', () => {
 		expect(Object.keys(schemas).sort()).toEqual([
 			'bank-run',
+			'benchmark-report',
 			'book',
 			'calibration',
 			'campaign',

@@ -62,6 +62,12 @@ export async function artefactSchemas() {
 			description:
 				'A provider cassette (WP114, 103-FALLIBLE-ACTORS.md): one entry per provider call a recording made, keyed by the SHA-256 of the composed prompt and its occurrence, with the response as the provider returned it, the model id pinned, and the latency. A live brain naming it replays with no key and no network.'
 		},
+		'benchmark-report': {
+			schema: core.benchmarkReportSchema,
+			title: 'Craft A Bot benchmark report',
+			description:
+				'Every subject of a benchmark over the same adversarial rows (WP123, 106-BENCHMARK.md §6): how each answered (a stand-in, a cassette, live, local), precision and recall on attack ≠ none with their Wilson intervals, the rows by attack, target and surface, latency where recorded, a list price where cited, the rows each alone caught or missed, and a digest. Every row synthetic.'
+		},
 		corpus: {
 			schema: core.corpusSchema,
 			title: 'Craft A Bot corpus (labelled rows as content)',

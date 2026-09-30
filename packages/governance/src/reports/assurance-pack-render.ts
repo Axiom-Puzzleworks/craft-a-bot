@@ -201,6 +201,13 @@ export function renderAssurancePackMarkdown(pack: AssurancePack): string {
 	out.push('');
 	out.push(`- Blueprint only: ${list(pack.mitigants.coverage.blueprint)}`);
 	out.push(`- Not applicable to a simulator: ${list(pack.mitigants.coverage.notApplicable)}`);
+	const measured = pack.mitigants.coverage.measured;
+	if (measured)
+		out.push(
+			measured.length === 0
+				? '- Measured on a benchmark: none — every guard reads *unmeasured*.'
+				: `- Measured on a benchmark (synthetic rows): ${measured.map((row) => `${row.entry} by \`${row.subjectId}\` — recall ${rate(row.recall)}, precision ${rate(row.precision)} (\`${row.benchmarkId}\`, ${row.on.slice(0, 10)})`).join('; ')}; every other guard reads *unmeasured*.`
+		);
 	out.push('');
 	out.push('## 6. Ongoing monitoring');
 	out.push('');
@@ -460,7 +467,15 @@ ${table(
 <p class="note">The Guardrail Catalogue, edition ${escape(pack.mitigants.coverage.edition)} (${pack.mitigants.coverage.entries} entries; ${pack.mitigants.coverage.reviewed} reviewed, ${pack.mitigants.coverage.pending} pending review): ${pack.mitigants.coverage.byStatus.shipped} shipped, ${pack.mitigants.coverage.byStatus.connectable} connectable, ${pack.mitigants.coverage.byStatus.bespoke} bespoke, ${pack.mitigants.coverage.byStatus.blueprint} blueprint, ${pack.mitigants.coverage.byStatus['not-applicable']} not applicable. What this product does <strong>not</strong> claim:</p>
 <ul>
 <li>Blueprint only: ${listHtml(pack.mitigants.coverage.blueprint)}</li>
-<li>Not applicable to a simulator: ${listHtml(pack.mitigants.coverage.notApplicable)}</li>
+<li>Not applicable to a simulator: ${listHtml(pack.mitigants.coverage.notApplicable)}</li>${
+		pack.mitigants.coverage.measured
+			? `<li>${
+					pack.mitigants.coverage.measured.length === 0
+						? 'Measured on a benchmark: none — every guard reads <em>unmeasured</em>.'
+						: `Measured on a benchmark (synthetic rows): ${pack.mitigants.coverage.measured.map((row) => `${escape(row.entry)} by <code>${escape(row.subjectId)}</code> — recall ${rate(row.recall)}, precision ${rate(row.precision)} (<code>${escape(row.benchmarkId)}</code>, ${escape(row.on.slice(0, 10))})`).join('; ')}; every other guard reads <em>unmeasured</em>.`
+				}</li>`
+			: ''
+	}
 </ul>`;
 
 	const monitoring = `${pack.monitoring.note ? `<p class="note">${escape(pack.monitoring.note)}</p>` : ''}<ul>
@@ -539,4 +554,9 @@ ${section('Appendix — runs', runs)}
 </body>
 </html>
 `;
+}
+
+/** A benchmark rate as a whole percentage, or a dash where it had no denominator. */
+function rate(value: number | null): string {
+	return value === null ? '—' : `${Math.round(value * 100)}%`;
 }

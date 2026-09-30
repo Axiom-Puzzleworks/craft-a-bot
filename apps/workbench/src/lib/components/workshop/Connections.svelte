@@ -4,7 +4,13 @@
 	import { agentOptionLabel } from '$lib/workshop/agent-labels.js';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import type { AgentRecord, GuardrailService, ScreenResult } from '@craftabot/core';
+	import type {
+		AgentRecord,
+		BenchmarkReport,
+		GuardrailService,
+		ScreenResult
+	} from '@craftabot/core';
+	import { rackMeasurement } from '$lib/workshop/benchmarks.js';
 	import { hostedScreenConfigSchema } from '@craftabot/governance';
 	import { createRegistry } from '$lib/packs.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
@@ -29,6 +35,13 @@
 	const vault = createBrowserKeyVault();
 
 	let agents = $state<AgentRecord[]>([]);
+	// WP123: the stored benchmark reports, for each service's measurement.
+	let benchmarks = $state<BenchmarkReport[]>([]);
+	const measurements = $derived(
+		Object.fromEntries(
+			services.map((service) => [service.id, rackMeasurement(benchmarks, service.id)])
+		)
+	);
 	let selectedAgent = $state('');
 	let configs = $state<Record<string, string>>(
 		Object.fromEntries(services.map((service) => [service.id, exampleConfig(service)]))
@@ -41,6 +54,7 @@
 		void (async () => {
 			const storage = await appStorage();
 			agents = await storage.listAgents();
+			benchmarks = await storage.listBenchmarkReports();
 			if (selectedAgent === '' && agents[0]) selectedAgent = agents[0].id;
 		})();
 	});
@@ -227,6 +241,16 @@
 					{:else}
 						no component declares one
 					{/if}
+				</dd>
+				<!-- WP123 (`106-BENCHMARK.md` §6, tenet 37): the latest benchmark's numbers, or unmeasured. -->
+				<dt>Benchmark</dt>
+				<dd data-testid="guard-benchmark-{service.id}">
+					<Lamp
+						status={measurements[service.id]?.measured ? 'pass' : 'inconclusive'}
+						label={measurements[service.id]?.word}
+					/>
+					{measurements[service.id]?.detail}
+					<a href={resolve('/workshop/benchmarks')}>Benchmarks</a>
 				</dd>
 			</dl>
 			<label class="field">

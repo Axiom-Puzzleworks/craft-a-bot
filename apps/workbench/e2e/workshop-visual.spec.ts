@@ -151,6 +151,12 @@ test('the Workshop, screen by screen, over the fixture corpus', async ({ page })
 		'studio-stack'
 	);
 	await shot(page, '/workshop/catalogue', 'ws-catalogue', 'catalogue-table');
+	// WP123 (`106-BENCHMARK.md` §6): the reference benchmark run over the stand-ins, synthetic rows first.
+	await page.goto('/workshop/benchmarks');
+	await page.getByTestId('benchmark-run').click();
+	await expect(page.getByTestId('benchmark-table')).toBeVisible();
+	await settle(page);
+	await expect(page).toHaveScreenshot('ws-benchmarks.png');
 	await shot(page, '/workshop/evals', 'ws-eval-matrix', 'matrix-size');
 });
 

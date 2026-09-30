@@ -595,6 +595,20 @@ export {
 	type SecondLabels,
 	type SeenBy
 } from './schemas/corpus.js';
+/** Benchmark reports (WP123, `106-BENCHMARK.md` §6). */
+export {
+	BENCHMARK_MODES,
+	BENCHMARK_SUBJECT_KINDS,
+	benchmarkReportDigest,
+	benchmarkReportSchema,
+	benchmarkSubjectSchema,
+	byNewestBenchmarkReport,
+	latestMeasurement,
+	safeParseBenchmarkReport,
+	type BenchmarkRate,
+	type BenchmarkReport,
+	type BenchmarkSubjectResult
+} from './schemas/benchmark.js';
 /** The adversarial vocabulary (WP122, `106-BENCHMARK.md` §2). */
 export {
 	ADVERSARIAL_STATE_KIND,

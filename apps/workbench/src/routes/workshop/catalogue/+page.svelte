@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import type { CoverageStatus, ExperimentResult } from '@craftabot/core';
+	import type { BenchmarkReport, CoverageStatus, ExperimentResult } from '@craftabot/core';
 	import { ASI_THREATS, CATALOGUE_MATURITIES, COVERAGE_STATUSES } from '@craftabot/core';
 	import { GUARDRAIL_CATALOGUE } from '@craftabot/governance';
 	import { coverageReport, coverageSummary } from '@craftabot/governance/reports';
@@ -22,13 +22,18 @@
 	 */
 	const registry = createRegistry();
 	let experimentResults = $state.raw<ExperimentResult[]>([]);
+	// WP123 (`106-BENCHMARK.md` §6): an entry's *measured*, from the stored benchmark reports.
+	let benchmarks = $state.raw<BenchmarkReport[]>([]);
 	$effect(() => {
 		void (async () => {
 			const storage = await appStorage();
 			experimentResults = await storage.listExperimentResults();
+			benchmarks = await storage.listBenchmarkReports();
 		})();
 	});
-	const rows = $derived(coverageReport(GUARDRAIL_CATALOGUE, registry, experimentResults));
+	const rows = $derived(
+		coverageReport(GUARDRAIL_CATALOGUE, registry, experimentResults, benchmarks)
+	);
 	const summary = coverageSummary(GUARDRAIL_CATALOGUE);
 
 	let threat = $state('');
@@ -52,6 +57,7 @@
 		{ id: 'status', label: 'Coverage', kind: 'text' as const },
 		{ id: 'implemented', label: 'Implemented by', kind: 'text' as const },
 		{ id: 'effect', label: 'Measured effect', kind: 'text' as const },
+		{ id: 'measured', label: 'Benchmark', kind: 'text' as const },
 		{ id: 'review', label: 'Review', kind: 'text' as const }
 	];
 	const signed = (value: number) => `${value >= 0 ? '+' : ''}${value.toFixed(3)}`;
@@ -70,6 +76,11 @@
 				effect: row.headline
 					? `${row.headline.metricId}: ${signed(row.headline.delta)} (${row.headline.stackId})`
 					: '—',
+				measured: row.measured
+					? `recall ${row.measured.recall === null ? '—' : `${Math.round(row.measured.recall * 100)}%`} (${row.measured.subjectId}, ${row.measured.on.slice(0, 10)})`
+					: row.components.length > 0
+						? 'unmeasured'
+						: '—',
 				review: row.entry.review
 			}
 		}))

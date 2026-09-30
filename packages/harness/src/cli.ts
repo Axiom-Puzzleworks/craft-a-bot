@@ -35,6 +35,7 @@ import { experimentAnalyse, experimentRender, experimentRun } from './commands/e
 import { bankRun } from './commands/bank.js';
 import { journeyRender } from './commands/journey.js';
 import { scaffoldDomain } from './commands/scaffold.js';
+import { benchmarkRun, renderBenchmarkSummary } from './commands/benchmark.js';
 import {
 	agreementForFiles,
 	freezeCorpus,
@@ -127,6 +128,11 @@ Usage:
   craftabot journey render --workflow <id> [--config <name>] [--run <workflow-run.json>] [--svg <out.svg>] [--file <layout.json>]
       One journey drawn (WP100): its layout as JSON, its SVG for the manual
       and the site — unlit, under a configuration, or lit by a stored run.
+  craftabot benchmark run <benchmark.json> [--cassettes <dir>] [--record] [--out <dir>] [--store <dir>]
+      Every guard service and every reader that answers the guard question set over
+      the adversarial corpora (WP123): each service from its cassette, else its
+      stand-in (unmeasured); --record calls each live with its credential from
+      CRAFTABOT_CREDENTIAL_<ID> and writes its cassette.
   craftabot corpus freeze <corpus.json>
       Write a corpus's digest over its labels and rows (WP119).
   craftabot corpus label <corpus.json> --as <annotator> --out <labels.json>
@@ -1152,6 +1158,36 @@ ${renderEvaluations(report)}`);
 				throw new Error(
 					'corpus needs freeze <corpus.json> | label <corpus.json> --as <annotator> --out <labels.json> | agreement <corpus.json> <labels.json>'
 				);
+			}
+			case 'benchmark': {
+				// WP123 (`106-BENCHMARK.md` §6): every guard over the adversarial corpora.
+				const [verb, file] = args.positional;
+				if (verb !== 'run' || !file)
+					throw new Error(
+						'benchmark needs run <benchmark.json> [--cassettes <dir>] [--record] [--out <dir>] [--store <dir>]'
+					);
+				const store = stringFlag(args, 'store');
+				const cassettes = stringFlag(args, 'cassettes');
+				const out = stringFlag(args, 'out');
+				const ran = await benchmarkRun({
+					file,
+					registry: createRegistry(await configFrom(args)),
+					credentials: credentialsFor(io),
+					...(cassettes ? { cassettes } : {}),
+					...(out ? { out } : {}),
+					...(store ? { storage: await createFileStorage(store) } : {}),
+					record: args.flags['record'] === true,
+					ranAt: new Date().toISOString()
+				});
+				io.stdout(renderBenchmarkSummary(ran.report));
+				for (const path of ran.recorded)
+					io.stdout(`  recorded   ${path}
+`);
+				if (ran.reportFile)
+					io.stdout(`  report     ${ran.reportFile}
+  markdown   ${ran.markdownFile}
+`);
+				return 0;
 			}
 			case 'scaffold': {
 				// WP107 (`93-DOMAIN-PACK.md` §4): a domain pack's shape, typed out — a world pack and a journey pack per journey named.

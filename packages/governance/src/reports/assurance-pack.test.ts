@@ -13,7 +13,7 @@ import {
 	type RunRecord,
 	type RunSummary
 } from '@craftabot/core';
-import { makeExperimentResult } from '@craftabot/core/testing';
+import { makeBenchmarkReport, makeExperimentResult } from '@craftabot/core/testing';
 import { describe, expect, it } from 'vitest';
 import {
 	ASSURANCE_POSTURE,
@@ -655,5 +655,41 @@ describe('control-row reviews (WP110, GAP-1)', () => {
 		expect(renderAssurancePackHtml(pack)).toContain(
 			'<span class="disputed">disputed</span> by Sam (2026-09-13)'
 		);
+	});
+});
+
+/** WP123 (`106-BENCHMARK.md` §6): *Coverage* names what a benchmark measured, only when the pack is given reports. */
+describe('the pack’s coverage, measured', () => {
+	it('says what was measured, and that every other guard is unmeasured', async () => {
+		const base = makeBenchmarkReport({ ranAt: '2026-09-20T10:00:00.000Z' });
+		const lakera = {
+			...base.subjects[0]!,
+			id: 'lakera-guard/guard',
+			kind: 'service' as const,
+			name: 'Lakera Guard',
+			componentId: 'lakera-guard/guard',
+			mode: 'cassette' as const,
+			recall: { value: 0.6, interval: [0.5, 0.7] as [number, number] }
+		};
+		const pack = await assurancePackFor({
+			agent: { id: AGENT_ID, name: 'Bolt', spec },
+			registry: registryWith(),
+			runs: [],
+			summaries: new Map(),
+			evaluations: [],
+			campaignReports: [],
+			benchmarkReports: [
+				makeBenchmarkReport({ ranAt: '2026-09-20T10:00:00.000Z', subjects: [lakera] })
+			],
+			now: NOW
+		});
+		const line = renderAssurancePackMarkdown(pack)
+			.split('\n')
+			.find((each) => each.startsWith('- Measured on a benchmark'));
+		expect(line).toMatch(
+			/^- Measured on a benchmark \(synthetic rows\): .+ by `lakera-guard\/guard` — recall 60%, precision 100% \(`bank-adversarial`, 2026-09-20\); every other guard reads \*unmeasured\*\.$/
+		);
+		expect(renderAssurancePackHtml(pack)).toContain('Measured on a benchmark (synthetic rows)');
+		expect(renderAssurancePackMarkdown(await emptyPack())).not.toContain('Measured on a benchmark');
 	});
 });

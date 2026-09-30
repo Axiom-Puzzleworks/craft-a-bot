@@ -193,6 +193,10 @@ jobs:
       - name: Hold the reduced results to the committed shape
         run: node scripts/experiment-shape.mjs docs/evidence campaign-out/experiments-shape
 
+      # WP123 (106-BENCHMARK.md §6): every guard over the seven adversarial corpora, the stand-ins unmeasured.
+      - name: Run the reference benchmark
+        run: npm run craftabot -- benchmark run benchmarks/bank-adversarial.json --out campaign-out/benchmark
+
       # A day at the bank (WP83, `71-THE-CLOCK.md` §5; three desks since WP85, `76-…` §5; seven desks since WP106, `92-…` §5):
       # the lending, fraud, advice, complaints, onboarding, disputes, collections and servicing desks work a day's applications, alerts and requests over a 500-customer
       # population at Infinity; the BankRun and every run are uploaded with the rest.
