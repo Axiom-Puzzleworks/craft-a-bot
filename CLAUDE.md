@@ -122,7 +122,13 @@ Where a Day 2 doc and its Day 1 counterpart differ, **Day 2 wins** — the banne
 - the red-team seat as the `adversarial` counterpart tier;
 - four catalogue entries *shipped*, and the four as benchmark levels.
 
-A planted `SYSTEM:` bureau line is marked, tainted and blocked. **Next: WP125 when keys exist; the Phase AG exit review.**
+A planted `SYSTEM:` bureau line is marked, tainted and blocked. **Next: WP125 when keys exist; the Phase AG exit review.** **Amended 2026-09-30, later still:** the Phase AG exit review is recorded (`101-…` §8), with `100-…` §14 item 7 read clause by clause:
+- the benchmark in CI: met;
+- the Rack: met;
+- the four entries: shipped, three of them `measured` (taint is *not applicable* over text);
+- the four live checkpoints: not met, pending keys (`smoke:geap` attempted again today: `bad-token`, no `gcloud`).
+
+**Phase AG is closed but for WP125, which runs when keys exist. Next: Phase AH — WP126, `107-THE-GATE.md`, WP127, WP128.**
 
 Once there's a WP to build (from a new plan, or a defect worth fixing): read the docs it names, **propose a task breakdown before writing code**, then build. One WP per branch (`wp{n}-{slug}`) and PR. Use your judgement inside a WP — the docs fix the destination and the contracts, not every step. Where a doc is silent, decide and note it. Where implementation must diverge from a doc, change the doc in the same PR with a dated note (`> **Amended 2026-08-13:** …`); don't leave the two disagreeing.
 

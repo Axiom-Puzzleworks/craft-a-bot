@@ -337,6 +337,33 @@ Everything in `84-…` §5 stands. Added:
    > - **What is held:** a planted `SYSTEM:` bureau line is marked, tainted and blocked; the quarantined seat is asked with nothing to act with; the seat speaks only corpus rows.
    >
    > **Next: WP125 (the live checkpoints) when keys exist; else the Phase AG exit review.**
+
+   > **Phase AG exit review, 2026-09-30.** `100-…` §14 item 7, clause by clause, against what was run today.
+   >
+   > | Clause | Verdict | Evidence |
+   > |---|---|---|
+   > | The benchmark runs every connectable service, every reader-as-guard and the four bespoke components over one adversarial corpus per desk in CI | **Met** | CI's *Run the reference benchmark* step (`benchmarks/bank-adversarial.json`, all seven adversarial corpora, 1,408 rows). The run has twelve subjects: six services through their stand-ins, `pdp-opa` *not applicable* with its reason, the keyword reader, and the four components. `harness/src/commands/benchmark.test.ts` holds the report to its digest. |
+   > | The Guard Rack shows each service's numbers or *unmeasured* | **Met** | The Rack's *Benchmark* row (`e2e/benchmarks.spec.ts`; `lib/workshop/benchmarks.test.ts`). Every service reads *unmeasured* today, because no cassette exists. |
+   > | The four catalogue entries read *shipped* with `measured` | **Partly met** | All four are *shipped* (`byStatus.bespoke` is 2; `governance/src/catalogue/catalogue.test.ts`). Over today's report, three read `measured`: `untrusted-content-marking` and `indirect-injection-defence` by `governance/untrusted-content`, and `privilege-separation` by the quarantined reader. `information-flow-control` reads *unmeasured*: taint decides on a proposed call, and the corpora are text, so its benchmark row is *not applicable*. Measuring it needs a level that feeds each row through a call, which is not built. |
+   > | The four live checkpoints are recorded dated | **Not met** | WP125's, pending keys. Azure, Bedrock and Lakera have no key in this environment. The Gen AI evaluation service's `npm run smoke:geap` was attempted 2026-09-30: `bad-token` on the Model Armor leg (the stored token has expired), and no `gcloud` to mint another (`39-…`'s dated note). No benchmark cassette is recorded, so the benchmark's live column is empty for every service. |
+   >
+   > **What the phase leaves standing:**
+   > - seven adversarial corpora, blind-labelled twice, held out from a question set frozen first;
+   > - one benchmark over them, deterministic in CI, with a cassette path proven by record and replay;
+   > - the four injection defences as components with the core seam they need;
+   > - the Rack, the catalogue and the assurance pack reading measurements, or saying *unmeasured*.
+   >
+   > **What it cannot yet say:** how any vendor's guard performs. Every number on the page is a stand-in's zero, a keyword rule's, or a containment component's 100%.
+   >
+   > **For Andrew's reading:**
+   > - the corpora's `target` label needs a precedence rule (WP122);
+   > - the smaller labeller misses the traps;
+   > - value taint does not follow a paraphrase;
+   > - the keyword reader misses a mid-line `SYSTEM:` while the quarantine withholds it anyway;
+   > - the budgets (+420/+410 kB for the corpora, the site editions caught up);
+   > - the WP116 display bug found and fixed on the way (WP123).
+   >
+   > **Phase AG is closed but for WP125,** which stays open and runs the day keys exist. Nothing else waits on it (§3). **Next: Phase AH — WP126, `107-THE-GATE.md`, WP127, WP128.**
 8. **WP126, `107-THE-GATE.md`, WP127, WP128.** Phase AH exit review.
 9. **`108-READINGS.md`, WP129, WP130, WP131.** Phase AI exit review and the §9 check.
 
