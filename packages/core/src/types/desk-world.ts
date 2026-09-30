@@ -24,7 +24,15 @@ export type DeskRecord = {
 	title: string;
 	fields: Record<string, string | number | boolean | null>;
 	classification?: DeskRecordClassification;
+	/**
+	 * A reader's answer about this record (WP131, `109-…` §3): the question,
+	 * the answer, and its confidence in [0, 1] by the one formula (`104-…`
+	 * §3). The Kit draws it as a chip; nothing reads it as truth.
+	 */
+	reading?: DeskReading;
 };
+
+export type DeskReading = { question: string; answer: string; confidence: number };
 
 export type DeskTranscriptSpeaker = 'agent' | 'counterpart' | 'system';
 

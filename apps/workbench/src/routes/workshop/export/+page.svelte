@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Roundel from '$lib/components/control-room/Roundel.svelte';
 	import { page } from '$app/state';
 	import Lamp from '$lib/components/control-room/Lamp.svelte';
 	import { statusOfOutcome } from '$lib/control-room/outcome.js';
@@ -253,7 +254,7 @@
 			</select>
 		</label>
 		<label class="picker">
-			Open a bundle…
+			<span><Roundel icon="gate" size={20} /> Open a bundle…</span>
 			<input
 				type="file"
 				accept=".json,application/json"

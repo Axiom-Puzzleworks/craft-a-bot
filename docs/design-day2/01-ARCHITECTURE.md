@@ -154,6 +154,25 @@ V1 needs none. The first features that will genuinely require one: sharing kit f
 
 > **Amended 2026-09-11, later (WP89).** The full build's budget moves +40 kB to 1.79 MB (`scripts/bundle-budget.mjs`), and the playground and full editions +40 kB each (`edition.ts`): the Experiments page and the experiment schema, expansion and analysis it imports from `evals`. The Worker's chunk moves +20 kB to 870 kB for the same module, which `evals` now carries.
 
+> **Amended 2026-09-30 (WP131, `109-THE-TAIL-DAY7.md` §5): the budgets as they stand after Day 7.** In bytes, as `scripts/bundle-budget.mjs` and `edition.ts` hold them, with the measured size of each build on the day (`npm run build:editions`, the full build):
+>
+> | Build | Budget | Measured | Worker | Kit's first page |
+> |---|---|---|---|---|
+> | full | 3,020,000 | 2,938 KiB | 1,770 KiB of 1,777 | 854 KiB of 859 |
+> | simulator | 2,877,000 | 2,791 KiB | 1,606 KiB | 612 KiB |
+> | workshop | 2,898,000 | 2,811 KiB | 1,663 KiB | 722 KiB |
+> | playground | 3,028,000 | 2,938 KiB | 1,770 KiB | 854 KiB |
+>
+> **What Day 7 added.**
+> - **+607 to +638 kB, the editions' catch-up to WP122** (`106-…` §7). Most of it is the seven adversarial corpora in the desk chunks.
+> - **+30 kB** for the benchmark (WP123).
+> - **+50 kB** for the reading desk and its notes' text (WP129).
+> - **+20 kB** for the roundels and the Kit's card (WP131).
+> - **The Worker's chunk** was raised once, +20 kB to 1,820,000 B, for the injection defences (WP124).
+> - **The Kit's first page gate** moves +10 kB to 880,000 B for the card's world (WP131). The per-desk chunks (WP112) still keep the desks off it.
+>
+> Every build is within its budget, with under 1% headroom on each: the next package that adds weight moves a number.
+
 > **Amended 2026-09-29 (WP112, `101-DAY7-ROADMAP.md`; `84-…` §8 item 16, G86).** Each desk pack is its own chunk. `$edition-main` (`lib/editions/<id>.main.ts`) lists the edition's packs with each `fs-*` desk as a dynamic import (`slots.ts`); `edition.packs` starts without them and `loadDesks` (`edition.ts`) puts them in at their places; the root layout's `load` awaits it on every route but the Kit's first page, which only starts it. `$edition-packs` stays the static list the Worker bundles (an iife Worker cannot split) and the tests read. **The Kit's first page is 812 kB on a first visit, from 1221 kB — 409 kB reclaimed** — and now has its own gate, `--first-page-limit`, 850 kB by default (`bundle-budget.mjs` prints `first page` beside the total). The total counts every chunk, so the split cannot lower it; it rose by about 27 kB of glue for seven more chunks, and the full build's limit, the playground edition's and the full edition's move +50 kB (to 2,280,000, 2,290,000 and 2,240,000 bytes). The simulator and workshop editions hold no desk and are unchanged (586 and 688 kB on their first page). Measured 2026-09-29 on Windows; CI's Linux build is the gate.
 >
 > **Amended 2026-09-13, later (WP109, `96-CONTROL-ROOM-V3.md`).** Every budget moves +40 kB — the full build to `2.23 MB`, simulator `2.17 MB`, workshop `2.23 MB`, playground `2.24 MB`, full `2.19 MB` — and the Worker's chunk +10 kB to `1.16 MB`: the command palette and its fold, the saved views on the rail and the fifth content kind in `core`, density, *Linked from* on four screens. The full build had gone 18 kB over; the Worker sat 1 kB under.

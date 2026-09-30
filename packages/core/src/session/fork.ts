@@ -5,6 +5,7 @@ import type { WorldInstance, WorldState } from '../types/world.js';
 import type { Guardrail } from '../types/guardrail.js';
 import { toSpecV2 } from '../schemas/agent-spec-v2.js';
 import { createSession } from './agent-session.js';
+import { worldConfigFor } from './world-config.js';
 import type { TickMemory } from './memory.js';
 
 /**
@@ -259,7 +260,11 @@ export function forkSession(deps: CreateSessionDeps, fork: ForkOptions): AgentSe
 	const world =
 		fork.overrides?.world ??
 		rebuildWorld(
-			definition.create(card.layoutId, deps.options?.random ? { random: deps.options.random } : {}),
+			definition.create(card.layoutId, {
+				...(deps.options?.random ? { random: deps.options.random } : {}),
+				// The card's dial (WP131): the fork's spec's setting, as the session's own world is built.
+				...worldConfigFor(card, toSpecV2(spec).goalDial)
+			}),
 			events,
 			tick
 		);

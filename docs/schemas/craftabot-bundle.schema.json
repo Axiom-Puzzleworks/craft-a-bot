@@ -318,6 +318,9 @@
 											"customGoalText": {
 												"type": "string"
 											},
+											"goalDial": {
+												"type": "number"
+											},
 											"identity": {
 												"type": "object",
 												"properties": {
@@ -661,6 +664,22 @@
 														"mode",
 														"stackId",
 														"upstream"
+													]
+												},
+												"goalDial": {
+													"type": "object",
+													"properties": {
+														"knob": {
+															"type": "string",
+															"minLength": 1
+														},
+														"value": {
+															"type": "number"
+														}
+													},
+													"required": [
+														"knob",
+														"value"
 													]
 												},
 												"forkedFrom": {
@@ -3989,6 +4008,22 @@
 													"mode",
 													"stackId",
 													"upstream"
+												]
+											},
+											"goalDial": {
+												"type": "object",
+												"properties": {
+													"knob": {
+														"type": "string",
+														"minLength": 1
+													},
+													"value": {
+														"type": "number"
+													}
+												},
+												"required": [
+													"knob",
+													"value"
 												]
 											},
 											"forkedFrom": {

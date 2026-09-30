@@ -101,7 +101,7 @@ Sizes as before: **S** a session or two; **M** several; **L** a week. Every WP h
 |---|---|---|---|---|
 | **WP129** ✅ | **Done 2026-09-30 — `108-READINGS.md` §9.** **`review` and `/workshop/readings`** (`100-…` §6.8, D21). Stage A: the note (`108-READINGS.md`) — the subject kinds, the verdicts, the amendment's path into content, what each check reads. Stage B: `core/schemas/review.ts` replacing `control-review` with the alias and migration note; the kind on all three stores and the evidence store; `checkCalibration({ requireReview })`, `checkCatalogue`, `checkControlMap`, `checkDomainPack` reading it; `/workshop/readings` with the queue, the sources, the progress readouts, the URL filter and the push; `craftabot readings export`. | A `review` for a row turns its check green for that row only; the queue's count equals the pending set across the eight kinds; `control-review` records read as `review`; the screen on the visual, axe and keyboard passes. | M | G85 |
 | **WP130** ◐ | **Done 2026-09-30 but for the tag and the Linux baselines, both waiting on a push — §8 item 9's WP130 note.** **The stale lines, the index, the release, the walk** (`100-…` §6.8). `USER-MANUAL.md` §41, `UX-AND-GAPS.md` §0/§4 and the three "awaiting review" notes corrected; `98-` and `99-` in `README.md`'s index; the first `v*` tag cut and `release.yml` exercised with its archive attached; the practitioner walk of `84-…` §9 performed and recorded; the Linux baselines for every new screen. | `git tag` non-empty and the release's zip verifies; no line in the manual or the register contradicts `84-…` §8; the walk's record names each stop with what was seen. | S | G87-part, G88 |
-| **WP131** | **The tail: Part I, the roundels, the Kit's card** (`100-…` §6.8). The manual's Part I (readers, corpora, the register regenerated, the benchmark, the Gate, the readings) and the rebuilt PDF; five roundels on the wave-2 seam; the Kit's *Sure or unsure* card on the Front Desk with the confidence chip and the child's threshold; the Phase AI exit review. | The PDF rebuilt with Part I's figures; `wave2.test.ts` green over 27 files; the card wins and loses on the Front Desk under the mock provider with a keyboard-only e2e; `100-…` §14 items 9–12 met. | S–M | G89 |
+| **WP131** ✅ | **Done 2026-09-30 — `109-THE-TAIL-DAY7.md` §6.** **The tail: Part I, the roundels, the Kit's card** (`100-…` §6.8). The manual's Part I (readers, corpora, the register regenerated, the benchmark, the Gate, the readings) and the rebuilt PDF; five roundels on the wave-2 seam; the Kit's *Sure or unsure* card on the Front Desk with the confidence chip and the child's threshold; the Phase AI exit review. | The PDF rebuilt with Part I's figures; `wave2.test.ts` green over 27 files; the card wins and loses on the Front Desk under the mock provider with a keyboard-only e2e; `100-…` §14 items 9–12 met. | S–M | G89 |
 
 **Exit:** `100-…` §14 items 9–12; a Phase AI exit review in §8.
 
@@ -442,6 +442,51 @@ Everything in `84-…` §5 stands. Added:
    > **Not done, both waiting on a push:**
    > - **The tag.** `git tag` is still empty. The first `v*` tag runs `release.yml` on GitHub and publishes a release, so it waits on Andrew's word, and on `day7` reaching `origin`.
    > - **The Linux baselines.** An attempt in `mcr.microsoft.com/playwright:v1.62.1-noble` rendered with a different sans, without the bold weight CI's `ubuntu-latest` has, and rewrote every Linux shot, the Kit's included. It was discarded. The baselines for the new screens, and for the twelve Windows shots the rail's *Readings* link moved, come from CI's `visual` artefact on the first push, as for WP122–WP128.
+   >
+   > **WP131 done 2026-09-30** (`109-THE-TAIL-DAY7.md`):
+   > - **The roundels.** Five on the wave-2 seam: `reader`, `corpus`, `benchmark`, `gate`, `reading`. `wave2.test.ts` holds 29 files, not the 27 named above, which predates WP109's two.
+   > - **The Kit's card.** *Sure or unsure* runs on the Front Desk's queue, a world of its own beside the Front Desk, so the Front Desk's golden trace is untouched. It needs a deliberate `core` seam: the card's `dial`, the spec's `goalDial`, `worldConfigFor` in the session, the group and a fork, `run.started.goalDial`, and `DeskRecord.reading` for the chip. The Demo Brain loses at the default 50% and wins at 65%, in a keyboard-only e2e.
+   > - **The manual.** Part I, with §60–§65 and figures 28–30. The PDF is rebuilt: 79 pages, 30 figures. `prep.py`'s hard-coded count of 27 figures is corrected.
+   > - **The budgets:** +20 kB, and the Kit's first page +10 kB. Restated after Day 7 in `01-…` §8, and met on every edition.
+   >
+   > **Phase AI exit review, 2026-09-30.** `100-…` §14 items 9–12, clause by clause:
+   >
+   > **Item 9.**
+   > - *`/workshop/readings` queues every pending subject across the eight kinds*: **met**. `harness/src/readings.test.ts` checks the count against the sources, kind by kind: 260 on the bank.
+   > - *A reading turns the corresponding check green for that subject*: **met**. The same test covers each of the four checks, one subject only, and a rejection keeps it red.
+   > - *The first release tag is cut*: **not met.** The archive's dry run verifies and passes the edition smokes (WP130). The tag runs `release.yml` on GitHub and publishes a release, so it waits on `day7` being pushed and on Andrew's word.
+   >
+   > **Item 10.**
+   > - *The stale lines are corrected*: **met** (WP130).
+   > - *The two branch notes are in the index*: **met**. `98-` and `99-` are listed, with `104-`–`109-` beside them.
+   > - *The practitioner walk is recorded*: **met**, in `UX-AND-GAPS.md` §9. The walker was Claude; a practitioner's own reading is still Andrew's.
+   > - *The manual carries Part I with a rebuilt PDF*: **met**.
+   > - *The Kit's* Sure or unsure *card runs on the Front Desk*: **met**, on its queue (`e2e/sure-or-unsure.spec.ts`).
+   >
+   > **Item 11.** *Every new screen passes the visual, axe, keyboard and reduced-motion passes with a list twin; the budgets are re-stated and met on every edition*: **partly met.**
+   > - `/workshop/benchmarks` and `/workshop/readings` are in the axe sweep, the reader's walk and the win32 visual set.
+   > - The readings desk has its keyboard walk. The benchmarks page's Matrix has its twin.
+   > - `/workshop/playground/corpora` is in the axe sweep and the walk, but has no visual shot.
+   > - The calibration pane's shot is still WP118's pending one.
+   > - The reduced-motion snapshots cover the drawing screens only, as they did at WP110.
+   > - The Linux baselines for every screen new or moved since WP122 come from CI's `visual` artefact on the first push.
+   > - The budgets are re-stated and met.
+   >
+   > **Item 12.**
+   > - *`checkSynthetic` is green over every corpus and cassette*: **met** (`desk/src/synthetic-sweep.test.ts`, green on this build).
+   > - *No reader carries weights*: **met**. The readers are rule, hosted and LLM adapters, and none ships a model.
+   > - *The Gate binds loopback by default*: **met** (`gate.test.ts`, `commands/gate.test.ts`).
+   >
+   > **For Andrew's reading:**
+   > - **The tag.** Its name, and the push it needs.
+   > - **The Linux baselines,** taken from CI on that push.
+   > - **The 260 readings.** The desk now exists to take them.
+   > - **The card's lesson.** It starts on a loss at 50% on purpose. Its numbers are fixed, not drawn.
+   > - **The budgets' headroom,** under 1% on every build.
+   > - **WP125's live checkpoints,** still waiting on keys.
+   > - **W-1–W-6** from the walk.
+   >
+   > **Phase AI is closed, and `101-…`'s forward plan is exhausted but for WP125 (keys), the tag and the Linux baselines (a push).** Day 7's work in this repository is complete on `day7` and awaits review.
 
 ## 9. What "done" looks like for this roadmap
 

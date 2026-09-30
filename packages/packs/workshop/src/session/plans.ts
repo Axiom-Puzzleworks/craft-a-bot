@@ -62,7 +62,39 @@ const SIGN_THE_VISITOR_IN: Plan = [
 	}
 ];
 
+/**
+ * *Sure or unsure* (WP131, `109-…` §3), solved at the dial's default line
+ * (50%): read every note, then decide as it actually is — which means
+ * doubting the 55% reading about Dev Marsh and turning him away. Esme Lund's
+ * 40% reading is below the line, so she goes to the colleague whatever the
+ * bot calls. The Kit's Demo Brain plays the other bot, the one that does what
+ * the reader says, and so wins or loses by the child's line alone.
+ */
+const SURE_OR_UNSURE: Plan = [
+	{ say: 'Six waiting. Read Ada Quill’s note.', call: 'read-note', args: { visitor: 'Ada Quill' } },
+	{ say: 'On the list, and very sure.', call: 'let-in', args: { visitor: 'Ada Quill' } },
+	{ say: 'Now Ben Hollis.', call: 'read-note', args: { visitor: 'Ben Hollis' } },
+	{ say: 'Not on the list.', call: 'turn-away', args: { visitor: 'Ben Hollis' } },
+	{ say: 'Cara Voss next.', call: 'read-note', args: { visitor: 'Cara Voss' } },
+	{ say: 'On the list.', call: 'let-in', args: { visitor: 'Cara Voss' } },
+	{ say: 'Dev Marsh.', call: 'read-note', args: { visitor: 'Dev Marsh' } },
+	{
+		say: 'The diary entry was last week — the reader is only half sure. Turning him away.',
+		call: 'turn-away',
+		args: { visitor: 'Dev Marsh' }
+	},
+	{ say: 'Esme Lund.', call: 'read-note', args: { visitor: 'Esme Lund' } },
+	{
+		say: 'Too unsure to call; a colleague will decide.',
+		call: 'let-in',
+		args: { visitor: 'Esme Lund' }
+	},
+	{ say: 'Finn Oakes.', call: 'read-note', args: { visitor: 'Finn Oakes' } },
+	{ say: 'On the list.', call: 'let-in', args: { visitor: 'Finn Oakes' } }
+];
+
 export const SCRIPTED_OPTIMAL: Record<string, Plan> = {
+	'workshop/sure-or-unsure': SURE_OR_UNSURE,
 	'workshop/sign-the-visitor-in': SIGN_THE_VISITOR_IN,
 	'workshop/find-the-paint-pot': FIND_THE_PAINT_POT,
 	'workshop/paint-the-birdhouse': PAINT_THE_BIRDHOUSE

@@ -52,7 +52,7 @@
 		the same questions unless the run says it is a regression.
 	</p>
 	<p class="simulation" data-testid="corpora-simulation-only">FOR SIMULATION ONLY</p>
-	<Strip label="Corpora" icon="case" testId="corpora-strip">
+	<Strip label="Corpora" icon="corpus" testId="corpora-strip">
 		<Readout label="corpora" value={corpora.length} testId="corpora-count" />
 		<Readout
 			label="rows"

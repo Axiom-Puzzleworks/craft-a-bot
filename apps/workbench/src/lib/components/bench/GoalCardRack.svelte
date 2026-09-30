@@ -20,6 +20,9 @@
 		 * One world means no headings and no box — the Kit's rack does not move.
 		 */
 		worldNameFor?: (worldId: string) => string;
+		/** The player's setting of the active card's dial (WP131, `109-…` §3); absent, the card's default. */
+		goalDial?: number | undefined;
+		ondial?: ((value: number) => void) | undefined;
 	}
 
 	let {
@@ -28,7 +31,9 @@
 		customGoalText,
 		onselect,
 		oncustomtext,
-		worldNameFor = (worldId) => worldId
+		worldNameFor = (worldId) => worldId,
+		goalDial,
+		ondial
 	}: Props = $props();
 
 	/** Grouping and filtering only earn their place past a dozen cards (UX-10). */
@@ -56,6 +61,11 @@
 	const grouped = $derived(cards.length > MANY && groups.length > 1);
 
 	const active = $derived(cards.find((card) => card.id === activeCardId));
+
+	/** The dial as it stands: the player's setting, or the card's default. */
+	const dialValue = $derived(active?.dial ? (goalDial ?? active.dial.default) : 0);
+	const dialText = (value: number): string =>
+		active?.dial?.format === 'percent' ? `${Math.round(value * 100)}%` : String(value);
 	const isFreePlay = $derived(activeCardId === 'starter/free-play');
 
 	/**
@@ -126,6 +136,29 @@
 						>{/if}
 				</p>
 			{/if}
+			{#if active.dial}
+				<!-- WP131: the card's dial — one line the world reads at the start of the run. -->
+				<label class="dial" data-testid="card-dial">
+					<span
+						>{active.dial.label}:
+						<strong data-testid="card-dial-value">{dialText(dialValue)}</strong></span
+					>
+					<span class="ends">
+						{#if active.dial.lowLabel}<small>{active.dial.lowLabel}</small>{/if}
+						<input
+							type="range"
+							min={active.dial.min}
+							max={active.dial.max}
+							step={active.dial.step}
+							value={dialValue}
+							aria-valuetext={dialText(dialValue)}
+							data-testid="card-dial-input"
+							oninput={(event) => ondial?.(Number(event.currentTarget.value))}
+						/>
+						{#if active.dial.highLabel}<small>{active.dial.highLabel}</small>{/if}
+					</span>
+				</label>
+			{/if}
 			{#if isFreePlay}
 				<label class="marker">
 					<span>Write your own goal</span>
@@ -147,6 +180,20 @@
 	.rack {
 		display: grid;
 		gap: var(--cab-space-3);
+	}
+
+	.dial {
+		display: grid;
+		gap: var(--cab-space-1);
+		font-size: var(--cab-text-sm);
+	}
+	.dial .ends {
+		display: flex;
+		align-items: center;
+		gap: var(--cab-space-2);
+	}
+	.dial input {
+		flex: 1;
 	}
 
 	.find {

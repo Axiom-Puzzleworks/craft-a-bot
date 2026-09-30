@@ -45,6 +45,7 @@ import { createMemory, type TickMemory } from './memory.js';
 import { EgressRefusedError, createEgressGuard } from '../egress.js';
 import { describeFittedBricks, estimateTokens } from './prompt.js';
 import { resolveStrategies } from './strategies.js';
+import { goalDialFor, worldConfigFor } from './world-config.js';
 
 /**
  * The engine's heart (02-AGENT-MODEL.md §5): one tick = sense → compose →
@@ -124,6 +125,9 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 	const principal = options.principal;
 
 	const goalCard = requireGoalCard(registry.getGoalCard(spec.goalCardId), spec.goalCardId);
+	/** The card's dial as it stands for this run (WP131): the player's setting, clamped, or the default. */
+	const dialSetting = 'goalDial' in spec ? spec.goalDial : undefined;
+	const goalDial = goalDialFor(goalCard, dialSetting);
 	/*
 	 * A host-supplied world is used exactly as given (WP29, `23-…` §4.5) — the
 	 * seam `SessionGroup` will pass an agent-bound facade through. Absent, the
@@ -303,7 +307,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			);
 		}
 		// The session's own seeded stream, so a generated layout varies and replays by seed (WP53).
-		return definition.create(card.layoutId, { random });
+		return definition.create(card.layoutId, { random, ...worldConfigFor(card, dialSetting) });
 	}
 
 	function resolveTools(offeredIds: readonly string[]) {
@@ -1152,6 +1156,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			cartridgeId: brain?.cartridgeId ?? '',
 			// Who is running this (WP65): only when the host named one, so a trace written before keeps its bytes.
 			...(principal ? { principal } : {}),
+			...(goalDial ? { goalDial } : {}),
 			...(fork ? { forkedFrom: fork.forkedFrom } : {}),
 			// Written only when the host named a mode (WP41): the guard runs
 			// either way, but a trace written before the field existed — the

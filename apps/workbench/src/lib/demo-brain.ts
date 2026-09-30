@@ -401,6 +401,26 @@ const SCRIPTS: Record<string, CardScript> = {
 		]
 	},
 
+	// Sure or unsure (WP131, `109-…` §3): the Demo Brain does exactly what the reader says,
+	// so the run is won or lost by the child's line alone — the lesson of the card.
+	'workshop/sure-or-unsure': {
+		succeeds: [
+			['Ada Quill', 'let-in'],
+			['Ben Hollis', 'turn-away'],
+			['Cara Voss', 'let-in'],
+			['Dev Marsh', 'let-in'],
+			['Esme Lund', 'turn-away'],
+			['Finn Oakes', 'let-in']
+		].flatMap(([visitor, act]) => [
+			{ say: `Let me read ${visitor}'s note.`, call: 'read-note', args: { visitor } },
+			{
+				say: `The reader says ${act === 'let-in' ? 'on the list' : 'not on the list'} — doing what it says.`,
+				call: act as string,
+				args: { visitor }
+			}
+		])
+	},
+
 	'starter/hiding-spot': {
 		variants: [
 			{

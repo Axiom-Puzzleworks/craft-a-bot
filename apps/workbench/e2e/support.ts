@@ -176,6 +176,31 @@ export async function buildDeskBot(page: Page): Promise<string> {
 	return id;
 }
 
+/**
+ * *Sure or unsure* (WP131): a bot on the queue with its channels and hands ticked, the Demo
+ * Brain slotted, the dial moved `notches` of 5% from the default 50%, then GO and Play to the end.
+ */
+export const QUEUE_CARD = 'card-workshop/sure-or-unsure';
+export async function playTheQueue(page: Page, notches: number): Promise<void> {
+	await buildReadyBot(page, QUEUE_CARD);
+	await page.getByTestId('socket-perception').getByRole('button').click();
+	for (const name of ['Case file', 'Queue']) {
+		await page.getByTestId('brick-controls-perception').getByRole('checkbox', { name }).check();
+	}
+	await page.getByTestId('socket-mobility').getByRole('button').click();
+	for (const name of ['Read note', 'Let in', 'Turn away']) {
+		await page.getByTestId('brick-controls-mobility').getByRole('checkbox', { name }).check();
+	}
+	const dial = page.getByTestId('card-dial-input');
+	await dial.focus();
+	for (let step = 0; step < notches; step++) await page.keyboard.press('ArrowRight');
+	await page.waitForTimeout(300);
+	await page.getByRole('button', { name: /GO/ }).click();
+	await expect(page).toHaveURL(/\/play\//);
+	await page.getByTestId('play').click();
+	await expect(page.getByTestId('end-card')).toBeVisible({ timeout: 60_000 });
+}
+
 export async function buildAndGo(page: Page, cardTestId = 'card-snack'): Promise<void> {
 	await buildReadyBot(page, cardTestId);
 	await page.getByRole('button', { name: /GO/ }).click();

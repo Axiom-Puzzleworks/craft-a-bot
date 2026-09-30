@@ -66,6 +66,7 @@
 | `105-CORPORA.md` | WP119, WP121 (Phase AE): `Corpus` as content with its digest and the held-out rule, the labelling tools, the servicing corpora and a corpus per desk |
 | `106-BENCHMARK.md` | WP122–WP124 (Phase AG): the adversarial vocabulary and seven adversarial corpora, the benchmark across every connectable guard, the bespoke four (marking, taint, the quarantined reader, the red-team seat) |
 | `107-THE-GATE.md` | WP127, WP128 (Phase AH): `@craftabot/gate`, a stack over the chat-completions wire; the identity test; the gated example and the Gate's day as a bundle |
+| `109-THE-TAIL-DAY7.md` | WP131 (Phase AI): the five roundels, the Kit's *Sure or unsure* card on the Front Desk's queue and the card's dial, Part I and the PDF, the budgets after Day 7 |
 | `108-READINGS.md` | WP129 (Phase AI): `review` over eight subject kinds, the checks honouring it, `/workshop/readings`, `craftabot readings export` |
 | `102-HONEST-BANK.md` | **New (2026-09-29)** — WP111 (Phase AC): truth independence in `checkDesk`, the servicing desk's category as a label and its record before its act, `touches` counted once, the seven desks' audit (§5) with five declaring their rule-derived truth |
 | `84-DAY6-ROADMAP.md` | **New (2026-09-11)** — the phased plan to `83-…`: Phases X–AB, WP94–WP110, each with DoD, size and the gaps it retires; Phase X (the component contract and its identity test) first; the dependency sketch; build discipline (five additions); §8 session-sized next steps |

@@ -813,6 +813,9 @@
 																	"customGoalText": {
 																		"type": "string"
 																	},
+																	"goalDial": {
+																		"type": "number"
+																	},
 																	"identity": {
 																		"type": "object",
 																		"properties": {

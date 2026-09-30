@@ -50,9 +50,9 @@
 | | |
 |---|---|
 | **Document** | Craft A Bot — User Manual |
-| **Version** | 1.4 (draft for review) |
-| **Date** | 13 September 2026 (fifth edition, after Day 6) |
-| **Applies to** | V1.0 plus Days 2–5 (WP0–WP93's craft-a-bot half) and Day 6 (WP94–WP110), merged to `main` as PR #50; Day 7 on the `day7` branch through WP129 (Part I). Amended 2026-09-30 (WP130) |
+| **Version** | 1.5 (draft for review) |
+| **Date** | 30 September 2026 (sixth edition, after Day 7) |
+| **Applies to** | V1.0 plus Days 2–5 (WP0–WP93's craft-a-bot half) and Day 6 (WP94–WP110), merged to `main` as PR #50; Day 7 (WP111–WP131, WP125's live checkpoints pending) on the `day7` branch (Part I) |
 | **Publisher** | Axiom Verity |
 | **Audience** | Learners, AI-safety practitioners, conduct and model-risk reviewers, engineers |
 | **Status** | Draft — for internal review before external release |
@@ -163,8 +163,14 @@ Conventions used throughout:
 57. The palette, saved views and density
 58. Access: twins, keyboards and the reader's walk
 
-**Part I — The Gate**
+**Part I — The bank made fallible, and the Gate**
 59. A stack in front of any agent
+60. Readers and the confidence gate
+61. Corpora
+62. The register, regenerated
+63. The benchmark
+64. The reading desk
+65. *Sure or unsure* — the Kit's Day 7 card
 
 **Appendices**
 A. Screen index
@@ -2094,7 +2100,18 @@ Every drawing in the Control Room has a **list twin** (`97-ACCESS.md`) rendered 
 
 ---
 
-# Part I — The Gate
+# Part I — The bank made fallible, and the Gate
+
+Day 7 made the bank able to be wrong, which is the only way a control can be seen to matter. Every reference experiment on Day 5 read 100% against 100%, because nothing in the simulation erred. This part covers what Day 7 added:
+- the Gate, a stack in front of any agent (§59);
+- readers that answer with a confidence, and the gate that hands the unsure cases to a person (§60);
+- corpora to score them on (§61);
+- the register re-run with actors that err (§62);
+- a benchmark of every guard on the same adversarial rows (§63);
+- a desk where a person reads what ships pending (§64);
+- the Kit's one new card (§65).
+
+The design of record is `docs/design-day2/100-TARGET-DESIGN-V7.md`.
 
 ## 59. A stack in front of any agent
 
@@ -2125,6 +2142,122 @@ CRAFTABOT_GATE_UPSTREAM_KEY=… npm run craftabot -- gate serve --stack gate/sta
 **The example.** `examples/gated-agent` shows an agent governed by a stack it never saw.
 
 **What it is not.** It is not authenticated, not TLS-terminated, not multi-tenant and not persistent. It binds loopback unless `--allow-remote` is given, and it is a reference implementation to learn from, not a proxy to deploy.
+
+## 60. Readers and the confidence gate
+
+**What a reader is.** A reader answers **typed questions** about a case (`104-READERS.md`). A question is a *choice* among named options, a *noul* (a yes or no with a probability), or a *score* on a scale. The answer carries the probabilities. Every reader reports **confidence** by one formula, `(n·p_max − 1)/(n − 1)` for a choice among *n*. A threshold therefore means the same thing whoever answered.
+
+**Three kinds ship:**
+- **A rule reader** wraps one of a desk's own rules. It answers at confidence 1, and it is the line every other reader is read against.
+- **A hosted reader** wraps a service line whose operation answers the contract.
+- **An LLM reader** asks a chat model with the answer constrained to the option keys. It folds the first token's log-probabilities onto the options where the provider returns them, and says when it could only take the most likely answer.
+
+**The gate.** A workflow stage may be a `reader` stage. The reader answers, and when its confidence is below the stage's threshold, the case goes to the stage's `else`: a rule, or a person. The trace says so (`reader.answered`, with `gated`).
+
+**Calibration.** A campaign over a stage with an answer key shows the **calibration pane** on the Campaigns screen, with four figures:
+- the reliability table;
+- the expected calibration error (ECE);
+- the Brier score;
+- the *gate curve*: what a threshold would hand to a person, and how often the reader would have been right on the rest.
+
+**Where to see it.** The servicing, disputes and complaints journeys have classify-shaped stages on rule readers. `@craftabot/pack-readers-llm` carries the LLM readers. The Campaigns screen's pane reads any report with readings.
+
+## 61. Corpora
+
+**What a corpus is.** A corpus is labelled rows as content (`105-CORPORA.md`; `corpus.schema.json`). Each row has a state, tags and labels from closed sets, each set with its guide. A corpus also records:
+- the question set it was written against;
+- the annotators, with their agreement (Cohen's κ);
+- whether it was held out;
+- the readers that have seen it;
+- a digest over the labels and rows, frozen before any of that.
+
+**The held-out rule.** A reader scored on a held-out corpus cannot be scored on it again. The campaign that tries is refused, unless it says it is a regression.
+
+**The tools.** `craftabot corpus freeze` writes the digest. `corpus label` walks the rows for a blind second annotator and never shows a label. `corpus agreement` computes κ against the primary and records the annotator.
+
+**What ships.**
+- **Servicing:** three corpora.
+- **The other six desks:** a hundred rows each, held out from a question set frozen first.
+- **Adversarial:** seven corpora, 1,408 rows, a third of them benign (§63).
+
+Every row is synthetic. Every second annotator is a model: κ of 0.98 says the rows are clear to models, **not** that people would agree. `/workshop/playground/corpora` lists them with their guides and agreement.
+
+## 62. The register, regenerated
+
+**Why it was empty.** On Day 5, every reference experiment read *100% vs 100%*: a scripted bot that never errs gives a control nothing to catch.
+
+**The fallible tier.** A brain may be `{ tier: 'fallible', errorModel }`. It plays the desk's plan exactly, and at each decision the error model names, it is wrong with the probability a calibration row gives. Every fault is planted on purpose and says so on the trace (`decision.fault`).
+
+**The reviewer model.** A workflow configuration may name a reviewer model for its `human` stages: how often the person is right, how often they take a wrong recommendation put in front of them, and how long a case takes, each a cited or stated row. Human load v2 reports cost, quality and catch rate by autonomy level.
+
+**The register now.**
+- The seven designs are re-run with a fallible level. `docs/evidence/` holds the results.
+- A comparison that no scripted tier can test reads **untestable**, not zero.
+- Three designs still record no effect: their controls cannot act on a planted outcome error.
+- No design has a live level yet (§41).
+
+## 63. The benchmark
+
+**What it measures.** The benchmark runs every guard on the same adversarial rows (`106-BENCHMARK.md`; `/workshop/benchmarks`; `craftabot benchmark run`). The guards are:
+- every connectable service;
+- every reader that answers the guard question set;
+- the bespoke components (§52).
+
+The rows come from seven adversarial corpora, one per desk, over the surfaces each desk has: the customer's words, a note, a document, a tool's result. Each row is labelled with its **attack** (none, steer, injection, jailbreak, exfiltration, elicitation) and its **target**.
+
+**What a report shows.** For each subject:
+- how it answered;
+- precision and recall on *attack ≠ none*, with their Wilson intervals;
+- recall by attack kind, as a matrix with its twin in words;
+- the rows it alone caught or missed.
+
+**What it cannot do.** A service answered by its **stand-in** is *unmeasured*, not zero: the stand-in answers clean whatever it is shown. A measurement comes from a cassette the harness recorded with a key. The Guard Rack and the catalogue show each service's latest measurement or *unmeasured*. Today every shipped service is unmeasured. The keyword baseline reads recall 26% at precision 81%.
+
+> **Figure 28** — A benchmark report over the stand-ins: *synthetic rows* first, every subject in one table, recall by attack kind. *(Appendix D, `ws-benchmarks.png`.)*
+
+## 64. The reading desk
+
+**What it is.** Whatever a practitioner has to read ships *pending*:
+- the catalogue's entries and the calibration rows;
+- the control rows and the domain's decision rights;
+- the blueprint notes' checkboxes and the screening lists;
+- the error and reviewer models.
+
+`/workshop/readings` is the queue (`108-READINGS.md`). Each subject shows its source beside it: the citation, the numbers, the entry's description, the right's ceiling.
+
+**A reading is a record, not an edit.**
+- **Accept** says the row reads as its source does.
+- **Amend…** names the field and the value it should read.
+- **Reject…** says why.
+
+A reading goes on the record under your name (Settings). Accepted and amended rows count as read wherever a check asks (`requireReview`). The pack's own field changes only when a maintainer edits it in.
+
+**The rest of the desk.**
+- **Readouts:** read, of how many, per kind.
+- **The filter** sits in the URL, so a saved view keeps it.
+- **Push** sends a reading to the evidence store.
+- **The maintainer's list** is `craftabot readings export --format markdown`: the amendments to edit in, the rejections, then the unread.
+
+When this edition was written, 260 subjects waited and none had been read.
+
+> **Figure 29** — The reading desk over the error models: the readouts per kind, each model with the faults it plants and the rows it reads, and the three buttons. *(Appendix D, `ws-readings.png`.)*
+
+## 65. *Sure or unsure* — the Kit's Day 7 card
+
+**The card.** *Sure or unsure* is on the Front Desk's queue. It is a Kit card, on the rack without the Workshop door. Six visitors wait, each with a note. The bot's **reader** reads a note and answers *on the list* or *not*, with a chip that says how sure it is: *95% sure*, *55% sure*.
+
+**The dial.** It sits on the card holder and is the child's: *how sure before the bot acts alone*. When the bot lets someone in or turns them away, a reading below the line goes to a **colleague** instead, and the colleague can take three.
+
+**Two ways to lose, one way to win.**
+- **Too low.** The reader's 55% guess about Dev Marsh is acted on, and he gets in, though he was not on the list.
+- **Too high.** Four visitors or more go to the colleague, who is swamped.
+- **In between**, from 60% to 80%, both wrong readings go to a person and the queue is handled well.
+
+The dial starts at 50%, so a first run loses. That is the lesson: a reader that says how sure it is lets you decide where a person takes over.
+
+**What it teaches.** Confidence, and humans in the loop: the idea Day 7 added to the bank's journeys (§60), in a child's hand. The Demo Brain does exactly what the reader says, so the dial alone decides.
+
+> **Figure 30** — *Sure or unsure* after a won run at 65%: the queue with two visitors handed to a colleague, and every note's reading with its chip. *(Appendix D, `kit-sure-or-unsure.png`.)*
 
 # Appendices
 
@@ -2163,6 +2296,9 @@ Routes are given as they appear in the `full` build. In a published section, pre
 | `/workshop/guards` | *(opens the Studio's Connections tab)* | Every guard service and its connection lamp; test it; fit it (§20, §52.3) |
 | `/workshop/studio` | The Guardrail Studio | Build, connect, save and test a stack; the verdict flow (§53) |
 | `/workshop/catalogue` | The Guardrail Catalogue | Every technique with its coverage status, threats and sources (§54) |
+| `/workshop/benchmarks` | Benchmarks | Every guard on the same adversarial rows; *unmeasured* where no cassette exists (§63) |
+| `/workshop/readings` | Readings | The queue of what ships pending, with its source; accept, amend, reject (§64) |
+| `/workshop/playground/corpora` | The corpora | Every corpus with its guide, agreement and held-out part (§61) |
 | `/workshop/sinks` | Sinks | Configure a telemetry sink; attach it live |
 | `/workshop/telemetry` | Telemetry | By card, by cartridge, by day; trip mix; drift; autonomy |
 | `/workshop/incidents` | Incidents | Everything that went wrong, with its explanation |
@@ -2219,6 +2355,11 @@ Every artefact that crosses a boundary is defined once and published as a JSON S
 | A catalogue entry | — (content) | `guardrail-catalogue.schema.json` |
 | A domain spec | — (content); `docs/blueprints/fixtures/*.json` | `domain.schema.json` |
 | A journey's drawing | `*.svg` from `craftabot journey render` | — |
+| A reader's questions and answer | — | `reader.schema.json` |
+| A corpus | `src/corpora/*.json` in a pack; the content store | `corpus.schema.json` |
+| A recorded provider | `*.craftabot-cassette.json` (kind `provider`) | `craftabot-provider-cassette.schema.json` |
+| A benchmark report | `*.benchmark-report.json` | `benchmark-report.schema.json` |
+| A reading | `local/reviews/<kind>--<subject>` in the content store | `review.schema.json` |
 
 Additionally: JUnit XML and SARIF from a campaign, OpenTelemetry GenAI spans from a sink or the Audit centre, and the assurance pack as self-contained HTML, markdown or JSON.
 
@@ -2269,6 +2410,9 @@ Sources are under `apps/workbench/e2e/__screenshots__/<platform>/`, where `<plat
 | 25 | `ws-journeys.png` | The journeys page and the coverage matrix |
 | 26 | `ws-journey-lending.png` | The lending journey drawn, with its twin |
 | 27 | `ws-pipeline-golden.png` | The Pipeline lit by a stored lending run |
+| 28 | `ws-benchmarks.png` | A benchmark report over the stand-ins |
+| 29 | `ws-readings.png` | The reading desk over the error models |
+| 30 | `kit-sure-or-unsure.png` | *Sure or unsure* after a won run |
 
 Also available and not yet placed: `workshop-run-lab-explain.png` (the explanation panel), `ws-runs.png` (the Run Browser), `ws-run-lab-golden.png`, `ws-incidents.png`, `ws-safety-case.png`, `ws-sinks.png`, `ws-test-bench.png`. **Three baselines are still the screens' empty states** — `ws-workflows.png`, `ws-conduct.png` and `ws-model-risk.png` show a sentence saying no report is stored — and are not placed; a capture over the fixture corpus is the figure the Workflows list (§45.1), Conduct (§49.2) and Model risk (§49.3) want. The four new desks' pages (`ws-playground-onboarding.png`, `-disputes`, `-collections`, `-servicing`) are captured and not yet placed; the access snapshots (`access-320-*`, `access-640-*`, `access-pipeline-lit.png`) are the tests' own, not figures.
 

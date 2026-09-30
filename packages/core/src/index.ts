@@ -199,6 +199,7 @@ export {
 	type DeskQueueStatus,
 	type DeskRecord,
 	type DeskRecordClassification,
+	type DeskReading,
 	type DeskTranscriptLine,
 	type DeskTranscriptSpeaker,
 	type DeskWorldState,
@@ -419,6 +420,7 @@ export { validateSpecV2 } from './validate-spec-v2.js';
 
 // The running engine (02-AGENT-MODEL.md §5)
 export { createSession } from './session/agent-session.js';
+export { goalDialFor, worldConfigFor } from './session/world-config.js';
 export {
 	brainTurnsThrough,
 	eventsThrough,

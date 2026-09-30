@@ -88,6 +88,8 @@ export interface BenchStore {
 	updateBrick(slot: SlotId, patch: Record<string, unknown>): void;
 	setGoalCard(cardId: string): void;
 	setCustomGoalText(text: string): void;
+	/** The card's dial (WP131, `109-…` §3): the player's line, saved with the bot. */
+	setGoalDial(value: number): void;
 	rename(name: string): void;
 	undo(): void;
 	/** Force any pending save to land — used before navigating away. */
@@ -365,6 +367,12 @@ export function createBenchStore(deps: BenchStoreDeps = {}): BenchStore {
 			mutate((spec) => {
 				if (text === '') delete spec.customGoalText;
 				else spec.customGoalText = text;
+			});
+		},
+
+		setGoalDial(value) {
+			mutate((spec) => {
+				spec.goalDial = value;
 			});
 		},
 

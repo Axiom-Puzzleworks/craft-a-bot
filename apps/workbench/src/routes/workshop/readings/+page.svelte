@@ -166,7 +166,7 @@
 		</p>
 	{/if}
 
-	<Strip label="Readings" testId="readings-strip">
+	<Strip label="Readings" icon="reading" testId="readings-strip">
 		<Readout label="read" value={read} unit="of {queue.length}" testId="readings-read" />
 		<Readout label="open" value={open} testId="readings-open" />
 		{#each progress as row (row.kind)}

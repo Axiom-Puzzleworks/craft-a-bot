@@ -128,6 +128,8 @@ const runStartedEvent = eventSchema(
 				upstream: z.string().min(1)
 			})
 			.optional(),
+		/** The card's dial as it stood for this run (WP131, `109-…` §3): which knob, at what value; written only when the card has a dial. */
+		goalDial: z.object({ knob: z.string().min(1), value: z.number() }).optional(),
 		/** A fork (WP66, `54-…` §4.1): the origin run and the tick this run continues after; additive. */
 		forkedFrom: z
 			.object({

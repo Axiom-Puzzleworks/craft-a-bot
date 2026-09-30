@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Roundel from '$lib/components/control-room/Roundel.svelte';
 	import type { CalibrationRow } from '@craftabot/evals';
 	import { calibrationKey, calibrationSentence, filledBins } from '$lib/workshop/calibration.js';
 
@@ -16,7 +17,7 @@
 </script>
 
 <section aria-label="Calibration" data-testid="campaign-calibration">
-	<h2>Calibration</h2>
+	<h2><Roundel icon="reader" size={24} /> Calibration</h2>
 	<p class="hint">
 		Each reader's answers against the stage's answer key from truth. A rule reader states 1 on every
 		answer, so its calibration error is its error rate — the line the other readers are read

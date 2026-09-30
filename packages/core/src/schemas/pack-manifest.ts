@@ -141,7 +141,32 @@ export const goalCardDefinitionSchema = z.object({
 	 * use, applied to goal cards. Absent means `'kit'`: every card written
 	 * before this field existed.
 	 */
-	audience: z.enum(['kit', 'workshop']).optional()
+	audience: z.enum(['kit', 'workshop']).optional(),
+	/**
+	 * A dial the player turns before the run (WP131, `109-THE-TAIL-DAY7.md`
+	 * §3): one number the card's world reads at `create` as
+	 * `config.knobs[knob]` — the lending desk's knobs (WP78), put in a child's
+	 * hand. The bot's own setting is `AgentSpecV2.goalDial`; absent, `default`.
+	 * The value in force is on `run.started.goalDial`.
+	 */
+	dial: z
+		.object({
+			knob: z.string().min(1),
+			label: z.string().min(1),
+			min: z.number(),
+			max: z.number(),
+			step: z.number().positive(),
+			default: z.number(),
+			/** How the Kit shows a value: `percent` reads 0.65 as 65%. */
+			format: z.enum(['number', 'percent']).optional(),
+			/** The words at each end of the dial. */
+			lowLabel: z.string().optional(),
+			highLabel: z.string().optional()
+		})
+		.refine((dial) => dial.min < dial.max && dial.default >= dial.min && dial.default <= dial.max, {
+			message: 'a dial runs from min to max, with its default between them'
+		})
+		.optional()
 });
 export type GoalCardDefinition = z.infer<typeof goalCardDefinitionSchema>;
 

@@ -70,6 +70,8 @@ export const agentSpecV2Schema = z.object({
 	 * when the engine moves onto v2.
 	 */
 	customGoalText: z.string().optional(),
+	/** The player's setting of the card's dial (WP131, `109-…` §3); absent, the dial's default. Cards with no dial ignore it. */
+	goalDial: z.number().optional(),
 	identity: agentIdentitySchema,
 	createdAt: z.string().datetime(),
 	updatedAt: z.string().datetime()

@@ -122,9 +122,9 @@ describe('the campaign Worker host', () => {
 			report.cells.filter((cell) => cell.error !== undefined).length;
 		// Without the page's local pack, the Worker cannot find the stack.
 		const bare = await runCampaignIn(workerOf(), campaign).result.catch((error: unknown) => error);
-		expect(bare instanceof Error || errored(bare as { cells: Array<{ error?: string | undefined }> }) > 0).toBe(
-			true
-		);
+		expect(
+			bare instanceof Error || errored(bare as { cells: Array<{ error?: string | undefined }> }) > 0
+		).toBe(true);
 		// With it, every cell runs under the stack.
 		const withLocal = await runCampaignIn(workerOf(), campaign, { local }).result;
 		expect(withLocal.cells.length).toBeGreaterThan(0);

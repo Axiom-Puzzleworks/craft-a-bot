@@ -31,8 +31,8 @@ def repl(m):
     return f'![Figure {n} — {cap}](figures-print/{png})'
 
 src = PAT.sub(repl, src)
-assert len(found) == 27, len(found)
-assert sorted(n for n, _, _ in found) == list(range(1, 28))
+assert len(found) == 30, len(found)  # 27 through Day 6; three more in Part I (WP131)
+assert sorted(n for n, _, _ in found) == list(range(1, 31))
 
 rows = '\n'.join(f'| {n} | `{png}` | {cap} |' for n, png, cap in sorted(found))
 start = src.index('## Appendix D — Figures')

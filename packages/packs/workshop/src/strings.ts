@@ -119,6 +119,106 @@ export const deskStrings = {
 	}
 } as const;
 
+/**
+ * **The Front Desk: the queue** (WP131, `109-THE-TAIL-DAY7.md` §3): the words
+ * of *Sure or unsure*. Every name and note is made up (hard rule 9).
+ */
+export const queueStrings = {
+	title: 'The Front Desk: the queue',
+	layout: 'Six visitors in the queue',
+	houseRule:
+		'A reader reads each note and says how sure it is. When it is sure enough, you act; when it is not, a colleague decides. The colleague can take three.',
+	question: 'Is this visitor on the list?',
+	noteTitle: (name: string) => `Note — ${name}`,
+	letIn: 'let in',
+	turnedAway: 'turned away',
+	handedOver: 'handed to a colleague',
+	visitors: [
+		{
+			name: 'Ada Quill',
+			note: 'Here for the ten o’clock with Ms Rowan. Name is in the diary.',
+			reading: 'on the list' as const,
+			confidence: 0.95,
+			onTheList: true
+		},
+		{
+			name: 'Ben Hollis',
+			note: 'Says he is here to read the meter. No appointment, no badge.',
+			reading: 'not on the list' as const,
+			confidence: 0.9,
+			onTheList: false
+		},
+		{
+			name: 'Cara Voss',
+			note: 'Here for the eleven o’clock. Diary says C. Voss.',
+			reading: 'on the list' as const,
+			confidence: 0.8,
+			onTheList: true
+		},
+		{
+			name: 'Dev Marsh',
+			note: 'Says Ms Rowan asked him to drop by. The diary has a D. Marsh — last week.',
+			reading: 'on the list' as const,
+			confidence: 0.55,
+			onTheList: false
+		},
+		{
+			name: 'Esme Lund',
+			note: 'Here for the interview. The diary’s handwriting is hard to read.',
+			reading: 'not on the list' as const,
+			confidence: 0.4,
+			onTheList: true
+		},
+		{
+			name: 'Finn Oakes',
+			note: 'Here for the twelve o’clock. The diary says F. Oaks.',
+			reading: 'on the list' as const,
+			confidence: 0.7,
+			onTheList: true
+		}
+	],
+	actions: {
+		visitorArg: 'The visitor, by name',
+		readNote: {
+			name: 'Read note',
+			description:
+				'Ask the reader about a visitor’s note: it answers on the list or not, and how sure it is.'
+		},
+		letIn: {
+			name: 'Let in',
+			description:
+				'Let a visitor in. If the reader was less sure than the line, a colleague decides instead.'
+		},
+		turnAway: {
+			name: 'Turn away',
+			description:
+				'Turn a visitor away. If the reader was less sure than the line, a colleague decides instead.'
+		}
+	},
+	narration: {
+		noSuchVisitor: 'There is nobody by that name in the queue.',
+		alreadyDone: (name: string) => `${name} has already been dealt with.`,
+		readFirst: (name: string) => `Read ${name}’s note first — you cannot tell without it.`,
+		read: (name: string, answer: string, sure: string) =>
+			`The reader says ${name} is ${answer}, ${sure} sure.`,
+		acted: (name: string, decision: string) => `${name}: ${decision}.`,
+		actedLine: (name: string, decision: string, sure: string, line: string) =>
+			`${name} ${decision} — the reader was ${sure} sure, at or above your line of ${line}.`,
+		handedOver: (name: string, sure: string, line: string) =>
+			`Only ${sure} sure — below your line of ${line}. A colleague will decide about ${name}.`,
+		handedOverLine: (name: string, sure: string, line: string, count: number) =>
+			`${name} handed to a colleague: ${sure} sure is below your line of ${line}. (${count} handed over.)`,
+		swamped: (count: number) => `The colleague has ${count} to decide — more than they can take.`
+	},
+	predicates: {
+		handled:
+			'Everyone dealt with, nobody let in who was not on the list, nobody turned away who was, and the colleague given no more than three.',
+		handedOver: 'At least one visitor was handed to a colleague.'
+	},
+	progress: (done: number, total: number, handed: number, capacity: number) =>
+		`${done} of ${total} dealt with; ${handed} of ${capacity} handed to a colleague.`
+};
+
 export const worldStrings = {
 	name: 'The Workshop',
 	description:
@@ -170,6 +270,19 @@ export const goalCardStrings = {
 			'Look up the visitor to see who they are here to see.',
 			'Sign them in once you know.'
 		]
+	},
+	'sure-or-unsure': {
+		title: 'Sure or unsure',
+		goalText:
+			'Six visitors are waiting. A reader reads each note and says how sure it is. Set the dial: when the reader is less sure than your line, a colleague decides — and they can only take three. Get everyone dealt with, and nobody let in who should not be.',
+		hints: [
+			'Read each note before you let anyone in or turn anyone away.',
+			'The dial is how sure the reader must be before the bot acts alone.',
+			'If the wrong person gets in, your line was too low. If the colleague is swamped, it was too high.'
+		],
+		dialLabel: 'How sure before the bot acts alone',
+		dialLow: 'act on anything',
+		dialHigh: 'ask a person every time'
 	},
 	'find-the-paint-pot': {
 		title: 'Find the paint pot',

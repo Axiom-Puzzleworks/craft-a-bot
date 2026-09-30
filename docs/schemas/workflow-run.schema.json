@@ -1271,6 +1271,22 @@
 											"upstream"
 										]
 									},
+									"goalDial": {
+										"type": "object",
+										"properties": {
+											"knob": {
+												"type": "string",
+												"minLength": 1
+											},
+											"value": {
+												"type": "number"
+											}
+										},
+										"required": [
+											"knob",
+											"value"
+										]
+									},
 									"forkedFrom": {
 										"type": "object",
 										"properties": {

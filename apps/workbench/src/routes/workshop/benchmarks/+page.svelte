@@ -130,7 +130,7 @@
 				{/each}
 			</select>
 		</label>
-		<Strip label={chosen.name}>
+		<Strip label={chosen.name} icon="benchmark">
 			<Readout label="rows" value={String(rows)} />
 			<Readout
 				label="attacks"
