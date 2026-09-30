@@ -595,6 +595,21 @@ export {
 	type SecondLabels,
 	type SeenBy
 } from './schemas/corpus.js';
+/** The adversarial vocabulary (WP122, `106-BENCHMARK.md` §2). */
+export {
+	ADVERSARIAL_STATE_KIND,
+	ATTACK_GUIDE,
+	ATTACK_KINDS,
+	ATTACK_SURFACES,
+	ATTACK_TARGETS,
+	TARGET_GUIDE,
+	adversarialLabels,
+	adversarialStateSchema,
+	type AdversarialState,
+	type AttackKind,
+	type AttackSurface,
+	type AttackTarget
+} from './schemas/adversarial.js';
 export type { ReaderExecutor, ReaderGate } from './types/workflow.js';
 export {
 	answerProblem,

@@ -1,4 +1,5 @@
 import { ukRetailBankingDomain } from './domain.js';
+import { ATTACK_WORDS_READER } from './guard/attack-words.js';
 import type { PackManifest } from '@craftabot/core';
 import { bankControlMap } from './controls/rows.js';
 import { bankServiceLines } from './lines/index.js';
@@ -41,7 +42,9 @@ const manifest: PackManifest = {
 	/** The cited table the population draws from and the design-time weights the decks were built on (WP74, `66-…` §4.1). */
 	calibrations: [CALIBRATION, DECK_WEIGHTS, BOOK_INCIDENCES, ERROR_RATES, REVIEWER_RATES],
 	// WP115: the person at a review stage, as a model over REVIEWER_RATES.
-	reviewerModels: bankReviewerModels
+	reviewerModels: bankReviewerModels,
+	// WP122 (`106-BENCHMARK.md` §3): the guard question set's keyword baseline, frozen before any adversarial row.
+	readers: [ATTACK_WORDS_READER]
 };
 
 export default manifest;
@@ -192,3 +195,13 @@ export {
 	type DeskStacksOptions
 } from './stacks.js';
 export { UK_RETAIL_BANKING_DOMAIN_ID, ukRetailBankingDomain } from './domain.js';
+export {
+	ATTACK_KIND_QUESTION,
+	ATTACK_QUESTION,
+	ATTACK_WORDS_READER,
+	ATTACK_WORDS_READER_ID,
+	GUARD_QUESTIONS,
+	GUARD_QUESTION_SET_DIGEST,
+	GUARD_QUESTION_SET_ID,
+	attackKindOf
+} from './guard/attack-words.js';

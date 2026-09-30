@@ -18,10 +18,10 @@
 	},
 	"dependencies": {
 		"@craftabot/core": "*",
-		"@craftabot/desk": "*"
+		"@craftabot/desk": "*",
+		"@craftabot/governance": "*"
 	},
 	"devDependencies": {
-		"@craftabot/governance": "*",
 		"@craftabot/pack-starter": "*",
 		"@craftabot/pack-testkit": "*"
 	}
