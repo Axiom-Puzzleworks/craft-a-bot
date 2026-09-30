@@ -3,6 +3,7 @@ import type { JsonSchema } from './json-schema.js';
 import type { Book, WorkItem, WorkItemKind } from '../schemas/book.js';
 import type { ContextSpec } from './context.js';
 import type { CalibrationRef } from './error-model.js';
+import type { TypedAnswer, TypedQuestion } from '../schemas/reader.js';
 
 /**
  * **Workflows** (WP79, `69-WORKFLOWS.md` §3; `64-TARGET-DESIGN-V5.md` §6.2,
@@ -23,7 +24,37 @@ export type Executor =
 			lineId: string;
 			operation: string;
 			arguments?: (input: unknown, state: WorldState) => unknown;
-	  };
+	  }
+	| ReaderExecutor;
+
+/**
+ * **The `reader` executor** (WP117, `104-READERS.md` §4; `100-…` §6.3, D16):
+ * a registered reader asked typed questions about what the stage shows it;
+ * at or above the gate's threshold its output is committed, below it the
+ * `else` executor (a rule or a person) takes the same input under the same
+ * stage. A rule reader answers at confidence 1 and never gates.
+ */
+export interface ReaderExecutor {
+	kind: 'reader';
+	readerId: string;
+	/** What the reader is shown — the caller's words, a claim's figures. Never truth. */
+	subject: (input: unknown, state: WorldState) => unknown;
+	questions: (input: unknown, state: WorldState) => Record<string, TypedQuestion>;
+	/** The stage's output from the answers. */
+	output: (answers: Record<string, TypedAnswer>, input: unknown) => unknown;
+	/** What committing the output does on the desk — the rule's `call` — if anything. */
+	act?: (output: unknown, input: unknown, state: WorldState) => ActionCall | undefined;
+	gate?: ReaderGate;
+}
+
+export interface ReaderGate {
+	/** Acts when the lowest choice/score confidence is at or above this; `null` is below every threshold. */
+	threshold: number;
+	/** What takes the item below the threshold, or on a steer: a rule or a person. */
+	else: Extract<Executor, { kind: 'rule' | 'human' }>;
+	/** A noul question's id: P ≥ 0.5 routes to `else` whatever the confidence. */
+	steer?: string;
+}
 
 export interface StageSpec<In = unknown, Out = unknown> {
 	id: string;

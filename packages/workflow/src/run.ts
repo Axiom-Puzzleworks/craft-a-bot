@@ -20,6 +20,7 @@ import {
 	type PackManifest,
 	type PackRegistry,
 	type Principal,
+	type ReaderRecord,
 	type RunOutcome,
 	type SessionOptions,
 	type StageRecord,
@@ -34,6 +35,7 @@ import {
 import { seededRandom } from '@craftabot/desk';
 import { validateAgainst } from './validate.js';
 import { recommendationIn, resolveReviewer, reviewerAnswer, reviewerRandom } from './reviewer.js';
+import { checkedAnswers, readGate, readerRecordOf, resolveReader } from './reader.js';
 
 /**
  * **The workflow runtime** (WP79, `69-WORKFLOWS.md` §5; `64-…` §6.2, tenet
@@ -194,6 +196,23 @@ export function executorRecord(executor: Executor): ExecutorRecord {
 			};
 		case 'line':
 			return { kind: 'line', lineId: executor.lineId, operation: executor.operation };
+		case 'reader':
+			return {
+				kind: 'reader',
+				readerId: executor.readerId,
+				...(executor.gate
+					? {
+							gate: {
+								threshold: executor.gate.threshold,
+								else: executorRecord(executor.gate.else) as Extract<
+									ExecutorRecord,
+									{ kind: 'rule' | 'human' }
+								>,
+								...(executor.gate.steer !== undefined ? { steer: executor.gate.steer } : {})
+							}
+						}
+					: {})
+			};
 	}
 }
 
@@ -307,7 +326,13 @@ export async function runWorkflow(
 		const executor =
 			(reached || !origin
 				? config.executors?.[stage.id]
-				: executorFrom(origin.config.executors?.[stage.id])) ?? stage.executor;
+				: executorFrom(origin.config.executors?.[stage.id], [
+						config.executors?.[stage.id],
+						stage.executor,
+						...Object.values(spec.configurations ?? {}).map(
+							(configuration) => configuration.executors?.[stage.id]
+						)
+					])) ?? stage.executor;
 		ordinal += 1;
 
 		const record = await runStage(stage, executor, input);
@@ -441,10 +466,14 @@ export async function runWorkflow(
 				return humanStage(stage, executor, effectiveInput, base, started);
 			case 'line':
 				return lineStage(stage, executor, effectiveInput, base, started);
+			case 'reader':
+				return readerStage(stage, executor, effectiveInput, base, started);
 		}
 	}
 
 	type Base = Pick<StageRecord, 'stageId' | 'executor' | 'input'> & {
+		/** What the reader answered, when a `reader` executor took the stage (WP117). */
+		reader?: ReaderRecord;
 		stage: StageSpec;
 		rawInput: unknown;
 		inbound: BoundaryFold;
@@ -771,14 +800,17 @@ export async function runWorkflow(
 		executor: Extract<Executor, { kind: 'rule' }>,
 		stageInput: unknown,
 		base: Base,
-		started: string
+		started: string,
+		/** False when a gated `reader` stage runs this as its `else`, under the `stage.started` it already wrote. */
+		announce = true
 	): Promise<StageRecord> {
-		emit('stage.started', {
-			workflowRunId: runId,
-			stageId: stage.id,
-			executor: 'rule',
-			input: base.input
-		});
+		if (announce)
+			emit('stage.started', {
+				workflowRunId: runId,
+				stageId: stage.id,
+				executor: 'rule',
+				input: base.input
+			});
 		const rule = spec.rules?.[executor.rule];
 		if (!rule) {
 			return finishStage(
@@ -827,14 +859,17 @@ export async function runWorkflow(
 		executor: Extract<Executor, { kind: 'human' }>,
 		stageInput: unknown,
 		base: Base,
-		started: string
+		started: string,
+		/** False when a gated `reader` stage runs this as its `else`, under the `stage.started` it already wrote. */
+		announce = true
 	): Promise<StageRecord> {
-		emit('stage.started', {
-			workflowRunId: runId,
-			stageId: stage.id,
-			executor: 'human',
-			input: base.input
-		});
+		if (announce)
+			emit('stage.started', {
+				workflowRunId: runId,
+				stageId: stage.id,
+				executor: 'human',
+				input: base.input
+			});
 		const proposed = { kind: 'action' as const, name: stage.id, arguments: stageInput };
 		emit('approval.requested', { proposed, reason: executor.prompt });
 		const state = world.snapshot();
@@ -904,6 +939,67 @@ export async function runWorkflow(
 			0,
 			{ approval, ...(by ? { by } : {}) }
 		);
+	}
+
+	/**
+	 * **The `reader` executor** (WP117, `104-READERS.md` §4.1): ask the reader
+	 * what the stage shows it, check and round the answers, read the gate, say
+	 * so on `reader.answered`; then either commit the reader's output (its
+	 * `act` performed as a rule's call is) or run the gate's `else` on the same
+	 * input under the same stage. A reader that throws or answers wrongly is an
+	 * error, never a gate: a broken reader is a defect, a low confidence is not.
+	 */
+	async function readerStage(
+		stage: StageSpec,
+		executor: Extract<Executor, { kind: 'reader' }>,
+		stageInput: unknown,
+		base: Base,
+		started: string
+	): Promise<StageRecord> {
+		emit('stage.started', {
+			workflowRunId: runId,
+			stageId: stage.id,
+			executor: 'reader',
+			input: base.input
+		});
+		const fail = (finding: string, at: Base = base) =>
+			finishStage(at, started, ordinal, ordinal, undefined, [], 'error', finding, 0);
+		const state = world.snapshot();
+		const questions = executor.questions(stageInput, state);
+		const resolved = resolveReader(registry, executor, questions);
+		if ('finding' in resolved) return fail(resolved.finding);
+		let response;
+		try {
+			response = await resolved.reader.ask(executor.subject(stageInput, state), questions, {});
+		} catch (error) {
+			return fail(`the reader failed: ${error instanceof Error ? error.message : String(error)}`);
+		}
+		const checked = checkedAnswers(questions, response);
+		if ('finding' in checked) return fail(checked.finding);
+		const gate = readGate(executor, checked.answers);
+		const reader = readerRecordOf(executor.readerId, response, checked.answers, gate);
+		emit('reader.answered', {
+			workflowRunId: runId,
+			stageId: stage.id,
+			questionIds: Object.keys(questions),
+			...reader
+		});
+		const withReader: Base = { ...base, reader };
+		if (gate.gated && executor.gate) {
+			const fallback = executor.gate.else;
+			return fallback.kind === 'rule'
+				? ruleStage(stage, fallback, stageInput, withReader, started, false)
+				: humanStage(stage, fallback, stageInput, withReader, started, false);
+		}
+		const read = readOutput(stage, executor.output(checked.answers, stageInput), false);
+		if ('finding' in read) return fail(read.finding, withReader);
+		const call = executor.act?.(read.output, stageInput, world.snapshot());
+		if (call) {
+			const result = perform(call);
+			if (!result.ok)
+				return fail(`the world refused ${call.name}: ${result.narration}`, withReader);
+		}
+		return finishStage(withReader, started, ordinal, ordinal, read.output, [], 'ok', undefined, 0);
 	}
 
 	async function lineStage(
@@ -993,10 +1089,24 @@ function redactInto(value: unknown, redactedText: string): unknown {
 	return value;
 }
 
-/** An executor read back off a record — the same shape, `undefined` keys dropped. */
-function executorFrom(record: ExecutorRecord | undefined): Executor | undefined {
+/**
+ * An executor read back off a record — the same shape, `undefined` keys
+ * dropped. A `reader` executor's functions are not on the record, so it is
+ * found among the ones the new configuration and the spec give that stage
+ * (the same reader, the same gate); none found, the stage's default.
+ */
+function executorFrom(
+	record: ExecutorRecord | undefined,
+	candidates: readonly (Executor | undefined)[] = []
+): Executor | undefined {
 	if (!record) return undefined;
 	switch (record.kind) {
+		case 'reader':
+			return candidates.find(
+				(candidate): candidate is Executor =>
+					candidate?.kind === 'reader' &&
+					canonicalJson(executorRecord(candidate)) === canonicalJson(record)
+			);
 		case 'rule':
 			return { kind: 'rule', rule: record.rule };
 		case 'agent':

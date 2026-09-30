@@ -141,10 +141,11 @@ ruleReader({ id, name, description, rules: Record<questionId, (subject) => strin
 
 The shipped configurations keep their `rule` executors, so every desk golden run, golden workflow run and campaign baseline is byte-identical without further argument: nothing they run has changed.
 
-**Diverged.** `101-…` asked for them to be "byte-identical with rule readers fitted". A workflow run that records a `reader` executor and a `reader.answered` event cannot also be byte-identical to one that recorded a `rule`, and a record that hid the reader to stay identical would lie. So the identity is stated over what the reader changes, and each desk's test proves it over a book. With a desk's rules swapped for its rule readers, `withoutReaders(run)` of the reader run equals `withoutReaders(run)` of the rule run, byte for byte. What `withoutReaders` removes is exactly what a reader adds:
+**Diverged.** `101-…` asked for them to be "byte-identical with rule readers fitted". A workflow run that records a `reader` executor and a `reader.answered` event cannot also be byte-identical to one that recorded a `rule`, and a record that hid the reader to stay identical would lie. So the identity is stated over what the reader changes, and each desk's test proves it over a book. With a desk's rules swapped for its rule readers, `withoutReaders(run, stageIds)` of the reader run equals the same projection of the rule run, byte for byte, where `stageIds` are the stages the readers were fitted to. What `withoutReaders` removes is exactly what a reader adds:
 - the `reader.answered` events;
 - `StageRecord.reader`;
 - the executor records and `stage.started.executor` of the stages the reader took.
+- every id and time. The extra event takes an id and a timestamp from the host's counter and clock, which shifts every one after it, the agent runs' included.
 
 Everything else is held: every stage's input and output digests, every act, every approval, every item's outcome, every agent run's trace, the ledger and the handoffs. A second assertion shows the projection hides no more than that: the two runs differ, and they differ only in those fields.
 
@@ -160,3 +161,31 @@ The classify-shaped rules `100-…` §6.3 names, as found:
 | Complaints | `root-cause` | `rootCauseOf(category)` | `fs-advice/reader/root-cause` | `cause`, choice over the root causes |
 
 **The fraud desk's coaching markers are not a rule.** Whether a caller is being coached is a truth fact (`facts.coached`) read only by an evaluator, and no stage of the fraud journey classifies the call. There is nothing to wrap. A reader that tries to answer *is this caller coached?* from the call's words is a reader with no rule baseline, and it belongs to WP121's fraud corpus. The remaining desks (lending, onboarding, collections) decide by rules over figures (affordability, screening, disposable income), not by reading words, and `100-…` does not name them.
+
+## 8. Stage notes
+
+> **WP117 stage B done 2026-09-30.**
+> - **The contract** is in `core`:
+>   - the question and answer schemas, `readerConfidence`, `roundAnswer`, `answerProblem`;
+>   - `readerExchangeSchema`, generated as `docs/schemas/reader.schema.json`;
+>   - `Reader`, `PackManifest.readers`, and the registry's `getReader`/`listReaders`;
+>   - `ReaderExecutor` and `ReaderGate`, the executor record's `reader` shape, `StageRecord.reader`, and `reader.answered` (`02-…` §7).
+> - **`ruleReader`** is in `governance/readers/rule.ts`.
+> - **The executor** is in `workflow` (`run.ts`'s `readerStage`). Its pure half is in `reader.ts`: `resolveReader`, `checkedAnswers`, `readGate`, `readerRecordOf`, `STEER_THRESHOLD` and `withoutReaders`.
+> - **`checkReader`** is in `pack-testkit`, with seven checks.
+> - **The Workbench:**
+>   - the Pipeline's stage card shows the reader's line;
+>   - the executor roundel is `lens`;
+>   - the Boundary's glyph is `◎`;
+>   - the trace style is `run`;
+>   - the what-if finds a reader executor among the stage's.
+> - **Tests:**
+>   - `workflow/src/reader.test.ts`: a reader at confidence 1 is its rule under `withoutReaders`; the gate sends exactly the items under the threshold to `else`; the steer routes independently of confidence; `null` is below every threshold; the error cases; the re-run from a later stage.
+>   - `checkReader`'s fixtures per question type and a red reader per check.
+>   - The rule adapter's wrap, and the formula's cases in `core`.
+>
+> **Diverged:**
+> - `withoutReaders` takes the stage ids the readers were fitted to. The rule run has no reader to find them by, and the projection must mask the same stages on both sides.
+> - The projection also drops ids and times, which the one extra event shifts (§6).
+> - The campaign cell's stage summary (`evals`) admits `reader` as an executor.
+> - The hosted and LLM readers get no `ReaderContext` from the runtime yet: a rule needs none, and WP120 passes the session's egress-guarded `fetch` when it builds them.

@@ -51,3 +51,11 @@ export {
 	reviewerRandom,
 	type ResolvedReviewer
 } from './reviewer.js';
+export {
+	STEER_THRESHOLD,
+	checkedAnswers,
+	readGate,
+	readerRecordOf,
+	resolveReader,
+	withoutReaders
+} from './reader.js';

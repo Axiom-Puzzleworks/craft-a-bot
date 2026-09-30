@@ -152,7 +152,12 @@ export function createCampaignHost(
 				...Object.fromEntries(
 					Object.entries(job.executors ?? {}).map(([stageId, record]) => [
 						stageId,
-						executorFromRecord(record)
+						executorFromRecord(record, [
+							workflow.stages.find((stage) => stage.id === stageId)?.executor,
+							...Object.values(workflow.configurations ?? {}).map(
+								(configuration) => configuration.executors?.[stageId]
+							)
+						])
 					])
 				)
 			};
@@ -455,8 +460,23 @@ function toV2(spec: AnyAgentSpec) {
 }
 
 /** A plain executor record back into an executor — the what-if drawer sends only what crosses a Worker boundary; a `line` needs no arguments to be named. */
-function executorFromRecord(record: ExecutorRecord): Executor {
+function executorFromRecord(
+	record: ExecutorRecord,
+	/** The executors the spec gives the stage: a `reader`'s functions are not on its record, so it is found among them (WP117). */
+	candidates: readonly (Executor | undefined)[] = []
+): Executor {
 	switch (record.kind) {
+		case 'reader': {
+			const found = candidates.find(
+				(candidate): candidate is Extract<Executor, { kind: 'reader' }> =>
+					candidate?.kind === 'reader' &&
+					candidate.readerId === record.readerId &&
+					candidate.gate?.threshold === record.gate?.threshold &&
+					candidate.gate?.steer === record.gate?.steer
+			);
+			if (!found) throw new Error(`no reader executor '${record.readerId}' on this stage`);
+			return found;
+		}
 		case 'rule':
 			return { kind: 'rule', rule: record.rule };
 		case 'agent':

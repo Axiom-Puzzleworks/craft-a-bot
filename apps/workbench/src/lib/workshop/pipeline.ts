@@ -13,14 +13,16 @@ export const EXECUTOR_ICON: Record<StageRecord['executor']['kind'], InstrumentId
 	agent: 'chain',
 	rule: 'cassette',
 	human: 'desk',
-	line: 'deck'
+	line: 'deck',
+	reader: 'lens'
 };
 
 export const EXECUTOR_WORD: Record<StageRecord['executor']['kind'], string> = {
 	agent: 'the bot',
 	rule: 'a rule',
 	human: 'a person',
-	line: 'a line'
+	line: 'a line',
+	reader: 'a reader'
 };
 
 export function statusOfStage(status: StageRecord['status']): Status {
@@ -61,8 +63,41 @@ export function describeExecutor(executor: StageRecord['executor']): string {
 			return `${EXECUTOR_WORD.human}: ${executor.options.join(' / ')}`;
 		case 'line':
 			return `${EXECUTOR_WORD.line}: ${executor.lineId} · ${executor.operation}`;
+		case 'reader':
+			return `${EXECUTOR_WORD.reader}: ${executor.readerId}${
+				executor.gate
+					? `, gated at ${executor.gate.threshold.toFixed(2)} to ${describeExecutor(executor.gate.else)}${executor.gate.steer ? `, steer ${executor.gate.steer}` : ''}`
+					: ''
+			}`;
 	}
 }
+
+/**
+ * What a reader answered at a stage (WP117, `104-READERS.md` §4.1), in a
+ * line for its card: each answer with its confidence, then whether the stage
+ * acted on it or gated to its `else`. A noul reads as its probability.
+ */
+export function describeReader(reader: NonNullable<StageRecord['reader']>): string {
+	const answers = Object.entries(reader.answers).map(([id, answer]) => {
+		switch (answer.type) {
+			case 'choice':
+				return `${id}: ${answer.choice} (${confidenceWord(answer.confidence)})`;
+			case 'score':
+				return `${id}: level ${answer.score} (${confidenceWord(answer.confidence)})`;
+			case 'noul':
+				return `${id}: ${answer.noul.toFixed(2)}`;
+		}
+	});
+	const route = reader.gated
+		? reader.steer !== undefined && reader.steer >= 0.5
+			? 'gated on the steer'
+			: 'gated below the threshold'
+		: 'acted on';
+	return `${reader.model} read ${answers.join(', ')} — ${route}`;
+}
+
+const confidenceWord = (confidence: number | null): string =>
+	confidence === null ? 'no confidence' : `confidence ${confidence.toFixed(2)}`;
 
 /** A wall-clock instant as ISO — kept here, a plain module, since a `.svelte.ts` store may not construct a `Date` (the reactivity lint). */
 export const isoAt = (ms: number): string => new Date(ms).toISOString();
@@ -200,6 +235,23 @@ export function executorChoices(
 				};
 			case 'line':
 				return { kind: 'line', lineId: executor.lineId, operation: executor.operation };
+			case 'reader':
+				return {
+					kind: 'reader',
+					readerId: executor.readerId,
+					...(executor.gate
+						? {
+								gate: {
+									threshold: executor.gate.threshold,
+									else: asRecord(executor.gate.else) as Extract<
+										StageRecord['executor'],
+										{ kind: 'rule' | 'human' }
+									>,
+									...(executor.gate.steer !== undefined ? { steer: executor.gate.steer } : {})
+								}
+							}
+						: {})
+				};
 		}
 	};
 	push(

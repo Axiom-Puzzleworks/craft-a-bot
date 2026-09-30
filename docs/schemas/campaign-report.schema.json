@@ -434,7 +434,8 @@
 												"rule",
 												"agent",
 												"human",
-												"line"
+												"line",
+												"reader"
 											]
 										},
 										"status": {

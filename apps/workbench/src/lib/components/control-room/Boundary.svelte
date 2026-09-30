@@ -108,7 +108,8 @@
 		agent: '◉',
 		rule: '⚙',
 		human: '🙋',
-		line: '⌁'
+		line: '⌁',
+		reader: '◎'
 	};
 
 	const sentence = $derived.by(() => {

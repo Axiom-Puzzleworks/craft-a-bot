@@ -577,6 +577,33 @@ export {
 export type { CalibrationRef, DecisionFaultSpec, ErrorModel } from './types/error-model.js';
 export type { ReviewerModel } from './types/workflow.js';
 export { reviewerAnswerSchema, type ReviewerAnswer } from './schemas/shared.js';
+export type { Reader, ReaderContext } from './types/reader.js';
+export type { ReaderExecutor, ReaderGate } from './types/workflow.js';
+export {
+	answerProblem,
+	choiceAnswerSchema,
+	choiceQuestionSchema,
+	noulAnswerSchema,
+	noulQuestionSchema,
+	readerConfidence,
+	readerExchangeSchema,
+	readerMethodSchema,
+	readerRecordSchema,
+	readerResponseSchema,
+	roundAnswer,
+	roundProbability,
+	scoreAnswerSchema,
+	scoreQuestionSchema,
+	typedAnswerSchema,
+	typedQuestionSchema,
+	type QuestionType,
+	type ReaderExchange,
+	type ReaderMethod,
+	type ReaderRecord,
+	type ReaderResponse,
+	type TypedAnswer,
+	type TypedQuestion
+} from './schemas/reader.js';
 /** Provider cassettes (WP114, `103-FALLIBLE-ACTORS.md` §3). */
 export {
 	parseProviderCassette,

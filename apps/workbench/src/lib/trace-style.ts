@@ -57,6 +57,8 @@ const LANES: Record<EventType, TraceLane> = {
 	// The stage boundary (WP79, `69-…` §6): a workflow's stage on an agent run's trace, in the run lane.
 	'stage.started': 'run',
 	'stage.completed': 'run',
+	// A reader's answer at a `reader` stage (WP117): part of the run's own stage story.
+	'reader.answered': 'run',
 	error: 'error'
 };
 
@@ -89,6 +91,7 @@ const LABELS: Record<EventType, string> = {
 	'group.finished': 'Group finished',
 	'stage.started': 'Stage started',
 	'stage.completed': 'Stage completed',
+	'reader.answered': 'A reader answered',
 	error: 'Something went wrong'
 };
 

@@ -24,7 +24,7 @@ export interface JourneyNode {
 	x: number;
 	/** The lane's index among the lanes drawn. */
 	y: number;
-	executor: 'rule' | 'agent' | 'human' | 'line';
+	executor: 'rule' | 'agent' | 'human' | 'line' | 'reader';
 	irreversible: boolean;
 	obligations: string[];
 	/** The ids of this node's points, loop hooks first. */

@@ -32,6 +32,7 @@ import {
 	reviewerAnswerSchema,
 	verdictFindingSchema
 } from './shared.js';
+import { readerRecordSchema } from './reader.js';
 
 /** Shared envelope (02-AGENT-MODEL.md §7) around one event type's payload. */
 function eventSchema<Type extends string, Payload extends z.ZodTypeAny>(
@@ -474,6 +475,22 @@ const stageCompletedEvent = eventSchema(
 	})
 );
 
+/**
+ * **A reader answered** (WP117, `104-READERS.md` §4.1; `100-…` §8): one per
+ * `reader` stage, on the workflow's events after `stage.started` — who
+ * answered, how, the rounded answers, the confidence the gate read and
+ * whether it gated. A gated stage's `else` executor writes its own events
+ * after this one, under the same stage.
+ */
+const readerAnsweredEvent = eventSchema(
+	'reader.answered',
+	readerRecordSchema.extend({
+		workflowRunId: z.string().optional(),
+		stageId: z.string().optional(),
+		questionIds: z.array(z.string())
+	})
+);
+
 export const engineEventSchema = z.discriminatedUnion('type', [
 	runStartedEvent,
 	runFinishedEvent,
@@ -502,7 +519,8 @@ export const engineEventSchema = z.discriminatedUnion('type', [
 	groupStartedEvent,
 	groupFinishedEvent,
 	stageStartedEvent,
-	stageCompletedEvent
+	stageCompletedEvent,
+	readerAnsweredEvent
 ]);
 
 export type EngineEvent = z.infer<typeof engineEventSchema>;

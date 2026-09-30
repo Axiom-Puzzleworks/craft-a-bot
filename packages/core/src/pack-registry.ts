@@ -5,6 +5,7 @@ import type { ControlMap } from './types/control-map.js';
 import type { DomainSpec } from './schemas/domain.js';
 import type { CalibrationTable } from './schemas/calibration.js';
 import type { ErrorModel } from './types/error-model.js';
+import type { Reader } from './types/reader.js';
 import type { ReviewerModel } from './types/workflow.js';
 import type { WorkflowSpec } from './types/workflow.js';
 import { satisfiesRange } from './semver.js';
@@ -105,6 +106,9 @@ export interface PackRegistry {
 	getCalibrationTable(id: string): CalibrationTable | undefined;
 	/** A reviewer model by id (WP115, `103-…` §6). */
 	getReviewerModel(id: string): ReviewerModel | undefined;
+	/** A reader by id (WP117, `104-READERS.md` §3.3). */
+	getReader(id: string): Reader | undefined;
+	listReaders(): Reader[];
 	listWorkflows(): WorkflowSpec[];
 	listGuardrailServices(): GuardrailService[];
 	listGuardrailComponents(): GuardrailComponent[];
@@ -133,6 +137,7 @@ export function createPackRegistry(): PackRegistry {
 	const errorModels = new Map<string, ErrorModel>();
 	const calibrationTables = new Map<string, CalibrationTable>();
 	const reviewerModels = new Map<string, ReviewerModel>();
+	const readers = new Map<string, Reader>();
 	const workflows = new Map<string, WorkflowSpec>();
 	const guardrailServices = new Map<string, GuardrailService>();
 	const guardrailComponents = new Map<string, GuardrailComponent>();
@@ -226,6 +231,7 @@ export function createPackRegistry(): PackRegistry {
 			insertUnique(calibrationTables, table.id, table, 'calibration table');
 		for (const model of manifest.reviewerModels ?? [])
 			insertUnique(reviewerModels, model.id, model, 'reviewer model');
+		for (const reader of manifest.readers ?? []) insertUnique(readers, reader.id, reader, 'reader');
 		for (const workflow of manifest.workflows ?? [])
 			insertUnique(workflows, workflow.id, workflow, 'workflow');
 		for (const component of manifest.guardrailComponents ?? []) {
@@ -373,6 +379,8 @@ export function createPackRegistry(): PackRegistry {
 		getErrorModel: (id) => errorModels.get(id),
 		getCalibrationTable: (id) => calibrationTables.get(id),
 		getReviewerModel: (id) => reviewerModels.get(id),
+		getReader: (id) => readers.get(id),
+		listReaders: () => [...readers.values()],
 		listWorkflows: () => [...workflows.values()],
 		listServiceLines: () => [...serviceLines.values()],
 		listEvidenceStores: () => [...evidenceStores.values()],

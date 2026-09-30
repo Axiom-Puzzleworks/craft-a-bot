@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { engineEventSchema } from './events.js';
 import { principalSchema, boundaryVerdictSchema, reviewerAnswerSchema } from './shared.js';
 import { contextSpecSchema } from './context.js';
+import { readerRecordSchema } from './reader.js';
 import { workItemSchema } from './book.js';
 
 /**
@@ -11,21 +12,35 @@ import { workItemSchema } from './book.js';
  * made if a bot did it, and a digest over the records so a re-run from
  * stage *n* is checkable stage by stage. `docs/schemas/workflow-run.schema.json`.
  */
+const ruleRecordSchema = z.object({ kind: z.literal('rule'), rule: z.string() });
+const humanRecordSchema = z.object({
+	kind: z.literal('human'),
+	prompt: z.string(),
+	options: z.array(z.string()),
+	default: z.string().optional()
+});
 export const executorRecordSchema = z.discriminatedUnion('kind', [
-	z.object({ kind: z.literal('rule'), rule: z.string() }),
+	ruleRecordSchema,
 	z.object({
 		kind: z.literal('agent'),
 		until: z.string(),
 		maxTicks: z.number().int().optional(),
 		goalText: z.string().optional()
 	}),
+	humanRecordSchema,
+	z.object({ kind: z.literal('line'), lineId: z.string(), operation: z.string() }),
+	/** A `reader` executor (WP117, `104-READERS.md` §4): the reader, and its gate with the `else` executor's own record. */
 	z.object({
-		kind: z.literal('human'),
-		prompt: z.string(),
-		options: z.array(z.string()),
-		default: z.string().optional()
-	}),
-	z.object({ kind: z.literal('line'), lineId: z.string(), operation: z.string() })
+		kind: z.literal('reader'),
+		readerId: z.string(),
+		gate: z
+			.object({
+				threshold: z.number().min(0).max(1),
+				else: z.discriminatedUnion('kind', [ruleRecordSchema, humanRecordSchema]),
+				steer: z.string().optional()
+			})
+			.optional()
+	})
 ]);
 export type ExecutorRecord = z.infer<typeof executorRecordSchema>;
 
@@ -81,7 +96,9 @@ export const stageRecordSchema = z.object({
 	/** Why a stage is `error` or `blocked`, in a sentence. */
 	finding: z.string().optional(),
 	/** The reviewer model's answer at a `human` stage (WP115, `103-…` §6); absent unless the configuration names one. */
-	by: reviewerAnswerSchema.optional()
+	by: reviewerAnswerSchema.optional(),
+	/** What the reader answered at a `reader` stage (WP117, `104-READERS.md` §4.1), and whether it gated. */
+	reader: readerRecordSchema.optional()
 });
 export type StageRecord = z.infer<typeof stageRecordSchema>;
 

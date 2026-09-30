@@ -27,6 +27,7 @@
 	import {
 		EXECUTOR_ICON,
 		describeExecutor,
+		describeReader,
 		executorChoices,
 		paneRecords,
 		stageNameOf,
@@ -311,6 +312,11 @@
 								</span>
 								<Lamp status={statusOfStage(record.status)} label={record.status} />
 								<span class="meta">{describeExecutor(record.executor)}</span>
+								{#if record.reader}
+									<span class="meta" data-testid="{testId}-reader-{record.stageId}"
+										>{describeReader(record.reader)}</span
+									>
+								{/if}
 								<span class="meta">{ms(record.durationMs)} · {guardTally(record)}</span>
 								{#if record.approval}
 									<span class="meta"

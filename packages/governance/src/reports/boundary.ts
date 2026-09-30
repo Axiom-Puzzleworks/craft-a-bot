@@ -65,7 +65,7 @@ export interface BoundaryActivity {
 export interface BoundaryWorkflowStage {
 	id: string;
 	name: string;
-	executor: 'agent' | 'rule' | 'human' | 'line';
+	executor: 'agent' | 'rule' | 'human' | 'line' | 'reader';
 	/** The stage's status on the run the map is over; absent on a static map or a stage the run never reached. */
 	status?: 'ok' | 'blocked' | 'escalated' | 'error';
 }

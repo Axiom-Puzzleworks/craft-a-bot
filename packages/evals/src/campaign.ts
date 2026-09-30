@@ -623,7 +623,7 @@ export const campaignCellSchema = z.object({
 			stages: z.array(
 				z.object({
 					stageId: z.string(),
-					executor: z.enum(['rule', 'agent', 'human', 'line']),
+					executor: z.enum(['rule', 'agent', 'human', 'line', 'reader']),
 					status: z.enum(['ok', 'blocked', 'escalated', 'error'])
 				})
 			),

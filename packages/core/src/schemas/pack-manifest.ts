@@ -15,6 +15,7 @@ import type { ToolDefinition } from '../types/tool.js';
 import type { ProviderFactory } from '../types/provider.js';
 import type { ServiceLine } from '../types/service-line.js';
 import type { ErrorModel } from '../types/error-model.js';
+import type { Reader } from '../types/reader.js';
 import type { EvidenceStore } from '../types/evidence-store.js';
 import type { WorldDefinition } from '../types/world.js';
 import type { PolicyCard } from './policy-card.js';
@@ -298,6 +299,11 @@ export interface PackManifest extends PackManifestMetadata {
 	errorModels?: ErrorModel[];
 	/** Reviewer models (WP115, `103-…` §6): the person at a `human` stage, as calibration rows. */
 	reviewerModels?: ReviewerModel[];
+	/**
+	 * Readers (WP117, `104-READERS.md` §3.3): what answers a typed question — a
+	 * desk's rule, a hosted classifier, a chat model. A `reader` executor names one.
+	 */
+	readers?: Reader[];
 	/**
 	 * Workflows (WP79, `69-WORKFLOWS.md` §3): a journey as stages with typed
 	 * input and output and an executor each — content over a world the pack
