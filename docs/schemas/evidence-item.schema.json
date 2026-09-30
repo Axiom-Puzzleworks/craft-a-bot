@@ -664,6 +664,31 @@
 																"principal": {
 																	"$ref": "#/$defs/__schema0"
 																},
+																"gate": {
+																	"type": "object",
+																	"properties": {
+																		"mode": {
+																			"type": "string",
+																			"enum": [
+																				"shadow",
+																				"enforce"
+																			]
+																		},
+																		"stackId": {
+																			"type": "string",
+																			"minLength": 1
+																		},
+																		"upstream": {
+																			"type": "string",
+																			"minLength": 1
+																		}
+																	},
+																	"required": [
+																		"mode",
+																		"stackId",
+																		"upstream"
+																	]
+																},
 																"forkedFrom": {
 																	"type": "object",
 																	"properties": {
@@ -3966,6 +3991,31 @@
 															},
 															"principal": {
 																"$ref": "#/$defs/__schema0"
+															},
+															"gate": {
+																"type": "object",
+																"properties": {
+																	"mode": {
+																		"type": "string",
+																		"enum": [
+																			"shadow",
+																			"enforce"
+																		]
+																	},
+																	"stackId": {
+																		"type": "string",
+																		"minLength": 1
+																	},
+																	"upstream": {
+																		"type": "string",
+																		"minLength": 1
+																	}
+																},
+																"required": [
+																	"mode",
+																	"stackId",
+																	"upstream"
+																]
 															},
 															"forkedFrom": {
 																"type": "object",
@@ -8554,6 +8604,31 @@
 													},
 													"principal": {
 														"$ref": "#/$defs/__schema0"
+													},
+													"gate": {
+														"type": "object",
+														"properties": {
+															"mode": {
+																"type": "string",
+																"enum": [
+																	"shadow",
+																	"enforce"
+																]
+															},
+															"stackId": {
+																"type": "string",
+																"minLength": 1
+															},
+															"upstream": {
+																"type": "string",
+																"minLength": 1
+															}
+														},
+														"required": [
+															"mode",
+															"stackId",
+															"upstream"
+														]
 													},
 													"forkedFrom": {
 														"type": "object",

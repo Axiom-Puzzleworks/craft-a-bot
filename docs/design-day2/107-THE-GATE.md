@@ -145,3 +145,31 @@ The Gate is an HTTP server in front of one upstream model. It speaks the OpenAI 
 > - A non-loopback bind needs the flag.
 >
 > **Found on the way:** another project's `vite preview` held port 4173 on this machine. The e2e runs used a local, uncommitted config on 4273.
+
+> **WP128 done 2026-09-30.**
+>
+> **What was built.**
+> - **`examples/gated-agent`:**
+>   - `agent.ts` (an OpenAI-wire loop) and `model.ts` (a scripted model), neither importing Craft A Bot, which the test holds;
+>   - `stack.json`, with a turn budget, the action blocklist and the policy card;
+>   - four outcomes through the Gate: calls made, refused by the card, refused by the blocklist, stopped by the budget.
+> - **The Gate's day as evidence:**
+>   - `run.started.gate`, `RunSummary.gate` and `Gate.bundle()` at `GET /v1/gate/bundle`;
+>   - a deterministic day held byte for byte at `packages/gate/fixtures/gate-day.bundle.json`;
+>   - the Audit Centre's *Open a bundle…*, which verifies the digest, stores the runs and stores the Gate as a bot;
+>   - the assurance pack's inventory, which names each Gate by stack, mode and upstream (`gatesOver`).
+> - **The docs:** `docs/gate.md`, the manual's Part I §59, and the example's README.
+>
+> **Tests:**
+> - the example's four outcomes, and its bundle verifying;
+> - the fixture held byte for byte;
+> - opening it verified, and a tampered copy stored and said to be unverified;
+> - the pack's Gate line;
+> - `e2e/gate-bundle.spec.ts`: the Audit Centre opens the bundle verified, and the Gate's pack names its mode and stack.
+>
+> **DoD:** met.
+> - The example's four outcomes through the Gate.
+> - A Gate bundle verifies its digest in the Audit Centre.
+> - The pack names the Gate's mode and stack.
+>
+> **Not done:** the manual's PDF is not rebuilt for Part I.

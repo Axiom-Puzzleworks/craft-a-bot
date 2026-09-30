@@ -1,4 +1,5 @@
 import {
+	buildTraceBundle,
 	buildTraceFile,
 	canonicalJson,
 	createEgressGuard,
@@ -19,6 +20,7 @@ import {
 	type PackRegistry,
 	type Principal,
 	type Stack,
+	type TraceBundle,
 	type TraceFile
 } from '@craftabot/core';
 import { compileStackLoop, componentDepsFor } from '@craftabot/governance';
@@ -106,6 +108,7 @@ interface Conversation {
 	pending?: { tick: number; calls: Map<string, string> } | undefined;
 	closed?: { reason: string; reply: WireResponse };
 	startedAt: string;
+	finishedAt?: string | undefined;
 	finished: boolean;
 }
 
@@ -126,6 +129,8 @@ export interface Gate {
 	end(conversationId: string, body?: unknown): Promise<GateReply>;
 	approve(approvalId: string, approved: boolean, by?: Principal): GateReply;
 	trace(conversationId: string): Promise<TraceFile | undefined>;
+	/** A Gate's day (WP128): every conversation as one `craftabot-bundle`, digest-stamped, for the Audit Centre. */
+	bundle(exportedBy?: string): Promise<TraceBundle>;
 	conversations(): string[];
 	approvals(): Array<{
 		id: string;
@@ -299,6 +304,7 @@ export function createGate(options: GateOptions): Gate {
 	): void {
 		if (conversation.finished) return;
 		conversation.finished = true;
+		conversation.finishedAt = now();
 		emit(conversation, conversation.tick, 'run.finished', {
 			outcome,
 			ticks: conversation.tick,
@@ -425,6 +431,7 @@ export function createGate(options: GateOptions): Gate {
 				wireModel: request.model ?? 'upstream',
 				cartridgeId: `gate/${options.stack.id}`,
 				egress: { mode: 'declared', hosts: egress.hosts() },
+				gate: { mode: options.mode, stackId: options.stack.id, upstream: upstreamHost },
 				...(options.principal ? { principal: options.principal } : {})
 			});
 		emit(conversation, tick, 'prompt.composed', {
@@ -619,6 +626,40 @@ export function createGate(options: GateOptions): Gate {
 			.toolCalls![0]!.arguments;
 	}
 
+	const secrets = () => [options.upstreamKey?.() ?? ''].filter((secret) => secret !== '');
+
+	function runRecordOf(conversation: Conversation) {
+		const started = conversation.events.find((event) => event.type === 'run.started');
+		return {
+			id: conversation.runId,
+			agentId: GATE_SPEC.id,
+			agentName: GATE_SPEC.name,
+			goalCardId: GATE_SPEC.goalCardId,
+			specSnapshot: GATE_SPEC,
+			packVersions: {},
+			mode: 'step' as const,
+			outcome: conversation.finished
+				? conversation.closed
+					? ('STOPPED_BY_GUARDRAIL' as const)
+					: ('STOPPED_BY_USER' as const)
+				: ('IN_PROGRESS' as const),
+			ticks: conversation.tick,
+			usage: {
+				inputTokens: conversation.usage.inputTokens,
+				outputTokens: conversation.usage.outputTokens
+			},
+			budgets: { maxTicks: 1_000_000, maxTokens: 1_000_000_000, requestTimeoutMs: 60_000 },
+			providerId: 'gate',
+			wireModel: started?.type === 'run.started' ? started.payload.wireModel : 'upstream',
+			pinned: false,
+			startedAt: conversation.startedAt,
+			...(conversation.finished
+				? { finishedAt: conversation.finishedAt ?? conversation.startedAt }
+				: {}),
+			schemaVersion: 2 as const
+		};
+	}
+
 	return {
 		handle,
 		async end(conversationId, body) {
@@ -675,36 +716,18 @@ export function createGate(options: GateOptions): Gate {
 		async trace(conversationId) {
 			const conversation = conversations.get(conversationId);
 			if (!conversation) return undefined;
-			const started = conversation.events.find((event) => event.type === 'run.started');
-			return buildTraceFile(
-				{
-					id: conversation.runId,
-					agentId: GATE_SPEC.id,
-					agentName: GATE_SPEC.name,
-					goalCardId: GATE_SPEC.goalCardId,
-					specSnapshot: GATE_SPEC,
-					packVersions: {},
-					mode: 'step',
-					outcome: conversation.finished
-						? conversation.closed
-							? 'STOPPED_BY_GUARDRAIL'
-							: 'STOPPED_BY_USER'
-						: 'IN_PROGRESS',
-					ticks: conversation.tick,
-					usage: {
-						inputTokens: conversation.usage.inputTokens,
-						outputTokens: conversation.usage.outputTokens
-					},
-					budgets: { maxTicks: 1_000_000, maxTokens: 1_000_000_000, requestTimeoutMs: 60_000 },
-					providerId: 'gate',
-					wireModel: started?.type === 'run.started' ? started.payload.wireModel : 'upstream',
-					pinned: false,
-					startedAt: conversation.startedAt,
-					schemaVersion: 2
-				},
-				conversation.events,
-				{ secrets: [options.upstreamKey?.() ?? ''].filter((secret) => secret !== '') }
-			);
+			return buildTraceFile(runRecordOf(conversation), conversation.events, { secrets: secrets() });
+		},
+		async bundle(exportedBy = 'craftabot/gate') {
+			return buildTraceBundle({
+				runs: [...conversations.values()].map((conversation) => ({
+					run: runRecordOf(conversation),
+					events: conversation.events
+				})),
+				secrets: secrets(),
+				exportedBy,
+				exportedAt: now()
+			});
 		},
 		conversations: () => [...conversations.keys()],
 		approvals: () =>

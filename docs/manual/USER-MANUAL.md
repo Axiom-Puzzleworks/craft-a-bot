@@ -163,6 +163,9 @@ Conventions used throughout:
 57. The palette, saved views and density
 58. Access: twins, keyboards and the reader's walk
 
+**Part I — The Gate**
+59. A stack in front of any agent
+
 **Appendices**
 A. Screen index
 B. File formats and schemas
@@ -2090,6 +2093,38 @@ Every drawing in the Control Room has a **list twin** (`97-ACCESS.md`) rendered 
 **Reviewing a control row.** On the Assurance screen (§23) every control-map row can be **reviewed** — *reviewed* or *disputed*, with a note, under your name from Settings. A review is content in your store beside the pack's row, never an edit to the pack: the table shows it, the assurance pack files it beside the row it is about, and the pack's own claim of relevance stands as the pack made it.
 
 ---
+
+# Part I — The Gate
+
+## 59. A stack in front of any agent
+
+**What it is.** The Gate (`107-THE-GATE.md`; `docs/gate.md`) runs a stack from the Studio over the OpenAI chat-completions wire, in front of an agent that knows nothing of Craft A Bot. Point the agent's base URL at the Gate, and the Gate forwards to the real model:
+
+```bash
+CRAFTABOT_GATE_UPSTREAM_KEY=… npm run craftabot -- gate serve --stack gate/stack/policy-card --upstream https://api.openai.com/v1 --mode shadow
+```
+
+**What it checks.**
+- **`pre-think`** reads the request.
+- **`pre-act`** reads each tool call the model answers.
+- **`post-act`** reads each call's result, which arrives as the `tool` message in the agent's next request.
+
+**The modes.**
+- **Shadow** changes nothing and lists every verdict in the `x-craftabot-verdicts` header.
+- **Enforce** removes a blocked call and says so in the reply, stops a conversation at a stop, holds a paused call for `npm run craftabot -- gate approve <id>` (or `deny`), and rewrites a redacted `text`.
+
+**It proves its sameness.** The identity test runs the same conversation through a session and through the Gate on a port, and the two `guardrail.checked` sequences are equal. It covers the five presets and a Studio-built stack.
+
+**In the Studio.** *Use in… the Gate* downloads the stack file and shows the command line that serves it.
+
+**The evidence.**
+- **The day.** `GET /v1/gate/bundle` is the Gate's day as one bundle.
+- **In the Audit Centre.** *Open a bundle…* verifies its digest and stores its conversations as runs.
+- **In the assurance pack.** The pack for *The Gate* names the stack, the mode and the upstream.
+
+**The example.** `examples/gated-agent` shows an agent governed by a stack it never saw.
+
+**What it is not.** It is not authenticated, not TLS-terminated, not multi-tenant and not persistent. It binds loopback unless `--allow-remote` is given, and it is a reference implementation to learn from, not a proxy to deploy.
 
 # Appendices
 

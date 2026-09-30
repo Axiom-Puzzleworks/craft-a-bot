@@ -89,7 +89,7 @@ Sizes as before: **S** a session or two; **M** several; **L** a week. Every WP h
 |---|---|---|---|---|
 | **WP126** ✅ | **Done 2026-09-30 — `38-GOVERNANCE-1-0.md`'s dated note.** **`@craftabot/governance` 1.0.0** (`100-…` §6.7). `readers/*` and the reader component in the export list; the TSDoc audit over them; `docs/governance-mapping.md`'s reader and Gate rows; the README's status line; the version cut; `check:governance-pack` unchanged and green. | The tarball installs into `examples/plain-node-agent` with readers importable; the audit test green; `npm view`-shaped metadata correct. | S | G79-part |
 | **WP127** ✅ | **Done 2026-09-30 — `107-THE-GATE.md` §8.** **The Gate** (`100-…` §6.7, D20). Stage A: the note (`107-THE-GATE.md`) — the wire mapping per hook, the verdict effects per mode, the trace, the approval round-trip, the loopback default, the first-page disclaimer. Stage B: `packages/gate` (Node only): the server, the stack file loader, the three chains, shadow and enforce, `TraceSink`, `--principal`, the upstream key from the environment; `craftabot gate serve \| approve`. Stage C: **the identity test** over the five presets and one Studio-built fixture; the Studio's *Use in… the Gate*. | The identity test green on every push; each verdict's wire effect in `enforce` and absence in `shadow`; `pause` round-trips; the key-leak sweep over the Gate's trace and logs; the egress guard refuses any host but the upstream; a non-loopback bind needs the flag. | L | G79 |
-| **WP128** | **The gated example and the Gate's evidence** (`100-…` §6.7). `examples/gated-agent`: an OpenAI client pointed at the Gate, no Craft A Bot import; a Gate's day as a bundle the Audit Centre opens and the assurance pack reads (`run.started.gate`); `docs/gate.md`; the manual's Part I §on the Gate. | The example's four outcomes through the Gate; a Gate bundle verifies its digest in the Audit Centre; the pack names the Gate's mode and stack. | S–M | G79 |
+| **WP128** ✅ | **Done 2026-09-30 — `107-THE-GATE.md` §8.** **The gated example and the Gate's evidence** (`100-…` §6.7). `examples/gated-agent`: an OpenAI client pointed at the Gate, no Craft A Bot import; a Gate's day as a bundle the Audit Centre opens and the assurance pack reads (`run.started.gate`); `docs/gate.md`; the manual's Part I §on the Gate. | The example's four outcomes through the Gate; a Gate bundle verifies its digest in the Audit Centre; the pack names the Gate's mode and stack. | S–M | G79 |
 
 **Exit:** `100-…` §14 item 8; a Phase AH exit review in §8.
 
@@ -380,6 +380,14 @@ Everything in `84-…` §5 stands. Added:
    > - **the Studio:** *Use in… the Gate*.
    >
    > **Next: WP128 (the gated example and the Gate's evidence).**
+
+   > **WP128 done 2026-09-30** (`107-THE-GATE.md` §8):
+   > - `examples/gated-agent`: an OpenAI-wire agent and a scripted model, neither importing Craft A Bot, governed through the Gate to four outcomes;
+   > - `run.started.gate` and the Gate's day as a bundle, which the Audit Centre opens verified;
+   > - the assurance pack naming the Gate's mode and stack;
+   > - `docs/gate.md` and the manual's Part I.
+   >
+   > **Next: the Phase AH exit review.**
 8. **WP126, `107-THE-GATE.md`, WP127, WP128.** Phase AH exit review.
 9. **`108-READINGS.md`, WP129, WP130, WP131.** Phase AI exit review and the §9 check.
 

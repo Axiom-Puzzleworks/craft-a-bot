@@ -12,6 +12,7 @@ import type { Gate } from './gate.js';
  * - `GET /v1/gate/approvals` — what is waiting.
  * - `POST /v1/gate/conversations/{id}/end` — the last `post-act`, and `run.finished`.
  * - `GET /v1/gate/conversations/{id}/trace` — the conversation as a trace file with its digest.
+ * - `GET /v1/gate/bundle` — every conversation as one `craftabot-bundle` (WP128).
  */
 export interface ServeOptions {
 	host?: string;
@@ -80,6 +81,9 @@ export async function serveGate(
 					const reply = gate.approve(decodeURIComponent(approval[1]!), body?.approved === true);
 					return send(response, reply.status, reply.body, reply.headers);
 				}
+				// A Gate's day as one bundle (WP128).
+				if (request.method === 'GET' && path === '/v1/gate/bundle')
+					return send(response, 200, await gate.bundle());
 				if (request.method === 'GET' && path === '/v1/gate/approvals')
 					return send(response, 200, gate.approvals());
 				const end = /^\/v1\/gate\/conversations\/([^/]+)\/end$/.exec(path);

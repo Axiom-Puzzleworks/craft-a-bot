@@ -183,3 +183,5 @@ Conflict policy for future sync: last-write-wins on `updatedAt` per whole entity
 > - on the file store, under `<root>/benchmarks/`;
 > - on IndexedDB, as store `benchmarkReports` at database version 9;
 > - and in the storage contract.
+
+> **Amended 2026-09-30 (WP128).** `RunSummary.gate?` holds `run.started.gate` (the Gate's mode, stack and upstream). The Audit Centre's *Open a bundle…* (`lib/workshop/bundle-import.ts`) stores a bundle's runs, and for a run a Gate carried, it stores the Gate as an `AgentRecord` so the assurance pack has a bot to be about.

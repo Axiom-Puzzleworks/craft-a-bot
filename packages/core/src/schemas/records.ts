@@ -227,6 +227,14 @@ export const runSummarySchema = z.object({
 	egress: z.object({ mode: z.enum(['declared', 'none']), hosts: z.array(z.string()) }).optional(),
 	/** Who started the run (WP65, `55-…` §4.3) — `run.started.principal`, when the host named one. */
 	principal: principalSchema.optional(),
+	/** The Gate that carried the conversation (WP128) — `run.started.gate`, when a Gate wrote it. */
+	gate: z
+		.object({
+			mode: z.enum(['shadow', 'enforce']),
+			stackId: z.string().min(1),
+			upstream: z.string().min(1)
+		})
+		.optional(),
 	schemaVersion: z.literal(1)
 });
 export type RunSummary = z.infer<typeof runSummarySchema>;

@@ -86,6 +86,31 @@ export function principalsOver(
 	return [...byKey.values()];
 }
 
+/** A Gate the bot's runs came through (WP128, `107-THE-GATE.md` §4): the stack, its mode, the upstream, and which runs. */
+export interface AssuranceGate {
+	stackId: string;
+	mode: 'shadow' | 'enforce';
+	upstream: string;
+	runIds: string[];
+}
+
+/** The Gates the runs name, one per stack, mode and upstream, from each run's summary (`run.started.gate`). */
+export function gatesOver(
+	runs: readonly RunRecord[],
+	summaries: ReadonlyMap<string, RunSummary>
+): AssuranceGate[] {
+	const byKey = new Map<string, AssuranceGate>();
+	for (const run of runs) {
+		const gate = summaries.get(run.id)?.gate;
+		if (!gate) continue;
+		const key = `${gate.stackId}|${gate.mode}|${gate.upstream}`;
+		const entry = byKey.get(key) ?? { ...gate, runIds: [] };
+		entry.runIds.push(run.id);
+		byKey.set(key, entry);
+	}
+	return [...byKey.values()];
+}
+
 /** The campaign report fields the pack reads — structural, so `governance` need not import `@craftabot/evals`. */
 export interface AssuranceCampaignReportLike {
 	id: string;
@@ -234,6 +259,8 @@ export interface AssurancePack {
 			sector: string;
 			journeys: { shipped: number; supporting: number; out: number };
 		};
+		/** The Gates the runs came through (WP128): present only when a run names one. */
+		gates?: AssuranceGate[];
 	};
 	/** Principle 2 — governance: the safety stack, approvals, egress, the principal. */
 	governance: {
@@ -440,6 +467,7 @@ export async function assurancePackFor(input: AssurancePackInput): Promise<Assur
 	const egressRuns = mine.filter((run) => summaries.get(run.id)?.egress !== undefined);
 	// Who started the runs, and who started the ones an evaluator judged (WP65, `55-…` §4.4).
 	const principals = principalsOver(mine, summaries);
+	const gates = gatesOver(mine, summaries);
 	const judgedIds = new Set(evaluations.map((record) => record.runId));
 	const validators = principalsOver(
 		mine.filter((run) => judgedIds.has(run.id)),
@@ -621,7 +649,8 @@ export async function assurancePackFor(input: AssurancePackInput): Promise<Assur
 				? { world: { id: world.id, name: world.name, ...(purpose ? { purpose } : {}) } }
 				: {}),
 			...(goalCard ? { goalCard: { id: goalCard.id, title: goalCard.title } } : {}),
-			...(domain ? { domain } : {})
+			...(domain ? { domain } : {}),
+			...(gates.length > 0 ? { gates } : {})
 		},
 		governance: {
 			guardrails: [...safetyCase.guardrails],

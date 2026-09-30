@@ -364,3 +364,5 @@ The instruction-leaflet tutorial builds concepts in this order — each step is 
 > - the tick's memory record gains `provenance?` and `source?`.
 >
 > **What stays unchanged.** Nothing marks unless a component says so, so every golden trace is byte-identical.
+
+> **Amended 2026-09-30 (WP128, `107-THE-GATE.md` §4).** `run.started` gains an optional **`gate: { mode, stackId, upstream }`**, written only by the Gate on a conversation it carries. `RunSummary.gate` carries it, and the assurance pack's inventory names each Gate from it (`gatesOver`). Every session's run is unchanged.

@@ -1,0 +1,27 @@
+{
+	"schemaVersion": 1,
+	"id": "example/stack/gated-agent",
+	"name": "The gated agent's stack",
+	"description": "A turn budget, no deleting files, and mail only inside example.com — the plain agent's rules, over the wire.",
+	"fit": [
+		{
+			"componentId": "governance/step-budget",
+			"config": { "maxTicks": 6 },
+			"point": { "kind": "pre-think" }
+		},
+		{
+			"componentId": "governance/action-blocklist",
+			"config": { "blockedActions": ["delete_file"] },
+			"point": { "kind": "pre-act" }
+		},
+		{
+			"componentId": "governance/policy-card",
+			"config": { "cardId": "gate/policy/no-outside-mail" },
+			"point": { "kind": "pre-act" }
+		}
+	],
+	"provenance": {
+		"author": { "kind": "service", "id": "example/gated-agent" },
+		"createdAt": "2026-09-30T00:00:00.000Z"
+	}
+}

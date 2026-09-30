@@ -117,6 +117,10 @@ export function renderAssurancePackMarkdown(pack: AssurancePack): string {
 		out.push(
 			`- World: ${pack.inventory.world.name} (\`${pack.inventory.world.id}\`)${pack.inventory.world.purpose ? `, purpose ${pack.inventory.world.purpose}` : ''}`
 		);
+	for (const gate of pack.inventory.gates ?? [])
+		out.push(
+			`- Through the Gate: stack \`${gate.stackId}\` in **${gate.mode}** mode, in front of \`${gate.upstream}\` — ${gate.runIds.length} conversation(s)`
+		);
 	if (pack.inventory.domain)
 		out.push(
 			`- Domain: ${pack.inventory.domain.name} (\`${pack.inventory.domain.id}\`), ${pack.inventory.domain.sector}, ${pack.inventory.domain.jurisdiction} — journeys: ${pack.inventory.domain.journeys.shipped} shipped, ${pack.inventory.domain.journeys.supporting} supporting, ${pack.inventory.domain.journeys.out} out`
@@ -316,6 +320,7 @@ th{background:var(--cab-cream)}code{font-size:.9em}
 		.map(([id, version]) => `<code>${escape(`${id}@${version}`)}</code>`)
 		.join(', ')}</li>
 ${pack.inventory.world ? `<li>World: ${escape(pack.inventory.world.name)} (<code>${escape(pack.inventory.world.id)}</code>)${pack.inventory.world.purpose ? `, purpose ${escape(pack.inventory.world.purpose)}` : ''}</li>` : ''}
+${(pack.inventory.gates ?? []).map((gate) => `<li>Through the Gate: stack <code>${escape(gate.stackId)}</code> in <strong>${escape(gate.mode)}</strong> mode, in front of <code>${escape(gate.upstream)}</code> — ${gate.runIds.length} conversation(s)</li>`).join('')}
 ${pack.inventory.domain ? `<li>Domain: ${escape(pack.inventory.domain.name)} (<code>${escape(pack.inventory.domain.id)}</code>), ${escape(pack.inventory.domain.sector)}, ${escape(pack.inventory.domain.jurisdiction)} — journeys: ${pack.inventory.domain.journeys.shipped} shipped, ${pack.inventory.domain.journeys.supporting} supporting, ${pack.inventory.domain.journeys.out} out</li>` : ''}
 </ul>`;
 

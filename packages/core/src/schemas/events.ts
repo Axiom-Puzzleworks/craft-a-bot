@@ -116,6 +116,18 @@ const runStartedEvent = eventSchema(
 		strategies: z.object({ memory: z.string(), prompt: z.string() }).optional(),
 		/** Who started this run and, through `onBehalfOf`, for whom (WP65, `55-…` §4.1); written only when the host named one. */
 		principal: principalSchema.optional(),
+		/**
+		 * The run is a conversation the Gate carried (WP128, `107-THE-GATE.md` §4):
+		 * its mode, the stack it ran and the upstream's host. Absent on every
+		 * session's run.
+		 */
+		gate: z
+			.object({
+				mode: z.enum(['shadow', 'enforce']),
+				stackId: z.string().min(1),
+				upstream: z.string().min(1)
+			})
+			.optional(),
 		/** A fork (WP66, `54-…` §4.1): the origin run and the tick this run continues after; additive. */
 		forkedFrom: z
 			.object({

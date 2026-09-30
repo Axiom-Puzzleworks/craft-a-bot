@@ -107,6 +107,8 @@ export {
 	type AssuranceEvidence,
 	type AssuranceOutcome,
 	principalsOver,
+	gatesOver,
+	type AssuranceGate,
 	type AssurancePack,
 	type AssurancePackInput,
 	type AssurancePrincipal,
