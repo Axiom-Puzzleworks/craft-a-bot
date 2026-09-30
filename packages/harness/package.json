@@ -24,6 +24,7 @@
 		"@craftabot/desk": "*",
 		"@craftabot/evals": "*",
 		"@craftabot/evidence": "*",
+		"@craftabot/gate": "*",
 		"@craftabot/governance": "*",
 		"@craftabot/metrics": "*",
 		"@craftabot/pack-anthropic": "*",

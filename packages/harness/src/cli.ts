@@ -36,6 +36,7 @@ import { bankRun } from './commands/bank.js';
 import { journeyRender } from './commands/journey.js';
 import { scaffoldDomain } from './commands/scaffold.js';
 import { benchmarkRun, renderBenchmarkSummary } from './commands/benchmark.js';
+import { gateAnswer, gateServe } from './commands/gate.js';
 import {
 	agreementForFiles,
 	freezeCorpus,
@@ -128,6 +129,13 @@ Usage:
   craftabot journey render --workflow <id> [--config <name>] [--run <workflow-run.json>] [--svg <out.svg>] [--file <layout.json>]
       One journey drawn (WP100): its layout as JSON, its SVG for the manual
       and the site — unlit, under a configuration, or lit by a stored run.
+  craftabot gate serve --stack <id|file> --upstream <base-url> [--mode shadow|enforce] [--port 8127]
+      A stack over the OpenAI chat-completions wire, in front of one upstream (WP127):
+      pre-think over the request, pre-act over each tool call, post-act over what
+      each returned. Loopback only unless --host … --allow-remote; the upstream key
+      from CRAFTABOT_GATE_UPSTREAM_KEY. Unauthenticated: a reference implementation.
+  craftabot gate approve <id> | deny <id> [--gate <url>]
+      The operator's answer to what the Gate paused.
   craftabot benchmark run <benchmark.json> [--cassettes <dir>] [--record] [--out <dir>] [--store <dir>]
       Every guard service and every reader that answers the guard question set over
       the adversarial corpora (WP123): each service from its cassette, else its
@@ -1158,6 +1166,44 @@ ${renderEvaluations(report)}`);
 				throw new Error(
 					'corpus needs freeze <corpus.json> | label <corpus.json> --as <annotator> --out <labels.json> | agreement <corpus.json> <labels.json>'
 				);
+			}
+			case 'gate': {
+				// WP127 (`107-THE-GATE.md`): a stack over the chat-completions wire.
+				const [verb, id] = args.positional;
+				if ((verb === 'approve' || verb === 'deny') && id) {
+					io.stdout(`${await gateAnswer(id, verb === 'approve', stringFlag(args, 'gate'))}
+`);
+					return 0;
+				}
+				const stack = stringFlag(args, 'stack');
+				const upstream = stringFlag(args, 'upstream');
+				const mode = stringFlag(args, 'mode') ?? 'enforce';
+				if (verb !== 'serve' || !stack || !upstream || (mode !== 'shadow' && mode !== 'enforce'))
+					throw new Error(
+						'gate needs serve --stack <id|file> --upstream <base-url> [--mode shadow|enforce] [--port N] [--host H --allow-remote] [--principal] [--sink <id> --sink-config <json>] | approve <id> | deny <id> [--gate <url>]'
+					);
+				const port = numberFlag(args, 'port');
+				const host = stringFlag(args, 'host');
+				const sinkId = stringFlag(args, 'sink');
+				const sinkConfig = stringFlag(args, 'sink-config');
+				const served = await gateServe({
+					stack,
+					upstream,
+					mode,
+					config: await configFrom(args),
+					env: io.env,
+					credentials: credentialsFor(io),
+					principal: principalFor(io, args),
+					...(port !== undefined ? { port } : {}),
+					...(host !== undefined ? { host } : {}),
+					...(args.flags['allow-remote'] === true ? { allowRemote: true } : {}),
+					...(sinkId ? { sink: { id: sinkId, ...(sinkConfig ? { config: sinkConfig } : {}) } } : {})
+				});
+				io.stdout(`${served.line}
+`);
+				// The server holds the process open; Ctrl+C closes it and flushes the sink.
+				process.once('SIGINT', () => void served.close());
+				return 0;
 			}
 			case 'benchmark': {
 				// WP123 (`106-BENCHMARK.md` §6): every guard over the adversarial corpora.

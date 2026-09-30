@@ -21,7 +21,7 @@ The Gate is an HTTP server in front of one upstream model. It speaks the OpenAI 
 | `usage` | Turns completed, plus the upstream's `usage.prompt_tokens` and `completion_tokens` summed per conversation | |
 | `messages` | The request's messages, mapped to `ChatMessage` (`tool_calls` ↔ `toolCalls`, `tool_call_id` ↔ `toolCallId`) | |
 | `response` | The upstream's first choice, as a `ChatResponse` (its first `tool_call` as `toolCall`, `usage`, `finishReason`) | |
-| `proposed` | Each `tool_call`, `{ kind: 'tool', name, arguments }`, with the arguments parsed from their JSON string | |
+| `proposed` | Each `tool_call`, `{ kind: 'action', name, arguments }`, with the arguments parsed from their JSON string. A call through the Gate reaches the world (it sends the mail), so it is an *action*: approval mode, the action blocklist and a `redact` of a `text` argument apply as in a session. | `call-kind-is: tool` reads false |
 | `result` | At `post-act`: the tool message answering the turn's call, `{ name, text: content, ok: true }` | whether the call succeeded: the wire does not say |
 | `untrusted` | What `post-act` marked, as in a session (`106-…` §8.1) | |
 | `history` | The Gate's own events for the conversation | the world's events |
