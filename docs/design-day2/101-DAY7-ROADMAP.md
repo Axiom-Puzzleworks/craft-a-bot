@@ -100,7 +100,7 @@ Sizes as before: **S** a session or two; **M** several; **L** a week. Every WP h
 | WP | What | Definition of done | Size | Retires |
 |---|---|---|---|---|
 | **WP129** ✅ | **Done 2026-09-30 — `108-READINGS.md` §9.** **`review` and `/workshop/readings`** (`100-…` §6.8, D21). Stage A: the note (`108-READINGS.md`) — the subject kinds, the verdicts, the amendment's path into content, what each check reads. Stage B: `core/schemas/review.ts` replacing `control-review` with the alias and migration note; the kind on all three stores and the evidence store; `checkCalibration({ requireReview })`, `checkCatalogue`, `checkControlMap`, `checkDomainPack` reading it; `/workshop/readings` with the queue, the sources, the progress readouts, the URL filter and the push; `craftabot readings export`. | A `review` for a row turns its check green for that row only; the queue's count equals the pending set across the eight kinds; `control-review` records read as `review`; the screen on the visual, axe and keyboard passes. | M | G85 |
-| **WP130** ◐ | **Done 2026-09-30 but for the tag and the Linux baselines, both waiting on a push — §8 item 9's WP130 note.** **The stale lines, the index, the release, the walk** (`100-…` §6.8). `USER-MANUAL.md` §41, `UX-AND-GAPS.md` §0/§4 and the three "awaiting review" notes corrected; `98-` and `99-` in `README.md`'s index; the first `v*` tag cut and `release.yml` exercised with its archive attached; the practitioner walk of `84-…` §9 performed and recorded; the Linux baselines for every new screen. | `git tag` non-empty and the release's zip verifies; no line in the manual or the register contradicts `84-…` §8; the walk's record names each stop with what was seen. | S | G87-part, G88 |
+| **WP130** ◐ | **Done 2026-09-30 but for the Linux baselines (CI's artefact); the tag `v0.7.0` cut the same day — §8 item 9's notes.** **The stale lines, the index, the release, the walk** (`100-…` §6.8). `USER-MANUAL.md` §41, `UX-AND-GAPS.md` §0/§4 and the three "awaiting review" notes corrected; `98-` and `99-` in `README.md`'s index; the first `v*` tag cut and `release.yml` exercised with its archive attached; the practitioner walk of `84-…` §9 performed and recorded; the Linux baselines for every new screen. | `git tag` non-empty and the release's zip verifies; no line in the manual or the register contradicts `84-…` §8; the walk's record names each stop with what was seen. | S | G87-part, G88 |
 | **WP131** ✅ | **Done 2026-09-30 — `109-THE-TAIL-DAY7.md` §6.** **The tail: Part I, the roundels, the Kit's card** (`100-…` §6.8). The manual's Part I (readers, corpora, the register regenerated, the benchmark, the Gate, the readings) and the rebuilt PDF; five roundels on the wave-2 seam; the Kit's *Sure or unsure* card on the Front Desk with the confidence chip and the child's threshold; the Phase AI exit review. | The PDF rebuilt with Part I's figures; `wave2.test.ts` green over 27 files; the card wins and loses on the Front Desk under the mock provider with a keyboard-only e2e; `100-…` §14 items 9–12 met. | S–M | G89 |
 
 **Exit:** `100-…` §14 items 9–12; a Phase AI exit review in §8.
@@ -454,7 +454,7 @@ Everything in `84-…` §5 stands. Added:
    > **Item 9.**
    > - *`/workshop/readings` queues every pending subject across the eight kinds*: **met**. `harness/src/readings.test.ts` checks the count against the sources, kind by kind: 260 on the bank.
    > - *A reading turns the corresponding check green for that subject*: **met**. The same test covers each of the four checks, one subject only, and a rejection keeps it red.
-   > - *The first release tag is cut*: **not met.** The archive's dry run verifies and passes the edition smokes (WP130). The tag runs `release.yml` on GitHub and publishes a release, so it waits on `day7` being pushed and on Andrew's word.
+   > - *The first release tag is cut*: **met, 2026-09-30.** `v0.7.0` was tagged on Andrew's word, on `6a47f55`. Its first run failed at `npm ci`: the lock file, written by npm 11, lacked the nested `yaml@2.9.1` that CI's npm 10 wants for vite's optional peer. The lock was regenerated with `npm@10` and the tag moved onto the fix; nothing had been published under the first. `release.yml` then published [the release](https://github.com/Axiom-Puzzleworks/craft-a-bot/releases/tag/v0.7.0) with `craftabot-site-v0.7.0.zip` (4.6 MB); its SHA-256 verifies, and its `VERSION` names the commit.
    >
    > **Item 10.**
    > - *The stale lines are corrected*: **met** (WP130).
@@ -478,7 +478,6 @@ Everything in `84-…` §5 stands. Added:
    > - *The Gate binds loopback by default*: **met** (`gate.test.ts`, `commands/gate.test.ts`).
    >
    > **For Andrew's reading:**
-   > - **The tag.** Its name, and the push it needs.
    > - **The Linux baselines,** taken from CI on that push.
    > - **The 260 readings.** The desk now exists to take them.
    > - **The card's lesson.** It starts on a loss at 50% on purpose. Its numbers are fixed, not drawn.
@@ -486,7 +485,7 @@ Everything in `84-…` §5 stands. Added:
    > - **WP125's live checkpoints,** still waiting on keys.
    > - **W-1–W-6** from the walk.
    >
-   > **Phase AI is closed, and `101-…`'s forward plan is exhausted but for WP125 (keys), the tag and the Linux baselines (a push).** Day 7's work in this repository is complete on `day7` and awaits review.
+   > **Phase AI is closed, and `101-…`'s forward plan is exhausted but for WP125 (keys) and the Linux baselines (CI's artefact, now that `day7` is pushed).** Day 7's work in this repository is complete on `day7` and awaits review.
 
 ## 9. What "done" looks like for this roadmap
 

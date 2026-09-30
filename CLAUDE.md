@@ -165,7 +165,7 @@ The first `v*` tag and the Linux baselines wait on `day7` reaching `origin`. **N
 - the manual's Part I and the rebuilt PDF;
 - the budgets restated after Day 7.
 
-The Phase AI exit review is recorded (`101-…` §8): items 10 and 12 met; item 9 short of the tag; item 11 partly met, pending the Linux baselines and two shots. **Phase AI is closed. Day 7's work is complete on `day7` and awaits review;** what remains is WP125 (keys), the first tag and the Linux baselines (a push).
+The Phase AI exit review is recorded (`101-…` §8): items 9, 10 and 12 met; item 11 partly met, pending the Linux baselines and two shots. **Phase AI is closed. Day 7's work is complete on `day7` and awaits review;** what remains is WP125 (keys) and the Linux baselines (CI's artefact). **Amended 2026-09-30, later still:** `day7` is pushed and the first release is cut: `v0.7.0`, on `6a47f55` (the lock file brought into step with CI's npm 10). `release.yml` published `craftabot-site-v0.7.0.zip`, and its checksum verifies.
 
 Once there's a WP to build (from a new plan, or a defect worth fixing): read the docs it names, **propose a task breakdown before writing code**, then build. One WP per branch (`wp{n}-{slug}`) and PR. Use your judgement inside a WP — the docs fix the destination and the contracts, not every step. Where a doc is silent, decide and note it. Where implementation must diverge from a doc, change the doc in the same PR with a dated note (`> **Amended 2026-08-13:** …`); don't leave the two disagreeing.
 
