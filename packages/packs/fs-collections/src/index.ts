@@ -1,3 +1,4 @@
+import { COLLECTIONS_ADVERSARIAL_CORPUS } from './corpora/adversarial.js';
 import type { PackManifest } from '@craftabot/core';
 import { collectionsPolicyCards } from './cards/policy.js';
 import { collectionsControlMap } from './controls/rows.js';
@@ -55,7 +56,9 @@ export const fsCollectionsPack: PackManifest = {
 	evaluators: collectionsEvaluators,
 	controlMaps: [collectionsControlMap],
 	workflows: [collectionsWorkflow],
-	stacks: collectionsStacks
+	stacks: collectionsStacks,
+	// WP122 (`106-BENCHMARK.md` §5): the desk's adversarial corpus, blind-labelled and held out.
+	corpora: [COLLECTIONS_ADVERSARIAL_CORPUS]
 };
 
 export default fsCollectionsPack;
@@ -164,3 +167,8 @@ export {
 	supportNeedCaller,
 	type CollectionsPersonaId
 } from './personas.js';
+export {
+	COLLECTIONS_ADVERSARIAL_CORPUS,
+	COLLECTIONS_ADVERSARIAL_CORPUS_ID,
+	COLLECTIONS_ATTACK_SURFACES
+} from './corpora/adversarial.js';

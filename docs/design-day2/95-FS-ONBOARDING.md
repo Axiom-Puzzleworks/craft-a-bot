@@ -95,3 +95,8 @@ Edges: `identity` → `decision` when not verified, `screening` otherwise; `reco
 > - **The regex baseline:** the keyword rule `fs-onboarding/reader/purpose-words` (`purpose`), the desk's first rule over words reads **40/100 (40.0%, 30.9–49.8%)** of it right. The LLM contract's keyword stand-in reads 27/100.
 > - **What that measures:** The corpus was written to test the rule — a third of it paraphrase and trap — so this is the rule's accuracy on words chosen to break it, not on the desk's traffic.
 > - **Where it is held:** `harness/src/desk-corpora.test.ts`.
+
+> **Amended 2026-09-30 (WP122, `106-BENCHMARK.md` §5 and §7):** the desk's adversarial corpus.
+> - **The corpus:** `fs-onboarding/corpus/adversarial-v1` has 200 rows over the applicant, identity and address documents, and the screening answers, 35% benign. It is held out from the guard question set and blind-labelled twice (κ on attack/target 0.99/0.69 and 0.78/0.74 — `the-tool` against `the-label` where the decision is the action).
+> - **The keyword baseline:** `fs-bank/reader/attack-words` flags 33 of 130 attacks (25%) and 7 of 70 benign rows.
+> - **Where it is held:** `harness/src/adversarial-corpora.test.ts`.

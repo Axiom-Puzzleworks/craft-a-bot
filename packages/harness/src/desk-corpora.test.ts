@@ -67,7 +67,10 @@ const DESKS: Array<[string, Corpus, Reader, string, TypedQuestion, number, numbe
 describe('a corpus per desk (WP121)', () => {
 	it('registers seven desks’ corpora through the default packs, every one sound and blind-labelled twice', () => {
 		const registry = createRegistry(defaultConfig());
-		const corpora = registry.listCorpora();
+		// WP122's adversarial corpora are held by `adversarial-corpora.test.ts`.
+		const corpora = registry
+			.listCorpora()
+			.filter((corpus) => !corpus.id.endsWith('/adversarial-v1'));
 		expect(corpora.map((corpus) => corpus.id).sort()).toEqual(
 			[...SERVICING_CORPORA, ...DESKS.map((desk) => desk[1])].map((corpus) => corpus.id).sort()
 		);

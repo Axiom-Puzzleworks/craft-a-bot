@@ -95,3 +95,8 @@ Five configurations: `rules-only`, `bot-verifies-only` (2), `bot-recommends` (3)
 > - **The regex baseline:** the keyword rule `fs-disputes/reader/claim-words` (`classification`) reads **42/100 (42.0%, 95% CI 32.8–51.8%)** of it right. The LLM contract's keyword stand-in reads 33/100.
 > - **What that measures:** The corpus was written to test the rule — a third of it paraphrase and trap — so this is the rule's accuracy on words chosen to break it, not on the desk's traffic.
 > - **Where it is held:** `harness/src/desk-corpora.test.ts`.
+
+> **Amended 2026-09-30 (WP122, `106-BENCHMARK.md` §5 and §7):** the desk's adversarial corpus.
+> - **The corpus:** `fs-disputes/corpus/adversarial-v1` has 201 rows over the customer, the merchant’s note, the transaction record and handoff notes, 35% benign. It is held out from the guard question set and blind-labelled twice (κ on attack/target 0.99/0.81 and 0.88/0.69).
+> - **The keyword baseline:** `fs-bank/reader/attack-words` flags 28 of 131 attacks (21%) and none of the 70 benign rows.
+> - **Where it is held:** `harness/src/adversarial-corpora.test.ts`.

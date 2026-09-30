@@ -74,7 +74,7 @@ Sizes as before: **S** a session or two; **M** several; **L** a week. Every WP h
 
 | WP | What | Definition of done | Size | Retires |
 |---|---|---|---|---|
-| **WP122** | **The adversarial corpora** (`100-…` §6.6). Stage A: the note (`106-BENCHMARK.md`) — the attack and target vocabularies, the surfaces per desk, the benchmark kind and its report. Stage B: one adversarial `Corpus` per desk (about 200 rows, benign rows included) over the surfaces the desk has, seeded by the branch's 27 steers, authored under WP119's rules and blind-labelled. | Seven adversarial corpora green on `checkCorpus`; every surface a desk has is represented; the benign share stated per corpus. | M | G78-part |
+| **WP122** ✅ | **Done 2026-09-30 — `106-BENCHMARK.md` §7.** **The adversarial corpora** (`100-…` §6.6). Stage A: the note (`106-BENCHMARK.md`) — the attack and target vocabularies, the surfaces per desk, the benchmark kind and its report. Stage B: one adversarial `Corpus` per desk (about 200 rows, benign rows included) over the surfaces the desk has, seeded by the branch's 27 steers, authored under WP119's rules and blind-labelled. | Seven adversarial corpora green on `checkCorpus`; every surface a desk has is represented; the benign share stated per corpus. | M | G78-part |
 | **WP123** | **The benchmark** (`100-…` §6.6, D19). `campaign.kind: 'benchmark'`; subjects over every connectable `GuardrailService`, every reader noul as a guard, and the bespoke components; every subject through its stand-in in CI and its cassette when recorded (`craftabot benchmark run --record`); the report per subject (precision, recall, confusion by attack and target, latency, tokens, list price, the rows caught alone); `/workshop/benchmarks` with its twin; the Guard Rack's rows reading the latest benchmark or *unmeasured*; the catalogue entry's `measured` beside its status; the assurance pack's *Coverage* reading it. | The benchmark over the stand-ins is deterministic and shape-held in CI; a subject's cassette replays to the same confusion matrix; the Rack reads *unmeasured* for a service with no benchmark; the page says *synthetic rows* first. | L | G78 |
 | **WP124** | **The bespoke four** (`100-…` §6.6). `untrusted-content` marking at `post-act` with the `content-is-untrusted` leaf; `taint` and `taint-reaches`; the quarantined-reader two-seat configuration; the red-team seat as the `adversarial` counterpart tier over the adversarial corpus. Each a component with point, verdict class and cost; each a catalogue entry moved to *shipped*; each a benchmark level; the manual's §52 extended. | A planted `SYSTEM:` line in a bureau file is marked, tainted and blocked at `pre-act`; the quarantined seat cannot call a tool; the red-team seat's lines are corpus rows and no others; `checkComponent` fixtures for all four; `checkCatalogue` green with four fewer *bespoke*. | L | G84 |
 | **WP125** | **The live checkpoints and the vendors' cassettes** (`100-…` §6.6). Azure, Bedrock, Lakera and the Gen AI evaluation service, one command each with a key, recorded dated in `30-…`/`39-…`; each service's benchmark cassette recorded the same day; the OAuth client id for GEAP set up per `docs/geap-setup.md`. **Needs keys; runs when they exist; nothing else waits on it.** | Four dated checkpoint lines; four cassettes under the packs; the benchmark's live column filled for each; `browserCapable` flipped where the preflight allows. | S | G87-part |
@@ -309,6 +309,18 @@ Everything in `84-…` §5 stands. Added:
    > **Phase AE is closed. Next: Phase AG — `106-BENCHMARK.md`, WP122.**
 6. **`105-CORPORA.md`, WP119, WP120, WP121.** Phase AE exit review.
 7. **`106-BENCHMARK.md`, WP122, WP123, WP124; WP125 when keys exist.** Phase AG exit review.
+
+   > **WP122 done 2026-09-30** (`106-BENCHMARK.md` §7):
+   > - **Committed first:** the vocabulary in `core`, `checkAdversarialCorpus`, and the guard question set with its keyword baseline, frozen before any row.
+   > - **Then the corpora:** seven adversarial corpora (1,408 rows, 33–35% benign), each over its desk's surfaces and blind-labelled twice.
+   > - **The keyword baseline** flags 18–35% of their attacks.
+   > - **Findings:**
+   >   - `target` needs a precedence rule;
+   >   - the smaller labeller misses the traps;
+   >   - contested rows now need a two-to-one;
+   >   - the site editions' budgets are caught up.
+   >
+   > **Next: WP123 (the benchmark).**
 8. **WP126, `107-THE-GATE.md`, WP127, WP128.** Phase AH exit review.
 9. **`108-READINGS.md`, WP129, WP130, WP131.** Phase AI exit review and the §9 check.
 

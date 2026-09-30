@@ -1,3 +1,4 @@
+import { LENDING_ADVERSARIAL_CORPUS } from './corpora/adversarial.js';
 import { LOAN_PURPOSE_CORPUS } from './corpora/index.js';
 import { LOAN_PURPOSE_READER } from './words-reader.js';
 import type { PackManifest } from '@craftabot/core';
@@ -67,7 +68,7 @@ export const fsLendingPack: PackManifest = {
 	// WP121 (`105-CORPORA.md` §9): the keyword rule over the words, the baseline on the desk's corpus.
 	readers: [LOAN_PURPOSE_READER],
 	// WP121 (`105-CORPORA.md` §9): the desk's labelled corpus, blind-labelled and held out.
-	corpora: [LOAN_PURPOSE_CORPUS]
+	corpora: [LOAN_PURPOSE_CORPUS, LENDING_ADVERSARIAL_CORPUS]
 };
 
 export default fsLendingPack;
@@ -194,3 +195,8 @@ export {
 	LOAN_PURPOSE_READER_ID
 } from './words-reader.js';
 export { LOAN_PURPOSE_CORPUS, LOAN_PURPOSE_CORPUS_ID } from './corpora/index.js';
+export {
+	LENDING_ADVERSARIAL_CORPUS,
+	LENDING_ADVERSARIAL_CORPUS_ID,
+	LENDING_ATTACK_SURFACES
+} from './corpora/adversarial.js';

@@ -1,3 +1,4 @@
+import { ONBOARDING_ADVERSARIAL_CORPUS } from './corpora/adversarial.js';
 import { PURPOSE_CORPUS } from './corpora/index.js';
 import { PURPOSE_READER } from './words-reader.js';
 import type { PackManifest } from '@craftabot/core';
@@ -61,7 +62,7 @@ export const fsOnboardingPack: PackManifest = {
 	// WP121 (`105-CORPORA.md` §9): the keyword rule over the words, the baseline on the desk's corpus.
 	readers: [PURPOSE_READER],
 	// WP121 (`105-CORPORA.md` §9): the desk's labelled corpus, blind-labelled and held out.
-	corpora: [PURPOSE_CORPUS]
+	corpora: [PURPOSE_CORPUS, ONBOARDING_ADVERSARIAL_CORPUS]
 };
 
 export default fsOnboardingPack;
@@ -167,3 +168,8 @@ export {
 	PURPOSE_READER_ID
 } from './words-reader.js';
 export { PURPOSE_CORPUS, PURPOSE_CORPUS_ID } from './corpora/index.js';
+export {
+	ONBOARDING_ADVERSARIAL_CORPUS,
+	ONBOARDING_ADVERSARIAL_CORPUS_ID,
+	ONBOARDING_ATTACK_SURFACES
+} from './corpora/adversarial.js';

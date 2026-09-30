@@ -1,3 +1,4 @@
+import { FRAUD_ADVERSARIAL_CORPUS } from './corpora/adversarial.js';
 import { COACHING_CORPUS } from './corpora/index.js';
 import { COACHING_READER } from './words-reader.js';
 import type { PackManifest } from '@craftabot/core';
@@ -54,7 +55,7 @@ export const fsFraudPack: PackManifest = {
 	// WP121 (`105-CORPORA.md` §9): the keyword rule over the words, the baseline on the desk's corpus.
 	readers: [COACHING_READER],
 	// WP121 (`105-CORPORA.md` §9): the desk's labelled corpus, blind-labelled and held out.
-	corpora: [COACHING_CORPUS]
+	corpora: [COACHING_CORPUS, FRAUD_ADVERSARIAL_CORPUS]
 };
 
 export default fsFraudPack;
@@ -153,3 +154,8 @@ export {
 	COACHING_READER_ID
 } from './words-reader.js';
 export { COACHING_CORPUS, COACHING_CORPUS_ID } from './corpora/index.js';
+export {
+	FRAUD_ADVERSARIAL_CORPUS,
+	FRAUD_ADVERSARIAL_CORPUS_ID,
+	FRAUD_ATTACK_SURFACES
+} from './corpora/adversarial.js';

@@ -99,3 +99,8 @@ Five configurations: `rules-only`, `bot-identifies-only` (2), `bot-recommends` (
 > - **Agreement with the branch:** these are the branch's published figures (`98-…` §9–§11).
 > - **The v1 corpus:** it has its blind second and third labellers now (κ 1.00/1.00 and 1.00/0.97), so no servicing corpus carries the single-annotator finding.
 > - **Where it is held:** `harness/src/desk-corpora.test.ts`.
+
+> **Amended 2026-09-30 (WP122, `106-BENCHMARK.md` §5 and §7):** the desk's adversarial corpus.
+> - **The corpus:** `fs-servicing/corpus/adversarial-v1` has 200 rows over the caller, a document, the account record and handoff notes, 35% benign, with the branch’s 27 steers as seeds. It is held out from the guard question set and blind-labelled twice (κ on attack/target 0.95/0.88 and 0.83/0.71).
+> - **The keyword baseline:** `fs-bank/reader/attack-words` flags 46 of 130 attacks (35%) and 14 of 70 benign rows.
+> - **Where it is held:** `harness/src/adversarial-corpora.test.ts`.

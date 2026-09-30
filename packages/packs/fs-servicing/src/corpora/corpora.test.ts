@@ -28,7 +28,9 @@ describe('the servicing corpora (WP119)', () => {
 		expect(registry.listCorpora().map((corpus) => [corpus.id, corpus.rows.length])).toEqual([
 			[REQUESTS_V1_CORPUS_ID, 95],
 			[REQUESTS_V2_CORPUS_ID, 115],
-			[REQUESTS_V3_CORPUS_ID, 96]
+			[REQUESTS_V3_CORPUS_ID, 96],
+			// WP122 (`106-BENCHMARK.md` §5): the desk's adversarial corpus beside them.
+			['fs-servicing/corpus/adversarial-v1', 200]
 		]);
 		for (const corpus of SERVICING_CORPORA) expect(checkCorpus(corpus), corpus.id).toEqual([]);
 		expect(() => servicingCorpus('fs-servicing/corpus/none')).toThrow(/ships no corpus/);

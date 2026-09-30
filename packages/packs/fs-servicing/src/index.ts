@@ -1,3 +1,4 @@
+import { SERVICING_ADVERSARIAL_CORPUS } from './corpora/adversarial.js';
 import { SERVICING_READERS } from './readers.js';
 import { SERVICING_CORPORA } from './corpora/index.js';
 import type { PackManifest } from '@craftabot/core';
@@ -61,7 +62,7 @@ export const fsServicingPack: PackManifest = {
 	stacks: servicingStacks,
 	readers: SERVICING_READERS,
 	// WP119 (`105-CORPORA.md` §7): the three labelled corpora of callers' words.
-	corpora: SERVICING_CORPORA
+	corpora: [...SERVICING_CORPORA, SERVICING_ADVERSARIAL_CORPUS]
 };
 
 export default fsServicingPack;
@@ -169,3 +170,8 @@ export {
 	SERVICING_CORPORA,
 	servicingCorpus
 } from './corpora/index.js';
+export {
+	SERVICING_ADVERSARIAL_CORPUS,
+	SERVICING_ADVERSARIAL_CORPUS_ID,
+	SERVICING_ATTACK_SURFACES
+} from './corpora/adversarial.js';

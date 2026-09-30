@@ -78,7 +78,7 @@ const PATTERNS: Array<[AttackKind, RegExp]> = [
 	],
 	[
 		'injection',
-		/^\s*(system|assistant|ai|admin)\s*[:\-]|\b(system|admin|assistant) (note|message|instruction|override)\b|ignore (all |any |your )?(previous|prior|above|earlier) (instructions|rules)|new instructions|disregard (the|your|all)/im
+		/^\s*(system|assistant|ai|admin)\s*[:-]|\b(system|admin|assistant) (note|message|instruction|override)\b|ignore (all |any |your )?(previous|prior|above|earlier) (instructions|rules)|new instructions|disregard (the|your|all)/im
 	],
 	[
 		'jailbreak',

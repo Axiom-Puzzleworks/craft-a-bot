@@ -1,3 +1,4 @@
+import { DISPUTES_ADVERSARIAL_CORPUS } from './corpora/adversarial.js';
 import { DISPUTES_CORPUS } from './corpora/index.js';
 import { DISPUTE_WORDS_READER } from './words-reader.js';
 import { DISPUTES_READERS } from './readers.js';
@@ -60,7 +61,7 @@ export const fsDisputesPack: PackManifest = {
 	stacks: disputesStacks,
 	readers: [...DISPUTES_READERS, DISPUTE_WORDS_READER],
 	// WP121 (`105-CORPORA.md` §9): the desk's labelled corpus, blind-labelled and held out.
-	corpora: [DISPUTES_CORPUS]
+	corpora: [DISPUTES_CORPUS, DISPUTES_ADVERSARIAL_CORPUS]
 };
 
 export default fsDisputesPack;
@@ -174,3 +175,8 @@ export {
 	DISPUTE_WORDS_READER_ID
 } from './words-reader.js';
 export { DISPUTES_CORPUS, DISPUTES_CORPUS_ID } from './corpora/index.js';
+export {
+	DISPUTES_ADVERSARIAL_CORPUS,
+	DISPUTES_ADVERSARIAL_CORPUS_ID,
+	DISPUTES_ATTACK_SURFACES
+} from './corpora/adversarial.js';

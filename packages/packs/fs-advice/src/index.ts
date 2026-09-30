@@ -1,3 +1,4 @@
+import { ADVICE_ADVERSARIAL_CORPUS } from './corpora/adversarial.js';
 import { GOALS_CORPUS } from './corpora/index.js';
 import { COMPLAINTS_CORPUS } from './complaints/corpora/index.js';
 import { COMPLAINT_WORDS_READER } from './complaints/words-reader.js';
@@ -74,7 +75,7 @@ export const fsAdvicePack: PackManifest = {
 	// WP117 (`104-READERS.md` §7): the complaints root cause as a rule reader.
 	readers: [...COMPLAINTS_READERS, COMPLAINT_WORDS_READER, GOAL_READER],
 	// WP121 (`105-CORPORA.md` §9): the desk's labelled corpus, blind-labelled and held out.
-	corpora: [COMPLAINTS_CORPUS, GOALS_CORPUS]
+	corpora: [COMPLAINTS_CORPUS, GOALS_CORPUS, ADVICE_ADVERSARIAL_CORPUS]
 };
 
 export default fsAdvicePack;
@@ -195,3 +196,8 @@ export {
 } from './words-reader.js';
 export { COMPLAINTS_CORPUS, COMPLAINTS_CORPUS_ID } from './complaints/corpora/index.js';
 export { GOALS_CORPUS, GOALS_CORPUS_ID } from './corpora/index.js';
+export {
+	ADVICE_ADVERSARIAL_CORPUS,
+	ADVICE_ADVERSARIAL_CORPUS_ID,
+	ADVICE_ATTACK_SURFACES
+} from './corpora/adversarial.js';

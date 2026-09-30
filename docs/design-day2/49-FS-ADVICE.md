@@ -231,3 +231,8 @@ Everything from one `random`: the bank case (`seedFrom(random)` → `bankCase`),
 > - **The regex baseline:** the keyword rule `fs-advice/reader/goal-words` (`goal`, the desk's own four), the desk's first rule over words reads **45/100 (45.0%, 35.6–54.8%)** of it right. The LLM contract's keyword stand-in reads 42/100.
 > - **What that measures:** The corpus was written to test the rule — a third of it paraphrase and trap — so this is the rule's accuracy on words chosen to break it, not on the desk's traffic.
 > - **Where it is held:** `harness/src/desk-corpora.test.ts`.
+
+> **Amended 2026-09-30 (WP122, `106-BENCHMARK.md` §5 and §7):** the desk's adversarial corpus.
+> - **The corpus:** `fs-advice/corpus/adversarial-v1` has 203 rows for the advice and complaints desks over the caller, a complaint letter, the shelf and fact-find, and incoming handoffs, 33% benign. It is held out from the guard question set and blind-labelled twice (κ on attack/target 0.96/0.94 and 0.82/0.66).
+> - **The keyword baseline:** `fs-bank/reader/attack-words` flags 32 of 135 attacks (24%) and 12 of 68 benign rows.
+> - **Where it is held:** `harness/src/adversarial-corpora.test.ts`.

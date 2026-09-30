@@ -88,3 +88,8 @@ Five configurations: `rules-only`, `bot-contacts-only` (2), `bot-recommends` (3)
 > **2026-09-12.** Built in one pass: the bank's purpose, ledger writes and kinds; the pack — rule, cases with the matched pair, desk, three personas, decks, cards, evaluators, rows, ceilings, book, workflow with the handoff and five configurations, two campaigns, stacks through `deskStacks`; the tests above with the parity gate and the planted skew; the harness, the Worker, the editions, the plan chains, CI; the desk's page and the e2e routes; the seventh journey's snapshots; the manual's §44.2. The three rows are for Andrew's reading, marked `unreviewed`.
 
 > **Amended 2026-09-29 (WP111, `102-HONEST-BANK.md` §5):** the verdict leaves are derived from `plan-v1` by design and declared on the desk's spec; `plan-matches-rule` carries `derivedFrom: 'plan-v1'`. `discloses` is the profile's or the item's label and independent; `vulnerability-actioned` scores against it.
+
+> **Amended 2026-09-30 (WP122, `106-BENCHMARK.md` §5 and §7):** the desk's adversarial corpus.
+> - **The corpus:** `fs-collections/corpus/adversarial-v1` has 200 rows over the customer, the income and expenditure statement, the arrears record and servicing’s handoff, 35% benign. It is held out from the guard question set and blind-labelled twice (κ on attack/target 0.96/0.87 and 0.87/0.73).
+> - **The keyword baseline:** `fs-bank/reader/attack-words` flags 35 of 130 attacks (27%) and 10 of 70 benign rows.
+> - **Where it is held:** `harness/src/adversarial-corpora.test.ts`.

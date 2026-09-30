@@ -194,3 +194,8 @@ One `random` per layout; the finances of the pair are a template; the verdict is
 > - **The regex baseline:** the keyword rule `fs-lending/reader/loan-purpose-words` (`purpose`), the desk's first rule over words reads **43/100 (43.0%, 33.7–52.8%)** of it right. The LLM contract's keyword stand-in reads 30/100.
 > - **What that measures:** The corpus was written to test the rule — a third of it paraphrase and trap — so this is the rule's accuracy on words chosen to break it, not on the desk's traffic.
 > - **Where it is held:** `harness/src/desk-corpora.test.ts`.
+
+> **Amended 2026-09-30 (WP122, `106-BENCHMARK.md` §5 and §7):** the desk's adversarial corpus.
+> - **The corpus:** `fs-lending/corpus/adversarial-v1` has 202 rows over the applicant, the bureau file and payslip, and the affordability answer, 35% benign. It is held out from the guard question set and blind-labelled twice (κ on attack/target 0.99/0.90 and 0.55/0.42 — the smaller labeller misses the traps).
+> - **The keyword baseline:** `fs-bank/reader/attack-words` flags 24 of 132 attacks (18%) and 3 of 70 benign rows.
+> - **Where it is held:** `harness/src/adversarial-corpora.test.ts`.

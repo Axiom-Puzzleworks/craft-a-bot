@@ -188,3 +188,8 @@ One `random` per layout; the alerts are constructed, the customer is the bank's;
 > - **The regex baseline:** the keyword rule `fs-fraud/reader/coaching-words` (`coached`), the desk's first rule over words reads **43/100 (43.0%, 33.7–52.8%; 44% by either labeller)** of it right. The LLM contract's keyword stand-in reads 50/100.
 > - **What that measures:** The corpus was written to test the rule — a third of it paraphrase and trap — so this is the rule's accuracy on words chosen to break it, not on the desk's traffic.
 > - **Where it is held:** `harness/src/desk-corpora.test.ts`.
+
+> **Amended 2026-09-30 (WP122, `106-BENCHMARK.md` §5 and §7):** the desk's adversarial corpus.
+> - **The corpus:** `fs-fraud/corpus/adversarial-v1` has 202 rows over the caller, a transaction’s narrative and alert record, and disputes’ handoff, 35% benign. It is held out from the guard question set and blind-labelled twice (κ on attack/target 0.96/0.82 and 0.88/0.65).
+> - **The keyword baseline:** `fs-bank/reader/attack-words` flags 40 of 132 attacks (30%) and 9 of 70 benign rows.
+> - **Where it is held:** `harness/src/adversarial-corpora.test.ts`.
