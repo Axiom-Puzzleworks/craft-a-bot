@@ -4,7 +4,7 @@ import type { BrickKindDefinition } from '../types/brick.js';
 import type { ControlMap } from '../types/control-map.js';
 import type { DomainSpec } from './domain.js';
 import type { CalibrationTable } from './calibration.js';
-import type { WorkflowSpec } from '../types/workflow.js';
+import type { ReviewerModel, WorkflowSpec } from '../types/workflow.js';
 import type { Guardrail, GuardrailHook } from '../types/guardrail.js';
 import type { Evaluator } from '../types/evaluator.js';
 import type { GuardrailComponent } from '../types/guardrail-component.js';
@@ -14,6 +14,9 @@ import type { ScenarioDefinition } from './scenario.js';
 import type { ToolDefinition } from '../types/tool.js';
 import type { ProviderFactory } from '../types/provider.js';
 import type { ServiceLine } from '../types/service-line.js';
+import type { ErrorModel } from '../types/error-model.js';
+import type { Reader } from '../types/reader.js';
+import type { Corpus } from './corpus.js';
 import type { EvidenceStore } from '../types/evidence-store.js';
 import type { WorldDefinition } from '../types/world.js';
 import type { PolicyCard } from './policy-card.js';
@@ -138,7 +141,32 @@ export const goalCardDefinitionSchema = z.object({
 	 * use, applied to goal cards. Absent means `'kit'`: every card written
 	 * before this field existed.
 	 */
-	audience: z.enum(['kit', 'workshop']).optional()
+	audience: z.enum(['kit', 'workshop']).optional(),
+	/**
+	 * A dial the player turns before the run (WP131, `109-THE-TAIL-DAY7.md`
+	 * §3): one number the card's world reads at `create` as
+	 * `config.knobs[knob]` — the lending desk's knobs (WP78), put in a child's
+	 * hand. The bot's own setting is `AgentSpecV2.goalDial`; absent, `default`.
+	 * The value in force is on `run.started.goalDial`.
+	 */
+	dial: z
+		.object({
+			knob: z.string().min(1),
+			label: z.string().min(1),
+			min: z.number(),
+			max: z.number(),
+			step: z.number().positive(),
+			default: z.number(),
+			/** How the Kit shows a value: `percent` reads 0.65 as 65%. */
+			format: z.enum(['number', 'percent']).optional(),
+			/** The words at each end of the dial. */
+			lowLabel: z.string().optional(),
+			highLabel: z.string().optional()
+		})
+		.refine((dial) => dial.min < dial.max && dial.default >= dial.min && dial.default <= dial.max, {
+			message: 'a dial runs from min to max, with its default between them'
+		})
+		.optional()
 });
 export type GoalCardDefinition = z.infer<typeof goalCardDefinitionSchema>;
 
@@ -289,6 +317,25 @@ export interface PackManifest extends PackManifestMetadata {
 	 * reviewer reads, checked by `checkCalibration`, rendered on the bank page.
 	 */
 	calibrations?: CalibrationTable[];
+	/**
+	 * Error models (WP115, `103-FALLIBLE-ACTORS.md` §5): how the fallible tier
+	 * errs at a desk's decisions, each rate a calibration row. Content a
+	 * campaign brain names (`{ tier: 'fallible', errorModel }`).
+	 */
+	errorModels?: ErrorModel[];
+	/** Reviewer models (WP115, `103-…` §6): the person at a `human` stage, as calibration rows. */
+	reviewerModels?: ReviewerModel[];
+	/**
+	 * Readers (WP117, `104-READERS.md` §3.3): what answers a typed question — a
+	 * desk's rule, a hosted classifier, a chat model. A `reader` executor names one.
+	 */
+	readers?: Reader[];
+	/**
+	 * Corpora (WP119, `105-CORPORA.md` §3): labelled rows as content, frozen, with
+	 * their annotators and the readers that have seen them. A campaign's book
+	 * source names one; `checkCorpus` holds it.
+	 */
+	corpora?: Corpus[];
 	/**
 	 * Workflows (WP79, `69-WORKFLOWS.md` §3): a journey as stages with typed
 	 * input and output and an executor each — content over a world the pack

@@ -76,3 +76,38 @@ test('the Guard Rack is the Connections tab, and the old address forwards', asyn
 	await page.getByTestId('studio-tab-studio').click();
 	await expect(page.getByTestId('studio-catalogue')).toBeVisible();
 });
+
+// WP127 (`107-THE-GATE.md` §1): Use in… the Gate downloads the stack file the Gate reads and names the command.
+test('Use in… the Gate downloads the stack file and shows the command that serves it', async ({
+	page
+}) => {
+	await page.goto('/workshop/studio?stack=fs-lending%2Fstack%2Fpolicy-cards');
+	await expect(page.getByTestId('studio-page')).toBeVisible();
+	const download = page.waitForEvent('download');
+	await page.getByTestId('studio-use-gate').click();
+	const file = await download;
+	expect(file.suggestedFilename()).toMatch(/\.stack\.json$/);
+	await expect(page.getByTestId('studio-gate-command')).toContainText(
+		'npm run craftabot -- gate serve --stack'
+	);
+	await expect(page.getByTestId('studio-gate-command')).toContainText('--mode shadow');
+});
+
+/**
+ * WP130 (the walk): a stack whose component cannot run here — Model Armor
+ * with no battery — ran no cell and read only "0 flows". The bench now says
+ * the stack was not run, and why, from the cell's own error.
+ */
+test('a stack that cannot run says so on the bench', async ({ page }) => {
+	test.setTimeout(120_000);
+	await openTheWorkshopDoor(page);
+	await page.goto('/workshop/studio');
+	await page.getByTestId('studio-component-geap/model-armor').focus();
+	await page.keyboard.press('Enter');
+	await page.getByTestId('studio-point-pre-think').focus();
+	await page.keyboard.press('Enter');
+	await expect(page.getByTestId('studio-fits-value')).toHaveText('1');
+	await page.getByTestId('studio-run').click();
+	await expect(page.getByTestId('studio-bench-note')).toContainText('0 flows', { timeout: 60_000 });
+	await expect(page.getByTestId('studio-bench-note')).toContainText('Not run —');
+});

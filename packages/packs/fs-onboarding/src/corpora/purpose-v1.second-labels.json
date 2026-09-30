@@ -1,0 +1,616 @@
+{
+	"corpusId": "fs-onboarding/corpus/purpose-v1",
+	"corpusDigest": "69713881c6b45b22fc5088cde80c339cbf758af9167cc61237d6c49ad4e6e433",
+	"annotator": "second-labeller",
+	"blind": true,
+	"labels": [
+		{
+			"id": "o001",
+			"labels": {
+				"purpose": "business"
+			}
+		},
+		{
+			"id": "o002",
+			"labels": {
+				"purpose": "salary"
+			}
+		},
+		{
+			"id": "o003",
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o004",
+			"labels": {
+				"purpose": "business"
+			}
+		},
+		{
+			"id": "o005",
+			"labels": {
+				"purpose": "salary"
+			}
+		},
+		{
+			"id": "o006",
+			"labels": {
+				"purpose": "everyday"
+			},
+			"note": "small leftover could suggest savings"
+		},
+		{
+			"id": "o007",
+			"labels": {
+				"purpose": "salary"
+			}
+		},
+		{
+			"id": "o008",
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o009",
+			"labels": {
+				"purpose": "salary"
+			}
+		},
+		{
+			"id": "o010",
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o011",
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o012",
+			"labels": {
+				"purpose": "business"
+			}
+		},
+		{
+			"id": "o013",
+			"labels": {
+				"purpose": "business"
+			}
+		},
+		{
+			"id": "o014",
+			"labels": {
+				"purpose": "salary"
+			}
+		},
+		{
+			"id": "o015",
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o016",
+			"labels": {
+				"purpose": "third-party-funds"
+			}
+		},
+		{
+			"id": "o017",
+			"labels": {
+				"purpose": "business"
+			}
+		},
+		{
+			"id": "o018",
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o019",
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o020",
+			"labels": {
+				"purpose": "third-party-funds"
+			}
+		},
+		{
+			"id": "o021",
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o022",
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o023",
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o024",
+			"labels": {
+				"purpose": "salary"
+			},
+			"note": "could be everyday (bills paid out too)"
+		},
+		{
+			"id": "o025",
+			"labels": {
+				"purpose": "business"
+			}
+		},
+		{
+			"id": "o026",
+			"labels": {
+				"purpose": "salary"
+			}
+		},
+		{
+			"id": "o027",
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o028",
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o029",
+			"labels": {
+				"purpose": "third-party-funds"
+			},
+			"note": "framed as business but funds go to overseas owner"
+		},
+		{
+			"id": "o030",
+			"labels": {
+				"purpose": "third-party-funds"
+			}
+		},
+		{
+			"id": "o031",
+			"labels": {
+				"purpose": "third-party-funds"
+			}
+		},
+		{
+			"id": "o032",
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o033",
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o034",
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o035",
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o036",
+			"labels": {
+				"purpose": "salary"
+			}
+		},
+		{
+			"id": "o037",
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o038",
+			"labels": {
+				"purpose": "salary"
+			}
+		},
+		{
+			"id": "o039",
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o040",
+			"labels": {
+				"purpose": "business"
+			}
+		},
+		{
+			"id": "o041",
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o042",
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o043",
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o044",
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o045",
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o046",
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o047",
+			"labels": {
+				"purpose": "third-party-funds"
+			}
+		},
+		{
+			"id": "o048",
+			"labels": {
+				"purpose": "salary"
+			}
+		},
+		{
+			"id": "o049",
+			"labels": {
+				"purpose": "third-party-funds"
+			}
+		},
+		{
+			"id": "o050",
+			"labels": {
+				"purpose": "salary"
+			}
+		},
+		{
+			"id": "o051",
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o052",
+			"labels": {
+				"purpose": "savings"
+			},
+			"note": "could be everyday (odd bill paid)"
+		},
+		{
+			"id": "o053",
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o054",
+			"labels": {
+				"purpose": "business"
+			}
+		},
+		{
+			"id": "o055",
+			"labels": {
+				"purpose": "third-party-funds"
+			}
+		},
+		{
+			"id": "o056",
+			"labels": {
+				"purpose": "business"
+			}
+		},
+		{
+			"id": "o057",
+			"labels": {
+				"purpose": "third-party-funds"
+			}
+		},
+		{
+			"id": "o058",
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o059",
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o060",
+			"labels": {
+				"purpose": "salary"
+			}
+		},
+		{
+			"id": "o061",
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o062",
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o063",
+			"labels": {
+				"purpose": "salary"
+			}
+		},
+		{
+			"id": "o064",
+			"labels": {
+				"purpose": "business"
+			}
+		},
+		{
+			"id": "o065",
+			"labels": {
+				"purpose": "salary"
+			}
+		},
+		{
+			"id": "o066",
+			"labels": {
+				"purpose": "salary"
+			},
+			"note": "could be everyday (spends from it as normal)"
+		},
+		{
+			"id": "o067",
+			"labels": {
+				"purpose": "third-party-funds"
+			}
+		},
+		{
+			"id": "o068",
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o069",
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o070",
+			"labels": {
+				"purpose": "business"
+			}
+		},
+		{
+			"id": "o071",
+			"labels": {
+				"purpose": "third-party-funds"
+			}
+		},
+		{
+			"id": "o072",
+			"labels": {
+				"purpose": "third-party-funds"
+			}
+		},
+		{
+			"id": "o073",
+			"labels": {
+				"purpose": "third-party-funds"
+			}
+		},
+		{
+			"id": "o074",
+			"labels": {
+				"purpose": "business"
+			}
+		},
+		{
+			"id": "o075",
+			"labels": {
+				"purpose": "salary"
+			}
+		},
+		{
+			"id": "o076",
+			"labels": {
+				"purpose": "salary"
+			}
+		},
+		{
+			"id": "o077",
+			"labels": {
+				"purpose": "salary"
+			}
+		},
+		{
+			"id": "o078",
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o079",
+			"labels": {
+				"purpose": "salary"
+			}
+		},
+		{
+			"id": "o080",
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o081",
+			"labels": {
+				"purpose": "business"
+			}
+		},
+		{
+			"id": "o082",
+			"labels": {
+				"purpose": "business"
+			}
+		},
+		{
+			"id": "o083",
+			"labels": {
+				"purpose": "third-party-funds"
+			},
+			"note": "framed as wages (salary) but money passed on"
+		},
+		{
+			"id": "o084",
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o085",
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o086",
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o087",
+			"labels": {
+				"purpose": "third-party-funds"
+			}
+		},
+		{
+			"id": "o088",
+			"labels": {
+				"purpose": "business"
+			}
+		},
+		{
+			"id": "o089",
+			"labels": {
+				"purpose": "third-party-funds"
+			}
+		},
+		{
+			"id": "o090",
+			"labels": {
+				"purpose": "business"
+			}
+		},
+		{
+			"id": "o091",
+			"labels": {
+				"purpose": "business"
+			},
+			"note": "part wages (salary)"
+		},
+		{
+			"id": "o092",
+			"labels": {
+				"purpose": "third-party-funds"
+			},
+			"note": "some own use (everyday)"
+		},
+		{
+			"id": "o093",
+			"labels": {
+				"purpose": "third-party-funds"
+			}
+		},
+		{
+			"id": "o094",
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o095",
+			"labels": {
+				"purpose": "business"
+			}
+		},
+		{
+			"id": "o096",
+			"labels": {
+				"purpose": "third-party-funds"
+			}
+		},
+		{
+			"id": "o097",
+			"labels": {
+				"purpose": "third-party-funds"
+			}
+		},
+		{
+			"id": "o098",
+			"labels": {
+				"purpose": "business"
+			}
+		},
+		{
+			"id": "o099",
+			"labels": {
+				"purpose": "salary"
+			}
+		},
+		{
+			"id": "o100",
+			"labels": {
+				"purpose": "business"
+			}
+		}
+	]
+}

@@ -11,6 +11,7 @@ import type {
 import type { RunRecord } from '../schemas/trace-file.js';
 import type { StoredWorkflowRun } from '../schemas/workflow-run.js';
 import type { ExperimentResult } from '../schemas/experiment.js';
+import type { BenchmarkReport } from '../schemas/benchmark.js';
 
 /**
  * The persistence seam (07-DATA-MODEL-PERSISTENCE.md §8). Everything the app
@@ -117,6 +118,12 @@ export interface Storage {
 	getExperimentResult(id: string): Promise<ExperimentResult | undefined>;
 	listExperimentResults(): Promise<ExperimentResult[]>;
 	deleteExperimentResult(id: string): Promise<void>;
+
+	/** Benchmark reports (WP123, `106-BENCHMARK.md` §6) — one per report id (`<benchmark>@<ranAt>`); newest first. */
+	putBenchmarkReport(report: BenchmarkReport): Promise<void>;
+	getBenchmarkReport(id: string): Promise<BenchmarkReport | undefined>;
+	listBenchmarkReports(): Promise<BenchmarkReport[]>;
+	deleteBenchmarkReport(id: string): Promise<void>;
 
 	/**
 	 * Trim unpinned runs oldest-first until at most `cap` remain, deleting their

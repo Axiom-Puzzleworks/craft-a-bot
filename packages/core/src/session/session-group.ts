@@ -1,4 +1,5 @@
 import { createSession } from './agent-session.js';
+import { worldConfigFor } from './world-config.js';
 import { isPause, runGuardrailChain } from './guardrail-chain.js';
 import { createEventBus } from '../event-bus.js';
 import type { AnyAgentSpec } from '../schemas/agent-spec-v2.js';
@@ -93,7 +94,12 @@ export function createSessionGroup(deps: CreateSessionGroupDeps): SessionGroup {
 
 	// The one root instance every member's facade shares (§4.2) — created
 	// once, owned only here; members never see it directly.
-	const rootWorld = deps.world ?? worldDefinition.create(goalCard.layoutId, { random });
+	// The card's dial (WP131): the first member's setting — every member is built for the one card.
+	const firstSpec = members[0]!.spec;
+	const dialSetting = 'goalDial' in firstSpec ? firstSpec.goalDial : undefined;
+	const rootWorld =
+		deps.world ??
+		worldDefinition.create(goalCard.layoutId, { random, ...worldConfigFor(goalCard, dialSetting) });
 	const bindAgent = rootWorld.forAgent;
 	if (!bindAgent) {
 		throw new Error(

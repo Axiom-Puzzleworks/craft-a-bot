@@ -19,6 +19,9 @@ export {
 	scriptedAdversary,
 	scriptedCounterpart,
 	scriptedNoisy,
+	scriptedFallible,
+	type FallibleOptions,
+	type ResolvedFault,
 	scriptedOptimal,
 	type NoiseRates,
 	type NoisyOptions,
@@ -57,6 +60,7 @@ export {
 	componentFitsFor,
 	egressForGuard,
 	prepareCampaign,
+	readingsOf,
 	runCampaign,
 	runCampaignCell,
 	shardCells,
@@ -174,6 +178,9 @@ export { chainPlans, noPlans, starterPlans, type PlanSource } from './plans.js';
 export {
 	campaignSummarySchema,
 	humanLoadRowSchema,
+	calibrationOf,
+	calibrationRowSchema,
+	type CalibrationRow,
 	fairnessRowSchema,
 	driftRowSchema,
 	fairnessRowsOf,
@@ -223,6 +230,7 @@ export {
 	CASE_METRIC_PATTERN,
 	cohortOf,
 	pairIdOf,
+	resolveErrorModel,
 	sameReportInstrument,
 	DERIVED_METRIC_PATTERN,
 	runMetricNameSchema,
@@ -256,3 +264,23 @@ export {
 	type ExperimentTemplate,
 	type LevelCombination
 } from './experiment.js';
+export { scoreReader, type ReaderScore, type ScoreReaderOptions } from './corpus-score.js';
+export {
+	SURFACE_HOOK,
+	benchmarkSchema,
+	parseBenchmark,
+	renderBenchmarkMarkdown,
+	runBenchmark,
+	type Benchmark,
+	type BenchmarkClient,
+	type BenchmarkDeps,
+	type BenchmarkInput
+} from './benchmark.js';
+export {
+	BENCHMARK_CASSETTE_KIND,
+	benchmarkCassetteSchema,
+	benchmarkRequestKey,
+	cassetteFetch,
+	recordingFetch,
+	type BenchmarkCassette
+} from './benchmark-cassette.js';

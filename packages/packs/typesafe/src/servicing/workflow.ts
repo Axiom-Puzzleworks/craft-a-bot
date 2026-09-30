@@ -2,229 +2,227 @@ import type {
 	ActionCall,
 	Executor,
 	JsonSchema,
+	Reader,
+	ReaderExecutor,
 	RuleFn,
 	StageSpec,
 	WorkflowConfig,
 	WorkflowSpec,
 	WorldState
 } from '@craftabot/core';
+import { hostedReader } from '@craftabot/governance';
 import {
 	CATEGORIES,
+	CATEGORY_READER_ID,
 	SUPPORT_NEEDS,
-	classificationOf,
-	needIn,
+	SUPPORT_NEED_READER_ID,
 	servicingDecisionKind,
 	servicingWorkflow,
 	type Category,
 	type ServicingDeskState,
 	type SupportNeed
 } from '@craftabot/pack-fs-servicing';
-import { JEV_LINE_ID, JEV_OPERATION } from '../jev/line.js';
-import type { JevChoiceAnswer, JevResponse } from '../jev/types.js';
+import { JEV_LINE_ID, JEV_OPERATION, TYPESAFE_CREDENTIAL_ID, TYPESAFE_HOST } from '../jev/line.js';
 import {
+	CATEGORY_QUESTION,
+	CATEGORY_QUESTION_V2,
+	JEV_MODEL,
+	NEED_QUESTION,
+	NEED_QUESTION_V2,
 	SPARK_35B_MODEL,
 	SPARK_CLASSIFIER_LINE,
 	SPARK_MODEL,
-	servicingJevRequest,
-	servicingSparkRequest,
+	STEER_QUESTION,
 	type QuestionsVersion,
 	type ServicingQuestionId
 } from './questions.js';
 
 /**
- * **The servicing journey with a pluggable reader** (`98-JEV.md` §8): the
- * Servicing Desk's journey, rebuilt from `fs-servicing`'s own stages and
- * rules, with the two judgments that read the caller's words — the
- * classification, and the support need recorded — each split into three:
+ * **The servicing journey with a pluggable reader** (`98-JEV.md` §8; on the
+ * reader contract since WP120, `104-READERS.md` §10.4): the Servicing Desk's
+ * journey, rebuilt from `fs-servicing`'s own stages and rules, with the two
+ * judgments that read the caller's words — the classification, and the
+ * support need recorded — each made by a `reader` stage and committed by the
+ * next:
  *
- * 1. **a reader.** The bank's regex rule (`classificationOf`, `needIn`), or Jev
- *    over the line. Both answer in Jev's shape: the regex as a choice at
- *    confidence 1, which is what a rule claims.
- * 2. **a gate.** It acts on the reader's answer at or above a confidence
- *    threshold, and otherwise hands the item to a person. `gate-off` always
- *    acts.
- * 3. **a person's review.** A `human` stage whose scripted reviewer answers
- *    from truth. This models a reviewer who is always right, so the gated
- *    configurations measure the human load a threshold costs and the
- *    accuracy it buys at best. It is not a claim about real reviewers.
+ * 1. **the reader**, with its gate. The bank's regex (`fs-servicing`'s rule
+ *    readers), Jev over its line, the DGX Spark over its classifier line, or
+ *    the keyword stand-in behind the LLM contract. At or above the gate's
+ *    threshold — and, on the v2 questions, with no steer — the answer stands;
+ *    below it, **a person** answers instead. The scripted person answers from
+ *    truth: a reviewer who is always right, so the gated configurations
+ *    measure the human load a threshold costs and the accuracy it buys at
+ *    best. It is not a claim about real reviewers.
+ * 2. **the commit** performs what was decided — the reader's answer or the
+ *    person's — on the desk.
  *
  * Everything else — identify, verify, the four-eyes confirmation, the act,
  * the closure, the handoffs — is `fs-servicing`'s, by its own rules. The
  * Servicing Desk's workflow is untouched, and nothing in the bank imports
- * this file: the experiment is an addition you install
- * (`craftabot.config.mjs`), not a change to the design.
+ * this file: the experiment is an addition you install (`craftabot.config.mjs`).
  */
 export const SERVICING_JEV_WORKFLOW_ID = 'typesafe/servicing-jev';
-/** The same journey over the harder v2 corpus (`corpus-v2.ts`): one workflow per corpus, so an experiment names its data by the workflow it runs. */
+/** The same journey over the harder v2 corpus: one workflow per corpus, so an experiment names its data by the workflow it runs. */
 export const SERVICING_JEV_V2_WORKFLOW_ID = 'typesafe/servicing-jev-v2';
-/** Over the held-out v3 corpus (`corpus-v3.ts`). */
+/** Over the held-out v3 corpus. */
 export const SERVICING_JEV_V3_WORKFLOW_ID = 'typesafe/servicing-jev-v3';
 
 /** The thresholds the gates are built at — TypeSafe's own examples' bands (`98-…` §2), fixed before any run. */
 export const GATE_THRESHOLDS = [0.6, 0.8, 0.9] as const;
+/** P(the caller steers the label) at or above which a gate hands the call to a person (`98-…` §11): the runtime's own. */
+export const STEER_THRESHOLD = 0.5;
+
+/** The question sets a corpus's `seenBy` names (WP119, `105-CORPORA.md` §5). */
+export const QUESTION_SETS: Readonly<Record<QuestionsVersion, string>> = {
+	1: 'typesafe/questions/servicing-q1',
+	2: 'typesafe/questions/servicing-q2'
+};
+
+// ── The readers ────────────────────────────────────────────────────────
+
+export const JEV_READER_ID = 'typesafe/reader/jev';
+export const SPARK_122B_READER_ID = 'typesafe/reader/spark-122b';
+export const SPARK_35B_READER_ID = 'typesafe/reader/spark-35b';
+
+/** Exactly the arguments the line stages were recorded with: the caller's words as the state, the version's questions, the model pinned. */
+const wireRequest = (model: string) => (subject: unknown, questions: Record<string, unknown>) => ({
+	model,
+	state: { utterance: String(subject) },
+	questions
+});
+
+const jevReader: Reader = hostedReader({
+	id: JEV_READER_ID,
+	name: 'Jev (TypeSafe)',
+	description:
+		'TypeSafe’s System One over the Jev line: calibrated probabilities from a model trained for them. Recorded; harness-only.',
+	lineId: JEV_LINE_ID,
+	operation: JEV_OPERATION,
+	request: wireRequest(JEV_MODEL),
+	egress: [
+		{
+			host: TYPESAFE_HOST,
+			purpose: 'typed judgments over the caller’s words (Jev)',
+			sends: ['observation', 'credential-header']
+		}
+	],
+	credential: {
+		id: TYPESAFE_CREDENTIAL_ID,
+		name: 'TypeSafe API key',
+		kind: 'bearer-token',
+		keysUrl: 'https://console.typesafe.ai/keys'
+	}
+});
+
+const sparkReader = (id: string, name: string, model: string): Reader =>
+	hostedReader({
+		id,
+		name,
+		description: `The builder’s DGX Spark (${model}) over its classifier line: a generative model’s first-token probabilities folded onto the options (\`99-DGX-SPARK.md\` §6). Recorded; needs the DGX Spark pack.`,
+		lineId: SPARK_CLASSIFIER_LINE,
+		operation: 'system-one',
+		request: wireRequest(model),
+		// The line declares its four hosts; the reader asks through it.
+		egress: []
+	});
+
+export const TYPESAFE_READERS: Reader[] = [
+	jevReader,
+	sparkReader(SPARK_122B_READER_ID, 'DGX Spark, 122B', SPARK_MODEL),
+	sparkReader(SPARK_35B_READER_ID, 'DGX Spark, 35B', SPARK_35B_MODEL)
+];
+
+// ── The judgments ──────────────────────────────────────────────────────
 
 const desk = (state: WorldState): ServicingDeskState => state as ServicingDeskState;
 const call = (name: string, args: unknown = {}): ActionCall => ({ name, arguments: args });
 const rule = (id: string): Executor => ({ kind: 'rule', rule: id });
-const subjectOf = (state: WorldState): string => desk(state).extra.servicing.request.subject;
+const subjectOf = (_input: unknown, state: WorldState): string =>
+	desk(state).extra.servicing.request.subject;
 const factsOf = (truth: unknown): Record<string, unknown> =>
 	((truth as { facts?: Record<string, unknown> } | undefined)?.facts ?? {}) as Record<
 		string,
 		unknown
 	>;
 
-// ── Readers ────────────────────────────────────────────────────────────
-
-/** A rule's answer in Jev's shape: all the probability on its one pick. */
-function asAnswer(question: ServicingQuestionId, choice: string, options: readonly string[]) {
-	const response: JevResponse = {
-		model: 'regex',
-		answers: {
-			[question]: {
-				type: 'choice',
-				choice,
-				confidence: 1,
-				probabilities: Object.fromEntries(
-					options.map((option) => [option, option === choice ? 1 : 0])
-				)
-			}
-		},
-		usage: { input_tokens: 0, output_tokens: 0 }
-	};
-	return response;
-}
-
-/** Jev over the line: the caller's words, the frozen questions of a version — the same arguments the recording made. */
-export const jevReader = (
-	question: ServicingQuestionId,
-	version: QuestionsVersion = 1
-): Executor => ({
-	kind: 'line',
-	lineId: JEV_LINE_ID,
-	operation: JEV_OPERATION,
-	arguments: (_input, state) => servicingJevRequest(question, subjectOf(state), version)
-});
-
-/**
- * The Spark over its classifier line (`@craftabot/pack-dgx-spark`): the same
- * questions and the same answer shape as Jev, from a local LLM. The line is
- * content from another pack, named here by id alone, so it must be installed
- * (the harness's default packs carry it) for these configurations to run.
- */
-export const sparkReader = (
-	question: ServicingQuestionId,
-	version: QuestionsVersion = 1,
-	model: string = SPARK_MODEL
-): Executor => ({
-	kind: 'line',
-	lineId: SPARK_CLASSIFIER_LINE,
-	operation: 'system-one',
-	arguments: (_input, state) => servicingSparkRequest(question, subjectOf(state), version, model)
-});
-
-const READER_OUTPUT: JsonSchema = {
-	type: 'object',
-	required: ['model', 'answers'],
-	properties: { model: { type: 'string' }, answers: { type: 'object' } }
+const optionsFor = (question: ServicingQuestionId): string[] => [
+	...(question === 'category' ? CATEGORIES : SUPPORT_NEEDS)
+];
+const truthKey = {
+	category: ['category', 'category-'],
+	need: ['discloses', 'discloses-']
+} as const;
+const labelled = (question: ServicingQuestionId, truth: unknown): string | undefined => {
+	const [key, prefix] = truthKey[question];
+	const value = String(factsOf(truth)[key] ?? '').replace(prefix, '');
+	return optionsFor(question).includes(value) ? value : undefined;
 };
 
-// ── Gates ──────────────────────────────────────────────────────────────
-
-export const gateRuleId = (question: ServicingQuestionId, threshold: number | 'off') =>
-	`gate-${question}-${threshold === 'off' ? 'off' : threshold.toFixed(2)}`;
-
-function answerIn(input: unknown, question: ServicingQuestionId): JevChoiceAnswer | undefined {
-	const answer = (input as Partial<JevResponse> | undefined)?.answers?.[question];
-	return answer?.type === 'choice' ? answer : undefined;
+/** The questions a version asks at a judgment; v2's request carries the steer beside it. */
+function questionsFor(question: ServicingQuestionId, version: QuestionsVersion) {
+	if (version === 1)
+		return question === 'category' ? { category: CATEGORY_QUESTION } : { need: NEED_QUESTION };
+	return question === 'category'
+		? { category: CATEGORY_QUESTION_V2, steer: STEER_QUESTION }
+		: { need: NEED_QUESTION_V2 };
 }
 
-/** P(the caller steers the label) at or above which a gate hands the call to a person (`98-…` §11): the even split, fixed in advance. */
-export const STEER_THRESHOLD = 0.5;
-
-function steerIn(input: unknown): number | undefined {
-	const answer = (input as Partial<JevResponse> | undefined)?.answers?.['steer'];
-	return answer?.type === 'noul' ? answer.noul : undefined;
-}
-
-/**
- * The gate: act on the reader's answer when its confidence clears the
- * threshold, else route to a person. An answer outside the desk's own
- * options, or none at all, always goes to a person. A gate, but not
- * `gate-off`, also sends to a person a call whose reader says the caller
- * steered the label (the v2 questions' `steer`). v1's answers carry no
- * steer, so they gate exactly as before.
- */
-function gate(question: ServicingQuestionId, threshold: number): RuleFn {
-	const options: readonly string[] = question === 'category' ? CATEGORIES : SUPPORT_NEEDS;
-	return (input, state) => {
-		const answer = answerIn(input, question);
-		const picked = answer && options.includes(answer.choice) ? answer.choice : undefined;
-		const confidence = answer?.confidence ?? 0;
-		const steer = steerIn(input);
-		const steered = threshold > 0 && steer !== undefined && steer >= STEER_THRESHOLD;
-		if (picked === undefined || confidence < threshold || steered) {
-			return {
-				output: {
-					route: 'person',
-					...(picked ? { [question]: picked } : {}),
-					confidence,
-					...(steer !== undefined ? { steer } : {})
-				}
-			};
-		}
-		return {
-			output: {
-				route: 'auto',
-				[question]: picked,
-				confidence,
-				...(steer !== undefined ? { steer } : {})
-			},
-			call:
-				question === 'category'
-					? call('classify', { category: picked })
-					: call('record-support-need', { need: picked, words: subjectOf(state) })
-		};
+/** Who reads, with which questions, gated where: one configuration's executor at one judgment. */
+export function readerExecutor(
+	readerId: string,
+	question: ServicingQuestionId,
+	version: QuestionsVersion,
+	threshold: number | 'off'
+): ReaderExecutor {
+	const options = optionsFor(question);
+	const questions = questionsFor(question, version);
+	return {
+		kind: 'reader',
+		readerId,
+		questionSet: QUESTION_SETS[version],
+		subject: subjectOf,
+		questions: () => questions,
+		output: (answers) => {
+			const answer = answers[question];
+			return { [question]: answer?.type === 'choice' ? answer.choice : undefined };
+		},
+		...(threshold === 'off'
+			? {}
+			: {
+					gate: {
+						threshold,
+						else: {
+							kind: 'human' as const,
+							prompt: `The reader was not sure enough. Which ${question === 'category' ? 'request' : 'support need'} is this?`,
+							options
+						},
+						...('steer' in questions ? { steer: 'steer' } : {})
+					}
+				})
 	};
 }
 
-const GATE_OUTPUT = (question: ServicingQuestionId): JsonSchema => ({
-	type: 'object',
-	required: ['route'],
-	properties: {
-		route: { enum: ['auto', 'person'] },
-		[question]: { enum: [...(question === 'category' ? CATEGORIES : SUPPORT_NEEDS)] },
-		confidence: { type: 'number' },
-		steer: { type: 'number' }
-	}
-});
+const JUDGMENT_OUTPUT: JsonSchema = { type: 'object' };
 
 // ── The rules ──────────────────────────────────────────────────────────
 
+/** What was decided — the reader's answer, or a person's — performed on the desk. */
 const RULES: Record<string, RuleFn> = {
 	...(servicingWorkflow.rules ?? {}),
-	'regex-category': (_input, state) => ({
-		output: asAnswer('category', classificationOf(subjectOf(state)), CATEGORIES)
-	}),
-	'regex-need': (_input, state) => ({
-		output: asAnswer('need', needIn(subjectOf(state)), SUPPORT_NEEDS)
-	}),
 	'commit-category': (input) => {
-		const category = (input as { decision?: Category }).decision ?? 'disclosure';
+		const decided = input as { category?: Category; decision?: Category };
+		const category = decided.decision ?? decided.category ?? 'disclosure';
 		return { output: { category }, call: call('classify', { category }) };
 	},
 	'commit-need': (input, state) => {
-		const need = (input as { decision?: SupportNeed }).decision ?? 'none';
+		const decided = input as { need?: SupportNeed; decision?: SupportNeed };
+		const need = decided.decision ?? decided.need ?? 'none';
 		return {
 			output: { need },
-			call: call('record-support-need', { need, words: subjectOf(state) })
+			call: call('record-support-need', { need, words: subjectOf(input, state) })
 		};
 	}
 };
-for (const question of ['category', 'need'] as const) {
-	RULES[gateRuleId(question, 'off')] = gate(question, 0);
-	for (const threshold of GATE_THRESHOLDS)
-		RULES[gateRuleId(question, threshold)] = gate(question, threshold);
-}
 
 // ── The stages ─────────────────────────────────────────────────────────
 
@@ -243,15 +241,13 @@ const byRule = (id: string, ruleId = `${id}-v1`): StageSpec => ({
 const classify = servicingStage('classify');
 const record = servicingStage('record');
 
-/** Reader, gate, review and commit for one judgment, named after the stage it replaces. */
+/** The reader and its commit for one judgment, named after the stage it replaces. */
 function judgment(
 	question: ServicingQuestionId,
 	replaces: StageSpec,
 	after: StageSpec['next']
 ): StageSpec[] {
-	const options = [...(question === 'category' ? CATEGORIES : SUPPORT_NEEDS)];
-	const truthKey = question === 'category' ? 'category' : 'discloses';
-	const truthPrefix = question === 'category' ? 'category-' : 'discloses-';
+	const options = optionsFor(question);
 	const id = replaces.id;
 	return [
 		{
@@ -259,38 +255,21 @@ function judgment(
 			name: `${replaces.name} — read`,
 			...(replaces.obligations ? { obligations: replaces.obligations } : {}),
 			input: { type: 'object' },
-			output: READER_OUTPUT,
-			executor: rule(`regex-${question}`),
-			next: () => `${id}-gate`
-		},
-		{
-			id: `${id}-gate`,
-			name: `${replaces.name} — gate`,
-			input: READER_OUTPUT,
-			output: GATE_OUTPUT(question),
-			executor: rule(gateRuleId(question, 'off')),
-			next: (out, state, input) =>
-				(out as { route?: string }).route === 'person' ? `${id}-review` : after(out, state, input)
-		},
-		{
-			id: `${id}-review`,
-			name: `${replaces.name} — a person reviews`,
-			input: GATE_OUTPUT(question),
-			output: {
-				type: 'object',
-				required: ['decision'],
-				properties: { decision: { enum: options } }
+			output: JUDGMENT_OUTPUT,
+			// The bank's regex by default; a configuration swaps the reader.
+			executor: readerExecutor(
+				question === 'category' ? CATEGORY_READER_ID : SUPPORT_NEED_READER_ID,
+				question,
+				1,
+				'off'
+			),
+			// The person the gate hands an unsure call to answers from truth: always right (see the header).
+			suggest: (_input, _state, truth) => labelled(question, truth),
+			answerKey: (truth) => {
+				const label = labelled(question, truth);
+				return label ? { [question]: label } : undefined;
 			},
-			executor: {
-				kind: 'human',
-				prompt: `The reader was not sure enough. Which ${question === 'category' ? 'request' : 'support need'} is this?`,
-				options
-			},
-			// The scripted reviewer answers from truth: a person who is always right (see the header).
-			suggest: (_input, _state, truth) => {
-				const labelled = String(factsOf(truth)[truthKey] ?? '').replace(truthPrefix, '');
-				return options.includes(labelled as never) ? labelled : undefined;
-			},
+			mayGoTo: [`${id}-commit`],
 			next: () => `${id}-commit`
 		},
 		{
@@ -320,23 +299,26 @@ export const SERVICING_JEV_STAGES: StageSpec[] = [
 
 // ── The configurations ─────────────────────────────────────────────────
 
-/** The one thing each configuration varies: who reads (and with which questions), and where the gate sits. */
-type ReaderId = 'regex' | 'jev' | 'jev-q2' | 'spark' | 'spark-q2' | 'spark35' | 'spark35-q2';
+/** Who reads, and with which questions: the configurations' names, as the experiments name them. */
+type ReaderName =
+	'regex' | 'jev' | 'jev-q2' | 'spark' | 'spark-q2' | 'spark35' | 'spark35-q2' | 'llm-mock';
 
-function reads(reader: ReaderId, question: ServicingQuestionId): Executor {
-	if (reader === 'regex') return rule(question === 'category' ? 'regex-category' : 'regex-need');
+const READER_IDS: Record<string, { category: string; need: string }> = {
+	regex: { category: CATEGORY_READER_ID, need: SUPPORT_NEED_READER_ID },
+	jev: { category: JEV_READER_ID, need: JEV_READER_ID },
+	spark: { category: SPARK_122B_READER_ID, need: SPARK_122B_READER_ID },
+	spark35: { category: SPARK_35B_READER_ID, need: SPARK_35B_READER_ID },
+	// The keyword stand-in behind the LLM contract (`@craftabot/pack-readers-llm`, installed with this pack).
+	'llm-mock': { category: 'readers-llm/reader/mock', need: 'readers-llm/reader/mock' }
+};
+
+function configuration(reader: ReaderName, threshold: number | 'off'): WorkflowConfig {
 	const version: QuestionsVersion = reader.endsWith('-q2') ? 2 : 1;
-	if (reader.startsWith('spark35')) return sparkReader(question, version, SPARK_35B_MODEL);
-	return reader.startsWith('spark') ? sparkReader(question, version) : jevReader(question, version);
-}
-
-function configuration(reader: ReaderId, threshold: number | 'off'): WorkflowConfig {
+	const ids = READER_IDS[reader.replace(/-q2$/, '')]!;
 	return {
 		executors: {
-			classify: reads(reader, 'category'),
-			record: reads(reader, 'need'),
-			'classify-gate': rule(gateRuleId('category', threshold)),
-			'record-gate': rule(gateRuleId('need', threshold))
+			classify: readerExecutor(ids.category, 'category', version, threshold),
+			record: readerExecutor(ids.need, 'need', version, threshold)
 		}
 	};
 }
@@ -370,16 +352,16 @@ export const SERVICING_JEV_CONFIGURATIONS: Record<string, WorkflowConfig> = {
 				configuration(reader, threshold)
 			])
 		])
-	)
+	),
+	/** The keyword stand-in behind the LLM reader's contract (WP120): the path, not a model. */
+	'llm-mock': configuration('llm-mock', 'off'),
+	'llm-mock-gate-0.80': configuration('llm-mock', 0.8)
 };
 
-/** The decision a stage made, for the ceilings: the record's gate and commit answer for the servicing `record` stage; a hand to a person decides nothing. */
+/** The decision a stage made, for the ceilings: the record's commit answers for the servicing `record` stage; a reading decides nothing. */
 function decisionKind(stageId: string, output: unknown): string | undefined {
 	if (stageId === 'record' || stageId === 'classify') return undefined;
-	if (stageId === 'record-gate' || stageId === 'record-commit') {
-		if ((output as { route?: string } | undefined)?.route === 'person') return undefined;
-		return servicingDecisionKind('record', output);
-	}
+	if (stageId === 'record-commit') return servicingDecisionKind('record', output);
 	return servicingDecisionKind(stageId, output);
 }
 
@@ -391,7 +373,7 @@ export const servicingJevWorkflow = (
 	id: options.id ?? SERVICING_JEV_WORKFLOW_ID,
 	name: `Servicing, with a pluggable reader (Jev experiment${options.corpus ? `, ${options.corpus}` : ''})`,
 	purpose:
-		'The servicing journey with its two readings of the caller’s words — the request and the support need — made pluggable: the bank’s regex or Jev, with a confidence gate to a person.',
+		'The servicing journey with its two readings of the caller’s words — the request and the support need — made by a reader: the bank’s regex, Jev, the DGX Spark or the LLM contract’s stand-in, with a confidence gate to a person.',
 	stages: SERVICING_JEV_STAGES,
 	first: 'request',
 	rules: RULES,

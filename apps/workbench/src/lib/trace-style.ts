@@ -23,6 +23,8 @@ const LANES: Record<EventType, TraceLane> = {
 	'think.token': 'think',
 	'think.completed': 'think',
 	decision: 'think',
+	// A fault the fallible tier planted (WP115): beside the decision it corrupts.
+	'decision.fault': 'think',
 	'tool.executed': 'tool',
 	'action.performed': 'action',
 	'world.changed': 'action',
@@ -39,6 +41,8 @@ const LANES: Record<EventType, TraceLane> = {
 	'guardrail.external': 'guardrail',
 	'guardrail.checked': 'guardrail',
 	'guardrail.tripped': 'guardrail',
+	// What came back marked untrusted (WP124): a governance act, in the guardrail lane.
+	'content.marked': 'guardrail',
 	'approval.requested': 'guardrail',
 	'approval.resolved': 'guardrail',
 	// Something said to the bot is something it perceives, so it belongs in the
@@ -55,6 +59,8 @@ const LANES: Record<EventType, TraceLane> = {
 	// The stage boundary (WP79, `69-…` §6): a workflow's stage on an agent run's trace, in the run lane.
 	'stage.started': 'run',
 	'stage.completed': 'run',
+	// A reader's answer at a `reader` stage (WP117): part of the run's own stage story.
+	'reader.answered': 'run',
 	error: 'error'
 };
 
@@ -70,6 +76,7 @@ const LABELS: Record<EventType, string> = {
 	'think.token': 'Thinking…',
 	'think.completed': 'Finished thinking',
 	decision: 'Decided',
+	'decision.fault': 'A planted error',
 	'tool.executed': 'Used a tool',
 	'action.performed': 'Did something',
 	'world.changed': 'The world changed',
@@ -78,6 +85,7 @@ const LABELS: Record<EventType, string> = {
 	'guardrail.external': 'Guard asked',
 	'guardrail.checked': 'Safety check',
 	'guardrail.tripped': 'Safety rule stopped it',
+	'content.marked': 'Marked untrusted',
 	'approval.requested': 'Asked permission',
 	'approval.resolved': 'Permission answered',
 	'input.delivered': 'Somebody said something',
@@ -86,6 +94,7 @@ const LABELS: Record<EventType, string> = {
 	'group.finished': 'Group finished',
 	'stage.started': 'Stage started',
 	'stage.completed': 'Stage completed',
+	'reader.answered': 'A reader answered',
 	error: 'Something went wrong'
 };
 

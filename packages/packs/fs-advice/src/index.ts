@@ -1,3 +1,8 @@
+import { ADVICE_ADVERSARIAL_CORPUS } from './corpora/adversarial.js';
+import { GOALS_CORPUS } from './corpora/index.js';
+import { COMPLAINTS_CORPUS } from './complaints/corpora/index.js';
+import { COMPLAINT_WORDS_READER } from './complaints/words-reader.js';
+import { GOAL_READER } from './words-reader.js';
 import type { PackManifest } from '@craftabot/core';
 import { adviceControlMap } from './controls/rows.js';
 import { advicePolicyCards } from './cards/policy.js';
@@ -18,6 +23,8 @@ import { complaintsEvaluators } from './complaints/evaluators.js';
  * policy cards on v2 leaves, evaluators over the trace and the truth, a
  * campaign. No runtime, no brick kind, no tool, no schema.
  */
+import { adviceErrorModels } from './errors/error-models.js';
+
 export const FS_ADVICE_PACK_ID = 'fs-advice';
 
 import { ADVICE_BASELINE_ID, adviceBaseline, adviceStacks } from './campaign.js';
@@ -29,6 +36,7 @@ import {
 
 import { adviceWorkflow } from './workflow.js';
 import { complaintsWorkflow } from './complaints/workflow.js';
+import { COMPLAINTS_READERS } from './complaints/readers.js';
 
 export const fsAdvicePack: PackManifest = {
 	id: FS_ADVICE_PACK_ID,
@@ -59,9 +67,15 @@ export const fsAdvicePack: PackManifest = {
 	/** WP97 (`89-STACKS.md`): the two desks' guards as stacks. */
 	stacks: [...adviceStacks, ...complaintsStacks],
 	evaluators: [...adviceEvaluators, ...complaintsEvaluators],
+	// WP116: the fallible tier's error model for the recommendation.
+	errorModels: adviceErrorModels,
 	controlMaps: [adviceControlMap],
 	// The advice journey (WP85, `76-FRAUD-AND-ADVICE-WORKFLOWS.md` §4).
-	workflows: [adviceWorkflow, complaintsWorkflow]
+	workflows: [adviceWorkflow, complaintsWorkflow],
+	// WP117 (`104-READERS.md` §7): the complaints root cause as a rule reader.
+	readers: [...COMPLAINTS_READERS, COMPLAINT_WORDS_READER, GOAL_READER],
+	// WP121 (`105-CORPORA.md` §9): the desk's labelled corpus, blind-labelled and held out.
+	corpora: [COMPLAINTS_CORPUS, GOALS_CORPUS, ADVICE_ADVERSARIAL_CORPUS]
 };
 
 export default fsAdvicePack;
@@ -165,3 +179,25 @@ export {
 export * from './complaints/index.js';
 export { COMPLAINTS_POLICY_CARD_IDS, REDRESS_NEEDS_APPROVAL } from './cards/policy.js';
 export { COMPLAINTS_BASELINE_ID, complaintsBaseline } from './complaints/campaign.js';
+export { ADVICE_RECOMMENDATION_ERROR_MODEL_ID, adviceErrorModels } from './errors/error-models.js';
+export {
+	COMPLAINT_WORDS_QUESTION,
+	COMPLAINT_WORDS_QUESTION_SET_DIGEST,
+	COMPLAINT_WORDS_QUESTION_SET_ID,
+	COMPLAINT_WORDS_READER,
+	COMPLAINT_WORDS_READER_ID
+} from './complaints/words-reader.js';
+export {
+	GOAL_QUESTION,
+	GOAL_QUESTION_SET_DIGEST,
+	GOAL_QUESTION_SET_ID,
+	GOAL_READER,
+	GOAL_READER_ID
+} from './words-reader.js';
+export { COMPLAINTS_CORPUS, COMPLAINTS_CORPUS_ID } from './complaints/corpora/index.js';
+export { GOALS_CORPUS, GOALS_CORPUS_ID } from './corpora/index.js';
+export {
+	ADVICE_ADVERSARIAL_CORPUS,
+	ADVICE_ADVERSARIAL_CORPUS_ID,
+	ADVICE_ATTACK_SURFACES
+} from './corpora/adversarial.js';

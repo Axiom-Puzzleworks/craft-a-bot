@@ -1,0 +1,937 @@
+{
+	"id": "fs-servicing/corpus/requests-v1",
+	"name": "Servicing requests, v1",
+	"version": "1",
+	"stateKind": "caller-words",
+	"guide": "What callers say when they ring the servicing desk, each utterance labelled with the request it makes and the support need it discloses; frozen before Jev saw any of it, so q1 was not tuned against it. Tags: plain (the regex’s own wording), paraphrase, trap (the regex’s words in a sense it does not mean), mixed (a request with a need in passing). Synthetic English written by the product’s authors for the Jev experiment (98-JEV.md §8–§11): no person, number or place in it is real, and no row has a digit. It stands in for what callers say; it is not what they say. A sample of real calls, labelled by someone other than the product’s authors, is the missing test, and no figure measured on these rows replaces it.",
+	"labels": {
+		"category": {
+			"options": ["address", "card", "third-party", "disclosure", "bereavement"],
+			"guide": "address — change the address held on the caller’s own account, because they have moved or are moving home. card — replace or stop a bank card that is lost, stolen, damaged, expired or not working. third-party — let another living person access, manage or act on the caller’s account. bereavement — deal with the account of someone who has died. disclosure — none of the above: the caller only tells the bank about their circumstances."
+		},
+		"need": {
+			"options": ["job-loss", "bereavement", "health", "none"],
+			"guide": "A need the caller discloses about themselves or someone close: job-loss (lost their job or income from work), bereavement (someone close has died), health (a physical or mental condition, illness, injury, disability or treatment), else none."
+		}
+	},
+	"rows": [
+		{
+			"id": "a01",
+			"state": "I have moved house and need the address on my account changed.",
+			"tags": ["plain"],
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "a02",
+			"state": "Please update my address, I've moved to a new flat.",
+			"tags": ["plain"],
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "a03",
+			"state": "Can you change the postcode on my account? I moved last week.",
+			"tags": ["plain"],
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "a04",
+			"state": "I need to update my home address please.",
+			"tags": ["plain"],
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "a05",
+			"state": "I've relocated to the other side of the city and want my statements going to the right place.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "a06",
+			"state": "We've just bought our first home, so letters should go there from now on.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "a07",
+			"state": "I don't live at the old place any more; can you point the account to where I'm living now?",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "a08",
+			"state": "I'm emigrating at the end of the month and the bank needs to know where I'll be living.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "a09",
+			"state": "Change of residence: I'm now living with my sister in the next town.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "a10",
+			"state": "Could you update where you send my correspondence? I've been somewhere new since the spring.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "a11",
+			"state": "Just letting you know my home's changed; I'm in the village now, not the town.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "a12",
+			"state": "Where do I tell you that I live somewhere different now?",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "a13",
+			"state": "I've moved onto a new estate and need my details updated.",
+			"tags": ["trap"],
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "a14",
+			"state": "I can't access my post at the old house since I moved, so please update it.",
+			"tags": ["trap"],
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "a15",
+			"state": "My phone died so I couldn't ring sooner — I've moved and need my address updated.",
+			"tags": ["trap"],
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "a16",
+			"state": "My card statements keep going to my old address; I moved out in the summer.",
+			"tags": ["trap"],
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "a17",
+			"state": "The previous owner of my new house passed away, and I have moved in — please update my address.",
+			"tags": ["trap"],
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "a18",
+			"state": "My old job was at the hospital; I have moved house for a new one and need my address changed.",
+			"tags": ["trap"],
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "a19",
+			"state": "I've had to move into sheltered housing after my stroke, so please change my address.",
+			"tags": ["mixed"],
+			"labels": {
+				"category": "address",
+				"need": "health"
+			}
+		},
+		{
+			"id": "a20",
+			"state": "I lost my job so I have moved back in with my parents — can you change my address?",
+			"tags": ["mixed"],
+			"labels": {
+				"category": "address",
+				"need": "job-loss"
+			}
+		},
+		{
+			"id": "a21",
+			"state": "After being let go from the factory I couldn't afford the rent, so I'm somewhere cheaper now. New address please.",
+			"tags": ["mixed"],
+			"labels": {
+				"category": "address",
+				"need": "job-loss"
+			}
+		},
+		{
+			"id": "a22",
+			"state": "Since Mum passed I've moved into her house, so my address needs changing.",
+			"tags": ["mixed"],
+			"labels": {
+				"category": "address",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "a23",
+			"state": "I'm moving nearer the hospital for my dialysis, so I need my address updated.",
+			"tags": ["mixed"],
+			"labels": {
+				"category": "address",
+				"need": "health"
+			}
+		},
+		{
+			"id": "a24",
+			"state": "Our family has just settled into a bigger place across town — please update our details.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "c01",
+			"state": "My card has been lost and I need a new one.",
+			"tags": ["plain"],
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "c02",
+			"state": "My debit card was stolen yesterday.",
+			"tags": ["plain"],
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "c03",
+			"state": "The chip on my card has stopped working, can I get a replacement?",
+			"tags": ["plain"],
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "c04",
+			"state": "Please send me a replacement card.",
+			"tags": ["plain"],
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "c05",
+			"state": "I was mugged and they took my bank card.",
+			"tags": ["plain"],
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "c06",
+			"state": "Someone pinched my wallet on the train and I need to stop the plastic and get it replaced.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "c07",
+			"state": "The cash machine swallowed it this morning and wouldn't give it back — I need a replacement to pay for things.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "c08",
+			"state": "My debit's snapped clean in half, can you send another?",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "c09",
+			"state": "I've mislaid my contactless and need a new one sent out.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "c10",
+			"state": "The magnetic strip's worn out and shops keep declining me. I need a fresh one.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "c11",
+			"state": "Somebody has been using my debit at petrol stations; I still have it but I want it stopped and replaced.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "c12",
+			"state": "My purse was nicked at the market with my bank stuff in it and I need to stop the one for this account.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "c13",
+			"state": "My card died — it just won't tap any more. Can you send a new one?",
+			"tags": ["trap"],
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "c14",
+			"state": "I can't access my money because my card's been cancelled — I need a new one.",
+			"tags": ["trap"],
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "c15",
+			"state": "The replacement went to the address I moved from, so it has never arrived — please send another card.",
+			"tags": ["trap"],
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "c16",
+			"state": "I'm in hospital and my card's gone missing from the ward — can you replace it?",
+			"tags": ["mixed"],
+			"labels": {
+				"category": "card",
+				"need": "health"
+			}
+		},
+		{
+			"id": "c17",
+			"state": "With my dementia I keep losing things, and now my card has gone. Please send a new one.",
+			"tags": ["mixed"],
+			"labels": {
+				"category": "card",
+				"need": "health"
+			}
+		},
+		{
+			"id": "c18",
+			"state": "I've been made redundant and in all the upheaval my card has gone missing.",
+			"tags": ["mixed"],
+			"labels": {
+				"category": "card",
+				"need": "job-loss"
+			}
+		},
+		{
+			"id": "c19",
+			"state": "My hands shake too much since the Parkinson's to use the chip and pin — can I get a card I can tap?",
+			"tags": ["mixed"],
+			"labels": {
+				"category": "card",
+				"need": "health"
+			}
+		},
+		{
+			"id": "c20",
+			"state": "The dog chewed my bank card to bits. How do I get another?",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "t01",
+			"state": "I would like my daughter to have access to the account on my behalf.",
+			"tags": ["plain"],
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "t02",
+			"state": "I have power of attorney for my father and need to be added to his account.",
+			"tags": ["plain"],
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "t03",
+			"state": "Can my son manage the account on my behalf?",
+			"tags": ["plain"],
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "t04",
+			"state": "I'd like to add a third party to my account.",
+			"tags": ["plain"],
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "t05",
+			"state": "Could my husband be allowed to deal with the bank for me when I am away?",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "t06",
+			"state": "I want to give my brother authority to talk to you about my account.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "t07",
+			"state": "I'd like my accountant to be able to see my statements.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "t08",
+			"state": "Please set my daughter up as someone who can act for me on the account.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "t09",
+			"state": "Can you register my son as a trusted person who can phone you for me?",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "t10",
+			"state": "I want my daughter to be able to do my banking — the card and everything.",
+			"tags": ["trap"],
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "t11",
+			"state": "My late husband's brother wants to help me with my account; can he be added?",
+			"tags": ["trap"],
+			"labels": {
+				"category": "third-party",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "t12",
+			"state": "I have moved my mother in with me and now look after her money — please add me to her account.",
+			"tags": ["trap"],
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "t13",
+			"state": "Since my diagnosis I would like my wife to be able to handle the account on my behalf.",
+			"tags": ["mixed"],
+			"labels": {
+				"category": "third-party",
+				"need": "health"
+			}
+		},
+		{
+			"id": "t14",
+			"state": "I'm going in for chemotherapy and want my sister to be able to run things for me while I'm poorly.",
+			"tags": ["mixed"],
+			"labels": {
+				"category": "third-party",
+				"need": "health"
+			}
+		},
+		{
+			"id": "t15",
+			"state": "My eyesight's going and I'd like my niece to be able to sort out my banking for me.",
+			"tags": ["mixed"],
+			"labels": {
+				"category": "third-party",
+				"need": "health"
+			}
+		},
+		{
+			"id": "t16",
+			"state": "My neighbour helps me with paperwork; can she speak to you about my account?",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "b01",
+			"state": "My mother passed away last month; I am calling about her account.",
+			"tags": ["plain"],
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "b02",
+			"state": "My father died and I'm the executor of his estate.",
+			"tags": ["plain"],
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "b03",
+			"state": "I'm calling about my late husband's account.",
+			"tags": ["plain"],
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "b04",
+			"state": "The account holder is deceased and I am handling probate.",
+			"tags": ["plain"],
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "b05",
+			"state": "We lost Dad in March and I need to sort out what happens to his savings.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "b06",
+			"state": "My wife is no longer with us and I don't know what to do about her account.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "b07",
+			"state": "I'm dealing with my grandmother's affairs now that she's gone.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "b08",
+			"state": "My brother was killed in an accident and I'm handling his accounts.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "b09",
+			"state": "Following the death of my partner, I need to close her account.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "b10",
+			"state": "Mum's funeral was last week; the solicitor told me to ring you about her current account.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "b11",
+			"state": "I'm the administrator for my uncle's affairs after he passed.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "b12",
+			"state": "I'm newly widowed and our joint account needs sorting out.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "b13",
+			"state": "I need to let you know my aunt has sadly died and I am her next of kin.",
+			"tags": ["plain"],
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "b14",
+			"state": "Dad lost his fight with cancer on Sunday. What do I need to do about his bank account?",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "b15",
+			"state": "My mother died, and her card is still active — please close her account.",
+			"tags": ["trap"],
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "d01",
+			"state": "I wanted to let you know that I lost my job last month and I am behind on the loan.",
+			"tags": ["plain"],
+			"labels": {
+				"category": "disclosure",
+				"need": "job-loss"
+			}
+		},
+		{
+			"id": "d02",
+			"state": "I've been made redundant and wanted you to know.",
+			"tags": ["plain"],
+			"labels": {
+				"category": "disclosure",
+				"need": "job-loss"
+			}
+		},
+		{
+			"id": "d03",
+			"state": "I was laid off yesterday.",
+			"tags": ["plain"],
+			"labels": {
+				"category": "disclosure",
+				"need": "job-loss"
+			}
+		},
+		{
+			"id": "d04",
+			"state": "My contract wasn't renewed and money is going to be tight for a while.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "disclosure",
+				"need": "job-loss"
+			}
+		},
+		{
+			"id": "d05",
+			"state": "The shop I worked at closed down, so I've no wages coming in.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "disclosure",
+				"need": "job-loss"
+			}
+		},
+		{
+			"id": "d06",
+			"state": "I've been let go and I'm worried about my payments.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "disclosure",
+				"need": "job-loss"
+			}
+		},
+		{
+			"id": "d07",
+			"state": "I've lost my income since my business went under.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "disclosure",
+				"need": "job-loss"
+			}
+		},
+		{
+			"id": "d08",
+			"state": "Work's dried up completely since the site closed and I'm falling behind.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "disclosure",
+				"need": "job-loss"
+			}
+		},
+		{
+			"id": "d09",
+			"state": "I've been diagnosed with a heart condition and may struggle to get to the branch.",
+			"tags": ["plain"],
+			"labels": {
+				"category": "disclosure",
+				"need": "health"
+			}
+		},
+		{
+			"id": "d10",
+			"state": "I'm going through treatment for cancer and some days I can't manage phone calls.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "disclosure",
+				"need": "health"
+			}
+		},
+		{
+			"id": "d11",
+			"state": "I've got really bad anxiety and phone calls are hard, please write to me instead.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "disclosure",
+				"need": "health"
+			}
+		},
+		{
+			"id": "d12",
+			"state": "I'm registered blind, so letters in normal print are no good to me.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "disclosure",
+				"need": "health"
+			}
+		},
+		{
+			"id": "d13",
+			"state": "Just so you're aware, I'm recovering from a breakdown and might need things explained slowly.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "disclosure",
+				"need": "health"
+			}
+		},
+		{
+			"id": "d14",
+			"state": "I had a stroke over the summer and my memory is not what it was.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "disclosure",
+				"need": "health"
+			}
+		},
+		{
+			"id": "d15",
+			"state": "I'm pregnant and I've been signed off sick with complications.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "disclosure",
+				"need": "health"
+			}
+		},
+		{
+			"id": "d16",
+			"state": "My husband died recently and I'm finding it hard to cope with the bills.",
+			"tags": ["trap"],
+			"labels": {
+				"category": "disclosure",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "d17",
+			"state": "I'm ill with worry about my overdraft and wanted to talk to someone.",
+			"tags": ["trap"],
+			"labels": {
+				"category": "disclosure",
+				"need": "none"
+			}
+		},
+		{
+			"id": "d18",
+			"state": "My health is fine, I just wanted to tell you I might be a few days late with a payment.",
+			"tags": ["trap"],
+			"labels": {
+				"category": "disclosure",
+				"need": "none"
+			}
+		},
+		{
+			"id": "d19",
+			"state": "We lost our baby last month and I just need you to know things might slip for a while.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "disclosure",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "d20",
+			"state": "I was sacked on Friday, so I thought you should know money will be tight.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"category": "disclosure",
+				"need": "job-loss"
+			}
+		}
+	],
+	"questions": {
+		"id": "typesafe/questions/servicing-q1",
+		"digest": "505749c5abe3135d1c3f8b77968160d3870a542a042f5d5d03b08cd496d98e9f"
+	},
+	"annotators": [
+		{
+			"id": "author",
+			"blind": false,
+			"primary": true
+		},
+		{
+			"id": "second-labeller",
+			"blind": true,
+			"kappa": {
+				"category": 1,
+				"need": 1
+			},
+			"note": "The same model as the corpus’s authoring pass (WP121), labelling blind from the guide and the words alone, on shuffled rows with opaque ids."
+		},
+		{
+			"id": "third-labeller",
+			"blind": true,
+			"kappa": {
+				"category": 1,
+				"need": 0.9681
+			},
+			"note": "Another, smaller model (WP121), labelling blind from the guide and the words alone, on shuffled rows with opaque ids."
+		}
+	],
+	"heldOut": false,
+	"seenBy": [
+		{
+			"readerId": "typesafe/reader/jev",
+			"questions": "typesafe/questions/servicing-q1",
+			"on": "2026-09-28"
+		},
+		{
+			"readerId": "typesafe/reader/jev",
+			"questions": "typesafe/questions/servicing-q2",
+			"on": "2026-09-28"
+		},
+		{
+			"readerId": "dgx-spark/reader/spark-122b",
+			"questions": "typesafe/questions/servicing-q1",
+			"on": "2026-09-28"
+		},
+		{
+			"readerId": "dgx-spark/reader/spark-122b",
+			"questions": "typesafe/questions/servicing-q2",
+			"on": "2026-09-28"
+		},
+		{
+			"readerId": "dgx-spark/reader/spark-35b",
+			"questions": "typesafe/questions/servicing-q1",
+			"on": "2026-09-28"
+		},
+		{
+			"readerId": "dgx-spark/reader/spark-35b",
+			"questions": "typesafe/questions/servicing-q2",
+			"on": "2026-09-28"
+		}
+	],
+	"digest": "6b190e85aaf4429d2f12520b8ce343c6c8bf48eebab5ff357f6805e6c4177ee6"
+}

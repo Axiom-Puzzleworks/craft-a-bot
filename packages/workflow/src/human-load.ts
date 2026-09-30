@@ -27,6 +27,20 @@ export interface TouchedCase {
 	id: string;
 	touches: Touch[];
 	decisions?: Array<{ kind: string; level: 1 | 2 | 3 | 4 | 5 }>;
+	/**
+	 * The reviewer model's answers (WP115, `103-…` §6), one per human stage it
+	 * answered: the seconds it took, whether it was right, whether it took what
+	 * the case recommended, and — when the recommendation was wrong — whether
+	 * it caught it. Absent when the configuration named no reviewer.
+	 */
+	reviews?: Array<{
+		stageId: string;
+		seconds: number;
+		correct: boolean;
+		followed: boolean;
+		/** Present only when the case recommended something wrong: true when the person answered right anyway. */
+		caught?: boolean;
+	}>;
 }
 
 export function touchedCaseOf(
@@ -36,24 +50,44 @@ export function touchedCaseOf(
 	const level = run.config.autonomy?.level ?? 1;
 	const touches: Touch[] = [];
 	const decisions: TouchedCase['decisions'] = [];
+	const reviews: NonNullable<TouchedCase['reviews']> = [];
 	for (const stage of run.stages) {
 		for (const kind of touchesOf(stage)) touches.push({ kind });
 		const decision = decisionKindOf?.(stage.stageId, stage.output.value);
 		if (decision !== undefined) decisions.push({ kind: decision, level });
+		const by = stage.by;
+		if (by) {
+			const wrongPut = by.recommended !== undefined && by.recommended !== by.shouldHave;
+			reviews.push({
+				stageId: stage.stageId,
+				seconds: by.seconds,
+				correct: by.correct,
+				followed: by.followed,
+				...(wrongPut ? { caught: by.correct } : {})
+			});
+		}
 	}
-	return { id: run.id, touches, ...(decisions.length > 0 ? { decisions } : {}) };
+	return {
+		id: run.id,
+		touches,
+		...(decisions.length > 0 ? { decisions } : {}),
+		...(reviews.length > 0 ? { reviews } : {})
+	};
 }
 
 export function touchesOf(stage: StageRecord): string[] {
 	const kinds: string[] = [];
-	if (stage.executor.kind === 'human' && stage.status !== 'error')
-		kinds.push(`human:${stage.stageId}`);
+	// A reader stage its gate handed to a person is that person's review (WP120, `104-READERS.md` §10.4): one touch.
+	const byPerson =
+		stage.executor.kind === 'human' ||
+		(stage.executor.kind === 'reader' &&
+			stage.reader?.gated === true &&
+			stage.executor.gate?.else.kind === 'human');
+	if (byPerson && stage.status !== 'error') kinds.push(`human:${stage.stageId}`);
 	// A person's answer is one touch whatever it was (WP111, `98-JEV.md` §9 finding 3): a
 	// `human` stage answered with other than its first option is `escalated` by the
 	// runtime, and counting that too counted one review twice.
-	if (stage.status === 'escalated' && stage.executor.kind !== 'human')
-		kinds.push(`escalated:${stage.stageId}`);
-	if (stage.approval?.by !== undefined && stage.executor.kind !== 'human')
-		kinds.push(`approved-by:${stage.stageId}`);
+	if (stage.status === 'escalated' && !byPerson) kinds.push(`escalated:${stage.stageId}`);
+	if (stage.approval?.by !== undefined && !byPerson) kinds.push(`approved-by:${stage.stageId}`);
 	return kinds;
 }

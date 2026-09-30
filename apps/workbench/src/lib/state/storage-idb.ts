@@ -16,6 +16,9 @@ import {
 	type StoredCampaignReport,
 	type StoredEvent,
 	byNewestExperimentResult,
+	byNewestBenchmarkReport,
+	safeParseBenchmarkReport,
+	type BenchmarkReport,
 	byNewestWorkflowRun,
 	safeParseExperimentResult,
 	type ExperimentResult,
@@ -43,7 +46,7 @@ import {
  */
 
 export const DATABASE_NAME = 'craftabot';
-export const DATABASE_VERSION = 8;
+export const DATABASE_VERSION = 9;
 
 interface CraftABotDB extends DBSchema {
 	agents: { key: string; value: AgentRecord };
@@ -56,6 +59,7 @@ interface CraftABotDB extends DBSchema {
 	content: { key: string; value: ContentRecord; indexes: { kind: string } };
 	workflowRuns: { key: string; value: StoredWorkflowRun };
 	experimentResults: { key: string; value: ExperimentResult };
+	benchmarkReports: { key: string; value: BenchmarkReport };
 }
 
 export interface IdbStorage extends Storage {
@@ -114,6 +118,10 @@ function upgrade(db: IDBPDatabase<CraftABotDB>, oldVersion: number): void {
 	// Experiment results (WP89, `72-EXPERIMENTS.md` §4) — one per result id.
 	if (oldVersion < 8) {
 		db.createObjectStore('experimentResults', { keyPath: 'id' });
+	}
+	// Benchmark reports (WP123, `106-BENCHMARK.md` §6) — one per report id.
+	if (oldVersion < 9) {
+		db.createObjectStore('benchmarkReports', { keyPath: 'id' });
 	}
 }
 
@@ -319,6 +327,23 @@ export async function createIdbStorage(name = DATABASE_NAME): Promise<IdbStorage
 			await db.delete('experimentResults', id);
 		},
 
+		async putBenchmarkReport(report) {
+			const parsed = safeParseBenchmarkReport(report);
+			if (!parsed.success) {
+				throw new Error(`Refusing to store an invalid benchmark report: ${parsed.error.message}`);
+			}
+			await db.put('benchmarkReports', report);
+		},
+		async getBenchmarkReport(id) {
+			return db.get('benchmarkReports', id);
+		},
+		async listBenchmarkReports() {
+			return (await db.getAll('benchmarkReports')).sort(byNewestBenchmarkReport);
+		},
+		async deleteBenchmarkReport(id) {
+			await db.delete('benchmarkReports', id);
+		},
+
 		async clear() {
 			await db.clear('agents');
 			await db.clear('runs');
@@ -330,6 +355,7 @@ export async function createIdbStorage(name = DATABASE_NAME): Promise<IdbStorage
 			await db.clear('content');
 			await db.clear('workflowRuns');
 			await db.clear('experimentResults');
+			await db.clear('benchmarkReports');
 		}
 	};
 }

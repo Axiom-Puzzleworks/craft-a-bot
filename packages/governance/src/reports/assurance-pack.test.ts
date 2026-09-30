@@ -13,7 +13,7 @@ import {
 	type RunRecord,
 	type RunSummary
 } from '@craftabot/core';
-import { makeExperimentResult } from '@craftabot/core/testing';
+import { makeBenchmarkReport, makeExperimentResult } from '@craftabot/core/testing';
 import { describe, expect, it } from 'vitest';
 import {
 	ASSURANCE_POSTURE,
@@ -655,5 +655,105 @@ describe('control-row reviews (WP110, GAP-1)', () => {
 		expect(renderAssurancePackHtml(pack)).toContain(
 			'<span class="disputed">disputed</span> by Sam (2026-09-13)'
 		);
+	});
+	it('reads a review of a control row and the control-review alias from the store, the later winning (WP129)', async () => {
+		const storage = createMemoryStorage();
+		await storage.putAgent({
+			id: AGENT_ID,
+			spec,
+			lastValidation: [],
+			createdAt: NOW(),
+			updatedAt: NOW(),
+			schemaVersion: 2
+		});
+		const [first, second] = map.rows;
+		const save = (kind: 'review' | 'control-review', id: string, record: unknown) =>
+			storage.putContent({
+				id,
+				kind,
+				title: id,
+				record: { ...(record as object), id },
+				savedAt: NOW(),
+				schemaVersion: 1
+			});
+		// The first row: an old control-review disputes it; a later review accepts it.
+		await save('control-review', 'local/reviews/old-first', {
+			id: 'old',
+			mapId: map.id,
+			ref: first!.ref,
+			status: 'disputed',
+			by: 'Sam',
+			note: 'No.',
+			reviewedAt: '2026-09-13T10:00:00.000Z',
+			schemaVersion: 1
+		});
+		await save('review', 'local/reviews/new-first', {
+			id: 'new',
+			subject: { kind: 'control-row', id: `${map.id}#${first!.ref}` },
+			verdict: 'amended',
+			amendment: { field: 'obligation', value: 'Clearer words.' },
+			by: { kind: 'person', id: 'andrew', name: 'Andrew' },
+			on: '2026-09-30T10:00:00.000Z',
+			schemaVersion: 1
+		});
+		// The second row: the alias alone.
+		await save('control-review', 'local/reviews/second', {
+			id: 'second',
+			mapId: map.id,
+			ref: second!.ref,
+			status: 'reviewed',
+			by: 'Sam',
+			note: '',
+			reviewedAt: '2026-09-13T10:00:00.000Z',
+			schemaVersion: 1
+		});
+		const pack = await assurancePackFromStorage(AGENT_ID, storage, registryWith(), { now: NOW });
+		const rows = pack.controlMaps.find((entry) => entry.id === map.id)!.rows;
+		expect(rows.find((row) => row.ref === first!.ref)?.review).toEqual({
+			status: 'reviewed',
+			by: 'Andrew',
+			note: '',
+			reviewedAt: '2026-09-30T10:00:00.000Z'
+		});
+		expect(rows.find((row) => row.ref === second!.ref)?.review).toMatchObject({
+			status: 'reviewed',
+			by: 'Sam'
+		});
+	});
+});
+
+/** WP123 (`106-BENCHMARK.md` §6): *Coverage* names what a benchmark measured, only when the pack is given reports. */
+describe('the pack’s coverage, measured', () => {
+	it('says what was measured, and that every other guard is unmeasured', async () => {
+		const base = makeBenchmarkReport({ ranAt: '2026-09-20T10:00:00.000Z' });
+		const lakera = {
+			...base.subjects[0]!,
+			id: 'lakera-guard/guard',
+			kind: 'service' as const,
+			name: 'Lakera Guard',
+			componentId: 'lakera-guard/guard',
+			mode: 'cassette' as const,
+			recall: { value: 0.6, interval: [0.5, 0.7] as [number, number] }
+		};
+		const pack = await assurancePackFor({
+			agent: { id: AGENT_ID, name: 'Bolt', spec },
+			registry: registryWith(),
+			runs: [],
+			summaries: new Map(),
+			evaluations: [],
+			campaignReports: [],
+			benchmarkReports: [
+				makeBenchmarkReport({ ranAt: '2026-09-20T10:00:00.000Z', subjects: [lakera] })
+			],
+			now: NOW
+		});
+		const line = renderAssurancePackMarkdown(pack)
+			.split('\n')
+			.find((each) => each.startsWith('- Measured on a benchmark'));
+		expect(line).toMatch(
+			/^- Measured on a benchmark \(synthetic rows\): .+ by `lakera-guard\/guard` — recall 60%, precision 100% \(`bank-adversarial`, 2026-09-20\); every other guard reads \*unmeasured\*\.$/
+		);
+		expect(renderAssurancePackHtml(pack)).toContain('Measured on a benchmark (synthetic rows)');
+		expect(renderAssurancePackMarkdown(await emptyPack())).not.toContain('Measured on a benchmark');
 	});
 });

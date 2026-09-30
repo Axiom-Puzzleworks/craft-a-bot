@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { createServer } from 'node:http';
 import { existsSync, readFileSync, statSync } from 'node:fs';
-import { dirname, extname, join, normalize } from 'node:path';
+import { dirname, extname, join, normalize, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 /**
@@ -24,7 +24,8 @@ const flag = (name, fallback) => {
 	return at === -1 ? fallback : args[at + 1];
 };
 const PORT = Number(flag('port', '4173'));
-const ROOT = join(REPO, flag('root', 'apps/workbench/build'));
+// A relative --root is the repo's; an absolute one (an unpacked release archive, WP130) is taken as it is.
+const ROOT = resolve(REPO, flag('root', 'apps/workbench/build'));
 const SECTIONS = ['simulator', 'workshop', 'playground'];
 
 const TYPES = {

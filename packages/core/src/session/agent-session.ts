@@ -45,6 +45,7 @@ import { createMemory, type TickMemory } from './memory.js';
 import { EgressRefusedError, createEgressGuard } from '../egress.js';
 import { describeFittedBricks, estimateTokens } from './prompt.js';
 import { resolveStrategies } from './strategies.js';
+import { goalDialFor, worldConfigFor } from './world-config.js';
 
 /**
  * The engine's heart (02-AGENT-MODEL.md §5): one tick = sense → compose →
@@ -124,6 +125,9 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 	const principal = options.principal;
 
 	const goalCard = requireGoalCard(registry.getGoalCard(spec.goalCardId), spec.goalCardId);
+	/** The card's dial as it stands for this run (WP131): the player's setting, clamped, or the default. */
+	const dialSetting = 'goalDial' in spec ? spec.goalDial : undefined;
+	const goalDial = goalDialFor(goalCard, dialSetting);
 	/*
 	 * A host-supplied world is used exactly as given (WP29, `23-…` §4.5) — the
 	 * seam `SessionGroup` will pass an agent-bound facade through. Absent, the
@@ -262,7 +266,9 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		declaredReason: undefined as string | undefined,
 		/** Things the agent should be told next turn: world refusals, guardrail denials. */
 		feedback: (fork ? [...fork.feedback] : []) as string[],
-		inFlight: undefined as AbortController | undefined
+		inFlight: undefined as AbortController | undefined,
+		/** What `post-act` marked untrusted so far (WP124, `106-…` §8.2): what taint reads. Not refolded by a fork. */
+		untrusted: [] as Array<{ tick: number; source: string; text: string }>
 	};
 
 	function emit<T extends EventType>(type: T, payload: PayloadFor<T>): void {
@@ -301,7 +307,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			);
 		}
 		// The session's own seeded stream, so a generated layout varies and replays by seed (WP53).
-		return definition.create(card.layoutId, { random });
+		return definition.create(card.layoutId, { random, ...worldConfigFor(card, dialSetting) });
 	}
 
 	function resolveTools(offeredIds: readonly string[]) {
@@ -420,7 +426,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 	 * `tick.started`, filled as SENSE, COMPOSE and THINK happen. Spread into
 	 * every context of the tick so a hook sees exactly what exists by then.
 	 */
-	let inHand: Pick<GuardrailContext, 'observation' | 'messages' | 'response'> = {};
+	let inHand: Pick<GuardrailContext, 'observation' | 'messages' | 'response' | 'result'> = {};
 
 	function guardrailContext(
 		hook: GuardrailHook,
@@ -449,7 +455,9 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			 * live and grows underneath.
 			 */
 			history,
-			...(proposed ? { proposed } : {})
+			...(proposed ? { proposed } : {}),
+			// Present once anything is marked (WP124), so every earlier context is unchanged.
+			...(run.untrusted.length > 0 ? { untrusted: run.untrusted } : {})
 		};
 	}
 
@@ -900,6 +908,19 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 				call: decision.kind === 'call' ? { ...decision.call } : null,
 				source: 'brain'
 			});
+			// A fault the fallible tier planted (WP115): said beside the decision it corrupts.
+			if (response.fault && decision.kind === 'call') {
+				emit('decision.fault', {
+					action: decision.call.name,
+					field: response.fault.field,
+					chose: response.fault.chose,
+					shouldHave: response.fault.shouldHave,
+					planted: true,
+					...(response.fault.errorModel !== undefined
+						? { errorModel: response.fault.errorModel }
+						: {})
+				});
+			}
 		}
 
 		// 6. GUARD (pre-act) + 7. ACT
@@ -1018,7 +1039,28 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		 * registration, because by this point the action has already happened
 		 * and a rule claiming to block it would be lying to the trace.
 		 */
+		// What the call answered, in hand for the outcome monitors (WP124, `106-…` §8.1).
+		if (acted && decision.kind === 'call') {
+			inHand = {
+				...inHand,
+				result: { name: decision.call.name, text: acted.result, ok: acted.ok }
+			};
+		}
 		const postAct = await runGuards('post-act');
+		// A mark (WP124, §8.1): the result is untrusted from here on — wrapped in the prompt,
+		// read by taint, and, from a quarantined reader, replaced by its answers. The record is
+		// the one `remember` holds, so the window sees it.
+		if (postAct.mark && acted && record.result !== undefined) {
+			run.untrusted.push({ tick: run.tick, source: postAct.mark.source, text: record.result });
+			record.provenance = 'untrusted';
+			record.source = postAct.mark.source;
+			if (postAct.mark.replacement !== undefined) record.result = postAct.mark.replacement;
+			emit('content.marked', {
+				source: postAct.mark.source,
+				guardrailId: postAct.mark.guardrailId,
+				quarantined: postAct.mark.replacement !== undefined
+			});
+		}
 		if (!isAllowed(postAct.verdict)) {
 			rejectMeaninglessPostAct(postAct);
 			emit('tick.completed', { outcome: 'STOPPED_BY_GUARDRAIL' });
@@ -1114,6 +1156,7 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			cartridgeId: brain?.cartridgeId ?? '',
 			// Who is running this (WP65): only when the host named one, so a trace written before keeps its bytes.
 			...(principal ? { principal } : {}),
+			...(goalDial ? { goalDial } : {}),
 			...(fork ? { forkedFrom: fork.forkedFrom } : {}),
 			// Written only when the host named a mode (WP41): the guard runs
 			// either way, but a trace written before the field existed — the

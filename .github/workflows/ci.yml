@@ -4,6 +4,16 @@ on:
   push:
     branches: [main, day7]
   pull_request:
+  # The Linux baselines (WP131's follow-up): run by hand with update_snapshots on,
+  # the visual job rewrites every Linux screenshot that differs and uploads them in
+  # its artefact, to be reviewed and committed. The committed baselines are CI's own
+  # rendering; a container's fonts differ (`101-…` §8, WP130).
+  workflow_dispatch:
+    inputs:
+      update_snapshots:
+        description: 'Rewrite the Linux visual baselines and upload them'
+        type: boolean
+        default: false
 
 jobs:
   build:
@@ -26,6 +36,9 @@ jobs:
 
       # The governance tarball is the library and nothing else (WP50, `38-…` §4.1).
       - run: node scripts/check-governance-pack.mjs
+
+      # 1.0.0 installs from its tarball (WP126): core, metrics and governance packed, installed into the example, the readers importable.
+      - run: node scripts/check-governance-install.mjs
 
       # The Python reader over a bundle (WP73, `62-THE-TAIL.md` §4.4) — the script skips itself when no python3 is present.
       - run: npm run example:python
@@ -57,7 +70,8 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      - run: npm run e2e:visual
+      # Straight at the workspace, so --update-snapshots reaches Playwright rather than npm.
+      - run: npm run e2e:visual --workspace=apps/workbench ${{ inputs.update_snapshots && '-- --update-snapshots' || '' }}
 
       - name: Upload the screenshots and the diffs
         if: always()
@@ -177,20 +191,25 @@ jobs:
           --out campaign-out/fs-advice-book --junit campaign-out/fs-advice-book/junit.xml
           --sarif campaign-out/fs-advice-book/results.sarif --markdown campaign-out/fs-advice-book/scorecard.md
 
-      # The reference experiments (WP90, `80-…` §4): every design under experiments/ at a reduced
+      # The reference experiments (WP90, `80-…` §4; the eighth, servicing-readers, since WP119 — hence the
+      # typesafe pack's --config, which adds that pack to the defaults and changes nothing the seven run): every design under experiments/ at a reduced
       # population, each reduced result held to the committed full-size one's shape — the same
       # metrics, factors and levels, a verdict from the same three — never its values.
       - name: Run the reference experiments (reduced)
         run: >
           for f in experiments/*.json; do
           id=$(basename "$f" .json);
-          npm run craftabot -- experiment run --file "$f" --size 200 --egress none --jobs 2
+          npm run craftabot -- experiment run --config packages/packs/typesafe/craftabot.config.mjs --file "$f" --size 200 --egress none --jobs 2
           --out "campaign-out/experiments/$id" || exit 1;
           mkdir -p "campaign-out/experiments-shape/$id";
           cp "campaign-out/experiments/$id/$id.experiment-result.json" "campaign-out/experiments-shape/$id/";
           done
       - name: Hold the reduced results to the committed shape
         run: node scripts/experiment-shape.mjs docs/evidence campaign-out/experiments-shape
+
+      # WP123 (106-BENCHMARK.md §6): every guard over the seven adversarial corpora, the stand-ins unmeasured.
+      - name: Run the reference benchmark
+        run: npm run craftabot -- benchmark run benchmarks/bank-adversarial.json --out campaign-out/benchmark
 
       # A day at the bank (WP83, `71-THE-CLOCK.md` §5; three desks since WP85, `76-…` §5; seven desks since WP106, `92-…` §5):
       # the lending, fraud, advice, complaints, onboarding, disputes, collections and servicing desks work a day's applications, alerts and requests over a 500-customer

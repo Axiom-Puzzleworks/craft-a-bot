@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { parseExperimentResult } from '@craftabot/core';
 import { expandExperiment, parseExperiment } from '@craftabot/evals';
 import { describe, expect, it } from 'vitest';
-import { createRegistry, defaultConfig } from '../config.js';
+import { createRegistry, loadConfig } from '../config.js';
 import { withPopulationSize } from './experiment.js';
 
 /**
@@ -21,13 +21,16 @@ const FILES = readdirSync(DIR)
 	.filter((name) => name.endsWith('.json'))
 	.sort();
 
-describe('the reference experiments', () => {
-	const registry = createRegistry(defaultConfig());
+/** The defaults and the typesafe pack, as CI's reduced loop runs them (WP119): the eighth design reads through that pack. */
+const TYPESAFE_CONFIG = join(HERE, '..', '..', '..', 'packs', 'typesafe', 'craftabot.config.mjs');
+
+describe('the reference experiments', async () => {
+	const registry = createRegistry(await loadConfig(TYPESAFE_CONFIG));
 	const controlIds = new Set(
 		registry.listControlMaps().flatMap((map) => map.rows.map((row) => `${map.id}/${row.ref}`))
 	);
 
-	it('are the seven campaign-shaped designs, drift-day being the Monitor’s', () => {
+	it('are the eight campaign-shaped designs, drift-day being the Monitor’s', () => {
 		expect(FILES).toEqual([
 			'advice-context.json',
 			'fraud-stack.json',
@@ -35,14 +38,18 @@ describe('the reference experiments', () => {
 			'lending-context.json',
 			'lending-fairness.json',
 			'lending-knobs.json',
-			'lending-stack.json'
+			'lending-stack.json',
+			// WP119: the readers on the held-out corpus, through the typesafe pack.
+			'servicing-readers.json'
 		]);
 	});
 
 	it.each(FILES)('%s parses, names listed controls and installed content, and expands', (name) => {
 		const experiment = parseExperiment(JSON.parse(readFileSync(join(DIR, name), 'utf8')));
 		expect(experiment.id).toBe(name.replace(/\.json$/, ''));
-		expect(experiment.controls.length).toBeGreaterThan(0);
+		// The eighth measures readers against labels, not a control on the bank's book: it names none (WP119).
+		if (experiment.id === 'servicing-readers') expect(experiment.controls).toEqual([]);
+		else expect(experiment.controls.length).toBeGreaterThan(0);
 		for (const control of experiment.controls) expect(controlIds.has(control), control).toBe(true);
 		const workflow = registry.getWorkflow(experiment.design.template.source?.workflowId ?? '');
 		expect(workflow, name).toBeDefined();

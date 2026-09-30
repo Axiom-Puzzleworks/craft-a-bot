@@ -1,0 +1,1221 @@
+{
+	"format": "craftabot-bundle",
+	"formatVersion": 1,
+	"exportedAt": "2026-09-30T09:00:41.000Z",
+	"exportedBy": "craftabot/gate (fixture)",
+	"runs": [
+		{
+			"format": "craftabot-trace",
+			"formatVersion": 2,
+			"run": {
+				"id": "6a7e0000-0000-4000-8000-000000000001",
+				"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+				"agentName": "The Gate",
+				"goalCardId": "gate/conversation",
+				"specSnapshot": {
+					"id": "0a7e0a7e-0000-4000-8000-000000000127",
+					"name": "The Gate",
+					"schemaVersion": 2,
+					"bricks": [],
+					"goalCardId": "gate/conversation",
+					"identity": {
+						"displayName": "The Gate",
+						"boxArtSeed": "gate"
+					},
+					"createdAt": "2026-09-30T00:00:00.000Z",
+					"updatedAt": "2026-09-30T00:00:00.000Z"
+				},
+				"packVersions": {},
+				"mode": "step",
+				"outcome": "STOPPED_BY_GUARDRAIL",
+				"ticks": 6,
+				"usage": {
+					"inputTokens": 600,
+					"outputTokens": 60
+				},
+				"budgets": {
+					"maxTicks": 1000000,
+					"maxTokens": 1000000000,
+					"requestTimeoutMs": 60000
+				},
+				"providerId": "gate",
+				"wireModel": "office-model",
+				"pinned": false,
+				"startedAt": "2026-09-30T09:00:00.000Z",
+				"finishedAt": "2026-09-30T09:00:39.000Z",
+				"schemaVersion": 2
+			},
+			"events": [
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000002",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 0,
+					"timestamp": "2026-09-30T09:00:01.000Z",
+					"type": "run.started",
+					"payload": {
+						"mode": "step",
+						"budgets": {
+							"maxTicks": 1000000,
+							"maxTokens": 1000000000,
+							"requestTimeoutMs": 60000
+						},
+						"providerId": "gate",
+						"wireModel": "office-model",
+						"cartridgeId": "gate/example/stack/gated-agent",
+						"egress": {
+							"mode": "declared",
+							"hosts": [
+								"127.0.0.1"
+							]
+						},
+						"principal": {
+							"kind": "service",
+							"id": "example/office-assistant",
+							"name": "The office assistant"
+						},
+						"gate": {
+							"mode": "enforce",
+							"stackId": "example/stack/gated-agent",
+							"upstream": "127.0.0.1"
+						}
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000003",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 1,
+					"timestamp": "2026-09-30T09:00:02.000Z",
+					"type": "prompt.composed",
+					"payload": {
+						"messages": [
+							{
+								"role": "system",
+								"content": "You are an office assistant."
+							},
+							{
+								"role": "user",
+								"content": "Tidy up my notes and tell Sam."
+							}
+						],
+						"estimatedTokens": 15
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000004",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 1,
+					"timestamp": "2026-09-30T09:00:03.000Z",
+					"type": "guardrail.checked",
+					"payload": {
+						"guardrailId": "safety/step-budget",
+						"hook": "pre-think",
+						"verdict": {
+							"allow": true,
+							"note": "5 turns left"
+						},
+						"componentId": "governance/step-budget",
+						"point": {
+							"kind": "pre-think"
+						}
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000005",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 1,
+					"timestamp": "2026-09-30T09:00:04.000Z",
+					"type": "think.completed",
+					"payload": {
+						"response": {
+							"text": "I will read_file.",
+							"toolCall": {
+								"name": "read_file",
+								"arguments": {
+									"path": "notes/today.md"
+								}
+							},
+							"usage": {
+								"inputTokens": 120,
+								"outputTokens": 12
+							},
+							"raw": {
+								"id": "scripted-1",
+								"choices": [
+									{
+										"index": 0,
+										"message": {
+											"role": "assistant",
+											"content": "I will read_file.",
+											"tool_calls": [
+												{
+													"id": "call_1",
+													"type": "function",
+													"function": {
+														"name": "read_file",
+														"arguments": "{\"path\":\"notes/today.md\"}"
+													}
+												}
+											]
+										},
+										"finish_reason": "tool_calls"
+									}
+								],
+								"usage": {
+									"prompt_tokens": 120,
+									"completion_tokens": 12
+								}
+							},
+							"finishReason": "tool_call"
+						}
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000006",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 1,
+					"timestamp": "2026-09-30T09:00:05.000Z",
+					"type": "decision",
+					"payload": {
+						"thought": "I will read_file.",
+						"call": {
+							"kind": "action",
+							"name": "read_file",
+							"arguments": {
+								"path": "notes/today.md"
+							}
+						},
+						"source": "brain"
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000007",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 1,
+					"timestamp": "2026-09-30T09:00:06.000Z",
+					"type": "guardrail.checked",
+					"payload": {
+						"guardrailId": "safety/action-blocklist",
+						"hook": "pre-act",
+						"verdict": {
+							"allow": true
+						},
+						"componentId": "governance/action-blocklist",
+						"point": {
+							"kind": "pre-act"
+						}
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000008",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 1,
+					"timestamp": "2026-09-30T09:00:07.000Z",
+					"type": "guardrail.checked",
+					"payload": {
+						"guardrailId": "gate/policy/no-outside-mail#rule-0",
+						"hook": "pre-act",
+						"verdict": {
+							"allow": true
+						},
+						"policyCardId": "gate/policy/no-outside-mail",
+						"componentId": "governance/policy-card",
+						"point": {
+							"kind": "pre-act"
+						}
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000009",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 1,
+					"timestamp": "2026-09-30T09:00:08.000Z",
+					"type": "action.performed",
+					"payload": {
+						"name": "read_file",
+						"arguments": {
+							"path": "notes/today.md"
+						},
+						"result": {
+							"ok": true,
+							"narration": "forwarded"
+						}
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000010",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 2,
+					"timestamp": "2026-09-30T09:00:09.000Z",
+					"type": "prompt.composed",
+					"payload": {
+						"messages": [
+							{
+								"role": "system",
+								"content": "You are an office assistant."
+							},
+							{
+								"role": "user",
+								"content": "Tidy up my notes and tell Sam."
+							},
+							{
+								"role": "assistant",
+								"content": "I will read_file.",
+								"toolCalls": [
+									{
+										"id": "call_1",
+										"name": "read_file",
+										"arguments": {
+											"path": "notes/today.md"
+										}
+									}
+								]
+							},
+							{
+								"role": "tool",
+								"content": "read_file done",
+								"toolCallId": "call_1"
+							}
+						],
+						"estimatedTokens": 23
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000011",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 2,
+					"timestamp": "2026-09-30T09:00:10.000Z",
+					"type": "guardrail.checked",
+					"payload": {
+						"guardrailId": "safety/step-budget",
+						"hook": "pre-think",
+						"verdict": {
+							"allow": true,
+							"note": "4 turns left"
+						},
+						"componentId": "governance/step-budget",
+						"point": {
+							"kind": "pre-think"
+						}
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000012",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 2,
+					"timestamp": "2026-09-30T09:00:11.000Z",
+					"type": "think.completed",
+					"payload": {
+						"response": {
+							"text": "I will send_email.",
+							"toolCall": {
+								"name": "send_email",
+								"arguments": {
+									"to": "sam@example.com",
+									"text": "See attached."
+								}
+							},
+							"usage": {
+								"inputTokens": 120,
+								"outputTokens": 12
+							},
+							"raw": {
+								"id": "scripted-2",
+								"choices": [
+									{
+										"index": 0,
+										"message": {
+											"role": "assistant",
+											"content": "I will send_email.",
+											"tool_calls": [
+												{
+													"id": "call_2",
+													"type": "function",
+													"function": {
+														"name": "send_email",
+														"arguments": "{\"to\":\"sam@example.com\",\"text\":\"See attached.\"}"
+													}
+												}
+											]
+										},
+										"finish_reason": "tool_calls"
+									}
+								],
+								"usage": {
+									"prompt_tokens": 120,
+									"completion_tokens": 12
+								}
+							},
+							"finishReason": "tool_call"
+						}
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000013",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 2,
+					"timestamp": "2026-09-30T09:00:12.000Z",
+					"type": "decision",
+					"payload": {
+						"thought": "I will send_email.",
+						"call": {
+							"kind": "action",
+							"name": "send_email",
+							"arguments": {
+								"to": "sam@example.com",
+								"text": "See attached."
+							}
+						},
+						"source": "brain"
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000014",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 2,
+					"timestamp": "2026-09-30T09:00:13.000Z",
+					"type": "guardrail.checked",
+					"payload": {
+						"guardrailId": "safety/action-blocklist",
+						"hook": "pre-act",
+						"verdict": {
+							"allow": true
+						},
+						"componentId": "governance/action-blocklist",
+						"point": {
+							"kind": "pre-act"
+						}
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000015",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 2,
+					"timestamp": "2026-09-30T09:00:14.000Z",
+					"type": "guardrail.checked",
+					"payload": {
+						"guardrailId": "gate/policy/no-outside-mail#rule-0",
+						"hook": "pre-act",
+						"verdict": {
+							"allow": true
+						},
+						"policyCardId": "gate/policy/no-outside-mail",
+						"componentId": "governance/policy-card",
+						"point": {
+							"kind": "pre-act"
+						}
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000016",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 2,
+					"timestamp": "2026-09-30T09:00:15.000Z",
+					"type": "action.performed",
+					"payload": {
+						"name": "send_email",
+						"arguments": {
+							"to": "sam@example.com",
+							"text": "See attached."
+						},
+						"result": {
+							"ok": true,
+							"narration": "forwarded"
+						}
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000017",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 3,
+					"timestamp": "2026-09-30T09:00:16.000Z",
+					"type": "prompt.composed",
+					"payload": {
+						"messages": [
+							{
+								"role": "system",
+								"content": "You are an office assistant."
+							},
+							{
+								"role": "user",
+								"content": "Tidy up my notes and tell Sam."
+							},
+							{
+								"role": "assistant",
+								"content": "I will read_file.",
+								"toolCalls": [
+									{
+										"id": "call_1",
+										"name": "read_file",
+										"arguments": {
+											"path": "notes/today.md"
+										}
+									}
+								]
+							},
+							{
+								"role": "tool",
+								"content": "read_file done",
+								"toolCallId": "call_1"
+							},
+							{
+								"role": "assistant",
+								"content": "I will send_email.",
+								"toolCalls": [
+									{
+										"id": "call_2",
+										"name": "send_email",
+										"arguments": {
+											"to": "sam@example.com",
+											"text": "See attached."
+										}
+									}
+								]
+							},
+							{
+								"role": "tool",
+								"content": "send_email done",
+								"toolCallId": "call_2"
+							}
+						],
+						"estimatedTokens": 31
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000018",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 3,
+					"timestamp": "2026-09-30T09:00:17.000Z",
+					"type": "guardrail.checked",
+					"payload": {
+						"guardrailId": "safety/step-budget",
+						"hook": "pre-think",
+						"verdict": {
+							"allow": true,
+							"note": "3 turns left"
+						},
+						"componentId": "governance/step-budget",
+						"point": {
+							"kind": "pre-think"
+						}
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000019",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 3,
+					"timestamp": "2026-09-30T09:00:18.000Z",
+					"type": "think.completed",
+					"payload": {
+						"response": {
+							"text": "I will send_email.",
+							"toolCall": {
+								"name": "send_email",
+								"arguments": {
+									"to": "someone@elsewhere.test",
+									"text": "See attached."
+								}
+							},
+							"usage": {
+								"inputTokens": 120,
+								"outputTokens": 12
+							},
+							"raw": {
+								"id": "scripted-3",
+								"choices": [
+									{
+										"index": 0,
+										"message": {
+											"role": "assistant",
+											"content": "I will send_email.",
+											"tool_calls": [
+												{
+													"id": "call_3",
+													"type": "function",
+													"function": {
+														"name": "send_email",
+														"arguments": "{\"to\":\"someone@elsewhere.test\",\"text\":\"See attached.\"}"
+													}
+												}
+											]
+										},
+										"finish_reason": "tool_calls"
+									}
+								],
+								"usage": {
+									"prompt_tokens": 120,
+									"completion_tokens": 12
+								}
+							},
+							"finishReason": "tool_call"
+						}
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000020",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 3,
+					"timestamp": "2026-09-30T09:00:19.000Z",
+					"type": "decision",
+					"payload": {
+						"thought": "I will send_email.",
+						"call": {
+							"kind": "action",
+							"name": "send_email",
+							"arguments": {
+								"to": "someone@elsewhere.test",
+								"text": "See attached."
+							}
+						},
+						"source": "brain"
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000021",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 3,
+					"timestamp": "2026-09-30T09:00:20.000Z",
+					"type": "guardrail.checked",
+					"payload": {
+						"guardrailId": "safety/action-blocklist",
+						"hook": "pre-act",
+						"verdict": {
+							"allow": true
+						},
+						"componentId": "governance/action-blocklist",
+						"point": {
+							"kind": "pre-act"
+						}
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000022",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 3,
+					"timestamp": "2026-09-30T09:00:21.000Z",
+					"type": "guardrail.checked",
+					"payload": {
+						"guardrailId": "gate/policy/no-outside-mail#rule-0",
+						"hook": "pre-act",
+						"verdict": {
+							"allow": false,
+							"reason": "Mail may only be sent to example.com addresses.",
+							"disposition": "block-action"
+						},
+						"policyCardId": "gate/policy/no-outside-mail",
+						"componentId": "governance/policy-card",
+						"point": {
+							"kind": "pre-act"
+						}
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000023",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 3,
+					"timestamp": "2026-09-30T09:00:22.000Z",
+					"type": "guardrail.tripped",
+					"payload": {
+						"guardrailId": "gate/policy/no-outside-mail#rule-0",
+						"hook": "pre-act",
+						"reason": "Mail may only be sent to example.com addresses.",
+						"disposition": "block-action",
+						"policyCardId": "gate/policy/no-outside-mail",
+						"componentId": "governance/policy-card",
+						"point": {
+							"kind": "pre-act"
+						}
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000024",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 4,
+					"timestamp": "2026-09-30T09:00:23.000Z",
+					"type": "prompt.composed",
+					"payload": {
+						"messages": [
+							{
+								"role": "system",
+								"content": "You are an office assistant."
+							},
+							{
+								"role": "user",
+								"content": "Tidy up my notes and tell Sam."
+							},
+							{
+								"role": "assistant",
+								"content": "I will read_file.",
+								"toolCalls": [
+									{
+										"id": "call_1",
+										"name": "read_file",
+										"arguments": {
+											"path": "notes/today.md"
+										}
+									}
+								]
+							},
+							{
+								"role": "tool",
+								"content": "read_file done",
+								"toolCallId": "call_1"
+							},
+							{
+								"role": "assistant",
+								"content": "I will send_email.",
+								"toolCalls": [
+									{
+										"id": "call_2",
+										"name": "send_email",
+										"arguments": {
+											"to": "sam@example.com",
+											"text": "See attached."
+										}
+									}
+								]
+							},
+							{
+								"role": "tool",
+								"content": "send_email done",
+								"toolCallId": "call_2"
+							},
+							{
+								"role": "assistant",
+								"content": "I will send_email.\nThe Gate refused send_email: Mail may only be sent to example.com addresses."
+							},
+							{
+								"role": "user",
+								"content": "Carry on."
+							}
+						],
+						"estimatedTokens": 57
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000025",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 4,
+					"timestamp": "2026-09-30T09:00:24.000Z",
+					"type": "guardrail.checked",
+					"payload": {
+						"guardrailId": "safety/step-budget",
+						"hook": "pre-think",
+						"verdict": {
+							"allow": true,
+							"note": "2 turns left"
+						},
+						"componentId": "governance/step-budget",
+						"point": {
+							"kind": "pre-think"
+						}
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000026",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 4,
+					"timestamp": "2026-09-30T09:00:25.000Z",
+					"type": "think.completed",
+					"payload": {
+						"response": {
+							"text": "I will delete_file.",
+							"toolCall": {
+								"name": "delete_file",
+								"arguments": {
+									"path": "notes/today.md"
+								}
+							},
+							"usage": {
+								"inputTokens": 120,
+								"outputTokens": 12
+							},
+							"raw": {
+								"id": "scripted-4",
+								"choices": [
+									{
+										"index": 0,
+										"message": {
+											"role": "assistant",
+											"content": "I will delete_file.",
+											"tool_calls": [
+												{
+													"id": "call_4",
+													"type": "function",
+													"function": {
+														"name": "delete_file",
+														"arguments": "{\"path\":\"notes/today.md\"}"
+													}
+												}
+											]
+										},
+										"finish_reason": "tool_calls"
+									}
+								],
+								"usage": {
+									"prompt_tokens": 120,
+									"completion_tokens": 12
+								}
+							},
+							"finishReason": "tool_call"
+						}
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000027",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 4,
+					"timestamp": "2026-09-30T09:00:26.000Z",
+					"type": "decision",
+					"payload": {
+						"thought": "I will delete_file.",
+						"call": {
+							"kind": "action",
+							"name": "delete_file",
+							"arguments": {
+								"path": "notes/today.md"
+							}
+						},
+						"source": "brain"
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000028",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 4,
+					"timestamp": "2026-09-30T09:00:27.000Z",
+					"type": "guardrail.checked",
+					"payload": {
+						"guardrailId": "safety/action-blocklist",
+						"hook": "pre-act",
+						"verdict": {
+							"allow": false,
+							"reason": "delete_file is on the blocked list.",
+							"disposition": "block-action"
+						},
+						"componentId": "governance/action-blocklist",
+						"point": {
+							"kind": "pre-act"
+						}
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000029",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 4,
+					"timestamp": "2026-09-30T09:00:28.000Z",
+					"type": "guardrail.tripped",
+					"payload": {
+						"guardrailId": "safety/action-blocklist",
+						"hook": "pre-act",
+						"reason": "delete_file is on the blocked list.",
+						"disposition": "block-action",
+						"componentId": "governance/action-blocklist",
+						"point": {
+							"kind": "pre-act"
+						}
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000030",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 5,
+					"timestamp": "2026-09-30T09:00:29.000Z",
+					"type": "prompt.composed",
+					"payload": {
+						"messages": [
+							{
+								"role": "system",
+								"content": "You are an office assistant."
+							},
+							{
+								"role": "user",
+								"content": "Tidy up my notes and tell Sam."
+							},
+							{
+								"role": "assistant",
+								"content": "I will read_file.",
+								"toolCalls": [
+									{
+										"id": "call_1",
+										"name": "read_file",
+										"arguments": {
+											"path": "notes/today.md"
+										}
+									}
+								]
+							},
+							{
+								"role": "tool",
+								"content": "read_file done",
+								"toolCallId": "call_1"
+							},
+							{
+								"role": "assistant",
+								"content": "I will send_email.",
+								"toolCalls": [
+									{
+										"id": "call_2",
+										"name": "send_email",
+										"arguments": {
+											"to": "sam@example.com",
+											"text": "See attached."
+										}
+									}
+								]
+							},
+							{
+								"role": "tool",
+								"content": "send_email done",
+								"toolCallId": "call_2"
+							},
+							{
+								"role": "assistant",
+								"content": "I will send_email.\nThe Gate refused send_email: Mail may only be sent to example.com addresses."
+							},
+							{
+								"role": "user",
+								"content": "Carry on."
+							},
+							{
+								"role": "assistant",
+								"content": "I will delete_file.\nThe Gate refused delete_file: delete_file is on the blocked list."
+							},
+							{
+								"role": "user",
+								"content": "Carry on."
+							}
+						],
+						"estimatedTokens": 80
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000031",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 5,
+					"timestamp": "2026-09-30T09:00:30.000Z",
+					"type": "guardrail.checked",
+					"payload": {
+						"guardrailId": "safety/step-budget",
+						"hook": "pre-think",
+						"verdict": {
+							"allow": true,
+							"note": "1 turns left"
+						},
+						"componentId": "governance/step-budget",
+						"point": {
+							"kind": "pre-think"
+						}
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000032",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 5,
+					"timestamp": "2026-09-30T09:00:31.000Z",
+					"type": "think.completed",
+					"payload": {
+						"response": {
+							"text": "I will read_file.",
+							"toolCall": {
+								"name": "read_file",
+								"arguments": {
+									"path": "notes/tomorrow.md"
+								}
+							},
+							"usage": {
+								"inputTokens": 120,
+								"outputTokens": 12
+							},
+							"raw": {
+								"id": "scripted-5",
+								"choices": [
+									{
+										"index": 0,
+										"message": {
+											"role": "assistant",
+											"content": "I will read_file.",
+											"tool_calls": [
+												{
+													"id": "call_5",
+													"type": "function",
+													"function": {
+														"name": "read_file",
+														"arguments": "{\"path\":\"notes/tomorrow.md\"}"
+													}
+												}
+											]
+										},
+										"finish_reason": "tool_calls"
+									}
+								],
+								"usage": {
+									"prompt_tokens": 120,
+									"completion_tokens": 12
+								}
+							},
+							"finishReason": "tool_call"
+						}
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000033",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 5,
+					"timestamp": "2026-09-30T09:00:32.000Z",
+					"type": "decision",
+					"payload": {
+						"thought": "I will read_file.",
+						"call": {
+							"kind": "action",
+							"name": "read_file",
+							"arguments": {
+								"path": "notes/tomorrow.md"
+							}
+						},
+						"source": "brain"
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000034",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 5,
+					"timestamp": "2026-09-30T09:00:33.000Z",
+					"type": "guardrail.checked",
+					"payload": {
+						"guardrailId": "safety/action-blocklist",
+						"hook": "pre-act",
+						"verdict": {
+							"allow": true
+						},
+						"componentId": "governance/action-blocklist",
+						"point": {
+							"kind": "pre-act"
+						}
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000035",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 5,
+					"timestamp": "2026-09-30T09:00:34.000Z",
+					"type": "guardrail.checked",
+					"payload": {
+						"guardrailId": "gate/policy/no-outside-mail#rule-0",
+						"hook": "pre-act",
+						"verdict": {
+							"allow": true
+						},
+						"policyCardId": "gate/policy/no-outside-mail",
+						"componentId": "governance/policy-card",
+						"point": {
+							"kind": "pre-act"
+						}
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000036",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 5,
+					"timestamp": "2026-09-30T09:00:35.000Z",
+					"type": "action.performed",
+					"payload": {
+						"name": "read_file",
+						"arguments": {
+							"path": "notes/tomorrow.md"
+						},
+						"result": {
+							"ok": true,
+							"narration": "forwarded"
+						}
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000037",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 6,
+					"timestamp": "2026-09-30T09:00:36.000Z",
+					"type": "prompt.composed",
+					"payload": {
+						"messages": [
+							{
+								"role": "system",
+								"content": "You are an office assistant."
+							},
+							{
+								"role": "user",
+								"content": "Tidy up my notes and tell Sam."
+							},
+							{
+								"role": "assistant",
+								"content": "I will read_file.",
+								"toolCalls": [
+									{
+										"id": "call_1",
+										"name": "read_file",
+										"arguments": {
+											"path": "notes/today.md"
+										}
+									}
+								]
+							},
+							{
+								"role": "tool",
+								"content": "read_file done",
+								"toolCallId": "call_1"
+							},
+							{
+								"role": "assistant",
+								"content": "I will send_email.",
+								"toolCalls": [
+									{
+										"id": "call_2",
+										"name": "send_email",
+										"arguments": {
+											"to": "sam@example.com",
+											"text": "See attached."
+										}
+									}
+								]
+							},
+							{
+								"role": "tool",
+								"content": "send_email done",
+								"toolCallId": "call_2"
+							},
+							{
+								"role": "assistant",
+								"content": "I will send_email.\nThe Gate refused send_email: Mail may only be sent to example.com addresses."
+							},
+							{
+								"role": "user",
+								"content": "Carry on."
+							},
+							{
+								"role": "assistant",
+								"content": "I will delete_file.\nThe Gate refused delete_file: delete_file is on the blocked list."
+							},
+							{
+								"role": "user",
+								"content": "Carry on."
+							},
+							{
+								"role": "assistant",
+								"content": "I will read_file.",
+								"toolCalls": [
+									{
+										"id": "call_5",
+										"name": "read_file",
+										"arguments": {
+											"path": "notes/tomorrow.md"
+										}
+									}
+								]
+							},
+							{
+								"role": "tool",
+								"content": "read_file done",
+								"toolCallId": "call_5"
+							}
+						],
+						"estimatedTokens": 88
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000038",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 6,
+					"timestamp": "2026-09-30T09:00:37.000Z",
+					"type": "guardrail.checked",
+					"payload": {
+						"guardrailId": "safety/step-budget",
+						"hook": "pre-think",
+						"verdict": {
+							"allow": false,
+							"reason": "The step budget of 6 turns is used up.",
+							"disposition": "stop-run"
+						},
+						"componentId": "governance/step-budget",
+						"point": {
+							"kind": "pre-think"
+						}
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000039",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 6,
+					"timestamp": "2026-09-30T09:00:38.000Z",
+					"type": "guardrail.tripped",
+					"payload": {
+						"guardrailId": "safety/step-budget",
+						"hook": "pre-think",
+						"reason": "The step budget of 6 turns is used up.",
+						"disposition": "stop-run",
+						"componentId": "governance/step-budget",
+						"point": {
+							"kind": "pre-think"
+						}
+					}
+				},
+				{
+					"id": "6a7e0000-0000-4000-8000-000000000041",
+					"runId": "6a7e0000-0000-4000-8000-000000000001",
+					"agentId": "0a7e0a7e-0000-4000-8000-000000000127",
+					"tick": 6,
+					"timestamp": "2026-09-30T09:00:40.000Z",
+					"type": "run.finished",
+					"payload": {
+						"outcome": "STOPPED_BY_GUARDRAIL",
+						"ticks": 6,
+						"usage": {
+							"inputTokens": 600,
+							"outputTokens": 60
+						},
+						"reason": "The step budget of 6 turns is used up."
+					}
+				}
+			],
+			"traceDigest": "4b3ad56827cb15c915845faa4f69ea92d48a559ab25211f0bddf5dd33890ceb3"
+		}
+	],
+	"evaluations": [],
+	"bundleDigest": "058e8cdbf6c521155986efd32d03919a01006df395e5aa949249973331953596"
+}

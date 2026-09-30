@@ -42,7 +42,8 @@
 							"fs-lending/the-lending-desk/explain-decision",
 							"fs-lending/the-lending-desk/disburse",
 							"fs-lending/the-lending-desk/log-appeal"
-						]
+						],
+						"reviewer": "fs-bank/reviewer/case-handler"
 					}
 				}
 			],
@@ -79,6 +80,11 @@
 				{
 					"id": "scripted-noisy",
 					"tier": "scripted-noisy"
+				},
+				{
+					"id": "fallible",
+					"tier": "fallible",
+					"errorModel": "fs-lending/error/decision"
 				}
 			],
 			"assertionCards": [],
@@ -96,10 +102,18 @@
 					"none",
 					"policy-cards"
 				]
+			},
+			{
+				"axis": "brain",
+				"levels": [
+					"scripted-noisy",
+					"fallible"
+				]
 			}
 		],
 		"baseline": {
-			"guard": "none"
+			"guard": "none",
+			"brain": "scripted-noisy"
 		},
 		"metrics": [
 			{
@@ -125,7 +139,9 @@
 		"minimumDetectableEffect": 0.05
 	},
 	"campaigns": [
-		"lending-fairness--guard=none",
-		"lending-fairness--guard=policy-cards"
+		"lending-fairness--brain=scripted-noisy--guard=none",
+		"lending-fairness--brain=fallible--guard=none",
+		"lending-fairness--brain=scripted-noisy--guard=policy-cards",
+		"lending-fairness--brain=fallible--guard=policy-cards"
 	]
 }

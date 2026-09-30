@@ -43,7 +43,8 @@
 							"fs-lending/the-lending-desk/explain-decision",
 							"fs-lending/the-lending-desk/disburse",
 							"fs-lending/the-lending-desk/log-appeal"
-						]
+						],
+						"reviewer": "fs-bank/reviewer/case-handler"
 					}
 				}
 			],
@@ -80,6 +81,11 @@
 				{
 					"id": "scripted-noisy",
 					"tier": "scripted-noisy"
+				},
+				{
+					"id": "fallible",
+					"tier": "fallible",
+					"errorModel": "fs-lending/error/decision"
 				}
 			],
 			"assertionCards": [],
@@ -107,11 +113,19 @@
 					"none",
 					"policy-cards"
 				]
+			},
+			{
+				"axis": "brain",
+				"levels": [
+					"scripted-noisy",
+					"fallible"
+				]
 			}
 		],
 		"baseline": {
 			"context": "case-file",
-			"guard": "none"
+			"guard": "none",
+			"brain": "scripted-noisy"
 		},
 		"metrics": [
 			{
@@ -135,9 +149,13 @@
 		"minimumDetectableEffect": 0.05
 	},
 	"campaigns": [
-		"lending-context--context=case-file--guard=none",
-		"lending-context--context=case-file--guard=policy-cards",
-		"lending-context--context=ontology--guard=none",
-		"lending-context--context=ontology--guard=policy-cards"
+		"lending-context--brain=scripted-noisy--context=case-file--guard=none",
+		"lending-context--brain=fallible--context=case-file--guard=none",
+		"lending-context--brain=scripted-noisy--context=case-file--guard=policy-cards",
+		"lending-context--brain=fallible--context=case-file--guard=policy-cards",
+		"lending-context--brain=scripted-noisy--context=ontology--guard=none",
+		"lending-context--brain=fallible--context=ontology--guard=none",
+		"lending-context--brain=scripted-noisy--context=ontology--guard=policy-cards",
+		"lending-context--brain=fallible--context=ontology--guard=policy-cards"
 	]
 }

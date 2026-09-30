@@ -6,6 +6,7 @@ import {
 	makeContent,
 	makeEvaluation,
 	makeExperimentResult,
+	makeBenchmarkReport,
 	makeEvent,
 	makeGroupRun,
 	makeRun,
@@ -351,6 +352,29 @@ export function describeStorageContract(name: string, open: () => Promise<Storag
 				await storage.putWorkflowRun(makeStoredWorkflowRun('wf-e'));
 				await storage.clear();
 				expect(await storage.listWorkflowRuns()).toEqual([]);
+			});
+		});
+
+		/** WP123 — benchmark reports, one per `<benchmark>@<ranAt>`, newest first. */
+		describe('benchmark reports', () => {
+			it('round-trips a report, lists newest first, refuses a bad one, deletes, and clears', async () => {
+				const storage = await open();
+				const older = makeBenchmarkReport({ ranAt: '2026-09-01T10:00:00.000Z' });
+				const newer = makeBenchmarkReport({ ranAt: '2026-09-03T10:00:00.000Z' });
+				await storage.putBenchmarkReport(older);
+				await storage.putBenchmarkReport(newer);
+				expect(await storage.getBenchmarkReport(older.id)).toEqual(older);
+				expect((await storage.listBenchmarkReports()).map((row) => row.id)).toEqual([
+					newer.id,
+					older.id
+				]);
+				await expect(
+					storage.putBenchmarkReport({ ...makeBenchmarkReport(), digest: 'not-a-digest' })
+				).rejects.toThrow();
+				await storage.deleteBenchmarkReport(older.id);
+				expect((await storage.listBenchmarkReports()).map((row) => row.id)).toEqual([newer.id]);
+				await storage.clear();
+				expect(await storage.listBenchmarkReports()).toEqual([]);
 			});
 		});
 

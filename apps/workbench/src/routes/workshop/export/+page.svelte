@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Roundel from '$lib/components/control-room/Roundel.svelte';
 	import { page } from '$app/state';
 	import Lamp from '$lib/components/control-room/Lamp.svelte';
 	import { statusOfOutcome } from '$lib/control-room/outcome.js';
@@ -19,6 +20,7 @@
 		type AssuranceCampaignReportLike
 	} from '@craftabot/governance/reports';
 	import { createRegistry } from '$lib/packs.js';
+	import { describeImport, importBundle } from '$lib/workshop/bundle-import.js';
 	import { reportFrom } from '$lib/workshop/campaign-cells.js';
 
 	/**
@@ -198,6 +200,30 @@
 
 	const tokens = (record: RunRecord) => record.usage.inputTokens + record.usage.outputTokens;
 	const when = (iso: string) => new Date(iso).toLocaleString();
+
+	// Open a bundle (WP128, `107-THE-GATE.md` §4): a Gate's day, or any episode, verified and stored.
+	let bundleNote = $state<{ ok: boolean; text: string } | undefined>(undefined);
+	async function openBundle(event: Event): Promise<void> {
+		const input = event.currentTarget as HTMLInputElement;
+		const file = input.files?.[0];
+		if (!file) return;
+		input.value = '';
+		try {
+			const opened = await importBundle(
+				await appStorage(),
+				JSON.parse(await file.text()) as unknown,
+				new Date().toISOString()
+			);
+			bundleNote = { ok: opened.verified, text: describeImport(opened) };
+			await loadRuns();
+			if (opened.runIds[0]) selectedId = opened.runIds[0];
+		} catch (error) {
+			bundleNote = {
+				ok: false,
+				text: `That file is not a bundle this app can read: ${error instanceof Error ? error.message : String(error)}`
+			};
+		}
+	}
 </script>
 
 <svelte:head><title>Audit centre — Workshop</title></svelte:head>
@@ -227,7 +253,21 @@
 				{/each}
 			</select>
 		</label>
+		<label class="picker">
+			<span><Roundel icon="gate" size={20} /> Open a bundle…</span>
+			<input
+				type="file"
+				accept=".json,application/json"
+				onchange={openBundle}
+				data-testid="export-open-bundle"
+			/>
+		</label>
 	</header>
+	{#if bundleNote}
+		<p class="status" role="status" data-ok={bundleNote.ok} data-testid="export-bundle-note">
+			{bundleNote.text}
+		</p>
+	{/if}
 
 	{#if !loaded}
 		<p class="status">Reading the run store…</p>

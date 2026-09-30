@@ -1,0 +1,20 @@
+{
+	"name": "@craftabot/example-gated-agent",
+	"private": true,
+	"version": "0.0.1",
+	"description": "An agent that knows nothing of Craft A Bot — an OpenAI-wire client and a scripted model — governed by a stack it never saw, through the Gate (WP128).",
+	"type": "module",
+	"scripts": {
+		"build": "tsc -p tsconfig.json",
+		"model": "node dist/model-main.js",
+		"start": "node dist/main.js",
+		"test": "vitest run",
+		"check": "tsc --noEmit"
+	},
+	"devDependencies": {
+		"@craftabot/core": "*",
+		"@craftabot/gate": "*",
+		"@craftabot/pack-starter": "*",
+		"@types/node": "^24.10.1"
+	}
+}

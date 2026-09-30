@@ -1,3 +1,6 @@
+import { LENDING_ADVERSARIAL_CORPUS } from './corpora/adversarial.js';
+import { LOAN_PURPOSE_CORPUS } from './corpora/index.js';
+import { LOAN_PURPOSE_READER } from './words-reader.js';
 import type { PackManifest } from '@craftabot/core';
 import { lendingControlMap } from './controls/rows.js';
 import { lendingPolicyCards } from './cards/policy.js';
@@ -23,6 +26,8 @@ import { lendingWorkflow } from './workflow.js';
  * evaluators, a campaign. No runtime, no brick kind, no tool, no schema,
  * and no import from any other desk.
  */
+import { lendingErrorModels } from './errors/error-models.js';
+
 export const FS_LENDING_PACK_ID = 'fs-lending';
 
 export const fsLendingPack: PackManifest = {
@@ -53,11 +58,17 @@ export const fsLendingPack: PackManifest = {
 	],
 	policyCards: lendingPolicyCards,
 	evaluators: lendingEvaluators,
+	// WP115: the fallible tier's error model for the decision.
+	errorModels: lendingErrorModels,
 	controlMaps: [lendingControlMap],
 	// The lending journey as a workflow with its five reference configurations (WP80, `73-…`).
 	workflows: [lendingWorkflow],
 	/** WP97 (`89-STACKS.md`): the baseline's guards as stacks. */
-	stacks: lendingStacks
+	stacks: lendingStacks,
+	// WP121 (`105-CORPORA.md` §9): the keyword rule over the words, the baseline on the desk's corpus.
+	readers: [LOAN_PURPOSE_READER],
+	// WP121 (`105-CORPORA.md` §9): the desk's labelled corpus, blind-labelled and held out.
+	corpora: [LOAN_PURPOSE_CORPUS, LENDING_ADVERSARIAL_CORPUS]
 };
 
 export default fsLendingPack;
@@ -175,3 +186,17 @@ export {
 	type LendingBaselineOptions,
 	type LendingBookCampaignOptions
 } from './campaign.js';
+export { LENDING_DECISION_ERROR_MODEL_ID, lendingErrorModels } from './errors/error-models.js';
+export {
+	LOAN_PURPOSE_QUESTION,
+	LOAN_PURPOSE_QUESTION_SET_DIGEST,
+	LOAN_PURPOSE_QUESTION_SET_ID,
+	LOAN_PURPOSE_READER,
+	LOAN_PURPOSE_READER_ID
+} from './words-reader.js';
+export { LOAN_PURPOSE_CORPUS, LOAN_PURPOSE_CORPUS_ID } from './corpora/index.js';
+export {
+	LENDING_ADVERSARIAL_CORPUS,
+	LENDING_ADVERSARIAL_CORPUS_ID,
+	LENDING_ATTACK_SURFACES
+} from './corpora/adversarial.js';

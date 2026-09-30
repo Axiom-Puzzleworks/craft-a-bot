@@ -1,3 +1,7 @@
+import { DISPUTES_ADVERSARIAL_CORPUS } from './corpora/adversarial.js';
+import { DISPUTES_CORPUS } from './corpora/index.js';
+import { DISPUTE_WORDS_READER } from './words-reader.js';
+import { DISPUTES_READERS } from './readers.js';
 import type { PackManifest } from '@craftabot/core';
 import { disputesPolicyCards } from './cards/policy.js';
 import { disputesControlMap } from './controls/rows.js';
@@ -54,7 +58,10 @@ export const fsDisputesPack: PackManifest = {
 	evaluators: disputesEvaluators,
 	controlMaps: [disputesControlMap],
 	workflows: [disputesWorkflow],
-	stacks: disputesStacks
+	stacks: disputesStacks,
+	readers: [...DISPUTES_READERS, DISPUTE_WORDS_READER],
+	// WP121 (`105-CORPORA.md` §9): the desk's labelled corpus, blind-labelled and held out.
+	corpora: [DISPUTES_CORPUS, DISPUTES_ADVERSARIAL_CORPUS]
 };
 
 export default fsDisputesPack;
@@ -153,3 +160,23 @@ export {
 	disputesStacks
 } from './campaign.js';
 export { disputesPersona, pressuredVictim, type DisputesPersonaId } from './personas.js';
+export {
+	CLASSIFICATION_QUESTION,
+	CLASSIFICATION_READER_ID,
+	DISPUTES_READERS,
+	DISPUTES_RULE_READERS,
+	classificationReaderExecutor
+} from './readers.js';
+export {
+	DISPUTE_WORDS_QUESTION,
+	DISPUTE_WORDS_QUESTION_SET_DIGEST,
+	DISPUTE_WORDS_QUESTION_SET_ID,
+	DISPUTE_WORDS_READER,
+	DISPUTE_WORDS_READER_ID
+} from './words-reader.js';
+export { DISPUTES_CORPUS, DISPUTES_CORPUS_ID } from './corpora/index.js';
+export {
+	DISPUTES_ADVERSARIAL_CORPUS,
+	DISPUTES_ADVERSARIAL_CORPUS_ID,
+	DISPUTES_ATTACK_SURFACES
+} from './corpora/adversarial.js';

@@ -71,6 +71,19 @@ export interface GuardrailContext {
 	 * predates the field hands none.
 	 */
 	world?: { test(predicateId: string): boolean; predicates: readonly string[] };
+	/**
+	 * What the call just performed answered (WP124, `106-BENCHMARK.md` §8.1):
+	 * present at `post-act` on a tick that performed a call — the call's name,
+	 * its result text and whether it succeeded. What untrusted-content marking
+	 * and the quarantined reader judge.
+	 */
+	result?: { name: string; text: string; ok: boolean };
+	/**
+	 * Everything marked untrusted so far this run (WP124, §8.2), oldest first —
+	 * a live read-only view, present once anything has been marked. What the
+	 * `content-is-untrusted` and `taint-reaches` leaves read.
+	 */
+	untrusted?: ReadonlyArray<{ tick: number; source: string; text: string }>;
 }
 
 export interface Guardrail {

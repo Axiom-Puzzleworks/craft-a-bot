@@ -36,6 +36,8 @@
 		fitAt,
 		groupByTechnique,
 		renamed,
+		gateCommand,
+		gateStackFile,
 		stackRecord,
 		stackTestCampaign,
 		unfit,
@@ -205,8 +207,18 @@
 					}
 				}
 			);
-			await job.result;
+			const report = await job.result;
 			benchNote = `${Object.keys(flows).length} flow${Object.keys(flows).length === 1 ? '' : 's'} over ${scenarioId} at seed ${seed}.`;
+			// WP130 (the walk): a stack whose cell could not run — a hosted component with no battery —
+			// left no trace and read only "0 flows"; the cell's own error now says why.
+			const failures = [
+				...new Set(
+					(report.cells as Array<{ guard?: string; error?: string }>).flatMap((cell) =>
+						cell.error ? [`${cell.guard ?? 'a stack'}: ${cell.error}`] : []
+					)
+				)
+			];
+			if (failures.length > 0) benchNote = `${benchNote} Not run — ${failures.join('; ')}`;
 		} catch (error) {
 			benchNote = error instanceof Error ? error.message : String(error);
 		} finally {
@@ -256,6 +268,25 @@
 			: target === 'experiments'
 				? `${resolve('/workshop/experiments')}?guard=${encodeURIComponent(saved || stack.id)}`
 				: `${resolve('/workshop/spec/[agentId]', { agentId: agentFromSpecLab })}?stack=${encodeURIComponent(saved || stack.id)}`;
+	// Use in… the Gate (WP127): the stack file the Gate reads, downloaded, and the line that serves it.
+	let gateFile = $state('');
+	let gateLine = $state('');
+	function useInGate(): void {
+		const parsed = stackSchema.safeParse($state.snapshot(stack));
+		if (!parsed.success) {
+			note = `the stack does not parse: ${parsed.error.issues[0]?.message ?? ''}`;
+			return;
+		}
+		const file = gateStackFile(parsed.data, new Date().toISOString());
+		const url = URL.createObjectURL(new Blob([file.text], { type: 'application/json' }));
+		const link = document.createElement('a');
+		link.href = url;
+		link.download = file.fileName;
+		link.click();
+		URL.revokeObjectURL(url);
+		gateFile = file.fileName;
+		gateLine = gateCommand(file.fileName);
+	}
 	const verdictStatus = (verdict: string) =>
 		verdict === 'allow' || verdict === 'annotate' || verdict === 'redact' ? 'pass' : 'fail';
 </script>
@@ -474,8 +505,15 @@
 							>the Spec Lab</a
 						>{/if}
 					<!-- eslint-enable svelte/no-navigation-without-resolve -->
+					<button type="button" onclick={useInGate} data-testid="studio-use-gate">the Gate</button>
 					{#if !saved}<span class="hint">(save first, so the page can find it)</span>{/if}
 				</div>
+				{#if gateLine}
+					<p class="hint" data-testid="studio-gate-command">
+						Saved <code>{gateFile}</code>. Serve it in front of any agent (shadow first; the Gate is
+						unauthenticated and binds loopback): <code>{gateLine}</code>
+					</p>
+				{/if}
 			</section>
 
 			<section class="bench" aria-label="The test bench" data-testid="studio-bench">

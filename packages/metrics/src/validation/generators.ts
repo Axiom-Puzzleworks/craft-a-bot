@@ -1,5 +1,6 @@
 import type { DecidedCase, Decision, FlipCase } from '../fairness.js';
 import type { TouchedCase } from '../human-load.js';
+import type { CalibratedAnswer } from '../calibration.js';
 import { gaussian, mulberry32 } from '../random.js';
 
 /**
@@ -161,4 +162,82 @@ export function touchedCases(
 			decisions: [{ kind: 'decline', level: breached ? 5 : (options.level ?? 3) }]
 		};
 	});
+}
+
+/**
+ * Cases with one review each (WP115): seconds drawn from 60/120/240/480 at
+ * weights 20/45/25/10 (mean 174), right with probability `accuracy`, and —
+ * with probability `wrongShare` — a wrong recommendation put in front of the
+ * person, caught with probability `catches` (then the review's correctness is
+ * the catch).
+ */
+export function reviewedCases(
+	seed: number,
+	n: number,
+	options: { accuracy: number; wrongShare: number; catches: number }
+): TouchedCase[] {
+	const random = mulberry32(seed);
+	const seconds = (): number => {
+		const draw = random() * 100;
+		return draw < 20 ? 60 : draw < 65 ? 120 : draw < 90 ? 240 : 480;
+	};
+	return Array.from({ length: n }, (_, i) => {
+		const wrongPut = random() < options.wrongShare;
+		const caught = wrongPut ? random() < options.catches : undefined;
+		const correct = caught ?? random() < options.accuracy;
+		return {
+			id: `r${i}`,
+			touches: [{ kind: 'human:review' }],
+			reviews: [{ seconds: seconds(), correct, ...(caught !== undefined ? { caught } : {}) }]
+		};
+	});
+}
+
+/**
+ * **A reader's answers** (WP118): two options, `a` chosen every time. The
+ * gate's confidence is uniform on [0, 1], so the probability on the choice is
+ * p = (1 + c)/2, and the choice is right with probability p − `gap`. A gap of
+ * 0 is a calibrated reader. `steered` of the answers carry a steer of 0.9.
+ */
+export function calibratedAnswers(
+	seed: number,
+	n: number,
+	options: { gap?: number; steered?: number } = {}
+): CalibratedAnswer[] {
+	const random = mulberry32(seed);
+	const gap = options.gap ?? 0;
+	return Array.from({ length: n }, () => {
+		const confidence = random();
+		const p = (1 + confidence) / 2;
+		const right = random() < p - gap;
+		const steered = options.steered !== undefined && random() < options.steered;
+		return {
+			choice: 'a',
+			label: right ? 'a' : 'b',
+			probabilities: { a: p, b: 1 - p },
+			confidence,
+			...(steered ? { steer: 0.9 } : {})
+		};
+	});
+}
+
+/**
+ * **Two labellers' labels** (WP119): the first uniform over two options; the
+ * second copies the first with probability `alpha` and otherwise labels on
+ * its own, uniformly — so Cohen's κ between them is `alpha` in expectation.
+ */
+export function labelPairs(
+	seed: number,
+	n: number,
+	alpha: number
+): { first: string[]; second: string[] } {
+	const random = mulberry32(seed);
+	const first: string[] = [];
+	const second: string[] = [];
+	for (let i = 0; i < n; i += 1) {
+		const a = random() < 0.5 ? 'x' : 'y';
+		first.push(a);
+		second.push(random() < alpha ? a : random() < 0.5 ? 'x' : 'y');
+	}
+	return { first, second };
 }

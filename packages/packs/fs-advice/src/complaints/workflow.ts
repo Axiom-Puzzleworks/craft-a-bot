@@ -11,7 +11,7 @@ import type {
 } from '@craftabot/core';
 import { complaintBook, population } from '@craftabot/pack-fs-bank';
 import { COMPLAINTS_DESK_WORLD_ID, WORK_ITEM_LAYOUT, type ComplaintsDeskState } from './desk.js';
-import { ACK_TICKS, FINAL_TICKS, type RootCause } from './extra.js';
+import { ACK_TICKS, FINAL_TICKS, unmark, type RootCause } from './extra.js';
 import { complaintsStrings } from './strings.js';
 
 /**
@@ -204,6 +204,14 @@ export const COMPLAINTS_STAGES: StageSpec[] = [
 		read: (state) => {
 			const cause = complaints(state).rootCause;
 			return cause !== undefined ? { cause } : undefined;
+		},
+		// WP118: the finding's root cause, from truth, for a reader's calibration pane.
+		answerKey: (truth) => {
+			const finding = (
+				truth as { records?: Array<{ id: string; fields?: Record<string, unknown> }> } | undefined
+			)?.records?.find((record) => record.id === 'finding');
+			const cause = finding?.fields?.['root_cause'];
+			return typeof cause === 'string' ? { cause: unmark(cause) } : undefined;
 		},
 		next: () => 'decision'
 	},

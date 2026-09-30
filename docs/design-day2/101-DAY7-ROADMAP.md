@@ -49,8 +49,8 @@ Sizes as before: **S** a session or two; **M** several; **L** a week. Every WP h
 | WP | What | Definition of done | Size | Retires |
 |---|---|---|---|---|
 | **WP114** ✅ | **Done 2026-09-29 (stage C pending a key) — §8 item 4; `103-FALLIBLE-ACTORS.md`.** **The provider cassette and the live tier at scale** (`100-…` §6.1, D14). Stage A: the note (`103-FALLIBLE-ACTORS.md`) — the cassette kind, the prompt digest, the tiers, the error model, the `untestable` verdict. Stage B: `craftabot-cassette` `kind: 'provider'`; `createMockProvider`'s cassette source; `craftabot record --experiment --provider`; `BrainChoice { tier: 'live', cassette }` through all three cell paths; `provider.cassette` on `think.completed`. Stage C: one experiment (`lending-stack`) recorded live on OpenAI at reduced size, its cassette under `docs/evidence/`, replayed in CI. | A cassette recorded from the mock provider replays to the same trace digest; a miss never reaches `fetch`; the live level of `lending-stack` runs in CI from its cassette with no key; the cassette's every entry pins the model id. | M | G80 |
-| **WP115** | **The fallible tier and the reviewer model** (`100-…` §6.1–§6.2, D14, D15). `ErrorModel` and `PackManifest.errorModels`; `BrainChoice { tier: 'fallible', errorModel }`; `decision.fault` on the trace; `fs-bank`'s error rows (per desk decision stage, cited, `pending`); `ReviewerModel` on `WorkflowConfig`, the runtime's scripted person drawing from `dice`, `stage.completed.by`; human load v2 in `metrics` (cost, quality, catch rate); the reviewer rows (accuracy, automation bias, seconds per case, fatigue — cited, `pending`); the Monitor's queue reading capacity. | The fallible tier plants faults at the row's rate within the interval over 5,000 cases, every one with its event; `rules-only` and `expert` byte-identical; `reviewer: undefined` byte-identical on every golden run; `accuracy: 1, automationBias: 0` is the oracle; the rows' rates reproduced within the interval; `docs/metrics.md` regenerated. | L | G72-part, G73 |
-| **WP116** | **The register, regenerated** (`100-…` §6.1, tenet 33). Each of the seven designs gains `fallible` and `live` levels on `brains` and a reviewer model where a `human` stage exists; `analyseExperiment`'s *untestable* verdict; `docs/evidence/` and `timings.md` regenerated at full size; the register's §5 in the assurance pack and the Assurance entry read the new verdicts; `experiment-shape.mjs` extended to the new levels; the eighth reference experiment, `servicing-readers`, reserved for WP119. | Every reference experiment records at least one effect whose interval excludes zero; every ceiling comparison reads *untestable*; the reduced CI run holds the shape; the register table names the tier beside every effect. | M | G72 |
+| **WP115** ✅ | **Done 2026-09-29 — §8 item 4; `103-FALLIBLE-ACTORS.md` §8's two WP115 notes.** **The fallible tier and the reviewer model** (`100-…` §6.1–§6.2, D14, D15). `ErrorModel` and `PackManifest.errorModels`; `BrainChoice { tier: 'fallible', errorModel }`; `decision.fault` on the trace; `fs-bank`'s error rows (per desk decision stage, cited, `pending`); `ReviewerModel` on `WorkflowConfig`, the runtime's scripted person drawing from `dice`, `stage.completed.by`; human load v2 in `metrics` (cost, quality, catch rate); the reviewer rows (accuracy, automation bias, seconds per case, fatigue — cited, `pending`); the Monitor's queue reading capacity. | The fallible tier plants faults at the row's rate within the interval over 5,000 cases, every one with its event; `rules-only` and `expert` byte-identical; `reviewer: undefined` byte-identical on every golden run; `accuracy: 1, automationBias: 0` is the oracle; the rows' rates reproduced within the interval; `docs/metrics.md` regenerated. | L | G72-part, G73 |
+| **WP116** ✅ | **Done 2026-09-29, two DoD items short (below) — §8 item 4; `103-FALLIBLE-ACTORS.md` §8's WP116 note.** **The register, regenerated** (`100-…` §6.1, tenet 33). Each of the seven designs gains `fallible` and `live` levels on `brains` and a reviewer model where a `human` stage exists; `analyseExperiment`'s *untestable* verdict; `docs/evidence/` and `timings.md` regenerated at full size; the register's §5 in the assurance pack and the Assurance entry read the new verdicts; `experiment-shape.mjs` extended to the new levels; the eighth reference experiment, `servicing-readers`, reserved for WP119. | Every reference experiment records at least one effect whose interval excludes zero; every ceiling comparison reads *untestable*; the reduced CI run holds the shape; the register table names the tier beside every effect. | M | G72 |
 
 **Exit:** `100-…` §14 items 1 and 2; a Phase AD exit review in §8.
 
@@ -60,11 +60,11 @@ Sizes as before: **S** a session or two; **M** several; **L** a week. Every WP h
 
 | WP | What | Definition of done | Size | Retires |
 |---|---|---|---|---|
-| **WP117** | **`Reader`, typed questions, the `reader` executor, the rule readers** (`100-…` §6.3, D16). Stage A: the note (`104-READERS.md`) — the contract, the confidence formula, the executor and its gate, the event, the rule adapter's exact wrap. Stage B: `core/types/reader.ts`, `core/schemas/reader.ts`, `PackManifest.readers`, `Executor 'reader'`, `reader.answered`; `governance/readers/rule.ts`; the executor in `workflow`; `checkReader` in `pack-testkit`. Stage C: the seven desks' classify-shaped rules as rule readers on their stages. | **The identity test**: every desk golden run and every campaign baseline byte-identical with rule readers fitted; a rule reader never gates; `checkReader`'s fixtures per question type; the Pipeline's stage card shows the answer and confidence; `docs/schemas/reader.schema.json` generated. | L | G74-part |
-| **WP118** | **Calibration in `@craftabot/metrics`; report v4's calibration pane** (`100-…` §6.3). `calibration.ts`: ECE, Brier, the reliability table, the gate curve, each with a hand case, a planted case and a null; the pane per reader stage on the report and in the Workshop's campaign view; `docs/metrics.md`. | The branch's published figures (ECE 0.023, Brier 0.014 on v1) recomputed from its cassette to the same values; the validation suite green; the pane on the visual pass. | S–M | G81 |
-| **WP119** | **`Corpus` as content, `checkCorpus`, the labelling tools, the corpus book** (`100-…` §6.4, D17). Stage A: the note (`105-CORPORA.md`) — the schema, the six refusals, the held-out rule's exact semantics, the annotator record. Stage B: `core/schemas/corpus.ts`, the content and evidence kinds, `PackManifest.corpora`, `checkCorpus`, `Book.source.corpus`, `craftabot corpus freeze \| label \| agreement`, `/workshop/corpora` with its twin. Stage C: the three servicing corpora migrated from the branch with their guides, second labels and κ; the branch's lab record moved to `docs/evidence/servicing-readers/` as the eighth reference experiment. | `checkCorpus`'s six refusals; the held-out rule refuses a re-score and admits a `regression` cell; `corpus label` never shows a label; a corpus book runs the servicing journey to the branch's experiment result byte for byte; the eighth experiment holds its shape in CI. | M | G76-part, G90-part |
-| **WP120** | **The hosted and LLM readers; the experiment packs on the contract** (`100-…` §6.3). `governance/readers/hosted.ts` over a `ServiceLine`; `governance/readers/llm.ts` over any provider (constrained where it can, log-probabilities where it returns them, argmax otherwise, the method on the answer); `pack-readers-llm`; `@craftabot/pack-typesafe`'s line as a hosted reader and its journey collapsed onto the `reader` executor with `gate`; the `steer` noul on the gate; `@craftabot/pack-dgx-spark` out of the harness's default list and opt-in by `--config`, its classifier delegating to the `llm` reader (`99-…` amended to say so); the reader component adapter (`components/reader.ts`). | The servicing journey runs `regex` / `jev` / `llm:mock` / `jev-gate-0.80` through one executor; the gate sends exactly the rows under the threshold to `else`; the steer routes independently of confidence; the `llm` reader over the mock provider both constrained and unconstrained; `checkReader` and `checkComponent` green on all three; the optional pack absent from every edition's bundle. | M | G74, G90 |
-| **WP121** | **A corpus per desk** (`100-…` §6.4). Six corpora — disputes, fraud, complaints, onboarding, lending, advice — each about 100 rows, authored, tagged, frozen, blind-labelled by a second annotator with κ recorded, and split seen/held-out where a question set exists; each desk's classify-shaped stage gets its rule reader scored on its corpus and a `regex` vs `llm:mock` configuration; the guide of every corpus stating the authorship and the missing real-call test. | Seven corpora pass `checkCorpus` and the sweep; every rule reader has a scored accuracy on its corpus in the desk's doc (the regex baseline the readers are measured against); no corpus carries the `single-annotator` finding. | M | G76 |
+| **WP117** ✅ | **Done 2026-09-30 — `104-READERS.md` §8's stage notes; the identity as §6 states it (a reader's run equals its rule's under `withoutReaders`), not a fitted run byte-identical to an unfitted one.** **`Reader`, typed questions, the `reader` executor, the rule readers** (`100-…` §6.3, D16). Stage A: the note (`104-READERS.md`) — the contract, the confidence formula, the executor and its gate, the event, the rule adapter's exact wrap. Stage B: `core/types/reader.ts`, `core/schemas/reader.ts`, `PackManifest.readers`, `Executor 'reader'`, `reader.answered`; `governance/readers/rule.ts`; the executor in `workflow`; `checkReader` in `pack-testkit`. Stage C: the seven desks' classify-shaped rules as rule readers on their stages. | **The identity test**: every desk golden run and every campaign baseline byte-identical with rule readers fitted; a rule reader never gates; `checkReader`'s fixtures per question type; the Pipeline's stage card shows the answer and confidence; `docs/schemas/reader.schema.json` generated. | L | G74-part |
+| **WP118** ✅ | **Done 2026-09-30, one DoD item short (the pane's visual shot waits on WP120's reader configurations) — `104-READERS.md` §9.** **Calibration in `@craftabot/metrics`; report v4's calibration pane** (`100-…` §6.3). `calibration.ts`: ECE, Brier, the reliability table, the gate curve, each with a hand case, a planted case and a null; the pane per reader stage on the report and in the Workshop's campaign view; `docs/metrics.md`. | The branch's published figures (ECE 0.023, Brier 0.014 on v1) recomputed from its cassette to the same values; the validation suite green; the pane on the visual pass. | S–M | G81 |
+| **WP119** ✅ | **Done 2026-09-30 — `105-CORPORA.md` §8.** **`Corpus` as content, `checkCorpus`, the labelling tools, the corpus book** (`100-…` §6.4, D17). Stage A: the note (`105-CORPORA.md`) — the schema, the six refusals, the held-out rule's exact semantics, the annotator record. Stage B: `core/schemas/corpus.ts`, the content and evidence kinds, `PackManifest.corpora`, `checkCorpus`, `Book.source.corpus`, `craftabot corpus freeze \| label \| agreement`, `/workshop/corpora` with its twin. Stage C: the three servicing corpora migrated from the branch with their guides, second labels and κ; the branch's lab record moved to `docs/evidence/servicing-readers/` as the eighth reference experiment. | `checkCorpus`'s six refusals; the held-out rule refuses a re-score and admits a `regression` cell; `corpus label` never shows a label; a corpus book runs the servicing journey to the branch's experiment result byte for byte; the eighth experiment holds its shape in CI. | M | G76-part, G90-part |
+| **WP120** ✅ | **Done 2026-09-30 — `104-READERS.md` §10 and §8's WP120 notes.** **The hosted and LLM readers; the experiment packs on the contract** (`100-…` §6.3). `governance/readers/hosted.ts` over a `ServiceLine`; `governance/readers/llm.ts` over any provider (constrained where it can, log-probabilities where it returns them, argmax otherwise, the method on the answer); `pack-readers-llm`; `@craftabot/pack-typesafe`'s line as a hosted reader and its journey collapsed onto the `reader` executor with `gate`; the `steer` noul on the gate; `@craftabot/pack-dgx-spark` out of the harness's default list and opt-in by `--config`, its classifier delegating to the `llm` reader (`99-…` amended to say so); the reader component adapter (`components/reader.ts`). | The servicing journey runs `regex` / `jev` / `llm:mock` / `jev-gate-0.80` through one executor; the gate sends exactly the rows under the threshold to `else`; the steer routes independently of confidence; the `llm` reader over the mock provider both constrained and unconstrained; `checkReader` and `checkComponent` green on all three; the optional pack absent from every edition's bundle. | M | G74, G90 |
+| **WP121** ✅ | **Done 2026-09-30 — `105-CORPORA.md` §9 and §8's WP121 note.** **A corpus per desk** (`100-…` §6.4). Six corpora — disputes, fraud, complaints, onboarding, lending, advice — each about 100 rows, authored, tagged, frozen, blind-labelled by a second annotator with κ recorded, and split seen/held-out where a question set exists; each desk's classify-shaped stage gets its rule reader scored on its corpus and a `regex` vs `llm:mock` configuration; the guide of every corpus stating the authorship and the missing real-call test. | Seven corpora pass `checkCorpus` and the sweep; every rule reader has a scored accuracy on its corpus in the desk's doc (the regex baseline the readers are measured against); no corpus carries the `single-annotator` finding. | M | G76 |
 
 **Exit:** `100-…` §14 items 3 and 4; a Phase AE exit review in §8.
 
@@ -74,9 +74,9 @@ Sizes as before: **S** a session or two; **M** several; **L** a week. Every WP h
 
 | WP | What | Definition of done | Size | Retires |
 |---|---|---|---|---|
-| **WP122** | **The adversarial corpora** (`100-…` §6.6). Stage A: the note (`106-BENCHMARK.md`) — the attack and target vocabularies, the surfaces per desk, the benchmark kind and its report. Stage B: one adversarial `Corpus` per desk (about 200 rows, benign rows included) over the surfaces the desk has, seeded by the branch's 27 steers, authored under WP119's rules and blind-labelled. | Seven adversarial corpora green on `checkCorpus`; every surface a desk has is represented; the benign share stated per corpus. | M | G78-part |
-| **WP123** | **The benchmark** (`100-…` §6.6, D19). `campaign.kind: 'benchmark'`; subjects over every connectable `GuardrailService`, every reader noul as a guard, and the bespoke components; every subject through its stand-in in CI and its cassette when recorded (`craftabot benchmark run --record`); the report per subject (precision, recall, confusion by attack and target, latency, tokens, list price, the rows caught alone); `/workshop/benchmarks` with its twin; the Guard Rack's rows reading the latest benchmark or *unmeasured*; the catalogue entry's `measured` beside its status; the assurance pack's *Coverage* reading it. | The benchmark over the stand-ins is deterministic and shape-held in CI; a subject's cassette replays to the same confusion matrix; the Rack reads *unmeasured* for a service with no benchmark; the page says *synthetic rows* first. | L | G78 |
-| **WP124** | **The bespoke four** (`100-…` §6.6). `untrusted-content` marking at `post-act` with the `content-is-untrusted` leaf; `taint` and `taint-reaches`; the quarantined-reader two-seat configuration; the red-team seat as the `adversarial` counterpart tier over the adversarial corpus. Each a component with point, verdict class and cost; each a catalogue entry moved to *shipped*; each a benchmark level; the manual's §52 extended. | A planted `SYSTEM:` line in a bureau file is marked, tainted and blocked at `pre-act`; the quarantined seat cannot call a tool; the red-team seat's lines are corpus rows and no others; `checkComponent` fixtures for all four; `checkCatalogue` green with four fewer *bespoke*. | L | G84 |
+| **WP122** ✅ | **Done 2026-09-30 — `106-BENCHMARK.md` §7.** **The adversarial corpora** (`100-…` §6.6). Stage A: the note (`106-BENCHMARK.md`) — the attack and target vocabularies, the surfaces per desk, the benchmark kind and its report. Stage B: one adversarial `Corpus` per desk (about 200 rows, benign rows included) over the surfaces the desk has, seeded by the branch's 27 steers, authored under WP119's rules and blind-labelled. | Seven adversarial corpora green on `checkCorpus`; every surface a desk has is represented; the benign share stated per corpus. | M | G78-part |
+| **WP123** ✅ | **Done 2026-09-30 — `106-BENCHMARK.md` §7.** **The benchmark** (`100-…` §6.6, D19). `campaign.kind: 'benchmark'`; subjects over every connectable `GuardrailService`, every reader noul as a guard, and the bespoke components; every subject through its stand-in in CI and its cassette when recorded (`craftabot benchmark run --record`); the report per subject (precision, recall, confusion by attack and target, latency, tokens, list price, the rows caught alone); `/workshop/benchmarks` with its twin; the Guard Rack's rows reading the latest benchmark or *unmeasured*; the catalogue entry's `measured` beside its status; the assurance pack's *Coverage* reading it. | The benchmark over the stand-ins is deterministic and shape-held in CI; a subject's cassette replays to the same confusion matrix; the Rack reads *unmeasured* for a service with no benchmark; the page says *synthetic rows* first. | L | G78 |
+| **WP124** ✅ | **Done 2026-09-30 — `106-BENCHMARK.md` §8 and §7's WP124 note.** **The bespoke four** (`100-…` §6.6). `untrusted-content` marking at `post-act` with the `content-is-untrusted` leaf; `taint` and `taint-reaches`; the quarantined-reader two-seat configuration; the red-team seat as the `adversarial` counterpart tier over the adversarial corpus. Each a component with point, verdict class and cost; each a catalogue entry moved to *shipped*; each a benchmark level; the manual's §52 extended. | A planted `SYSTEM:` line in a bureau file is marked, tainted and blocked at `pre-act`; the quarantined seat cannot call a tool; the red-team seat's lines are corpus rows and no others; `checkComponent` fixtures for all four; `checkCatalogue` green with four fewer *bespoke*. | L | G84 |
 | **WP125** | **The live checkpoints and the vendors' cassettes** (`100-…` §6.6). Azure, Bedrock, Lakera and the Gen AI evaluation service, one command each with a key, recorded dated in `30-…`/`39-…`; each service's benchmark cassette recorded the same day; the OAuth client id for GEAP set up per `docs/geap-setup.md`. **Needs keys; runs when they exist; nothing else waits on it.** | Four dated checkpoint lines; four cassettes under the packs; the benchmark's live column filled for each; `browserCapable` flipped where the preflight allows. | S | G87-part |
 
 **Exit:** `100-…` §14 item 7; a Phase AG exit review in §8.
@@ -87,9 +87,9 @@ Sizes as before: **S** a session or two; **M** several; **L** a week. Every WP h
 
 | WP | What | Definition of done | Size | Retires |
 |---|---|---|---|---|
-| **WP126** | **`@craftabot/governance` 1.0.0** (`100-…` §6.7). `readers/*` and the reader component in the export list; the TSDoc audit over them; `docs/governance-mapping.md`'s reader and Gate rows; the README's status line; the version cut; `check:governance-pack` unchanged and green. | The tarball installs into `examples/plain-node-agent` with readers importable; the audit test green; `npm view`-shaped metadata correct. | S | G79-part |
-| **WP127** | **The Gate** (`100-…` §6.7, D20). Stage A: the note (`107-THE-GATE.md`) — the wire mapping per hook, the verdict effects per mode, the trace, the approval round-trip, the loopback default, the first-page disclaimer. Stage B: `packages/gate` (Node only): the server, the stack file loader, the three chains, shadow and enforce, `TraceSink`, `--principal`, the upstream key from the environment; `craftabot gate serve \| approve`. Stage C: **the identity test** over the five presets and one Studio-built fixture; the Studio's *Use in… the Gate*. | The identity test green on every push; each verdict's wire effect in `enforce` and absence in `shadow`; `pause` round-trips; the key-leak sweep over the Gate's trace and logs; the egress guard refuses any host but the upstream; a non-loopback bind needs the flag. | L | G79 |
-| **WP128** | **The gated example and the Gate's evidence** (`100-…` §6.7). `examples/gated-agent`: an OpenAI client pointed at the Gate, no Craft A Bot import; a Gate's day as a bundle the Audit Centre opens and the assurance pack reads (`run.started.gate`); `docs/gate.md`; the manual's Part I §on the Gate. | The example's four outcomes through the Gate; a Gate bundle verifies its digest in the Audit Centre; the pack names the Gate's mode and stack. | S–M | G79 |
+| **WP126** ✅ | **Done 2026-09-30 — `38-GOVERNANCE-1-0.md`'s dated note.** **`@craftabot/governance` 1.0.0** (`100-…` §6.7). `readers/*` and the reader component in the export list; the TSDoc audit over them; `docs/governance-mapping.md`'s reader and Gate rows; the README's status line; the version cut; `check:governance-pack` unchanged and green. | The tarball installs into `examples/plain-node-agent` with readers importable; the audit test green; `npm view`-shaped metadata correct. | S | G79-part |
+| **WP127** ✅ | **Done 2026-09-30 — `107-THE-GATE.md` §8.** **The Gate** (`100-…` §6.7, D20). Stage A: the note (`107-THE-GATE.md`) — the wire mapping per hook, the verdict effects per mode, the trace, the approval round-trip, the loopback default, the first-page disclaimer. Stage B: `packages/gate` (Node only): the server, the stack file loader, the three chains, shadow and enforce, `TraceSink`, `--principal`, the upstream key from the environment; `craftabot gate serve \| approve`. Stage C: **the identity test** over the five presets and one Studio-built fixture; the Studio's *Use in… the Gate*. | The identity test green on every push; each verdict's wire effect in `enforce` and absence in `shadow`; `pause` round-trips; the key-leak sweep over the Gate's trace and logs; the egress guard refuses any host but the upstream; a non-loopback bind needs the flag. | L | G79 |
+| **WP128** ✅ | **Done 2026-09-30 — `107-THE-GATE.md` §8.** **The gated example and the Gate's evidence** (`100-…` §6.7). `examples/gated-agent`: an OpenAI client pointed at the Gate, no Craft A Bot import; a Gate's day as a bundle the Audit Centre opens and the assurance pack reads (`run.started.gate`); `docs/gate.md`; the manual's Part I §on the Gate. | The example's four outcomes through the Gate; a Gate bundle verifies its digest in the Audit Centre; the pack names the Gate's mode and stack. | S–M | G79 |
 
 **Exit:** `100-…` §14 item 8; a Phase AH exit review in §8.
 
@@ -99,9 +99,9 @@ Sizes as before: **S** a session or two; **M** several; **L** a week. Every WP h
 
 | WP | What | Definition of done | Size | Retires |
 |---|---|---|---|---|
-| **WP129** | **`review` and `/workshop/readings`** (`100-…` §6.8, D21). Stage A: the note (`108-READINGS.md`) — the subject kinds, the verdicts, the amendment's path into content, what each check reads. Stage B: `core/schemas/review.ts` replacing `control-review` with the alias and migration note; the kind on all three stores and the evidence store; `checkCalibration({ requireReview })`, `checkCatalogue`, `checkControlMap`, `checkDomainPack` reading it; `/workshop/readings` with the queue, the sources, the progress readouts, the URL filter and the push; `craftabot readings export`. | A `review` for a row turns its check green for that row only; the queue's count equals the pending set across the eight kinds; `control-review` records read as `review`; the screen on the visual, axe and keyboard passes. | M | G85 |
-| **WP130** | **The stale lines, the index, the release, the walk** (`100-…` §6.8). `USER-MANUAL.md` §41, `UX-AND-GAPS.md` §0/§4 and the three "awaiting review" notes corrected; `98-` and `99-` in `README.md`'s index; the first `v*` tag cut and `release.yml` exercised with its archive attached; the practitioner walk of `84-…` §9 performed and recorded; the Linux baselines for every new screen. | `git tag` non-empty and the release's zip verifies; no line in the manual or the register contradicts `84-…` §8; the walk's record names each stop with what was seen. | S | G87-part, G88 |
-| **WP131** | **The tail: Part I, the roundels, the Kit's card** (`100-…` §6.8). The manual's Part I (readers, corpora, the register regenerated, the benchmark, the Gate, the readings) and the rebuilt PDF; five roundels on the wave-2 seam; the Kit's *Sure or unsure* card on the Front Desk with the confidence chip and the child's threshold; the Phase AI exit review. | The PDF rebuilt with Part I's figures; `wave2.test.ts` green over 27 files; the card wins and loses on the Front Desk under the mock provider with a keyboard-only e2e; `100-…` §14 items 9–12 met. | S–M | G89 |
+| **WP129** ✅ | **Done 2026-09-30 — `108-READINGS.md` §9.** **`review` and `/workshop/readings`** (`100-…` §6.8, D21). Stage A: the note (`108-READINGS.md`) — the subject kinds, the verdicts, the amendment's path into content, what each check reads. Stage B: `core/schemas/review.ts` replacing `control-review` with the alias and migration note; the kind on all three stores and the evidence store; `checkCalibration({ requireReview })`, `checkCatalogue`, `checkControlMap`, `checkDomainPack` reading it; `/workshop/readings` with the queue, the sources, the progress readouts, the URL filter and the push; `craftabot readings export`. | A `review` for a row turns its check green for that row only; the queue's count equals the pending set across the eight kinds; `control-review` records read as `review`; the screen on the visual, axe and keyboard passes. | M | G85 |
+| **WP130** ◐ | **Done 2026-09-30 but for the Linux baselines (CI's artefact); the tag `v0.7.0` cut the same day — §8 item 9's notes.** **The stale lines, the index, the release, the walk** (`100-…` §6.8). `USER-MANUAL.md` §41, `UX-AND-GAPS.md` §0/§4 and the three "awaiting review" notes corrected; `98-` and `99-` in `README.md`'s index; the first `v*` tag cut and `release.yml` exercised with its archive attached; the practitioner walk of `84-…` §9 performed and recorded; the Linux baselines for every new screen. | `git tag` non-empty and the release's zip verifies; no line in the manual or the register contradicts `84-…` §8; the walk's record names each stop with what was seen. | S | G87-part, G88 |
+| **WP131** ✅ | **Done 2026-09-30 — `109-THE-TAIL-DAY7.md` §6.** **The tail: Part I, the roundels, the Kit's card** (`100-…` §6.8). The manual's Part I (readers, corpora, the register regenerated, the benchmark, the Gate, the readings) and the rebuilt PDF; five roundels on the wave-2 seam; the Kit's *Sure or unsure* card on the Front Desk with the confidence chip and the child's threshold; the Phase AI exit review. | The PDF rebuilt with Part I's figures; `wave2.test.ts` green over 27 files; the card wins and loses on the Front Desk under the mock provider with a keyboard-only e2e; `100-…` §14 items 9–12 met. | S–M | G89 |
 
 **Exit:** `100-…` §14 items 9–12; a Phase AI exit review in §8.
 
@@ -165,7 +165,7 @@ Everything in `84-…` §5 stands. Added:
 | The bespoke components (`84-…` §7): untrusted-content, taint, quarantined reader, red-team seat | WP124; `no-progress`, `memory-provenance`, `privilege-scopes`, `content-digest`, the policy-conditioned classifier stay in §7 |
 | The four live checkpoints and the GEAP client id | WP125 |
 | Governance 1.0.0 (`38-…`) | WP126 |
-| GAP-3's Telemetry cohort axis and Run Browser filter (`UX-AND-GAPS.md` §8) | WP129's Workshop pass, if small; else §7 |
+| GAP-3's Telemetry cohort axis and Run Browser filter (`UX-AND-GAPS.md` §8) | WP129's Workshop pass, if small; else §7. **§7, 2026-09-30:** not small |
 | The catalogue, calibration, control-row, decision-right, blueprint and screening-list readings | WP129 (the desk); the readings themselves are Andrew's, throughout |
 | The stale manual and register lines; the "awaiting review" notes; the empty `git tag` | WP130 |
 | The practitioner walk of `84-…` §9, never recorded | WP130 |
@@ -181,6 +181,7 @@ Everything in `84-…` §5 stands. Added:
 - The Kit beyond one card: a Day 8 question for purpose 1, once the bank's evidence is read.
 - Mortgages, pensions, insurance, business banking; healthcare, logistics, manufacturing (`83-…` §6.5.1, §6.6.3 stand).
 - The pooled conditional-parity interval (`68-…`), the JSON-import lint rule (D19's class), touch e2e (T5's residue).
+- GAP-3's Telemetry cohort axis and Run Browser filter (`UX-AND-GAPS.md` §4, §8). **Amended 2026-09-30 (WP130):** WP129 did not take it. It is not small: the cohort lives on campaign cells, not on runs, so a Telemetry axis needs the run summary to carry it. It stays here.
 
 ## 8. Session-sized next steps (the immediate to-do)
 
@@ -205,11 +206,286 @@ Everything in `84-…` §5 stands. Added:
 4. **`103-FALLIBLE-ACTORS.md`, WP114, WP115, WP116.** Phase AD exit review — the register's first effects, read before anything else in Day 7 is judged.
 
    > **WP114 done 2026-09-29, stage C pending a key** (`103-…` §8): the provider cassette in `core` (`kind: 'provider'`, the prompt digest and its occurrence, the model pinned, `createCassetteProvider`, `recordingProvider`, the `cassette-miss` kind), the cassette brain through `evals`' three cell paths with the host's `cassetteFor`, `craftabot record --experiment --provider <id|mock>`. DoD: a cassette recorded from the mock provider replays to the same trace digest (core, and every cell of the injection baseline in `evals`); a miss never reaches `fetch`; every entry pins the model id; `lending-stack` with a cassette brain recorded through the mock and replayed under `--egress none` with no key, twice to the same result digest. **Not met, and why:** the live recording of `lending-stack` on OpenAI needs a key and spends money — one command in `103-…` §8 — so no committed cassette is a live model yet and CI's reduced run has no live level to replay; WP116 adds the level to each design as each is recorded. Diverged: no `provider.cassette` on `think.completed` (a replay must reproduce its recording's digest); a sibling schema rather than a `kind` on the line cassette's; no cassette source on `createMockProvider`. **Next: WP115.**
+
+   > **WP115 done 2026-09-29** (`103-…` §8): the fallible tier (`ErrorModel`, `decision.fault`, `scriptedFallible`, `ERROR_RATES`, the lending and fraud error models) and the reviewer model (`WorkflowConfig.reviewer`, `StageRecord.by`, `REVIEWER_RATES` and the case handler, human load v2 in `metrics` with the validation suite, the Monitor's `reviewLoad`). DoD: faults at the row's rate within the Wilson interval over 5,000 cases, every one with its event; the scripted tiers and every golden run byte-identical; `accuracy: 1, automationBias: 0` is the oracle; the rows' rates reproduced within the interval; `docs/metrics.md` regenerated. **Not built:** the cohort factor, fatigue, error models beyond lending and fraud, a Monitor queue per human stage — `103-…` §8 says why. **Next: WP116 (the register, regenerated).**
+
+   > **WP116 done 2026-09-29** (`103-…` §8): the tier and the *untestable* verdict in the analysis and the register; the seven designs with a fallible level and the case handler; `docs/evidence/` regenerated. DoD: every ceiling comparison reads *untestable* ✓; the register names the tier beside every effect ✓; the reduced CI run holds the shape (tier in the key) ✓. **Short:** (1) three of the seven designs — `lending-context`, `lending-fairness`, `fraud-stack` — record no effect whose interval excludes zero, because their controls cannot act on a planted outcome error (the finding, in `docs/evidence/README.md`); (2) no `live` level, pending WP114 stage C's key.
+
+   > **Phase AD exit review, 2026-09-29.** `100-…` §14 item 1 — **partly met**: the reference experiments are re-run on the fallible tier and every ceiling comparison reads *untestable*, `docs/evidence/` and the register regenerated and dated; four of seven record an effect excluding zero, three do not (above), and none has a live level. Item 2 — **met**: a `human` stage under the reviewer model reproduces the rows' rates within the interval (`workflow/src/reviewer.test.ts`), the oracle model takes the oracle's decisions (`fs-lending/src/reviewer.test.ts`), every golden run is byte-identical with no reviewer named, human load v2 reports cost, quality and catch rate (`metrics`' validation suite). **For Andrew's reading:** the `ERROR_RATES` and `REVIEWER_RATES` rows (all assumptions); `lending-stack`'s baseline moved to `bot-everywhere`; the four-eyes check's new `suggest`; the three designs with no effect — whether to build the card that checks a decision against the worksheet, or to leave the register saying so; the live recording (one command, `103-…` §8). **Phase AD is closed. Next: Phase AE — `104-READERS.md`, WP117.**
 5. **`104-READERS.md`, WP117, WP118.**
+
+   > **WP117 done 2026-09-30** (`104-READERS.md` §8):
+   > - **In `core`:** typed questions and answers with the one confidence formula (`reader.schema.json`), `Reader` on `PackManifest.readers`, the `reader` executor with its gate, and `reader.answered`.
+   > - **Elsewhere:** `ruleReader` in `governance`; the runtime's `readerStage` and `withoutReaders` in `workflow`; `checkReader` in `pack-testkit`; the Pipeline's card.
+   > - **The desks:** four rule readers — servicing's category and support need, disputes' classification, complaints' root cause.
+   >
+   > **DoD:**
+   > - The identity is met as `104-…` §6 states it. Each desk's book under its rule configurations projects equal with the rule readers fitted, plain and gated at 1. The golden runs and baselines are untouched, since no shipped configuration names a reader.
+   > - A rule reader never gates ✓.
+   > - `checkReader` has fixtures per question type ✓.
+   > - The stage card ✓.
+   > - The schema ✓.
+   >
+   > **Diverged:** "byte-identical with rule readers fitted" became identity under a projection, because a record that names its reader cannot also be the record that names the rule. The fraud desk has no classify-shaped rule to wrap. **Next: WP118 (calibration in `@craftabot/metrics`).**
+
+   > **WP118 done 2026-09-30** (`104-READERS.md` §9):
+   > - **In `@craftabot/metrics`:** `calibration.ts` — reliability, ECE with its test, Brier and the gate curve — each with a hand case, a planted case and a null.
+   > - **In `core`:** `StageSpec.answerKey`.
+   > - **In `evals`:** the cell's `readings` and the summary's `calibration` pane, which the scorecard renders.
+   > - **In the Workbench:** `CalibrationPane` on the Campaigns screen.
+   >
+   > **DoD:**
+   > - The branch's ECE 0.023 / 0.014 and Brier 0.014 / 0.022, with the gate's counts, are recomputed from the shipped cassette to the same values ✓.
+   > - The validation suite is green ✓.
+   > - **Short: the pane on the visual pass.** No shipped configuration names a reader until WP120.
+   >
+   > **Next: `105-CORPORA.md`, WP119.**
+
+   > **WP119 done 2026-09-30** (`105-CORPORA.md` §8):
+   > - **In `core`:** `Corpus` with its digest, and the `corpus` content and evidence kinds.
+   > - **Metrics and checks:** `cohensKappa` in `metrics`, and `checkCorpus` with six refusals plus the single-annotator finding.
+   > - **In `evals`:** the held-out rule and `regression` (both in `evals`), and the corpus book source.
+   > - **The CLI:** `craftabot corpus freeze | label | agreement`.
+   > - **The Workbench:** `/workshop/playground/corpora`.
+   > - **The corpora:** the three servicing corpora as `fs-servicing` content, with κ recomputed from their second labels, and the typesafe pack's arrays now views of them held to the branch's freeze hashes.
+   > - **The eighth reference experiment:** `servicing-readers`, in CI.
+   >
+   > **DoD:**
+   > - The six refusals ✓.
+   > - The held-out rule refuses a re-score and admits a regression ✓.
+   > - `corpus label` never shows a label ✓.
+   > - The corpus book runs the Jev experiments to the pinned result digests byte for byte ✓. These are the results today's code gave before the move; the branch's committed results predate WP111.
+   > - The eighth experiment holds its shape ✓.
+   >
+   > **Found and fixed:** `experiment run --jobs` dropped `--config`, and a pool whose workers could not start hung.
+   >
+   > **For Andrew's reading:** the budgets (+70 kB each).
+   >
+   > **Next: WP120 (the hosted and LLM readers).**
+
+   > **WP120 done 2026-09-30** (`104-READERS.md` §8):
+   > - **The adapters:** `hostedReader` and `llmReader` in `governance`, the latter constrained with log-probabilities, constrained, or argmax, over the new provider seams. `readerComponent`.
+   > - **The runtime:** it hands a reader `callLine` and `provider`.
+   > - **`@craftabot/pack-readers-llm`:** the keyword stand-in.
+   > - **The typesafe journey on the contract:** one reader stage per judgment, with its gate and a person as `else`.
+   > - **The DGX pack:** out of the harness's defaults (G90).
+   > - **The build:** it refuses an optional pack in any bundle.
+   >
+   > **DoD:** every item ✓. The three Jev experiments' effects are unchanged through the collapse, value for value; their digests were re-pinned.
+   >
+   > **Diverged:**
+   > - A reader's stated confidence is kept, not recomputed (Jev's two-place probabilities).
+   > - The eighth experiment is now a declared regression under the held-out rule.
+   >
+   > **Next: WP121 (a corpus per desk).**
+
+   > **WP121 done 2026-09-30** (`105-CORPORA.md` §8):
+   > - **Six desk corpora:** a hundred rows each, held out from question sets frozen first, and blind-labelled twice (the same model, and another) on shuffled rows with opaque ids.
+   > - **Six keyword rule readers,** scored with `scoreReader` at 40–45% on corpora built to test them.
+   > - **Servicing v1** has its second and third labellers, so no corpus is its author's alone.
+   >
+   > **DoD:** met. The comparison is made on the corpora, not as journey configurations (§9.3).
+   >
+   > **Finding:** κ ≥ 0.98 everywhere says the rows are clear to models, not that people agree. The real-words sample stays the missing test.
+
+   > **Phase AE exit review, 2026-09-30.**
+   >
+   > **`100-…` §14 item 3 — met, as `104-…` §6 reads "byte-identical":**
+   > - Every desk golden run and campaign baseline is untouched. The desks' classify-shaped rules run as rule readers identical under `withoutReaders` over each desk's book (WP117).
+   > - A hosted reader (Jev) and an `llm` reader (the keyword stand-in) run the servicing journey through the `reader` executor with a gate (WP120).
+   > - The calibration pane shows ECE, Brier, the reliability table and the gate curve on the report and the Campaigns screen (WP118). Its screenshot waits on a reader configuration in the Workbench.
+   >
+   > **Item 4 — met:**
+   > - Seven corpora ship with a guide, a digest, blind annotators with κ, and a held-out part: v3 and the six new corpora are held out whole (WP119, WP121).
+   > - `checkCorpus` refuses; the held-out rule refuses a re-score and admits a regression, which the eighth reference experiment now declares.
+   > - A corpus book runs the servicing journey end to end, to the pinned results.
+   >
+   > **For Andrew's reading:**
+   > - the budgets (+130/+130 kB for the corpora, the largest of the sprint);
+   > - model-written and model-labelled corpora, and what their κ can and cannot say;
+   > - a reader's stated confidence kept, not recomputed (WP120);
+   > - the eighth experiment as a declared regression;
+   > - the WP118 screenshot still owed.
+   >
+   > **Phase AE is closed. Next: Phase AG — `106-BENCHMARK.md`, WP122.**
 6. **`105-CORPORA.md`, WP119, WP120, WP121.** Phase AE exit review.
 7. **`106-BENCHMARK.md`, WP122, WP123, WP124; WP125 when keys exist.** Phase AG exit review.
+
+   > **WP122 done 2026-09-30** (`106-BENCHMARK.md` §7):
+   > - **Committed first:** the vocabulary in `core`, `checkAdversarialCorpus`, and the guard question set with its keyword baseline, frozen before any row.
+   > - **Then the corpora:** seven adversarial corpora (1,408 rows, 33–35% benign), each over its desk's surfaces and blind-labelled twice.
+   > - **The keyword baseline** flags 18–35% of their attacks.
+   > - **Findings:**
+   >   - `target` needs a precedence rule;
+   >   - the smaller labeller misses the traps;
+   >   - contested rows now need a two-to-one;
+   >   - the site editions' budgets are caught up.
+   >
+   > **Next: WP123 (the benchmark).**
+
+   > **WP123 done 2026-09-30** (`106-BENCHMARK.md` §7):
+   > - **The benchmark:** the report in `core` on every store; the benchmark file, runner and fetch-level cassette in `evals`; `craftabot benchmark run [--record]`; the reference benchmark in CI.
+   > - **The Workbench:** `/workshop/benchmarks` with its twin; the Rack's and the catalogue's *measured* or *unmeasured*; the assurance pack's *Coverage*.
+   > - **What it shows:** every stand-in unmeasured, the policy decision point not applicable, and the keyword baseline measured at recall 26% and precision 81%.
+   > - **Found on the way:** WP116's Experiments screen fixed.
+   >
+   > **Next: WP124 (the bespoke four).**
+
+   > **WP124 done 2026-09-30** (`106-BENCHMARK.md` §8):
+   > - **The core seam:** untrusted-content marking at `post-act` (`mark`, `content.marked`, the wrapped prompt).
+   > - **The components and leaves:** taint with the `taint-reaches` and `content-is-untrusted` leaves; the quarantined reader; the red-team seat as the `adversarial` counterpart tier.
+   > - **Where they show:** the catalogue has two *bespoke* left; the four are benchmark levels.
+   > - **What is held:** a planted `SYSTEM:` bureau line is marked, tainted and blocked; the quarantined seat is asked with nothing to act with; the seat speaks only corpus rows.
+   >
+   > **Next: WP125 (the live checkpoints) when keys exist; else the Phase AG exit review.**
+
+   > **Phase AG exit review, 2026-09-30.** `100-…` §14 item 7, clause by clause, against what was run today.
+   >
+   > | Clause | Verdict | Evidence |
+   > |---|---|---|
+   > | The benchmark runs every connectable service, every reader-as-guard and the four bespoke components over one adversarial corpus per desk in CI | **Met** | CI's *Run the reference benchmark* step (`benchmarks/bank-adversarial.json`, all seven adversarial corpora, 1,408 rows). The run has twelve subjects: six services through their stand-ins, `pdp-opa` *not applicable* with its reason, the keyword reader, and the four components. `harness/src/commands/benchmark.test.ts` holds the report to its digest. |
+   > | The Guard Rack shows each service's numbers or *unmeasured* | **Met** | The Rack's *Benchmark* row (`e2e/benchmarks.spec.ts`; `lib/workshop/benchmarks.test.ts`). Every service reads *unmeasured* today, because no cassette exists. |
+   > | The four catalogue entries read *shipped* with `measured` | **Partly met** | All four are *shipped* (`byStatus.bespoke` is 2; `governance/src/catalogue/catalogue.test.ts`). Over today's report, three read `measured`: `untrusted-content-marking` and `indirect-injection-defence` by `governance/untrusted-content`, and `privilege-separation` by the quarantined reader. `information-flow-control` reads *unmeasured*: taint decides on a proposed call, and the corpora are text, so its benchmark row is *not applicable*. Measuring it needs a level that feeds each row through a call, which is not built. |
+   > | The four live checkpoints are recorded dated | **Not met** | WP125's, pending keys. Azure, Bedrock and Lakera have no key in this environment. The Gen AI evaluation service's `npm run smoke:geap` was attempted 2026-09-30: `bad-token` on the Model Armor leg (the stored token has expired), and no `gcloud` to mint another (`39-…`'s dated note). No benchmark cassette is recorded, so the benchmark's live column is empty for every service. |
+   >
+   > **What the phase leaves standing:**
+   > - seven adversarial corpora, blind-labelled twice, held out from a question set frozen first;
+   > - one benchmark over them, deterministic in CI, with a cassette path proven by record and replay;
+   > - the four injection defences as components with the core seam they need;
+   > - the Rack, the catalogue and the assurance pack reading measurements, or saying *unmeasured*.
+   >
+   > **What it cannot yet say:** how any vendor's guard performs. Every number on the page is a stand-in's zero, a keyword rule's, or a containment component's 100%.
+   >
+   > **For Andrew's reading:**
+   > - the corpora's `target` label needs a precedence rule (WP122);
+   > - the smaller labeller misses the traps;
+   > - value taint does not follow a paraphrase;
+   > - the keyword reader misses a mid-line `SYSTEM:` while the quarantine withholds it anyway;
+   > - the budgets (+420/+410 kB for the corpora, the site editions caught up);
+   > - the WP116 display bug found and fixed on the way (WP123).
+   >
+   > **Phase AG is closed but for WP125,** which stays open and runs the day keys exist. Nothing else waits on it (§3). **Next: Phase AH — WP126, `107-THE-GATE.md`, WP127, WP128.**
+
+   > **WP126 done 2026-09-30** (`38-GOVERNANCE-1-0.md`):
+   > - **The version:** `@craftabot/governance` `1.0.0`, with dependency ranges, readers and components in the README's surface, and the Gate's and readers' rows in `docs/governance-mapping.md`.
+   > - **The audit** follows `export *` now: 31 exports documented that it had never reached.
+   > - **`core` and `metrics`** gained `files` lists; they had packed without `dist/`.
+   > - **`check:governance-install`** in CI: the three tarballs installed into the example, eight reader and component exports imported, the example's four outcomes with a reader annotating.
+   >
+   > **DoD:** met. **Next: `107-THE-GATE.md` and WP127.**
+
+   > **WP127 done 2026-09-30** (`107-THE-GATE.md` §8):
+   > - **`@craftabot/gate`**: a stack over the chat-completions wire (`pre-think` over the request, `pre-act` per tool call, `post-act` over the tool message that answers it), shadow and enforce, the approval round-trip, the trace to any sink, one egress host, loopback by default;
+   > - **the harness:** `craftabot gate serve | approve | deny`;
+   > - **the identity test:** the five presets and a Studio-built stack give the session's `guardrail.checked` sequence exactly;
+   > - **the Studio:** *Use in… the Gate*.
+   >
+   > **Next: WP128 (the gated example and the Gate's evidence).**
+
+   > **WP128 done 2026-09-30** (`107-THE-GATE.md` §8):
+   > - `examples/gated-agent`: an OpenAI-wire agent and a scripted model, neither importing Craft A Bot, governed through the Gate to four outcomes;
+   > - `run.started.gate` and the Gate's day as a bundle, which the Audit Centre opens verified;
+   > - the assurance pack naming the Gate's mode and stack;
+   > - `docs/gate.md` and the manual's Part I.
+   >
+   > **Next: the Phase AH exit review.**
+
+   > **Phase AH exit review, 2026-09-30.** `100-…` §14 item 8, clause by clause, each run again for this review.
+   >
+   > | Clause | Verdict | Evidence |
+   > |---|---|---|
+   > | The Gate's identity test is green over six stacks on every push | **Met, and wired, but not yet run in CI** | `harness/src/gate-identity.test.ts`: 6/6, the five presets and the Studio-built fixture. The session's and the Gate's `guardrail.checked` sequences are equal, and each case's coverage is pinned (pause, stop-run, annotate with marks, all three hooks). It runs in CI's `npm run test`, but `day7` has not been pushed, so no CI run has taken it yet. |
+   > | `examples/gated-agent` is governed by a stack it never saw | **Met** | `examples/gated-agent/src/agent.test.ts`: 2/2. The agent, the model and both entry points import nothing from Craft A Bot. Through the Gate, `stack.json` gives the four outcomes, and the day's bundle verifies. |
+   > | `@craftabot/governance` is 1.0.0 and the tarball check passes | **Met** | The version is `1.0.0`. `check-governance-pack` passes (158 files; `dist`, `README.md` and `package.json` only). `check:governance-install` installs the three tarballs into the example, with eight reader and component exports importable. Both run in CI after the build. |
+   >
+   > **Beside the item:**
+   > - the Gate binds loopback by default, which is §14 item 12's third clause, already held by `gate.test.ts` and `commands/gate.test.ts`;
+   > - the Gate's day opens verified in the Audit Centre;
+   > - the assurance pack names the Gate's mode and stack (WP128).
+   >
+   > **For Andrew's reading:**
+   > - **Two divergences from `100-…` §6.7,** both recorded in `107-…`:
+   >   - `post-act` reads the tool message in the next request, not the assistant's text;
+   >   - a call through the Gate is framed as an *action*.
+   > - **Publishing.** `core` and `metrics` gained `files` lists, since they had packed empty; publishing is still a decision, not a WP.
+   > - **The Gate is a reference implementation:** unauthenticated, in memory, one upstream.
+   > - **The manual's PDF** is not rebuilt for Part I.
+   > - **The harness suite's load-only timeouts** reached 19 under full parallel load at WP127. It passed whole at WP128.
+   >
+   > **Phase AH is closed. Next: Phase AI — `108-READINGS.md`, WP129, WP130, WP131.**
 8. **WP126, `107-THE-GATE.md`, WP127, WP128.** Phase AH exit review.
 9. **`108-READINGS.md`, WP129, WP130, WP131.** Phase AI exit review and the §9 check.
+   > **WP129 done 2026-09-30** (`108-READINGS.md` §9):
+   > - **The record.** `review` in `core`, over eight subject kinds, with `control-review` read as its alias.
+   > - **The checks.** The four take `requireReview` and `reviews`.
+   > - **The fold** is in `governance/reports`.
+   > - **The hosts.** `/workshop/readings` has the queue, the sources, a readout per kind, the filter in the URL and push. `craftabot readings export` writes JSON or the maintainer's markdown.
+   > - **The queue on the bank today:** 260 subjects, none read.
+   >
+   > The DoD's four clauses are held by `harness/src/readings.test.ts`, `core`'s and `governance`'s alias tests, and the screen's visual, axe and keyboard passes. The budget is +50 kB. Twelve win32 baselines were re-taken for the rail's new link; their Linux baselines are WP130's.
+   >
+   > **Next: WP130.**
+   >
+   > **WP130, 2026-09-30:**
+   > - **The stale lines.** `USER-MANUAL.md` §41: nine lines corrected to Day 7, readings as records, and the pending checkpoints listed. Also its header, its control-map paragraph and §42.2.
+   > - **The UX register.** `UX-AND-GAPS.md` §0 and §4 are dated with each deferred item's close. GAP-3 moves to §7, since it is not small: runs carry no cohort.
+   > - **The three "awaiting review" notes.** `CLAUDE.md`'s rows for `100-…` and `101-…`, and `README.md`'s row for `86-…`. `100-…`'s status is amended too.
+   > - **The index.** `98-` and `99-` were already listed; `104-`–`108-` are added.
+   > - **The walk** of `84-…` §9 is recorded in `UX-AND-GAPS.md` §9, stop by stop: eight met (two after fixes made on the way), two partly met; W-1 to W-6 open.
+   > - **The fixes made on the way:**
+   >   - the Studio's bench says why a stack did not run;
+   >   - the Worker resolves a saved local stack, whose campaigns had all been failing from *Use in… an experiment*;
+   >   - the Experiments page says why a campaign failed;
+   >   - `serve-site.mjs` takes an absolute `--root`.
+   > - **The release, dry run.** `build:editions` is within its four budgets. The archive is built as `release.yml` builds it: `craftabot-site-<v>.zip`, 4.5 MB, with `PUBLISHING.md` and `VERSION`. `sha256sum -c` passes, and the three editions' smoke specs pass 6 of 6 served from the unpacked archive, key-leak check included.
+   >
+   > **Not done, both waiting on a push:**
+   > - **The tag.** `git tag` is still empty. The first `v*` tag runs `release.yml` on GitHub and publishes a release, so it waits on Andrew's word, and on `day7` reaching `origin`.
+   > - **The Linux baselines.** An attempt in `mcr.microsoft.com/playwright:v1.62.1-noble` rendered with a different sans, without the bold weight CI's `ubuntu-latest` has, and rewrote every Linux shot, the Kit's included. It was discarded. The baselines for the new screens, and for the twelve Windows shots the rail's *Readings* link moved, come from CI's `visual` artefact on the first push, as for WP122–WP128.
+   >
+   > **WP131 done 2026-09-30** (`109-THE-TAIL-DAY7.md`):
+   > - **The roundels.** Five on the wave-2 seam: `reader`, `corpus`, `benchmark`, `gate`, `reading`. `wave2.test.ts` holds 29 files, not the 27 named above, which predates WP109's two.
+   > - **The Kit's card.** *Sure or unsure* runs on the Front Desk's queue, a world of its own beside the Front Desk, so the Front Desk's golden trace is untouched. It needs a deliberate `core` seam: the card's `dial`, the spec's `goalDial`, `worldConfigFor` in the session, the group and a fork, `run.started.goalDial`, and `DeskRecord.reading` for the chip. The Demo Brain loses at the default 50% and wins at 65%, in a keyboard-only e2e.
+   > - **The manual.** Part I, with §60–§65 and figures 28–30. The PDF is rebuilt: 79 pages, 30 figures. `prep.py`'s hard-coded count of 27 figures is corrected.
+   > - **The budgets:** +20 kB, and the Kit's first page +10 kB. Restated after Day 7 in `01-…` §8, and met on every edition.
+   >
+   > **Phase AI exit review, 2026-09-30.** `100-…` §14 items 9–12, clause by clause:
+   >
+   > **Item 9.**
+   > - *`/workshop/readings` queues every pending subject across the eight kinds*: **met**. `harness/src/readings.test.ts` checks the count against the sources, kind by kind: 260 on the bank.
+   > - *A reading turns the corresponding check green for that subject*: **met**. The same test covers each of the four checks, one subject only, and a rejection keeps it red.
+   > - *The first release tag is cut*: **met, 2026-09-30.** `v0.7.0` was tagged on Andrew's word, on `6a47f55`. Its first run failed at `npm ci`: the lock file, written by npm 11, lacked the nested `yaml@2.9.1` that CI's npm 10 wants for vite's optional peer. The lock was regenerated with `npm@10` and the tag moved onto the fix; nothing had been published under the first. `release.yml` then published [the release](https://github.com/Axiom-Puzzleworks/craft-a-bot/releases/tag/v0.7.0) with `craftabot-site-v0.7.0.zip` (4.6 MB); its SHA-256 verifies, and its `VERSION` names the commit.
+   >
+   > **Item 10.**
+   > - *The stale lines are corrected*: **met** (WP130).
+   > - *The two branch notes are in the index*: **met**. `98-` and `99-` are listed, with `104-`–`109-` beside them.
+   > - *The practitioner walk is recorded*: **met**, in `UX-AND-GAPS.md` §9. The walker was Claude; a practitioner's own reading is still Andrew's.
+   > - *The manual carries Part I with a rebuilt PDF*: **met**.
+   > - *The Kit's* Sure or unsure *card runs on the Front Desk*: **met**, on its queue (`e2e/sure-or-unsure.spec.ts`).
+   >
+   > **Item 11.** *Every new screen passes the visual, axe, keyboard and reduced-motion passes with a list twin; the budgets are re-stated and met on every edition*: **partly met.**
+   > - `/workshop/benchmarks` and `/workshop/readings` are in the axe sweep, the reader's walk and the win32 visual set.
+   > - The readings desk has its keyboard walk. The benchmarks page's Matrix has its twin.
+   > - `/workshop/playground/corpora` is in the axe sweep and the walk, but has no visual shot.
+   > - The calibration pane's shot is still WP118's pending one.
+   > - The reduced-motion snapshots cover the drawing screens only, as they did at WP110.
+   > - The Linux baselines for every screen new or moved since WP122 come from CI's `visual` artefact on the first push.
+   > - The budgets are re-stated and met.
+   >
+   > **Item 12.**
+   > - *`checkSynthetic` is green over every corpus and cassette*: **met** (`desk/src/synthetic-sweep.test.ts`, green on this build).
+   > - *No reader carries weights*: **met**. The readers are rule, hosted and LLM adapters, and none ships a model.
+   > - *The Gate binds loopback by default*: **met** (`gate.test.ts`, `commands/gate.test.ts`).
+   >
+   > **For Andrew's reading:**
+   > - **The Linux baselines,** taken from CI on that push.
+   > - **The 260 readings.** The desk now exists to take them.
+   > - **The card's lesson.** It starts on a loss at 50% on purpose. Its numbers are fixed, not drawn.
+   > - **The budgets' headroom,** under 1% on every build.
+   > - **WP125's live checkpoints,** still waiting on keys.
+   > - **W-1–W-6** from the walk.
+   >
+   > **Phase AI is closed, and `101-…`'s forward plan is exhausted but for WP125 (keys) and the Linux baselines (CI's artefact, now that `day7` is pushed).** Day 7's work in this repository is complete on `day7` and awaits review.
 
 ## 9. What "done" looks like for this roadmap
 

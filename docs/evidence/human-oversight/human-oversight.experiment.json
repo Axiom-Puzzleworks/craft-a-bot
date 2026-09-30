@@ -43,7 +43,8 @@
 							"fs-lending/the-lending-desk/explain-decision",
 							"fs-lending/the-lending-desk/disburse",
 							"fs-lending/the-lending-desk/log-appeal"
-						]
+						],
+						"reviewer": "fs-bank/reviewer/case-handler"
 					}
 				}
 			],
@@ -80,6 +81,11 @@
 				{
 					"id": "scripted-noisy",
 					"tier": "scripted-noisy"
+				},
+				{
+					"id": "fallible",
+					"tier": "fallible",
+					"errorModel": "fs-lending/error/decision"
 				}
 			],
 			"assertionCards": [],
@@ -107,11 +113,19 @@
 					"none",
 					"policy-cards"
 				]
+			},
+			{
+				"axis": "brain",
+				"levels": [
+					"scripted-noisy",
+					"fallible"
+				]
 			}
 		],
 		"baseline": {
 			"executors": "rules-only",
-			"guard": "none"
+			"guard": "none",
+			"brain": "scripted-noisy"
 		},
 		"metrics": [
 			{
@@ -141,15 +155,25 @@
 		"minimumDetectableEffect": 0.05
 	},
 	"campaigns": [
-		"human-oversight--executors=rules-only--guard=none",
-		"human-oversight--executors=rules-only--guard=policy-cards",
-		"human-oversight--executors=bot-explains-only--guard=none",
-		"human-oversight--executors=bot-explains-only--guard=policy-cards",
-		"human-oversight--executors=bot-recommends--guard=none",
-		"human-oversight--executors=bot-recommends--guard=policy-cards",
-		"human-oversight--executors=bot-with-a-person-at-the-decision--guard=none",
-		"human-oversight--executors=bot-with-a-person-at-the-decision--guard=policy-cards",
-		"human-oversight--executors=bot-everywhere--guard=none",
-		"human-oversight--executors=bot-everywhere--guard=policy-cards"
+		"human-oversight--brain=scripted-noisy--executors=rules-only--guard=none",
+		"human-oversight--brain=fallible--executors=rules-only--guard=none",
+		"human-oversight--brain=scripted-noisy--executors=rules-only--guard=policy-cards",
+		"human-oversight--brain=fallible--executors=rules-only--guard=policy-cards",
+		"human-oversight--brain=scripted-noisy--executors=bot-explains-only--guard=none",
+		"human-oversight--brain=fallible--executors=bot-explains-only--guard=none",
+		"human-oversight--brain=scripted-noisy--executors=bot-explains-only--guard=policy-cards",
+		"human-oversight--brain=fallible--executors=bot-explains-only--guard=policy-cards",
+		"human-oversight--brain=scripted-noisy--executors=bot-recommends--guard=none",
+		"human-oversight--brain=fallible--executors=bot-recommends--guard=none",
+		"human-oversight--brain=scripted-noisy--executors=bot-recommends--guard=policy-cards",
+		"human-oversight--brain=fallible--executors=bot-recommends--guard=policy-cards",
+		"human-oversight--brain=scripted-noisy--executors=bot-with-a-person-at-the-decision--guard=none",
+		"human-oversight--brain=fallible--executors=bot-with-a-person-at-the-decision--guard=none",
+		"human-oversight--brain=scripted-noisy--executors=bot-with-a-person-at-the-decision--guard=policy-cards",
+		"human-oversight--brain=fallible--executors=bot-with-a-person-at-the-decision--guard=policy-cards",
+		"human-oversight--brain=scripted-noisy--executors=bot-everywhere--guard=none",
+		"human-oversight--brain=fallible--executors=bot-everywhere--guard=none",
+		"human-oversight--brain=scripted-noisy--executors=bot-everywhere--guard=policy-cards",
+		"human-oversight--brain=fallible--executors=bot-everywhere--guard=policy-cards"
 	]
 }

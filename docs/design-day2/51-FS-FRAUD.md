@@ -182,3 +182,14 @@ One `random` per layout; the alerts are constructed, the customer is the bank's;
 > **Amended 2026-09-11 (WP85, `76-FRAUD-AND-ADVICE-WORKFLOWS.md` §3).** The desk gains what the alert journey needed, all content: the `work-item` layout (`fraudCaseFromItem` — the rule's alert as alert 1 on a queue of one, on a synthetic customer from the case's seed, the planted label in truth, the rule's signals on the record; `assembleFraudCase` now shared with the eleven hand-built layouts), the `write-note` action (observe tier, the closing note on the ledger), and four predicates the stages end on — `alert-opened`, `customer-contacted`, `alert-decided`, `note-written`. The manifest lists the workflow (`fs-fraud/fraud`), and the baseline's builds list the eleventh action, so `campaigns/fs-fraud-baseline.json` is regenerated; every card, scenario, evaluator and gate is unchanged.
 
 > **Amended 2026-09-29 (WP111, `102-HONEST-BANK.md` §5):** audited under the truth-independence property — the alert labels are hand-built or the population's planted label and no rule the desk runs computes them; nothing to declare.
+
+> **Amended 2026-09-30 (WP121, `105-CORPORA.md` §9):** the desk's corpus.
+> - **The corpus:** `fs-fraud/corpus/coaching-v1`, a hundred rows of the customer's words on a held-payment call. It is written after its question set was frozen, so it is held out from it, and blind-labelled twice (κ 1.00 and 0.98 for the same model and for another).
+> - **The regex baseline:** the keyword rule `fs-fraud/reader/coaching-words` (`coached`), the desk's first rule over words reads **43/100 (43.0%, 33.7–52.8%; 44% by either labeller)** of it right. The LLM contract's keyword stand-in reads 50/100.
+> - **What that measures:** The corpus was written to test the rule — a third of it paraphrase and trap — so this is the rule's accuracy on words chosen to break it, not on the desk's traffic.
+> - **Where it is held:** `harness/src/desk-corpora.test.ts`.
+
+> **Amended 2026-09-30 (WP122, `106-BENCHMARK.md` §5 and §7):** the desk's adversarial corpus.
+> - **The corpus:** `fs-fraud/corpus/adversarial-v1` has 202 rows over the caller, a transaction’s narrative and alert record, and disputes’ handoff, 35% benign. It is held out from the guard question set and blind-labelled twice (κ on attack/target 0.96/0.82 and 0.88/0.65).
+> - **The keyword baseline:** `fs-bank/reader/attack-words` flags 40 of 132 attacks (30%) and 9 of 70 benign rows.
+> - **Where it is held:** `harness/src/adversarial-corpora.test.ts`.

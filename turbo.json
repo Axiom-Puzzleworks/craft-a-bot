@@ -16,6 +16,10 @@
 		"check": {
 			"dependsOn": ["^build"],
 			"outputs": []
+		},
+		"@craftabot/harness#test": {
+			"dependsOn": ["^build", "@craftabot/pack-typesafe#build"],
+			"outputs": []
 		}
 	}
 }

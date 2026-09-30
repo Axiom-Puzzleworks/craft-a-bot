@@ -287,6 +287,12 @@ Rules: events are **append-only facts**; payloads are JSON-serialisable; the tra
 
 > **Amended 2026-09-05 (WP58 stage A, `47-SERVICE-LINES.md` §4.1):** no new event; one new value for an open field. **`error.kind: 'cassette-miss'`** — a service line's operation with no recorded answer for these arguments: the session emits it beside the failed `tool.executed`, from `ToolResult.errorKind` (additive on the tool contract), the way an egress refusal is `'egress-refused'`. Nothing was sent; a person re-records the cassette.
 
+> **Amended 2026-09-29 (WP115, `103-FALLIBLE-ACTORS.md` §5).** One new event and one optional field. **`decision.fault`** — `{ action, field, chose, shouldHave, planted: true, errorModel? }` — written by the session right after the brain's `decision` whenever the response carried a planted fault: the fallible tier changed `field` of the call (`'action'` when it swapped the action itself) from `shouldHave` to `chose`, under the named error model. Only a scripted brain plants one; a live model never writes it, so an error on the trace without it is the actor's own. **`ChatResponse.fault?`** (`schemas/shared.ts`) carries it from the provider to the session, and so appears on `think.completed` too. Every trace without a fallible brain is unchanged.
+
+> **Amended 2026-09-29, later (WP115, `103-FALLIBLE-ACTORS.md` §6).** **`stage.completed.by?`** — the reviewer model's answer at a `human` stage, `{ model, answer, shouldHave, recommended?, followed, correct, seconds }` (`reviewerAnswerSchema`, `schemas/shared.ts`), written only when the workflow's configuration names a `reviewer`; the stage record carries the same. Every run without a reviewer, the golden runs among them, is unchanged.
+
+> **Amended 2026-09-30 (WP117, `104-READERS.md` §4).** One new event and one new executor name. **`reader.answered`** — `{ workflowRunId?, stageId?, readerId, model, method, questionIds, answers, confidence, gated, steer? }` — written on the workflow's events after `stage.started` at a `reader` stage: who answered (`model`) and how (`method`: `rule`, `hosted`, `constrained`, `logprobs`, `argmax`, `human`), the typed answers rounded to six places (`typedAnswerSchema`, `schemas/reader.ts`), the lowest choice/score confidence the gate read (`null` when a reader returned no distribution), whether the stage gated to its `else`, and the steer noul when one was asked. A gated stage's `else` (a rule or a person) writes its own events after it, under the same `stage.started`, whose `executor` is `'reader'`. `StageRecord.reader` carries the same record. Every run with no `reader` executor, every golden run among them, is unchanged.
+
 ## 8. Prompting (V1 canonical prompt)
 
 The composed prompt is assembled from labelled sections, in this order, and shown verbatim in the trace (`prompt.composed`):
@@ -344,3 +350,21 @@ The instruction-leaflet tutorial builds concepts in this order — each step is 
 > **Amended 2026-09-07 (UX-1, `docs/manual/UX-AND-GAPS.md`).** No new event. **`guardrail.tripped.cause?`** — `'could-not-check'` when the trip is a hosted guard failing closed (its token rejected, its service unreachable or unfinished) rather than a rule firing on content; copied by the engine from the same optional field on the denying `GuardrailVerdict`, which `@craftabot/governance`'s shell sets on its fail-closed branch and nothing else sets. Absent on every trip written before the field, and on every rule catch since. `safetyTally` and `RunSummary` count these apart (`failedClosed`), so a battery outage is never a *save*; the Kit's end card, chip and story strip read the field rather than the reason's wording.
 >
 > **Amended 2026-09-06 (WP72, `61-LAST-DECKS.md` §4.1).** No new event. A scenario's `provider-fault` injection is delivered by the session to the provider call — never to the world — and is written to the trace as the two events a real transient writes: `error { kind: 'timeout' | 'refused' | 'malformed-response', message }` then `provider.retried { kind, afterMs: 0, attempt }`, one pair per faulted call from the fault's tick (the first think is tick 1) until its `count` is spent; the call then proceeds and the run goes on. A reader tells an injected fault from a real one by the message (*— injected*) and by the scenario that carried it.
+
+> **Amended 2026-09-30 (WP124, `106-BENCHMARK.md` §8.1).** One new event and three additive fields.
+>
+> **The new event.** **`content.marked`** — `{ source, guardrailId, quarantined }` — is written at `post-act`, after the chain, when a verdict marked the call's result untrusted:
+> - `source` names where the result came from (`tool:<name>`);
+> - `guardrailId` names who marked it;
+> - `quarantined` says whether a quarantined reader's answers replaced the result.
+>
+> **The fields:**
+> - the verdict's allow branch gains **`mark?: { provenance: 'untrusted', source, replacement? }`**;
+> - `GuardrailContext` gains **`result?`** (at `post-act`: the call's name, its result text, `ok`) and **`untrusted?`** (what was marked so far this run, present once anything was);
+> - the tick's memory record gains `provenance?` and `source?`.
+>
+> **What stays unchanged.** Nothing marks unless a component says so, so every golden trace is byte-identical.
+
+> **Amended 2026-09-30 (WP128, `107-THE-GATE.md` §4).** `run.started` gains an optional **`gate: { mode, stackId, upstream }`**, written only by the Gate on a conversation it carries. `RunSummary.gate` carries it, and the assurance pack's inventory names each Gate from it (`gatesOver`). Every session's run is unchanged.
+
+> **Amended 2026-09-30 (WP131, `109-THE-TAIL-DAY7.md` §3).** `run.started` gains an optional **`goalDial: { knob, value }`**: the card's dial as it stood for the run. It is written only when the card has a dial (`GoalCardDefinition.dial`), and the value is the player's setting (`AgentSpecV2.goalDial`) clamped and snapped, or the default. The world reads the same value at `create` as `config.knobs[knob]` (`worldConfigFor`, in the session, the group and a fork alike). A desk record may carry a **`reading: { question, answer, confidence }`**, a reader's answer the Kit draws as a chip; it is world state, so it rides on the snapshots every world event already carries. Every card without a dial, and every golden run, is unchanged.

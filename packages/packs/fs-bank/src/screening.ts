@@ -76,3 +76,21 @@ export function screenAgainstTheLists(
 ): ScreeningList | undefined {
 	return INDEX.get(key(customer.name.given, customer.name.family, customer.dateOfBirthYear))?.list;
 }
+
+/**
+ * **The lists as a reader reads them** (WP129, `108-READINGS.md` §3): one
+ * subject per list, `fs-bank/screening#<list>`, its entries as lines. The
+ * shape is the reading desk's `ReadingScreeningList`, held structurally so
+ * the pack stays content over `core` alone.
+ */
+export const SCREENING_READINGS: ReadonlyArray<{
+	id: string;
+	title: string;
+	entries: readonly string[];
+}> = (['sanctions', 'pep'] as const).map((list) => ({
+	id: `fs-bank/screening#${list}`,
+	title: list === 'sanctions' ? 'The sanctions list' : 'The politically exposed persons list',
+	entries: SCREENING_LIST.filter((entry) => entry.list === list).map(
+		(entry) => `${entry.given} ${entry.family}, born ${entry.birthYear} — ${entry.note}`
+	)
+}));

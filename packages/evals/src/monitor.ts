@@ -8,12 +8,16 @@ import type {
 } from '@craftabot/core';
 import { summariseRun } from '@craftabot/governance/reports';
 import {
+	catchRate,
 	fairnessMetric,
 	psiCategorical,
+	reviewAccuracy,
+	reviewSecondsPerCase,
 	touchesPerCase,
 	unattendedRate,
 	wilson,
 	type DecidedCase,
+	type TouchedCase,
 	type Decision,
 	type FairnessMetricId,
 	type Interval,
@@ -77,6 +81,12 @@ export interface MonitorOptions {
 	arrivals?: readonly MonitorArrival[];
 	/** The simulated clock, for the oldest waiting item's age; the latest arrival or finish without it. */
 	now?: string | undefined;
+	/**
+	 * The people behind the human stages (WP115, `103-FALLIBLE-ACTORS.md` §6): how
+	 * many, and the review seconds each has in a day. With it, `reviewLoad`
+	 * sets the seconds the reviewer model's cases demanded against capacity.
+	 */
+	reviewers?: { people: number; secondsPerDay: number } | undefined;
 }
 
 export interface MonitorRate {
@@ -108,6 +118,20 @@ export interface MonitorReadouts {
 	ceilingDecisions: number;
 	breaches: number;
 	ceilingBreachRate: MonitorRate;
+	/**
+	 * Human load v2 (WP115, `103-…` §6): present only when the runs carry a
+	 * reviewer model's answers. Over the window: seconds per case, the
+	 * reviewers' accuracy and catch rate; over every run folded: the seconds
+	 * demanded, and — given `reviewers` — the capacity and its utilisation.
+	 */
+	reviewLoad?: {
+		secondsPerCase: MonitorRate;
+		accuracy: MonitorRate;
+		catchRate: MonitorRate;
+		demandSeconds: number;
+		capacitySeconds?: number;
+		utilisation?: number;
+	};
 }
 
 export interface MonitorBucket {
@@ -220,6 +244,47 @@ export function referenceFromItems(items: readonly WorkItem[]): MonitorReference
 		])
 	) as Record<Decision, number>;
 	return { approvalRate: mix.approve, outcomeMix: mix, verdicts };
+}
+
+/** The window's review rates and the fold's demand against the reviewers' capacity over the days folded (WP115). */
+function reviewLoadOf(
+	windowed: readonly TouchedCase[],
+	all: readonly TouchedCase[],
+	options: MonitorOptions
+): NonNullable<MonitorReadouts['reviewLoad']> {
+	const asRate = (result: { value: number; interval: Interval; n: number }): MonitorRate => ({
+		value: result.value,
+		interval: [result.interval[0], result.interval[1]],
+		n: result.n
+	});
+	const demandSeconds = all.reduce(
+		(sum, entry) =>
+			sum + (entry.reviews ?? []).reduce((inner, review) => inner + review.seconds, 0),
+		0
+	);
+	const days = Math.max(
+		1,
+		Math.round(
+			(Date.parse(`${options.to}T00:00:00.000Z`) - Date.parse(`${options.from}T00:00:00.000Z`)) /
+				86_400_000
+		) + 1
+	);
+	const capacitySeconds =
+		options.reviewers !== undefined
+			? options.reviewers.people * options.reviewers.secondsPerDay * days
+			: undefined;
+	return {
+		secondsPerCase: asRate(reviewSecondsPerCase(windowed)),
+		accuracy: asRate(reviewAccuracy(windowed)),
+		catchRate: asRate(catchRate(windowed)),
+		demandSeconds,
+		...(capacitySeconds !== undefined
+			? {
+					capacitySeconds,
+					utilisation: capacitySeconds === 0 ? 0 : demandSeconds / capacitySeconds
+				}
+			: {})
+	};
 }
 
 const rate = (k: number, n: number): MonitorRate => {
@@ -342,6 +407,9 @@ export function foldMonitor(runs: readonly MonitorRun[], options: MonitorOptions
 	const touched = windowed.map((entry) => factOf(entry).touched);
 	const touches = touchesPerCase(touched);
 	const unattended = unattendedRate(touched);
+	// Human load v2 (WP115): only when a reviewer model answered somewhere, so every other fold is as it was.
+	const allTouched = ordered.map((entry) => factOf(entry).touched);
+	const reviewed = allTouched.some((entry) => (entry.reviews?.length ?? 0) > 0);
 	const perDecision = (total: number) => (decided === 0 ? 0 : total / decided);
 
 	const arrivalCounts: Record<string, number> = {};
@@ -419,7 +487,8 @@ export function foldMonitor(runs: readonly MonitorRun[], options: MonitorOptions
 		},
 		ceilingDecisions,
 		breaches,
-		ceilingBreachRate: rate(breaches, ceilingDecisions)
+		ceilingBreachRate: rate(breaches, ceilingDecisions),
+		...(reviewed ? { reviewLoad: reviewLoadOf(touched, allTouched, options) } : {})
 	};
 
 	// Buckets: one per simulated hour across the window of days; every run counts, not only the window's.

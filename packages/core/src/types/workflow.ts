@@ -2,6 +2,9 @@ import type { ActionCall, WorldState } from './world.js';
 import type { JsonSchema } from './json-schema.js';
 import type { Book, WorkItem, WorkItemKind } from '../schemas/book.js';
 import type { ContextSpec } from './context.js';
+import type { CalibrationRef } from './error-model.js';
+import type { TypedAnswer, TypedQuestion } from '../schemas/reader.js';
+import type { Corpus } from '../schemas/corpus.js';
 
 /**
  * **Workflows** (WP79, `69-WORKFLOWS.md` §3; `64-TARGET-DESIGN-V5.md` §6.2,
@@ -22,7 +25,43 @@ export type Executor =
 			lineId: string;
 			operation: string;
 			arguments?: (input: unknown, state: WorldState) => unknown;
-	  };
+	  }
+	| ReaderExecutor;
+
+/**
+ * **The `reader` executor** (WP117, `104-READERS.md` §4; `100-…` §6.3, D16):
+ * a registered reader asked typed questions about what the stage shows it;
+ * at or above the gate's threshold its output is committed, below it the
+ * `else` executor (a rule or a person) takes the same input under the same
+ * stage. A rule reader answers at confidence 1 and never gates.
+ */
+export interface ReaderExecutor {
+	kind: 'reader';
+	readerId: string;
+	/**
+	 * The question set's id (WP119, `105-CORPORA.md` §5): what a corpus's
+	 * `seenBy` records, and what the held-out rule matches. A reader scored on a
+	 * corpus must name one.
+	 */
+	questionSet?: string;
+	/** What the reader is shown — the caller's words, a claim's figures. Never truth. */
+	subject: (input: unknown, state: WorldState) => unknown;
+	questions: (input: unknown, state: WorldState) => Record<string, TypedQuestion>;
+	/** The stage's output from the answers. */
+	output: (answers: Record<string, TypedAnswer>, input: unknown) => unknown;
+	/** What committing the output does on the desk — the rule's `call` — if anything. */
+	act?: (output: unknown, input: unknown, state: WorldState) => ActionCall | undefined;
+	gate?: ReaderGate;
+}
+
+export interface ReaderGate {
+	/** Acts when the lowest choice/score confidence is at or above this; `null` is below every threshold. */
+	threshold: number;
+	/** What takes the item below the threshold, or on a steer: a rule or a person. */
+	else: Extract<Executor, { kind: 'rule' | 'human' }>;
+	/** A noul question's id: P ≥ 0.5 routes to `else` whatever the confidence. */
+	steer?: string;
+}
 
 export interface StageSpec<In = unknown, Out = unknown> {
 	id: string;
@@ -48,6 +87,22 @@ export interface StageSpec<In = unknown, Out = unknown> {
 	 * campaign's person follows the case rather than the first option.
 	 */
 	suggest?: (input: In, state: WorldState, truth: unknown) => string | undefined;
+	/**
+	 * What the case puts in front of the person at a `human` stage (WP116,
+	 * `103-FALLIBLE-ACTORS.md` §6): the answer the work so far invites — a
+	 * four-eyes check invites `confirm`. A reviewer model takes it, when it is
+	 * wrong, at its automation-bias rate. Absent, the first of the stage's
+	 * options found among the input's own fields.
+	 */
+	recommended?: (input: In, state: WorldState) => string | undefined;
+	/**
+	 * **The answer key** (WP118, `104-READERS.md` §9): the right answer to each
+	 * question a `reader` executor at this stage asks, read from the item's
+	 * truth — what a campaign scores the reader's answers against for its
+	 * calibration pane. Read by the scorer (`evals`) after the run, never by
+	 * the runtime, so no reader and no run record ever sees it.
+	 */
+	answerKey?: (truth: unknown) => Record<string, string> | undefined;
 	/** The stage's output read off the world once an agent or a line has done its work; a rule returns its own. */
 	read?: (state: WorldState, truth: unknown) => Out | undefined;
 	/** Which stage follows, or `'end'` — from this stage's output, the state and, when it matters, the input it was given. */
@@ -99,6 +154,28 @@ export interface WorkflowConfig {
 	stack?: string;
 	/** A stack per stage, by stage id: its boundary fits at that stage, its loop fits on that stage's session. */
 	stageStacks?: Record<string, string>;
+	/**
+	 * The person at every `human` stage, as a model (WP115, `103-FALLIBLE-ACTORS.md`
+	 * §6; `100-…` §6.2, D15): a pack's `reviewerModels` id. Absent, the stage is
+	 * answered as it always was — the oracle — and nothing new is written.
+	 */
+	reviewer?: string;
+}
+
+/**
+ * **A reviewer model** (WP115, `103-…` §6): how a person at a `human` stage
+ * errs, every parameter a calibration row — cited or stated, `review: 'pending'`.
+ */
+export interface ReviewerModel {
+	id: string;
+	name: string;
+	description: string;
+	/** P(the answer is right) when nothing wrong is put in front of them: a `rates` row. */
+	accuracy: CalibrationRef;
+	/** P(they take a wrong recommendation the case puts in front of them): a `rates` row. */
+	automationBias: CalibrationRef;
+	/** Seconds a case takes: a `weights` row whose keys are seconds. */
+	secondsPerCase: CalibrationRef;
 }
 
 export interface WorkflowSpec {
@@ -149,6 +226,8 @@ export interface BookRequest {
 	periodDays?: number;
 	/** The pack's own filter shape, passed through. */
 	filter?: unknown;
+	/** The corpus a book is drawn from (WP119, `105-…` §7): one item per row, the row's labels as the truth. */
+	corpus?: Corpus;
 	/** The knobs the book's verdicts are judged under; the defaults without. */
 	knobs?: Record<string, number | string | boolean>;
 }

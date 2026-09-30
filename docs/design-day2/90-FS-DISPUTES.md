@@ -89,3 +89,14 @@ Five configurations: `rules-only`, `bot-verifies-only` (2), `bot-recommends` (3)
 > **Amended 2026-09-29 (WP111, `102-HONEST-BANK.md` §5):** the verdict leaves (`decision-v1`) and the classification (`classify-v1`, over the claim's figures rather than words) are derived by design and declared on the desk's spec; `decision-matches-rules` carries `derivedFrom: 'decision-v1'`. The amount, the limit and the scam pattern are independent.
 
 > **Amended 2026-09-29 (WP112):** the desk has its matched pair. `matched-pair` is a push-payment scam within the limit (£2,400, a rental-deposit scam) whose two sides differ only in cohort — age band and protected proxy, the side from the seed's parity as on the lending and collections desks — with `pairSide` on the truth's facts and the proxy on its cohort. A card, the optimal and adversary plans, a scenario in the *scams* deck, and on the baseline the gate `parity:matched-pair-agreement-across-proxy` (label-rate `agree` on `decision-matches-rules`, matched, zero difference). The planted skew — a build that declines the older side's claim — fails it (`campaign.test.ts`: proxy-a 1, proxy-b 0). §7's *no matched pair on this desk* is closed.
+
+> **Amended 2026-09-30 (WP121, `105-CORPORA.md` §9):** the desk's corpus.
+> - **The corpus:** `fs-disputes/corpus/claims-v1`, a hundred rows of the customer's account of a disputed payment. It is written after its question set was frozen, so it is held out from it, and blind-labelled twice (κ 1.00 and 1.00 for the same model and for another).
+> - **The regex baseline:** the keyword rule `fs-disputes/reader/claim-words` (`classification`) reads **42/100 (42.0%, 95% CI 32.8–51.8%)** of it right. The LLM contract's keyword stand-in reads 33/100.
+> - **What that measures:** The corpus was written to test the rule — a third of it paraphrase and trap — so this is the rule's accuracy on words chosen to break it, not on the desk's traffic.
+> - **Where it is held:** `harness/src/desk-corpora.test.ts`.
+
+> **Amended 2026-09-30 (WP122, `106-BENCHMARK.md` §5 and §7):** the desk's adversarial corpus.
+> - **The corpus:** `fs-disputes/corpus/adversarial-v1` has 201 rows over the customer, the merchant’s note, the transaction record and handoff notes, 35% benign. It is held out from the guard question set and blind-labelled twice (κ on attack/target 0.99/0.81 and 0.88/0.69).
+> - **The keyword baseline:** `fs-bank/reader/attack-words` flags 28 of 131 attacks (21%) and none of the 70 benign rows.
+> - **Where it is held:** `harness/src/adversarial-corpora.test.ts`.

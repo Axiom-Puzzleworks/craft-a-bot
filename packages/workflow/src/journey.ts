@@ -62,6 +62,9 @@ export function laneOf(kind: Executor['kind']): JourneyLaneId {
 			return 'colleague';
 		case 'line':
 			return 'systems';
+		// A reader (WP117) draws with the rules: a machine's reading of the case, whichever reader answers.
+		case 'reader':
+			return 'rules';
 	}
 }
 

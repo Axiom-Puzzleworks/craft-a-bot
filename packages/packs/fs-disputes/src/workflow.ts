@@ -374,6 +374,15 @@ export const DISPUTES_STAGES: StageSpec[] = [
 			const { classification } = desk(state).extra.disputes;
 			return classification ? { classification } : undefined;
 		},
+		// WP118: the case's classification, from truth, for a reader's calibration pane.
+		answerKey: (truth) => {
+			const value = (truth as { facts?: Record<string, unknown> } | undefined)?.facts?.[
+				'classification'
+			];
+			return typeof value === 'string'
+				? { classification: value.replace('class-', '') }
+				: undefined;
+		},
 		next: () => 'hold'
 	},
 	{

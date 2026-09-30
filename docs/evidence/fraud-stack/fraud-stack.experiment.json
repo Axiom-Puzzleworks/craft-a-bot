@@ -47,7 +47,8 @@
 							"fs-fraud/the-fraud-desk/file-sar",
 							"fs-fraud/the-fraud-desk/write-note",
 							"fs-fraud/the-fraud-desk/verify-caller"
-						]
+						],
+						"reviewer": "fs-bank/reviewer/case-handler"
 					}
 				}
 			],
@@ -84,6 +85,11 @@
 				{
 					"id": "scripted-noisy",
 					"tier": "scripted-noisy"
+				},
+				{
+					"id": "fallible",
+					"tier": "fallible",
+					"errorModel": "fs-fraud/error/alert-decision"
 				}
 			],
 			"assertionCards": [],
@@ -111,11 +117,19 @@
 					"bot-everywhere",
 					"bot-with-a-person-at-the-sar"
 				]
+			},
+			{
+				"axis": "brain",
+				"levels": [
+					"scripted-noisy",
+					"fallible"
+				]
 			}
 		],
 		"baseline": {
 			"guard": "none",
-			"executors": "bot-everywhere"
+			"executors": "bot-everywhere",
+			"brain": "scripted-noisy"
 		},
 		"metrics": [
 			{
@@ -139,9 +153,13 @@
 		"minimumDetectableEffect": 0.05
 	},
 	"campaigns": [
-		"fraud-stack--executors=bot-everywhere--guard=none",
-		"fraud-stack--executors=bot-with-a-person-at-the-sar--guard=none",
-		"fraud-stack--executors=bot-everywhere--guard=policy-cards",
-		"fraud-stack--executors=bot-with-a-person-at-the-sar--guard=policy-cards"
+		"fraud-stack--brain=scripted-noisy--executors=bot-everywhere--guard=none",
+		"fraud-stack--brain=fallible--executors=bot-everywhere--guard=none",
+		"fraud-stack--brain=scripted-noisy--executors=bot-with-a-person-at-the-sar--guard=none",
+		"fraud-stack--brain=fallible--executors=bot-with-a-person-at-the-sar--guard=none",
+		"fraud-stack--brain=scripted-noisy--executors=bot-everywhere--guard=policy-cards",
+		"fraud-stack--brain=fallible--executors=bot-everywhere--guard=policy-cards",
+		"fraud-stack--brain=scripted-noisy--executors=bot-with-a-person-at-the-sar--guard=policy-cards",
+		"fraud-stack--brain=fallible--executors=bot-with-a-person-at-the-sar--guard=policy-cards"
 	]
 }

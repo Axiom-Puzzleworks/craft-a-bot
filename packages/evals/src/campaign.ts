@@ -16,9 +16,13 @@ import type {
 import {
 	POINT_KINDS,
 	bookSchema,
+	calibrationRow,
 	contextSpecSchema,
 	createCassetteProvider,
+	heldOutRefusal,
+	sha256Hex,
 	type ContextSpec,
+	type Corpus,
 	type ProviderCassetteFile
 } from '@craftabot/core';
 import {
@@ -52,6 +56,7 @@ import {
 } from '@craftabot/metrics';
 import { createSessionGroup, injectionSchema, toSpecV2 } from '@craftabot/core';
 import { createGroupWatchbot, createEvaluatorCircuitBreaker } from '@craftabot/pack-monitor';
+import { adversarialScript, type CounterpartScript } from '@craftabot/desk';
 import { counterpartScriptFor, counterpartSpec, deskFor } from './counterpart-seat.js';
 import starterPack from '@craftabot/pack-starter';
 import { z } from 'zod';
@@ -85,8 +90,11 @@ import {
 	DEFAULT_NOISE,
 	scriptedAdversary,
 	scriptedNoisy,
+	scriptedFallible,
 	scriptedOptimal,
-	type NoiseRates
+	type FallibleOptions,
+	type NoiseRates,
+	type ResolvedFault
 } from './brains.js';
 import { scoreRun } from './metrics.js';
 import {
@@ -154,7 +162,9 @@ export const specOverridesSchema = z.object({
 	 */
 	knobs: z.record(z.string(), z.union([z.number(), z.string(), z.boolean()])).optional(),
 	/** The workflow's named configuration this build runs, in a book campaign (WP80, `73-…` §4): an autonomy level applied to the journey. Not a spec override either. */
-	configuration: z.string().min(1).optional()
+	configuration: z.string().min(1).optional(),
+	/** The reviewer model at the journey's human stages (WP115, `103-…` §6), by id: the person as a model, in a book campaign. Not a spec override. */
+	reviewer: z.string().min(1).optional()
 });
 
 export const noiseRatesSchema = z.object({
@@ -433,7 +443,14 @@ export const campaignGuardSchema = z.object({
  * asked to compare them.
  */
 export const campaignCounterpartSchema = z.object({
-	tier: z.enum(['scripted', 'live']),
+	/**
+	 * `adversarial` (WP124, `106-BENCHMARK.md` §8.4): the red-team seat — a
+	 * script whose every line is an attack row of `corpusId`, drawn by the
+	 * cell's seed, seated in place of the desk's own visitor.
+	 */
+	tier: z.enum(['scripted', 'live', 'adversarial']),
+	/** With `adversarial`, the adversarial corpus the seat speaks from. */
+	corpusId: z.string().min(1).optional(),
 	/** With `live`, the seat's cartridge; the seat takes any installed one. */
 	cartridgeId: z.string().min(1).optional(),
 	/** With `live`, the round cap of each episode (default 30). */
@@ -453,11 +470,17 @@ export const campaignBrainSchema = z
 		 * with no network and no key, answering every prompt as the recording did; a
 		 * prompt it has not seen is a `cassette-miss`. Not counted against the budget.
 		 */
-		cassette: z.string().min(1).optional()
+		cassette: z.string().min(1).optional(),
+		/** The error model a fallible brain errs by (WP115, `103-…` §5): a pack's `errorModels` id. */
+		errorModel: z.string().min(1).optional()
 	})
 	.refine((brain) => brain.cassette === undefined || brain.tier === 'live', {
 		message: 'only a live brain replays a cassette',
 		path: ['cassette']
+	})
+	.refine((brain) => (brain.tier === 'fallible') === (brain.errorModel !== undefined), {
+		message: 'a fallible brain names an errorModel, and only a fallible brain does',
+		path: ['errorModel']
 	});
 export type CampaignBrain = z.infer<typeof campaignBrainSchema>;
 
@@ -486,7 +509,15 @@ export const campaignSourceSchema = z.object({
 		.optional(),
 	filter: z.unknown().optional(),
 	/** Only the first `limit` items of the book, in its order. */
-	limit: z.number().int().positive().optional()
+	limit: z.number().int().positive().optional(),
+	/**
+	 * The corpus the book is drawn from (WP119, `105-CORPORA.md` §7): the
+	 * workflow's `book` is handed it and makes one item per row. The held-out
+	 * rule (§5) runs over every reader the builds fit before any cell does.
+	 */
+	corpus: z.string().min(1).optional(),
+	/** Scoring readers the corpus has already seen, on purpose (§5): every cell says so. */
+	regression: z.literal(true).optional()
 });
 export type CampaignSource = z.infer<typeof campaignSourceSchema>;
 
@@ -556,6 +587,8 @@ export const campaignCellSchema = z.object({
 	guard: z.string(),
 	/** The context rung this cell ran at (WP81); written only when the campaign named contexts. */
 	context: z.string().optional(),
+	/** Scored on a corpus that has seen its readers, on purpose (WP119, `105-CORPORA.md` §5). */
+	regression: z.literal(true).optional(),
 	brain: z.string(),
 	tier: evalTierSchema,
 	seed: z.number().int(),
@@ -610,13 +643,46 @@ export const campaignCellSchema = z.object({
 			stages: z.array(
 				z.object({
 					stageId: z.string(),
-					executor: z.enum(['rule', 'agent', 'human', 'line']),
+					executor: z.enum(['rule', 'agent', 'human', 'line', 'reader']),
 					status: z.enum(['ok', 'blocked', 'escalated', 'error'])
 				})
 			),
 			touches: z.array(z.string()),
 			decisions: z.array(z.object({ kind: z.string(), level: z.number().int().min(1).max(5) })),
-			breaches: z.number().int().nonnegative()
+			breaches: z.number().int().nonnegative(),
+			/**
+			 * What each `reader` stage answered (WP118, `104-READERS.md` §9): one row
+			 * per choice question, with the answer key's label when the stage has
+			 * one — what the summary's calibration pane folds. Absent without a reader.
+			 */
+			readings: z
+				.array(
+					z.object({
+						stageId: z.string(),
+						questionId: z.string(),
+						readerId: z.string(),
+						model: z.string(),
+						choice: z.string(),
+						label: z.string().optional(),
+						probabilities: z.record(z.string(), z.number()),
+						confidence: z.number().nullable(),
+						steer: z.number().optional(),
+						gated: z.boolean()
+					})
+				)
+				.optional(),
+			/** The reviewer model's answers at the journey's human stages (WP115, `103-…` §6); absent without one. */
+			reviews: z
+				.array(
+					z.object({
+						stageId: z.string(),
+						seconds: z.number().nonnegative(),
+						correct: z.boolean(),
+						followed: z.boolean(),
+						caught: z.boolean().optional()
+					})
+				)
+				.optional()
 		})
 		.optional(),
 	/** The seat across the desk in this cell (WP64): the tier, and for a live seat who sat there. Defaulted so every stored report parses. */
@@ -965,7 +1031,8 @@ export function prepareCampaign(
 	const campaign = resolveCampaign(unresolved, registry);
 	if (campaign.source) {
 		const workflow = workflowOf(registry, campaign.source);
-		const book = drawBook(campaign.source, workflow);
+		const corpus = corpusOf(registry, campaign, workflow);
+		const book = drawBook(campaign.source, workflow, corpus);
 		return {
 			campaign,
 			cells: campaignCells(campaign, book, workflow),
@@ -989,7 +1056,41 @@ function workflowOf(registry: PackRegistry, source: CampaignSource): WorkflowSpe
 }
 
 /** The book in hand, or the one the workflow draws from the population named — the same bytes at the same seed and size wherever it is drawn. */
-function drawBook(source: CampaignSource, workflow: WorkflowSpec): Book {
+/**
+ * **The corpus a book source names, held to the held-out rule** (WP119,
+ * `105-CORPORA.md` §5): resolved from the registry; every reader executor the
+ * builds' configurations (or the source's, or the stages' own) fit is
+ * refused if it names no question set, or one the corpus has already scored
+ * it on — unless the source is a regression. Refused before any cell runs.
+ */
+function corpusOf(
+	registry: PackRegistry,
+	campaign: Campaign,
+	workflow: WorkflowSpec
+): Corpus | undefined {
+	const source = campaign.source;
+	if (!source?.corpus) return undefined;
+	const corpus = registry.getCorpus(source.corpus);
+	if (!corpus)
+		throw new Error(`campaign source names corpus "${source.corpus}", which no pack ships`);
+	const configurations = new Set(
+		campaign.builds.map((build) => build.overrides?.configuration ?? source.configuration)
+	);
+	for (const configurationId of configurations) {
+		const executors = configurationId
+			? (workflow.configurations?.[configurationId]?.executors ?? {})
+			: {};
+		for (const stage of workflow.stages) {
+			const executor = executors[stage.id] ?? stage.executor;
+			if (executor.kind !== 'reader') continue;
+			const refusal = heldOutRefusal(corpus, executor, source.regression === true);
+			if (refusal) throw new Error(`campaign "${campaign.id}": ${refusal}`);
+		}
+	}
+	return corpus;
+}
+
+function drawBook(source: CampaignSource, workflow: WorkflowSpec, corpus?: Corpus): Book {
 	if (source.book) return source.book;
 	const population = source.population;
 	if (!population)
@@ -999,12 +1100,22 @@ function drawBook(source: CampaignSource, workflow: WorkflowSpec): Book {
 			`workflow "${workflow.id}" draws no book of its own; hand the campaign one inline`
 		);
 	}
-	return workflow.book({
+	const book = workflow.book({
 		seed: population.seed,
 		size: population.size,
 		...(population.periodDays !== undefined ? { periodDays: population.periodDays } : {}),
-		...(source.filter !== undefined ? { filter: source.filter } : {})
+		...(source.filter !== undefined ? { filter: source.filter } : {}),
+		...(corpus ? { corpus } : {})
 	});
+	// A book said to be from a corpus is from that corpus, frozen at its digest (§7).
+	if (
+		corpus &&
+		(book.source.corpus?.id !== corpus.id || book.source.corpus.digest !== corpus.digest)
+	)
+		throw new Error(
+			`workflow "${workflow.id}" drew a book that is not corpus "${corpus.id}" at digest ${corpus.digest}`
+		);
+	return book;
 }
 
 /**
@@ -1229,6 +1340,7 @@ async function runCell(
 		seed,
 		tags: scenario.tags,
 		...(cell.context ? { context: cell.context.id } : {}),
+		...(campaign.source?.regression ? { regression: true as const } : {}),
 		ordinal: cell.ordinal
 	};
 	const empty = () => Object.fromEntries(campaign.assertionCards.map((card) => [card.id, false]));
@@ -1249,7 +1361,14 @@ async function runCell(
 		}
 		const spec = specFor(cell);
 		const goalCardId = goalCardOf(scenario);
-		const script = scriptFor(brain.tier, goalCardId, seed, noise, options.plans ?? starterPlans);
+		const script = scriptFor(
+			brain.tier,
+			goalCardId,
+			seed,
+			noise,
+			options.plans ?? starterPlans,
+			fallibleFor(brain, registry, seed, cell.ordinal, goalCardId)
+		);
 		const maxTicks = scenario.maxTicks;
 		// A live seat: the cell is a two-seat episode (WP64, `56-…` §4.1), scored on the agent's own events.
 		if (campaign.counterpart?.tier === 'live') {
@@ -1270,7 +1389,11 @@ async function runCell(
 		// A build's knobs reach the world at `create` (WP78), so the world is built here as an injected one is.
 		const knobs = build.overrides?.knobs;
 		// The rung of the context ladder reaches the world beside the knobs (WP81).
-		const worldConfig = worldConfigFor(knobs, cell.context);
+		const worldConfig = worldConfigFor(
+			knobs,
+			cell.context,
+			redTeamScriptFor(campaign, registry, seed)
+		);
 		const world =
 			worldInjections.length > 0 || worldConfig !== undefined
 				? injectedWorld(
@@ -1385,7 +1508,8 @@ async function runBookCell(
 	const config: WorkflowConfig = {
 		...(named ?? {}),
 		...(Object.keys(knobs).length > 0 ? { knobs } : {}),
-		...(cell.context ? { context: cell.context } : {})
+		...(cell.context ? { context: cell.context } : {}),
+		...(build.overrides?.reviewer !== undefined ? { reviewer: build.overrides.reviewer } : {})
 	};
 	const spec = specFor(cell);
 	const seat = createTestClock({ seed, idOffset: cell.ordinal * ID_STRIDE });
@@ -1417,7 +1541,14 @@ async function runBookCell(
 			brain.tier === 'live'
 				? providerForLive(brain, options, goalCardId)
 				: createMockProvider({
-						script: scriptFor(brain.tier, goalCardId, seed, noise, options.plans ?? starterPlans)
+						script: scriptFor(
+							brain.tier,
+							goalCardId,
+							seed,
+							noise,
+							options.plans ?? starterPlans,
+							fallibleFor(brain, registry, seed, cell.ordinal, goalCardId)
+						)
 					}),
 		// Each stage's boundary chain (WP95): its cards and components, compiled against the same registry and deps as the cell's guard.
 		boundaryGuardrailsFor: stageBoundaryGuardrails(registry, deps, (stage) =>
@@ -1468,6 +1599,7 @@ async function runBookCell(
 		const ceiling = ceilings[decision.kind];
 		return ceiling !== undefined && decision.level > ceiling;
 	}).length;
+	const readings = readingsOf(run, workflow, truth ?? item.truth);
 	const last = agentRuns.at(-1);
 	// A handed-off run did its part of the journey (WP102): a success of this cell; the target is another cell's or the clock's.
 	const outcome: RunOutcome =
@@ -1505,7 +1637,9 @@ async function runBookCell(
 			})),
 			touches: touched.touches.map((touch) => touch.kind),
 			decisions: touched.decisions ?? [],
-			breaches
+			breaches,
+			...(touched.reviews ? { reviews: touched.reviews } : {}),
+			...(readings.length > 0 ? { readings } : {})
 		}
 	};
 	if (last) options.onTrace?.(scored, { events: last.events, spec: last.spec });
@@ -1965,13 +2099,31 @@ function fit(spec: AgentSpecV2, bricks: readonly FittedBrick[]): AgentSpecV2 {
 /** The world's create-time config for a cell (WP78, WP81): the build's knobs and the cell's context rung, or nothing. */
 function worldConfigFor(
 	knobs: Record<string, number | string | boolean> | undefined,
-	context: ContextSpec | undefined
+	context: ContextSpec | undefined,
+	counterpart?: CounterpartScript
 ): Record<string, unknown> | undefined {
-	if (knobs === undefined && context === undefined) return undefined;
+	if (knobs === undefined && context === undefined && counterpart === undefined) return undefined;
 	return {
 		...(knobs !== undefined ? { knobs } : {}),
-		...(context !== undefined ? { context } : {})
+		...(context !== undefined ? { context } : {}),
+		...(counterpart !== undefined ? { counterpart } : {})
 	};
+}
+
+/** The red-team seat's script for a cell (WP124): the named corpus's attack rows, drawn by the cell's seed. */
+function redTeamScriptFor(
+	campaign: Campaign,
+	registry: PackRegistry,
+	seed: number
+): CounterpartScript | undefined {
+	if (campaign.counterpart?.tier !== 'adversarial') return undefined;
+	const corpusId = campaign.counterpart.corpusId;
+	const corpus = corpusId ? registry.getCorpus(corpusId) : undefined;
+	if (!corpus)
+		throw new Error(
+			`campaign '${campaign.id}' seats a red-team counterpart and names ${corpusId ? `'${corpusId}', which is not registered` : 'no corpusId'}`
+		);
+	return adversarialScript(corpus, seed);
 }
 
 /** `exactOptionalPropertyTypes`: a parsed optional is `T | undefined`, which `SpecOverrides` does not admit — drop the undefineds. */
@@ -1980,9 +2132,10 @@ function cleanOverrides(
 ): Omit<SpecOverrides, 'goalCardId' | 'tools'> {
 	if (!overrides) return {};
 	return Object.fromEntries(
-		// `knobs` are the world's and `configuration` the workflow's, not the spec's (WP78, WP80).
+		// `knobs` are the world's, `configuration` and `reviewer` the workflow's, not the spec's (WP78, WP80, WP115).
 		Object.entries(overrides).filter(
-			([key, value]) => key !== 'knobs' && key !== 'configuration' && value !== undefined
+			([key, value]) =>
+				key !== 'knobs' && key !== 'configuration' && key !== 'reviewer' && value !== undefined
 		)
 	) as Omit<SpecOverrides, 'goalCardId' | 'tools'>;
 }
@@ -1992,9 +2145,13 @@ function scriptFor(
 	goalCardId: string,
 	seed: number,
 	noise: NoiseRates,
-	plans: PlanSource
+	plans: PlanSource,
+	fallible?: FallibleOptions
 ) {
 	switch (tier) {
+		case 'fallible':
+			if (!fallible) throw new Error('a fallible brain names no errorModel');
+			return scriptedFallible(plans.planFor(goalCardId), fallible);
 		case 'scripted-adversary':
 			return scriptedAdversary(plans.adversaryPlanFor(goalCardId));
 		case 'scripted-counterpart':
@@ -2019,6 +2176,48 @@ function planIfAny(goalCardId: string, plans: PlanSource): Plan {
 	} catch {
 		return [];
 	}
+}
+
+/**
+ * An error model's faults with their rates read from the registry's calibration
+ * tables (WP115, `103-…` §5): a rate outside [0, 1], or a table, row or key the
+ * registry does not hold, is refused before any cell runs on it.
+ */
+export function resolveErrorModel(
+	registry: Pick<PackRegistry, 'getErrorModel' | 'getCalibrationTable'>,
+	id: string
+): ResolvedFault[] {
+	const model = registry.getErrorModel(id);
+	if (!model) throw new Error(`no error model '${id}' is installed`);
+	return model.faults.map((spec) => {
+		const table = registry.getCalibrationTable(spec.rate.table);
+		if (!table)
+			throw new Error(
+				`error model '${id}': no calibration table '${spec.rate.table}' is installed`
+			);
+		const rate = calibrationRow(table, spec.rate.row).distribution[spec.rate.key];
+		if (rate === undefined || !(rate >= 0 && rate <= 1))
+			throw new Error(
+				`error model '${id}': ${spec.rate.table}/${spec.rate.row} has no rate '${spec.rate.key}' in [0, 1]`
+			);
+		return { spec, rate };
+	});
+}
+
+/** The fallible tier's options for one cell and card: the model's faults, and a seed mixed from the cell's seed, ordinal and the card. */
+function fallibleFor(
+	brain: CampaignBrain,
+	registry: Pick<PackRegistry, 'getErrorModel' | 'getCalibrationTable'>,
+	seed: number,
+	ordinal: number,
+	goalCardId: string
+): FallibleOptions | undefined {
+	if (brain.tier !== 'fallible' || brain.errorModel === undefined) return undefined;
+	return {
+		seed: Number.parseInt(sha256Hex(`${seed}|${ordinal}|${goalCardId}`).slice(0, 8), 16),
+		errorModelId: brain.errorModel,
+		faults: resolveErrorModel(registry, brain.errorModel)
+	};
 }
 
 function providerForLive(
@@ -2747,4 +2946,36 @@ function bounds(atLeast: number | undefined, atMost: number | undefined, asRate 
 
 export function pct(value: number): string {
 	return `${Math.round(value * 100)}%`;
+}
+
+type Reading = NonNullable<NonNullable<CampaignCell['workflow']>['readings']>[number];
+
+/**
+ * **A run's readings** (WP118, `104-READERS.md` §9): each `reader` stage's
+ * choice answers, with the stage's answer key read from the case's truth —
+ * here, after the run, where the scorer reads truth and no reader does.
+ */
+export function readingsOf(run: WorkflowRun, workflow: WorkflowSpec, truth: unknown): Reading[] {
+	const readings: Reading[] = [];
+	for (const stage of run.stages) {
+		if (!stage.reader) continue;
+		const key = workflow.stages.find((spec) => spec.id === stage.stageId)?.answerKey?.(truth);
+		for (const [questionId, answer] of Object.entries(stage.reader.answers)) {
+			if (answer.type !== 'choice') continue;
+			const label = key?.[questionId];
+			readings.push({
+				stageId: stage.stageId,
+				questionId,
+				readerId: stage.reader.readerId,
+				model: stage.reader.model,
+				choice: answer.choice,
+				...(label !== undefined ? { label } : {}),
+				probabilities: answer.probabilities,
+				confidence: answer.confidence,
+				...(stage.reader.steer !== undefined ? { steer: stage.reader.steer } : {}),
+				gated: stage.reader.gated
+			});
+		}
+	}
+	return readings;
 }

@@ -17,8 +17,10 @@ import {
 	type RunRecord,
 	type RunSummary,
 	type Storage,
+	type BenchmarkReport,
 	type ExperimentResult,
-	controlReviewSchema,
+	latestReviews,
+	reviewsFromContent,
 	type ControlReview,
 	type ControlReviewStatus
 } from '@craftabot/core';
@@ -79,6 +81,31 @@ export function principalsOver(
 		if (!principal) continue;
 		const key = `${principal.kind}:${principal.id}`;
 		const entry = byKey.get(key) ?? { principal, runIds: [] };
+		entry.runIds.push(run.id);
+		byKey.set(key, entry);
+	}
+	return [...byKey.values()];
+}
+
+/** A Gate the bot's runs came through (WP128, `107-THE-GATE.md` §4): the stack, its mode, the upstream, and which runs. */
+export interface AssuranceGate {
+	stackId: string;
+	mode: 'shadow' | 'enforce';
+	upstream: string;
+	runIds: string[];
+}
+
+/** The Gates the runs name, one per stack, mode and upstream, from each run's summary (`run.started.gate`). */
+export function gatesOver(
+	runs: readonly RunRecord[],
+	summaries: ReadonlyMap<string, RunSummary>
+): AssuranceGate[] {
+	const byKey = new Map<string, AssuranceGate>();
+	for (const run of runs) {
+		const gate = summaries.get(run.id)?.gate;
+		if (!gate) continue;
+		const key = `${gate.stackId}|${gate.mode}|${gate.upstream}`;
+		const entry = byKey.get(key) ?? { ...gate, runIds: [] };
 		entry.runIds.push(run.id);
 		byKey.set(key, entry);
 	}
@@ -233,6 +260,8 @@ export interface AssurancePack {
 			sector: string;
 			journeys: { shipped: number; supporting: number; out: number };
 		};
+		/** The Gates the runs came through (WP128): present only when a run names one. */
+		gates?: AssuranceGate[];
 	};
 	/** Principle 2 — governance: the safety stack, approvals, egress, the principal. */
 	governance: {
@@ -295,6 +324,8 @@ export interface AssurancePackInput {
 	controlMaps?: readonly ControlMap[];
 	/** The experiment results the register folds (WP90); none means every control is untested. */
 	experimentResults?: readonly ExperimentResult[];
+	/** WP123 (`106-BENCHMARK.md` §6): benchmark reports, for the coverage's *measured*. */
+	benchmarkReports?: readonly BenchmarkReport[];
 	/** The traces of the runs the incident log names (WP66), so each finding's decision can be explained; absent, the section says so. */
 	incidentEvents?: ReadonlyMap<string, readonly EngineEvent[]>;
 	/** The journeys the host laid out (WP100); the fold keeps those of the bot's world, in workflow-id order. */
@@ -437,6 +468,7 @@ export async function assurancePackFor(input: AssurancePackInput): Promise<Assur
 	const egressRuns = mine.filter((run) => summaries.get(run.id)?.egress !== undefined);
 	// Who started the runs, and who started the ones an evaluator judged (WP65, `55-…` §4.4).
 	const principals = principalsOver(mine, summaries);
+	const gates = gatesOver(mine, summaries);
 	const judgedIds = new Set(evaluations.map((record) => record.runId));
 	const validators = principalsOver(
 		mine.filter((run) => judgedIds.has(run.id)),
@@ -618,7 +650,8 @@ export async function assurancePackFor(input: AssurancePackInput): Promise<Assur
 				? { world: { id: world.id, name: world.name, ...(purpose ? { purpose } : {}) } }
 				: {}),
 			...(goalCard ? { goalCard: { id: goalCard.id, title: goalCard.title } } : {}),
-			...(domain ? { domain } : {})
+			...(domain ? { domain } : {}),
+			...(gates.length > 0 ? { gates } : {})
 		},
 		governance: {
 			guardrails: [...safetyCase.guardrails],
@@ -662,7 +695,7 @@ export async function assurancePackFor(input: AssurancePackInput): Promise<Assur
 				'run.finished with STOPPED_BY_USER — a person can stop any run, and the trace records it.',
 			hostedScreening: safetyCase.hostedScreening,
 			effects: controlEffectiveness(input.experimentResults ?? [], maps),
-			coverage: coverageSummary(GUARDRAIL_CATALOGUE)
+			coverage: coverageSummary(GUARDRAIL_CATALOGUE, input.benchmarkReports)
 		},
 		monitoring: {
 			series,
@@ -711,16 +744,36 @@ export async function assurancePackFromStorage(
 ): Promise<AssurancePack> {
 	const record: AgentRecord | undefined = await storage.getAgent(agentId);
 	if (!record) throw new Error(`no bot '${agentId}' in the store`);
-	// WP110 (GAP-1): the readers' reviews, from the content store.
-	const controlReviews: ControlReview[] = (await storage.listContent('control-review')).flatMap(
-		(entry) => {
-			const parsed = controlReviewSchema.safeParse(entry.record);
-			return parsed.success ? [parsed.data] : [];
+	// WP110 (GAP-1): the readers' reviews, from the content store — since WP129 every
+	// `review` of a control row and the `control-review` alias (`108-READINGS.md` §7),
+	// the latest per row, in the shape this section has always filed.
+	const contentReviews = reviewsFromContent([
+		...(await storage.listContent('review')),
+		...(await storage.listContent('control-review'))
+	]);
+	const controlReviews: ControlReview[] = [...latestReviews(contentReviews).values()].flatMap(
+		(review): ControlReview[] => {
+			if (review.subject.kind !== 'control-row') return [];
+			const at = review.subject.id.lastIndexOf('#');
+			if (at < 0) return [];
+			return [
+				{
+					id: review.id,
+					mapId: review.subject.id.slice(0, at),
+					ref: review.subject.id.slice(at + 1),
+					status: review.verdict === 'rejected' ? 'disputed' : 'reviewed',
+					by: review.by.name ?? review.by.id,
+					note: review.note ?? '',
+					reviewedAt: review.on,
+					schemaVersion: 1
+				}
+			];
 		}
 	);
 	const runs = (await storage.listRuns()).filter((run) => run.agentId === agentId);
 	const summaries = await ensureRunSummaries(storage, runs);
 	const experimentResults = await storage.listExperimentResults();
+	const benchmarkReports = await storage.listBenchmarkReports();
 	const evaluations = await storage.listAllEvaluations();
 	const parse =
 		options.parseReport ?? ((raw: unknown) => raw as AssuranceCampaignReportLike | undefined);
@@ -751,6 +804,7 @@ export async function assurancePackFromStorage(
 		campaignReports,
 		incidentEvents,
 		experimentResults,
+		...(benchmarkReports.length > 0 ? { benchmarkReports } : {}),
 		...(options.journeys ? { journeys: options.journeys } : {}),
 		controlReviews,
 		...(options.now ? { now: options.now } : {})

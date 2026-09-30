@@ -35,6 +35,19 @@ export const effectRecordSchema = z.object({
 	treatment: effectSideSchema,
 	/** treatment − baseline. */
 	delta: z.number(),
+	/**
+	 * The brain tier the comparison was made under (WP116, `103-FALLIBLE-ACTORS.md`
+	 * §6): `scripted-noisy`, `fallible`, `live`… A design with a `brain` factor
+	 * measures every other factor under each of its levels; the register names
+	 * it beside every effect. Absent on a result written before WP116.
+	 */
+	tier: z.string().optional(),
+	/**
+	 * Both sides at the metric's bound with nothing to separate them (WP116,
+	 * tenet 33): 100% against 100%, 0% against 0%, or a mean with no spread on
+	 * either side. Says nothing about the control, and leaves the verdict.
+	 */
+	untestable: z.literal(true).optional(),
 	interval: z.tuple([z.number(), z.number()]),
 	p: z.number().min(0).max(1).optional(),
 	/** How the interval and the test were made, in words. */
@@ -68,7 +81,13 @@ export const effectRecordSchema = z.object({
 });
 export type EffectRecord = z.infer<typeof effectRecordSchema>;
 
-export const experimentVerdictSchema = z.enum(['supported', 'not-supported', 'inconclusive']);
+/** `untestable` since WP116 (`103-…` §6): every effect sat at a bound, so no actor erred for a control to catch. */
+export const experimentVerdictSchema = z.enum([
+	'supported',
+	'not-supported',
+	'inconclusive',
+	'untestable'
+]);
 export type ExperimentVerdict = z.infer<typeof experimentVerdictSchema>;
 
 const resultBody = {

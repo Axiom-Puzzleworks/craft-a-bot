@@ -1,0 +1,877 @@
+{
+	"id": "fs-onboarding/corpus/purpose-v1",
+	"name": "What a new account is for, in the applicant’s words",
+	"version": "1",
+	"stateKind": "applicant-words",
+	"guide": "What applicants say when asked what a new account is for, each labelled with its main use. Written after the question set was frozen, so held out from it. Synthetic English written for the product by its authors (an authoring pass given the guide, the options and the desk’s keyword rule, so it could write rows that test the rule): no person, number, company or place in it is real, and no row has a digit. It stands in for what customers say; it is not what they say. A sample of real words, labelled by someone other than the product’s authors, is the missing test, and no figure measured on these rows replaces it.",
+	"labels": {
+		"purpose": {
+			"options": ["everyday", "salary", "savings", "business", "third-party-funds"],
+			"guide": "everyday — Day-to-day spending and bills from their own money. salary — Receiving their wages or pay from an employer. savings — Putting money aside. business — Money from their own trade or business. third-party-funds — Receiving or passing on money for somebody else."
+		}
+	},
+	"rows": [
+		{
+			"id": "o001",
+			"state": "I'm trying to save my own money from getting mixed up with the shop's, so this one is for the shop.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "business"
+			}
+		},
+		{
+			"id": "o002",
+			"state": "My employer pays monthly and I want a separate account for it.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "salary"
+			}
+		},
+		{
+			"id": "o003",
+			"state": "I need somewhere for my day-to-day spending — food shopping, petrol, that kind of thing.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o004",
+			"state": "It's not for my wages — I'm not employed by anyone. I fix bikes and people pay me for it.",
+			"tags": ["negation"],
+			"labels": {
+				"purpose": "business"
+			}
+		},
+		{
+			"id": "o005",
+			"state": "I'd like my pay from work to go straight into it — my employer needs the details.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "salary"
+			}
+		},
+		{
+			"id": "o006",
+			"state": "A bit of everything really, but mostly the weekly shop and bills. I might leave a little in it at the end of the month.",
+			"tags": ["mixed"],
+			"labels": {
+				"purpose": "everyday"
+			},
+			"contested": {
+				"reason": "Leaving a little at the month's end hints at savings, though spending is plainly the main use.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "o007",
+			"state": "new job innit, they need somewhere to chuck my pay",
+			"tags": ["informal"],
+			"labels": {
+				"purpose": "salary"
+			}
+		},
+		{
+			"id": "o008",
+			"state": "Paying my household bills and buying what I need week to week.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o009",
+			"state": "My new job wants my bank details so they can pay my salary.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "salary"
+			}
+		},
+		{
+			"id": "o010",
+			"state": "My friend has one with you and says it's easy to use. I'll use it for my own bills and shopping.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o011",
+			"state": "I'd like to keep an emergency pot apart from my current account and leave it alone.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o012",
+			"state": "I need somewhere for clients to pay my invoices.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "business"
+			}
+		},
+		{
+			"id": "o013",
+			"state": "I used to be on a salary, but now I work for myself as an electrician and my jobs will be paid here.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "business"
+			}
+		},
+		{
+			"id": "o014",
+			"state": "A friend recommended you. It's so my wages have somewhere to go.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "salary"
+			}
+		},
+		{
+			"id": "o015",
+			"state": "I'm hoping to tuck some away towards a holiday next summer.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o016",
+			"state": "An agency that recruited me online wants me to accept payments and wire them elsewhere.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "third-party-funds"
+			}
+		},
+		{
+			"id": "o017",
+			"state": "It's for my little side hustle — the bits I make and sell at fairs.",
+			"tags": ["euphemism"],
+			"labels": {
+				"purpose": "business"
+			}
+		},
+		{
+			"id": "o018",
+			"state": "Just general spending. Direct debits for the gas and electric, and a card for the shops.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o019",
+			"state": "Something for the proverbial sock under the mattress, only safer.",
+			"tags": ["euphemism"],
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o020",
+			"state": "It's for a friend who needs somewhere to have his money sent.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "third-party-funds"
+			}
+		},
+		{
+			"id": "o021",
+			"state": "Mostly I'll be tapping my card at the supermarket and covering the phone contract and council tax.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o022",
+			"state": "tryna build a lil pot for a car, nothing else goes in or out",
+			"tags": ["informal"],
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o023",
+			"state": "The trade takes care of itself in its own account. This one is personal, to put away a little each week for my grandchildren.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o024",
+			"state": "Mainly my salary, though I'll pay the bills out of it too.",
+			"tags": ["mixed"],
+			"labels": {
+				"purpose": "salary"
+			},
+			"contested": {
+				"reason": "A pay account that also meets the bills could be read as everyday; the incoming pay decides it here.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "o025",
+			"state": "I've gone self-employed as a plumber and need an account for the work.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "business"
+			}
+		},
+		{
+			"id": "o026",
+			"state": "I'm not self-employed any more — I've taken a job with a firm and they'll pay me into this.",
+			"tags": ["negation"],
+			"labels": {
+				"purpose": "salary"
+			}
+		},
+		{
+			"id": "o027",
+			"state": "A savings account, please — I'd like to put money aside every month.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o028",
+			"state": "Just for savings. I won't touch it day to day.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o029",
+			"state": "I'll be running it like a business: invoices go out, customers pay, and I transfer everything to the owner overseas, keeping a fee.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "third-party-funds"
+			}
+		},
+		{
+			"id": "o030",
+			"state": "A gentleman I've been chatting to overseas needs money to come here first, and then I forward it to him.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "third-party-funds"
+			}
+		},
+		{
+			"id": "o031",
+			"state": "My neighbour's son is having trouble with his bank, so his payments will come to me and I'll hand them over in cash.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "third-party-funds"
+			}
+		},
+		{
+			"id": "o032",
+			"state": "I'm self-employed, but this has nothing to do with work — I just want somewhere to build up a buffer for myself.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o033",
+			"state": "I'll top it up from my other account each month and use it for the cost of living.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o034",
+			"state": "Nothing to do with my employer — it's my own money, for everyday bits and bobs and the bills.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o035",
+			"state": "Somewhere to run the house from: the water bill, the broadband, the weekly shop.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o036",
+			"state": "It's for what the firm gives me at the end of each month for my labours.",
+			"tags": ["euphemism"],
+			"labels": {
+				"purpose": "salary"
+			}
+		},
+		{
+			"id": "o037",
+			"state": "Something to save into for the children's future.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o038",
+			"state": "I've been told to bring a payslip. It's for getting paid by the company I work for.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "salary"
+			}
+		},
+		{
+			"id": "o039",
+			"state": "I get my wages elsewhere. I want to move part of them over here each month and leave them to grow.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o040",
+			"state": "I left my employer to go it alone as a hairdresser, so this is for what my clients pay.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "business"
+			}
+		},
+		{
+			"id": "o041",
+			"state": "It's just my main current account, for groceries, rent and the usual bills.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o042",
+			"state": "It's a rainy day fund, really.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o043",
+			"state": "I want to start saving for a deposit on a flat.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o044",
+			"state": "I'd like to save for a wedding next year.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o045",
+			"state": "tbh just need a card that works for food, fuel and my phone bill lol",
+			"tags": ["informal"],
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o046",
+			"state": "I don't want to spend from it at all. It's to sit there and grow.",
+			"tags": ["negation"],
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o047",
+			"state": "A friend overseas is going to send money through my account for me to pass on.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "third-party-funds"
+			}
+		},
+		{
+			"id": "o048",
+			"state": "I'm hoping to save up one day, but for now it's just for my pay from the school where I teach.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "salary"
+			},
+			"contested": {
+				"reason": "The applicant mentions wanting to save, so savings is arguable, though the pay coming in is the stated use.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "o049",
+			"state": "I've been asked to receive some payments and pass the money on to a man I met online.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "third-party-funds"
+			}
+		},
+		{
+			"id": "o050",
+			"state": "I'm employed by a small business in town; they'll pay me through this each fortnight.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "salary"
+			}
+		},
+		{
+			"id": "o051",
+			"state": "An ordinary account for paying rent and everyday costs out of my own money.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o052",
+			"state": "I'll keep most of it aside for a car, but I may pay the odd bill from it if I'm short.",
+			"tags": ["mixed"],
+			"labels": {
+				"purpose": "savings"
+			},
+			"contested": {
+				"reason": "It also pays the odd bill, so everyday is a reasonable reading.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "o053",
+			"state": "I'm moving house and want a fresh account for bills and shopping.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o054",
+			"state": "doing a bit of van work for myself now, cash and transfers, need it all in one spot",
+			"tags": ["informal"],
+			"labels": {
+				"purpose": "business"
+			}
+		},
+		{
+			"id": "o055",
+			"state": "I answered an advert for a remote job as a payments assistant. They told me clients will transfer money to my personal account, I keep a small percentage for my trouble and send the rest on to accounts they give me each day. They said it's all above board; I just need an account that can take the volume.",
+			"tags": ["long"],
+			"labels": {
+				"purpose": "third-party-funds"
+			},
+			"contested": {
+				"reason": "It is framed as a job, so salary is a possible reading, but the money is other people's.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "o056",
+			"state": "I sell second-hand clothes online and need somewhere for the proceeds of sales.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "business"
+			}
+		},
+		{
+			"id": "o057",
+			"state": "A contact of mine abroad needs to move money, and I'll do it on his behalf.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "third-party-funds"
+			}
+		},
+		{
+			"id": "o058",
+			"state": "Somewhere to stash a little each month so it grows, separate from my spending.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o059",
+			"state": "My friend and I are each putting by for our own trips; this one is just for my own pot.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o060",
+			"state": "The hospital where I work needs an account to send my monthly pay to.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "salary"
+			}
+		},
+		{
+			"id": "o061",
+			"state": "I used to run a business but I'm retired now; this is just for paying for groceries and the gas.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o062",
+			"state": "I want to build up a cushion in case the boiler goes or the car breaks down.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o063",
+			"state": "It's where my earnings from my job at the council will land.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "salary"
+			}
+		},
+		{
+			"id": "o064",
+			"state": "I'm a freelance designer and my customers pay by transfer.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "business"
+			}
+		},
+		{
+			"id": "o065",
+			"state": "I work in the trade department of a shipping firm and my monthly pay will come here.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "salary"
+			}
+		},
+		{
+			"id": "o066",
+			"state": "Just to have my wages paid into, then I'll spend from it as normal.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "salary"
+			}
+		},
+		{
+			"id": "o067",
+			"state": "My elderly uncle can't manage his own affairs any more, so his pension will land with me and I'll pay his care home.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "third-party-funds"
+			},
+			"contested": {
+				"reason": "Looking after a relative's money may be a formal arrangement the bank supports, though it is still money for another person.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "o068",
+			"state": "I'd rather pay for things with my own money than a credit card, so it's for the normal outgoings.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o069",
+			"state": "My old bank charged me for everything, so I'm hoping to save a bit on charges. It's just for bills and the food shop.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o070",
+			"state": "I've been baking for neighbours for a while and it's grown into a proper little enterprise. I take orders for birthdays and weddings, buy flour and boxes in bulk, and I need to keep all of that away from my personal account so my accountant doesn't despair at the end of the year.",
+			"tags": ["long"],
+			"labels": {
+				"purpose": "business"
+			}
+		},
+		{
+			"id": "o071",
+			"state": "Someone will be paying money into it and I'll pass it on to them.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "third-party-funds"
+			}
+		},
+		{
+			"id": "o072",
+			"state": "I'll be receiving transfers from people I don't know and moving them on to another account. I get a small cut.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "third-party-funds"
+			}
+		},
+		{
+			"id": "o073",
+			"state": "The director at my employer asked me to take payments for him personally and send them along to him.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "third-party-funds"
+			}
+		},
+		{
+			"id": "o074",
+			"state": "I'm a freelance translator; the agencies I work with settle up to this account.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "business"
+			}
+		},
+		{
+			"id": "o075",
+			"state": "I've started at a care home and they'll put what I earn in here every four weeks.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "salary"
+			}
+		},
+		{
+			"id": "o076",
+			"state": "It's for my wages. I start at a warehouse next month.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "salary"
+			}
+		},
+		{
+			"id": "o077",
+			"state": "HR asked me for a sort code and account number for payroll.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "salary"
+			}
+		},
+		{
+			"id": "o078",
+			"state": "My mum always told me to keep something back, and I never have. I've just turned a corner with my debts and I want an account I can't easily dip into, where a small amount goes in every payday and stays there until I actually need it.",
+			"tags": ["long"],
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o079",
+			"state": "After years of temping through an agency I've finally got a permanent job at a distribution centre. They pay on the last Friday of the month by bank transfer and they won't use my partner's account, so I need one of my own for my pay to go into.",
+			"tags": ["long"],
+			"labels": {
+				"purpose": "salary"
+			}
+		},
+		{
+			"id": "o080",
+			"state": "Keeping the lights on, basically — utilities, food, the odd meal out.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o081",
+			"state": "I do nails from home and want my takings in one place for the tax return.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "business"
+			}
+		},
+		{
+			"id": "o082",
+			"state": "A friend of mine helps out at weekends, but the money is all mine — it's for my window-cleaning round's takings.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "business"
+			}
+		},
+		{
+			"id": "o083",
+			"state": "It's for my wages, supposedly — a firm abroad says it will pay me and I just send most of it on to their supplier.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "third-party-funds"
+			}
+		},
+		{
+			"id": "o084",
+			"state": "I've recently separated from my partner and we had a joint account for everything. I need one in my own name now so I can pay the rent, the car insurance and the food shopping. Nothing fancy, just the basics to get me back on my feet.",
+			"tags": ["long"],
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o085",
+			"state": "Keeping body and soul together, as my gran used to say — the essentials.",
+			"tags": ["euphemism"],
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o086",
+			"state": "Money I won't touch — a nest egg for when I stop working.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "savings"
+			}
+		},
+		{
+			"id": "o087",
+			"state": "Not savings exactly — I'll hold money for a lady I met on a dating site and send it wherever she tells me.",
+			"tags": ["trap"],
+			"labels": {
+				"purpose": "third-party-funds"
+			}
+		},
+		{
+			"id": "o088",
+			"state": "Dog walking — it's my own little venture, and clients will transfer what they owe.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "business"
+			}
+		},
+		{
+			"id": "o089",
+			"state": "mate of mine needs to get some money in from abroad, i'll just move it on for him",
+			"tags": ["informal"],
+			"labels": {
+				"purpose": "third-party-funds"
+			}
+		},
+		{
+			"id": "o090",
+			"state": "I've started making furniture to order, and the people who buy it will pay me into this.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "business"
+			}
+		},
+		{
+			"id": "o091",
+			"state": "Partly my wages from a part-time job, but mostly the money from the picture framing I do on my own account.",
+			"tags": ["mixed"],
+			"labels": {
+				"purpose": "business"
+			},
+			"contested": {
+				"reason": "Wages and self-employed income both come in, so which is main rests on the applicant's word.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "o092",
+			"state": "Some of my own bits, but mainly my uncle abroad will be sending his rent here for me to pay his landlord.",
+			"tags": ["mixed"],
+			"labels": {
+				"purpose": "third-party-funds"
+			},
+			"contested": {
+				"reason": "The applicant spends their own money from it too, so everyday is arguable.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "o093",
+			"state": "It's for my cousin, who can't get an account here; I'll receive her money and hand it over.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "third-party-funds"
+			}
+		},
+		{
+			"id": "o094",
+			"state": "It won't be for saving and it's not for work. Just my ordinary spending.",
+			"tags": ["negation"],
+			"labels": {
+				"purpose": "everyday"
+			}
+		},
+		{
+			"id": "o095",
+			"state": "I run a small business, a corner shop, and want the takings kept separate from my own money.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "business"
+			}
+		},
+		{
+			"id": "o096",
+			"state": "I'm helping an acquaintance with a little cash-flow arrangement — it comes in, it goes out to him.",
+			"tags": ["euphemism"],
+			"labels": {
+				"purpose": "third-party-funds"
+			}
+		},
+		{
+			"id": "o097",
+			"state": "It's not for me, if I'm honest. It's for a man who says he can't open one himself.",
+			"tags": ["negation"],
+			"labels": {
+				"purpose": "third-party-funds"
+			}
+		},
+		{
+			"id": "o098",
+			"state": "It's for my small business — I sell cakes at markets.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "business"
+			}
+		},
+		{
+			"id": "o099",
+			"state": "I'm on the books at a garage now and they pay by bank transfer, not cash any more.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"purpose": "salary"
+			}
+		},
+		{
+			"id": "o100",
+			"state": "I'm a sole trader doing gardening and need an account for the business side.",
+			"tags": ["plain"],
+			"labels": {
+				"purpose": "business"
+			}
+		}
+	],
+	"questions": {
+		"id": "fs-onboarding/questions/purpose-q1",
+		"digest": "6d5b8d3600d99575bd972fb34d4768ad9401adbb751a2303b69e97e0949f7d28"
+	},
+	"annotators": [
+		{
+			"id": "author",
+			"blind": false,
+			"primary": true
+		},
+		{
+			"id": "second-labeller",
+			"blind": true,
+			"kappa": {
+				"purpose": 1
+			},
+			"note": "The same model as the author, labelling blind from the guide and the words alone."
+		},
+		{
+			"id": "third-labeller",
+			"blind": true,
+			"kappa": {
+				"purpose": 1
+			},
+			"note": "Another, smaller model, labelling blind from the guide and the words alone; its disagreements are the contested alternatives."
+		}
+	],
+	"heldOut": true,
+	"seenBy": [],
+	"digest": "69713881c6b45b22fc5088cde80c339cbf758af9167cc61237d6c49ad4e6e433"
+}

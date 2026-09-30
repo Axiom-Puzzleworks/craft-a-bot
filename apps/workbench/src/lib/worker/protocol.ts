@@ -5,7 +5,8 @@ import type {
 	EngineEvent,
 	ExecutorRecord,
 	WorkItem,
-	WorkflowRun
+	WorkflowRun,
+	PackManifest
 } from '@craftabot/core';
 import type { CampaignCell, CampaignReport } from '@craftabot/evals';
 
@@ -37,6 +38,12 @@ export interface StartCampaign {
 	 * id and `createdAt` are then the runner's own, as today.
 	 */
 	fixed?: { now: string; reportId: string } | undefined;
+	/**
+	 * The page's authored content as the `local` pack (WP130): a campaign
+	 * whose guard names a saved `local/stacks/…` stack resolves it here, as the
+	 * main thread's registry would. Absent, the edition's packs alone.
+	 */
+	local?: PackManifest | undefined;
 }
 
 /**

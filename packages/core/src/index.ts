@@ -36,6 +36,7 @@ export {
 	isLocalId,
 	localContentId,
 	localPackFrom,
+	reviewsFromContent,
 	parseContentRecord,
 	safeParseContentRecord,
 	slugOf,
@@ -198,6 +199,7 @@ export {
 	type DeskQueueStatus,
 	type DeskRecord,
 	type DeskRecordClassification,
+	type DeskReading,
 	type DeskTranscriptLine,
 	type DeskTranscriptSpeaker,
 	type DeskWorldState,
@@ -418,6 +420,7 @@ export { validateSpecV2 } from './validate-spec-v2.js';
 
 // The running engine (02-AGENT-MODEL.md §5)
 export { createSession } from './session/agent-session.js';
+export { goalDialFor, worldConfigFor } from './session/world-config.js';
 export {
 	brainTurnsThrough,
 	eventsThrough,
@@ -573,6 +576,83 @@ export {
 	type CassetteEntry,
 	type CassetteFile
 } from './schemas/cassette.js';
+/** Error models and the fallible tier (WP115, `103-FALLIBLE-ACTORS.md` §5). */
+export type { CalibrationRef, DecisionFaultSpec, ErrorModel } from './types/error-model.js';
+export type { ReviewerModel } from './types/workflow.js';
+export { reviewerAnswerSchema, type ReviewerAnswer } from './schemas/shared.js';
+export type { Reader, ReaderContext } from './types/reader.js';
+export {
+	annotatorSchema,
+	corpusDigest,
+	corpusLabelSchema,
+	corpusRowSchema,
+	corpusSchema,
+	heldOutRefusal,
+	parseCorpus,
+	secondLabelsSchema,
+	seenByFor,
+	seenBySchema,
+	type Annotator,
+	type Corpus,
+	type CorpusRow,
+	type SecondLabels,
+	type SeenBy
+} from './schemas/corpus.js';
+/** Benchmark reports (WP123, `106-BENCHMARK.md` §6). */
+export {
+	BENCHMARK_MODES,
+	BENCHMARK_SUBJECT_KINDS,
+	benchmarkReportDigest,
+	benchmarkReportSchema,
+	benchmarkSubjectSchema,
+	byNewestBenchmarkReport,
+	latestMeasurement,
+	safeParseBenchmarkReport,
+	type BenchmarkRate,
+	type BenchmarkReport,
+	type BenchmarkSubjectResult
+} from './schemas/benchmark.js';
+/** The adversarial vocabulary (WP122, `106-BENCHMARK.md` §2). */
+export {
+	ADVERSARIAL_STATE_KIND,
+	ATTACK_GUIDE,
+	ATTACK_KINDS,
+	ATTACK_SURFACES,
+	ATTACK_TARGETS,
+	TARGET_GUIDE,
+	adversarialLabels,
+	adversarialStateSchema,
+	type AdversarialState,
+	type AttackKind,
+	type AttackSurface,
+	type AttackTarget
+} from './schemas/adversarial.js';
+export type { ReaderExecutor, ReaderGate } from './types/workflow.js';
+export {
+	answerProblem,
+	choiceAnswerSchema,
+	choiceQuestionSchema,
+	noulAnswerSchema,
+	noulQuestionSchema,
+	readerConfidence,
+	readerExchangeSchema,
+	readerMethodSchema,
+	readerRecordSchema,
+	readerResponseSchema,
+	roundAnswer,
+	roundProbability,
+	scoreAnswerSchema,
+	scoreQuestionSchema,
+	typedAnswerSchema,
+	typedQuestionSchema,
+	type QuestionType,
+	type ReaderExchange,
+	type ReaderMethod,
+	type ReaderRecord,
+	type ReaderResponse,
+	type TypedAnswer,
+	type TypedQuestion
+} from './schemas/reader.js';
 /** Provider cassettes (WP114, `103-FALLIBLE-ACTORS.md` §3). */
 export {
 	parseProviderCassette,
@@ -780,3 +860,19 @@ export {
 	type ControlReview,
 	type ControlReviewStatus
 } from './schemas/control-review.js';
+export {
+	REVIEW_SUBJECT_KINDS,
+	isReviewed,
+	latestReviews,
+	reviewFromControlReview,
+	reviewSchema,
+	reviewSlug,
+	reviewSubjectKey,
+	reviewSubjectKindSchema,
+	reviewSubjectSchema,
+	reviewVerdictSchema,
+	type Review,
+	type ReviewSubject,
+	type ReviewSubjectKind,
+	type ReviewVerdict
+} from './schemas/review.js';

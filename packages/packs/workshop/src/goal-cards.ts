@@ -1,6 +1,7 @@
 import type { GoalCardDefinition } from '@craftabot/core';
 import { goalCardStrings } from './strings.js';
 import { FRONT_DESK_WORLD_ID } from './world/desk.js';
+import { QUEUE_WORLD_ID, THRESHOLD_KNOB } from './world/queue.js';
 import { WORKSHOP_WORLD_ID } from './world/workshop.js';
 
 /**
@@ -52,5 +53,29 @@ export const workshopGoalCards: GoalCardDefinition[] = [
 		teachesConcepts: ['the-loop', 'actions', 'sense'],
 		par: 3,
 		audience: 'workshop'
+	},
+	{
+		// WP131 (`109-THE-TAIL-DAY7.md` §3; `100-…` §6.8, G89): the Kit's one Day 7 card — the
+		// confidence gate (`104-READERS.md` §4) as a dial in a child's hand. A read and an act per visitor.
+		id: 'workshop/sure-or-unsure',
+		title: goalCardStrings['sure-or-unsure'].title,
+		goalText: goalCardStrings['sure-or-unsure'].goalText,
+		worldId: QUEUE_WORLD_ID,
+		layoutId: 'a-queue',
+		successCondition: 'queue-handled',
+		hints: [...goalCardStrings['sure-or-unsure'].hints],
+		teachesConcepts: ['confidence', 'humans-in-the-loop'],
+		par: 12,
+		dial: {
+			knob: THRESHOLD_KNOB,
+			label: goalCardStrings['sure-or-unsure'].dialLabel,
+			min: 0,
+			max: 1,
+			step: 0.05,
+			default: 0.5,
+			format: 'percent',
+			lowLabel: goalCardStrings['sure-or-unsure'].dialLow,
+			highLabel: goalCardStrings['sure-or-unsure'].dialHigh
+		}
 	}
 ];

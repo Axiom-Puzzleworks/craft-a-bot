@@ -229,3 +229,23 @@ export function stackRecord(stack: Stack, savedAt: string) {
 		schemaVersion: 1 as const
 	};
 }
+
+/**
+ * **Use in… the Gate** (WP127, `107-THE-GATE.md` §1): the stack as the file
+ * `craftabot gate serve --stack` reads — the Studio's saved record, which the
+ * Gate's loader takes as it is — and the command line that serves it, in
+ * `shadow` first. The upstream key is named, never written: it comes from
+ * the environment the command runs in.
+ */
+export function gateStackFile(stack: Stack, savedAt: string): { fileName: string; text: string } {
+	const fileName = `${stack.id.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '')}.stack.json`;
+	return {
+		fileName,
+		text: `${JSON.stringify(stackRecord(stack, savedAt), null, '	')}
+`
+	};
+}
+
+export function gateCommand(fileName: string, upstream = 'https://api.openai.com/v1'): string {
+	return `CRAFTABOT_GATE_UPSTREAM_KEY=… npm run craftabot -- gate serve --stack ${fileName} --upstream ${upstream} --mode shadow`;
+}

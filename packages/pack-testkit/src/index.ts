@@ -18,6 +18,14 @@ export { checkGuardrail } from './checks/guardrail.js';
 export { checkGuardrailService, hostMatches } from './checks/guardrail-service.js';
 export { checkComponent } from './checks/component.js';
 export { checkStack, type StackCheckOptions } from './checks/stack.js';
+export { checkReader, type ReaderFixture } from './checks/reader.js';
+export { checkCorpus, corpusFindings } from './checks/corpus.js';
+export {
+	MIN_BENIGN_SHARE,
+	adversarialProfile,
+	checkAdversarialCorpus,
+	type AdversarialProfile
+} from './checks/adversarial.js';
 export { browserRefusal, checkConnection } from './checks/connection.js';
 export { checkManifest } from './checks/manifest.js';
 export { checkTool } from './checks/tool.js';

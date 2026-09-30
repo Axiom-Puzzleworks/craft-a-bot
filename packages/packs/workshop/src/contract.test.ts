@@ -3,6 +3,7 @@ import { obedient } from '@craftabot/core/testing';
 import starterPack from '@craftabot/pack-starter';
 import { describeConformance, type PackConformanceFixture } from '@craftabot/pack-testkit';
 import { FRONT_DESK_WORLD_ID } from './world/desk.js';
+import { QUEUE_WORLD_ID } from './world/queue.js';
 import { workshopGoalCards } from './goal-cards.js';
 import workshopPack from './index.js';
 import { buildSpec } from './session/harness.js';
@@ -41,7 +42,9 @@ const CARTRIDGE_PACK: PackManifest = {
 
 /** Bare action ids the Workshop actually answers to — not hand-copied. */
 const WORLD_ACTION_IDS = new Set(workshopActionDefinitions.map((action) => action.id));
-const ROOM_CARDS = workshopGoalCards.filter((card) => card.worldId !== FRONT_DESK_WORLD_ID);
+const ROOM_CARDS = workshopGoalCards.filter(
+	(card) => card.worldId !== FRONT_DESK_WORLD_ID && card.worldId !== QUEUE_WORLD_ID
+);
 
 const worldScripts: PackConformanceFixture['world'] = {
 	worldId: WORKSHOP_WORLD_ID,
@@ -106,6 +109,26 @@ const fixture: PackConformanceFixture = {
 				{ layoutId: 'a-visitor', call: { name: 'teleport', arguments: {} } },
 				{ layoutId: 'a-visitor', call: { name: 'say', arguments: { text: '' } } },
 				{ layoutId: 'a-visitor', call: { name: 'look-up', arguments: { record: 'the boiler' } } }
+			]
+		},
+		// Sure or unsure (WP131, `109-…` §3): no doors; the optimal plan, and a colleague swamped.
+		[QUEUE_WORLD_ID]: {
+			acceptedInjections: [],
+			scripts: {
+				'workshop/sure-or-unsure': {
+					layoutId: 'a-queue',
+					calls: (SCRIPTED_OPTIMAL['workshop/sure-or-unsure'] ?? []).map((step) => ({
+						name: step.call,
+						arguments: step.args ?? {}
+					}))
+				}
+			},
+			illegalActions: [
+				{ layoutId: 'a-queue', call: { name: 'teleport', arguments: {} } },
+				// Acting before reading the note: refused, and nothing moves.
+				{ layoutId: 'a-queue', call: { name: 'let-in', arguments: { visitor: 'Ada Quill' } } },
+				{ layoutId: 'a-queue', call: { name: 'read-note', arguments: { visitor: '' } } },
+				{ layoutId: 'a-queue', call: { name: 'let-in', arguments: { visitor: 'Nobody Atall' } } }
 			]
 		}
 	}

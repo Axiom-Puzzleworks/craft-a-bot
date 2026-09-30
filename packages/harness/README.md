@@ -106,6 +106,17 @@ none` refuses every call.
 
 `craftabot scaffold domain --id <id> --sector <sector> --jurisdiction <jurisdiction> --world <pack> --journeys <a,b> --out <dir> [--root <Entity>] [--name <name>] [--today YYYY-MM-DD] [--relative]` types out a domain pack's shape (`93-DOMAIN-PACK.md` §4): under `<out>/<world>/` the world pack — the root entity (`--root`, `Customer` by default) from a seed, a calibration table of stated assumptions every row `review: 'pending'`, three tiered service lines, the obligation vocabulary, a control map, a persona, the `DomainSpec` — and under `<out>/<journey>/` one journey pack per name: a desk with three actions and two predicates, a four-stage workflow with `rules-only` and Level 4 configurations, two scenarios and a card, a policy card, a deterministic evaluator, a book, a campaign, the scripted plans and a golden-run test. The output passes `checkDomainPack` as written and fails `checkCalibration({ requireReview: true })` until a reader cites a row — the first thing a domain author does. Each file goes through Prettier under the config `<out>` resolves when Prettier is installed. `--relative` writes one workspace (one `package.json` at the root, the journey packs importing the world by relative path) instead of a package per pack; `examples/scaffold-domain` is that, held byte for byte by `src/commands/scaffold.test.ts`.
 
+## Readings (WP129)
+
+`craftabot readings export [--format json|markdown] [--out <file>] [--store <dir>] [--blueprints <dir>]` writes the reading desk's queue (`108-READINGS.md`). Every subject shipped _pending_ is listed with its source and the reading it has had:
+
+- catalogue entries, calibration rows, control rows and decision rights;
+- blueprint items (from `--blueprints`, `docs/blueprints` by default);
+- the bank's screening lists;
+- error and reviewer models.
+
+The readings are the `review` records, and the `control-review` alias, in the content directory (`--content`) and, with `--store`, in a run store. The markdown is the maintainer's work list: the amendments to edit in, the rejections, then the unread by kind. With `--out`, the terminal gets one readout per kind.
+
 ## Experiments (WP89)
 
 `craftabot experiment run --file <experiment.json> [--jobs <n>] [--egress …] [--out ./campaign-out]` expands a design (`docs/schemas/experiment.schema.json`; `72-EXPERIMENTS.md` §3) to one campaign per level combination — the template's guards, builds, brains and contexts with each factor's axis set to its level, the seeds shared — writes each as `<out>/<campaign-id>.campaign.json`, runs each as `campaign` runs one, keeps the report as `<out>/<campaign-id>.report.json`, and folds the reports into `<out>/<experiment-id>.experiment-result.json` (`experiment-result.schema.json`, with its digest) and `.md`: for each metric and factor, every treatment level against the baseline as a difference with its interval and _n_ (Newcombe for rates, Welch for means, the sign test over the pairs the shared seeds make), the cost on each side, and the verdict over the intervals — _supported_, _not-supported_ or _inconclusive_ — with the minimum detectable effect at the achieved _n_ in the note. `experiment analyse --file … --out …` re-folds the reports already there; `experiment render --result <file>` prints a result as markdown, its digest verified.

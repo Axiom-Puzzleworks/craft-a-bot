@@ -4,6 +4,7 @@ import { guardBrickKind } from './bricks/guard.js';
 import { monitorJudgeBrickKind } from './bricks/monitor-judge.js';
 import { workshopGoalCards } from './goal-cards.js';
 import { frontDesk } from './world/desk.js';
+import { deskQueue } from './world/queue.js';
 import { workshop } from './world/workshop.js';
 
 /**
@@ -22,7 +23,7 @@ export const workshopPack: PackManifest = {
 	name: 'Craft A Bot — The Workshop',
 	version: '0.1.0',
 	requiresCore: '>=0.0.1',
-	worlds: [workshop, frontDesk],
+	worlds: [workshop, frontDesk, deskQueue],
 	goalCards: workshopGoalCards,
 	/** The generic Guard brick (`29-GUARD-SHELL.md` §4.6, WP39) — this pack's first brick kind. */
 	brickKinds: [guardBrickKind, monitorJudgeBrickKind],
@@ -66,6 +67,16 @@ export {
 	frontDeskPredicateDescriptions,
 	type FrontDeskState
 } from './world/desk.js';
+export {
+	deskQueue,
+	queueSpec,
+	QUEUE_WORLD_ID,
+	COLLEAGUE_CAPACITY,
+	THRESHOLD_KNOB,
+	VISITORS,
+	thresholdOf,
+	type QueueState
+} from './world/queue.js';
 export { workshopLayouts } from './world/layouts.js';
 export { workshopActions, workshopActionDefinitions } from './world/actions.js';
 export { workshopSenses, observeWorkshop } from './world/senses.js';

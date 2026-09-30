@@ -20,7 +20,6 @@ describe('the default pack list', () => {
 			'anthropic',
 			'gemini',
 			'ollama',
-			'dgx-spark',
 			'monitor',
 			'workshop',
 			'geap',
@@ -43,6 +42,8 @@ describe('the default pack list', () => {
 			'governance'
 		]);
 		expect(ids).not.toContain('demo');
+		// WP120 (G90): the builder's DGX Sparks are opt-in by --config, never a default.
+		expect(ids).not.toContain('dgx-spark');
 
 		const registry = createRegistry(config);
 		expect(registry.getGoalCard('starter/say-hello')).toBeDefined();
@@ -52,13 +53,13 @@ describe('the default pack list', () => {
 				.listProviderFactories()
 				.map((p) => p.id)
 				.sort()
-		).toEqual(['anthropic', 'dgx-spark', 'gemini', 'ollama', 'openai']);
+		).toEqual(['anthropic', 'gemini', 'ollama', 'openai']);
 	});
 
 	it('reports pack versions in the workbench’s own shape', () => {
 		const versions = packVersions(defaultConfig());
 		expect(versions['starter']).toMatch(/^\d+\.\d+\.\d+$/);
-		expect(Object.keys(versions)).toHaveLength(26);
+		expect(Object.keys(versions)).toHaveLength(25);
 	});
 });
 

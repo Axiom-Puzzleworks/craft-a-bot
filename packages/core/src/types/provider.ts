@@ -19,6 +19,12 @@ export interface LLMProvider {
 	keyRequirement: 'required' | 'none'; // ollama/mock: none
 	/** Where this provider sends bytes (`26-…` §6.6, WP41) — the session refuses any other host. A keyless local provider still declares its loopback host. */
 	egress?: EgressDeclaration[];
+	/**
+	 * What this provider can do beyond chat (WP120, `104-READERS.md` §10.2): constrain
+	 * an answer to given strings, and return the first token's log-probabilities. A
+	 * provider that does not say is asked for neither.
+	 */
+	supports?: { choice?: boolean; logprobs?: boolean };
 	validateKey(key: string): Promise<KeyCheck>;
 	chat(
 		req: ChatRequest,
@@ -78,6 +84,13 @@ export interface ChatRequest {
 	tools?: ToolSchema[];
 	temperature: number;
 	maxTokens: number;
+	/**
+	 * Constrain the answer to exactly one of these strings (WP120, `104-READERS.md`
+	 * §10.2) — asked only of a provider that `supports.choice`; a reader's options.
+	 */
+	choice?: string[];
+	/** Return the first token's top log-probabilities, this many — asked only of a provider that `supports.logprobs`. */
+	topLogprobs?: number;
 }
 
 /** Normalised wire-failure vocabulary the UI renders in kit language (06-LLM-PROVIDERS.md §7). */

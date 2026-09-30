@@ -54,7 +54,11 @@ export async function createCellPool(
 			worker.once('error', reject);
 		});
 		worker.postMessage({ kind: 'init', ...init } satisfies WorkerInit);
-		await ready;
+		// A worker that cannot start is ended, so the process does not wait on it (WP119).
+		await ready.catch(async (error: unknown) => {
+			await worker.terminate();
+			throw error;
+		});
 		worker.on('message', (reply: WorkerReply) => {
 			const pending = lane.pending;
 			if (!pending) return;
@@ -80,7 +84,12 @@ export async function createCellPool(
 		return lane;
 	}
 
-	for (let index = 0; index < size; index += 1) lanes.push(await spawn());
+	try {
+		for (let index = 0; index < size; index += 1) lanes.push(await spawn());
+	} catch (error) {
+		await Promise.all(lanes.map((lane) => lane.worker.terminate()));
+		throw error;
+	}
 
 	async function idle(): Promise<Lane> {
 		for (;;) {

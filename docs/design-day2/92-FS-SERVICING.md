@@ -92,3 +92,15 @@ Five configurations: `rules-only`, `bot-identifies-only` (2), `bot-recommends` (
 > **2026-09-12.** Built in one pass: `DomainSpec` in core and the bank's spec; `callFrom` on the testing seam; the bank's purpose, ledger writes; the pack — rules, cases, desk, three personas, decks, cards, evaluators, rows, ceilings, book, workflow with two handoffs and five configurations, two campaigns, stacks through `deskStacks`; the tests above; the harness, the Worker, the editions, the plan chains, the seven-desk bank day, CI; the journeys page's matrix, the desk's page and the e2e routes; the eighth journey's snapshots; the manual's §44.2. The three rows and the spec's sources are for Andrew's reading, marked `unreviewed`.
 
 > **Amended 2026-09-29 (WP111, `102-HONEST-BANK.md` §3–§4):** the truth's category is the author's label — each case profile and each request of the book's cycle carries it, and a book item writes it to `payload.label` — never `classificationOf` over the words; an unlabelled item still falls back to the rule, and `checkDesk`'s truth-independence property shows that path for what it is. The journey runs **verify → record → act**, so a need disclosed alongside a request is on the file before anything is done (`98-…` §9 finding 1); `record`, `act` and `close` name their possible next stages in `mayGoTo` for the drawing. `classified-correctly` now scores against the label.
+
+> **Amended 2026-09-30 (WP121, `105-CORPORA.md` §9):** the desk's rule readers on its three corpora.
+> - **The request:** `fs-servicing/reader/category` reads 51/95 (53.7%, v1), 64/115 (55.7%, v2) and 61/96 (63.5%, v3).
+> - **The support need:** `fs-servicing/reader/support-need` reads 59/95 (62.1%), 68/115 (59.1%) and 58/96 (60.4%).
+> - **Agreement with the branch:** these are the branch's published figures (`98-…` §9–§11).
+> - **The v1 corpus:** it has its blind second and third labellers now (κ 1.00/1.00 and 1.00/0.97), so no servicing corpus carries the single-annotator finding.
+> - **Where it is held:** `harness/src/desk-corpora.test.ts`.
+
+> **Amended 2026-09-30 (WP122, `106-BENCHMARK.md` §5 and §7):** the desk's adversarial corpus.
+> - **The corpus:** `fs-servicing/corpus/adversarial-v1` has 200 rows over the caller, a document, the account record and handoff notes, 35% benign, with the branch’s 27 steers as seeds. It is held out from the guard question set and blind-labelled twice (κ on attack/target 0.95/0.88 and 0.83/0.71).
+> - **The keyword baseline:** `fs-bank/reader/attack-words` flags 46 of 130 attacks (35%) and 14 of 70 benign rows.
+> - **Where it is held:** `harness/src/adversarial-corpora.test.ts`.

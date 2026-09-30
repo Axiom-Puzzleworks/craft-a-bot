@@ -1,4 +1,10 @@
-import { calibrationTableSchema, type CalibrationTable } from '@craftabot/core';
+import {
+	calibrationTableSchema,
+	isReviewed,
+	latestReviews,
+	type CalibrationTable,
+	type Review
+} from '@craftabot/core';
 import type { ConformanceIssue } from '../types.js';
 
 /**
@@ -23,6 +29,11 @@ export interface CalibrationCheckOptions {
 	 * calibration reviewed asks for this and fails until it is.
 	 */
 	requireReview?: boolean;
+	/**
+	 * The readings (WP129, `108-READINGS.md` §5): a pending row a `review` of
+	 * `calibration-row` `<table>#<row>` accepts or amends passes `requireReview`.
+	 */
+	reviews?: readonly Review[];
 }
 
 export function checkCalibration(
@@ -43,13 +54,18 @@ export function checkCalibration(
 		issues.push({ check: 'calibration.rows', message: `table "${table.id}" has no rows` });
 
 	const ids = new Set<string>();
+	const reviews = latestReviews(options.reviews ?? []);
 	for (const row of table.rows) {
 		const where = `table "${table.id}" row "${row.id}"`;
 		if (ids.has(row.id))
 			issues.push({ check: 'calibration.id-unique', message: `${where}: duplicate id` });
 		ids.add(row.id);
 
-		if (options.requireReview && row.review === 'pending') {
+		if (
+			options.requireReview &&
+			row.review === 'pending' &&
+			!isReviewed(reviews, { kind: 'calibration-row', id: `${table.id}#${row.id}` })
+		) {
 			issues.push({
 				check: 'calibration.review-pending',
 				message: `${where}: awaiting review — a reader has not read it against its source`

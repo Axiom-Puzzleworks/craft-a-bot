@@ -4,6 +4,9 @@ import {
 	CONTROL_GATE_KINDS,
 	CONTROL_PRINCIPAL_IDS,
 	EVENT_TYPES,
+	isReviewed,
+	latestReviews,
+	type Review,
 	type ControlMap,
 	type PackRegistry
 } from '@craftabot/core';
@@ -34,6 +37,13 @@ export interface ControlMapCheckOptions {
 	 * them all instead, and says so here.
 	 */
 	resolve?: boolean;
+	/**
+	 * Refuse a row that still carries a `status` (`unreviewed` or `pending`)
+	 * unless a `review` of `control-row` `<map>#<ref>` in `reviews` accepts or
+	 * amends it (WP129, `108-READINGS.md` §5).
+	 */
+	requireReview?: boolean;
+	reviews?: readonly Review[];
 }
 
 export function checkControlMap(
@@ -54,11 +64,21 @@ export function checkControlMap(
 		issues.push({ check: 'control-map.rows', message: `map "${map.id}" has no rows` });
 
 	const refs = new Set<string>();
+	const reviews = latestReviews(options.reviews ?? []);
 	for (const row of map.rows) {
 		const where = `map "${map.id}" row "${row.ref}"`;
 		if (refs.has(row.ref))
 			issues.push({ check: 'control-map.ref-unique', message: `${where}: duplicate ref` });
 		refs.add(row.ref);
+		if (
+			options.requireReview &&
+			row.status !== undefined &&
+			!isReviewed(reviews, { kind: 'control-row', id: `${map.id}#${row.ref}` })
+		)
+			issues.push({
+				check: 'control-map.review-pending',
+				message: `${where}: ${row.status} — a compliance reader has not read it`
+			});
 		if (row.status === 'pending') {
 			if (row.evidence.length > 0)
 				issues.push({

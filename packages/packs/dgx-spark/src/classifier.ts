@@ -1,5 +1,6 @@
 import { parseCassetteFile, type ServiceLine, type ToolResult } from '@craftabot/core';
 import recording from './cassettes/dgx-spark-classifier.craftabot-cassette.json' with { type: 'json' };
+import { foldFirstToken } from '@craftabot/governance';
 import { SPARK_EGRESS, sparkBaseUrls } from './endpoints.js';
 import { SPARK_EXTRA_BODY } from './provider.js';
 import { SparkUnavailable, createSparkTransport, type SparkTransport } from './transport.js';
@@ -77,31 +78,12 @@ export function optionsOf(question: ClassifierQuestion): Record<string, unknown>
 
 /**
  * The first token's log-probabilities folded onto the options: each token's
- * mass goes to the options it is a prefix of, split evenly between them.
- * The result is normalised over the options.
+ * mass goes to the options it is a prefix of, split evenly between them, and
+ * the result is normalised over the options. Since WP120 (`104-READERS.md`
+ * §10.4) this is `governance`'s `foldFirstToken` — the LLM reader's own fold,
+ * one definition for every chat model read as a classifier.
  */
-export function distributionOver(
-	options: readonly string[],
-	top: readonly TopLogprob[]
-): { probabilities: Record<string, number>; covered: number; ambiguous: number } {
-	const mass = Object.fromEntries(options.map((option) => [option, 0])) as Record<string, number>;
-	let covered = 0;
-	let ambiguous = 0;
-	for (const { token, logprob } of top) {
-		if (token === '') continue;
-		const p = Math.exp(logprob);
-		const matches = options.filter((option) => option.startsWith(token));
-		if (matches.length === 0) continue;
-		covered += p;
-		if (matches.length > 1) ambiguous += p;
-		for (const option of matches) mass[option] = mass[option]! + p / matches.length;
-	}
-	const total = Object.values(mass).reduce((sum, p) => sum + p, 0);
-	const probabilities = Object.fromEntries(
-		options.map((option) => [option, total > 0 ? mass[option]! / total : 1 / options.length])
-	);
-	return { probabilities, covered, ambiguous };
-}
+export const distributionOver = foldFirstToken;
 
 /** Jev's confidence for a choice, from its documentation: 0 when flat, 1 when certain. */
 export function choiceConfidence(probabilities: Record<string, number>): number {

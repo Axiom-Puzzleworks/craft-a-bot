@@ -1,0 +1,146 @@
+{
+	"$id": "https://craftabot.dev/schemas/review.schema.json",
+	"title": "Craft A Bot review (a reading of one pending subject)",
+	"description": "A reader’s verdict on one thing a pack ships pending — a catalogue entry, a calibration row, a control row, a decision right, a blueprint item, a screening list, an error model or a reviewer model: accepted, amended (with the field and the value a maintainer then edits in) or rejected (with why), under the reader’s principal and the date (108-READINGS.md §2). A record beside the content, never an edit to it.",
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"type": "object",
+	"properties": {
+		"id": {
+			"type": "string",
+			"minLength": 1
+		},
+		"subject": {
+			"type": "object",
+			"properties": {
+				"kind": {
+					"type": "string",
+					"enum": [
+						"catalogue-entry",
+						"calibration-row",
+						"control-row",
+						"decision-right",
+						"blueprint-item",
+						"screening-list",
+						"error-model",
+						"reviewer-model"
+					]
+				},
+				"id": {
+					"type": "string",
+					"minLength": 1
+				}
+			},
+			"required": [
+				"kind",
+				"id"
+			]
+		},
+		"verdict": {
+			"type": "string",
+			"enum": [
+				"accepted",
+				"amended",
+				"rejected"
+			]
+		},
+		"note": {
+			"type": "string"
+		},
+		"by": {
+			"$ref": "#/$defs/__schema0"
+		},
+		"on": {
+			"type": "string",
+			"format": "date-time",
+			"pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+		},
+		"amendment": {
+			"type": "object",
+			"properties": {
+				"field": {
+					"type": "string",
+					"minLength": 1
+				},
+				"value": {
+					"$ref": "#/$defs/__schema1"
+				}
+			},
+			"required": [
+				"field",
+				"value"
+			]
+		},
+		"schemaVersion": {
+			"type": "number",
+			"const": 1
+		}
+	},
+	"required": [
+		"id",
+		"subject",
+		"verdict",
+		"by",
+		"on",
+		"schemaVersion"
+	],
+	"$defs": {
+		"__schema0": {
+			"type": "object",
+			"properties": {
+				"kind": {
+					"type": "string",
+					"enum": [
+						"person",
+						"service",
+						"agent"
+					]
+				},
+				"id": {
+					"type": "string",
+					"minLength": 1
+				},
+				"name": {
+					"type": "string"
+				},
+				"onBehalfOf": {
+					"$ref": "#/$defs/__schema0"
+				}
+			},
+			"required": [
+				"kind",
+				"id"
+			]
+		},
+		"__schema1": {
+			"anyOf": [
+				{
+					"type": "string"
+				},
+				{
+					"type": "number"
+				},
+				{
+					"type": "boolean"
+				},
+				{
+					"type": "null"
+				},
+				{
+					"type": "array",
+					"items": {
+						"$ref": "#/$defs/__schema1"
+					}
+				},
+				{
+					"type": "object",
+					"propertyNames": {
+						"type": "string"
+					},
+					"additionalProperties": {
+						"$ref": "#/$defs/__schema1"
+					}
+				}
+			]
+		}
+	}
+}

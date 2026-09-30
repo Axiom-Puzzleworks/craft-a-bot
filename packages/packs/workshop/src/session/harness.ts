@@ -85,6 +85,14 @@ const DESK_ACTIONS = [
 	'workshop/the-desk/escalate'
 ];
 const onTheDesk = (goalCardId: string | undefined) => goalCardId === 'workshop/sign-the-visitor-in';
+// The queue's own (WP131): the case file and the queue; read, let in, turn away.
+const QUEUE_SENSES = ['workshop/the-desk-queue/case-file', 'workshop/the-desk-queue/queue'];
+const QUEUE_ACTIONS = [
+	'workshop/the-desk-queue/read-note',
+	'workshop/the-desk-queue/let-in',
+	'workshop/the-desk-queue/turn-away'
+];
+const atTheQueue = (goalCardId: string | undefined) => goalCardId === 'workshop/sure-or-unsure';
 
 export function buildSpec(overrides: SpecOverrides = {}): AgentSpec {
 	const spec: AgentSpec = {
@@ -98,10 +106,22 @@ export function buildSpec(overrides: SpecOverrides = {}): AgentSpec {
 				personality: 'You are a cheerful little robot.'
 			},
 			sense: {
-				channels: overrides.senses ?? (onTheDesk(overrides.goalCardId) ? DESK_SENSES : ALL_SENSES)
+				channels:
+					overrides.senses ??
+					(onTheDesk(overrides.goalCardId)
+						? DESK_SENSES
+						: atTheQueue(overrides.goalCardId)
+							? QUEUE_SENSES
+							: ALL_SENSES)
 			},
 			actions: {
-				enabled: overrides.actions ?? (onTheDesk(overrides.goalCardId) ? DESK_ACTIONS : ALL_ACTIONS)
+				enabled:
+					overrides.actions ??
+					(onTheDesk(overrides.goalCardId)
+						? DESK_ACTIONS
+						: atTheQueue(overrides.goalCardId)
+							? QUEUE_ACTIONS
+							: ALL_ACTIONS)
 			}
 		},
 		goalCardId: overrides.goalCardId ?? 'workshop/find-the-paint-pot',

@@ -23,12 +23,15 @@
 	},
 	"dependencies": {
 		"@craftabot/core": "*",
+		"@craftabot/governance": "*",
 		"@craftabot/pack-fs-bank": "*",
 		"@craftabot/pack-fs-servicing": "*"
 	},
 	"devDependencies": {
 		"@craftabot/harness": "*",
+		"@craftabot/metrics": "*",
 		"@craftabot/pack-dgx-spark": "*",
+		"@craftabot/pack-readers-llm": "*",
 		"@craftabot/pack-starter": "*",
 		"@craftabot/pack-testkit": "*",
 		"@craftabot/workflow": "*"

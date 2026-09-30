@@ -25,6 +25,7 @@ import { z, type ZodType } from 'zod';
 import { closest } from './closest.js';
 import {
 	advanceCounterpart,
+	describeScriptProblems,
 	freshCounterpartMemory,
 	type CounterpartCue,
 	type CounterpartMemory,
@@ -750,7 +751,7 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 			};
 		}
 
-		seat(built.counterpart);
+		seat(counterpartFromConfig(config) ?? built.counterpart);
 
 		function performAsCounterpart(call: ActionCall, handle: AgentHandle): ActionResult {
 			state.tick += 1;
@@ -853,7 +854,7 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 				truth = rebuilt.truth;
 				baseRandom = seededRandom(seed ^ 0x9e3779b9);
 				seq = 0;
-				seat(rebuilt.counterpart);
+				seat(counterpartFromConfig(config) ?? rebuilt.counterpart);
 			},
 			// A fork's door (WP66, `54-…` §4.2): the state wholesale, the counterpart's memory from it, the random redrawn to where it was.
 			restore(snapshot): void {
@@ -954,4 +955,20 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 		),
 		spec
 	};
+}
+
+/**
+ * A counterpart handed in at `create` (WP124, `106-BENCHMARK.md` §8.4):
+ * `config.counterpart`, seated in place of the desk's own — how a
+ * campaign's adversarial tier seats the red-team script. A script that fails
+ * `describeScriptProblems` is refused, never seated half-formed.
+ */
+export function counterpartFromConfig(
+	config: Record<string, unknown> | undefined
+): CounterpartScript | undefined {
+	const script = config?.['counterpart'] as CounterpartScript | undefined;
+	if (script === undefined) return undefined;
+	const problems = describeScriptProblems(script);
+	if (problems.length > 0) throw new Error(`config.counterpart: ${problems.join('; ')}`);
+	return script;
 }

@@ -107,6 +107,8 @@ export {
 	type AssuranceEvidence,
 	type AssuranceOutcome,
 	principalsOver,
+	gatesOver,
+	type AssuranceGate,
 	type AssurancePack,
 	type AssurancePackInput,
 	type AssurancePrincipal,
@@ -120,9 +122,11 @@ export {
 } from './control-effectiveness.js';
 /** The coverage fold and the catalogue page (WP98, `86-…` §5, §7). */
 export {
+	coverageMeasurements,
 	coverageReport,
 	coverageSummary,
 	renderCatalogueMarkdown,
+	type CoverageMeasurement,
 	type CoverageRow,
 	type CoverageSummary
 } from './coverage.js';
@@ -133,3 +137,23 @@ export {
 	renderAssurancePackMarkdown
 } from './assurance-pack-render.js';
 export { verdictFlow, verdictFlowSignature, type VerdictFlowRow } from './verdict-flow.js';
+export {
+	READING_KIND_LABELS,
+	blueprintItems,
+	readingProgress,
+	readingQueue,
+	readingSourcesFrom,
+	readingSubjects,
+	readingsExport,
+	renderReadingsMarkdown,
+	type BlueprintItem,
+	type ReadingBlueprintNote,
+	type ReadingItem,
+	type ReadingProgress,
+	type ReadingScreeningList,
+	type ReadingSourceLine,
+	type ReadingSources,
+	type ReadingState,
+	type ReadingSubject,
+	type ReadingsExport
+} from './readings.js';

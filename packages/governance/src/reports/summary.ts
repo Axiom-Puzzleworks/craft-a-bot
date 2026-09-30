@@ -25,6 +25,7 @@ export function summariseRun(runId: string, events: readonly EngineEvent[]): Run
 	let hostedPreActScreens = 0;
 	let egress: RunSummary['egress'];
 	let principal: RunSummary['principal'];
+	let gate: RunSummary['gate'];
 	const guardrailTrips: Record<string, number> = {};
 
 	for (const event of events) {
@@ -54,6 +55,7 @@ export function summariseRun(runId: string, events: readonly EngineEvent[]): Run
 				if (event.payload.egress) egress = event.payload.egress;
 				// Who started it (WP65) — present once the host named one.
 				if (event.payload.principal) principal = event.payload.principal;
+				if (event.payload.gate) gate = event.payload.gate;
 				break;
 			default:
 				break;
@@ -73,6 +75,7 @@ export function summariseRun(runId: string, events: readonly EngineEvent[]): Run
 		hostedPreActScreens,
 		...(egress ? { egress } : {}),
 		...(principal ? { principal } : {}),
+		...(gate ? { gate } : {}),
 		schemaVersion: 1
 	};
 }

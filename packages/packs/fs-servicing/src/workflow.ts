@@ -247,6 +247,17 @@ const RULES: WorkflowSpec['rules'] = {
 
 // ── The stages ─────────────────────────────────────────────────────────
 
+/** A truth fact as a reader question's answer key (WP118): `facts[fact]` with its prefix taken off, under `questionId`. */
+const keyFrom = (
+	truth: unknown,
+	fact: string,
+	prefix: string,
+	questionId: string
+): Record<string, string> | undefined => {
+	const value = (truth as { facts?: Record<string, unknown> } | undefined)?.facts?.[fact];
+	return typeof value === 'string' ? { [questionId]: value.replace(prefix, '') } : undefined;
+};
+
 const agent = (until: string, goalText: string): Executor => ({ kind: 'agent', until, goalText });
 const rule = (id: string): Executor => ({ kind: 'rule', rule: id });
 const names = servicingStrings.workflow.stages;
@@ -295,6 +306,8 @@ export const SERVICING_STAGES: StageSpec[] = [
 			return category ? { category } : undefined;
 		},
 		suggest: (_input, state) => classificationOf(desk(state).extra.servicing.request.subject),
+		// WP118: the case's category, from truth, for a reader's calibration pane.
+		answerKey: (truth) => keyFrom(truth, 'category', 'category-', 'category'),
 		next: () => 'verify'
 	},
 	{
@@ -348,6 +361,8 @@ export const SERVICING_STAGES: StageSpec[] = [
 		input: { type: 'object' },
 		output: RECORD_OUTPUT,
 		executor: agent('recorded', servicingStrings.workflow.briefs.record),
+		// WP118: the need the caller will disclose, from truth, for a reader's calibration pane.
+		answerKey: (truth) => keyFrom(truth, 'discloses', 'discloses-', 'need'),
 		read: (state) => {
 			const { recorded } = desk(state).extra.servicing;
 			return recorded ? { need: recorded.need } : undefined;

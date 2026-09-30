@@ -19,16 +19,35 @@ import {
 	ruleAgreement,
 	type DecidedCase
 } from '../fairness.js';
-import { ceilingBreachRate, touchesPerCase, unattendedRate } from '../human-load.js';
+import {
+	catchRate,
+	ceilingBreachRate,
+	reviewAccuracy,
+	reviewSecondsPerCase,
+	touchesPerCase,
+	unattendedRate
+} from '../human-load.js';
+import {
+	brierScore,
+	calibrationTest,
+	expectedCalibrationError,
+	gateCurve,
+	reliability,
+	type CalibratedAnswer
+} from '../calibration.js';
+import { cohensKappa } from '../agreement.js';
 import { wilson } from '../intervals.js';
 import {
 	decidedCases,
 	decisions,
 	feature,
 	featureWithMovedDecile,
+	calibratedAnswers,
+	labelPairs,
 	flips,
 	matchedPairs,
 	series,
+	reviewedCases,
 	touchedCases
 } from './generators.js';
 
@@ -39,7 +58,7 @@ import {
  * shows what the tests saw and nothing else. Deterministic: seeds 1…S.
  */
 export interface ValidationRow {
-	family: 'fairness' | 'drift' | 'human load';
+	family: 'fairness' | 'drift' | 'human load' | 'calibration' | 'agreement';
 	metric: string;
 	definition: string;
 	interval: string;
@@ -678,6 +697,167 @@ export function validationReport(options: { seeds?: number; n?: number } = {}): 
 		)
 	);
 
+	// --- human load v2 (WP115, `103-FALLIBLE-ACTORS.md` §6): cost, quality, the catch rate
+	const handReviewed = [
+		{ id: 'a', touches: [], reviews: [{ seconds: 60, correct: true }] },
+		{
+			id: 'b',
+			touches: [],
+			reviews: [
+				{ seconds: 120, correct: false, caught: false },
+				{ seconds: 240, correct: true, caught: true }
+			]
+		},
+		{ id: 'c', touches: [] },
+		{ id: 'd', touches: [], reviews: [{ seconds: 60, correct: true }] }
+	];
+	const reviewed = (seed: number) =>
+		reviewedCases(seed, n, { accuracy: 0.9, wrongShare: 0.5, catches: 0.7 });
+	const misses = (interval: [number, number], truth: number) =>
+		interval[0] > truth || interval[1] < truth;
+	rows.push(
+		loadRow(
+			'review-seconds-per-case',
+			'the seconds a reviewer model spent per case, summed over its reviews',
+			't interval on the mean',
+			120,
+			reviewSecondsPerCase(handReviewed).value,
+			174,
+			reviewSecondsPerCase(reviewed(4)),
+			8,
+			(seed) => misses(reviewSecondsPerCase(reviewed(seed)).interval, 174),
+			'the 95% interval misses the true mean'
+		)
+	);
+	rows.push(
+		loadRow(
+			'review-accuracy',
+			'the share of reviews answered right',
+			'Wilson',
+			0.75,
+			reviewAccuracy(handReviewed).value,
+			0.8,
+			reviewAccuracy(reviewed(5)),
+			0.03,
+			(seed) => misses(reviewAccuracy(reviewed(seed)).interval, 0.8),
+			'the 95% interval misses the true share'
+		)
+	);
+	rows.push(
+		loadRow(
+			'catch-rate',
+			'of the reviews with a wrong recommendation in front of the person, the share reversed',
+			'Wilson',
+			0.5,
+			catchRate(handReviewed).value,
+			0.7,
+			catchRate(reviewed(6)),
+			0.04,
+			(seed) => misses(catchRate(reviewed(seed)).interval, 0.7),
+			'the 95% interval misses the true rate'
+		)
+	);
+
+	// --- calibration (WP118, `104-READERS.md` §9): a reader's stated probability against the rate it is right at
+	const calibrationRow = (row: Parameters<typeof loadRow>): ValidationRow => ({
+		...loadRow(...row),
+		family: 'calibration',
+		test: row[0] === 'ece' ? 'Wilson per bin, Bonferroni over the bins' : 'none'
+	});
+	/** Four answers a reader can recompute by hand: two at 0.9 (one right), two at 0.6 (both right). */
+	const handAnswers: CalibratedAnswer[] = [
+		{ choice: 'a', label: 'a', probabilities: { a: 0.9, b: 0.1 }, confidence: 0.8 },
+		{ choice: 'a', label: 'b', probabilities: { a: 0.9, b: 0.1 }, confidence: 0.8 },
+		{ choice: 'a', label: 'a', probabilities: { a: 0.6, b: 0.4 }, confidence: 0.2 },
+		{ choice: 'a', label: 'a', probabilities: { a: 0.6, b: 0.4 }, confidence: 0.2 }
+	];
+	const calibrated = (seed: number) => calibratedAnswers(seed, n);
+	const topBin = (answers: CalibratedAnswer[]) => reliability(answers).at(-1)!;
+	const atThreshold = (answers: CalibratedAnswer[], threshold: number) =>
+		gateCurve(answers, [threshold])[0]!;
+	const asResult = (rate: { value: number; interval: [number, number] }) => ({
+		value: rate.value,
+		interval: rate.interval
+	});
+	rows.push(
+		calibrationRow([
+			'ece',
+			'Σ over ten bins of (n_b / n)·|mean stated probability − accuracy|',
+			'percentile bootstrap (500, seeded)',
+			0.4,
+			expectedCalibrationError(handAnswers, { resamples: 0 }).value,
+			0.1,
+			expectedCalibrationError(calibratedAnswers(7, n, { gap: 0.1 })),
+			0.02,
+			(seed) => calibrationTest(calibrated(seed)).miscalibrated,
+			'a bin’s accuracy interval misses its mean stated probability, on a calibrated reader'
+		])
+	);
+	rows.push(
+		calibrationRow([
+			'brier',
+			'mean over answers of Σ over options of (p − [the label])²',
+			't interval on the mean',
+			0.57,
+			brierScore(handAnswers).value,
+			round(1 / 3),
+			brierScore(calibratedAnswers(8, n)),
+			0.02,
+			(seed) => misses(brierScore(calibrated(seed)).interval, 1 / 3),
+			'the 95% interval misses the true score'
+		])
+	);
+	rows.push(
+		calibrationRow([
+			'reliability',
+			'per bin of stated probability, the share right (read here at the top bin, 0.9–1)',
+			'Wilson',
+			0.5,
+			topBin(handAnswers).accuracy.value,
+			0.85,
+			asResult(topBin(calibratedAnswers(9, n, { gap: 0.1 })).accuracy),
+			0.05,
+			(seed) => {
+				const bin = topBin(calibrated(seed));
+				return misses(bin.accuracy.interval, bin.meanProbability);
+			},
+			'the top bin’s interval misses its mean stated probability, on a calibrated reader'
+		])
+	);
+	rows.push(
+		calibrationRow([
+			'gate-curve',
+			'at a threshold, the accuracy of the answers the gate lets through (read here at 0.6)',
+			'Wilson',
+			0.5,
+			atThreshold(handAnswers, 0.5).residualAccuracy.value,
+			0.9,
+			asResult(atThreshold(calibratedAnswers(10, n), 0.6).residualAccuracy),
+			0.02,
+			(seed) => misses(atThreshold(calibrated(seed), 0.6).residualAccuracy.interval, 0.9),
+			'the 95% interval misses the true accuracy'
+		])
+	);
+
+	// --- agreement (WP119, `105-CORPORA.md` §6): a second labeller against the first
+	const kappaOf = (pair: { first: string[]; second: string[] }) =>
+		cohensKappa(pair.first, pair.second);
+	rows.push({
+		...loadRow(
+			'cohens-kappa',
+			'(p_o − p_e) / (1 − p_e): agreement beyond what the two labellers’ frequencies give by chance',
+			'large-sample normal',
+			0.5,
+			cohensKappa(['a', 'a', 'b', 'b'], ['a', 'b', 'b', 'b']).value,
+			0.8,
+			kappaOf(labelPairs(11, n, 0.8)),
+			0.03,
+			(seed) => excludesZero(kappaOf(labelPairs(seed, n, 0)).interval),
+			'the 95% interval excludes 0 between two independent labellers'
+		),
+		family: 'agreement'
+	});
+
 	return { seeds, n, bound, rows };
 }
 
@@ -690,7 +870,7 @@ export function renderValidationReport(report: ValidationReport): string {
 		`> Generated by \`npm run metrics:doc\` from \`@craftabot/metrics\`'s validation suite (WP76, \`docs/design-day2/68-METRICS.md\` §4) and checked on every build. Every metric here has a hand case a reader can recompute, a planted effect of a known size it recovered, and a null it did not flag: ${report.seeds} seeds at n = ${report.n}, the false-alarm bound ${report.bound} (5% plus the Wilson margin at ${report.seeds} trials). Do not edit by hand.`
 	);
 	lines.push('');
-	for (const family of ['fairness', 'drift', 'human load'] as const) {
+	for (const family of ['fairness', 'drift', 'human load', 'calibration', 'agreement'] as const) {
 		const rows = report.rows.filter((row) => row.family === family);
 		lines.push(`## ${family[0]!.toUpperCase()}${family.slice(1)}`);
 		lines.push('');

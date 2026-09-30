@@ -3,6 +3,11 @@ import { describeComponentProblems, type GuardrailComponent } from './types/guar
 import type { BrickKindDefinition, SlotId } from './types/brick.js';
 import type { ControlMap } from './types/control-map.js';
 import type { DomainSpec } from './schemas/domain.js';
+import type { CalibrationTable } from './schemas/calibration.js';
+import type { ErrorModel } from './types/error-model.js';
+import type { Reader } from './types/reader.js';
+import type { Corpus } from './schemas/corpus.js';
+import type { ReviewerModel } from './types/workflow.js';
 import type { WorkflowSpec } from './types/workflow.js';
 import { satisfiesRange } from './semver.js';
 import { CRAFTABOT_CORE_VERSION } from './version.js';
@@ -96,6 +101,18 @@ export interface PackRegistry {
 	listPolicyCards(): PolicyCard[];
 	listControlMaps(): ControlMap[];
 	listDomains(): DomainSpec[];
+	/** An error model by id (WP115, `103-…` §5). */
+	getErrorModel(id: string): ErrorModel | undefined;
+	/** A calibration table by id (WP115): what an error model's rates resolve against. */
+	getCalibrationTable(id: string): CalibrationTable | undefined;
+	/** A reviewer model by id (WP115, `103-…` §6). */
+	getReviewerModel(id: string): ReviewerModel | undefined;
+	/** A reader by id (WP117, `104-READERS.md` §3.3). */
+	getReader(id: string): Reader | undefined;
+	listReaders(): Reader[];
+	/** A corpus by id (WP119, `105-CORPORA.md` §3). */
+	getCorpus(id: string): Corpus | undefined;
+	listCorpora(): Corpus[];
 	listWorkflows(): WorkflowSpec[];
 	listGuardrailServices(): GuardrailService[];
 	listGuardrailComponents(): GuardrailComponent[];
@@ -121,6 +138,11 @@ export function createPackRegistry(): PackRegistry {
 	const policyCards = new Map<string, PolicyCard>();
 	const controlMaps = new Map<string, ControlMap>();
 	const domains = new Map<string, DomainSpec>();
+	const errorModels = new Map<string, ErrorModel>();
+	const calibrationTables = new Map<string, CalibrationTable>();
+	const reviewerModels = new Map<string, ReviewerModel>();
+	const readers = new Map<string, Reader>();
+	const corpora = new Map<string, Corpus>();
 	const workflows = new Map<string, WorkflowSpec>();
 	const guardrailServices = new Map<string, GuardrailService>();
 	const guardrailComponents = new Map<string, GuardrailComponent>();
@@ -208,6 +230,14 @@ export function createPackRegistry(): PackRegistry {
 			insertUnique(controlMaps, map.id, map, 'control map');
 		for (const domain of manifest.domains ?? [])
 			insertUnique(domains, domain.id, domain, 'domain spec');
+		for (const model of manifest.errorModels ?? [])
+			insertUnique(errorModels, model.id, model, 'error model');
+		for (const table of manifest.calibrations ?? [])
+			insertUnique(calibrationTables, table.id, table, 'calibration table');
+		for (const model of manifest.reviewerModels ?? [])
+			insertUnique(reviewerModels, model.id, model, 'reviewer model');
+		for (const reader of manifest.readers ?? []) insertUnique(readers, reader.id, reader, 'reader');
+		for (const corpus of manifest.corpora ?? []) insertUnique(corpora, corpus.id, corpus, 'corpus');
 		for (const workflow of manifest.workflows ?? [])
 			insertUnique(workflows, workflow.id, workflow, 'workflow');
 		for (const component of manifest.guardrailComponents ?? []) {
@@ -352,6 +382,13 @@ export function createPackRegistry(): PackRegistry {
 		listEvaluators: () => [...evaluators.values()],
 		listControlMaps: () => [...controlMaps.values()],
 		listDomains: () => [...domains.values()],
+		getErrorModel: (id) => errorModels.get(id),
+		getCalibrationTable: (id) => calibrationTables.get(id),
+		getReviewerModel: (id) => reviewerModels.get(id),
+		getReader: (id) => readers.get(id),
+		listReaders: () => [...readers.values()],
+		getCorpus: (id) => corpora.get(id),
+		listCorpora: () => [...corpora.values()],
 		listWorkflows: () => [...workflows.values()],
 		listServiceLines: () => [...serviceLines.values()],
 		listEvidenceStores: () => [...evidenceStores.values()],

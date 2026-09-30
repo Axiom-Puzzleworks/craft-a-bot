@@ -1,0 +1,673 @@
+{
+	"corpusId": "fs-servicing/corpus/requests-v1",
+	"corpusDigest": "6b190e85aaf4429d2f12520b8ce343c6c8bf48eebab5ff357f6805e6c4177ee6",
+	"annotator": "third-labeller",
+	"blind": true,
+	"labels": [
+		{
+			"id": "a01",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "a02",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "a03",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "a04",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "a05",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "a06",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "a07",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "a08",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "a09",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "a10",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "a11",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "a12",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "a13",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "a14",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "a15",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "a16",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "a17",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "a18",
+			"labels": {
+				"category": "address",
+				"need": "job-loss"
+			}
+		},
+		{
+			"id": "a19",
+			"labels": {
+				"category": "address",
+				"need": "health"
+			}
+		},
+		{
+			"id": "a20",
+			"labels": {
+				"category": "address",
+				"need": "job-loss"
+			}
+		},
+		{
+			"id": "a21",
+			"labels": {
+				"category": "address",
+				"need": "job-loss"
+			}
+		},
+		{
+			"id": "a22",
+			"labels": {
+				"category": "address",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "a23",
+			"labels": {
+				"category": "address",
+				"need": "health"
+			}
+		},
+		{
+			"id": "a24",
+			"labels": {
+				"category": "address",
+				"need": "none"
+			}
+		},
+		{
+			"id": "c01",
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "c02",
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "c03",
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "c04",
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "c05",
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "c06",
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "c07",
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "c08",
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "c09",
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "c10",
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "c11",
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "c12",
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "c13",
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "c14",
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "c15",
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "c16",
+			"labels": {
+				"category": "card",
+				"need": "health"
+			}
+		},
+		{
+			"id": "c17",
+			"labels": {
+				"category": "card",
+				"need": "health"
+			}
+		},
+		{
+			"id": "c18",
+			"labels": {
+				"category": "card",
+				"need": "job-loss"
+			}
+		},
+		{
+			"id": "c19",
+			"labels": {
+				"category": "card",
+				"need": "health"
+			}
+		},
+		{
+			"id": "c20",
+			"labels": {
+				"category": "card",
+				"need": "none"
+			}
+		},
+		{
+			"id": "t01",
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "t02",
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "t03",
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "t04",
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "t05",
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "t06",
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "t07",
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "t08",
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "t09",
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "t10",
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "t11",
+			"labels": {
+				"category": "third-party",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "t12",
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "t13",
+			"labels": {
+				"category": "third-party",
+				"need": "health"
+			}
+		},
+		{
+			"id": "t14",
+			"labels": {
+				"category": "third-party",
+				"need": "health"
+			}
+		},
+		{
+			"id": "t15",
+			"labels": {
+				"category": "third-party",
+				"need": "health"
+			}
+		},
+		{
+			"id": "t16",
+			"labels": {
+				"category": "third-party",
+				"need": "none"
+			}
+		},
+		{
+			"id": "b01",
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "b02",
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "b03",
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "b04",
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "b05",
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "b06",
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "b07",
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "b08",
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "b09",
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "b10",
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "b11",
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "b12",
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "b13",
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "b14",
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "b15",
+			"labels": {
+				"category": "bereavement",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "d01",
+			"labels": {
+				"category": "disclosure",
+				"need": "job-loss"
+			}
+		},
+		{
+			"id": "d02",
+			"labels": {
+				"category": "disclosure",
+				"need": "job-loss"
+			}
+		},
+		{
+			"id": "d03",
+			"labels": {
+				"category": "disclosure",
+				"need": "job-loss"
+			}
+		},
+		{
+			"id": "d04",
+			"labels": {
+				"category": "disclosure",
+				"need": "job-loss"
+			}
+		},
+		{
+			"id": "d05",
+			"labels": {
+				"category": "disclosure",
+				"need": "job-loss"
+			}
+		},
+		{
+			"id": "d06",
+			"labels": {
+				"category": "disclosure",
+				"need": "job-loss"
+			}
+		},
+		{
+			"id": "d07",
+			"labels": {
+				"category": "disclosure",
+				"need": "job-loss"
+			}
+		},
+		{
+			"id": "d08",
+			"labels": {
+				"category": "disclosure",
+				"need": "job-loss"
+			}
+		},
+		{
+			"id": "d09",
+			"labels": {
+				"category": "disclosure",
+				"need": "health"
+			}
+		},
+		{
+			"id": "d10",
+			"labels": {
+				"category": "disclosure",
+				"need": "health"
+			}
+		},
+		{
+			"id": "d11",
+			"labels": {
+				"category": "disclosure",
+				"need": "health"
+			}
+		},
+		{
+			"id": "d12",
+			"labels": {
+				"category": "disclosure",
+				"need": "health"
+			}
+		},
+		{
+			"id": "d13",
+			"labels": {
+				"category": "disclosure",
+				"need": "health"
+			}
+		},
+		{
+			"id": "d14",
+			"labels": {
+				"category": "disclosure",
+				"need": "health"
+			}
+		},
+		{
+			"id": "d15",
+			"labels": {
+				"category": "disclosure",
+				"need": "health"
+			}
+		},
+		{
+			"id": "d16",
+			"labels": {
+				"category": "disclosure",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "d17",
+			"labels": {
+				"category": "disclosure",
+				"need": "health"
+			}
+		},
+		{
+			"id": "d18",
+			"labels": {
+				"category": "disclosure",
+				"need": "none"
+			}
+		},
+		{
+			"id": "d19",
+			"labels": {
+				"category": "disclosure",
+				"need": "bereavement"
+			}
+		},
+		{
+			"id": "d20",
+			"labels": {
+				"category": "disclosure",
+				"need": "job-loss"
+			}
+		}
+	]
+}

@@ -1,6 +1,9 @@
 import { mkdir, readdir, readFile, rm, stat, writeFile, appendFile } from 'node:fs/promises';
 import {
 	byNewestExperimentResult,
+	byNewestBenchmarkReport,
+	safeParseBenchmarkReport,
+	type BenchmarkReport,
 	byNewestWorkflowRun,
 	safeParseExperimentResult,
 	type ExperimentResult,
@@ -100,6 +103,7 @@ const INDEX = 'index.jsonl';
 const CONTENT = 'content';
 const WORKFLOWS = 'workflows';
 const EXPERIMENTS = 'experiments';
+const BENCHMARKS = 'benchmarks';
 
 /**
  * Every content record under a directory — `<segment>/<slug>.json`, the
@@ -633,6 +637,43 @@ export async function createFileStorage(root: string): Promise<FileStorage> {
 			await rm(join(root, EXPERIMENTS, `${encodeURIComponent(id)}.json`), { force: true });
 		},
 
+		// Benchmark reports (WP123): `<root>/benchmarks/<id>.json`, the id url-safe as a file name.
+		async putBenchmarkReport(report) {
+			const parsed = safeParseBenchmarkReport(report);
+			if (!parsed.success) {
+				throw new Error(`Refusing to store an invalid benchmark report: ${parsed.error.message}`);
+			}
+			await mkdir(join(root, BENCHMARKS), { recursive: true });
+			await writeJson(join(root, BENCHMARKS, `${encodeURIComponent(report.id)}.json`), report);
+		},
+		async getBenchmarkReport(id) {
+			const raw = await readJson(join(root, BENCHMARKS, `${encodeURIComponent(id)}.json`));
+			if (raw === undefined || raw === SYMBOL_CORRUPT) return undefined;
+			const parsed = safeParseBenchmarkReport(raw);
+			return parsed.success ? parsed.data : undefined;
+		},
+		async listBenchmarkReports() {
+			let names: string[];
+			try {
+				names = await readdir(join(root, BENCHMARKS));
+			} catch (error) {
+				if (isMissing(error)) return [];
+				throw error;
+			}
+			const rows: BenchmarkReport[] = [];
+			for (const name of names) {
+				if (!name.endsWith('.json')) continue;
+				const raw = await readJson(join(root, BENCHMARKS, name));
+				if (raw === undefined || raw === SYMBOL_CORRUPT) continue;
+				const parsed = safeParseBenchmarkReport(raw);
+				if (parsed.success) rows.push(parsed.data);
+			}
+			return rows.sort(byNewestBenchmarkReport);
+		},
+		async deleteBenchmarkReport(id) {
+			await rm(join(root, BENCHMARKS, `${encodeURIComponent(id)}.json`), { force: true });
+		},
+
 		async putEvaluation(record) {
 			const parsed = safeParseEvaluationRecord(record);
 			if (!parsed.success) {
@@ -688,7 +729,16 @@ export async function createFileStorage(root: string): Promise<FileStorage> {
 		},
 
 		async clear() {
-			for (const dir of [AGENTS, RUNS, GROUP_RUNS, CAMPAIGNS, CONTENT, WORKFLOWS, EXPERIMENTS]) {
+			for (const dir of [
+				AGENTS,
+				RUNS,
+				GROUP_RUNS,
+				CAMPAIGNS,
+				CONTENT,
+				WORKFLOWS,
+				EXPERIMENTS,
+				BENCHMARKS
+			]) {
 				await rm(join(root, dir), { recursive: true, force: true });
 				await mkdir(join(root, dir), { recursive: true });
 			}

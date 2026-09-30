@@ -47,3 +47,22 @@ export {
 	stacksForStage
 } from './stacks.js';
 export { browserRefusal } from './connection.js';
+export {
+	readerComponent,
+	readerComponentConfigSchema,
+	subjectAt,
+	type ReaderComponentConfig,
+	type ReaderComponentOptions
+} from './reader.js';
+export {
+	RED_TEAM_SEAT_COMPONENT_ID,
+	TAINT_COMPONENT_ID,
+	UNTRUSTED_CONTENT_COMPONENT_ID,
+	describeAnswers,
+	injectionComponents,
+	quarantinedReaderComponent,
+	redTeamSeatComponent,
+	taintComponent,
+	untrustedContentComponent,
+	type QuarantinedReaderOptions
+} from './injection.js';

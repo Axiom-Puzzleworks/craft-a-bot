@@ -38,7 +38,8 @@
 							"fs-lending/the-lending-desk/explain-decision",
 							"fs-lending/the-lending-desk/disburse",
 							"fs-lending/the-lending-desk/log-appeal"
-						]
+						],
+						"reviewer": "fs-bank/reviewer/case-handler"
 					}
 				}
 			],
@@ -75,6 +76,11 @@
 				{
 					"id": "scripted-noisy",
 					"tier": "scripted-noisy"
+				},
+				{
+					"id": "fallible",
+					"tier": "fallible",
+					"errorModel": "fs-lending/error/decision"
 				}
 			],
 			"evaluators": [
@@ -91,11 +97,16 @@
 			{
 				"axis": "executors",
 				"levels": ["rules-only", "bot-with-a-person-at-the-decision", "bot-everywhere"]
+			},
+			{
+				"axis": "brain",
+				"levels": ["scripted-noisy", "fallible"]
 			}
 		],
 		"baseline": {
 			"guard": "none",
-			"executors": "rules-only"
+			"executors": "bot-everywhere",
+			"brain": "scripted-noisy"
 		},
 		"metrics": [
 			{

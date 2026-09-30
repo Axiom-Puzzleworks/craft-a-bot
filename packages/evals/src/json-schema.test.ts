@@ -38,13 +38,15 @@ describe('docs/schemas', () => {
 		}
 	});
 
-	it('names eighteen artefacts, each with an $id, a title and a draft-2020-12 marker', () => {
+	it('names twenty-two artefacts (the review since WP129), each with an $id, a title and a draft-2020-12 marker', () => {
 		expect(Object.keys(schemas).sort()).toEqual([
 			'bank-run',
+			'benchmark-report',
 			'book',
 			'calibration',
 			'campaign',
 			'campaign-report',
+			'corpus',
 			'craftabot-bundle',
 			'craftabot-cassette',
 			'craftabot-provider-cassette',
@@ -56,6 +58,8 @@ describe('docs/schemas', () => {
 			'experiment',
 			'experiment-result',
 			'guardrail-catalogue',
+			'reader',
+			'review',
 			'stack',
 			'workflow-run'
 		]);

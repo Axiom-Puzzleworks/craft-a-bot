@@ -177,3 +177,11 @@ Conflict policy for future sync: last-write-wins on `updatedAt` per whole entity
 > **Amended 2026-09-11, later (WP89, `72-EXPERIMENTS.md` §4).** An eighth object store, `experimentResults` (database version 8, keyed by `id` — `<experimentId>@<ranAt>`), holds `ExperimentResult`s: the effects an experiment measured, the verdict and the note, with a digest over the canonical body that every reader verifies. The memory store keeps the same rows; the harness's file store `<root>/experiments/<id>.json`. `Storage` gains `putExperimentResult`, `getExperimentResult`, `listExperimentResults` (newest first by `ranAt`) and `deleteExperimentResult`; *Forget everything* clears the store with the rest. Outside the run cap, as campaign reports are; the campaigns a result refers to stay in `cab.campaigns` under their ids.
 
 > **Amended 2026-09-11 (WP87, `78-LENSES.md` §3).** Two fields join `cab.settings.v1`: `lens` (`engineer` · `assurance` · `conduct` · `model-risk`, default `engineer`) and `firstRunDismissed` (the lenses whose guided path this reader has dismissed). A settings row written before them reads with the defaults, as every field before did.
+
+> **Amended 2026-09-30 (WP123, `106-BENCHMARK.md` §6):** `Storage` gains benchmark reports (`putBenchmarkReport`, `getBenchmarkReport`, `listBenchmarkReports`, `deleteBenchmarkReport`), one per `<benchmark>@<ranAt>`, newest first, schema-checked on the way in:
+> - on the memory store;
+> - on the file store, under `<root>/benchmarks/`;
+> - on IndexedDB, as store `benchmarkReports` at database version 9;
+> - and in the storage contract.
+
+> **Amended 2026-09-30 (WP128).** `RunSummary.gate?` holds `run.started.gate` (the Gate's mode, stack and upstream). The Audit Centre's *Open a bundle…* (`lib/workshop/bundle-import.ts`) stores a bundle's runs, and for a run a Gate carried, it stores the Gate as an `AgentRecord` so the assurance pack has a bot to be about.

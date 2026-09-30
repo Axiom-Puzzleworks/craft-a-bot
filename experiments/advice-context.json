@@ -40,7 +40,8 @@
 							"fs-advice/the-advice-desk/recommend-product",
 							"fs-advice/the-advice-desk/refer-to-adviser",
 							"fs-advice/the-advice-desk/execute-investment"
-						]
+						],
+						"reviewer": "fs-bank/reviewer/case-handler"
 					}
 				}
 			],
@@ -54,6 +55,11 @@
 				{
 					"id": "scripted-noisy",
 					"tier": "scripted-noisy"
+				},
+				{
+					"id": "fallible",
+					"tier": "fallible",
+					"errorModel": "fs-advice/error/recommendation"
 				}
 			],
 			"evaluators": [
@@ -73,11 +79,16 @@
 			{
 				"axis": "executors",
 				"levels": ["bot-everywhere", "bot-recommends"]
+			},
+			{
+				"axis": "brain",
+				"levels": ["scripted-noisy", "fallible"]
 			}
 		],
 		"baseline": {
 			"context": "case-file",
-			"executors": "bot-everywhere"
+			"executors": "bot-everywhere",
+			"brain": "scripted-noisy"
 		},
 		"metrics": [
 			{

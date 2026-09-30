@@ -1,3 +1,4 @@
+import { benchmarkReportDigest, type BenchmarkReport } from '../schemas/benchmark.js';
 import type { ContentRecord } from '../schemas/content.js';
 import type { AgentSpec } from '../schemas/agent-spec.js';
 import { toSpecV2, type AgentSpecV2 } from '../schemas/agent-spec-v2.js';
@@ -258,4 +259,48 @@ export function makeStoredWorkflowRun(
 		schemaVersion: 1,
 		...overrides
 	};
+}
+
+/** WP123 — a benchmark report with one reader subject, at a given time. */
+export function makeBenchmarkReport(
+	overrides: Partial<Omit<BenchmarkReport, 'digest' | 'id'>> = {}
+): BenchmarkReport {
+	const body = {
+		schemaVersion: 1 as const,
+		benchmarkId: 'bank-adversarial',
+		name: 'The bank, attacked',
+		ranAt: '2026-09-30T10:00:00.000Z',
+		synthetic: true as const,
+		threshold: 0.5,
+		corpora: [
+			{ id: 'fs-disputes/corpus/adversarial-v1', digest: 'a'.repeat(64), rows: 2, attacks: 1 }
+		],
+		subjects: [
+			{
+				id: 'fs-bank/reader/attack-words',
+				kind: 'reader' as const,
+				name: 'Is this an attack, by keyword',
+				mode: 'local' as const,
+				applicable: true,
+				n: 2,
+				flagged: 1,
+				errors: 0,
+				confusion: { tp: 1, fp: 0, fn: 0, tn: 1 },
+				precision: { value: 1, interval: [0.2065, 1] as [number, number] },
+				recall: { value: 1, interval: [0.2065, 1] as [number, number] },
+				falseAlarms: { value: 0, interval: [0, 0.7935] as [number, number] },
+				byAttack: { none: { rows: 1, flagged: 0 }, injection: { rows: 1, flagged: 1 } },
+				byTarget: { none: { rows: 1, flagged: 0 }, 'the-tool': { rows: 1, flagged: 1 } },
+				bySurface: { document: { rows: 2, flagged: 1 } },
+				latency: null,
+				tokens: null,
+				listPriceUsd: null,
+				caughtAlone: [],
+				missedAlone: []
+			}
+		],
+		...overrides
+	};
+	const withId = { ...body, id: `${body.benchmarkId}@${body.ranAt}` };
+	return { ...withId, digest: benchmarkReportDigest(withId) };
 }

@@ -125,3 +125,5 @@ export interface Book<Kind extends WorkItemKind = WorkItemKind> { schemaVersion:
 - The performance label is drawn from the book's own seeded stream (one draw per application), not from the desk's random, so a desk run over a book item never consumes it.
 
 > **Amended 2026-09-29 (WP112):** the Phase AA books' incidences are rows — `fs-bank`'s `BOOK_INCIDENCES` (`onboarding-incidence`, `disputes-incidence`, `arrears-incidence`, `servicing-request-incidence`), assumptions with notes that say they are oversampled teaching rates, `review: 'pending'`. A table of its own, not rows in `CALIBRATION`: the population's digest covers that table's rows, and these describe the desks' books. Each book reads its “every n-th” through `everyNth`, byte-identical.
+
+> **Amended 2026-09-30 (WP119, `105-CORPORA.md` §7):** `Book.source.corpus?: { id, digest }` records that a book was drawn from a corpus, frozen at that digest, with one item per row. `BookRequest.corpus` hands the workflow's `book` the corpus a campaign's source names. `evals` refuses a book that is not the corpus it claims.

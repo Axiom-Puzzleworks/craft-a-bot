@@ -62,6 +62,30 @@ export async function artefactSchemas() {
 			description:
 				'A provider cassette (WP114, 103-FALLIBLE-ACTORS.md): one entry per provider call a recording made, keyed by the SHA-256 of the composed prompt and its occurrence, with the response as the provider returned it, the model id pinned, and the latency. A live brain naming it replays with no key and no network.'
 		},
+		'benchmark-report': {
+			schema: core.benchmarkReportSchema,
+			title: 'Craft A Bot benchmark report',
+			description:
+				'Every subject of a benchmark over the same adversarial rows (WP123, 106-BENCHMARK.md §6): how each answered (a stand-in, a cassette, live, local), precision and recall on attack ≠ none with their Wilson intervals, the rows by attack, target and surface, latency where recorded, a list price where cited, the rows each alone caught or missed, and a digest. Every row synthetic.'
+		},
+		corpus: {
+			schema: core.corpusSchema,
+			title: 'Craft A Bot corpus (labelled rows as content)',
+			description:
+				'Labelled rows a reader is scored on: each row’s state, tags and labels from closed sets with their guides, the question set it was written against, the annotators with their agreement, whether it was held out, the readers that have seen it, and a digest over the labels and rows frozen before any of that (105-CORPORA.md §3).'
+		},
+		review: {
+			schema: core.reviewSchema,
+			title: 'Craft A Bot review (a reading of one pending subject)',
+			description:
+				'A reader’s verdict on one thing a pack ships pending — a catalogue entry, a calibration row, a control row, a decision right, a blueprint item, a screening list, an error model or a reviewer model: accepted, amended (with the field and the value a maintainer then edits in) or rejected (with why), under the reader’s principal and the date (108-READINGS.md §2). A record beside the content, never an edit to it.'
+		},
+		reader: {
+			schema: core.readerExchangeSchema,
+			title: 'Craft A Bot reader exchange (typed questions and a response)',
+			description:
+				'Typed questions — a choice over keyed options, a noul, a score over ordered levels — and a reader’s response: who answered, by what method, and one answer per question with its distribution and confidence, rounded to six places (104-READERS.md §3).'
+		},
 		'craftabot-scenarios': {
 			schema: core.scenarioPackFileSchema,
 			title: 'Craft A Bot scenario pack (craftabot-scenarios v1)',

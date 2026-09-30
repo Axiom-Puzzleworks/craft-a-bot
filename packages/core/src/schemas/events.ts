@@ -29,8 +29,10 @@ import {
 	runOutcomeSchema,
 	usageSchema,
 	boundaryVerdictSchema,
+	reviewerAnswerSchema,
 	verdictFindingSchema
 } from './shared.js';
+import { readerRecordSchema } from './reader.js';
 
 /** Shared envelope (02-AGENT-MODEL.md §7) around one event type's payload. */
 function eventSchema<Type extends string, Payload extends z.ZodTypeAny>(
@@ -114,6 +116,20 @@ const runStartedEvent = eventSchema(
 		strategies: z.object({ memory: z.string(), prompt: z.string() }).optional(),
 		/** Who started this run and, through `onBehalfOf`, for whom (WP65, `55-…` §4.1); written only when the host named one. */
 		principal: principalSchema.optional(),
+		/**
+		 * The run is a conversation the Gate carried (WP128, `107-THE-GATE.md` §4):
+		 * its mode, the stack it ran and the upstream's host. Absent on every
+		 * session's run.
+		 */
+		gate: z
+			.object({
+				mode: z.enum(['shadow', 'enforce']),
+				stackId: z.string().min(1),
+				upstream: z.string().min(1)
+			})
+			.optional(),
+		/** The card's dial as it stood for this run (WP131, `109-…` §3): which knob, at what value; written only when the card has a dial. */
+		goalDial: z.object({ knob: z.string().min(1), value: z.number() }).optional(),
 		/** A fork (WP66, `54-…` §4.1): the origin run and the tick this run continues after; additive. */
 		forkedFrom: z
 			.object({
@@ -236,6 +252,23 @@ const decisionEvent = eventSchema(
 		source: z.enum(['brain', 'reflex']).optional()
 	})
 );
+/**
+ * A planted fault (WP115, `103-FALLIBLE-ACTORS.md` §5): the fallible tier
+ * changed this tick's call — `field` of `action` is `chose` where the plan
+ * had `shouldHave`. Written right after the `decision` it corrupts, and only
+ * then, so every error a campaign's actor made on purpose says so.
+ */
+const decisionFaultEvent = eventSchema(
+	'decision.fault',
+	z.object({
+		action: z.string(),
+		field: z.string(),
+		chose: z.unknown(),
+		shouldHave: z.unknown(),
+		planted: z.literal(true),
+		errorModel: z.string().optional()
+	})
+);
 const toolExecutedEvent = eventSchema(
 	'tool.executed',
 	z.object({
@@ -347,6 +380,19 @@ const guardrailCheckedEvent = eventSchema(
 		point: pointField
 	})
 );
+/**
+ * What came back was marked untrusted (WP124, `106-BENCHMARK.md` §8.1): the
+ * tick, where it came from, who marked it, and whether a quarantined reader
+ * replaced it with its answers — so the acting seat never read the text.
+ */
+const contentMarkedEvent = eventSchema(
+	'content.marked',
+	z.object({
+		source: z.string().min(1),
+		guardrailId: z.string().min(1),
+		quarantined: z.boolean()
+	})
+);
 const guardrailTrippedEvent = eventSchema(
 	'guardrail.tripped',
 	z.object({
@@ -450,7 +496,25 @@ const stageCompletedEvent = eventSchema(
 			tripped: z.number().int().nonnegative(),
 			/** The boundary chain's verdicts (WP95, `69-…` §10); absent when the stage had none. */
 			verdicts: z.array(boundaryVerdictSchema).optional()
-		})
+		}),
+		/** The reviewer model's answer at a `human` stage (WP115); absent unless the configuration names one. */
+		by: reviewerAnswerSchema.optional()
+	})
+);
+
+/**
+ * **A reader answered** (WP117, `104-READERS.md` §4.1; `100-…` §8): one per
+ * `reader` stage, on the workflow's events after `stage.started` — who
+ * answered, how, the rounded answers, the confidence the gate read and
+ * whether it gated. A gated stage's `else` executor writes its own events
+ * after this one, under the same stage.
+ */
+const readerAnsweredEvent = eventSchema(
+	'reader.answered',
+	readerRecordSchema.extend({
+		workflowRunId: z.string().optional(),
+		stageId: z.string().optional(),
+		questionIds: z.array(z.string())
 	})
 );
 
@@ -465,6 +529,7 @@ export const engineEventSchema = z.discriminatedUnion('type', [
 	thinkTokenEvent,
 	thinkCompletedEvent,
 	decisionEvent,
+	decisionFaultEvent,
 	toolExecutedEvent,
 	actionPerformedEvent,
 	memoryUpdatedEvent,
@@ -472,6 +537,7 @@ export const engineEventSchema = z.discriminatedUnion('type', [
 	guardrailExternalEvent,
 	guardrailCheckedEvent,
 	guardrailTrippedEvent,
+	contentMarkedEvent,
 	approvalRequestedEvent,
 	approvalResolvedEvent,
 	worldChangedEvent,
@@ -481,7 +547,8 @@ export const engineEventSchema = z.discriminatedUnion('type', [
 	groupStartedEvent,
 	groupFinishedEvent,
 	stageStartedEvent,
-	stageCompletedEvent
+	stageCompletedEvent,
+	readerAnsweredEvent
 ]);
 
 export type EngineEvent = z.infer<typeof engineEventSchema>;

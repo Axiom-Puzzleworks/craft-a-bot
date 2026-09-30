@@ -356,3 +356,17 @@ describe('the v2 leaves in the Studio (WP45)', () => {
 		]);
 	});
 });
+
+describe('the WP124 leaves in the rule builder', () => {
+	it('builds content-is-untrusted, and taint-reaches with or without a path', () => {
+		const row = { ...newCondition(), kind: 'content-is-untrusted' as const };
+		expect(conditionToExpr(row)).toEqual({ kind: 'content-is-untrusted' });
+		expect(conditionToExpr({ ...row, kind: 'taint-reaches', path: '' })).toEqual({
+			kind: 'taint-reaches'
+		});
+		expect(conditionToExpr({ ...row, kind: 'taint-reaches', path: 'text', negate: true })).toEqual({
+			kind: 'not',
+			expr: { kind: 'taint-reaches', path: 'text' }
+		});
+	});
+});

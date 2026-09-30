@@ -1,4 +1,9 @@
-import { experimentResultDigest, type EffectRecord, type ExperimentResult } from '@craftabot/core';
+import {
+	experimentResultDigest,
+	parseExperimentResult,
+	type EffectRecord,
+	type ExperimentResult
+} from '@craftabot/core';
 import { expandExperiment } from '@craftabot/evals';
 import { describe, expect, it } from 'vitest';
 import { createRegistry } from '$lib/packs.js';
@@ -224,5 +229,25 @@ describe('the Experiments page fold', () => {
 		expect(verdictLamp('supported')).toBe('pass');
 		expect(verdictLamp('not-supported')).toBe('fail');
 		expect(verdictLamp('inconclusive')).toBe('inconclusive');
+	});
+});
+
+describe('a result over two brain tiers (WP116, found in WP123)', () => {
+	it('draws a row per treatment and tier, every key unique', async () => {
+		const { readFileSync } = await import('node:fs');
+		const result = parseExperimentResult(
+			JSON.parse(
+				// The workbench's tests run from apps/workbench.
+				readFileSync(
+					'../../docs/evidence/lending-stack/lending-stack.experiment-result.json',
+					'utf8'
+				)
+			)
+		);
+		for (const metricId of metricIdsOf(result)) {
+			const ids = effectMatrix(result, metricId).rows.map((row) => row.id);
+			expect(new Set(ids).size, metricId).toBe(ids.length);
+			expect(ids.some((id) => id.endsWith('@fallible'))).toBe(true);
+		}
 	});
 });

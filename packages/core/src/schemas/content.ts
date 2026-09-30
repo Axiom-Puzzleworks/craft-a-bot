@@ -1,7 +1,9 @@
+import { corpusSchema, type Corpus } from './corpus.js';
 import { z } from 'zod';
 import { stackSchema, type Stack } from './stack.js';
 import { savedViewSchema } from './view.js';
 import { controlReviewSchema } from './control-review.js';
+import { reviewFromControlReview, reviewSchema, type Review } from './review.js';
 import { assertionCardSchema, type AssertionCard } from './assertion-card.js';
 import type { PackManifest } from './pack-manifest.js';
 import { policyCardSchema, type PolicyCard } from './policy-card.js';
@@ -28,7 +30,11 @@ export const contentKindSchema = z.enum([
 	// WP109 (`96-CONTROL-ROOM-V3.md` §2.2): a saved view — a Workshop URL with a title, under a lens.
 	'view',
 	// WP110 (`97-ACCESS.md` §1, GAP-1): a reader's review of a control-map row, beside the pack's row.
-	'control-review'
+	'control-review',
+	// WP119 (`105-CORPORA.md` §3): a corpus the reader wrote or imported, beside the packs'.
+	'corpus',
+	// WP129 (`108-READINGS.md` §2): a reading of any of the eight subject kinds; `control-review` is its alias.
+	'review'
 ]);
 export type ContentKind = z.infer<typeof contentKindSchema>;
 
@@ -41,7 +47,9 @@ export const CONTENT_SEGMENT: Record<ContentKind, string> = {
 	// WP97 (`89-STACKS.md`): a user's stack, beside the pack-shipped ones.
 	stack: 'stacks',
 	view: 'views',
-	'control-review': 'reviews'
+	'control-review': 'reviews',
+	corpus: 'corpora',
+	review: 'reviews'
 };
 
 export function isLocalId(id: string): boolean {
@@ -63,7 +71,7 @@ export function localContentId(kind: ContentKind, slug: string): string {
 const localIdSchema = z
 	.string()
 	.regex(
-		/^local\/(policy|testbench|scenarios|campaigns|stacks|views|reviews)\/[a-z0-9][a-z0-9-]*$/,
+		/^local\/(policy|testbench|scenarios|campaigns|stacks|views|reviews|corpora)\/[a-z0-9][a-z0-9-]*$/,
 		{
 			message: 'a local content id is local/<segment>/<slug>'
 		}
@@ -119,6 +127,10 @@ function innerSchemaFor(kind: ContentKind): z.ZodType | undefined {
 			return savedViewSchema;
 		case 'control-review':
 			return controlReviewSchema;
+		case 'review':
+			return reviewSchema;
+		case 'corpus':
+			return corpusSchema;
 		case 'campaign':
 			return undefined;
 	}
@@ -165,6 +177,7 @@ export function localPackFrom(records: readonly ContentRecord[]): PackManifest {
 	const assertionCards: AssertionCard[] = [];
 	const scenarios: ScenarioDefinition[] = [];
 	const stacks: Stack[] = [];
+	const corpora: Corpus[] = [];
 	for (const entry of records) {
 		switch (entry.kind) {
 			case 'policy-card':
@@ -179,8 +192,12 @@ export function localPackFrom(records: readonly ContentRecord[]): PackManifest {
 			case 'stack':
 				stacks.push(stackSchema.parse(entry.record));
 				break;
+			case 'corpus':
+				corpora.push(corpusSchema.parse(entry.record));
+				break;
 			case 'view':
 			case 'control-review':
+			case 'review':
 				// A view and a review are the reader's, never a pack's.
 				break;
 			case 'campaign':
@@ -195,6 +212,26 @@ export function localPackFrom(records: readonly ContentRecord[]): PackManifest {
 		...(policyCards.length > 0 ? { policyCards } : {}),
 		...(assertionCards.length > 0 ? { assertionCards } : {}),
 		...(scenarios.length > 0 ? { scenarios } : {}),
-		...(stacks.length > 0 ? { stacks } : {})
+		...(stacks.length > 0 ? { stacks } : {}),
+		...(corpora.length > 0 ? { corpora } : {})
 	};
+}
+
+/**
+ * **Every reading in the store** (WP129, `108-READINGS.md` §7): the `review`
+ * records and the WP110 `control-review` records read as reviews, the alias
+ * kept for one release. Records that do not parse are skipped.
+ */
+export function reviewsFromContent(records: readonly ContentRecord[]): Review[] {
+	return records.flatMap((entry): Review[] => {
+		if (entry.kind === 'review') {
+			const parsed = reviewSchema.safeParse(entry.record);
+			return parsed.success ? [parsed.data] : [];
+		}
+		if (entry.kind === 'control-review') {
+			const parsed = controlReviewSchema.safeParse(entry.record);
+			return parsed.success ? [reviewFromControlReview(parsed.data)] : [];
+		}
+		return [];
+	});
 }

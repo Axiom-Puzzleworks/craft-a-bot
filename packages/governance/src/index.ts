@@ -101,10 +101,12 @@ export {
 } from './evaluators.js';
 
 /** The package's own version, as `package.json` says it — a test keeps the two in step. */
-export const CRAFTABOT_GOVERNANCE_VERSION = '1.0.0-rc.1';
+export const CRAFTABOT_GOVERNANCE_VERSION = '1.0.0';
 /** The PDP input document (`33-POLICY-V2-PDP.md` §4.3, WP45). */
 export { PDP_INPUT_VERSION, pdpInputSchema, pdpRequestFor, type PdpInput } from './pdp.js';
 /** Guardrail components (WP94, `85-COMPONENTS.md`): the adapters the packs register, and the compiler over a list of fits. */
 export * from './components/index.js';
 /** The Guardrail Catalogue (WP98, `86-CATALOGUE.md`): the first edition and `checkCatalogue`. */
 export * from './catalogue/index.js';
+/** Readers (WP117, `104-READERS.md` §5): the adapters that make a desk's rule, a hosted line or a chat model answer typed questions. */
+export * from './readers/index.js';

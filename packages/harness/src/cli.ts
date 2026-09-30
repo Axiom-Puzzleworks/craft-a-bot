@@ -35,6 +35,20 @@ import { experimentAnalyse, experimentRender, experimentRun } from './commands/e
 import { bankRun } from './commands/bank.js';
 import { journeyRender } from './commands/journey.js';
 import { scaffoldDomain } from './commands/scaffold.js';
+import { benchmarkRun, renderBenchmarkSummary } from './commands/benchmark.js';
+import {
+	readBlueprintNotes,
+	readingsFor,
+	renderReadingsSummary,
+	writeReadings
+} from './commands/readings.js';
+import { gateAnswer, gateServe } from './commands/gate.js';
+import {
+	agreementForFiles,
+	freezeCorpus,
+	labelCorpusFile,
+	renderAgreement
+} from './commands/corpus.js';
 import { createRegistry } from './config.js';
 import { createFileStorage } from './storage/file-storage.js';
 
@@ -121,6 +135,30 @@ Usage:
   craftabot journey render --workflow <id> [--config <name>] [--run <workflow-run.json>] [--svg <out.svg>] [--file <layout.json>]
       One journey drawn (WP100): its layout as JSON, its SVG for the manual
       and the site — unlit, under a configuration, or lit by a stored run.
+  craftabot gate serve --stack <id|file> --upstream <base-url> [--mode shadow|enforce] [--port 8127]
+      A stack over the OpenAI chat-completions wire, in front of one upstream (WP127):
+      pre-think over the request, pre-act over each tool call, post-act over what
+      each returned. Loopback only unless --host … --allow-remote; the upstream key
+      from CRAFTABOT_GATE_UPSTREAM_KEY. Unauthenticated: a reference implementation.
+  craftabot gate approve <id> | deny <id> [--gate <url>]
+      The operator's answer to what the Gate paused.
+  craftabot benchmark run <benchmark.json> [--cassettes <dir>] [--record] [--out <dir>] [--store <dir>]
+      Every guard service and every reader that answers the guard question set over
+      the adversarial corpora (WP123): each service from its cassette, else its
+      stand-in (unmeasured); --record calls each live with its credential from
+      CRAFTABOT_CREDENTIAL_<ID> and writes its cassette.
+  craftabot readings export [--format json|markdown] [--out <file>] [--store <dir>] [--blueprints <dir>]
+      The reading desk's queue (WP129): every catalogue entry, calibration row, control
+      row, decision right, blueprint item, screening list, error and reviewer model still
+      pending, with the review each has had (from --content and --store). Markdown is
+      the maintainer's work list: the amendments to edit in, the rejections, the unread.
+  craftabot corpus freeze <corpus.json>
+      Write a corpus's digest over its labels and rows (WP119).
+  craftabot corpus label <corpus.json> --as <annotator> --out <labels.json>
+      Walk the rows for a blind second annotator: the guide, the options and each row's
+      state, never a label; answers by number or name, ? for a note.
+  craftabot corpus agreement <corpus.json> <labels.json>
+      Cohen's κ per label against the primary; records the annotator on the corpus.
   craftabot scaffold domain --id <id> --sector <sector> --jurisdiction <jurisdiction> --world <pack> --journeys <a,b> --out <dir> [--root <Entity>] [--name <name>] [--today YYYY-MM-DD] [--relative]
       A domain pack's shape, typed out (WP107): one world pack (the model,
       a calibration table of stated assumptions pending review, three
@@ -649,6 +687,8 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 					file,
 					out,
 					config: await configFrom(args),
+					// The pool's workers load the same packs (WP119: the eighth reference experiment needs the typesafe pack).
+					...(typeof args.flags['config'] === 'string' ? { configPath: args.flags['config'] } : {}),
 					credentials: credentialsFor(io),
 					principal: principalFor(io, args),
 					...(jobs !== undefined ? { jobs } : {}),
@@ -1101,6 +1141,136 @@ ${renderEvaluations(report)}`);
 					io.stdout(`wrote ${file}\n`);
 				}
 				if (svgPath === undefined && file === undefined) io.stdout(svg);
+				return 0;
+			}
+			case 'corpus': {
+				// WP119 (`105-CORPORA.md` §6): the labelling tools.
+				const [verb, file, labels] = args.positional;
+				if (verb === 'freeze' && file) {
+					const { digest } = await freezeCorpus(file);
+					io.stdout(`${file}: frozen at ${digest}\n`);
+					return 0;
+				}
+				if (verb === 'agreement' && file && labels) {
+					io.stdout(renderAgreement(await agreementForFiles(file, labels)));
+					return 0;
+				}
+				const as = stringFlag(args, 'as');
+				const out = stringFlag(args, 'out');
+				if (verb === 'label' && file && as && out) {
+					const { createInterface } = await import('node:readline/promises');
+					const rl = createInterface({ input: process.stdin, output: process.stdout });
+					try {
+						const written = await labelCorpusFile({
+							file,
+							out,
+							as,
+							ask: (prompt) => rl.question(prompt),
+							write: (text) => io.stdout(text)
+						});
+						io.stdout(`wrote ${out}: ${written.labels.length} rows labelled by ${as}\n`);
+					} finally {
+						rl.close();
+					}
+					return 0;
+				}
+				throw new Error(
+					'corpus needs freeze <corpus.json> | label <corpus.json> --as <annotator> --out <labels.json> | agreement <corpus.json> <labels.json>'
+				);
+			}
+			case 'gate': {
+				// WP127 (`107-THE-GATE.md`): a stack over the chat-completions wire.
+				const [verb, id] = args.positional;
+				if ((verb === 'approve' || verb === 'deny') && id) {
+					io.stdout(`${await gateAnswer(id, verb === 'approve', stringFlag(args, 'gate'))}
+`);
+					return 0;
+				}
+				const stack = stringFlag(args, 'stack');
+				const upstream = stringFlag(args, 'upstream');
+				const mode = stringFlag(args, 'mode') ?? 'enforce';
+				if (verb !== 'serve' || !stack || !upstream || (mode !== 'shadow' && mode !== 'enforce'))
+					throw new Error(
+						'gate needs serve --stack <id|file> --upstream <base-url> [--mode shadow|enforce] [--port N] [--host H --allow-remote] [--principal] [--sink <id> --sink-config <json>] | approve <id> | deny <id> [--gate <url>]'
+					);
+				const port = numberFlag(args, 'port');
+				const host = stringFlag(args, 'host');
+				const sinkId = stringFlag(args, 'sink');
+				const sinkConfig = stringFlag(args, 'sink-config');
+				const served = await gateServe({
+					stack,
+					upstream,
+					mode,
+					config: await configFrom(args),
+					env: io.env,
+					credentials: credentialsFor(io),
+					principal: principalFor(io, args),
+					...(port !== undefined ? { port } : {}),
+					...(host !== undefined ? { host } : {}),
+					...(args.flags['allow-remote'] === true ? { allowRemote: true } : {}),
+					...(sinkId ? { sink: { id: sinkId, ...(sinkConfig ? { config: sinkConfig } : {}) } } : {})
+				});
+				io.stdout(`${served.line}
+`);
+				// The server holds the process open; Ctrl+C closes it and flushes the sink.
+				process.once('SIGINT', () => void served.close());
+				return 0;
+			}
+			case 'readings': {
+				// WP129 (`108-READINGS.md` §4): the queue and its readings, for the maintainer.
+				const verb = args.positional[0];
+				const format = stringFlag(args, 'format') ?? 'json';
+				if (verb !== 'export' || (format !== 'json' && format !== 'markdown'))
+					throw new Error(
+						'readings needs export [--format json|markdown] [--out <file>] [--store <dir>] [--blueprints <dir>]'
+					);
+				const config = await configFrom(args);
+				const store = stringFlag(args, 'store');
+				const out = stringFlag(args, 'out');
+				const file = await readingsFor({
+					packs: config.packs,
+					...(config.content ? { content: config.content } : {}),
+					...(store ? { storage: await createFileStorage(store) } : {}),
+					blueprints: await readBlueprintNotes(stringFlag(args, 'blueprints') ?? 'docs/blueprints'),
+					generatedAt: new Date().toISOString()
+				});
+				const text = await writeReadings(file, format, out);
+				io.stdout(
+					out
+						? `${renderReadingsSummary(file)}  wrote      ${out}
+`
+						: text
+				);
+				return 0;
+			}
+			case 'benchmark': {
+				// WP123 (`106-BENCHMARK.md` §6): every guard over the adversarial corpora.
+				const [verb, file] = args.positional;
+				if (verb !== 'run' || !file)
+					throw new Error(
+						'benchmark needs run <benchmark.json> [--cassettes <dir>] [--record] [--out <dir>] [--store <dir>]'
+					);
+				const store = stringFlag(args, 'store');
+				const cassettes = stringFlag(args, 'cassettes');
+				const out = stringFlag(args, 'out');
+				const ran = await benchmarkRun({
+					file,
+					registry: createRegistry(await configFrom(args)),
+					credentials: credentialsFor(io),
+					...(cassettes ? { cassettes } : {}),
+					...(out ? { out } : {}),
+					...(store ? { storage: await createFileStorage(store) } : {}),
+					record: args.flags['record'] === true,
+					ranAt: new Date().toISOString()
+				});
+				io.stdout(renderBenchmarkSummary(ran.report));
+				for (const path of ran.recorded)
+					io.stdout(`  recorded   ${path}
+`);
+				if (ran.reportFile)
+					io.stdout(`  report     ${ran.reportFile}
+  markdown   ${ran.markdownFile}
+`);
 				return 0;
 			}
 			case 'scaffold': {

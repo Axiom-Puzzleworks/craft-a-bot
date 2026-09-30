@@ -387,7 +387,16 @@ export const LENDING_STAGES: StageSpec[] = [
 			prompt: lendingStrings.workflow.briefs.fourEyes,
 			options: [...FOUR_EYES_OPTIONS]
 		},
-		suggest: () => 'confirm',
+		// What a careful person answers (WP116): confirm a decision the rule agrees with, overturn one it does not.
+		suggest: (_input, state) => {
+			const decided = desk(state).extra.lending.decision?.outcome;
+			const rule = ruleVerdictOnTheDesk(state)?.verdict;
+			return decided !== undefined && rule !== undefined && decided !== rule
+				? 'overturn'
+				: 'confirm';
+		},
+		// The check invites a confirmation: what automation bias takes (WP116, `103-…` §6).
+		recommended: () => 'confirm',
 		next: (out, state) => {
 			const confirmed = (out as { decision?: string }).decision === 'confirm';
 			if (confirmed && desk(state).extra.lending.decision?.outcome === 'approve')

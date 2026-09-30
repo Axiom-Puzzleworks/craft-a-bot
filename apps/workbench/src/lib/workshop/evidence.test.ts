@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { createMemoryStorage, type ContentRecord, type EvidenceItem } from '@craftabot/core';
+import {
+	corpusDigest,
+	createMemoryStorage,
+	evidenceItemFor,
+	type ContentRecord,
+	type EvidenceItem
+} from '@craftabot/core';
 import { makeEvent, makeExperimentResult, makeRun } from '@craftabot/core/testing';
 import {
 	importPulled,
@@ -102,5 +108,32 @@ describe('evidence items in the Workshop', () => {
 			id: result.id
 		});
 		expect((await storage.getExperimentResult(result.id))?.verdict).toBe('inconclusive');
+	});
+
+	it('imports a corpus into the content store as a local record (WP119)', async () => {
+		const labels = { colour: { options: ['red', 'green'], guide: 'The colour.' } };
+		const rows = [{ id: 'r1', state: 'a red badge', tags: [], labels: { colour: 'red' } }];
+		const corpus = {
+			id: 'test/corpus/badges',
+			name: 'Badges',
+			version: '1',
+			stateKind: 'words',
+			guide: 'Synthetic.',
+			labels,
+			rows,
+			annotators: [{ id: 'author', blind: false, primary: true as const }],
+			heldOut: false,
+			seenBy: [],
+			digest: corpusDigest({ labels, rows })
+		};
+		const item = await evidenceItemFor('corpus', corpus.id, corpus);
+		const saved: ContentRecord[] = [];
+		expect(
+			await importPulled(createMemoryStorage(), item, {
+				saveContent: async (record) => void saved.push(record)
+			})
+		).toEqual({ kind: 'corpus', id: corpus.id });
+		expect(saved[0]).toMatchObject({ id: 'local/corpora/badges', kind: 'corpus' });
+		expect((saved[0]?.record as { id: string }).id).toBe('local/corpora/badges');
 	});
 });

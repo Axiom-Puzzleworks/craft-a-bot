@@ -15,6 +15,7 @@ export {
 	type DeskWorldDefinition,
 	type DeskWorldInstance,
 	type DeskWorldSpec,
+	counterpartFromConfig,
 	seatedCounterpartOf
 } from './desk-world.js';
 export { closest } from './closest.js';
@@ -53,3 +54,4 @@ export {
 	type SyntheticAddress,
 	type SyntheticName
 } from './synthetic.js';
+export { adversarialScript, type AdversarialScriptOptions } from './red-team.js';

@@ -1,12 +1,16 @@
 import type { PackManifest } from '@craftabot/core';
 import { jevLine } from './jev/line.js';
 import { corpusBook } from './servicing/book.js';
-import { SERVICING_CORPUS_V2 } from './servicing/corpus-v2.js';
-import { SERVICING_CORPUS_V3 } from './servicing/corpus-v3.js';
+import {
+	REQUESTS_V2_CORPUS_ID,
+	REQUESTS_V3_CORPUS_ID,
+	servicingCorpus
+} from '@craftabot/pack-fs-servicing';
 import { servicingJevEvaluators } from './servicing/evaluators.js';
 import {
 	SERVICING_JEV_V2_WORKFLOW_ID,
 	SERVICING_JEV_V3_WORKFLOW_ID,
+	TYPESAFE_READERS,
 	servicingJevWorkflow
 } from './servicing/workflow.js';
 
@@ -32,16 +36,18 @@ export const typesafePack: PackManifest = {
 	serviceLines: [jevLine],
 	workflows: [
 		servicingJevWorkflow(corpusBook),
-		servicingJevWorkflow((request) => corpusBook(request, SERVICING_CORPUS_V2), {
+		servicingJevWorkflow((request) => corpusBook(request, servicingCorpus(REQUESTS_V2_CORPUS_ID)), {
 			id: SERVICING_JEV_V2_WORKFLOW_ID,
 			corpus: 'v2'
 		}),
-		servicingJevWorkflow((request) => corpusBook(request, SERVICING_CORPUS_V3), {
+		servicingJevWorkflow((request) => corpusBook(request, servicingCorpus(REQUESTS_V3_CORPUS_ID)), {
 			id: SERVICING_JEV_V3_WORKFLOW_ID,
 			corpus: 'v3, held out'
 		})
 	],
-	evaluators: servicingJevEvaluators
+	evaluators: servicingJevEvaluators,
+	// WP120 (`104-READERS.md` §10.4): Jev and the two Sparks as hosted readers over their lines.
+	readers: TYPESAFE_READERS
 };
 
 export default typesafePack;
@@ -56,7 +62,12 @@ export {
 	jevLine
 } from './jev/line.js';
 export type * from './jev/types.js';
-export { SERVICING_CORPUS, type CorpusRow, type Difficulty } from './servicing/corpus.js';
+export {
+	SERVICING_CORPUS,
+	legacyRows,
+	type CorpusRow,
+	type Difficulty
+} from './servicing/corpus.js';
 export { SERVICING_CORPUS_V2 } from './servicing/corpus-v2.js';
 export { SERVICING_CORPUS_V3 } from './servicing/corpus-v3.js';
 export {
@@ -93,8 +104,11 @@ export {
 	SERVICING_JEV_V3_WORKFLOW_ID,
 	SERVICING_JEV_WORKFLOW_ID,
 	STEER_THRESHOLD,
-	gateRuleId,
-	jevReader,
-	sparkReader,
+	JEV_READER_ID,
+	QUESTION_SETS,
+	SPARK_122B_READER_ID,
+	SPARK_35B_READER_ID,
+	TYPESAFE_READERS,
+	readerExecutor,
 	servicingJevWorkflow
 } from './servicing/workflow.js';

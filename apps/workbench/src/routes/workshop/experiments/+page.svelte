@@ -159,7 +159,11 @@
 		if (entries.length < watched.queued.length) return;
 		if (entries.some((entry) => entry.status === 'queued' || entry.status === 'running')) return;
 		if (entries.some((entry) => entry.status !== 'done')) {
-			note = 'a campaign of the design did not finish; the result waits for a full run.';
+			// WP130 (the walk): say why, from the runner's own record of the failure.
+			const why = [
+				...new Set(entries.flatMap((entry) => (entry.error ? [entry.error] : [entry.status])))
+			].join('; ');
+			note = `a campaign of the design did not finish (${why}); the result waits for a full run.`;
 			pending = undefined;
 			return;
 		}
@@ -398,12 +402,12 @@
 						testId="experiment-matrix-{metricId.replace(/[^a-z0-9]+/gi, '-')}"
 					/>
 					<ul class="effects">
-						{#each result.effects.filter((effect) => effect.metricId === metricId) as effect (effect.factor.treatment)}
+						{#each result.effects.filter((effect) => effect.metricId === metricId) as effect (`${effect.factor.treatment}@${effect.tier ?? ''}`)}
 							<li>
-								<strong>{effect.factor.treatment}</strong> vs {effect.factor.baseline}: {deltaText(
-									effect,
-									effect.delta
-								)}
+								<!-- WP123: keyed and worded by tier too — since WP116 a treatment appears once per brain tier. -->
+								<strong>{effect.factor.treatment}</strong>{effect.tier
+									? ` (${effect.tier} tier)`
+									: ''} vs {effect.factor.baseline}: {deltaText(effect, effect.delta)}
 								({bandText(effect, effect.interval)}; n {effect.baseline.n} / {effect.treatment.n};
 								{#if effect.p !== undefined}p {effect.p.toFixed(3)};
 								{/if}{effect.method}{effect.underpowered ? '; underpowered' : ''}). Cost: tokens {effect.cost.tokensPerCase.baseline.toFixed(

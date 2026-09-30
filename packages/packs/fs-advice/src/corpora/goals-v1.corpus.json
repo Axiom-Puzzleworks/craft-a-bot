@@ -1,0 +1,873 @@
+{
+	"id": "fs-advice/corpus/goals-v1",
+	"name": "What a customer wants their money to do, in their words",
+	"version": "1",
+	"stateKind": "customer-words",
+	"guide": "What customers say when an adviser asks what they want their money to do, each labelled with their main goal. Written after the question set was frozen, so held out from it. Synthetic English written for the product by its authors (an authoring pass given the guide, the options and the desk’s keyword rule, so it could write rows that test the rule): no person, number, company or place in it is real, and no row has a digit. It stands in for what customers say; it is not what they say. A sample of real words, labelled by someone other than the product’s authors, is the missing test, and no figure measured on these rows replaces it.",
+	"labels": {
+		"goal": {
+			"options": ["grow", "income", "keep-safe", "purchase"],
+			"guide": "grow — Grow over the long term, accepting that its value can fall. income — Pay them a regular income. keep-safe — Stay safe: they cannot afford to lose any of it. purchase — Be there for a particular purchase at a particular time: a home, a car, a wedding."
+		}
+	},
+	"rows": [
+		{
+			"id": "a001",
+			"state": "I want it to grow over the long term. I know the value can go down as well as up and I'm fine with that.",
+			"tags": ["plain"],
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a002",
+			"state": "I need it to pay me an income every month now that I've stopped working.",
+			"tags": ["plain"],
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a003",
+			"state": "I can't afford to lose any of it. It has to stay safe.",
+			"tags": ["plain"],
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a004",
+			"state": "We're saving for a deposit on a house in about three years.",
+			"tags": ["plain"],
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a005",
+			"state": "Honestly, I'd like to see it worth a good deal more in fifteen years, even if some years it's worth less.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a006",
+			"state": "I'd like something coming in regularly to top up what I get from the state.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a007",
+			"state": "I don't want to take any chances with it. If it dropped even a little, I'd be in real trouble.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a008",
+			"state": "We've got our eye on a place of our own and want to be ready to make an offer within two years.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a009",
+			"state": "I feel perfectly secure in my job, so I can take a fair bit of risk. I'd like it to grow over the next twenty years.",
+			"tags": ["trap"],
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a010",
+			"state": "The flat's paid off, so there's no mortgage to worry about. What I need now is money coming in every few weeks to cover my costs.",
+			"tags": ["trap"],
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a011",
+			"state": "I've just sold the house and this is all I've got left. I can't risk any of it shrinking.",
+			"tags": ["trap"],
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a012",
+			"state": "It's for the deposit on our first home in two years, so I'd like it kept safe until then.",
+			"tags": ["trap"],
+			"labels": {
+				"goal": "purchase"
+			},
+			"contested": {
+				"reason": "The customer explicitly asks for it to be kept safe, though only because the money is tied to a purchase on a fixed date.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "a013",
+			"state": "I'm thinking twenty or thirty years ahead, so I'd like it invested for growth.",
+			"tags": ["plain"],
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a014",
+			"state": "I'd like a regular income from it to top up my pension.",
+			"tags": ["plain"],
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a015",
+			"state": "Please keep it safe. This is everything I have.",
+			"tags": ["plain"],
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a016",
+			"state": "I want to buy a car next spring.",
+			"tags": ["plain"],
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a017",
+			"state": "Just stick it in something that'll go up over time, yeah? I'm not fussed about the odd wobble.",
+			"tags": ["informal"],
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a018",
+			"state": "Basically I want it to chuck me a bit of cash every month, like pocket money for grown-ups.",
+			"tags": ["informal"],
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a019",
+			"state": "Look, I just don't want to lose any of it, alright? Stick it somewhere boring.",
+			"tags": ["informal"],
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a020",
+			"state": "Me and my other half are getting hitched in two summers' time, and this is the pot for the big day.",
+			"tags": ["informal"],
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a021",
+			"state": "I'm young enough to take a few knocks. Let it work hard for me over the decades.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a022",
+			"state": "Now I've finished working, I need it to hand me a bit every few weeks to cover the groceries and the heating.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a023",
+			"state": "Whatever happens, I need every pound of it to still be there.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a024",
+			"state": "My daughter gets married next June and I've promised to cover the reception.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a025",
+			"state": "It's been sitting in a savings deposit earning next to nothing for ages. I'd rather it was working towards real growth instead.",
+			"tags": ["trap"],
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a026",
+			"state": "Keep the capital safe if you can, but what really matters is that it pays me something every month to live on.",
+			"tags": ["trap"],
+			"labels": {
+				"goal": "income"
+			},
+			"contested": {
+				"reason": "The customer asks for the capital to be kept safe as well as for an income, and only the word 'really' tips it towards income.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "a027",
+			"state": "I don't need an income from it and I'm not after growth. I simply cannot risk it going down.",
+			"tags": ["trap"],
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a028",
+			"state": "I need it secure for the wedding next summer; that's the whole point of it.",
+			"tags": ["trap"],
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a029",
+			"state": "Put it somewhere it can grow. I won't need it for a very long time.",
+			"tags": ["plain"],
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a030",
+			"state": "Something that pays out monthly so I can cover the bills.",
+			"tags": ["plain"],
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a031",
+			"state": "I want it protected. I couldn't cope if it went down.",
+			"tags": ["plain"],
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a032",
+			"state": "It's for our wedding the summer after next.",
+			"tags": ["plain"],
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a033",
+			"state": "Protecting it isn't my priority. I'd accept a fall in value if it means more growth over the years.",
+			"tags": ["negation"],
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a034",
+			"state": "I'm not trying to make it any bigger. I just want a regular sum paid to me out of it.",
+			"tags": ["negation"],
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a035",
+			"state": "I don't want it invested in anything that can fall. Not even slightly.",
+			"tags": ["negation"],
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a036",
+			"state": "I'm not investing for the long term. It's for a house, and we'll need it in about a year.",
+			"tags": ["negation"],
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a037",
+			"state": "I'd rather it compounded quietly than sat there doing nothing.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a038",
+			"state": "I want it to produce a steady stream of cash I can draw on without eating into the pot.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a039",
+			"state": "No ups and downs for me. I'd rather earn very little than see the balance fall.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a040",
+			"state": "I'm trading in my old runabout for something newer in about a year, and this is what covers it.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a041",
+			"state": "Growth, please. I understand the markets go up and down and I can ride that out.",
+			"tags": ["plain"],
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a042",
+			"state": "I want to live on the interest, really. A steady income.",
+			"tags": ["plain"],
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a043",
+			"state": "Something guaranteed, please. I don't want any risk at all.",
+			"tags": ["plain"],
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a044",
+			"state": "We're hoping to buy our first flat in two or three years' time.",
+			"tags": ["plain"],
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a045",
+			"state": "My mum left me a bit when she passed, and I've thought a lot about what to do with it. I've a decent job, my rent is covered, and I've no plans to touch this. What I'd like is for it to grow into something substantial over the next few decades, and I understand there'll be years when it's worth less than I put in.",
+			"tags": ["long"],
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a046",
+			"state": "My husband always handled our money and since he died I've been trying to work it all out. The house is sorted and I've a small pension from my old job, but it doesn't stretch to the end of the month. I'd like this money to give me a regular top-up so I can manage the bills without lying awake.",
+			"tags": ["long"],
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a047",
+			"state": "I've worked hard for this over many years, putting a bit aside whenever I could. I'm on my own now and there's nobody to fall back on if things go wrong. I don't need it to make much, but I need to know it will all still be there if the boiler breaks or I lose my job.",
+			"tags": ["long"],
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a048",
+			"state": "We've been renting for years and the landlord's selling up, so it's finally time. We've found an area we like, the mortgage adviser says we're nearly there, and this is the last piece of what we need to put down. We're hoping to complete by the end of next year.",
+			"tags": ["long"],
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a049",
+			"state": "I don't need any income from it; my pension takes care of that. I just want it to grow.",
+			"tags": ["trap"],
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a050",
+			"state": "We sold the car and I've stopped driving, so what I need is a regular sum each month for the bills.",
+			"tags": ["trap"],
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a051",
+			"state": "It'll probably end up paying for a car one day, but there's no plan. For now the only thing I care about is that none of it disappears.",
+			"tags": ["trap"],
+			"labels": {
+				"goal": "keep-safe"
+			},
+			"contested": {
+				"reason": "A future car is mentioned, so a reader could take it as saving for a purchase, though there is no plan and no date.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "a052",
+			"state": "The monthly payments on a car are a rip-off, so I'm saving to pay cash for one next year.",
+			"tags": ["trap"],
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a053",
+			"state": "Long-term growth is what I'm after; short-term dips don't bother me.",
+			"tags": ["plain"],
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a054",
+			"state": "Can it pay me a set amount each month?",
+			"tags": ["plain"],
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a055",
+			"state": "It's my emergency fund, so it needs to be secure and there when I need it.",
+			"tags": ["plain"],
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a056",
+			"state": "This is the deposit for a house we want to buy in eighteen months.",
+			"tags": ["plain"],
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a057",
+			"state": "Something with a bit of risk and a better long-run return than cash.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a058",
+			"state": "Ideally a regular payment landing in my current account, like a wage.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a059",
+			"state": "It's the only cushion I have. I need to know it won't shrink.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a060",
+			"state": "It's earmarked for a new kitchen when we renovate in the spring after next.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"goal": "purchase"
+			},
+			"contested": {
+				"reason": "A renovation is spending at a set time but not a single purchase, so some would not call it one.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "a061",
+			"state": "I'd like it to have a proper go, if you know what I mean. I've got the stomach for the ups and downs.",
+			"tags": ["euphemism"],
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a062",
+			"state": "I'd like it to keep the wolf from the door now that the pay packets have stopped.",
+			"tags": ["euphemism"],
+			"labels": {
+				"goal": "income"
+			},
+			"contested": {
+				"reason": "Keeping the wolf from the door could be read as wanting a safety net rather than a regular income.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "a063",
+			"state": "This is my rainy-day money, and I'd rather it didn't get rained on.",
+			"tags": ["euphemism"],
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a064",
+			"state": "We're hoping to pop the question and do the whole thing properly next year, and this is what pays for it.",
+			"tags": ["euphemism"],
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a065",
+			"state": "We've already bought the house and paid off the car. This is spare, so let it grow for the long term.",
+			"tags": ["trap"],
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a066",
+			"state": "I'm not looking to buy anything. I need it to replace my wages with regular payments.",
+			"tags": ["trap"],
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a067",
+			"state": "I live on my pension and this is my only backup. It mustn't go down, not even a bit.",
+			"tags": ["trap"],
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a068",
+			"state": "I'm not after an income. It's to buy a campervan when I finish work at the end of next year.",
+			"tags": ["trap"],
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a069",
+			"state": "I'd like it to build up as much as possible by the time I retire in a couple of decades.",
+			"tags": ["plain"],
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a070",
+			"state": "Regular income, please. I've retired and my pension alone isn't quite enough.",
+			"tags": ["plain"],
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a071",
+			"state": "I can't afford to lose a penny of this, so no risk.",
+			"tags": ["plain"],
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a072",
+			"state": "I'm putting it aside to buy a new car when my old one gives up, probably within the year.",
+			"tags": ["plain"],
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a073",
+			"state": "It's for later life, a long way off. I'm happy to let it rise and fall on the way.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a074",
+			"state": "I'm after dividends or interest paid out to me on a regular basis.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a075",
+			"state": "Low risk, or better still no risk. Losing any of it would keep me up at night.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a076",
+			"state": "In about eighteen months I want to put down the first chunk on a home of our own.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a077",
+			"state": "I don't want it kept in cash, and I won't need it back any time soon. Grow it.",
+			"tags": ["negation"],
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a078",
+			"state": "I don't want to spend it all at once, and I don't want it left untouched either; I want to draw on it regularly for day-to-day costs.",
+			"tags": ["negation"],
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a079",
+			"state": "I'm not interested in returns and I'm not interested in growth. I'm interested in never losing it.",
+			"tags": ["negation"],
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a080",
+			"state": "It's not for retirement and it's not for a rainy day. It's for the ring and the reception next year.",
+			"tags": ["negation"],
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a081",
+			"state": "I keep a little for emergencies elsewhere, but this pot I want growing for the long run.",
+			"tags": ["mixed"],
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a082",
+			"state": "Some growth would be nice, but mainly I need it paying out regularly so I can cover the rent.",
+			"tags": ["mixed"],
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a083",
+			"state": "I'd love a bit of growth, but honestly, if there's any chance of it going down, I'd rather not. It has to be secure above all.",
+			"tags": ["mixed"],
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a084",
+			"state": "Half of it I'd happily see grow, but the part that matters is the money for the car we need in the spring.",
+			"tags": ["mixed"],
+			"labels": {
+				"goal": "purchase"
+			},
+			"contested": {
+				"reason": "The money is split between growth and a purchase, and only 'the part that matters' makes the purchase the main goal.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "a085",
+			"state": "I want to invest it and leave it alone for the long haul.",
+			"tags": ["plain"],
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a086",
+			"state": "I want to draw an income from it each quarter to help with running the household.",
+			"tags": ["plain"],
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a087",
+			"state": "Keep it safe first and foremost; returns are secondary.",
+			"tags": ["plain"],
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a088",
+			"state": "It's for the wedding next autumn, so it needs to be there by then.",
+			"tags": ["plain"],
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a089",
+			"state": "I want my money to outpace inflation over time, and I accept there'll be bumpy patches.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a090",
+			"state": "My salary's stopped, so I need this to replace it, a bit each month.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a091",
+			"state": "I want to be certain that what I put in is what I get back, at the very least.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"goal": "keep-safe"
+			},
+			"contested": {
+				"reason": "'At the very least' hints that the customer would also welcome growth, so some would not read it as purely keep-safe.",
+				"alternatives": {}
+			}
+		},
+		{
+			"id": "a092",
+			"state": "There's a trip round the world booked for the year after next, and this money has to cover it.",
+			"tags": ["paraphrase"],
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a093",
+			"state": "I'm not going to live on this money. It can go up and down as it likes for twenty years.",
+			"tags": ["trap"],
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a094",
+			"state": "My job feels secure enough, but I'm dropping to part-time and want this to top up my pay each month.",
+			"tags": ["trap"],
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a095",
+			"state": "Monthly statements showing it falling would terrify me. I need the balance never to drop.",
+			"tags": ["trap"],
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a096",
+			"state": "My income's steady, so this lump is purely for the extension we're building next spring.",
+			"tags": ["trap"],
+			"labels": {
+				"goal": "purchase"
+			}
+		},
+		{
+			"id": "a097",
+			"state": "I'm after long-term growth. If it drops for a while, so be it.",
+			"tags": ["plain"],
+			"labels": {
+				"goal": "grow"
+			}
+		},
+		{
+			"id": "a098",
+			"state": "An income, please, paid monthly into my bank account.",
+			"tags": ["plain"],
+			"labels": {
+				"goal": "income"
+			}
+		},
+		{
+			"id": "a099",
+			"state": "Nothing risky. It needs to be protected against any loss.",
+			"tags": ["plain"],
+			"labels": {
+				"goal": "keep-safe"
+			}
+		},
+		{
+			"id": "a100",
+			"state": "We're going to buy a house as soon as we've got enough for the deposit, hopefully within two years.",
+			"tags": ["plain"],
+			"labels": {
+				"goal": "purchase"
+			}
+		}
+	],
+	"questions": {
+		"id": "fs-advice/questions/goal-q1",
+		"digest": "b4a56395266a145919c8e83674b3c2121cf64a314a1432dfe0388ff6fca72c73"
+	},
+	"annotators": [
+		{
+			"id": "author",
+			"blind": false,
+			"primary": true
+		},
+		{
+			"id": "second-labeller",
+			"blind": true,
+			"kappa": {
+				"goal": 1
+			},
+			"note": "The same model as the author, labelling blind from the guide and the words alone."
+		},
+		{
+			"id": "third-labeller",
+			"blind": true,
+			"kappa": {
+				"goal": 1
+			},
+			"note": "Another, smaller model, labelling blind from the guide and the words alone; its disagreements are the contested alternatives."
+		}
+	],
+	"heldOut": true,
+	"seenBy": [],
+	"digest": "cf7646266a318cec6777bea5184c120b11f46aa3cbf1855e111902ebb90a0b68"
+}

@@ -37,6 +37,7 @@ export type RailId =
 	| 'safety-case'
 	| 'assurance'
 	| 'catalogue'
+	| 'readings'
 	| 'export'
 	| 'studio';
 
@@ -118,6 +119,7 @@ const EVERYTHING: RailId[] = [
 	'safety-case',
 	'assurance',
 	'catalogue',
+	'readings',
 	'export',
 	'studio'
 ];
@@ -131,6 +133,8 @@ const ASSURANCE_FIRST: RailId[] = [
 	'assurance',
 	// WP98 (`86-…` §7): the catalogue beside the register — what the product has, and what it does not claim.
 	'catalogue',
+	// WP129 (`108-READINGS.md` §6): the reading desk — what still awaits a reader, beside what it is read against.
+	'readings',
 	'experiments',
 	'safety-case',
 	'incidents',
@@ -324,6 +328,7 @@ export const RAIL_LABELS: Record<RailId, string> = {
 	assurance: 'Assurance',
 
 	catalogue: 'Catalogue',
+	readings: 'Readings',
 	export: 'Audit',
 	// WP101 (`88-STUDIO.md` §7): the Studio, with the Guard Rack as its Connections tab.
 	studio: 'Studio'
@@ -364,6 +369,7 @@ export const RAIL_HREF: Partial<Record<RailId, string>> = {
 	'safety-case': '/workshop/safety-case',
 	assurance: '/workshop/assurance',
 	catalogue: '/workshop/catalogue',
+	readings: '/workshop/readings',
 	export: '/workshop/export',
 	studio: '/workshop/studio'
 };

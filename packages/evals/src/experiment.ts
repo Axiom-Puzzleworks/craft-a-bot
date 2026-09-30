@@ -592,13 +592,36 @@ export function effectSign(
 	return 0;
 }
 
-/** The verdict rule (`72-…` §2): supported when every effect's interval excludes zero the right way; not-supported when one excludes it the wrong way; inconclusive otherwise. */
+/**
+ * Both sides at a bound with nothing between them (WP116, `103-…` §6): a rate
+ * at 0 or 1 on both sides, or a mean with no spread on either side and the
+ * same value — a comparison no control could have moved.
+ */
+export function isUntestable(
+	metric: Pick<ExperimentMetric, 'kind'>,
+	baseline: EffectRecord['baseline'],
+	treatment: EffectRecord['treatment']
+): boolean {
+	if (baseline.value !== treatment.value) return false;
+	const rate =
+		metric.kind === 'outcome-rate' ||
+		metric.kind === 'evaluator-pass-rate' ||
+		metric.kind === 'label-rate';
+	if (rate) return baseline.value === 0 || baseline.value === 1;
+	const flat = (side: EffectRecord['baseline']) => side.interval[0] === side.interval[1];
+	return flat(baseline) && flat(treatment);
+}
+
+/** The verdict rule (`72-…` §2): supported when every effect's interval excludes zero the right way; not-supported when one excludes it the wrong way; inconclusive otherwise; untestable (WP116) when every effect sat at a bound. */
 export function verdictOf(
-	effects: ReadonlyArray<Pick<EffectRecord, 'interval' | 'metricId'>>,
+	effects: ReadonlyArray<Pick<EffectRecord, 'interval' | 'metricId' | 'untestable'>>,
 	metrics: ReadonlyArray<Pick<ExperimentMetric, 'id' | 'direction'>>
 ): ExperimentVerdict {
 	if (effects.length === 0) return 'inconclusive';
-	const signs = effects.map((effect) => {
+	// An effect at a bound says nothing about the control (WP116): it leaves the verdict, and all of them leave it untestable.
+	const testable = effects.filter((effect) => effect.untestable !== true);
+	if (testable.length === 0) return 'untestable';
+	const signs = testable.map((effect) => {
 		const metric = metrics.find((entry) => entry.id === effect.metricId);
 		return metric ? effectSign(effect, metric.direction) : 0;
 	});
@@ -637,78 +660,103 @@ export function analyseExperiment(
 	for (const factor of design.factors) {
 		baselineCombination[factor.axis] = design.baseline[factor.axis] ?? factor.levels[0] ?? '';
 	}
-	const baselineReport = byId.get(campaignIdFor(experiment.id, baselineCombination));
+	const rootBaseline = byId.get(campaignIdFor(experiment.id, baselineCombination));
 	const effects: EffectRecord[] = [];
 	const notes: string[] = [];
 	let smallestSide = Number.POSITIVE_INFINITY;
 	let pooledRate: number | undefined;
-	if (!baselineReport) {
+	if (!rootBaseline) {
 		notes.push(
 			`the baseline campaign (${campaignIdFor(experiment.id, baselineCombination)}) has no report`
 		);
 	}
+	// The brain axis is the tier (WP116, `103-…` §6): every other factor is measured under each of its levels, and brains are never compared as if a brain were a control.
+	const brainFactor = design.factors.find((factor) => factor.axis === 'brain');
+	const tierOf = (brainId: string | undefined): string => {
+		const brains = design.template.brains;
+		const named = brainId === undefined ? brains : brains.filter((brain) => brain.id === brainId);
+		return named.map((brain) => brain.tier).join('+') || 'unknown';
+	};
+	const tiers: Array<string | undefined> = brainFactor ? [...brainFactor.levels] : [undefined];
 	for (const factor of design.factors) {
+		if (factor.axis === 'brain') continue;
 		const baselineLevel = baselineCombination[factor.axis] ?? '';
-		for (const level of factor.levels) {
-			if (level === baselineLevel) continue;
-			const combination = { ...baselineCombination, [factor.axis]: level };
-			const treatmentReport = byId.get(campaignIdFor(experiment.id, combination));
-			if (!baselineReport || !treatmentReport) {
-				if (!treatmentReport)
-					notes.push(`${campaignIdFor(experiment.id, combination)} has no report`);
-				continue;
-			}
-			for (const metric of design.metrics) {
-				const difference = differenceOf(
-					metric,
-					baselineReport.cells,
-					treatmentReport.cells,
-					design.confidence
-				);
-				if (!difference) {
-					notes.push(
-						`${metric.id}: no reading for ${factor.axis} = ${level} (no decided cells on a side)`
-					);
+		for (const brainLevel of tiers) {
+			const underTier =
+				brainLevel === undefined
+					? baselineCombination
+					: { ...baselineCombination, brain: brainLevel };
+			const baselineReport = byId.get(campaignIdFor(experiment.id, underTier));
+			const tier = tierOf(brainLevel);
+			for (const level of factor.levels) {
+				if (level === baselineLevel) continue;
+				const combination = { ...underTier, [factor.axis]: level };
+				const treatmentReport = byId.get(campaignIdFor(experiment.id, combination));
+				if (!baselineReport || !treatmentReport) {
+					if (!treatmentReport)
+						notes.push(`${campaignIdFor(experiment.id, combination)} has no report`);
 					continue;
 				}
-				smallestSide = Math.min(smallestSide, difference.baseline.n, difference.treatment.n);
-				if (metric.kind !== 'case-metric' && metric.kind !== 'cost' && metric.kind !== 'fairness') {
-					const n = difference.baseline.n + difference.treatment.n;
-					const pooled =
-						n === 0
-							? 0
-							: (difference.baseline.value * difference.baseline.n +
-									difference.treatment.value * difference.treatment.n) /
-								n;
-					pooledRate = pooledRate === undefined ? pooled : (pooledRate + pooled) / 2;
+				for (const metric of design.metrics) {
+					const difference = differenceOf(
+						metric,
+						baselineReport.cells,
+						treatmentReport.cells,
+						design.confidence
+					);
+					if (!difference) {
+						notes.push(
+							`${metric.id}: no reading for ${factor.axis} = ${level} (no decided cells on a side)`
+						);
+						continue;
+					}
+					smallestSide = Math.min(smallestSide, difference.baseline.n, difference.treatment.n);
+					if (
+						metric.kind !== 'case-metric' &&
+						metric.kind !== 'cost' &&
+						metric.kind !== 'fairness'
+					) {
+						const n = difference.baseline.n + difference.treatment.n;
+						const pooled =
+							n === 0
+								? 0
+								: (difference.baseline.value * difference.baseline.n +
+										difference.treatment.value * difference.treatment.n) /
+									n;
+						pooledRate = pooledRate === undefined ? pooled : (pooledRate + pooled) / 2;
+					}
+					const slices = slicesOf(
+						metric,
+						baselineReport.cells,
+						treatmentReport.cells,
+						design.confidence
+					);
+					effects.push({
+						experimentId: experiment.id,
+						metricId: metric.id,
+						controlIds: [
+							...new Set([...experiment.controls, ...stackControlsFor(experiment, options.stacks)])
+						],
+						factor: { axis: factor.axis, baseline: baselineLevel, treatment: level },
+						baseline: difference.baseline,
+						treatment: difference.treatment,
+						delta: difference.delta,
+						interval: difference.interval,
+						...(difference.p !== undefined ? { p: difference.p } : {}),
+						method: difference.method,
+						underpowered: difference.underpowered,
+						tier,
+						...(isUntestable(metric, difference.baseline, difference.treatment)
+							? { untestable: true as const }
+							: {}),
+						...(slices ? { slices } : {}),
+						cost: costOf(baselineReport.cells, treatmentReport.cells),
+						runIds: [...baselineReport.cells, ...treatmentReport.cells].flatMap((cell) =>
+							cell.runId ? [cell.runId] : []
+						),
+						reportIds: [baselineReport.id, treatmentReport.id]
+					});
 				}
-				const slices = slicesOf(
-					metric,
-					baselineReport.cells,
-					treatmentReport.cells,
-					design.confidence
-				);
-				effects.push({
-					experimentId: experiment.id,
-					metricId: metric.id,
-					controlIds: [
-						...new Set([...experiment.controls, ...stackControlsFor(experiment, options.stacks)])
-					],
-					factor: { axis: factor.axis, baseline: baselineLevel, treatment: level },
-					baseline: difference.baseline,
-					treatment: difference.treatment,
-					delta: difference.delta,
-					interval: difference.interval,
-					...(difference.p !== undefined ? { p: difference.p } : {}),
-					method: difference.method,
-					underpowered: difference.underpowered,
-					...(slices ? { slices } : {}),
-					cost: costOf(baselineReport.cells, treatmentReport.cells),
-					runIds: [...baselineReport.cells, ...treatmentReport.cells].flatMap((cell) =>
-						cell.runId ? [cell.runId] : []
-					),
-					reportIds: [baselineReport.id, treatmentReport.id]
-				});
 			}
 		}
 	}

@@ -41,7 +41,8 @@
 							"fs-fraud/the-fraud-desk/file-sar",
 							"fs-fraud/the-fraud-desk/write-note",
 							"fs-fraud/the-fraud-desk/verify-caller"
-						]
+						],
+						"reviewer": "fs-bank/reviewer/case-handler"
 					}
 				}
 			],
@@ -78,6 +79,11 @@
 				{
 					"id": "scripted-noisy",
 					"tier": "scripted-noisy"
+				},
+				{
+					"id": "fallible",
+					"tier": "fallible",
+					"errorModel": "fs-fraud/error/alert-decision"
 				}
 			],
 			"evaluators": [
@@ -97,11 +103,16 @@
 			{
 				"axis": "executors",
 				"levels": ["bot-everywhere", "bot-with-a-person-at-the-sar"]
+			},
+			{
+				"axis": "brain",
+				"levels": ["scripted-noisy", "fallible"]
 			}
 		],
 		"baseline": {
 			"guard": "none",
-			"executors": "bot-everywhere"
+			"executors": "bot-everywhere",
+			"brain": "scripted-noisy"
 		},
 		"metrics": [
 			{

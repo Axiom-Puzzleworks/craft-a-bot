@@ -161,3 +161,10 @@ Raw error payloads always attach to the trace event; friendly copy is a layer, n
 > **Amended 2026-09-03 (WP52, `40-DEBTS.md` §4.3):** built as that separate piece of scope — `settings.ollamaEndpoint`, refined to `localhost`/`127.0.0.1` over `http(s)`, a "Local models" panel in Settings that refuses anything else with the reason, `ProviderFactory.create`'s optional `endpoint`, and the Ollama factory honouring it only when `isLoopbackEndpoint` agrees; the egress declaration is unchanged and would refuse a third time.
 
 > **Amended 2026-09-29 (WP114, `103-FALLIBLE-ACTORS.md` §3–§4):** `createCassetteProvider` (`core`) is a provider that replays a provider cassette — the recorded provider's id, no `fetch`, no egress — and `recordingProvider` wraps any provider to keep what it said. `ProviderErrorKind` gains `'cassette-miss'`: a prompt the cassette has not seen, nothing sent. A campaign's live brain may name a `cassette` and run with no key.
+
+> **Amended 2026-09-30 (WP120, `104-READERS.md` §10.2):** three optional seams for a reader.
+> - **`ChatRequest.choice?: string[]`:** constrain the answer to one of these strings.
+> - **`ChatRequest.topLogprobs?: number`:** return the first token's top log-probabilities.
+> - **`LLMProvider.supports?: { choice?, logprobs? }`:** a reader asks for the first two only when the provider says it can. `ChatResponse.logprobs?` carries the log-probabilities back.
+>
+> The mock provider declares and honours them. The shipped providers declare nothing yet, so a reader over them reads by argmax; their real paths come with the live checkpoints. A provider cassette's `promptDigest` covers `choice` and `topLogprobs` only when present, so every earlier digest is unchanged.

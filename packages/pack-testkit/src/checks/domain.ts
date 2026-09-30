@@ -1,5 +1,8 @@
 import {
 	domainSpecSchema,
+	isReviewed,
+	latestReviews,
+	type Review,
 	isDeskWorldState,
 	type DomainSpec,
 	type PackManifest,
@@ -32,6 +35,15 @@ export interface DomainPackCheckOptions {
 	personas?: readonly string[];
 	/** Guardrail ids the host installs itself, for the control rows (`checkControlMap`). */
 	knownGuardrails?: readonly string[];
+	/**
+	 * Refuse what still awaits a reader (WP129, `108-READINGS.md` §5): every
+	 * decision right with no `review` of `decision-right` `<domain>#<kind>` that
+	 * accepts or amends it, and — passed on — the calibration's pending rows and
+	 * the domain's control rows that carry a `status`.
+	 */
+	requireReview?: boolean;
+	/** The readings the host holds; with `requireReview`, a reviewed subject passes. */
+	reviews?: readonly Review[];
 }
 
 const canonical = (name: string): string => name.toLowerCase().replace(/[^a-z]/g, '');
@@ -121,6 +133,18 @@ export function checkDomainPack(
 
 	// 4. Every ceiling a configuration carries is a decision right, at the same level.
 	const rights = new Map(spec.decisionRights.map((right) => [right.kind, right.ceiling]));
+	const reviews = latestReviews(options.reviews ?? []);
+	const readings = {
+		...(options.requireReview ? { requireReview: true } : {}),
+		...(options.reviews ? { reviews: options.reviews } : {})
+	};
+	if (options.requireReview)
+		for (const right of spec.decisionRights)
+			if (!isReviewed(reviews, { kind: 'decision-right', id: `${spec.id}#${right.kind}` }))
+				issues.push({
+					check: 'domain.decision-right-pending',
+					message: `${where}: decision right "${right.kind}" (ceiling ${right.ceiling}) awaits a reader`
+				});
 	for (const workflow of workflows) {
 		if (!ownedBy(workflow.id)) continue;
 		for (const [name, config] of Object.entries(workflow.configurations ?? {})) {
@@ -145,10 +169,17 @@ export function checkDomainPack(
 		if (!ownedBy(map.id)) continue;
 		for (const issue of checkControlMap(map, registry, {
 			...(options.knownGuardrails ? { knownGuardrails: options.knownGuardrails } : {}),
-			knownTags: [...vocabulary, ...(spec.glossary ? [] : [])]
+			knownTags: [...vocabulary, ...(spec.glossary ? [] : [])],
+			...readings
 		})) {
 			if (issue.check === 'control-map.tags-known') continue; // a row's threat tags are not the domain's vocabulary
-			issues.push({ check: 'domain.control-rows', message: `${where}: ${issue.message}` });
+			issues.push({
+				check:
+					issue.check === 'control-map.review-pending'
+						? 'domain.review-pending'
+						: 'domain.control-rows',
+				message: `${where}: ${issue.message}`
+			});
 		}
 	}
 
@@ -162,8 +193,14 @@ export function checkDomainPack(
 				message: `${where}: calibration table "${spec.calibration}" is not on any installed manifest`
 			});
 		else
-			for (const issue of checkCalibration(table))
-				issues.push({ check: 'domain.calibration', message: `${where}: ${issue.message}` });
+			for (const issue of checkCalibration(table, readings))
+				issues.push({
+					check:
+						issue.check === 'calibration.review-pending'
+							? 'domain.review-pending'
+							: 'domain.calibration',
+					message: `${where}: ${issue.message}`
+				});
 	}
 
 	// 7. The special-category records the desks hold are the ontology's.

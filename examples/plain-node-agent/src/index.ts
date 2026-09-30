@@ -14,7 +14,9 @@ import {
 	createHostedGuardrails,
 	createStepBudgetGuardrail,
 	createToolBlocklistGuardrail,
-	hostedScreenConfigSchema
+	hostedScreenConfigSchema,
+	readerComponent,
+	ruleReader
 } from '@craftabot/governance';
 import { z } from 'zod';
 
@@ -23,9 +25,9 @@ import { z } from 'zod';
  * `38-GOVERNANCE-1-0.md` §4.2). No Craft A Bot world, pack or UI: a scripted
  * "brain" proposes tool calls, three toy tools say what they would have
  * done, and before every call the loop runs the same guardrail chain the
- * engine runs — hand-written rules, a policy card, and a hosted guard
- * service through the shell — printing each verdict the way the engine
- * would emit it.
+ * engine runs — hand-written rules, a policy card, a reader as a guard and a
+ * hosted guard service through the shell — printing each verdict the way the
+ * engine would emit it.
  *
  * Everything here is what a real agent stack would write: build a
  * `GuardrailContext` from what you know, call `runGuardrailChain` at the
@@ -181,22 +183,65 @@ const hosted: Guardrail[] = createHostedGuardrails({
 
 // ── The loop ────────────────────────────────────────────────────────────────
 
+// ── Way in 4: a reader as a guard ───────────────────────────────────────────
+
+/**
+ * A rule answering one typed question — does this call carry a national
+ * identifier? — fitted as a guard that records what it sees and lets the call
+ * through (WP126, `101-…` WP126; `104-READERS.md` §10.3). A model or a hosted
+ * classifier answering the same question fits the same way.
+ */
+export const IDENTIFIER_READER = ruleReader({
+	id: 'example/reader/identifier',
+	name: 'Identifier spotter',
+	description: 'Says whether a call carries a national-insurance-shaped identifier.',
+	answers: ['noul'],
+	rules: { identifier: (subject) => /\b[A-Z]{2}\d{6}[A-Z]\b/.test(JSON.stringify(subject)) }
+});
+
+/** The reader as a component, at the decision, annotating rather than blocking. */
+export const IDENTIFIER_GUARD = readerComponent({
+	id: 'example/guard/identifier',
+	name: 'Identifier spotter',
+	description: 'Records a call that carries an identifier.',
+	reader: IDENTIFIER_READER,
+	questionId: 'identifier',
+	question: { type: 'noul', instructions: 'Does this call carry a national identifier?' },
+	points: ['pre-act']
+});
+
+const readerGuard: Guardrail[] = IDENTIFIER_GUARD.compile(
+	{ verdict: 'annotate' },
+	{
+		getPolicyCard: () => undefined,
+		getGuardrailService: () => undefined,
+		getEvaluator: () => undefined,
+		getAction: () => undefined
+	},
+	{ kind: 'pre-act' }
+);
+
 /**
  * Runs the script to its end or until a rule stops the run, calling `print`
  * with one line per verdict — the same lines the engine would put on a trace
  * as `guardrail.checked` and `guardrail.tripped` — and returns every step.
  */
 export async function runPlainAgent(print: (line: string) => void = () => {}): Promise<Step[]> {
-	const guardrails = [...rules, ...card, ...hosted];
+	const guardrails = [...rules, ...card, ...readerGuard, ...hosted];
 	const history: EngineEvent[] = [];
 	const usage = { ticks: 0, inputTokens: 0, outputTokens: 0 };
 	const steps: Step[] = [];
 
 	const onChecked = (tick: number) => (guardrail: Guardrail, verdict: GuardrailVerdict) => {
 		const allowed = 'allow' in verdict && verdict.allow;
-		print(
-			`tick ${tick} guardrail.checked ${guardrail.id} → ${allowed ? 'allow' : 'reason' in verdict ? verdict.reason : 'pause'}`
-		);
+		const said = allowed
+			? verdict.verdictKind === 'annotate'
+				? `annotate: ${verdict.note ?? ''}`
+				: 'allow'
+			: 'reason' in verdict
+				? verdict.reason
+				: 'pause';
+		print(`tick ${tick} guardrail.checked ${guardrail.id} → ${said}`);
 		if (!allowed) print(`tick ${tick} guardrail.tripped ${guardrail.id}`);
 	};
 	const stops = (verdict: GuardrailVerdict) =>

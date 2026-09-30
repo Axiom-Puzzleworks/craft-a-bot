@@ -74,15 +74,19 @@ export {
 	type PsiResult
 } from './drift.js';
 export {
+	catchRate,
 	ceilingBreachRate,
 	humanLoadAtVolume,
 	minutesPerCase,
 	oversightCost,
+	reviewAccuracy,
+	reviewSecondsPerCase,
 	touchesPerCase,
 	unattendedRate,
 	type AutonomyLevel,
 	type LoadOptions,
 	type LoadResult,
+	type Review,
 	type Touch,
 	type TouchedCase
 } from './human-load.js';
@@ -93,3 +97,21 @@ export {
 	type ConfusionRate,
 	type ConfusionRates
 } from './confusion.js';
+export {
+	GATE_THRESHOLDS,
+	TEN_BINS,
+	brierScore,
+	calibrationTest,
+	expectedCalibrationError,
+	gateCurve,
+	reliability,
+	statedProbability,
+	type CalibratedAnswer,
+	type CalibrationOptions,
+	type CalibrationResult,
+	type EceOptions,
+	type GatePoint,
+	type Rate,
+	type ReliabilityBin
+} from './calibration.js';
+export { cohensKappa, type KappaResult } from './agreement.js';

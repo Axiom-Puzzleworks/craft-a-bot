@@ -1,3 +1,6 @@
+import { FRAUD_ADVERSARIAL_CORPUS } from './corpora/adversarial.js';
+import { COACHING_CORPUS } from './corpora/index.js';
+import { COACHING_READER } from './words-reader.js';
 import type { PackManifest } from '@craftabot/core';
 import { fraudControlMap } from './controls/rows.js';
 import { fraudPolicyCards } from './cards/policy.js';
@@ -15,6 +18,8 @@ import { fraudDesk } from './world/desk.js';
  * a campaign. No runtime, no brick kind, no tool, no schema, and no import
  * from any other desk.
  */
+import { fraudErrorModels } from './errors/error-models.js';
+
 export const FS_FRAUD_PACK_ID = 'fs-fraud';
 
 import { fraudWorkflow } from './workflow.js';
@@ -42,9 +47,15 @@ export const fsFraudPack: PackManifest = {
 	/** WP97 (`89-STACKS.md`): the baseline's guards as stacks. */
 	stacks: fraudStacks,
 	evaluators: fraudEvaluators,
+	// WP115: the fallible tier's error model for the alert decision.
+	errorModels: fraudErrorModels,
 	controlMaps: [fraudControlMap],
 	// The alert journey (WP85, `76-FRAUD-AND-ADVICE-WORKFLOWS.md` §3).
-	workflows: [fraudWorkflow]
+	workflows: [fraudWorkflow],
+	// WP121 (`105-CORPORA.md` §9): the keyword rule over the words, the baseline on the desk's corpus.
+	readers: [COACHING_READER],
+	// WP121 (`105-CORPORA.md` §9): the desk's labelled corpus, blind-labelled and held out.
+	corpora: [COACHING_CORPUS, FRAUD_ADVERSARIAL_CORPUS]
 };
 
 export default fsFraudPack;
@@ -134,3 +145,17 @@ export {
 	fraudBaseline,
 	type FraudBaselineOptions
 } from './campaign.js';
+export { FRAUD_DECISION_ERROR_MODEL_ID, fraudErrorModels } from './errors/error-models.js';
+export {
+	COACHING_QUESTION,
+	COACHING_QUESTION_SET_DIGEST,
+	COACHING_QUESTION_SET_ID,
+	COACHING_READER,
+	COACHING_READER_ID
+} from './words-reader.js';
+export { COACHING_CORPUS, COACHING_CORPUS_ID } from './corpora/index.js';
+export {
+	FRAUD_ADVERSARIAL_CORPUS,
+	FRAUD_ADVERSARIAL_CORPUS_ID,
+	FRAUD_ATTACK_SURFACES
+} from './corpora/adversarial.js';

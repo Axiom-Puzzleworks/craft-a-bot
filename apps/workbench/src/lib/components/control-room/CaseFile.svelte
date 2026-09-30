@@ -70,6 +70,19 @@
 							<dd>{value === null ? '—' : String(value)}</dd>
 						{/each}
 					</dl>
+					{#if record.reading}
+						<!-- WP131 (`109-…` §3): a reader's answer, with how sure it is — the confidence chip. -->
+						<p class="reading" data-testid="desk-reading-{record.id}">
+							<span class="question">{record.reading.question}</span>
+							<span class="answer">{record.reading.answer}</span>
+							<span
+								class="chip"
+								data-testid="desk-reading-chip-{record.id}"
+								title="How sure the reader is"
+								>{Math.round(record.reading.confidence * 100)}% sure</span
+							>
+						</p>
+					{/if}
 				</article>
 			{/each}
 		{/each}
@@ -177,5 +190,26 @@
 		cursor: pointer;
 		font-weight: 700;
 		color: var(--cab-truth);
+	}
+	.reading {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: var(--cab-space-1) var(--cab-space-2);
+		margin: var(--cab-space-1) 0 0;
+		font-size: var(--cab-text-sm);
+	}
+	.reading .question {
+		color: var(--cab-ink-muted);
+	}
+	.reading .answer {
+		font-weight: 600;
+	}
+	.reading .chip {
+		padding: 0 var(--cab-space-2);
+		border: var(--cab-border-part) solid var(--cab-engrave);
+		border-radius: var(--cab-radius-pill);
+		background: var(--cab-cream);
+		font-variant-numeric: tabular-nums;
 	}
 </style>

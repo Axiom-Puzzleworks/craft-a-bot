@@ -71,7 +71,24 @@ export const chatResponseSchema = z.object({
 	usage: usageSchema,
 	/** The exact wire response, kept for the trace. */
 	raw: z.unknown(),
-	finishReason: z.enum(['stop', 'tool_call', 'length', 'filtered', 'other'])
+	finishReason: z.enum(['stop', 'tool_call', 'length', 'filtered', 'other']),
+	/** The first token's top log-probabilities, when `topLogprobs` was asked and the provider returned them (WP120). */
+	logprobs: z.array(z.object({ token: z.string(), logprob: z.number() })).optional(),
+	/**
+	 * A fault the fallible tier planted in this response's call (WP115,
+	 * `103-FALLIBLE-ACTORS.md` §5): the field it changed, what it chose and
+	 * what the plan had. Only a scripted brain writes it; the session writes
+	 * `decision.fault` beside the `decision` from it, so a planted error is
+	 * never read as a live one.
+	 */
+	fault: z
+		.object({
+			field: z.string(),
+			chose: z.unknown(),
+			shouldHave: z.unknown(),
+			errorModel: z.string().optional()
+		})
+		.optional()
 });
 export type ChatResponse = z.infer<typeof chatResponseSchema>;
 
@@ -149,7 +166,20 @@ export const guardrailVerdictSchema = z.union([
 		 */
 		verdictKind: z.enum(['redact', 'annotate']).optional(),
 		finding: verdictFindingSchema.optional(),
-		redactedText: z.string().optional()
+		redactedText: z.string().optional(),
+		/**
+		 * At `post-act` (WP124, `106-BENCHMARK.md` §8.1): what came back is
+		 * marked untrusted — its source, and, for a quarantined reader, the
+		 * words the acting seat reads instead. The session applies the first
+		 * mark on the chain; absent on every verdict written before.
+		 */
+		mark: z
+			.object({
+				provenance: z.literal('untrusted'),
+				source: z.string().min(1),
+				replacement: z.string().optional()
+			})
+			.optional()
 	}),
 	z.object({
 		allow: z.literal(false),
@@ -287,3 +317,23 @@ export const boundaryVerdictSchema = z.object({
 	approved: z.boolean().optional()
 });
 export type BoundaryVerdict = z.infer<typeof boundaryVerdictSchema>;
+
+/**
+ * **Who answered a `human` stage, as a model** (WP115, `103-FALLIBLE-ACTORS.md`
+ * §6; `100-…` §6.2, D15): written on the stage record and `stage.completed`
+ * only when the configuration names a reviewer model. `shouldHave` is the
+ * stage's own recommendation of the right answer (`suggest`); `recommended` is
+ * what the case put in front of the person, when its input carried one among
+ * the options; `followed` whether they took it; `correct` whether they were
+ * right; `seconds` the time the case took them, drawn from the model's row.
+ */
+export const reviewerAnswerSchema = z.object({
+	model: z.string(),
+	answer: z.string(),
+	shouldHave: z.string(),
+	recommended: z.string().optional(),
+	followed: z.boolean(),
+	correct: z.boolean(),
+	seconds: z.number().nonnegative()
+});
+export type ReviewerAnswer = z.infer<typeof reviewerAnswerSchema>;

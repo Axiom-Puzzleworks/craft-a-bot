@@ -4,6 +4,7 @@ import {
 	buildDeskBotAndGo,
 	buildReadyBot,
 	pinScrollbars,
+	playTheQueue,
 	settle,
 	skipTutorial
 } from './support.js';
@@ -44,6 +45,14 @@ test('the Front Desk at play', async ({ page }) => {
 	await page.getByTestId('step').click();
 	await expect(page.getByTestId('desk-line-1')).toBeVisible();
 	await expect(page.getByTestId('world-view')).toHaveScreenshot('desk-play.png');
+});
+
+test('Sure or unsure: the queue after a won run, every reading with its chip', async ({ page }) => {
+	await playTheQueue(page, 3);
+	await expect(page.getByTestId('end-card')).toHaveAttribute('data-outcome', 'SUCCESS');
+	// The figure is the queue, not the medal: the end card (asserted above) is hidden for the shot.
+	await page.addStyleTag({ content: '[data-testid="end-card"] { display: none !important; }' });
+	await expect(page.getByTestId('world-view')).toHaveScreenshot('kit-sure-or-unsure.png');
 });
 
 test('the Spec Lab and the Run Lab with a Boundary', async ({ page }) => {

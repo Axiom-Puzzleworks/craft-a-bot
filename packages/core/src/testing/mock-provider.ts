@@ -13,6 +13,10 @@ export interface MockTurn {
 	toolCall?: { name: string; arguments: unknown } | null;
 	finishReason?: ChatResponse['finishReason'];
 	usage?: { inputTokens: number; outputTokens: number };
+	/** A fault the fallible tier planted in `toolCall` (WP115): carried to the response, and so to `decision.fault`. */
+	fault?: ChatResponse['fault'];
+	/** The first token's top log-probabilities (WP120), returned when the request asked for them. */
+	logprobs?: ChatResponse['logprobs'];
 }
 
 /** A script is either a fixed list of turns or a function of the request. */
@@ -26,6 +30,8 @@ export interface MockProviderOptions {
 	whenExhausted?: MockTurn;
 	/** Begin at this turn of the script (WP66): a fork resumes a scripted brain where the origin left it. */
 	startAt?: number;
+	/** What the mock says it can do (WP120): a reader asks it for a constrained answer and log-probabilities only if so. */
+	supports?: LLMProvider['supports'];
 }
 
 const SHRUG: MockTurn = { text: 'I am not sure what to do next.', toolCall: null };
@@ -37,6 +43,7 @@ export function createMockProvider(options: MockProviderOptions): LLMProvider {
 		id: options.id ?? 'mock',
 		name: options.name ?? 'Mock brain',
 		keyRequirement: 'none',
+		...(options.supports ? { supports: options.supports } : {}),
 		validateKey(): Promise<KeyCheck> {
 			return Promise.resolve({ ok: true, message: 'No battery needed for the mock brain.' });
 		},
@@ -62,7 +69,9 @@ export function createMockProvider(options: MockProviderOptions): LLMProvider {
 				toolCall,
 				usage: turn.usage ?? estimateUsage(request, turn),
 				raw: { mock: true, turnIndex: turnIndex - 1, turn },
-				finishReason: turn.finishReason ?? (toolCall ? 'tool_call' : 'stop')
+				finishReason: turn.finishReason ?? (toolCall ? 'tool_call' : 'stop'),
+				...(turn.fault ? { fault: turn.fault } : {}),
+				...(turn.logprobs && request.topLogprobs !== undefined ? { logprobs: turn.logprobs } : {})
 			};
 		}
 	};

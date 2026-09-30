@@ -1,3 +1,4 @@
+import { latestMeasurement, type BenchmarkReport } from '@craftabot/core';
 import type {
 	CatalogueEntry,
 	CoverageStatus,
@@ -21,6 +22,48 @@ export interface CoverageRow {
 	stacks: string[];
 	/** The register's headline effect for a control a stack carrying one of those components claims, where an experiment measured it. */
 	headline?: ControlEffectivenessHeadline & { controlId: string; stackId: string };
+	/** WP123 (`106-BENCHMARK.md` §6): the latest benchmark that measured one of its components, never a stand-in's. */
+	measured?: CoverageMeasurement;
+}
+
+/** An entry measured on a benchmark: which subject, where and when, and its two headline rates. */
+export interface CoverageMeasurement {
+	entryId: string;
+	entry: string;
+	subjectId: string;
+	benchmarkId: string;
+	on: string;
+	recall: number | null;
+	precision: number | null;
+}
+
+/**
+ * **The catalogue's `measured`** (WP123, `106-BENCHMARK.md` §6): for each
+ * entry whose components a benchmark measured — cassette or live, never a
+ * stand-in — the latest measurement.
+ */
+export function coverageMeasurements(
+	catalogue: GuardrailCatalogue,
+	benchmarks: readonly BenchmarkReport[]
+): CoverageMeasurement[] {
+	return catalogue.entries.flatMap((entry) => {
+		for (const componentId of entry.coverage.componentIds ?? []) {
+			const found = latestMeasurement(benchmarks, componentId);
+			if (found)
+				return [
+					{
+						entryId: entry.id,
+						entry: entry.name,
+						subjectId: found.subject.id,
+						benchmarkId: found.report.benchmarkId,
+						on: found.report.ranAt,
+						recall: found.subject.recall.value,
+						precision: found.subject.precision.value
+					}
+				];
+		}
+		return [];
+	});
 }
 
 /** The catalogue's counts by status and review, and the two lists the assurance pack quotes. */
@@ -33,6 +76,8 @@ export interface CoverageSummary {
 	/** The entries the product does *not* claim, by name — what a reviewer reads first. */
 	blueprint: string[];
 	notApplicable: string[];
+	/** WP123: the entries a benchmark measured — present only when the pack was given benchmark reports. */
+	measured?: CoverageMeasurement[];
 }
 
 const STATUSES: CoverageStatus[] = [
@@ -54,8 +99,12 @@ const STATUSES: CoverageStatus[] = [
 export function coverageReport(
 	catalogue: GuardrailCatalogue,
 	registry: Pick<PackRegistry, 'getGuardrailComponent' | 'listStacks' | 'listControlMaps'>,
-	results: readonly ExperimentResult[] = []
+	results: readonly ExperimentResult[] = [],
+	benchmarks: readonly BenchmarkReport[] = []
 ): CoverageRow[] {
+	const measured = new Map(
+		coverageMeasurements(catalogue, benchmarks).map((row) => [row.entryId, row])
+	);
 	const stacks: Stack[] = registry.listStacks();
 	const register =
 		results.length > 0 ? controlEffectiveness(results, registry.listControlMaps()) : [];
@@ -80,13 +129,17 @@ export function coverageReport(
 			status: entry.coverage.status,
 			components,
 			stacks: using.map((stack) => stack.id),
-			...(headline ? { headline } : {})
+			...(headline ? { headline } : {}),
+			...(measured.has(entry.id) ? { measured: measured.get(entry.id)! } : {})
 		};
 	});
 }
 
 /** The counts and the two lists the assurance pack's §5 quotes. */
-export function coverageSummary(catalogue: GuardrailCatalogue): CoverageSummary {
+export function coverageSummary(
+	catalogue: GuardrailCatalogue,
+	benchmarks?: readonly BenchmarkReport[]
+): CoverageSummary {
 	const byStatus = Object.fromEntries(STATUSES.map((status) => [status, 0])) as Record<
 		CoverageStatus,
 		number
@@ -103,7 +156,10 @@ export function coverageSummary(catalogue: GuardrailCatalogue): CoverageSummary 
 			.map((entry) => entry.name),
 		notApplicable: catalogue.entries
 			.filter((entry) => entry.coverage.status === 'not-applicable')
-			.map((entry) => entry.name)
+			.map((entry) => entry.name),
+		...(benchmarks && benchmarks.length > 0
+			? { measured: coverageMeasurements(catalogue, benchmarks) }
+			: {})
 	};
 }
 

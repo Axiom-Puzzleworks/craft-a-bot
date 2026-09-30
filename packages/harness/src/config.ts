@@ -27,7 +27,6 @@ import guardLocalPack from '@craftabot/pack-guard-local';
 import geminiPack from '@craftabot/pack-gemini';
 import monitorPack from '@craftabot/pack-monitor';
 import ollamaPack from '@craftabot/pack-ollama';
-import dgxSparkPack from '@craftabot/pack-dgx-spark';
 import openAiPack from '@craftabot/pack-openai';
 import pdpOpaPack from '@craftabot/pack-pdp-opa';
 import personasPack from '@craftabot/pack-personas';
@@ -63,8 +62,8 @@ export function defaultPacks(): PackManifest[] {
 		anthropicPack,
 		geminiPack,
 		ollamaPack,
-		// The builder's own two DGX Sparks (`99-DGX-SPARK.md`): a keyless provider and the classifier line.
-		dgxSparkPack,
+		// The builder's own two DGX Sparks (`99-DGX-SPARK.md`) left this list in WP120 (G90): their four hosts are the
+		// builder's, so the pack is opt-in — `packages/packs/dgx-spark/craftabot.config.mjs`.
 		monitorPack,
 		workshopPack,
 		geapPack,

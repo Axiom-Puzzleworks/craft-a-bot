@@ -1,0 +1,34 @@
+{
+	"id": "local/stack/tidy-desk-guard",
+	"kind": "stack",
+	"title": "Tidy desk guard",
+	"savedAt": "2026-09-30T09:00:00.000Z",
+	"schemaVersion": 1,
+	"record": {
+		"schemaVersion": 1,
+		"id": "local/stack/tidy-desk-guard",
+		"name": "Tidy desk guard",
+		"description": "Built in the Studio: a turn budget, every result marked untrusted, and a call its words reach sent to a person.",
+		"fit": [
+			{
+				"componentId": "governance/step-budget",
+				"config": { "maxTicks": 12 },
+				"point": { "kind": "pre-think" }
+			},
+			{
+				"componentId": "governance/untrusted-content",
+				"config": {},
+				"point": { "kind": "post-act" }
+			},
+			{
+				"componentId": "governance/taint",
+				"config": { "verdict": "pause" },
+				"point": { "kind": "pre-act" }
+			}
+		],
+		"provenance": {
+			"author": { "kind": "person", "id": "studio-author", "name": "A Studio user" },
+			"createdAt": "2026-09-30T09:00:00.000Z"
+		}
+	}
+}

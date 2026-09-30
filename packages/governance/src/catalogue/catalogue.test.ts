@@ -3,6 +3,7 @@ import { createPackRegistry, type PackManifest } from '@craftabot/core';
 import { builtinComponents } from '../components/builtin.js';
 import { egressComponents } from '../components/egress.js';
 import { policyCardComponent } from '../components/policy-card.js';
+import { injectionComponents } from '../components/injection.js';
 import { checkCatalogue, checkEntry } from './check.js';
 import { CATALOGUE_ENTRIES, GUARDRAIL_CATALOGUE } from './entries.js';
 import { coverageReport, coverageSummary, renderCatalogueMarkdown } from '../reports/coverage.js';
@@ -18,7 +19,12 @@ const PACK: PackManifest = {
 	name: 'Test',
 	version: '1.0.0',
 	requiresCore: '>=0.0.1',
-	guardrailComponents: [...builtinComponents, policyCardComponent as never, ...egressComponents]
+	guardrailComponents: [
+		...builtinComponents,
+		policyCardComponent as never,
+		...egressComponents,
+		...(injectionComponents as unknown as never[])
+	]
 } as unknown as PackManifest;
 
 function registry() {
@@ -34,7 +40,7 @@ describe('the first edition', () => {
 			(issue) =>
 				!(
 					issue.check === 'catalogue.component' &&
-					/guard-local|geap|azure|pdp-opa|monitor|lakera|bedrock/.test(issue.message)
+					/guard-local|geap|azure|pdp-opa|monitor|lakera|bedrock|fs-bank/.test(issue.message)
 				)
 		);
 		expect(issues).toEqual([]);
@@ -125,5 +131,20 @@ describe('the coverage fold', () => {
 		const page = renderCatalogueMarkdown(GUARDRAIL_CATALOGUE, registry());
 		for (const entry of CATALOGUE_ENTRIES) expect(page).toContain(`\`${entry.id}\``);
 		expect(page).toBe(renderCatalogueMarkdown(GUARDRAIL_CATALOGUE, registry()));
+	});
+});
+
+describe('the bespoke four, shipped (WP124)', () => {
+	it('leaves two entries bespoke, four fewer than the first edition', () => {
+		const summary = coverageSummary(GUARDRAIL_CATALOGUE);
+		expect(summary.byStatus.bespoke).toBe(2);
+		expect(
+			CATALOGUE_ENTRIES.filter((entry) => entry.coverage.since === 'WP124').map((entry) => entry.id)
+		).toEqual([
+			'untrusted-content-marking',
+			'indirect-injection-defence',
+			'information-flow-control',
+			'privilege-separation'
+		]);
 	});
 });
