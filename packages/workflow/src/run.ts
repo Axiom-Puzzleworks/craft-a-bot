@@ -20,6 +20,8 @@ import {
 	type PackManifest,
 	type PackRegistry,
 	type Principal,
+	type Reader,
+	type ToolResult,
 	type ReaderRecord,
 	type RunOutcome,
 	type SessionOptions,
@@ -62,6 +64,12 @@ export interface RunWorkflowOptions {
 	 */
 	specFor?: (worldId: string) => AnyAgentSpec | undefined;
 	providerFor: (stage: StageSpec, goalCardId: string) => LLMProvider;
+	/**
+	 * The provider an `llm` reader asks when it carries none of its own (WP120,
+	 * `104-READERS.md` §10.1): the host's, by the reader. Absent, such a reader
+	 * fails its stage.
+	 */
+	readerProvider?: (reader: Reader) => LLMProvider | undefined;
 	/**
 	 * A stage's boundary chain, compiled by the host (`governance` is not a
 	 * dependency here) for `stage-in` or `stage-out` (WP95, `69-…` §10):
@@ -971,7 +979,12 @@ export async function runWorkflow(
 		if ('finding' in resolved) return fail(resolved.finding);
 		let response;
 		try {
-			response = await resolved.reader.ask(executor.subject(stageInput, state), questions, {});
+			const provider =
+				resolved.reader.kind === 'llm' ? options.readerProvider?.(resolved.reader) : undefined;
+			response = await resolved.reader.ask(executor.subject(stageInput, state), questions, {
+				callLine,
+				...(provider ? { provider } : {})
+			});
 		} catch (error) {
 			return fail(`the reader failed: ${error instanceof Error ? error.message : String(error)}`);
 		}
@@ -1003,6 +1016,42 @@ export async function runWorkflow(
 		return finishStage(withReader, started, ordinal, ordinal, read.output, [], 'ok', undefined, 0);
 	}
 
+	/** The synthesised tool a service line's operation runs as, when the line is registered. */
+	function toolFor(lineId: string, operation: string) {
+		const line = registry.getServiceLine(lineId);
+		const packId = line ? packOf(registry, lineId) : undefined;
+		return packId !== undefined
+			? registry.getTool(serviceLineToolId(packId, lineId, operation))
+			: undefined;
+	}
+
+	/**
+	 * **One call to a service line** (WP79's line stage; WP120's hosted readers,
+	 * `104-READERS.md` §10.1): the synthesised tool run over the desk's state,
+	 * written as `tool.executed` on the workflow's events — so a cassette
+	 * replays by the same arguments whether a `line` stage or a reader asked.
+	 */
+	async function callLine(lineId: string, operation: string, args: unknown): Promise<ToolResult> {
+		const tool = toolFor(lineId, operation);
+		if (!tool) return { ok: false, output: `no tool for ${lineId} ${operation}` };
+		const before = now();
+		const notes: string[] = [];
+		const result = await tool.execute(args, {
+			tick: ordinal,
+			notebook: { read: () => [...notes], append: (line) => void notes.push(line) },
+			random,
+			worldState: world.snapshot()
+		});
+		emit('tool.executed', {
+			name: tool.id,
+			arguments: args,
+			result: result.output,
+			...(result.data !== undefined ? { data: result.data } : {}),
+			durationMs: Math.max(0, Date.parse(now()) - Date.parse(before))
+		});
+		return result;
+	}
+
 	async function lineStage(
 		stage: StageSpec,
 		executor: Extract<Executor, { kind: 'line' }>,
@@ -1016,13 +1065,7 @@ export async function runWorkflow(
 			executor: 'line',
 			input: base.input
 		});
-		const line = registry.getServiceLine(executor.lineId);
-		const packId = line ? packOf(registry, executor.lineId) : undefined;
-		const tool =
-			packId !== undefined
-				? registry.getTool(serviceLineToolId(packId, executor.lineId, executor.operation))
-				: undefined;
-		if (!tool) {
+		if (!toolFor(executor.lineId, executor.operation)) {
 			return finishStage(
 				base,
 				started,
@@ -1037,21 +1080,7 @@ export async function runWorkflow(
 		}
 		const state = world.snapshot();
 		const args = executor.arguments ? executor.arguments(stageInput, state) : stageInput;
-		const before = now();
-		const notes: string[] = [];
-		const result = await tool.execute(args, {
-			tick: ordinal,
-			notebook: { read: () => [...notes], append: (line) => void notes.push(line) },
-			random,
-			worldState: state
-		});
-		emit('tool.executed', {
-			name: tool.id,
-			arguments: args,
-			result: result.output,
-			...(result.data !== undefined ? { data: result.data } : {}),
-			durationMs: Math.max(0, Date.parse(now()) - Date.parse(before))
-		});
+		const result = await callLine(executor.lineId, executor.operation, args);
 		if (!result.ok) {
 			return finishStage(
 				base,

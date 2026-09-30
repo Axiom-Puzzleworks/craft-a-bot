@@ -77,14 +77,17 @@ export function touchedCaseOf(
 
 export function touchesOf(stage: StageRecord): string[] {
 	const kinds: string[] = [];
-	if (stage.executor.kind === 'human' && stage.status !== 'error')
-		kinds.push(`human:${stage.stageId}`);
+	// A reader stage its gate handed to a person is that person's review (WP120, `104-READERS.md` §10.4): one touch.
+	const byPerson =
+		stage.executor.kind === 'human' ||
+		(stage.executor.kind === 'reader' &&
+			stage.reader?.gated === true &&
+			stage.executor.gate?.else.kind === 'human');
+	if (byPerson && stage.status !== 'error') kinds.push(`human:${stage.stageId}`);
 	// A person's answer is one touch whatever it was (WP111, `98-JEV.md` §9 finding 3): a
 	// `human` stage answered with other than its first option is `escalated` by the
 	// runtime, and counting that too counted one review twice.
-	if (stage.status === 'escalated' && stage.executor.kind !== 'human')
-		kinds.push(`escalated:${stage.stageId}`);
-	if (stage.approval?.by !== undefined && stage.executor.kind !== 'human')
-		kinds.push(`approved-by:${stage.stageId}`);
+	if (stage.status === 'escalated' && !byPerson) kinds.push(`escalated:${stage.stageId}`);
+	if (stage.approval?.by !== undefined && !byPerson) kinds.push(`approved-by:${stage.stageId}`);
 	return kinds;
 }

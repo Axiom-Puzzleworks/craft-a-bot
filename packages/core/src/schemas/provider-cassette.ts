@@ -60,7 +60,10 @@ export function promptDigest(request: ChatRequest): string {
 			messages: request.messages,
 			tools: request.tools ?? [],
 			temperature: request.temperature,
-			maxTokens: request.maxTokens
+			maxTokens: request.maxTokens,
+			// WP120: a constrained or log-probability request is another prompt; absent, every earlier digest is unchanged.
+			...(request.choice ? { choice: request.choice } : {}),
+			...(request.topLogprobs !== undefined ? { topLogprobs: request.topLogprobs } : {})
 		})
 	);
 }

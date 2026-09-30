@@ -72,6 +72,8 @@ export const chatResponseSchema = z.object({
 	/** The exact wire response, kept for the trace. */
 	raw: z.unknown(),
 	finishReason: z.enum(['stop', 'tool_call', 'length', 'filtered', 'other']),
+	/** The first token's top log-probabilities, when `topLogprobs` was asked and the provider returned them (WP120). */
+	logprobs: z.array(z.object({ token: z.string(), logprob: z.number() })).optional(),
 	/**
 	 * A fault the fallible tier planted in this response's call (WP115,
 	 * `103-FALLIBLE-ACTORS.md` §5): the field it changed, what it chose and

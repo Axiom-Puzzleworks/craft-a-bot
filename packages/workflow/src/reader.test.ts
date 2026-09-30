@@ -10,11 +10,12 @@ import {
 	type WorkItem,
 	type WorkflowSpec
 } from '@craftabot/core';
-import { createTestClock, v1BrickKinds } from '@craftabot/core/testing';
+import { createMockProvider, createTestClock, v1BrickKinds } from '@craftabot/core/testing';
 import { TEST_DESK_ID, testDesk } from '@craftabot/desk/testing';
 import { describe, expect, it } from 'vitest';
 import { checkedAnswers, readGate, withoutReaders } from './reader.js';
 import { runWorkflow } from './run.js';
+import { touchesOf } from './human-load.js';
 
 /**
  * **The `reader` executor** (WP117, `104-READERS.md` §4): a reader at
@@ -99,7 +100,66 @@ function pack(): PackManifest {
 		requiresCore: '>=1.0.0',
 		worlds: [testDesk],
 		brickKinds: v1BrickKinds(),
+		serviceLines: [
+			{
+				id: 'test/badge-line',
+				name: 'Badge line',
+				description: 'Answers with red at the probability it is asked for.',
+				operations: [
+					{ id: 'read', name: 'Read', description: 'Read a badge.', riskTier: 'observe' }
+				],
+				simulate: (_op, args) => {
+					const p = (args as { p: number }).p;
+					return {
+						ok: true,
+						output: 'read',
+						data: {
+							model: 'line-1',
+							answers: {
+								colour: {
+									type: 'choice',
+									choice: 'red',
+									probabilities: { red: p, green: 1 - p },
+									confidence: 2 * p - 1
+								}
+							}
+						}
+					};
+				}
+			}
+		],
 		readers: [
+			// WP120: a reader that asks a line through the runtime's `callLine`, and one that asks the host's provider.
+			{
+				...alwaysRed,
+				id: 'test/reader/lined',
+				kind: 'hosted',
+				ask: async (subject, _questions, ctx) => {
+					const result = await ctx.callLine!('test/badge-line', 'read', subject);
+					const data = result.data as { model: string; answers: Record<string, never> };
+					return { model: data.model, method: 'hosted', answers: data.answers };
+				}
+			},
+			{
+				...alwaysRed,
+				id: 'test/reader/asks-provider',
+				kind: 'llm',
+				ask: async (_subject, _questions, ctx) => {
+					if (!ctx.provider) throw new Error('no provider');
+					return {
+						model: ctx.provider.id,
+						method: 'argmax',
+						answers: {
+							colour: {
+								type: 'choice',
+								choice: 'green',
+								probabilities: { red: 0, green: 1 },
+								confidence: null
+							}
+						}
+					};
+				}
+			},
 			alwaysRed,
 			distribution,
 			broken('test/reader/throws', new Error('the line is down')),
@@ -190,10 +250,12 @@ const item = (payload: Payload, id = 'item-1'): WorkItem => ({
 function run(
 	workflow: WorkflowSpec,
 	payload: Payload = { visitor: 'A. Person', p: 0.9 },
-	id?: string
+	id?: string,
+	extra: Partial<Parameters<typeof runWorkflow>[2]> = {}
 ) {
 	const clock = createTestClock({ idOffset: 1000 });
 	return runWorkflow(workflow, item(payload, id), {
+		...extra,
 		packs: [pack()],
 		spec: {
 			id: '33333333-3333-4333-8333-333333333333',
@@ -482,5 +544,50 @@ describe('the gate and the answers, as functions', () => {
 				}
 			}
 		});
+	});
+});
+
+describe('what the runtime hands a reader (WP120)', () => {
+	it('calls a service line for a hosted reader, the call on the workflow’s events', async () => {
+		const record = await run(spec(reader('test/reader/lined')), { visitor: 'x', p: 0.8 });
+		expect(record.stages[0]?.reader).toMatchObject({
+			model: 'line-1',
+			method: 'hosted',
+			gated: false
+		});
+		expect(record.events.map((event) => event.type)).toContain('tool.executed');
+	});
+
+	it('hands an llm reader the host’s provider, and fails the stage without one', async () => {
+		const provider = createMockProvider({ id: 'host-mock', script: [] });
+		const record = await run(spec(reader('test/reader/asks-provider')), undefined, undefined, {
+			readerProvider: () => provider
+		});
+		expect(record.stages[0]).toMatchObject({ status: 'ok', reader: { model: 'host-mock' } });
+		const without = await run(spec(reader('test/reader/asks-provider')));
+		expect(without.stages[0]?.finding).toContain('no provider');
+	});
+
+	it('counts a stage its gate handed to a person as one touch, whatever the person answered', async () => {
+		const base = spec(
+			reader('test/reader/distribution', {
+				gate: {
+					threshold: 0.9,
+					else: { kind: 'human', prompt: 'Which?', options: ['red', 'green'] }
+				}
+			})
+		);
+		// The person's `{ decision }` is the stage's output here, as a journey's commit stage would read it.
+		const gated = {
+			...base,
+			stages: base.stages.map((stage) => ({ ...stage, output: { type: 'object' } }))
+		};
+		for (const p of [0.6, 0.4]) {
+			const record = await run(gated, { visitor: 'x', p });
+			expect(record.stages[0]?.reader?.gated).toBe(true);
+			expect(touchesOf(record.stages[0]!)).toEqual(['human:classify']);
+		}
+		const confident = await run(gated, { visitor: 'x', p: 1 });
+		expect(touchesOf(confident.stages[0]!)).toEqual([]);
 	});
 });

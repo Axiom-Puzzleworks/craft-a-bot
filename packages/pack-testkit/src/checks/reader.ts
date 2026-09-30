@@ -4,6 +4,7 @@ import {
 	readerResponseSchema,
 	roundProbability,
 	type Reader,
+	type ReaderContext,
 	type TypedAnswer,
 	type TypedQuestion
 } from '@craftabot/core';
@@ -31,7 +32,9 @@ export interface ReaderFixture {
  */
 export async function checkReader(
 	reader: Reader,
-	fixtures: readonly ReaderFixture[]
+	fixtures: readonly ReaderFixture[],
+	/** What the host hands the reader (WP120): a hosted reader's `callLine`, an `llm` reader's provider. */
+	context: ReaderContext = {}
 ): Promise<ConformanceIssue[]> {
 	const issues: ConformanceIssue[] = [];
 	const issue = (check: string, message: string) =>
@@ -45,12 +48,16 @@ export async function checkReader(
 		issue('reader.declares', 'a hosted reader declares no host');
 	if (fixtures.length === 0) issue('reader.answers', 'no fixture to ask it');
 
-	await askAll(reader, fixtures, issue);
+	await askAll(reader, fixtures, issue, context);
 	if (reader.createOffline) {
 		const offline = reader.createOffline();
 		if (offline.egress.length > 0) issue('reader.offline', 'the stand-in declares egress');
-		await askAll(offline, fixtures, (check, message) =>
-			check === 'reader.expected' ? undefined : issue('reader.offline', `stand-in: ${message}`)
+		await askAll(
+			offline,
+			fixtures,
+			(check, message) =>
+				check === 'reader.expected' ? undefined : issue('reader.offline', `stand-in: ${message}`),
+			{}
 		);
 	}
 	return issues;
@@ -59,7 +66,8 @@ export async function checkReader(
 async function askAll(
 	reader: Reader,
 	fixtures: readonly ReaderFixture[],
-	issue: (check: string, message: string) => void
+	issue: (check: string, message: string) => void,
+	context: ReaderContext
 ): Promise<void> {
 	for (const [index, fixture] of fixtures.entries()) {
 		const at = `fixture ${index}`;
@@ -72,7 +80,7 @@ async function askAll(
 		}
 		let raw: unknown;
 		try {
-			raw = await reader.ask(fixture.subject, fixture.questions, {});
+			raw = await reader.ask(fixture.subject, fixture.questions, context);
 		} catch (error) {
 			issue(
 				'reader.answers',

@@ -191,3 +191,5 @@ Both optional in every reader; the OTel mapping (`35-…`) gives each a child sp
 > **Amended 2026-09-30 (WP118, `104-READERS.md` §9):** `StageSpec.answerKey?(truth)` gives the right answer to each question a reader at the stage asks, for a campaign's calibration pane. It is read by the scorer after the run and never by the runtime.
 
 > **Amended 2026-09-30 (WP119, `105-CORPORA.md` §5):** `ReaderExecutor.questionSet?: string` names the question set a reader is asked, as a corpus's `seenBy` records it. The executor record carries it.
+
+> **Amended 2026-09-30 (WP120, `104-READERS.md` §10.1):** a reader stage hands its reader `ctx.callLine`, the same synthesised tool call a `line` stage makes (`tool.executed` on the workflow's events, a cassette replaying by the same arguments). It also hands an `llm` reader `ctx.provider` from `RunWorkflowOptions.readerProvider`. `touchesOf` counts a reader stage whose gate sent it to a person as one `human:` touch, whatever the person answered.

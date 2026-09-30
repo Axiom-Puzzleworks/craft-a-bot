@@ -1,4 +1,6 @@
 import type { BrickKindDefinition } from './brick.js';
+import type { LLMProvider } from './provider.js';
+import type { ToolResult } from './tool.js';
 import type { EgressDeclaration } from './guardrail-service.js';
 import type { QuestionType, ReaderResponse, TypedQuestion } from '../schemas/reader.js';
 
@@ -41,4 +43,12 @@ export interface ReaderContext {
 	/** The credential the reader declared, read by the host at call time — never recorded. */
 	credential?: string;
 	signal?: AbortSignal;
+	/**
+	 * Call a registered service line (WP120, `104-READERS.md` §10.1) through the
+	 * tool a `line` stage calls: a cassette replays, a live line goes through the
+	 * guarded fetch. What a `hosted` reader asks through.
+	 */
+	callLine?: (lineId: string, operation: string, args: unknown) => Promise<ToolResult>;
+	/** The provider an `llm` reader asks, when the host gives one (`RunWorkflowOptions.readerProvider`). */
+	provider?: LLMProvider;
 }

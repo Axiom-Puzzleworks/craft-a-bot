@@ -47,3 +47,10 @@ export {
 	stacksForStage
 } from './stacks.js';
 export { browserRefusal } from './connection.js';
+export {
+	readerComponent,
+	readerComponentConfigSchema,
+	subjectAt,
+	type ReaderComponentConfig,
+	type ReaderComponentOptions
+} from './reader.js';
