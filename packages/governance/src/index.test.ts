@@ -12,8 +12,8 @@ describe('@craftabot/governance', () => {
 			files: string[];
 		};
 		expect(CRAFTABOT_GOVERNANCE_VERSION).toBe(manifest.version);
-		expect(CRAFTABOT_GOVERNANCE_VERSION).toBe('1.0.0-rc.1');
-		// The release-candidate decision (WP50, `38-…` §4.1): publishable, and only the library ships.
+		expect(CRAFTABOT_GOVERNANCE_VERSION).toBe('1.0.0');
+		// The release (WP126; the rc since WP50, `38-…` §4.1): publishable, and only the library ships.
 		expect(manifest.private).toBe(false);
 		expect(manifest.files).toEqual(['dist', 'README.md']);
 	});

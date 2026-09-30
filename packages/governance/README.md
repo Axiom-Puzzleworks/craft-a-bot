@@ -13,9 +13,12 @@ could be used in real agent stacks (`docs/design-day2/08-GOVERNANCE-GUARDRAILS.m
 working example is [`examples/plain-node-agent`](../../examples/plain-node-agent) — a Node loop
 with no Craft A Bot in it, gated three ways.
 
-**Status:** `1.0.0-rc.1`. The API is what 1.0 will be. Publishing waits on `@craftabot/core`
-being published first, since the contracts are its types; until then, use it from this
-workspace.
+**Status:** `1.0.0` (WP126, `docs/design-day2/101-DAY7-ROADMAP.md`). The API below is the 1.0
+surface: readers and the guardrail components joined it at 1.0, and every export carries a doc
+comment (`scripts/governance-exports.mjs`, run as a test). It rests on `@craftabot/core` 1.x
+for the contracts and `@craftabot/metrics` for the drift and calibration folds; publishing
+waits on those two being published first, and until then it is used from this workspace, or
+from the three tarballs `scripts/check-governance-install.mjs` packs and installs.
 
 ## The contract it rests on
 
@@ -27,7 +30,7 @@ knows — the tick, usage so far, the proposed call, the history it has kept —
 `runGuardrailChain(guardrails, hook, ctx, onChecked)`; the first verdict that is not an allow
 wins, and `onChecked` sees every verdict so the host can put it on a trace.
 
-## Three ways in
+## Four ways in
 
 **Hand-written rules.** Six factories, each a `Guardrail`:
 
@@ -101,6 +104,57 @@ const guardrails = createHostedGuardrails({
 `pdpRequestFor(ctx)` builds the input document a policy decision point (OPA, say) reads; the
 shell attaches it to every request as `policyInput`.
 
+**A reader, as a guard.** A `Reader` answers typed questions — a choice, a _noul_ (a probability
+that something is so), a score — with a confidence (`104-READERS.md`). Three kinds ship:
+`ruleReader` (a function per question, at confidence 1), `hostedReader` (a classification
+service behind a line) and `llmReader` (a chat model constrained to the options, reading
+log-probabilities where the provider gives them). `readerComponent` fits one noul at a point,
+blocking or annotating at a threshold:
+
+```ts
+import { readerComponent, ruleReader } from '@craftabot/governance';
+
+const reader = ruleReader({
+	id: 'example/reader/identifier',
+	name: 'Identifier spotter',
+	description: 'Says whether a call carries an identifier.',
+	answers: ['noul'],
+	rules: { identifier: (subject) => /\b[A-Z]{2}\d{6}[A-Z]\b/.test(JSON.stringify(subject)) }
+});
+const guard = readerComponent({
+	id: 'example/guard/identifier',
+	name: 'Identifier spotter',
+	description: 'Records a call that carries an identifier.',
+	reader,
+	questionId: 'identifier',
+	question: { type: 'noul', instructions: 'Does this call carry a national identifier?' },
+	points: ['pre-act']
+});
+const guardrails = guard.compile({ verdict: 'annotate' }, deps, { kind: 'pre-act' });
+```
+
+## Components
+
+Every mechanism above is also a `GuardrailComponent` (from core): an id, the points it decides
+at, the verdicts it can give, its cost and connection, a config schema and `compile`, which turns
+a config into guardrails at a point (`85-COMPONENTS.md`). The built-ins (`stepBudgetComponent`,
+`actionBlocklistComponent`, …), `policyCardComponent`, `guardServiceComponent` and the egress
+gate are exported, with `compileComponents` to compile a stack's fits in one call.
+
+Four answer indirect injection — an instruction planted in something the agent reads
+(`106-BENCHMARK.md` §8):
+
+- `untrustedContentComponent` marks what a tool answered as untrusted at `post-act`; a host that
+  honours the verdict's `mark` wraps it in the prompt as data.
+- `taintComponent` refuses, at `pre-act`, a call whose argument carries marked text — value
+  taint: four shared words, or a long value whole. It does not follow a paraphrase.
+- `quarantinedReaderComponent({ reader, questions })` lets a reader alone read the result, asked
+  with nothing to act with, and replaces it with the reader's answers.
+- `redTeamSeatComponent` names the adversarial counterpart; it only annotates.
+
+The policy leaves `content-is-untrusted` and `taint-reaches` are evaluated by
+`evaluatePredicate` over `GuardrailContext.untrusted`.
+
 ## Reports
 
 `@craftabot/governance/reports` folds a run's events into what a governance screen shows:
@@ -111,7 +165,8 @@ cartridge, the guardrail trip mix, autonomy figures, the daily series and its dr
 the first field of the explain-this-decision fold — `genericControlMap`, the NIST, EU AI Act,
 ISO/IEC 42001 and OWASP ASI rows a host registers as the control map's generic half — and
 `assertionEvaluator` for assertion cards
-as evaluators.
+as evaluators, the Guardrail Catalogue's coverage (`coverageReport`, `coverageSummary`, with what
+a benchmark measured), and the assurance pack (`assurancePackFor`) with its two renderers.
 Every fold is pure; a headless host produces the same JSON the Workshop renders.
 
 ## What it does not do
@@ -123,7 +178,8 @@ the frameworks it can be held against.
 
 ## Not allowed to depend on
 
-Svelte, SvelteKit or any DOM API; any Craft A Bot pack, app or tool beyond `@craftabot/core`.
+Svelte, SvelteKit or any DOM API; any Craft A Bot pack, app or tool beyond `@craftabot/core`
+and `@craftabot/metrics`.
 `scripts/check-governance-pack.mjs` fails CI if the tarball says otherwise.
 
 Licence: Apache-2.0.

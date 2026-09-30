@@ -23,8 +23,10 @@ export const readerComponentConfigSchema = z.object({
 	threshold: z.number().min(0).max(1).default(0.5),
 	verdict: z.enum(['block-action', 'annotate']).default('block-action')
 });
+/** A reader component’s parsed config: the threshold and the verdict. */
 export type ReaderComponentConfig = z.infer<typeof readerComponentConfigSchema>;
 
+/** What `readerComponent` pairs: the reader, its noul and the points it may sit at. */
 export interface ReaderComponentOptions {
 	/** Qualified: `typesafe/guard/steer`. */
 	id: string;
@@ -47,6 +49,7 @@ export function subjectAt(ctx: GuardrailContext): unknown {
 	return ctx.response?.text ?? ctx.proposed;
 }
 
+/** A reader fitted as a guard: one noul asked at a point, blocking or annotating at a threshold (WP120, `104-READERS.md` §10.3). */
 export function readerComponent(
 	options: ReaderComponentOptions
 ): GuardrailComponent<z.input<typeof readerComponentConfigSchema>> {

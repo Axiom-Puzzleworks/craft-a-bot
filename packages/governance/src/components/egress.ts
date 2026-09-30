@@ -9,6 +9,7 @@ import type { EgressMode, GuardrailComponent } from '@craftabot/core';
  * `egressModeOf` hands the mode to the host that sets `SessionOptions.egress`.
  */
 export const EGRESS_DECLARED_COMPONENT_ID = 'governance/egress-declared';
+/** The egress-none component’s id. */
 export const EGRESS_NONE_COMPONENT_ID = 'governance/egress-none';
 
 const egressSchema = z.object({}).default({});
@@ -31,6 +32,7 @@ const egressComponent = (
 	compile: () => []
 });
 
+/** The egress gate at `declared`: only a component’s declared hosts may be called (WP94). */
 export const egressDeclaredComponent = egressComponent(
 	EGRESS_DECLARED_COMPONENT_ID,
 	'Egress: declared hosts only',
@@ -38,6 +40,7 @@ export const egressDeclaredComponent = egressComponent(
 	'Allows a call only to a host the brick or provider declared.'
 );
 
+/** The egress gate at `none`: no call leaves the session (WP94). */
 export const egressNoneComponent = egressComponent(
 	EGRESS_NONE_COMPONENT_ID,
 	'Egress: none',
@@ -45,6 +48,7 @@ export const egressNoneComponent = egressComponent(
 	'Refuses every call that would leave this machine.'
 );
 
+/** The two egress-gate components, as the starter pack registers them. */
 export const egressComponents: GuardrailComponent[] = [
 	egressDeclaredComponent as GuardrailComponent,
 	egressNoneComponent as GuardrailComponent

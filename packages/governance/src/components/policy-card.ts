@@ -11,6 +11,7 @@ import { compilePolicyCard } from '../policy-compiler.js';
 export const POLICY_CARD_COMPONENT_ID = 'governance/policy-card';
 export const policyCardComponentSchema = z.object({ cardId: z.string().min(1) });
 
+/** A registered policy card compiled as a component, at the hooks its rules name (WP94). */
 export const policyCardComponent: GuardrailComponent<z.infer<typeof policyCardComponentSchema>> = {
 	id: POLICY_CARD_COMPONENT_ID,
 	name: 'Policy card',

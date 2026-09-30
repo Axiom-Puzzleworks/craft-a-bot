@@ -87,7 +87,7 @@ Sizes as before: **S** a session or two; **M** several; **L** a week. Every WP h
 
 | WP | What | Definition of done | Size | Retires |
 |---|---|---|---|---|
-| **WP126** | **`@craftabot/governance` 1.0.0** (`100-…` §6.7). `readers/*` and the reader component in the export list; the TSDoc audit over them; `docs/governance-mapping.md`'s reader and Gate rows; the README's status line; the version cut; `check:governance-pack` unchanged and green. | The tarball installs into `examples/plain-node-agent` with readers importable; the audit test green; `npm view`-shaped metadata correct. | S | G79-part |
+| **WP126** ✅ | **Done 2026-09-30 — `38-GOVERNANCE-1-0.md`'s dated note.** **`@craftabot/governance` 1.0.0** (`100-…` §6.7). `readers/*` and the reader component in the export list; the TSDoc audit over them; `docs/governance-mapping.md`'s reader and Gate rows; the README's status line; the version cut; `check:governance-pack` unchanged and green. | The tarball installs into `examples/plain-node-agent` with readers importable; the audit test green; `npm view`-shaped metadata correct. | S | G79-part |
 | **WP127** | **The Gate** (`100-…` §6.7, D20). Stage A: the note (`107-THE-GATE.md`) — the wire mapping per hook, the verdict effects per mode, the trace, the approval round-trip, the loopback default, the first-page disclaimer. Stage B: `packages/gate` (Node only): the server, the stack file loader, the three chains, shadow and enforce, `TraceSink`, `--principal`, the upstream key from the environment; `craftabot gate serve \| approve`. Stage C: **the identity test** over the five presets and one Studio-built fixture; the Studio's *Use in… the Gate*. | The identity test green on every push; each verdict's wire effect in `enforce` and absence in `shadow`; `pause` round-trips; the key-leak sweep over the Gate's trace and logs; the egress guard refuses any host but the upstream; a non-loopback bind needs the flag. | L | G79 |
 | **WP128** | **The gated example and the Gate's evidence** (`100-…` §6.7). `examples/gated-agent`: an OpenAI client pointed at the Gate, no Craft A Bot import; a Gate's day as a bundle the Audit Centre opens and the assurance pack reads (`run.started.gate`); `docs/gate.md`; the manual's Part I §on the Gate. | The example's four outcomes through the Gate; a Gate bundle verifies its digest in the Audit Centre; the pack names the Gate's mode and stack. | S–M | G79 |
 
@@ -364,6 +364,14 @@ Everything in `84-…` §5 stands. Added:
    > - the WP116 display bug found and fixed on the way (WP123).
    >
    > **Phase AG is closed but for WP125,** which stays open and runs the day keys exist. Nothing else waits on it (§3). **Next: Phase AH — WP126, `107-THE-GATE.md`, WP127, WP128.**
+
+   > **WP126 done 2026-09-30** (`38-GOVERNANCE-1-0.md`):
+   > - **The version:** `@craftabot/governance` `1.0.0`, with dependency ranges, readers and components in the README's surface, and the Gate's and readers' rows in `docs/governance-mapping.md`.
+   > - **The audit** follows `export *` now: 31 exports documented that it had never reached.
+   > - **`core` and `metrics`** gained `files` lists; they had packed without `dist/`.
+   > - **`check:governance-install`** in CI: the three tarballs installed into the example, eight reader and component exports imported, the example's four outcomes with a reader annotating.
+   >
+   > **DoD:** met. **Next: `107-THE-GATE.md` and WP127.**
 8. **WP126, `107-THE-GATE.md`, WP127, WP128.** Phase AH exit review.
 9. **`108-READINGS.md`, WP129, WP130, WP131.** Phase AI exit review and the §9 check.
 

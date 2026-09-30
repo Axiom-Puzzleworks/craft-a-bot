@@ -26,6 +26,7 @@ export interface LlmReaderOptions {
 	browserCapable?: boolean;
 }
 
+/** The system message an `llm` reader sends with its typed questions (WP120, `104-READERS.md` §10.2). */
 export const LLM_READER_SYSTEM_PROMPT =
 	'You are a careful classifier. You are given a state (the material to judge) and one question with its options. Judge the state against the question and answer with exactly one option key.';
 /** The first token's alternatives asked for when the provider returns them. */

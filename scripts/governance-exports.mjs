@@ -6,6 +6,8 @@
  * declaration not immediately preceded by a `/** … *\/` block. Run as a
  * test (`src/exports.test.ts`) so the rule outlives the WP that set it.
  *
+ * Since WP126 it follows `export * from` too, so every sub-barrel is audited.
+ *
  * Usage: node scripts/governance-exports.mjs [packageDir]
  * Exit 1 with the offending symbols listed when any export is undocumented.
  */
@@ -54,9 +56,21 @@ function documented(text, name) {
 }
 
 const problems = [];
-for (const barrel of BARRELS) {
-	const file = join(root, barrel);
+// A barrel's `export * from './x/index.js'` makes `x/index.ts` a barrel too (WP126, `101-…` WP126):
+// the readers, the components and the catalogue are re-exported that way, and are audited like the rest.
+const queue = BARRELS.map((barrel) => join(root, barrel));
+const visited = new Set();
+while (queue.length > 0) {
+	const file = queue.shift();
+	if (visited.has(file)) continue;
+	visited.add(file);
+	const barrel = file
+		.slice(root.length + 1)
+		.split('\\')
+		.join('/');
 	const { text, reexports, locals } = exportsOf(file);
+	for (const match of text.matchAll(/export\s*\*\s*from\s*'([^']+)'/g))
+		queue.push(resolve(dirname(file), match[1].replace(/\.js$/, '.ts')));
 	for (const name of locals) {
 		const result = documented(text, name);
 		if (!result.ok) problems.push(`${barrel}: ${name}`);

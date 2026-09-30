@@ -405,6 +405,7 @@ function entry(input: Omit<CatalogueEntry, 'review'>): CatalogueEntry {
 	return { ...input, review: P };
 }
 
+/** The Guardrail Catalogue’s entries, in the order the page lists them (WP98, `86-CATALOGUE.md`). */
 export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 	// ---------------------------------------------------------------- input guardrails
 	entry({
@@ -1356,6 +1357,7 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 	})
 ];
 
+/** The Guardrail Catalogue, its edition and entries, parsed against its schema (WP98). */
 export const GUARDRAIL_CATALOGUE: GuardrailCatalogue = {
 	schemaVersion: 1,
 	edition: '2026-09',

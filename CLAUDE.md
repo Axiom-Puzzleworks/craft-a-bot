@@ -128,7 +128,13 @@ A planted `SYSTEM:` bureau line is marked, tainted and blocked. **Next: WP125 wh
 - the four entries: shipped, three of them `measured` (taint is *not applicable* over text);
 - the four live checkpoints: not met, pending keys (`smoke:geap` attempted again today: `bad-token`, no `gcloud`).
 
-**Phase AG is closed but for WP125, which runs when keys exist. Next: Phase AH — WP126, `107-THE-GATE.md`, WP127, WP128.**
+**Phase AG is closed but for WP125, which runs when keys exist. Next: Phase AH — WP126, `107-THE-GATE.md`, WP127, WP128.** **Amended 2026-09-30, later still:** WP126 is done:
+- `@craftabot/governance` is `1.0.0`, with dependency ranges and readers and components in its README;
+- the export audit follows `export *`, and 31 exports were documented;
+- `core` and `metrics` gained `files` lists, since they had packed without `dist/`;
+- `npm run check:governance-install` in CI installs the three tarballs into the example, with the readers importable.
+
+**Next: `107-THE-GATE.md`, WP127.**
 
 Once there's a WP to build (from a new plan, or a defect worth fixing): read the docs it names, **propose a task breakdown before writing code**, then build. One WP per branch (`wp{n}-{slug}`) and PR. Use your judgement inside a WP — the docs fix the destination and the contracts, not every step. Where a doc is silent, decide and note it. Where implementation must diverge from a doc, change the doc in the same PR with a dated note (`> **Amended 2026-08-13:** …`); don't leave the two disagreeing.
 
@@ -155,6 +161,7 @@ npm run check          # svelte-check / tsc across workspaces
 npm run lint           # prettier --check + eslint + check
 npm run format         # prettier --write
 npm run build          # all packages + static app + bundle budget (the full edition)
+npm run check:governance-install # @craftabot/governance 1.0.0 from its tarball, installed into examples/plain-node-agent (WP126; after build)
 npm run build:editions # the three sections of the site into apps/workbench/build/<edition>/, each against its own budget (WP69)
 npm run serve:site     # serve build/ as a static host would — one SPA fallback per folder
 npm run e2e:editions   # the three smoke specs, one per edition, against their folders

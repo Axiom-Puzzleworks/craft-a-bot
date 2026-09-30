@@ -5,6 +5,7 @@ import {
 	type PackRegistry
 } from '@craftabot/core';
 
+/** One problem `checkCatalogue` found with an entry: the check and the message. */
 export interface CatalogueIssue {
 	/** `catalogue.parses` · `catalogue.cited` · `catalogue.component` · `catalogue.status` · `catalogue.unique` */
 	check: string;

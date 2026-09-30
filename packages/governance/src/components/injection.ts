@@ -18,8 +18,11 @@ import { DEFAULT_TAINT_WORDS, stringLeaves, taintReaching } from '../taint.js';
  */
 const FREE = { class: 'free', latency: 'none' } as const;
 
+/** The untrusted-content marking component’s id (WP124). */
 export const UNTRUSTED_CONTENT_COMPONENT_ID = 'governance/untrusted-content';
+/** The taint component’s id (WP124). */
 export const TAINT_COMPONENT_ID = 'governance/taint';
+/** The red-team seat component’s id (WP124). */
 export const RED_TEAM_SEAT_COMPONENT_ID = 'governance/red-team-seat';
 
 /** Whether a call's result is one the config marks: every call, or those whose name begins with a listed prefix. */
@@ -32,6 +35,7 @@ export const untrustedContentSchema = z.object({
 	sources: z.union([z.literal('all'), z.array(z.string().min(1)).min(1)]).default('all')
 });
 
+/** Untrusted-content marking at `post-act`: what came back is marked and wrapped in the prompt (WP124, §8.1). */
 export const untrustedContentComponent: GuardrailComponent<z.input<typeof untrustedContentSchema>> =
 	{
 		id: UNTRUSTED_CONTENT_COMPONENT_ID,
@@ -80,6 +84,7 @@ export const taintSchema = z.object({
 	path: z.string().min(1).optional()
 });
 
+/** Taint at `pre-act`: refuses a call whose argument carries marked text (WP124, `106-BENCHMARK.md` §8.2). */
 export const taintComponent: GuardrailComponent<z.input<typeof taintSchema>> = {
 	id: TAINT_COMPONENT_ID,
 	name: 'Taint',
@@ -143,6 +148,7 @@ export function describeAnswers(answers: Record<string, TypedAnswer>): string {
 		.join('; ');
 }
 
+/** What `quarantinedReaderComponent` takes: the reader alone allowed to read, and its questions (WP124, §8.3). */
 export interface QuarantinedReaderOptions {
 	/** Qualified: `fs-bank/guard/quarantined-reader`. */
 	id: string;

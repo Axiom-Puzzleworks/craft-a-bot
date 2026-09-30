@@ -1,7 +1,7 @@
 {
 	"name": "@craftabot/governance",
-	"version": "1.0.0-rc.1",
-	"description": "Guardrail mechanisms for agent loops: budgets, blocklists, a loop-breaker, an approval gate, a policy-card compiler, a shell for hosted guard services, a policy-decision-point input document, and the governance reports \u2014 over @craftabot/core's contracts and nothing else.",
+	"version": "1.0.0",
+	"description": "Guardrail mechanisms for agent loops: budgets, blocklists, a loop-breaker, an approval gate, a policy-card compiler, a shell for hosted guard services, readers that answer typed questions and fit as guards, components for untrusted content, taint and a quarantined reader, a policy-decision-point input document, and the governance reports — over @craftabot/core's contracts.",
 	"license": "Apache-2.0",
 	"repository": {
 		"type": "git",
@@ -13,7 +13,9 @@
 		"guardrails",
 		"ai-safety",
 		"policy-as-code",
-		"governance"
+		"governance",
+		"prompt-injection",
+		"llm"
 	],
 	"private": false,
 	"publishConfig": {
@@ -42,8 +44,8 @@
 		"check": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@craftabot/core": "*",
-		"@craftabot/metrics": "*",
+		"@craftabot/core": "^1.0.0",
+		"@craftabot/metrics": "^0.1.0",
 		"zod": "^4.4.3"
 	},
 	"devDependencies": {

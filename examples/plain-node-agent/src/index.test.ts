@@ -35,5 +35,10 @@ describe('the plain Node agent', () => {
 		expect(lines).toContain('tick 6 guardrail.tripped connector/tool-blocklist');
 		expect(lines).toContain('tick 7 guardrail.tripped safety/step-budget');
 		expect(lines.at(-1)).toBe('tick 7 run.finished STOPPED_BY_GUARDRAIL');
+		// The reader as a guard (WP126) notes the identifier at tick 5 and changes no outcome.
+		expect(lines).toContain(
+			'tick 5 guardrail.checked example/guard/identifier@pre-act → annotate: Identifier spotter reads "identifier" at 1.00'
+		);
+		expect(lines.filter((line) => line.includes('→ annotate'))).toHaveLength(1);
 	});
 });

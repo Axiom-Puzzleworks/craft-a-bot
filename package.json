@@ -26,7 +26,7 @@
 		"e2e": "npm run e2e --workspace=apps/workbench",
 		"e2e:visual": "npm run e2e:visual --workspace=apps/workbench",
 		"e2e:editions": "npm run e2e:editions --workspace=apps/workbench",
-		"demo": "npm run build && echo \"Demo built at apps/workbench/build \u00e2\u20ac\u201d serve it with any static host, or npm run preview\"",
+		"demo": "npm run build && echo \"Demo built at apps/workbench/build â€” serve it with any static host, or npm run preview\"",
 		"preview": "npm run preview --workspace=apps/workbench",
 		"serve:site": "node scripts/serve-site.mjs",
 		"budget": "node scripts/bundle-budget.mjs",
@@ -44,7 +44,8 @@
 		"craftabot": "node packages/harness/dist/main.js",
 		"example:governance": "node examples/plain-node-agent/dist/main.js",
 		"example:python": "node scripts/python-reader.mjs",
-		"check:governance-pack": "node scripts/check-governance-pack.mjs"
+		"check:governance-pack": "node scripts/check-governance-pack.mjs",
+		"check:governance-install": "node scripts/check-governance-install.mjs"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",

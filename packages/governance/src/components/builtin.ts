@@ -34,12 +34,18 @@ export const actionBlocklistSchema = z.object({
 export const noRepetitionSchema = z.object({ repeatLimit: z.number().int().positive() });
 export const approvalModeSchema = z.object({ mode: z.enum(['everything', 'risky']) });
 
+/** The step-budget component’s id. */
 export const STEP_BUDGET_COMPONENT_ID = 'governance/step-budget';
+/** The token-budget component’s id. */
 export const TOKEN_BUDGET_COMPONENT_ID = 'governance/token-budget';
+/** The action blocklist component’s id. */
 export const ACTION_BLOCKLIST_COMPONENT_ID = 'governance/action-blocklist';
+/** The no-repetition component’s id. */
 export const NO_REPETITION_COMPONENT_ID = 'governance/no-repetition';
+/** The approval-mode component’s id. */
 export const APPROVAL_MODE_COMPONENT_ID = 'governance/approval-mode';
 
+/** Stops the run when its turns are spent, at `pre-think` (WP94). */
 export const stepBudgetComponent: GuardrailComponent<z.infer<typeof stepBudgetSchema>> = {
 	id: STEP_BUDGET_COMPONENT_ID,
 	name: 'Step budget',
@@ -54,6 +60,7 @@ export const stepBudgetComponent: GuardrailComponent<z.infer<typeof stepBudgetSc
 		stampComponent([createStepBudgetGuardrail(config.maxTicks)], STEP_BUDGET_COMPONENT_ID, point)
 };
 
+/** Stops the run when its tokens are spent, at `pre-think` (WP94). */
 export const tokenBudgetComponent: GuardrailComponent<z.infer<typeof tokenBudgetSchema>> = {
 	id: TOKEN_BUDGET_COMPONENT_ID,
 	name: 'Token budget',
@@ -68,6 +75,7 @@ export const tokenBudgetComponent: GuardrailComponent<z.infer<typeof tokenBudget
 		stampComponent([createTokenBudgetGuardrail(config.maxTokens)], TOKEN_BUDGET_COMPONENT_ID, point)
 };
 
+/** Blocks the listed actions at `pre-act` (WP94). */
 export const actionBlocklistComponent: GuardrailComponent<z.infer<typeof actionBlocklistSchema>> = {
 	id: ACTION_BLOCKLIST_COMPONENT_ID,
 	name: 'Action blocklist',
@@ -86,6 +94,7 @@ export const actionBlocklistComponent: GuardrailComponent<z.infer<typeof actionB
 		)
 };
 
+/** Stops a run that repeats a non-progress call past its limit (WP94). */
 export const noRepetitionComponent: GuardrailComponent<z.infer<typeof noRepetitionSchema>> = {
 	id: NO_REPETITION_COMPONENT_ID,
 	name: 'Loop-breaker',
@@ -108,6 +117,7 @@ export const noRepetitionComponent: GuardrailComponent<z.infer<typeof noRepetiti
 		)
 };
 
+/** Asks a person before everything, or before what is risky, at `pre-act` (WP94). */
 export const approvalModeComponent: GuardrailComponent<z.infer<typeof approvalModeSchema>> = {
 	id: APPROVAL_MODE_COMPONENT_ID,
 	name: 'Approval mode',

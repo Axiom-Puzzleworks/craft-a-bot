@@ -78,3 +78,29 @@ Publishing to npm (a maintainer's action with a token; `private: false` and the 
 > **Amended 2026-09-03 (stage B done).** As §4.2. `examples/plain-node-agent` is a workspace (`examples/*`), TypeScript, `npm run example:governance` after a build. Two things the loop had to learn from the engine: the budget reads `usage.ticks` as *turns completed* before a turn begins, so the loop runs the chain at `pre-think` (nothing proposed) and then at `pre-act`; and the shell's decision selector screens the brain's *thought* with the rendered call, so the context carries a `response` — a host with no thought to give would pass its own `selectors`. The hosted screen's finding is `sensitive-data` (the category vocabulary is core's). Seven proposals: the outside email blocked by the card (`example/no-outside-mail#rule-0`), the NI number caught by the screen (`example/pii:decision`), the delete refused by the blocklist, the budget of six stopping the seventh turn. `src/index.test.ts` asserts all four and the trace lines.
 
 > **Amended 2026-09-03 (stage C — WP50 closed).** `docs/governance-mapping.md` written: thirty-two rows over `19-…` §9's numbers, six controls named as not shipped, no compliance claim. `08-…` §5's last row and §6's promise carry dated notes. Gate: lint, every suite green (governance 18 files, the example 1), build within budget, the tarball check green, e2e green.
+
+> **Amended 2026-09-30 (WP126, `101-DAY7-ROADMAP.md`): 1.0.0 is cut.**
+>
+> **What changed in the package.**
+> - `version` is `1.0.0`, and its dependencies have ranges: `@craftabot/core` `^1.0.0` and `@craftabot/metrics` `^0.1.0`, where they were `*`. The description and keywords name the readers and the injection defences.
+> - **The README's surface:**
+>   - a fourth way in, a reader as a guard (`ruleReader`, `hostedReader`, `llmReader`, `readerComponent`);
+>   - a *Components* section with the four injection defences;
+>   - the reports' catalogue and assurance folds;
+>   - the dependency on `metrics`, which the *Not allowed to depend on* line had omitted since WP76.
+>
+> **Found on the way:**
+> - **The audit had never reached most of the surface.** `scripts/governance-exports.mjs` followed only `export { … } from`, so the readers, the components and the catalogue, all re-exported by `export *`, were never audited. It follows `export *` now and found 31 undocumented exports, each given its doc comment.
+> - **`core` and `metrics` would have installed empty.** Neither had a `files` list, so `npm pack` fell back to `.gitignore` and shipped no `dist/`. Both carry `files` now (`dist` without compiled tests, and `README.md`).
+>
+> **The new check.** `scripts/check-governance-install.mjs` (`npm run check:governance-install`, in CI after the tarball check):
+> - packs the three packages and installs them into a fresh copy of the built `examples/plain-node-agent`;
+> - holds the registry metadata: version, licence, repository, types, the two exports, and no `*` range;
+> - imports eight reader and component exports and asks a rule reader;
+> - runs the example to its four outcomes.
+>
+> **The example.** It gains a fourth way in: a rule reader fitted as a guard with `readerComponent`, annotating the identifier at tick 5 without changing an outcome.
+>
+> **Unchanged:** `check:governance-pack` (158 files, `dist`, `README.md` and `package.json` only).
+>
+> **Not done:** publishing. It still waits on `core` and `metrics` being published, which is a decision for Andrew, not a WP.

@@ -20,6 +20,7 @@ import { createHostedGuardrails } from '../hosted/guardrails.js';
  */
 export const GUARD_BRICK_ID_PREFIX = 'workshop/guard';
 
+/** The config a guard-service component takes: the service’s own block and the screening dials (WP94). */
 export const guardServiceComponentSchema = z.object({
 	/** The service's own config, parsed by its `configSchema` at compile. */
 	serviceConfig: z.unknown().optional(),
@@ -27,8 +28,10 @@ export const guardServiceComponentSchema = z.object({
 	/** The guardrail ids' prefix — the Guard brick's, so a component's chain equals the brick's. */
 	idPrefix: z.string().min(1).default(GUARD_BRICK_ID_PREFIX)
 });
+/** A guard-service component’s parsed config. */
 export type GuardServiceComponentConfig = z.infer<typeof guardServiceComponentSchema>;
 
+/** What `guardServiceComponent` wraps: the service and how it is named. */
 export interface GuardServiceComponentOptions {
 	/** The catalogue entry the service implements (`86-…`); `input-classifier` by default. */
 	technique?: string;
