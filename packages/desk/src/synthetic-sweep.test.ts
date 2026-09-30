@@ -81,7 +81,8 @@ describe('the synthetic sweep (hard rule 9)', () => {
 	it('every fixture, cassette, scenario, baseline, corpus and campaign file in the repo is synthetic', () => {
 		const issues = checkSynthetic(files);
 		expect(issues.map((issue) => `${issue.check} ${issue.message}`)).toEqual([]);
-	});
+		// Every corpus since WP119 is in the sweep: seconds, not the five vitest allows by default on a busy runner.
+	}, 60_000);
 
 	it('still bites: a planted Luhn-valid card number in a fixture fails', () => {
 		// Built at run time from its own check digit, so no card-shaped literal sits in the repo.

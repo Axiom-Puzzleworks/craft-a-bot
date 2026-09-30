@@ -72,5 +72,6 @@ describe('calibration', () => {
 		expect(expectedCalibrationError(off, { seed: 2 }).interval).not.toEqual(
 			expectedCalibrationError(off).interval
 		);
-	});
+		// Four bootstraps over 2,000 answers: well under a second here, past five on a busy CI runner.
+	}, 60_000);
 });
