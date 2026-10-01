@@ -223,7 +223,7 @@ _The three largest class-B gaps are controls that are built and unfitted. Fit th
 | **WP137** ✅ | **Done 2026-10-01 — §10's WP137 note.** **Stage guards on every journey** | Each desk's decision stage carries a `stage-in` policy card (the desk's existing four-eyes or affordability card) and a `stage-out` breaker on its headline evaluator, as content in the workflow; the golden runs re-held with the boundary verdicts on `stage.completed.guards`; the canvases show the points lit (W-3 closed); `Fitted` and `Exercised` turn green on the inventory               | M        | G98, W-3                    |
 | **WP138** ✅ | **Done 2026-10-01 — §10's WP138 note.** **Reader gates declared**         | The servicing, disputes and complaints classify stages run on their reader executors with `gate: { threshold, else }` in the shipped configuration at levels 3+; the rule readers' confidence 1 means the gate never fires on them, which the identity test holds; the LLM reader cassette (WP114's) runs the same stages under the gate in CI, where the gate does fire; the calibration pane reads it | M        | G99, G109 (the mechanism)   |
 | **WP139** ✅ | **Done 2026-10-01 — §10's WP139 note.** **Ceilings as a mode**            | `WorkflowConfig.ceilings: 'measure' \| 'enforce'` (decision 1); `enforce` pauses to a person at the boundary, `pause` on the trace; the book campaigns gain an `enforce` level; the register's human-oversight experiment re-run with it; the entries updated                                                                                                                                      | M        | G97 (the code)              |
-| **WP140** | **Measured stacks**               | The benchmark cassette recorded for every service a key exists for (WP125's checkpoints, taken when keys exist; stand-ins stay the CI default); `DESK_SCREENING` documented as the stand-in config and the inventory's `Measured` reading the cassette's figures; a list price cited on the benchmark                                                                                             | S + keys | G100 (as far as keys allow) |
+| **WP140** ⏸ | **Waiting 2026-10-01 — §10's Phase AK exit review.** **Measured stacks**               | The benchmark cassette recorded for every service a key exists for (WP125's checkpoints, taken when keys exist; stand-ins stay the CI default); `DESK_SCREENING` documented as the stand-in config and the inventory's `Measured` reading the cassette's figures; a list price cited on the benchmark                                                                                             | S + keys | G100 (as far as keys allow) |
 
 **Exit:** no shipped journey has an empty guard list; no classify stage lacks a gate; the inventory's `Fitted` column has no `unfitted` shipped component on the desks that use it.
 
@@ -382,3 +382,28 @@ _(Recorded here as each work package and phase closes.)_
 > - **Where it acts.** The runtime adds a `workflow/ceiling` guard at the output of the stage where the desk reads a decision's kind (`decisionKindOf`). On the lending desk that is `record`, where the decision is written down. A decision this configuration's level would take above its kind's ceiling pauses for a person through the boundary's own round-trip (`approval.requested`/`resolved`); a stage a person executed decided at no level. Confirmed, the decision counts at its ceiling and as that person's touch (`ceiling:<stage>`), so the breach rate falls and human load rises. Declined, the journey stops there, before anything is explained, checked or paid. `fs-lending/src/workflow.test.ts` holds both, and holds that the shipped Level 5 configuration still only measures.
 > - **The divergence.** The plan named an `enforce` level on the book campaigns and a re-run of the human-oversight experiment. Adding a level changes the experiment's committed shape, so it lands with WP150's regeneration of the register, where it is run once. A campaign host answers a pause with *approved*, as it does every boundary pause; a reviewer model answering ceiling pauses is a follow-up.
 > - **What now says otherwise.** The four-eyes and autonomy entries, the ceilings mechanism, the inventory's ceiling rows, the domain glossary, `core`'s domain schema comment and the manual's §66 say *measured by default, enforced where a configuration says so*.
+
+> **Phase AK exit review — 2026-10-01.** WP137, WP138 and WP139 are done; WP140 waits. The exit, clause by clause:
+>
+> - **No shipped journey has an empty guard list: met.** All eight journeys hold their irreversible stage with a gate on the case file (WP137). Their other stages carry no boundary guard, deliberately: the gate sits where money or a record moves.
+> - **No classify stage lacks a gate: met where a reader classifies.** Every reader a shipped configuration fits stands behind the desks' line (WP138). At Levels 3–5 the classify-shaped stages are a person's or a bot's, not a reader's.
+> - **No unfitted shipped component on the desks that use it: met in substance, with a finding.** Sixteen components read *unfitted*; none is a desk's control left off.
+>   - The egress pair is fitted by the host (`--egress none` in CI), not by a stack.
+>   - Taint, untrusted-content marking and the quarantined reader are fitted by the Gate's presets and are the benchmark's levels. The registry cannot see the Gate's presets, so the inventory cannot either.
+>   - Azure, Bedrock, Lakera, Prompt Guard and OPA are connectable services no desk stack names.
+>   - The rest are general components (the blocklist, approval mode, no-repetition, the token budget, the breaker, the red-team seat) that the desks' cards and campaigns supersede.
+>   - The finding is that the inventory does not see a Gate preset; registering the presets as stacks is a small follow-up.
+> - **Ceilings have a mode: met** (WP139).
+>
+> **WP140 waits** on one of two things:
+> - the hosted services' keys (WP125's checkpoints); or
+> - your permission to pull the local guard models into this machine's Ollama. Ollama is running here, but holds only general chat models, not Llama Guard or Prompt Guard.
+>
+> With either, `craftabot benchmark run benchmarks/bank-adversarial.json --record` writes the cassettes, and the inventory's *Measured* column reads them unchanged. No list price is cited: the plan named one, and no source is in hand to cite.
+>
+> **Findings the phase surfaced.**
+> - The collections rules-only journey agreed plans for customers it never verified; it now verifies.
+> - The stage-out breaker over a stage's own trace cannot judge a whole case's process without truth (WP137's divergence).
+> - The inventory cannot see the Gate's presets.
+>
+> **Phase AK is closed but for WP140. Next: Phase AL, WP141–WP144.**
