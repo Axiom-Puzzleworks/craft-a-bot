@@ -155,7 +155,7 @@
 								"type": "array",
 								"items": {
 									"type": "string",
-									"pattern": "^(component|guardrail|policy-card|evaluator|reader|scenario|stack|brick-kind|error-model|reviewer-model|gate|trace-guarantee|artefact|mechanism):\\S+$"
+									"pattern": "^(component|guardrail|policy-card|evaluator|reader|scenario|stack|brick-kind|error-model|reviewer-model|ceiling|knob|gate|trace-guarantee|artefact|mechanism):\\S+$"
 								}
 							},
 							"note": {

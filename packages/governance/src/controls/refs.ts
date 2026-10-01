@@ -20,6 +20,8 @@ export type ControlRefRegistry = Pick<
 	| 'getBrickKind'
 	| 'getErrorModel'
 	| 'getReviewerModel'
+	| 'getDomain'
+	| 'getWorld'
 >;
 
 /** What `resolveControlRef` is told beside the registry. */
@@ -72,6 +74,22 @@ export function resolveControlRef(
 			return registry.getReviewerModel(id)
 				? undefined
 				: missing('is not a registered reviewer model');
+		case 'ceiling': {
+			const [domainId, right] = id.split('#');
+			const domain = domainId ? registry.getDomain(domainId) : undefined;
+			if (!domain) return missing('names no registered domain');
+			return domain.decisionRights.some((each) => each.kind === right)
+				? undefined
+				: missing('is not one of the domain’s decision rights');
+		}
+		case 'knob': {
+			const [worldId, name] = id.split('#');
+			const world = worldId ? registry.getWorld(worldId) : undefined;
+			if (!world) return missing('names no registered world');
+			return world.knobs?.some((knob) => knob.id === name)
+				? undefined
+				: missing('is not a knob the world declares');
+		}
 		case 'guardrail':
 			return GOVERNANCE_GUARDRAIL_IDS.includes(id) || options.knownGuardrails?.includes(id)
 				? undefined
@@ -99,5 +117,7 @@ export const REGISTERED_REF_KINDS = [
 	'stack',
 	'brick-kind',
 	'error-model',
-	'reviewer-model'
+	'reviewer-model',
+	'ceiling',
+	'knob'
 ] as const;

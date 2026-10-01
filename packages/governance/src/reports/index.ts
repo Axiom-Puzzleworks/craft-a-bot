@@ -120,6 +120,21 @@ export {
 	type ControlEffectivenessHeadline,
 	type ControlEffectivenessRow
 } from './control-effectiveness.js';
+/** The Control Inventory (WP133, `110-CONTROL-SUITE-PLAN.md` §4): one row per control instance, eight facets. */
+export {
+	controlInventory,
+	controlInventorySummary,
+	evidenceRef,
+	tripRef,
+	type ControlInventoryInput,
+	type ControlInventoryRow,
+	type ControlInventorySummary,
+	type InventoryCampaignReport,
+	type InventoryEntryLink,
+	type InventoryKind,
+	type InventoryRowLink,
+	type InventorySurface
+} from './control-inventory.js';
 /** The coverage fold and the catalogue page (WP98, `86-…` §5, §7). */
 export {
 	coverageMeasurements,

@@ -646,6 +646,7 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 				'evaluator:geap/eval/rubric',
 				'evaluator:geap/eval/safety',
 				'evaluator:geap/eval/fulfillment',
+				'evaluator:evals/judge/rubric',
 				'brick-kind:workshop/monitor-judge'
 			],
 			note: 'The rubric and hosted evaluators as judges with offline stand-ins; the breaker fits a judge at the chokepoint or a stage boundary. Bedrock’s automated-reasoning checks are a WP99 connection candidate, recorded research-grade for a bank’s rulebook.',
@@ -1189,7 +1190,12 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		sources: [INSPECT, TAU_BENCH],
 		coverage: {
 			status: 'shipped',
-			implementedBy: ['mechanism:evals/campaign', 'gate:outcome-rate', 'gate:evaluator-pass-rate'],
+			implementedBy: [
+				'mechanism:evals/campaign',
+				'mechanism:evals/benchmark',
+				'gate:outcome-rate',
+				'gate:evaluator-pass-rate'
+			],
 			note: 'Campaigns in CI on every push.',
 			since: 'WP38'
 		},

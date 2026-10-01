@@ -112,6 +112,7 @@ export type {
 	WorldCreateOptions,
 	WorldDefinition,
 	WorldMetricDefinition,
+	WorldKnobDefinition,
 	WorldInstance,
 	WorldViewKind,
 	WorldLayout,

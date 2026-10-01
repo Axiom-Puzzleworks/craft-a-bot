@@ -93,7 +93,7 @@ export function renderAssurancePackMarkdown(pack: AssurancePack): string {
 	out.push(`> ${pack.posture}`);
 	out.push('');
 	out.push(
-		`Generated ${pack.generatedAt}; digest \`${pack.digest}\`. Bot \`${pack.bot.id}\` on goal card \`${pack.bot.goalCardId}\`${pack.bot.worldId ? ` in world \`${pack.bot.worldId}\`` : ''}${pack.bot.purpose ? ` (purpose: ${pack.bot.purpose})` : ''}. Control rows: ${pack.review.rows} — ${pack.review.reviewed} reviewed, ${pack.review.unreviewed} unreviewed, ${pack.review.pending} pending.`
+		`Generated ${pack.generatedAt}; digest \`${pack.digest}\`. Bot \`${pack.bot.id}\` on goal card \`${pack.bot.goalCardId}\`${pack.bot.worldId ? ` in world \`${pack.bot.worldId}\`` : ''}${pack.bot.purpose ? ` (purpose: ${pack.bot.purpose})` : ''}. Control rows: ${pack.review.rows} — ${pack.review.reviewed} reviewed, ${pack.review.unreviewed} unreviewed, ${pack.review.disputed} disputed, ${pack.review.pending} pending.`
 	);
 	out.push('');
 	out.push('## 1. Identification and classification (SS1/23 principle 1) — the inventory entry');
@@ -544,7 +544,7 @@ ${table(
 <main>
 <h1>Assurance pack — ${escape(pack.bot.name)}</h1>
 <p class="posture">${escape(pack.posture)}</p>
-<p class="meta">Generated ${escape(pack.generatedAt)}; digest <code>${escape(pack.digest)}</code>. Bot <code>${escape(pack.bot.id)}</code> on goal card <code>${escape(pack.bot.goalCardId)}</code>${pack.bot.worldId ? ` in world <code>${escape(pack.bot.worldId)}</code>` : ''}${pack.bot.purpose ? ` (purpose: ${escape(pack.bot.purpose)})` : ''}. Control rows: ${pack.review.rows} — ${pack.review.reviewed} reviewed, ${pack.review.unreviewed} unreviewed, ${pack.review.pending} pending.</p>
+<p class="meta">Generated ${escape(pack.generatedAt)}; digest <code>${escape(pack.digest)}</code>. Bot <code>${escape(pack.bot.id)}</code> on goal card <code>${escape(pack.bot.goalCardId)}</code>${pack.bot.worldId ? ` in world <code>${escape(pack.bot.worldId)}</code>` : ''}${pack.bot.purpose ? ` (purpose: ${escape(pack.bot.purpose)})` : ''}. Control rows: ${pack.review.rows} — ${pack.review.reviewed} reviewed, ${pack.review.unreviewed} unreviewed, ${pack.review.disputed} disputed, ${pack.review.pending} pending.</p>
 ${section('1. Identification and classification (SS1/23 principle 1) — the inventory entry', inventory)}
 ${section('2. Governance (principle 2)', governance)}
 ${section('3. Development, implementation and use (principle 3) — the campaigns', development)}

@@ -13,6 +13,9 @@
  * - `guardrail` — a guardrail id a host installs itself (`governance`'s
  *   `safety/…`, the Connector's `connector/tool-blocklist`), resolved
  *   against the ids the host hands in.
+ * - `ceiling` — a decision right's ceiling, `{domainId}#{kind}`; `knob` — a
+ *   knob a world declares, `{worldId}#{knob}`. Resolved against the
+ *   registry's domains and worlds.
  * - `gate` — a campaign gate kind (`CONTROL_GATE_KINDS`).
  * - `trace-guarantee` — an event type the trace can carry (`EVENT_TYPES`).
  * - `artefact` — one the assurance pack contains (`CONTROL_ARTEFACT_IDS`).
@@ -31,6 +34,8 @@ export const CONTROL_REF_KINDS = [
 	'brick-kind',
 	'error-model',
 	'reviewer-model',
+	'ceiling',
+	'knob',
 	'gate',
 	'trace-guarantee',
 	'artefact',

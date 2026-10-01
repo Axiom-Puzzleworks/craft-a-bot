@@ -557,6 +557,7 @@
 			<Strip label={pack.bot.name} icon="case">
 				<Readout label="Control rows" value={pack.review.rows} testId="assurance-rows" />
 				<Readout label="Unreviewed" value={pack.review.unreviewed} testId="assurance-unreviewed" />
+				<Readout label="Disputed" value={pack.review.disputed} testId="assurance-disputed" />
 				<Readout label="Pending" value={pack.review.pending} testId="assurance-pending" />
 				<Readout label="Runs" value={pack.runs.length} testId="assurance-runs" />
 				<Readout

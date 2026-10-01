@@ -153,6 +153,15 @@ export const queueSpec: DeskWorldSpec = {
 	name: queueStrings.title,
 	desk: { title: deskStrings.title, role: deskStrings.role },
 	purpose: 'reception',
+	knobs: [
+		{
+			id: THRESHOLD_KNOB,
+			name: 'Sure enough',
+			description:
+				'How sure the reader must be before the bot acts alone; below it the visitor goes to a colleague.',
+			default: DEFAULT_THRESHOLD
+		}
+	],
 	// No doors: the card is a lesson about the dial, and nothing arrives from outside the queue.
 	injections: [],
 	layouts: [

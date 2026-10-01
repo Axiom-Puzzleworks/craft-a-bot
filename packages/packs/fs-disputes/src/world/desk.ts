@@ -123,6 +123,20 @@ export const disputesDeskSpec: DeskWorldSpec<DisputesExtra> = {
 	name: disputesStrings.worldName,
 	desk: { title: disputesStrings.title, role: disputesStrings.role },
 	purpose: 'disputes',
+	knobs: [
+		{
+			id: 'reimbursementLimit',
+			name: 'Reimbursement limit',
+			description: 'The most the desk reimburses on an authorised push-payment scam.',
+			default: 85_000
+		},
+		{
+			id: 'excess',
+			name: 'Excess',
+			description: 'The excess taken off a scam reimbursement.',
+			default: 100
+		}
+	],
 	context: (level, generated, spec) => bankContextRecords(generated.extra, level, spec),
 	counterpartName: disputesStrings.counterpartName,
 	counterpartKnows: (_truth, state) => {

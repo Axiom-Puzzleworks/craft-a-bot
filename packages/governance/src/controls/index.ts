@@ -10,3 +10,10 @@ export {
 	type ControlRefOptions,
 	type ControlRefRegistry
 } from './refs.js';
+export {
+	ORPHAN_RULE_KINDS,
+	checkControlInventory,
+	type ControlInventoryIssue,
+	type UncataloguedControl
+} from './check.js';
+export { UNCATALOGUED_CONTROLS } from './uncatalogued.js';

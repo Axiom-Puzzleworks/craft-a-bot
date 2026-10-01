@@ -244,7 +244,8 @@ export interface AssurancePack {
 	digest: string;
 	posture: string;
 	bot: { id: string; name: string; goalCardId: string; worldId?: string; purpose?: string };
-	review: { rows: number; reviewed: number; unreviewed: number; pending: number };
+	/** The control rows: read (shipped reviewed, or read by a reader since WP133), still unread, disputed by a reader, pending a WP. */
+	review: { rows: number; reviewed: number; unreviewed: number; disputed: number; pending: number };
 	/** SS1/23 principle 1 — identification and classification: the inventory entry. */
 	inventory: {
 		agentCard: AgentCard;
@@ -605,10 +606,23 @@ export async function assurancePackFor(input: AssurancePackInput): Promise<Assur
 		})
 	}));
 	const allRows = maps.flatMap((map) => map.rows.map((row) => ({ map, row })));
+	// A row a reader has read counts as read (WP133, `110-…` G104): before, only a row that
+	// shipped without a status did, so the *Unreviewed* readout never moved.
+	const readerSays = (map: ControlMap, row: ControlMapRow) =>
+		reviewOf.get(`${map.id}/${row.ref}`)?.status;
 	const review = {
 		rows: allRows.length,
-		reviewed: allRows.filter(({ row }) => row.status === undefined).length,
-		unreviewed: allRows.filter(({ row }) => row.status === 'unreviewed').length,
+		reviewed: allRows.filter(
+			({ map, row }) =>
+				row.status === undefined ||
+				(row.status === 'unreviewed' && readerSays(map, row) === 'reviewed')
+		).length,
+		unreviewed: allRows.filter(
+			({ map, row }) => row.status === 'unreviewed' && readerSays(map, row) === undefined
+		).length,
+		disputed: allRows.filter(
+			({ map, row }) => row.status === 'unreviewed' && readerSays(map, row) === 'disputed'
+		).length,
 		pending: allRows.filter(({ row }) => row.status === 'pending').length
 	};
 

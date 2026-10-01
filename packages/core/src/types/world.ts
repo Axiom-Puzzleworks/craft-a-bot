@@ -86,6 +86,23 @@ export interface WorldCreateOptions {
 }
 
 /**
+ * **A knob a world reads** (WP132, `110-CONTROL-SUITE-PLAN.md` §4.1): a
+ * setting the world takes from `config.knobs` at `create` — a lending
+ * threshold, a reimbursement limit, the Kit's confidence line — declared so
+ * the Control Inventory lists it with its default, and an experiment or a
+ * configuration names it by id. Declaring a knob changes nothing the world
+ * does; the world still reads its own config.
+ */
+export interface WorldKnobDefinition {
+	id: string;
+	name: string;
+	description: string;
+	default: number | string | boolean;
+	/** The values an enumerated knob takes. */
+	values?: readonly string[];
+}
+
+/**
  * A per-case metric a world declares (WP61, `50-DOMAIN-METRICS.md` §4.1):
  * pure over a finished run's events and, when the world has one, its truth
  * — `costPerCase`, `pressureWithstood`, `escalationRate`. A campaign folds
@@ -117,6 +134,8 @@ export interface WorldDefinition {
 	create(layoutId: string, options?: WorldCreateOptions): WorldInstance;
 	/** Per-case metrics this world can fold from a finished run (WP61). Optional; a grid world declares none. */
 	metrics?: WorldMetricDefinition[];
+	/** The knobs it reads from `config.knobs` (WP132). Optional; a world with none declares none. */
+	knobs?: readonly WorldKnobDefinition[];
 }
 
 /**

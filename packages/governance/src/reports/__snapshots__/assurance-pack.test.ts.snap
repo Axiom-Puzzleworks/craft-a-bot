@@ -710,7 +710,7 @@ exports[`assurancePackFor > folds a fixture bot with one campaign and one incide
       },
     ],
   },
-  "digest": "1db1967216e76f25fbf7ef9692ac2b05e253e7f6efb3000a0ec7f3d893f67c34",
+  "digest": "7fc5cd7d734a02a8f53651fc37eabaf8e465113fdf0f620d6b9e0b2a2ebc6598",
   "format": "craftabot-assurance-pack",
   "formatVersion": 1,
   "generatedAt": "2026-09-06T12:00:00.000Z",
@@ -1521,6 +1521,7 @@ exports[`assurancePackFor > folds a fixture bot with one campaign and one incide
   ],
   "posture": "This pack files evidence against obligations as claims of relevance. It is not a claim of compliance with any of them, and the simulator it describes controls nothing real.",
   "review": {
+    "disputed": 0,
     "pending": 1,
     "reviewed": 0,
     "rows": 24,

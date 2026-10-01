@@ -322,7 +322,13 @@ describe('assurancePackFor', () => {
 	it('folds a fixture bot with one campaign and one incident — the snapshot', async () => {
 		const pack = await fullPack();
 		expect(pack.posture).toBe(ASSURANCE_POSTURE);
-		expect(pack.review).toEqual({ rows: 2 + 22, reviewed: 0, unreviewed: 23, pending: 1 });
+		expect(pack.review).toEqual({
+			rows: 2 + 22,
+			reviewed: 0,
+			unreviewed: 23,
+			disputed: 0,
+			pending: 1
+		});
 		expect(pack.development.campaigns).toHaveLength(1);
 		expect(pack.development.campaigns[0]?.runIds).toEqual([RUN_A, RUN_B]);
 		expect(pack.development.campaigns[0]?.parity[0]).toMatchObject({
@@ -649,6 +655,37 @@ describe('control-row reviews (WP110, GAP-1)', () => {
 		expect(filed?.status).toBe(row.status);
 		const others = pack.controlMaps.flatMap((map) => map.rows).filter((r) => r.review);
 		expect(others).toHaveLength(1);
+		// …but the pack's counts honour it (WP133, G104): a disputed row is no longer unread.
+		expect(pack.review).toEqual({ rows: 2, reviewed: 0, unreviewed: 0, disputed: 1, pending: 1 });
+		const accepted = await assurancePackFor({
+			agent: { id: AGENT_ID, name: 'Bolt', spec },
+			registry: registryWith(),
+			runs: [],
+			summaries: new Map(),
+			evaluations: [],
+			campaignReports: [],
+			controlMaps: [map],
+			controlReviews: [
+				{
+					id: `local/reviews/${first.id}--${row.ref}`,
+					mapId: first.id,
+					ref: row.ref,
+					status: 'reviewed',
+					by: 'Sam',
+					note: 'Reads as its source does.',
+					reviewedAt: '2026-09-13T10:00:00.000Z',
+					schemaVersion: 1
+				}
+			],
+			now: NOW
+		});
+		expect(accepted.review).toEqual({
+			rows: 2,
+			reviewed: 1,
+			unreviewed: 0,
+			disputed: 0,
+			pending: 1
+		});
 		expect(renderAssurancePackMarkdown(pack)).toContain(
 			'disputed by Sam (2026-09-13) — The evaluator shows presence, not relevance.'
 		);

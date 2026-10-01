@@ -127,6 +127,59 @@ export const lendingDeskSpec: DeskWorldSpec<LendingExtra> = {
 	name: lendingStrings.worldName,
 	desk: { title: lendingStrings.title, role: lendingStrings.role },
 	purpose: 'lending',
+	knobs: [
+		{
+			id: 'rateBps',
+			name: 'Rate',
+			description: 'The synthetic flat rate, in basis points a year.',
+			default: 790
+		},
+		{
+			id: 'referRatioPercent',
+			name: 'Refer ratio',
+			description: 'Refer when the repayment-to-disposable ratio sits above this, in per cent.',
+			default: 60
+		},
+		{
+			id: 'declineRatioPercent',
+			name: 'Decline ratio',
+			description: 'Decline when the ratio sits above this, in per cent.',
+			default: 100
+		},
+		{
+			id: 'declineOnDefaults',
+			name: 'Decline on defaults',
+			description: 'Decline at this many bureau defaults; one fewer refers.',
+			default: 2
+		},
+		{
+			id: 'referOnSearches',
+			name: 'Refer on searches',
+			description: 'Refer at this many credit searches in twelve months.',
+			default: 3
+		},
+		{
+			id: 'referOnFair',
+			name: 'Refer a fair band',
+			description: 'Refer an applicant whose score band is fair.',
+			default: true
+		},
+		{
+			id: 'fourEyes',
+			name: 'Four eyes',
+			description:
+				'Which decisions a person confirms: the payout after an approve, every decision, or none.',
+			default: 'approve',
+			values: ['approve', 'all', 'none']
+		},
+		{
+			id: 'documentBefore',
+			name: 'Payslip before',
+			description: 'When a payslip must be on the desk before a decision.',
+			default: 'never',
+			values: ['never', 'refer', 'always']
+		}
+	],
 	context: (level, generated, spec) => bankContextRecords(generated.extra, level, spec),
 	counterpartName: lendingStrings.counterpartName,
 	counterpartKnows: (_truth, state) => {
