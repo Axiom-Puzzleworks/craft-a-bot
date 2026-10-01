@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { checkStack } from '@craftabot/pack-testkit';
 import { compileStackLoop, stackLoopFits } from '@craftabot/governance';
+import { OBLIGATION_TAGS } from '@craftabot/pack-fs-bank';
 import { createRegistry, defaultConfig } from './config.js';
 
 /**
@@ -32,7 +33,15 @@ describe('the shipped stacks', () => {
 	it.each(registry.listStacks().map((stack) => [stack.id, stack] as const))(
 		'%s passes checkStack and compiles',
 		(_id, stack) => {
-			expect(checkStack(stack, registry)).toEqual([]);
+			// WP135 (`110-…` G106): every claimed obligation and control row exists.
+			expect(
+				checkStack(stack, registry, {
+					knownObligations: Object.keys(OBLIGATION_TAGS),
+					knownControls: registry
+						.listControlMaps()
+						.flatMap((map) => map.rows.map((row) => `${map.id}/${row.ref}`))
+				})
+			).toEqual([]);
 			const chain = compileStackLoop(stack, registry);
 			expect(chain.length).toBe(stackLoopFits(stack).length > 0 ? chain.length : 0);
 			expect(chain.every((guardrail) => guardrail.componentId !== undefined)).toBe(true);

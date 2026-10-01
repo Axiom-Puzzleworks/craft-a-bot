@@ -128,7 +128,9 @@ export const fraudStacks: Stack[] = deskStacks({
 		breakOn: [{ evaluatorId: NO_TIP_OFF_ID, onFail: true }]
 	},
 	// The register's control ids (`80-…`): `{mapId}/{ref}`, so a stack's effect shows on the control's row.
-	controls: fraudControlMap.rows.map((row) => `${fraudControlMap.id}/${row.ref}`)
+	controls: fraudControlMap.rows.map((row) => `${fraudControlMap.id}/${row.ref}`),
+	// WP135 (`110-…` G106): the obligations the cards serve, as the fraud map's rows tag them.
+	obligations: ['poca:tipping-off', 'mlr:kyc', 'fca:cd:support', 'equality-act:fairness']
 });
 
 export function fraudBaseline(options: FraudBaselineOptions = {}): Record<string, unknown> {

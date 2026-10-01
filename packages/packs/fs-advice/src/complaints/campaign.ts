@@ -41,7 +41,10 @@ export const complaintsStacks: Stack[] = deskStacks({
 	packId: 'fs-advice',
 	deskName: 'Complaints Desk',
 	safety: { maxTicks: 12, blockedActions: [], approval: 'off' },
-	cards: [REDRESS_NEEDS_APPROVAL]
+	cards: [REDRESS_NEEDS_APPROVAL],
+	// WP135 (`110-…` G106): the bank's DISP row, so the register can attribute an effect to this stack.
+	controls: ['fs-bank/control-map/complaints'],
+	obligations: ['fca:disp:complaints', 'fca:cd:price-value']
 }).map((stack) => ({ ...stack, id: stack.id.replace('/stack/', '/stack/complaints-') }));
 
 export function complaintsBaseline(

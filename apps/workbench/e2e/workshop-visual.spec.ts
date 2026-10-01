@@ -151,6 +151,8 @@ test('the Workshop, screen by screen, over the fixture corpus', async ({ page })
 		'studio-stack'
 	);
 	await shot(page, '/workshop/catalogue', 'ws-catalogue', 'catalogue-table');
+	// WP134 (`110-CONTROL-SUITE-PLAN.md` §4.3): the Control Inventory over one short kind — the knobs.
+	await shot(page, '/workshop/controls?kind=knob', 'ws-controls', 'controls-table');
 	// WP123 (`106-BENCHMARK.md` §6): the reference benchmark run over the stand-ins, synthetic rows first.
 	await page.goto('/workshop/benchmarks');
 	await page.getByTestId('benchmark-run').click();

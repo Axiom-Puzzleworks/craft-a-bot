@@ -186,7 +186,8 @@ test('the Collections Desk generates a case with the rule under the flap, and li
 	).toBeAttached();
 	await expect(page.getByTestId('collections-decks').locator('tbody tr')).toHaveCount(10);
 	await expect(page.getByTestId('collections-cards').locator('li')).toHaveCount(4);
-	await expect(page.getByTestId('collections-evaluators').locator('li')).toHaveCount(4);
+	// Five since WP135 added `fs-collections/plan-explained`.
+	await expect(page.getByTestId('collections-evaluators').locator('li')).toHaveCount(5);
 	await expect(page.locator('[data-testid^="collections-map-node-service-line-"]')).toHaveCount(1);
 });
 

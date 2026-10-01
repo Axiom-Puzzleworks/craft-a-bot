@@ -9,6 +9,7 @@ import { describe, expect, it } from 'vitest';
 import { createRegistry } from '$lib/packs.js';
 import {
 	bandText,
+	controlRowsFor,
 	deltaText,
 	designFor,
 	effectMatrix,
@@ -109,7 +110,29 @@ describe('the Experiments page fold', () => {
 		expect(design.id).toBe('fs-lending-lending-executors-1-12');
 		expect(design.design.template.source?.book?.items.length).toBeGreaterThan(0);
 		expect(design.obligations).toEqual(lending.obligations);
-		expect(design.controls).toContain('fs-lending/control-map/affordability-first');
+		// Nothing named, no guard: the design claims no row, rather than every row of the desk's map (G103).
+		expect(design.controls).toEqual([]);
+		expect(controlRowsFor(lending, registry).map((row) => row.id)).toContain(
+			'fs-lending/control-map/affordability-first'
+		);
+		// Under a guard stack, the stack's own claims.
+		const guarded = designFor(
+			{
+				workflowId: lending.id,
+				title: '',
+				hypothesis: '',
+				axis: 'executors',
+				levels: ['rules-only', 'bot-everywhere'],
+				baseline: 'rules-only',
+				metrics: [choices[0]!.metric],
+				seed: 1,
+				size: 12,
+				guard: 'fs-lending/stack/policy-cards'
+			},
+			registry
+		);
+		expect(guarded.controls).toEqual(registry.getStack('fs-lending/stack/policy-cards')?.controls);
+		expect(guarded.controls.length).toBeGreaterThan(0);
 		const { campaigns } = expandExperiment(design);
 		expect(campaigns.map((campaign) => campaign.id)).toEqual([
 			'fs-lending-lending-executors-1-12--executors=rules-only',

@@ -87,6 +87,23 @@ export function metricChoicesFor(workflow: WorkflowSpec, registry: PackRegistry)
 	return choices;
 }
 
+/** The control-map rows a design on this workflow can claim to test: its pack's maps' rows, as the register keys them. */
+export function controlRowsFor(
+	workflow: WorkflowSpec,
+	registry: PackRegistry
+): Array<{ id: string; label: string }> {
+	const prefix = `${workflow.id.split('/')[0] ?? ''}/`;
+	return registry
+		.listControlMaps()
+		.filter((map) => map.id.startsWith(prefix))
+		.flatMap((map) =>
+			map.rows.map((row) => ({
+				id: `${map.id}/${row.ref}`,
+				label: `${row.title} (${row.framework})`
+			}))
+		);
+}
+
 /** The levels an axis offers for a workflow: its configurations, the context rungs; a knob's are typed. */
 export function levelsFor(axis: AuthorAxis, workflow: WorkflowSpec): string[] {
 	if (axis === 'executors') return Object.keys(workflow.configurations ?? {});
@@ -127,13 +144,11 @@ export function designFor(input: AuthorInput, registry: PackRegistry): Experimen
 		hypothesis:
 			input.hypothesis.trim() ||
 			`Changing ${input.axis}${input.knob ? ` (${input.knob})` : ''} from ${input.baseline} changes the pre-registered metrics.`,
-		// The pack's own control rows, so the register can fold this result (WP90).
+		// The control rows the design tests (WP90): the ones the person names, else the guard
+		// stack's own claims — never every row of the desk's map, which stamped one effect on
+		// every row (WP133, `110-…` G103).
 		controls:
-			input.controls ??
-			registry
-				.listControlMaps()
-				.filter((map) => map.id.startsWith(`${workflow.id.split('/')[0] ?? ''}/`))
-				.flatMap((map) => map.rows.map((row) => `${map.id}/${row.ref}`)),
+			input.controls ?? (input.guard ? (registry.getStack(input.guard)?.controls ?? []) : []),
 		obligations: [...(workflow.obligations ?? [])],
 		design: {
 			template: {

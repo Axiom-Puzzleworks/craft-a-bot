@@ -44,7 +44,11 @@ export const COLLECTIONS_CONTROL_ROWS: readonly ControlMapRow[] = [
 		title: 'The plan explained in plain words; agreed under four eyes',
 		obligation:
 			'A customer is told what the plan asks each month in words they can follow; a plan — a contract on the account — is agreed only when a person has confirmed it.',
-		evidence: [{ kind: 'policy-card', id: 'fs-collections/policy/a-plan-is-four-eyes' }],
+		evidence: [
+			{ kind: 'policy-card', id: 'fs-collections/policy/a-plan-is-four-eyes' },
+			// WP135 (`110-…` G107): the first half of the obligation, which had no evaluator.
+			{ kind: 'evaluator', id: 'fs-collections/plan-explained' }
+		],
 		status: 'unreviewed',
 		tags: ['fca:cd:understanding', 'pra:ss1-23:mitigants']
 	}

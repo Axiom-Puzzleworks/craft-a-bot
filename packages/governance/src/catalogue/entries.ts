@@ -1,4 +1,5 @@
 import type { CatalogueEntry, CatalogueSource, GuardrailCatalogue } from '@craftabot/core';
+import { SECOND_EDITION_ENTRIES } from './second-edition.js';
 
 /**
  * **The Guardrail Catalogue, first edition** (WP98, `86-CATALOGUE.md` §4;
@@ -510,10 +511,7 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		coverage: {
 			status: 'shipped',
 			componentIds: ['governance/untrusted-content', 'fs-bank/guard/quarantined-reader'],
-			implementedBy: [
-				'desk brief: records apart from instructions (43-DESK-WORLDS.md)',
-				'the content-is-untrusted card leaf (106-BENCHMARK.md §8.1)'
-			],
+			implementedBy: ['mechanism:core/untrusted-wrap', 'mechanism:desk/brief-separation'],
 			note: 'Every tool and line answer the component names is marked untrusted at post-act and wrapped between markers in the prompt as data, never instructions; the content-is-untrusted leaf lets a card act on it.',
 			since: 'WP124'
 		},
@@ -539,7 +537,11 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 				'fs-bank/guard/quarantined-reader'
 			],
 			implementedBy: [
-				'the poisoned factsheet, the CRM note and the doctored payslip decks (19-… #38)'
+				'scenario:fs-advice/scenarios/poisoned-factsheet',
+				'scenario:fs-fraud/scenarios/crm-note-injection',
+				'scenario:fs-lending/scenarios/doctored-payslip',
+				'scenario:fs-disputes/scenarios/merchant-note-injection',
+				'policy-card:fs-fraud/policy/no-auto-release-from-instructions-in-records'
 			],
 			note: 'Marking, taint and the quarantined reader answer a poisoned tool result — a planted SYSTEM line in a bureau answer is marked, and the call copying it blocked; a tool-description integrity check on the registry is still a blueprint.',
 			since: 'WP124'
@@ -560,7 +562,7 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		sources: [MEMORY_POISONING, OWASP_AGENTIC],
 		coverage: {
 			status: 'bespoke',
-			implementedBy: ['memory.updated on the trace (02-AGENT-MODEL.md §7)'],
+			implementedBy: ['mechanism:core/memory-trace'],
 			note: 'Every notebook write is on the trace; no provenance tag yet — Day 6 names a memory-provenance component and a card that refuses a think over untrusted memory.'
 		},
 		bankingRelevance: 'supporting'
@@ -583,8 +585,9 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 			status: 'shipped',
 			componentIds: ['geap/model-armor'],
 			implementedBy: [
-				'the redact verdict applied to say (85-COMPONENTS.md §4)',
-				'fs-advice/pii-contained'
+				'mechanism:core/redact-say',
+				'evaluator:fs-advice/pii-contained',
+				'policy-card:fs-advice/policy/pii-stays-on-the-desk'
 			],
 			note: 'Model Armor’s Sensitive Data Protection through the shell, its redaction applied to the outgoing line since WP96; the PII-contained evaluator reads the redaction.',
 			since: 'WP96'
@@ -607,7 +610,15 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		coverage: {
 			status: 'shipped',
 			componentIds: ['governance/policy-card'],
-			implementedBy: ['the desks’ policy cards (49-, 51-, 52-, 61-…)'],
+			implementedBy: [
+				'policy-card:fs-advice/policy/no-guarantees',
+				'policy-card:fs-advice/policy/risk-warning-rides-with-every-recommendation',
+				'policy-card:fs-fraud/policy/never-tip-off',
+				'policy-card:fs-onboarding/policy/a-hit-is-never-said',
+				'evaluator:fs-advice/no-guarantee-language',
+				'evaluator:fs-fraud/no-tip-off',
+				'evaluator:fs-onboarding/hit-contained'
+			],
 			note: 'Every desk’s cards, compiled as components.',
 			since: 'WP60'
 		},
@@ -628,7 +639,16 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		coverage: {
 			status: 'shipped',
 			componentIds: ['monitor/evaluator-breaker'],
-			implementedBy: ['the rubric evaluators (31-…)', 'geap/eval/* (39-…)'],
+			implementedBy: [
+				'evaluator:fs-advice/rubric/understanding',
+				'evaluator:fs-advice/rubric/support',
+				'evaluator:fs-fraud/rubric/distressed-call',
+				'evaluator:geap/eval/rubric',
+				'evaluator:geap/eval/safety',
+				'evaluator:geap/eval/fulfillment',
+				'evaluator:evals/judge/rubric',
+				'brick-kind:workshop/monitor-judge'
+			],
 			note: 'The rubric and hosted evaluators as judges with offline stand-ins; the breaker fits a judge at the chokepoint or a stage boundary. Bedrock’s automated-reasoning checks are a WP99 connection candidate, recorded research-grade for a bank’s rulebook.',
 			since: 'WP43'
 		},
@@ -648,7 +668,7 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		sources: [GUARDRAILS_AI, OPENAI_AGENTS],
 		coverage: {
 			status: 'shipped',
-			implementedBy: ['validateAgainst in @craftabot/workflow (69-WORKFLOWS.md §5)'],
+			implementedBy: ['mechanism:workflow/validate-against'],
 			note: 'A mechanism of the workflow runtime, not a component: every stage’s input and output against its JSON schema.',
 			since: 'WP79'
 		},
@@ -669,7 +689,8 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		coverage: {
 			status: 'shipped',
 			componentIds: ['governance/action-blocklist', 'governance/policy-card'],
-			note: 'The blocklist and the card leaves over arguments (33-…).',
+			implementedBy: ['guardrail:connector/tool-blocklist'],
+			note: 'The blocklist, the card leaves over arguments (33-…), and the Connector’s scopes refusing a service-line operation it was not given.',
 			since: 'WP0'
 		},
 		bankingRelevance: 'core'
@@ -687,9 +708,8 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		sources: [OPA, CEDAR, MS_AGT],
 		coverage: {
 			status: 'shipped',
-			componentIds: ['pdp-opa/opa'],
-			implementedBy: ['PredicateExpr v2 as the built-in engine (33-…)'],
-			note: 'OPA through the shell with its live checkpoint taken; Cedar is a blueprint connection.',
+			componentIds: ['pdp-opa/opa', 'governance/policy-card'],
+			note: 'OPA through the shell with its live checkpoint taken; the policy card’s predicate language is the built-in engine; Cedar is a blueprint connection.',
 			since: 'WP45'
 		},
 		bankingRelevance: 'core'
@@ -745,7 +765,7 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		coverage: {
 			status: 'shipped',
 			componentIds: ['governance/approval-mode'],
-			implementedBy: ['WorldActionDefinition.riskTier (33-…)'],
+			implementedBy: ['mechanism:core/risk-tier'],
 			note: 'Approval on everything or on what is reversible or irreversible, as the world declares.',
 			since: 'WP24'
 		},
@@ -766,10 +786,17 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		coverage: {
 			status: 'shipped',
 			implementedBy: [
-				'the four-eyes human stage (73-…)',
-				'the decision-rights ceilings (LENDING_CEILINGS)'
+				'mechanism:workflow/human-stage',
+				'mechanism:workflow/autonomy-ceilings',
+				'policy-card:fs-lending/policy/disbursement-is-four-eyes',
+				'policy-card:fs-fraud/policy/freeze-needs-a-second-look',
+				'policy-card:fs-advice/policy/four-eyes-on-execution',
+				'policy-card:fs-onboarding/policy/open-is-four-eyes',
+				'policy-card:fs-disputes/policy/reimbursement-is-four-eyes',
+				'policy-card:fs-collections/policy/a-plan-is-four-eyes',
+				'policy-card:fs-servicing/policy/closure-is-four-eyes'
 			],
-			note: 'Workflow content, not a component: a human stage and the ceilings per configuration.',
+			note: 'Workflow content and cards, not a component: a human stage and a four-eyes card on every desk’s irreversible act, and a ceiling per decision right by level. The ceilings are measured — a breach rate on every report — not enforced: nothing stops a decision above its ceiling yet (WP139 adds the mode).',
 			since: 'WP80'
 		},
 		bankingRelevance: 'core'
@@ -788,7 +815,8 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		coverage: {
 			status: 'shipped',
 			componentIds: ['governance/step-budget', 'governance/token-budget'],
-			note: 'OUT_OF_STEPS is the loop score.',
+			implementedBy: ['mechanism:core/group-token-budget', 'mechanism:workflow/bounds'],
+			note: 'OUT_OF_STEPS is the loop score; the group’s token budget caps an episode, and a journey is bounded in stages and value size.',
 			since: 'WP0'
 		},
 		bankingRelevance: 'supporting'
@@ -845,8 +873,10 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 			status: 'shipped',
 			componentIds: ['governance/policy-card'],
 			implementedBy: [
-				'Stop → run.finished STOPPED_BY_USER',
-				'the Fallback card and provider-fault (61-…)'
+				'mechanism:core/stop',
+				'mechanism:core/provider-fault',
+				'policy-card:fs-bank/policy/fallback',
+				'evaluator:fs-bank/told-plainly'
 			],
 			note: 'Stop is the session’s; the Fallback card is a policy card fitted on every desk; a provider fault is an injection the incident decks judge.',
 			since: 'WP72'
@@ -908,10 +938,7 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		coverage: {
 			status: 'shipped',
 			componentIds: ['governance/taint'],
-			implementedBy: [
-				'classification on every record and purpose-gating on every line (48-FS-BANK.md, tenet 13)',
-				'the taint-reaches card leaf (106-BENCHMARK.md §8.2)'
-			],
+			implementedBy: ['mechanism:fs-bank/purpose-gating', 'mechanism:desk/record-classification'],
 			note: 'Value taint: a call whose argument shares four words, or a long value whole, with what was marked untrusted is blocked or sent to a person; a paraphrase through the model’s reasoning is not followed.',
 			since: 'WP124'
 		},
@@ -931,8 +958,8 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		coverage: {
 			status: 'shipped',
 			componentIds: ['monitor/evaluator-breaker'],
-			implementedBy: ['the group Watchbot and the Compliance Watchbot (36-, 56-…)'],
-			note: 'The breaker at the chokepoint since WP64 and at a stage boundary since WP95; the Watchbot is a brick.',
+			implementedBy: ['brick-kind:monitor/watchbot', 'mechanism:monitor/watch-rules'],
+			note: 'The breaker at the chokepoint since WP64 and at a stage boundary since WP95; the Watchbot is a brick, its rules a second seat’s view of the trace.',
 			since: 'WP48'
 		},
 		bankingRelevance: 'core'
@@ -951,7 +978,7 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		sources: [DRIFT, OTEL_GENAI],
 		coverage: {
 			status: 'shipped',
-			implementedBy: ['@craftabot/metrics driftIn (68-…)', 'the Monitor (75-…)'],
+			implementedBy: ['mechanism:metrics/drift', 'mechanism:evals/monitor', 'gate:drift'],
 			note: 'Page–Hinkley and the Monitor over the stored series; not a component, a fold.',
 			since: 'WP49'
 		},
@@ -972,9 +999,10 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		coverage: {
 			status: 'shipped',
 			implementedBy: [
-				'the trace and its digest (07-…)',
-				'principal and attestation (55-…)',
-				'the OTel mapping (35-…)'
+				'mechanism:core/trace',
+				'mechanism:core/principal',
+				'mechanism:governance/otel',
+				'mechanism:workflow/handoff'
 			],
 			note: 'Hard rule 3: everything observable arrives as an event.',
 			since: 'WP0'
@@ -996,7 +1024,8 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		coverage: {
 			status: 'shipped',
 			componentIds: ['governance/policy-card', 'monitor/evaluator-breaker', 'geap/model-armor'],
-			note: 'The workflow runtime’s boundary chain (69-… §10).',
+			implementedBy: ['mechanism:workflow/boundary-chain'],
+			note: 'The workflow runtime’s boundary chain (69-… §10), tested on the lending journey; no shipped journey fits a guard at a stage boundary yet — every stage’s guard list is empty (WP137).',
 			since: 'WP95'
 		},
 		bankingRelevance: 'core'
@@ -1017,7 +1046,7 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		coverage: {
 			status: 'shipped',
 			componentIds: ['fs-bank/guard/quarantined-reader'],
-			implementedBy: ['the two-seat episode (46-, 56-…)'],
+			implementedBy: ['mechanism:core/group-chokepoint'],
 			note: 'The quarantined reader alone reads untrusted content, asked with nothing to act with, and the acting seat reads its typed answers instead; the Watchbot is a second seat with its own brain.',
 			since: 'WP124'
 		},
@@ -1073,7 +1102,7 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		sources: [ENTRA, OKTA_XAA, SPIFFE],
 		coverage: {
 			status: 'shipped',
-			implementedBy: ['principal, onBehalfOf and attestation (55-PRINCIPAL.md)'],
+			implementedBy: ['mechanism:core/principal', 'trace-guarantee:action.performed'],
 			note: 'On the trace when the host names one; no directory integration.',
 			since: 'WP65'
 		},
@@ -1094,9 +1123,9 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		coverage: {
 			status: 'shipped',
 			implementedBy: [
-				'the vault (cab.keys.v1)',
-				'the key-leak test',
-				'timed vault entries (26-… §6.6)'
+				'mechanism:core/key-vault',
+				'mechanism:core/key-leak-test',
+				'mechanism:core/export-scrub'
 			],
 			note: 'Hard rule 2.',
 			since: 'WP0'
@@ -1118,9 +1147,10 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		coverage: {
 			status: 'shipped',
 			implementedBy: [
-				'kit-file requires and semver ranges (40-…)',
-				'cassette digests (47-…)',
-				'the inventory entry (53-…)'
+				'mechanism:core/kit-requires',
+				'mechanism:core/cassette-digest',
+				'mechanism:core/agent-card',
+				'artefact:agent-card'
 			],
 			note: 'Partial: a content digest on every pack manifest checked at registration is a blueprint (19-… #30).',
 			since: 'WP52'
@@ -1140,7 +1170,7 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		sources: [A2A, OWASP_AGENTIC],
 		coverage: {
 			status: 'bespoke',
-			implementedBy: ['the party-line scenario (starter/party-line)'],
+			implementedBy: ['scenario:starter/scenarios/party-line'],
 			note: 'Shipped as a scenario a card can catch; authentication itself is a blueprint.'
 		},
 		bankingRelevance: 'supporting'
@@ -1160,7 +1190,12 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		sources: [INSPECT, TAU_BENCH],
 		coverage: {
 			status: 'shipped',
-			implementedBy: ['campaigns and gates (28-…)', 'the decks under pressure (49-, 51-, 52-…)'],
+			implementedBy: [
+				'mechanism:evals/campaign',
+				'mechanism:evals/benchmark',
+				'gate:outcome-rate',
+				'gate:evaluator-pass-rate'
+			],
 			note: 'Campaigns in CI on every push.',
 			since: 'WP38'
 		},
@@ -1180,10 +1215,7 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		coverage: {
 			status: 'shipped',
 			componentIds: ['governance/red-team-seat'],
-			implementedBy: [
-				'the adversary tier and the scripted adversary (28-…)',
-				'the adversarial counterpart tier over the adversarial corpora (106-BENCHMARK.md §8.4)'
-			],
+			implementedBy: ['mechanism:evals/adversary'],
 			note: 'The scripted adversary, and since WP124 the red-team seat: a counterpart speaking only attack rows of a desk’s adversarial corpus; a live red-team persona remains a configuration.',
 			since: 'WP38'
 		},
@@ -1204,9 +1236,10 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		coverage: {
 			status: 'shipped',
 			implementedBy: [
-				'the safety case v2 (37-…)',
-				'the assurance pack (53-…)',
-				'the inventory entry'
+				'mechanism:governance/safety-case',
+				'mechanism:governance/assurance-pack',
+				'artefact:safety-case',
+				'artefact:assurance-pack'
 			],
 			note: 'Rendered as markdown and one HTML file a reviewer opens with no app.',
 			since: 'WP67'
@@ -1226,7 +1259,11 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		sources: [INCIDENTS, NIST_RMF],
 		coverage: {
 			status: 'shipped',
-			implementedBy: ['the incidents fold and the Incidents screen (37-, 54-…)'],
+			implementedBy: [
+				'mechanism:governance/incidents',
+				'mechanism:governance/explain',
+				'artefact:incident-log'
+			],
 			note: 'Each incident’s findings carry the decision explained.',
 			since: 'WP49'
 		},
@@ -1245,7 +1282,7 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		sources: [PRA_SS1_23, NIST_RMF],
 		coverage: {
 			status: 'shipped',
-			implementedBy: ['experiments (72-…)', 'the Control Effectiveness Register (80-…)'],
+			implementedBy: ['mechanism:evals/experiment', 'mechanism:governance/control-effectiveness'],
 			note: 'The register joins a stack’s controls since WP97.',
 			since: 'WP90'
 		},
@@ -1266,8 +1303,12 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		sources: [PRA_SS1_23, ISO_42001],
 		coverage: {
 			status: 'shipped',
-			implementedBy: ['@craftabot/metrics fairness (68-…)', 'the parity gate (50-, 74-…)'],
-			note: 'The matched pair on the Lending Desk.',
+			implementedBy: [
+				'mechanism:metrics/fairness',
+				'gate:parity',
+				'policy-card:fs-lending/policy/cohort-blind'
+			],
+			note: 'Matched pairs on the lending, disputes and collections desks; age bands on fraud and collections.',
 			since: 'WP61'
 		},
 		bankingRelevance: 'core'
@@ -1287,11 +1328,8 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		sources: [AUTONOMY_LEVELS, AUTONOMY_STUDY],
 		coverage: {
 			status: 'shipped',
-			implementedBy: [
-				'the five reference configurations by level (73-, 76-…)',
-				'the human-load metrics'
-			],
-			note: 'Touches per case, unattended rate and ceiling breaches on every report.',
+			implementedBy: ['mechanism:workflow/autonomy-ceilings', 'mechanism:metrics/human-load'],
+			note: 'Touches per case, unattended rate and ceiling breaches on every report. A level’s ceilings are measured, not enforced (WP139).',
 			since: 'WP80'
 		},
 		bankingRelevance: 'core'
@@ -1309,7 +1347,7 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		sources: [APPROVAL_FATIGUE, AUTONOMY_STUDY],
 		coverage: {
 			status: 'shipped',
-			implementedBy: ['approvalsPerCase in the human-load rows (73-…)'],
+			implementedBy: ['mechanism:metrics/human-load'],
 			note: 'Counted; no adaptive throttling.',
 			since: 'WP80'
 		},
@@ -1329,7 +1367,7 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		sources: [EU_AI_ACT, FCA_COBS],
 		coverage: {
 			status: 'shipped',
-			implementedBy: ['decisionExplanation (54-…)', 'fs-lending/explanation-faithful'],
+			implementedBy: ['mechanism:governance/explain', 'evaluator:fs-lending/explanation-faithful'],
 			note: 'Explain in the Run Lab; the faithfulness evaluator on the lending desk.',
 			since: 'WP66'
 		},
@@ -1349,17 +1387,23 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		sources: [NIST_RMF, NIST_600, ISO_42001, EU_AI_ACT, PRA_SS1_23],
 		coverage: {
 			status: 'shipped',
-			implementedBy: ['the control maps (53-…)', 'the obligation vocabulary (48-…)'],
+			implementedBy: ['mechanism:governance/control-maps'],
 			note: 'A reference posture, not a compliance claim (08-… §6).',
 			since: 'WP67'
 		},
 		bankingRelevance: 'core'
-	})
+	}),
+	// ---------------------------------------------------------------- the second edition (WP132)
+	...SECOND_EDITION_ENTRIES
 ];
 
-/** The Guardrail Catalogue, its edition and entries, parsed against its schema (WP98). */
+/**
+ * The Guardrail Catalogue, its edition and entries, parsed against its schema
+ * (WP98). The second edition (`2026-10`, WP132) adds the techniques in
+ * `second-edition.ts` and names every implementation as a control reference.
+ */
 export const GUARDRAIL_CATALOGUE: GuardrailCatalogue = {
 	schemaVersion: 1,
-	edition: '2026-09',
+	edition: '2026-10',
 	entries: CATALOGUE_ENTRIES
 };

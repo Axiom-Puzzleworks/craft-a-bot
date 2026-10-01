@@ -46,6 +46,7 @@
 			| 'safety-case'
 			| 'assurance'
 			| 'catalogue'
+			| 'controls'
 			| 'readings'
 			| 'export'
 			| 'armour'
@@ -131,34 +132,7 @@
 					<li>
 						{#if destination.href}
 							<a
-								href={resolve(
-									destination.href as
-										| '/workshop'
-										| '/workshop/runs'
-										| '/workshop/evals'
-										| '/workshop/policies'
-										| '/workshop/bench'
-										| '/workshop/telemetry'
-										| '/workshop/monitor'
-										| '/workshop/conduct'
-										| '/workshop/model-risk'
-										| '/workshop/experiments'
-										| '/workshop/incidents'
-										| '/workshop/safety-case'
-										| '/workshop/assurance'
-										| '/workshop/catalogue'
-										| '/workshop/readings'
-										| '/workshop/export'
-										| '/workshop/armour'
-										| '/workshop/studio'
-										| '/workshop/evaluators'
-										| '/workshop/scenarios'
-										| '/workshop/sinks'
-										| '/workshop/campaigns'
-										| '/workshop/workflows'
-										| '/workshop/evidence'
-										| '/workshop/playground'
-								)}
+								href={resolve(destination.href as '/workshop')}
 								aria-current={current === destination.id ? 'page' : undefined}
 								data-testid="rail-{destination.id}">{destination.label}</a
 							>

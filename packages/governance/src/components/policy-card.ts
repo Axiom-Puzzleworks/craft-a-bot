@@ -20,7 +20,8 @@ export const policyCardComponent: GuardrailComponent<z.infer<typeof policyCardCo
 	technique: 'policy-as-code',
 	// The three loop hooks, and the two stage boundaries (WP95): at a boundary every rule on the card runs once over the stage's value.
 	points: ['pre-think', 'pre-act', 'post-act', 'stage-in', 'stage-out'],
-	verdicts: ['allow', 'block-action', 'stop-run'],
+	// A rule's `require-approval` compiles to a pause (WP132 found it undeclared, `110-…` G105).
+	verdicts: ['allow', 'block-action', 'stop-run', 'pause'],
 	cost: { class: 'free', latency: 'none' },
 	configSchema: policyCardComponentSchema,
 	explain: (config) => `Enforces the policy card ${config.cardId}.`,

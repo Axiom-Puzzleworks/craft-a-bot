@@ -82,7 +82,8 @@ export const CONTROL_GATE_KINDS = [
 	'no-regression',
 	'derived-metric',
 	'label-rate',
-	'parity'
+	'parity',
+	'drift'
 ] as const;
 
 /** The egress modes an `egress` evidence id may name (WP41). */

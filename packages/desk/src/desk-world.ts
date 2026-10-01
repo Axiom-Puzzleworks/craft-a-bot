@@ -16,6 +16,7 @@ import type {
 	WorldActionDefinition,
 	WorldCreateOptions,
 	WorldDefinition,
+	WorldKnobDefinition,
 	WorldInstance,
 	WorldLayout,
 	WorldSenseDefinition,
@@ -189,6 +190,8 @@ export interface DeskWorldSpec<Extra = Record<string, unknown>> {
 	desk: { title: string; role: string };
 	/** The purpose this desk reads records for (`41-…` §6.5.1). Carried and shown in WP53; WP54 gates on it. */
 	purpose?: string;
+	/** The knobs the desk reads from `config.knobs`, declared (WP132); carried onto the definition as they are. */
+	knobs?: readonly WorldKnobDefinition[];
 	layouts: DeskLayoutSpec<Extra>[];
 	actions: DeskActionSpec<Extra>[];
 	senses: DeskSenseSpec<Extra>[];
@@ -946,6 +949,7 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 			Object.entries(spec.predicates).map(([id, predicate]) => [id, predicate.description])
 		),
 		create: createInstance,
+		...(spec.knobs ? { knobs: spec.knobs } : {}),
 		// The five per-case metrics (WP61), folded by a campaign over a finished run.
 		metrics: deskMetrics(
 			(actionName) =>

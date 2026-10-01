@@ -33,6 +33,7 @@ const ROUTES: Record<string, string> = {
 	'Safety case': '/workshop/safety-case',
 	Assurance: '/workshop/assurance',
 	Catalogue: '/workshop/catalogue',
+	Controls: '/workshop/controls',
 	Audit: '/workshop/export',
 	Studio: '/workshop/studio'
 };

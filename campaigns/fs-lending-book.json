@@ -183,6 +183,13 @@
 				"evaluatorId": "fs-lending/decision-matches-rules",
 				"atLeast": 1
 			}
+		},
+		{
+			"id": "no-regression-on-the-book",
+			"require": {
+				"kind": "no-regression",
+				"tolerance": 0
+			}
 		}
 	]
 }

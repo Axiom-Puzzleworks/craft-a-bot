@@ -52,7 +52,7 @@
 | **Document** | Craft A Bot — User Manual |
 | **Version** | 1.5 (draft for review) |
 | **Date** | 30 September 2026 (sixth edition, after Day 7) |
-| **Applies to** | V1.0 plus Days 2–5 (WP0–WP93's craft-a-bot half) and Day 6 (WP94–WP110), merged to `main` as PR #50; Day 7 (WP111–WP131, WP125's live checkpoints pending) on the `day7` branch (Part I) |
+| **Applies to** | V1.0 plus Days 2–5 (WP0–WP93's craft-a-bot half) and Day 6 (WP94–WP110), merged to `main` as PR #50; Day 7 (WP111–WP131, WP125's live checkpoints pending; Part I), merged as PR #56; Phase AJ of the control suite (WP132–WP136, Part J) on the `phase-aj` branch |
 | **Publisher** | Axiom Verity |
 | **Audience** | Learners, AI-safety practitioners, conduct and model-risk reviewers, engineers |
 | **Status** | Draft — for internal review before external release |
@@ -171,6 +171,9 @@ Conventions used throughout:
 63. The benchmark
 64. The reading desk
 65. *Sure or unsure* — the Kit's Day 7 card
+
+**Part J — The control suite**
+66. The Control Inventory
 
 **Appendices**
 A. Screen index
@@ -1462,7 +1465,7 @@ Recorded rather than hidden.
 
 - **Artwork.** The interface is drawn with CSS placeholders where illustrated artwork is still in production. Every swap-in seam is built and tested against a placeholder.
 - **Two starter cards need more turns than the budget allows.** *Tidy the blocks* and *The locked chest* cannot currently be completed inside the 30-turn engine budget.
-- **Readings are records, not edits.** Control rows, calibration rows, catalogue entries, decision rights, blueprint items, the screening lists and the error and reviewer models all ship pending. A reading at `/workshop/readings` is a `review` beside the row: *accepted*, *amended* (with the value a maintainer should put in) or *rejected* (with why). The checks count accepted and amended rows as read. The pack's own field changes only when a maintainer edits it in; `craftabot readings export --format markdown` is their work list. None had been read when this edition was written: 260 wait on the bank.
+- **Readings are records, not edits.** Control rows, calibration rows, catalogue entries, decision rights, blueprint items, the screening lists and the error and reviewer models all ship pending. A reading at `/workshop/readings` is a `review` beside the row: *accepted*, *amended* (with the value a maintainer should put in) or *rejected* (with why). The checks count accepted and amended rows as read. The pack's own field changes only when a maintainer edits it in; `craftabot readings export --format markdown` is their work list. None had been read when this edition was written: 284 wait on the bank (260 before the catalogue's second edition, §66).
 - **The browser forks without overrides.** Forking with a different build is the harness's `fork --kit`.
 - **No cost model.** The product counts tokens and does not price them, and the dashboard says so rather than inventing a number.
 - **Every calibration row is awaiting review.** The table cites a source on every row, and every row shipped `review: pending` because the sprint could not wait for a reader to check each against its publication. The bank page counts them; they are read at `/workshop/readings` (§42.2).
@@ -2238,7 +2241,7 @@ A reading goes on the record under your name (Settings). Accepted and amended ro
 - **Push** sends a reading to the evidence store.
 - **The maintainer's list** is `craftabot readings export --format markdown`: the amendments to edit in, the rejections, then the unread.
 
-When this edition was written, 260 subjects waited and none had been read.
+When this edition was written, 284 subjects waited (260 before the catalogue's second edition, §66) and none had been read.
 
 > **Figure 29** — The reading desk over the error models: the readouts per kind, each model with the faults it plants and the rows it reads, and the three buttons. *(Appendix D, `ws-readings.png`.)*
 
@@ -2258,6 +2261,49 @@ The dial starts at 50%, so a first run loses. That is the lesson: a reader that 
 **What it teaches.** Confidence, and humans in the loop: the idea Day 7 added to the bank's journeys (§60), in a child's hand. The Demo Brain does exactly what the reader says, so the dial alone decides.
 
 > **Figure 30** — *Sure or unsure* after a won run at 65%: the queue with two visitors handed to a colleague, and every note's reading with its chip. *(Appendix D, `kit-sure-or-unsure.png`.)*
+
+# Part J — The control suite
+
+The bank's controls had been described in seven places: the Guardrail Catalogue (§54), the control maps on the Assurance entry, the register, the Studio, the Guard Rack, the benchmarks and the reading desk. Each had its own words for status, and none was keyed by the control itself. Part J is the page that is: one row per control, with what can honestly be said of it. The plan of record is `docs/design-day2/110-CONTROL-SUITE-PLAN.md`.
+
+## 66. The Control Inventory
+
+**What it lists.** `/workshop/controls` has one row for every control in the toolkit (`craftabot controls list` gives the same table). The kinds are:
+- guardrail components, and the Connector's scopes;
+- policy cards and stacks;
+- readers and evaluators;
+- the **mechanisms**: the engine's, the workflow's, the hosted shell's, the Gate's and the folds' fixed behaviour, such as the provider timeout, fail closed, the stage schemas or Stop;
+- campaign gate kinds;
+- the worlds' **knobs**, such as the lending thresholds, the reimbursement limit and the Kit's *sure enough* line;
+- the domain's decision-right **ceilings**;
+- the error and reviewer models, and the assurance pack's artefacts.
+
+The catalogue is the page of *techniques*; this is the page of *instances*. Each catalogue entry links to its instances (*The controls that implement it*).
+
+**The eight facets.** Each is folded from where it is recorded; nothing is typed in.
+- **Catalogue.** The catalogue entries that name the control, directly or through the component it runs on. A card runs on the policy-card component; a stack runs through its fits. *Uncatalogued* means none does. A knob or a model reads *not applicable*: it is a setting or the simulation's apparatus, not a technique.
+- **Fitted.** Where it is fitted: the shipped stacks, stage guards, journey configurations, campaigns and experiments. *Unfitted* is a finding, not an error. No shipped configuration, campaign or experiment names a stack today, for example; the Studio, the Spec Lab and `?stack=` do.
+- **Exercised.** Whether it fired in the runs and campaign reports stored in this browser: *fired ×n*, *not fired*, *not run*, or *no runs stored*. A run's summary keeps a guard's trips, not its checks, so a guard that ran and never tripped reads *not fired*. That is all the record can say.
+- **Measured.** Its latest benchmark measurement (§63), never a stand-in's, or *unmeasured*.
+- **Effect.** The register's best verdict over the control rows that cite the control. The verdict is the control's own rows', not its desk's. An experiment now claims only the rows a person ticks on its design (*Controls this tests*), or the guard stack's own claims; before, it claimed every row of the desk's map.
+- **Read.** The readings of the entries, rows, ceiling or model that describe it (§64).
+- **Turned in.** The surface that changes it, and the setting, or *fixed*.
+
+**The matrix.** A matrix of kind against facet heads the page. Each cell counts a kind's rows where the facet applies and how many are in the good state; a cell narrows the list. The filter is in the URL: kind, catalogue status, fitting, text, and a catalogue entry. A row opens its facets, with links to where it is read, measured and turned.
+
+**The orphan rule.** CI holds the inventory to one rule: no control is an orphan. Every component, card, stack, reader, evaluator and mechanism must be named by a catalogue entry or cited by a control row, or declared, with its reason, on a list that may only shrink. That list is empty.
+
+**On the bot.** The assurance pack's §1 lists *The controls on this bot*: its guardrails, fitted cards and the evaluators that judged its runs, each as the inventory words it. The Studio shows a stack's claims, the control rows it implements and the obligations it serves, before the register does.
+
+**What the inventory says about the bank today.**
+- No reader sits behind a confidence gate in any shipped configuration (§60's gate is in the optional TypeSafe journey and the Kit's card).
+- No shipped journey fits a guard at a stage boundary.
+- The decision-right ceilings are measured, never enforced.
+- Every shipped service is unmeasured.
+
+The second edition of the catalogue (68 entries) says the same in its notes. Phases AK–AM of the plan change these.
+
+> **Figure 31** — The Control Inventory over the knobs: the readouts, the matrix of kind against facet, and the twelve knobs the worlds declare. *(Appendix D, `ws-controls.png`.)*
 
 # Appendices
 
@@ -2298,6 +2344,7 @@ Routes are given as they appear in the `full` build. In a published section, pre
 | `/workshop/catalogue` | The Guardrail Catalogue | Every technique with its coverage status, threats and sources (§54) |
 | `/workshop/benchmarks` | Benchmarks | Every guard on the same adversarial rows; *unmeasured* where no cassette exists (§63) |
 | `/workshop/readings` | Readings | The queue of what ships pending, with its source; accept, amend, reject (§64) |
+| `/workshop/controls` | Control Inventory | Every control, one row each, with its eight facets; the filter in the URL (§66) |
 | `/workshop/playground/corpora` | The corpora | Every corpus with its guide, agreement and held-out part (§61) |
 | `/workshop/sinks` | Sinks | Configure a telemetry sink; attach it live |
 | `/workshop/telemetry` | Telemetry | By card, by cartridge, by day; trip mix; drift; autonomy |
@@ -2413,6 +2460,7 @@ Sources are under `apps/workbench/e2e/__screenshots__/<platform>/`, where `<plat
 | 28 | `ws-benchmarks.png` | A benchmark report over the stand-ins |
 | 29 | `ws-readings.png` | The reading desk over the error models |
 | 30 | `kit-sure-or-unsure.png` | *Sure or unsure* after a won run |
+| 31 | `ws-controls.png` | The Control Inventory over the knobs |
 
 Also available and not yet placed: `workshop-run-lab-explain.png` (the explanation panel), `ws-runs.png` (the Run Browser), `ws-run-lab-golden.png`, `ws-incidents.png`, `ws-safety-case.png`, `ws-sinks.png`, `ws-test-bench.png`. **Three baselines are still the screens' empty states** — `ws-workflows.png`, `ws-conduct.png` and `ws-model-risk.png` show a sentence saying no report is stored — and are not placed; a capture over the fixture corpus is the figure the Workflows list (§45.1), Conduct (§49.2) and Model risk (§49.3) want. The four new desks' pages (`ws-playground-onboarding.png`, `-disputes`, `-collections`, `-servicing`) are captured and not yet placed; the access snapshots (`access-320-*`, `access-640-*`, `access-pipeline-lit.png`) are the tests' own, not figures.
 

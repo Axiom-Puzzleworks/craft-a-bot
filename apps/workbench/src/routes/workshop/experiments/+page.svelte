@@ -18,6 +18,7 @@
 	import {
 		bandText,
 		deltaText,
+		controlRowsFor,
 		designFor,
 		effectMatrix,
 		levelsFor,
@@ -52,6 +53,8 @@
 	let picked = $state<string[]>([]);
 	let baseline = $state('');
 	let metricIds = $state<string[]>(['success', 'tokens']);
+	/** The control rows the design claims to test (WP133): none until a person names them, or the guard stack's own. */
+	let controlIds = $state<string[] | undefined>(undefined);
 	let title = $state('');
 	let hypothesis = $state('');
 	let seed = $state(1);
@@ -72,6 +75,7 @@
 	);
 	const baselineLevel = $derived(levels.includes(baseline) ? baseline : (levels[0] ?? ''));
 	const choices = $derived(workflow ? metricChoicesFor(workflow, registry) : []);
+	const controlRows = $derived(workflow ? controlRowsFor(workflow, registry) : []);
 	const metrics = $derived(
 		choices.filter((choice) => metricIds.includes(choice.id)).map((choice) => choice.metric)
 	);
@@ -90,6 +94,9 @@
 					metrics,
 					seed: Number(seed) || 1,
 					size: Number(size) || 1,
+					...(controlIds
+						? { controls: controlIds.filter((id) => controlRows.some((row) => row.id === id)) }
+						: {}),
 					// WP101: the Studio's *Use in… an experiment*.
 					...(guardStack ? { guard: guardStack } : {})
 				},
@@ -108,6 +115,10 @@
 		picked = picked.includes(level)
 			? picked.filter((entry) => entry !== level)
 			: [...picked, level];
+	}
+	function toggleControl(id: string): void {
+		const held = controlIds ?? design?.controls ?? [];
+		controlIds = held.includes(id) ? held.filter((entry) => entry !== id) : [...held, id];
 	}
 	function toggleMetric(id: string): void {
 		metricIds = metricIds.includes(id)
@@ -325,6 +336,22 @@
 				/>
 			</label>
 		</div>
+		{#if controlRows.length > 0}
+			<fieldset class="levels" data-testid="experiment-controls">
+				<legend>Controls this tests (the register folds the result onto these rows only)</legend>
+				{#each controlRows as row (row.id)}
+					<label>
+						<input
+							type="checkbox"
+							checked={(controlIds ?? design?.controls ?? []).includes(row.id)}
+							onchange={() => toggleControl(row.id)}
+							data-testid="experiment-control-{row.id.replace(/[^a-z0-9]+/gi, '-')}"
+						/>
+						{row.label}
+					</label>
+				{/each}
+			</fieldset>
+		{/if}
 		<fieldset class="levels">
 			<legend>Metrics</legend>
 			{#each choices as choice (choice.id)}

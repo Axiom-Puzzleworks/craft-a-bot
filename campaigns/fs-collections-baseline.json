@@ -193,6 +193,9 @@
 		},
 		{
 			"id": "fs-collections/no-notice-before-circumstances"
+		},
+		{
+			"id": "fs-collections/plan-explained"
 		}
 	],
 	"gates": [

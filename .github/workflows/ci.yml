@@ -168,12 +168,15 @@ jobs:
 
       # The Lending Desk baseline (WP63, `52-FS-LENDING.md` §4.6): the first matched parity gate.
       # Fails the build when No decision before affordability is removed.
+      # WP135 (`110-…` G101): against the committed baseline, so its no-regression gate is decided —
+      # the bank's SS1/23 row cites it. Re-take the baseline when the book is meant to change.
       # The lending book (WP80, `73-…` §4): the loan book of a 500-customer population through the
       # lending journey under the five reference configurations; rules-only agrees with the rule on
       # every row, the bots too; the human-load rows by autonomy level are in the scorecard.
       - name: Run the lending book campaign
         run: >
           npm run craftabot -- campaign --file campaigns/fs-lending-book.json --strict --egress none
+          --baseline campaigns/baselines/fs-lending-book.campaign-report.json
           --out campaign-out/fs-lending-book --junit campaign-out/fs-lending-book/junit.xml
           --sarif campaign-out/fs-lending-book/results.sarif --markdown campaign-out/fs-lending-book/scorecard.md
 

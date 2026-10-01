@@ -1,4 +1,4 @@
-import type { WorkflowSpec } from '@craftabot/core';
+import type { ControlMap, WorkflowSpec } from '@craftabot/core';
 import type { CampaignCell, CampaignReport, ObligationRow } from '@craftabot/evals';
 import { wilson } from '@craftabot/metrics';
 import { CONSUMER_DUTY_OUTCOMES, OBLIGATION_TAGS } from '@craftabot/pack-fs-bank';
@@ -17,6 +17,32 @@ export const TIPPING_OFF_EVALUATOR = 'fs-fraud/no-tip-off';
 export const KYC_EVALUATOR = 'fs-fraud/caller-verified-before-action';
 /** The complaints desk's DISP evaluators share this prefix (`61-…`). */
 export const DISP_EVALUATOR_PREFIX = 'fs-advice/complaint-';
+
+/**
+ * The obligation each lamp reads (WP135, `110-…` G107): its evaluators are the
+ * ones the control maps cite on a row with that tag — every desk's own, not two
+ * desks' — beside the ids above, which stand when no maps are given.
+ */
+export const CONDUCT_LAMP_TAGS = {
+	tippingOff: 'poca:tipping-off',
+	kyc: 'mlr:kyc',
+	disp: 'fca:disp:complaints'
+} as const;
+
+/** The evaluators the maps cite on rows carrying a tag, sorted. */
+export function evaluatorsTagged(maps: readonly ControlMap[], tag: string): string[] {
+	return [
+		...new Set(
+			maps.flatMap((map) =>
+				map.rows
+					.filter((row) => row.tags.includes(tag))
+					.flatMap((row) =>
+						row.evidence.filter((item) => item.kind === 'evaluator').map((item) => item.id)
+					)
+			)
+		)
+	].sort();
+}
 
 export interface ConductCase {
 	cellId: string;
@@ -60,6 +86,8 @@ export interface ConductFold {
 	disp: Array<{ evaluatorId: string; rate: RateWithBand }>;
 	tippingOff: RateWithBand | undefined;
 	kyc: RateWithBand | undefined;
+	/** The evaluators each pooled lamp read (WP135): what the page names under it. */
+	evaluators: { tippingOff: string[]; kyc: string[] };
 }
 
 const cellId = (cell: CampaignCell): string =>
@@ -76,21 +104,43 @@ export function governingStage(
 }
 
 function rateOver(cells: readonly CampaignCell[], evaluatorId: string): RateWithBand | undefined {
-	const judged = cells.filter((cell) => {
-		const verdict = cell.evaluations[evaluatorId];
-		return verdict !== undefined && cell.labels[evaluatorId] !== 'not-applicable';
-	});
-	if (judged.length === 0) return undefined;
-	const passed = judged.filter((cell) => cell.evaluations[evaluatorId] === 'pass').length;
-	const interval = wilson(passed, judged.length);
-	return { value: passed / judged.length, interval: [interval[0], interval[1]], n: judged.length };
+	return rateOverAll(cells, [evaluatorId]);
+}
+
+/** One rate over every judgment any of the evaluators gave: a cell judged by two counts twice. */
+function rateOverAll(
+	cells: readonly CampaignCell[],
+	evaluatorIds: readonly string[]
+): RateWithBand | undefined {
+	let judged = 0;
+	let passed = 0;
+	for (const cell of cells)
+		for (const evaluatorId of evaluatorIds) {
+			const verdict = cell.evaluations[evaluatorId];
+			if (verdict === undefined || cell.labels[evaluatorId] === 'not-applicable') continue;
+			judged += 1;
+			if (verdict === 'pass') passed += 1;
+		}
+	if (judged === 0) return undefined;
+	const interval = wilson(passed, judged);
+	return { value: passed / judged, interval: [interval[0], interval[1]], n: judged };
 }
 
 export function conductFold(
 	report: CampaignReport,
 	workflows: ReadonlyMap<string, WorkflowSpec> = new Map(),
-	options: { workflowIdOfCell?: (cell: CampaignCell) => string | undefined } = {}
+	options: {
+		workflowIdOfCell?: (cell: CampaignCell) => string | undefined;
+		/** The control maps whose tagged rows name each lamp's evaluators (WP135); absent, the ids above. */
+		controlMaps?: readonly ControlMap[];
+	} = {}
 ): ConductFold {
+	const maps = options.controlMaps ?? [];
+	const tagged = (tag: string, fallback: readonly string[]) =>
+		[...new Set([...fallback, ...evaluatorsTagged(maps, tag)])].sort();
+	const tippingOffIds = tagged(CONDUCT_LAMP_TAGS.tippingOff, [TIPPING_OFF_EVALUATOR]);
+	const kycIds = tagged(CONDUCT_LAMP_TAGS.kyc, [KYC_EVALUATOR]);
+	const dispTagged = evaluatorsTagged(maps, CONDUCT_LAMP_TAGS.disp);
 	const cells = report.cells;
 	const rows = report.summary?.obligations ?? [];
 	const tags = [
@@ -147,7 +197,7 @@ export function conductFold(
 	};
 
 	const dispIds = [...new Set(cells.flatMap((cell) => Object.keys(cell.evaluations)))]
-		.filter((id) => id.startsWith(DISP_EVALUATOR_PREFIX))
+		.filter((id) => id.startsWith(DISP_EVALUATOR_PREFIX) || dispTagged.includes(id))
 		.sort();
 	const disp = dispIds.flatMap((evaluatorId) => {
 		const rate = rateOver(cells, evaluatorId);
@@ -158,8 +208,9 @@ export function conductFold(
 		outcomes,
 		vulnerability,
 		disp,
-		tippingOff: rateOver(cells, TIPPING_OFF_EVALUATOR),
-		kyc: rateOver(cells, KYC_EVALUATOR)
+		tippingOff: rateOverAll(cells, tippingOffIds),
+		kyc: rateOverAll(cells, kycIds),
+		evaluators: { tippingOff: tippingOffIds, kyc: kycIds }
 	};
 }
 

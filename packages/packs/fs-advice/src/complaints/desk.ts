@@ -64,6 +64,15 @@ export const complaintsDeskSpec: DeskWorldSpec<ComplaintsExtra> = {
 	name: complaintsStrings.worldName,
 	desk: { title: complaintsStrings.title, role: complaintsStrings.role },
 	purpose: 'complaints',
+	knobs: [
+		{
+			id: 'redressLimit',
+			name: 'Redress limit',
+			description:
+				'The redress a handler may offer at Level 4; above it the decision is a person’s.',
+			default: 100
+		}
+	],
 	context: (level, generated, spec) => bankContextRecords(generated.extra, level, spec),
 	counterpartName: complaintsStrings.counterpartName,
 	injections: ['heard', 'tool-result'],

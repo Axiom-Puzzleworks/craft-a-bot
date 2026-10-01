@@ -27,6 +27,7 @@ import {
 import { campaignEvidenceFor, type CampaignEvidence } from './campaign-evidence.js';
 import { controlEffectiveness, type ControlEffectivenessRow } from './control-effectiveness.js';
 import { coverageSummary, type CoverageSummary } from './coverage.js';
+import { controlFacetWords, controlInventory, tripRef } from './control-inventory.js';
 import { GUARDRAIL_CATALOGUE } from '../catalogue/entries.js';
 import { driftIn, telemetrySeries, type DriftFlag, type TelemetryBucket } from './drift.js';
 import { explanationsForTicks, type DecisionExplanation } from './decision-explanation.js';
@@ -244,7 +245,8 @@ export interface AssurancePack {
 	digest: string;
 	posture: string;
 	bot: { id: string; name: string; goalCardId: string; worldId?: string; purpose?: string };
-	review: { rows: number; reviewed: number; unreviewed: number; pending: number };
+	/** The control rows: read (shipped reviewed, or read by a reader since WP133), still unread, disputed by a reader, pending a WP. */
+	review: { rows: number; reviewed: number; unreviewed: number; disputed: number; pending: number };
 	/** SS1/23 principle 1 — identification and classification: the inventory entry. */
 	inventory: {
 		agentCard: AgentCard;
@@ -262,6 +264,12 @@ export interface AssurancePack {
 		};
 		/** The Gates the runs came through (WP128): present only when a run names one. */
 		gates?: AssuranceGate[];
+		/**
+		 * The controls this bot runs with (WP134, `110-CONTROL-SUITE-PLAN.md` §4.3):
+		 * its guardrails, its fitted cards and the evaluators that judged its runs,
+		 * each as the Control Inventory words it over this bot's runs.
+		 */
+		controls: AssuranceControl[];
 	};
 	/** Principle 2 — governance: the safety stack, approvals, egress, the principal. */
 	governance: {
@@ -334,6 +342,21 @@ export interface AssurancePackInput {
 	controlReviews?: readonly ControlReview[];
 	/** Injected so a pack is reproducible; the digest does not cover it. */
 	now?: () => string;
+}
+
+/** One control on the bot, as the Control Inventory words it (WP134). */
+export interface AssuranceControl {
+	ref: string;
+	name: string;
+	/** The catalogue status, or `uncatalogued`. */
+	coverage: string;
+	/** The catalogue entries that name it. */
+	entries: string[];
+	/** The control-map rows that cite it, `{mapId}#{ref}`. */
+	rows: string[];
+	exercised: string;
+	measured: string;
+	effect: string;
 }
 
 const CONSUMER_DUTY: ReadonlyArray<{ tag: string; title: string }> = [
@@ -542,6 +565,38 @@ export async function assurancePackFor(input: AssurancePackInput): Promise<Assur
 	const gateKinds = new Set(
 		campaignReports.flatMap((report) => report.gates.map((gate) => gate.kind ?? ''))
 	);
+	// The controls on this bot (WP134): the Control Inventory over its own runs, kept to what it carries.
+	const register = controlEffectiveness(input.experimentResults ?? [], maps);
+	const carried = new Set<string>([
+		...safetyCase.guardrails.map((id) => tripRef(id, registry)),
+		...[...fitted].map((id) => `policy-card:${id}`),
+		...[...evaluated].map((id) => `evaluator:${id}`)
+	]);
+	const controls: AssuranceControl[] = controlInventory({
+		registry,
+		catalogue: GUARDRAIL_CATALOGUE,
+		summaries: mine.flatMap((run) => {
+			const summary = summaries.get(run.id);
+			return summary ? [summary] : [];
+		}),
+		evaluations: evaluations.filter((record) => mineIds.has(record.runId)),
+		register,
+		benchmarks: input.benchmarkReports ?? []
+	})
+		.filter((row) => carried.has(row.ref))
+		.map((row) => {
+			const words = controlFacetWords(row);
+			return {
+				ref: row.ref,
+				name: row.name,
+				coverage: row.coverage,
+				entries: row.entries.map((entry) => entry.id),
+				rows: row.rows.map((link) => `${link.mapId}#${link.ref}`),
+				exercised: words.exercised,
+				measured: words.measured,
+				effect: words.effect
+			};
+		});
 	const egressModes = new Set(mine.map((run) => summaries.get(run.id)?.egress?.mode));
 	const artefactsPresent = new Set<string>([
 		'agent-card',
@@ -605,10 +660,23 @@ export async function assurancePackFor(input: AssurancePackInput): Promise<Assur
 		})
 	}));
 	const allRows = maps.flatMap((map) => map.rows.map((row) => ({ map, row })));
+	// A row a reader has read counts as read (WP133, `110-…` G104): before, only a row that
+	// shipped without a status did, so the *Unreviewed* readout never moved.
+	const readerSays = (map: ControlMap, row: ControlMapRow) =>
+		reviewOf.get(`${map.id}/${row.ref}`)?.status;
 	const review = {
 		rows: allRows.length,
-		reviewed: allRows.filter(({ row }) => row.status === undefined).length,
-		unreviewed: allRows.filter(({ row }) => row.status === 'unreviewed').length,
+		reviewed: allRows.filter(
+			({ map, row }) =>
+				row.status === undefined ||
+				(row.status === 'unreviewed' && readerSays(map, row) === 'reviewed')
+		).length,
+		unreviewed: allRows.filter(
+			({ map, row }) => row.status === 'unreviewed' && readerSays(map, row) === undefined
+		).length,
+		disputed: allRows.filter(
+			({ map, row }) => row.status === 'unreviewed' && readerSays(map, row) === 'disputed'
+		).length,
 		pending: allRows.filter(({ row }) => row.status === 'pending').length
 	};
 
@@ -651,7 +719,8 @@ export async function assurancePackFor(input: AssurancePackInput): Promise<Assur
 				: {}),
 			...(goalCard ? { goalCard: { id: goalCard.id, title: goalCard.title } } : {}),
 			...(domain ? { domain } : {}),
-			...(gates.length > 0 ? { gates } : {})
+			...(gates.length > 0 ? { gates } : {}),
+			controls
 		},
 		governance: {
 			guardrails: [...safetyCase.guardrails],
@@ -694,7 +763,7 @@ export async function assurancePackFor(input: AssurancePackInput): Promise<Assur
 			killSwitch:
 				'run.finished with STOPPED_BY_USER — a person can stop any run, and the trace records it.',
 			hostedScreening: safetyCase.hostedScreening,
-			effects: controlEffectiveness(input.experimentResults ?? [], maps),
+			effects: register,
 			coverage: coverageSummary(GUARDRAIL_CATALOGUE, input.benchmarkReports)
 		},
 		monitoring: {

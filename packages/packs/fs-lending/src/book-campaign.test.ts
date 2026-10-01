@@ -70,8 +70,13 @@ describe('the lending book through the five configurations', { timeout: 300_000 
 		expect(made.gates.map((gate) => [gate.id, gate.passed])).toEqual([
 			['every-journey-completes', true],
 			['rules-only-agrees-with-the-rule', true],
-			['the-bots-agree-with-the-rule', true]
+			['the-bots-agree-with-the-rule', true],
+			// No baseline handed in: passed, and inconclusive (CI hands it the committed one).
+			['no-regression-on-the-book', true]
 		]);
+		expect(made.gates.find((gate) => gate.id === 'no-regression-on-the-book')?.inconclusive).toBe(
+			true
+		);
 		expect(made.passed).toBe(true);
 		expect(made.builds.map((build) => build.configuration)).toEqual([...LENDING_CONFIGURATION_IDS]);
 		expect(parseCampaignReport(JSON.parse(JSON.stringify(made)))).toEqual(made);

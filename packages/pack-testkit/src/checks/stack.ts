@@ -6,15 +6,20 @@ export interface StackCheckOptions {
 	resolve?: boolean;
 	/** Whether a component with a connection needs a stand-in — a browser edition (default `true`). */
 	browser?: boolean;
+	/** The obligation vocabulary a stack's `obligations` must come from (WP135); absent, they are not checked. */
+	knownObligations?: readonly string[];
+	/** The control-map rows a stack's `controls` may claim, `{mapId}/{ref}` (WP135); absent, they are not checked. */
+	knownControls?: readonly string[];
 }
 
 /**
- * **A stack's conformance** (WP97, `89-STACKS.md` §7): its three refusals.
+ * **A stack's conformance** (WP97, `89-STACKS.md` §7): its refusals.
  *
  * - `stack.well-formed` — the schema, and the chokepoint is the `group` half, never a fit at `group`.
  * - `stack.point` — every fit names a component the registry has, at a point the component declares, with a config its schema takes.
  * - `stack.capacity` — the same component twice at one point with the same config: the socket is over capacity for nothing.
  * - `stack.stand-in` — a component with a connection and no stand-in cannot fit a browser edition.
+ * - `stack.claims` — with `knownObligations` or `knownControls`, every obligation and control row the stack claims exists (WP135).
  */
 export function checkStack(
 	stack: Stack,
@@ -77,6 +82,26 @@ export function checkStack(
 				message: `"${stack.id}" fits ${fit.componentId}, a connection with no stand-in, which a browser edition cannot run`
 			});
 		}
+	}
+	// WP135 (`110-…` G106): a claim names something that exists — the lending stack had claimed an
+	// obligation tag no vocabulary holds, and nothing said so.
+	if (options.knownObligations) {
+		const known = new Set(options.knownObligations);
+		for (const tag of stack.obligations ?? [])
+			if (!known.has(tag))
+				issues.push({
+					check: 'stack.claims',
+					message: `"${stack.id}" claims obligation "${tag}", which is not in the obligation vocabulary`
+				});
+	}
+	if (options.knownControls) {
+		const known = new Set(options.knownControls);
+		for (const control of stack.controls ?? [])
+			if (!known.has(control))
+				issues.push({
+					check: 'stack.claims',
+					message: `"${stack.id}" claims control row "${control}", which no registered control map has`
+				});
 	}
 	return issues;
 }

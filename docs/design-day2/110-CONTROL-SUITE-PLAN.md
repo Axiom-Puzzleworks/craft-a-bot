@@ -1,6 +1,6 @@
 # 110 — The control suite: inventory, gaps and the plan to complete it
 
-> **Status (2026-10-01):** a research note and a phased plan, written for review. Nothing in it is built, nothing is scheduled, and it is not yet in `README.md`'s index or `CLAUDE.md`'s chain — both wait on the review. It proposes Phases AJ–AN, WP132–WP150, continuing `101-DAY7-ROADMAP.md`'s numbering, and gaps G91–G118 continuing `100-…`'s register.
+> **Status (2026-10-01):** a research note and a phased plan, reviewed and merged (PR #59); §5's five decisions settled the same day. It is the forward plan: Phase AJ is built on the `phase-aj` branch, one commit per WP, with a PR when the phase closes. It proposes Phases AJ–AN, WP132–WP150, continuing `101-DAY7-ROADMAP.md`'s numbering, and gaps G91–G118 continuing `100-…`'s register.
 
 ## 0. The ask, and the answer in one paragraph
 
@@ -188,13 +188,13 @@ Every value has a closed vocabulary and a fold that produces it; nothing is type
 - **The assurance pack's §1 inventory** gains the table; the catalogue page and the Studio read the same fold for their columns.
 - **`checkControlInventory`** in `pack-testkit`, run in CI over every shipped pack: every instance maps to at least one catalogue entry or is on the declared _uncatalogued_ list with a reason; every entry's `implementedBy` resolves to an instance id; every map row's evidence resolves (already) **and** every instance of a desk is cited by at least one row of that desk's map or is declared _supporting_ (G118).
 
-## 5. Decisions to settle before building
+## 5. Decisions (all five settled 2026-10-01)
 
-1. **Are ceilings enforced?** Today measured only (G97). Proposal: a `WorkflowConfig.ceilings: 'measure' | 'enforce'` mode, default `measure` so every golden run and experiment is unchanged; `enforce` turns a breach into a `pause` to a person at the stage boundary. The catalogue entries then say which.
+1. **Are ceilings enforced?** **Decided 2026-10-01: a mode, default `measure`.** Today measured only (G97). A `WorkflowConfig.ceilings: 'measure' | 'enforce'` mode, default `measure` so every golden run and experiment is unchanged; `enforce` turns a breach into a `pause` to a person at the stage boundary. The catalogue entries then say which.
 2. **One page or two?** **Decided 2026-10-01: two.** The catalogue stays the page of _techniques_ and the new `/workshop/controls` is the page of _instances_; each links to the other by entry id. Folding them into one would lose the catalogue's taxonomy and sources.
-3. **What is the orphan rule's severity?** Proposal: a failing CI check from the first edition, with the declared _uncatalogued_ list seeded with class A so the check is green on day one and shrinks.
-4. **Which class-D entries are the bank's, and which are generic?** Proposal: contestability, disclosure, vulnerability, timeliness and override-reason land as `bankingRelevance: 'core'` with FCA/DISP/GDPR sources; change control, failover, cost, argument validation, shadow mode, prompt integrity as generic.
-5. **The Kit.** Nothing here reaches purpose 1 except through the Safety brick's existing stack picker; a child-facing inventory is a Day 9 question.
+3. **What is the orphan rule's severity?** **Decided 2026-10-01: a failing CI check from the first edition**, with the declared _uncatalogued_ list seeded with class A so the check is green on day one and shrinks.
+4. **Which class-D entries are the bank's, and which are generic?** **Decided 2026-10-01: as proposed.** Contestability, disclosure, vulnerability, timeliness and override-reason land as `bankingRelevance: 'core'` with FCA/DISP/GDPR sources; change control, failover, cost, argument validation, shadow mode, prompt integrity as generic.
+5. **The Kit.** **Decided 2026-10-01: out of scope.** Nothing here reaches purpose 1 except through the Safety brick's existing stack picker; a child-facing inventory is a Day 9 question.
 
 ## 6. The phased plan — Phases AJ–AN, WP132–WP150
 
@@ -206,11 +206,11 @@ _Nothing new is claimed until what is claimed is true, and until there is one pl
 
 | WP        | What                                          | Definition of done                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Size | Retires                                                                   |
 | --------- | --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------- |
-| **WP132** | **The catalogue's second edition (2026-10)**  | Entries for G91–G96 and G109–G116 (some twenty new, each cited, `pending`); the three _not-applicable_ entries with reasons; `four-eyes`/`autonomy-levels` notes corrected to _measured, not enforced_; `policy-card` declares `pause`; the `mechanism` list in `governance` and every prose `implementedBy` replaced by an id; `docs/catalogue.md` regenerated; `checkCatalogue` refusing prose                                                                                                                       | M    | G91–G96, G97 (the claim), G105, G109–G116 (the entries)                   |
-| **WP133** | **The inventory fold and the orphan rule**    | `controlInventory` with the eight facets; `checkControlInventory` in `pack-testkit` and in CI with the seeded _uncatalogued_ list; `Exercised` folded from the shipped campaign reports; the register's effect **per instance** (`experiment.controls` must name rows the stack's fits cite, the designer's default narrowed to those); a reading counted in the pack's `review` figures                                                                                                                                  | M    | G103, G104, G117, G118                                                    |
-| **WP134** | **The page, the CLI and the pack**            | `/workshop/controls` with the Matrix, the URL filter, the row drawer, the _Configure / Read / Measure in…_ links; `craftabot controls list \| export`; the assurance pack's §1 table; the catalogue page and the Studio reading the fold; the Studio showing a stack's `controls` and `obligations`; a visual shot and the reader's walk                                                                                                                                                                                 | M    | G106 (the Studio half), W-5                                               |
-| **WP135** | **The rows brought into step**                | The DISP/SS1/21 "pending" lines corrected in `CLAUDE.md` and `53-…`; a `no-regression` gate on the lending book campaign so the SS1/23 row's evidence is present; the lending stack's tag fixed, `checkStack` refusing a tag outside `OBLIGATION_TAGS`; `controls`/`obligations` on the complaints, advice and fraud stacks; a _plan-understood_ evaluator on collections; the fraud card and advice evaluator cited; `advice-boundary` sourced (or its framework named as the bank's own policy); the Conduct lamps read from the desk's own map rows | S    | G101, G102, G106, G107                                                    |
-| **WP136** | **The Phase AJ exit review**                  | Every instance has a row; CI green on the orphan rule; the catalogue has no prose `implementedBy`; the readings queue counts the new entries; `docs/manual` Part J §66 _The Control Inventory_                                                                                                                                                                                                                                                                                                                           | S    | —                                                                         |
+| **WP132** ✅ | **Done 2026-10-01 — `86-CATALOGUE.md` §9.** **The catalogue's second edition (2026-10)**  | Entries for G91–G96 and G109–G116 (some twenty new, each cited, `pending`); the three _not-applicable_ entries with reasons; `four-eyes`/`autonomy-levels` notes corrected to _measured, not enforced_; `policy-card` declares `pause`; the `mechanism` list in `governance` and every prose `implementedBy` replaced by an id; `docs/catalogue.md` regenerated; `checkCatalogue` refusing prose                                                                                                                       | M    | G91–G96, G97 (the claim), G105, G109–G116 (the entries)                   |
+| **WP133** ✅ | **Done 2026-10-01 — §10's WP133 note.** **The inventory fold and the orphan rule**    | `controlInventory` with the eight facets; `checkControlInventory` in `pack-testkit` and in CI with the seeded _uncatalogued_ list; `Exercised` folded from the shipped campaign reports; the register's effect **per instance** (`experiment.controls` must name rows the stack's fits cite, the designer's default narrowed to those); a reading counted in the pack's `review` figures                                                                                                                                  | M    | G103, G104, G117, G118                                                    |
+| **WP134** ✅ | **Done 2026-10-01 — §10's WP134 note.** **The page, the CLI and the pack**            | `/workshop/controls` with the Matrix, the URL filter, the row drawer, the _Configure / Read / Measure in…_ links; `craftabot controls list \| export`; the assurance pack's §1 table; the catalogue page and the Studio reading the fold; the Studio showing a stack's `controls` and `obligations`; a visual shot and the reader's walk                                                                                                                                                                                 | M    | G106 (the Studio half), W-5                                               |
+| **WP135** ✅ | **Done 2026-10-01 — §10's WP135 note.** **The rows brought into step**                | The DISP/SS1/21 "pending" lines corrected in `CLAUDE.md` and `53-…`; a `no-regression` gate on the lending book campaign so the SS1/23 row's evidence is present; the lending stack's tag fixed, `checkStack` refusing a tag outside `OBLIGATION_TAGS`; `controls`/`obligations` on the complaints, advice and fraud stacks; a _plan-understood_ evaluator on collections; the fraud card and advice evaluator cited; `advice-boundary` sourced (or its framework named as the bank's own policy); the Conduct lamps read from the desk's own map rows | S    | G101, G102, G106, G107                                                    |
+| **WP136** ✅ | **Done 2026-10-01 — §10's Phase AJ exit review.** **The Phase AJ exit review**                  | Every instance has a row; CI green on the orphan rule; the catalogue has no prose `implementedBy`; the readings queue counts the new entries; `docs/manual` Part J §66 _The Control Inventory_                                                                                                                                                                                                                                                                                                                           | S    | —                                                                         |
 
 **Exit:** a reader can open one page, point at any control and read eight true facets.
 
@@ -287,6 +287,70 @@ Roughly: AJ a week and a half; AK a week; AL a week; AM two weeks; AN three sess
 
 Compliance opinions; a live reviewer fitted to observed people; a corpus of real calls; the Gate as a product (auth, tenancy, rate limits — `101-…` §7); other industries' packs; the Kit beyond the Safety brick's picker; retention, tenancy access control and C2PA, recorded _not applicable_ with reasons in WP132.
 
-## 10. Exit reviews
+## 10. Exit reviews and work-package notes
 
-_(Recorded here as each phase closes.)_
+_(Recorded here as each work package and phase closes.)_
+
+> **WP132 — done 2026-10-01.** The catalogue's second edition, `2026-10`: 68 entries, 47 shipped, 10 bespoke, 5 blueprint, 6 not applicable, every implementation a control reference. Recorded in `86-CATALOGUE.md` §9.
+
+> **WP133 — done 2026-10-01.** As §4 describes, with these specifics and divergences:
+>
+> - **The fold** is `controlInventory` in `governance/reports/control-inventory.ts`: one row per instance — components, the Connector's guardrail, cards, stacks, readers, evaluators, the declared mechanisms, gate kinds, knobs, ceilings, error and reviewer models, artefacts, and whatever else the catalogue cites — with the eight facets. *Coverage* is the citing entries, a card inheriting through `governance/policy-card`, a stack through its fits and a reader through the confidence gate. *Fitted* reads the stacks, the stage guards, the workflow configurations and, structurally, the shipped campaign and experiment files (`campaignUses`). *Exercised* is `fired` · `not-fired` · `not-run` · `no-runs`: a run summary keeps trips by guardrail id but not checks, so a guard that ran and never tripped reads *not fired*, which is all the record can say. *Effect* is the best register verdict over the map rows that cite the instance (G103). *Reviewed* folds the readings of its entries, rows, ceiling or model.
+> - **Two `core` seams**, both additive: the reference kinds `ceiling` (`{domainId}#{kind}`) and `knob` (`{worldId}#{knob}`), and `WorldDefinition.knobs` (`43-…`'s dated note), declared by four worlds.
+> - **The orphan rule** is `checkControlInventory` in `governance/controls/check.ts`, beside `checkCatalogue` rather than in `pack-testkit`, which does not depend on `governance`. It holds components, guardrails, cards, stacks, readers, evaluators and mechanisms; CI runs it over every pack in `harness/src/control-inventory.test.ts`. Its first run found three orphans: the rubric judge and the benchmark (now cited by *LLM as judge* and *eval harness*), and `fs-advice/execution-approved`, declared in `UNCATALOGUED_CONTROLS` until WP135 cites it.
+> - **G103:** the Experiments designer no longer claims every row of the desk's map. It claims the rows a person ticks on the page's new *Controls this tests* fieldset, else the guard stack's own `controls`, else none.
+> - **G104:** the assurance pack's counts honour a reading (`53-…`'s dated note).
+> - **What the inventory says about the bank on its first fold** (256 rows): no reader is fitted behind a gate in any shipped configuration (G99); no shipped configuration, campaign or experiment names a stack — stacks are reached through the Studio, the Spec Lab and `?stack=`; the rubric and hosted judges are fitted in no shipped campaign; two gate kinds (`drift`, `no-regression`) gate nothing shipped (G101). The test pins the first two as the code's present truth, so WP137–WP138 must change them on purpose.
+
+> **WP134 — done 2026-10-01.** As §4.3 describes:
+>
+> - **`/workshop/controls`** (`lib/workshop/controls.ts`): readouts, a kind × facet Matrix whose cell narrows the list, filters for kind, catalogue status, fitting, text and catalogue entry, all in the URL. A row opens its eight facets with links to where it is read, measured and turned. The page reads the stored runs, campaign reports, experiment results, benchmarks and readings. The rail's *Controls* sits beside *Catalogue*, which links each technique to its instances (`?entry=`).
+> - **`craftabot controls list | export [--format json|markdown]`** (`harness/src/commands/controls.ts`), over the installed packs, the shipped campaigns, `experiments/` and, with `--store`, a run store. The words are `governance`'s `controlFacetWords`, so the page and the export say the same thing.
+> - **The assurance pack's §1** gains *The controls on this bot*: its guardrails, fitted cards and the evaluators that judged its runs, as the inventory words them (`AssurancePack.inventory.controls`). Evaluation records now count toward *exercised*.
+> - **The Studio** shows a stack's `controls` and `obligations` claims (G106's Studio half).
+> - **Divergences.**
+>   - The *Catalogue* facet inherits for ceilings (through the ceilings' mechanism), gate kinds (through campaigns) and artefacts (through the mechanism that makes each). Knobs and models read *not applicable*, as settings and simulation apparatus rather than techniques.
+>   - `@craftabot/governance` is declared side-effect free (`01-…` §8's dated note). That took 136 KiB off the Kit's first page.
+>   - The rail's `resolve` cast is now a single route, as the palette's and *Linked from*'s were. TypeScript stops matching a union of more than 25 routes against `resolve`'s overloads.
+> - **The e2e.** `e2e/controls.spec.ts`; the route on the axe, access, density and palette lists; `ws-controls.png` (the knobs). The experiments e2e now ticks the row its design tests. Twenty-four win32 baselines moved with the rail's new entry and are re-taken; the Linux set comes from CI's artefact.
+
+> **WP135 — done 2026-10-01.** As §6 lists:
+>
+> - **G101.** The lending book campaign gains `no-regression-on-the-book`. CI hands it a committed baseline (`campaigns/baselines/fs-lending-book.campaign-report.json`), so the gate is decided rather than inconclusive, and the bank's SS1/23 row cites a gate a shipped campaign declares.
+> - **G102.** The two rows `CLAUDE.md` and `53-…` called `pending` have carried their evidence since WP72; both say so now.
+> - **G106.**
+>   - The lending stack's obligation is `fca:cd:understanding`.
+>   - `checkStack` refuses a claimed obligation outside the vocabulary or a claimed control row no map has (`stack.claims`, with `knownObligations`/`knownControls`); `harness/src/stacks.test.ts` runs it over every stack.
+>   - The complaints stack claims the bank's DISP row, and the advice and fraud stacks name their obligations.
+> - **G107.**
+>   - `fs-collections/plan-explained` stands behind the collections row's first half (`91-…`'s dated note, with its finding).
+>   - The fraud card *no auto-release from instructions in records* has a row of its own (`records-are-data`), and the advice desk's `execution-approved` is cited on its SS1/23 mitigants row. `UNCATALOGUED_CONTROLS` is empty, which meets §8 item 2 early.
+>   - The advice boundary names its framework (FCA PERG 8 and FG17/8; `unreviewed`, for a reader to confirm).
+>   - The Conduct page's tipping-off, KYC and DISP lamps read every evaluator the control maps cite on a row with the lamp's obligation tag (`evaluatorsTagged`), pooled, so the onboarding desk's `hit-contained` now lights the tipping-off lamp. The vulnerability matrix still reads the advice desk's evaluator alone, because its *recognised* axis is that evaluator's own label.
+> - **Baselines.** Three win32 baselines moved: the assurance page's new row, the evaluators list and the collections page.
+
+> **Phase AJ exit review — 2026-10-01 (WP136).** The phase's exit was *a reader can open one page, point at any control and read eight true facets*. **Met.** `/workshop/controls` folds 261 controls, and `craftabot controls export` gives the same table. The DoD, item by item:
+>
+> - **Every instance has a row: met.** The fold enumerates every registered component, card, stack, reader and evaluator, every declared mechanism, gate kind, knob and ceiling, the models and the artefacts. `harness/src/control-inventory.test.ts` holds the refs unique and the kinds present.
+> - **The orphan rule green: met locally.** The harness test is in CI's unit run, and `UNCATALOGUED_CONTROLS` is empty. CI itself has not run, since `phase-aj` is unpushed.
+> - **The catalogue has no prose `implementedBy`: met.** The schema refuses prose, and `checkCatalogue` resolves every reference (`catalogue.implemented-by`).
+> - **The readings queue counts the new entries: met.** 284 subjects: 68 catalogue entries and 65 control rows among them.
+> - **The manual's Part J §66: met**, with Figure 31 (`ws-controls.png`, win32). The PDF is not rebuilt; that waits for WP150's Part J additions, so it is rebuilt once.
+>
+> Against §8's done list: item 1 is met. Item 2 is met early: the uncatalogued list is empty after WP135. Item 3 is met in part: the second edition has no prose and no overclaim, and the class-D techniques are placed honestly as bespoke or blueprint; Phases AL and AM ship them.
+>
+> **Findings the phase surfaced.**
+> - No shipped path tells a collections customer the agreed plan in words (`91-…`).
+> - No shipped configuration, campaign or experiment names a stack.
+> - No reader is gated anywhere shipped.
+> - 31 evaluators are named by control rows but by no catalogue entry. That is allowed by the orphan rule and shown on the page.
+> - The `drift` gate kind gates nothing shipped.
+> - The Kit's first page was carrying the catalogue on every visit; 136 KiB were recovered.
+>
+> **For Andrew's reading.** The 23 new catalogue entries and their sources; the fraud desk's new `records-are-data` row; the advice boundary's framework (FCA PERG 8 and FG17/8); the lending book's committed baseline (re-take it when the book is meant to change); the budgets (`01-…` §8).
+>
+> **Outstanding.**
+> - The Linux baselines for the shots this phase moved come from CI's `visual` artefact on the first push, as before: 24 rail shots, `ws-controls.png`, and the three WP135 moved.
+> - The PR for `phase-aj`.
+>
+> **Phase AJ is closed. Next: Phase AK, WP137–WP140.**

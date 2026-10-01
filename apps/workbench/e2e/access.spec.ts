@@ -55,6 +55,7 @@ const ROUTES = [
 	'/workshop/safety-case',
 	'/workshop/assurance',
 	'/workshop/catalogue',
+	'/workshop/controls',
 	'/workshop/benchmarks',
 	'/workshop/readings',
 	'/workshop/playground/corpora',

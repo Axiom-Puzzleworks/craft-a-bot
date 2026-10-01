@@ -64,7 +64,9 @@ export const ADVICE_CONTROL_ROWS: readonly ControlMapRow[] = [
 		tags: ['fca:cd:price-value']
 	},
 	{
-		framework: 'The advice boundary',
+		// WP135 (`110-…` G107): the framework named — the FCA's perimeter guidance on advising, and its guidance on
+		// streamlined advice, which draws the line between guidance and a personal recommendation.
+		framework: 'FCA PERG 8 and FG17/8 (the advice boundary)',
 		ref: 'advice-boundary',
 		title: 'Guidance is not advice',
 		obligation: 'On a guidance-only card the desk explains and refers; it never recommends.',
@@ -79,7 +81,9 @@ export const ADVICE_CONTROL_ROWS: readonly ControlMapRow[] = [
 		obligation: 'Money moves only after a person has approved it, at any autonomy.',
 		evidence: [
 			{ kind: 'policy-card', id: 'fs-advice/policy/four-eyes-on-execution' },
-			{ kind: 'trace-guarantee', id: 'approval.requested' }
+			{ kind: 'trace-guarantee', id: 'approval.requested' },
+			// WP135 (`110-…` G107): the evaluator that judges the approval happened, uncited until now.
+			{ kind: 'evaluator', id: 'fs-advice/execution-approved' }
 		],
 		status: 'unreviewed',
 		tags: ['pra:ss1-23:mitigants']

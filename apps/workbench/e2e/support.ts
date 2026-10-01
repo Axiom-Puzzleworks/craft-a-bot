@@ -205,6 +205,10 @@ export async function buildAndGo(page: Page, cardTestId = 'card-snack'): Promise
 	await buildReadyBot(page, cardTestId);
 	await page.getByRole('button', { name: /GO/ }).click();
 	await expect(page).toHaveURL(/\/play\//);
+	// The URL changes before the run is ready; a key pressed in between is lost — the run
+	// controls' Space is ignored until they are mounted and while the session is still busy
+	// being prepared, which a slow runner makes long. Play is enabled exactly when it is ready.
+	await expect(page.getByTestId('play')).toBeEnabled();
 }
 
 /**

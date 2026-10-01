@@ -117,6 +117,18 @@ none` refuses every call.
 
 The readings are the `review` records, and the `control-review` alias, in the content directory (`--content`) and, with `--store`, in a run store. The markdown is the maintainer's work list: the amendments to edit in, the rejections, then the unread by kind. With `--out`, the terminal gets one readout per kind.
 
+## The Control Inventory (WP134)
+
+`craftabot controls list | export [--format json|markdown] [--out <file>] [--store <dir>] [--experiments <dir>]` folds the Control Inventory (`110-CONTROL-SUITE-PLAN.md` §4), the table `/workshop/controls` renders. It has one row per control the installed packs ship, among them the components, cards, stacks, readers, evaluators, the declared mechanisms, gate kinds, knobs and ceilings. Each row carries eight facets:
+
+- the catalogue entries that name it;
+- where it is fitted: the shipped campaigns and the experiment files under `--experiments` (`experiments` by default);
+- whether it fired, its benchmark and its register effect, from a run store with `--store`;
+- its readings, from `--content` and `--store`;
+- where it is turned.
+
+`list` prints one line per kind. `export` writes the table as JSON (`craftabot-control-inventory` v1) or as markdown, one table per kind.
+
 ## Experiments (WP89)
 
 `craftabot experiment run --file <experiment.json> [--jobs <n>] [--egress …] [--out ./campaign-out]` expands a design (`docs/schemas/experiment.schema.json`; `72-EXPERIMENTS.md` §3) to one campaign per level combination — the template's guards, builds, brains and contexts with each factor's axis set to its level, the seeds shared — writes each as `<out>/<campaign-id>.campaign.json`, runs each as `campaign` runs one, keeps the report as `<out>/<campaign-id>.report.json`, and folds the reports into `<out>/<experiment-id>.experiment-result.json` (`experiment-result.schema.json`, with its digest) and `.md`: for each metric and factor, every treatment level against the baseline as a difference with its interval and _n_ (Newcombe for rates, Welch for means, the sign test over the pairs the shared seeds make), the cost on each side, and the verdict over the intervals — _supported_, _not-supported_ or _inconclusive_ — with the minimum detectable effect at the achieved _n_ in the note. `experiment analyse --file … --out …` re-folds the reports already there; `experiment render --result <file>` prints a result as markdown, its digest verified.

@@ -123,7 +123,15 @@ export const adviceStacks: Stack[] = deskStacks({
 		breakOn: [{ evaluatorId: SUITABILITY_COMPLETE_ID, onFail: true }]
 	},
 	// The register's control ids (`80-…`): `{mapId}/{ref}`, so a stack's effect shows on the control's row.
-	controls: adviceControlMap.rows.map((row) => `${adviceControlMap.id}/${row.ref}`)
+	controls: adviceControlMap.rows.map((row) => `${adviceControlMap.id}/${row.ref}`),
+	// WP135 (`110-…` G106): the obligations the cards serve, as the advice map's rows tag them.
+	obligations: [
+		'fca:cobs-9:suitability',
+		'fca:cobs-4:promotions',
+		'fca:fg21-1:vulnerability',
+		'fca:cd:price-value',
+		'ukgdpr:data-minimisation'
+	]
 });
 
 export function adviceBaseline(options: AdviceBaselineOptions = {}): Record<string, unknown> {
