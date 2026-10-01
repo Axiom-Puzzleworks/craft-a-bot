@@ -8,7 +8,7 @@ import {
 	type WorkflowRun
 } from '@craftabot/core';
 import { createMockProvider, createTestClock, obedient } from '@craftabot/core/testing';
-import fsBankPack, { complaintBook, population } from '@craftabot/pack-fs-bank';
+import fsBankPack, { DESK_READER_LINE, complaintBook, population } from '@craftabot/pack-fs-bank';
 import starterPack from '@craftabot/pack-starter';
 import { checkReader } from '@craftabot/pack-testkit';
 import { runWorkflow, withoutReaders } from '@craftabot/workflow';
@@ -17,7 +17,12 @@ import fsAdvicePack from '../index.js';
 import { planFor } from '../testing/plans.js';
 import { complaintCaseFromItem } from './cases.js';
 import { complaintsDesk } from './desk.js';
-import { COMPLAINTS_READERS, COMPLAINTS_RULE_READERS, ROOT_CAUSE_QUESTION } from './readers.js';
+import {
+	COMPLAINTS_GATED_READERS,
+	COMPLAINTS_READERS,
+	COMPLAINTS_RULE_READERS,
+	ROOT_CAUSE_QUESTION
+} from './readers.js';
 import { COMPLAINTS_CONFIGURATIONS, complaintsWorkflow, rootCauseOf } from './workflow.js';
 
 /**
@@ -75,6 +80,15 @@ const unstamped = (traces: EngineEvent[][]) =>
 		})
 	);
 
+/** The shipped configuration with the rules back where its gated readers stand (WP138): the identity's baseline. */
+function ruled(config: WorkflowConfig): WorkflowConfig {
+	const executors = { ...(config.executors ?? {}) };
+	for (const stageId of Object.keys(COMPLAINTS_RULE_READERS))
+		if (executors[stageId]?.kind === 'reader')
+			executors[stageId] = { kind: 'rule', rule: `${stageId}-v1` };
+	return { ...config, executors };
+}
+
 function fitted(
 	config: WorkflowConfig,
 	gate?: Extract<Executor, { kind: 'reader' }>['gate']
@@ -89,11 +103,32 @@ function fitted(
 	return { config: { ...config, executors }, stages };
 }
 
+describe('the gated readers the shipped configurations fit (WP138)', () => {
+	it('stand where the rules stood, behind the desk’s line, with the rule as the else', () => {
+		for (const [id, config] of Object.entries(COMPLAINTS_CONFIGURATIONS))
+			for (const [stageId, executor] of Object.entries(config.executors ?? {})) {
+				if (executor.kind !== 'reader') continue;
+				expect(executor, `${id} · ${stageId}`).toEqual(
+					COMPLAINTS_GATED_READERS[stageId as keyof typeof COMPLAINTS_GATED_READERS]
+				);
+				expect(executor.gate, `${id} · ${stageId}`).toEqual({
+					threshold: DESK_READER_LINE,
+					else: { kind: 'rule', rule: `${stageId}-v1` }
+				});
+			}
+		const fitted = Object.values(COMPLAINTS_CONFIGURATIONS).filter(
+			(config) => config.executors?.['root-cause']?.kind === 'reader'
+		);
+		expect(fitted.length).toBeGreaterThan(0);
+	});
+});
+
 describe('the complaints rule reader (WP117)', { timeout: 300_000 }, () => {
 	it('changes no outcome where it replaces the rule, gated or not', async () => {
 		let compared = 0;
 		for (const id of ['rules-only', 'bot-acknowledges-only'] as const) {
-			const base = COMPLAINTS_CONFIGURATIONS[id];
+			// WP138: the shipped configuration fits the gated readers; the baseline puts the rules back.
+			const base = ruled(COMPLAINTS_CONFIGURATIONS[id]);
 			const plain = fitted(base);
 			expect(plain.stages, id).toEqual(['root-cause']);
 			const gated = fitted(base, { threshold: 1, else: { kind: 'rule', rule: 'root-cause-v1' } });

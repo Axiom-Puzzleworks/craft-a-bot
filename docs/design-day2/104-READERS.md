@@ -374,3 +374,5 @@ The typesafe journey's **`llm-mock`** configuration reads with it.
 > - OpenAI's and the other shipped providers' constrained and log-probability paths wait on the live checkpoints (WP125).
 > - The hosted reader as a guard has no `callLine` at a loop point: only rule and LLM readers guard until the benchmark (WP122) needs it.
 > - The calibration pane's screenshot still has no shipped reader configuration in the Workbench (WP118's shortfall stands).
+
+> **Amended 2026-10-01 (WP138, `110-CONTROL-SUITE-PLAN.md` §10):** the shipped configurations now fit the desks' rule readers behind a gate wherever those stages were rules. These are servicing's `classify` and `record`, disputes' `classify` and complaints' `root-cause`, in the rules-only and Level 2 configurations. The line is `fs-bank`'s `DESK_READER_LINE` (0.8, stated) and the `else` is the bank's own rule (`*_GATED_READERS`). Outcomes are unchanged, since a rule reader is sure every time; a less certain reader swapped in at the same id hands what it is unsure of to the rule.

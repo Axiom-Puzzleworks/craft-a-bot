@@ -1,3 +1,4 @@
+import { SERVICING_GATED_READERS } from './readers.js';
 import type {
 	ActionCall,
 	Book,
@@ -418,11 +419,21 @@ const rulesFor = (...ids: string[]): Record<string, Executor> =>
 export const SERVICING_CONFIGURATIONS: Record<ServicingConfigurationId, WorkflowConfig> = {
 	/** The control: every stage a rule; a person confirms a closure, as the bank does today. */
 	'rules-only': {
-		executors: { ...rulesFor('identify', 'classify', 'act', 'record'), close: rule('act-v1') }
+		executors: {
+			...rulesFor('identify', 'classify', 'act', 'record'),
+			close: rule('act-v1'),
+			// WP138: the classify-shaped stages on the gated rule readers — the same answers, behind the desk's line.
+			...SERVICING_GATED_READERS
+		}
 	},
 	/** Level 2: the bot identifies the caller; the rules classify, act and record; a person confirms a closure. */
 	'bot-identifies-only': {
-		executors: { ...rulesFor('classify', 'act', 'record'), close: rule('act-v1') },
+		executors: {
+			...rulesFor('classify', 'act', 'record'),
+			close: rule('act-v1'),
+			// WP138: the classify-shaped stages on the gated rule readers — the same answers, behind the desk's line.
+			...SERVICING_GATED_READERS
+		},
 		autonomy: { level: 2, ceilings }
 	},
 	/** Level 3: the bot identifies and records; the classification is a person's; the rule acts. */

@@ -1,3 +1,4 @@
+import { COMPLAINTS_GATED_READERS } from './readers.js';
 import type {
 	Book,
 	BookRequest,
@@ -294,10 +295,20 @@ export type ComplaintsConfigurationId =
 
 export const COMPLAINTS_CONFIGURATIONS: Record<ComplaintsConfigurationId, WorkflowConfig> = {
 	/** The control: the register's rules end to end; a person approves any redress. */
-	'rules-only': { executors: rulesFor('acknowledge', 'root-cause', 'redress') },
+	'rules-only': {
+		executors: {
+			...rulesFor('acknowledge', 'root-cause', 'redress'),
+			// WP138: the classify-shaped stages on the gated rule readers — the same answers, behind the desk's line.
+			...COMPLAINTS_GATED_READERS
+		}
+	},
 	/** Level 2: the bot acknowledges; the rules find the cause, decide and redress; a person approves. */
 	'bot-acknowledges-only': {
-		executors: rulesFor('root-cause', 'redress'),
+		executors: {
+			...rulesFor('root-cause', 'redress'),
+			// WP138: the classify-shaped stages on the gated rule readers — the same answers, behind the desk's line.
+			...COMPLAINTS_GATED_READERS
+		},
 		autonomy: { level: 2, ceilings }
 	},
 	/** Level 3: the bot acknowledges and finds the cause; the decision is a person's; the rule redresses. */

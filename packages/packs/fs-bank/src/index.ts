@@ -189,7 +189,7 @@ export {
 	toldPlainly
 } from './incident.js';
 /** WP137 (`110-…` §6): a card that holds a journey's irreversible stage until the desk's case file shows its preconditions. */
-export { stageGateCard, type StageGateInput } from './stage-gate.js';
+export { DESK_READER_LINE, stageGateCard, type StageGateInput } from './stage-gate.js';
 /** WP97 (`89-STACKS.md` §3): a desk's guards as stacks, from the values its baseline's bricks are built from. */
 export {
 	HOSTED_GUARD_STAND_IN,

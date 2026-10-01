@@ -1,4 +1,5 @@
-import type { Executor, Reader, TypedQuestion, WorldState } from '@craftabot/core';
+import type { Executor, Reader, ReaderGate, TypedQuestion, WorldState } from '@craftabot/core';
+import { DESK_READER_LINE } from '@craftabot/pack-fs-bank';
 import { ruleReader } from '@craftabot/governance';
 import type { ServicingDeskState } from './world/desk.js';
 import {
@@ -70,9 +71,10 @@ const choiceOf = (answer: unknown): string | undefined =>
 		: undefined;
 
 /** A reader at `classify`: the category read off the caller's words and classified on the desk, as `classify-v1` does. */
-export function categoryReaderExecutor(readerId = CATEGORY_READER_ID): Executor {
+export function categoryReaderExecutor(readerId = CATEGORY_READER_ID, gate?: ReaderGate): Executor {
 	return {
 		kind: 'reader',
+		...(gate ? { gate } : {}),
 		readerId,
 		subject: subjectOf,
 		questions: () => ({ category: CATEGORY_QUESTION }),
@@ -85,9 +87,13 @@ export function categoryReaderExecutor(readerId = CATEGORY_READER_ID): Executor 
 }
 
 /** A reader at `record`: the need read off the caller's words and recorded in them, as `record-v1` does. */
-export function supportNeedReaderExecutor(readerId = SUPPORT_NEED_READER_ID): Executor {
+export function supportNeedReaderExecutor(
+	readerId = SUPPORT_NEED_READER_ID,
+	gate?: ReaderGate
+): Executor {
 	return {
 		kind: 'reader',
+		...(gate ? { gate } : {}),
 		readerId,
 		subject: subjectOf,
 		questions: () => ({ need: SUPPORT_NEED_QUESTION }),
@@ -106,6 +112,24 @@ export function supportNeedReaderExecutor(readerId = SUPPORT_NEED_READER_ID): Ex
 export const SERVICING_RULE_READERS: Record<'classify' | 'record', Executor> = {
 	classify: categoryReaderExecutor(),
 	record: supportNeedReaderExecutor()
+};
+
+/**
+ * **The gated readers the shipped configurations fit** (WP138, `110-…` §6): the
+ * same rule readers, behind the desk's line, with the rule the bank runs today
+ * as the `else`. A rule reader answers at confidence 1 and never falls below the
+ * line, so no outcome moves; a hosted or chat-model reader swapped in at the
+ * same id hands what it is unsure of to the rule rather than to the record.
+ */
+export const SERVICING_GATED_READERS: Record<'classify' | 'record', Executor> = {
+	classify: categoryReaderExecutor(CATEGORY_READER_ID, {
+		threshold: DESK_READER_LINE,
+		else: { kind: 'rule', rule: 'classify-v1' }
+	}),
+	record: supportNeedReaderExecutor(SUPPORT_NEED_READER_ID, {
+		threshold: DESK_READER_LINE,
+		else: { kind: 'rule', rule: 'record-v1' }
+	})
 };
 
 /** The categories and needs, re-exported beside their questions for a reader that asks them. */

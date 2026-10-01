@@ -1,3 +1,4 @@
+import { DISPUTES_GATED_READERS } from './readers.js';
 import type {
 	ActionCall,
 	Book,
@@ -494,11 +495,19 @@ const rulesFor = (...ids: string[]): Record<string, Executor> =>
 export const DISPUTES_CONFIGURATIONS: Record<DisputesConfigurationId, WorkflowConfig> = {
 	/** The control: every stage a rule; a person confirms the payment, as the bank does today. */
 	'rules-only': {
-		executors: rulesFor('verify', 'classify', 'investigate', 'decision', 'reimburse')
+		executors: {
+			...rulesFor('verify', 'classify', 'investigate', 'decision', 'reimburse'),
+			// WP138: the classify-shaped stages on the gated rule readers — the same answers, behind the desk's line.
+			...DISPUTES_GATED_READERS
+		}
 	},
 	/** Level 2: the bot verifies and investigates; the rules classify, decide and pay; a person confirms. */
 	'bot-verifies-only': {
-		executors: rulesFor('classify', 'decision', 'reimburse'),
+		executors: {
+			...rulesFor('classify', 'decision', 'reimburse'),
+			// WP138: the classify-shaped stages on the gated rule readers — the same answers, behind the desk's line.
+			...DISPUTES_GATED_READERS
+		},
 		autonomy: { level: 2, ceilings }
 	},
 	/** Level 3: the bot verifies, classifies and investigates; the decision is a person's, the rule's verdict beside the bot's recommendation; the rule pays. */

@@ -1,4 +1,5 @@
-import type { Executor, Reader, TypedQuestion, WorldState } from '@craftabot/core';
+import type { Executor, Reader, ReaderGate, TypedQuestion, WorldState } from '@craftabot/core';
+import { DESK_READER_LINE } from '@craftabot/pack-fs-bank';
 import { ruleReader } from '@craftabot/governance';
 import type { ComplaintsDeskState } from './desk.js';
 import type { RootCause } from './extra.js';
@@ -38,9 +39,13 @@ const categoryOf = (_input: unknown, state: WorldState): string =>
 	(state as ComplaintsDeskState).extra.complaints.category;
 
 /** A reader at `root-cause`: the cause read off the logged category and found on the desk, as `root-cause-v1` does. */
-export function rootCauseReaderExecutor(readerId = ROOT_CAUSE_READER_ID): Executor {
+export function rootCauseReaderExecutor(
+	readerId = ROOT_CAUSE_READER_ID,
+	gate?: ReaderGate
+): Executor {
 	return {
 		kind: 'reader',
+		...(gate ? { gate } : {}),
 		readerId,
 		subject: categoryOf,
 		questions: () => ({ cause: ROOT_CAUSE_QUESTION }),
@@ -58,4 +63,12 @@ export function rootCauseReaderExecutor(readerId = ROOT_CAUSE_READER_ID): Execut
 /** The rule reader fitted where the rule was. */
 export const COMPLAINTS_RULE_READERS: Record<'root-cause', Executor> = {
 	'root-cause': rootCauseReaderExecutor()
+};
+
+/** The gated reader the shipped configurations fit (WP138): the rule reader behind the desk's line, the rule as its `else`. */
+export const COMPLAINTS_GATED_READERS: Record<'root-cause', Executor> = {
+	'root-cause': rootCauseReaderExecutor(ROOT_CAUSE_READER_ID, {
+		threshold: DESK_READER_LINE,
+		else: { kind: 'rule', rule: 'root-cause-v1' }
+	})
 };

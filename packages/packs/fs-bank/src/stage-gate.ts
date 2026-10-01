@@ -1,6 +1,15 @@
 import type { PolicyCard } from '@craftabot/core';
 
 /**
+ * **The desks' reader line** (WP138, `110-CONTROL-SUITE-PLAN.md` §6): a desk's
+ * reader acts alone at or above this confidence; below it the stage's `else`
+ * decides — the rule the bank runs today. A stated default, not a cited one:
+ * the Kit's card teaches that the line is a choice, and the calibration pane
+ * shows what a different one would hand over (`104-READERS.md` §9).
+ */
+export const DESK_READER_LINE = 0.8;
+
+/**
  * **A stage gate** (WP137, `110-CONTROL-SUITE-PLAN.md` §6): a policy card that
  * holds a journey's irreversible stage — disburse, open, reimburse, execute,
  * redress, file, agree, close — at its `stage-in` boundary until the desk's

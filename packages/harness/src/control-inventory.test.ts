@@ -56,13 +56,19 @@ describe('the Control Inventory over every pack', () => {
 		);
 	});
 
-	it('says what the bank does not do yet, as the code does — G98, G99, G97', () => {
-		// No reader is behind a gate in a shipped configuration.
-		for (const row of rows.filter((each) => each.kind === 'reader'))
-			expect(
-				row.fitted.where.some((where) => where.endsWith('(gated)')),
-				row.ref
-			).toBe(false);
+	it('says what the bank does and does not do, as the code does — G99, G97', () => {
+		// Since WP138 every reader a shipped configuration fits stands behind the desk's line.
+		const fittedReaders = rows.filter(
+			(each) => each.kind === 'reader' && each.fitted.state === 'fitted'
+		);
+		expect(fittedReaders.map((each) => each.id).sort()).toEqual([
+			'fs-advice/reader/root-cause',
+			'fs-disputes/reader/classification',
+			'fs-servicing/reader/category',
+			'fs-servicing/reader/support-need'
+		]);
+		for (const row of fittedReaders)
+			for (const where of row.fitted.where) expect(where, row.ref).toMatch(/\(gated\)$/);
 		// A ceiling is measured, not enforced — and catalogued through the ceilings' mechanism.
 		for (const row of rows.filter((each) => each.kind === 'ceiling')) {
 			expect(row.summary, row.ref).toMatch(/not enforced/);

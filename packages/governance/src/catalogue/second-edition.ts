@@ -496,8 +496,15 @@ export const SECOND_EDITION_ENTRIES: CatalogueEntry[] = [
 		sources: [SELECTIVE, EU_AI_ACT_OVERSIGHT, PRA_SS1_23],
 		coverage: {
 			status: 'shipped',
-			implementedBy: ['mechanism:workflow/reader-gate', 'mechanism:metrics/calibration'],
-			note: 'A reader stage below its threshold, or hearing a steer, goes to its else; the optional TypeSafe journey runs it. No shipped desk configuration declares a gate yet — every desk reader is a rule at confidence 1 (WP138).',
+			implementedBy: [
+				'mechanism:workflow/reader-gate',
+				'mechanism:metrics/calibration',
+				'reader:fs-servicing/reader/category',
+				'reader:fs-servicing/reader/support-need',
+				'reader:fs-disputes/reader/classification',
+				'reader:fs-advice/reader/root-cause'
+			],
+			note: 'A reader stage below its threshold, or hearing a steer, goes to its else. Since WP138 the servicing, disputes and complaints journeys read on gated readers wherever those stages were rules, at the desks’ line of 0.8 with the bank’s rule as the else; the rule readers answer at confidence 1, so the gate fires only when a less certain reader is swapped in — which the optional TypeSafe journey does.',
 			since: 'WP117'
 		},
 		bankingRelevance: 'core'
