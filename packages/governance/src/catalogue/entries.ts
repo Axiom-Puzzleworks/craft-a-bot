@@ -796,7 +796,7 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 				'policy-card:fs-collections/policy/a-plan-is-four-eyes',
 				'policy-card:fs-servicing/policy/closure-is-four-eyes'
 			],
-			note: 'Workflow content and cards, not a component: a human stage and a four-eyes card on every desk’s irreversible act, and a ceiling per decision right by level. The ceilings are measured — a breach rate on every report — not enforced: nothing stops a decision above its ceiling yet (WP139 adds the mode).',
+			note: 'Workflow content and cards, not a component: a human stage and a four-eyes card on every desk’s irreversible act, and a ceiling per decision right by level. The ceilings are measured by default — a breach rate on every report; since WP139 a configuration that sets `autonomy.enforce` holds a decision above its ceiling for a person where it is recorded. The reference configurations measure.',
 			since: 'WP80'
 		},
 		bankingRelevance: 'core'
@@ -1339,7 +1339,7 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		coverage: {
 			status: 'shipped',
 			implementedBy: ['mechanism:workflow/autonomy-ceilings', 'mechanism:metrics/human-load'],
-			note: 'Touches per case, unattended rate and ceiling breaches on every report. A level’s ceilings are measured, not enforced (WP139).',
+			note: 'Touches per case, unattended rate and ceiling breaches on every report. A level’s ceilings are measured by default, and enforced — a person confirms what is above them — where a configuration sets `autonomy.enforce` (WP139).',
 			since: 'WP80'
 		},
 		bankingRelevance: 'core'

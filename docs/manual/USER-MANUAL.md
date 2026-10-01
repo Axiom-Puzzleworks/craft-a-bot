@@ -2298,7 +2298,7 @@ The catalogue is the page of *techniques*; this is the page of *instances*. Each
 **What the inventory says about the bank today.**
 - The servicing, disputes and complaints journeys read on gated readers wherever those stages were rules (since WP138): the desks' line is 0.8, and below it the bank's rule decides. The shipped readers are rules, sure every time, so the gate fires only when a less certain reader is swapped in at the same id.
 - Every shipped journey holds its irreversible stage — disburse, open, reimburse, execute, redress, file, agree, close — at its input until the desk's case file shows the steps before it done (since WP137). The gate on the collections journey found the rules-only path agreeing a plan for a customer it had never verified; that path now verifies at intake.
-- The decision-right ceilings are measured, never enforced.
+- The decision-right ceilings are measured as a breach rate; a configuration may enforce them (`autonomy.enforce`, since WP139), holding a decision above its ceiling for a person where it is recorded. The reference configurations measure.
 - Every shipped service is unmeasured.
 
 The second edition of the catalogue (68 entries) says the same in its notes. Phases AK–AM of the plan change these.

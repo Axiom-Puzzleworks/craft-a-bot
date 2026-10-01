@@ -1,4 +1,10 @@
-import type { StageRecord, WorkflowRun, WorkflowSpec } from '@craftabot/core';
+import type {
+	StageRecord,
+	WorkflowAutonomyLevel,
+	WorkflowRun,
+	WorkflowSpec
+} from '@craftabot/core';
+import { CEILING_GUARDRAIL_ID } from './run.js';
 
 /**
  * **A workflow run as a touched case** (WP80, `64-…` §6.4.1a; `68-METRICS.md`
@@ -54,7 +60,25 @@ export function touchedCaseOf(
 	for (const stage of run.stages) {
 		for (const kind of touchesOf(stage)) touches.push({ kind });
 		const decision = decisionKindOf?.(stage.stageId, stage.output.value);
-		if (decision !== undefined) decisions.push({ kind: decision, level });
+		// WP139: a decision above its ceiling that a person confirmed under the enforced ceiling was
+		// taken at the ceiling, not above it — and the confirmation is that person's touch.
+		const confirmed = stage.guards.verdicts?.some(
+			(verdict) =>
+				verdict.guardrailId === CEILING_GUARDRAIL_ID &&
+				verdict.verdict === 'pause' &&
+				verdict.approved === true
+		);
+		if (decision !== undefined) {
+			const ceiling = run.config.autonomy?.ceilings?.[decision];
+			decisions.push({
+				kind: decision,
+				level:
+					confirmed && ceiling !== undefined
+						? (Math.min(level, ceiling) as WorkflowAutonomyLevel)
+						: level
+			});
+		}
+		if (confirmed) touches.push({ kind: `ceiling:${stage.stageId}` });
 		const by = stage.by;
 		if (by) {
 			const wrongPut = by.recommended !== undefined && by.recommended !== by.shouldHave;

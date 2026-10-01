@@ -69,9 +69,9 @@ describe('the Control Inventory over every pack', () => {
 		]);
 		for (const row of fittedReaders)
 			for (const where of row.fitted.where) expect(where, row.ref).toMatch(/\(gated\)$/);
-		// A ceiling is measured, not enforced — and catalogued through the ceilings' mechanism.
+		// A ceiling is measured, enforced only where a configuration says so — and catalogued through the ceilings' mechanism.
 		for (const row of rows.filter((each) => each.kind === 'ceiling')) {
-			expect(row.summary, row.ref).toMatch(/not enforced/);
+			expect(row.summary, row.ref).toMatch(/where a configuration enforces/);
 			expect(
 				row.entries.map((entry) => entry.id),
 				row.ref

@@ -48,6 +48,9 @@ import { checkedAnswers, readGate, readerRecordOf, resolveReader } from './reade
  * validates it, records, and asks `next` where to go. The record is a
  * `WorkflowRun` with a digest over its stage records.
  */
+/** The guardrail id the enforced ceiling writes on the record (WP139). */
+export const CEILING_GUARDRAIL_ID = 'workflow/ceiling';
+
 export interface RunWorkflowOptions {
 	/** The configuration this run is; absent, the spec's defaults. */
 	config?: WorkflowConfig;
@@ -237,7 +240,8 @@ export function configRecord(config: WorkflowConfig): WorkflowRun['config'] {
 	if (config.autonomy) {
 		record.autonomy = {
 			level: config.autonomy.level,
-			...(config.autonomy.ceilings ? { ceilings: { ...config.autonomy.ceilings } } : {})
+			...(config.autonomy.ceilings ? { ceilings: { ...config.autonomy.ceilings } } : {}),
+			...(config.autonomy.enforce === true ? { enforce: true as const } : {})
 		};
 	}
 	if (config.context !== undefined) record.context = config.context;
@@ -296,6 +300,38 @@ export async function runWorkflow(
 		random: worldRandom,
 		...(Object.keys(worldConfig).length > 0 ? { config: worldConfig } : {})
 	});
+	/** The executor of the stage now running — what the ceiling guard asks: a person's decision is not the level's. */
+	let currentExecutor: Executor | undefined;
+	/**
+	 * **The ceiling, enforced** (WP139, `110-…` §6): at a deciding stage's output, a decision this
+	 * configuration's level would take above its kind's ceiling pauses for a person — the boundary's
+	 * own approval round-trip, on the record as `approval.requested`/`resolved` and the verdict
+	 * `workflow/ceiling`. A stage a person executed decided at no level; a declined pause halts.
+	 */
+	const ceilingGuard = (stage: StageSpec): Guardrail[] => {
+		const autonomy = config.autonomy;
+		if (!autonomy?.enforce || !autonomy.ceilings || !spec.decisionKindOf) return [];
+		const decisionKindOf = spec.decisionKindOf;
+		const ceilings = autonomy.ceilings;
+		return [
+			{
+				id: CEILING_GUARDRAIL_ID,
+				name: 'Decision rights',
+				description: 'A decision above its ceiling waits for a person.',
+				hooks: ['post-act'],
+				check: (ctx) => {
+					if (currentExecutor?.kind === 'human') return { allow: true };
+					const kind = decisionKindOf(stage.id, ctx.stage?.output);
+					const ceiling = kind !== undefined ? ceilings[kind] : undefined;
+					if (ceiling === undefined || autonomy.level <= ceiling) return { allow: true };
+					return {
+						pause: true,
+						reason: `${kind} is decided alone up to Level ${ceiling}; this configuration runs at Level ${autonomy.level} — a person confirms it`
+					};
+				}
+			}
+		];
+	};
 	// What a boundary guard may ask the desk (WP137, `110-…` §6): its declared predicates over
 	// the state — the same handle a session gives a loop guard — so a stage-in card can hold an
 	// irreversible stage until the case file shows its preconditions done.
@@ -350,6 +386,7 @@ export async function runWorkflow(
 						)
 					])) ?? stage.executor;
 		ordinal += 1;
+		currentExecutor = executor;
 
 		const record = await runStage(stage, executor, input);
 		stages.push(record);
@@ -520,7 +557,10 @@ export async function runWorkflow(
 		history: readonly EngineEvent[],
 		write: Write
 	): Promise<BoundaryResult> {
-		const chain = options.boundaryGuardrailsFor?.(stage, point) ?? [];
+		const chain = [
+			...(options.boundaryGuardrailsFor?.(stage, point) ?? []),
+			...(point === 'stage-out' ? ceilingGuard(stage) : [])
+		];
 		const fold: BoundaryFold = { checked: 0, verdicts: [] };
 		let value = point === 'stage-in' ? stageInput : output;
 		if (chain.length === 0) return { kind: 'continue', value, fold };

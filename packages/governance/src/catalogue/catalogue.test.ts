@@ -218,10 +218,11 @@ describe('the second edition (WP132, `110-CONTROL-SUITE-PLAN.md` §3)', () => {
 				expect(ref, entry.id).toMatch(/^[a-z-]+:\S+$/);
 	});
 
-	it('says ceilings are measured, not enforced, wherever it names them', () => {
+	it('says ceilings are measured by default and enforced only where a configuration says so (WP139)', () => {
 		for (const id of ['four-eyes', 'autonomy-levels']) {
 			const entry = CATALOGUE_ENTRIES.find((e) => e.id === id)!;
-			expect(entry.coverage.note, id).toMatch(/measured.*not enforced/);
+			expect(entry.coverage.note, id).toMatch(/measured by default/);
+			expect(entry.coverage.note, id).toMatch(/autonomy\.enforce/);
 		}
 	});
 

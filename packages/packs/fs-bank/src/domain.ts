@@ -306,7 +306,7 @@ export const ukRetailBankingDomain: DomainSpec = {
 		configuration:
 			'Which stages the assistant runs, which a person, which a rule — one per autonomy level.',
 		ceiling:
-			'The highest autonomy level a kind of decision may run at, measured as a breach rate, never enforced.',
+			'The highest autonomy level a kind of decision may run at: measured as a breach rate, and held for a person where a configuration enforces it.',
 		'control map':
 			'Rows of relevance: which obligation is evidenced by which card, evaluator or guarantee — a claim a compliance reader edits.',
 		obligation:
