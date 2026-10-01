@@ -11,7 +11,7 @@ import type {
 	WorkflowSpec,
 	WorldState
 } from '@craftabot/core';
-import { monthlyIncomeOf } from '@craftabot/pack-fs-bank';
+import { monthlyIncomeOf, stageGateCard } from '@craftabot/pack-fs-bank';
 import { servicingBookFor } from './book.js';
 import { SERVICING_CEILINGS } from './decision-rights.js';
 import { servicingStrings } from './strings.js';
@@ -28,6 +28,20 @@ import {
 	type Category,
 	type SupportNeed
 } from './world/rules.js';
+
+/**
+ * **Closure waits for the file** (WP137, `110-CONTROL-SUITE-PLAN.md` §6): the gate on the `close`
+ * stage's input — held until the desk's case file shows verified, classified. It
+ * reads the desk's state, never the case's truth, whoever executes the stage.
+ */
+export const CLOSURE_WAITS_FOR_THE_FILE = stageGateCard({
+	id: 'fs-servicing/policy/closure-waits-for-the-file',
+	title: 'Closure waits for the file',
+	stageId: 'close',
+	requires: ['verified', 'classified'],
+	reason:
+		'No account is closed until the file shows the caller verified and the request classified.'
+});
 
 /**
  * **The servicing workflow** (WP106, `83-…` §6.5.2; `92-FS-SERVICING.md`
@@ -387,6 +401,8 @@ export const SERVICING_STAGES: StageSpec[] = [
 		output: ACT_OUTPUT,
 		executor: agent('closed', servicingStrings.workflow.briefs.act),
 		irreversible: true,
+		// WP137: held at its input until the desk's file shows the steps before it done.
+		guards: { policyCards: [CLOSURE_WAITS_FOR_THE_FILE.id] },
 		read: (state) => (desk(state).extra.servicing.closed ? { act: 'close-account' } : undefined),
 		next: (_out, state) => afterTheRecord(state),
 		mayGoTo: ['end', 'handoff:fs-advice/advice']

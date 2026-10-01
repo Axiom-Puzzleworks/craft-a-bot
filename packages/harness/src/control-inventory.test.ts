@@ -78,6 +78,18 @@ describe('the Control Inventory over every pack', () => {
 			expect(row.coverage, row.ref).toBe('not-applicable');
 	});
 
+	it('holds every journey’s irreversible stage at its input with a gate on the case file (WP137)', () => {
+		for (const workflow of registry.listWorkflows())
+			for (const stage of workflow.stages.filter((each) => each.irreversible)) {
+				const cards = stage.guards?.policyCards ?? [];
+				expect(cards.length, `${workflow.id} · ${stage.id}`).toBe(1);
+				const row = rows.find((each) => each.ref === `policy-card:${cards[0]}`)!;
+				expect(row.fitted.where, row.ref).toContain(`stage ${workflow.id} · ${stage.id}`);
+				// Cited on its desk's row, so the register can attribute an effect to it.
+				expect(row.rows.length, row.ref).toBeGreaterThan(0);
+			}
+	});
+
 	it('declares each world’s knobs with the defaults the world itself uses', () => {
 		const knob = (world: string, id: string) =>
 			registry.getWorld(world)?.knobs?.find((each) => each.id === id)?.default;

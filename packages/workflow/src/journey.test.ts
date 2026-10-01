@@ -183,6 +183,22 @@ describe('journeyLayout', () => {
 		]);
 	});
 
+	it('draws an empty boundary on every stage on request — the Studio’s canvas (WP137, W-3)', () => {
+		const plain = journeyLayout(spec, undefined, undefined, { registry });
+		const every = journeyLayout(spec, undefined, undefined, { registry, everyBoundary: true });
+		for (const stage of spec.stages)
+			for (const point of ['stage-in', 'stage-out'])
+				expect(
+					every.points.some((each) => each.id === `boundary:${stage.id}:${point}`),
+					`${stage.id} ${point}`
+				).toBe(true);
+		// The journey pages keep drawing only the boundaries a guard sits on.
+		expect(plain.points.some((each) => each.id === 'boundary:orphan:stage-in')).toBe(false);
+		expect(every.points.find((each) => each.id === 'boundary:orphan:stage-in')?.components).toEqual(
+			[]
+		);
+	});
+
 	it('moves a stage to the configuration’s lane, draws the counterpart lane on request, and refuses a stack it cannot find', () => {
 		const layout = journeyLayout(spec, spec.configurations?.['rules-only'], undefined, {
 			counterpart: true

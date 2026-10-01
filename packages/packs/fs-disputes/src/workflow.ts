@@ -12,7 +12,12 @@ import type {
 	WorkflowSpec,
 	WorldState
 } from '@craftabot/core';
-import { ALERT_RULE_ID, type AlertItemPayload, type Transaction } from '@craftabot/pack-fs-bank';
+import {
+	ALERT_RULE_ID,
+	type AlertItemPayload,
+	type Transaction,
+	stageGateCard
+} from '@craftabot/pack-fs-bank';
 import { disputesBookFor } from './book.js';
 import { DISPUTES_CEILINGS } from './decision-rights.js';
 import { disputesStrings } from './strings.js';
@@ -31,6 +36,20 @@ import {
 	type ReasonCode,
 	type RuleFigures
 } from './world/rules.js';
+
+/**
+ * **Reimbursement waits for the file** (WP137, `110-CONTROL-SUITE-PLAN.md` §6): the gate on the `reimburse`
+ * stage's input — held until the desk's case file shows verified, classified, investigated, decided. It
+ * reads the desk's state, never the case's truth, whoever executes the stage.
+ */
+export const REIMBURSEMENT_WAITS_FOR_THE_FILE = stageGateCard({
+	id: 'fs-disputes/policy/reimbursement-waits-for-the-file',
+	title: 'Reimbursement waits for the file',
+	stageId: 'reimburse',
+	requires: ['verified', 'classified', 'investigated', 'decided'],
+	reason:
+		'Nothing is reimbursed until the file shows the caller verified, the claim classified and investigated, and a decision made.'
+});
 
 /**
  * **The disputes workflow** (WP104, `83-…` §6.5.2; `90-FS-DISPUTES.md`
@@ -453,6 +472,8 @@ export const DISPUTES_STAGES: StageSpec[] = [
 		output: REIMBURSE_OUTPUT,
 		executor: agent('reimbursed', disputesStrings.workflow.briefs.reimburse),
 		irreversible: true,
+		// WP137: held at its input until the desk's file shows the steps before it done.
+		guards: { policyCards: [REIMBURSEMENT_WAITS_FOR_THE_FILE.id] },
 		read: (state) => {
 			const { disputes } = desk(state).extra;
 			return disputes.reimbursed

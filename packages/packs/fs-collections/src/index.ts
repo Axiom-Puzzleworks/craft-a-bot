@@ -13,7 +13,7 @@ import {
 	collectionsStacks
 } from './campaign.js';
 import { collectionsDesk } from './world/desk.js';
-import { collectionsWorkflow } from './workflow.js';
+import { collectionsWorkflow, AGREEMENT_WAITS_FOR_THE_FILE } from './workflow.js';
 
 /**
  * @craftabot/pack-fs-collections — **The Collections Desk** (WP105,
@@ -52,7 +52,7 @@ export const fsCollectionsPack: PackManifest = {
 			campaign: () => collectionsBookCampaign()
 		}
 	],
-	policyCards: collectionsPolicyCards,
+	policyCards: [...collectionsPolicyCards, AGREEMENT_WAITS_FOR_THE_FILE],
 	evaluators: collectionsEvaluators,
 	controlMaps: [collectionsControlMap],
 	workflows: [collectionsWorkflow],

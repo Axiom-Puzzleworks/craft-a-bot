@@ -60,6 +60,7 @@
 <circle class="point point--pre-think" cx="1389" cy="34" r="5" data-point="loop:disbursement:pre-think"/>
 <circle class="point point--pre-act" cx="1403" cy="34" r="5" data-point="loop:disbursement:pre-act"/>
 <circle class="point point--post-act" cx="1417" cy="34" r="5" data-point="loop:disbursement:post-act"/>
+<rect class="point point--stage-in" x="1364" y="61" width="10" height="10" data-point="boundary:disbursement:stage-in"/>
 <circle class="point point--pre-think" cx="1539" cy="34" r="5" data-point="loop:appeal:pre-think"/>
 <circle class="point point--pre-act" cx="1553" cy="34" r="5" data-point="loop:appeal:pre-act"/>
 <circle class="point point--post-act" cx="1567" cy="34" r="5" data-point="loop:appeal:post-act"/>

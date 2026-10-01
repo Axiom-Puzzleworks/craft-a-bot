@@ -47,7 +47,9 @@ export const COLLECTIONS_CONTROL_ROWS: readonly ControlMapRow[] = [
 		evidence: [
 			{ kind: 'policy-card', id: 'fs-collections/policy/a-plan-is-four-eyes' },
 			// WP135 (`110-…` G107): the first half of the obligation, which had no evaluator.
-			{ kind: 'evaluator', id: 'fs-collections/plan-explained' }
+			{ kind: 'evaluator', id: 'fs-collections/plan-explained' },
+			// WP137: the gate on the journey's irreversible stage.
+			{ kind: 'policy-card', id: 'fs-collections/policy/agreement-waits-for-the-file' }
 		],
 		status: 'unreviewed',
 		tags: ['fca:cd:understanding', 'pra:ss1-23:mitigants']

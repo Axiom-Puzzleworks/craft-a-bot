@@ -750,7 +750,7 @@ The register was reopened at the close of Day 6 for the two gaps the roadmap nam
 **Open, for a later plan:**
 - **W-1.** Handoffs aren't drawn as exits on the Journey Canvas.
 - **W-2.** The customer and systems lanes aren't in the disputes journey's layout.
-- **W-3.** The Studio's canvas has no stage-boundary points.
+- **W-3.** The Studio's canvas has no stage-boundary points. **Resolved 2026-10-01 (WP137):** the Studio lays its journey out with `everyBoundary`, so every stage offers its stage-in and stage-out points, guarded or not; the journey pages still draw only the boundaries a guard sits on.
 - **W-4.** A stack can't be an experiment's factor on the page, though the harness's guard level can be.
 - **W-5.** The catalogue's effect column names the desk's shipped stack.
 - **W-6.** vitest's runtime is bundled into the Worker and one chunk, through test helpers re-exported from runtime entry points. **Resolved 2026-09-30:** `describeStorageContract` moved to `@craftabot/core/testing/contract`, and every build and the Worker are 58 KiB lighter (`01-…` §8).

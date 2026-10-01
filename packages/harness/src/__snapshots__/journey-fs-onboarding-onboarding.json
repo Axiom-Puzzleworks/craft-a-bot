@@ -133,7 +133,8 @@
 			"guards": [
 				"loop:open:pre-think",
 				"loop:open:pre-act",
-				"loop:open:post-act"
+				"loop:open:post-act",
+				"boundary:open:stage-in"
 			]
 		},
 		{
@@ -310,6 +311,14 @@
 			"kind": "post-act",
 			"at": "open",
 			"components": []
+		},
+		{
+			"id": "boundary:open:stage-in",
+			"kind": "stage-in",
+			"at": "open",
+			"components": [
+				"fs-onboarding/policy/open-waits-for-the-file"
+			]
 		},
 		{
 			"id": "loop:welcome:pre-think",

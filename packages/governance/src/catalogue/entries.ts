@@ -1024,8 +1024,18 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		coverage: {
 			status: 'shipped',
 			componentIds: ['governance/policy-card', 'monitor/evaluator-breaker', 'geap/model-armor'],
-			implementedBy: ['mechanism:workflow/boundary-chain'],
-			note: 'The workflow runtime’s boundary chain (69-… §10), tested on the lending journey; no shipped journey fits a guard at a stage boundary yet — every stage’s guard list is empty (WP137).',
+			implementedBy: [
+				'mechanism:workflow/boundary-chain',
+				'policy-card:fs-lending/policy/disbursement-waits-for-the-file',
+				'policy-card:fs-advice/policy/execution-waits-for-the-file',
+				'policy-card:fs-advice/policy/redress-waits-for-the-file',
+				'policy-card:fs-fraud/policy/sar-waits-for-the-file',
+				'policy-card:fs-onboarding/policy/open-waits-for-the-file',
+				'policy-card:fs-disputes/policy/reimbursement-waits-for-the-file',
+				'policy-card:fs-collections/policy/agreement-waits-for-the-file',
+				'policy-card:fs-servicing/policy/closure-waits-for-the-file'
+			],
+			note: 'The workflow runtime’s boundary chain (69-… §10). Since WP137 every shipped journey holds its irreversible stage at its input with a gate on the desk’s case file — the desk’s own predicates over its state, never the truth. No stage-out breaker is fitted by default: the stage’s own trace is too narrow for a process evaluator, and a truth-reading one would know the answer.',
 			since: 'WP95'
 		},
 		bankingRelevance: 'core'

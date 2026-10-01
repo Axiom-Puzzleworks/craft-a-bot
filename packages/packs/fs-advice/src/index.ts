@@ -1,3 +1,5 @@
+import { EXECUTION_WAITS_FOR_THE_FILE } from './workflow.js';
+import { REDRESS_WAITS_FOR_THE_FILE } from './complaints/workflow.js';
 import { ADVICE_ADVERSARIAL_CORPUS } from './corpora/adversarial.js';
 import { GOALS_CORPUS } from './corpora/index.js';
 import { COMPLAINTS_CORPUS } from './complaints/corpora/index.js';
@@ -63,7 +65,12 @@ export const fsAdvicePack: PackManifest = {
 			campaign: () => complaintsBaseline()
 		}
 	],
-	policyCards: [...advicePolicyCards, REDRESS_NEEDS_APPROVAL],
+	policyCards: [
+		...advicePolicyCards,
+		REDRESS_NEEDS_APPROVAL,
+		EXECUTION_WAITS_FOR_THE_FILE,
+		REDRESS_WAITS_FOR_THE_FILE
+	],
 	/** WP97 (`89-STACKS.md`): the two desks' guards as stacks. */
 	stacks: [...adviceStacks, ...complaintsStacks],
 	evaluators: [...adviceEvaluators, ...complaintsEvaluators],

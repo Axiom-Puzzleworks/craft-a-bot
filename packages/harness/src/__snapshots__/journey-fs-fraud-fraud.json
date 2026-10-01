@@ -100,7 +100,9 @@
 			"obligations": [
 				"poca:sar"
 			],
-			"guards": []
+			"guards": [
+				"boundary:sar:stage-in"
+			]
 		},
 		{
 			"stageId": "filing",
@@ -239,6 +241,14 @@
 			"kind": "post-act",
 			"at": "decision",
 			"components": []
+		},
+		{
+			"id": "boundary:sar:stage-in",
+			"kind": "stage-in",
+			"at": "sar",
+			"components": [
+				"fs-fraud/policy/sar-waits-for-the-file"
+			]
 		}
 	]
 }

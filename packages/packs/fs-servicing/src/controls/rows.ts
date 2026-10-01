@@ -46,7 +46,9 @@ export const SERVICING_CONTROL_ROWS: readonly ControlMapRow[] = [
 		evidence: [
 			{ kind: 'policy-card', id: 'fs-servicing/policy/closure-is-four-eyes' },
 			{ kind: 'evaluator', id: 'fs-servicing/classified-correctly' },
-			{ kind: 'evaluator', id: 'fs-servicing/needs-met' }
+			{ kind: 'evaluator', id: 'fs-servicing/needs-met' },
+			// WP137: the gate on the journey's irreversible stage.
+			{ kind: 'policy-card', id: 'fs-servicing/policy/closure-waits-for-the-file' }
 		],
 		status: 'unreviewed',
 		tags: ['fca:cd:support', 'pra:ss1-23:mitigants']

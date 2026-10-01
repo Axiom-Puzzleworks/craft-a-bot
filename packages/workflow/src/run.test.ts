@@ -616,6 +616,26 @@ const chains =
 		chain[stage.id]?.[point] ?? [];
 
 describe('stage-boundary guards (WP95)', () => {
+	it('hands a boundary guard the desk’s predicates over its state, as a session hands a loop guard (WP137)', async () => {
+		const spec = workflow([greet, signByRule], { rules: RULES });
+		let seen: GuardrailContext['world'];
+		await run(spec, {
+			boundaryGuardrailsFor: chains({
+				sign: {
+					'stage-in': [
+						boundaryGuard('looks', (ctx) => {
+							seen = ctx.world;
+							return { allow: true };
+						})
+					]
+				}
+			})
+		});
+		expect(seen?.predicates.length).toBeGreaterThan(0);
+		for (const predicateId of seen!.predicates)
+			expect(typeof seen!.test(predicateId), predicateId).toBe('boolean');
+	});
+
 	it('a guarded rule stage trips at stage-in: blocked with the finding, nothing performed, the verdict on the record and the event', async () => {
 		const spec = workflow([greet, signByRule], { rules: RULES });
 		const { record } = await run(spec, {

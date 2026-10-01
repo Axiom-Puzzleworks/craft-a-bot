@@ -137,3 +137,5 @@ Two tables from the same `JourneyLayout`, beside the canvas at every width (a ta
 
 
 > **Amended 2026-09-29 (WP111, `102-HONEST-BANK.md` §4):** `StageSpec.mayGoTo` names the stages a `next` that reads the case may reach; `edgesOf` draws one *depends on the case* edge to each instead of one to the stage declared next. Optional; the runtime never reads it. The servicing journey is the first to declare it.
+
+> **Amended 2026-10-01 (WP137, `110-CONTROL-SUITE-PLAN.md` §10; W-3):** `JourneyLayoutOptions.everyBoundary` draws a stage-in and a stage-out point on every stage, empty or not. The Studio passes it, so a guard can be fitted at any boundary; the journey pages leave it off and draw only the boundaries a guard sits on. Since WP137 every shipped journey draws one: the gate on its irreversible stage.

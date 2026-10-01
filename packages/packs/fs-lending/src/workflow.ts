@@ -10,7 +10,7 @@ import type {
 	WorkflowSpec,
 	WorldState
 } from '@craftabot/core';
-import { population } from '@craftabot/pack-fs-bank';
+import { population, stageGateCard } from '@craftabot/pack-fs-bank';
 import { lendingBook } from './book.js';
 import { LENDING_CEILINGS } from './decision-rights.js';
 import { lendingStrings } from './strings.js';
@@ -32,6 +32,20 @@ import {
 	type ReasonCode,
 	type RuleFigures
 } from './world/rules.js';
+
+/**
+ * **Disbursement waits for the file** (WP137, `110-CONTROL-SUITE-PLAN.md` §6): the gate on the `disbursement`
+ * stage's input — held until the desk's case file shows identity-verified, affordability-assessed, decided. It
+ * reads the desk's state, never the case's truth, whoever executes the stage.
+ */
+export const DISBURSEMENT_WAITS_FOR_THE_FILE = stageGateCard({
+	id: 'fs-lending/policy/disbursement-waits-for-the-file',
+	title: 'Disbursement waits for the file',
+	stageId: 'disbursement',
+	requires: ['identity-verified', 'affordability-assessed', 'decided'],
+	reason:
+		'No money is paid out until the file shows the identity verified, affordability assessed and a decision made.'
+});
 
 /**
  * **The lending workflow** (WP80, `64-TARGET-DESIGN-V5.md` §6.2.3; `73-…`):
@@ -411,6 +425,8 @@ export const LENDING_STAGES: StageSpec[] = [
 		output: DISBURSEMENT_OUTPUT,
 		executor: agent('disbursed', lendingStrings.workflow.briefs.disbursement),
 		irreversible: true,
+		// WP137: held at its input until the desk's file shows the steps before it done.
+		guards: { policyCards: [DISBURSEMENT_WAITS_FOR_THE_FILE.id] },
 		read: (state) => {
 			const loan = desk(state).extra.ledger.loans.at(-1);
 			return loan

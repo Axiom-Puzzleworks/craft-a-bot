@@ -2297,7 +2297,7 @@ The catalogue is the page of *techniques*; this is the page of *instances*. Each
 
 **What the inventory says about the bank today.**
 - No reader sits behind a confidence gate in any shipped configuration (§60's gate is in the optional TypeSafe journey and the Kit's card).
-- No shipped journey fits a guard at a stage boundary.
+- Every shipped journey holds its irreversible stage — disburse, open, reimburse, execute, redress, file, agree, close — at its input until the desk's case file shows the steps before it done (since WP137). The gate on the collections journey found the rules-only path agreeing a plan for a customer it had never verified; that path now verifies at intake.
 - The decision-right ceilings are measured, never enforced.
 - Every shipped service is unmeasured.
 

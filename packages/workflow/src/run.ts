@@ -296,6 +296,13 @@ export async function runWorkflow(
 		random: worldRandom,
 		...(Object.keys(worldConfig).length > 0 ? { config: worldConfig } : {})
 	});
+	// What a boundary guard may ask the desk (WP137, `110-…` §6): its declared predicates over
+	// the state — the same handle a session gives a loop guard — so a stage-in card can hold an
+	// irreversible stage until the case file shows its preconditions done.
+	const worldQuestions = {
+		test: (id: string) => world.test(id),
+		predicates: Object.keys(definition.predicates ?? {})
+	};
 
 	const runId = newId();
 	const startedAt = now();
@@ -527,6 +534,7 @@ export async function runWorkflow(
 				usage: { ticks: ordinal, inputTokens: 0, outputTokens: 0 },
 				proposed,
 				worldState: world.snapshot(),
+				world: worldQuestions,
 				history,
 				stage: {
 					id: stage.id,
