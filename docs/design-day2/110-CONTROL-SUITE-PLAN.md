@@ -210,7 +210,7 @@ _Nothing new is claimed until what is claimed is true, and until there is one pl
 | **WP133** ✅ | **Done 2026-10-01 — §10's WP133 note.** **The inventory fold and the orphan rule**    | `controlInventory` with the eight facets; `checkControlInventory` in `pack-testkit` and in CI with the seeded _uncatalogued_ list; `Exercised` folded from the shipped campaign reports; the register's effect **per instance** (`experiment.controls` must name rows the stack's fits cite, the designer's default narrowed to those); a reading counted in the pack's `review` figures                                                                                                                                  | M    | G103, G104, G117, G118                                                    |
 | **WP134** ✅ | **Done 2026-10-01 — §10's WP134 note.** **The page, the CLI and the pack**            | `/workshop/controls` with the Matrix, the URL filter, the row drawer, the _Configure / Read / Measure in…_ links; `craftabot controls list \| export`; the assurance pack's §1 table; the catalogue page and the Studio reading the fold; the Studio showing a stack's `controls` and `obligations`; a visual shot and the reader's walk                                                                                                                                                                                 | M    | G106 (the Studio half), W-5                                               |
 | **WP135** ✅ | **Done 2026-10-01 — §10's WP135 note.** **The rows brought into step**                | The DISP/SS1/21 "pending" lines corrected in `CLAUDE.md` and `53-…`; a `no-regression` gate on the lending book campaign so the SS1/23 row's evidence is present; the lending stack's tag fixed, `checkStack` refusing a tag outside `OBLIGATION_TAGS`; `controls`/`obligations` on the complaints, advice and fraud stacks; a _plan-understood_ evaluator on collections; the fraud card and advice evaluator cited; `advice-boundary` sourced (or its framework named as the bank's own policy); the Conduct lamps read from the desk's own map rows | S    | G101, G102, G106, G107                                                    |
-| **WP136** | **The Phase AJ exit review**                  | Every instance has a row; CI green on the orphan rule; the catalogue has no prose `implementedBy`; the readings queue counts the new entries; `docs/manual` Part J §66 _The Control Inventory_                                                                                                                                                                                                                                                                                                                           | S    | —                                                                         |
+| **WP136** ✅ | **Done 2026-10-01 — §10's Phase AJ exit review.** **The Phase AJ exit review**                  | Every instance has a row; CI green on the orphan rule; the catalogue has no prose `implementedBy`; the readings queue counts the new entries; `docs/manual` Part J §66 _The Control Inventory_                                                                                                                                                                                                                                                                                                                           | S    | —                                                                         |
 
 **Exit:** a reader can open one page, point at any control and read eight true facets.
 
@@ -328,3 +328,29 @@ _(Recorded here as each work package and phase closes.)_
 >   - The advice boundary names its framework (FCA PERG 8 and FG17/8; `unreviewed`, for a reader to confirm).
 >   - The Conduct page's tipping-off, KYC and DISP lamps read every evaluator the control maps cite on a row with the lamp's obligation tag (`evaluatorsTagged`), pooled, so the onboarding desk's `hit-contained` now lights the tipping-off lamp. The vulnerability matrix still reads the advice desk's evaluator alone, because its *recognised* axis is that evaluator's own label.
 > - **Baselines.** Three win32 baselines moved: the assurance page's new row, the evaluators list and the collections page.
+
+> **Phase AJ exit review — 2026-10-01 (WP136).** The phase's exit was *a reader can open one page, point at any control and read eight true facets*. **Met.** `/workshop/controls` folds 261 controls, and `craftabot controls export` gives the same table. The DoD, item by item:
+>
+> - **Every instance has a row: met.** The fold enumerates every registered component, card, stack, reader and evaluator, every declared mechanism, gate kind, knob and ceiling, the models and the artefacts. `harness/src/control-inventory.test.ts` holds the refs unique and the kinds present.
+> - **The orphan rule green: met locally.** The harness test is in CI's unit run, and `UNCATALOGUED_CONTROLS` is empty. CI itself has not run, since `phase-aj` is unpushed.
+> - **The catalogue has no prose `implementedBy`: met.** The schema refuses prose, and `checkCatalogue` resolves every reference (`catalogue.implemented-by`).
+> - **The readings queue counts the new entries: met.** 284 subjects: 68 catalogue entries and 65 control rows among them.
+> - **The manual's Part J §66: met**, with Figure 31 (`ws-controls.png`, win32). The PDF is not rebuilt; that waits for WP150's Part J additions, so it is rebuilt once.
+>
+> Against §8's done list: item 1 is met. Item 2 is met early: the uncatalogued list is empty after WP135. Item 3 is met in part: the second edition has no prose and no overclaim, and the class-D techniques are placed honestly as bespoke or blueprint; Phases AL and AM ship them.
+>
+> **Findings the phase surfaced.**
+> - No shipped path tells a collections customer the agreed plan in words (`91-…`).
+> - No shipped configuration, campaign or experiment names a stack.
+> - No reader is gated anywhere shipped.
+> - 31 evaluators are named by control rows but by no catalogue entry. That is allowed by the orphan rule and shown on the page.
+> - The `drift` gate kind gates nothing shipped.
+> - The Kit's first page was carrying the catalogue on every visit; 136 KiB were recovered.
+>
+> **For Andrew's reading.** The 23 new catalogue entries and their sources; the fraud desk's new `records-are-data` row; the advice boundary's framework (FCA PERG 8 and FG17/8); the lending book's committed baseline (re-take it when the book is meant to change); the budgets (`01-…` §8).
+>
+> **Outstanding.**
+> - The Linux baselines for the shots this phase moved come from CI's `visual` artefact on the first push, as before: 24 rail shots, `ws-controls.png`, and the three WP135 moved.
+> - The PR for `phase-aj`.
+>
+> **Phase AJ is closed. Next: Phase AK, WP137–WP140.**
