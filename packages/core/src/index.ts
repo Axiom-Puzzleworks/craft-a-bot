@@ -691,6 +691,14 @@ export {
 } from './types/control-map.js';
 export { EVENT_TYPES } from './schemas/events.js';
 export {
+	CONTROL_REF_KINDS,
+	CONTROL_REF_PATTERN,
+	controlRef,
+	parseControlRef,
+	type ControlRef,
+	type ControlRefKind
+} from './types/control-ref.js';
+export {
 	domainDecisionRightSchema,
 	domainJourneySchema,
 	domainSourceRefSchema,

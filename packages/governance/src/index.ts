@@ -108,5 +108,6 @@ export { PDP_INPUT_VERSION, pdpInputSchema, pdpRequestFor, type PdpInput } from 
 export * from './components/index.js';
 /** The Guardrail Catalogue (WP98, `86-CATALOGUE.md`): the first edition and `checkCatalogue`. */
 export * from './catalogue/index.js';
+export * from './controls/index.js';
 /** Readers (WP117, `104-READERS.md` §5): the adapters that make a desk's rule, a hosted line or a chat model answer typed questions. */
 export * from './readers/index.js';

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { POINT_KINDS } from '../types/guardrail-component.js';
+import { CONTROL_REF_PATTERN } from '../types/control-ref.js';
 
 /**
  * **The Guardrail Catalogue's entry** (WP98, `86-CATALOGUE.md` §3;
@@ -79,7 +80,12 @@ export const FRAMEWORK_PREFIXES = [
 	'fca',
 	'owasp',
 	'cisa',
-	'mitre-atlas'
+	'mitre-atlas',
+	// WP132 (`110-…` §3 class D): the bank's conduct, data and resilience regimes.
+	'uk-gdpr',
+	'pra-ss1-21',
+	'psr',
+	'nist-800-53'
 ] as const;
 export const FRAMEWORK_ID_PATTERN = new RegExp(
 	`^(${FRAMEWORK_PREFIXES.join('|')})(:[a-z0-9][a-z0-9.\\-]*)?$`
@@ -98,8 +104,18 @@ export const catalogueCoverageSchema = z.object({
 	status: coverageStatusSchema,
 	/** The registered guardrail components that implement the technique (`85-…`). */
 	componentIds: z.array(z.string().min(1)).optional(),
-	/** What implements it when it is not a component — a mechanism, an evaluator, a card, a deck — named as the code names it. */
-	implementedBy: z.array(z.string().min(1)).optional(),
+	/**
+	 * What implements it when it is not a component — a mechanism, an evaluator,
+	 * a card, a scenario — as control references (`{kind}:{id}`, WP132) that
+	 * `checkCatalogue` resolves; prose is refused.
+	 */
+	implementedBy: z
+		.array(
+			z.string().regex(CONTROL_REF_PATTERN, {
+				message: 'implementedBy names a control reference — {kind}:{id}'
+			})
+		)
+		.optional(),
 	/** One sentence saying what the product means by the status. */
 	note: z.string().min(1),
 	/** The work package it landed in, when it landed. */

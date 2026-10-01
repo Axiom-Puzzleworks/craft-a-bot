@@ -80,7 +80,7 @@
 						"type": "array",
 						"items": {
 							"type": "string",
-							"pattern": "^(nist-ai-rmf|nist-ai-600-1|iso-42001|iso-23894|eu-ai-act|pra-ss1-23|fca|owasp|cisa|mitre-atlas)(:[a-z0-9][a-z0-9.\\-]*)?$"
+							"pattern": "^(nist-ai-rmf|nist-ai-600-1|iso-42001|iso-23894|eu-ai-act|pra-ss1-23|fca|owasp|cisa|mitre-atlas|uk-gdpr|pra-ss1-21|psr|nist-800-53)(:[a-z0-9][a-z0-9.\\-]*)?$"
 						}
 					},
 					"obligations": {
@@ -155,7 +155,7 @@
 								"type": "array",
 								"items": {
 									"type": "string",
-									"minLength": 1
+									"pattern": "^(component|guardrail|policy-card|evaluator|reader|scenario|stack|brick-kind|error-model|reviewer-model|gate|trace-guarantee|artefact|mechanism):\\S+$"
 								}
 							},
 							"note": {
