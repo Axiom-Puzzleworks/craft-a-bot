@@ -6,12 +6,7 @@ import type { UncataloguedControl } from './check.js';
  * and no control-map row names yet, each with the reason. The orphan rule
  * (`checkControlInventory`) refuses an orphan that is not here and a control
  * here that has since been named, so the list only shrinks. Seeded with
- * what the check found on its first run.
+ * what the check found on its first run; empty since WP135, which cited
+ * `fs-advice/execution-approved` on the advice desk's mitigants row.
  */
-export const UNCATALOGUED_CONTROLS: readonly UncataloguedControl[] = [
-	{
-		ref: 'evaluator:fs-advice/execution-approved',
-		reason:
-			'Judges that an execution was approved by a person; the advice desk’s SS1/23 mitigants row cites the four-eyes card instead of it (WP135 cites it).'
-	}
-];
+export const UNCATALOGUED_CONTROLS: readonly UncataloguedControl[] = [];

@@ -58,7 +58,9 @@
 	const fold = $derived(
 		report
 			? conductFold(report, workflows, {
-					workflowIdOfCell: (cell) => workflowIdOfCell(cell, workflows)
+					workflowIdOfCell: (cell) => workflowIdOfCell(cell, workflows),
+					// WP135: each lamp reads every desk's evaluators the control maps tag with its obligation.
+					controlMaps: registry.listControlMaps()
 				})
 			: undefined
 	);

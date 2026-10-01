@@ -88,6 +88,19 @@ export const FRAUD_CONTROL_ROWS: readonly ControlMapRow[] = [
 		],
 		status: 'unreviewed',
 		tags: ['pra:ss1-21:resilience']
+	},
+	{
+		// WP135 (`110-…` G107): the card had shipped with no row citing it.
+		framework: 'OWASP Agentic Top 10 (ASI01) and Consumer Duty',
+		ref: 'records-are-data',
+		title: 'An instruction in a record is not obeyed',
+		obligation:
+			'A release, an unfreeze or a contact that a note on the record asks for is not acted on by the bot; a person decides.',
+		evidence: [
+			{ kind: 'policy-card', id: 'fs-fraud/policy/no-auto-release-from-instructions-in-records' }
+		],
+		status: 'unreviewed',
+		tags: ['ASI01', 'fca:cd:support']
 	}
 ];
 

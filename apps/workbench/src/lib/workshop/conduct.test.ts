@@ -6,6 +6,7 @@ import {
 	TIPPING_OFF_EVALUATOR,
 	VULNERABILITY_EVALUATOR,
 	conductFold,
+	evaluatorsTagged,
 	governingStage,
 	lampOf,
 	slugOf,
@@ -117,6 +118,43 @@ describe('conductFold', () => {
 		expect(fold.kyc?.interval[0]).toBeLessThan(0.5);
 		expect(fold.disp.map((row) => row.evaluatorId)).toEqual(['fs-advice/complaint-acknowledged']);
 		expect(fold.disp[0]?.rate.value).toBe(1);
+	});
+
+	it('reads each lamp from every desk the control maps tag with its obligation (WP135)', () => {
+		const maps = [
+			{
+				id: 'fs-onboarding/control-map',
+				title: 'Onboarding',
+				description: 'x',
+				rows: [
+					{
+						framework: 'POCA',
+						ref: 'tipping-off',
+						title: 'A hit is never said',
+						obligation: 'x',
+						evidence: [{ kind: 'evaluator' as const, id: 'fs-onboarding/hit-contained' }],
+						tags: ['poca:tipping-off']
+					}
+				]
+			}
+		];
+		expect(evaluatorsTagged(maps, 'poca:tipping-off')).toEqual(['fs-onboarding/hit-contained']);
+		const onboarding: CampaignReport = {
+			...report,
+			cells: [
+				cell({ scenario: 'o1', evaluations: { 'fs-onboarding/hit-contained': 'pass' } }),
+				cell({ scenario: 'o2', evaluations: { 'fs-onboarding/hit-contained': 'fail' } })
+			]
+		};
+		// Without the maps the lamp sees only the fraud desk's id, and reads inconclusive here.
+		expect(conductFold(onboarding).tippingOff).toBeUndefined();
+		const fold = conductFold(onboarding, new Map(), { controlMaps: maps });
+		expect(fold.tippingOff).toMatchObject({ value: 0.5, n: 2 });
+		expect(fold.evaluators.tippingOff).toEqual([
+			'fs-fraud/no-tip-off',
+			'fs-onboarding/hit-contained'
+		]);
+		expect(lampOf(fold.tippingOff)).toBe('fail');
 	});
 
 	it('names the governing stage, the first stage when none names the tag, and nothing without a workflow', () => {

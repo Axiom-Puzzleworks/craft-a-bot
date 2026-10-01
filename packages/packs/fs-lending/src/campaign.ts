@@ -319,7 +319,7 @@ export const lendingStacks: Stack[] = deskStacks({
 		watchFor: ['monitor/going-in-circles', 'monitor/refusal-storm'],
 		breakOn: [{ evaluatorId: IDENTITY_BEFORE_DECISION_ID, onFail: true }]
 	},
-	obligations: ['equality-act:fairness', 'consumer-duty:understanding'],
+	obligations: ['equality-act:fairness', 'fca:cd:understanding'],
 	// The register's control ids (`80-…`): `{mapId}/{ref}`, so a stack's effect shows on the control's row.
 	controls: lendingControlMap.rows.map((row) => `${lendingControlMap.id}/${row.ref}`)
 });
@@ -373,6 +373,13 @@ export function lendingBookCampaign(
 			{
 				id: 'the-bots-agree-with-the-rule',
 				require: { kind: 'evaluator-pass-rate', evaluatorId: DECISION_MATCHES_RULES_ID, atLeast: 1 }
+			},
+			// WP135 (`110-…` G101): the bank's SS1/23 row cites `no-regression`, and no shipped campaign
+			// declared one. CI hands this campaign the committed baseline
+			// (`campaigns/baselines/fs-lending-book.campaign-report.json`); without one it is inconclusive.
+			{
+				id: 'no-regression-on-the-book',
+				require: { kind: 'no-regression', tolerance: 0 }
 			}
 		]
 	};
