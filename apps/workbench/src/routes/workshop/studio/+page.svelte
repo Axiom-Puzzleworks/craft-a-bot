@@ -496,6 +496,21 @@
 						{/each}
 					</ol>
 				{/if}
+				<!-- WP134 (`110-…` G106): what the stack claims, so a reader sees it before the register does. -->
+				<dl class="claims" data-testid="studio-claims">
+					<dt>Claims to implement</dt>
+					<dd data-testid="studio-claims-controls">
+						{(stack.controls ?? []).length === 0
+							? 'no control rows — the register folds no effect onto a row for it'
+							: (stack.controls ?? []).join(', ')}
+					</dd>
+					<dt>Serves</dt>
+					<dd data-testid="studio-claims-obligations">
+						{(stack.obligations ?? []).length === 0
+							? 'no obligations named'
+							: (stack.obligations ?? []).join(', ')}
+					</dd>
+				</dl>
 				<div class="use">
 					<span>Use in…</span>
 					<!-- eslint-disable svelte/no-navigation-without-resolve -- resolve() builds each base path in useHref; the stack id is a query the typed surface cannot carry. -->
@@ -700,6 +715,15 @@
 	.fits textarea {
 		width: 100%;
 		font-family: var(--cab-font-mono, monospace);
+	}
+	.claims {
+		display: grid;
+		grid-template-columns: max-content 1fr;
+		gap: var(--cab-space-1) var(--cab-space-3);
+		margin: var(--cab-space-3) 0;
+	}
+	.claims dd {
+		margin: 0;
 	}
 	.use {
 		display: flex;

@@ -42,6 +42,7 @@ import {
 	renderReadingsSummary,
 	writeReadings
 } from './commands/readings.js';
+import { controlsFor, renderControlsSummary, writeControls } from './commands/controls.js';
 import { gateAnswer, gateServe } from './commands/gate.js';
 import {
 	agreementForFiles,
@@ -152,6 +153,11 @@ Usage:
       row, decision right, blueprint item, screening list, error and reviewer model still
       pending, with the review each has had (from --content and --store). Markdown is
       the maintainer's work list: the amendments to edit in, the rejections, the unread.
+  craftabot controls list | export [--format json|markdown] [--out <file>] [--store <dir>] [--experiments <dir>]
+      The Control Inventory (WP134): every control the installed packs ship, with its
+      catalogue entries, where it is fitted (the shipped campaigns and --experiments),
+      what fired, its benchmark and register effect (from --store) and its readings.
+      list prints one line per kind; export writes the table as JSON or markdown.
   craftabot corpus freeze <corpus.json>
       Write a corpus's digest over its labels and rows (WP119).
   craftabot corpus label <corpus.json> --as <annotator> --out <labels.json>
@@ -1238,6 +1244,37 @@ ${renderEvaluations(report)}`);
 				io.stdout(
 					out
 						? `${renderReadingsSummary(file)}  wrote      ${out}
+`
+						: text
+				);
+				return 0;
+			}
+			case 'controls': {
+				// WP134 (`110-CONTROL-SUITE-PLAN.md` §4.3): the Control Inventory, from the host's side.
+				const verb = args.positional[0];
+				const format = stringFlag(args, 'format') ?? 'json';
+				if ((verb !== 'list' && verb !== 'export') || (format !== 'json' && format !== 'markdown'))
+					throw new Error(
+						'controls needs list | export [--format json|markdown] [--out <file>] [--store <dir>] [--experiments <dir>]'
+					);
+				const config = await configFrom(args);
+				const store = stringFlag(args, 'store');
+				const out = stringFlag(args, 'out');
+				const file = await controlsFor({
+					packs: config.packs,
+					...(config.content ? { content: config.content } : {}),
+					...(store ? { storage: await createFileStorage(store) } : {}),
+					experimentsDir: stringFlag(args, 'experiments') ?? 'experiments',
+					generatedAt: new Date().toISOString()
+				});
+				if (verb === 'list') {
+					io.stdout(renderControlsSummary(file));
+					return 0;
+				}
+				const text = await writeControls(file, format, out);
+				io.stdout(
+					out
+						? `${renderControlsSummary(file)}  wrote      ${out}
 `
 						: text
 				);

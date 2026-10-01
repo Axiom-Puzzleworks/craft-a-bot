@@ -30,6 +30,14 @@ test('a design over the lending book runs as two campaigns and folds into a resu
 	await page.getByTestId('experiment-level-bot-everywhere').check();
 	await page.getByTestId('experiment-size').fill('30');
 	await page.getByTestId('experiment-hypothesis').fill('Level 5 changes the success rate.');
+	// The control rows the design tests (WP133, G103): named on the page, never every row of the map.
+	await page.getByTestId('experiment-control-fs-lending-control-map-four-eyes').check();
+	await expect(page.getByTestId('experiment-design')).toContainText(
+		'"fs-lending/control-map/four-eyes"'
+	);
+	await expect(page.getByTestId('experiment-design')).not.toContainText(
+		'"fs-lending/control-map/affordability-first"'
+	);
 	await expect(page.getByTestId('experiment-expansion')).toHaveText('2 campaigns, sharing seeds');
 	await expect(page.getByTestId('experiment-design')).toContainText('"axis": "executors"');
 	await expect(page.getByTestId('experiment-design')).toContainText(

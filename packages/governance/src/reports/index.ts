@@ -113,7 +113,8 @@ export {
 	type AssurancePackInput,
 	type AssurancePrincipal,
 	type EvidencePresence,
-	type NotRecorded
+	type NotRecorded,
+	type AssuranceControl
 } from './assurance-pack.js';
 export {
 	controlEffectiveness,
@@ -122,10 +123,19 @@ export {
 } from './control-effectiveness.js';
 /** The Control Inventory (WP133, `110-CONTROL-SUITE-PLAN.md` §4): one row per control instance, eight facets. */
 export {
+	CONTROL_INVENTORY_FORMAT,
+	INVENTORY_KIND_LABELS,
+	INVENTORY_SURFACE_LABELS,
+	campaignUses,
+	controlFacetWords,
 	controlInventory,
+	controlInventoryExport,
 	controlInventorySummary,
 	evidenceRef,
+	renderControlInventoryMarkdown,
 	tripRef,
+	type ControlInventoryExport,
+	type InventoryFacet,
 	type ControlInventoryInput,
 	type ControlInventoryRow,
 	type ControlInventorySummary,

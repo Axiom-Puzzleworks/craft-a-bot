@@ -126,6 +126,19 @@ export function renderAssurancePackMarkdown(pack: AssurancePack): string {
 			`- Domain: ${pack.inventory.domain.name} (\`${pack.inventory.domain.id}\`), ${pack.inventory.domain.sector}, ${pack.inventory.domain.jurisdiction} — journeys: ${pack.inventory.domain.journeys.shipped} shipped, ${pack.inventory.domain.journeys.supporting} supporting, ${pack.inventory.domain.journeys.out} out`
 		);
 	out.push('');
+	// WP134 (`110-…` §4.3): the controls this bot runs with, as the Control Inventory words them.
+	out.push('### The controls on this bot');
+	out.push('');
+	if (pack.inventory.controls.length === 0) out.push('None recorded.');
+	else {
+		out.push('| Control | Catalogue | Control rows | Exercised | Measured | Effect |');
+		out.push('|---|---|---|---|---|---|');
+		for (const control of pack.inventory.controls)
+			out.push(
+				`| ${control.name} (\`${control.ref}\`) | ${control.coverage}${control.entries.length > 0 ? ` (${control.entries.join(', ')})` : ''} | ${control.rows.length === 0 ? '—' : control.rows.join(', ')} | ${control.exercised} | ${control.measured} | ${control.effect} |`
+			);
+	}
+	out.push('');
 	out.push('## 2. Governance (principle 2)');
 	out.push('');
 	out.push(`- Safety stack: ${list(pack.governance.guardrails)}`);
@@ -322,7 +335,18 @@ th{background:var(--cab-cream)}code{font-size:.9em}
 ${pack.inventory.world ? `<li>World: ${escape(pack.inventory.world.name)} (<code>${escape(pack.inventory.world.id)}</code>)${pack.inventory.world.purpose ? `, purpose ${escape(pack.inventory.world.purpose)}` : ''}</li>` : ''}
 ${(pack.inventory.gates ?? []).map((gate) => `<li>Through the Gate: stack <code>${escape(gate.stackId)}</code> in <strong>${escape(gate.mode)}</strong> mode, in front of <code>${escape(gate.upstream)}</code> — ${gate.runIds.length} conversation(s)</li>`).join('')}
 ${pack.inventory.domain ? `<li>Domain: ${escape(pack.inventory.domain.name)} (<code>${escape(pack.inventory.domain.id)}</code>), ${escape(pack.inventory.domain.sector)}, ${escape(pack.inventory.domain.jurisdiction)} — journeys: ${pack.inventory.domain.journeys.shipped} shipped, ${pack.inventory.domain.journeys.supporting} supporting, ${pack.inventory.domain.journeys.out} out</li>` : ''}
-</ul>`;
+</ul>
+<h3>The controls on this bot</h3>
+${
+	pack.inventory.controls.length === 0
+		? '<p>None recorded.</p>'
+		: `<table><caption>The controls on this bot</caption><thead><tr><th scope="col">Control</th><th scope="col">Catalogue</th><th scope="col">Control rows</th><th scope="col">Exercised</th><th scope="col">Measured</th><th scope="col">Effect</th></tr></thead><tbody>${pack.inventory.controls
+				.map(
+					(control) =>
+						`<tr><td>${escape(control.name)} <code>${escape(control.ref)}</code></td><td>${escape(control.coverage)}${control.entries.length > 0 ? ` (${control.entries.map(escape).join(', ')})` : ''}</td><td>${control.rows.length === 0 ? '—' : control.rows.map(escape).join(', ')}</td><td>${escape(control.exercised)}</td><td>${escape(control.measured)}</td><td>${escape(control.effect)}</td></tr>`
+				)
+				.join('')}</tbody></table>`
+}`;
 
 	const governance = `<ul>
 <li>Safety stack: ${listHtml(pack.governance.guardrails)}</li>

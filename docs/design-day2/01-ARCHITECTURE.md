@@ -227,4 +227,16 @@ V1 needs none. The first features that will genuinely require one: sharing kit f
 >
 > **Amended 2026-09-06 (WP69, `59-EDITIONS.md` §4.2).** The budget is per build (WP56) and now per edition: `full` keeps its limit; `simulator`, `workshop` and `playground` carry their own in `edition.ts`, each checked by `npm run build:editions` and CI's `editions` job.
 
+> **Amended 2026-10-01 (WP132–WP134, `110-CONTROL-SUITE-PLAN.md` §10): the budgets after the Control Inventory.** Each build set to its measured size plus 20 kB:
+>
+> | Build | Budget | Measured | Worker | Kit's first page |
+> |---|---|---|---|---|
+> | full | 3,042,000 | 2,951 KiB | 1,679 KiB of 1,698 | 770 KiB of 789 |
+> | simulator | 2,891,000 | 2,803 KiB | 1,513 KiB | 576 KiB |
+> | workshop | 2,911,000 | 2,823 KiB | 1,571 KiB | 638 KiB |
+> | playground | 3,042,000 | 2,951 KiB | 1,679 KiB | 770 KiB |
+>
+> - **+72 kB in every edition** for the catalogue's second edition (23 entries), the declared mechanisms, the inventory's fold and `/workshop/controls`.
+> - **The Kit's first page 136 KiB lighter and the Worker 70 KiB lighter.** `@craftabot/governance` now declares `"sideEffects": false`. The catalogue and the mechanism list are built by top-level calls the bundler could not prove pure, so they had ridden on every page through the root layout's import of governance's barrel. The first-page gate is lowered to 808,000 and the Worker's to 1,739,000, so the gain is held.
+
 > **Amended 2026-09-30 (WP127, `107-THE-GATE.md`).** A new Node-only package, **`@craftabot/gate`**. It depends on `core` and `governance` and on no pack, and nothing in `apps/workbench` imports it. The harness runs it as `craftabot gate`.

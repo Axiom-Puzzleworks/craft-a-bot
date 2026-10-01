@@ -15,7 +15,9 @@ import { checkControlInventory } from '../controls/check.js';
 import {
 	campaignUses,
 	controlInventory,
+	controlInventoryExport,
 	controlInventorySummary,
+	renderControlInventoryMarkdown,
 	tripRef
 } from './control-inventory.js';
 import type { ControlEffectivenessRow } from './control-effectiveness.js';
@@ -165,7 +167,8 @@ describe('controlInventory', () => {
 		expect(at(`evaluator:${JUDGE.id}`)).toEqual(['test/control-map#support']);
 		expect(at(`policy-card:${CARD.id}`)).toEqual(['test/control-map#support']);
 		expect(at('component:governance/step-budget')).toEqual(['test/control-map#support']);
-		expect(at('component:governance/egress-none')).toEqual(['test/control-map#support']); // an egress mode is its component
+		// An egress mode is its component's evidence; this registry ships no egress component, so no row.
+		expect(rows.some((row) => row.ref === 'component:governance/egress-none')).toBe(false);
 		expect(at(`stack:${STACK.id}`)).toEqual(['test/control-map#support']);
 	});
 
@@ -340,5 +343,20 @@ describe('checkControlInventory (G118)', () => {
 			['inventory.uncatalogued-reason', 'mechanism:core/trace'],
 			['inventory.uncatalogued-stale', 'mechanism:core/trace']
 		]);
+	});
+});
+
+describe('renderControlInventoryMarkdown', () => {
+	it('prints one table per kind and escapes a pipe in a name, so the table holds', () => {
+		const rows = controlInventory({ registry: registry(), catalogue: CATALOGUE });
+		const piped = rows.map((row) =>
+			row.ref === `policy-card:${CARD.id}` ? { ...row, name: 'No fire | ever' } : row
+		);
+		const markdown = renderControlInventoryMarkdown(
+			controlInventoryExport(piped, '2026-10-01T00:00:00.000Z')
+		);
+		expect(markdown).toContain('# The Control Inventory');
+		expect(markdown).toContain('## Policy card (1)');
+		expect(markdown).toContain('**No fire \\| ever**');
 	});
 });

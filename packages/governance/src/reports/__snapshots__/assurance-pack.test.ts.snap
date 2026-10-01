@@ -710,7 +710,7 @@ exports[`assurancePackFor > folds a fixture bot with one campaign and one incide
       },
     ],
   },
-  "digest": "7fc5cd7d734a02a8f53651fc37eabaf8e465113fdf0f620d6b9e0b2a2ebc6598",
+  "digest": "6620d5eb510884493582805a9be324370e45d86dd5a790ff093ab65841a31976",
   "format": "craftabot-assurance-pack",
   "formatVersion": 1,
   "generatedAt": "2026-09-06T12:00:00.000Z",
@@ -775,6 +775,39 @@ exports[`assurancePackFor > folds a fixture bot with one campaign and one incide
         "packs": {},
       },
     },
+    "controls": [
+      {
+        "coverage": "shipped",
+        "effect": "untested",
+        "entries": [
+          "domain-output-rules",
+          "tool-allow-deny",
+          "policy-decision-point",
+          "runtime-enforcement-dsl",
+          "kill-switch",
+          "stage-boundary-guard",
+        ],
+        "exercised": "fired ×1",
+        "measured": "—",
+        "name": "No fire",
+        "ref": "policy-card:test/policy/no-fire",
+        "rows": [
+          "test/control-map#support",
+        ],
+      },
+      {
+        "coverage": "uncatalogued",
+        "effect": "untested",
+        "entries": [],
+        "exercised": "fired ×1",
+        "measured": "—",
+        "name": "Judge",
+        "ref": "evaluator:test/judge",
+        "rows": [
+          "test/control-map#support",
+        ],
+      },
+    ],
     "goalCard": {
       "id": "test/card",
       "title": "The card",

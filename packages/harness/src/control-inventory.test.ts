@@ -63,9 +63,19 @@ describe('the Control Inventory over every pack', () => {
 				row.fitted.where.some((where) => where.endsWith('(gated)')),
 				row.ref
 			).toBe(false);
-		// A ceiling is measured, not enforced.
-		for (const row of rows.filter((each) => each.kind === 'ceiling'))
+		// A ceiling is measured, not enforced — and catalogued through the ceilings' mechanism.
+		for (const row of rows.filter((each) => each.kind === 'ceiling')) {
 			expect(row.summary, row.ref).toMatch(/not enforced/);
+			expect(
+				row.entries.map((entry) => entry.id),
+				row.ref
+			).toContain('four-eyes');
+		}
+		// A knob or a model is not a technique: the catalogue does not apply to it.
+		for (const row of rows.filter((each) =>
+			['knob', 'error-model', 'reviewer-model'].includes(each.kind)
+		))
+			expect(row.coverage, row.ref).toBe('not-applicable');
 	});
 
 	it('declares each world’s knobs with the defaults the world itself uses', () => {

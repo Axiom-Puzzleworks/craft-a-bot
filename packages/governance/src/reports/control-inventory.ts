@@ -75,6 +75,8 @@ export interface ControlInventoryInput {
 	summaries?: readonly RunSummary[];
 	/** Campaign reports' cells: evaluator verdicts and reader readings (the *exercised* facet). */
 	campaignReports?: readonly InventoryCampaignReport[];
+	/** Evaluation records: an evaluator's verdict over one run (the *exercised* facet). */
+	evaluations?: ReadonlyArray<{ evaluatorId: string; result: { verdict?: string | undefined } }>;
 	/** The register, folded (`controlEffectiveness`). */
 	register?: readonly ControlEffectivenessRow[];
 	benchmarks?: readonly BenchmarkReport[];
@@ -120,7 +122,11 @@ export interface ControlInventoryRow {
 	/** The pack that ships it, from its qualified id; `governance` or `core` for the product's own. */
 	pack: string;
 	entries: InventoryEntryLink[];
-	/** The first direct entry's status, or the first inherited one's; `uncatalogued` when none names it. */
+	/**
+	 * The first direct entry's status, or the first inherited one's; `uncatalogued`
+	 * when none names it. A knob or a model is a setting or the simulation's
+	 * apparatus, not a technique: the catalogue does not apply (`not-applicable`).
+	 */
 	coverage: CoverageStatus | 'uncatalogued';
 	/** The control-map rows that cite it as evidence, or that a stack claims. */
 	rows: InventoryRowLink[];
@@ -227,6 +233,21 @@ const ARTEFACT_NAMES: Readonly<Record<string, string>> = {
 };
 
 const EFFECT_RANK = { evidenced: 0, inconclusive: 1, untestable: 2, untested: 3 } as const;
+
+/** The mechanism that produces each artefact: an artefact is catalogued through it. */
+const ARTEFACT_MECHANISM: Readonly<Record<string, ControlRef>> = {
+	'agent-card': 'mechanism:core/agent-card',
+	'kit-file-requires': 'mechanism:core/kit-requires',
+	'campaign-report': 'mechanism:evals/campaign',
+	'drift-series': 'mechanism:metrics/drift',
+	'incident-log': 'mechanism:governance/incidents',
+	'safety-case': 'mechanism:governance/safety-case',
+	'trace-bundle': 'mechanism:core/trace',
+	'assurance-pack': 'mechanism:governance/assurance-pack'
+};
+
+/** Kinds the catalogue does not describe: settings and the simulation's apparatus. */
+const NOT_A_TECHNIQUE: readonly InventoryKind[] = ['knob', 'error-model', 'reviewer-model'];
 
 /** The pack a qualified id belongs to: everything before the first `/`. */
 const packOf = (id: string): string => id.split('/')[0] ?? id;
@@ -540,23 +561,27 @@ export function controlInventory(input: ControlInventoryInput): ControlInventory
 			const parsed = parseControlRef(ref);
 			if (!parsed) continue;
 			const key = ref as ControlRef;
+			// A cited thing the fold does not enumerate itself — a scenario, a brick, an event type —
+			// gets a row when it exists; a reference to registered content this host lacks gets none.
 			if (!rows.has(key)) {
-				// A cited thing that is not itself enumerated — a scenario, a brick, an event type.
-				const name =
+				const cited =
 					parsed.kind === 'scenario'
-						? (registry.getScenario(parsed.id)?.title ?? parsed.id)
+						? registry.getScenario(parsed.id)?.title
 						: parsed.kind === 'brick-kind'
-							? (registry.getBrickKind(parsed.id)?.name ?? parsed.id)
-							: parsed.id;
-				add(
-					base(
-						parsed.kind,
-						parsed.id,
-						name,
-						`Cited by the catalogue as ${parsed.kind}.`,
-						'declared'
-					)
-				);
+							? registry.getBrickKind(parsed.id)?.name
+							: parsed.kind === 'trace-guarantee'
+								? parsed.id
+								: undefined;
+				if (cited !== undefined)
+					add(
+						base(
+							parsed.kind,
+							parsed.id,
+							cited,
+							`Cited by the catalogue as ${parsed.kind}.`,
+							'declared'
+						)
+					);
 			}
 			const links = direct.get(key) ?? [];
 			links.push({ id: entry.id, name: entry.name, status: entry.coverage.status });
@@ -571,6 +596,10 @@ export function controlInventory(input: ControlInventoryInput): ControlInventory
 	for (const row of rows.values()) {
 		if (row.kind === 'policy-card') inherit(row, 'component:governance/policy-card');
 		if (row.kind === 'reader') inherit(row, 'mechanism:workflow/reader-gate');
+		if (row.kind === 'ceiling') inherit(row, 'mechanism:workflow/autonomy-ceilings');
+		if (row.kind === 'gate') inherit(row, 'mechanism:evals/campaign');
+		if (row.kind === 'artefact' && ARTEFACT_MECHANISM[row.id])
+			inherit(row, ARTEFACT_MECHANISM[row.id]!);
 		if (row.kind === 'stack') {
 			const stack = registry.getStack(row.id);
 			for (const fit of stack?.fit ?? []) inherit(row, `component:${fit.componentId}`);
@@ -578,7 +607,11 @@ export function controlInventory(input: ControlInventoryInput): ControlInventory
 	}
 	for (const row of rows.values()) {
 		const first = row.entries.find((link) => !link.via) ?? row.entries[0];
-		row.coverage = first ? first.status : 'uncatalogued';
+		row.coverage = first
+			? first.status
+			: NOT_A_TECHNIQUE.includes(row.kind)
+				? 'not-applicable'
+				: 'uncatalogued';
 	}
 
 	// ------------------------------------------------------------ control-map rows
@@ -666,7 +699,11 @@ export function controlInventory(input: ControlInventoryInput): ControlInventory
 	}
 
 	// ------------------------------------------------------------ exercised
-	const sawRuns = (input.summaries?.length ?? 0) + (input.campaignReports?.length ?? 0) > 0;
+	const sawRuns =
+		(input.summaries?.length ?? 0) +
+			(input.campaignReports?.length ?? 0) +
+			(input.evaluations?.length ?? 0) >
+		0;
 	const fired = new Map<ControlRef, number>();
 	const seen = new Set<ControlRef>();
 	for (const summary of input.summaries ?? [])
@@ -687,6 +724,11 @@ export function controlInventory(input: ControlInventoryInput): ControlInventory
 				if (reading.gated) fired.set(ref, (fired.get(ref) ?? 0) + 1);
 			}
 		}
+	for (const record of input.evaluations ?? []) {
+		const ref: ControlRef = `evaluator:${record.evaluatorId}`;
+		seen.add(ref);
+		if (record.result.verdict === 'fail') fired.set(ref, (fired.get(ref) ?? 0) + 1);
+	}
 	for (const row of rows.values()) {
 		const exercisable = ['component', 'guardrail', 'policy-card', 'evaluator', 'reader'].includes(
 			row.kind
@@ -823,4 +865,144 @@ export function controlInventorySummary(
 		unread: rows.filter((row) => row.reviewed.state === 'unread').length,
 		configurable: rows.filter((row) => row.configurable.state === 'configurable').length
 	};
+}
+
+/** What each surface is called, in words a reader knows. */
+export const INVENTORY_SURFACE_LABELS: Readonly<Record<InventorySurface, string>> = {
+	studio: 'the Studio',
+	'spec-lab': 'the Spec Lab',
+	policies: 'Policies',
+	campaigns: 'Campaigns',
+	experiments: 'Experiments',
+	workflow: 'the journey’s configuration',
+	gate: 'the Gate (craftabot gate serve)',
+	kit: 'the Kit',
+	readings: 'Readings',
+	harness: 'the harness'
+};
+
+/** Each kind's name, for a heading or a column. */
+export const INVENTORY_KIND_LABELS: Readonly<Record<InventoryKind, string>> = {
+	component: 'Component',
+	guardrail: 'Guardrail',
+	'policy-card': 'Policy card',
+	evaluator: 'Evaluator',
+	reader: 'Reader',
+	scenario: 'Scenario',
+	stack: 'Stack',
+	'brick-kind': 'Brick',
+	'error-model': 'Error model',
+	'reviewer-model': 'Reviewer model',
+	ceiling: 'Ceiling',
+	knob: 'Knob',
+	gate: 'Gate kind',
+	'trace-guarantee': 'Trace guarantee',
+	artefact: 'Artefact',
+	mechanism: 'Mechanism'
+};
+
+/** The facets a row is worded by, in the order the page and the export show them. */
+export type InventoryFacet =
+	'coverage' | 'fitted' | 'exercised' | 'measured' | 'effect' | 'reviewed' | 'configurable';
+
+const percent = (value: number | null | undefined) =>
+	value === null || value === undefined ? '—' : `${Math.round(value * 100)}%`;
+const signedDelta = (value: number) => `${value >= 0 ? '+' : ''}${value.toFixed(3)}`;
+
+/** **`controlFacetWords`**: each facet of a row in words — what the page's table, the drawer and the export print. */
+export function controlFacetWords(row: ControlInventoryRow): Record<InventoryFacet, string> {
+	const fitted =
+		row.fitted.state === 'fitted'
+			? `fitted in ${row.fitted.where.length}`
+			: row.fitted.state === 'unfitted'
+				? 'unfitted'
+				: '—';
+	const exercised = {
+		fired: `fired ×${row.exercised.count ?? 0}`,
+		'not-fired': 'not fired',
+		'not-run': 'not run',
+		'no-runs': 'no runs stored',
+		'not-applicable': '—'
+	}[row.exercised.state];
+	const measured =
+		row.measured.state === 'measured'
+			? `recall ${percent(row.measured.recall)} · precision ${percent(row.measured.precision)}`
+			: row.measured.state === 'unmeasured'
+				? 'unmeasured'
+				: '—';
+	const effect =
+		row.effect.state === 'not-applicable'
+			? '—'
+			: row.effect.delta !== undefined
+				? `${row.effect.state} ${signedDelta(row.effect.delta)}${row.effect.metricId ? ` (${row.effect.metricId})` : ''}`
+				: row.effect.state;
+	const reviewed =
+		row.reviewed.state === 'not-applicable'
+			? '—'
+			: row.reviewed.state === 'unread'
+				? `${row.reviewed.read} of ${row.reviewed.of} read`
+				: row.reviewed.state;
+	const configurable =
+		row.configurable.state === 'fixed'
+			? 'fixed'
+			: row.configurable.surfaces.map((surface) => INVENTORY_SURFACE_LABELS[surface]).join(', ') ||
+				(row.configurable.setting ?? 'configurable');
+	const coverage = row.coverage === 'not-applicable' ? 'not applicable' : row.coverage;
+	return { coverage, fitted, exercised, measured, effect, reviewed, configurable };
+}
+
+/** The export file's format name. */
+export const CONTROL_INVENTORY_FORMAT = 'craftabot-control-inventory' as const;
+
+/** The inventory as a file (`craftabot controls export`): the rows, their summary and when it was folded. */
+export interface ControlInventoryExport {
+	format: typeof CONTROL_INVENTORY_FORMAT;
+	formatVersion: 1;
+	generatedAt: string;
+	summary: ControlInventorySummary;
+	rows: ControlInventoryRow[];
+}
+
+/** The inventory as the export file: the rows with their summary, stamped when folded. */
+export function controlInventoryExport(
+	rows: readonly ControlInventoryRow[],
+	generatedAt: string
+): ControlInventoryExport {
+	return {
+		format: CONTROL_INVENTORY_FORMAT,
+		formatVersion: 1,
+		generatedAt,
+		summary: controlInventorySummary(rows),
+		rows: [...rows]
+	};
+}
+
+const cell = (text: string) => text.replace(/\|/g, '\\|').replace(/\n/g, ' ');
+
+/** **`renderControlInventoryMarkdown`**: the inventory for a reader with no app — one table per kind, every facet in words. */
+export function renderControlInventoryMarkdown(file: ControlInventoryExport): string {
+	const { summary } = file;
+	const out: string[] = [
+		'# The Control Inventory',
+		'',
+		`> Folded ${file.generatedAt} by \`craftabot controls export\` (WP134, \`docs/design-day2/110-CONTROL-SUITE-PLAN.md\` §4). ${summary.rows} controls — ${summary.uncatalogued} uncatalogued, ${summary.unfitted} unfitted, ${summary.fired} fired in the stored runs, ${summary.measured} measured, ${summary.evidenced} with an evidenced effect, ${summary.unread} unread. Every facet is folded from where it is recorded; nothing here is typed in.`,
+		''
+	];
+	const kinds = [...new Set(file.rows.map((row) => row.kind))];
+	for (const kind of kinds) {
+		const rows = file.rows.filter((row) => row.kind === kind);
+		out.push(`## ${INVENTORY_KIND_LABELS[kind]} (${rows.length})`, '');
+		out.push(
+			'| Control | Catalogue | Fitted | Exercised | Measured | Effect | Read | Turned in |',
+			'|---|---|---|---|---|---|---|---|'
+		);
+		for (const row of rows) {
+			const words = controlFacetWords(row);
+			out.push(
+				`| **${cell(row.name)}** (\`${row.ref}\`) — ${cell(row.summary)} | ${words.coverage}${row.entries.length > 0 ? ` (${row.entries.map((entry) => entry.id).join(', ')})` : ''} | ${cell(words.fitted)}${row.fitted.where.length > 0 ? `: ${cell(row.fitted.where.join('; '))}` : ''} | ${words.exercised} | ${words.measured} | ${words.effect} | ${words.reviewed} | ${cell(words.configurable)}${row.configurable.setting ? ` — ${cell(row.configurable.setting)}` : ''} |`
+			);
+		}
+		out.push('');
+	}
+	return out.join('\n');
 }

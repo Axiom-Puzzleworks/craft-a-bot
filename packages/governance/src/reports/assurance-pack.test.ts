@@ -392,6 +392,13 @@ describe('assurancePackFor', () => {
 		});
 		expect(pack.governance.principal.recorded).toBe(true);
 		expect(pack).toMatchSnapshot();
+		// WP134: the controls this bot runs with, as the Control Inventory words them, in both renderings.
+		expect(pack.inventory.controls.map((control) => control.ref)).toEqual([
+			'policy-card:test/policy/no-fire',
+			'evaluator:test/judge'
+		]);
+		expect(renderAssurancePackMarkdown(pack)).toContain('### The controls on this bot');
+		expect(renderAssurancePackHtml(pack)).toContain('<caption>The controls on this bot</caption>');
 	});
 
 	it('a bot with no runs and no campaign says so in every section, never a zero that reads as a rate', async () => {

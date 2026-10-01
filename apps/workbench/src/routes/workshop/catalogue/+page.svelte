@@ -160,6 +160,15 @@
 			{#if open.stacks.length > 0}
 				<p>Stacks: <span class="mono">{open.stacks.join(', ')}</span></p>
 			{/if}
+			<p>
+				<!-- eslint-disable svelte/no-navigation-without-resolve -- resolve() builds the base path; the entry is a query the typed surface cannot carry. -->
+				<a
+					href={`${resolve('/workshop/controls')}?entry=${encodeURIComponent(open.entry.id)}`}
+					data-testid="catalogue-open-controls">The controls that implement it</a
+				>
+				— every instance in the Control Inventory, with where it is fitted and what it did.
+				<!-- eslint-enable svelte/no-navigation-without-resolve -->
+			</p>
 			<p>Frameworks: {open.entry.frameworks.join(', ')}</p>
 			<h3>Sources</h3>
 			<ul>
