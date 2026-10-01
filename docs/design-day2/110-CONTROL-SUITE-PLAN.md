@@ -1,6 +1,6 @@
 # 110 — The control suite: inventory, gaps and the plan to complete it
 
-> **Status (2026-10-01):** a research note and a phased plan, written for review. Nothing in it is built, nothing is scheduled, and it is not yet in `README.md`'s index or `CLAUDE.md`'s chain — both wait on the review. It proposes Phases AJ–AN, WP132–WP150, continuing `101-DAY7-ROADMAP.md`'s numbering, and gaps G91–G118 continuing `100-…`'s register.
+> **Status (2026-10-01):** a research note and a phased plan, reviewed and merged (PR #59); §5's five decisions settled the same day. It is the forward plan: Phase AJ is built on the `phase-aj` branch, one commit per WP, with a PR when the phase closes. It proposes Phases AJ–AN, WP132–WP150, continuing `101-DAY7-ROADMAP.md`'s numbering, and gaps G91–G118 continuing `100-…`'s register.
 
 ## 0. The ask, and the answer in one paragraph
 
@@ -188,13 +188,13 @@ Every value has a closed vocabulary and a fold that produces it; nothing is type
 - **The assurance pack's §1 inventory** gains the table; the catalogue page and the Studio read the same fold for their columns.
 - **`checkControlInventory`** in `pack-testkit`, run in CI over every shipped pack: every instance maps to at least one catalogue entry or is on the declared _uncatalogued_ list with a reason; every entry's `implementedBy` resolves to an instance id; every map row's evidence resolves (already) **and** every instance of a desk is cited by at least one row of that desk's map or is declared _supporting_ (G118).
 
-## 5. Decisions to settle before building
+## 5. Decisions (all five settled 2026-10-01)
 
-1. **Are ceilings enforced?** Today measured only (G97). Proposal: a `WorkflowConfig.ceilings: 'measure' | 'enforce'` mode, default `measure` so every golden run and experiment is unchanged; `enforce` turns a breach into a `pause` to a person at the stage boundary. The catalogue entries then say which.
+1. **Are ceilings enforced?** **Decided 2026-10-01: a mode, default `measure`.** Today measured only (G97). A `WorkflowConfig.ceilings: 'measure' | 'enforce'` mode, default `measure` so every golden run and experiment is unchanged; `enforce` turns a breach into a `pause` to a person at the stage boundary. The catalogue entries then say which.
 2. **One page or two?** **Decided 2026-10-01: two.** The catalogue stays the page of _techniques_ and the new `/workshop/controls` is the page of _instances_; each links to the other by entry id. Folding them into one would lose the catalogue's taxonomy and sources.
-3. **What is the orphan rule's severity?** Proposal: a failing CI check from the first edition, with the declared _uncatalogued_ list seeded with class A so the check is green on day one and shrinks.
-4. **Which class-D entries are the bank's, and which are generic?** Proposal: contestability, disclosure, vulnerability, timeliness and override-reason land as `bankingRelevance: 'core'` with FCA/DISP/GDPR sources; change control, failover, cost, argument validation, shadow mode, prompt integrity as generic.
-5. **The Kit.** Nothing here reaches purpose 1 except through the Safety brick's existing stack picker; a child-facing inventory is a Day 9 question.
+3. **What is the orphan rule's severity?** **Decided 2026-10-01: a failing CI check from the first edition**, with the declared _uncatalogued_ list seeded with class A so the check is green on day one and shrinks.
+4. **Which class-D entries are the bank's, and which are generic?** **Decided 2026-10-01: as proposed.** Contestability, disclosure, vulnerability, timeliness and override-reason land as `bankingRelevance: 'core'` with FCA/DISP/GDPR sources; change control, failover, cost, argument validation, shadow mode, prompt integrity as generic.
+5. **The Kit.** **Decided 2026-10-01: out of scope.** Nothing here reaches purpose 1 except through the Safety brick's existing stack picker; a child-facing inventory is a Day 9 question.
 
 ## 6. The phased plan — Phases AJ–AN, WP132–WP150
 
