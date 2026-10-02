@@ -50,6 +50,7 @@ import {
 	renderReadingsSummary,
 	writeReadings
 } from './commands/readings.js';
+import { sensorsFor, renderSensorsSummary, writeSensors } from './commands/sensors.js';
 import { controlsFor, renderControlsSummary, writeControls } from './commands/controls.js';
 import { gateAnswer, gateServe } from './commands/gate.js';
 import {
@@ -165,6 +166,10 @@ Usage:
       row, decision right, blueprint item, screening list, error and reviewer model still
       pending, with the review each has had (from --content and --store). Markdown is
       the maintainer's work list: the amendments to edit in, the rejections, the unread.
+  craftabot sensors list | export [--format json|markdown] [--out <file>] [--store <dir>]
+      The Sensor Inventory (WP159): every event type a run can carry, its source, its
+      readers and its optional fields; with --store, how many of each the store holds.
+      list prints the counts and the open findings; export writes the table.
   craftabot controls list | export [--format json|markdown] [--out <file>] [--store <dir>] [--experiments <dir>]
       The Control Inventory (WP134): every control the installed packs ship, with its
       catalogue entries, where it is fitted (the shipped campaigns and --experiments),
@@ -1296,6 +1301,33 @@ ${renderEvaluations(report)}`);
 				io.stdout(
 					out
 						? `${renderReadingsSummary(file)}  wrote      ${out}
+`
+						: text
+				);
+				return 0;
+			}
+			case 'sensors': {
+				// WP159 (`112-REAL-ENOUGH-PLAN.md` §5): the Sensor Inventory, from the host's side.
+				const verb = args.positional[0];
+				const format = stringFlag(args, 'format') ?? 'json';
+				if ((verb !== 'list' && verb !== 'export') || (format !== 'json' && format !== 'markdown'))
+					throw new Error(
+						'sensors needs list | export [--format json|markdown] [--out <file>] [--store <dir>]'
+					);
+				const store = stringFlag(args, 'store');
+				const out = stringFlag(args, 'out');
+				const file = await sensorsFor({
+					...(store ? { storage: await createFileStorage(store) } : {}),
+					generatedAt: new Date().toISOString()
+				});
+				if (verb === 'list') {
+					io.stdout(renderSensorsSummary(file));
+					return 0;
+				}
+				const text = await writeSensors(file, format, out);
+				io.stdout(
+					out
+						? `${renderSensorsSummary(file)}  wrote      ${out}
 `
 						: text
 				);

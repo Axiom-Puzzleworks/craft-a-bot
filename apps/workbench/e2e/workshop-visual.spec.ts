@@ -161,6 +161,8 @@ test('the Workshop, screen by screen, over the fixture corpus', async ({ page })
 	await expect(page).toHaveScreenshot('ws-benchmarks.png');
 	// WP129 (`108-READINGS.md` §6): the reading desk over one short kind (the whole queue is eighteen thousand pixels).
 	await shot(page, '/workshop/readings?kind=error-model', 'ws-readings', 'readings-strip');
+	// WP159 (`112-REAL-ENOUGH-PLAN.md` §5): the Sensor Inventory, every event type with its readers.
+	await shot(page, '/workshop/sensors', 'ws-sensors', 'sensors-table');
 	await shot(page, '/workshop/evals', 'ws-eval-matrix', 'matrix-size');
 });
 

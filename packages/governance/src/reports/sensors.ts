@@ -374,6 +374,8 @@ export interface SensorInventoryExport {
 	/** Fields every event carries, optional or not: the envelope's. */
 	envelopeOptional: readonly string[];
 	rows: SensorRow[];
+	/** How many of each type a run store held (`--store`); absent when none was read. */
+	observed?: Record<string, number>;
 	summary: {
 		types: number;
 		folded: number;
@@ -385,13 +387,15 @@ export interface SensorInventoryExport {
 
 export function sensorInventoryExport(
 	rows: readonly SensorRow[],
-	generatedAt: string
+	generatedAt: string,
+	observed?: Record<string, number>
 ): SensorInventoryExport {
 	return {
 		schemaVersion: 1,
 		generatedAt,
 		envelopeOptional: ENVELOPE_OPTIONAL,
 		rows: [...rows],
+		...(observed ? { observed } : {}),
 		summary: {
 			types: rows.length,
 			folded: rows.filter((row) => row.folded).length,
@@ -406,24 +410,25 @@ export function sensorInventoryExport(
 }
 
 export function renderSensorsMarkdown(file: SensorInventoryExport): string {
-	const { summary } = file;
+	const { summary, observed } = file;
+	const seenHead = observed ? ' Seen |' : '';
+	const seenRule = observed ? ' --- |' : '';
 	const lines = [
 		'# Sensor Inventory',
 		'',
 		`${summary.types} event types — ${summary.folded} read by a fold, ${summary.listedOnly} listed only, ${summary.browserOnly} browser-only; ${summary.optionalFields} optional payload fields.`,
 		'',
-		'| Event | Source | Since | Read by | Optional fields | Note |',
-		'| --- | --- | --- | --- | --- | --- |'
+		`| Event | Source | Since | Read by | Optional fields |${seenHead} Note |`,
+		`| --- | --- | --- | --- | --- |${seenRule} --- |`
 	];
 	for (const row of file.rows) {
 		const optional = row.fields.filter((field) => field.optional).map((field) => field.name);
 		const note = row.reach?.kind === 'browser-only' ? row.reach.reason : (row.unfolded ?? '');
+		const readers = row.readBy.map((id) => SENSOR_READERS[id].label).join('; ');
+		const fields = optional.length ? optional.map((name) => `\`${name}\``).join(', ') : '—';
+		const seen = observed ? ` ${observed[row.type] ?? 0} |` : '';
 		lines.push(
-			`| \`${row.type}\` | ${row.source} | ${row.since} | ${row.readBy
-				.map((id) => SENSOR_READERS[id].label)
-				.join(
-					'; '
-				)} | ${optional.length ? optional.map((name) => `\`${name}\``).join(', ') : '—'} | ${note} |`
+			`| \`${row.type}\` | ${row.source} | ${row.since} | ${readers} | ${fields} |${seen} ${note} |`
 		);
 	}
 	return `${lines.join('\n')}\n`;

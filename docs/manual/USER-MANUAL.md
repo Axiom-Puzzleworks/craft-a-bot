@@ -2460,6 +2460,18 @@ Phases AO–AQ (`docs/design-day2/111-TESTABLE-CONTROLS-PLAN.md`) set out to giv
 
 **Where the plans stand.** `110-…` and `111-…` are both exhausted. What remains is said rather than scheduled: the hosted services' checkpoints and their benchmark cassettes wait on keys (WP125, WP140, WP144); Prompt Guard 2 has no host that can serve it; the stage that retries a blocked root cause is not built; no design has a live level. New work needs a fresh plan.
 
+# Part K — Real enough
+
+Phases AR onward (`docs/design-day2/112-REAL-ENOUGH-PLAN.md`) set out to make the bank's actors and its record real enough that the numbers carry. The first phase is the record: before any live run is kept, every sensor a run can carry is counted, covered and readable.
+
+## 70. The Sensor Inventory
+
+**What it lists.** `/workshop/sensors` has one row for every event type a run can carry — 34 today. A row says which part of the system writes the event (the engine, a group, the workflow runtime), the work package that added it, who reads it, and which payload fields may be absent. `craftabot sensors list` prints the counts and the open findings; `craftabot sensors export [--format markdown]` writes the whole table, and `--store <dir>` adds how many of each type a run store holds. The page's *Seen here* column does the same over the most recent runs stored in this browser.
+
+**What it holds.** Two tests keep the table honest. The coverage test runs the seven-desk bank day and a set of small fixtures and fails, naming the event or field, if any event type never fires or any optional field is never seen filled. The reader test opens the source files each reader is named for and fails if one no longer mentions the event it is claimed to read.
+
+**Open findings.** An event that only the Run Lab's trace list reads is a finding, shown with its reason. Two are open: `decision.fault` (a planted fault) and `elevation.requested`; later work packages add the folds that read them.
+
 # Appendices
 
 ## Appendix A — Screen index
@@ -2500,6 +2512,7 @@ Routes are given as they appear in the `full` build. In a published section, pre
 | `/workshop/benchmarks` | Benchmarks | Every guard on the same adversarial rows; *unmeasured* where no cassette exists (§63) |
 | `/workshop/readings` | Readings | The queue of what ships pending, with its source; accept, amend, reject (§64) |
 | `/workshop/controls` | Control Inventory | Every control, one row each, with its eight facets; the filter in the URL (§66) |
+| `/workshop/sensors` | Sensor Inventory | Every event type a run can carry, who writes it and who reads it (§70) |
 | `/workshop/playground/corpora` | The corpora | Every corpus with its guide, agreement and held-out part (§61) |
 | `/workshop/sinks` | Sinks | Configure a telemetry sink; attach it live |
 | `/workshop/telemetry` | Telemetry | By card, by cartridge, by day; trip mix; drift; autonomy |
