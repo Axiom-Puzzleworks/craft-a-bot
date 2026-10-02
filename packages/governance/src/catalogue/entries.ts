@@ -712,8 +712,8 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		sources: [OPA, CEDAR, MS_AGT],
 		coverage: {
 			status: 'shipped',
-			componentIds: ['pdp-opa/opa', 'governance/policy-card'],
-			note: 'OPA through the shell with its live checkpoint taken; the policy card’s predicate language is the built-in engine; Cedar is a blueprint connection.',
+			componentIds: ['pdp-opa/opa', 'pdp-cedar/verified-permissions', 'governance/policy-card'],
+			note: 'OPA through the shell with its live checkpoint taken; Cedar through Amazon Verified Permissions on the same seam (WP144), connectable with its checkpoint pending (`npm run smoke:cedar`); the policy card’s predicate language is the built-in engine.',
 			since: 'WP45'
 		},
 		bankingRelevance: 'core'
@@ -1083,7 +1083,7 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		sources: [SHIELDAGENT, BEDROCK],
 		coverage: {
 			status: 'blueprint',
-			note: 'Recorded as research; Bedrock’s automated-reasoning checks would be a policy-engine connection.'
+			note: 'Recorded as research: proving a policy over every possible action is not built. Bedrock’s automated-reasoning checks, which check one answer’s claims against rules as logic, are their own entry (automated-reasoning-checks, connectable since WP144).'
 		},
 		bankingRelevance: 'supporting'
 	}),

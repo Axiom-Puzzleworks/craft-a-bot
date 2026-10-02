@@ -710,7 +710,7 @@ exports[`assurancePackFor > folds a fixture bot with one campaign and one incide
       },
     ],
   },
-  "digest": "8bda744f592521dadd63c59b972dbc3070ba3f0d254245eb945116a9364a4396",
+  "digest": "8ee68028b25862227022ce20a3ba5bcbc23a71fb0177a19f7c3a7b7c8608500a",
   "format": "craftabot-assurance-pack",
   "formatVersion": 1,
   "generatedAt": "2026-09-06T12:00:00.000Z",
@@ -834,12 +834,12 @@ exports[`assurancePackFor > folds a fixture bot with one campaign and one incide
       "byStatus": {
         "bespoke": 8,
         "blueprint": 3,
-        "connectable": 0,
+        "connectable": 1,
         "not-applicable": 6,
         "shipped": 51,
       },
       "edition": "2026-10",
-      "entries": 68,
+      "entries": 69,
       "notApplicable": [
         "Rate limits",
         "Sandboxed tool and code execution",
@@ -848,7 +848,7 @@ exports[`assurancePackFor > folds a fixture bot with one campaign and one incide
         "Access control on the controls",
         "Content credentials on outputs",
       ],
-      "pending": 68,
+      "pending": 69,
       "reviewed": 0,
     },
     "effects": [

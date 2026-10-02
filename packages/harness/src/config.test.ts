@@ -29,6 +29,7 @@ describe('the default pack list', () => {
 			'bedrock-guardrails',
 			'lakera-guard',
 			'pdp-opa',
+			'pdp-cedar',
 			'evals',
 			'fs-bank',
 			'fs-advice',
@@ -59,7 +60,7 @@ describe('the default pack list', () => {
 	it('reports pack versions in the workbench’s own shape', () => {
 		const versions = packVersions(defaultConfig());
 		expect(versions['starter']).toMatch(/^\d+\.\d+\.\d+$/);
-		expect(Object.keys(versions)).toHaveLength(25);
+		expect(Object.keys(versions)).toHaveLength(26);
 	});
 });
 

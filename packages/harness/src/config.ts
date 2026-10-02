@@ -30,6 +30,7 @@ import geminiPack from '@craftabot/pack-gemini';
 import monitorPack from '@craftabot/pack-monitor';
 import ollamaPack from '@craftabot/pack-ollama';
 import openAiPack from '@craftabot/pack-openai';
+import pdpCedarPack from '@craftabot/pack-pdp-cedar';
 import pdpOpaPack from '@craftabot/pack-pdp-opa';
 import personasPack from '@craftabot/pack-personas';
 import starterPack from '@craftabot/pack-starter';
@@ -81,6 +82,8 @@ export function defaultPacks(): PackManifest[] {
 		bedrockGuardrailsPack,
 		lakeraGuardPack,
 		pdpOpaPack,
+		// WP144: Cedar through Verified Permissions, harness-only like Bedrock (SigV4).
+		pdpCedarPack,
 		evaluatorsPack,
 		fsBankPack,
 		fsAdvicePack,

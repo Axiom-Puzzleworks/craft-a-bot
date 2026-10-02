@@ -5,6 +5,41 @@
  * here is a real guardrail, account or key.
  */
 export const fixtures = {
+	// WP144: an automated-reasoning policy's answers — a claim the rules prove, and one they contradict.
+	'ar-valid': {
+		action: 'NONE',
+		outputs: [],
+		assessments: [
+			{
+				automatedReasoningPolicy: {
+					findings: [{ valid: { translation: { claims: [{ logic: 'eligible = true' }] } } }]
+				}
+			}
+		]
+	},
+	'ar-invalid': {
+		action: 'GUARDRAIL_INTERVENED',
+		outputs: [],
+		assessments: [
+			{
+				automatedReasoningPolicy: {
+					findings: [
+						{
+							invalid: {
+								translation: { claims: [{ logic: 'refund_limit >= 500' }] },
+								contradictingRules: [{ identifier: 'rule-refund-limit' }]
+							}
+						}
+					]
+				}
+			}
+		]
+	},
+	'ar-ambiguous': {
+		action: 'NONE',
+		outputs: [],
+		assessments: [{ automatedReasoningPolicy: { findings: [{ translationAmbiguous: {} }] } }]
+	},
 	clean: {
 		action: 'NONE',
 		outputs: [],

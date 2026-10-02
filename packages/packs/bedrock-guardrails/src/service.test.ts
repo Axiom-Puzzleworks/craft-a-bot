@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { GuardrailContext, ScreenRequest } from '@craftabot/core';
 import { describeConformance } from '@craftabot/pack-testkit';
+import { automatedReasoningService } from './automated-reasoning.js';
 import { fixtures } from './fixtures/index.js';
 import pack from './index.js';
 import {
@@ -256,12 +257,25 @@ describeConformance({
 				}
 			},
 			verdicts: [{ verdict: 'allow', context: componentContext('pre-think') }]
+		},
+		// WP144: the automated-reasoning checks, at pre-act.
+		[automatedReasoningService.id]: {
+			config: {
+				serviceConfig: CONFIG,
+				screening: { offline: true, screenDecision: 'note' }
+			},
+			verdicts: [{ verdict: 'allow', context: componentContext('pre-act') }]
 		}
 	},
 	guardrailServices: {
 		[bedrockGuardrailsService.id]: {
 			config: CONFIG,
 			requests: (['pre-think', 'pre-act', 'post-act'] as const).map((hook) => request({ hook })),
+			plantedSecret: SECRET
+		},
+		[automatedReasoningService.id]: {
+			config: CONFIG,
+			requests: [request({ hook: 'pre-act' })],
 			plantedSecret: SECRET
 		}
 	}

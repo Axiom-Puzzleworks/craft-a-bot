@@ -1,5 +1,6 @@
 import type { PackManifest } from '@craftabot/core';
 import { guardServiceComponent } from '@craftabot/governance';
+import { automatedReasoningService } from './automated-reasoning.js';
 import { bedrockGuardrailsService } from './service.js';
 
 /**
@@ -17,7 +18,8 @@ const bedrockGuardrailsPack: PackManifest = {
 	name: 'Bedrock Guardrails',
 	version: CRAFTABOT_PACK_BEDROCK_GUARDRAILS_VERSION,
 	requiresCore: '>=0.0.1',
-	guardrailServices: [bedrockGuardrailsService],
+	// WP144: the automated-reasoning checks, a second reading of the same signed call.
+	guardrailServices: [bedrockGuardrailsService, automatedReasoningService],
 	guardrailComponents: [
 		guardServiceComponent(bedrockGuardrailsService, {
 			wraps: 'aws/bedrock-guardrails',
@@ -25,6 +27,14 @@ const bedrockGuardrailsPack: PackManifest = {
 			browserCapable: false,
 			version: 'ApplyGuardrail 2023-09-30',
 			perCall: 'per text unit, Amazon Bedrock Guardrails pricing'
+		}) as never,
+		// Connectable, checkpoint pending (WP144): `npm run smoke:bedrock-ar` with an account and a policy.
+		guardServiceComponent(automatedReasoningService, {
+			wraps: 'aws/bedrock-automated-reasoning',
+			technique: 'automated-reasoning-checks',
+			browserCapable: false,
+			version: 'ApplyGuardrail 2023-09-30, automated-reasoning policy',
+			perCall: 'per policy check, Amazon Bedrock Guardrails pricing'
 		}) as never
 	]
 };
@@ -53,3 +63,12 @@ export {
 } from './service.js';
 export { parseCredential, signRequest, type SigV4Credentials, type SigV4Request } from './sigv4.js';
 export { fixtures, type FixtureName } from './fixtures/index.js';
+export {
+	AUTOMATED_REASONING_RECORD_SERVICE,
+	AUTOMATED_REASONING_SERVICE_ID,
+	automatedReasoningClient,
+	automatedReasoningConfigSchema,
+	automatedReasoningReading,
+	automatedReasoningService,
+	type AutomatedReasoningConfig
+} from './automated-reasoning.js';

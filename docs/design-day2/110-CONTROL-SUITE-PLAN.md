@@ -236,7 +236,7 @@ _Catalogue entry first (already there), mechanism second, benchmark level third.
 | **WP141** ✅ | **Done 2026-10-02 — §10's WP141 note.** **`no-progress`, `memory-provenance`, `content-digest`** | `governance/no-progress` at `pre-act` over repeated identical calls with the world's progress predicate; `memory.updated.source` on the trace and `governance/memory-provenance` with a `memory-is-untrusted` leaf; a `digest` on every pack manifest and tool description, `checkPack` refusing a mismatch at registration; three entries to _shipped_; a benchmark level for the first two | M    | G108 (three of eight)                                          |
 | **WP142** ✅ | **Done 2026-10-02 — §10's WP142 note.** **`privilege-scopes`** | A component that starts a bot with the Connector's minimal scopes and records an `elevation.requested`/`resolved` pair as events (`02-…` §7), the approval round-trip reused; `connector/tool-blocklist` folded in as its first instance; the entry to _shipped_                                                                                                           | M    | G91 (the mechanism), G108                                      |
 | **WP143** ✅ | **Done 2026-10-02 — §10's WP143 note.** **The policy-conditioned classifier and inter-agent authentication** | `governance/policy-conditioned` as an `llmReader` over any cartridge with the desk's rulebook as the question's guide, measured on the adversarial benchmark; a signed `group` message (`principal` + digest) verified at `pre-think` by `governance/peer-auth`, the party-line scenario its test; two entries to _shipped_                                                   | M    | G108                                                           |
-| **WP144** | **The Cedar and Bedrock automated-reasoning connections**              | Two harness-only connections on the shell with stand-ins and checkpoint commands, recorded _connectable, checkpoint pending_ — the first use of the status                                                                                                                                                                                                                 | S    | G108 (the connections); _formal verification_ stays blueprint  |
+| **WP144** ✅ | **Done 2026-10-02 — §10's WP144 note.** **The Cedar and Bedrock automated-reasoning connections** | Two harness-only connections on the shell with stand-ins and checkpoint commands, recorded _connectable, checkpoint pending_ — the first use of the status                                                                                                                                                                                                                 | S    | G108 (the connections); _formal verification_ stays blueprint  |
 
 ### Phase AM — The bank's missing controls (WP145–WP149)
 
@@ -489,3 +489,22 @@ _(Recorded here as each work package and phase closes.)_
 > - the party-line pair;
 > - the benchmark test replaying both committed cassettes to their recorded confusion;
 > - the starter's conformance fixture.
+
+> **WP144 — done 2026-10-02.** Two harness-only connections on the guard shell. Each has a stand-in in CI and a checkpoint command, and is recorded *connectable, checkpoint pending*.
+>
+> - **Cedar through Amazon Verified Permissions** (`@craftabot/pack-pdp-cedar`, `pdp-cedar/verified-permissions`). `IsAuthorized` is a policy decision point at `pre-act`, beside OPA, on the PDP seam.
+>   - **The mapping.** Governance's PDP document maps onto Cedar: the bot is the principal (`CraftABot::Agent`), the proposed call the action (`CraftABot::Action`), the goal card the resource. The tick, the hook, the call's kind and arguments and the world's predicates are the context.
+>   - **The reading.** A `DENY` is a policy violation named by its determining policies; the default deny reads the same; an evaluation error is partial, never an allow.
+>   - **The connection.** Signed with SigV4 by the Bedrock pack's signer, under its own credential (`aws-verified-permissions`). One regional host, not browser-capable. A harness default pack, not in any edition.
+>   - **The checkpoint:** `npm run smoke:cedar` with a policy store that forbids an action.
+> - **Bedrock's automated-reasoning checks** (`bedrock-guardrails/automated-reasoning`). A second reading of the same signed `ApplyGuardrail` call, at `pre-act`: what the bot is about to say is checked against a policy written as logic.
+>   - **The reading.** `valid` reads clean; `invalid` and `impossible` read as policy violations; `satisfiable` reads open; a claim the checker could not translate is partial.
+>   - **The checkpoint:** `npm run smoke:bedrock-ar` with an account, a policy and a claim it contradicts.
+> - **The catalogue.**
+>   - A new second-edition entry, `automated-reasoning-checks`, is the first with the status *connectable*.
+>   - `policy-decision-point` names Cedar beside OPA.
+>   - `formal-verification` stays a blueprint: proving a policy over every action is not built, and its note now points at the new entry.
+> - **The benchmark:** both are levels and read *not applicable*. They decide at `pre-act` over a call or an answer, and the corpus is text.
+> - **Tests:**
+>   - `pdp-cedar`'s `service.test.ts`: the mapping, the reading, the signed and targeted call, the scrubbed secret, the offline stand-in, conformance;
+>   - `bedrock-guardrails`' `automated-reasoning.test.ts` and its conformance fixtures.

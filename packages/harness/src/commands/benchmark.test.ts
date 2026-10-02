@@ -90,10 +90,13 @@ describe('craftabot benchmark run (WP123)', () => {
 		).toEqual([
 			['azure-content-safety/content-safety', 'stand-in', true],
 			['bedrock-guardrails/apply-guardrail', 'stand-in', true],
+			// WP144: the two harness-only connections decide at pre-act, over a call or an answer; the corpus is text.
+			['bedrock-guardrails/automated-reasoning', 'stand-in', false],
 			['geap/model-armor', 'stand-in', true],
 			['guard-local/llama-guard', 'stand-in', true],
 			['guard-local/prompt-guard', 'stand-in', true],
 			['lakera-guard/guard', 'stand-in', true],
+			['pdp-cedar/verified-permissions', 'stand-in', false],
 			['pdp-opa/opa', 'stand-in', false],
 			['fs-bank/reader/attack-words', 'local', true],
 			// WP143: with no cassette and no live model it has nothing to ask with, and says so.
@@ -127,7 +130,7 @@ describe('craftabot benchmark run (WP123)', () => {
 		expect(first.markdown.startsWith('# The bank, attacked')).toBe(true);
 		expect(first.markdown).toContain('**Synthetic rows.**');
 		expect(report.digest).toMatchInlineSnapshot(
-			`"6a37dba6c6f7ce397393bd107de3e355a51bb90440d474e0d903f4386153de00"`
+			`"15f01cecdd7890bb51965fc3d470636ea6fed0b13a21329f89d4133ad4c390db"`
 		);
 	});
 
