@@ -4,6 +4,20 @@ Renders `../USER-MANUAL.md` into `Craft-A-Bot-User-Manual.pdf` in the Axiom Veri
 identity — the palette, marks and typefaces taken from that project's own design
 system (`DESIGN.md`), not approximated.
 
+**What a fresh clone needs.** Everything the build reads is in the repository except the
+three typefaces and the Python tools:
+
+- **The manual and the figures:** `prep.py` reads `../USER-MANUAL.md` and the committed
+  baselines under `apps/workbench/e2e/__screenshots__/win32/` directly. Copy neither
+  beside the script.
+- **The mark:** `axiom-mark.svg`, committed here. It is the Axiom Verity mark from that
+  project's `src/lib/assets/`.
+- **The fonts:** not committed (licensed for redistribution, but 1 MB of binaries). The
+  first two lines below fetch them from `@fontsource` into `fonts/`.
+- **The edition on the cover and footer** comes from the manual's front-matter table: the
+  **Version** and **Date** rows. The commit comes from `git rev-parse` at build time.
+  Change the table, not `build.py`, when the edition moves.
+
 ```sh
 npm install @fontsource/newsreader @fontsource/inter @fontsource/ibm-plex-mono
 mkdir -p fonts && cp node_modules/@fontsource/*/files/*-latin-{400,600,700}-{normal,italic}.woff2 fonts/ 2>/dev/null

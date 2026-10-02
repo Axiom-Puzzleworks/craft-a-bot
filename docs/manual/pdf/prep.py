@@ -6,8 +6,16 @@ from PIL import Image, ImageChops
 # Trim each baseline to its content for print: the visual pass captures a fixed,
 # very tall page, so cut below the last row of the main column that differs from
 # the page ground, and cap the height at 1.6x the width.
+# The sources are the repository's own (2026-10-02): the manual one directory up and the
+# committed win32 baselines, never copies kept beside this script, which went stale
+# unnoticed and are absent from a fresh clone.
+HERE = os.path.dirname(os.path.abspath(__file__))
+MANUAL = os.path.join(HERE, '..', 'USER-MANUAL.md')
+SHOTS = os.path.join(HERE, '..', '..', '..', 'apps', 'workbench', 'e2e', '__screenshots__', 'win32')
+assert os.path.isdir(SHOTS), f'no screenshots at {SHOTS}'
+
 os.makedirs('figures-print', exist_ok=True)
-for f in sorted(glob.glob('figures/*.png')):
+for f in sorted(glob.glob(os.path.join(SHOTS, '*.png'))):
     im = Image.open(f).convert('RGB')
     w, h = im.size
     x0 = 220 if w >= 1000 else 0          # skip the Workshop rail
@@ -18,7 +26,7 @@ for f in sorted(glob.glob('figures/*.png')):
     bottom = min(max(bottom, int(w * 0.5)), int(w * 1.6))
     im.crop((0, 0, w, bottom)).save('figures-print/' + os.path.basename(f))
 
-src = io.open('USER-MANUAL.md', encoding='utf-8').read()
+src = io.open(MANUAL, encoding='utf-8').read()
 
 PAT = re.compile(
     r'^> \*\*Figure (\d+)\*\* — (.+?) \*\(Appendix D, `([a-z0-9\-]+\.png)`\.\)\*\s*$',
