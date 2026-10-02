@@ -47,6 +47,8 @@ export interface BenchmarkRunOptions {
 	cassettes?: string;
 	/** Call each service live and write its cassette. */
 	record?: boolean;
+	/** With `record`, only these services are called live; the rest answer as without it (WP140). */
+	only?: readonly string[];
 	out?: string;
 	storage?: Storage;
 	/** Stamped on the report; the CLI passes the time, tests a fixed one. */
@@ -73,15 +75,17 @@ export async function benchmarkRun(options: BenchmarkRunOptions): Promise<Benchm
 		entries: () => BenchmarkCassette['entries'];
 	}> = [];
 	const replays = new Map<string, BenchmarkCassette>();
+	const live = (serviceId: string) =>
+		options.record === true && (!options.only || options.only.includes(serviceId));
 	for (const service of options.registry.listGuardrailServices()) {
-		const cassette = options.record
+		const cassette = live(service.id)
 			? undefined
 			: await readCassette(cassetteFileFor(dir, service.id));
 		if (cassette) replays.set(service.id, cassette);
 	}
 
 	const clientFor = (service: GuardrailService, config: unknown): BenchmarkClient | undefined => {
-		if (options.record) {
+		if (live(service.id)) {
 			const credentialId = service.credential?.id;
 			if (credentialId && !options.credentials.has(credentialId)) return undefined;
 			const recorder = recordingFetch(

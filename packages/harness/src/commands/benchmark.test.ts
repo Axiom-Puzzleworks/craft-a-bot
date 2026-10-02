@@ -221,6 +221,41 @@ describe('craftabot benchmark run (WP123)', () => {
 			expect(replay[field], field).toEqual(live[field]);
 	});
 
+	it('with --only, calls just the named service live and leaves the keyless rest unrecorded (WP140)', async () => {
+		const dir = await mkdtemp(join(tmpdir(), 'benchmark-only-'));
+		const file = join(dir, 'two.json');
+		const benchmark = JSON.parse(await readFile(FILE, 'utf8')) as Record<string, unknown>;
+		await writeFile(
+			file,
+			JSON.stringify({
+				...benchmark,
+				id: 'two-services',
+				corpora: ['fs-disputes/corpus/adversarial-v1'],
+				subjects: {
+					services: ['azure-content-safety/content-safety', 'guard-local/llama-guard'],
+					readers: [],
+					components: []
+				}
+			})
+		);
+		const calls = { count: 0 };
+		const ran = await benchmarkRun({
+			file,
+			registry: registryWith(),
+			credentials: credentialsFromEnv({ CRAFTABOT_CREDENTIAL_AZURE_CONTENT_SAFETY: 'az-test' }),
+			cassettes: dir,
+			record: true,
+			only: ['azure-content-safety/content-safety'],
+			fetch: fakeAzure(calls),
+			ranAt: RAN_AT
+		});
+		expect(ran.recorded).toEqual([cassetteFileFor(dir, 'azure-content-safety/content-safety')]);
+		const modes = Object.fromEntries(ran.report.subjects.map((s) => [s.id, s.mode]));
+		expect(modes['azure-content-safety/content-safety']).toBe('live');
+		expect(modes['guard-local/llama-guard']).not.toBe('live');
+		expect(calls.count).toBe(402);
+	});
+
 	it('stores the report, and a stand-in is never a measurement: the Rack reads unmeasured', async () => {
 		const storage = await createFileStorage(await mkdtemp(join(tmpdir(), 'benchmark-store-')));
 		const { report } = await benchmarkRun({

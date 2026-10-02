@@ -119,6 +119,8 @@ The readings are the `review` records, and the `control-review` alias, in the co
 
 ## The Control Inventory (WP134)
 
+`craftabot benchmark run <benchmark.json> [--cassettes <dir>] [--record [--only <serviceId,…>]] [--out <dir>] [--store <dir>]` runs the adversarial benchmark (`106-BENCHMARK.md` §6). Each guard service answers from its cassette under `benchmarks/cassettes` when there is one, else from its offline stand-in, which measures nothing. `--record` calls the services live, each with its credential from the environment, and writes their cassettes. `--only` limits the live calls to the services named, so a keyless local service (Llama Guard through Ollama) can be recorded without calling every other keyless one (WP140).
+
 `craftabot controls list | export [--format json|markdown] [--out <file>] [--store <dir>] [--experiments <dir>]` folds the Control Inventory (`110-CONTROL-SUITE-PLAN.md` §4), the table `/workshop/controls` renders. It has one row per control the installed packs ship, among them the components, cards, stacks, readers, evaluators, the declared mechanisms, gate kinds, knobs and ceilings. Each row carries eight facets:
 
 - the catalogue entries that name it;
