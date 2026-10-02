@@ -471,6 +471,16 @@ export const CONTROL_MECHANISMS: readonly ControlMechanism[] = [
 		since: 'WP43'
 	}),
 	m({
+		id: 'evals/shadow-guard',
+		name: 'A campaign guard in shadow',
+		summary:
+			'A campaign guard with mode shadow runs its components and records what they would have done, as annotations, and changes nothing.',
+		where: ['packages/evals/src/campaign.ts', 'packages/governance/src/shadow.ts'],
+		observedAs: ['guardrail.checked annotations, category shadow'],
+		configuredBy: 'a campaign guard’s mode',
+		since: 'WP149'
+	}),
+	m({
 		id: 'evals/adversary',
 		name: 'The adversary tier',
 		summary: 'Scripted adversaries and the red-team seat probe a bot inside a campaign.',

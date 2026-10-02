@@ -355,8 +355,9 @@ export const SECOND_EDITION_ENTRIES: CatalogueEntry[] = [
 		sources: [SECRET_SCANNING, OWASP_LLM],
 		coverage: {
 			status: 'shipped',
+			componentIds: ['governance/secret-scan'],
 			implementedBy: ['mechanism:core/export-scrub', 'mechanism:core/key-leak-test'],
-			note: 'Every export passes an exact-match scrub of the vault’s keys, and CI proves none reaches a record; what a bot says is not scanned — it is never given a secret to say.',
+			note: 'Every export passes an exact-match scrub of the vault’s keys, and CI proves none reaches a record; governance/secret-scan refuses a call that would say or send something shaped like a key, token or private key (WP149) — a bot is never given a secret to say, so it answers a planted one.',
 			since: 'WP4'
 		},
 		bankingRelevance: 'supporting'
@@ -425,9 +426,11 @@ export const SECOND_EDITION_ENTRIES: CatalogueEntry[] = [
 		frameworks: ['owasp:llm07'],
 		sources: [OWASP_LLM],
 		coverage: {
-			status: 'bespoke',
-			implementedBy: ['mechanism:core/cassette-digest'],
-			note: 'A prompt is digested to key a recorded answer, so a changed prompt misses its cassette; nothing compares a run’s prompt with a validated one (WP149).'
+			status: 'shipped',
+			componentIds: ['governance/prompt-integrity'],
+			implementedBy: ['mechanism:core/cassette-digest', 'mechanism:core/build-digest'],
+			note: 'governance/prompt-integrity compares a turn’s system prompt with the digest it was validated at and stops the run, or notes it, when they differ (WP149); the build digest (WP147) moves when the personality does, and a changed prompt misses its cassette.',
+			since: 'WP149'
 		},
 		bankingRelevance: 'supporting'
 	}),
@@ -496,8 +499,8 @@ export const SECOND_EDITION_ENTRIES: CatalogueEntry[] = [
 		sources: [ML_TEST_SCORE, PRA_SS1_23],
 		coverage: {
 			status: 'shipped',
-			implementedBy: ['mechanism:gate/shadow'],
-			note: 'The Gate runs a stack over an agent’s live traffic and records every verdict without applying one; a campaign cannot yet fit a stack in shadow (WP149).',
+			implementedBy: ['mechanism:gate/shadow', 'mechanism:evals/shadow-guard'],
+			note: 'The Gate runs a stack over an agent’s live traffic and records every verdict without applying one, and a campaign guard in mode shadow does the same over a campaign (WP149): every verdict that would block, stop, pause, redact or mark is an annotation saying so, and the run goes on. The shadow covers a guard’s components and stack; the Safety and Guard bricks a guard fits are not shadowed.',
 			since: 'WP127'
 		},
 		bankingRelevance: 'core'
@@ -651,8 +654,10 @@ export const SECOND_EDITION_ENTRIES: CatalogueEntry[] = [
 		frameworks: ['eu-ai-act:art-14'],
 		sources: [APPROVAL_FATIGUE],
 		coverage: {
-			status: 'blueprint',
-			note: 'Approvals per case are counted (confirmation fatigue); nothing changes the tier as they climb (WP149).'
+			status: 'shipped',
+			componentIds: ['governance/approval-mode'],
+			note: 'The approval mode’s adaptive setting asks a person about every action until fatigueAfter approvals have been asked in the run, then only about what changes the world, and after twice that only about what cannot be undone (WP149); approvals per case are counted on every report, the confirmation fatigue it answers. The count is read from the trace, so a fork asks the same. No shipped configuration sets it: what a desk should ask a person about is a reading for Andrew.',
+			since: 'WP149'
 		},
 		bankingRelevance: 'supporting'
 	}),

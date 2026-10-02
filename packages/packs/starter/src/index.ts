@@ -5,6 +5,7 @@ import {
 	injectionComponents,
 	policyCardComponent,
 	boundsComponents,
+	integrityComponents,
 	peerAuthComponent,
 	privilegeScopesComponent,
 	provenanceComponents
@@ -50,7 +51,9 @@ export const starterPack: PackManifest = {
 		// WP143: inter-agent message authentication.
 		peerAuthComponent as never,
 		// WP148: the cost cap and tool-argument validation.
-		...(boundsComponents as unknown as never[])
+		...(boundsComponents as unknown as never[]),
+		// WP149: prompt integrity and the secret scan.
+		...(integrityComponents as unknown as never[])
 	],
 	/** Assertion cards (WP43, `31-EVALUATORS.md` §4.2) — the Test Bench reads them from the registry. */
 	assertionCards: starterAssertionCards,

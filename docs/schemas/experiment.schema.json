@@ -1132,6 +1132,10 @@
 										"type": "string",
 										"minLength": 1
 									},
+									"mode": {
+										"type": "string",
+										"const": "shadow"
+									},
 									"for": {
 										"type": "array",
 										"items": {

@@ -31,6 +31,7 @@ import {
 	STEP_BUDGET_COMPONENT_ID,
 	builtinFitsFor,
 	compileComponents,
+	shadowGuardrail,
 	componentDepsFor,
 	egressModeOf,
 	stageBoundaryGuardrails,
@@ -435,6 +436,12 @@ export const campaignGuardSchema = z.object({
 	 * ships the stack.
 	 */
 	stack: z.string().min(1).optional(),
+	/**
+	 * `shadow` (WP149, `110-…` §10): the guard's components run and record
+	 * what they would have done, as annotations, and change nothing — what a
+	 * deployer measures before turning a guard on.
+	 */
+	mode: z.literal('shadow').optional(),
 	for: z.array(z.string()).optional(),
 	group: campaignGuardGroupSchema.optional()
 });
@@ -2045,7 +2052,9 @@ export function componentChainFor(
 		if (entry.point) entryFit.point = entry.point as NonNullable<ComponentFit['point']>;
 		return entryFit;
 	});
-	return compileComponents(fits, registry, deps);
+	const chain = compileComponents(fits, registry, deps);
+	// WP149: a shadow guard records what it would have done and applies nothing.
+	return guard.mode === 'shadow' ? chain.map(shadowGuardrail) : chain;
 }
 
 /** The session's egress mode a guard's components name (`governance/egress-*`), or undefined — the runner's own then applies. */

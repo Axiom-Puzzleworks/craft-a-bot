@@ -141,3 +141,33 @@ describe('an experiment’s guard factor over stack ids', () => {
 		expect(campaign.guards).toEqual([{ id: STACK.id, fit: [], stack: STACK.id }]);
 	});
 });
+
+describe('a guard in shadow (WP149)', () => {
+	it('runs its components and records what they would have done, changing nothing', async () => {
+		const guard: CampaignGuard = {
+			id: 'shadowed',
+			fit: [],
+			mode: 'shadow',
+			components: [
+				{ id: 'governance/step-budget', config: { maxTicks: 1 }, point: { kind: 'pre-think' } }
+			]
+		};
+		const [budget] = componentChainFor(guard, registry());
+		const context = {
+			hook: 'pre-think' as const,
+			tick: 5,
+			spec: {} as never,
+			usage: { ticks: 5, inputTokens: 0, outputTokens: 0 },
+			worldState: {},
+			history: []
+		};
+		expect(await budget!.check(context)).toMatchObject({
+			allow: true,
+			verdictKind: 'annotate',
+			finding: { category: 'shadow' }
+		});
+		// The same guard, on: it stops the run.
+		const [live] = componentChainFor({ ...guard, mode: undefined }, registry());
+		expect(await live!.check(context)).toMatchObject({ allow: false, disposition: 'stop-run' });
+	});
+});

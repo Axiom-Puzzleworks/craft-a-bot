@@ -56,3 +56,44 @@ export function createApprovalModeGuardrail(
 		}
 	};
 }
+
+/**
+ * **Adaptive approval** (WP149, `110-CONTROL-SUITE-PLAN.md` §10;
+ * confirmation fatigue): a person asked about everything soon approves
+ * without reading. This mode asks about every action until `fatigueAfter`
+ * approvals have been asked this run, then only about what changes the
+ * world (reversible or irreversible), and after twice that only about what
+ * cannot be undone. The count is read from the trace (`approval.requested`),
+ * so a fork or a replay asks the same.
+ */
+export function createAdaptiveApprovalGuardrail(
+	fatigueAfter: number,
+	tierOf: (actionName: string) => 'observe' | 'reversible' | 'irreversible' = () => 'irreversible'
+): Guardrail {
+	return {
+		id: APPROVAL_MODE_ID,
+		name: 'Approval Mode',
+		description: `Asks a person before every action, then — after ${fatigueAfter} asks — only before what changes the world, and after ${fatigueAfter * 2} only before what cannot be undone.`,
+		hooks: ['pre-act'],
+		check(ctx) {
+			const proposed = ctx.proposed;
+			if (!proposed || proposed.kind !== 'action') return { allow: true };
+			const asked = ctx.history.filter((event) => event.type === 'approval.requested').length;
+			const tier = tierOf(proposed.name);
+			const needs =
+				asked < fatigueAfter
+					? true
+					: asked < fatigueAfter * 2
+						? tier !== 'observe'
+						: tier === 'irreversible';
+			if (!needs) return { allow: true, note: `${asked} asked already; ${tier} goes without one` };
+			return {
+				pause: true,
+				reason:
+					asked < fatigueAfter
+						? 'A person checks every action first.'
+						: 'A person has been asked often already, so only this one, which matters most, waits for them.'
+			};
+		}
+	};
+}

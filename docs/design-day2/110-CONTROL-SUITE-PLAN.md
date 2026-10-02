@@ -248,7 +248,7 @@ _Each is a catalogue entry from WP132, a control-map row with a regulation, a me
 | **WP146** ✅ | **Done 2026-10-02 — §10's WP146 note.** **Timeliness and override reasons** | `StageSpec.deadline` in ticks, the clock escalating a case past it (`stage.overdue`), DISP's and PSR's timescales as the content, a `timeliness` gate kind; `approval.resolved.reason` required when a person overrules a recommendation or waives a refusal, the `override-reason` evaluator; the human-oversight experiment re-run                                                                                                                       | M    | G112, G115 (the reason)        |
 | **WP147** ✅ | **Done 2026-10-02 — §10's WP147 note.** **Change control** | The kit file's `digest` over cartridge, stack, knobs and prompt; `run.started.changed` when it differs from the last validated digest; a `knob-change-review` reading kind so a knob override on a campaign is read like a calibration row; `model-change-control` as an SS1/23 row on every desk                                                                                                                                                       | M    | G113                           |
 | **WP148** ✅ | **Done 2026-10-02 — §10's WP148 note.** **Resilience and bounds** | `dependency-failover` as a component over a provider list (the DGX pack's failover generalised), a `provider-fault` incident deck proving it; `cost-cap` in money from the cassette's list price; `tool-argument-validation` at `pre-act` against the tool's schema as a component (the registry's refusal made visible as a verdict); the request timeout and the value cap as declared mechanisms with knobs                                               | M    | G114                           |
-| **WP149** | **Oversight ergonomics and the rest**    | Adaptive approval throttling (`approval-mode: 'adaptive'` raising the tier as `approvalsPerCase` climbs, measured against confirmation fatigue); `shadow-mode` as an entry over the Gate and over a stack on a campaign (`stack.mode: 'shadow'` — verdicts recorded, never applied); `prompt-integrity` and `secret-scan` as components; the orchestrator chokepoint entry over the group's existing breaker                                                 | M    | G115 (the throttle), G116      |
+| **WP149** ✅ | **Done 2026-10-02 — §10's WP149 note.** **Oversight ergonomics and the rest** | Adaptive approval throttling (`approval-mode: 'adaptive'` raising the tier as `approvalsPerCase` climbs, measured against confirmation fatigue); `shadow-mode` as an entry over the Gate and over a stack on a campaign (`stack.mode: 'shadow'` — verdicts recorded, never applied); `prompt-integrity` and `secret-scan` as components; the orchestrator chokepoint entry over the group's existing breaker                                                 | M    | G115 (the throttle), G116      |
 
 ### Phase AN — Assurance and the tail (WP150)
 
@@ -635,3 +635,23 @@ _(Recorded here as each work package and phase closes.)_
 >   - `core`'s `failover.test.ts`;
 >   - `governance`'s `bounds.test.ts`;
 >   - the starter's conformance fixtures for the two components.
+
+> **WP149 — done 2026-10-02.**
+>
+> - **Adaptive approval** (`governance/approval-mode`, mode `adaptive`, `createAdaptiveApprovalGuardrail`). It asks a person about every action until `fatigueAfter` approvals have been asked in the run. Then it asks only about what changes the world, and after twice that only about what cannot be undone.
+>   - The count is read from the trace (`approval.requested`), so a fork asks the same.
+>   - It answers the confirmation fatigue every report already counts (approvals per case).
+>   - No shipped configuration sets it: what a desk should stop asking a person about is a reading for Andrew.
+> - **Shadow mode on a campaign.** A campaign guard's `mode: 'shadow'` runs its components and stack, and records every verdict that would block, stop, pause, redact or mark as an annotation (category `shadow`) saying so. The run goes on as if the guard were not there (`governance`'s `shadowGuardrail`, mechanism `evals/shadow-guard`).
+>   - The Safety and Guard bricks a guard fits are not shadowed: a shadow covers what compiles to components.
+> - **Prompt integrity** (`governance/prompt-integrity`). It compares a turn's system prompt with the digest it was validated at, and stops the run, or notes it, when they differ.
+> - **The secret scan** (`governance/secret-scan`). It refuses a call whose arguments carry the shape of an API key, a cloud access key, a GitHub or Slack token, or a private key. A bot is never given a secret to say, so the scan answers a planted one. Its test assembles the shaped strings at run time, so no file in the repository carries one.
+> - **The orchestrator chokepoint** was already shipped over the group's breaker (`monitor/evaluator-breaker`, `core/group-chokepoint`); nothing to build.
+> - **The catalogue:**
+>   - `adaptive-approval` and `prompt-integrity` move to *shipped*;
+>   - `shadow-mode` names the campaign's shadow beside the Gate's;
+>   - `secret-scan` names the component.
+> - **Tests:**
+>   - `governance`: the adaptive tiers, `shadow.test.ts`, `integrity.test.ts`;
+>   - `evals`: a shadow guard annotates where the same guard on stops;
+>   - the starter's conformance fixtures.
