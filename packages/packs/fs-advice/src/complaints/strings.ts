@@ -74,7 +74,9 @@ export const complaintsStrings = {
 		acknowledged: 'The complaint has been acknowledged.',
 		rootCauseFound: 'A root cause has been named.',
 		resolved: 'The complaint has been answered — redress paid or a reasoned decline.',
-		escalated: 'The complaint has gone to the ombudsman.'
+		escalated: 'The complaint has gone to the ombudsman.',
+		onTheRegister: 'The complaint came from the register, so the register’s rule decides it.',
+		registerUpholds: 'The register upholds a complaint of this category.'
 	},
 	senseText: {
 		file: (complaint: string, account: string, transaction: string): string =>

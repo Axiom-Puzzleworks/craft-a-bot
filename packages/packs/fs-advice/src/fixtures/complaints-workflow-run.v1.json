@@ -147,9 +147,9 @@
 				"endedTick": 1,
 				"durationMs": 2000,
 				"output": {
-					"digest": "01fa2908e57193775c3c6f51e5bf8801b26bcdd87db8d0eba9caa10d2d8bdfb6",
+					"digest": "562c5a6d550858e349905b1a07b731adcd798a81fe41c707906579c16712b9e6",
 					"value": {
-						"cause": "service"
+						"cause": "no-error"
 					}
 				},
 				"guards": {
@@ -166,9 +166,9 @@
 					"rule": "decision-v1"
 				},
 				"input": {
-					"digest": "01fa2908e57193775c3c6f51e5bf8801b26bcdd87db8d0eba9caa10d2d8bdfb6",
+					"digest": "562c5a6d550858e349905b1a07b731adcd798a81fe41c707906579c16712b9e6",
 					"value": {
-						"cause": "service"
+						"cause": "no-error"
 					}
 				},
 				"startedTick": 4,
@@ -277,9 +277,9 @@
 					"stageId": "decision",
 					"executor": "rule",
 					"input": {
-						"digest": "01fa2908e57193775c3c6f51e5bf8801b26bcdd87db8d0eba9caa10d2d8bdfb6",
+						"digest": "562c5a6d550858e349905b1a07b731adcd798a81fe41c707906579c16712b9e6",
 						"value": {
-							"cause": "service"
+							"cause": "no-error"
 						}
 					}
 				}
@@ -391,7 +391,7 @@
 				}
 			}
 		],
-		"digest": "a58f7b5861a85dda53dfacc25e747306c86d90dfd2876831254cac05841b0dda"
+		"digest": "baeab67b72905b14ac499979db2d23accb20d309d397ff51fa3ea46403f94e2a"
 	},
 	"item": {
 		"id": "complaint-4970f551",

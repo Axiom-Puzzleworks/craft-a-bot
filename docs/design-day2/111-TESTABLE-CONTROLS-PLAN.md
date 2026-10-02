@@ -145,3 +145,37 @@ WP151 and WP152 are independent; WP153 needs both. WP154–WP156 are independent
 > - **The starter's five Workshop-only cards** add to the Kit's first page by whatever their strings and plans weigh; the budgets are restated at Phase AQ's exit.
 >
 > **Phase AO is closed. Next: Phase AP, WP154–WP156.**
+
+> **WP154 and WP155 — done 2026-10-02**, on `phase-ap` (Phase AO merged as PR #67), in one commit since both touch the advice pack's manifest.
+>
+> **WP155 first: the complaints error, diagnosed.** A rules-only run and a scripted bot score the same 69% root cause and 68% redress, so the bot was never the cause. The register upholds charges and data complaints only (`fs-bank`'s `UPHELD`). The case's truth (`kindForCategory`) made an advice or service complaint well-founded regardless, and the rule (`rootCauseOf`) gave an unfounded complaint its category's cause. Two halves of one pack disagreed. Both now follow `upheld`:
+> - an unheld complaint is unfounded, with no error as its cause;
+> - an upheld one is decided by its category.
+>
+> Rules-only and the scripted bot read 100%. Two consequences:
+> - the complaints golden run records `no-error` where it had `service`;
+> - the book's root causes are now `charges` and `no-error` only, so the rule reader's check expects exactly those two.
+>
+> **WP155's cards** read the desk's state, never truth:
+> - *The root cause the register gives* (`fs-advice/policy/root-cause-on-the-register`);
+> - *No redress the register does not uphold* (`fs-advice/policy/no-redress-the-register-does-not-uphold`).
+>
+> They use two new predicates, `on-the-register` and `register-upholds`. The upheld set moved to `extra.ts` so the desk and the workflow read one copy.
+>
+> **The cards apply only on the register** (`ComplaintsState.onTheRegister`, set by `complaintCaseFromItem`). The desk's own deck is decided by its files, and its well-founded advice mis-sale is one the register's convention would not uphold. The bare work-item layout now builds a register charges complaint, so `checkDesk` observes the predicate through a new fixture script.
+>
+> The cards join the complaints stack, its claims (`fs-advice/control-map/complaints-on-the-register`, a new row) and `campaigns/fs-complaints-baseline.json`.
+>
+> **WP154: an error model for each of the five desks**, each `DecisionFaultSpec` erring uniformly at its deciding call:
+>
+> | Desk | Faulted call and field | Rate row |
+> | --- | --- | --- |
+> | Disputes | `decide.outcome` | `disputes-decision-error` |
+> | Collections | `offer-plan.plan` | `collections-plan-error` |
+> | Onboarding | `decide.outcome` | `onboarding-decision-error` |
+> | Servicing | `classify.category` | `servicing-classification-error` |
+> | Complaints | `find-root-cause.cause` | `complaints-root-cause-error` |
+>
+> Each rate is an `ERROR_RATES` row at 0.1, stated as an assumption and pending review (D3). Each `*-stack` design gains a `fallible` brain level, and its population is raised tenfold, to 166–886 cases a side. **None now reads *untestable* for want of an error** (§7 item 3).
+> - **Disputes, collections, onboarding, servicing: *inconclusive*.** Their cards check sequence and approvals, not the decision against the rule. This is WP116's finding on the older desks.
+> - **Complaints: *not-supported*.** The root-cause card blocks a wrong cause, and with no stage to retry it the case stays without one. Redress within bounds falls 100% → 89% (−14 to −9 points). The block keeps a wrong answer off the register and costs an unfinished case. That is for reading: an `escalate` verdict, or a retry the journey allows, would be the next control.

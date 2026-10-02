@@ -1,6 +1,11 @@
 import type { Stack } from '@craftabot/core';
 import { deskStacks } from '@craftabot/pack-fs-bank';
-import { COMPLAINTS_POLICY_CARD_IDS, REDRESS_NEEDS_APPROVAL } from '../cards/policy.js';
+import {
+	COMPLAINTS_POLICY_CARD_IDS,
+	NO_REDRESS_THE_REGISTER_DOES_NOT_UPHOLD,
+	REDRESS_NEEDS_APPROVAL,
+	ROOT_CAUSE_ON_THE_REGISTER
+} from '../cards/policy.js';
 import { complaintsDesk } from './desk.js';
 import { complaintsEvaluators } from './evaluators.js';
 import {
@@ -41,9 +46,13 @@ export const complaintsStacks: Stack[] = deskStacks({
 	packId: 'fs-advice',
 	deskName: 'Complaints Desk',
 	safety: { maxTicks: 12, blockedActions: [], approval: 'off' },
-	cards: [REDRESS_NEEDS_APPROVAL],
+	cards: [
+		REDRESS_NEEDS_APPROVAL,
+		ROOT_CAUSE_ON_THE_REGISTER,
+		NO_REDRESS_THE_REGISTER_DOES_NOT_UPHOLD
+	],
 	// WP135 (`110-…` G106): the bank's DISP row, so the register can attribute an effect to this stack.
-	controls: ['fs-bank/control-map/complaints'],
+	controls: ['fs-bank/control-map/complaints', 'fs-advice/control-map/complaints-on-the-register'],
 	obligations: ['fca:disp:complaints', 'fca:cd:price-value']
 }).map((stack) => ({ ...stack, id: stack.id.replace('/stack/', '/stack/complaints-') }));
 

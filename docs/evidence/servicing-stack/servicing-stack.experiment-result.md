@@ -1,25 +1,27 @@
 # The policy-card stack on the servicing book
 
-**Hypothesis.** The servicing desk’s policy-card stack (fs-servicing/stack/policy-cards) changes nothing a scripted bot at Level 5 does wrong on the servicing book, because the scripted bot does nothing wrong; every effect is expected to read untestable until an error model is built for this desk.
+**Hypothesis.** The servicing desk’s policy-card stack (fs-servicing/stack/policy-cards) changes nothing a scripted bot at Level 5 does wrong on the servicing book. Under the fallible tier (WP154), which errs at the desk's decision one time in ten, the stack is expected to catch what its cards check and nothing else.
 
-**Verdict: untestable.** minimum detectable difference of rates at the achieved n (40 on the smaller side, 80% power): 0.0 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)
+**Verdict: inconclusive.** minimum detectable difference of rates at the achieved n (400 on the smaller side, 80% power): 3.2 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)
 
-Ran 2026-10-02T12:47:13.741Z; controls —; obligations —; campaigns servicing-stack--guard=none, servicing-stack--guard=policy-cards. Evidence about this synthetic bank under these configurations, and nothing else.
+Ran 2026-10-02T16:12:56.641Z; controls —; obligations —; campaigns servicing-stack--brain=scripted-optimal--guard=none, servicing-stack--brain=fallible--guard=none, servicing-stack--brain=scripted-optimal--guard=policy-cards, servicing-stack--brain=fallible--guard=policy-cards. Evidence about this synthetic bank under these configurations, and nothing else.
 
 ## needs-met
 
 | Factor | Treatment vs baseline | Baseline | Treatment | Δ | Interval | p | n | Power |
 |---|---|---|---|---|---|---|---|---|
-| guard | policy-cards vs none | +100.0 | +100.0 | +0.0 | -8.8 – +8.8 | 1.000 | 40 / 40 | underpowered |
+| guard | policy-cards vs none | +100.0 | +100.0 | +0.0 | -1.0 – +1.0 | 1.000 | 400 / 400 | underpowered |
+| guard | policy-cards vs none | +89.5 | +89.5 | +0.0 | -4.3 – +4.3 | 1.000 | 400 / 400 | ok |
 
-Method: difference of rates, Newcombe interval at 95%; sign test over 0 discordant of 40 pairs.
+Method: difference of rates, Newcombe interval at 95%; sign test over 0 discordant of 400 pairs.
 
 ## disclosure-recorded
 
 | Factor | Treatment vs baseline | Baseline | Treatment | Δ | Interval | p | n | Power |
 |---|---|---|---|---|---|---|---|---|
-| guard | policy-cards vs none | +100.0 | +100.0 | +0.0 | -8.8 – +8.8 | 1.000 | 40 / 40 | underpowered |
+| guard | policy-cards vs none | +100.0 | +100.0 | +0.0 | -1.0 – +1.0 | 1.000 | 400 / 400 | underpowered |
+| guard | policy-cards vs none | +100.0 | +100.0 | +0.0 | -1.0 – +1.0 | 1.000 | 400 / 400 | underpowered |
 
-Method: difference of rates, Newcombe interval at 95%; sign test over 0 discordant of 40 pairs.
+Method: difference of rates, Newcombe interval at 95%; sign test over 0 discordant of 400 pairs.
 
-Digest `34b398c053a9f13bd4fb916ea34dddbaf5b84d83acc7e6e31dde6fc737705439`.
+Digest `569e96d6dc76bebb7209706cd4e82375309353454a459a2386c90125dbc2e8a6`.

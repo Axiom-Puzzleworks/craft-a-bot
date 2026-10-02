@@ -8,7 +8,7 @@ import {
 	type ComplaintKind
 } from './cases.js';
 import type { WorkItem } from '@craftabot/core';
-import { ACK_TICKS, ROOT_CAUSES, type ComplaintsExtra } from './extra.js';
+import { ACK_TICKS, ROOT_CAUSES, upheldByTheRegister, type ComplaintsExtra } from './extra.js';
 import { complaintsStrings } from './strings.js';
 
 /**
@@ -36,6 +36,22 @@ const LAYOUT_NAMES: Record<ComplaintKind, string> = {
 /** The work-item layout (WP102): the case built from the register item the workflow's intake hands over as `config.item`; bare, the charges error. */
 export const WORK_ITEM_LAYOUT = 'work-item';
 
+/** The register's charges complaint the bare work-item layout builds (WP155): what the conformance sweep sees. */
+const BARE_REGISTER_ITEM: WorkItem = {
+	id: 'complaint-register-sample',
+	kind: 'complaint',
+	customerId: 'customer-register-sample',
+	arrivedAt: '1970-01-01T00:00:00.000Z',
+	payload: {
+		complaint: {
+			id: 'cmp-register-sample',
+			category: 'charges',
+			summary: 'An overdraft fee applied after a payment the app said had cleared.'
+		}
+	},
+	truth: { records: [], facts: { category: 'charges', upheld: true } }
+};
+
 export const complaintsLayouts = [
 	...COMPLAINT_KINDS.map((kind) => ({
 		id: kind,
@@ -45,11 +61,13 @@ export const complaintsLayouts = [
 	{
 		id: WORK_ITEM_LAYOUT,
 		name: complaintsStrings.workflow.layoutName,
+		// Bare — the conformance sweep's way — a charges complaint as the register logs it (WP155), so the layout is always a register case.
 		case: (random: () => number, config?: Record<string, unknown>) => {
 			const item = config?.['item'];
-			return item && typeof item === 'object'
-				? complaintCaseFromItem(random, item as WorkItem)
-				: complaintCase(random, 'charges-error');
+			return complaintCaseFromItem(
+				random,
+				item && typeof item === 'object' ? (item as WorkItem) : BARE_REGISTER_ITEM
+			);
 		}
 	}
 ];
@@ -224,6 +242,15 @@ export const complaintsDeskSpec: DeskWorldSpec<ComplaintsExtra> = {
 			test: (state) =>
 				state.extra.complaints.redress !== undefined ||
 				state.extra.complaints.declined !== undefined
+		},
+		// WP155: the register's rule over the file's own category — what the desk's two root-cause and redress cards read, never truth.
+		'on-the-register': {
+			description: complaintsStrings.predicates.onTheRegister,
+			test: (state) => state.extra.complaints.onTheRegister === true
+		},
+		'register-upholds': {
+			description: complaintsStrings.predicates.registerUpholds,
+			test: (state) => upheldByTheRegister(state.extra.complaints.category)
 		},
 		escalated: {
 			description: complaintsStrings.predicates.escalated,

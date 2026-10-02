@@ -12,7 +12,11 @@ import { adviceGoalCards } from './decks/goal-cards.js';
 import { adviceEvaluators } from './evaluators/index.js';
 import { adviceScenarios } from './decks/scenarios.js';
 import { adviceDesk } from './world/desk.js';
-import { REDRESS_NEEDS_APPROVAL } from './cards/policy.js';
+import {
+	NO_REDRESS_THE_REGISTER_DOES_NOT_UPHOLD,
+	REDRESS_NEEDS_APPROVAL,
+	ROOT_CAUSE_ON_THE_REGISTER
+} from './cards/policy.js';
 import { complaintsDesk } from './complaints/desk.js';
 import { complaintsGoalCards } from './complaints/goal-cards.js';
 import { complaintsScenarios } from './complaints/scenarios.js';
@@ -25,7 +29,7 @@ import { complaintsEvaluators } from './complaints/evaluators.js';
  * policy cards on v2 leaves, evaluators over the trace and the truth, a
  * campaign. No runtime, no brick kind, no tool, no schema.
  */
-import { adviceErrorModels } from './errors/error-models.js';
+import { adviceErrorModels, complaintsErrorModels } from './errors/error-models.js';
 
 export const FS_ADVICE_PACK_ID = 'fs-advice';
 
@@ -68,6 +72,8 @@ export const fsAdvicePack: PackManifest = {
 	policyCards: [
 		...advicePolicyCards,
 		REDRESS_NEEDS_APPROVAL,
+		ROOT_CAUSE_ON_THE_REGISTER,
+		NO_REDRESS_THE_REGISTER_DOES_NOT_UPHOLD,
 		EXECUTION_WAITS_FOR_THE_FILE,
 		REDRESS_WAITS_FOR_THE_FILE
 	],
@@ -75,7 +81,7 @@ export const fsAdvicePack: PackManifest = {
 	stacks: [...adviceStacks, ...complaintsStacks],
 	evaluators: [...adviceEvaluators, ...complaintsEvaluators],
 	// WP116: the fallible tier's error model for the recommendation.
-	errorModels: adviceErrorModels,
+	errorModels: [...adviceErrorModels, ...complaintsErrorModels],
 	controlMaps: [adviceControlMap],
 	// The advice journey (WP85, `76-FRAUD-AND-ADVICE-WORKFLOWS.md` §4).
 	workflows: [adviceWorkflow, complaintsWorkflow],
@@ -184,9 +190,19 @@ export {
 	type AdviceBaselineOptions
 } from './campaign.js';
 export * from './complaints/index.js';
-export { COMPLAINTS_POLICY_CARD_IDS, REDRESS_NEEDS_APPROVAL } from './cards/policy.js';
+export {
+	COMPLAINTS_POLICY_CARD_IDS,
+	NO_REDRESS_THE_REGISTER_DOES_NOT_UPHOLD,
+	REDRESS_NEEDS_APPROVAL,
+	ROOT_CAUSE_ON_THE_REGISTER
+} from './cards/policy.js';
 export { COMPLAINTS_BASELINE_ID, complaintsBaseline } from './complaints/campaign.js';
-export { ADVICE_RECOMMENDATION_ERROR_MODEL_ID, adviceErrorModels } from './errors/error-models.js';
+export {
+	ADVICE_RECOMMENDATION_ERROR_MODEL_ID,
+	COMPLAINTS_ROOT_CAUSE_ERROR_MODEL_ID,
+	adviceErrorModels,
+	complaintsErrorModels
+} from './errors/error-models.js';
 export {
 	COMPLAINT_WORDS_QUESTION,
 	COMPLAINT_WORDS_QUESTION_SET_DIGEST,

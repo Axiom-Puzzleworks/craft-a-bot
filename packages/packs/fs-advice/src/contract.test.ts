@@ -93,6 +93,15 @@ const fixture: PackConformanceFixture = {
 						{ name: 'decline-complaint', arguments: { reason: 'The fee is the tariff chosen.' } }
 					]
 				},
+				// WP155: a register complaint, decided on the register's rule.
+				'on-the-register': {
+					layoutId: 'work-item',
+					calls: [
+						{ name: 'acknowledge-complaint', arguments: {} },
+						{ name: 'find-root-cause', arguments: { cause: 'charges' } },
+						{ name: 'offer-redress', arguments: { amount: 30 } }
+					]
+				},
 				'refer-on': {
 					layoutId: 'escalating',
 					calls: [

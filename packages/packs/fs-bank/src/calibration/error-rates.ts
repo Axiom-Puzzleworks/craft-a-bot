@@ -46,6 +46,56 @@ export const ERROR_RATES: CalibrationTable = table(
 			source: assumption(),
 			tolerance: 0.02,
 			note: 'A stated assumption (WP116): one recommendation in ten names another product from the shelf, drawn evenly — most of which do not suit the customer. The FCA’s thematic reviews of advice find unsuitable advice at rates that vary by market and year; none transfers to an assistant recommending from a thirty-product shelf. This stands in for the live tier until a model is recorded on the advice-context design.'
+		}),
+		/*
+		 * WP154 (`111-TESTABLE-CONTROLS-PLAN.md` §4, D3): the five desks that had no
+		 * fallible actor, each at the three older desks' order of magnitude, each an
+		 * assumption with no source claimed, pending review like the rest.
+		 */
+		row({
+			id: 'disputes-decision-error',
+			kind: 'rates',
+			title: 'The disputes decision (reimburse, decline, refer) is wrong',
+			distribution: { wrong: 0.1 },
+			source: assumption(),
+			tolerance: 0.02,
+			note: 'A stated assumption (WP154): one disputes decision in ten is wrong, spread evenly over the other two outcomes. No public figure gives a handler’s error rate on a reimbursement rule; this sets one a disputes book of a few hundred claims can measure a control against.'
+		}),
+		row({
+			id: 'collections-plan-error',
+			kind: 'rates',
+			title: 'The forbearance plan offered is not the one the rule gives',
+			distribution: { wrong: 0.1 },
+			source: assumption(),
+			tolerance: 0.02,
+			note: 'A stated assumption (WP154): one plan offer in ten names another of the three plans, drawn evenly. No public figure gives the error rate of a forbearance decision; this sets one an arrears book can measure a control against.'
+		}),
+		row({
+			id: 'onboarding-decision-error',
+			kind: 'rates',
+			title: 'The onboarding decision (approve, decline, refer) is wrong',
+			distribution: { wrong: 0.1 },
+			source: assumption(),
+			tolerance: 0.02,
+			note: 'A stated assumption (WP154): one onboarding decision in ten is wrong, spread evenly over the other two outcomes. No public figure gives a handler’s error rate on an account-opening rule; this sets one an applications book can measure a control against.'
+		}),
+		row({
+			id: 'servicing-classification-error',
+			kind: 'rates',
+			title: 'A servicing request is put in the wrong category',
+			distribution: { wrong: 0.1 },
+			source: assumption(),
+			tolerance: 0.02,
+			note: 'A stated assumption (WP154): one request in ten is classified as another of the five categories, drawn evenly. The servicing corpora measure readers against labels; this rate stands for a handler’s slip, not a reader’s, until a model is recorded.'
+		}),
+		row({
+			id: 'complaints-root-cause-error',
+			kind: 'rates',
+			title: 'A complaint’s root cause is recorded wrongly',
+			distribution: { wrong: 0.1 },
+			source: assumption(),
+			tolerance: 0.02,
+			note: 'A stated assumption (WP154): one root cause in ten is recorded as another of the four, drawn evenly. The FCA’s complaints data reports uphold rates, which are the outcome, not a handler’s error rate; this sets one a complaints register can measure a control against.'
 		})
 	]
 );

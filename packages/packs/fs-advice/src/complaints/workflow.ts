@@ -17,7 +17,16 @@ import {
 	VULNERABILITY_AT_THE_DOOR
 } from '@craftabot/pack-fs-bank';
 import { COMPLAINTS_DESK_WORLD_ID, WORK_ITEM_LAYOUT, type ComplaintsDeskState } from './desk.js';
-import { ACK_TICKS, FINAL_TICKS, unmark, type RootCause } from './extra.js';
+import {
+	ACK_TICKS,
+	FINAL_TICKS,
+	UPHELD_CATEGORIES,
+	unmark,
+	upheldByTheRegister,
+	type RootCause
+} from './extra.js';
+
+export { UPHELD_CATEGORIES, upheldByTheRegister };
 import { complaintsStrings } from './strings.js';
 
 /**
@@ -104,12 +113,13 @@ const CLOSED_OUTPUT: JsonSchema = {
 const desk = (state: WorldState): ComplaintsDeskState => state as ComplaintsDeskState;
 const complaints = (state: WorldState) => desk(state).extra.complaints;
 
-/** The register's rule (`fs-bank/book/registers.ts`): a charges or a data complaint is upheld; the rest are not — a stated convention. */
-export const UPHELD_CATEGORIES: ReadonlySet<string> = new Set(['charges', 'data']);
-export const upheldByTheRegister = (category: string): boolean => UPHELD_CATEGORIES.has(category);
-
-/** The root cause the register's category names. */
+/**
+ * The root cause the register's category names: none where the register does
+ * not uphold the complaint (WP155: the case's truth says `no-error` there, and
+ * the rule said the category's cause).
+ */
 export function rootCauseOf(category: string): RootCause {
+	if (!upheldByTheRegister(category)) return 'no-error';
 	switch (category) {
 		case 'charges':
 		case 'data':

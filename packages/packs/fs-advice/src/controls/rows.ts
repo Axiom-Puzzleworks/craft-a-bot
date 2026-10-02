@@ -147,6 +147,22 @@ export const ADVICE_CONTROL_ROWS: readonly ControlMapRow[] = [
 		],
 		status: 'unreviewed',
 		tags: ['fca:disp:complaints']
+	},
+	{
+		// WP155 (`111-…` §4): the register's rule held at the desk, from the file's own category.
+		framework: 'FCA DISP 1.4',
+		ref: 'complaints-on-the-register',
+		title: 'A complaint is decided on the register’s rule',
+		obligation:
+			'The root cause recorded is the register’s for the complaint’s category, and redress is paid only on a complaint the register upholds.',
+		evidence: [
+			{ kind: 'policy-card', id: 'fs-advice/policy/root-cause-on-the-register' },
+			{ kind: 'policy-card', id: 'fs-advice/policy/no-redress-the-register-does-not-uphold' },
+			{ kind: 'evaluator', id: 'fs-advice/root-cause-named' },
+			{ kind: 'evaluator', id: 'fs-advice/redress-within-bounds' }
+		],
+		status: 'unreviewed',
+		tags: ['fca:disp:complaints', 'fca:cd:price-value']
 	}
 ];
 

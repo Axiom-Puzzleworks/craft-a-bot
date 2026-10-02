@@ -2,7 +2,7 @@
 	"schemaVersion": 1,
 	"id": "disputes-stack",
 	"title": "The policy-card stack on the disputes book",
-	"hypothesis": "The disputes desk’s policy-card stack (fs-disputes/stack/policy-cards) changes nothing a scripted bot at Level 5 does wrong on the disputes book, because the scripted bot does nothing wrong; every effect is expected to read untestable until an error model is built for this desk.",
+	"hypothesis": "The disputes desk’s policy-card stack (fs-disputes/stack/policy-cards) changes nothing a scripted bot at Level 5 does wrong on the disputes book. Under the fallible tier (WP154), which errs at the desk's decision one time in ten, the stack is expected to catch what its cards check and nothing else.",
 	"controls": [],
 	"obligations": [],
 	"design": {
@@ -13,7 +13,7 @@
 				"workflowId": "fs-disputes/disputes",
 				"population": {
 					"seed": 1,
-					"size": 300
+					"size": 3000
 				}
 			},
 			"builds": [
@@ -57,6 +57,11 @@
 				{
 					"id": "scripted-optimal",
 					"tier": "scripted-optimal"
+				},
+				{
+					"id": "fallible",
+					"tier": "fallible",
+					"errorModel": "fs-disputes/error/decision"
 				}
 			],
 			"evaluators": [
@@ -72,10 +77,15 @@
 			{
 				"axis": "guard",
 				"levels": ["none", "policy-cards"]
+			},
+			{
+				"axis": "brain",
+				"levels": ["scripted-optimal", "fallible"]
 			}
 		],
 		"baseline": {
-			"guard": "none"
+			"guard": "none",
+			"brain": "scripted-optimal"
 		},
 		"metrics": [
 			{

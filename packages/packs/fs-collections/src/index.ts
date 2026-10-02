@@ -1,4 +1,5 @@
 import { COLLECTIONS_ADVERSARIAL_CORPUS } from './corpora/adversarial.js';
+import { collectionsErrorModels } from './errors/error-models.js';
 import type { PackManifest } from '@craftabot/core';
 import { collectionsPolicyCards } from './cards/policy.js';
 import { collectionsControlMap } from './controls/rows.js';
@@ -54,6 +55,8 @@ export const fsCollectionsPack: PackManifest = {
 	],
 	policyCards: [...collectionsPolicyCards, AGREEMENT_WAITS_FOR_THE_FILE],
 	evaluators: collectionsEvaluators,
+	// WP154: the fallible tier's error model.
+	errorModels: collectionsErrorModels,
 	controlMaps: [collectionsControlMap],
 	workflows: [collectionsWorkflow],
 	stacks: collectionsStacks,
@@ -172,3 +175,4 @@ export {
 	COLLECTIONS_ADVERSARIAL_CORPUS_ID,
 	COLLECTIONS_ATTACK_SURFACES
 } from './corpora/adversarial.js';
+export { COLLECTIONS_PLAN_ERROR_MODEL_ID, collectionsErrorModels } from './errors/error-models.js';

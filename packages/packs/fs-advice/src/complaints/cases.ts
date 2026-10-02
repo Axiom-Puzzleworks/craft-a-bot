@@ -269,12 +269,21 @@ export function complaintCase(random: () => number, kind: ComplaintKind): Compla
 	};
 }
 
-/** The desk's kind for a register category (WP102): what the register upholds is a charges error; advice and service as themselves; the rest unfounded. */
+/**
+ * The desk's kind for a register category (WP102): a complaint the register
+ * does not uphold is unfounded, whatever its category; an upheld one is an
+ * advice or a service complaint as itself, and a charges error otherwise.
+ *
+ * > **Amended 2026-10-02 (WP155, `111-…` §4):** an advice or service complaint
+ * > was made well-founded whatever the register said, so the case's truth
+ * > disagreed with the register's own rule on about three complaints in ten,
+ * > and the rules-only path failed its own truth. `upheld` now decides first.
+ */
 export function kindForCategory(category: string, upheld: boolean): ComplaintKind {
+	if (!upheld) return 'unfounded';
 	if (category === 'advice') return 'advice-mis-sold';
 	if (category === 'service') return 'service-delay';
-	if (upheld) return 'charges-error';
-	return 'unfounded';
+	return 'charges-error';
 }
 
 /**
@@ -313,7 +322,7 @@ export function complaintCaseFromItem(random: () => number, item: WorkItem): Com
 	const extra: ComplaintsExtra = {
 		...built.extra,
 		bank: { ...built.bank, customer },
-		complaints: { complaintId, category },
+		complaints: { complaintId, category, onTheRegister: true },
 		ledger: {
 			...built.extra.ledger,
 			complaints: [{ id: complaintId, category, summary, status: 'open' as const }]

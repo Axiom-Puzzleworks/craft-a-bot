@@ -29,3 +29,30 @@ export const adviceErrorModels: ErrorModel[] = [
 		]
 	}
 ];
+
+/** The complaints desk's error model's id (WP154): the root cause recorded wrongly. */
+export const COMPLAINTS_ROOT_CAUSE_ERROR_MODEL_ID = 'fs-advice/error/complaints-root-cause';
+
+/**
+ * **The complaints desk's fallible actor** (WP154, `111-…` §4): the
+ * `find-root-cause` call's `cause` is another of the four at `fs-bank`'s
+ * `complaints-root-cause-error` rate. The redress is played as the plan has
+ * it; the register's root-cause card is what can catch the slip.
+ */
+export const complaintsErrorModels: ErrorModel[] = [
+	{
+		id: COMPLAINTS_ROOT_CAUSE_ERROR_MODEL_ID,
+		name: 'A complaints handler who records the wrong root cause one time in ten',
+		description:
+			'Plays the desk’s plan exactly, but the root cause recorded is another of the four at the calibrated rate, drawn evenly.',
+		faults: [
+			{
+				action: 'find-root-cause',
+				field: 'cause',
+				options: ['charges', 'advice', 'service', 'no-error'],
+				rate: { table: 'fs-bank/error-rates', row: 'complaints-root-cause-error', key: 'wrong' },
+				direction: 'uniform'
+			}
+		]
+	}
+];
