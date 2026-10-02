@@ -655,3 +655,34 @@ _(Recorded here as each work package and phase closes.)_
 >   - `governance`: the adaptive tiers, `shadow.test.ts`, `integrity.test.ts`;
 >   - `evals`: a shadow guard annotates where the same guard on stops;
 >   - the starter's conformance fixtures.
+
+> **Phase AM exit review — 2026-10-02.** WP145–WP149 are done, on `phase-am` (Phase AL merged as PR #63). §8 item 6, *"the bank has rows, mechanisms and evaluators for contestability, disclosure, vulnerability, timeliness, change control, failover, override reasons and shadow mode, each cited"*, technique by technique:
+>
+> | Technique | Row | Mechanism or component | Evaluator or gate |
+> |---|---|---|---|
+> | Contestability | lending's review right; complaints' Ombudsman | `workflow/appeal` | `appeal-handled`; the disclosure evaluators |
+> | Disclosure | one per desk, five | `core/disclosure` | five `*-disclosed` evaluators |
+> | Vulnerability | the existing FG21/1 rows | `fs-bank/guard/vulnerability-detection` | `vulnerability-actioned`, `disclosure-recorded` |
+> | Timeliness | disputes', complaints' | `workflow/deadlines` | the `timeliness` gate |
+> | Change control | the bank's `model-change-control` | `core/build-digest` | `no-regression`; the `knob-change` reading |
+> | Failover | — (the bank's SS1/21 rows stand) | `core/failover` | its test |
+> | Override reasons | lending's | `workflow/override-reason` | the `override-reason` gate |
+> | Shadow mode | — | `gate/shadow`, `evals/shadow-guard` | the shadow annotation |
+>
+> **Met, with two techniques citing existing rows rather than new ones,** as the table says. Every entry cites its sources; every new row is `unreviewed`, on the reading desk.
+>
+> **The catalogue now:** 69 entries — 61 shipped, 1 connectable (Bedrock's automated reasoning, its checkpoint pending), 1 blueprint (formal verification, as the plan has it), 6 not applicable, **none bespoke**.
+>
+> **Findings, for Andrew's reading.**
+> - **The deadlines' ticks are assumptions.** A tick is the simulator's unit, not a day; the deadlines were measured against the shipped configurations and stated.
+> - **Adaptive approval is shipped but fitted nowhere.** What a desk should stop asking a person about is a judgement, not a default.
+> - **The fallible reviewer model gives no reasons for its overrides.** A campaign over it fails the `override-reason` gate, which is a true reading of a model.
+> - **The Kit's first page grew 15 KiB.** The starter registers every new governance component. A pack of their own would keep the Kit lighter; that is left for a decision.
+>
+> **Budgets:** about +30 kB in every edition and +23 kB in the Worker; the first-page gate is restated (`01-…` §8's dated note).
+>
+> **Screenshots:** re-taken on win32 where the new components, evaluators and guarded intakes show. Their Linux baselines are CI's.
+>
+> **Deferred to WP150:** the human-oversight experiment's re-run with an enforced-ceilings level and the `override-reason` gate, and the register regenerated.
+>
+> **Phase AM is closed. Next: Phase AN, WP150.**
