@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import {
 	localPackFrom,
@@ -17,6 +17,7 @@ import { createRegistry, packVersions, type HarnessConfig } from '../config.js';
 import type { CredentialSource } from '../credentials.js';
 import { mulberry32 } from '../random.js';
 import { createFileStorage } from '../storage/file-storage.js';
+import { valueKeeper } from '../values.js';
 import { chooseBrain, loadSpecFrom, type BrainTier } from './run.js';
 
 /**
@@ -48,6 +49,8 @@ export interface WorkflowRunOptions {
 	principal?: Principal;
 	/** Follow a handoff (WP102, `83-…` §6.5.3): the target journey run with the item, and so on to the chain's end. */
 	follow?: boolean;
+	/** Keep every stage value over the record's cap, whole, under `<out>/values/<digest>.json` (WP160). */
+	keepValues?: boolean;
 }
 
 export interface WorkflowRunReport {
@@ -146,23 +149,26 @@ export async function workflowRun(options: WorkflowRunOptions): Promise<Workflow
 			void writer.write(agentRun.runId, agentRun.spec, agentRun.events);
 		}
 	};
+	const keeper = options.keepValues ? valueKeeper(options.out) : undefined;
+	if (keeper) runOptions.onValue = (value) => keeper.keep(value);
 	const record = await runWorkflow(workflow, item, runOptions);
+	await keeper?.done();
 
 	// Every agent run is on disk before the workflow's own record is.
 	await writer.done();
-	const write = async (run: WorkflowRun) => {
+	// The bare run and, beside it, the envelope with the item it worked (WP161): a story needs what arrived.
+	const write = async (run: WorkflowRun, worked: typeof item) => {
+		await storage.putWorkflowRun({
+			run,
+			item: worked,
+			source: { kind: 'harness' },
+			createdAt: now(),
+			schemaVersion: 1
+		});
 		const directory = join(options.out, 'workflows', run.id);
-		await mkdir(directory, { recursive: true });
-		const file = join(directory, 'workflow-run.json');
-		await writeFile(
-			file,
-			`${JSON.stringify(run, null, '	')}
-`,
-			'utf8'
-		);
-		return { directory, file };
+		return { directory, file: join(directory, 'workflow-run.json') };
 	};
-	const { directory, file } = await write(record);
+	const { directory, file } = await write(record, item);
 	// `--follow` (WP102, `83-…` §6.5.3): each handoff's target run under the same options, to the chain's end.
 	const followed: NonNullable<WorkflowRunReport['followed']> = [];
 	if (options.follow) {
@@ -171,7 +177,7 @@ export async function workflowRun(options: WorkflowRunOptions): Promise<Workflow
 			const next = await followHandoff(last, registry, runOptions);
 			if (!next) break;
 			await writer.done();
-			const written = await write(next);
+			const written = await write(next, last.handoff?.item ?? item);
 			followed.push({
 				runId: next.id,
 				workflowId: next.workflowId,

@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { evaluationRecordSchema } from './evaluation.js';
 import { engineEventSchema } from './events.js';
 import { groupRunRecordSchema } from './records.js';
-import { computeTraceDigest, traceFileSchema } from './trace-file.js';
+import { computeTraceDigest, replayedFromSchema, traceFileSchema } from './trace-file.js';
 
 /**
  * **The trace bundle** (`36-BUNDLE-AND-GROUPS.md` §4.1, WP48; `26-…` §6.7):
@@ -29,6 +29,12 @@ export const traceBundleSchema = z.object({
 		.optional(),
 	evaluations: z.array(evaluationRecordSchema).default([]),
 	campaign: z.object({ id: z.string().min(1), cellId: z.string().min(1) }).optional(),
+	/**
+	 * Replayed from a provider cassette (WP160, D13): beside the digest, never in
+	 * a trace. It is folded into the bundle digest when present, so it cannot be
+	 * added or stripped unnoticed; a bundle without it digests as it always did.
+	 */
+	replayedFrom: replayedFromSchema.optional(),
 	bundleDigest: z.string().min(1)
 });
 export type TraceBundle = z.infer<typeof traceBundleSchema>;
@@ -42,9 +48,26 @@ export async function computeBundleDigest(parts: {
 	runDigests: readonly string[];
 	groupDigest?: string | undefined;
 	evaluationIds: readonly string[];
+	replayedFrom?: z.infer<typeof replayedFromSchema> | undefined;
 }): Promise<string> {
 	const data = new TextEncoder().encode(
-		JSON.stringify([...parts.runDigests, parts.groupDigest ?? null, ...parts.evaluationIds])
+		JSON.stringify([
+			...parts.runDigests,
+			parts.groupDigest ?? null,
+			...parts.evaluationIds,
+			// Only when replayed: every bundle written before keeps its digest.
+			...(parts.replayedFrom
+				? [
+						{
+							replayedFrom: [
+								parts.replayedFrom.cassette,
+								parts.replayedFrom.model,
+								parts.replayedFrom.recorded
+							]
+						}
+					]
+				: [])
+		])
 	);
 	const hash = await crypto.subtle.digest('SHA-256', data);
 	return Array.from(new Uint8Array(hash))

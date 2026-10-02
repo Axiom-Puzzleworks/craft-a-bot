@@ -25,11 +25,11 @@ import {
 	type AssurancePack
 } from './assurance-pack.js';
 import {
-	ASSURANCE_TOKENS,
 	principalLine,
 	renderAssurancePackHtml,
 	renderAssurancePackMarkdown
 } from './assurance-pack-render.js';
+import { ASSURANCE_TOKENS } from './tokens.js';
 import { GENERIC_CONTROL_MAP_MANIFEST } from './control-map.js';
 
 /**

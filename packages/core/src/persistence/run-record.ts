@@ -27,6 +27,8 @@ export function runRecordFrom(input: {
 	finishedAt?: string;
 	outcome?: RunOutcome;
 	pinned?: boolean;
+	/** Replayed from a provider cassette (WP160, D13). */
+	replayedFrom?: RunRecord['replayedFrom'];
 }): RunRecord {
 	const started = input.events.find((event) => event.type === 'run.started');
 	const facts = started?.type === 'run.started' ? started.payload : undefined;
@@ -60,6 +62,7 @@ export function runRecordFrom(input: {
 		providerId: facts?.providerId ?? 'unrecorded',
 		wireModel: facts?.wireModel ?? 'unrecorded',
 		pinned: input.pinned ?? false,
+		...(input.replayedFrom ? { replayedFrom: input.replayedFrom } : {}),
 		startedAt: input.startedAt,
 		...(input.finishedAt !== undefined ? { finishedAt: input.finishedAt } : {}),
 		schemaVersion: 2

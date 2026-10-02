@@ -364,6 +364,29 @@
 						"tick"
 					]
 				},
+				"replayedFrom": {
+					"type": "object",
+					"properties": {
+						"cassette": {
+							"type": "string",
+							"minLength": 1
+						},
+						"model": {
+							"type": "string",
+							"minLength": 1
+						},
+						"recorded": {
+							"type": "string",
+							"format": "date-time",
+							"pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+						}
+					},
+					"required": [
+						"cassette",
+						"model",
+						"recorded"
+					]
+				},
 				"mode": {
 					"type": "string",
 					"enum": [
@@ -1182,6 +1205,23 @@
 									},
 									"cartridgeId": {
 										"type": "string"
+									},
+									"parameters": {
+										"type": "object",
+										"properties": {
+											"temperature": {
+												"type": "number"
+											},
+											"maxTokens": {
+												"type": "integer",
+												"exclusiveMinimum": 0,
+												"maximum": 9007199254740991
+											}
+										},
+										"required": [
+											"temperature",
+											"maxTokens"
+										]
 									}
 								},
 								"required": [
@@ -1354,6 +1394,10 @@
 													"other"
 												]
 											},
+											"latencyMs": {
+												"type": "number",
+												"minimum": 0
+											},
 											"logprobs": {
 												"type": "array",
 												"items": {
@@ -1412,6 +1456,21 @@
 													"shouldHave": {},
 													"errorModel": {
 														"type": "string"
+													},
+													"draw": {
+														"type": "object",
+														"properties": {
+															"rate": {
+																"type": "number"
+															},
+															"roll": {
+																"type": "number"
+															}
+														},
+														"required": [
+															"rate",
+															"roll"
+														]
 													}
 												},
 												"required": [
@@ -1427,6 +1486,10 @@
 											"raw",
 											"finishReason"
 										]
+									},
+									"durationMs": {
+										"type": "number",
+										"minimum": 0
 									}
 								},
 								"required": [
@@ -1591,6 +1654,21 @@
 									},
 									"errorModel": {
 										"type": "string"
+									},
+									"draw": {
+										"type": "object",
+										"properties": {
+											"rate": {
+												"type": "number"
+											},
+											"roll": {
+												"type": "number"
+											}
+										},
+										"required": [
+											"rate",
+											"roll"
+										]
 									}
 								},
 								"required": [
@@ -1599,6 +1677,206 @@
 									"chose",
 									"shouldHave",
 									"planted"
+								]
+							}
+						},
+						"required": [
+							"id",
+							"runId",
+							"tick",
+							"timestamp",
+							"type",
+							"payload"
+						]
+					},
+					{
+						"type": "object",
+						"properties": {
+							"id": {
+								"type": "string",
+								"format": "uuid",
+								"pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+							},
+							"runId": {
+								"type": "string",
+								"format": "uuid",
+								"pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+							},
+							"agentId": {
+								"type": "string",
+								"format": "uuid",
+								"pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+							},
+							"parentRunId": {
+								"type": "string",
+								"format": "uuid",
+								"pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+							},
+							"tick": {
+								"type": "integer",
+								"minimum": 0,
+								"maximum": 9007199254740991
+							},
+							"timestamp": {
+								"type": "string",
+								"format": "date-time",
+								"pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+							},
+							"type": {
+								"type": "string",
+								"const": "seat.said"
+							},
+							"payload": {
+								"type": "object",
+								"properties": {
+									"persona": {
+										"type": "string",
+										"minLength": 1
+									},
+									"cue": {
+										"type": "object",
+										"properties": {
+											"kind": {
+												"type": "string",
+												"minLength": 1
+											},
+											"detail": {
+												"type": "string"
+											}
+										},
+										"required": [
+											"kind"
+										]
+									},
+									"ruleId": {
+										"type": "string"
+									},
+									"text": {
+										"type": "string"
+									},
+									"then": {
+										"type": "string",
+										"enum": [
+											"continue",
+											"escalate",
+											"end-conversation"
+										]
+									},
+									"pressure": {
+										"type": "number"
+									},
+									"tags": {
+										"type": "array",
+										"items": {
+											"type": "string"
+										}
+									}
+								},
+								"required": [
+									"persona",
+									"cue",
+									"then"
+								]
+							}
+						},
+						"required": [
+							"id",
+							"runId",
+							"tick",
+							"timestamp",
+							"type",
+							"payload"
+						]
+					},
+					{
+						"type": "object",
+						"properties": {
+							"id": {
+								"type": "string",
+								"format": "uuid",
+								"pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+							},
+							"runId": {
+								"type": "string",
+								"format": "uuid",
+								"pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+							},
+							"agentId": {
+								"type": "string",
+								"format": "uuid",
+								"pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+							},
+							"parentRunId": {
+								"type": "string",
+								"format": "uuid",
+								"pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+							},
+							"tick": {
+								"type": "integer",
+								"minimum": 0,
+								"maximum": 9007199254740991
+							},
+							"timestamp": {
+								"type": "string",
+								"format": "date-time",
+								"pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+							},
+							"type": {
+								"type": "string",
+								"const": "reviewer.drew"
+							},
+							"payload": {
+								"type": "object",
+								"properties": {
+									"workflowRunId": {
+										"type": "string"
+									},
+									"stageId": {
+										"type": "string"
+									},
+									"model": {
+										"type": "string"
+									},
+									"rates": {
+										"type": "object",
+										"properties": {
+											"accuracy": {
+												"type": "number"
+											},
+											"automationBias": {
+												"type": "number"
+											},
+											"reasonRate": {
+												"type": "number"
+											}
+										},
+										"required": [
+											"accuracy",
+											"automationBias"
+										]
+									},
+									"path": {
+										"type": "string",
+										"enum": [
+											"took-recommendation",
+											"accurate",
+											"slipped"
+										]
+									},
+									"rolls": {
+										"type": "array",
+										"items": {
+											"type": "number"
+										}
+									}
+								},
+								"required": [
+									"workflowRunId",
+									"stageId",
+									"model",
+									"rates",
+									"path",
+									"rolls"
 								]
 							}
 						},
@@ -1756,6 +2034,61 @@
 													"required": [
 														"id",
 														"text"
+													]
+												}
+											},
+											"seatLines": {
+												"type": "array",
+												"items": {
+													"type": "object",
+													"properties": {
+														"persona": {
+															"type": "string",
+															"minLength": 1
+														},
+														"cue": {
+															"type": "object",
+															"properties": {
+																"kind": {
+																	"type": "string",
+																	"minLength": 1
+																},
+																"detail": {
+																	"type": "string"
+																}
+															},
+															"required": [
+																"kind"
+															]
+														},
+														"ruleId": {
+															"type": "string"
+														},
+														"text": {
+															"type": "string"
+														},
+														"then": {
+															"type": "string",
+															"enum": [
+																"continue",
+																"escalate",
+																"end-conversation"
+															]
+														},
+														"pressure": {
+															"type": "number"
+														},
+														"tags": {
+															"type": "array",
+															"items": {
+																"type": "string"
+															}
+														}
+													},
+													"required": [
+														"persona",
+														"cue",
+														"then"
 													]
 												}
 											}

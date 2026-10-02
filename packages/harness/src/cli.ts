@@ -51,6 +51,7 @@ import {
 	writeReadings
 } from './commands/readings.js';
 import { sensorsFor, renderSensorsSummary, writeSensors } from './commands/sensors.js';
+import { renderStory, storyOf, type StoryFormat } from './commands/story.js';
 import { controlsFor, renderControlsSummary, writeControls } from './commands/controls.js';
 import { gateAnswer, gateServe } from './commands/gate.js';
 import {
@@ -166,6 +167,12 @@ Usage:
       row, decision right, blueprint item, screening list, error and reviewer model still
       pending, with the review each has had (from --content and --store). Markdown is
       the maintainer's work list: the amendments to edit in, the rejections, the unread.
+  craftabot story <runId | itemId> [--store <dir>] [--format markdown|html|json] [--out <file>] [--no-follow]
+      A run, or a work item through its journey with every handoff followed (WP161), told
+      top to bottom: what arrived, what the assistant was told, what it thought and did,
+      what checked it, who approved, what was drawn, and — last — the truth and the
+      evaluators' marks. Redacted against every secret held; a value over a record's cap
+      is opened from <store>/values/ when --keep-values kept it.
   craftabot sensors list | export [--format json|markdown] [--out <file>] [--store <dir>]
       The Sensor Inventory (WP159): every event type a run can carry, its source, its
       readers and its optional fields; with --store, how many of each the store holds.
@@ -230,7 +237,7 @@ Usage:
       goal card; without it the origin's own spec runs again. --tick
       defaults to the origin's last completed tick but one.
 
-  craftabot workflow run --workflow <id> --item <item.json> [--config <name>]
+  craftabot workflow run --workflow <id> --item <item.json> [--keep-values] [--config <name>]
                  [--kit <bot.craftabot.json>] [--brain scripted-optimal|scripted-noisy|live]
                  [--seed <n>] [--decide <stageId>=<option>,…] [--deny] [--follow]
                  [--egress declared|none] [--out ./runs]
@@ -275,7 +282,7 @@ Usage:
       interval and n — and a verdict over the intervals, never a p-value.
       analyse re-folds the reports already in --out; render prints a result.
 
-  craftabot bank run --day <YYYY-MM-DD> --desks <desks.json> [--population <seed>] [--size <n>]
+  craftabot bank run --day <YYYY-MM-DD> --desks <desks.json> [--keep-values] [--population <seed>] [--size <n>]
                  [--acceleration <n>|inf] [--brain scripted-optimal|scripted-noisy]
                  [--stop-after <n>] [--egress declared|none] [--out ./runs]
       A day at the bank (WP83, 71-THE-CLOCK.md): the population at the seed
@@ -289,6 +296,8 @@ Usage:
       BankRun — the clock, the desks, the counts, the incidents, every
       run's digest, and the wall time — as <out>/bank-runs/<id>/bank-run.json.
       --from and --to run a window instead of a day.
+      --keep-values keeps every stage value over the record's 16 KiB cap, whole,
+      under <out>/values/<digest>.json (WP160), so a story can open it.
 
   craftabot bundle --run <runId> | --group <groupRunId> [--out ./runs] [--file <path>]
       Write a stored run back out as a .craftabot-trace.json, or a group
@@ -352,6 +361,9 @@ Usage:
       allows only the hosts fitted components declare. A live brain needs
       the campaign's own budget and its provider's CRAFTABOT_CREDENTIAL_<ID>.
 
+  craftabot campaign … [--stories <n>]
+      Also tell n cells per class (how the run ended, and whether an evaluator failed it)
+      as stories under <out>/stories/<class>/<runId>.md (WP161).
   craftabot campaign … [--jobs <n>] [--shard <i>/<n>] [--seeds <a>-<b>] [--resume]
       At scale (WP68): --jobs runs cells in a pool of worker threads (the
       report is placed by cell order, so it reads the same as --jobs 1);
@@ -607,7 +619,8 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 					...(kitPath !== undefined ? { kitPath } : {}),
 					...(egress !== undefined ? { egress } : {}),
 					...(decisions !== undefined ? { decisions } : {}),
-					...(args.flags['follow'] === true ? { follow: true } : {})
+					...(args.flags['follow'] === true ? { follow: true } : {}),
+					...(args.flags['keep-values'] === true ? { keepValues: true } : {})
 				});
 				io.stdout(`${JSON.stringify(report, null, '	')}
 `);
@@ -813,7 +826,8 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 					...(from !== undefined ? { from } : {}),
 					...(to !== undefined ? { to } : {}),
 					...(stopAfter !== undefined ? { stopAfter } : {}),
-					...(egress !== undefined ? { egress } : {})
+					...(egress !== undefined ? { egress } : {}),
+					...(args.flags['keep-values'] === true ? { keepValues: true } : {})
 				});
 				const { bankRun: record } = result;
 				io.stdout(
@@ -919,6 +933,9 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 					...(configPath !== undefined ? { configPath } : {}),
 					contentDir: contentDirFrom(args),
 					...(args.flags['resume'] === true ? { resume: true } : {}),
+					...(numberFlag(args, 'stories') !== undefined
+						? { stories: numberFlag(args, 'stories') as number }
+						: {}),
 					...(baseline !== undefined ? { baseline } : {}),
 					...(junit !== undefined ? { junit } : {}),
 					...(sarif !== undefined ? { sarif } : {}),
@@ -1304,6 +1321,33 @@ ${renderEvaluations(report)}`);
 `
 						: text
 				);
+				return 0;
+			}
+			case 'story': {
+				// WP161 (`112-REAL-ENOUGH-PLAN.md` §5): a run, or a work item through its journey, told top to bottom.
+				const id = args.positional[0];
+				const format = stringFlag(args, 'format') ?? 'markdown';
+				if (id === undefined || (format !== 'markdown' && format !== 'html' && format !== 'json'))
+					throw new Error(
+						'story needs <runId | itemId> [--store <dir>] [--format markdown|html|json] [--out <file>] [--no-follow]'
+					);
+				const store = stringFlag(args, 'store') ?? './runs';
+				const out = stringFlag(args, 'out');
+				const credentials = credentialsFor(io);
+				const told = await storyOf({
+					storage: await createFileStorage(store),
+					store,
+					id,
+					secrets: credentials.secrets(),
+					follow: args.flags['no-follow'] !== true
+				});
+				const text = renderStory(told.story, format as StoryFormat);
+				if (out) {
+					await writeFile(out, text, 'utf8');
+					io.stdout(`story of ${told.kind} ${told.story.subject.id} — ${told.story.chapters.length} chapters
+  wrote      ${out}
+`);
+				} else io.stdout(text);
 				return 0;
 			}
 			case 'sensors': {

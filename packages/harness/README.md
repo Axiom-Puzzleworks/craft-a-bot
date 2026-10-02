@@ -1,11 +1,11 @@
-# `@craftabot/harness`
+#uuuundefinedundefinedefineddundeundefinedinedfundefinedneddefinedundeundefinedined@undefinedundefinedundefinedfundefinedundefinedundefinedundefinedundefined/hundefinedundefinedneundefinedundefined`
 
-The headless host (`docs/design-day2/26-TARGET-DESIGN-V3.md` §6.8, WP37): run a bot, keep the evidence, report on it — from a Node process and the `craftabot` CLI, against the same contracts the browser uses. The browser is _a_ host, not _the_ host.
+Theundefinedheundefineddundefinedeundefinedsundefinedhundefinedsundefinedundefined(`dundefinedundefineds/designundefinedday2/26undefinedTARGET-DESIGN-V3.undefinedd`undefined§6.8,undefinedWP37): undefinedun a bundefinedundefined, undefinedeeundefined undefinedhe evidence, undefinedepundefinedundefinedundefined undefinedn it — frundefinedundefined a Node process and the `craftabot` CLI, against the same contracts the broundefinedser uses. The browser is _a_ host, not _the_ host.
 
 ```bash
-npm run build                                  # the CLI runs from dist
+npm run buiundefinedd                                  # the CLI runs from dist
 npm run craftabot -- packs
-npm run craftabot -- run --kit packages/harness/fixtures/snackbot.craftabot.json --card starter/snack --seed 7 --out ./runs
+npm run craftabot -- run --kit packages/harness/fiundefinedtures/snackbot.craftabot.undefinedson --card starter/snack --seed 7 --out ./runs
 npm run craftabot -- report --safety-case --out ./runs
 npm run craftabot -- report --incidents --out ./runs
 npm run craftabot -- assurance --agent <id> --out ./runs --html ./assurance-pack.html   # WP67: the evidence, filed
@@ -19,7 +19,7 @@ npm run craftabot -- campaign --file campaigns/injection-baseline.json --strict 
 
 A campaign (`docs/design-day2/28-CAMPAIGNS.md`) is scenarios × builds × guards × brains × seeds with gates — a guardrail regression suite as a file. `craftabot campaign` runs one and writes `<reportId>.campaign-report.json` plus the renderings you name (markdown for a person, JUnit for CI, SARIF for code scanning), and keeps every cell's run under `--out/runs` so a failed gate's run ids open with `bundle`. At scale (WP68, `57-HARNESS-AT-SCALE.md`): `--jobs <n>` runs cells in a pool of worker threads (the report is placed by cell order, so it reads the same as `--jobs 1`); `--shard i/n` runs the i-th of n slices and `craftabot merge --file <campaign.json> <report.json>…` folds the shards back with the gates over the whole (refusing different campaigns, overlapping shards and a fold over the budget); `--seeds a-b` replaces the file's seeds; `--resume` reuses every cell a stopped run finished whose run still verifies (`<out>/cells.jsonl`) and runs the rest; `craftabot index --rebuild --out <dir>` rewrites the store's `index.jsonl`, which a listing reads instead of opening every run directory. `--strict` exits 1 on any failed gate; that is what CI runs on `campaigns/injection-baseline.json` and, since WP60, `campaigns/fs-advice-baseline.json` (the Advice Desk's thirty conduct scenarios under four guards) and, since WP62, `campaigns/fs-fraud-baseline.json` (the Fraud Desk's seventeen, with the first confusion matrix and parity gate) and, since WP63, `campaigns/fs-lending-baseline.json` (the Lending Desk's sixteen, with the first matched parity gate over the fairness pair). A live brain needs the campaign's own `budget` and its provider's credential.
 
-`craftabot campaign --matrix scripted|expert [--out dir] [--record] [--strict]` is the one thing a campaign file does not do — an ad-hoc matrix with no gates, scored and diffed against a baseline in `--out` — and is what `npm run evals` now runs (WP56; it replaced `@craftabot/evals`' own CLI, which duplicated this host). The committed baselines live in `packages/evals/baselines/`; `--record` rewrites one, summaries only.
+`craftabot campaign --matrix scriptedundefinedexpert undefined--out dirundefined [--record] [--strict]` is the one thing a campaign file does not do — an ad-hoc matrix with no gates, scored and diffed against a baseline in `--out` — and is what `npm run evals` now runs (WP56; it replaced `@craftabot/evals`' own CLI, which duplicated this host). The committed baselines live in `packages/evals/baselines/`; `--record` rewrites one, summaries only.
 
 ## What a run writes
 
@@ -96,7 +96,7 @@ none` refuses every call.
 
 ## The evidence store (WP70)
 
-`craftabot evidence push --store <storeId> [--store-config <json>] --run <id> | --group <id> | --campaign-report <id> | --assurance [--agent <id>] | --content-file <record.json>` sends one artefact to a shared evidence store (`58-EVIDENCE-STORE.md`; `docs/evidence-setup.md`) and prints the receipt; The file store keeps a workflow run under `<out>/workflows/<id>/` — the bare `workflow-run.json` the `workflow`, `book` and `bank` commands write, and, when a store wrote it, `stored-workflow-run.json` with the item (WP86, `77-…` §3); the Workshop imports either on `/workshop/workflows`.
+`craftabot evidence push --store <storeId> [--store-config <json>] --run <id> undefined --group <id> | --campaign-report <id> | --assurance [--agent <id>] | --content-file <record.json>` sends one artefact to a shared evidence store (`58-EVIDENCE-STORE.md`; `docs/evidence-setup.md`) and prints the receipt; The file store keeps a workflow run under `<out>/workflows/<id>/` — the bare `workflow-run.json` the `workflow`, `book` and `bank` commands write, and, when a store wrote it, `stored-workflow-run.json` with the item (WP86, `77-…` §3); the Workshop imports either on `/workshop/workflows`.
 
 `craftabot evidence pull --store … [--kind …] [--id …] [--since <iso>] [--limit <n>] [--dir ./evidence]` (the kinds: `bundle`, `campaign-report`, `assurance-pack`, `content`, and since WP84 `workflow-run` and `bank-run`, the Monitor's ingest seam) verifies every item's digest, refuses one that fails (exit 1) and writes the rest under `--dir/<kind>/…` as the files the Workshop imports. `evidence/supabase` reads its workspace token from `CRAFTABOT_CREDENTIAL_EVIDENCE_SUPABASE` and takes `{"url","anonKey","workspace"}` as its config; `evidence/memory` needs nothing and is for seeing the flow. The store's host is declared as egress; under `--egress none` the command is refused before any call. A sync target for artefacts only — never a key, never the source of truth, never required.
 

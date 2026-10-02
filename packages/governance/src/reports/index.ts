@@ -165,6 +165,23 @@ export {
 	type SensorRow,
 	type SensorSource
 } from './sensors.js';
+/** The story (WP161, `112-…` §5): one run, or one work item through its journey, as a narrative with the truth last. */
+export {
+	renderStoryHtml,
+	renderStoryMarkdown,
+	runChapters,
+	scrubSecrets,
+	storyForJourney,
+	storyForRun,
+	type JourneyAgentRun,
+	type JourneyStoryInput,
+	type RunStoryInput,
+	type Story,
+	type StoryBeat,
+	type StoryBeatKind,
+	type StoryChapter,
+	type StoryMark
+} from './story.js';
 /** The coverage fold and the catalogue page (WP98, `86-…` §5, §7). */
 export {
 	coverageMeasurements,
@@ -176,11 +193,11 @@ export {
 	type CoverageSummary
 } from './coverage.js';
 export {
-	ASSURANCE_TOKENS,
 	principalLine,
 	renderAssurancePackHtml,
 	renderAssurancePackMarkdown
 } from './assurance-pack-render.js';
+export { ASSURANCE_TOKENS } from './tokens.js';
 export { verdictFlow, verdictFlowSignature, type VerdictFlowRow } from './verdict-flow.js';
 export {
 	READING_KIND_LABELS,

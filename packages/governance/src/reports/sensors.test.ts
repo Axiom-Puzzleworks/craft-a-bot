@@ -45,8 +45,17 @@ describe('the Sensor Inventory', () => {
 	it('refuses a row no fold reads that says nothing of why (the orphan rule’s twin)', () => {
 		const { refused, open } = sensorFindings(sensorInventory());
 		expect(refused.map((row) => row.type)).toEqual([]);
-		// The open findings are real and owned: a planted fault and a requested elevation.
-		expect(open.map((row) => row.type).sort()).toEqual(['decision.fault', 'elevation.requested']);
+		// None is open: the story (WP161) reads the four that were.
+		expect(open.map((row) => row.type)).toEqual([]);
+		// The story reads what the trace list alone used to.
+		for (const type of ['decision.fault', 'elevation.requested', 'seat.said', 'reviewer.drew'])
+			expect(sensorInventory().find((row) => row.type === type)?.readBy).toContain('story');
+		// An open finding is a row nothing folds that says why: the shape is still held.
+		const held = sensorFindings([
+			{ ...sensorInventory()[0]!, readBy: ['trace-list'], folded: false, unfolded: 'a reason' }
+		]);
+		expect(held.open).toHaveLength(1);
+		expect(held.refused).toHaveLength(0);
 		const orphan = sensorFindings([
 			{ ...sensorInventory()[0]!, readBy: ['trace-list'], folded: false }
 		]);

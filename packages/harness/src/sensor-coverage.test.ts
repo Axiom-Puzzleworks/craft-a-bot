@@ -39,7 +39,9 @@ beforeAll(async () => {
 		out: root,
 		config: defaultConfig(),
 		credentials: credentialsFromEnv({}),
-		egress: 'none'
+		egress: 'none',
+		// The wiring of WP160's retention rides on the day: any value over the cap lands under <out>/values.
+		keepValues: true
 	});
 	observe(await harvestEvents(root), seen);
 	for (const fixture of await sensorFixtures()) observe(fixture.events, seen);

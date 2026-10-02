@@ -30,6 +30,7 @@ import {
 	usageSchema,
 	boundaryVerdictSchema,
 	reviewerAnswerSchema,
+	seatLineSchema,
 	verdictFindingSchema
 } from './shared.js';
 import { readerRecordSchema } from './reader.js';
@@ -218,7 +219,16 @@ const thinkStartedEvent = eventSchema(
 		 */
 		wireModel: z.string(),
 		providerId: z.string(),
-		cartridgeId: z.string()
+		cartridgeId: z.string(),
+		/**
+		 * The dials the call went out with (WP160, `112-REAL-ENOUGH-PLAN.md` §5): a
+		 * live model's answer is a sample at a temperature, and the trace said
+		 * neither. Always written now; absent on a trace written before. A seed is
+		 * not here because nothing sends one yet.
+		 */
+		parameters: z
+			.object({ temperature: z.number(), maxTokens: z.number().int().positive() })
+			.optional()
 	})
 );
 const thinkTokenEvent = eventSchema('think.token', z.object({ delta: z.string() }));
@@ -245,7 +255,15 @@ const providerRetriedEvent = eventSchema(
 );
 const thinkCompletedEvent = eventSchema(
 	'think.completed',
-	z.object({ response: chatResponseSchema })
+	z.object({
+		response: chatResponseSchema,
+		/**
+		 * How long the provider took (WP160): the response's own `latencyMs`, written
+		 * only when a timer put one there — a live call, or a replay of a recording
+		 * that was timed — so a mock's trace is unchanged.
+		 */
+		durationMs: z.number().nonnegative().optional()
+	})
 );
 const decisionEvent = eventSchema(
 	'decision',
@@ -278,7 +296,9 @@ const decisionFaultEvent = eventSchema(
 		chose: z.unknown(),
 		shouldHave: z.unknown(),
 		planted: z.literal(true),
-		errorModel: z.string().optional()
+		errorModel: z.string().optional(),
+		/** The roll that decided it (WP160): the rate in force and the number drawn, a fault being a roll under the rate. */
+		draw: z.object({ rate: z.number(), roll: z.number() }).optional()
 	})
 );
 const toolExecutedEvent = eventSchema(
@@ -427,6 +447,14 @@ const guardrailTrippedEvent = eventSchema(
 		point: pointField
 	})
 );
+/**
+ * **The person across the desk spoke** (WP160, `112-REAL-ENOUGH-PLAN.md` §5):
+ * one per line the scripted visitor said inside the desk, written by the host
+ * beside the `action.performed` it answered — the persona, the cue that fired
+ * it, the rule that chose it and the words. In a duo the visitor is a seat
+ * with a trace of its own, and this event is not written.
+ */
+const seatSaidEvent = eventSchema('seat.said', seatLineSchema);
 const approvalRequestedEvent = eventSchema(
 	'approval.requested',
 	z.object({ proposed: proposedStepSchema, reason: z.string() })
@@ -474,6 +502,28 @@ const disclosureGivenEvent = eventSchema(
  * `stage.completed`; the clock counts the case as an incident, which is its
  * escalation to a person.
  */
+/**
+ * **The reviewer model drew** (WP160, `112-REAL-ENOUGH-PLAN.md` §5): the rates
+ * in force at a `human` stage, the rolls made against them in order, and which
+ * path decided the answer — so a wrong human answer is told apart from a
+ * planted fault by what was drawn, not by the absence of one. Written beside
+ * the stage's `stage.completed`, whose `by` carries the answer.
+ */
+const reviewerDrewEvent = eventSchema(
+	'reviewer.drew',
+	z.object({
+		workflowRunId: z.string(),
+		stageId: z.string(),
+		model: z.string(),
+		rates: z.object({
+			accuracy: z.number(),
+			automationBias: z.number(),
+			reasonRate: z.number().optional()
+		}),
+		path: z.enum(['took-recommendation', 'accurate', 'slipped']),
+		rolls: z.array(z.number())
+	})
+);
 const stageOverdueEvent = eventSchema(
 	'stage.overdue',
 	z.object({
@@ -607,6 +657,8 @@ export const engineEventSchema = z.discriminatedUnion('type', [
 	thinkCompletedEvent,
 	decisionEvent,
 	decisionFaultEvent,
+	seatSaidEvent,
+	reviewerDrewEvent,
 	toolExecutedEvent,
 	actionPerformedEvent,
 	memoryUpdatedEvent,

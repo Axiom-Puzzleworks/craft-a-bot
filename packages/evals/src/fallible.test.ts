@@ -45,6 +45,10 @@ describe('the fallible tier (WP115)', () => {
 				faults += 1;
 				expect(decided.fault.shouldHave).toBe('approve');
 				expect(['decline', 'refer']).toContain(decided.fault.chose);
+				// The roll behind it (WP160): a fault is a roll under the rate in force.
+				expect(decided.fault.draw?.rate).toBe(rate);
+				expect(decided.fault.draw!.roll).toBeGreaterThanOrEqual(0);
+				expect(decided.fault.draw!.roll).toBeLessThan(rate);
 				expect((decided.toolCall?.arguments as { outcome: string }).outcome).toBe(
 					decided.fault.chose
 				);

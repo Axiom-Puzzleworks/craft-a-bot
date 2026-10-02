@@ -236,7 +236,11 @@
 					"payload": {
 						"wireModel": "mock-1",
 						"providerId": "mock",
-						"cartridgeId": "test/mock-brain"
+						"cartridgeId": "test/mock-brain",
+						"parameters": {
+							"temperature": 0,
+							"maxTokens": 256
+						}
 					}
 				},
 				{
@@ -594,7 +598,11 @@
 					"payload": {
 						"wireModel": "mock-1",
 						"providerId": "mock",
-						"cartridgeId": "test/mock-brain"
+						"cartridgeId": "test/mock-brain",
+						"parameters": {
+							"temperature": 0,
+							"maxTokens": 256
+						}
 					}
 				},
 				{
@@ -886,7 +894,11 @@
 					"payload": {
 						"wireModel": "mock-1",
 						"providerId": "mock",
-						"cartridgeId": "test/mock-brain"
+						"cartridgeId": "test/mock-brain",
+						"parameters": {
+							"temperature": 0,
+							"maxTokens": 256
+						}
 					}
 				},
 				{
@@ -1200,7 +1212,11 @@
 					"payload": {
 						"wireModel": "mock-1",
 						"providerId": "mock",
-						"cartridgeId": "test/mock-brain"
+						"cartridgeId": "test/mock-brain",
+						"parameters": {
+							"temperature": 0,
+							"maxTokens": 256
+						}
 					}
 				},
 				{
@@ -1454,9 +1470,9 @@
 					}
 				}
 			],
-			"traceDigest": "8d5ccc72426235d5fc4bccc20c1a57c2458f226979632cab6e7b305c885a6117"
+			"traceDigest": "7091a5770ddd7929ff28949897fbd7206d226d6172751990856efd30d08908e9"
 		}
 	],
 	"evaluations": [],
-	"bundleDigest": "5b809ec735f550d05309adfc05c8efc58220bc9fc68554165eb089bdb7e3deab"
+	"bundleDigest": "7c16eca83b125383180f12c146da15dff1d8e570c392e63aa3a15637a6e3bc47"
 }

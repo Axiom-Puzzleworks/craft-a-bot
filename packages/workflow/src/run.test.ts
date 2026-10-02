@@ -26,7 +26,7 @@ import {
 	v1BrickKinds
 } from '@craftabot/core/testing';
 import { describe, expect, it } from 'vitest';
-import { TEST_DESK_ID, testDesk } from '@craftabot/desk/testing';
+import { TEST_DESK_ID, counterpartTestDesk, testDesk } from '@craftabot/desk/testing';
 import {
 	VALUE_CAP,
 	configRecord,
@@ -322,6 +322,71 @@ describe('a rule stage', () => {
 		]);
 		// The second stage's input is the first's output.
 		expect(record.stages[1]?.input.value).toEqual({ greeted: true });
+	});
+
+	it('hands the host a value over the cap whole, under the digest the record keeps (WP160)', async () => {
+		const spec = workflow([greet, { ...signByRule, next: () => 'end' }], { rules: RULES });
+		spec.first = 'greet';
+		const kept: Array<{ digest: string; value: unknown; stageId: string; role: string }> = [];
+		// A cap of one byte: every value is over it, so the record keeps the digest alone.
+		const { record } = await run(spec, { valueCap: 1, onValue: (value) => kept.push(value) });
+		// The journey does not depend on the record's value: the next stage got the whole output, not the digest alone.
+		expect(record.outcome).toBe('completed');
+		expect(record.stages.map((stage) => stage.status)).toEqual(['ok', 'ok']);
+		expect(record.stages.every((stage) => stage.output.value === undefined)).toBe(true);
+		// Every input and output the record names by digest was handed over, whole.
+		const named = record.stages.flatMap((stage) => [
+			{ digest: stage.input.digest, stageId: stage.stageId, role: 'input' },
+			{ digest: stage.output.digest, stageId: stage.stageId, role: 'output' }
+		]);
+		expect(kept.map(({ digest, stageId, role }) => ({ digest, stageId, role }))).toEqual(named);
+		for (const { digest, value } of kept) expect(sha256Hex(canonicalJson(value))).toBe(digest);
+		expect(
+			kept.find((entry) => entry.stageId === 'greet' && entry.role === 'output')?.value
+		).toEqual({
+			greeted: true
+		});
+		// Under the cap nothing is handed over: the record holds the value itself.
+		const none: unknown[] = [];
+		await run(spec, { onValue: (value) => none.push(value) });
+		expect(none).toEqual([]);
+	});
+
+	it('writes the visitor’s lines as seat.said beside the action they answered (WP160)', async () => {
+		const spec = workflow([greet, { ...signByRule, next: () => 'end' }], {
+			rules: RULES,
+			worldId: counterpartTestDesk.id
+		});
+		spec.first = 'greet';
+		const { record } = await run(spec, {
+			packs: [{ ...testPack(), worlds: [counterpartTestDesk] }]
+		});
+		const types = record.events.map((event) => event.type);
+		// Each action is followed by what the visitor said in answer: a fallback to the greeting, the closing rule to the sign-in.
+		expect(types).toEqual([
+			'stage.started',
+			'action.performed',
+			'seat.said',
+			'stage.completed',
+			'stage.started',
+			'action.performed',
+			'seat.said',
+			'stage.completed'
+		]);
+		const said = record.events.flatMap((event) =>
+			event.type === 'seat.said' ? [event.payload] : []
+		);
+		expect(said[0]).toMatchObject({
+			persona: 'A. Person',
+			cue: { kind: 'said' },
+			then: 'continue'
+		});
+		expect(said[0]).not.toHaveProperty('ruleId');
+		expect(said[1]).toMatchObject({
+			cue: { kind: 'acted', detail: expect.stringContaining('sign-in') },
+			text: 'Thanks.',
+			then: 'end-conversation'
+		});
 	});
 
 	it('is an error when the world refuses the call, or the rule is missing', async () => {

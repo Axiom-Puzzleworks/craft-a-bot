@@ -180,7 +180,8 @@ export function scriptedFallible(plan: Plan, options: FallibleOptions): MockScri
 				const args = (call.arguments ?? {}) as Record<string, unknown>;
 				const current = args[spec.field];
 				if (typeof current !== 'string' || !spec.options.includes(current)) continue;
-				if (random() >= rate) return planned;
+				const roll = random();
+				if (roll >= rate) return planned;
 				const wrong = wrongOption(spec, current, random);
 				if (wrong === undefined) return planned;
 				return {
@@ -190,19 +191,27 @@ export function scriptedFallible(plan: Plan, options: FallibleOptions): MockScri
 						field: spec.field,
 						chose: wrong,
 						shouldHave: current,
-						errorModel: options.errorModelId
+						errorModel: options.errorModelId,
+						draw: { rate, roll }
 					}
 				};
 			}
 			if (!spec.options.includes(bare)) continue;
-			if (random() >= rate) return planned;
+			const roll = random();
+			if (roll >= rate) return planned;
 			const wrong = wrongOption(spec, bare, random);
 			if (wrong === undefined) return planned;
 			const prefix = call.name.slice(0, call.name.length - bare.length);
 			return {
 				...planned,
 				toolCall: { name: `${prefix}${wrong}`, arguments: call.arguments },
-				fault: { field: 'action', chose: wrong, shouldHave: bare, errorModel: options.errorModelId }
+				fault: {
+					field: 'action',
+					chose: wrong,
+					shouldHave: bare,
+					errorModel: options.errorModelId,
+					draw: { rate, roll }
+				}
 			};
 		}
 		return planned;

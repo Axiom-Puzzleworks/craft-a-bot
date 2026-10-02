@@ -26,6 +26,7 @@ import { createRegistry, packVersions, type HarnessConfig } from '../config.js';
 import type { CredentialSource } from '../credentials.js';
 import { harnessPlans } from '../plans.js';
 import { createFileStorage } from '../storage/file-storage.js';
+import { valueKeeper } from '../values.js';
 import { loadSpecFrom, type BrainTier } from './run.js';
 
 /**
@@ -83,6 +84,8 @@ export interface BankRunOptions {
 	credentials: CredentialSource;
 	now?: () => string;
 	egress?: EgressMode;
+	/** Keep every stage value over the record's cap, whole, under `<out>/values/<digest>.json` (WP160). */
+	keepValues?: boolean;
 }
 
 export interface BankRunReport {
@@ -189,15 +192,20 @@ export async function bankRun(options: BankRunOptions): Promise<BankRunReport> {
 		secrets: options.credentials.secrets(),
 		now
 	});
+	const keeper = options.keepValues ? valueKeeper(options.out) : undefined;
 	const written: string[] = [];
 	const sink: MonitorSink = {
 		agentRun: (entry) => writer.write(entry.runId, entry.spec, entry.events),
 		workflowRun: async (entry) => {
-			const directory = join(options.out, 'workflows', entry.run.id);
-			await mkdir(directory, { recursive: true });
-			const file = join(directory, 'workflow-run.json');
-			await writeFile(file, `${JSON.stringify(entry.run, null, '\t')}\n`, 'utf8');
-			written.push(file);
+			// The bare run and, beside it, the envelope with the item (WP161): a story needs what arrived, which the bare run does not carry.
+			await storage.putWorkflowRun({
+				run: entry.run,
+				item: entry.item,
+				source: { kind: 'bank', desk: entry.desk },
+				createdAt: now(),
+				schemaVersion: 1
+			});
+			written.push(join(options.out, 'workflows', entry.run.id, 'workflow-run.json'));
 		},
 		bankRun: () => undefined
 	};
@@ -237,10 +245,12 @@ export async function bankRun(options: BankRunOptions): Promise<BankRunReport> {
 			}))
 		},
 		populationDigest: pop.digest,
+		...(keeper ? { onValue: (value) => keeper.keep(value) } : {}),
 		newId: () => `bank-${options.seed}-${from}${to !== from ? `-${to}` : ''}`,
 		...(options.stopAfter !== undefined ? { stopAfter: options.stopAfter } : {})
 	});
 	await writer.done();
+	await keeper?.done();
 	const wallMs = Date.now() - started;
 	const bankRunRecord: BankRun = { ...record, wallMs };
 	const directory = join(options.out, 'bank-runs', bankRunRecord.id);

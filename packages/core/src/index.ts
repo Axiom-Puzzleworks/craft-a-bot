@@ -271,6 +271,8 @@ export {
 	principalSchema,
 	proposedStepSchema,
 	runOutcomeSchema,
+	seatLineSchema,
+	type SeatLine,
 	usageSchema,
 	type AssistantToolCall,
 	type Attestation,
@@ -369,6 +371,8 @@ export {
 	migrateTraceFile,
 	parseTraceFile,
 	runRecordSchema,
+	replayedFromSchema,
+	type ReplayedFrom,
 	isRunFinished,
 	effectiveOutcome,
 	safeParseTraceFile,
@@ -549,6 +553,7 @@ export {
 } from './schemas/trace-bundle.js';
 export {
 	buildTraceBundle,
+	bundleProvenance,
 	verifyBundleDigest,
 	type BuildTraceBundleOptions
 } from './persistence/bundle.js';
@@ -675,6 +680,7 @@ export {
 	createCassetteProvider,
 	mergeProviderEntries,
 	recordingProvider,
+	timedProvider,
 	type ProviderRecording
 } from './provider-cassette.js';
 export {

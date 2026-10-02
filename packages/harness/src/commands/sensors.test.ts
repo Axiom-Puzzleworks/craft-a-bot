@@ -53,8 +53,9 @@ describe('craftabot sensors', () => {
 	it('lists the counts and the open findings, and exports markdown and JSON', async () => {
 		const listed = io();
 		expect(await main(['sensors', 'list'], listed.io)).toBe(0);
-		expect(listed.lines.join('')).toMatch(/^sensors: 34 event types/);
-		expect(listed.lines.join('')).toContain('open  decision.fault');
+		expect(listed.lines.join('')).toContain(`sensors: ${EVENT_TYPES.length} event types`);
+		// Nothing is open: the story reads what the trace list alone once did.
+		expect(listed.lines.join('')).not.toContain('open  ');
 
 		const out = join(dir, 'sensors.md');
 		const written = io();

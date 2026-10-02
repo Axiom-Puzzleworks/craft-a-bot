@@ -72,6 +72,14 @@ export const chatResponseSchema = z.object({
 	/** The exact wire response, kept for the trace. */
 	raw: z.unknown(),
 	finishReason: z.enum(['stop', 'tool_call', 'length', 'filtered', 'other']),
+	/**
+	 * How long the provider took, in milliseconds (WP160, `112-…` §5): written by
+	 * `timedProvider` around a live call and by `recordingProvider` when its host
+	 * gave it a clock, so a replay returns the recording's own figure and the
+	 * run's digest is reproduced. Absent for a provider nothing timed — the mock
+	 * above all, whose runs must stay byte-for-byte the same.
+	 */
+	latencyMs: z.number().nonnegative().optional(),
 	/** The first token's top log-probabilities, when `topLogprobs` was asked and the provider returned them (WP120). */
 	logprobs: z.array(z.object({ token: z.string(), logprob: z.number() })).optional(),
 	/**
@@ -98,7 +106,9 @@ export const chatResponseSchema = z.object({
 			field: z.string(),
 			chose: z.unknown(),
 			shouldHave: z.unknown(),
-			errorModel: z.string().optional()
+			errorModel: z.string().optional(),
+			/** The roll that decided it (WP160): the rate in force and the number drawn against it (a fault is a roll under the rate). */
+			draw: z.object({ rate: z.number(), roll: z.number() }).optional()
 		})
 		.optional()
 });
@@ -127,6 +137,25 @@ export const observationSchema = z.object({
 });
 export type Observation = z.infer<typeof observationSchema>;
 
+/**
+ * **A line the person across the desk said** (WP160, `112-REAL-ENOUGH-PLAN.md`
+ * §5): the persona, the cue that fired it, the rule that chose it (absent for
+ * the script's fallback) and what was said, with the turn's pressure, tags and
+ * what it did next. A desk runs its scripted visitor inside `perform`, so
+ * the line used to be world state alone; the host writes one `seat.said` per
+ * line beside the `action.performed` it answered.
+ */
+export const seatLineSchema = z.object({
+	persona: z.string().min(1),
+	cue: z.object({ kind: z.string().min(1), detail: z.string().optional() }),
+	ruleId: z.string().optional(),
+	text: z.string().optional(),
+	then: z.enum(['continue', 'escalate', 'end-conversation']),
+	pressure: z.number().optional(),
+	tags: z.array(z.string()).optional()
+});
+export type SeatLine = z.infer<typeof seatLineSchema>;
+
 export const actionResultSchema = z.object({
 	ok: z.boolean(),
 	narration: z.string(),
@@ -151,7 +180,9 @@ export const actionResultSchema = z.object({
 	 * wording. The host writes one `disclosure.given` per entry with the
 	 * wording's digest. Absent on every action that discloses nothing.
 	 */
-	disclosures: z.array(z.object({ id: z.string().min(1), text: z.string().min(1) })).optional()
+	disclosures: z.array(z.object({ id: z.string().min(1), text: z.string().min(1) })).optional(),
+	/** What the scripted visitor said in answer to this action (WP160): the host writes one `seat.said` per line. Absent when no one spoke. */
+	seatLines: z.array(seatLineSchema).optional()
 });
 export type ActionResult = z.infer<typeof actionResultSchema>;
 

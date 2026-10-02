@@ -165,7 +165,11 @@
 		"payload": {
 			"wireModel": "mock-1",
 			"providerId": "mock",
-			"cartridgeId": "test/mock-brain"
+			"cartridgeId": "test/mock-brain",
+			"parameters": {
+				"temperature": 0,
+				"maxTokens": 256
+			}
 		}
 	},
 	{
@@ -523,7 +527,11 @@
 		"payload": {
 			"wireModel": "mock-1",
 			"providerId": "mock",
-			"cartridgeId": "test/mock-brain"
+			"cartridgeId": "test/mock-brain",
+			"parameters": {
+				"temperature": 0,
+				"maxTokens": 256
+			}
 		}
 	},
 	{
@@ -815,7 +823,11 @@
 		"payload": {
 			"wireModel": "mock-1",
 			"providerId": "mock",
-			"cartridgeId": "test/mock-brain"
+			"cartridgeId": "test/mock-brain",
+			"parameters": {
+				"temperature": 0,
+				"maxTokens": 256
+			}
 		}
 	},
 	{
@@ -1129,7 +1141,11 @@
 		"payload": {
 			"wireModel": "mock-1",
 			"providerId": "mock",
-			"cartridgeId": "test/mock-brain"
+			"cartridgeId": "test/mock-brain",
+			"parameters": {
+				"temperature": 0,
+				"maxTokens": 256
+			}
 		}
 	},
 	{

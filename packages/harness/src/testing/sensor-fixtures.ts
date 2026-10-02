@@ -36,7 +36,7 @@ import {
 	v1BrickKinds,
 	type MockTurn
 } from '@craftabot/core/testing';
-import { TEST_DESK_ID, testDesk } from '@craftabot/desk/testing';
+import { TEST_DESK_ID, counterpartTestDesk, testDesk } from '@craftabot/desk/testing';
 import { GATE_CONTENT, createGate } from '@craftabot/gate';
 import starterPack from '@craftabot/pack-starter';
 import {
@@ -319,10 +319,17 @@ async function loopCorners(): Promise<SensorFixture> {
 		{
 			spec,
 			script: [
-				turn('Echo.', 'echo', { word: 'hello' }),
+				// A timed answer (WP160): the response carries how long the provider took.
+				{ ...turn('Echo.', 'echo', { word: 'hello' }), latencyMs: 420 },
 				{
 					...turn('Ping.', 'ping', { outcome: 'decline' }),
-					fault: { field: 'outcome', chose: 'decline', shouldHave: 'approve', errorModel: 'm/err' }
+					fault: {
+						field: 'outcome',
+						chose: 'decline',
+						shouldHave: 'approve',
+						errorModel: 'm/err',
+						draw: { rate: 0.1, roll: 0.04 }
+					}
 				},
 				turn('Note it.', 'jot', { line: 'two' })
 			],
@@ -357,6 +364,9 @@ async function loopCorners(): Promise<SensorFixture> {
 			'brick.state',
 			'decision.fault',
 			'decision.fault.errorModel',
+			'decision.fault.draw',
+			'think.started.parameters',
+			'think.completed.durationMs',
 			'action.performed.attestation',
 			'memory.updated.source',
 			'input.delivered',
@@ -769,9 +779,49 @@ async function workflowPeople(): Promise<SensorFixture> {
 			'approval.resolved.by',
 			'approval.resolved.override',
 			'approval.resolved.reason',
-			'stage.completed.by'
+			'stage.completed.by',
+			'reviewer.drew'
 		],
 		events: [...late.events, ...overridden.events, ...modelled.events]
+	};
+}
+
+/**
+ * The person across the desk, in a workflow's rule stages (WP160): the talking
+ * test desk's visitor answers a name, a line nothing matched, a push that
+ * fires its pressure and tags, and the sign-in that ends the conversation.
+ */
+async function visitor(): Promise<SensorFixture> {
+	const lines = ['What is your name?', 'Lovely weather.', 'Nearly there.', 'Nearly there.'];
+	const stageIds = [...lines.map((_, index) => `say-${index + 1}`), 'sign'];
+	const stages: StageSpec[] = stageIds.map((id, index) => ({
+		id,
+		name: id,
+		input: ANY,
+		output: { type: 'object' },
+		executor: { kind: 'rule', rule: id },
+		next: () => stageIds[index + 1] ?? 'end'
+	}));
+	const rules: NonNullable<WorkflowSpec['rules']> = Object.fromEntries([
+		...lines.map((text, index) => [
+			stageIds[index] as string,
+			() => ({ output: {}, call: { name: 'say', arguments: { text } } })
+		]),
+		['sign', () => ({ output: {}, call: { name: 'sign-in', arguments: { visitor: 'A. Person' } } })]
+	]);
+	const run = await runDesk(deskWorkflow(stages, { rules, worldId: counterpartTestDesk.id }), {
+		packs: [{ ...deskPack(), worlds: [counterpartTestDesk] }]
+	});
+	return {
+		id: 'visitor',
+		covers: [
+			'seat.said',
+			'seat.said.ruleId',
+			'seat.said.text',
+			'seat.said.pressure',
+			'seat.said.tags'
+		],
+		events: run.events
 	};
 }
 
@@ -928,6 +978,7 @@ export async function sensorFixtures(): Promise<SensorFixture[]> {
 		await forked(),
 		await group(),
 		await workflowPeople(),
+		await visitor(),
 		await readerAnswered(),
 		await gateConversation()
 	];

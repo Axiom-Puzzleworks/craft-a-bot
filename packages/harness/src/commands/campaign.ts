@@ -6,7 +6,9 @@ import {
 	engineEventSchema,
 	localPackFrom,
 	recordingProvider,
+	timedProvider,
 	type LLMProvider,
+	type ReplayedFrom,
 	type PackRegistry,
 	type ProviderCassetteEntry
 } from '@craftabot/core';
@@ -35,6 +37,7 @@ import { runRecordFrom } from '../run-record.js';
 import { buildSink, sinkById } from '../sinks.js';
 import { createFileStorage, runExists, type FileStorage } from '../storage/file-storage.js';
 import { createCellPool } from './cell-pool.js';
+import { writeCampaignStories } from './story.js';
 
 /**
  * `craftabot campaign` (WP38 stage C, `28-CAMPAIGNS.md` §4.7): a campaign
@@ -80,6 +83,8 @@ export interface CampaignFileOptions {
 	 * runs kept.
 	 */
 	resume?: boolean;
+	/** Tell `n` cells per class (how the run ended, and whether an evaluator failed it) as stories under `<out>/stories/` (WP161). Needs the runs kept. */
+	stories?: number;
 	/** Called after each cell with whether it was reused from a previous run (WP68). */
 	onCellDone?: (done: number, total: number, reused: boolean) => void;
 	/**
@@ -154,6 +159,7 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 		fromFile['seeds'] = Array.from({ length: to - from + 1 }, (_, index) => from + index);
 	}
 	const parsed = parseCampaign(fromFile);
+	const loadCassette = cassetteLoader();
 	// Recording (WP114): each cassette brain runs live, and its path is where its calls go.
 	const cassetteOfBrain = new Map(
 		parsed.brains.flatMap((brain) => (brain.cassette ? [[brain.id, brain.cassette] as const] : []))
@@ -248,7 +254,7 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 				return recording.provider;
 			},
 			// A cassette brain replays (WP114): the file read here, `evals` never touching a disk.
-			cassetteFor: cassetteLoader(),
+			cassetteFor: loadCassette,
 			egress: options.egress ?? 'declared',
 			...(options.principal ? { principal: options.principal } : {}),
 			packs: runnerPacks,
@@ -288,6 +294,19 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 				if (!storage) return;
 				const runId = cell.runId;
 				const stamp = now();
+				// A cassette brain replayed (WP160, D13): said on the record, never in the trace.
+				const cassettePath = options.record ? undefined : cassetteOfBrain.get(cell.brain);
+				const replayedFrom: ReplayedFrom | undefined =
+					cassettePath === undefined
+						? undefined
+						: (() => {
+								const file = loadCassette(cassettePath);
+								return {
+									cassette: cassettePath,
+									model: file.entries[0]?.model ?? 'unrecorded',
+									recorded: file.recordedAt
+								};
+							})();
 				const run = runRecordFrom({
 					runId,
 					spec: trace.spec,
@@ -295,7 +314,8 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 					packVersions: versions,
 					startedAt: stamp,
 					finishedAt: stamp,
-					...(cell.outcome !== undefined ? { outcome: cell.outcome } : {})
+					...(cell.outcome !== undefined ? { outcome: cell.outcome } : {}),
+					...(replayedFrom ? { replayedFrom } : {})
 				});
 				writing = writing
 					.then(() => storage.putRun(run))
@@ -324,6 +344,16 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 	// A write that failed is a failure of the campaign: never swallowed.
 	await writing;
 	await pool?.close();
+	// The sampled stories (WP161): told from the runs just written, redacted against every secret held.
+	if (options.stories && options.stories > 0 && storage)
+		await writeCampaignStories({
+			storage,
+			store: join(options.out, 'runs'),
+			out: options.out,
+			cells: report.cells,
+			perClass: options.stories,
+			secrets: options.credentials.secrets()
+		});
 
 	await mkdir(options.out, { recursive: true });
 	// The report is filed beside the runs (WP49) so `craftabot report --safety-case` can quote it, as the Workshop does.
@@ -392,5 +422,8 @@ function providerFor(
 		}
 		apiKey = key;
 	}
-	return factory.create({ apiKey, ...(options.fetch ? { fetch: options.fetch } : {}) });
+	// Timed (WP160): a live call carries how long it took; a recording re-times it with its own clock.
+	return timedProvider(
+		factory.create({ apiKey, ...(options.fetch ? { fetch: options.fetch } : {}) })
+	);
 }

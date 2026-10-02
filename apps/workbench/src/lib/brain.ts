@@ -1,4 +1,9 @@
-import type { CartridgeDefinition, LLMProvider, PackRegistry } from '@craftabot/core';
+import {
+	timedProvider,
+	type CartridgeDefinition,
+	type LLMProvider,
+	type PackRegistry
+} from '@craftabot/core';
 import type { BotCapabilities } from './bot-capabilities.js';
 import { createDemoBrain } from './demo-brain.js';
 import { createBrowserKeyVault } from './state/keys.js';
@@ -57,14 +62,22 @@ export function chooseBrain(
 			// A local provider is told where to listen (WP52, `40-DEBTS.md` §4.3); the factory holds it to loopback again.
 			return {
 				ok: true,
-				provider: factory.create({ apiKey: '', endpoint: preferences.ollamaEndpoint }),
+				// Timed (WP160): a live call carries how long it took, so `think.completed` says so.
+				provider: timedProvider(
+					factory.create({ apiKey: '', endpoint: preferences.ollamaEndpoint })
+				),
 				keyless: true,
 				live: true
 			};
 		}
 		const apiKey = createBrowserKeyVault().get(factory.id);
 		if (apiKey === undefined) return { ok: false, reason: 'no-key', providerId: factory.id };
-		return { ok: true, provider: factory.create({ apiKey }), keyless: false, live: true };
+		return {
+			ok: true,
+			provider: timedProvider(factory.create({ apiKey })),
+			keyless: false,
+			live: true
+		};
 	}
 
 	// A cartridge from a provider this build genuinely does not have — a kit

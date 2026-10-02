@@ -10,6 +10,20 @@ import { runOutcomeSchema, usageSchema, type MigrationError } from './shared.js'
  * trace file's `run` field; WP4 (Persistence) reuses this same schema for
  * the `cab.runs` IndexedDB store.
  */
+/**
+ * **Where a replayed run's answers came from** (WP160, `112-REAL-ENOUGH-PLAN.md`
+ * §5, D13): the provider cassette, the model it recorded and when. A run that
+ * was replayed has the same trace as its recording — that is the point of a
+ * cassette — so the fact lives beside the trace, on the run record and the
+ * bundle, and never inside the events.
+ */
+export const replayedFromSchema = z.object({
+	cassette: z.string().min(1),
+	model: z.string().min(1),
+	recorded: z.string().datetime()
+});
+export type ReplayedFrom = z.infer<typeof replayedFromSchema>;
+
 export const runRecordSchema = z.object({
 	id: z.string().uuid(),
 	agentId: z.string().uuid(),
@@ -29,6 +43,8 @@ export const runRecordSchema = z.object({
 	packVersions: z.record(z.string(), z.string()),
 	/** The run this one was forked from and the tick it continues after (WP66); additive. */
 	forkedFrom: z.object({ runId: z.string(), tick: z.number().int().nonnegative() }).optional(),
+	/** Replayed from a provider cassette rather than answered live (WP160, D13); additive, and never in the events. */
+	replayedFrom: replayedFromSchema.optional(),
 	mode: z.enum(['step', 'play']),
 	/**
 	 * The run's outcome, plus the one state a *record* can be in that a run

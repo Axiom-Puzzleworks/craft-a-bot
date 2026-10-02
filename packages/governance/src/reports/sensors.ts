@@ -29,6 +29,7 @@ export type SensorReach = { kind: 'harness' } | { kind: 'browser-only'; reason: 
 /** `listed` shows the event as a row; `folded` reads its fields into something. */
 export type SensorReaderDepth = 'listed' | 'folded';
 
+/** One place that reads events: its words, whether it lists or folds them, and the sources the harness holds the claim to. */
 export interface SensorReader {
 	label: string;
 	depth: SensorReaderDepth;
@@ -148,6 +149,11 @@ export const SENSOR_READERS = {
 		depth: 'folded',
 		files: ['packages/workflow/src/run.ts', 'packages/workflow/src/reader.ts']
 	},
+	story: {
+		label: 'The story',
+		depth: 'folded',
+		files: ['packages/governance/src/reports/story.ts']
+	},
 	gate: {
 		label: 'The Gate',
 		depth: 'folded',
@@ -155,6 +161,7 @@ export const SENSOR_READERS = {
 	}
 } as const satisfies Record<string, SensorReader>;
 
+/** The id of a reader in `SENSOR_READERS`; a row's `readBy` names these. */
 export type SensorReaderId = keyof typeof SENSOR_READERS;
 
 /** What is declared by hand about one event type; the rest is derived. */
@@ -170,58 +177,95 @@ export interface SensorDeclaration {
 
 const LIST: SensorReaderId = 'trace-list';
 
+/** What is declared by hand about each event type — typed by `EventType`, so a new event fails to compile until it is declared here. */
 export const SENSOR_DECLARATIONS: Record<EventType, SensorDeclaration> = {
 	'run.started': {
 		source: 'engine',
 		since: 'WP1',
-		readBy: [LIST, 'run-lab', 'otel', 'control-map', 'evaluators', 'projection']
+		readBy: [LIST, 'run-lab', 'otel', 'control-map', 'evaluators', 'projection', 'story']
 	},
 	'run.finished': {
 		source: 'engine',
 		since: 'WP1',
-		readBy: [LIST, 'kit-session', 'narration', 'evaluators', 'summary', 'projection']
+		readBy: [LIST, 'kit-session', 'narration', 'evaluators', 'summary', 'projection', 'story']
 	},
 	'tick.started': { source: 'engine', since: 'WP1', readBy: [LIST, 'evaluators'] },
 	'tick.completed': { source: 'engine', since: 'WP1', readBy: [LIST, 'projection'] },
-	sense: { source: 'engine', since: 'WP1', readBy: [LIST, 'narration', 'timeline', 'run-lab'] },
+	sense: {
+		source: 'engine',
+		since: 'WP1',
+		readBy: [LIST, 'narration', 'timeline', 'run-lab', 'story']
+	},
 	'prompt.composed': {
 		source: 'engine',
 		since: 'WP1',
-		readBy: [LIST, 'run-lab', 'explain', 'control-map', 'gate']
+		readBy: [LIST, 'run-lab', 'explain', 'control-map', 'gate', 'story']
 	},
-	'think.started': { source: 'engine', since: 'WP1', readBy: [LIST, 'kit-session', 'projection'] },
+	'think.started': {
+		source: 'engine',
+		since: 'WP1',
+		readBy: [LIST, 'kit-session', 'projection', 'story']
+	},
 	'think.token': { source: 'engine', since: 'WP1', readBy: [LIST, 'projection'] },
 	'think.completed': {
 		source: 'engine',
 		since: 'WP1',
-		readBy: [LIST, 'timeline', 'explain', 'boundary', 'evaluators', 'otel', 'monitor', 'projection']
+		readBy: [
+			LIST,
+			'timeline',
+			'explain',
+			'boundary',
+			'evaluators',
+			'otel',
+			'monitor',
+			'projection',
+			'story'
+		]
 	},
 	decision: {
 		source: 'engine',
 		since: 'WP1',
-		readBy: [LIST, 'narration', 'run-lab', 'explain', 'guardrails']
+		readBy: [LIST, 'narration', 'run-lab', 'explain', 'guardrails', 'story']
 	},
 	'decision.fault': {
 		source: 'engine',
 		since: 'WP115',
-		readBy: [LIST],
-		unfolded:
-			'listed only: no fold reads a planted fault; WP160 adds its draw and WP161’s story reads it'
+		readBy: [LIST, 'story']
+	},
+	// WP160 (`112-…` §5): the seat and the reviewer, written by the desk's action result and the workflow's human stage.
+	'seat.said': {
+		source: 'seat',
+		since: 'WP160',
+		readBy: [LIST, 'story']
+	},
+	'reviewer.drew': {
+		source: 'reviewer',
+		since: 'WP160',
+		readBy: [LIST, 'story']
 	},
 	'tool.executed': {
 		source: 'engine',
 		since: 'WP1',
-		readBy: [LIST, 'kit-session', 'narration', 'explain', 'evaluators', 'otel']
+		readBy: [LIST, 'kit-session', 'narration', 'explain', 'evaluators', 'otel', 'story']
 	},
 	'action.performed': {
 		source: 'engine',
 		since: 'WP1',
-		readBy: [LIST, 'kit-session', 'narration', 'run-lab', 'evaluators', 'guardrails', 'control-map']
+		readBy: [
+			LIST,
+			'kit-session',
+			'narration',
+			'run-lab',
+			'evaluators',
+			'guardrails',
+			'control-map',
+			'story'
+		]
 	},
 	'memory.updated': {
 		source: 'engine',
 		since: 'WP1',
-		readBy: [LIST, 'guardrails', 'control-map']
+		readBy: [LIST, 'guardrails', 'control-map', 'story']
 	},
 	'brick.state': { source: 'engine', since: 'WP30', readBy: [LIST, 'planner'] },
 	'guardrail.external': {
@@ -235,28 +279,29 @@ export const SENSOR_DECLARATIONS: Record<EventType, SensorDeclaration> = {
 			'control-map',
 			'explain',
 			'otel',
-			'workflow'
+			'workflow',
+			'story'
 		]
 	},
 	'guardrail.checked': {
 		source: 'engine',
 		since: 'WP1',
-		readBy: [LIST, 'summary', 'boundary', 'control-map', 'explain', 'workflow']
+		readBy: [LIST, 'summary', 'boundary', 'control-map', 'explain', 'workflow', 'story']
 	},
 	'guardrail.tripped': {
 		source: 'engine',
 		since: 'WP1',
-		readBy: [LIST, 'kit-session', 'narration', 'summary', 'explain', 'otel', 'control-map']
+		readBy: [LIST, 'kit-session', 'narration', 'summary', 'explain', 'otel', 'control-map', 'story']
 	},
 	'content.marked': {
 		source: 'engine',
 		since: 'WP124',
-		readBy: [LIST, 'control-map', 'gate']
+		readBy: [LIST, 'control-map', 'gate', 'story']
 	},
 	'approval.requested': {
 		source: 'engine',
 		since: 'WP1',
-		readBy: [LIST, 'narration', 'explain', 'boundary', 'summary', 'guardrails']
+		readBy: [LIST, 'narration', 'explain', 'boundary', 'summary', 'guardrails', 'story']
 	},
 	'approval.resolved': {
 		source: 'engine',
@@ -269,48 +314,55 @@ export const SENSOR_DECLARATIONS: Record<EventType, SensorDeclaration> = {
 			'boundary',
 			'summary',
 			'workflow',
-			'evaluators'
+			'evaluators',
+			'story'
 		]
 	},
 	'elevation.requested': {
 		source: 'engine',
 		since: 'WP142',
-		readBy: [LIST],
-		unfolded:
-			'listed only: the scope rule reads the grant (`elevation.resolved`), not the request; the story (WP161) reads both'
+		readBy: [LIST, 'story']
 	},
-	'elevation.resolved': { source: 'engine', since: 'WP142', readBy: [LIST, 'guardrails'] },
+	'elevation.resolved': { source: 'engine', since: 'WP142', readBy: [LIST, 'guardrails', 'story'] },
 	'disclosure.given': {
 		source: 'engine',
 		since: 'WP145',
-		readBy: [LIST, 'control-map', 'workflow']
+		readBy: [LIST, 'control-map', 'workflow', 'story']
 	},
 	'stage.overdue': {
 		source: 'workflow',
 		since: 'WP146',
-		readBy: [LIST, 'control-map', 'workflow']
+		readBy: [LIST, 'control-map', 'workflow', 'story']
 	},
 	'world.changed': {
 		source: 'engine',
 		since: 'WP1',
 		readBy: [LIST, 'kit-session', 'explain', 'guardrails', 'projection']
 	},
-	'input.delivered': { source: 'engine', since: 'WP13', readBy: [LIST, 'narration', 'projection'] },
-	'provider.retried': { source: 'engine', since: 'WP13', readBy: [LIST, 'control-map'] },
-	error: { source: 'engine', since: 'WP1', readBy: [LIST, 'timeline', 'run-lab'] },
+	'input.delivered': {
+		source: 'engine',
+		since: 'WP13',
+		readBy: [LIST, 'narration', 'projection', 'story']
+	},
+	'provider.retried': { source: 'engine', since: 'WP13', readBy: [LIST, 'control-map', 'story'] },
+	error: { source: 'engine', since: 'WP1', readBy: [LIST, 'timeline', 'run-lab', 'story'] },
 	'group.started': {
 		source: 'group',
 		since: 'WP29',
 		readBy: [LIST, 'run-lab', 'boundary', 'control-map', 'otel']
 	},
 	'group.finished': { source: 'group', since: 'WP29', readBy: [LIST, 'kit-session', 'otel'] },
-	'stage.started': { source: 'workflow', since: 'WP79', readBy: [LIST, 'otel', 'workflow'] },
+	'stage.started': {
+		source: 'workflow',
+		since: 'WP79',
+		readBy: [LIST, 'otel', 'workflow', 'story']
+	},
 	'stage.completed': {
 		source: 'workflow',
 		since: 'WP79',
-		readBy: [LIST, 'control-map', 'otel', 'workflow']
+		readBy: [LIST, 'control-map', 'otel', 'workflow', 'story']
 	},
-	'reader.answered': { source: 'workflow', since: 'WP117', readBy: [LIST, 'workflow'] }
+	'reader.answered': { source: 'workflow', since: 'WP117', readBy: [LIST, 'workflow', 'story'] }
 };
 
 /** One field of an event's payload, or of the envelope every event shares. */
@@ -319,6 +371,7 @@ export interface SensorField {
 	optional: boolean;
 }
 
+/** One event type with its declaration, its payload fields (walked off the schema) and whether any fold reads it. */
 export interface SensorRow extends SensorDeclaration {
 	type: EventType;
 	/** The payload's top-level fields, walked off the schema. */
@@ -368,6 +421,7 @@ export function sensorFindings(rows: readonly SensorRow[]): {
 	};
 }
 
+/** The inventory as a file: every row, optionally what a run store held, and the counts. */
 export interface SensorInventoryExport {
 	schemaVersion: 1;
 	generatedAt: string;
@@ -385,6 +439,7 @@ export interface SensorInventoryExport {
 	};
 }
 
+/** Fold the rows into the exported file — `observed` is the count of each type a run store held, when one was read. */
 export function sensorInventoryExport(
 	rows: readonly SensorRow[],
 	generatedAt: string,
@@ -409,6 +464,7 @@ export function sensorInventoryExport(
 	};
 }
 
+/** The inventory as a markdown table, with a *Seen* column when counts were read. */
 export function renderSensorsMarkdown(file: SensorInventoryExport): string {
 	const { summary, observed } = file;
 	const seenHead = observed ? ' Seen |' : '';

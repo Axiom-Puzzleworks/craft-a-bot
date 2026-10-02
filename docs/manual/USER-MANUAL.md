@@ -2466,11 +2466,41 @@ Phases AR onward (`docs/design-day2/112-REAL-ENOUGH-PLAN.md`) set out to make th
 
 ## 70. The Sensor Inventory
 
-**What it lists.** `/workshop/sensors` has one row for every event type a run can carry — 34 today. A row says which part of the system writes the event (the engine, a group, the workflow runtime), the work package that added it, who reads it, and which payload fields may be absent. `craftabot sensors list` prints the counts and the open findings; `craftabot sensors export [--format markdown]` writes the whole table, and `--store <dir>` adds how many of each type a run store holds. The page's *Seen here* column does the same over the most recent runs stored in this browser.
+**What it lists.** `/workshop/sensors` has one row for every event type a run can carry — 36 today. A row says which part of the system writes the event (the engine, a group, the workflow runtime), the work package that added it, who reads it, and which payload fields may be absent. `craftabot sensors list` prints the counts and the open findings; `craftabot sensors export [--format markdown]` writes the whole table, and `--store <dir>` adds how many of each type a run store holds. The page's *Seen here* column does the same over the most recent runs stored in this browser.
 
 **What it holds.** Two tests keep the table honest. The coverage test runs the seven-desk bank day and a set of small fixtures and fails, naming the event or field, if any event type never fires or any optional field is never seen filled. The reader test opens the source files each reader is named for and fails if one no longer mentions the event it is claimed to read.
 
-**Open findings.** An event that only the Run Lab's trace list reads is a finding, shown with its reason. Two are open: `decision.fault` (a planted fault) and `elevation.requested`; later work packages add the folds that read them.
+**Open findings.** An event that only the Run Lab's trace list reads is a finding, shown with its reason. None is open: the four that were — `decision.fault`, `elevation.requested`, `seat.said` and `reviewer.drew` — are read by the story (§72).
+
+## 71. What a live run records about itself
+
+A scripted bot leaves a trace that says what it did. A live model's answer is also a sample, so the trace now says how it was taken.
+
+- **The call.** `think.started` carries the temperature and the token limit the call went out with, and `think.completed` carries how long the provider took — for a live call, and for a recorded one when its recorder had a clock. A replay of a recording reproduces both, so its trace is the recording's trace.
+- **Replay, said beside the trace.** A run whose answers came from a provider cassette says so on its run record and on its bundle (`craftabot bundle`): which cassette, which model, when recorded. It is never inside the events, because a replay's events must be the recording's. The bundle's digest covers it, so it cannot be added or stripped unnoticed.
+- **The visitor.** When a desk's scripted visitor speaks, the line is on the trace as `seat.said` next to the action it answered: who spoke, what cue fired, which rule chose the words, the pressure and tags, and what happened next. Before this, the line was in the world's state and nowhere on the trace, so a book's customer was invisible.
+- **The person and the planted error.** `reviewer.drew` records the rates in force and the rolls a modelled reviewer drew at a `human` stage, and a planted fault carries the roll that decided it, so a person's slip is told apart from a planted fault by what was drawn.
+- **Values over the cap.** A workflow record keeps a stage's input or output only under 16 KiB, and the digest alone above it. `--keep-values` on `craftabot workflow run` and `craftabot bank run` keeps the whole value under `<out>/values/<digest>.json`, so it can be opened later.
+
+## 72. The story
+
+A trace is the record of a run. A story is the same record read top to bottom by a person who was not there.
+
+**What it tells.** `craftabot story <runId | itemId>` folds a run, or a work item through its journey with every handoff followed, into chapters — a turn of a run, a stage of a journey:
+
+- **What arrived** — the item as it came in. Never its truth.
+- **What the assistant was told** — what it saw, the shape of its prompt and the last message it read, anything said to it from outside.
+- **What it thought and did** — its decision, a planted fault with the roll behind it, a reflex, a wait for the provider; what it did and what the world answered.
+- **What checked it, and what stopped it** — every verdict that was not a plain allow, the hosted guards it asked, the rewriting of its words; the plain allows are counted, not listed.
+- **Who approved, and why** — a person's answer with their name and reason, an override, a scope granted or refused.
+- **Who else spoke** — the scripted visitor's lines with the rule that fired and their pressure, the reader's answers and how sure it was, what a modelled reviewer drew.
+- **How it ended** — the outcome, then, only here, the truth the world recorded, then the evaluators' marks.
+
+For a journey the bot stages tell their own run inside the stage, and each handoff is followed as its own journey. A header says what the run was: the model and its dials, who started it, its budgets, and — when its answers came from a provider cassette — which one (§71).
+
+**Where to read it.** `craftabot story` writes markdown, HTML or JSON (`--format`), to the terminal or a file (`--out`); `--no-follow` stops at the first journey. The Run Lab's *Read as a story* shows the same text in the page, and the Audit Centre's *Download the story* writes the same markdown. `craftabot campaign --stories <n>` tells `n` cells per class — how the run ended, and whether an evaluator failed it — under `<out>/stories/<class>/`; the same campaign samples the same cells.
+
+**What it is not.** A story is a render, never a store: it is folded from the trace on request and nothing it shows is anywhere else. If it cannot show something, a sensor is missing, which is what the Sensor Inventory (§70) is for. Every story is scrubbed of every key the process holds, by substring, since a key inside a sentence is not an exact match.
 
 # Appendices
 

@@ -15,28 +15,27 @@ describe('the Sensor Inventory page helpers', () => {
 			'stage.completed',
 			'reader.answered'
 		]);
-		expect(
-			filterSensors(rows, { reading: 'listed' })
-				.map((row) => row.type)
-				.sort()
-		).toEqual(['decision.fault', 'elevation.requested']);
-		expect(filterSensors(rows, { reading: 'folded' })).toHaveLength(rows.length - 2);
+		// The story reads what the trace list alone once did: nothing is left only listed.
+		expect(filterSensors(rows, { reading: 'listed' })).toEqual([]);
+		expect(filterSensors(rows, { reading: 'folded' })).toHaveLength(rows.length);
+		expect(filterSensors(rows, { q: 'The story' }).map((row) => row.type)).toContain('seat.said');
 		expect(filterSensors(rows, { q: 'OpenTelemetry' }).length).toBeGreaterThan(3);
 		expect(filterSensors(rows, { q: 'no such reader' })).toEqual([]);
 	});
 
 	it('names the sources in the order they appear', () => {
-		expect(sourcesOf(rows)).toEqual(['engine', 'workflow', 'group']);
+		expect(sourcesOf(rows)).toEqual(['engine', 'seat', 'reviewer', 'workflow', 'group']);
 	});
 
-	it('words a row, and carries the reason for an open finding', () => {
+	it('words a row, and says why when nothing folds it', () => {
+		// Nothing is open now: the story reads every event the trace list alone once held.
+		expect(openFindings(rows)).toEqual([]);
 		const fault = rows.find((row) => row.type === 'decision.fault')!;
-		expect(sensorWords(fault).note).toContain('WP161');
-		expect(
-			openFindings(rows)
-				.map((row) => row.type)
-				.sort()
-		).toEqual(['decision.fault', 'elevation.requested']);
+		expect(sensorWords(fault).readers).toContain('The story');
+		expect(sensorWords(fault).note).toBe('');
+		const reasoned = { ...fault, folded: false, unfolded: 'a stated reason' };
+		expect(sensorWords(reasoned).note).toBe('a stated reason');
+		expect(openFindings([reasoned]).map((row) => row.type)).toEqual(['decision.fault']);
 		const started = rows.find((row) => row.type === 'run.started')!;
 		expect(sensorWords(started).optional).toContain('principal');
 		expect(sensorWords(rows.find((row) => row.type === 'tick.started')!).optional).toBe('none');

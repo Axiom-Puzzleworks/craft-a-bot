@@ -50,8 +50,10 @@ export {
 	resolveReviewer,
 	overrideReason,
 	reviewerAnswer,
+	reviewerAnswerDrawn,
 	reviewerRandom,
-	type ResolvedReviewer
+	type ResolvedReviewer,
+	type ReviewerDraw
 } from './reviewer.js';
 export {
 	STEER_THRESHOLD,

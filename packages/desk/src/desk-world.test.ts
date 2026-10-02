@@ -317,6 +317,38 @@ describe('createDeskWorld: the scripted counterpart (WP55, `46-…` §4.2)', () 
 		expect(world.observe(['conversation']).text).not.toContain('A. Person.');
 	});
 
+	it('carries each line the visitor said on the action result, as a seat line (WP160)', () => {
+		const world = counterpartTestDesk.create('one-visitor');
+		const named = say(world, 'What is your name?');
+		expect(named.seatLines).toEqual([
+			expect.objectContaining({
+				persona: 'A. Person',
+				cue: { kind: 'said' },
+				text: 'A. Person.',
+				then: 'continue'
+			})
+		]);
+		// A fallback has no rule; a rule's pressure and tags ride along.
+		const fallback = say(world, 'Lovely weather.');
+		expect(fallback.seatLines?.[0]).not.toHaveProperty('ruleId');
+		expect(fallback.seatLines?.[0]?.text).toBe('Sorry, could you say that again?');
+		say(world, 'Nearly there.');
+		const pushed = say(world, 'Nearly there.').seatLines?.[0];
+		expect(pushed).toMatchObject({ pressure: 0.5, tags: ['hurry'] });
+		// An action cue is named by the action, and an ending says so.
+		const fresh = counterpartTestDesk.create('one-visitor');
+		const signed = fresh.perform({ name: 'sign-in', arguments: { visitor: 'A. Person' } });
+		expect(signed.seatLines?.at(-1)).toMatchObject({
+			cue: { kind: 'acted', detail: expect.stringContaining('sign-in') },
+			then: 'end-conversation'
+		});
+		// Nothing said, nothing written: a desk with no visitor, and an ended conversation.
+		expect(
+			testDesk.create('one-visitor').perform({ name: 'say', arguments: { text: 'Hi' } })
+		).not.toHaveProperty('seatLines');
+		expect(say(fresh, 'Anything else?')).not.toHaveProperty('seatLines');
+	});
+
 	it('an action cue can end the conversation, after which the visitor says nothing', () => {
 		const world = counterpartTestDesk.create('one-visitor');
 		world.perform({ name: 'sign-in', arguments: { visitor: 'A. Person' } });
