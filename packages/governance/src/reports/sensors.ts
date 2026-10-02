@@ -61,7 +61,11 @@ export const SENSOR_READERS = {
 	'kit-session': {
 		label: 'Kit live session state',
 		depth: 'folded',
-		files: ['apps/workbench/src/lib/state/session.svelte.ts', 'apps/workbench/src/lib/fx-cue.ts']
+		files: [
+			'apps/workbench/src/lib/state/session.svelte.ts',
+			'apps/workbench/src/lib/state/session-group.svelte.ts',
+			'apps/workbench/src/lib/fx-cue.ts'
+		]
 	},
 	planner: {
 		label: 'Planner checklist',
@@ -177,7 +181,7 @@ export const SENSOR_DECLARATIONS: Record<EventType, SensorDeclaration> = {
 		since: 'WP1',
 		readBy: [LIST, 'kit-session', 'narration', 'evaluators', 'summary', 'projection']
 	},
-	'tick.started': { source: 'engine', since: 'WP1', readBy: [LIST, 'evaluators', 'projection'] },
+	'tick.started': { source: 'engine', since: 'WP1', readBy: [LIST, 'evaluators'] },
 	'tick.completed': { source: 'engine', since: 'WP1', readBy: [LIST, 'projection'] },
 	sense: { source: 'engine', since: 'WP1', readBy: [LIST, 'narration', 'timeline', 'run-lab'] },
 	'prompt.composed': {
@@ -186,15 +190,7 @@ export const SENSOR_DECLARATIONS: Record<EventType, SensorDeclaration> = {
 		readBy: [LIST, 'run-lab', 'explain', 'control-map', 'gate']
 	},
 	'think.started': { source: 'engine', since: 'WP1', readBy: [LIST, 'kit-session', 'projection'] },
-	'think.token': {
-		source: 'engine',
-		since: 'WP1',
-		readBy: [LIST, 'projection'],
-		reach: {
-			kind: 'browser-only',
-			reason: 'a streamed delta; no provider the harness runs streams'
-		}
-	},
+	'think.token': { source: 'engine', since: 'WP1', readBy: [LIST, 'projection'] },
 	'think.completed': {
 		source: 'engine',
 		since: 'WP1',
@@ -338,8 +334,11 @@ export const ENVELOPE_OPTIONAL: readonly string[] = ['agentId', 'parentRunId'];
 export function payloadFields(type: EventType): SensorField[] {
 	const option = engineEventSchema.options.find((each) => each.shape.type.value === type);
 	if (!option) return [];
-	const shape = option.shape.payload.shape as Record<string, { isOptional(): boolean }>;
-	return Object.entries(shape).map(([name, field]) => ({ name, optional: field.isOptional() }));
+	const shape = option.shape.payload.shape as Record<string, { _zod: { def: { type: string } } }>;
+	return Object.entries(shape).map(([name, field]) => ({
+		name,
+		optional: field._zod.def.type === 'optional'
+	}));
 }
 
 function isFolded(declaration: SensorDeclaration): boolean {

@@ -57,7 +57,7 @@ describe('the Sensor Inventory', () => {
 		const file = sensorInventoryExport(sensorInventory(), '2026-10-02T00:00:00.000Z');
 		expect(file.summary.types).toBe(EVENT_TYPES.length);
 		expect(file.summary.folded + file.summary.listedOnly).toBe(EVENT_TYPES.length);
-		expect(file.summary.browserOnly).toBe(1);
+		expect(file.summary.browserOnly).toBe(0);
 		const text = renderSensorsMarkdown(file);
 		expect(text).toContain('# Sensor Inventory');
 		expect(text).toContain('| `think.token` |');
