@@ -1,6 +1,6 @@
 # The reference experiments' results
 
-Each folder here holds one reference experiment's committed result (`80-CONTROL-EFFECTIVENESS-REGISTER.md` §4; `64-TARGET-DESIGN-V5.md` §6.8.3): the design as it ran (`<id>.experiment.json`, its campaign ids filled), the result with its digest (`<id>.experiment-result.json`, `docs/schemas/experiment-result.schema.json`) and the same as markdown (`<id>.experiment-result.md`). `timings.md` records the machine and the wall time each took at full size. CI runs every design again at `--size 200` and `scripts/experiment-shape.mjs` holds the reduced result to the committed one's shape — the same metrics, factors, levels and tiers, a verdict from the same four — never its values.
+Each folder here holds one reference experiment's committed result (`80-CONTROL-EFFECTIVENESS-REGISTER.md` §4; `64-TARGET-DESIGN-V5.md` §6.8.3): the design as it ran (`<id>.experiment.json`, its campaign ids filled), the result with its digest (`<id>.experiment-result.json`, `docs/schemas/experiment-result.schema.json`) and the same as markdown (`<id>.experiment-result.md`). `timings.md` records the machine and the wall time each took at full size. CI runs every design over a book again at `--size 200`, and `controls` whole, and `scripts/experiment-shape.mjs` holds the reduced result to the committed one's shape — the same metrics, factors, levels and tiers, a verdict from the same four — never its values.
 
 ## What these are evidence of
 
@@ -26,6 +26,17 @@ Every design now runs each factor under two tiers — its scripted one and the f
 ## The eighth: the servicing readers (WP119)
 
 `servicing-readers/` is the Jev experiment's held-out design, run on the `fs-servicing/corpus/requests-v3` corpus through the whole servicing journey. It compares the bank's regex with Jev under the two question sets and behind two gates. Unlike the seven, it measures a *reader* against labels a second annotator agreed with, not a control on the bank's book, and it needs the optional typesafe pack (`--config`). Its README says what it shows and where the lab record is.
+
+## The 2026-10-02 re-run and the two added designs (WP150)
+
+Every design was re-run after Phases AK–AM. **Every outcome, interval and verdict of the eight is unchanged**; tokens per case moved by under half a percent, because the prompts now carry the desks' disclosures and the new context. `human-oversight` gained a sixth level, `bot-everywhere-ceilings-enforced` — Level 5 with WP139's ceilings enforced — which reads as rules-only does on breaches.
+
+- **`ceilings/`** measures that level against Level 5 itself: the ceiling-breach rate falls from 62.6% to 0 on 783 applications, under both tiers, and agreement with the rules is unchanged. The price is a person's touch on each decision held above its ceiling, in each effect's cost.
+- **`controls/`** runs each agent-security component built in Phases AL and AM against no guard, over the four injection scenarios, under the scripted optimal bot and the scripted adversary; each level names the generic control-map row it tests and the metric it is judged on first, written before the run. **The privilege scope** keeps the adversary's storm alert unsent in 100% of runs against 75% (+16 to +36 points); **the cost cap** stops 75% of the adversary's runs and none of the optimal bot's, though the leaks it follows have already happened by then. **No progress, memory provenance, peer authentication, the secret scan and argument validation read untestable**: no shipped scenario carries the attack each was built for — the party-line spoof arrives on Hearing as words from no one, not as a Radio message between seats; no plan writes untrusted lines to the notebook, sends a credential's shape or a malformed argument; the adversary always moves. A scenario per component is what would test them. Prompt integrity (whose validated digest is a build's own) and vulnerability detection (which annotates, and is a reader measured on the servicing corpora) are not in the design.
+
+- **`disputes-stack/`, `collections-stack/`, `onboarding-stack/`, `servicing-stack/` and `complaints-stack/`** run each Phase AA desk's policy-card stack against no guard on its own book at Level 5, so every stack the bank ships has a verdict. There is no error model for these desks, so the scripted bot errs nowhere the stack could catch, and the four read **untestable**, as their hypotheses said they would. **The complaints desk is the exception, and the finding**: the scripted bot names the register's root cause in 69% of complaints and keeps redress within bounds in 68%. The stack leaves both unchanged, since no card checks a root cause or a redress amount against the register. The hypothesis expected nothing to be wrong; that was mistaken.
+
+The register reads these results with no store (`craftabot controls --evidence`), so the inventory's Effect column fills on a fresh install.
 
 ## Reproducing one
 

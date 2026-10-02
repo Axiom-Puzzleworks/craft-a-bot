@@ -1,10 +1,10 @@
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, readdir, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { main } from '../cli.js';
 import { defaultPacks } from '../config.js';
-import { controlsFor } from './controls.js';
+import { committedResults, controlsFor } from './controls.js';
 
 /**
  * `craftabot controls list | export` (WP134, `110-CONTROL-SUITE-PLAN.md`
@@ -12,6 +12,7 @@ import { controlsFor } from './controls.js';
  * per kind, or the whole table as JSON or markdown.
  */
 const EXPERIMENTS = resolve(import.meta.dirname, '../../../../experiments');
+const EVIDENCE = resolve(import.meta.dirname, '../../../../docs/evidence');
 let dir: string;
 beforeAll(async () => {
 	dir = await mkdtemp(join(tmpdir(), 'cab-controls-'));
@@ -34,6 +35,26 @@ describe('craftabot controls', () => {
 		expect(card.fitted.where.some((where) => where.startsWith('experiment '))).toBe(true);
 		// No store: nothing could have fired.
 		expect(card.exercised.state).toBe('no-runs');
+	});
+
+	it('fills the Effect column from the committed reference results, with no store (WP150)', async () => {
+		const results = await committedResults(EVIDENCE);
+		const designs = (await readdir(EXPERIMENTS)).filter((name) => name.endsWith('.json'));
+		// Every reference design has its committed result, each held to its digest on the way in.
+		expect(results.map((result) => `${result.experimentId}.json`).sort()).toEqual(designs.sort());
+		const file = await controlsFor({
+			packs: defaultPacks(),
+			experimentsDir: EXPERIMENTS,
+			evidenceDir: EVIDENCE,
+			generatedAt: '2026-10-02T00:00:00.000Z'
+		});
+		const effect = (ref: string) => file.rows.find((row) => row.ref === ref)?.effect;
+		// The controls design: the privilege scope keeps the alert unsent; the cost cap stops the run.
+		expect(effect('component:governance/privilege-scopes')?.state).toBe('evidenced');
+		expect(effect('component:governance/cost-cap')?.state).toBe('evidenced');
+		// A component whose attack no shipped scenario carries reads untestable, in the open.
+		expect(effect('component:governance/secret-scan')?.state).toBe('untestable');
+		expect(file.summary.evidenced).toBeGreaterThan(0);
 	});
 
 	it('lists one line per kind, and exports the table as markdown and JSON', async () => {

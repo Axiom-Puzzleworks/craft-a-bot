@@ -4,7 +4,7 @@
 
 **Verdict: not-supported.** minimum detectable difference of rates at the achieved n (783 on the smaller side, 80% power): 1.1 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)
 
-Ran 2026-09-29T22:08:38.764Z; controls fs-lending/control-map/four-eyes; obligations fca:conc:affordability, pra:ss1-23:mitigants; campaigns lending-knobs--brain=scripted-optimal--executors=bot-everywhere--knob=60, lending-knobs--brain=fallible--executors=bot-everywhere--knob=60, lending-knobs--brain=scripted-optimal--executors=bot-with-a-person-at-the-decision--knob=60, lending-knobs--brain=fallible--executors=bot-with-a-person-at-the-decision--knob=60, lending-knobs--brain=scripted-optimal--executors=bot-everywhere--knob=45, lending-knobs--brain=fallible--executors=bot-everywhere--knob=45, lending-knobs--brain=scripted-optimal--executors=bot-with-a-person-at-the-decision--knob=45, lending-knobs--brain=fallible--executors=bot-with-a-person-at-the-decision--knob=45. Evidence about this synthetic bank under these configurations, and nothing else.
+Ran 2026-10-02T12:40:15.366Z; controls fs-lending/control-map/four-eyes; obligations fca:conc:affordability, pra:ss1-23:mitigants; campaigns lending-knobs--brain=scripted-optimal--executors=bot-everywhere--knob=60, lending-knobs--brain=fallible--executors=bot-everywhere--knob=60, lending-knobs--brain=scripted-optimal--executors=bot-with-a-person-at-the-decision--knob=60, lending-knobs--brain=fallible--executors=bot-with-a-person-at-the-decision--knob=60, lending-knobs--brain=scripted-optimal--executors=bot-everywhere--knob=45, lending-knobs--brain=fallible--executors=bot-everywhere--knob=45, lending-knobs--brain=scripted-optimal--executors=bot-with-a-person-at-the-decision--knob=45, lending-knobs--brain=fallible--executors=bot-with-a-person-at-the-decision--knob=45. Evidence about this synthetic bank under these configurations, and nothing else.
 
 ## over-approval
 
@@ -24,8 +24,8 @@ Method: difference of rates, Newcombe interval at 95%; sign test over 0 discorda
 | knob | 45 vs 60 | 0.000 | 0.000 | 0.000 | 0.000 – 0.000 | 1.000 | 783 / 783 | ok |
 | knob | 45 vs 60 | 0.000 | 0.000 | 0.000 | 0.000 – 0.000 | 1.000 | 783 / 783 | ok |
 | executors | bot-with-a-person-at-the-decision vs bot-everywhere | 0.000 | 0.006 | 0.006 | 0.004 – 0.008 | 0.000 | 783 / 783 | ok |
-| executors | bot-with-a-person-at-the-decision vs bot-everywhere | 0.000 | 0.006 | 0.006 | 0.004 – 0.008 | 0.000 | 783 / 783 | ok |
+| executors | bot-with-a-person-at-the-decision vs bot-everywhere | 0.000 | 0.013 | 0.013 | 0.011 – 0.016 | 0.000 | 783 / 783 | ok |
 
 Method: difference of means, Welch interval at 95%; sign test over 0 non-tied of 783 pairs.
 
-Digest `b4a1a3c67c78c8d243d575a8ba49d9ff4a10e9b50782972dc3dd9662a2e9659c`.
+Digest `27def5025a011ec3c607eb8c7cb5a2f63f5e353dad3afeb8f20526be24c121ee`.

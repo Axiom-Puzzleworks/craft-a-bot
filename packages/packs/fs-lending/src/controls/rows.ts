@@ -92,6 +92,20 @@ export const LENDING_CONTROL_ROWS: readonly ControlMapRow[] = [
 		],
 		status: 'unreviewed',
 		tags: ['pra:ss1-23:governance']
+	},
+	{
+		// WP150 (`110-…` §10): WP139's ceilings as a mode, the human-oversight design's sixth level.
+		framework: 'PRA SS1/23 principle 5',
+		ref: 'ceilings-enforced',
+		title: 'A decision above its ceiling waits for a person',
+		obligation:
+			'Where the decision-rights table says a kind of decision is a person’s, a bot’s decision of that kind is held where it is recorded until a person confirms it.',
+		evidence: [
+			{ kind: 'trace-guarantee', id: 'approval.requested' },
+			{ kind: 'trace-guarantee', id: 'approval.resolved' }
+		],
+		status: 'unreviewed',
+		tags: ['pra:ss1-23:mitigants', 'pra:ss1-23:governance']
 	}
 ];
 

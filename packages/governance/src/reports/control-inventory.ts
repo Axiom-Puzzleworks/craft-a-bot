@@ -148,6 +148,8 @@ export interface ControlInventoryRow {
 		controlIds: string[];
 		delta?: number;
 		metricId?: string;
+		/** WP150: the stack whose verdict this is, when the control's own rows have none — measured as part of that stack, not alone. */
+		via?: ControlRef;
 	};
 	reviewed: {
 		state: 'accepted' | 'amended' | 'rejected' | 'unread' | 'not-applicable';
@@ -199,7 +201,16 @@ const GUARDRAIL_COMPONENT: Readonly<Record<string, string>> = {
 	'safety/token-budget': 'governance/token-budget',
 	'safety/action-blocklist': 'governance/action-blocklist',
 	'safety/no-repetition': 'governance/no-repetition',
-	'safety/approval-mode': 'governance/approval-mode'
+	'safety/approval-mode': 'governance/approval-mode',
+	// WP150: the agent-security components the generic map cites by the guardrail id each stamps.
+	'safety/no-progress': 'governance/no-progress',
+	'governance/memory-provenance': 'governance/memory-provenance',
+	'governance/privilege-scopes': 'governance/privilege-scopes',
+	'governance/peer-auth': 'governance/peer-auth',
+	'governance/secret-scan': 'governance/secret-scan',
+	'governance/tool-argument-validation': 'governance/tool-argument-validation',
+	'governance/prompt-integrity': 'governance/prompt-integrity',
+	'governance/cost-cap': 'governance/cost-cap'
 };
 
 const GUARDRAIL_NAMES: Readonly<Record<string, [string, string]>> = {
@@ -797,6 +808,24 @@ export function controlInventory(input: ControlInventoryInput): ControlInventory
 				}
 			: { state: 'untested', controlIds: [] };
 	}
+	// WP150: an instance a stack carries, untested on its own rows, reads the best verdict of a stack that carries it, marked as that stack's.
+	for (const row of rows.values()) {
+		if (row.effect.state !== 'untested') continue;
+		const carriers = row.fitted.where
+			.filter((where) => where.startsWith('stack '))
+			.map((where) => rows.get(`stack:${where.slice('stack '.length).split(' ')[0]}`))
+			.filter(
+				(stack): stack is ControlInventoryRow =>
+					stack !== undefined && stack.effect.state !== 'untested'
+			)
+			.sort(
+				(a, b) =>
+					EFFECT_RANK[a.effect.state as keyof typeof EFFECT_RANK] -
+					EFFECT_RANK[b.effect.state as keyof typeof EFFECT_RANK]
+			);
+		const carrier = carriers[0];
+		if (carrier) row.effect = { ...carrier.effect, via: carrier.ref };
+	}
 
 	// ------------------------------------------------------------ reviewed
 	const latest = latestReviews(input.reviews ?? []);
@@ -933,12 +962,13 @@ export function controlFacetWords(row: ControlInventoryRow): Record<InventoryFac
 			: row.measured.state === 'unmeasured'
 				? 'unmeasured'
 				: '—';
-	const effect =
+	const verdict =
 		row.effect.state === 'not-applicable'
 			? '—'
 			: row.effect.delta !== undefined
 				? `${row.effect.state} ${signedDelta(row.effect.delta)}${row.effect.metricId ? ` (${row.effect.metricId})` : ''}`
 				: row.effect.state;
+	const effect = row.effect.via ? `${verdict}, via ${row.effect.via}` : verdict;
 	const reviewed =
 		row.reviewed.state === 'not-applicable'
 			? '—'

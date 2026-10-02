@@ -123,11 +123,12 @@ The readings are the `review` records, and the `control-review` alias, in the co
 
 `craftabot benchmark run <benchmark.json> [--cassettes <dir>] [--record [--only <serviceId,…>]] [--out <dir>] [--store <dir>]` runs the adversarial benchmark (`106-BENCHMARK.md` §6). Each guard service answers from its cassette under `benchmarks/cassettes` when there is one, else from its offline stand-in, which measures nothing. `--record` calls the services live, each with its credential from the environment, and writes their cassettes. `--only` limits the live calls to the services named, so a keyless local service (Llama Guard through Ollama) can be recorded without calling every other keyless one (WP140).
 
-`craftabot controls list | export [--format json|markdown] [--out <file>] [--store <dir>] [--experiments <dir>]` folds the Control Inventory (`110-CONTROL-SUITE-PLAN.md` §4), the table `/workshop/controls` renders. It has one row per control the installed packs ship, among them the components, cards, stacks, readers, evaluators, the declared mechanisms, gate kinds, knobs and ceilings. Each row carries eight facets:
+`craftabot controls list | export [--format json|markdown] [--out <file>] [--store <dir>] [--experiments <dir>] [--evidence <dir>]` folds the Control Inventory (`110-CONTROL-SUITE-PLAN.md` §4), the table `/workshop/controls` renders. It has one row per control the installed packs ship, among them the components, cards, stacks, readers, evaluators, the declared mechanisms, gate kinds, knobs and ceilings. Each row carries eight facets:
 
 - the catalogue entries that name it;
 - where it is fitted: the shipped campaigns and the experiment files under `--experiments` (`experiments` by default);
-- whether it fired, its benchmark and its register effect, from a run store with `--store`;
+- whether it fired and its benchmark, from a run store with `--store`;
+- its register effect, from the committed reference results under `--evidence` (`docs/evidence` by default) and any in the store (WP150);
 - its readings, from `--content` and `--store`;
 - where it is turned.
 

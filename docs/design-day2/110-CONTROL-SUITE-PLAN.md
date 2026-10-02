@@ -686,3 +686,93 @@ _(Recorded here as each work package and phase closes.)_
 > **Deferred to WP150:** the human-oversight experiment's re-run with an enforced-ceilings level and the `override-reason` gate, and the register regenerated.
 >
 > **Phase AM is closed. Next: Phase AN, WP150.**
+
+> **WP150 — done 2026-10-02**, on `phase-an` (Phase AM merged as PR #64).
+>
+> **Rows.** The generic map gains eight rows, each citing only its component, so an experiment's effect lands on that component alone:
+> - `asi01-integrity` — prompt integrity;
+> - `asi02-arguments` — argument validation;
+> - `asi03` — privilege scopes;
+> - `asi06-provenance` — memory provenance;
+> - `asi07` — peer authentication;
+> - `asi10-no-progress` — no progress;
+> - `asi10-cost` — the cost cap;
+> - `art-15-secrets` — the secret scan.
+>
+> The components' guardrail ids join `GOVERNANCE_GUARDRAIL_IDS`, and the inventory reads each as its component. The lending map gains `ceilings-enforced`.
+>
+> **The experiment file** (`72-…`'s WP150 note) gains three additions, each refused when it names a level or metric the design lacks:
+> - a factor's per-level `controls`, so one design credits each control with its own effect;
+> - a factor's per-level `primary` metric, pre-registered in the file;
+> - the `assertion-pass-rate` metric over the template's assertion cards.
+>
+> The register reads a control *untestable* when every effect on its primary metric sat at a bound (`103-…`'s WP150 note).
+>
+> **Two designs added; the human-oversight design re-run.**
+> - **`controls`** runs the seven agent-security components against no guard over the injection-baseline scenarios, under the optimal and adversary tiers.
+> - **`ceilings`** runs Level 5 against itself with its ceilings enforced (the configuration `bot-everywhere-ceilings-enforced`, beside the reference five so the book campaign's committed baseline stands).
+> - **`human-oversight`** carries that configuration as its sixth level.
+>
+> **Five more designs, one per Phase AA desk** (`disputes-stack`, `collections-stack`, `onboarding-stack`, `servicing-stack`, `complaints-stack`), each running the desk's policy-card stack against no guard on its book at Level 5. Two seams were found on the way:
+> - the harness never handed the installed stacks to the analysis, so a stack level's claims were dropped (`experimentRun`/`experimentAnalyse` now pass them);
+> - `stackControlsFor` matched a guard level's id against stack ids, missing a guard whose `stack` field names one. It now resolves through the template's guards.
+>
+> No existing design names a stack, so neither seam changed a committed result.
+>
+> **The register's evidence.** `craftabot controls` reads the committed results under `docs/evidence/` (`--evidence`), so the Effect column fills with no store. An instance a stack carries, untested on its own rows, reads the best verdict of a stack that carries it, marked `via` that stack. `docs/evidence/` is regenerated: fifteen designs at full size. The eight that ran before give the same outcomes, intervals and verdicts; tokens per case moved by under half a percent, since the prompts carry Phase AM's disclosures.
+>
+> **Also:**
+> - CI passes `--size` only to a design over a book;
+> - the inventory has its own roundel (`icon-inventory`, twenty-seven);
+> - the manual gains §67 and §68, and the PDF is rebuilt. It had not been rebuilt since Part J: its build read a stale copy of the manual and counted 30 figures.
+
+> **Phase AN exit review — 2026-10-02.** WP150 is done, on `phase-an`. The DoD, clause by clause:
+> - **Every new control in at least one experiment: met for the components, with two named exceptions.** The `controls` design runs the seven agent-security components. The privilege scope and the cost cap are *evidenced*; the other five are *untestable*, since no shipped scenario carries their attacks. `ceilings` measures the enforced ceilings: breaches 62.6% → 0 on 783 applications. The exceptions:
+>   - prompt integrity, whose digest is one build's own;
+>   - vulnerability detection, which annotates and is a reader measured on the servicing corpora.
+>
+>   Phase AM's evaluators and gates (disclosures, appeals, deadlines, override reasons) are measured by the campaigns that carry them, not by an experiment.
+> - **`docs/evidence/` regenerated:** met, fifteen designs, the shape check green over all of them.
+> - **The Effect column populated:** met from the committed results with no store. 14 evidenced; every stack-carried instance outside the Gate has a verdict.
+> - **The second edition's entries and every new row on the reading desk:** met. 304 readings queue:
+>
+>   | Kind | Readings |
+>   |---|---|
+>   | Catalogue entries | 69 |
+>   | Control-map rows | 83 |
+>   | Calibration rows | 84 |
+>   | Decision rights | 25 |
+>   | Blueprint items | 36 |
+>   | Error models | 3 |
+>   | Screening lists | 2 |
+>   | Reviewer model | 1 |
+>   | Knob change | 1 |
+>
+>   That is what Andrew has to read, stated (§8 item 8).
+> - **The catalogue's and the inventory's roundels:** met. The catalogue's stands; the inventory's is new, twenty-seven in all.
+> - **Part J:** met. §66 updated, §67–§68 added, and the PDF rebuilt (81 pages).
+>
+> **§8, the plan's definition of done, item by item:**
+>
+> | Item | Status | Evidence |
+> |---|---|---|
+> | 1 | met | WP134 |
+> | 2 | met | the orphan rule in CI, empty |
+> | 3 | met | 69 entries, none bespoke |
+> | 4 | met | WP137–WP139 |
+> | 5 | met for the local half | the hosted checkpoints wait on keys; WP140, WP144 |
+> | 6 | met | Phase AM's table |
+> | 7 | **met but for the Gate** | below |
+> | 8 | met | the readings above |
+>
+> On item 7: every desk stack has a verdict (13 untestable, 4 inconclusive, 4 evidenced), and so does every instance a desk stack carries. The Gate's five presets and their six instances are untested: no design runs a Gate preset. The Gate's identity test proves they compile to the session's chain, not what they change.
+>
+> **Findings, for Andrew's reading.**
+> - **Five of the seven agent-security components cannot be tested on the shipped scenarios.** A scenario per attack would test them: a forged Radio message between two seats, an untrusted notebook line, a credential in a reply, a malformed argument, a bot that stalls. None is built.
+> - **The party-line spoof is not an inter-agent message.** It arrives on Hearing as words from no one, so peer authentication, which checks Radio, has nothing to check. The scenario teaches the right lesson and does not exercise the control.
+> - **The cost cap stops the adversary after the leak.** It bounds spend, not harm: the code is said before the cap is reached.
+> - **The complaints desk's scripted bot errs.** It names the register's root cause in 69% of complaints and keeps redress within bounds in 68%, and the desk's stack catches neither. A card that checks the root cause or the redress against the register would.
+> - **The register rule changed.** A control reads *untestable* when its primary metric sat at a bound (`103-…`'s WP150 note). A design now pre-registers each level's primary metric.
+> - **The `override-reason` gate is not in an experiment.** Experiments carry no gates. The reviewer model gives no reasons, so the gate would fail on any campaign over it (Phase AM's finding).
+>
+> **Phase AN is closed, and with it `110-…`'s forward plan: WP132–WP150 are done, but for the hosted checkpoints, which wait on keys.**

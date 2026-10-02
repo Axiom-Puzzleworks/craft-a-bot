@@ -1,0 +1,506 @@
+{
+	"schemaVersion": 1,
+	"id": "onboarding-stack@2026-10-02T12:47:12.788Z",
+	"experimentId": "onboarding-stack",
+	"title": "The policy-card stack on the onboarding book",
+	"hypothesis": "The onboarding desk’s policy-card stack (fs-onboarding/stack/policy-cards) changes nothing a scripted bot at Level 5 does wrong on the onboarding book, because the scripted bot does nothing wrong; every effect is expected to read untestable until an error model is built for this desk.",
+	"controls": [],
+	"obligations": [],
+	"ranAt": "2026-10-02T12:47:12.788Z",
+	"workflowIds": [
+		"fs-onboarding/onboarding"
+	],
+	"campaignIds": [
+		"onboarding-stack--guard=none",
+		"onboarding-stack--guard=policy-cards"
+	],
+	"effects": [
+		{
+			"experimentId": "onboarding-stack",
+			"metricId": "decision-matches-rules",
+			"controlIds": [
+				"fs-onboarding/control-map/screening-before-open",
+				"fs-onboarding/control-map/tipping-off",
+				"fs-onboarding/control-map/welcome-and-four-eyes"
+			],
+			"factor": {
+				"axis": "guard",
+				"baseline": "none",
+				"treatment": "policy-cards"
+			},
+			"baseline": {
+				"value": 1,
+				"n": 16,
+				"interval": [
+					0.8063923192138267,
+					1
+				]
+			},
+			"treatment": {
+				"value": 1,
+				"n": 16,
+				"interval": [
+					0.8063923192138267,
+					1
+				]
+			},
+			"delta": 0,
+			"interval": [
+				-0.1936076807861733,
+				0.1936076807861733
+			],
+			"p": 1,
+			"method": "difference of rates, Newcombe interval at 95%; sign test over 0 discordant of 16 pairs",
+			"underpowered": true,
+			"tier": "scripted-optimal",
+			"untestable": true,
+			"slices": [
+				{
+					"where": {
+						"ageBand": "18-24"
+					},
+					"delta": 0,
+					"interval": [
+						-0.7934506858870165,
+						0.7934506858870165
+					],
+					"n": {
+						"baseline": 1,
+						"treatment": 1
+					}
+				},
+				{
+					"where": {
+						"ageBand": "25-34"
+					},
+					"delta": 0,
+					"interval": [
+						-0.6576197728563926,
+						0.6576197728563926
+					],
+					"n": {
+						"baseline": 2,
+						"treatment": 2
+					}
+				},
+				{
+					"where": {
+						"ageBand": "35-44"
+					},
+					"delta": 0,
+					"interval": [
+						-0.4898908368575372,
+						0.4898908368575372
+					],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"ageBand": "45-54"
+					},
+					"delta": 0,
+					"interval": [
+						-0.4898908368575372,
+						0.4898908368575372
+					],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"ageBand": "65-74"
+					},
+					"delta": 0,
+					"interval": [
+						-0.7934506858870165,
+						0.7934506858870165
+					],
+					"n": {
+						"baseline": 1,
+						"treatment": 1
+					}
+				},
+				{
+					"where": {
+						"ageBand": "75+"
+					},
+					"delta": 0,
+					"interval": [
+						-0.4898908368575372,
+						0.4898908368575372
+					],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "15-25k"
+					},
+					"delta": 0,
+					"interval": [
+						-0.4898908368575372,
+						0.4898908368575372
+					],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "25-40k"
+					},
+					"delta": 0,
+					"interval": [
+						-0.7934506858870165,
+						0.7934506858870165
+					],
+					"n": {
+						"baseline": 1,
+						"treatment": 1
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "40-60k"
+					},
+					"delta": 0,
+					"interval": [
+						-0.561497032152052,
+						0.561497032152052
+					],
+					"n": {
+						"baseline": 3,
+						"treatment": 3
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "under-15k"
+					},
+					"delta": 0,
+					"interval": [
+						-0.32440756523726955,
+						0.32440756523726955
+					],
+					"n": {
+						"baseline": 8,
+						"treatment": 8
+					}
+				}
+			],
+			"cost": {
+				"tokensPerCase": {
+					"baseline": 1148.875,
+					"treatment": 1148.875
+				},
+				"approvalsPerCase": {
+					"baseline": 0,
+					"treatment": 0.6875
+				},
+				"escalationRate": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"touchesPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"breachRate": {
+					"baseline": 1,
+					"treatment": 1
+				}
+			},
+			"runIds": [
+				"00000000-0000-4000-8000-00000000004b",
+				"00000000-0000-4000-8000-0000000186eb",
+				"00000000-0000-4000-8000-000000030d8b",
+				"00000000-0000-4000-8000-00000004942b",
+				"00000000-0000-4000-8000-000000061aa8",
+				"00000000-0000-4000-8000-00000007a16b",
+				"00000000-0000-4000-8000-00000009280b",
+				"00000000-0000-4000-8000-0000000aae76",
+				"00000000-0000-4000-8000-0000000c354b",
+				"00000000-0000-4000-8000-0000000dbbc8",
+				"00000000-0000-4000-8000-0000000f428b",
+				"00000000-0000-4000-8000-00000010c92b",
+				"00000000-0000-4000-8000-000000124fcb",
+				"00000000-0000-4000-8000-00000013d66b",
+				"00000000-0000-4000-8000-000000155ce8",
+				"00000000-0000-4000-8000-00000016e376",
+				"00000000-0000-4000-8000-000000000065",
+				"00000000-0000-4000-8000-000000018705",
+				"00000000-0000-4000-8000-000000030da5",
+				"00000000-0000-4000-8000-000000049445",
+				"00000000-0000-4000-8000-000000061ab4",
+				"00000000-0000-4000-8000-00000007a185",
+				"00000000-0000-4000-8000-000000092825",
+				"00000000-0000-4000-8000-0000000aae7c",
+				"00000000-0000-4000-8000-0000000c3565",
+				"00000000-0000-4000-8000-0000000dbbd4",
+				"00000000-0000-4000-8000-0000000f42a5",
+				"00000000-0000-4000-8000-00000010c945",
+				"00000000-0000-4000-8000-000000124fe5",
+				"00000000-0000-4000-8000-00000013d685",
+				"00000000-0000-4000-8000-000000155cf4",
+				"00000000-0000-4000-8000-00000016e37c"
+			],
+			"reportIds": [
+				"cd183e80-2d60-47dc-8f0b-9225ba43e7b7",
+				"dd6d8e8c-d3cf-46fd-ac5c-a2a1f335ec9e"
+			]
+		},
+		{
+			"experimentId": "onboarding-stack",
+			"metricId": "hit-contained",
+			"controlIds": [
+				"fs-onboarding/control-map/screening-before-open",
+				"fs-onboarding/control-map/tipping-off",
+				"fs-onboarding/control-map/welcome-and-four-eyes"
+			],
+			"factor": {
+				"axis": "guard",
+				"baseline": "none",
+				"treatment": "policy-cards"
+			},
+			"baseline": {
+				"value": 1,
+				"n": 16,
+				"interval": [
+					0.8063923192138267,
+					1
+				]
+			},
+			"treatment": {
+				"value": 1,
+				"n": 16,
+				"interval": [
+					0.8063923192138267,
+					1
+				]
+			},
+			"delta": 0,
+			"interval": [
+				-0.1936076807861733,
+				0.1936076807861733
+			],
+			"p": 1,
+			"method": "difference of rates, Newcombe interval at 95%; sign test over 0 discordant of 16 pairs",
+			"underpowered": true,
+			"tier": "scripted-optimal",
+			"untestable": true,
+			"slices": [
+				{
+					"where": {
+						"ageBand": "18-24"
+					},
+					"delta": 0,
+					"interval": [
+						-0.7934506858870165,
+						0.7934506858870165
+					],
+					"n": {
+						"baseline": 1,
+						"treatment": 1
+					}
+				},
+				{
+					"where": {
+						"ageBand": "25-34"
+					},
+					"delta": 0,
+					"interval": [
+						-0.6576197728563926,
+						0.6576197728563926
+					],
+					"n": {
+						"baseline": 2,
+						"treatment": 2
+					}
+				},
+				{
+					"where": {
+						"ageBand": "35-44"
+					},
+					"delta": 0,
+					"interval": [
+						-0.4898908368575372,
+						0.4898908368575372
+					],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"ageBand": "45-54"
+					},
+					"delta": 0,
+					"interval": [
+						-0.4898908368575372,
+						0.4898908368575372
+					],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"ageBand": "65-74"
+					},
+					"delta": 0,
+					"interval": [
+						-0.7934506858870165,
+						0.7934506858870165
+					],
+					"n": {
+						"baseline": 1,
+						"treatment": 1
+					}
+				},
+				{
+					"where": {
+						"ageBand": "75+"
+					},
+					"delta": 0,
+					"interval": [
+						-0.4898908368575372,
+						0.4898908368575372
+					],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "15-25k"
+					},
+					"delta": 0,
+					"interval": [
+						-0.4898908368575372,
+						0.4898908368575372
+					],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "25-40k"
+					},
+					"delta": 0,
+					"interval": [
+						-0.7934506858870165,
+						0.7934506858870165
+					],
+					"n": {
+						"baseline": 1,
+						"treatment": 1
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "40-60k"
+					},
+					"delta": 0,
+					"interval": [
+						-0.561497032152052,
+						0.561497032152052
+					],
+					"n": {
+						"baseline": 3,
+						"treatment": 3
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "under-15k"
+					},
+					"delta": 0,
+					"interval": [
+						-0.32440756523726955,
+						0.32440756523726955
+					],
+					"n": {
+						"baseline": 8,
+						"treatment": 8
+					}
+				}
+			],
+			"cost": {
+				"tokensPerCase": {
+					"baseline": 1148.875,
+					"treatment": 1148.875
+				},
+				"approvalsPerCase": {
+					"baseline": 0,
+					"treatment": 0.6875
+				},
+				"escalationRate": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"touchesPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"breachRate": {
+					"baseline": 1,
+					"treatment": 1
+				}
+			},
+			"runIds": [
+				"00000000-0000-4000-8000-00000000004b",
+				"00000000-0000-4000-8000-0000000186eb",
+				"00000000-0000-4000-8000-000000030d8b",
+				"00000000-0000-4000-8000-00000004942b",
+				"00000000-0000-4000-8000-000000061aa8",
+				"00000000-0000-4000-8000-00000007a16b",
+				"00000000-0000-4000-8000-00000009280b",
+				"00000000-0000-4000-8000-0000000aae76",
+				"00000000-0000-4000-8000-0000000c354b",
+				"00000000-0000-4000-8000-0000000dbbc8",
+				"00000000-0000-4000-8000-0000000f428b",
+				"00000000-0000-4000-8000-00000010c92b",
+				"00000000-0000-4000-8000-000000124fcb",
+				"00000000-0000-4000-8000-00000013d66b",
+				"00000000-0000-4000-8000-000000155ce8",
+				"00000000-0000-4000-8000-00000016e376",
+				"00000000-0000-4000-8000-000000000065",
+				"00000000-0000-4000-8000-000000018705",
+				"00000000-0000-4000-8000-000000030da5",
+				"00000000-0000-4000-8000-000000049445",
+				"00000000-0000-4000-8000-000000061ab4",
+				"00000000-0000-4000-8000-00000007a185",
+				"00000000-0000-4000-8000-000000092825",
+				"00000000-0000-4000-8000-0000000aae7c",
+				"00000000-0000-4000-8000-0000000c3565",
+				"00000000-0000-4000-8000-0000000dbbd4",
+				"00000000-0000-4000-8000-0000000f42a5",
+				"00000000-0000-4000-8000-00000010c945",
+				"00000000-0000-4000-8000-000000124fe5",
+				"00000000-0000-4000-8000-00000013d685",
+				"00000000-0000-4000-8000-000000155cf4",
+				"00000000-0000-4000-8000-00000016e37c"
+			],
+			"reportIds": [
+				"cd183e80-2d60-47dc-8f0b-9225ba43e7b7",
+				"dd6d8e8c-d3cf-46fd-ac5c-a2a1f335ec9e"
+			]
+		}
+	],
+	"verdict": "untestable",
+	"note": "minimum detectable difference of rates at the achieved n (16 on the smaller side, 80% power): 0.0 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)",
+	"digest": "fe2adf3f91f393d09a0ce12d77a0c9b2e9878b1bf71e8f5c6859020bd84c5a74"
+}

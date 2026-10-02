@@ -30,39 +30,72 @@ describe('the reference experiments', async () => {
 		registry.listControlMaps().flatMap((map) => map.rows.map((row) => `${map.id}/${row.ref}`))
 	);
 
-	it('are the eight campaign-shaped designs, drift-day being the Monitor’s', () => {
+	it('are the fifteen campaign-shaped designs, drift-day being the Monitor’s', () => {
 		expect(FILES).toEqual([
 			'advice-context.json',
+			// WP150: the enforced ceilings against Level 5, the components against none, a stack per Phase AA desk.
+			'ceilings.json',
+			'collections-stack.json',
+			'complaints-stack.json',
+			'controls.json',
+			'disputes-stack.json',
 			'fraud-stack.json',
 			'human-oversight.json',
 			'lending-context.json',
 			'lending-fairness.json',
 			'lending-knobs.json',
 			'lending-stack.json',
+			'onboarding-stack.json',
 			// WP119: the readers on the held-out corpus, through the typesafe pack.
-			'servicing-readers.json'
+			'servicing-readers.json',
+			'servicing-stack.json'
 		]);
 	});
 
 	it.each(FILES)('%s parses, names listed controls and installed content, and expands', (name) => {
 		const experiment = parseExperiment(JSON.parse(readFileSync(join(DIR, name), 'utf8')));
 		expect(experiment.id).toBe(name.replace(/\.json$/, ''));
+		// What it claims: its own controls, a level's (WP150), and the claims of a stack a guard names.
+		const claimed = [
+			...experiment.controls,
+			...experiment.design.factors.flatMap((factor) => Object.values(factor.controls ?? {}).flat()),
+			...experiment.design.template.guards.flatMap((guard) =>
+				guard.stack !== undefined ? (registry.getStack(guard.stack)?.controls ?? []) : []
+			)
+		];
+		for (const guard of experiment.design.template.guards)
+			if (guard.stack !== undefined)
+				expect(registry.getStack(guard.stack), guard.stack).toBeDefined();
 		// The eighth measures readers against labels, not a control on the bank's book: it names none (WP119).
-		if (experiment.id === 'servicing-readers') expect(experiment.controls).toEqual([]);
-		else expect(experiment.controls.length).toBeGreaterThan(0);
-		for (const control of experiment.controls) expect(controlIds.has(control), control).toBe(true);
-		const workflow = registry.getWorkflow(experiment.design.template.source?.workflowId ?? '');
-		expect(workflow, name).toBeDefined();
+		if (experiment.id === 'servicing-readers') expect(claimed).toEqual([]);
+		else expect(claimed.length).toBeGreaterThan(0);
+		for (const control of claimed) expect(controlIds.has(control), control).toBe(true);
+		const source = experiment.design.template.source;
+		// WP150's `controls` runs scenarios: its goal cards are installed instead of a workflow.
+		if (source === undefined)
+			for (const scenario of experiment.design.template.scenarios)
+				expect(registry.getGoalCard(scenario.goalCardId ?? ''), scenario.id).toBeDefined();
+		const workflow = registry.getWorkflow(source?.workflowId ?? '');
+		if (source !== undefined) expect(workflow, name).toBeDefined();
 		const configurations = Object.keys(workflow?.configurations ?? {});
 		for (const factor of experiment.design.factors) {
 			if (factor.axis === 'executors')
 				for (const level of factor.levels) expect(configurations, level).toContain(level);
 		}
+		// An installed assertion card judges as an evaluator too (`31-…` §4.2): the `controls` design names one.
 		for (const evaluator of experiment.design.template.evaluators)
-			expect(registry.getEvaluator(evaluator.id), evaluator.id).toBeDefined();
+			expect(
+				registry.getEvaluator(evaluator.id) ?? registry.getAssertionCard(evaluator.id),
+				evaluator.id
+			).toBeDefined();
 		for (const metric of experiment.design.metrics) {
 			if (metric.kind === 'evaluator-pass-rate' || metric.kind === 'label-rate')
 				expect(registry.getEvaluator(metric.evaluatorId), metric.evaluatorId).toBeDefined();
+			if (metric.kind === 'assertion-pass-rate')
+				expect(
+					experiment.design.template.assertionCards.map((card) => card.id),
+					metric.cardId
+				).toContain(metric.cardId);
 		}
 		const { campaigns } = expandExperiment(experiment);
 		expect(campaigns.length).toBeGreaterThanOrEqual(2);

@@ -245,6 +245,117 @@ describe('analyseExperiment', () => {
 		expect(markdown).toContain('| guard | stack vs none |');
 	});
 
+	it('joins a level’s own controls to that level’s effects only (WP150)', () => {
+		const levelled = design({
+			template: {
+				...design().design.template,
+				guards: [
+					{ id: 'none', fit: [] },
+					{ id: 'stack', fit: [] },
+					{ id: 'other', fit: [] }
+				]
+			},
+			factors: [
+				{
+					axis: 'guard',
+					levels: ['none', 'stack', 'other'],
+					controls: { stack: ['map/stack-row'], other: ['map/other-row'] }
+				}
+			]
+		});
+		const experiment = expandExperiment(levelled).experiment;
+		const otherId = campaignIdFor('lending-stack', { guard: 'other' });
+		const result = analyseExperiment(
+			experiment,
+			[
+				report(baseId, side(11, 50, 0.3, 'none')),
+				report(treatId, side(12, 50, 0.2, 'stack')),
+				report(otherId, side(13, 50, 0.1, 'other'))
+			],
+			{ ranAt: '2026-09-11T10:00:00.000Z' }
+		);
+		expect(result.effects.map((effect) => [effect.factor.treatment, effect.controlIds])).toEqual([
+			['stack', ['fs-lending/policy-stack', 'map/stack-row']],
+			['other', ['fs-lending/policy-stack', 'map/other-row']]
+		]);
+		expect(() =>
+			design({ factors: [{ axis: 'guard', levels: ['none', 'stack'], controls: { gone: [] } }] })
+		).toThrow('a factor’s controls name its own levels');
+		expect(() =>
+			design({
+				factors: [{ axis: 'guard', levels: ['none', 'stack'], primary: { stack: 'nothing' } }]
+			})
+		).toThrow("'nothing' is not one of the design's metrics");
+		const twoMetrics = design({
+			factors: [{ axis: 'guard', levels: ['none', 'stack'], primary: { stack: 'tokens' } }],
+			metrics: [
+				...design().design.metrics,
+				{ kind: 'cost', id: 'tokens', of: 'tokens', direction: 'lower-is-better' }
+			]
+		});
+		const led = analyseExperiment(
+			expandExperiment(twoMetrics).experiment,
+			[report(baseId, side(11, 50, 0.3, 'none')), report(treatId, side(12, 50, 0.2, 'stack'))],
+			{ ranAt: '2026-09-11T10:00:00.000Z' }
+		);
+		expect(led.effects.map((effect) => effect.metricId)).toEqual(['tokens', 'over-approval']);
+	});
+
+	it('joins the claims of a stack a guard names, whatever the guard is called (WP150)', () => {
+		const stacked = design({
+			template: {
+				...design().design.template,
+				guards: [
+					{ id: 'none', fit: [] },
+					{ id: 'stack', fit: [], stack: 'desk/stack/policy-cards' }
+				]
+			}
+		});
+		const result = analyseExperiment(
+			expandExperiment(stacked).experiment,
+			[report(baseId, side(11, 50, 0.3, 'none')), report(treatId, side(12, 50, 0.2, 'stack'))],
+			{
+				ranAt: '2026-09-11T10:00:00.000Z',
+				stacks: [{ id: 'desk/stack/policy-cards', controls: ['desk/control-map/a-row'] } as never]
+			}
+		);
+		expect(result.effects[0]!.controlIds).toEqual([
+			'fs-lending/policy-stack',
+			'desk/control-map/a-row'
+		]);
+	});
+
+	it('reads an assertion card’s pass rate per cell (WP150)', () => {
+		const experiment = expandExperiment(
+			design({
+				metrics: [
+					{
+						kind: 'assertion-pass-rate',
+						id: 'held',
+						cardId: 'campaign/never-sends-the-alert',
+						direction: 'higher-is-better'
+					}
+				]
+			})
+		).experiment;
+		const held = (guard: string, holds: boolean) =>
+			Array.from({ length: 20 }, (_, i) =>
+				cell({ guard, seed: i + 1, assertions: { 'campaign/never-sends-the-alert': holds } })
+			);
+		const result = analyseExperiment(
+			experiment,
+			[report(baseId, held('none', false)), report(treatId, held('stack', true))],
+			{ ranAt: '2026-09-11T10:00:00.000Z' }
+		);
+		expect(result.effects[0]).toMatchObject({
+			metricId: 'held',
+			baseline: { value: 0, n: 20 },
+			treatment: { value: 1, n: 20 },
+			delta: 1
+		});
+		expect(result.effects[0]!.untestable).toBeUndefined();
+	});
+
 	it('is inconclusive at least 95% of the time on a null design over 200 seeds', () => {
 		const experiment = expandExperiment(design()).experiment;
 		let inconclusive = 0;

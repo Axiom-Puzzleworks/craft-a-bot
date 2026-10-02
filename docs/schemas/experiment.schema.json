@@ -1414,6 +1414,29 @@
 							"knob": {
 								"type": "string",
 								"minLength": 1
+							},
+							"controls": {
+								"type": "object",
+								"propertyNames": {
+									"type": "string"
+								},
+								"additionalProperties": {
+									"type": "array",
+									"items": {
+										"type": "string",
+										"minLength": 1
+									}
+								}
+							},
+							"primary": {
+								"type": "object",
+								"propertyNames": {
+									"type": "string"
+								},
+								"additionalProperties": {
+									"type": "string",
+									"minLength": 1
+								}
 							}
 						},
 						"required": [
@@ -1507,6 +1530,36 @@
 									"id",
 									"direction",
 									"evaluatorId"
+								]
+							},
+							{
+								"type": "object",
+								"properties": {
+									"kind": {
+										"type": "string",
+										"const": "assertion-pass-rate"
+									},
+									"id": {
+										"type": "string",
+										"minLength": 1
+									},
+									"direction": {
+										"type": "string",
+										"enum": [
+											"lower-is-better",
+											"higher-is-better"
+										]
+									},
+									"cardId": {
+										"type": "string",
+										"minLength": 1
+									}
+								},
+								"required": [
+									"kind",
+									"id",
+									"direction",
+									"cardId"
 								]
 							},
 							{

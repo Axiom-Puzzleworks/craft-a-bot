@@ -263,6 +263,11 @@ describe('controlInventory', () => {
 		});
 		expect(effect(`evaluator:${LONELY.id}`)).toEqual({ state: 'untested', controlIds: [] });
 		expect(effect('mechanism:core/trace').state).toBe('not-applicable');
+		// WP150: no row cites the policy-card component, but the stack that carries it has a verdict, and says so.
+		expect(effect('component:governance/policy-card')).toMatchObject({
+			state: 'evidenced',
+			via: `stack:${STACK.id}`
+		});
 	});
 
 	it('counts the readings of what describes it', () => {

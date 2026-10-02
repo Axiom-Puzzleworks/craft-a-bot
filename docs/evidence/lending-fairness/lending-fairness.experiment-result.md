@@ -4,7 +4,7 @@
 
 **Verdict: inconclusive.** one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)
 
-Ran 2026-09-29T22:06:45.617Z; controls fs-lending/control-map/cohort-blind; obligations equality-act:fairness; campaigns lending-fairness--brain=scripted-noisy--guard=none, lending-fairness--brain=fallible--guard=none, lending-fairness--brain=scripted-noisy--guard=policy-cards, lending-fairness--brain=fallible--guard=policy-cards. Evidence about this synthetic bank under these configurations, and nothing else.
+Ran 2026-10-02T12:38:08.652Z; controls fs-lending/control-map/cohort-blind; obligations equality-act:fairness; campaigns lending-fairness--brain=scripted-noisy--guard=none, lending-fairness--brain=fallible--guard=none, lending-fairness--brain=scripted-noisy--guard=policy-cards, lending-fairness--brain=fallible--guard=policy-cards. Evidence about this synthetic bank under these configurations, and nothing else.
 
 ## parity
 
@@ -24,4 +24,4 @@ Method: difference of demographic-parity across ageBand; the two sides' interval
 
 Method: difference of equal-opportunity across ageBand; the two sides' intervals combined conservatively, no test.
 
-Digest `392c97c95998aaf9c0fc18106a523401d6f43e9bed4e74cda438f8af255d2db1`.
+Digest `28f4bc3cda93cbf748dc5bfad13f2923cc636e4dbaaee326a4ade24bb1c5e38a`.

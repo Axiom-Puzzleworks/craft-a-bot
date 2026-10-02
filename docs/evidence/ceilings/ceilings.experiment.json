@@ -1,0 +1,123 @@
+{
+	"schemaVersion": 1,
+	"id": "ceilings",
+	"title": "The ceilings enforced at Level 5 on the loan book",
+	"hypothesis": "Enforcing the decision-rights ceilings at Level 5 (WP139) brings the ceiling-breach rate to zero, with agreement with the rules unchanged; the price, a person’s touch on each decision above its ceiling, is read from each effect’s cost.",
+	"controls": [
+		"fs-lending/control-map/ceilings-enforced"
+	],
+	"obligations": [
+		"pra:ss1-23:mitigants",
+		"pra:ss1-23:governance"
+	],
+	"design": {
+		"template": {
+			"scenarios": [],
+			"source": {
+				"kind": "book",
+				"workflowId": "fs-lending/lending",
+				"population": {
+					"seed": 1,
+					"size": 10000
+				}
+			},
+			"builds": [
+				{
+					"id": "bot",
+					"base": {
+						"kind": "starter-default"
+					},
+					"overrides": {
+						"senses": [
+							"fs-lending/the-lending-desk/application",
+							"fs-lending/the-lending-desk/bureau",
+							"fs-lending/the-lending-desk/affordability-worksheet",
+							"fs-lending/the-lending-desk/conversation"
+						],
+						"actions": [
+							"fs-lending/the-lending-desk/say",
+							"fs-lending/the-lending-desk/verify-identity",
+							"fs-lending/the-lending-desk/assess-affordability",
+							"fs-lending/the-lending-desk/request-document",
+							"fs-lending/the-lending-desk/decide",
+							"fs-lending/the-lending-desk/explain-decision",
+							"fs-lending/the-lending-desk/disburse",
+							"fs-lending/the-lending-desk/log-appeal"
+						],
+						"reviewer": "fs-bank/reviewer/case-handler"
+					}
+				}
+			],
+			"guards": [
+				{
+					"id": "none",
+					"fit": []
+				}
+			],
+			"brains": [
+				{
+					"id": "scripted-noisy",
+					"tier": "scripted-noisy"
+				},
+				{
+					"id": "fallible",
+					"tier": "fallible",
+					"errorModel": "fs-lending/error/decision"
+				}
+			],
+			"assertionCards": [],
+			"sinks": [],
+			"evaluators": [
+				{
+					"id": "fs-lending/decision-matches-rules"
+				}
+			]
+		},
+		"factors": [
+			{
+				"axis": "executors",
+				"levels": [
+					"bot-everywhere",
+					"bot-everywhere-ceilings-enforced"
+				]
+			},
+			{
+				"axis": "brain",
+				"levels": [
+					"scripted-noisy",
+					"fallible"
+				]
+			}
+		],
+		"baseline": {
+			"executors": "bot-everywhere",
+			"brain": "scripted-noisy"
+		},
+		"metrics": [
+			{
+				"kind": "cost",
+				"id": "breaches",
+				"direction": "lower-is-better",
+				"of": "breaches"
+			},
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "agreement",
+				"direction": "higher-is-better",
+				"evaluatorId": "fs-lending/decision-matches-rules"
+			}
+		],
+		"seeds": [
+			1
+		],
+		"replicates": 1,
+		"confidence": 0.95,
+		"minimumDetectableEffect": 0.05
+	},
+	"campaigns": [
+		"ceilings--brain=scripted-noisy--executors=bot-everywhere",
+		"ceilings--brain=fallible--executors=bot-everywhere",
+		"ceilings--brain=scripted-noisy--executors=bot-everywhere-ceilings-enforced",
+		"ceilings--brain=fallible--executors=bot-everywhere-ceilings-enforced"
+	]
+}

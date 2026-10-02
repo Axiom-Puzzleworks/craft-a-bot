@@ -148,9 +148,11 @@ describe('the Lending Desk evaluators', () => {
 			for (const item of row.evidence) {
 				if (item.kind === 'policy-card') expect(cards.has(item.id), item.id).toBe(true);
 				else if (item.kind === 'evaluator') expect(evaluators.has(item.id), item.id).toBe(true);
-				// WP145: the disclosure row cites the event it is proved by.
+				// WP145: the disclosure row cites the event it is proved by; WP150's ceilings row, the approval asked and answered.
 				else if (item.kind === 'trace-guarantee')
-					expect(['disclosure.given', 'approval.resolved']).toContain(item.id);
+					expect(['disclosure.given', 'approval.requested', 'approval.resolved']).toContain(
+						item.id
+					);
 				// WP146: the override-reason gate beside the parity gate.
 				else expect(['parity', 'override-reason']).toContain(item.id);
 			}

@@ -5,6 +5,15 @@ import { NO_REPETITION_ID } from '../guardrails/no-repetition.js';
 import { STEP_BUDGET_ID } from '../guardrails/step-budget.js';
 import { TOKEN_BUDGET_ID } from '../guardrails/token-budget.js';
 import { TOOL_BLOCKLIST_ID } from '../guardrails/tool-blocklist.js';
+import { NO_PROGRESS_ID } from '../guardrails/no-progress.js';
+import { ARGUMENT_VALIDATION_COMPONENT_ID, COST_CAP_COMPONENT_ID } from '../components/bounds.js';
+import {
+	PROMPT_INTEGRITY_COMPONENT_ID,
+	SECRET_SCAN_COMPONENT_ID
+} from '../components/integrity.js';
+import { PEER_AUTH_COMPONENT_ID } from '../components/peer-auth.js';
+import { PRIVILEGE_SCOPES_COMPONENT_ID } from '../components/privilege.js';
+import { MEMORY_PROVENANCE_COMPONENT_ID } from '../components/provenance.js';
 
 /**
  * **The generic control map** (WP67, `53-ASSURANCE-PACK.md` §4.1; `41-…`
@@ -30,7 +39,16 @@ export const GOVERNANCE_GUARDRAIL_IDS: readonly string[] = [
 	ACTION_BLOCKLIST_ID,
 	TOOL_BLOCKLIST_ID,
 	NO_REPETITION_ID,
-	APPROVAL_MODE_ID
+	APPROVAL_MODE_ID,
+	// WP150: the agent-security components built in Phases AL and AM, each the guardrail id it stamps.
+	NO_PROGRESS_ID,
+	MEMORY_PROVENANCE_COMPONENT_ID,
+	PRIVILEGE_SCOPES_COMPONENT_ID,
+	PEER_AUTH_COMPONENT_ID,
+	SECRET_SCAN_COMPONENT_ID,
+	ARGUMENT_VALIDATION_COMPONENT_ID,
+	PROMPT_INTEGRITY_COMPONENT_ID,
+	COST_CAP_COMPONENT_ID
 ];
 
 const row = (
@@ -251,6 +269,71 @@ export const genericControlMap: ControlMap = {
 			'Budgets, the loop-breaker and the stop bound every run.',
 			[guardrail(STEP_BUDGET_ID), guardrail(NO_REPETITION_ID), trace('run.finished')],
 			['ASI10']
+		),
+		// WP150 (`110-CONTROL-SUITE-PLAN.md` §10): a row per agent-security component built in Phases AL and AM, each citing only its component, so the controls design's effect lands on it alone.
+		row(
+			'OWASP Top 10 for Agentic Applications',
+			'asi01-integrity',
+			'ASI01 — goal hijack: the instructions are the ones validated',
+			'A turn composed under a system prompt other than the one validated is stopped.',
+			[guardrail(PROMPT_INTEGRITY_COMPONENT_ID)],
+			['ASI01']
+		),
+		row(
+			'OWASP Top 10 for Agentic Applications',
+			'asi02-arguments',
+			'ASI02 — tool misuse: arguments held to the declared schema',
+			'An action whose arguments do not fit the schema the world declares is refused before it runs.',
+			[guardrail(ARGUMENT_VALIDATION_COMPONENT_ID)],
+			['ASI02']
+		),
+		row(
+			'OWASP Top 10 for Agentic Applications',
+			'asi03',
+			'ASI03 — identity and privilege abuse',
+			'A governed call the bot was not granted is refused, or paused for a person to grant it.',
+			[guardrail(PRIVILEGE_SCOPES_COMPONENT_ID)],
+			['ASI03']
+		),
+		row(
+			'OWASP Top 10 for Agentic Applications',
+			'asi06-provenance',
+			'ASI06 — memory poisoning: an untrusted line is not reasoned over',
+			'A think over a notebook holding a line written from untrusted content is refused.',
+			[guardrail(MEMORY_PROVENANCE_COMPONENT_ID)],
+			['ASI06']
+		),
+		row(
+			'OWASP Top 10 for Agentic Applications',
+			'asi07',
+			'ASI07 — insecure inter-agent communication',
+			'A message between seats that does not carry its sender’s digest is not reasoned over.',
+			[guardrail(PEER_AUTH_COMPONENT_ID)],
+			['ASI07']
+		),
+		row(
+			'OWASP Top 10 for Agentic Applications',
+			'asi10-no-progress',
+			'ASI10 — rogue agents: a run that changes nothing is stopped',
+			'A run whose world has not moved for a stated number of turns is stopped.',
+			[guardrail(NO_PROGRESS_ID)],
+			['ASI10']
+		),
+		row(
+			'OWASP Top 10 for Agentic Applications',
+			'asi10-cost',
+			'ASI10 — rogue agents: spend bounded in money',
+			'A run is stopped once its tokens, at a stated list price, have spent its cap.',
+			[guardrail(COST_CAP_COMPONENT_ID)],
+			['ASI10']
+		),
+		row(
+			'EU AI Act',
+			'art-15-secrets',
+			'Art. 15 — cybersecurity: no credential leaves in what the bot sends',
+			'A call whose arguments carry the shape of a key, token or private key is refused.',
+			[guardrail(SECRET_SCAN_COMPONENT_ID)],
+			['pra:ss1-23:mitigants']
 		)
 	]
 };

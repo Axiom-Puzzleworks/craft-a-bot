@@ -1,0 +1,110 @@
+{
+	"schemaVersion": 1,
+	"id": "onboarding-stack",
+	"title": "The policy-card stack on the onboarding book",
+	"hypothesis": "The onboarding desk’s policy-card stack (fs-onboarding/stack/policy-cards) changes nothing a scripted bot at Level 5 does wrong on the onboarding book, because the scripted bot does nothing wrong; every effect is expected to read untestable until an error model is built for this desk.",
+	"controls": [],
+	"obligations": [],
+	"design": {
+		"template": {
+			"scenarios": [],
+			"source": {
+				"kind": "book",
+				"workflowId": "fs-onboarding/onboarding",
+				"population": {
+					"seed": 1,
+					"size": 200
+				}
+			},
+			"builds": [
+				{
+					"id": "bot-everywhere",
+					"base": {
+						"kind": "starter-default"
+					},
+					"overrides": {
+						"senses": [
+							"fs-onboarding/the-onboarding-desk/application",
+							"fs-onboarding/the-onboarding-desk/screening",
+							"fs-onboarding/the-onboarding-desk/risk-rating",
+							"fs-onboarding/the-onboarding-desk/conversation"
+						],
+						"actions": [
+							"fs-onboarding/the-onboarding-desk/say",
+							"fs-onboarding/the-onboarding-desk/verify-identity",
+							"fs-onboarding/the-onboarding-desk/screen-applicant",
+							"fs-onboarding/the-onboarding-desk/rate-risk",
+							"fs-onboarding/the-onboarding-desk/decide",
+							"fs-onboarding/the-onboarding-desk/open-account",
+							"fs-onboarding/the-onboarding-desk/welcome"
+						],
+						"configuration": "bot-everywhere"
+					}
+				}
+			],
+			"guards": [
+				{
+					"id": "none",
+					"fit": []
+				},
+				{
+					"id": "policy-cards",
+					"fit": [],
+					"stack": "fs-onboarding/stack/policy-cards"
+				}
+			],
+			"brains": [
+				{
+					"id": "scripted-optimal",
+					"tier": "scripted-optimal"
+				}
+			],
+			"assertionCards": [],
+			"sinks": [],
+			"evaluators": [
+				{
+					"id": "fs-onboarding/decision-matches-rules"
+				},
+				{
+					"id": "fs-onboarding/hit-contained"
+				}
+			]
+		},
+		"factors": [
+			{
+				"axis": "guard",
+				"levels": [
+					"none",
+					"policy-cards"
+				]
+			}
+		],
+		"baseline": {
+			"guard": "none"
+		},
+		"metrics": [
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "decision-matches-rules",
+				"direction": "higher-is-better",
+				"evaluatorId": "fs-onboarding/decision-matches-rules"
+			},
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "hit-contained",
+				"direction": "higher-is-better",
+				"evaluatorId": "fs-onboarding/hit-contained"
+			}
+		],
+		"seeds": [
+			1
+		],
+		"replicates": 1,
+		"confidence": 0.95,
+		"minimumDetectableEffect": 0.05
+	},
+	"campaigns": [
+		"onboarding-stack--guard=none",
+		"onboarding-stack--guard=policy-cards"
+	]
+}

@@ -323,9 +323,9 @@ describe('assurancePackFor', () => {
 		const pack = await fullPack();
 		expect(pack.posture).toBe(ASSURANCE_POSTURE);
 		expect(pack.review).toEqual({
-			rows: 2 + 22,
+			rows: 2 + 30,
 			reviewed: 0,
-			unreviewed: 23,
+			unreviewed: 31,
 			disputed: 0,
 			pending: 1
 		});

@@ -42,7 +42,7 @@ export interface ControlEffectivenessRow {
 	/** The treatment side's cost, averaged over the effects. */
 	cost: { tokensPerCase?: number; approvalsPerCase?: number; touchesPerCase?: number };
 	coverage: { experiments: number; populations: string[]; contexts: string[]; workflows: string[] };
-	/** `untestable` since WP116: every effect sat at a bound, so no actor erred for the control to catch (tenet 33). */
+	/** `untestable` since WP116: every effect on the primary metric sat at a bound, so no actor erred for the control to catch (tenet 33; the primary metric's effects since WP150, every effect before). */
 	status: 'evidenced' | 'inconclusive' | 'untestable' | 'untested';
 }
 
@@ -137,7 +137,8 @@ function rowFor(
 	const status: ControlEffectivenessRow['status'] =
 		effects.length === 0
 			? 'untested'
-			: effects.every((effect) => effect.untestable === true)
+			: // WP150: untestable when every effect on the primary metric sat at a bound — the metric the control was built to move could not.
+				primary.every(({ effect }) => effect.untestable === true)
 				? 'untestable'
 				: headline && excludesZero(headline.interval)
 					? 'evidenced'

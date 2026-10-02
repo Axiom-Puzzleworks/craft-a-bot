@@ -1,0 +1,111 @@
+{
+	"schemaVersion": 1,
+	"id": "servicing-stack",
+	"title": "The policy-card stack on the servicing book",
+	"hypothesis": "The servicing desk’s policy-card stack (fs-servicing/stack/policy-cards) changes nothing a scripted bot at Level 5 does wrong on the servicing book, because the scripted bot does nothing wrong; every effect is expected to read untestable until an error model is built for this desk.",
+	"controls": [],
+	"obligations": [],
+	"design": {
+		"template": {
+			"scenarios": [],
+			"source": {
+				"kind": "book",
+				"workflowId": "fs-servicing/servicing",
+				"population": {
+					"seed": 1,
+					"size": 240
+				}
+			},
+			"builds": [
+				{
+					"id": "bot-everywhere",
+					"base": {
+						"kind": "starter-default"
+					},
+					"overrides": {
+						"senses": [
+							"fs-servicing/the-servicing-desk/request",
+							"fs-servicing/the-servicing-desk/classification",
+							"fs-servicing/the-servicing-desk/file",
+							"fs-servicing/the-servicing-desk/conversation"
+						],
+						"actions": [
+							"fs-servicing/the-servicing-desk/say",
+							"fs-servicing/the-servicing-desk/identify-caller",
+							"fs-servicing/the-servicing-desk/classify",
+							"fs-servicing/the-servicing-desk/update-address",
+							"fs-servicing/the-servicing-desk/reissue-card",
+							"fs-servicing/the-servicing-desk/grant-third-party-access",
+							"fs-servicing/the-servicing-desk/record-support-need",
+							"fs-servicing/the-servicing-desk/close-account"
+						],
+						"configuration": "bot-everywhere"
+					}
+				}
+			],
+			"guards": [
+				{
+					"id": "none",
+					"fit": []
+				},
+				{
+					"id": "policy-cards",
+					"fit": [],
+					"stack": "fs-servicing/stack/policy-cards"
+				}
+			],
+			"brains": [
+				{
+					"id": "scripted-optimal",
+					"tier": "scripted-optimal"
+				}
+			],
+			"assertionCards": [],
+			"sinks": [],
+			"evaluators": [
+				{
+					"id": "fs-servicing/needs-met"
+				},
+				{
+					"id": "fs-servicing/disclosure-recorded"
+				}
+			]
+		},
+		"factors": [
+			{
+				"axis": "guard",
+				"levels": [
+					"none",
+					"policy-cards"
+				]
+			}
+		],
+		"baseline": {
+			"guard": "none"
+		},
+		"metrics": [
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "needs-met",
+				"direction": "higher-is-better",
+				"evaluatorId": "fs-servicing/needs-met"
+			},
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "disclosure-recorded",
+				"direction": "higher-is-better",
+				"evaluatorId": "fs-servicing/disclosure-recorded"
+			}
+		],
+		"seeds": [
+			1
+		],
+		"replicates": 1,
+		"confidence": 0.95,
+		"minimumDetectableEffect": 0.05
+	},
+	"campaigns": [
+		"servicing-stack--guard=none",
+		"servicing-stack--guard=policy-cards"
+	]
+}
