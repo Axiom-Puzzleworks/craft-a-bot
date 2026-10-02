@@ -1,6 +1,6 @@
 {
 	"schemaVersion": 1,
-	"id": "lending-knobs@2026-10-02T12:40:15.366Z",
+	"id": "lending-knobs@2026-10-02T17:47:55.697Z",
 	"experimentId": "lending-knobs",
 	"title": "Loosening the refer ratio on the loan book",
 	"hypothesis": "Lowering referRatioPercent from 60 to 45 raises over-approval when the bot decides alone, and a person at the decision removes it at a stated escalation cost.",
@@ -11,7 +11,7 @@
 		"fca:conc:affordability",
 		"pra:ss1-23:mitigants"
 	],
-	"ranAt": "2026-10-02T12:40:15.366Z",
+	"ranAt": "2026-10-02T17:47:55.697Z",
 	"workflowIds": [
 		"fs-lending/lending"
 	],
@@ -1852,8 +1852,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"1c379d56-0317-4ffc-8618-ed9044004b80",
-				"f9abbad7-688c-4294-b092-4182478e38da"
+				"5bd0c54e-d72f-4445-b46a-23b214cd2919",
+				"019a3134-864f-47d3-92cb-b91504a64091"
 			]
 		},
 		{
@@ -3682,8 +3682,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"1c379d56-0317-4ffc-8618-ed9044004b80",
-				"f9abbad7-688c-4294-b092-4182478e38da"
+				"5bd0c54e-d72f-4445-b46a-23b214cd2919",
+				"019a3134-864f-47d3-92cb-b91504a64091"
 			]
 		},
 		{
@@ -5511,8 +5511,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"2a486e11-dca4-4952-96b9-890b28563a0e",
-				"2ee8b925-eb6b-4b07-80ee-8669e2b118b1"
+				"e0a61cbc-000d-490f-87e2-4ad7c7725219",
+				"f54aa13f-3a1c-4d54-a80f-7a6114ed3886"
 			]
 		},
 		{
@@ -7341,8 +7341,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"2a486e11-dca4-4952-96b9-890b28563a0e",
-				"2ee8b925-eb6b-4b07-80ee-8669e2b118b1"
+				"e0a61cbc-000d-490f-87e2-4ad7c7725219",
+				"f54aa13f-3a1c-4d54-a80f-7a6114ed3886"
 			]
 		},
 		{
@@ -9171,8 +9171,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"1c379d56-0317-4ffc-8618-ed9044004b80",
-				"d528e864-4418-4320-997a-4daccdda2a22"
+				"5bd0c54e-d72f-4445-b46a-23b214cd2919",
+				"a96b1157-8055-47d6-8a18-450c49212aa4"
 			]
 		},
 		{
@@ -11000,8 +11000,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"1c379d56-0317-4ffc-8618-ed9044004b80",
-				"d528e864-4418-4320-997a-4daccdda2a22"
+				"5bd0c54e-d72f-4445-b46a-23b214cd2919",
+				"a96b1157-8055-47d6-8a18-450c49212aa4"
 			]
 		},
 		{
@@ -12829,8 +12829,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"2a486e11-dca4-4952-96b9-890b28563a0e",
-				"dd9fdcc0-2e3a-4090-9a68-5e95abac69a3"
+				"e0a61cbc-000d-490f-87e2-4ad7c7725219",
+				"bd82afbb-f4e7-4a0b-8f9b-33ae933f289f"
 			]
 		},
 		{
@@ -14658,12 +14658,12 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"2a486e11-dca4-4952-96b9-890b28563a0e",
-				"dd9fdcc0-2e3a-4090-9a68-5e95abac69a3"
+				"e0a61cbc-000d-490f-87e2-4ad7c7725219",
+				"bd82afbb-f4e7-4a0b-8f9b-33ae933f289f"
 			]
 		}
 	],
 	"verdict": "not-supported",
 	"note": "minimum detectable difference of rates at the achieved n (783 on the smaller side, 80% power): 1.1 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)",
-	"digest": "27def5025a011ec3c607eb8c7cb5a2f63f5e353dad3afeb8f20526be24c121ee"
+	"digest": "8043e568120489e3db32e3faea601404183bd061f51fca16e9699d69c5c9b87b"
 }

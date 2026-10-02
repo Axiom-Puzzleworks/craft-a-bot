@@ -1,12 +1,12 @@
 {
 	"schemaVersion": 1,
-	"id": "onboarding-stack@2026-10-02T16:12:25.441Z",
+	"id": "onboarding-stack@2026-10-02T17:50:25.880Z",
 	"experimentId": "onboarding-stack",
 	"title": "The policy-card stack on the onboarding book",
 	"hypothesis": "The onboarding desk’s policy-card stack (fs-onboarding/stack/policy-cards) changes nothing a scripted bot at Level 5 does wrong on the onboarding book. Under the fallible tier (WP154), which errs at the desk's decision one time in ten, the stack is expected to catch what its cards check and nothing else.",
 	"controls": [],
 	"obligations": [],
-	"ranAt": "2026-10-02T16:12:25.441Z",
+	"ranAt": "2026-10-02T17:50:25.880Z",
 	"workflowIds": [
 		"fs-onboarding/onboarding"
 	],
@@ -597,8 +597,8 @@
 				"00000000-0000-4000-8000-000000fbc585"
 			],
 			"reportIds": [
-				"fc37189b-3c79-4c89-a972-897b04aa1f4d",
-				"3376eac3-7079-4203-bfbf-82b7334a1db7"
+				"70eca511-e975-48b4-97dc-5f7459debf32",
+				"38aaeb5d-f7fd-41bd-bbcd-f333ab14b1a8"
 			]
 		},
 		{
@@ -1181,8 +1181,8 @@
 				"00000000-0000-4000-8000-000000fbc585"
 			],
 			"reportIds": [
-				"fc37189b-3c79-4c89-a972-897b04aa1f4d",
-				"3376eac3-7079-4203-bfbf-82b7334a1db7"
+				"70eca511-e975-48b4-97dc-5f7459debf32",
+				"38aaeb5d-f7fd-41bd-bbcd-f333ab14b1a8"
 			]
 		},
 		{
@@ -1764,8 +1764,8 @@
 				"00000000-0000-4000-8000-000000fbc585"
 			],
 			"reportIds": [
-				"649371e7-b80f-4695-8f2d-3c6867472025",
-				"a6d98c08-fa8f-4cfd-9bc6-222273ad65f0"
+				"715fe8a0-6f96-4898-9112-166b5a0cea95",
+				"c19af3de-ac7f-47a8-a932-d2137ab6d51e"
 			]
 		},
 		{
@@ -2348,12 +2348,12 @@
 				"00000000-0000-4000-8000-000000fbc585"
 			],
 			"reportIds": [
-				"649371e7-b80f-4695-8f2d-3c6867472025",
-				"a6d98c08-fa8f-4cfd-9bc6-222273ad65f0"
+				"715fe8a0-6f96-4898-9112-166b5a0cea95",
+				"c19af3de-ac7f-47a8-a932-d2137ab6d51e"
 			]
 		}
 	],
 	"verdict": "inconclusive",
 	"note": "minimum detectable difference of rates at the achieved n (166 on the smaller side, 80% power): 5.0 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)",
-	"digest": "06f5b51a2a0c0cf4adf45f9f761a4caf9a5f3b1a45f003cf856d17145ede3897"
+	"digest": "ad727c1d7943fa4669b9520502f5510cdea9ab5ed3013d95c17eee1fd80035aa"
 }

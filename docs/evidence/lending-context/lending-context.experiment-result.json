@@ -1,6 +1,6 @@
 {
 	"schemaVersion": 1,
-	"id": "lending-context@2026-10-02T12:37:11.479Z",
+	"id": "lending-context@2026-10-02T17:45:03.337Z",
 	"experimentId": "lending-context",
 	"title": "The ontology on the loan book",
 	"hypothesis": "Giving the bot the ontology raises rule agreement and explanation faithfulness, with or without the stack.",
@@ -11,7 +11,7 @@
 		"fca:cd:understanding",
 		"ukgdpr:data-minimisation"
 	],
-	"ranAt": "2026-10-02T12:37:11.479Z",
+	"ranAt": "2026-10-02T17:45:03.337Z",
 	"workflowIds": [
 		"fs-lending/lending"
 	],
@@ -1852,8 +1852,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"d8e0e4d6-2a7d-44bb-b61a-8324d0f21990",
-				"414e2d44-d17e-4def-a9d6-d96fa2c1629d"
+				"096d7793-1b4c-4835-a094-1961f17a7da9",
+				"dc4936e6-5674-432b-b535-1c47a3cbbdc4"
 			]
 		},
 		{
@@ -3682,8 +3682,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"d8e0e4d6-2a7d-44bb-b61a-8324d0f21990",
-				"414e2d44-d17e-4def-a9d6-d96fa2c1629d"
+				"096d7793-1b4c-4835-a094-1961f17a7da9",
+				"dc4936e6-5674-432b-b535-1c47a3cbbdc4"
 			]
 		},
 		{
@@ -5511,8 +5511,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"752293fd-6a88-4bfe-b30e-b444aa8c7e82",
-				"f59f8767-fa89-4ecf-a524-1bcaa8bf3efe"
+				"0c067da4-7965-457c-8ffd-50a71778d0ba",
+				"ae189fae-0a68-4792-a197-d19202fc3485"
 			]
 		},
 		{
@@ -7341,8 +7341,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"752293fd-6a88-4bfe-b30e-b444aa8c7e82",
-				"f59f8767-fa89-4ecf-a524-1bcaa8bf3efe"
+				"0c067da4-7965-457c-8ffd-50a71778d0ba",
+				"ae189fae-0a68-4792-a197-d19202fc3485"
 			]
 		},
 		{
@@ -9171,8 +9171,8 @@
 				"00000000-0000-4000-8000-000004a93d17"
 			],
 			"reportIds": [
-				"d8e0e4d6-2a7d-44bb-b61a-8324d0f21990",
-				"98b142f6-59a4-49a2-816c-cdd47fc1681b"
+				"096d7793-1b4c-4835-a094-1961f17a7da9",
+				"01640da9-4454-4217-b143-5a6f24813bc4"
 			]
 		},
 		{
@@ -11001,8 +11001,8 @@
 				"00000000-0000-4000-8000-000004a93d17"
 			],
 			"reportIds": [
-				"d8e0e4d6-2a7d-44bb-b61a-8324d0f21990",
-				"98b142f6-59a4-49a2-816c-cdd47fc1681b"
+				"096d7793-1b4c-4835-a094-1961f17a7da9",
+				"01640da9-4454-4217-b143-5a6f24813bc4"
 			]
 		},
 		{
@@ -12830,8 +12830,8 @@
 				"00000000-0000-4000-8000-000004a93d17"
 			],
 			"reportIds": [
-				"752293fd-6a88-4bfe-b30e-b444aa8c7e82",
-				"0b2366ac-ccc5-4f6f-bbd6-f8d95cbe3794"
+				"0c067da4-7965-457c-8ffd-50a71778d0ba",
+				"f97d0263-0ba4-476a-8042-71f11eda9749"
 			]
 		},
 		{
@@ -14660,12 +14660,12 @@
 				"00000000-0000-4000-8000-000004a93d17"
 			],
 			"reportIds": [
-				"752293fd-6a88-4bfe-b30e-b444aa8c7e82",
-				"0b2366ac-ccc5-4f6f-bbd6-f8d95cbe3794"
+				"0c067da4-7965-457c-8ffd-50a71778d0ba",
+				"f97d0263-0ba4-476a-8042-71f11eda9749"
 			]
 		}
 	],
 	"verdict": "inconclusive",
 	"note": "minimum detectable difference of rates at the achieved n (783 on the smaller side, 80% power): 2.1 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)",
-	"digest": "1830857d0fb182917f6073228378b7de053696778632dae4cd2338c3793588f8"
+	"digest": "3d0a9207f60c9c497d1c61fa1d4a28e3b2c3388834d28dda0222e1b21773fae3"
 }

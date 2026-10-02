@@ -1,12 +1,12 @@
 {
 	"schemaVersion": 1,
-	"id": "collections-stack@2026-10-02T16:12:06.142Z",
+	"id": "collections-stack@2026-10-02T17:24:43.551Z",
 	"experimentId": "collections-stack",
 	"title": "The policy-card stack on the collections book",
 	"hypothesis": "The collections desk’s policy-card stack (fs-collections/stack/policy-cards) changes nothing a scripted bot at Level 5 does wrong on the collections book. Under the fallible tier (WP154), which errs at the desk's decision one time in ten, the stack is expected to catch what its cards check and nothing else.",
 	"controls": [],
 	"obligations": [],
-	"ranAt": "2026-10-02T16:12:06.142Z",
+	"ranAt": "2026-10-02T17:24:43.551Z",
 	"workflowIds": [
 		"fs-collections/arrears"
 	],
@@ -1080,8 +1080,8 @@
 				"00000000-0000-4000-8000-00000260d3bc"
 			],
 			"reportIds": [
-				"5f1ec23b-6756-4cb9-8572-076b33944957",
-				"b8195b4d-e39a-46cc-b4e4-100c0b203abb"
+				"aa62ed2d-be1d-4bfd-8dc7-39e90b80719e",
+				"c7e86600-8042-4fc3-87ea-b6e43ff37b03"
 			]
 		},
 		{
@@ -2147,8 +2147,8 @@
 				"00000000-0000-4000-8000-00000260d3bc"
 			],
 			"reportIds": [
-				"5f1ec23b-6756-4cb9-8572-076b33944957",
-				"b8195b4d-e39a-46cc-b4e4-100c0b203abb"
+				"aa62ed2d-be1d-4bfd-8dc7-39e90b80719e",
+				"c7e86600-8042-4fc3-87ea-b6e43ff37b03"
 			]
 		},
 		{
@@ -3213,8 +3213,8 @@
 				"00000000-0000-4000-8000-00000260d3bc"
 			],
 			"reportIds": [
-				"10ac2b4f-4831-4d94-82a0-8279294a4f16",
-				"b54939c2-66d6-4a80-8d5d-215a713103fb"
+				"1bba7e37-9a93-433a-bce9-86630595e9d1",
+				"6d42433c-8fde-40ca-93cc-eee290fbf157"
 			]
 		},
 		{
@@ -4280,12 +4280,12 @@
 				"00000000-0000-4000-8000-00000260d3bc"
 			],
 			"reportIds": [
-				"10ac2b4f-4831-4d94-82a0-8279294a4f16",
-				"b54939c2-66d6-4a80-8d5d-215a713103fb"
+				"1bba7e37-9a93-433a-bce9-86630595e9d1",
+				"6d42433c-8fde-40ca-93cc-eee290fbf157"
 			]
 		}
 	],
 	"verdict": "inconclusive",
 	"note": "minimum detectable difference of rates at the achieved n (390 on the smaller side, 80% power): 3.0 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)",
-	"digest": "0dd09f642cce76d2839b4f00afbfb350f36319dd17b57d80972f2cbb0a4c6c8d"
+	"digest": "a339383d534c3b966e0ed2bc5e98a94dd73ba68265a82a408ea7ab3864def2b4"
 }

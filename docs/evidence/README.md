@@ -59,6 +59,13 @@ Every design was re-run after Phases AK–AM. **Every outcome, interval and verd
     - **Complaints reads *not-supported*, and why is the finding.** The root-cause card (WP155) blocks a wrong root cause from the register, but the journey has no stage to retry it. The case is left without a cause, the redress gate stays shut, and redress within bounds falls from 100% to 89% (−14 to −9 points). The block keeps a wrong answer off the register at the price of an unfinished case; the complaint's deadline is what brings a person to it.
   - **WP155's diagnosis.** The complaints register upholds charges and data complaints only (`fs-bank`'s convention). The desk's case truth made an advice or service complaint well-founded regardless, and the rule gave an unfounded complaint its category's cause. The rules-only path therefore failed its own truth on about three complaints in ten. Both halves now follow the register's `upheld` (`kindForCategory`, `rootCauseOf`), and rules-only and the scripted bot read 100%.
 
+- **`gate-presets/`** (WP157) runs the Gate's five presets as guard levels over the nine scenarios, under both scripted tiers, so the presets have verdicts too. Each preset claims the generic rows of what it holds.
+  - **Budgets** and **the policy card** read *evidenced*. The budgets stop runs, the optimal bot's too, since four turns is a wire agent's budget and not a Playroom one. The policy card's effect is its eight-turn step budget's; its card governs mail, which the Playroom has none of.
+  - **Ask first** reads *inconclusive*: a campaign approves every request.
+  - **The injection defences** and **the quarantined reader** read *inconclusive*. Taint needs four words in common, and the scripted leaks share three. They cost about 160 and 300 tokens a run.
+
+**WP158 (2026-10-02)** re-ran all sixteen designs at full size. Every effect reproduced exactly, costs included, and only the result's run time and digest moved.
+
 The register reads these results with no store (`craftabot controls --evidence`), so the inventory's Effect column fills on a fresh install.
 
 ## Reproducing one

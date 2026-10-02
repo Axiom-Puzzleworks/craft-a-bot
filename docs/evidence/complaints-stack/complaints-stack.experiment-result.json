@@ -1,12 +1,12 @@
 {
 	"schemaVersion": 1,
-	"id": "complaints-stack@2026-10-02T16:13:53.726Z",
+	"id": "complaints-stack@2026-10-02T17:25:40.584Z",
 	"experimentId": "complaints-stack",
 	"title": "The policy-card stack on the complaints book",
 	"hypothesis": "The complaints desk’s policy-card stack (fs-advice/stack/complaints-policy-cards) changes nothing a scripted bot at Level 5 does wrong on the complaints book. Under the fallible tier (WP154), which errs at the desk's decision one time in ten, the stack is expected to catch what its cards check and nothing else.",
 	"controls": [],
 	"obligations": [],
-	"ranAt": "2026-10-02T16:13:53.726Z",
+	"ranAt": "2026-10-02T17:25:40.584Z",
 	"workflowIds": [
 		"fs-advice/complaints"
 	],
@@ -1882,8 +1882,8 @@
 				"00000000-0000-4000-8000-00000546674d"
 			],
 			"reportIds": [
-				"eb16d045-f96a-4bf5-ab95-523df67506e9",
-				"853bd50c-c6ee-4875-bbbb-478ca5d7457b"
+				"8c73a21c-c809-4015-8b04-b8c521dd639c",
+				"65ef291a-0ae2-4dea-9698-2307786f51fc"
 			]
 		},
 		{
@@ -3751,8 +3751,8 @@
 				"00000000-0000-4000-8000-00000546674d"
 			],
 			"reportIds": [
-				"eb16d045-f96a-4bf5-ab95-523df67506e9",
-				"853bd50c-c6ee-4875-bbbb-478ca5d7457b"
+				"8c73a21c-c809-4015-8b04-b8c521dd639c",
+				"65ef291a-0ae2-4dea-9698-2307786f51fc"
 			]
 		},
 		{
@@ -5620,8 +5620,8 @@
 				"00000000-0000-4000-8000-00000546674d"
 			],
 			"reportIds": [
-				"eb16d045-f96a-4bf5-ab95-523df67506e9",
-				"853bd50c-c6ee-4875-bbbb-478ca5d7457b"
+				"8c73a21c-c809-4015-8b04-b8c521dd639c",
+				"65ef291a-0ae2-4dea-9698-2307786f51fc"
 			]
 		},
 		{
@@ -7489,8 +7489,8 @@
 				"00000000-0000-4000-8000-00000546674d"
 			],
 			"reportIds": [
-				"eb16d045-f96a-4bf5-ab95-523df67506e9",
-				"853bd50c-c6ee-4875-bbbb-478ca5d7457b"
+				"8c73a21c-c809-4015-8b04-b8c521dd639c",
+				"65ef291a-0ae2-4dea-9698-2307786f51fc"
 			]
 		},
 		{
@@ -9358,8 +9358,8 @@
 				"00000000-0000-4000-8000-00000546674d"
 			],
 			"reportIds": [
-				"b7990b11-78cd-413d-922f-9aa37c04f130",
-				"74c3b3b4-0a04-4f85-8547-708eef31eed8"
+				"081f124a-16f9-4c89-9ef1-6700e03c3f50",
+				"338f6a10-cf43-4bbe-a51c-fc55464daa0a"
 			]
 		},
 		{
@@ -11226,8 +11226,8 @@
 				"00000000-0000-4000-8000-00000546674d"
 			],
 			"reportIds": [
-				"b7990b11-78cd-413d-922f-9aa37c04f130",
-				"74c3b3b4-0a04-4f85-8547-708eef31eed8"
+				"081f124a-16f9-4c89-9ef1-6700e03c3f50",
+				"338f6a10-cf43-4bbe-a51c-fc55464daa0a"
 			]
 		},
 		{
@@ -13094,8 +13094,8 @@
 				"00000000-0000-4000-8000-00000546674d"
 			],
 			"reportIds": [
-				"b7990b11-78cd-413d-922f-9aa37c04f130",
-				"74c3b3b4-0a04-4f85-8547-708eef31eed8"
+				"081f124a-16f9-4c89-9ef1-6700e03c3f50",
+				"338f6a10-cf43-4bbe-a51c-fc55464daa0a"
 			]
 		},
 		{
@@ -14963,12 +14963,12 @@
 				"00000000-0000-4000-8000-00000546674d"
 			],
 			"reportIds": [
-				"b7990b11-78cd-413d-922f-9aa37c04f130",
-				"74c3b3b4-0a04-4f85-8547-708eef31eed8"
+				"081f124a-16f9-4c89-9ef1-6700e03c3f50",
+				"338f6a10-cf43-4bbe-a51c-fc55464daa0a"
 			]
 		}
 	],
 	"verdict": "not-supported",
 	"note": "minimum detectable difference of rates at the achieved n (886 on the smaller side, 80% power): 2.2 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)",
-	"digest": "e8bd673e99428ac676b56f55302ddf02901ad79b022aae61ab664327c9652878"
+	"digest": "784e0928c1f05c0fcfa2c351bba1a54a38b8a0932ba97cfd45c83450f7b1606b"
 }

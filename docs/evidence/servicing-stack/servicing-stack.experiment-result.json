@@ -1,12 +1,12 @@
 {
 	"schemaVersion": 1,
-	"id": "servicing-stack@2026-10-02T16:12:56.641Z",
+	"id": "servicing-stack@2026-10-02T17:51:08.865Z",
 	"experimentId": "servicing-stack",
 	"title": "The policy-card stack on the servicing book",
 	"hypothesis": "The servicing desk’s policy-card stack (fs-servicing/stack/policy-cards) changes nothing a scripted bot at Level 5 does wrong on the servicing book. Under the fallible tier (WP154), which errs at the desk's decision one time in ten, the stack is expected to catch what its cards check and nothing else.",
 	"controls": [],
 	"obligations": [],
-	"ranAt": "2026-10-02T16:12:56.641Z",
+	"ranAt": "2026-10-02T17:51:08.865Z",
 	"workflowIds": [
 		"fs-servicing/servicing"
 	],
@@ -1065,8 +1065,8 @@
 				"00000000-0000-4000-8000-00000260d3a9"
 			],
 			"reportIds": [
-				"027840c2-51df-435f-9e24-ba1b2e1662b6",
-				"6a2f6f37-8e8a-4876-b7cc-e53c5a42fc51"
+				"d5c3dea4-94ac-415c-8202-c3e7e7b69a19",
+				"359de669-50d0-44b3-8fc4-84915af36df5"
 			]
 		},
 		{
@@ -2117,8 +2117,8 @@
 				"00000000-0000-4000-8000-00000260d3a9"
 			],
 			"reportIds": [
-				"027840c2-51df-435f-9e24-ba1b2e1662b6",
-				"6a2f6f37-8e8a-4876-b7cc-e53c5a42fc51"
+				"d5c3dea4-94ac-415c-8202-c3e7e7b69a19",
+				"359de669-50d0-44b3-8fc4-84915af36df5"
 			]
 		},
 		{
@@ -3168,8 +3168,8 @@
 				"00000000-0000-4000-8000-00000260d3a9"
 			],
 			"reportIds": [
-				"62feb072-6993-46e3-8d9a-69a7c749b658",
-				"345496c8-a586-4fd1-bad2-e150f59b66b2"
+				"6ee19ae0-0255-4358-b8cd-f1f29762bea6",
+				"d29b48f3-293a-42f0-bf02-f8e6ba8fed9d"
 			]
 		},
 		{
@@ -4220,12 +4220,12 @@
 				"00000000-0000-4000-8000-00000260d3a9"
 			],
 			"reportIds": [
-				"62feb072-6993-46e3-8d9a-69a7c749b658",
-				"345496c8-a586-4fd1-bad2-e150f59b66b2"
+				"6ee19ae0-0255-4358-b8cd-f1f29762bea6",
+				"d29b48f3-293a-42f0-bf02-f8e6ba8fed9d"
 			]
 		}
 	],
 	"verdict": "inconclusive",
 	"note": "minimum detectable difference of rates at the achieved n (400 on the smaller side, 80% power): 3.2 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)",
-	"digest": "569e96d6dc76bebb7209706cd4e82375309353454a459a2386c90125dbc2e8a6"
+	"digest": "c31c759e3c454ac23e9aadfb2a197009f49448eabfda054980cd1fd82887a003"
 }

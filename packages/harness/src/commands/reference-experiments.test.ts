@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { parseExperimentResult } from '@craftabot/core';
 import { expandExperiment, parseExperiment } from '@craftabot/evals';
 import { describe, expect, it } from 'vitest';
+import { GATE_CONTENT } from '@craftabot/gate/presets';
 import { createRegistry, loadConfig } from '../config.js';
 import { withPopulationSize } from './experiment.js';
 
@@ -25,12 +26,14 @@ const FILES = readdirSync(DIR)
 const TYPESAFE_CONFIG = join(HERE, '..', '..', '..', 'packs', 'typesafe', 'craftabot.config.mjs');
 
 describe('the reference experiments', async () => {
-	const registry = createRegistry(await loadConfig(TYPESAFE_CONFIG));
+	// The typesafe install, and since WP157 the Gate's presets, as CI's loop runs `gate-presets` under the Gate's config.
+	const typesafe = await loadConfig(TYPESAFE_CONFIG);
+	const registry = createRegistry({ ...typesafe, packs: [...typesafe.packs, GATE_CONTENT] });
 	const controlIds = new Set(
 		registry.listControlMaps().flatMap((map) => map.rows.map((row) => `${map.id}/${row.ref}`))
 	);
 
-	it('are the fifteen campaign-shaped designs, drift-day being the Monitor’s', () => {
+	it('are the sixteen campaign-shaped designs, drift-day being the Monitor’s', () => {
 		expect(FILES).toEqual([
 			'advice-context.json',
 			// WP150: the enforced ceilings against Level 5, the components against none, a stack per Phase AA desk.
@@ -40,6 +43,8 @@ describe('the reference experiments', async () => {
 			'controls.json',
 			'disputes-stack.json',
 			'fraud-stack.json',
+			// WP157: the Gate's five presets as guard levels.
+			'gate-presets.json',
 			'human-oversight.json',
 			'lending-context.json',
 			'lending-fairness.json',

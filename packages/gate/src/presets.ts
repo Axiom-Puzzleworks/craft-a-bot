@@ -36,22 +36,45 @@ export const NO_OUTSIDE_MAIL_CARD: PolicyCard = {
 	]
 } as PolicyCard;
 
-const stack = (id: string, name: string, description: string, fit: Stack['fit']): Stack =>
-	stackSchema.parse({ schemaVersion: 1, id, name, description, fit, provenance: PROVENANCE });
+/** The generic control map's rows a preset claims (WP157, `111-…` §4), so the register can attribute its effect. */
+const row = (ref: string) => `governance/control-map/${ref}`;
+
+const stack = (
+	id: string,
+	name: string,
+	description: string,
+	fit: Stack['fit'],
+	controls: string[]
+): Stack =>
+	stackSchema.parse({
+		schemaVersion: 1,
+		id,
+		name,
+		description,
+		fit,
+		controls,
+		provenance: PROVENANCE
+	});
 
 export const GATE_PRESETS: readonly Stack[] = [
-	stack('gate/stack/budgets', 'Budgets', 'The turn and token budgets, before each turn.', [
-		{
-			componentId: 'governance/step-budget',
-			config: { maxTicks: 4 },
-			point: { kind: 'pre-think' }
-		},
-		{
-			componentId: 'governance/token-budget',
-			config: { maxTokens: 20_000 },
-			point: { kind: 'pre-think' }
-		}
-	]),
+	stack(
+		'gate/stack/budgets',
+		'Budgets',
+		'The turn and token budgets, before each turn.',
+		[
+			{
+				componentId: 'governance/step-budget',
+				config: { maxTicks: 4 },
+				point: { kind: 'pre-think' }
+			},
+			{
+				componentId: 'governance/token-budget',
+				config: { maxTokens: 20_000 },
+				point: { kind: 'pre-think' }
+			}
+		],
+		[row('asi10')]
+	),
 	stack(
 		'gate/stack/policy-card',
 		'A policy card',
@@ -67,15 +90,22 @@ export const GATE_PRESETS: readonly Stack[] = [
 				config: { cardId: NO_OUTSIDE_MAIL_CARD.id },
 				point: { kind: 'pre-act' }
 			}
-		]
+		],
+		[row('asi02')]
 	),
-	stack('gate/stack/approval', 'Ask first', 'A person approves every call.', [
-		{
-			componentId: 'governance/approval-mode',
-			config: { mode: 'everything' },
-			point: { kind: 'pre-act' }
-		}
-	]),
+	stack(
+		'gate/stack/approval',
+		'Ask first',
+		'A person approves every call.',
+		[
+			{
+				componentId: 'governance/approval-mode',
+				config: { mode: 'everything' },
+				point: { kind: 'pre-act' }
+			}
+		],
+		[row('asi09')]
+	),
 	stack(
 		'gate/stack/injection-defences',
 		'Injection defences',
@@ -83,7 +113,8 @@ export const GATE_PRESETS: readonly Stack[] = [
 		[
 			{ componentId: 'governance/untrusted-content', config: {}, point: { kind: 'post-act' } },
 			{ componentId: 'governance/taint', config: {}, point: { kind: 'pre-act' } }
-		]
+		],
+		[row('asi01')]
 	),
 	stack(
 		'gate/stack/quarantined-reader',
@@ -92,7 +123,8 @@ export const GATE_PRESETS: readonly Stack[] = [
 		[
 			{ componentId: 'fs-bank/guard/quarantined-reader', config: {}, point: { kind: 'post-act' } },
 			{ componentId: 'governance/taint', config: {}, point: { kind: 'pre-act' } }
-		]
+		],
+		[row('asi01')]
 	)
 ];
 

@@ -202,3 +202,44 @@ WP151 and WP152 are independent; WP153 needs both. WP154–WP156 are independent
 > - **The desk stacks' cards check sequence and approvals, not decisions.** On four desks the stack cannot catch a wrong decision. A card per desk that checks the decision against the rule is what would; the lending and fraud desks found the same in WP116.
 >
 > **Phase AP is closed. Next: Phase AQ, WP157–WP158.**
+
+> **WP157 — done 2026-10-02**, on `phase-aq` (Phase AP merged as PR #68).
+> - **Claims.** Each Gate preset now claims the generic rows of what it holds, as `Stack.controls`:
+>   - budgets: `asi10`;
+>   - policy card: `asi02`;
+>   - ask first: `asi09`;
+>   - injection defences and the quarantined reader: `asi01`.
+> - **Config (D5).** `packages/gate/craftabot.config.mjs` installs `GATE_CONTENT` beside the default packs, and CI's experiment loop uses it for `gate-presets`.
+> - **A per-level fix found on the way.** `stackControlsFor` joined every stack the guard factor named to every effect. It now joins only the stack the effect's level ran. No committed design had more than one stack level, so no result moved.
+> - **The design** `experiments/gate-presets.json` runs the five presets as guard levels over the nine scenarios, under both scripted tiers: 2,160 cells, 132 s. Each level's primary metric is the one its preset is built to move, set after one exploratory run of the same design and said so here.
+> - **Every shipped stack now has a verdict, the Gate's five included, and so does every instance a stack carries** (§7 item 6).
+>
+>   | Preset | Verdict | What it rests on |
+>   | --- | --- | --- |
+>   | Budgets | *evidenced* | tokens −81% under the adversary; it also stops the optimal bot, since four turns is the Gate's budget for a wire agent, not a Playroom one |
+>   | Policy card | *evidenced* | its 8-turn step budget stops 67% of adversary runs. Its card governs mail, which the Playroom has none of |
+>   | Ask first | *inconclusive* | a campaign approves every request, so a person who always says yes changes nothing |
+>   | Injection defences | *inconclusive* | taint needs four words in common and the scripted leaks share three; marking costs about 160 tokens a run |
+>   | Quarantined reader | *inconclusive* | as for the injection defences, at about 300 tokens a run |
+
+> **WP158 — done 2026-10-02.**
+> - **The re-run.** All sixteen designs re-ran at full size: `servicing-readers` under the typesafe config, `gate-presets` under the Gate's. Every effect reproduced the committed one exactly, costs included, so `docs/evidence/` changes only in each result's run time and digest. `README.md` and `timings.md` say so.
+> - **The readings queue** stands at **316**, up 12 since Phase AN's 304: six calibration rows (five error rates and the reason rate), one control row (`complaints-on-the-register`), and five error models.
+> - **The manual** gains §69, *Every control testable*, and the PDF is rebuilt.
+> - **The budgets** were restated at Phase AP's exit (`01-…`'s dated note). Phase AQ adds the Gate's claims and a config file the app does not bundle.
+
+> **Phase AQ exit review, and the plan's — 2026-10-02.** WP157–WP158 are done, on `phase-aq`. §7, the plan's definition of done, item by item:
+> - **Item 1** (every agent-security component evidenced, inconclusive or not-supported, or a stated exception): **met.** All seven are evidenced; prompt integrity and vulnerability detection are D4's exceptions.
+> - **Item 2** (`campaigns/agent-security-baseline.json` green in CI, its red runs held): **met.**
+> - **Item 3** (every desk's stack design has a fallible level; none untestable for want of an error): **met.**
+> - **Item 4** (the complaints error diagnosed, the desk's stack carrying the two cards): **met.**
+> - **Item 5** (`override-reason` passing at the model's rate): **met.** 78% against 75%.
+> - **Item 6** (every shipped stack, the Gate's included, has a verdict): **met.** By stack: 6 evidenced, 15 inconclusive, 5 untestable. Every card or component a stack carries has one too.
+> - **Item 7** (every new row, rate and card on the reading desk, the count stated): **met.** 316 readings.
+> - **G119–G127:** closed.
+>
+> **For Andrew's reading,** beside Phases AO's and AP's:
+> - The Gate's presets were sized for a wire agent. Four turns stops a Playroom bot that needs four moves and a word.
+> - Ask-first cannot be measured by a campaign that approves every request. A campaign-side person who sometimes refuses, as the reviewer model does at a human stage, would be the instrument.
+>
+> **Phases AO–AQ are closed, and `111-…`'s forward plan is exhausted.** Starting new work needs a fresh planning pass.

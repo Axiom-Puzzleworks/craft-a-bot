@@ -1,6 +1,6 @@
 {
 	"schemaVersion": 1,
-	"id": "human-oversight@2026-10-02T12:35:10.213Z",
+	"id": "human-oversight@2026-10-02T17:43:12.332Z",
 	"experimentId": "human-oversight",
 	"title": "Human oversight by autonomy level on the loan book",
 	"hypothesis": "Moving the lending journey from Level 3 to Level 5 cuts touches per case by a stated factor and raises the ceiling-breach rate from zero; the policy-card stack at Level 4 recovers most of the outcome loss at a fraction of Level 3’s touches. With the ceilings enforced (WP139), Level 5 reads as rules-only does on breaches and touches; the ceilings design measures it against Level 5 itself.",
@@ -11,7 +11,7 @@
 		"pra:ss1-23:mitigants",
 		"pra:ss1-23:governance"
 	],
-	"ranAt": "2026-10-02T12:35:10.213Z",
+	"ranAt": "2026-10-02T17:43:12.332Z",
 	"workflowIds": [
 		"fs-lending/lending"
 	],
@@ -1084,8 +1084,8 @@
 				"00000000-0000-4000-8000-000004a93cc1"
 			],
 			"reportIds": [
-				"f7019570-2dc5-4a6a-ba32-85a2e5952ff3",
-				"39987556-4bd7-4475-aca3-d4575eb02721"
+				"428d859d-4aa4-407c-8f25-63ce012abe93",
+				"0726ec9a-2798-408d-9298-88512e956d1b"
 			]
 		},
 		{
@@ -2131,8 +2131,8 @@
 				"00000000-0000-4000-8000-000004a93cc1"
 			],
 			"reportIds": [
-				"f7019570-2dc5-4a6a-ba32-85a2e5952ff3",
-				"39987556-4bd7-4475-aca3-d4575eb02721"
+				"428d859d-4aa4-407c-8f25-63ce012abe93",
+				"0726ec9a-2798-408d-9298-88512e956d1b"
 			]
 		},
 		{
@@ -3178,8 +3178,8 @@
 				"00000000-0000-4000-8000-000004a93cc1"
 			],
 			"reportIds": [
-				"f7019570-2dc5-4a6a-ba32-85a2e5952ff3",
-				"39987556-4bd7-4475-aca3-d4575eb02721"
+				"428d859d-4aa4-407c-8f25-63ce012abe93",
+				"0726ec9a-2798-408d-9298-88512e956d1b"
 			]
 		},
 		{
@@ -4224,8 +4224,8 @@
 				"00000000-0000-4000-8000-000004a93ce7"
 			],
 			"reportIds": [
-				"f7019570-2dc5-4a6a-ba32-85a2e5952ff3",
-				"30975624-b9c2-4a62-a5d4-d64c2e159e03"
+				"428d859d-4aa4-407c-8f25-63ce012abe93",
+				"46369ea1-83c4-4596-a1a9-6a77f9e7cbe4"
 			]
 		},
 		{
@@ -5271,8 +5271,8 @@
 				"00000000-0000-4000-8000-000004a93ce7"
 			],
 			"reportIds": [
-				"f7019570-2dc5-4a6a-ba32-85a2e5952ff3",
-				"30975624-b9c2-4a62-a5d4-d64c2e159e03"
+				"428d859d-4aa4-407c-8f25-63ce012abe93",
+				"46369ea1-83c4-4596-a1a9-6a77f9e7cbe4"
 			]
 		},
 		{
@@ -6317,8 +6317,8 @@
 				"00000000-0000-4000-8000-000004a93ce7"
 			],
 			"reportIds": [
-				"f7019570-2dc5-4a6a-ba32-85a2e5952ff3",
-				"30975624-b9c2-4a62-a5d4-d64c2e159e03"
+				"428d859d-4aa4-407c-8f25-63ce012abe93",
+				"46369ea1-83c4-4596-a1a9-6a77f9e7cbe4"
 			]
 		},
 		{
@@ -7363,8 +7363,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"f7019570-2dc5-4a6a-ba32-85a2e5952ff3",
-				"b245c9fc-5c2f-49da-a4ca-031d946b2bdb"
+				"428d859d-4aa4-407c-8f25-63ce012abe93",
+				"bcde0f10-fbcf-4524-ae2f-5b89b110d95d"
 			]
 		},
 		{
@@ -8409,8 +8409,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"f7019570-2dc5-4a6a-ba32-85a2e5952ff3",
-				"b245c9fc-5c2f-49da-a4ca-031d946b2bdb"
+				"428d859d-4aa4-407c-8f25-63ce012abe93",
+				"bcde0f10-fbcf-4524-ae2f-5b89b110d95d"
 			]
 		},
 		{
@@ -9456,8 +9456,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"f7019570-2dc5-4a6a-ba32-85a2e5952ff3",
-				"b245c9fc-5c2f-49da-a4ca-031d946b2bdb"
+				"428d859d-4aa4-407c-8f25-63ce012abe93",
+				"bcde0f10-fbcf-4524-ae2f-5b89b110d95d"
 			]
 		},
 		{
@@ -10502,8 +10502,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"f7019570-2dc5-4a6a-ba32-85a2e5952ff3",
-				"76983829-6844-487e-aec2-f9d41a10799b"
+				"428d859d-4aa4-407c-8f25-63ce012abe93",
+				"d3d83949-23d6-4c76-b5b1-c0f56f5da0b0"
 			]
 		},
 		{
@@ -11548,8 +11548,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"f7019570-2dc5-4a6a-ba32-85a2e5952ff3",
-				"76983829-6844-487e-aec2-f9d41a10799b"
+				"428d859d-4aa4-407c-8f25-63ce012abe93",
+				"d3d83949-23d6-4c76-b5b1-c0f56f5da0b0"
 			]
 		},
 		{
@@ -12595,8 +12595,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"f7019570-2dc5-4a6a-ba32-85a2e5952ff3",
-				"76983829-6844-487e-aec2-f9d41a10799b"
+				"428d859d-4aa4-407c-8f25-63ce012abe93",
+				"d3d83949-23d6-4c76-b5b1-c0f56f5da0b0"
 			]
 		},
 		{
@@ -13641,8 +13641,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"f7019570-2dc5-4a6a-ba32-85a2e5952ff3",
-				"e658ff2d-6b0a-48f6-bb4a-e97dda41dd34"
+				"428d859d-4aa4-407c-8f25-63ce012abe93",
+				"9a6e75a1-77a9-49d9-893b-49567d847a9a"
 			]
 		},
 		{
@@ -14688,8 +14688,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"f7019570-2dc5-4a6a-ba32-85a2e5952ff3",
-				"e658ff2d-6b0a-48f6-bb4a-e97dda41dd34"
+				"428d859d-4aa4-407c-8f25-63ce012abe93",
+				"9a6e75a1-77a9-49d9-893b-49567d847a9a"
 			]
 		},
 		{
@@ -15735,8 +15735,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"f7019570-2dc5-4a6a-ba32-85a2e5952ff3",
-				"e658ff2d-6b0a-48f6-bb4a-e97dda41dd34"
+				"428d859d-4aa4-407c-8f25-63ce012abe93",
+				"9a6e75a1-77a9-49d9-893b-49567d847a9a"
 			]
 		},
 		{
@@ -16781,8 +16781,8 @@
 				"00000000-0000-4000-8000-000004a93cc1"
 			],
 			"reportIds": [
-				"ffb8015e-83df-443e-87c2-e77e67cded54",
-				"193913b8-74c6-440f-b4ba-67c0a3d01115"
+				"df4c9ce3-7cf9-4c20-bfc9-3bf28f0625c8",
+				"d1fb80e0-71a2-4790-878f-1054f940f955"
 			]
 		},
 		{
@@ -17828,8 +17828,8 @@
 				"00000000-0000-4000-8000-000004a93cc1"
 			],
 			"reportIds": [
-				"ffb8015e-83df-443e-87c2-e77e67cded54",
-				"193913b8-74c6-440f-b4ba-67c0a3d01115"
+				"df4c9ce3-7cf9-4c20-bfc9-3bf28f0625c8",
+				"d1fb80e0-71a2-4790-878f-1054f940f955"
 			]
 		},
 		{
@@ -18875,8 +18875,8 @@
 				"00000000-0000-4000-8000-000004a93cc1"
 			],
 			"reportIds": [
-				"ffb8015e-83df-443e-87c2-e77e67cded54",
-				"193913b8-74c6-440f-b4ba-67c0a3d01115"
+				"df4c9ce3-7cf9-4c20-bfc9-3bf28f0625c8",
+				"d1fb80e0-71a2-4790-878f-1054f940f955"
 			]
 		},
 		{
@@ -19921,8 +19921,8 @@
 				"00000000-0000-4000-8000-000004a93ce7"
 			],
 			"reportIds": [
-				"ffb8015e-83df-443e-87c2-e77e67cded54",
-				"43f8a08e-8748-40d2-adb8-4c497beea0e8"
+				"df4c9ce3-7cf9-4c20-bfc9-3bf28f0625c8",
+				"5331ff29-8204-4ea1-ac12-a4d66f7d0458"
 			]
 		},
 		{
@@ -20968,8 +20968,8 @@
 				"00000000-0000-4000-8000-000004a93ce7"
 			],
 			"reportIds": [
-				"ffb8015e-83df-443e-87c2-e77e67cded54",
-				"43f8a08e-8748-40d2-adb8-4c497beea0e8"
+				"df4c9ce3-7cf9-4c20-bfc9-3bf28f0625c8",
+				"5331ff29-8204-4ea1-ac12-a4d66f7d0458"
 			]
 		},
 		{
@@ -22014,8 +22014,8 @@
 				"00000000-0000-4000-8000-000004a93ce7"
 			],
 			"reportIds": [
-				"ffb8015e-83df-443e-87c2-e77e67cded54",
-				"43f8a08e-8748-40d2-adb8-4c497beea0e8"
+				"df4c9ce3-7cf9-4c20-bfc9-3bf28f0625c8",
+				"5331ff29-8204-4ea1-ac12-a4d66f7d0458"
 			]
 		},
 		{
@@ -23060,8 +23060,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"ffb8015e-83df-443e-87c2-e77e67cded54",
-				"0dd082f3-a5c9-4cfa-9bab-73bb17eb0fd3"
+				"df4c9ce3-7cf9-4c20-bfc9-3bf28f0625c8",
+				"3228b638-005c-45a5-a0e5-87a5e81eb2da"
 			]
 		},
 		{
@@ -24106,8 +24106,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"ffb8015e-83df-443e-87c2-e77e67cded54",
-				"0dd082f3-a5c9-4cfa-9bab-73bb17eb0fd3"
+				"df4c9ce3-7cf9-4c20-bfc9-3bf28f0625c8",
+				"3228b638-005c-45a5-a0e5-87a5e81eb2da"
 			]
 		},
 		{
@@ -25152,8 +25152,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"ffb8015e-83df-443e-87c2-e77e67cded54",
-				"0dd082f3-a5c9-4cfa-9bab-73bb17eb0fd3"
+				"df4c9ce3-7cf9-4c20-bfc9-3bf28f0625c8",
+				"3228b638-005c-45a5-a0e5-87a5e81eb2da"
 			]
 		},
 		{
@@ -26198,8 +26198,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"ffb8015e-83df-443e-87c2-e77e67cded54",
-				"03b5ab68-9a37-4ce0-8602-55be63584a14"
+				"df4c9ce3-7cf9-4c20-bfc9-3bf28f0625c8",
+				"423a10c4-24d4-47f4-8940-ba695801774f"
 			]
 		},
 		{
@@ -27244,8 +27244,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"ffb8015e-83df-443e-87c2-e77e67cded54",
-				"03b5ab68-9a37-4ce0-8602-55be63584a14"
+				"df4c9ce3-7cf9-4c20-bfc9-3bf28f0625c8",
+				"423a10c4-24d4-47f4-8940-ba695801774f"
 			]
 		},
 		{
@@ -28290,8 +28290,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"ffb8015e-83df-443e-87c2-e77e67cded54",
-				"03b5ab68-9a37-4ce0-8602-55be63584a14"
+				"df4c9ce3-7cf9-4c20-bfc9-3bf28f0625c8",
+				"423a10c4-24d4-47f4-8940-ba695801774f"
 			]
 		},
 		{
@@ -29336,8 +29336,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"ffb8015e-83df-443e-87c2-e77e67cded54",
-				"91452bdf-0820-4491-a127-2d47b3ef333b"
+				"df4c9ce3-7cf9-4c20-bfc9-3bf28f0625c8",
+				"e6ad8d0d-cb89-47b6-a9b3-a9d90d3ed3df"
 			]
 		},
 		{
@@ -30383,8 +30383,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"ffb8015e-83df-443e-87c2-e77e67cded54",
-				"91452bdf-0820-4491-a127-2d47b3ef333b"
+				"df4c9ce3-7cf9-4c20-bfc9-3bf28f0625c8",
+				"e6ad8d0d-cb89-47b6-a9b3-a9d90d3ed3df"
 			]
 		},
 		{
@@ -31429,8 +31429,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"ffb8015e-83df-443e-87c2-e77e67cded54",
-				"91452bdf-0820-4491-a127-2d47b3ef333b"
+				"df4c9ce3-7cf9-4c20-bfc9-3bf28f0625c8",
+				"e6ad8d0d-cb89-47b6-a9b3-a9d90d3ed3df"
 			]
 		},
 		{
@@ -31691,8 +31691,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"f7019570-2dc5-4a6a-ba32-85a2e5952ff3",
-				"3a037b67-22a6-44fa-97c5-040067e40379"
+				"428d859d-4aa4-407c-8f25-63ce012abe93",
+				"2d358c48-b501-4f36-8dcf-6352aca08446"
 			]
 		},
 		{
@@ -31954,8 +31954,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"f7019570-2dc5-4a6a-ba32-85a2e5952ff3",
-				"3a037b67-22a6-44fa-97c5-040067e40379"
+				"428d859d-4aa4-407c-8f25-63ce012abe93",
+				"2d358c48-b501-4f36-8dcf-6352aca08446"
 			]
 		},
 		{
@@ -32217,8 +32217,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"f7019570-2dc5-4a6a-ba32-85a2e5952ff3",
-				"3a037b67-22a6-44fa-97c5-040067e40379"
+				"428d859d-4aa4-407c-8f25-63ce012abe93",
+				"2d358c48-b501-4f36-8dcf-6352aca08446"
 			]
 		},
 		{
@@ -32479,8 +32479,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"ffb8015e-83df-443e-87c2-e77e67cded54",
-				"fb4fe4f2-4df7-4b95-a1f2-9851ec181271"
+				"df4c9ce3-7cf9-4c20-bfc9-3bf28f0625c8",
+				"6fdb6c74-a496-4828-97fc-957778d3b357"
 			]
 		},
 		{
@@ -32742,8 +32742,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"ffb8015e-83df-443e-87c2-e77e67cded54",
-				"fb4fe4f2-4df7-4b95-a1f2-9851ec181271"
+				"df4c9ce3-7cf9-4c20-bfc9-3bf28f0625c8",
+				"6fdb6c74-a496-4828-97fc-957778d3b357"
 			]
 		},
 		{
@@ -33005,12 +33005,12 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"ffb8015e-83df-443e-87c2-e77e67cded54",
-				"fb4fe4f2-4df7-4b95-a1f2-9851ec181271"
+				"df4c9ce3-7cf9-4c20-bfc9-3bf28f0625c8",
+				"6fdb6c74-a496-4828-97fc-957778d3b357"
 			]
 		}
 	],
 	"verdict": "not-supported",
 	"note": "minimum detectable difference of rates at the achieved n (783 on the smaller side, 80% power): 1.4 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)",
-	"digest": "ae413306d4a5092e27e3e6f593022ca6a1f301655879653771e097efe21aa3c8"
+	"digest": "8db5e172f4684df6f191ac5a5cc5e5529bc5f0b577daaa74ffe0fd8502de1e28"
 }

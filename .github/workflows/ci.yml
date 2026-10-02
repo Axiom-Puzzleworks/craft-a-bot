@@ -212,13 +212,16 @@ jobs:
       # typesafe pack's --config, which adds that pack to the defaults and changes nothing the seven run): every design under experiments/ at a reduced
       # population, each reduced result held to the committed full-size one's shape — the same
       # metrics, factors and levels, a verdict from the same three — never its values. A design over
-      # scenarios (WP150's `controls`) has no population to reduce and runs whole.
+      # scenarios (WP150's `controls`) has no population to reduce and runs whole. `gate-presets` (WP157)
+      # runs under the Gate's own config, which installs its presets beside the defaults.
       - name: Run the reference experiments (reduced)
         run: >
           for f in experiments/*.json; do
           id=$(basename "$f" .json);
           size=$(node -e "const e=require('./$f');process.stdout.write(e.design.template.source?'--size 200':'')");
-          npm run craftabot -- experiment run --config packages/packs/typesafe/craftabot.config.mjs --file "$f" $size --egress none --jobs 2
+          config=packages/packs/typesafe/craftabot.config.mjs;
+          if [ "$id" = "gate-presets" ]; then config=packages/gate/craftabot.config.mjs; fi;
+          npm run craftabot -- experiment run --config "$config" --file "$f" $size --egress none --jobs 2
           --out "campaign-out/experiments/$id" || exit 1;
           mkdir -p "campaign-out/experiments-shape/$id";
           cp "campaign-out/experiments/$id/$id.experiment-result.json" "campaign-out/experiments-shape/$id/";
