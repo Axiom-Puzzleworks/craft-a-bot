@@ -124,6 +124,31 @@ table.control td:first-child{{width:26%;background:{INSET};font-weight:600}}
 .dropped{{display:none}}
 """
 
+# ---------- the edition, read from the manual ----------
+# The cover and footer once carried the version and date as typed strings, and
+# went three editions stale (2026-10-02). They come from the manual's own
+# front-matter table now: `| **Version** | 1.6 (draft for review) |` and
+# `| **Date** | 2 October 2026 (…) |`. The commit is the one the PDF is built from.
+def front_matter_row(text, key):
+    m = re.search(r'^\|\s*\*\*' + re.escape(key) + r'\*\*\s*\|\s*(.+?)\s*\|\s*$', text, re.M)
+    assert m, f'the manual has no "{key}" row in its front-matter table'
+    return m.group(1)
+
+_manual = io.open('MANUAL-FOR-PDF.md', encoding='utf-8').read()
+_version_row = front_matter_row(_manual, 'Version')
+_vm = re.match(r'(\d+\.\d+)\s*(?:\((.+)\))?$', _version_row)
+assert _vm, f'the Version row "{_version_row}" is not "<major>.<minor> (<status>)"'
+VERSION, STATUS = _vm.group(1), (_vm.group(2) or '').strip()
+DATE = re.sub(r'\s*\(.*\)$', '', front_matter_row(_manual, 'Date'))
+assert re.match(r'^\d{1,2} [A-Z][a-z]+ \d{4}$', DATE), f'the Date row "{DATE}" is not "<day> <Month> <year>"'
+try:
+    import subprocess
+    COMMIT = subprocess.run(['git', 'rev-parse', '--short', 'HEAD'], capture_output=True,
+                            text=True, check=True).stdout.strip()
+except Exception:
+    COMMIT = ''
+print(f'edition: v{VERSION} | {DATE}' + (f' | {STATUS}' if STATUS else '') + (f' | built from {COMMIT}' if COMMIT else ''))
+
 HEADER = f"""<div style="font-family:'IBM Plex Mono',monospace;font-size:6.5pt;letter-spacing:.08em;
  color:{MUTED};width:100%;padding:0 20mm;display:flex;justify-content:space-between;
  text-transform:uppercase;border-bottom:none;">
@@ -131,7 +156,7 @@ HEADER = f"""<div style="font-family:'IBM Plex Mono',monospace;font-size:6.5pt;l
 
 FOOTER = f"""<div style="font-family:'IBM Plex Mono',monospace;font-size:6.5pt;letter-spacing:.08em;
  color:{MUTED};width:100%;padding:0 20mm;display:flex;justify-content:space-between;">
- <span>v1.6 &nbsp;·&nbsp; 2 October 2026 &nbsp;·&nbsp; FOR SIMULATION ONLY</span>
+ <span>v{VERSION} &nbsp;·&nbsp; {DATE} &nbsp;·&nbsp; FOR SIMULATION ONLY</span>
  <span>page <span class="pageNumber"></span> of <span class="totalPages"></span></span></div>"""
 
 # ---------- markdown ----------
@@ -198,7 +223,7 @@ cover = f"""<div class="cover">
   <div class="spacer"></div>
   <div class="proof">∴</div>
   <div><span class="strap">FOR SIMULATION ONLY</span></div>
-  <div class="foot">Version 1.6 &nbsp;·&nbsp; 2 October 2026 &nbsp;·&nbsp; applies to <code style="border:0;background:none;padding:0;color:inherit">main</code> at 6225faf &nbsp;·&nbsp; draft for review</div>
+  <div class="foot">Version {VERSION} &nbsp;·&nbsp; {DATE}{f' &nbsp;·&nbsp; built from <code style="border:0;background:none;padding:0;color:inherit">{COMMIT}</code>' if COMMIT else ''}{f' &nbsp;·&nbsp; {STATUS}' if STATUS else ''}</div>
 </div>"""
 
 def page(inner, klass=''):

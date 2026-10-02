@@ -49,7 +49,7 @@ The **headless harness** (`npm run craftabot -- …`) runs, records, bundles, ev
 
 |             | Version                          | Notes                                                                                                                                                                            |
 | ----------- | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Node.js** | **20 or newer** (24 recommended) | The only hard requirement. Get it from [nodejs.org](https://nodejs.org) or via [nvm](https://github.com/nvm-sh/nvm) / [nvm-windows](https://github.com/coreybutler/nvm-windows). |
+| **Node.js** | **22 or newer** (24 recommended) | The only hard requirement. Get it from [nodejs.org](https://nodejs.org) or via [nvm](https://github.com/nvm-sh/nvm) / [nvm-windows](https://github.com/coreybutler/nvm-windows). |
 | **npm**     | 10 or newer                      | Ships with Node. This repo is pinned to `npm@11.19.0` via `packageManager`.                                                                                                      |
 | **Git**     | any recent                       | To clone the repo.                                                                                                                                                               |
 

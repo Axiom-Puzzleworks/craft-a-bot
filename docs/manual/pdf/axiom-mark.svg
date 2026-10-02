@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-labelledby="axiom-mark-title">
+	<title id="axiom-mark-title">Axiom Verity</title>
+	<path
+		d="M32 13 L14 50 M32 13 L50 50 M14 50 L50 50"
+		fill="none"
+		stroke="#0e2a4a"
+		stroke-width="3"
+		stroke-linecap="round"
+		stroke-linejoin="round"
+		opacity="0.55"
+	/>
+	<circle cx="32" cy="13" r="6.5" fill="#a8781f" />
+	<circle cx="14" cy="50" r="6.5" fill="#a8781f" />
+	<circle cx="50" cy="50" r="6.5" fill="#a8781f" />
+</svg>
