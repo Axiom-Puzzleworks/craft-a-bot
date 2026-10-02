@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { action, context, tool } from '../test-context.js';
 import { ACTION_BLOCKLIST_ID, createActionBlocklistGuardrail } from './action-blocklist.js';
 import { APPROVAL_MODE_ID, createApprovalModeGuardrail } from './approval-mode.js';
+import { createNoProgressGuardrail, turnsWithoutProgress } from './no-progress.js';
 import { NO_REPETITION_ID, createNoRepetitionGuardrail } from './no-repetition.js';
 import { STEP_BUDGET_ID, createStepBudgetGuardrail } from './step-budget.js';
 import { TOKEN_BUDGET_ID, createTokenBudgetGuardrail } from './token-budget.js';
@@ -583,5 +584,32 @@ describe('no repetition without a progress answer (WP45)', () => {
 			})
 		);
 		expect(verdict).toMatchObject({ allow: false, disposition: 'block-action' });
+	});
+});
+
+describe('no progress (WP141)', () => {
+	it('lets a tick with no proposal through, and counts nothing as progress when told nothing', () => {
+		const guardrail = createNoProgressGuardrail(2);
+		expect(guardrail.check(context({ hook: 'pre-act' }))).toEqual({ allow: true });
+		const events = [
+			{ type: 'world.changed', payload: { state: { a: 1 } } },
+			{ type: 'decision', payload: { call: { kind: 'action', name: 'walk', arguments: {} } } },
+			{
+				type: 'action.performed',
+				payload: { name: 'walk', arguments: {}, result: { ok: true, narration: '' } }
+			},
+			{ type: 'world.changed', payload: { state: { a: 1 } } },
+			{ type: 'decision', payload: { call: { kind: 'action', name: 'walk', arguments: {} } } },
+			{
+				type: 'action.performed',
+				payload: { name: 'walk', arguments: {}, result: { ok: true, narration: '' } }
+			},
+			{ type: 'world.changed', payload: { state: { a: 1 } } },
+			{ type: 'decision', payload: { call: { kind: 'action', name: 'walk', arguments: {} } } }
+		] as unknown as EngineEvent[];
+		expect(turnsWithoutProgress(events)).toBe(2);
+		expect(
+			guardrail.check(context({ hook: 'pre-act', proposed: action('walk'), history: events }))
+		).toMatchObject({ allow: false, disposition: 'stop-run' });
 	});
 });

@@ -113,6 +113,15 @@ export const CONTROL_MECHANISMS: readonly ControlMechanism[] = [
 		since: 'WP0'
 	}),
 	m({
+		id: 'core/memory-label',
+		name: 'The notebook write’s label',
+		summary:
+			'A notebook write made after the bot read unquarantined untrusted content carries source untrusted on its memory.updated: the context’s label, whatever the words.',
+		where: ['packages/core/src/session/agent-session.ts'],
+		observedAs: ['memory.updated.source'],
+		since: 'WP141'
+	}),
+	m({
 		id: 'core/risk-tier',
 		name: 'Risk tiers on actions',
 		summary:
@@ -164,6 +173,16 @@ export const CONTROL_MECHANISMS: readonly ControlMechanism[] = [
 		where: ['packages/core/src/provider-cassette.ts'],
 		observedAs: ['error.kind cassette-miss'],
 		since: 'WP58'
+	}),
+	m({
+		id: 'core/pack-digest',
+		name: 'The pack content digest and its pins',
+		summary:
+			'A digest over every tool, action and sense description, card and stack a pack carries; a host pins it, and the registry refuses a pack that differs.',
+		where: ['packages/core/src/pack-digest.ts', 'packages/harness/packs.lock.json'],
+		observedAs: ['the registration refusal', 'craftabot packs lock --check'],
+		configuredBy: 'a host’s pins (the harness pins every shipped pack)',
+		since: 'WP141'
 	}),
 	m({
 		id: 'core/export-scrub',
@@ -379,6 +398,16 @@ export const CONTROL_MECHANISMS: readonly ControlMechanism[] = [
 		where: ['packages/evals/src/campaign.ts'],
 		observedAs: ['/workshop/campaigns', 'the campaign report'],
 		since: 'WP38'
+	}),
+	m({
+		id: 'evals/evaluators',
+		name: 'Evaluators',
+		summary:
+			'A judgement over a finished run — a check, a rubric or a hosted judge — recorded beside it and read by a campaign’s gates.',
+		where: ['packages/core/src/types/evaluator.ts', 'packages/evals/src/evaluators.ts'],
+		observedAs: ['/workshop/evaluators', 'evaluation records', 'the campaign report'],
+		configuredBy: 'a campaign’s evaluators and gates',
+		since: 'WP43'
 	}),
 	m({
 		id: 'evals/adversary',

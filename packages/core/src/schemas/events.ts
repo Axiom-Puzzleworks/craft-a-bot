@@ -318,7 +318,15 @@ const memoryUpdatedEvent = eventSchema(
 		 * > distinction matters: deliberate writes are the provenance seed for
 		 * > the memory-poisoning curriculum (`14-…` §4.2).
 		 */
-		notebookUpdated: z.boolean()
+		notebookUpdated: z.boolean(),
+		/**
+		 * Where this tick's notebook write came from (WP141, `110-…` §10):
+		 * `'untrusted'` when the bot had read content marked untrusted, and not
+		 * quarantined, before it wrote — the write takes its context's label,
+		 * as information-flow control does, whatever the words. Written only
+		 * then; absent means the context held nothing marked.
+		 */
+		source: z.literal('untrusted').optional()
 	})
 );
 /**
@@ -416,6 +424,26 @@ const approvalResolvedEvent = eventSchema(
 	z.object({
 		approved: z.boolean(),
 		/** Who answered (WP65, `55-…` §4.1); present when the caller said. */
+		by: principalSchema.optional()
+	})
+);
+/**
+ * Least privilege with recorded elevation (WP142, `110-…` §10): a pause whose
+ * verdict names a scope the bot was not granted. Each sits beside the
+ * `approval.requested`/`approval.resolved` pair it rides on, so a reader that
+ * knows only approvals reads the run as before. A scope once granted stays
+ * granted for the run; the rule that asked reads the grant from the trace.
+ */
+const elevationRequestedEvent = eventSchema(
+	'elevation.requested',
+	z.object({ scope: z.string().min(1), reason: z.string() })
+);
+const elevationResolvedEvent = eventSchema(
+	'elevation.resolved',
+	z.object({
+		scope: z.string().min(1),
+		granted: z.boolean(),
+		/** Who answered, as on `approval.resolved`; present when the caller said. */
 		by: principalSchema.optional()
 	})
 );
@@ -540,6 +568,8 @@ export const engineEventSchema = z.discriminatedUnion('type', [
 	contentMarkedEvent,
 	approvalRequestedEvent,
 	approvalResolvedEvent,
+	elevationRequestedEvent,
+	elevationResolvedEvent,
 	worldChangedEvent,
 	inputDeliveredEvent,
 	providerRetriedEvent,

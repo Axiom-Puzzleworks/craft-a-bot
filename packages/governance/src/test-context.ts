@@ -31,6 +31,7 @@ export function context(overrides: Partial<GuardrailContext> = {}): GuardrailCon
 		spec: overrides.spec ?? specWithSafety(),
 		usage: overrides.usage ?? { ticks: 1, inputTokens: 0, outputTokens: 0 },
 		...(overrides.proposed !== undefined ? { proposed: overrides.proposed } : {}),
+		...(overrides.observation !== undefined ? { observation: overrides.observation } : {}),
 		worldState: overrides.worldState ?? {},
 		history: overrides.history ?? []
 	};

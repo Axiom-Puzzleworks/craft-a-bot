@@ -35,6 +35,7 @@
 		"@craftabot/core": "*",
 		"@craftabot/evals": "*",
 		"@craftabot/evidence": "*",
+		"@craftabot/gate": "*",
 		"@craftabot/governance": "*",
 		"@craftabot/metrics": "*",
 		"@craftabot/workflow": "*",

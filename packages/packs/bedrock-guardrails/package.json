@@ -15,7 +15,8 @@
 		"build": "tsc -p tsconfig.build.json",
 		"test": "vitest run --coverage",
 		"check": "tsc --noEmit",
-		"smoke": "npm run build && node --env-file-if-exists=../../../.env scripts/smoke.ts"
+		"smoke": "npm run build && node --env-file-if-exists=../../../.env scripts/smoke.ts",
+		"smoke:ar": "npm run build && node --env-file-if-exists=../../../.env scripts/smoke-ar.ts"
 	},
 	"dependencies": {
 		"@craftabot/core": "*",

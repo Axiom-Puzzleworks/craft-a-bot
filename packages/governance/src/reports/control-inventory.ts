@@ -598,6 +598,7 @@ export function controlInventory(input: ControlInventoryInput): ControlInventory
 		if (row.kind === 'reader') inherit(row, 'mechanism:workflow/reader-gate');
 		if (row.kind === 'ceiling') inherit(row, 'mechanism:workflow/autonomy-ceilings');
 		if (row.kind === 'gate') inherit(row, 'mechanism:evals/campaign');
+		if (row.kind === 'evaluator') inherit(row, 'mechanism:evals/evaluators');
 		if (row.kind === 'artefact' && ARTEFACT_MECHANISM[row.id])
 			inherit(row, ARTEFACT_MECHANISM[row.id]!);
 		if (row.kind === 'stack') {

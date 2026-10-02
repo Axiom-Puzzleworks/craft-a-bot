@@ -239,4 +239,19 @@ V1 needs none. The first features that will genuinely require one: sharing kit f
 > - **+72 kB in every edition** for the catalogue's second edition (23 entries), the declared mechanisms, the inventory's fold and `/workshop/controls`.
 > - **The Kit's first page 136 KiB lighter and the Worker 70 KiB lighter.** `@craftabot/governance` now declares `"sideEffects": false`. The catalogue and the mechanism list are built by top-level calls the bundler could not prove pure, so they had ridden on every page through the root layout's import of governance's barrel. The first-page gate is lowered to 808,000 and the Worker's to 1,739,000, so the gain is held.
 
+> **Amended 2026-10-02 (Phase AL, WP141–WP144, `110-CONTROL-SUITE-PLAN.md` §10): the budgets after the unbuilt techniques.** Each build set to its measured size plus 20 kB:
+>
+> | Build | Budget | Measured | Worker | Kit's first page |
+> |---|---|---|---|---|
+> | full | 3,075,000 | 2,982 KiB | 1,703 KiB of 1,724 | 786 KiB of 789 |
+> | simulator | 2,925,000 | 2,837 KiB | — | — |
+> | workshop | 2,946,000 | 2,857 KiB | — | — |
+> | playground | 3,075,000 | 2,982 KiB | — | — |
+>
+> - **About +33 kB in every edition.** It covers the no-progress, memory-provenance, privilege-scopes and peer-auth components; the policy-conditioned reader with the bank's rulebook; the pack digest in `core`; and the Gate's presets on the Controls page.
+> - **The Worker +26 kB** for the same components and the rulebook.
+> - **The Kit's first page is unchanged** under its gate.
+> - **The Workbench now imports `@craftabot/gate/presets`,** a subpath with no Node import, so `/workshop/controls` sees the Gate's stacks. The WP127 note below said nothing in `apps/workbench` imports the Gate. That holds for the Gate itself (`createGate`, `serveGate`), not for its presets.
+> - **Two packs are harness-only:** `pdp-cedar`, and `bedrock-guardrails`, which now has its automated-reasoning service. No edition installs either.
+
 > **Amended 2026-09-30 (WP127, `107-THE-GATE.md`).** A new Node-only package, **`@craftabot/gate`**. It depends on `core` and `governance` and on no pack, and nothing in `apps/workbench` imports it. The harness runs it as `craftabot gate`.

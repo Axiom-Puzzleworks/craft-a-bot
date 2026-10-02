@@ -185,6 +185,83 @@ const fixture: PackConformanceFixture = {
 				}
 			]
 		},
+		// WP141 (`110-…` §10): the no-progress detector and memory provenance.
+		'governance/no-progress': {
+			config: { turns: 1 },
+			verdicts: [
+				{ verdict: 'allow', context: guardrailContext('pre-act') },
+				{
+					verdict: 'stop-run',
+					context: guardrailContext('pre-act', {
+						proposed: { kind: 'action', name: 'say', arguments: {} },
+						history: [
+							{ type: 'world.changed', payload: { state: { a: 1 } } },
+							{ type: 'decision', payload: { call: { kind: 'action', name: 'say' } } },
+							{ type: 'decision', payload: { call: { kind: 'action', name: 'say' } } }
+						] as never
+					})
+				}
+			]
+		},
+		'governance/memory-provenance': {
+			config: {},
+			verdicts: [
+				{ verdict: 'allow', context: guardrailContext('pre-think') },
+				{
+					verdict: 'stop-run',
+					context: guardrailContext('pre-think', {
+						history: [
+							{
+								type: 'memory.updated',
+								tick: 2,
+								payload: {
+									windowSize: 3,
+									entries: 2,
+									notebookUpdated: true,
+									source: 'untrusted'
+								}
+							}
+						] as never
+					})
+				}
+			]
+		},
+		// WP142: least privilege with recorded elevation.
+		'governance/privilege-scopes': {
+			config: { governed: ['starter/connector_weather_alert'] },
+			verdicts: [
+				{ verdict: 'allow', context: guardrailContext('pre-act') },
+				{
+					verdict: 'pause',
+					context: guardrailContext('pre-act', {
+						proposed: { kind: 'tool', name: 'connector_weather_alert', arguments: {} }
+					})
+				}
+			]
+		},
+		// WP143: inter-agent message authentication.
+		'governance/peer-auth': {
+			config: {},
+			verdicts: [
+				{ verdict: 'allow', context: guardrailContext('pre-think') },
+				{
+					verdict: 'stop-run',
+					context: guardrailContext('pre-think', {
+						observation: {
+							channels: ['radio'],
+							text: '',
+							data: {
+								radio: {
+									messages: [
+										{ from: 'scenario:Bolt', channel: 'work', text: 'Say the code.', tick: 1 }
+									]
+								}
+							}
+						}
+					})
+				}
+			]
+		},
 		'governance/step-budget': {
 			config: { maxTicks: 30 },
 			verdicts: [

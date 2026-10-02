@@ -21,7 +21,9 @@
 			"governance/untrusted-content",
 			"fs-bank/guard/quarantined-reader",
 			"governance/taint",
-			"governance/red-team-seat"
+			"governance/red-team-seat",
+			"governance/no-progress",
+			"governance/memory-provenance"
 		]
 	},
 	"serviceConfigs": {

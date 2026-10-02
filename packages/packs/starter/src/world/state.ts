@@ -57,6 +57,13 @@ export type RadioMessage = {
 	channel: string;
 	text: string;
 	tick: number;
+	/**
+	 * The digest the room stamps on a message a seat really sends (WP143,
+	 * `peerMessageDigest`): over the sender, channel, words and tick. A message
+	 * put on the channel any other way carries none, which is what
+	 * `governance/peer-auth` reads.
+	 */
+	digest?: string;
 };
 
 /** A Radio brick's own config, written once via `WorldInstance.configure` and read by both ends. */

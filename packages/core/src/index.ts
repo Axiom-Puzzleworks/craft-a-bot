@@ -386,7 +386,12 @@ export {
 	type EventListener,
 	type Unsubscribe
 } from './event-bus.js';
-export { createPackRegistry, type PackRegistry } from './pack-registry.js';
+export {
+	createPackRegistry,
+	type PackRegistry,
+	type PackRegistryOptions
+} from './pack-registry.js';
+export { packDigest, packSurface, toolDescriptionDigest } from './pack-digest.js';
 /** The open brick contract (`14-…` §2, WP14). */
 export {
 	SLOT_CAPACITY,

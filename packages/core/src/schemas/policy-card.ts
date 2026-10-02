@@ -83,6 +83,15 @@ export interface PredicateExprPromptContains {
 export interface PredicateExprContentIsUntrusted {
 	kind: 'content-is-untrusted';
 }
+/**
+ * The WP141 leaf (`110-…` §10): the notebook holds a line written while the
+ * bot's context held untrusted content — a `memory.updated` with
+ * `source: 'untrusted'` in the history. What `governance/memory-provenance`
+ * reads; a card can refuse a think over it. Absent history means false.
+ */
+export interface PredicateExprMemoryIsUntrusted {
+	kind: 'memory-is-untrusted';
+}
 export interface PredicateExprTaintReaches {
 	kind: 'taint-reaches';
 	path?: string | undefined;
@@ -125,6 +134,7 @@ export type PredicateExpr =
 	| PredicateExprObservationContains
 	| PredicateExprPromptContains
 	| PredicateExprContentIsUntrusted
+	| PredicateExprMemoryIsUntrusted
 	| PredicateExprTaintReaches
 	| PredicateExprWorldPredicate
 	| PredicateExprHistoryCount
@@ -184,6 +194,7 @@ export const predicateExprSchema: z.ZodType<PredicateExpr> = z.lazy(() =>
 		z.object({ kind: z.literal('observation-contains'), value: z.string().min(1) }),
 		z.object({ kind: z.literal('prompt-contains'), value: z.string().min(1) }),
 		z.object({ kind: z.literal('content-is-untrusted') }),
+		z.object({ kind: z.literal('memory-is-untrusted') }),
 		z.object({
 			kind: z.literal('taint-reaches'),
 			path: z.string().min(1).optional(),

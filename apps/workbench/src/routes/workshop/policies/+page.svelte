@@ -70,6 +70,8 @@
 		{ id: 'prompt-contains', label: 'the prompt carries…' },
 		// The WP124 leaves (`106-BENCHMARK.md` §8): over what was marked untrusted.
 		{ id: 'content-is-untrusted', label: 'the bot has read untrusted content' },
+		// WP141 (`110-…` §10): over what the notebook was written under.
+		{ id: 'memory-is-untrusted', label: 'the notebook holds an untrusted line' },
 		{ id: 'taint-reaches', label: 'untrusted text reaches the call' },
 		{ id: 'world-predicate', label: 'the world says…' },
 		{ id: 'history-count', label: 'the trace already has…' },

@@ -233,10 +233,10 @@ _Catalogue entry first (already there), mechanism second, benchmark level third.
 
 | WP        | What                                                                   | Definition of done                                                                                                                                                                                                                                                                                                                                                       | Size | Retires                                                        |
 | --------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---- | -------------------------------------------------------------- |
-| **WP141** | **`no-progress`, `memory-provenance`, `content-digest`**               | `governance/no-progress` at `pre-act` over repeated identical calls with the world's progress predicate; `memory.updated.source` on the trace and `governance/memory-provenance` with a `memory-is-untrusted` leaf; a `digest` on every pack manifest and tool description, `checkPack` refusing a mismatch at registration; three entries to _shipped_; a benchmark level for the first two | M    | G108 (three of eight)                                          |
-| **WP142** | **`privilege-scopes`**                                                 | A component that starts a bot with the Connector's minimal scopes and records an `elevation.requested`/`resolved` pair as events (`02-…` §7), the approval round-trip reused; `connector/tool-blocklist` folded in as its first instance; the entry to _shipped_                                                                                                           | M    | G91 (the mechanism), G108                                      |
-| **WP143** | **The policy-conditioned classifier and inter-agent authentication**   | `governance/policy-conditioned` as an `llmReader` over any cartridge with the desk's rulebook as the question's guide, measured on the adversarial benchmark; a signed `group` message (`principal` + digest) verified at `pre-think` by `governance/peer-auth`, the party-line scenario its test; two entries to _shipped_                                                   | M    | G108                                                           |
-| **WP144** | **The Cedar and Bedrock automated-reasoning connections**              | Two harness-only connections on the shell with stand-ins and checkpoint commands, recorded _connectable, checkpoint pending_ — the first use of the status                                                                                                                                                                                                                 | S    | G108 (the connections); _formal verification_ stays blueprint  |
+| **WP141** ✅ | **Done 2026-10-02 — §10's WP141 note.** **`no-progress`, `memory-provenance`, `content-digest`** | `governance/no-progress` at `pre-act` over repeated identical calls with the world's progress predicate; `memory.updated.source` on the trace and `governance/memory-provenance` with a `memory-is-untrusted` leaf; a `digest` on every pack manifest and tool description, `checkPack` refusing a mismatch at registration; three entries to _shipped_; a benchmark level for the first two | M    | G108 (three of eight)                                          |
+| **WP142** ✅ | **Done 2026-10-02 — §10's WP142 note.** **`privilege-scopes`** | A component that starts a bot with the Connector's minimal scopes and records an `elevation.requested`/`resolved` pair as events (`02-…` §7), the approval round-trip reused; `connector/tool-blocklist` folded in as its first instance; the entry to _shipped_                                                                                                           | M    | G91 (the mechanism), G108                                      |
+| **WP143** ✅ | **Done 2026-10-02 — §10's WP143 note.** **The policy-conditioned classifier and inter-agent authentication** | `governance/policy-conditioned` as an `llmReader` over any cartridge with the desk's rulebook as the question's guide, measured on the adversarial benchmark; a signed `group` message (`principal` + digest) verified at `pre-think` by `governance/peer-auth`, the party-line scenario its test; two entries to _shipped_                                                   | M    | G108                                                           |
+| **WP144** ✅ | **Done 2026-10-02 — §10's WP144 note.** **The Cedar and Bedrock automated-reasoning connections** | Two harness-only connections on the shell with stand-ins and checkpoint commands, recorded _connectable, checkpoint pending_ — the first use of the status                                                                                                                                                                                                                 | S    | G108 (the connections); _formal verification_ stays blueprint  |
 
 ### Phase AM — The bank's missing controls (WP145–WP149)
 
@@ -417,3 +417,122 @@ _(Recorded here as each work package and phase closes.)_
 > - **The harness.** `craftabot benchmark run --record --only <serviceId,…>` calls just the services named live. Without it, `--record` would also have called the keyless Prompt Guard and recorded its failures. The rest answer from their cassettes or stand-ins, as without `--record` (`harness/src/commands/benchmark.test.ts`).
 > - **The inventory.** `craftabot controls list --store <dir>` over a store holding the benchmark report reads 4 measured, up from 0 with no report: Llama Guard, the keyword reader, and the two marking components.
 > - **What waits.** Model Armor, Azure, Bedrock and Lakera need their keys (WP125's checkpoints); then `--record --only <their ids>`. `DESK_SCREENING` is the configuration the desk stacks fit (every hook noted, offline), and the benchmark screens with each service's own defaults instead. No list price is cited: the local model costs nothing to call, and no hosted service is measured to price.
+
+> **Phase AK follow-ups — 2026-10-02**, on `phase-al` before WP141. Both found reading `craftabot controls list`.
+>
+> - **Thirty-one desk evaluators read *uncatalogued*.** Each was cited by a control-map row, so the orphan rule passed, but no catalogue entry reached it. An evaluator now inherits `eval-harness` through a new mechanism, `evals/evaluators` (the evaluator contract), the way a reader inherits through the reader gate. The orphan rule does not count that generic inheritance as naming an evaluator: one nobody catalogued or cited still fails CI. Uncatalogued: 31 → 0.
+> - **The inventory could not see the Gate's presets.** `@craftabot/gate/presets` is now a browser-safe subpath. `craftabot controls`, the CI inventory test and `/workshop/controls` register `GATE_CONTENT` beside the packs, so taint, untrusted-content marking, the quarantined reader and approval mode read *fitted* (in the Gate's stacks).
+> - **Not changed, and why.** The desks' own stacks still read *unfitted*. The desk baselines fit the same guards as Safety bricks, and the identity test holds the two equal, but no shipped campaign names a stack. That is the true reading.
+
+> **WP141 — done 2026-10-02.** Three techniques, each a component or a mechanism with its entry *shipped*:
+>
+> - **`governance/no-progress`** (`governance/guardrails/no-progress.ts`, `components/provenance.ts`). At `pre-act` it stops a run whose world has not moved for N turns (six by default), whatever was tried. A turn made progress when its call succeeded and either the world declares the action progress (WP45) or the world's state on the next `world.changed` differs from the one before. It reads the trace and nothing else, so a fork or replay judges the same.
+>   - **Diverged:** the plan said "over repeated identical calls"; that is the loop-breaker (`governance/no-repetition`) already. The new rule counts turns without progress across *different* calls, the loop the loop-breaker cannot see.
+>   - **What it does not catch:** talk on a desk. A `say` writes the transcript, which is the world's state.
+> - **Memory provenance.** `memory.updated.source: 'untrusted'` marks a notebook write made after the bot read content marked untrusted and not quarantined (`02-…` §7's dated note). The write takes its context's label, as information-flow control does, whatever the words. Value matching cannot see an injected line's influence on what the bot writes next.
+>   - The `memory-is-untrusted` leaf is in `core`, the policy compiler and the Studio's rule builder.
+>   - `governance/memory-provenance` at `pre-think` stops a think over such a notebook, or annotates it.
+>   - **Coarse by design:** a quarantined result does not taint, and a fork does not refold the label (as WP124's untrusted list).
+> - **The content digest** (`core/src/pack-digest.ts`). `packDigest` covers what a pack tells a model and enforces as data: every tool's, action's, sense's and service operation's name, description and parameters; every goal card, policy card and stack in full; the id and description of every component, evaluator and reader. Code is not in it (a changed function is a version).
+>   - The registry takes `pins` and refuses a pack whose declared `digest`, or its pin, differs. `checkManifest` reports `manifest.digest`.
+>   - The harness pins every shipped pack from `packages/harness/packs.lock.json` (25 packs), written by `craftabot packs lock` and held current by `harness/src/pack-digests.test.ts`. A poisoned tool description fails registration; a stale lock fails CI.
+>   - **Not done:** the Workbench does not pin yet (its edition packs differ per box), and kit files do not record digests.
+> - **The catalogue:** `memory-provenance` moves from *bespoke* to *shipped* (one first-edition entry, inter-agent authentication, remains bespoke); `loop-detection` and `supply-chain-integrity` name the new parts. Two mechanisms: `core/memory-label`, `core/pack-digest`.
+> - **The benchmark:** both components are levels on `bank-adversarial`, and both read *not applicable* with their reasons. They decide on proposed calls and on thoughts, and the corpus is text.
+> - **Tests:**
+>   - `governance/src/components/provenance.test.ts`: no progress across different calls, the reset by a moved world or a declared action, the limit; the memory refusal, its annotate mode and the leaf;
+>   - `core`'s session test: a write after an unquarantined mark is labelled; one before it, or after a quarantine, is not;
+>   - `core/src/pack-digest.test.ts`, `harness/src/pack-digests.test.ts` and `pack-testkit`'s `manifest.digest`.
+
+> **WP142 — done 2026-10-02.** Least privilege with recorded elevation:
+>
+> - **The rule** (`governance/guardrails/privilege-scopes.ts`). It governs a set of calls and starts the bot with some of them granted. A governed call outside the grant is refused (`block-action`) or paused for a person.
+>   - The pause carries `elevation: { scope }`, and the session writes `elevation.requested` and `elevation.resolved` beside the approval pair (`02-…` §7's dated note).
+>   - A scope granted once is read back from the trace and stays granted for the run, so the second call does not ask again and a fork judges the same.
+> - **The component** `governance/privilege-scopes` (`components/privilege.ts`): `governed`, `granted`, and `onElevation: 'ask' | 'refuse'`, with `ask` the default.
+> - **The Connector's tool blocklist is its first instance.** `connector/tool-blocklist` is now the rule in refuse mode over the line's operations, granted the ones `scopes` names. It keeps its own id, description and words, so every trace reads as before (the guardrail tests are unchanged and green).
+> - **Not done:** the Connector brick does not offer `ask` (a config field the Kit would render), and nothing persists a grant between runs. A bank would want both, with grants expiring.
+> - **The catalogue:** `privilege-scopes` moves from *blueprint* to *shipped*. The Run Lab's trace names both events (*Asked for a wider scope*, *Scope answered*).
+> - **Tests:**
+>   - `governance/src/components/privilege.test.ts`: the grant, the pause with its scope, the grant read back from the trace, the refusal, the blocklist word for word;
+>   - `core`'s session test: the four events in order, and none for a pause that names no scope;
+>   - the starter's conformance fixture.
+
+> **WP143 — done 2026-10-02.** Two entries move to *shipped*. No first-edition entry is *bespoke* any more.
+>
+> **The policy-conditioned classifier.**
+>
+> - **The factory.** `governance`'s `policyConditionedReader` is an `llmReader` whose system prompt carries a written rulebook (`RulebookRule[]`), so any cartridge judges by the deployer's policy. Changing the policy is changing the text.
+> - **The rulebook.** `fs-bank`'s `BANK_RULEBOOK` holds nine rules the desks' cards and gates enforce, each citing its obligations: decide by the rules, instructions only from the bank, stay in role, one customer only, never tip off, no thresholds, suitable advice, people decide what people decide, support without steering.
+> - **The reader.** `fs-bank/reader/policy-conditioned` reads the rulebook through a local general model. It carries no provider; the host hands it one.
+> - **The benchmark.** An LLM reader now answers from a provider cassette under `benchmarks/cassettes/`, or, named in `--record --only`, live through `--reader-provider` (`ollama` by default). `evals`' benchmark takes a per-reader context.
+> - **The model, and how it was chosen.** It was chosen on six lines written apart from the corpora, never on the held-out rows. gemma3:12b made two false alarms of three benign lines; mistral-nemo made one; qwen3:14b answered nothing, because its thinking spends the 16-token cap.
+> - **The figures.** Recorded live over the 1,408 rows with mistral-nemo, with no errors: **precision 73% (70–75%), recall 99% (98–99%), false alarms 69% (65–73%)**; tp 909, fp 339, fn 11, tn 149. CI replays the cassette.
+> - **The finding.** A 12B general model handed a policy flags nearly everything. It misses almost no attack, and it would stop two benign customers in three. The keyword baseline (recall 26%, false alarms 11%) and Llama Guard (17%, 3%) sit at the other end. None of the three is a guard a bank would fit alone. A purpose-trained policy reasoner (gpt-oss-safeguard is the catalogue's source) is the measurement this slot is for, and needs a larger model than this machine holds.
+> - **Not done:** no desk stack fits the reader yet, and it is not browser-capable (Ollama answers a browser only when told to).
+>
+> **Inter-agent authentication** (`governance/peer-auth`).
+>
+> - **The digest.** Every Radio message a seat sends now carries a digest over its sender, channel, words and tick, stamped by the Playroom when a seat really sends (`peerMessageDigest`).
+> - **The check.** At `pre-think`, before the bot reasons, the component checks every message in view: the sender is a seat in the room, and the digest is the digest of what it says. A failing message stops the run, or is noted.
+> - **The test** (`starter`'s party-line). A message under Bolt's name that no seat sent is put on Radio through the scenario door. The bot is stopped before it reasons over it, and the code is never said. Bolt's real message verifies (`1 verified`).
+> - **Honest about what it is:** integrity over the engine's own attribution, not a cryptographic signature. Between separate processes it needs keys (signed agent cards, mutual TLS). Hearing stays unattributed by design.
+>
+> **Also:**
+>
+> - The benchmark's *not applicable* now reads right for a `pre-think` rule.
+> - A reader that answers no row now gives the first error as its reason.
+>
+> **Tests:**
+>
+> - `governance`'s `peer-auth.test.ts`;
+> - the party-line pair;
+> - the benchmark test replaying both committed cassettes to their recorded confusion;
+> - the starter's conformance fixture.
+
+> **WP144 — done 2026-10-02.** Two harness-only connections on the guard shell. Each has a stand-in in CI and a checkpoint command, and is recorded *connectable, checkpoint pending*.
+>
+> - **Cedar through Amazon Verified Permissions** (`@craftabot/pack-pdp-cedar`, `pdp-cedar/verified-permissions`). `IsAuthorized` is a policy decision point at `pre-act`, beside OPA, on the PDP seam.
+>   - **The mapping.** Governance's PDP document maps onto Cedar: the bot is the principal (`CraftABot::Agent`), the proposed call the action (`CraftABot::Action`), the goal card the resource. The tick, the hook, the call's kind and arguments and the world's predicates are the context.
+>   - **The reading.** A `DENY` is a policy violation named by its determining policies; the default deny reads the same; an evaluation error is partial, never an allow.
+>   - **The connection.** Signed with SigV4 by the Bedrock pack's signer, under its own credential (`aws-verified-permissions`). One regional host, not browser-capable. A harness default pack, not in any edition.
+>   - **The checkpoint:** `npm run smoke:cedar` with a policy store that forbids an action.
+> - **Bedrock's automated-reasoning checks** (`bedrock-guardrails/automated-reasoning`). A second reading of the same signed `ApplyGuardrail` call, at `pre-act`: what the bot is about to say is checked against a policy written as logic.
+>   - **The reading.** `valid` reads clean; `invalid` and `impossible` read as policy violations; `satisfiable` reads open; a claim the checker could not translate is partial.
+>   - **The checkpoint:** `npm run smoke:bedrock-ar` with an account, a policy and a claim it contradicts.
+> - **The catalogue.**
+>   - A new second-edition entry, `automated-reasoning-checks`, is the first with the status *connectable*.
+>   - `policy-decision-point` names Cedar beside OPA.
+>   - `formal-verification` stays a blueprint: proving a policy over every action is not built, and its note now points at the new entry.
+> - **The benchmark:** both are levels and read *not applicable*. They decide at `pre-act` over a call or an answer, and the corpus is text.
+> - **Tests:**
+>   - `pdp-cedar`'s `service.test.ts`: the mapping, the reading, the signed and targeted call, the scrubbed secret, the offline stand-in, conformance;
+>   - `bedrock-guardrails`' `automated-reasoning.test.ts` and its conformance fixtures.
+
+> **Phase AL exit review — 2026-10-02.** WP141–WP144 are done, on `phase-al`, with the Phase AK follow-ups first. §8 item 5, clause by clause:
+>
+> - **"The five unshipped entries and the named components are shipped": met.**
+>   - Memory provenance, privilege scopes, the policy-conditioned classifier and inter-agent authentication moved to *shipped*, and loop detection and supply-chain integrity name their new parts.
+>   - No first-edition entry is *bespoke* any more.
+>   - The catalogue now stands at 69 entries: 51 shipped, 1 connectable, 8 bespoke, 3 blueprint, 6 not applicable. The bespoke and blueprint entries are Phase AM's class-D techniques, plus three the plan leaves: tool-argument validation, adaptive approval and formal verification.
+> - **"… and benchmarked": met where a benchmark over text can measure.**
+>   - The policy-conditioned classifier is measured live (precision 73%, recall 99%, false alarms 69%), and Llama Guard 3 since WP140 (92%, 17%, 3%).
+>   - No-progress, memory provenance and the two connections are levels that read *not applicable*, each with its reason: they decide over calls, the trace or answers, not over a row of text.
+>   - Privilege scopes and peer authentication are not levels for the same reason. Their tests are the elevation pair and the party line.
+> - **"The two new connections are *connectable*": met**, checkpoints pending. Cedar sits in `policy-decision-point` beside OPA. `automated-reasoning-checks` is the first entry with the status.
+>
+> **Findings, for Andrew's reading.**
+> - **None of the three measured text guards is one a bank would fit alone.**
+>   - The policy-conditioned classifier misses almost nothing and stops two benign customers in three.
+>   - Llama Guard stops almost no one and misses four attacks in five.
+>   - The keyword baseline sits between them.
+>   - The slot wants a purpose-trained policy reasoner, which this machine cannot hold.
+> - **The pack digest pins what a pack says, not what it does.** A poisoned description shipped from the start is not caught: the pin is a rug-pull defence, not a review. The Workbench does not pin yet.
+> - **Peer authentication is integrity over the engine's attribution, not cryptography.** Between processes it needs keys.
+> - **The desk stacks read *unfitted* in the inventory, and truly so.** The baselines fit the same guards as bricks; no shipped campaign names a stack.
+>
+> **Budgets.** About +33 kB in every edition and +26 kB in the Worker; the Kit's first page is unchanged (`01-…` §8's dated note).
+>
+> **Screenshots.** Re-taken on win32: the Studio at three widths, the assurance pack, the catalogue, the benchmarks. Their Linux baselines are CI's.
+>
+> **Phase AL is closed. Next: Phase AM, WP145–WP149.**

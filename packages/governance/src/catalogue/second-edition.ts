@@ -13,6 +13,12 @@ import type { CatalogueEntry, CatalogueSource } from '@craftabot/core';
  * `review: 'pending'`; its coverage is what the code does on 2026-10-01,
  * and an entry that is only partly built says so as *bespoke*.
  */
+const BEDROCK_AR: CatalogueSource = {
+	title: 'Amazon Bedrock Guardrails — automated reasoning checks',
+	publisher: 'AWS',
+	year: 2025,
+	kind: 'vendor'
+};
 const UK_GDPR: CatalogueSource = {
 	title: 'UK GDPR, Articles 5 (principles), 22 (automated decisions) and 25 (by design)',
 	publisher: 'UK Parliament (Data Protection Act 2018 and the retained Regulation)',
@@ -668,5 +674,25 @@ export const SECOND_EDITION_ENTRIES: CatalogueEntry[] = [
 			note: 'Not applicable: a bot here says text to a simulated customer and makes no media; what it said is on the digested trace instead.'
 		},
 		bankingRelevance: 'none'
+	}),
+	entry({
+		id: 'automated-reasoning-checks',
+		name: 'Automated-reasoning checks on answers',
+		summary:
+			'What the bot is about to say translated to logic and checked against rules written as logic: proved, contradicted, or left open.',
+		category: 'runtime-protection',
+		subcategory: 'output-guardrail',
+		points: ['pre-act'],
+		maturity: 'emerging',
+		threats: ['LLM09'],
+		frameworks: ['nist-ai-600-1'],
+		sources: [BEDROCK_AR],
+		coverage: {
+			status: 'connectable',
+			componentIds: ['bedrock-guardrails/automated-reasoning'],
+			note: 'Connectable, checkpoint pending (WP144) — the first entry with the status: the adapter reads ApplyGuardrail’s automated-reasoning findings (a contradicted claim is a violation; one the checker could not translate is partial, never an allow), its stand-in runs in CI, and no live answer has been taken (`npm run smoke:bedrock-ar` with an account and a policy). Formal verification of a whole policy stays a blueprint.',
+			since: 'WP144'
+		},
+		bankingRelevance: 'supporting'
 	})
 ];

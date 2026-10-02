@@ -46,6 +46,7 @@
 		"@craftabot/pack-monitor": "*",
 		"@craftabot/pack-ollama": "*",
 		"@craftabot/pack-openai": "*",
+		"@craftabot/pack-pdp-cedar": "*",
 		"@craftabot/pack-pdp-opa": "*",
 		"@craftabot/pack-personas": "*",
 		"@craftabot/pack-starter": "*",

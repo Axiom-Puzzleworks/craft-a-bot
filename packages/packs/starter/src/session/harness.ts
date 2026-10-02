@@ -254,6 +254,15 @@ export interface GroupRunOptions {
 	observers?: Array<(events: EventBus, group: { groupRunId: string }) => Unsubscribe>;
 	/** Deliver a line to the shared world after this many rounds — a message between turns, heard by every seat. */
 	deliverAfterRound?: { round: number; text: string };
+	/**
+	 * Put something into the shared room after this many rounds through the
+	 * world's scenario door (WP44) — a message on Radio under any name, which
+	 * no seat sent (WP143's spoof).
+	 */
+	injectAfterRound?: {
+		round: number;
+		injection: Parameters<NonNullable<WorldInstance['inject']>>[0];
+	};
 }
 
 export interface GroupRunResult {
@@ -285,10 +294,20 @@ export async function runGroupToCompletion(options: GroupRunOptions): Promise<Gr
 		...(member.guardrails ? { guardrails: member.guardrails } : {})
 	}));
 
+	// The room, built here only when the test needs a hand on it (WP143); otherwise the group builds its own.
+	let world: WorldInstance | undefined;
+	if (options.injectAfterRound) {
+		const card = registry.getGoalCard(goalCardId);
+		const definition = card ? registry.getWorld(card.worldId) : undefined;
+		if (!card || !definition) throw new Error(`no world for ${goalCardId}`);
+		world = definition.create(card.layoutId, { random: clock.random });
+	}
+
 	const group = createSessionGroup({
 		members,
 		registry,
 		goalCardId,
+		...(world ? { world } : {}),
 		...(options.groupGuardrails !== undefined ? { groupGuardrails: options.groupGuardrails } : {}),
 		options: {
 			now: clock.now,
@@ -312,6 +331,8 @@ export async function runGroupToCompletion(options: GroupRunOptions): Promise<Gr
 		if (options.deliverAfterRound && result.round === options.deliverAfterRound.round) {
 			group.deliverInput(options.deliverAfterRound.text);
 		}
+		if (options.injectAfterRound && result.round === options.injectAfterRound.round)
+			world?.inject?.(options.injectAfterRound.injection);
 		if (result.outcome) {
 			outcome = result.outcome;
 			rounds = result.round;

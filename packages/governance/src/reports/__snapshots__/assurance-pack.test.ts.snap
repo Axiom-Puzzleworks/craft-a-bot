@@ -710,7 +710,7 @@ exports[`assurancePackFor > folds a fixture bot with one campaign and one incide
       },
     ],
   },
-  "digest": "6620d5eb510884493582805a9be324370e45d86dd5a790ff093ab65841a31976",
+  "digest": "8ee68028b25862227022ce20a3ba5bcbc23a71fb0177a19f7c3a7b7c8608500a",
   "format": "craftabot-assurance-pack",
   "formatVersion": 1,
   "generatedAt": "2026-09-06T12:00:00.000Z",
@@ -796,9 +796,11 @@ exports[`assurancePackFor > folds a fixture bot with one campaign and one incide
         ],
       },
       {
-        "coverage": "uncatalogued",
+        "coverage": "shipped",
         "effect": "untested",
-        "entries": [],
+        "entries": [
+          "eval-harness",
+        ],
         "exercised": "fired ×1",
         "measured": "—",
         "name": "Judge",
@@ -825,21 +827,19 @@ exports[`assurancePackFor > folds a fixture bot with one campaign and one incide
   "mitigants": {
     "coverage": {
       "blueprint": [
-        "Policy-conditioned classifier",
-        "Least-privilege scopes with recorded elevation",
         "Formal verification of agent policies",
         "Tool-argument validation",
         "Adaptive approval",
       ],
       "byStatus": {
-        "bespoke": 10,
-        "blueprint": 5,
-        "connectable": 0,
+        "bespoke": 8,
+        "blueprint": 3,
+        "connectable": 1,
         "not-applicable": 6,
-        "shipped": 47,
+        "shipped": 51,
       },
       "edition": "2026-10",
-      "entries": 68,
+      "entries": 69,
       "notApplicable": [
         "Rate limits",
         "Sandboxed tool and code execution",
@@ -848,7 +848,7 @@ exports[`assurancePackFor > folds a fixture bot with one campaign and one incide
         "Access control on the controls",
         "Content credentials on outputs",
       ],
-      "pending": 68,
+      "pending": 69,
       "reviewed": 0,
     },
     "effects": [

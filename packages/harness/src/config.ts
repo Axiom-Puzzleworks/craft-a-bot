@@ -1,8 +1,10 @@
-import { pathToFileURL } from 'node:url';
+import { existsSync, readFileSync } from 'node:fs';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 import {
 	createPackRegistry,
 	localPackFrom,
+	packDigest,
 	type ContentRecord,
 	type PackManifest,
 	type PackRegistry
@@ -28,6 +30,7 @@ import geminiPack from '@craftabot/pack-gemini';
 import monitorPack from '@craftabot/pack-monitor';
 import ollamaPack from '@craftabot/pack-ollama';
 import openAiPack from '@craftabot/pack-openai';
+import pdpCedarPack from '@craftabot/pack-pdp-cedar';
 import pdpOpaPack from '@craftabot/pack-pdp-opa';
 import personasPack from '@craftabot/pack-personas';
 import starterPack from '@craftabot/pack-starter';
@@ -50,6 +53,12 @@ import workshopPack from '@craftabot/pack-workshop';
  */
 export interface HarnessConfig {
 	packs: PackManifest[];
+	/**
+	 * Content digests pinned by pack id (WP141, `packDigest`): a pack whose
+	 * tools, cards or stacks differ from its pin is refused at registration.
+	 * The default config pins every shipped pack from `packs.lock.json`.
+	 */
+	pins?: Readonly<Record<string, string>>;
 	/** Authored content (WP46, `34-CONTENT-STORE.md` §4.5) — the `content/` directory's records, registered as the `local` pack. */
 	content?: ContentRecord[];
 }
@@ -73,6 +82,8 @@ export function defaultPacks(): PackManifest[] {
 		bedrockGuardrailsPack,
 		lakeraGuardPack,
 		pdpOpaPack,
+		// WP144: Cedar through Verified Permissions, harness-only like Bedrock (SigV4).
+		pdpCedarPack,
 		evaluatorsPack,
 		fsBankPack,
 		fsAdvicePack,
@@ -92,8 +103,32 @@ export function defaultPacks(): PackManifest[] {
 	];
 }
 
+/** Where the shipped packs' pins live: committed beside the package, rewritten by `craftabot packs lock`. */
+export const PACKS_LOCK_FILE = fileURLToPath(new URL('../packs.lock.json', import.meta.url));
+
+/** The lock file's shape (WP141). */
+export interface PacksLock {
+	format: 'craftabot-packs-lock';
+	formatVersion: 1;
+	packs: Record<string, string>;
+}
+
+/** The lock for a set of packs: each pack's content digest, by id, sorted. */
+export function packsLockFor(packs: readonly PackManifest[]): PacksLock {
+	const entries = packs.map((pack) => [pack.id, packDigest(pack)] as const);
+	entries.sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+	return { format: 'craftabot-packs-lock', formatVersion: 1, packs: Object.fromEntries(entries) };
+}
+
+/** The committed pins, or none when the file is absent (a host outside this repository). */
+export function shippedPins(): Record<string, string> | undefined {
+	if (!existsSync(PACKS_LOCK_FILE)) return undefined;
+	return (JSON.parse(readFileSync(PACKS_LOCK_FILE, 'utf8')) as PacksLock).packs;
+}
+
 export function defaultConfig(): HarnessConfig {
-	return { packs: defaultPacks() };
+	const pins = shippedPins();
+	return { packs: defaultPacks(), ...(pins ? { pins } : {}) };
 }
 
 /** Load a config module by path; its default export (or `config`) must be `{ packs: PackManifest[] }`. */
@@ -114,7 +149,19 @@ export function parseConfig(candidate: unknown, source = 'config'): HarnessConfi
 			`${source}: every entry in packs must be a pack manifest with an id and a version`
 		);
 	}
-	return { packs: packs as PackManifest[] };
+	// A config module may pin its packs too (WP141): a record of digests by pack id.
+	const pins = (candidate as { pins?: unknown }).pins;
+	if (
+		pins !== undefined &&
+		(typeof pins !== 'object' ||
+			pins === null ||
+			Object.values(pins).some((value) => typeof value !== 'string'))
+	)
+		throw new Error(`${source}: pins must map pack ids to content digests`);
+	return {
+		packs: packs as PackManifest[],
+		...(pins ? { pins: pins as Record<string, string> } : {})
+	};
 }
 
 function isManifest(value: unknown): value is PackManifest {
@@ -127,7 +174,7 @@ function isManifest(value: unknown): value is PackManifest {
 }
 
 export function createRegistry(config: HarnessConfig): PackRegistry {
-	const registry = createPackRegistry();
+	const registry = createPackRegistry(config.pins ? { pins: config.pins } : {});
 	for (const pack of config.packs) registry.registerPack(pack);
 	// Authored content as the `local` pack (WP46) — present even when empty, so `local/*` ids resolve the same way everywhere.
 	registry.registerPack(localPackFrom(config.content ?? []));

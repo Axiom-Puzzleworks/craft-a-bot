@@ -193,7 +193,18 @@ export const guardrailVerdictSchema = z.union([
 		 */
 		cause: z.enum(['could-not-check']).optional()
 	}),
-	z.object({ pause: z.literal(true), reason: z.string() })
+	z.object({
+		pause: z.literal(true),
+		reason: z.string(),
+		/**
+		 * The pause asks for a privilege the bot was not granted (WP142,
+		 * `110-…` §10): the scope it would elevate to. The session records the
+		 * request and its answer as `elevation.requested` and
+		 * `elevation.resolved` beside the approval pair. Absent on every pause
+		 * written before.
+		 */
+		elevation: z.object({ scope: z.string().min(1) }).optional()
+	})
 ]);
 export type GuardrailVerdict = z.infer<typeof guardrailVerdictSchema>;
 

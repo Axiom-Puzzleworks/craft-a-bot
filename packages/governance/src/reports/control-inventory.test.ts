@@ -157,7 +157,10 @@ describe('controlInventory', () => {
 		expect(stack.entries.map((entry) => entry.id)).toEqual(
 			expect.arrayContaining(['budget-cap', 'runtime-enforcement-dsl'])
 		);
-		expect(rows.find((row) => row.ref === `evaluator:${LONELY.id}`)!.coverage).toBe('uncatalogued');
+		// An evaluator inherits the evaluation harness's entry through the evaluator contract (2026-10-02).
+		const lonely = rows.find((row) => row.ref === `evaluator:${LONELY.id}`)!;
+		expect(lonely.coverage).toBe('shipped');
+		expect(lonely.entries.every((entry) => entry.via === 'mechanism:evals/evaluators')).toBe(true);
 	});
 
 	it('links the map rows that cite it, and a stack’s claimed rows', () => {

@@ -1,6 +1,14 @@
 import type { EgressMode } from '@craftabot/core';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { readFile, writeFile } from 'node:fs/promises';
-import { defaultConfig, loadConfig, type HarnessConfig } from './config.js';
+import {
+	PACKS_LOCK_FILE,
+	defaultConfig,
+	defaultPacks,
+	loadConfig,
+	packsLockFor,
+	type HarnessConfig
+} from './config.js';
 import { principalFromEnv } from './principal.js';
 import { mergeReports } from './commands/merge.js';
 import { parseCampaign, type CampaignGuard, type CampaignReport } from '@craftabot/evals';
@@ -108,6 +116,7 @@ Usage:
       command (--content names the directory; ./content by default).
 
   craftabot packs [--config craftabot.config.mjs]
+  craftabot packs lock [--check] [--file <packs.lock.json>]
       List the packs, brick kinds, providers and goal cards this host can
       assemble, and which CRAFTABOT_CREDENTIAL_<ID> variables it would read.
 
@@ -143,7 +152,7 @@ Usage:
       from CRAFTABOT_GATE_UPSTREAM_KEY. Unauthenticated: a reference implementation.
   craftabot gate approve <id> | deny <id> [--gate <url>]
       The operator's answer to what the Gate paused.
-  craftabot benchmark run <benchmark.json> [--cassettes <dir>] [--record [--only <serviceId,…>]] [--out <dir>] [--store <dir>]
+  craftabot benchmark run <benchmark.json> [--cassettes <dir>] [--record [--only <serviceId|readerId,…>] [--reader-provider <id>]] [--out <dir>] [--store <dir>]
       Every guard service and every reader that answers the guard question set over
       the adversarial corpora (WP123): each service from its cassette, else its
       stand-in (unmeasured); --record calls each live with its credential from
@@ -400,6 +409,26 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 				throw new Error(`content: unknown verb "${verb}" — list or add`);
 			}
 			case 'packs': {
+				// WP141: the shipped packs' content digests, written to the lock the default config pins.
+				if (args.positional[0] === 'lock') {
+					const lock = packsLockFor(defaultPacks());
+					const text = JSON.stringify(lock, null, '\t') + '\n';
+					const file = stringFlag(args, 'file') ?? PACKS_LOCK_FILE;
+					if (args.flags['check'] === true) {
+						const current = existsSync(file) ? readFileSync(file, 'utf8') : '';
+						if (current !== text) {
+							io.stderr(
+								`packs lock: ${file} is stale — a shipped pack's tools, cards or stacks changed. Review the change, then run: npm run craftabot -- packs lock\n`
+							);
+							return 1;
+						}
+						io.stdout(`packs lock: ${Object.keys(lock.packs).length} packs pinned, all current\n`);
+						return 0;
+					}
+					writeFileSync(file, text);
+					io.stdout(`packs lock: wrote ${Object.keys(lock.packs).length} pins to ${file}\n`);
+					return 0;
+				}
 				const config = await configFrom(args);
 				io.stdout(renderPacks(describePacks(config, credentialsFromEnv(io.env))));
 				return 0;
@@ -1285,12 +1314,13 @@ ${renderEvaluations(report)}`);
 				const [verb, file] = args.positional;
 				if (verb !== 'run' || !file)
 					throw new Error(
-						'benchmark needs run <benchmark.json> [--cassettes <dir>] [--record [--only <serviceId,…>]] [--out <dir>] [--store <dir>]'
+						'benchmark needs run <benchmark.json> [--cassettes <dir>] [--record [--only <serviceId|readerId,…>] [--reader-provider <id>]] [--out <dir>] [--store <dir>]'
 					);
 				const store = stringFlag(args, 'store');
 				const cassettes = stringFlag(args, 'cassettes');
 				const out = stringFlag(args, 'out');
 				const only = stringFlag(args, 'only');
+				const readerProvider = stringFlag(args, 'reader-provider');
 				const ran = await benchmarkRun({
 					file,
 					registry: createRegistry(await configFrom(args)),
@@ -1300,6 +1330,7 @@ ${renderEvaluations(report)}`);
 					...(store ? { storage: await createFileStorage(store) } : {}),
 					record: args.flags['record'] === true,
 					...(only ? { only: only.split(',') } : {}),
+					...(readerProvider ? { readerProvider } : {}),
 					ranAt: new Date().toISOString()
 				});
 				io.stdout(renderBenchmarkSummary(ran.report));

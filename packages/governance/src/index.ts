@@ -40,9 +40,22 @@ export {
 	createNoRepetitionGuardrail,
 	type NoRepetitionOptions
 } from './guardrails/no-repetition.js';
+export {
+	NO_PROGRESS_ID,
+	createNoProgressGuardrail,
+	turnsWithoutProgress,
+	type NoProgressOptions
+} from './guardrails/no-progress.js';
+export { notebookIsUntrusted, untrustedNotebookWrites } from './memory-provenance.js';
 export { STEP_BUDGET_ID, createStepBudgetGuardrail } from './guardrails/step-budget.js';
 export { TOKEN_BUDGET_ID, createTokenBudgetGuardrail } from './guardrails/token-budget.js';
 export { TOOL_BLOCKLIST_ID, createToolBlocklistGuardrail } from './guardrails/tool-blocklist.js';
+export {
+	createPrivilegeScopesGuardrail,
+	grantedElevations,
+	type ElevationMode,
+	type PrivilegeScopesOptions
+} from './guardrails/privilege-scopes.js';
 /** The policy-card compiler (`14-…` §4.6, WP22) — see `08-…` §5's growth-path row: this is the piece named to ship standalone. */
 export {
 	compilePolicyCard,

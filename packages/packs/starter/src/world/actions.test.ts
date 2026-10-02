@@ -1,3 +1,4 @@
+import { peerMessageDigest } from '@craftabot/governance';
 import { describe, expect, it } from 'vitest';
 import {
 	carriedItem,
@@ -384,9 +385,9 @@ describe('radio_send', () => {
 		});
 		const result = act(state, 'radio_send', { text: 'Hello Bolt' });
 		expect(result.ok).toBe(true);
-		expect(state.radio).toEqual([
-			{ from: 'robo', fromName: 'Robo', channel: 'work', text: 'Hello Bolt', tick: 3 }
-		]);
+		const sent = { from: 'robo', channel: 'work', text: 'Hello Bolt', tick: 3 };
+		// WP143: the room stamps the digest a peer-auth check recomputes.
+		expect(state.radio).toEqual([{ ...sent, fromName: 'Robo', digest: peerMessageDigest(sent) }]);
 	});
 
 	it('falls back to "You" when no roster names the sender — a solo bot with a channel set', () => {

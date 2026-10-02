@@ -35,6 +35,8 @@
 		"smoke:geap": "npm run smoke --workspace=@craftabot/pack-geap",
 		"smoke:azure": "npm run smoke --workspace=@craftabot/pack-azure-content-safety",
 		"smoke:bedrock": "npm run smoke --workspace=@craftabot/pack-bedrock-guardrails",
+		"smoke:bedrock-ar": "npm run smoke:ar --workspace=@craftabot/pack-bedrock-guardrails",
+		"smoke:cedar": "npm run smoke --workspace=@craftabot/pack-pdp-cedar",
 		"smoke:lakera": "npm run smoke --workspace=@craftabot/pack-lakera-guard",
 		"smoke:typesafe": "npm run smoke --workspace=@craftabot/pack-typesafe",
 		"smoke:spark": "npm run smoke --workspace=@craftabot/pack-dgx-spark",

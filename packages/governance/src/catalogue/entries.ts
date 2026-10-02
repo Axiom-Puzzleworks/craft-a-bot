@@ -491,8 +491,10 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		frameworks: ['nist-ai-600-1'],
 		sources: [OPENAI_MOD],
 		coverage: {
-			status: 'blueprint',
-			note: 'Day 6 names a component over any cartridge with the bank’s rulebook as the policy; nothing built.'
+			status: 'shipped',
+			implementedBy: ['reader:fs-bank/reader/policy-conditioned'],
+			note: 'policyConditionedReader is an llmReader over any cartridge with a written rulebook as its system prompt; the bank’s nine-rule rulebook (fs-bank’s BANK_RULEBOOK) reads through a local general model, recorded live over the seven adversarial corpora and replayed in CI’s benchmark. Fitted as a guard through readerComponent or the quarantined reader; no desk stack fits it yet.',
+			since: 'WP143'
 		},
 		bankingRelevance: 'core'
 	}),
@@ -543,7 +545,7 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 				'scenario:fs-disputes/scenarios/merchant-note-injection',
 				'policy-card:fs-fraud/policy/no-auto-release-from-instructions-in-records'
 			],
-			note: 'Marking, taint and the quarantined reader answer a poisoned tool result — a planted SYSTEM line in a bureau answer is marked, and the call copying it blocked; a tool-description integrity check on the registry is still a blueprint.',
+			note: 'Marking, taint and the quarantined reader answer a poisoned tool result — a planted SYSTEM line in a bureau answer is marked, and the call copying it blocked. A tool description edited after it was pinned is refused at registration by the pack digest (WP141, supply-chain-integrity); a poisoned description a pack ships from the start is not caught by it.',
 			since: 'WP124'
 		},
 		bankingRelevance: 'core'
@@ -561,9 +563,11 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		frameworks: ['owasp:asi06'],
 		sources: [MEMORY_POISONING, OWASP_AGENTIC],
 		coverage: {
-			status: 'bespoke',
-			implementedBy: ['mechanism:core/memory-trace'],
-			note: 'Every notebook write is on the trace; no provenance tag yet — Day 6 names a memory-provenance component and a card that refuses a think over untrusted memory.'
+			status: 'shipped',
+			componentIds: ['governance/memory-provenance'],
+			implementedBy: ['mechanism:core/memory-trace', 'mechanism:core/memory-label'],
+			note: 'A notebook write made after the bot read unquarantined untrusted content is tagged untrusted on memory.updated — the context’s label, not the words’. The component refuses a think over such a notebook (or notes it), and the memory-is-untrusted leaf lets a card do the same. The label is coarse by design: a quarantined result does not taint, and a fork does not refold it.',
+			since: 'WP141'
 		},
 		bankingRelevance: 'supporting'
 	}),
@@ -649,7 +653,7 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 				'evaluator:evals/judge/rubric',
 				'brick-kind:workshop/monitor-judge'
 			],
-			note: 'The rubric and hosted evaluators as judges with offline stand-ins; the breaker fits a judge at the chokepoint or a stage boundary. Bedrock’s automated-reasoning checks are a WP99 connection candidate, recorded research-grade for a bank’s rulebook.',
+			note: 'The rubric and hosted evaluators as judges with offline stand-ins; the breaker fits a judge at the chokepoint or a stage boundary. Bedrock’s automated-reasoning checks are their own entry, automated-reasoning-checks (connectable since WP144).',
 			since: 'WP43'
 		},
 		bankingRelevance: 'core'
@@ -708,8 +712,8 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		sources: [OPA, CEDAR, MS_AGT],
 		coverage: {
 			status: 'shipped',
-			componentIds: ['pdp-opa/opa', 'governance/policy-card'],
-			note: 'OPA through the shell with its live checkpoint taken; the policy card’s predicate language is the built-in engine; Cedar is a blueprint connection.',
+			componentIds: ['pdp-opa/opa', 'pdp-cedar/verified-permissions', 'governance/policy-card'],
+			note: 'OPA through the shell with its live checkpoint taken; Cedar through Amazon Verified Permissions on the same seam (WP144), connectable with its checkpoint pending (`npm run smoke:cedar`); the policy card’s predicate language is the built-in engine.',
 			since: 'WP45'
 		},
 		bankingRelevance: 'core'
@@ -746,8 +750,11 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		frameworks: ['owasp:asi03', 'nist-ai-rmf:manage'],
 		sources: [PROGENT, OWASP_AGENTIC_THREATS],
 		coverage: {
-			status: 'blueprint',
-			note: 'Day 6 names a privilege-scopes component (19-… #15); the Connector’s scopes are the nearest thing today and are not elevation.'
+			status: 'shipped',
+			componentIds: ['governance/privilege-scopes'],
+			implementedBy: ['guardrail:connector/tool-blocklist'],
+			note: 'A bot starts with a minimal grant over the calls the component governs; a call outside it is refused, or paused for a person as an elevation, recorded as elevation.requested and elevation.resolved beside the approval pair, and granted for the rest of the run once a person says yes. The Connector’s scopes are the refuse-mode instance (connector/tool-blocklist, word for word as before). Grants are per run: nothing persists a scope between runs.',
+			since: 'WP142'
 		},
 		bankingRelevance: 'supporting'
 	}),
@@ -834,8 +841,8 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		sources: [LANGGRAPH],
 		coverage: {
 			status: 'shipped',
-			componentIds: ['governance/no-repetition'],
-			note: 'The loop-breaker with the world’s progress predicate; a broader no-progress detector over repeated identical calls is a blueprint (19-… #7).',
+			componentIds: ['governance/no-repetition', 'governance/no-progress'],
+			note: 'The loop-breaker blocks the same non-progress call repeated; the no-progress detector (WP141) stops a run whose world has not moved for N turns, whatever was tried, reading progress from the world’s state on the trace and its declared progress actions. Talk on a desk is progress (it writes the transcript); the loop-breaker holds a repeated line.',
 			since: 'WP30'
 		},
 		bankingRelevance: 'supporting'
@@ -1076,7 +1083,7 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		sources: [SHIELDAGENT, BEDROCK],
 		coverage: {
 			status: 'blueprint',
-			note: 'Recorded as research; Bedrock’s automated-reasoning checks would be a policy-engine connection.'
+			note: 'Recorded as research: proving a policy over every possible action is not built. Bedrock’s automated-reasoning checks, which check one answer’s claims against rules as logic, are their own entry (automated-reasoning-checks, connectable since WP144).'
 		},
 		bankingRelevance: 'supporting'
 	}),
@@ -1160,9 +1167,10 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 				'mechanism:core/kit-requires',
 				'mechanism:core/cassette-digest',
 				'mechanism:core/agent-card',
+				'mechanism:core/pack-digest',
 				'artefact:agent-card'
 			],
-			note: 'Partial: a content digest on every pack manifest checked at registration is a blueprint (19-… #30).',
+			note: 'Every pack carries a content digest over its tool, action and sense descriptions, cards and stacks (WP141); the harness pins every shipped pack in packs.lock.json and the registry refuses one that differs — a poisoned tool description fails registration, and a stale lock fails CI. Code is not digested (a changed function is a version). The Workbench does not pin yet.',
 			since: 'WP52'
 		},
 		bankingRelevance: 'supporting'
@@ -1179,9 +1187,11 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		frameworks: ['owasp:asi07'],
 		sources: [A2A, OWASP_AGENTIC],
 		coverage: {
-			status: 'bespoke',
+			status: 'shipped',
+			componentIds: ['governance/peer-auth'],
 			implementedBy: ['scenario:starter/scenarios/party-line'],
-			note: 'Shipped as a scenario a card can catch; authentication itself is a blueprint.'
+			note: 'Every Radio message a seat sends carries a digest over its sender, channel, words and tick, stamped by the room; governance/peer-auth at pre-think verifies each message in view — the sender is a seat, the digest matches — and stops (or notes) one that is not, so a message under a teammate’s name that no seat sent never reaches the bot’s reasoning (the party line’s test). Integrity over the engine’s attribution, not a cryptographic signature: between separate processes it needs keys (signed agent cards, mutual TLS). Hearing stays unattributed by design.',
+			since: 'WP143'
 		},
 		bankingRelevance: 'supporting'
 	}),
@@ -1202,6 +1212,7 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 			status: 'shipped',
 			implementedBy: [
 				'mechanism:evals/campaign',
+				'mechanism:evals/evaluators',
 				'mechanism:evals/benchmark',
 				'gate:outcome-rate',
 				'gate:evaluator-pass-rate'

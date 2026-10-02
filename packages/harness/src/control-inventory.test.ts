@@ -6,6 +6,7 @@ import {
 	checkControlInventory
 } from '@craftabot/governance';
 import { controlInventory, controlInventorySummary } from '@craftabot/governance/reports';
+import { GATE_CONTENT } from '@craftabot/gate/presets';
 import { DEFAULT_DISPUTES_POLICY } from '@craftabot/pack-fs-disputes';
 import { DEFAULT_LENDING_POLICY } from '@craftabot/pack-fs-lending';
 import { describe, expect, it } from 'vitest';
@@ -23,6 +24,8 @@ import { createRegistry, defaultConfig } from './config.js';
 const ROOT = resolve(import.meta.dirname, '../../..');
 const config = defaultConfig();
 const registry = createRegistry(config);
+// The Gate's presets beside the packs, as `craftabot controls` and the Workbench's page register them.
+registry.registerPack(GATE_CONTENT);
 const campaigns = [
 	...config.packs.flatMap((pack) =>
 		(pack.campaigns ?? []).map((shipped) => ({ id: shipped.id, campaign: shipped.campaign() }))

@@ -77,6 +77,14 @@ export const applyGuardrailResponseSchema = z.object({
 							.default([])
 					})
 					.optional(),
+				/**
+				 * Automated-reasoning checks (WP144): one finding per claim, keyed by its
+				 * result — `valid`, `invalid`, `satisfiable`, `impossible`,
+				 * `translationAmbiguous`, `tooComplex`, `noTranslations`.
+				 */
+				automatedReasoningPolicy: z
+					.object({ findings: z.array(z.record(z.string(), z.unknown())).default([]) })
+					.optional(),
 				wordPolicy: z
 					.object({
 						customWords: z

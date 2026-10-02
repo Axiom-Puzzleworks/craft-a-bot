@@ -4,6 +4,9 @@ import { builtinComponents } from '../components/builtin.js';
 import { egressComponents } from '../components/egress.js';
 import { policyCardComponent } from '../components/policy-card.js';
 import { injectionComponents } from '../components/injection.js';
+import { provenanceComponents } from '../components/provenance.js';
+import { privilegeScopesComponent } from '../components/privilege.js';
+import { peerAuthComponent } from '../components/peer-auth.js';
 import { checkCatalogue, checkEntry } from './check.js';
 import { CATALOGUE_ENTRIES, GUARDRAIL_CATALOGUE } from './entries.js';
 import { SECOND_EDITION_ENTRIES } from './second-edition.js';
@@ -24,7 +27,10 @@ const PACK: PackManifest = {
 		...builtinComponents,
 		policyCardComponent as never,
 		...egressComponents,
-		...(injectionComponents as unknown as never[])
+		...(injectionComponents as unknown as never[]),
+		...(provenanceComponents as unknown as never[]),
+		privilegeScopesComponent as never,
+		peerAuthComponent as never
 	]
 } as unknown as PackManifest;
 
@@ -193,13 +199,13 @@ describe('the coverage fold', () => {
 });
 
 describe('the bespoke four, shipped (WP124)', () => {
-	it('leaves two first-edition entries bespoke, four fewer than the first edition had', () => {
+	it('leaves no first-edition entry bespoke — memory provenance shipped in WP141, peer authentication in WP143', () => {
 		const second = new Set(SECOND_EDITION_ENTRIES.map((entry) => entry.id));
 		expect(
 			CATALOGUE_ENTRIES.filter(
 				(entry) => !second.has(entry.id) && entry.coverage.status === 'bespoke'
 			).map((entry) => entry.id)
-		).toEqual(['memory-provenance', 'inter-agent-authentication']);
+		).toEqual([]);
 		expect(
 			CATALOGUE_ENTRIES.filter((entry) => entry.coverage.since === 'WP124').map((entry) => entry.id)
 		).toEqual([

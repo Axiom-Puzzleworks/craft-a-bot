@@ -3,7 +3,7 @@ import { BANK_ADVERSARIAL_BENCHMARK } from '@craftabot/pack-fs-bank';
 import readersLlmPack from '@craftabot/pack-readers-llm';
 import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { createRegistry, defaultConfig } from '../config.js';
 import { credentialsFromEnv } from '../credentials.js';
@@ -90,17 +90,25 @@ describe('craftabot benchmark run (WP123)', () => {
 		).toEqual([
 			['azure-content-safety/content-safety', 'stand-in', true],
 			['bedrock-guardrails/apply-guardrail', 'stand-in', true],
+			// WP144: the two harness-only connections decide at pre-act, over a call or an answer; the corpus is text.
+			['bedrock-guardrails/automated-reasoning', 'stand-in', false],
 			['geap/model-armor', 'stand-in', true],
 			['guard-local/llama-guard', 'stand-in', true],
 			['guard-local/prompt-guard', 'stand-in', true],
 			['lakera-guard/guard', 'stand-in', true],
+			['pdp-cedar/verified-permissions', 'stand-in', false],
 			['pdp-opa/opa', 'stand-in', false],
 			['fs-bank/reader/attack-words', 'local', true],
+			// WP143: with no cassette and no live model it has nothing to ask with, and says so.
+			['fs-bank/reader/policy-conditioned', 'cassette', false],
 			// The bespoke four (WP124): marking and the quarantine measured over what comes back; taint and the seat not applicable.
 			['governance/untrusted-content', 'local', true],
 			['fs-bank/guard/quarantined-reader', 'local', true],
 			['governance/taint', 'local', false],
-			['governance/red-team-seat', 'local', false]
+			['governance/red-team-seat', 'local', false],
+			// WP141: the no-progress detector and memory provenance decide on calls and thoughts, not text.
+			['governance/no-progress', 'local', false],
+			['governance/memory-provenance', 'local', false]
 		]);
 		// The marking components mark everything they are shown: every row on the surfaces that come back.
 		for (const id of ['governance/untrusted-content', 'fs-bank/guard/quarantined-reader']) {
@@ -122,7 +130,7 @@ describe('craftabot benchmark run (WP123)', () => {
 		expect(first.markdown.startsWith('# The bank, attacked')).toBe(true);
 		expect(first.markdown).toContain('**Synthetic rows.**');
 		expect(report.digest).toMatchInlineSnapshot(
-			`"c866f377e5905b9ddace18e2f14e093bbf426ae1e3fb42b1e2968c76dd9a2b62"`
+			`"15f01cecdd7890bb51965fc3d470636ea6fed0b13a21329f89d4133ad4c390db"`
 		);
 	});
 
@@ -147,6 +155,16 @@ describe('craftabot benchmark run (WP123)', () => {
 				      "tp": 238,
 				    },
 				    115,
+				  ],
+				  [
+				    "fs-bank/reader/policy-conditioned",
+				    {
+				      "fn": 920,
+				      "fp": 0,
+				      "tn": 488,
+				      "tp": 0,
+				    },
+				    0,
 				  ],
 				  [
 				    "readers-llm/reader/mock",
@@ -254,6 +272,25 @@ describe('craftabot benchmark run (WP123)', () => {
 		expect(modes['azure-content-safety/content-safety']).toBe('live');
 		expect(modes['guard-local/llama-guard']).not.toBe('live');
 		expect(calls.count).toBe(402);
+	});
+
+	it('replays the policy-conditioned classifier from its committed cassette, as recorded (WP143)', async () => {
+		const { report } = await benchmarkRun({
+			file: FILE,
+			registry: registryWith(),
+			credentials: noCredentials,
+			cassettes: join(dirname(FILE), 'cassettes'),
+			ranAt: RAN_AT
+		});
+		const classifier = report.subjects.find(
+			(subject) => subject.id === 'fs-bank/reader/policy-conditioned'
+		)!;
+		expect(classifier.mode).toBe('cassette');
+		expect(classifier.errors).toBe(0);
+		expect(classifier.confusion).toEqual({ tp: 909, fp: 339, fn: 11, tn: 149 });
+		const llamaGuard = report.subjects.find((subject) => subject.id === 'guard-local/llama-guard')!;
+		expect(llamaGuard.mode).toBe('cassette');
+		expect(llamaGuard.confusion).toEqual({ tp: 158, fp: 13, fn: 762, tn: 475 });
 	});
 
 	it('stores the report, and a stand-in is never a measurement: the Rack reads unmeasured', async () => {

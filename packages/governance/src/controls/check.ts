@@ -27,6 +27,21 @@ export const ORPHAN_RULE_KINDS: readonly InventoryKind[] = [
 ];
 
 /**
+ * The kinds whose inherited entry is the generic one every control of the
+ * kind has, so it names none of them: an evaluator inherits `eval-harness`
+ * through the evaluator contract for its coverage (2026-10-02), but the
+ * orphan rule still wants it catalogued or cited in its own right.
+ */
+const INHERITANCE_DOES_NOT_NAME: readonly InventoryKind[] = ['evaluator'];
+
+function isNamed(row: ControlInventoryRow): boolean {
+	const entries = INHERITANCE_DOES_NOT_NAME.includes(row.kind)
+		? row.entries.filter((entry) => !entry.via)
+		: row.entries;
+	return entries.length > 0 || row.rows.length > 0;
+}
+
+/**
  * **`checkControlInventory`** (WP133, `110-CONTROL-SUITE-PLAN.md` §4.3, G118;
  * decision 3): no control is an orphan. Every component, guardrail, card,
  * stack, reader, evaluator and mechanism is named by a catalogue entry —
@@ -44,7 +59,7 @@ export function checkControlInventory(
 	const byRef = new Map(rows.map((row) => [row.ref, row]));
 	for (const row of rows) {
 		if (!ORPHAN_RULE_KINDS.includes(row.kind)) continue;
-		const named = row.entries.length > 0 || row.rows.length > 0;
+		const named = isNamed(row);
 		if (!named && !declared.has(row.ref))
 			issues.push({
 				check: 'inventory.orphan',
@@ -66,7 +81,7 @@ export function checkControlInventory(
 				ref: each.ref,
 				message: `${each.ref} is declared uncatalogued but nothing registers it — take it off the list`
 			});
-		else if (row.entries.length > 0 || row.rows.length > 0)
+		else if (isNamed(row))
 			issues.push({
 				check: 'inventory.uncatalogued-stale',
 				ref: each.ref,

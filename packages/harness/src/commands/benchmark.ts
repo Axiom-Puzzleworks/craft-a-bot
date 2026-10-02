@@ -1,4 +1,17 @@
-import type { BenchmarkReport, GuardrailService, PackRegistry, Storage } from '@craftabot/core';
+import {
+	CASSETTE_FORMAT_VERSION,
+	createCassetteProvider,
+	parseProviderCassette,
+	recordingProvider,
+	type BenchmarkReport,
+	type GuardrailService,
+	type LLMProvider,
+	type PackRegistry,
+	type ProviderCassetteEntry,
+	type ProviderCassetteFile,
+	type Reader,
+	type Storage
+} from '@craftabot/core';
 import {
 	BENCHMARK_CASSETTE_KIND,
 	benchmarkCassetteSchema,
@@ -31,6 +44,20 @@ export function cassetteFileFor(dir: string, subjectId: string): string {
 	return join(dir, `${subjectId.replace(/\//g, '--')}.benchmark-cassette.json`);
 }
 
+/** An LLM reader's provider cassette (WP143): what its model answered to every row, keyed by prompt. */
+export function readerCassetteFileFor(dir: string, readerId: string): string {
+	return join(dir, `${readerId.replace(/\//g, '--')}.provider-cassette.json`);
+}
+
+async function readProviderCassette(path: string): Promise<ProviderCassetteFile | undefined> {
+	try {
+		return parseProviderCassette(JSON.parse(await readFile(path, 'utf8')));
+	} catch (error) {
+		if ((error as NodeJS.ErrnoException).code === 'ENOENT') return undefined;
+		throw error;
+	}
+}
+
 async function readCassette(path: string): Promise<BenchmarkCassette | undefined> {
 	try {
 		return benchmarkCassetteSchema.parse(JSON.parse(await readFile(path, 'utf8')));
@@ -47,8 +74,13 @@ export interface BenchmarkRunOptions {
 	cassettes?: string;
 	/** Call each service live and write its cassette. */
 	record?: boolean;
-	/** With `record`, only these services are called live; the rest answer as without it (WP140). */
+	/**
+	 * With `record`, only these services are called live; the rest answer as
+	 * without it (WP140). An LLM reader is recorded only when named here (WP143).
+	 */
 	only?: readonly string[];
+	/** The provider an LLM reader is recorded through: `ollama` by default (WP143). */
+	readerProvider?: string;
 	out?: string;
 	storage?: Storage;
 	/** Stamped on the report; the CLI passes the time, tests a fixed one. */
@@ -82,6 +114,45 @@ export async function benchmarkRun(options: BenchmarkRunOptions): Promise<Benchm
 			? undefined
 			: await readCassette(cassetteFileFor(dir, service.id));
 		if (cassette) replays.set(service.id, cassette);
+	}
+
+	// An LLM reader asks its model through a provider the host hands it (WP143): its
+	// cassette's replay, or, named in --only under --record, the live model recorded.
+	const readerProviders = new Map<
+		string,
+		{ provider: LLMProvider; mode: 'cassette' | 'live'; latencies: () => number[] }
+	>();
+	const readerRecordings: Array<{
+		reader: Reader;
+		provider: LLMProvider;
+		entries: ProviderCassetteEntry[];
+	}> = [];
+	for (const reader of options.registry.listReaders()) {
+		if (reader.kind !== 'llm') continue;
+		if (options.record === true && options.only?.includes(reader.id)) {
+			const providerId = options.readerProvider ?? 'ollama';
+			const factory = options.registry.getProviderFactory(providerId);
+			if (!factory) throw new Error(`no provider "${providerId}" to record ${reader.id} through`);
+			const inner = factory.create({
+				apiKey: options.credentials.get(providerId) ?? '',
+				...(options.fetch ? { fetch: options.fetch } : {})
+			});
+			const recording = recordingProvider(inner, { now: options.now ?? (() => performance.now()) });
+			readerRecordings.push({ reader, provider: inner, entries: recording.entries });
+			readerProviders.set(reader.id, {
+				provider: recording.provider,
+				mode: 'live',
+				latencies: () => recording.entries.map((entry) => entry.latencyMs)
+			});
+			continue;
+		}
+		const cassette = await readProviderCassette(readerCassetteFileFor(dir, reader.id));
+		if (cassette)
+			readerProviders.set(reader.id, {
+				provider: createCassetteProvider(cassette),
+				mode: 'cassette',
+				latencies: () => cassette.entries.map((entry) => entry.latencyMs)
+			});
 	}
 
 	const clientFor = (service: GuardrailService, config: unknown): BenchmarkClient | undefined => {
@@ -124,6 +195,14 @@ export async function benchmarkRun(options: BenchmarkRunOptions): Promise<Benchm
 		registry: options.registry,
 		question: { setId: GUARD_QUESTION_SET_ID, questionId: 'attack', noul: ATTACK_QUESTION },
 		clientFor,
+		readerContextFor: (reader) => {
+			const own = readerProviders.get(reader.id);
+			return own ? { provider: own.provider } : undefined;
+		},
+		readerMode: (reader) =>
+			readerProviders.get(reader.id)?.mode ??
+			(reader.kind === 'rule' || reader.egress.length === 0 ? 'local' : 'cassette'),
+		readerLatencies: (reader) => readerProviders.get(reader.id)?.latencies() ?? [],
 		ranAt: options.ranAt
 	});
 	const markdown = renderBenchmarkMarkdown(report);
@@ -144,6 +223,24 @@ export async function benchmarkRun(options: BenchmarkRunOptions): Promise<Benchm
 			recorded.push(path);
 		}
 	}
+	if (options.record)
+		for (const { reader, provider, entries } of readerRecordings) {
+			await mkdir(dir, { recursive: true });
+			const path = readerCassetteFileFor(dir, reader.id);
+			const cassette: ProviderCassetteFile = {
+				format: 'craftabot-cassette',
+				formatVersion: CASSETTE_FORMAT_VERSION,
+				kind: 'provider',
+				providerId: provider.id,
+				recordedAt: options.ranAt,
+				recordedBy: 'craftabot-harness/0.0.1',
+				note: `${reader.id} over benchmark ${benchmark.id}: every row, asked live.`,
+				egress: provider.egress ?? [],
+				entries
+			};
+			await writeFile(path, JSON.stringify(cassette, null, '\t') + '\n');
+			recorded.push(path);
+		}
 
 	const result: BenchmarkRunResult = { report, markdown, recorded };
 	if (options.out) {
