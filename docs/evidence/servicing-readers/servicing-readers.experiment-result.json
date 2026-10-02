@@ -1,6 +1,6 @@
 {
 	"schemaVersion": 1,
-	"id": "servicing-readers@2026-10-02T12:42:57.714Z",
+	"id": "servicing-readers@2026-10-02T17:50:40.722Z",
 	"experimentId": "servicing-readers",
 	"title": "The servicing readers on the held-out corpus: the bank’s regex against Jev as first asked (q1), Jev with the guide’s rules in its questions (q2), and q2 behind a confidence gate",
 	"hypothesis": "On calls no question was fitted to, stating the labelling guide’s rules in the questions (q2) reduces Jev’s false needs without losing any disclosed one, and the steer check sends callers who dictate the label to a person.",
@@ -9,7 +9,7 @@
 		"fca:fg21-1:vulnerability",
 		"fca:cd:support"
 	],
-	"ranAt": "2026-10-02T12:42:57.714Z",
+	"ranAt": "2026-10-02T17:50:40.722Z",
 	"workflowIds": [
 		"typesafe/servicing-jev-v3"
 	],
@@ -249,8 +249,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"25bc238b-7f10-4b67-80b7-bf144f7cd19b",
-				"917019d8-8d33-48fb-a464-e4124cfcfe90"
+				"90b37353-4977-4433-8ded-52a3a5df7eaa",
+				"584a2386-e472-4da8-bb85-045b8ccc364b"
 			]
 		},
 		{
@@ -481,8 +481,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"25bc238b-7f10-4b67-80b7-bf144f7cd19b",
-				"917019d8-8d33-48fb-a464-e4124cfcfe90"
+				"90b37353-4977-4433-8ded-52a3a5df7eaa",
+				"584a2386-e472-4da8-bb85-045b8ccc364b"
 			]
 		},
 		{
@@ -713,8 +713,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"25bc238b-7f10-4b67-80b7-bf144f7cd19b",
-				"917019d8-8d33-48fb-a464-e4124cfcfe90"
+				"90b37353-4977-4433-8ded-52a3a5df7eaa",
+				"584a2386-e472-4da8-bb85-045b8ccc364b"
 			]
 		},
 		{
@@ -945,8 +945,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"25bc238b-7f10-4b67-80b7-bf144f7cd19b",
-				"917019d8-8d33-48fb-a464-e4124cfcfe90"
+				"90b37353-4977-4433-8ded-52a3a5df7eaa",
+				"584a2386-e472-4da8-bb85-045b8ccc364b"
 			]
 		},
 		{
@@ -1177,8 +1177,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"25bc238b-7f10-4b67-80b7-bf144f7cd19b",
-				"917019d8-8d33-48fb-a464-e4124cfcfe90"
+				"90b37353-4977-4433-8ded-52a3a5df7eaa",
+				"584a2386-e472-4da8-bb85-045b8ccc364b"
 			]
 		},
 		{
@@ -1409,8 +1409,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"25bc238b-7f10-4b67-80b7-bf144f7cd19b",
-				"917019d8-8d33-48fb-a464-e4124cfcfe90"
+				"90b37353-4977-4433-8ded-52a3a5df7eaa",
+				"584a2386-e472-4da8-bb85-045b8ccc364b"
 			]
 		},
 		{
@@ -1641,8 +1641,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"25bc238b-7f10-4b67-80b7-bf144f7cd19b",
-				"4942221d-e5ad-4a2b-970d-f3665684fb35"
+				"90b37353-4977-4433-8ded-52a3a5df7eaa",
+				"68b1f8f2-312a-48ac-89dc-64edff380fac"
 			]
 		},
 		{
@@ -1873,8 +1873,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"25bc238b-7f10-4b67-80b7-bf144f7cd19b",
-				"4942221d-e5ad-4a2b-970d-f3665684fb35"
+				"90b37353-4977-4433-8ded-52a3a5df7eaa",
+				"68b1f8f2-312a-48ac-89dc-64edff380fac"
 			]
 		},
 		{
@@ -2105,8 +2105,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"25bc238b-7f10-4b67-80b7-bf144f7cd19b",
-				"4942221d-e5ad-4a2b-970d-f3665684fb35"
+				"90b37353-4977-4433-8ded-52a3a5df7eaa",
+				"68b1f8f2-312a-48ac-89dc-64edff380fac"
 			]
 		},
 		{
@@ -2337,8 +2337,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"25bc238b-7f10-4b67-80b7-bf144f7cd19b",
-				"4942221d-e5ad-4a2b-970d-f3665684fb35"
+				"90b37353-4977-4433-8ded-52a3a5df7eaa",
+				"68b1f8f2-312a-48ac-89dc-64edff380fac"
 			]
 		},
 		{
@@ -2569,8 +2569,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"25bc238b-7f10-4b67-80b7-bf144f7cd19b",
-				"4942221d-e5ad-4a2b-970d-f3665684fb35"
+				"90b37353-4977-4433-8ded-52a3a5df7eaa",
+				"68b1f8f2-312a-48ac-89dc-64edff380fac"
 			]
 		},
 		{
@@ -2801,8 +2801,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"25bc238b-7f10-4b67-80b7-bf144f7cd19b",
-				"4942221d-e5ad-4a2b-970d-f3665684fb35"
+				"90b37353-4977-4433-8ded-52a3a5df7eaa",
+				"68b1f8f2-312a-48ac-89dc-64edff380fac"
 			]
 		},
 		{
@@ -3033,8 +3033,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"25bc238b-7f10-4b67-80b7-bf144f7cd19b",
-				"081354d0-e935-4a84-aae8-0d0581d33734"
+				"90b37353-4977-4433-8ded-52a3a5df7eaa",
+				"a46ffbac-af1f-4584-a974-adc6a003d6d3"
 			]
 		},
 		{
@@ -3265,8 +3265,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"25bc238b-7f10-4b67-80b7-bf144f7cd19b",
-				"081354d0-e935-4a84-aae8-0d0581d33734"
+				"90b37353-4977-4433-8ded-52a3a5df7eaa",
+				"a46ffbac-af1f-4584-a974-adc6a003d6d3"
 			]
 		},
 		{
@@ -3497,8 +3497,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"25bc238b-7f10-4b67-80b7-bf144f7cd19b",
-				"081354d0-e935-4a84-aae8-0d0581d33734"
+				"90b37353-4977-4433-8ded-52a3a5df7eaa",
+				"a46ffbac-af1f-4584-a974-adc6a003d6d3"
 			]
 		},
 		{
@@ -3729,8 +3729,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"25bc238b-7f10-4b67-80b7-bf144f7cd19b",
-				"081354d0-e935-4a84-aae8-0d0581d33734"
+				"90b37353-4977-4433-8ded-52a3a5df7eaa",
+				"a46ffbac-af1f-4584-a974-adc6a003d6d3"
 			]
 		},
 		{
@@ -3961,8 +3961,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"25bc238b-7f10-4b67-80b7-bf144f7cd19b",
-				"081354d0-e935-4a84-aae8-0d0581d33734"
+				"90b37353-4977-4433-8ded-52a3a5df7eaa",
+				"a46ffbac-af1f-4584-a974-adc6a003d6d3"
 			]
 		},
 		{
@@ -4193,8 +4193,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"25bc238b-7f10-4b67-80b7-bf144f7cd19b",
-				"081354d0-e935-4a84-aae8-0d0581d33734"
+				"90b37353-4977-4433-8ded-52a3a5df7eaa",
+				"a46ffbac-af1f-4584-a974-adc6a003d6d3"
 			]
 		},
 		{
@@ -4425,8 +4425,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"25bc238b-7f10-4b67-80b7-bf144f7cd19b",
-				"46a58eb6-8897-4068-9cdc-fdcaa3345f1a"
+				"90b37353-4977-4433-8ded-52a3a5df7eaa",
+				"da86c459-b482-4ad4-b24b-e6bdfb4e1a14"
 			]
 		},
 		{
@@ -4657,8 +4657,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"25bc238b-7f10-4b67-80b7-bf144f7cd19b",
-				"46a58eb6-8897-4068-9cdc-fdcaa3345f1a"
+				"90b37353-4977-4433-8ded-52a3a5df7eaa",
+				"da86c459-b482-4ad4-b24b-e6bdfb4e1a14"
 			]
 		},
 		{
@@ -4889,8 +4889,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"25bc238b-7f10-4b67-80b7-bf144f7cd19b",
-				"46a58eb6-8897-4068-9cdc-fdcaa3345f1a"
+				"90b37353-4977-4433-8ded-52a3a5df7eaa",
+				"da86c459-b482-4ad4-b24b-e6bdfb4e1a14"
 			]
 		},
 		{
@@ -5121,8 +5121,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"25bc238b-7f10-4b67-80b7-bf144f7cd19b",
-				"46a58eb6-8897-4068-9cdc-fdcaa3345f1a"
+				"90b37353-4977-4433-8ded-52a3a5df7eaa",
+				"da86c459-b482-4ad4-b24b-e6bdfb4e1a14"
 			]
 		},
 		{
@@ -5353,8 +5353,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"25bc238b-7f10-4b67-80b7-bf144f7cd19b",
-				"46a58eb6-8897-4068-9cdc-fdcaa3345f1a"
+				"90b37353-4977-4433-8ded-52a3a5df7eaa",
+				"da86c459-b482-4ad4-b24b-e6bdfb4e1a14"
 			]
 		},
 		{
@@ -5585,12 +5585,12 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"25bc238b-7f10-4b67-80b7-bf144f7cd19b",
-				"46a58eb6-8897-4068-9cdc-fdcaa3345f1a"
+				"90b37353-4977-4433-8ded-52a3a5df7eaa",
+				"da86c459-b482-4ad4-b24b-e6bdfb4e1a14"
 			]
 		}
 	],
 	"verdict": "not-supported",
 	"note": "minimum detectable difference of rates at the achieved n (96 on the smaller side, 80% power): 15.3 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)",
-	"digest": "67a3c229243554a0fca79aa3ceacfa27efcad5f326739489404b7e43170b2364"
+	"digest": "e908933924b86fdb883ceca22f62265c06539ebf4fb10a5492b1fae61ce224a9"
 }

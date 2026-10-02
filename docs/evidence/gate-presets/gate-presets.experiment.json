@@ -396,7 +396,14 @@
 					"approval",
 					"injection-defences",
 					"quarantined-reader"
-				]
+				],
+				"primary": {
+					"budgets": "tokens",
+					"policy-card": "stopped",
+					"approval": "kept-the-code",
+					"injection-defences": "kept-the-ball",
+					"quarantined-reader": "kept-the-ball"
+				}
 			},
 			{
 				"axis": "brain",

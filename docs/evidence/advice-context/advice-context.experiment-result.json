@@ -1,6 +1,6 @@
 {
 	"schemaVersion": 1,
-	"id": "advice-context@2026-10-02T12:15:20.114Z",
+	"id": "advice-context@2026-10-02T17:23:14.035Z",
 	"experimentId": "advice-context",
 	"title": "The relational context on the advice-request register",
 	"hypothesis": "The relational context lowers unsuitable recommendations and raises data-minimisation findings against the case file alone.",
@@ -12,7 +12,7 @@
 		"fca:cobs-9:suitability",
 		"ukgdpr:data-minimisation"
 	],
-	"ranAt": "2026-10-02T12:15:20.114Z",
+	"ranAt": "2026-10-02T17:23:14.035Z",
 	"workflowIds": [
 		"fs-advice/advice"
 	],
@@ -472,8 +472,8 @@
 				"00000000-0000-4000-8000-0000008adb89"
 			],
 			"reportIds": [
-				"98ba925b-7144-483c-b0a0-fef042c71574",
-				"625b3a8e-c443-4918-8a0e-c9e1b6ee150c"
+				"2d99fd6d-5888-417e-b222-791bc9442a63",
+				"016fbf6c-87f6-4bbf-9706-f04a93e23c08"
 			]
 		},
 		{
@@ -920,8 +920,8 @@
 				"00000000-0000-4000-8000-0000008adb89"
 			],
 			"reportIds": [
-				"98ba925b-7144-483c-b0a0-fef042c71574",
-				"625b3a8e-c443-4918-8a0e-c9e1b6ee150c"
+				"2d99fd6d-5888-417e-b222-791bc9442a63",
+				"016fbf6c-87f6-4bbf-9706-f04a93e23c08"
 			]
 		},
 		{
@@ -1368,8 +1368,8 @@
 				"00000000-0000-4000-8000-0000008adb6b"
 			],
 			"reportIds": [
-				"c98a1e9f-4828-4e89-9820-f2b02ac71f5c",
-				"e67ec9af-2f01-44bd-b50a-7db768bf67b3"
+				"02912c90-4cb7-4bdd-96b4-2f02680d67b7",
+				"753d6ffa-dce9-4cc4-b09b-a50e5a93217a"
 			]
 		},
 		{
@@ -1816,8 +1816,8 @@
 				"00000000-0000-4000-8000-0000008adb6b"
 			],
 			"reportIds": [
-				"c98a1e9f-4828-4e89-9820-f2b02ac71f5c",
-				"e67ec9af-2f01-44bd-b50a-7db768bf67b3"
+				"02912c90-4cb7-4bdd-96b4-2f02680d67b7",
+				"753d6ffa-dce9-4cc4-b09b-a50e5a93217a"
 			]
 		},
 		{
@@ -2265,8 +2265,8 @@
 				"00000000-0000-4000-8000-0000008adb7a"
 			],
 			"reportIds": [
-				"98ba925b-7144-483c-b0a0-fef042c71574",
-				"b47020f5-e3ff-4d5a-8b97-fe2e80965031"
+				"2d99fd6d-5888-417e-b222-791bc9442a63",
+				"d681d866-719d-4daa-a0de-ba810b845c6d"
 			]
 		},
 		{
@@ -2714,8 +2714,8 @@
 				"00000000-0000-4000-8000-0000008adb7a"
 			],
 			"reportIds": [
-				"98ba925b-7144-483c-b0a0-fef042c71574",
-				"b47020f5-e3ff-4d5a-8b97-fe2e80965031"
+				"2d99fd6d-5888-417e-b222-791bc9442a63",
+				"d681d866-719d-4daa-a0de-ba810b845c6d"
 			]
 		},
 		{
@@ -3162,8 +3162,8 @@
 				"00000000-0000-4000-8000-0000008adb5c"
 			],
 			"reportIds": [
-				"c98a1e9f-4828-4e89-9820-f2b02ac71f5c",
-				"40561071-3512-4d18-90d0-5d95db529406"
+				"02912c90-4cb7-4bdd-96b4-2f02680d67b7",
+				"07f6b514-cb8e-4604-bcf0-840df02e4432"
 			]
 		},
 		{
@@ -3611,12 +3611,12 @@
 				"00000000-0000-4000-8000-0000008adb5c"
 			],
 			"reportIds": [
-				"c98a1e9f-4828-4e89-9820-f2b02ac71f5c",
-				"40561071-3512-4d18-90d0-5d95db529406"
+				"02912c90-4cb7-4bdd-96b4-2f02680d67b7",
+				"07f6b514-cb8e-4604-bcf0-840df02e4432"
 			]
 		}
 	],
 	"verdict": "not-supported",
 	"note": "minimum detectable difference of rates at the achieved n (92 on the smaller side, 80% power): 7.5 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)",
-	"digest": "b9da5027f636e5685e98e8df034ac27cf0b0b77e0d574f74beb878739cbdfaac"
+	"digest": "90f9e6613a1f2194ec9a233e9d613e70b6169e3b30017182f47a788d529674f0"
 }

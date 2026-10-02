@@ -1,6 +1,6 @@
 {
 	"schemaVersion": 1,
-	"id": "ceilings@2026-10-02T12:17:10.085Z",
+	"id": "ceilings@2026-10-02T17:24:10.875Z",
 	"experimentId": "ceilings",
 	"title": "The ceilings enforced at Level 5 on the loan book",
 	"hypothesis": "Enforcing the decision-rights ceilings at Level 5 (WP139) brings the ceiling-breach rate to zero, with agreement with the rules unchanged; the price, a person’s touch on each decision above its ceiling, is read from each effect’s cost.",
@@ -11,7 +11,7 @@
 		"pra:ss1-23:mitigants",
 		"pra:ss1-23:governance"
 	],
-	"ranAt": "2026-10-02T12:17:10.085Z",
+	"ranAt": "2026-10-02T17:24:10.875Z",
 	"workflowIds": [
 		"fs-lending/lending"
 	],
@@ -1847,8 +1847,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"6e94ad11-202e-44ae-90eb-d4475198df65",
-				"28948e2e-f7eb-4e98-8775-274b761975a0"
+				"43bc07b0-2fb1-4423-8527-6751cebfcbb7",
+				"6a1b73e3-e40f-4bbb-a2dc-bb1195f0ecaf"
 			]
 		},
 		{
@@ -3677,8 +3677,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"6e94ad11-202e-44ae-90eb-d4475198df65",
-				"28948e2e-f7eb-4e98-8775-274b761975a0"
+				"43bc07b0-2fb1-4423-8527-6751cebfcbb7",
+				"6a1b73e3-e40f-4bbb-a2dc-bb1195f0ecaf"
 			]
 		},
 		{
@@ -5506,8 +5506,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"2d812eee-b443-42b4-b6dc-49cabb73631e",
-				"cd9e0c27-f3f6-4d7a-9633-6e92b0ab22e1"
+				"c6dfc55a-dfc1-44c8-9ce3-06784485396d",
+				"b9e778b6-bd40-4843-97f6-f017637dd1b1"
 			]
 		},
 		{
@@ -7335,12 +7335,12 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"2d812eee-b443-42b4-b6dc-49cabb73631e",
-				"cd9e0c27-f3f6-4d7a-9633-6e92b0ab22e1"
+				"c6dfc55a-dfc1-44c8-9ce3-06784485396d",
+				"b9e778b6-bd40-4843-97f6-f017637dd1b1"
 			]
 		}
 	],
 	"verdict": "inconclusive",
 	"note": "minimum detectable difference of rates at the achieved n (783 on the smaller side, 80% power): 2.9 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)",
-	"digest": "d38e30548bae47c6e9d9793af4e64e8f0244f646a6d9c63bef63ab55e48b1d06"
+	"digest": "e1de102879311fe1e7209398b2f8a8c3e5d621d07cbdd99121d06859a3da949c"
 }

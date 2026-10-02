@@ -176,6 +176,7 @@ Conventions used throughout:
 66. The Control Inventory
 67. What Phases AK–AM added
 68. The controls and ceilings designs
+69. Every control testable
 
 **Appendices**
 A. Screen index
@@ -2369,6 +2370,29 @@ Not in the design: prompt integrity, whose validated digest belongs to one build
 - The Gate's five presets are the only stacks with no verdict.
 
 > **Figure 31** — The Control Inventory over the knobs: the readouts, the matrix of kind against facet, and the twelve knobs the worlds declare. *(Appendix D, `ws-controls.png`.)*
+
+## 69. Every control testable
+
+Phases AO–AQ (`docs/design-day2/111-TESTABLE-CONTROLS-PLAN.md`) set out to give every control in the bank something it could catch, and to say plainly where it still has nothing.
+
+**The attacks, carried.** The five Workshop-only scenarios of §68 give each agent-security component its attack. `campaigns/agent-security-baseline.json` holds them in CI: each attack lands with no guard and is stopped by its component. The key in `key-in-the-manual` is synthetic by construction: `@craftabot/desk`'s `syntheticSecret` puts `SYNTHETIC` in every key it makes, and the fixture sweep now refuses any key-shaped string without it.
+
+**The desks made fallible.**
+- **Error models.** Every desk now has a fallible tier, a scripted bot that errs at its deciding call one time in ten. Each desk's stack design runs it.
+- **What the stacks catch.** On the disputes, collections, onboarding and servicing desks the stack leaves the error where it is, because their cards check order and approvals, not the decision against the rule. The lending and fraud desks showed the same.
+- **The complaints desk.** Its first reading (69% root cause) was a defect: the desk's own truth and rule disagreed with the register, which upholds only charges and data complaints. Both now follow the register. Two cards hold the register's rule on the register's complaints. Blocking a wrong root cause keeps it off the register, but leaves the case unfinished, since nothing retries the stage. That is the next control, and it is not built.
+
+**The person says why.** The bank's case handler, as a reviewer model, gives a written reason on four overrides in five. `campaigns/fs-lending-reviewed.json` holds the `override-reason` gate against it in CI.
+
+**The Gate's presets, measured.** The five presets run as guard levels over the same nine scenarios:
+- the budgets and the policy card's step budget stop runs;
+- ask-first never fires, since a campaign approves every request;
+- the two injection presets cost tokens and change nothing a scripted leak does, since taint needs four words in common and the leaks share three.
+
+**Where this leaves the inventory.**
+- Every agent-security component reads *evidenced*.
+- Every shipped stack has a verdict, and so does every card or component a stack carries.
+- What is left to read is stated on the reading desk: 316 items.
 
 # Appendices
 

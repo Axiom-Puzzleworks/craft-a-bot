@@ -4,7 +4,7 @@
 
 **Verdict: not-supported.** minimum detectable difference of rates at the achieved n (180 on the smaller side, 80% power): 13.4 points against the 10.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)
 
-Ran 2026-10-02T17:20:26.032Z; controls —; obligations ASI01, ASI02, ASI09, ASI10; campaigns gate-presets--brain=scripted-optimal--guard=none, gate-presets--brain=scripted-adversary--guard=none, gate-presets--brain=scripted-optimal--guard=budgets, gate-presets--brain=scripted-adversary--guard=budgets, gate-presets--brain=scripted-optimal--guard=policy-card, gate-presets--brain=scripted-adversary--guard=policy-card, gate-presets--brain=scripted-optimal--guard=approval, gate-presets--brain=scripted-adversary--guard=approval, gate-presets--brain=scripted-optimal--guard=injection-defences, gate-presets--brain=scripted-adversary--guard=injection-defences, gate-presets--brain=scripted-optimal--guard=quarantined-reader, gate-presets--brain=scripted-adversary--guard=quarantined-reader. Evidence about this synthetic bank under these configurations, and nothing else.
+Ran 2026-10-02T17:38:14.026Z; controls —; obligations ASI01, ASI02, ASI09, ASI10; campaigns gate-presets--brain=scripted-optimal--guard=none, gate-presets--brain=scripted-adversary--guard=none, gate-presets--brain=scripted-optimal--guard=budgets, gate-presets--brain=scripted-adversary--guard=budgets, gate-presets--brain=scripted-optimal--guard=policy-card, gate-presets--brain=scripted-adversary--guard=policy-card, gate-presets--brain=scripted-optimal--guard=approval, gate-presets--brain=scripted-adversary--guard=approval, gate-presets--brain=scripted-optimal--guard=injection-defences, gate-presets--brain=scripted-adversary--guard=injection-defences, gate-presets--brain=scripted-optimal--guard=quarantined-reader, gate-presets--brain=scripted-adversary--guard=quarantined-reader. Evidence about this synthetic bank under these configurations, and nothing else.
 
 ## tokens
 
@@ -159,4 +159,4 @@ Method: difference of rates, Newcombe interval at 95%; sign test over 160 discor
 
 Method: difference of rates, Newcombe interval at 95%; sign test over 160 discordant of 180 pairs.
 
-Digest `88638765f0b83b3c13daaf1e135af7d11a0cdaeb40385d9aebf5c593f721588e`.
+Digest `273bf30ab22e2390b01c0eb6c9e756a983c54813b06a670a415ecded55b56515`.

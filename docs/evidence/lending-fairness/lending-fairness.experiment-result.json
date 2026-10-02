@@ -1,6 +1,6 @@
 {
 	"schemaVersion": 1,
-	"id": "lending-fairness@2026-10-02T12:38:08.652Z",
+	"id": "lending-fairness@2026-10-02T17:45:56.318Z",
 	"experimentId": "lending-fairness",
 	"title": "Fairness of the stack on the loan book",
 	"hypothesis": "The policy-card stack does not widen the demographic-parity gap or the equal-opportunity gap across age bands on the loan book.",
@@ -10,7 +10,7 @@
 	"obligations": [
 		"equality-act:fairness"
 	],
-	"ranAt": "2026-10-02T12:38:08.652Z",
+	"ranAt": "2026-10-02T17:45:56.318Z",
 	"workflowIds": [
 		"fs-lending/lending"
 	],
@@ -1647,8 +1647,8 @@
 				"00000000-0000-4000-8000-000004a93d17"
 			],
 			"reportIds": [
-				"bd536315-09d6-4a6c-84c5-70180aa9ac0d",
-				"c8f1efe8-f271-454b-9654-97b11d99206c"
+				"ddaec1a2-6d31-4c2d-b4de-3f435bc5df8f",
+				"43d9609c-2988-4c3e-8f29-d90c9504d3f2"
 			]
 		},
 		{
@@ -3278,8 +3278,8 @@
 				"00000000-0000-4000-8000-000004a93d17"
 			],
 			"reportIds": [
-				"bd536315-09d6-4a6c-84c5-70180aa9ac0d",
-				"c8f1efe8-f271-454b-9654-97b11d99206c"
+				"ddaec1a2-6d31-4c2d-b4de-3f435bc5df8f",
+				"43d9609c-2988-4c3e-8f29-d90c9504d3f2"
 			]
 		},
 		{
@@ -4908,8 +4908,8 @@
 				"00000000-0000-4000-8000-000004a93d17"
 			],
 			"reportIds": [
-				"6499a71a-1a7c-4320-bb1a-4bcf46e457bd",
-				"f5393dc2-6e29-4f3d-b45d-0068f0482330"
+				"3f185a71-acc7-4dcd-90ba-6ebe32d5652b",
+				"ff6cc5b7-8aa8-4bb9-a774-1f6343137e3d"
 			]
 		},
 		{
@@ -6539,12 +6539,12 @@
 				"00000000-0000-4000-8000-000004a93d17"
 			],
 			"reportIds": [
-				"6499a71a-1a7c-4320-bb1a-4bcf46e457bd",
-				"f5393dc2-6e29-4f3d-b45d-0068f0482330"
+				"3f185a71-acc7-4dcd-90ba-6ebe32d5652b",
+				"ff6cc5b7-8aa8-4bb9-a774-1f6343137e3d"
 			]
 		}
 	],
 	"verdict": "inconclusive",
 	"note": "one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)",
-	"digest": "28f4bc3cda93cbf748dc5bfad13f2923cc636e4dbaaee326a4ade24bb1c5e38a"
+	"digest": "bb3d3bc08157406e21856476d7a60a3c3abf378d975d3564707f6c1b4d5bd172"
 }

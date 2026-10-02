@@ -4,7 +4,7 @@
 
 **Verdict: inconclusive.** minimum detectable difference of rates at the achieved n (166 on the smaller side, 80% power): 5.0 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)
 
-Ran 2026-10-02T16:12:25.441Z; controls —; obligations —; campaigns onboarding-stack--brain=scripted-optimal--guard=none, onboarding-stack--brain=fallible--guard=none, onboarding-stack--brain=scripted-optimal--guard=policy-cards, onboarding-stack--brain=fallible--guard=policy-cards. Evidence about this synthetic bank under these configurations, and nothing else.
+Ran 2026-10-02T17:50:25.880Z; controls —; obligations —; campaigns onboarding-stack--brain=scripted-optimal--guard=none, onboarding-stack--brain=fallible--guard=none, onboarding-stack--brain=scripted-optimal--guard=policy-cards, onboarding-stack--brain=fallible--guard=policy-cards. Evidence about this synthetic bank under these configurations, and nothing else.
 
 ## decision-matches-rules
 
@@ -24,4 +24,4 @@ Method: difference of rates, Newcombe interval at 95%; sign test over 0 discorda
 
 Method: difference of rates, Newcombe interval at 95%; sign test over 0 discordant of 166 pairs.
 
-Digest `06f5b51a2a0c0cf4adf45f9f761a4caf9a5f3b1a45f003cf856d17145ede3897`.
+Digest `ad727c1d7943fa4669b9520502f5510cdea9ab5ed3013d95c17eee1fd80035aa`.

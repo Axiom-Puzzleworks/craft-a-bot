@@ -4,7 +4,7 @@
 
 **Verdict: not-supported.** minimum detectable difference of rates at the achieved n (783 on the smaller side, 80% power): 1.1 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)
 
-Ran 2026-10-02T12:40:15.366Z; controls fs-lending/control-map/four-eyes; obligations fca:conc:affordability, pra:ss1-23:mitigants; campaigns lending-knobs--brain=scripted-optimal--executors=bot-everywhere--knob=60, lending-knobs--brain=fallible--executors=bot-everywhere--knob=60, lending-knobs--brain=scripted-optimal--executors=bot-with-a-person-at-the-decision--knob=60, lending-knobs--brain=fallible--executors=bot-with-a-person-at-the-decision--knob=60, lending-knobs--brain=scripted-optimal--executors=bot-everywhere--knob=45, lending-knobs--brain=fallible--executors=bot-everywhere--knob=45, lending-knobs--brain=scripted-optimal--executors=bot-with-a-person-at-the-decision--knob=45, lending-knobs--brain=fallible--executors=bot-with-a-person-at-the-decision--knob=45. Evidence about this synthetic bank under these configurations, and nothing else.
+Ran 2026-10-02T17:47:55.697Z; controls fs-lending/control-map/four-eyes; obligations fca:conc:affordability, pra:ss1-23:mitigants; campaigns lending-knobs--brain=scripted-optimal--executors=bot-everywhere--knob=60, lending-knobs--brain=fallible--executors=bot-everywhere--knob=60, lending-knobs--brain=scripted-optimal--executors=bot-with-a-person-at-the-decision--knob=60, lending-knobs--brain=fallible--executors=bot-with-a-person-at-the-decision--knob=60, lending-knobs--brain=scripted-optimal--executors=bot-everywhere--knob=45, lending-knobs--brain=fallible--executors=bot-everywhere--knob=45, lending-knobs--brain=scripted-optimal--executors=bot-with-a-person-at-the-decision--knob=45, lending-knobs--brain=fallible--executors=bot-with-a-person-at-the-decision--knob=45. Evidence about this synthetic bank under these configurations, and nothing else.
 
 ## over-approval
 
@@ -28,4 +28,4 @@ Method: difference of rates, Newcombe interval at 95%; sign test over 0 discorda
 
 Method: difference of means, Welch interval at 95%; sign test over 0 non-tied of 783 pairs.
 
-Digest `27def5025a011ec3c607eb8c7cb5a2f63f5e353dad3afeb8f20526be24c121ee`.
+Digest `8043e568120489e3db32e3faea601404183bd061f51fca16e9699d69c5c9b87b`.

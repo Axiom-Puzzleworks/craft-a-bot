@@ -4,7 +4,7 @@
 
 **Verdict: inconclusive.** minimum detectable difference of rates at the achieved n (783 on the smaller side, 80% power): 2.9 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)
 
-Ran 2026-10-02T12:17:10.085Z; controls fs-lending/control-map/ceilings-enforced; obligations pra:ss1-23:mitigants, pra:ss1-23:governance; campaigns ceilings--brain=scripted-noisy--executors=bot-everywhere, ceilings--brain=fallible--executors=bot-everywhere, ceilings--brain=scripted-noisy--executors=bot-everywhere-ceilings-enforced, ceilings--brain=fallible--executors=bot-everywhere-ceilings-enforced. Evidence about this synthetic bank under these configurations, and nothing else.
+Ran 2026-10-02T17:24:10.875Z; controls fs-lending/control-map/ceilings-enforced; obligations pra:ss1-23:mitigants, pra:ss1-23:governance; campaigns ceilings--brain=scripted-noisy--executors=bot-everywhere, ceilings--brain=fallible--executors=bot-everywhere, ceilings--brain=scripted-noisy--executors=bot-everywhere-ceilings-enforced, ceilings--brain=fallible--executors=bot-everywhere-ceilings-enforced. Evidence about this synthetic bank under these configurations, and nothing else.
 
 ## breaches
 
@@ -24,4 +24,4 @@ Method: difference of means, Welch interval at 95%; sign test over 490 non-tied 
 
 Method: difference of rates, Newcombe interval at 95%; sign test over 0 discordant of 783 pairs.
 
-Digest `d38e30548bae47c6e9d9793af4e64e8f0244f646a6d9c63bef63ab55e48b1d06`.
+Digest `e1de102879311fe1e7209398b2f8a8c3e5d621d07cbdd99121d06859a3da949c`.
