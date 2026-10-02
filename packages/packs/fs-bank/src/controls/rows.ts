@@ -211,6 +211,21 @@ export const BANK_CONTROL_ROWS: readonly ControlMapRow[] = [
 		],
 		status: 'unreviewed',
 		tags: ['pra:ss1-21:resilience']
+	},
+	{
+		// WP147 (`110-…` §10): a change to a bot is a change to a model.
+		framework: 'PRA SS1/23',
+		ref: 'model-change-control',
+		title: 'A change to a bot is seen, validated and read before it is relied on',
+		obligation:
+			'Every desk’s bot carries a build digest over its cartridge, stack, knobs and prompt; a run of a build other than the one validated says so; a knob changed by a campaign or experiment is read like a calibration row; a changed build is held to its baseline by a no-regression gate.',
+		evidence: [
+			{ kind: 'trace-guarantee', id: 'run.started' },
+			{ kind: 'gate', id: 'no-regression' },
+			{ kind: 'artefact', id: 'agent-card' }
+		],
+		status: 'unreviewed',
+		tags: ['pra:ss1-23:development', 'pra:ss1-23:governance']
 	}
 ];
 

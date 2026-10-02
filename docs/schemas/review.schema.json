@@ -22,7 +22,8 @@
 						"blueprint-item",
 						"screening-list",
 						"error-model",
-						"reviewer-model"
+						"reviewer-model",
+						"knob-change"
 					]
 				},
 				"id": {

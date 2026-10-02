@@ -26,7 +26,8 @@ afterAll(async () => {
 const config = defaultConfig();
 const credentials = credentialsFromEnv({});
 
-describe('craftabot report (WP49)', () => {
+// The safety case folds the whole catalogue and every evaluator; under a full parallel run it outgrew 5 s.
+describe('craftabot report (WP49)', { timeout: 30_000 }, () => {
 	it('--telemetry carries a one-day series with no drift over a store of two runs', async () => {
 		const root = await mkdtemp(join(tmpdir(), 'craftabot-report-v2-'));
 		roots.push(root);

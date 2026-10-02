@@ -1,6 +1,8 @@
+import { sha256Hex } from '../schemas/sha256.js';
 import { createEventBus, type EventBus } from '../event-bus.js';
 import type { Attestation, Principal } from '../schemas/shared.js';
 import { toSpecV2 } from '../schemas/agent-spec-v2.js';
+import { buildDigest } from '../build-digest.js';
 import {
 	brainSlotSchema,
 	memorySlotSchema,
@@ -811,6 +813,13 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 					}
 				: {})
 		});
+		// A mandatory disclosure the action made (WP145): its id and the digest of the exact words.
+		for (const disclosure of actionResult.disclosures ?? [])
+			emit('disclosure.given', {
+				id: disclosure.id,
+				action: call.name,
+				digest: sha256Hex(disclosure.text)
+			});
 		if (actionResult.ok) {
 			emit('world.changed', { state: world.snapshot() });
 		} else {
@@ -1157,6 +1166,16 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		}
 	}
 
+	const current = options.validated ? buildDigest(deps.spec) : undefined;
+	const changed =
+		options.validated && current !== undefined && current !== options.validated.digest
+			? {
+					validated: options.validated.digest,
+					current,
+					...(options.validated.source ? { source: options.validated.source } : {})
+				}
+			: undefined;
+
 	function startRun(runMode: RunMode): void {
 		run.mode = runMode;
 		run.status = 'running';
@@ -1178,6 +1197,8 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			// Who is running this (WP65): only when the host named one, so a trace written before keeps its bytes.
 			...(principal ? { principal } : {}),
 			...(goalDial ? { goalDial } : {}),
+			// Change control (WP147): only when the host named a validated build and this one is not it.
+			...(changed ? { changed } : {}),
 			...(fork ? { forkedFrom: fork.forkedFrom } : {}),
 			// Written only when the host named a mode (WP41): the guard runs
 			// either way, but a trace written before the field existed — the

@@ -60,6 +60,16 @@ export const CONTROL_MECHANISMS: readonly ControlMechanism[] = [
 		since: 'WP0'
 	}),
 	m({
+		id: 'core/failover',
+		name: 'Provider failover',
+		summary:
+			'A provider in front of several asks each in turn on an unavailable, slow or rate-limited answer; think.completed says who served and who failed.',
+		where: ['packages/core/src/failover.ts'],
+		observedAs: ['think.completed.response.servedBy'],
+		configuredBy: 'the provider list a host builds, and the failure kinds that fail over',
+		since: 'WP148'
+	}),
+	m({
 		id: 'core/request-timeout',
 		name: 'The provider request timeout',
 		summary:
@@ -175,6 +185,29 @@ export const CONTROL_MECHANISMS: readonly ControlMechanism[] = [
 		since: 'WP58'
 	}),
 	m({
+		id: 'core/disclosure',
+		name: 'Mandatory disclosures on the trace',
+		summary:
+			'A desk action that must tell the customer something says it in registered words; the host writes disclosure.given with the digest of the words said.',
+		where: [
+			'packages/core/src/session/agent-session.ts',
+			'packages/desk/src/desk-world.ts',
+			'packages/packs/fs-bank/src/disclosures.ts'
+		],
+		observedAs: ['disclosure.given'],
+		since: 'WP145'
+	}),
+	m({
+		id: 'core/build-digest',
+		name: 'The build digest and the changed build',
+		summary:
+			'A digest over a bot’s goal card, knobs and every brick’s config, on the kit file; a run of a build other than the one validated says so on run.started.',
+		where: ['packages/core/src/build-digest.ts', 'packages/core/src/session/agent-session.ts'],
+		observedAs: ['run.started.changed', 'craftabot kit digest'],
+		configuredBy: 'the build named as validated',
+		since: 'WP147'
+	}),
+	m({
 		id: 'core/pack-digest',
 		name: 'The pack content digest and its pins',
 		summary:
@@ -266,7 +299,7 @@ export const CONTROL_MECHANISMS: readonly ControlMechanism[] = [
 			'A journey runs at most 64 stages and digests a value over 16 KiB rather than carrying it.',
 		where: ['packages/workflow/src/run.ts'],
 		observedAs: ['the workflow run’s outcome'],
-		configuredBy: 'RunWorkflowOptions.maxStages',
+		configuredBy: 'RunWorkflowOptions.maxStages (64) and valueCap (16 KiB, since WP148)',
 		since: 'WP79'
 	}),
 	m({
@@ -278,6 +311,34 @@ export const CONTROL_MECHANISMS: readonly ControlMechanism[] = [
 		observedAs: ['reader.answered.gated'],
 		configuredBy: 'ReaderExecutor.gate',
 		since: 'WP117'
+	}),
+	m({
+		id: 'workflow/deadlines',
+		name: 'Stage deadlines and the overdue case',
+		summary:
+			'A stage’s deadline in journey ticks; a stage done past it is recorded overdue and written stage.overdue, and the bank clock lists the case as an incident.',
+		where: ['packages/workflow/src/run.ts', 'packages/workflow/src/bank.ts'],
+		observedAs: ['stage.overdue', 'BankRun.counts.overdue'],
+		configuredBy: 'a stage’s deadline',
+		since: 'WP146'
+	}),
+	m({
+		id: 'workflow/override-reason',
+		name: 'Overrides and their reasons',
+		summary:
+			'A person’s decision against the case’s recommendation is recorded as an override, with the reason given, on the stage’s approval and on approval.resolved.',
+		where: ['packages/workflow/src/run.ts'],
+		observedAs: ['approval.resolved.override', 'StageRecord.approval.reason'],
+		since: 'WP146'
+	}),
+	m({
+		id: 'workflow/appeal',
+		name: 'The appeal, as a handoff to review',
+		summary:
+			'A contested adverse decision is handed to the bank’s review journey with kind appeal; the run records the handoff and the review decides it.',
+		where: ['packages/workflow/src/run.ts', 'packages/packs/fs-bank/src/appeal.ts'],
+		observedAs: ['WorkflowRun.handoff.kind', 'the Pipeline’s handoff link'],
+		since: 'WP145'
 	}),
 	m({
 		id: 'workflow/handoff',
@@ -408,6 +469,16 @@ export const CONTROL_MECHANISMS: readonly ControlMechanism[] = [
 		observedAs: ['/workshop/evaluators', 'evaluation records', 'the campaign report'],
 		configuredBy: 'a campaign’s evaluators and gates',
 		since: 'WP43'
+	}),
+	m({
+		id: 'evals/shadow-guard',
+		name: 'A campaign guard in shadow',
+		summary:
+			'A campaign guard with mode shadow runs its components and records what they would have done, as annotations, and changes nothing.',
+		where: ['packages/evals/src/campaign.ts', 'packages/governance/src/shadow.ts'],
+		observedAs: ['guardrail.checked annotations, category shadow'],
+		configuredBy: 'a campaign guard’s mode',
+		since: 'WP149'
 	}),
 	m({
 		id: 'evals/adversary',

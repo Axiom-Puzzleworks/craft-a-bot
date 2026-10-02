@@ -32,6 +32,8 @@ export interface OnboardingState {
 	decision?: Decision;
 	opened: boolean;
 	welcomed: boolean;
+	/** The grounds a contested refusal arrived with (WP145): a declined case carrying one goes to review as an appeal. */
+	appealGrounds?: string;
 }
 
 export type OnboardingExtra = BankExtra & { onboarding: OnboardingState };

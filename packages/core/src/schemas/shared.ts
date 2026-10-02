@@ -75,6 +75,18 @@ export const chatResponseSchema = z.object({
 	/** The first token's top log-probabilities, when `topLogprobs` was asked and the provider returned them (WP120). */
 	logprobs: z.array(z.object({ token: z.string(), logprob: z.number() })).optional(),
 	/**
+	 * Which provider answered, when a failover provider stood in front of
+	 * several (WP148, `110-CONTROL-SUITE-PLAN.md` §10): its id, and each one
+	 * that failed before it with the kind of failure. Written only by
+	 * `failoverProvider`, so it rides on `think.completed` for a reader.
+	 */
+	servedBy: z
+		.object({
+			providerId: z.string(),
+			failedOver: z.array(z.object({ providerId: z.string(), kind: z.string() }))
+		})
+		.optional(),
+	/**
 	 * A fault the fallible tier planted in this response's call (WP115,
 	 * `103-FALLIBLE-ACTORS.md` §5): the field it changed, what it chose and
 	 * what the plan had. Only a scripted brain writes it; the session writes
@@ -132,7 +144,14 @@ export const actionResultSchema = z.object({
 	 * that does not populate it simply has nothing to offer, and the narration
 	 * remains the whole story.
 	 */
-	didYouMean: z.array(z.string()).optional()
+	didYouMean: z.array(z.string()).optional(),
+	/**
+	 * What the action told the customer that the rules require be told (WP145,
+	 * `110-CONTROL-SUITE-PLAN.md` §10): each disclosure's id and its exact
+	 * wording. The host writes one `disclosure.given` per entry with the
+	 * wording's digest. Absent on every action that discloses nothing.
+	 */
+	disclosures: z.array(z.object({ id: z.string().min(1), text: z.string().min(1) })).optional()
 });
 export type ActionResult = z.infer<typeof actionResultSchema>;
 

@@ -916,3 +916,40 @@ describe('a handoff (WP102, `83-…` §6.5.3)', () => {
 		).rejects.toThrow(/not installed/);
 	});
 });
+
+describe('deadlines and override reasons (WP146, `110-…` §10)', () => {
+	it('records a stage done past its deadline, says so on the trace, and leaves one on time alone', async () => {
+		const late = { ...signByRule, deadline: { ticks: 1 } };
+		const { record } = await run(workflow([greet, late], { rules: RULES }));
+		expect(record.stages[1]?.overdue).toEqual({ deadline: 1, elapsed: 2 });
+		expect(record.events.filter((event) => event.type === 'stage.overdue')).toMatchObject([
+			{ payload: { stageId: 'sign', deadline: 1, elapsed: 2 } }
+		]);
+		const onTime = { ...signByRule, deadline: { ticks: 2 } };
+		const fine = await run(workflow([greet, onTime], { rules: RULES }));
+		expect(fine.record.stages[1]?.overdue).toBeUndefined();
+		expect(fine.record.events.some((event) => event.type === 'stage.overdue')).toBe(false);
+	});
+
+	it('marks a decision against the recommendation an override, with the reason when one is given', async () => {
+		const recommended: StageSpec = { ...decide, recommended: () => 'approve' };
+		const resolved = (events: EngineEvent[]) =>
+			events.find((event) => event.type === 'approval.resolved')?.payload;
+		const followed = await run(workflow([recommended]), {
+			human: () => ({ decision: 'approve' })
+		});
+		expect(followed.record.stages[0]?.approval?.override).toBeUndefined();
+		expect(resolved(followed.record.events)).toEqual({ approved: true });
+		const silent = await run(workflow([recommended]), { human: () => ({ decision: 'refer' }) });
+		expect(silent.record.stages[0]?.approval).toMatchObject({ decision: 'refer', override: true });
+		expect(silent.record.stages[0]?.approval?.reason).toBeUndefined();
+		const reasoned = await run(workflow([recommended]), {
+			human: () => ({ decision: 'refer', reason: 'The visitor’s pass has expired.' })
+		});
+		expect(resolved(reasoned.record.events)).toEqual({
+			approved: false,
+			override: true,
+			reason: 'The visitor’s pass has expired.'
+		});
+	});
+});

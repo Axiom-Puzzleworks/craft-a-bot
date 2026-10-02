@@ -239,6 +239,18 @@ V1 needs none. The first features that will genuinely require one: sharing kit f
 > - **+72 kB in every edition** for the catalogue's second edition (23 entries), the declared mechanisms, the inventory's fold and `/workshop/controls`.
 > - **The Kit's first page 136 KiB lighter and the Worker 70 KiB lighter.** `@craftabot/governance` now declares `"sideEffects": false`. The catalogue and the mechanism list are built by top-level calls the bundler could not prove pure, so they had ridden on every page through the root layout's import of governance's barrel. The first-page gate is lowered to 808,000 and the Worker's to 1,739,000, so the gain is held.
 
+> **Amended 2026-10-02, later (Phase AM, WP145–WP149, `110-CONTROL-SUITE-PLAN.md` §10): the budgets after the bank's missing controls.** Each build set to its measured size plus 20 kB:
+>
+> | Build | Budget | Measured | Worker | Kit's first page |
+> |---|---|---|---|---|
+> | full | 3,105,000 | 3,012 KiB | 1,726 KiB of 1,746 | 801 KiB of 821 |
+> | simulator | 2,955,000 | 2,865 KiB | — | — |
+> | workshop | 2,976,000 | 2,886 KiB | — | — |
+> | playground | 3,105,000 | 3,012 KiB | — | — |
+>
+> - **About +30 kB in every edition** for the disclosures, the appeal and the door's reader in `fs-bank`, the deadlines and override reasons, the build digest, failover, shadow mode, and the starter's new components.
+> - **The Kit's first page is +15 KiB, and its gate is restated (808,000 → 841,000).** The starter pack is the Kit's own and loads on its first page. It registers every governance component Phases AL and AM added: provenance, privilege, peer-auth, bounds, integrity, and the approval mode's adaptive setting. Each is a few hundred bytes of definition; together they cross the gate. Moving them to a pack of their own would keep the Kit's page lighter, and is left for a decision.
+
 > **Amended 2026-10-02 (Phase AL, WP141–WP144, `110-CONTROL-SUITE-PLAN.md` §10): the budgets after the unbuilt techniques.** Each build set to its measured size plus 20 kB:
 >
 > | Build | Budget | Measured | Worker | Kit's first page |

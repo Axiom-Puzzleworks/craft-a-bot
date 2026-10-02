@@ -47,6 +47,8 @@ const LANES: Record<EventType, TraceLane> = {
 	'approval.resolved': 'guardrail',
 	'elevation.requested': 'guardrail',
 	'elevation.resolved': 'guardrail',
+	'disclosure.given': 'action',
+	'stage.overdue': 'guardrail',
 	// Something said to the bot is something it perceives, so it belongs in the
 	// same lane as looking around (E2).
 	'input.delivered': 'sense',
@@ -92,6 +94,8 @@ const LABELS: Record<EventType, string> = {
 	'approval.resolved': 'Permission answered',
 	'elevation.requested': 'Asked for a wider scope',
 	'elevation.resolved': 'Scope answered',
+	'disclosure.given': 'Told the customer',
+	'stage.overdue': 'Past its deadline',
 	'input.delivered': 'Somebody said something',
 	'provider.retried': 'Waited, then asked again',
 	'group.started': 'Group started',

@@ -83,7 +83,10 @@ export const CONTROL_GATE_KINDS = [
 	'derived-metric',
 	'label-rate',
 	'parity',
-	'drift'
+	'drift',
+	// WP146 (`110-…` §10): a journey's deadlines, and the reasons for a person's overrides.
+	'timeliness',
+	'override-reason'
 ] as const;
 
 /** The egress modes an `egress` evidence id may name (WP41). */

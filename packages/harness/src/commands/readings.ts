@@ -11,6 +11,7 @@ import {
 import { GUARDRAIL_CATALOGUE } from '@craftabot/governance';
 import {
 	readingQueue,
+	knobChangesIn,
 	readingSourcesFrom,
 	readingSubjects,
 	readingsExport,
@@ -52,6 +53,8 @@ export interface ReadingsExportOptions {
 	/** A run store whose content holds readings too (`--store`). */
 	storage?: Storage;
 	blueprints?: readonly ReadingBlueprintNote[];
+	/** The reference experiments' directory (`experiments` by default), read for knob changes when it exists (WP147). */
+	experimentsDir?: string;
 	generatedAt: string;
 }
 
@@ -63,11 +66,29 @@ export async function readingsFor(options: ReadingsExportOptions): Promise<Readi
 			...(await options.storage.listContent('control-review'))
 		);
 	const reviews: Review[] = reviewsFromContent(records);
+	// WP147: every knob a shipped campaign or experiment sets away from its default, to be read.
+	const files: Array<{ kind: 'campaign' | 'experiment'; id: string; file: unknown }> =
+		options.packs.flatMap((pack) =>
+			(pack.campaigns ?? []).map((shipped) => ({
+				kind: 'campaign' as const,
+				id: shipped.id,
+				file: shipped.campaign()
+			}))
+		);
+	const dir = options.experimentsDir ?? 'experiments';
+	if (existsSync(dir))
+		for (const name of (await readdir(dir)).filter((entry) => entry.endsWith('.json')).sort())
+			files.push({
+				kind: 'experiment',
+				id: name.replace(/\.json$/, ''),
+				file: JSON.parse(await readFile(join(dir, name), 'utf8')) as unknown
+			});
 	const subjects = readingSubjects(
 		readingSourcesFrom(options.packs, {
 			catalogue: GUARDRAIL_CATALOGUE,
 			blueprints: options.blueprints ?? [],
-			screeningLists: SCREENING_READINGS
+			screeningLists: SCREENING_READINGS,
+			knobChanges: knobChangesIn(files)
 		})
 	);
 	return readingsExport(readingQueue(subjects, reviews), options.generatedAt);

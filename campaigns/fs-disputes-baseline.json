@@ -199,6 +199,9 @@
 		},
 		{
 			"id": "fs-disputes/decision-matches-rules"
+		},
+		{
+			"id": "fs-disputes/reimbursement-rights-disclosed"
 		}
 	],
 	"gates": [

@@ -404,3 +404,34 @@ describe('a stage-out breaker on the decision stage (WP95)', { timeout: 120_000 
 		expect(run.outcome).toBe('completed');
 	});
 });
+
+describe('contestability (WP145)', () => {
+	it('logs a contested decline and hands it to the review journey as an appeal; an approval with grounds ends', async () => {
+		const declined = items.find((item) => item.truth.facts?.['verdict'] === 'should-decline')!;
+		const contested: WorkItem = {
+			...declined,
+			payload: {
+				...(declined.payload as object),
+				appeal: { grounds: 'My income went up last month.' }
+			}
+		};
+		const run = await runItem(contested, 'rules-only', 51);
+		expect(decidedOutcome(run)).toBe('decline');
+		expect(run.stages.map((stage) => stage.stageId)).toContain('appeal');
+		expect(run.outcome).toBe('handed-off');
+		expect(run.handoff).toMatchObject({ to: 'fs-advice/complaints', kind: 'appeal' });
+		expect(run.handoff?.item.payload).toMatchObject({
+			complaint: { category: 'lending-decision', status: 'open' }
+		});
+		const approved = items.find((item) => item.truth.facts?.['verdict'] === 'should-approve')!;
+		const graceful = await runItem(
+			{
+				...approved,
+				payload: { ...(approved.payload as object), appeal: { grounds: 'Faster, please.' } }
+			},
+			'rules-only',
+			52
+		);
+		expect(graceful.outcome).not.toBe('handed-off');
+	});
+});

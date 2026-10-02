@@ -22,7 +22,9 @@ export const REVIEW_SUBJECT_KINDS = [
 	'blueprint-item',
 	'screening-list',
 	'error-model',
-	'reviewer-model'
+	'reviewer-model',
+	// WP147 (`110-…` §10): a knob set away from its default by a shipped campaign or experiment, read like a calibration row.
+	'knob-change'
 ] as const;
 export const reviewSubjectKindSchema = z.enum(REVIEW_SUBJECT_KINDS);
 export type ReviewSubjectKind = z.infer<typeof reviewSubjectKindSchema>;

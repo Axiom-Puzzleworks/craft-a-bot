@@ -296,7 +296,9 @@ export function disputesBookCampaign(
 					evaluatorId: REIMBURSED_WITHIN_LIMIT_ID,
 					atLeast: 1
 				}
-			}
+			},
+			// WP146: every journey within its deadlines — the reimbursement inside the PSR's timescale.
+			{ id: 'every-journey-on-time', require: { kind: 'timeliness', atLeast: 1 } }
 		]
 	};
 }

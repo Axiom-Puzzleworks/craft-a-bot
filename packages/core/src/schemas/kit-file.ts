@@ -39,6 +39,11 @@ export const kitFileSchema = z
 			localContent: z.array(contentRecordSchema).optional()
 		}),
 		agent: agentSpecV2Schema,
+		/** The build's `buildDigest` when it was exported (WP147): what a validation records and a run is checked against. */
+		digest: z
+			.string()
+			.regex(/^[0-9a-f]{64}$/)
+			.optional(),
 		notes: z.string().optional()
 	})
 	.passthrough();

@@ -8,7 +8,10 @@ import {
 	type PointKind
 } from '@craftabot/core';
 import { createActionBlocklistGuardrail } from '../guardrails/action-blocklist.js';
-import { createApprovalModeGuardrail } from '../guardrails/approval-mode.js';
+import {
+	createAdaptiveApprovalGuardrail,
+	createApprovalModeGuardrail
+} from '../guardrails/approval-mode.js';
 import { createNoRepetitionGuardrail } from '../guardrails/no-repetition.js';
 import { createStepBudgetGuardrail } from '../guardrails/step-budget.js';
 import { createTokenBudgetGuardrail } from '../guardrails/token-budget.js';
@@ -32,7 +35,11 @@ export const actionBlocklistSchema = z.object({
 	blockedActions: z.array(z.string().min(1)).min(1)
 });
 export const noRepetitionSchema = z.object({ repeatLimit: z.number().int().positive() });
-export const approvalModeSchema = z.object({ mode: z.enum(['everything', 'risky']) });
+export const approvalModeSchema = z.object({
+	mode: z.enum(['everything', 'risky', 'adaptive']),
+	/** For `adaptive` (WP149): how many asks before the mode raises its tier. */
+	fatigueAfter: z.number().int().positive().optional()
+});
 
 /** The step-budget component’s id. */
 export const STEP_BUDGET_COMPONENT_ID = 'governance/step-budget';
@@ -130,16 +137,23 @@ export const approvalModeComponent: GuardrailComponent<z.infer<typeof approvalMo
 	explain: (config) =>
 		config.mode === 'everything'
 			? 'Asks a person before every change to the world.'
-			: 'Asks a person before anything reversible or irreversible.',
+			: config.mode === 'adaptive'
+				? `Asks a person before every action, then less as asks pile up — after ${config.fatigueAfter ?? 3}, only what changes the world; after ${(config.fatigueAfter ?? 3) * 2}, only what cannot be undone.`
+				: 'Asks a person before anything reversible or irreversible.',
 	compile: (config, deps, point) =>
 		stampComponent(
 			[
-				config.mode === 'everything'
-					? createApprovalModeGuardrail('everything')
-					: createApprovalModeGuardrail('risky', (name) => {
-							const tier = deps.getAction(name)?.riskTier ?? 'observe';
-							return tier === 'reversible' || tier === 'irreversible';
-						})
+				config.mode === 'adaptive'
+					? createAdaptiveApprovalGuardrail(
+							config.fatigueAfter ?? 3,
+							(name) => deps.getAction(name)?.riskTier ?? 'observe'
+						)
+					: config.mode === 'everything'
+						? createApprovalModeGuardrail('everything')
+						: createApprovalModeGuardrail('risky', (name) => {
+								const tier = deps.getAction(name)?.riskTier ?? 'observe';
+								return tier === 'reversible' || tier === 'irreversible';
+							})
 			],
 			APPROVAL_MODE_COMPONENT_ID,
 			point

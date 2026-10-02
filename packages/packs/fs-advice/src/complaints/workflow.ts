@@ -10,7 +10,12 @@ import type {
 	WorkflowSpec,
 	WorldState
 } from '@craftabot/core';
-import { complaintBook, population, stageGateCard } from '@craftabot/pack-fs-bank';
+import {
+	complaintBook,
+	population,
+	stageGateCard,
+	VULNERABILITY_AT_THE_DOOR
+} from '@craftabot/pack-fs-bank';
 import { COMPLAINTS_DESK_WORLD_ID, WORK_ITEM_LAYOUT, type ComplaintsDeskState } from './desk.js';
 import { ACK_TICKS, FINAL_TICKS, unmark, type RootCause } from './extra.js';
 import { complaintsStrings } from './strings.js';
@@ -186,12 +191,25 @@ const agent = (until: string, goalText: string, maxTicks: number): Executor => (
 	maxTicks
 });
 const rule = (id: string): Executor => ({ kind: 'rule', rule: id });
+/**
+ * DISP's timescales as the journey's deadlines (WP146), in journey ticks: the
+ * acknowledgement within the escalating complainant's patience, the final
+ * response within the desk's own `FINAL_TICKS`. Every shipped configuration
+ * acknowledges at tick 1 and closes between ticks 5 and 7 over the register.
+ */
+export const ACK_DEADLINE = ACK_TICKS + 1;
+export const FINAL_DEADLINE = FINAL_TICKS;
+
 const names = strings.stages;
 
 export const COMPLAINTS_STAGES: StageSpec[] = [
 	{
 		id: 'acknowledge',
 		name: names.acknowledge,
+		// WP146: DISP 1.6 — acknowledged promptly; the desk's own ACK_TICKS, the escalating complainant's patience.
+		deadline: { ticks: ACK_DEADLINE, cites: ['fca:disp:complaints'] },
+		// WP145: vulnerability detection at the door — the bank's support-need reader, annotating.
+		guards: { components: [VULNERABILITY_AT_THE_DOOR] },
 		obligations: ['fca:disp:complaints'],
 		input: ANY,
 		output: ACKNOWLEDGED_OUTPUT,
@@ -272,6 +290,8 @@ export const COMPLAINTS_STAGES: StageSpec[] = [
 	{
 		id: 'close',
 		name: names.close,
+		// WP146: DISP 1.6 — the final response within eight weeks, as FINAL_DEADLINE journey ticks.
+		deadline: { ticks: FINAL_DEADLINE, cites: ['fca:disp:complaints'] },
 		obligations: ['fca:disp:complaints'],
 		input: ANY,
 		output: CLOSED_OUTPUT,

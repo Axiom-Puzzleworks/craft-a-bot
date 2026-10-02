@@ -49,6 +49,34 @@ export const DISPUTES_CONTROL_ROWS: readonly ControlMapRow[] = [
 		],
 		status: 'unreviewed',
 		tags: ['pra:ss1-23:mitigants']
+	},
+	{
+		// WP145 (`110-…` §10): what the customer must be told, said in the bank's words and digested on the trace.
+		framework: 'PSR APP reimbursement requirement',
+		ref: 'reimbursement-rights',
+		title: 'The customer is told their reimbursement rights with the decision',
+		obligation:
+			'The decision on a disputed payment goes with the reimbursement rights, the limit and the excess, in writing.',
+		evidence: [
+			{ kind: 'evaluator', id: 'fs-disputes/reimbursement-rights-disclosed' },
+			{ kind: 'trace-guarantee', id: 'disclosure.given' }
+		],
+		status: 'unreviewed',
+		tags: ['psr:app-reimbursement', 'fca:cd:understanding']
+	},
+	{
+		// WP146 (`110-…` §10): the reimbursement inside its timescale, measured by the clock.
+		framework: 'PSR APP reimbursement requirement',
+		ref: 'reimbursement-on-time',
+		title: 'A reimbursement is made within its timescale, and a late one is escalated',
+		obligation:
+			'The reimbursement stage carries a deadline; a journey past it is recorded overdue and escalated to a person.',
+		evidence: [
+			{ kind: 'gate', id: 'timeliness' },
+			{ kind: 'trace-guarantee', id: 'stage.overdue' }
+		],
+		status: 'unreviewed',
+		tags: ['psr:app-reimbursement']
 	}
 ];
 

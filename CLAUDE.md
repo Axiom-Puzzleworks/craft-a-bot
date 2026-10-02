@@ -173,7 +173,14 @@ The Phase AI exit review is recorded (`101-…` §8): items 9, 10 and 12 met; it
 - WP143: the policy-conditioned classifier (`fs-bank`'s rulebook, measured live through the local Ollama: recall 99%, false alarms 69%) and `governance/peer-auth` over Radio digests;
 - WP144: Cedar (`@craftabot/pack-pdp-cedar`) and Bedrock's automated reasoning, *connectable*, checkpoints pending.
 
-**Next: Phase AM, WP145–WP149.**
+**Next: Phase AM, WP145–WP149.** **Amended 2026-10-02, later still:** Phase AL is merged (PR #63) and Phase AM is closed (`110-…` §10), on `phase-am`:
+- WP145: appeals as handoffs to the complaints journey (`kind: 'appeal'`), mandatory disclosures (`disclosure.given`, `fs-bank`'s `DISCLOSURES`), vulnerability detection at every intake;
+- WP146: stage deadlines (`stage.overdue`) and override reasons, with the `timeliness` and `override-reason` gates;
+- WP147: the build digest (`run.started.changed`, `craftabot kit digest`) and the `knob-change` reading;
+- WP148: `failoverProvider`, `governance/cost-cap`, `governance/tool-argument-validation`;
+- WP149: adaptive approval, shadow mode on a campaign guard, `governance/prompt-integrity`, `governance/secret-scan`.
+
+The catalogue has none bespoke. **Next: Phase AN, WP150.**
 
 Once there's a WP to build (from a new plan, or a defect worth fixing): read the docs it names, **propose a task breakdown before writing code**, then build. One WP per branch (`wp{n}-{slug}`) and PR. Use your judgement inside a WP — the docs fix the destination and the contracts, not every step. Where a doc is silent, decide and note it. Where implementation must diverge from a doc, change the doc in the same PR with a dated note (`> **Amended 2026-08-13:** …`); don't leave the two disagreeing.
 
@@ -217,7 +224,7 @@ npm run smoke:lakera   # live Lakera Guard checkpoint — LAKERA_GUARD_KEY in th
 npm run smoke:bedrock-ar # live Bedrock automated-reasoning checkpoint — CRAFTABOT_CREDENTIAL_AWS_BEDROCK, AWS_BEDROCK_REGION, AWS_BEDROCK_AR_GUARDRAIL_ID, AWS_BEDROCK_AR_CLAIM in the env, never in CI (110-…, WP144)
 npm run smoke:cedar    # live Cedar (Verified Permissions) checkpoint — CRAFTABOT_CREDENTIAL_AWS_VERIFIED_PERMISSIONS, AWS_VP_REGION, AWS_VP_POLICY_STORE_ID, AWS_VP_DENIED_ACTION in the env, never in CI (110-…, WP144)
 npm run example:python # examples/python-reader over its bundle fixture — skips itself with no python3 (WP73)
-npm run craftabot -- … # the headless host (WP37/38): packs | run [--counterpart] | record | bundle | report | campaign [--jobs --shard --seeds --resume] | merge | index | fork | assurance | journey render | scaffold domain | readings export | controls list|export | evidence push|pull | workflow run [--follow] | book run | sweep | bank run | benchmark run | gate serve|approve|deny — see packages/harness/README.md
+npm run craftabot -- … # the headless host (reads .env when present, so CRAFTABOT_CREDENTIAL_<ID> may live there; the browser keeps BYOK keys in cab.keys.v1) (WP37/38): packs | run [--counterpart] | record | bundle | report | campaign [--jobs --shard --seeds --resume] | merge | index | fork | assurance | journey render | scaffold domain | readings export | controls list|export | evidence push|pull | workflow run [--follow] | book run | sweep | bank run | benchmark run | gate serve|approve|deny — see packages/harness/README.md
 npm run smoke:harness  # live harness run on OpenAI — CRAFTABOT_CREDENTIAL_OPENAI in the env, never in CI
 ```
 

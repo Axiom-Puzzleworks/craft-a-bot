@@ -15,7 +15,7 @@
 			}
 		},
 		"startedAt": "2026-08-12T10:00:00.000Z",
-		"finishedAt": "2026-08-12T10:00:22.000Z",
+		"finishedAt": "2026-08-12T10:00:23.000Z",
 		"outcome": "completed",
 		"stages": [
 			{
@@ -202,7 +202,7 @@
 				},
 				"startedTick": 5,
 				"endedTick": 5,
-				"durationMs": 3000,
+				"durationMs": 4000,
 				"output": {
 					"digest": "ac6547ece89ef033f789e25940ecb71b742778111016305b46e8278744b0fa32",
 					"value": {
@@ -343,7 +343,13 @@
 					"result": {
 						"ok": true,
 						"narration": "Complaint declined: The file does not support the complaint: no error on the bank’s side.",
-						"stateDiff": []
+						"stateDiff": [],
+						"disclosures": [
+							{
+								"id": "complaints/ombudsman",
+								"text": "If you are unhappy with our final response, you can refer your complaint to the Financial Ombudsman Service, free of charge, within six months of the date of this response."
+							}
+						]
 					}
 				}
 			},
@@ -352,7 +358,20 @@
 				"runId": "00000000-0000-4000-8000-000000002329",
 				"agentId": "77777777-7777-4777-8777-777777777777",
 				"tick": 5,
-				"timestamp": "2026-08-12T10:00:21.000Z",
+				"timestamp": "2026-08-12T10:00:20.000Z",
+				"type": "disclosure.given",
+				"payload": {
+					"id": "complaints/ombudsman",
+					"action": "decline-complaint",
+					"digest": "9047222fd663a8d2de450879be1b349b17de5ffd4d0be1e7a6068572f55eb0b5"
+				}
+			},
+			{
+				"id": "00000000-0000-4000-8000-000000002335",
+				"runId": "00000000-0000-4000-8000-000000002329",
+				"agentId": "77777777-7777-4777-8777-777777777777",
+				"tick": 5,
+				"timestamp": "2026-08-12T10:00:22.000Z",
 				"type": "stage.completed",
 				"payload": {
 					"workflowRunId": "00000000-0000-4000-8000-000000002329",
@@ -372,7 +391,7 @@
 				}
 			}
 		],
-		"digest": "da2fef8a32f6501f879219a76fba3aa0f1885221db359b7c00bfbaf7e44be80d"
+		"digest": "a58f7b5861a85dda53dfacc25e747306c86d90dfd2876831254cac05841b0dda"
 	},
 	"item": {
 		"id": "complaint-4970f551",
@@ -461,6 +480,6 @@
 		"kind": "harness",
 		"build": "bot-with-a-person-at-approval"
 	},
-	"createdAt": "2026-08-12T10:00:22.000Z",
+	"createdAt": "2026-08-12T10:00:23.000Z",
 	"schemaVersion": 1
 }

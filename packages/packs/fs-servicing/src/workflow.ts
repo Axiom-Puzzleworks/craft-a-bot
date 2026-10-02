@@ -12,7 +12,7 @@ import type {
 	WorkflowSpec,
 	WorldState
 } from '@craftabot/core';
-import { monthlyIncomeOf, stageGateCard } from '@craftabot/pack-fs-bank';
+import { monthlyIncomeOf, stageGateCard, VULNERABILITY_AT_THE_DOOR } from '@craftabot/pack-fs-bank';
 import { servicingBookFor } from './book.js';
 import { SERVICING_CEILINGS } from './decision-rights.js';
 import { servicingStrings } from './strings.js';
@@ -294,6 +294,8 @@ export const SERVICING_STAGES: StageSpec[] = [
 	{
 		id: 'request',
 		name: names.request,
+		// WP145: vulnerability detection at the door — the bank's support-need reader, annotating.
+		guards: { components: [VULNERABILITY_AT_THE_DOOR] },
 		input: ITEM_INPUT,
 		output: REQUEST_OUTPUT,
 		executor: rule('request-v1'),

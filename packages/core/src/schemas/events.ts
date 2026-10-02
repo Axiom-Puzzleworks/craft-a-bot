@@ -130,6 +130,18 @@ const runStartedEvent = eventSchema(
 			.optional(),
 		/** The card's dial as it stood for this run (WP131, `109-…` §3): which knob, at what value; written only when the card has a dial. */
 		goalDial: z.object({ knob: z.string().min(1), value: z.number() }).optional(),
+		/**
+		 * The build is not the one last validated (WP147, `110-…` §10): both
+		 * `buildDigest`s and where the validation is recorded. Written only
+		 * when the host named a validated build and this one differs.
+		 */
+		changed: z
+			.object({
+				validated: z.string().regex(/^[0-9a-f]{64}$/),
+				current: z.string().regex(/^[0-9a-f]{64}$/),
+				source: z.string().optional()
+			})
+			.optional(),
 		/** A fork (WP66, `54-…` §4.1): the origin run and the tick this run continues after; additive. */
 		forkedFrom: z
 			.object({
@@ -424,7 +436,15 @@ const approvalResolvedEvent = eventSchema(
 	z.object({
 		approved: z.boolean(),
 		/** Who answered (WP65, `55-…` §4.1); present when the caller said. */
-		by: principalSchema.optional()
+		by: principalSchema.optional(),
+		/**
+		 * The person chose other than what the case recommended (WP146,
+		 * `110-…` §10): written only then, with the reason they gave, when they
+		 * gave one. A recorded override without a reason is what the
+		 * `override-reason` gate counts.
+		 */
+		override: z.literal(true).optional(),
+		reason: z.string().min(1).optional()
 	})
 );
 /**
@@ -434,6 +454,35 @@ const approvalResolvedEvent = eventSchema(
  * knows only approvals reads the run as before. A scope once granted stays
  * granted for the run; the rule that asked reads the grant from the trace.
  */
+/**
+ * A mandatory disclosure made (WP145, `110-…` §10): the action that made it,
+ * the disclosure's id and a SHA-256 digest of the exact wording, so a
+ * reviewer can prove which words were said without trusting a paraphrase.
+ * Written right after the `action.performed` whose result carried it.
+ */
+const disclosureGivenEvent = eventSchema(
+	'disclosure.given',
+	z.object({
+		id: z.string().min(1),
+		action: z.string().min(1),
+		digest: z.string().regex(/^[0-9a-f]{64}$/)
+	})
+);
+/**
+ * A stage finished past its deadline (WP146, `110-…` §10): the journey's
+ * elapsed ticks against the stage's `deadline`. Written after the stage's
+ * `stage.completed`; the clock counts the case as an incident, which is its
+ * escalation to a person.
+ */
+const stageOverdueEvent = eventSchema(
+	'stage.overdue',
+	z.object({
+		workflowRunId: z.string(),
+		stageId: z.string(),
+		deadline: z.number().int().positive(),
+		elapsed: z.number().int().nonnegative()
+	})
+);
 const elevationRequestedEvent = eventSchema(
 	'elevation.requested',
 	z.object({ scope: z.string().min(1), reason: z.string() })
@@ -570,6 +619,8 @@ export const engineEventSchema = z.discriminatedUnion('type', [
 	approvalResolvedEvent,
 	elevationRequestedEvent,
 	elevationResolvedEvent,
+	disclosureGivenEvent,
+	stageOverdueEvent,
 	worldChangedEvent,
 	inputDeliveredEvent,
 	providerRetriedEvent,

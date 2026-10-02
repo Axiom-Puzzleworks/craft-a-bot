@@ -1,10 +1,13 @@
 import type { Evaluator } from '@craftabot/core';
 import { adviceDeterministicEvaluators } from './deterministic.js';
 import { adviceRubricEvaluators } from './rubrics.js';
+import { adviceDisclosure } from '../disclosure.js';
 
 export const adviceEvaluators: Evaluator[] = [
 	...adviceDeterministicEvaluators,
-	...adviceRubricEvaluators
+	...adviceRubricEvaluators,
+	// WP145: the mandatory disclosure, held to its words.
+	adviceDisclosure
 ];
 
 export {

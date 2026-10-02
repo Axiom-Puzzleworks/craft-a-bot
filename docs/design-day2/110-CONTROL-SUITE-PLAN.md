@@ -244,11 +244,11 @@ _Each is a catalogue entry from WP132, a control-map row with a regulation, a me
 
 | WP        | What                                     | Definition of done                                                                                                                                                                                                                                                                                                                                                                                                                                       | Size | Retires                        |
 | --------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ------------------------------ |
-| **WP145** | **Contestability, disclosure, vulnerability** | `appeal` as a workflow handoff kind on every desk with an adverse decision (lending, onboarding, disputes, complaints), `appeal-handled` generalised; `disclosure.given` on the trace with the wording digested, a `mandatory-disclosure` card per desk citing CONC 7 / COBS 4 / PSR APP; the servicing `support-need` reader fitted with a gate as `vulnerability-detection` on every desk's intake stage, FG21/1 cited; rows and evaluators                 | L    | G110, G111                     |
-| **WP146** | **Timeliness and override reasons**      | `StageSpec.deadline` in ticks, the clock escalating a case past it (`stage.overdue`), DISP's and PSR's timescales as the content, a `timeliness` gate kind; `approval.resolved.reason` required when a person overrules a recommendation or waives a refusal, the `override-reason` evaluator; the human-oversight experiment re-run                                                                                                                       | M    | G112, G115 (the reason)        |
-| **WP147** | **Change control**                       | The kit file's `digest` over cartridge, stack, knobs and prompt; `run.started.changed` when it differs from the last validated digest; a `knob-change-review` reading kind so a knob override on a campaign is read like a calibration row; `model-change-control` as an SS1/23 row on every desk                                                                                                                                                       | M    | G113                           |
-| **WP148** | **Resilience and bounds**                | `dependency-failover` as a component over a provider list (the DGX pack's failover generalised), a `provider-fault` incident deck proving it; `cost-cap` in money from the cassette's list price; `tool-argument-validation` at `pre-act` against the tool's schema as a component (the registry's refusal made visible as a verdict); the request timeout and the value cap as declared mechanisms with knobs                                               | M    | G114                           |
-| **WP149** | **Oversight ergonomics and the rest**    | Adaptive approval throttling (`approval-mode: 'adaptive'` raising the tier as `approvalsPerCase` climbs, measured against confirmation fatigue); `shadow-mode` as an entry over the Gate and over a stack on a campaign (`stack.mode: 'shadow'` — verdicts recorded, never applied); `prompt-integrity` and `secret-scan` as components; the orchestrator chokepoint entry over the group's existing breaker                                                 | M    | G115 (the throttle), G116      |
+| **WP145** ✅ | **Done 2026-10-02 — §10's WP145 note.** **Contestability, disclosure, vulnerability** | `appeal` as a workflow handoff kind on every desk with an adverse decision (lending, onboarding, disputes, complaints), `appeal-handled` generalised; `disclosure.given` on the trace with the wording digested, a `mandatory-disclosure` card per desk citing CONC 7 / COBS 4 / PSR APP; the servicing `support-need` reader fitted with a gate as `vulnerability-detection` on every desk's intake stage, FG21/1 cited; rows and evaluators                 | L    | G110, G111                     |
+| **WP146** ✅ | **Done 2026-10-02 — §10's WP146 note.** **Timeliness and override reasons** | `StageSpec.deadline` in ticks, the clock escalating a case past it (`stage.overdue`), DISP's and PSR's timescales as the content, a `timeliness` gate kind; `approval.resolved.reason` required when a person overrules a recommendation or waives a refusal, the `override-reason` evaluator; the human-oversight experiment re-run                                                                                                                       | M    | G112, G115 (the reason)        |
+| **WP147** ✅ | **Done 2026-10-02 — §10's WP147 note.** **Change control** | The kit file's `digest` over cartridge, stack, knobs and prompt; `run.started.changed` when it differs from the last validated digest; a `knob-change-review` reading kind so a knob override on a campaign is read like a calibration row; `model-change-control` as an SS1/23 row on every desk                                                                                                                                                       | M    | G113                           |
+| **WP148** ✅ | **Done 2026-10-02 — §10's WP148 note.** **Resilience and bounds** | `dependency-failover` as a component over a provider list (the DGX pack's failover generalised), a `provider-fault` incident deck proving it; `cost-cap` in money from the cassette's list price; `tool-argument-validation` at `pre-act` against the tool's schema as a component (the registry's refusal made visible as a verdict); the request timeout and the value cap as declared mechanisms with knobs                                               | M    | G114                           |
+| **WP149** ✅ | **Done 2026-10-02 — §10's WP149 note.** **Oversight ergonomics and the rest** | Adaptive approval throttling (`approval-mode: 'adaptive'` raising the tier as `approvalsPerCase` climbs, measured against confirmation fatigue); `shadow-mode` as an entry over the Gate and over a stack on a campaign (`stack.mode: 'shadow'` — verdicts recorded, never applied); `prompt-integrity` and `secret-scan` as components; the orchestrator chokepoint entry over the group's existing breaker                                                 | M    | G115 (the throttle), G116      |
 
 ### Phase AN — Assurance and the tail (WP150)
 
@@ -536,3 +536,153 @@ _(Recorded here as each work package and phase closes.)_
 > **Screenshots.** Re-taken on win32: the Studio at three widths, the assurance pack, the catalogue, the benchmarks. Their Linux baselines are CI's.
 >
 > **Phase AL is closed. Next: Phase AM, WP145–WP149.**
+
+> **WP145 — done 2026-10-02**, on `phase-am` (Phase AL merged as PR #63). Three parts, each a seam, content on the desks, an evaluator or a component, rows, and catalogue entries:
+>
+> - **Contestability: the appeal as a handoff.**
+>   - **The seam.** `StageHandoff.kind: 'appeal'` and `WorkflowRun.handoff.kind` (`02-…` §7's dated note); `fs-bank`'s `appealHandoff` builds the item.
+>   - **The review journey.** A contested decline goes to the bank's one review journey, `fs-advice/complaints`, as a complaint in the register's shape. Its truth is the register's rule: a decision the rules made is not upheld. A person approves the outcome below Level 5.
+>   - **The desks.**
+>     - Lending's appeal stage logs the appeal, then hands a contested decline on (`lending-decision`).
+>     - Onboarding gains the path: a declined application whose item carries `appeal.grounds` (`onboarding-decision`).
+>     - Disputes' existing decline-to-complaints handoff is marked an appeal.
+>   - **Decided, where the plan was silent:**
+>     - The complaints journey is the review. In UK retail banking, contesting a decision is a complaint under DISP, and disputes already routed there.
+>     - Complaints' own decline is not handed on: its route out is the Ombudsman, which its disclosure names.
+>     - `appeal-handled` stays the lending desk's. Generalised, the contract is the handoff, held by each desk's test (`workflow/appeal` is the mechanism); an agent run's evaluator cannot see a journey's handoff.
+>   - **No book generates an appeal,** so no baseline moved.
+> - **Mandatory disclosures.**
+>   - **The seam.** `ActionResult.disclosures`, `DeskActionContext.disclose` and the new event `disclosure.given { id, action, digest }`, written by the session and by the workflow runtime for a rule's call.
+>   - **The wordings.** `fs-bank`'s `DISCLOSURES` registers five, each citing its obligations: CONC 7's free debt advice, COBS 4's capital at risk, PSR APP reimbursement rights, a lending review right, and DISP's Ombudsman.
+>   - **Where they are made.** By the customer-facing action that reaches the moment, once per case: collections' `offer-plan`, advice's `recommend-product`, disputes' `decide`, lending's `explain-decision` on a decline, and complaints' `offer-redress` and `decline-complaint`.
+>   - **The evaluators.** `disclosureMadeEvaluator` holds each run to its disclosure: one evaluator per desk, five in all, each cited on a new control-map row with `trace-guarantee: disclosure.given`.
+>   - **Diverged:** no per-desk card blocks a decision until the disclosure is made. The action that makes the decision makes the disclosure, so a card would guard nothing.
+> - **Vulnerability detection at the door.**
+>   - **The component.** `fs-bank/guard/vulnerability-detection` asks the bank's support-need reader, behind the desks' line, whether the customer's own words disclose a need. It reads the string fields the desks use for a customer's words, never the record around them; the first cut read the whole item and flagged a customer's record fields.
+>   - **Where.** It is fitted at `stage-in` on every journey's intake stage, annotating: the finding is on the stage record before anything is decided, and the journey goes on as the rules say.
+>   - **One rule.** `supportNeedIn` is the bank's one support-need rule; servicing's `needIn` delegates to it.
+>   - **Diverged:** the plan said "the servicing support-need reader fitted with a gate on every desk's intake stage". The intake stages are rules whose outputs the journeys depend on, so the reader sits beside them as a boundary component rather than replacing them. It is a keyword rule, and it cannot read words an alert or an application does not carry.
+> - **Catalogue.** `contestability` and `mandatory-disclosure` move to *shipped*; `vulnerability-detection` names the component. Two mechanisms: `core/disclosure`, `workflow/appeal`.
+> - **Moved on purpose:**
+>   - the complaints golden run (the Ombudsman disclosure on its decline);
+>   - the three shipped campaign files (the new evaluators);
+>   - the eight journey layouts and SVGs (the guarded intake);
+>   - the packs lock;
+>   - the benchmark's reader list (the new reader is *not applicable*: it answers its own question, not the attack question).
+> - **Tests:**
+>   - lending's and onboarding's appeals (contested declines handed off; uncontested ones end as before);
+>   - disputes' kinds (the decline an appeal, the scam a referral);
+>   - the door on servicing (a bereavement annotated, a plain request let through);
+>   - `core`'s `disclosure.given` after its action, with its digest.
+
+> **WP146 — done 2026-10-02.** Two seats in the runtime, content on two desks, two gate kinds, rows and entries:
+>
+> - **Deadlines** (`02-…` §7's dated note).
+>   - **The seam.** `StageSpec.deadline` counts the journey's elapsed ticks: a bot's stage spans its session's ticks, any other stage one. A stage done past it is recorded `overdue` and written `stage.overdue`. The bank clock counts the case (`BankRun.counts.overdue`) and lists it among the day's incidents, which is its escalation to a person.
+>   - **The content.** Measured against the shipped configurations first, so the shipped runs are on time and a slow one is not:
+>     - complaints' acknowledgement within `ACK_TICKS + 1` (3; every configuration acknowledges at 1);
+>     - its final response within `FINAL_TICKS` (8; every configuration closes between 5 and 7), both citing DISP;
+>     - disputes' reimbursement within 12, the PSR's timescale as a stated mapping (every configuration reaches it at 9).
+>   - **A tick is the simulator's unit, not a day.** The mappings are assumptions, stated as such.
+>   - **The gate.** The `timeliness` gate (the share of journeys with no overdue stage) is on `fs-disputes-book`.
+> - **Override reasons.**
+>   - **The seam.** `approval.resolved` and `StageRecord.approval` gain `override` and `reason`. An override is a decision at a `human` stage against what the case recommended (`StageSpec.recommended`, or the recommendation the input names); `HumanDecision.reason` carries the why.
+>   - **The gate.** The `override-reason` gate is the share of overrides with a reason, inconclusive when no one overrode.
+>   - **Diverged:**
+>     - A gate, not the plan's evaluator: an agent run's evaluator cannot see a journey's human stage (as with appeals).
+>     - The runtime records an override without a reason rather than refusing it: the record is the evidence, and the gate is the control.
+>     - The fallible reviewer model gives no reasons, so a campaign over it fails the gate. That is a true reading of a model of a person.
+> - **Deferred to WP150:** the human-oversight experiment's re-run, with the `override-reason` gate and an enforced-ceilings level beside WP139's. WP150 regenerates the register, and a re-run now would move a committed result twice.
+> - **Catalogue:** `timeliness` and `override-reason` move to *shipped*. Two mechanisms: `workflow/deadlines`, `workflow/override-reason`. Rows: disputes' reimbursement on time, complaints on time, lending's override reasoned.
+> - **Tests:**
+>   - the runtime: a stage past its deadline recorded and written, one on time left alone; an override with and without a reason, a followed recommendation written as before;
+>   - the two gates over cells (`evals/gates-wp146.test.ts`).
+
+> **WP147 — done 2026-10-02.**
+>
+> - **The build digest** (`core`'s `buildDigest`). SHA-256 over the goal card, its dial (the knobs) and every brick's kind, config and config version: the cartridge, the personality (the prompt), the Safety brick and its stack. A rename does not change it; a changed temperature does.
+>   - Every exported kit file carries it as `digest`, and `craftabot kit digest --kit <file>` prints it.
+> - **The changed build.** `SessionOptions.validated: { digest, source? }` names the build a host last validated. When the running build differs, `run.started.changed: { validated, current, source? }` says so (`02-…` §7's dated note).
+>   - The harness names it with `craftabot run --validated <digest> [--validated-by <where>]`.
+>   - **Not done:** nothing yet stores a validated digest for the Workbench's own bots.
+> - **Knob changes on the reading desk.** A ninth review kind, `knob-change`.
+>   - `knobChangesIn` reads every knob a shipped campaign's build overrides, and every knob an experiment's factor sets at a level other than its baseline.
+>   - `craftabot readings export` lists them beside the calibration rows. Today that is `lending-knobs`' `referRatioPercent` at 45.
+>   - The Workbench's readings page shows the kind; it carries no experiment files, so it lists none.
+> - **The row.** `model-change-control` is one bank-wide row on `fs-bank`'s map (SS1/23 principles 2 and 3), citing `run.started`, the `no-regression` gate and the agent card.
+>   - **Diverged:** one row, not one per desk. The bank's map applies to every desk, and seven identical rows would say nothing more.
+> - **The catalogue:** `model-change-control` moves to *shipped*. The mechanism is `core/build-digest`.
+> - **Tests:**
+>   - `core`'s session test: `changed` written only for a differing build; the digest ignores a rename and moves with a brick's config;
+>   - `governance`'s `knobChangesIn` over a campaign and an experiment.
+
+> **WP148 — done 2026-10-02.**
+>
+> - **Dependency failover** (`core`'s `failoverProvider`). A provider in front of several asks each in turn on an unavailable, slow, rate-limited or server failure, and rethrows anything else and a cancelled call.
+>   - The answer says who served and who failed before: `ChatResponse.servedBy` on `think.completed` (`02-…` §7's dated note).
+>   - It is the DGX pack's two-unit failover, generalised.
+>   - **Diverged:** a provider wrapper, not a guard component: failover is not a verdict.
+>   - **The proof is the provider's test, not an incident deck.** The decks' `provider-fault` injections are raised by the session before any provider is asked, so no provider can fail over from them.
+>   - **Not done:** no shipped bot names a provider list.
+> - **The cost cap** (`governance/cost-cap`). It stops a run before a turn once its tokens, at the per-million list prices its config states with their source, pass the cap in dollars.
+>   - A price enters only with its source, so no shipped stack fits it. It is a component a deployer configures.
+> - **Tool-argument validation** (`governance/tool-argument-validation`). It checks a proposed world action's arguments against the schema its world declares (type, required, properties, enum, items), and refuses one that does not fit at `pre-act`. The world's own refusal becomes a verdict on the trace before the world sees the call.
+>   - Tools are not checked: a component sees the world's actions, not the registry's tools.
+> - **The bounds as settings.** The request timeout's setting was already declared. The journey's value cap, a constant before, is now `RunWorkflowOptions.valueCap` (16 KiB by default), and its mechanism says so.
+> - **The catalogue:** `dependency-failover`, `cost-cap` and `tool-argument-validation` move to *shipped*. The mechanism is `core/failover`.
+> - **Also:** the two safety-case report tests in the harness get 30 seconds. They fold the whole, now larger, catalogue and had outgrown the 5-second default under a full parallel run.
+> - **Tests:**
+>   - `core`'s `failover.test.ts`;
+>   - `governance`'s `bounds.test.ts`;
+>   - the starter's conformance fixtures for the two components.
+
+> **WP149 — done 2026-10-02.**
+>
+> - **Adaptive approval** (`governance/approval-mode`, mode `adaptive`, `createAdaptiveApprovalGuardrail`). It asks a person about every action until `fatigueAfter` approvals have been asked in the run. Then it asks only about what changes the world, and after twice that only about what cannot be undone.
+>   - The count is read from the trace (`approval.requested`), so a fork asks the same.
+>   - It answers the confirmation fatigue every report already counts (approvals per case).
+>   - No shipped configuration sets it: what a desk should stop asking a person about is a reading for Andrew.
+> - **Shadow mode on a campaign.** A campaign guard's `mode: 'shadow'` runs its components and stack, and records every verdict that would block, stop, pause, redact or mark as an annotation (category `shadow`) saying so. The run goes on as if the guard were not there (`governance`'s `shadowGuardrail`, mechanism `evals/shadow-guard`).
+>   - The Safety and Guard bricks a guard fits are not shadowed: a shadow covers what compiles to components.
+> - **Prompt integrity** (`governance/prompt-integrity`). It compares a turn's system prompt with the digest it was validated at, and stops the run, or notes it, when they differ.
+> - **The secret scan** (`governance/secret-scan`). It refuses a call whose arguments carry the shape of an API key, a cloud access key, a GitHub or Slack token, or a private key. A bot is never given a secret to say, so the scan answers a planted one. Its test assembles the shaped strings at run time, so no file in the repository carries one.
+> - **The orchestrator chokepoint** was already shipped over the group's breaker (`monitor/evaluator-breaker`, `core/group-chokepoint`); nothing to build.
+> - **The catalogue:**
+>   - `adaptive-approval` and `prompt-integrity` move to *shipped*;
+>   - `shadow-mode` names the campaign's shadow beside the Gate's;
+>   - `secret-scan` names the component.
+> - **Tests:**
+>   - `governance`: the adaptive tiers, `shadow.test.ts`, `integrity.test.ts`;
+>   - `evals`: a shadow guard annotates where the same guard on stops;
+>   - the starter's conformance fixtures.
+
+> **Phase AM exit review — 2026-10-02.** WP145–WP149 are done, on `phase-am` (Phase AL merged as PR #63). §8 item 6, *"the bank has rows, mechanisms and evaluators for contestability, disclosure, vulnerability, timeliness, change control, failover, override reasons and shadow mode, each cited"*, technique by technique:
+>
+> | Technique | Row | Mechanism or component | Evaluator or gate |
+> |---|---|---|---|
+> | Contestability | lending's review right; complaints' Ombudsman | `workflow/appeal` | `appeal-handled`; the disclosure evaluators |
+> | Disclosure | one per desk, five | `core/disclosure` | five `*-disclosed` evaluators |
+> | Vulnerability | the existing FG21/1 rows | `fs-bank/guard/vulnerability-detection` | `vulnerability-actioned`, `disclosure-recorded` |
+> | Timeliness | disputes', complaints' | `workflow/deadlines` | the `timeliness` gate |
+> | Change control | the bank's `model-change-control` | `core/build-digest` | `no-regression`; the `knob-change` reading |
+> | Failover | — (the bank's SS1/21 rows stand) | `core/failover` | its test |
+> | Override reasons | lending's | `workflow/override-reason` | the `override-reason` gate |
+> | Shadow mode | — | `gate/shadow`, `evals/shadow-guard` | the shadow annotation |
+>
+> **Met, with two techniques citing existing rows rather than new ones,** as the table says. Every entry cites its sources; every new row is `unreviewed`, on the reading desk.
+>
+> **The catalogue now:** 69 entries — 61 shipped, 1 connectable (Bedrock's automated reasoning, its checkpoint pending), 1 blueprint (formal verification, as the plan has it), 6 not applicable, **none bespoke**.
+>
+> **Findings, for Andrew's reading.**
+> - **The deadlines' ticks are assumptions.** A tick is the simulator's unit, not a day; the deadlines were measured against the shipped configurations and stated.
+> - **Adaptive approval is shipped but fitted nowhere.** What a desk should stop asking a person about is a judgement, not a default.
+> - **The fallible reviewer model gives no reasons for its overrides.** A campaign over it fails the `override-reason` gate, which is a true reading of a model.
+> - **The Kit's first page grew 15 KiB.** The starter registers every new governance component. A pack of their own would keep the Kit lighter; that is left for a decision.
+>
+> **Budgets:** about +30 kB in every edition and +23 kB in the Worker; the first-page gate is restated (`01-…` §8's dated note).
+>
+> **Screenshots:** re-taken on win32 where the new components, evaluators and guarded intakes show. Their Linux baselines are CI's.
+>
+> **Deferred to WP150:** the human-oversight experiment's re-run with an enforced-ceilings level and the `override-reason` gate, and the register regenerated.
+>
+> **Phase AM is closed. Next: Phase AN, WP150.**

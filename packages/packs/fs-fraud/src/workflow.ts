@@ -13,7 +13,13 @@ import type {
 	WorkflowSpec,
 	WorldState
 } from '@craftabot/core';
-import { ALERT_RULE_ID, alertBook, population, stageGateCard } from '@craftabot/pack-fs-bank';
+import {
+	ALERT_RULE_ID,
+	alertBook,
+	population,
+	stageGateCard,
+	VULNERABILITY_AT_THE_DOOR
+} from '@craftabot/pack-fs-bank';
 import { fraudStrings } from './strings.js';
 import { FRAUD_DESK_WORLD_ID, WORK_ITEM_LAYOUT, type FraudDeskState } from './world/desk.js';
 import { ALERT_RECORD, DECISIONS, type Decision } from './world/extra.js';
@@ -290,6 +296,8 @@ export const FRAUD_STAGES: StageSpec[] = [
 	{
 		id: 'alert',
 		name: names.alert,
+		// WP145: vulnerability detection at the door — the bank's support-need reader, annotating.
+		guards: { components: [VULNERABILITY_AT_THE_DOOR] },
 		input: ITEM_INPUT,
 		output: ALERT_OUTPUT,
 		executor: rule('alert-v1'),

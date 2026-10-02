@@ -221,13 +221,20 @@ export const SECOND_EDITION_ENTRIES: CatalogueEntry[] = [
 		obligations: ['fca:cobs-4:promotions', 'fca:conc-7:arrears', 'psr:app-reimbursement'],
 		sources: [FCA_COBS, FCA_CONC, PSR_APP],
 		coverage: {
-			status: 'bespoke',
+			status: 'shipped',
 			implementedBy: [
+				'mechanism:core/disclosure',
+				'trace-guarantee:disclosure.given',
+				'evaluator:fs-advice/risk-warning-disclosed',
+				'evaluator:fs-collections/debt-advice-disclosed',
+				'evaluator:fs-disputes/reimbursement-rights-disclosed',
+				'evaluator:fs-lending/review-right-disclosed',
+				'evaluator:fs-advice/ombudsman-disclosed',
 				'policy-card:fs-advice/policy/risk-warning-rides-with-every-recommendation',
 				'evaluator:fs-advice/warning-given',
 				'evaluator:fs-fraud/scam-warning-given'
 			],
-			note: 'The advice desk’s risk warning and the fraud desk’s scam warning ride as a card and evaluators; no disclosure is recorded as given with its wording, and the other desks do not state what they must disclose (WP145).'
+			note: 'The bank’s disclosures are registered with their exact wording and the obligations they cite (fs-bank’s DISCLOSURES): CONC 7’s debt advice, COBS 4’s risk warning, PSR APP reimbursement rights, a lending review right, DISP’s Ombudsman (WP145). The customer-facing action that reaches the moment makes the disclosure itself, so it cannot be skipped, and the trace carries disclosure.given with the digest of the words said; an evaluator per desk holds each run to it. Diverged: no card blocks a decision until the disclosure is made — the action that makes the decision makes the disclosure, so a card would guard nothing.'
 		},
 		bankingRelevance: 'core'
 	}),
@@ -243,9 +250,10 @@ export const SECOND_EDITION_ENTRIES: CatalogueEntry[] = [
 		frameworks: ['owasp:llm10'],
 		sources: [OWASP_LLM],
 		coverage: {
-			status: 'bespoke',
-			componentIds: ['governance/token-budget'],
-			note: 'Tokens are capped and every report counts them; a cap in money, from a cited list price, is not built (WP148).'
+			status: 'shipped',
+			componentIds: ['governance/cost-cap', 'governance/token-budget'],
+			note: 'governance/cost-cap stops a run before a turn once its tokens, at the list prices its config states with their source, have spent the cap in dollars (WP148); the token budget caps tokens. A price enters only with its source, so no shipped stack fits the cap with a price: it is a component a deployer configures.',
+			since: 'WP148'
 		},
 		bankingRelevance: 'supporting'
 	}),
@@ -262,8 +270,10 @@ export const SECOND_EDITION_ENTRIES: CatalogueEntry[] = [
 		frameworks: ['owasp:llm05'],
 		sources: [OWASP_LLM, OWASP_AGENTIC],
 		coverage: {
-			status: 'blueprint',
-			note: 'Each tool and world action checks its own arguments and refuses with a narration; nothing validates a call against its declared parameters before it runs (WP148).'
+			status: 'shipped',
+			componentIds: ['governance/tool-argument-validation'],
+			note: 'governance/tool-argument-validation checks a proposed world action’s arguments against the schema its world declares — type, required, properties, enum, items — and refuses one that does not fit at pre-act, so the world’s own refusal becomes a verdict on the trace before the world sees the call (WP148). Tools are not checked: a component sees the world’s actions, not the registry’s tools.',
+			since: 'WP148'
 		},
 		bankingRelevance: 'supporting'
 	}),
@@ -345,8 +355,9 @@ export const SECOND_EDITION_ENTRIES: CatalogueEntry[] = [
 		sources: [SECRET_SCANNING, OWASP_LLM],
 		coverage: {
 			status: 'shipped',
+			componentIds: ['governance/secret-scan'],
 			implementedBy: ['mechanism:core/export-scrub', 'mechanism:core/key-leak-test'],
-			note: 'Every export passes an exact-match scrub of the vault’s keys, and CI proves none reaches a record; what a bot says is not scanned — it is never given a secret to say.',
+			note: 'Every export passes an exact-match scrub of the vault’s keys, and CI proves none reaches a record; governance/secret-scan refuses a call that would say or send something shaped like a key, token or private key (WP149) — a bot is never given a secret to say, so it answers a planted one.',
 			since: 'WP4'
 		},
 		bankingRelevance: 'supporting'
@@ -390,13 +401,15 @@ export const SECOND_EDITION_ENTRIES: CatalogueEntry[] = [
 		obligations: ['pra:ss1-21:resilience'],
 		sources: [PRA_SS1_21, DORA, STABILITY_PATTERNS],
 		coverage: {
-			status: 'bespoke',
+			status: 'shipped',
 			implementedBy: [
+				'mechanism:core/failover',
 				'mechanism:core/provider-fault',
 				'policy-card:fs-bank/policy/fallback',
 				'evaluator:fs-bank/told-plainly'
 			],
-			note: 'A faulted provider is an injection the incident decks judge, and the Fallback card tells the customer plainly; no component fails over to a second provider in the shipped packs (WP148).'
+			note: 'core’s failoverProvider asks each of several providers in turn on an unavailable, slow or rate-limited answer, and says on think.completed who served and who failed (WP148) — the DGX pack’s two units, generalised. A faulted provider is still an injection the incident decks judge, and the Fallback card tells the customer plainly. Diverged: a provider wrapper, not a guard component — failover is not a verdict. Not done: no shipped bot names a provider list; a host builds one.',
+			since: 'WP148'
 		},
 		bankingRelevance: 'core'
 	}),
@@ -413,9 +426,11 @@ export const SECOND_EDITION_ENTRIES: CatalogueEntry[] = [
 		frameworks: ['owasp:llm07'],
 		sources: [OWASP_LLM],
 		coverage: {
-			status: 'bespoke',
-			implementedBy: ['mechanism:core/cassette-digest'],
-			note: 'A prompt is digested to key a recorded answer, so a changed prompt misses its cassette; nothing compares a run’s prompt with a validated one (WP149).'
+			status: 'shipped',
+			componentIds: ['governance/prompt-integrity'],
+			implementedBy: ['mechanism:core/cassette-digest', 'mechanism:core/build-digest'],
+			note: 'governance/prompt-integrity compares a turn’s system prompt with the digest it was validated at and stops the run, or notes it, when they differ (WP149); the build digest (WP147) moves when the personality does, and a changed prompt misses its cassette.',
+			since: 'WP149'
 		},
 		bankingRelevance: 'supporting'
 	}),
@@ -455,13 +470,17 @@ export const SECOND_EDITION_ENTRIES: CatalogueEntry[] = [
 		obligations: ['pra:ss1-23:identification', 'pra:ss1-23:governance'],
 		sources: [PRA_SS1_23, NIST_800_53, EU_AI_ACT_DEPLOYERS],
 		coverage: {
-			status: 'bespoke',
+			status: 'shipped',
 			implementedBy: [
+				'mechanism:core/build-digest',
 				'mechanism:core/agent-card',
 				'mechanism:core/kit-requires',
-				'mechanism:core/cassette-digest'
+				'mechanism:core/cassette-digest',
+				'mechanism:core/pack-digest',
+				'gate:no-regression'
 			],
-			note: 'A built bot is inventoried, its packs pinned by range and a recorded answer by its prompt’s digest; nothing digests the cartridge, stack, knobs and prompt together, and a changed knob is not read before it runs (WP147).'
+			note: 'A build digest over the goal card and its dial (the knobs) and every brick’s kind and config (the cartridge, the personality, the stack) is on every exported kit file (WP147); a host that names the build it validated gets run.started.changed when a run is of another; a knob a shipped campaign or experiment sets is a reading on the reading desk, read like a calibration row; the bank’s model-change-control row cites them with the no-regression gate. The packs a bot is built from are pinned by their own digest (WP141). Not done: nothing yet stores a validated digest for the Workbench’s own bots — the harness names it with run --validated.',
+			since: 'WP147'
 		},
 		bankingRelevance: 'core'
 	}),
@@ -480,8 +499,8 @@ export const SECOND_EDITION_ENTRIES: CatalogueEntry[] = [
 		sources: [ML_TEST_SCORE, PRA_SS1_23],
 		coverage: {
 			status: 'shipped',
-			implementedBy: ['mechanism:gate/shadow'],
-			note: 'The Gate runs a stack over an agent’s live traffic and records every verdict without applying one; a campaign cannot yet fit a stack in shadow (WP149).',
+			implementedBy: ['mechanism:gate/shadow', 'mechanism:evals/shadow-guard'],
+			note: 'The Gate runs a stack over an agent’s live traffic and records every verdict without applying one, and a campaign guard in mode shadow does the same over a campaign (WP149): every verdict that would block, stop, pause, redact or mark is an annotation saying so, and the run goes on. The shadow covers a guard’s components and stack; the Safety and Guard bricks a guard fits are not shadowed.',
 			since: 'WP127'
 		},
 		bankingRelevance: 'core'
@@ -535,9 +554,10 @@ export const SECOND_EDITION_ENTRIES: CatalogueEntry[] = [
 				'evaluator:fs-advice/vulnerability-actioned',
 				'evaluator:fs-collections/vulnerability-actioned',
 				'policy-card:fs-servicing/policy/record-a-disclosure',
-				'evaluator:fs-servicing/disclosure-recorded'
+				'evaluator:fs-servicing/disclosure-recorded',
+				'component:fs-bank/guard/vulnerability-detection'
 			],
-			note: 'A disclosure is acted on and recorded on the advice, collections and servicing desks; detection is a keyword rule, with no reader gate (WP145).',
+			note: 'Every journey’s intake stage asks the bank’s support-need reader, behind the desks’ line, whether the customer’s own words disclose a need, and records the finding at stage-in before anything is decided (WP145); the advice, collections and servicing desks act on and record it. The reader is a keyword rule — a measured model is the slot’s next step — and it can only read words the item carries: an alert or an application has none.',
 			since: 'WP60'
 		},
 		bankingRelevance: 'core'
@@ -556,9 +576,15 @@ export const SECOND_EDITION_ENTRIES: CatalogueEntry[] = [
 		obligations: ['fca:disp:complaints'],
 		sources: [UK_GDPR, EU_AI_ACT_DEPLOYERS, FCA_DISP],
 		coverage: {
-			status: 'bespoke',
-			implementedBy: ['evaluator:fs-lending/appeal-handled'],
-			note: 'The lending desk records an appeal and judges it handled; no other desk with an adverse decision offers one, and no journey routes an appeal to a person (WP145).'
+			status: 'shipped',
+			implementedBy: [
+				'mechanism:workflow/appeal',
+				'evaluator:fs-lending/appeal-handled',
+				'evaluator:fs-lending/review-right-disclosed',
+				'evaluator:fs-advice/ombudsman-disclosed'
+			],
+			note: 'A contested decline on the lending, onboarding and disputes desks is handed to the bank’s one review journey, complaints, as a handoff of kind appeal (WP145): a person approves its outcome below Level 5, and the run records the handoff. The customer is told the route — the review right with a declined loan’s reasons, the Ombudsman with every final response — in registered words digested on the trace. The complaints journey’s own adverse decision is not handed on: its route out is the Ombudsman.',
+			since: 'WP145'
 		},
 		bankingRelevance: 'core'
 	}),
@@ -576,12 +602,16 @@ export const SECOND_EDITION_ENTRIES: CatalogueEntry[] = [
 		obligations: ['fca:disp:complaints', 'psr:app-reimbursement'],
 		sources: [FCA_DISP, PSR_APP],
 		coverage: {
-			status: 'bespoke',
+			status: 'shipped',
 			implementedBy: [
+				'mechanism:workflow/deadlines',
+				'trace-guarantee:stage.overdue',
+				'gate:timeliness',
 				'evaluator:fs-fraud/time-to-decision',
 				'evaluator:fs-advice/complaint-acknowledged'
 			],
-			note: 'DISP’s timescales are ticks in the complaints desk’s truth and the fraud desk times its decisions; no stage carries a deadline and nothing escalates a case by the clock (WP146).'
+			note: 'A stage carries a deadline in journey ticks, citing its timescale (WP146): the complaints journey’s acknowledgement and final response (DISP 1.6), the disputes journey’s reimbursement (the PSR’s, a stated mapping). A stage done past it is recorded overdue and written stage.overdue; the bank clock counts the case and lists it among the day’s incidents — its escalation to a person; the timeliness gate holds a book to it. A tick is the simulator’s unit, not a day: the deadlines are measured against the shipped configurations and stated as assumptions.',
+			since: 'WP146'
 		},
 		bankingRelevance: 'core'
 	}),
@@ -599,9 +629,15 @@ export const SECOND_EDITION_ENTRIES: CatalogueEntry[] = [
 		obligations: ['pra:ss1-23:mitigants'],
 		sources: [EU_AI_ACT_OVERSIGHT, PRA_SS1_23],
 		coverage: {
-			status: 'bespoke',
-			implementedBy: ['trace-guarantee:approval.resolved', 'mechanism:core/principal'],
-			note: 'Who approved is on the trace; why a person overruled a recommendation or waived a refusal is not (WP146).'
+			status: 'shipped',
+			implementedBy: [
+				'trace-guarantee:approval.resolved',
+				'mechanism:core/principal',
+				'mechanism:workflow/override-reason',
+				'gate:override-reason'
+			],
+			note: 'A person’s decision against what the case recommended is recorded as an override on the approval and on approval.resolved, with the reason they gave (WP146); the override-reason gate holds a campaign to the share of overrides with a reason. Diverged: a gate, not an evaluator — an agent run’s evaluator cannot see a journey’s human stage. Not required by the runtime: an override without a reason is recorded as such, which is what the gate counts, rather than refused. The fallible reviewer model gives no reasons, so a campaign over it reads the gate failing — a true finding about a model of a person, not a person.',
+			since: 'WP146'
 		},
 		bankingRelevance: 'core'
 	}),
@@ -618,8 +654,10 @@ export const SECOND_EDITION_ENTRIES: CatalogueEntry[] = [
 		frameworks: ['eu-ai-act:art-14'],
 		sources: [APPROVAL_FATIGUE],
 		coverage: {
-			status: 'blueprint',
-			note: 'Approvals per case are counted (confirmation fatigue); nothing changes the tier as they climb (WP149).'
+			status: 'shipped',
+			componentIds: ['governance/approval-mode'],
+			note: 'The approval mode’s adaptive setting asks a person about every action until fatigueAfter approvals have been asked in the run, then only about what changes the world, and after twice that only about what cannot be undone (WP149); approvals per case are counted on every report, the confirmation fatigue it answers. The count is read from the trace, so a fork asks the same. No shipped configuration sets it: what a desk should ask a person about is a reading for Andrew.',
+			since: 'WP149'
 		},
 		bankingRelevance: 'supporting'
 	}),

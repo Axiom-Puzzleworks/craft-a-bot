@@ -829,6 +829,10 @@
 													"updatedAt"
 												]
 											},
+											"digest": {
+												"type": "string",
+												"pattern": "^[0-9a-f]{64}$"
+											},
 											"notes": {
 												"type": "string"
 											}
@@ -1102,6 +1106,10 @@
 					"stack": {
 						"type": "string",
 						"minLength": 1
+					},
+					"mode": {
+						"type": "string",
+						"const": "shadow"
 					},
 					"for": {
 						"type": "array",
@@ -1890,6 +1898,50 @@
 									"metric",
 									"reference",
 									"atMost"
+								]
+							},
+							{
+								"type": "object",
+								"properties": {
+									"kind": {
+										"type": "string",
+										"const": "timeliness"
+									},
+									"atLeast": {
+										"type": "number",
+										"minimum": 0,
+										"maximum": 1
+									},
+									"atMost": {
+										"type": "number",
+										"minimum": 0,
+										"maximum": 1
+									}
+								},
+								"required": [
+									"kind"
+								]
+							},
+							{
+								"type": "object",
+								"properties": {
+									"kind": {
+										"type": "string",
+										"const": "override-reason"
+									},
+									"atLeast": {
+										"type": "number",
+										"minimum": 0,
+										"maximum": 1
+									},
+									"atMost": {
+										"type": "number",
+										"minimum": 0,
+										"maximum": 1
+									}
+								},
+								"required": [
+									"kind"
 								]
 							}
 						]

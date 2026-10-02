@@ -115,6 +115,8 @@ export interface RunWorkflowOptions {
 	handedOffFrom?: WorkflowRun;
 	/** The bound on a cyclic journey. */
 	maxStages?: number;
+	/** The largest value a stage record keeps, in bytes of canonical JSON (WP148); `VALUE_CAP` by default. Over it, the digest alone. */
+	valueCap?: number;
 	onStage?: (record: StageRecord) => void;
 	/** The world as the journey left it — its truth for a campaign's scoring — once the record is made. */
 	onFinished?: (world: WorldInstance, run: WorkflowRun) => void;
@@ -132,6 +134,8 @@ export interface RunWorkflowOptions {
 export interface HumanDecision {
 	decision: string;
 	by?: Principal;
+	/** Why, when the decision overrules what the case recommended (WP146); recorded on the approval. */
+	reason?: string;
 }
 
 /** A value is kept on the record when its canonical JSON is under this; else the digest alone (§4). */
@@ -181,10 +185,13 @@ export function stagePack(
 	};
 }
 
-export function stageValue(value: unknown): { digest: string; value?: unknown } {
+export function stageValue(
+	value: unknown,
+	cap: number = VALUE_CAP
+): { digest: string; value?: unknown } {
 	const json = canonicalJson(value);
 	const digest = sha256Hex(json);
-	return json.length < VALUE_CAP ? { digest, value } : { digest };
+	return json.length < cap ? { digest, value } : { digest };
 }
 
 export function executorRecord(executor: Executor): ExecutorRecord {
@@ -346,6 +353,8 @@ export async function runWorkflow(
 	const stages: StageRecord[] = [];
 	const runIds: string[] = [];
 	let ordinal = 0;
+	/** The journey's elapsed ticks (WP146): a bot's stage spans its session's ticks, any other stage one. */
+	let elapsed = 0;
 	let reached = options.fromStage === undefined;
 
 	function emit<T extends EventType>(type: T, payload: PayloadFor<T>): void {
@@ -389,6 +398,18 @@ export async function runWorkflow(
 		currentExecutor = executor;
 
 		const record = await runStage(stage, executor, input);
+		elapsed +=
+			record.executor.kind === 'agent' ? Math.max(1, record.endedTick - record.startedTick) : 1;
+		// A deadline (WP146): a stage done past it is recorded overdue and said so on the trace.
+		if (stage.deadline && elapsed > stage.deadline.ticks) {
+			record.overdue = { deadline: stage.deadline.ticks, elapsed };
+			emit('stage.overdue', {
+				workflowRunId: runId,
+				stageId: stage.id,
+				deadline: stage.deadline.ticks,
+				elapsed
+			});
+		}
 		stages.push(record);
 		options.onStage?.(record);
 		if (record.status === 'error' || record.status === 'blocked') {
@@ -404,7 +425,12 @@ export async function runWorkflow(
 		const next = stage.next(output, world.snapshot(), input);
 		// A handoff (WP102, `83-…` §6.5.3): the journey ends here; the host starts the target with the item.
 		if (typeof next === 'object') {
-			handoff = { to: next.handoff, itemId: next.item.id, item: next.item };
+			handoff = {
+				to: next.handoff,
+				itemId: next.item.id,
+				item: next.item,
+				...(next.kind ? { kind: next.kind } : {})
+			};
 			outcome = 'handed-off';
 			break;
 		}
@@ -457,7 +483,7 @@ export async function runWorkflow(
 			const base: Base = {
 				stageId: stage.id,
 				executor: executorRecord(executor),
-				input: stageValue(stageInput),
+				input: stageValue(stageInput, options.valueCap),
 				stage,
 				rawInput: stageInput,
 				inbound: noBoundary
@@ -485,7 +511,7 @@ export async function runWorkflow(
 		const base: Base = {
 			stageId: stage.id,
 			executor: executorRecord(executor),
-			input: stageValue(stageInput),
+			input: stageValue(stageInput, options.valueCap),
 			stage,
 			rawInput: stageInput,
 			inbound: inbound.fold
@@ -691,7 +717,7 @@ export async function runWorkflow(
 			}
 		}
 		const ended = now();
-		const out = stageValue(value === undefined ? null : value);
+		const out = stageValue(value === undefined ? null : value, options.valueCap);
 		const guards: StageRecord['guards'] = {
 			checked: checked + fold.checked,
 			tripped,
@@ -905,9 +931,17 @@ export async function runWorkflow(
 			result: {
 				ok: result.ok,
 				narration: result.narration,
-				...(result.stateDiff !== undefined ? { stateDiff: result.stateDiff } : {})
+				...(result.stateDiff !== undefined ? { stateDiff: result.stateDiff } : {}),
+				...(result.disclosures ? { disclosures: result.disclosures } : {})
 			}
 		});
+		// A mandatory disclosure a rule's call made (WP145): as the session writes it.
+		for (const disclosure of result.disclosures ?? [])
+			emit('disclosure.given', {
+				id: disclosure.id,
+				action: call.name,
+				digest: sha256Hex(disclosure.text)
+			});
 		return result;
 	}
 
@@ -968,15 +1002,24 @@ export async function runWorkflow(
 				}
 			);
 		}
+		// An override (WP146): the person chose other than what the case put in front of them.
+		const shown =
+			stage.recommended?.(stageInput, state) ?? recommendationIn(stageInput, executor.options);
+		const overrode = shown !== undefined && answer.decision !== shown;
+		const why = overrode && answer.reason?.trim() ? answer.reason.trim() : undefined;
 		emit('approval.resolved', {
 			approved: answer.decision === first,
-			...(answer.by ? { by: answer.by } : {})
+			...(answer.by ? { by: answer.by } : {}),
+			...(overrode ? { override: true as const } : {}),
+			...(why !== undefined ? { reason: why } : {})
 		});
 		const read = readOutput(stage, { decision: answer.decision }, false);
 		const approval = {
 			requested: true as const,
 			...(answer.by ? { by: answer.by } : {}),
-			decision: answer.decision
+			decision: answer.decision,
+			...(overrode ? { override: true as const } : {}),
+			...(why !== undefined ? { reason: why } : {})
 		};
 		if ('finding' in read) {
 			return finishStage(base, started, ordinal, ordinal, undefined, [], 'error', read.finding, 0, {

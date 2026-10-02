@@ -6,6 +6,7 @@ import type {
 	Evaluator
 } from '@craftabot/core';
 import { isReasonCode, type ReasonCode } from '../world/rules.js';
+import { disputesDisclosure } from '../disclosure.js';
 
 /**
  * **The four deterministic evaluators** (WP104, `90-FS-DISPUTES.md` §4),
@@ -246,5 +247,7 @@ export const disputesEvaluators: Evaluator[] = [
 	classifiedBeforeDecision,
 	holdBeforeInvestigation,
 	reimbursedWithinLimit,
-	decisionMatchesRules
+	decisionMatchesRules,
+	// WP145: the mandatory disclosure, held to its words.
+	disputesDisclosure
 ];

@@ -43,8 +43,8 @@ const verdictOf = async (evaluator: Evaluator, input: EvaluationInput) =>
 	evaluator.evaluate(inputReadableBy(evaluator, input), deps);
 
 describe('the Lending Desk evaluators', () => {
-	it('ship five on the manifest — four deterministic, one rubric', () => {
-		expect(fsLendingPack.evaluators).toHaveLength(5);
+	it('ship six on the manifest — four deterministic, one rubric, the disclosure (WP145)', () => {
+		expect(fsLendingPack.evaluators).toHaveLength(6);
 		expect(lendingDeterministicEvaluators.every((e) => e.kind === 'deterministic')).toBe(true);
 		expect(lendingRubricEvaluators.every((e) => e.kind === 'model' && e.createOffline)).toBe(true);
 		expect(decisionMatchesRules.reads).toEqual(['truth']);
@@ -148,7 +148,11 @@ describe('the Lending Desk evaluators', () => {
 			for (const item of row.evidence) {
 				if (item.kind === 'policy-card') expect(cards.has(item.id), item.id).toBe(true);
 				else if (item.kind === 'evaluator') expect(evaluators.has(item.id), item.id).toBe(true);
-				else expect(item.id).toBe('parity');
+				// WP145: the disclosure row cites the event it is proved by.
+				else if (item.kind === 'trace-guarantee')
+					expect(['disclosure.given', 'approval.resolved']).toContain(item.id);
+				// WP146: the override-reason gate beside the parity gate.
+				else expect(['parity', 'override-reason']).toContain(item.id);
 			}
 	});
 });

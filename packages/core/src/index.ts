@@ -392,6 +392,7 @@ export {
 	type PackRegistryOptions
 } from './pack-registry.js';
 export { packDigest, packSurface, toolDescriptionDigest } from './pack-digest.js';
+export { buildDigest } from './build-digest.js';
 /** The open brick contract (`14-…` §2, WP14). */
 export {
 	SLOT_CAPACITY,
@@ -890,3 +891,4 @@ export {
 	type ReviewSubjectKind,
 	type ReviewVerdict
 } from './schemas/review.js';
+export { FAILOVER_KINDS, failoverProvider, type FailoverOptions } from './failover.js';

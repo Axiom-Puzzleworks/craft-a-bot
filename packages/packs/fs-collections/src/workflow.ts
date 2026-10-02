@@ -1,4 +1,4 @@
-import { stageGateCard } from '@craftabot/pack-fs-bank';
+import { stageGateCard, VULNERABILITY_AT_THE_DOOR } from '@craftabot/pack-fs-bank';
 import type {
 	ActionCall,
 	Book,
@@ -313,6 +313,8 @@ export const COLLECTIONS_STAGES: StageSpec[] = [
 	{
 		id: 'intake',
 		name: names.intake,
+		// WP145: vulnerability detection at the door — the bank's support-need reader, annotating.
+		guards: { components: [VULNERABILITY_AT_THE_DOOR] },
 		input: ITEM_INPUT,
 		output: INTAKE_OUTPUT,
 		executor: rule('intake-v1'),

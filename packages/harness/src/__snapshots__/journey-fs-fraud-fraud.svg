@@ -36,6 +36,7 @@
 <text class="node-label" x="1103" y="302">Report filed</text>
 <circle class="node node--rule" cx="1253" cy="266" r="22" data-stage="note"/>
 <text class="node-label" x="1253" y="302">Closing note</text>
+<rect class="point point--stage-in" x="164" y="261" width="10" height="10" data-point="boundary:alert:stage-in"/>
 <circle class="point point--pre-think" cx="339" cy="34" r="5" data-point="loop:triage:pre-think"/>
 <circle class="point point--pre-act" cx="353" cy="34" r="5" data-point="loop:triage:pre-act"/>
 <circle class="point point--post-act" cx="367" cy="34" r="5" data-point="loop:triage:post-act"/>

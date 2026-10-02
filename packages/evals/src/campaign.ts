@@ -31,6 +31,7 @@ import {
 	STEP_BUDGET_COMPONENT_ID,
 	builtinFitsFor,
 	compileComponents,
+	shadowGuardrail,
 	componentDepsFor,
 	egressModeOf,
 	stageBoundaryGuardrails,
@@ -328,7 +329,11 @@ export const gateRequireSchema = z.discriminatedUnion('kind', [
 		metric: z.enum(['psi', 'ks', 'outcome-mix', 'agreement', 'fairness']),
 		reference: referenceWindowSchema,
 		atMost: z.number().min(0)
-	})
+	}),
+	/** WP146 (`110-…` §10): the share of journey cells with no stage done past its deadline. */
+	z.object({ kind: z.literal('timeliness'), ...rateBounds }),
+	/** WP146: the share of a person's overrides that carry a reason; inconclusive when no one overrode. */
+	z.object({ kind: z.literal('override-reason'), ...rateBounds })
 ]);
 export type GateRequire = z.infer<typeof gateRequireSchema>;
 
@@ -431,6 +436,12 @@ export const campaignGuardSchema = z.object({
 	 * ships the stack.
 	 */
 	stack: z.string().min(1).optional(),
+	/**
+	 * `shadow` (WP149, `110-…` §10): the guard's components run and record
+	 * what they would have done, as annotations, and change nothing — what a
+	 * deployer measures before turning a guard on.
+	 */
+	mode: z.literal('shadow').optional(),
 	for: z.array(z.string()).optional(),
 	group: campaignGuardGroupSchema.optional()
 });
@@ -671,6 +682,18 @@ export const campaignCellSchema = z.object({
 					})
 				)
 				.optional(),
+			/** The stages done past their deadline (WP146, `110-…` §10); absent when none was. */
+			overdue: z
+				.array(
+					z.object({
+						stageId: z.string(),
+						deadline: z.number().int().positive(),
+						elapsed: z.number().int().nonnegative()
+					})
+				)
+				.optional(),
+			/** The decisions a person took against what the case recommended (WP146), and whether each gave a reason; absent when none was. */
+			overrides: z.array(z.object({ stageId: z.string(), reasoned: z.boolean() })).optional(),
 			/** The reviewer model's answers at the journey's human stages (WP115, `103-…` §6); absent without one. */
 			reviews: z
 				.array(
@@ -1639,12 +1662,32 @@ async function runBookCell(
 			decisions: touched.decisions ?? [],
 			breaches,
 			...(touched.reviews ? { reviews: touched.reviews } : {}),
-			...(readings.length > 0 ? { readings } : {})
+			...(readings.length > 0 ? { readings } : {}),
+			...overdueAndOverrides(run)
 		}
 	};
 	if (last) options.onTrace?.(scored, { events: last.events, spec: last.spec });
 	options.onWorkflowRun?.({ cell: scored, run, item, agentRuns });
 	return scored;
+}
+
+/** The run's stages past their deadline and its overridden decisions (WP146), for the cell; each absent when empty. */
+function overdueAndOverrides(run: WorkflowRun): {
+	overdue?: Array<{ stageId: string; deadline: number; elapsed: number }>;
+	overrides?: Array<{ stageId: string; reasoned: boolean }>;
+} {
+	const overdue = run.stages.flatMap((stage) =>
+		stage.overdue ? [{ stageId: stage.stageId, ...stage.overdue }] : []
+	);
+	const overrides = run.stages.flatMap((stage) =>
+		stage.approval?.override
+			? [{ stageId: stage.stageId, reasoned: stage.approval.reason !== undefined }]
+			: []
+	);
+	return {
+		...(overdue.length > 0 ? { overdue } : {}),
+		...(overrides.length > 0 ? { overrides } : {})
+	};
 }
 
 /**
@@ -2009,7 +2052,9 @@ export function componentChainFor(
 		if (entry.point) entryFit.point = entry.point as NonNullable<ComponentFit['point']>;
 		return entryFit;
 	});
-	return compileComponents(fits, registry, deps);
+	const chain = compileComponents(fits, registry, deps);
+	// WP149: a shadow guard records what it would have done and applies nothing.
+	return guard.mode === 'shadow' ? chain.map(shadowGuardrail) : chain;
 }
 
 /** The session's egress mode a guard's components name (`governance/egress-*`), or undefined — the runner's own then applies. */
@@ -2377,6 +2422,31 @@ export function evaluateGate(
 				};
 			}
 			observed = value;
+			break;
+		}
+		// WP146 (`110-…` §10): a journey's timeliness, and the reasons a person gave for overriding.
+		case 'timeliness': {
+			const journeys = selected.filter((cell) => cell.workflow !== undefined);
+			if (journeys.length === 0)
+				return {
+					...base,
+					required: describeRequirement(require),
+					passed: true,
+					inconclusive: true
+				};
+			observed = rate(journeys, (cell) => (cell.workflow?.overdue?.length ?? 0) === 0);
+			break;
+		}
+		case 'override-reason': {
+			const overrides = selected.flatMap((cell) => cell.workflow?.overrides ?? []);
+			if (overrides.length === 0)
+				return {
+					...base,
+					required: describeRequirement(require),
+					passed: true,
+					inconclusive: true
+				};
+			observed = overrides.filter((override) => override.reasoned).length / overrides.length;
 			break;
 		}
 		case 'drift':
@@ -2906,6 +2976,10 @@ export function describeRequirement(require: GateRequire): string {
 			return `${require.evaluatorId} ${require.derived} ${bounds(require.atLeast, require.atMost)}`;
 		case 'label-rate':
 			return `${require.evaluatorId} label "${require.label}" rate ${bounds(require.atLeast, require.atMost)}`;
+		case 'timeliness':
+			return `journeys with no stage past its deadline ${bounds(require.atLeast, require.atMost)}`;
+		case 'override-reason':
+			return `overrides with a reason ${bounds(require.atLeast, require.atMost)}`;
 		case 'drift':
 			return `${require.metric}${require.feature ? ` over ${require.feature}` : ''} against the ${require.reference.kind} reference: ≤ ${require.atMost}`;
 		case 'parity': {

@@ -1,3 +1,4 @@
+import { buildDigest } from '../build-digest.js';
 import { isLocalId, type ContentRecord } from '../schemas/content.js';
 import { satisfiesRange } from '../semver.js';
 import type { PackRegistry } from '../pack-registry.js';
@@ -67,6 +68,8 @@ export function buildKitFile(spec: AnyAgentSpec, options: BuildKitFileOptions): 
 				: {})
 		},
 		agent: toSpecV2(spec),
+		// WP147: the build's digest, so a validation can name it and a run be checked against it.
+		digest: buildDigest(spec),
 		...(options.notes !== undefined ? { notes: options.notes } : {})
 	};
 	return kitFileSchema.parse(redactSecrets(kit, options.secrets ?? []));

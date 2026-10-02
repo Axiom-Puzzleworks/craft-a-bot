@@ -151,6 +151,13 @@ export interface DeskActionContext {
 	alert(severity: DeskAlertSeverity, text: string): void;
 	/** Append a line to the transcript on someone's behalf — a system note, or the counterpart. */
 	line(speaker: Exclude<DeskTranscriptSpeaker, 'agent'>, text: string, channel?: string): void;
+	/**
+	 * Make a mandatory disclosure (WP145): the exact wording, said to the
+	 * customer in the bot's voice and tagged `disclosure:<id>` on the
+	 * transcript, and carried on the action's result so the host writes
+	 * `disclosure.given` with its digest.
+	 */
+	disclose(id: string, text: string): void;
 }
 
 export type DeskActionOutcome = {
@@ -547,6 +554,9 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 			}
 		}
 
+		/** The disclosures the action being performed has made (WP145), for its result. */
+		let disclosed: Array<{ id: string; text: string }> = [];
+
 		function context(): DeskActionContext {
 			return {
 				tick: state.tick,
@@ -588,6 +598,12 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 				line(speaker, text, channel) {
 					const name = speaker === 'system' ? runtimeStrings.systemName : counterpartName();
 					line(speaker, name, text, channel);
+				},
+				disclose(id, text) {
+					line('agent', runtimeStrings.agentName, text, undefined, {
+						tags: ['disclosure', `disclosure:${id}`]
+					});
+					disclosed.push({ id, text });
 				}
 			};
 		}
@@ -734,12 +750,16 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 			}
 			const parsed = action.schema.safeParse(call.arguments ?? {});
 			if (!parsed.success) return badArguments(action.id, parsed.error);
+			disclosed = [];
 			const outcome = action.perform(state, parsed.data, context());
 			speak({ kind: 'acted', actionId: action.id });
+			const disclosures = disclosed;
+			disclosed = [];
 			return {
 				ok: outcome.ok,
 				narration: outcome.narration,
-				stateDiff: outcome.stateDiff ?? []
+				stateDiff: outcome.stateDiff ?? [],
+				...(disclosures.length > 0 ? { disclosures } : {})
 			};
 		}
 

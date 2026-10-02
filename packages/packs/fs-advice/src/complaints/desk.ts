@@ -1,5 +1,5 @@
 import { createDeskWorld, type DeskState, type DeskWorldSpec } from '@craftabot/desk';
-import { bankContextRecords } from '@craftabot/pack-fs-bank';
+import { bankContextRecords, discloseOnce } from '@craftabot/pack-fs-bank';
 import { z } from 'zod';
 import {
 	COMPLAINT_KINDS,
@@ -141,6 +141,8 @@ export const complaintsDeskSpec: DeskWorldSpec<ComplaintsExtra> = {
 				if (row) row.status = 'resolved';
 				ctx.decide(c.complaintId, complaintsStrings.narration.redressDecision(amount));
 				ctx.alert('critical', complaintsStrings.narration.redressAlert(amount));
+				// WP145: a final response names the Ombudsman, upheld or not (DISP).
+				discloseOnce(state, ctx, 'complaints/ombudsman');
 				return { ok: true, narration: complaintsStrings.narration.redress(amount, c.complaintId) };
 			}
 		},
@@ -162,6 +164,7 @@ export const complaintsDeskSpec: DeskWorldSpec<ComplaintsExtra> = {
 				const row = state.extra.ledger.complaints.find((entry) => entry.id === c.complaintId);
 				if (row) row.status = 'resolved';
 				ctx.decide(c.complaintId, complaintsStrings.narration.declinedDecision);
+				discloseOnce(state, ctx, 'complaints/ombudsman');
 				return { ok: true, narration: complaintsStrings.narration.declined(reason) };
 			}
 		},

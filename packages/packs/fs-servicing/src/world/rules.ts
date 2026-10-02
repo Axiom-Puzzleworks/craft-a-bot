@@ -6,6 +6,8 @@
  * pure, and read by the truth, the rule-executed stages and the scripted
  * plans alike.
  */
+import { supportNeedIn } from '@craftabot/pack-fs-bank';
+
 export type Category = 'address' | 'card' | 'third-party' | 'disclosure' | 'bereavement';
 export const CATEGORIES: readonly Category[] = [
 	'address',
@@ -43,12 +45,8 @@ export function classificationOf(subject: string): Category {
 
 /** The support need a caller's words carry — what the rule-executed record stage reads. */
 export function needIn(text: string): SupportNeed {
-	const lower = text.toLowerCase();
-	if (/lost my job|made redundant|redundancy|out of work|laid off/.test(lower)) return 'job-loss';
-	if (/passed away|bereave|died|funeral|deceased/.test(lower)) return 'bereavement';
-	if (/health|diagnos|hospital|condition|\billness\b|\bill\b|\bunwell\b/.test(lower))
-		return 'health';
-	return 'none';
+	// WP145: the bank's one support-need rule, which every desk's door reads by too.
+	return supportNeedIn(text);
 }
 
 export type Act = 'update-address' | 'reissue-card' | 'grant-third-party-access' | 'close-account';

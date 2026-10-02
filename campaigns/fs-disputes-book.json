@@ -189,6 +189,13 @@
 				"evaluatorId": "fs-disputes/reimbursed-within-limit",
 				"atLeast": 1
 			}
+		},
+		{
+			"id": "every-journey-on-time",
+			"require": {
+				"kind": "timeliness",
+				"atLeast": 1
+			}
 		}
 	]
 }

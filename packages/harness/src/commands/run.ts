@@ -68,6 +68,8 @@ export interface RunKitOptions {
 	egress?: EgressMode;
 	/** Who is running this (WP65, `55-…` §4.2): on `run.started` and every attestation, and the `by` of every approval the harness answers. */
 	principal?: Principal;
+	/** The build this bot was last validated as (WP147): a differing build is said so on `run.started.changed`. */
+	validated?: { digest: string; source?: string };
 	/** A sink to stream the run to (WP47, `35-…` §4.5) — by id, with its config as JSON. */
 	sink?: { id: string; config?: string };
 	/**
@@ -184,6 +186,7 @@ export async function runKit(options: RunKitOptions): Promise<RunKitReport> {
 			...(options.fetch ? { fetch: options.fetch } : {}),
 			egress: options.egress ?? 'declared',
 			...(options.principal ? { principal: options.principal } : {}),
+			...(options.validated ? { validated: options.validated } : {}),
 			...(options.maxTicks !== undefined ? { budgets: { maxTicks: options.maxTicks } } : {})
 		}
 	});

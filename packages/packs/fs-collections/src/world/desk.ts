@@ -5,7 +5,7 @@ import {
 	type DeskWorldSpec
 } from '@craftabot/desk';
 import type { WorkItem } from '@craftabot/core';
-import { bankContextRecords } from '@craftabot/pack-fs-bank';
+import { bankContextRecords, discloseOnce } from '@craftabot/pack-fs-bank';
 import { z } from 'zod';
 import { collectionsStrings } from '../strings.js';
 import {
@@ -228,7 +228,7 @@ export const collectionsDeskSpec: DeskWorldSpec<CollectionsExtra> = {
 				reasons: reasonsSchema
 			}),
 			riskTier: 'reversible',
-			perform: (state, args) => {
+			perform: (state, args, ctx) => {
 				const { plan, reasons } = args as { plan: Plan; reasons: string[] };
 				const { collections } = state.extra;
 				if (collections.agreed)
@@ -254,6 +254,8 @@ export const collectionsDeskSpec: DeskWorldSpec<CollectionsExtra> = {
 					reasons: codes,
 					monthly: monthlyFor(plan, collections.arrears)
 				};
+				// WP145: a plan offered goes with where to get free debt advice (CONC 7).
+				discloseOnce(state, ctx, 'collections/free-debt-advice');
 				return { ok: true, narration: collectionsStrings.narration.offered(plan, codes) };
 			}
 		},

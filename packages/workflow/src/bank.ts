@@ -261,6 +261,21 @@ export async function runBank(
 			handedOff?: number;
 		};
 		tally.worked += 1;
+		// A case past a deadline (WP146) is escalated to a person: counted, and listed among the day's incidents.
+		const late = run.stages.find((stage) => stage.overdue !== undefined);
+		if (late?.overdue) {
+			counts.overdue = (counts.overdue ?? 0) + 1;
+			const incident: BankRun['incidents'][number] = {
+				runId: run.id,
+				itemId: arrival.item.id,
+				desk: desk.id,
+				stageId: late.stageId,
+				status: 'overdue',
+				finding: `${late.stageId} finished at tick ${late.overdue.elapsed}, past its deadline of ${late.overdue.deadline}`
+			};
+			incidents.push(incident);
+			options.onIncident?.(incident);
+		}
 		if (run.outcome === 'handed-off' && run.handoff) {
 			counts.handedOff = (counts.handedOff ?? 0) + 1;
 			tally.handedOff = (tally.handedOff ?? 0) + 1;

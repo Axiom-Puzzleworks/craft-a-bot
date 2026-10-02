@@ -33,7 +33,8 @@ async function storeWithRuns() {
 	return { out, ok, noisy, storage: await createFileStorage(out) };
 }
 
-describe('craftabot report', () => {
+// The safety case folds the whole catalogue and every evaluator; under a full parallel run it outgrew 5 s.
+describe('craftabot report', { timeout: 30_000 }, () => {
 	it('--safety-case emits exactly what the Workshop’s screen renders for the same bot', async () => {
 		const { storage, ok } = await storeWithRuns();
 		const registry = createRegistry(config);

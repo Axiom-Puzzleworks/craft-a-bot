@@ -4,7 +4,7 @@ import {
 	type DeskState,
 	type DeskWorldSpec
 } from '@craftabot/desk';
-import { bankContextRecords, type Product } from '@craftabot/pack-fs-bank';
+import { bankContextRecords, discloseOnce, type Product } from '@craftabot/pack-fs-bank';
 import { z } from 'zod';
 import { adviceStrings } from '../strings.js';
 import { ADVICE_CASE_KINDS, adviceCase, adviceCaseFromItem, type AdviceCaseKind } from './cases.js';
@@ -278,6 +278,8 @@ export const adviceDeskSpec: DeskWorldSpec<AdviceExtra> = {
 				// On the file (WP85): a later stage's bot reads what was recommended from the customer record.
 				state.extra.advice.facts['recommended-product'] = product.id;
 				ctx.decide('advise', adviceStrings.narration.recommendedDecision(product.name));
+				// WP145: every recommendation carries the risk warning in the bank's own words (COBS 4).
+				discloseOnce(state, ctx, 'advice/capital-at-risk');
 				return { ok: true, narration: adviceStrings.narration.recommended(product.name) };
 			}
 		},

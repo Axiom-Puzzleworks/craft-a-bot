@@ -239,6 +239,65 @@ const fixture: PackConformanceFixture = {
 				}
 			]
 		},
+		// WP149: prompt integrity and the secret scan.
+		'governance/prompt-integrity': {
+			config: { validated: '0'.repeat(64) },
+			verdicts: [
+				{ verdict: 'allow', context: guardrailContext('pre-think') },
+				{
+					verdict: 'stop-run',
+					context: guardrailContext('pre-think', {
+						messages: [{ role: 'system', content: 'Not the validated prompt.' }]
+					})
+				}
+			]
+		},
+		'governance/secret-scan': {
+			config: {},
+			verdicts: [
+				{ verdict: 'allow', context: guardrailContext('pre-act') },
+				{
+					verdict: 'block-action',
+					context: guardrailContext('pre-act', {
+						proposed: {
+							kind: 'action',
+							name: 'say',
+							arguments: { text: ['-----BEGIN', ' PRIVATE KEY-----'].join('') }
+						}
+					})
+				}
+			]
+		},
+		// WP148: the cost cap and tool-argument validation.
+		'governance/cost-cap': {
+			config: {
+				usdCap: 0.01,
+				inputPerMillion: 2.5,
+				outputPerMillion: 10,
+				priceSource: 'a stated test price'
+			},
+			verdicts: [
+				{ verdict: 'allow', context: guardrailContext('pre-think') },
+				{
+					verdict: 'stop-run',
+					context: guardrailContext('pre-think', {
+						usage: { ticks: 5, inputTokens: 10_000, outputTokens: 1_000 }
+					})
+				}
+			]
+		},
+		'governance/tool-argument-validation': {
+			config: {},
+			verdicts: [
+				{ verdict: 'allow', context: guardrailContext('pre-act') },
+				{
+					verdict: 'block-action',
+					context: guardrailContext('pre-act', {
+						proposed: { kind: 'action', name: 'move', arguments: { direction: 7 } }
+					})
+				}
+			]
+		},
 		// WP143: inter-agent message authentication.
 		'governance/peer-auth': {
 			config: {},

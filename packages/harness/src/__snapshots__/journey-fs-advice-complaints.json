@@ -31,7 +31,8 @@
 			"guards": [
 				"loop:acknowledge:pre-think",
 				"loop:acknowledge:pre-act",
-				"loop:acknowledge:post-act"
+				"loop:acknowledge:post-act",
+				"boundary:acknowledge:stage-in"
 			]
 		},
 		{
@@ -209,6 +210,14 @@
 			"kind": "post-act",
 			"at": "acknowledge",
 			"components": []
+		},
+		{
+			"id": "boundary:acknowledge:stage-in",
+			"kind": "stage-in",
+			"at": "acknowledge",
+			"components": [
+				"fs-bank/guard/vulnerability-detection"
+			]
 		},
 		{
 			"id": "loop:root-cause:pre-think",

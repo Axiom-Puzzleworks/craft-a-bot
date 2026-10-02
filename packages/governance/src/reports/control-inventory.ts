@@ -218,7 +218,9 @@ const GATE_NAMES: Readonly<Record<string, string>> = {
 	'derived-metric': 'A rate derived from labels — recall, a false-freeze rate.',
 	'label-rate': 'How often an evaluator gives a label.',
 	parity: 'An outcome compared across cohorts or a matched pair, with its interval.',
-	drift: 'A distribution compared with a reference window.'
+	drift: 'A distribution compared with a reference window.',
+	timeliness: 'How often a journey finishes every stage within its deadline.',
+	'override-reason': 'How often a person who overrode a recommendation said why.'
 };
 
 const ARTEFACT_NAMES: Readonly<Record<string, string>> = {

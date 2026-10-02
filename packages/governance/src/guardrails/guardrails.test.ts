@@ -2,7 +2,11 @@ import type { EngineEvent } from '@craftabot/core';
 import { describe, expect, it } from 'vitest';
 import { action, context, tool } from '../test-context.js';
 import { ACTION_BLOCKLIST_ID, createActionBlocklistGuardrail } from './action-blocklist.js';
-import { APPROVAL_MODE_ID, createApprovalModeGuardrail } from './approval-mode.js';
+import {
+	APPROVAL_MODE_ID,
+	createAdaptiveApprovalGuardrail,
+	createApprovalModeGuardrail
+} from './approval-mode.js';
 import { createNoProgressGuardrail, turnsWithoutProgress } from './no-progress.js';
 import { NO_REPETITION_ID, createNoRepetitionGuardrail } from './no-repetition.js';
 import { STEP_BUDGET_ID, createStepBudgetGuardrail } from './step-budget.js';
@@ -611,5 +615,38 @@ describe('no progress (WP141)', () => {
 		expect(
 			guardrail.check(context({ hook: 'pre-act', proposed: action('walk'), history: events }))
 		).toMatchObject({ allow: false, disposition: 'stop-run' });
+	});
+});
+
+describe('adaptive approval (WP149)', () => {
+	const asked = (n: number) =>
+		Array.from({ length: n }, () => ({ type: 'approval.requested', payload: {} })) as never;
+	const tiers = (name: string) =>
+		name === 'close'
+			? ('irreversible' as const)
+			: name === 'note'
+				? ('reversible' as const)
+				: ('observe' as const);
+
+	it('asks about everything, then only what changes the world, then only what cannot be undone', () => {
+		const guard = createAdaptiveApprovalGuardrail(2, tiers);
+		const check = (name: string, n: number) =>
+			guard.check(context({ hook: 'pre-act', proposed: action(name), history: asked(n) }));
+		expect(check('look', 0)).toMatchObject({ pause: true });
+		expect(check('look', 2)).toMatchObject({ allow: true });
+		expect(check('note', 2)).toMatchObject({ pause: true });
+		expect(check('note', 4)).toMatchObject({ allow: true });
+		expect(check('close', 4)).toMatchObject({ pause: true });
+		expect(guard.check(context({ hook: 'pre-act', proposed: tool('look') }))).toEqual({
+			allow: true
+		});
+		expect(guard.check(context({ hook: 'pre-act' }))).toEqual({ allow: true });
+	});
+
+	it('treats every action as irreversible when told nothing about tiers', () => {
+		const guard = createAdaptiveApprovalGuardrail(1);
+		expect(
+			guard.check(context({ hook: 'pre-act', proposed: action('look'), history: asked(5) }))
+		).toMatchObject({ pause: true });
 	});
 });

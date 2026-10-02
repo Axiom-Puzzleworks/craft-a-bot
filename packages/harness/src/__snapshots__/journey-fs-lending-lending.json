@@ -30,7 +30,9 @@
 			"executor": "rule",
 			"irreversible": false,
 			"obligations": [],
-			"guards": []
+			"guards": [
+				"boundary:intake:stage-in"
+			]
 		},
 		{
 			"stageId": "identity",
@@ -234,11 +236,28 @@
 			"to": {
 				"end": true
 			},
-			"label": "",
-			"kind": "enumerated"
+			"label": "depends on the case",
+			"kind": "case"
+		},
+		{
+			"id": "appeal->handoff:fs-advice/complaints",
+			"from": "appeal",
+			"to": {
+				"handoff": "fs-advice/complaints"
+			},
+			"label": "depends on the case",
+			"kind": "case"
 		}
 	],
 	"points": [
+		{
+			"id": "boundary:intake:stage-in",
+			"kind": "stage-in",
+			"at": "intake",
+			"components": [
+				"fs-bank/guard/vulnerability-detection"
+			]
+		},
 		{
 			"id": "loop:identity:pre-think",
 			"kind": "pre-think",

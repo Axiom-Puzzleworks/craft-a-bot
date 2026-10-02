@@ -150,7 +150,10 @@ describe('the complaints evaluators', () => {
 	it('read the deadlines and the bounds from truth, and say inconclusive with none', async () => {
 		const good = await run('charges-error', false);
 		const noTruth = { ...good, truth: undefined };
-		for (const evaluator of complaintsEvaluators) {
+		// The disclosure (WP145) reads the trace, not truth: it judges a run whether or not truth came with it.
+		for (const evaluator of complaintsEvaluators.filter(
+			(e) => e.id !== 'fs-advice/ombudsman-disclosed'
+		)) {
 			expect((await evaluator.evaluate(noTruth, DEPS)).verdict).toBe('inconclusive');
 		}
 		const named = await rootCauseNamed.evaluate(good, DEPS);

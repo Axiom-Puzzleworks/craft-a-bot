@@ -34,7 +34,7 @@ import {
 	type PushEvidenceOptions
 } from './commands/evidence.js';
 import { buildEvidenceStore, evidenceStoreById, parseEvidenceStoreConfig } from './evidence.js';
-import { evidenceKindSchema, type EvidenceKind } from '@craftabot/core';
+import { buildDigest, evidenceKindSchema, type EvidenceKind } from '@craftabot/core';
 import { runKit, type BrainTier } from './commands/run.js';
 import { forkRun } from './commands/fork.js';
 import { workflowRun } from './commands/workflow.js';
@@ -114,6 +114,9 @@ Usage:
       assertion cards, scenarios and campaigns as ContentRecord JSON under
       <dir>/<segment>/<slug>.json, read into the local pack by every
       command (--content names the directory; ./content by default).
+
+  craftabot kit digest --kit <bot.craftabot.json>
+      The build digest (WP147): what a validation records, and what run --validated <digest> checks.
 
   craftabot packs [--config craftabot.config.mjs]
   craftabot packs lock [--check] [--file <packs.lock.json>]
@@ -408,6 +411,17 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 				}
 				throw new Error(`content: unknown verb "${verb}" — list or add`);
 			}
+			case 'kit': {
+				// WP147: a build's digest, to record when it is validated and to name with run --validated.
+				const [verb] = args.positional;
+				const kitPath = stringFlag(args, 'kit');
+				if (verb !== 'digest' || !kitPath)
+					throw new Error('kit needs digest --kit <bot.craftabot.json>');
+				const kit = JSON.parse(await readFile(kitPath, 'utf8')) as { agent?: unknown };
+				if (kit.agent === undefined) throw new Error(`${kitPath} is not a kit file`);
+				io.stdout(`${buildDigest(kit.agent as Parameters<typeof buildDigest>[0])}\n`);
+				return 0;
+			}
 			case 'packs': {
 				// WP141: the shipped packs' content digests, written to the lock the default config pins.
 				if (args.positional[0] === 'lock') {
@@ -479,6 +493,15 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 					config,
 					credentials: credentialsFromEnv(io.env),
 					principal: principalFor(io, args),
+					// WP147: the build last validated, by its digest (`craftabot kit digest`).
+					...(stringFlag(args, 'validated') !== undefined
+						? {
+								validated: {
+									digest: stringFlag(args, 'validated')!,
+									source: stringFlag(args, 'validated-by') ?? 'the --validated flag'
+								}
+							}
+						: {}),
 					...(card !== undefined ? { card } : {}),
 					...(providerFlag !== undefined ? { provider: providerFlag } : {}),
 					...(maxTicks !== undefined ? { maxTicks } : {}),
