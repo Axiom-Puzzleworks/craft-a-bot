@@ -318,7 +318,15 @@ const memoryUpdatedEvent = eventSchema(
 		 * > distinction matters: deliberate writes are the provenance seed for
 		 * > the memory-poisoning curriculum (`14-…` §4.2).
 		 */
-		notebookUpdated: z.boolean()
+		notebookUpdated: z.boolean(),
+		/**
+		 * Where this tick's notebook write came from (WP141, `110-…` §10):
+		 * `'untrusted'` when the bot had read content marked untrusted, and not
+		 * quarantined, before it wrote — the write takes its context's label,
+		 * as information-flow control does, whatever the words. Written only
+		 * then; absent means the context held nothing marked.
+		 */
+		source: z.literal('untrusted').optional()
 	})
 );
 /**

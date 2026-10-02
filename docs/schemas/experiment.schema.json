@@ -1898,6 +1898,18 @@
 					"properties": {
 						"kind": {
 							"type": "string",
+							"const": "memory-is-untrusted"
+						}
+					},
+					"required": [
+						"kind"
+					]
+				},
+				{
+					"type": "object",
+					"properties": {
+						"kind": {
+							"type": "string",
 							"const": "taint-reaches"
 						},
 						"path": {

@@ -113,6 +113,15 @@ export const CONTROL_MECHANISMS: readonly ControlMechanism[] = [
 		since: 'WP0'
 	}),
 	m({
+		id: 'core/memory-label',
+		name: 'The notebook write’s label',
+		summary:
+			'A notebook write made after the bot read unquarantined untrusted content carries source untrusted on its memory.updated: the context’s label, whatever the words.',
+		where: ['packages/core/src/session/agent-session.ts'],
+		observedAs: ['memory.updated.source'],
+		since: 'WP141'
+	}),
+	m({
 		id: 'core/risk-tier',
 		name: 'Risk tiers on actions',
 		summary:
@@ -164,6 +173,16 @@ export const CONTROL_MECHANISMS: readonly ControlMechanism[] = [
 		where: ['packages/core/src/provider-cassette.ts'],
 		observedAs: ['error.kind cassette-miss'],
 		since: 'WP58'
+	}),
+	m({
+		id: 'core/pack-digest',
+		name: 'The pack content digest and its pins',
+		summary:
+			'A digest over every tool, action and sense description, card and stack a pack carries; a host pins it, and the registry refuses a pack that differs.',
+		where: ['packages/core/src/pack-digest.ts', 'packages/harness/packs.lock.json'],
+		observedAs: ['the registration refusal', 'craftabot packs lock --check'],
+		configuredBy: 'a host’s pins (the harness pins every shipped pack)',
+		since: 'WP141'
 	}),
 	m({
 		id: 'core/export-scrub',

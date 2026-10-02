@@ -100,7 +100,10 @@ describe('craftabot benchmark run (WP123)', () => {
 			['governance/untrusted-content', 'local', true],
 			['fs-bank/guard/quarantined-reader', 'local', true],
 			['governance/taint', 'local', false],
-			['governance/red-team-seat', 'local', false]
+			['governance/red-team-seat', 'local', false],
+			// WP141: the no-progress detector and memory provenance decide on calls and thoughts, not text.
+			['governance/no-progress', 'local', false],
+			['governance/memory-provenance', 'local', false]
 		]);
 		// The marking components mark everything they are shown: every row on the surfaces that come back.
 		for (const id of ['governance/untrusted-content', 'fs-bank/guard/quarantined-reader']) {
@@ -122,7 +125,7 @@ describe('craftabot benchmark run (WP123)', () => {
 		expect(first.markdown.startsWith('# The bank, attacked')).toBe(true);
 		expect(first.markdown).toContain('**Synthetic rows.**');
 		expect(report.digest).toMatchInlineSnapshot(
-			`"c866f377e5905b9ddace18e2f14e093bbf426ae1e3fb42b1e2968c76dd9a2b62"`
+			`"bb33bc460eccdded227eee84a7ea11467653d30bd6d8f17c33b35165a9f81052"`
 		);
 	});
 

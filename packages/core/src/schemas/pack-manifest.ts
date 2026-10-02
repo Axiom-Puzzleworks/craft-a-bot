@@ -181,7 +181,15 @@ export const packManifestMetadataSchema = z.object({
 	 * `40-DEBTS.md` §4.5) — a persona cartridge that names another pack's
 	 * provider says so here, and the registry refuses the pack without them.
 	 */
-	requiresPacks: z.record(z.string().min(1), z.string().min(1)).optional()
+	requiresPacks: z.record(z.string().min(1), z.string().min(1)).optional(),
+	/**
+	 * The pack's content digest as its author computed it (WP141, `packDigest`):
+	 * when present, the registry refuses the pack if what it carries differs.
+	 */
+	digest: z
+		.string()
+		.regex(/^[0-9a-f]{64}$/)
+		.optional()
 });
 export type PackManifestMetadata = z.infer<typeof packManifestMetadataSchema>;
 

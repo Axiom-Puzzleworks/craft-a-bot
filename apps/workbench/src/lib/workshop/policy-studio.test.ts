@@ -361,6 +361,10 @@ describe('the WP124 leaves in the rule builder', () => {
 	it('builds content-is-untrusted, and taint-reaches with or without a path', () => {
 		const row = { ...newCondition(), kind: 'content-is-untrusted' as const };
 		expect(conditionToExpr(row)).toEqual({ kind: 'content-is-untrusted' });
+		// WP141: the notebook's label.
+		expect(conditionToExpr({ ...row, kind: 'memory-is-untrusted' })).toEqual({
+			kind: 'memory-is-untrusted'
+		});
 		expect(conditionToExpr({ ...row, kind: 'taint-reaches', path: '' })).toEqual({
 			kind: 'taint-reaches'
 		});

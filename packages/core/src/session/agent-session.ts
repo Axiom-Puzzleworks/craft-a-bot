@@ -268,7 +268,12 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		feedback: (fork ? [...fork.feedback] : []) as string[],
 		inFlight: undefined as AbortController | undefined,
 		/** What `post-act` marked untrusted so far (WP124, `106-…` §8.2): what taint reads. Not refolded by a fork. */
-		untrusted: [] as Array<{ tick: number; source: string; text: string }>
+		untrusted: [] as Array<{ tick: number; source: string; text: string }>,
+		/**
+		 * Whether the bot has read something marked untrusted and not quarantined
+		 * (WP141): the label a notebook write takes. Not refolded by a fork.
+		 */
+		contextUntrusted: false
 	};
 
 	function emit<T extends EventType>(type: T, payload: PayloadFor<T>): void {
@@ -1011,7 +1016,11 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			emit('memory.updated', {
 				windowSize: memoryConfig?.windowSize ?? 0,
 				entries: memory.size(),
-				notebookUpdated: memory.writes() > notebookLinesAtTickStart
+				notebookUpdated: memory.writes() > notebookLinesAtTickStart,
+				// The write takes its context's label (WP141): what the bot had read before it wrote.
+				...(run.contextUntrusted && memory.writes() > notebookLinesAtTickStart
+					? { source: 'untrusted' as const }
+					: {})
 			});
 		}
 		/*
@@ -1055,6 +1064,8 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			record.provenance = 'untrusted';
 			record.source = postAct.mark.source;
 			if (postAct.mark.replacement !== undefined) record.result = postAct.mark.replacement;
+			// A quarantined result never reached the bot, so its context keeps its label.
+			else run.contextUntrusted = true;
 			emit('content.marked', {
 				source: postAct.mark.source,
 				guardrailId: postAct.mark.guardrailId,

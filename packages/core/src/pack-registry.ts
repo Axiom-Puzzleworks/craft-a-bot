@@ -1,3 +1,4 @@
+import { packDigest } from './pack-digest.js';
 import { stackSchema, type Stack } from './schemas/stack.js';
 import { describeComponentProblems, type GuardrailComponent } from './types/guardrail-component.js';
 import type { BrickKindDefinition, SlotId } from './types/brick.js';
@@ -94,6 +95,8 @@ export interface PackRegistry {
 	/** An LLM provider (`06-…` §8, WP26) — how to build the `LLMProvider` a cartridge's `providerId` names. */
 	getProviderFactory(id: string): ProviderFactory | undefined;
 	listPacks(): PackManifestMetadata[];
+	/** A registered pack's content digest (WP141, `packDigest`), computed at registration. */
+	packDigest(packId: string): string | undefined;
 	listTools(): ToolDefinition[];
 	listCartridges(): CartridgeDefinition[];
 	listGoalCards(): GoalCardDefinition[];
@@ -126,8 +129,20 @@ export interface PackRegistry {
 	listProviderFactories(): ProviderFactory[];
 }
 
-export function createPackRegistry(): PackRegistry {
+/** How a host builds its registry (WP141). */
+export interface PackRegistryOptions {
+	/**
+	 * Content digests a host pins, by pack id (`packDigest`): a pack whose
+	 * content differs from its pin is refused at registration — the tool
+	 * description edited, the card loosened — until the pin is updated on
+	 * purpose. A pack with no pin registers as before.
+	 */
+	pins?: Readonly<Record<string, string>>;
+}
+
+export function createPackRegistry(options: PackRegistryOptions = {}): PackRegistry {
 	const packs = new Map<string, PackManifestMetadata>();
+	const digests = new Map<string, string>();
 	const bricks = new Map<string, BrickDefinition>();
 	const brickKinds = new Map<string, BrickKindDefinition>();
 	const brickKindPacks = new Map<string, string>();
@@ -187,6 +202,19 @@ export function createPackRegistry(): PackRegistry {
 				);
 			}
 		}
+		// The content digest (WP141): what the pack says it is, and what the host pinned, must be what it carries.
+		const digest = packDigest(manifest);
+		if (manifest.digest !== undefined && manifest.digest !== digest) {
+			throw new Error(
+				`Pack "${manifest.id}" declares content digest ${manifest.digest}, and what it carries digests to ${digest}: its tools, cards or stacks changed since the digest was taken.`
+			);
+		}
+		const pin = options.pins?.[manifest.id];
+		if (pin !== undefined && pin !== digest) {
+			throw new Error(
+				`Pack "${manifest.id}" does not match the content digest this host pinned (${pin}; it carries ${digest}): its tools, cards or stacks changed — review the change and update the pin.`
+			);
+		}
 		// Ranges are evaluated, not stored and forgotten (WP52, `40-DEBTS.md` §4.2; `12-…` D13).
 		if (!satisfiesRange(CRAFTABOT_CORE_VERSION, manifest.requiresCore)) {
 			throw new Error(
@@ -206,6 +234,7 @@ export function createPackRegistry(): PackRegistry {
 				);
 			}
 		}
+		digests.set(manifest.id, digest);
 		packs.set(manifest.id, {
 			id: manifest.id,
 			name: manifest.name,
@@ -369,6 +398,7 @@ export function createPackRegistry(): PackRegistry {
 		getScenario: (id) => scenarios.get(id),
 		getProviderFactory: (id) => providers.get(id),
 		listPacks: () => [...packs.values()],
+		packDigest: (packId) => digests.get(packId),
 		listTools: () => [...tools.values()],
 		listCartridges: () => [...cartridges.values()],
 		listGoalCards: () => [...goalCards.values()],

@@ -1,6 +1,7 @@
 import {
 	CRAFTABOT_CORE_VERSION,
 	createPackRegistry,
+	packDigest,
 	packManifestMetadataSchema,
 	satisfiesRange,
 	type PackManifest
@@ -23,6 +24,8 @@ export function checkManifest(
 		companionPacks?: PackManifest[];
 		controlMaps?: ControlMapCheckOptions;
 		calibrations?: CalibrationCheckOptions;
+		/** The content digest a host pins this pack to (WP141): a pack that differs fails `manifest.digest`. */
+		pin?: string;
 	} = {}
 ): ConformanceIssue[] {
 	const issues: ConformanceIssue[] = [];
@@ -102,10 +105,25 @@ export function checkManifest(
 	for (const table of manifest.calibrations ?? [])
 		issues.push(...checkCalibration(table, options.calibrations ?? {}));
 
+	// The content digest (WP141): what the pack declares, and what a host pins, is what it carries.
+	const digest = packDigest(manifest);
+	for (const [said, by] of [
+		[manifest.digest, 'declares'],
+		[options.pin, 'is pinned to']
+	] as const)
+		if (said !== undefined && said !== digest)
+			issues.push({
+				check: 'manifest.digest',
+				message: `pack ${by} content digest ${said}, and what it carries digests to ${digest}: a tool description, card or stack changed`
+			});
+
 	try {
 		const registry = createPackRegistry();
 		for (const companion of options.companionPacks ?? []) registry.registerPack(companion);
-		registry.registerPack(manifest);
+		// The digest is reported above; registration is checked for collisions alone.
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		const { digest: _declared, ...undeclared } = manifest;
+		registry.registerPack(undeclared);
 		// Every control-map row resolves against this pack and its companions (WP67, `53-…` §4.1).
 		if (options.controlMaps?.resolve !== false)
 			for (const map of manifest.controlMaps ?? [])

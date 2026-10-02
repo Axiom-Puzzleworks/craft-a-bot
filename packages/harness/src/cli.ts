@@ -1,6 +1,14 @@
 import type { EgressMode } from '@craftabot/core';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { readFile, writeFile } from 'node:fs/promises';
-import { defaultConfig, loadConfig, type HarnessConfig } from './config.js';
+import {
+	PACKS_LOCK_FILE,
+	defaultConfig,
+	defaultPacks,
+	loadConfig,
+	packsLockFor,
+	type HarnessConfig
+} from './config.js';
 import { principalFromEnv } from './principal.js';
 import { mergeReports } from './commands/merge.js';
 import { parseCampaign, type CampaignGuard, type CampaignReport } from '@craftabot/evals';
@@ -108,6 +116,7 @@ Usage:
       command (--content names the directory; ./content by default).
 
   craftabot packs [--config craftabot.config.mjs]
+  craftabot packs lock [--check] [--file <packs.lock.json>]
       List the packs, brick kinds, providers and goal cards this host can
       assemble, and which CRAFTABOT_CREDENTIAL_<ID> variables it would read.
 
@@ -400,6 +409,26 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 				throw new Error(`content: unknown verb "${verb}" — list or add`);
 			}
 			case 'packs': {
+				// WP141: the shipped packs' content digests, written to the lock the default config pins.
+				if (args.positional[0] === 'lock') {
+					const lock = packsLockFor(defaultPacks());
+					const text = JSON.stringify(lock, null, '\t') + '\n';
+					const file = stringFlag(args, 'file') ?? PACKS_LOCK_FILE;
+					if (args.flags['check'] === true) {
+						const current = existsSync(file) ? readFileSync(file, 'utf8') : '';
+						if (current !== text) {
+							io.stderr(
+								`packs lock: ${file} is stale — a shipped pack's tools, cards or stacks changed. Review the change, then run: npm run craftabot -- packs lock\n`
+							);
+							return 1;
+						}
+						io.stdout(`packs lock: ${Object.keys(lock.packs).length} packs pinned, all current\n`);
+						return 0;
+					}
+					writeFileSync(file, text);
+					io.stdout(`packs lock: wrote ${Object.keys(lock.packs).length} pins to ${file}\n`);
+					return 0;
+				}
 				const config = await configFrom(args);
 				io.stdout(renderPacks(describePacks(config, credentialsFromEnv(io.env))));
 				return 0;

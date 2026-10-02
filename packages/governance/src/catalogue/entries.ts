@@ -561,9 +561,11 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		frameworks: ['owasp:asi06'],
 		sources: [MEMORY_POISONING, OWASP_AGENTIC],
 		coverage: {
-			status: 'bespoke',
-			implementedBy: ['mechanism:core/memory-trace'],
-			note: 'Every notebook write is on the trace; no provenance tag yet — Day 6 names a memory-provenance component and a card that refuses a think over untrusted memory.'
+			status: 'shipped',
+			componentIds: ['governance/memory-provenance'],
+			implementedBy: ['mechanism:core/memory-trace', 'mechanism:core/memory-label'],
+			note: 'A notebook write made after the bot read unquarantined untrusted content is tagged untrusted on memory.updated — the context’s label, not the words’. The component refuses a think over such a notebook (or notes it), and the memory-is-untrusted leaf lets a card do the same. The label is coarse by design: a quarantined result does not taint, and a fork does not refold it.',
+			since: 'WP141'
 		},
 		bankingRelevance: 'supporting'
 	}),
@@ -834,8 +836,8 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		sources: [LANGGRAPH],
 		coverage: {
 			status: 'shipped',
-			componentIds: ['governance/no-repetition'],
-			note: 'The loop-breaker with the world’s progress predicate; a broader no-progress detector over repeated identical calls is a blueprint (19-… #7).',
+			componentIds: ['governance/no-repetition', 'governance/no-progress'],
+			note: 'The loop-breaker blocks the same non-progress call repeated; the no-progress detector (WP141) stops a run whose world has not moved for N turns, whatever was tried, reading progress from the world’s state on the trace and its declared progress actions. Talk on a desk is progress (it writes the transcript); the loop-breaker holds a repeated line.',
 			since: 'WP30'
 		},
 		bankingRelevance: 'supporting'
@@ -1160,9 +1162,10 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 				'mechanism:core/kit-requires',
 				'mechanism:core/cassette-digest',
 				'mechanism:core/agent-card',
+				'mechanism:core/pack-digest',
 				'artefact:agent-card'
 			],
-			note: 'Partial: a content digest on every pack manifest checked at registration is a blueprint (19-… #30).',
+			note: 'Every pack carries a content digest over its tool, action and sense descriptions, cards and stacks (WP141); the harness pins every shipped pack in packs.lock.json and the registry refuses one that differs — a poisoned tool description fails registration, and a stale lock fails CI. Code is not digested (a changed function is a version). The Workbench does not pin yet.',
 			since: 'WP52'
 		},
 		bankingRelevance: 'supporting'

@@ -28,7 +28,10 @@ export const BANK_ADVERSARIAL_BENCHMARK = {
 			'governance/untrusted-content',
 			'fs-bank/guard/quarantined-reader',
 			'governance/taint',
-			'governance/red-team-seat'
+			'governance/red-team-seat',
+			// WP141 (`110-…` §10): two more levels, each not applicable over text with its reason.
+			'governance/no-progress',
+			'governance/memory-provenance'
 		]
 	},
 	serviceConfigs: {

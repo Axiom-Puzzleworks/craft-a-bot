@@ -185,6 +185,47 @@ const fixture: PackConformanceFixture = {
 				}
 			]
 		},
+		// WP141 (`110-…` §10): the no-progress detector and memory provenance.
+		'governance/no-progress': {
+			config: { turns: 1 },
+			verdicts: [
+				{ verdict: 'allow', context: guardrailContext('pre-act') },
+				{
+					verdict: 'stop-run',
+					context: guardrailContext('pre-act', {
+						proposed: { kind: 'action', name: 'say', arguments: {} },
+						history: [
+							{ type: 'world.changed', payload: { state: { a: 1 } } },
+							{ type: 'decision', payload: { call: { kind: 'action', name: 'say' } } },
+							{ type: 'decision', payload: { call: { kind: 'action', name: 'say' } } }
+						] as never
+					})
+				}
+			]
+		},
+		'governance/memory-provenance': {
+			config: {},
+			verdicts: [
+				{ verdict: 'allow', context: guardrailContext('pre-think') },
+				{
+					verdict: 'stop-run',
+					context: guardrailContext('pre-think', {
+						history: [
+							{
+								type: 'memory.updated',
+								tick: 2,
+								payload: {
+									windowSize: 3,
+									entries: 2,
+									notebookUpdated: true,
+									source: 'untrusted'
+								}
+							}
+						] as never
+					})
+				}
+			]
+		},
 		'governance/step-budget': {
 			config: { maxTicks: 30 },
 			verdicts: [

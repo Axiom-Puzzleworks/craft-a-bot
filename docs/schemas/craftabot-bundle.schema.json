@@ -1841,6 +1841,10 @@
 												},
 												"notebookUpdated": {
 													"type": "boolean"
+												},
+												"source": {
+													"type": "string",
+													"const": "untrusted"
 												}
 											},
 											"required": [
@@ -5185,6 +5189,10 @@
 											},
 											"notebookUpdated": {
 												"type": "boolean"
+											},
+											"source": {
+												"type": "string",
+												"const": "untrusted"
 											}
 										},
 										"required": [

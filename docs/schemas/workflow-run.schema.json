@@ -2450,6 +2450,10 @@
 									},
 									"notebookUpdated": {
 										"type": "boolean"
+									},
+									"source": {
+										"type": "string",
+										"const": "untrusted"
 									}
 								},
 								"required": [

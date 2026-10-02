@@ -11,6 +11,7 @@ import type {
 	ProposedStep,
 	WorldState
 } from '@craftabot/core';
+import { notebookIsUntrusted } from './memory-provenance.js';
 
 /**
  * **The policy-card compiler** (`14-…` §4.6, WP22): "a `PolicyCard` is data …
@@ -124,6 +125,8 @@ export function evaluatePredicate(expr: PredicateExpr, ctx: PredicateEvalContext
 			return ctx.messages?.some((message) => message.content.includes(expr.value)) ?? false;
 		case 'content-is-untrusted':
 			return (ctx.untrusted?.length ?? 0) > 0;
+		case 'memory-is-untrusted':
+			return notebookIsUntrusted(ctx.history ?? []);
 		case 'taint-reaches': {
 			if (!ctx.proposed || !ctx.untrusted || ctx.untrusted.length === 0) return false;
 			const value =

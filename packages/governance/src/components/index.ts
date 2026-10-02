@@ -66,3 +66,12 @@ export {
 	untrustedContentComponent,
 	type QuarantinedReaderOptions
 } from './injection.js';
+export {
+	MEMORY_PROVENANCE_COMPONENT_ID,
+	NO_PROGRESS_COMPONENT_ID,
+	memoryProvenanceComponent,
+	memoryProvenanceSchema,
+	noProgressComponent,
+	noProgressSchema,
+	provenanceComponents
+} from './provenance.js';
