@@ -143,7 +143,7 @@ Usage:
       from CRAFTABOT_GATE_UPSTREAM_KEY. Unauthenticated: a reference implementation.
   craftabot gate approve <id> | deny <id> [--gate <url>]
       The operator's answer to what the Gate paused.
-  craftabot benchmark run <benchmark.json> [--cassettes <dir>] [--record] [--out <dir>] [--store <dir>]
+  craftabot benchmark run <benchmark.json> [--cassettes <dir>] [--record [--only <serviceId,…>]] [--out <dir>] [--store <dir>]
       Every guard service and every reader that answers the guard question set over
       the adversarial corpora (WP123): each service from its cassette, else its
       stand-in (unmeasured); --record calls each live with its credential from
@@ -1285,11 +1285,12 @@ ${renderEvaluations(report)}`);
 				const [verb, file] = args.positional;
 				if (verb !== 'run' || !file)
 					throw new Error(
-						'benchmark needs run <benchmark.json> [--cassettes <dir>] [--record] [--out <dir>] [--store <dir>]'
+						'benchmark needs run <benchmark.json> [--cassettes <dir>] [--record [--only <serviceId,…>]] [--out <dir>] [--store <dir>]'
 					);
 				const store = stringFlag(args, 'store');
 				const cassettes = stringFlag(args, 'cassettes');
 				const out = stringFlag(args, 'out');
+				const only = stringFlag(args, 'only');
 				const ran = await benchmarkRun({
 					file,
 					registry: createRegistry(await configFrom(args)),
@@ -1298,6 +1299,7 @@ ${renderEvaluations(report)}`);
 					...(out ? { out } : {}),
 					...(store ? { storage: await createFileStorage(store) } : {}),
 					record: args.flags['record'] === true,
+					...(only ? { only: only.split(',') } : {}),
 					ranAt: new Date().toISOString()
 				});
 				io.stdout(renderBenchmarkSummary(ran.report));
