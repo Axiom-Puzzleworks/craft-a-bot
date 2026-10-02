@@ -217,7 +217,7 @@ npm run smoke:lakera   # live Lakera Guard checkpoint — LAKERA_GUARD_KEY in th
 npm run smoke:bedrock-ar # live Bedrock automated-reasoning checkpoint — CRAFTABOT_CREDENTIAL_AWS_BEDROCK, AWS_BEDROCK_REGION, AWS_BEDROCK_AR_GUARDRAIL_ID, AWS_BEDROCK_AR_CLAIM in the env, never in CI (110-…, WP144)
 npm run smoke:cedar    # live Cedar (Verified Permissions) checkpoint — CRAFTABOT_CREDENTIAL_AWS_VERIFIED_PERMISSIONS, AWS_VP_REGION, AWS_VP_POLICY_STORE_ID, AWS_VP_DENIED_ACTION in the env, never in CI (110-…, WP144)
 npm run example:python # examples/python-reader over its bundle fixture — skips itself with no python3 (WP73)
-npm run craftabot -- … # the headless host (WP37/38): packs | run [--counterpart] | record | bundle | report | campaign [--jobs --shard --seeds --resume] | merge | index | fork | assurance | journey render | scaffold domain | readings export | controls list|export | evidence push|pull | workflow run [--follow] | book run | sweep | bank run | benchmark run | gate serve|approve|deny — see packages/harness/README.md
+npm run craftabot -- … # the headless host (reads .env when present, so CRAFTABOT_CREDENTIAL_<ID> may live there; the browser keeps BYOK keys in cab.keys.v1) (WP37/38): packs | run [--counterpart] | record | bundle | report | campaign [--jobs --shard --seeds --resume] | merge | index | fork | assurance | journey render | scaffold domain | readings export | controls list|export | evidence push|pull | workflow run [--follow] | book run | sweep | bank run | benchmark run | gate serve|approve|deny — see packages/harness/README.md
 npm run smoke:harness  # live harness run on OpenAI — CRAFTABOT_CREDENTIAL_OPENAI in the env, never in CI
 ```
 
