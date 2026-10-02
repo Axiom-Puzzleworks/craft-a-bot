@@ -956,8 +956,18 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 				// silently ignored — that would deadlock the run.
 				const approval = awaitApproval();
 				emit('approval.requested', { proposed, reason: preAct.verdict.reason });
+				// An elevation (WP142): the scope asked for rides beside the approval it waits on.
+				const elevation = preAct.verdict.elevation;
+				if (elevation)
+					emit('elevation.requested', { scope: elevation.scope, reason: preAct.verdict.reason });
 				const { approved, by } = await approval;
 				emit('approval.resolved', { approved, ...(by ? { by } : {}) });
+				if (elevation)
+					emit('elevation.resolved', {
+						scope: elevation.scope,
+						granted: approved,
+						...(by ? { by } : {})
+					});
 				if (approved) {
 					const { call, redacted } = redactedCall(decision, preAct);
 					acted = await performCall(call, attestationFor(by), redacted);

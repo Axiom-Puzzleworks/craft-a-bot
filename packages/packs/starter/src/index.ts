@@ -4,6 +4,7 @@ import {
 	egressComponents,
 	injectionComponents,
 	policyCardComponent,
+	privilegeScopesComponent,
 	provenanceComponents
 } from '@craftabot/governance';
 import { starterAssertionCards } from './assertion-cards.js';
@@ -41,7 +42,9 @@ export const starterPack: PackManifest = {
 		// WP124 (`106-BENCHMARK.md` §8): untrusted-content marking, taint, the red-team seat.
 		...(injectionComponents as unknown as never[]),
 		// WP141 (`110-…` §10): the no-progress detector and memory provenance.
-		...(provenanceComponents as unknown as never[])
+		...(provenanceComponents as unknown as never[]),
+		// WP142: least privilege with recorded elevation.
+		privilegeScopesComponent as never
 	],
 	/** Assertion cards (WP43, `31-EVALUATORS.md` §4.2) — the Test Bench reads them from the registry. */
 	assertionCards: starterAssertionCards,

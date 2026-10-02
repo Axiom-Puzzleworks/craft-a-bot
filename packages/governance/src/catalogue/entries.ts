@@ -748,8 +748,11 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		frameworks: ['owasp:asi03', 'nist-ai-rmf:manage'],
 		sources: [PROGENT, OWASP_AGENTIC_THREATS],
 		coverage: {
-			status: 'blueprint',
-			note: 'Day 6 names a privilege-scopes component (19-… #15); the Connector’s scopes are the nearest thing today and are not elevation.'
+			status: 'shipped',
+			componentIds: ['governance/privilege-scopes'],
+			implementedBy: ['guardrail:connector/tool-blocklist'],
+			note: 'A bot starts with a minimal grant over the calls the component governs; a call outside it is refused, or paused for a person as an elevation, recorded as elevation.requested and elevation.resolved beside the approval pair, and granted for the rest of the run once a person says yes. The Connector’s scopes are the refuse-mode instance (connector/tool-blocklist, word for word as before). Grants are per run: nothing persists a scope between runs.',
+			since: 'WP142'
 		},
 		bankingRelevance: 'supporting'
 	}),

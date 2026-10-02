@@ -38,7 +38,9 @@ export function isAllowed(verdict: GuardrailVerdict): boolean {
 	return 'allow' in verdict && verdict.allow;
 }
 
-export function isPause(verdict: GuardrailVerdict): verdict is { pause: true; reason: string } {
+export function isPause(
+	verdict: GuardrailVerdict
+): verdict is Extract<GuardrailVerdict, { pause: true }> {
 	return 'pause' in verdict;
 }
 

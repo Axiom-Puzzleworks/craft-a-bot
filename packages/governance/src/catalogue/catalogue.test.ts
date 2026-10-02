@@ -5,6 +5,7 @@ import { egressComponents } from '../components/egress.js';
 import { policyCardComponent } from '../components/policy-card.js';
 import { injectionComponents } from '../components/injection.js';
 import { provenanceComponents } from '../components/provenance.js';
+import { privilegeScopesComponent } from '../components/privilege.js';
 import { checkCatalogue, checkEntry } from './check.js';
 import { CATALOGUE_ENTRIES, GUARDRAIL_CATALOGUE } from './entries.js';
 import { SECOND_EDITION_ENTRIES } from './second-edition.js';
@@ -26,7 +27,8 @@ const PACK: PackManifest = {
 		policyCardComponent as never,
 		...egressComponents,
 		...(injectionComponents as unknown as never[]),
-		...(provenanceComponents as unknown as never[])
+		...(provenanceComponents as unknown as never[]),
+		privilegeScopesComponent as never
 	]
 } as unknown as PackManifest;
 

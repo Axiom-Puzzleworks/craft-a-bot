@@ -226,6 +226,19 @@ const fixture: PackConformanceFixture = {
 				}
 			]
 		},
+		// WP142: least privilege with recorded elevation.
+		'governance/privilege-scopes': {
+			config: { governed: ['starter/connector_weather_alert'] },
+			verdicts: [
+				{ verdict: 'allow', context: guardrailContext('pre-act') },
+				{
+					verdict: 'pause',
+					context: guardrailContext('pre-act', {
+						proposed: { kind: 'tool', name: 'connector_weather_alert', arguments: {} }
+					})
+				}
+			]
+		},
 		'governance/step-budget': {
 			config: { maxTicks: 30 },
 			verdicts: [

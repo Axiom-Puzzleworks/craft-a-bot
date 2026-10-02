@@ -427,6 +427,26 @@ const approvalResolvedEvent = eventSchema(
 		by: principalSchema.optional()
 	})
 );
+/**
+ * Least privilege with recorded elevation (WP142, `110-…` §10): a pause whose
+ * verdict names a scope the bot was not granted. Each sits beside the
+ * `approval.requested`/`approval.resolved` pair it rides on, so a reader that
+ * knows only approvals reads the run as before. A scope once granted stays
+ * granted for the run; the rule that asked reads the grant from the trace.
+ */
+const elevationRequestedEvent = eventSchema(
+	'elevation.requested',
+	z.object({ scope: z.string().min(1), reason: z.string() })
+);
+const elevationResolvedEvent = eventSchema(
+	'elevation.resolved',
+	z.object({
+		scope: z.string().min(1),
+		granted: z.boolean(),
+		/** Who answered, as on `approval.resolved`; present when the caller said. */
+		by: principalSchema.optional()
+	})
+);
 const worldChangedEvent = eventSchema(
 	'world.changed',
 	z.object({ state: z.record(z.string(), z.unknown()) })
@@ -548,6 +568,8 @@ export const engineEventSchema = z.discriminatedUnion('type', [
 	contentMarkedEvent,
 	approvalRequestedEvent,
 	approvalResolvedEvent,
+	elevationRequestedEvent,
+	elevationResolvedEvent,
 	worldChangedEvent,
 	inputDeliveredEvent,
 	providerRetriedEvent,

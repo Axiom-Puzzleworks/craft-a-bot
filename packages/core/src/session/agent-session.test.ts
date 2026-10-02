@@ -2466,6 +2466,60 @@ describe('the approval flow', () => {
 	});
 });
 
+describe('elevation (WP142, `110-…` §10)', () => {
+	it('records the scope asked for and the answer beside the approval pair', async () => {
+		const elevate: Guardrail = {
+			id: 'scopes',
+			name: 'Scopes',
+			description: 'Asks to elevate before a ping.',
+			hooks: ['pre-act'],
+			check: () =>
+				Promise.resolve({
+					pause: true,
+					reason: 'ping is not granted',
+					elevation: { scope: 'ping' }
+				})
+		};
+		for (const approved of [true, false]) {
+			const { session, log } = makeSession({
+				script: [turn('Ping.', 'ping')],
+				guardrails: [elevate]
+			});
+			session.events.on('approval.requested', () => session.resolveApproval(approved));
+			await session.step();
+			const pair = log
+				.filter(
+					(event) => event.type.startsWith('approval.') || event.type.startsWith('elevation.')
+				)
+				.map((event) => [event.type, event.payload]);
+			expect(pair).toEqual([
+				['approval.requested', expect.objectContaining({ reason: 'ping is not granted' })],
+				['elevation.requested', { scope: 'ping', reason: 'ping is not granted' }],
+				['approval.resolved', { approved }],
+				['elevation.resolved', { scope: 'ping', granted: approved }]
+			]);
+		}
+	});
+
+	it('writes nothing new for a pause that asks for no scope', async () => {
+		const { session, log } = makeSession({
+			script: [turn('Ping.', 'ping')],
+			guardrails: [
+				{
+					id: 'test/ask',
+					name: 'Ask First',
+					description: 'Pauses for a human.',
+					hooks: ['pre-act'],
+					check: () => ({ pause: true, reason: 'ask a grown-up' })
+				}
+			]
+		});
+		session.events.on('approval.requested', () => session.resolveApproval(true));
+		await session.step();
+		expect(log.some((event) => event.type.startsWith('elevation.'))).toBe(false);
+	});
+});
+
 describe('resolveApproval', () => {
 	it('is harmless when nothing is waiting on it', () => {
 		const { session } = makeSession({ script: [turn('Ping.', 'ping')] });

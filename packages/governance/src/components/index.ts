@@ -75,3 +75,8 @@ export {
 	noProgressSchema,
 	provenanceComponents
 } from './provenance.js';
+export {
+	PRIVILEGE_SCOPES_COMPONENT_ID,
+	privilegeScopesComponent,
+	privilegeScopesSchema
+} from './privilege.js';

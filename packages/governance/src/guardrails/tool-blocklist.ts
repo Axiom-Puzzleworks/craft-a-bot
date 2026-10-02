@@ -1,4 +1,5 @@
 import type { Guardrail } from '@craftabot/core';
+import { callName, createPrivilegeScopesGuardrail } from './privilege-scopes.js';
 
 /**
  * **Tool blocklist** (WP32 stage B, `14-…` §5.6) — the Connector brick's own
@@ -20,34 +21,25 @@ import type { Guardrail } from '@craftabot/core';
 
 export const TOOL_BLOCKLIST_ID = 'connector/tool-blocklist';
 
-/** The name the model calls a tool by — its last segment (E6, `14-…` §3). */
-function callName(id: string): string {
-	const lastSlash = id.lastIndexOf('/');
-	return lastSlash === -1 ? id : id.slice(lastSlash + 1);
-}
-
-/** Refuses any tool call named in `blockedTools` at `pre-act` (`block-action`), and tells the bot why. */
+/**
+ * Refuses any tool call named in `blockedTools` at `pre-act` (`block-action`), and tells the bot why.
+ *
+ * > **Amended 2026-10-02 (WP142):** the first instance of the privilege-scopes
+ * > rule (`privilege-scopes.ts`) — the blocked tools governed, none granted,
+ * > refused — with this rule's own id, description and words, so every trace
+ * > it wrote reads the same.
+ */
 export function createToolBlocklistGuardrail(blockedTools: readonly string[]): Guardrail {
-	const blocked = new Set(blockedTools.map(callName));
-
-	return {
+	const blocked = [...new Set(blockedTools.map(callName))];
+	return createPrivilegeScopesGuardrail({
 		id: TOOL_BLOCKLIST_ID,
 		name: 'Tool Blocklist',
 		description:
-			blocked.size === 0
-				? 'No tools are blocked.'
-				: `Blocks these tools: ${[...blocked].join(', ')}.`,
-		hooks: ['pre-act'],
-		check(ctx) {
-			const proposed = ctx.proposed;
-			if (!proposed || proposed.kind !== 'tool' || !blocked.has(callName(proposed.name))) {
-				return { allow: true };
-			}
-			return {
-				allow: false,
-				reason: `${proposed.name} is on the blocked list.`,
-				disposition: 'block-action'
-			};
-		}
-	};
+			blocked.length === 0 ? 'No tools are blocked.' : `Blocks these tools: ${blocked.join(', ')}.`,
+		governed: blocked,
+		granted: [],
+		onElevation: 'refuse',
+		kinds: ['tool'],
+		refusal: (name) => `${name} is on the blocked list.`
+	});
 }
