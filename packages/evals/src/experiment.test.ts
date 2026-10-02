@@ -325,6 +325,32 @@ describe('analyseExperiment', () => {
 		]);
 	});
 
+	it('slices an effect by scenario when the design runs several (WP153)', () => {
+		const experiment = expandExperiment(design()).experiment;
+		const cells = (guard: string, failOn: string | undefined) =>
+			['radio', 'note'].flatMap((scenario) =>
+				Array.from({ length: 20 }, (_, i) =>
+					cell({
+						guard,
+						scenario,
+						seed: i + 1,
+						outcome: scenario === failOn ? 'STOPPED_BY_GUARDRAIL' : 'SUCCESS'
+					})
+				)
+			);
+		const result = analyseExperiment(
+			experiment,
+			[report(baseId, cells('none', undefined)), report(treatId, cells('stack', 'radio'))],
+			{ ranAt: '2026-09-11T10:00:00.000Z' }
+		);
+		const slices = result.effects[0]!.slices!.filter((slice) => 'scenario' in slice.where);
+		expect(slices.map((slice) => [slice.where.scenario, slice.delta])).toEqual([
+			['note', 0],
+			['radio', 1]
+		]);
+		expect(result.effects[0]!.delta).toBe(0.5);
+	});
+
 	it('reads an assertion card’s pass rate per cell (WP150)', () => {
 		const experiment = expandExperiment(
 			design({

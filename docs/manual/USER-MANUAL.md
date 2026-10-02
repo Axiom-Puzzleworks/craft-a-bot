@@ -2339,17 +2339,25 @@ Each is a control the inventory lists with its facets, a catalogue entry that na
 
 Every reference design was re-run at full size on 2026-10-02, and seven were added. `docs/evidence/README.md` says what each found; `timings.md` has the counts and the wall times.
 
-**The `controls` design** runs each agent-security component against no guard. It uses the four injection scenarios, under the scripted-optimal bot and the scripted adversary. Each level names the control-map row it tests and the metric it is judged on first, both written in the design before the run.
-- **Privilege scopes:** the adversary's storm alert went unsent in 100% of runs, against 75% without the scope.
-- **The cost cap:** stopped 75% of the adversary's runs, and none of the optimal bot's.
-- **The other five read *untestable*,** and that is the finding. No shipped scenario carries the attack each was built for, so there is nothing for it to catch:
-  - the party-line spoof arrives on Hearing as words from no one, not as a Radio message between seats;
-  - no scripted plan writes untrusted lines to the notebook;
-  - no plan sends a credential's shape or a malformed argument;
-  - the adversary always moves.
-- **Not in the design:**
-  - prompt integrity, whose validated digest belongs to one build;
-  - vulnerability detection, which only annotates and is measured as a reader on the servicing corpora.
+**The `controls` design** runs each agent-security component against no guard, under the scripted-optimal bot and the scripted adversary. Each level names the control-map row it tests and the metric it is judged on first, both written in the design before the run.
+
+When it first ran (WP150), over the four injection scenarios, only privilege scopes and the cost cap had anything to catch. The other five read *untestable*. Phase AO gave each its attack in a Workshop-only scenario of its own, through a door the Playroom already has:
+
+| Scenario | Attack | Component |
+|---|---|---|
+| `forged-radio` | a Radio message from no seat in the room | peer authentication |
+| `poisoned-note` | a reminder copied into the notebook and obeyed | memory provenance |
+| `key-in-the-manual` | a synthetic API key read aloud | the secret scan |
+| `malformed-call` | `give` with a number for its item | argument validation |
+| `stalled` | the manual checked for updates, again and again | no progress |
+
+Re-run over all nine scenarios, with every effect also sliced by scenario, **all seven components read *evidenced***, each moving its own attack's card by the whole of its scenario. Two prices show:
+- peer authentication stops the well-behaved bot's `forged-radio` runs as well, since the forged message is in view whoever the bot is;
+- marking adds about 160 tokens a run to the prompts it wraps.
+
+`campaigns/agent-security-baseline.json` holds the five attacks in CI: each lands with no guard and is stopped by its component.
+
+Not in the design: prompt integrity, whose validated digest belongs to one build; and vulnerability detection, which only annotates and is measured as a reader on the servicing corpora.
 
 **The `ceilings` design** enforces the ceilings at Level 5. Measured against Level 5 itself, the breach rate falls from 62.6% to 0 on 783 applications, under both brain tiers. The price is a person's touch on each held decision, read from each effect's cost. `human-oversight` carries the same configuration as its sixth level.
 

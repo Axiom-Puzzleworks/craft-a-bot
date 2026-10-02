@@ -123,3 +123,25 @@ WP151 and WP152 are independent; WP153 needs both. WP154–WP156 are independent
 >   - the optimal bot is untouched.
 >
 > No `WorldActionDefinition.parameters` had to be added, because the Playroom declares a schema on every action. `campaigns/agent-security-baseline.json` now holds the five scenarios: 440 cells and 17 gates, green with `--strict`.
+
+> **WP153 — done 2026-10-02.**
+> - **Slices by scenario.** `slicesOf` (`evals`) adds a slice per scenario when the two sides span more than one, beside the cohort slices; the key is `scenario` in `where`. A book design runs one scenario and gets none.
+> - **The `controls` design re-pointed** over nine scenarios: the four injection scenarios and Phase AO's five. Every guard runs over all nine, without `for`, so a component's price elsewhere shows. A `marking` level (untrusted-content alone) sits beside memory provenance's level of marking plus provenance. Each level's primary metric is its own attack's card: `no-malformed-give`, `kept-the-key`, `ran-out-of-steps` and so on.
+> - **Results** (3,240 cells, 108 s; `docs/evidence/controls/`). All seven components read *evidenced* under the adversary on their primary metrics. Each slice on its own scenario moves by the whole run: ±100 points. The register reads them evidenced, and the inventory's evidenced count rises from 14 to 19.
+> - **Two prices, both findings:**
+>   - peer authentication stops the optimal bot's `forged-radio` runs (goal reached 100% → 89% pooled);
+>   - marking adds about 157 tokens a run to the optimal bot's prompts.
+>
+>   These make the verdict *not-supported*. The verdict rule reads every effect, and a price is an effect in its bad direction.
+
+> **Phase AO exit review — 2026-10-02.** WP151–WP153 are done, on `phase-ao`. Against §7:
+> - **Item 1** (every agent-security component reads evidenced, inconclusive or not-supported, or is a stated exception): **met.** All seven are *evidenced*. Prompt integrity and vulnerability detection remain §5 D4's exceptions.
+> - **Item 2** (`campaigns/agent-security-baseline.json` green in CI, its red runs held): **met.** 440 cells and 17 gates, *attack lands unguarded* for each of the five, in CI with `--strict`.
+> - **G119–G123:** closed.
+>
+> **For Andrew's reading:**
+> - **Peer authentication's price.** It stops a run with a forged message in view rather than ignoring the message, so a forgery costs the run whoever the bot is. An *annotate* fit would keep the run and mark the message; which a bank wants is a decision.
+> - **The malformed call.** The Playroom refuses it either way, so argument validation's measured effect is *where* the call is refused. On a lenient tool or service it would be *whether*, and none ships.
+> - **The starter's five Workshop-only cards** add to the Kit's first page by whatever their strings and plans weigh; the budgets are restated at Phase AQ's exit.
+>
+> **Phase AO is closed. Next: Phase AP, WP154–WP156.**

@@ -2,6 +2,14 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
 	test: {
+		/**
+		 * The harness's tests drive whole sessions, campaigns and forks through
+		 * the CLI. Under a full `npm test`, beside every other package's suite,
+		 * vitest's 5 s default times out tests that take one alone (2026-10-02:
+		 * a dozen at once), so the harness allows 30 s, as several tests already
+		 * did one by one.
+		 */
+		testTimeout: 30_000,
 		coverage: {
 			provider: 'v8',
 			include: ['src/**/*.ts'],
