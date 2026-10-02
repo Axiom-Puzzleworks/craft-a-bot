@@ -30,7 +30,7 @@ async def main():
             w.add_page(page)
     w.add_metadata({'/Title':'Craft A Bot — The Guardrail Catalogue',
                     '/Author':'Axiom Verity',
-                    '/Subject':'Forty-five techniques for governing AI agents, and what Craft A Bot does with each',
+                    '/Subject':'Sixty-nine techniques for governing AI agents, and what Craft A Bot does with each',
                     '/Keywords':'AI governance, agent safety, simulation, UK retail financial services',
                     '/Creator':'Axiom Verity'})
     with open('Guardrail-Catalogue.pdf','wb') as fh:

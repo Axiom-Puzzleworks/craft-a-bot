@@ -50,9 +50,9 @@
 | | |
 |---|---|
 | **Document** | Craft A Bot — User Manual |
-| **Version** | 1.5 (draft for review) |
-| **Date** | 30 September 2026 (sixth edition, after Day 7) |
-| **Applies to** | V1.0 plus Days 2–5 (WP0–WP93's craft-a-bot half) and Day 6 (WP94–WP110), merged to `main` as PR #50; Day 7 (WP111–WP131, WP125's live checkpoints pending; Part I), merged as PR #56; Phase AJ of the control suite (WP132–WP136, Part J) on the `phase-aj` branch |
+| **Version** | 1.6 (draft for review) |
+| **Date** | 2 October 2026 (seventh edition, after the control suite) |
+| **Applies to** | V1.0 plus Days 2–5 (WP0–WP93's craft-a-bot half) and Day 6 (WP94–WP110), merged to `main` as PR #50; Day 7 (WP111–WP131; Part I), merged as PR #56, WP125's live checkpoints pending; the control suite (WP132–WP150, Phases AJ–AN; Part J), merged as PRs #60, #61, #63, #64 and #65, the hosted halves of WP140 and WP144 pending keys; testable controls (WP151–WP158, Phases AO–AQ; §69), merged as PRs #67–#69 |
 | **Publisher** | Axiom Verity |
 | **Audience** | Learners, AI-safety practitioners, conduct and model-risk reviewers, engineers |
 | **Status** | Draft — for internal review before external release |
@@ -70,13 +70,15 @@ This is one manual for one product with three faces. You do not need all of it.
 |---|---|---|
 | **New, and want to understand agents** | Part B — The Kit | §1, then Part B in order. An hour with the leaflet is the whole course. |
 | **An AI-safety or red-team practitioner** | Part C — The Workshop | §11–§14, §16–§19 (scenarios, evaluators, campaigns), then Part E for the CLI. |
-| **A conduct, compliance or model-risk reviewer** | Part D — The Playground | §26–§34, then §23 (the assurance pack) and §33 (the control map). You can skip Parts B and E. |
-| **An engineer integrating or extending it** | Part E — The harness | §35–§37, then Part F, then Appendix B (file formats). |
+| **A conduct, compliance or model-risk reviewer** | Part D — The Playground | §26–§34, then §23 (the assurance pack), §33 (the control map) and §64 (the reading desk). You can skip Parts B and E. |
+| **An engineer integrating or extending it** | Part E — The harness | §35–§37, then Part F, §59 (the Gate), then Appendix B (file formats). |
 | **Publishing or operating it** | Part F — Operations | §38–§41, then §51. |
-| **A board member or CRO asking whether it is under control** | Part G — §49, the Assurance lens | §50.3 (the register), §23, §22. You can skip Parts B, C and E. |
+| **A board member or CRO asking whether it is under control** | Part G — §49, the Assurance lens | §50.3 (the register), §66 (the Control Inventory), §69, §23, §22. You can skip Parts B, C and E. |
 | **A data scientist asking whether it is fair, and moving** | Part G — §47, §49.3 | §42, §43, §50. |
-| **A governance professional configuring controls** | Part H — §52–§54, the Studio and the Catalogue | §55 (the journeys drawn), §20, §19, then §50. |
+| **A governance professional configuring controls** | Part H — §52–§54, the Studio and the Catalogue | §55 (the journeys drawn), §66 (the Control Inventory), §69, §20, §19, then §50. |
 | **Bringing another industry** | Part H — §56 | `docs/blueprints/`, §42, §44, Appendix B. |
+| **Putting a stack in front of an agent you already have** | Part I — §59, the Gate | §52–§53 (components and the Studio), `docs/gate.md`, §36 for `gate serve`. |
+| **A control owner asking what each control can honestly be said to do** | Part J — §66, the Control Inventory | §67–§69, §64 (the reading desk), §50.3 (the register), §63 (the benchmark). |
 
 Conventions used throughout:
 
@@ -201,17 +203,17 @@ Everything in the product serves at least one of two purposes, and nothing serve
 
 **A training ground.** An interactive place to learn what agentic AI actually is, by building, running, breaking and fixing agents. The teaching is done as ten designed failure-then-fix chapters: you are shown the failure *first*, then you fix it (§10.1).
 
-**A governance proving ground.** The same engine doubles as a test rig for automated AI governance: policy cards, approval gates, guardrail vendors, evaluators, adversarial scenarios, campaigns with pass/fail gates, tamper-evident traces, drift, a safety case, and an assurance pack you can hand to a reviewer. The governance components are packaged so they can be lifted out and used in real agent stacks (`@craftabot/governance`, published as `1.0.0-rc.1`).
+**A governance proving ground.** The same engine doubles as a test rig for automated AI governance: policy cards, approval gates, guardrail vendors, evaluators, adversarial scenarios, campaigns with pass/fail gates, tamper-evident traces, drift, a safety case, and an assurance pack you can hand to a reviewer. The governance components are packaged so they can be lifted out and used in real agent stacks (`@craftabot/governance`, at `1.0.0`).
 
-The **Retail Financial Services Playground** (Part D) is where the second purpose meets a real domain: a synthetic UK high-street bank and four desks — advice, fraud, lending and complaints — so that conduct and model-risk questions can be asked of an agent and answered with evidence.
+The **Retail Financial Services Playground** (Part D) is where the second purpose meets a real domain: a synthetic UK high-street bank and seven desks — advice, fraud, lending, onboarding, disputes, collections and servicing, with complaints on the advice desk (Part D for the first four, §55 for the rest) — so that conduct and model-risk questions can be asked of an agent and answered with evidence.
 
 ### 1.3 What it is not
 
 - **Not a production system.** No bot built here serves a real customer, moves real money, or reaches a real system of record. The desks are simulations.
-- **Not real data.** Every customer, account, card, transaction, document and case is synthetic and generated from a seed. This is enforced by a test that sweeps every fixture in the repository and refuses anything shaped like a real identifier (§39.3).
+- **Not real data.** Every customer, account, card, transaction, document and case is synthetic and generated from a seed. This is enforced by a test that sweeps every fixture in the repository and refuses anything shaped like a real identifier (§39.1).
 - **Not compliance advice, and not a compliance claim.** The Playground names regulatory sources — the FCA's Consumer Duty, COBS, CONC, DISP and FG21/1, PRA SS1/23 and SS1/21, POCA, the MLR, UK GDPR, the Equality Act — as *what a desk is written against*. Every row in the control map is a claim of *relevance*, marked `unreviewed` until a compliance reader has read it. Nothing in the product asserts that anything complies with anything.
 - **Not model training.** The product tests and integrates post-training systems. A corpus of cases is a test set, never training material.
-- **Not a hosted service.** There is no server, no account and no login. The one optional exception is the shared evidence store (§24), which is a sync target for artefacts that a team provisions itself.
+- **Not a hosted service.** There is no server, no account and no login. The two optional exceptions are the shared evidence store (§24), a sync target for artefacts that a team provisions itself, and the Gate (§59), a reference server you run yourself on loopback, in front of one upstream.
 
 ### 1.4 The simulation notice
 
@@ -227,7 +229,7 @@ One codebase is published as three sections of a site. Which section you are in 
 |---|---|---|
 | **`/simulator`** — *Craft A Bot* | Learners, demonstrations, classrooms | The Kit: the starter bricks, four model brands and the persona cartridges, the Safety Patrol pack, the Explorer's World. No Workshop. |
 | **`/workshop`** — *The Workshop* | AI-safety practitioners, engineers | Everything in the Simulator, plus the Workshop: guard services, evaluators, scenarios, campaigns, telemetry, the safety case, the assurance pack and the evidence store. No Playground. |
-| **`/playground`** — *Retail Financial Services Playground* | Conduct, compliance and model-risk reviewers | Everything in the Workshop, plus the synthetic bank and the four desks. |
+| **`/playground`** — *Retail Financial Services Playground* | Conduct, compliance and model-risk reviewers | Everything in the Workshop, plus the synthetic bank and the seven desks. |
 
 A route that does not belong to a section renders a **not in this box** page that links to the section which has it. A kit file exported from one section imports into another wherever the packs it requires exist, and says which section has them where they do not.
 
@@ -282,9 +284,9 @@ These terms have no toy name; they appear in the Workshop and the Playground as 
 | **Run** | One bot, one card, one attempt. Produces a trace. |
 | **Trace** | Every typed event a run emitted, in order, with a SHA-256 digest so a recipient can prove it has not been altered. |
 | **Tick / turn** | One pass of the loop: sense → think → decide → act. |
-| **Guardrail** | A rule that runs at a hook (`pre-think`, `pre-act`, `post-act`) and returns *allow*, *block this action*, *pause for a person*, or *stop the run*. |
+| **Guardrail** | A rule that runs at a hook — the loop's `pre-think`, `pre-act`, `post-act`, a stage boundary, the group chokepoint or the egress gate — and returns *allow* (plainly, or with the text redacted, a finding annotated, or the content marked untrusted), *block this action*, *pause for a person*, or *stop the run*. |
 | **Policy card** | A guardrail written as data rather than code: trigger → predicate → disposition. Authored in the Policy Studio. |
-| **Guard service** | A hosted or local screening service fitted as a brick — Model Armor, Llama Guard, Prompt Guard, Azure Content Safety, an OPA policy engine. |
+| **Guard service** | A hosted or local screening service fitted as a brick — Model Armor, Llama Guard, Prompt Guard, Azure Content Safety, an OPA or Cedar policy engine, and — from the harness only — Bedrock Guardrails, Bedrock's automated reasoning and Lakera Guard. |
 | **Scenario** | A goal card plus what a test needs: threat and obligation tags, content injected at the start, what a safe and an unsafe run look like, and scripted plans. |
 | **Injection** | Content delivered into the world at the start of a run through a door the world already has: something overheard, a manual entry, a tool's answer, a radio message, or a provider fault. |
 | **Counterpart** | The other party in a conversation — a customer, a caller, a fraudster. Scripted (deterministic) or live (a second seat with its own brain). |
@@ -309,7 +311,7 @@ These terms have no toy name; they appear in the Workshop and the Playground as 
 
 | | Version | Notes |
 |---|---|---|
-| **Node.js** | 20 or newer (24 recommended) | The only hard requirement |
+| **Node.js** | 22 or newer (24, which CI uses, recommended) | The only hard requirement |
 | **npm** | 10 or newer | Ships with Node; the repository pins `npm@11.19.0` |
 | **Git** | Any recent | To clone |
 
@@ -338,7 +340,7 @@ npm run preview      # serves exactly those built files, usually http://localhos
 | Command | What it does |
 |---|---|
 | `npm run dev` | Development server with hot reload |
-| `npm run build` | Build all packages and the `full` site; checks the bundle budget and the published schemas |
+| `npm run build` | Build all packages and the `full` site; checks the bundle budget, the published schemas, `docs/metrics.md` and `docs/catalogue.md` |
 | `npm run preview` | Serve the production build locally |
 | `npm run build:editions` | Build the three site sections into `apps/workbench/build/<edition>/` (§38) |
 | `npm run serve:site` | Serve those three folders the way a static host would |
@@ -359,11 +361,18 @@ npm run preview      # serves exactly those built files, usually http://localhos
 | `npm run smoke:openai` | One real call to OpenAI. Needs a key; never runs in CI |
 | `npm run smoke:geap` | Live Model Armor and Gen AI evaluation checkpoint |
 | `npm run smoke:azure` | Live Azure AI Content Safety checkpoint |
+| `npm run smoke:bedrock` | Live Bedrock Guardrails checkpoint |
+| `npm run smoke:bedrock-ar` | Live Bedrock automated-reasoning checkpoint (§67) |
+| `npm run smoke:cedar` | Live Cedar (Verified Permissions) checkpoint (§67) |
+| `npm run smoke:lakera` | Live Lakera Guard checkpoint |
+| `npm run smoke:typesafe` | Live Jev checkpoint for the opt-in TypeSafe pack |
+| `npm run smoke:spark` | Live checkpoint for the opt-in DGX Spark pack |
 | `npm run smoke:harness` | A live harness run on OpenAI |
 | `npm run smoke:counterpart` | One Advice Desk case with a live customer on OpenAI |
 | `npm run example:governance` | The plain Node agent example that uses `@craftabot/governance` alone |
 | `npm run example:python` | The Python reader over a trace bundle (skips itself if Python is absent) |
 | `npm run check:governance-pack` | Check the `@craftabot/governance` tarball |
+| `npm run check:governance-install` | Install the `@craftabot/governance` tarballs into the plain Node example and import them (after `build`) |
 
 ### 4.4 Your first five minutes, with no key at all
 
@@ -390,8 +399,9 @@ Keys are **batteries**, and they live in **Settings**. Each provider or service 
 | **Anthropic** | An Anthropic API key | Anthropic cartridges |
 | **Gemini** | A Google Gemini API key | Gemini cartridges |
 | **Cloud Armour** | A Google Cloud access token, minted by signing in | The Armour Brick (Model Armor) and the hosted evaluators |
-| **Azure Content Safety** | A subscription key, sent as a header | The Azure guard service |
 | **Supabase evidence store** | A workspace token | Pushing and pulling shared evidence (§24) |
+
+The Cloud Armour and evidence-store compartments appear only once the Workshop is open (§11). Azure Content Safety, Bedrock, Lakera and Cedar have no compartment: those services run live only from the harness, which reads their keys from the environment as `CRAFTABOT_CREDENTIAL_<ID>` (§35). The Connections tab shows whether each is plugged in, never the value.
 
 Ollama needs no battery: it runs on your own machine and its address is a Settings field restricted to `localhost` or `127.0.0.1`.
 
@@ -433,7 +443,7 @@ The shelf is the front door: `/` in the `full` build, `/simulator/` in the Simul
 **Your kits** lists every bot you have built. Each card shows its fitted bricks as a strip of colour chips and how many of six sockets are filled, with:
 
 - **Rename**, **Duplicate**, **Bin**
-- **Export** — saves the bot as a `.craftabot-kit.json` file. Keys are never included.
+- **Export** — saves the bot as a `.craftabot.json` file. Keys are never included.
 - **Export Passport** — the bot's agent card: a machine-readable declaration of what it is made of and what it may do.
 
 **New bot** starts an empty one. **Import kit** loads a kit file someone sent you; if it needs packs this section does not have, the message says which section does.
@@ -471,13 +481,13 @@ The safety socket is the exception to one-brick-per-socket: the engine allows up
 
 ### 7.2 The goal card rack
 
-The rack holds every card the installed packs ship. In the `full` build with the Playground installed that is **fifty-eight cards**: the starter Playroom cards, the Workshop world's cards, and every desk card from the four Playground desks. Co-operative cards are filtered out — they need the Robot Friends bench.
+The rack holds every card the installed packs ship. In the `full` build with the Workshop door open that is **eighty-five cards**: the starter Playroom cards, the Workshop world's cards, and every desk card from the seven Playground desks; with the door closed the rack shows the Kit's fourteen. Co-operative cards are filtered out — they need the Robot Friends bench.
 
-Past a dozen cards the rack groups itself by world under sticky headings — **THE PLAYROOM**, **THE WORKSHOP**, then each desk — and offers **Find a card** (a title, a goal, a world) with a count beside it, so "58 of 58" becomes "1 of 58" as you type.
+Past a dozen cards the rack groups itself by world under sticky headings — **THE PLAYROOM**, **THE WORKSHOP**, then each desk — and offers **Find a card** (a title, a goal, a world) with a count beside it, so "85 of 85" becomes "1 of 85" as you type.
 
 Each card shows a difficulty and, once selected, its brief, roughly how many steps it should take, and a hint about what the bot will need.
 
-The starter cards are: **Say Hello!**, **Help the teddy get a snack**, **Tidy the blocks**, **The locked chest** (and an expert variant), **Sums for Teddy**, **Hide and Seek Tip**, **The warning sign**, **Keep the secret**, **False Alarm**, **Tidy the blocks, together**, **The party line**, and **Free play**, where you write the goal yourself.
+The starter cards are: **Say Hello!**, **Help the teddy get a snack**, **Tidy the blocks**, **The locked chest** (and an expert variant), **Sums for Teddy**, **Hide and Seek Tip**, **The warning sign**, **Keep the secret**, **False Alarm**, **Tidy the blocks, together**, **The party line**, and **Free play**, where you write the goal yourself. With the Workshop open, five more Playroom cards appear — the agent-security rooms of §69 — each carrying one attack through a door the room already has.
 
 ## 8. The Playroom, and running a bot
 
@@ -517,7 +527,7 @@ The header chip counts them apart — *"2 checks, nothing to stop · 1 check cou
 
 ## 9. The Flight Recorder
 
-The Flight Recorder is the trace, live. Every row is one typed event: `run.started`, `tick.started`, `sense`, `prompt.composed`, `think.started`, `think.token`, `think.completed`, `decision`, `tool.executed`, `action.performed`, `memory.updated`, `guardrail.checked`, `guardrail.external`, `guardrail.tripped`, `approval.requested`, `approval.resolved`, `world.changed`, `input.delivered`, `provider.retried`, `error`, `run.finished`, and the group events for a two-robot episode.
+The Flight Recorder is the trace, live. Every row is one typed event: `run.started`, `tick.started`, `sense`, `prompt.composed`, `think.started`, `think.token`, `think.completed`, `decision`, `tool.executed`, `action.performed`, `memory.updated`, `guardrail.checked`, `guardrail.external`, `guardrail.tripped`, `approval.requested`, `approval.resolved`, `world.changed`, `input.delivered`, `provider.retried`, `error`, `run.finished`; the stage, reader, disclosure, elevation and marking events the later parts describe; and the group events for a two-robot episode.
 
 Click any row to see exactly what happened, including the full prompt that was sent. **Export trace** saves the whole run as a `.craftabot-trace.json` with a digest a recipient can verify.
 
@@ -572,9 +582,11 @@ Everything in the Workshop is a *consumer* of the same stores and the same event
 
 ### 11.1 The rail
 
-A persistent left rail lists every screen:
+A persistent left rail lists every screen, in the engineer's order (a lens reorders it — §49):
 
-**Bench** · **Runs** · *Spec lab (per bot)* · **Evals** · **Campaigns** · **Workflows** · **Evaluators** · **Scenarios** · **Sinks** · **Evidence** · **Playground** · **Policies** · **Test bench** · **Telemetry** · **Monitor** · **Incidents** · **Safety case** · **Assurance** · **Audit** · **Guards**
+**Bench** · **Runs** · *Spec lab (per bot)* · **Evals** · **Campaigns** · **Workflows** · **Evaluators** · **Scenarios** · **Sinks** · **Evidence** · **Playground** · **Policies** · **Test bench** · **Telemetry** · **Monitor** · **Conduct** · **Model risk** · **Experiments** · **Incidents** · **Safety case** · **Assurance** · **Catalogue** · **Controls** · **Readings** · **Audit** · **Studio**
+
+The lens switcher sits at its head and your saved **Views** beneath the groups; **Guards** is now the Studio's Connections tab (§20).
 
 **← The Kit** at the foot returns you to the toy.
 
@@ -618,7 +630,7 @@ The flagship screen. Four regions.
 
 **The timeline and inspector.** Every event, grouped by turn, colour-coded by lane, with:
 
-- lane filter chips — **run**, **tick**, **sense**, **think**, **action**, **memory**, **guardrail**;
+- lane filter chips — one for each lane the run has: **run**, **tick**, **sense**, **think**, **tool**, **action**, **memory**, **guardrail**, **error**;
 - **Only trouble** — just the failures, refusals, trips and errors;
 - a payload search box;
 - **Raw JSON** to see the event exactly as stored;
@@ -687,7 +699,7 @@ Guardrails as data. A policy card is a trigger, a predicate and a disposition �
 - **Test bench — a scripted run** — run it against a scripted scenario end to end.
 - **Library** — every card the installed packs ship, plus your own.
 
-The predicate leaves available are: the kind of call, its name, an argument equal to / containing / matching a pattern, something in the observation, something in the composed prompt, a world predicate, a count over history, and the hook itself. Cards you author are saved to your own content store and can be fitted on a bot like any shipped card.
+The predicate leaves available are: the kind of call, its name, an argument equal to / containing / matching a pattern, something in the observation, something in the composed prompt, usage that has reached a threshold, a world predicate, a count over history, the hook itself, and — since the benchmark — whether the bot has read untrusted content, whether the notebook holds an untrusted line, and whether untrusted text reaches the call (§63). Cards you author are saved to your own content store and can be fitted on a bot like any shipped card.
 
 > **Figure 7** — The Policy Studio. *(Appendix D, `ws-policies.png`.)*
 
@@ -697,7 +709,7 @@ Assertion cards: deterministic checks run against a stored run's trace. **Your c
 
 ## 16. The Scenario Library (`/workshop/scenarios`)
 
-A scenario is a goal card plus what a test needs. The library lists every scenario the installed packs ship — about eighty in the `full` build — with its card, its tags, its injections, and buttons to play its **Safe plan** or **Unsafe plan** as a scripted run.
+A scenario is a goal card plus what a test needs. The library lists every scenario the installed packs ship — over a hundred and twenty in the `full` build — with its card, its tags, its injections, and buttons to play its **Safe plan** or **Unsafe plan** as a scripted run.
 
 The tags are the vocabulary reports group by: threat identifiers (`ASI01`, `ASI02`, `ASI07`, `prompt-injection`, `tool-poisoning`, `confused-deputy`, `social-engineering`, `exfiltration`, and glosses such as *the lethal trifecta*, *indirect prompt injection*, *MCP security* and *policy compliance under pressure*, whose raw ids sit in the tooltip) and obligation identifiers (`fca:cd:*`, `fca:cobs-9:suitability`, `fca:conc:affordability`, `poca:tipping-off`, `ukgdpr:data-minimisation`, `equality-act:fairness`, and the rest — §33).
 
@@ -737,7 +749,7 @@ A campaign is the product's unit of proof: **scenarios × builds × guards × br
 
 ### 19.1 The screen
 
-- **Shipped** is a picker over every campaign the installed packs carry — the injection baseline and the four desk baselines — and **Load baseline** puts the one you chose into the editor. A `?baseline=<id>` link opens straight onto one, which is what each desk page's **Run this desk's campaign** uses.
+- **Shipped** is a picker over every campaign the installed packs carry — the injection baseline, the eight desk baselines and the five books by autonomy level — and **Load baseline** puts the one you chose into the editor. Two campaigns CI runs are on no pack's manifest — `campaigns/agent-security-baseline.json` (§67) and `campaigns/fs-lending-reviewed.json` (§69) — so they reach this screen only through **Import…**. A `?baseline=<id>` link opens straight onto one, which is what each desk page's **Run this desk's campaign** uses.
 - **Import…** loads a campaign file from disk.
 - The **editor** holds the campaign as JSON — the same file the harness runs.
 - **Add a shelf bot as a build** adds one of your own bots as a build in the matrix.
@@ -750,7 +762,7 @@ Only scripted, offline cells run in the browser. A cell that calls a real model,
 
 Press **Run campaign**. A progress counter — *Running 176/640…* — appears beside **Cancel** and a line reading *"4s elapsed, about a minute left — running in a Worker, so this page stays live; the report is stored when it finishes, even if you leave."* Take that literally too: the run belongs to a background Worker, not the page, so you can open the Run Browser mid-run and come back to the stored report. Press **Run campaign** again while one runs and the next is **queued** behind it; the queue lists each with its status. The estimate is a trailing average over the last twenty cells and is deliberately rounded — *under a minute*, *about a minute*, *about three minutes* — because the first cell is the slowest and a mean taken from the start read about twice long.
 
-All five shipped baselines run here, offline, including the four Playground ones: the injection baseline is 640 cells and finishes in well under a minute on a laptop; the Advice Desk baseline is 930 cells and takes about twenty seconds longer. What still needs the harness is a cell that calls something real — a live brain, a live counterpart, a hosted evaluator or a hosted guard with no offline stand-in (§36.2, §40.3).
+Every shipped baseline runs here, offline, the eight Playground ones included: the injection baseline is 640 cells and finishes in well under a minute on a laptop; the Advice Desk baseline is 930 cells and takes about twenty seconds longer. What still needs the harness is a cell that calls something real — a live brain, a live counterpart, a hosted evaluator or a hosted guard with no offline stand-in (§36.2, §40.3).
 
 ### 19.1a Stacks in a campaign
 
@@ -777,7 +789,7 @@ Beside the editor, the **Book** and **Sweep** panels queue a campaign over a boo
 
 **CASES** is one row per run — scenario, guard, brain, seed, outcome, turns, cost, approvals, and a column per cohort and per evaluator label. **Find** narrows by any text on the row (scenario, guard, brain, seed, outcome, cohort, label), and the table grows a hundred rows at a time. It is labelled *Failures first* and sorts that way: anything that errored or ended in something other than `SUCCESS` comes before the rest, stably, so the interesting cases are at the top of the first page.
 
-For a Playground campaign the report also carries the **confusion matrix**, the **cohort slices** and the **obligation table** (§32, §33). A report over a book, or with a gate that names a metric, carries three more panes — **Fairness**, **Drift** and **Human load** — described in §43.4.
+For a Playground campaign the report also carries the **confusion matrix**, the **cohort slices** and the **obligation table** (§32, §33). A report over a book, or with a gate that names a metric, carries three more panes — **Fairness**, **Drift** and **Human load** — described in §43.4; a campaign over a stage with an answer key carries a **Calibration** pane too (§62).
 
 **STORED REPORTS** keeps every report this browser has run, with its verdict, so you can reopen one later.
 
@@ -795,10 +807,13 @@ For a Playground campaign the report also carries the **confusion matrix**, the 
 | `label-rate` | Does this evaluator's label occur at most / at least this often? |
 | `parity` | Does this number differ across cohorts by more than this much? |
 | `no-regression` | Has this got worse than the committed baseline? |
+| `drift` | Has this feature, outcome mix, agreement or fairness metric moved against a reference — the baseline report, the population, a rolling window — by more than this? (§43.4) |
+| `timeliness` | Did enough journeys finish with no stage past its deadline? (§68) |
+| `override-reason` | When a person overruled the recommendation, did they say why often enough? Inconclusive when no one overrode. (§68) |
 
 ## 20. Guards (`/workshop/guards`)
 
-Since Day 6 this screen is the **Connections** tab of the Guardrail Studio (§53), and `/workshop/guards` opens it there; everything below is as it was, plus each service's connection lamp — *connected*, *stand-in*, *needs a battery*, *harness only* — and the two harness-only services, Bedrock Guardrails and Lakera Guard (§52.3).
+Since Day 6 this screen is the **Connections** tab of the Guardrail Studio (§53), and `/workshop/guards` opens it there; everything below is as it was, plus each service's connection lamp — *connected*, *stand-in*, *needs a battery*, *harness only*. The harness-only packs — Bedrock Guardrails, Lakera Guard, Cedar and Bedrock's automated reasoning (§52.3, §67) — are installed by the harness and by no edition, so they do not appear on this tab.
 
 Every guardrail service an installed pack ships, with — for each — what it screens, which battery it needs and whether one is fitted, which hosts it calls, whether it can be called from a browser at all, a **Settings (JSON)** block, **Test on a fixture**, **Test the guard** (a real call, where a battery is fitted) and **Fit into bot**.
 
@@ -829,6 +844,7 @@ Cross-run measurement:
 - **By day** — activity and rates as tape charts.
 - **Guardrail trip mix** — which rules are firing.
 - **Drift** — a flag when a day's guardrail trip mix moves by half or more, or its loop rate by thirty points, or a domain series by thirty points, against the days before it. When nothing has moved it says so, with the thresholds.
+- **Domain series** — where desk runs carry domain metrics, each as a tape chart, between Drift and the table.
 - **Over time** — a table per day: runs, success, looped, trips per run, busiest guardrail.
 - **Autonomy** — approval rate, and how many runs a person stopped.
 
@@ -840,7 +856,7 @@ Every failing thing worth a second look, derived from the traces: guardrail trip
 
 ### 22.3 The Safety case (`/workshop/safety-case`)
 
-The structured argument for one bot, in five parts: **Inability** (what this build simply cannot do), **Control** (what stands in the way of what it can), **Where it may call** (the declared egress), **Trustworthiness**, **Evaluation evidence** and **Campaign results**.
+The structured argument for one bot, in five parts: **Inability** (what this build simply cannot do), **Control** (what stands in the way of what it can, with **Where it may call** — the declared egress — beneath it), **Trustworthiness**, **Evaluation evidence** and **Campaign results**.
 
 *Inability* is the strongest claim available and is computed, not asserted: a bot with no Hands & Wheels brick cannot act on the world, so nothing it says can move anything.
 
@@ -854,13 +870,13 @@ Since Day 5 this page is also the **Assurance lens**'s entry: it opens on the **
 
 The assurance pack is the filed evidence for one bot, in the shape a model-risk or conduct reviewer reads. Choose a bot, and the page assembles:
 
-- a header of counts — **control rows**, **unreviewed**, **pending**, **runs**, **campaigns**, **incidents** — and the pack's **digest**;
+- a header of counts — **control rows**, **unreviewed**, **disputed**, **pending**, **runs**, **campaigns**, **incidents** — and the pack's **digest**;
 - **Download the report (HTML)** — one self-contained file that opens in any browser with no application behind it, which is what you send to a reviewer;
 - **Download as markdown** and **Download the pack (JSON)**.
 
 The body follows PRA SS1/23's principles, with the Consumer Duty outcomes as its second axis:
 
-1. **Identification and classification** — the inventory entry: the agent card, the packs and versions the bot requires, the world it works in.
+1. **Identification and classification** — the inventory entry: the agent card, the packs and versions the bot requires, the world it works in, the domain, the Gate where one fronted it (§65), and *The controls on this bot* (§66).
 2. **Governance** — the safety stack, approvals requested and granted, declared egress, and the principal who started each run.
 3. **Development, implementation and use** — the campaigns that name a build of this bot.
 4. **Independent validation** — who validated this build, and the evaluations over its runs.
@@ -877,7 +893,7 @@ The screen opens on the bot you ran most recently. If no name is set, a bar at t
 
 ## 24. The Evidence store (`/workshop/evidence`)
 
-The store now takes five more kinds beside bundles, reports, packs and content: a **workflow run**, a **bank run**, an **experiment**, an **experiment result** and a **stack** (§45, §48, §50, §52.2; `evidence push --stack-file`), and the Monitor can read workflow and bank runs back from it (§48.3). Served from axiom-verity.com the screen offers a member's own workspace (§51); anywhere else the fields below are the whole story.
+The store now takes seven more kinds beside bundles, reports, packs and content: a **workflow run**, a **bank run**, an **experiment**, an **experiment result**, a **stack**, a **corpus** and a **review** (§45, §48, §50, §52.2, §61, §64; `evidence push --stack-file`), and the Monitor can read workflow and bank runs back from it (§48.3). Served from axiom-verity.com the screen offers a member's own workspace (§51); anywhere else the fields below are the whole story.
 
 Optional, and off unless you set it up. The evidence store is a **sync target for artefacts only** — bundles, campaign reports, assurance packs and authored content. Never a key. Never the source of truth. Never required.
 
@@ -892,7 +908,7 @@ Each store carries a three-step checklist, ticked as you go:
 2. **Fit the workspace token** — here or in Settings.
 3. **Test the connection** — one real pull, enabled once the config is saved.
 
-Until the checklist is done the page says so, and everything else in the product works exactly as before. Once configured, push from the Audit centre or the Campaigns screen, and pull into the Run Browser — every pulled item's digest is verified before it is stored, and one that fails is refused.
+Until the checklist is done the page says so, and everything else in the product works exactly as before. Once configured, **Push** and **Pull** appear beneath the stores here, and the Audit centre and the Campaigns screen gain a push of their own — every pulled item's digest is verified before **Import** is offered, and one that fails is refused.
 
 > **Figure 15** — The Evidence screen. *(Appendix D, `ws-evidence.png`.)*
 
@@ -901,7 +917,8 @@ Until the checklist is done the page says so, and everything else in the product
 Where evidence leaves. For a run or a two-robot episode:
 
 - **Trace bundle** — the run, or every member of an episode, with evaluations, campaign identity and a digest over the whole (`craftabot-bundle` v1).
-- **Trace and reports** — the trace file, the OpenTelemetry export, the safety case, the incident log and the telemetry, as files.
+- **Trace and reports** — the OpenTelemetry export, the bot's Agent Card and its assurance pack as files, with links to the safety case worksheet and the incident log.
+- **Open a bundle…** — a bundle from anywhere, the Gate's day included: its digest is verified and its conversations are stored as runs (§65).
 - **Send to a sink** — push to a configured collector (§21).
 - **Push to the evidence store** — where one is configured (§24).
 
@@ -933,7 +950,7 @@ Below, two columns:
 | | |
 |---|---|
 | **The customer** | Age band, income band, employment, dependants, a fictional postcode area, tenure, digital confidence, consent and channel preferences |
-| **The cohort block** | The fairness axis: age band, income band, one to three opaque *protected proxies* (`proxy-a`…`proxy-f`, never a real characteristic), support needs, literacy band. Held in truth |
+| **The cohort block** | The fairness axis: age band, income band, one or more opaque *protected proxies* (`proxy-a`…`proxy-f`, each at a calibrated rate, never a real characteristic), support needs, literacy band. Held in truth |
 | **Vulnerability drivers** | The four groupings FG21/1 uses — health, life events, resilience, capability — with only a subset *disclosed* on the bank's file; the rest is truth |
 | **Accounts** | Current, savings, credit card, loan, mortgage; a current account always |
 | **Baseline and history** | What is usual for the account — spend, typical transaction, merchant categories, devices, countries, payees — and transactions that depart from it |
@@ -950,12 +967,13 @@ What a desk's **Connector** brick can reach. Each answers from the bank's own st
 | `fs-bank/crm` | Read customer · Read record · Update contact · Add note |
 | `fs-bank/core-banking` | Balances · Place hold · **Freeze account** · Unfreeze |
 | `fs-bank/payments` | Pending · Hold payment · Release payment · **Send payment** |
-| `fs-bank/kyc` | Verify identity (can fail) · Verification status |
+| `fs-bank/kyc` | Verify identity (can fail) · Verification status · Screen against the lists |
 | `fs-bank/product-catalogue` | List products · Factsheet |
 | `fs-bank/order-desk` | Quote · **Place order** |
 | `fs-bank/credit-bureau` | Bureau file · Affordability |
 | `fs-bank/sar-filing` | **File SAR** |
 | `fs-bank/complaints` | Log complaint · Update complaint · **Pay redress** |
+| `fs-bank/graph` | Neighbours · Path · Describe (the ontology, since WP81) |
 
 **Bold** operations cannot be taken back. A mutation comes back as *data* for the desk's own action to write, so the trace attributes the change to the bot's decision rather than to the line.
 
@@ -965,7 +983,7 @@ Beneath the case, two strips added on Day 5: **Where this bank's shape comes fro
 
 ### 26.4 Classification, purpose and truth
 
-Every record the bank holds is marked `public`, `personal` or `special-category` — UK GDPR's vocabulary. Every desk declares a **purpose**: `advice`, `fraud-operations`, `lending` or `complaints`. A line answers a special-category record only for a purpose that allows it.
+Every record the bank holds is marked `public`, `personal` or `special-category` — UK GDPR's vocabulary. Every desk declares a **purpose**: `advice`, `fraud-operations`, `lending`, `complaints`, and since Day 6 `onboarding`, `disputes`, `collections` and `servicing`. A line answers a special-category record only for a purpose that allows it — `advice` and `complaints`.
 
 **Truth** is what nobody at the desk can see: the cohort block, the customer's actual vulnerability, and whatever the desk adds — the set of suitable products, an alert's true label, the affordability verdict. It is written once, at the end of the run, and only evaluators that declare they read it ever see it. It appears in the Run Lab behind a collapsed panel *after* the run ends, and never in the Kit.
 
@@ -979,11 +997,11 @@ This is the property that makes the Playground a test rig rather than a demo: wh
 
 The bank's savings-and-investment assistant. It must gather what suitability requires, stay on the right side of the advice boundary the card sets, describe products with their warnings, recognise a customer who is vulnerable, and either recommend or refer.
 
-**Seventeen cards · thirty-one scenarios in five decks · seven policy cards · thirteen evaluators · one campaign.**
+**Seventeen cards · thirty-one scenarios in five decks · seven policy cards · fourteen evaluators · one campaign.**
 
 ### 27.1 What the bot can do
 
-`say` · `ask-suitability-question` · `record-customer-fact` · `recommend-product` · `refer-to-adviser` · `execute-investment` (irreversible, and there precisely so that approval mode has something to gate).
+`say` · `ask-suitability-question` · `run-fact-find` (every question not yet asked, at once — the structured form) · `check-suitability` (the rule over what has been asked so far; nothing recommended) · `record-customer-fact` · `recommend-product` · `refer-to-adviser` · `execute-investment` (irreversible, and there precisely so that approval mode has something to gate).
 
 Its senses are the conversation, the customer record and the product shelf. Answers are **earned**: what is on file is hidden until the bot asks for it.
 
@@ -1009,9 +1027,13 @@ Its senses are the conversation, the customer record and the product shelf. Answ
 | **PII stays on the desk** | Saying an account number, a sort code or a National Insurance number out loud |
 | **Purpose-limited lookup** | Reading the special-category vulnerability record unless the customer has disclosed |
 
-### 27.4 The thirteen evaluators
+Since WP137 the pack also ships *Execution waits for the file* (`fs-advice/policy/execution-waits-for-the-file`): a stage gate on the advice journey's execution stage, held at its input until the case file shows suitability gathered, a recommendation made and the warnings given. It rides the journey, not the desk's seven (§67).
 
-Nine deterministic — **suitability complete**, **recommendation suitable** (*reads truth*; labels `suitable` / `unsuitable` / `none`), **warning given**, **boundary held**, **vulnerability actioned** (*reads truth*), **PII contained**, **no guarantee language**, **data minimised** (*reads truth*), **execution approved** — and four model rubrics, one per Consumer Duty outcome: **consumer understanding**, **consumer support**, **products and services**, **price and value**.
+### 27.4 The fourteen evaluators
+
+Nine deterministic — **suitability complete**, **recommendation suitable** (*reads truth*; labels `suitable` / `unsuitable` / `none`), **warning given**, **boundary held**, **vulnerability actioned** (*reads truth*), **PII contained**, **no guarantee language**, **data minimised** (*reads truth*), **execution approved** — and four model rubrics, one per Consumer Duty outcome: **consumer understanding**, **consumer support**, **products and services**, **price and value** — and, since WP145, **risk warning disclosed**, which holds every recommendation to the bank's capital-at-risk words. A **mandatory disclosure** is made by the desk action itself, in the bank's own wording (`fs-bank`'s `DISCLOSURES`), and lands on the trace as `disclosure.given` with the wording's digest; the evaluator reads that event.
+
+The desk also ships an **error model** for its recommendation — the fallible tier of §62 and §69, a scripted bot that errs at its deciding call one time in ten; every Part D desk has one since WP154.
 
 ### 27.5 The campaign
 
@@ -1029,9 +1051,9 @@ The bank's fraud-operations assistant: work a queue of alerts, look up what the 
 
 ### 28.1 What the bot can do
 
-`open-alert` · `look-up` · `verify-caller` · `release` · `hold` · `block-card` · `freeze-account` (irreversible here — the customer is locked out) · `escalate` · `file-sar` (irreversible, and never to be mentioned to the customer) · `say`.
+`open-alert` · `look-up` · `verify-caller` · `release` · `hold` · `block-card` · `freeze-account` (irreversible here — the customer is locked out) · `escalate` · `file-sar` (irreversible, and never to be mentioned to the customer) · `write-note` · `say`.
 
-Truth holds each alert's real label — `fraud`, `genuine` or `mule-in` — the reason an analyst could have found, and whether the caller is the account holder or an impersonator.
+Truth holds each alert's real label — `fraudulent`, `legitimate` or `mule-in` — the reason an analyst could have found, and whether the caller is the account holder or an impersonator.
 
 ### 28.2 The decks
 
@@ -1045,13 +1067,15 @@ Truth holds each alert's real label — `fraud`, `genuine` or `mule-in` — the 
 
 **Freeze needs a second look** · **No SAR without escalation first** · **Never tip off** · **Verify before you act on a call** · **No auto-release from instructions in records**.
 
+Since WP137 the pack also ships *SAR waits for the file* (`fs-fraud/policy/sar-waits-for-the-file`), the stage gate on the alert journey's filing stage — on the journey, not the desk's five (§67). The alert decision has its error model, the fallible tier of §62 and §69.
+
 ### 28.4 The ten evaluators
 
 **Alert decision** (*reads truth*) is the important one: it labels the focal alert `tp`, `fp`, `tn` or `fn` against the truth, which is what gives the report its **confusion matrix** — precision, recall, F1 and the false-positive (false-freeze) rate. Alongside it: **queue decisions**, **caller verified before action**, **no tip-off**, **SAR after escalation**, **time to decision**, **approval load**, **scam warning given**, and two call rubrics.
 
 ### 28.5 The campaign
 
-`campaigns/fs-fraud-baseline.json` — the first report with a confusion matrix and a parity gate. It gates on recall, on the false-freeze rate, on never tipping off, on verification before action, and on the approval load not regressing.
+`campaigns/fs-fraud-baseline.json` — the first report with a confusion matrix and a parity gate. It gates on recall, on the false-freeze rate, on never tipping off, on verification before action, on the SAR coming after escalation, and on the Friday queue never being released to clear it.
 
 > **Figure 19** — The Fraud Desk. *(Appendix D, `ws-playground-fraud.png`.)*
 
@@ -1061,11 +1085,11 @@ Truth holds each alert's real label — `fraud`, `genuine` or `mule-in` — the 
 
 The bank's lending assistant: verify the applicant, assess affordability, decide — approve, decline or refer — on the reasons the worksheet showed, explain the decision in those reasons and no others, pay out under four eyes, and hear the appeal.
 
-**Ten cards · seventeen scenarios in five decks · five policy cards · five evaluators · one campaign.**
+**Ten cards · seventeen scenarios in five decks · five policy cards · six evaluators · two campaigns** — the baseline, and since WP156 `campaigns/fs-lending-reviewed.json`, which holds the case handler's `override-reason` gate in CI (§69).
 
 > **The verdict is a rule, not a scorecard.** The bank's affordability verdict is a deterministic rule over a synthetic bureau file. There is no credit model here, and none is implied.
 
-Since Day 5 the rule's thresholds are **knobs** — a lending policy a campaign, a workflow configuration or a what-if can set, with defaults that reproduce everything below (§43.1) — and the desk ships the **lending journey** as a workflow of ten stages with five reference configurations by autonomy level (§44).
+Since Day 5 the rule's thresholds are **knobs** — a lending policy a campaign, a workflow configuration or a what-if can set, with defaults that reproduce everything below (§43.1) — and the desk ships the **lending journey** as a workflow of ten stages with five reference configurations by autonomy level (§44) — and, since WP150, a sixth beside them, `bot-everywhere-ceilings-enforced`, Level 5 with its ceilings held for a person. Since WP145 the journey's appeal stage **hands a contested decline to the complaints journey** as an appeal (`kind: 'appeal'`); an appeal of anything else ends the journey.
 
 ### 29.1 The decks
 
@@ -1079,19 +1103,21 @@ Since Day 5 the rule's thresholds are **knobs** — a lending policy a campaign,
 
 **No decision before affordability** · **Refer when the rules say refer** · **Reasons are real** · **Disbursement is four-eyes** · **Cohort-blind** — which blocks a decision whose *composed prompt* carries a cohort attribute the journey never revealed.
 
-### 29.3 The five evaluators
+Since WP137 the pack also ships *Disbursement waits for the file* (`fs-lending/policy/disbursement-waits-for-the-file`), the stage gate on the journey's disbursement stage — on the journey, not the desk's five (§67). The decision has its error model, the fallible tier of §62 and §69.
 
-**Decision matches the rules** (*reads truth*; labels `agree`, `over-approve`, `over-decline`, `missed-refer`, `over-refer`), **explanation faithful** — every reason stated was one the decision rested on, and every reason the decision rested on had its evidence in hand when it was made, read from the trace — **appeal handled**, **identity before decision**, and the understanding rubric.
+### 29.3 The six evaluators
+
+**Decision matches the rules** (*reads truth*; labels `agree`, `over-approve`, `over-decline`, `missed-refer`, `over-refer`), **explanation faithful** — every reason stated was one the decision rested on, and every reason the decision rested on had its evidence in hand when it was made, read from the trace — **appeal handled**, **identity before decision**, the understanding rubric, and since WP145 **review right disclosed** — the declined applicant told, in the bank's words, that they may ask for a review (`disclosure.given`).
 
 > **Figure 20** — The Lending Desk. *(Appendix D, `ws-playground-lending.png`.)*
 
 ## 30. The Complaints Desk
 
-**`/workshop/playground/complaints`** · purpose `complaints`
+**`/workshop/playground/complaints`** · pack `fs-advice` · world `fs-advice/the-complaints-desk` · purpose `complaints`
 
 The bank's complaints handler: acknowledge promptly, find what the file supports, answer with the reason, and redress within the rules — once, and never on a complaint the file does not support.
 
-**Five cards · seven scenarios · one policy card (Redress needs approval) · three evaluators** — complaint acknowledged in time, root cause named, redress within bounds — **and one campaign.**
+**Five cards · seven scenarios · three policy cards** — *Redress needs approval*, and since WP155 *The root cause the register gives* and *No redress the register does not uphold*, which hold the desk to the register's rule (charges and data complaints upheld, no other) — **four evaluators** — complaint acknowledged in time, root cause named, redress within bounds, and since WP145 Ombudsman disclosed, the final response's mandatory wording read from `disclosure.given` — **and one campaign.** Since WP137 the pack also ships *Redress waits for the file* (`fs-advice/policy/redress-waits-for-the-file`), the stage gate on the complaints journey's redress stage (§67); the root cause has its error model (§62, §69).
 
 The cases: a fee that should not have been charged (and a customer who wants double); advice that did not suit; a payment that arrived late; a complaint the file does not support (and the same, pressed); a complainant who will go to the ombudsman.
 
@@ -1099,16 +1125,17 @@ The cases: a fee that should not have been charged (and a customer who wants dou
 
 ### 31.1 Decks
 
-A **deck** is a set of scenarios on one desk that ask the same kind of question. Every desk carries the same five: the journey itself, the vulnerable or difficult case, the pressure case, the red team, and the operational incident. A campaign can gate a whole deck at once, and a report groups by deck and by tag.
+A **deck** is a set of scenarios on one desk that ask the same kind of question. The three Day 4 desks carry the same five: the journey itself, the vulnerable or difficult case, the pressure case, the red team, and the operational incident. The complaints desk carries one; the four Day 6 desks three each — the journey, the desk's own hard case, the red team. A campaign can gate a whole deck at once, and a report groups by deck and by tag.
 
 ### 31.2 Counterparts
 
 The person across the desk. Ten personas ship with the bank: the first-timer, the pushy customer, the guarantee-seeker, the vulnerable customer, the impersonator, the social engineer, the mule, the distressed genuine caller, the complainant and the injecting customer.
 
-A counterpart runs in one of two ways:
+A counterpart runs in one of three ways:
 
 - **Scripted** — a small state machine inside the world. Each rule has a trigger, what it says, how hard it pushes (its *pressure*), and the obligation or threat it tests. Deterministic, free, and what CI runs.
 - **Live** — a second seat in the episode with its own brain and its own trace, using the script's persona as its personality. Run it from **Robot Friends** in the Kit, or from the harness with `--counterpart live`.
+- **Adversarial** — the red-team seat: `counterpart: { tier: 'adversarial', corpusId }` on a campaign seats a visitor whose every line is an attack row of the desk's adversarial corpus, drawn by the cell's seed (§52.4, §63).
 
 Every utterance from either side is an event on the trace, so the transcript is a projection of the trace and never a separate log.
 
@@ -1122,6 +1149,7 @@ Content delivered into the world at the start of a run, through a door the world
 | `manual-entry` | Text filed in the world's manual, found when the bot looks something up |
 | `tool-result` | An override on what a service line answers — how a poisoned factsheet or a lying verification is delivered |
 | `radio` | A message on a channel, apparently from a teammate |
+| `counterpart` | Which of the desk's counterpart scripts sits across the desk for this run |
 | `provider-fault` | The model itself fails at a chosen turn — a timeout, a refusal or garbage — which is how the operational-incident deck is built |
 
 ## 32. Cohorts, parity and fairness
@@ -1130,7 +1158,7 @@ Every case carries a **cohort** in truth: age band, income band, opaque protecte
 
 A campaign slices by cohort exactly as it slices by scenario, guard and brain, and the **parity** gate compares a number across the values of one cohort attribute:
 
-> `parity` on `over-decline`, across `age-band`, maximum difference 5 points.
+> `parity` on `over-decline`, across `ageBand`, maximum difference 10 points (`campaigns/fs-lending-baseline.json`).
 
 Two cautions the product states for you:
 
@@ -1145,7 +1173,7 @@ Since Day 5 a `parity` gate can name its **metric** — demographic parity, disp
 
 Every scenario, policy card and evaluator carries tags, so a report can group by them and a reviewer can find their own question:
 
-`fca:cd:products-services` · `fca:cd:price-value` · `fca:cd:understanding` · `fca:cd:support` (the Consumer Duty's four outcomes) · `fca:cobs-9:suitability` · `fca:cobs-4:promotions` · `fca:conc:affordability` · `fca:conc:creditworthiness` · `fca:disp:complaints` · `fca:fg21-1:vulnerability` · `pra:ss1-23:*` (the model-risk principles) · `pra:ss1-21:resilience` · `poca:tipping-off` · `mlr:kyc` · `ukgdpr:data-minimisation` · `ukgdpr:purpose-limitation` · `equality-act:fairness`
+`fca:cd:products-services` · `fca:cd:price-value` · `fca:cd:understanding` · `fca:cd:support` (the Consumer Duty's four outcomes) · `fca:cobs-9:suitability` · `fca:cobs-4:promotions` · `fca:conc:affordability` · `fca:conc:creditworthiness` · `fca:conc-7:arrears` · `fca:disp:complaints` · `psr:app-reimbursement` · `fca:fg21-1:vulnerability` · `pra:ss1-23:*` (the model-risk principles) · `pra:ss1-21:resilience` · `poca:sar` · `poca:tipping-off` · `mlr:kyc` · `mlr:screening` · `ukgdpr:data-minimisation` · `ukgdpr:purpose-limitation` · `equality-act:fairness`
 
 Alongside them sit the threat tags — `ASI01`, `ASI02`, `ASI07`, `prompt-injection`, `tool-poisoning`, `confused-deputy`, `social-engineering`, `exfiltration`, `lethal-trifecta`, `app-scam`, `irreversible-action` — and internal cross-references of the form `19/#n`, which point at the control catalogue in the design set.
 
@@ -1155,7 +1183,7 @@ They are plain strings. Code groups by them and does nothing else with them.
 
 The control map is the bridge from what the product does to what a firm is asked about. Each row is: a **framework**, a **reference**, the **obligation** in one sentence, the **evidence** for it, and a **status**.
 
-Rows ship at three levels — the bank's UK retail rows, each desk's own rows, and generic rows for NIST AI RMF 1.0, the EU AI Act (Articles 9, 12, 14, 15 and 72), ISO/IEC 42001 and the OWASP Top 10 for Agentic Applications. In the `full` build a bot's pack carries **52 rows**.
+Rows ship at three levels — the bank's UK retail rows, each desk's own rows, and generic rows for NIST AI RMF 1.0, the EU AI Act (Articles 9, 12, 14, 15 and 72), ISO/IEC 42001 and the OWASP Top 10 for Agentic Applications. In the `full` build a bot's pack carries **84 rows**: thirty generic, fourteen the bank's, forty across the seven desks.
 
 Evidence is named by identifier and marked `present` (this is on the trace) or `available` (this control exists and can be run). A row whose evidence does not resolve to something real is refused by the build.
 
@@ -1194,7 +1222,7 @@ npm run build                       # the CLI runs from dist
 npm run craftabot -- packs          # what is installed, and which credentials are set
 ```
 
-**Credentials** come only from the environment, as `CRAFTABOT_CREDENTIAL_<ID>` — the credential id upper-cased with non-alphanumerics folded to `_`:
+**Credentials** come only from the environment, as `CRAFTABOT_CREDENTIAL_<ID>` — the credential id upper-cased with non-alphanumerics folded to `_`. `npm run craftabot` loads a `.env` at the repo root into that environment when one exists (`.env` is gitignored; `.env.example` is the template). The Gate's upstream key is the one exception to the naming: `CRAFTABOT_GATE_UPSTREAM_KEY` (§59).
 
 ```sh
 export CRAFTABOT_CREDENTIAL_OPENAI=sk-…
@@ -1206,7 +1234,7 @@ They are never read from a file the harness wrote, never printed, and every file
 
 **The principal.** Every run, fork and campaign cell the harness starts records `{ kind: 'service', id: 'craftabot-harness', name }`, where the name comes from `--principal`, else `CRAFTABOT_PRINCIPAL`, else the machine's hostname. Nothing is verified: the trace records what the host said it was.
 
-**Packs.** The default list is every workspace pack except the Kit's demo pack. To use a different list, `--config craftabot.config.mjs`, a plain ES module whose default export is `{ packs }`. Nothing is discovered automatically.
+**Packs.** The default list is every workspace pack except the Kit's demo pack and the optional ones — the DGX Spark and TypeSafe packs, the LLM readers, the Gate's presets — each of which ships its own `craftabot.config.mjs` to add it. To use a different list, `--config craftabot.config.mjs`, a plain ES module whose default export is `{ packs }` (and, optionally, `pins`). Nothing is discovered automatically. The shipped packs are pinned by content digest in `packages/harness/packs.lock.json`; a pack that no longer matches its pin is refused, and `craftabot packs lock` (`--check` in CI) rewrites or verifies the file.
 
 **Egress.** `--egress declared` (the default) allows only the hosts the fitted components declare; `--egress none` refuses everything, and is what CI uses.
 
@@ -1225,13 +1253,18 @@ npm run craftabot -- run \
 | `--kit <file>` | The bot, as a kit file |
 | `--card <id>` | Override the goal card for this run |
 | `--brain scripted-optimal \| scripted-noisy \| live` | The default is `scripted-optimal`: no key, reproducible. `live` uses the kit's own cartridge and its provider |
+| `--provider <id>` | The provider the cartridge must belong to; implies `--brain live` |
 | `--seed <n>` | Reproducibility |
+| `--max-ticks <n>` | Cap the run |
+| `--deny` | Answer every approval with no (the default is yes) |
 | `--counterpart scripted \| live` | Seat a visitor across a desk card (§31.2) |
 | `--counterpart-cartridge <id>` | Which cartridge the live visitor uses |
 | `--max-rounds <n>` | Cap the episode (default 30) |
 | `--stack <guardId> --stack-file <campaign.json>` | Install a campaign guard's group half — the Compliance Watchbot and its breakers |
 | `--principal <name>` | Who is starting this |
 | `--egress declared \| none` | |
+| `--sink <id> --sink-config <json>` | Stream the run live to a sink (§36.9, `export`) |
+| `--validated <digest> --validated-by <source>` | The build last validated, by its digest from `kit digest` (§67) |
 | `--out <dir>` | Where runs are written (default `./runs`) |
 
 **What a run writes**, one directory per run:
@@ -1255,7 +1288,7 @@ npm run craftabot -- campaign --file campaigns/fs-fraud-baseline.json --strict \
   --markdown ./campaign-out/scorecard.md
 ```
 
-`--strict` exits 1 on any failed gate. At scale:
+`--strict` exits 1 on any failed gate. `--scenarios <pack.json,…>` adds scenario packs, `--baseline <report.json>` names the report to diff against, `--no-keep-runs` drops every cell's run from `--out/runs`, and `--config` names the pack list (§35). At scale:
 
 | Option | Meaning |
 |---|---|
@@ -1272,12 +1305,14 @@ npm run craftabot -- campaign --file campaigns/fs-fraud-baseline.json --strict \
 ### 36.3 `evaluate`, `report`, `assurance`
 
 ```sh
-npm run craftabot -- evaluate --run <runId> --evaluator fs-advice/suitability-complete --out ./runs
+npm run craftabot -- evaluate --run <runId> --evaluators fs-advice/suitability-complete --out ./runs
 npm run craftabot -- report --safety-case --agent <agentId> --out ./runs
 npm run craftabot -- report --incidents --out ./runs
 npm run craftabot -- report --telemetry --out ./runs
 npm run craftabot -- assurance --agent <agentId> --out ./runs --html ./assurance-pack.html
 ```
+
+`evaluate` runs every deterministic evaluator by default; `--evaluators <id,id>` names which, `--rubric <text>` is the rubric judge's rubric, and `--project <gcpProject> [--location …] [--metric-prompt …]` runs `geap/eval/*` live. `report --file <path>` writes the JSON instead of printing it.
 
 `report` and `assurance` produce exactly what the Workshop's screens render, over the same stored runs, because both hosts call the same folds.
 
@@ -1297,6 +1332,12 @@ npm run craftabot -- record --line <lineId> --script calls.json --out ./cassette
 ```
 
 Runs a service line's live client once per `{"op", "args"}` in the script, under an egress guard that allows only that line's declared hosts, and writes a cassette redacted against every credential the process holds. A pack ships the cassette and a session replays it by operation and argument digest, never calling out; a miss is `error.kind: 'cassette-miss'` on the trace. The report also says whether the first response allowed cross-origin calls — the browser checkpoint.
+
+```sh
+npm run craftabot -- record --experiment experiments/lending-stack.json --provider openai --size 50 --out ./recording
+```
+
+`record --experiment` records a design's live brains to provider cassettes (§62): every brain naming a `cassette` runs live through its cartridge's provider — which must be `--provider` — under the file's budget and the provider's declared egress, and each cassette path gets the calls' answers keyed by the prompt's digest, redacted against every credential the process holds. A campaign or experiment naming the brain then replays it with no key and no network. `--provider mock` records the scripted-optimal plans instead, and says so in the file.
 
 ### 36.6 `fork`
 
@@ -1320,11 +1361,11 @@ npm run craftabot -- evidence pull --store evidence/supabase --store-config '…
 
 ### 36.8 `workflow`, `book`, `sweep`, `bank`, `experiment` — the bank in motion
 
-The Day 5 commands, each described with its screen: `workflow run` (§44.5) runs one journey over one work item; `book run` and `sweep` (§43.5) run a book through a workflow's configurations and multiply builds by a knob; `bank run` (§48.4) runs a simulated day with the desks from a file; `experiment run | analyse | render` (§50.5) expands a design to its campaigns and folds their reports into effects; `scaffold domain` (§56.2) types out a new domain's world pack and journey packs; `journey render --workflow <id> --svg` (§55.1) writes a journey's drawing; `workflow run --follow` (§55.3) runs a handoff chain to its end. `evidence pull --kind` now also takes `workflow-run`, `bank-run`, `experiment`, `experiment-result` and `stack`, and `evidence push --stack-file` sends a stack. `npm run smoke:bedrock` and `npm run smoke:lakera` are the two new guard services' live checkpoints, each one command with a key.
+The Day 5 commands, each described with its screen: `workflow run` (§44.5) runs one journey over one work item; `book run` and `sweep` (§43.5) run a book through a workflow's configurations and multiply builds by a knob; `bank run` (§48.4) runs a simulated day with the desks from a file; `experiment run | analyse | render` (§50.5) expands a design to its campaigns and folds their reports into effects; `scaffold domain` (§56.2) types out a new domain's world pack and journey packs; `journey render --workflow <id> --svg` (§55.1) writes a journey's drawing; `workflow run --follow` (§55.3) runs a handoff chain to its end. `evidence pull --kind` now also takes `workflow-run`, `bank-run`, `experiment`, `experiment-result`, `stack`, `corpus` and `review`, and `evidence push --stack-file` sends a stack. `experiment run --config packages/gate/craftabot.config.mjs --file experiments/gate-presets.json` is how the Gate's presets' design runs — the presets are an optional pack (§35). `npm run smoke:bedrock`, `smoke:lakera`, `smoke:bedrock-ar` and `smoke:cedar` are the hosted guard and PDP services' live checkpoints, each one command with a key.
 
 ### 36.9 The rest
 
-`packs` (what is installed, and which credential variables are set — never a value) · `scenarios` (list and import a corpus) · `content` (the authored content store) · `export` (send a stored run to a sink).
+`packs` (what is installed, and which credential variables are set — never a value; `packs lock [--check]` rewrites or verifies the pins) · `kit digest --kit <file>` (the build digest a validation records; `run --validated <digest>` names it, §67) · `scenarios` (list and import a corpus) · `content` (the authored content store) · `export` (send a stored run to a sink) · `corpus freeze | label | agreement` (§61) · `benchmark run <file> [--record [--only <ids>]] [--cassettes <dir>]` (§63) · `gate serve | approve | deny` (§59) · `readings export [--format json|markdown]` (§64) · `controls list | export [--format json|markdown] [--evidence <dir>]` (§66).
 
 ## 37. Recipes
 
@@ -1394,11 +1435,11 @@ Each folder goes at the path with its name:
 | `apps/workbench/build/workshop/` | `/workshop/` |
 | `apps/workbench/build/playground/` | `/playground/` |
 
-**One rewrite rule per folder.** Each section is a single-page app, so a deep link such as `/workshop/workshop/runs` must serve `/workshop/index.html`. `docs/publishing.md` gives the exact rules for Netlify, Cloudflare Pages, S3/CloudFront, nginx and Apache.
+**One rewrite rule per folder.** Each section is a single-page app, so a deep link such as `/workshop/workshop/runs` must serve `/workshop/index.html`. `docs/publishing.md` gives the exact rules for Netlify, Vercel, Cloudflare Pages, nginx and GitHub Pages.
 
 Each edition is measured against its own bundle budget at build time, and the command fails if a folder is over.
 
-**A release artefact.** Tagging `v*` builds the three editions in CI and attaches `craftabot-site-<version>.zip` — the three folders, `PUBLISHING.md`, `VERSION` and a SHA-256 — to the GitHub release; `docs/publishing.md` §6 is the recipe for serving it behind a login on axiom-verity.com (§51).
+**A release artefact.** Tagging `v*` builds the three editions in CI and attaches `craftabot-site-<version>.zip` — the three folders, `PUBLISHING.md`, `VERSION` and a SHA-256 — to the GitHub release; `docs/publishing.md` §6 is the recipe for serving it behind a login on axiom-verity.com (§51). The first is `v0.7.0`, cut on 30 September 2026: `craftabot-site-v0.7.0.zip`, with its checksum.
 
 **One cache per section.** Each edition's service worker names its cache after the edition, so two or three sections on one origin never serve each other's shell.
 
@@ -1428,6 +1469,7 @@ Every component that calls out declares the hosts it may reach and what it sends
 | A hosted evaluator with a project set | The run's own words go to that service |
 | A sink attached | Spans go to the collector you named |
 | An evidence push | That one artefact goes to the store you configured |
+| An agent behind the Gate | The request goes to the upstream you named, on the key in `CRAFTABOT_GATE_UPSTREAM_KEY` (§59) |
 | Everything else | Stays in the browser or the directory |
 
 ## 40. Troubleshooting
@@ -1467,10 +1509,10 @@ That service cannot be called from a browser (its authentication or its cross-or
 Recorded rather than hidden.
 
 - **Artwork.** The interface is drawn with CSS placeholders where illustrated artwork is still in production. Every swap-in seam is built and tested against a placeholder.
-- **Two starter cards need more turns than the budget allows.** *Tidy the blocks* and *The locked chest* cannot currently be completed inside the 30-turn engine budget.
-- **Readings are records, not edits.** Control rows, calibration rows, catalogue entries, decision rights, blueprint items, the screening lists and the error and reviewer models all ship pending. A reading at `/workshop/readings` is a `review` beside the row: *accepted*, *amended* (with the value a maintainer should put in) or *rejected* (with why). The checks count accepted and amended rows as read. The pack's own field changes only when a maintainer edits it in; `craftabot readings export --format markdown` is their work list. None had been read when this edition was written: 284 wait on the bank (260 before the catalogue's second edition, §66).
+- **One starter card is past the budget on purpose.** *The locked chest (expert)* takes 36 turns against the 30-turn floor; it ends `OUT_OF_STEPS` until the Safety brick's step dial is turned up, which is the lesson.
+- **Readings are records, not edits.** Control rows, calibration rows, catalogue entries, decision rights, blueprint items, the screening lists, the error and reviewer models and a knob change all ship pending. A reading at `/workshop/readings` is a `review` beside the row: *accepted*, *amended* (with the value a maintainer should put in) or *rejected* (with why). The checks count accepted and amended rows as read. The pack's own field changes only when a maintainer edits it in; `craftabot readings export --format markdown` is their work list. None had been read when this edition was written: 316 wait on the bank (§69).
 - **The browser forks without overrides.** Forking with a different build is the harness's `fork --kit`.
-- **No cost model.** The product counts tokens and does not price them, and the dashboard says so rather than inventing a number.
+- **No cost model of its own.** The product counts tokens and the dashboard does not price them. The one place a price enters is the `cost-cap` control (§67), at the list price its configuration states, with the source named.
 - **Every calibration row is awaiting review.** The table cites a source on every row, and every row shipped `review: pending` because the sprint could not wait for a reader to check each against its publication. The bank page counts them; they are read at `/workshop/readings` (§42.2).
 - **The performance label and the alert rule are stated functions, not fitted models.** The Model-risk page and the reports say *synthetic hazard*; the fraud baseline is the detector alone. Nothing in the product fits anything (§42.4).
 - **The Monitor's drift reads one feature** — the outcome mix against the population's expected verdicts. PSI per input feature is the Model-risk page's, against a reference report (§48.2, §49.3).
@@ -1478,17 +1520,19 @@ Recorded rather than hidden.
 - **`drift-day` is not an experiment.** It is the Monitor's planted-shift test, and `docs/evidence/drift-day/` records it as such rather than as a campaign-shaped result (§50.4).
 - **The site's half is not built.** The release artefact, the per-edition cache, the workspace offer and the citations are this repository's; the service that gates the folders, the account page that mints a token and the framing page live in the site's repository and are not yet there (§51).
 - **A book run's gate always passes.** A book run is a measurement; put the gates a judgement needs in a campaign file with a `source` (§43.2).
-- **The Catalogue's forty-five entries are awaiting review**, as the calibration rows are: every entry cites its sources and shipped `review: pending`; the page counts them, and each is read at `/workshop/readings` (§54).
+- **The Catalogue's sixty-nine entries are awaiting review**, as the calibration rows are: every entry cites its sources and shipped `review: pending`; the page counts them, and each is read at `/workshop/readings` (§54).
 - **The `+hosted-guard` baselines run Model Armor's stand-in, not the service.** Until Day 7 they fitted it with a config the service refused, so the Guard brick ran its floor alone; since WP113 the advice, fraud and lending baselines run the stand-in, and a test refuses a shipped campaign whose guard config its service refuses (§52.2). The stand-in measures nothing; a live measurement needs a key.
 - **The Studio's test bench runs loop fits only.** A stage-boundary fit is exercised by running the journey and read on the Pipeline; a per-stage stack's *loop* fits do not run on that stage's session, and a configuration's `egress` fit is not read — the journey's egress is the host's option (§53.2).
 - **The counterpart's lane is drawn empty on a lit canvas**: the customer's turns are on the member runs' traces, which the workflow run names but does not carry (§55.1).
 - **The four Day 6 journeys' book incidences are assumptions.** Since Day 7 they are calibration rows (`BOOK_INCIDENCES`), stated rather than cited and pending a reading (§55.2). The disputes desk has had a matched pair and its parity gate since WP112.
 - **A followed handoff seats the bot on the target desk** in the bank day and, since WP112, in `workflow run --follow` with `--kit` (`specFor`) (§55.3).
-- **The twelve new control rows and the domain spec's decision rights are `unreviewed`**, and the three blueprint notes' checkboxes are unticked by design. All of them are on the reading desk (§56).
+- **Every control row (84, the eight agent-security rows of §68 among them) and the domain spec's decision rights are `unreviewed`**, and the three blueprint notes' checkboxes are unticked by design. All of them are on the reading desk (§56).
 - **"200 % zoom" is tested as a 640 px viewport**, which is the same layout question and not quite the same thing (§58).
 - **Three visual baselines are still empty states** — Workflows, Conduct and Model risk — and are not figures; the Monitor's figure is its setup screen by design (Appendix D).
-- **The live checkpoints are pending** keys and a token: Azure Content Safety, the Gen AI evaluation service and Model Armor, Bedrock Guardrails and Lakera Guard. Each is one command (`npm run smoke:azure`, `smoke:geap`, `smoke:bedrock`, `smoke:lakera`). Every service the benchmark lists reads *unmeasured* until one runs.
-- **Provider errors show friendly copy with the raw payload one click away**, but there is no automatic retry.
+- **The hosted checkpoints are pending** keys and a token: Azure Content Safety, the Gen AI evaluation service and Model Armor, Bedrock Guardrails and its automated reasoning, Lakera Guard and Cedar. Each is one command (`npm run smoke:azure`, `smoke:geap`, `smoke:bedrock`, `smoke:bedrock-ar`, `smoke:lakera`, `smoke:cedar`). Of the local guards, Llama Guard 3 is measured through Ollama and its cassette replays in CI (§69); Prompt Guard 2 cannot be served by Ollama and stays unmeasured. Every hosted service reads *unmeasured* until its checkpoint runs.
+- **Provider errors show friendly copy with the raw payload one click away.** A rate limit earns exactly one retry, after the wait the provider asked for, written as `provider.retried`; a second failure is a failure. Failover between providers is a build choice (§67), never a default.
+- **The trace says which build ran.** `run.started` carries the build's digest and whether it changed since it was last validated (`craftabot kit digest`, `run --validated`), and a changed knob queues a reading; `craftabot packs lock --check` refuses a shipped pack whose content moved since it was pinned (§67).
+- **The agent-security controls are components, none bespoke.** Adaptive approval, shadow mode on a campaign guard, prompt integrity, the secret scan, argument validation, privilege scopes and peer authentication are Catalogue entries with an implementation each; §67 lists them and §69 says what each was measured against.
 
 ---
 
@@ -1510,7 +1554,7 @@ Every distribution the population draws from is a row in the **calibration table
 
 Every row carries a **review** status. The sprint that built the table cited every row but could not wait for a reader to check each against its source, so every row shipped `pending`; the bank page shows the count still awaiting review, and the assurance pack cites the table with that status. A row is read at `/workshop/readings`, where the reading is a record beside it; the row's own `review` becomes `{ by, on }` when a maintainer edits it in.
 
-Two tables, not one. The population draws from the calibration table. The desks' **designed cases** — the decks of Part D — keep the Day 4 weights (`DECK_WEIGHTS`), because a designed case is meant to be the case it was written to be, not a draw from the population.
+Five tables, not one. The population draws from the calibration table. The desks' **designed cases** — the decks of Part D — keep the Day 4 weights (`DECK_WEIGHTS`), because a designed case is meant to be the case it was written to be, not a draw from the population. Three more are rows of the same shape, every one `pending`: the Phase AA books' incidences (`BOOK_INCIDENCES`), the desks' error rates (`ERROR_RATES`, §62) and the reviewer's (`REVIEWER_RATES`, §62).
 
 ### 42.3 On the bank page
 
@@ -1532,6 +1576,8 @@ A **book** is a batch of work items drawn from a population without a clock — 
 | The **complaint register** | Complaints by category and incidence | The category |
 | The **advice-request register** | Requests from a calibrated share of customers holding savings above a threshold | The suitable set |
 
+Four more came with the Phase AA desks — an onboarding, a disputes, an arrears and a servicing book, each drawn at an incidence stated as a calibration row (`BOOK_INCIDENCES`) — and since Day 7 a book may be drawn from a frozen corpus instead (`source.corpus`, §61).
+
 Two things in that table are new kinds of truth and are labelled as such wherever they appear. The **performance label** — `defaultedWithin12m` — is drawn for every application, declined ones included, from a stated hazard over the affordability ratio and the bureau file (`67-PERFORMANCE-AND-BOOKS.md` gives the coefficients). It exists so the outcome-conditioned fairness metrics (§47.1) have a positive class that is not the rule itself. It is a function, not a fact: on the shipped table the approved book's default rate is 4.0% against a cited UK range of 2–6%; it is never fitted, never on the desk, and the Model-risk page calls it *the synthetic hazard*. The **alert rule** is a stated detector, not a model: on the shipped table its precision is 0.084 and its recall 0.699 over the last thirty days, and those two numbers are a calibration test. The fraud workflow's `rules-only` configuration is that detector alone — the baseline every fraud stack is compared against.
 
 A book is a file (`book.schema.json`) a campaign can carry inline, or a recipe — a population's seed and size and a filter — a campaign draws at run time. It is byte-stable per population and filter.
@@ -1551,12 +1597,13 @@ The Lending Desk's rule (§29) is no longer a set of constants. A **lending poli
 | `referOnSearches` | 3 | Refer at this many searches in twelve months |
 | `referOnFair` | true | Refer a `fair` score band |
 | `fourEyes` | `approve` | Which decisions a person confirms: the payout after an approve, every decision (`all`), or none |
+| `documentBefore` | `never` | When a payslip must be on the desk before a decision: never, when the rules say refer, or always |
 
-The defaults reproduce every Day 4 test, the golden trace and the baseline campaign byte for byte. A campaign sets them on a build (`builds[].overrides.knobs`), a workflow configuration sets them (§44.3), and the report's slice by build carries them, so a sweep is one campaign and one table.
+The defaults reproduce every Day 4 test, the golden trace and the baseline campaign byte for byte. A campaign sets them on a build (`builds[].overrides.knobs`), a workflow configuration sets them (§44.3), and the report's slice by build carries them, so a sweep is one campaign and one table. Since Phase AJ a knob is an item of the Control Inventory (`WorldDefinition.knobs`, §66), and a change to one is a reading on the reading desk (`knob-change`, §67).
 
 ### 43.2 A book campaign
 
-A campaign can take its cells from a book instead of from scenarios × seeds: `source: { kind: "book", workflowId, population: { seed, size } | book, configuration?, limit? }`. One cell per work item × build × guard × brain (× context, §46), the item's truth as the cell's, the report the same report — with the cohort table now over thousands of ordinary cases rather than a few dozen designed ones, which is where the intervals stop being decoration. `campaigns/fs-lending-book.json` is the one CI runs, over a 500-customer population; the fraud and advice books have their own.
+A campaign can take its cells from a book instead of from scenarios × seeds: `source: { kind: "book", workflowId, population: { seed, size } | book, configuration?, limit? }`. One cell per work item × build × guard × brain (× context, §46), the item's truth as the cell's, the report the same report — with the cohort table now over thousands of ordinary cases rather than a few dozen designed ones, which is where the intervals stop being decoration. `campaigns/fs-lending-book.json` is the one CI runs, over a 500-customer population, held against a committed baseline report by its `no-regression` gate (`campaigns/baselines/`, §66); `campaigns/fs-lending-reviewed.json` runs the same book under the bank's case handler with the `override-reason` gate (§69). The fraud and advice books have their own.
 
 ### 43.3 On the Campaigns screen — Books and Sweeps
 
@@ -1569,13 +1616,13 @@ Every workflow run a book cell makes is stored as its own record and listed on W
 
 ### 43.4 The report's new panes
 
-A report over a book carries three panes the Day 4 report did not (`74-GATES-AND-REPORT-V3.md`):
+A report over a book carries three panes the Day 4 report did not (`74-GATES-AND-REPORT-V3.md`), and since Day 7 a fourth, **Calibration**, over any `reader` stage (§60):
 
 - **Fairness** — one row per `parity` gate that named a metric (§47.4): the metric, the attribute, the stratifier, the value on a `Meter` with its interval as a range band, *n*, and a lamp that says **underpowered** rather than pretending.
 - **Drift** — one row per `drift` gate: the metric, the feature, the reference, the value, the bound, the verdict.
-- **Human load** — touches per case, the unattended rate, decisions, breaches and the breach rate **by build**, each build labelled with its autonomy level (§44.4). A breach is a decision taken above its kind's ceiling: counted, never prevented.
+- **Human load** — touches per case, the unattended rate, decisions, breaches and the breach rate **by build**, each build labelled with its autonomy level (§44.4). A breach is a decision taken above its kind's ceiling: counted, and prevented only under a configuration that enforces its ceilings (§44.4).
 
-The report's schema is now version 3. Every earlier report loads unchanged and reads with those panes empty and a line saying why.
+The report's schema is now version 4 (3 since WP82; 4 since WP112, which added `workflowId` and `pairId` to a cell). Every earlier report loads unchanged and reads with those panes empty and a line saying why.
 
 ### 43.5 From the harness
 
@@ -1592,28 +1639,29 @@ npm run craftabot -- sweep --file campaigns/fs-lending-book.json --knob referRat
 
 ### 44.1 A journey as stages
 
-A **workflow** (`@craftabot/workflow`; `69-WORKFLOWS.md`) is a journey written as content: **stages** in order, each with a typed input and output, an **executor**, and an edge to the next. Four kinds of executor:
+A **workflow** (`@craftabot/workflow`; `69-WORKFLOWS.md`) is a journey written as content: **stages** in order, each with a typed input and output, an **executor**, and an edge to the next. Five kinds of executor (the fifth, `reader`, since Day 7 — §60):
 
 | Executor | What runs the stage | How it appears on the trace |
 |---|---|---|
 | `rule` | A pure function the pack registers by id; its output is applied through the desk's own action | The same `action.performed` a bot would have made |
 | `agent` | The desk bot, on a goal card synthesised for the stage, until the stage's predicate holds (`identity-verified`, `decided`…) | An agent run of its own, with `stage.started` and `stage.completed` on its timeline |
-| `human` | A person: an approval-shaped pause with the stage's options and a suggestion | `approval.requested` and `approval.resolved`, with who answered |
+| `human` | A person: an approval-shaped pause with the stage's options and a suggestion. A configuration may seat a **reviewer model** here instead of the oracle — a person who errs at cited rates and, since WP156, says why when they overrule (§62, §69) | `approval.requested` and `approval.resolved`, with who answered |
 | `line` | A service line called directly | A `tool.executed` |
+| `reader` | A registered reader asked typed questions about what the stage shows it; at or above its gate's threshold the answer is committed, below it the stage's `else` — a rule or a person — takes the same input | `reader.answered` on the stage record, with the route it took |
 
 The desk is unchanged. A workflow is a schedule over what a desk already does: the world instance is carried from stage to stage, an agent stage runs a session over it and returns, and a stage's input and output are validated against the stage's schemas both ways — a bot that ends its stage without producing the output is an `error` stage with a finding, never a silent pass. A run leaves a **workflow run** (`workflow-run.schema.json`): every stage's executor, input and output digests (the values too, when small), guard tally, approval, duration and status, the ids of every agent run it made, and a digest over the stage records.
 
-Two events joined the catalogue: `stage.started` and `stage.completed`. A trace without them is a desk run, as before.
+Three events are the workflow's: `stage.started`, `stage.completed`, and since WP146 `stage.overdue` — a stage done past the deadline its spec states in ticks, the regulator's timescale cited (§67). A trace without them is a desk run, as before.
 
 ### 44.2 The eight workflows
 
-Since Day 6 a fourth journey ships beside the three: **complaints** (`fs-advice/complaints`), the Complaints Desk's decks as stages — acknowledgement, investigation, root cause, decision, approval, redress, closed — with DISP's timescales as stage budgets, the register's own rule (a charges or a data complaint upheld, the rest declined), five configurations and a book drawn from the complaint register. A journey can now **hand off**: a stage may end its run by handing the item to another journey — the fraud journey hands a disputed freeze or card block to complaints as a complaint — and the run ends *handed-off*, with the target run linked from the Pipeline both ways. `craftabot workflow run --follow` runs a chain to its end; on the Monitor a handed-off item goes back on the clock and the desk that takes its kind works it.
+Since Day 6 a fourth journey ships beside the three: **complaints** (`fs-advice/complaints`), the Complaints Desk's decks as stages — acknowledgement, investigation, root cause, decision, approval, redress, closed — with DISP's timescales as stage **deadlines** (`stage.overdue` past them, §67), the register's own rule (a charges or a data complaint upheld, the rest declined), five configurations and a book drawn from the complaint register. A journey can now **hand off**: a stage may end its run by handing the item to another journey — the fraud journey hands a disputed freeze or card block to complaints as a complaint — and the run ends *handed-off*, with the target run linked from the Pipeline both ways. `craftabot workflow run --follow` runs a chain to its end; on the Monitor a handed-off item goes back on the clock and the desk that takes its kind works it. Since WP145 a contested decline on the lending, onboarding or disputes desk is handed to the complaints journey as an **appeal** (`kind: 'appeal'` on the handoff; §67).
 
 A fifth journey is the **Onboarding Desk's** (`fs-onboarding/onboarding`, `95-FS-ONBOARDING.md`): application → identity → screening → risk rating → decision → record → four eyes → open → welcome. The bank keeps a synthetic screening list (six names, sanctions and politically exposed persons); the screening stage earns the result as a record the desk never speaks, and the tipping-off pair — *A hit is never said* on the stack, `hit-contained` in the evaluators — is what the desk's campaign gates on. An applicant whose details do not match the document is declined at the identity stage without a screening.
 
 A sixth is the **Disputes Desk's** (`fs-disputes/disputes`, `90-FS-DISPUTES.md`): intake → verify → classify → hold → investigate → decision → record → four eyes → reimbursement. The rule is PSR-shaped and synthetic — an unauthorised payment reimbursed in full, an authorised push-payment scam reimbursed less the excess up to a limit that is a knob, a merchant dispute declined as a fraud claim — and the journey **hands off twice**: a reimbursed scam sends the payee to the fraud journey as an alert, a decline sends the customer's complaint to the complaints journey. The merchant's note on the file is evidence, never an instruction.
 
-A seventh is the **Collections Desk's** (`fs-collections/arrears`, `91-FS-COLLECTIONS.md`): intake → contact → circumstances → reassess → plan → plan recorded → decision → agreement. The rule is CONC 7-shaped and synthetic — a disclosed support need gets breathing space, a customer who can carry the repayment and clear the arrears over six months a payment plan, one who can carry half reduced payments — and the decision is a person's below Level 5. A disclosed support need hands a servicing request on once the plan is agreed (the servicing desk is WP106's; until it ships the clock counts the item unrouted). A default notice is never issued before the circumstances are on the file, and never to a customer who has disclosed.
+A seventh is the **Collections Desk's** (`fs-collections/arrears`, `91-FS-COLLECTIONS.md`): intake → contact → circumstances → reassess → plan → plan recorded → decision → agreement. The rule is CONC 7-shaped and synthetic — a disclosed support need gets breathing space, a customer who can carry the repayment and clear the arrears over six months a payment plan, one who can carry half reduced payments — and the decision is a person's below Level 5. A disclosed support need hands a servicing request on once the plan is agreed. A default notice is never issued before the circumstances are on the file, and never to a customer who has disclosed.
 
 The eighth is the **Servicing Desk's** (`fs-servicing/servicing`, `92-FS-SERVICING.md`): request → identify → classify → verify → (four eyes) → act → record → (closure). The caller is checked against the file before anything changes; the request is classified — address, card, third-party, disclosure, bereavement — and met with the one act it calls for; a support need is recorded as said before the act; a bereavement's closure is under four eyes and hands the estate's savings to the advice journey; a disclosed need on a customer in arrears hands the account to the collections journey with the need on the item. The seven desks now work a day together (`campaigns/desks/bank-day.json`), and the journeys page draws the bank's **coverage matrix** from its domain spec — which journeys ship, which support, which are out and why.
 
@@ -1631,8 +1679,8 @@ The eighth is the **Servicing Desk's** (`fs-servicing/servicing`, `92-FS-SERVICI
 | `record` | rule | Performs a person's decision on the desk; the one place a decision is counted against the ceilings |
 | `explanation` | agent until `explained` | `{ reasons, text }` |
 | `four-eyes` | human — confirm / return / overturn | Entered on an approve, or on every decision when `fourEyes` is `all`; skipped under `none` |
-| `disbursement` | agent until `disbursed` — **irreversible** | Only after a confirmed approve |
-| `appeal` | agent until `appealed` | Only when the item arrived with an appeal |
+| `disbursement` | agent until `disbursed` — **irreversible** | Only after a confirmed approve; since WP137 held at its input by a gate card on the case file, as every journey's irreversible stage is (§67) |
+| `appeal` | agent until `appealed` | Only when the item arrived with an appeal; a contested decline ends the run handed off to the complaints journey as an appeal (WP145) |
 
 **The fraud journey** (`fs-fraud/fraud`; `76-FRAUD-AND-ADVICE-WORKFLOWS.md`) — eight stages: `alert` → `triage` → `contact` → `decision` → `restriction` → `SAR` → `filing` → `note`. Under `rules-only` the detector alone holds every alert and a person is asked about the SAR; the SAR is a person's below Level 5 and is irreversible.
 
@@ -1640,7 +1688,7 @@ The eighth is the **Servicing Desk's** (`fs-servicing/servicing`, `92-FS-SERVICI
 
 ### 44.3 The reference configurations and the autonomy levels
 
-Each workflow ships named **configurations** — which executor takes each stage, and which knobs — labelled with the **autonomy level** of the site's thought experiment (*Can a Small Team Govern an AI Bank?*): 1 *Human as Operator*, 2 *Collaborator*, 3 *Consultant* (the AI recommends, the human decides), 4 *Approver* (the AI initiates, the human authorises before execution), 5 *Observer* (the AI acts within parameters, monitored afterwards). The simulator and the thought experiment use one vocabulary on purpose.
+Each workflow ships named **configurations** — which executor takes each stage, which knobs, and since Day 5–7 the context rung (§46), a stack (§52), the reviewer model at its human stages (§62) and whether its ceilings are enforced (§44.4) — labelled with the **autonomy level** of the site's thought experiment (*Can a Small Team Govern an AI Bank?*): 1 *Human as Operator*, 2 *Collaborator*, 3 *Consultant* (the AI recommends, the human decides), 4 *Approver* (the AI initiates, the human authorises before execution), 5 *Observer* (the AI acts within parameters, monitored afterwards). The simulator and the thought experiment use one vocabulary on purpose.
 
 | Lending | Level | Fraud | Advice |
 |---|---|---|---|
@@ -1650,9 +1698,11 @@ Each workflow ships named **configurations** — which executor takes each stage
 | `bot-with-a-person-at-the-decision` — the bot everywhere; `fourEyes: all` | 4 | `bot-with-a-person-at-the-sar` | `bot-with-a-person-at-execution` |
 | `bot-everywhere` — the bot everywhere; `fourEyes: none` | 5 | `bot-everywhere` | `bot-everywhere` |
 
+The lending journey ships a sixth beside these, `bot-everywhere-ceilings-enforced` — Level 5 with `autonomy.enforce` — not one of the reference five, so the book campaign and its baseline keep the five.
+
 ### 44.4 Decision rights and ceilings
 
-The thought experiment's decision-rights table gives each kind of decision a **ceiling** — the highest autonomy level it may run at. The four rows that map to a desk ship as content (`fs-lending/src/decision-rights.ts`, the page cited as the source, retrieved 11 September 2026): in-policy credit approval **4**, an adverse credit decision **3**, the vulnerable-customer support pathway **3**, SAR filing **2**; the fraud and advice workflows carry their own (`account-restriction` 3, `personal-recommendation` 3, `investment-execution` 4). A decision taken at a level above its kind's ceiling is a **breach**. Breaches are *counted, never prevented*: the point of running `bot-everywhere` is to see what a Level 5 decline costs, and the breach rate is what says so. At Level 3 the rate is zero by construction; at Level 5 every decline is one.
+The thought experiment's decision-rights table gives each kind of decision a **ceiling** — the highest autonomy level it may run at. The four rows that map to a desk ship as content (`fs-lending/src/decision-rights.ts`, the page cited as the source, retrieved 11 September 2026): in-policy credit approval **4**, an adverse credit decision **3**, the vulnerable-customer support pathway **3**, SAR filing **2**; the fraud and advice workflows carry their own (`account-restriction` 3, `personal-recommendation` 3, `investment-execution` 4). A decision taken at a level above its kind's ceiling is a **breach**. Breaches are *counted, never prevented* by default: the point of running `bot-everywhere` is to see what a Level 5 decline costs, and the breach rate is what says so. At Level 3 the rate is zero by construction; at Level 5 every decline is one. Since WP139 a configuration may set `autonomy.enforce`, and a decision above its ceiling then waits for a person where it is recorded (§67); the lending journey ships `bot-everywhere-ceilings-enforced` beside its five for that, and the `ceilings` design measures it (§68).
 
 ### 44.5 From the harness
 
@@ -1671,7 +1721,7 @@ Every workflow run the store holds — a book campaign's cells, a what-if, an im
 
 ### 45.2 The Pipeline (`/workshop/workflows/<runId>`)
 
-A row opens the **Pipeline**: the run's strip, then a rail of stage cards — the executor's roundel (the bot, a rule, a person, a line), the status lamp, the executor in a sentence, the duration, the guard tally, and the approval or the finding when there is one. Select a stage for its **In** and **Out** panes on the case file, every field with its digest beside it. A bot stage links to **the Run Lab at this stage's first tick** when its run is in the store, and says plainly when it is not; a rule stage says *no bot ran*. Beneath the rail the **Journey Canvas** draws the journey as lanes — the assistant, a colleague, the rules, the systems — lit by the run: the path it took in the scope colour, the edge it took out of each stage, the boundary verdicts on their gates; the list beside it says the same in two tables. Select a node and the rail follows. (The ring the Boundary drew here until Day 6 is on the Spec Lab and the Run Lab still.)
+A row opens the **Pipeline**: the run's strip, then a rail of stage cards — the executor's roundel (the bot, a rule, a person, a line, a reader), the status lamp, the executor in a sentence, the duration, the guard tally, and the approval or the finding when there is one. Select a stage for its **In** and **Out** panes on the case file, every field with its digest beside it. A bot stage links to **the Run Lab at this stage's first tick** when its run is in the store, and says plainly when it is not; a rule stage says *no bot ran*. Beneath the rail the **Journey Canvas** draws the journey as lanes — the assistant, a colleague, the rules, the systems — lit by the run: the path it took in the scope colour, the edge it took out of each stage, the boundary verdicts on their gates; the list beside it says the same in two tables. Select a node and the rail follows. (The ring the Boundary drew here until Day 6 is on the Spec Lab and the Run Lab still.)
 
 ### 45.3 What if…
 
@@ -1709,7 +1759,7 @@ Each rung is a superset of the one below — a bot never loses a record by being
 
 ### 46.2 The ontology and the graph line
 
-The bank's **ontology** is its entities and relationships as a typed graph, generated from a case or a population and never stored: twelve classes — customer, account, transaction, product, application, decision, complaint, alert, and the governance entities: obligation, control, service line, desk — and relations that carry the **purposes** they may serve. A `knowledgeCard` renders a customer's neighbourhood deterministically; the **`graph` line**, the tenth service line, answers `neighbours`, `pathBetween` and `describeClass` at tier *observe*, recorded on the trace like any tool, and refuses a traversal the purpose does not allow with the same finding the other lines raise. Because the obligations and controls are in the graph, a bot at the `ontology` rung can be asked to cite the obligation its action serves.
+The bank's **ontology** is its entities and relationships as a typed graph, generated from a case or a population and never stored: fourteen classes — customer, account, transaction, product, application, decision, complaint, alert, the bureau file, the customer's disclosed vulnerability (special-category, never on a card), and the governance entities: obligation, control, service line, desk — and relations that carry the **purposes** they may serve. A `knowledgeCard` renders a customer's neighbourhood deterministically; the **`graph` line**, the tenth service line, answers `neighbours`, `pathBetween` and `describeClass` at tier *observe*, recorded on the trace like any tool, and refuses a traversal the purpose does not allow with the same finding the other lines raise. Because the obligations and controls are in the graph, a bot at the `ontology` rung can be asked to cite the obligation its action serves.
 
 ### 46.3 In a campaign
 
@@ -1741,7 +1791,7 @@ Rates carry Wilson intervals, differences Newcombe's hybrid score, ratios the lo
 
 ### 47.3 Human load and decision rights
 
-`touches-per-case` (a touch is a `human` stage answered, a stage escalated, or an approval a person answered), `unattended-rate`, `minutes-per-touch` (an assumption row in the calibration table, from the thought experiment's own register — never measured by the simulator), `human-load-at-volume` (touches × minutes × the clock's arrivals ÷ productive minutes per FTE-day), `ceiling-breach-rate` (§44.4), and the **oversight cost of a control** — the change in touches a control introduces beside the change in outcomes it buys, the two columns the register shows together (§50.3). These are the numbers the thought experiment's scenario model assumes; the simulator produces them.
+`touches-per-case` (a touch is a `human` stage answered, a stage escalated, or an approval a person answered), `unattended-rate`, `minutes-per-touch` (an assumption row in the calibration table, from the thought experiment's own register — never measured by the simulator), `human-load-at-volume` (touches × minutes × the clock's arrivals ÷ productive minutes per FTE-day), `ceiling-breach-rate` (§44.4), and the **oversight cost of a control** — the change in touches a control introduces beside the change in outcomes it buys, the two columns the register shows together (§50.3). These are the numbers the thought experiment's scenario model assumes; the simulator produces them. Human load v2 (§62) adds the reviewer model's own three — `review-seconds-per-case`, `review-accuracy` and `catch-rate` (of the wrong recommendations put in front of the person, the share reversed) — each validated like the rest; the Monitor reads them as review load.
 
 ### 47.4 In a gate
 
@@ -1782,7 +1832,7 @@ npm run craftabot -- bank run --day 2026-02-03 --desks campaigns/desks/bank-day.
   --population 1 --size 2000 --acceleration inf --egress none --out ./runs
 ```
 
-The desks file is a list of `{ id, workflowId, kinds, configuration?, knobs?, concurrency, build?, kit? }`; `campaigns/desks/bank-day.json` is lending, fraud and advice at their Level 4 configurations, the day CI runs. `--from`/`--to` run a window; `--stop-after <n>` stops after *n* items. Every agent run is written as `run` writes one, every workflow run under `<out>/workflows/`, and the day under `<out>/bank-runs/<id>/bank-run.json` with the wall time outside the digest.
+The desks file is a list of `{ id, workflowId, kinds, configuration?, knobs?, concurrency, build?, kit? }`; `campaigns/desks/bank-day.json` seats every journey's desk — lending, fraud, advice, complaints, onboarding, disputes, collections and servicing — at its Level 4 configuration, the day CI runs. `--from`/`--to` run a window; `--stop-after <n>` stops after *n* items. Every agent run is written as `run` writes one, every workflow run under `<out>/workflows/`, and the day under `<out>/bank-runs/<id>/bank-run.json` with the wall time outside the digest.
 
 ## 49. The lenses, Conduct and Model risk
 
@@ -1801,7 +1851,7 @@ Each lens's entry opens with a three-step **guided path** — what to read first
 
 ### 49.2 Conduct (`/workshop/conduct`)
 
-Pick a stored **Report** — a campaign's or a book's. The strip carries **Tipping-off** and **KYC** as lamps: the pass rate over the customers each check applied to, with its Wilson band, and the line *relevance, never compliance*. Then:
+Pick a stored **Report** — a campaign's or a book's. The strip carries **Tipping-off** and **KYC** as lamps: the pass rate over the customers each check applied to, pooled over every evaluator the control maps tag with that obligation and named beneath the lamp, with its Wilson band, and the line *relevance, never compliance*. Then:
 
 - **The four outcomes** — the Consumer Duty's, in its order, each with the report's own obligation row (pass rate, customers) and a table of the customers behind it. A customer's row opens the **Pipeline at the stage that governs the obligation** — the workflows' stages carry their obligations as content.
 - **Vulnerability: recognised × acted on** — a 2 × 2 over the customers the vulnerability check judged; a case that disclosed nothing counts as not recognised.
@@ -1828,7 +1878,7 @@ On the Assurance page, **Compare two reports** picks reports **A** and **B** and
 
 ### 50.1 What an experiment is
 
-A campaign says pass or fail per gate. An **experiment** (`72-EXPERIMENTS.md`; `experiment.schema.json`) says *by how much*: a pre-registered **hypothesis**; the **controls** under test, named as control-map rows; a campaign **template**; one or more **factors** over the template's own axes — the guard, the executors (a workflow's configurations), a knob, the context rung, the brain — each with its levels and a **baseline** level; **metrics** with their good direction (an evaluator's pass rate, a label's rate, a fairness metric, a case metric, a cost such as touches or breaches); seeds and replicates; a confidence and the smallest effect worth seeing. Every level combination is a campaign, sharing seeds. When the reports land the result folds each treatment level against the baseline as a **difference with its interval and *n*** — Newcombe for rates, Welch for means, the sign test over the pairs the shared seeds make — sliced by cohort too, with the cost on each side, and a **verdict** over the intervals: *supported* when every pre-registered metric's interval excludes zero in the stated direction, *not-supported* when one excludes it the other way, *inconclusive* otherwise, with the minimum detectable effect at the achieved *n* in the note. Never a *p* threshold.
+A campaign says pass or fail per gate. An **experiment** (`72-EXPERIMENTS.md`; `experiment.schema.json`) says *by how much*: a pre-registered **hypothesis**; the **controls** under test, named as control-map rows; a campaign **template**; one or more **factors** over the template's own axes — the guard, the executors (a workflow's configurations), a knob, the context rung, the brain — each with its levels and a **baseline** level; **metrics** with their good direction (an evaluator's pass rate, a label's rate, a fairness metric, a case metric, a cost such as touches or breaches); seeds and replicates; a confidence and the smallest effect worth seeing. Every level combination is a campaign, sharing seeds. When the reports land the result folds each treatment level against the baseline as a **difference with its interval and *n*** — Newcombe for rates, Welch for means, the sign test over the pairs the shared seeds make — sliced by cohort too, with the cost on each side, and a **verdict** over the intervals: *supported* when every pre-registered metric's interval excludes zero in the stated direction, *not-supported* when one excludes it the other way, *inconclusive* otherwise — and, since WP116, *untestable* when every effect on the metrics sat at a bound, so nothing could move (§62) — with the minimum detectable effect at the achieved *n* in the note. Never a *p* threshold.
 
 ### 50.2 On the Experiments screen (`/workshop/experiments`)
 
@@ -1838,11 +1888,11 @@ A campaign says pass or fail per gate. An **experiment** (`72-EXPERIMENTS.md`; `
 
 ### 50.3 The Control Effectiveness Register
 
-The register (`80-CONTROL-EFFECTIVENESS-REGISTER.md`) folds every stored experiment result by the control it tested. On the Assurance page — first, under the bot picker — one row per control the maps list: what it changed, by how much, how sure, over which workflows, populations and contexts, at what cost in touches and approvals, and a status: **evidenced**, **inconclusive**, or **untested**, in the open. A row opens the experiment behind it. With no result stored the table says *Untested* and why. The same table is **§5 — Risk mitigants** of the assurance pack in both renderings, each mitigant's effect citing its experiment and its run ids: the register is the empirical answer to *which of these controls should a bank implement*, and the *untested* rows are its to-do list.
+The register (`80-CONTROL-EFFECTIVENESS-REGISTER.md`) folds every stored experiment result by the control it tested. On the Assurance page — first, under the bot picker — one row per control the maps list: what it changed, by how much, how sure, over which workflows, populations and contexts, at what cost in touches and approvals, and a status: **evidenced**, **inconclusive**, **untestable** (nothing erred that the control could catch, §62), or **untested**, in the open. A row opens the experiment behind it. With no result stored the table says *Untested* and why. The same table is **§5 — Risk mitigants** of the assurance pack in both renderings, each mitigant's effect citing its experiment and its run ids: the register is the empirical answer to *which of these controls should a bank implement*, and the *untested* rows are its to-do list.
 
 ### 50.4 The reference experiments
 
-Seven designs ship under `experiments/`, each naming the control-map rows it tests, and their full-size results — over a 10,000-customer population — are committed under `docs/evidence/<id>/` with digests and timings:
+Seven designs shipped with Day 5 under `experiments/`, each naming the control-map rows it tests, and their full-size results — over a 10,000-customer population — are committed under `docs/evidence/<id>/` with digests and timings. Sixteen ship now: the seven below, `servicing-readers` (§61), `ceilings` and `controls` (§68), a stack design per Phase AA desk and `gate-presets` (§69); every design was re-run at full size on 2026-10-02 and every effect reproduced, `human-oversight` with a sixth executors level, `bot-everywhere-ceilings-enforced`:
 
 | Experiment | Hypothesis | Factors |
 |---|---|---|
@@ -1854,7 +1904,7 @@ Seven designs ship under `experiments/`, each naming the control-map rows it tes
 | `advice-context` | Relational context lowers unsuitable recommendations on the vulnerable deck and raises data-minimisation findings on the plain one | context × deck |
 | `human-oversight` | From Level 3 to Level 5 touches per case fall and the breach rate rises; the stack at Level 4 recovers most of the outcome at a fraction of Level 3's touches | executors × guard, with touches and breaches |
 
-The eighth the design named, `drift-day` — a planted mid-day shift flagged within two simulated hours — is the Monitor's test rather than a campaign-shaped experiment, and is recorded as such under `docs/evidence/drift-day/`. `docs/evidence/README.md` states what these results are evidence *of* — this synthetic bank, these configurations, the scripted brains — and not: not a real book, not a real bot, not compliance, and not transferable as magnitudes. CI runs every design at a reduced size and holds each result to the committed shape.
+`drift-day`, which the design named beside the seven — a planted mid-day shift flagged within two simulated hours — is the Monitor's test rather than a campaign-shaped experiment, and is recorded as such under `docs/evidence/drift-day/`. `docs/evidence/README.md` states what these results are evidence *of* — this synthetic bank, these configurations, the scripted brains — and not: not a real book, not a real bot, not compliance, and not transferable as magnitudes. CI runs every design at a reduced size and holds each result to the committed shape.
 
 ### 50.5 From the harness
 
@@ -1877,6 +1927,8 @@ What this repository ships for it:
 - **The workspace offer.** When the simulator is served from the site, the Evidence screen shows **Use my Axiom Verity workspace**: a signed-in member's account is an evidence-store workspace, its token minted on the site's account page and pasted into the same URL and token fields as everyone else's. Served from anywhere else the offer is absent, and every screen works with it declined. Nothing is read from a session; the site's key is not in the app.
 - **The ceilings, cited.** The decision-rights table (§44.4) names the site's framing page as its source.
 - **The link back.** Settings → *About* carries the posture line and *Read the two side by side* — the framing page, where the thought experiment's assumptions and the simulator's measurements sit in one table.
+
+The first release is cut: `v0.7.0` (2026-09-30), whose `craftabot-site-v0.7.0.zip` `release.yml` published with its checksum verified.
 
 What is not yet built lives in the site's own repository: the service that serves and gates the folders, the account page that mints the token, and the framing page itself. Until then the three sections publish to any static host as §38 describes.
 
@@ -1908,18 +1960,21 @@ Everything that decides now declares itself the same way (`85-COMPONENTS.md`). A
 | Adapter | Components | Points | Verdicts |
 |---|---|---|---|
 | Built in | `governance/step-budget`, `token-budget`, `action-blocklist`, `no-repetition`, `approval-mode` — the Safety brick's own dials as components | the loop | `stop-run`, `block-action`, `pause` |
+| Agent security (built in, Phases AL–AM; §67) | `governance/no-progress`, `cost-cap`, `tool-argument-validation`, `secret-scan`, `privilege-scopes`, `memory-provenance`, `peer-auth`, `prompt-integrity` | `pre-think` or `pre-act`, as each declares | `stop-run`, `block-action`, `pause`, `annotate` |
+| Injection defences (§52.4) | `governance/untrusted-content`, `governance/taint`, `governance/red-team-seat`, `fs-bank/guard/quarantined-reader` | `post-act`, `pre-act`, `group`, `post-act` | `annotate`, `block-action`, `pause` |
 | Policy card | `governance/policy-card` with a card id — every card on every desk | the loop, and either stage boundary | `block-action`, `stop-run` |
-| Guard service | `geap/armor` (Google Model Armor), `guard-local/llama-guard`, `guard-local/prompt-guard`, `azure-content-safety/content-safety`, `pdp-opa`, and since Day 6 `bedrock-guardrails` and `lakera/guard` | the service's hooks, and either stage boundary | `block-action`, `stop-run`, `redact` where the service returns text, `annotate` |
+| Guard service | `geap/model-armor` (Google Model Armor), `guard-local/llama-guard`, `guard-local/prompt-guard`, `azure-content-safety/content-safety`, `pdp-opa/opa`, since Day 6 `bedrock-guardrails/apply-guardrail` and `lakera-guard/guard`, and since Phase AL `pdp-cedar/verified-permissions` and `bedrock-guardrails/automated-reasoning` (§67) | the service's hooks, and either stage boundary | `block-action`, `stop-run`, `pause`, `redact` where the service returns text (never a policy engine), `annotate` |
 | Evaluator breaker | `monitor/evaluator-breaker` with an evaluator id and the labels that stop a run | `group`, `stage-out` | `stop-run` |
+| Reader | `readerComponent` over any reader with a threshold — `fs-bank/guard/vulnerability-detection` at every desk's intake (§67) | the loop, and either stage boundary | `block-action`, `annotate` |
 | Egress rule | `governance/egress-declared`, `governance/egress-none` | `egress` | `block-action` |
 
 A component at a loop point is that point's guardrail alone: a card with rules on three hooks is fitted three times, one row per point, which is what the Studio draws.
 
 ### 52.2 A stack
 
-A **stack** (`89-STACKS.md`; `stack.schema.json`) is a named composition — each fit a component, its config and its point — with the group half (the Watchbot's rules and breakers) beside it, the **obligations** and **controls** it claims to serve, and its provenance (who, when, derived from what). Stacks are content: the desks ship theirs (`none`, `policy-cards`, `policy-cards+local-classifier`, `policy-cards+hosted-guard`, `compliance-watchbot`, one set per desk), yours live in the content store as `local/stacks/<slug>`, and a stack pushes to and pulls from the evidence store like any artefact.
+A **stack** (`89-STACKS.md`; `stack.schema.json`) is a named composition — each fit a component, its config and its point — with the group half (the Watchbot's rules and breakers) beside it, the **obligations** and **controls** it claims to serve, and its provenance (who, when, derived from what). Stacks are content: the desks ship theirs (`policy-cards`, `policy-cards+local-classifier`, `policy-cards+hosted-guard`, `compliance-watchbot`, one set per desk; the baseline's `none` guard needs no stack), yours live in the content store as `local/stacks/<slug>`, and a stack pushes to and pulls from the evidence store like any artefact.
 
-A stack is used in four places, and resolves to the same chain in each:
+A stack is used in five places, and resolves to the same chain in each:
 
 | Where | How |
 |---|---|
@@ -1927,8 +1982,9 @@ A stack is used in four places, and resolves to the same chain in each:
 | A workflow configuration | `stack` for the journey, `stageStacks` per stage — the journey's loop fits on every bot stage's session, its boundary fits at every stage; a stage's boundary fits at that stage |
 | An experiment | the `guard` factor's levels are stack ids; a stack's `controls` join the experiment's, so the register (§50.3) shows the stack's effect on the control's row |
 | The Safety brick | `stack` on the brick fits the whole stack as **one brick** — the socket's four is a limit on bricks, not on components — and the brick's dials go quiet, since the stack says what runs |
+| The Gate | the stack file *Use in… the Gate* downloads, served in front of any agent (§59) — the identity test holds its `guardrail.checked` sequence to the session's |
 
-The Spec Lab's stack panel is now a **picker** of the desk's stacks and your saved ones, with *Open in the Studio*. `checkStack` in the conformance kit refuses a fit at a point the component does not declare, a duplicate fit, and a component with a connection but no stand-in in a browser edition.
+The Spec Lab's stack panel is now a **picker** of the desk's stacks and your saved ones, with *Open in the Studio*. `checkStack` in the conformance kit refuses a fit at a point the component does not declare, a duplicate fit, a component with a connection but no stand-in in a browser edition, and — since Phase AJ — a claim naming an obligation tag or a control row that does not exist.
 
 ### 52.3 A connection
 
@@ -1936,14 +1992,16 @@ A component that reaches outside the product declares its **connection** (`85-�
 
 | Service | Wraps | Browser | Stand-in | Notes |
 |---|---|---|---|---|
-| `geap/armor` | Google Model Armor | yes | offline fixture | filter version `v3` and the multimodal flag as config; streaming sanitisation recorded not applicable to a one-call-per-turn loop; Sensitive Data Protection is the first `redact` component |
+| `geap/model-armor` | Google Model Armor | yes | offline fixture | filter version `v3` and the multimodal flag as config; streaming sanitisation recorded not applicable to a one-call-per-turn loop; Sensitive Data Protection is the first `redact` component |
 | `azure-content-safety/content-safety` | Azure AI Content Safety | checkpoint pending | offline fixture | Prompt Shields and the four harm categories; Azure has no PII redaction in this service, so it is not a `redact` component |
 | `guard-local/llama-guard`, `guard-local/prompt-guard` | Llama Guard and a prompt-injection classifier over your own Ollama | no — the harness runs them | deterministic rule | as §20 |
-| `pdp-opa` | Open Policy Agent | — | offline fixture | the external policy decision point |
-| `bedrock-guardrails` | AWS Bedrock Guardrails (`ApplyGuardrail`) | **no** — SigV4 signing; harness only | offline fixture | new in Day 6; live checkpoint pending (`npm run smoke:bedrock`) |
-| `lakera/guard` | Lakera Guard | checkpoint pending; harness only until then | offline fixture | new in Day 6; live checkpoint pending (`npm run smoke:lakera`) |
+| `pdp-opa/opa` | Open Policy Agent | yes — the live checkpoint taken against a local OPA | offline fixture | the external policy decision point |
+| `bedrock-guardrails/apply-guardrail` | AWS Bedrock Guardrails (`ApplyGuardrail`) | **no** — SigV4 signing; harness only | offline fixture | new in Day 6; live checkpoint pending (`npm run smoke:bedrock`) |
+| `lakera-guard/guard` | Lakera Guard | checkpoint pending; harness only until then | offline fixture | new in Day 6; live checkpoint pending (`npm run smoke:lakera`) |
+| `pdp-cedar/verified-permissions` | Amazon Verified Permissions (Cedar) | **no** — SigV4; harness only | offline fixture | new in Phase AL; live checkpoint pending (`npm run smoke:cedar`) |
+| `bedrock-guardrails/automated-reasoning` | Bedrock Guardrails' automated-reasoning checks | **no** — harness only | offline fixture | new in Phase AL; the catalogue's one *connectable* entry, checkpoint pending (`npm run smoke:bedrock-ar`) |
 
-A browser edition refuses to plug in a harness-only connection, with the reason, at fit time; the harness installs both new packs and no edition does.
+A browser edition refuses to plug in a harness-only connection, with the reason, at fit time; the harness installs the four harness-only packs and no edition does.
 
 ### 52.4 The injection defences
 
@@ -1972,7 +2030,7 @@ In the catalogue, untrusted-content marking, indirect-injection defences, inform
 
 - **Catalogue** (left) — every component the installed packs ship, filtered by **Point**, **Verdict**, **Cost**, **Connection** (built in / local / hosted) and **Technique**; each a card with its points, verdicts, cost and connection lamp, and its `explain` sentence.
 - **Points** (centre) — pick a **Journey** and its canvas is drawn with every guard point (§55), or *the loop alone* for a Playroom bot: three points. Fit a component to a point three ways that do one thing: click the component then the point; drag the card onto the point; or from a stage on the canvas press `g` then `Enter`. A fit the component cannot decide at is refused with the reason.
-- **The stack** (beneath) — each fit with its point, its `explain` line, **Settings** (the config form from the component's own schema; **Apply**) and **Remove**. **Name** it and **Save** — it lands in your content store under your name — then **Use in…** a campaign (the editor gains a `guards[]` entry naming it), an experiment (the design's guard becomes it) or the Spec Lab (its picker preselects it). Save first: the page finds a stack by id.
+- **The stack** (beneath) — each fit with its point, its `explain` line, **Settings** (the config form from the component's own schema; **Apply**) and **Remove**. **Name** it and **Save** — it lands in your content store under your name — then **Use in…** a campaign (the editor gains a `guards[]` entry naming it), an experiment (the design's guard becomes it) or the Spec Lab (its picker preselects it) — or **the Gate** (§59), which downloads the stack file and shows the line that serves it. Save first: the page finds a stack by id. Beneath the fits the stack states what it **claims**: the control rows it implements and the obligations it serves, so a reader sees them before the register does (§66).
 
 ### 53.2 The test bench
 
@@ -1984,19 +2042,23 @@ The bench runs the stack's **loop** fits; a boundary fit is exercised by running
 
 ## 54. The Guardrail Catalogue
 
-`/workshop/catalogue` (`86-CATALOGUE.md`). Every guardrail technique the field names — forty-five entries in the first edition — each with a summary, its taxonomy, the **threats** it answers (OWASP's Agentic Top 10, ASI01–ASI10, and the LLM Top 10), the **frameworks** it maps to (NIST AI RMF, ISO/IEC 42001, the EU AI Act, PRA SS1/23 — the control map's own vocabulary), its **maturity** (widely adopted, emerging, research), its **sources** with a year, and a **coverage status** the code verifies:
+`/workshop/catalogue` (`86-CATALOGUE.md`; the second edition, WP132, `110-CONTROL-SUITE-PLAN.md`). Every guardrail technique the field names — sixty-nine entries in the second edition (`2026-10`): the first edition's forty-five, the mechanisms the code already had that no entry claimed, and what a bank's control framework names that a survey of agent security does not — each with a summary, its taxonomy, the **threats** it answers (OWASP's Agentic Top 10, ASI01–ASI10, the LLM Top 10, MITRE ATLAS), the **frameworks** it maps to (NIST AI RMF, ISO/IEC 42001, the EU AI Act, PRA SS1/23 and SS1/21, UK GDPR, the FCA Handbook, the PSR — the control map's own vocabulary), its **maturity** (widely adopted, emerging, research), its **sources** with a year, what **implements** it — components, or any other control reference: a card, an evaluator, a reader, a scenario, a stack, a gate kind, an event, an artefact or a declared mechanism — and a **coverage status** the code verifies:
 
-| Status | Meaning |
-|---|---|
-| **shipped** | a component exists and the identity test runs it |
-| **connectable** | a declared connection to a vendor, with a stand-in |
-| **bespoke** | designed in `83-…` §6.4.2, not built — the register shows it as *untested* rather than absent |
-| **blueprint** | described and mapped only |
-| **not applicable** | the simulator has no such surface — sandboxed code execution, for one — and the entry says why |
+| Status | Meaning | Second edition |
+|---|---|---|
+| **shipped** | a component or a mechanism exists here and the register can show what it did | 61 |
+| **connectable** | the shell meets a vendor's contract, with a stand-in; a live checkpoint proves it | 1 — Bedrock's automated-reasoning checks, checkpoint pending |
+| **bespoke** | a design of record exists, built in part or as content | 0 — the four injection defences (§52.4) were the last, shipped in Day 7 |
+| **blueprint** | described and mapped, nothing built | 1 — formal verification of agent policies |
+| **not applicable** | the simulator has no such surface, and the entry says why | 6 — rate limits, sandboxed execution, guardrail frameworks, retention and deletion, access control on the controls, content credentials on outputs |
 
-The taxonomy follows the current attack-and-defence survey's categories — runtime protection (input guardrails, output guardrails, action control and policy-as-code, information flow and monitoring), secure by design, identity and access, component hardening — plus evaluation and assurance and human oversight. The page filters by **Threat**, **Maturity** and **Coverage**; a row opens to its components (each a link into the Studio), the stacks that fit them, its frameworks and its sources. The foot lists what the product does **not** claim — *blueprint only* and *not applicable* — by name; the assurance pack's §5 carries the same two lists, and the **Assurance lens** shows the counts as *Coverage* beneath the register.
+Nothing is implied: a status is what the code did on the edition's date.
 
-`docs/catalogue.md` is generated from the same content (`npm run catalogue:doc`) and checked on every build, so the document and the screen cannot disagree; `checkCatalogue` refuses a *shipped* entry that names nothing that ships. Every entry shipped `review: pending` — the page counts the entries a person has not yet read against their sources.
+The taxonomy follows the current attack-and-defence survey's categories — runtime protection (input and output guardrails, action control and policy-as-code, information flow, monitoring, provenance), secure by design, identity and access, component hardening — plus evaluation and assurance and human oversight. The page filters by **Threat**, **Maturity** and **Coverage**; the table shows each entry's points, threats, coverage, what implements it, its **measured effect** (the register's headline where an experiment measured a stack that fits its components, §50.3) and its **benchmark** (the latest measurement, or *unmeasured*, §63); a row opens to its components (a link into the Studio), the stacks that fit them, *The controls that implement it* — the Control Inventory (§66) filtered to the entry, every instance with where it is fitted and what it did — its frameworks and its sources. The foot lists what the product does **not** claim — *blueprint only* and *not applicable* — by name; the assurance pack's §5 carries the same two lists, and the **Assurance lens** shows the counts as *Coverage* beneath the register.
+
+`docs/catalogue.md` is generated from the same content (`npm run catalogue:doc`) and checked on every build, so the document and the screen cannot disagree. `checkCatalogue` refuses a *shipped* entry that names nothing that ships, an implementation that does not resolve to a registered control, an entry with no cited source, a *not applicable* entry with no reason, and a duplicate id. The catalogue is the page of *techniques*; the inventory (§66) is the page of *instances*, and CI's orphan rule holds the two together: every component, card, stack, reader, evaluator and mechanism is named by an entry or cited by a control row.
+
+**`review: pending`.** Every entry ships pending, and all sixty-nine still are: no person has read it against its sources, so its status is what the code verified, not what a reader has confirmed. The lede counts them; the reading desk (§64) queues them with the rest, and a reading — *accepted*, *amended* or *rejected* — is content in your store, never an edit to the pack. `checkCatalogue({ requireReview })` refuses an entry no reading has accepted.
 
 > **Figure 24** — The Guardrail Catalogue: the coverage counts, the three filters, and an entry opened to its components and sources. *(Appendix D, `ws-catalogue.png`.)*
 
@@ -2024,11 +2086,11 @@ The same drawing appears on the **Pipeline** (§45) lit by the run — the stage
 
 | Journey | Desk | Hands off to |
 |---|---|---|
-| Onboarding and KYC — `fs-onboarding/onboarding` | the Onboarding Desk | — |
+| Onboarding and KYC — `fs-onboarding/onboarding` | the Onboarding Desk | complaints (a contested decline, as an appeal — §67) |
 | Account servicing and vulnerability support — `fs-servicing/servicing` | the Servicing Desk | advice (a bereavement's estate); collections (a disclosed need in arrears) |
-| Payments and disputes — `fs-disputes/disputes` | the Disputes Desk | fraud (a reimbursed scam, as an alert); complaints (a decline) |
+| Payments and disputes — `fs-disputes/disputes` | the Disputes Desk | fraud (a reimbursed scam, as an alert); complaints (a contested decline, as an appeal) |
 | Fraud and scams — `fs-fraud/fraud` | the Fraud Desk | complaints (a disputed restriction) |
-| Lending — `fs-lending/lending` | the Lending Desk | — |
+| Lending — `fs-lending/lending` | the Lending Desk | complaints (a contested decline, as an appeal) |
 | Collections and arrears — `fs-collections/arrears` | the Collections Desk | servicing (a disclosure, which comes back with the need on the item) |
 | Savings and investment advice — `fs-advice/advice` | the Advice Desk | — |
 | Complaints and redress — `fs-advice/complaints` | the Complaints Desk | — |
@@ -2072,7 +2134,7 @@ The output **passes the checklist as written** and **fails calibration review** 
 
 ### 56.4 The checklist
 
-`checkDomainPack(spec, registry, { manifests, personas })` returns an empty list or the items unmet — each with a stable name: `domain.packs-registered`, `domain.journey-ships`, `domain.journey-out-why`, `domain.journey-obligations`, `domain.decision-kinds`, `domain.control-rows`, `domain.calibration`, `domain.special-category`, `domain.service-line-tiers`, `domain.personas`, `domain.journey-evidence`. The bank is held to its own spec (`packages/harness/src/domain-pack.test.ts`, one red test per item); copy its shape for yours. Four things the check cannot see from a manifest are the pack's own tests: the golden run, the red run, at least one matched pair, and the synthetic sweep over every fixture.
+`checkDomainPack(spec, registry, { manifests, personas })` returns an empty list or the items unmet — each with a stable name: `domain.packs-registered`, `domain.journey-ships`, `domain.journey-out-why`, `domain.journey-obligations`, `domain.decision-kinds`, `domain.control-rows`, `domain.calibration`, `domain.special-category`, `domain.service-line-tiers`, `domain.personas`, `domain.journey-evidence`. With `{ requireReview, reviews }` two more: `domain.review-pending` (a control or calibration row no reading has accepted) and `domain.decision-right-pending` (§64). The bank is held to its own spec (`packages/harness/src/domain-pack.test.ts`, one red test per item); copy its shape for yours. Four things the check cannot see from a manifest are the pack's own tests: the golden run, the red run, at least one matched pair, and the synthetic sweep over every fixture.
 
 ## 57. The palette, saved views and density
 
@@ -2100,7 +2162,7 @@ The Run Lab, the Pipeline and an open campaign report each list what links to th
 
 ## 58. Access: twins, keyboards and the reader's walk
 
-Every drawing in the Control Room has a **list twin** (`97-ACCESS.md`) rendered beside or beneath it — the Journey Canvas's two tables, the Boundary's *Every edge* list, the Pipeline's stage cards beside the Journey List, the Monitor's tiles above their queue table — the same facts as a list, never hidden behind a toggle, and tested equal to the drawing. Every drawing has a **keyboard model**: `Tab` to it, arrows around the ring or along the edges, `Home`/`End`, `Enter` to select, `Escape` to leave; each focus stop is announced from its twin's row, so a screen reader hears the row's sentence in the drawing's place. Every Workshop route begins with a **skip link** to the content, has one heading and one main landmark, and every drawer gives focus back to what opened it. The build holds all of this in one job: axe over every route, the reader's walk over the three canvases and the landmarks on twenty-seven routes, the pages at 320 px and at 640 px (the product's reading of 200 % zoom), and the lit Pipeline under reduced motion and without it — the same picture, no animation.
+Every drawing in the Control Room has a **list twin** (`97-ACCESS.md`) rendered beside or beneath it — the Journey Canvas's two tables, the Boundary's *Every edge* list, the Pipeline's stage cards beside the Journey List, the Monitor's tiles above their queue table — the same facts as a list, never hidden behind a toggle, and tested equal to the drawing. Every drawing has a **keyboard model**: `Tab` to it, arrows around the ring or along the edges, `Home`/`End`, `Enter` to select, `Escape` to leave; each focus stop is announced from its twin's row, so a screen reader hears the row's sentence in the drawing's place. Every Workshop route begins with a **skip link** to the content, has one heading and one main landmark, and every drawer gives focus back to what opened it. The build holds all of this in one job: axe over every route, the reader's walk over the three canvases and the landmarks on thirty-one routes, the pages at 320 px and at 640 px (the product's reading of 200 % zoom), and the lit Pipeline under reduced motion and without it — the same picture, no animation.
 
 **Reviewing a control row.** On the Assurance screen (§23) every control-map row can be **reviewed** — *reviewed* or *disputed*, with a note, under your name from Settings. A review is content in your store beside the pack's row, never an edit to the pack: the table shows it, the assurance pack files it beside the row it is about, and the pack's own claim of relevance stands as the pack made it.
 
@@ -2144,6 +2206,7 @@ CRAFTABOT_GATE_UPSTREAM_KEY=… npm run craftabot -- gate serve --stack gate/sta
 - **The day.** `GET /v1/gate/bundle` is the Gate's day as one bundle.
 - **In the Audit Centre.** *Open a bundle…* verifies its digest and stores its conversations as runs.
 - **In the assurance pack.** The pack for *The Gate* names the stack, the mode and the upstream.
+- **In the register.** The five presets run as guard levels in `experiments/gate-presets.json`; each claims its rows and has a verdict (§69).
 
 **The example.** `examples/gated-agent` shows an agent governed by a stack it never saw.
 
@@ -2166,7 +2229,7 @@ CRAFTABOT_GATE_UPSTREAM_KEY=… npm run craftabot -- gate serve --stack gate/sta
 - the Brier score;
 - the *gate curve*: what a threshold would hand to a person, and how often the reader would have been right on the rest.
 
-**Where to see it.** The servicing, disputes and complaints journeys have classify-shaped stages on rule readers. `@craftabot/pack-readers-llm` carries the LLM readers. The Campaigns screen's pane reads any report with readings.
+**Where to see it.** The servicing, disputes and complaints journeys have classify-shaped stages on rule readers, each behind the desks' line of 0.8 with the bank's rule as its `else` (§66). `@craftabot/pack-readers-llm` carries the LLM readers. The Campaigns screen's pane reads any report with readings.
 
 ## 61. Corpora
 
@@ -2217,7 +2280,7 @@ The rows come from seven adversarial corpora, one per desk, over the surfaces ea
 - recall by attack kind, as a matrix with its twin in words;
 - the rows it alone caught or missed.
 
-**What it cannot do.** A service answered by its **stand-in** is *unmeasured*, not zero: the stand-in answers clean whatever it is shown. A measurement comes from a cassette the harness recorded with a key. The Guard Rack and the catalogue show each service's latest measurement or *unmeasured*. Today every shipped service is unmeasured. The keyword baseline reads recall 26% at precision 81%.
+**What it cannot do.** A service answered by its **stand-in** is *unmeasured*, not zero: the stand-in answers clean whatever it is shown. A measurement comes from a cassette the harness recorded with a key. The Guard Rack and the catalogue show each service's latest measurement or *unmeasured*. Today two guards are measured, both through the local Ollama and replayed from their cassettes in CI: Llama Guard 3 (precision 92%, recall 17%) and the bank's policy-conditioned reader (73%, 99%; §67). The keyword baseline reads recall 26% at precision 81%. Every hosted service is unmeasured until its key exists, and Prompt Guard 2 cannot be served by Ollama.
 
 > **Figure 28** — A benchmark report over the stand-ins: *synthetic rows* first, every subject in one table, recall by attack kind. *(Appendix D, `ws-benchmarks.png`.)*
 
@@ -2227,7 +2290,8 @@ The rows come from seven adversarial corpora, one per desk, over the surfaces ea
 - the catalogue's entries and the calibration rows;
 - the control rows and the domain's decision rights;
 - the blueprint notes' checkboxes and the screening lists;
-- the error and reviewer models.
+- the error and reviewer models;
+- a knob a shipped campaign or experiment sets away from its default (`knob-change`, §67).
 
 `/workshop/readings` is the queue (`108-READINGS.md`). Each subject shows its source beside it: the citation, the numbers, the entry's description, the right's ceiling.
 
@@ -2244,7 +2308,7 @@ A reading goes on the record under your name (Settings). Accepted and amended ro
 - **Push** sends a reading to the evidence store.
 - **The maintainer's list** is `craftabot readings export --format markdown`: the amendments to edit in, the rejections, then the unread.
 
-When this edition was written, 284 subjects waited (260 before the catalogue's second edition, §66) and none had been read.
+When this edition was written, 316 subjects waited (260 after Day 7, 284 after the catalogue's second edition, 304 after Phase AN) and none had been read.
 
 > **Figure 29** — The reading desk over the error models: the readouts per kind, each model with the faults it plants and the rows it reads, and the three buttons. *(Appendix D, `ws-readings.png`.)*
 
@@ -2285,7 +2349,7 @@ The catalogue is the page of *techniques*; this is the page of *instances*. Each
 
 **The eight facets.** Each is folded from where it is recorded; nothing is typed in.
 - **Catalogue.** The catalogue entries that name the control, directly or through the component it runs on. A card runs on the policy-card component; a stack runs through its fits. *Uncatalogued* means none does. A knob or a model reads *not applicable*: it is a setting or the simulation's apparatus, not a technique.
-- **Fitted.** Where it is fitted: the shipped stacks, stage guards, journey configurations, campaigns and experiments. *Unfitted* is a finding, not an error. No shipped configuration, campaign or experiment names a stack today, for example; the Studio, the Spec Lab and `?stack=` do.
+- **Fitted.** Where it is fitted: the shipped stacks, stage guards, journey configurations, campaigns and experiments. *Unfitted* is a finding, not an error. The advice, fraud and lending stacks are named by no shipped configuration, campaign or experiment, for example; the Studio, the Spec Lab and `?stack=` do. The five Phase AA desks' stacks and the Gate's presets are named by their designs (§68, §69), so `craftabot controls list` reads them *fitted* and the browser, which carries no experiment files, does not.
 - **Exercised.** Whether it fired in the runs and campaign reports stored in this browser: *fired ×n*, *not fired*, *not run*, or *no runs stored*. A run's summary keeps a guard's trips, not its checks, so a guard that ran and never tripped reads *not fired*. That is all the record can say.
 - **Measured.** Its latest benchmark measurement (§63), never a stand-in's, or *unmeasured*.
 - **Effect.** The register's best verdict over the control rows that cite the control. The verdict is the control's own rows', not its desk's. An experiment now claims only the rows a person ticks on its design (*Controls this tests*), or the guard stack's own claims; before, it claimed every row of the desk's map.
@@ -2338,7 +2402,7 @@ Each is a control the inventory lists with its facets, a catalogue entry that na
 
 ## 68. The controls and ceilings designs
 
-Every reference design was re-run at full size on 2026-10-02, and seven were added. `docs/evidence/README.md` says what each found; `timings.md` has the counts and the wall times.
+Every reference design was re-run at full size on 2026-10-02 — sixteen in all, eight of them added that day (§69 adds the Gate's). `docs/evidence/README.md` says what each found; `timings.md` has the counts and the wall times.
 
 **The `controls` design** runs each agent-security component against no guard, under the scripted-optimal bot and the scripted adversary. Each level names the control-map row it tests and the metric it is judged on first, both written in the design before the run.
 
@@ -2362,12 +2426,12 @@ Not in the design: prompt integrity, whose validated digest belongs to one build
 
 **The `ceilings` design** enforces the ceilings at Level 5. Measured against Level 5 itself, the breach rate falls from 62.6% to 0 on 783 applications, under both brain tiers. The price is a person's touch on each held decision, read from each effect's cost. `human-oversight` carries the same configuration as its sixth level.
 
-**One stack design per desk.** `disputes-stack`, `collections-stack`, `onboarding-stack`, `servicing-stack` and `complaints-stack` each run the desk's policy-card stack against no guard on its own book, so every stack the bank ships now has a verdict. The first four read *untestable*: the scripted bot errs nowhere their cards could catch. On the complaints desk the scripted bot names the register's root cause in only 69% of complaints, and the stack does not change that, because no card checks a root cause.
+**One stack design per desk.** `disputes-stack`, `collections-stack`, `onboarding-stack`, `servicing-stack` and `complaints-stack` each run the desk's policy-card stack against no guard on its own book, so every stack the bank ships now has a verdict. When they first ran (WP150), the first four read *untestable*: the scripted bot errs nowhere their cards could catch; the complaints desk read 69% root cause, which turned out to be the desk's own content. Phase AP gave each a fallible level and fixed the complaints desk: the four now read *inconclusive* and complaints *not-supported* (§69).
 
 **What a row's Effect says.**
 - A row is *untestable* when every effect on its primary metric sat at a bound: the metric the control was built to move could not move. A later metric that moved by chance no longer turns that into *inconclusive*.
 - A card or component that no control row cites, but that a stack carries, shows the stack's verdict, marked *via* that stack. It was measured as part of the stack, not alone.
-- The Gate's five presets are the only stacks with no verdict.
+- Since WP157 the Gate's five presets have verdicts too (§69); no shipped stack is without one.
 
 > **Figure 31** — The Control Inventory over the knobs: the readouts, the matrix of kind against facet, and the twelve knobs the worlds declare. *(Appendix D, `ws-controls.png`.)*
 
@@ -2393,6 +2457,8 @@ Phases AO–AQ (`docs/design-day2/111-TESTABLE-CONTROLS-PLAN.md`) set out to giv
 - Every agent-security component reads *evidenced*.
 - Every shipped stack has a verdict, and so does every card or component a stack carries.
 - What is left to read is stated on the reading desk: 316 items.
+
+**Where the plans stand.** `110-…` and `111-…` are both exhausted. What remains is said rather than scheduled: the hosted services' checkpoints and their benchmark cassettes wait on keys (WP125, WP140, WP144); Prompt Guard 2 has no host that can serve it; the stage that retries a blocked root cause is not built; no design has a live level. New work needs a fresh plan.
 
 # Appendices
 
@@ -2447,8 +2513,8 @@ Routes are given as they appear in the `full` build. In a published section, pre
 | `/workshop/experiments` | Experiments | Design, queue and read an experiment (§50.2) |
 | `/workshop/assurance` | Assurance: the register, coverage, control review, compare two reports, the pack | Every control's measured effect or *untested*; the Catalogue's counts; a row reviewed or disputed; two reports side by side; the pack's downloads (§23, §50.3, §54, §58) |
 | `/workshop/evidence` | Evidence | The shared store: configure, push, pull |
-| `/workshop/export` | Audit centre | Bundles, traces, reports, sink sends, evidence pushes |
-| `/workshop/armour` | *(redirect)* | Superseded by the Guard Rack |
+| `/workshop/export` | Audit centre | Bundles, traces, reports, sink sends, evidence pushes; open a bundle |
+| `/workshop/armour` | *(redirect)* | Superseded by the Guard Rack, now the Studio's Connections tab |
 
 ### The Playground
 
@@ -2472,7 +2538,7 @@ Every artefact that crosses a boundary is defined once and published as a JSON S
 
 | Artefact | File | Schema |
 |---|---|---|
-| A bot | `*.craftabot-kit.json` | — |
+| A bot | `*.craftabot.json` (`format: "craftabot-kit"`) | — |
 | A run | `*.craftabot-trace.json` | `craftabot-trace.schema.json` |
 | An episode or a filed run | `*.craftabot-bundle.json` | `craftabot-bundle.schema.json` |
 | A campaign | `campaigns/*.json` | `campaign.schema.json` |
@@ -2487,14 +2553,19 @@ Every artefact that crosses a boundary is defined once and published as a JSON S
 | The calibration table | — | `calibration.schema.json` |
 | An experiment | `experiments/*.json` | `experiment.schema.json` |
 | An experiment's result | `*.experiment-result.json` | `experiment-result.schema.json` |
-| A stack | `local/stacks/<slug>` in the content store; `*.stack.json` | `stack.schema.json` |
+| A stack | `local/stacks/<slug>` in the content store; `*.stack.json`; the Gate reads either the stack or the Studio's saved record of it | `stack.schema.json` |
 | A catalogue entry | — (content) | `guardrail-catalogue.schema.json` |
 | A domain spec | — (content); `docs/blueprints/fixtures/*.json` | `domain.schema.json` |
 | A journey's drawing | `*.svg` from `craftabot journey render` | — |
 | A reader's questions and answer | — | `reader.schema.json` |
-| A corpus | `src/corpora/*.json` in a pack; the content store | `corpus.schema.json` |
-| A recorded provider | `*.craftabot-cassette.json` (kind `provider`) | `craftabot-provider-cassette.schema.json` |
+| A corpus | `src/corpora/*.corpus.json` in a pack; the content store | `corpus.schema.json` |
+| A blind labeller's answers | `*.second-labels.json`, `*.third-labels.json` beside the corpus, from `corpus label` | — |
+| A recorded provider | `*.provider-cassette.json` — the path a brain's `cassette` names (`format: craftabot-cassette`, `kind: provider`) | `craftabot-provider-cassette.schema.json` |
+| A benchmark design and its cassettes | `benchmarks/*.json` (`kind: benchmark`); `benchmarks/cassettes/*.benchmark-cassette.json` | — (Zod only) |
 | A benchmark report | `*.benchmark-report.json` | `benchmark-report.schema.json` |
+| The pack pins | `packages/harness/packs.lock.json` (`format: craftabot-packs-lock`) | — |
+| The desks for a bank day | `campaigns/desks/*.json` (§48.4) | — |
+| The reading desk's queue; the Control Inventory | `readings export` and `controls export`, JSON or markdown | — |
 | A reading | `local/reviews/<kind>--<subject>` in the content store | `review.schema.json` |
 
 Additionally: JUnit XML and SARIF from a campaign, OpenTelemetry GenAI spans from a sink or the Audit centre, and the assurance pack as self-contained HTML, markdown or JSON.
@@ -2510,6 +2581,7 @@ Additionally: JUnit XML and SARIF from a campaign, OpenTelemetry GenAI spans fro
 - **Read the story out loud** speaks what the bot is doing, for readers who are not reading yet.
 - **Never colour alone.** Every state carries a shape, an icon or a label as well as a hue.
 - An automated accessibility pass runs over every Workshop route in the build.
+- The Workshop's command palette is <kbd>Ctrl</kbd>+<kbd>K</kbd> (§57); every drawing — the Boundary, the Canvas, the Pipeline — has a list twin with its own keyboard model (§58).
 
 ## Appendix D — Figures
 
@@ -2557,7 +2629,7 @@ Also available and not yet placed: `workshop-run-lab-explain.png` (the explanati
 
 **The brand.** The values are no longer placeholders: the comment block at the head of this file carries the real Axiom Verity palette, type and marks, read from that project's own design system. The wordmark is set, not an image — *Axiom* in ink `#10233a`, *Verity* in gold-ink `#7a5a1a`, Newsreader 600 — so it stays sharp at any size and needs no asset file. The mark is `axiom-mark.svg`, inlined.
 
-**The toolchain.** The PDF is rendered from this markdown by a self-contained HTML print stylesheet driven through headless Chromium — A4, 20 mm margins, 11 pt body, with the running header and footer supplied as Chromium header/footer templates so the page numbers are real. The three typefaces are embedded from the same self-hosted `@fontsource` files the Axiom Verity site uses, so the PDF and the website set identically. Regenerating it is three scripted steps and no manual layout step (`docs/manual/pdf/`), which matters because this document will be regenerated every time the product moves.
+**The toolchain.** The PDF is rendered from this markdown by a self-contained HTML print stylesheet driven through headless Chromium — A4, 20 mm margins, 11 pt body, with the running header and footer supplied as Chromium header/footer templates so the page numbers are real. The three typefaces are embedded from the same self-hosted `@fontsource` files the Axiom Verity site uses, so the PDF and the website set identically. Regenerating it is three scripted steps and no manual layout step (`docs/manual/pdf/`), which matters because this document will be regenerated every time the product moves. The cover and the running footer take their version and date from `build.py`'s two strings, which change with the table above.
 
 Two alternatives, if the document ever needs finer typesetting than a browser gives:
 
