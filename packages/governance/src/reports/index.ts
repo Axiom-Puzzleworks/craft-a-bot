@@ -145,6 +145,26 @@ export {
 	type InventoryRowLink,
 	type InventorySurface
 } from './control-inventory.js';
+/** The Sensor Inventory (WP159, `112-…` §5): every event type, its source, its readers. */
+export {
+	ENVELOPE_OPTIONAL,
+	SENSOR_DECLARATIONS,
+	SENSOR_READERS,
+	payloadFields,
+	renderSensorsMarkdown,
+	sensorFindings,
+	sensorInventory,
+	sensorInventoryExport,
+	type SensorDeclaration,
+	type SensorField,
+	type SensorInventoryExport,
+	type SensorReach,
+	type SensorReader,
+	type SensorReaderDepth,
+	type SensorReaderId,
+	type SensorRow,
+	type SensorSource
+} from './sensors.js';
 /** The coverage fold and the catalogue page (WP98, `86-…` §5, §7). */
 export {
 	coverageMeasurements,
