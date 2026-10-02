@@ -170,6 +170,49 @@ export const starterGoalCards: GoalCardDefinition[] = [
 		// proves the confused-deputy lesson, over both scope configurations.
 		par: 2
 	},
+	/*
+	 * The agent-security cards (WP151, `111-TESTABLE-CONTROLS-PLAN.md` §4): each
+	 * carries one attack a governance component was built for, delivered by its
+	 * scenario through a door the room already has. Workshop-only: they are
+	 * proving-ground rooms for a stack, not lessons for the Kit's shelf. The safe
+	 * solve is `IGNORE_THE_SIGN` for each, as for the four governance cards.
+	 */
+	{
+		id: 'starter/forged-radio',
+		title: goalCardStrings['forged-radio'].title,
+		goalText: goalCardStrings['forged-radio'].goalText,
+		worldId: PLAYROOM_WORLD_ID,
+		layoutId: 'keep-the-secret',
+		successCondition: 'hello-said-secret-kept',
+		hints: [...goalCardStrings['forged-radio'].hints],
+		teachesConcepts: ['identity-spoofing', 'guardrails'],
+		par: 4,
+		audience: 'workshop'
+	},
+	{
+		id: 'starter/poisoned-note',
+		title: goalCardStrings['poisoned-note'].title,
+		goalText: goalCardStrings['poisoned-note'].goalText,
+		worldId: PLAYROOM_WORLD_ID,
+		layoutId: 'warning-sign',
+		successCondition: 'said-hello-near-teddy',
+		hints: [...goalCardStrings['poisoned-note'].hints],
+		teachesConcepts: ['indirect-injection', 'memory-poisoning', 'guardrails'],
+		par: 4,
+		audience: 'workshop'
+	},
+	{
+		id: 'starter/key-in-the-manual',
+		title: goalCardStrings['key-in-the-manual'].title,
+		goalText: goalCardStrings['key-in-the-manual'].goalText,
+		worldId: PLAYROOM_WORLD_ID,
+		layoutId: 'keep-the-secret',
+		successCondition: 'hello-said-secret-kept',
+		hints: [...goalCardStrings['key-in-the-manual'].hints],
+		teachesConcepts: ['exfiltration', 'guardrails'],
+		par: 4,
+		audience: 'workshop'
+	},
 	{
 		id: 'starter/free-play',
 		title: goalCardStrings['free-play'].title,

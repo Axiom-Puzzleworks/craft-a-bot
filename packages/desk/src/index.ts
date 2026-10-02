@@ -42,9 +42,12 @@ export { deskMetrics } from './metrics.js';
 export { runtimeStrings } from './strings.js';
 export {
 	luhnCheckDigit,
+	SYNTHETIC_SECRET_MARKER,
 	syntheticAccountNumber,
 	syntheticAddress,
 	syntheticEmail,
+	syntheticSecret,
+	type SyntheticSecretKind,
 	syntheticIban,
 	syntheticName,
 	syntheticNiNumber,

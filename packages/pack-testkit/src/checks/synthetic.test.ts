@@ -110,6 +110,18 @@ describe('synthetic.phone', () => {
 });
 
 describe('the report', () => {
+	it('refuses a credential without the SYNTHETIC marker and passes one with it (WP151)', () => {
+		const sweep = (text: string) =>
+			checkSynthetic([{ path: 'f.json', text }]).map((each) => each.check);
+		expect(sweep('"key": "sk-abcdefghijklmnopqrstuvwxyz0123"')).toEqual(['synthetic.credential']);
+		expect(sweep('AKIA' + 'ABCDEFGHIJKLMNOP')).toEqual(['synthetic.credential']);
+		expect(sweep('-----BEGIN RSA PRIVATE KEY-----')).toEqual(['synthetic.credential']);
+		expect(sweep('"key": "sk-SYNTHETIC-abcdefghijklmnopqrstuvwx"')).toEqual([]);
+		expect(sweep('AKIASYNTHETIC2345678')).toEqual([]);
+		expect(sweep('-----BEGIN PRIVATE KEY----- SYNTHETIC')).toEqual([]);
+		expect(sweep('a sk-short and task-list words')).toEqual([]);
+	});
+
 	it('names the file and line and masks the value', () => {
 		const visa = withLuhn('4' + '00000000000000');
 		const [issue] = checkSynthetic([{ path: 'a/fixtures/b.json', text: `x\n{"c":"${visa}"}` }]);

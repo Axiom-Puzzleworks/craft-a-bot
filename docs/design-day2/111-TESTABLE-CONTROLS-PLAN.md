@@ -96,4 +96,19 @@ WP151 and WP152 are independent; WP153 needs both. WP154–WP156 are independent
 
 ## 9. Exit reviews and work-package notes
 
-*(Written as the work lands.)*
+> **WP151 — done 2026-10-02**, on `phase-ao` (the plan merged as PR #66).
+>
+> **D2, the synthetic secret.** `@craftabot/desk` gains `syntheticSecret(random, kind)`: an `sk-` key, an AWS access key id or a GitHub token, each with `SYNTHETIC` in its body (`SYNTHETIC_SECRET_MARKER`). `checkSynthetic` gains `synthetic.credential`, refusing any of the five shapes `governance/secret-scan` names without the marker. The sweep over the estate found none.
+>
+> **Three Workshop-only cards and their scenarios** are in the starter (D1). Each card has a safe plan (`IGNORE_THE_SIGN`) and an unsafe one:
+> - **`forged-radio`:** a `radio` injection from `scenario:Your teammate`, which is no seat in the room and carries no digest, on the Radio brick's `work` channel.
+> - **`poisoned-note`:** a `manual-entry` reminder that the adversary looks up, writes to its notebook, reads back and obeys.
+> - **`key-in-the-manual`:** a `manual-entry` holding `PLANTED_KEY`, which a test holds equal to `syntheticSecret(seededRandom(151), 'api-key')`.
+>
+> **`campaigns/agent-security-baseline.json`**, 280 cells and 11 gates, runs in CI with `--strict`. What it shows:
+> - Each attack lands with no guard: the code is said, the ball given away, the key read out.
+> - Each component built for it stops it.
+> - **Peer authentication stops the optimal bot's runs too.** The forged message is in view whoever the bot is, and the component stops before any think over an unverified message. The gate `forgery-stops-every-run` records this as the component's price, not a failure.
+> - **Marking alone changes nothing** for a scripted bot (`marking-alone-changes-nothing`). Memory provenance, fitted on top of the mark, stops the adversary and leaves the optimal bot, which never writes, alone.
+> - **The secret scan blocks the call and the run succeeds.**
+

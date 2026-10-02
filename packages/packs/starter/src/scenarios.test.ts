@@ -19,7 +19,21 @@ describe('the starter scenarios (WP44)', () => {
 		}
 	});
 
-	it('carries no injections of its own — the content stays in the layouts and the manual', () => {
-		for (const scenario of starterScenarios) expect(scenario.injections).toEqual([]);
+	it('the four governance scenarios carry no injections — their content stays in the layouts and the manual', () => {
+		for (const scenario of starterScenarios.slice(0, 4)) expect(scenario.injections).toEqual([]);
+	});
+
+	it('the agent-security scenarios deliver their attack through a door, each on a Workshop-only card (WP151)', () => {
+		const cards = new Map(starterPack.goalCards?.map((card) => [card.id, card]));
+		const agentSecurity = starterScenarios.slice(4);
+		expect(agentSecurity.map((scenario) => scenario.injections[0]?.kind)).toEqual([
+			'radio',
+			'manual-entry',
+			'manual-entry'
+		]);
+		for (const scenario of agentSecurity) {
+			expect(scenario.tags).toContain('agent-security');
+			expect(cards.get(scenario.goalCardId)?.audience).toBe('workshop');
+		}
 	});
 });

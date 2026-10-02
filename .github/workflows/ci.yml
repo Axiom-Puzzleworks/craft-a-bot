@@ -148,6 +148,13 @@ jobs:
           --out campaign-out --junit campaign-out/junit.xml --sarif campaign-out/results.sarif
           --markdown campaign-out/scorecard.md
 
+      # The agent-security baseline (WP151–WP152, `111-TESTABLE-CONTROLS-PLAN.md` §4):
+      # each attack lands unguarded and is stopped by the component built for it.
+      - name: Run the agent-security baseline
+        run: >
+          npm run craftabot -- campaign --file campaigns/agent-security-baseline.json --strict --egress none
+          --out campaign-out/agent-security
+
       # The Advice Desk baseline (WP60, `49-FS-ADVICE.md` §4.7): thirty conduct
       # scenarios under no guard, the seven cards, and the cards with a classifier
       # and a hosted guard offline — 720 scripted cells. Fails the build when the

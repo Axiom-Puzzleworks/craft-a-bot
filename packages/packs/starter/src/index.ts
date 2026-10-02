@@ -67,6 +67,9 @@ export { starterBricks } from './bricks.js';
 export { starterGoalCards } from './goal-cards.js';
 export {
 	FALSE_ALARM_SCENARIO,
+	FORGED_RADIO_SCENARIO,
+	KEY_IN_THE_MANUAL_SCENARIO,
+	POISONED_NOTE_SCENARIO,
 	KEEP_THE_SECRET_SCENARIO,
 	PARTY_LINE_SCENARIO,
 	WARNING_SIGN_SCENARIO,
