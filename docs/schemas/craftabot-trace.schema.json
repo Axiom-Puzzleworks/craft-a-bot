@@ -3653,6 +3653,10 @@
 											"seconds": {
 												"type": "number",
 												"minimum": 0
+											},
+											"reason": {
+												"type": "string",
+												"minLength": 1
 											}
 										},
 										"required": [

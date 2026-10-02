@@ -156,7 +156,8 @@ describe('the complaints rule reader (WP117)', { timeout: 300_000 }, () => {
 		const categories = items.map(
 			(item) => complaintCaseFromItem(createTestClock().random, item).extra.complaints.category
 		);
-		expect(new Set(categories.map(rootCauseOf)).size).toBeGreaterThan(2);
+		// The register upholds charges and data only (WP155), so the book's causes are `charges` and `no-error`.
+		expect(new Set(categories.map(rootCauseOf))).toEqual(new Set(['charges', 'no-error']));
 		expect(
 			await checkReader(
 				COMPLAINTS_READERS[0]!,

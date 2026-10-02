@@ -187,6 +187,13 @@ jobs:
           --out campaign-out/fs-lending-book --junit campaign-out/fs-lending-book/junit.xml
           --sarif campaign-out/fs-lending-book/results.sarif --markdown campaign-out/fs-lending-book/scorecard.md
 
+      # The lending book, reviewed (WP156, `111-…` §4): a case handler overruling a fallible bot at
+      # Level 4, and saying why at the reviewer model's stated rate — the `override-reason` gate.
+      - name: Run the reviewed lending book
+        run: >
+          npm run craftabot -- campaign --file campaigns/fs-lending-reviewed.json --strict --egress none
+          --out campaign-out/fs-lending-reviewed
+
       # The fraud and advice books (WP85, `76-…` §5): the alert book and the advice-request register
       # through their journeys under the five reference configurations, at reduced size.
       - name: Run the fraud book campaign

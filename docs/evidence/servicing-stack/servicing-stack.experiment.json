@@ -2,7 +2,7 @@
 	"schemaVersion": 1,
 	"id": "servicing-stack",
 	"title": "The policy-card stack on the servicing book",
-	"hypothesis": "The servicing desk’s policy-card stack (fs-servicing/stack/policy-cards) changes nothing a scripted bot at Level 5 does wrong on the servicing book, because the scripted bot does nothing wrong; every effect is expected to read untestable until an error model is built for this desk.",
+	"hypothesis": "The servicing desk’s policy-card stack (fs-servicing/stack/policy-cards) changes nothing a scripted bot at Level 5 does wrong on the servicing book. Under the fallible tier (WP154), which errs at the desk's decision one time in ten, the stack is expected to catch what its cards check and nothing else.",
 	"controls": [],
 	"obligations": [],
 	"design": {
@@ -13,7 +13,7 @@
 				"workflowId": "fs-servicing/servicing",
 				"population": {
 					"seed": 1,
-					"size": 240
+					"size": 2400
 				}
 			},
 			"builds": [
@@ -58,6 +58,11 @@
 				{
 					"id": "scripted-optimal",
 					"tier": "scripted-optimal"
+				},
+				{
+					"id": "fallible",
+					"tier": "fallible",
+					"errorModel": "fs-servicing/error/classification"
 				}
 			],
 			"assertionCards": [],
@@ -78,10 +83,18 @@
 					"none",
 					"policy-cards"
 				]
+			},
+			{
+				"axis": "brain",
+				"levels": [
+					"scripted-optimal",
+					"fallible"
+				]
 			}
 		],
 		"baseline": {
-			"guard": "none"
+			"guard": "none",
+			"brain": "scripted-optimal"
 		},
 		"metrics": [
 			{
@@ -105,7 +118,9 @@
 		"minimumDetectableEffect": 0.05
 	},
 	"campaigns": [
-		"servicing-stack--guard=none",
-		"servicing-stack--guard=policy-cards"
+		"servicing-stack--brain=scripted-optimal--guard=none",
+		"servicing-stack--brain=fallible--guard=none",
+		"servicing-stack--brain=scripted-optimal--guard=policy-cards",
+		"servicing-stack--brain=fallible--guard=policy-cards"
 	]
 }

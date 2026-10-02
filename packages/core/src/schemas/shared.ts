@@ -364,6 +364,8 @@ export const reviewerAnswerSchema = z.object({
 	recommended: z.string().optional(),
 	followed: z.boolean(),
 	correct: z.boolean(),
-	seconds: z.number().nonnegative()
+	seconds: z.number().nonnegative(),
+	/** Why they overruled what the case recommended (WP156, `111-…` §4): written only on an override, at the model's `reasonRate`. */
+	reason: z.string().min(1).optional()
 });
 export type ReviewerAnswer = z.infer<typeof reviewerAnswerSchema>;

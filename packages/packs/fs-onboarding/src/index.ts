@@ -1,4 +1,5 @@
 import { ONBOARDING_ADVERSARIAL_CORPUS } from './corpora/adversarial.js';
+import { onboardingErrorModels } from './errors/error-models.js';
 import { PURPOSE_CORPUS } from './corpora/index.js';
 import { PURPOSE_READER } from './words-reader.js';
 import type { PackManifest } from '@craftabot/core';
@@ -56,6 +57,8 @@ export const fsOnboardingPack: PackManifest = {
 	],
 	policyCards: [...onboardingPolicyCards, OPEN_WAITS_FOR_THE_FILE],
 	evaluators: onboardingEvaluators,
+	// WP154: the fallible tier's error model.
+	errorModels: onboardingErrorModels,
 	controlMaps: [onboardingControlMap],
 	workflows: [onboardingWorkflow],
 	stacks: onboardingStacks,
@@ -173,3 +176,7 @@ export {
 	ONBOARDING_ADVERSARIAL_CORPUS_ID,
 	ONBOARDING_ATTACK_SURFACES
 } from './corpora/adversarial.js';
+export {
+	ONBOARDING_DECISION_ERROR_MODEL_ID,
+	onboardingErrorModels
+} from './errors/error-models.js';

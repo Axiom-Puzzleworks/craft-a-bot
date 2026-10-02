@@ -976,7 +976,7 @@ export async function runWorkflow(
 				)
 			: undefined;
 		const answer: HumanDecision = by
-			? { decision: by.answer }
+			? { decision: by.answer, ...(by.reason !== undefined ? { reason: by.reason } : {}) }
 			: options.human
 				? await options.human(stage, state, executor, suggested)
 				: { decision: suggested ?? executor.default ?? executor.options[0] ?? '' };

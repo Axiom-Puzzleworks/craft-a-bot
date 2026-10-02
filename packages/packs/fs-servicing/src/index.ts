@@ -1,4 +1,5 @@
 import { SERVICING_ADVERSARIAL_CORPUS } from './corpora/adversarial.js';
+import { servicingErrorModels } from './errors/error-models.js';
 import { SERVICING_READERS } from './readers.js';
 import { SERVICING_CORPORA } from './corpora/index.js';
 import type { PackManifest } from '@craftabot/core';
@@ -57,6 +58,8 @@ export const fsServicingPack: PackManifest = {
 	],
 	policyCards: [...servicingPolicyCards, CLOSURE_WAITS_FOR_THE_FILE],
 	evaluators: servicingEvaluators,
+	// WP154: the fallible tier's error model.
+	errorModels: servicingErrorModels,
 	controlMaps: [servicingControlMap],
 	workflows: [servicingWorkflow],
 	stacks: servicingStacks,
@@ -175,3 +178,7 @@ export {
 	SERVICING_ADVERSARIAL_CORPUS_ID,
 	SERVICING_ATTACK_SURFACES
 } from './corpora/adversarial.js';
+export {
+	SERVICING_CLASSIFICATION_ERROR_MODEL_ID,
+	servicingErrorModels
+} from './errors/error-models.js';

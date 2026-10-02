@@ -2,7 +2,7 @@
 	"schemaVersion": 1,
 	"id": "onboarding-stack",
 	"title": "The policy-card stack on the onboarding book",
-	"hypothesis": "The onboarding desk’s policy-card stack (fs-onboarding/stack/policy-cards) changes nothing a scripted bot at Level 5 does wrong on the onboarding book, because the scripted bot does nothing wrong; every effect is expected to read untestable until an error model is built for this desk.",
+	"hypothesis": "The onboarding desk’s policy-card stack (fs-onboarding/stack/policy-cards) changes nothing a scripted bot at Level 5 does wrong on the onboarding book. Under the fallible tier (WP154), which errs at the desk's decision one time in ten, the stack is expected to catch what its cards check and nothing else.",
 	"controls": [],
 	"obligations": [],
 	"design": {
@@ -13,7 +13,7 @@
 				"workflowId": "fs-onboarding/onboarding",
 				"population": {
 					"seed": 1,
-					"size": 200
+					"size": 2000
 				}
 			},
 			"builds": [
@@ -57,6 +57,11 @@
 				{
 					"id": "scripted-optimal",
 					"tier": "scripted-optimal"
+				},
+				{
+					"id": "fallible",
+					"tier": "fallible",
+					"errorModel": "fs-onboarding/error/decision"
 				}
 			],
 			"assertionCards": [],
@@ -77,10 +82,18 @@
 					"none",
 					"policy-cards"
 				]
+			},
+			{
+				"axis": "brain",
+				"levels": [
+					"scripted-optimal",
+					"fallible"
+				]
 			}
 		],
 		"baseline": {
-			"guard": "none"
+			"guard": "none",
+			"brain": "scripted-optimal"
 		},
 		"metrics": [
 			{
@@ -104,7 +117,9 @@
 		"minimumDetectableEffect": 0.05
 	},
 	"campaigns": [
-		"onboarding-stack--guard=none",
-		"onboarding-stack--guard=policy-cards"
+		"onboarding-stack--brain=scripted-optimal--guard=none",
+		"onboarding-stack--brain=fallible--guard=none",
+		"onboarding-stack--brain=scripted-optimal--guard=policy-cards",
+		"onboarding-stack--brain=fallible--guard=policy-cards"
 	]
 }

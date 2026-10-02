@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createPackRegistry } from '@craftabot/core';
 import {
+	overrideReason,
 	recommendationIn,
 	resolveReviewer,
 	reviewerAnswer,
@@ -99,6 +100,42 @@ describe('the reviewer model (WP115)', () => {
 		expect([...seen.keys()].sort((a, b) => a - b)).toEqual([60, 120, 240, 480]);
 		expect(within(seen.get(120) ?? 0, N, 0.45)).toBe(true);
 		expect(within(seen.get(480) ?? 0, N, 0.1)).toBe(true);
+	});
+
+	it('gives a reason on an override at the model’s rate, and a model with no rate answers as before (WP156)', () => {
+		let overrides = 0;
+		let reasons = 0;
+		for (let index = 0; index < N; index += 1) {
+			const answer = reviewerAnswer(
+				{ ...model(0.95, 0), reasonRate: 0.8 },
+				OPTIONS,
+				'decline',
+				'approve',
+				reviewerRandom(1, `item-${index}`, 'decision', 0)
+			);
+			if (answer.answer === 'approve') continue;
+			overrides += 1;
+			if (answer.reason !== undefined) {
+				reasons += 1;
+				expect(answer.reason).toBe(overrideReason(answer.answer, 'approve'));
+			}
+		}
+		// Within ±0.02 of the rate, tighter than the row's stated 0.05 tolerance (this seed draws 0.812).
+		expect(Math.abs(reasons / overrides - 0.8)).toBeLessThan(0.02);
+		// The draw comes last: a model with no rate gives the same answer and seconds, and no reason.
+		for (let index = 0; index < 200; index += 1) {
+			const draw = () => reviewerRandom(2, `item-${index}`, 'decision', 0);
+			const before = reviewerAnswer(model(0.95, 0.3), OPTIONS, 'decline', 'approve', draw());
+			const after = reviewerAnswer(
+				{ ...model(0.95, 0.3), reasonRate: 1 },
+				OPTIONS,
+				'decline',
+				'approve',
+				draw()
+			);
+			expect({ ...after, reason: undefined }).toEqual({ ...before, reason: undefined });
+			expect(before.reason).toBeUndefined();
+		}
 	});
 
 	it('the same run, item and stage draw the same answer', () => {

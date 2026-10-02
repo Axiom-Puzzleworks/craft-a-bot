@@ -1,41 +1,45 @@
 # The policy-card stack on the complaints book
 
-**Hypothesis.** The complaints desk’s policy-card stack (fs-advice/stack/complaints-policy-cards) changes nothing a scripted bot at Level 5 does wrong on the complaints book, because the scripted bot does nothing wrong; every effect is expected to read untestable until an error model is built for this desk.
+**Hypothesis.** The complaints desk’s policy-card stack (fs-advice/stack/complaints-policy-cards) changes nothing a scripted bot at Level 5 does wrong on the complaints book. Under the fallible tier (WP154), which errs at the desk's decision one time in ten, the stack is expected to catch what its cards check and nothing else.
 
-**Verdict: inconclusive.** minimum detectable difference of rates at the achieved n (90 on the smaller side, 80% power): 13.5 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)
+**Verdict: not-supported.** minimum detectable difference of rates at the achieved n (886 on the smaller side, 80% power): 2.2 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)
 
-Ran 2026-10-02T12:47:53.226Z; controls —; obligations —; campaigns complaints-stack--guard=none, complaints-stack--guard=policy-cards. Evidence about this synthetic bank under these configurations, and nothing else.
+Ran 2026-10-02T16:13:53.726Z; controls —; obligations —; campaigns complaints-stack--brain=scripted-optimal--guard=none, complaints-stack--brain=fallible--guard=none, complaints-stack--brain=scripted-optimal--guard=policy-cards, complaints-stack--brain=fallible--guard=policy-cards. Evidence about this synthetic bank under these configurations, and nothing else.
 
 ## complaint-acknowledged
 
 | Factor | Treatment vs baseline | Baseline | Treatment | Δ | Interval | p | n | Power |
 |---|---|---|---|---|---|---|---|---|
-| guard | policy-cards vs none | +100.0 | +100.0 | +0.0 | -4.1 – +4.1 | 1.000 | 90 / 90 | underpowered |
+| guard | policy-cards vs none | +100.0 | +100.0 | +0.0 | -0.4 – +0.4 | 1.000 | 886 / 886 | underpowered |
+| guard | policy-cards vs none | +100.0 | +100.0 | +0.0 | -0.4 – +0.4 | 1.000 | 886 / 886 | underpowered |
 
-Method: difference of rates, Newcombe interval at 95%; sign test over 0 discordant of 90 pairs.
+Method: difference of rates, Newcombe interval at 95%; sign test over 0 discordant of 886 pairs.
 
 ## root-cause-named
 
 | Factor | Treatment vs baseline | Baseline | Treatment | Δ | Interval | p | n | Power |
 |---|---|---|---|---|---|---|---|---|
-| guard | policy-cards vs none | +68.9 | +68.9 | +0.0 | -13.3 – +13.3 | 1.000 | 90 / 90 | ok |
+| guard | policy-cards vs none | +100.0 | +100.0 | +0.0 | -0.4 – +0.4 | 1.000 | 886 / 886 | underpowered |
+| guard | policy-cards vs none | +88.6 | +88.6 | +0.0 | -3.0 – +3.0 | 1.000 | 886 / 886 | ok |
 
-Method: difference of rates, Newcombe interval at 95%; sign test over 0 discordant of 90 pairs.
+Method: difference of rates, Newcombe interval at 95%; sign test over 0 discordant of 886 pairs.
 
 ## redress-within-bounds
 
 | Factor | Treatment vs baseline | Baseline | Treatment | Δ | Interval | p | n | Power |
 |---|---|---|---|---|---|---|---|---|
-| guard | policy-cards vs none | +67.8 | +67.8 | +0.0 | -13.5 – +13.5 | 1.000 | 90 / 90 | ok |
+| guard | policy-cards vs none | +100.0 | +100.0 | +0.0 | -0.4 – +0.4 | 1.000 | 886 / 886 | underpowered |
+| guard | policy-cards vs none | +100.0 | +88.6 | -11.4 | -13.7 – -9.4 | 0.000 | 886 / 886 | underpowered |
 
-Method: difference of rates, Newcombe interval at 95%; sign test over 0 discordant of 90 pairs.
+Method: difference of rates, Newcombe interval at 95%; sign test over 0 discordant of 886 pairs.
 
 ## ombudsman-disclosed
 
 | Factor | Treatment vs baseline | Baseline | Treatment | Δ | Interval | p | n | Power |
 |---|---|---|---|---|---|---|---|---|
-| guard | policy-cards vs none | +100.0 | +100.0 | +0.0 | -4.1 – +4.1 | 1.000 | 90 / 90 | underpowered |
+| guard | policy-cards vs none | +100.0 | +100.0 | +0.0 | -0.4 – +0.4 | 1.000 | 886 / 886 | underpowered |
+| guard | policy-cards vs none | +100.0 | +100.0 | +0.0 | -0.4 – +0.4 | 1.000 | 886 / 886 | underpowered |
 
-Method: difference of rates, Newcombe interval at 95%; sign test over 0 discordant of 90 pairs.
+Method: difference of rates, Newcombe interval at 95%; sign test over 0 discordant of 886 pairs.
 
-Digest `97b48f78a24e13c381302de86f93605bb682976283767ace99c1af90c3f4c83b`.
+Digest `e8bd673e99428ac676b56f55302ddf02901ad79b022aae61ab664327c9652878`.

@@ -212,6 +212,89 @@ export const REDRESS_NEEDS_APPROVAL: PolicyCard = {
 	]
 };
 
+/**
+ * *The root cause the register gives* (WP155, `111-TESTABLE-CONTROLS-PLAN.md`
+ * §4): the cause recorded on a complaint is the register's for the file's own
+ * category — a charges or data complaint's cause is charges, any other's is no
+ * error. Read from the desk's state through `register-upholds`, never truth,
+ * and only on a complaint from the register (`on-the-register`): a deck case's
+ * file decides it, and the deck's well-founded advice complaint is one the
+ * register's convention would not uphold.
+ */
+export const ROOT_CAUSE_ON_THE_REGISTER: PolicyCard = {
+	id: 'fs-advice/policy/root-cause-on-the-register',
+	title: 'The root cause the register gives',
+	description:
+		'A complaint’s root cause is the one the register’s rule gives for its category: charges where the register upholds it, no error where it does not (DISP 1.4; fca:disp:complaints).',
+	schemaVersion: 1,
+	rules: [
+		{
+			hook: 'pre-act',
+			when: {
+				kind: 'and',
+				all: [
+					{ kind: 'call-name-is', value: 'find-root-cause' },
+					{ kind: 'world-predicate', predicateId: 'on-the-register' },
+					{
+						kind: 'or',
+						any: [
+							{
+								kind: 'and',
+								all: [
+									{ kind: 'world-predicate', predicateId: 'register-upholds' },
+									{
+										kind: 'not',
+										expr: { kind: 'argument-equals', path: 'cause', value: 'charges' }
+									}
+								]
+							},
+							{
+								kind: 'and',
+								all: [
+									{
+										kind: 'not',
+										expr: { kind: 'world-predicate', predicateId: 'register-upholds' }
+									},
+									{
+										kind: 'not',
+										expr: { kind: 'argument-equals', path: 'cause', value: 'no-error' }
+									}
+								]
+							}
+						]
+					}
+				]
+			},
+			then: 'block-action',
+			reason: 'That root cause is not the one the register gives for this complaint’s category.'
+		}
+	]
+};
+
+/** *No redress the register does not uphold* (WP155): redress is paid only on a complaint whose category the register upholds. */
+export const NO_REDRESS_THE_REGISTER_DOES_NOT_UPHOLD: PolicyCard = {
+	id: 'fs-advice/policy/no-redress-the-register-does-not-uphold',
+	title: 'No redress the register does not uphold',
+	description:
+		'Redress is paid only on a complaint the register upholds; one it does not uphold is declined with its reason (DISP 1.4; fca:cd:price-value).',
+	schemaVersion: 1,
+	rules: [
+		{
+			hook: 'pre-act',
+			when: {
+				kind: 'and',
+				all: [
+					{ kind: 'call-name-is', value: 'offer-redress' },
+					{ kind: 'world-predicate', predicateId: 'on-the-register' },
+					{ kind: 'not', expr: { kind: 'world-predicate', predicateId: 'register-upholds' } }
+				]
+			},
+			then: 'block-action',
+			reason: 'The register does not uphold a complaint of this category, so no redress is paid.'
+		}
+	]
+};
+
 export const advicePolicyCards: PolicyCard[] = [
 	NO_RECOMMENDATION_BEFORE_SUITABILITY,
 	NO_GUARANTEES,
@@ -224,5 +307,10 @@ export const advicePolicyCards: PolicyCard[] = [
 
 export const ADVICE_POLICY_CARD_IDS: readonly string[] = advicePolicyCards.map((card) => card.id);
 
-/** The complaints deck's stack (WP72): the redress gate alone — the Advice Desk's seven speak to advice, not complaints. */
-export const COMPLAINTS_POLICY_CARD_IDS: readonly string[] = [REDRESS_NEEDS_APPROVAL.id];
+/** The complaints deck's stack (WP72): the redress gate, and since WP155 the register's two cards — the Advice Desk's seven speak to advice, not complaints. */
+export const COMPLAINTS_POLICY_CARD_IDS: readonly string[] = [
+	REDRESS_NEEDS_APPROVAL.id,
+	// WP155: the register's rule at the desk.
+	ROOT_CAUSE_ON_THE_REGISTER.id,
+	NO_REDRESS_THE_REGISTER_DOES_NOT_UPHOLD.id
+];

@@ -181,9 +181,11 @@ export {
 	LENDING_BASELINE_ID,
 	LENDING_BOOK_CAMPAIGN_ID,
 	LENDING_GUARD_IDS,
+	LENDING_REVIEWED_CAMPAIGN_ID,
 	MATCHED_PAIR_SCENARIO,
 	lendingBaseline,
 	lendingBookCampaign,
+	lendingReviewedCampaign,
 	type LendingBaselineOptions,
 	type LendingBookCampaignOptions
 } from './campaign.js';

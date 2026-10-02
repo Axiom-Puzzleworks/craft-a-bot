@@ -239,6 +239,18 @@ V1 needs none. The first features that will genuinely require one: sharing kit f
 > - **+72 kB in every edition** for the catalogue's second edition (23 entries), the declared mechanisms, the inventory's fold and `/workshop/controls`.
 > - **The Kit's first page 136 KiB lighter and the Worker 70 KiB lighter.** `@craftabot/governance` now declares `"sideEffects": false`. The catalogue and the mechanism list are built by top-level calls the bundler could not prove pure, so they had ridden on every page through the root layout's import of governance's barrel. The first-page gate is lowered to 808,000 and the Worker's to 1,739,000, so the gain is held.
 
+> **Amended 2026-10-02, later still (Phases AO–AP, WP151–WP156, `111-TESTABLE-CONTROLS-PLAN.md` §9): the budgets after the attacks carried and the desks made fallible.** Each build set to its measured size plus 20 kB:
+>
+> | Build | Budget | Measured | Worker | Kit's first page |
+> |---|---|---|---|---|
+> | full | 3,127,000 | 3,034 KiB | 1,745 KiB of 1,765 | 820 KiB of 840 |
+> | simulator | 2,973,000 | 2,883 KiB | — | — |
+> | workshop | 2,995,000 | 2,905 KiB | — | — |
+> | playground | 3,127,000 | 3,034 KiB | — | — |
+>
+> - **About +20 kB in every edition** for the starter's five Workshop-only agent-security cards and scenarios, five desks' error models, the complaints register cards and predicates, and the reviewer's reasons.
+> - **The Kit's first page is +19 KiB, and its gate is restated (841,000 → 860,000).** The five new cards are Workshop-only and never shown in the Kit, but they ship in the starter pack, which the Kit loads on its first page. D1's alternative, a pack of their own, would keep the Kit's page where it was.
+
 > **Amended 2026-10-02, later (Phase AM, WP145–WP149, `110-CONTROL-SUITE-PLAN.md` §10): the budgets after the bank's missing controls.** Each build set to its measured size plus 20 kB:
 >
 > | Build | Budget | Measured | Worker | Kit's first page |

@@ -197,6 +197,11 @@ export interface ReviewerModel {
 	automationBias: CalibrationRef;
 	/** Seconds a case takes: a `weights` row whose keys are seconds. */
 	secondsPerCase: CalibrationRef;
+	/**
+	 * P(they say why) when they overrule what the case recommended: a `rates`
+	 * row (WP156, `111-…` §4). Absent, an override carries no reason, as before.
+	 */
+	reasonRate?: CalibrationRef;
 }
 
 export interface WorkflowSpec {

@@ -84,7 +84,11 @@
 						"maxTicks": 12,
 						"blockedActions": [],
 						"approval": "off",
-						"policyCards": ["fs-advice/policy/redress-needs-approval"]
+						"policyCards": [
+							"fs-advice/policy/redress-needs-approval",
+							"fs-advice/policy/root-cause-on-the-register",
+							"fs-advice/policy/no-redress-the-register-does-not-uphold"
+						]
 					}
 				}
 			]

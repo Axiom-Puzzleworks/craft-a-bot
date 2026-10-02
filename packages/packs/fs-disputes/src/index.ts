@@ -1,4 +1,5 @@
 import { DISPUTES_ADVERSARIAL_CORPUS } from './corpora/adversarial.js';
+import { disputesErrorModels } from './errors/error-models.js';
 import { DISPUTES_CORPUS } from './corpora/index.js';
 import { DISPUTE_WORDS_READER } from './words-reader.js';
 import { DISPUTES_READERS } from './readers.js';
@@ -56,6 +57,8 @@ export const fsDisputesPack: PackManifest = {
 	],
 	policyCards: [...disputesPolicyCards, REIMBURSEMENT_WAITS_FOR_THE_FILE],
 	evaluators: disputesEvaluators,
+	// WP154: the fallible tier's error model.
+	errorModels: disputesErrorModels,
 	controlMaps: [disputesControlMap],
 	workflows: [disputesWorkflow],
 	stacks: disputesStacks,
@@ -180,3 +183,4 @@ export {
 	DISPUTES_ADVERSARIAL_CORPUS_ID,
 	DISPUTES_ATTACK_SURFACES
 } from './corpora/adversarial.js';
+export { DISPUTES_DECISION_ERROR_MODEL_ID, disputesErrorModels } from './errors/error-models.js';

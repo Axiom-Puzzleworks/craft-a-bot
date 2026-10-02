@@ -14,10 +14,10 @@ Full-size runs on 2026-10-02 (`craftabot experiment run --egress none --jobs 4`;
 | `servicing-readers` | not-supported | 24 | 0 | 22 | 96 | 22 |
 | `controls` (WP150; re-pointed WP153, 2026-10-02) | not-supported | 144 | 66 | 25 | 180 | 108 |
 | `ceilings` (WP150) | inconclusive | 4 | 1 | 2 | 783 | 110 |
-| `disputes-stack` (WP150) | untestable | 2 | 2 | 0 | 30 | 9 |
-| `collections-stack` (WP150) | untestable | 2 | 2 | 0 | 40 | 9 |
-| `onboarding-stack` (WP150) | untestable | 2 | 2 | 0 | 16 | 9 |
-| `servicing-stack` (WP150) | untestable | 2 | 2 | 0 | 40 | 9 |
-| `complaints-stack` (WP150) | inconclusive | 4 | 2 | 0 | 90 | 12 |
+| `disputes-stack` (WP150; fallible WP154) | inconclusive | 4 | 3 | 0 | 300 | 28 |
+| `collections-stack` (WP150; fallible WP154) | inconclusive | 4 | 3 | 0 | 400 | 33 |
+| `onboarding-stack` (WP150; fallible WP154) | inconclusive | 4 | 3 | 0 | 166 | 19 |
+| `servicing-stack` (WP150; fallible WP154) | inconclusive | 4 | 3 | 0 | 400 | 31 |
+| `complaints-stack` (WP150; fallible WP154, cards WP155) | not-supported | 8 | 6 | 1 | 886 | 57 |
 
 `servicing-readers` replays Jev's recorded answers and runs one item per corpus row, so it is quick, and it needs `--config packages/packs/typesafe/craftabot.config.mjs`. A different machine gives the same effects and digests and a different wall time. CI runs the same designs at `--size 200`, and `controls`, which runs scenarios rather than a book, whole. The wall times of 2026-10-02 were taken while the machine did other work; `fraud-stack`'s doubled.
