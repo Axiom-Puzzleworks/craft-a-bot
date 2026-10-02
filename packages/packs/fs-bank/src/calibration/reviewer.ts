@@ -40,6 +40,15 @@ export const REVIEWER_RATES: CalibrationTable = table(
 			source: assumption(),
 			tolerance: 0.05,
 			note: 'A stated assumption: most reviews take one to four minutes, a tenth take eight. The keys are seconds; the weights are relative. Folded as cost per case by human load v2.'
+		}),
+		row({
+			id: 'reviewer-override-reason',
+			kind: 'rates',
+			title: 'A reviewer who overrules the recommendation says why',
+			distribution: { gives: 0.8 },
+			source: assumption(),
+			tolerance: 0.05,
+			note: 'A stated assumption (WP156, `111-…` §4): four overrides in five carry a written reason. SS1/23 and the Consumer Duty expect a decision against a model’s recommendation to be recorded with its reason; no public figure gives how often a case handler actually writes one. Read by the `override-reason` gate.'
 		})
 	]
 );
@@ -57,9 +66,11 @@ export const bankReviewerModels: ReviewerModel[] = [
 		id: CASE_HANDLER_REVIEWER_ID,
 		name: 'A case handler reviewing another’s work',
 		description:
-			'Right nineteen times in twenty when nothing wrong is put in front of them, takes a wrong recommendation three times in ten, and spends one to eight minutes a case.',
+			'Right nineteen times in twenty when nothing wrong is put in front of them, takes a wrong recommendation three times in ten, says why on four overrides in five, and spends one to eight minutes a case.',
 		accuracy: { table: 'fs-bank/reviewer', row: 'reviewer-accuracy', key: 'correct' },
 		automationBias: { table: 'fs-bank/reviewer', row: 'reviewer-automation-bias', key: 'follows' },
-		secondsPerCase: { table: 'fs-bank/reviewer', row: 'reviewer-seconds-per-case', key: 'seconds' }
+		secondsPerCase: { table: 'fs-bank/reviewer', row: 'reviewer-seconds-per-case', key: 'seconds' },
+		// WP156: says why on four overrides in five.
+		reasonRate: { table: 'fs-bank/reviewer', row: 'reviewer-override-reason', key: 'gives' }
 	}
 ];

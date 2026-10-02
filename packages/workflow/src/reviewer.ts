@@ -15,6 +15,8 @@ export interface ResolvedReviewer {
 	automationBias: number;
 	/** Seconds per case as a discrete distribution: each value with its weight. */
 	seconds: Array<{ value: number; weight: number }>;
+	/** P(a reason is given on an override), when the model names one (WP156). */
+	reasonRate?: number;
 }
 
 interface Registry {
@@ -62,7 +64,8 @@ export function resolveReviewer(registry: Registry, id: string): ResolvedReviewe
 		id,
 		accuracy: probability(registry, id, model.accuracy),
 		automationBias: probability(registry, id, model.automationBias),
-		seconds
+		seconds,
+		...(model.reasonRate ? { reasonRate: probability(registry, id, model.reasonRate) } : {})
 	};
 }
 
@@ -84,6 +87,11 @@ export function reviewerRandom(seed: number, itemId: string, stageId: string, or
 	return seededRandom(
 		Number.parseInt(sha256Hex(`${seed}|${itemId}|${stageId}|${ordinal}`).slice(0, 8), 16)
 	);
+}
+
+/** The reason a modelled person gives for an override (WP156): what they chose against what was in front of them. */
+export function overrideReason(answer: string, recommended: string): string {
+	return `The file supports ${answer}, not the recommended ${recommended}.`;
 }
 
 /**
@@ -127,6 +135,12 @@ export function reviewerAnswer(
 		}
 		draw -= entry.weight;
 	}
+	// WP156: a reason on an override, drawn after everything above, so a model with no rate answers exactly as before.
+	const overrode = recommended !== undefined && answer !== recommended;
+	const reason =
+		overrode && reviewer.reasonRate !== undefined && random() < reviewer.reasonRate
+			? overrideReason(answer, recommended)
+			: undefined;
 	return {
 		model: reviewer.id,
 		answer,
@@ -134,6 +148,7 @@ export function reviewerAnswer(
 		...(recommended !== undefined ? { recommended } : {}),
 		followed: recommended !== undefined && answer === recommended,
 		correct: answer === shouldHave,
-		seconds
+		seconds,
+		...(reason !== undefined ? { reason } : {})
 	};
 }

@@ -1,7 +1,9 @@
 import type { Stack } from '@craftabot/core';
+import { LENDING_DECISION_ERROR_MODEL_ID } from './errors/error-models.js';
 import { lendingControlMap } from './controls/rows.js';
 import { LENDING_POLICY_CARD_IDS, lendingPolicyCards } from './cards/policy.js';
 import {
+	CASE_HANDLER_REVIEWER_ID,
 	FALLBACK,
 	FALLBACK_CARD_ID,
 	HOSTED_GUARD_STAND_IN,
@@ -380,6 +382,61 @@ export function lendingBookCampaign(
 			{
 				id: 'no-regression-on-the-book',
 				require: { kind: 'no-regression', tolerance: 0 }
+			}
+		]
+	};
+}
+
+export const LENDING_REVIEWED_CAMPAIGN_ID = 'fs-lending-reviewed';
+
+/**
+ * **`campaigns/fs-lending-reviewed.json`** (WP156, `111-TESTABLE-CONTROLS-PLAN.md`
+ * §4): the loan book at Level 4 — four eyes on every decision — with the
+ * bank's case handler at the human stage and a fallible bot, so the person
+ * sometimes overrules what the case recommends. Beside the book campaign
+ * rather than in it: a reviewer that errs would move that campaign's outcomes
+ * and its committed baseline. The gate holds the share of overrides with a
+ * written reason at the model's stated rate, less its tolerance.
+ */
+export function lendingReviewedCampaign(
+	options: { seed?: number; size?: number } = {}
+): Record<string, unknown> {
+	return {
+		schemaVersion: 1,
+		id: LENDING_REVIEWED_CAMPAIGN_ID,
+		title:
+			'Lending book, reviewed — a case handler overruling a fallible bot at Level 4, and saying why',
+		scenarios: [],
+		source: {
+			kind: 'book',
+			workflowId: LENDING_WORKFLOW_ID,
+			population: { seed: options.seed ?? 1, size: options.size ?? 5000 }
+		},
+		builds: [
+			{
+				id: 'bot-with-a-person-at-the-decision',
+				base: { kind: 'starter-default' },
+				overrides: {
+					senses: lendingDesk.senses.map((sense) => sense.id),
+					actions: lendingDesk.actions.map((action) => action.id),
+					configuration: 'bot-with-a-person-at-the-decision',
+					reviewer: CASE_HANDLER_REVIEWER_ID
+				}
+			}
+		],
+		guards: [{ id: LENDING_GUARD_IDS.none, fit: [] }],
+		brains: [{ id: 'fallible', tier: 'fallible', errorModel: LENDING_DECISION_ERROR_MODEL_ID }],
+		seeds: [1],
+		evaluators: [{ id: DECISION_MATCHES_RULES_ID }],
+		gates: [
+			{
+				id: 'every-journey-completes',
+				require: { kind: 'outcome-rate', outcome: 'ERROR', atMost: 0 }
+			},
+			// The case handler says why on four overrides in five (`fs-bank`'s `reviewer-override-reason`), less the row's 0.05 tolerance.
+			{
+				id: 'overrides-carry-a-reason',
+				require: { kind: 'override-reason', atLeast: 0.75 }
 			}
 		]
 	};

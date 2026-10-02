@@ -48,6 +48,7 @@ export { specOnWorld } from './spec-on-world.js';
 export {
 	recommendationIn,
 	resolveReviewer,
+	overrideReason,
 	reviewerAnswer,
 	reviewerRandom,
 	type ResolvedReviewer

@@ -1,0 +1,78 @@
+{
+	"schemaVersion": 1,
+	"id": "fs-lending-reviewed",
+	"title": "Lending book, reviewed — a case handler overruling a fallible bot at Level 4, and saying why",
+	"scenarios": [],
+	"source": {
+		"kind": "book",
+		"workflowId": "fs-lending/lending",
+		"population": {
+			"seed": 1,
+			"size": 5000
+		}
+	},
+	"builds": [
+		{
+			"id": "bot-with-a-person-at-the-decision",
+			"base": {
+				"kind": "starter-default"
+			},
+			"overrides": {
+				"senses": [
+					"fs-lending/the-lending-desk/application",
+					"fs-lending/the-lending-desk/bureau",
+					"fs-lending/the-lending-desk/affordability-worksheet",
+					"fs-lending/the-lending-desk/conversation"
+				],
+				"actions": [
+					"fs-lending/the-lending-desk/say",
+					"fs-lending/the-lending-desk/verify-identity",
+					"fs-lending/the-lending-desk/assess-affordability",
+					"fs-lending/the-lending-desk/request-document",
+					"fs-lending/the-lending-desk/decide",
+					"fs-lending/the-lending-desk/explain-decision",
+					"fs-lending/the-lending-desk/disburse",
+					"fs-lending/the-lending-desk/log-appeal"
+				],
+				"configuration": "bot-with-a-person-at-the-decision",
+				"reviewer": "fs-bank/reviewer/case-handler"
+			}
+		}
+	],
+	"guards": [
+		{
+			"id": "none",
+			"fit": []
+		}
+	],
+	"brains": [
+		{
+			"id": "fallible",
+			"tier": "fallible",
+			"errorModel": "fs-lending/error/decision"
+		}
+	],
+	"seeds": [1],
+	"evaluators": [
+		{
+			"id": "fs-lending/decision-matches-rules"
+		}
+	],
+	"gates": [
+		{
+			"id": "every-journey-completes",
+			"require": {
+				"kind": "outcome-rate",
+				"outcome": "ERROR",
+				"atMost": 0
+			}
+		},
+		{
+			"id": "overrides-carry-a-reason",
+			"require": {
+				"kind": "override-reason",
+				"atLeast": 0.75
+			}
+		}
+	]
+}
