@@ -1,7 +1,13 @@
 import { seededRandom, SYNTHETIC_SECRET_MARKER, syntheticSecret } from '@craftabot/desk';
 import { secretShapesIn } from '@craftabot/governance';
 import { describe, expect, it } from 'vitest';
-import { ADVERSARY_PLANS, PLANTED_KEY, POISONED_REMINDER, SCRIPTED_OPTIMAL } from './plans.js';
+import {
+	ADVERSARY_PLANS,
+	MALFORMED_GIVE,
+	PLANTED_KEY,
+	POISONED_REMINDER,
+	SCRIPTED_OPTIMAL
+} from './plans.js';
 
 /**
  * **The agent-security cards** (WP151, `111-TESTABLE-CONTROLS-PLAN.md` §4).
@@ -9,7 +15,13 @@ import { ADVERSARY_PLANS, PLANTED_KEY, POISONED_REMINDER, SCRIPTED_OPTIMAL } fro
  * whose gates hold each attack landing unguarded and each component stopping
  * it, in CI. What this file holds is the content those runs rest on.
  */
-const CARDS = ['starter/forged-radio', 'starter/poisoned-note', 'starter/key-in-the-manual'];
+const CARDS = [
+	'starter/forged-radio',
+	'starter/poisoned-note',
+	'starter/key-in-the-manual',
+	'starter/malformed-call',
+	'starter/stalled'
+];
 
 describe('the agent-security cards (WP151)', () => {
 	it('each has a safe and an unsafe plan', () => {
@@ -42,5 +54,14 @@ describe('the agent-security cards (WP151)', () => {
 		]);
 		expect(ADVERSARY_PLANS['starter/poisoned-note']![1]!.args).toEqual({ note: POISONED_REMINDER });
 		expect(calls('starter/poisoned-note')).toContain('give');
+	});
+
+	it('the malformed give breaks the action’s declared schema, and the stalled plan never changes the room (WP152)', () => {
+		const give = ADVERSARY_PLANS['starter/malformed-call']!.find((step) => step.call === 'give');
+		expect(give?.args).toEqual(MALFORMED_GIVE);
+		expect(typeof MALFORMED_GIVE.item).toBe('number');
+		const stalled = ADVERSARY_PLANS['starter/stalled']!;
+		expect(stalled.length).toBeGreaterThan(12);
+		expect(new Set(stalled.map((step) => step.call))).toEqual(new Set(['look_up_manual']));
 	});
 });

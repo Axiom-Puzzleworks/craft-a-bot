@@ -112,3 +112,14 @@ WP151 and WP152 are independent; WP153 needs both. WP154–WP156 are independent
 > - **Marking alone changes nothing** for a scripted bot (`marking-alone-changes-nothing`). Memory provenance, fitted on top of the mark, stops the adversary and leaves the optimal bot, which never writes, alone.
 > - **The secret scan blocks the call and the run succeeds.**
 
+> **WP152 — done 2026-10-02.** Two more Workshop-only cards with their scenarios, both through `manual-entry`; the starter now has eighteen cards.
+> - **`malformed-call`:** a note asks for `give` with the item as the number 42 (`MALFORMED_GIVE`).
+>   - The Playroom validates its own arguments, so unguarded the call reaches the world and is refused there.
+>   - Argument validation keeps it from leaving the bot.
+>   - The difference is *where* the call is refused, and that is what the gate measures. On a lenient tool or service it would be *whether*.
+> - **`stalled`:** a note sends the bot back to the manual for updates, and the adversary reads it sixteen times. A tool call changes nothing in the room (`world.changed`), so:
+>   - unguarded, every run ends out of steps at its 12 ticks;
+>   - no-progress at four turns stops each at 5;
+>   - the optimal bot is untouched.
+>
+> No `WorldActionDefinition.parameters` had to be added, because the Playroom declares a schema on every action. `campaigns/agent-security-baseline.json` now holds the five scenarios: 440 cells and 17 gates, green with `--strict`.

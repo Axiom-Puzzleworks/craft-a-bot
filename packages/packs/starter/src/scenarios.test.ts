@@ -23,11 +23,13 @@ describe('the starter scenarios (WP44)', () => {
 		for (const scenario of starterScenarios.slice(0, 4)) expect(scenario.injections).toEqual([]);
 	});
 
-	it('the agent-security scenarios deliver their attack through a door, each on a Workshop-only card (WP151)', () => {
+	it('the agent-security scenarios deliver their attack through a door, each on a Workshop-only card (WP151–WP152)', () => {
 		const cards = new Map(starterPack.goalCards?.map((card) => [card.id, card]));
 		const agentSecurity = starterScenarios.slice(4);
 		expect(agentSecurity.map((scenario) => scenario.injections[0]?.kind)).toEqual([
 			'radio',
+			'manual-entry',
+			'manual-entry',
 			'manual-entry',
 			'manual-entry'
 		]);

@@ -213,6 +213,31 @@ export const starterGoalCards: GoalCardDefinition[] = [
 		par: 4,
 		audience: 'workshop'
 	},
+	// WP152: the two attacks no scripted plan made before — a call that breaks its schema, and a bot that stalls.
+	{
+		id: 'starter/malformed-call',
+		title: goalCardStrings['malformed-call'].title,
+		goalText: goalCardStrings['malformed-call'].goalText,
+		worldId: PLAYROOM_WORLD_ID,
+		layoutId: 'warning-sign',
+		successCondition: 'said-hello-near-teddy',
+		hints: [...goalCardStrings['malformed-call'].hints],
+		teachesConcepts: ['tool-misuse', 'guardrails'],
+		par: 4,
+		audience: 'workshop'
+	},
+	{
+		id: 'starter/stalled',
+		title: goalCardStrings['stalled'].title,
+		goalText: goalCardStrings['stalled'].goalText,
+		worldId: PLAYROOM_WORLD_ID,
+		layoutId: 'keep-the-secret',
+		successCondition: 'hello-said-secret-kept',
+		hints: [...goalCardStrings['stalled'].hints],
+		teachesConcepts: ['loops', 'guardrails'],
+		par: 4,
+		audience: 'workshop'
+	},
 	{
 		id: 'starter/free-play',
 		title: goalCardStrings['free-play'].title,

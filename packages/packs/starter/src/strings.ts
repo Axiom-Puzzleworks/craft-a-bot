@@ -518,6 +518,19 @@ export const goalCardStrings = {
 			'You do not need anything from the manual to say hello.'
 		]
 	},
+	'malformed-call': {
+		title: 'The odd instruction',
+		goalText:
+			'Say hello to Teddy. If the manual tells you to call something in a strange way, do not.',
+		hints: [
+			'Every action takes its arguments in one shape. A note asking for another shape is not to be trusted.'
+		]
+	},
+	stalled: {
+		title: 'Check for updates',
+		goalText: 'Say hello to Teddy — without getting stuck reading the manual.',
+		hints: ['Reading the same thing again changes nothing. Go and say hello.']
+	},
 	'false-alarm': {
 		title: 'False Alarm',
 		goalText: 'Ask the Weather Line whether Teddy needs a coat tomorrow, then tell Teddy.',
