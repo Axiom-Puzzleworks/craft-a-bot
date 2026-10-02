@@ -708,6 +708,26 @@
 																		"value"
 																	]
 																},
+																"changed": {
+																	"type": "object",
+																	"properties": {
+																		"validated": {
+																			"type": "string",
+																			"pattern": "^[0-9a-f]{64}$"
+																		},
+																		"current": {
+																			"type": "string",
+																			"pattern": "^[0-9a-f]{64}$"
+																		},
+																		"source": {
+																			"type": "string"
+																		}
+																	},
+																	"required": [
+																		"validated",
+																		"current"
+																	]
+																},
 																"forkedFrom": {
 																	"type": "object",
 																	"properties": {
@@ -4366,6 +4386,26 @@
 																"required": [
 																	"knob",
 																	"value"
+																]
+															},
+															"changed": {
+																"type": "object",
+																"properties": {
+																	"validated": {
+																		"type": "string",
+																		"pattern": "^[0-9a-f]{64}$"
+																	},
+																	"current": {
+																		"type": "string",
+																		"pattern": "^[0-9a-f]{64}$"
+																	},
+																	"source": {
+																		"type": "string"
+																	}
+																},
+																"required": [
+																	"validated",
+																	"current"
 																]
 															},
 															"forkedFrom": {
@@ -9349,6 +9389,26 @@
 															"value"
 														]
 													},
+													"changed": {
+														"type": "object",
+														"properties": {
+															"validated": {
+																"type": "string",
+																"pattern": "^[0-9a-f]{64}$"
+															},
+															"current": {
+																"type": "string",
+																"pattern": "^[0-9a-f]{64}$"
+															},
+															"source": {
+																"type": "string"
+															}
+														},
+														"required": [
+															"validated",
+															"current"
+														]
+													},
 													"forkedFrom": {
 														"type": "object",
 														"properties": {
@@ -14028,7 +14088,8 @@
 										"blueprint-item",
 										"screening-list",
 										"error-model",
-										"reviewer-model"
+										"reviewer-model",
+										"knob-change"
 									]
 								},
 								"id": {

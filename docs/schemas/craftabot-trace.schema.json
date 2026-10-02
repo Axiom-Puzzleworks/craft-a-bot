@@ -659,6 +659,26 @@
 											"value"
 										]
 									},
+									"changed": {
+										"type": "object",
+										"properties": {
+											"validated": {
+												"type": "string",
+												"pattern": "^[0-9a-f]{64}$"
+											},
+											"current": {
+												"type": "string",
+												"pattern": "^[0-9a-f]{64}$"
+											},
+											"source": {
+												"type": "string"
+											}
+										},
+										"required": [
+											"validated",
+											"current"
+										]
+									},
 									"forkedFrom": {
 										"type": "object",
 										"properties": {

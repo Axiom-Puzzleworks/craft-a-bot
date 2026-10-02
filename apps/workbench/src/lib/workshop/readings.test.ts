@@ -32,7 +32,9 @@ describe('the reading desk in the Workbench (WP129, 108-READINGS.md §6)', () =>
 		await loadDesks();
 		const subjects = readingSubjects(readingSources(installedPacks, BLUEPRINT_NOTES));
 		const before = readingProgress(readingQueue(subjects, []));
-		for (const row of before) expect(row.open, row.kind).toBeGreaterThan(0);
+		// Every kind but knob changes, which the Workbench reads from no experiment files (WP147).
+		for (const row of before.filter((row) => row.kind !== 'knob-change'))
+			expect(row.open, row.kind).toBeGreaterThan(0);
 		const first = subjects.find((subject) => subject.subject.kind === 'calibration-row')!;
 		const review = reviewFor(first.subject, 'accepted', ANDREW, NOW);
 		const reviews = reviewsFromContent([reviewRecord(review)]);

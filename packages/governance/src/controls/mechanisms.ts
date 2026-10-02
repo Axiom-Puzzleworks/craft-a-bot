@@ -188,6 +188,16 @@ export const CONTROL_MECHANISMS: readonly ControlMechanism[] = [
 		since: 'WP145'
 	}),
 	m({
+		id: 'core/build-digest',
+		name: 'The build digest and the changed build',
+		summary:
+			'A digest over a bot’s goal card, knobs and every brick’s config, on the kit file; a run of a build other than the one validated says so on run.started.',
+		where: ['packages/core/src/build-digest.ts', 'packages/core/src/session/agent-session.ts'],
+		observedAs: ['run.started.changed', 'craftabot kit digest'],
+		configuredBy: 'the build named as validated',
+		since: 'WP147'
+	}),
+	m({
 		id: 'core/pack-digest',
 		name: 'The pack content digest and its pins',
 		summary:

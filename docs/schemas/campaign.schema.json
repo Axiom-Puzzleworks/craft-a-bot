@@ -829,6 +829,10 @@
 													"updatedAt"
 												]
 											},
+											"digest": {
+												"type": "string",
+												"pattern": "^[0-9a-f]{64}$"
+											},
 											"notes": {
 												"type": "string"
 											}

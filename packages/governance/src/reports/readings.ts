@@ -49,6 +49,59 @@ export interface ReadingSources {
 	screeningLists?: readonly ReadingScreeningList[];
 	errorModels?: readonly ErrorModel[];
 	reviewerModels?: readonly ReviewerModel[];
+	/** Knobs a shipped campaign or experiment sets away from the default (WP147, `knobChangesIn`). */
+	knobChanges?: readonly KnobChange[];
+}
+
+/** A knob set by a shipped campaign build or experiment level (WP147): where, which knob, to what. */
+export interface KnobChange {
+	/** `campaign` or `experiment`, and its id. */
+	in: { kind: 'campaign' | 'experiment'; id: string };
+	/** The build or the level that sets it. */
+	at: string;
+	knob: string;
+	value: string;
+}
+
+/**
+ * **Knob changes** (WP147, `110-CONTROL-SUITE-PLAN.md` §10; SS1/23 change
+ * control): every knob a shipped campaign's build overrides
+ * (`builds[].overrides.knobs`) or an experiment's knob factor sets at a level
+ * other than its baseline — each a change to how a desk decides, read like a
+ * calibration row before anyone relies on what it measured.
+ */
+export function knobChangesIn(
+	files: ReadonlyArray<{ kind: 'campaign' | 'experiment'; id: string; file: unknown }>
+): KnobChange[] {
+	const changes: KnobChange[] = [];
+	for (const { kind, id, file } of files) {
+		// An experiment file holds its design under `design`; a bare design or a campaign holds it at the top.
+		const raw = (file ?? {}) as { design?: unknown };
+		const body = (raw.design ?? raw) as {
+			builds?: Array<{ id?: string; overrides?: { knobs?: Record<string, unknown> } }>;
+			template?: {
+				builds?: Array<{ id?: string; overrides?: { knobs?: Record<string, unknown> } }>;
+			};
+			factors?: Array<{ axis?: string; knob?: string; levels?: unknown[] }>;
+			baseline?: Record<string, unknown>;
+		};
+		for (const build of [...(body.builds ?? []), ...(body.template?.builds ?? [])])
+			for (const [knob, value] of Object.entries(build.overrides?.knobs ?? {}))
+				changes.push({ in: { kind, id }, at: build.id ?? 'a build', knob, value: String(value) });
+		for (const factor of body.factors ?? []) {
+			if (factor.axis !== 'knob' || !factor.knob) continue;
+			const baseline = body.baseline?.['knob'];
+			for (const level of factor.levels ?? [])
+				if (String(level) !== String(baseline))
+					changes.push({
+						in: { kind, id },
+						at: `level ${String(level)}`,
+						knob: factor.knob,
+						value: String(level)
+					});
+		}
+	}
+	return changes;
 }
 
 /** One line of what the reader reads the subject against. */
@@ -97,7 +150,8 @@ export const READING_KIND_LABELS: Record<ReviewSubjectKind, string> = {
 	'blueprint-item': 'Blueprint items',
 	'screening-list': 'Screening lists',
 	'error-model': 'Error models',
-	'reviewer-model': 'Reviewer models'
+	'reviewer-model': 'Reviewer models',
+	'knob-change': 'Knob changes'
 };
 
 /** One checklist box of a blueprint note (`docs/blueprints/*.md` §6). */
@@ -275,6 +329,21 @@ export function readingSubjects(sources: ReadingSources): ReadingSubject[] {
 			]
 		});
 	}
+	for (const change of sources.knobChanges ?? []) {
+		subjects.push({
+			subject: {
+				kind: 'knob-change',
+				id: `${change.in.kind}:${change.in.id}#${change.at}#${change.knob}`
+			},
+			title: `${change.knob} set to ${change.value}`,
+			group: `${change.in.kind} ${change.in.id}`,
+			source: [
+				{ label: 'Where', value: `${change.in.kind} ${change.in.id}, ${change.at}` },
+				{ label: 'Knob', value: change.knob },
+				{ label: 'Value', value: change.value }
+			]
+		});
+	}
 	const order = new Map(REVIEW_SUBJECT_KINDS.map((kind, index) => [kind, index]));
 	return subjects
 		.map((subject, index) => ({ subject, index }))
@@ -293,7 +362,7 @@ export function readingSubjects(sources: ReadingSources): ReadingSubject[] {
  */
 export function readingSourcesFrom(
 	manifests: readonly PackManifest[],
-	extras: Pick<ReadingSources, 'catalogue' | 'blueprints' | 'screeningLists'> = {}
+	extras: Pick<ReadingSources, 'catalogue' | 'blueprints' | 'screeningLists' | 'knobChanges'> = {}
 ): ReadingSources {
 	const once = <T extends { id: string }>(items: T[]): T[] => {
 		const seen = new Set<string>();

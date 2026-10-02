@@ -462,13 +462,17 @@ export const SECOND_EDITION_ENTRIES: CatalogueEntry[] = [
 		obligations: ['pra:ss1-23:identification', 'pra:ss1-23:governance'],
 		sources: [PRA_SS1_23, NIST_800_53, EU_AI_ACT_DEPLOYERS],
 		coverage: {
-			status: 'bespoke',
+			status: 'shipped',
 			implementedBy: [
+				'mechanism:core/build-digest',
 				'mechanism:core/agent-card',
 				'mechanism:core/kit-requires',
-				'mechanism:core/cassette-digest'
+				'mechanism:core/cassette-digest',
+				'mechanism:core/pack-digest',
+				'gate:no-regression'
 			],
-			note: 'A built bot is inventoried, its packs pinned by range and a recorded answer by its prompt’s digest; nothing digests the cartridge, stack, knobs and prompt together, and a changed knob is not read before it runs (WP147).'
+			note: 'A build digest over the goal card and its dial (the knobs) and every brick’s kind and config (the cartridge, the personality, the stack) is on every exported kit file (WP147); a host that names the build it validated gets run.started.changed when a run is of another; a knob a shipped campaign or experiment sets is a reading on the reading desk, read like a calibration row; the bank’s model-change-control row cites them with the no-regression gate. The packs a bot is built from are pinned by their own digest (WP141). Not done: nothing yet stores a validated digest for the Workbench’s own bots — the harness names it with run --validated.',
+			since: 'WP147'
 		},
 		bankingRelevance: 'core'
 	}),

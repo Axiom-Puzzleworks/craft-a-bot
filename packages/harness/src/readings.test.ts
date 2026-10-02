@@ -31,6 +31,7 @@ import { createRegistry, defaultConfig, defaultPacks } from './config.js';
  */
 const HERE = dirname(fileURLToPath(import.meta.url));
 const BLUEPRINTS = join(HERE, '..', '..', '..', 'docs', 'blueprints');
+const EXPERIMENTS = join(HERE, '..', '..', '..', 'experiments');
 const NOW = '2026-09-30T12:00:00.000Z';
 const manifests = defaultPacks();
 const registry = createRegistry(defaultConfig());
@@ -61,10 +62,15 @@ const record = (value: Review): ContentRecord => ({
 });
 
 describe('the queue’s count is the pending set (WP129)', () => {
-	it('kind by kind, counted straight from the sources, across all eight', async () => {
+	it('kind by kind, counted straight from the sources, across all nine', async () => {
 		const blueprints = await readBlueprintNotes(BLUEPRINTS);
 		expect(blueprints.map((note) => note.id)).toEqual(['healthcare', 'logistics', 'manufacturing']);
-		const file = await readingsFor({ packs: manifests, blueprints, generatedAt: NOW });
+		const file = await readingsFor({
+			packs: manifests,
+			blueprints,
+			experimentsDir: EXPERIMENTS,
+			generatedAt: NOW
+		});
 		const open = Object.fromEntries(file.progress.map((row) => [row.kind, row.open]));
 		const errorModels = once(manifests.flatMap((manifest) => manifest.errorModels ?? []));
 		const reviewerModels = once(manifests.flatMap((manifest) => manifest.reviewerModels ?? []));
@@ -82,7 +88,9 @@ describe('the queue’s count is the pending set (WP129)', () => {
 			).length,
 			'screening-list': SCREENING_READINGS.length,
 			'error-model': errorModels.length,
-			'reviewer-model': reviewerModels.length
+			'reviewer-model': reviewerModels.length,
+			// WP147: lending-knobs' referRatioPercent at 45, the one knob a shipped file sets away from its default.
+			'knob-change': 1
 		};
 		expect(open).toEqual(direct);
 		// Every kind has something to read: the seven readings Day 5 and Day 6 named are the queue's first contents.

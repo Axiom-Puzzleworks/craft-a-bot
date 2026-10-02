@@ -12,6 +12,7 @@ import {
 	readingProgress,
 	readingQueue,
 	readingSubjects,
+	knobChangesIn,
 	readingsExport,
 	renderReadingsMarkdown
 } from './readings.js';
@@ -189,7 +190,8 @@ describe('the reading desk’s fold (WP129, 108-READINGS.md §3)', () => {
 		]);
 		expect(queue.map((item) => item.state)).toEqual(['amended', 'rejected', 'unread']);
 		const progress = readingProgress(queue);
-		expect(progress).toHaveLength(8);
+		// Nine kinds since WP147 added knob changes.
+		expect(progress).toHaveLength(9);
 		expect(progress.slice(1, 4)).toEqual([
 			{ kind: 'calibration-row', total: 1, read: 1, amended: 1, rejected: 0, open: 0 },
 			{ kind: 'control-row', total: 1, read: 0, amended: 0, rejected: 1, open: 1 },
@@ -204,5 +206,47 @@ describe('the reading desk’s fold (WP129, 108-READINGS.md §3)', () => {
 		);
 		expect(markdown).toContain('## Unread (1)');
 		expect(markdown).toContain('| Decision rights | 0 | 1 | 0 | 0 | 1 |');
+	});
+});
+
+describe('knob changes (WP147)', () => {
+	it('reads a campaign build’s knob overrides and an experiment’s non-baseline knob levels', () => {
+		const changes = knobChangesIn([
+			{
+				kind: 'campaign',
+				id: 'lending-sweep',
+				file: { builds: [{ id: 'strict', overrides: { knobs: { referRatioPercent: 45 } } }] }
+			},
+			{
+				kind: 'experiment',
+				id: 'lending-knobs',
+				file: {
+					design: {
+						factors: [{ axis: 'knob', knob: 'referRatioPercent', levels: ['60', '45'] }],
+						baseline: { knob: '60' }
+					}
+				}
+			},
+			{ kind: 'campaign', id: 'plain', file: { builds: [{ id: 'b' }] } }
+		]);
+		expect(changes).toEqual([
+			{
+				in: { kind: 'campaign', id: 'lending-sweep' },
+				at: 'strict',
+				knob: 'referRatioPercent',
+				value: '45'
+			},
+			{
+				in: { kind: 'experiment', id: 'lending-knobs' },
+				at: 'level 45',
+				knob: 'referRatioPercent',
+				value: '45'
+			}
+		]);
+		const subjects = readingSubjects({ knobChanges: changes });
+		expect(subjects.map((subject) => subject.subject)).toEqual([
+			{ kind: 'knob-change', id: 'campaign:lending-sweep#strict#referRatioPercent' },
+			{ kind: 'knob-change', id: 'experiment:lending-knobs#level 45#referRatioPercent' }
+		]);
 	});
 });

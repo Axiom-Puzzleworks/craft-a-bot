@@ -130,6 +130,18 @@ const runStartedEvent = eventSchema(
 			.optional(),
 		/** The card's dial as it stood for this run (WP131, `109-…` §3): which knob, at what value; written only when the card has a dial. */
 		goalDial: z.object({ knob: z.string().min(1), value: z.number() }).optional(),
+		/**
+		 * The build is not the one last validated (WP147, `110-…` §10): both
+		 * `buildDigest`s and where the validation is recorded. Written only
+		 * when the host named a validated build and this one differs.
+		 */
+		changed: z
+			.object({
+				validated: z.string().regex(/^[0-9a-f]{64}$/),
+				current: z.string().regex(/^[0-9a-f]{64}$/),
+				source: z.string().optional()
+			})
+			.optional(),
 		/** A fork (WP66, `54-…` §4.1): the origin run and the tick this run continues after; additive. */
 		forkedFrom: z
 			.object({

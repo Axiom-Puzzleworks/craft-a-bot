@@ -145,6 +145,13 @@ export interface SessionOptions {
 	 * group each member as an agent acting `onBehalfOf` the group's own.
 	 */
 	principal?: Principal;
+	/**
+	 * The build this bot was last validated as (WP147, `110-…` §10): its
+	 * `buildDigest`, and where the validation is recorded. When the running
+	 * build's digest differs, `run.started.changed` says so; when it is the
+	 * same, or none is named, nothing is written.
+	 */
+	validated?: { digest: string; source?: string };
 }
 
 /**

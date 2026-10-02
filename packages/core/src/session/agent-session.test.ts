@@ -13,6 +13,7 @@ import type { Guardrail, GuardrailHook, GuardrailVerdict } from '../types/guardr
 import type { ToolDefinition } from '../types/tool.js';
 import type { WorldDefinition, WorldInstance } from '../types/world.js';
 import { sha256Hex } from '../schemas/sha256.js';
+import { buildDigest } from '../build-digest.js';
 
 /**
  * The loop, tested against a deliberately trivial world rather than the
@@ -199,6 +200,8 @@ function makeSession(config: {
 	parentRunId?: string;
 	/** WP72, `61-…` §4.1: provider faults on cue. */
 	providerFaults?: ProviderFault[];
+	/** WP147: the build last validated. */
+	validated?: { digest: string; source?: string };
 }) {
 	const clock = createTestClock();
 	const session = createSession({
@@ -213,7 +216,8 @@ function makeSession(config: {
 			random: clock.random,
 			...(config.budgets ? { budgets: config.budgets } : {}),
 			...(config.parentRunId ? { parentRunId: config.parentRunId } : {}),
-			...(config.providerFaults ? { providerFaults: config.providerFaults } : {})
+			...(config.providerFaults ? { providerFaults: config.providerFaults } : {}),
+			...(config.validated ? { validated: config.validated } : {})
 		}
 	});
 	const seen: string[] = [];
@@ -3118,5 +3122,45 @@ describe('mandatory disclosures (WP145, `110-…` §10)', () => {
 			action: 'ping',
 			digest: sha256Hex(words)
 		});
+	});
+});
+
+describe('change control (WP147, `110-…` §10)', () => {
+	it('writes run.started.changed only when the build is not the one last validated', async () => {
+		const spec = buildSpec();
+		const validated = buildDigest(spec);
+		const same = makeSession({
+			spec,
+			script: [turn('Ping.', 'ping')],
+			validated: { digest: validated }
+		});
+		await same.session.step();
+		const started = (log: EngineEvent[]) => log.find((event) => event.type === 'run.started');
+		const sameStarted = started(same.log);
+		expect(sameStarted?.type === 'run.started' && sameStarted.payload.changed).toBeUndefined();
+		const other = makeSession({
+			spec,
+			script: [turn('Ping.', 'ping')],
+			validated: { digest: 'a'.repeat(64), source: 'campaign fs-lending-baseline' }
+		});
+		await other.session.step();
+		const otherStarted = started(other.log);
+		expect(otherStarted?.type === 'run.started' && otherStarted.payload.changed).toEqual({
+			validated: 'a'.repeat(64),
+			current: validated,
+			source: 'campaign fs-lending-baseline'
+		});
+	});
+
+	it('the digest ignores a rename and moves with what the bot is built from', () => {
+		const spec = buildSpec();
+		expect(
+			buildDigest({ ...spec, name: 'Renamed', id: '99999999-9999-4999-8999-999999999999' })
+		).toBe(buildDigest(spec));
+		const hotter = {
+			...spec,
+			bricks: { ...spec.bricks, llm: { ...spec.bricks.llm!, temperature: 0.9 } }
+		};
+		expect(buildDigest(hotter)).not.toBe(buildDigest(spec));
 	});
 });
