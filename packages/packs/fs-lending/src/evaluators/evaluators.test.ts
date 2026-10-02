@@ -149,8 +149,10 @@ describe('the Lending Desk evaluators', () => {
 				if (item.kind === 'policy-card') expect(cards.has(item.id), item.id).toBe(true);
 				else if (item.kind === 'evaluator') expect(evaluators.has(item.id), item.id).toBe(true);
 				// WP145: the disclosure row cites the event it is proved by.
-				else if (item.kind === 'trace-guarantee') expect(item.id).toBe('disclosure.given');
-				else expect(item.id).toBe('parity');
+				else if (item.kind === 'trace-guarantee')
+					expect(['disclosure.given', 'approval.resolved']).toContain(item.id);
+				// WP146: the override-reason gate beside the parity gate.
+				else expect(['parity', 'override-reason']).toContain(item.id);
 			}
 	});
 });

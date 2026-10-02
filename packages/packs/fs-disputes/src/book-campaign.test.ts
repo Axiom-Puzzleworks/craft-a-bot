@@ -73,7 +73,9 @@ describe('the disputes book through the five configurations', { timeout: 300_000
 			['every-journey-completes', true],
 			['rules-only-agrees-with-the-rule', true],
 			['the-bots-agree-with-the-rule', true],
-			['nothing-paid-above-the-limit', true]
+			['nothing-paid-above-the-limit', true],
+			// WP146: every reimbursement inside its deadline.
+			['every-journey-on-time', true]
 		]);
 		expect(made.passed).toBe(true);
 		expect(parseCampaignReport(JSON.parse(JSON.stringify(made)))).toEqual(made);

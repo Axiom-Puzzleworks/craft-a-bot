@@ -90,10 +90,20 @@ export const stageRecordSchema = z.object({
 		.object({
 			requested: z.literal(true),
 			by: principalSchema.optional(),
-			decision: z.string()
+			decision: z.string(),
+			/** The decision overruled what the case recommended (WP146), with the reason given, when one was. */
+			override: z.literal(true).optional(),
+			reason: z.string().min(1).optional()
 		})
 		.optional(),
 	status: z.enum(['ok', 'blocked', 'escalated', 'error']),
+	/** The stage finished past its deadline (WP146): the deadline and the journey's elapsed ticks. */
+	overdue: z
+		.object({
+			deadline: z.number().int().positive(),
+			elapsed: z.number().int().nonnegative()
+		})
+		.optional(),
 	/** Why a stage is `error` or `blocked`, in a sentence. */
 	finding: z.string().optional(),
 	/** The reviewer model's answer at a `human` stage (WP115, `103-…` §6); absent unless the configuration names one. */

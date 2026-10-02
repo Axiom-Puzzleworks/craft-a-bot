@@ -132,6 +132,21 @@ export const ADVICE_CONTROL_ROWS: readonly ControlMapRow[] = [
 		],
 		status: 'unreviewed',
 		tags: ['fca:disp:complaints']
+	},
+	{
+		// WP146 (`110-…` §10): DISP's timescales as deadlines on the complaints journey.
+		framework: 'FCA DISP 1.6',
+		ref: 'complaints-on-time',
+		title: 'A complaint is acknowledged and answered within its timescales',
+		obligation:
+			'The acknowledgement and the final response carry DISP’s deadlines; a complaint past one is recorded overdue and escalated to a person.',
+		evidence: [
+			{ kind: 'evaluator', id: 'fs-advice/complaint-acknowledged' },
+			{ kind: 'gate', id: 'timeliness' },
+			{ kind: 'trace-guarantee', id: 'stage.overdue' }
+		],
+		status: 'unreviewed',
+		tags: ['fca:disp:complaints']
 	}
 ];
 

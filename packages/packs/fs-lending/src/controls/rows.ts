@@ -78,6 +78,20 @@ export const LENDING_CONTROL_ROWS: readonly ControlMapRow[] = [
 		],
 		status: 'unreviewed',
 		tags: ['fca:cd:understanding', 'fca:disp:complaints']
+	},
+	{
+		// WP146 (`110-…` §10): why a person overruled the recommendation, on the record.
+		framework: 'PRA SS1/23 / FCA Consumer Duty',
+		ref: 'override-reasoned',
+		title: 'A person who overrules a recommendation says why',
+		obligation:
+			'A decision against what the case recommended is recorded as an override with its reason; the share with a reason is measured.',
+		evidence: [
+			{ kind: 'trace-guarantee', id: 'approval.resolved' },
+			{ kind: 'gate', id: 'override-reason' }
+		],
+		status: 'unreviewed',
+		tags: ['pra:ss1-23:governance']
 	}
 ];
 

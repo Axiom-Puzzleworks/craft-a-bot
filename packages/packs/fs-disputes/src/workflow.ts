@@ -335,6 +335,14 @@ const RULES: WorkflowSpec['rules'] = {
 
 const agent = (until: string, goalText: string): Executor => ({ kind: 'agent', until, goalText });
 const rule = (id: string): Executor => ({ kind: 'rule', rule: id });
+/**
+ * The PSR's reimbursement timescale as a deadline (WP146), in journey ticks —
+ * a stated assumption, since the simulator's tick is not a business day.
+ * Every shipped configuration reaches the reimbursement at tick 9; a journey
+ * that dawdles past 12 is overdue.
+ */
+export const REIMBURSE_DEADLINE = 12;
+
 const names = disputesStrings.workflow.stages;
 
 const afterTheDecision = (state: WorldState): string | StageHandoff => {
@@ -450,6 +458,8 @@ export const DISPUTES_STAGES: StageSpec[] = [
 	{
 		id: 'reimburse',
 		name: names.reimburse,
+		// WP146: the PSR's reimbursement timescale, as REIMBURSE_DEADLINE journey ticks — a stated assumption.
+		deadline: { ticks: REIMBURSE_DEADLINE, cites: ['psr:app-reimbursement'] },
 		obligations: ['psr:app-reimbursement', 'pra:ss1-23:mitigants'],
 		input: CONFIRM_OUTPUT,
 		output: REIMBURSE_OUTPUT,

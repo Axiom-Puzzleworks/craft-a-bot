@@ -424,7 +424,15 @@ const approvalResolvedEvent = eventSchema(
 	z.object({
 		approved: z.boolean(),
 		/** Who answered (WP65, `55-…` §4.1); present when the caller said. */
-		by: principalSchema.optional()
+		by: principalSchema.optional(),
+		/**
+		 * The person chose other than what the case recommended (WP146,
+		 * `110-…` §10): written only then, with the reason they gave, when they
+		 * gave one. A recorded override without a reason is what the
+		 * `override-reason` gate counts.
+		 */
+		override: z.literal(true).optional(),
+		reason: z.string().min(1).optional()
 	})
 );
 /**
@@ -446,6 +454,21 @@ const disclosureGivenEvent = eventSchema(
 		id: z.string().min(1),
 		action: z.string().min(1),
 		digest: z.string().regex(/^[0-9a-f]{64}$/)
+	})
+);
+/**
+ * A stage finished past its deadline (WP146, `110-…` §10): the journey's
+ * elapsed ticks against the stage's `deadline`. Written after the stage's
+ * `stage.completed`; the clock counts the case as an incident, which is its
+ * escalation to a person.
+ */
+const stageOverdueEvent = eventSchema(
+	'stage.overdue',
+	z.object({
+		workflowRunId: z.string(),
+		stageId: z.string(),
+		deadline: z.number().int().positive(),
+		elapsed: z.number().int().nonnegative()
 	})
 );
 const elevationRequestedEvent = eventSchema(
@@ -585,6 +608,7 @@ export const engineEventSchema = z.discriminatedUnion('type', [
 	elevationRequestedEvent,
 	elevationResolvedEvent,
 	disclosureGivenEvent,
+	stageOverdueEvent,
 	worldChangedEvent,
 	inputDeliveredEvent,
 	providerRetriedEvent,

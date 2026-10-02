@@ -1891,6 +1891,50 @@
 									"reference",
 									"atMost"
 								]
+							},
+							{
+								"type": "object",
+								"properties": {
+									"kind": {
+										"type": "string",
+										"const": "timeliness"
+									},
+									"atLeast": {
+										"type": "number",
+										"minimum": 0,
+										"maximum": 1
+									},
+									"atMost": {
+										"type": "number",
+										"minimum": 0,
+										"maximum": 1
+									}
+								},
+								"required": [
+									"kind"
+								]
+							},
+							{
+								"type": "object",
+								"properties": {
+									"kind": {
+										"type": "string",
+										"const": "override-reason"
+									},
+									"atLeast": {
+										"type": "number",
+										"minimum": 0,
+										"maximum": 1
+									},
+									"atMost": {
+										"type": "number",
+										"minimum": 0,
+										"maximum": 1
+									}
+								},
+								"required": [
+									"kind"
+								]
 							}
 						]
 					}

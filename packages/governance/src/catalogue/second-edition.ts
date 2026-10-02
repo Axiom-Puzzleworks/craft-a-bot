@@ -590,12 +590,16 @@ export const SECOND_EDITION_ENTRIES: CatalogueEntry[] = [
 		obligations: ['fca:disp:complaints', 'psr:app-reimbursement'],
 		sources: [FCA_DISP, PSR_APP],
 		coverage: {
-			status: 'bespoke',
+			status: 'shipped',
 			implementedBy: [
+				'mechanism:workflow/deadlines',
+				'trace-guarantee:stage.overdue',
+				'gate:timeliness',
 				'evaluator:fs-fraud/time-to-decision',
 				'evaluator:fs-advice/complaint-acknowledged'
 			],
-			note: 'DISP’s timescales are ticks in the complaints desk’s truth and the fraud desk times its decisions; no stage carries a deadline and nothing escalates a case by the clock (WP146).'
+			note: 'A stage carries a deadline in journey ticks, citing its timescale (WP146): the complaints journey’s acknowledgement and final response (DISP 1.6), the disputes journey’s reimbursement (the PSR’s, a stated mapping). A stage done past it is recorded overdue and written stage.overdue; the bank clock counts the case and lists it among the day’s incidents — its escalation to a person; the timeliness gate holds a book to it. A tick is the simulator’s unit, not a day: the deadlines are measured against the shipped configurations and stated as assumptions.',
+			since: 'WP146'
 		},
 		bankingRelevance: 'core'
 	}),
@@ -613,9 +617,15 @@ export const SECOND_EDITION_ENTRIES: CatalogueEntry[] = [
 		obligations: ['pra:ss1-23:mitigants'],
 		sources: [EU_AI_ACT_OVERSIGHT, PRA_SS1_23],
 		coverage: {
-			status: 'bespoke',
-			implementedBy: ['trace-guarantee:approval.resolved', 'mechanism:core/principal'],
-			note: 'Who approved is on the trace; why a person overruled a recommendation or waived a refusal is not (WP146).'
+			status: 'shipped',
+			implementedBy: [
+				'trace-guarantee:approval.resolved',
+				'mechanism:core/principal',
+				'mechanism:workflow/override-reason',
+				'gate:override-reason'
+			],
+			note: 'A person’s decision against what the case recommended is recorded as an override on the approval and on approval.resolved, with the reason they gave (WP146); the override-reason gate holds a campaign to the share of overrides with a reason. Diverged: a gate, not an evaluator — an agent run’s evaluator cannot see a journey’s human stage. Not required by the runtime: an override without a reason is recorded as such, which is what the gate counts, rather than refused. The fallible reviewer model gives no reasons, so a campaign over it reads the gate failing — a true finding about a model of a person, not a person.',
+			since: 'WP146'
 		},
 		bankingRelevance: 'core'
 	}),

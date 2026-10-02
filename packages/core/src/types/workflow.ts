@@ -82,6 +82,15 @@ export interface StageSpec<In = unknown, Out = unknown> {
 	/** The obligations this stage answers for (WP88, `79-…` §3) — the Conduct lens opens the Pipeline here for them. */
 	obligations?: string[];
 	/**
+	 * When the stage must be done by (WP146, `110-CONTROL-SUITE-PLAN.md` §10):
+	 * the journey's elapsed ticks — every stage's span so far, this one's
+	 * included — at most `ticks`. A stage that finishes later is recorded
+	 * overdue and written `stage.overdue`; the regulator's timescale it
+	 * answers to is cited, and the ticks-for-days mapping is the desk's
+	 * stated assumption.
+	 */
+	deadline?: { ticks: number; cites?: readonly string[]; note?: string };
+	/**
 	 * What a scripted person answers at a `human` stage (WP80): the
 	 * recommendation on the desk — the bot's, or the rule's verdict — so a
 	 * campaign's person follows the case rather than the first option.

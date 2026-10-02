@@ -60,6 +60,8 @@ export const bankRunSchema = z.object({
 		stopped: z.number().int().nonnegative(),
 		/** Runs that ended by handing their item to another desk (WP102); absent on a day recorded before. */
 		handedOff: z.number().int().nonnegative().optional(),
+		/** Runs with a stage done past its deadline (WP146), each also an incident; absent when none was. */
+		overdue: z.number().int().nonnegative().optional(),
 		byDesk: z.record(
 			z.string(),
 			z.object({

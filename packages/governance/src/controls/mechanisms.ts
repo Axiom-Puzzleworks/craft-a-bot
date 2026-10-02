@@ -293,6 +293,25 @@ export const CONTROL_MECHANISMS: readonly ControlMechanism[] = [
 		since: 'WP117'
 	}),
 	m({
+		id: 'workflow/deadlines',
+		name: 'Stage deadlines and the overdue case',
+		summary:
+			'A stage’s deadline in journey ticks; a stage done past it is recorded overdue and written stage.overdue, and the bank clock lists the case as an incident.',
+		where: ['packages/workflow/src/run.ts', 'packages/workflow/src/bank.ts'],
+		observedAs: ['stage.overdue', 'BankRun.counts.overdue'],
+		configuredBy: 'a stage’s deadline',
+		since: 'WP146'
+	}),
+	m({
+		id: 'workflow/override-reason',
+		name: 'Overrides and their reasons',
+		summary:
+			'A person’s decision against the case’s recommendation is recorded as an override, with the reason given, on the stage’s approval and on approval.resolved.',
+		where: ['packages/workflow/src/run.ts'],
+		observedAs: ['approval.resolved.override', 'StageRecord.approval.reason'],
+		since: 'WP146'
+	}),
+	m({
 		id: 'workflow/appeal',
 		name: 'The appeal, as a handoff to review',
 		summary:

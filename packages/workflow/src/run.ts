@@ -132,6 +132,8 @@ export interface RunWorkflowOptions {
 export interface HumanDecision {
 	decision: string;
 	by?: Principal;
+	/** Why, when the decision overrules what the case recommended (WP146); recorded on the approval. */
+	reason?: string;
 }
 
 /** A value is kept on the record when its canonical JSON is under this; else the digest alone (§4). */
@@ -346,6 +348,8 @@ export async function runWorkflow(
 	const stages: StageRecord[] = [];
 	const runIds: string[] = [];
 	let ordinal = 0;
+	/** The journey's elapsed ticks (WP146): a bot's stage spans its session's ticks, any other stage one. */
+	let elapsed = 0;
 	let reached = options.fromStage === undefined;
 
 	function emit<T extends EventType>(type: T, payload: PayloadFor<T>): void {
@@ -389,6 +393,18 @@ export async function runWorkflow(
 		currentExecutor = executor;
 
 		const record = await runStage(stage, executor, input);
+		elapsed +=
+			record.executor.kind === 'agent' ? Math.max(1, record.endedTick - record.startedTick) : 1;
+		// A deadline (WP146): a stage done past it is recorded overdue and said so on the trace.
+		if (stage.deadline && elapsed > stage.deadline.ticks) {
+			record.overdue = { deadline: stage.deadline.ticks, elapsed };
+			emit('stage.overdue', {
+				workflowRunId: runId,
+				stageId: stage.id,
+				deadline: stage.deadline.ticks,
+				elapsed
+			});
+		}
 		stages.push(record);
 		options.onStage?.(record);
 		if (record.status === 'error' || record.status === 'blocked') {
@@ -981,15 +997,24 @@ export async function runWorkflow(
 				}
 			);
 		}
+		// An override (WP146): the person chose other than what the case put in front of them.
+		const shown =
+			stage.recommended?.(stageInput, state) ?? recommendationIn(stageInput, executor.options);
+		const overrode = shown !== undefined && answer.decision !== shown;
+		const why = overrode && answer.reason?.trim() ? answer.reason.trim() : undefined;
 		emit('approval.resolved', {
 			approved: answer.decision === first,
-			...(answer.by ? { by: answer.by } : {})
+			...(answer.by ? { by: answer.by } : {}),
+			...(overrode ? { override: true as const } : {}),
+			...(why !== undefined ? { reason: why } : {})
 		});
 		const read = readOutput(stage, { decision: answer.decision }, false);
 		const approval = {
 			requested: true as const,
 			...(answer.by ? { by: answer.by } : {}),
-			decision: answer.decision
+			decision: answer.decision,
+			...(overrode ? { override: true as const } : {}),
+			...(why !== undefined ? { reason: why } : {})
 		};
 		if ('finding' in read) {
 			return finishStage(base, started, ordinal, ordinal, undefined, [], 'error', read.finding, 0, {
