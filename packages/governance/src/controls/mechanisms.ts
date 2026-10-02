@@ -381,6 +381,16 @@ export const CONTROL_MECHANISMS: readonly ControlMechanism[] = [
 		since: 'WP38'
 	}),
 	m({
+		id: 'evals/evaluators',
+		name: 'Evaluators',
+		summary:
+			'A judgement over a finished run — a check, a rubric or a hosted judge — recorded beside it and read by a campaign’s gates.',
+		where: ['packages/core/src/types/evaluator.ts', 'packages/evals/src/evaluators.ts'],
+		observedAs: ['/workshop/evaluators', 'evaluation records', 'the campaign report'],
+		configuredBy: 'a campaign’s evaluators and gates',
+		since: 'WP43'
+	}),
+	m({
 		id: 'evals/adversary',
 		name: 'The adversary tier',
 		summary: 'Scripted adversaries and the red-team seat probe a bot inside a campaign.',

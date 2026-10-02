@@ -1,4 +1,11 @@
-import { CONTROL_REF_KINDS, type ControlRefKind, type StoredCampaignReport } from '@craftabot/core';
+import {
+	CONTROL_REF_KINDS,
+	type ControlRefKind,
+	type PackRegistry,
+	type StoredCampaignReport
+} from '@craftabot/core';
+import { GATE_CONTENT } from '@craftabot/gate/presets';
+import { createRegistry } from '$lib/packs.js';
 import type {
 	ControlInventoryRow,
 	InventoryCampaignReport,
@@ -167,4 +174,15 @@ export function inventoryReportsOf(
 		const cells = (stored.report as { cells?: unknown }).cells;
 		return Array.isArray(cells) ? [{ cells: cells as InventoryCampaignReport['cells'] }] : [];
 	});
+}
+
+/**
+ * The inventory's registry: the box's packs and the Gate's presets beside
+ * them (2026-10-02), so a component the Gate fits reads *fitted* here as it
+ * does in `craftabot controls`.
+ */
+export function inventoryRegistry(): PackRegistry {
+	const registry = createRegistry();
+	registry.registerPack(GATE_CONTENT);
+	return registry;
 }

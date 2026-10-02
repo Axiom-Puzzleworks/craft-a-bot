@@ -22,11 +22,12 @@
 	import Readout from '$lib/components/control-room/Readout.svelte';
 	import Roundel from '$lib/components/control-room/Roundel.svelte';
 	import Strip from '$lib/components/control-room/Strip.svelte';
-	import { createRegistry, installedPacks } from '$lib/packs.js';
+	import { installedPacks } from '$lib/packs.js';
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import { contentStore } from '$lib/state/content.svelte.js';
 	import {
 		KIND_LABELS,
+		inventoryRegistry,
 		MATRIX_FACETS,
 		SURFACE_LABELS,
 		SURFACE_ROUTES,
@@ -52,7 +53,7 @@
 	 * page of techniques; this is the page of instances. Every figure is the
 	 * fold's (`controlInventory`); the filter is in the URL.
 	 */
-	const registry = createRegistry();
+	const registry = inventoryRegistry();
 	let results = $state.raw<ExperimentResult[]>([]);
 	let benchmarks = $state.raw<BenchmarkReport[]>([]);
 	let summaries = $state.raw<RunSummary[]>([]);

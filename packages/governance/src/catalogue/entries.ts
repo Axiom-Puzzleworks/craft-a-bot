@@ -1202,6 +1202,7 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 			status: 'shipped',
 			implementedBy: [
 				'mechanism:evals/campaign',
+				'mechanism:evals/evaluators',
 				'mechanism:evals/benchmark',
 				'gate:outcome-rate',
 				'gate:evaluator-pass-rate'

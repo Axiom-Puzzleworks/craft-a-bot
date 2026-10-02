@@ -1,12 +1,12 @@
 import { GUARDRAIL_CATALOGUE } from '@craftabot/governance';
 import { controlInventory } from '@craftabot/governance/reports';
 import { describe, expect, it } from 'vitest';
-import { createRegistry } from '$lib/packs.js';
 import {
 	controlFilterFrom,
 	controlFilterQuery,
 	facetWords,
 	filterControls,
+	inventoryRegistry,
 	inventoryReportsOf,
 	kindFacet,
 	SURFACE_ROUTES
@@ -17,7 +17,7 @@ import {
  * through the URL, every facet has words, and the matrix's shares are the
  * rows' own.
  */
-const rows = controlInventory({ registry: createRegistry(), catalogue: GUARDRAIL_CATALOGUE });
+const rows = controlInventory({ registry: inventoryRegistry(), catalogue: GUARDRAIL_CATALOGUE });
 
 describe('the control filter', () => {
 	it('round-trips through the URL and drops what it does not know', () => {

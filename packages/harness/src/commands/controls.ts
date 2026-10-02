@@ -1,3 +1,4 @@
+import { GATE_CONTENT } from '@craftabot/gate/presets';
 import { existsSync } from 'node:fs';
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -38,7 +39,12 @@ export interface ControlsOptions {
 }
 
 export async function controlsFor(options: ControlsOptions): Promise<ControlInventoryExport> {
-	const registry = createRegistry({ packs: [...options.packs] });
+	// The Gate's presets beside the packs (2026-10-02): what the Gate fits reads *fitted*, as the Workbench's page has it.
+	const registry = createRegistry({
+		packs: options.packs.some((pack) => pack.id === GATE_CONTENT.id)
+			? [...options.packs]
+			: [...options.packs, GATE_CONTENT]
+	});
 	const campaigns: Array<{ id: string; campaign: unknown; kind?: 'campaign' | 'experiment' }> =
 		options.packs.flatMap((pack) =>
 			(pack.campaigns ?? []).map((shipped) => ({ id: shipped.id, campaign: shipped.campaign() }))
