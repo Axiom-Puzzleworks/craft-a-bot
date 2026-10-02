@@ -131,7 +131,7 @@ HEADER = f"""<div style="font-family:'IBM Plex Mono',monospace;font-size:6.5pt;l
 
 FOOTER = f"""<div style="font-family:'IBM Plex Mono',monospace;font-size:6.5pt;letter-spacing:.08em;
  color:{MUTED};width:100%;padding:0 20mm;display:flex;justify-content:space-between;">
- <span>v1.2 &nbsp;·&nbsp; 7 September 2026 &nbsp;·&nbsp; FOR SIMULATION ONLY</span>
+ <span>v1.6 &nbsp;·&nbsp; 2 October 2026 &nbsp;·&nbsp; FOR SIMULATION ONLY</span>
  <span>page <span class="pageNumber"></span> of <span class="totalPages"></span></span></div>"""
 
 # ---------- markdown ----------
@@ -198,7 +198,7 @@ cover = f"""<div class="cover">
   <div class="spacer"></div>
   <div class="proof">∴</div>
   <div><span class="strap">FOR SIMULATION ONLY</span></div>
-  <div class="foot">Version 1.2 &nbsp;·&nbsp; 7 September 2026 &nbsp;·&nbsp; applies to <code style="border:0;background:none;padding:0;color:inherit">main</code> at 4acafc1 &nbsp;·&nbsp; draft for review</div>
+  <div class="foot">Version 1.6 &nbsp;·&nbsp; 2 October 2026 &nbsp;·&nbsp; applies to <code style="border:0;background:none;padding:0;color:inherit">main</code> at 6225faf &nbsp;·&nbsp; draft for review</div>
 </div>"""
 
 def page(inner, klass=''):

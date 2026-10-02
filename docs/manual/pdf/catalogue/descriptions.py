@@ -1,4 +1,4 @@
-# Plain-English descriptions for the 45 catalogue entries, keyed by entry id.
+# Plain-English descriptions for the 69 catalogue entries, keyed by entry id.
 # Written for a governance reader; the one-line summary from the catalogue is kept as the tagline.
 
 CATEGORY_INTRO = {
@@ -6,24 +6,33 @@ CATEGORY_INTRO = {
   "Controls that act while the bot is running — on what it reads, what it is about to do, what it "
   "says and what comes back from its tools. This is the largest group because it is where most of "
   "the industry's products sit: classifiers in front of the model, filters behind it, rules over its "
-  "actions and monitors over the run. The sub-categories say where in the loop each control decides.",
+  "actions and monitors over the run — and, since the second edition, the controls a bank’s own "
+  "rulebook puts there: what must be said, what may be read, what a call may spend. The sub-categories "
+  "say where in the loop each control decides.",
  'Secure by design':
   "Architectural choices that remove a class of attack rather than detect it: keeping untrusted text "
-  "away from the model that holds the tools, proving a policy rather than checking each action, and "
-  "the frameworks that package rails around a model.",
+  "away from the model that holds the tools, proving a policy rather than checking each action, one "
+  "chokepoint for every seat of a multi-agent episode, a gateway that guards the wire whoever wrote the "
+  "agent, and the frameworks that package rails around a model.",
  'Identity and access':
   "Who the bot is, whose authority it acts under, and how it proves it — to a directory, to another "
-  "agent, and on the trace. The same questions a bank asks of a member of staff, asked of an agent.",
+  "agent, and on the trace — and the housekeeping around it: secrets kept out of what leaves, records "
+  "kept no longer than needed, and who may change a control. The same questions a bank asks of a member "
+  "of staff, asked of an agent.",
  'Component hardening':
-  "Containing what a bot can reach: where its code runs, where its network calls may go, and whether "
-  "the parts it is built from are what they claim to be.",
+  "Containing what a bot can reach and what happens when a part of it fails: where its code runs, where "
+  "its network calls may go, whether the parts it is built from — the prompt included — are what they "
+  "claim to be, what a check that cannot run does, what a dead dependency falls back to, and whether "
+  "what comes out carries its provenance.",
  'Evaluation and assurance':
   "How a bank comes to know, rather than believe, that its controls work: harnesses and benchmarks, "
-  "red-teaming, safety cases, incident records, control-effectiveness experiments, fairness measurement, "
-  "and the management-system standards that give all of this a shared vocabulary.",
+  "red-teaming, safety cases, incident records, control-effectiveness experiments, fairness and "
+  "calibration measurement, change control over what runs, shadow running before trust, and the "
+  "management-system standards that give all of this a shared vocabulary.",
  'Human oversight':
-  "Where a person sits in the loop — approvals, second signatures, the stop button — and the measures "
-  "that show whether that oversight is real or has become a rubber stamp.",
+  "Where a person sits in the loop — approvals, second signatures, the stop button, the case handed over "
+  "when a model is unsure or a deadline passes — the customer’s own routes to a person (vulnerability, "
+  "appeal), and the measures that show whether that oversight is real or has become a rubber stamp.",
 }
 
 SUBCATEGORY = {
@@ -36,6 +45,10 @@ SUBCATEGORY = {
  'evaluation': 'Evaluation', 'red-teaming': 'Red-teaming', 'assurance': 'Assurance',
  'human-in-the-loop': 'Human in the loop', 'interruptibility': 'Interruptibility',
  'autonomy': 'Autonomy', 'explainability': 'Explainability',
+ 'access-control': 'Access control', 'contestability': 'Contestability',
+ 'customer-outcomes': 'Customer outcomes', 'data-governance': 'Data governance',
+ 'escalation': 'Escalation', 'gateway': 'Gateway', 'provenance': 'Provenance',
+ 'resilience': 'Resilience',
 }
 
 MATURITY = {
@@ -199,6 +212,51 @@ D['stage-boundary-guard'] = (
  "independent of who did the work, and lets a human stage be held to the same output contract as an "
  "automated one.")
 
+D['data-minimisation'] = (
+ "UK GDPR’s purpose-limitation and data-minimisation principles, applied to a bot: it reads only the "
+ "records its declared purpose needs, and a special-category record — health, a protected "
+ "characteristic — is read for the purpose that justifies it or not at all. In practice every lookup is "
+ "gated by purpose, every record carries a classification, and an evaluator afterwards scores what was "
+ "actually read against what the task required. The ICO’s guidance on AI treats this as the first "
+ "question of a data-protection impact assessment; a bot that can see the whole customer file is a "
+ "finding before it has said a word.")
+D['mandatory-disclosure'] = (
+ "Some things a customer must be told, in words the regulator has shaped: CONC 7’s pointer to free debt "
+ "advice when a plan is agreed, COBS 4’s risk warning on an investment, the PSR’s APP-scam reimbursement "
+ "rights, the Ombudsman in every final response under DISP. The control registers each disclosure with "
+ "its exact wording and the obligation it serves, binds it to the customer-facing action that reaches "
+ "that moment so it cannot be skipped, and records on the trace that it was said and what was said. "
+ "The Consumer Duty’s consumer-understanding outcome asks for exactly this evidence — not that a warning "
+ "existed somewhere, but that this customer received it.")
+D['cost-cap'] = (
+ "A ceiling on what a run, or a whole campaign, may spend in money before it stops — tokens priced at "
+ "the provider’s list rates with the source of those prices stated. The token budget bounds volume; the "
+ "cost cap bounds the bill, which is what a finance function and OWASP’s unbounded-consumption entry "
+ "actually care about. A looping or hijacked agent on a metered model is an operational loss as much as "
+ "a safety event, and a cap turns it into a named outcome with a known maximum.")
+D['tool-argument-validation'] = (
+ "Before a tool call runs, its arguments are checked against the parameters the tool declared — type, "
+ "required fields, allowed values, the shape of a list — and a call that does not fit is refused as a "
+ "verdict rather than left for the tool to fail on. A model emits malformed calls more often than a "
+ "programmer would expect, and an attacker can plant arguments that look plausible to the model but not "
+ "to a schema. Validating at the boundary makes the refusal visible on the trace and keeps a bad call "
+ "from reaching a system that might partially honour it. OWASP lists it under improper output handling "
+ "and tool misuse.")
+D['cascade-breaker'] = (
+ "In a multi-agent episode one seat’s fault — a bot that has been hijacked, is looping, or keeps "
+ "proposing refused actions — can spread to every seat that trusts it. A cascade breaker watches the "
+ "episode as a whole and stops it after a set number of refusals or on a named evaluator failure, "
+ "before the fault propagates. It is the stability pattern from Release It! applied to agents rather "
+ "than services, and it answers OWASP’s cascading-failures threat directly: contain the first failure "
+ "and the second never happens.")
+D['automated-reasoning-checks'] = (
+ "Rather than ask a second model whether an answer is right, translate the answer into logic and check "
+ "it against rules written as logic — a policy on what a product allows, what a limit is, who is "
+ "eligible — and report each claim as proved, contradicted, or beyond what the checker could translate. "
+ "Amazon Bedrock’s automated-reasoning checks are the commercial form; the appeal to a bank is that a "
+ "contradiction is a mathematical finding, not an opinion. The limits are real: the policy must be "
+ "written as logic first, and a claim the checker cannot translate is an open question, never a pass.")
+
 # ---------------- Secure by design ----------------
 D['privilege-separation'] = (
  "The dual-LLM pattern: a privileged planner that never reads untrusted content, and a quarantined "
@@ -217,6 +275,21 @@ D['guardrail-framework'] = (
  "building from scratch; Craft A Bot has its own guard shell and component contract, and treats a "
  "vendor’s validators as services it can reach rather than as rails it runs inside.")
 
+D['orchestrator-chokepoint'] = (
+ "When several bots act in one episode, every seat’s proposed action goes through a single chain — the "
+ "supervisor’s — where the shared budget, the observers and the breakers sit. Without it each seat "
+ "carries its own guards and an attacker, or a fault, only needs the weakest. The chokepoint is the "
+ "multi-agent form of a control plane: one place to look, one place to stop, one budget for the "
+ "episode. The multi-agency guidance on agentic AI and OWASP’s inter-agent and cascading-failure "
+ "entries both point here.")
+D['guardrail-gateway'] = (
+ "A proxy placed between any agent and its model provider that runs the guards on the wire itself — "
+ "over the prompts going up and the completions coming back — so the agent’s author need not have "
+ "built any of them in. It is how a bank governs an agent it bought, or one a team wrote without the "
+ "platform: the gateway holds the stack, the policy and the trace, and the agent only sees a model "
+ "endpoint. Bedrock AgentCore’s gateway policies and Microsoft’s agent-governance toolkit are the "
+ "vendors’ versions; the pattern is the same as an API gateway in front of a microservice.")
+
 # ---------------- Identity and access ----------------
 D['agent-identity'] = (
  "A bot as an auditable principal: it has an identity of its own, acts on behalf of a named person, "
@@ -231,6 +304,28 @@ D['inter-agent-authentication'] = (
  "When bots talk to bots, a message from another agent is verified — who sent it, that it was not "
  "altered in transit — before it is trusted. The attack is an impostor agent on the channel (the "
  "party-line scenario); the Agent2Agent protocol is where the industry is placing the authentication.")
+
+D['secret-scan'] = (
+ "Keys and credentials are scrubbed from everything that leaves the system — exports, traces, logs, "
+ "and what the bot itself says or sends — and a test proves no key can reach a record. The outbound "
+ "half is the newer part: a bot that has read a secret, or had one planted in a document, will "
+ "cheerfully repeat it, so a scan over its outgoing lines and calls refuses anything shaped like a key, "
+ "a token or a private key. GitHub’s push protection is the familiar model; OWASP files the risk under "
+ "sensitive-information disclosure.")
+D['data-retention'] = (
+ "Records are kept only as long as the purpose that justified them lasts, then deleted on a schedule "
+ "that is written down and followed — UK GDPR’s storage-limitation principle. For a bot this covers the "
+ "traces, the transcripts and the memory it accumulates, all of which contain personal data and all of "
+ "which are easy to keep forever by default. A retention control names a period per record kind, "
+ "deletes on it, and can show that it did; the ICO expects the period to be justified, not merely "
+ "stated.")
+D['configuration-access-control'] = (
+ "Who may change a guard, a threshold, a stack or an approval mode, enforced by role rather than by "
+ "convention — and a record of every change. A control that anyone on the team can loosen is not a "
+ "control, and a bank’s change-management obligations (NIST’s CM-3, PRA SS1/23’s change control) apply "
+ "to a guardrail configuration as they do to a model. In a multi-tenant platform this is a permission "
+ "system; the minimum anywhere is that a change to a control is authorised by someone entitled to "
+ "make it and visible afterwards.")
 
 # ---------------- Component hardening ----------------
 D['sandboxed-execution'] = (
@@ -247,6 +342,35 @@ D['supply-chain-integrity'] = (
  "What a bot is built from — packs, tools, models, recorded lines — is declared, versioned and "
  "digested, so a change is visible and a tampered component is refused at load. The AI counterpart of "
  "a software bill of materials (CycloneDX’s AI/ML BOM) and of content credentials (C2PA).")
+
+D['fail-closed'] = (
+ "When a check cannot run — the guard service is down, the classifier times out, the policy engine does "
+ "not answer — the action it was guarding is stopped, not waved through; and no call waits forever, "
+ "because every dependency has a timeout. The opposite default, fail open, means a bot is least "
+ "protected exactly when its infrastructure is degraded, which is also when an attacker is most "
+ "interested. NIST’s SC-24 (fail in a known state) and the stability patterns in Release It! are the "
+ "references; the multi-agency guidance on agentic AI names it as a baseline.")
+D['dependency-failover'] = (
+ "When a model provider or a service line fails, the bot moves to a second provider or falls back to a "
+ "plain, safe sentence — and the fallback is itself within a stated tolerance, told to the customer "
+ "plainly, and recorded as what happened. PRA SS1/21 asks a bank to set impact tolerances for its "
+ "important business services and to show it stays inside them when a supplier fails; DORA asks the "
+ "same of ICT third parties. For an agent the questions are which provider is second, what the bot "
+ "says while neither is up, and whether a degraded answer is ever presented as a confident one.")
+D['prompt-integrity'] = (
+ "The system prompt and the brief a bot runs with are what was validated, and not something edited "
+ "since — checked by digesting the validated prompt and comparing each turn’s against it. A prompt is "
+ "configuration that behaves like code, and it is the easiest component to change quietly: a word "
+ "added to a brief can remove a refusal, and nothing in the model’s output says so. OWASP files the "
+ "exposure under system-prompt leakage and supply chain; the control is the same as a checksum on a "
+ "deployed binary.")
+D['output-content-provenance'] = (
+ "Signed provenance attached to generated media — an image, a document, a voice — so a reader can tell "
+ "what made it, from what, and whether it has been altered. The C2PA content-credentials specification "
+ "is the standard, adopted by the camera makers and the large model providers. It is a control on what "
+ "a bot produces rather than on what it decides, and matters where a bank’s bot generates letters, "
+ "statements or marketing that a customer might later be shown a forged version of; for a bot that "
+ "only says text, the digested trace does the same work.")
 
 # ---------------- Evaluation and assurance ----------------
 D['eval-harness'] = (
@@ -280,6 +404,29 @@ D['governance-frameworks'] = (
  "be pointed at the obligation it serves. A reference posture, and in Craft A Bot explicitly not a "
  "compliance claim.")
 
+D['calibration-monitoring'] = (
+ "A model that says it is 90% sure should be right about nine times in ten. Calibration monitoring "
+ "checks that: over an answer key, it plots stated confidence against observed accuracy (the "
+ "reliability diagram) and summarises the gap as expected calibration error and the Brier score. It "
+ "matters because every confidence gate and every risk-tiered routing downstream assumes the number "
+ "means something; a classifier that is confidently wrong defeats them silently. PRA SS1/23 expects a "
+ "bank to monitor a model’s performance in use, and calibration is the measure that tells whether its "
+ "self-reported certainty can be trusted.")
+D['model-change-control'] = (
+ "The model, the stack, the settings and the prompt a bot runs with are pinned and digested as one "
+ "build, the build that was validated is named, and a run on any other build is read before it is "
+ "trusted. This is the model inventory and change control that PRA SS1/23 asks for, extended to the "
+ "parts of an agent that are not the model — a changed threshold or a swapped guard is a model change "
+ "in its effect. The EU AI Act’s obligations on providers and deployers assume the same: you can say "
+ "which version did what, and a change went through a process.")
+D['shadow-mode'] = (
+ "A new control or model runs beside the live path on real traffic, its verdicts recorded and compared "
+ "but never applied, until there is evidence to trust it. Google’s ML Test Score rubric lists it among "
+ "the basics of production readiness; PRA SS1/23 expects a model to be validated in conditions like "
+ "those it will meet. For a guardrail it is the only way to learn the false-alarm rate on genuine "
+ "customer traffic before the alarms start stopping genuine customers — and to put a number on what "
+ "enforcement would have cost.")
+
 # ---------------- Human oversight ----------------
 D['risk-tiered-approval'] = (
  "A person is asked before a risky action, with the risk tiers declared by the world the bot acts in "
@@ -306,5 +453,50 @@ D['explainability'] = (
  "in plain terms, to the customer — with an explanation that names only real reasons, checked by a "
  "faithfulness evaluator. The EU AI Act and the Consumer Duty both expect an explanation a person can "
  "act on.")
+D['confidence-gate'] = (
+ "A judgment made below a stated confidence threshold is not acted on; it goes to a rule or to a "
+ "person instead. This is selective classification from the research literature — a model allowed to "
+ "abstain is more accurate on what it does answer — turned into a routing control: the threshold "
+ "decides how much of the work the model takes and how much a person sees. The EU AI Act’s Article 14 "
+ "wants human oversight that is meaningful, and a gate makes the hand-over a rule rather than a hope; "
+ "its value depends entirely on the confidence being calibrated, which is why the two controls are "
+ "read together.")
+D['vulnerability-detection'] = (
+ "A sign that a customer may be vulnerable — a bereavement mentioned in passing, a health condition, "
+ "difficulty understanding, financial distress — is noticed at intake, recorded, and acted on: a "
+ "referral, forbearance, a different pace of service. FCA FG21/1 and the Consumer Duty expect a firm "
+ "to recognise vulnerability and respond to it, and an automated front door that cannot is a conduct "
+ "failure however good its decisions are. The detection is a reader over the customer’s own words, so "
+ "it can only see what the customer said; what is done with the finding is where the obligation "
+ "actually lands.")
+D['contestability'] = (
+ "A customer subject to an automated decision is told they can challenge it, given a route to a "
+ "person, and the appeal is recorded and decided by one. UK GDPR’s Article 22 grants the right; the "
+ "EU AI Act’s Article 86 adds an explanation; DISP sets the route and the clock for a complaint. The "
+ "practical control has three parts: the words that tell the customer (a declined loan’s reasons and "
+ "review right, the Ombudsman in a final response), a hand-off from the deciding journey into the "
+ "review one, and a person’s decision at the end of it — so that “you can appeal” is a path on the "
+ "trace rather than a sentence in a letter.")
+D['timeliness'] = (
+ "Every stage carries a deadline drawn from the regulator’s timescales — DISP’s acknowledgement and "
+ "final-response limits for a complaint, the PSR’s window for APP-scam reimbursement — and a case that "
+ "passes its deadline is escalated to a person and counted as an incident. A bot that is accurate but "
+ "slow still breaches, and a backlog is invisible until someone measures the clock. The control turns "
+ "the regulator’s calendar into a property of the journey, checked on every case rather than sampled "
+ "at the quarter’s end.")
+D['override-reason'] = (
+ "When a person overrules a bot’s recommendation, or waives a guard’s refusal, the reason they gave is "
+ "on the record beside the decision. Without it an override is a number — so many per case — and the "
+ "number cannot tell a careful reviewer from a hurried one. With it, a model-risk function can read "
+ "why the model and the person disagreed, which is where both the model’s and the reviewer’s "
+ "weaknesses show; the EU AI Act’s Article 14 and PRA SS1/23 both assume human oversight that can be "
+ "evidenced, and a reason is the evidence.")
+D['adaptive-approval'] = (
+ "The approval tier is raised or lowered as a person’s approvals per case climb: ask about everything "
+ "at first, then only about what changes the world, then only about what cannot be undone, so that "
+ "oversight does not decay into rubber-stamping. It answers confirmation fatigue directly — if the "
+ "person will say yes to everything, asking about everything protects nothing. A research idea still, "
+ "with an obvious hazard: the tier is lowered precisely when the person is least attentive, so the "
+ "floor (what is never waved through) matters more than the schedule.")
 
-assert len(D) == 45, len(D)
+assert len(D) == 69, len(D)
