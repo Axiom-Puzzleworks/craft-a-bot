@@ -65,7 +65,7 @@ describe('craftabot evaluate', () => {
 		expect(trace.evaluations?.map((record) => record.evaluatorId)).toEqual(
 			records.map((record) => record.evaluatorId)
 		);
-	});
+	}, 30_000); // 5 s is not enough under a full `npm test`
 
 	it('runs named evaluators, the judge offline without a key, and exits 1 on an unknown id', async () => {
 		const root = await tmp();

@@ -230,6 +230,37 @@ export function syntheticPhone(random: () => number): string {
 	return random() < 0.5 ? `07700 900${digits(random, 3)}` : `020 7946 0${digits(random, 3)}`;
 }
 
+/**
+ * The marker every synthetic credential carries (WP151, `111-TESTABLE-CONTROLS-PLAN.md`
+ * §5 D2): a key's shape with this word in its body is ours, and `checkSynthetic`
+ * refuses any credential shape without it.
+ */
+export const SYNTHETIC_SECRET_MARKER = 'SYNTHETIC';
+
+/** The credential shapes a synthetic secret takes — the ones `governance/secret-scan` names. */
+export type SyntheticSecretKind = 'api-key' | 'aws-access-key' | 'github-token';
+
+const ALPHANUMERIC = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+const UPPER_DIGITS = 'ABCDEFGHJKLMNPQRSTUVWXYZ234567';
+const run = (random: () => number, from: string, count: number): string =>
+	Array.from({ length: count }, () => from[Math.floor(random() * from.length)]).join('');
+
+/**
+ * A credential's shape that no provider issued: an `sk-` key, an AWS access
+ * key id or a GitHub token, each with `SYNTHETIC` in its body, so a secret
+ * scan matches it and anyone reading it sees what it is.
+ */
+export function syntheticSecret(random: () => number, kind: SyntheticSecretKind): string {
+	switch (kind) {
+		case 'api-key':
+			return `sk-${SYNTHETIC_SECRET_MARKER}-${run(random, ALPHANUMERIC, 24)}`;
+		case 'aws-access-key':
+			return `AKIA${SYNTHETIC_SECRET_MARKER}${run(random, UPPER_DIGITS, 7)}`;
+		case 'github-token':
+			return `ghp_${SYNTHETIC_SECRET_MARKER}${run(random, ALPHANUMERIC, 31)}`;
+	}
+}
+
 export interface SyntheticAddress {
 	line1: string;
 	town: string;

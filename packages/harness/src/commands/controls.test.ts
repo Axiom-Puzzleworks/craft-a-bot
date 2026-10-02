@@ -52,10 +52,17 @@ describe('craftabot controls', () => {
 		// The controls design: the privilege scope keeps the alert unsent; the cost cap stops the run.
 		expect(effect('component:governance/privilege-scopes')?.state).toBe('evidenced');
 		expect(effect('component:governance/cost-cap')?.state).toBe('evidenced');
-		// A component whose attack no shipped scenario carries reads untestable, in the open.
-		expect(effect('component:governance/secret-scan')?.state).toBe('untestable');
+		// Since WP151–WP153 every agent-security component has its attack, and reads evidenced.
+		for (const id of [
+			'no-progress',
+			'memory-provenance',
+			'peer-auth',
+			'secret-scan',
+			'tool-argument-validation'
+		])
+			expect(effect(`component:governance/${id}`)?.state, id).toBe('evidenced');
 		expect(file.summary.evidenced).toBeGreaterThan(0);
-	});
+	}, 30_000); // reads every committed result; 5 s is not enough under a full `npm test`
 
 	it('lists one line per kind, and exports the table as markdown and JSON', async () => {
 		const lines: string[] = [];

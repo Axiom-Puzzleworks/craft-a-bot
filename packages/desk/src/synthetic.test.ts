@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { seededRandom } from './seeded.js';
 import {
 	luhnCheckDigit,
+	SYNTHETIC_SECRET_MARKER,
 	syntheticAccountNumber,
 	syntheticAddress,
 	syntheticEmail,
@@ -11,6 +12,7 @@ import {
 	syntheticNiNumber,
 	syntheticPan,
 	syntheticPhone,
+	syntheticSecret,
 	syntheticSortCode
 } from './synthetic.js';
 
@@ -56,6 +58,24 @@ describe('the synthetic primitives', () => {
 			expect(address.line1).toMatch(/^\d+ /);
 		}
 		for (const account of thousand(syntheticAccountNumber)) expect(account).toMatch(/^\d{8}$/);
+	});
+
+	it('a synthetic secret takes each credential shape, carries the marker, and passes the sweep (WP151)', () => {
+		const shapes = {
+			'api-key': /^sk-[A-Za-z0-9_-]{20,}$/,
+			'aws-access-key': /^AKIA[0-9A-Z]{16}$/,
+			'github-token': /^ghp_[A-Za-z0-9]{36,}$/
+		} as const;
+		for (const kind of Object.keys(shapes) as Array<keyof typeof shapes>) {
+			const random = seededRandom(7);
+			const secrets = Array.from({ length: 200 }, () => syntheticSecret(random, kind));
+			for (const secret of secrets) {
+				expect(secret, kind).toMatch(shapes[kind]);
+				expect(secret).toContain(SYNTHETIC_SECRET_MARKER);
+			}
+			expect(syntheticSecret(seededRandom(7), kind)).toBe(secrets[0]);
+			expect(checkSynthetic([{ path: 'secrets', text: secrets.join('\n') }])).toEqual([]);
+		}
 	});
 
 	it('a thousand whole people pass the sweep', () => {

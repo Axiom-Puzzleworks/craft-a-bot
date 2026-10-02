@@ -25,7 +25,8 @@ describe('the starter pack manifest', () => {
 		const registry = registryWithStarter();
 		expect(registry.listPacks().map((pack) => pack.id)).toEqual(['starter']);
 		expect(registry.listWorlds()).toHaveLength(1);
-		expect(registry.listGoalCards()).toHaveLength(13);
+		// Thirteen, and since WP151–WP152 five Workshop-only agent-security cards.
+		expect(registry.listGoalCards()).toHaveLength(18);
 	});
 
 	it('namespaces every goal card id under the pack (01-ARCHITECTURE.md §4)', () => {

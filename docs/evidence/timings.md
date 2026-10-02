@@ -12,7 +12,7 @@ Full-size runs on 2026-10-02 (`craftabot experiment run --egress none --jobs 4`;
 | `advice-context` | not-supported | 8 | 4 | 2 | 92 | 34 |
 | `human-oversight` | not-supported | 36 | 15 | 19 | 783 | 313 |
 | `servicing-readers` | not-supported | 24 | 0 | 22 | 96 | 22 |
-| `controls` (WP150) | inconclusive | 84 | 41 | 3 | 80 | 135 |
+| `controls` (WP150; re-pointed WP153, 2026-10-02) | not-supported | 144 | 66 | 25 | 180 | 108 |
 | `ceilings` (WP150) | inconclusive | 4 | 1 | 2 | 783 | 110 |
 | `disputes-stack` (WP150) | untestable | 2 | 2 | 0 | 30 | 9 |
 | `collections-stack` (WP150) | untestable | 2 | 2 | 0 | 40 | 9 |

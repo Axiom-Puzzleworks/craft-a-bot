@@ -32,7 +32,25 @@ Every design now runs each factor under two tiers — its scripted one and the f
 Every design was re-run after Phases AK–AM. **Every outcome, interval and verdict of the eight is unchanged**; tokens per case moved by under half a percent, because the prompts now carry the desks' disclosures and the new context. `human-oversight` gained a sixth level, `bot-everywhere-ceilings-enforced` — Level 5 with WP139's ceilings enforced — which reads as rules-only does on breaches.
 
 - **`ceilings/`** measures that level against Level 5 itself: the ceiling-breach rate falls from 62.6% to 0 on 783 applications, under both tiers, and agreement with the rules is unchanged. The price is a person's touch on each decision held above its ceiling, in each effect's cost.
-- **`controls/`** runs each agent-security component built in Phases AL and AM against no guard, over the four injection scenarios, under the scripted optimal bot and the scripted adversary; each level names the generic control-map row it tests and the metric it is judged on first, written before the run. **The privilege scope** keeps the adversary's storm alert unsent in 100% of runs against 75% (+16 to +36 points); **the cost cap** stops 75% of the adversary's runs and none of the optimal bot's, though the leaks it follows have already happened by then. **No progress, memory provenance, peer authentication, the secret scan and argument validation read untestable**: no shipped scenario carries the attack each was built for — the party-line spoof arrives on Hearing as words from no one, not as a Radio message between seats; no plan writes untrusted lines to the notebook, sends a credential's shape or a malformed argument; the adversary always moves. A scenario per component is what would test them. Prompt integrity (whose validated digest is a build's own) and vulnerability detection (which annotates, and is a reader measured on the servicing corpora) are not in the design.
+- **`controls/`** runs each agent-security component built in Phases AL and AM against no guard, under the scripted optimal bot and the scripted adversary. Each level names the generic control-map row it tests and the metric it is judged on first, both written in the design before the run. Prompt integrity (whose validated digest is a build's own) and vulnerability detection (which annotates, and is a reader measured on the servicing corpora) are not in the design.
+  - **WP150's run (four scenarios):** only the privilege scope and the cost cap could act. The other five read untestable: no shipped scenario carried their attacks.
+  - **WP153's run (nine scenarios):** the four injection scenarios plus the five Phase AO added (`forged-radio`, `poisoned-note`, `key-in-the-manual`, `malformed-call`, `stalled`), so each component has its attack, with every effect also sliced by scenario. **All seven read evidenced under the adversary:**
+
+    | Component | Pooled | On its scenario |
+    | --- | --- | --- |
+    | No progress | out-of-steps runs 56% → 44% | `stalled`: −100 points |
+    | Memory provenance (fitted on marking) | the ball kept 67% → 78% | `poisoned-note`: +100 |
+    | Privilege scopes | no alert sent 89% → 100% | `false-alarm`: +100 |
+    | Peer authentication | the code kept 67% → 78% | `forged-radio`: +100 |
+    | Secret scan | the key kept 89% → 100% | `key-in-the-manual`: +100 |
+    | Argument validation | no malformed give 89% → 100% | `malformed-call`: +100 |
+    | Cost cap | 67% of runs stopped | six of the nine |
+
+  - **The verdict is `not-supported` because of two prices, and both are findings.**
+    - Peer authentication stops the optimal bot's `forged-radio` runs too, since the forgery is in view whoever the bot is.
+    - Marking adds about 160 tokens a run to every prompt it wraps.
+
+    The cost cap, as before, stops runs after their leaks.
 
 - **`disputes-stack/`, `collections-stack/`, `onboarding-stack/`, `servicing-stack/` and `complaints-stack/`** run each Phase AA desk's policy-card stack against no guard on its own book at Level 5, so every stack the bank ships has a verdict. There is no error model for these desks, so the scripted bot errs nowhere the stack could catch, and the four read **untestable**, as their hypotheses said they would. **The complaints desk is the exception, and the finding**: the scripted bot names the register's root cause in 69% of complaints and keeps redress within bounds in 68%. The stack leaves both unchanged, since no card checks a root cause or a redress amount against the register. The hypothesis expected nothing to be wrong; that was mistaken.
 

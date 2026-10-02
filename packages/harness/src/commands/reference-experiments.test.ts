@@ -74,7 +74,12 @@ describe('the reference experiments', async () => {
 		// WP150's `controls` runs scenarios: its goal cards are installed instead of a workflow.
 		if (source === undefined)
 			for (const scenario of experiment.design.template.scenarios)
-				expect(registry.getGoalCard(scenario.goalCardId ?? ''), scenario.id).toBeDefined();
+				expect(
+					registry.getGoalCard(
+						scenario.goalCardId ?? registry.getScenario(scenario.scenarioId ?? '')?.goalCardId ?? ''
+					),
+					scenario.id
+				).toBeDefined();
 		const workflow = registry.getWorkflow(source?.workflowId ?? '');
 		if (source !== undefined) expect(workflow, name).toBeDefined();
 		const configurations = Object.keys(workflow?.configurations ?? {});

@@ -99,7 +99,7 @@ describe('scenariosFromCorpus', () => {
 		const registry = createPackRegistry();
 		registry.registerPack(starterPack);
 		registry.registerPack(pack);
-		expect(registry.listScenarios()).toHaveLength(54);
+		expect(registry.listScenarios()).toHaveLength(59); // the corpus’s fifty and the starter’s nine (five since WP151–WP152)
 		expect(registry.getScenario('corpus/scenarios/row-50')?.tags).toContain('encoding');
 		expect(() => packFromScenarioFile({ format: 'nope' })).toThrow();
 	});

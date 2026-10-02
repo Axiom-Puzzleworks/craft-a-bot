@@ -616,6 +616,22 @@ function slicesOf(
 			});
 		}
 	}
+	// WP153 (`111-…` §4): a slice per scenario when a design runs several, so an attack carried by one is read undiluted.
+	const scenarios = [...new Set([...baseline, ...treatment].map((cell) => cell.scenario))].sort();
+	if (scenarios.length > 1)
+		for (const scenario of scenarios) {
+			const b = baseline.filter((cell) => cell.scenario === scenario);
+			const t = treatment.filter((cell) => cell.scenario === scenario);
+			if (b.length === 0 || t.length === 0) continue;
+			const difference = differenceOf(metric, b, t, confidence);
+			if (!difference) continue;
+			slices.push({
+				where: { scenario },
+				delta: difference.delta,
+				interval: difference.interval,
+				n: { baseline: difference.baseline.n, treatment: difference.treatment.n }
+			});
+		}
 	return slices.length === 0 ? undefined : slices;
 }
 

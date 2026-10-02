@@ -22,6 +22,10 @@ import type { ConformanceIssue } from '../types.js';
  *   `*.localhost`). An allow-list, since "resolves" needs a network.
  * - `synthetic.phone` — a UK mobile or London number outside Ofcom's drama
  *   ranges (`07700 900xxx`, `020 7946 0xxx`).
+ * - `synthetic.credential` (WP151, `111-…` §5 D2) — a provider key, an AWS
+ *   access key id, a GitHub or Slack token, or a private key's header,
+ *   without the `SYNTHETIC` marker `@craftabot/desk`'s `syntheticSecret`
+ *   puts in every one it makes.
  */
 export interface SyntheticSweepFile {
 	path: string;
@@ -54,6 +58,10 @@ export function checkSynthetic(files: readonly SyntheticSweepFile[]): Conformanc
 				issues.push(
 					issue('synthetic.phone', where, hit, 'a UK telephone number outside the drama ranges')
 				);
+			for (const hit of credentials(line))
+				issues.push(
+					issue('synthetic.credential', where, hit, 'a credential without the SYNTHETIC marker')
+				);
 		});
 	}
 	return issues;
@@ -66,6 +74,33 @@ function issue(check: string, where: string, hit: string, what: string): Conform
 /** The first four characters and the length; never the identifier itself. */
 function mask(hit: string): string {
 	return `${hit.slice(0, 4)}… ${hit.length} chars`;
+}
+
+// --- credentials ----------------------------------------------------------
+
+/** The marker `syntheticSecret` puts in every credential it makes (`@craftabot/desk`). */
+const CREDENTIAL_MARKER = 'SYNTHETIC';
+
+/** The shapes `governance/secret-scan` refuses, read here as identifiers a fixture must not carry. */
+const CREDENTIAL_SHAPES: readonly RegExp[] = [
+	/\bsk-[A-Za-z0-9_-]{20,}/g,
+	/\bAKIA[0-9A-Z]{16}\b/g,
+	/\bgh[pousr]_[A-Za-z0-9]{36,}/g,
+	/\bxox[abprs]-[A-Za-z0-9-]{10,}/g,
+	/-----BEGIN [A-Z ]*PRIVATE KEY-----/g
+];
+
+function credentials(line: string): string[] {
+	const found: string[] = [];
+	for (const shape of CREDENTIAL_SHAPES)
+		for (const match of line.matchAll(shape)) {
+			// A key's marker is in its body; a private key's header has none, so its line carries it.
+			const marked = match[0].startsWith('-----')
+				? line.includes(CREDENTIAL_MARKER)
+				: match[0].includes(CREDENTIAL_MARKER);
+			if (!marked) found.push(match[0]);
+		}
+	return found;
 }
 
 // --- card numbers -------------------------------------------------------
