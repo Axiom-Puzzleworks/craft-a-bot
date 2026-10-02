@@ -55,7 +55,7 @@ describe('craftabot controls', () => {
 		// A component whose attack no shipped scenario carries reads untestable, in the open.
 		expect(effect('component:governance/secret-scan')?.state).toBe('untestable');
 		expect(file.summary.evidenced).toBeGreaterThan(0);
-	});
+	}, 30_000); // reads every committed result; 5 s is not enough under a full `npm test`
 
 	it('lists one line per kind, and exports the table as markdown and JSON', async () => {
 		const lines: string[] = [];
