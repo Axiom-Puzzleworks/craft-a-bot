@@ -76,6 +76,16 @@ export {
 	provenanceComponents
 } from './provenance.js';
 export {
+	ARGUMENT_VALIDATION_COMPONENT_ID,
+	COST_CAP_COMPONENT_ID,
+	argumentProblems,
+	argumentValidationComponent,
+	boundsComponents,
+	costCapComponent,
+	costCapSchema,
+	spentUsd
+} from './bounds.js';
+export {
 	PEER_AUTH_COMPONENT_ID,
 	peerAuthComponent,
 	peerAuthSchema,

@@ -60,6 +60,16 @@ export const CONTROL_MECHANISMS: readonly ControlMechanism[] = [
 		since: 'WP0'
 	}),
 	m({
+		id: 'core/failover',
+		name: 'Provider failover',
+		summary:
+			'A provider in front of several asks each in turn on an unavailable, slow or rate-limited answer; think.completed says who served and who failed.',
+		where: ['packages/core/src/failover.ts'],
+		observedAs: ['think.completed.response.servedBy'],
+		configuredBy: 'the provider list a host builds, and the failure kinds that fail over',
+		since: 'WP148'
+	}),
+	m({
 		id: 'core/request-timeout',
 		name: 'The provider request timeout',
 		summary:
@@ -289,7 +299,7 @@ export const CONTROL_MECHANISMS: readonly ControlMechanism[] = [
 			'A journey runs at most 64 stages and digests a value over 16 KiB rather than carrying it.',
 		where: ['packages/workflow/src/run.ts'],
 		observedAs: ['the workflow run’s outcome'],
-		configuredBy: 'RunWorkflowOptions.maxStages',
+		configuredBy: 'RunWorkflowOptions.maxStages (64) and valueCap (16 KiB, since WP148)',
 		since: 'WP79'
 	}),
 	m({

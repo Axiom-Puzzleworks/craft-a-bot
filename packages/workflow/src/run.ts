@@ -115,6 +115,8 @@ export interface RunWorkflowOptions {
 	handedOffFrom?: WorkflowRun;
 	/** The bound on a cyclic journey. */
 	maxStages?: number;
+	/** The largest value a stage record keeps, in bytes of canonical JSON (WP148); `VALUE_CAP` by default. Over it, the digest alone. */
+	valueCap?: number;
 	onStage?: (record: StageRecord) => void;
 	/** The world as the journey left it — its truth for a campaign's scoring — once the record is made. */
 	onFinished?: (world: WorldInstance, run: WorkflowRun) => void;
@@ -183,10 +185,13 @@ export function stagePack(
 	};
 }
 
-export function stageValue(value: unknown): { digest: string; value?: unknown } {
+export function stageValue(
+	value: unknown,
+	cap: number = VALUE_CAP
+): { digest: string; value?: unknown } {
 	const json = canonicalJson(value);
 	const digest = sha256Hex(json);
-	return json.length < VALUE_CAP ? { digest, value } : { digest };
+	return json.length < cap ? { digest, value } : { digest };
 }
 
 export function executorRecord(executor: Executor): ExecutorRecord {
@@ -478,7 +483,7 @@ export async function runWorkflow(
 			const base: Base = {
 				stageId: stage.id,
 				executor: executorRecord(executor),
-				input: stageValue(stageInput),
+				input: stageValue(stageInput, options.valueCap),
 				stage,
 				rawInput: stageInput,
 				inbound: noBoundary
@@ -506,7 +511,7 @@ export async function runWorkflow(
 		const base: Base = {
 			stageId: stage.id,
 			executor: executorRecord(executor),
-			input: stageValue(stageInput),
+			input: stageValue(stageInput, options.valueCap),
 			stage,
 			rawInput: stageInput,
 			inbound: inbound.fold
@@ -712,7 +717,7 @@ export async function runWorkflow(
 			}
 		}
 		const ended = now();
-		const out = stageValue(value === undefined ? null : value);
+		const out = stageValue(value === undefined ? null : value, options.valueCap);
 		const guards: StageRecord['guards'] = {
 			checked: checked + fold.checked,
 			tripped,

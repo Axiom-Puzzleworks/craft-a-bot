@@ -4,6 +4,7 @@ import {
 	egressComponents,
 	injectionComponents,
 	policyCardComponent,
+	boundsComponents,
 	peerAuthComponent,
 	privilegeScopesComponent,
 	provenanceComponents
@@ -47,7 +48,9 @@ export const starterPack: PackManifest = {
 		// WP142: least privilege with recorded elevation.
 		privilegeScopesComponent as never,
 		// WP143: inter-agent message authentication.
-		peerAuthComponent as never
+		peerAuthComponent as never,
+		// WP148: the cost cap and tool-argument validation.
+		...(boundsComponents as unknown as never[])
 	],
 	/** Assertion cards (WP43, `31-EVALUATORS.md` §4.2) — the Test Bench reads them from the registry. */
 	assertionCards: starterAssertionCards,

@@ -250,9 +250,10 @@ export const SECOND_EDITION_ENTRIES: CatalogueEntry[] = [
 		frameworks: ['owasp:llm10'],
 		sources: [OWASP_LLM],
 		coverage: {
-			status: 'bespoke',
-			componentIds: ['governance/token-budget'],
-			note: 'Tokens are capped and every report counts them; a cap in money, from a cited list price, is not built (WP148).'
+			status: 'shipped',
+			componentIds: ['governance/cost-cap', 'governance/token-budget'],
+			note: 'governance/cost-cap stops a run before a turn once its tokens, at the list prices its config states with their source, have spent the cap in dollars (WP148); the token budget caps tokens. A price enters only with its source, so no shipped stack fits the cap with a price: it is a component a deployer configures.',
+			since: 'WP148'
 		},
 		bankingRelevance: 'supporting'
 	}),
@@ -269,8 +270,10 @@ export const SECOND_EDITION_ENTRIES: CatalogueEntry[] = [
 		frameworks: ['owasp:llm05'],
 		sources: [OWASP_LLM, OWASP_AGENTIC],
 		coverage: {
-			status: 'blueprint',
-			note: 'Each tool and world action checks its own arguments and refuses with a narration; nothing validates a call against its declared parameters before it runs (WP148).'
+			status: 'shipped',
+			componentIds: ['governance/tool-argument-validation'],
+			note: 'governance/tool-argument-validation checks a proposed world action’s arguments against the schema its world declares — type, required, properties, enum, items — and refuses one that does not fit at pre-act, so the world’s own refusal becomes a verdict on the trace before the world sees the call (WP148). Tools are not checked: a component sees the world’s actions, not the registry’s tools.',
+			since: 'WP148'
 		},
 		bankingRelevance: 'supporting'
 	}),
@@ -397,13 +400,15 @@ export const SECOND_EDITION_ENTRIES: CatalogueEntry[] = [
 		obligations: ['pra:ss1-21:resilience'],
 		sources: [PRA_SS1_21, DORA, STABILITY_PATTERNS],
 		coverage: {
-			status: 'bespoke',
+			status: 'shipped',
 			implementedBy: [
+				'mechanism:core/failover',
 				'mechanism:core/provider-fault',
 				'policy-card:fs-bank/policy/fallback',
 				'evaluator:fs-bank/told-plainly'
 			],
-			note: 'A faulted provider is an injection the incident decks judge, and the Fallback card tells the customer plainly; no component fails over to a second provider in the shipped packs (WP148).'
+			note: 'core’s failoverProvider asks each of several providers in turn on an unavailable, slow or rate-limited answer, and says on think.completed who served and who failed (WP148) — the DGX pack’s two units, generalised. A faulted provider is still an injection the incident decks judge, and the Fallback card tells the customer plainly. Diverged: a provider wrapper, not a guard component — failover is not a verdict. Not done: no shipped bot names a provider list; a host builds one.',
+			since: 'WP148'
 		},
 		bankingRelevance: 'core'
 	}),

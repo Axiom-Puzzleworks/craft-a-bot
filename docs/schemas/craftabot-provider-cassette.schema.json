@@ -161,6 +161,36 @@
 									]
 								}
 							},
+							"servedBy": {
+								"type": "object",
+								"properties": {
+									"providerId": {
+										"type": "string"
+									},
+									"failedOver": {
+										"type": "array",
+										"items": {
+											"type": "object",
+											"properties": {
+												"providerId": {
+													"type": "string"
+												},
+												"kind": {
+													"type": "string"
+												}
+											},
+											"required": [
+												"providerId",
+												"kind"
+											]
+										}
+									}
+								},
+								"required": [
+									"providerId",
+									"failedOver"
+								]
+							},
 							"fault": {
 								"type": "object",
 								"properties": {

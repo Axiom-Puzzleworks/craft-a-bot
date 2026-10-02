@@ -75,6 +75,18 @@ export const chatResponseSchema = z.object({
 	/** The first token's top log-probabilities, when `topLogprobs` was asked and the provider returned them (WP120). */
 	logprobs: z.array(z.object({ token: z.string(), logprob: z.number() })).optional(),
 	/**
+	 * Which provider answered, when a failover provider stood in front of
+	 * several (WP148, `110-CONTROL-SUITE-PLAN.md` §10): its id, and each one
+	 * that failed before it with the kind of failure. Written only by
+	 * `failoverProvider`, so it rides on `think.completed` for a reader.
+	 */
+	servedBy: z
+		.object({
+			providerId: z.string(),
+			failedOver: z.array(z.object({ providerId: z.string(), kind: z.string() }))
+		})
+		.optional(),
+	/**
 	 * A fault the fallible tier planted in this response's call (WP115,
 	 * `103-FALLIBLE-ACTORS.md` §5): the field it changed, what it chose and
 	 * what the plan had. Only a scripted brain writes it; the session writes

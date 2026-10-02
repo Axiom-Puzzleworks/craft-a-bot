@@ -247,7 +247,7 @@ _Each is a catalogue entry from WP132, a control-map row with a regulation, a me
 | **WP145** ✅ | **Done 2026-10-02 — §10's WP145 note.** **Contestability, disclosure, vulnerability** | `appeal` as a workflow handoff kind on every desk with an adverse decision (lending, onboarding, disputes, complaints), `appeal-handled` generalised; `disclosure.given` on the trace with the wording digested, a `mandatory-disclosure` card per desk citing CONC 7 / COBS 4 / PSR APP; the servicing `support-need` reader fitted with a gate as `vulnerability-detection` on every desk's intake stage, FG21/1 cited; rows and evaluators                 | L    | G110, G111                     |
 | **WP146** ✅ | **Done 2026-10-02 — §10's WP146 note.** **Timeliness and override reasons** | `StageSpec.deadline` in ticks, the clock escalating a case past it (`stage.overdue`), DISP's and PSR's timescales as the content, a `timeliness` gate kind; `approval.resolved.reason` required when a person overrules a recommendation or waives a refusal, the `override-reason` evaluator; the human-oversight experiment re-run                                                                                                                       | M    | G112, G115 (the reason)        |
 | **WP147** ✅ | **Done 2026-10-02 — §10's WP147 note.** **Change control** | The kit file's `digest` over cartridge, stack, knobs and prompt; `run.started.changed` when it differs from the last validated digest; a `knob-change-review` reading kind so a knob override on a campaign is read like a calibration row; `model-change-control` as an SS1/23 row on every desk                                                                                                                                                       | M    | G113                           |
-| **WP148** | **Resilience and bounds**                | `dependency-failover` as a component over a provider list (the DGX pack's failover generalised), a `provider-fault` incident deck proving it; `cost-cap` in money from the cassette's list price; `tool-argument-validation` at `pre-act` against the tool's schema as a component (the registry's refusal made visible as a verdict); the request timeout and the value cap as declared mechanisms with knobs                                               | M    | G114                           |
+| **WP148** ✅ | **Done 2026-10-02 — §10's WP148 note.** **Resilience and bounds** | `dependency-failover` as a component over a provider list (the DGX pack's failover generalised), a `provider-fault` incident deck proving it; `cost-cap` in money from the cassette's list price; `tool-argument-validation` at `pre-act` against the tool's schema as a component (the registry's refusal made visible as a verdict); the request timeout and the value cap as declared mechanisms with knobs                                               | M    | G114                           |
 | **WP149** | **Oversight ergonomics and the rest**    | Adaptive approval throttling (`approval-mode: 'adaptive'` raising the tier as `approvalsPerCase` climbs, measured against confirmation fatigue); `shadow-mode` as an entry over the Gate and over a stack on a campaign (`stack.mode: 'shadow'` — verdicts recorded, never applied); `prompt-integrity` and `secret-scan` as components; the orchestrator chokepoint entry over the group's existing breaker                                                 | M    | G115 (the throttle), G116      |
 
 ### Phase AN — Assurance and the tail (WP150)
@@ -615,3 +615,23 @@ _(Recorded here as each work package and phase closes.)_
 > - **Tests:**
 >   - `core`'s session test: `changed` written only for a differing build; the digest ignores a rename and moves with a brick's config;
 >   - `governance`'s `knobChangesIn` over a campaign and an experiment.
+
+> **WP148 — done 2026-10-02.**
+>
+> - **Dependency failover** (`core`'s `failoverProvider`). A provider in front of several asks each in turn on an unavailable, slow, rate-limited or server failure, and rethrows anything else and a cancelled call.
+>   - The answer says who served and who failed before: `ChatResponse.servedBy` on `think.completed` (`02-…` §7's dated note).
+>   - It is the DGX pack's two-unit failover, generalised.
+>   - **Diverged:** a provider wrapper, not a guard component: failover is not a verdict.
+>   - **The proof is the provider's test, not an incident deck.** The decks' `provider-fault` injections are raised by the session before any provider is asked, so no provider can fail over from them.
+>   - **Not done:** no shipped bot names a provider list.
+> - **The cost cap** (`governance/cost-cap`). It stops a run before a turn once its tokens, at the per-million list prices its config states with their source, pass the cap in dollars.
+>   - A price enters only with its source, so no shipped stack fits it. It is a component a deployer configures.
+> - **Tool-argument validation** (`governance/tool-argument-validation`). It checks a proposed world action's arguments against the schema its world declares (type, required, properties, enum, items), and refuses one that does not fit at `pre-act`. The world's own refusal becomes a verdict on the trace before the world sees the call.
+>   - Tools are not checked: a component sees the world's actions, not the registry's tools.
+> - **The bounds as settings.** The request timeout's setting was already declared. The journey's value cap, a constant before, is now `RunWorkflowOptions.valueCap` (16 KiB by default), and its mechanism says so.
+> - **The catalogue:** `dependency-failover`, `cost-cap` and `tool-argument-validation` move to *shipped*. The mechanism is `core/failover`.
+> - **Also:** the two safety-case report tests in the harness get 30 seconds. They fold the whole, now larger, catalogue and had outgrown the 5-second default under a full parallel run.
+> - **Tests:**
+>   - `core`'s `failover.test.ts`;
+>   - `governance`'s `bounds.test.ts`;
+>   - the starter's conformance fixtures for the two components.
