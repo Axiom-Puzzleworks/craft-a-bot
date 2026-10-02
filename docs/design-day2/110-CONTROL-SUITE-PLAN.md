@@ -508,3 +508,31 @@ _(Recorded here as each work package and phase closes.)_
 > - **Tests:**
 >   - `pdp-cedar`'s `service.test.ts`: the mapping, the reading, the signed and targeted call, the scrubbed secret, the offline stand-in, conformance;
 >   - `bedrock-guardrails`' `automated-reasoning.test.ts` and its conformance fixtures.
+
+> **Phase AL exit review — 2026-10-02.** WP141–WP144 are done, on `phase-al`, with the Phase AK follow-ups first. §8 item 5, clause by clause:
+>
+> - **"The five unshipped entries and the named components are shipped": met.**
+>   - Memory provenance, privilege scopes, the policy-conditioned classifier and inter-agent authentication moved to *shipped*, and loop detection and supply-chain integrity name their new parts.
+>   - No first-edition entry is *bespoke* any more.
+>   - The catalogue now stands at 69 entries: 51 shipped, 1 connectable, 8 bespoke, 3 blueprint, 6 not applicable. The bespoke and blueprint entries are Phase AM's class-D techniques, plus three the plan leaves: tool-argument validation, adaptive approval and formal verification.
+> - **"… and benchmarked": met where a benchmark over text can measure.**
+>   - The policy-conditioned classifier is measured live (precision 73%, recall 99%, false alarms 69%), and Llama Guard 3 since WP140 (92%, 17%, 3%).
+>   - No-progress, memory provenance and the two connections are levels that read *not applicable*, each with its reason: they decide over calls, the trace or answers, not over a row of text.
+>   - Privilege scopes and peer authentication are not levels for the same reason. Their tests are the elevation pair and the party line.
+> - **"The two new connections are *connectable*": met**, checkpoints pending. Cedar sits in `policy-decision-point` beside OPA. `automated-reasoning-checks` is the first entry with the status.
+>
+> **Findings, for Andrew's reading.**
+> - **None of the three measured text guards is one a bank would fit alone.**
+>   - The policy-conditioned classifier misses almost nothing and stops two benign customers in three.
+>   - Llama Guard stops almost no one and misses four attacks in five.
+>   - The keyword baseline sits between them.
+>   - The slot wants a purpose-trained policy reasoner, which this machine cannot hold.
+> - **The pack digest pins what a pack says, not what it does.** A poisoned description shipped from the start is not caught: the pin is a rug-pull defence, not a review. The Workbench does not pin yet.
+> - **Peer authentication is integrity over the engine's attribution, not cryptography.** Between processes it needs keys.
+> - **The desk stacks read *unfitted* in the inventory, and truly so.** The baselines fit the same guards as bricks; no shipped campaign names a stack.
+>
+> **Budgets.** About +33 kB in every edition and +26 kB in the Worker; the Kit's first page is unchanged (`01-…` §8's dated note).
+>
+> **Screenshots.** Re-taken on win32: the Studio at three widths, the assurance pack, the catalogue, the benchmarks. Their Linux baselines are CI's.
+>
+> **Phase AL is closed. Next: Phase AM, WP145–WP149.**

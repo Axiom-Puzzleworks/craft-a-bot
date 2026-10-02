@@ -545,7 +545,7 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 				'scenario:fs-disputes/scenarios/merchant-note-injection',
 				'policy-card:fs-fraud/policy/no-auto-release-from-instructions-in-records'
 			],
-			note: 'Marking, taint and the quarantined reader answer a poisoned tool result — a planted SYSTEM line in a bureau answer is marked, and the call copying it blocked; a tool-description integrity check on the registry is still a blueprint.',
+			note: 'Marking, taint and the quarantined reader answer a poisoned tool result — a planted SYSTEM line in a bureau answer is marked, and the call copying it blocked. A tool description edited after it was pinned is refused at registration by the pack digest (WP141, supply-chain-integrity); a poisoned description a pack ships from the start is not caught by it.',
 			since: 'WP124'
 		},
 		bankingRelevance: 'core'
@@ -653,7 +653,7 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 				'evaluator:evals/judge/rubric',
 				'brick-kind:workshop/monitor-judge'
 			],
-			note: 'The rubric and hosted evaluators as judges with offline stand-ins; the breaker fits a judge at the chokepoint or a stage boundary. Bedrock’s automated-reasoning checks are a WP99 connection candidate, recorded research-grade for a bank’s rulebook.',
+			note: 'The rubric and hosted evaluators as judges with offline stand-ins; the breaker fits a judge at the chokepoint or a stage boundary. Bedrock’s automated-reasoning checks are their own entry, automated-reasoning-checks (connectable since WP144).',
 			since: 'WP43'
 		},
 		bankingRelevance: 'core'
