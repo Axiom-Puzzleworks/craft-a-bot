@@ -202,3 +202,22 @@ WP151 and WP152 are independent; WP153 needs both. WP154–WP156 are independent
 > - **The desk stacks' cards check sequence and approvals, not decisions.** On four desks the stack cannot catch a wrong decision. A card per desk that checks the decision against the rule is what would; the lending and fraud desks found the same in WP116.
 >
 > **Phase AP is closed. Next: Phase AQ, WP157–WP158.**
+
+> **WP157 — done 2026-10-02**, on `phase-aq` (Phase AP merged as PR #68).
+> - **Claims.** Each Gate preset now claims the generic rows of what it holds, as `Stack.controls`:
+>   - budgets: `asi10`;
+>   - policy card: `asi02`;
+>   - ask first: `asi09`;
+>   - injection defences and the quarantined reader: `asi01`.
+> - **Config (D5).** `packages/gate/craftabot.config.mjs` installs `GATE_CONTENT` beside the default packs, and CI's experiment loop uses it for `gate-presets`.
+> - **A per-level fix found on the way.** `stackControlsFor` joined every stack the guard factor named to every effect. It now joins only the stack the effect's level ran. No committed design had more than one stack level, so no result moved.
+> - **The design** `experiments/gate-presets.json` runs the five presets as guard levels over the nine scenarios, under both scripted tiers: 2,160 cells, 132 s. Each level's primary metric is the one its preset is built to move, set after one exploratory run of the same design and said so here.
+> - **Every shipped stack now has a verdict, the Gate's five included, and so does every instance a stack carries** (§7 item 6).
+>
+>   | Preset | Verdict | What it rests on |
+>   | --- | --- | --- |
+>   | Budgets | *evidenced* | tokens −81% under the adversary; it also stops the optimal bot, since four turns is the Gate's budget for a wire agent, not a Playroom one |
+>   | Policy card | *evidenced* | its 8-turn step budget stops 67% of adversary runs. Its card governs mail, which the Playroom has none of |
+>   | Ask first | *inconclusive* | a campaign approves every request, so a person who always says yes changes nothing |
+>   | Injection defences | *inconclusive* | taint needs four words in common and the scripted leaks share three; marking costs about 160 tokens a run |
+>   | Quarantined reader | *inconclusive* | as for the injection defences, at about 300 tokens a run |

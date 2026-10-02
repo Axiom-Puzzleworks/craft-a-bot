@@ -800,7 +800,7 @@ export function analyseExperiment(
 						controlIds: [
 							...new Set([
 								...experiment.controls,
-								...stackControlsFor(experiment, options.stacks),
+								...stackControlsFor(experiment, options.stacks, factor.axis, level),
 								...(factor.controls?.[level] ?? [])
 							])
 						],
@@ -900,18 +900,20 @@ export function renderExperimentMarkdown(result: ExperimentResult): string {
 	return lines.join('\n');
 }
 
-/** The controls the guard factor's stack levels claim (WP97, `89-…` §6), joined to the experiment's own. */
-function stackControlsFor(experiment: Experiment, stacks: readonly Stack[] | undefined): string[] {
-	if (!stacks || stacks.length === 0) return [];
-	const levels = experiment.design.factors
-		.filter((factor) => factor.axis === 'guard')
-		.flatMap((factor) => factor.levels);
-	// A level names a stack by its id, or (WP150) is a template guard whose `stack` names one.
-	const named = new Set([
-		...levels,
-		...experiment.design.template.guards.flatMap((guard) =>
-			levels.includes(guard.id) && guard.stack !== undefined ? [guard.stack] : []
-		)
-	]);
-	return stacks.filter((stack) => named.has(stack.id)).flatMap((stack) => stack.controls ?? []);
+/**
+ * The controls a guard level's stack claims (WP97, `89-…` §6), joined to that
+ * level's effects. A level names a stack by its id, or (WP150) is a template
+ * guard whose `stack` names one. Per level since WP157: before, every stack the
+ * factor named joined every effect, which no design with one stack level showed.
+ */
+function stackControlsFor(
+	experiment: Experiment,
+	stacks: readonly Stack[] | undefined,
+	axis: string,
+	level: string
+): string[] {
+	if (!stacks || stacks.length === 0 || axis !== 'guard') return [];
+	const guard = experiment.design.template.guards.find((each) => each.id === level);
+	const stackId = guard?.stack ?? level;
+	return stacks.find((stack) => stack.id === stackId)?.controls ?? [];
 }

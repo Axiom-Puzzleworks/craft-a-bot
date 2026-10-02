@@ -351,6 +351,40 @@ describe('analyseExperiment', () => {
 		expect(result.effects[0]!.delta).toBe(0.5);
 	});
 
+	it('joins each guard level’s own stack claims, never another level’s (WP157)', () => {
+		const twoStacks = design({
+			template: {
+				...design().design.template,
+				guards: [
+					{ id: 'none', fit: [] },
+					{ id: 'stack', fit: [], stack: 'desk/stack/a' },
+					{ id: 'other', fit: [], stack: 'desk/stack/b' }
+				]
+			},
+			factors: [{ axis: 'guard', levels: ['none', 'stack', 'other'] }]
+		});
+		const otherId = campaignIdFor('lending-stack', { guard: 'other' });
+		const result = analyseExperiment(
+			expandExperiment(twoStacks).experiment,
+			[
+				report(baseId, side(11, 50, 0.3, 'none')),
+				report(treatId, side(12, 50, 0.2, 'stack')),
+				report(otherId, side(13, 50, 0.1, 'other'))
+			],
+			{
+				ranAt: '2026-09-11T10:00:00.000Z',
+				stacks: [
+					{ id: 'desk/stack/a', controls: ['map/a'] } as never,
+					{ id: 'desk/stack/b', controls: ['map/b'] } as never
+				]
+			}
+		);
+		expect(result.effects.map((effect) => [effect.factor.treatment, effect.controlIds])).toEqual([
+			['stack', ['fs-lending/policy-stack', 'map/a']],
+			['other', ['fs-lending/policy-stack', 'map/b']]
+		]);
+	});
+
 	it('reads an assertion card’s pass rate per cell (WP150)', () => {
 		const experiment = expandExperiment(
 			design({
