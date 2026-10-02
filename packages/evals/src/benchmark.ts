@@ -99,6 +99,14 @@ export interface BenchmarkDeps {
 	readerContext?: ReaderContext;
 	/** How a reader that calls out answered this run; `local` for a rule or one with no egress. */
 	readerMode?(reader: Reader): 'cassette' | 'live' | 'local';
+	/**
+	 * One reader's own context, when it needs one the others do not (WP143):
+	 * an LLM reader's provider — a cassette's replay, or a live model being
+	 * recorded. Absent, or undefined for a reader, `readerContext`.
+	 */
+	readerContextFor?(reader: Reader): ReaderContext | undefined;
+	/** The latencies a reader's provider recorded, when the host timed it (WP143). */
+	readerLatencies?(reader: Reader): number[];
 	/** When the run happened: stamped, never read from a clock here. */
 	ranAt: string;
 }
@@ -290,18 +298,20 @@ async function screenReader(
 		(reader.kind === 'rule' || reader.egress.length === 0 ? 'local' : 'cassette');
 	const flags: boolean[] = [];
 	let errors = 0;
+	let firstError: string | undefined;
 	const { questionId, noul } = deps.question;
 	for (const row of rows) {
 		try {
 			const response = await reader.ask(
 				{ surface: row.surface, text: row.text },
 				{ [questionId]: noul },
-				deps.readerContext ?? {}
+				deps.readerContextFor?.(reader) ?? deps.readerContext ?? {}
 			);
 			const answer = response.answers[questionId];
 			flags.push(answer?.type === 'noul' && answer.noul >= benchmark.threshold);
-		} catch {
+		} catch (error) {
 			errors += 1;
+			firstError ??= error instanceof Error ? error.message : String(error);
 			flags.push(false);
 		}
 	}
@@ -313,11 +323,13 @@ async function screenReader(
 		mode,
 		applicable: errors < rows.length,
 		...(errors === rows.length
-			? { reason: `answered none of the rows: it has no answer to "${questionId}"` }
+			? {
+					reason: `answered none of the rows: ${firstError ?? `it has no answer to "${questionId}"`}`
+				}
 			: {}),
 		flags,
 		errors,
-		latencies: [],
+		latencies: deps.readerLatencies?.(reader) ?? [],
 		...(price ? { priced: price.usdPerCall * rows.length } : {})
 	};
 }
@@ -351,7 +363,10 @@ async function screenComponent(deps: BenchmarkDeps, id: string, rows: Row[]): Pr
 			applicable: false,
 			reason: component.points.includes('group')
 				? 'it attacks — a seat that speaks the corpus — it does not screen'
-				: `it decides at ${component.points.join(', ')} on a proposed call; the corpus is text`
+				: component.points.every((point) => point === 'pre-think')
+					? // WP141: a pre-think rule judges the turn about to be thought, from the trace.
+						'it decides at pre-think, over the trace before a turn; the corpus is text'
+					: `it decides at ${component.points.join(', ')} on a proposed call; the corpus is text`
 		};
 	const refuse = () => undefined;
 	const guardrails = component.compile(

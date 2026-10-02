@@ -9,3 +9,10 @@ export {
 	optionsFor,
 	type LlmReaderOptions
 } from './llm.js';
+export {
+	policyConditionedPrompt,
+	policyConditionedReader,
+	rulebookText,
+	type PolicyConditionedReaderOptions,
+	type RulebookRule
+} from './policy-conditioned.js';

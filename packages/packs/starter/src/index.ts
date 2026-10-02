@@ -4,6 +4,7 @@ import {
 	egressComponents,
 	injectionComponents,
 	policyCardComponent,
+	peerAuthComponent,
 	privilegeScopesComponent,
 	provenanceComponents
 } from '@craftabot/governance';
@@ -44,7 +45,9 @@ export const starterPack: PackManifest = {
 		// WP141 (`110-…` §10): the no-progress detector and memory provenance.
 		...(provenanceComponents as unknown as never[]),
 		// WP142: least privilege with recorded elevation.
-		privilegeScopesComponent as never
+		privilegeScopesComponent as never,
+		// WP143: inter-agent message authentication.
+		peerAuthComponent as never
 	],
 	/** Assertion cards (WP43, `31-EVALUATORS.md` §4.2) — the Test Bench reads them from the registry. */
 	assertionCards: starterAssertionCards,

@@ -76,6 +76,15 @@ export {
 	provenanceComponents
 } from './provenance.js';
 export {
+	PEER_AUTH_COMPONENT_ID,
+	peerAuthComponent,
+	peerAuthSchema,
+	peerMessageDigest,
+	peerMessageProblem,
+	peerMessagesIn,
+	type PeerMessage
+} from './peer-auth.js';
+export {
 	PRIVILEGE_SCOPES_COMPONENT_ID,
 	privilegeScopesComponent,
 	privilegeScopesSchema

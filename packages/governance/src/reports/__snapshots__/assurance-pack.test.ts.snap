@@ -710,7 +710,7 @@ exports[`assurancePackFor > folds a fixture bot with one campaign and one incide
       },
     ],
   },
-  "digest": "c12529c05451853252d59043eaf8d1e240ec7d2ed81e6f9d8f994a3c2911b330",
+  "digest": "8bda744f592521dadd63c59b972dbc3070ba3f0d254245eb945116a9364a4396",
   "format": "craftabot-assurance-pack",
   "formatVersion": 1,
   "generatedAt": "2026-09-06T12:00:00.000Z",
@@ -827,17 +827,16 @@ exports[`assurancePackFor > folds a fixture bot with one campaign and one incide
   "mitigants": {
     "coverage": {
       "blueprint": [
-        "Policy-conditioned classifier",
         "Formal verification of agent policies",
         "Tool-argument validation",
         "Adaptive approval",
       ],
       "byStatus": {
-        "bespoke": 9,
-        "blueprint": 4,
+        "bespoke": 8,
+        "blueprint": 3,
         "connectable": 0,
         "not-applicable": 6,
-        "shipped": 49,
+        "shipped": 51,
       },
       "edition": "2026-10",
       "entries": 68,

@@ -235,7 +235,7 @@ _Catalogue entry first (already there), mechanism second, benchmark level third.
 | --------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---- | -------------------------------------------------------------- |
 | **WP141** ✅ | **Done 2026-10-02 — §10's WP141 note.** **`no-progress`, `memory-provenance`, `content-digest`** | `governance/no-progress` at `pre-act` over repeated identical calls with the world's progress predicate; `memory.updated.source` on the trace and `governance/memory-provenance` with a `memory-is-untrusted` leaf; a `digest` on every pack manifest and tool description, `checkPack` refusing a mismatch at registration; three entries to _shipped_; a benchmark level for the first two | M    | G108 (three of eight)                                          |
 | **WP142** ✅ | **Done 2026-10-02 — §10's WP142 note.** **`privilege-scopes`** | A component that starts a bot with the Connector's minimal scopes and records an `elevation.requested`/`resolved` pair as events (`02-…` §7), the approval round-trip reused; `connector/tool-blocklist` folded in as its first instance; the entry to _shipped_                                                                                                           | M    | G91 (the mechanism), G108                                      |
-| **WP143** | **The policy-conditioned classifier and inter-agent authentication**   | `governance/policy-conditioned` as an `llmReader` over any cartridge with the desk's rulebook as the question's guide, measured on the adversarial benchmark; a signed `group` message (`principal` + digest) verified at `pre-think` by `governance/peer-auth`, the party-line scenario its test; two entries to _shipped_                                                   | M    | G108                                                           |
+| **WP143** ✅ | **Done 2026-10-02 — §10's WP143 note.** **The policy-conditioned classifier and inter-agent authentication** | `governance/policy-conditioned` as an `llmReader` over any cartridge with the desk's rulebook as the question's guide, measured on the adversarial benchmark; a signed `group` message (`principal` + digest) verified at `pre-think` by `governance/peer-auth`, the party-line scenario its test; two entries to _shipped_                                                   | M    | G108                                                           |
 | **WP144** | **The Cedar and Bedrock automated-reasoning connections**              | Two harness-only connections on the shell with stand-ins and checkpoint commands, recorded _connectable, checkpoint pending_ — the first use of the status                                                                                                                                                                                                                 | S    | G108 (the connections); _formal verification_ stays blueprint  |
 
 ### Phase AM — The bank's missing controls (WP145–WP149)
@@ -457,3 +457,35 @@ _(Recorded here as each work package and phase closes.)_
 >   - `governance/src/components/privilege.test.ts`: the grant, the pause with its scope, the grant read back from the trace, the refusal, the blocklist word for word;
 >   - `core`'s session test: the four events in order, and none for a pause that names no scope;
 >   - the starter's conformance fixture.
+
+> **WP143 — done 2026-10-02.** Two entries move to *shipped*. No first-edition entry is *bespoke* any more.
+>
+> **The policy-conditioned classifier.**
+>
+> - **The factory.** `governance`'s `policyConditionedReader` is an `llmReader` whose system prompt carries a written rulebook (`RulebookRule[]`), so any cartridge judges by the deployer's policy. Changing the policy is changing the text.
+> - **The rulebook.** `fs-bank`'s `BANK_RULEBOOK` holds nine rules the desks' cards and gates enforce, each citing its obligations: decide by the rules, instructions only from the bank, stay in role, one customer only, never tip off, no thresholds, suitable advice, people decide what people decide, support without steering.
+> - **The reader.** `fs-bank/reader/policy-conditioned` reads the rulebook through a local general model. It carries no provider; the host hands it one.
+> - **The benchmark.** An LLM reader now answers from a provider cassette under `benchmarks/cassettes/`, or, named in `--record --only`, live through `--reader-provider` (`ollama` by default). `evals`' benchmark takes a per-reader context.
+> - **The model, and how it was chosen.** It was chosen on six lines written apart from the corpora, never on the held-out rows. gemma3:12b made two false alarms of three benign lines; mistral-nemo made one; qwen3:14b answered nothing, because its thinking spends the 16-token cap.
+> - **The figures.** Recorded live over the 1,408 rows with mistral-nemo, with no errors: **precision 73% (70–75%), recall 99% (98–99%), false alarms 69% (65–73%)**; tp 909, fp 339, fn 11, tn 149. CI replays the cassette.
+> - **The finding.** A 12B general model handed a policy flags nearly everything. It misses almost no attack, and it would stop two benign customers in three. The keyword baseline (recall 26%, false alarms 11%) and Llama Guard (17%, 3%) sit at the other end. None of the three is a guard a bank would fit alone. A purpose-trained policy reasoner (gpt-oss-safeguard is the catalogue's source) is the measurement this slot is for, and needs a larger model than this machine holds.
+> - **Not done:** no desk stack fits the reader yet, and it is not browser-capable (Ollama answers a browser only when told to).
+>
+> **Inter-agent authentication** (`governance/peer-auth`).
+>
+> - **The digest.** Every Radio message a seat sends now carries a digest over its sender, channel, words and tick, stamped by the Playroom when a seat really sends (`peerMessageDigest`).
+> - **The check.** At `pre-think`, before the bot reasons, the component checks every message in view: the sender is a seat in the room, and the digest is the digest of what it says. A failing message stops the run, or is noted.
+> - **The test** (`starter`'s party-line). A message under Bolt's name that no seat sent is put on Radio through the scenario door. The bot is stopped before it reasons over it, and the code is never said. Bolt's real message verifies (`1 verified`).
+> - **Honest about what it is:** integrity over the engine's own attribution, not a cryptographic signature. Between separate processes it needs keys (signed agent cards, mutual TLS). Hearing stays unattributed by design.
+>
+> **Also:**
+>
+> - The benchmark's *not applicable* now reads right for a `pre-think` rule.
+> - A reader that answers no row now gives the first error as its reason.
+>
+> **Tests:**
+>
+> - `governance`'s `peer-auth.test.ts`;
+> - the party-line pair;
+> - the benchmark test replaying both committed cassettes to their recorded confusion;
+> - the starter's conformance fixture.

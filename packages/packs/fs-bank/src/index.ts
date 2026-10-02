@@ -1,5 +1,6 @@
 import { ukRetailBankingDomain } from './domain.js';
 import { ATTACK_WORDS_READER, QUARANTINED_READER_COMPONENT } from './guard/attack-words.js';
+import { POLICY_CONDITIONED_READER } from './guard/rulebook.js';
 import type { PackManifest } from '@craftabot/core';
 import { bankControlMap } from './controls/rows.js';
 import { bankServiceLines } from './lines/index.js';
@@ -44,7 +45,8 @@ const manifest: PackManifest = {
 	// WP115: the person at a review stage, as a model over REVIEWER_RATES.
 	reviewerModels: bankReviewerModels,
 	// WP122 (`106-BENCHMARK.md` §3): the guard question set's keyword baseline, frozen before any adversarial row.
-	readers: [ATTACK_WORDS_READER],
+	// WP143: the policy-conditioned classifier over the bank's written rulebook, beside the keyword baseline.
+	readers: [ATTACK_WORDS_READER, POLICY_CONDITIONED_READER],
 	// WP124 (`106-BENCHMARK.md` §8.3): the quarantined reader over the guard question set.
 	guardrailComponents: [QUARANTINED_READER_COMPONENT as never]
 };
@@ -213,3 +215,9 @@ export {
 	attackKindOf
 } from './guard/attack-words.js';
 export { BANK_ADVERSARIAL_BENCHMARK } from './guard/benchmark.js';
+export {
+	BANK_RULEBOOK,
+	POLICY_CONDITIONED_MODEL,
+	POLICY_CONDITIONED_READER,
+	POLICY_CONDITIONED_READER_ID
+} from './guard/rulebook.js';

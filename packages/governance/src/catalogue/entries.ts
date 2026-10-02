@@ -491,8 +491,10 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		frameworks: ['nist-ai-600-1'],
 		sources: [OPENAI_MOD],
 		coverage: {
-			status: 'blueprint',
-			note: 'Day 6 names a component over any cartridge with the bank’s rulebook as the policy; nothing built.'
+			status: 'shipped',
+			implementedBy: ['reader:fs-bank/reader/policy-conditioned'],
+			note: 'policyConditionedReader is an llmReader over any cartridge with a written rulebook as its system prompt; the bank’s nine-rule rulebook (fs-bank’s BANK_RULEBOOK) reads through a local general model, recorded live over the seven adversarial corpora and replayed in CI’s benchmark. Fitted as a guard through readerComponent or the quarantined reader; no desk stack fits it yet.',
+			since: 'WP143'
 		},
 		bankingRelevance: 'core'
 	}),
@@ -1185,9 +1187,11 @@ export const CATALOGUE_ENTRIES: CatalogueEntry[] = [
 		frameworks: ['owasp:asi07'],
 		sources: [A2A, OWASP_AGENTIC],
 		coverage: {
-			status: 'bespoke',
+			status: 'shipped',
+			componentIds: ['governance/peer-auth'],
 			implementedBy: ['scenario:starter/scenarios/party-line'],
-			note: 'Shipped as a scenario a card can catch; authentication itself is a blueprint.'
+			note: 'Every Radio message a seat sends carries a digest over its sender, channel, words and tick, stamped by the room; governance/peer-auth at pre-think verifies each message in view — the sender is a seat, the digest matches — and stops (or notes) one that is not, so a message under a teammate’s name that no seat sent never reaches the bot’s reasoning (the party line’s test). Integrity over the engine’s attribution, not a cryptographic signature: between separate processes it needs keys (signed agent cards, mutual TLS). Hearing stays unattributed by design.',
+			since: 'WP143'
 		},
 		bankingRelevance: 'supporting'
 	}),

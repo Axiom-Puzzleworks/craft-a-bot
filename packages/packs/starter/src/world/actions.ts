@@ -1,3 +1,4 @@
+import { peerMessageDigest } from '@craftabot/governance';
 import type { RiskTier, WorldActionDefinition } from '@craftabot/core';
 import { z } from 'zod';
 import { actionStrings, narration, sentenceCase } from '../strings.js';
@@ -410,13 +411,8 @@ const radioSend = defineAction({
 		const fromName = state.agents?.find((agent) => agent.id === fromId)?.name ?? 'You';
 		state.radio ??= [];
 		const before = state.radio.length;
-		state.radio.push({
-			from: fromId,
-			fromName,
-			channel: config.channel,
-			text: args.text,
-			tick: state.tick
-		});
+		const message = { from: fromId, channel: config.channel, text: args.text, tick: state.tick };
+		state.radio.push({ ...message, fromName, digest: peerMessageDigest(message) });
 		return succeed(narration.radioSent(args.text), [
 			{ path: 'radio', from: before, to: state.radio.length }
 		]);

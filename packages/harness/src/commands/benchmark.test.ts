@@ -3,7 +3,7 @@ import { BANK_ADVERSARIAL_BENCHMARK } from '@craftabot/pack-fs-bank';
 import readersLlmPack from '@craftabot/pack-readers-llm';
 import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { createRegistry, defaultConfig } from '../config.js';
 import { credentialsFromEnv } from '../credentials.js';
@@ -96,6 +96,8 @@ describe('craftabot benchmark run (WP123)', () => {
 			['lakera-guard/guard', 'stand-in', true],
 			['pdp-opa/opa', 'stand-in', false],
 			['fs-bank/reader/attack-words', 'local', true],
+			// WP143: with no cassette and no live model it has nothing to ask with, and says so.
+			['fs-bank/reader/policy-conditioned', 'cassette', false],
 			// The bespoke four (WP124): marking and the quarantine measured over what comes back; taint and the seat not applicable.
 			['governance/untrusted-content', 'local', true],
 			['fs-bank/guard/quarantined-reader', 'local', true],
@@ -125,7 +127,7 @@ describe('craftabot benchmark run (WP123)', () => {
 		expect(first.markdown.startsWith('# The bank, attacked')).toBe(true);
 		expect(first.markdown).toContain('**Synthetic rows.**');
 		expect(report.digest).toMatchInlineSnapshot(
-			`"bb33bc460eccdded227eee84a7ea11467653d30bd6d8f17c33b35165a9f81052"`
+			`"6a37dba6c6f7ce397393bd107de3e355a51bb90440d474e0d903f4386153de00"`
 		);
 	});
 
@@ -150,6 +152,16 @@ describe('craftabot benchmark run (WP123)', () => {
 				      "tp": 238,
 				    },
 				    115,
+				  ],
+				  [
+				    "fs-bank/reader/policy-conditioned",
+				    {
+				      "fn": 920,
+				      "fp": 0,
+				      "tn": 488,
+				      "tp": 0,
+				    },
+				    0,
 				  ],
 				  [
 				    "readers-llm/reader/mock",
@@ -257,6 +269,25 @@ describe('craftabot benchmark run (WP123)', () => {
 		expect(modes['azure-content-safety/content-safety']).toBe('live');
 		expect(modes['guard-local/llama-guard']).not.toBe('live');
 		expect(calls.count).toBe(402);
+	});
+
+	it('replays the policy-conditioned classifier from its committed cassette, as recorded (WP143)', async () => {
+		const { report } = await benchmarkRun({
+			file: FILE,
+			registry: registryWith(),
+			credentials: noCredentials,
+			cassettes: join(dirname(FILE), 'cassettes'),
+			ranAt: RAN_AT
+		});
+		const classifier = report.subjects.find(
+			(subject) => subject.id === 'fs-bank/reader/policy-conditioned'
+		)!;
+		expect(classifier.mode).toBe('cassette');
+		expect(classifier.errors).toBe(0);
+		expect(classifier.confusion).toEqual({ tp: 909, fp: 339, fn: 11, tn: 149 });
+		const llamaGuard = report.subjects.find((subject) => subject.id === 'guard-local/llama-guard')!;
+		expect(llamaGuard.mode).toBe('cassette');
+		expect(llamaGuard.confusion).toEqual({ tp: 158, fp: 13, fn: 762, tn: 475 });
 	});
 
 	it('stores the report, and a stand-in is never a measurement: the Rack reads unmeasured', async () => {
