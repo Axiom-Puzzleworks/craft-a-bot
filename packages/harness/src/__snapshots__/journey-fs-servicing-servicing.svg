@@ -67,4 +67,5 @@
 <circle class="point point--pre-think" cx="1239" cy="34" r="5" data-point="loop:close:pre-think"/>
 <circle class="point point--pre-act" cx="1253" cy="34" r="5" data-point="loop:close:pre-act"/>
 <circle class="point point--post-act" cx="1267" cy="34" r="5" data-point="loop:close:post-act"/>
+<rect class="point point--stage-in" x="1214" y="61" width="10" height="10" data-point="boundary:close:stage-in"/>
 </svg>

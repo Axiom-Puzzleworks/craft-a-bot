@@ -1,3 +1,4 @@
+import { stageGateCard } from '@craftabot/pack-fs-bank';
 import type {
 	ActionCall,
 	Book,
@@ -28,6 +29,20 @@ import {
 	type RuleFigures,
 	type Screening
 } from './world/rules.js';
+
+/**
+ * **Opening waits for the file** (WP137, `110-CONTROL-SUITE-PLAN.md` §6): the gate on the `open`
+ * stage's input — held until the desk's case file shows identity-verified, screened, rated, decided. It
+ * reads the desk's state, never the case's truth, whoever executes the stage.
+ */
+export const OPEN_WAITS_FOR_THE_FILE = stageGateCard({
+	id: 'fs-onboarding/policy/open-waits-for-the-file',
+	title: 'Opening waits for the file',
+	stageId: 'open',
+	requires: ['identity-verified', 'screened', 'rated', 'decided'],
+	reason:
+		'No account is opened until the file shows identity verified, the customer screened and rated, and a decision made.'
+});
 
 /**
  * **The onboarding workflow** (WP103, `83-…` §6.5.2; `95-…` §4.6): the
@@ -325,6 +340,8 @@ export const ONBOARDING_STAGES: StageSpec[] = [
 		output: OPEN_OUTPUT,
 		executor: agent('opened', onboardingStrings.workflow.briefs.open),
 		irreversible: true,
+		// WP137: held at its input until the desk's file shows the steps before it done.
+		guards: { policyCards: [OPEN_WAITS_FOR_THE_FILE.id] },
 		read: (state) => {
 			const { onboarding } = desk(state).extra;
 			return onboarding.opened

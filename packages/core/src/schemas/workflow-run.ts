@@ -117,7 +117,9 @@ export const workflowConfigRecordSchema = z.object({
 					z.string(),
 					z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5)])
 				)
-				.optional()
+				.optional(),
+			/** WP139: the ceilings enforced — a decision above its ceiling waited for a person. */
+			enforce: z.literal(true).optional()
 		})
 		.optional(),
 	context: contextSpecSchema.optional(),

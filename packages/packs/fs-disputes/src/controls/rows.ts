@@ -42,7 +42,11 @@ export const DISPUTES_CONTROL_ROWS: readonly ControlMapRow[] = [
 		ref: 'reimbursement-four-eyes',
 		title: 'The reimbursement under four eyes',
 		obligation: 'Money is paid only when a person has agreed.',
-		evidence: [{ kind: 'policy-card', id: 'fs-disputes/policy/reimbursement-is-four-eyes' }],
+		evidence: [
+			{ kind: 'policy-card', id: 'fs-disputes/policy/reimbursement-is-four-eyes' },
+			// WP137: the gate on the journey's irreversible stage.
+			{ kind: 'policy-card', id: 'fs-disputes/policy/reimbursement-waits-for-the-file' }
+		],
 		status: 'unreviewed',
 		tags: ['pra:ss1-23:mitigants']
 	}

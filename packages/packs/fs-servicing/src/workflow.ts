@@ -1,3 +1,4 @@
+import { SERVICING_GATED_READERS } from './readers.js';
 import type {
 	ActionCall,
 	Book,
@@ -11,7 +12,7 @@ import type {
 	WorkflowSpec,
 	WorldState
 } from '@craftabot/core';
-import { monthlyIncomeOf } from '@craftabot/pack-fs-bank';
+import { monthlyIncomeOf, stageGateCard } from '@craftabot/pack-fs-bank';
 import { servicingBookFor } from './book.js';
 import { SERVICING_CEILINGS } from './decision-rights.js';
 import { servicingStrings } from './strings.js';
@@ -28,6 +29,20 @@ import {
 	type Category,
 	type SupportNeed
 } from './world/rules.js';
+
+/**
+ * **Closure waits for the file** (WP137, `110-CONTROL-SUITE-PLAN.md` §6): the gate on the `close`
+ * stage's input — held until the desk's case file shows verified, classified. It
+ * reads the desk's state, never the case's truth, whoever executes the stage.
+ */
+export const CLOSURE_WAITS_FOR_THE_FILE = stageGateCard({
+	id: 'fs-servicing/policy/closure-waits-for-the-file',
+	title: 'Closure waits for the file',
+	stageId: 'close',
+	requires: ['verified', 'classified'],
+	reason:
+		'No account is closed until the file shows the caller verified and the request classified.'
+});
 
 /**
  * **The servicing workflow** (WP106, `83-…` §6.5.2; `92-FS-SERVICING.md`
@@ -387,6 +402,8 @@ export const SERVICING_STAGES: StageSpec[] = [
 		output: ACT_OUTPUT,
 		executor: agent('closed', servicingStrings.workflow.briefs.act),
 		irreversible: true,
+		// WP137: held at its input until the desk's file shows the steps before it done.
+		guards: { policyCards: [CLOSURE_WAITS_FOR_THE_FILE.id] },
 		read: (state) => (desk(state).extra.servicing.closed ? { act: 'close-account' } : undefined),
 		next: (_out, state) => afterTheRecord(state),
 		mayGoTo: ['end', 'handoff:fs-advice/advice']
@@ -402,11 +419,21 @@ const rulesFor = (...ids: string[]): Record<string, Executor> =>
 export const SERVICING_CONFIGURATIONS: Record<ServicingConfigurationId, WorkflowConfig> = {
 	/** The control: every stage a rule; a person confirms a closure, as the bank does today. */
 	'rules-only': {
-		executors: { ...rulesFor('identify', 'classify', 'act', 'record'), close: rule('act-v1') }
+		executors: {
+			...rulesFor('identify', 'classify', 'act', 'record'),
+			close: rule('act-v1'),
+			// WP138: the classify-shaped stages on the gated rule readers — the same answers, behind the desk's line.
+			...SERVICING_GATED_READERS
+		}
 	},
 	/** Level 2: the bot identifies the caller; the rules classify, act and record; a person confirms a closure. */
 	'bot-identifies-only': {
-		executors: { ...rulesFor('classify', 'act', 'record'), close: rule('act-v1') },
+		executors: {
+			...rulesFor('classify', 'act', 'record'),
+			close: rule('act-v1'),
+			// WP138: the classify-shaped stages on the gated rule readers — the same answers, behind the desk's line.
+			...SERVICING_GATED_READERS
+		},
 		autonomy: { level: 2, ceilings }
 	},
 	/** Level 3: the bot identifies and records; the classification is a person's; the rule acts. */

@@ -11,7 +11,7 @@ import {
 import { createMockProvider, createTestClock, obedient } from '@craftabot/core/testing';
 import fsAdvicePack from '@craftabot/pack-fs-advice';
 import { planFor as advicePlanFor } from '@craftabot/pack-fs-advice/testing';
-import fsBankPack, { population } from '@craftabot/pack-fs-bank';
+import fsBankPack, { DESK_READER_LINE, population } from '@craftabot/pack-fs-bank';
 import fsFraudPack from '@craftabot/pack-fs-fraud';
 import { planFor as fraudPlanFor } from '@craftabot/pack-fs-fraud/testing';
 import starterPack from '@craftabot/pack-starter';
@@ -20,7 +20,12 @@ import { runWorkflow, withoutReaders } from '@craftabot/workflow';
 import { describe, expect, it } from 'vitest';
 import { disputesBook } from './book.js';
 import fsDisputesPack from './index.js';
-import { CLASSIFICATION_QUESTION, DISPUTES_READERS, DISPUTES_RULE_READERS } from './readers.js';
+import {
+	CLASSIFICATION_QUESTION,
+	DISPUTES_GATED_READERS,
+	DISPUTES_READERS,
+	DISPUTES_RULE_READERS
+} from './readers.js';
 import { planFor } from './testing/plans.js';
 import { disputesCaseFromItem } from './world/cases.js';
 import { disputesDesk } from './world/desk.js';
@@ -116,6 +121,15 @@ const unstamped = (traces: EngineEvent[][]) =>
 		})
 	);
 
+/** The shipped configuration with the rules back where its gated readers stand (WP138): the identity's baseline. */
+function ruled(config: WorkflowConfig): WorkflowConfig {
+	const executors = { ...(config.executors ?? {}) };
+	for (const stageId of Object.keys(DISPUTES_RULE_READERS))
+		if (executors[stageId]?.kind === 'reader')
+			executors[stageId] = { kind: 'rule', rule: `${stageId}-v1` };
+	return { ...config, executors };
+}
+
 function fitted(
 	config: WorkflowConfig,
 	gate?: Extract<Executor, { kind: 'reader' }>['gate']
@@ -130,11 +144,32 @@ function fitted(
 	return { config: { ...config, executors }, stages };
 }
 
+describe('the gated readers the shipped configurations fit (WP138)', () => {
+	it('stand where the rules stood, behind the desk’s line, with the rule as the else', () => {
+		for (const [id, config] of Object.entries(DISPUTES_CONFIGURATIONS))
+			for (const [stageId, executor] of Object.entries(config.executors ?? {})) {
+				if (executor.kind !== 'reader') continue;
+				expect(executor, `${id} · ${stageId}`).toEqual(
+					DISPUTES_GATED_READERS[stageId as keyof typeof DISPUTES_GATED_READERS]
+				);
+				expect(executor.gate, `${id} · ${stageId}`).toEqual({
+					threshold: DESK_READER_LINE,
+					else: { kind: 'rule', rule: `${stageId}-v1` }
+				});
+			}
+		const fitted = Object.values(DISPUTES_CONFIGURATIONS).filter(
+			(config) => config.executors?.['classify']?.kind === 'reader'
+		);
+		expect(fitted.length).toBeGreaterThan(0);
+	});
+});
+
 describe('the disputes rule reader (WP117)', { timeout: 300_000 }, () => {
 	it('changes no outcome where it replaces the rule, gated or not', async () => {
 		let compared = 0;
 		for (const id of ['rules-only', 'bot-verifies-only'] as const) {
-			const base = DISPUTES_CONFIGURATIONS[id];
+			// WP138: the shipped configuration fits the gated readers; the baseline puts the rules back.
+			const base = ruled(DISPUTES_CONFIGURATIONS[id]);
 			const plain = fitted(base);
 			expect(plain.stages, id).toEqual(['classify']);
 			const gated = fitted(base, { threshold: 1, else: { kind: 'rule', rule: 'classify-v1' } });

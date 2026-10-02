@@ -519,7 +519,7 @@ export function controlInventory(input: ControlInventoryInput): ControlInventory
 					'ceiling',
 					`${domain.id}#${right.kind}`,
 					`${right.kind} — Level ${right.ceiling}`,
-					`${right.why} Measured as a breach rate, not enforced.`,
+					`${right.why} Measured as a breach rate; held for a person where a configuration enforces its ceilings.`,
 					'declared'
 				)
 			);

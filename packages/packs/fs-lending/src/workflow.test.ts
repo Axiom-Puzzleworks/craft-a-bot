@@ -10,7 +10,7 @@ import { createMockProvider, createTestClock, obedient } from '@craftabot/core/t
 import { population } from '@craftabot/pack-fs-bank';
 import fsBankPack from '@craftabot/pack-fs-bank';
 import starterPack from '@craftabot/pack-starter';
-import { runWorkflow, stageCardId, touchedCaseOf } from '@craftabot/workflow';
+import { CEILING_GUARDRAIL_ID, runWorkflow, stageCardId, touchedCaseOf } from '@craftabot/workflow';
 import { stageBoundaryGuardrails } from '@craftabot/governance';
 import monitorPack from '@craftabot/pack-monitor';
 import { createPackRegistry, type WorkflowSpec } from '@craftabot/core';
@@ -200,6 +200,62 @@ describe('the lending workflow over the book', { timeout: 300_000 }, () => {
 		};
 		expect(await breaches('bot-recommends')).toBe(0);
 		expect(await breaches('bot-everywhere')).toBe(declines.length);
+	});
+
+	it('with the ceilings enforced, a decision above its ceiling waits for a person where it is recorded — confirmed at the ceiling, declined halts (WP139)', async () => {
+		const declines = sample
+			.filter((item) => item.truth.facts?.['verdict'] === 'should-decline')
+			.slice(0, 3);
+		expect(declines.length).toBeGreaterThan(0);
+		const measured = LENDING_CONFIGURATIONS['bot-everywhere'];
+		const enforced = { ...measured, autonomy: { ...measured.autonomy!, enforce: true } };
+		const runWith = (item: WorkItem, ordinal: number, approve?: () => boolean) => {
+			const clock = createTestClock({ idOffset: 70_000 + ordinal * 1000 });
+			const seat = createTestClock({ idOffset: 70_000 + ordinal * 1000 + 500 });
+			return runWorkflow(lendingWorkflow, item, {
+				packs: PACKS,
+				spec: SPEC,
+				config: enforced,
+				providerFor: (_stage, goalCardId) =>
+					createMockProvider({ script: obedient(planFor(goalCardId)) }),
+				now: clock.now,
+				newId: clock.newId,
+				random: clock.random,
+				session: { now: seat.now, newId: seat.newId, random: seat.random },
+				...(approve ? { approve } : {})
+			});
+		};
+		for (const [index, item] of declines.entries()) {
+			const confirmed = await runWith(item, index);
+			expect(confirmed.config.autonomy).toMatchObject({ level: 5, enforce: true });
+			const recorded = confirmed.stages.find((stage) => stage.stageId === 'record')!;
+			expect(recorded.guards.verdicts).toContainEqual(
+				expect.objectContaining({
+					guardrailId: CEILING_GUARDRAIL_ID,
+					point: 'stage-out',
+					verdict: 'pause',
+					approved: true
+				})
+			);
+			expect(confirmed.events.some((event) => event.type === 'approval.requested')).toBe(true);
+			const touched = touchedCaseOf(confirmed, lendingDecisionKind);
+			// Confirmed by a person: no breach, and one more touch.
+			for (const each of touched.decisions ?? [])
+				expect(each.level).toBeLessThanOrEqual(LENDING_CEILINGS[each.kind] ?? 5);
+			expect(touched.touches.map((touch) => touch.kind)).toContain('ceiling:record');
+			// Declined: the journey stops where the decision is recorded — nothing explained, checked or paid after it.
+			const declined = await runWith(item, index + 10, () => false);
+			expect(declined.outcome).toBe('stopped');
+			expect(declined.stages.at(-1)?.stageId).toBe('record');
+			expect(declined.stages.at(-1)?.status).toBe('blocked');
+		}
+		// Measured, as shipped: the same decisions breach.
+		const plain = await runItem(declines[0]!, 'bot-everywhere', 0);
+		expect(
+			plain.stages
+				.flatMap((stage) => stage.guards.verdicts ?? [])
+				.some((verdict) => verdict.guardrailId === CEILING_GUARDRAIL_ID)
+		).toBe(false);
 	});
 
 	it('the intake refuses a malformed work item with a finding', async () => {

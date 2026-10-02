@@ -44,7 +44,9 @@ export const ONBOARDING_CONTROL_ROWS: readonly ControlMapRow[] = [
 			'A new customer is told what happens next in words they can follow; an account opens only when a person has agreed.',
 		evidence: [
 			{ kind: 'policy-card', id: 'fs-onboarding/policy/open-is-four-eyes' },
-			{ kind: 'evaluator', id: 'fs-onboarding/risk-rated-before-open' }
+			{ kind: 'evaluator', id: 'fs-onboarding/risk-rated-before-open' },
+			// WP137: the gate on the journey's irreversible stage.
+			{ kind: 'policy-card', id: 'fs-onboarding/policy/open-waits-for-the-file' }
 		],
 		status: 'unreviewed',
 		tags: ['fca:cd:understanding', 'pra:ss1-23:mitigants']

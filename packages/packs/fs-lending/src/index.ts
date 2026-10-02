@@ -15,7 +15,7 @@ import {
 	lendingStacks
 } from './campaign.js';
 import { lendingDesk } from './world/desk.js';
-import { lendingWorkflow } from './workflow.js';
+import { lendingWorkflow, DISBURSEMENT_WAITS_FOR_THE_FILE } from './workflow.js';
 
 /**
  * @craftabot/pack-fs-lending — **The Lending Desk** (WP63, `52-FS-LENDING.md`):
@@ -56,7 +56,7 @@ export const fsLendingPack: PackManifest = {
 			campaign: () => lendingBookCampaign()
 		}
 	],
-	policyCards: lendingPolicyCards,
+	policyCards: [...lendingPolicyCards, DISBURSEMENT_WAITS_FOR_THE_FILE],
 	evaluators: lendingEvaluators,
 	// WP115: the fallible tier's error model for the decision.
 	errorModels: lendingErrorModels,

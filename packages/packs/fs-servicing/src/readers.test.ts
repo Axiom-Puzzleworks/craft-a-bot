@@ -4,13 +4,14 @@ import {
 	type EngineEvent,
 	type Executor,
 	type PackManifest,
+	type Reader,
 	type WorkItem,
 	type WorkflowConfig,
 	type WorkflowRun
 } from '@craftabot/core';
 import { createMockProvider, createTestClock, obedient } from '@craftabot/core/testing';
 import fsAdvicePack from '@craftabot/pack-fs-advice';
-import fsBankPack, { population } from '@craftabot/pack-fs-bank';
+import fsBankPack, { DESK_READER_LINE, population } from '@craftabot/pack-fs-bank';
 import fsCollectionsPack from '@craftabot/pack-fs-collections';
 import starterPack from '@craftabot/pack-starter';
 import { checkReader } from '@craftabot/pack-testkit';
@@ -20,9 +21,11 @@ import { servicingBook } from './book.js';
 import fsServicingPack from './index.js';
 import {
 	CATEGORY_QUESTION,
+	SERVICING_GATED_READERS,
 	SERVICING_READERS,
 	SERVICING_RULE_READERS,
-	SUPPORT_NEED_QUESTION
+	SUPPORT_NEED_QUESTION,
+	categoryReaderExecutor
 } from './readers.js';
 import { planFor } from './testing/plans.js';
 import { servicingCaseFromItem } from './world/cases.js';
@@ -116,6 +119,15 @@ const unstamped = (traces: EngineEvent[][]) =>
 		})
 	);
 
+/** The shipped configuration with the rules back where its gated readers stand (WP138): the identity's baseline. */
+function ruled(config: WorkflowConfig): WorkflowConfig {
+	const executors = { ...(config.executors ?? {}) };
+	for (const stageId of Object.keys(SERVICING_RULE_READERS))
+		if (executors[stageId]?.kind === 'reader')
+			executors[stageId] = { kind: 'rule', rule: `${stageId}-v1` };
+	return { ...config, executors };
+}
+
 function fitted(
 	config: WorkflowConfig,
 	gate?: Extract<Executor, { kind: 'reader' }>['gate']
@@ -130,11 +142,32 @@ function fitted(
 	return { config: { ...config, executors }, stages };
 }
 
+describe('the gated readers the shipped configurations fit (WP138)', () => {
+	it('stand where the rules stood, behind the desk’s line, with the rule as the else', () => {
+		for (const [id, config] of Object.entries(SERVICING_CONFIGURATIONS))
+			for (const [stageId, executor] of Object.entries(config.executors ?? {})) {
+				if (executor.kind !== 'reader') continue;
+				expect(executor, `${id} · ${stageId}`).toEqual(
+					SERVICING_GATED_READERS[stageId as keyof typeof SERVICING_GATED_READERS]
+				);
+				expect(executor.gate, `${id} · ${stageId}`).toEqual({
+					threshold: DESK_READER_LINE,
+					else: { kind: 'rule', rule: `${stageId}-v1` }
+				});
+			}
+		const fitted = Object.values(SERVICING_CONFIGURATIONS).filter(
+			(config) => config.executors?.['classify']?.kind === 'reader'
+		);
+		expect(fitted.length).toBeGreaterThan(0);
+	});
+});
+
 describe('the servicing rule readers (WP117)', { timeout: 300_000 }, () => {
 	it('change no outcome where they replace the rules, gated or not', async () => {
 		let compared = 0;
 		for (const id of ['rules-only', 'bot-identifies-only'] as const) {
-			const base = SERVICING_CONFIGURATIONS[id];
+			// WP138: the shipped configuration fits the gated readers; the baseline puts the rules back.
+			const base = ruled(SERVICING_CONFIGURATIONS[id]);
 			const plain = fitted(base);
 			expect(plain.stages.sort(), id).toEqual(['classify', 'record']);
 			const gated = fitted(base, { threshold: 1, else: { kind: 'rule', rule: 'classify-v1' } });
@@ -157,6 +190,76 @@ describe('the servicing rule readers (WP117)', { timeout: 300_000 }, () => {
 			}
 		}
 		expect(compared).toBe(items.length * 4);
+	});
+
+	it('hand an unsure reading to the rule behind the line, and the record says so (WP138)', async () => {
+		// A reader that is never sure: it answers "card" at half the weight, whatever it is shown.
+		const unsure: Reader = {
+			id: 'test/reader/unsure',
+			name: 'Unsure',
+			description: 'Answers card, half sure, to anything.',
+			kind: 'rule',
+			egress: [],
+			browserCapable: true,
+			answers: ['choice'],
+			ask: (_subject, questions) =>
+				Promise.resolve({
+					model: 'unsure',
+					method: 'rule',
+					answers: Object.fromEntries(
+						Object.entries(questions).map(([questionId, question]) => {
+							const keys = Object.keys(question.type === 'choice' ? question.criteria : {});
+							const probabilities = Object.fromEntries(
+								keys.map((key) => [key, key === 'card' ? 0.5 : 0.5 / (keys.length - 1)])
+							);
+							return [
+								questionId,
+								{
+									type: 'choice' as const,
+									choice: 'card',
+									probabilities,
+									confidence: (keys.length * 0.5 - 1) / (keys.length - 1)
+								}
+							];
+						})
+					)
+				})
+		};
+		const shipped = SERVICING_CONFIGURATIONS['rules-only'];
+		const gate = (SERVICING_GATED_READERS.classify as Extract<Executor, { kind: 'reader' }>).gate;
+		const swapped: WorkflowConfig = {
+			...shipped,
+			executors: {
+				...(shipped.executors ?? {}),
+				classify: categoryReaderExecutor('test/reader/unsure', gate)
+			}
+		};
+		const item = items.find(
+			(entry) =>
+				classificationOf(
+					servicingCaseFromItem(createTestClock().random, entry).extra.servicing.request.subject
+				) !== 'card'
+		)!;
+		const clock = createTestClock({ idOffset: 77_000 });
+		const run = await runWorkflow(servicingWorkflow, item, {
+			packs: [...PACKS, { ...CARTRIDGES, id: 'unsure', cartridges: [], readers: [unsure] }],
+			spec: SPEC,
+			config: swapped,
+			providerFor: (_stage, goalCardId) =>
+				createMockProvider({ script: obedient(planFor(goalCardId)) }),
+			now: clock.now,
+			newId: clock.newId,
+			random: clock.random
+		});
+		const classify = run.stages.find((stage) => stage.stageId === 'classify')!;
+		expect(classify.reader).toMatchObject({ readerId: 'test/reader/unsure', gated: true });
+		expect(classify.reader?.confidence).toBeLessThan(DESK_READER_LINE);
+		// Below the line the rule decided: the reader's "card" never reached the desk.
+		const byRule = await runItem(item, ruled(shipped), 0);
+		expect(classify.output).toEqual(
+			byRule.run.stages.find((stage) => stage.stageId === 'classify')?.output
+		);
+		expect(run.outcome).toBe(byRule.run.outcome);
 	});
 
 	it('pass checkReader over the book’s own requests', async () => {

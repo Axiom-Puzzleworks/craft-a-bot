@@ -15,7 +15,7 @@ import {
 	servicingStacks
 } from './campaign.js';
 import { servicingDesk } from './world/desk.js';
-import { servicingWorkflow } from './workflow.js';
+import { servicingWorkflow, CLOSURE_WAITS_FOR_THE_FILE } from './workflow.js';
 
 /**
  * @craftabot/pack-fs-servicing — **The Servicing Desk** (WP106,
@@ -55,7 +55,7 @@ export const fsServicingPack: PackManifest = {
 			campaign: () => servicingBookCampaign()
 		}
 	],
-	policyCards: servicingPolicyCards,
+	policyCards: [...servicingPolicyCards, CLOSURE_WAITS_FOR_THE_FILE],
 	evaluators: servicingEvaluators,
 	controlMaps: [servicingControlMap],
 	workflows: [servicingWorkflow],

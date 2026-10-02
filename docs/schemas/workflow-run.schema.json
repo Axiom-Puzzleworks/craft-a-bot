@@ -294,6 +294,10 @@
 									}
 								]
 							}
+						},
+						"enforce": {
+							"type": "boolean",
+							"const": true
 						}
 					},
 					"required": [

@@ -119,7 +119,8 @@
 			"guards": [
 				"loop:redress:pre-think",
 				"loop:redress:pre-act",
-				"loop:redress:post-act"
+				"loop:redress:post-act",
+				"boundary:redress:stage-in"
 			]
 		}
 	],
@@ -244,6 +245,14 @@
 			"kind": "post-act",
 			"at": "redress",
 			"components": []
+		},
+		{
+			"id": "boundary:redress:stage-in",
+			"kind": "stage-in",
+			"at": "redress",
+			"components": [
+				"fs-advice/policy/redress-waits-for-the-file"
+			]
 		}
 	]
 }

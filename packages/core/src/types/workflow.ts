@@ -146,8 +146,14 @@ export interface WorkflowConfig {
 	executors?: Record<string, Executor>;
 	/** Passed to the world at create as `config.knobs` (WP78). */
 	knobs?: Record<string, number | string | boolean>;
-	/** The thought experiment's level this configuration is, and the decision-rights ceilings it is measured against (WP80). */
-	autonomy?: { level: AutonomyLevel; ceilings?: Record<string, AutonomyLevel> };
+	/**
+	 * The thought experiment's level this configuration is, and the decision-rights ceilings it is
+	 * measured against (WP80). With `enforce` (WP139, `110-CONTROL-SUITE-PLAN.md` §6) a decision the
+	 * level would take above its kind's ceiling waits for a person at its stage's output — a pause,
+	 * `approval.requested` on the record — instead of being counted as a breach afterwards. Off by
+	 * default: the reference configurations measure.
+	 */
+	autonomy?: { level: AutonomyLevel; ceilings?: Record<string, AutonomyLevel>; enforce?: boolean };
 	/** The rung of the context ladder the journey runs at (WP81, `70-…` §3); reaches the world at `create` as `config.context`. */
 	context?: ContextSpec;
 	/** A stack for the whole journey (WP97, `89-STACKS.md`): its loop fits on every agent stage's session, its boundary fits at every stage. */

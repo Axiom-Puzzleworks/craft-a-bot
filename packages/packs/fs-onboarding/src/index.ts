@@ -15,7 +15,7 @@ import {
 	onboardingStacks
 } from './campaign.js';
 import { onboardingDesk } from './world/desk.js';
-import { onboardingWorkflow } from './workflow.js';
+import { onboardingWorkflow, OPEN_WAITS_FOR_THE_FILE } from './workflow.js';
 
 /**
  * @craftabot/pack-fs-onboarding — **The Onboarding Desk** (WP103,
@@ -54,7 +54,7 @@ export const fsOnboardingPack: PackManifest = {
 			campaign: () => onboardingBookCampaign()
 		}
 	],
-	policyCards: onboardingPolicyCards,
+	policyCards: [...onboardingPolicyCards, OPEN_WAITS_FOR_THE_FILE],
 	evaluators: onboardingEvaluators,
 	controlMaps: [onboardingControlMap],
 	workflows: [onboardingWorkflow],

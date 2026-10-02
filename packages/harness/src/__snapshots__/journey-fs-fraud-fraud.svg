@@ -45,4 +45,5 @@
 <circle class="point point--pre-think" cx="639" cy="34" r="5" data-point="loop:decision:pre-think"/>
 <circle class="point point--pre-act" cx="653" cy="34" r="5" data-point="loop:decision:pre-act"/>
 <circle class="point point--post-act" cx="667" cy="34" r="5" data-point="loop:decision:post-act"/>
+<rect class="point point--stage-in" x="914" y="161" width="10" height="10" data-point="boundary:sar:stage-in"/>
 </svg>

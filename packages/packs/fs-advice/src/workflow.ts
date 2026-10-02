@@ -11,7 +11,7 @@ import type {
 	WorkflowSpec,
 	WorldState
 } from '@craftabot/core';
-import { adviceRequestBook, population } from '@craftabot/pack-fs-bank';
+import { adviceRequestBook, population, stageGateCard } from '@craftabot/pack-fs-bank';
 import { adviceStrings } from './strings.js';
 import {
 	ADVICE_DESK_WORLD_ID,
@@ -20,6 +20,20 @@ import {
 	type AdviceDeskState
 } from './world/desk.js';
 import { REQUIRED_TOPICS } from './world/extra.js';
+
+/**
+ * **Execution waits for the file** (WP137, `110-CONTROL-SUITE-PLAN.md` §6): the gate on the `execution`
+ * stage's input — held until the desk's case file shows suitability-gathered, recommendation-made, warnings-given. It
+ * reads the desk's state, never the case's truth, whoever executes the stage.
+ */
+export const EXECUTION_WAITS_FOR_THE_FILE = stageGateCard({
+	id: 'fs-advice/policy/execution-waits-for-the-file',
+	title: 'Execution waits for the file',
+	stageId: 'execution',
+	requires: ['suitability-gathered', 'recommendation-made', 'warnings-given'],
+	reason:
+		'Nothing is invested until the file shows suitability gathered, a recommendation made and the warnings given.'
+});
 
 /**
  * **The advice workflow** (WP85, `76-FRAUD-AND-ADVICE-WORKFLOWS.md` §4;
@@ -265,6 +279,8 @@ export const ADVICE_STAGES: StageSpec[] = [
 		output: EXECUTION_OUTPUT,
 		executor: agent('investment-executed', strings.briefs.execution),
 		irreversible: true,
+		// WP137: held at its input until the desk's file shows the steps before it done.
+		guards: { policyCards: [EXECUTION_WAITS_FOR_THE_FILE.id] },
 		read: executionOutput,
 		next: () => 'confirmation'
 	},

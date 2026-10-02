@@ -124,7 +124,9 @@ export const BANK_CONTROL_ROWS: readonly ControlMapRow[] = [
 				kind: 'evaluator',
 				id: 'fs-advice/redress-within-bounds',
 				note: 'within the truth’s fair range, or none'
-			}
+			},
+			// WP137: the gate on the journey's irreversible stage.
+			{ kind: 'policy-card', id: 'fs-advice/policy/redress-waits-for-the-file' }
 		],
 		status: 'unreviewed',
 		tags: ['fca:disp:complaints']

@@ -1,3 +1,4 @@
+import { stageGateCard } from '@craftabot/pack-fs-bank';
 import type {
 	ActionCall,
 	Book,
@@ -30,6 +31,20 @@ import {
 	type ReasonCode,
 	type RuleFigures
 } from './world/rules.js';
+
+/**
+ * **A plan waits for the file** (WP137, `110-CONTROL-SUITE-PLAN.md` §6): the gate on the `agree`
+ * stage's input — held until the desk's case file shows verified, circumstances-recorded, reassessed, offered. It
+ * reads the desk's state, never the case's truth, whoever executes the stage.
+ */
+export const AGREEMENT_WAITS_FOR_THE_FILE = stageGateCard({
+	id: 'fs-collections/policy/agreement-waits-for-the-file',
+	title: 'A plan waits for the file',
+	stageId: 'agree',
+	requires: ['verified', 'circumstances-recorded', 'reassessed', 'offered'],
+	reason:
+		'No plan is agreed until the file shows the customer verified, their circumstances recorded, the account reassessed and a plan offered.'
+});
 
 /**
  * **The arrears workflow** (WP105, `83-…` §6.5.2; `91-FS-COLLECTIONS.md`
@@ -200,6 +215,19 @@ const RULES: WorkflowSpec['rules'] = {
 		const { collections, bank } = desk(state).extra;
 		return {
 			output: { customer: bank.customer.name.full, missed: collections.arrears.missedPayments }
+		};
+	},
+	/**
+	 * The rules-only journey's intake (WP137, `110-…` §10): the same output, and the customer
+	 * verified. The rule path had reviewed the account and agreed a plan — a contract on it — for
+	 * a customer no step had verified; the agreement's gate found it. A bot that makes contact
+	 * verifies there, so only the configuration with no bot takes this intake.
+	 */
+	'intake-verified-v1': (_input, state) => {
+		const { collections, bank } = desk(state).extra;
+		return {
+			output: { customer: bank.customer.name.full, missed: collections.arrears.missedPayments },
+			call: call('verify-customer')
 		};
 	},
 	'contact-v1': () => ({ output: { reviewed: true }, call: call('review-account') }),
@@ -375,6 +403,8 @@ export const COLLECTIONS_STAGES: StageSpec[] = [
 		output: AGREE_OUTPUT,
 		executor: agent('agreed', collectionsStrings.workflow.briefs.agree),
 		irreversible: true,
+		// WP137: held at its input until the desk's file shows the steps before it done.
+		guards: { policyCards: [AGREEMENT_WAITS_FOR_THE_FILE.id] },
 		read: (state) => {
 			const { collections } = desk(state).extra;
 			return collections.agreed
@@ -398,7 +428,12 @@ const rulesFor = (...ids: string[]): Record<string, Executor> =>
 
 export const COLLECTIONS_CONFIGURATIONS: Record<CollectionsConfigurationId, WorkflowConfig> = {
 	/** The control: every stage a rule; a person confirms the plan, as the bank does today. */
-	'rules-only': { executors: rulesFor('contact', 'circumstances', 'plan', 'agree') },
+	'rules-only': {
+		executors: {
+			intake: rule('intake-verified-v1'),
+			...rulesFor('contact', 'circumstances', 'plan', 'agree')
+		}
+	},
 	/** Level 2: the bot makes contact; the rules record the circumstances from the file, plan and agree; a person confirms. */
 	'bot-contacts-only': {
 		executors: rulesFor('circumstances', 'plan', 'agree'),

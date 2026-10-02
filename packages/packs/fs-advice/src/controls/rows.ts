@@ -83,7 +83,9 @@ export const ADVICE_CONTROL_ROWS: readonly ControlMapRow[] = [
 			{ kind: 'policy-card', id: 'fs-advice/policy/four-eyes-on-execution' },
 			{ kind: 'trace-guarantee', id: 'approval.requested' },
 			// WP135 (`110-…` G107): the evaluator that judges the approval happened, uncited until now.
-			{ kind: 'evaluator', id: 'fs-advice/execution-approved' }
+			{ kind: 'evaluator', id: 'fs-advice/execution-approved' },
+			// WP137: the gate on the journey's irreversible stage.
+			{ kind: 'policy-card', id: 'fs-advice/policy/execution-waits-for-the-file' }
 		],
 		status: 'unreviewed',
 		tags: ['pra:ss1-23:mitigants']

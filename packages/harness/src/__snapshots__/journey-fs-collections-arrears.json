@@ -136,7 +136,8 @@
 			"guards": [
 				"loop:agree:pre-think",
 				"loop:agree:pre-act",
-				"loop:agree:post-act"
+				"loop:agree:post-act",
+				"boundary:agree:stage-in"
 			]
 		}
 	],
@@ -281,6 +282,14 @@
 			"kind": "post-act",
 			"at": "agree",
 			"components": []
+		},
+		{
+			"id": "boundary:agree:stage-in",
+			"kind": "stage-in",
+			"at": "agree",
+			"components": [
+				"fs-collections/policy/agreement-waits-for-the-file"
+			]
 		}
 	]
 }

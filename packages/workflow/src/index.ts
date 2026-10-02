@@ -1,4 +1,5 @@
 export {
+	CEILING_GUARDRAIL_ID,
 	VALUE_CAP,
 	configRecord,
 	executorRecord,

@@ -31,6 +31,12 @@ export interface JourneyLayoutOptions {
 	registry?: Pick<PackRegistry, 'getStack'>;
 	/** Draw the counterpart lane even without a run that seats one (§3.1). */
 	counterpart?: boolean;
+	/**
+	 * Draw a stage-in and a stage-out point on every stage, guarded or not (WP137, W-3): the
+	 * Studio's canvas, where a guard can be fitted at any boundary. The journey pages draw only
+	 * the boundaries a guard sits on.
+	 */
+	everyBoundary?: boolean;
 }
 
 const LANE_ORDER: readonly JourneyLaneId[] = [
@@ -186,7 +192,12 @@ function stacksFor(
 const unique = (values: readonly string[]): string[] => [...new Set(values)];
 
 /** The points of one stage (§3.4): the loop's rings on an assistant node; a boundary gate where a stage or a stack puts one. */
-function pointsOf(stage: StageSpec, executor: Executor, stacks: readonly Stack[]): JourneyPoint[] {
+function pointsOf(
+	stage: StageSpec,
+	executor: Executor,
+	stacks: readonly Stack[],
+	everyBoundary = false
+): JourneyPoint[] {
 	const points: JourneyPoint[] = [];
 	if (executor.kind === 'agent') {
 		for (const kind of LOOP_HOOKS) {
@@ -217,7 +228,7 @@ function pointsOf(stage: StageSpec, executor: Executor, stacks: readonly Stack[]
 					.map((fit) => fit.componentId)
 			)
 		]);
-		if (components.length > 0)
+		if (components.length > 0 || everyBoundary)
 			points.push({ id: `boundary:${stage.id}:${point}`, kind: point, at: stage.id, components });
 	}
 	return points;
@@ -284,7 +295,12 @@ export function journeyLayout(
 	const nodes: JourneyNode[] = order.map((stageId, column) => {
 		const stage = stageById.get(stageId) as StageSpec;
 		const executor = executorOf(stage);
-		const own = pointsOf(stage, executor, stacksFor(config, stage.id, options.registry));
+		const own = pointsOf(
+			stage,
+			executor,
+			stacksFor(config, stage.id, options.registry),
+			options.everyBoundary === true
+		);
 		points.push(...own);
 		const lane = laneOf(executor.kind);
 		return {

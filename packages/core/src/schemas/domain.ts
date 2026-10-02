@@ -28,7 +28,7 @@ export type DomainSourceRef = z.infer<typeof domainSourceRefSchema>;
 export const domainDecisionRightSchema = z.object({
 	/** The decision kind a workflow's `decisionKindOf` returns. */
 	kind: z.string().min(1),
-	/** The highest autonomy level the kind may run at — measured, never enforced (`64-…` §6.5). */
+	/** The highest autonomy level the kind may run at — measured (`64-…` §6.5), or enforced where a configuration sets `autonomy.enforce` (WP139). */
 	ceiling: z.number().int().min(1).max(5),
 	why: z.string().min(1),
 	source: domainSourceRefSchema

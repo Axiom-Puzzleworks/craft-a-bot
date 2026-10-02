@@ -57,7 +57,11 @@ export const LENDING_CONTROL_ROWS: readonly ControlMapRow[] = [
 		ref: 'four-eyes',
 		title: 'Disbursement under four eyes',
 		obligation: 'Money leaves the bank only when a person has agreed.',
-		evidence: [{ kind: 'policy-card', id: 'fs-lending/policy/disbursement-is-four-eyes' }],
+		evidence: [
+			{ kind: 'policy-card', id: 'fs-lending/policy/disbursement-is-four-eyes' },
+			// WP137: the gate on the journey's irreversible stage.
+			{ kind: 'policy-card', id: 'fs-lending/policy/disbursement-waits-for-the-file' }
+		],
 		status: 'unreviewed',
 		tags: ['pra:ss1-23:mitigants']
 	}

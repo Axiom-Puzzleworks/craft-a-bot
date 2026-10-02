@@ -141,7 +141,8 @@
 			"guards": [
 				"loop:close:pre-think",
 				"loop:close:pre-act",
-				"loop:close:post-act"
+				"loop:close:post-act",
+				"boundary:close:stage-in"
 			]
 		}
 	],
@@ -356,6 +357,14 @@
 			"kind": "post-act",
 			"at": "close",
 			"components": []
+		},
+		{
+			"id": "boundary:close:stage-in",
+			"kind": "stage-in",
+			"at": "close",
+			"components": [
+				"fs-servicing/policy/closure-waits-for-the-file"
+			]
 		}
 	]
 }

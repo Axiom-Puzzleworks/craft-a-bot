@@ -16,7 +16,7 @@ import {
 	disputesStacks
 } from './campaign.js';
 import { disputesDesk } from './world/desk.js';
-import { disputesWorkflow } from './workflow.js';
+import { disputesWorkflow, REIMBURSEMENT_WAITS_FOR_THE_FILE } from './workflow.js';
 
 /**
  * @craftabot/pack-fs-disputes — **The Disputes Desk** (WP104,
@@ -54,7 +54,7 @@ export const fsDisputesPack: PackManifest = {
 			campaign: () => disputesBookCampaign()
 		}
 	],
-	policyCards: disputesPolicyCards,
+	policyCards: [...disputesPolicyCards, REIMBURSEMENT_WAITS_FOR_THE_FILE],
 	evaluators: disputesEvaluators,
 	controlMaps: [disputesControlMap],
 	workflows: [disputesWorkflow],

@@ -1,4 +1,5 @@
-import type { Executor, Reader, TypedQuestion, WorldState } from '@craftabot/core';
+import type { Executor, Reader, ReaderGate, TypedQuestion, WorldState } from '@craftabot/core';
+import { DESK_READER_LINE } from '@craftabot/pack-fs-bank';
 import { ruleReader } from '@craftabot/governance';
 import type { DisputesDeskState } from './world/desk.js';
 import { classificationOf, type ClaimFigures, type Classification } from './world/rules.js';
@@ -41,9 +42,13 @@ const figuresOf = (_input: unknown, state: WorldState): ClaimFigures => {
 };
 
 /** A reader at `classify`: the classification read off the claim's figures and classified on the desk, as `classify-v1` does. */
-export function classificationReaderExecutor(readerId = CLASSIFICATION_READER_ID): Executor {
+export function classificationReaderExecutor(
+	readerId = CLASSIFICATION_READER_ID,
+	gate?: ReaderGate
+): Executor {
 	return {
 		kind: 'reader',
+		...(gate ? { gate } : {}),
 		readerId,
 		subject: figuresOf,
 		questions: () => ({ classification: CLASSIFICATION_QUESTION }),
@@ -61,4 +66,12 @@ export function classificationReaderExecutor(readerId = CLASSIFICATION_READER_ID
 /** The rule reader fitted where the rule was. */
 export const DISPUTES_RULE_READERS: Record<'classify', Executor> = {
 	classify: classificationReaderExecutor()
+};
+
+/** The gated reader the shipped configurations fit (WP138): the rule reader behind the desk's line, the rule as its `else`. */
+export const DISPUTES_GATED_READERS: Record<'classify', Executor> = {
+	classify: classificationReaderExecutor(CLASSIFICATION_READER_ID, {
+		threshold: DESK_READER_LINE,
+		else: { kind: 'rule', rule: 'classify-v1' }
+	})
 };

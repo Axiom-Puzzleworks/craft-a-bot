@@ -282,10 +282,18 @@ export const CONTROL_MECHANISMS: readonly ControlMechanism[] = [
 		id: 'workflow/autonomy-ceilings',
 		name: 'Autonomy levels and their ceilings',
 		summary:
-			'A configuration names its level and the ceiling per decision right; a decision above its ceiling is counted as a breach, not blocked.',
-		where: ['packages/workflow/src/human-load.ts', 'packages/evals/src/campaign.ts'],
-		observedAs: ['the report’s ceilingBreachRate'],
-		configuredBy: 'WorkflowConfig.autonomy',
+			'A configuration names its level and the ceiling per decision right; a decision above its ceiling is counted as a breach — or, with `enforce`, held for a person where it is recorded (WP139).',
+		where: [
+			'packages/workflow/src/human-load.ts',
+			'packages/workflow/src/run.ts',
+			'packages/evals/src/campaign.ts'
+		],
+		observedAs: [
+			'the report’s ceilingBreachRate',
+			'approval.requested',
+			'the workflow/ceiling verdict'
+		],
+		configuredBy: 'WorkflowConfig.autonomy (level, ceilings, enforce)',
 		since: 'WP80'
 	}),
 	// ------------------------------------------------------------------ the hosted shell

@@ -106,7 +106,8 @@
 			"guards": [
 				"loop:execution:pre-think",
 				"loop:execution:pre-act",
-				"loop:execution:post-act"
+				"loop:execution:post-act",
+				"boundary:execution:stage-in"
 			]
 		},
 		{
@@ -253,6 +254,14 @@
 			"kind": "post-act",
 			"at": "execution",
 			"components": []
+		},
+		{
+			"id": "boundary:execution:stage-in",
+			"kind": "stage-in",
+			"at": "execution",
+			"components": [
+				"fs-advice/policy/execution-waits-for-the-file"
+			]
 		}
 	]
 }

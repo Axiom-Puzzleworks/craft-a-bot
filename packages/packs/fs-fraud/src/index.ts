@@ -22,7 +22,7 @@ import { fraudErrorModels } from './errors/error-models.js';
 
 export const FS_FRAUD_PACK_ID = 'fs-fraud';
 
-import { fraudWorkflow } from './workflow.js';
+import { fraudWorkflow, SAR_WAITS_FOR_THE_FILE } from './workflow.js';
 
 export const fsFraudPack: PackManifest = {
 	id: FS_FRAUD_PACK_ID,
@@ -43,7 +43,7 @@ export const fsFraudPack: PackManifest = {
 			campaign: () => fraudBaseline()
 		}
 	],
-	policyCards: fraudPolicyCards,
+	policyCards: [...fraudPolicyCards, SAR_WAITS_FOR_THE_FILE],
 	/** WP97 (`89-STACKS.md`): the baseline's guards as stacks. */
 	stacks: fraudStacks,
 	evaluators: fraudEvaluators,

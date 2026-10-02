@@ -150,7 +150,8 @@
 			"guards": [
 				"loop:reimburse:pre-think",
 				"loop:reimburse:pre-act",
-				"loop:reimburse:post-act"
+				"loop:reimburse:post-act",
+				"boundary:reimburse:stage-in"
 			]
 		}
 	],
@@ -320,6 +321,14 @@
 			"kind": "post-act",
 			"at": "reimburse",
 			"components": []
+		},
+		{
+			"id": "boundary:reimburse:stage-in",
+			"kind": "stage-in",
+			"at": "reimburse",
+			"components": [
+				"fs-disputes/policy/reimbursement-waits-for-the-file"
+			]
 		}
 	]
 }

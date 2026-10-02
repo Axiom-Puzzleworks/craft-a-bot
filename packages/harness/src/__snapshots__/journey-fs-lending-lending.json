@@ -144,7 +144,8 @@
 			"guards": [
 				"loop:disbursement:pre-think",
 				"loop:disbursement:pre-act",
-				"loop:disbursement:post-act"
+				"loop:disbursement:post-act",
+				"boundary:disbursement:stage-in"
 			]
 		},
 		{
@@ -327,6 +328,14 @@
 			"kind": "post-act",
 			"at": "disbursement",
 			"components": []
+		},
+		{
+			"id": "boundary:disbursement:stage-in",
+			"kind": "stage-in",
+			"at": "disbursement",
+			"components": [
+				"fs-lending/policy/disbursement-waits-for-the-file"
+			]
 		},
 		{
 			"id": "loop:appeal:pre-think",

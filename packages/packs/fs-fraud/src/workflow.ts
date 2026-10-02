@@ -13,10 +13,23 @@ import type {
 	WorkflowSpec,
 	WorldState
 } from '@craftabot/core';
-import { ALERT_RULE_ID, alertBook, population } from '@craftabot/pack-fs-bank';
+import { ALERT_RULE_ID, alertBook, population, stageGateCard } from '@craftabot/pack-fs-bank';
 import { fraudStrings } from './strings.js';
 import { FRAUD_DESK_WORLD_ID, WORK_ITEM_LAYOUT, type FraudDeskState } from './world/desk.js';
 import { ALERT_RECORD, DECISIONS, type Decision } from './world/extra.js';
+
+/**
+ * **A SAR waits for the file** (WP137, `110-CONTROL-SUITE-PLAN.md` §6): the gate on the `sar`
+ * stage's input — held until the desk's case file shows alert-opened, alert-decided. It
+ * reads the desk's state, never the case's truth, whoever executes the stage.
+ */
+export const SAR_WAITS_FOR_THE_FILE = stageGateCard({
+	id: 'fs-fraud/policy/sar-waits-for-the-file',
+	title: 'A SAR waits for the file',
+	stageId: 'sar',
+	requires: ['alert-opened', 'alert-decided'],
+	reason: 'No report is filed until the file shows the alert opened and decided.'
+});
 
 /**
  * **The fraud workflow** (WP85, `76-FRAUD-AND-ADVICE-WORKFLOWS.md` §3;
@@ -333,6 +346,8 @@ export const FRAUD_STAGES: StageSpec[] = [
 		output: SAR_OUTPUT,
 		executor: { kind: 'human', prompt: strings.briefs.sar, options: [...SAR_OPTIONS] },
 		irreversible: true,
+		// WP137: held at its input until the desk's file shows the steps before it done.
+		guards: { policyCards: [SAR_WAITS_FOR_THE_FILE.id] },
 		read: (state) => (sarFiled(state) ? { decision: 'file' } : undefined),
 		suggest: (_input, state) => {
 			const decided = decisionOnTheDesk(state);

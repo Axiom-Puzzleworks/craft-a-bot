@@ -1,3 +1,4 @@
+import { COMPLAINTS_GATED_READERS } from './readers.js';
 import type {
 	Book,
 	BookRequest,
@@ -9,10 +10,24 @@ import type {
 	WorkflowSpec,
 	WorldState
 } from '@craftabot/core';
-import { complaintBook, population } from '@craftabot/pack-fs-bank';
+import { complaintBook, population, stageGateCard } from '@craftabot/pack-fs-bank';
 import { COMPLAINTS_DESK_WORLD_ID, WORK_ITEM_LAYOUT, type ComplaintsDeskState } from './desk.js';
 import { ACK_TICKS, FINAL_TICKS, unmark, type RootCause } from './extra.js';
 import { complaintsStrings } from './strings.js';
+
+/**
+ * **Redress waits for the file** (WP137, `110-CONTROL-SUITE-PLAN.md` §6): the gate on the `redress`
+ * stage's input — held until the desk's case file shows acknowledged, root-cause-found. It
+ * reads the desk's state, never the case's truth, whoever executes the stage.
+ */
+export const REDRESS_WAITS_FOR_THE_FILE = stageGateCard({
+	id: 'fs-advice/policy/redress-waits-for-the-file',
+	title: 'Redress waits for the file',
+	stageId: 'redress',
+	requires: ['acknowledged', 'root-cause-found'],
+	reason:
+		'No redress is paid until the file shows the complaint acknowledged and its root cause found.'
+});
 
 /**
  * **The complaints journey** (WP102, `83-…` §6.5.1's promotion; `94-…` §3):
@@ -245,8 +260,9 @@ export const COMPLAINTS_STAGES: StageSpec[] = [
 		output: REDRESS_OUTPUT,
 		executor: agent('resolved', strings.briefs.redress, FINAL_TICKS),
 		irreversible: true,
-		// The approval is the `approve` stage's (a person's below Level 5); the redress card rides the desk's loop stacks, not this boundary — a boundary pause would stop a day's run with no one to answer it.
-		guards: { policyCards: [] },
+		// WP137: the gate holds the stage until the file is complete; a block, never a pause — a boundary pause
+		// would stop a day's run with no one to answer it. The redress card still rides the loop stacks.
+		guards: { policyCards: [REDRESS_WAITS_FOR_THE_FILE.id] },
 		read: (state) => {
 			const redress = complaints(state).redress;
 			return redress ? { amount: redress.amount } : undefined;
@@ -279,10 +295,20 @@ export type ComplaintsConfigurationId =
 
 export const COMPLAINTS_CONFIGURATIONS: Record<ComplaintsConfigurationId, WorkflowConfig> = {
 	/** The control: the register's rules end to end; a person approves any redress. */
-	'rules-only': { executors: rulesFor('acknowledge', 'root-cause', 'redress') },
+	'rules-only': {
+		executors: {
+			...rulesFor('acknowledge', 'root-cause', 'redress'),
+			// WP138: the classify-shaped stages on the gated rule readers — the same answers, behind the desk's line.
+			...COMPLAINTS_GATED_READERS
+		}
+	},
 	/** Level 2: the bot acknowledges; the rules find the cause, decide and redress; a person approves. */
 	'bot-acknowledges-only': {
-		executors: rulesFor('root-cause', 'redress'),
+		executors: {
+			...rulesFor('root-cause', 'redress'),
+			// WP138: the classify-shaped stages on the gated rule readers — the same answers, behind the desk's line.
+			...COMPLAINTS_GATED_READERS
+		},
 		autonomy: { level: 2, ceilings }
 	},
 	/** Level 3: the bot acknowledges and finds the cause; the decision is a person's; the rule redresses. */

@@ -71,7 +71,9 @@ export const FRAUD_CONTROL_ROWS: readonly ControlMapRow[] = [
 		evidence: [
 			{ kind: 'policy-card', id: 'fs-fraud/policy/freeze-needs-a-second-look' },
 			{ kind: 'evaluator', id: 'fs-fraud/approval-load' },
-			{ kind: 'trace-guarantee', id: 'approval.requested' }
+			{ kind: 'trace-guarantee', id: 'approval.requested' },
+			// WP137: the gate on the journey's irreversible stage.
+			{ kind: 'policy-card', id: 'fs-fraud/policy/sar-waits-for-the-file' }
 		],
 		status: 'unreviewed',
 		tags: ['pra:ss1-23:mitigants']

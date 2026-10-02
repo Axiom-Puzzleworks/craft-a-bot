@@ -112,7 +112,10 @@
 
 	const workflow = $derived(workflowId ? registry.getWorkflow(workflowId) : undefined);
 	const layout = $derived<JourneyLayout | undefined>(
-		workflow ? journeyLayout(workflow, undefined, undefined, { registry }) : undefined
+		// WP137 (W-3): every stage's boundaries, guarded or not, so a guard can be fitted at any of them.
+		workflow
+			? journeyLayout(workflow, undefined, undefined, { registry, everyBoundary: true })
+			: undefined
 	);
 	/** The loop alone (§3): three points for a Playroom bot. */
 	const loopPoints: StudioPoint[] = LOOP_POINTS.map((kind) => ({ kind }));
