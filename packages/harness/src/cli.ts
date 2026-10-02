@@ -726,7 +726,7 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 				}
 				const out = stringFlag(args, 'out') ?? './campaign-out';
 				if (verb === 'analyse') {
-					const folded = await experimentAnalyse({ file, out });
+					const folded = await experimentAnalyse({ file, out, config: await configFrom(args) });
 					io.stdout(
 						[
 							`experiment ${folded.result.experimentId} — ${folded.result.verdict} over ${folded.reportFiles.length} report(s)`,
@@ -1307,7 +1307,7 @@ ${renderEvaluations(report)}`);
 				const format = stringFlag(args, 'format') ?? 'json';
 				if ((verb !== 'list' && verb !== 'export') || (format !== 'json' && format !== 'markdown'))
 					throw new Error(
-						'controls needs list | export [--format json|markdown] [--out <file>] [--store <dir>] [--experiments <dir>]'
+						'controls needs list | export [--format json|markdown] [--out <file>] [--store <dir>] [--experiments <dir>] [--evidence <dir>]'
 					);
 				const config = await configFrom(args);
 				const store = stringFlag(args, 'store');
@@ -1317,6 +1317,7 @@ ${renderEvaluations(report)}`);
 					...(config.content ? { content: config.content } : {}),
 					...(store ? { storage: await createFileStorage(store) } : {}),
 					experimentsDir: stringFlag(args, 'experiments') ?? 'experiments',
+					evidenceDir: stringFlag(args, 'evidence') ?? 'docs/evidence',
 					generatedAt: new Date().toISOString()
 				});
 				if (verb === 'list') {

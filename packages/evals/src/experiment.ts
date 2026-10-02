@@ -55,11 +55,31 @@ export const experimentFactorSchema = z
 		axis: experimentAxisSchema,
 		levels: z.array(z.string().min(1)).min(2),
 		/** The knob's name, for a `knob` axis. */
-		knob: z.string().min(1).optional()
+		knob: z.string().min(1).optional(),
+		/**
+		 * The controls a level tests (WP150, `110-CONTROL-SUITE-PLAN.md` §10):
+		 * joined to that level's effects only, so a design that runs several
+		 * controls against one baseline credits each with its own effect.
+		 */
+		controls: z.record(z.string(), z.array(z.string().min(1))).optional(),
+		/**
+		 * The metric each level is judged on first (WP150), pre-registered: its
+		 * effects lead the level's, so the register quotes the metric the
+		 * control was built to move rather than the design's first.
+		 */
+		primary: z.record(z.string(), z.string().min(1)).optional()
 	})
 	.refine((factor) => factor.axis !== 'knob' || factor.knob !== undefined, {
 		message: 'a knob factor names its knob'
-	});
+	})
+	.refine(
+		(factor) => Object.keys(factor.controls ?? {}).every((level) => factor.levels.includes(level)),
+		{ message: 'a factor’s controls name its own levels' }
+	)
+	.refine(
+		(factor) => Object.keys(factor.primary ?? {}).every((level) => factor.levels.includes(level)),
+		{ message: 'a factor’s primary metrics name its own levels' }
+	);
 export type ExperimentFactor = z.infer<typeof experimentFactorSchema>;
 
 const direction = z.enum(['lower-is-better', 'higher-is-better']);
@@ -74,6 +94,12 @@ export const experimentMetricSchema = z.discriminatedUnion('kind', [
 		kind: z.literal('evaluator-pass-rate'),
 		...metricBase,
 		evaluatorId: z.string().min(1)
+	}),
+	/** How often a campaign assertion card held (WP150): the template's `assertionCards`, read per cell. */
+	z.object({
+		kind: z.literal('assertion-pass-rate'),
+		...metricBase,
+		cardId: z.string().min(1)
 	}),
 	z.object({
 		kind: z.literal('label-rate'),
@@ -140,6 +166,15 @@ export const experimentSchema = z
 				});
 			}
 		}
+		const metricIds = new Set(experiment.design.metrics.map((metric) => metric.id));
+		for (const [index, factor] of experiment.design.factors.entries())
+			for (const [level, metricId] of Object.entries(factor.primary ?? {}))
+				if (!metricIds.has(metricId))
+					context.addIssue({
+						code: 'custom',
+						path: ['design', 'factors', index, 'primary', level],
+						message: `'${metricId}' is not one of the design's metrics`
+					});
 		const axes = experiment.design.factors.map((factor) => factor.axis);
 		if (new Set(axes).size !== axes.length) {
 			context.addIssue({
@@ -288,6 +323,8 @@ function binaryOf(metric: ExperimentMetric, cell: CampaignCell): boolean | undef
 			const verdict = cell.evaluations[metric.evaluatorId];
 			return verdict === undefined || verdict === 'inconclusive' ? undefined : verdict === 'pass';
 		}
+		case 'assertion-pass-rate':
+			return cell.assertions[metric.cardId];
 		case 'label-rate': {
 			const label = cell.labels[metric.evaluatorId];
 			return label === undefined ? undefined : label === metric.label;
@@ -534,6 +571,7 @@ function differenceOf(
 	switch (metric.kind) {
 		case 'outcome-rate':
 		case 'evaluator-pass-rate':
+		case 'assertion-pass-rate':
 		case 'label-rate':
 			return rateDifference(metric, baseline, treatment, confidence);
 		case 'case-metric':
@@ -606,6 +644,7 @@ export function isUntestable(
 	const rate =
 		metric.kind === 'outcome-rate' ||
 		metric.kind === 'evaluator-pass-rate' ||
+		metric.kind === 'assertion-pass-rate' ||
 		metric.kind === 'label-rate';
 	if (rate) return baseline.value === 0 || baseline.value === 1;
 	const flat = (side: EffectRecord['baseline']) => side.interval[0] === side.interval[1];
@@ -697,7 +736,15 @@ export function analyseExperiment(
 						notes.push(`${campaignIdFor(experiment.id, combination)} has no report`);
 					continue;
 				}
-				for (const metric of design.metrics) {
+				const primary = factor.primary?.[level];
+				const metrics =
+					primary === undefined
+						? design.metrics
+						: [
+								...design.metrics.filter((metric) => metric.id === primary),
+								...design.metrics.filter((metric) => metric.id !== primary)
+							];
+				for (const metric of metrics) {
 					const difference = differenceOf(
 						metric,
 						baselineReport.cells,
@@ -735,7 +782,11 @@ export function analyseExperiment(
 						experimentId: experiment.id,
 						metricId: metric.id,
 						controlIds: [
-							...new Set([...experiment.controls, ...stackControlsFor(experiment, options.stacks)])
+							...new Set([
+								...experiment.controls,
+								...stackControlsFor(experiment, options.stacks),
+								...(factor.controls?.[level] ?? [])
+							])
 						],
 						factor: { axis: factor.axis, baseline: baselineLevel, treatment: level },
 						baseline: difference.baseline,
@@ -839,7 +890,12 @@ function stackControlsFor(experiment: Experiment, stacks: readonly Stack[] | und
 	const levels = experiment.design.factors
 		.filter((factor) => factor.axis === 'guard')
 		.flatMap((factor) => factor.levels);
-	return stacks
-		.filter((stack) => levels.includes(stack.id))
-		.flatMap((stack) => stack.controls ?? []);
+	// A level names a stack by its id, or (WP150) is a template guard whose `stack` names one.
+	const named = new Set([
+		...levels,
+		...experiment.design.template.guards.flatMap((guard) =>
+			levels.includes(guard.id) && guard.stack !== undefined ? [guard.stack] : []
+		)
+	]);
+	return stacks.filter((stack) => named.has(stack.id)).flatMap((stack) => stack.controls ?? []);
 }

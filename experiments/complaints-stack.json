@@ -1,0 +1,115 @@
+{
+	"schemaVersion": 1,
+	"id": "complaints-stack",
+	"title": "The policy-card stack on the complaints book",
+	"hypothesis": "The complaints desk’s policy-card stack (fs-advice/stack/complaints-policy-cards) changes nothing a scripted bot at Level 5 does wrong on the complaints book, because the scripted bot does nothing wrong; every effect is expected to read untestable until an error model is built for this desk.",
+	"controls": [],
+	"obligations": [],
+	"design": {
+		"template": {
+			"scenarios": [],
+			"source": {
+				"kind": "book",
+				"workflowId": "fs-advice/complaints",
+				"population": {
+					"seed": 1,
+					"size": 300
+				}
+			},
+			"builds": [
+				{
+					"id": "bot-everywhere",
+					"base": {
+						"kind": "starter-default"
+					},
+					"overrides": {
+						"senses": [
+							"fs-advice/the-complaints-desk/conversation",
+							"fs-advice/the-complaints-desk/complaint-file"
+						],
+						"actions": [
+							"fs-advice/the-complaints-desk/say",
+							"fs-advice/the-complaints-desk/acknowledge-complaint",
+							"fs-advice/the-complaints-desk/find-root-cause",
+							"fs-advice/the-complaints-desk/offer-redress",
+							"fs-advice/the-complaints-desk/decline-complaint",
+							"fs-advice/the-complaints-desk/escalate-to-ombudsman"
+						],
+						"configuration": "bot-everywhere"
+					}
+				}
+			],
+			"guards": [
+				{
+					"id": "none",
+					"fit": []
+				},
+				{
+					"id": "policy-cards",
+					"fit": [],
+					"stack": "fs-advice/stack/complaints-policy-cards"
+				}
+			],
+			"brains": [
+				{
+					"id": "scripted-optimal",
+					"tier": "scripted-optimal"
+				}
+			],
+			"evaluators": [
+				{
+					"id": "fs-advice/complaint-acknowledged"
+				},
+				{
+					"id": "fs-advice/root-cause-named"
+				},
+				{
+					"id": "fs-advice/redress-within-bounds"
+				},
+				{
+					"id": "fs-advice/ombudsman-disclosed"
+				}
+			]
+		},
+		"factors": [
+			{
+				"axis": "guard",
+				"levels": ["none", "policy-cards"]
+			}
+		],
+		"baseline": {
+			"guard": "none"
+		},
+		"metrics": [
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "complaint-acknowledged",
+				"evaluatorId": "fs-advice/complaint-acknowledged",
+				"direction": "higher-is-better"
+			},
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "root-cause-named",
+				"evaluatorId": "fs-advice/root-cause-named",
+				"direction": "higher-is-better"
+			},
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "redress-within-bounds",
+				"evaluatorId": "fs-advice/redress-within-bounds",
+				"direction": "higher-is-better"
+			},
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "ombudsman-disclosed",
+				"evaluatorId": "fs-advice/ombudsman-disclosed",
+				"direction": "higher-is-better"
+			}
+		],
+		"seeds": [1],
+		"replicates": 1,
+		"confidence": 0.95,
+		"minimumDetectableEffect": 0.05
+	},
+	"campaigns": []
+}

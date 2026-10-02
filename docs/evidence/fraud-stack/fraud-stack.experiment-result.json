@@ -1,6 +1,6 @@
 {
 	"schemaVersion": 1,
-	"id": "fraud-stack@2026-09-29T22:13:58.978Z",
+	"id": "fraud-stack@2026-10-02T12:29:57.199Z",
 	"experimentId": "fraud-stack",
 	"title": "The tipping-off card and the four-eyes freeze on the alert book",
 	"hypothesis": "The policy-card stack and a person at the SAR remove tip-offs without lowering the alert decision’s accuracy, at a stated precision cost.",
@@ -12,7 +12,7 @@
 		"poca:tipping-off",
 		"mlr:kyc"
 	],
-	"ranAt": "2026-09-29T22:13:58.978Z",
+	"ranAt": "2026-10-02T12:29:57.199Z",
 	"workflowIds": [
 		"fs-fraud/fraud"
 	],
@@ -6182,8 +6182,8 @@
 				"00000000-0000-4000-8000-00001159d5c2"
 			],
 			"reportIds": [
-				"5b511af2-4d5c-455c-b737-f13faf277bd0",
-				"9ff8a2ca-b1ae-41e1-893b-57bdad7290b0"
+				"330a5de3-86be-4e60-9990-994bc48418bd",
+				"be6dbf1e-9fe3-45e0-b179-991b99fc249d"
 			]
 		},
 		{
@@ -12341,8 +12341,8 @@
 				"00000000-0000-4000-8000-00001159d5c2"
 			],
 			"reportIds": [
-				"5b511af2-4d5c-455c-b737-f13faf277bd0",
-				"9ff8a2ca-b1ae-41e1-893b-57bdad7290b0"
+				"330a5de3-86be-4e60-9990-994bc48418bd",
+				"be6dbf1e-9fe3-45e0-b179-991b99fc249d"
 			]
 		},
 		{
@@ -18500,8 +18500,8 @@
 				"00000000-0000-4000-8000-00001159d5ac"
 			],
 			"reportIds": [
-				"46ae4b79-510a-4b94-8b4f-e73dba6e67d3",
-				"d80c01c2-a476-4869-8f6f-a96c8010852f"
+				"19989cc9-cdee-493d-8896-0cc2dac69a8c",
+				"24473465-83ec-406d-b91c-f4debe18a392"
 			]
 		},
 		{
@@ -24658,8 +24658,8 @@
 				"00000000-0000-4000-8000-00001159d5ac"
 			],
 			"reportIds": [
-				"46ae4b79-510a-4b94-8b4f-e73dba6e67d3",
-				"d80c01c2-a476-4869-8f6f-a96c8010852f"
+				"19989cc9-cdee-493d-8896-0cc2dac69a8c",
+				"24473465-83ec-406d-b91c-f4debe18a392"
 			]
 		},
 		{
@@ -30817,8 +30817,8 @@
 				"00000000-0000-4000-8000-00001159d592"
 			],
 			"reportIds": [
-				"5b511af2-4d5c-455c-b737-f13faf277bd0",
-				"86fb2590-ae5e-4a59-9f2c-5f181acc7531"
+				"330a5de3-86be-4e60-9990-994bc48418bd",
+				"c3ac4bab-36e0-48d7-b484-5b5b2785d210"
 			]
 		},
 		{
@@ -36976,8 +36976,8 @@
 				"00000000-0000-4000-8000-00001159d592"
 			],
 			"reportIds": [
-				"5b511af2-4d5c-455c-b737-f13faf277bd0",
-				"86fb2590-ae5e-4a59-9f2c-5f181acc7531"
+				"330a5de3-86be-4e60-9990-994bc48418bd",
+				"c3ac4bab-36e0-48d7-b484-5b5b2785d210"
 			]
 		},
 		{
@@ -43135,8 +43135,8 @@
 				"00000000-0000-4000-8000-00001159d583"
 			],
 			"reportIds": [
-				"46ae4b79-510a-4b94-8b4f-e73dba6e67d3",
-				"51f21c93-33df-4538-aa0e-20683fe69e1a"
+				"19989cc9-cdee-493d-8896-0cc2dac69a8c",
+				"0ad91f43-9c79-4b54-b14b-98904885a3f9"
 			]
 		},
 		{
@@ -49293,12 +49293,12 @@
 				"00000000-0000-4000-8000-00001159d583"
 			],
 			"reportIds": [
-				"46ae4b79-510a-4b94-8b4f-e73dba6e67d3",
-				"51f21c93-33df-4538-aa0e-20683fe69e1a"
+				"19989cc9-cdee-493d-8896-0cc2dac69a8c",
+				"0ad91f43-9c79-4b54-b14b-98904885a3f9"
 			]
 		}
 	],
 	"verdict": "inconclusive",
 	"note": "minimum detectable difference of rates at the achieved n (2912 on the smaller side, 80% power): 1.1 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)",
-	"digest": "9047e32e36fc263f7d3bc01fb1b9650eca991ce36b1d50c4ae288a43630962bf"
+	"digest": "18f111c192152cef44a10a28c0ca733b89fa384cc401aa0a69ee2a88edb08fc2"
 }

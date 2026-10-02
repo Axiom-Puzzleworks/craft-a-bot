@@ -624,6 +624,142 @@ exports[`assurancePackFor > folds a fixture bot with one campaign and one incide
           ],
           "title": "ASI10 — rogue agents",
         },
+        {
+          "evidence": [
+            {
+              "id": "governance/prompt-integrity",
+              "kind": "guardrail",
+              "presence": "available",
+            },
+          ],
+          "framework": "OWASP Top 10 for Agentic Applications",
+          "obligation": "A turn composed under a system prompt other than the one validated is stopped.",
+          "ref": "asi01-integrity",
+          "status": "unreviewed",
+          "tags": [
+            "ASI01",
+          ],
+          "title": "ASI01 — goal hijack: the instructions are the ones validated",
+        },
+        {
+          "evidence": [
+            {
+              "id": "governance/tool-argument-validation",
+              "kind": "guardrail",
+              "presence": "available",
+            },
+          ],
+          "framework": "OWASP Top 10 for Agentic Applications",
+          "obligation": "An action whose arguments do not fit the schema the world declares is refused before it runs.",
+          "ref": "asi02-arguments",
+          "status": "unreviewed",
+          "tags": [
+            "ASI02",
+          ],
+          "title": "ASI02 — tool misuse: arguments held to the declared schema",
+        },
+        {
+          "evidence": [
+            {
+              "id": "governance/privilege-scopes",
+              "kind": "guardrail",
+              "presence": "available",
+            },
+          ],
+          "framework": "OWASP Top 10 for Agentic Applications",
+          "obligation": "A governed call the bot was not granted is refused, or paused for a person to grant it.",
+          "ref": "asi03",
+          "status": "unreviewed",
+          "tags": [
+            "ASI03",
+          ],
+          "title": "ASI03 — identity and privilege abuse",
+        },
+        {
+          "evidence": [
+            {
+              "id": "governance/memory-provenance",
+              "kind": "guardrail",
+              "presence": "available",
+            },
+          ],
+          "framework": "OWASP Top 10 for Agentic Applications",
+          "obligation": "A think over a notebook holding a line written from untrusted content is refused.",
+          "ref": "asi06-provenance",
+          "status": "unreviewed",
+          "tags": [
+            "ASI06",
+          ],
+          "title": "ASI06 — memory poisoning: an untrusted line is not reasoned over",
+        },
+        {
+          "evidence": [
+            {
+              "id": "governance/peer-auth",
+              "kind": "guardrail",
+              "presence": "available",
+            },
+          ],
+          "framework": "OWASP Top 10 for Agentic Applications",
+          "obligation": "A message between seats that does not carry its sender’s digest is not reasoned over.",
+          "ref": "asi07",
+          "status": "unreviewed",
+          "tags": [
+            "ASI07",
+          ],
+          "title": "ASI07 — insecure inter-agent communication",
+        },
+        {
+          "evidence": [
+            {
+              "id": "safety/no-progress",
+              "kind": "guardrail",
+              "presence": "available",
+            },
+          ],
+          "framework": "OWASP Top 10 for Agentic Applications",
+          "obligation": "A run whose world has not moved for a stated number of turns is stopped.",
+          "ref": "asi10-no-progress",
+          "status": "unreviewed",
+          "tags": [
+            "ASI10",
+          ],
+          "title": "ASI10 — rogue agents: a run that changes nothing is stopped",
+        },
+        {
+          "evidence": [
+            {
+              "id": "governance/cost-cap",
+              "kind": "guardrail",
+              "presence": "available",
+            },
+          ],
+          "framework": "OWASP Top 10 for Agentic Applications",
+          "obligation": "A run is stopped once its tokens, at a stated list price, have spent its cap.",
+          "ref": "asi10-cost",
+          "status": "unreviewed",
+          "tags": [
+            "ASI10",
+          ],
+          "title": "ASI10 — rogue agents: spend bounded in money",
+        },
+        {
+          "evidence": [
+            {
+              "id": "governance/secret-scan",
+              "kind": "guardrail",
+              "presence": "available",
+            },
+          ],
+          "framework": "EU AI Act",
+          "obligation": "A call whose arguments carry the shape of a key, token or private key is refused.",
+          "ref": "art-15-secrets",
+          "status": "unreviewed",
+          "tags": [
+            "pra:ss1-23:mitigants",
+          ],
+          "title": "Art. 15 — cybersecurity: no credential leaves in what the bot sends",
+        },
       ],
       "title": "Generic frameworks",
     },
@@ -710,7 +846,7 @@ exports[`assurancePackFor > folds a fixture bot with one campaign and one incide
       },
     ],
   },
-  "digest": "233f7b77ed6718b98f597f9783bec26c86cf6d55561aaf3f084ca220de3f0004",
+  "digest": "a1a1289e2f6ab533d4eb10e7a1c75d48179710e9d733d75d94a1abdc2ee55f1e",
   "format": "craftabot-assurance-pack",
   "formatVersion": 1,
   "generatedAt": "2026-09-06T12:00:00.000Z",
@@ -1378,6 +1514,182 @@ exports[`assurancePackFor > folds a fixture bot with one campaign and one incide
         ],
         "status": "untested",
       },
+      {
+        "controlId": "governance/control-map/asi01-integrity",
+        "controlMapRow": {
+          "mapId": "governance/control-map",
+          "obligation": "A turn composed under a system prompt other than the one validated is stopped.",
+          "ref": "asi01-integrity",
+          "status": "unreviewed",
+          "title": "ASI01 — goal hijack: the instructions are the ones validated",
+        },
+        "cost": {},
+        "coverage": {
+          "contexts": [],
+          "experiments": 0,
+          "populations": [],
+          "workflows": [],
+        },
+        "effects": [],
+        "obligations": [
+          "ASI01",
+        ],
+        "status": "untested",
+      },
+      {
+        "controlId": "governance/control-map/asi02-arguments",
+        "controlMapRow": {
+          "mapId": "governance/control-map",
+          "obligation": "An action whose arguments do not fit the schema the world declares is refused before it runs.",
+          "ref": "asi02-arguments",
+          "status": "unreviewed",
+          "title": "ASI02 — tool misuse: arguments held to the declared schema",
+        },
+        "cost": {},
+        "coverage": {
+          "contexts": [],
+          "experiments": 0,
+          "populations": [],
+          "workflows": [],
+        },
+        "effects": [],
+        "obligations": [
+          "ASI02",
+        ],
+        "status": "untested",
+      },
+      {
+        "controlId": "governance/control-map/asi03",
+        "controlMapRow": {
+          "mapId": "governance/control-map",
+          "obligation": "A governed call the bot was not granted is refused, or paused for a person to grant it.",
+          "ref": "asi03",
+          "status": "unreviewed",
+          "title": "ASI03 — identity and privilege abuse",
+        },
+        "cost": {},
+        "coverage": {
+          "contexts": [],
+          "experiments": 0,
+          "populations": [],
+          "workflows": [],
+        },
+        "effects": [],
+        "obligations": [
+          "ASI03",
+        ],
+        "status": "untested",
+      },
+      {
+        "controlId": "governance/control-map/asi06-provenance",
+        "controlMapRow": {
+          "mapId": "governance/control-map",
+          "obligation": "A think over a notebook holding a line written from untrusted content is refused.",
+          "ref": "asi06-provenance",
+          "status": "unreviewed",
+          "title": "ASI06 — memory poisoning: an untrusted line is not reasoned over",
+        },
+        "cost": {},
+        "coverage": {
+          "contexts": [],
+          "experiments": 0,
+          "populations": [],
+          "workflows": [],
+        },
+        "effects": [],
+        "obligations": [
+          "ASI06",
+        ],
+        "status": "untested",
+      },
+      {
+        "controlId": "governance/control-map/asi07",
+        "controlMapRow": {
+          "mapId": "governance/control-map",
+          "obligation": "A message between seats that does not carry its sender’s digest is not reasoned over.",
+          "ref": "asi07",
+          "status": "unreviewed",
+          "title": "ASI07 — insecure inter-agent communication",
+        },
+        "cost": {},
+        "coverage": {
+          "contexts": [],
+          "experiments": 0,
+          "populations": [],
+          "workflows": [],
+        },
+        "effects": [],
+        "obligations": [
+          "ASI07",
+        ],
+        "status": "untested",
+      },
+      {
+        "controlId": "governance/control-map/asi10-no-progress",
+        "controlMapRow": {
+          "mapId": "governance/control-map",
+          "obligation": "A run whose world has not moved for a stated number of turns is stopped.",
+          "ref": "asi10-no-progress",
+          "status": "unreviewed",
+          "title": "ASI10 — rogue agents: a run that changes nothing is stopped",
+        },
+        "cost": {},
+        "coverage": {
+          "contexts": [],
+          "experiments": 0,
+          "populations": [],
+          "workflows": [],
+        },
+        "effects": [],
+        "obligations": [
+          "ASI10",
+        ],
+        "status": "untested",
+      },
+      {
+        "controlId": "governance/control-map/asi10-cost",
+        "controlMapRow": {
+          "mapId": "governance/control-map",
+          "obligation": "A run is stopped once its tokens, at a stated list price, have spent its cap.",
+          "ref": "asi10-cost",
+          "status": "unreviewed",
+          "title": "ASI10 — rogue agents: spend bounded in money",
+        },
+        "cost": {},
+        "coverage": {
+          "contexts": [],
+          "experiments": 0,
+          "populations": [],
+          "workflows": [],
+        },
+        "effects": [],
+        "obligations": [
+          "ASI10",
+        ],
+        "status": "untested",
+      },
+      {
+        "controlId": "governance/control-map/art-15-secrets",
+        "controlMapRow": {
+          "mapId": "governance/control-map",
+          "obligation": "A call whose arguments carry the shape of a key, token or private key is refused.",
+          "ref": "art-15-secrets",
+          "status": "unreviewed",
+          "title": "Art. 15 — cybersecurity: no credential leaves in what the bot sends",
+        },
+        "cost": {},
+        "coverage": {
+          "contexts": [],
+          "experiments": 0,
+          "populations": [],
+          "workflows": [],
+        },
+        "effects": [],
+        "obligations": [
+          "pra:ss1-23:mitigants",
+        ],
+        "status": "untested",
+      },
     ],
     "guardrails": [],
     "hostedScreening": undefined,
@@ -1555,8 +1867,8 @@ exports[`assurancePackFor > folds a fixture bot with one campaign and one incide
     "disputed": 0,
     "pending": 1,
     "reviewed": 0,
-    "rows": 24,
-    "unreviewed": 23,
+    "rows": 32,
+    "unreviewed": 31,
   },
   "runs": [
     {

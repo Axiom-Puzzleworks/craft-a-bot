@@ -2,7 +2,7 @@
  * **The Workshop instrument icon set** (WP73, `62-THE-TAIL.md` §4.1;
  * `63-ART-COMMISSION-BRIEF-WAVE-2.md` §5.2; sixteen since WP91): roundels in the family
  * `11-…` §I describes — a disc in a token colour, the glyph in cream — one
- * per Control Room instrument or screen (twenty-one since WP109, twenty-six since WP131). What ships today is the
+ * per Control Room instrument or screen (twenty-one since WP109, twenty-six since WP131, twenty-seven since WP150). What ships today is the
  * **placeholder** for each: geometric, drawn to the delivery contract
  * (96 × 96, `#disc` tintable through `--part-tint`, `#glyph` carrying the
  * mark, palette colours only), so the commissioned file replaces it by name
@@ -43,6 +43,8 @@ import iconCorpus from './instruments/icon-corpus.svg?raw';
 import iconBenchmark from './instruments/icon-benchmark.svg?raw';
 import iconGate from './instruments/icon-gate.svg?raw';
 import iconReading from './instruments/icon-reading.svg?raw';
+// WP150 (`110-CONTROL-SUITE-PLAN.md` §10): the Control Inventory — a ledger of rows, each with its lamp.
+import iconInventory from './instruments/icon-inventory.svg?raw';
 
 export const INSTRUMENT_IDS = [
 	'meter',
@@ -70,7 +72,8 @@ export const INSTRUMENT_IDS = [
 	'corpus',
 	'benchmark',
 	'gate',
-	'reading'
+	'reading',
+	'inventory'
 ] as const;
 
 export type InstrumentId = (typeof INSTRUMENT_IDS)[number];
@@ -102,5 +105,6 @@ export const INSTRUMENT_ICONS: Record<InstrumentId, string> = {
 	corpus: iconCorpus,
 	benchmark: iconBenchmark,
 	gate: iconGate,
-	reading: iconReading
+	reading: iconReading,
+	inventory: iconInventory
 };

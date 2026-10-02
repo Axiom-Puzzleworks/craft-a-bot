@@ -3,7 +3,9 @@ import { existsSync } from 'node:fs';
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import {
+	parseExperimentResult,
 	reviewsFromContent,
+	type ExperimentResult,
 	type ContentRecord,
 	type PackManifest,
 	type Storage
@@ -27,7 +29,9 @@ import { createRegistry } from '../config.js';
  * `/workshop/controls` renders. The controls are the installed packs'; what
  * fitted them is the shipped campaigns and the experiment files; with
  * `--store`, what fired, the register and the benchmarks come from a run
- * store, and the readings from it and the content directory.
+ * store, and the readings from it and the content directory. The register
+ * reads the committed reference results under `docs/evidence/` too (WP150),
+ * so the Effect column fills without a store.
  */
 export interface ControlsOptions {
 	packs: readonly PackManifest[];
@@ -35,6 +39,8 @@ export interface ControlsOptions {
 	storage?: Storage;
 	/** The reference experiments' directory (`experiments` by default), read when it exists. */
 	experimentsDir?: string;
+	/** The committed reference results' directory (`docs/evidence` by default), read when it exists (WP150). */
+	evidenceDir?: string;
 	generatedAt: string;
 }
 
@@ -64,7 +70,7 @@ export async function controlsFor(options: ControlsOptions): Promise<ControlInve
 			...(await storage.listContent('review')),
 			...(await storage.listContent('control-review'))
 		);
-	const [summaries, stored, results, benchmarks] = storage
+	const [summaries, stored, storedResults, benchmarks] = storage
 		? await Promise.all([
 				storage.listRunSummaries(),
 				storage.listCampaignReports(),
@@ -72,6 +78,12 @@ export async function controlsFor(options: ControlsOptions): Promise<ControlInve
 				storage.listBenchmarkReports()
 			])
 		: [[], [], [], []];
+	const results = [
+		...storedResults,
+		...(await committedResults(options.evidenceDir ?? join('docs', 'evidence'))).filter(
+			(result) => !storedResults.some((each) => each.id === result.id)
+		)
+	];
 	const campaignReports: InventoryCampaignReport[] = stored.flatMap((each) => {
 		const cells = (each.report as { cells?: unknown }).cells;
 		return Array.isArray(cells) ? [{ cells: cells as InventoryCampaignReport['cells'] }] : [];
@@ -90,6 +102,20 @@ export async function controlsFor(options: ControlsOptions): Promise<ControlInve
 		reviewerModels: sources.reviewerModels ?? []
 	});
 	return controlInventoryExport(rows, options.generatedAt);
+}
+
+/** The committed reference results: `<dir>/<experiment>/<experiment>.experiment-result.json`, each held to its digest. */
+export async function committedResults(dir: string): Promise<ExperimentResult[]> {
+	if (!existsSync(dir)) return [];
+	const results: ExperimentResult[] = [];
+	for (const entry of (await readdir(dir, { withFileTypes: true })).filter((each) =>
+		each.isDirectory()
+	)) {
+		const file = join(dir, entry.name, `${entry.name}.experiment-result.json`);
+		if (existsSync(file))
+			results.push(parseExperimentResult(JSON.parse(await readFile(file, 'utf8')) as unknown));
+	}
+	return results.sort((a, b) => a.experimentId.localeCompare(b.experimentId));
 }
 
 export async function writeControls(

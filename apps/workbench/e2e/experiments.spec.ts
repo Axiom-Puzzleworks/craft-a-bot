@@ -74,7 +74,10 @@ test('a design over the lending book runs as two campaigns and folds into a resu
 	await expect(page.getByTestId('assurance-register-note')).toContainText('1 stored result');
 	const table = page.getByTestId('assurance-register-table');
 	await expect(table).toContainText('Affordability and creditworthiness');
-	const tested = table.locator('tbody tr', { hasText: /evidenced|inconclusive/ }).first();
+	// WP150: a control whose primary metric sat at a bound reads untestable, a verdict as the other two are.
+	const tested = table
+		.locator('tbody tr', { hasText: /evidenced|inconclusive|untestable/ })
+		.first();
 	await expect(tested).toBeVisible();
 	await tested.getByRole('button').click();
 	await expect(page).toHaveURL(/\/workshop\/experiments\?result=/);

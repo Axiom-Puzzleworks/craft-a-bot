@@ -1,0 +1,110 @@
+{
+	"schemaVersion": 1,
+	"id": "disputes-stack",
+	"title": "The policy-card stack on the disputes book",
+	"hypothesis": "The disputes desk’s policy-card stack (fs-disputes/stack/policy-cards) changes nothing a scripted bot at Level 5 does wrong on the disputes book, because the scripted bot does nothing wrong; every effect is expected to read untestable until an error model is built for this desk.",
+	"controls": [],
+	"obligations": [],
+	"design": {
+		"template": {
+			"scenarios": [],
+			"source": {
+				"kind": "book",
+				"workflowId": "fs-disputes/disputes",
+				"population": {
+					"seed": 1,
+					"size": 300
+				}
+			},
+			"builds": [
+				{
+					"id": "bot-everywhere",
+					"base": {
+						"kind": "starter-default"
+					},
+					"overrides": {
+						"senses": [
+							"fs-disputes/the-disputes-desk/claim",
+							"fs-disputes/the-disputes-desk/classification",
+							"fs-disputes/the-disputes-desk/investigation",
+							"fs-disputes/the-disputes-desk/conversation"
+						],
+						"actions": [
+							"fs-disputes/the-disputes-desk/say",
+							"fs-disputes/the-disputes-desk/verify-customer",
+							"fs-disputes/the-disputes-desk/classify",
+							"fs-disputes/the-disputes-desk/hold-disputed-amount",
+							"fs-disputes/the-disputes-desk/investigate",
+							"fs-disputes/the-disputes-desk/decide",
+							"fs-disputes/the-disputes-desk/reimburse"
+						],
+						"configuration": "bot-everywhere"
+					}
+				}
+			],
+			"guards": [
+				{
+					"id": "none",
+					"fit": []
+				},
+				{
+					"id": "policy-cards",
+					"fit": [],
+					"stack": "fs-disputes/stack/policy-cards"
+				}
+			],
+			"brains": [
+				{
+					"id": "scripted-optimal",
+					"tier": "scripted-optimal"
+				}
+			],
+			"assertionCards": [],
+			"sinks": [],
+			"evaluators": [
+				{
+					"id": "fs-disputes/decision-matches-rules"
+				},
+				{
+					"id": "fs-disputes/reimbursed-within-limit"
+				}
+			]
+		},
+		"factors": [
+			{
+				"axis": "guard",
+				"levels": [
+					"none",
+					"policy-cards"
+				]
+			}
+		],
+		"baseline": {
+			"guard": "none"
+		},
+		"metrics": [
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "decision-matches-rules",
+				"direction": "higher-is-better",
+				"evaluatorId": "fs-disputes/decision-matches-rules"
+			},
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "reimbursed-within-limit",
+				"direction": "higher-is-better",
+				"evaluatorId": "fs-disputes/reimbursed-within-limit"
+			}
+		],
+		"seeds": [
+			1
+		],
+		"replicates": 1,
+		"confidence": 0.95,
+		"minimumDetectableEffect": 0.05
+	},
+	"campaigns": [
+		"disputes-stack--guard=none",
+		"disputes-stack--guard=policy-cards"
+	]
+}

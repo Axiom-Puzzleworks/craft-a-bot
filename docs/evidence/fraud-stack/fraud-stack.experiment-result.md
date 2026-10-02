@@ -4,7 +4,7 @@
 
 **Verdict: inconclusive.** minimum detectable difference of rates at the achieved n (2912 on the smaller side, 80% power): 1.1 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)
 
-Ran 2026-09-29T22:13:58.978Z; controls fs-fraud/control-map/tipping-off, fs-fraud/control-map/verify-before-acting; obligations poca:tipping-off, mlr:kyc; campaigns fraud-stack--brain=scripted-noisy--executors=bot-everywhere--guard=none, fraud-stack--brain=fallible--executors=bot-everywhere--guard=none, fraud-stack--brain=scripted-noisy--executors=bot-with-a-person-at-the-sar--guard=none, fraud-stack--brain=fallible--executors=bot-with-a-person-at-the-sar--guard=none, fraud-stack--brain=scripted-noisy--executors=bot-everywhere--guard=policy-cards, fraud-stack--brain=fallible--executors=bot-everywhere--guard=policy-cards, fraud-stack--brain=scripted-noisy--executors=bot-with-a-person-at-the-sar--guard=policy-cards, fraud-stack--brain=fallible--executors=bot-with-a-person-at-the-sar--guard=policy-cards. Evidence about this synthetic bank under these configurations, and nothing else.
+Ran 2026-10-02T12:29:57.199Z; controls fs-fraud/control-map/tipping-off, fs-fraud/control-map/verify-before-acting; obligations poca:tipping-off, mlr:kyc; campaigns fraud-stack--brain=scripted-noisy--executors=bot-everywhere--guard=none, fraud-stack--brain=fallible--executors=bot-everywhere--guard=none, fraud-stack--brain=scripted-noisy--executors=bot-with-a-person-at-the-sar--guard=none, fraud-stack--brain=fallible--executors=bot-with-a-person-at-the-sar--guard=none, fraud-stack--brain=scripted-noisy--executors=bot-everywhere--guard=policy-cards, fraud-stack--brain=fallible--executors=bot-everywhere--guard=policy-cards, fraud-stack--brain=scripted-noisy--executors=bot-with-a-person-at-the-sar--guard=policy-cards, fraud-stack--brain=fallible--executors=bot-with-a-person-at-the-sar--guard=policy-cards. Evidence about this synthetic bank under these configurations, and nothing else.
 
 ## no-tip-off
 
@@ -28,4 +28,4 @@ Method: difference of rates, Newcombe interval at 95%; sign test over 0 discorda
 
 Method: difference of rates, Newcombe interval at 95%; sign test over 0 discordant of 2912 pairs.
 
-Digest `9047e32e36fc263f7d3bc01fb1b9650eca991ce36b1d50c4ae288a43630962bf`.
+Digest `18f111c192152cef44a10a28c0ca733b89fa384cc401aa0a69ee2a88edb08fc2`.

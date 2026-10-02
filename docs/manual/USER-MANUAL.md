@@ -174,6 +174,8 @@ Conventions used throughout:
 
 **Part J — The control suite**
 66. The Control Inventory
+67. What Phases AK–AM added
+68. The controls and ceilings designs
 
 **Appendices**
 A. Screen index
@@ -2298,10 +2300,65 @@ The catalogue is the page of *techniques*; this is the page of *instances*. Each
 **What the inventory says about the bank today.**
 - The servicing, disputes and complaints journeys read on gated readers wherever those stages were rules (since WP138): the desks' line is 0.8, and below it the bank's rule decides. The shipped readers are rules, sure every time, so the gate fires only when a less certain reader is swapped in at the same id.
 - Every shipped journey holds its irreversible stage — disburse, open, reimburse, execute, redress, file, agree, close — at its input until the desk's case file shows the steps before it done (since WP137). The gate on the collections journey found the rules-only path agreeing a plan for a customer it had never verified; that path now verifies at intake.
-- The decision-right ceilings are measured as a breach rate; a configuration may enforce them (`autonomy.enforce`, since WP139), holding a decision above its ceiling for a person where it is recorded. The reference configurations measure.
-- Every shipped service is unmeasured.
+- The decision-right ceilings are measured as a breach rate; a configuration may enforce them (`autonomy.enforce`, since WP139), holding a decision above its ceiling for a person where it is recorded. The five reference configurations measure; a sixth, `bot-everywhere-ceilings-enforced`, enforces (§68).
+- Two guards are measured on the benchmark: Llama Guard 3 on the local Ollama, and the policy-conditioned reader over the bank's rulebook. The hosted services are unmeasured until their keys exist.
+- The Effect column reads the committed reference results under `docs/evidence/` as well as a store (§68), so it is filled on a fresh install.
 
-The second edition of the catalogue (68 entries) says the same in its notes. Phases AK–AM of the plan change these.
+The second edition of the catalogue has 69 entries: 61 shipped, 1 connectable, 1 blueprint, 6 not applicable, none bespoke.
+
+## 67. What Phases AK–AM added
+
+Each is a control the inventory lists with its facets, a catalogue entry that names it, and, where it bears on an obligation, a control-map row on the reading desk.
+
+**Wired (Phase AK).**
+- **The gate on the irreversible stage.** Every journey holds its disburse, open, reimburse, execute, redress, file, agree or close stage at its input until the case file shows the steps before it.
+- **Readers behind a line.** The desks' readers replace rules only behind a confidence gate at 0.8.
+- **Ceilings as a mode.** `autonomy.enforce` holds a decision above its ceiling for a person.
+- **Measured guards.** Llama Guard 3 has a benchmark cassette recorded on the local Ollama.
+
+**The agent-security components (Phase AL),** each fitted in the Studio like any other:
+- **No progress** stops a run whose world has not moved for a stated number of turns.
+- **Memory provenance** refuses a think over a notebook holding a line written from untrusted content.
+- **Privilege scopes** refuse a governed call the bot was not granted, or pause it for a person to grant (`elevation.requested`, `elevation.resolved`).
+- **Peer authentication** checks every Radio message between seats: the sender is a seat in the room and the digest matches what it says.
+- **Pack pins** refuse a pack whose content has changed since it was locked (`craftabot packs lock`).
+- **The policy-conditioned reader** asks a local model the bank's rulebook as a question set.
+- **The Cedar decision point and Bedrock's automated reasoning** are harness-only connections, each with a smoke checkpoint that waits on keys.
+
+**The bank's missing controls (Phase AM).**
+- **Contestability.** A contested decision on the lending, onboarding or disputes desk is handed to the complaints journey as an appeal.
+- **Disclosure.** What a customer must be told is said in the bank's words and digested on the trace (`disclosure.given`).
+- **Vulnerability at the door.** Every intake stage asks whether what arrived discloses a support need, and annotates the stage when it does.
+- **Deadlines.** A stage that runs past its deadline is marked overdue (`stage.overdue`); the `timeliness` gate counts journeys on time.
+- **Change control.** A kit file carries its build digest; a run started from a changed build says so (`run.started.changed`); a knob change is a reading.
+- **Failover, a cost cap and argument validation.** A provider fails over to the next in a list; a run stops at a cost cap in money at a stated list price; an action whose arguments do not fit the declared schema is refused.
+- **Override reasons.** A person who overrules a recommendation is asked why; the `override-reason` gate counts how often they said.
+- **Adaptive approval, shadow mode, prompt integrity and a secret scan.** Approval eases after a run of approvals; a campaign guard can run in shadow, recording what it would have done; a turn under an unvalidated system prompt stops; a call carrying a credential's shape is refused.
+
+## 68. The controls and ceilings designs
+
+Every reference design was re-run at full size on 2026-10-02, and seven were added. `docs/evidence/README.md` says what each found; `timings.md` has the counts and the wall times.
+
+**The `controls` design** runs each agent-security component against no guard. It uses the four injection scenarios, under the scripted-optimal bot and the scripted adversary. Each level names the control-map row it tests and the metric it is judged on first, both written in the design before the run.
+- **Privilege scopes:** the adversary's storm alert went unsent in 100% of runs, against 75% without the scope.
+- **The cost cap:** stopped 75% of the adversary's runs, and none of the optimal bot's.
+- **The other five read *untestable*,** and that is the finding. No shipped scenario carries the attack each was built for, so there is nothing for it to catch:
+  - the party-line spoof arrives on Hearing as words from no one, not as a Radio message between seats;
+  - no scripted plan writes untrusted lines to the notebook;
+  - no plan sends a credential's shape or a malformed argument;
+  - the adversary always moves.
+- **Not in the design:**
+  - prompt integrity, whose validated digest belongs to one build;
+  - vulnerability detection, which only annotates and is measured as a reader on the servicing corpora.
+
+**The `ceilings` design** enforces the ceilings at Level 5. Measured against Level 5 itself, the breach rate falls from 62.6% to 0 on 783 applications, under both brain tiers. The price is a person's touch on each held decision, read from each effect's cost. `human-oversight` carries the same configuration as its sixth level.
+
+**One stack design per desk.** `disputes-stack`, `collections-stack`, `onboarding-stack`, `servicing-stack` and `complaints-stack` each run the desk's policy-card stack against no guard on its own book, so every stack the bank ships now has a verdict. The first four read *untestable*: the scripted bot errs nowhere their cards could catch. On the complaints desk the scripted bot names the register's root cause in only 69% of complaints, and the stack does not change that, because no card checks a root cause.
+
+**What a row's Effect says.**
+- A row is *untestable* when every effect on its primary metric sat at a bound: the metric the control was built to move could not move. A later metric that moved by chance no longer turns that into *inconclusive*.
+- A card or component that no control row cites, but that a stack carries, shows the stack's verdict, marked *via* that stack. It was measured as part of the stack, not alone.
+- The Gate's five presets are the only stacks with no verdict.
 
 > **Figure 31** — The Control Inventory over the knobs: the readouts, the matrix of kind against facet, and the twelve knobs the worlds declare. *(Appendix D, `ws-controls.png`.)*
 

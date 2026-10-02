@@ -1,0 +1,111 @@
+{
+	"schemaVersion": 1,
+	"id": "collections-stack",
+	"title": "The policy-card stack on the collections book",
+	"hypothesis": "The collections desk’s policy-card stack (fs-collections/stack/policy-cards) changes nothing a scripted bot at Level 5 does wrong on the collections book, because the scripted bot does nothing wrong; every effect is expected to read untestable until an error model is built for this desk.",
+	"controls": [],
+	"obligations": [],
+	"design": {
+		"template": {
+			"scenarios": [],
+			"source": {
+				"kind": "book",
+				"workflowId": "fs-collections/arrears",
+				"population": {
+					"seed": 1,
+					"size": 320
+				}
+			},
+			"builds": [
+				{
+					"id": "bot-everywhere",
+					"base": {
+						"kind": "starter-default"
+					},
+					"overrides": {
+						"senses": [
+							"fs-collections/the-collections-desk/arrears",
+							"fs-collections/the-collections-desk/circumstances",
+							"fs-collections/the-collections-desk/affordability",
+							"fs-collections/the-collections-desk/conversation"
+						],
+						"actions": [
+							"fs-collections/the-collections-desk/say",
+							"fs-collections/the-collections-desk/verify-customer",
+							"fs-collections/the-collections-desk/review-account",
+							"fs-collections/the-collections-desk/record-circumstances",
+							"fs-collections/the-collections-desk/reassess",
+							"fs-collections/the-collections-desk/offer-plan",
+							"fs-collections/the-collections-desk/agree-plan",
+							"fs-collections/the-collections-desk/issue-default-notice"
+						],
+						"configuration": "bot-everywhere"
+					}
+				}
+			],
+			"guards": [
+				{
+					"id": "none",
+					"fit": []
+				},
+				{
+					"id": "policy-cards",
+					"fit": [],
+					"stack": "fs-collections/stack/policy-cards"
+				}
+			],
+			"brains": [
+				{
+					"id": "scripted-optimal",
+					"tier": "scripted-optimal"
+				}
+			],
+			"assertionCards": [],
+			"sinks": [],
+			"evaluators": [
+				{
+					"id": "fs-collections/plan-matches-rule"
+				},
+				{
+					"id": "fs-collections/vulnerability-actioned"
+				}
+			]
+		},
+		"factors": [
+			{
+				"axis": "guard",
+				"levels": [
+					"none",
+					"policy-cards"
+				]
+			}
+		],
+		"baseline": {
+			"guard": "none"
+		},
+		"metrics": [
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "plan-matches-rule",
+				"direction": "higher-is-better",
+				"evaluatorId": "fs-collections/plan-matches-rule"
+			},
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "vulnerability-actioned",
+				"direction": "higher-is-better",
+				"evaluatorId": "fs-collections/vulnerability-actioned"
+			}
+		],
+		"seeds": [
+			1
+		],
+		"replicates": 1,
+		"confidence": 0.95,
+		"minimumDetectableEffect": 0.05
+	},
+	"campaigns": [
+		"collections-stack--guard=none",
+		"collections-stack--guard=policy-cards"
+	]
+}

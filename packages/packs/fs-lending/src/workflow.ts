@@ -78,6 +78,14 @@ export const LENDING_CONFIGURATION_IDS = [
 ] as const;
 export type LendingConfigurationId = (typeof LENDING_CONFIGURATION_IDS)[number];
 
+/**
+ * Level 5 with its ceilings enforced (WP150, `110-CONTROL-SUITE-PLAN.md`
+ * §10; WP139's `autonomy.enforce`): beside the reference five, not one of
+ * them — the book campaign and its committed baseline keep the five — and
+ * named by the human-oversight design as its sixth executors level.
+ */
+export const LENDING_ENFORCED_CONFIGURATION_ID = 'bot-everywhere-ceilings-enforced';
+
 // ── Schemas at the stage boundaries ────────────────────────────────────
 
 const OUTCOME_ENUM = { enum: [...OUTCOMES] };
@@ -499,7 +507,10 @@ const rulesFor = (...ids: string[]): Record<string, Executor> =>
 		])
 	);
 
-export const LENDING_CONFIGURATIONS: Record<LendingConfigurationId, WorkflowConfig> = {
+export const LENDING_CONFIGURATIONS: Record<
+	LendingConfigurationId | typeof LENDING_ENFORCED_CONFIGURATION_ID,
+	WorkflowConfig
+> = {
 	/** The control: every stage a rule or a line, the bot nowhere; a person confirms a payout, as the bank does today. */
 	'rules-only': {
 		executors: rulesFor(
@@ -538,6 +549,11 @@ export const LENDING_CONFIGURATIONS: Record<LendingConfigurationId, WorkflowConf
 	'bot-everywhere': {
 		knobs: { fourEyes: 'none' },
 		autonomy: { level: 5, ceilings }
+	},
+	/** Level 5 as above, its ceilings enforced: a decision above its ceiling waits for a person where it is recorded (WP139). */
+	[LENDING_ENFORCED_CONFIGURATION_ID]: {
+		knobs: { fourEyes: 'none' },
+		autonomy: { level: 5, ceilings, enforce: true }
 	}
 };
 

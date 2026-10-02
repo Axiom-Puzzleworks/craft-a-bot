@@ -178,6 +178,6 @@ test('the Books panel runs a small book through every configuration and shows th
 	await expect(page.getByTestId('campaign-verdict')).toBeVisible({ timeout: 120_000 });
 	await expect(page.getByTestId('campaign-verdict')).toContainText('PASSED');
 	await expect(page.getByTestId('campaign-human-load')).toBeVisible();
-	await expect(page.getByTestId('campaign-human-load-table').locator('tbody tr')).toHaveCount(5);
+	await expect(page.getByTestId('campaign-human-load-table').locator('tbody tr')).toHaveCount(6); // the reference five and, since WP150, Level 5 with its ceilings enforced
 	await expect(page.getByTestId('human-load-bot-everywhere')).toContainText('5');
 });

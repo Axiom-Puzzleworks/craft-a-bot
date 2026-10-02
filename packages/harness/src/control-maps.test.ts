@@ -1,4 +1,5 @@
 import { GOVERNANCE_GUARDRAIL_IDS } from '@craftabot/governance/reports';
+import { ASI_THREATS } from '@craftabot/core';
 import { OBLIGATION_TAGS } from '@craftabot/pack-fs-bank';
 import { checkControlMap } from '@craftabot/pack-testkit';
 import { describe, expect, it } from 'vitest';
@@ -13,13 +14,8 @@ import { createRegistry, defaultConfig } from './config.js';
  * rows span packs the bank cannot depend on.
  */
 const THREAT_TAGS = [
-	'ASI01',
-	'ASI02',
-	'ASI05',
-	'ASI06',
-	'ASI07',
-	'ASI09',
-	'ASI10',
+	// The whole agentic top ten since WP150, whose rows cite ASI03 too.
+	...ASI_THREATS,
 	'19/#12',
 	'19/#25',
 	'19/#38',

@@ -2,7 +2,7 @@
 	"schemaVersion": 1,
 	"id": "human-oversight",
 	"title": "Human oversight by autonomy level on the loan book",
-	"hypothesis": "Moving the lending journey from Level 3 to Level 5 cuts touches per case by a stated factor and raises the ceiling-breach rate from zero; the policy-card stack at Level 4 recovers most of the outcome loss at a fraction of Level 3’s touches.",
+	"hypothesis": "Moving the lending journey from Level 3 to Level 5 cuts touches per case by a stated factor and raises the ceiling-breach rate from zero; the policy-card stack at Level 4 recovers most of the outcome loss at a fraction of Level 3’s touches. With the ceilings enforced (WP139), Level 5 reads as rules-only does on breaches and touches; the ceilings design measures it against Level 5 itself.",
 	"controls": [
 		"fs-lending/control-map/four-eyes"
 	],
@@ -104,7 +104,8 @@
 					"bot-explains-only",
 					"bot-recommends",
 					"bot-with-a-person-at-the-decision",
-					"bot-everywhere"
+					"bot-everywhere",
+					"bot-everywhere-ceilings-enforced"
 				]
 			},
 			{
@@ -174,6 +175,10 @@
 		"human-oversight--brain=scripted-noisy--executors=bot-everywhere--guard=none",
 		"human-oversight--brain=fallible--executors=bot-everywhere--guard=none",
 		"human-oversight--brain=scripted-noisy--executors=bot-everywhere--guard=policy-cards",
-		"human-oversight--brain=fallible--executors=bot-everywhere--guard=policy-cards"
+		"human-oversight--brain=fallible--executors=bot-everywhere--guard=policy-cards",
+		"human-oversight--brain=scripted-noisy--executors=bot-everywhere-ceilings-enforced--guard=none",
+		"human-oversight--brain=fallible--executors=bot-everywhere-ceilings-enforced--guard=none",
+		"human-oversight--brain=scripted-noisy--executors=bot-everywhere-ceilings-enforced--guard=policy-cards",
+		"human-oversight--brain=fallible--executors=bot-everywhere-ceilings-enforced--guard=policy-cards"
 	]
 }

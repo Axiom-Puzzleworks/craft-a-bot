@@ -152,7 +152,7 @@
 </svelte:head>
 
 <main>
-	<h1><Roundel icon="catalogue" size={28} /> Control Inventory</h1>
+	<h1><Roundel icon="inventory" size={28} /> Control Inventory</h1>
 	<p class="lede" data-testid="controls-lede">
 		Every control in this toolkit, one row each, with what can be said of it — whether the
 		<a href={resolve('/workshop/catalogue')}>Guardrail Catalogue</a> names it, where it is fitted, whether
@@ -162,7 +162,7 @@
 	</p>
 
 	<section aria-label="At a glance">
-		<Strip label="Controls" icon="catalogue">
+		<Strip label="Controls" icon="inventory">
 			<Readout label="Controls" value={summary.rows} testId="controls-count" />
 			<Readout label="Uncatalogued" value={summary.uncatalogued} testId="controls-uncatalogued" />
 			<Readout label="Unfitted" value={summary.unfitted} testId="controls-unfitted" />

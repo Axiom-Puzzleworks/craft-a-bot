@@ -195,6 +195,18 @@ describe('the register over fallible tiers (WP116, `103-FALLIBLE-ACTORS.md` §6)
 		expect(row?.headline).toMatchObject({ tier: 'scripted-noisy', untestable: true });
 	});
 
+	it('is untestable when its primary metric sat at a bound, whatever a later metric did (WP150)', () => {
+		const later = effect({
+			controlIds: [control],
+			metricId: 'later',
+			tier: 'fallible',
+			delta: 0,
+			interval: [-0.1, 0.1]
+		});
+		const [row] = controlEffectiveness([result('controls', [atCeiling, later])], maps);
+		expect(row?.status).toBe('untestable');
+	});
+
 	it('quotes the testable effect with its tier ahead of a larger-n effect at a bound', () => {
 		const [row] = controlEffectiveness([result('lending-stack', [atCeiling, underFallible])], maps);
 		expect(row?.status).toBe('evidenced');

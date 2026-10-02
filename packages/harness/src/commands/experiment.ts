@@ -4,7 +4,8 @@ import {
 	parseExperimentResult,
 	type EgressMode,
 	type ExperimentResult,
-	type Principal
+	type Principal,
+	type Stack
 } from '@craftabot/core';
 import {
 	analyseExperiment,
@@ -134,7 +135,10 @@ export async function experimentRun(options: ExperimentRunOptions): Promise<Expe
 		cells += ran.report.cells.length;
 	}
 	const ranAt = (options.now ?? (() => new Date().toISOString()))();
-	const result = analyseExperiment(experiment, reports, { ranAt });
+	const result = analyseExperiment(experiment, reports, {
+		ranAt,
+		stacks: stacksOf(options.config)
+	});
 	const written = await writeResult(options.out, result);
 	return { experiment, campaignFiles, reportFiles, result, ...written, cells };
 }
@@ -142,8 +146,14 @@ export async function experimentRun(options: ExperimentRunOptions): Promise<Expe
 export interface ExperimentAnalyseOptions {
 	file: string;
 	out: string;
+	/** The installed packs, whose stacks a guard level may name (WP150): their claims join the level's effects. */
+	config?: HarnessConfig;
 	now?: () => string;
 }
+
+/** The stacks the installed packs ship — what `analyseExperiment` reads a stack level's claims from (WP150). */
+const stacksOf = (config: HarnessConfig | undefined): Stack[] =>
+	(config?.packs ?? []).flatMap((pack) => [...(pack.stacks ?? [])]);
 
 /** Re-fold the reports `run` left in `--out` (one per campaign id) into a fresh result. */
 export async function experimentAnalyse(
@@ -164,7 +174,10 @@ export async function experimentAnalyse(
 		}
 	}
 	const ranAt = (options.now ?? (() => new Date().toISOString()))();
-	const result = analyseExperiment(experiment, reports, { ranAt });
+	const result = analyseExperiment(experiment, reports, {
+		ranAt,
+		stacks: stacksOf(options.config)
+	});
 	const written = await writeResult(options.out, result);
 	return { experiment, reportFiles, result, ...written };
 }
