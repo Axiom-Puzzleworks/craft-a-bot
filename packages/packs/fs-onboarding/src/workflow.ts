@@ -1,4 +1,9 @@
-import { stageGateCard } from '@craftabot/pack-fs-bank';
+import {
+	APPEAL_REVIEW_JOURNEY,
+	appealHandoff,
+	stageGateCard,
+	VULNERABILITY_AT_THE_DOOR
+} from '@craftabot/pack-fs-bank';
 import type {
 	ActionCall,
 	Book,
@@ -6,6 +11,7 @@ import type {
 	DeskRecord,
 	Executor,
 	JsonSchema,
+	StageNext,
 	StageSpec,
 	WorkItem,
 	WorkflowConfig,
@@ -74,6 +80,7 @@ const ITEM_INPUT: JsonSchema = {
 	type: 'object',
 	required: ['application'],
 	properties: {
+		appeal: { type: 'object', required: ['grounds'], properties: { grounds: { type: 'string' } } },
 		application: {
 			type: 'object',
 			required: ['productKind', 'purpose', 'given'],
@@ -164,9 +171,19 @@ export function ruleVerdictOnTheDesk(
 	return figures ? verdictFromFigures(figures) : undefined;
 }
 
-const afterTheDecision = (state: WorldState): string => {
-	const decision = desk(state).extra.onboarding.decision;
-	return decision?.outcome === 'approve' ? 'confirm' : 'end';
+const afterTheDecision = (state: WorldState): StageNext => {
+	const { bank, onboarding } = desk(state).extra;
+	const decision = onboarding.decision;
+	if (decision?.outcome === 'approve') return 'confirm';
+	// WP145: a contested refusal goes to the bank's review journey as an appeal.
+	if (decision?.outcome === 'decline' && onboarding.appealGrounds !== undefined)
+		return appealHandoff({
+			caseId: `account-${bank.customer.id}`,
+			customer: bank.customer,
+			category: 'onboarding-decision',
+			summary: `An application for a ${onboarding.application.productKind} account was declined; the applicant contests it: ${onboarding.appealGrounds}`
+		});
+	return 'end';
 };
 
 // ── The rules ──────────────────────────────────────────────────────────
@@ -252,6 +269,8 @@ export const ONBOARDING_STAGES: StageSpec[] = [
 	{
 		id: 'application',
 		name: names.application,
+		// WP145: vulnerability detection at the door — the bank's support-need reader, annotating.
+		guards: { components: [VULNERABILITY_AT_THE_DOOR] },
 		input: ITEM_INPUT,
 		output: APPLICATION_OUTPUT,
 		executor: rule('application-v1'),
@@ -316,6 +335,7 @@ export const ONBOARDING_STAGES: StageSpec[] = [
 		input: DECISION_OUTPUT,
 		output: RECORDED_OUTPUT,
 		executor: rule('record-v1'),
+		mayGoTo: ['confirm', 'end', `handoff:${APPEAL_REVIEW_JOURNEY}`],
 		next: (_out, state) => afterTheDecision(state)
 	},
 	{

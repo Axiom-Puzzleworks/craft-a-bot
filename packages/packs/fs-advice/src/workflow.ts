@@ -11,7 +11,12 @@ import type {
 	WorkflowSpec,
 	WorldState
 } from '@craftabot/core';
-import { adviceRequestBook, population, stageGateCard } from '@craftabot/pack-fs-bank';
+import {
+	adviceRequestBook,
+	population,
+	stageGateCard,
+	VULNERABILITY_AT_THE_DOOR
+} from '@craftabot/pack-fs-bank';
 import { adviceStrings } from './strings.js';
 import {
 	ADVICE_DESK_WORLD_ID,
@@ -226,6 +231,8 @@ export const ADVICE_STAGES: StageSpec[] = [
 	{
 		id: 'request',
 		name: names.request,
+		// WP145: vulnerability detection at the door — the bank's support-need reader, annotating.
+		guards: { components: [VULNERABILITY_AT_THE_DOOR] },
 		input: ITEM_INPUT,
 		output: REQUEST_OUTPUT,
 		executor: rule('request-v1'),

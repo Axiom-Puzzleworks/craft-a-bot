@@ -42,6 +42,7 @@
 <text class="node-label" x="1253" y="202">Four eyes</text>
 <circle class="node node--agent node--irreversible" cx="1403" cy="66" r="22" data-stage="reimburse"/>
 <text class="node-label" x="1403" y="102">Reimbursement</text>
+<rect class="point point--stage-in" x="164" y="261" width="10" height="10" data-point="boundary:intake:stage-in"/>
 <circle class="point point--pre-think" cx="339" cy="34" r="5" data-point="loop:verify:pre-think"/>
 <circle class="point point--pre-act" cx="353" cy="34" r="5" data-point="loop:verify:pre-act"/>
 <circle class="point point--post-act" cx="367" cy="34" r="5" data-point="loop:verify:post-act"/>

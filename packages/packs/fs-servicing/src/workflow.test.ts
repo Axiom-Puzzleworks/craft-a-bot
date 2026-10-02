@@ -15,6 +15,7 @@ import fsCollectionsPack from '@craftabot/pack-fs-collections';
 import { planFor as collectionsPlanFor } from '@craftabot/pack-fs-collections/testing';
 import starterPack from '@craftabot/pack-starter';
 import { followHandoff, journeyLayout, runWorkflow, touchedCaseOf } from '@craftabot/workflow';
+import { stageBoundaryGuardrails } from '@craftabot/governance';
 import { describe, expect, it } from 'vitest';
 import { servicingBook } from './book.js';
 import { SERVICING_CEILINGS } from './decision-rights.js';
@@ -22,6 +23,7 @@ import fsServicingPack from './index.js';
 import { planFor } from './testing/plans.js';
 import { servicingCaseFromItem } from './world/cases.js';
 import { WORK_ITEM_LAYOUT, servicingDesk } from './world/desk.js';
+import { needIn } from './world/rules.js';
 import {
 	SERVICING_CONFIGURATION_IDS,
 	SERVICING_CONFIGURATIONS,
@@ -373,5 +375,42 @@ describe('the reference configurations', () => {
 		expect(from('verify')).not.toContain('act');
 		expect(from('record')).toEqual(expect.arrayContaining(['act', 'close']));
 		expect(layout.nodes.find((node) => node.stageId === 'close')?.irreversible).toBe(true);
+	});
+});
+
+describe('vulnerability detection at the door (WP145)', () => {
+	it('annotates the request stage when the caller’s words disclose a support need, and lets the rest through', async () => {
+		const registry = createPackRegistry();
+		for (const pack of PACKS) registry.registerPack(pack);
+		const subject = (item: WorkItem) =>
+			servicingCaseFromItem(createTestClock().random, item).extra.servicing.request.subject;
+		const disclosing = items.find((item) => needIn(subject(item)) !== 'none')!;
+		const plain = items.find((item) => needIn(subject(item)) === 'none')!;
+		const guarded = async (item: WorkItem, ordinal: number) => {
+			const clock = createTestClock({ idOffset: 9000 + ordinal * 1000 });
+			const seat = createTestClock({ idOffset: 9500 + ordinal * 1000 });
+			return runWorkflow(servicingWorkflow, item, {
+				packs: PACKS,
+				spec: SPEC,
+				config: SERVICING_CONFIGURATIONS['rules-only'],
+				providerFor: (_stage, goalCardId) =>
+					createMockProvider({ script: obedient(anyPlanFor(goalCardId)) }),
+				boundaryGuardrailsFor: stageBoundaryGuardrails(registry),
+				now: clock.now,
+				newId: clock.newId,
+				random: clock.random,
+				session: { now: seat.now, newId: seat.newId, random: seat.random }
+			});
+		};
+		const door = (run: WorkflowRun) =>
+			run.stages
+				.find((stage) => stage.stageId === 'request')
+				?.guards.verdicts?.filter(
+					(verdict) => verdict.componentId === 'fs-bank/guard/vulnerability-detection'
+				);
+		expect(door(await guarded(disclosing, 1))).toMatchObject([
+			{ point: 'stage-in', verdict: 'annotate' }
+		]);
+		expect(door(await guarded(plain, 2))).toMatchObject([{ point: 'stage-in', verdict: 'allow' }]);
 	});
 });

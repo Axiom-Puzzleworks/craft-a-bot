@@ -120,6 +120,12 @@ export interface StageSpec<In = unknown, Out = unknown> {
 export interface StageHandoff {
 	handoff: string;
 	item: WorkItem;
+	/**
+	 * Why the item moves on (WP145, `110-CONTROL-SUITE-PLAN.md` §10): `appeal`
+	 * when the customer contests an adverse decision and the target reviews
+	 * it. Absent, a referral — the item belongs to another desk.
+	 */
+	kind?: 'appeal';
 }
 export type StageNext = string | 'end' | StageHandoff;
 

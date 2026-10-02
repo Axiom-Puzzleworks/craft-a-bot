@@ -64,6 +64,20 @@ export const LENDING_CONTROL_ROWS: readonly ControlMapRow[] = [
 		],
 		status: 'unreviewed',
 		tags: ['pra:ss1-23:mitigants']
+	},
+	{
+		// WP145 (`110-…` §10): what the customer must be told, said in the bank's words and digested on the trace.
+		framework: 'UK GDPR Art. 22 / FCA DISP',
+		ref: 'review-right',
+		title: 'A declined applicant is told they can have the decision reviewed',
+		obligation:
+			'The reasons for a decline go with the right to a review by someone who did not make it, and the credit reference agency named.',
+		evidence: [
+			{ kind: 'evaluator', id: 'fs-lending/review-right-disclosed' },
+			{ kind: 'trace-guarantee', id: 'disclosure.given' }
+		],
+		status: 'unreviewed',
+		tags: ['fca:cd:understanding', 'fca:disp:complaints']
 	}
 ];
 

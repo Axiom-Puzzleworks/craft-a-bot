@@ -26,7 +26,9 @@
 			"executor": "rule",
 			"irreversible": false,
 			"obligations": [],
-			"guards": []
+			"guards": [
+				"boundary:intake:stage-in"
+			]
 		},
 		{
 			"stageId": "verify",
@@ -232,6 +234,14 @@
 		}
 	],
 	"points": [
+		{
+			"id": "boundary:intake:stage-in",
+			"kind": "stage-in",
+			"at": "intake",
+			"components": [
+				"fs-bank/guard/vulnerability-detection"
+			]
+		},
 		{
 			"id": "loop:verify:pre-think",
 			"kind": "pre-think",

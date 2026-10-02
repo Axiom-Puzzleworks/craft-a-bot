@@ -39,6 +39,7 @@
 <text class="node-label" x="1103" y="202">Decision</text>
 <circle class="node node--agent node--irreversible" cx="1253" cy="66" r="22" data-stage="agree"/>
 <text class="node-label" x="1253" y="102">Agreement</text>
+<rect class="point point--stage-in" x="164" y="261" width="10" height="10" data-point="boundary:intake:stage-in"/>
 <circle class="point point--pre-think" cx="339" cy="34" r="5" data-point="loop:contact:pre-think"/>
 <circle class="point point--pre-act" cx="353" cy="34" r="5" data-point="loop:contact:pre-act"/>
 <circle class="point point--post-act" cx="367" cy="34" r="5" data-point="loop:contact:post-act"/>

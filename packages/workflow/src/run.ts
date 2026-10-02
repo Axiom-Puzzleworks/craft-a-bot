@@ -404,7 +404,12 @@ export async function runWorkflow(
 		const next = stage.next(output, world.snapshot(), input);
 		// A handoff (WP102, `83-…` §6.5.3): the journey ends here; the host starts the target with the item.
 		if (typeof next === 'object') {
-			handoff = { to: next.handoff, itemId: next.item.id, item: next.item };
+			handoff = {
+				to: next.handoff,
+				itemId: next.item.id,
+				item: next.item,
+				...(next.kind ? { kind: next.kind } : {})
+			};
 			outcome = 'handed-off';
 			break;
 		}
@@ -905,9 +910,17 @@ export async function runWorkflow(
 			result: {
 				ok: result.ok,
 				narration: result.narration,
-				...(result.stateDiff !== undefined ? { stateDiff: result.stateDiff } : {})
+				...(result.stateDiff !== undefined ? { stateDiff: result.stateDiff } : {}),
+				...(result.disclosures ? { disclosures: result.disclosures } : {})
 			}
 		});
+		// A mandatory disclosure a rule's call made (WP145): as the session writes it.
+		for (const disclosure of result.disclosures ?? [])
+			emit('disclosure.given', {
+				id: disclosure.id,
+				action: call.name,
+				digest: sha256Hex(disclosure.text)
+			});
 		return result;
 	}
 

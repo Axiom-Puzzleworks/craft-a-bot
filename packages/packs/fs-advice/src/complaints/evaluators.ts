@@ -11,6 +11,7 @@ import {
 	REDRESS_WITHIN_BOUNDS_ID,
 	ROOT_CAUSE_NAMED_ID
 } from './scenarios.js';
+import { complaintsDisclosure } from '../disclosure.js';
 
 /**
  * **The complaints evaluators** (WP72, `61-LAST-DECKS.md` §4.2): three
@@ -250,5 +251,7 @@ export const redressWithinBounds = deterministic(
 export const complaintsEvaluators: Evaluator[] = [
 	complaintAcknowledged,
 	rootCauseNamed,
-	redressWithinBounds
+	redressWithinBounds,
+	// WP145: the final response's mandatory disclosure, held to its words.
+	complaintsDisclosure
 ];

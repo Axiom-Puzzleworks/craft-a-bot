@@ -52,6 +52,7 @@
 <text class="node-label" x="1103" y="102">Act</text>
 <circle class="node node--agent node--irreversible" cx="1253" cy="66" r="22" data-stage="close"/>
 <text class="node-label" x="1253" y="102">Closure</text>
+<rect class="point point--stage-in" x="164" y="261" width="10" height="10" data-point="boundary:request:stage-in"/>
 <circle class="point point--pre-think" cx="339" cy="34" r="5" data-point="loop:identify:pre-think"/>
 <circle class="point point--pre-act" cx="353" cy="34" r="5" data-point="loop:identify:pre-act"/>
 <circle class="point point--post-act" cx="367" cy="34" r="5" data-point="loop:identify:post-act"/>

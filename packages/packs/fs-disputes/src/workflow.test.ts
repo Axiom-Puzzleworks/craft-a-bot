@@ -272,6 +272,9 @@ describe('the disputes workflow over the book', { timeout: 300_000 }, () => {
 		expect(complaints.followed?.workflowId).toBe('fs-advice/complaints');
 		expect(complaints.followed?.outcome).toBe('completed');
 		expect(complaints.followed?.itemId).toBe(`complaint-from-${claimOf(decline).transactionId}`);
+		// WP145: the decline goes to review as an appeal; the scam is a referral to another desk.
+		expect(complaints.source.handoff?.kind).toBe('appeal');
+		expect(fraud.source.handoff?.kind).toBeUndefined();
 	});
 
 	it('the ceiling-breach rate is zero at Level 3 and non-zero at Level 5', async () => {

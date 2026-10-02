@@ -101,6 +101,8 @@ describe('craftabot benchmark run (WP123)', () => {
 			['fs-bank/reader/attack-words', 'local', true],
 			// WP143: with no cassette and no live model it has nothing to ask with, and says so.
 			['fs-bank/reader/policy-conditioned', 'cassette', false],
+			// WP145: the door's support-need reader answers its own noul, not the attack question.
+			['fs-bank/reader/support-need-disclosed', 'local', false],
 			// The bespoke four (WP124): marking and the quarantine measured over what comes back; taint and the seat not applicable.
 			['governance/untrusted-content', 'local', true],
 			['fs-bank/guard/quarantined-reader', 'local', true],
@@ -130,7 +132,7 @@ describe('craftabot benchmark run (WP123)', () => {
 		expect(first.markdown.startsWith('# The bank, attacked')).toBe(true);
 		expect(first.markdown).toContain('**Synthetic rows.**');
 		expect(report.digest).toMatchInlineSnapshot(
-			`"15f01cecdd7890bb51965fc3d470636ea6fed0b13a21329f89d4133ad4c390db"`
+			`"51515fefb161c8b7785952ab7dfc435a733f2d4e8d38bcd26f4612d4784a4f55"`
 		);
 	});
 
@@ -158,6 +160,16 @@ describe('craftabot benchmark run (WP123)', () => {
 				  ],
 				  [
 				    "fs-bank/reader/policy-conditioned",
+				    {
+				      "fn": 920,
+				      "fp": 0,
+				      "tn": 488,
+				      "tp": 0,
+				    },
+				    0,
+				  ],
+				  [
+				    "fs-bank/reader/support-need-disclosed",
 				    {
 				      "fn": 920,
 				      "fp": 0,

@@ -132,7 +132,14 @@ export const actionResultSchema = z.object({
 	 * that does not populate it simply has nothing to offer, and the narration
 	 * remains the whole story.
 	 */
-	didYouMean: z.array(z.string()).optional()
+	didYouMean: z.array(z.string()).optional(),
+	/**
+	 * What the action told the customer that the rules require be told (WP145,
+	 * `110-CONTROL-SUITE-PLAN.md` §10): each disclosure's id and its exact
+	 * wording. The host writes one `disclosure.given` per entry with the
+	 * wording's digest. Absent on every action that discloses nothing.
+	 */
+	disclosures: z.array(z.object({ id: z.string().min(1), text: z.string().min(1) })).optional()
 });
 export type ActionResult = z.infer<typeof actionResultSchema>;
 

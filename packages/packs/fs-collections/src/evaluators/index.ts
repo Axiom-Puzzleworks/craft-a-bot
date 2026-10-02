@@ -6,6 +6,7 @@ import type {
 	Evaluator
 } from '@craftabot/core';
 import { isReasonCode, type Plan, type ReasonCode } from '../world/rules.js';
+import { collectionsDisclosure } from '../disclosure.js';
 
 /**
  * **The four deterministic evaluators** (WP105, `91-FS-COLLECTIONS.md` §4),
@@ -318,5 +319,7 @@ export const collectionsEvaluators: Evaluator[] = [
 	planMatchesRule,
 	vulnerabilityActioned,
 	noNoticeBeforeCircumstances,
-	planExplained
+	planExplained,
+	// WP145: the mandatory disclosure, held to its words.
+	collectionsDisclosure
 ];

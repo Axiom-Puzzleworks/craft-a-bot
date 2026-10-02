@@ -221,13 +221,20 @@ export const SECOND_EDITION_ENTRIES: CatalogueEntry[] = [
 		obligations: ['fca:cobs-4:promotions', 'fca:conc-7:arrears', 'psr:app-reimbursement'],
 		sources: [FCA_COBS, FCA_CONC, PSR_APP],
 		coverage: {
-			status: 'bespoke',
+			status: 'shipped',
 			implementedBy: [
+				'mechanism:core/disclosure',
+				'trace-guarantee:disclosure.given',
+				'evaluator:fs-advice/risk-warning-disclosed',
+				'evaluator:fs-collections/debt-advice-disclosed',
+				'evaluator:fs-disputes/reimbursement-rights-disclosed',
+				'evaluator:fs-lending/review-right-disclosed',
+				'evaluator:fs-advice/ombudsman-disclosed',
 				'policy-card:fs-advice/policy/risk-warning-rides-with-every-recommendation',
 				'evaluator:fs-advice/warning-given',
 				'evaluator:fs-fraud/scam-warning-given'
 			],
-			note: 'The advice desk’s risk warning and the fraud desk’s scam warning ride as a card and evaluators; no disclosure is recorded as given with its wording, and the other desks do not state what they must disclose (WP145).'
+			note: 'The bank’s disclosures are registered with their exact wording and the obligations they cite (fs-bank’s DISCLOSURES): CONC 7’s debt advice, COBS 4’s risk warning, PSR APP reimbursement rights, a lending review right, DISP’s Ombudsman (WP145). The customer-facing action that reaches the moment makes the disclosure itself, so it cannot be skipped, and the trace carries disclosure.given with the digest of the words said; an evaluator per desk holds each run to it. Diverged: no card blocks a decision until the disclosure is made — the action that makes the decision makes the disclosure, so a card would guard nothing.'
 		},
 		bankingRelevance: 'core'
 	}),
@@ -535,9 +542,10 @@ export const SECOND_EDITION_ENTRIES: CatalogueEntry[] = [
 				'evaluator:fs-advice/vulnerability-actioned',
 				'evaluator:fs-collections/vulnerability-actioned',
 				'policy-card:fs-servicing/policy/record-a-disclosure',
-				'evaluator:fs-servicing/disclosure-recorded'
+				'evaluator:fs-servicing/disclosure-recorded',
+				'component:fs-bank/guard/vulnerability-detection'
 			],
-			note: 'A disclosure is acted on and recorded on the advice, collections and servicing desks; detection is a keyword rule, with no reader gate (WP145).',
+			note: 'Every journey’s intake stage asks the bank’s support-need reader, behind the desks’ line, whether the customer’s own words disclose a need, and records the finding at stage-in before anything is decided (WP145); the advice, collections and servicing desks act on and record it. The reader is a keyword rule — a measured model is the slot’s next step — and it can only read words the item carries: an alert or an application has none.',
 			since: 'WP60'
 		},
 		bankingRelevance: 'core'
@@ -556,9 +564,15 @@ export const SECOND_EDITION_ENTRIES: CatalogueEntry[] = [
 		obligations: ['fca:disp:complaints'],
 		sources: [UK_GDPR, EU_AI_ACT_DEPLOYERS, FCA_DISP],
 		coverage: {
-			status: 'bespoke',
-			implementedBy: ['evaluator:fs-lending/appeal-handled'],
-			note: 'The lending desk records an appeal and judges it handled; no other desk with an adverse decision offers one, and no journey routes an appeal to a person (WP145).'
+			status: 'shipped',
+			implementedBy: [
+				'mechanism:workflow/appeal',
+				'evaluator:fs-lending/appeal-handled',
+				'evaluator:fs-lending/review-right-disclosed',
+				'evaluator:fs-advice/ombudsman-disclosed'
+			],
+			note: 'A contested decline on the lending, onboarding and disputes desks is handed to the bank’s one review journey, complaints, as a handoff of kind appeal (WP145): a person approves its outcome below Level 5, and the run records the handoff. The customer is told the route — the review right with a declined loan’s reasons, the Ombudsman with every final response — in registered words digested on the trace. The complaints journey’s own adverse decision is not handed on: its route out is the Ombudsman.',
+			since: 'WP145'
 		},
 		bankingRelevance: 'core'
 	}),

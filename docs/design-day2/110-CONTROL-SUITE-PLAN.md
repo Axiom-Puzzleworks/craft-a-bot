@@ -244,7 +244,7 @@ _Each is a catalogue entry from WP132, a control-map row with a regulation, a me
 
 | WP        | What                                     | Definition of done                                                                                                                                                                                                                                                                                                                                                                                                                                       | Size | Retires                        |
 | --------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ------------------------------ |
-| **WP145** | **Contestability, disclosure, vulnerability** | `appeal` as a workflow handoff kind on every desk with an adverse decision (lending, onboarding, disputes, complaints), `appeal-handled` generalised; `disclosure.given` on the trace with the wording digested, a `mandatory-disclosure` card per desk citing CONC 7 / COBS 4 / PSR APP; the servicing `support-need` reader fitted with a gate as `vulnerability-detection` on every desk's intake stage, FG21/1 cited; rows and evaluators                 | L    | G110, G111                     |
+| **WP145** ✅ | **Done 2026-10-02 — §10's WP145 note.** **Contestability, disclosure, vulnerability** | `appeal` as a workflow handoff kind on every desk with an adverse decision (lending, onboarding, disputes, complaints), `appeal-handled` generalised; `disclosure.given` on the trace with the wording digested, a `mandatory-disclosure` card per desk citing CONC 7 / COBS 4 / PSR APP; the servicing `support-need` reader fitted with a gate as `vulnerability-detection` on every desk's intake stage, FG21/1 cited; rows and evaluators                 | L    | G110, G111                     |
 | **WP146** | **Timeliness and override reasons**      | `StageSpec.deadline` in ticks, the clock escalating a case past it (`stage.overdue`), DISP's and PSR's timescales as the content, a `timeliness` gate kind; `approval.resolved.reason` required when a person overrules a recommendation or waives a refusal, the `override-reason` evaluator; the human-oversight experiment re-run                                                                                                                       | M    | G112, G115 (the reason)        |
 | **WP147** | **Change control**                       | The kit file's `digest` over cartridge, stack, knobs and prompt; `run.started.changed` when it differs from the last validated digest; a `knob-change-review` reading kind so a knob override on a campaign is read like a calibration row; `model-change-control` as an SS1/23 row on every desk                                                                                                                                                       | M    | G113                           |
 | **WP148** | **Resilience and bounds**                | `dependency-failover` as a component over a provider list (the DGX pack's failover generalised), a `provider-fault` incident deck proving it; `cost-cap` in money from the cassette's list price; `tool-argument-validation` at `pre-act` against the tool's schema as a component (the registry's refusal made visible as a verdict); the request timeout and the value cap as declared mechanisms with knobs                                               | M    | G114                           |
@@ -536,3 +536,41 @@ _(Recorded here as each work package and phase closes.)_
 > **Screenshots.** Re-taken on win32: the Studio at three widths, the assurance pack, the catalogue, the benchmarks. Their Linux baselines are CI's.
 >
 > **Phase AL is closed. Next: Phase AM, WP145–WP149.**
+
+> **WP145 — done 2026-10-02**, on `phase-am` (Phase AL merged as PR #63). Three parts, each a seam, content on the desks, an evaluator or a component, rows, and catalogue entries:
+>
+> - **Contestability: the appeal as a handoff.**
+>   - **The seam.** `StageHandoff.kind: 'appeal'` and `WorkflowRun.handoff.kind` (`02-…` §7's dated note); `fs-bank`'s `appealHandoff` builds the item.
+>   - **The review journey.** A contested decline goes to the bank's one review journey, `fs-advice/complaints`, as a complaint in the register's shape. Its truth is the register's rule: a decision the rules made is not upheld. A person approves the outcome below Level 5.
+>   - **The desks.**
+>     - Lending's appeal stage logs the appeal, then hands a contested decline on (`lending-decision`).
+>     - Onboarding gains the path: a declined application whose item carries `appeal.grounds` (`onboarding-decision`).
+>     - Disputes' existing decline-to-complaints handoff is marked an appeal.
+>   - **Decided, where the plan was silent:**
+>     - The complaints journey is the review. In UK retail banking, contesting a decision is a complaint under DISP, and disputes already routed there.
+>     - Complaints' own decline is not handed on: its route out is the Ombudsman, which its disclosure names.
+>     - `appeal-handled` stays the lending desk's. Generalised, the contract is the handoff, held by each desk's test (`workflow/appeal` is the mechanism); an agent run's evaluator cannot see a journey's handoff.
+>   - **No book generates an appeal,** so no baseline moved.
+> - **Mandatory disclosures.**
+>   - **The seam.** `ActionResult.disclosures`, `DeskActionContext.disclose` and the new event `disclosure.given { id, action, digest }`, written by the session and by the workflow runtime for a rule's call.
+>   - **The wordings.** `fs-bank`'s `DISCLOSURES` registers five, each citing its obligations: CONC 7's free debt advice, COBS 4's capital at risk, PSR APP reimbursement rights, a lending review right, and DISP's Ombudsman.
+>   - **Where they are made.** By the customer-facing action that reaches the moment, once per case: collections' `offer-plan`, advice's `recommend-product`, disputes' `decide`, lending's `explain-decision` on a decline, and complaints' `offer-redress` and `decline-complaint`.
+>   - **The evaluators.** `disclosureMadeEvaluator` holds each run to its disclosure: one evaluator per desk, five in all, each cited on a new control-map row with `trace-guarantee: disclosure.given`.
+>   - **Diverged:** no per-desk card blocks a decision until the disclosure is made. The action that makes the decision makes the disclosure, so a card would guard nothing.
+> - **Vulnerability detection at the door.**
+>   - **The component.** `fs-bank/guard/vulnerability-detection` asks the bank's support-need reader, behind the desks' line, whether the customer's own words disclose a need. It reads the string fields the desks use for a customer's words, never the record around them; the first cut read the whole item and flagged a customer's record fields.
+>   - **Where.** It is fitted at `stage-in` on every journey's intake stage, annotating: the finding is on the stage record before anything is decided, and the journey goes on as the rules say.
+>   - **One rule.** `supportNeedIn` is the bank's one support-need rule; servicing's `needIn` delegates to it.
+>   - **Diverged:** the plan said "the servicing support-need reader fitted with a gate on every desk's intake stage". The intake stages are rules whose outputs the journeys depend on, so the reader sits beside them as a boundary component rather than replacing them. It is a keyword rule, and it cannot read words an alert or an application does not carry.
+> - **Catalogue.** `contestability` and `mandatory-disclosure` move to *shipped*; `vulnerability-detection` names the component. Two mechanisms: `core/disclosure`, `workflow/appeal`.
+> - **Moved on purpose:**
+>   - the complaints golden run (the Ombudsman disclosure on its decline);
+>   - the three shipped campaign files (the new evaluators);
+>   - the eight journey layouts and SVGs (the guarded intake);
+>   - the packs lock;
+>   - the benchmark's reader list (the new reader is *not applicable*: it answers its own question, not the attack question).
+> - **Tests:**
+>   - lending's and onboarding's appeals (contested declines handed off; uncontested ones end as before);
+>   - disputes' kinds (the decline an appeal, the scam a referral);
+>   - the door on servicing (a bereavement annotated, a plain request let through);
+>   - `core`'s `disclosure.given` after its action, with its digest.

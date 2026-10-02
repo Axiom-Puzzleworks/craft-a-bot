@@ -196,6 +196,9 @@
 		},
 		{
 			"id": "fs-collections/plan-explained"
+		},
+		{
+			"id": "fs-collections/debt-advice-disclosed"
 		}
 	],
 	"gates": [

@@ -111,6 +111,9 @@
 		},
 		{
 			"id": "fs-advice/redress-within-bounds"
+		},
+		{
+			"id": "fs-advice/ombudsman-disclosed"
 		}
 	],
 	"gates": [

@@ -1,3 +1,4 @@
+import { sha256Hex } from '../schemas/sha256.js';
 import { createEventBus, type EventBus } from '../event-bus.js';
 import type { Attestation, Principal } from '../schemas/shared.js';
 import { toSpecV2 } from '../schemas/agent-spec-v2.js';
@@ -811,6 +812,13 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 					}
 				: {})
 		});
+		// A mandatory disclosure the action made (WP145): its id and the digest of the exact words.
+		for (const disclosure of actionResult.disclosures ?? [])
+			emit('disclosure.given', {
+				id: disclosure.id,
+				action: call.name,
+				digest: sha256Hex(disclosure.text)
+			});
 		if (actionResult.ok) {
 			emit('world.changed', { state: world.snapshot() });
 		} else {

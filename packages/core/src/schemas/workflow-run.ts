@@ -140,7 +140,13 @@ export const workflowRunSchema = z.object({
 	outcome: z.enum(['completed', 'stopped', 'abandoned', 'handed-off']),
 	/** The handoff this run ended with (WP102, `83-…` §6.5.3): the target journey and the item it was handed — the item, never the desk state. */
 	handoff: z
-		.object({ to: z.string().min(1), itemId: z.string().min(1), item: workItemSchema })
+		.object({
+			to: z.string().min(1),
+			itemId: z.string().min(1),
+			item: workItemSchema,
+			/** `appeal` (WP145): the customer contests the decision and the target reviews it; absent, a referral. */
+			kind: z.literal('appeal').optional()
+		})
 		.optional(),
 	/** The chain of runs this one was handed off from, oldest first (WP102): the link a Pipeline follows back. */
 	handoffs: z

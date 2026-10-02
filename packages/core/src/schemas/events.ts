@@ -434,6 +434,20 @@ const approvalResolvedEvent = eventSchema(
  * knows only approvals reads the run as before. A scope once granted stays
  * granted for the run; the rule that asked reads the grant from the trace.
  */
+/**
+ * A mandatory disclosure made (WP145, `110-…` §10): the action that made it,
+ * the disclosure's id and a SHA-256 digest of the exact wording, so a
+ * reviewer can prove which words were said without trusting a paraphrase.
+ * Written right after the `action.performed` whose result carried it.
+ */
+const disclosureGivenEvent = eventSchema(
+	'disclosure.given',
+	z.object({
+		id: z.string().min(1),
+		action: z.string().min(1),
+		digest: z.string().regex(/^[0-9a-f]{64}$/)
+	})
+);
 const elevationRequestedEvent = eventSchema(
 	'elevation.requested',
 	z.object({ scope: z.string().min(1), reason: z.string() })
@@ -570,6 +584,7 @@ export const engineEventSchema = z.discriminatedUnion('type', [
 	approvalResolvedEvent,
 	elevationRequestedEvent,
 	elevationResolvedEvent,
+	disclosureGivenEvent,
 	worldChangedEvent,
 	inputDeliveredEvent,
 	providerRetriedEvent,

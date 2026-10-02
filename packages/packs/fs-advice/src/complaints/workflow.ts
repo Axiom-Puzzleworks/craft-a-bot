@@ -10,7 +10,12 @@ import type {
 	WorkflowSpec,
 	WorldState
 } from '@craftabot/core';
-import { complaintBook, population, stageGateCard } from '@craftabot/pack-fs-bank';
+import {
+	complaintBook,
+	population,
+	stageGateCard,
+	VULNERABILITY_AT_THE_DOOR
+} from '@craftabot/pack-fs-bank';
 import { COMPLAINTS_DESK_WORLD_ID, WORK_ITEM_LAYOUT, type ComplaintsDeskState } from './desk.js';
 import { ACK_TICKS, FINAL_TICKS, unmark, type RootCause } from './extra.js';
 import { complaintsStrings } from './strings.js';
@@ -192,6 +197,8 @@ export const COMPLAINTS_STAGES: StageSpec[] = [
 	{
 		id: 'acknowledge',
 		name: names.acknowledge,
+		// WP145: vulnerability detection at the door — the bank's support-need reader, annotating.
+		guards: { components: [VULNERABILITY_AT_THE_DOOR] },
 		obligations: ['fca:disp:complaints'],
 		input: ANY,
 		output: ACKNOWLEDGED_OUTPUT,

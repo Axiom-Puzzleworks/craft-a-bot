@@ -53,6 +53,20 @@ export const COLLECTIONS_CONTROL_ROWS: readonly ControlMapRow[] = [
 		],
 		status: 'unreviewed',
 		tags: ['fca:cd:understanding', 'pra:ss1-23:mitigants']
+	},
+	{
+		// WP145 (`110-…` §10): what the customer must be told, said in the bank's words and digested on the trace.
+		framework: 'FCA CONC 7',
+		ref: 'free-debt-advice',
+		title: 'A customer in arrears is told where to get free debt advice',
+		obligation:
+			'Every repayment plan offered goes with where free, impartial debt advice is, and time to get it.',
+		evidence: [
+			{ kind: 'evaluator', id: 'fs-collections/debt-advice-disclosed' },
+			{ kind: 'trace-guarantee', id: 'disclosure.given' }
+		],
+		status: 'unreviewed',
+		tags: ['fca:conc-7:arrears', 'fca:cd:support']
 	}
 ];
 

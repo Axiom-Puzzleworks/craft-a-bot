@@ -49,6 +49,20 @@ export const DISPUTES_CONTROL_ROWS: readonly ControlMapRow[] = [
 		],
 		status: 'unreviewed',
 		tags: ['pra:ss1-23:mitigants']
+	},
+	{
+		// WP145 (`110-…` §10): what the customer must be told, said in the bank's words and digested on the trace.
+		framework: 'PSR APP reimbursement requirement',
+		ref: 'reimbursement-rights',
+		title: 'The customer is told their reimbursement rights with the decision',
+		obligation:
+			'The decision on a disputed payment goes with the reimbursement rights, the limit and the excess, in writing.',
+		evidence: [
+			{ kind: 'evaluator', id: 'fs-disputes/reimbursement-rights-disclosed' },
+			{ kind: 'trace-guarantee', id: 'disclosure.given' }
+		],
+		status: 'unreviewed',
+		tags: ['psr:app-reimbursement', 'fca:cd:understanding']
 	}
 ];
 

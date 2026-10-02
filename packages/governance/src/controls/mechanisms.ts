@@ -175,6 +175,19 @@ export const CONTROL_MECHANISMS: readonly ControlMechanism[] = [
 		since: 'WP58'
 	}),
 	m({
+		id: 'core/disclosure',
+		name: 'Mandatory disclosures on the trace',
+		summary:
+			'A desk action that must tell the customer something says it in registered words; the host writes disclosure.given with the digest of the words said.',
+		where: [
+			'packages/core/src/session/agent-session.ts',
+			'packages/desk/src/desk-world.ts',
+			'packages/packs/fs-bank/src/disclosures.ts'
+		],
+		observedAs: ['disclosure.given'],
+		since: 'WP145'
+	}),
+	m({
 		id: 'core/pack-digest',
 		name: 'The pack content digest and its pins',
 		summary:
@@ -278,6 +291,15 @@ export const CONTROL_MECHANISMS: readonly ControlMechanism[] = [
 		observedAs: ['reader.answered.gated'],
 		configuredBy: 'ReaderExecutor.gate',
 		since: 'WP117'
+	}),
+	m({
+		id: 'workflow/appeal',
+		name: 'The appeal, as a handoff to review',
+		summary:
+			'A contested adverse decision is handed to the bank’s review journey with kind appeal; the run records the handoff and the review decides it.',
+		where: ['packages/workflow/src/run.ts', 'packages/packs/fs-bank/src/appeal.ts'],
+		observedAs: ['WorkflowRun.handoff.kind', 'the Pipeline’s handoff link'],
+		since: 'WP145'
 	}),
 	m({
 		id: 'workflow/handoff',

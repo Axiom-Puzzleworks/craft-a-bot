@@ -38,6 +38,7 @@
 <circle class="point point--pre-think" cx="189" cy="34" r="5" data-point="loop:acknowledge:pre-think"/>
 <circle class="point point--pre-act" cx="203" cy="34" r="5" data-point="loop:acknowledge:pre-act"/>
 <circle class="point point--post-act" cx="217" cy="34" r="5" data-point="loop:acknowledge:post-act"/>
+<rect class="point point--stage-in" x="164" y="61" width="10" height="10" data-point="boundary:acknowledge:stage-in"/>
 <circle class="point point--pre-think" cx="489" cy="34" r="5" data-point="loop:root-cause:pre-think"/>
 <circle class="point point--pre-act" cx="503" cy="34" r="5" data-point="loop:root-cause:pre-act"/>
 <circle class="point point--post-act" cx="517" cy="34" r="5" data-point="loop:root-cause:post-act"/>

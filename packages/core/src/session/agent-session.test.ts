@@ -12,6 +12,7 @@ import type { BrickKindDefinition } from '../types/brick.js';
 import type { Guardrail, GuardrailHook, GuardrailVerdict } from '../types/guardrail.js';
 import type { ToolDefinition } from '../types/tool.js';
 import type { WorldDefinition, WorldInstance } from '../types/world.js';
+import { sha256Hex } from '../schemas/sha256.js';
 
 /**
  * The loop, tested against a deliberately trivial world rather than the
@@ -3092,5 +3093,30 @@ describe('untrusted-content marks (WP124, `106-BENCHMARK.md` §8.1)', () => {
 		await session.step();
 		expect(log.filter((event) => event.type === 'content.marked')).toEqual([]);
 		expect(JSON.stringify(log)).not.toContain('⟦untrusted');
+	});
+});
+
+describe('mandatory disclosures (WP145, `110-…` §10)', () => {
+	it('writes disclosure.given after the action that made one, with the digest of the words', async () => {
+		const base = createTinyWorld().create('only');
+		const words = 'You can ask us to look at this again.';
+		const world: WorldInstance = {
+			...base,
+			perform: (call) => ({
+				...base.perform(call),
+				disclosures: [{ id: 'test/review-right', text: words }]
+			})
+		};
+		const { session, log } = makeSession({ script: [turn('Ping.', 'ping')], world });
+		await session.step();
+		const types = log.map((event) => event.type);
+		const performed = types.indexOf('action.performed');
+		expect(types[performed + 1]).toBe('disclosure.given');
+		const given = log[performed + 1];
+		expect(given?.type === 'disclosure.given' && given.payload).toEqual({
+			id: 'test/review-right',
+			action: 'ping',
+			digest: sha256Hex(words)
+		});
 	});
 });

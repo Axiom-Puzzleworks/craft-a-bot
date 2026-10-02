@@ -104,6 +104,34 @@ export const ADVICE_CONTROL_ROWS: readonly ControlMapRow[] = [
 		],
 		status: 'unreviewed',
 		tags: ['ukgdpr:data-minimisation', 'ukgdpr:purpose-limitation']
+	},
+	{
+		// WP145 (`110-…` §10): what the customer must be told, said in the bank's words and digested on the trace.
+		framework: 'FCA COBS 4',
+		ref: 'risk-warning-disclosed',
+		title: 'Every recommendation carries the risk warning in the bank’s words',
+		obligation:
+			'The capital-at-risk warning is said with every investment recommendation, in the registered wording.',
+		evidence: [
+			{ kind: 'evaluator', id: 'fs-advice/risk-warning-disclosed' },
+			{ kind: 'trace-guarantee', id: 'disclosure.given' }
+		],
+		status: 'unreviewed',
+		tags: ['fca:cobs-4:promotions', 'fca:cd:understanding']
+	},
+	{
+		// WP145 (`110-…` §10): what the customer must be told, said in the bank's words and digested on the trace.
+		framework: 'FCA DISP 1.6',
+		ref: 'ombudsman-disclosed',
+		title: 'A final response names the Financial Ombudsman Service',
+		obligation:
+			'Every final response to a complaint, upheld or not, tells the customer they can refer it to the Ombudsman, free, within six months.',
+		evidence: [
+			{ kind: 'evaluator', id: 'fs-advice/ombudsman-disclosed' },
+			{ kind: 'trace-guarantee', id: 'disclosure.given' }
+		],
+		status: 'unreviewed',
+		tags: ['fca:disp:complaints']
 	}
 ];
 

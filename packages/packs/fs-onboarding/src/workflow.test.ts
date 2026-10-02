@@ -284,3 +284,26 @@ describe('the reference configurations', () => {
 		expect(recommends.nodes.find((node) => node.stageId === 'decision')?.lane).toBe('colleague');
 	});
 });
+
+describe('contestability (WP145)', () => {
+	it('hands a contested refusal to the review journey as an appeal, and ends an uncontested one as before', async () => {
+		const refused = items.find((item) => item.truth.facts?.['verdict'] === 'should-decline')!;
+		const plain = await runItem(refused, 'rules-only', 41);
+		expect(decidedOutcome(plain)).toBe('decline');
+		expect(plain.outcome).toBe('completed');
+		const contested: WorkItem = {
+			...refused,
+			payload: { ...(refused.payload as object), appeal: { grounds: 'I was told my ID was fine.' } }
+		};
+		const run = await runItem(contested, 'rules-only', 42);
+		expect(run.outcome).toBe('handed-off');
+		expect(run.handoff).toMatchObject({ to: 'fs-advice/complaints', kind: 'appeal' });
+		expect(run.handoff?.item.payload).toMatchObject({
+			complaint: { category: 'onboarding-decision', status: 'open' }
+		});
+		expect(run.handoff?.item.truth.facts).toEqual({
+			category: 'onboarding-decision',
+			upheld: false
+		});
+	});
+});

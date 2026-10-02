@@ -148,6 +148,29 @@ const fixture: PackConformanceFixture = {
 					}
 				}
 			]
+		},
+		// WP145: the door's reader, annotating a disclosed support need at stage-in.
+		'fs-bank/guard/vulnerability-detection': {
+			config: { threshold: 0.8, verdict: 'annotate' },
+			verdicts: [
+				{
+					verdict: 'annotate',
+					point: { kind: 'stage-in', at: 'intake' },
+					context: {
+						hook: 'pre-act',
+						tick: 1,
+						spec: {} as never,
+						usage: { ticks: 1, inputTokens: 0, outputTokens: 0 },
+						worldState: {},
+						history: [],
+						stage: {
+							id: 'intake',
+							point: 'stage-in',
+							input: { claim: { customerSays: 'My husband passed away last month.' } }
+						}
+					}
+				}
+			]
 		}
 	}
 };

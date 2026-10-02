@@ -299,6 +299,8 @@ export function assembleOnboardingCase(
 export interface OnboardingItemPayload {
 	application: OnboardingApplication;
 	applicant?: { customer: Customer };
+	/** The applicant contests a refusal (WP145): the grounds, in their words. */
+	appeal?: { grounds: string };
 }
 
 /**
@@ -317,5 +319,11 @@ export function onboardingCaseFromItem(random: () => number, item: WorkItem): On
 	const bank: BankCase = payload?.applicant
 		? { ...generated, customer: structuredClone(payload.applicant.customer) }
 		: generated;
-	return assembleOnboardingCase(bank, bankForTheDesk(bank), structuredClone(application));
+	const assembled = assembleOnboardingCase(
+		bank,
+		bankForTheDesk(bank),
+		structuredClone(application)
+	);
+	if (payload?.appeal?.grounds) assembled.extra.onboarding.appealGrounds = payload.appeal.grounds;
+	return assembled;
 }

@@ -5,7 +5,7 @@ import {
 	type DeskWorldSpec
 } from '@craftabot/desk';
 import type { WorkItem } from '@craftabot/core';
-import { bankContextRecords } from '@craftabot/pack-fs-bank';
+import { bankContextRecords, discloseOnce } from '@craftabot/pack-fs-bank';
 import { z } from 'zod';
 import { disputesStrings } from '../strings.js';
 import {
@@ -275,6 +275,8 @@ export const disputesDeskSpec: DeskWorldSpec<DisputesExtra> = {
 					`${disputesStrings.verbs[outcome]} — ${codes.join(', ') || 'no reasons given'}`,
 					outcome === 'refer' ? 'escalated' : 'decided'
 				);
+				// WP145: the decision on a disputed payment goes with the reimbursement rights (PSR APP).
+				discloseOnce(state, ctx, 'disputes/app-reimbursement');
 				return { ok: true, narration: disputesStrings.narration.decided(outcome, codes) };
 			}
 		},

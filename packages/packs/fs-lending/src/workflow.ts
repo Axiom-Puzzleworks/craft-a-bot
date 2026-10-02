@@ -5,12 +5,19 @@ import type {
 	DeskRecord,
 	Executor,
 	JsonSchema,
+	StageNext,
 	StageSpec,
 	WorkflowConfig,
 	WorkflowSpec,
 	WorldState
 } from '@craftabot/core';
-import { population, stageGateCard } from '@craftabot/pack-fs-bank';
+import {
+	APPEAL_REVIEW_JOURNEY,
+	appealHandoff,
+	population,
+	stageGateCard,
+	VULNERABILITY_AT_THE_DOOR
+} from '@craftabot/pack-fs-bank';
 import { lendingBook } from './book.js';
 import { LENDING_CEILINGS } from './decision-rights.js';
 import { lendingStrings } from './strings.js';
@@ -317,6 +324,8 @@ export const LENDING_STAGES: StageSpec[] = [
 	{
 		id: 'intake',
 		name: names.intake,
+		// WP145: vulnerability detection at the door — the bank's support-need reader, annotating.
+		guards: { components: [VULNERABILITY_AT_THE_DOOR] },
 		input: ITEM_INPUT,
 		output: INTAKE_OUTPUT,
 		executor: rule('intake-v1'),
@@ -449,9 +458,23 @@ export const LENDING_STAGES: StageSpec[] = [
 			const grounds = desk(state).extra.lending.appeal;
 			return grounds !== undefined ? { grounds } : undefined;
 		},
-		next: () => 'end'
+		// WP145: a contested decline goes to the bank's review journey as an appeal; anything else ends here.
+		mayGoTo: ['end', `handoff:${APPEAL_REVIEW_JOURNEY}`],
+		next: (_out, state) => contestedDecline(state)
 	}
 ];
+
+/** A logged appeal against a decline, handed to the review journey (WP145); an appeal of anything else ends the journey. */
+function contestedDecline(state: WorldState): StageNext {
+	const { bank, lending } = desk(state).extra;
+	if (lending.decision?.outcome !== 'decline' || lending.appeal === undefined) return 'end';
+	return appealHandoff({
+		caseId: `loan-${bank.customer.id}`,
+		customer: bank.customer,
+		category: 'lending-decision',
+		summary: `A loan of £${lending.application.amount} for ${lending.application.purpose} was declined; the applicant contests it: ${lending.appeal}`
+	});
+}
 
 // ── The reference configurations ───────────────────────────────────────
 

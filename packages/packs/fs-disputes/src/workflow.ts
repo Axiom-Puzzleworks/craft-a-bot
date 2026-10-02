@@ -15,9 +15,11 @@ import type {
 } from '@craftabot/core';
 import {
 	ALERT_RULE_ID,
+	appealHandoff,
 	type AlertItemPayload,
 	type Transaction,
-	stageGateCard
+	stageGateCard,
+	VULNERABILITY_AT_THE_DOOR
 } from '@craftabot/pack-fs-bank';
 import { disputesBookFor } from './book.js';
 import { DISPUTES_CEILINGS } from './decision-rights.js';
@@ -232,41 +234,19 @@ const fraudHandoff = (state: WorldState): StageHandoff => {
 	};
 };
 
-/** The complaint the declined dispute becomes: the bank's own register shape, `fraud-handling` category, not upheld. */
+/**
+ * The complaint the declined dispute becomes: the bank's own register shape,
+ * `fraud-handling` category, not upheld — an appeal (WP145, `fs-bank`'s
+ * `appealHandoff`), the customer contesting the decline.
+ */
 const complaintHandoff = (state: WorldState): StageHandoff => {
 	const { bank, disputes } = desk(state).extra;
-	const summary = `Dispute of ${disputesStrings.money(disputes.claim.amount)} to ${disputes.claim.merchant} declined as a fraud claim: ${disputes.claim.customerSays}`;
-	return {
-		handoff: 'fs-advice/complaints',
-		item: {
-			id: `complaint-from-${disputes.claim.transactionId}`,
-			kind: 'complaint',
-			customerId: bank.customer.id,
-			arrivedAt: '1970-01-01T00:00:00.000Z',
-			payload: {
-				complaint: {
-					id: `cmp-${disputes.claim.transactionId}`,
-					customerId: bank.customer.id,
-					openedDay: 0,
-					category: 'fraud-handling',
-					summary,
-					status: 'open'
-				},
-				customer: bank.customer
-			},
-			truth: {
-				records: [
-					{
-						id: `complaint-truth-${disputes.claim.transactionId}`,
-						kind: 'complaint-outcome',
-						title: 'What the register says',
-						fields: { category: 'fraud-handling', upheld: false }
-					}
-				],
-				facts: { category: 'fraud-handling', upheld: false }
-			}
-		}
-	};
+	return appealHandoff({
+		caseId: disputes.claim.transactionId,
+		customer: bank.customer,
+		category: 'fraud-handling',
+		summary: `Dispute of ${disputesStrings.money(disputes.claim.amount)} to ${disputes.claim.merchant} declined as a fraud claim: ${disputes.claim.customerSays}`
+	});
 };
 
 // ── The rules ──────────────────────────────────────────────────────────
@@ -368,6 +348,8 @@ export const DISPUTES_STAGES: StageSpec[] = [
 	{
 		id: 'intake',
 		name: names.intake,
+		// WP145: vulnerability detection at the door — the bank's support-need reader, annotating.
+		guards: { components: [VULNERABILITY_AT_THE_DOOR] },
 		input: ITEM_INPUT,
 		output: INTAKE_OUTPUT,
 		executor: rule('intake-v1'),

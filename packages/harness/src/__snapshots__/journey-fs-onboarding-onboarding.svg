@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1684 332" width="1684" height="332" role="img" aria-labelledby="journey-title" font-family="system-ui, sans-serif" font-size="11" fill="currentColor" stroke="currentColor">
-<title id="journey-title">The onboarding journey: Application (the rules), Identity (the assistant), Screening (the assistant), Decision (the assistant), Risk rating (the rules), Decision recorded (the rules), Four eyes (a colleague), Account open (the assistant), Welcome (the assistant). Edges: application to identity; identity to screening on true; identity to decision on false; screening to risk-rating on clear / match; decision to record on approve / decline / refer; risk-rating to decision on low / medium / high; record to confirm on depends on the case; confirm to open on confirm; confirm to end on return; open to welcome; welcome to end.</title>
+<title id="journey-title">The onboarding journey: Application (the rules), Identity (the assistant), Screening (the assistant), Decision (the assistant), Risk rating (the rules), Decision recorded (the rules), Four eyes (a colleague), Account open (the assistant), Welcome (the assistant). Edges: application to identity; identity to screening on true; identity to decision on false; screening to risk-rating on clear / match; decision to record on approve / decline / refer; risk-rating to decision on low / medium / high; record to confirm on depends on the case; record to end on depends on the case; record to handoff:fs-advice/complaints on depends on the case; confirm to open on confirm; confirm to end on return; open to welcome; welcome to end.</title>
 <style>.lane{fill:none;stroke-opacity:.35}.lane-label{stroke:none;font-weight:700}.edge{fill:none;stroke-width:1.5}.edge--case{stroke-dasharray:4 3}.edge--taken{stroke-width:3}.edge-label{stroke:none}.node{fill:none;stroke-width:1.5}.node--lit{stroke-width:3}.node--irreversible{stroke-dasharray:2 2}.node-label{stroke:none;text-anchor:middle}.point{fill:none;stroke-width:1.5}.end{stroke-width:3}</style>
 <rect class="lane lane--assistant" x="0" y="16" width="1684" height="100"/>
 <text class="lane-label" x="8" y="32">the assistant</text>
@@ -20,6 +20,10 @@
 <text class="edge-label" x="728" y="316" text-anchor="middle">low / medium / high</text>
 <path class="edge edge--case" d="M975 266 H1028 V166 H1081" data-edge="record-&gt;confirm"/>
 <text class="edge-label" x="1034" y="212" text-anchor="start">depends on the case</text>
+<path class="edge edge--case" d="M975 266 H1028 V228 H1549" data-edge="record-&gt;end"/>
+<text class="edge-label" x="1034" y="224" text-anchor="start">depends on the case</text>
+<path class="edge edge--case" d="M975 266 H1676" data-edge="record-&gt;handoff:fs-advice/complaints"/>
+<text class="edge-label" x="1028" y="258" text-anchor="start">depends on the case → fs-advice/complaints</text>
 <path class="edge edge--enumerated" d="M1125 166 H1178 V66 H1231" data-edge="confirm-&gt;open"/>
 <text class="edge-label" x="1184" y="112" text-anchor="start">confirm</text>
 <path class="edge edge--enumerated" d="M1125 166 H1178 V128 H1549" data-edge="confirm-&gt;end"/>
@@ -45,6 +49,7 @@
 <text class="node-label" x="1253" y="102">Account open</text>
 <circle class="node node--agent" cx="1403" cy="66" r="22" data-stage="welcome"/>
 <text class="node-label" x="1403" y="102">Welcome</text>
+<rect class="point point--stage-in" x="164" y="261" width="10" height="10" data-point="boundary:application:stage-in"/>
 <circle class="point point--pre-think" cx="339" cy="34" r="5" data-point="loop:identity:pre-think"/>
 <circle class="point point--pre-act" cx="353" cy="34" r="5" data-point="loop:identity:pre-act"/>
 <circle class="point point--post-act" cx="367" cy="34" r="5" data-point="loop:identity:post-act"/>

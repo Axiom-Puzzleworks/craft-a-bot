@@ -5,7 +5,7 @@ import {
 	type DeskWorldSpec
 } from '@craftabot/desk';
 import type { WorkItem } from '@craftabot/core';
-import { bankContextRecords } from '@craftabot/pack-fs-bank';
+import { bankContextRecords, discloseOnce } from '@craftabot/pack-fs-bank';
 import { z } from 'zod';
 import { lendingStrings } from '../strings.js';
 import {
@@ -296,7 +296,7 @@ export const lendingDeskSpec: DeskWorldSpec<LendingExtra> = {
 				text: z.string().min(1).describe(lendingStrings.actions.explainDecision.text)
 			}),
 			riskTier: 'observe',
-			perform: (state, args) => {
+			perform: (state, args, ctx) => {
 				const { reasons, text } = args as { reasons: string[]; text: string };
 				const decision = state.extra.lending.decision;
 				if (!decision) return { ok: false, narration: lendingStrings.narration.nothingToExplain };
@@ -307,6 +307,8 @@ export const lendingDeskSpec: DeskWorldSpec<LendingExtra> = {
 						state.extra.lending.explained.push(reason);
 				}
 				state.extra.ledger.notes.push(text);
+				// WP145: a decline's reasons go with the right to have it looked at again.
+				if (decision.outcome === 'decline') discloseOnce(state, ctx, 'lending/review-right');
 				return { ok: true, narration: lendingStrings.narration.explained };
 			}
 		},

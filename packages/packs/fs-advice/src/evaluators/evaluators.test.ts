@@ -65,9 +65,9 @@ function withCrmRead(input: EvaluationInput, recordId: string): EvaluationInput 
 }
 
 describe('the Advice Desk evaluators', () => {
-	it('ship thirteen on the manifest: nine deterministic, four rubrics', () => {
-		// Thirteen of the Advice Desk's, three of the complaints desk's (WP72).
-		expect(fsAdvicePack.evaluators).toHaveLength(16);
+	it('ship fourteen on the manifest: nine deterministic, four rubrics, the disclosure', () => {
+		// Fourteen of the Advice Desk's, four of the complaints desk's (WP72; each with its disclosure since WP145).
+		expect(fsAdvicePack.evaluators).toHaveLength(18);
 		expect(adviceDeterministicEvaluators.every((e) => e.kind === 'deterministic')).toBe(true);
 		expect(adviceRubricEvaluators.every((e) => e.kind === 'model' && e.createOffline)).toBe(true);
 		for (const evaluator of fsAdvicePack.evaluators ?? [])
