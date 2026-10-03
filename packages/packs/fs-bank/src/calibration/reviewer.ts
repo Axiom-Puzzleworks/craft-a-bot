@@ -49,12 +49,46 @@ export const REVIEWER_RATES: CalibrationTable = table(
 			source: assumption(),
 			tolerance: 0.05,
 			note: 'A stated assumption (WP156, `111-…` §4): four overrides in five carry a written reason. SS1/23 and the Consumer Duty expect a decision against a model’s recommendation to be recorded with its reason; no public figure gives how often a case handler actually writes one. Read by the `override-reason` gate.'
+		}),
+		row({
+			id: 'reviewer-refuses-approval',
+			kind: 'rates',
+			title: 'A person asked to approve an act says no',
+			distribution: { refuses: 0.08 },
+			source: assumption(),
+			tolerance: 0.03,
+			note: 'A stated assumption (WP171, `112-…` §5): about one approval request in twelve is refused. Until this row a campaign approved every request, so a control that asks a person first could be measured only against someone who never refuses. No public figure gives how often a reviewer declines a four-eyes request; this is set high enough that a refusal happens inside a few hundred cases and low enough that a person is mostly a green light.'
+		}),
+		row({
+			id: 'reviewer-asks-before-answering',
+			kind: 'rates',
+			title: 'A person asked to approve, or to decide, asks a question before they answer',
+			distribution: { asks: 0.12 },
+			source: assumption(),
+			tolerance: 0.03,
+			note: 'A stated assumption (WP171): about one request in eight is met with a question first. At an approval the question denies that attempt once and the same act, proposed again, is answered; at a `human` stage it re-prompts the stage and costs the seconds a second look takes.'
+		}),
+		row({
+			id: 'reviewer-is-late',
+			kind: 'rates',
+			title: 'A person answers after the stage’s deadline',
+			distribution: { late: 0.1 },
+			source: assumption(),
+			tolerance: 0.03,
+			note: 'A stated assumption (WP171): one answer in ten arrives after the stage’s deadline, so the stage is overdue as any late stage is (`stage.overdue`, the `timeliness` gate). Read at a `human` stage with a deadline; at an approval it is recorded on the draw.'
 		})
 	]
 );
 
 /** The bank's reviewer model's id: what a configuration's `reviewer` names. */
 export const CASE_HANDLER_REVIEWER_ID = 'fs-bank/reviewer/case-handler';
+
+/**
+ * The person at an approval (WP171): a case handler who sometimes says no, asks a question first
+ * and is late. A model of its own over the same table, so the case handler's results — every
+ * committed experiment — do not move: only a campaign that names this person meets a refusal.
+ */
+export const PERSON_AT_APPROVAL_REVIEWER_ID = 'fs-bank/reviewer/person-at-approval';
 
 /**
  * **A case handler reviewing another's work** (WP115): the one reviewer model
@@ -72,5 +106,18 @@ export const bankReviewerModels: ReviewerModel[] = [
 		secondsPerCase: { table: 'fs-bank/reviewer', row: 'reviewer-seconds-per-case', key: 'seconds' },
 		// WP156: says why on four overrides in five.
 		reasonRate: { table: 'fs-bank/reviewer', row: 'reviewer-override-reason', key: 'gives' }
+	},
+	{
+		id: PERSON_AT_APPROVAL_REVIEWER_ID,
+		name: 'A case handler who sometimes says no',
+		description:
+			'The case handler, who also refuses one approval in twelve, asks a question first one time in eight and is late one time in ten.',
+		accuracy: { table: 'fs-bank/reviewer', row: 'reviewer-accuracy', key: 'correct' },
+		automationBias: { table: 'fs-bank/reviewer', row: 'reviewer-automation-bias', key: 'follows' },
+		secondsPerCase: { table: 'fs-bank/reviewer', row: 'reviewer-seconds-per-case', key: 'seconds' },
+		reasonRate: { table: 'fs-bank/reviewer', row: 'reviewer-override-reason', key: 'gives' },
+		refuseRate: { table: 'fs-bank/reviewer', row: 'reviewer-refuses-approval', key: 'refuses' },
+		questionRate: { table: 'fs-bank/reviewer', row: 'reviewer-asks-before-answering', key: 'asks' },
+		lateRate: { table: 'fs-bank/reviewer', row: 'reviewer-is-late', key: 'late' }
 	}
 ];

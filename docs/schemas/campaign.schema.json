@@ -1237,6 +1237,10 @@
 				"tier"
 			]
 		},
+		"reviewer": {
+			"type": "string",
+			"minLength": 1
+		},
 		"seeds": {
 			"minItems": 1,
 			"type": "array",

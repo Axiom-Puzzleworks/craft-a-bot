@@ -1,6 +1,16 @@
 import type { EgressMode } from '../egress.js';
 import type { ProviderFault } from '../schemas/scenario.js';
-import type { Principal } from '../schemas/shared.js';
+import type { Principal, ReviewerDrew } from '../schemas/shared.js';
+
+/**
+ * What a modelled person brings to an approval (WP171, `112-REAL-ENOUGH-PLAN.md` §5):
+ * the reason they gave for saying no, and what they drew — written by the session as
+ * `reviewer.drew` before the `approval.resolved` it produced, with the act's name.
+ */
+export interface ApprovalMeta {
+	reason?: string;
+	drew?: Omit<ReviewerDrew, 'proposed'>;
+}
 import type { AnyAgentSpec } from '../schemas/agent-spec-v2.js';
 import type { EngineEvent } from '../schemas/events.js';
 import type { TickMemory } from '../session/memory.js';
@@ -52,7 +62,11 @@ export interface AgentSession {
 	start(mode: RunMode): void;
 	step(): Promise<TickResult>;
 	pause(): void;
-	resolveApproval(approved: boolean, by?: Principal): void;
+	/**
+	 * Answer the pending approval. `meta` (WP171) is what a modelled person drew: the session
+	 * writes it as `reviewer.drew` before `approval.resolved`, and the reason with the answer.
+	 */
+	resolveApproval(approved: boolean, by?: Principal, meta?: ApprovalMeta): void;
 	/**
 	 * Change the play-mode delay between ticks *while the run is going*
 	 * (`16-…` §1.6). The loop reads it each time round, so the next gap is the

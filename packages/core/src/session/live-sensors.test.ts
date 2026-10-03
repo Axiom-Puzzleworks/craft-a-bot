@@ -130,6 +130,73 @@ const decide = turn('Deciding.', 'decide', { outcome: 'decline' });
 const of = (events: EngineEvent[], type: EngineEvent['type']) =>
 	events.find((event) => event.type === type)?.payload as Record<string, unknown> | undefined;
 
+describe('a modelled person at an approval (WP171)', () => {
+	const pause = {
+		id: 'live/ask',
+		name: 'Ask',
+		description: 'Asks a person before deciding.',
+		hooks: ['pre-act' as const],
+		check: () => ({ pause: true as const, reason: 'Over the limit.' })
+	};
+	async function answered(
+		approved: boolean,
+		meta?: Parameters<ReturnType<typeof createSession>['resolveApproval']>[2]
+	) {
+		const clock = createTestClock();
+		const events: EngineEvent[] = [];
+		const session = createSession({
+			spec,
+			registry: registry(),
+			provider: createMockProvider({ script: [decide] }),
+			guardrails: [pause],
+			options: { now: clock.now, newId: clock.newId, random: clock.random }
+		});
+		session.events.onAny((event) => events.push(event));
+		session.events.on('approval.requested', () =>
+			session.resolveApproval(approved, { kind: 'person', id: 'p1', name: 'R. Viewer' }, meta)
+		);
+		await session.step();
+		return events;
+	}
+
+	it('writes what the person drew before the answer it produced, naming the act, with the reason', async () => {
+		const events = await answered(false, {
+			reason: 'I would like to ask the customer first.',
+			drew: {
+				model: 'fs-bank/reviewer/person-at-approval',
+				rates: { accuracy: 0.95, automationBias: 0.3, refuseRate: 0.1, questionRate: 0.15 },
+				path: 'asked',
+				rolls: [0.04],
+				seconds: 120
+			}
+		});
+		const types = events.map((event) => event.type);
+		expect(types.indexOf('reviewer.drew')).toBe(types.indexOf('approval.requested') + 1);
+		expect(types.indexOf('approval.resolved')).toBe(types.indexOf('reviewer.drew') + 1);
+		expect(of(events, 'reviewer.drew')).toMatchObject({
+			proposed: 'decide',
+			path: 'asked',
+			seconds: 120,
+			rates: { refuseRate: 0.1, questionRate: 0.15 }
+		});
+		expect(of(events, 'approval.resolved')).toMatchObject({
+			approved: false,
+			reason: 'I would like to ask the customer first.',
+			by: { name: 'R. Viewer' }
+		});
+		// A refusal is a refusal: the act did not happen.
+		expect(types).not.toContain('action.performed');
+		for (const event of events) expect(() => parseEngineEvent(event)).not.toThrow();
+	});
+
+	it('writes nothing new when the host gives no meta: an approval is as it was', async () => {
+		const events = await answered(true);
+		expect(events.some((event) => event.type === 'reviewer.drew')).toBe(false);
+		expect(of(events, 'approval.resolved')).not.toHaveProperty('reason');
+		expect(events.some((event) => event.type === 'action.performed')).toBe(true);
+	});
+});
+
 describe('the live run’s own sensors (WP160)', () => {
 	it('writes the dials a call went out with on think.started', async () => {
 		const events = await run(decide);

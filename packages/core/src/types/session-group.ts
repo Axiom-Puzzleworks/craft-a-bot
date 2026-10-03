@@ -2,7 +2,13 @@ import type { AnyAgentSpec } from '../schemas/agent-spec-v2.js';
 import type { RunOutcome } from '../schemas/shared.js';
 import type { EventBus, Unsubscribe } from '../event-bus.js';
 import type { PackRegistry } from '../pack-registry.js';
-import type { AgentSession, RunMode, SessionOptions, SessionStatus } from './agent-session.js';
+import type {
+	AgentSession,
+	ApprovalMeta,
+	RunMode,
+	SessionOptions,
+	SessionStatus
+} from './agent-session.js';
 import type { Guardrail } from './guardrail.js';
 import type { LLMProvider } from './provider.js';
 import type { AgentRole, WorldInstance } from './world.js';
@@ -87,7 +93,7 @@ export interface SessionGroup {
 	stepRound(): Promise<{ round: number; outcome?: RunOutcome }>;
 	pause(): void;
 	/** Resolves the named agent's own pending approval — approvals stay per-agent. `by` names who answered (WP65). */
-	resolveApproval(agentId: string, approved: boolean, by?: Principal): void;
+	resolveApproval(agentId: string, approved: boolean, by?: Principal, meta?: ApprovalMeta): void;
 	stop(reason?: string): void;
 	/** Reaches the shared world once, through whichever member is still live (§4.4). */
 	deliverInput(text: string): void;

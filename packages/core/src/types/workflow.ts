@@ -202,6 +202,12 @@ export interface ReviewerModel {
 	 * row (WP156, `111-…` §4). Absent, an override carries no reason, as before.
 	 */
 	reasonRate?: CalibrationRef;
+	/** P(they say no at an approval): a `rates` row (WP171). Absent, they never refuse. */
+	refuseRate?: CalibrationRef;
+	/** P(they ask a question before answering): a `rates` row (WP171). Absent, they never ask. */
+	questionRate?: CalibrationRef;
+	/** P(they are late — past a stage's deadline): a `rates` row (WP171). Absent, they never are. */
+	lateRate?: CalibrationRef;
 }
 
 export interface WorkflowSpec {

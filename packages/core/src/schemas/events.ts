@@ -30,6 +30,7 @@ import {
 	usageSchema,
 	boundaryVerdictSchema,
 	reviewerAnswerSchema,
+	reviewerDrewSchema,
 	seatLineSchema,
 	verdictFindingSchema
 } from './shared.js';
@@ -509,21 +510,7 @@ const disclosureGivenEvent = eventSchema(
  * planted fault by what was drawn, not by the absence of one. Written beside
  * the stage's `stage.completed`, whose `by` carries the answer.
  */
-const reviewerDrewEvent = eventSchema(
-	'reviewer.drew',
-	z.object({
-		workflowRunId: z.string(),
-		stageId: z.string(),
-		model: z.string(),
-		rates: z.object({
-			accuracy: z.number(),
-			automationBias: z.number(),
-			reasonRate: z.number().optional()
-		}),
-		path: z.enum(['took-recommendation', 'accurate', 'slipped']),
-		rolls: z.array(z.number())
-	})
-);
+const reviewerDrewEvent = eventSchema('reviewer.drew', reviewerDrewSchema);
 const stageOverdueEvent = eventSchema(
 	'stage.overdue',
 	z.object({

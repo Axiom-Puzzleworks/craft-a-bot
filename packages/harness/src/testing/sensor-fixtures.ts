@@ -11,6 +11,7 @@ import {
 	toSpecV2,
 	type AgentSpec,
 	type AgentSpecV2,
+	type ApprovalMeta,
 	type BrickKindDefinition,
 	type EngineEvent,
 	type Guardrail,
@@ -249,7 +250,7 @@ interface TinyRun {
 	providerFaults?: ProviderFault[];
 	budgets?: { maxTicks?: number };
 	/** Answers an approval; absent, nobody is asked. */
-	approve?: { approved: boolean; by?: Principal };
+	approve?: { approved: boolean; by?: Principal; meta?: ApprovalMeta };
 }
 
 function tinySession(run: TinyRun, events: EngineEvent[]) {
@@ -272,8 +273,8 @@ function tinySession(run: TinyRun, events: EngineEvent[]) {
 	});
 	session.events.onAny((event) => events.push(event));
 	if (run.approve) {
-		const { approved, by } = run.approve;
-		session.events.on('approval.requested', () => session.resolveApproval(approved, by));
+		const { approved, by, meta } = run.approve;
+		session.events.on('approval.requested', () => session.resolveApproval(approved, by, meta));
 	}
 	return session;
 }
@@ -483,7 +484,21 @@ async function guardChain(): Promise<SensorFixture> {
 			],
 			guardrails: [hosted, failClosed, redactor, quarantine, elevate],
 			principal: SERVICE,
-			approve: { approved: true, by: PERSON },
+			// A modelled person (WP171): what they drew at the approval is written beside the answer.
+			approve: {
+				approved: true,
+				by: PERSON,
+				meta: {
+					drew: {
+						model: 'sensors/reviewer',
+						rates: { accuracy: 1, automationBias: 0, refuseRate: 0.1, lateRate: 0.1 },
+						path: 'approved',
+						rolls: [0.4, 0.7],
+						seconds: 60,
+						late: true
+					}
+				}
+			},
 			budgets: { maxTicks: 5 }
 		},
 		events
@@ -510,7 +525,11 @@ async function guardChain(): Promise<SensorFixture> {
 			'elevation.requested',
 			'elevation.resolved',
 			'elevation.resolved.by',
-			'approval.resolved.by'
+			'approval.resolved.by',
+			'reviewer.drew',
+			'reviewer.drew.proposed',
+			'reviewer.drew.late',
+			'reviewer.drew.seconds'
 		],
 		events
 	};

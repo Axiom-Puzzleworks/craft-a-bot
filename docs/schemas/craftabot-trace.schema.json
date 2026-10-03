@@ -1834,6 +1834,9 @@
 									"stageId": {
 										"type": "string"
 									},
+									"proposed": {
+										"type": "string"
+									},
 									"model": {
 										"type": "string"
 									},
@@ -1848,6 +1851,15 @@
 											},
 											"reasonRate": {
 												"type": "number"
+											},
+											"refuseRate": {
+												"type": "number"
+											},
+											"questionRate": {
+												"type": "number"
+											},
+											"lateRate": {
+												"type": "number"
 											}
 										},
 										"required": [
@@ -1860,7 +1872,10 @@
 										"enum": [
 											"took-recommendation",
 											"accurate",
-											"slipped"
+											"slipped",
+											"approved",
+											"refused",
+											"asked"
 										]
 									},
 									"rolls": {
@@ -1868,11 +1883,17 @@
 										"items": {
 											"type": "number"
 										}
+									},
+									"late": {
+										"type": "boolean",
+										"const": true
+									},
+									"seconds": {
+										"type": "number",
+										"minimum": 0
 									}
 								},
 								"required": [
-									"workflowRunId",
-									"stageId",
 									"model",
 									"rates",
 									"path",
@@ -3990,6 +4011,14 @@
 											"reason": {
 												"type": "string",
 												"minLength": 1
+											},
+											"asked": {
+												"type": "boolean",
+												"const": true
+											},
+											"late": {
+												"type": "boolean",
+												"const": true
 											}
 										},
 										"required": [

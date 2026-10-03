@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { createPackRegistry } from '@craftabot/core';
 import {
+	ASKED_REASON,
+	REFUSED_REASON,
+	approvalAnswerDrawn,
+	createApprover,
+	namesPersonRates,
 	overrideReason,
+	personAtStage,
 	recommendationIn,
 	resolveReviewer,
 	reviewerAnswer,
@@ -252,5 +258,113 @@ describe('the reviewer model (WP115)', () => {
 		});
 		expect(() => resolveReviewer(registry, 'r/none')).toThrow(/no reviewer model/);
 		expect(() => resolveReviewer(registry, 'r/broken')).toThrow(/no probability 'nothing'/);
+	});
+});
+
+/**
+ * **The person at an approval** (WP171, `112-REAL-ENOUGH-PLAN.md` §5): says no
+ * at the refuse row's rate, asks a question first at the question row's, is
+ * late at the late row's — each reproduced within its Wilson interval — and a
+ * model naming none of the three approves every time.
+ */
+const person = (rates: {
+	refuse?: number;
+	question?: number;
+	late?: number;
+}): ResolvedReviewer => ({
+	...model(1, 0),
+	...(rates.refuse !== undefined ? { refuseRate: rates.refuse } : {}),
+	...(rates.question !== undefined ? { questionRate: rates.question } : {}),
+	...(rates.late !== undefined ? { lateRate: rates.late } : {})
+});
+
+describe('the person at an approval (WP171)', () => {
+	it('a model naming none of the three rates approves every time, and makes the one seconds roll', () => {
+		expect(namesPersonRates(model(1, 0))).toBe(false);
+		for (let i = 0; i < 300; i += 1) {
+			const draw = approvalAnswerDrawn(model(1, 0), reviewerRandom(1, `item-${i}`, 'approvals', 0));
+			expect(draw).toMatchObject({ approved: true, path: 'approved', late: false });
+			expect(draw.rolls).toHaveLength(1);
+			expect(draw).not.toHaveProperty('reason');
+		}
+	});
+
+	it('refuses at the refuse rate, asks first at the question rate, and is late at the late rate', () => {
+		let refused = 0;
+		let asked = 0;
+		let late = 0;
+		let approved = 0;
+		for (let i = 0; i < N; i += 1) {
+			const draw = approvalAnswerDrawn(
+				person({ refuse: 0.2, question: 0.1, late: 0.3 }),
+				reviewerRandom(2, `item-${i}`, 'approvals', 0)
+			);
+			if (draw.path === 'refused') refused += 1;
+			if (draw.path === 'asked') asked += 1;
+			if (draw.path === 'approved') approved += 1;
+			if (draw.late) late += 1;
+			expect(draw.approved).toBe(draw.path === 'approved');
+		}
+		// A question is drawn first (0.1); a refusal only among the rest (0.9 × 0.2).
+		expect(within(asked, N, 0.1)).toBe(true);
+		expect(within(refused, N, 0.9 * 0.2)).toBe(true);
+		expect(within(approved, N, 0.9 * 0.8)).toBe(true);
+		expect(within(late, N, 0.3)).toBe(true);
+	});
+
+	it('says what it said when it did not say yes, in the same words every time', () => {
+		const refuses = approvalAnswerDrawn(person({ refuse: 1 }), () => 0);
+		expect(refuses).toMatchObject({ approved: false, path: 'refused', reason: REFUSED_REASON });
+		const asks = approvalAnswerDrawn(person({ question: 1 }), () => 0);
+		expect(asks).toMatchObject({ approved: false, path: 'asked', reason: ASKED_REASON });
+		// Asked once: the second time the same act is proposed, the question is skipped.
+		const second = approvalAnswerDrawn(person({ question: 1 }), () => 0.99, { alreadyAsked: true });
+		expect(second).toMatchObject({ approved: true, path: 'approved' });
+	});
+
+	it('is the same draw for the same run, item and stream, and adding a rate moves no earlier draw', () => {
+		const draw = (rates: Parameters<typeof person>[0]) =>
+			approvalAnswerDrawn(person(rates), reviewerRandom(5, 'x', 'approvals', 0));
+		expect(draw({ refuse: 0.5, late: 0.5 })).toEqual(draw({ refuse: 0.5, late: 0.5 }));
+		// Naming only the late rate leaves the approval and the seconds exactly as a model naming nothing draws them.
+		const bare = approvalAnswerDrawn(model(1, 0), reviewerRandom(5, 'x', 'approvals', 0));
+		expect(draw({ late: 0 }).seconds).toBe(bare.seconds);
+		expect(draw({ late: 0 }).approved).toBe(true);
+	});
+
+	it('the approver asks about each act once, answers the same act when it is proposed again, and carries what it drew', () => {
+		const approve = createApprover(person({ question: 1, refuse: 0 }), () => 0);
+		const first = approve({ name: 'decide', arguments: { outcome: 'decline' } });
+		expect(first).toMatchObject({ approved: false, by: { kind: 'person' } });
+		expect(first.meta).toMatchObject({
+			reason: ASKED_REASON,
+			drew: { path: 'asked', rates: { questionRate: 1, refuseRate: 0 } }
+		});
+		const again = approve({ name: 'decide', arguments: { outcome: 'decline' } });
+		expect(again.approved).toBe(true);
+		expect(again.meta.drew?.path).toBe('approved');
+		// A different act is a different proposal: it is asked about too.
+		expect(approve({ name: 'decide', arguments: { outcome: 'approve' } }).approved).toBe(false);
+	});
+
+	it('at a stage the person may ask a question first and be late, from a stream of their own', () => {
+		let asked = 0;
+		let late = 0;
+		for (let i = 0; i < N; i += 1) {
+			const drawn = personAtStage(
+				person({ question: 0.25, late: 0.4 }),
+				reviewerRandom(3, `item-${i}`, 'decide#person', 0)
+			);
+			if (drawn.asked) {
+				asked += 1;
+				expect(drawn.extraSeconds).toBeGreaterThan(0);
+			} else expect(drawn.extraSeconds).toBe(0);
+			if (drawn.late) late += 1;
+		}
+		expect(within(asked, N, 0.25)).toBe(true);
+		expect(within(late, N, 0.4)).toBe(true);
+		// A model naming neither asks nothing and is never late.
+		const none = personAtStage(model(1, 0), () => 0);
+		expect(none).toEqual({ asked: false, late: false, extraSeconds: 0, rolls: [] });
 	});
 });

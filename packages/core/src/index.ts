@@ -6,6 +6,7 @@
 // Types (hand-written interfaces — 02-AGENT-MODEL.md §6, 06 §2, 08 §2, 02 §4)
 export type {
 	AgentSession,
+	ApprovalMeta,
 	CreateSession,
 	CreateSessionDeps,
 	SessionOptions,
@@ -591,7 +592,12 @@ export {
 /** Error models and the fallible tier (WP115, `103-FALLIBLE-ACTORS.md` §5). */
 export type { CalibrationRef, DecisionFaultSpec, ErrorModel } from './types/error-model.js';
 export type { ReviewerModel } from './types/workflow.js';
-export { reviewerAnswerSchema, type ReviewerAnswer } from './schemas/shared.js';
+export {
+	reviewerAnswerSchema,
+	reviewerDrewSchema,
+	type ReviewerAnswer,
+	type ReviewerDrew
+} from './schemas/shared.js';
 export type { Reader, ReaderContext } from './types/reader.js';
 export {
 	annotatorSchema,
