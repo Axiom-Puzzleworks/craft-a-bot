@@ -29,7 +29,13 @@ const PLANTED = {
 	CRAFTABOT_CREDENTIAL_GEMINI: 'AIzaPlantedGemini0123456789',
 	CRAFTABOT_CREDENTIAL_GEAP: 'ya29.planted-geap-token-0123456789',
 	// WP70 (`58-…` §4.4): the evidence store's workspace token.
-	CRAFTABOT_CREDENTIAL_EVIDENCE_SUPABASE: 'eyJ.planted-workspace-token.0123456789'
+	CRAFTABOT_CREDENTIAL_EVIDENCE_SUPABASE: 'eyJ.planted-workspace-token.0123456789',
+	// WP162 (`112-REAL-ENOUGH-PLAN.md` §5): the live smoke scripts' own secrets, and an AWS key pair (each half is scrubbed too).
+	OPENAI_API_KEY: 'sk-planted-smoke-openai-0123456789abcdef',
+	GEAP_ACCESS_TOKEN: 'ya29.planted-smoke-geap-token-0123456789',
+	AZURE_CONTENT_SAFETY_KEY: 'azure-planted-smoke-key-0123456789',
+	LAKERA_GUARD_KEY: 'lakera-planted-smoke-key-0123456789',
+	CRAFTABOT_CREDENTIAL_AWS_BEDROCK: 'AKIAPLANTEDEXAMPL:plantedBedrockSecretAccessKey0123456789'
 };
 /** The anon key is configuration, publishable by design — planted all the same (`58-…` §2 item 4). */
 const PLANTED_ANON_KEY = 'sb_publishable_planted_anon_0123456789';
@@ -55,7 +61,7 @@ describe('the harness never writes or prints a credential', () => {
 
 		const credentials = credentialsFromEnv(PLANTED);
 		// Every declared credential is planted — the sweep is only as good as its list.
-		expect(credentials.secrets()).toHaveLength(Object.keys(PLANTED).length);
+		expect(credentials.secrets().length).toBeGreaterThanOrEqual(Object.keys(PLANTED).length);
 
 		let printed = '';
 		const io = {
@@ -95,6 +101,26 @@ describe('the harness never writes or prints a credential', () => {
 					io
 				)
 			).toBe(0);
+		// The OTel spans (WP162): the run as a trace file for a collector, swept like every other file.
+		expect(
+			await main(
+				[
+					'export',
+					'--run',
+					report.runId,
+					'--sink',
+					'telemetry/file',
+					'--sink-config',
+					JSON.stringify({ path: join(root, 'spans.jsonl') }),
+					'--out',
+					out
+				],
+				io
+			)
+		).toBe(0);
+		// And the keys check, which names credentials by id and must never say one.
+		expect(await main(['keys', 'check'], io)).toBe(0);
+		expect(await main(['keys', 'check', '--json'], io)).toBe(0);
 		expect(await main(['packs'], io)).toBe(0);
 		// A push and a pull refused by the egress guard (WP70): neither may echo the token or the anon key.
 		const storeConfig = JSON.stringify({

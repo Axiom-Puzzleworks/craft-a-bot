@@ -1,16 +1,16 @@
-#unundefinedefinedundefinedraftundefinedundefined undefinedot — Design Day 2
+# Craft A Bot — Design Day 2
 
-> **undefinedhe standalone Day 2 design set** (2026undefined08undefinedundefined3)undefined undefinedhis folder contains everything needed to take the project forward froundefined Vundefined.0: verbatim copies of the Day undefined baseline (00–11, each with a status banner) plus the new Day 2 documents (12–19) and the professionalundefinedmode mock-up. Where a Day 2 document and its Day 1 counterpart differ, **Day 2 wins**; the banners at the top of each copied file say exactly what supersedes what.
+> **The standalone Day 2 design set** (2026-08-13). This folder contains everything needed to take the project forward from V1.0: verbatim copies of the Day 1 baseline (00–11, each with a status banner) plus the new Day 2 documents (12–19) and the professional-mode mock-up. Where a Day 2 document and its Day 1 counterpart differ, **Day 2 wins**; the banners at the top of each copied file say exactly what supersedes what.
 
-## undefinedhe seven Day 2 workstreams → documents
+## The seven Day 2 workstreams → documents
 
-undefined # undefined Workstream (undefinedndrew's brief) | Document |
+| # | Workstream (Andrew's brief) | Document |
 |---|---|---|
-| — | Ground truth: what V1.0 is, why the bot underperforms, the defect register | undefined12-CUundefinedRundefinedundefinedT-undefinedTATundefined-AundefinedSESSMEundefinedT.mdundefined |
+| — | Ground truth: what V1.0 is, why the bot underperforms, the defect register | `12-CURRENT-STATE-ASSESSMENT.md` |
 | 1 | Systematically test each brick's design, config, interactions and sandbox behaviour | `13-BRICK-TEST-STRATEGY.md` |
 | 2 | Validated target reference design for every brick (current + roadmap) and the v2 data structures — the rock-solid baseline | `14-BRICK-REFERENCE-DESIGNS.md` |
-| 3 | UI/UX architecture covering the teaching aid **and** the professional toolkit on one engine | `15-UIUX-DUAundefined-MundefinedDE.md` |
-| 4 | Substantially improve the My Very First Agent UI/UX (priority) | `16-TEACHING-AID-UIUX-IMundefinedRundefinedVEMENTS.md` |
+| 3 | UI/UX architecture covering the teaching aid **and** the professional toolkit on one engine | `15-UIUX-DUAL-MODE.md` |
+| 4 | Substantially improve the My Very First Agent UI/UX (priority) | `16-TEACHING-AID-UIUX-IMPROVEMENTS.md` |
 | 5 | Professional-mode UI design + mock-up | `17-PRO-MODE-UI-DESIGN.md` + `mockups/pro-mode-mockup.html` |
 | 6 | Prioritised, phased functionality roadmap; expansion packs; the ages 5–11 kit line (stopping before AI Architect) | `18-DAY2-ROADMAP.md` |
 | 7 | State of the art in AI governance/safety/monitoring/assurance/telemetry — the control catalogue | `19-AI-SAFETY-GOVERNANCE-REFERENCE.md` |
@@ -23,7 +23,7 @@ undefined # undefined Workstream (undefinedndrew's brief) | Document |
 
 | File | Status |
 |---|---|
-| `00-PROJECT-OVERVIEW.md` … `11-VISUAundefined-ASSET-MANIFEST.md`, `CundefinedAUDE.md` | Day 1 copies with Day 2 status banners |
+| `00-PROJECT-OVERVIEW.md` … `11-VISUAL-ASSET-MANIFEST.md`, `CLAUDE.md` | Day 1 copies with Day 2 status banners |
 | `12-CURRENT-STATE-ASSESSMENT.md` | **New** — findings, root causes C1–C8, defect register D1–D17/T1–T5 |
 | `13-BRICK-TEST-STRATEGY.md` | **New** — L0–L5 test pyramid, per-brick charters, eval harness, conformance kit |
 | `14-BRICK-REFERENCE-DESIGNS.md` | **New** — open brick contract, engine evolutions E1–E12, six reference designs, eight roadmap bricks, multi-agent architecture, v2 schemas |
@@ -67,6 +67,7 @@ undefined # undefined Workstream (undefinedndrew's brief) | Document |
 | `106-BENCHMARK.md` | WP122–WP124 (Phase AG): the adversarial vocabulary and seven adversarial corpora, the benchmark across every connectable guard, the bespoke four (marking, taint, the quarantined reader, the red-team seat) |
 | `107-THE-GATE.md` | WP127, WP128 (Phase AH): `@craftabot/gate`, a stack over the chat-completions wire; the identity test; the gated example and the Gate's day as a bundle |
 | `110-CONTROL-SUITE-PLAN.md` | **New (2026-10-01)** — the control suite: the current offering across the catalogue, the runtime, the desks and the assurance surfaces; gaps G91–G118; the target of one Control Inventory with eight folded facets per control instance; Phases AJ–AN, WP132–WP150, the forward plan; §5's five decisions settled |
+| `112-REAL-ENOUGH-PLAN.md` | **The current forward plan** (written and reviewed 2026-10-02) — real enough: the synthetic bank assessed against a UK retail bank's workflows, actors, world, test data, sensors and controls (§2); gaps G128–G165 (§3); Phases AR–AY, WP159–WP188 (§5): the record made complete (Phase AR: the Sensor Inventory and its coverage test, the live run's own sensors, the story), the lights on, live actors, the data made wide, the payments desk, the bank among agents, the exit; decisions D1–D13 (§6); the fourteen tests that follow the sprint (§9). **Phase AR is built** (WP159–WP161); Phase AS's WP162 is built, and WP163–WP167 wait on keys |
 | `111-TESTABLE-CONTROLS-PLAN.md` | **New (2026-10-02)** — testable controls, after Phase AN's exit review: the five agent-security attacks carried by scenarios through the Playroom's existing doors, an error model per remaining desk, the complaints error diagnosed and carded, reasons from the reviewer, the Gate's presets measured; gaps G119–G127; Phases AO–AQ, WP151–WP158; §5's five decisions with defaults; awaiting review |
 | `109-THE-TAIL-DAY7.md` | WP131 (Phase AI): the five roundels, the Kit's *Sure or unsure* card on the Front Desk's queue and the card's dial, Part I and the PDF, the budgets after Day 7 |
 | `108-READINGS.md` | WP129 (Phase AI): `review` over eight subject kinds, the checks honouring it, `/workshop/readings`, `craftabot readings export` |

@@ -27,6 +27,7 @@ import { ATTACK_QUESTION, GUARD_QUESTION_SET_ID } from '@craftabot/pack-fs-bank'
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { CredentialSource } from '../credentials.js';
+import { refuseSecrets } from './keys.js';
 
 /**
  * **`craftabot benchmark run`** (WP123, `106-BENCHMARK.md` §6): a benchmark
@@ -219,6 +220,7 @@ export async function benchmarkRun(options: BenchmarkRunOptions): Promise<Benchm
 				recordedAt: options.ranAt,
 				entries: entries()
 			};
+			refuseSecrets(cassette, options.credentials.secrets(), `the ${service.id} cassette`);
 			await writeFile(path, JSON.stringify(cassette, null, '\t') + '\n');
 			recorded.push(path);
 		}
@@ -238,6 +240,7 @@ export async function benchmarkRun(options: BenchmarkRunOptions): Promise<Benchm
 				egress: provider.egress ?? [],
 				entries
 			};
+			refuseSecrets(cassette, options.credentials.secrets(), `the ${reader.id} cassette`);
 			await writeFile(path, JSON.stringify(cassette, null, '\t') + '\n');
 			recorded.push(path);
 		}
