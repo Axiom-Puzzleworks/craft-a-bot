@@ -798,6 +798,7 @@ export {
 	type PointKind
 } from './types/guardrail-component.js';
 export {
+	billSchema,
 	byNewestExperimentResult,
 	effectRecordSchema,
 	effectSideSchema,
@@ -807,6 +808,7 @@ export {
 	experimentVerdictSchema,
 	parseExperimentResult,
 	safeParseExperimentResult,
+	type Bill,
 	type EffectRecord,
 	type EffectSide,
 	type ExperimentAxis,

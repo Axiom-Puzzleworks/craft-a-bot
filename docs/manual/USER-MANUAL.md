@@ -2530,6 +2530,12 @@ A uniform error is a coin; a model errs more for some people, nearer the line an
 
 **What it showed.** Over a 12,000-case loan book the cohort model errs more in the youngest and oldest bands than in the middle, and a uniform one does not. The `lending-fairness` experiment, re-run with it, reads no parity effect: its guard comparison has no decided cases on a side, so the metric has nothing to measure. The page says so rather than a number.
 
+## 76. One bill
+
+An experiment used to report cost as separate numbers: tokens, approvals, touches. It can now report **one bill per case, in pounds**: the model’s tokens at a stated price per thousand, and the reviewer’s seconds at a stated hourly cost. The rates are rows in `fs-bank/bill` (assumptions, pending review: a price list is the builder’s to set). `craftabot experiment run | analyse` and the Experiments page price every effect when the bank is installed, and the result’s markdown ends with a *Bill per case* table. The Monitor shows the same figure for its window as *bill / decision*.
+
+The bill reads the hosted price for every token, so a scripted run says what it would cost live; a local cartridge’s power is recorded in the table and not yet folded in. A live brain’s recording is replayed in the Workshop from a cassette the edition serves under `cassettes/`; none is served yet, and a cassette that is missing is an error naming the file, never a stand-in.
+
 # Appendices
 
 ## Appendix A — Screen index

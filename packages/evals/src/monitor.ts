@@ -87,6 +87,8 @@ export interface MonitorOptions {
 	 * sets the seconds the reviewer model's cases demanded against capacity.
 	 */
 	reviewers?: { people: number; secondsPerDay: number } | undefined;
+	/** What a token and a person's hour cost (WP172); with it the readouts carry the window's bill. */
+	bill?: { poundsPerThousandTokens: number; humanPoundsPerHour: number } | undefined;
 }
 
 export interface MonitorRate {
@@ -124,6 +126,12 @@ export interface MonitorReadouts {
 	 * reviewers' accuracy and catch rate; over every run folded: the seconds
 	 * demanded, and — given `reviewers` — the capacity and its utilisation.
 	 */
+	bill?: {
+		modelPounds: number;
+		humanPounds: number;
+		pounds: number;
+		poundsPerDecision: number;
+	};
 	reviewLoad?: {
 		secondsPerCase: MonitorRate;
 		accuracy: MonitorRate;
@@ -244,6 +252,28 @@ export function referenceFromItems(items: readonly WorkItem[]): MonitorReference
 		])
 	) as Record<Decision, number>;
 	return { approvalRate: mix.approve, outcomeMix: mix, verdicts };
+}
+
+/** The window's bill: its tokens at the model's price, its reviewers' seconds at the person's (WP172). */
+function billOver(
+	tokens: number,
+	windowed: readonly TouchedCase[],
+	decided: number,
+	rates: NonNullable<MonitorOptions['bill']>
+): NonNullable<MonitorReadouts['bill']> {
+	const seconds = windowed.reduce(
+		(sum, entry) => sum + (entry.reviews ?? []).reduce((inner, r) => inner + r.seconds, 0),
+		0
+	);
+	const modelPounds = (tokens / 1000) * rates.poundsPerThousandTokens;
+	const humanPounds = (seconds / 3600) * rates.humanPoundsPerHour;
+	const pounds = modelPounds + humanPounds;
+	return {
+		modelPounds,
+		humanPounds,
+		pounds,
+		poundsPerDecision: decided === 0 ? 0 : pounds / decided
+	};
 }
 
 /** The window's review rates and the fold's demand against the reviewers' capacity over the days folded (WP115). */
@@ -488,7 +518,8 @@ export function foldMonitor(runs: readonly MonitorRun[], options: MonitorOptions
 		ceilingDecisions,
 		breaches,
 		ceilingBreachRate: rate(breaches, ceilingDecisions),
-		...(reviewed ? { reviewLoad: reviewLoadOf(touched, allTouched, options) } : {})
+		...(reviewed ? { reviewLoad: reviewLoadOf(touched, allTouched, options) } : {}),
+		...(options.bill ? { bill: billOver(tokens, touched, decided, options.bill) } : {})
 	};
 
 	// Buckets: one per simulated hour across the window of days; every run counts, not only the window's.

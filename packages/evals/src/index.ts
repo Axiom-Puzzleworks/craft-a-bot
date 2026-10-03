@@ -246,6 +246,9 @@ export { counterpartScriptFor, counterpartSpec, deskFor } from './counterpart-se
 /** Experiments (WP89, `72-EXPERIMENTS.md`): the design, its expansion to campaigns, the analysis into effects, the markdown. */
 export {
 	analyseExperiment,
+	billOf,
+	billRatesFrom,
+	type BillRates,
 	campaignFor,
 	campaignIdFor,
 	effectSign,

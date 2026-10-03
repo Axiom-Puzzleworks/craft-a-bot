@@ -9,6 +9,7 @@ import { CALIBRATION } from './table.js';
 import { DECK_WEIGHTS } from './deck-weights.js';
 import { BOOK_INCIDENCES, everyNth } from './book-incidences.js';
 import { ERROR_RATES } from './error-rates.js';
+import { BILL_RATES } from './bill.js';
 import { CASE_HANDLER_REVIEWER_ID, REVIEWER_RATES, bankReviewerModels } from './reviewer.js';
 import legacy from './legacy-digests.json' with { type: 'json' };
 
@@ -335,7 +336,7 @@ describe('the Phase AA books’ incidences (WP112)', () => {
 describe('the fallible actors’ rows (WP115)', () => {
 	it('pass checkCalibration as assumptions, every row awaiting review, apart from the population', () => {
 		const cited = new Set(CALIBRATION.rows.map((row) => row.id));
-		for (const table of [ERROR_RATES, REVIEWER_RATES]) {
+		for (const table of [ERROR_RATES, REVIEWER_RATES, BILL_RATES]) {
 			expect(checkCalibration(table)).toEqual([]);
 			expect(table.rows.every((row) => row.review === 'pending')).toBe(true);
 			expect(table.rows.every((row) => row.source.kind === 'assumption')).toBe(true);

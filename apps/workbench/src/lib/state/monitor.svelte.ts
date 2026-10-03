@@ -3,6 +3,7 @@ import {
 	foldMonitor,
 	referenceFromItems,
 	type MonitorArrival,
+	type MonitorOptions,
 	type MonitorRun,
 	type MonitorState
 } from '@craftabot/evals';
@@ -53,6 +54,8 @@ export interface MonitorDeps {
 	decisionKindOf?: (
 		workflowId: string
 	) => ((stageId: string, output: unknown) => string | undefined) | undefined;
+	/** What a token and a person's hour cost, when the bank states it (WP172). */
+	bill?: () => MonitorOptions['bill'];
 	/** How many runs Replay folds per tick, and the tick. */
 	replayBatch?: number;
 	replayTickMs?: number;
@@ -106,7 +109,8 @@ export function createMonitor(deps: MonitorDeps) {
 							? arrivals
 							: arrivals.filter((arrival) => clock !== undefined && arrival.at <= clock),
 					...(clock !== undefined ? { now: clock } : {}),
-					...(deps.decisionKindOf ? { decisionKindOf: deps.decisionKindOf } : {})
+					...(deps.decisionKindOf ? { decisionKindOf: deps.decisionKindOf } : {}),
+					...(deps.bill?.() ? { bill: deps.bill() } : {})
 				})
 			: undefined
 	);

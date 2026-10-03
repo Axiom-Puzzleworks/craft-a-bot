@@ -6,7 +6,12 @@
 		type ExperimentResult,
 		type StoredCampaignReport
 	} from '@craftabot/core';
-	import { analyseExperiment, expandExperiment, type Experiment } from '@craftabot/evals';
+	import {
+		analyseExperiment,
+		billRatesFrom,
+		expandExperiment,
+		type Experiment
+	} from '@craftabot/evals';
 	import Lamp from '$lib/components/control-room/Lamp.svelte';
 	import Matrix from '$lib/components/control-room/Matrix.svelte';
 	import Readout from '$lib/components/control-room/Readout.svelte';
@@ -207,7 +212,12 @@
 			const storage = await appStorage();
 			const stored: StoredCampaignReport[] = await storage.listCampaignReports();
 			const reports = reportsFor(experiment, stored);
-			const result = analyseExperiment(experiment, reports, { ranAt: isoAt(Date.now()) });
+			const result = analyseExperiment(experiment, reports, {
+				ranAt: isoAt(Date.now()),
+				bill: billRatesFrom(
+					[registry.getCalibrationTable('fs-bank/bill')].filter((table) => table !== undefined)
+				)
+			});
 			await storage.putExperimentResult(result);
 			pending = undefined;
 			await loadResults();
@@ -441,7 +451,14 @@
 									0
 								)} → {effect.cost.tokensPerCase.treatment.toFixed(0)} per case, approvals {effect.cost.approvalsPerCase.baseline.toFixed(
 									2
-								)} → {effect.cost.approvalsPerCase.treatment.toFixed(2)}.
+								)} → {effect.cost.approvalsPerCase.treatment.toFixed(2)}.{#if effect.cost.bill}
+									Bill per case: £{effect.cost.bill.baseline.pounds.toFixed(4)} → £{effect.cost.bill.treatment.pounds.toFixed(
+										4
+									)}
+									(model £{effect.cost.bill.treatment.modelPounds.toFixed(4)}, people £{effect.cost.bill.treatment.humanPounds.toFixed(
+										4
+									)}).
+								{/if}
 							</li>
 						{/each}
 					</ul>

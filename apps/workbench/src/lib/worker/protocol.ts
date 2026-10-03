@@ -44,6 +44,11 @@ export interface StartCampaign {
 	 * main thread's registry would. Absent, the edition's packs alone.
 	 */
 	local?: PackManifest | undefined;
+	/**
+	 * The provider cassettes the campaign's live brains name, by the path it writes (WP172):
+	 * the page fetched them from the edition; the Worker replays them, as it cannot read a file.
+	 */
+	cassettes?: Record<string, unknown> | undefined;
 }
 
 /**

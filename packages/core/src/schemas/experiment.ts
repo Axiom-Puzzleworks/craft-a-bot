@@ -21,6 +21,16 @@ export const effectSideSchema = z.object({
 });
 export type EffectSide = z.infer<typeof effectSideSchema>;
 
+/** One configuration's bill per case (WP172, `112-REAL-ENOUGH-PLAN.md` §5): what the model cost and what the people did, in one unit. */
+export const billSchema = z.object({
+	tokens: z.number().nonnegative(),
+	modelPounds: z.number().nonnegative(),
+	humanSeconds: z.number().nonnegative(),
+	humanPounds: z.number().nonnegative(),
+	pounds: z.number().nonnegative()
+});
+export type Bill = z.infer<typeof billSchema>;
+
 export const effectRecordSchema = z.object({
 	experimentId: z.string().min(1),
 	metricId: z.string().min(1),
@@ -74,7 +84,9 @@ export const effectRecordSchema = z.object({
 		wallMsPerCase: z.object({ baseline: z.number(), treatment: z.number() }).optional(),
 		/** WP90: the workflow's account per cell — touches a person made, and the share of cells with a ceiling breach. */
 		touchesPerCase: z.object({ baseline: z.number(), treatment: z.number() }).optional(),
-		breachRate: z.object({ baseline: z.number(), treatment: z.number() }).optional()
+		breachRate: z.object({ baseline: z.number(), treatment: z.number() }).optional(),
+		/** WP172: the model's cost and the person's folded into one bill per case, in pounds at the stated rates; absent when the analysis was given none. */
+		bill: z.object({ baseline: billSchema, treatment: billSchema }).optional()
 	}),
 	runIds: z.array(z.string()),
 	reportIds: z.array(z.string())

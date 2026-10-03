@@ -14739,6 +14739,79 @@
 													"baseline",
 													"treatment"
 												]
+											},
+											"bill": {
+												"type": "object",
+												"properties": {
+													"baseline": {
+														"type": "object",
+														"properties": {
+															"tokens": {
+																"type": "number",
+																"minimum": 0
+															},
+															"modelPounds": {
+																"type": "number",
+																"minimum": 0
+															},
+															"humanSeconds": {
+																"type": "number",
+																"minimum": 0
+															},
+															"humanPounds": {
+																"type": "number",
+																"minimum": 0
+															},
+															"pounds": {
+																"type": "number",
+																"minimum": 0
+															}
+														},
+														"required": [
+															"tokens",
+															"modelPounds",
+															"humanSeconds",
+															"humanPounds",
+															"pounds"
+														]
+													},
+													"treatment": {
+														"type": "object",
+														"properties": {
+															"tokens": {
+																"type": "number",
+																"minimum": 0
+															},
+															"modelPounds": {
+																"type": "number",
+																"minimum": 0
+															},
+															"humanSeconds": {
+																"type": "number",
+																"minimum": 0
+															},
+															"humanPounds": {
+																"type": "number",
+																"minimum": 0
+															},
+															"pounds": {
+																"type": "number",
+																"minimum": 0
+															}
+														},
+														"required": [
+															"tokens",
+															"modelPounds",
+															"humanSeconds",
+															"humanPounds",
+															"pounds"
+														]
+													}
+												},
+												"required": [
+													"baseline",
+													"treatment"
+												]
 											}
 										},
 										"required": [

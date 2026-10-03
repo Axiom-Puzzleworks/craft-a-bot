@@ -40,6 +40,8 @@ export interface CampaignRunnerDeps {
 	now?: () => number;
 	/** The page's authored content as the `local` pack (WP130), sent with every campaign so a saved stack resolves in the Worker. */
 	local?: () => PackManifest | undefined;
+	/** The cassettes a campaign's live brains name, fetched from the edition (WP172); absent, a live brain is refused as it always was. */
+	cassettes?: (campaign: unknown) => Promise<Record<string, unknown>>;
 }
 
 let nextQueued = 0;
@@ -93,9 +95,18 @@ export function createCampaignRunner(deps: CampaignRunnerDeps) {
 		const collected: Record<string, Trace> = {};
 		let stores: Promise<void> = Promise.resolve();
 		const local = deps.local?.();
+		let cassettes: Record<string, unknown> | undefined;
+		try {
+			cassettes = deps.cassettes ? await deps.cassettes(entry.campaign) : undefined;
+		} catch (error) {
+			setStatus(entry.id, 'failed', error instanceof Error ? error.message : String(error));
+			current = undefined;
+			return;
+		}
 		job = runCampaignIn(worker, entry.campaign, {
 			// Plain data for the Worker: a `$state` proxy cannot be structured-cloned.
 			...(local ? { local: JSON.parse(JSON.stringify(local)) as PackManifest } : {}),
+			...(cassettes ? { cassettes } : {}),
 			onProgress: (done, total) => {
 				progress = { done, total };
 				cellDoneAt = [...cellDoneAt, now()];

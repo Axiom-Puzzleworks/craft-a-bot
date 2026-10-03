@@ -7,6 +7,7 @@ import { bankControlMap } from './controls/rows.js';
 import { bankServiceLines } from './lines/index.js';
 import { FALLBACK, toldPlainly } from './incident.js';
 import {
+	BILL_RATES,
 	BOOK_INCIDENCES,
 	CALIBRATION,
 	DECK_WEIGHTS,
@@ -42,7 +43,14 @@ const manifest: PackManifest = {
 	// WP106 stage A (`83-…` §6.6.1): the domain spec the journeys page and `checkDomainPack` read.
 	domains: [ukRetailBankingDomain],
 	/** The cited table the population draws from and the design-time weights the decks were built on (WP74, `66-…` §4.1). */
-	calibrations: [CALIBRATION, DECK_WEIGHTS, BOOK_INCIDENCES, ERROR_RATES, REVIEWER_RATES],
+	calibrations: [
+		CALIBRATION,
+		DECK_WEIGHTS,
+		BOOK_INCIDENCES,
+		ERROR_RATES,
+		REVIEWER_RATES,
+		BILL_RATES
+	],
 	// WP115: the person at a review stage, as a model over REVIEWER_RATES.
 	reviewerModels: bankReviewerModels,
 	// WP122 (`106-BENCHMARK.md` §3): the guard question set's keyword baseline, frozen before any adversarial row.
@@ -61,6 +69,7 @@ export default manifest;
 export * from './model.js';
 export { bankCase, type BankCaseOptions } from './generate/case.js';
 export {
+	BILL_RATES,
 	BOOK_INCIDENCES,
 	CALIBRATION,
 	CASE_HANDLER_REVIEWER_ID,

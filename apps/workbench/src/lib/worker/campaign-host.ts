@@ -1,5 +1,6 @@
 import {
 	createPackRegistry,
+	parseProviderCassette,
 	toSpecV2,
 	type AnyAgentSpec,
 	type Book,
@@ -7,6 +8,7 @@ import {
 	type Executor,
 	type ExecutorRecord,
 	type PackManifest,
+	type ProviderCassetteFile,
 	type WorkflowConfig
 } from '@craftabot/core';
 import { createMockProvider } from '@craftabot/core/testing';
@@ -57,6 +59,19 @@ export interface CampaignHostDeps {
 
 class CancelledError extends Error {}
 
+/** The cassettes the page handed over, parsed once, as the runner's synchronous `cassetteFor`. */
+function cassetteFrom(handed: Record<string, unknown>): (path: string) => ProviderCassetteFile {
+	const parsed = new Map<string, ProviderCassetteFile>();
+	return (path) => {
+		const cached = parsed.get(path);
+		if (cached) return cached;
+		if (!(path in handed)) throw new Error(`the cassette ${path} was not handed to the Worker`);
+		const file = parseProviderCassette(handed[path]);
+		parsed.set(path, file);
+		return file;
+	};
+}
+
 export interface CampaignHost {
 	handle(message: WorkerRequest): void;
 }
@@ -76,6 +91,8 @@ export function createCampaignHost(
 				// The page's `local` pack after the edition's (WP130): a saved stack a guard names resolves.
 				packs: start.local ? [...deps.packs, start.local] : deps.packs,
 				plans: deps.plans,
+				// A live brain's recording, from the page (WP172): the Worker replays what it was handed and nothing else.
+				...(start.cassettes ? { cassetteFor: cassetteFrom(start.cassettes) } : {}),
 				...(start.fixed
 					? { now: () => start.fixed?.now ?? '', newId: () => start.fixed?.reportId ?? '' }
 					: {}),

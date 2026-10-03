@@ -1,3 +1,5 @@
+import { base } from '$app/paths';
+import { loadCassettes } from '$lib/worker/cassettes.js';
 import { spawnCampaignWorker } from '$lib/worker/spawn.js';
 import { envelopeFor } from '$lib/workshop/campaign-cells.js';
 import { appStorage } from './app-storage.svelte.js';
@@ -19,5 +21,7 @@ export const campaignRunner = createCampaignRunner({
 	// A book cell's workflow run with its agent runs (WP86): the Pipeline's rows.
 	persistWorkflowRun,
 	// The authored content (WP130): a saved stack a campaign's guard names resolves in the Worker.
-	local: () => contentStore.localPack
+	local: () => contentStore.localPack,
+	// A live brain's recording, served from the edition (WP172).
+	cassettes: (campaign) => loadCassettes(campaign, base)
 });

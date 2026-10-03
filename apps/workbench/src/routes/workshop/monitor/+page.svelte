@@ -524,6 +524,14 @@
 				unit={`${readouts.tokens} tokens`}
 				testId="readout-tokens"
 			/>
+			{#if readouts.bill}
+				<Readout
+					label="bill / decision"
+					value={`£${readouts.bill.poundsPerDecision.toFixed(4)}`}
+					unit={`model £${readouts.bill.modelPounds.toFixed(2)} · people £${readouts.bill.humanPounds.toFixed(2)}`}
+					testId="readout-bill"
+				/>
+			{/if}
 			<Readout label="incidents open" value={readouts.incidentsOpen} testId="readout-incidents" />
 			<Readout
 				label="touches / case"
