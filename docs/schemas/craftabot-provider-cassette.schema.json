@@ -214,6 +214,9 @@
 											},
 											"roll": {
 												"type": "number"
+											},
+											"shaped": {
+												"type": "string"
 											}
 										},
 										"required": [

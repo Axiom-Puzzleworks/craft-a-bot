@@ -590,7 +590,12 @@ export {
 	type CassetteFile
 } from './schemas/cassette.js';
 /** Error models and the fallible tier (WP115, `103-FALLIBLE-ACTORS.md` §5). */
-export type { CalibrationRef, DecisionFaultSpec, ErrorModel } from './types/error-model.js';
+export type {
+	CalibrationRef,
+	DecisionFaultSpec,
+	ErrorModel,
+	FaultShape
+} from './types/error-model.js';
 export type { ReviewerModel } from './types/workflow.js';
 export {
 	reviewerAnswerSchema,

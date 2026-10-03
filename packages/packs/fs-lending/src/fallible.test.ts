@@ -1,11 +1,15 @@
 import type { EngineEvent } from '@craftabot/core';
 import { parseCampaign, runCampaign } from '@craftabot/evals';
 import fsBankPack from '@craftabot/pack-fs-bank';
+import starterPack from '@craftabot/pack-starter';
 import { describe, expect, it } from 'vitest';
 import { lendingBookCampaign } from './campaign.js';
 import fsLendingPack, {
 	DECISION_MATCHES_RULES_ID,
-	LENDING_DECISION_ERROR_MODEL_ID
+	LENDING_DECISION_BY_COHORT_ERROR_MODEL_ID,
+	LENDING_DECISION_ERROR_MODEL_ID,
+	LENDING_DECISION_NEAR_THRESHOLD_ERROR_MODEL_ID,
+	LENDING_DECISION_WHEN_STEERED_ERROR_MODEL_ID
 } from './index.js';
 import { adversaryPlanFor, planFor } from './testing/plans.js';
 
@@ -88,5 +92,77 @@ describe('the fallible tier on the lending book (WP115)', { timeout: 600_000 }, 
 				.filter((cell) => cell.labels[DECISION_MATCHES_RULES_ID] !== undefined)
 				.every((cell) => cell.labels[DECISION_MATCHES_RULES_ID] === 'agree')
 		).toBe(true);
+	});
+});
+
+/**
+ * **Errors shaped like a model's on the lending book** (WP170, `112-REAL-ENOUGH-PLAN.md`
+ * §5): the same decision, wrong at a rate that depends on the applicant's age band, on
+ * how near the rule's line the case sits, or on what the applicant pressed for — and a
+ * book case carries its own truth, so the fallible tier can know which case it has.
+ */
+describe('shaped errors on the lending book (WP170)', { timeout: 600_000 }, () => {
+	const edge = new Set(['18-24', '65-74', '75+']);
+	const middle = new Set(['35-44', '45-54']);
+
+	async function wrongByBand(errorModel: string) {
+		const report = await runCampaign(
+			(() => {
+				const base = lendingBookCampaign({
+					size: 12_000,
+					configurations: ['bot-everywhere']
+				}) as Record<string, unknown>;
+				return parseCampaign({
+					...base,
+					brains: [{ id: 'fallible', tier: 'fallible', errorModel }]
+				});
+			})(),
+			{ packs, plans, ...FIXED }
+		);
+		const rate = (bands: Set<string>) => {
+			const cells = report.cells.filter(
+				(cell) => cell.cohort?.['ageBand'] !== undefined && bands.has(cell.cohort['ageBand'])
+			);
+			const decided = cells.filter((cell) => cell.labels[DECISION_MATCHES_RULES_ID] !== undefined);
+			const wrong = decided.filter((cell) => cell.labels[DECISION_MATCHES_RULES_ID] !== 'agree');
+			return { wrong: wrong.length, of: decided.length, rate: wrong.length / decided.length };
+		};
+		return { report, edge: rate(edge), middle: rate(middle) };
+	}
+
+	it('the cohort model errs more at the edges of the age range than in the middle; the uniform model does not', async () => {
+		const skewed = await wrongByBand(LENDING_DECISION_BY_COHORT_ERROR_MODEL_ID);
+		expect(skewed.edge.of).toBeGreaterThan(90);
+		expect(skewed.middle.of).toBeGreaterThan(90);
+		expect(skewed.edge.rate).toBeGreaterThan(skewed.middle.rate + 0.04);
+		const uniform = await wrongByBand(LENDING_DECISION_ERROR_MODEL_ID);
+		expect(Math.abs(uniform.edge.rate - uniform.middle.rate)).toBeLessThan(0.05);
+	});
+
+	it('every shaped model resolves against the installed packs', async () => {
+		const { resolveErrorModel } = await import('@craftabot/evals');
+		const { createPackRegistry } = await import('@craftabot/core');
+		const registry = createPackRegistry();
+		registry.registerPack(starterPack);
+		for (const pack of packs) registry.registerPack(pack);
+		for (const id of [
+			LENDING_DECISION_BY_COHORT_ERROR_MODEL_ID,
+			LENDING_DECISION_NEAR_THRESHOLD_ERROR_MODEL_ID,
+			LENDING_DECISION_WHEN_STEERED_ERROR_MODEL_ID
+		]) {
+			const [fault] = resolveErrorModel(registry, id);
+			expect(fault?.shape, id).toBeDefined();
+			expect(fault?.rate).toBe(0.1);
+		}
+		const [cohort] = resolveErrorModel(registry, LENDING_DECISION_BY_COHORT_ERROR_MODEL_ID);
+		expect(cohort?.shape?.kind === 'cohort' && Object.keys(cohort.shape.rates)).toEqual([
+			'18-24',
+			'25-34',
+			'35-44',
+			'45-54',
+			'55-64',
+			'65-74',
+			'75+'
+		]);
 	});
 });

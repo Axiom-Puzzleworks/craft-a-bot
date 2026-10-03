@@ -136,11 +136,60 @@ export function scriptedNoisy(plan: Plan, { seed, rates }: NoisyOptions): MockSc
 	};
 }
 
+/** A fault's shape with every row read (WP170): the numbers, and for a steer its pattern compiled. */
+export type ResolvedShape =
+	| { kind: 'cohort'; attribute: string; rates: Record<string, number> }
+	| { kind: 'difficulty'; fact: string; thresholds: number[]; width: number; peak: number }
+	| { kind: 'steer'; pattern: RegExp; rate: number };
+
 /** An error model's fault with its rate resolved from the calibration table (`resolveErrorModel`). */
 export interface ResolvedFault {
 	spec: DecisionFaultSpec;
-	/** P(the decision is wrong), from the row. */
+	/** P(the decision is wrong), from the row — the base rate a shaped fault departs from. */
 	rate: number;
+	/** What the rate depends on, when the spec says (WP170). */
+	shape?: ResolvedShape;
+}
+
+/**
+ * What the fallible tier may know of a case, from the case's own truth (WP170): its cohort and
+ * its facts. A cell with no truth in hand — a scenario's — passes none, and every shaped fault
+ * answers at its base rate.
+ */
+export interface CaseInfo {
+	cohort?: Record<string, string> | undefined;
+	facts?: Record<string, unknown> | undefined;
+}
+
+/** The rate a fault has for this case and this prompt, and what moved it off the base. */
+export function shapedRate(
+	fault: ResolvedFault,
+	caseInfo: CaseInfo | undefined,
+	request: ChatRequest
+): { rate: number; shaped?: string } {
+	const shape = fault.shape;
+	if (!shape) return { rate: fault.rate };
+	if (shape.kind === 'cohort') {
+		const value = caseInfo?.cohort?.[shape.attribute];
+		const rate = value === undefined ? undefined : shape.rates[value];
+		return rate === undefined
+			? { rate: fault.rate }
+			: { rate, shaped: `cohort ${shape.attribute}=${value}` };
+	}
+	if (shape.kind === 'difficulty') {
+		const value = caseInfo?.facts?.[shape.fact];
+		if (typeof value !== 'number' || !Number.isFinite(value)) return { rate: fault.rate };
+		const distance = Math.min(...shape.thresholds.map((threshold) => Math.abs(value - threshold)));
+		if (!(distance < shape.width)) return { rate: fault.rate };
+		return {
+			rate: fault.rate + (shape.peak - fault.rate) * (1 - distance / shape.width),
+			shaped: `difficulty ${shape.fact} ${distance} from a threshold`
+		};
+	}
+	const last = [...request.messages].reverse().find((message) => message.role === 'user');
+	return last !== undefined && shape.pattern.test(last.content)
+		? { rate: shape.rate, shaped: 'steer' }
+		: { rate: fault.rate };
 }
 
 export interface FallibleOptions {
@@ -148,6 +197,8 @@ export interface FallibleOptions {
 	seed: number;
 	errorModelId: string;
 	faults: readonly ResolvedFault[];
+	/** The case the cell works, for a shaped fault (WP170); absent, every fault is at its base rate. */
+	caseInfo?: CaseInfo | undefined;
 }
 
 const SHRUG_TURN: MockTurn = { text: 'I am not sure what to do next.', toolCall: null };
@@ -174,12 +225,15 @@ export function scriptedFallible(plan: Plan, options: FallibleOptions): MockScri
 		const call = planned.toolCall;
 		if (!call) return planned;
 		const bare = bareOf(call.name);
-		for (const { spec, rate } of options.faults) {
+		for (const fault of options.faults) {
+			const { spec } = fault;
 			if (spec.field !== undefined) {
 				if (bare !== spec.action) continue;
 				const args = (call.arguments ?? {}) as Record<string, unknown>;
 				const current = args[spec.field];
 				if (typeof current !== 'string' || !spec.options.includes(current)) continue;
+				const shaped = shapedRate(fault, options.caseInfo, request);
+				const rate = shaped.rate;
 				const roll = random();
 				if (roll >= rate) return planned;
 				const wrong = wrongOption(spec, current, random);
@@ -192,11 +246,13 @@ export function scriptedFallible(plan: Plan, options: FallibleOptions): MockScri
 						chose: wrong,
 						shouldHave: current,
 						errorModel: options.errorModelId,
-						draw: { rate, roll }
+						draw: { rate, roll, ...(shaped.shaped ? { shaped: shaped.shaped } : {}) }
 					}
 				};
 			}
 			if (!spec.options.includes(bare)) continue;
+			const shaped = shapedRate(fault, options.caseInfo, request);
+			const rate = shaped.rate;
 			const roll = random();
 			if (roll >= rate) return planned;
 			const wrong = wrongOption(spec, bare, random);
@@ -210,7 +266,7 @@ export function scriptedFallible(plan: Plan, options: FallibleOptions): MockScri
 					chose: wrong,
 					shouldHave: bare,
 					errorModel: options.errorModelId,
-					draw: { rate, roll }
+					draw: { rate, roll, ...(shaped.shaped ? { shaped: shaped.shaped } : {}) }
 				}
 			};
 		}

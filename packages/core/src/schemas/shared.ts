@@ -108,7 +108,14 @@ export const chatResponseSchema = z.object({
 			shouldHave: z.unknown(),
 			errorModel: z.string().optional(),
 			/** The roll that decided it (WP160): the rate in force and the number drawn against it (a fault is a roll under the rate). */
-			draw: z.object({ rate: z.number(), roll: z.number() }).optional()
+			draw: z
+				.object({
+					rate: z.number(),
+					roll: z.number(),
+					/** What moved the rate off the base (WP170): `cohort ageBand=75+`, `difficulty 4 from 60`, `steer`. Absent for a uniform rate. */
+					shaped: z.string().optional()
+				})
+				.optional()
 		})
 		.optional()
 });

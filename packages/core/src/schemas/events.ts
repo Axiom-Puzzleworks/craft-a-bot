@@ -299,7 +299,14 @@ const decisionFaultEvent = eventSchema(
 		planted: z.literal(true),
 		errorModel: z.string().optional(),
 		/** The roll that decided it (WP160): the rate in force and the number drawn, a fault being a roll under the rate. */
-		draw: z.object({ rate: z.number(), roll: z.number() }).optional()
+		draw: z
+			.object({
+				rate: z.number(),
+				roll: z.number(),
+				/** What moved the rate off the base (WP170); absent for a uniform rate. */
+				shaped: z.string().optional()
+			})
+			.optional()
 	})
 );
 const toolExecutedEvent = eventSchema(
