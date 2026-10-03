@@ -156,6 +156,14 @@ export {
 	type PersonaId,
 	type PersonaOptions
 } from './personas.js';
+export {
+	personaFor,
+	styleLine,
+	voiceFor,
+	type DrawnPersona,
+	type Register,
+	type Voice
+} from './persona-drawn.js';
 export { CONSUMER_DUTY_OUTCOMES, OBLIGATION_TAGS, isObligationTag } from './obligations.js';
 export {
 	ONTOLOGY_CLASSES,

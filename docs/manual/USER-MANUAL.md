@@ -2540,6 +2540,12 @@ The bill reads the hosted price for every token, so a scripted run says what it 
 
 Every desk’s hand-written case was one complication laid over a drawn customer: the customer changed with the seed and the trouble never did, and no case carried two. The Servicing and Lending desks now have a **composed** layout beside their kinds: the case’s complications are drawn as a *set* from the case’s own seed, at counts and weights stated in `fs-bank/complications` (assumptions, pending review). A servicing call can be a bereavement and a caller who is not the customer at once; a loan application can be a strained file, a doctored payslip and a push for a decision. The merged case’s truth lists which complications it carries. The hand-written kinds are the single-complication rows and are unchanged; the other five desks do not compose yet.
 
+## 78. Callers who answer to what you did
+
+A scripted visitor used to answer the words of your last line and nothing else. A script can now **branch on conduct**: it can wait on whether the clerk has verified the caller, whether they have asked a question, how many turns they have taken. A careful clerk and a careless one hear different lines. A rule can also carry a **second voice** (a nephew on the other line, coaching), spoken under its own name while the person the script is named for stays who escalates and who leaves.
+
+The bank can also draw a caller from the customer: `personaFor` picks one of the ten anchors by the customer’s cohort and gives them a **voice** — formal, casual or terse; short or wordy; patient or not — from the case’s seed, restyling the anchor’s words and leaving its triggers, pressure and tags as written. Attack lines are never restyled. The words are not yet model-written, and no desk draws its caller this way yet.
+
 # Appendices
 
 ## Appendix A — Screen index
