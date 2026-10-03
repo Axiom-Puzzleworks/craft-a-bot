@@ -7,7 +7,7 @@ import {
 	traceBundleSchema,
 	type TraceBundle
 } from '../schemas/trace-bundle.js';
-import { computeTraceDigest, type RunRecord } from '../schemas/trace-file.js';
+import { computeTraceDigest, type ReplayedFrom, type RunRecord } from '../schemas/trace-file.js';
 import { engineEventSchema } from '../schemas/events.js';
 import { redactSecrets } from './redact.js';
 import { buildTraceFile } from './trace-export.js';
@@ -25,6 +25,8 @@ export interface BuildTraceBundleOptions {
 	group?: { record: GroupRunRecord; events: readonly EngineEvent[] };
 	evaluations?: readonly EvaluationRecord[];
 	campaign?: { id: string; cellId: string };
+	/** Replayed from a cassette (WP160, D13); read from the first member's run record when not given. */
+	replayedFrom?: ReplayedFrom;
 	secrets?: readonly string[];
 	exportedBy: string;
 	exportedAt?: string;
@@ -48,10 +50,13 @@ export async function buildTraceBundle(options: BuildTraceBundleOptions): Promis
 			groupDigest: await computeTraceDigest(events)
 		};
 	}
+	const replayedFrom =
+		options.replayedFrom ?? options.runs.find(({ run }) => run.replayedFrom)?.run.replayedFrom;
 	const bundleDigest = await computeBundleDigest({
 		runDigests: runs.map((trace) => trace.traceDigest),
 		groupDigest: group?.groupDigest,
-		evaluationIds: evaluations.map((record) => record.id)
+		evaluationIds: evaluations.map((record) => record.id),
+		replayedFrom
 	});
 	return traceBundleSchema.parse({
 		format: 'craftabot-bundle',
@@ -62,6 +67,7 @@ export async function buildTraceBundle(options: BuildTraceBundleOptions): Promis
 		...(group ? { group } : {}),
 		evaluations,
 		...(options.campaign ? { campaign: options.campaign } : {}),
+		...(replayedFrom ? { replayedFrom } : {}),
 		bundleDigest
 	});
 }
@@ -80,7 +86,21 @@ export async function verifyBundleDigest(bundle: TraceBundle): Promise<boolean> 
 	const expected = await computeBundleDigest({
 		runDigests: bundle.runs.map((trace) => trace.traceDigest),
 		groupDigest: bundle.group?.groupDigest,
-		evaluationIds: bundle.evaluations.map((record) => record.id)
+		evaluationIds: bundle.evaluations.map((record) => record.id),
+		replayedFrom: bundle.replayedFrom
 	});
 	return expected === bundle.bundleDigest;
+}
+
+/**
+ * Whether a bundle's answers were live or replayed, in a sentence a reader of
+ * the Run Lab or a story can quote (WP160, D13) — or `undefined` for a live
+ * one. A replayed run's trace digest equals its recording's; its bundle digest
+ * differs by this field alone.
+ */
+export function bundleProvenance(bundle: Pick<TraceBundle, 'replayedFrom'>): string | undefined {
+	const from = bundle.replayedFrom;
+	return from
+		? `replayed from ${from.cassette} (${from.model}, recorded ${from.recorded})`
+		: undefined;
 }

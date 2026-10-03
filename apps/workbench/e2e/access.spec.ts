@@ -58,6 +58,7 @@ const ROUTES = [
 	'/workshop/controls',
 	'/workshop/benchmarks',
 	'/workshop/readings',
+	'/workshop/sensors',
 	'/workshop/playground/corpora',
 	'/workshop/export',
 	'/workshop/studio'

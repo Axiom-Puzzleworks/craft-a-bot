@@ -52,6 +52,10 @@ const LANES: Record<EventType, TraceLane> = {
 	// Something said to the bot is something it perceives, so it belongs in the
 	// same lane as looking around (E2).
 	'input.delivered': 'sense',
+	// What the person across the desk said (WP160): heard like any other line, so the sense lane.
+	'seat.said': 'sense',
+	// A modelled person's draw at a human stage (WP160): oversight, in the guardrail lane.
+	'reviewer.drew': 'guardrail',
 	// A wait forced by the provider is a thinking cost, not an error (E11).
 	'provider.retried': 'think',
 	// A group's own start/finish sit at the same altitude as a solo run's,
@@ -97,6 +101,8 @@ const LABELS: Record<EventType, string> = {
 	'disclosure.given': 'Told the customer',
 	'stage.overdue': 'Past its deadline',
 	'input.delivered': 'Somebody said something',
+	'seat.said': 'The visitor spoke',
+	'reviewer.drew': 'The reviewer drew',
 	'provider.retried': 'Waited, then asked again',
 	'group.started': 'Group started',
 	'group.finished': 'Group finished',

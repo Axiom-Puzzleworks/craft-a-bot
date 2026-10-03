@@ -115,6 +115,8 @@ export interface RunBankOptions {
 	onProgress?: (progress: { arrived: number; worked: number; inFlight: number }) => void;
 	onIncident?: (incident: BankRun['incidents'][number]) => void;
 	onWorkflowRun?: (entry: { desk: string; item: WorkItem; run: WorkflowRun }) => void;
+	/** A stage value over the cap, whole, under its digest (WP160): the host that wants a story to open it keeps it. */
+	onValue?: RunWorkflowOptions['onValue'];
 	/** Every arrival as the clock delivers it, with the desk it was routed to — none for an unrouted kind or after `stopAfter` (WP84, `75-…` §4). */
 	onArrival?: (arrival: Arrival, desk: string | undefined) => void;
 }
@@ -236,6 +238,7 @@ export async function runBank(
 			...(options.populationDigest !== undefined
 				? { populationDigest: options.populationDigest }
 				: {}),
+			...(options.onValue ? { onValue: options.onValue } : {}),
 			onAgentRun: (agentRun) => {
 				// Awaited before the workflow run lands (WP84): a sink that writes elsewhere must hold every agent run first.
 				pending.push(

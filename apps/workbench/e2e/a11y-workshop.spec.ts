@@ -103,6 +103,7 @@ test('every Workshop route has no accessibility violations', async ({ page }) =>
 		'/workshop/controls',
 		'/workshop/benchmarks',
 		'/workshop/readings',
+		'/workshop/sensors',
 		'/workshop/playground/corpora',
 		`/workshop/export?run=${goldenRunId}`,
 		`/workshop/compare?a=${goldenRunId}&b=${goldenRunId}`,

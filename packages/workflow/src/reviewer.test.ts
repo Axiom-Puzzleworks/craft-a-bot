@@ -5,6 +5,7 @@ import {
 	recommendationIn,
 	resolveReviewer,
 	reviewerAnswer,
+	reviewerAnswerDrawn,
 	reviewerRandom,
 	type ResolvedReviewer
 } from './reviewer.js';
@@ -154,6 +155,33 @@ describe('the reviewer model (WP115)', () => {
 			reviewerRandom(9, 'x', 's', 2)
 		);
 		expect(a).toEqual(b);
+	});
+
+	it('says how it drew (WP160): the path, and every roll in order, without changing the answer', () => {
+		const paths = new Set<string>();
+		for (let i = 0; i < 400; i += 1) {
+			const draw = () => reviewerRandom(5, `item-${i}`, 'decision', 0);
+			const plain = reviewerAnswer(model(0.6, 0.4), OPTIONS, 'decline', 'approve', draw());
+			const { answer, draw: how } = reviewerAnswerDrawn(
+				model(0.6, 0.4),
+				OPTIONS,
+				'decline',
+				'approve',
+				draw()
+			);
+			expect(answer).toEqual(plain);
+			paths.add(how.path);
+			// Each path's rolls are the ones that decided it: a bias roll first, then accuracy, then the rest.
+			if (how.path === 'took-recommendation') {
+				expect(how.rolls[0]).toBeLessThan(0.4);
+				expect(answer.followed).toBe(true);
+			}
+			if (how.path === 'accurate') expect(answer.correct).toBe(true);
+			if (how.path === 'slipped') expect(answer.correct).toBe(false);
+			expect(how.rolls.length).toBeGreaterThanOrEqual(2);
+			expect(how.rolls.every((roll) => roll >= 0 && roll < 1)).toBe(true);
+		}
+		expect([...paths].sort()).toEqual(['accurate', 'slipped', 'took-recommendation']);
 	});
 
 	it('reads a recommendation out of the stage input only when it is one of the options', () => {

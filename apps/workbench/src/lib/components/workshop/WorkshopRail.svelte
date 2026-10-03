@@ -48,6 +48,7 @@
 			| 'catalogue'
 			| 'controls'
 			| 'readings'
+			| 'sensors'
 			| 'export'
 			| 'armour'
 			| 'studio'

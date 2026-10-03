@@ -94,7 +94,10 @@ export function recordingProvider(
 		validateKey: (key) => inner.validateKey(key),
 		async chat(request, opts) {
 			const started = now();
-			const response = await inner.chat(request, opts);
+			const answered = await inner.chat(request, opts);
+			const latencyMs = Math.max(0, now() - started);
+			// A recorder given a clock timed the call: the response carries it (WP160), so the recording's trace and a replay's agree on `think.completed.durationMs`.
+			const response: ChatResponse = options.now ? { ...answered, latencyMs } : answered;
 			const digest = promptDigest(request);
 			const occurrence = seen.get(digest) ?? 0;
 			seen.set(digest, occurrence + 1);
@@ -103,12 +106,35 @@ export function recordingProvider(
 				occurrence,
 				model: request.model,
 				response: structuredClone(response),
-				latencyMs: Math.max(0, now() - started)
+				latencyMs
 			});
 			return response;
 		}
 	};
 	return { provider, entries };
+}
+
+/**
+ * **A provider that times its calls** (WP160, `112-REAL-ENOUGH-PLAN.md` §5):
+ * passes every call through and puts how long it took on the response as
+ * `latencyMs`, which the session writes as `think.completed.durationMs`. A
+ * live host wraps its provider in this; a scripted or mock one never is, so
+ * its traces stay byte for byte. `now` is a monotonic millisecond clock
+ * (`performance.now` by default).
+ */
+export function timedProvider(
+	inner: LLMProvider,
+	now: () => number = () => performance.now()
+): LLMProvider {
+	return {
+		...inner,
+		validateKey: (key) => inner.validateKey(key),
+		async chat(request, opts) {
+			const started = now();
+			const response = await inner.chat(request, opts);
+			return { ...response, latencyMs: Math.max(0, Math.round(now() - started)) };
+		}
+	};
 }
 
 /**

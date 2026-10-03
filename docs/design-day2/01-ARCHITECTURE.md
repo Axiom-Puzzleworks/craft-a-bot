@@ -239,6 +239,18 @@ V1 needs none. The first features that will genuinely require one: sharing kit f
 > - **+72 kB in every edition** for the catalogue's second edition (23 entries), the declared mechanisms, the inventory's fold and `/workshop/controls`.
 > - **The Kit's first page 136 KiB lighter and the Worker 70 KiB lighter.** `@craftabot/governance` now declares `"sideEffects": false`. The catalogue and the mechanism list are built by top-level calls the bundler could not prove pure, so they had ridden on every page through the root layout's import of governance's barrel. The first-page gate is lowered to 808,000 and the Worker's to 1,739,000, so the gain is held.
 
+> **Amended 2026-10-02, later still (Phase AR, WP159–WP161, `112-REAL-ENOUGH-PLAN.md` §5): the budgets after the record made complete.** Each build was over by 12–13 kB, so each is set to its measured size plus 20 kB:
+>
+> | Build | Budget | Measured | Worker | Kit's first page |
+> |---|---|---|---|---|
+> | full | 3,160,000 | 3,066 KiB | 1,747 KiB of 1,765 | 822 KiB of 840 |
+> | simulator | 3,005,000 | 2,915 KiB | — | — |
+> | workshop | 3,028,000 | 2,937 KiB | — | — |
+> | playground | 3,161,000 | 3,067 KiB | — | — |
+>
+> - **About +32 kB in every edition** for the Sensor Inventory's fold and page, the live run's sensors in `core` (two events, four fields, `timedProvider`, the replay provenance), the story fold, its two renderings and its view, and the Run Lab's and Audit Centre's controls. The colour tokens the story inlines were split out of the assurance renderer into a module of their own, so the Run Lab's route does not load the whole renderer for twelve values.
+> - **The Kit's first page and the Worker moved by 2 KiB each** (820 → 822 KiB, 1,745 → 1,747 KiB), well inside their gates, which stand. The Worker has 18 KiB of headroom, which is not much; the next phase that adds a fold to `governance` should look at it first.
+
 > **Amended 2026-10-02, later still (Phases AO–AP, WP151–WP156, `111-TESTABLE-CONTROLS-PLAN.md` §9): the budgets after the attacks carried and the desks made fallible.** Each build set to its measured size plus 20 kB:
 >
 > | Build | Budget | Measured | Worker | Kit's first page |

@@ -36,7 +36,12 @@ import {
 } from '@craftabot/core';
 import { seededRandom } from '@craftabot/desk';
 import { validateAgainst } from './validate.js';
-import { recommendationIn, resolveReviewer, reviewerAnswer, reviewerRandom } from './reviewer.js';
+import {
+	recommendationIn,
+	resolveReviewer,
+	reviewerAnswerDrawn,
+	reviewerRandom
+} from './reviewer.js';
 import { checkedAnswers, readGate, readerRecordOf, resolveReader } from './reader.js';
 
 /**
@@ -117,6 +122,15 @@ export interface RunWorkflowOptions {
 	maxStages?: number;
 	/** The largest value a stage record keeps, in bytes of canonical JSON (WP148); `VALUE_CAP` by default. Over it, the digest alone. */
 	valueCap?: number;
+	/**
+	 * A stage value over the cap, whole (WP160, `112-REAL-ENOUGH-PLAN.md` §5): the record keeps its digest alone, and a host that wants to read the value later (a story) keeps it here, under that digest. Called once per over-cap input or output.
+	 */
+	onValue?: (value: {
+		digest: string;
+		value: unknown;
+		stageId: string;
+		role: 'input' | 'output';
+	}) => void;
 	onStage?: (record: StageRecord) => void;
 	/** The world as the journey left it — its truth for a campaign's scoring — once the record is made. */
 	onFinished?: (world: WorldInstance, run: WorkflowRun) => void;
@@ -357,6 +371,13 @@ export async function runWorkflow(
 	let elapsed = 0;
 	let reached = options.fromStage === undefined;
 
+	/** A stage's value as the record keeps it; over the cap the host is handed the whole, under its digest (WP160). */
+	function keepValue(value: unknown, role: 'input' | 'output', stageId: string) {
+		const kept = stageValue(value, options.valueCap);
+		if (!('value' in kept)) options.onValue?.({ digest: kept.digest, value, stageId, role });
+		return kept;
+	}
+
 	function emit<T extends EventType>(type: T, payload: PayloadFor<T>): void {
 		events.push({
 			id: newId(),
@@ -372,6 +393,8 @@ export async function runWorkflow(
 	const byId = new Map(spec.stages.map((stage) => [stage.id, stage]));
 	let current: string | 'end' = spec.first;
 	let input: unknown = intake.input;
+	/** The stage's output whole, as it left the stage (WP160): the record keeps a value only under the cap, and the next stage must not depend on that. */
+	let latestOutput: unknown;
 	let outcome: WorkflowRun['outcome'] = 'completed';
 	let handoff: WorkflowRun['handoff'];
 	const maxStages = options.maxStages ?? 64;
@@ -421,7 +444,7 @@ export async function runWorkflow(
 			outcome = 'stopped';
 			break;
 		}
-		const output = record.output.value;
+		const output = latestOutput;
 		const next = stage.next(output, world.snapshot(), input);
 		// A handoff (WP102, `83-…` §6.5.3): the journey ends here; the host starts the target with the item.
 		if (typeof next === 'object') {
@@ -483,7 +506,7 @@ export async function runWorkflow(
 			const base: Base = {
 				stageId: stage.id,
 				executor: executorRecord(executor),
-				input: stageValue(stageInput, options.valueCap),
+				input: keepValue(stageInput, 'input', stage.id),
 				stage,
 				rawInput: stageInput,
 				inbound: noBoundary
@@ -511,7 +534,7 @@ export async function runWorkflow(
 		const base: Base = {
 			stageId: stage.id,
 			executor: executorRecord(executor),
-			input: stageValue(stageInput, options.valueCap),
+			input: keepValue(stageInput, 'input', stage.id),
 			stage,
 			rawInput: stageInput,
 			inbound: inbound.fold
@@ -717,7 +740,8 @@ export async function runWorkflow(
 			}
 		}
 		const ended = now();
-		const out = stageValue(value === undefined ? null : value, options.valueCap);
+		latestOutput = value === undefined ? null : value;
+		const out = keepValue(latestOutput, 'output', base.stageId);
 		const guards: StageRecord['guards'] = {
 			checked: checked + fold.checked,
 			tripped,
@@ -932,7 +956,8 @@ export async function runWorkflow(
 				ok: result.ok,
 				narration: result.narration,
 				...(result.stateDiff !== undefined ? { stateDiff: result.stateDiff } : {}),
-				...(result.disclosures ? { disclosures: result.disclosures } : {})
+				...(result.disclosures ? { disclosures: result.disclosures } : {}),
+				...(result.seatLines ? { seatLines: result.seatLines } : {})
 			}
 		});
 		// A mandatory disclosure a rule's call made (WP145): as the session writes it.
@@ -942,6 +967,8 @@ export async function runWorkflow(
 				action: call.name,
 				digest: sha256Hex(disclosure.text)
 			});
+		// What the scripted visitor said in answer (WP160): as the session writes it.
+		for (const line of result.seatLines ?? []) emit('seat.said', line);
 		return result;
 	}
 
@@ -966,8 +993,8 @@ export async function runWorkflow(
 		const state = world.snapshot();
 		const suggested = stage.suggest?.(stageInput, state, world.truth?.());
 		// The person as a model (WP115, `103-…` §6), when the configuration names one: it answers, whatever the host would have.
-		const by = reviewer
-			? reviewerAnswer(
+		const drawn = reviewer
+			? reviewerAnswerDrawn(
 					reviewer,
 					executor.options,
 					suggested ?? executor.default ?? executor.options[0] ?? '',
@@ -975,6 +1002,21 @@ export async function runWorkflow(
 					reviewerRandom(options.seed ?? 1, item.id, stage.id, ordinal)
 				)
 			: undefined;
+		const by = drawn?.answer;
+		// What the person drew (WP160): the rates in force, the rolls and the path, so a slip is not read as a planted fault.
+		if (reviewer && drawn)
+			emit('reviewer.drew', {
+				workflowRunId: runId,
+				stageId: stage.id,
+				model: reviewer.id,
+				rates: {
+					accuracy: reviewer.accuracy,
+					automationBias: reviewer.automationBias,
+					...(reviewer.reasonRate !== undefined ? { reasonRate: reviewer.reasonRate } : {})
+				},
+				path: drawn.draw.path,
+				rolls: drawn.draw.rolls
+			});
 		const answer: HumanDecision = by
 			? { decision: by.answer, ...(by.reason !== undefined ? { reason: by.reason } : {}) }
 			: options.human

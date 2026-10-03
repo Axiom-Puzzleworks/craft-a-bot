@@ -143,6 +143,10 @@
 									"other"
 								]
 							},
+							"latencyMs": {
+								"type": "number",
+								"minimum": 0
+							},
 							"logprobs": {
 								"type": "array",
 								"items": {
@@ -201,6 +205,21 @@
 									"shouldHave": {},
 									"errorModel": {
 										"type": "string"
+									},
+									"draw": {
+										"type": "object",
+										"properties": {
+											"rate": {
+												"type": "number"
+											},
+											"roll": {
+												"type": "number"
+											}
+										},
+										"required": [
+											"rate",
+											"roll"
+										]
 									}
 								},
 								"required": [

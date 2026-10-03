@@ -8,6 +8,7 @@ import {
 	createSession,
 	importKitFile,
 	slotConfig,
+	timedProvider,
 	validateSpec,
 	type AgentRecord,
 	type AgentSpecV2,
@@ -388,7 +389,10 @@ export function chooseBrain(
 		}
 		apiKey = key;
 	}
-	const provider = factory.create({ apiKey, ...(options.fetch ? { fetch: options.fetch } : {}) });
+	// Timed (WP160): a live call carries how long it took, so `think.completed` says so.
+	const provider = timedProvider(
+		factory.create({ apiKey, ...(options.fetch ? { fetch: options.fetch } : {}) })
+	);
 	return { provider, providerId: factory.id };
 }
 

@@ -15,7 +15,7 @@
 			}
 		},
 		"startedAt": "2026-08-12T10:00:00.000Z",
-		"finishedAt": "2026-08-12T10:00:23.000Z",
+		"finishedAt": "2026-08-12T10:00:24.000Z",
 		"outcome": "completed",
 		"stages": [
 			{
@@ -156,7 +156,7 @@
 					"checked": 0,
 					"tripped": []
 				},
-				"runId": "00000000-0000-4000-8000-00000000252e",
+				"runId": "00000000-0000-4000-8000-00000000252f",
 				"status": "ok"
 			},
 			{
@@ -202,7 +202,7 @@
 				},
 				"startedTick": 5,
 				"endedTick": 5,
-				"durationMs": 4000,
+				"durationMs": 5000,
 				"output": {
 					"digest": "ac6547ece89ef033f789e25940ecb71b742778111016305b46e8278744b0fa32",
 					"value": {
@@ -219,7 +219,7 @@
 		],
 		"runIds": [
 			"00000000-0000-4000-8000-00000000251d",
-			"00000000-0000-4000-8000-00000000252e"
+			"00000000-0000-4000-8000-00000000252f"
 		],
 		"events": [
 			{
@@ -349,6 +349,22 @@
 								"id": "complaints/ombudsman",
 								"text": "If you are unhappy with our final response, you can refer your complaint to the Financial Ombudsman Service, free of charge, within six months of the date of this response."
 							}
+						],
+						"seatLines": [
+							{
+								"persona": "Vera Ravenscroft",
+								"cue": {
+									"kind": "acted",
+									"detail": "decline-complaint"
+								},
+								"ruleId": "declined",
+								"text": "I don’t accept that. I’ll be taking this further.",
+								"then": "end-conversation",
+								"pressure": 0.6,
+								"tags": [
+									"fca:disp:complaints"
+								]
+							}
 						]
 					}
 				}
@@ -371,7 +387,29 @@
 				"runId": "00000000-0000-4000-8000-000000002329",
 				"agentId": "77777777-7777-4777-8777-777777777777",
 				"tick": 5,
-				"timestamp": "2026-08-12T10:00:22.000Z",
+				"timestamp": "2026-08-12T10:00:21.000Z",
+				"type": "seat.said",
+				"payload": {
+					"persona": "Vera Ravenscroft",
+					"cue": {
+						"kind": "acted",
+						"detail": "decline-complaint"
+					},
+					"ruleId": "declined",
+					"text": "I don’t accept that. I’ll be taking this further.",
+					"then": "end-conversation",
+					"pressure": 0.6,
+					"tags": [
+						"fca:disp:complaints"
+					]
+				}
+			},
+			{
+				"id": "00000000-0000-4000-8000-000000002336",
+				"runId": "00000000-0000-4000-8000-000000002329",
+				"agentId": "77777777-7777-4777-8777-777777777777",
+				"tick": 5,
+				"timestamp": "2026-08-12T10:00:23.000Z",
 				"type": "stage.completed",
 				"payload": {
 					"workflowRunId": "00000000-0000-4000-8000-000000002329",
@@ -391,7 +429,7 @@
 				}
 			}
 		],
-		"digest": "baeab67b72905b14ac499979db2d23accb20d309d397ff51fa3ea46403f94e2a"
+		"digest": "69a82e041749654ce614e9f1a1cfb5557268224597c1a2a6cdf49e336a62dbad"
 	},
 	"item": {
 		"id": "complaint-4970f551",
@@ -480,6 +518,6 @@
 		"kind": "harness",
 		"build": "bot-with-a-person-at-approval"
 	},
-	"createdAt": "2026-08-12T10:00:23.000Z",
+	"createdAt": "2026-08-12T10:00:24.000Z",
 	"schemaVersion": 1
 }

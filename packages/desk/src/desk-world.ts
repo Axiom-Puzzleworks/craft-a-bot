@@ -2,6 +2,7 @@ import type {
 	AgentHandle,
 	ActionCall,
 	ActionResult,
+	SeatLine,
 	DeskAlert,
 	DeskAlertSeverity,
 	DeskQueueItem,
@@ -487,6 +488,8 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 		/** A live counterpart seat, once bound, speaks instead of the script (`46-…` §4.4). */
 		let scriptSuspended = false;
 		const boundRoles = new Set<string>();
+		/** What the visitor said since the last action's result was built (WP160): the host writes one `seat.said` per line. */
+		let seatLines: SeatLine[] = [];
 		function speak(cue: CounterpartCue): void {
 			if (!counterpart || scriptSuspended) return;
 			const { turn, memory } = advanceCounterpart(
@@ -500,6 +503,17 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 			state.counterpart = memory;
 			if (!turn) return;
 			const name = counterpart.script.name;
+			seatLines.push({
+				persona: name,
+				cue: { kind: cue.kind, ...(cue.kind === 'acted' ? { detail: cue.actionId } : {}) },
+				...(turn.rule ? { ruleId: turn.rule.id } : {}),
+				...(turn.text !== undefined ? { text: turn.text } : {}),
+				then: turn.then,
+				...(turn.rule?.pressure !== undefined ? { pressure: turn.rule.pressure } : {}),
+				...(turn.rule?.tags !== undefined && turn.rule.tags.length > 0
+					? { tags: [...turn.rule.tags] }
+					: {})
+			});
 			if (turn.text !== undefined) {
 				line('counterpart', name, turn.text, undefined, {
 					...(turn.rule?.pressure !== undefined ? { pressure: turn.rule.pressure } : {}),
@@ -741,25 +755,33 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 				if (!parsed.success) return badArguments(action.id, parsed.error);
 				line('agent', speakerName, parsed.data.text);
 				const before = seq;
+				seatLines = [];
 				speak({ kind: 'said', text: parsed.data.text });
+				const spoken = seatLines;
+				seatLines = [];
 				return {
 					ok: true,
 					narration: runtimeStrings.narration.said(parsed.data.text),
-					stateDiff: [{ path: 'transcript.length', from: before - 1, to: seq }]
+					stateDiff: [{ path: 'transcript.length', from: before - 1, to: seq }],
+					...(spoken.length > 0 ? { seatLines: spoken } : {})
 				};
 			}
 			const parsed = action.schema.safeParse(call.arguments ?? {});
 			if (!parsed.success) return badArguments(action.id, parsed.error);
 			disclosed = [];
+			seatLines = [];
 			const outcome = action.perform(state, parsed.data, context());
 			speak({ kind: 'acted', actionId: action.id });
 			const disclosures = disclosed;
 			disclosed = [];
+			const spoken = seatLines;
+			seatLines = [];
 			return {
 				ok: outcome.ok,
 				narration: outcome.narration,
 				stateDiff: outcome.stateDiff ?? [],
-				...(disclosures.length > 0 ? { disclosures } : {})
+				...(disclosures.length > 0 ? { disclosures } : {}),
+				...(spoken.length > 0 ? { seatLines: spoken } : {})
 			};
 		}
 

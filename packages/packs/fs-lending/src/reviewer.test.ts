@@ -125,6 +125,28 @@ describe('the reviewer model on the lending journey (WP115)', { timeout: 300_000
 		}
 	});
 
+	it('writes reviewer.drew beside each human stage, and nothing without a model (WP160)', async () => {
+		let drew = 0;
+		for (const [index, item] of items.entries()) {
+			const plain = await run(item, index);
+			expect(plain.events.some((event) => event.type === 'reviewer.drew')).toBe(false);
+			const oracle = await run(item, index, 'oracle-test/oracle');
+			const events = oracle.events.filter((event) => event.type === 'reviewer.drew');
+			expect(events).toHaveLength(humanStages(oracle).length);
+			for (const event of events) {
+				if (event.type !== 'reviewer.drew') continue;
+				expect(event.payload).toMatchObject({
+					model: 'oracle-test/oracle',
+					rates: { accuracy: 1, automationBias: 0 },
+					path: 'accurate'
+				});
+				expect(event.payload.rolls.length).toBeGreaterThanOrEqual(2);
+				drew += 1;
+			}
+		}
+		expect(drew).toBeGreaterThan(0);
+	});
+
 	it('the bank’s case handler answers every human stage, with its seconds, and human load folds the reviews', async () => {
 		let reviewed = 0;
 		for (const [index, item] of items.entries()) {

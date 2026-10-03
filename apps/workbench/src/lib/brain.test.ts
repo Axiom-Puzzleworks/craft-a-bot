@@ -94,6 +94,25 @@ describe('chooseBrain', () => {
 		expect(brain.ok && brain.keyless).toBe(false);
 	});
 
+	it('times a live provider, so think.completed can say how long it took (WP160)', async () => {
+		const registry = registryWith(providerPack('local', 'none'));
+		const brain = chooseBrain(cartridge('local'), 'starter/say-hello', registry);
+		if (!brain.ok) throw new Error('a keyless provider always resolves');
+		const response = await brain.provider.chat(
+			{ model: 'test-model', messages: [], temperature: 0, maxTokens: 10 },
+			{ signal: new AbortController().signal }
+		);
+		expect(response.latencyMs).toBeGreaterThanOrEqual(0);
+		// The demo brain is not a live call and is not timed: its traces stay as they were.
+		const demo = chooseBrain(undefined, 'starter/say-hello', registry);
+		if (!demo.ok) throw new Error('the demo brain always resolves');
+		const turn = await demo.provider.chat(
+			{ model: 'mock', messages: [], temperature: 0, maxTokens: 10 },
+			{ signal: new AbortController().signal }
+		);
+		expect(turn.latencyMs).toBeUndefined();
+	});
+
 	it('never asks for a battery from a keyless provider (Ollama-shaped)', () => {
 		const registry = registryWith(providerPack('local', 'none'));
 		const brain = chooseBrain(cartridge('local'), 'starter/say-hello', registry);

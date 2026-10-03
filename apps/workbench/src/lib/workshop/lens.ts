@@ -39,6 +39,7 @@ export type RailId =
 	| 'catalogue'
 	| 'controls'
 	| 'readings'
+	| 'sensors'
 	| 'export'
 	| 'studio';
 
@@ -122,6 +123,7 @@ const EVERYTHING: RailId[] = [
 	'catalogue',
 	'controls',
 	'readings',
+	'sensors',
 	'export',
 	'studio'
 ];
@@ -144,7 +146,8 @@ const ASSURANCE_FIRST: RailId[] = [
 	'incidents',
 	'export'
 ];
-const ASSURANCE_EVIDENCE: RailId[] = ['campaigns', 'workflows', 'evidence'];
+// WP159 (`112-…` §5): the sensor inventory beside the evidence — what a run records.
+const ASSURANCE_EVIDENCE: RailId[] = ['campaigns', 'workflows', 'evidence', 'sensors'];
 const BANK: RailId[] = ['playground', 'monitor'];
 const CONDUCT_FIRST: RailId[] = ['conduct', 'incidents', 'playground', 'workflows', 'campaigns'];
 const CONDUCT_RULES: RailId[] = ['policies', 'evaluators', 'scenarios', 'studio'];
@@ -334,6 +337,7 @@ export const RAIL_LABELS: Record<RailId, string> = {
 	catalogue: 'Catalogue',
 	controls: 'Controls',
 	readings: 'Readings',
+	sensors: 'Sensors',
 	export: 'Audit',
 	// WP101 (`88-STUDIO.md` §7): the Studio, with the Guard Rack as its Connections tab.
 	studio: 'Studio'
@@ -376,6 +380,7 @@ export const RAIL_HREF: Partial<Record<RailId, string>> = {
 	catalogue: '/workshop/catalogue',
 	controls: '/workshop/controls',
 	readings: '/workshop/readings',
+	sensors: '/workshop/sensors',
 	export: '/workshop/export',
 	studio: '/workshop/studio'
 };

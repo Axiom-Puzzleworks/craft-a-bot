@@ -109,6 +109,35 @@ export function reviewerAnswer(
 	recommended: string | undefined,
 	random: () => number
 ): ReviewerAnswer {
+	return reviewerAnswerDrawn(reviewer, options, shouldHave, recommended, random).answer;
+}
+
+/** What the person drew (WP160): the path that decided the answer and every roll, in order. */
+export interface ReviewerDraw {
+	path: 'took-recommendation' | 'accurate' | 'slipped';
+	rolls: number[];
+}
+
+/**
+ * `reviewerAnswer` with its draw (WP160, `112-REAL-ENOUGH-PLAN.md` §5): the
+ * same answer from the same stream — `random` is only watched, never changed
+ * — and the rolls behind it, so the trace can say a wrong answer was a slip
+ * rather than a planted fault.
+ */
+export function reviewerAnswerDrawn(
+	reviewer: ResolvedReviewer,
+	options: readonly string[],
+	shouldHave: string,
+	recommended: string | undefined,
+	stream: () => number
+): { answer: ReviewerAnswer; draw: ReviewerDraw } {
+	const rolls: number[] = [];
+	const random = (): number => {
+		const roll = stream();
+		rolls.push(roll);
+		return roll;
+	};
+	let path: ReviewerDraw['path'];
 	let answer: string;
 	if (
 		recommended !== undefined &&
@@ -116,9 +145,12 @@ export function reviewerAnswer(
 		random() < reviewer.automationBias
 	) {
 		answer = recommended;
+		path = 'took-recommendation';
 	} else if (random() < reviewer.accuracy) {
 		answer = shouldHave;
+		path = 'accurate';
 	} else {
+		path = 'slipped';
 		const others = options.filter((option) => option !== shouldHave);
 		answer =
 			others.length === 0
@@ -142,13 +174,16 @@ export function reviewerAnswer(
 			? overrideReason(answer, recommended)
 			: undefined;
 	return {
-		model: reviewer.id,
-		answer,
-		shouldHave,
-		...(recommended !== undefined ? { recommended } : {}),
-		followed: recommended !== undefined && answer === recommended,
-		correct: answer === shouldHave,
-		seconds,
-		...(reason !== undefined ? { reason } : {})
+		answer: {
+			model: reviewer.id,
+			answer,
+			shouldHave,
+			...(recommended !== undefined ? { recommended } : {}),
+			followed: recommended !== undefined && answer === recommended,
+			correct: answer === shouldHave,
+			seconds,
+			...(reason !== undefined ? { reason } : {})
+		},
+		draw: { path, rolls }
 	};
 }

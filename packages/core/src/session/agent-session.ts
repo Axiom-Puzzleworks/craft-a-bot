@@ -631,7 +631,9 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			emit('think.started', {
 				wireModel: cartridgeModel(),
 				providerId: provider.id,
-				cartridgeId: brain?.cartridgeId ?? ''
+				cartridgeId: brain?.cartridgeId ?? '',
+				// The dials the call goes out with (WP160): a live answer is a sample at these.
+				parameters: { temperature: brain?.temperature ?? 0, maxTokens: brain?.maxTokens ?? 256 }
 			});
 			const response = await provider.chat(
 				{
@@ -648,7 +650,11 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			);
 			usage.inputTokens += response.usage.inputTokens;
 			usage.outputTokens += response.usage.outputTokens;
-			emit('think.completed', { response });
+			emit('think.completed', {
+				response,
+				// Only what a timer put on the response (WP160): a mock's trace stays byte for byte.
+				...(response.latencyMs !== undefined ? { durationMs: response.latencyMs } : {})
+			});
 			return response;
 		} finally {
 			clearTimeout(timeout);
@@ -820,6 +826,8 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 				action: call.name,
 				digest: sha256Hex(disclosure.text)
 			});
+		// What the scripted visitor said in answer (WP160): one `seat.said` per line, so a book's customer is on the trace.
+		for (const line of actionResult.seatLines ?? []) emit('seat.said', line);
 		if (actionResult.ok) {
 			emit('world.changed', { state: world.snapshot() });
 		} else {
@@ -932,7 +940,8 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 					planted: true,
 					...(response.fault.errorModel !== undefined
 						? { errorModel: response.fault.errorModel }
-						: {})
+						: {}),
+					...(response.fault.draw !== undefined ? { draw: response.fault.draw } : {})
 				});
 			}
 		}

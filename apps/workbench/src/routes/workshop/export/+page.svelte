@@ -22,6 +22,8 @@
 	import { createRegistry } from '$lib/packs.js';
 	import { describeImport, importBundle } from '$lib/workshop/bundle-import.js';
 	import { reportFrom } from '$lib/workshop/campaign-cells.js';
+	import { scrubSecrets } from '@craftabot/governance/reports';
+	import { storyFileName, storyMarkdownOf, storyOfStoredRun } from '$lib/workshop/story.js';
 
 	/**
 	 * **The Audit Centre** (`17-…` §2, Phase F): "traces, reports, cards, OTel
@@ -187,6 +189,24 @@
 		const link = document.createElement('a');
 		link.href = url;
 		link.download = `${slug(run.agentName)}.assurance-pack.html`;
+		link.click();
+		URL.revokeObjectURL(url);
+	}
+
+	// The story (WP161, `112-REAL-ENOUGH-PLAN.md` §5): the run told top to bottom, the markdown `craftabot story` writes, scrubbed of every key this browser holds.
+	async function downloadStory(): Promise<void> {
+		if (!run) return;
+		const storage = await appStorage();
+		const events = (await storage.getEvents(run.id)).map((row) => row.event);
+		const evaluations = await storage.listEvaluations(run.id);
+		const story = scrubSecrets(
+			storyOfStoredRun($state.snapshot(run), events, evaluations),
+			createBrowserKeyVault().secrets()
+		);
+		const url = URL.createObjectURL(new Blob([storyMarkdownOf(story)], { type: 'text/markdown' }));
+		const link = document.createElement('a');
+		link.href = url;
+		link.download = storyFileName(run.id);
 		link.click();
 		URL.revokeObjectURL(url);
 	}
@@ -439,6 +459,20 @@
 						>
 					</li>
 				{/each}
+				<li>
+					<div>
+						<strong>Story</strong>
+						<p>
+							This run told top to bottom — what it saw, thought, did and was stopped by, who
+							approved, and, last, the truth and the evaluators' marks. The file <code
+								>craftabot story</code
+							> writes.
+						</p>
+					</div>
+					<button type="button" data-testid="export-download-story" onclick={downloadStory}
+						>Download the story</button
+					>
+				</li>
 				<li>
 					<div>
 						<strong>Agent Card</strong>

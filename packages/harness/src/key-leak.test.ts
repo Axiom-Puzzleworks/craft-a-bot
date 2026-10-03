@@ -78,6 +78,23 @@ describe('the harness never writes or prints a credential', () => {
 				io
 			)
 		).toBe(0);
+		// The story (WP161): told in every format from the same run, redacted against every secret held.
+		for (const format of ['markdown', 'html', 'json'] as const)
+			expect(
+				await main(
+					[
+						'story',
+						report.runId,
+						'--store',
+						out,
+						'--format',
+						format,
+						'--out',
+						join(root, `story.${format}`)
+					],
+					io
+				)
+			).toBe(0);
 		expect(await main(['packs'], io)).toBe(0);
 		// A push and a pull refused by the egress guard (WP70): neither may echo the token or the anon key.
 		const storeConfig = JSON.stringify({

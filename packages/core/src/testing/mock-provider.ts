@@ -17,6 +17,8 @@ export interface MockTurn {
 	fault?: ChatResponse['fault'];
 	/** The first token's top log-probabilities (WP120), returned when the request asked for them. */
 	logprobs?: ChatResponse['logprobs'];
+	/** How long the answer took (WP160): carried to the response, and so to `think.completed.durationMs`. */
+	latencyMs?: number;
 }
 
 /** A script is either a fixed list of turns or a function of the request. */
@@ -71,6 +73,7 @@ export function createMockProvider(options: MockProviderOptions): LLMProvider {
 				raw: { mock: true, turnIndex: turnIndex - 1, turn },
 				finishReason: turn.finishReason ?? (toolCall ? 'tool_call' : 'stop'),
 				...(turn.fault ? { fault: turn.fault } : {}),
+				...(turn.latencyMs !== undefined ? { latencyMs: turn.latencyMs } : {}),
 				...(turn.logprobs && request.topLogprobs !== undefined ? { logprobs: turn.logprobs } : {})
 			};
 		}
