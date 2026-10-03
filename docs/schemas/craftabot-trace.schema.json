@@ -1465,6 +1465,9 @@
 															},
 															"roll": {
 																"type": "number"
+															},
+															"shaped": {
+																"type": "string"
 															}
 														},
 														"required": [
@@ -1663,6 +1666,9 @@
 											},
 											"roll": {
 												"type": "number"
+											},
+											"shaped": {
+												"type": "string"
 											}
 										},
 										"required": [

@@ -189,7 +189,13 @@ export {
 	type LendingBaselineOptions,
 	type LendingBookCampaignOptions
 } from './campaign.js';
-export { LENDING_DECISION_ERROR_MODEL_ID, lendingErrorModels } from './errors/error-models.js';
+export {
+	LENDING_DECISION_BY_COHORT_ERROR_MODEL_ID,
+	LENDING_DECISION_ERROR_MODEL_ID,
+	LENDING_DECISION_NEAR_THRESHOLD_ERROR_MODEL_ID,
+	LENDING_DECISION_WHEN_STEERED_ERROR_MODEL_ID,
+	lendingErrorModels
+} from './errors/error-models.js';
 export {
 	LOAN_PURPOSE_QUESTION,
 	LOAN_PURPOSE_QUESTION_SET_DIGEST,

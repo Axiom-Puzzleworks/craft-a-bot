@@ -2524,6 +2524,12 @@ Until now every approval a campaign raised was answered *yes*. The Gate's *ask f
 
 **What it showed.** `experiments/gate-presets.json` now names this person, over sixty seeds. Against no guard, *ask first* leaves the scripted adversary keeping the cupboard code about 6 points more often (interval 0 to 11) and the ball about 7 more (1 to 12) — and it costs the optimal bot its goal in more than half its runs (a scripted bot that is refused does not retry) and about 3,900 tokens a cell. The register reads the approval mode and the *ask first* stack as *evidenced*, where before they read *inconclusive*. That is a measurement of a policy against a stated person, not a claim about people.
 
+## 75. Errors shaped like a model’s
+
+A uniform error is a coin; a model errs more for some people, nearer the line and when pushed. A fault in an error model may now carry a **shape**: a rate per value of one cohort attribute (age band), a rate that rises as a case’s figure nears the rule’s threshold, or a rate for when the other party’s last line matches a pattern. Each number is a calibration row, marked an assumption until a live model’s cassette replaces it. The lending desk ships three (`fs-lending/error/decision-by-cohort`, `decision-near-threshold`, `decision-when-steered`); a draw that was moved by a shape says so (`draw.shaped`). Shapes act on a book’s cases, which carry a cohort and facts; a scenario has none and errs at the base rate.
+
+**What it showed.** Over a 12,000-case loan book the cohort model errs more in the youngest and oldest bands than in the middle, and a uniform one does not. The `lending-fairness` experiment, re-run with it, reads no parity effect: its guard comparison has no decided cases on a side, so the metric has nothing to measure. The page says so rather than a number.
+
 # Appendices
 
 ## Appendix A — Screen index

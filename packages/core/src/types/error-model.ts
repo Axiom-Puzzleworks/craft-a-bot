@@ -35,7 +35,37 @@ export interface DecisionFaultSpec {
 	rate: CalibrationRef;
 	/** Uniformly over the other options, or always toward one (when it is not already that). */
 	direction: 'uniform' | { toward: string };
+	/**
+	 * How the rate varies with the case (WP170, `112-REAL-ENOUGH-PLAN.md` §5). Absent, the rate
+	 * is uniform — the same for every case, as a coin is. A model errs by who the case is about,
+	 * how near the rule's threshold it sits and what the other party said; `rate` stays the base
+	 * every case without that information gets.
+	 */
+	shape?: FaultShape;
 }
+
+/**
+ * **What a fault's rate depends on** (WP170): a stated shape, each number a calibration row,
+ * every row an assumption until a live model is recorded and replaces it with what a model did.
+ *
+ * - `cohort`: the rate for each value of one cohort attribute (`ageBand`: `18-24` → a row's
+ *   key); a value it does not name gets the base rate.
+ * - `difficulty`: the rate rises from the base to `peak` as a case's numeric `fact` nears any
+ *   of `thresholds` (the rule's own), reaching `peak` at the threshold and the base at
+ *   `width` or more away.
+ * - `steer`: the rate when the last thing the other party said matches `pattern` (a
+ *   case-insensitive regular expression over the prompt's last message).
+ */
+export type FaultShape =
+	| { kind: 'cohort'; attribute: string; rates: Record<string, CalibrationRef> }
+	| {
+			kind: 'difficulty';
+			fact: string;
+			thresholds: number[];
+			width: number;
+			peak: CalibrationRef;
+	  }
+	| { kind: 'steer'; pattern: string; rate: CalibrationRef };
 
 /** A number a calibration table holds: the table's id, the row's id, the key in its distribution. */
 export interface CalibrationRef {

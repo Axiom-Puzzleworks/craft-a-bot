@@ -101,6 +101,7 @@ import {
 	scriptedOptimal,
 	type FallibleOptions,
 	type NoiseRates,
+	type CaseInfo,
 	type ResolvedFault
 } from './brains.js';
 import { scoreRun } from './metrics.js';
@@ -1586,7 +1587,7 @@ async function runBookCell(
 							seed,
 							noise,
 							options.plans ?? starterPlans,
-							fallibleFor(brain, registry, seed, cell.ordinal, goalCardId)
+							fallibleFor(brain, registry, seed, cell.ordinal, goalCardId, caseInfoOf(item.truth))
 						)
 					}),
 		// Each stage's boundary chain (WP95): its cards and components, compiled against the same registry and deps as the cell's guard.
@@ -2251,7 +2252,9 @@ function planIfAny(goalCardId: string, plans: PlanSource): Plan {
 /**
  * An error model's faults with their rates read from the registry's calibration
  * tables (WP115, `103-…` §5): a rate outside [0, 1], or a table, row or key the
- * registry does not hold, is refused before any cell runs on it.
+ * registry does not hold, is refused before any cell runs on it. A fault's
+ * shape (WP170) is resolved the same way — every cohort rate, the peak and the
+ * steered rate are rows — and its pattern compiled, so a bad one is refused here too.
  */
 export function resolveErrorModel(
 	registry: Pick<PackRegistry, 'getErrorModel' | 'getCalibrationTable'>,
@@ -2259,18 +2262,59 @@ export function resolveErrorModel(
 ): ResolvedFault[] {
 	const model = registry.getErrorModel(id);
 	if (!model) throw new Error(`no error model '${id}' is installed`);
-	return model.faults.map((spec) => {
-		const table = registry.getCalibrationTable(spec.rate.table);
+	const rateOf = (ref: { table: string; row: string; key: string }): number => {
+		const table = registry.getCalibrationTable(ref.table);
 		if (!table)
-			throw new Error(
-				`error model '${id}': no calibration table '${spec.rate.table}' is installed`
-			);
-		const rate = calibrationRow(table, spec.rate.row).distribution[spec.rate.key];
+			throw new Error(`error model '${id}': no calibration table '${ref.table}' is installed`);
+		const rate = calibrationRow(table, ref.row).distribution[ref.key];
 		if (rate === undefined || !(rate >= 0 && rate <= 1))
 			throw new Error(
-				`error model '${id}': ${spec.rate.table}/${spec.rate.row} has no rate '${spec.rate.key}' in [0, 1]`
+				`error model '${id}': ${ref.table}/${ref.row} has no rate '${ref.key}' in [0, 1]`
 			);
-		return { spec, rate };
+		return rate;
+	};
+	return model.faults.map((spec): ResolvedFault => {
+		const rate = rateOf(spec.rate);
+		const shape = spec.shape;
+		if (!shape) return { spec, rate };
+		if (shape.kind === 'cohort')
+			return {
+				spec,
+				rate,
+				shape: {
+					kind: 'cohort',
+					attribute: shape.attribute,
+					rates: Object.fromEntries(
+						Object.entries(shape.rates).map(([value, ref]) => [value, rateOf(ref)])
+					)
+				}
+			};
+		if (shape.kind === 'difficulty') {
+			if (!(shape.width > 0) || shape.thresholds.length === 0)
+				throw new Error(
+					`error model '${id}': a difficulty shape needs a width above 0 and at least one threshold`
+				);
+			return {
+				spec,
+				rate,
+				shape: {
+					kind: 'difficulty',
+					fact: shape.fact,
+					thresholds: [...shape.thresholds],
+					width: shape.width,
+					peak: rateOf(shape.peak)
+				}
+			};
+		}
+		let pattern: RegExp;
+		try {
+			pattern = new RegExp(shape.pattern, 'i');
+		} catch {
+			throw new Error(
+				`error model '${id}': the steer pattern '${shape.pattern}' is not a regular expression`
+			);
+		}
+		return { spec, rate, shape: { kind: 'steer', pattern, rate: rateOf(shape.rate) } };
 	});
 }
 
@@ -2280,13 +2324,15 @@ function fallibleFor(
 	registry: Pick<PackRegistry, 'getErrorModel' | 'getCalibrationTable'>,
 	seed: number,
 	ordinal: number,
-	goalCardId: string
+	goalCardId: string,
+	caseInfo?: CaseInfo
 ): FallibleOptions | undefined {
 	if (brain.tier !== 'fallible' || brain.errorModel === undefined) return undefined;
 	return {
 		seed: Number.parseInt(sha256Hex(`${seed}|${ordinal}|${goalCardId}`).slice(0, 8), 16),
 		errorModelId: brain.errorModel,
-		faults: resolveErrorModel(registry, brain.errorModel)
+		faults: resolveErrorModel(registry, brain.errorModel),
+		...(caseInfo ? { caseInfo } : {})
 	};
 }
 
@@ -3100,4 +3146,15 @@ function personFor(
 			cell.ordinal
 		)
 	);
+}
+
+/** What the fallible tier may know of a book item (WP170): its cohort and its facts, from its truth. */
+function caseInfoOf(truth: unknown): CaseInfo | undefined {
+	const cohort = cohortOf(truth);
+	const facts = (truth as { facts?: unknown } | undefined)?.facts;
+	const record =
+		facts && typeof facts === 'object' && !Array.isArray(facts)
+			? (facts as Record<string, unknown>)
+			: undefined;
+	return cohort || record ? { cohort, facts: record } : undefined;
 }
