@@ -123,6 +123,7 @@ export {
 export {
 	SERVICING_CASE_KINDS,
 	assembleServicingCase,
+	composeServicingCase,
 	profileOf,
 	servicingCase,
 	servicingCaseFromItem,

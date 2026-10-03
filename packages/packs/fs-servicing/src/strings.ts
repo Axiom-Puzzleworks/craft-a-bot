@@ -113,6 +113,7 @@ export const servicingStrings = {
 		purpose:
 			'Take a service request from arrival to the act — the caller identified, the request classified, a support need recorded as said — with a closure under four eyes, a bereavement’s estate handed to advice and a disclosed need in arrears handed to collections',
 		layoutName: 'A request from the book',
+		composedLayoutName: 'A composed case',
 		stages: {
 			request: 'Request',
 			identify: 'Identify',

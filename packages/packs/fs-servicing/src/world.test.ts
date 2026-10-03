@@ -5,6 +5,7 @@ import {
 	SERVICING_CASE_KINDS,
 	SERVICING_DESK_WORLD_ID,
 	classificationOf,
+	composeServicingCase,
 	needIn,
 	qualifyServicingId,
 	servicingCase,
@@ -28,8 +29,63 @@ const call = (name: string, args: unknown = {}) => ({
  * checked against the file, the file changed only as the request calls
  * for, access only on an authority, the disclosure recorded as said.
  */
+describe('composed cases (WP173)', () => {
+	const cases = Array.from({ length: 1500 }, (_, i) => composeServicingCase(seededRandom(i + 1)));
+	const setOf = (c: ReturnType<typeof composeServicingCase>) =>
+		String((c.truth.facts as Record<string, unknown>)['complications'])
+			.split(',')
+			.map((entry) => entry.replace('complication-', ''));
+
+	it('draws the count of complications from the stated row, and never one twice', () => {
+		const counts = [0, 0, 0, 0];
+		for (const c of cases) {
+			const set = setOf(c);
+			counts[set.length] = (counts[set.length] ?? 0) + 1;
+			expect(new Set(set).size).toBe(set.length);
+			for (const kind of set) expect(SERVICING_CASE_KINDS).toContain(kind);
+		}
+		// 50 / 35 / 15 within a few points over 1,500 cases.
+		expect(counts[1]! / cases.length).toBeGreaterThan(0.45);
+		expect(counts[1]! / cases.length).toBeLessThan(0.55);
+		expect(counts[2]! / cases.length).toBeGreaterThan(0.3);
+		expect(counts[2]! / cases.length).toBeLessThan(0.4);
+		expect(counts[3]! / cases.length).toBeGreaterThan(0.1);
+		expect(counts[3]! / cases.length).toBeLessThan(0.2);
+	});
+
+	it('merges the set into one case: the weightiest request, the disclosure and the impostor each carried', () => {
+		for (const c of cases) {
+			const set = setOf(c);
+			expect(c.category).toBe(
+				set.includes('bereavement')
+					? 'bereavement'
+					: set.includes('third-party-access')
+						? 'third-party'
+						: 'address'
+			);
+			if (set.includes('caller-not-customer'))
+				expect((c.truth.facts as Record<string, unknown>)['callerIsCustomer']).toBe(false);
+			if (set.includes('disclosure-mid-call') && !set.includes('bereavement'))
+				expect(c.discloses).toBe('job-loss');
+			if (set.includes('bereavement')) expect(c.discloses).toBe('bereavement');
+		}
+		// Some case has a bereavement and an impostor together: two complications a single kind never was.
+		expect(
+			cases.some(
+				(c) => setOf(c).includes('bereavement') && setOf(c).includes('caller-not-customer')
+			)
+		).toBe(true);
+	});
+
+	it('is the same case for the same stream, and the hand-written kinds are untouched', () => {
+		expect(composeServicingCase(seededRandom(9))).toEqual(composeServicingCase(seededRandom(9)));
+		const single = servicingCase(seededRandom(9), 'bereavement');
+		expect(Object.keys(single.truth.facts as object)).not.toContain('complications');
+	});
+});
+
 describe('the Servicing Desk', () => {
-	it('is a desk with purpose servicing, eight tiered actions, one irreversible, six layouts', () => {
+	it('is a desk with purpose servicing, eight tiered actions, one irreversible, seven layouts', () => {
 		expect(servicingDesk.view).toBe('desk');
 		expect(servicingDesk.id).toBe(SERVICING_DESK_WORLD_ID);
 		expect(servicingDesk.spec.purpose).toBe('servicing');
@@ -48,6 +104,7 @@ describe('the Servicing Desk', () => {
 		});
 		expect(servicingDesk.layouts.map((layout) => layout.id)).toEqual([
 			...SERVICING_CASE_KINDS,
+			'composed',
 			'work-item'
 		]);
 		expect(isDeskWorldState(snapshot(create()))).toBe(true);

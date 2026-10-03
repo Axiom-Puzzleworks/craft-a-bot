@@ -10,6 +10,7 @@ import { z } from 'zod';
 import { servicingStrings } from '../strings.js';
 import {
 	SERVICING_CASE_KINDS,
+	composeServicingCase,
 	servicingCase,
 	servicingCaseFromItem,
 	type ServicingCaseKind
@@ -40,6 +41,9 @@ const LAYOUT_NAMES: Record<ServicingCaseKind, string> = {
 	'caller-not-customer': 'The caller who is not the customer'
 };
 
+/** The composed layout (WP173): complications drawn as a set from the case's own stream. */
+export const COMPOSED_LAYOUT = 'composed';
+
 /** The work-item layout: the case built from the `item` a workflow's intake hands over; bare, the address change. */
 export const WORK_ITEM_LAYOUT = 'work-item';
 
@@ -49,6 +53,11 @@ export const servicingLayouts = [
 		name: LAYOUT_NAMES[kind],
 		case: (random: () => number) => servicingCase(random, kind)
 	})),
+	{
+		id: COMPOSED_LAYOUT,
+		name: servicingStrings.workflow.composedLayoutName,
+		case: (random: () => number) => composeServicingCase(random)
+	},
 	{
 		id: WORK_ITEM_LAYOUT,
 		name: servicingStrings.workflow.layoutName,

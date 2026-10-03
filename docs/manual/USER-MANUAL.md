@@ -2536,6 +2536,10 @@ An experiment used to report cost as separate numbers: tokens, approvals, touche
 
 The bill reads the hosted price for every token, so a scripted run says what it would cost live; a local cartridge’s power is recorded in the table and not yet folded in. A live brain’s recording is replayed in the Workshop from a cassette the edition serves under `cassettes/`; none is served yet, and a cassette that is missing is an error naming the file, never a stand-in.
 
+## 77. Cases with more than one trouble
+
+Every desk’s hand-written case was one complication laid over a drawn customer: the customer changed with the seed and the trouble never did, and no case carried two. The Servicing and Lending desks now have a **composed** layout beside their kinds: the case’s complications are drawn as a *set* from the case’s own seed, at counts and weights stated in `fs-bank/complications` (assumptions, pending review). A servicing call can be a bereavement and a caller who is not the customer at once; a loan application can be a strained file, a doctored payslip and a push for a decision. The merged case’s truth lists which complications it carries. The hand-written kinds are the single-complication rows and are unchanged; the other five desks do not compose yet.
+
 # Appendices
 
 ## Appendix A — Screen index

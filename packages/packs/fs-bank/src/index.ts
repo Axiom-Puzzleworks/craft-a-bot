@@ -8,6 +8,7 @@ import { bankServiceLines } from './lines/index.js';
 import { FALLBACK, toldPlainly } from './incident.js';
 import {
 	BILL_RATES,
+	COMPLICATIONS,
 	BOOK_INCIDENCES,
 	CALIBRATION,
 	DECK_WEIGHTS,
@@ -49,7 +50,8 @@ const manifest: PackManifest = {
 		BOOK_INCIDENCES,
 		ERROR_RATES,
 		REVIEWER_RATES,
-		BILL_RATES
+		BILL_RATES,
+		COMPLICATIONS
 	],
 	// WP115: the person at a review stage, as a model over REVIEWER_RATES.
 	reviewerModels: bankReviewerModels,
@@ -70,6 +72,8 @@ export * from './model.js';
 export { bankCase, type BankCaseOptions } from './generate/case.js';
 export {
 	BILL_RATES,
+	COMPLICATIONS,
+	drawComplications,
 	BOOK_INCIDENCES,
 	CALIBRATION,
 	CASE_HANDLER_REVIEWER_ID,
