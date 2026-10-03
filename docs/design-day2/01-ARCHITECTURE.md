@@ -291,3 +291,5 @@ V1 needs none. The first features that will genuinely require one: sharing kit f
 > - **Two packs are harness-only:** `pdp-cedar`, and `bedrock-guardrails`, which now has its automated-reasoning service. No edition installs either.
 
 > **Amended 2026-09-30 (WP127, `107-THE-GATE.md`).** A new Node-only package, **`@craftabot/gate`**. It depends on `core` and `governance` and on no pack, and nothing in `apps/workbench` imports it. The harness runs it as `craftabot gate`.
+
+> **Amended 2026-10-03 (WP172–WP175, `112-REAL-ENOUGH-PLAN.md` §5).** The campaign Worker’s chunk moves +24 kB to 1,831,000 B (`scripts/bundle-budget.mjs`): the bill in `evals`, the composed cases, the bill and complications rows and the drawn personas in `fs-bank`, the conduct triggers in `desk`, and the scenario templates in `core` and `evals` ride into it; set to the measured size (1,768 KiB) plus 20 kB. Nothing else moved: the shell’s budgets held.
