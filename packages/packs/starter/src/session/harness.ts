@@ -1,4 +1,5 @@
 import {
+	type ApprovalMeta,
 	createPackRegistry,
 	createSession,
 	createSessionGroup,
@@ -143,6 +144,15 @@ export interface RunOptions {
 	 * session directly; this only keeps every other run terminating.
 	 */
 	approve?: boolean;
+	/**
+	 * A person who answers each approval (WP171, `112-REAL-ENOUGH-PLAN.md` §5): given what was
+	 * proposed, the answer, who gave it and what they drew. Takes the place of `approve`.
+	 */
+	approver?: (proposed: { name: string; arguments?: unknown }) => {
+		approved: boolean;
+		by?: Principal;
+		meta?: ApprovalMeta;
+	};
 	/** Hand the session its own strategies, bypassing the spec's dial (E7). */
 	strategies?: SessionOptions['strategies'];
 	/**
@@ -212,7 +222,12 @@ export async function runToCompletion(options: RunOptions): Promise<RunResult> {
 	 * settles the session is already parked on the approval promise, and nothing
 	 * would ever resolve it.
 	 */
-	session.events.on('approval.requested', () => {
+	session.events.on('approval.requested', (event) => {
+		if (options.approver) {
+			const answer = options.approver(event.payload.proposed);
+			session.resolveApproval(answer.approved, answer.by, answer.meta);
+			return;
+		}
 		session.resolveApproval(options.approve ?? true);
 	});
 

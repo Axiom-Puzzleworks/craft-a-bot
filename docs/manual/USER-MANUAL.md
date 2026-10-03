@@ -2502,6 +2502,28 @@ For a journey the bot stages tell their own run inside the stage, and each hando
 
 **What it is not.** A story is a render, never a store: it is folded from the trace on request and nothing it shows is anywhere else. If it cannot show something, a sensor is missing, which is what the Sensor Inventory (§70) is for. Every story is scrubbed of every key the process holds, by substring, since a key inside a sentence is not an exact match.
 
+## 73. Keys
+
+The app has no backend and the browser keeps a person's own key; the headless harness and the live checkpoints read theirs from the machine's environment — `.env`, copied from `.env.example` and gitignored. `docs/keys.md` has the whole table.
+
+**Two kinds of variable.** `CRAFTABOT_CREDENTIAL_<ID>` is what the harness reads, for runs, recordings and the benchmark. The vendor's own names (`OPENAI_API_KEY`, `GEAP_ACCESS_TOKEN`, …) are what a smoke script reads. A key set in one is not set in the other; to smoke-test a service and then record it, set both.
+
+**`craftabot keys check`** prints which credentials the process holds, by id and never by value, from what the installed packs declare, with what each one lights and the smoke variables beside them. It notes a smoke key whose harness credential is missing, a smoke script that is half set, and a `CRAFTABOT_CREDENTIAL_…` no content declares (usually a typo). `--json` gives the same as data.
+
+**What is protected.** The harness scrubs every `CRAFTABOT_CREDENTIAL_*`, the four smoke secrets and each half of an AWS `accessKeyId:secretAccessKey` pair. Every recorder — `record`, `record --experiment`, `benchmark run --record` — refuses to write a cassette that contains one, and writes nothing. Two sweeps hold it: one plants a secret per credential and sweeps every file and every line of output the harness makes (runs, bundles, stories, OTel spans, the keys check); the other sweeps every committed cassette, benchmark cassette and evidence file for the shapes real keys have.
+
+## 74. A person who says no
+
+Until now every approval a campaign raised was answered *yes*. The Gate's *ask first* preset and the Safety brick's approval mode therefore read *inconclusive*: a control that asks a person is measured against a person, and the campaign's person never refused.
+
+**The model.** A reviewer model gains three rates beside its accuracy, bias and seconds: how often the person **refuses** an approval, **asks a question first**, and is **late**. `fs-bank/reviewer/person-at-approval` is the bank's — a case handler who refuses one request in twelve, asks first one time in eight and is late one time in ten. All three are stated assumptions awaiting a reading, like every rate in the bank, and the person is a model of its own so the case handler's committed results do not move.
+
+**Where the person sits.** A campaign names one with `"reviewer": "<model id>"`. Every approval a cell raises is then drawn from the model, per cell and per proposal, from a stream of its own: a question denies that attempt once and the same act proposed again is answered; a refusal denies. A journey's agent stages and boundary pauses do the same when the configuration names a reviewer that has any of the three rates; at a `human` stage a question re-prompts the stage and a late person leaves it overdue.
+
+**On the trace.** Each draw is a `reviewer.drew` (the rates in force, the rolls, the path, the seconds, and the act) written just before the `approval.resolved` it produced, which carries what the person said. The Run Lab's story tells it (§72).
+
+**What it showed.** `experiments/gate-presets.json` now names this person, over sixty seeds. Against no guard, *ask first* leaves the scripted adversary keeping the cupboard code about 6 points more often (interval 0 to 11) and the ball about 7 more (1 to 12) — and it costs the optimal bot its goal in more than half its runs (a scripted bot that is refused does not retry) and about 3,900 tokens a cell. The register reads the approval mode and the *ask first* stack as *evidenced*, where before they read *inconclusive*. That is a measurement of a policy against a stated person, not a claim about people.
+
 # Appendices
 
 ## Appendix A — Screen index

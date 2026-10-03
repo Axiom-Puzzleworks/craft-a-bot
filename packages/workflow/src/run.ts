@@ -39,6 +39,10 @@ import { validateAgainst } from './validate.js';
 import {
 	recommendationIn,
 	resolveReviewer,
+	createApprover,
+	namesPersonRates,
+	personAtStage,
+	ratesOf,
 	reviewerAnswerDrawn,
 	reviewerRandom
 } from './reviewer.js';
@@ -307,6 +311,11 @@ export async function runWorkflow(
 	// The person at every human stage, as a model (WP115), resolved once; absent, the oracle as ever.
 	const reviewer =
 		config.reviewer !== undefined ? resolveReviewer(registry, config.reviewer) : undefined;
+	// The person at the approvals an agent stage and a boundary raise (WP171): drawn from the model when it names a refusal, a question or a lateness — and only then, so a model that names none leaves every approval as it was.
+	const approver =
+		reviewer && namesPersonRates(reviewer) && !options.approve
+			? createApprover(reviewer, reviewerRandom(options.seed ?? 1, item.id, 'approvals', 0))
+			: undefined;
 	const definition = registry.getWorld(spec.worldId);
 	if (!definition)
 		throw new Error(`Workflow "${spec.id}" needs world "${spec.worldId}", which is not installed.`);
@@ -395,6 +404,8 @@ export async function runWorkflow(
 	let input: unknown = intake.input;
 	/** The stage's output whole, as it left the stage (WP160): the record keeps a value only under the cap, and the next stage must not depend on that. */
 	let latestOutput: unknown;
+	/** A person was late at the last human stage (WP171): the loop makes the stage overdue. */
+	let lateStage = false;
 	let outcome: WorkflowRun['outcome'] = 'completed';
 	let handoff: WorkflowRun['handoff'];
 	const maxStages = options.maxStages ?? 64;
@@ -423,6 +434,11 @@ export async function runWorkflow(
 		const record = await runStage(stage, executor, input);
 		elapsed +=
 			record.executor.kind === 'agent' ? Math.max(1, record.endedTick - record.startedTick) : 1;
+		// A late person (WP171): they took longer than the stage's deadline, so it is overdue as any late stage is.
+		if (lateStage) {
+			lateStage = false;
+			if (stage.deadline) elapsed = Math.max(elapsed, stage.deadline.ticks + 1);
+		}
 		// A deadline (WP146): a stage done past it is recorded overdue and said so on the trace.
 		if (stage.deadline && elapsed > stage.deadline.ticks) {
 			record.overdue = { deadline: stage.deadline.ticks, elapsed };
@@ -666,10 +682,23 @@ export async function runWorkflow(
 			};
 			if ('pause' in verdict) {
 				write('approval.requested', { proposed, reason: verdict.reason });
-				const approved = options.approve ? options.approve(stage, proposed) : true;
+				const person = approver?.(proposed);
+				const approved = person
+					? person.approved
+					: options.approve
+						? options.approve(stage, proposed)
+						: true;
+				if (person?.meta.drew)
+					write('reviewer.drew', {
+						...person.meta.drew,
+						workflowRunId: runId,
+						stageId: stage.id,
+						proposed: proposed.name
+					});
 				write('approval.resolved', {
 					approved,
-					...(options.principal ? { by: options.principal } : {})
+					...(person ? { by: person.by } : options.principal ? { by: options.principal } : {}),
+					...(person?.meta.reason ? { reason: person.meta.reason } : {})
 				});
 				fold.verdicts.push({ ...entry, approved });
 				if (!approved) {
@@ -836,6 +865,11 @@ export async function runWorkflow(
 			}
 		});
 		session.events.on('approval.requested', (event) => {
+			const person = approver?.(event.payload.proposed);
+			if (person) {
+				session.resolveApproval(person.approved, person.by, person.meta);
+				return;
+			}
 			const approved = options.approve ? options.approve(stage, event.payload.proposed) : true;
 			session.resolveApproval(approved, options.principal);
 		});
@@ -1002,20 +1036,40 @@ export async function runWorkflow(
 					reviewerRandom(options.seed ?? 1, item.id, stage.id, ordinal)
 				)
 			: undefined;
-		const by = drawn?.answer;
+		// A person who asks a question or is late (WP171): drawn from a stream of their own, and only for the rates the model names.
+		const person =
+			reviewer && drawn && namesPersonRates(reviewer)
+				? personAtStage(
+						reviewer,
+						reviewerRandom(options.seed ?? 1, item.id, `${stage.id}#person`, ordinal)
+					)
+				: undefined;
+		const by = drawn
+			? {
+					...drawn.answer,
+					...(person?.asked
+						? { asked: true as const, seconds: drawn.answer.seconds + person.extraSeconds }
+						: {}),
+					...(person?.late ? { late: true as const } : {})
+				}
+			: undefined;
+		if (by?.late) lateStage = true;
 		// What the person drew (WP160): the rates in force, the rolls and the path, so a slip is not read as a planted fault.
 		if (reviewer && drawn)
 			emit('reviewer.drew', {
 				workflowRunId: runId,
 				stageId: stage.id,
 				model: reviewer.id,
-				rates: {
-					accuracy: reviewer.accuracy,
-					automationBias: reviewer.automationBias,
-					...(reviewer.reasonRate !== undefined ? { reasonRate: reviewer.reasonRate } : {})
-				},
+				rates: ratesOf(reviewer),
 				path: drawn.draw.path,
-				rolls: drawn.draw.rolls
+				rolls: [...drawn.draw.rolls, ...(person?.rolls ?? [])],
+				...(by?.late ? { late: true as const } : {})
+			});
+		// The question re-prompts the stage once (WP171): the person is asked again before they answer.
+		if (by?.asked)
+			emit('approval.requested', {
+				proposed,
+				reason: `Asked first, asked again: ${executor.prompt}`
 			});
 		const answer: HumanDecision = by
 			? { decision: by.answer, ...(by.reason !== undefined ? { reason: by.reason } : {}) }

@@ -397,6 +397,42 @@ export const reviewerAnswerSchema = z.object({
 	correct: z.boolean(),
 	seconds: z.number().nonnegative(),
 	/** Why they overruled what the case recommended (WP156, `111-…` §4): written only on an override, at the model's `reasonRate`. */
-	reason: z.string().min(1).optional()
+	reason: z.string().min(1).optional(),
+	/** They asked a question first and the stage re-prompted once (WP171); written only then. */
+	asked: z.literal(true).optional(),
+	/** They answered after the stage's deadline (WP171); written only then. */
+	late: z.literal(true).optional()
 });
 export type ReviewerAnswer = z.infer<typeof reviewerAnswerSchema>;
+
+/**
+ * **What a modelled person drew** (WP159 stage B, WP171, `112-REAL-ENOUGH-PLAN.md`
+ * §5): the model, the rates in force, the rolls made against them in order and
+ * the path that decided the answer. At a `human` stage the path says how the
+ * answer was reached; at an *approval* (WP171) it says whether the person
+ * approved, refused, or asked a question first. `workflowRunId` and `stageId`
+ * are written only at a stage; `proposed` names the act an approval was about.
+ */
+export const reviewerDrewSchema = z.object({
+	workflowRunId: z.string().optional(),
+	stageId: z.string().optional(),
+	/** The act an approval was asked about (WP171); absent at a stage. */
+	proposed: z.string().optional(),
+	model: z.string(),
+	rates: z.object({
+		accuracy: z.number(),
+		automationBias: z.number(),
+		reasonRate: z.number().optional(),
+		/** P(they say no to an approval), P(they ask a question first), P(they are late) — written only when the model names them (WP171). */
+		refuseRate: z.number().optional(),
+		questionRate: z.number().optional(),
+		lateRate: z.number().optional()
+	}),
+	path: z.enum(['took-recommendation', 'accurate', 'slipped', 'approved', 'refused', 'asked']),
+	rolls: z.array(z.number()),
+	/** They took longer than the stage's deadline (WP171): the stage is overdue, as a late person's is. */
+	late: z.literal(true).optional(),
+	/** The seconds the case took them, when the model has a row for it. */
+	seconds: z.number().nonnegative().optional()
+});
+export type ReviewerDrew = z.infer<typeof reviewerDrewSchema>;

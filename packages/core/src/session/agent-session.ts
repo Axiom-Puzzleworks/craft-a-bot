@@ -1,6 +1,7 @@
 import { sha256Hex } from '../schemas/sha256.js';
 import { createEventBus, type EventBus } from '../event-bus.js';
 import type { Attestation, Principal } from '../schemas/shared.js';
+import type { ApprovalMeta } from '../types/agent-session.js';
 import { toSpecV2 } from '../schemas/agent-spec-v2.js';
 import { buildDigest } from '../build-digest.js';
 import {
@@ -262,7 +263,8 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		begun: false,
 		pauseRequested: false,
 		stopRequested: undefined as string | undefined,
-		pendingApproval: undefined as ((approved: boolean, by?: Principal) => void) | undefined,
+		pendingApproval: undefined as
+			((approved: boolean, by?: Principal, meta?: ApprovalMeta) => void) | undefined,
 		/** Set by `declareOutcome` mid-tick; honoured at JUDGE (E2). */
 		declaredOutcome: undefined as RunOutcome | undefined,
 		declaredReason: undefined as string | undefined,
@@ -978,8 +980,14 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 				const elevation = preAct.verdict.elevation;
 				if (elevation)
 					emit('elevation.requested', { scope: elevation.scope, reason: preAct.verdict.reason });
-				const { approved, by } = await approval;
-				emit('approval.resolved', { approved, ...(by ? { by } : {}) });
+				const { approved, by, meta } = await approval;
+				// What a modelled person drew (WP171), written before the answer it produced.
+				if (meta?.drew) emit('reviewer.drew', { ...meta.drew, proposed: decision.call.name });
+				emit('approval.resolved', {
+					approved,
+					...(by ? { by } : {}),
+					...(meta?.reason ? { reason: meta.reason } : {})
+				});
 				if (elevation)
 					emit('elevation.resolved', {
 						scope: elevation.scope,
@@ -1128,13 +1136,13 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 		return { tick: run.tick };
 	}
 
-	function awaitApproval(): Promise<{ approved: boolean; by?: Principal }> {
+	function awaitApproval(): Promise<{ approved: boolean; by?: Principal; meta?: ApprovalMeta }> {
 		run.status = 'awaiting-approval';
-		return new Promise<{ approved: boolean; by?: Principal }>((resolve) => {
-			run.pendingApproval = (approved, by) => {
+		return new Promise<{ approved: boolean; by?: Principal; meta?: ApprovalMeta }>((resolve) => {
+			run.pendingApproval = (approved, by, meta) => {
 				run.pendingApproval = undefined;
 				run.status = 'running';
-				resolve({ approved, ...(by ? { by } : {}) });
+				resolve({ approved, ...(by ? { by } : {}), ...(meta ? { meta } : {}) });
 			};
 		});
 	}
@@ -1293,8 +1301,8 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 			run.pauseRequested = true;
 			if (run.status === 'running' && run.mode === 'step') run.status = 'paused';
 		},
-		resolveApproval(approved, by) {
-			run.pendingApproval?.(approved, by);
+		resolveApproval(approved, by, meta) {
+			run.pendingApproval?.(approved, by, meta);
 		},
 		stop(reason) {
 			run.stopRequested = reason ?? 'stopped by user';

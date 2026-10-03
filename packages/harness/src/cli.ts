@@ -50,6 +50,7 @@ import {
 	renderReadingsSummary,
 	writeReadings
 } from './commands/readings.js';
+import { keysCheck, renderKeys } from './commands/keys.js';
 import { sensorsFor, renderSensorsSummary, writeSensors } from './commands/sensors.js';
 import { renderStory, storyOf, type StoryFormat } from './commands/story.js';
 import { controlsFor, renderControlsSummary, writeControls } from './commands/controls.js';
@@ -167,6 +168,11 @@ Usage:
       row, decision right, blueprint item, screening list, error and reviewer model still
       pending, with the review each has had (from --content and --store). Markdown is
       the maintainer's work list: the amendments to edit in, the rejections, the unread.
+  craftabot keys check [--json] [--config <file>]
+      Which credentials this process holds, by id and never by value (CRAFTABOT_CREDENTIAL_<ID>
+      for every provider, guard service, evaluator and store the installed packs declare), what
+      each lights, and the variables the live smoke scripts read — with a note where a smoke key
+      is set but its harness credential is not (WP162).
   craftabot story <runId | itemId> [--store <dir>] [--format markdown|html|json] [--out <file>] [--no-follow]
       A run, or a work item through its journey with every handoff followed (WP161), told
       top to bottom: what arrived, what the assistant was told, what it thought and did,
@@ -1320,6 +1326,18 @@ ${renderEvaluations(report)}`);
 						? `${renderReadingsSummary(file)}  wrote      ${out}
 `
 						: text
+				);
+				return 0;
+			}
+			case 'keys': {
+				// WP162 (`112-REAL-ENOUGH-PLAN.md` §5): which credentials this process holds, by id, and what each lights.
+				if (args.positional[0] !== 'check')
+					throw new Error('keys needs check [--json] [--config <file>]');
+				const report = keysCheck(createRegistry(await configFrom(args)), io.env);
+				io.stdout(
+					args.flags['json'] === true
+						? `${JSON.stringify(report, null, '\t')}\n`
+						: renderKeys(report)
 				);
 				return 0;
 			}

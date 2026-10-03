@@ -484,9 +484,9 @@ export function createSessionGroup(deps: CreateSessionGroupDeps): SessionGroup {
 			state.pauseRequested = true;
 			if (state.phase === 'running') state.phase = 'paused';
 		},
-		resolveApproval(agentId, approved, by) {
+		resolveApproval(agentId, approved, by, meta) {
 			const index = members.findIndex((member) => member.spec.id === agentId);
-			sessions[index]?.resolveApproval(approved, by);
+			sessions[index]?.resolveApproval(approved, by, meta);
 		},
 		stop(reason) {
 			state.stopRequested = reason ?? 'stopped by user';

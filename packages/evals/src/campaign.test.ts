@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { EngineEvent, PackManifest } from '@craftabot/core';
 import azureContentSafetyPack from '@craftabot/pack-azure-content-safety';
 import guardLocalPack from '@craftabot/pack-guard-local';
 import workshopPack from '@craftabot/pack-workshop';
@@ -183,6 +184,137 @@ describe('a stacked guard', () => {
 		expect(report.cells.every((cell) => cell.error === undefined)).toBe(true);
 		expect(new Set(report.cells.map((cell) => cell.guard))).toEqual(new Set(['floor+blocklist']));
 		expect(report.gates[0]).toMatchObject({ id: 'stack-holds', passed: true });
+	});
+});
+
+/**
+ * **A person who says no** (WP171, `112-REAL-ENOUGH-PLAN.md` §5): a campaign that names a
+ * reviewer model has that person answer every approval — until now the campaign approved every
+ * request, so a guard that asks first could not be measured against anyone who refuses.
+ */
+function personPack(refuse: number): PackManifest {
+	const row = (
+		id: string,
+		distribution: Record<string, number>,
+		kind: 'rates' | 'weights' = 'rates'
+	) => ({
+		id,
+		kind,
+		title: id,
+		distribution,
+		source: { kind: 'assumption' as const, retrieved: '2026-10-03' },
+		note: 'A test row.',
+		tolerance: 0.01,
+		review: 'pending' as const
+	});
+	const ref = (r: string, key: string) => ({ table: 'person/rows', row: r, key });
+	return {
+		id: 'person',
+		name: 'A modelled person',
+		version: '1.0.0',
+		requiresCore: '>=1.0.0',
+		calibrations: [
+			{
+				id: 'person/rows',
+				title: 'Person',
+				description: 'Rows.',
+				rows: [
+					row('accuracy', { correct: 1 }),
+					row('bias', { follows: 0 }),
+					row('seconds', { '60': 1 }, 'weights'),
+					row('refuse', { rate: refuse })
+				]
+			}
+		],
+		reviewerModels: [
+			{
+				id: 'person/refuser',
+				name: 'A refuser',
+				description: 'Says no at the stated rate.',
+				accuracy: ref('accuracy', 'correct'),
+				automationBias: ref('bias', 'follows'),
+				secondsPerCase: ref('seconds', 'seconds'),
+				refuseRate: ref('refuse', 'rate')
+			}
+		]
+	};
+}
+
+describe('a person at the approvals (WP171)', () => {
+	const asking = () => {
+		const base = small();
+		return {
+			...base,
+			scenarios: base.scenarios.filter((s) => s.id === 'warning-sign'),
+			guards: [
+				{
+					id: 'ask-first',
+					fit: [
+						{
+							slot: 'safety',
+							kind: 'starter/safety',
+							configVersion: 2,
+							config: { maxTicks: 30, blockedActions: [], approval: 'everything', policyCards: [] }
+						}
+					]
+				}
+			],
+			brains: base.brains.filter((b) => b.tier === 'scripted-optimal'),
+			seeds: [1, 2, 3],
+			gates: [
+				{
+					id: 'ran',
+					where: { guard: 'ask-first' },
+					require: { kind: 'outcome-rate', outcome: 'SUCCESS', atLeast: 0 }
+				}
+			]
+		};
+	};
+	const run = async (extra: Record<string, unknown>) => {
+		const traces: EngineEvent[][] = [];
+		const report = await runCampaign(parseCampaign({ ...asking(), ...extra }), {
+			now: clock(),
+			newId: ids(),
+			packs: [...baselinePacks(), personPack(1)],
+			onTrace: (_cell, trace) => void traces.push([...trace.events])
+		});
+		return { report, traces };
+	};
+
+	it('without a reviewer every request is approved; with a refuser every request is denied, and the draw is on the trace', async () => {
+		const plain = await run({});
+		const asked = plain.report.cells.map((cell) => cell.metrics.approvalsRequested);
+		expect(Math.max(...asked)).toBeGreaterThan(0);
+		expect(plain.report.cells.every((cell) => cell.metrics.approvalsDenied === 0)).toBe(true);
+		expect(plain.traces.flat().some((event) => event.type === 'reviewer.drew')).toBe(false);
+
+		const person = await run({ reviewer: 'person/refuser' });
+		const requested = person.report.cells.reduce(
+			(n, cell) => n + cell.metrics.approvalsRequested,
+			0
+		);
+		const denied = person.report.cells.reduce((n, cell) => n + cell.metrics.approvalsDenied, 0);
+		expect(requested).toBeGreaterThan(0);
+		expect(denied).toBe(requested);
+		const drew = person.traces.flat().filter((event) => event.type === 'reviewer.drew');
+		expect(drew.length).toBe(requested);
+		for (const event of drew)
+			if (event.type === 'reviewer.drew')
+				expect(event.payload).toMatchObject({
+					model: 'person/refuser',
+					path: 'refused',
+					rates: { refuseRate: 1 }
+				});
+		// The same campaign, the same draws.
+		const again = await run({ reviewer: 'person/refuser' });
+		expect(again.traces.flat().map((event) => event.type)).toEqual(
+			person.traces.flat().map((event) => event.type)
+		);
+	});
+
+	it('names a reviewer no pack installs: a cell error, not a silent approval', async () => {
+		const missing = await run({ reviewer: 'nobody/ships-this' });
+		expect(missing.report.cells.every((cell) => cell.error !== undefined)).toBe(true);
 	});
 });
 

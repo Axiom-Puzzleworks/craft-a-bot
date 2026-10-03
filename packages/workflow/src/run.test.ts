@@ -35,6 +35,7 @@ import {
 	stagePack,
 	stageValue
 } from './run.js';
+import { REFUSED_REASON } from './reviewer.js';
 
 /**
  * WP79 stage B (`69-WORKFLOWS.md` §7): the runtime over the desk golden
@@ -404,6 +405,63 @@ describe('a rule stage', () => {
 		expect(missing.record.stages[0]).toMatchObject({ status: 'error', finding: 'no rule "greet"' });
 	});
 });
+
+/** A pack with one reviewer model, always right and never led astray, naming the person rates given (WP171). */
+function personPack(
+	rates: { refuse?: number; question?: number; late?: number },
+	id = ''
+): PackManifest {
+	const row = (
+		rowId: string,
+		distribution: Record<string, number>,
+		kind: 'rates' | 'weights' = 'rates'
+	) => ({
+		id: rowId,
+		kind,
+		title: rowId,
+		distribution,
+		source: { kind: 'assumption' as const, retrieved: '2026-10-03' },
+		note: 'A test row.',
+		tolerance: 0.01,
+		review: 'pending' as const
+	});
+	const ref = (rowId: string, key: string) => ({ table: 'person/rows', row: rowId, key });
+	const modelId =
+		id ||
+		(rates.refuse !== undefined
+			? 'person/refuses'
+			: rates.question !== undefined
+				? 'person/slow'
+				: 'person/oracle');
+	const rows = [
+		row('accuracy', { correct: 1 }),
+		row('bias', { follows: 0 }),
+		row('seconds', { '60': 1 }, 'weights'),
+		...(rates.refuse !== undefined ? [row('refuse', { rate: rates.refuse })] : []),
+		...(rates.question !== undefined ? [row('question', { rate: rates.question })] : []),
+		...(rates.late !== undefined ? [row('late', { rate: rates.late })] : [])
+	];
+	return {
+		id: 'person',
+		name: 'A modelled person',
+		version: '1.0.0',
+		requiresCore: '>=1.0.0',
+		calibrations: [{ id: 'person/rows', title: 'Person', description: 'Rows.', rows }],
+		reviewerModels: [
+			{
+				id: modelId,
+				name: modelId,
+				description: 'A test person.',
+				accuracy: ref('accuracy', 'correct'),
+				automationBias: ref('bias', 'follows'),
+				secondsPerCase: ref('seconds', 'seconds'),
+				...(rates.refuse !== undefined ? { refuseRate: ref('refuse', 'rate') } : {}),
+				...(rates.question !== undefined ? { questionRate: ref('question', 'rate') } : {}),
+				...(rates.late !== undefined ? { lateRate: ref('late', 'rate') } : {})
+			}
+		]
+	};
+}
 
 const decide: StageSpec = {
 	id: 'decide',
@@ -777,6 +835,77 @@ describe('stage-boundary guards (WP95)', () => {
 		const approved = await run(spec, { boundaryGuardrailsFor: pausing, approve: () => true });
 		expect(approved.record.stages.map((stage) => stage.status)).toEqual(['ok', 'ok']);
 		expect(approved.record.stages[1]?.guards.verdicts?.[0]?.approved).toBe(true);
+	});
+
+	it('a modelled person answers a boundary pause: refusing halts it with what they said, and every draw is on the trace (WP171)', async () => {
+		const pausing = chains({
+			sign: { 'stage-in': [boundaryGuard('ask', { pause: true, reason: 'a person first' })] }
+		});
+		const spec = workflow([greet, signByRule], { rules: RULES });
+		const refused = await run(spec, {
+			boundaryGuardrailsFor: pausing,
+			config: { reviewer: 'person/refuses' },
+			packs: [testPack(), personPack({ refuse: 1 })]
+		});
+		expect(refused.record.stages[1]).toMatchObject({
+			status: 'blocked',
+			finding: 'declined at stage-in: a person first'
+		});
+		const events = refused.record.events;
+		const types = events.map((event) => event.type);
+		// The draw is written between the request and the answer it produced.
+		expect(types.indexOf('reviewer.drew')).toBe(types.indexOf('approval.requested') + 1);
+		expect(types.indexOf('approval.resolved')).toBe(types.indexOf('reviewer.drew') + 1);
+		const drew = events.find((event) => event.type === 'reviewer.drew');
+		expect(drew?.payload).toMatchObject({
+			stageId: 'sign',
+			proposed: 'sign',
+			model: 'person/refuses',
+			path: 'refused',
+			rates: { refuseRate: 1 }
+		});
+		expect(events.find((event) => event.type === 'approval.resolved')?.payload).toMatchObject({
+			approved: false,
+			reason: REFUSED_REASON,
+			by: { kind: 'person', id: 'person/refuses' }
+		});
+
+		// A person who names no rate approves, and writes no draw: an approval is as it was.
+		const oracle = await run(spec, {
+			boundaryGuardrailsFor: pausing,
+			config: { reviewer: 'person/oracle' },
+			packs: [testPack(), personPack({})]
+		});
+		expect(oracle.record.stages.map((stage) => stage.status)).toEqual(['ok', 'ok']);
+		expect(oracle.record.events.some((event) => event.type === 'reviewer.drew')).toBe(false);
+	});
+
+	it('a person at a human stage may ask first, re-prompting the stage once, and be late, so the stage is overdue (WP171)', async () => {
+		const spec = workflow([{ ...decide, deadline: { ticks: 1 } }]);
+		const { record } = await run(spec, {
+			config: { reviewer: 'person/slow' },
+			packs: [testPack(), personPack({ question: 1, late: 1 })]
+		});
+		const stage = record.stages[0]!;
+		expect(stage.by).toMatchObject({ asked: true, late: true });
+		// Asking costs the seconds a second look takes.
+		expect(stage.by!.seconds).toBeGreaterThan(60);
+		expect(record.events.filter((event) => event.type === 'approval.requested')).toHaveLength(2);
+		expect(record.events.find((event) => event.type === 'reviewer.drew')?.payload).toMatchObject({
+			late: true,
+			rates: { questionRate: 1, lateRate: 1 }
+		});
+		expect(stage.overdue).toBeDefined();
+		expect(record.events.some((event) => event.type === 'stage.overdue')).toBe(true);
+
+		// A person who is neither asks nothing and is on time: the stage is as it was.
+		const plain = await run(spec, {
+			config: { reviewer: 'person/prompt' },
+			packs: [testPack(), personPack({}, 'person/prompt')]
+		});
+		expect(plain.record.stages[0]?.by).not.toHaveProperty('asked');
+		expect(plain.record.stages[0]?.by).not.toHaveProperty('late');
+		expect(plain.record.stages[0]?.overdue).toBeUndefined();
 	});
 
 	it('a stop-run at stage-out ends the journey once the stage is recorded', async () => {

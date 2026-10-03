@@ -1262,6 +1262,10 @@
 								"tier"
 							]
 						},
+						"reviewer": {
+							"type": "string",
+							"minLength": 1
+						},
 						"noise": {
 							"type": "object",
 							"properties": {

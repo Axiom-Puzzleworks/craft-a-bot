@@ -309,6 +309,13 @@ Rules: events are **append-only facts**; payloads are JSON-serialisable; the tra
 >
 > The Sensor Inventory (above) lists both new events; each is *listed only* until WP161's story reads it.
 
+> **Amended 2026-10-03 (WP171, `112-REAL-ENOUGH-PLAN.md` §5): a person who says no.** `reviewer.drew` now also records a modelled person's draw at an **approval**, and the model gains three rates. All additive; a reviewer model naming none of them draws and writes exactly what it did.
+>
+> - **`reviewer.drew`**: `workflowRunId` and `stageId` become optional (an approval raised in a session has no stage); new optional `proposed` (the act an approval was about), `seconds` and `late`; `rates` gains `refuseRate`, `questionRate`, `lateRate`; `path` gains `approved`, `refused` and `asked` beside the three it had.
+> - **`session.resolveApproval(approved, by?, meta?)`**: `meta` (`ApprovalMeta`: a `reason`, and what was `drew`) is written by the session as `reviewer.drew` immediately before `approval.resolved`, which then carries the `reason`. A host that gives no meta writes nothing new.
+> - **`ReviewerModel.refuseRate` / `questionRate` / `lateRate`**: `rates` rows. At an approval the person asks first (denying that attempt, once per act), else refuses, else approves; at a `human` stage they may ask a question (the stage re-prompts once, with a second `approval.requested`) and be late (the stage is overdue and `stage.overdue` follows). The seconds are drawn first and each named rate after, so adding a rate appends a roll and moves none before it.
+> - **`ReviewerAnswer.asked` / `late`** on `stage.completed.by`, written only then.
+
 ## 8. Prompting (V1 canonical prompt)
 
 The composed prompt is assembled from labelled sections, in this order, and shown verbatim in the trace (`prompt.composed`):

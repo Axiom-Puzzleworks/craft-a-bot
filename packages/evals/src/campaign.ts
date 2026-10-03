@@ -42,7 +42,13 @@ import {
 	stacksForStage,
 	type ComponentFit
 } from '@craftabot/governance';
-import { runWorkflow, touchedCaseOf } from '@craftabot/workflow';
+import {
+	createApprover,
+	reviewerRandom,
+	resolveReviewer,
+	runWorkflow,
+	touchedCaseOf
+} from '@craftabot/workflow';
 import {
 	FAIRNESS_METRIC_IDS,
 	agreementDrift,
@@ -547,6 +553,13 @@ export const campaignObjectSchema = z.object({
 	brains: z.array(campaignBrainSchema).min(1),
 	/** The seat across the desk (WP64): absent means `scripted`, the desk's own interpreter. */
 	counterpart: campaignCounterpartSchema.optional(),
+	/**
+	 * The person who answers every approval a cell raises (WP171, `112-REAL-ENOUGH-PLAN.md` §5): a
+	 * reviewer model by id, drawn from per cell and per proposal. Absent, the campaign approves
+	 * every request, as it always did — and *ask first* and the approval mode read *inconclusive*
+	 * against a person who never says no.
+	 */
+	reviewer: z.string().min(1).optional(),
 	seeds: z.array(z.number().int()).min(1),
 	noise: noiseRatesSchema.partial().optional(),
 	assertionCards: z.array(assertionCardSchema).default([]),
@@ -1444,7 +1457,10 @@ async function runCell(
 			...(chain.length > 0 ? { guardrails: chain } : {}),
 			...(egress !== undefined ? { egress } : {}),
 			...(options.principal !== undefined ? { principal: options.principal } : {}),
-			...(options.packs !== undefined ? { packs: options.packs } : {})
+			...(options.packs !== undefined ? { packs: options.packs } : {}),
+			...(campaign.reviewer !== undefined
+				? { approver: personFor(campaign.reviewer, registry, cell, seed) }
+				: {})
 		});
 
 		const started = run.events.find((event) => event.type === 'run.started');
@@ -1788,8 +1804,17 @@ async function runDuoCell(
 	});
 	const merged: EngineEvent[] = [];
 	group.events.onAny((event) => merged.push(event));
+	const person =
+		campaign.reviewer !== undefined
+			? personFor(campaign.reviewer, registry, cell, seed)
+			: undefined;
 	for (const session of group.sessions) {
-		session.events.on('approval.requested', () => session.resolveApproval(true, options.principal));
+		session.events.on('approval.requested', (event) => {
+			if (person) {
+				const answer = person(event.payload.proposed);
+				session.resolveApproval(answer.approved, answer.by, answer.meta);
+			} else session.resolveApproval(true, options.principal);
+		});
 	}
 	group.start('step');
 	let outcome: RunOutcome | undefined;
@@ -3052,4 +3077,27 @@ export function readingsOf(run: WorkflowRun, workflow: WorkflowSpec, truth: unkn
 		}
 	}
 	return readings;
+}
+
+/**
+ * The person a campaign names, for one cell (WP171): the reviewer model resolved from the registry
+ * and a stream of its own — the seed, the scenario, the build, the guard and the cell's ordinal —
+ * so every cell's person draws the same every run and no other stream moves.
+ */
+function personFor(
+	reviewerId: string,
+	registry: PackRegistry,
+	cell: CampaignCellSpec,
+	seed: number
+): ReturnType<typeof createApprover> {
+	const reviewer = resolveReviewer(registry, reviewerId);
+	return createApprover(
+		reviewer,
+		reviewerRandom(
+			seed,
+			cell.scenario.id,
+			`${cell.build.id}|${cell.guard.id}|approvals`,
+			cell.ordinal
+		)
+	);
 }
