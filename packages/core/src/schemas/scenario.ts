@@ -127,3 +127,124 @@ export const scenarioPackFileSchema = z.object({
 	scenarios: z.array(scenarioDefinitionSchema)
 });
 export type ScenarioPackFile = z.infer<typeof scenarioPackFileSchema>;
+
+/**
+ * **A scenario template** (WP175, `112-REAL-ENOUGH-PLAN.md` §5; G154): a
+ * scenario whose `draws` — which persona, which complication, which attack row,
+ * which tick — are chosen from a seed, so one hand-written shape expands to a
+ * scenario per seed with no writing. A template with no draws is a scenario;
+ * the draw is deterministic in `(template, seed)`, so a campaign over a seed
+ * range is reproducible. Each draw says what it chose in a `draw:<name>=<value>`
+ * tag, so a report groups by it.
+ */
+export const scenarioDrawSchema = z.discriminatedUnion('kind', [
+	/** One option per seed, by weight; each carries what it adds (tags and injections). */
+	z.object({
+		kind: z.literal('one-of'),
+		name: z.string().min(1),
+		options: z
+			.array(
+				z.object({
+					id: z.string().min(1),
+					weight: z.number().positive().default(1),
+					tags: z.array(z.string()).default([]),
+					injections: z.array(injectionSchema).default([])
+				})
+			)
+			.min(1)
+	}),
+	/** An integer tick in `[min, max]`, set on the template's and the options' injections of the listed kinds. */
+	z.object({
+		kind: z.literal('tick-in'),
+		name: z.string().min(1),
+		min: z.number().int().nonnegative(),
+		max: z.number().int().nonnegative(),
+		applyTo: z.array(z.enum(['heard', 'provider-fault'])).min(1)
+	})
+]);
+export type ScenarioDraw = z.infer<typeof scenarioDrawSchema>;
+
+export const scenarioTemplateSchema = scenarioDefinitionSchema
+	.extend({ draws: z.array(scenarioDrawSchema).default([]) })
+	.superRefine((template, context) => {
+		const seen = new Set<string>();
+		for (const [index, draw] of template.draws.entries()) {
+			if (seen.has(draw.name))
+				context.addIssue({
+					code: 'custom',
+					path: ['draws', index, 'name'],
+					message: `the draw "${draw.name}" is named twice`
+				});
+			seen.add(draw.name);
+			if (draw.kind === 'tick-in' && draw.max < draw.min)
+				context.addIssue({
+					code: 'custom',
+					path: ['draws', index],
+					message: `the draw "${draw.name}" has a max below its min`
+				});
+		}
+	});
+export type ScenarioTemplate = z.infer<typeof scenarioTemplateSchema>;
+export type ScenarioTemplateInput = z.input<typeof scenarioTemplateSchema>;
+
+/** A small seeded stream (mulberry32): `core` holds no randomness of its own beyond this, and this is a pure function of the seed. */
+function drawStream(seed: number, salt: string): () => number {
+	let a =
+		(seed ^ [...salt].reduce((h, c) => Math.imul(h ^ c.charCodeAt(0), 16777619), 2166136261)) >>> 0;
+	return () => {
+		a = (a + 0x6d2b79f5) >>> 0;
+		let t = a;
+		t = Math.imul(t ^ (t >>> 15), t | 1);
+		t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+		return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+	};
+}
+
+/**
+ * The scenario a template is at one seed: the template's own injections, then
+ * each `one-of` draw's chosen option's, tags merged, ticks set; the id is
+ * `<template>#<seed>`. Each draw has its own stream (salted by its name), so
+ * adding a draw never changes what an earlier one chose.
+ */
+export function expandScenarioTemplate(
+	template: ScenarioTemplate,
+	seed: number
+): ScenarioDefinition {
+	const tags = [...template.tags];
+	let injections: Injection[] = [...template.injections];
+	const ticks: Array<{ kinds: readonly string[]; tick: number }> = [];
+	for (const draw of template.draws) {
+		const random = drawStream(seed, `${template.id}|${draw.name}`);
+		if (draw.kind === 'one-of') {
+			const total = draw.options.reduce((sum, option) => sum + option.weight, 0);
+			let roll = random() * total;
+			let chosen = draw.options[draw.options.length - 1]!;
+			for (const option of draw.options) {
+				roll -= option.weight;
+				if (roll < 0) {
+					chosen = option;
+					break;
+				}
+			}
+			tags.push(`draw:${draw.name}=${chosen.id}`, ...chosen.tags);
+			injections = [...injections, ...chosen.injections];
+		} else {
+			const tick = draw.min + Math.floor(random() * (draw.max - draw.min + 1));
+			tags.push(`draw:${draw.name}=${tick}`);
+			ticks.push({ kinds: draw.applyTo, tick });
+		}
+	}
+	injections = injections.map((injection) => {
+		const set = ticks.filter((entry) => entry.kinds.includes(injection.kind));
+		const last = set[set.length - 1];
+		return last && (injection.kind === 'heard' || injection.kind === 'provider-fault')
+			? { ...injection, atTick: last.tick }
+			: injection;
+	});
+	return {
+		...scenarioDefinitionSchema.parse({ ...template, draws: undefined }),
+		id: `${template.id}#${seed}`,
+		tags: [...new Set(tags)],
+		injections
+	};
+}

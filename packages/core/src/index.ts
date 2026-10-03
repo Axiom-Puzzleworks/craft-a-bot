@@ -46,19 +46,25 @@ export {
 } from './schemas/content.js';
 export {
 	SCENARIO_SCHEMA_VERSION,
+	expandScenarioTemplate,
 	injectionSchema,
 	isWorldInjection,
 	splitInjections,
 	parseScenarioDefinition,
 	safeParseScenarioDefinition,
 	scenarioDefinitionSchema,
+	scenarioDrawSchema,
 	scenarioExpectationSchema,
 	scenarioPackFileSchema,
+	scenarioTemplateSchema,
 	type Injection,
 	type ProviderFault,
 	type ScenarioDefinition,
 	type ScenarioDefinitionInput,
-	type ScenarioPackFile
+	type ScenarioDraw,
+	type ScenarioPackFile,
+	type ScenarioTemplate,
+	type ScenarioTemplateInput
 } from './schemas/scenario.js';
 export {
 	describeEvaluatorProblems,

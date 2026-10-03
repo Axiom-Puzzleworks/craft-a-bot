@@ -2546,6 +2546,10 @@ A scripted visitor used to answer the words of your last line and nothing else. 
 
 The bank can also draw a caller from the customer: `personaFor` picks one of the ten anchors by the customer’s cohort and gives them a **voice** — formal, casual or terse; short or wordy; patient or not — from the case’s seed, restyling the anchor’s words and leaving its triggers, pressure and tags as written. Attack lines are never restyled. The words are not yet model-written, and no desk draws its caller this way yet.
 
+## 79. Scenarios that widen themselves
+
+A hand-written scenario is one case; a campaign over twenty seeds ran that one case twenty times. A **scenario template** has *draws*: which persona, which complication, which attack, which tick. A campaign entry that names a template and a seed range (`"template": "warning", "seeds": { "from": 1, "to": 30 }`) becomes thirty scenarios before anything runs, each named `entry#seed` and each tagged with what it drew (`draw:persona=pushy`), so a report groups by it. The same seed always draws the same scenario, and adding a draw to a template never changes what an earlier draw chose. A guard’s `for` list still names the entry. Templates travel inside the campaign file; they are not yet shipped content, and the grown corpora wait on the local model.
+
 # Appendices
 
 ## Appendix A — Screen index
