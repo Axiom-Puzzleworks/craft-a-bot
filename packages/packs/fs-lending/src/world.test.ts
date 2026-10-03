@@ -8,6 +8,7 @@ import {
 	LENDING_CASE_KINDS,
 	LENDING_DESK_WORLD_ID,
 	affordabilityVerdict,
+	composeLendingCase,
 	lendingCase,
 	lendingDesk,
 	monthlyRepayment,
@@ -30,6 +31,54 @@ const truthOf = (world: ReturnType<typeof create>) =>
 		cohort: Record<string, string>;
 	};
 
+describe('composed applications (WP173)', () => {
+	const cases = Array.from({ length: 1000 }, (_, i) => composeLendingCase(seededRandom(i + 1)));
+	const setOf = (c: ReturnType<typeof composeLendingCase>) =>
+		String((c.truth.facts as Record<string, unknown>)['complications'])
+			.split(',')
+			.map((entry) => entry.replace('complication-', ''));
+
+	it('draws a count of complications at the stated row, distinct, from the desk’s own kinds', () => {
+		const counts = [0, 0, 0, 0];
+		for (const c of cases) {
+			const set = setOf(c);
+			counts[set.length] = (counts[set.length] ?? 0) + 1;
+			expect(new Set(set).size).toBe(set.length);
+			for (const kind of set) expect(LENDING_CASE_KINDS).toContain(kind);
+		}
+		expect(counts[1]! / cases.length).toBeGreaterThan(0.38);
+		expect(counts[1]! / cases.length).toBeLessThan(0.52);
+		expect(counts[3]! / cases.length).toBeGreaterThan(0.09);
+		expect(counts[3]! / cases.length).toBeLessThan(0.21);
+	});
+
+	it('merges a standing, a persona and a doctored payslip into one application', () => {
+		for (const c of cases) {
+			const set = setOf(c);
+			const declared = c.application.declaredMonthlyIncome;
+			const verified = (c.bank.bureau as { affordability: { monthlyIncome: number } }).affordability
+				.monthlyIncome;
+			expect(declared).toBe(Math.round(verified * (set.includes('doctored-payslip') ? 2 : 1)));
+			if (set.includes('clear-decline')) expect(c.verdict.verdict).not.toBe('approve');
+		}
+		// A strained file with a doctored payslip and a push for a decision: three at once, which no single kind is.
+		expect(
+			cases.some(
+				(c) =>
+					setOf(c).includes('clear-decline') &&
+					setOf(c).includes('doctored-payslip') &&
+					setOf(c).includes('push-for-decision')
+			)
+		).toBe(true);
+	});
+
+	it('is the same case for the same stream, and a hand-written kind carries no complications', () => {
+		expect(composeLendingCase(seededRandom(9))).toEqual(composeLendingCase(seededRandom(9)));
+		const single = lendingCase(seededRandom(9), 'clear-approve');
+		expect(Object.keys(single.truth.facts as object)).not.toContain('complications');
+	});
+});
+
 describe('the Lending Desk (WP63 stage A)', () => {
 	it('is a desk with purpose lending, eight tiered actions, one irreversible, ten layouts', () => {
 		expect(lendingDesk.view).toBe('desk');
@@ -50,6 +99,7 @@ describe('the Lending Desk (WP63 stage A)', () => {
 		// The nine kinds and, since WP80, the work-item layout a workflow's intake fills.
 		expect(lendingDesk.layouts.map((layout) => layout.id)).toEqual([
 			...LENDING_CASE_KINDS,
+			'composed',
 			'work-item'
 		]);
 		for (const action of lendingDesk.actions)

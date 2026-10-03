@@ -258,6 +258,23 @@ describe('foldMonitor', () => {
 		expect(alone.readouts.reviewLoad?.capacitySeconds).toBeUndefined();
 	});
 
+	it('folds the window’s tokens and its reviewers’ seconds into one bill when given rates (WP172)', async () => {
+		const items = Array.from({ length: 12 }, (_, n) => item(n));
+		const { runs } = await day(items, 'reviewed');
+		const rates = { poundsPerThousandTokens: 0.004, humanPoundsPerHour: 28 };
+		const priced = foldMonitor(runs, { from: '2026-01-05', to: '2026-01-05', bill: rates });
+		const bill = priced.readouts.bill!;
+		expect(bill.humanPounds).toBeCloseTo(((12 * 90) / 3600) * 28);
+		expect(bill.modelPounds).toBeCloseTo((priced.readouts.tokens / 1000) * 0.004);
+		expect(bill.pounds).toBeCloseTo(bill.modelPounds + bill.humanPounds);
+		expect(bill.poundsPerDecision).toBe(
+			priced.readouts.decided === 0 ? 0 : bill.pounds / priced.readouts.decided
+		);
+		expect(
+			foldMonitor(runs, { from: '2026-01-05', to: '2026-01-05' }).readouts.bill
+		).toBeUndefined();
+	});
+
 	it('lists a stopped run as an incident beside its workflow run, and leaves an unrouted arrival in no queue', async () => {
 		const items = [item(0), item(1, 'alert'), item(2)];
 		const { runs, arrivals, record } = await day(items, 'refuse');

@@ -3,6 +3,7 @@ import { seedFrom, type CounterpartScript, type DeskCase, type DeskTruth } from 
 import {
 	bankCase,
 	bankExtra,
+	drawComplications,
 	bankRecords,
 	type BankCase,
 	type Customer
@@ -167,8 +168,68 @@ export function servicingCase(random: () => number, kind: ServicingCaseKind): Se
 	});
 }
 
+/**
+ * **A case with its complications drawn as a set** (WP173, `112-REAL-ENOUGH-PLAN.md`
+ * §5; G151): the desk's five kinds, drawn together from the case's own stream at the
+ * `fs-bank/complications` rows' counts and weights, merged into one case. The request is
+ * the weightiest the set holds (a bereavement before a third-party access before an
+ * address change); a disclosure mid-call adds the job loss and the arrears when nothing
+ * is disclosed already; a caller who is not the customer gives another's year of birth
+ * and plays the impostor. What is revealed and what is hidden follows from the merged
+ * profile, as it does for a single kind. The kinds stay as the goldens, and as the
+ * single-complication rows of the distribution.
+ */
+export function composeServicingCase(random: () => number): ServicingCase {
+	const seed = seedFrom(random);
+	const complications = drawComplications(random, 'servicing');
+	const has = (kind: ServicingCaseKind) => complications.includes(kind);
+	const primary: ServicingCaseKind = has('bereavement')
+		? 'bereavement'
+		: has('third-party-access')
+			? 'third-party-access'
+			: 'address-change';
+	const profile = PROFILES[primary];
+	const bank = bankCase(seed);
+	const { customer } = bank;
+	const callerIsCustomer = !has('caller-not-customer');
+	const disclosed = has('disclosure-mid-call') && profile.discloses === 'none';
+	const discloses: SupportNeed = disclosed ? 'job-loss' : profile.discloses;
+	const personaId: ServicingPersonaId | undefined = !callerIsCustomer
+		? 'impostor'
+		: disclosed
+			? 'discloses'
+			: profile.persona;
+	const goal = !callerIsCustomer
+		? PROFILES['caller-not-customer'].goal
+		: disclosed
+			? PROFILES['disclosure-mid-call'].goal
+			: profile.goal;
+	const request: ServiceRequest = {
+		subject: profile.subject,
+		given: callerIsCustomer
+			? { name: customer.name.full, birthYear: customer.dateOfBirthYear }
+			: { name: customer.name.full, birthYear: customer.dateOfBirthYear - 9 },
+		authority: profile.authority,
+		...(profile.newPostcode ? { newPostcode: profile.newPostcode } : {}),
+		...(profile.grantee ? { grantee: profile.grantee } : {})
+	};
+	const counterpart = personaId
+		? servicingPersona(personaId, customer, { ...(goal ? { goal } : {}) })
+		: undefined;
+	return assembleServicingCase(bank, bankForTheDesk(bank), request, {
+		category: profile.category,
+		discloses,
+		complications,
+		inArrears: has('disclosure-mid-call') || (profile.inArrears ?? false),
+		fromCollections: false,
+		...(counterpart ? { counterpart } : {})
+	});
+}
+
 export interface AssembleOptions {
 	discloses: SupportNeed;
+	/** The complications a composed case carries (WP173), in truth beside the rest; absent on the hand-written kinds, whose truth is as it was. */
+	complications?: readonly string[];
 	/**
 	 * The category as labelled, when the item carries one (`98-JEV.md` §8): the
 	 * truth is then the label, not the rule's reading of the words — so a
@@ -265,7 +326,10 @@ export function assembleServicingCase(
 			category: `category-${category}`,
 			act: `act-${verdict.act}`,
 			callerIsCustomer,
-			discloses: `discloses-${options.discloses}`
+			discloses: `discloses-${options.discloses}`,
+			...(options.complications
+				? { complications: options.complications.map((kind) => `complication-${kind}`).join(',') }
+				: {})
 		}
 	};
 

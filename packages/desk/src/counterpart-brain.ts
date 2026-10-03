@@ -1,6 +1,8 @@
 import type { MockScript, MockTurn } from '@craftabot/core/testing';
 import {
 	advanceCounterpart,
+	conductAfter,
+	freshConduct,
 	freshCounterpartMemory,
 	type CounterpartMemory,
 	type CounterpartScript
@@ -36,6 +38,8 @@ export function scriptedCounterpart(
 	options: ScriptedCounterpartOptions
 ): MockScript {
 	let memory: CounterpartMemory = freshCounterpartMemory();
+	// What the agent has said, for a rule that branches on conduct; the seat sees lines only, never the acts (WP174).
+	let conduct = freshConduct();
 	let ticks = 0;
 	const random = options.random ?? (() => 0);
 	return (request): MockTurn => {
@@ -43,13 +47,10 @@ export function scriptedCounterpart(
 		const observation =
 			[...request.messages].reverse().find((m) => m.role === 'user')?.content ?? '';
 		const said = lastAgentLine(observation, options.selfName);
-		const { turn, memory: next } = advanceCounterpart(
-			script,
-			said === undefined ? { kind: 'tick' } : { kind: 'said', text: said },
-			memory,
-			ticks,
-			random
-		);
+		const cue =
+			said === undefined ? ({ kind: 'tick' } as const) : ({ kind: 'said', text: said } as const);
+		conduct = conductAfter(conduct, cue);
+		const { turn, memory: next } = advanceCounterpart(script, cue, memory, ticks, random, conduct);
 		memory = next;
 		if (!turn) return { text: runtimeStrings.counterpartBrain.waiting, toolCall: null };
 		if (turn.then === 'end-conversation') {

@@ -9,10 +9,12 @@ import {
 } from '@craftabot/core';
 import {
 	analyseExperiment,
+	billRatesFrom,
 	expandExperiment,
 	parseCampaignReport,
 	parseExperiment,
 	renderExperimentMarkdown,
+	type BillRates,
 	type CampaignReport,
 	type Experiment
 } from '@craftabot/evals';
@@ -137,7 +139,8 @@ export async function experimentRun(options: ExperimentRunOptions): Promise<Expe
 	const ranAt = (options.now ?? (() => new Date().toISOString()))();
 	const result = analyseExperiment(experiment, reports, {
 		ranAt,
-		stacks: stacksOf(options.config)
+		stacks: stacksOf(options.config),
+		...billOf(options.config)
 	});
 	const written = await writeResult(options.out, result);
 	return { experiment, campaignFiles, reportFiles, result, ...written, cells };
@@ -154,6 +157,14 @@ export interface ExperimentAnalyseOptions {
 /** The stacks the installed packs ship — what `analyseExperiment` reads a stack level's claims from (WP150). */
 const stacksOf = (config: HarnessConfig | undefined): Stack[] =>
 	(config?.packs ?? []).flatMap((pack) => [...(pack.stacks ?? [])]);
+
+/** The bill's rates from the installed packs' calibration tables, when the bank is among them (WP172). */
+const billOf = (config: HarnessConfig | undefined): { bill?: BillRates } => {
+	const rates = billRatesFrom(
+		(config?.packs ?? []).flatMap((pack) => [...(pack.calibrations ?? [])])
+	);
+	return rates ? { bill: rates } : {};
+};
 
 /** Re-fold the reports `run` left in `--out` (one per campaign id) into a fresh result. */
 export async function experimentAnalyse(
@@ -176,7 +187,8 @@ export async function experimentAnalyse(
 	const ranAt = (options.now ?? (() => new Date().toISOString()))();
 	const result = analyseExperiment(experiment, reports, {
 		ranAt,
-		stacks: stacksOf(options.config)
+		stacks: stacksOf(options.config),
+		...billOf(options.config)
 	});
 	const written = await writeResult(options.out, result);
 	return { experiment, reportFiles, result, ...written };

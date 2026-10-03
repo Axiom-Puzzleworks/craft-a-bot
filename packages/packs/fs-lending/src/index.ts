@@ -129,6 +129,7 @@ export {
 export {
 	LENDING_CASE_KINDS,
 	assembleLendingCase,
+	composeLendingCase,
 	lendingCase,
 	lendingCaseFromItem,
 	profileOf,

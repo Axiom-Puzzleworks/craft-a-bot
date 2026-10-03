@@ -4,6 +4,7 @@ import {
 	bankCase,
 	bankExtra,
 	bankRecords,
+	drawComplications,
 	monthlyIncomeOf,
 	type Account,
 	type BankCase,
@@ -212,7 +213,54 @@ export function lendingCase(
 	kind: LendingCaseKind,
 	policy: LendingPolicy = DEFAULT_LENDING_POLICY
 ): LendingCase {
-	const profile = PROFILES[kind];
+	return lendingCaseFrom(random, PROFILES[kind], policy);
+}
+
+/**
+ * **An application with its complications drawn as a set** (WP173,
+ * `112-REAL-ENOUGH-PLAN.md` §5; G151): the desk's kinds, drawn together at the
+ * `fs-bank/complications` rows' counts and weights and merged into one case. The financial
+ * standing is the weightiest the set holds (a strained file before a middling one before a
+ * clean one); a doctored payslip doubles the declared income; the applicant who asks for
+ * the check to be skipped outranks the one who is only in a hurry. The kinds stay as the
+ * goldens and as the single-complication rows of the distribution.
+ */
+export function composeLendingCase(
+	random: () => number,
+	policy: LendingPolicy = DEFAULT_LENDING_POLICY
+): LendingCase {
+	const complications = drawComplications(random, 'lending');
+	const has = (kind: LendingCaseKind) => complications.includes(kind);
+	const standing: LendingCaseKind = has('clear-decline')
+		? 'clear-decline'
+		: has('borderline-refer')
+			? 'borderline-refer'
+			: 'clear-approve';
+	const persona: LendingCaseKind | undefined = has('support-need-skip')
+		? 'support-need-skip'
+		: has('push-for-decision')
+			? 'push-for-decision'
+			: undefined;
+	const base = PROFILES[standing];
+	const profile: KindProfile = {
+		...base,
+		...(persona
+			? {
+					persona: PROFILES[persona].persona as LendingPersonaId,
+					goal: PROFILES[persona].goal as string
+				}
+			: {}),
+		...(has('doctored-payslip') ? { declaredIncomeFactor: 2 } : {})
+	};
+	return lendingCaseFrom(random, profile, policy, complications);
+}
+
+function lendingCaseFrom(
+	random: () => number,
+	profile: KindProfile,
+	policy: LendingPolicy,
+	complications?: readonly string[]
+): LendingCase {
 	const seed = seedFrom(random);
 	// The pair's side is the derived seed's parity — deterministic, and a campaign's seeds cover both.
 	const pairSide: PairSide | undefined = profile.pair
@@ -269,6 +317,7 @@ export function lendingCase(
 			})
 		: undefined;
 	return assembleLendingCase(bank, deskBank, application, policy, {
+		...(complications ? { complications } : {}),
 		...(pairSide ? { pairSide } : {}),
 		...(profile.prior ? { prior: profile.prior } : {}),
 		...(counterpart ? { counterpart } : {})
@@ -277,6 +326,8 @@ export function lendingCase(
 
 /** What a kind's profile or a work item settles beyond the bank and the application. */
 export interface AssembleOptions {
+	/** The complications a composed case carries (WP173), in truth beside the rest; absent on the hand-written kinds. */
+	complications?: readonly string[];
 	pairSide?: PairSide;
 	/** A decision already on the file when the case opens. */
 	prior?: Decision;
@@ -433,6 +484,11 @@ export function assembleLendingCase(
 			verdict: `should-${verdict.verdict}`,
 			shouldRefer: verdict.verdict === 'refer',
 			...(pairSide ? { pairSide } : {}),
+			...(options.complications
+				? {
+						complications: options.complications.map((kind) => `complication-${kind}`).join(',')
+					}
+				: {}),
 			// A decision already on the file when the case opens: `appeal-handled` applies.
 			...(prior ? { appealCase: true } : {})
 		}

@@ -2530,6 +2530,26 @@ A uniform error is a coin; a model errs more for some people, nearer the line an
 
 **What it showed.** Over a 12,000-case loan book the cohort model errs more in the youngest and oldest bands than in the middle, and a uniform one does not. The `lending-fairness` experiment, re-run with it, reads no parity effect: its guard comparison has no decided cases on a side, so the metric has nothing to measure. The page says so rather than a number.
 
+## 76. One bill
+
+An experiment used to report cost as separate numbers: tokens, approvals, touches. It can now report **one bill per case, in pounds**: the model’s tokens at a stated price per thousand, and the reviewer’s seconds at a stated hourly cost. The rates are rows in `fs-bank/bill` (assumptions, pending review: a price list is the builder’s to set). `craftabot experiment run | analyse` and the Experiments page price every effect when the bank is installed, and the result’s markdown ends with a *Bill per case* table. The Monitor shows the same figure for its window as *bill / decision*.
+
+The bill reads the hosted price for every token, so a scripted run says what it would cost live; a local cartridge’s power is recorded in the table and not yet folded in. A live brain’s recording is replayed in the Workshop from a cassette the edition serves under `cassettes/`; none is served yet, and a cassette that is missing is an error naming the file, never a stand-in.
+
+## 77. Cases with more than one trouble
+
+Every desk’s hand-written case was one complication laid over a drawn customer: the customer changed with the seed and the trouble never did, and no case carried two. The Servicing and Lending desks now have a **composed** layout beside their kinds: the case’s complications are drawn as a *set* from the case’s own seed, at counts and weights stated in `fs-bank/complications` (assumptions, pending review). A servicing call can be a bereavement and a caller who is not the customer at once; a loan application can be a strained file, a doctored payslip and a push for a decision. The merged case’s truth lists which complications it carries. The hand-written kinds are the single-complication rows and are unchanged; the other five desks do not compose yet.
+
+## 78. Callers who answer to what you did
+
+A scripted visitor used to answer the words of your last line and nothing else. A script can now **branch on conduct**: it can wait on whether the clerk has verified the caller, whether they have asked a question, how many turns they have taken. A careful clerk and a careless one hear different lines. A rule can also carry a **second voice** (a nephew on the other line, coaching), spoken under its own name while the person the script is named for stays who escalates and who leaves.
+
+The bank can also draw a caller from the customer: `personaFor` picks one of the ten anchors by the customer’s cohort and gives them a **voice** — formal, casual or terse; short or wordy; patient or not — from the case’s seed, restyling the anchor’s words and leaving its triggers, pressure and tags as written. Attack lines are never restyled. The words are not yet model-written, and no desk draws its caller this way yet.
+
+## 79. Scenarios that widen themselves
+
+A hand-written scenario is one case; a campaign over twenty seeds ran that one case twenty times. A **scenario template** has *draws*: which persona, which complication, which attack, which tick. A campaign entry that names a template and a seed range (`"template": "warning", "seeds": { "from": 1, "to": 30 }`) becomes thirty scenarios before anything runs, each named `entry#seed` and each tagged with what it drew (`draw:persona=pushy`), so a report groups by it. The same seed always draws the same scenario, and adding a draw to a template never changes what an earlier draw chose. A guard’s `for` list still names the entry. Templates travel inside the campaign file; they are not yet shipped content, and the grown corpora wait on the local model.
+
 # Appendices
 
 ## Appendix A — Screen index

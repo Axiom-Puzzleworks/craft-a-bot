@@ -98,9 +98,16 @@ describe('craftabot experiment', { timeout: 300_000 }, () => {
 		expect(stored.digest).toBe(ran.result.digest);
 		expect(await readFile(ran.markdownFile, 'utf8')).toContain('## success');
 
-		const folded = await experimentAnalyse({ file, out, now: () => '2026-09-11T10:00:00.000Z' });
+		const folded = await experimentAnalyse({
+			file,
+			out,
+			config: defaultConfig(),
+			now: () => '2026-09-11T10:00:00.000Z'
+		});
 		expect(folded.reportFiles).toHaveLength(2);
 		expect(folded.result.effects).toEqual(ran.result.effects);
+		// The installed bank states the rates, so every effect carries a bill (WP172).
+		expect(ran.result.effects.every((effect) => effect.cost.bill !== undefined)).toBe(true);
 		expect(folded.result.id).toBe('human-oversight-tiny@2026-09-11T10:00:00.000Z');
 
 		expect(await experimentRender(ran.resultFile)).toContain('**Verdict:');

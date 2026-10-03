@@ -9,6 +9,8 @@ import { CALIBRATION } from './table.js';
 import { DECK_WEIGHTS } from './deck-weights.js';
 import { BOOK_INCIDENCES, everyNth } from './book-incidences.js';
 import { ERROR_RATES } from './error-rates.js';
+import { BILL_RATES } from './bill.js';
+import { COMPLICATIONS, drawComplications } from './complications.js';
 import { CASE_HANDLER_REVIEWER_ID, REVIEWER_RATES, bankReviewerModels } from './reviewer.js';
 import legacy from './legacy-digests.json' with { type: 'json' };
 
@@ -335,7 +337,7 @@ describe('the Phase AA books’ incidences (WP112)', () => {
 describe('the fallible actors’ rows (WP115)', () => {
 	it('pass checkCalibration as assumptions, every row awaiting review, apart from the population', () => {
 		const cited = new Set(CALIBRATION.rows.map((row) => row.id));
-		for (const table of [ERROR_RATES, REVIEWER_RATES]) {
+		for (const table of [ERROR_RATES, REVIEWER_RATES, BILL_RATES, COMPLICATIONS]) {
 			expect(checkCalibration(table)).toEqual([]);
 			expect(table.rows.every((row) => row.review === 'pending')).toBe(true);
 			expect(table.rows.every((row) => row.source.kind === 'assumption')).toBe(true);
@@ -350,5 +352,37 @@ describe('the fallible actors’ rows (WP115)', () => {
 			expect(ref.table).toBe(REVIEWER_RATES.id);
 			expect(REVIEWER_RATES.rows.some((row) => row.id === ref.row)).toBe(true);
 		}
+	});
+});
+
+describe('drawing complications (WP173)', () => {
+	const draw = (seed: number) => drawComplications(mulberry(seed), 'servicing');
+	function mulberry(seed: number): () => number {
+		let a = seed;
+		return () => {
+			a += 0x6d2b79f5;
+			let t = a;
+			t = Math.imul(t ^ (t >>> 15), t | 1);
+			t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+			return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+		};
+	}
+
+	it('is deterministic, distinct, in the table’s order, and within the desk’s own kinds', () => {
+		const order = Object.keys(
+			COMPLICATIONS.rows.find((r) => r.id === 'servicing-which')!.distribution
+		);
+		for (let seed = 1; seed <= 200; seed += 1) {
+			const set = draw(seed);
+			expect(draw(seed)).toEqual(set);
+			expect(new Set(set).size).toBe(set.length);
+			expect(set.length).toBeGreaterThanOrEqual(1);
+			expect(set).toEqual([...set].sort((a, b) => order.indexOf(a) - order.indexOf(b)));
+			for (const id of set) expect(order).toContain(id);
+		}
+	});
+
+	it('refuses a desk with no rows', () => {
+		expect(() => drawComplications(mulberry(1), 'nowhere')).toThrow(/no row/);
 	});
 });

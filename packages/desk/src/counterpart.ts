@@ -19,7 +19,46 @@ export type CounterpartTrigger =
 	/** The agent performed this (bare) action. */
 	| { kind: 'action-performed'; actionId: string }
 	| { kind: 'tick-at-least'; tick: number }
+	/**
+	 * What the agent has done so far (WP174, `112-REAL-ENOUGH-PLAN.md` §5; G153): every named
+	 * action performed, none of the others, whether it has asked a question, how many turns it
+	 * has taken. Read on the agent's line (or a tick), never on an action; all the stated
+	 * criteria must hold. A script that branches on conduct is one a careful agent and a
+	 * careless one do not hear the same way.
+	 */
+	| {
+			kind: 'agent-conduct';
+			performed?: string[];
+			notPerformed?: string[];
+			asked?: boolean;
+			minTurns?: number;
+			maxTurns?: number;
+	  }
 	| { kind: 'always' };
+
+/** What the agent has done across the conversation, kept by whoever drives the script (WP174). */
+export interface CounterpartConduct {
+	/** Every action performed, in order. */
+	acts: string[];
+	/** Lines the agent has said. */
+	said: number;
+	/** Of those, how many were questions. */
+	asked: number;
+}
+
+export const freshConduct = (): CounterpartConduct => ({ acts: [], said: 0, asked: 0 });
+
+/** The conduct after one more cue: an action adds to `acts`, a line to `said` (and `asked` when it is a question). */
+export function conductAfter(conduct: CounterpartConduct, cue: CounterpartCue): CounterpartConduct {
+	if (cue.kind === 'acted') return { ...conduct, acts: [...conduct.acts, cue.actionId] };
+	if (cue.kind === 'said')
+		return {
+			...conduct,
+			said: conduct.said + 1,
+			asked: conduct.asked + (cue.text.includes('?') ? 1 : 0)
+		};
+	return conduct;
+}
 
 export type CounterpartThen = 'continue' | 'end-conversation' | 'escalate';
 
@@ -28,6 +67,12 @@ export interface CounterpartRule {
 	when: CounterpartTrigger;
 	/** One line, or a deterministic pick through `random()`. A rule with no line acts without speaking. */
 	say?: string | readonly string[];
+	/**
+	 * A second voice (WP174; G153): who says this line, when it is not the person the script is
+	 * named for — a carer on the line, a scammer coaching from the other phone. The line is the
+	 * same turn, in another name.
+	 */
+	voice?: string;
 	then?: CounterpartThen;
 	/** 0..1 — how hard this line pushes (the tau-bench "user pressure" of `19-…` #25); a report aggregates it. */
 	pressure?: number;
@@ -56,6 +101,8 @@ export type CounterpartCue =
 
 export interface CounterpartTurn {
 	text: string | undefined;
+	/** The second voice that spoke it, when the rule names one. */
+	voice?: string | undefined;
 	/** The rule that fired, or `undefined` for the fallback. */
 	rule: CounterpartRule | undefined;
 	then: CounterpartThen;
@@ -71,6 +118,7 @@ export interface CounterpartMemory {
 export const freshCounterpartMemory = (): CounterpartMemory => ({ fired: [], ended: false });
 
 export const COUNTERPART_TRIGGER_KINDS: ReadonlySet<CounterpartTrigger['kind']> = new Set([
+	'agent-conduct',
 	'agent-says-matches',
 	'agent-asks',
 	'action-performed',
@@ -78,8 +126,22 @@ export const COUNTERPART_TRIGGER_KINDS: ReadonlySet<CounterpartTrigger['kind']> 
 	'always'
 ]);
 
-function matches(when: CounterpartTrigger, cue: CounterpartCue, tick: number): boolean {
+function matches(
+	when: CounterpartTrigger,
+	cue: CounterpartCue,
+	tick: number,
+	conduct: CounterpartConduct
+): boolean {
 	switch (when.kind) {
+		case 'agent-conduct':
+			return (
+				cue.kind !== 'acted' &&
+				(when.performed ?? []).every((id) => conduct.acts.includes(id)) &&
+				(when.notPerformed ?? []).every((id) => !conduct.acts.includes(id)) &&
+				(when.asked === undefined || when.asked === conduct.asked > 0) &&
+				(when.minTurns === undefined || conduct.said >= when.minTurns) &&
+				(when.maxTurns === undefined || conduct.said <= when.maxTurns)
+			);
 		case 'always':
 			return true;
 		case 'tick-at-least':
@@ -119,15 +181,21 @@ export function advanceCounterpart(
 	cue: CounterpartCue,
 	memory: CounterpartMemory,
 	tick: number,
-	random: () => number
+	random: () => number,
+	conduct: CounterpartConduct = freshConduct()
 ): { turn: CounterpartTurn | undefined; memory: CounterpartMemory } {
 	if (memory.ended) return { turn: undefined, memory };
 	for (const rule of script.rules) {
 		if (rule.once && memory.fired.includes(rule.id)) continue;
-		if (!matches(rule.when, cue, tick)) continue;
+		if (!matches(rule.when, cue, tick, conduct)) continue;
 		const then = rule.then ?? 'continue';
 		return {
-			turn: { text: pick(rule.say, random), rule, then },
+			turn: {
+				text: pick(rule.say, random),
+				...(rule.voice !== undefined ? { voice: rule.voice } : {}),
+				rule,
+				then
+			},
 			memory: { fired: [...memory.fired, rule.id], ended: then === 'end-conversation' }
 		};
 	}
@@ -154,6 +222,21 @@ export function describeScriptProblems(script: CounterpartScript): string[] {
 		}
 		if (rule.pressure !== undefined && (rule.pressure < 0 || rule.pressure > 1)) {
 			problems.push(`rule "${rule.id}" has a pressure outside 0..1`);
+		}
+		if (rule.voice !== undefined && rule.voice.trim() === '')
+			problems.push(`rule "${rule.id}" names an empty voice`);
+		if (rule.when?.kind === 'agent-conduct') {
+			const w = rule.when;
+			if (
+				(w.performed ?? []).length === 0 &&
+				(w.notPerformed ?? []).length === 0 &&
+				w.asked === undefined &&
+				w.minTurns === undefined &&
+				w.maxTurns === undefined
+			)
+				problems.push(`rule "${rule.id}" has an agent-conduct trigger with no criterion`);
+			if (w.minTurns !== undefined && w.maxTurns !== undefined && w.minTurns > w.maxTurns)
+				problems.push(`rule "${rule.id}" has minTurns above maxTurns`);
 		}
 		if (rule.when?.kind === 'agent-says-matches') {
 			try {

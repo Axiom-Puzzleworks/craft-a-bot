@@ -4,6 +4,8 @@ import { describe, expect, it } from 'vitest';
 import type { CampaignCell, CampaignReport } from './campaign.js';
 import {
 	analyseExperiment,
+	billOf,
+	billRatesFrom,
 	campaignIdFor,
 	effectSign,
 	expandExperiment,
@@ -590,5 +592,80 @@ describe('the tier and the untestable verdict (WP116, `103-FALLIBLE-ACTORS.md` �
 		]);
 		expect(result.effects[1]?.interval[1]).toBeLessThan(0);
 		expect(result.verdict).toBe('supported');
+	});
+});
+
+describe('the bill (WP172)', () => {
+	const rates = { poundsPerThousandTokens: 0.004, humanPoundsPerHour: 28 };
+	const reviewed = (seconds: number[]) =>
+		cell({
+			workflow: {
+				reviews: seconds.map((s, i) => ({
+					stageId: `s${i}`,
+					seconds: s,
+					correct: true,
+					followed: true
+				}))
+			} as CampaignCell['workflow']
+		});
+
+	it('prices tokens at the model rate and a reviewer’s seconds at the person’s, into one figure', () => {
+		const bill = billOf([reviewed([120, 240]), reviewed([360])], rates);
+		expect(bill.tokens).toBe(15);
+		expect(bill.modelPounds).toBeCloseTo(0.00006, 8);
+		expect(bill.humanSeconds).toBe(360);
+		expect(bill.humanPounds).toBeCloseTo(2.8);
+		expect(bill.pounds).toBeCloseTo(bill.modelPounds + bill.humanPounds);
+		expect(billOf([cell({})], rates).humanPounds).toBe(0);
+	});
+
+	it('an analysis carries the bill only when given rates, and the markdown says so', () => {
+		const experiment = expandExperiment(design()).experiment;
+		const baseId = campaignIdFor('lending-stack', { guard: 'none' });
+		const treatId = campaignIdFor('lending-stack', { guard: 'stack' });
+		const reports = [
+			report(baseId, side(11, 400, 0.3, 'none')),
+			report(treatId, side(12, 400, 0.24, 'stack'))
+		];
+		const plain = analyseExperiment(experiment, reports, { ranAt: '2026-10-03T10:00:00.000Z' });
+		expect(plain.effects[0]!.cost.bill).toBeUndefined();
+		expect(renderExperimentMarkdown(plain)).not.toContain('Bill per case');
+		const priced = analyseExperiment(experiment, reports, {
+			ranAt: '2026-10-03T10:00:00.000Z',
+			bill: rates
+		});
+		expect(priced.effects[0]!.cost.bill?.treatment.tokens).toBe(15);
+		expect(renderExperimentMarkdown(priced)).toContain('## Bill per case');
+	});
+
+	it('reads the rates from the bank’s table, hosted or local, and nothing without it', () => {
+		const table = {
+			id: 'fs-bank/bill',
+			title: 't',
+			description: 'd',
+			rows: [
+				{
+					id: 'model-pounds-per-thousand-tokens',
+					kind: 'weights' as const,
+					title: 't',
+					distribution: { hosted: 0.004, local: 0 },
+					source: { kind: 'assumption' as const, retrieved: '2026-10-03' },
+					tolerance: 0.5,
+					review: 'pending' as const
+				},
+				{
+					id: 'human-pounds-per-hour',
+					kind: 'weights' as const,
+					title: 't',
+					distribution: { 'case-handler': 28 },
+					source: { kind: 'assumption' as const, retrieved: '2026-10-03' },
+					tolerance: 0.5,
+					review: 'pending' as const
+				}
+			]
+		};
+		expect(billRatesFrom([table])).toEqual(rates);
+		expect(billRatesFrom([table], 'local')?.poundsPerThousandTokens).toBe(0);
+		expect(billRatesFrom([])).toBeUndefined();
 	});
 });

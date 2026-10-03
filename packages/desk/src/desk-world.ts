@@ -27,6 +27,8 @@ import { z, type ZodType } from 'zod';
 import { closest } from './closest.js';
 import {
 	advanceCounterpart,
+	conductAfter,
+	freshConduct,
 	describeScriptProblems,
 	freshCounterpartMemory,
 	type CounterpartCue,
@@ -487,24 +489,30 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 		}
 		/** A live counterpart seat, once bound, speaks instead of the script (`46-…` §4.4). */
 		let scriptSuspended = false;
+		/** What the agent has done at the desk, for a script that branches on conduct (WP174); rebuilt by a restore's replay like the rest. */
+		let conduct = freshConduct();
 		const boundRoles = new Set<string>();
 		/** What the visitor said since the last action's result was built (WP160): the host writes one `seat.said` per line. */
 		let seatLines: SeatLine[] = [];
 		function speak(cue: CounterpartCue): void {
 			if (!counterpart || scriptSuspended) return;
+			conduct = conductAfter(conduct, cue);
 			const { turn, memory } = advanceCounterpart(
 				counterpart.script,
 				cue,
 				counterpart.memory,
 				state.tick,
-				random
+				random,
+				conduct
 			);
 			counterpart.memory = memory;
 			state.counterpart = memory;
 			if (!turn) return;
 			const name = counterpart.script.name;
+			// A second voice speaks under its own name; the person the script is named for is who escalates and who leaves.
+			const speaker = turn.voice ?? name;
 			seatLines.push({
-				persona: name,
+				persona: speaker,
 				cue: { kind: cue.kind, ...(cue.kind === 'acted' ? { detail: cue.actionId } : {}) },
 				...(turn.rule ? { ruleId: turn.rule.id } : {}),
 				...(turn.text !== undefined ? { text: turn.text } : {}),
@@ -515,7 +523,7 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 					: {})
 			});
 			if (turn.text !== undefined) {
-				line('counterpart', name, turn.text, undefined, {
+				line('counterpart', speaker, turn.text, undefined, {
 					...(turn.rule?.pressure !== undefined ? { pressure: turn.rule.pressure } : {}),
 					...(turn.rule?.tags !== undefined && turn.rule.tags.length > 0
 						? { tags: [...turn.rule.tags] }

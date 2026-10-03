@@ -1,4 +1,4 @@
-import type { Stack } from '@craftabot/core';
+import { calibrationRow, type Bill, type CalibrationTable, type Stack } from '@craftabot/core';
 import { z } from 'zod';
 import {
 	CONTEXT_LEVELS,
@@ -360,7 +360,11 @@ function valueOf(metric: ExperimentMetric, cell: CampaignCell): number | undefin
 const mean = (values: readonly number[]): number =>
 	values.length === 0 ? 0 : values.reduce((sum, value) => sum + value, 0) / values.length;
 
-function costOf(baseline: readonly CampaignCell[], treatment: readonly CampaignCell[]) {
+function costOf(
+	baseline: readonly CampaignCell[],
+	treatment: readonly CampaignCell[],
+	rates?: BillRates
+) {
 	const tokens = (cells: readonly CampaignCell[]) =>
 		mean(cells.map((cell) => cell.metrics.tokensIn + cell.metrics.tokensOut));
 	const approvals = (cells: readonly CampaignCell[]) =>
@@ -381,6 +385,9 @@ function costOf(baseline: readonly CampaignCell[], treatment: readonly CampaignC
 		tokensPerCase: { baseline: tokens(baseline), treatment: tokens(treatment) },
 		approvalsPerCase: { baseline: approvals(baseline), treatment: approvals(treatment) },
 		escalationRate: { baseline: escalations(baseline), treatment: escalations(treatment) },
+		...(rates
+			? { bill: { baseline: billOf(baseline, rates), treatment: billOf(treatment, rates) } }
+			: {}),
 		...(withWorkflow
 			? {
 					touchesPerCase: {
@@ -701,6 +708,39 @@ export interface AnalyseOptions {
 	populationDigest?: string | undefined;
 	/** The stacks the guard factor's levels may name (WP97): a stack's `controls` join the effect's, so the register shows its effect on the control's row. */
 	stacks?: readonly Stack[];
+	/** The rates the bill is read at (WP172); absent, the effects carry no bill. */
+	bill?: BillRates | undefined;
+}
+
+/** What a token and a person's minute cost, as the calibration table states them (WP172). */
+export interface BillRates {
+	poundsPerThousandTokens: number;
+	humanPoundsPerHour: number;
+}
+
+/** The rates the bank states (`fs-bank/bill`), read from whichever tables are installed; none, no bill. */
+export function billRatesFrom(
+	tables: readonly CalibrationTable[],
+	kind: 'hosted' | 'local' = 'hosted'
+): BillRates | undefined {
+	const bill = tables.find((table) => table.id === 'fs-bank/bill');
+	if (!bill) return undefined;
+	const price = calibrationRow(bill, 'model-pounds-per-thousand-tokens').distribution[kind];
+	const hourly = calibrationRow(bill, 'human-pounds-per-hour').distribution['case-handler'];
+	return price === undefined || hourly === undefined
+		? undefined
+		: { poundsPerThousandTokens: price, humanPoundsPerHour: hourly };
+}
+
+/** The bill per case over a side's cells: tokens priced at the model's rate, the reviewer's seconds at the person's. */
+export function billOf(cells: readonly CampaignCell[], rates: BillRates): Bill {
+	const tokens = mean(cells.map((cell) => cell.metrics.tokensIn + cell.metrics.tokensOut));
+	const humanSeconds = mean(
+		cells.map((cell) => (cell.workflow?.reviews ?? []).reduce((sum, r) => sum + r.seconds, 0))
+	);
+	const modelPounds = (tokens / 1000) * rates.poundsPerThousandTokens;
+	const humanPounds = (humanSeconds / 3600) * rates.humanPoundsPerHour;
+	return { tokens, modelPounds, humanSeconds, humanPounds, pounds: modelPounds + humanPounds };
 }
 
 /** The reports folded into effects: for each metric and each factor, every treatment level against the baseline with the other axes at baseline. */
@@ -817,7 +857,7 @@ export function analyseExperiment(
 							? { untestable: true as const }
 							: {}),
 						...(slices ? { slices } : {}),
-						cost: costOf(baselineReport.cells, treatmentReport.cells),
+						cost: costOf(baselineReport.cells, treatmentReport.cells, options.bill),
 						runIds: [...baselineReport.cells, ...treatmentReport.cells].flatMap((cell) =>
 							cell.runId ? [cell.runId] : []
 						),
@@ -896,8 +936,38 @@ export function renderExperimentMarkdown(result: ExperimentResult): string {
 		const first = result.effects.find((entry) => entry.metricId === metricId);
 		if (first) lines.push(`Method: ${first.method}.`, '');
 	}
+	lines.push(...billLines(result));
 	lines.push(`Digest \`${result.digest}\`.`, '');
 	return lines.join('\n');
+}
+
+/** The bill per case as a table, one row per distinct effect (WP172); nothing when the analysis priced nothing. */
+function billLines(result: ExperimentResult): string[] {
+	const billed = result.effects.filter((effect) => effect.cost.bill !== undefined);
+	if (billed.length === 0) return [];
+	const lines = [
+		'## Bill per case',
+		'',
+		'| Factor | Treatment vs baseline | Baseline £ | Treatment £ | Model £ (treatment) | People £ (treatment) |',
+		'|---|---|---|---|---|---|'
+	];
+	const seen = new Set<string>();
+	for (const effect of billed) {
+		const bill = effect.cost.bill!;
+		const key = `${effect.factor.axis}|${effect.factor.treatment}|${effect.tier ?? ''}|${bill.baseline.pounds}|${bill.treatment.pounds}`;
+		if (seen.has(key)) continue;
+		seen.add(key);
+		const tier = effect.tier ? ` (${effect.tier} tier)` : '';
+		lines.push(
+			`| ${effect.factor.axis} | ${effect.factor.treatment} vs ${effect.factor.baseline}${tier} | ${bill.baseline.pounds.toFixed(4)} | ${bill.treatment.pounds.toFixed(4)} | ${bill.treatment.modelPounds.toFixed(4)} | ${bill.treatment.humanPounds.toFixed(4)} |`
+		);
+	}
+	lines.push(
+		'',
+		'Pounds at the stated rates (`fs-bank/bill`, assumptions): tokens at the hosted price, reviewer seconds at the case handler’s hourly cost.',
+		''
+	);
+	return lines;
 }
 
 /**

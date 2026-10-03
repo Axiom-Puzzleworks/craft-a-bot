@@ -1,5 +1,6 @@
 import { spawnCampaignWorker } from '$lib/worker/spawn.js';
 import { createRegistry } from '$lib/packs.js';
+import { billRatesFrom } from '@craftabot/evals';
 import { createMonitor } from './monitor.svelte.js';
 
 /**
@@ -15,5 +16,10 @@ let registry: ReturnType<typeof createRegistry> | undefined;
 export const monitor = createMonitor({
 	spawn: spawnCampaignWorker,
 	decisionKindOf: (workflowId) =>
-		(registry ??= createRegistry()).getWorkflow(workflowId)?.decisionKindOf
+		(registry ??= createRegistry()).getWorkflow(workflowId)?.decisionKindOf,
+	// The bank's stated rates, when the bank is installed (WP172).
+	bill: () => {
+		const table = (registry ??= createRegistry()).getCalibrationTable('fs-bank/bill');
+		return billRatesFrom(table ? [table] : []);
+	}
 });

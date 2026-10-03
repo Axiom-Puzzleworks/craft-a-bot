@@ -2,10 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { createPackRegistry } from '../pack-registry.js';
 import type { PackManifest } from './pack-manifest.js';
 import {
+	expandScenarioTemplate,
 	injectionSchema,
 	parseScenarioDefinition,
 	safeParseScenarioDefinition,
-	scenarioPackFileSchema
+	scenarioPackFileSchema,
+	scenarioTemplateSchema
 } from './scenario.js';
 
 const minimal = {
@@ -82,5 +84,104 @@ describe('the registry (WP44)', () => {
 		expect(() =>
 			registry.registerPack({ ...pack([parseScenarioDefinition(minimal)]), id: 'q' })
 		).toThrow(/scenario/);
+	});
+});
+
+describe('scenario templates (WP175)', () => {
+	const template = scenarioTemplateSchema.parse({
+		...minimal,
+		id: 'p/templates/pressure',
+		tags: ['t'],
+		injections: [{ kind: 'heard', text: 'Hello.' }],
+		draws: [
+			{
+				kind: 'one-of',
+				name: 'persona',
+				options: [
+					{
+						id: 'pushy',
+						weight: 3,
+						tags: ['asks-to-skip'],
+						injections: [{ kind: 'counterpart', scriptId: 'pushy' }]
+					},
+					{
+						id: 'vulnerable',
+						weight: 1,
+						injections: [{ kind: 'counterpart', scriptId: 'vulnerable' }]
+					}
+				]
+			},
+			{ kind: 'tick-in', name: 'when', min: 2, max: 6, applyTo: ['heard', 'provider-fault'] }
+		]
+	});
+
+	it('is deterministic in the template and the seed, and the id names both', () => {
+		expect(expandScenarioTemplate(template, 4)).toEqual(expandScenarioTemplate(template, 4));
+		expect(expandScenarioTemplate(template, 4).id).toBe('p/templates/pressure#4');
+		expect(expandScenarioTemplate(template, 4)).not.toHaveProperty('draws');
+	});
+
+	it('draws one option per seed at its weight, carries its tags and injections, and says what it chose', () => {
+		let pushy = 0;
+		const seen = new Set<number>();
+		for (let seed = 1; seed <= 2000; seed += 1) {
+			const scenario = expandScenarioTemplate(template, seed);
+			const chosen = scenario.tags.find((tag) => tag.startsWith('draw:persona='));
+			if (chosen === 'draw:persona=pushy') {
+				pushy += 1;
+				expect(scenario.tags).toContain('asks-to-skip');
+				expect(scenario.injections).toContainEqual({ kind: 'counterpart', scriptId: 'pushy' });
+			} else
+				expect(scenario.injections).toContainEqual({ kind: 'counterpart', scriptId: 'vulnerable' });
+			expect(scenario.tags).toContain('t');
+			seen.add(Number(scenario.tags.find((tag) => tag.startsWith('draw:when='))?.split('=')[1]));
+		}
+		// Three to one, within a few points; every tick in [2, 6] reached, none outside.
+		expect(pushy / 2000).toBeGreaterThan(0.71);
+		expect(pushy / 2000).toBeLessThan(0.79);
+		expect([...seen].sort()).toEqual([2, 3, 4, 5, 6]);
+	});
+
+	it('sets the drawn tick on the template’s heard injection and on no other kind', () => {
+		const scenario = expandScenarioTemplate(template, 9);
+		const tick = Number(scenario.tags.find((tag) => tag.startsWith('draw:when='))?.split('=')[1]);
+		expect(scenario.injections[0]).toEqual({ kind: 'heard', text: 'Hello.', atTick: tick });
+		expect(scenario.injections.at(-1)).toMatchObject({ kind: 'counterpart' });
+		expect(scenario.injections.at(-1)).not.toHaveProperty('atTick');
+	});
+
+	it('a draw has its own stream: adding one does not change what an earlier one chose', () => {
+		const more = scenarioTemplateSchema.parse({
+			...template,
+			draws: [
+				...template.draws,
+				{ kind: 'one-of', name: 'extra', options: [{ id: 'a' }, { id: 'b' }] }
+			]
+		});
+		for (let seed = 1; seed <= 50; seed += 1) {
+			const a = expandScenarioTemplate(template, seed);
+			const b = expandScenarioTemplate(more, seed);
+			expect(b.tags.filter((tag) => !tag.startsWith('draw:extra='))).toEqual(a.tags);
+		}
+	});
+
+	it('a template with no draws is its scenario at any seed, and a bad one is refused', () => {
+		const plain = scenarioTemplateSchema.parse(minimal);
+		expect(expandScenarioTemplate(plain, 1)).toMatchObject({ goalCardId: 'p/card', title: 'One' });
+		expect(
+			scenarioTemplateSchema.safeParse({
+				...minimal,
+				draws: [{ kind: 'tick-in', name: 'x', min: 5, max: 2, applyTo: ['heard'] }]
+			}).success
+		).toBe(false);
+		expect(
+			scenarioTemplateSchema.safeParse({
+				...minimal,
+				draws: [
+					{ kind: 'one-of', name: 'x', options: [{ id: 'a' }] },
+					{ kind: 'one-of', name: 'x', options: [{ id: 'b' }] }
+				]
+			}).success
+		).toBe(false);
 	});
 });

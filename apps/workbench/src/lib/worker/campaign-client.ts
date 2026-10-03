@@ -41,6 +41,8 @@ export interface RunInWorkerOptions {
 	fixed?: { now: string; reportId: string } | undefined;
 	/** The page's `local` pack (WP130), so a saved stack a guard names resolves in the Worker. */
 	local?: PackManifest | undefined;
+	/** The cassettes a live brain names, fetched from the edition (WP172). */
+	cassettes?: Record<string, unknown> | undefined;
 }
 
 export interface WorkerJob {
@@ -96,7 +98,8 @@ export function runCampaignIn(
 			work: 'campaign',
 			campaign,
 			...(options.fixed ? { fixed: options.fixed } : {}),
-			...(options.local ? { local: options.local } : {})
+			...(options.local ? { local: options.local } : {}),
+			...(options.cassettes ? { cassettes: options.cassettes } : {})
 		});
 	});
 	return { result, cancel: () => worker.postMessage({ kind: 'cancel', job }) };

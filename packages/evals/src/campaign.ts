@@ -61,7 +61,13 @@ import {
 	type DecidedCase,
 	type FairnessMetricId
 } from '@craftabot/metrics';
-import { createSessionGroup, injectionSchema, toSpecV2 } from '@craftabot/core';
+import {
+	createSessionGroup,
+	expandScenarioTemplate,
+	injectionSchema,
+	scenarioTemplateSchema,
+	toSpecV2
+} from '@craftabot/core';
 import { createGroupWatchbot, createEvaluatorCircuitBreaker } from '@craftabot/pack-monitor';
 import { adversarialScript, type CounterpartScript } from '@craftabot/desk';
 import { counterpartScriptFor, counterpartSpec, deskFor } from './counterpart-seat.js';
@@ -366,14 +372,36 @@ export const campaignScenarioSchema = z
 		goalCardId: z.string().min(1).optional(),
 		/** A registered scenario (`32-SCENARIOS.md` §4.6): its card, tags and injections come with it. */
 		scenarioId: z.string().min(1).optional(),
+		/**
+		 * A template from the campaign's `templates` (WP175, `112-REAL-ENOUGH-PLAN.md` §5):
+		 * expanded to one scenario per seed in `seeds`, each named `<id>#<seed>`, before any cell is
+		 * planned.
+		 */
+		template: z.string().min(1).optional(),
+		/** The seeds a template expands over: a list, or an inclusive range. */
+		seeds: z
+			.union([
+				z.array(z.number().int()).min(1),
+				z.object({ from: z.number().int(), to: z.number().int() })
+			])
+			.optional(),
+		/** Set by the expansion, never written: the entry an expanded scenario came from, so a guard's `for` still names it. */
+		expandedFrom: z.string().min(1).optional(),
 		tags: z.array(z.string()).default([]),
 		/** Injections beside the scenario's own, applied to every cell's world. */
 		injections: z.array(injectionSchema).default([]),
 		fit: z.array(fittedBrickSchema).default([]),
 		maxTicks: z.number().int().positive().optional()
 	})
-	.refine((scenario) => scenario.goalCardId !== undefined || scenario.scenarioId !== undefined, {
-		message: 'a campaign scenario names a goalCardId or a scenarioId'
+	.refine(
+		(scenario) =>
+			scenario.goalCardId !== undefined ||
+			scenario.scenarioId !== undefined ||
+			scenario.template !== undefined,
+		{ message: 'a campaign scenario names a goalCardId, a scenarioId or a template' }
+	)
+	.refine((scenario) => (scenario.template === undefined) === (scenario.seeds === undefined), {
+		message: 'a template names the seeds it expands over, and seeds belong to a template'
 	});
 export type CampaignScenario = z.infer<typeof campaignScenarioSchema>;
 
@@ -545,6 +573,8 @@ export const campaignObjectSchema = z.object({
 	title: z.string().min(1),
 	/** Empty only when `source` names a book (WP80). */
 	scenarios: z.array(campaignScenarioSchema),
+	/** The templates the scenarios may expand (WP175); inline, so a campaign file is self-contained. */
+	templates: z.array(scenarioTemplateSchema).optional(),
 	/** A book through a workflow as the cells (WP80); absent, the scenarios are. */
 	source: campaignSourceSchema.optional(),
 	/** The context ladder as an axis (WP81, `70-…` §6): every cell runs once per rung named; absent, the case file as today, and the cells carry no `context`. */
@@ -903,7 +933,7 @@ export function campaignCells(
 		for (const item of bookItems(campaign, book)) {
 			for (const build of campaign.builds) {
 				for (const guard of campaign.guards) {
-					if (guard.for !== undefined && !guard.for.includes(scenario.id)) continue;
+					if (guard.for !== undefined && !guardCovers(guard.for, scenario)) continue;
 					for (const brain of campaign.brains) {
 						for (const context of campaign.contexts ?? [undefined]) {
 							cells.push({
@@ -926,7 +956,7 @@ export function campaignCells(
 	for (const scenario of campaign.scenarios) {
 		for (const build of campaign.builds) {
 			for (const guard of campaign.guards) {
-				if (guard.for !== undefined && !guard.for.includes(scenario.id)) continue;
+				if (guard.for !== undefined && !guardCovers(guard.for, scenario)) continue;
 				for (const brain of campaign.brains) {
 					for (const context of campaign.contexts ?? [undefined]) {
 						for (const seed of campaign.seeds) {
@@ -1027,12 +1057,59 @@ const ID_STRIDE = 100_000;
  * `32-…` §4.6): the card comes from the scenario unless named, the tags are
  * the union, the injections are the scenario's followed by the campaign's.
  */
+/** Whether a guard's `for` list names a scenario, or the entry a template scenario was expanded from (WP175). */
+const guardCovers = (names: readonly string[], scenario: CampaignScenario): boolean =>
+	names.includes(scenario.id) ||
+	(scenario.expandedFrom !== undefined && names.includes(scenario.expandedFrom));
+
+/** The seeds a template entry expands over, from the list or the inclusive range. */
+function templateSeeds(seeds: NonNullable<CampaignScenario['seeds']>): number[] {
+	if (Array.isArray(seeds)) return [...seeds];
+	if (seeds.to < seeds.from)
+		throw new Error(`a seed range runs from ${seeds.from} to ${seeds.to}, which is backwards`);
+	return Array.from({ length: seeds.to - seeds.from + 1 }, (_, i) => seeds.from + i);
+}
+
+/**
+ * Every template entry expanded to one scenario per seed (WP175): the goal card, tags and
+ * injections are the expansion's, with the entry's own tags and injections after them, so a
+ * report groups by what was drawn. An entry naming a template the campaign does not carry is
+ * refused before anything runs.
+ */
+export function expandTemplates(campaign: Campaign): CampaignScenario[] {
+	return campaign.scenarios.flatMap((entry): CampaignScenario[] => {
+		if (entry.template === undefined) return [entry];
+		const template = (campaign.templates ?? []).find(
+			(candidate) => candidate.id === entry.template
+		);
+		if (!template)
+			throw new Error(
+				`campaign scenario "${entry.id}" names template "${entry.template}", which the campaign does not carry`
+			);
+		return templateSeeds(entry.seeds!).map((seed) => {
+			const expanded = expandScenarioTemplate(template, seed);
+			// The template and its seeds are spent: the expansion is a plain scenario.
+			const rest = Object.fromEntries(
+				Object.entries(entry).filter(([key]) => key !== 'template' && key !== 'seeds')
+			) as CampaignScenario;
+			return {
+				...rest,
+				id: `${entry.id}#${seed}`,
+				expandedFrom: entry.id,
+				goalCardId: entry.goalCardId ?? expanded.goalCardId,
+				tags: [...new Set([...expanded.tags, ...entry.tags])],
+				injections: [...expanded.injections, ...entry.injections]
+			};
+		});
+	});
+}
+
 export function resolveCampaign(campaign: Campaign, registry: PackRegistry): Campaign {
 	return {
 		...campaign,
 		// A guard that names a stack (WP97) is resolved once, here, into its component form.
 		guards: campaign.guards.map((guard) => resolveGuardStack(guard, registry)),
-		scenarios: campaign.scenarios.map((scenario) => {
+		scenarios: expandTemplates(campaign).map((scenario) => {
 			if (scenario.scenarioId === undefined) return scenario;
 			const definition = registry.getScenario(scenario.scenarioId);
 			if (!definition) {

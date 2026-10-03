@@ -9,6 +9,7 @@ import { bankContextRecords, discloseOnce } from '@craftabot/pack-fs-bank';
 import { z } from 'zod';
 import { lendingStrings } from '../strings.js';
 import {
+	composeLendingCase,
 	lendingCase,
 	lendingCaseFromItem,
 	LENDING_CASE_KINDS,
@@ -69,6 +70,9 @@ const policyOf = (state: LendingDeskState): LendingPolicy => knobsOf(state.confi
  */
 export const WORK_ITEM_LAYOUT = 'work-item';
 
+/** The composed layout (WP173): complications drawn as a set from the case's own stream. */
+export const COMPOSED_LAYOUT = 'composed';
+
 export const lendingLayouts = [
 	...LENDING_CASE_KINDS.map((kind) => ({
 		id: kind,
@@ -76,6 +80,12 @@ export const lendingLayouts = [
 		case: (random: () => number, config?: Record<string, unknown>) =>
 			lendingCase(random, kind, knobsOf(config))
 	})),
+	{
+		id: COMPOSED_LAYOUT,
+		name: 'A composed application',
+		case: (random: () => number, config?: Record<string, unknown>) =>
+			composeLendingCase(random, knobsOf(config))
+	},
 	{
 		id: WORK_ITEM_LAYOUT,
 		name: 'A work item from the book',
