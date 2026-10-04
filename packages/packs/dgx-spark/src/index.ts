@@ -65,7 +65,9 @@ export {
 	describeSparkEndpoint,
 	isSparkEndpoint,
 	sparkBaseUrls,
-	type SparkUnit
+	unitOfHost,
+	type SparkUnit,
+	type SparkUnitId
 } from './endpoints.js';
 export {
 	SPARK_EXTRA_BODY,
@@ -81,3 +83,36 @@ export {
 	type SparkRoute,
 	type SparkTransport
 } from './transport.js';
+
+export {
+	SPARK_MODES,
+	SPARK_MODE_ID_PATTERN,
+	modesServing,
+	sparkModeById,
+	type SparkMode
+} from './modes.js';
+export {
+	SPARK_OFF,
+	SPARK_PATTERNS,
+	SPARK_ROLES,
+	cartridgesReady,
+	checkSparkPattern,
+	inferMode,
+	patternsServing,
+	sparkCapacity,
+	planSparkPattern,
+	rolesReady,
+	sparkCartridgesIn,
+	sparkPatternById,
+	type CartridgeReadiness,
+	type SparkPattern,
+	type SparkPlan,
+	type SparkRole,
+	type SparkRoleReadiness,
+	type SparkRoleSpec,
+	type SparkUnitAction,
+	type SparkUnitPlan,
+	type SparkUnitState
+} from './patterns.js';
+export { surveySparks, type SurveyedUnit } from './fleet.js';
+export { sparkLoad } from './transport.js';

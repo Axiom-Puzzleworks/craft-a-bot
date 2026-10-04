@@ -40,6 +40,8 @@ export interface RecordExperimentOptions {
 	credentials: CredentialSource;
 	/** A shape run: the design's book population at this size. */
 	size?: number;
+	/** Cells at once, in this process: a local provider (the Sparks) serves them concurrently. Absent, one at a time. */
+	concurrency?: number;
 	egress?: EgressMode;
 	now?: () => string;
 	newId?: () => string;
@@ -95,6 +97,7 @@ export async function recordExperiment(
 			out: join(options.out, campaign.id),
 			config: options.config,
 			credentials: options.credentials,
+			...(options.concurrency !== undefined ? { concurrency: options.concurrency } : {}),
 			record: {
 				provider: mode,
 				recordings,

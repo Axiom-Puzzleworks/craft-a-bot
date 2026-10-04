@@ -17,6 +17,8 @@ import type { EgressDeclaration } from '@craftabot/core';
  */
 export interface SparkUnit {
 	id: 'spark-619c' | 'spark-ef08';
+	/** The `ssh` alias the builder reaches it by, for `craftabot spark` (the Spark project's own `spark1`/`spark2`). */
+	ssh: string;
 	/** The name the unit has on the LAN. */
 	lan: string;
 	/** Its Tailscale address, for use away from home. */
@@ -24,11 +26,17 @@ export interface SparkUnit {
 }
 
 export const SPARK_UNITS: readonly SparkUnit[] = [
-	{ id: 'spark-619c', lan: 'spark-619c', tailscale: '100.119.19.90' },
-	{ id: 'spark-ef08', lan: 'spark-ef08', tailscale: '100.103.182.73' }
+	{ id: 'spark-619c', ssh: 'spark1', lan: 'spark-619c', tailscale: '100.119.19.90' },
+	{ id: 'spark-ef08', ssh: 'spark2', lan: 'spark-ef08', tailscale: '100.103.182.73' }
 ];
 
+export type SparkUnitId = SparkUnit['id'];
+
 export const SPARK_PORT = 8000;
+
+/** Which unit a host (its LAN name or its Tailscale address) belongs to. */
+export const unitOfHost = (host: string): SparkUnit | undefined =>
+	SPARK_UNITS.find((unit) => unit.lan === host || unit.tailscale === host);
 
 const HOSTS = SPARK_UNITS.flatMap((unit) => [unit.lan, unit.tailscale]);
 

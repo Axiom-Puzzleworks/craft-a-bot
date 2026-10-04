@@ -230,3 +230,84 @@ describe('craftabot run --counterpart', () => {
 		).rejects.toThrow(/needs a desk/);
 	});
 });
+
+describe('craftabot run --counterpart with a live seat on the Sparks (99-DGX-SPARK.md §9)', () => {
+	it('runs the agent and the visitor on two different models, and both seats’ calls are timed', async () => {
+		const { default: dgxSparkPack } = await import('@craftabot/pack-dgx-spark');
+		const sparkConfig = { ...config, packs: [...config.packs, dgxSparkPack] };
+		const registry = createRegistry(sparkConfig);
+		const root = await tmp();
+		const spec = buildSpec({
+			id: '77777777-7777-4777-8777-777777777777',
+			name: 'Deskbot',
+			goalCardId: 'workshop/sign-the-visitor-in',
+			senses: [
+				'workshop/the-desk/conversation',
+				'workshop/the-desk/case-file',
+				'workshop/the-desk/queue'
+			],
+			actions: ['workshop/the-desk/say', 'workshop/the-desk/look-up', 'workshop/the-desk/sign-in'],
+			tools: []
+		});
+		if (spec.bricks.llm) spec.bricks.llm.cartridgeId = 'dgx-spark/giant-qwen';
+		const kit = buildKitFile(spec, {
+			exportedBy: 'craftabot-harness/test',
+			exportedAt: '2026-10-04T09:00:00.000Z',
+			requires: {
+				core: '>=1.0.0',
+				packs: caretRangesFor(packVersions(sparkConfig)),
+				brickKinds: brickKindsFor(spec, registry)
+			}
+		});
+		const kitPath = join(root, 'spark.craftabot.json');
+		await writeFile(kitPath, JSON.stringify(kit), 'utf8');
+
+		const asked: Array<{ model: string }> = [];
+		const fetch = (async (input: string | URL | Request, init?: RequestInit) => {
+			const url = String(input);
+			if (url.endsWith('/models'))
+				return Response.json({
+					data: [
+						{ id: 'puzzle-llm', root: '/models/Qwen3.5-122B-A10B-NVFP4', max_model_len: 40960 },
+						{ id: 'qwen3.6', root: '/models/Qwen3.6-35B-A3B-NVFP4', max_model_len: 262144 }
+					]
+				});
+			const body = JSON.parse(String(init?.body)) as { model: string };
+			asked.push({ model: body.model });
+			const chunk = {
+				choices: [{ index: 0, delta: { content: 'Hello.' }, finish_reason: 'stop' }],
+				usage: { prompt_tokens: 10, completion_tokens: 2 }
+			};
+			return new Response(`data: ${JSON.stringify(chunk)}\n\ndata: [DONE]\n\n`, {
+				headers: { 'content-type': 'text/event-stream' }
+			});
+		}) as typeof globalThis.fetch;
+
+		const report = await runKit({
+			kitPath,
+			brain: 'live',
+			provider: 'dgx-spark',
+			seed: 3,
+			maxTicks: 3,
+			maxRounds: 3,
+			out: join(root, 'runs'),
+			config: sparkConfig,
+			credentials,
+			counterpart: { brain: 'live', cartridgeId: 'dgx-spark/quick-qwen' },
+			fetch,
+			now: clock(),
+			newId: ids()
+		});
+		// Two models answered: the agent's 122B and the visitor's 35B.
+		expect(new Set(asked.map((a) => a.model))).toEqual(new Set(['puzzle-llm', 'qwen3.6']));
+		const bundle = parseTraceBundle(JSON.parse(await readFile(report.bundleFile!, 'utf8')));
+		expect(bundle.runs).toHaveLength(2);
+		for (const run of bundle.runs) {
+			const thinks = run.events.filter((event) => event.type === 'think.completed');
+			expect(thinks.length).toBeGreaterThan(0);
+			// The visitor's calls were untimed until 2026-10-04: every think says how long the provider took.
+			for (const think of thinks)
+				expect(typeof (think.payload as { durationMs?: unknown }).durationMs).toBe('number');
+		}
+	});
+});

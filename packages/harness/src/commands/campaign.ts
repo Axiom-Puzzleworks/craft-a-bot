@@ -69,6 +69,12 @@ export interface CampaignFileOptions {
 	onCell?: (done: number, total: number) => void;
 	/** Cells in flight at once (WP68, `57-…` §4.2): above 1, a pool of workers over the harness's built `campaign-worker.js`. */
 	jobs?: number;
+	/**
+	 * Cells run at once in this process (recording against a local provider, `99-DGX-SPARK.md` §9).
+	 * Unlike `jobs`, nothing is spawned: the runner's own lanes interleave cells on the one thread,
+	 * each cell's calls going to whichever Spark is least loaded. Results are placed by ordinal.
+	 */
+	concurrency?: number;
 	/** Run the `index`-th of `of` slices only; the report says so, and `craftabot merge` folds slices back. */
 	shard?: { index: number; of: number };
 	/** Replace the file's seeds with `a..b` — a scale run as one flag on a baseline. */
@@ -234,7 +240,11 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 				}
 				return pool ? pool.execute(spec) : run();
 			},
-			...(pool ? { concurrency: jobs } : {}),
+			...(pool
+				? { concurrency: jobs }
+				: options.concurrency !== undefined
+					? { concurrency: options.concurrency }
+					: {}),
 			...(options.shard ? { shard: options.shard } : {}),
 			packVersions: versions,
 			providerFor: (brain, context) => {

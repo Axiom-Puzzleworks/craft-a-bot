@@ -146,3 +146,66 @@ For this classifier, the smaller model is the better choice. The lab record's §
 - **Speculative decoding.** `puzzle` mode runs MTP speculative decoding. The recorded log-probabilities are what vLLM returned under it at temperature 0. They were not cross-checked against a run without MTP.
 
 > **Amended 2026-09-30 (WP120, `104-READERS.md` §10.4; G90):** `@craftabot/pack-dgx-spark` left the harness's default pack list: its four hosts are the builder's. It is opt-in by `packages/packs/dgx-spark/craftabot.config.mjs`, and the typesafe pack's config installs it with Jev. The classifier line keeps its transport and its cassette. Its log-probability fold is now `governance`'s `foldFirstToken` (the LLM reader's), with `distributionOver` kept as that function's name here. In the servicing journey the two Sparks are hosted readers, `typesafe/reader/spark-122b` and `-35b`.
+
+## 9. Patterns: standing the Sparks up, shutting them down and swapping one use for another
+
+> **Added 2026-10-04 (outside any work package).** Built on `spark-patterns`. The Sparks have other uses than Craft A Bot: the Logic Grid Puzzle software (`puzzle` mode), the Cohort Parity Fairness project (`cpf-large`), coding agents, ComfyUI. Craft A Bot therefore never *owns* a unit. It borrows it for a named **pattern**, remembers what the unit was doing, and puts that back.
+
+**Access, checked 2026-10-04 with both units on.** Both `spark-619c` and `spark-ef08` answered on all four addresses (the two LAN names and the two Tailscale IPs). Both were in `puzzle` mode, idle, serving the 122B as `puzzle-llm` and `tidy` (40,960 context). `npm run smoke:spark` passed: a chat in 971 ms, a classification in 3.7 s. A full agent run through `craftabot run --brain live --provider dgx-spark` (the snackbot kit with the Spark Giant cartridge) completed six ticks with tool calls, each think taking 3.5 to 4.1 s for about 65 output tokens, with `durationMs`, the parameters and the four-host egress on the trace.
+
+**What was missing, and is now built:**
+
+| Gap found | Built |
+|---|---|
+| The transport sent every call to the first unit that served the model. Measured: one unit saturates at 8 streams (89 tok/s); 16 calls queued to 28.6 s. Spread 8+8 over both units: 157 tok/s, 16.3 s, **1.8 times** the throughput. | `createSparkTransport` is `spread` by default: of the units serving the model, the one with the fewest requests **in flight** goes first, ties in the configured order, so one caller at a time behaves exactly as before. A unit's LAN and Tailscale addresses count as one unit. The count is held per process (every provider, the classifier and a pool of cells share it) and released when a response body has been read. `strategy: 'ordered'` keeps the old behaviour. |
+| Nothing said which *use* the Sparks were in, and the only way to change it was a shell script outside the repository. | **Modes** as data (`modes.ts`, mirroring the Spark project's `MODES.md`, with `owner`), **patterns** as data (`patterns.ts`), and `craftabot spark` (below). |
+| `record --experiment` was one cell at a time, so the Sparks' streams sat idle. | `record --concurrency <n\|auto>`: the runner's own lanes, in one process, for a local provider only (`dgx-spark`, `ollama`; a hosted provider is refused, being rate-limited and billed per call). `auto` is the streams the reachable units serving the design's models can take at once, capped at 32. Results are placed by ordinal, and the mock recording is identical at 1 and at 4 (a test). |
+| A design naming a Spark cartridge nothing served failed on its first cell. | `record --provider dgx-spark` first verifies, and says which pattern to stand up. |
+
+**The pattern.** A pattern (`SparkPattern`) names the mode each unit runs while it is up (or `off`; a unit it does not name is left alone) and the **role** each model plays for the bank: `brain` (an agent's LLM), `seat` (the person across the desk, played live), `reader` (a typed-question classifier), `labeller` (a blind second labeller) and `redteam` (the adversarial seat), each with its cartridge and, where it matters, the context it needs and whether it reads log-probabilities. `checkSparkPattern` checks it against the mode catalogue with no network: an unknown unit or mode, a role no unit it may use can serve, an agent given a 4k-context mode, a reader given a mode not tuned for log-probabilities.
+
+| Pattern | Units | Roles | For |
+|---|---|---|---|
+| `reasoning-pair` | both `puzzle` | all five on the 122B | The starter shape; a batch spreads over 16 streams. |
+| `brain-and-seats` | 619c `puzzle`, ef08 `chat` | brain, labeller on the 122B; seat, reader, redteam on the 35B | A live brain and a live counterpart at once; the 35B equalled Jev on the servicing request and is five times quicker (§5). |
+| `fast-pair` | both `chat` | all five on the 35B | Bulk recording where speed matters; 262k context. |
+| `reader-batch` | both `cpf-large` | reader on the 122B, log-probabilities | A corpus of classifications: 64 streams a unit, single-token answers. Borrows the fairness project's mode. |
+| `idle` | both `off` | none | Stand both down; monitoring stays up. |
+
+**The commands** (`craftabot spark …`, `commands/spark.ts`):
+
+- `status`, `patterns [--serves <cartridge>]`, `plan --pattern <id>` and `verify --pattern <id> | --for <design.json>` only look: HTTP to the four hosts, and one read-only `docker ps` over ssh to learn the exact mode from the compose project (`mode-<folder>`); with ssh down, the mode is *inferred* from the names a unit serves, only when exactly one mode serves exactly those names (`puzzle-llm` alone is shared by two modes and is `unknown`, never a guess), and the output says so.
+- `up --pattern <id> --yes` plans, prints what it would **stop** and whose mode that is, then runs the Spark project's own `switch.sh <mode>` over ssh on each unit that needs it, in parallel, and verifies each role. Without `--yes` it changes nothing and exits 3. It writes the **lease** (`.craftabot/spark-lease.json`, git-ignored) *before* the first switch: what each unit was doing before any pattern took it. A second `up` with another pattern *replaces* the first and keeps the original lease, so `down` restores the Sparks as they were found, not as the last pattern left them.
+- `down --yes` restores the lease (units whose earlier mode could not be learned are left alone and named; the lease stays when a unit was unreachable, so `down` can be run again). `down --off --yes` stops both units. `--lease <file>` moves the lease.
+- A mode id is put in a command line only if it is a plain folder name the catalogue knows. Shared modes (one model across both units) are refused by a pattern: they are two coordinated steps with the model chosen per run, started by `scripts/spark-mode.sh shared` in the Spark project.
+- `verify` exits 0 when everything is served, 1 otherwise, and names the shipped patterns that would serve what is missing.
+
+**Replacing a pattern with another** is `up --pattern <other> --yes`; **a pattern of your own** is `--pattern-file <file>`, which passes the same check. **A new mode on the Sparks** is one entry in `SPARK_MODES` before a pattern can name it; until then `status` still reports it. The catalogue is a claim about the Sparks kept beside the code; the survey is the truth, and a pattern is verified against the survey.
+
+**Verified live, 2026-10-04.** Every step below ran on the real units, with the puzzle software's mode as the starting state (both units `puzzle`, idle: no requests running or waiting).
+
+| Step | Result |
+|---|---|
+| `status`, `plan`, `verify` | Read-only; exact mode learned over ssh; `verify --pattern brain-and-seats` exited 1 and named the pattern to stand up. |
+| `up --pattern brain-and-seats` (no `--yes`) | Printed the plan, changed nothing, exit 3. |
+| `up --pattern brain-and-seats --yes` | `spark-ef08` `puzzle → chat` in **6 m 45 s**; `spark-619c` untouched; all five roles ready. |
+| A two-model episode | The advice-desk kit with a live **agent on the 122B** and a live **counterpart seat on the 35B** (`--counterpart live --counterpart-cartridge dgx-spark/quick-qwen`): `SUCCESS`, six rounds, 634 events; the two runs report `Qwen3.5-122B-A10B-NVFP4` and `Qwen3.6-35B-A3B-NVFP4` as their wire models. |
+| `up --pattern reasoning-pair --yes` (a *replacement*) | `spark-ef08` `chat → puzzle` in **12 m 33 s**; the lease kept the original `puzzle`/`puzzle`. |
+| `record --experiment … --provider dgx-spark --concurrency auto` | 16 cells at once; sampled every second, `spark-619c` and `spark-ef08` ran 6–8 requests each, about 15 of the 16 streams busy. |
+| `down --yes` | Both units `puzzle`, lease cleared: the Sparks as they were found. |
+
+**What the first live recording found.** Recording the `lending-stack` design with its brain a live `dgx-spark/giant-qwen` found two defects the offline tests could not, both fixed with a test that fails without the fix. (1) **A live brain's `cartridgeId` never reached its cell**: `specFor` built the agent from the build alone, so a live book cell asked the Spark for the model `"mock"` (`campaign.ts`: `specFor` now takes the cell's brain). (2) **A live counterpart seat's calls were untimed** (`run-duo.ts`), so its `think.completed` carried no `durationMs`. A third was in this section's own CLI: `--concurrency auto` was rejected as not a number. After the fixes: 138 cells in 19 minutes, 637 distinct answers kept.
+
+**The first measurement of a live tier, and it does not look like the fallible one.** On the lending journey (23 loan applications per configuration, a synthetic book, `Qwen3.5-122B-A10B-NVFP4` at the cartridge's default temperature; **not** a committed result, a trial with n = 23):
+
+| Configuration | Agrees with the rules | 95% interval |
+|---|---|---|
+| `rules-only` (no bot decides) | 23 / 23 | 86–100% |
+| `bot-everywhere`, no guard | 14 / 23 | 41–78% |
+| `bot-everywhere`, policy cards | 15 / 23 | 45–81% |
+| `bot-with-a-person-at-the-decision`, no guard | 14 / 23 | 41–78% |
+| `bot-with-a-person-at-the-decision`, policy cards | 15 / 23 | 45–81% |
+
+The fallible tier's agreement is 91% (an assumed error rate of one decision in ten, `ERROR_RATES`); the live model's interval does not reach it. The errors are not uniform. Over the 46 `bot-everywhere` agent runs: **of the 18 cases the rules say to refer, the model approved 7, referred 2, declined 1 and made no decision on 8**; of the 24 to approve it approved 18; of the 4 to decline it declined 2. In 14 of the 46 runs it never made a `decide` call (a guard stop, an error, or running out of steps). So the live error sits where the rule is hardest, and its worst form is the one a control exists for: approving what should have been referred. That is the shape WP170 modelled as a *difficulty* error, and the first evidence that it is the right one. It is also why no policy card or four-eyes stage moved the figure (one case in 23, inside the interval). The cost was about 14,000 to 21,000 tokens a case, against 1,300 for the scripted tier. The cassette (14.6 MB, 637 entries) and these tables are under `runs/spark-2026-10-04/`, which git ignores; a committed result is WP168's, at a stated size and a stated temperature. Identical prompts were answered differently 205 times out of 842 repeats, so a recording at temperature 0 is the next thing to settle.
+
+**Not done.** (1) The shared mode (235B across both units) is not a pattern. (2) The Workshop and Kit still do not list the pack (§7). (3) Load *spreading* is least-loaded by in-flight count, not weighted by a unit's speed: with two different models there is one unit per model, so it does not arise; with the same model in two modes (`puzzle` and `cpf-large`) it would. (4) `record --concurrency` is not yet asked for by any shipped design: WP168 needs it. (5) The `loadMinutes` of the 122B modes other than `puzzle` are set to match it, not measured. (5) The `loadMinutes` for the 122B modes other than `puzzle` are set to match it, not measured.

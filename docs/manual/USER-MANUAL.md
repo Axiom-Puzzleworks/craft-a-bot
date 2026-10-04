@@ -2550,6 +2550,12 @@ The bank can also draw a caller from the customer: `personaFor` picks one of the
 
 A hand-written scenario is one case; a campaign over twenty seeds ran that one case twenty times. A **scenario template** has *draws*: which persona, which complication, which attack, which tick. A campaign entry that names a template and a seed range (`"template": "warning", "seeds": { "from": 1, "to": 30 }`) becomes thirty scenarios before anything runs, each named `entry#seed` and each tagged with what it drew (`draw:persona=pushy`), so a report groups by it. The same seed always draws the same scenario, and adding a draw to a template never changes what an earlier draw chose. A guard’s `for` list still names the entry. Templates travel inside the campaign file; they are not yet shipped content, and the grown corpora wait on the local model.
 
+## 80. Your DGX Sparks, stood up and shut down as patterns
+
+The two Sparks do other work too (the puzzle generator, the fairness project, coding agents, images and video), so Craft A Bot borrows them rather than owning them. A **pattern** says which mode each unit runs while Craft A Bot is using it and which job each model does: the *brain* of an agent, the *seat* across the desk, a *reader*, a *labeller*, the *red team*. Five ship: `reasoning-pair` (the 122B on both), `brain-and-seats` (the 122B beside the 35B), `fast-pair` (the 35B on both), `reader-batch` (the fairness project’s single-token mode on both) and `idle`.
+
+`craftabot spark status` shows what each unit is doing and whose mode it is. `plan --pattern <id>` says what a pattern would change and what it would **stop**; `verify --pattern <id>` (or `--for <design.json>`) says whether the Sparks can serve it now. `up --pattern <id> --yes` switches the units and remembers what they were doing; **a second `up` replaces the first**, and `down --yes` puts the Sparks back as they were found. Nothing changes without `--yes`. Both units together serve about 1.8 times what one does, so calls are spread across them, and `record --concurrency auto` records several cells at once against a local provider. Measured on the real units: switching `puzzle` to `chat` takes about seven minutes and back to the 122B about thirteen, so plan before you `up`. The first live recording of a bank journey found the 122B agreeing with the lending rules on 61–65% of cases, far below the 91% the fallible tier assumed, and approving seven of the eighteen cases the rules say to refer (`99-DGX-SPARK.md` §9).
+
 # Appendices
 
 ## Appendix A — Screen index
