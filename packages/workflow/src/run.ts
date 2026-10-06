@@ -2,9 +2,11 @@ import {
 	canonicalJson,
 	createPackRegistry,
 	createSession,
+	createSessionGroup,
 	serviceLineToolId,
 	sha256Hex,
 	type ActionCall,
+	type AgentSession,
 	type AnyAgentSpec,
 	type BoundaryPoint,
 	type BoundaryVerdict,
@@ -77,6 +79,19 @@ export interface RunWorkflowOptions {
 	specFor?: (worldId: string) => AnyAgentSpec | undefined;
 	providerFor: (stage: StageSpec, goalCardId: string) => LLMProvider;
 	/**
+	 * A person across the desk who answers back (WP169, `112-REAL-ENOUGH-PLAN.md` §5): asked for each
+	 * agent stage with the world the stage runs in, and answering with the visitor's spec and provider
+	 * to seat — or nothing, when that stage's world has no one to seat. A stage with a seat runs as a
+	 * two-member group over the same world (the agent, and a `counterpart`), the agent's trace being
+	 * the stage's trace, each line the visitor says written to it as a `seat.said`. Absent, a stage is
+	 * one session, exactly as before.
+	 */
+	seat?: (context: {
+		stage: StageSpec;
+		goalCardId: string;
+		world: WorldInstance;
+	}) => { spec: AnyAgentSpec; provider: LLMProvider; name: string; maxRounds?: number } | undefined;
+	/**
 	 * The provider an `llm` reader asks when it carries none of its own (WP120,
 	 * `104-READERS.md` §10.1): the host's, by the reader. Absent, such a reader
 	 * fails its stage.
@@ -144,6 +159,8 @@ export interface RunWorkflowOptions {
 		stageId: string;
 		spec: AnyAgentSpec;
 		events: EngineEvent[];
+		/** The seat across the desk, when the stage ran with one (WP169): its run and the name it spoke under. */
+		seat?: { runId: string; name: string };
 	}) => void;
 	/** The population the item came from, on the record when the host knows it. */
 	populationDigest?: string;
@@ -324,7 +341,9 @@ export async function runWorkflow(
 		...(intake.config ?? {}),
 		...(createConfig.knobs ? { knobs: createConfig.knobs } : {}),
 		// The rung of the context ladder (WP81, `70-…` §3), beside the knobs.
-		...(createConfig.context ? { context: createConfig.context } : {})
+		...(createConfig.context ? { context: createConfig.context } : {}),
+		// A live customer is to sit across the desk (WP169): the layout draws the case's person, which the desk seats and the host's seat then speaks for.
+		...(options.seat ? { seat: 'live' } : {})
 	};
 	const world = definition.create(intake.layoutId, {
 		random: worldRandom,
@@ -839,15 +858,51 @@ export async function runWorkflow(
 				? { budgets: { ...(options.session?.budgets ?? {}), maxTicks: executor.maxTicks } }
 				: {})
 		};
-		const session = createSession({
-			spec: { ...options.spec, goalCardId } as AnyAgentSpec,
-			registry,
-			provider: options.providerFor(stage, goalCardId),
-			world,
-			...(guardrails ? { guardrails } : {}),
-			...(options.getCredential ? { getCredential: options.getCredential } : {}),
-			options: sessionOptions
-		});
+		const agentSpec = { ...options.spec, goalCardId } as AnyAgentSpec;
+		const agentProvider = options.providerFor(stage, goalCardId);
+		const seated = options.seat?.({ stage, goalCardId, world });
+		// With a seat the stage is a group over the stage's world (WP169); the agent is its first member.
+		const group = seated
+			? createSessionGroup({
+					members: [
+						{
+							spec: agentSpec,
+							provider: agentProvider,
+							role: 'agent',
+							...(guardrails ? { guardrails } : {})
+						},
+						{ spec: seated.spec, provider: seated.provider, role: 'counterpart' }
+					],
+					registry,
+					goalCardId,
+					world,
+					options: {
+						...(sessionOptions.now ? { now: sessionOptions.now } : {}),
+						...(sessionOptions.newId ? { newId: sessionOptions.newId } : {}),
+						...(sessionOptions.random ? { random: sessionOptions.random } : {}),
+						tickDelayMs: 0,
+						...(sessionOptions.egress !== undefined ? { egress: sessionOptions.egress } : {}),
+						...(sessionOptions.principal !== undefined
+							? { principal: sessionOptions.principal }
+							: {}),
+						...(sessionOptions.budgets ? { budgets: sessionOptions.budgets } : {}),
+						maxRounds: seated.maxRounds ?? 30
+					}
+				})
+			: undefined;
+		const session: AgentSession = group
+			? (group.sessions[0] as AgentSession)
+			: createSession({
+					spec: agentSpec,
+					registry,
+					provider: agentProvider,
+					world,
+					...(guardrails ? { guardrails } : {}),
+					...(options.getCredential ? { getCredential: options.getCredential } : {}),
+					options: sessionOptions
+				});
+		const seatSession = group?.sessions[1];
+		seatSession?.events.on('approval.requested', () => seatSession.resolveApproval(true));
 		const trace: EngineEvent[] = [];
 		let checked = 0;
 		const tripped: Tripped = [];
@@ -890,16 +945,44 @@ export async function runWorkflow(
 			{ workflowRunId: runId, stageId: stage.id, executor: 'agent', input: base.input },
 			0
 		);
-		session.start('step');
+		// What the visitor says is the agent's to hear and the trace's to keep (WP169): one `seat.said` per line.
+		seatSession?.events.on('action.performed', (event) => {
+			const said = event.payload.name.endsWith('/hang-up')
+				? undefined
+				: (event.payload.arguments as { text?: unknown } | undefined)?.text;
+			if (!event.payload.result.ok) return;
+			onBus(
+				'seat.said',
+				{
+					persona: seated?.name ?? 'counterpart',
+					cue: { kind: 'live' },
+					...(typeof said === 'string' ? { text: said } : {}),
+					then: event.payload.name.endsWith('/hang-up') ? 'end-conversation' : 'continue'
+				},
+				event.tick
+			);
+		});
+		if (group) group.start('step');
+		else session.start('step');
 		let result: RunOutcome | undefined;
 		const limit = (executor.maxTicks ?? 30) + 10;
 		for (let step = 0; step < limit && result === undefined; step++) {
-			const tick = await session.step();
-			if (tick.outcome) result = tick.outcome;
+			if (group) {
+				await group.stepRound();
+				const finished = trace.find((event) => event.type === 'run.finished');
+				if (finished?.type === 'run.finished') result = finished.payload.outcome;
+			} else {
+				const tick = await session.step();
+				if (tick.outcome) result = tick.outcome;
+			}
 		}
 		if (result === undefined) {
-			session.stop('the workflow gave up');
+			if (group) group.stop('the workflow gave up');
+			else session.stop('the workflow gave up');
 			result = 'STOPPED_BY_USER';
+		} else if (group && group.status !== 'finished') {
+			// The agent is done; the visitor is let go with the stage.
+			group.stop('the stage ended');
 		}
 		runIds.push(session.runId);
 		const read = result === 'SUCCESS' ? readOutput(stage, undefined) : undefined;
@@ -931,7 +1014,8 @@ export async function runWorkflow(
 			runId: session.runId,
 			stageId: stage.id,
 			spec: session.spec,
-			events: trace
+			events: trace,
+			...(seatSession && seated ? { seat: { runId: seatSession.runId, name: seated.name } } : {})
 		});
 		return record;
 	}

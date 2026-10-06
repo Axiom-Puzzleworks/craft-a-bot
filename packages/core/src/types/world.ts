@@ -219,6 +219,12 @@ export interface WorldInstance {
 	 */
 	forAgent?(handle: AgentHandle): WorldInstance;
 	/**
+	 * Let a seat go (WP169): called once for each handle `forAgent` was given when its group
+	 * finishes, so a world that outlives the group — a journey's desk, seating one group per
+	 * stage — can seat the next. A world that omits it keeps every seat bound, as before.
+	 */
+	release?(handle: AgentHandle): void;
+	/**
 	 * What is actually so in this world, for evaluators only (WP54,
 	 * `45-TRUTH-SYNTHETIC.md` §4.1; `41-…` §6.2, tenet 13). Never composed
 	 * into a prompt, never revealed by a sense, never on the trace as an

@@ -153,4 +153,16 @@ describe('the scripted-counterpart brain drives a seat along the script', () => 
 			expect.objectContaining({ outcome: 'SUCCESS' })
 		);
 	});
+
+	it('a released seat is free for the next group, and the scripted visitor returns with its counterpart (WP169)', () => {
+		const root = counterpartTestDesk.create('one-visitor');
+		const clerk = { agentId: AGENT_ID, name: 'Deskbot', role: 'agent' as const };
+		const visitor = { agentId: VISITOR_ID, name: 'A. Person', role: 'counterpart' as const };
+		root.forAgent!(clerk);
+		root.forAgent!(visitor);
+		expect(() => root.forAgent!(clerk)).toThrow(/one clerk/);
+		root.release!(clerk);
+		root.release!(visitor);
+		expect(() => root.forAgent!(clerk)).not.toThrow();
+	});
 });

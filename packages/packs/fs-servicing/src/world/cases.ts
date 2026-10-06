@@ -4,6 +4,7 @@ import {
 	bankCase,
 	bankExtra,
 	drawComplications,
+	personaFor,
 	bankRecords,
 	type BankCase,
 	type Customer
@@ -383,7 +384,11 @@ export interface ServicingItemPayload {
  * still makes a desk (an address change) so the intake's schema is what
  * refuses it.
  */
-export function servicingCaseFromItem(random: () => number, item: WorkItem): ServicingCase {
+export function servicingCaseFromItem(
+	random: () => number,
+	item: WorkItem,
+	config?: Record<string, unknown>
+): ServicingCase {
 	const payload = item.payload as Partial<ServicingItemPayload> | undefined;
 	const seed = seedFrom(random);
 	const generated = bankCase(seed);
@@ -407,12 +412,39 @@ export function servicingCaseFromItem(random: () => number, item: WorkItem): Ser
 			? (raw.disclosure as SupportNeed)
 			: 'none');
 	const labelled = payload?.label?.category;
+	// Seated only when the host asks for a live customer (WP169): a scripted visitor would change every committed book.
+	const counterpart =
+		config?.['seat'] === 'live'
+			? itemCaller(bank.customer, request, seed, { discloses, labelled })
+			: undefined;
 	return assembleServicingCase(bank, bankForTheDesk(bank), request, {
 		discloses,
 		inArrears: payload?.inArrears ?? fromCollections,
 		fromCollections,
-		...(labelled !== undefined && CATEGORIES.includes(labelled) ? { category: labelled } : {})
+		...(labelled !== undefined && CATEGORIES.includes(labelled) ? { category: labelled } : {}),
+		...(counterpart ? { counterpart } : {})
 	});
+}
+
+/**
+ * **The person across the desk for a book's item** (WP169, `112-REAL-ENOUGH-PLAN.md` §5): the
+ * servicing personas where the item says which one it is — a need disclosed, a caller whose
+ * details are not the customer's, a bereavement — and otherwise the person the population
+ * draws for this customer (`personaFor`), wanting what the request says. Deterministic in the
+ * item.
+ */
+function itemCaller(
+	customer: Customer,
+	request: ServiceRequest,
+	seed: number,
+	about: { discloses: SupportNeed; labelled: Category | undefined }
+): CounterpartScript {
+	const goal = { goal: request.subject };
+	if (about.discloses !== 'none') return servicingPersona('discloses', customer, goal);
+	if (request.given.birthYear !== customer.dateOfBirthYear)
+		return servicingPersona('impostor', customer, goal);
+	if (about.labelled === 'bereavement') return servicingPersona('bereaved', customer, goal);
+	return personaFor(customer, seed, goal).script;
 }
 
 export { actFor };

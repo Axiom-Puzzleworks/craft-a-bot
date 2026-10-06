@@ -28,17 +28,29 @@ The live side is the reference configuration with no guard (`bot-everywhere` whe
 
 ## What each recording cost
 
-| Design                   | Recorded   | Book size | Cells | Cassette entries | Wall time | Stories |
-| ------------------------ | ---------- | --------- | ----- | ---------------- | --------- | ------- |
-| `lending-stack-live`     | 2026-10-06 | 800       | 306   | 1238             | 30 min    | 18      |
-| `lending-stack-live-b`   | 2026-10-06 | 800       | 306   | 1099             | 27 min    | 18      |
-| `servicing-stack-live`   | 2026-10-06 | 200       | 66    | 260              | 9 min     | 4       |
-| `disputes-stack-live`    | 2026-10-06 | 400       | 80    | 265              | 6 min     | 4       |
-| `collections-stack-live` | 2026-10-06 | 300       | 74    | 839              | 20 min    | 10      |
-| `onboarding-stack-live`  | 2026-10-06 | 400       | 66    | 289              | 6 min     | 2       |
-| `complaints-stack-live`  | 2026-10-06 | 200       | 110   | 302              | 7 min     | 5       |
-| `fraud-stack-live`       | 2026-10-06 | 6         | 108   | 2490             | 54 min    | 16      |
-| `advice-context-live`    | 2026-10-06 | 1200      | 124   | 1502             | 46 min    | 8       |
+| Design                      | Recorded   | Book size | Cells | Cassette entries | Wall time | Stories |
+| --------------------------- | ---------- | --------- | ----- | ---------------- | --------- | ------- |
+| `lending-stack-live`        | 2026-10-06 | 800       | 306   | 1238             | 30 min    | 18      |
+| `lending-stack-live-b`      | 2026-10-06 | 800       | 306   | 1099             | 27 min    | 18      |
+| `servicing-stack-live`      | 2026-10-06 | 200       | 66    | 260              | 9 min     | 4       |
+| `disputes-stack-live`       | 2026-10-06 | 400       | 80    | 265              | 6 min     | 4       |
+| `collections-stack-live`    | 2026-10-06 | 300       | 74    | 839              | 20 min    | 10      |
+| `onboarding-stack-live`     | 2026-10-06 | 400       | 66    | 289              | 6 min     | 2       |
+| `complaints-stack-live`     | 2026-10-06 | 200       | 110   | 302              | 7 min     | 5       |
+| `fraud-stack-live`          | 2026-10-06 | 6         | 108   | 2490             | 54 min    | 16      |
+| `advice-context-live`       | 2026-10-06 | 1200      | 124   | 1502             | 46 min    | 8       |
+| `servicing-stack-live-seat` | 2026-10-06 | 100       | 32    | 357              | 8 min     | 2       |
+
+## The customer answers back
+
+`servicing-stack` again, with the person across the desk a live model as well (`112-REAL-ENOUGH-PLAN.md` WP169): the desk draws the customer's persona from the item and seats it at every agent stage, the seat takes the same cartridge as the bot and records into the same cassette, and each line it says is a `seat.said` on the bot's trace. Reference configuration, no guard:
+
+|                                 | Needs met (95% interval, n) | Tokens per case | Cells |
+| ------------------------------- | --------------------------- | --------------- | ----- |
+| the desk's own scripted visitor | 94% (80%–98%, n 33)         | 11775           | 66    |
+| a live customer                 | 100% (81%–100%, n 16)       | 8735            | 32    |
+
+The two books are different sizes and the intervals overlap, so this reads as no difference at this n, not as a customer who makes the bot better. What it does show is that customers who answer back run end to end on the live tier. The drawn persona is general-purpose (the population draws one by cohort, not by what the request is), so its opening line does not always match the request it carries; the stories in `servicing-stack-live-seat/stories/` show the conversation.
 
 ## The live tier's own variance
 

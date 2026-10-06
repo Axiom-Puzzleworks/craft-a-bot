@@ -70,6 +70,7 @@ import {
 } from '@craftabot/core';
 import { createGroupWatchbot, createEvaluatorCircuitBreaker } from '@craftabot/pack-monitor';
 import { adversarialScript, type CounterpartScript } from '@craftabot/desk';
+import { seatedCounterpartOf } from '@craftabot/desk';
 import { counterpartScriptFor, counterpartSpec, deskFor } from './counterpart-seat.js';
 import starterPack from '@craftabot/pack-starter';
 import { z } from 'zod';
@@ -1420,8 +1421,13 @@ function guardBudget(campaign: Campaign, cells: CampaignCellSpec[]): void {
 		);
 	}
 	// A cassette brain spends nothing (WP114): it replays, so it is not a live cell.
+	// A book's live customer answers from its brain's cassette when the brain replays one (WP169), so it spends nothing either.
+	const seatReplays = (cell: CampaignCellSpec) =>
+		campaign.source !== undefined && cell.brain.cassette !== undefined;
 	const live = cells.filter(
-		(cell) => (cell.brain.tier === 'live' && cell.brain.cassette === undefined) || liveSeat
+		(cell) =>
+			(cell.brain.tier === 'live' && cell.brain.cassette === undefined) ||
+			(liveSeat && !seatReplays(cell))
 	).length;
 	if (live === 0) return;
 	if (!campaign.budget) {
@@ -1632,6 +1638,13 @@ async function runBookCell(
 	const seat = createTestClock({ seed, idOffset: cell.ordinal * ID_STRIDE });
 	const journey = createTestClock({ seed, idOffset: cell.ordinal * ID_STRIDE + ID_STRIDE / 2 });
 	const agentRuns: Array<{ runId: string; events: EngineEvent[]; spec: AgentSpecV2 }> = [];
+	// A live customer across the desk (WP169): seated at each agent stage whose world has one to seat.
+	const partner = campaign.counterpart?.tier === 'live' ? campaign.counterpart : undefined;
+	const partnerClock = createTestClock({
+		seed,
+		idOffset: cell.ordinal * ID_STRIDE + ID_STRIDE / 4
+	});
+	const seatRuns: Array<{ runId: string; name: string }> = [];
 	let truth: unknown;
 	const packs = [starterPack, ...(options.packs ?? [])].filter(
 		(pack, index, all) => all.findIndex((other) => other.id === pack.id) === index
@@ -1654,6 +1667,39 @@ async function runBookCell(
 		spec,
 		config,
 		...(chain.length > 0 ? { guardrails: chain } : {}),
+		...(partner
+			? {
+					seat: ({ goalCardId, world }) => {
+						const script = seatedCounterpartOf(world);
+						if (!script) return undefined;
+						const cartridgeId = partner.cartridgeId ?? '';
+						return {
+							spec: toSpecV2(
+								counterpartSpec(
+									script,
+									goalCardId,
+									workflow.worldId,
+									cartridgeId,
+									partnerClock.newId(),
+									partnerClock.now()
+								)
+							),
+							// The seat is the brain's id on the cartridge it names, so a recording of the brain records the seat into the same cassette and a replay answers it from there: one file per recording, its keys told apart by the prompt.
+							provider: providerForLive(
+								{
+									id: brain.id,
+									tier: 'live',
+									cartridgeId,
+									...(brain.cassette !== undefined ? { cassette: brain.cassette } : {})
+								},
+								options
+							),
+							name: script.name,
+							...(partner.maxRounds !== undefined ? { maxRounds: partner.maxRounds } : {})
+						};
+					}
+				}
+			: {}),
 		providerFor: (_stage, goalCardId) =>
 			brain.tier === 'live'
 				? providerForLive(brain, options, goalCardId)
@@ -1690,6 +1736,7 @@ async function runBookCell(
 				events: agentRun.events,
 				spec: toSpecV2(agentRun.spec)
 			});
+			if (agentRun.seat) seatRuns.push(agentRun.seat);
 		},
 		onFinished: (world) => {
 			truth = world.truth?.();
@@ -1740,6 +1787,16 @@ async function runBookCell(
 		...(pairId ? { pairId } : {}),
 		...(decision ? { decision } : {}),
 		item: { id: item.id, kind: item.kind, customerId: item.customerId },
+		...(partner && seatRuns.length > 0
+			? {
+					counterpart: {
+						tier: 'live' as const,
+						name: seatRuns[0]?.name ?? '',
+						cartridgeId: partner.cartridgeId ?? '',
+						runId: seatRuns.at(-1)?.runId ?? ''
+					}
+				}
+			: {}),
 		workflow: {
 			runId: run.id,
 			workflowId: workflow.id,

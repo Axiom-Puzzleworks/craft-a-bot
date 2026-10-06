@@ -891,6 +891,13 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 			};
 		}
 
+		/** A seat let go (WP169): the role is free for the next group, and the scripted visitor is back if its live replacement was the one released. */
+		function release(handle: AgentHandle): void {
+			const role = handle.role ?? 'agent';
+			boundRoles.delete(role);
+			if (role === 'counterpart') scriptSuspended = false;
+		}
+
 		const instance: WorldInstance = {
 			snapshot(): WorldState {
 				return structuredClone(state) as unknown as WorldState;
@@ -983,6 +990,7 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 		const seated: DeskWorldInstance = {
 			...instance,
 			forAgent,
+			release,
 			seatedCounterpart: () => counterpart?.script
 		};
 		return seated;
