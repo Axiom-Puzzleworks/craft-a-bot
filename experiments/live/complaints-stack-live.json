@@ -1,0 +1,121 @@
+{
+	"schemaVersion": 1,
+	"id": "complaints-stack-live",
+	"title": "The policy-card stack on the complaints book — with the 122B on the DGX Sparks as the brain",
+	"hypothesis": "The complaints desk’s policy-card stack (fs-advice/stack/complaints-policy-cards) changes nothing a scripted bot at Level 5 does wrong on the complaints book. Under the fallible tier (WP154), which errs at the desk's decision one time in ten, the stack is expected to catch what its cards check and nothing else. Here the decisions are made by a live model, `dgx-spark/giant-qwen` (Qwen3.5-122B-A10B-NVFP4 on the builder's DGX Sparks), at temperature 0 with a 1024-token reply limit, over a book of 200: a single sample, recorded once and replayed from its cassette. The design's scripted and fallible columns are `complaints-stack`.",
+	"controls": [],
+	"obligations": [],
+	"design": {
+		"template": {
+			"scenarios": [],
+			"source": {
+				"kind": "book",
+				"workflowId": "fs-advice/complaints",
+				"population": {
+					"seed": 1,
+					"size": 200
+				}
+			},
+			"builds": [
+				{
+					"id": "bot-everywhere",
+					"base": {
+						"kind": "starter-default"
+					},
+					"overrides": {
+						"senses": [
+							"fs-advice/the-complaints-desk/conversation",
+							"fs-advice/the-complaints-desk/complaint-file"
+						],
+						"actions": [
+							"fs-advice/the-complaints-desk/say",
+							"fs-advice/the-complaints-desk/acknowledge-complaint",
+							"fs-advice/the-complaints-desk/find-root-cause",
+							"fs-advice/the-complaints-desk/offer-redress",
+							"fs-advice/the-complaints-desk/decline-complaint",
+							"fs-advice/the-complaints-desk/escalate-to-ombudsman"
+						],
+						"configuration": "bot-everywhere",
+						"maxTokens": 1024
+					}
+				}
+			],
+			"guards": [
+				{
+					"id": "none",
+					"fit": []
+				},
+				{
+					"id": "policy-cards",
+					"fit": [],
+					"stack": "fs-advice/stack/complaints-policy-cards"
+				}
+			],
+			"brains": [
+				{
+					"id": "live",
+					"tier": "live",
+					"cartridgeId": "dgx-spark/giant-qwen",
+					"cassette": "docs/evidence/live/complaints-stack-live/complaints-stack-live.provider-cassette.json"
+				}
+			],
+			"evaluators": [
+				{
+					"id": "fs-advice/complaint-acknowledged"
+				},
+				{
+					"id": "fs-advice/root-cause-named"
+				},
+				{
+					"id": "fs-advice/redress-within-bounds"
+				},
+				{
+					"id": "fs-advice/ombudsman-disclosed"
+				}
+			],
+			"budget": {
+				"maxLiveCells": 1000
+			}
+		},
+		"factors": [
+			{
+				"axis": "guard",
+				"levels": ["none", "policy-cards"]
+			}
+		],
+		"baseline": {
+			"guard": "none"
+		},
+		"metrics": [
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "complaint-acknowledged",
+				"evaluatorId": "fs-advice/complaint-acknowledged",
+				"direction": "higher-is-better"
+			},
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "root-cause-named",
+				"evaluatorId": "fs-advice/root-cause-named",
+				"direction": "higher-is-better"
+			},
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "redress-within-bounds",
+				"evaluatorId": "fs-advice/redress-within-bounds",
+				"direction": "higher-is-better"
+			},
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "ombudsman-disclosed",
+				"evaluatorId": "fs-advice/ombudsman-disclosed",
+				"direction": "higher-is-better"
+			}
+		],
+		"seeds": [1],
+		"replicates": 1,
+		"confidence": 0.95,
+		"minimumDetectableEffect": 0.05
+	},
+	"campaigns": []
+}

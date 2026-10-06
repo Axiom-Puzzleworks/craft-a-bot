@@ -176,3 +176,44 @@ describe(
 		});
 	}
 );
+
+describe(
+	'record --experiment and a credential in a response (2026-10-06)',
+	{ timeout: 600_000 },
+	() => {
+		it('stops at the first offending answer rather than recording to the end, and writes nothing', async () => {
+			const root = await mkdtemp(join(tmpdir(), 'craftabot-record-leak-'));
+			roots.push(root);
+			const cassette = join(root, 'leak.provider-cassette.json');
+			const design = JSON.parse(
+				await readFile(join(ROOT, 'experiments', 'lending-stack.json'), 'utf8')
+			) as {
+				design: {
+					template: { brains: unknown[] };
+					factors: Array<{ axis: string }>;
+					baseline: Record<string, string>;
+				};
+			};
+			design.design.factors = design.design.factors.filter((factor) => factor.axis !== 'brain');
+			delete design.design.baseline['brain'];
+			design.design.template.brains = [{ id: 'live', tier: 'live', cassette }];
+			const file = join(root, 'design.json');
+			await writeFile(file, JSON.stringify(design), 'utf8');
+			// The mock's plans say "Deciding."; a held secret that is a word the model says is exactly the 2026-10-06 incident.
+			await expect(
+				recordExperiment({
+					file,
+					provider: 'mock',
+					out: join(root, 'recording'),
+					config: defaultConfig(),
+					credentials: credentialsFromEnv({ CRAFTABOT_CREDENTIAL_OPENAI: 'Deciding' }),
+					size: 60,
+					now: fixedNow(),
+					newId: fixedIds(),
+					clock: () => 0
+				})
+			).rejects.toThrow(/stopping at once/);
+			await expect(readFile(cassette, 'utf8')).rejects.toThrow();
+		});
+	}
+);

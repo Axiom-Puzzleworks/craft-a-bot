@@ -3,6 +3,7 @@ import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import {
 	computeTraceDigest,
+	containsSecret,
 	engineEventSchema,
 	localPackFrom,
 	recordingProvider,
@@ -229,6 +230,8 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 	const reusedOrdinals = new Set<number>();
 	let report: CampaignReport;
 	try {
+		// Set by the recording hook when a response carries a credential (see providerFor below).
+		let leaked: string | undefined;
 		report = await runCampaign(campaign, {
 			...(baseline ? { baseline } : {}),
 			// Reuse what a stopped run finished (WP68), then the pool or the runner's own way.
@@ -257,11 +260,33 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 								script: scriptedOptimal(harnessPlans.planFor(context?.goalCardId ?? ''))
 							})
 						: providerFor(brain, registry, options);
-				const recording = recordingProvider(inner, record.clock ? { now: record.clock } : {});
+				// Slim: a live provider's raw stream chunks are most of an entry's bytes and nothing replays them (WP168); a mock has none.
+				const recording = recordingProvider(inner, {
+					...(record.clock ? { now: record.clock } : {}),
+					slim: true
+				});
 				const into = record.recordings.get(path) ?? [];
 				into.push(recording.entries);
 				record.recordings.set(path, into);
-				return recording.provider;
+				// Fail at the first offending answer, not after the last: a credential in a response means nothing will be written,
+				// and (2026-10-06) finding that out at the end cost a half-hour recording. The cell boundary stops the run.
+				const held = options.credentials.secrets();
+				if (held.length === 0) return recording.provider;
+				return {
+					...recording.provider,
+					async chat(request, opts) {
+						const response = await recording.provider.chat(request, opts);
+						if (containsSecret(response, held)) {
+							leaked = LEAK_MESSAGE;
+							throw new Error(LEAK_MESSAGE);
+						}
+						return response;
+					}
+				};
+			},
+			// A leak found mid-recording stops the run at the next cell boundary (above).
+			betweenCells: async () => {
+				if (leaked) throw new Error(leaked);
 			},
 			// A cassette brain replays (WP114): the file read here, `evals` never touching a disk.
 			cassetteFor: loadCassette,
@@ -397,6 +422,9 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
  * spends nothing, so it carries a budget for its cells if the file has none;
  * a live one keeps the file's budget — or its refusal.
  */
+const LEAK_MESSAGE =
+	'a recorded response carries a credential — stopping at once and writing nothing; a provider must never echo its key';
+
 function forRecording(campaign: Campaign, provider: 'live' | 'mock'): Campaign {
 	const brains = campaign.brains.map((brain) => {
 		const live = { ...brain };

@@ -1,0 +1,127 @@
+{
+	"schemaVersion": 1,
+	"id": "advice-context-live",
+	"title": "The relational context on the advice-request register — with the 122B on the DGX Sparks as the brain",
+	"hypothesis": "The relational context lowers unsuitable recommendations and raises data-minimisation findings against the case file alone. Here the decisions are made by a live model, `dgx-spark/giant-qwen` (Qwen3.5-122B-A10B-NVFP4 on the builder's DGX Sparks), at temperature 0 with a 1024-token reply limit, over a book of 1200: a single sample, recorded once and replayed from its cassette. The design's scripted and fallible columns are `advice-context`.",
+	"controls": [
+		"fs-advice/control-map/suitability",
+		"fs-advice/control-map/minimisation-and-purpose"
+	],
+	"obligations": [
+		"fca:cobs-9:suitability",
+		"ukgdpr:data-minimisation"
+	],
+	"design": {
+		"template": {
+			"scenarios": [],
+			"source": {
+				"kind": "book",
+				"workflowId": "fs-advice/advice",
+				"population": {
+					"seed": 1,
+					"size": 1200
+				}
+			},
+			"builds": [
+				{
+					"id": "bot",
+					"base": {
+						"kind": "starter-default"
+					},
+					"overrides": {
+						"senses": [
+							"fs-advice/the-advice-desk/conversation",
+							"fs-advice/the-advice-desk/customer-record",
+							"fs-advice/the-advice-desk/product-shelf"
+						],
+						"actions": [
+							"fs-advice/the-advice-desk/say",
+							"fs-advice/the-advice-desk/ask-suitability-question",
+							"fs-advice/the-advice-desk/run-fact-find",
+							"fs-advice/the-advice-desk/check-suitability",
+							"fs-advice/the-advice-desk/record-customer-fact",
+							"fs-advice/the-advice-desk/recommend-product",
+							"fs-advice/the-advice-desk/refer-to-adviser",
+							"fs-advice/the-advice-desk/execute-investment"
+						],
+						"maxTokens": 1024,
+						"reviewer": "fs-bank/reviewer/case-handler"
+					}
+				}
+			],
+			"guards": [
+				{
+					"id": "none",
+					"fit": []
+				}
+			],
+			"brains": [
+				{
+					"id": "live",
+					"tier": "live",
+					"cartridgeId": "dgx-spark/giant-qwen",
+					"cassette": "docs/evidence/live/advice-context-live/advice-context-live.provider-cassette.json"
+				}
+			],
+			"assertionCards": [],
+			"sinks": [],
+			"evaluators": [
+				{
+					"id": "fs-advice/recommendation-suitable"
+				},
+				{
+					"id": "fs-advice/data-minimised"
+				}
+			],
+			"budget": {
+				"maxLiveCells": 1000
+			}
+		},
+		"factors": [
+			{
+				"axis": "context",
+				"levels": [
+					"case-file",
+					"relational"
+				]
+			},
+			{
+				"axis": "executors",
+				"levels": [
+					"bot-everywhere",
+					"bot-recommends"
+				]
+			}
+		],
+		"baseline": {
+			"context": "case-file",
+			"executors": "bot-everywhere"
+		},
+		"metrics": [
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "suitable",
+				"direction": "higher-is-better",
+				"evaluatorId": "fs-advice/recommendation-suitable"
+			},
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "minimised",
+				"direction": "higher-is-better",
+				"evaluatorId": "fs-advice/data-minimised"
+			}
+		],
+		"seeds": [
+			1
+		],
+		"replicates": 1,
+		"confidence": 0.95,
+		"minimumDetectableEffect": 0.05
+	},
+	"campaigns": [
+		"advice-context-live--context=case-file--executors=bot-everywhere",
+		"advice-context-live--context=case-file--executors=bot-recommends",
+		"advice-context-live--context=relational--executors=bot-everywhere",
+		"advice-context-live--context=relational--executors=bot-recommends"
+	]
+}

@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { checkSynthetic, type SyntheticSweepFile } from '@craftabot/pack-testkit';
@@ -58,6 +58,17 @@ function walk(dir: string, underFixtures: boolean, out: string[]): void {
 export function fixtureFiles(): SyntheticSweepFile[] {
 	const paths: string[] = [];
 	for (const root of ROOTS) walk(resolve(REPO, root), false, paths);
+	// The live tier's cassettes, results and stories (WP168): a model's words about synthetic customers, swept like any fixture.
+	const live = resolve(REPO, 'docs/evidence/live');
+	// Only what a model wrote: its cassettes and the stories told from them. The results beside them are computed statistics, whose
+	// sixteen-digit floats pass a Luhn check by chance (the first lending result had twelve such 'card numbers').
+	if (existsSync(live)) {
+		const found: string[] = [];
+		walk(live, true, found);
+		paths.push(
+			...found.filter((path) => /provider-cassette.json$/.test(path) || /[/]stories[/]/.test(path))
+		);
+	}
 	return paths.map((path) => ({
 		path: relative(REPO, path).replaceAll('\\', '/'),
 		text: readFileSync(path, 'utf8')

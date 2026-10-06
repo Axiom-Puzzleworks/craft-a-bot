@@ -1,5 +1,5 @@
 import { containsSecret, type PackRegistry } from '@craftabot/core';
-import { CREDENTIAL_PREFIX, credentialVariable } from '../credentials.js';
+import { CREDENTIAL_PREFIX, MIN_SMOKE_SECRET_LENGTH, credentialVariable } from '../credentials.js';
 import { harnessSinks } from '../sinks.js';
 
 /**
@@ -127,6 +127,15 @@ export function keysCheck(registry: PackRegistry, env: NodeJS.ProcessEnv): KeysR
 	}));
 
 	const notes: string[] = [];
+	// A placeholder in a key's place: set, but too short to be one, so nothing reads it as a key and nothing scrubs it.
+	for (const row of smoke)
+		if (row.secret && row.set) {
+			const length = env[row.variable]!.trim().length;
+			if (length < MIN_SMOKE_SECRET_LENGTH)
+				notes.push(
+					`${row.variable} is set but only ${length} characters: too short to be a key, so it is treated as a placeholder (not scrubbed, not used).`
+				);
+		}
 	for (const row of smoke)
 		if (row.secret && row.set && row.harnessCredential) {
 			const variable = credentialVariable(row.harnessCredential);

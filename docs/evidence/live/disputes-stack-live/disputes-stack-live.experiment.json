@@ -1,0 +1,116 @@
+{
+	"schemaVersion": 1,
+	"id": "disputes-stack-live",
+	"title": "The policy-card stack on the disputes book — with the 122B on the DGX Sparks as the brain",
+	"hypothesis": "The disputes desk’s policy-card stack (fs-disputes/stack/policy-cards) changes nothing a scripted bot at Level 5 does wrong on the disputes book. Under the fallible tier (WP154), which errs at the desk's decision one time in ten, the stack is expected to catch what its cards check and nothing else. Here the decisions are made by a live model, `dgx-spark/giant-qwen` (Qwen3.5-122B-A10B-NVFP4 on the builder's DGX Sparks), at temperature 0 with a 1024-token reply limit, over a book of 400: a single sample, recorded once and replayed from its cassette. The design's scripted and fallible columns are `disputes-stack`.",
+	"controls": [],
+	"obligations": [],
+	"design": {
+		"template": {
+			"scenarios": [],
+			"source": {
+				"kind": "book",
+				"workflowId": "fs-disputes/disputes",
+				"population": {
+					"seed": 1,
+					"size": 400
+				}
+			},
+			"builds": [
+				{
+					"id": "bot-everywhere",
+					"base": {
+						"kind": "starter-default"
+					},
+					"overrides": {
+						"senses": [
+							"fs-disputes/the-disputes-desk/claim",
+							"fs-disputes/the-disputes-desk/classification",
+							"fs-disputes/the-disputes-desk/investigation",
+							"fs-disputes/the-disputes-desk/conversation"
+						],
+						"actions": [
+							"fs-disputes/the-disputes-desk/say",
+							"fs-disputes/the-disputes-desk/verify-customer",
+							"fs-disputes/the-disputes-desk/classify",
+							"fs-disputes/the-disputes-desk/hold-disputed-amount",
+							"fs-disputes/the-disputes-desk/investigate",
+							"fs-disputes/the-disputes-desk/decide",
+							"fs-disputes/the-disputes-desk/reimburse"
+						],
+						"maxTokens": 1024,
+						"configuration": "bot-everywhere"
+					}
+				}
+			],
+			"guards": [
+				{
+					"id": "none",
+					"fit": []
+				},
+				{
+					"id": "policy-cards",
+					"fit": [],
+					"stack": "fs-disputes/stack/policy-cards"
+				}
+			],
+			"brains": [
+				{
+					"id": "live",
+					"tier": "live",
+					"cartridgeId": "dgx-spark/giant-qwen",
+					"cassette": "docs/evidence/live/disputes-stack-live/disputes-stack-live.provider-cassette.json"
+				}
+			],
+			"assertionCards": [],
+			"sinks": [],
+			"evaluators": [
+				{
+					"id": "fs-disputes/decision-matches-rules"
+				},
+				{
+					"id": "fs-disputes/reimbursed-within-limit"
+				}
+			],
+			"budget": {
+				"maxLiveCells": 1000
+			}
+		},
+		"factors": [
+			{
+				"axis": "guard",
+				"levels": [
+					"none",
+					"policy-cards"
+				]
+			}
+		],
+		"baseline": {
+			"guard": "none"
+		},
+		"metrics": [
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "decision-matches-rules",
+				"direction": "higher-is-better",
+				"evaluatorId": "fs-disputes/decision-matches-rules"
+			},
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "reimbursed-within-limit",
+				"direction": "higher-is-better",
+				"evaluatorId": "fs-disputes/reimbursed-within-limit"
+			}
+		],
+		"seeds": [
+			1
+		],
+		"replicates": 1,
+		"confidence": 0.95,
+		"minimumDetectableEffect": 0.05
+	},
+	"campaigns": [
+		"disputes-stack-live--guard=none",
+		"disputes-stack-live--guard=policy-cards"
+	]
+}

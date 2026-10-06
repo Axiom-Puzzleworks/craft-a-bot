@@ -41,6 +41,14 @@ export const SMOKE_SECRET_VARIABLES = [
 /** A secret shorter than this is not scrubbed by part: a short fragment would blank ordinary words. */
 const MIN_PART_LENGTH = 8;
 
+/**
+ * A smoke variable shorter than this is a placeholder, not a vendor's key (every one is thirty characters or
+ * more): it is neither scrubbed nor refused on. Found 2026-10-06, when a three-character `LAKERA_GUARD_KEY` in a
+ * `.env` matched ordinary words in a live recording and the recorder, rightly, refused to write it. `keys check`
+ * says so.
+ */
+export const MIN_SMOKE_SECRET_LENGTH = 8;
+
 export function credentialVariable(id: string): string {
 	return `${CREDENTIAL_PREFIX}${id.toUpperCase().replace(/[^A-Z0-9]/g, '_')}`;
 }
@@ -57,7 +65,9 @@ export function credentialsFromEnv(env: NodeJS.ProcessEnv = process.env): Creden
 			const held = Object.entries(env).filter(
 				([name, value]) =>
 					(name.startsWith(CREDENTIAL_PREFIX) ||
-						(SMOKE_SECRET_VARIABLES as readonly string[]).includes(name)) &&
+						((SMOKE_SECRET_VARIABLES as readonly string[]).includes(name) &&
+							value !== undefined &&
+							value.trim().length >= MIN_SMOKE_SECRET_LENGTH)) &&
 					value !== undefined &&
 					value.trim() !== ''
 			) as Array<[string, string]>;

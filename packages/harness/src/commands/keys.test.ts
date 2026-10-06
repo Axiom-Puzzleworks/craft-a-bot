@@ -225,3 +225,26 @@ describe('.env.example and docs/keys.md say what the installed packs declare', (
 		);
 	});
 });
+
+describe('a placeholder where a smoke key should be (2026-10-06)', () => {
+	// A three-character LAKERA_GUARD_KEY in a .env matched ordinary words in a live recording, and the recorder refused to
+	// write 28 minutes of cassette. A vendor's key is thirty characters or more; a value this short is a placeholder.
+	const env = { LAKERA_GUARD_KEY: 'xyz', OPENAI_API_KEY: 'sk-planted-smoke-0123456789abcdef' };
+
+	it('is neither scrubbed nor refused on, and a real key beside it still is', () => {
+		const secrets = credentialsFromEnv(env).secrets();
+		expect(secrets).toContain('sk-planted-smoke-0123456789abcdef');
+		expect(secrets).not.toContain('xyz');
+		expect(() => refuseSecrets({ text: 'the xyz of it' }, secrets, 'a cassette')).not.toThrow();
+		expect(() =>
+			refuseSecrets({ text: 'echoed sk-planted-smoke-0123456789abcdef' }, secrets, 'a cassette')
+		).toThrow(/credential/);
+	});
+
+	it('is said by keys check, naming the variable and how long it is, and never its value', () => {
+		const notes = keysCheck(createRegistry(defaultConfig()), env).notes.join('\n');
+		expect(notes).toContain('LAKERA_GUARD_KEY is set but only 3 characters');
+		expect(notes).not.toContain('xyz');
+		expect(notes).not.toContain('sk-planted');
+	});
+});
