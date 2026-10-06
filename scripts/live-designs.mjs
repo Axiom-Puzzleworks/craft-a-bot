@@ -42,6 +42,8 @@ export const LIVE = [
 	{ base: 'lending-stack', size: 800 },
 	{ base: 'lending-stack', size: 800, variant: 'b' },
 	{ base: 'servicing-stack', size: 200 },
+	// WP169: the same design with a live customer across the desk, answering back (the book's caller drawn by the desk).
+	{ base: 'servicing-stack', size: 100, seat: true },
 	{ base: 'disputes-stack', size: 400 },
 	{ base: 'collections-stack', size: 300 },
 	{ base: 'onboarding-stack', size: 400 },
@@ -50,7 +52,8 @@ export const LIVE = [
 	{ base: 'advice-context', size: 1200 }
 ];
 
-export const liveIdOf = ({ base, variant }) => `${base}-live${variant ? `-${variant}` : ''}`;
+export const liveIdOf = ({ base, variant, seat }) =>
+	`${base}-live${seat ? '-seat' : ''}${variant ? `-${variant}` : ''}`;
 
 export function cassettePathOf(entry, cassetteRoot) {
 	const id = liveIdOf(entry);
@@ -65,7 +68,7 @@ export function liveDesign(entry, cassetteRoot) {
 	const id = liveIdOf(entry);
 	const d = structuredClone(base);
 	d.id = id;
-	d.title = `${base.title} — with the 122B on the DGX Sparks as the brain${entry.variant ? ` (second recording)` : ''}`;
+	d.title = `${base.title} — with the 122B on the DGX Sparks as the brain${entry.seat ? ' and as the customer' : ''}${entry.variant ? ` (second recording)` : ''}`;
 	d.hypothesis = `${base.hypothesis} Here the decisions are made by a live model, \`${CARTRIDGE}\` (Qwen3.5-122B-A10B-NVFP4 on the builder's DGX Sparks), at temperature 0 with a ${MAX_TOKENS}-token reply limit, over a book of ${entry.size}: a single sample, recorded once and replayed from its cassette. The design's scripted and fallible columns are \`${entry.base}\`.`;
 	d.design.factors = d.design.factors.filter((factor) => factor.axis !== 'brain');
 	delete d.design.baseline.brain;
@@ -78,6 +81,9 @@ export function liveDesign(entry, cassetteRoot) {
 		}
 	];
 	d.design.template.budget = { maxLiveCells: 1000 };
+	// A live customer (WP169): the seat takes the same cartridge as the brain, and answers from the same cassette on replay.
+	if (entry.seat)
+		d.design.template.counterpart = { tier: 'live', cartridgeId: CARTRIDGE, maxRounds: 12 };
 	d.design.template.builds = d.design.template.builds.map((build) => ({
 		...build,
 		overrides: { ...build.overrides, maxTokens: MAX_TOKENS }

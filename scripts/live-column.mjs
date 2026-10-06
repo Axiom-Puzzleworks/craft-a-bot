@@ -189,6 +189,35 @@ export async function render() {
 		lines.push(
 			`| \`${id}\` | ${t.recordedOn} | ${t.size} | ${t.cells} | ${t.entries} | ${Math.round(t.wallSeconds / 60)} min | ${t.stories} |`
 		);
+	// WP169: the same desk, the customer a live model as well.
+	const seatId = 'servicing-stack-live-seat';
+	const seatFile = join(LIVE, seatId, `${seatId}.experiment-result.json`);
+	const soloFile = join(
+		LIVE,
+		'servicing-stack-live',
+		'servicing-stack-live.experiment-result.json'
+	);
+	if (timings[seatId] && existsSync(seatFile) && existsSync(soloFile)) {
+		const seatResult = read(seatFile);
+		const soloResult = read(soloFile);
+		const withSeat = baselineSide(seatResult, 'needs-met');
+		const alone = baselineSide(soloResult, 'needs-met');
+		const tokens = (result) => result.effects[0]?.cost?.tokensPerCase?.baseline;
+		if (withSeat && alone)
+			lines.push(
+				'',
+				'## The customer answers back',
+				'',
+				"`servicing-stack` again, with the person across the desk a live model as well (`112-REAL-ENOUGH-PLAN.md` WP169): the desk draws the customer's persona from the item and seats it at every agent stage, the seat takes the same cartridge as the bot and records into the same cassette, and each line it says is a `seat.said` on the bot's trace. Reference configuration, no guard:",
+				'',
+				'| | Needs met (95% interval, n) | Tokens per case | Cells |',
+				'|---|---|---|---|',
+				`| the desk's own scripted visitor | ${pct(alone.value)} (${band(alone.interval)}, n ${alone.n}) | ${Math.round(tokens(soloResult) ?? 0)} | ${timings['servicing-stack-live'].cells} |`,
+				`| a live customer | ${pct(withSeat.value)} (${band(withSeat.interval)}, n ${withSeat.n}) | ${Math.round(tokens(seatResult) ?? 0)} | ${timings[seatId].cells} |`,
+				'',
+				'The two books are different sizes and the intervals overlap, so this reads as no difference at this n, not as a customer who makes the bot better. What it does show is that customers who answer back run end to end on the live tier. The drawn persona is general-purpose (the population draws one by cohort, not by what the request is), so its opening line does not always match the request it carries; the stories in `servicing-stack-live-seat/stories/` show the conversation.'
+			);
+	}
 	const a = join(LIVE, 'lending-stack-live', 'lending-stack-live.provider-cassette.json');
 	const b = join(LIVE, 'lending-stack-live-b', 'lending-stack-live-b.provider-cassette.json');
 	if (existsSync(a) && existsSync(b)) {

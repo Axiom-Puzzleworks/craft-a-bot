@@ -64,7 +64,7 @@ export const servicingLayouts = [
 		case: (random: () => number, config?: Record<string, unknown>) => {
 			const item = config?.['item'];
 			return item !== undefined && item !== null
-				? servicingCaseFromItem(random, item as WorkItem)
+				? servicingCaseFromItem(random, item as WorkItem, config)
 				: servicingCase(random, 'address-change');
 		}
 	}

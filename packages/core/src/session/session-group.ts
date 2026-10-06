@@ -117,12 +117,14 @@ export function createSessionGroup(deps: CreateSessionGroupDeps): SessionGroup {
 			: [])
 	];
 
+	const handles: AgentHandle[] = [];
 	const sessions: AgentSession[] = members.map((member) => {
 		const handle: AgentHandle = {
 			agentId: member.spec.id,
 			name: member.spec.name,
 			...(member.role !== undefined ? { role: member.role } : {})
 		};
+		handles.push(handle);
 		// Non-null: `bindAgent` was checked above; TS cannot see that through
 		// the closure, so it is re-read into a local it can narrow.
 		const facade = bindAgent(handle);
@@ -348,6 +350,7 @@ export function createSessionGroup(deps: CreateSessionGroupDeps): SessionGroup {
 			usage: { ...groupUsage }
 		});
 		for (const off of observerUnsubscribes) off();
+		for (const handle of handles) rootWorld.release?.(handle);
 	}
 
 	function startGroup(): void {
