@@ -193,6 +193,30 @@ describe('the provider cassette (WP114)', () => {
 		expect(promptDigest({ ...request, model: 'n' })).not.toBe(digest);
 	});
 
+	it('a slim recording drops the raw wire chunks from the entry and from what the session sees, and keeps the rest', async () => {
+		const wire = { chunks: [{ choices: [{ delta: { content: 'hi' } }] }] };
+		const inner: LLMProvider = {
+			...createMockProvider({ script: [turn('hello', 'ping')] }),
+			chat: async () => ({
+				text: 'hello',
+				toolCall: null,
+				usage: { inputTokens: 3, outputTokens: 1 },
+				raw: wire,
+				finishReason: 'stop'
+			})
+		};
+		const request = { model: 'm', messages: [], temperature: 0, maxTokens: 8 };
+		const opts = { signal: new AbortController().signal };
+		const full = recordingProvider(inner);
+		const slim = recordingProvider(inner, { slim: true });
+		expect((await full.provider.chat(request, opts)).raw).toEqual(wire);
+		expect(full.entries[0]?.response.raw).toEqual(wire);
+		const seen = await slim.provider.chat(request, opts);
+		expect(seen.raw).toBeNull();
+		expect(slim.entries[0]?.response).toMatchObject({ text: 'hello', usage: { inputTokens: 3 } });
+		expect(slim.entries[0]?.response.raw).toBeNull();
+	});
+
 	it('merges many cells’ recordings first-answer-wins, and counts the answers that differed', () => {
 		const entry = (text: string, occurrence = 0) => ({
 			promptDigest: 'a'.repeat(64),

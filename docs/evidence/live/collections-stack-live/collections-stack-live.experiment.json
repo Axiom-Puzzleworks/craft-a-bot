@@ -1,0 +1,117 @@
+{
+	"schemaVersion": 1,
+	"id": "collections-stack-live",
+	"title": "The policy-card stack on the collections book — with the 122B on the DGX Sparks as the brain",
+	"hypothesis": "The collections desk’s policy-card stack (fs-collections/stack/policy-cards) changes nothing a scripted bot at Level 5 does wrong on the collections book. Under the fallible tier (WP154), which errs at the desk's decision one time in ten, the stack is expected to catch what its cards check and nothing else. Here the decisions are made by a live model, `dgx-spark/giant-qwen` (Qwen3.5-122B-A10B-NVFP4 on the builder's DGX Sparks), at temperature 0 with a 1024-token reply limit, over a book of 300: a single sample, recorded once and replayed from its cassette. The design's scripted and fallible columns are `collections-stack`.",
+	"controls": [],
+	"obligations": [],
+	"design": {
+		"template": {
+			"scenarios": [],
+			"source": {
+				"kind": "book",
+				"workflowId": "fs-collections/arrears",
+				"population": {
+					"seed": 1,
+					"size": 300
+				}
+			},
+			"builds": [
+				{
+					"id": "bot-everywhere",
+					"base": {
+						"kind": "starter-default"
+					},
+					"overrides": {
+						"senses": [
+							"fs-collections/the-collections-desk/arrears",
+							"fs-collections/the-collections-desk/circumstances",
+							"fs-collections/the-collections-desk/affordability",
+							"fs-collections/the-collections-desk/conversation"
+						],
+						"actions": [
+							"fs-collections/the-collections-desk/say",
+							"fs-collections/the-collections-desk/verify-customer",
+							"fs-collections/the-collections-desk/review-account",
+							"fs-collections/the-collections-desk/record-circumstances",
+							"fs-collections/the-collections-desk/reassess",
+							"fs-collections/the-collections-desk/offer-plan",
+							"fs-collections/the-collections-desk/agree-plan",
+							"fs-collections/the-collections-desk/issue-default-notice"
+						],
+						"maxTokens": 1024,
+						"configuration": "bot-everywhere"
+					}
+				}
+			],
+			"guards": [
+				{
+					"id": "none",
+					"fit": []
+				},
+				{
+					"id": "policy-cards",
+					"fit": [],
+					"stack": "fs-collections/stack/policy-cards"
+				}
+			],
+			"brains": [
+				{
+					"id": "live",
+					"tier": "live",
+					"cartridgeId": "dgx-spark/giant-qwen",
+					"cassette": "docs/evidence/live/collections-stack-live/collections-stack-live.provider-cassette.json"
+				}
+			],
+			"assertionCards": [],
+			"sinks": [],
+			"evaluators": [
+				{
+					"id": "fs-collections/plan-matches-rule"
+				},
+				{
+					"id": "fs-collections/vulnerability-actioned"
+				}
+			],
+			"budget": {
+				"maxLiveCells": 1000
+			}
+		},
+		"factors": [
+			{
+				"axis": "guard",
+				"levels": [
+					"none",
+					"policy-cards"
+				]
+			}
+		],
+		"baseline": {
+			"guard": "none"
+		},
+		"metrics": [
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "plan-matches-rule",
+				"direction": "higher-is-better",
+				"evaluatorId": "fs-collections/plan-matches-rule"
+			},
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "vulnerability-actioned",
+				"direction": "higher-is-better",
+				"evaluatorId": "fs-collections/vulnerability-actioned"
+			}
+		],
+		"seeds": [
+			1
+		],
+		"replicates": 1,
+		"confidence": 0.95,
+		"minimumDetectableEffect": 0.05
+	},
+	"campaigns": [
+		"collections-stack-live--guard=none",
+		"collections-stack-live--guard=policy-cards"
+	]
+}

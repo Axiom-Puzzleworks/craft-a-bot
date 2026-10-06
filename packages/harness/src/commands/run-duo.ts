@@ -1,6 +1,7 @@
 import {
 	createSessionGroup,
 	buildTraceFile,
+	timedProvider,
 	toSpecV2,
 	type AgentRecord,
 	type AgentSpec,
@@ -126,7 +127,10 @@ function counterpartProvider(
 		apiKey = key;
 	}
 	return {
-		provider: factory.create({ apiKey, ...(input.fetch ? { fetch: input.fetch } : {}) }),
+		// Timed (WP160): a live seat says how long each of its calls took, as the agent's do.
+		provider: timedProvider(
+			factory.create({ apiKey, ...(input.fetch ? { fetch: input.fetch } : {}) })
+		),
 		providerId: factory.id,
 		cartridgeId
 	};

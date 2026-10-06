@@ -1,0 +1,92 @@
+{
+	"lending-stack-live": {
+		"recordedOn": "2026-10-06",
+		"model": "Qwen3.5-122B-A10B-NVFP4",
+		"cartridge": "dgx-spark/giant-qwen",
+		"size": 800,
+		"cells": 306,
+		"entries": 1238,
+		"wallSeconds": 1796,
+		"stories": 18
+	},
+	"lending-stack-live-b": {
+		"recordedOn": "2026-10-06",
+		"model": "Qwen3.5-122B-A10B-NVFP4",
+		"cartridge": "dgx-spark/giant-qwen",
+		"size": 800,
+		"cells": 306,
+		"entries": 1099,
+		"wallSeconds": 1634,
+		"stories": 18
+	},
+	"servicing-stack-live": {
+		"recordedOn": "2026-10-06",
+		"model": "Qwen3.5-122B-A10B-NVFP4",
+		"cartridge": "dgx-spark/giant-qwen",
+		"size": 200,
+		"cells": 66,
+		"entries": 260,
+		"wallSeconds": 513,
+		"stories": 4
+	},
+	"disputes-stack-live": {
+		"recordedOn": "2026-10-06",
+		"model": "Qwen3.5-122B-A10B-NVFP4",
+		"cartridge": "dgx-spark/giant-qwen",
+		"size": 400,
+		"cells": 80,
+		"entries": 265,
+		"wallSeconds": 361,
+		"stories": 4
+	},
+	"collections-stack-live": {
+		"recordedOn": "2026-10-06",
+		"model": "Qwen3.5-122B-A10B-NVFP4",
+		"cartridge": "dgx-spark/giant-qwen",
+		"size": 300,
+		"cells": 74,
+		"entries": 839,
+		"wallSeconds": 1205,
+		"stories": 10
+	},
+	"onboarding-stack-live": {
+		"recordedOn": "2026-10-06",
+		"model": "Qwen3.5-122B-A10B-NVFP4",
+		"cartridge": "dgx-spark/giant-qwen",
+		"size": 400,
+		"cells": 66,
+		"entries": 289,
+		"wallSeconds": 365,
+		"stories": 2
+	},
+	"complaints-stack-live": {
+		"recordedOn": "2026-10-06",
+		"model": "Qwen3.5-122B-A10B-NVFP4",
+		"cartridge": "dgx-spark/giant-qwen",
+		"size": 200,
+		"cells": 110,
+		"entries": 302,
+		"wallSeconds": 397,
+		"stories": 5
+	},
+	"fraud-stack-live": {
+		"recordedOn": "2026-10-06",
+		"model": "Qwen3.5-122B-A10B-NVFP4",
+		"cartridge": "dgx-spark/giant-qwen",
+		"size": 6,
+		"cells": 108,
+		"entries": 2490,
+		"wallSeconds": 3237,
+		"stories": 16
+	},
+	"advice-context-live": {
+		"recordedOn": "2026-10-06",
+		"model": "Qwen3.5-122B-A10B-NVFP4",
+		"cartridge": "dgx-spark/giant-qwen",
+		"size": 1200,
+		"cells": 124,
+		"entries": 1502,
+		"wallSeconds": 2738,
+		"stories": 8
+	}
+}

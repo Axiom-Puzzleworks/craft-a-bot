@@ -47,3 +47,9 @@ campaign-out/
 
 # TypeScript incremental build info (a `tsc -b` run inside a package writes one)
 *.tsbuildinfo
+
+# The Sparks lease (`craftabot spark up` remembers what the units were doing; 99-DGX-SPARK.md §9)
+.craftabot/
+
+# Scratch space for scripts/live-record.mjs (WP168)
+.live-work/

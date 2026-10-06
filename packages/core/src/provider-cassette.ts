@@ -77,14 +77,14 @@ export interface ProviderRecording {
  * **A provider that records** (WP114): passes every call through to `inner`
  * unchanged and keeps an entry per call — the prompt's digest and its
  * occurrence *within this provider* (one cell's run, as a replay counts),
- * the model, the response as returned and the latency by `now`. The session
+ * the model, the response as returned (without its raw wire chunks when `slim`) and the latency by `now`. The session
  * sees exactly what it would have seen, so the recording's trace is the trace
  * a replay reproduces. A recording over many cells merges with
  * `mergeProviderEntries`.
  */
 export function recordingProvider(
 	inner: LLMProvider,
-	options: { now?: () => number } = {}
+	options: { now?: () => number; slim?: boolean } = {}
 ): ProviderRecording {
 	const now = options.now ?? (() => 0);
 	const seen = new Map<string, number>();
@@ -97,7 +97,10 @@ export function recordingProvider(
 			const answered = await inner.chat(request, opts);
 			const latencyMs = Math.max(0, now() - started);
 			// A recorder given a clock timed the call: the response carries it (WP160), so the recording's trace and a replay's agree on `think.completed.durationMs`.
-			const response: ChatResponse = options.now ? { ...answered, latencyMs } : answered;
+			const timed: ChatResponse = options.now ? { ...answered, latencyMs } : answered;
+			// Slim (WP168): the wire's stream chunks are about nine tenths of a live entry and nothing replays them. Dropped on the
+			// response the session sees as well, so the recording's trace and a replay's still agree.
+			const response: ChatResponse = options.slim ? { ...timed, raw: null } : timed;
 			const digest = promptDigest(request);
 			const occurrence = seen.get(digest) ?? 0;
 			seen.set(digest, occurrence + 1);

@@ -30,6 +30,7 @@
 		"@craftabot/pack-anthropic": "*",
 		"@craftabot/pack-azure-content-safety": "*",
 		"@craftabot/pack-bedrock-guardrails": "*",
+		"@craftabot/pack-dgx-spark": "*",
 		"@craftabot/pack-evaluators": "*",
 		"@craftabot/pack-fs-advice": "*",
 		"@craftabot/pack-fs-bank": "*",

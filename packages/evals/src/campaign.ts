@@ -2071,7 +2071,10 @@ export function cohortOf(truth: unknown): Record<string, string> | undefined {
 	return entries.length === 0 ? undefined : Object.fromEntries(entries);
 }
 
-export function specFor(cell: Pick<CampaignCellSpec, 'scenario' | 'build' | 'guard'>): AgentSpecV2 {
+export function specFor(
+	cell: Pick<CampaignCellSpec, 'scenario' | 'build' | 'guard'> &
+		Partial<Pick<CampaignCellSpec, 'brain'>>
+): AgentSpecV2 {
 	const { scenario, build, guard } = cell;
 	let spec: AgentSpecV2;
 	const goalCardId = goalCardOf(scenario);
@@ -2091,7 +2094,18 @@ export function specFor(cell: Pick<CampaignCellSpec, 'scenario' | 'build' | 'gua
 			);
 		}
 	}
-	return fit(fit(spec, scenario.fit), guard.fit);
+	const fitted = fit(fit(spec, scenario.fit), guard.fit);
+	// A live brain thinks with the cartridge it names (`99-DGX-SPARK.md` §9): the request's model is
+	// the spec's LLM cartridge's, and without this a live cell asked its provider for the default
+	// model ("mock") — a recording and its replay agree on it, and a real provider refuses it.
+	const cartridgeId = cell.brain?.tier === 'live' ? cell.brain.cartridgeId : undefined;
+	if (cartridgeId === undefined) return fitted;
+	return {
+		...fitted,
+		bricks: fitted.bricks.map((brick) =>
+			brick.slot === 'brain' ? { ...brick, config: { ...brick.config, cartridgeId } } : brick
+		)
+	};
 }
 
 /** The Guard Brick's service block, JSON text, as a value — `{}` when empty or unparseable, as the brick reads it (`29-…` §4.6). */

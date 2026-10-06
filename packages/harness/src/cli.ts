@@ -51,6 +51,27 @@ import {
 	writeReadings
 } from './commands/readings.js';
 import { keysCheck, renderKeys } from './commands/keys.js';
+import {
+	defaultSparkDeps,
+	observeSparks,
+	readLease,
+	renderPlan,
+	renderReadiness,
+	renderStatus,
+	resolvePattern,
+	sparkDown,
+	sparkPreflight,
+	sparkUp,
+	sparkVerify
+} from './commands/spark.js';
+import {
+	SPARK_PATTERNS,
+	checkSparkPattern,
+	patternsServing,
+	planSparkPattern,
+	sparkCapacity,
+	sparkCartridgesIn
+} from '@craftabot/pack-dgx-spark';
 import { sensorsFor, renderSensorsSummary, writeSensors } from './commands/sensors.js';
 import { renderStory, storyOf, type StoryFormat } from './commands/story.js';
 import { controlsFor, renderControlsSummary, writeControls } from './commands/controls.js';
@@ -168,6 +189,18 @@ Usage:
       row, decision right, blueprint item, screening list, error and reviewer model still
       pending, with the review each has had (from --content and --store). Markdown is
       the maintainer's work list: the amendments to edit in, the rejections, the unread.
+  craftabot spark status | patterns | plan | verify | up | down
+                 [--pattern <id> | --pattern-file <file>] [--for <design.json>]
+                 [--yes] [--off] [--json] [--lease <file>] [--serves <cartridgeId>]
+      The builder's two DGX Sparks, stood up and shut down as named patterns
+      (99-DGX-SPARK.md §9). status, patterns, plan and verify only look. up
+      switches each unit to the pattern's mode and down puts back what the
+      units were doing before the first pattern took them (the lease); both
+      say what they would stop and need --yes. verify --for <design.json>
+      checks that the Sparks serve every dgx-spark cartridge a design names.
+      Shipped patterns: reasoning-pair, brain-and-seats, fast-pair,
+      reader-batch, idle.
+
   craftabot keys check [--json] [--config <file>]
       Which credentials this process holds, by id and never by value (CRAFTABOT_CREDENTIAL_<ID>
       for every provider, guard service, evaluator and store the installed packs declare), what
@@ -320,7 +353,7 @@ Usage:
       replays with no network. --egress none refuses every call.
 
   craftabot record --experiment <design.json> --provider <id|mock> [--size <n>]
-                 [--out ./recording] [--egress declared|none]
+                 [--out ./recording] [--egress declared|none] [--concurrency <n|auto>]
       Record a design's live brains to provider cassettes (WP114,
       103-FALLIBLE-ACTORS.md): every brain naming "cassette" runs live through
       its cartridge's provider (which must be --provider), under the file's
@@ -1044,6 +1077,41 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 						throw new Error('record --experiment needs --provider <id|mock>');
 					const egress = egressFlag(args);
 					const size = numberFlag(args, 'size');
+					// A design whose Spark cartridges nothing serves fails now, naming the pattern to stand up (`99-…` §9).
+					const wantsAuto = stringFlag(args, 'concurrency') === 'auto';
+					let concurrency = wantsAuto ? undefined : numberFlag(args, 'concurrency');
+					if (
+						(concurrency !== undefined || wantsAuto) &&
+						provider !== 'dgx-spark' &&
+						provider !== 'ollama'
+					)
+						throw new Error(
+							'--concurrency is for a local provider (dgx-spark, ollama): a hosted provider is rate-limited and billed per call, so a recording runs one cell at a time'
+						);
+					if (provider === 'dgx-spark') {
+						const refusal = await sparkPreflight(
+							defaultSparkDeps((line) => io.stdout(`${line}\n`)),
+							JSON.parse(await readFile(experimentFile, 'utf8'))
+						);
+						if (refusal !== undefined) throw new Error(refusal);
+						if (wantsAuto) {
+							// The streams the units serving this design's models can take at once.
+							const states = await observeSparks(defaultSparkDeps(() => undefined));
+							concurrency = Math.min(
+								32,
+								Math.max(
+									1,
+									sparkCapacity(
+										sparkCartridgesIn(JSON.parse(await readFile(experimentFile, 'utf8'))),
+										states
+									)
+								)
+							);
+							io.stdout(
+								`recording ${concurrency} cells at once (the Sparks' streams for this design)\n`
+							);
+						}
+					}
 					const recorded = await recordExperiment({
 						file: experimentFile,
 						provider,
@@ -1051,6 +1119,7 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 						config: await configFrom(args),
 						credentials: credentialsFromEnv(io.env),
 						...(size !== undefined ? { size } : {}),
+						...(concurrency !== undefined ? { concurrency } : {}),
 						...(egress !== undefined ? { egress } : {})
 					});
 					io.stdout(
@@ -1328,6 +1397,125 @@ ${renderEvaluations(report)}`);
 						: text
 				);
 				return 0;
+			}
+			case 'spark': {
+				// `99-DGX-SPARK.md` §9: stand the two Sparks up, shut them down and swap patterns.
+				const sub = args.positional[0];
+				const deps = defaultSparkDeps((line) => io.stdout(`${line}\n`), stringFlag(args, 'lease'));
+				const yes = args.flags['yes'] === true;
+				const json = args.flags['json'] === true;
+				const named = async () =>
+					resolvePattern(stringFlag(args, 'pattern'), stringFlag(args, 'pattern-file'));
+				switch (sub) {
+					case 'status': {
+						const units = await observeSparks(deps);
+						const lease = await readLease(deps.leaseFile);
+						io.stdout(
+							json
+								? `${JSON.stringify({ units, lease }, null, '\t')}\n`
+								: renderStatus(units, lease)
+						);
+						return units.every((unit) => unit.reachable) ? 0 : 1;
+					}
+					case 'patterns': {
+						const serves = stringFlag(args, 'serves');
+						const shown = serves ? patternsServing([serves]) : [...SPARK_PATTERNS];
+						if (json) {
+							io.stdout(`${JSON.stringify(shown, null, '\t')}\n`);
+							return 0;
+						}
+						const describe = (p: (typeof shown)[number]) => {
+							const problems = checkSparkPattern(p);
+							const units = Object.entries(p.units)
+								.map(([u, m]) => `${u}=${m}`)
+								.join(', ');
+							const roles =
+								Object.entries(p.roles)
+									.map(([r, spec]) => `${r}=${spec.cartridge}`)
+									.join(', ') || 'none';
+							return [
+								`${p.id.padEnd(16)} ${p.title}`,
+								`  units: ${units}`,
+								`  roles: ${roles}`,
+								`  ${p.purpose}`,
+								...(problems.length > 0 ? [`  PROBLEMS: ${problems.join('; ')}`] : [])
+							].join('\n');
+						};
+						io.stdout(`${shown.map(describe).join('\n\n')}\n`);
+						return 0;
+					}
+					case 'plan': {
+						const pattern = await named();
+						const plan = planSparkPattern(pattern, await observeSparks(deps));
+						io.stdout(json ? `${JSON.stringify(plan, null, '\t')}\n` : renderPlan(plan, pattern));
+						return 0;
+					}
+					case 'verify': {
+						const file = stringFlag(args, 'for');
+						const verified = await sparkVerify(
+							deps,
+							file !== undefined
+								? { document: JSON.parse(await readFile(file, 'utf8')) }
+								: { pattern: await named() }
+						);
+						io.stdout(
+							json ? `${JSON.stringify(verified, null, '\t')}\n` : renderReadiness(verified.rows)
+						);
+						if (!verified.ok && !json && verified.suggest.length > 0)
+							io.stdout(
+								`stand one up: ${verified.suggest
+									.map((p) => `craftabot spark up --pattern ${p.id} --yes`)
+									.join('  or  ')}\n`
+							);
+						return verified.ok ? 0 : 1;
+					}
+					case 'up': {
+						const pattern = await named();
+						const plan = planSparkPattern(pattern, await observeSparks(deps));
+						io.stdout(renderPlan(plan, pattern));
+						if (plan.changes && !yes) {
+							io.stdout(
+								'nothing was changed: this would interrupt what the units are running. Add --yes to go ahead.\n'
+							);
+							return 3;
+						}
+						const result = await sparkUp(deps, pattern);
+						io.stdout(
+							renderReadiness(result.roles.map(({ role, ...rest }) => ({ label: role, ...rest })))
+						);
+						io.stdout(
+							result.ok
+								? `pattern "${pattern.id}" is up${result.changed ? '' : ' (nothing needed changing)'}\n`
+								: `pattern "${pattern.id}" is NOT fully up${result.failed.length > 0 ? `: ${result.failed.join(', ')} failed to switch` : ''}; \`craftabot spark down --yes\` puts the units back\n`
+						);
+						return result.ok ? 0 : 1;
+					}
+					case 'down': {
+						const lease = await readLease(deps.leaseFile);
+						const off = args.flags['off'] === true;
+						if (!lease && !off)
+							throw new Error(
+								'no lease: Craft A Bot has not changed the Sparks, so there is nothing to put back (use --off to stop them)'
+							);
+						if (!yes) {
+							const back = Object.entries(lease?.previous ?? {})
+								.map(([u, m]) => `${u}: ${m}`)
+								.join(', ');
+							io.stdout(
+								`this would ${off ? 'stop both units' : `put back ${back}`}. Nothing was changed; add --yes to go ahead.\n`
+							);
+							return 3;
+						}
+						const result = await sparkDown(deps, { off });
+						for (const r of result.restored)
+							io.stdout(`  ${r.unit}: ${r.from} -> ${r.to} ${r.ok ? 'done' : 'FAILED'}\n`);
+						for (const skipped of result.skipped)
+							io.stdout(`  ${skipped.unit}: left alone (${skipped.why})\n`);
+						return result.restored.every((r) => r.ok) ? 0 : 1;
+					}
+					default:
+						throw new Error('spark needs status | patterns | plan | verify | up | down');
+				}
 			}
 			case 'keys': {
 				// WP162 (`112-REAL-ENOUGH-PLAN.md` §5): which credentials this process holds, by id, and what each lights.

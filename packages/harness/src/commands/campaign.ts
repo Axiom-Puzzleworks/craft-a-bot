@@ -3,6 +3,7 @@ import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import {
 	computeTraceDigest,
+	containsSecret,
 	engineEventSchema,
 	localPackFrom,
 	recordingProvider,
@@ -69,6 +70,12 @@ export interface CampaignFileOptions {
 	onCell?: (done: number, total: number) => void;
 	/** Cells in flight at once (WP68, `57-…` §4.2): above 1, a pool of workers over the harness's built `campaign-worker.js`. */
 	jobs?: number;
+	/**
+	 * Cells run at once in this process (recording against a local provider, `99-DGX-SPARK.md` §9).
+	 * Unlike `jobs`, nothing is spawned: the runner's own lanes interleave cells on the one thread,
+	 * each cell's calls going to whichever Spark is least loaded. Results are placed by ordinal.
+	 */
+	concurrency?: number;
 	/** Run the `index`-th of `of` slices only; the report says so, and `craftabot merge` folds slices back. */
 	shard?: { index: number; of: number };
 	/** Replace the file's seeds with `a..b` — a scale run as one flag on a baseline. */
@@ -223,6 +230,8 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 	const reusedOrdinals = new Set<number>();
 	let report: CampaignReport;
 	try {
+		// Set by the recording hook when a response carries a credential (see providerFor below).
+		let leaked: string | undefined;
 		report = await runCampaign(campaign, {
 			...(baseline ? { baseline } : {}),
 			// Reuse what a stopped run finished (WP68), then the pool or the runner's own way.
@@ -234,7 +243,11 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 				}
 				return pool ? pool.execute(spec) : run();
 			},
-			...(pool ? { concurrency: jobs } : {}),
+			...(pool
+				? { concurrency: jobs }
+				: options.concurrency !== undefined
+					? { concurrency: options.concurrency }
+					: {}),
 			...(options.shard ? { shard: options.shard } : {}),
 			packVersions: versions,
 			providerFor: (brain, context) => {
@@ -247,11 +260,33 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 								script: scriptedOptimal(harnessPlans.planFor(context?.goalCardId ?? ''))
 							})
 						: providerFor(brain, registry, options);
-				const recording = recordingProvider(inner, record.clock ? { now: record.clock } : {});
+				// Slim: a live provider's raw stream chunks are most of an entry's bytes and nothing replays them (WP168); a mock has none.
+				const recording = recordingProvider(inner, {
+					...(record.clock ? { now: record.clock } : {}),
+					slim: true
+				});
 				const into = record.recordings.get(path) ?? [];
 				into.push(recording.entries);
 				record.recordings.set(path, into);
-				return recording.provider;
+				// Fail at the first offending answer, not after the last: a credential in a response means nothing will be written,
+				// and (2026-10-06) finding that out at the end cost a half-hour recording. The cell boundary stops the run.
+				const held = options.credentials.secrets();
+				if (held.length === 0) return recording.provider;
+				return {
+					...recording.provider,
+					async chat(request, opts) {
+						const response = await recording.provider.chat(request, opts);
+						if (containsSecret(response, held)) {
+							leaked = LEAK_MESSAGE;
+							throw new Error(LEAK_MESSAGE);
+						}
+						return response;
+					}
+				};
+			},
+			// A leak found mid-recording stops the run at the next cell boundary (above).
+			betweenCells: async () => {
+				if (leaked) throw new Error(leaked);
 			},
 			// A cassette brain replays (WP114): the file read here, `evals` never touching a disk.
 			cassetteFor: loadCassette,
@@ -387,6 +422,9 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
  * spends nothing, so it carries a budget for its cells if the file has none;
  * a live one keeps the file's budget — or its refusal.
  */
+const LEAK_MESSAGE =
+	'a recorded response carries a credential — stopping at once and writing nothing; a provider must never echo its key';
+
 function forRecording(campaign: Campaign, provider: 'live' | 'mock'): Campaign {
 	const brains = campaign.brains.map((brain) => {
 		const live = { ...brain };

@@ -229,6 +229,16 @@ jobs:
       - name: Hold the reduced results to the committed shape
         run: node scripts/experiment-shape.mjs docs/evidence campaign-out/experiments-shape
 
+      # WP168 (112-REAL-ENOUGH-PLAN.md §5): the live tier. Each design under experiments/live/ is derived from its
+      # base design (so the two cannot drift), then replayed from its committed cassette — no key, no network —
+      # and the replay must reproduce the committed result exactly, every effect to the last digit.
+      - name: Check the live designs against their base designs
+        run: node scripts/live-designs.mjs --check
+      - name: Replay the live tier from its cassettes
+        run: node scripts/live-check.mjs
+      - name: Check the live column is the one the results and cassettes give
+        run: node scripts/live-column.mjs --check
+
       # WP123 (106-BENCHMARK.md §6): every guard over the seven adversarial corpora, the stand-ins unmeasured.
       - name: Run the reference benchmark
         run: npm run craftabot -- benchmark run benchmarks/bank-adversarial.json --out campaign-out/benchmark

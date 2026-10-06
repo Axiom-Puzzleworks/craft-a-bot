@@ -18,6 +18,8 @@
  * and the switch command for the operator.
  */
 
+import { unitOfHost } from './endpoints.js';
+
 export interface ServedModel {
 	/** The name to send in `model`. */
 	id: string;
@@ -29,6 +31,46 @@ export interface ServedModel {
 export interface SparkRoute {
 	baseUrl: string;
 	model: ServedModel;
+}
+
+/** Requests in flight per unit in this process, so concurrent callers (a provider per cartridge, a classifier, a pool of cells) share one view of the load. */
+const inFlight = new Map<string, number>();
+
+/** The load now on a unit, for tests and `craftabot spark status`. */
+export const sparkLoad = (unit: string): number => inFlight.get(unit) ?? 0;
+
+const unitKeyOf = (baseUrl: string): string => {
+	try {
+		const host = new URL(baseUrl).hostname;
+		return unitOfHost(host)?.id ?? host;
+	} catch {
+		return baseUrl;
+	}
+};
+
+/** Count a request against a unit until its body has been read (or the response has no body). */
+function tracked(response: Response, unit: string): Response {
+	inFlight.set(unit, sparkLoad(unit) + 1);
+	let released = false;
+	const release = () => {
+		if (released) return;
+		released = true;
+		inFlight.set(unit, Math.max(0, sparkLoad(unit) - 1));
+	};
+	if (!response.body) {
+		release();
+		return response;
+	}
+	const through = new TransformStream<Uint8Array, Uint8Array>({
+		flush: release,
+		cancel: release
+	} as Transformer<Uint8Array, Uint8Array>);
+	response.body.pipeTo(through.writable).catch(release);
+	return new Response(through.readable, {
+		status: response.status,
+		statusText: response.statusText,
+		headers: response.headers
+	});
 }
 
 export interface SparkTransport {
@@ -72,8 +114,15 @@ export function createSparkTransport(options: {
 	baseUrls: string[];
 	fetch: typeof globalThis.fetch;
 	now?: () => number;
+	/**
+	 * `spread` (the default): of the units that serve the model, the one with the fewest requests in
+	 * flight goes first, ties in the configured order — so one caller at a time behaves as it always
+	 * did, and a batch uses both units. `ordered`: the first unit that serves it, always.
+	 */
+	strategy?: 'spread' | 'ordered';
 }): SparkTransport {
 	const { baseUrls, fetch } = options;
+	const strategy = options.strategy ?? 'spread';
 	const now = options.now ?? (() => Date.now());
 	const cache = new Map<string, { at: number; models: ServedModel[] }>();
 
@@ -130,7 +179,13 @@ export function createSparkTransport(options: {
 			const model = models.find((m) => servesModel(m, wanted));
 			if (model) found.push({ baseUrl, model });
 		}
-		return found;
+		if (strategy === 'ordered') return found;
+		// Units by load, each unit's addresses together in their configured order (LAN before Tailscale).
+		const units = [...new Set(found.map((route) => unitKeyOf(route.baseUrl)))];
+		const byLoad = units
+			.map((unit, index) => ({ unit, index, load: sparkLoad(unit) }))
+			.sort((a, b) => a.load - b.load || a.index - b.index);
+		return byLoad.flatMap(({ unit }) => found.filter((route) => unitKeyOf(route.baseUrl) === unit));
 	}
 
 	return {
@@ -164,7 +219,7 @@ export function createSparkTransport(options: {
 					last = response;
 					continue;
 				}
-				return { response, route };
+				return { response: tracked(response, unitKeyOf(route.baseUrl)), route };
 			}
 			if (last) return { response: last, route: candidates.at(-1)! };
 			throw await unavailable(wanted, signal);
