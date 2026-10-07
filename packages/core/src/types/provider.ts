@@ -96,6 +96,12 @@ export interface ChatRequest {
 	choice?: string[];
 	/** Return the first token's top log-probabilities, this many — asked only of a provider that `supports.logprobs`. */
 	topLogprobs?: number;
+	/**
+	 * A sampling seed (WP192, `113-RECORDING-AND-RELIABILITY.md` §4.8), sent to a provider whose server honours one — the Spark's
+	 * vLLM does — so a probe can ask whether a seed makes an answer repeatable. Absent, as every session's request is, nothing
+	 * is sent and every digest is unchanged.
+	 */
+	seed?: number;
 }
 
 /** Normalised wire-failure vocabulary the UI renders in kit language (06-LLM-PROVIDERS.md §7). */

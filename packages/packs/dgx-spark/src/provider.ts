@@ -54,6 +54,8 @@ export interface SparkProviderOptions {
 	/** A preferred unit (`spark-ef08`, or its Tailscale address); the other is still the fallback. */
 	endpoint?: string;
 	transport?: SparkTransport;
+	/** Hold every request to one unit, by id (`spark-619c`): a probe asks each unit alone (WP192). Absent, the transport spreads load over the pair. */
+	pin?: string;
 }
 
 export const SPARK_EXTRA_BODY = { chat_template_kwargs: { enable_thinking: false } } as const;
@@ -94,7 +96,11 @@ export function createSparkProvider(options: SparkProviderOptions = {}): LLMProv
 	const doFetch = options.fetch ?? globalThis.fetch.bind(globalThis);
 	const transport =
 		options.transport ??
-		createSparkTransport({ baseUrls: sparkBaseUrls(options.endpoint), fetch: doFetch });
+		createSparkTransport({
+			baseUrls: sparkBaseUrls(options.endpoint),
+			fetch: doFetch,
+			...(options.pin !== undefined ? { pin: options.pin } : {})
+		});
 
 	const fail = (error: ProviderError): never => {
 		throw new SparkError(error);
@@ -130,6 +136,7 @@ export function createSparkProvider(options: SparkProviderOptions = {}): LLMProv
 					'/chat/completions',
 					(model) => ({
 						...buildRequestBody(request, model),
+						...(request.seed !== undefined ? { seed: request.seed } : {}),
 						...SPARK_EXTRA_BODY,
 						stream_options: { include_usage: true }
 					}),

@@ -28,7 +28,9 @@ import {
 	scriptedOptimal,
 	type Campaign,
 	type CampaignCell,
-	type CampaignReport
+	type CampaignCellSpec,
+	type CampaignReport,
+	type RunCampaignOptions
 } from '@craftabot/evals';
 import { createMockProvider } from '@craftabot/core/testing';
 import { cassetteLoader, cassetteModel } from '../cassettes.js';
@@ -82,6 +84,10 @@ export interface CampaignFileOptions {
 	shard?: { index: number; of: number };
 	/** Run only the cells of this trial (WP191): a design asking for trials is recorded in passes, one trial at a time. */
 	onlyTrial?: number;
+	/** Run only the cells this accepts (WP192): `craftabot reperform --cells`. */
+	include?: (spec: CampaignCellSpec, cellKey: string) => boolean;
+	/** Told every request a replay of a cell-scoped recording is asked (WP192): `craftabot probe prompts`. */
+	onReplayRequest?: RunCampaignOptions['onReplayRequest'];
 	/** Replace the file's seeds with `a..b` — a scale run as one flag on a baseline. */
 	seeds?: { from: number; to: number };
 	/** The config file and content directory the CLI resolved, so a worker builds the same registry (the config object itself cannot cross to a worker). */
@@ -262,6 +268,8 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 					: {}),
 			...(options.shard ? { shard: options.shard } : {}),
 			...(options.onlyTrial !== undefined ? { onlyTrial: options.onlyTrial } : {}),
+			...(options.include ? { include: options.include } : {}),
+			...(options.onReplayRequest ? { onReplayRequest: options.onReplayRequest } : {}),
 			packVersions: versions,
 			providerFor: (brain, context) => {
 				const record = options.record;

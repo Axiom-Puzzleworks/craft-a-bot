@@ -1,5 +1,6 @@
 import type {
 	Book,
+	ChatRequest,
 	EgressMode,
 	EventBus,
 	Guardrail,
@@ -1155,6 +1156,22 @@ export interface RunCampaignOptions {
 	 * time, into the same recording. The report holds that trial's cells only.
 	 */
 	onlyTrial?: number;
+	/**
+	 * Run only the cells this accepts (WP192): `craftabot reperform --cells` reruns a chosen part of a recording. Given the
+	 * cell's spec and its key (`113-…` §4.3). Applied after the shard and the trial, so what is left is the report's cells.
+	 */
+	include?: (spec: CampaignCellSpec, cellKey: string) => boolean;
+	/**
+	 * Told every request a replay of a cell-scoped recording is asked (WP192), before it answers: how `craftabot probe prompts`
+	 * takes real prompts from a recording that stores only their digests. The replay is unchanged by being watched.
+	 */
+	onReplayRequest?: (info: {
+		cellKey: string;
+		role: 'agent' | 'seat';
+		stage: string;
+		index: number;
+		request: ChatRequest;
+	}) => void;
 }
 
 /** What running one cell yields (WP68): the scored cell, its trace when the host wants to keep it, and what it spent beyond tokens. */
@@ -1405,10 +1422,13 @@ export async function runCampaign(
 	const allCells = prepared.cells;
 	guardBudget(campaign, allCells);
 	const sharded = options.shard ? shardCells(allCells, options.shard) : allCells;
-	const cells =
+	const byTrial =
 		options.onlyTrial === undefined
 			? sharded
 			: sharded.filter((spec) => (spec.trial ?? 0) === options.onlyTrial);
+	const cells = options.include
+		? byTrial.filter((spec) => options.include!(spec, cellKeyOfSpec(campaign, spec)))
+		: byTrial;
 
 	const tally: SpendTally = { liveEvaluations: 0 };
 	guardLiveEvaluations(campaign, allCells.length, options, registry);
@@ -2748,7 +2768,22 @@ function providerForLive(
 				replay = all.forCell(at.scope.cellKey);
 				at.scope.replays.set(brain.cassette, replay);
 			}
-			return replay.providerFor(at.role, goalCardId ?? '');
+			const replaying = replay.providerFor(at.role, goalCardId ?? '');
+			if (!options.onReplayRequest) return replaying;
+			let index = 0;
+			return {
+				...replaying,
+				chat: (request, opts) => {
+					options.onReplayRequest!({
+						cellKey: at.scope.cellKey,
+						role: at.role,
+						stage: goalCardId ?? '',
+						index: index++,
+						request
+					});
+					return replaying.chat(request, opts);
+				}
+			};
 		}
 		return createCassetteProvider(file);
 	}

@@ -1,6 +1,7 @@
 import type { EgressMode } from '@craftabot/core';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import {
 	PACKS_LOCK_FILE,
 	defaultConfig,
@@ -12,7 +13,7 @@ import {
 import { principalFromEnv } from './principal.js';
 import { mergeReports } from './commands/merge.js';
 import { parseCampaign, type CampaignGuard, type CampaignReport } from '@craftabot/evals';
-import { credentialsFromEnv, type CredentialSource } from './credentials.js';
+import { credentialVariable, credentialsFromEnv, type CredentialSource } from './credentials.js';
 import { bundleRun } from './commands/bundle.js';
 import { evaluateRun, renderEvaluations } from './commands/evaluate.js';
 import { runCampaignFile } from './commands/campaign.js';
@@ -85,6 +86,15 @@ import {
 import { createRegistry } from './config.js';
 import { createFileStorage } from './storage/file-storage.js';
 import { recordingVerify, renderRecordingVerify } from './commands/recording.js';
+import { reperform, renderReperform } from './commands/reperform.js';
+import {
+	probeArms,
+	probeDeterminism,
+	probeOutputs,
+	probePrompts,
+	readPrompts,
+	renderProbe
+} from './commands/probe.js';
 
 /**
  * The `craftabot` CLI (WP37). Files in, files out, exit code honest — the
@@ -213,6 +223,21 @@ Usage:
       what checked it, who approved, what was drawn, and — last — the truth and the
       evaluators' marks. Redacted against every secret held; a value over a record's cap
       is opened from <store>/values/ when --keep-values kept it.
+  craftabot recording verify --recording <file> --file <experiment.json> [--out <dir>] [--live-store <dir>] [--size <n>] [--trials <n>]
+      A cell-scoped recording held to what it says (WP190): the design replayed from the recording
+      alone, every cell answering every call it recorded from the prompts it recorded and ending on
+      the path digest the live run had; with --live-store, also held against the live run's own
+      store. Names each cell diverged, off its path, unrecorded or missing; exits 1 on any.
+  craftabot reperform --recording <file> --file <experiment.json> --provider <id|mock> [--trials <n>] [--cells <text>] [--limit <n>] [--size <n>] [--concurrency <n|auto>] [--allow-drift] [--out <dir>]
+      A recording's cells performed again, live, with the same inputs, and compared with the
+      original (WP192): how often the outcome and the first call repeated, how soon and how far the
+      paths forked. A measurement, not a check. Refuses a design or population that is not the one
+      recorded, by name, unless --allow-drift.
+  craftabot probe prompts --recording <file> --file <experiment.json> [--count <n>] [--out <dir>]
+  craftabot probe determinism --cartridge <id> --prompts <file> [--repeat <n>] [--units <id,id|none>] [--temperature <t>] [--out <dir>]
+      How much of a live model's variance is its own (WP192): first-tick prompts from a recording
+      sent --repeat times, at temperature 0, at 0 with a seed, and warm with a seed, to each Spark
+      alone and to the pair — how often an answer repeats, and whether a seed makes it.
   craftabot sensors list | export [--format json|markdown] [--out <file>] [--store <dir>]
       The Sensor Inventory (WP159): every event type a run can carry, its source, its
       readers and its optional fields; with --store, how many of each the store holds.
@@ -1080,41 +1105,7 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 						throw new Error('record --experiment needs --provider <id|mock>');
 					const egress = egressFlag(args);
 					const size = numberFlag(args, 'size');
-					// A design whose Spark cartridges nothing serves fails now, naming the pattern to stand up (`99-…` §9).
-					const wantsAuto = stringFlag(args, 'concurrency') === 'auto';
-					let concurrency = wantsAuto ? undefined : numberFlag(args, 'concurrency');
-					if (
-						(concurrency !== undefined || wantsAuto) &&
-						provider !== 'dgx-spark' &&
-						provider !== 'ollama'
-					)
-						throw new Error(
-							'--concurrency is for a local provider (dgx-spark, ollama): a hosted provider is rate-limited and billed per call, so a recording runs one cell at a time'
-						);
-					if (provider === 'dgx-spark') {
-						const refusal = await sparkPreflight(
-							defaultSparkDeps((line) => io.stdout(`${line}\n`)),
-							JSON.parse(await readFile(experimentFile, 'utf8'))
-						);
-						if (refusal !== undefined) throw new Error(refusal);
-						if (wantsAuto) {
-							// The streams the units serving this design's models can take at once.
-							const states = await observeSparks(defaultSparkDeps(() => undefined));
-							concurrency = Math.min(
-								32,
-								Math.max(
-									1,
-									sparkCapacity(
-										sparkCartridgesIn(JSON.parse(await readFile(experimentFile, 'utf8'))),
-										states
-									)
-								)
-							);
-							io.stdout(
-								`recording ${concurrency} cells at once (the Sparks' streams for this design)\n`
-							);
-						}
-					}
+					const concurrency = await liveConcurrency(args, io, provider, experimentFile);
 					const trials = numberFlag(args, 'trials');
 					const trial = numberFlag(args, 'trial');
 					const recorded = await recordExperiment({
@@ -1524,6 +1515,111 @@ ${renderEvaluations(report)}`);
 						throw new Error('spark needs status | patterns | plan | verify | up | down');
 				}
 			}
+			case 'reperform': {
+				// WP192 (`113-RECORDING-AND-RELIABILITY.md` §4.8): a recording's cells performed again, live, and compared.
+				const recording = stringFlag(args, 'recording');
+				const design = stringFlag(args, 'file');
+				const provider = stringFlag(args, 'provider');
+				const trials = numberFlag(args, 'trials') ?? 1;
+				if (recording === undefined || design === undefined || provider === undefined)
+					throw new Error(
+						'reperform needs --recording <file> --file <experiment.json> --provider <id|mock> [--trials <n>] [--cells <text>] [--limit <n>] [--size <n>] [--concurrency <n|auto>] [--out <dir>] [--allow-drift] [--config <file>]'
+					);
+				const concurrency = await liveConcurrency(args, io, provider, design);
+				const size = numberFlag(args, 'size');
+				const limit = numberFlag(args, 'limit');
+				const cells = stringFlag(args, 'cells');
+				const performed = await reperform({
+					recording,
+					file: design,
+					provider,
+					trials,
+					out: stringFlag(args, 'out') ?? './reperform-out',
+					config: await configFrom(args),
+					credentials: credentialsFromEnv(io.env),
+					...(size !== undefined ? { size } : {}),
+					...(concurrency !== undefined ? { concurrency } : {}),
+					...(cells !== undefined ? { cells } : {}),
+					...(limit !== undefined ? { limit } : {}),
+					...(args.flags['allow-drift'] === true ? { allowDrift: true } : {})
+				});
+				io.stdout(renderReperform(performed));
+				return 0;
+			}
+			case 'probe': {
+				// WP192: how much of a live model's variance is the model's own.
+				const verb = args.positional[0];
+				const out = stringFlag(args, 'out') ?? './probe-out';
+				if (verb === 'prompts') {
+					const recording = stringFlag(args, 'recording');
+					const design = stringFlag(args, 'file');
+					if (recording === undefined || design === undefined)
+						throw new Error(
+							'probe prompts needs --recording <file> --file <experiment.json> [--count <n>] [--out <dir>] [--size <n>] [--trials <n>] [--config <file>]'
+						);
+					const size = numberFlag(args, 'size');
+					const trials = numberFlag(args, 'trials');
+					const taken = await probePrompts({
+						recording,
+						file: design,
+						count: numberFlag(args, 'count') ?? 20,
+						out: join(out, 'replay'),
+						promptsFile: join(out, 'prompts.json'),
+						config: await configFrom(args),
+						credentials: credentialsFromEnv(io.env),
+						...(size !== undefined ? { size } : {}),
+						...(trials !== undefined ? { trials } : {})
+					});
+					io.stdout(
+						`probe prompts: ${taken.prompts} first-tick prompts taken from ${recording}\n  wrote      ${join(out, 'prompts.json')}\n`
+					);
+					return 0;
+				}
+				const cartridgeId = stringFlag(args, 'cartridge');
+				const promptsFile = stringFlag(args, 'prompts');
+				if (verb !== 'determinism' || cartridgeId === undefined || promptsFile === undefined)
+					throw new Error(
+						'probe needs prompts --recording <file> --file <experiment.json> | determinism --cartridge <id> --prompts <file> [--repeat <n>] [--units <id,id|none>] [--temperature <t>] [--concurrency <n>] [--out <dir>]'
+					);
+				const registry = createRegistry(await configFrom(args));
+				const cartridge = registry.getCartridge(cartridgeId);
+				const factory = cartridge && registry.getProviderFactory(cartridge.providerId);
+				if (!cartridge || !factory)
+					throw new Error(`probe: no cartridge '${cartridgeId}' with an installed provider`);
+				const requests = (await readPrompts(promptsFile)).map((request) => ({
+					...request,
+					model: cartridge.model
+				}));
+				const unitsFlag = stringFlag(args, 'units');
+				const units =
+					cartridge.providerId === 'dgx-spark' && unitsFlag !== 'none'
+						? (unitsFlag ?? 'spark-619c,spark-ef08').split(',')
+						: [];
+				const credentials = credentialsFromEnv(io.env);
+				const key = factory.keyRequirement === 'required' ? credentials.get(factory.id) : '';
+				if (key === undefined)
+					throw new Error(
+						`provider ${factory.id} needs a key: set ${credentialVariable(factory.id)}`
+					);
+				const made = (pin?: string) =>
+					factory.create({ apiKey: key, ...(pin ? { pin } : {}) } as never);
+				const report = await probeDeterminism({
+					requests,
+					configs: [
+						...units.map((unit) => ({ id: unit, provider: made(unit) })),
+						{ id: units.length > 0 ? 'pair' : cartridge.providerId, provider: made() }
+					],
+					arms: probeArms(numberFlag(args, 'temperature') ?? 0.7),
+					repeat: numberFlag(args, 'repeat') ?? 5,
+					concurrency: numberFlag(args, 'concurrency') ?? 4
+				});
+				const outputs = probeOutputs(out);
+				await mkdir(out, { recursive: true });
+				await writeFile(outputs.json, `${JSON.stringify(report, null, '\t')}\n`, 'utf8');
+				await writeFile(outputs.markdown, renderProbe(report), 'utf8');
+				io.stdout(renderProbe(report));
+				return 0;
+			}
 			case 'recording': {
 				// WP190 (`113-RECORDING-AND-RELIABILITY.md` §4.5): a recording held to what it says.
 				const recording = stringFlag(args, 'recording');
@@ -1838,6 +1934,39 @@ function pushTarget(args: ParsedArgs): PushEvidenceOptions['what'] {
 	throw new Error(
 		'evidence push needs one of --run, --group, --campaign-report, --assurance, --content-file or --stack-file'
 	);
+}
+
+/**
+ * The cells to run at once for a live recording (`99-DGX-SPARK.md` §9), or none to run one at a time. A design whose
+ * Spark cartridges nothing serves fails now, naming the pattern to stand up; `auto` is the streams the units serving
+ * the design's models can take. Only a local provider is run concurrently: a hosted one is rate-limited and billed per call.
+ */
+async function liveConcurrency(
+	args: ParsedArgs,
+	io: CliIo,
+	provider: string,
+	designFile: string
+): Promise<number | undefined> {
+	const wantsAuto = stringFlag(args, 'concurrency') === 'auto';
+	let concurrency = wantsAuto ? undefined : numberFlag(args, 'concurrency');
+	if ((concurrency !== undefined || wantsAuto) && provider !== 'dgx-spark' && provider !== 'ollama')
+		throw new Error(
+			'--concurrency is for a local provider (dgx-spark, ollama): a hosted provider is rate-limited and billed per call, so a recording runs one cell at a time'
+		);
+	if (provider === 'dgx-spark') {
+		const design = JSON.parse(await readFile(designFile, 'utf8'));
+		const refusal = await sparkPreflight(
+			defaultSparkDeps((line) => io.stdout(`${line}\n`)),
+			design
+		);
+		if (refusal !== undefined) throw new Error(refusal);
+		if (wantsAuto) {
+			const states = await observeSparks(defaultSparkDeps(() => undefined));
+			concurrency = Math.min(32, Math.max(1, sparkCapacity(sparkCartridgesIn(design), states)));
+			io.stdout(`running ${concurrency} cells at once (the Sparks' streams for this design)\n`);
+		}
+	}
+	return concurrency;
 }
 
 function egressFlag(args: ParsedArgs): EgressMode | undefined {

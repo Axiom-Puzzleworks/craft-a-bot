@@ -63,7 +63,9 @@ export function promptDigest(request: ChatRequest): string {
 			maxTokens: request.maxTokens,
 			// WP120: a constrained or log-probability request is another prompt; absent, every earlier digest is unchanged.
 			...(request.choice ? { choice: request.choice } : {}),
-			...(request.topLogprobs !== undefined ? { topLogprobs: request.topLogprobs } : {})
+			...(request.topLogprobs !== undefined ? { topLogprobs: request.topLogprobs } : {}),
+			// WP192: a seeded request is another request; absent, every earlier digest is unchanged.
+			...(request.seed !== undefined ? { seed: request.seed } : {})
 		})
 	);
 }

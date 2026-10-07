@@ -20,7 +20,7 @@ import {
 } from '@craftabot/evals';
 import type { HarnessConfig } from '../config.js';
 import type { CredentialSource } from '../credentials.js';
-import { runCampaignFile } from './campaign.js';
+import { runCampaignFile, type CampaignFileOptions } from './campaign.js';
 
 /**
  * **`craftabot experiment run | analyse | render`** (WP89, `72-EXPERIMENTS.md`
@@ -47,6 +47,8 @@ export interface ExperimentRunOptions {
 	size?: number;
 	/** WP191: how many times each cell is performed, over the design's own. */
 	trials?: number;
+	/** WP192: told every request a replay of a cell-scoped recording is asked. */
+	onReplayRequest?: CampaignFileOptions['onReplayRequest'];
 }
 
 export interface ExperimentRunReport {
@@ -137,7 +139,8 @@ export async function experimentRun(options: ExperimentRunOptions): Promise<Expe
 			...(options.now ? { now: options.now } : {}),
 			...(options.newId ? { newId: options.newId } : {}),
 			...(options.egress !== undefined ? { egress: options.egress } : {}),
-			...(options.principal ? { principal: options.principal } : {})
+			...(options.principal ? { principal: options.principal } : {}),
+			...(options.onReplayRequest ? { onReplayRequest: options.onReplayRequest } : {})
 		});
 		// The report under the campaign's id, so `analyse` finds it again.
 		const file = reportPath(options.out, campaign.id);

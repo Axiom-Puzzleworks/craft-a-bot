@@ -15,7 +15,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { createRegistry, packVersions, type HarnessConfig } from '../config.js';
 import type { CredentialSource } from '../credentials.js';
-import { runCampaignFile } from './campaign.js';
+import { runCampaignFile, type CampaignFileOptions } from './campaign.js';
 import { withPopulationSize, withTrials } from './experiment.js';
 
 /**
@@ -48,6 +48,8 @@ export interface RecordExperimentOptions {
 	 * recorded in passes — trial 0 one night, trial 1 the next — and a later trial is added without redoing an earlier one.
 	 */
 	trial?: number;
+	/** Record only the cells this accepts (WP192): a `reperform` of part of a recording. */
+	include?: CampaignFileOptions['include'];
 	/** Cells at once, in this process: a local provider (the Sparks) serves them concurrently. Absent, one at a time. */
 	concurrency?: number;
 	egress?: EgressMode;
@@ -122,6 +124,7 @@ export async function recordExperiment(
 			credentials: options.credentials,
 			...(options.concurrency !== undefined ? { concurrency: options.concurrency } : {}),
 			...(options.trial !== undefined ? { onlyTrial: options.trial } : {}),
+			...(options.include ? { include: options.include } : {}),
 			record: {
 				provider: mode,
 				recordings,
