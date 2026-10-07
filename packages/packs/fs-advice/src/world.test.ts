@@ -227,3 +227,23 @@ describe('the Advice Desk (WP60 stage A)', () => {
 		).toHaveLength(2);
 	});
 });
+
+describe('check-suitability names what is missing (WP193)', () => {
+	it('says which of the five questions are still to ask, and how to ask them — the 17 repeats of the first live recording', () => {
+		const world = create();
+		// Four of the five asked: the amount, the one a bot takes from the request, is the one missed.
+		for (const topic of REQUIRED_TOPICS.filter((held) => held !== 'amount'))
+			world.perform(call('ask-suitability-question', { topic }));
+		const refused = world.perform(call('check-suitability', {}));
+		expect(refused.ok).toBe(false);
+		expect(refused.narration).toContain('1 of the five questions are still to ask — amount.');
+		expect(refused.narration).toContain('ask-suitability-question');
+		expect(refused.narration).toContain('run-fact-find');
+		// Asked, it goes through.
+		world.perform(call('ask-suitability-question', { topic: 'amount' }));
+		expect(world.perform(call('check-suitability', {})).ok).toBe(true);
+		// With nothing asked, all five are named.
+		const none = create().perform(call('check-suitability', {}));
+		for (const topic of REQUIRED_TOPICS) expect(none.narration).toContain(topic);
+	});
+});

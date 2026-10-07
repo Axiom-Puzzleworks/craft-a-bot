@@ -182,7 +182,11 @@ export {
 	type OntologyRelation,
 	type OntologyScope
 } from './ontology.js';
-export { KNOWLEDGE_CARD_RECORD, bankContextRecords } from './context.js';
+export {
+	KNOWLEDGE_CARD_RECORD,
+	RELATIONAL_KINDS_BY_PURPOSE,
+	bankContextRecords
+} from './context.js';
 export {
 	ADVICE_SAVINGS_THRESHOLD,
 	adviceRequestBook,

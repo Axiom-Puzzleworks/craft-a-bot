@@ -4,7 +4,7 @@
 
 **Verdict: inconclusive.** minimum detectable difference of rates at the achieved n (783 on the smaller side, 80% power): 2.1 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)
 
-Ran 2026-10-02T17:45:03.337Z; controls fs-lending/control-map/explanation; obligations fca:cd:understanding, ukgdpr:data-minimisation; campaigns lending-context--brain=scripted-noisy--context=case-file--guard=none, lending-context--brain=fallible--context=case-file--guard=none, lending-context--brain=scripted-noisy--context=case-file--guard=policy-cards, lending-context--brain=fallible--context=case-file--guard=policy-cards, lending-context--brain=scripted-noisy--context=ontology--guard=none, lending-context--brain=fallible--context=ontology--guard=none, lending-context--brain=scripted-noisy--context=ontology--guard=policy-cards, lending-context--brain=fallible--context=ontology--guard=policy-cards. Evidence about this synthetic bank under these configurations, and nothing else.
+Ran 2026-10-07T11:24:52.627Z; controls fs-lending/control-map/explanation; obligations fca:cd:understanding, ukgdpr:data-minimisation; campaigns lending-context--brain=scripted-noisy--context=case-file--guard=none, lending-context--brain=fallible--context=case-file--guard=none, lending-context--brain=scripted-noisy--context=case-file--guard=policy-cards, lending-context--brain=fallible--context=case-file--guard=policy-cards, lending-context--brain=scripted-noisy--context=ontology--guard=none, lending-context--brain=fallible--context=ontology--guard=none, lending-context--brain=scripted-noisy--context=ontology--guard=policy-cards, lending-context--brain=fallible--context=ontology--guard=policy-cards. Evidence about this synthetic bank under these configurations, and nothing else.
 
 ## agreement
 
@@ -28,4 +28,15 @@ Method: difference of rates, Newcombe interval at 95%; two-proportion z (unpaire
 
 Method: difference of rates, Newcombe interval at 95%; two-proportion z (unpaired).
 
-Digest `3d0a9207f60c9c497d1c61fa1d4a28e3b2c3388834d28dda0222e1b21773fae3`.
+## Bill per case
+
+| Factor | Treatment vs baseline | Baseline £ | Treatment £ | Model £ (treatment) | People £ (treatment) |
+|---|---|---|---|---|---|
+| context | ontology vs case-file (scripted-noisy tier) | 0.6223 | 0.6332 | 0.0187 | 0.6145 |
+| context | ontology vs case-file (fallible tier) | 0.5966 | 0.6074 | 0.0186 | 0.5888 |
+| guard | policy-cards vs none (scripted-noisy tier) | 0.6223 | 0.6226 | 0.0081 | 0.6145 |
+| guard | policy-cards vs none (fallible tier) | 0.5966 | 0.5969 | 0.0080 | 0.5888 |
+
+Pounds at the stated rates (`fs-bank/bill`, assumptions): tokens at the hosted price, reviewer seconds at the case handler’s hourly cost.
+
+Digest `d97c61558afb435457c09198f3e0f12561d6712ed97208b05f3253d3cc54275c`.

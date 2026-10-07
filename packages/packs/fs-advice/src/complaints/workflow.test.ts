@@ -13,12 +13,15 @@ import starterPack from '@craftabot/pack-starter';
 import { followHandoff, runWorkflow, touchedCaseOf } from '@craftabot/workflow';
 import { describe, expect, it } from 'vitest';
 import fsAdvicePack, {
+	COMPLAINT_KINDS,
 	COMPLAINTS_CONFIGURATIONS,
 	COMPLAINTS_WORK_ITEM_LAYOUT,
+	ROOT_CAUSE_ON_THE_REGISTER,
 	complaintCaseFromItem,
 	complaintsDecisionKind,
 	complaintsDesk,
 	complaintsWorkflow,
+	qualifyComplaintsId,
 	upheldByTheRegister,
 	type ComplaintsConfigurationId
 } from '../index.js';
@@ -288,3 +291,26 @@ describe('the handoff from fraud (WP102, `83-…` §6.5.3)', { timeout: 300_000 
 // The fixture file the Workflows page imports (its shape is the Pipeline's e2e fixture's).
 export const FIXTURE_PATH = new URL('../fixtures/complaints-workflow-run.v1.json', import.meta.url);
 export const readFixture = (): unknown => JSON.parse(readFileSync(FIXTURE_PATH, 'utf8')) as unknown;
+
+describe('the register’s rule on the file (WP193)', () => {
+	it('is a record on the work-item case — the policy the root-cause card enforces — and the card’s refusal states the rule', () => {
+		const item = items[0]!;
+		const world = complaintsDesk.create(COMPLAINTS_WORK_ITEM_LAYOUT, {
+			random: () => 0.5,
+			config: { item }
+		});
+		const text = world.observe([qualifyComplaintsId('complaint-file')]).text;
+		expect(text).toContain('upheld and its root cause is recorded as charges');
+		expect(text).toContain('not upheld and is recorded as no-error');
+		// The rule, not this complaint's answer: it names both outcomes, so the category and the rule are the bot's to join.
+		expect(text).toContain('charges or data complaint');
+		// The block says what the register records for each outcome and where case detail goes (113 §12, item 11) — the rule, not this complaint's answer.
+		const reason = ROOT_CAUSE_ON_THE_REGISTER.rules[0]!.reason ?? '';
+		expect(reason).toMatch(/charges where the register upholds/);
+		expect(reason).toMatch(/no-error where it does not/);
+		expect(reason).toMatch(/put what is particular to this case in the reason/);
+		// A deck case (not from the register) carries no such record.
+		const deck = complaintsDesk.create(COMPLAINT_KINDS[0]!, { random: () => 0.5 });
+		expect(deck.observe([qualifyComplaintsId('complaint-file')]).text).not.toContain('register');
+	});
+});

@@ -3,7 +3,12 @@ export const CARTRIDGE: string;
 export const MAX_TOKENS: number;
 export interface LiveEntry {
 	base: string;
-	size: number;
+	/** The book population size; absent for a design over scenarios. */
+	size?: number;
+	/** A design over scenarios, not a book (plan 113 §12, item 10). */
+	scenarios?: boolean;
+	/** The seat is a live customer (WP169). */
+	seat?: boolean;
 	variant?: string;
 }
 export const LIVE: LiveEntry[];

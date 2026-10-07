@@ -17,6 +17,8 @@ export interface OnboardingApplication {
 	purpose: string;
 	/** What the applicant gave, as the identity check compares it: the document's year and postcode when they match, the applicant's own when they do not. */
 	given: { birthYear: number; postcode: string };
+	/** The applicant's own covering note, in their words — when they sent one (`113-RECORDING-AND-RELIABILITY.md` §12, item 4). */
+	note?: string;
 }
 
 export interface OnboardingState {

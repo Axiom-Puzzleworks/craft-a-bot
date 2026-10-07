@@ -63,7 +63,143 @@ export function promptDigest(request: ChatRequest): string {
 			maxTokens: request.maxTokens,
 			// WP120: a constrained or log-probability request is another prompt; absent, every earlier digest is unchanged.
 			...(request.choice ? { choice: request.choice } : {}),
-			...(request.topLogprobs !== undefined ? { topLogprobs: request.topLogprobs } : {})
+			...(request.topLogprobs !== undefined ? { topLogprobs: request.topLogprobs } : {}),
+			// WP192: a seeded request is another request; absent, every earlier digest is unchanged.
+			...(request.seed !== undefined ? { seed: request.seed } : {})
 		})
 	);
+}
+
+// ── The recording, format version 2 (WP189, `113-RECORDING-AND-RELIABILITY.md` §4.1) ──────────────
+
+/** The version a cell-scoped recording carries. Version 1 is the merged, prompt-keyed cassette above. */
+export const RECORDING_FORMAT_VERSION = 2;
+
+/**
+ * **One call the live run made** (`113-…` §4.2): in the order the cell made
+ * it, with the session it belonged to (`role` and the stage's `stage`, and
+ * which time that stage's provider was made, `segment`), the digest of what
+ * was asked, and what came back — the response *or* the error, with the unit
+ * that answered when the provider said. A failed call is kept: the first
+ * recording lost every one.
+ */
+export const recordedCallSchema = z
+	.object({
+		seq: z.number().int().nonnegative(),
+		role: z.enum(['agent', 'seat']),
+		stage: z.string(),
+		segment: z.number().int().nonnegative(),
+		promptDigest: z.string().regex(/^[0-9a-f]{64}$/),
+		model: z.string().min(1),
+		latencyMs: z.number().nonnegative(),
+		/** Which serving unit answered, when the provider reported one (the Spark transport does). */
+		unit: z.string().optional(),
+		response: chatResponseSchema.optional(),
+		error: z
+			.object({
+				kind: z.string(),
+				message: z.string(),
+				retryAfterMs: z.number().nonnegative().optional()
+			})
+			.optional()
+	})
+	.refine((call) => (call.response === undefined) !== (call.error === undefined), {
+		message: 'a recorded call holds a response or an error, never both and never neither'
+	});
+export type RecordedCall = z.infer<typeof recordedCallSchema>;
+
+/** One performance of a cell: its inputs' identity, how it ended, the digest of its path and every call it made. */
+export const recordedCellSchema = z.object({
+	cellKey: z.string().min(1),
+	trial: z.number().int().nonnegative(),
+	/** The live run's own id — the key into the (gitignored) store the live run wrote. */
+	runId: z.string().optional(),
+	/** Every agent run a journey cell made, in order, and the workflow run that held them — the keys into the live store, so the recording can be checked against it (WP190). */
+	runIds: z.array(z.string()).optional(),
+	workflowRunId: z.string().optional(),
+	outcome: z.string().optional(),
+	/** `pathDigest` (WP190): over the decision-relevant events, so a replay is held to the path the live run took. */
+	pathDigest: z
+		.string()
+		.regex(/^[0-9a-f]{64}$/)
+		.optional(),
+	calls: z.array(recordedCallSchema)
+});
+export type RecordedCell = z.infer<typeof recordedCellSchema>;
+
+export const recordingManifestSchema = z.object({
+	experimentId: z.string().optional(),
+	/** SHA-256 of each expanded campaign file as run, by campaign id: what `reperform` checks before it reruns. */
+	campaignDigests: z.record(z.string(), z.string()),
+	packVersions: z.record(z.string(), z.string()),
+	/** Every (temperature, token cap) the requests carried. */
+	sampling: z.array(
+		z.object({ temperature: z.number().optional(), maxTokens: z.number().optional() })
+	),
+	models: z.array(z.string()),
+	/** The serving units that answered, when the provider said. */
+	units: z.array(z.string()),
+	trials: z.number().int().positive(),
+	/** The ways the recorder changed a run: only the credential stop, and only when it fired (`113-…` D7). */
+	interventions: z.array(z.string())
+});
+export type RecordingManifest = z.infer<typeof recordingManifestSchema>;
+
+export const providerRecordingFileSchema = z.object({
+	format: z.literal('craftabot-cassette'),
+	formatVersion: z.literal(RECORDING_FORMAT_VERSION),
+	kind: z.literal('provider-recording'),
+	providerId: z.string().min(1),
+	recordedAt: z.string().datetime(),
+	recordedBy: z.string().min(1),
+	note: z.string().optional(),
+	egress: z.array(egressDeclarationSchema),
+	manifest: recordingManifestSchema,
+	cells: z.array(recordedCellSchema)
+});
+export type ProviderRecordingFile = z.infer<typeof providerRecordingFileSchema>;
+
+export function parseProviderRecording(value: unknown): ProviderRecordingFile {
+	return providerRecordingFileSchema.parse(value);
+}
+
+/** A provider cassette of either version, told apart by its `kind`. */
+export type AnyProviderCassette =
+	{ version: 1; file: ProviderCassetteFile } | { version: 2; file: ProviderRecordingFile };
+
+export function parseAnyProviderCassette(value: unknown): AnyProviderCassette {
+	const kind = (value as { kind?: unknown } | null)?.kind;
+	return kind === 'provider-recording'
+		? { version: 2, file: parseProviderRecording(value) }
+		: { version: 1, file: parseProviderCassette(value) };
+}
+
+/**
+ * **The identity of a cell's inputs** (`113-…` §4.3): campaign, scenario,
+ * build, guard, brain, context, item, seed and trial — not its position, so a
+ * re-ordering or a chunking cannot move it. The join between a recording, a
+ * replay and a `reperform`.
+ */
+export function cellKeyOf(parts: {
+	campaignId: string;
+	scenario: string;
+	build: string;
+	guard: string;
+	brain: string;
+	context?: string | undefined;
+	item?: string | undefined;
+	seed: number;
+	trial?: number | undefined;
+}): string {
+	return [
+		parts.campaignId,
+		parts.scenario,
+		parts.build,
+		parts.guard,
+		parts.brain,
+		parts.context ?? '',
+		parts.item ?? '',
+		String(parts.seed),
+		String(parts.trial ?? 0)
+	].join('|');
 }

@@ -266,7 +266,8 @@ export const ROOT_CAUSE_ON_THE_REGISTER: PolicyCard = {
 				]
 			},
 			then: 'block-action',
-			reason: 'That root cause is not the one the register gives for this complaint’s category.'
+			reason:
+				'That root cause is not the one the register records for this complaint’s category: charges where the register upholds the category, no-error where it does not (the register’s rule is on the complaint file, and the category named on the file decides it, not what the complaint is about). Choose that cause, and put what is particular to this case in the reason.'
 		}
 	]
 };

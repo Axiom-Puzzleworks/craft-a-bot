@@ -39,7 +39,8 @@ const inFlight = new Map<string, number>();
 /** The load now on a unit, for tests and `craftabot spark status`. */
 export const sparkLoad = (unit: string): number => inFlight.get(unit) ?? 0;
 
-const unitKeyOf = (baseUrl: string): string => {
+/** The unit a route belongs to (its id when known, else its host): what a recording says answered (WP189). */
+export const unitKeyOf = (baseUrl: string): string => {
 	try {
 		const host = new URL(baseUrl).hostname;
 		return unitOfHost(host)?.id ?? host;
@@ -120,6 +121,8 @@ export function createSparkTransport(options: {
 	 * did, and a batch uses both units. `ordered`: the first unit that serves it, always.
 	 */
 	strategy?: 'spread' | 'ordered';
+	/** Only the routes of this unit, by id: a request is never sent to the other (WP192). */
+	pin?: string;
 }): SparkTransport {
 	const { baseUrls, fetch } = options;
 	const strategy = options.strategy ?? 'spread';
@@ -179,7 +182,11 @@ export function createSparkTransport(options: {
 			const model = models.find((m) => servesModel(m, wanted));
 			if (model) found.push({ baseUrl, model });
 		}
-		if (strategy === 'ordered') return found;
+		const pinned =
+			options.pin === undefined
+				? found
+				: found.filter((route) => unitKeyOf(route.baseUrl) === options.pin);
+		if (strategy === 'ordered' || options.pin !== undefined) return pinned;
 		// Units by load, each unit's addresses together in their configured order (LAN before Tailscale).
 		const units = [...new Set(found.map((route) => unitKeyOf(route.baseUrl)))];
 		const byLoad = units

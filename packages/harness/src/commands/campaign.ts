@@ -2,6 +2,8 @@ import type { EgressMode, Principal } from '@craftabot/core';
 import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import {
+	RecordingTape,
+	cellKeyOf,
 	computeTraceDigest,
 	containsSecret,
 	engineEventSchema,
@@ -26,10 +28,12 @@ import {
 	scriptedOptimal,
 	type Campaign,
 	type CampaignCell,
-	type CampaignReport
+	type CampaignCellSpec,
+	type CampaignReport,
+	type RunCampaignOptions
 } from '@craftabot/evals';
 import { createMockProvider } from '@craftabot/core/testing';
-import { cassetteLoader } from '../cassettes.js';
+import { cassetteLoader, cassetteModel } from '../cassettes.js';
 import { summariseRun } from '@craftabot/governance/reports';
 import { harnessPlans } from '../plans.js';
 import { createRegistry, packVersions, type HarnessConfig } from '../config.js';
@@ -78,6 +82,12 @@ export interface CampaignFileOptions {
 	concurrency?: number;
 	/** Run the `index`-th of `of` slices only; the report says so, and `craftabot merge` folds slices back. */
 	shard?: { index: number; of: number };
+	/** Run only the cells of this trial (WP191): a design asking for trials is recorded in passes, one trial at a time. */
+	onlyTrial?: number;
+	/** Run only the cells this accepts (WP192): `craftabot reperform --cells`. */
+	include?: (spec: CampaignCellSpec, cellKey: string) => boolean;
+	/** Told every request a replay of a cell-scoped recording is asked (WP192): `craftabot probe prompts`. */
+	onReplayRequest?: RunCampaignOptions['onReplayRequest'];
 	/** Replace the file's seeds with `a..b` — a scale run as one flag on a baseline. */
 	seeds?: { from: number; to: number };
 	/** The config file and content directory the CLI resolved, so a worker builds the same registry (the config object itself cannot cross to a worker). */
@@ -104,6 +114,14 @@ export interface CampaignFileOptions {
 	record?: {
 		provider: 'live' | 'mock';
 		recordings: Map<string, ProviderCassetteEntry[][]>;
+		/** Each cassette path's tape (WP189): every call, per cell, failures and the answering unit included. */
+		tapes: Map<string, RecordingTape>;
+		/** What the tap saw of the run as a whole: the units that answered, the samplings asked, the stops it made. */
+		seen: {
+			units: Set<string>;
+			sampling: Map<string, { temperature?: number; maxTokens?: number }>;
+			interventions: Set<string>;
+		};
 		clock?: () => number;
 	};
 }
@@ -249,6 +267,9 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 					? { concurrency: options.concurrency }
 					: {}),
 			...(options.shard ? { shard: options.shard } : {}),
+			...(options.onlyTrial !== undefined ? { onlyTrial: options.onlyTrial } : {}),
+			...(options.include ? { include: options.include } : {}),
+			...(options.onReplayRequest ? { onReplayRequest: options.onReplayRequest } : {}),
 			packVersions: versions,
 			providerFor: (brain, context) => {
 				const record = options.record;
@@ -261,9 +282,23 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 							})
 						: providerFor(brain, registry, options);
 				// Slim: a live provider's raw stream chunks are most of an entry's bytes and nothing replays them (WP168); a mock has none.
+				const tape =
+					context?.cellKey !== undefined
+						? (record.tapes.get(path) ?? record.tapes.set(path, new RecordingTape()).get(path)!)
+								.cell(context.cellKey, context.trial ?? 0)
+								.open(context.role ?? 'agent', context.goalCardId ?? '')
+						: undefined;
 				const recording = recordingProvider(inner, {
 					...(record.clock ? { now: record.clock } : {}),
-					slim: true
+					slim: true,
+					onCall: (call) => {
+						if (call.unit !== undefined) record.seen.units.add(call.unit);
+						record.seen.sampling.set(`${call.temperature}|${call.maxTokens}`, {
+							...(call.temperature !== undefined ? { temperature: call.temperature } : {}),
+							...(call.maxTokens !== undefined ? { maxTokens: call.maxTokens } : {})
+						});
+						tape?.(call);
+					}
 				});
 				const into = record.recordings.get(path) ?? [];
 				into.push(recording.entries);
@@ -278,11 +313,83 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 						const response = await recording.provider.chat(request, opts);
 						if (containsSecret(response, held)) {
 							leaked = LEAK_MESSAGE;
+							// The one way the recorder changes a run (113-… D7): a leaked credential ends it, and the manifest says so.
+							record.seen.interventions.add('credential-stop');
 							throw new Error(LEAK_MESSAGE);
 						}
 						return response;
 					}
 				};
+			},
+			// The digest of each live cell's path, and the runs that made it, filed with the cell's calls (WP190).
+			...(options.record
+				? {
+						onPathDigest: (info: {
+							brain: string;
+							cellKey: string;
+							trial: number;
+							pathDigest: string;
+							runIds: string[];
+							workflowRunId?: string;
+						}) => {
+							const path = cassetteOfBrain.get(info.brain);
+							const taped =
+								path === undefined
+									? undefined
+									: options.record!.tapes.get(path)?.cells.get(info.cellKey);
+							if (!taped) return;
+							taped.meta.pathDigest = info.pathDigest;
+							taped.meta.runIds = info.runIds;
+							if (info.workflowRunId !== undefined) taped.meta.workflowRunId = info.workflowRunId;
+						}
+					}
+				: {}),
+			// A journey's other stages (WP190): onTrace holds the last agent run only, so every earlier stage's run — and the workflow run itself — is kept here.
+			onWorkflowRun: ({ cell, run, item, agentRuns }) => {
+				if (!storage) return;
+				const stamp = now();
+				const cassettePath = options.record ? undefined : cassetteOfBrain.get(cell.brain);
+				const replayedFrom: ReplayedFrom | undefined =
+					cassettePath === undefined
+						? undefined
+						: (() => {
+								const file = loadCassette(cassettePath);
+								return {
+									cassette: cassettePath,
+									model: cassetteModel(file),
+									recorded: file.recordedAt
+								};
+							})();
+				for (const agent of agentRuns) {
+					// The last agent run is `onTrace`'s, kept with the cell's line.
+					if (agent.runId === cell.runId) continue;
+					const finished = agent.events.find((event) => event.type === 'run.finished');
+					const kept = runRecordFrom({
+						runId: agent.runId,
+						spec: agent.spec,
+						events: [...agent.events],
+						packVersions: versions,
+						startedAt: stamp,
+						finishedAt: stamp,
+						...(finished
+							? { outcome: (finished.payload as { outcome?: string }).outcome as never }
+							: {}),
+						...(replayedFrom ? { replayedFrom } : {})
+					});
+					writing = writing
+						.then(() => storage.putRun(kept))
+						.then(() => storage.appendEvents(agent.runId, [...agent.events]))
+						.then(() => storage.putRunSummary(summariseRun(agent.runId, [...agent.events])));
+				}
+				writing = writing.then(() =>
+					storage.putWorkflowRun({
+						run,
+						item,
+						source: { kind: 'harness' },
+						createdAt: stamp,
+						schemaVersion: 1
+					})
+				);
 			},
 			// A leak found mid-recording stops the run at the next cell boundary (above).
 			betweenCells: async () => {
@@ -309,6 +416,26 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 			...(options.newId ? { newId: options.newId } : {}),
 			onTrace: (cell, trace) => {
 				if (cell.runId === undefined) return;
+				if (options.record) {
+					const path = cassetteOfBrain.get(cell.brain);
+					const held = path === undefined ? undefined : options.record.tapes.get(path);
+					const key = cellKeyOf({
+						campaignId: campaign.id,
+						scenario: cell.scenario,
+						build: cell.build,
+						guard: cell.guard,
+						brain: cell.brain,
+						context: cell.context,
+						item: cell.item?.id,
+						seed: cell.seed,
+						trial: cell.trial
+					});
+					const taped = held?.cells.get(key);
+					if (taped) {
+						taped.meta.runId = cell.runId;
+						if (cell.outcome !== undefined) taped.meta.outcome = cell.outcome;
+					}
+				}
 				if (sinks.length > 0) {
 					const exported = runRecordFrom({
 						runId: cell.runId,
@@ -338,7 +465,7 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 								const file = loadCassette(cassettePath);
 								return {
 									cassette: cassettePath,
-									model: file.entries[0]?.model ?? 'unrecorded',
+									model: cassetteModel(file),
 									recorded: file.recordedAt
 								};
 							})();

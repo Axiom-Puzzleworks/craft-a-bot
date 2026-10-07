@@ -13,7 +13,12 @@ import {
 } from '@craftabot/pack-ollama';
 import { SPARK_PROVIDER_ID } from './catalogue.js';
 import { sparkBaseUrls } from './endpoints.js';
-import { SparkUnavailable, createSparkTransport, type SparkTransport } from './transport.js';
+import {
+	SparkUnavailable,
+	createSparkTransport,
+	unitKeyOf,
+	type SparkTransport
+} from './transport.js';
 
 /**
  * **The DGX Spark brain** (`99-DGX-SPARK.md` §5). The LLM brick's provider
@@ -49,6 +54,8 @@ export interface SparkProviderOptions {
 	/** A preferred unit (`spark-ef08`, or its Tailscale address); the other is still the fallback. */
 	endpoint?: string;
 	transport?: SparkTransport;
+	/** Hold every request to one unit, by id (`spark-619c`): a probe asks each unit alone (WP192). Absent, the transport spreads load over the pair. */
+	pin?: string;
 }
 
 export const SPARK_EXTRA_BODY = { chat_template_kwargs: { enable_thinking: false } } as const;
@@ -89,7 +96,11 @@ export function createSparkProvider(options: SparkProviderOptions = {}): LLMProv
 	const doFetch = options.fetch ?? globalThis.fetch.bind(globalThis);
 	const transport =
 		options.transport ??
-		createSparkTransport({ baseUrls: sparkBaseUrls(options.endpoint), fetch: doFetch });
+		createSparkTransport({
+			baseUrls: sparkBaseUrls(options.endpoint),
+			fetch: doFetch,
+			...(options.pin !== undefined ? { pin: options.pin } : {})
+		});
 
 	const fail = (error: ProviderError): never => {
 		throw new SparkError(error);
@@ -119,16 +130,20 @@ export function createSparkProvider(options: SparkProviderOptions = {}): LLMProv
 		async chat(request, opts): Promise<ChatResponse> {
 			let response: Response;
 			try {
-				({ response } = await transport.post(
+				let route: { baseUrl: string };
+				({ response, route } = await transport.post(
 					request.model,
 					'/chat/completions',
 					(model) => ({
 						...buildRequestBody(request, model),
+						...(request.seed !== undefined ? { seed: request.seed } : {}),
 						...SPARK_EXTRA_BODY,
 						stream_options: { include_usage: true }
 					}),
 					opts.signal
 				));
+				// A recording says which unit answered (WP189); both units serve the model, and nothing else records it.
+				opts.onServed?.(unitKeyOf(route.baseUrl));
 			} catch (cause) {
 				if (cause instanceof SparkUnavailable)
 					fail({ kind: 'provider-down', message: cause.message });

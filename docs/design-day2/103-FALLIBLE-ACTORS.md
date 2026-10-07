@@ -18,6 +18,8 @@
 
 ## 3. The provider cassette (WP114)
 
+> **Amended 2026-10-07 (WP189–WP190, `113-RECORDING-AND-RELIABILITY.md`):** the cassette described below — one file per brain, entries keyed by prompt digest and occurrence, merged first-answer-wins across cells — is **format version 1** and is no longer written. It let a cell replay on another cell's answer to the same prompt, which at temperature 0 on the 122B is a different answer 92% of the time, so 69 of the first live tier's 103 `ERROR` cells were replay artefacts. `craftabot record` now writes **format version 2**, a recording scoped to the cell: every call it made in order, failures and the answering unit included, held to its prompt's digest on replay, with a path digest per cell. Version 1 files still replay (`createCassetteProvider`) until they are re-recorded.
+
 **The file.** The line cassette's shape (`47-…` §4.2) with `kind: 'provider'` in place of `lineId`: the provider's id (the replay presents it, so its trace is the recording's), when, by whom, a `note` saying in words what was recorded, the egress the recording ran under, and the entries. A sibling schema, not a union with the line cassette's: the three shipped line cassettes are untouched, and each reader parses what it expects.
 
 **The key.** `promptDigest(request)` is SHA-256 (the synchronous `sha256Hex`, so the Worker and the harness key alike) over the canonical JSON of what reaches the provider — `model`, `messages`, `tools` (empty when absent), `temperature`, `maxTokens`. An entry also carries its **occurrence**: the how-many-th time *this provider* was asked this prompt, from 0. A replay provider counts the same way, so a prompt asked twice in a conversation gets its two answers in order.

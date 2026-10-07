@@ -1,21 +1,22 @@
 import {
-	CASSETTE_FORMAT_VERSION,
+	RECORDING_FORMAT_VERSION,
+	RecordingTape,
 	containsSecret,
-	mergeProviderEntries,
-	parseProviderCassette,
+	parseProviderRecording,
 	redactSecrets,
+	sha256Hex,
+	type ProviderRecordingFile,
 	type EgressDeclaration,
 	type EgressMode,
-	type ProviderCassetteEntry,
-	type ProviderCassetteFile
+	type ProviderCassetteEntry
 } from '@craftabot/core';
 import { expandExperiment, parseExperiment } from '@craftabot/evals';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
-import { createRegistry, type HarnessConfig } from '../config.js';
+import { createRegistry, packVersions, type HarnessConfig } from '../config.js';
 import type { CredentialSource } from '../credentials.js';
-import { runCampaignFile } from './campaign.js';
-import { withPopulationSize } from './experiment.js';
+import { runCampaignFile, type CampaignFileOptions } from './campaign.js';
+import { withPopulationSize, withTrials } from './experiment.js';
 
 /**
  * **`craftabot record --experiment <file> --provider <id|mock>`** (WP114,
@@ -40,6 +41,15 @@ export interface RecordExperimentOptions {
 	credentials: CredentialSource;
 	/** A shape run: the design's book population at this size. */
 	size?: number;
+	/** How many times each cell is performed, over the design's own (WP191). */
+	trials?: number;
+	/**
+	 * Record only this trial (WP191) and append it to the recording already at the cassette path, so a design is
+	 * recorded in passes — trial 0 one night, trial 1 the next — and a later trial is added without redoing an earlier one.
+	 */
+	trial?: number;
+	/** Record only the cells this accepts (WP192): a `reperform` of part of a recording. */
+	include?: CampaignFileOptions['include'];
 	/** Cells at once, in this process: a local provider (the Sparks) serves them concurrently. Absent, one at a time. */
 	concurrency?: number;
 	egress?: EgressMode;
@@ -53,16 +63,22 @@ export interface RecordExperimentReport {
 	experimentId: string;
 	campaigns: number;
 	cells: number;
-	cassettes: Array<{ path: string; entries: number; conflicts: number }>;
+	cassettes: Array<{ path: string; cells: number; calls: number; failedCalls: number }>;
 }
 
 export async function recordExperiment(
 	options: RecordExperimentOptions
 ): Promise<RecordExperimentReport> {
 	const designed = parseExperiment(JSON.parse(await readFile(options.file, 'utf8')));
+	const sized = options.size !== undefined ? withPopulationSize(designed, options.size) : designed;
 	const { experiment, campaigns } = expandExperiment(
-		options.size !== undefined ? withPopulationSize(designed, options.size) : designed
+		options.trials !== undefined ? withTrials(sized, options.trials) : sized
 	);
+	const trialCount = experiment.design.trials ?? 1;
+	if (options.trial !== undefined && (options.trial < 0 || options.trial >= trialCount))
+		throw new Error(
+			`--trial ${options.trial} is outside the ${trialCount} trial(s) this design asks for (0 to ${trialCount - 1}); give --trials`
+		);
 	const mode = options.provider === 'mock' ? 'mock' : 'live';
 	const registry = createRegistry(options.config);
 	// Every cassette brain's cartridge must be the provider asked for: a recording never quietly calls another.
@@ -87,20 +103,33 @@ export async function recordExperiment(
 	}
 
 	const recordings = new Map<string, ProviderCassetteEntry[][]>();
+	const tapes = new Map<string, RecordingTape>();
+	const seen = {
+		units: new Set<string>(),
+		sampling: new Map<string, { temperature?: number; maxTokens?: number }>(),
+		interventions: new Set<string>()
+	};
+	const campaignDigests: Record<string, string> = {};
 	await mkdir(options.out, { recursive: true });
 	let cells = 0;
 	for (const campaign of campaigns) {
 		const campaignFile = join(options.out, `${campaign.id}.campaign.json`);
-		await writeFile(campaignFile, `${JSON.stringify(campaign, null, '\t')}\n`, 'utf8');
+		const campaignText = `${JSON.stringify(campaign, null, '\t')}\n`;
+		await writeFile(campaignFile, campaignText, 'utf8');
+		campaignDigests[campaign.id] = sha256Hex(campaignText);
 		const ran = await runCampaignFile({
 			file: campaignFile,
 			out: join(options.out, campaign.id),
 			config: options.config,
 			credentials: options.credentials,
 			...(options.concurrency !== undefined ? { concurrency: options.concurrency } : {}),
+			...(options.trial !== undefined ? { onlyTrial: options.trial } : {}),
+			...(options.include ? { include: options.include } : {}),
 			record: {
 				provider: mode,
 				recordings,
+				tapes,
+				seen,
 				clock: options.clock ?? (() => Date.now())
 			},
 			...(options.egress !== undefined ? { egress: options.egress } : {}),
@@ -112,13 +141,24 @@ export async function recordExperiment(
 
 	const recordedAt = (options.now ?? (() => new Date().toISOString()))();
 	const written: RecordExperimentReport['cassettes'] = [];
-	for (const [path, runs] of recordings) {
-		const merged = mergeProviderEntries(runs);
-		const cassette: ProviderCassetteFile = redactSecrets(
+	for (const path of new Set([...recordings.keys(), ...tapes.keys()])) {
+		// The cell-scoped recording (WP189, WP190): what each cell made of the calls, in order — nothing merged, nothing dropped.
+		const recordedCells = [...(tapes.get(path)?.cells.values() ?? [])].map((cell) => ({
+			cellKey: cell.cellKey,
+			trial: cell.trial,
+			...(cell.meta.runId !== undefined ? { runId: cell.meta.runId } : {}),
+			...(cell.meta.runIds !== undefined ? { runIds: cell.meta.runIds } : {}),
+			...(cell.meta.workflowRunId !== undefined ? { workflowRunId: cell.meta.workflowRunId } : {}),
+			...(cell.meta.outcome !== undefined ? { outcome: cell.meta.outcome } : {}),
+			...(cell.meta.pathDigest !== undefined ? { pathDigest: cell.meta.pathDigest } : {}),
+			calls: cell.calls
+		}));
+		const calls = recordedCells.flatMap((cell) => cell.calls);
+		const recording: ProviderRecordingFile = redactSecrets(
 			{
 				format: 'craftabot-cassette',
-				formatVersion: CASSETTE_FORMAT_VERSION,
-				kind: 'provider',
+				formatVersion: RECORDING_FORMAT_VERSION,
+				kind: 'provider-recording',
 				providerId: mode === 'mock' ? 'mock' : options.provider,
 				recordedAt,
 				recordedBy: 'craftabot-harness/0.0.1',
@@ -127,20 +167,81 @@ export async function recordExperiment(
 						? `${experiment.id}: recorded from the mock provider (the scripted-optimal plans), ${cells} cells — a stand-in, not a live model`
 						: `${experiment.id}: recorded live through ${options.provider}, ${cells} cells${options.size !== undefined ? `, the population at ${options.size}` : ''}`,
 				egress: mode === 'mock' ? [] : egress,
-				entries: merged.entries
+				manifest: {
+					experimentId: experiment.id,
+					campaignDigests,
+					packVersions: packVersions(options.config),
+					sampling: [...seen.sampling.values()],
+					models: [...new Set(calls.map((call) => call.model))],
+					units: [...seen.units].sort(),
+					trials: trialCount,
+					interventions: [...seen.interventions]
+				},
+				cells: recordedCells
 			},
 			options.credentials.secrets()
 		);
-		if (containsSecret(cassette, options.credentials.secrets())) {
+		if (containsSecret(recording, options.credentials.secrets())) {
 			throw new Error(
-				`a recorded response carries a credential — nothing was written for ${path}; a provider must never echo its key`
+				`a recorded call carries a credential — nothing was written for ${path}; a provider must never echo its key`
 			);
 		}
-		parseProviderCassette(cassette);
+		parseProviderRecording(recording);
 		const absolute = resolve(path);
 		await mkdir(dirname(absolute), { recursive: true });
-		await writeFile(absolute, `${JSON.stringify(cassette, null, '\t')}\n`, 'utf8');
-		written.push({ path, entries: merged.entries.length, conflicts: merged.conflicts });
+		// A single trial joins the recording already at the path (WP191): the other trials stay as they were.
+		let toWrite: ProviderRecordingFile = recording;
+		if (options.trial !== undefined) {
+			const held = await readFile(absolute, 'utf8').then(
+				(text) => parseProviderRecording(JSON.parse(text)),
+				() => undefined
+			);
+			if (held) toWrite = mergeTrial(held, recording, options.trial, path);
+		}
+		await writeFile(absolute, `${JSON.stringify(toWrite, null, '\t')}\n`, 'utf8');
+		written.push({
+			path,
+			cells: recordedCells.length,
+			calls: calls.length,
+			failedCalls: calls.filter((call) => call.error !== undefined).length
+		});
 	}
 	return { experimentId: experiment.id, campaigns: campaigns.length, cells, cassettes: written };
+}
+
+/**
+ * **A trial joined to the recording that holds the others** (WP191): the existing cells of every other trial are kept, the
+ * new trial's cells replace any of its own, and the manifest is united. Refused when the design has moved since the
+ * recording began — a trial recorded from another design is not a trial of this one.
+ */
+export function mergeTrial(
+	held: ProviderRecordingFile,
+	fresh: ProviderRecordingFile,
+	trial: number,
+	path: string
+): ProviderRecordingFile {
+	const same =
+		JSON.stringify(Object.entries(held.manifest.campaignDigests).sort()) ===
+		JSON.stringify(Object.entries(fresh.manifest.campaignDigests).sort());
+	if (!same)
+		throw new Error(
+			`${path} was recorded from another design than this one (its campaigns' digests differ); record every trial of a design with the same file and --trials, or move the old recording aside`
+		);
+	const union = <T>(a: readonly T[], b: readonly T[]) => [
+		...new Map([...a, ...b].map((value) => [JSON.stringify(value), value])).values()
+	];
+	return {
+		...fresh,
+		manifest: {
+			...fresh.manifest,
+			models: union(held.manifest.models, fresh.manifest.models),
+			units: [...new Set([...held.manifest.units, ...fresh.manifest.units])].sort(),
+			sampling: union(held.manifest.sampling, fresh.manifest.sampling),
+			interventions: [
+				...new Set([...held.manifest.interventions, ...fresh.manifest.interventions])
+			],
+			trials: Math.max(held.manifest.trials, fresh.manifest.trials)
+		},
+		cells: [...held.cells.filter((cell) => cell.trial !== trial), ...fresh.cells]
+	};
 }

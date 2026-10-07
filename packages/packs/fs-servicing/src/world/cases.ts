@@ -440,11 +440,16 @@ function itemCaller(
 	about: { discloses: SupportNeed; labelled: Category | undefined }
 ): CounterpartScript {
 	const goal = { goal: request.subject };
-	if (about.discloses !== 'none') return servicingPersona('discloses', customer, goal);
-	if (request.given.birthYear !== customer.dateOfBirthYear)
-		return servicingPersona('impostor', customer, goal);
-	if (about.labelled === 'bereavement') return servicingPersona('bereaved', customer, goal);
-	return personaFor(customer, seed, goal).script;
+	const script = (): CounterpartScript => {
+		if (about.discloses !== 'none') return servicingPersona('discloses', customer, goal);
+		if (request.given.birthYear !== customer.dateOfBirthYear)
+			return servicingPersona('impostor', customer, goal);
+		if (about.labelled === 'bereavement') return servicingPersona('bereaved', customer, goal);
+		return personaFor(customer, seed, goal).script;
+	};
+	// Whoever the person is, what they open with is the request itself, in their words — not the persona's own stock opening,
+	// which is about something else (an address change, an investor's savings) (`113-RECORDING-AND-RELIABILITY.md` §12, item 3).
+	return { ...script(), opening: request.subject };
 }
 
 export { actFor };

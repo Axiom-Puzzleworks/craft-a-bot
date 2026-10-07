@@ -142,6 +142,59 @@ describe('the provider', () => {
 		expect(provider.keyRequirement).toBe('none');
 	});
 
+	it('tells a recording which unit answered, and says nothing to a caller that did not ask', async () => {
+		const { fetch } = fakeSparks({ [UNIT1]: 'down', [UNIT2]: [GIANT] }, () =>
+			sse(
+				{ choices: [{ delta: { content: 'ok' }, finish_reason: 'stop' }] },
+				{ choices: [], usage: { prompt_tokens: 1, completion_tokens: 1 } }
+			)
+		);
+		const provider = createSparkProvider({ fetch });
+		const request = {
+			model: SPARK_MODELS.giant,
+			messages: [{ role: 'user' as const, content: 'hi' }],
+			temperature: 0,
+			maxTokens: 8
+		};
+		const served: string[] = [];
+		await provider.chat(request, {
+			signal: new AbortController().signal,
+			onServed: (unit) => served.push(unit)
+		});
+		expect(served).toEqual(['spark-ef08']);
+		await expect(
+			provider.chat(request, { signal: new AbortController().signal })
+		).resolves.toBeDefined();
+	});
+
+	it('sends a seed only when the request carries one, and pins to one unit when asked (WP192)', async () => {
+		const { fetch, seen } = fakeSparks({ [UNIT1]: [GIANT], [UNIT2]: [GIANT] }, () =>
+			sse(
+				{ choices: [{ delta: { content: 'ok' }, finish_reason: 'stop' }] },
+				{ choices: [], usage: { prompt_tokens: 1, completion_tokens: 1 } }
+			)
+		);
+		const request = {
+			model: SPARK_MODELS.giant,
+			messages: [{ role: 'user' as const, content: 'hi' }],
+			temperature: 0,
+			maxTokens: 8
+		};
+		const signal = new AbortController().signal;
+		const bodies = () =>
+			seen.filter((s) => s.url.endsWith('/chat/completions')).map((s) => s.body!);
+		await createSparkProvider({ fetch }).chat(request, { signal });
+		expect('seed' in bodies()[0]!).toBe(false);
+		await createSparkProvider({ fetch }).chat({ ...request, seed: 7 }, { signal });
+		expect(bodies()[1]).toMatchObject({ seed: 7 });
+		// Pinned to the second unit, every request goes there, whatever the load.
+		const pinned = createSparkProvider({ fetch, pin: 'spark-ef08' });
+		for (let i = 0; i < 3; i += 1) await pinned.chat(request, { signal });
+		const sentTo = seen.filter((s) => s.url.endsWith('/chat/completions')).slice(2);
+		expect(sentTo).toHaveLength(3);
+		expect(sentTo.every((s) => s.url.startsWith(UNIT2))).toBe(true);
+	});
+
 	it('names the units and the switch command when nothing serves the cartridge', async () => {
 		const { fetch } = fakeSparks({ [UNIT1]: [QUICK], [UNIT2]: 'down' }, () => new Response());
 		const provider = createSparkProvider({ fetch });

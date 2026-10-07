@@ -2,6 +2,9 @@
 
 # 68 — Metrics: fairness, drift, human load, intervals, and the validation suite (WP76)
 
+> **Amended 2026-10-07 (WP191, `113-RECORDING-AND-RELIABILITY.md` §4.7):** a *reliability* family — `pass-at-k`, `pass-hat-k` and `consistency` over items performed more than once, intervals over items (never trials), each with its hand case, its planted effect and its coverage null — joins the suite and `docs/metrics.md`; `firstDivergence`, `pathDistance` and `firstTickAgreement` measure how soon and how far two trials of one item forked.
+
+
 > **Status:** design of record for WP76 (`65-DAY5-ROADMAP.md` Phase R), opened 2026-09-10 on the `day5` branch. Stage A is this note — every metric, its definition, its interval method, its statistical test, the planted-effect design and the null design, with the hand cases worked so a reviewer can check the arithmetic before the code exists. Stages B and C are the package `@craftabot/metrics` and its validation suite, with `docs/metrics.md` generated from the suite's results.
 >
 > **What this is.** `64-TARGET-DESIGN-V5.md` §6.4.1–§6.4.3 and §6.4.1a in full; tenet 20 (*a metric is defined once, validated once, and read everywhere*), tenet 19 (*a number carries its provenance or it is not shown*), tenet 26 (the human-load figures the thought experiment assumes). Retires G47 and G48; the gates and the report v3 that consume these are WP82's (`64-…` §6.4.4).

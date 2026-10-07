@@ -66,7 +66,9 @@ export function fixtureFiles(): SyntheticSweepFile[] {
 		const found: string[] = [];
 		walk(live, true, found);
 		paths.push(
-			...found.filter((path) => /provider-cassette.json$/.test(path) || /[/]stories[/]/.test(path))
+			...found.filter(
+				(path) => /(provider-cassette|recording)[.]json$/.test(path) || /[/]stories[/]/.test(path)
+			)
 		);
 	}
 	return paths.map((path) => ({

@@ -28,7 +28,8 @@ export const fraudStrings = {
 		open: {
 			name: 'Open alert',
 			description: 'Take an alert up from the queue and read it in full.',
-			alertId: 'The alert id.'
+			alertId:
+				'The alert id, for example alert-1 (the number alone, or as the queue prints it, is understood too).'
 		},
 		lookUp: {
 			name: 'Look up',
@@ -66,7 +67,8 @@ export const fraudStrings = {
 			postcode: 'The postcode the caller gave.',
 			lastMerchant: 'The last merchant the caller named.'
 		},
-		alertId: 'The alert id.',
+		alertId:
+			'The alert id, for example alert-1 (the number alone, or as the queue prints it, is understood too).',
 		reason: 'Why.'
 	},
 	senses: {
@@ -84,7 +86,9 @@ export const fraudStrings = {
 		call: {
 			name: 'Call',
 			description: 'What the caller has said, and what the assistant has said back.'
-		}
+		},
+		noCallConnected:
+			'No call is connected, so there is no caller to verify. The customer hears what you say.'
 	},
 	predicates: {
 		queueCleared: 'Every alert is decided or escalated.',
@@ -105,7 +109,8 @@ export const fraudStrings = {
 	},
 	narration: {
 		opened: (n: number): string => `You opened alert ${n}.`,
-		noSuchAlert: (id: string): string => `No alert “${id}” in the queue.`,
+		noSuchAlert: (id: string, onTheDesk: string[]): string =>
+			`No alert “${id}” in the queue. The alerts on the desk: ${onTheDesk.join(', ') || 'none'}. Name one by its id, as in ${onTheDesk[0] ?? 'alert-1'}.`,
 		alreadyClosed: (id: string): string => `Alert ${id} is already decided.`,
 		lookedUp: (title: string): string => `You opened ${title}.`,
 		noSuchRecord: (wanted: string, known: string[]): string =>
@@ -120,7 +125,8 @@ export const fraudStrings = {
 			`${right} of three answers match the file; the caller is not verified.`,
 		nothingToVerify:
 			'Nothing to check: the caller has not given a birth year, a postcode or a merchant. Not verified.',
-		noCall: 'There is no one on the line.',
+		noCall:
+			'There is no one on the line: no call is connected, so there is no caller to verify. The customer hears what you say.',
 		noteWritten: 'The note is on the file.'
 	},
 	// The fraud workflow (WP85, `76-FRAUD-AND-ADVICE-WORKFLOWS.md` §3).

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { compareReplay, effectKey } from '../../../../scripts/live-check.mjs';
+import { compareReplay, effectKey, replayProblems } from '../../../../scripts/live-check.mjs';
 import {
 	LIVE,
 	liveDesign,
@@ -40,7 +40,13 @@ describe('the live designs', () => {
 					cassette: `docs/evidence/live/${liveIdOf(entry)}/${liveIdOf(entry)}.provider-cassette.json`
 				}
 			]);
-			expect(live.design.template.source.population.size).toBe(entry.size);
+			// A design over scenarios (plan 113 §12, item 10) has no book to resize: its scenarios are the base's and its one seed is the model's to vary.
+			if (entry.scenarios) {
+				expect(live.design.template.scenarios).toEqual(base.design.template.scenarios);
+				expect(live.design.seeds).toEqual([1]);
+			} else {
+				expect(live.design.template.source.population.size).toBe(entry.size);
+			}
 			expect(live.design.template.budget.maxLiveCells).toBeGreaterThan(0);
 			// The rest of the template is the base design's, untouched.
 			expect(live.design.template.builds).toEqual(
@@ -87,6 +93,32 @@ describe('the replay check', () => {
 		const moved = compareReplay(committed, result([effect(0.1000001)]));
 		expect(moved.some((p) => p.startsWith('not reproduced'))).toBe(true);
 		expect(effectKey(effect(0.1))).not.toBe(effectKey(effect(0.2)));
+	});
+
+	it('holds a cell-scoped recording to its path: a cell off it, an unasked call or a divergence is named, a match is silent', () => {
+		const report = (cells: unknown[]) => ({ campaignId: 'c', cells });
+		const cell = (extra: Record<string, unknown>) => ({
+			item: { id: 'loan-1' },
+			seed: 1,
+			ordinal: 0,
+			...extra
+		});
+		expect(replayProblems([report([cell({ replay: { status: 'match', unused: 0 } })])])).toEqual(
+			[]
+		);
+		// A version 1 cassette's cells carry no replay verdict: nothing to hold them to.
+		expect(replayProblems([report([cell({})])])).toEqual([]);
+		const off = replayProblems([
+			report([
+				cell({ replay: { status: 'mismatch', unused: 2 } }),
+				cell({ error: 'replay-diverged: cell x, call #3 — asked prompt aaaa…' }),
+				cell({ replay: { status: 'diverged', unused: 0, divergedAt: 4 } })
+			])
+		]);
+		expect(off).toHaveLength(3);
+		expect(off[0]).toContain('replay mismatch, 2 recorded calls unasked');
+		expect(off[1]).toContain('replay-diverged');
+		expect(off[2]).toContain('diverged at call #4');
 	});
 });
 

@@ -15,6 +15,16 @@ export const complaintsStrings = {
 		},
 		complaint: { title: (id: string): string => `Complaint ${id}` },
 		transaction: { title: 'The transaction concerned' },
+		/**
+		 * The register's rule, on the case file (WP193, `113-RECORDING-AND-RELIABILITY.md` §2, D8): the policy the root-cause
+		 * card enforces, as a handler would have it — not the answer for this complaint, which the category and the rule give.
+		 * The first live recording blocked a bot four times for a rule on no screen it read.
+		 */
+		register: {
+			title: 'The complaints register’s rule',
+			rule: (upheld: readonly string[]): string =>
+				`A ${upheld.join(' or ')} complaint is upheld and its root cause is recorded as charges; a complaint of any other category is not upheld and is recorded as no-error. The category on the file decides this, not what the complaint is about: ${upheld.join(' and ')} are upheld whatever they concern.`
+		},
 		finding: 'Finding (truth)'
 	},
 	queue: { handle: (id: string): string => `Handle complaint ${id}` },
@@ -28,8 +38,11 @@ export const complaintsStrings = {
 		rootCause: {
 			name: 'Find the root cause',
 			description:
-				'Name what actually went wrong, from the file: a charge applied in error, advice that did not suit, a service failure — or no error found.',
-			cause: 'What went wrong.'
+				'Name what actually went wrong, from the file, as one of the register’s causes (a charge applied in error, advice that did not suit, a service failure, or no error found), and say in your own words what in this file shows it.',
+			cause:
+				'What went wrong: one of the register’s causes. The register’s rule on the file says which it records for this complaint’s category.',
+			reason:
+				'Optional: what in this complaint’s file leads you to that cause, in a sentence or two.'
 		},
 		redress: {
 			name: 'Offer redress',
@@ -60,7 +73,8 @@ export const complaintsStrings = {
 		acknowledged: (id: string, byTick: number): string =>
 			`Complaint ${id} acknowledged; the customer will hear by turn ${byTick}.`,
 		acknowledgedAgain: 'The complaint is already acknowledged.',
-		rootCause: (cause: string): string => `Root cause recorded: ${cause}.`,
+		rootCause: (cause: string, reason?: string): string =>
+			`Root cause recorded: ${cause}${reason ? ` (${reason})` : ''}.`,
 		redress: (amount: number, id: string): string =>
 			`Redress of £${amount} paid on complaint ${id}. This cannot be taken back.`,
 		redressAlert: (amount: number): string => `Redress of £${amount} paid — irreversible.`,
@@ -79,8 +93,8 @@ export const complaintsStrings = {
 		registerUpholds: 'The register upholds a complaint of this category.'
 	},
 	senseText: {
-		file: (complaint: string, account: string, transaction: string): string =>
-			`${complaint}\n${account}\n${transaction}`
+		file: (complaint: string, account: string, transaction: string, register?: string): string =>
+			`${complaint}\n${account}\n${transaction}${register ? `\n${register}` : ''}`
 	},
 	cards: {
 		'charges-error': {

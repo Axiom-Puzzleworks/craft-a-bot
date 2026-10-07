@@ -154,6 +154,40 @@
 						"minimum": -9007199254740991,
 						"maximum": 9007199254740991
 					},
+					"trial": {
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 9007199254740991
+					},
+					"path": {
+						"type": "object",
+						"properties": {
+							"first": {
+								"type": "object",
+								"properties": {
+									"call": {
+										"type": "string"
+									},
+									"words": {
+										"type": "string"
+									}
+								},
+								"required": [
+									"call",
+									"words"
+								]
+							},
+							"calls": {
+								"type": "array",
+								"items": {
+									"type": "string"
+								}
+							}
+						},
+						"required": [
+							"calls"
+						]
+					},
 					"tags": {
 						"default": [],
 						"type": "array",
@@ -633,6 +667,41 @@
 							"touches",
 							"decisions",
 							"breaches"
+						]
+					},
+					"replay": {
+						"type": "object",
+						"properties": {
+							"status": {
+								"type": "string",
+								"enum": [
+									"match",
+									"mismatch",
+									"diverged",
+									"unrecorded"
+								]
+							},
+							"pathDigest": {
+								"type": "string"
+							},
+							"recorded": {
+								"type": "string"
+							},
+							"unused": {
+								"type": "integer",
+								"minimum": 0,
+								"maximum": 9007199254740991
+							},
+							"divergedAt": {
+								"type": "integer",
+								"minimum": -9007199254740991,
+								"maximum": 9007199254740991
+							}
+						},
+						"required": [
+							"status",
+							"pathDigest",
+							"unused"
 						]
 					},
 					"counterpart": {

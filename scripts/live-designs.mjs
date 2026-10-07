@@ -49,7 +49,11 @@ export const LIVE = [
 	{ base: 'onboarding-stack', size: 400 },
 	{ base: 'complaints-stack', size: 200 },
 	{ base: 'fraud-stack', size: 6 },
-	{ base: 'advice-context', size: 1200 }
+	{ base: 'advice-context', size: 1200 },
+	// Plan 113 §12, item 10: a design over scenarios, not a book — the agent-security components against the attacks the Playroom
+	// carries, with a live model as the agent. No population to resize; one seed, since a scenario's world is deterministic and
+	// the model's own variance is read from trials.
+	{ base: 'controls', scenarios: true }
 ];
 
 export const liveIdOf = ({ base, variant, seat }) =>
@@ -88,6 +92,12 @@ export function liveDesign(entry, cassetteRoot) {
 		...build,
 		overrides: { ...build.overrides, maxTokens: MAX_TOKENS }
 	}));
+	if (entry.scenarios) {
+		if (!d.design.template.scenarios?.length)
+			throw new Error(`${entry.base}: a live scenario design needs scenarios`);
+		d.design.seeds = [1];
+		return d;
+	}
 	const source = d.design.template.source;
 	if (!source?.population)
 		throw new Error(`${entry.base}: a live design needs a book population to resize`);

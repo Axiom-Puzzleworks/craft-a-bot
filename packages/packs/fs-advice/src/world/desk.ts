@@ -225,7 +225,12 @@ export const adviceDeskSpec: DeskWorldSpec<AdviceExtra> = {
 			schema: z.object({}),
 			riskTier: 'observe',
 			perform: (state) => {
-				if (!askedAll(state)) return { ok: false, narration: adviceStrings.narration.notGathered };
+				if (!askedAll(state)) {
+					const missing = REQUIRED_TOPICS.filter(
+						(topic) => !state.extra.advice.asked.includes(topic)
+					);
+					return { ok: false, narration: adviceStrings.narration.notGathered(missing) };
+				}
 				const found = suitabilityOnTheDesk(state);
 				state.extra.advice.suitable = found.suitable;
 				state.extra.advice.facts['suitable-products'] = found.suitable.join(' ') || 'none';

@@ -1,5 +1,6 @@
 import type {
 	Book,
+	ChatRequest,
 	EgressMode,
 	EventBus,
 	Guardrail,
@@ -18,12 +19,18 @@ import {
 	bookSchema,
 	calibrationRow,
 	contextSpecSchema,
+	cellKeyOf,
 	createCassetteProvider,
+	createRecordingReplay,
+	pathDigestOf,
 	heldOutRefusal,
 	sha256Hex,
 	type ContextSpec,
+	type CellReplay,
 	type Corpus,
-	type ProviderCassetteFile
+	type ProviderCassetteFile,
+	type ProviderRecordingFile,
+	type RecordingReplay
 } from '@craftabot/core';
 import {
 	NO_REPETITION_COMPONENT_ID,
@@ -593,6 +600,12 @@ export const campaignObjectSchema = z.object({
 	 */
 	reviewer: z.string().min(1).optional(),
 	seeds: z.array(z.number().int()).min(1),
+	/**
+	 * How many times each cell is performed (WP191, `113-RECORDING-AND-RELIABILITY.md` §4.6): the same item, seed and build
+	 * with fresh model draws, each a cell of its own with a `trial` from 0. Absent is once, and the campaign and its
+	 * report are exactly as they were.
+	 */
+	trials: z.number().int().positive().optional(),
 	noise: noiseRatesSchema.partial().optional(),
 	assertionCards: z.array(assertionCardSchema).default([]),
 	/** Sinks every cell's finished trace is exported to (WP47, `35-…` §4.5): by sink id, with the sink's own config. The harness resolves them; the app runs none. */
@@ -648,6 +661,18 @@ export const campaignCellSchema = z.object({
 	brain: z.string(),
 	tier: evalTierSchema,
 	seed: z.number().int(),
+	/** Which performance of these inputs this is, from 0 (WP191); written only when the campaign asked for trials. */
+	trial: z.number().int().nonnegative().optional(),
+	/**
+	 * What the cell did, in brief (WP191), written only when the campaign asked for trials: every call it made in order and
+	 * the first tick's call and words — so two performances of one item can be compared for how soon and how far they forked.
+	 */
+	path: z
+		.object({
+			first: z.object({ call: z.string(), words: z.string() }).optional(),
+			calls: z.array(z.string())
+		})
+		.optional(),
 	/** The scenario's tags, carried so a report can be grouped and gated by them without the campaign. */
 	tags: z.array(z.string()).default([]),
 	runId: z.string().optional(),
@@ -751,6 +776,24 @@ export const campaignCellSchema = z.object({
 					})
 				)
 				.optional()
+		})
+		.optional(),
+	/**
+	 * How an exact replay of this cell went (WP190, `113-RECORDING-AND-RELIABILITY.md` §4.5): written only when the cell
+	 * was replayed from a cell-scoped recording. `match` — every call answered and the path digest the recording's;
+	 * `mismatch` — every call answered but the decisions, guard verdicts or outcome differ from the recorded path;
+	 * `diverged` — a prompt was asked that the recording did not make; `unrecorded` — the recording holds no digest
+	 * to hold the path to.
+	 */
+	replay: z
+		.object({
+			status: z.enum(['match', 'mismatch', 'diverged', 'unrecorded']),
+			pathDigest: z.string(),
+			recorded: z.string().optional(),
+			/** Recorded calls the replay never asked for. */
+			unused: z.number().int().nonnegative(),
+			/** The recorded call the first divergence was at, or -1 when the replay asked for more than was recorded. */
+			divergedAt: z.number().int().optional()
 		})
 		.optional(),
 	/** The seat across the desk in this cell (WP64): the tier, and for a live seat who sat there. Defaulted so every stored report parses. */
@@ -893,6 +936,8 @@ export interface CampaignCellSpec {
 	item?: WorkItem;
 	/** The rung of the context ladder (WP81); absent when the campaign named none. */
 	context?: ContextSpec;
+	/** Which performance of these inputs this is, from 0 (WP189); absent is the first. */
+	trial?: number;
 }
 
 /** The synthetic scenario a book campaign's cells sit in: the workflow's id, its obligations as the tags, no card of its own. */
@@ -922,6 +967,38 @@ export function bookItems(campaign: Campaign, book: Book | undefined): WorkItem[
  * seats (WP80). A book source with no book in hand (drawn at run time from
  * a population) counts no cells until it is prepared.
  */
+/** The trial indices a cell is expanded to: none (`undefined`, once) when the campaign asked for no more than one. */
+function trialsOf(campaign: Campaign): Array<number | undefined> {
+	const count = campaign.trials ?? 1;
+	return count > 1 ? Array.from({ length: count }, (_, trial) => trial) : [undefined];
+}
+
+/**
+ * **A cell's path in brief** (WP191): the calls it decided on, in order across every run it made, and the first tick's
+ * call and words. Compact on purpose — it rides on the cell of a campaign that asked for trials, so two performances
+ * of one item can be compared without their traces.
+ */
+export function pathOf(
+	runs: ReadonlyArray<readonly EngineEvent[]>
+): NonNullable<CampaignCell['path']> {
+	const calls: string[] = [];
+	let first: { call: string; words: string } | undefined;
+	for (const events of runs)
+		for (const event of events) {
+			if (event.type !== 'decision') continue;
+			const payload = event.payload as {
+				thought?: string;
+				call?: { name?: string; arguments?: unknown } | null;
+			};
+			const call = payload.call
+				? `${payload.call.name ?? ''} ${JSON.stringify(payload.call.arguments ?? {})}`.trim()
+				: 'none';
+			calls.push(call);
+			first ??= { call, words: payload.thought ?? '' };
+		}
+	return { ...(first ? { first } : {}), calls };
+}
+
 export function campaignCells(
 	campaign: Campaign,
 	book?: Book,
@@ -937,16 +1014,19 @@ export function campaignCells(
 					if (guard.for !== undefined && !guardCovers(guard.for, scenario)) continue;
 					for (const brain of campaign.brains) {
 						for (const context of campaign.contexts ?? [undefined]) {
-							cells.push({
-								scenario,
-								build,
-								guard,
-								brain,
-								seed,
-								ordinal: cells.length,
-								item,
-								...(context ? { context: context as ContextSpec } : {})
-							});
+							for (const trial of trialsOf(campaign)) {
+								cells.push({
+									scenario,
+									build,
+									guard,
+									brain,
+									seed,
+									ordinal: cells.length,
+									item,
+									...(context ? { context: context as ContextSpec } : {}),
+									...(trial !== undefined ? { trial } : {})
+								});
+							}
 						}
 					}
 				}
@@ -961,15 +1041,18 @@ export function campaignCells(
 				for (const brain of campaign.brains) {
 					for (const context of campaign.contexts ?? [undefined]) {
 						for (const seed of campaign.seeds) {
-							cells.push({
-								scenario,
-								build,
-								guard,
-								brain,
-								seed,
-								ordinal: cells.length,
-								...(context ? { context: context as ContextSpec } : {})
-							});
+							for (const trial of trialsOf(campaign)) {
+								cells.push({
+									scenario,
+									build,
+									guard,
+									brain,
+									seed,
+									ordinal: cells.length,
+									...(context ? { context: context as ContextSpec } : {}),
+									...(trial !== undefined ? { trial } : {})
+								});
+							}
 						}
 					}
 				}
@@ -979,12 +1062,49 @@ export function campaignCells(
 	return cells;
 }
 
+/**
+ * **What a live brain's provider is asked for** (WP114, widened by WP189): the
+ * card the session plays and — so a recorder can tell one cell's calls from
+ * another's (`113-RECORDING-AND-RELIABILITY.md` §4.2) — the cell's key and
+ * trial and which seat the provider serves, the agent or the seated visitor.
+ */
+export interface ProviderContext {
+	goalCardId?: string;
+	cellKey?: string;
+	trial?: number;
+	role?: 'agent' | 'seat';
+}
+
+/** The key of a cell's inputs (`113-…` §4.3), from the spec the runner holds. */
+export function cellKeyOfSpec(campaign: Campaign, cell: CampaignCellSpec): string {
+	return cellKeyOf({
+		campaignId: campaign.id,
+		scenario: cell.scenario.id,
+		build: cell.build.id,
+		guard: cell.guard.id,
+		brain: cell.brain.id,
+		context: cell.context?.id,
+		item: cell.item?.id,
+		seed: cell.seed,
+		trial: cell.trial
+	});
+}
+
 export interface RunCampaignOptions {
 	/** Where a `live` cell's provider comes from; a live cell with none is recorded as an error, never faked. */
 	/** A live brain's provider — asked per cell, and per agent stage in a book cell, with the card it plays when there is one (WP114: a recorder needs it). */
-	providerFor?: (brain: CampaignBrain, context?: { goalCardId?: string }) => LLMProvider;
+	providerFor?: (brain: CampaignBrain, context?: ProviderContext) => LLMProvider;
 	/** A brain's provider cassette by the path it names (WP114): the host reads the file; `evals` never touches a disk. */
-	cassetteFor?: (path: string) => ProviderCassetteFile;
+	cassetteFor?: (path: string) => ProviderCassetteFile | ProviderRecordingFile;
+	/** Told each live cell's path digest when it finishes (WP190): a recorder files it beside the cell's calls. */
+	onPathDigest?: (cell: {
+		brain: string;
+		cellKey: string;
+		trial: number;
+		pathDigest: string;
+		runIds: string[];
+		workflowRunId?: string;
+	}) => void;
 	/** The previous report, for `no-regression` gates; without one they are inconclusive. */
 	baseline?: CampaignReport;
 	packVersions?: Record<string, string>;
@@ -1031,6 +1151,27 @@ export interface RunCampaignOptions {
 	concurrency?: number;
 	/** Run only the `index`-th of `of` slices of the cells (1-based); the report says so. */
 	shard?: { index: number; of: number };
+	/**
+	 * Run only the cells of this trial (WP191): a design asking for several trials is recorded in passes, one trial at a
+	 * time, into the same recording. The report holds that trial's cells only.
+	 */
+	onlyTrial?: number;
+	/**
+	 * Run only the cells this accepts (WP192): `craftabot reperform --cells` reruns a chosen part of a recording. Given the
+	 * cell's spec and its key (`113-…` §4.3). Applied after the shard and the trial, so what is left is the report's cells.
+	 */
+	include?: (spec: CampaignCellSpec, cellKey: string) => boolean;
+	/**
+	 * Told every request a replay of a cell-scoped recording is asked (WP192), before it answers: how `craftabot probe prompts`
+	 * takes real prompts from a recording that stores only their digests. The replay is unchanged by being watched.
+	 */
+	onReplayRequest?: (info: {
+		cellKey: string;
+		role: 'agent' | 'seat';
+		stage: string;
+		index: number;
+		request: ChatRequest;
+	}) => void;
 }
 
 /** What running one cell yields (WP68): the scored cell, its trace when the host wants to keep it, and what it spent beyond tokens. */
@@ -1280,7 +1421,14 @@ export async function runCampaign(
 	const { campaign, registry, noise } = prepared;
 	const allCells = prepared.cells;
 	guardBudget(campaign, allCells);
-	const cells = options.shard ? shardCells(allCells, options.shard) : allCells;
+	const sharded = options.shard ? shardCells(allCells, options.shard) : allCells;
+	const byTrial =
+		options.onlyTrial === undefined
+			? sharded
+			: sharded.filter((spec) => (spec.trial ?? 0) === options.onlyTrial);
+	const cells = options.include
+		? byTrial.filter((spec) => options.include!(spec, cellKeyOfSpec(campaign, spec)))
+		: byTrial;
 
 	const tally: SpendTally = { liveEvaluations: 0 };
 	guardLiveEvaluations(campaign, allCells.length, options, registry);
@@ -1451,6 +1599,7 @@ async function runCell(
 	tally: SpendTally
 ): Promise<CampaignCell> {
 	const { scenario, build, guard, brain, seed } = cell;
+	const scope = cellScopeOf(campaign, cell);
 	const identity = {
 		scenario: scenario.id,
 		build: build.id,
@@ -1460,6 +1609,7 @@ async function runCell(
 		seed,
 		tags: scenario.tags,
 		...(cell.context ? { context: cell.context.id } : {}),
+		...(cell.trial !== undefined ? { trial: cell.trial } : {}),
 		...(campaign.source?.regression ? { regression: true as const } : {}),
 		ordinal: cell.ordinal
 	};
@@ -1537,7 +1687,11 @@ async function runCell(
 			idOffset: cell.ordinal * ID_STRIDE,
 			seed,
 			...(maxTicks !== undefined ? { maxTicks } : {}),
-			...(brain.tier === 'live' ? { provider: providerForLive(brain, options, goalCardId) } : {}),
+			...(brain.tier === 'live'
+				? {
+						provider: providerForLive(brain, options, goalCardId, { scope, role: 'agent' })
+					}
+				: {}),
 			...(chain.length > 0 ? { guardrails: chain } : {}),
 			...(egress !== undefined ? { egress } : {}),
 			...(options.principal !== undefined ? { principal: options.principal } : {}),
@@ -1560,6 +1714,12 @@ async function runCell(
 		const cohort = cohortOf(truth);
 		const pairId = pairIdOf(identity, truth);
 		const decision = decisionOf(run.events, truth);
+		const replay = finishCellReplay(
+			scope,
+			options,
+			pathDigestOf([run.events]),
+			started ? [started.runId] : []
+		);
 		const scored: CampaignCell = {
 			...identity,
 			...(started ? { runId: started.runId } : {}),
@@ -1573,7 +1733,9 @@ async function runCell(
 			labels: judged.labels,
 			caseMetrics,
 			...(cohort ? { cohort } : {}),
-			...(pairId ? { pairId } : {})
+			...(pairId ? { pairId } : {}),
+			...(replay ? { replay } : {}),
+			...((campaign.trials ?? 1) > 1 ? { path: pathOf([run.events]) } : {})
 		};
 		options.onTrace?.(scored, { events: run.events, spec });
 		return scored;
@@ -1617,6 +1779,7 @@ async function runBookCell(
 	>
 ): Promise<CampaignCell> {
 	const { scenario, build, brain, seed } = cell;
+	const scope = cellScopeOf(campaign, cell);
 	const source = campaign.source as CampaignSource;
 	const workflow = workflowOf(registry, source);
 	const configurationId = build.overrides?.configuration ?? source.configuration;
@@ -1692,7 +1855,9 @@ async function runBookCell(
 									cartridgeId,
 									...(brain.cassette !== undefined ? { cassette: brain.cassette } : {})
 								},
-								options
+								options,
+								goalCardId,
+								{ scope, role: 'seat' }
 							),
 							name: script.name,
 							...(partner.maxRounds !== undefined ? { maxRounds: partner.maxRounds } : {})
@@ -1702,7 +1867,7 @@ async function runBookCell(
 			: {}),
 		providerFor: (_stage, goalCardId) =>
 			brain.tier === 'live'
-				? providerForLive(brain, options, goalCardId)
+				? providerForLive(brain, options, goalCardId, { scope, role: 'agent' })
 				: createMockProvider({
 						script: scriptFor(
 							brain.tier,
@@ -1772,6 +1937,16 @@ async function runBookCell(
 			: run.stages.some((stage) => stage.status === 'blocked')
 				? 'STOPPED_BY_GUARDRAIL'
 				: 'ERROR';
+	const replay = finishCellReplay(
+		scope,
+		options,
+		pathDigestOf(
+			agentRuns.map((agent) => agent.events),
+			{ events: run.events, stages: run.stages }
+		),
+		agentRuns.map((agent) => agent.runId),
+		run.id
+	);
 	const scored: CampaignCell = {
 		...identity,
 		...(last ? { runId: last.runId } : {}),
@@ -1815,7 +1990,9 @@ async function runBookCell(
 			...(touched.reviews ? { reviews: touched.reviews } : {}),
 			...(readings.length > 0 ? { readings } : {}),
 			...overdueAndOverrides(run)
-		}
+		},
+		...(replay ? { replay } : {}),
+		...((campaign.trials ?? 1) > 1 ? { path: pathOf(agentRuns.map((agent) => agent.events)) } : {})
 	};
 	if (last) options.onTrace?.(scored, { events: last.events, spec: last.spec });
 	options.onWorkflowRun?.({ cell: scored, run, item, agentRuns });
@@ -1872,6 +2049,7 @@ async function runDuoCell(
 	}
 ): Promise<CampaignCell> {
 	const { scenario, build, guard, brain, seed } = cell;
+	const scope = cellScopeOf(campaign, cell);
 	const { identity, spec, goalCardId, script, maxTicks } = prepared;
 	const counterpart = campaign.counterpart as CampaignCounterpart;
 	const cartridgeId = counterpart.cartridgeId ?? '';
@@ -1906,9 +2084,14 @@ async function runDuoCell(
 	);
 	const agentProvider =
 		brain.tier === 'live'
-			? providerForLive(brain, options, goalCardId)
+			? providerForLive(brain, options, goalCardId, { scope, role: 'agent' })
 			: createMockProvider({ script });
-	const seatProvider = providerForLive({ id: 'counterpart', tier: 'live', cartridgeId }, options);
+	const seatProvider = providerForLive(
+		{ id: 'counterpart', tier: 'live', cartridgeId },
+		options,
+		goalCardId,
+		{ scope, role: 'seat' }
+	);
 	const stack = groupStackFor(guard, registry);
 	const chain = componentChainFor(guard, registry, options);
 	const group = createSessionGroup({
@@ -1977,6 +2160,12 @@ async function runDuoCell(
 	const cohort = cohortOf(truth);
 	const pairId = pairIdOf(identity, truth);
 	const duoDecision = decisionOf(events, truth);
+	const replay = finishCellReplay(
+		scope,
+		options,
+		pathDigestOf([merged]),
+		[agentRunId, seatRunId].filter((id): id is string => id !== undefined)
+	);
 	const scored: CampaignCell = {
 		...identity,
 		...(agentRunId !== undefined ? { runId: agentRunId } : {}),
@@ -1996,7 +2185,9 @@ async function runDuoCell(
 			name: seatScript.name,
 			cartridgeId,
 			...(seatRunId !== undefined ? { runId: seatRunId } : {})
-		}
+		},
+		...(replay ? { replay } : {}),
+		...((campaign.trials ?? 1) > 1 ? { path: pathOf([events]) } : {})
 	};
 	options.onTrace?.(scored, { events: merged, spec });
 	return scored;
@@ -2484,10 +2675,70 @@ function fallibleFor(
 	};
 }
 
+/** One cell's replay state (WP190): its key, trial and the cursors of each recording it replays from. */
+interface CellScope {
+	brain: string;
+	cellKey: string;
+	trial: number;
+	replays: Map<string, CellReplay>;
+}
+
+function cellScopeOf(campaign: Campaign, cell: CampaignCellSpec): CellScope {
+	return {
+		brain: cell.brain.id,
+		cellKey: cellKeyOfSpec(campaign, cell),
+		trial: cell.trial ?? 0,
+		replays: new Map()
+	};
+}
+
+const recordingReplays = new WeakMap<ProviderRecordingFile, RecordingReplay>();
+
+/**
+ * **The cell's replay verdict and its path digest** (WP190): the digest is told to a recorder
+ * (`onPathDigest`) and, when the cell was replayed from a cell-scoped recording, held against
+ * the digest the live run recorded.
+ */
+function finishCellReplay(
+	scope: CellScope,
+	options: RunCampaignOptions,
+	pathDigest: string,
+	runIds: string[],
+	workflowRunId?: string
+): CampaignCell['replay'] | undefined {
+	options.onPathDigest?.({
+		brain: scope.brain,
+		cellKey: scope.cellKey,
+		trial: scope.trial,
+		pathDigest,
+		runIds,
+		...(workflowRunId !== undefined ? { workflowRunId } : {})
+	});
+	const replay = [...scope.replays.values()][0];
+	if (!replay) return undefined;
+	const report = replay.report();
+	const recorded = replay.cell.pathDigest;
+	const status: NonNullable<CampaignCell['replay']>['status'] = report.diverged
+		? 'diverged'
+		: recorded === undefined
+			? 'unrecorded'
+			: recorded === pathDigest && report.unused === 0
+				? 'match'
+				: 'mismatch';
+	return {
+		status,
+		pathDigest,
+		...(recorded !== undefined ? { recorded } : {}),
+		unused: report.unused,
+		...(report.diverged ? { divergedAt: report.diverged.seq } : {})
+	};
+}
+
 function providerForLive(
 	brain: CampaignBrain,
 	options: RunCampaignOptions,
-	goalCardId?: string
+	goalCardId?: string,
+	at?: { scope: CellScope; role: 'agent' | 'seat' }
 ): LLMProvider {
 	// A cassette brain replays (WP114): a fresh provider per call, so each cell (each stage) counts its prompts from zero, as its recording did.
 	if (brain.cassette !== undefined) {
@@ -2496,9 +2747,50 @@ function providerForLive(
 				`the "${brain.id}" brain replays ${brain.cassette} and no cassetteFor was supplied`
 			);
 		}
-		return createCassetteProvider(options.cassetteFor(brain.cassette));
+		const file = options.cassetteFor(brain.cassette);
+		// A cell-scoped recording (WP190): this cell's own calls, in order, each held to its prompt's digest.
+		if (file.kind === 'provider-recording') {
+			if (!at)
+				throw new Error(
+					`replay-diverged: the "${brain.id}" brain replays ${brain.cassette}, a cell-scoped recording, outside any cell`
+				);
+			let replay = at.scope.replays.get(brain.cassette);
+			if (!replay) {
+				let all = recordingReplays.get(file);
+				if (!all) {
+					all = createRecordingReplay(file);
+					recordingReplays.set(file, all);
+				}
+				if (!all.has(at.scope.cellKey))
+					throw new Error(
+						`replay-diverged: ${brain.cassette} holds no cell "${at.scope.cellKey}" — the design or its inputs are not the ones recorded`
+					);
+				replay = all.forCell(at.scope.cellKey);
+				at.scope.replays.set(brain.cassette, replay);
+			}
+			const replaying = replay.providerFor(at.role, goalCardId ?? '');
+			if (!options.onReplayRequest) return replaying;
+			let index = 0;
+			return {
+				...replaying,
+				chat: (request, opts) => {
+					options.onReplayRequest!({
+						cellKey: at.scope.cellKey,
+						role: at.role,
+						stage: goalCardId ?? '',
+						index: index++,
+						request
+					});
+					return replaying.chat(request, opts);
+				}
+			};
+		}
+		return createCassetteProvider(file);
 	}
-	const provider = options.providerFor?.(brain, goalCardId !== undefined ? { goalCardId } : {});
+	const provider = options.providerFor?.(brain, {
+		...(goalCardId !== undefined ? { goalCardId } : {}),
+		...(at ? { cellKey: at.scope.cellKey, trial: at.scope.trial, role: at.role } : {})
+	});
 	if (!provider) {
 		throw new Error(`the "${brain.id}" brain is live and no providerFor was supplied`);
 	}

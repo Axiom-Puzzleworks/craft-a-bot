@@ -4,7 +4,7 @@
 
 **Verdict: inconclusive.** minimum detectable difference of rates at the achieved n (783 on the smaller side, 80% power): 2.9 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)
 
-Ran 2026-10-02T17:24:10.875Z; controls fs-lending/control-map/ceilings-enforced; obligations pra:ss1-23:mitigants, pra:ss1-23:governance; campaigns ceilings--brain=scripted-noisy--executors=bot-everywhere, ceilings--brain=fallible--executors=bot-everywhere, ceilings--brain=scripted-noisy--executors=bot-everywhere-ceilings-enforced, ceilings--brain=fallible--executors=bot-everywhere-ceilings-enforced. Evidence about this synthetic bank under these configurations, and nothing else.
+Ran 2026-10-07T10:59:48.591Z; controls fs-lending/control-map/ceilings-enforced; obligations pra:ss1-23:mitigants, pra:ss1-23:governance; campaigns ceilings--brain=scripted-noisy--executors=bot-everywhere, ceilings--brain=fallible--executors=bot-everywhere, ceilings--brain=scripted-noisy--executors=bot-everywhere-ceilings-enforced, ceilings--brain=fallible--executors=bot-everywhere-ceilings-enforced. Evidence about this synthetic bank under these configurations, and nothing else.
 
 ## breaches
 
@@ -24,4 +24,13 @@ Method: difference of means, Welch interval at 95%; sign test over 490 non-tied 
 
 Method: difference of rates, Newcombe interval at 95%; sign test over 0 discordant of 783 pairs.
 
-Digest `e1de102879311fe1e7209398b2f8a8c3e5d621d07cbdd99121d06859a3da949c`.
+## Bill per case
+
+| Factor | Treatment vs baseline | Baseline £ | Treatment £ | Model £ (treatment) | People £ (treatment) |
+|---|---|---|---|---|---|
+| executors | bot-everywhere-ceilings-enforced vs bot-everywhere (scripted-noisy tier) | 0.0078 | 0.0078 | 0.0078 | 0.0000 |
+| executors | bot-everywhere-ceilings-enforced vs bot-everywhere (fallible tier) | 0.0078 | 0.0078 | 0.0078 | 0.0000 |
+
+Pounds at the stated rates (`fs-bank/bill`, assumptions): tokens at the hosted price, reviewer seconds at the case handler’s hourly cost.
+
+Digest `1991413c91ab321f4759db5ced8688f5d12d541d2c0d19e5cbfaff97acf51023`.

@@ -186,6 +186,7 @@ export function assembleOnboardingCase(
 			purpose: application.purpose,
 			given_birth_year: application.given.birthYear,
 			given_postcode: application.given.postcode,
+			...(application.note ? { note: application.note } : {}),
 			employment: customer.employment,
 			tenure_years: customer.tenureYears,
 			age_band: customer.cohort.ageBand,

@@ -1,6 +1,6 @@
 {
 	"schemaVersion": 1,
-	"id": "lending-fairness@2026-10-02T17:45:56.318Z",
+	"id": "lending-fairness@2026-10-07T11:25:50.968Z",
 	"experimentId": "lending-fairness",
 	"title": "Fairness of the stack on the loan book",
 	"hypothesis": "The policy-card stack does not widen the demographic-parity gap or the equal-opportunity gap across age bands on the loan book.",
@@ -10,7 +10,7 @@
 	"obligations": [
 		"equality-act:fairness"
 	],
-	"ranAt": "2026-10-02T17:45:56.318Z",
+	"ranAt": "2026-10-07T11:25:50.968Z",
 	"workflowIds": [
 		"fs-lending/lending"
 	],
@@ -58,8 +58,8 @@
 			"tier": "scripted-noisy",
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1354.3805874840357,
-					"treatment": 1426.8275862068965
+					"baseline": 1951.647509578544,
+					"treatment": 2024.0945083014049
 				},
 				"approvalsPerCase": {
 					"baseline": 0.4776500638569604,
@@ -68,6 +68,22 @@
 				"escalationRate": {
 					"baseline": 0.002554278416347382,
 					"treatment": 0.002554278416347382
+				},
+				"bill": {
+					"baseline": {
+						"tokens": 1951.647509578544,
+						"modelPounds": 0.007806590038314176,
+						"humanSeconds": 79.00383141762453,
+						"humanPounds": 0.6144742443593019,
+						"pounds": 0.6222808343976161
+					},
+					"treatment": {
+						"tokens": 2024.0945083014049,
+						"modelPounds": 0.00809637803320562,
+						"humanSeconds": 79.00383141762453,
+						"humanPounds": 0.6144742443593019,
+						"pounds": 0.6225706223925075
+					}
 				},
 				"touchesPerCase": {
 					"baseline": 0.4776500638569604,
@@ -1647,8 +1663,8 @@
 				"00000000-0000-4000-8000-000004a93d17"
 			],
 			"reportIds": [
-				"ddaec1a2-6d31-4c2d-b4de-3f435bc5df8f",
-				"43d9609c-2988-4c3e-8f29-d90c9504d3f2"
+				"3c895e71-c948-426d-8043-1fc7a768d761",
+				"13f4c7d5-77f1-4f13-9455-8dd6f7f8ad50"
 			]
 		},
 		{
@@ -1689,8 +1705,8 @@
 			"untestable": true,
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1354.3805874840357,
-					"treatment": 1426.8275862068965
+					"baseline": 1951.647509578544,
+					"treatment": 2024.0945083014049
 				},
 				"approvalsPerCase": {
 					"baseline": 0.4776500638569604,
@@ -1699,6 +1715,22 @@
 				"escalationRate": {
 					"baseline": 0.002554278416347382,
 					"treatment": 0.002554278416347382
+				},
+				"bill": {
+					"baseline": {
+						"tokens": 1951.647509578544,
+						"modelPounds": 0.007806590038314176,
+						"humanSeconds": 79.00383141762453,
+						"humanPounds": 0.6144742443593019,
+						"pounds": 0.6222808343976161
+					},
+					"treatment": {
+						"tokens": 2024.0945083014049,
+						"modelPounds": 0.00809637803320562,
+						"humanSeconds": 79.00383141762453,
+						"humanPounds": 0.6144742443593019,
+						"pounds": 0.6225706223925075
+					}
 				},
 				"touchesPerCase": {
 					"baseline": 0.4776500638569604,
@@ -3278,8 +3310,8 @@
 				"00000000-0000-4000-8000-000004a93d17"
 			],
 			"reportIds": [
-				"ddaec1a2-6d31-4c2d-b4de-3f435bc5df8f",
-				"43d9609c-2988-4c3e-8f29-d90c9504d3f2"
+				"3c895e71-c948-426d-8043-1fc7a768d761",
+				"13f4c7d5-77f1-4f13-9455-8dd6f7f8ad50"
 			]
 		},
 		{
@@ -3319,8 +3351,8 @@
 			"tier": "fallible",
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1343.2490421455939,
-					"treatment": 1415.1149425287356
+					"baseline": 1935.7241379310344,
+					"treatment": 2007.5900383141764
 				},
 				"approvalsPerCase": {
 					"baseline": 0.45849297573435505,
@@ -3329,6 +3361,22 @@
 				"escalationRate": {
 					"baseline": 0.004629629629629629,
 					"treatment": 0.004629629629629629
+				},
+				"bill": {
+					"baseline": {
+						"tokens": 1935.7241379310344,
+						"modelPounds": 0.007742896551724138,
+						"humanSeconds": 75.7088122605364,
+						"humanPounds": 0.5888463175819498,
+						"pounds": 0.5965892141336739
+					},
+					"treatment": {
+						"tokens": 2007.5900383141764,
+						"modelPounds": 0.008030360153256704,
+						"humanSeconds": 75.7088122605364,
+						"humanPounds": 0.5888463175819498,
+						"pounds": 0.5968766777352066
+					}
 				},
 				"touchesPerCase": {
 					"baseline": 0.45849297573435505,
@@ -4908,8 +4956,8 @@
 				"00000000-0000-4000-8000-000004a93d17"
 			],
 			"reportIds": [
-				"3f185a71-acc7-4dcd-90ba-6ebe32d5652b",
-				"ff6cc5b7-8aa8-4bb9-a774-1f6343137e3d"
+				"2f4dbd52-3418-4eca-a4b6-d7bd779f137b",
+				"283e5bb8-d88a-4381-89b8-dbeb96294737"
 			]
 		},
 		{
@@ -4950,8 +4998,8 @@
 			"untestable": true,
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1343.2490421455939,
-					"treatment": 1415.1149425287356
+					"baseline": 1935.7241379310344,
+					"treatment": 2007.5900383141764
 				},
 				"approvalsPerCase": {
 					"baseline": 0.45849297573435505,
@@ -4960,6 +5008,22 @@
 				"escalationRate": {
 					"baseline": 0.004629629629629629,
 					"treatment": 0.004629629629629629
+				},
+				"bill": {
+					"baseline": {
+						"tokens": 1935.7241379310344,
+						"modelPounds": 0.007742896551724138,
+						"humanSeconds": 75.7088122605364,
+						"humanPounds": 0.5888463175819498,
+						"pounds": 0.5965892141336739
+					},
+					"treatment": {
+						"tokens": 2007.5900383141764,
+						"modelPounds": 0.008030360153256704,
+						"humanSeconds": 75.7088122605364,
+						"humanPounds": 0.5888463175819498,
+						"pounds": 0.5968766777352066
+					}
 				},
 				"touchesPerCase": {
 					"baseline": 0.45849297573435505,
@@ -6539,12 +6603,12 @@
 				"00000000-0000-4000-8000-000004a93d17"
 			],
 			"reportIds": [
-				"3f185a71-acc7-4dcd-90ba-6ebe32d5652b",
-				"ff6cc5b7-8aa8-4bb9-a774-1f6343137e3d"
+				"2f4dbd52-3418-4eca-a4b6-d7bd779f137b",
+				"283e5bb8-d88a-4381-89b8-dbeb96294737"
 			]
 		}
 	],
 	"verdict": "inconclusive",
 	"note": "one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)",
-	"digest": "bb3d3bc08157406e21856476d7a60a3c3abf378d975d3564707f6c1b4d5bd172"
+	"digest": "3a569805170a1ccbb16d494942d1fcdb0b11cdafee0ff56f50fa3867f7594bf9"
 }

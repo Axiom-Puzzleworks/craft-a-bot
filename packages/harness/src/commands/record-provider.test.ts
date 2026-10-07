@@ -1,7 +1,7 @@
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { parseProviderCassette } from '@craftabot/core';
+import { parseProviderRecording } from '@craftabot/core';
 import { afterAll, describe, expect, it } from 'vitest';
 import { defaultConfig } from '../config.js';
 import { credentialsFromEnv } from '../credentials.js';
@@ -65,11 +65,37 @@ describe('record --experiment (WP114)', { timeout: 600_000 }, () => {
 			clock: () => 0
 		});
 		expect(recorded.cassettes).toHaveLength(1);
-		expect(recorded.cassettes[0]?.entries).toBeGreaterThan(0);
-		const cassette = parseProviderCassette(JSON.parse(await readFile(cassettePath, 'utf8')));
-		expect(cassette.providerId).toBe('mock');
-		expect(cassette.note).toContain('a stand-in, not a live model');
-		expect(cassette.entries.every((entry) => entry.model.length > 0)).toBe(true);
+		expect(recorded.cassettes[0]?.calls).toBeGreaterThan(0);
+		// The recording is a cell-scoped one (WP189, WP190): every call per cell in order, each cell tied to the live run's own stored run.
+		const recording = parseProviderRecording(JSON.parse(await readFile(cassettePath, 'utf8')));
+		expect(recording.providerId).toBe('mock');
+		expect(recording.note).toContain('a stand-in, not a live model');
+		expect(recording.manifest.experimentId).toBe('lending-stack');
+		expect(Object.keys(recording.manifest.campaignDigests).length).toBeGreaterThan(0);
+		expect(recording.manifest.interventions).toEqual([]);
+		expect(recording.cells.length).toBeGreaterThan(0);
+		expect(recording.cells.length).toBeLessThanOrEqual(recorded.cells);
+		expect(new Set(recording.cells.map((cell) => cell.cellKey)).size).toBe(recording.cells.length);
+		const callTotal = recording.cells.reduce((sum, cell) => sum + cell.calls.length, 0);
+		expect(callTotal).toBe(recorded.cassettes[0]?.calls);
+		for (const cell of recording.cells) {
+			expect(cell.runId).toBeDefined();
+			expect(cell.outcome).toBeDefined();
+			expect(cell.pathDigest).toMatch(/^[0-9a-f]{64}$/);
+			expect(cell.calls.map((call) => call.seq)).toEqual(cell.calls.map((_, index) => index));
+			expect(cell.calls.every((call) => call.response !== undefined)).toBe(true);
+		}
+		// The live run's own store is kept where `--out` said — every agent run of a journey, not only its last stage.
+		const kept = new Set(
+			(await readdir(join(root, 'recording'), { recursive: true }))
+				.filter((name) => name.endsWith('events.jsonl'))
+				.map((name) => name.split(/[\\/]/).at(-2))
+		);
+		expect(recording.cells.every((cell) => kept.has(cell.runId))).toBe(true);
+		expect(recording.cells.every((cell) => (cell.runIds ?? []).every((id) => kept.has(id)))).toBe(
+			true
+		);
+		expect(recording.cells.some((cell) => (cell.runIds ?? []).length > 1)).toBe(true);
 
 		const replay = async (out: string) =>
 			experimentRun({
@@ -87,8 +113,15 @@ describe('record --experiment (WP114)', { timeout: 600_000 }, () => {
 		const reports = await Promise.all(
 			first.reportFiles.map(async (path) => JSON.parse(await readFile(path, 'utf8')))
 		);
-		const cells = reports.flatMap((report) => report.cells as Array<{ error?: string }>);
+		const cells = reports.flatMap(
+			(report) => report.cells as Array<{ error?: string; replay?: { status: string } }>
+		);
 		expect(cells.filter((cell) => cell.error !== undefined)).toEqual([]);
+		// Every cell that called the provider replayed on the path the live run took (WP190).
+		expect(cells.filter((cell) => cell.replay && cell.replay.status !== 'match')).toEqual([]);
+		expect(cells.filter((cell) => cell.replay?.status === 'match')).toHaveLength(
+			recording.cells.length
+		);
 		const second = await replay('replay-2');
 		expect(second.result.digest).toBe(first.result.digest);
 	});
@@ -165,14 +198,18 @@ describe(
 					newId: fixedIds(),
 					clock: () => 0
 				});
-				const entries = parseProviderCassette(JSON.parse(await readFile(cassette, 'utf8'))).entries;
-				return { result, entries };
+				const cells = parseProviderRecording(
+					JSON.parse(await readFile(cassette, 'utf8'))
+				).cells.map((cell) => ({ cellKey: cell.cellKey, calls: cell.calls }));
+				return { result, cells };
 			};
 			const serial = await record('serial');
 			const parallel = await record('parallel', 4);
 			expect(parallel.result.cells).toBe(serial.result.cells);
-			const key = (entry: { promptDigest?: string; digest?: string }) => JSON.stringify(entry);
-			expect(parallel.entries.map(key).sort()).toEqual(serial.entries.map(key).sort());
+			// Each cell kept its own calls in its own order, whatever else was in flight.
+			const byKey = (cells: typeof serial.cells) =>
+				Object.fromEntries(cells.map((cell) => [cell.cellKey, cell.calls]));
+			expect(byKey(parallel.cells)).toEqual(byKey(serial.cells));
 		});
 	}
 );

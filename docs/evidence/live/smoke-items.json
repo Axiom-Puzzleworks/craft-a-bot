@@ -1,0 +1,200 @@
+{
+	"schema": "live-smoke-items/1",
+	"note": "The items the first live recording failed on for real (OUT_OF_STEPS, replayed completely) and a few it did not, taken from its replay on 2026-10-07 (ERROR-TRIAGE.md). Synthetic ids only.",
+	"designs": {
+		"complaints-stack-live": {
+			"failedForReal": [
+				{
+					"item": "complaint-3e0290c3",
+					"stages": [
+						"root-cause"
+					],
+					"cells": 1
+				},
+				{
+					"item": "complaint-b00412ed",
+					"stages": [
+						"root-cause"
+					],
+					"cells": 1
+				}
+			],
+			"controls": [
+				"complaint-05fddcde",
+				"complaint-06aaca5c",
+				"complaint-2e4da53d"
+			]
+		},
+		"fraud-stack-live": {
+			"failedForReal": [
+				{
+					"item": "alert-05765462",
+					"stages": [
+						"contact"
+					],
+					"cells": 2
+				},
+				{
+					"item": "alert-05814b13",
+					"stages": [
+						"contact"
+					],
+					"cells": 2
+				},
+				{
+					"item": "alert-0827ebd0",
+					"stages": [
+						"sar"
+					],
+					"cells": 1
+				},
+				{
+					"item": "alert-0f386d0b",
+					"stages": [
+						"sar"
+					],
+					"cells": 1
+				},
+				{
+					"item": "alert-11d6c36a",
+					"stages": [
+						"sar"
+					],
+					"cells": 1
+				},
+				{
+					"item": "alert-1d9d6e26",
+					"stages": [
+						"sar"
+					],
+					"cells": 1
+				},
+				{
+					"item": "alert-22efc2ce",
+					"stages": [
+						"sar"
+					],
+					"cells": 1
+				},
+				{
+					"item": "alert-4b412f2b",
+					"stages": [
+						"triage"
+					],
+					"cells": 2
+				},
+				{
+					"item": "alert-514de9e1",
+					"stages": [
+						"triage"
+					],
+					"cells": 2
+				},
+				{
+					"item": "alert-57724cac",
+					"stages": [
+						"sar"
+					],
+					"cells": 1
+				},
+				{
+					"item": "alert-59721e6d",
+					"stages": [
+						"sar"
+					],
+					"cells": 1
+				},
+				{
+					"item": "alert-82f679e2",
+					"stages": [
+						"sar"
+					],
+					"cells": 1
+				},
+				{
+					"item": "alert-83e7488c",
+					"stages": [
+						"contact"
+					],
+					"cells": 2
+				},
+				{
+					"item": "alert-8a7dfa25",
+					"stages": [
+						"sar"
+					],
+					"cells": 1
+				},
+				{
+					"item": "alert-b723159e",
+					"stages": [
+						"contact"
+					],
+					"cells": 2
+				},
+				{
+					"item": "alert-c0d5f138",
+					"stages": [
+						"sar"
+					],
+					"cells": 1
+				},
+				{
+					"item": "alert-f0b771e0",
+					"stages": [
+						"contact"
+					],
+					"cells": 2
+				},
+				{
+					"item": "alert-f55509ae",
+					"stages": [
+						"sar"
+					],
+					"cells": 1
+				},
+				{
+					"item": "alert-f84372ff",
+					"stages": [
+						"sar"
+					],
+					"cells": 1
+				},
+				{
+					"item": "alert-fb7e9e2c",
+					"stages": [
+						"contact"
+					],
+					"cells": 2
+				}
+			],
+			"controls": [
+				"alert-37faa3af",
+				"alert-b0df368c",
+				"alert-bc17d1dc"
+			]
+		},
+		"advice-context-live": {
+			"failedForReal": [
+				{
+					"item": "advice-aae01a3f",
+					"stages": [
+						"suitability"
+					],
+					"cells": 2
+				},
+				{
+					"item": "advice-bfe92a7b",
+					"stages": [
+						"suitability"
+					],
+					"cells": 2
+				}
+			],
+			"controls": [
+				"advice-0684df9b",
+				"advice-09ac1685"
+			]
+		}
+	}
+}

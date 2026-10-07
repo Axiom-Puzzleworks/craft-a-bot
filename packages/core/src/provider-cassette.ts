@@ -1,7 +1,8 @@
 import {
 	promptDigest,
 	type ProviderCassetteEntry,
-	type ProviderCassetteFile
+	type ProviderCassetteFile,
+	type RecordedCall
 } from './schemas/provider-cassette.js';
 import type { ChatResponse } from './schemas/shared.js';
 import type { KeyCheck, LLMProvider } from './types/provider.js';
@@ -73,18 +74,36 @@ export interface ProviderRecording {
 	entries: ProviderCassetteEntry[];
 }
 
+/** What the tap tells its listener about one call, a failed one too (WP189). */
+export interface TappedCall {
+	promptDigest: string;
+	model: string;
+	latencyMs: number;
+	/** The serving unit that answered, when the provider reported one. */
+	unit?: string;
+	temperature?: number;
+	maxTokens?: number;
+	/** The response as written: `raw` dropped when the recording is slim. */
+	response?: ChatResponse;
+	error?: { kind: string; message: string; retryAfterMs?: number };
+}
+
 /**
- * **A provider that records** (WP114): passes every call through to `inner`
- * unchanged and keeps an entry per call — the prompt's digest and its
- * occurrence *within this provider* (one cell's run, as a replay counts),
- * the model, the response as returned (without its raw wire chunks when `slim`) and the latency by `now`. The session
- * sees exactly what it would have seen, so the recording's trace is the trace
- * a replay reproduces. A recording over many cells merges with
+ * **A provider that records** (WP114, made a passive tap by WP189,
+ * `113-RECORDING-AND-RELIABILITY.md` §3): passes every call through to `inner`
+ * and keeps an entry per call — the prompt's digest and its occurrence
+ * *within this provider*, the model, the response and the latency by `now`.
+ * The session sees what the provider returned (a recorder given a clock adds
+ * the call's `latencyMs`, as `timedProvider` does for any live call, so a
+ * replay agrees on `think.completed.durationMs`); `slim` drops the raw wire
+ * chunks from what is *written* only. `onCall` is told every call — a failed
+ * one too, with the serving unit when the provider reports it — and the error
+ * is rethrown unchanged. A recording over many cells merges with
  * `mergeProviderEntries`.
  */
 export function recordingProvider(
 	inner: LLMProvider,
-	options: { now?: () => number; slim?: boolean } = {}
+	options: { now?: () => number; slim?: boolean; onCall?: (call: TappedCall) => void } = {}
 ): ProviderRecording {
 	const now = options.now ?? (() => 0);
 	const seen = new Map<string, number>();
@@ -94,27 +113,133 @@ export function recordingProvider(
 		validateKey: (key) => inner.validateKey(key),
 		async chat(request, opts) {
 			const started = now();
-			const answered = await inner.chat(request, opts);
+			const digest = promptDigest(request);
+			let unit: string | undefined;
+			const told = {
+				promptDigest: digest,
+				model: request.model,
+				...(request.temperature !== undefined ? { temperature: request.temperature } : {}),
+				...(request.maxTokens !== undefined ? { maxTokens: request.maxTokens } : {})
+			};
+			let answered: ChatResponse;
+			try {
+				answered = await inner.chat(request, {
+					...opts,
+					onServed: (served) => {
+						unit = served;
+						opts.onServed?.(served);
+					}
+				});
+			} catch (error) {
+				options.onCall?.({
+					...told,
+					latencyMs: Math.max(0, now() - started),
+					...(unit !== undefined ? { unit } : {}),
+					error: describeError(error)
+				});
+				throw error;
+			}
 			const latencyMs = Math.max(0, now() - started);
 			// A recorder given a clock timed the call: the response carries it (WP160), so the recording's trace and a replay's agree on `think.completed.durationMs`.
-			const timed: ChatResponse = options.now ? { ...answered, latencyMs } : answered;
-			// Slim (WP168): the wire's stream chunks are about nine tenths of a live entry and nothing replays them. Dropped on the
-			// response the session sees as well, so the recording's trace and a replay's still agree.
-			const response: ChatResponse = options.slim ? { ...timed, raw: null } : timed;
-			const digest = promptDigest(request);
+			const response: ChatResponse = options.now ? { ...answered, latencyMs } : answered;
+			// Slim (WP168): the wire's stream chunks are about nine tenths of a live entry and nothing replays them. Dropped from the
+			// entry written, never from what the session saw (WP189: the tap is passive).
+			const written: ChatResponse = options.slim ? { ...response, raw: null } : response;
 			const occurrence = seen.get(digest) ?? 0;
 			seen.set(digest, occurrence + 1);
 			entries.push({
 				promptDigest: digest,
 				occurrence,
 				model: request.model,
-				response: structuredClone(response),
+				response: structuredClone(written),
 				latencyMs
+			});
+			options.onCall?.({
+				...told,
+				latencyMs,
+				...(unit !== undefined ? { unit } : {}),
+				response: structuredClone(written)
 			});
 			return response;
 		}
 	};
 	return { provider, entries };
+}
+
+/**
+ * An error as the recording keeps it: its kind, its message and any retry hint. The kind is what the session will report
+ * for it — a provider error's own, else `engine` — so a replay that raises the recorded error leaves the same `error`
+ * event (`113-…` §11, WP190's note: a live abort first replayed as kind `AbortError` against the live run's `engine`).
+ */
+export function describeError(error: unknown): NonNullable<TappedCall['error']> {
+	const held =
+		error !== null && typeof error === 'object' ? (error as Record<string, unknown>) : {};
+	const retryAfter = held['retryAfterMs'];
+	return {
+		kind: typeof held['kind'] === 'string' ? held['kind'] : 'engine',
+		message: error instanceof Error ? error.message : String(error),
+		...(typeof retryAfter === 'number' && retryAfter >= 0 ? { retryAfterMs: retryAfter } : {})
+	};
+}
+
+/**
+ * **One cell's tape** (WP189, `113-…` §4.2): the calls a cell made, in the
+ * order it made them, across every session the cell ran — each stage's agent
+ * and the seated visitor. `open(role, stage)` is called as each session's
+ * provider is made and counts which time that stage's provider this is; the
+ * sink it returns is the tap's `onCall`.
+ */
+export interface CellTape {
+	readonly cellKey: string;
+	readonly trial: number;
+	readonly calls: RecordedCall[];
+	meta: {
+		runId?: string;
+		runIds?: string[];
+		workflowRunId?: string;
+		outcome?: string;
+		pathDigest?: string;
+	};
+	open(role: 'agent' | 'seat', stage: string): (call: TappedCall) => void;
+}
+
+/** Every cell's tape in a recording, by the cell's key. */
+export class RecordingTape {
+	readonly cells = new Map<string, CellTape>();
+
+	cell(cellKey: string, trial: number): CellTape {
+		const held = this.cells.get(cellKey);
+		if (held) return held;
+		const calls: RecordedCall[] = [];
+		const segments = new Map<string, number>();
+		const tape: CellTape = {
+			cellKey,
+			trial,
+			calls,
+			meta: {},
+			open(role, stage) {
+				const key = `${role}|${stage}`;
+				const segment = segments.get(key) ?? 0;
+				segments.set(key, segment + 1);
+				return (call) => {
+					calls.push({
+						seq: calls.length,
+						role,
+						stage,
+						segment,
+						promptDigest: call.promptDigest,
+						model: call.model,
+						latencyMs: call.latencyMs,
+						...(call.unit !== undefined ? { unit: call.unit } : {}),
+						...(call.response !== undefined ? { response: call.response } : {}),
+						...(call.error !== undefined ? { error: call.error } : {})
+					});
+				};
+			}
+		};
+		this.cells.set(cellKey, tape);
+		return tape;
+	}
 }
 
 /**

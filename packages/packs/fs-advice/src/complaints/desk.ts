@@ -129,14 +129,21 @@ export const complaintsDeskSpec: DeskWorldSpec<ComplaintsExtra> = {
 			name: complaintsStrings.actions.rootCause.name,
 			description: complaintsStrings.actions.rootCause.description,
 			schema: z.object({
-				cause: z.enum(ROOT_CAUSES).describe(complaintsStrings.actions.rootCause.cause)
+				cause: z.enum(ROOT_CAUSES).describe(complaintsStrings.actions.rootCause.cause),
+				reason: z
+					.string()
+					.min(1)
+					.max(400)
+					.optional()
+					.describe(complaintsStrings.actions.rootCause.reason)
 			}),
 			riskTier: 'observe',
 			progress: true,
 			perform: (state, args) => {
-				const { cause } = args as { cause: string };
+				const { cause, reason } = args as { cause: string; reason?: string };
 				state.extra.complaints.rootCause = cause;
-				return { ok: true, narration: complaintsStrings.narration.rootCause(cause) };
+				if (reason !== undefined) state.extra.complaints.rootCauseReason = reason;
+				return { ok: true, narration: complaintsStrings.narration.rootCause(cause, reason) };
 			}
 		},
 		{
@@ -220,10 +227,13 @@ export const complaintsDeskSpec: DeskWorldSpec<ComplaintsExtra> = {
 								.map(([key, value]) => `${key}: ${String(value)}`)
 								.join('; ')
 						: '';
+				// The register's rule, for a complaint that came from it (WP193): the policy the root-cause card enforces.
+				const register = state.records.find((record) => record.id === 'register-rule');
 				return complaintsStrings.senseText.file(
 					line(complaint),
 					`status: ${state.extra.ledger.complaints.find((e) => e.id === c.complaintId)?.status ?? 'open'}`,
-					line(transaction)
+					line(transaction),
+					register ? line(register) : undefined
 				);
 			}
 		}

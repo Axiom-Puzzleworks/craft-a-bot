@@ -53,3 +53,6 @@ campaign-out/
 
 # Scratch space for scripts/live-record.mjs (WP168)
 .live-work/
+
+# The live runs' own stores and call logs (113-RECORDING-AND-RELIABILITY.md D1): local, never committed. The committed cassette regenerates a transcript by replay.
+recordings/

@@ -62,6 +62,12 @@ export async function artefactSchemas() {
 			description:
 				'A provider cassette (WP114, 103-FALLIBLE-ACTORS.md): one entry per provider call a recording made, keyed by the SHA-256 of the composed prompt and its occurrence, with the response as the provider returned it, the model id pinned, and the latency. A live brain naming it replays with no key and no network.'
 		},
+		'craftabot-provider-recording': {
+			schema: core.providerRecordingFileSchema,
+			title: 'Craft A Bot provider recording (craftabot-cassette v2, kind provider-recording)',
+			description:
+				'A cell-scoped recording of a live run (WP189, 113-RECORDING-AND-RELIABILITY.md): every cell, by the key of its inputs and its trial, with every provider call in the order it was made — the response or the error, the digest of what was asked, the latency and the serving unit — and a manifest of the design digests, pack versions, models, samplings and units. Nothing merged, nothing dropped.'
+		},
 		'benchmark-report': {
 			schema: core.benchmarkReportSchema,
 			title: 'Craft A Bot benchmark report',

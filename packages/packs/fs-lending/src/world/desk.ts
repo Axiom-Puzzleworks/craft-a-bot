@@ -103,6 +103,17 @@ const factsOf = (truth: unknown): Record<string, unknown> =>
 	(truth as { facts?: Record<string, unknown> } | undefined)?.facts ?? {};
 const onDesk = (state: LendingDeskState, recordId: string): boolean =>
 	state.records.some((record) => record.id === recordId);
+/**
+ * The bank's rule, on the case file the assistant reads every turn (`113-RECORDING-AND-RELIABILITY.md` §12, item 1) — the desk
+ * brief is a record on the desk, not a line of the prompt, so the rule is joined to the sense that is.
+ */
+const withPolicy = (state: LendingDeskState, text: string | undefined): string | undefined => {
+	const policy = state.records.find((record) => record.id === 'policy')?.fields['text'];
+	return text !== undefined && typeof policy === 'string'
+		? `${text}
+rule: ${policy}`
+		: text;
+};
 const fieldsOf = (state: LendingDeskState, recordId: string): string | undefined => {
 	const record = state.records.find((entry) => entry.id === recordId);
 	if (!record) return undefined;
@@ -375,7 +386,7 @@ export const lendingDeskSpec: DeskWorldSpec<LendingExtra> = {
 		{
 			id: 'application',
 			...lendingStrings.senses.application,
-			reveal: (state) => fieldsOf(state, 'application')
+			reveal: (state) => withPolicy(state, fieldsOf(state, 'application'))
 		},
 		{
 			id: 'bureau',

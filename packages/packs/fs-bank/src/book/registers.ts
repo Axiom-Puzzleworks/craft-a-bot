@@ -1,4 +1,5 @@
 import { calibrationRow, type Book, type WorkItem } from '@craftabot/core';
+import { BOOK_INCIDENCES } from '../calibration/book-incidences.js';
 import { seededRandom } from '@craftabot/desk';
 import { rateOf } from '../generate/customer.js';
 import type { Population, PopulationCustomer } from '../population/population.js';
@@ -108,6 +109,19 @@ export interface AdviceRequestItemPayload {
 	customer: PopulationCustomer['customer'];
 	savingsBalance: number;
 	topic: string;
+	/** What the request arrives with beyond a plain topic (`113-…` §12, item 4): the name of a desk case kind whose customer behaves that way; absent for a plain request. */
+	variant?: string;
+}
+
+/** The variant a request carries, from a stream of the customer's own seed (`advice-variant-incidence`); nothing for a plain one. */
+export function adviceVariantFor(seed: number): string | undefined {
+	const row = calibrationRow(BOOK_INCIDENCES, 'advice-variant-incidence');
+	let u = seededRandom(accountDaySeed(seed, 0xadd2, 1))();
+	for (const [variant, rate] of Object.entries(row.distribution)) {
+		if (u < rate) return variant;
+		u -= rate;
+	}
+	return undefined;
 }
 
 const TOPICS = [
@@ -142,10 +156,12 @@ export function adviceRequestBook(pop: Population, options: RegisterOptions = {}
 		if (random() >= share * (days / 30)) continue;
 		const dayIndex = first + Math.floor(random() * days);
 		const topic = TOPICS[Math.floor(random() * TOPICS.length)] as string;
+		const variant = adviceVariantFor(entry.seed);
 		const payload: AdviceRequestItemPayload = {
 			customer: customerForTheDesk(entry.customer),
 			savingsBalance: Math.round(savings),
-			topic
+			topic,
+			...(variant ? { variant } : {})
 		};
 		items.push({
 			id: `advice-${entry.seed.toString(16).padStart(8, '0')}`,

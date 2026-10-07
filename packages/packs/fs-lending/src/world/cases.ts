@@ -365,6 +365,13 @@ export function assembleLendingCase(
 		classification: 'public',
 		fields: { text: lendingStrings.records.brief.text }
 	};
+	const policyRecord: DeskRecord = {
+		id: 'policy',
+		kind: 'notice',
+		title: lendingStrings.records.policyTitle,
+		classification: 'public',
+		fields: { text: lendingStrings.records.policy(policy) }
+	};
 	const applicationRecord: DeskRecord = {
 		id: 'application',
 		kind: 'application',
@@ -511,7 +518,7 @@ export function assembleLendingCase(
 	const counterpart = options.counterpart;
 
 	return {
-		revealed: [brief, applicationRecord],
+		revealed: [brief, applicationRecord, policyRecord],
 		hidden,
 		queue,
 		activeCaseId: APPLICATION_ITEM,

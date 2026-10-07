@@ -12,6 +12,14 @@
  *
  * It also fails on a live design whose cassette is missing, and on a committed
  * result with no design.
+ *
+ * A cell-scoped recording (WP190, `113-RECORDING-AND-RELIABILITY.md`) is held to
+ * more than its result: every cell must replay on the path the live run took
+ * (`replay.status: 'match'`, no recorded call left unasked), and a prompt the
+ * recording did not make is a `replay-diverged` failure that names the cell.
+ *
+ * A design whose prompts a desk fix has changed on purpose is listed in
+ * `PENDING_RE_RECORD`: it is skipped, and said to be, until it is recorded again.
  */
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, readdirSync } from 'node:fs';
@@ -20,6 +28,40 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SPARK_CONFIG = 'packages/packs/dgx-spark/craftabot.config.mjs';
+
+/** Live designs whose recording no longer matches the desk on purpose, until re-recorded (113-… WP194). Empty means none. */
+export const PENDING_RE_RECORD = new Set([
+	// WP193: the desk's own words changed (fraud's alert ids and its call sense, advice's check-suitability, the complaints file's register rule).
+	'complaints-stack-live',
+	'fraud-stack-live',
+	'advice-context-live',
+	// Plan 113 §12 (items 1, 3, 4, 5, 6): the desks' rules on the case file, the live customer's opening, the temptations in the
+	// books, the stage turn ceilings — every prompt or book those designs recorded has changed on purpose.
+	'lending-stack-live',
+	'lending-stack-live-b',
+	'disputes-stack-live',
+	'collections-stack-live',
+	'onboarding-stack-live',
+	'servicing-stack-live-seat',
+	// Never recorded yet (item 10).
+	'controls-live'
+]);
+
+/** What a replay of a cell-scoped recording must not show: a cell off its recorded path, an unasked call, a divergence. */
+export function replayProblems(reports) {
+	const problems = [];
+	for (const report of reports)
+		for (const cell of report.cells ?? []) {
+			const key = `${report.campaignId} ${cell.item?.id ?? cell.ordinal} seed ${cell.seed}`;
+			if (typeof cell.error === 'string' && cell.error.startsWith('replay-diverged'))
+				problems.push(`${key}: ${cell.error.slice(0, 200)}`);
+			else if (cell.replay && cell.replay.status !== 'match')
+				problems.push(
+					`${key}: replay ${cell.replay.status}${cell.replay.unused ? `, ${cell.replay.unused} recorded calls unasked` : ''}${cell.replay.divergedAt !== undefined ? `, diverged at call #${cell.replay.divergedAt}` : ''}`
+				);
+		}
+	return problems;
+}
 
 /** What a replay must reproduce of one effect: its numbers, not its ids or its clock. */
 export function effectKey(effect) {
@@ -61,6 +103,10 @@ function main(argv) {
 	}
 	let failed = 0;
 	for (const id of ids) {
+		if (PENDING_RE_RECORD.has(id)) {
+			console.log(`live-check: ${id}: skipped — pending re-record`);
+			continue;
+		}
 		const design = join('experiments', 'live', `${id}.json`);
 		const cassette = join('docs', 'evidence', 'live', id, `${id}.provider-cassette.json`);
 		const resultFile = join(live, id, `${id}.experiment-result.json`);
@@ -101,6 +147,10 @@ function main(argv) {
 			readFileSync(join(ROOT, out, `${id}.experiment-result.json`), 'utf8')
 		);
 		const problems = compareReplay(JSON.parse(readFileSync(resultFile, 'utf8')), replayed);
+		const reports = readdirSync(join(ROOT, out))
+			.filter((name) => name.endsWith('.report.json'))
+			.map((name) => JSON.parse(readFileSync(join(ROOT, out, name), 'utf8')));
+		problems.push(...replayProblems(reports));
 		if (problems.length > 0) {
 			console.error(`live-check: ${id}: the replay is not the committed result`);
 			for (const problem of problems) console.error(`  ${problem}`);

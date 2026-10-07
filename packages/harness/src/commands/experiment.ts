@@ -20,7 +20,7 @@ import {
 } from '@craftabot/evals';
 import type { HarnessConfig } from '../config.js';
 import type { CredentialSource } from '../credentials.js';
-import { runCampaignFile } from './campaign.js';
+import { runCampaignFile, type CampaignFileOptions } from './campaign.js';
 
 /**
  * **`craftabot experiment run | analyse | render`** (WP89, `72-EXPERIMENTS.md`
@@ -45,6 +45,10 @@ export interface ExperimentRunOptions {
 	principal?: Principal;
 	/** WP90: the population's size for a shape run, over the design's own. */
 	size?: number;
+	/** WP191: how many times each cell is performed, over the design's own. */
+	trials?: number;
+	/** WP192: told every request a replay of a cell-scoped recording is asked. */
+	onReplayRequest?: CampaignFileOptions['onReplayRequest'];
 }
 
 export interface ExperimentRunReport {
@@ -62,6 +66,13 @@ const resultPath = (out: string, experimentId: string) =>
 const reportPath = (out: string, campaignId: string) => join(out, `${campaignId}.report.json`);
 
 /** The design with its book population at another size — a shape run; a design with the book inline cannot be resized and says so. */
+/** The design with each cell performed `trials` times, over its own (WP191). */
+export function withTrials(experiment: Experiment, trials: number): Experiment {
+	if (!Number.isInteger(trials) || trials < 1)
+		throw new Error(`--trials wants a whole number of at least 1, got ${trials}`);
+	return { ...experiment, design: { ...experiment.design, trials } };
+}
+
 export function withPopulationSize(experiment: Experiment, size: number): Experiment {
 	const source = experiment.design.template.source;
 	if (!source)
@@ -99,8 +110,9 @@ async function writeResult(
 
 export async function experimentRun(options: ExperimentRunOptions): Promise<ExperimentRunReport> {
 	const designed = await readExperiment(options.file);
+	const sized = options.size !== undefined ? withPopulationSize(designed, options.size) : designed;
 	const { experiment, campaigns } = expandExperiment(
-		options.size !== undefined ? withPopulationSize(designed, options.size) : designed
+		options.trials !== undefined ? withTrials(sized, options.trials) : sized
 	);
 	await mkdir(options.out, { recursive: true });
 	// The filled design beside the campaigns: the campaign ids are part of what ran.
@@ -127,7 +139,8 @@ export async function experimentRun(options: ExperimentRunOptions): Promise<Expe
 			...(options.now ? { now: options.now } : {}),
 			...(options.newId ? { newId: options.newId } : {}),
 			...(options.egress !== undefined ? { egress: options.egress } : {}),
-			...(options.principal ? { principal: options.principal } : {})
+			...(options.principal ? { principal: options.principal } : {}),
+			...(options.onReplayRequest ? { onReplayRequest: options.onReplayRequest } : {})
 		});
 		// The report under the campaign's id, so `analyse` finds it again.
 		const file = reportPath(options.out, campaign.id);

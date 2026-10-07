@@ -241,7 +241,16 @@ const reasonForContact = (state: WorldState): string => {
 
 // ── The stages ─────────────────────────────────────────────────────────
 
-const agent = (until: string, goalText: string): Executor => ({ kind: 'agent', until, goalText });
+/**
+ * A stage's turn ceiling, where the live tier has shown what a normal stage uses (`113-RECORDING-AND-RELIABILITY.md` §12, item 6): about
+ * twice the most any completed live cell took, so a normal run is never cut off and a loop ends in a few turns, not thirty.
+ */
+const agent = (until: string, goalText: string, maxTicks?: number): Executor => ({
+	kind: 'agent',
+	until,
+	goalText,
+	...(maxTicks !== undefined ? { maxTicks } : {})
+});
 const rule = (id: string): Executor => ({ kind: 'rule', rule: id });
 const names = strings.stages;
 
@@ -308,7 +317,7 @@ export const FRAUD_STAGES: StageSpec[] = [
 		name: names.triage,
 		input: ALERT_OUTPUT,
 		output: TRIAGE_OUTPUT,
-		executor: agent('alert-opened', strings.briefs.triage),
+		executor: agent('alert-opened', strings.briefs.triage, 6),
 		read: (state) =>
 			desk(state).extra.fraud.opened.includes(FOCAL_ALERT) ? { opened: true } : undefined,
 		next: () => 'contact'
@@ -319,7 +328,7 @@ export const FRAUD_STAGES: StageSpec[] = [
 		obligations: ['poca:tipping-off'],
 		input: TRIAGE_OUTPUT,
 		output: CONTACT_OUTPUT,
-		executor: agent('customer-contacted', strings.briefs.contact),
+		executor: agent('customer-contacted', strings.briefs.contact, 12),
 		read: (state) => (contacted(state) ? { contacted: true } : undefined),
 		next: () => 'decision'
 	},

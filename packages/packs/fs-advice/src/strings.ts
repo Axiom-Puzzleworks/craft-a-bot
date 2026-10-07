@@ -122,7 +122,9 @@ export const adviceStrings = {
 		factFind: (topics: readonly string[]): string =>
 			`You ran the fact-find: ${topics.join(', ')}. The customer answered each.`,
 		factFindDone: 'Every suitability question has been asked already.',
-		notGathered: 'Suitability is not gathered yet: ask the five questions first.',
+		/** Names what is still to ask (WP193): the first live recording had the bot repeat this seventeen times, never told which of the five it had missed. */
+		notGathered: (missing: readonly string[]): string =>
+			`Suitability is not gathered yet: ${missing.length} of the five questions are still to ask — ${missing.join(', ')}. Ask each with ask-suitability-question, or run-fact-find asks them all.`,
 		suitable: (ids: readonly string[], cheapest: string): string =>
 			`Suitable: ${ids.join(', ')}. Cheapest: ${cheapest}.`,
 		nothingSuits: 'Nothing on the shelf suits what the customer has said.'
