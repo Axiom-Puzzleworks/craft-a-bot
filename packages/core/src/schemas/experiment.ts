@@ -31,6 +31,62 @@ export const billSchema = z.object({
 });
 export type Bill = z.infer<typeof billSchema>;
 
+/**
+ * **A reliability estimate** (WP191, `113-RECORDING-AND-RELIABILITY.md` §4.7): a
+ * value over items with its interval and how the interval was made. The unit
+ * is the item, never the trial.
+ */
+export const reliabilityEstimateSchema = z.object({
+	value: z.number(),
+	interval: z.tuple([z.number(), z.number()]),
+	method: z.string().min(1)
+});
+export type ReliabilityEstimate = z.infer<typeof reliabilityEstimateSchema>;
+
+/**
+ * **One campaign's reliability** (WP191): its cells grouped into items (the
+ * same case, performed again), and for each binary metric pass@1, pass@k,
+ * pass^k and consistency; across trials, how often the first call and the
+ * first words repeated at the first tick (the prompt was identical, so the
+ * difference is the model's own) and how soon, and how far, the paths forked.
+ */
+export const reliabilityRecordSchema = z.object({
+	campaignId: z.string().min(1),
+	/** Trials the design asked of each item; items with fewer than `k` are left out and counted. */
+	trials: z.number().int().positive(),
+	k: z.number().int().positive(),
+	items: z.number().int().nonnegative(),
+	skipped: z.number().int().nonnegative(),
+	metrics: z.array(
+		z.object({
+			metricId: z.string().min(1),
+			pass1: reliabilityEstimateSchema,
+			passAtK: reliabilityEstimateSchema,
+			passHatK: reliabilityEstimateSchema,
+			consistency: reliabilityEstimateSchema
+		})
+	),
+	firstTick: z
+		.object({
+			/** Pairs of trials compared, over all items. */
+			pairs: z.number().int().nonnegative(),
+			sameCall: reliabilityEstimateSchema,
+			sameWords: reliabilityEstimateSchema
+		})
+		.optional(),
+	divergence: z
+		.object({
+			/** The share of items whose trials all took the same path. */
+			identicalPaths: reliabilityEstimateSchema,
+			/** The median tick at which two diverging trials first differed; null when none diverged. */
+			medianFirstDivergence: z.number().nullable(),
+			/** The mean edit distance between two trials' action sequences, over every pair. */
+			meanPathDistance: z.number().nonnegative()
+		})
+		.optional()
+});
+export type ReliabilityRecord = z.infer<typeof reliabilityRecordSchema>;
+
 export const effectRecordSchema = z.object({
 	experimentId: z.string().min(1),
 	metricId: z.string().min(1),
@@ -88,6 +144,17 @@ export const effectRecordSchema = z.object({
 		/** WP172: the model's cost and the person's folded into one bill per case, in pounds at the stated rates; absent when the analysis was given none. */
 		bill: z.object({ baseline: billSchema, treatment: billSchema }).optional()
 	}),
+	/**
+	 * WP191: for a rate metric over cells performed more than once, each side's pass^k (every k trials of an item pass) beside
+	 * the effect on the rate — a control must hold every time. Absent at one trial per item.
+	 */
+	reliability: z
+		.object({
+			k: z.number().int().positive(),
+			baseline: reliabilityEstimateSchema,
+			treatment: reliabilityEstimateSchema
+		})
+		.optional(),
 	runIds: z.array(z.string()),
 	reportIds: z.array(z.string())
 });
@@ -118,6 +185,8 @@ const resultBody = {
 	/** The campaign ids the design expanded to, in order — what `reportIds` refer to. */
 	campaignIds: z.array(z.string()),
 	effects: z.array(effectRecordSchema),
+	/** WP191: each campaign's reliability over trials; absent when no cell was performed more than once. */
+	reliability: z.array(reliabilityRecordSchema).optional(),
 	verdict: experimentVerdictSchema,
 	/** The power note and anything the analysis had to say. */
 	note: z.string()

@@ -115,3 +115,19 @@ export {
 	type ReliabilityBin
 } from './calibration.js';
 export { cohensKappa, type KappaResult } from './agreement.js';
+export {
+	bootstrapMeanInterval,
+	choose,
+	firstDivergence,
+	firstTickAgreement,
+	itemEstimate,
+	itemReliability,
+	passAtK,
+	passHatK,
+	pathDistance,
+	type Estimate,
+	type FirstTick,
+	type ReliabilityOptions,
+	type ReliabilityResult,
+	type TrialItem
+} from './reliability.js';

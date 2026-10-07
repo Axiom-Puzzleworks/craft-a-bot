@@ -669,3 +669,153 @@ describe('the bill (WP172)', () => {
 		expect(billRatesFrom([])).toBeUndefined();
 	});
 });
+
+describe('trials and reliability (WP191, `113-RECORDING-AND-RELIABILITY.md` §4.6–§4.7)', () => {
+	const baseId = campaignIdFor('lending-stack', { guard: 'none' });
+	const treatId = campaignIdFor('lending-stack', { guard: 'stack' });
+	const ranAt = '2026-10-07T10:00:00.000Z';
+
+	/** `items` cases, each performed `trials` times; item i's trial t is a hit when `hit(i, t)`. */
+	const performed = (
+		guard: string,
+		items: number,
+		trials: number,
+		hit: (item: number, trial: number) => boolean
+	): CampaignCell[] =>
+		Array.from({ length: items }, (_, i) =>
+			Array.from({ length: trials }, (_, t) =>
+				cell({
+					guard,
+					seed: 1,
+					trial: t,
+					item: { id: `item-${i}`, kind: 'loan-application', customerId: `c-${i}` },
+					outcome: hit(i, t) ? 'SUCCESS' : 'STOPPED_BY_GUARDRAIL',
+					path: {
+						first: { call: `call-${hit(i, t) ? 'a' : 'b'}`, words: `words-${t}` },
+						calls: hit(i, t) ? ['a', 'b'] : ['a', 'c', 'd']
+					}
+				})
+			)
+		).flat();
+
+	const withSuccess = (): Experiment =>
+		parseExperiment({
+			...design(),
+			design: {
+				...design().design,
+				trials: 2,
+				metrics: [
+					{
+						kind: 'outcome-rate',
+						id: 'success',
+						outcome: 'SUCCESS',
+						direction: 'higher-is-better'
+					}
+				]
+			}
+		});
+
+	it('expands a design that asks for trials to a campaign that does, and one that does not to the campaign it always was', () => {
+		const once = expandExperiment(design()).campaigns[0]!;
+		const twice = expandExperiment(withSuccess()).campaigns[0]!;
+		expect('trials' in once).toBe(false);
+		expect(twice.trials).toBe(2);
+	});
+
+	it('takes the item as the unit: two trials of 40 items are 40 observations, not 80', () => {
+		const experiment = expandExperiment(withSuccess()).experiment;
+		// 40 items; the control stack makes half of them reliable and the rest never pass.
+		const result = analyseExperiment(
+			experiment,
+			[
+				report(
+					baseId,
+					performed('none', 40, 2, (i) => i < 10)
+				),
+				report(
+					treatId,
+					performed('stack', 40, 2, (i) => i < 20)
+				)
+			],
+			{ ranAt }
+		);
+		const effect = result.effects[0]!;
+		expect(effect.baseline.n).toBe(40);
+		expect(effect.treatment.n).toBe(40);
+		expect(effect.baseline.value).toBeCloseTo(0.25, 10);
+		expect(effect.treatment.value).toBeCloseTo(0.5, 10);
+		expect(effect.delta).toBeCloseTo(0.25, 10);
+		expect(effect.method).toContain('over items');
+		expect(effect.method).toContain('2 trials each');
+		// The effect carries each side's pass^k: every two performances of an item pass.
+		expect(effect.reliability?.k).toBe(2);
+		expect(effect.reliability?.baseline.value).toBeCloseTo(0.25, 10);
+		expect(effect.reliability?.treatment.value).toBeCloseTo(0.5, 10);
+		expect(parseExperimentResult(result).effects[0]!.reliability?.k).toBe(2);
+	});
+
+	it('gives pass@1, pass@2, pass^2, consistency, first-tick agreement and divergence, by hand', () => {
+		const experiment = expandExperiment(withSuccess()).experiment;
+		// Four items, two trials: item 0 passes both; item 1 fails both; items 2 and 3 pass once.
+		const hit = (item: number, trial: number) =>
+			item === 0 ? true : item === 1 ? false : trial === 0;
+		const result = analyseExperiment(
+			experiment,
+			[
+				report(baseId, performed('none', 4, 2, hit)),
+				report(treatId, performed('stack', 4, 2, hit))
+			],
+			{ ranAt }
+		);
+		const record = result.reliability!.find((held) => held.campaignId === baseId)!;
+		expect(record).toMatchObject({ items: 4, trials: 2, k: 2, skipped: 0 });
+		const metric = record.metrics[0]!;
+		expect(metric.metricId).toBe('success');
+		expect(metric.pass1.value).toBeCloseTo((1 + 0 + 0.5 + 0.5) / 4, 10);
+		expect(metric.passAtK.value).toBeCloseTo(3 / 4, 10);
+		expect(metric.passHatK.value).toBeCloseTo(1 / 4, 10);
+		expect(metric.consistency.value).toBeCloseTo(2 / 4, 10);
+		// First tick: the call repeats in the items whose two trials agree on outcome (items 0 and 1), differs in 2 and 3; the words never repeat.
+		expect(record.firstTick?.pairs).toBe(4);
+		expect(record.firstTick?.sameCall.value).toBeCloseTo(2 / 4, 10);
+		expect(record.firstTick?.sameWords.value).toBe(0);
+		// Paths: items 0 and 1 repeat; 2 and 3 fork at the second call ('b' against 'c'), three edits' apart ([a,b] against [a,c,d] is two).
+		expect(record.divergence?.identicalPaths.value).toBeCloseTo(2 / 4, 10);
+		expect(record.divergence?.medianFirstDivergence).toBe(1);
+		expect(record.divergence?.meanPathDistance).toBeCloseTo((0 + 0 + 2 + 2) / 4, 10);
+		expect(renderExperimentMarkdown(result)).toContain('## Reliability over trials');
+	});
+
+	it('is exactly as it was at one trial: no trial on a cell, no reliability, no reliability on an effect', () => {
+		const experiment = expandExperiment(design()).experiment;
+		const result = analyseExperiment(
+			experiment,
+			[report(baseId, side(11, 60, 0.3, 'none')), report(treatId, side(12, 60, 0.24, 'stack'))],
+			{ ranAt }
+		);
+		expect(result.reliability).toBeUndefined();
+		expect(result.effects.every((effect) => effect.reliability === undefined)).toBe(true);
+		expect(renderExperimentMarkdown(result)).not.toContain('Reliability over trials');
+	});
+
+	it('leaves an item with fewer than k trials out and says so', () => {
+		const experiment = expandExperiment(withSuccess()).experiment;
+		const cells = performed('none', 3, 2, () => true);
+		// One item lost a trial.
+		const short = cells.filter((held) => !(held.item?.id === 'item-2' && held.trial === 1));
+		const result = analyseExperiment(
+			experiment,
+			[
+				report(baseId, short),
+				report(
+					treatId,
+					performed('stack', 3, 2, () => true)
+				)
+			],
+			{ ranAt }
+		);
+		const record = result.reliability!.find((held) => held.campaignId === baseId)!;
+		expect(record.items).toBe(2);
+		expect(record.skipped).toBe(1);
+	});
+});

@@ -16,7 +16,7 @@ import { dirname, join, resolve } from 'node:path';
 import { createRegistry, packVersions, type HarnessConfig } from '../config.js';
 import type { CredentialSource } from '../credentials.js';
 import { runCampaignFile } from './campaign.js';
-import { withPopulationSize } from './experiment.js';
+import { withPopulationSize, withTrials } from './experiment.js';
 
 /**
  * **`craftabot record --experiment <file> --provider <id|mock>`** (WP114,
@@ -41,6 +41,13 @@ export interface RecordExperimentOptions {
 	credentials: CredentialSource;
 	/** A shape run: the design's book population at this size. */
 	size?: number;
+	/** How many times each cell is performed, over the design's own (WP191). */
+	trials?: number;
+	/**
+	 * Record only this trial (WP191) and append it to the recording already at the cassette path, so a design is
+	 * recorded in passes — trial 0 one night, trial 1 the next — and a later trial is added without redoing an earlier one.
+	 */
+	trial?: number;
 	/** Cells at once, in this process: a local provider (the Sparks) serves them concurrently. Absent, one at a time. */
 	concurrency?: number;
 	egress?: EgressMode;
@@ -61,9 +68,15 @@ export async function recordExperiment(
 	options: RecordExperimentOptions
 ): Promise<RecordExperimentReport> {
 	const designed = parseExperiment(JSON.parse(await readFile(options.file, 'utf8')));
+	const sized = options.size !== undefined ? withPopulationSize(designed, options.size) : designed;
 	const { experiment, campaigns } = expandExperiment(
-		options.size !== undefined ? withPopulationSize(designed, options.size) : designed
+		options.trials !== undefined ? withTrials(sized, options.trials) : sized
 	);
+	const trialCount = experiment.design.trials ?? 1;
+	if (options.trial !== undefined && (options.trial < 0 || options.trial >= trialCount))
+		throw new Error(
+			`--trial ${options.trial} is outside the ${trialCount} trial(s) this design asks for (0 to ${trialCount - 1}); give --trials`
+		);
 	const mode = options.provider === 'mock' ? 'mock' : 'live';
 	const registry = createRegistry(options.config);
 	// Every cassette brain's cartridge must be the provider asked for: a recording never quietly calls another.
@@ -108,6 +121,7 @@ export async function recordExperiment(
 			config: options.config,
 			credentials: options.credentials,
 			...(options.concurrency !== undefined ? { concurrency: options.concurrency } : {}),
+			...(options.trial !== undefined ? { onlyTrial: options.trial } : {}),
 			record: {
 				provider: mode,
 				recordings,
@@ -157,7 +171,7 @@ export async function recordExperiment(
 					sampling: [...seen.sampling.values()],
 					models: [...new Set(calls.map((call) => call.model))],
 					units: [...seen.units].sort(),
-					trials: 1,
+					trials: trialCount,
 					interventions: [...seen.interventions]
 				},
 				cells: recordedCells
@@ -172,7 +186,16 @@ export async function recordExperiment(
 		parseProviderRecording(recording);
 		const absolute = resolve(path);
 		await mkdir(dirname(absolute), { recursive: true });
-		await writeFile(absolute, `${JSON.stringify(recording, null, '\t')}\n`, 'utf8');
+		// A single trial joins the recording already at the path (WP191): the other trials stay as they were.
+		let toWrite: ProviderRecordingFile = recording;
+		if (options.trial !== undefined) {
+			const held = await readFile(absolute, 'utf8').then(
+				(text) => parseProviderRecording(JSON.parse(text)),
+				() => undefined
+			);
+			if (held) toWrite = mergeTrial(held, recording, options.trial, path);
+		}
+		await writeFile(absolute, `${JSON.stringify(toWrite, null, '\t')}\n`, 'utf8');
 		written.push({
 			path,
 			cells: recordedCells.length,
@@ -181,4 +204,41 @@ export async function recordExperiment(
 		});
 	}
 	return { experimentId: experiment.id, campaigns: campaigns.length, cells, cassettes: written };
+}
+
+/**
+ * **A trial joined to the recording that holds the others** (WP191): the existing cells of every other trial are kept, the
+ * new trial's cells replace any of its own, and the manifest is united. Refused when the design has moved since the
+ * recording began — a trial recorded from another design is not a trial of this one.
+ */
+export function mergeTrial(
+	held: ProviderRecordingFile,
+	fresh: ProviderRecordingFile,
+	trial: number,
+	path: string
+): ProviderRecordingFile {
+	const same =
+		JSON.stringify(Object.entries(held.manifest.campaignDigests).sort()) ===
+		JSON.stringify(Object.entries(fresh.manifest.campaignDigests).sort());
+	if (!same)
+		throw new Error(
+			`${path} was recorded from another design than this one (its campaigns' digests differ); record every trial of a design with the same file and --trials, or move the old recording aside`
+		);
+	const union = <T>(a: readonly T[], b: readonly T[]) => [
+		...new Map([...a, ...b].map((value) => [JSON.stringify(value), value])).values()
+	];
+	return {
+		...fresh,
+		manifest: {
+			...fresh.manifest,
+			models: union(held.manifest.models, fresh.manifest.models),
+			units: [...new Set([...held.manifest.units, ...fresh.manifest.units])].sort(),
+			sampling: union(held.manifest.sampling, fresh.manifest.sampling),
+			interventions: [
+				...new Set([...held.manifest.interventions, ...fresh.manifest.interventions])
+			],
+			trials: Math.max(held.manifest.trials, fresh.manifest.trials)
+		},
+		cells: [...held.cells.filter((cell) => cell.trial !== trial), ...fresh.cells]
+	};
 }

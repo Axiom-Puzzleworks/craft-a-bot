@@ -80,6 +80,8 @@ export interface CampaignFileOptions {
 	concurrency?: number;
 	/** Run the `index`-th of `of` slices only; the report says so, and `craftabot merge` folds slices back. */
 	shard?: { index: number; of: number };
+	/** Run only the cells of this trial (WP191): a design asking for trials is recorded in passes, one trial at a time. */
+	onlyTrial?: number;
 	/** Replace the file's seeds with `a..b` — a scale run as one flag on a baseline. */
 	seeds?: { from: number; to: number };
 	/** The config file and content directory the CLI resolved, so a worker builds the same registry (the config object itself cannot cross to a worker). */
@@ -259,6 +261,7 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 					? { concurrency: options.concurrency }
 					: {}),
 			...(options.shard ? { shard: options.shard } : {}),
+			...(options.onlyTrial !== undefined ? { onlyTrial: options.onlyTrial } : {}),
 			packVersions: versions,
 			providerFor: (brain, context) => {
 				const record = options.record;
@@ -417,7 +420,7 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 						context: cell.context,
 						item: cell.item?.id,
 						seed: cell.seed,
-						trial: 0
+						trial: cell.trial
 					});
 					const taped = held?.cells.get(key);
 					if (taped) {

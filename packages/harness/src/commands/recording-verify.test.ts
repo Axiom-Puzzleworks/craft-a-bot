@@ -2,7 +2,7 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { parseProviderRecording, type ProviderRecordingFile } from '@craftabot/core';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { defaultConfig } from '../config.js';
 import { credentialsFromEnv } from '../credentials.js';
 import { recordExperiment } from './record-provider.js';
@@ -16,6 +16,9 @@ import { recordingVerify } from './recording.js';
  * run's own store digesting to the same. Then four ways of breaking it, each
  * named: a moved prompt, a moved path, a cell lost, a call left unasked.
  */
+// Recording a design runs in the hooks too, and under a loaded machine (the full suite) that outlasts the default.
+vi.setConfig({ hookTimeout: 600_000, testTimeout: 600_000 });
+
 const ROOT = resolve(import.meta.dirname, '../../../..');
 const roots: string[] = [];
 afterAll(async () => {
@@ -155,5 +158,115 @@ describe('recording verify (WP190)', { timeout: 600_000 }, () => {
 				await write(original);
 			}
 		}
+	});
+});
+
+describe('a design performed more than once (WP191)', { timeout: 600_000 }, () => {
+	let root: string;
+	let design: unknown;
+
+	const designFile = async (name: string, cassette: string) => {
+		const body = structuredClone(design) as {
+			design: { template: { brains: unknown[] } };
+		};
+		body.design.template.brains = [{ id: 'live', tier: 'live', cassette }];
+		const file = join(root, `${name}.json`);
+		await writeFile(file, JSON.stringify(body), 'utf8');
+		return file;
+	};
+	const record = async (
+		file: string,
+		extra: { trials?: number; trial?: number; size?: number },
+		out: string
+	) =>
+		recordExperiment({
+			file,
+			provider: 'mock',
+			out: join(root, out),
+			config: defaultConfig(),
+			credentials: credentialsFromEnv({}),
+			size: extra.size ?? 60,
+			...(extra.trials !== undefined ? { trials: extra.trials } : {}),
+			...(extra.trial !== undefined ? { trial: extra.trial } : {}),
+			now: fixedNow(),
+			newId: fixedIds(),
+			clock: () => 0
+		});
+	const read = async (path: string) =>
+		parseProviderRecording(JSON.parse(await readFile(path, 'utf8')));
+
+	beforeAll(async () => {
+		root = await mkdtemp(join(tmpdir(), 'craftabot-trials-'));
+		roots.push(root);
+		const base = JSON.parse(
+			await readFile(join(ROOT, 'experiments', 'lending-stack.json'), 'utf8')
+		) as { design: { factors: Array<{ axis: string }>; baseline: Record<string, string> } };
+		base.design.factors = base.design.factors.filter((factor) => factor.axis !== 'brain');
+		delete base.design.baseline['brain'];
+		design = base;
+	});
+
+	it('records each cell once per trial, each its own cell with its own calls, and verifies', async () => {
+		const once = join(root, 'once.provider-cassette.json');
+		const first = await record(await designFile('once', once), {}, 'once-out');
+		const twice = join(root, 'twice.provider-cassette.json');
+		const file = await designFile('twice', twice);
+		const recorded = await record(file, { trials: 2 }, 'twice-out');
+		const single = await read(once);
+		const double = await read(twice);
+		expect(double.manifest.trials).toBe(2);
+		expect(double.cells.length).toBe(single.cells.length * 2);
+		expect(new Set(double.cells.map((cell) => cell.cellKey)).size).toBe(double.cells.length);
+		expect(new Set(double.cells.map((cell) => cell.trial))).toEqual(new Set([0, 1]));
+		expect(double.cells.every((cell) => cell.cellKey.endsWith(`|${cell.trial}`))).toBe(true);
+		expect(recorded.cells).toBe(first.cells * 2);
+		const report = await recordingVerify({
+			recording: twice,
+			file,
+			out: join(root, 'twice-verify'),
+			config: defaultConfig(),
+			credentials: credentialsFromEnv({}),
+			size: 60,
+			// The design's trials are part of what ran: each cell's ordinal, and so its ids and its draws, depend on them.
+			trials: 2,
+			liveStore: join(root, 'twice-out'),
+			now: fixedNow(),
+			newId: fixedIds()
+		});
+		expect(report).toMatchObject({ ok: true, replayedCells: double.cells.length, mismatch: [] });
+		expect(report.liveChecked).toBe(double.cells.length);
+	});
+
+	it('records a design in passes — one trial, then the next — into the same recording, to the same cells', async () => {
+		const together = join(root, 'together.provider-cassette.json');
+		await record(await designFile('together', together), { trials: 2 }, 'together-out');
+		const passes = join(root, 'passes.provider-cassette.json');
+		const file = await designFile('passes', passes);
+		await record(file, { trials: 2, trial: 0 }, 'passes-0');
+		const afterFirst = await read(passes);
+		expect(afterFirst.cells.every((cell) => cell.trial === 0)).toBe(true);
+		await record(file, { trials: 2, trial: 1 }, 'passes-1');
+		const joined = await read(passes);
+		const whole = await read(together);
+		expect(joined.manifest.trials).toBe(2);
+		const byKey = (recording: typeof joined) =>
+			Object.fromEntries(recording.cells.map((cell) => [cell.cellKey, cell.calls]));
+		expect(byKey(joined)).toEqual(byKey(whole));
+		// Recording a trial again replaces it rather than doubling it.
+		await record(file, { trials: 2, trial: 1 }, 'passes-1-again');
+		expect((await read(passes)).cells.length).toBe(whole.cells.length);
+	});
+
+	it('refuses to add a trial recorded from another design, and a trial the design does not ask for', async () => {
+		const target = join(root, 'refused.provider-cassette.json');
+		const file = await designFile('refused', target);
+		await record(file, { trials: 2, trial: 0 }, 'refused-0');
+		// Another population size is another design: its campaigns' digests differ.
+		await expect(record(file, { trials: 2, trial: 1, size: 40 }, 'refused-1')).rejects.toThrow(
+			/another design/
+		);
+		await expect(record(file, { trials: 2, trial: 2 }, 'refused-2')).rejects.toThrow(
+			/outside the 2 trial/
+		);
 	});
 });

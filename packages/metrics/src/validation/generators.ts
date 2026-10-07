@@ -241,3 +241,28 @@ export function labelPairs(
 	}
 	return { first, second };
 }
+
+/**
+ * Items for reliability (WP191): each item has its own chance of passing,
+ * uniform on [centre − spread, centre + spread] (so the items differ, as
+ * cases do), and is performed `trials` times. Returns the passes per item.
+ */
+export function trialItems(
+	seed: number,
+	items: number,
+	trials: number,
+	centre: number,
+	spread: number
+): Array<{ passes: number; trials: number }> {
+	const random = mulberry32(seed);
+	return Array.from({ length: items }, () => {
+		const p = centre + (random() * 2 - 1) * spread;
+		let passes = 0;
+		for (let t = 0; t < trials; t += 1) if (random() < p) passes += 1;
+		return { passes, trials };
+	});
+}
+
+/** E[p^m] for p uniform on [a, b]: the truth the reliability rows plant. */
+export const uniformMoment = (a: number, b: number, m: number): number =>
+	(b ** (m + 1) - a ** (m + 1)) / ((m + 1) * (b - a));

@@ -799,9 +799,11 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 				const jobs = numberFlag(args, 'jobs');
 				const egress = egressFlag(args);
 				const size = numberFlag(args, 'size');
+				const trialsFlag = numberFlag(args, 'trials');
 				const ran = await experimentRun({
 					file,
 					out,
+					...(trialsFlag !== undefined ? { trials: trialsFlag } : {}),
 					config: await configFrom(args),
 					// The pool's workers load the same packs (WP119: the eighth reference experiment needs the typesafe pack).
 					...(typeof args.flags['config'] === 'string' ? { configPath: args.flags['config'] } : {}),
@@ -1113,6 +1115,8 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 							);
 						}
 					}
+					const trials = numberFlag(args, 'trials');
+					const trial = numberFlag(args, 'trial');
 					const recorded = await recordExperiment({
 						file: experimentFile,
 						provider,
@@ -1120,6 +1124,8 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 						config: await configFrom(args),
 						credentials: credentialsFromEnv(io.env),
 						...(size !== undefined ? { size } : {}),
+						...(trials !== undefined ? { trials } : {}),
+						...(trial !== undefined ? { trial } : {}),
 						...(concurrency !== undefined ? { concurrency } : {}),
 						...(egress !== undefined ? { egress } : {})
 					});
@@ -1527,6 +1533,7 @@ ${renderEvaluations(report)}`);
 						'recording needs verify --recording <file> --file <experiment.json> [--out <dir>] [--live-store <dir>] [--size <n>] [--config <file>]'
 					);
 				const size = numberFlag(args, 'size');
+				const trialsFlag = numberFlag(args, 'trials');
 				const liveStore = stringFlag(args, 'live-store');
 				const verified = await recordingVerify({
 					recording,
@@ -1536,6 +1543,7 @@ ${renderEvaluations(report)}`);
 					...(typeof args.flags['config'] === 'string' ? { configPath: args.flags['config'] } : {}),
 					credentials: credentialsFor(io),
 					...(size !== undefined ? { size } : {}),
+					...(trialsFlag !== undefined ? { trials: trialsFlag } : {}),
 					...(liveStore !== undefined ? { liveStore } : {})
 				});
 				io.stdout(renderRecordingVerify(verified));

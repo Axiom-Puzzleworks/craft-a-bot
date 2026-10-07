@@ -52,3 +52,11 @@
 | Metric | Definition | Interval | Test | Hand case (expected / got) | Planted (planted / recovered / tolerance) | Null (alarm · rate / bound) |
 | --- | --- | --- | --- | --- | --- | --- |
 | `cohens-kappa` | (p_o − p_e) / (1 − p_e): agreement beyond what the two labellers’ frequencies give by chance | large-sample normal | none | 0.5 / 0.5 ✅ | 0.8 / 0.787 / ±0.03 (interval contains it) ✅ | the 95% interval excludes 0 between two independent labellers · 0.04 / 0.0896 ✅ |
+
+## Reliability
+
+| Metric | Definition | Interval | Test | Hand case (expected / got) | Planted (planted / recovered / tolerance) | Null (alarm · rate / bound) |
+| --- | --- | --- | --- | --- | --- | --- |
+| `pass-at-k` | per item 1 − C(n−c, k) / C(n, k) over its n trials (some k of them pass); the mean over items | Wilson over items when every item reads 0 or 1, else a seeded percentile bootstrap over items | none | 0.5 / 0.5 ✅ | 0.8266666666666668 / 0.8302 / ±0.03 (interval contains it) ✅ | the 95% interval misses the true pass@2 · 0.06 / 0.0896 ✅ |
+| `pass-hat-k` | per item C(c, k) / C(n, k) over its n trials (every k of them pass); the mean over items — a control must hold every time | Wilson over items when every item reads 0 or 1, else a seeded percentile bootstrap over items | none | 0.5 / 0.5 ✅ | 0.3733333333333334 / 0.3815 / ±0.03 (interval contains it) ✅ | the 95% interval misses the true pass^2 · 0.04 / 0.0896 ✅ |
+| `consistency` | the share of items whose n trials all reached the same outcome | Wilson over items when every item reads 0 or 1, else a seeded percentile bootstrap over items | none | 0.5 / 0.5 ✅ | 0.31999999999999984 / 0.327 / ±0.03 (interval contains it) ✅ | the 95% interval misses the true consistency · 0.035 / 0.0896 ✅ |

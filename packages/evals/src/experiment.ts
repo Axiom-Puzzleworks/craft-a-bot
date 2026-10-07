@@ -1,4 +1,10 @@
-import { calibrationRow, type Bill, type CalibrationTable, type Stack } from '@craftabot/core';
+import {
+	calibrationRow,
+	type Bill,
+	type CalibrationTable,
+	type ReliabilityRecord,
+	type Stack
+} from '@craftabot/core';
 import { z } from 'zod';
 import {
 	CONTEXT_LEVELS,
@@ -14,7 +20,11 @@ import {
 } from '@craftabot/core';
 import {
 	fairnessMetric,
+	firstDivergence,
+	itemEstimate,
+	itemReliability,
 	newcombe,
+	pathDistance,
 	signTest,
 	summarise,
 	twoProportionZ,
@@ -142,6 +152,12 @@ export const experimentSchema = z
 			metrics: z.array(experimentMetricSchema).min(1),
 			seeds: z.array(z.number().int()).min(1),
 			replicates: z.number().int().positive().default(1),
+			/**
+			 * WP191 (`113-RECORDING-AND-RELIABILITY.md` §4.6): how many times each cell is performed — the same item, seed and build
+			 * with fresh model draws. Not `replicates`, which is a new seed (a different case). Absent is once, and every result
+			 * is as it was; above one, the analysis takes the item as its unit and a reliability pane is written.
+			 */
+			trials: z.number().int().positive().optional(),
 			confidence: z.number().gt(0).lt(1).default(0.95),
 			/** For the power note: the smallest effect the design meant to see. */
 			minimumDetectableEffect: z.number().positive().optional()
@@ -286,6 +302,7 @@ export function campaignFor(experiment: Experiment, combination: LevelCombinatio
 		brains,
 		...(contexts ? { contexts } : {}),
 		seeds,
+		...((experiment.design.trials ?? 1) > 1 ? { trials: experiment.design.trials } : {}),
 		gates: [
 			{
 				id: 'a-measurement-not-a-judgment',
@@ -313,6 +330,40 @@ const EVENT_FLOOR = 5;
 /** A cell's twin on the other side: the same work, the same seed, the same rung. */
 const pairKey = (cell: CampaignCell): string =>
 	`${cell.item?.id ?? cell.scenario}:${cell.seed}:${cell.context ?? ''}`;
+
+/** The inputs of a cell without its trial: what makes two cells performances of one item. */
+const clusterKey = (cell: CampaignCell): string =>
+	[
+		cell.scenario,
+		cell.build,
+		cell.guard,
+		cell.brain,
+		cell.context ?? '',
+		cell.item?.id ?? '',
+		cell.seed
+	].join('|');
+
+/** Whether any cell was one of several performances of its inputs (the campaign asked for `trials`). */
+const hasTrials = (cells: readonly CampaignCell[]): boolean =>
+	cells.some((cell) => cell.trial !== undefined);
+
+/**
+ * **The item as the unit** (WP191): one reading per item — the mean over its trials — in place of one per cell, so `k`
+ * trials of a case are one observation of how that case goes and do not inflate `n`. Returns its input when no cell
+ * carries a trial, so every earlier result is exactly as it was.
+ */
+function byItem<T extends { cell: CampaignCell; value: number }>(entries: readonly T[]): T[] {
+	if (!hasTrials(entries.map((entry) => entry.cell))) return [...entries];
+	const groups = new Map<string, T[]>();
+	for (const entry of entries) {
+		const key = clusterKey(entry.cell);
+		groups.set(key, [...(groups.get(key) ?? []), entry]);
+	}
+	return [...groups.values()].map((group) => ({
+		...group[0]!,
+		value: group.reduce((sum, entry) => sum + entry.value, 0) / group.length
+	}));
+}
 
 /** A binary reading per cell for a rate metric, or `undefined` when the cell was not judged. */
 function binaryOf(metric: ExperimentMetric, cell: CampaignCell): boolean | undefined {
@@ -410,12 +461,74 @@ interface Difference {
 	underpowered: boolean;
 }
 
+/**
+ * **A difference of rates over items** (WP191): each item's reading is its pass fraction over its trials; each side's
+ * value is the mean over items, its interval over items (Wilson when every item reads 0 or 1, else a seeded bootstrap);
+ * the difference's interval is Welch over item readings; the test is the sign test over the paired items whose
+ * readings differ. The trials are in the readings, not the `n`.
+ */
+function clusteredRateDifference(
+	metric: ExperimentMetric,
+	baseline: readonly CampaignCell[],
+	treatment: readonly CampaignCell[],
+	confidence: number
+): Difference {
+	const judged = (cells: readonly CampaignCell[]) =>
+		byItem(
+			cells.flatMap((cell) => {
+				const reading = binaryOf(metric, cell);
+				return reading === undefined ? [] : [{ cell, value: reading ? 1 : 0 }];
+			})
+		);
+	const b = judged(baseline);
+	const t = judged(treatment);
+	const bv = b.map((entry) => entry.value);
+	const tv = t.map((entry) => entry.value);
+	const w = welch(tv, bv, confidence);
+	const byKey = new Map(b.map((entry) => [pairKey(entry.cell), entry.value]));
+	let paired = 0;
+	let differing = 0;
+	let up = 0;
+	for (const entry of t) {
+		const twin = byKey.get(pairKey(entry.cell));
+		if (twin === undefined) continue;
+		paired += 1;
+		if (entry.value !== twin) {
+			differing += 1;
+			if (entry.value > twin) up += 1;
+		}
+	}
+	const side = (values: readonly number[]): EffectRecord['baseline'] => {
+		const estimate = itemEstimate(values, { confidence });
+		return { value: estimate.value, n: values.length, interval: estimate.interval };
+	};
+	const trialsPerItem = Math.max(
+		1,
+		...[...baseline, ...treatment].map((cell) => (cell.trial ?? 0) + 1)
+	);
+	const cappedInterval: [number, number] = [
+		Math.max(-1, w.interval[0]),
+		Math.min(1, w.interval[1])
+	];
+	return {
+		baseline: side(bv),
+		treatment: side(tv),
+		delta: w.delta,
+		interval: cappedInterval,
+		...(paired > 0 ? { p: signTest(up, differing).p } : {}),
+		method: `difference of rates over items (${trialsPerItem} trials each, the item the unit), Welch interval at ${Math.round(confidence * 100)}%${paired > 0 ? `; sign test over ${differing} differing of ${paired} paired items` : ''}`,
+		underpowered: bv.length < POWER_FLOOR || tv.length < POWER_FLOOR
+	};
+}
+
 function rateDifference(
 	metric: ExperimentMetric,
 	baseline: readonly CampaignCell[],
 	treatment: readonly CampaignCell[],
 	confidence: number
 ): Difference {
+	if (hasTrials(baseline) || hasTrials(treatment))
+		return clusteredRateDifference(metric, baseline, treatment, confidence);
 	const judged = (cells: readonly CampaignCell[]) =>
 		cells.flatMap((cell) => {
 			const reading = binaryOf(metric, cell);
@@ -482,8 +595,8 @@ function meanDifference(
 			const value = valueOf(metric, cell);
 			return value === undefined ? [] : [{ cell, value }];
 		});
-	const b = valued(baseline);
-	const t = valued(treatment);
+	const b = byItem(valued(baseline));
+	const t = byItem(valued(treatment));
 	const bv = b.map((entry) => entry.value);
 	const tv = t.map((entry) => entry.value);
 	const w = welch(tv, bv, confidence);
@@ -744,6 +857,147 @@ export function billOf(cells: readonly CampaignCell[], rates: BillRates): Bill {
 }
 
 /** The reports folded into effects: for each metric and each factor, every treatment level against the baseline with the other axes at baseline. */
+/** The binary metrics of a design: those a cell passes or fails. */
+const binaryMetrics = (experiment: Experiment): ExperimentMetric[] =>
+	experiment.design.metrics.filter(
+		(metric) =>
+			metric.kind === 'outcome-rate' ||
+			metric.kind === 'evaluator-pass-rate' ||
+			metric.kind === 'assertion-pass-rate' ||
+			metric.kind === 'label-rate'
+	);
+
+/** The `k` of pass@k and pass^k for a design: the trials asked of each item, at most three (`113-…` D2). */
+const reliabilityK = (trials: number): number => Math.min(Math.max(trials, 1), 3);
+
+/** Cells grouped into items: the performances of one case. */
+function itemsOf(cells: readonly CampaignCell[]): CampaignCell[][] {
+	const groups = new Map<string, CampaignCell[]>();
+	for (const cell of cells) {
+		const key = clusterKey(cell);
+		groups.set(key, [...(groups.get(key) ?? []), cell]);
+	}
+	return [...groups.values()];
+}
+
+/**
+ * **One campaign's reliability** (WP191, `113-RECORDING-AND-RELIABILITY.md` §4.7): pass@1, pass@k, pass^k and consistency
+ * for each binary metric, with intervals over items; across each item's trials, how often the first call and the first
+ * words repeated (the prompt at the first tick was the same, so a difference is the model's own) and how soon and how far
+ * the paths forked. `undefined` when no cell was performed more than once.
+ */
+export function reliabilityOf(
+	experiment: Experiment,
+	report: CampaignReport
+): ReliabilityRecord | undefined {
+	if (!hasTrials(report.cells)) return undefined;
+	const confidence = experiment.design.confidence;
+	const items = itemsOf(report.cells);
+	const trials = Math.max(experiment.design.trials ?? 1, ...items.map((item) => item.length));
+	const k = reliabilityK(trials);
+	let counted = 0;
+	let skipped = 0;
+	const metrics = binaryMetrics(experiment).map((metric) => {
+		const per = items.map((item) => {
+			const readings = item.flatMap((cell) => {
+				const reading = binaryOf(metric, cell);
+				return reading === undefined ? [] : [reading];
+			});
+			return { passes: readings.filter(Boolean).length, trials: readings.length };
+		});
+		const result = itemReliability(per, k, { confidence });
+		counted = result.items;
+		skipped = result.skipped;
+		return {
+			metricId: metric.id,
+			pass1: result.pass1,
+			passAtK: result.passAtK,
+			passHatK: result.passHatK,
+			consistency: result.consistency
+		};
+	});
+
+	// First tick and divergence, over every pair of trials of an item.
+	const sameCall: number[] = [];
+	const sameWords: number[] = [];
+	const identical: number[] = [];
+	const firsts: number[] = [];
+	const distances: number[] = [];
+	let pairs = 0;
+	for (const item of items) {
+		const paths = item.flatMap((cell) => (cell.path ? [cell.path] : []));
+		if (paths.length < 2) continue;
+		let itemSameCall = 0;
+		let itemSameWords = 0;
+		let itemPairs = 0;
+		let allSame = true;
+		for (let i = 0; i < paths.length; i += 1)
+			for (let j = i + 1; j < paths.length; j += 1) {
+				itemPairs += 1;
+				if (paths[i]!.first?.call === paths[j]!.first?.call) itemSameCall += 1;
+				if (paths[i]!.first?.words === paths[j]!.first?.words) itemSameWords += 1;
+				const forked = firstDivergence(paths[i]!.calls, paths[j]!.calls);
+				if (forked !== undefined) {
+					allSame = false;
+					firsts.push(forked);
+				}
+				distances.push(pathDistance(paths[i]!.calls, paths[j]!.calls));
+			}
+		pairs += itemPairs;
+		sameCall.push(itemSameCall / itemPairs);
+		sameWords.push(itemSameWords / itemPairs);
+		identical.push(allSame ? 1 : 0);
+	}
+	const median = (values: number[]): number | null => {
+		if (values.length === 0) return null;
+		const sorted = [...values].sort((a, b) => a - b);
+		const mid = Math.floor(sorted.length / 2);
+		return sorted.length % 2 === 1 ? sorted[mid]! : (sorted[mid - 1]! + sorted[mid]!) / 2;
+	};
+	return {
+		campaignId: report.campaignId,
+		trials,
+		k,
+		items: counted,
+		skipped,
+		metrics,
+		...(pairs > 0
+			? {
+					firstTick: {
+						pairs,
+						sameCall: itemEstimate(sameCall, { confidence }),
+						sameWords: itemEstimate(sameWords, { confidence })
+					},
+					divergence: {
+						identicalPaths: itemEstimate(identical, { confidence }),
+						medianFirstDivergence: median(firsts),
+						meanPathDistance: distances.length === 0 ? 0 : mean(distances)
+					}
+				}
+			: {})
+	};
+}
+
+/** One side's pass^k for a binary metric, for the effect that carries it. */
+function sideReliability(
+	metric: ExperimentMetric,
+	cells: readonly CampaignCell[],
+	experiment: Experiment
+): ReturnType<typeof itemReliability>['passHatK'] | undefined {
+	if (!hasTrials(cells) || !binaryMetrics(experiment).some((held) => held.id === metric.id))
+		return undefined;
+	const trials = Math.max(experiment.design.trials ?? 1, ...itemsOf(cells).map((i) => i.length));
+	const per = itemsOf(cells).map((item) => {
+		const readings = item.flatMap((cell) => {
+			const reading = binaryOf(metric, cell);
+			return reading === undefined ? [] : [reading];
+		});
+		return { passes: readings.filter(Boolean).length, trials: readings.length };
+	});
+	return itemReliability(per, reliabilityK(trials), { confidence: experiment.design.confidence })
+		.passHatK;
+}
+
 export function analyseExperiment(
 	experiment: Experiment,
 	reports: readonly CampaignReport[],
@@ -858,6 +1112,17 @@ export function analyseExperiment(
 							: {}),
 						...(slices ? { slices } : {}),
 						cost: costOf(baselineReport.cells, treatmentReport.cells, options.bill),
+						...(() => {
+							const b = sideReliability(metric, baselineReport.cells, experiment);
+							const t = sideReliability(metric, treatmentReport.cells, experiment);
+							const trials = Math.max(
+								experiment.design.trials ?? 1,
+								...itemsOf(baselineReport.cells).map((item) => item.length)
+							);
+							return b && t
+								? { reliability: { k: reliabilityK(trials), baseline: b, treatment: t } }
+								: {};
+						})(),
 						runIds: [...baselineReport.cells, ...treatmentReport.cells].flatMap((cell) =>
 							cell.runId ? [cell.runId] : []
 						),
@@ -894,6 +1159,13 @@ export function analyseExperiment(
 		...(design.template.source ? { workflowIds: [design.template.source.workflowId] } : {}),
 		campaignIds: experiment.campaigns.length > 0 ? [...experiment.campaigns] : [...byId.keys()],
 		effects,
+		...(() => {
+			const reliability = reports.flatMap((report) => {
+				const held = reliabilityOf(experiment, report);
+				return held ? [held] : [];
+			});
+			return reliability.length > 0 ? { reliability } : {};
+		})(),
 		verdict,
 		note: notes.join('; ')
 	};
@@ -936,9 +1208,46 @@ export function renderExperimentMarkdown(result: ExperimentResult): string {
 		const first = result.effects.find((entry) => entry.metricId === metricId);
 		if (first) lines.push(`Method: ${first.method}.`, '');
 	}
+	lines.push(...reliabilityLines(result));
 	lines.push(...billLines(result));
 	lines.push(`Digest \`${result.digest}\`.`, '');
 	return lines.join('\n');
+}
+
+/** Reliability over trials, one table per campaign that was performed more than once (WP191); nothing otherwise. */
+function reliabilityLines(result: ExperimentResult): string[] {
+	if (!result.reliability || result.reliability.length === 0) return [];
+	const pc = (value: number) => `${(value * 100).toFixed(0)}%`;
+	const est = (e: { value: number; interval: [number, number] }) =>
+		`${pc(e.value)} (${pc(e.interval[0])}–${pc(e.interval[1])})`;
+	const lines = [
+		'## Reliability over trials',
+		'',
+		'Each item is a case performed more than once with fresh model draws; every figure is over items, never trials, so repeating a case does not inflate *n*. **pass^k** (every k performances pass) is the reliability figure for a control; **pass@k** (some performance passes) is capability.',
+		''
+	];
+	for (const record of result.reliability) {
+		lines.push(
+			`### ${record.campaignId}`,
+			'',
+			`${record.items} items, ${record.trials} trials each, k = ${record.k}${record.skipped > 0 ? `; ${record.skipped} items had fewer than k trials and are left out` : ''}.`,
+			'',
+			'| Metric | pass@1 | pass@k | pass^k | Consistency |',
+			'|---|---|---|---|---|'
+		);
+		for (const metric of record.metrics)
+			lines.push(
+				`| ${metric.metricId} | ${est(metric.pass1)} | ${est(metric.passAtK)} | ${est(metric.passHatK)} | ${est(metric.consistency)} |`
+			);
+		lines.push('');
+		if (record.firstTick && record.divergence) {
+			lines.push(
+				`At the first tick the prompt was identical across trials, so a difference is the model's own: the same call in ${est(record.firstTick.sameCall)} of ${record.firstTick.pairs} pairs, the same words in ${est(record.firstTick.sameWords)}. Over the whole journey ${est(record.divergence.identicalPaths)} of items took one path in every trial; where trials forked, the median first difference was at call ${record.divergence.medianFirstDivergence ?? '—'}, and two trials' action sequences were ${record.divergence.meanPathDistance.toFixed(1)} edits apart on average.`,
+				''
+			);
+		}
+	}
+	return lines;
 }
 
 /** The bill per case as a table, one row per distinct effect (WP172); nothing when the analysis priced nothing. */

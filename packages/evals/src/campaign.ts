@@ -599,6 +599,12 @@ export const campaignObjectSchema = z.object({
 	 */
 	reviewer: z.string().min(1).optional(),
 	seeds: z.array(z.number().int()).min(1),
+	/**
+	 * How many times each cell is performed (WP191, `113-RECORDING-AND-RELIABILITY.md` §4.6): the same item, seed and build
+	 * with fresh model draws, each a cell of its own with a `trial` from 0. Absent is once, and the campaign and its
+	 * report are exactly as they were.
+	 */
+	trials: z.number().int().positive().optional(),
 	noise: noiseRatesSchema.partial().optional(),
 	assertionCards: z.array(assertionCardSchema).default([]),
 	/** Sinks every cell's finished trace is exported to (WP47, `35-…` §4.5): by sink id, with the sink's own config. The harness resolves them; the app runs none. */
@@ -654,6 +660,18 @@ export const campaignCellSchema = z.object({
 	brain: z.string(),
 	tier: evalTierSchema,
 	seed: z.number().int(),
+	/** Which performance of these inputs this is, from 0 (WP191); written only when the campaign asked for trials. */
+	trial: z.number().int().nonnegative().optional(),
+	/**
+	 * What the cell did, in brief (WP191), written only when the campaign asked for trials: every call it made in order and
+	 * the first tick's call and words — so two performances of one item can be compared for how soon and how far they forked.
+	 */
+	path: z
+		.object({
+			first: z.object({ call: z.string(), words: z.string() }).optional(),
+			calls: z.array(z.string())
+		})
+		.optional(),
 	/** The scenario's tags, carried so a report can be grouped and gated by them without the campaign. */
 	tags: z.array(z.string()).default([]),
 	runId: z.string().optional(),
@@ -948,6 +966,38 @@ export function bookItems(campaign: Campaign, book: Book | undefined): WorkItem[
  * seats (WP80). A book source with no book in hand (drawn at run time from
  * a population) counts no cells until it is prepared.
  */
+/** The trial indices a cell is expanded to: none (`undefined`, once) when the campaign asked for no more than one. */
+function trialsOf(campaign: Campaign): Array<number | undefined> {
+	const count = campaign.trials ?? 1;
+	return count > 1 ? Array.from({ length: count }, (_, trial) => trial) : [undefined];
+}
+
+/**
+ * **A cell's path in brief** (WP191): the calls it decided on, in order across every run it made, and the first tick's
+ * call and words. Compact on purpose — it rides on the cell of a campaign that asked for trials, so two performances
+ * of one item can be compared without their traces.
+ */
+export function pathOf(
+	runs: ReadonlyArray<readonly EngineEvent[]>
+): NonNullable<CampaignCell['path']> {
+	const calls: string[] = [];
+	let first: { call: string; words: string } | undefined;
+	for (const events of runs)
+		for (const event of events) {
+			if (event.type !== 'decision') continue;
+			const payload = event.payload as {
+				thought?: string;
+				call?: { name?: string; arguments?: unknown } | null;
+			};
+			const call = payload.call
+				? `${payload.call.name ?? ''} ${JSON.stringify(payload.call.arguments ?? {})}`.trim()
+				: 'none';
+			calls.push(call);
+			first ??= { call, words: payload.thought ?? '' };
+		}
+	return { ...(first ? { first } : {}), calls };
+}
+
 export function campaignCells(
 	campaign: Campaign,
 	book?: Book,
@@ -963,16 +1013,19 @@ export function campaignCells(
 					if (guard.for !== undefined && !guardCovers(guard.for, scenario)) continue;
 					for (const brain of campaign.brains) {
 						for (const context of campaign.contexts ?? [undefined]) {
-							cells.push({
-								scenario,
-								build,
-								guard,
-								brain,
-								seed,
-								ordinal: cells.length,
-								item,
-								...(context ? { context: context as ContextSpec } : {})
-							});
+							for (const trial of trialsOf(campaign)) {
+								cells.push({
+									scenario,
+									build,
+									guard,
+									brain,
+									seed,
+									ordinal: cells.length,
+									item,
+									...(context ? { context: context as ContextSpec } : {}),
+									...(trial !== undefined ? { trial } : {})
+								});
+							}
 						}
 					}
 				}
@@ -987,15 +1040,18 @@ export function campaignCells(
 				for (const brain of campaign.brains) {
 					for (const context of campaign.contexts ?? [undefined]) {
 						for (const seed of campaign.seeds) {
-							cells.push({
-								scenario,
-								build,
-								guard,
-								brain,
-								seed,
-								ordinal: cells.length,
-								...(context ? { context: context as ContextSpec } : {})
-							});
+							for (const trial of trialsOf(campaign)) {
+								cells.push({
+									scenario,
+									build,
+									guard,
+									brain,
+									seed,
+									ordinal: cells.length,
+									...(context ? { context: context as ContextSpec } : {}),
+									...(trial !== undefined ? { trial } : {})
+								});
+							}
 						}
 					}
 				}
@@ -1094,6 +1150,11 @@ export interface RunCampaignOptions {
 	concurrency?: number;
 	/** Run only the `index`-th of `of` slices of the cells (1-based); the report says so. */
 	shard?: { index: number; of: number };
+	/**
+	 * Run only the cells of this trial (WP191): a design asking for several trials is recorded in passes, one trial at a
+	 * time, into the same recording. The report holds that trial's cells only.
+	 */
+	onlyTrial?: number;
 }
 
 /** What running one cell yields (WP68): the scored cell, its trace when the host wants to keep it, and what it spent beyond tokens. */
@@ -1343,7 +1404,11 @@ export async function runCampaign(
 	const { campaign, registry, noise } = prepared;
 	const allCells = prepared.cells;
 	guardBudget(campaign, allCells);
-	const cells = options.shard ? shardCells(allCells, options.shard) : allCells;
+	const sharded = options.shard ? shardCells(allCells, options.shard) : allCells;
+	const cells =
+		options.onlyTrial === undefined
+			? sharded
+			: sharded.filter((spec) => (spec.trial ?? 0) === options.onlyTrial);
 
 	const tally: SpendTally = { liveEvaluations: 0 };
 	guardLiveEvaluations(campaign, allCells.length, options, registry);
@@ -1524,6 +1589,7 @@ async function runCell(
 		seed,
 		tags: scenario.tags,
 		...(cell.context ? { context: cell.context.id } : {}),
+		...(cell.trial !== undefined ? { trial: cell.trial } : {}),
 		...(campaign.source?.regression ? { regression: true as const } : {}),
 		ordinal: cell.ordinal
 	};
@@ -1648,7 +1714,8 @@ async function runCell(
 			caseMetrics,
 			...(cohort ? { cohort } : {}),
 			...(pairId ? { pairId } : {}),
-			...(replay ? { replay } : {})
+			...(replay ? { replay } : {}),
+			...((campaign.trials ?? 1) > 1 ? { path: pathOf([run.events]) } : {})
 		};
 		options.onTrace?.(scored, { events: run.events, spec });
 		return scored;
@@ -1904,7 +1971,8 @@ async function runBookCell(
 			...(readings.length > 0 ? { readings } : {}),
 			...overdueAndOverrides(run)
 		},
-		...(replay ? { replay } : {})
+		...(replay ? { replay } : {}),
+		...((campaign.trials ?? 1) > 1 ? { path: pathOf(agentRuns.map((agent) => agent.events)) } : {})
 	};
 	if (last) options.onTrace?.(scored, { events: last.events, spec: last.spec });
 	options.onWorkflowRun?.({ cell: scored, run, item, agentRuns });
@@ -2098,7 +2166,8 @@ async function runDuoCell(
 			cartridgeId,
 			...(seatRunId !== undefined ? { runId: seatRunId } : {})
 		},
-		...(replay ? { replay } : {})
+		...(replay ? { replay } : {}),
+		...((campaign.trials ?? 1) > 1 ? { path: pathOf([events]) } : {})
 	};
 	options.onTrace?.(scored, { events: merged, spec });
 	return scored;

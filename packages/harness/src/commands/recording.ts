@@ -35,6 +35,8 @@ export interface RecordingVerifyOptions {
 	configPath?: string;
 	credentials: CredentialSource;
 	size?: number;
+	/** How many times each cell was performed, when the design file does not say (WP191). */
+	trials?: number;
 	/** The live recording's output directory (`recordings/<id>/trial-<n>`), holding `<campaign>/runs/`. */
 	liveStore?: string;
 	now?: () => string;
@@ -66,6 +68,16 @@ export async function recordingVerify(
 	const recording: ProviderRecordingFile = parseProviderRecording(
 		JSON.parse(await readFile(options.recording, 'utf8'))
 	);
+	// Each cell's ordinal — so its ids and its draws — depends on how many trials the design asked for: the one the recording
+	// was made with, unless the design file or --trials says.
+	const designed = JSON.parse(await readFile(options.file, 'utf8')) as {
+		design?: { trials?: number };
+	};
+	const trials =
+		options.trials ??
+		(designed.design?.trials === undefined && recording.manifest.trials > 1
+			? recording.manifest.trials
+			: undefined);
 	const replayed = await experimentRun({
 		file: options.file,
 		out: options.out,
@@ -73,6 +85,7 @@ export async function recordingVerify(
 		...(options.configPath !== undefined ? { configPath: options.configPath } : {}),
 		credentials: options.credentials,
 		...(options.size !== undefined ? { size: options.size } : {}),
+		...(trials !== undefined ? { trials } : {}),
 		egress: 'none',
 		...(options.now ? { now: options.now } : {}),
 		...(options.newId ? { newId: options.newId } : {})
@@ -107,7 +120,7 @@ export async function recordingVerify(
 				context: cell.context,
 				item: cell.item?.id,
 				seed: cell.seed,
-				trial: 0
+				trial: cell.trial
 			});
 			// A cell that never called the provider has no tape: it is neither recorded nor missed.
 			if (!recorded.has(key)) {
@@ -150,19 +163,24 @@ async function checkLiveStore(
 	report: RecordingVerifyReport
 ): Promise<void> {
 	const stores = new Map<string, Storage | undefined>();
-	const storeOf = async (campaignId: string): Promise<Storage | undefined> => {
-		if (!stores.has(campaignId)) {
-			const dir = join(liveStore, campaignId, 'runs');
-			stores.set(campaignId, existsSync(dir) ? await createFileStorage(dir) : undefined);
+	// `--live-store` is a record out directory (`<campaign>/runs`), or the directory holding one per trial (`trial-<n>/<campaign>/runs`).
+	const storeOf = async (campaignId: string, trial: number): Promise<Storage | undefined> => {
+		const key = `${trial}|${campaignId}`;
+		if (!stores.has(key)) {
+			const dir = [
+				join(liveStore, `trial-${trial}`, campaignId, 'runs'),
+				join(liveStore, campaignId, 'runs')
+			].find((candidate) => existsSync(candidate));
+			stores.set(key, dir === undefined ? undefined : await createFileStorage(dir));
 		}
-		return stores.get(campaignId);
+		return stores.get(key);
 	};
 	for (const cell of recording.cells) {
 		if (cell.pathDigest === undefined) continue;
 		const ids = cell.runIds ?? (cell.runId !== undefined ? [cell.runId] : []);
 		if (ids.length === 0) continue;
 		report.liveChecked += 1;
-		const store = await storeOf(cell.cellKey.split('|')[0]!);
+		const store = await storeOf(cell.cellKey.split('|')[0]!, cell.trial);
 		let matches = false;
 		if (store) {
 			const runs: EngineEvent[][] = [];

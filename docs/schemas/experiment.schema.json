@@ -1797,6 +1797,11 @@
 							"type": "string",
 							"minLength": 1
 						},
+						"trials": {
+							"type": "integer",
+							"exclusiveMinimum": 0,
+							"maximum": 9007199254740991
+						},
 						"noise": {
 							"type": "object",
 							"properties": {
@@ -2261,6 +2266,11 @@
 				},
 				"replicates": {
 					"default": 1,
+					"type": "integer",
+					"exclusiveMinimum": 0,
+					"maximum": 9007199254740991
+				},
+				"trials": {
 					"type": "integer",
 					"exclusiveMinimum": 0,
 					"maximum": 9007199254740991
