@@ -102,8 +102,11 @@ The uniform 10% assumption is wrong in both directions: too optimistic by a wide
 
 ### 3.7 Complaints
 
-- Complaint acknowledged 100%, ombudsman disclosed 100%, root cause named 25% (16–38%) without the stack and 31% (20–44%) with it (p 0.45).
-- **Redress within bounds 100% without the stack and 20% (12–32%) with it** (p ≈ 1e-13). The policy-card stack is the treatment, and the metric collapses with it. 44 of 110 cells ended `ERROR`. This is the largest effect in the live tier and it has **not been diagnosed**: it could be the stack blocking a path the bot then fails to complete, or an interaction between the cards and how a live bot proposes redress. The stories for the complaints design are the place to start.
+> **Restated 2026-10-07** (`PHASE-1-DIAGNOSES.md` §B, `PHASE-2B-COMPLAINTS.md`). The first recording's figures below this note were artefacts, and are replaced.
+
+- **Superseded:** *root cause named 25%, redress within bounds 20% with the stack, 44 of 110 cells `ERROR`.* 42 of those 44 were replay artefacts of the first cassette (`ERROR-TRIAGE.md` §1); the other two, and the 25%, were the desk: the register's convention (only `charges` and `data` complaints upheld, every other category `no-error`) was not shown to the bot, so a natural answer (`service`, `advice`) was wrong in 17 of 17 such cases and the card blocked it. The card blocked exactly what the register rejects and nothing else, and the stack did not change how a live bot proposed redress.
+- **Now (rule on the file, two trials, 220 cells, verified by exact replay):** root cause named **100%** without the stack (110 of 110) and 99% with it; redress within bounds 100% / 98% (pass^2 96%, 88–99%); acknowledged and ombudsman disclosed 100% in both. `policy-cards` cells ending `ERROR`: **2 of 110** (one root cause blocked four times, one 60-second request timeout). The stack's effect is inside its interval; the verdict is *inconclusive*, minimum detectable 2.8 points.
+- **What remains a question about the desk, not the stack or the model:** "root cause named" now reads rule-following, because the convention is one a real bank would not hold (many service and advice complaints are upheld). The owner's decision is to give the root cause a structure of predetermined answers *and* room for reasons unique to the case (plan 113 §12, item 11).
 
 ### 3.8 Fraud
 
@@ -113,8 +116,8 @@ The uniform 10% assumption is wrong in both directions: too optimistic by a wide
 ### 3.9 Advice (context ladder)
 
 - Suitable recommendation 100% (89–100%, n 31) under both the case-file context and the relational context.
-- **Data-minimisation**: 100% under the case file and **0% (0–11%) under the relational context** (p ≈ 3e-15). Giving the live bot the relational context made it fail data minimisation on every one of 31 cases, while the suitability result did not change. On this sample, richer context bought nothing measurable on suitability and cost the minimisation property. Whether that holds for other models or prompts is not known; the base `advice-context` design's scripted and fallible columns are the comparison.
-- Tokens per case rose from about 58k to 82k with the relational context. 102 SUCCESS, 22 ERROR.
+- **Data-minimisation**: 100% under the case file and **0% (0–11%) under the relational context** (p ≈ 3e-15). **Restated 2026-10-07** (`PHASE-1-DIAGNOSES.md` §A): the 0% is what the rung *supplies*, not what the bot *uses*. At the relational rung the desk puts six records on the bot's desk before its first move (including an open complaint about a health condition and the credit file); `data-minimised` scores those as reads, so it reads 0% by construction, and the scripted and fallible columns (no model in them) read 0% too. Across all 124 live cells the bot made **no CRM read of its own**; the new `fs-advice/unneeded-data-used` finds use in **2 of 50** finished relational cells (4%), both only in its reasoning. The finding stands as: the relational rung hands an advice bot data it does not need. The owner's decision is that it should not (plan 113 §12, item 12).
+- Tokens per case rose from about 58k to 82k with the relational context (the extra records are in the prompt). 102 SUCCESS, 22 ERROR.
 
 ---
 

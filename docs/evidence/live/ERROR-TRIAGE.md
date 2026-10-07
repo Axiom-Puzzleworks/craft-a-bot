@@ -75,6 +75,8 @@ All 34 end `OUT_OF_STEPS`: the bot repeats a call that cannot succeed until the 
 
 ## 3. What to fix, in order
 
+> **Status 2026-10-07.** Items 1–3 and 5 are built (WP189–WP193) and the smoke read 24 of 24 loops gone (`PHASE-0-SMOKE-AND-PROBE.md`). Item 4 is half done: WP193 put the register rule on the case file, and `PHASE-2B-COMPLAINTS.md` measured it (the complaints `ERROR` cells fell from 44 to 2); what the card's refusal should say, and the root cause's structure, are decided below and not yet built. Item 6 (no-progress in the live stacks) is still open. The "redress collapse" in §1 and the §3.7 finding are restated in `RUNS-AND-FINDINGS.md`.
+
 1. **The recorder** (largest effect, 69 cells, and it distorts every live design, not only these three). Keep each live cell's own outcome as a first-class result, or scope cassette entries to the cell so a replay reproduces that cell's live path exactly. Until then, treat replay-derived live outcomes as indicative.
 2. **Fraud's alert id** (16 cells): accept the displayed label, and have the failure message list the ids on the desk.
 3. **Advice's `check-suitability`** (4 cells): name the missing topics in the message.
