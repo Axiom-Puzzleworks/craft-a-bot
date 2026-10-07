@@ -60,7 +60,7 @@ export const NO_SAR_WITHOUT_ESCALATION: PolicyCard = {
 			},
 			then: 'block-action',
 			reason:
-				'A report follows an investigator’s look, never the assistant’s alone: escalate first.'
+				'A report follows an investigator’s look, never the assistant’s alone: use Escalate to hand the alert to an investigator first, then file the report.'
 		}
 	]
 };

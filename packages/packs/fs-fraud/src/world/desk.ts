@@ -207,12 +207,25 @@ export const fraudDeskSpec: DeskWorldSpec<FraudExtra> = {
 			riskTier: 'observe',
 			perform: (state, args, ctx) => {
 				const wanted = (args as { record: string }).record.trim().toLowerCase();
-				const match = ctx.find(
-					(record) =>
-						record.id === wanted || record.title.toLowerCase() === wanted || record.kind === wanted
-				);
+				// An account is named on the alert by its last four digits (`account ••••6425`); the record that carries them is the one asked for.
+				const lastFour = wanted.match(/\d{4}\s*$/)?.[0];
+				const match =
+					ctx.find(
+						(record) =>
+							record.id === wanted ||
+							record.title.toLowerCase() === wanted ||
+							record.kind === wanted
+					) ??
+					(lastFour !== undefined
+						? ctx.find((record) => record.title.includes(`••••${lastFour}`))
+						: undefined);
 				if (!match) {
-					const known = [...state.records, ...state.hidden].map((record) => record.id);
+					// Each by its id and what it is, so an account named on the alert can be found among them.
+					const known = [...state.records, ...state.hidden].map((record) =>
+						record.title && record.title !== record.id
+							? `${record.id} (${record.title})`
+							: record.id
+					);
 					return { ok: false, narration: fraudStrings.narration.noSuchRecord(wanted, known) };
 				}
 				const opened = ctx.reveal(match.id) ?? match;

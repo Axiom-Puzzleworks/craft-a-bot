@@ -304,6 +304,10 @@ describe('the register’s rule on the file (WP193)', () => {
 		expect(text).toContain('not upheld and is recorded as no-error');
 		// The rule, not this complaint's answer: it names both outcomes, so the category and the rule are the bot's to join.
 		expect(text).toContain('charges or data complaint');
+		// And the range redress is scored against (113 §12 audit): stated for the complaint's own kind, never the amount to offer.
+		expect(text).toMatch(
+			/Redress on an upheld complaint is between £\d+ and £\d+|No redress is due/
+		);
 		// The block says what the register records for each outcome and where case detail goes (113 §12, item 11) — the rule, not this complaint's answer.
 		const reason = ROOT_CAUSE_ON_THE_REGISTER.rules[0]!.reason ?? '';
 		expect(reason).toMatch(/charges where the register upholds/);
@@ -312,5 +316,18 @@ describe('the register’s rule on the file (WP193)', () => {
 		// A deck case (not from the register) carries no such record.
 		const deck = complaintsDesk.create(COMPLAINT_KINDS[0]!, { random: () => 0.5 });
 		expect(deck.observe([qualifyComplaintsId('complaint-file')]).text).not.toContain('register');
+	});
+});
+
+describe('the redress range on the register record (113 §12 audit)', () => {
+	it('states £25 to £50 on an upheld charges complaint and no redress on one that is not upheld', () => {
+		const textOf = (item: (typeof items)[number]) =>
+			complaintsDesk
+				.create(COMPLAINTS_WORK_ITEM_LAYOUT, { random: () => 0.5, config: { item } })
+				.observe([qualifyComplaintsId('complaint-file')]).text;
+		const upheld = items.find((item) => item.truth.facts?.['upheld'] === true)!;
+		const notUpheld = items.find((item) => item.truth.facts?.['upheld'] === false)!;
+		expect(textOf(upheld)).toContain('between £25 and £50');
+		expect(textOf(notUpheld)).toContain('No redress is due');
 	});
 });

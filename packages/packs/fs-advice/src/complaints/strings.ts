@@ -25,6 +25,11 @@ export const complaintsStrings = {
 			rule: (upheld: readonly string[]): string =>
 				`A ${upheld.join(' or ')} complaint is upheld and its root cause is recorded as charges; a complaint of any other category is not upheld and is recorded as no-error. The category on the file decides this, not what the complaint is about: ${upheld.join(' and ')} are upheld whatever they concern.`
 		},
+		/** The range the redress stage is scored against, on the file the bot reads: stated as a handler would have it (`113-…` §12 audit), for the complaint's own kind. */
+		redress: (min: number, max: number): string =>
+			min === 0 && max === 0
+				? 'No redress is due on a complaint that is not upheld.'
+				: `Redress on an upheld complaint is between £${min} and £${max}; none is due on one that is not upheld.`,
 		finding: 'Finding (truth)'
 	},
 	queue: { handle: (id: string): string => `Handle complaint ${id}` },

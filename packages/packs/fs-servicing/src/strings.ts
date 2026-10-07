@@ -128,7 +128,7 @@ export const servicingStrings = {
 				'A request is on the desk. Identify who is calling against the file before anything else.',
 			classify:
 				'The caller is identified. Classify the request: address, card, third-party, disclosure, or bereavement.',
-			act: 'The caller is verified and the request classified. Act on it — the one act the request calls for.',
+			act: 'The caller is verified and the request classified. Act on it — the one act the request calls for: update the address, reissue the card, grant the third party’s access, or close the account for a bereavement. A disclosure calls for no act.',
 			record:
 				'Record any support need the caller has disclosed, in their words — or that there is none.',
 			recommendation:

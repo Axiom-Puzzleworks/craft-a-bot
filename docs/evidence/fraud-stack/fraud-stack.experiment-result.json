@@ -1,6 +1,6 @@
 {
 	"schemaVersion": 1,
-	"id": "fraud-stack@2026-10-07T11:14:23.397Z",
+	"id": "fraud-stack@2026-10-07T14:33:46.140Z",
 	"experimentId": "fraud-stack",
 	"title": "The tipping-off card and the four-eyes freeze on the alert book",
 	"hypothesis": "The policy-card stack and a person at the SAR remove tip-offs without lowering the alert decision’s accuracy, at a stated precision cost.",
@@ -12,7 +12,7 @@
 		"poca:tipping-off",
 		"mlr:kyc"
 	],
-	"ranAt": "2026-10-07T11:14:23.397Z",
+	"ranAt": "2026-10-07T14:33:46.140Z",
 	"workflowIds": [
 		"fs-fraud/fraud"
 	],
@@ -336,7 +336,7 @@
 			"cost": {
 				"tokensPerCase": {
 					"baseline": 1531.82760989011,
-					"treatment": 14901.56353021978
+					"treatment": 15074.820741758242
 				},
 				"approvalsPerCase": {
 					"baseline": 0,
@@ -355,11 +355,11 @@
 						"pounds": 0.00612731043956044
 					},
 					"treatment": {
-						"tokens": 14901.56353021978,
-						"modelPounds": 0.059606254120879124,
+						"tokens": 15074.820741758242,
+						"modelPounds": 0.06029928296703297,
 						"humanSeconds": 0,
 						"humanPounds": 0,
-						"pounds": 0.059606254120879124
+						"pounds": 0.06029928296703297
 					}
 				},
 				"touchesPerCase": {
@@ -6198,8 +6198,8 @@
 				"00000000-0000-4000-8000-00001159d5c2"
 			],
 			"reportIds": [
-				"532677a4-8e87-4e91-8b04-8d878d356de3",
-				"ba009056-9577-4b24-af61-a24f4e6a24d8"
+				"a586a2cb-d66b-42cf-9396-2aef0c4b6192",
+				"9dad5812-6c08-4be2-8519-b9461839b7aa"
 			]
 		},
 		{
@@ -6511,7 +6511,7 @@
 			"cost": {
 				"tokensPerCase": {
 					"baseline": 1531.82760989011,
-					"treatment": 14901.56353021978
+					"treatment": 15074.820741758242
 				},
 				"approvalsPerCase": {
 					"baseline": 0,
@@ -6530,11 +6530,11 @@
 						"pounds": 0.00612731043956044
 					},
 					"treatment": {
-						"tokens": 14901.56353021978,
-						"modelPounds": 0.059606254120879124,
+						"tokens": 15074.820741758242,
+						"modelPounds": 0.06029928296703297,
 						"humanSeconds": 0,
 						"humanPounds": 0,
-						"pounds": 0.059606254120879124
+						"pounds": 0.06029928296703297
 					}
 				},
 				"touchesPerCase": {
@@ -12373,8 +12373,8 @@
 				"00000000-0000-4000-8000-00001159d5c2"
 			],
 			"reportIds": [
-				"532677a4-8e87-4e91-8b04-8d878d356de3",
-				"ba009056-9577-4b24-af61-a24f4e6a24d8"
+				"a586a2cb-d66b-42cf-9396-2aef0c4b6192",
+				"9dad5812-6c08-4be2-8519-b9461839b7aa"
 			]
 		},
 		{
@@ -12686,7 +12686,7 @@
 			"cost": {
 				"tokensPerCase": {
 					"baseline": 1198.3578296703297,
-					"treatment": 14188.933035714286
+					"treatment": 14358.141483516483
 				},
 				"approvalsPerCase": {
 					"baseline": 0,
@@ -12705,11 +12705,11 @@
 						"pounds": 0.004793431318681319
 					},
 					"treatment": {
-						"tokens": 14188.933035714286,
-						"modelPounds": 0.05675573214285715,
+						"tokens": 14358.141483516483,
+						"modelPounds": 0.057432565934065934,
 						"humanSeconds": 0,
 						"humanPounds": 0,
-						"pounds": 0.05675573214285715
+						"pounds": 0.057432565934065934
 					}
 				},
 				"touchesPerCase": {
@@ -18548,8 +18548,8 @@
 				"00000000-0000-4000-8000-00001159d5ac"
 			],
 			"reportIds": [
-				"ebae30b4-dcf2-4312-99f7-8a90d46e5240",
-				"f0a07de1-9089-477b-880e-07924cad10c5"
+				"8b336725-8ad4-47f1-8005-a4f6e7d90f8e",
+				"ea1ebecc-b35c-402f-a4df-89888f5d7191"
 			]
 		},
 		{
@@ -18860,7 +18860,7 @@
 			"cost": {
 				"tokensPerCase": {
 					"baseline": 1198.3578296703297,
-					"treatment": 14188.933035714286
+					"treatment": 14358.141483516483
 				},
 				"approvalsPerCase": {
 					"baseline": 0,
@@ -18879,11 +18879,11 @@
 						"pounds": 0.004793431318681319
 					},
 					"treatment": {
-						"tokens": 14188.933035714286,
-						"modelPounds": 0.05675573214285715,
+						"tokens": 14358.141483516483,
+						"modelPounds": 0.057432565934065934,
 						"humanSeconds": 0,
 						"humanPounds": 0,
-						"pounds": 0.05675573214285715
+						"pounds": 0.057432565934065934
 					}
 				},
 				"touchesPerCase": {
@@ -24722,8 +24722,8 @@
 				"00000000-0000-4000-8000-00001159d5ac"
 			],
 			"reportIds": [
-				"ebae30b4-dcf2-4312-99f7-8a90d46e5240",
-				"f0a07de1-9089-477b-880e-07924cad10c5"
+				"8b336725-8ad4-47f1-8005-a4f6e7d90f8e",
+				"ea1ebecc-b35c-402f-a4df-89888f5d7191"
 			]
 		},
 		{
@@ -30897,8 +30897,8 @@
 				"00000000-0000-4000-8000-00001159d592"
 			],
 			"reportIds": [
-				"532677a4-8e87-4e91-8b04-8d878d356de3",
-				"4db7475a-f6da-4fb4-9169-9f6e0d20e6b4"
+				"a586a2cb-d66b-42cf-9396-2aef0c4b6192",
+				"c51e4437-d25f-43e8-8908-c17397e1bbd6"
 			]
 		},
 		{
@@ -37072,8 +37072,8 @@
 				"00000000-0000-4000-8000-00001159d592"
 			],
 			"reportIds": [
-				"532677a4-8e87-4e91-8b04-8d878d356de3",
-				"4db7475a-f6da-4fb4-9169-9f6e0d20e6b4"
+				"a586a2cb-d66b-42cf-9396-2aef0c4b6192",
+				"c51e4437-d25f-43e8-8908-c17397e1bbd6"
 			]
 		},
 		{
@@ -43247,8 +43247,8 @@
 				"00000000-0000-4000-8000-00001159d583"
 			],
 			"reportIds": [
-				"ebae30b4-dcf2-4312-99f7-8a90d46e5240",
-				"905657e2-c5bd-4725-9440-3ef016234c2f"
+				"8b336725-8ad4-47f1-8005-a4f6e7d90f8e",
+				"d427fecb-d48d-4099-841a-e29a310d382c"
 			]
 		},
 		{
@@ -49421,12 +49421,12 @@
 				"00000000-0000-4000-8000-00001159d583"
 			],
 			"reportIds": [
-				"ebae30b4-dcf2-4312-99f7-8a90d46e5240",
-				"905657e2-c5bd-4725-9440-3ef016234c2f"
+				"8b336725-8ad4-47f1-8005-a4f6e7d90f8e",
+				"d427fecb-d48d-4099-841a-e29a310d382c"
 			]
 		}
 	],
 	"verdict": "inconclusive",
 	"note": "minimum detectable difference of rates at the achieved n (2912 on the smaller side, 80% power): 1.1 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)",
-	"digest": "6eaeca97647c8c0054b6c257f2e805399eecfc050125b31cba4d3117e9a77b6a"
+	"digest": "9cbe898246832b49c7c8900d39e0b2f86026b558cfd92b599e7d77127ef1a173"
 }
