@@ -68,6 +68,10 @@ Every design was re-run after Phases AK–AM. **Every outcome, interval and verd
 
 The register reads these results with no store (`craftabot controls --evidence`), so the inventory's Effect column fills on a fresh install.
 
+## `advice-context`, re-run 2026-10-07 (113 §12, item 12)
+
+The relational rung no longer hands an advice bot the complaints or the credit file (`docs/evidence/live/RELATIONAL-AUDIT.md`): it hands the customer, the accounts and their transactions, which the journey has a use for. **`advice-context` was re-run at full size and its verdict moved from *not-supported* to *inconclusive*.** Data-minimisation, which read 0% at the relational rung because of what the rung supplied, now reads 100% at both rungs, scripted and fallible (the two comparisons are *untestable* — a ceiling); suitability is unchanged (100% and 94.6%). The old result recorded the cost of a rung no journey needs; the new one records that the rung a journey does need is free. The design's hypothesis (that the relational context raises data-minimisation findings) is no longer one this rung can support.
+
 ## Reproducing one
 
 ```bash

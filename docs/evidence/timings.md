@@ -4,7 +4,7 @@ Full-size runs on 2026-10-02, the last at Phase AQ's exit (WP158, `111-…`) (`c
 
 | Experiment | Verdict | Effects | Untestable | Excluding zero | n per side (first effect) | Wall time (s) |
 |---|---|---|---|---|---|---|
-| `advice-context` | not-supported | 8 | 4 | 2 | 92 | 58 |
+| `advice-context` | inconclusive | 8 | 4 | 2 | 92 | 58 |
 | `ceilings` | inconclusive | 4 | 1 | 2 | 783 | 57 |
 | `collections-stack` | inconclusive | 4 | 3 | 0 | 400 | 32 |
 | `complaints-stack` | not-supported | 8 | 6 | 1 | 886 | 57 |
