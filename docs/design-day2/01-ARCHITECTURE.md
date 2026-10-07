@@ -293,3 +293,15 @@ V1 needs none. The first features that will genuinely require one: sharing kit f
 > **Amended 2026-09-30 (WP127, `107-THE-GATE.md`).** A new Node-only package, **`@craftabot/gate`**. It depends on `core` and `governance` and on no pack, and nothing in `apps/workbench` imports it. The harness runs it as `craftabot gate`.
 
 > **Amended 2026-10-03 (WP172–WP175, `112-REAL-ENOUGH-PLAN.md` §5).** The campaign Worker’s chunk moves +24 kB to 1,831,000 B (`scripts/bundle-budget.mjs`): the bill in `evals`, the composed cases, the bill and complications rows and the drawn personas in `fs-bank`, the conduct triggers in `desk`, and the scenario templates in `core` and `evals` ride into it; set to the measured size (1,768 KiB) plus 20 kB. Nothing else moved: the shell’s budgets held.
+
+> **Amended 2026-10-07 (Phase AZ, WP189–WP193, `113-RECORDING-AND-RELIABILITY.md`): the budgets after the recording and the reliability.** Each build set to its measured size plus 20 kB:
+>
+> | Build | Budget | Measured | Worker | Kit's first page |
+> |---|---|---|---|---|
+> | full | 3,190,000 | 3,096 KiB | 1,781 KiB of 1,788 | 837 KiB of 840 |
+> | simulator | 3,032,000 | 2,942 KiB | — | 614 KiB of 840 |
+> | workshop | 3,055,000 | 2,964 KiB | — | 678 KiB of 840 |
+> | playground | 3,190,000 | 3,096 KiB | — | 837 KiB of 840 |
+>
+> - **About +28 kB in every edition.** The version 2 recording schemas, the cell key, exact replay and the path digest in `core`; the reliability schemas on the experiment result; the reliability measures in `@craftabot/metrics` and the experiment analysis in `evals`; the desk's idle line and the desks' new words. `core`'s schemas are built by top-level calls the bundler cannot prove pure, so they ride on every page whether it uses them or not.
+> - **The Kit's first page has 3 KiB of headroom under its gate (837 of 840), which is not much.** The recording code is harness-only and the Workshop never replays; if the next phase to touch `core` needs the room, the recording schemas belong in a subpath the app does not import.

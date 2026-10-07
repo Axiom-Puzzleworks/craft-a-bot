@@ -379,14 +379,19 @@ Usage:
       replays with no network. --egress none refuses every call.
 
   craftabot record --experiment <design.json> --provider <id|mock> [--size <n>]
+                 [--trials <n>] [--trial <i>] [--cells <text,text>]
                  [--out ./recording] [--egress declared|none] [--concurrency <n|auto>]
-      Record a design's live brains to provider cassettes (WP114,
-      103-FALLIBLE-ACTORS.md): every brain naming "cassette" runs live through
-      its cartridge's provider (which must be --provider), under the file's
-      budget and the provider's declared egress, and each cassette path gets
-      the calls' answers keyed by the prompt's digest, redacted against every
-      credential the process holds. A campaign or experiment naming the brain
-      then replays it with no key and no network. --provider mock records the
+      Record a design's live brains to the cell-scoped recording (WP114, WP189,
+      WP190; 113-RECORDING-AND-RELIABILITY.md): every brain naming "cassette" runs
+      live through its cartridge's provider (which must be --provider), under the
+      file's budget and the provider's declared egress, and each cassette path
+      gets every cell's calls in order — failures and the answering unit
+      included — with a path digest per cell, redacted against every credential
+      the process holds; the live run's own store is kept under --out. A campaign
+      or experiment naming the brain then replays it, exactly, with no key and no
+      network. --trials performs each cell that many times; --trial i records
+      that trial alone and joins it to the recording already there; --cells keeps
+      the cells whose key contains one of the texts. --provider mock records the
       scripted-optimal plans instead — a stand-in, and says so in the file.
 
   craftabot export --run <runId> --sink <sinkId> [--sink-config <json>] [--out ./runs]
@@ -1108,6 +1113,10 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 					const concurrency = await liveConcurrency(args, io, provider, experimentFile);
 					const trials = numberFlag(args, 'trials');
 					const trial = numberFlag(args, 'trial');
+					// Only the cells whose key contains one of these (comma-separated): a smoke of a few items (WP194).
+					const only = stringFlag(args, 'cells')
+						?.split(',')
+						.filter((part) => part !== '');
 					const recorded = await recordExperiment({
 						file: experimentFile,
 						provider,
@@ -1117,6 +1126,11 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 						...(size !== undefined ? { size } : {}),
 						...(trials !== undefined ? { trials } : {}),
 						...(trial !== undefined ? { trial } : {}),
+						...(only && only.length > 0
+							? {
+									include: (_spec: unknown, key: string) => only.some((part) => key.includes(part))
+								}
+							: {}),
 						...(concurrency !== undefined ? { concurrency } : {}),
 						...(egress !== undefined ? { egress } : {})
 					});

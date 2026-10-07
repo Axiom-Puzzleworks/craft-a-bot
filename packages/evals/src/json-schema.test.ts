@@ -50,7 +50,7 @@ describe('docs/schemas', () => {
 			'craftabot-bundle',
 			'craftabot-cassette',
 			'craftabot-provider-cassette',
-		'craftabot-provider-recording',
+			'craftabot-provider-recording',
 			'craftabot-scenarios',
 			'craftabot-trace',
 			'domain',
