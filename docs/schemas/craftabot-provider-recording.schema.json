@@ -158,6 +158,15 @@
 					"runId": {
 						"type": "string"
 					},
+					"runIds": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"workflowRunId": {
+						"type": "string"
+					},
 					"outcome": {
 						"type": "string"
 					},

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { compareReplay, effectKey } from '../../../../scripts/live-check.mjs';
+import { compareReplay, effectKey, replayProblems } from '../../../../scripts/live-check.mjs';
 import {
 	LIVE,
 	liveDesign,
@@ -87,6 +87,32 @@ describe('the replay check', () => {
 		const moved = compareReplay(committed, result([effect(0.1000001)]));
 		expect(moved.some((p) => p.startsWith('not reproduced'))).toBe(true);
 		expect(effectKey(effect(0.1))).not.toBe(effectKey(effect(0.2)));
+	});
+
+	it('holds a cell-scoped recording to its path: a cell off it, an unasked call or a divergence is named, a match is silent', () => {
+		const report = (cells: unknown[]) => ({ campaignId: 'c', cells });
+		const cell = (extra: Record<string, unknown>) => ({
+			item: { id: 'loan-1' },
+			seed: 1,
+			ordinal: 0,
+			...extra
+		});
+		expect(replayProblems([report([cell({ replay: { status: 'match', unused: 0 } })])])).toEqual(
+			[]
+		);
+		// A version 1 cassette's cells carry no replay verdict: nothing to hold them to.
+		expect(replayProblems([report([cell({})])])).toEqual([]);
+		const off = replayProblems([
+			report([
+				cell({ replay: { status: 'mismatch', unused: 2 } }),
+				cell({ error: 'replay-diverged: cell x, call #3 — asked prompt aaaa…' }),
+				cell({ replay: { status: 'diverged', unused: 0, divergedAt: 4 } })
+			])
+		]);
+		expect(off).toHaveLength(3);
+		expect(off[0]).toContain('replay mismatch, 2 recorded calls unasked');
+		expect(off[1]).toContain('replay-diverged');
+		expect(off[2]).toContain('diverged at call #4');
 	});
 });
 

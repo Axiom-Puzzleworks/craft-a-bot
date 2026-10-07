@@ -112,6 +112,9 @@ export const recordedCellSchema = z.object({
 	trial: z.number().int().nonnegative(),
 	/** The live run's own id — the key into the (gitignored) store the live run wrote. */
 	runId: z.string().optional(),
+	/** Every agent run a journey cell made, in order, and the workflow run that held them — the keys into the live store, so the recording can be checked against it (WP190). */
+	runIds: z.array(z.string()).optional(),
+	workflowRunId: z.string().optional(),
 	outcome: z.string().optional(),
 	/** `pathDigest` (WP190): over the decision-relevant events, so a replay is held to the path the live run took. */
 	pathDigest: z

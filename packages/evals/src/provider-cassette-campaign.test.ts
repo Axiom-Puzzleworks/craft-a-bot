@@ -1,8 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
 	computeTraceDigest,
+	RecordingTape,
 	mergeProviderEntries,
 	parseProviderCassette,
+	parseProviderRecording,
 	recordingProvider,
 	type EngineEvent,
 	type ProviderCassetteEntry,
@@ -150,5 +152,123 @@ describe('a live brain from a provider cassette (WP114)', () => {
 			packs
 		});
 		expect(report.cells[0]?.error).toMatch(/no cassetteFor was supplied/);
+	});
+});
+
+describe('exact replay of a cell-scoped recording (WP190)', () => {
+	/** Record the campaign through the tap, as the harness does, into a one-recording file. */
+	async function recordTape(campaign: Campaign) {
+		const tape = new RecordingTape();
+		const contexts: Array<{ cellKey?: string; role?: string; trial?: number }> = [];
+		const paths = new Map<string, { pathDigest: string; runIds: string[] }>();
+		const recorded = await digests(campaign, {
+			providerFor: (_brain, context) => {
+				contexts.push({
+					...(context?.cellKey !== undefined ? { cellKey: context.cellKey } : {}),
+					...(context?.role !== undefined ? { role: context.role } : {}),
+					...(context?.trial !== undefined ? { trial: context.trial } : {})
+				});
+				const sink =
+					context?.cellKey !== undefined
+						? tape
+								.cell(context.cellKey, context.trial ?? 0)
+								.open(context.role ?? 'agent', context.goalCardId ?? '')
+						: undefined;
+				return recordingProvider(
+					createMockProvider({
+						script: scriptedOptimal(starterPlans.planFor(context?.goalCardId ?? ''))
+					}),
+					{ slim: true, now: () => 0, ...(sink ? { onCall: sink } : {}) }
+				).provider;
+			},
+			onPathDigest: (info) => paths.set(info.cellKey, info)
+		});
+		const file = parseProviderRecording({
+			format: 'craftabot-cassette',
+			formatVersion: 2,
+			kind: 'provider-recording',
+			providerId: 'mock',
+			recordedAt: '2026-10-07T12:00:00.000Z',
+			recordedBy: 'provider-cassette-campaign.test',
+			egress: [],
+			manifest: {
+				campaignDigests: {},
+				packVersions: {},
+				sampling: [],
+				models: [],
+				units: [],
+				trials: 1,
+				interventions: []
+			},
+			cells: [...tape.cells.values()].map((cell) => ({
+				cellKey: cell.cellKey,
+				trial: cell.trial,
+				pathDigest: paths.get(cell.cellKey)?.pathDigest,
+				runIds: paths.get(cell.cellKey)?.runIds,
+				calls: cell.calls
+			}))
+		});
+		return { recorded, file, contexts };
+	}
+
+	it('hands the provider the cell’s key, trial and role, and replays every cell on the path it took', async () => {
+		const { recorded, file, contexts } = await recordTape(
+			withBrain({ id: 'live', tier: 'live' }, true)
+		);
+		expect(contexts.length).toBeGreaterThan(0);
+		expect(contexts.every((context) => context.role === 'agent' && context.trial === 0)).toBe(true);
+		expect(contexts.every((context) => context.cellKey?.startsWith('injection-baseline|'))).toBe(
+			true
+		);
+		expect(file.cells.length).toBe(recorded.report.cells.length);
+		expect(file.cells.every((cell) => cell.pathDigest !== undefined)).toBe(true);
+
+		const fetch = vi.fn();
+		vi.stubGlobal('fetch', fetch);
+		try {
+			const replayed = await digests(
+				withBrain({ id: 'live', tier: 'live', cassette: 'the.json' }),
+				{
+					cassetteFor: () => file
+				}
+			);
+			expect(fetch).not.toHaveBeenCalled();
+			expect(replayed.report.cells.every((cell) => cell.error === undefined)).toBe(true);
+			expect(replayed.report.cells.map((cell) => cell.replay?.status)).toEqual(
+				replayed.report.cells.map(() => 'match')
+			);
+			expect(replayed.report.cells.every((cell) => cell.replay?.unused === 0)).toBe(true);
+			expect(replayed.report.cells.map((cell) => cell.outcome)).toEqual(
+				recorded.report.cells.map((cell) => cell.outcome)
+			);
+			// The recording itself carries no replay verdict: it was not a replay.
+			expect(recorded.report.cells.every((cell) => cell.replay === undefined)).toBe(true);
+		} finally {
+			vi.unstubAllGlobals();
+		}
+	});
+
+	it('refuses a cell the recording does not hold, by name, and a prompt it did not make as a divergence', async () => {
+		const { file } = await recordTape(withBrain({ id: 'live', tier: 'live' }, true));
+		// A different seed is a different cell: the recording holds no such cell.
+		const base = injectionBaseline([2]) as Record<string, unknown> & { guards: unknown[] };
+		const other = parseCampaign({
+			...base,
+			guards: base.guards.slice(0, 2),
+			brains: [{ id: 'live', tier: 'live', cassette: 'the.json' }]
+		});
+		const missing = await runCampaign(other, { packs, cassetteFor: () => file });
+		expect(missing.cells[0]?.error).toMatch(/^replay-diverged: .* holds no cell/);
+
+		// The same cells with every recorded prompt moved: each call is a divergence, not a quiet miss.
+		const moved = structuredClone(file);
+		for (const cell of moved.cells)
+			for (const call of cell.calls) call.promptDigest = 'e'.repeat(64);
+		const report = await runCampaign(
+			withBrain({ id: 'live', tier: 'live', cassette: 'the.json' }),
+			{ packs, cassetteFor: () => moved, now: clock(), newId: ids() }
+		);
+		expect(report.cells.every((cell) => cell.replay?.status === 'diverged')).toBe(true);
+		expect(report.cells.every((cell) => cell.replay?.divergedAt === 0)).toBe(true);
 	});
 });

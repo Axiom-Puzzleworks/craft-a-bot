@@ -705,6 +705,16 @@ export {
 	type ProviderCassetteFile
 } from './schemas/provider-cassette.js';
 export {
+	REPLAY_DIVERGED,
+	RecordedProviderError,
+	ReplayDiverged,
+	createRecordingReplay,
+	pathDigestOf,
+	type CellReplay,
+	type CellReplayReport,
+	type RecordingReplay
+} from './recording-replay.js';
+export {
 	PROVIDER_CASSETTE_MISS,
 	ProviderCassetteMiss,
 	createCassetteProvider,

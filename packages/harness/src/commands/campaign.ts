@@ -31,7 +31,7 @@ import {
 	type CampaignReport
 } from '@craftabot/evals';
 import { createMockProvider } from '@craftabot/core/testing';
-import { cassetteLoader } from '../cassettes.js';
+import { cassetteLoader, cassetteModel } from '../cassettes.js';
 import { summariseRun } from '@craftabot/governance/reports';
 import { harnessPlans } from '../plans.js';
 import { createRegistry, packVersions, type HarnessConfig } from '../config.js';
@@ -310,6 +310,76 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 					}
 				};
 			},
+			// The digest of each live cell's path, and the runs that made it, filed with the cell's calls (WP190).
+			...(options.record
+				? {
+						onPathDigest: (info: {
+							brain: string;
+							cellKey: string;
+							trial: number;
+							pathDigest: string;
+							runIds: string[];
+							workflowRunId?: string;
+						}) => {
+							const path = cassetteOfBrain.get(info.brain);
+							const taped =
+								path === undefined
+									? undefined
+									: options.record!.tapes.get(path)?.cells.get(info.cellKey);
+							if (!taped) return;
+							taped.meta.pathDigest = info.pathDigest;
+							taped.meta.runIds = info.runIds;
+							if (info.workflowRunId !== undefined) taped.meta.workflowRunId = info.workflowRunId;
+						}
+					}
+				: {}),
+			// A journey's other stages (WP190): onTrace holds the last agent run only, so every earlier stage's run — and the workflow run itself — is kept here.
+			onWorkflowRun: ({ cell, run, item, agentRuns }) => {
+				if (!storage) return;
+				const stamp = now();
+				const cassettePath = options.record ? undefined : cassetteOfBrain.get(cell.brain);
+				const replayedFrom: ReplayedFrom | undefined =
+					cassettePath === undefined
+						? undefined
+						: (() => {
+								const file = loadCassette(cassettePath);
+								return {
+									cassette: cassettePath,
+									model: cassetteModel(file),
+									recorded: file.recordedAt
+								};
+							})();
+				for (const agent of agentRuns) {
+					// The last agent run is `onTrace`'s, kept with the cell's line.
+					if (agent.runId === cell.runId) continue;
+					const finished = agent.events.find((event) => event.type === 'run.finished');
+					const kept = runRecordFrom({
+						runId: agent.runId,
+						spec: agent.spec,
+						events: [...agent.events],
+						packVersions: versions,
+						startedAt: stamp,
+						finishedAt: stamp,
+						...(finished
+							? { outcome: (finished.payload as { outcome?: string }).outcome as never }
+							: {}),
+						...(replayedFrom ? { replayedFrom } : {})
+					});
+					writing = writing
+						.then(() => storage.putRun(kept))
+						.then(() => storage.appendEvents(agent.runId, [...agent.events]))
+						.then(() => storage.putRunSummary(summariseRun(agent.runId, [...agent.events])));
+				}
+				writing = writing.then(() =>
+					storage.putWorkflowRun({
+						run,
+						item,
+						source: { kind: 'harness' },
+						createdAt: stamp,
+						schemaVersion: 1
+					})
+				);
+			},
 			// A leak found mid-recording stops the run at the next cell boundary (above).
 			betweenCells: async () => {
 				if (leaked) throw new Error(leaked);
@@ -384,7 +454,7 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 								const file = loadCassette(cassettePath);
 								return {
 									cassette: cassettePath,
-									model: file.entries[0]?.model ?? 'unrecorded',
+									model: cassetteModel(file),
 									recorded: file.recordedAt
 								};
 							})();

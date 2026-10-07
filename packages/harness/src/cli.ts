@@ -84,6 +84,7 @@ import {
 } from './commands/corpus.js';
 import { createRegistry } from './config.js';
 import { createFileStorage } from './storage/file-storage.js';
+import { recordingVerify, renderRecordingVerify } from './commands/recording.js';
 
 /**
  * The `craftabot` CLI (WP37). Files in, files out, exit code honest — the
@@ -1125,10 +1126,10 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 					io.stdout(
 						[
 							`recorded ${recorded.experimentId} — ${recorded.campaigns} campaign(s), ${recorded.cells} cells`,
-							...recorded.cassettes.flatMap((cassette) => [
-								`  cassette   ${cassette.path}  ${cassette.entries} entries${cassette.conflicts > 0 ? ` (${cassette.conflicts} later answers differed; the first kept)` : ''}`,
-								`  recording  ${cassette.recording}  ${cassette.calls} calls${cassette.failedCalls > 0 ? `, ${cassette.failedCalls} failed` : ''}`
-							]),
+							...recorded.cassettes.map(
+								(cassette) =>
+									`  recording  ${cassette.path}  ${cassette.cells} cells, ${cassette.calls} calls${cassette.failedCalls > 0 ? `, ${cassette.failedCalls} failed` : ''}`
+							),
 							''
 						].join('\n')
 					);
@@ -1516,6 +1517,29 @@ ${renderEvaluations(report)}`);
 					default:
 						throw new Error('spark needs status | patterns | plan | verify | up | down');
 				}
+			}
+			case 'recording': {
+				// WP190 (`113-RECORDING-AND-RELIABILITY.md` §4.5): a recording held to what it says.
+				const recording = stringFlag(args, 'recording');
+				const design = stringFlag(args, 'file');
+				if (args.positional[0] !== 'verify' || recording === undefined || design === undefined)
+					throw new Error(
+						'recording needs verify --recording <file> --file <experiment.json> [--out <dir>] [--live-store <dir>] [--size <n>] [--config <file>]'
+					);
+				const size = numberFlag(args, 'size');
+				const liveStore = stringFlag(args, 'live-store');
+				const verified = await recordingVerify({
+					recording,
+					file: design,
+					out: stringFlag(args, 'out') ?? './recording-verify-out',
+					config: await configFrom(args),
+					...(typeof args.flags['config'] === 'string' ? { configPath: args.flags['config'] } : {}),
+					credentials: credentialsFor(io),
+					...(size !== undefined ? { size } : {}),
+					...(liveStore !== undefined ? { liveStore } : {})
+				});
+				io.stdout(renderRecordingVerify(verified));
+				return verified.ok ? 0 : 1;
 			}
 			case 'keys': {
 				// WP162 (`112-REAL-ENOUGH-PLAN.md` §5): which credentials this process holds, by id, and what each lights.

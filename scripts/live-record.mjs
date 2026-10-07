@@ -14,6 +14,8 @@
  *      `docs/evidence/live/<id>/<id>.provider-cassette.json`;
  *   3. `craftabot experiment run … --egress none` — the design replayed from the cassette alone, with no network: the
  *      result, its markdown and the design as it ran, copied beside the cassette;
+ *   3b. `craftabot recording verify` (WP190): the recording held to what it says — every cell on its recorded path, and the
+ *       live run's own store digesting to the same. A recording that does not verify stops the script before any evidence is written;
  *   4. `cells.json`: one row per cell (campaign, case, outcome, verdicts), so two recordings can be asked whether they
  *      decided the same case the same way;
  *   5. a sample of the runs as stories (`stories/`): the first of each outcome and verdict in each campaign;
@@ -182,11 +184,37 @@ async function one(id, { replayOnly = false } = {}) {
 		wall = Math.round((Date.now() - started) / 1000);
 		if (recorded.code !== 0) throw new Error(`recording ${id} failed (exit ${recorded.code})`);
 		cells = /recorded .*?(\d+) cells/.exec(recorded.stdout)?.[1];
-		entries = /(\d+) entries/.exec(recorded.stdout)?.[1];
+		entries = /(\d+) calls/.exec(recorded.stdout)?.[1];
 	} else if (!existsSync(join(dest, `${id}.provider-cassette.json`))) {
 		throw new Error(`${id} has no cassette to replay`);
 	}
 
+	// A recording is held to what it says before anything is written from it (WP190).
+	const cassette = join(dest, `${id}.provider-cassette.json`);
+	const liveStore = join(RECORDINGS, id, 'trial-0');
+	const isRecording = JSON.parse(readFileSync(cassette, 'utf8')).kind === 'provider-recording';
+	const verified = !isRecording
+		? { code: 0, stdout: '', stderr: '' }
+		: await run(
+				[
+					'recording',
+					'verify',
+					'--recording',
+					cassette,
+					'--file',
+					file,
+					'--config',
+					SPARK_CONFIG,
+					'--out',
+					join(work, 'verify'),
+					...(existsSync(liveStore) ? ['--live-store', liveStore] : [])
+				],
+				{ quiet: true }
+			);
+	if (verified.code !== 0) {
+		console.error(verified.stdout || verified.stderr);
+		throw new Error(`${id}: the recording does not verify against itself; nothing was written`);
+	}
 	const told = await replayAndWrite(id, file, dest, work);
 
 	if (!replayOnly) {

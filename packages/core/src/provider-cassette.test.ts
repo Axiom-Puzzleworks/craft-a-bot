@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createPackRegistry } from './pack-registry.js';
+import { REPLAY_DIVERGED, createRecordingReplay, pathDigestOf } from './recording-replay.js';
 import {
 	PROVIDER_CASSETTE_MISS,
 	RecordingTape,
@@ -14,13 +15,15 @@ import {
 	cellKeyOf,
 	parseAnyProviderCassette,
 	parseProviderCassette,
+	parseProviderRecording,
 	promptDigest,
-	type ProviderCassetteFile
+	type ProviderCassetteFile,
+	type ProviderRecordingFile
 } from './schemas/provider-cassette.js';
 import { computeTraceDigest } from './schemas/trace-file.js';
 import { createSession } from './session/agent-session.js';
 import { createMockProvider, createTestClock, turn, v1BrickKinds } from './testing/index.js';
-import type { LLMProvider } from './types/provider.js';
+import type { ChatRequest, LLMProvider } from './types/provider.js';
 import type { WorldDefinition } from './types/world.js';
 
 /**
@@ -112,11 +115,14 @@ const spec: AgentSpec = {
 
 const PLAN = [turn('Once.', 'ping'), turn('Twice.', 'ping'), turn('Done.', 'win')];
 
-async function runWith(provider: LLMProvider): Promise<EngineEvent[]> {
+async function runWith(
+	provider: LLMProvider,
+	withSpec: (spec: AgentSpec) => AgentSpec = (held) => held
+): Promise<EngineEvent[]> {
 	const clock = createTestClock();
 	const events: EngineEvent[] = [];
 	const session = createSession({
-		spec,
+		spec: withSpec(spec),
 		registry: registry(),
 		provider,
 		options: { now: clock.now, newId: clock.newId, random: clock.random }
@@ -384,5 +390,144 @@ describe('the cell-scoped recording (WP189)', () => {
 			{ brain: 'other' }
 		])
 			expect(cellKeyOf({ ...base, ...moved })).not.toBe(key);
+	});
+});
+
+describe('exact replay of a recording (WP190)', () => {
+	/** Record a session through the tap and make the one-cell recording file a replay is handed. */
+	async function recordCell(
+		provider: LLMProvider,
+		cellKey = 'k|s|b|g|live|||0|0'
+	): Promise<{ file: ProviderRecordingFile; events: EngineEvent[]; first: ChatRequest }> {
+		const tape = new RecordingTape();
+		let first: ChatRequest | undefined;
+		const watched: LLMProvider = {
+			...provider,
+			chat: (request, opts) => {
+				first ??= request;
+				return provider.chat(request, opts);
+			}
+		};
+		const recording = recordingProvider(watched, {
+			slim: true,
+			now: () => 0,
+			onCall: tape.cell(cellKey, 0).open('agent', 'tally/goal')
+		});
+		const events = await runWith(recording.provider);
+		const cell = tape.cells.get(cellKey)!;
+		return {
+			events,
+			first: first!,
+			file: parseProviderRecording({
+				format: 'craftabot-cassette',
+				formatVersion: 2,
+				kind: 'provider-recording',
+				providerId: 'mock',
+				recordedAt: '2026-10-07T09:00:00.000Z',
+				recordedBy: 'provider-cassette.test',
+				egress: [],
+				manifest: {
+					campaignDigests: {},
+					packVersions: {},
+					sampling: [],
+					models: [],
+					units: [],
+					trials: 1,
+					interventions: []
+				},
+				cells: [
+					{
+						cellKey,
+						trial: 0,
+						pathDigest: pathDigestOf([events]),
+						calls: cell.calls
+					}
+				]
+			})
+		};
+	}
+
+	it('replays a recorded cell to the path it took: the same path digest, every call answered', async () => {
+		const { file, events } = await recordCell(createMockProvider({ script: PLAN }));
+		const replay = createRecordingReplay(file).forCell(file.cells[0]!.cellKey);
+		const replayed = await runWith(replay.providerFor('agent', 'tally/goal'));
+		expect(pathDigestOf([replayed])).toBe(pathDigestOf([events]));
+		expect(replay.report()).toMatchObject({ total: 3, consumed: 3, unused: 0 });
+		expect(replay.report().diverged).toBeUndefined();
+		// A second replay starts from the beginning, with its own cursors.
+		const again = createRecordingReplay(file).forCell(file.cells[0]!.cellKey);
+		expect(pathDigestOf([await runWith(again.providerFor('agent', 'tally/goal'))])).toBe(
+			file.cells[0]!.pathDigest
+		);
+	});
+
+	it('a prompt the recording did not make is replay-diverged, with both digests, and nothing is substituted', async () => {
+		const { file } = await recordCell(createMockProvider({ script: PLAN }));
+		// Another token cap: every request the bot makes is a different request from the one recorded.
+		const replay = createRecordingReplay(file).forCell(file.cells[0]!.cellKey);
+		const events = await runWith(replay.providerFor('agent', 'tally/goal'), (held) => ({
+			...held,
+			bricks: { ...held.bricks, llm: { ...held.bricks.llm!, maxTokens: 65 } }
+		}));
+		const error = events.find((event) => event.type === 'error');
+		expect(error?.payload).toMatchObject({ kind: REPLAY_DIVERGED });
+		expect(String((error?.payload as { message: string }).message)).toContain('asked prompt');
+		const report = replay.report();
+		expect(report.diverged).toMatchObject({
+			seq: 0,
+			expected: file.cells[0]!.calls[0]!.promptDigest
+		});
+		expect(report.consumed).toBe(0);
+	});
+
+	it('a call that failed when recorded fails again as it did, and the recording keeps what followed', async () => {
+		let asked = 0;
+		const flaky: LLMProvider = {
+			...createMockProvider({ script: PLAN }),
+			chat: (request, opts) => {
+				asked += 1;
+				if (asked === 1)
+					return Promise.reject(
+						Object.assign(new Error('The Spark timed out.'), { kind: 'timeout' })
+					);
+				return createMockProvider({ script: PLAN }).chat(request, opts);
+			}
+		};
+		const { file } = await recordCell(flaky);
+		const calls = file.cells[0]!.calls;
+		expect(calls[0]?.error).toMatchObject({ kind: 'timeout', message: 'The Spark timed out.' });
+		const replay = createRecordingReplay(file).forCell(file.cells[0]!.cellKey);
+		const events = await runWith(replay.providerFor('agent', 'tally/goal'));
+		expect(events.find((event) => event.type === 'error')?.payload).toMatchObject({
+			kind: 'timeout'
+		});
+		expect(replay.report().diverged).toBeUndefined();
+	});
+
+	it('says how many recorded calls the replay never asked for', async () => {
+		const { file, first } = await recordCell(createMockProvider({ script: PLAN }));
+		const replay = createRecordingReplay(file).forCell(file.cells[0]!.cellKey);
+		const provider = replay.providerFor('agent', 'tally/goal');
+		await provider.chat(first, { signal: new AbortController().signal });
+		expect(replay.report()).toMatchObject({ total: 3, consumed: 1, unused: 2 });
+	});
+
+	it('the path digest ignores wall-clock fields and wire detail, and sees a changed decision', async () => {
+		const events = await runWith(createMockProvider({ script: PLAN }));
+		const base = pathDigestOf([events]);
+		// Timestamps, the provider's time and a streamed token are off the path.
+		const later = events.map((event) => ({ ...event, timestamp: '2030-01-01T00:00:00.000Z' }));
+		expect(pathDigestOf([later])).toBe(base);
+		const withoutTokens = events.filter((event) => event.type !== 'think.token');
+		expect(pathDigestOf([withoutTokens])).toBe(base);
+		// A different decision is a different path.
+		const changed = events.map((event) =>
+			event.type === 'decision'
+				? { ...event, payload: { ...event.payload, thought: 'a different thought' } }
+				: event
+		) as EngineEvent[];
+		expect(pathDigestOf([changed])).not.toBe(base);
+		// And so is a run that stopped sooner.
+		expect(pathDigestOf([events.slice(0, -2)])).not.toBe(base);
 	});
 });

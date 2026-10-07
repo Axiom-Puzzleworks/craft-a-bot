@@ -194,7 +194,13 @@ export interface CellTape {
 	readonly cellKey: string;
 	readonly trial: number;
 	readonly calls: RecordedCall[];
-	meta: { runId?: string; outcome?: string; pathDigest?: string };
+	meta: {
+		runId?: string;
+		runIds?: string[];
+		workflowRunId?: string;
+		outcome?: string;
+		pathDigest?: string;
+	};
 	open(role: 'agent' | 'seat', stage: string): (call: TappedCall) => void;
 }
 
