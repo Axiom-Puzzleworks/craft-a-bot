@@ -1,16 +1,16 @@
 # Testbot on fs-lending/lending/stage/explanation
 
-*Run `00000000-0000-4000-8000-000000049489`*
+*Run `00000000-0000-4000-8000-0000000000d3`*
 
 - **Bot:** Testbot
 - **Goal card:** fs-lending/lending/stage/explanation
 - **Model:** Qwen3.5-122B-A10B-NVFP4 through dgx-spark (cartridge dgx-spark/giant-qwen)
-- **Dials:** temperature 0, up to 1024 tokens a turn
-- **Budgets:** 30 turns, 100000 tokens, 60 s a request
+- **Dials:** temperature 0, up to 2048 tokens a turn
+- **Budgets:** 30 turns, 100000 tokens, 180 s a request
 - **Started by:** BambleweenyOne (service)
 - **Context:** window-v1 memory, sections-v1 prompt
 - **Egress:** none
-- **Answers:** replayed from docs/evidence/live/lending-stack-live/lending-stack-live.provider-cassette.json (Qwen3.5-122B-A10B-NVFP4, recorded 2026-10-06T10:19:24.586Z) — not a live call
+- **Answers:** replayed from docs/evidence/live/lending-stack-live/lending-stack-live.provider-cassette.json (Qwen3.5-122B-A10B-NVFP4, recorded 2026-10-07T21:45:24.072Z) — not a live call
 
 ## Before the first turn
 
@@ -18,69 +18,30 @@
 
 ## Turn 1
 
-- **saw** — It saw: applicant Eira Underhill, age_band 55-64, amount 15000, term_months 24, purpose home improvements, declared_monthly_income 1000, declared_monthly_outgoings 308, requested_repayment 724
-score_band very-good, defaults 0, arrears_months 0, searches_12m 2, monthly_income 1000, monthly_commitments 8, disposable 542
-verified_monthly_income 1000, monthly_commitments 8, disposable_income 542, amount 15000, term_months 24, monthly_repayment 724, repayment_to_disposable_percent 133
-Nobody has said anything since you last listened.
-- **told** — Its prompt: 2 messages, about 337 tokens.
+- **saw** — It saw: applicant Bram Larkspur, age_band 35-44, amount 15000, term_months 36, purpose home improvements, declared_monthly_income 6500, declared_monthly_outgoings 1971, requested_repayment 515
+rule: The bank's lending rule. The ratio is the monthly repayment as a percentage of disposable income on the worksheet. Decline if the bureau score band is poor, if the bureau shows 2 or more defaults, or if the ratio is over 100%. Otherwise refer to an underwriter if the bureau shows any default or any months in arrears, if there have been 3 or more credit searches in twelve months, if the ratio is over 60%,…
+- **told** — Its prompt: 2 messages, about 472 tokens.
   - system: 810 characters
-  - user: 537 characters
+  - user: 1076 characters
   - The last message it read: “Right now:
-applicant Eira Underhill, age_band 55-64, amount 15000, term_months 24, purpose home improvements, declared_monthly_income 1000, declared_monthly_outgoings 308, requested_repayment 724
-score_band very-good, defaults 0, arrears_months 0, searches_12m 2, monthly_income 1000, monthly_commitments 8, disposable 542
-verified_monthly_income 1000, monthly_commitments 8, disposable_income 542, amount 15000, term_months 24, monthly_repayment 724, repayment_to_disposable_percent 133
-Nobody has…”
-- **thought** — It thought (1561 in, 57 out; tool_call; 9.1 s at the provider).
-- **thought** — It decided: “I see the application details for Eira Underhill. The repayment to disposable income ratio is 133%, which is quite high. I need to verify the identity first before making a decision.” — verify-identity {}
-- **did** — It did verify-identity {}.
-  - On behalf of BambleweenyOne (service).
-- **result** — The world answered: Identity was already verified.
-- **checked** — 9 other checks allowed it.
+applicant Bram Larkspur, age_band 35-44, amount 15000, term_months 36, purpose home improvements, declared_monthly_income 6500, declared_monthly_outgoings 1971, requested_repayment 515
+rule: The bank's lending rule. The ratio is the monthly repayment as a percentage of disposable income on the worksheet. Decline if the bureau score band is poor, if the bureau shows 2 or more defaults, or if the ratio is over 100%. Otherwise refer to an underwriter if the bureau shows any default or a…”
+- **thought** — It thought (1688 in, 302 out; tool_call; 44 s at the provider).
+- **thought** — It decided: “I need to explain the decision to the applicant. Let me first check what the decision was based on the lending rules.
 
-## Turn 2
+Looking at the data:
+- Score band: very-good (not poor, not fair)
+- Defaults: 0 (no defaults)
+- Arrears months: 0 (no arrears)
+- Searches in 12 months: 3 (this is 3 or more)
+- Ratio: 14% (not over 60%, not over 100%)
 
-- **saw** — It saw: applicant Eira Underhill, age_band 55-64, amount 15000, term_months 24, purpose home improvements, declared_monthly_income 1000, declared_monthly_outgoings 308, requested_repayment 724
-score_band very-good, defaults 0, arrears_months 0, searches_12m 2, monthly_income 1000, monthly_commitments 8, disposable 542
-verified_monthly_income 1000, monthly_commitments 8, disposable_income 542, amount 15000, term_months 24, monthly_repayment 724, repayment_to_disposable_percent 133
-Nobody has said anything since you last listened.
-- **told** — Its prompt: 3 messages, about 428 tokens.
-  - system: 810 characters
-  - user: 364 characters
-  - user: 537 characters
-  - The last message it read: “Right now:
-applicant Eira Underhill, age_band 55-64, amount 15000, term_months 24, purpose home improvements, declared_monthly_income 1000, declared_monthly_outgoings 308, requested_repayment 724
-score_band very-good, defaults 0, arrears_months 0, searches_12m 2, monthly_income 1000, monthly_commitments 8, disposable 542
-verified_monthly_income 1000, monthly_commitments 8, disposable_income 542, amount 15000, term_months 24, monthly_repayment 724, repayment_to_disposable_percent 133
-Nobody has…”
-- **thought** — It thought (1652 in, 91 out; tool_call; 15 s at the provider).
-- **thought** — It decided: “I see the application details for Eira Underhill. The repayment to disposable income ratio is 133%, which is quite high and exceeds typical affordability thresholds. I need to make a decision based on this affordability issue.” — decide {"outcome":"decline","reasons":["disposable-low"]}
-- **did** — It did decide {"outcome":"decline","reasons":["disposable-low"]}.
-  - On behalf of BambleweenyOne (service).
-- **result** — The world answered: Decision: decline — disposable-low.
-- **checked** — 9 other checks allowed it.
-
-## Turn 3
-
-- **saw** — It saw: applicant Eira Underhill, age_band 55-64, amount 15000, term_months 24, purpose home improvements, declared_monthly_income 1000, declared_monthly_outgoings 308, requested_repayment 724
-score_band very-good, defaults 0, arrears_months 0, searches_12m 2, monthly_income 1000, monthly_commitments 8, disposable 542
-verified_monthly_income 1000, monthly_commitments 8, disposable_income 542, amount 15000, term_months 24, monthly_repayment 724, repayment_to_disposable_percent 133
-Nobody has said anything since you last listened.
-- **told** — Its prompt: 3 messages, about 517 tokens.
-  - system: 810 characters
-  - user: 719 characters
-  - user: 537 characters
-  - The last message it read: “Right now:
-applicant Eira Underhill, age_band 55-64, amount 15000, term_months 24, purpose home improvements, declared_monthly_income 1000, declared_monthly_outgoings 308, requested_repayment 724
-score_band very-good, defaults 0, arrears_months 0, searches_12m 2, monthly_income 1000, monthly_commitments 8, disposable 542
-verified_monthly_income 1000, monthly_commitments 8, disposable_income 542, amount 15000, term_months 24, monthly_repayment 724, repayment_to_disposable_percent 133
-Nobody has…”
-- **thought** — It thought (1733 in, 137 out; tool_call; 20 s at the provider).
-- **thought** — It decided: “I see the decision was already made to decline due to "disposable-low" because the repayment to disposable income ratio is 133%, which is too high. Now I need to explain this decision to the applicant using the reason code from the decision.” — explain-decision {"reasons":["disposable-low"],"text":"Your application has been declined because your disposable income is too low to support the requested loan repayments. The monthly repayment amount represents 133% of your disposable income, which exce…
-- **did** — It did explain-decision {"reasons":["disposable-low"],"text":"Your application has been declined because your disposable income is too low to support the requested loan repayments. The monthly repayment amount represents 133% of your disposable income, which exce….
+According to the rules:
+- Decline if: score band is poor, 2+ d…” — explain-decision {"reasons":["searches"],"text":"Your application has been referred to an underwriter because there have been 3 or more credit searches in the last twelve months."}
+- **did** — It did explain-decision {"reasons":["searches"],"text":"Your application has been referred to an underwriter because there have been 3 or more credit searches in the last twelve months."}.
   - On behalf of BambleweenyOne (service).
 - **result** — The world answered: Decision explained to the applicant.
-- **said** — The customer was told lending/review-right (words digest e2f017a2ef04…).
-- **stage** — Stage explanation ended ok; 0 of 27 checks stopped it.
+- **stage** — Stage explanation ended ok; 0 of 9 checks stopped it.
 - **checked** — 9 other checks allowed it.
 
 ## How it ended
@@ -96,20 +57,20 @@ Nobody has…”
       "kind": "verdict",
       "title": "Verdict (truth)",
       "fields": {
-        "label": "should-decline",
-        "reasons": "why-disposable-low",
-        "ratio": "ratio-133pc"
+        "label": "should-refer",
+        "reasons": "why-searches,why-rules-cannot-decide",
+        "ratio": "ratio-14pc"
       }
     }
   ],
   "cohort": {
-    "ageBand": "55-64",
-    "incomeBand": "under-15k",
+    "ageBand": "35-44",
+    "incomeBand": "60-100k",
     "proxy": "none"
   },
   "facts": {
-    "verdict": "should-decline",
-    "shouldRefer": false
+    "verdict": "should-refer",
+    "shouldRefer": true
   }
 }
 ```

@@ -191,8 +191,24 @@ const PATH_EVENTS = new Set([
 	'error',
 	'run.finished'
 ]);
+/**
+ * A guard that looked and let it through, changing nothing. Not a decision: a guard that blocks is a `guardrail.tripped`, and one that
+ * redacts, annotates or marks says so in its verdict and stays. Whether a plain allow is *recorded* depends on who is named on the run
+ * (a principal's attestation asks the chain a second time), so the same decisions would otherwise digest two ways — found when the
+ * first full live recording replayed as `mismatch` under the CLI and as `match` under `recording verify` (`113-…` §11, WP195).
+ */
+function isPlainAllow(event: EngineEvent): boolean {
+	if (event.type !== 'guardrail.checked') return false;
+	const verdict = event.payload.verdict as Record<string, unknown>;
+	return (
+		verdict['allow'] === true &&
+		verdict['verdictKind'] === undefined &&
+		verdict['redactedText'] === undefined &&
+		verdict['mark'] === undefined
+	);
+}
 /** Wall-clock and wire detail: left out, so a replay (which has no wall clock) can reproduce the digest. */
-const OFF_PATH = new Set(['durationMs', 'latencyMs', 'timestamp', 'raw']);
+const OFF_PATH = new Set(['durationMs', 'latencyMs', 'timestamp', 'raw', 'attestation']);
 /**
  * Identity, not path: ids are allocated by a counter that every event advances, and a live provider streams in its own
  * chunks while a replay splits the recorded text on whitespace, so the same decisions leave different numbers of
@@ -228,8 +244,15 @@ export function pathDigestOf(
 		engineEventSchema
 			.array()
 			.parse([...held])
-			.filter((event) => PATH_EVENTS.has(event.type))
-			.map((event) => ({ type: event.type, tick: event.tick, payload: onPath(event.payload) }));
+			.filter((event) => PATH_EVENTS.has(event.type) && !isPlainAllow(event))
+			.map((event) => ({
+				type: event.type,
+				tick: event.tick,
+				// Who resolved an approval is the principal the run names, not what it decided (`approval.resolved.by`).
+				payload: onPath(
+					event.type === 'approval.resolved' ? { ...event.payload, by: undefined } : event.payload
+				)
+			}));
 	return sha256Hex(
 		canonicalJson({
 			runs: runs.map(keep),

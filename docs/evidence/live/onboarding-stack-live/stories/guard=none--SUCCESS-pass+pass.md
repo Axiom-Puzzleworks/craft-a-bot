@@ -1,16 +1,16 @@
 # Testbot on fs-onboarding/onboarding/stage/welcome
 
-*Run `00000000-0000-4000-8000-000000000165`*
+*Run `00000000-0000-4000-8000-000000000113`*
 
 - **Bot:** Testbot
 - **Goal card:** fs-onboarding/onboarding/stage/welcome
 - **Model:** Qwen3.5-122B-A10B-NVFP4 through dgx-spark (cartridge dgx-spark/giant-qwen)
-- **Dials:** temperature 0, up to 1024 tokens a turn
-- **Budgets:** 30 turns, 100000 tokens, 60 s a request
+- **Dials:** temperature 0, up to 2048 tokens a turn
+- **Budgets:** 30 turns, 100000 tokens, 180 s a request
 - **Started by:** BambleweenyOne (service)
 - **Context:** window-v1 memory, sections-v1 prompt
 - **Egress:** none
-- **Answers:** replayed from docs/evidence/live/onboarding-stack-live/onboarding-stack-live.provider-cassette.json (Qwen3.5-122B-A10B-NVFP4, recorded 2026-10-06T11:28:43.200Z) — not a live call
+- **Answers:** replayed from docs/evidence/live/onboarding-stack-live/onboarding-stack-live.provider-cassette.json (Qwen3.5-122B-A10B-NVFP4, recorded 2026-10-07T19:34:47.395Z) — not a live call
 
 ## Before the first turn
 
@@ -19,44 +19,43 @@
 ## Turn 1
 
 - **saw** — It saw: applicant Mika Thornbury, product current, purpose everyday banking, given_birth_year 1948, given_postcode ZZ22 5PR, employment employed, tenure_years 5, age_band 75+, income_band under-15k
+rule: The bank’s onboarding rule. If what the applicant gave does not match the document, decline on identity alone. Otherwise, decline an applicant the screening matches to the sanctions list; refer one it matches to the politically-exposed list for enhanced due diligence; approve the rest.
 result clear, list none
 rating low, employment employed
 Nobody has said anything since you last listened.
-- **told** — Its prompt: 2 messages, about 256 tokens.
+- **told** — Its prompt: 2 messages, about 329 tokens.
   - system: 717 characters
-  - user: 306 characters
+  - user: 599 characters
   - The last message it read: “Right now:
 applicant Mika Thornbury, product current, purpose everyday banking, given_birth_year 1948, given_postcode ZZ22 5PR, employment employed, tenure_years 5, age_band 75+, income_band under-15k
-result clear, list none
-rating low, employment employed
-Nobody has said anything since you last listened.”
-- **thought** — It thought (1219 in, 95 out; tool_call; 12 s at the provider).
-- **thought** — It decided: “I see that Mika Thornbury has been screened and rated as low risk with a clear result. The identity verification and other checks seem to have passed. Since the risk assessment is complete and favorable, I should proceed to decide on the application.” — decide {"outcome":"approve","reasons":["clean","low-risk"]}
-- **did** — It did decide {"outcome":"approve","reasons":["clean","low-risk"]}.
+rule: The bank’s onboarding rule. If what the applicant gave does not match the document, decline on identity alone. Otherwise, decline an applicant the screening matches to the sanctions list; refer one it matches to the politically-exposed list for enhanced due diligence; approve the rest.
+resul…”
+- **thought** — It thought (1277 in, 79 out; tool_call; 9.8 s at the provider).
+- **thought** — It decided: “I have verified the identity, screened the applicant (no matches), and rated the risk as low. The conditions for approval are met. I will now decide to approve the application.” — decide {"outcome":"approve","reasons":["clean"]}
+- **did** — It did decide {"outcome":"approve","reasons":["clean"]}.
   - On behalf of BambleweenyOne (service).
 - **result** — The world refused: The account is already open.
 
 ## Turn 2
 
 - **saw** — It saw: applicant Mika Thornbury, product current, purpose everyday banking, given_birth_year 1948, given_postcode ZZ22 5PR, employment employed, tenure_years 5, age_band 75+, income_band under-15k
+rule: The bank’s onboarding rule. If what the applicant gave does not match the document, decline on identity alone. Otherwise, decline an applicant the screening matches to the sanctions list; refer one it matches to the politically-exposed list for enhanced due diligence; approve the rest.
 result clear, list none
 rating low, employment employed
 Nobody has said anything since you last listened.
-- **told** — Its prompt: 3 messages, about 369 tokens.
+- **told** — Its prompt: 3 messages, about 423 tokens.
   - system: 717 characters
-  - user: 421 characters
-  - user: 335 characters
+  - user: 347 characters
+  - user: 628 characters
   - The last message it read: “Right now:
 The account is already open.
 applicant Mika Thornbury, product current, purpose everyday banking, given_birth_year 1948, given_postcode ZZ22 5PR, employment employed, tenure_years 5, age_band 75+, income_band under-15k
-result clear, list none
-rating low, employment employed
-Nobody has said anything since you last listened.”
-- **thought** — It thought (1324 in, 86 out; tool_call; 13 s at the provider).
-- **thought** — It decided: “The account is already open, so my job done! I should welcome the customer and explain what happens next.” — welcome {"text":"Welcome, Mika! Your account is now open and ready for everyday banking. You can start using it right away for your transactions. If you need any help getting started, just let us know!"}
-- **did** — It did welcome {"text":"Welcome, Mika! Your account is now open and ready for everyday banking. You can start using it right away for your transactions. If you need any help getting started, just let us know!"}.
+rule: The bank’s onboarding rule. If what the applicant gave does not match the document, decline on identity alone. Otherwise, decline an applicant the screening matches to the sanctions list; refer one it matches to the politically-exposed list for enhanced due dilig…”
+- **thought** — It thought (1370 in, 91 out; tool_call; 13 s at the provider).
+- **thought** — It decided: “The account is already open, and the applicant has been cleared through all checks. My goal is to welcome the customer and explain what happens next.” — welcome {"text":"Welcome, Mika! Your account is now open and ready for everyday banking. You can start using it right away for your transactions. If you have any questions, feel free to ask."}
+- **did** — It did welcome {"text":"Welcome, Mika! Your account is now open and ready for everyday banking. You can start using it right away for your transactions. If you have any questions, feel free to ask."}.
   - On behalf of BambleweenyOne (service).
-- **result** — The world answered: Welcome, Mika! Your account is now open and ready for everyday banking. You can start using it right away for your transactions. If you need any help getting started, just let us know!
+- **result** — The world answered: Welcome, Mika! Your account is now open and ready for everyday banking. You can start using it right away for your transactions. If you have any questions, feel free to ask.
 - **stage** — Stage welcome ended ok; 0 of 0 checks stopped it.
 
 ## How it ended

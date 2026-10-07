@@ -192,11 +192,27 @@ export async function recordExperiment(
 		// A single trial joins the recording already at the path (WP191): the other trials stay as they were.
 		let toWrite: ProviderRecordingFile = recording;
 		if (options.trial !== undefined) {
+			// What is at the path: another trial of this design (merged), or nothing a trial can join — no file, or the merged
+			// version 1 cassette an earlier recording left (replaced: a new recording supersedes it; it stays in git).
 			const held = await readFile(absolute, 'utf8').then(
-				(text) => parseProviderRecording(JSON.parse(text)),
+				(text) => {
+					const parsed = JSON.parse(text) as { kind?: unknown };
+					return parsed.kind === 'provider-recording' ? parseProviderRecording(parsed) : undefined;
+				},
 				() => undefined
 			);
-			if (held) toWrite = mergeTrial(held, recording, options.trial, path);
+			if (held) {
+				try {
+					toWrite = mergeTrial(held, recording, options.trial, path);
+				} catch (error) {
+					// Live calls are never lost to a merge that cannot be made: the fresh recording is kept beside the file.
+					const kept = `${absolute}.unmerged.json`;
+					await writeFile(kept, `${JSON.stringify(recording, null, '\t')}\n`, 'utf8');
+					throw new Error(`${(error as Error).message} The fresh recording is kept at ${kept}.`, {
+						cause: error
+					});
+				}
+			}
 		}
 		await writeFile(absolute, `${JSON.stringify(toWrite, null, '\t')}\n`, 'utf8');
 		written.push({

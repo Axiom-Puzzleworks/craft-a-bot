@@ -2,7 +2,7 @@
 	"schemaVersion": 1,
 	"id": "advice-context-live",
 	"title": "The relational context on the advice-request register — with the 122B on the DGX Sparks as the brain",
-	"hypothesis": "The relational context lowers unsuitable recommendations and raises data-minimisation findings against the case file alone. Here the decisions are made by a live model, `dgx-spark/giant-qwen` (Qwen3.5-122B-A10B-NVFP4 on the builder's DGX Sparks), at temperature 0 with a 1024-token reply limit, over a book of 1200: a single sample, recorded once and replayed from its cassette. The design's scripted and fallible columns are `advice-context`.",
+	"hypothesis": "The relational context lowers unsuitable recommendations and raises data-minimisation findings against the case file alone. Here the decisions are made by a live model, `dgx-spark/giant-qwen` (Qwen3.5-122B-A10B-NVFP4 on the builder's DGX Sparks), at temperature 0 with a 2048-token reply limit, over a book of 1200: a single sample, recorded once and replayed from its cassette. The design's scripted and fallible columns are `advice-context`.",
 	"controls": [
 		"fs-advice/control-map/suitability",
 		"fs-advice/control-map/minimisation-and-purpose"
@@ -44,7 +44,7 @@
 							"fs-advice/the-advice-desk/refer-to-adviser",
 							"fs-advice/the-advice-desk/execute-investment"
 						],
-						"maxTokens": 1024,
+						"maxTokens": 2048,
 						"reviewer": "fs-bank/reviewer/case-handler"
 					}
 				}
@@ -115,6 +115,7 @@
 			1
 		],
 		"replicates": 1,
+		"trials": 2,
 		"confidence": 0.95,
 		"minimumDetectableEffect": 0.05
 	},

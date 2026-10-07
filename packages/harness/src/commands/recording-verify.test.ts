@@ -269,4 +269,25 @@ describe('a design performed more than once (WP191)', { timeout: 600_000 }, () =
 			/outside the 2 trial/
 		);
 	});
+
+	it('replaces the merged version 1 cassette an earlier recording left, and keeps a fresh recording a merge cannot take', async () => {
+		// WP195: the committed cassettes are version 1; a new recording of the design supersedes one rather than failing on it.
+		const target = join(root, 'v1.provider-cassette.json');
+		const file = await designFile('v1', target);
+		await writeFile(
+			target,
+			JSON.stringify({ schemaVersion: 1, kind: 'provider-cassette', entries: [] }),
+			'utf8'
+		);
+		await record(file, { trials: 2, trial: 0 }, 'v1-0');
+		expect((await read(target)).kind).toBe('provider-recording');
+		// A trial that cannot join (another design) never costs the live calls: they are kept beside the file.
+		await expect(record(file, { trials: 2, trial: 1, size: 40 }, 'v1-1')).rejects.toThrow(
+			/kept at .*unmerged.json/
+		);
+		const kept = parseProviderRecording(
+			JSON.parse(await readFile(`${target}.unmerged.json`, 'utf8'))
+		);
+		expect(kept.cells.length).toBeGreaterThan(0);
+	});
 });

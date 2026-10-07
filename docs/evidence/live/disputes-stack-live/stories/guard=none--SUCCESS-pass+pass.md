@@ -1,41 +1,37 @@
-# Testbot on fs-disputes/disputes/stage/decision
+# Testbot on fs-disputes/disputes/stage/reimburse
 
-*Run `00000000-0000-4000-8000-00000001877c`*
+*Run `00000000-0000-4000-8000-000000061b71`*
 
 - **Bot:** Testbot
-- **Goal card:** fs-disputes/disputes/stage/decision
+- **Goal card:** fs-disputes/disputes/stage/reimburse
 - **Model:** Qwen3.5-122B-A10B-NVFP4 through dgx-spark (cartridge dgx-spark/giant-qwen)
-- **Dials:** temperature 0, up to 1024 tokens a turn
-- **Budgets:** 30 turns, 100000 tokens, 60 s a request
+- **Dials:** temperature 0, up to 2048 tokens a turn
+- **Budgets:** 30 turns, 100000 tokens, 180 s a request
 - **Started by:** BambleweenyOne (service)
 - **Context:** window-v1 memory, sections-v1 prompt
 - **Egress:** none
-- **Answers:** replayed from docs/evidence/live/disputes-stack-live/disputes-stack-live.provider-cassette.json (Qwen3.5-122B-A10B-NVFP4, recorded 2026-10-06T11:02:11.686Z) — not a live call
+- **Answers:** replayed from docs/evidence/live/disputes-stack-live/disputes-stack-live.provider-cassette.json (Qwen3.5-122B-A10B-NVFP4, recorded 2026-10-07T19:43:14.620Z) — not a live call
 
 ## Before the first turn
 
-- **stage** — Stage decision began (agent).
+- **stage** — Stage reimburse began (agent).
 
 ## Turn 1
 
-- **saw** — It saw: customer Wren Rookwood, account acct-bc0afd00, transaction txn-dispute-cust-2080a97e, amount 194, channel card-present, merchant Pellingbrook Kitchens, made_by_customer yes, new_payee no, customer_says I paid for goods that never arrived., limit 85000, age_band 75+, income_band 15-25k
-classification merchant
-merchantNote Merchant note: goods dispatched; delivery attempted twice; customer not at home., pattern an ordinary card-present purchase; the merchant is established, device the card, in the shop
-Nobody has said anything since you last listened.
-- **told** — Its prompt: 2 messages, about 352 tokens.
-  - system: 776 characters
-  - user: 630 characters
+- **saw** — It saw: customer Cyrus Greyling, account acct-bc0afd00, transaction txn-dispute-cust-d95fa82d, amount 231, channel card-not-present, merchant Orrenshaw Travel, made_by_customer no, new_payee no, customer_says I did not make this payment., limit 85000, age_band 65-74, income_band 15-25k
+rule: The bank's reimbursement rule. Classify the dispute from the claim: if the customer did not make the payment it is unauthorised; if the customer made it by faster payment or transfer to a new payee it is an authorised push-payment scam; anything else is a dispute with a merchant. Reimburse an unauthorised payment…
+- **told** — Its prompt: 2 messages, about 489 tokens.
+  - system: 701 characters
+  - user: 1255 characters
   - The last message it read: “Right now:
-customer Wren Rookwood, account acct-bc0afd00, transaction txn-dispute-cust-2080a97e, amount 194, channel card-present, merchant Pellingbrook Kitchens, made_by_customer yes, new_payee no, customer_says I paid for goods that never arrived., limit 85000, age_band 75+, income_band 15-25k
-classification merchant
-merchantNote Merchant note: goods dispatched; delivery attempted twice; customer not at home., pattern an ordinary card-present purchase; the merchant is established, device the…”
-- **thought** — It thought (1314 in, 105 out; tool_call; 17 s at the provider).
-- **thought** — It decided: “I have the investigation results on the desk: the merchant note says goods were dispatched and delivery was attempted twice, but the customer wasn't home. The customer claims goods never arrived. This looks like a merchant dispute where the merchant has evidence of attempted delivery. I should decide based on this information.” — decide {"outcome":"decline","reasons":["merchant-dispute"]}
-- **did** — It did decide {"outcome":"decline","reasons":["merchant-dispute"]}.
+customer Cyrus Greyling, account acct-bc0afd00, transaction txn-dispute-cust-d95fa82d, amount 231, channel card-not-present, merchant Orrenshaw Travel, made_by_customer no, new_payee no, customer_says I did not make this payment., limit 85000, age_band 65-74, income_band 15-25k
+rule: The bank's reimbursement rule. Classify the dispute from the claim: if the customer did not make the payment it is unauthorised; if the customer made it by faster payment or transfer to a new payee it is…”
+- **thought** — It thought (1458 in, 89 out; tool_call; 13 s at the provider).
+- **thought** — It decided: “I see the customer claims they did not make the payment, and the classification is already set to "unauthorised". The payment was made on a new device, abroad, at night, which supports the unauthorised claim. Since it's classified as unauthorised, I should reimburse it in full according to the rules. Let me proceed with the reimbursement.” — reimburse {}
+- **did** — It did reimburse {}.
   - On behalf of BambleweenyOne (service).
-- **result** — The world answered: Decision: decline — merchant-dispute.
-- **said** — The customer was told disputes/app-reimbursement (words digest e5865f8387ca…).
-- **stage** — Stage decision ended ok; 0 of 0 checks stopped it.
+- **result** — The world answered: £231 reimbursed to the customer’s account. This cannot be undone.
+- **stage** — Stage reimburse ended ok; 0 of 1 checks stopped it.
 
 ## How it ended
 
@@ -50,9 +46,9 @@ merchantNote Merchant note: goods dispatched; delivery attempted twice; customer
       "kind": "verdict",
       "title": "Verdict (truth)",
       "fields": {
-        "label": "should-decline",
-        "classification": "class-merchant",
-        "reasons": "why-merchant-dispute"
+        "label": "should-reimburse",
+        "classification": "class-unauthorised",
+        "reasons": "why-unauthorised-payment"
       }
     },
     {
@@ -65,13 +61,13 @@ merchantNote Merchant note: goods dispatched; delivery attempted twice; customer
     }
   ],
   "cohort": {
-    "ageBand": "75+",
+    "ageBand": "65-74",
     "incomeBand": "15-25k"
   },
   "facts": {
-    "verdict": "should-decline",
-    "classification": "class-merchant",
-    "amount": 194,
+    "verdict": "should-reimburse",
+    "classification": "class-unauthorised",
+    "amount": 231,
     "limit": 85000,
     "scamPattern": false
   }
