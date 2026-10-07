@@ -7,7 +7,14 @@ import {
 	type DeskTruth
 } from '@craftabot/desk';
 import { bankCase, bankExtra, bankRecords, persona, type BankCase } from '@craftabot/pack-fs-bank';
-import { ACK_TICKS, FINAL_TICKS, mark, type ComplaintsExtra, type RootCause } from './extra.js';
+import {
+	ACK_TICKS,
+	FINAL_TICKS,
+	UPHELD_CATEGORIES,
+	mark,
+	type ComplaintsExtra,
+	type RootCause
+} from './extra.js';
 import { complaintsStrings } from './strings.js';
 
 /**
@@ -319,6 +326,14 @@ export function complaintCaseFromItem(random: () => number, item: WorkItem): Com
 				? { ...record, title: customer.name.full }
 				: record
 	);
+	// The rule the root-cause card enforces, on the file the bot reads (WP193, D8).
+	const register: DeskRecord = {
+		id: 'register-rule',
+		kind: 'notice',
+		title: complaintsStrings.records.register.title,
+		classification: 'public',
+		fields: { rule: complaintsStrings.records.register.rule([...UPHELD_CATEGORIES].sort()) }
+	};
 	const extra: ComplaintsExtra = {
 		...built.extra,
 		bank: { ...built.bank, customer },
@@ -330,12 +345,12 @@ export function complaintCaseFromItem(random: () => number, item: WorkItem): Com
 	};
 	return {
 		...built,
-		revealed,
+		revealed: [...revealed, register],
 		queue: built.queue.map((entry) => ({
 			...entry,
 			id: complaintId,
 			title: complaintsStrings.queue.handle(complaintId),
-			recordIds: [complaintId, 'transaction-concerned', 'customer-summary']
+			recordIds: [complaintId, 'transaction-concerned', 'customer-summary', 'register-rule']
 		})),
 		activeCaseId: complaintId,
 		extra,

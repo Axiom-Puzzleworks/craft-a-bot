@@ -30,7 +30,12 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SPARK_CONFIG = 'packages/packs/dgx-spark/craftabot.config.mjs';
 
 /** Live designs whose recording no longer matches the desk on purpose, until re-recorded (113-… WP194). Empty means none. */
-export const PENDING_RE_RECORD = new Set([]);
+export const PENDING_RE_RECORD = new Set([
+	// WP193: the desk's own words changed (fraud's alert ids and its call sense, advice's check-suitability, the complaints file's register rule).
+	'complaints-stack-live',
+	'fraud-stack-live',
+	'advice-context-live'
+]);
 
 /** What a replay of a cell-scoped recording must not show: a cell off its recorded path, an unasked call, a divergence. */
 export function replayProblems(reports) {

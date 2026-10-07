@@ -218,3 +218,55 @@ describe('the Fraud Desk (WP62 stage A)', () => {
 		expect(texts.filter(([, text]) => text.includes('pack-fs-advice'))).toEqual([]);
 	});
 });
+
+describe('naming an alert as the queue shows it (WP193)', () => {
+	it('understands an alert by its id, its number, or the label the queue prints — the 756 failed calls of the first live recording', () => {
+		for (const name of [
+			'alert-1',
+			'1',
+			'Alert 1',
+			'alert 1',
+			'Alert 1: -£52 Juniper Outfitters at 08:33'
+		]) {
+			const world = create();
+			expect(world.perform(call('open-alert', { alertId: name })).ok, `open ${name}`).toBe(true);
+			expect(snapshot(world).activeCaseId).toBe('alert-1');
+		}
+		const decided = create();
+		expect(
+			decided.perform(call('hold', { alertId: 'Alert 2', reason: 'New payee at night.' })).ok
+		).toBe(true);
+		expect(snapshot(decided).extra.ledger.heldPayments).toEqual(['alert-2']);
+		const filed = create();
+		expect(
+			filed.perform(call('file-sar', { alertId: 'Alert 5: something', reason: 'Takeover.' })).ok
+		).toBe(true);
+		expect(snapshot(filed).extra.fraud.sars).toEqual(['alert-5']);
+	});
+
+	it('on a miss, lists the ids on the desk and says how to name one', () => {
+		const world = create();
+		for (const action of ['open-alert', 'hold', 'file-sar']) {
+			const result = world.perform(call(action, { alertId: 'Alert 99', reason: 'x' }));
+			expect(result.ok).toBe(false);
+			expect(result.narration).toContain('No alert “Alert 99” in the queue.');
+			expect(result.narration).toContain('alert-1, alert-2');
+			expect(result.narration).toContain('Name one by its id, as in alert-1.');
+		}
+		// A name that is no alert at all is a miss, not a crash.
+		expect(world.perform(call('open-alert', { alertId: 'the big one' })).ok).toBe(false);
+	});
+
+	it('tells a bot on the screen, not by failing, that there is no call to verify when none is connected', () => {
+		const channel = [qualifyFraudId('call')];
+		const quiet = create('queue-mixed').observe(channel).text;
+		expect(quiet).toContain('No call is connected, so there is no caller to verify.');
+		expect(quiet).toContain('The customer hears what you say.');
+		// A layout with a call says nothing of the kind.
+		expect(create('call-distressed').observe(channel).text).not.toContain('No call is connected');
+		// And the failure, if a bot tries anyway, says the same.
+		expect(create('queue-mixed').perform(call('verify-caller', {})).narration).toContain(
+			'no call is connected'
+		);
+	});
+});

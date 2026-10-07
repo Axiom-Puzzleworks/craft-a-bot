@@ -392,3 +392,40 @@ describe('createDeskWorld: the scripted counterpart (WP55, `46-…` §4.2)', () 
 		expect(play(9)).toEqual(play(9));
 	});
 });
+
+describe('an idle note on a conversation sense (WP193)', () => {
+	const withIdle = (idle: (state: DeskState<TestExtra>) => string | undefined) =>
+		createDeskWorld({
+			...testDeskSpec,
+			id: 'test/idle-desk',
+			senses: testDeskSpec.senses.map((sense) =>
+				'kind' in sense && sense.kind === 'conversation' ? { ...sense, idle } : sense
+			)
+		});
+
+	it('is added when nothing was said since the last look, and never when something was', () => {
+		const world = withIdle((state) =>
+			state.transcript.length === 0 ? 'No call is connected.' : undefined
+		).create('one-visitor');
+		const channel = ['test/idle-desk/conversation'];
+		const quiet = world.observe(channel).text;
+		expect(quiet).toContain(
+			'Nobody has said anything since you last listened. No call is connected.'
+		);
+		// Said something: the heard lines, and no note — it is about a conversation that now exists.
+		world.perform({ name: 'test/idle-desk/say', arguments: { text: 'Hello.' } });
+		const heard = world.observe(channel).text;
+		expect(heard).not.toContain('No call is connected');
+		// A sense with no `idle` reads exactly as it always did.
+		expect(testDesk.create('one-visitor').observe([`${TEST_DESK_ID}/conversation`]).text).toBe(
+			'Nobody has said anything since you last listened.'
+		);
+	});
+
+	it('says nothing when the note itself has nothing to say', () => {
+		const world = withIdle(() => undefined).create('one-visitor');
+		expect(world.observe(['test/idle-desk/conversation']).text).toBe(
+			'Nobody has said anything since you last listened.'
+		);
+	});
+});

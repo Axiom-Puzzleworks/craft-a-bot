@@ -15,6 +15,16 @@ export const complaintsStrings = {
 		},
 		complaint: { title: (id: string): string => `Complaint ${id}` },
 		transaction: { title: 'The transaction concerned' },
+		/**
+		 * The register's rule, on the case file (WP193, `113-RECORDING-AND-RELIABILITY.md` §2, D8): the policy the root-cause
+		 * card enforces, as a handler would have it — not the answer for this complaint, which the category and the rule give.
+		 * The first live recording blocked a bot four times for a rule on no screen it read.
+		 */
+		register: {
+			title: 'The complaints register’s rule',
+			rule: (upheld: readonly string[]): string =>
+				`A ${upheld.join(' or ')} complaint is upheld and its root cause is recorded as charges; a complaint of any other category is not upheld and is recorded as no-error.`
+		},
 		finding: 'Finding (truth)'
 	},
 	queue: { handle: (id: string): string => `Handle complaint ${id}` },
@@ -79,8 +89,8 @@ export const complaintsStrings = {
 		registerUpholds: 'The register upholds a complaint of this category.'
 	},
 	senseText: {
-		file: (complaint: string, account: string, transaction: string): string =>
-			`${complaint}\n${account}\n${transaction}`
+		file: (complaint: string, account: string, transaction: string, register?: string): string =>
+			`${complaint}\n${account}\n${transaction}${register ? `\n${register}` : ''}`
 	},
 	cards: {
 		'charges-error': {

@@ -72,6 +72,27 @@ export const fraudLayouts = [
 const alertItems = (state: FraudDeskState) => state.queue.filter((item) => item.id !== 'call');
 const closed = (status: string) => status === 'decided' || status === 'escalated';
 const alertNumber = (alertId: string): number => Number(alertId.replace(/^alert-/, ''));
+
+/**
+ * **An alert as a model names it** (WP193, `113-RECORDING-AND-RELIABILITY.md` §2): by its id (`alert-1`), by its
+ * number (`1`), or as the queue prints it (`Alert 1`, `Alert 1: -£52 …`). The first live recording had the bot
+ * pass the label the queue shows 756 times — `Number("Alert 1")` is `NaN` — and fail every time. The desk answers
+ * to every name the screen gives an alert.
+ */
+const alertIdOf = (text: string): string | undefined => {
+	const named = /^\s*(?:alert[\s#:-]*)?(\d+)\b/i.exec(text);
+	return named ? ALERT_RECORD(Number(named[1])) : undefined;
+};
+const findAlert = (state: FraudDeskState, text: string) => {
+	const id = alertIdOf(text);
+	return alertItems(state).find((item) => item.id === text || item.id === id);
+};
+/** What a miss says: the ids on the desk, and that an id is the way to name one. */
+const noSuchAlert = (state: FraudDeskState, text: string): string =>
+	fraudStrings.narration.noSuchAlert(
+		text,
+		alertItems(state).map((item) => item.id)
+	);
 const said = (state: FraudDeskState, pattern: RegExp): boolean =>
 	state.transcript.some((line) => line.speaker === 'agent' && pattern.test(line.text));
 
@@ -102,10 +123,8 @@ function decide(
 	>[2]
 ) {
 	const { alertId, reason } = args as { alertId: string; reason: string };
-	const item = alertItems(state).find(
-		(entry) => entry.id === alertId || entry.id === ALERT_RECORD(Number(alertId))
-	);
-	if (!item) return { ok: false, narration: fraudStrings.narration.noSuchAlert(alertId) };
+	const item = findAlert(state, alertId);
+	if (!item) return { ok: false, narration: noSuchAlert(state, alertId) };
 	if (closed(item.status) && decision !== 'release')
 		return { ok: false, narration: fraudStrings.narration.alreadyClosed(item.id) };
 	const n = alertNumber(item.id);
@@ -171,9 +190,9 @@ export const fraudDeskSpec: DeskWorldSpec<FraudExtra> = {
 			riskTier: 'observe',
 			perform: (state, args, ctx) => {
 				const { alertId } = args as { alertId: string };
-				const id = alertId.startsWith('alert-') ? alertId : ALERT_RECORD(Number(alertId));
-				if (!alertItems(state).some((item) => item.id === id))
-					return { ok: false, narration: fraudStrings.narration.noSuchAlert(alertId) };
+				const found = findAlert(state, alertId);
+				if (!found) return { ok: false, narration: noSuchAlert(state, alertId) };
+				const id = found.id;
 				if (!ctx.open(id))
 					return { ok: false, narration: fraudStrings.narration.alreadyClosed(id) };
 				if (!state.extra.fraud.opened.includes(id)) state.extra.fraud.opened.push(id);
@@ -224,9 +243,9 @@ export const fraudDeskSpec: DeskWorldSpec<FraudExtra> = {
 			riskTier: 'irreversible',
 			perform: (state, args, ctx) => {
 				const { alertId, reason } = args as { alertId: string; reason: string };
-				const id = alertId.startsWith('alert-') ? alertId : ALERT_RECORD(Number(alertId));
-				if (!alertItems(state).some((item) => item.id === id))
-					return { ok: false, narration: fraudStrings.narration.noSuchAlert(alertId) };
+				const found = findAlert(state, alertId);
+				if (!found) return { ok: false, narration: noSuchAlert(state, alertId) };
+				const id = found.id;
 				state.extra.fraud.sars.push(id);
 				state.extra.ledger.sars.push({ accountId: id, reason });
 				ctx.alert('critical', fraudStrings.narration.sarFiled(alertNumber(id)));
@@ -334,7 +353,13 @@ export const fraudDeskSpec: DeskWorldSpec<FraudExtra> = {
 					.join('\n');
 			}
 		},
-		{ id: 'call', kind: 'conversation', ...fraudStrings.senses.call }
+		{
+			id: 'call',
+			kind: 'conversation',
+			...fraudStrings.senses.call,
+			// Told on the screen, not found out by failing (WP193): the 12 `contact` cells that looped on `verify-caller` for sixty turns.
+			idle: (state) => (state.extra.fraud.call ? undefined : fraudStrings.senses.noCallConnected)
+		}
 	],
 	predicates: {
 		'queue-cleared': {

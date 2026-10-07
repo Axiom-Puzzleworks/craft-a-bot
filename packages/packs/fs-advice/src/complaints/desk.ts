@@ -220,10 +220,13 @@ export const complaintsDeskSpec: DeskWorldSpec<ComplaintsExtra> = {
 								.map(([key, value]) => `${key}: ${String(value)}`)
 								.join('; ')
 						: '';
+				// The register's rule, for a complaint that came from it (WP193): the policy the root-cause card enforces.
+				const register = state.records.find((record) => record.id === 'register-rule');
 				return complaintsStrings.senseText.file(
 					line(complaint),
 					`status: ${state.extra.ledger.complaints.find((e) => e.id === c.complaintId)?.status ?? 'open'}`,
-					line(transaction)
+					line(transaction),
+					register ? line(register) : undefined
 				);
 			}
 		}

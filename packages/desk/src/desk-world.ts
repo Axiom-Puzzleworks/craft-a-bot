@@ -186,7 +186,18 @@ export type DeskActionSpec<Extra = Record<string, unknown>> =
 
 export type DeskSenseSpec<Extra = Record<string, unknown>> =
 	/** The runtime's own senses over its own state. */
-	| { id: string; kind: 'conversation' | 'case-file' | 'queue'; name: string; description: string }
+	| {
+			id: string;
+			kind: 'conversation' | 'case-file' | 'queue';
+			name: string;
+			description: string;
+			/**
+			 * What to add when a conversation sense has nothing new to say (WP193): a line about the conversation's own state —
+			 * that no call is connected, say — so a bot is told what the screen shows before it acts on a call that is not there.
+			 * Only read on a `conversation` sense, and only when nothing was said since the last look.
+			 */
+			idle?: (state: DeskState<Extra>) => string | undefined;
+	  }
 	| {
 			id: string;
 			name: string;
@@ -690,7 +701,10 @@ export function createDeskWorld<Extra = Record<string, unknown>>(
 				let text: string | undefined;
 				if (isBuiltInSense(sense)) {
 					if (sense.kind === 'conversation') {
-						text = conversationSince(cursor);
+						const heard = conversationSince(cursor);
+						const idle =
+							heard === runtimeStrings.observation.nothingSaid ? sense.idle?.(state) : undefined;
+						text = idle === undefined ? heard : `${heard} ${idle}`;
 					} else if (sense.kind === 'case-file') {
 						text = runtimeStrings.observation.caseFile(state.records);
 					} else {
